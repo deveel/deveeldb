@@ -1,0 +1,6 @@
+Name: deveeldb-nunit
+Description: deveeldb-nunit
+Version: 0.1
+
+Requires: 
+Libs: -r:@expanded_libdir@/@PACKAGE@/deveeldb-nunit.dll
