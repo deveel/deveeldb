@@ -1,0 +1,63 @@
+// 
+//  CompleteTransactionStatement.cs
+//  
+//  Author:
+//       Antonello Provenzano <antonello@deveel.com>
+//       Tobias Downer <toby@mckoi.com>
+//  
+//  Copyright (c) 2009 Deveel
+// 
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+// 
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
+
+namespace Deveel.Data.Sql {
+	/// <summary>
+	/// This represents either a <c>COMMIT</c> or <c>ROLLBACK</c> SQL command.
+	/// </summary>
+	public class CompleteTransactionStatement : Statement {
+		private String command;  // This is set to either 'commit' or 'rollback'
+
+		// ---------- Implemented from Statement ----------
+
+		/// <inheritdoc/>
+		public override void Prepare() {
+			command = (String)cmd.GetObject("command");
+		}
+
+		/// <inheritdoc/>
+		public override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(database);
+
+			if (command.Equals("commit")) {
+				//      try {
+				// Commit the current transaction on this connection.
+				database.Commit();
+				//      }
+				//      catch (TransactionException e) {
+				//        // This needs to be handled better!
+				//        Debug.WriteException(e);
+				//        throw new DatabaseException(e.getMessage());
+				//      }
+				return FunctionTable.ResultTable(context, 0);
+			} else if (command.Equals("rollback")) {
+				// Rollback the current transaction on this connection.
+				database.Rollback();
+				return FunctionTable.ResultTable(context, 0);
+			} else {
+				throw new ApplicationException("Unrecognised transaction completion command.");
+			}
+		}
+	}
+}
