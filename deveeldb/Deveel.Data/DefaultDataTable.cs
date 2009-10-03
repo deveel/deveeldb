@@ -1,0 +1,264 @@
+// 
+//  DefaultDataTable.cs
+//  
+//  Author:
+//       Antonello Provenzano <antonello@deveel.com>
+//       Tobias Downer <toby@mckoi.com>
+//  
+//  Copyright (c) 2009 Deveel
+// 
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+// 
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
+
+using Deveel.Data.Collections;
+
+namespace Deveel.Data {
+	/// <summary>
+	/// Represents a default implementation of a <see cref="DataTable"/>.
+	/// </summary>
+	/// <remarks>
+	/// It encapsulates information that is core to all <see cref="DataTable"/> 
+	/// objects:
+	/// <list type="bullet">
+	/// <item>The table name</item>
+	/// <item>The description of the table fields</item>
+	/// <item>A set of <see cref="SelectableScheme"/> objects to describe row 
+	/// relations</item>
+	/// <item>A counter for the number of rows in the table</item>
+	/// </list>
+	/// <para>
+	/// Extenders of this class can be tables directly mapping to internal 
+	/// internal tables stored in the Database files (<see cref="DataTable"/>), 
+	/// or tables that contains information generated on the fly by the DBMS 
+	/// (<see cref="TemporaryTable"/>).
+	/// </para>
+	/// </remarks>
+	public abstract class DefaultDataTable : DataTableBase {
+		/// <summary>
+		/// The Database object that this table is a child of.
+		/// </summary>
+		private readonly Database database;
+
+		/// <summary>
+		/// The number of rows in the table.
+		/// </summary>
+		protected int row_count;
+
+		/// <summary>
+		/// A list of schemes for managing the data relations of each column.
+		/// </summary>
+		private SelectableScheme[] column_scheme;
+
+		internal DefaultDataTable(Database database) {
+			this.database = database;
+			row_count = 0;
+		}
+
+		/// <summary>
+		/// Returns the Database object this table is part of.
+		/// </summary>
+		public override Database Database {
+			get { return database; }
+		}
+
+		/// <summary>
+		/// Returns the <see cref="SelectableScheme"/> for the given column 
+		/// index.
+		/// </summary>
+		/// <param name="column"></param>
+		/// <remarks>
+		/// This is different from <see cref="GetSelectableSchemeFor"/> because this 
+		/// is designed to be overridden so derived classes can manage their own 
+		/// <see cref="SelectableScheme"/> sources.
+		/// </remarks>
+		/// <returns></returns>
+		protected virtual SelectableScheme GetRootColumnScheme(int column) {
+			return column_scheme[column];
+		}
+
+		/// <summary>
+		/// Clears the <see cref="SelectableScheme"/> information for the given 
+		/// column index.
+		/// </summary>
+		/// <param name="column">Index of the clumn to clear the scheme.</param>
+		protected void ClearColumnScheme(int column) {
+			column_scheme[column] = null;
+		}
+
+		/// <summary>
+		/// Blanks all the column schemes in the table to an initial state.
+		/// </summary>
+		/// <remarks>
+		/// This will make all schemes of type <see cref="InsertSearch"/>.
+		/// <para>
+		/// <b>Note</b> The current default selectable scheme type is 
+		/// <see cref="InsertSearch"/>. We may want to make this variable.
+		/// </para>
+		/// </remarks>
+		protected void BlankSelectableSchemes() {
+			BlankSelectableSchemes(0);
+		}
+
+		/// <summary>
+		/// Blanks all the column schemes in this table to a specific 
+		/// type of scheme.
+		/// </summary>
+		/// <param name="type">The type of the new scheme to set. If 0 
+		/// then <see cref="InsertSearch"/> (fast but takes up memory - 
+		/// requires each insert and delete from the table to be logged). 
+		/// If 1 then <see cref="BlindSearch"/> (slower but uses no memory 
+		/// and doesn't require insert and delete to be logged).</param>
+		protected virtual void BlankSelectableSchemes(int type) {
+			column_scheme = new SelectableScheme[ColumnCount];
+			for (int i = 0; i < column_scheme.Length; ++i) {
+				if (type == 0) {
+					column_scheme[i] = new InsertSearch(this, i);
+				} else if (type == 1) {
+					column_scheme[i] = new BlindSearch(this, i);
+				}
+			}
+		}
+
+		/// <inheritdoc/>
+		public override int ColumnCount {
+			get { return DataTableDef.ColumnCount; }
+		}
+
+		/// <inheritdoc/>
+		public override int RowCount {
+			get { return row_count; }
+		}
+
+		/// <inheritdoc/>
+		public override Variable GetResolvedVariable(int column) {
+			String col_name = DataTableDef[column].Name;
+			return new Variable(TableName, col_name);
+		}
+
+		/// <inheritdoc/>
+		public override int FindFieldName(Variable v) {
+			// Check this is the correct table first...
+			TableName table_name = v.TableName;
+			DataTableDef table_def = DataTableDef;
+			if (table_name != null && table_name.Equals(TableName)) {
+				// Look for the column name
+				String col_name = v.Name;
+				int size = ColumnCount;
+				for (int i = 0; i < size; ++i) {
+					DataTableColumnDef col = table_def[i];
+					if (col.Name.Equals(col_name)) {
+						return i;
+					}
+				}
+			}
+			return -1;
+		}
+
+
+		/// <inheritdoc/>
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column,
+												Table table) {
+			SelectableScheme scheme = GetRootColumnScheme(column);
+
+			//    Console.Out.WriteLine("DefaultDataTable.GetSelectableSchemaFor(" +
+			//                       column + ", " + original_column + ", " + table);
+
+			//    Console.Out.WriteLine(this);
+
+			// If we are getting a scheme for this table, simple return the information
+			// from the column_trees Vector.
+			if (table == this)
+				return scheme;
+
+			// Otherwise, get the scheme to calculate a subset of the given scheme.
+			return scheme.GetSubsetScheme(table, original_column);
+		}
+
+		/// <inheritdoc/>
+		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
+								 ITableDataSource ancestor) {
+			if (ancestor != this) {
+				throw new Exception("Method routed to incorrect table ancestor.");
+			}
+		}
+
+		/// <inheritdoc/>
+		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
+			Console.Error.WriteLine("Efficiency Warning in DataTable.ResolveToRawTable.");
+			IntegerVector row_set = new IntegerVector();
+			IRowEnumerator e = GetRowEnumerator();
+			while (e.MoveNext()) {
+				row_set.AddInt(e.RowIndex);
+			}
+			info.Add(this, row_set);
+			return info;
+		}
+
+		/* ===== Convenience methods for updating internal information =====
+		   =============== regarding the SelectableSchemes ================= */
+
+		/// <summary>
+		/// Adds a single column of a row to the selectable scheme indexing.
+		/// </summary>
+		/// <param name="row_number"></param>
+		/// <param name="column_number"></param>
+		internal void AddCellToColumnSchemes(int row_number, int column_number) {
+			bool indexable_type =
+						 DataTableDef[column_number].IsIndexableType;
+			if (indexable_type) {
+				SelectableScheme ss = GetRootColumnScheme(column_number);
+				ss.Insert(row_number);
+			}
+		}
+
+		/// <summary>
+		/// This is called when a row is in the table, and the SelectableScheme
+		/// objects for each column need to be notified of the rows existance,
+		/// therefore build up the relational model for the columns.
+		/// </summary>
+		/// <param name="row_number"></param>
+		internal void AddRowToColumnSchemes(int row_number) {
+			int col_count = ColumnCount;
+			DataTableDef table_def = DataTableDef;
+			for (int i = 0; i < col_count; ++i) {
+				if (table_def[i].IsIndexableType) {
+					SelectableScheme ss = GetRootColumnScheme(i);
+					ss.Insert(row_number);
+				}
+			}
+		}
+
+		/// <summary>
+		/// This is called when an index to a row needs to be removed from the
+		/// SelectableScheme objects.
+		/// </summary>
+		/// <param name="row_number"></param>
+		/// <remarks>
+		/// This occurs when we have a modification log of row removals that haven't 
+		/// actually happened to old backed up scheme.
+		/// </remarks>
+		internal void removeRowToColumnSchemes(int row_number) {
+			int col_count = ColumnCount;
+			DataTableDef table_def = DataTableDef;
+			for (int i = 0; i < col_count; ++i) {
+				if (table_def[i].IsIndexableType) {
+					SelectableScheme ss = GetRootColumnScheme(i);
+					ss.Remove(row_number);
+				}
+			}
+		}
+
+	}
+}

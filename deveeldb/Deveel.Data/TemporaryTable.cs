@@ -1,0 +1,318 @@
+// 
+//  TemporaryTable.cs
+//  
+//  Author:
+//       Antonello Provenzano <antonello@deveel.com>
+//       Tobias Downer <toby@mckoi.com>
+//  
+//  Copyright (c) 2009 Deveel
+// 
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+// 
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
+using System.Collections;
+
+using Deveel.Diagnostics;
+
+namespace Deveel.Data {
+	/// <summary>
+	/// This class represents a temporary table that is built from data that is 
+	/// not related to any underlying <see cref="DataTable"/> object from the database.
+	/// </summary>
+	/// <remarks>
+	/// For example, an aggregate function generates data would be write 
+	/// into a <see cref="TemporaryTable"/>.
+	/// </remarks>
+	public sealed class TemporaryTable : DefaultDataTable {
+		/// <summary>
+		/// The DataTableDef object that describes the columns in this table.
+		/// </summary>
+		private readonly DataTableDef table_def;
+
+		/// <summary>
+		/// A list that represents the storage of TObject[] arrays for each row of the table.
+		/// </summary>
+		private readonly ArrayList table_storage;
+
+		///<summary>
+		///</summary>
+		///<param name="database"></param>
+		///<param name="name"></param>
+		///<param name="fields"></param>
+		public TemporaryTable(Database database, String name, DataTableColumnDef[] fields)
+			: base(database) {
+
+			table_storage = new ArrayList();
+
+			table_def = new DataTableDef();
+			table_def.TableName = new TableName(null, name);
+			for (int i = 0; i < fields.Length; ++i) {
+				table_def.AddVirtualColumn(new DataTableColumnDef(fields[i]));
+			}
+			table_def.SetImmutable();
+		}
+
+		/// <summary>
+		/// Constructs this <see cref="TemporaryTable"/> based on the 
+		/// fields from the given <see cref="Table"/> object.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="based_on"></param>
+		public TemporaryTable(String name, Table based_on)
+			: base(based_on.Database) {
+
+			table_def = new DataTableDef(based_on.DataTableDef);
+			table_def.TableName = new TableName(null, name);
+			table_def.SetImmutable();
+		}
+
+		/// <summary>
+		/// Constructs this <see cref="TemporaryTable"/> based on the given 
+		/// <see cref="Table"/> object.
+		/// </summary>
+		/// <param name="based_on"></param>
+		public TemporaryTable(Table based_on)
+			: base(based_on.Database) {
+
+			table_def = new DataTableDef(based_on.DataTableDef);
+			table_def.SetImmutable();
+		}
+
+
+
+		/* ====== Methods that are only for TemporaryTable interface ====== */
+
+		/// <summary>
+		/// Resolves the given column name (eg 'id' or 'Customer.id' or 
+		/// 'default.Customer.id') to a column in this table.
+		/// </summary>
+		/// <param name="col_name"></param>
+		/// <returns></returns>
+		private Variable ResolveToVariable(String col_name) {
+			Variable partial = Variable.Resolve(col_name);
+			return partial;
+			//    return partial.ResolveTableName(TableName.Resolve(Name));
+		}
+
+		/// <summary>
+		/// Creates a new row where cells can be inserted into.
+		/// </summary>
+		public void NewRow() {
+			table_storage.Add(new TObject[ColumnCount]);
+			++row_count;
+		}
+
+		///<summary>
+		/// Sets the cell in the given column / row to the given value.
+		///</summary>
+		///<param name="cell"></param>
+		///<param name="column"></param>
+		///<param name="row"></param>
+		public void SetRowCell(TObject cell, int column, int row) {
+			TObject[] cells = (TObject[])table_storage[row];
+			cells[column] = cell;
+		}
+
+		///<summary>
+		/// Sets the cell in the column of the last row of this table to 
+		/// the given <see cref="TObject"/>.
+		///</summary>
+		///<param name="cell"></param>
+		///<param name="col_name"></param>
+		public void SetRowCell(TObject cell, String col_name) {
+			Variable v = ResolveToVariable(col_name);
+			SetRowCell(cell, FindFieldName(v), row_count - 1);
+		}
+
+		///<summary>
+		/// Sets the cell in the column of the last row of this table to 
+		/// the given TObject.
+		///</summary>
+		///<param name="ob"></param>
+		///<param name="col_index"></param>
+		///<param name="row"></param>
+		public void SetRowObject(TObject ob, int col_index, int row) {
+			SetRowCell(ob, col_index, row);
+		}
+
+		///<summary>
+		/// Sets the cell in the column of the last row of this table to 
+		/// the given TObject.
+		///</summary>
+		///<param name="ob"></param>
+		///<param name="col_name"></param>
+		public void SetRowObject(TObject ob, String col_name) {
+			Variable v = ResolveToVariable(col_name);
+			SetRowObject(ob, FindFieldName(v));
+		}
+
+		///<summary>
+		/// Sets the cell in the column of the last row of this table to 
+		/// the given TObject.
+		///</summary>
+		///<param name="ob"></param>
+		///<param name="col_index"></param>
+		public void SetRowObject(TObject ob, int col_index) {
+			SetRowObject(ob, col_index, row_count - 1);
+		}
+
+		/// <summary>
+		/// Copies the cell from the given table (src_col, src_row) to the 
+		/// last row of the column specified of this table.
+		/// </summary>
+		/// <param name="table"></param>
+		/// <param name="src_col"></param>
+		/// <param name="src_row"></param>
+		/// <param name="to_col"></param>
+		public void SetCellFrom(Table table, int src_col, int src_row,
+								String to_col) {
+			Variable v = ResolveToVariable(to_col);
+			TObject cell = table.GetCellContents(src_col, src_row);
+			SetRowCell(cell, FindFieldName(v), row_count - 1);
+		}
+
+		/// <summary>
+		/// Copies the contents of the row of the given Table onto the end of 
+		/// this table.
+		/// </summary>
+		/// <param name="table"></param>
+		/// <param name="row"></param>
+		/// <remarks>
+		/// Only copies columns that exist in both tables.
+		/// </remarks>
+		public void CopyFrom(Table table, int row) {
+			NewRow();
+
+			Variable[] vars = new Variable[table.ColumnCount];
+			for (int i = 0; i < vars.Length; ++i) {
+				vars[i] = table.GetResolvedVariable(i);
+			}
+
+			for (int i = 0; i < ColumnCount; ++i) {
+				Variable v = GetResolvedVariable(i);
+				String col_name = v.Name;
+				try {
+					int tcol_index = -1;
+					for (int n = 0; n < vars.Length || tcol_index == -1; ++n) {
+						if (vars[n].Name.Equals(col_name)) {
+							tcol_index = n;
+						}
+					}
+					SetRowCell(table.GetCellContents(tcol_index, row), i, row_count - 1);
+				} catch (Exception e) {
+					Debug.WriteException(e);
+					throw new ApplicationException(e.Message);
+				}
+			}
+
+		}
+
+
+		/// <summary>
+		/// This should be called if you want to perform table operations on 
+		/// this TemporaryTable.
+		/// </summary>
+		/// <remarks>
+		/// It should be called *after* all the rows have been set.
+		/// It generates SelectableScheme object which sorts the columns of 
+		/// the table and lets us execute Table operations on this table.
+		/// <b>Note</b> After this method is called, the table must not change 
+		/// in any way.
+		/// </remarks>
+		public void SetupAllSelectableSchemes() {
+			BlankSelectableSchemes(1);   // <- blind search
+			for (int row_number = 0; row_number < row_count; ++row_number) {
+				AddRowToColumnSchemes(row_number);
+			}
+		}
+
+		/* ====== Methods that are implemented for Table interface ====== */
+
+		/// <inheritdoc/>
+		public override DataTableDef DataTableDef {
+			get { return table_def; }
+		}
+
+		/// <inheritdoc/>
+		public override TObject GetCellContents(int column, int row) {
+			TObject[] cells = (TObject[])table_storage[row];
+			TObject cell = cells[column];
+			if (cell == null) {
+				throw new ApplicationException("NULL cell!  (" + column + ", " + row + ")");
+			}
+			return cell;
+		}
+
+		/// <inheritdoc/>
+		public override IRowEnumerator GetRowEnumerator() {
+			return new SimpleRowEnumerator(row_count);
+		}
+
+		/// <inheritdoc/>
+		internal override void AddDataTableListener(IDataTableListener listener) {
+			// Nothing to be notified on with a Temporary table...
+		}
+
+		/// <inheritdoc/>
+		internal override void RemoveDataTableListener(IDataTableListener listener) {
+			// No listeners can be in a TemporaryTable.
+		}
+
+		/// <inheritdoc/>
+		public override void LockRoot(int lock_key) {
+			// We don't need to do anything for temporary tables, because they have
+			// no root to Lock.
+		}
+
+		/// <inheritdoc/>
+		public override void UnlockRoot(int lock_key) {
+			// We don't need to do anything for temporary tables, because they have
+			// no root to unlock.
+		}
+
+		/// <inheritdoc/>
+		public override bool HasRootsLocked {
+			get {
+				// A temporary table _always_ has its roots locked.
+				return true;
+			}
+		}
+
+
+		// ---------- Static convenience methods ----------
+
+		/// <summary>
+		/// Creates a table with a single column with the given name and type.
+		/// </summary>
+		/// <param name="database"></param>
+		/// <param name="col_name"></param>
+		/// <param name="c"></param>
+		/// <returns></returns>
+		internal static TemporaryTable SingleColumnTable(Database database, String col_name, Type c) {
+			TType ttype = TType.FromType(c);
+			DataTableColumnDef col_def = new DataTableColumnDef();
+			col_def.Name = col_name;
+			col_def.SetFromTType(ttype);
+			TemporaryTable table = new TemporaryTable(database, "single",
+												new DataTableColumnDef[] { col_def });
+
+			//      int type = TypeUtil.ToDbType(c);
+			//      TableField[] fields =
+			//                 { new TableField(col_name, type, Integer.MAX_VALUE, false) };
+			//      TemporaryTable table = new TemporaryTable(database, "single", fields);
+			return table;
+		}
+
+	}
+}
