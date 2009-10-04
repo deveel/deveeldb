@@ -2229,7 +2229,7 @@ namespace Deveel.Data {
 		/// if need be.  Also, we only need to have a certain number of threads 
 		/// active at any one time rather than a unique thread for each connection.
 		/// </remarks>
-		public void Execute(User user, DatabaseConnection database, EventHandler runner) {
+		public void Execute(User user, DatabaseConnection database, IDatabaseEvent runner) {
 			System.Execute(user, database, runner);
 		}
 

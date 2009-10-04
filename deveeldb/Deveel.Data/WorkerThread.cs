@@ -45,7 +45,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The command we are currently processing.
 		/// </summary>
-		private EventHandler command;
+		private IDatabaseEvent command;
 		/// <summary>
 		/// The time the command was started.
 		/// </summary>
@@ -88,7 +88,7 @@ namespace Deveel.Data {
 		/// <param name="user"></param>
 		/// <param name="database_connection"></param>
 		/// <param name="runner"></param>
-		internal void Execute(User user, DatabaseConnection database_connection, EventHandler runner) {
+		internal void Execute(User user, DatabaseConnection database_connection, IDatabaseEvent runner) {
 			// This should help to prevent deadlock
 			lock (this) {
 				if (command == null) {
@@ -113,7 +113,7 @@ namespace Deveel.Data {
 								// Record the time this command was started.
 								start_time = DateTime.Now;
 								// Run the command
-								command(worker_pool.system, EventArgs.Empty);
+								command.Execute();
 							} finally {
 								command = null;
 								// Record the time the command ended.

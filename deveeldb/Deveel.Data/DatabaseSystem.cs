@@ -224,7 +224,7 @@ namespace Deveel.Data {
 		/// of threads active at any one time rather than a unique thread for 
 		/// each connection.
 		/// </remarks>
-		internal void Execute(User user, DatabaseConnection database, EventHandler runner) {
+		internal void Execute(User user, DatabaseConnection database, IDatabaseEvent runner) {
 			worker_pool.Execute(user, database, runner);
 		}
 

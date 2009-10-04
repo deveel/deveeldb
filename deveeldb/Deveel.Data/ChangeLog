@@ -1,8 +1,8 @@
 2009-10-04  Antonello Provenzano  <antonello@deveel.com>
 	* IDatabaseEvent.cs: Created the interface to replace the logic
 	of Database.CreateEevent, from delegate to interface implementation.
-	* Database.cs: modified the parameter of CreateEvent to implement 
-	the new interface logic.
+	* Database.cs: modified the parameter of CreateEvent and Execute
+	methods to implement the new interface logic.
 	* TransactionSystem.cs: modified the parameter of CreateEvent to 
 	implement the new interface logic.
 	* DatabaseDispatcher.cs: 
@@ -18,3 +18,9 @@
 	the new database event interface logic.
 	* TriggerManager.cs: the inner class FireTriggersDelegate
 	now implements the IDatabaseEvent interface.
+	* DatabaseSystem.cs: modified the parameter of the method Execute to
+	support the new database event interface logic.
+	* WorkerPool.cs: modified the parameter of the method Execute to
+	support the new database event interface logic.
+	* WorkerThread.cs: modified the parameter of the method Execute to
+	support the new database event interface logic.
