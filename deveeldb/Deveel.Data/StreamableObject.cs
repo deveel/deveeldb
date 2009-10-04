@@ -1,23 +1,23 @@
-// 
+//  
 //  StreamableObject.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
 //       Tobias Downer <toby@mckoi.com>
-//  
+// 
 //  Copyright (c) 2009 Deveel
 // 
 //  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
+//  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
 // 
 //  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
+//  GNU General Public License for more details.
 // 
-//  You should have received a copy of the GNU Lesser General Public License
+//  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
@@ -66,7 +66,7 @@ namespace Deveel.Data {
 
 
 		///<summary>
-        /// Returns the type of object this stub represents.
+		/// Returns the type of object this stub represents.
 		///</summary>
 		/// <remarks>
 		/// Returns 1 if it represents 2-byte unicde character object, 2 if it represents 
@@ -77,7 +77,7 @@ namespace Deveel.Data {
 		}
 
 		///<summary>
-        /// Returns the size of the object stream, or -1 if the size is unknown.
+		/// Returns the size of the object stream, or -1 if the size is unknown.
 		///</summary>
 		/// <remarks>
 		/// If this represents a unicode character string, you would calculate the 
@@ -88,7 +88,7 @@ namespace Deveel.Data {
 		}
 
 		///<summary>
-        /// Returns an identifier that can identify this object within some context.
+		/// Returns an identifier that can identify this object within some context.
 		///</summary>
 		/// <remarks>
 		/// For example, if this is a streamable object on the client side, then the

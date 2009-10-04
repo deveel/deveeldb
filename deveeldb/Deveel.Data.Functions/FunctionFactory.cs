@@ -1,23 +1,23 @@
-// 
+//  
 //  FunctionFactory.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
 //       Tobias Downer <toby@mckoi.com>
-//  
+// 
 //  Copyright (c) 2009 Deveel
 // 
 //  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Lesser General Public License as published by
+//  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
 // 
 //  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
+//  GNU General Public License for more details.
 // 
-//  You should have received a copy of the GNU Lesser General Public License
+//  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
@@ -159,7 +159,7 @@ namespace Deveel.Data.Functions {
 				// Function not handled by this factory so return null.
 				return null;
 
-			ConstructorInfo fun_constructor = ff_info.getConstructor();
+			ConstructorInfo fun_constructor = ff_info.Constructor;
 			object[] args = new Object[] {parameterss};
 			try {
 				return (IFunction) fun_constructor.Invoke(args);
@@ -248,8 +248,8 @@ namespace Deveel.Data.Functions {
 				get { return type; }
 			}
 
-			public ConstructorInfo getConstructor() {
-				return constructor;
+			public ConstructorInfo Constructor {
+				get { return constructor; }
 			}
 
 			public string FunctionFactoryName {
