@@ -1,0 +1,4 @@
+2009-10-04  Antonello Provenzano  <antonello@deveel.com>
+	* FileSyncUtil.cs: added the support for .NET 1.1 profile
+
+
