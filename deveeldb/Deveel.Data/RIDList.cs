@@ -436,13 +436,21 @@ namespace Deveel.Data {
 				if (!request_processing) {
 					request_processing = true;
 					// Wait 10 seconds to build rid list.
-					system.PostEvent(10000, system.CreateEvent(new EventHandler(CreateRIDCacheEvent)));
+					system.PostEvent(10000, system.CreateEvent(new CreateRIDCacheEventImpl(this)));
 				}
 			}
 		}
-
-		private void CreateRIDCacheEvent(object sender, EventArgs e) {
-			CreateRIDCache();
+		
+		private class CreateRIDCacheEventImpl : IDatabaseEvent {
+			public CreateRIDCacheEventImpl (RIDList rid_list) {
+				this.rid_list = rid_list;
+			}
+			
+			private RIDList rid_list;
+			
+			public void Execute () {
+				rid_list.CreateRIDCache ();
+			}
 		}
 
 		/// <summary>

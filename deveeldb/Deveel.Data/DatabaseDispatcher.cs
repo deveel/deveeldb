@@ -72,7 +72,7 @@ namespace Deveel.Data {
 		/// to service some event.  Just post it on the dispatcher when you want
 		/// it run.
 		/// </remarks>
-		public object CreateEvent(EventHandler runnable) {
+		public object CreateEvent(IDatabaseEvent runnable) {
 			return new DatabaseEvent(runnable);
 		}
 
@@ -142,7 +142,7 @@ namespace Deveel.Data {
 					}
 
 					// 'evt' is our event to run,
-					evt.runnable(system, EventArgs.Empty);
+					evt.runnable.Execute();
 
 				} catch (Exception e) {
 					Debug.Write(DebugLevel.Error, this, "SystemDispatchThread error");
@@ -155,9 +155,9 @@ namespace Deveel.Data {
 
 		class DatabaseEvent : IComparable {
 			internal DateTime time_to_run_event;
-			internal readonly EventHandler runnable;
+			internal readonly IDatabaseEvent runnable;
 
-			internal DatabaseEvent(EventHandler runnable) {
+			internal DatabaseEvent(IDatabaseEvent runnable) {
 				this.runnable = runnable;
 			}
 

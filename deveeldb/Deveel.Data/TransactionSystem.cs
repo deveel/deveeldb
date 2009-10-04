@@ -856,7 +856,7 @@ namespace Deveel.Data {
 		/// it run!
 		/// </remarks>
 		/// <returns></returns>
-		internal Object CreateEvent(EventHandler runnable) {
+		internal Object CreateEvent(IDatabaseEvent runnable) {
 			return Dispatcher.CreateEvent(runnable);
 		}
 

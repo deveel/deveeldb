@@ -2187,7 +2187,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="runner"></param>
 		/// <returns></returns>
-		public Object CreateEvent(EventHandler runner) {
+		public Object CreateEvent(IDatabaseEvent runner) {
 			return System.CreateEvent(runner);
 		}
 

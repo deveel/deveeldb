@@ -180,14 +180,13 @@ namespace Deveel.Data {
 
 			// Post an event that fires the triggers for each listener.
 			FireTriggersDelegate d = new FireTriggersDelegate(evt, trig_list);
-			EventHandler runner = new EventHandler(d.fireTriggers);
 
 			// Post the event to go off approx 3ms from now.
-			system.PostEvent(3, system.CreateEvent(runner));
+			system.PostEvent(3, system.CreateEvent(d));
 
 		}
 
-		private class FireTriggersDelegate {
+		private class FireTriggersDelegate : IDatabaseEvent {
 			public FireTriggersDelegate(TriggerEvent evt, ArrayList trig_list) {
 				this.evt = evt;
 				this.trig_list = trig_list;
@@ -195,13 +194,12 @@ namespace Deveel.Data {
 
 			private readonly ArrayList trig_list;
 			private readonly TriggerEvent evt;
-
-			public void fireTriggers(object sender, EventArgs e) {
+			
+			public void Execute () {
 				for (int i = 0; i < trig_list.Count; ++i) {
 					TriggerAction action = (TriggerAction)trig_list[i];
 					if (evt.Type == action.trigger_event) {
-						action.listener.FireTrigger(action.database, action.trigger_name,
-													evt);
+						action.listener.FireTrigger (action.database, action.trigger_name, evt);
 					}
 				}
 			}

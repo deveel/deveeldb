@@ -1,0 +1,20 @@
+2009-10-04  Antonello Provenzano  <antonello@deveel.com>
+	* IDatabaseEvent.cs: Created the interface to replace the logic
+	of Database.CreateEevent, from delegate to interface implementation.
+	* Database.cs: modified the parameter of CreateEvent to implement 
+	the new interface logic.
+	* TransactionSystem.cs: modified the parameter of CreateEvent to 
+	implement the new interface logic.
+	* DatabaseDispatcher.cs: 
+		- changed the parameter of CreateEvent to implement the new 
+		interface logic.
+		- modified the inner class DatabaseEvent to accomplish with
+		the new interface logic.
+		- run method now calls IDatabaseEvent.Execute instead of the
+		EventHandler passed.
+	* DatabaseConnection.cs: created the class FirePendingTriggerEventsImpl
+	to comply with the new database event interface logic.
+	* RIDList.cs: implemented the class CreateRIDCacheEventImpl to comply with
+	the new database event interface logic.
+	* TriggerManager.cs: the inner class FireTriggersDelegate
+	now implements the IDatabaseEvent interface.
