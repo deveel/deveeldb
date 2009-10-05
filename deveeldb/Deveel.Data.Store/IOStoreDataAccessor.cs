@@ -23,8 +23,6 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Util;
-
 namespace Deveel.Data.Store {
 	/// <summary>
 	/// An implementation of <see cref="IStoreDataAccessor"/> that uses the 
@@ -153,8 +151,8 @@ namespace Deveel.Data.Store {
 		public void Synch() {
 			lock (l) {
 				try {
-					data.Flush();
-					FileSyncUtil.Sync(data);
+					//TODO: data.Flush();
+					FSync.Sync(data);
 				} catch (SyncFailedException) {
 					// There isn't much we can do about this exception.  By itself it
 					// doesn't indicate a terminating error so it's a good idea to ignore

@@ -2192,6 +2192,15 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Creates an event for the database dispatcher.
+		/// </summary>
+		/// <param name="runner"></param>
+		/// <returns></returns>
+		public Object CreateEvent(EventHandler runner) {
+			return CreateEvent(new DatabaseEventHandler(runner));
+		}
+
+		/// <summary>
 		/// Posts an event on the database dispatcher.
 		/// </summary>
 		/// <param name="time"></param>
@@ -2223,6 +2232,9 @@ namespace Deveel.Data {
 		/// Executes database functions from the given 
 		/// delegate on the first available worker thread.
 		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="database"></param>
+		/// <param name="runner"></param>
 		/// <remarks>
 		/// All database functions must go through a worker thread.  If we 
 		/// ensure this, we can easily stop all database functions from executing 
@@ -2234,12 +2246,33 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Executes database functions from the given 
+		/// delegate on the first available worker thread.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="database"></param>
+		/// <param name="runner"></param>
+		/// <seealso cref="Execute(Deveel.Data.User,Deveel.Data.DatabaseConnection,Deveel.Data.IDatabaseEvent)"/>
+		public void Execute(User user, DatabaseConnection database, EventHandler runner) {
+			Execute(user, database, new DatabaseEventHandler(runner));
+		}
+
+		/// <summary>
 		/// Registers the delegate that is executed when the shutdown 
 		/// thread is activated.
 		/// </summary>
 		/// <param name="d"></param>
 		public void RegisterShutDownDelegate(EventHandler d) {
-			System.RegisterShutDownDelegate(d);
+			RegisterShutDownDelegate(new DatabaseEventHandler(d));
+		}
+
+		/// <summary>
+		/// Registers the delegate that is executed when the shutdown 
+		/// thread is activated.
+		/// </summary>
+		/// <param name="d"></param>
+		public void RegisterShutDownDelegate(IDatabaseEvent e) {
+			System.RegisterShutDownDelegate(e);
 		}
 
 		/// <summary>

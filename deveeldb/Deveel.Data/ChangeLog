@@ -1,3 +1,16 @@
+2009-10-05  Antonello Provenzano  <antonello@deveel.com>
+	* DatabaseEventHandler.cs: implementation to handle a different
+	behavior of the database event interface logic.
+	* Database.cs: 
+		- added an overload of the methods Execute and CreateEvent 
+		to accept EventHandler delegates.
+		- modified the RegisterShutDownDelegate method parameters
+		to comply with the new database event interface logic.
+	* DatabaseSystem.cs: 
+		- modified the parameters of the method RegisterShutDownDelegate 
+		to comply with the new database event interface logic.
+		- Naming conventions applied
+
 2009-10-04  Antonello Provenzano  <antonello@deveel.com>
 	* IDatabaseEvent.cs: Created the interface to replace the logic
 	of Database.CreateEevent, from delegate to interface implementation.

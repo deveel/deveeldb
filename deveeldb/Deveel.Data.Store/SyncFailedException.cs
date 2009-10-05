@@ -1,5 +1,5 @@
-//  
-//  FileSyncUtil.cs
+﻿//  
+//  SyncFailedException.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -20,38 +20,12 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.IO;
 
-namespace Deveel.Data.Util {
+namespace Deveel.Data.Store {
 	/// <summary>
 	/// An exception thrown when the synchronization of the changes
 	/// into a file stream to the hard disk of the running machine fails.
 	/// </summary>
 	public class SyncFailedException : Exception {
-	}
-
-	/// <summary>
-	/// A utility class to synchronize the changes into a file stream into
-	/// the hard disc of the running machine.
-	/// </summary>
-	sealed class FileSyncUtil {
-		public static void Sync (FileStream fs) {
-#if NET_2_0
-			if (FlushFileBuffers(fs.SafeFileHandle) == 0)
-				throw new SyncFailedException();
-#else
-			if (FlushFileBuffers(fs.Handle) == 0)
-				throw new SyncFailedException();
-#endif
-		}
-
-#if NET_2_0
-		//TODO: and under Linux?
-		[System.Runtime.InteropServices.DllImport("kernel32")]
-		public static extern int FlushFileBuffers(Microsoft.Win32.SafeHandles.SafeFileHandle hFile);		
-#else
-		[System.Runtime.InteropServices.DllImport("kernel32")]
-		public static extern int FlushFileBuffers (IntPtr hFile);
-#endif
 	}
 }

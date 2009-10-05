@@ -399,6 +399,46 @@ namespace Deveel.Data {
 			return res;
 		}
 
+		private void SetupFSync(IDbConfig dbConfig) {
+			string fsyncTypeString = dbConfig.GetValue("fsync_type");
+			if (fsyncTypeString != null) {
+				// if the 'fsync_type' is set and the value is "default" we use 
+				// the one retrieved automatically at the call of FSync class...
+				if (String.Compare(fsyncTypeString, "default", true) == 0)
+					return;
+
+				Type type = Type.GetType(fsyncTypeString, false, true);
+				if (type == null) {
+					// there is no custom implementation of the fsync() operation.
+					Debug.Write(DebugLevel.Warning, this,
+					            "The value of 'fsync_type' is set but the type '" + fsyncTypeString + "' was not found.");
+					return;
+				}
+
+				IFSync fsync = null;
+
+				if (typeof(IFSync).IsAssignableFrom(type)) {
+					try {
+						fsync = (IFSync) Activator.CreateInstance(type, true);
+					} catch (Exception e) {
+						Debug.Write(DebugLevel.Warning, this,
+						            "Error while initializing the fsynch handler class '" + fsyncTypeString + "': " + e.Message);
+					}
+				} else {
+					// handle the case the type implements the Sync function but
+					// doesn't implements the IFSync interface...
+					try {
+						fsync = FSync.Create(type);
+					} catch (Exception) {
+						Debug.Write(DebugLevel.Warning, this, "The provided type '" + type.FullName + "' does not implement the Sync(FileStream) method.");
+					}
+				}
+
+				if (fsync != null)
+					FSync.SetFSync(fsync);
+			}
+		}
+
 		/// <summary>
 		/// Sets up the log file from the config information.
 		/// </summary>
@@ -561,14 +601,16 @@ namespace Deveel.Data {
 				if (String.Compare(storage_system, "v1file", true) == 0) {
 					Debug.Write(DebugLevel.Message, this, "Storage System: v1 file storage mode.");
 
+					// Check if the configuration provides a custom implementation of fsync()
+					SetupFSync(config);
+
 					// The path where the database data files are stored.
 					String database_path = GetConfigString("database_path", "./data");
 					// The root path variable
 					String root_path_var = GetConfigString("root_path", "env");
 
 					// Set the absolute database path
-					db_path = ParseFileString(config.CurrentPath, root_path_var,
-					                          database_path);
+					db_path = ParseFileString(config.CurrentPath, root_path_var, database_path);
 
 					store_system = new V1FileStoreSystem(this, db_path, read_only_access);
 					is_file_store_mode = true;

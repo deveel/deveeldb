@@ -1,3 +1,8 @@
+2009-10-05  Antonello Provenzano  <antonello@deveel.com>
+	* ShellUserTerminal.cs: implemented to support Console
+	interface for diagnostics.
+	* FileSyncUtil.cs: removed to host the new FSync logic
+	
 2009-10-04  Antonello Provenzano  <antonello@deveel.com>
 	* FileSyncUtil.cs: added the support for .NET 1.1 profile
 

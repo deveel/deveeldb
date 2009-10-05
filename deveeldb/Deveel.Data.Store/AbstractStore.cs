@@ -499,16 +499,14 @@ namespace Deveel.Data.Store {
 				if (end_of_data_area < DataAreaOffset + 16) {
 					// Store size is too small.  There's nothing to be lost be simply
 					// reinitializing it to a blank state.
-					terminal.WriteLine(
-						"! Store is too small, reinitializing store to blank state.");
+					terminal.WriteLine("! Store is too small, reinitializing store to blank state.");
 					InitializeToEmpty();
 					return;
 				}
 
 				// Do a recursive scan over the store.
 				ArrayList repairs = new ArrayList();
-				bool b = RepairScan(repairs, DataAreaOffset, EndOfDataAreaPointer,
-									true, 20);
+				bool b = RepairScan(repairs, DataAreaOffset, EndOfDataAreaPointer, true, 20);
 
 				if (b) {
 					if (repairs.Count == 0) {

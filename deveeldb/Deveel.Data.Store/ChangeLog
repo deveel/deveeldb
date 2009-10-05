@@ -1,0 +1,13 @@
+﻿2009-10-05  Antonello Provenzano  <antonello@deveel.com>
+
+	* IFSync.cs: added to implement the feature request 2
+	* WindowsFSync.cs: default implementation for the Windows
+	platform fsync call.
+	* FSync.cs: implementation used to control which fsync
+	operation to use.
+	* StreamFile.cs: commented the call to Flush() method on the
+	underlying file-stream in the Synch() method to optimize
+	performances
+	* IOStoreDataAccessor.cs: commented the call to Flush() method 
+	on the underlying file-stream in the Synch() method to optimize
+	performances

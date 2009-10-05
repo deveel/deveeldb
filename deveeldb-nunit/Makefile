@@ -4,22 +4,26 @@ EXTRA_DIST =  Makefile
 # Warning: This is an automatically generated file, do not edit!
 
 srcdir=.
-top_srcdir=..\deveeldb
+top_srcdir=..
 
 include $(top_srcdir)/config.make
 
 ifeq ($(CONFIG),DEBUG)
 ASSEMBLY_COMPILER_COMMAND = gmcs
-ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize- -debug "-define:DEBUG;TRACE"
+ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize- -debug "-define:DEBUG"
 ASSEMBLY = bin/Debug/deveeldb-nunit.dll
 ASSEMBLY_MDB = $(ASSEMBLY).mdb
 COMPILE_TARGET = library
 PROJECT_REFERENCES =  \
-	../deveeldb/bin/Debug/deveeldb.dll
-BUILD_DIR = bin/Debug/
+	../deveeldb/bin/Debug/libdeveeldb.dll
+BUILD_DIR = bin/Debug
 
-DEVEELDB_DLL_SOURCE=../deveeldb/bin/Debug/deveeldb.dll
-ICSHARPCODE_SHARPZIPLIB_DLL_SOURCE=../libs/ICSharpCode.SharpZipLib.dll
+NUNIT_CORE_DLL_SOURCE=../lib/nunit.core.dll
+NUNIT_FRAMEWORK_DLL_SOURCE=../lib/nunit.framework.dll
+LIBDEVEELDB_DLL_SOURCE=../deveeldb/bin/Debug/libdeveeldb.dll
+ICSHARPCODE_SHARPZIPLIB_DLL_SOURCE=../lib/ICSharpCode.SharpZipLib.dll
+LIBDEVEELDB_DLL_MDB_SOURCE=../deveeldb/bin/Debug/libdeveeldb.dll.mdb
+LIBDEVEELDB_DLL_MDB=$(BUILD_DIR)/libdeveeldb.dll.mdb
 DEVEELDB_NUNIT_DLL_MDB_SOURCE=bin/Debug/deveeldb-nunit.dll.mdb
 DEVEELDB_NUNIT_DLL_MDB=$(BUILD_DIR)/deveeldb-nunit.dll.mdb
 
@@ -27,16 +31,19 @@ endif
 
 ifeq ($(CONFIG),RELEASE)
 ASSEMBLY_COMPILER_COMMAND = gmcs
-ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize+ "-define:TRACE"
+ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize-
 ASSEMBLY = bin/Release/deveeldb-nunit.dll
 ASSEMBLY_MDB = 
 COMPILE_TARGET = library
 PROJECT_REFERENCES =  \
-	../deveeldb/bin/Release/deveeldb.dll
-BUILD_DIR = bin/Release/
+	../deveeldb/bin/Release/libdeveeldb.dll
+BUILD_DIR = bin/Release
 
-DEVEELDB_DLL_SOURCE=../deveeldb/bin/Release/deveeldb.dll
-ICSHARPCODE_SHARPZIPLIB_DLL_SOURCE=../libs/ICSharpCode.SharpZipLib.dll
+NUNIT_CORE_DLL_SOURCE=../lib/nunit.core.dll
+NUNIT_FRAMEWORK_DLL_SOURCE=../lib/nunit.framework.dll
+LIBDEVEELDB_DLL_SOURCE=../deveeldb/bin/Release/libdeveeldb.dll
+ICSHARPCODE_SHARPZIPLIB_DLL_SOURCE=../lib/ICSharpCode.SharpZipLib.dll
+LIBDEVEELDB_DLL_MDB=
 DEVEELDB_NUNIT_DLL_MDB=
 
 endif
@@ -45,8 +52,11 @@ AL=al2
 SATELLITE_ASSEMBLY_NAME=$(notdir $(basename $(ASSEMBLY))).resources.dll
 
 PROGRAMFILES = \
-	$(DEVEELDB_DLL) \
+	$(NUNIT_CORE_DLL) \
+	$(NUNIT_FRAMEWORK_DLL) \
+	$(LIBDEVEELDB_DLL) \
 	$(ICSHARPCODE_SHARPZIPLIB_DLL) \
+	$(LIBDEVEELDB_DLL_MDB) \
 	$(DEVEELDB_NUNIT_DLL_MDB)  
 
 LINUX_PKGCONFIG = \
@@ -55,14 +65,17 @@ LINUX_PKGCONFIG = \
 
 RESGEN=resgen2
 
-DEVEELDB_DLL = $(BUILD_DIR)/deveeldb.dll
+NUNIT_CORE_DLL = $(BUILD_DIR)/nunit.core.dll
+NUNIT_FRAMEWORK_DLL = $(BUILD_DIR)/nunit.framework.dll
+LIBDEVEELDB_DLL = $(BUILD_DIR)/libdeveeldb.dll
 ICSHARPCODE_SHARPZIPLIB_DLL = $(BUILD_DIR)/ICSharpCode.SharpZipLib.dll
 DEVEELDB_NUNIT_PC = $(BUILD_DIR)/deveeldb-nunit.pc
 
 FILES = \
 	Deveel.Data/CreateDatabaseTest.cs \
 	Deveel.Data/TestBase.cs \
-	Properties/AssemblyInfo.cs 
+	AssemblyInfo.cs \
+	Deveel.Data/QueryTest.cs 
 
 DATA_FILES = 
 
@@ -72,12 +85,12 @@ EXTRAS = \
 	deveeldb-nunit.pc.in 
 
 REFERENCES =  \
-	nunit.framework \
 	System \
-	System.Data \
-	System.Xml
+	System.Data
 
-DLL_REFERENCES = 
+DLL_REFERENCES =  \
+	../lib/nunit.core.dll \
+	../lib/nunit.framework.dll
 
 CLEANFILES = $(PROGRAMFILES) $(LINUX_PKGCONFIG) 
 
@@ -89,8 +102,11 @@ include $(top_srcdir)/Makefile.include
 
 
 
-$(eval $(call emit-deploy-target,DEVEELDB_DLL))
+$(eval $(call emit-deploy-target,NUNIT_CORE_DLL))
+$(eval $(call emit-deploy-target,NUNIT_FRAMEWORK_DLL))
+$(eval $(call emit-deploy-target,LIBDEVEELDB_DLL))
 $(eval $(call emit-deploy-target,ICSHARPCODE_SHARPZIPLIB_DLL))
+$(eval $(call emit-deploy-target,LIBDEVEELDB_DLL_MDB))
 $(eval $(call emit-deploy-wrapper,DEVEELDB_NUNIT_PC,deveeldb-nunit.pc))
 
 
@@ -115,8 +131,11 @@ install-local: $(ASSEMBLY) $(ASSEMBLY_MDB)
 	$(call cp,$(ASSEMBLY),$(DESTDIR)$(libdir)/$(PACKAGE))
 	$(call cp,$(ASSEMBLY_MDB),$(DESTDIR)$(libdir)/$(PACKAGE))
 	mkdir -p '$(DESTDIR)$(libdir)\$(PACKAGE)'
-	$(call cp,$(DEVEELDB_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
+	$(call cp,$(NUNIT_CORE_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
+	$(call cp,$(NUNIT_FRAMEWORK_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
+	$(call cp,$(LIBDEVEELDB_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
 	$(call cp,$(ICSHARPCODE_SHARPZIPLIB_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
+	$(call cp,$(LIBDEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
 	$(call cp,$(DEVEELDB_NUNIT_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
 	mkdir -p '$(DESTDIR)$(libdir)\pkgconfig'
 	$(call cp,$(DEVEELDB_NUNIT_PC),$(DESTDIR)$(libdir)\pkgconfig)
@@ -127,8 +146,11 @@ uninstall-local: $(ASSEMBLY) $(ASSEMBLY_MDB)
 	make uninstall-satellite-assemblies prefix=$(prefix)
 	$(call rm,$(ASSEMBLY),$(DESTDIR)$(libdir)/$(PACKAGE))
 	$(call rm,$(ASSEMBLY_MDB),$(DESTDIR)$(libdir)/$(PACKAGE))
-	$(call rm,$(DEVEELDB_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
+	$(call rm,$(NUNIT_CORE_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
+	$(call rm,$(NUNIT_FRAMEWORK_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
+	$(call rm,$(LIBDEVEELDB_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
 	$(call rm,$(ICSHARPCODE_SHARPZIPLIB_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
+	$(call rm,$(LIBDEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
 	$(call rm,$(DEVEELDB_NUNIT_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
 	$(call rm,$(DEVEELDB_NUNIT_PC),$(DESTDIR)$(libdir)\pkgconfig)
 	make post-uninstall-local-hook prefix=$(prefix)

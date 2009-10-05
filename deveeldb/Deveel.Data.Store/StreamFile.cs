@@ -79,8 +79,8 @@ namespace Deveel.Data.Store {
 		public void Synch() {
 			lock (data) {
 				try {
-					data.Flush();
-					FileSyncUtil.Sync(data);
+					//TODO: data.Flush();
+					FSync.Sync(data);
 				} catch (SyncFailedException) {
 					// We ignore the exception which reduces the robustness
 					// of the journal file for the OS where this problem occurs.

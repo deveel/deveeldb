@@ -239,7 +239,7 @@ namespace Deveel.Data {
 		/// system.  This is only called once and shuts down the relevant
 		/// database services.
 		/// </remarks>
-		internal void RegisterShutDownDelegate(EventHandler value) {
+		internal void RegisterShutDownDelegate(IDatabaseEvent value) {
 			shut_down_delegates.Add(value);
 		}
 
@@ -256,7 +256,7 @@ namespace Deveel.Data {
 			if (!shutdown) {
 				shutdown = true;
 				shutdown_thread = new ShutdownThread(this);
-				shutdown_thread.start();
+				shutdown_thread.Start();
 			}
 		}
 
@@ -265,7 +265,7 @@ namespace Deveel.Data {
 		/// has finished).
 		/// </summary>
 		internal void WaitUntilShutdown() {
-			shutdown_thread.waitTillFinished();
+			shutdown_thread.WaitTillFinished();
 		}
 
 		internal void RegisterDatabase(Database database) {
@@ -295,7 +295,7 @@ namespace Deveel.Data {
 				thread.Name = "Shutdown Thread";
 			}
 
-			internal void waitTillFinished() {
+			internal void WaitTillFinished() {
 				lock (this) {
 					while (finished == false) {
 						try {
@@ -332,10 +332,10 @@ namespace Deveel.Data {
 					Debug.Write(DebugLevel.Warning, this, "No shut down delegates registered!");
 				} else {
 					for (int i = 0; i < sz; ++i) {
-						EventHandler shut_down_delegate = (EventHandler) ds.shut_down_delegates[i];
+						IDatabaseEvent shut_down_delegate = (IDatabaseEvent) ds.shut_down_delegates[i];
 						if (shut_down_delegate != null)
 							// Run the shut down delegates
-							shut_down_delegate(ds, EventArgs.Empty);
+							shut_down_delegate.Execute();
 					}
 					ds.shut_down_delegates.Clear();
 				}
@@ -349,7 +349,7 @@ namespace Deveel.Data {
 				}
 			}
 
-			public void start() {
+			public void Start() {
 				thread.Start();
 			}
 		} ;
