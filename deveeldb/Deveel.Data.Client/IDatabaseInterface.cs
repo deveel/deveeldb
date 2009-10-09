@@ -44,7 +44,9 @@ namespace Deveel.Data.Client {
         /// This must be called before the other methods are used.
 		/// </para>
 		/// </remarks>
-		///<returns></returns>
+		///<returns>
+		/// Returns <b>true</b> if the authentication succeeded, otherwise false.
+		/// </returns>
 		bool Login(String default_schema, String username, String password, IDatabaseCallBack call_back);
 
 	    ///<summary>

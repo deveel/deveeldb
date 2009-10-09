@@ -30,60 +30,76 @@ using Deveel.Math;
 namespace Deveel.Data.Client {
 	public sealed class DbCommand : IDbCommand {
 
-        /// <summary>
-        /// The <see cref="DbConnection"/> object for this statement.
-        /// </summary>
-	private DbConnection connection;
-	private DbTransaction transaction;
+		/// <summary>
+		/// The <see cref="DbConnection"/> object for this statement.
+		/// </summary>
+		private DbConnection connection;
+		private DbTransaction transaction;
 
-        /// <summary>
-        /// The list of all <see cref="ResultSet"/> objects that represents the 
-        /// results of a query.
-        /// </summary>
-	private ResultSet[] result_set_list;
+		/// <summary>
+		/// The list of all <see cref="ResultSet"/> objects that represents the 
+		/// results of a query.
+		/// </summary>
+		private ResultSet[] result_set_list;
 
 
-	private int max_field_size;
-	private int max_row_count;
-	private int query_timeout;
-	private int fetch_size;
+		private int max_field_size;
+		private int max_row_count;
+		private int query_timeout;
+		private int fetch_size;
 
-	private bool escape_processing;
+		private bool escape_processing;
 
-        /// <summary>
-        /// The list of queries to execute in a batch.
-        /// </summary>
-	private ArrayList batch_list;
+		/// <summary>
+		/// The list of queries to execute in a batch.
+		/// </summary>
+		private ArrayList batch_list;
 
-        /// <summary>
-        /// The list of streamable objects created via the <see cref="CreateStreamableObject"/> method.
-        /// </summary>
-	private ArrayList streamable_object_list;
+		/// <summary>
+		/// The list of streamable objects created via the <see cref="CreateStreamableObject"/> method.
+		/// </summary>
+		private ArrayList streamable_object_list;
 
-        /// <summary>
-        /// For multiple result sets, the index of the result set we are currently on.
-        /// </summary>
-	private int multi_result_set_index;
+		/// <summary>
+		/// For multiple result sets, the index of the result set we are currently on.
+		/// </summary>
+		private int multi_result_set_index;
 
-	private string text;
+		private SQLQuery[] queries;
+		private string commandText;
 
-	private DbParameterCollection parameters;
+		private DbParameterCollection parameters;
+		private DbDataReader reader;
 
-	internal DbCommand(DbConnection connection) {
-		this.connection = connection;
-		this.escape_processing = true;
-		parameters = new DbParameterCollection();
-	}
+		public DbCommand() {
+			parameters = new DbParameterCollection();
+			this.escape_processing = true;
+		}
 
-        /// <summary>
-        /// Returns an array of <see cref="ResultSet"/> objects of the give 
-        /// length for this statement.
-        /// </summary>
-        /// <param name="count"></param>
-        /// <remarks>
-        /// This is intended for multiple result queries (such as batch statements).
-        /// </remarks>
-        /// <returns></returns>
+		public DbCommand(string text)
+			: this() {
+			CommandText = text;
+		}
+
+		public DbCommand(string text, DbConnection connection)
+			: this(text) {
+			Connection = connection;
+		}
+
+		public DbCommand(string text, DbConnection connection, DbTransaction transaction)
+			: this(text, connection) {
+			Transaction = transaction;
+		}
+
+		/// <summary>
+		/// Returns an array of <see cref="ResultSet"/> objects of the give 
+		/// length for this statement.
+		/// </summary>
+		/// <param name="count"></param>
+		/// <remarks>
+		/// This is intended for multiple result queries (such as batch statements).
+		/// </remarks>
+		/// <returns></returns>
 		internal ResultSet[] InternalResultSetList(int count) {
 			if (count <= 0) {
 				throw new ArgumentException("'count' must be > 0");
@@ -107,13 +123,13 @@ namespace Deveel.Data.Client {
 			return result_set_list;
 		}
 
-        /// <summary>
-        /// Returns the single <see cref="ResultSet"/> object for this statement.
-        /// </summary>
-        /// <remarks>
-        /// This should only be used for single result queries.
-        /// </remarks>
-        /// <returns></returns>
+		/// <summary>
+		/// Returns the single <see cref="ResultSet"/> object for this statement.
+		/// </summary>
+		/// <remarks>
+		/// This should only be used for single result queries.
+		/// </remarks>
+		/// <returns></returns>
 		internal ResultSet InternalResultSet() {
 			return InternalResultSetList(1)[0];
 		}
@@ -149,16 +165,16 @@ namespace Deveel.Data.Client {
 			return true;
 		}
 
-	    internal ResultSet ResultSet {
-	        get {
-	            if (result_set_list != null) {
-	                if (multi_result_set_index < result_set_list.Length) {
-	                    return result_set_list[multi_result_set_index];
-	                }
-	            }
-	            return null;
-	        }
-	    }
+		internal ResultSet ResultSet {
+			get {
+				if (result_set_list != null) {
+					if (multi_result_set_index < result_set_list.Length) {
+						return result_set_list[multi_result_set_index];
+					}
+				}
+				return null;
+			}
+		}
 
 		internal int UpdateCount {
 			get {
@@ -172,17 +188,6 @@ namespace Deveel.Data.Client {
 				}
 				return -1;
 			}
-		}
-
-		private SQLQuery GetSqlQuery() {
-			SQLQuery query = new SQLQuery(text);
-			if (parameters.Count > 0) {
-				for (int i = 0; i < parameters.Count; i++) {
-					DbParameter parameter = parameters[i];
-					query.SetVariable(i, parameter.Value);
-				}
-			}
-			return query;
 		}
 
 		/// <summary>
@@ -269,7 +274,7 @@ namespace Deveel.Data.Client {
 				// fall through
 				case (SQLTypes.LONGVARBINARY):
 					IBlob b = AsBlob(ob);
-					return b.GetBytes(1, (int)b.Length);
+					return b.GetBytes(0, (int)b.Length);
 				case (SQLTypes.NULL):
 					return ob;
 				case (SQLTypes.OTHER):
@@ -315,7 +320,7 @@ namespace Deveel.Data.Client {
 				IClob clob = AsClob(ob);
 				long clob_len = clob.Length;
 				if (clob_len < 16384L * 65536L) {
-					return clob.Substring(1, (int)clob_len);
+					return clob.GetString(1, (int)clob_len);
 				}
 				throw new DataException("IClob too large to return as a string.");
 			} else if (ob is ByteLongObject) {
@@ -326,40 +331,19 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Adds a query to the batch of queries executed by this statement.
-		/// </summary>
-		/// <param name="query"></param>
-		internal void AddBatch(SQLQuery query) {
-			if (batch_list == null)
-				batch_list = new ArrayList();
-			batch_list.Add(query);
-		}
-
-		/// <summary>
 		/// Executes the given <see cref="SQLQuery"/> object and fill's in at 
 		/// most the top 10 entries of the result set.
 		/// </summary>
 		/// <param name="query"></param>
 		/// <returns></returns>
-		internal ResultSet ExecuteQuery(SQLQuery query) {
-			// Get the local result set
-			ResultSet result_set = InternalResultSet();
-			// Execute the query
-			ExecuteQueries(new SQLQuery[] { query });
-			// Return the result set
-			return result_set;
-		}
+		internal ResultSet[] ExecuteQuery() {
+			if (connection == null)
+				throw new InvalidOperationException("The connection was not set.");
+			if (connection.State != ConnectionState.Open)
+				throw new InvalidOperationException("The connection is closed.");
 
-		internal ResultSet ExecuteQuery(string query) {
-			return ExecuteQuery(new SQLQuery(query));
-		}
-
-		/// <summary>
-		/// Executes a batch of SQL queries as listed as an array.
-		/// </summary>
-		/// <param name="queries"></param>
-		/// <returns></returns>
-		internal ResultSet[] ExecuteQueries(SQLQuery[] queries) {
+			if (queries == null)
+				throw new InvalidOperationException("The command text was not set.");
 
 			// Allocate the result set for this batch
 			ResultSet[] results = InternalResultSetList(queries.Length);
@@ -398,9 +382,9 @@ namespace Deveel.Data.Client {
 			}
 
 			return results;
-
 		}
 
+		//TODO: move to connection string...
 		public int MaxFieldSize {
 			get {
 				// Are there limitations here?  Strings can be any size...
@@ -409,20 +393,19 @@ namespace Deveel.Data.Client {
 			set {
 				if (value >= 0) {
 					max_field_size = value;
-				}
-				else {
+				} else {
 					throw new DataException("MaxFieldSize negative.");
 				}
 			}
 		}
 
+		//TODO: move to connection string...
 		public int MaxRows {
 			get { return max_row_count; }
 			set {
 				if (value >= 0) {
 					max_row_count = value;
-				}
-				else {
+				} else {
 					throw new DataException("MaxRows negative.");
 				}
 			}
@@ -466,8 +449,20 @@ namespace Deveel.Data.Client {
 
 		#region Implementation of IDbCommand
 
-		void IDbCommand.Prepare() {
-			//TODO: should we prepare anything?
+		public void Prepare() {
+			if (queries == null || parameters.Count == 0)
+				return;
+
+			//TODO: we should handle this better: it's nasty that a set
+			//      of parameters are set for all the queries...
+
+			for (int i = 0; i < queries.Length; i++) {
+				SQLQuery query = queries[i];
+				for (int j = 0; j < parameters.Count; j++) {
+					DbParameter parameter = parameters[j];
+					query.SetVariable(j, CastHelper.CastToSQLType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
+				}
+			}
 		}
 
 		public void Cancel() {
@@ -488,15 +483,11 @@ namespace Deveel.Data.Client {
 		}
 
 		public int ExecuteNonQuery() {
-			ResultSet resultSet = ExecuteQuery(GetSqlQuery());
-			if (!resultSet.IsUpdate)
-				throw new DataException();
-			return resultSet.ToInteger();
-		}
+			ResultSet[] resultSet = ExecuteQuery();
+			if (resultSet.Length > 1)
+				throw new InvalidOperationException();
 
-		public int ExecuteNonQuery(string commandText) {
-			text = commandText;
-			return ExecuteNonQuery();
+			return !resultSet[0].IsUpdate ? -1 : resultSet[0].ToInteger();
 		}
 
 		IDataReader IDbCommand.ExecuteReader() {
@@ -504,33 +495,45 @@ namespace Deveel.Data.Client {
 		}
 
 		public DbDataReader ExecuteReader() {
-			ExecuteQuery(GetSqlQuery());
-			return new DbDataReader(this);
+			if (reader != null)
+				throw new InvalidOperationException("A reader is already opened for this command.");
+
+			connection.StartState(ConnectionState.Fetching);
+			ExecuteQuery();
+			reader = new DbDataReader(this);
+			reader.Closed += new EventHandler(ReaderClosed);
+			return reader;
 		}
 
-		public DbDataReader ExecuteReader(string commandText) {
-			text = commandText;
-			return ExecuteReader();
+		private void ReaderClosed(object sender, EventArgs e) {
+			connection.EndState(ConnectionState.Fetching);
+			reader = null;
 		}
 
 		IDataReader IDbCommand.ExecuteReader(CommandBehavior behavior) {
+			//TODO: support behaviors...
+			if (behavior != CommandBehavior.Default)
+				throw new ArgumentException("Behavior '" + behavior + "' not supported.");
 			return ExecuteReader();
 		}
 
 		public object ExecuteScalar() {
-			ResultSet result = ExecuteQuery(GetSqlQuery());
-			if (result.RowCount > 1)
+			ResultSet[] result = ExecuteQuery();
+			if (result.Length > 1)
+				throw new InvalidOperationException();
+
+			if (result[0].RowCount > 1)
 				throw new DataException();
-			if (result.ColumnCount > 1)
+			if (result[0].ColumnCount > 1)
 				throw new DataException();
 
-			Object ob = result.GetRawColumn(0);
+			Object ob = result[0].GetRawColumn(0);
 			if (ob == null)
 				return ob;
 
 			if (connection.IsStrictGetValue) {
 				// Convert depending on the column type,
-				ColumnDescription col_desc = result.GetColumn(0);
+				ColumnDescription col_desc = result[0].GetColumn(0);
 				SQLTypes sql_type = col_desc.SQLType;
 
 				return ObjectCast(ob, sql_type);
@@ -538,34 +541,76 @@ namespace Deveel.Data.Client {
 			}
 			// We don't support blobs in a scalar.
 			if (ob is ByteLongObject ||
-			    ob is Data.StreamableObject) {
+				ob is Data.StreamableObject) {
 				throw new DataException();
 			}
 			return ob;
 		}
 
-		public object ExecuteScalar(string commandText) {
-			text = commandText;
-			return ExecuteScalar();
-		}
-
 		public DbConnection Connection {
 			get { return connection; }
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+
+				if (connection != value)
+					Transaction = null;
+				connection = value;
+				transaction = connection.currentTransaction;
+			}
 		}
 
 		IDbConnection IDbCommand.Connection {
 			get { return connection; }
-			set { throw new NotImplementedException(); }
+			set {
+				if (!(value is DbConnection))
+					throw new ArgumentException();
+
+				Connection = (DbConnection) value;
+			}
 		}
 
 		IDbTransaction IDbCommand.Transaction {
-			get { throw new NotImplementedException(); }
-			set { throw new NotImplementedException(); }
+			get { return transaction; }
+			set {
+				if (!(value is DbTransaction))
+					throw new ArgumentException("Trying to set a transaction that is not a '" + typeof(DbTransaction) + "'.");
+				Transaction = (DbTransaction) value;
+			}
+		}
+
+		public DbTransaction Transaction {
+			get { return transaction; }
+			set {
+				if (value == null && transaction != null)
+					transaction = null;
+				else if (transaction != null && 
+					(value != null && value.Id != transaction.Id))
+					throw new ArgumentException();
+
+				transaction = value;
+			}
 		}
 
 		public string CommandText {
-			get { return text; }
-			set { text = value; }
+			get { return commandText; }
+			set {
+				if (value != null) {
+					//TODO: this is a nasty hack to support multiple results: should be
+					//      done on server side...
+					string[] parts = value.Split(';');
+					queries = new SQLQuery[parts.Length];
+					for (int i = 0; i < parts.Length; i++) {
+						queries[i] = new SQLQuery(parts[i]);
+					}
+					commandText = value;
+				} else {
+					queries = null;
+					commandText = null;
+				}
+
+				parameters.Clear();
+			}
 		}
 
 		public int CommandTimeout {
@@ -597,37 +642,15 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		//TODO: currently not supported...
 		UpdateRowSource IDbCommand.UpdatedRowSource {
-			get { throw new NotImplementedException(); }
-			set { throw new NotImplementedException(); }
+			get { return UpdateRowSource.None; }
+			set {
+				if (value != UpdateRowSource.None)
+					throw new ArgumentException();
+			}
 		}
 
 		#endregion
-
-		public DbParameter SetString(int index, string value) {
-			DbParameter parameter = CreateParameter();
-			parameter.DbType = DbType.String;
-			parameter.index = index;
-			parameter.Value = value;
-			Parameters.Add(parameter);
-			return parameter;
-		}
-
-		public DbParameter SetString(string value) {
-			return SetString(Parameters.Count - 1, value);
-		}
-
-		public DbParameter SetInt32(int index, int value) {
-			DbParameter parameter = CreateParameter();
-			parameter.DbType = DbType.Int32;
-			parameter.index = index;
-			parameter.Value = value;
-			Parameters.Add(parameter);
-			return parameter;
-		}
-
-		public DbParameter SetInt32(int value) {
-			return SetInt32(Parameters.Count - 1, value);
-		}
 	}
 }

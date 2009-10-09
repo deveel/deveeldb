@@ -61,6 +61,7 @@ namespace Deveel.Data.Client {
 
 		public DbParameter this[int index] {
 			get { return list[index] as DbParameter; }
+			set { list[index] = value; }
 		}
 
 		public int Add(DbParameter parameter) {
@@ -69,13 +70,26 @@ namespace Deveel.Data.Client {
 			return i;
 		}
 
-		public int Add(object value) {
-			if (value is DbParameter)
-				return Add((DbParameter) value);
+		public DbParameter Add(object value) {
+			DbParameter parameter;
+			if (value is DbParameter) {
+				parameter = (DbParameter) value;
+			} else {
+				parameter = new DbParameter(value);
+			}
 
-			DbParameter parameter = new DbParameter();
-			parameter.Value = value;
-			return Add(parameter);
+			Add(parameter);
+			return parameter;
+		}
+
+		public DbParameter Add(object value, int size) {
+			return Add((object)(new DbParameter(value)));
+		}
+
+		public DbParameter Add(object value, int size, byte scale) {
+			DbParameter parameter = Add(value, size);
+			parameter.Scale = scale;
+			return parameter;
 		}
 
 		#region Implementation of IList
@@ -85,7 +99,14 @@ namespace Deveel.Data.Client {
 		}
 
 		bool IList.Contains(object value) {
-			throw new NotImplementedException();
+			if (!(value is DbParameter))
+				throw new ArgumentException();
+
+			return Contains((DbParameter) value);
+		}
+
+		public bool Contains(DbParameter parameter) {
+			return IndexOf(parameter) != -1;
 		}
 
 		public void Clear() {
@@ -93,7 +114,15 @@ namespace Deveel.Data.Client {
 		}
 
 		int IList.IndexOf(object value) {
+			if (!(value is DbParameter))
+				throw new ArgumentException();
+
 			throw new NotImplementedException();
+		}
+
+		public int IndexOf(DbParameter parameter) {
+			//TODO: is this assumption correct?
+			return parameter.index;
 		}
 
 		void IList.Insert(int index, object value) {
@@ -101,24 +130,32 @@ namespace Deveel.Data.Client {
 		}
 
 		void IList.Remove(object value) {
+			//TODO: remove the parameter at the given index and rehash the indexes
+			//      of the parameters...
 			throw new NotImplementedException();
 		}
 
 		public void RemoveAt(int index) {
+			//TODO: remove the parameter at the given index and rehash the indexes
+			//      of the parameters...
 			list.RemoveAt(index);
 		}
 
 		object IList.this[int index] {
 			get { return this[index]; }
-			set { throw new NotImplementedException(); }
+			set {
+				if (!(value is DbParameter))
+					throw new ArgumentException();
+				this[index] = (DbParameter) value;
+			}
 		}
 
 		bool IList.IsReadOnly {
-			get { throw new NotImplementedException(); }
+			get { return false; }
 		}
 
 		bool IList.IsFixedSize {
-			get { throw new NotImplementedException(); }
+			get { return false; }
 		}
 
 		#endregion
@@ -126,19 +163,24 @@ namespace Deveel.Data.Client {
 		#region Implementation of IDataParameterCollection
 
 		bool IDataParameterCollection.Contains(string parameterName) {
-			throw new NotSupportedException();
+			// we silently ignore named parameters (for the momernt)...
+			return false;
 		}
 
 		int IDataParameterCollection.IndexOf(string parameterName) {
-			throw new NotSupportedException();
+			// we silently ignore named parameters (for the momernt)...
+			return -1;
 		}
 
 		void IDataParameterCollection.RemoveAt(string parameterName) {
-			throw new NotSupportedException();
+			// we silently ignore named parameters (for the momernt)...
 		}
 
 		object IDataParameterCollection.this[string parameterName] {
-			get { throw new NotSupportedException(); }
+			get {
+				// we silently ignore named parameters (for the momernt)...
+				return null;
+			}
 			set { throw new NotSupportedException(); }
 		}
 

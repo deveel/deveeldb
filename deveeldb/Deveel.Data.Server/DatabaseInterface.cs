@@ -85,7 +85,7 @@ namespace Deveel.Data.Server {
 				if (COMMAND_LOGGING && database.System.LogQueries) {
 					// Output the instruction to the commands log.
 					StringBuilder log_str = new StringBuilder();
-					log_str.Append("[JDBC] [");
+					log_str.Append("[ADO.NET] [");
 					log_str.Append(username);
 					log_str.Append("] ");
 					log_str.Append('[');

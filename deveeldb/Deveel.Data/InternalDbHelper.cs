@@ -58,7 +58,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal static IDbConnection CreateDbConnection(User user, DatabaseConnection connection) {
+		internal static DbConnection CreateDbConnection(User user, DatabaseConnection connection) {
 			InternalDatabaseInterface db_interface = new InternalDatabaseInterface(user, connection);
 			return new InternalConnection(connection, db_interface, 11, 4092000);
 		}
@@ -101,8 +101,10 @@ namespace Deveel.Data {
 		/// </remarks>
 		private sealed class InternalConnection : DbConnection {
 			public InternalConnection(DatabaseConnection db, IDatabaseInterface db_interface, int cache_size, int max_size)
-				: base("", db_interface, cache_size, max_size) {
+				: base(Client.ConnectionString.Empty, db_interface, cache_size, max_size) {
 				IsCaseInsensitiveIdentifiers = db.IsInCaseInsensitiveMode;
+				// we open internal connections at construction...
+				Open();
 			}
 
 			/// <inheritdoc/>
@@ -118,6 +120,12 @@ namespace Deveel.Data {
 				}
 			}
 
+			internal override bool InternalOpen() {
+				// In this implementation the connection is already opened at 
+				// the construction time...
+				return true;
+			}
+
 			/// <inheritdoc/>
 			/// <remarks>
 			/// closing an internal connection is a no-op. An 
@@ -128,9 +136,10 @@ namespace Deveel.Data {
 			/// <see cref="InternalDbHelper.DisposeDbConnection"/> method.
 			/// </para>
 			/// </remarks>
-			public override void Close() {
+			internal override bool InternalClose() {
 				// IDEA: Perhaps we should use this as a hint to clear some caches
 				//   and free up some memory.
+				return true;
 			}
 		}
 

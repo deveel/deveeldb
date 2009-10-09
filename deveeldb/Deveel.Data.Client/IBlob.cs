@@ -28,10 +28,10 @@ namespace Deveel.Data.Client {
 
 		byte[] GetBytes(long pos, int length);
 
-		Stream BinaryStream { get; }
+		Stream GetStream();
 
-		long IndexOf(byte[] pattern, long start);
+		long GetPosition(byte[] pattern, long start);
 
-		long IndexOf(IBlob pattern, long start);
+		long GetPosition(IBlob pattern, long start);
 	}
 }

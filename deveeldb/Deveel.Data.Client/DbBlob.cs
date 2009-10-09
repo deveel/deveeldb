@@ -58,11 +58,11 @@ namespace Deveel.Data.Client {
 			return buf;
 		}
 
-		public Stream BinaryStream {
-			get { return new MemoryStream(blob.ToArray(), 0, (int) Length); }
+		public Stream GetStream() {
+			return new MemoryStream(blob.ToArray(), 0, (int) Length);
 		}
 
-		public long IndexOf(byte[] pattern, long start) {
+		public long GetPosition(byte[] pattern, long start) {
 			byte[] buf = blob.ToArray();
 			int len = (int)Length;
 			int max = ((int)Length) - pattern.Length;
@@ -82,25 +82,23 @@ namespace Deveel.Data.Client {
 				int search_from = i;
 				int found_index = 1;
 				while (found_index < pattern.Length &&
-						buf[search_from] == pattern[found_index]) {
+				       buf[search_from] == pattern[found_index]) {
 					++search_from;
 					++found_index;
 				}
 
 				++i;
 				if (found_index >= pattern.Length) {
-					return (long)i;
+					return (long) i;
 				}
-
 			}
-
 		}
 
-		public long IndexOf(IBlob pattern, long start) {
+		public long GetPosition(IBlob pattern, long start) {
 			byte[] buf;
 			// Optimize if DbBlob,
 			buf = ((DbBlob)pattern).blob.ToArray();
-			return IndexOf(buf, start);
+			return GetPosition(buf, start);
 		}
 	}
 }

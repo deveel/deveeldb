@@ -121,7 +121,7 @@ namespace Deveel.Data.Util {
 
 		/// <inheritdoc/>
 		public override bool CanSeek {
-			get { return false; }
+			get { return true; }
 		}
 
 		/// <inheritdoc/>
@@ -142,7 +142,35 @@ namespace Deveel.Data.Util {
 
 		/// <inheritdoc/>
 		public override long Seek(long offset, SeekOrigin origin) {
-			throw new NotSupportedException();
+			if (offset < 0)
+				throw new NotSupportedException("Backward seeking not supported.");
+
+			if (origin == SeekOrigin.End)
+				throw new NotSupportedException("Seeking from end of the stream is not yet supported.");
+
+			long toSkip;
+			if (origin == SeekOrigin.Current) {
+				if (offset == 0)
+					return position;
+
+				if (offset < position)
+					throw new ArgumentException("The offset cannot be smaller than the current position " +
+					                            "when seeking from the current position of the stream.");
+
+				toSkip = offset - position;
+
+				if (position + toSkip >= size)
+					throw new ArgumentException("The offset ");
+			} else {
+				if (offset > size)
+					throw new ArgumentException();
+
+				toSkip = offset;
+			}
+
+			Skip(toSkip);
+
+			return position;
 		}
 
 		/// <inheritdoc/>

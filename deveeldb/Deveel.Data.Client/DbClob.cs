@@ -38,6 +38,10 @@ namespace Deveel.Data.Client {
 			this.str = str;
 		}
 
+		public Encoding Encoding {
+			get { return Encoding.UTF8; }
+		}
+
 		// ---------- Implemented from IClob ----------
 
 		/// <inheritdoc/>
@@ -46,33 +50,33 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public String Substring(long pos, int length) {
-			int p = (int)(pos - 1);
-			return str.Substring(p, length);
+		public String GetString(long pos, int length) {
+			return str.Substring((int)pos, length);
 		}
 
 		/// <inheritdoc/>
-		public TextReader CharacterStream {
-			get { return new StringReader(str); }
+		public TextReader GetReader() {
+			return new StringReader(str);
 		}
 
 		/// <inheritdoc/>
-		public Stream AsciiStream {
-			get {
-				//TODO: check this...
-				byte[] buffer = Encoding.ASCII.GetBytes(str);
-				return new MemoryStream(buffer);
-			}
+		public Stream GetStream() {
+			//TODO: check this...
+			byte[] buffer = Encoding.GetBytes(str);
+			return new MemoryStream(buffer);
 		}
 
 		/// <inheritdoc/>
-		public long IndexOf(String searchstr, long start) {
-			throw DbDataException.Unsupported();
+		public long GetPosition(String searchstr, long start) {
+			return str.IndexOf(searchstr, (int)start);
 		}
 
 		/// <inheritdoc/>
-		public long IndexOf(IClob searchstr, long start) {
-			throw DbDataException.Unsupported();
+		public long GetPosition(IClob searchstr, long start) {
+			if (!(searchstr is DbClob))
+				throw new ArgumentException();
+
+			return GetPosition(((DbClob) searchstr).str, start);
 		}
 	}
 }

@@ -21,19 +21,23 @@
 
 using System;
 using System.IO;
+using System.Text;
 
 namespace Deveel.Data.Client {
 	public interface IClob {
 		long Length { get; }
 
-		String Substring(long pos, int length);
+		Encoding Encoding { get; }
 
-		TextReader CharacterStream { get; }
 
-		Stream AsciiStream { get; }
+		String GetString(long pos, int length);
 
-		long IndexOf(String searchstr, long start);
+		TextReader GetReader();
 
-		long IndexOf(IClob searchstr, long start);
+		Stream GetStream();
+
+		long GetPosition(String searchstr, long start);
+
+		long GetPosition(IClob searchstr, long start);
 	}
 }

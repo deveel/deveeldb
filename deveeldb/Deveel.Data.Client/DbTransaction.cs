@@ -24,13 +24,21 @@ using System.Data;
 
 namespace Deveel.Data.Client {
 	public sealed class DbTransaction : IDbTransaction {
-		internal DbTransaction(DbConnection conn) {
+		internal DbTransaction(DbConnection conn, int id, bool autoCommit) {
+			this.id = id;
 			this.conn = conn;
+			this.autoCommit = autoCommit;
 		}
 
+		private readonly int id;
 	    private bool committed;
 	    private bool rolledback;
-		private DbConnection conn;
+		private readonly DbConnection conn;
+		private readonly bool autoCommit;
+
+		internal int Id {
+			get { return id; }
+		}
 
 		#region Implementation of IDisposable
 
@@ -44,15 +52,37 @@ namespace Deveel.Data.Client {
 		#region Implementation of IDbTransaction
 
 		public void Commit() {
-			ResultSet result = conn.CreateCommand().ExecuteQuery("COMMIT");
-			result.Close();
-            committed = true;
+			if (committed)
+				throw new InvalidOperationException("The transaction was already committed.");
+
+			try {
+				IDbCommand result = conn.CreateCommand("COMMIT");
+				result.ExecuteNonQuery();
+
+				// orphans the current transaction in the database...
+				conn.currentTransaction = null;
+				if (autoCommit)
+					conn.AutoCommit = true;
+			} finally {
+				committed = true;
+			}
 		}
 
 		public void Rollback() {
-			ResultSet result = conn.CreateCommand().ExecuteQuery("ROLLBACK");
-			result.Close();
-		    rolledback = true;
+			if (rolledback)
+				throw new InvalidOperationException("The transaction was already rolledback.");
+
+			try {
+				IDbCommand command = conn.CreateCommand("ROLLBACK");
+				command.ExecuteNonQuery();
+
+				// orphans the current transaction in the database...
+				conn.currentTransaction = null;
+				if (autoCommit)
+					conn.AutoCommit = true;
+			} finally {
+				rolledback = true;
+			}
 		}
 
 		IDbConnection IDbTransaction.Connection {

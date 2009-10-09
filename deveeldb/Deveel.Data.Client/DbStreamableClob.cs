@@ -42,27 +42,30 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public long Length {
-			get {
-				if (Type == 4) {
-					return RawSize/2;
-				}
-				return RawSize;
-			}
+			get { return Type == 4 ? RawSize/2 : RawSize; }
+		}
+
+		public Encoding Encoding {
+			get { return Type == 4 ? Encoding.UTF8 : Encoding.ASCII; }
 		}
 
 		/// <inheritdoc/>
-		public String Substring(long pos, int length) {
-			int p = (int)(pos - 1);
-			TextReader reader = CharacterStream;
-			try {
-				//TODO: check this... 
-				// reader.skip(p);
-				for (int i = 0; i < pos; i++)
-					reader.Read();
+		public String GetString(long pos, int length) {
+			//TODO: verify this...
+			if (Type == 4)
+				pos = pos/2;
 
+			Stream stream = GetStream();
+			try {
+				stream.Seek(pos, SeekOrigin.Current);
+
+				StreamReader reader = new StreamReader(stream, Encoding);
 				StringBuilder buf = new StringBuilder(length);
 				for (int i = 0; i < length; ++i) {
 					int c = reader.Read();
+					if (c == -1)
+						break;
+
 					buf.Append((char)c);
 				}
 				return buf.ToString();
@@ -74,40 +77,34 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public TextReader CharacterStream {
-			get {
-				if (Type == 3) {
-					return new StreamReader(new StreamableObjectInputStream(this, RawSize), Encoding.ASCII);
-				} else if (Type == 4) {
-					return new StreamReader(new StreamableObjectInputStream(this, RawSize), Encoding.UTF8);
-				} else {
-					throw new DataException("Unknown type.");
-				}
-			}
+		public TextReader GetReader() {
+			return new StreamReader(GetStream(), Encoding);
 		}
 
 		/// <inheritdoc/>
-		public Stream AsciiStream {
-			get {
-				if (Type == 3) {
-					return new StreamableObjectInputStream(this, RawSize);
-				} else if (Type == 4) {
-					//TODO: check this...
-					// return new AsciiInputStream(getCharacterStream());
-					return new StreamableObjectInputStream(this, RawSize);
-				} else {
-					throw new DataException("Unknown type.");
-				}
+		public Stream GetStream() {
+			/*
+			TODO: check...
+			if (Type == 3) {
+				return new StreamableObjectInputStream(this, RawSize);
+			} else if (Type == 4) {
+				//TODO: check this...
+				// return new AsciiInputStream(getCharacterStream());
+				return new StreamableObjectInputStream(this, RawSize);
+			} else {
+				throw new DataException("Unknown type.");
 			}
+			*/
+			return new StreamableObjectInputStream(this, RawSize);
 		}
 
 		/// <inheritdoc/>
-		public long IndexOf(String searchstr, long start) {
+		public long GetPosition(String searchstr, long start) {
 			throw DbDataException.Unsupported();
 		}
 
 		/// <inheritdoc/>
-		public long IndexOf(IClob searchstr, long start) {
+		public long GetPosition(IClob searchstr, long start) {
 			throw DbDataException.Unsupported();
 		}
 	}

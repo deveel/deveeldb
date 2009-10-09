@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Deveel.Data.Client\ConnectionString.cs" />
     <Compile Include="Deveel.Data.Sql\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateFunctionStatement.cs" />

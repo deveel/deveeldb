@@ -65,9 +65,9 @@ namespace Deveel.Data.Client {
 		private readonly RowCache row_cache;
 
 		/// <summary>
-		/// The URL used to make this connection.
+		/// The string used to make this connection.
 		/// </summary>
-		private readonly String url;
+		private ConnectionString connectionString;
 
 		/// <summary>
 		/// Set to true if the connection is closed.
@@ -136,13 +136,25 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		private long s_object_id;
 
+		/// <summary>
+		/// The current state of the connection;
+		/// </summary>
+		private ConnectionState state;
+
+		/// <summary>
+		/// If the user calls the method <see cref="BeginTransaction"/> this field
+		/// is set and other calls to the method will trow an exception.
+		/// </summary>
+		internal DbTransaction currentTransaction;
+
+		private static int transactionCounter = 0;
 
 
 		// For synchronization in this object,
-		private readonly Object @lock = new Object();
+		private readonly Object stateLock = new Object();
 
-		public DbConnection(String url, IDatabaseInterface db_interface, int cache_size, int max_size) {
-			this.url = url;
+		internal DbConnection(ConnectionString connectionString, IDatabaseInterface db_interface, int cache_size, int max_size) {
+			this.connectionString = connectionString;
 			this.db_interface = db_interface;
 			is_closed = true;
 			auto_commit = true;
@@ -153,116 +165,40 @@ namespace Deveel.Data.Client {
 			row_cache = new RowCache(cache_size, max_size);
 			s_object_hold = new Hashtable();
 			s_object_id = 0;
+			state = ConnectionState.Closed;
 		}
 
-		public DbConnection(string url, Properties info) {
-			IDatabaseInterface db_interface;
-			String default_schema = "APP";
+		public DbConnection(string s)
+			: this(new ConnectionString(s)) {
+		}
+
+		public DbConnection(ConnectionString connectionString) {
+			// IDatabaseInterface db_interface;
+			// String default_schema = Client.ConnectionString.DefaultSchema;
+			//if (connectionString.Schema != null)
+			//	default_schema = connectionString.Schema;
 
 			int row_cache_size;
 			int max_row_cache_size;
 
-			String address_part = url;
 			// If we are to connect to a single user database running
 			// within this runtime.
-			if (address_part.StartsWith("local://")) {
-
+			if (connectionString.IsLocal) {
 				// Returns a list of two Objects, db_interface and database_name.
-				Object[] ret_list = ConnectToLocal(address_part, info);
-				db_interface = (IDatabaseInterface)ret_list[0];
-				default_schema = (String)ret_list[1];
+				db_interface = ConnectToLocal(connectionString);
 
 				// Internal row cache setting are set small.
 				row_cache_size = 43;
 				max_row_cache_size = 4092000;
 
 			} else {
-				int port = 9157;
-				String host = "127.0.0.1";
-
-				// Otherwise we must be connecting remotely.
-				if (address_part.StartsWith("//")) {
-
-					String args_string = "";
-					int arg_part = address_part.IndexOf('?', 2);
-					if (arg_part != -1) {
-						args_string = address_part.Substring(arg_part + 1);
-						address_part = address_part.Substring(0, arg_part);
-					}
-
-					//        Console.Out.WriteLine("ADDRESS_PART: " + address_part);
-
-					int end_address = address_part.IndexOf("/", 2);
-					if (end_address == -1) {
-						end_address = address_part.Length;
-					}
-					String remote_address = address_part.Substring(2, end_address);
-					int delim = remote_address.IndexOf(':');
-					if (delim == -1) {
-						delim = remote_address.Length;
-					}
-					host = remote_address.Substring(0, delim);
-					if (delim < remote_address.Length - 1) {
-						port = Int32.Parse(remote_address.Substring(delim + 1));
-					}
-
-					//        Console.Out.WriteLine("REMOTE_ADDRESS: '" + remote_address + "'");
-
-					// Schema name?
-					String schema_part = "";
-					if (end_address < address_part.Length) {
-						schema_part = address_part.Substring(end_address + 1);
-					}
-					String schema_string = schema_part;
-					int schema_end = schema_part.IndexOf('/');
-					if (schema_end != -1) {
-						schema_string = schema_part.Substring(0, schema_end);
-					} else {
-						schema_end = schema_part.IndexOf('?');
-						if (schema_end != -1) {
-							schema_string = schema_part.Substring(0, schema_end);
-						}
-					}
-
-					//        Console.Out.WriteLine("SCHEMA_STRING: '" + schema_string + "'");
-
-					// Argument part?
-					if (!args_string.Equals("")) {
-						//          Console.Out.WriteLine("ARGS: '" + args_string + "'");
-						ParseEncodedVariables(args_string, info);
-					}
-
-					// Is there a schema or should we default?
-					if (schema_string.Length > 0) {
-						default_schema = schema_string;
-					}
-
-				} else {
-					if (address_part.Trim().Length > 0) {
-						throw new DataException("Malformed URL: " + address_part);
-					}
-				}
-
-				//      database_name = address_part;
-				//      if (database_name == null || database_name.trim().equals("")) {
-				//        database_name = "DefaultDatabase";
-				//      }
-
-				// BUG WORKAROUND:
-				// There appears to be a bug in the socket code of some VM
-				// implementations.  With the IBM Linux JDK, if a socket is opened while
-				// another is closed while blocking on a Read, the socket that was just
-				// opened breaks.  This was causing the login code to block indefinitely
-				// and the connection thread causing a null pointer exception.
-				// The workaround is to WriteByte a short pause before the socket connection
-				// is established.
 				try {
 					Thread.Sleep(85);
 				} catch (ThreadInterruptedException) { /* ignore */ }
 
 				// Make the connection
-				TCPStreamDatabaseInterface tcp_db_interface =
-											 new TCPStreamDatabaseInterface(host, port);
+				TCPStreamDatabaseInterface tcp_db_interface = new TCPStreamDatabaseInterface(connectionString.Host,
+				                                                                             connectionString.Port);
 				// Attempt to open a socket to the database.
 				tcp_db_interface.ConnectToDatabase();
 
@@ -274,8 +210,7 @@ namespace Deveel.Data.Client {
 
 			}
 
-			this.url = url;
-			this.db_interface = db_interface;
+			this.connectionString = connectionString;
 			is_closed = true;
 			auto_commit = true;
 			trigger_list = new ArrayList();
@@ -285,8 +220,9 @@ namespace Deveel.Data.Client {
 			row_cache = new RowCache(row_cache_size, max_row_cache_size);
 			s_object_hold = new Hashtable();
 			s_object_id = 0;
+			state = ConnectionState.Closed;
 
-			Login(info, default_schema);
+			//TODO: Login(default_schema, connectionString.UserName, connectionString.Password);
 		}
 
 		/// <summary>
@@ -301,8 +237,10 @@ namespace Deveel.Data.Client {
 		/// Returns a list of two elements, (<see cref="IDatabaseInterface"/>) db_interface 
 		/// and (<see cref="String"/>) database_name.
 		/// </returns>
-		private object[] ConnectToLocal(string address_part, Properties info) {
+		private IDatabaseInterface ConnectToLocal(ConnectionString connString) {
 			lock (this) {
+				/*
+				OLD:
 				// If the ILocalBootable object hasn't been created yet, do so now via
 				// reflection.
 				String schema_name = "APP";
@@ -529,7 +467,146 @@ namespace Deveel.Data.Client {
 				ret[1] = schema_name;
 
 				return ret;
+				*/
+				// If the ILocalBootable object hasn't been created yet, do so now via
+				// reflection.
+				IDatabaseInterface db_interface;
 
+				// The path to the configuration
+				String config_path = connString.Host;
+
+				// If no config_path, then assume it is ./db.conf
+				if (config_path.Length == 0)
+					config_path = "./db.conf";
+
+
+				// Is there already a local connection to this database?
+				String session_key = config_path.ToLower();
+				ILocalBootable local_bootable = (ILocalBootable)local_session_map[session_key];
+				// No so create one and WriteByte it in the connection mapping
+				if (local_bootable == null) {
+					local_bootable = CreateDefaultLocalBootable();
+					local_session_map[session_key] = local_bootable;
+				}
+
+				// Is the connection booted already?
+				if (local_bootable.IsBooted) {
+					// Yes, so simply login.
+					db_interface = local_bootable.Connect();
+				} else {
+					// Otherwise we need to boot the local database.
+
+					// This will be the configuration input file
+					Stream config_in;
+					if (!config_path.StartsWith("file:/")) {
+						// Make the config_path into a URL and open an input stream to it.
+						Uri config_url;
+						try {
+							config_url = new Uri(config_path);
+						} catch (FormatException) {
+							throw new DataException("Malformed URL: " + config_path);
+						}
+
+						try {
+							// Try and open an input stream to the given configuration.
+							WebRequest request = WebRequest.Create(config_url);
+							WebResponse response = request.GetResponse();
+							config_in = response.GetResponseStream();
+						} catch (IOException) {
+							throw new DataException("Unable to open configuration file.  " +
+												   "I tried looking at '" + config_url + "'");
+						}
+					} else {
+						try {
+							// Try and open an input stream to the given configuration.
+							config_in = new FileStream(config_path, FileMode.Open, FileAccess.ReadWrite);
+						} catch (IOException) {
+							throw new DataException("Unable to open configuration file: " + config_path);
+						}
+
+					}
+
+					// Work out the root path (the place in the local file system where the
+					// configuration file is).
+					string root_path;
+					// If the URL is a file, we can work out what the root path is.
+					if (config_path.StartsWith("file:/")) {
+						int start_i = config_path.IndexOf(":/");
+
+						// If the config_path is pointing inside a jar file, this denotes the
+						// end of the file part.
+						int file_end_i = config_path.IndexOf("!");
+						String config_file_part;
+						if (file_end_i == -1) {
+							config_file_part = config_path.Substring(start_i + 2);
+						} else {
+							config_file_part = config_path.Substring(start_i + 2, file_end_i - (start_i + 2));
+						}
+
+						string absolute_config_file = Path.GetFullPath(config_file_part);
+						root_path = Path.GetDirectoryName(absolute_config_file);
+					} else {
+						// This means the configuration file isn't sitting in the local file
+						// system, so we assume root is the current directory.
+						root_path = Environment.CurrentDirectory;
+					}
+
+					// Get the configuration bundle that was set as the path,
+					DefaultDbConfig config = new DefaultDbConfig(root_path);
+					try {
+						config.LoadFromStream(config_in);
+						config_in.Close();
+					} catch (IOException e) {
+						throw new DataException("Error reading configuration file: " +
+											   config_path + " Reason: " + e.Message);
+					}
+
+					bool create_db = connectionString.Create;
+					bool create_db_if_not_exist = connString.BootOrCreate;
+
+					// Include any properties from the 'info' object
+					foreach (DictionaryEntry entry in connString.AdditionalProperties) {
+						String key = entry.Key.ToString();
+						config.SetValue(key, Convert.ToString(entry.Value));
+					}
+
+					// Check if the database exists
+					bool database_exists = local_bootable.CheckExists(config);
+
+					// If database doesn't exist and we've been told to create it if it
+					// doesn't exist, then set the 'create_db' flag.
+					if (create_db_if_not_exist && !database_exists) {
+						create_db = true;
+					}
+
+					// Error conditions;
+					// If we are creating but the database already exists.
+					if (create_db && database_exists) {
+						throw new DataException(
+							"Can not create database because a database already exists.");
+					}
+					// If we are booting but the database doesn't exist.
+					if (!create_db && !database_exists) {
+						throw new DataException(
+							"Can not find a database to start.  Either the database needs to " +
+							"be created or the 'database_path' property of the configuration " +
+							"must be set to the location of the data files.");
+					}
+
+					// Are we creating a new database?
+					if (create_db) {
+						String username = connString.UserName;
+						String password = connString.Password;
+
+						db_interface = local_bootable.Create(username, password, config);
+					}
+						// Otherwise we must be logging onto a database,
+					else {
+						db_interface = local_bootable.Boot(config);
+					}
+				}
+
+				return db_interface;
 			}
 		}
 
@@ -634,22 +711,6 @@ namespace Deveel.Data.Client {
 			get { return row_cache; }
 		}
 
-		///<summary>
-		/// Closes this connection by calling the <see cref="IDisposable.Dispose"/> method 
-		/// in the database interface.
-		///</summary>
-		public void InternalClose() {
-			lock (@lock) {
-				if (!IsClosed) {
-					try {
-						db_interface.Dispose();
-					} finally {
-						is_closed = true;
-					}
-				}
-			}
-		}
-
 
 		///<summary>
 		/// Attempts to login to the database interface with the given 
@@ -661,9 +722,10 @@ namespace Deveel.Data.Client {
 		///<exception cref="DataException">
 		/// If the authentication fails.
 		/// </exception>
+		/*
+		OLD:
 		public void Login(String default_schema, String username, String password) {
-
-			lock (@lock) {
+			stateLock (@stateLock) {
 				if (!is_closed) {
 					throw new DataException("Unable to login to connection because it is open.");
 				}
@@ -681,7 +743,7 @@ namespace Deveel.Data.Client {
 
 			// Login with the username/password
 			bool li = db_interface.Login(default_schema, username, password, this);
-			lock (@lock) {
+			stateLock (@stateLock) {
 				is_closed = !li;
 			}
 			if (!li) {
@@ -705,28 +767,59 @@ namespace Deveel.Data.Client {
 			}
 			rs.Close();
 		}
+		*/
 
-		/// <summary>
-		/// Returns the url string used to make this connection.
-		/// </summary>
-		internal string Url {
-			get { return url; }
+		internal virtual bool InternalOpen() {
+			string username = connectionString.UserName;
+			string password = connectionString.Password;
+			string default_schema = connectionString.Schema;
+
+			if (username == null || username.Equals("") ||
+				password == null || password.Equals("")) {
+				throw new DataException("username or password have not been set.");
+			}
+
+			// Set the default schema to username if it's null
+			if (default_schema == null) {
+				default_schema = username;
+			}
+
+			// Login with the username/password
+			return db_interface.Login(default_schema, username, password, this);
 		}
 
-		/// <summary>
-		/// Logs into the server running on a remote machine.
-		/// </summary>
-		/// <param name="info"></param>
-		/// <param name="default_schema"></param>
-		/// <exception cref="DataException">
-		/// If user authentication fails.
-		/// </exception>
-		internal void Login(Properties info, String default_schema) {
+		public void Open() {
+			lock (stateLock) {
+				if (state != ConnectionState.Closed)
+					throw new DataException("Unable to login to connection because it is open.");
 
-			String username = info.GetProperty("user", "");
-			String password = info.GetProperty("password", "");
+				state = ConnectionState.Connecting;
+			}
 
-			Login(default_schema, username, password);
+			bool success = InternalOpen();
+
+			lock (stateLock) {
+				state = (success ? ConnectionState.Open : ConnectionState.Closed);
+			}
+
+			if (success) {
+				//TODO: separate from the Open procedure?
+				// Determine if this connection is case insensitive or not,
+				IsCaseInsensitiveIdentifiers = false;
+				IDbCommand stmt = CreateCommand("SHOW CONNECTION_INFO");
+				IDataReader rs = stmt.ExecuteReader();
+				while (rs.Read()) {
+					String key = rs.GetString(0);
+					if (key.Equals("case_insensitive_identifiers")) {
+						String val = rs.GetString(1);
+						IsCaseInsensitiveIdentifiers = val.Equals("true");
+					} else if (key.Equals("auto_commit")) {
+						String val = rs.GetString(1);
+						auto_commit = val.Equals("true");
+					}
+				}
+				rs.Close();
+			}
 		}
 
 		/// <summary>
@@ -973,15 +1066,27 @@ namespace Deveel.Data.Client {
 			} else {
 				throw new ApplicationException("Unrecognised database event: " + event_type);
 			}
-
-			//    Console.Out.WriteLine("[com.mckoi.jdbc.DbConnection] Event received:");
-			//    Console.Out.WriteLine(event_type);
-			//    Console.Out.WriteLine(event_message);
 		}
 
 		/// <inheritdoc/>
 		public DbTransaction BeginTransaction() {
-			return new DbTransaction(this);
+			//TODO: support multiple transactions...
+			if (currentTransaction != null)
+				throw new InvalidOperationException("A transaction was already opened on this connection.");
+
+			bool autoCommit = false;
+			if (AutoCommit) {
+				AutoCommit = false;
+				autoCommit = true;
+			}
+
+			int id;
+			lock (typeof(DbConnection)) {
+				id = transactionCounter++;
+			}
+
+			currentTransaction = new DbTransaction(this, id, autoCommit);
+			return currentTransaction;
 		}
 
 		#region Implementation of IDisposable
@@ -1004,20 +1109,36 @@ namespace Deveel.Data.Client {
 			return BeginTransaction();
 		}
 
-		public bool IsClosed {
-			get {
-				lock (@lock) {
-					return is_closed;
+		/// <inheritdoc/>
+		public void Close() {
+			if (state != ConnectionState.Closed) {
+				bool success = InternalClose();
+				lock (stateLock) {
+					state = (success ? ConnectionState.Closed : ConnectionState.Broken);
 				}
 			}
 		}
 
-		/// <inheritdoc/>
-		public virtual void Close() {
-			if (!IsClosed) {
-				InternalClose();
+		///<summary>
+		/// Closes this connection by calling the <see cref="IDisposable.Dispose"/> method 
+		/// in the database interface.
+		///</summary>
+		internal virtual bool InternalClose() {
+			try {
+				try {
+					if (currentTransaction != null)
+						currentTransaction.Rollback();
+				} catch(Exception) {
+					// ignore any exception...
+				}
+
+				db_interface.Dispose();
+				return true;
+			} catch {
+				return false;
 			}
 		}
+
 
 		void IDbConnection.ChangeDatabase(string databaseName) {
 			//TODO: support this with SET SCHEMA ...
@@ -1029,7 +1150,7 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public DbCommand CreateCommand() {
-			return new DbCommand(this);
+			return new DbCommand(null, this);
 		}
 
 		/// <summary>
@@ -1038,9 +1159,7 @@ namespace Deveel.Data.Client {
 		/// <param name="commandText"></param>
 		/// <returns></returns>
 		public DbCommand CreateCommand(string commandText) {
-			DbCommand command = new DbCommand(this);
-			command.CommandText = commandText;
-			return command;
+			return new DbCommand(commandText, this);
 		}
 
 		/// <summary>
@@ -1049,33 +1168,35 @@ namespace Deveel.Data.Client {
 		public virtual bool AutoCommit {
 			get { return auto_commit; }
 			set {
-				// The SQL to WriteByte into auto-commit mode.
-				ResultSet result;
+				// The SQL to write into auto-commit mode.
 				if (value) {
-					result = CreateCommand().ExecuteQuery("SET AUTO COMMIT ON");
+					CreateCommand("SET AUTO COMMIT ON").ExecuteNonQuery();
 					auto_commit = true;
-					result.Close();
-				}
-				else {
-					result = CreateCommand().ExecuteQuery("SET AUTO COMMIT OFF");
+				} else {
+					CreateCommand("SET AUTO COMMIT OFF").ExecuteNonQuery();
 					auto_commit = false;
-					result.Close();
 				}
 			}
 		}
 
-		void IDbConnection.Open() {
+		/// <inheritdoc/>
+		string IDbConnection.ConnectionString {
+			get { return ConnectionString.ToString(); }
+			set { ConnectionString = new ConnectionString(value); }
 		}
 
-		/// <inheritdoc/>
-		public string ConnectionString {
-			get { return url; }
-			set { throw new NotImplementedException(); }
+		public ConnectionString ConnectionString {
+			get { return connectionString; }
+			set {
+				if (state != ConnectionState.Closed)
+					throw new InvalidOperationException("The connection is not closed");
+				connectionString = value;
+			}
 		}
 
 		/// <inheritdoc/>
 		public int ConnectionTimeout {
-			get { throw new NotImplementedException(); }
+			get { return 0; }
 		}
 
 		string IDbConnection.Database {
@@ -1083,7 +1204,11 @@ namespace Deveel.Data.Client {
 		}
 
 		public ConnectionState State {
-			get { throw new NotImplementedException(); }
+			get {
+				lock (stateLock) {
+					return state;
+				}
+			}
 		}
 
 		#endregion
@@ -1184,5 +1309,17 @@ namespace Deveel.Data.Client {
 		/// The timeout for a query in seconds.
 		/// </summary>
 		internal static int QUERY_TIMEOUT = Int32.MaxValue;
+
+		internal void StartState(ConnectionState connectionState) {
+			lock (stateLock) {
+				//TODO: add a concrete implementation ...
+			}
+		}
+
+		internal void EndState(ConnectionState connectionState) {
+			lock (stateLock) {
+				//TODO: add a concrete implementation ...
+			}
+		}
 	}
 }

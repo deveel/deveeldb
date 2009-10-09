@@ -574,8 +574,7 @@ namespace Deveel.Data.Client {
 			// ASSERTION -
 			// Is the given column in bounds?
 			if (column < 0 || column >= ColumnCount) {
-				throw new DataException(
-					"Column index out of bounds: 1 > " + column + " > " + ColumnCount);
+				throw new IndexOutOfRangeException("Column index out of bounds: 1 > " + column + " > " + ColumnCount);
 			}
 			// Ensure the current indexed row is fetched from the server.
 			EnsureIndexLoaded();

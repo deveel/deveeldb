@@ -48,14 +48,13 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public byte[] GetBytes(long pos, int length) {
 			// First byte is at position 1 according to JDBC Spec.
-			--pos;
 			if (pos < 0 || pos + length > Length) {
 				throw new DataException("Out of bounds.");
 			}
 
 			// The buffer we are reading into
 			byte[] buf = new byte[length];
-			Stream i_stream = BinaryStream;
+			Stream i_stream = GetStream();
 			try {
 				i_stream.Seek(pos, SeekOrigin.Begin);
 				for (int i = 0; i < length; ++i) {
@@ -71,17 +70,17 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public Stream BinaryStream {
-			get { return new StreamableObjectInputStream(this, RawSize); }
+		public Stream GetStream() {
+			return new StreamableObjectInputStream(this, RawSize);
 		}
 
 		/// <inheritdoc/>
-		public long IndexOf(byte[] pattern, long start) {
+		public long GetPosition(byte[] pattern, long start) {
 			throw DbDataException.Unsupported();
 		}
 
 		/// <inheritdoc/>
-		public long IndexOf(IBlob pattern, long start) {
+		public long GetPosition(IBlob pattern, long start) {
 			throw DbDataException.Unsupported();
 		}
 	}

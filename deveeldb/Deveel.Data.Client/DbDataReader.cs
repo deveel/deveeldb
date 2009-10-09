@@ -30,6 +30,7 @@ namespace Deveel.Data.Client {
 	///</summary>
 	public sealed class DbDataReader : IDataReader {
 		private readonly DbCommand command;
+		internal event EventHandler Closed;
 
 		private static BigNumber BD_ZERO = BigNumber.fromInt(0);
 
@@ -196,7 +197,7 @@ namespace Deveel.Data.Client {
 				return null;
 			} else {
 				if (b.Length <= Int32.MaxValue) {
-					return b.GetBytes(1, (int)b.Length);
+					return b.GetBytes(0, (int)b.Length);
 				} else {
 					throw new DataException("IBlob too large to return as byte[]");
 				}
@@ -220,19 +221,32 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		/// <exception cref="NotImplementedException"/>
 		public char GetChar(int i) {
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 
 		/// <inheritdoc/>
 		/// <exception cref="NotImplementedException"/>
 		public long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length) {
-			throw new NotImplementedException();
+			IClob clob = GetClob(i);
+			if (clob == null)
+				return 0;
+
+			string s = clob.GetString(fieldoffset, length);
+			int len;
+			if (s == null || (len = s.Length) == 0)
+				return 0;
+
+			Array.Copy(s.ToCharArray(), 0, buffer, bufferoffset, len);
+			return len;
 		}
 
 		/// <inheritdoc/>
-		/// <exception cref="NotImplementedException"/>
 		public Guid GetGuid(int i) {
-			throw new NotImplementedException();
+			string s = GetString(i);
+			if (s == null || s.Length == 0)
+				return Guid.Empty;
+
+			return new Guid(s);
 		}
 
 		/// <inheritdoc/>
@@ -292,7 +306,9 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public decimal GetDecimal(int i) {
-			throw new NotImplementedException();
+			//TODO: find a better way...
+			BigNumber num = GetBigNumber(i);
+			return new decimal(num.ToDouble());
 		}
 
 		// NOTE: We allow 'GetBigDecimal' methods as extensions to ADO.NET
@@ -319,14 +335,27 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		/// <exception cref="NotImplementedException"/>
-		public IDataReader GetData(int i) {
+		IDataReader IDataRecord.GetData(int i) {
 			throw new NotImplementedException();
 		}
 
 		/// <inheritdoc/>
-		/// <exception cref="NotImplementedException"/>
 		public bool IsDBNull(int i) {
-			throw new NotImplementedException();
+			Object ob = command.ResultSet.GetRawColumn(i);
+			if (ob == null)
+				return true;
+			if (command.Connection.IsStrictGetValue) {
+				// Convert depending on the column type,
+				ColumnDescription col_desc = command.ResultSet.GetColumn(i);
+				SQLTypes sql_type = col_desc.SQLType;
+
+				ob = command.ObjectCast(ob, sql_type);
+				if (ob == null || (ob is TObject && ((TObject)ob).IsNull))
+					return true;
+			}
+
+			return false;
+
 		}
 
 		/// <inheritdoc/>
@@ -351,10 +380,48 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public void Close() {
 			command.ResultSet.Close();
+			if (Closed != null)
+				Closed(this, EventArgs.Empty);
 		}
 
-		System.Data.DataTable IDataReader.GetSchemaTable() {
-			throw new NotImplementedException();
+		public System.Data.DataTable GetSchemaTable() {
+			if (FieldCount == 0)
+				return null;
+
+			System.Data.DataTable table = new System.Data.DataTable("ColumnsInfo");
+
+			table.Columns.Add("Name", typeof (string));
+			table.Columns.Add("SqlType", typeof (int));
+			table.Columns.Add("DbType", typeof (int));
+			table.Columns.Add("Type", typeof (string));
+			table.Columns.Add("Size", typeof (int));
+			table.Columns.Add("Scale", typeof (int));
+			table.Columns.Add("IsUnique", typeof (bool));
+			table.Columns.Add("IsNotNull", typeof (bool));
+			table.Columns.Add("IsQuantifiable", typeof (bool));
+			table.Columns.Add("IsNumeric", typeof (bool));
+			table.Columns.Add("UniqueGroup", typeof (int));
+
+			for (int i = 0; i < FieldCount; i++) {
+				DataRow row = table.NewRow();
+
+				ColumnDescription column = command.ResultSet.GetColumn(i);
+				row["Name"] = column.Name;
+				row["SqlType"] = (int)column.SQLType;
+				row["DbType"] = (int)column.Type;
+				row["Type"] = (column.ObjectType.IsPrimitive ? column.ObjectType.FullName : column.ObjectType.AssemblyQualifiedName);
+				row["Size"] = column.Size;
+				row["Scale"] = column.Scale;
+				row["IsUnique"] = column.IsUnique;
+				row["IsQuantifiable"] = column.IsQuantifiable;
+				row["IsNumeric"] = column.IsNumericType;
+				row["IsNotNull"] = column.IsNotNull;
+				row["UniqueGroup"] = column.UniqueGroup;
+
+				table.Rows.Add(row);
+			}
+
+			return table;
 		}
 
 		/// <inheritdoc/>
@@ -369,9 +436,10 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public int Depth {
-			get { throw new NotImplementedException(); }
+			get { return 0; }
 		}
 
+		//TODO: check this...
 		/// <inheritdoc/>
 		public bool IsClosed {
 			get { return command.ResultSet.closed_on_server; }

@@ -158,30 +158,27 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static Object ReadFrom (BinaryReader input)
-		{
-			byte type = input.ReadByte ();
-	
+		public static Object ReadFrom(BinaryReader input) {
+			byte type = input.ReadByte();
+
 			switch (type) {
-			case (1):
-				return null;
-	
+				case (1):
+					return null;
+
 				case (3):
-				String str = input.ReadString ();
-				return StringObject.FromString (str);
-	
-				case (6):
-				
-				{
-					int scale = input.ReadInt32 ();
-					int blen = input.ReadInt32 ();
-					byte[] buf = new byte[blen];
-					input.Read (buf, 0, buf.Length);
-					return BigNumber.fromData (buf, scale, NumberState.NONE);
+					String str = input.ReadString();
+					return StringObject.FromString(str);
+
+				case (6): {
+						int scale = input.ReadInt32();
+						int blen = input.ReadInt32();
+						byte[] buf = new byte[blen];
+						input.Read(buf, 0, buf.Length);
+						return BigNumber.fromData(buf, scale, NumberState.NONE);
 					}
 
 				case (7): {
-						NumberState state = (NumberState) input.ReadByte();
+						NumberState state = (NumberState)input.ReadByte();
 						int scale = input.ReadInt32();
 						int blen = input.ReadInt32();
 						byte[] buf = new byte[blen];
@@ -191,7 +188,7 @@ namespace Deveel.Data {
 
 				case (8): {
 						// 64-bit long numeric value
-					long val = input.ReadInt64();
+						long val = input.ReadInt64();
 						return BigNumber.fromLong(val);
 					}
 
