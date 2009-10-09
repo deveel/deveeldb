@@ -168,7 +168,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="view">The view meta informations for defining the 
 		/// new view.</param>
-		/// <param name="query">The query forming the view.</param>
+		/// <param name="command">The command forming the view.</param>
 		/// <param name="user">The user owning the view.</param>
 		/// <remarks>
 		/// If a view has previously been defined for the given name,
@@ -177,7 +177,7 @@ namespace Deveel.Data {
 		/// <exception cref="StatementException">
 		/// If multiple views were found for the given view name.
 		/// </exception>
-		public void DefineView(ViewDef view, SQLQuery query, User user) {
+		public void DefineView(ViewDef view, SqlCommand command, User user) {
 			DataTableDef data_table_def = view.DataTableDef;
 			DataTable view_table = connection.GetTable(Database.SysView);
 
@@ -187,7 +187,7 @@ namespace Deveel.Data {
 			RowData rdat = new RowData(view_table);
 			rdat.SetColumnDataFromObject(0, data_table_def.Schema);
 			rdat.SetColumnDataFromObject(1, data_table_def.Name);
-			rdat.SetColumnDataFromObject(2, query.SerializeToBlob());
+			rdat.SetColumnDataFromObject(2, command.SerializeToBlob());
 			rdat.SetColumnDataFromObject(3, view.SerializeToBlob());
 			rdat.SetColumnDataFromObject(4, user.UserName);
 

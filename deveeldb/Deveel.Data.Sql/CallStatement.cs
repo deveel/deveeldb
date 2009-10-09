@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql {
 			TableName p_name = null;
 
 			// If no schema def given in the procedure name, first check for the
-			// function in the SYS_INFO schema.
+			// function in the SYSTEM schema.
 			if (proc_name.IndexOf(".") == -1) {
 				// Resolve the procedure name into a TableName object.    
 				String schema_name = database.CurrentSchema;

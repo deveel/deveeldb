@@ -823,11 +823,11 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Uploads any streamable objects found in an SQLQuery into the database.
+		/// Uploads any streamable objects found in an SqlCommand into the database.
 		/// </summary>
 		/// <param name="sql"></param>
-		private void UploadStreamableObjects(SQLQuery sql) {
-			// Push any streamable objects that are present in the query onto the
+		private void UploadStreamableObjects(SqlCommand sql) {
+			// Push any streamable objects that are present in the command onto the
 			// server.
 			Object[] vars = sql.Variables;
 			try {
@@ -892,20 +892,20 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Sends the batch of SQLQuery objects to the database to be executed.
+		/// Sends the batch of SqlCommand objects to the database to be executed.
 		/// </summary>
-		/// <param name="queries"></param>
-		/// <param name="results">The consumer objects for the query results.</param>
+		/// <param name="commands"></param>
+		/// <param name="results">The consumer objects for the command results.</param>
 		/// <remarks>
-		/// If a query succeeds then we are guarenteed to know that size of the result set.
+		/// If a command succeeds then we are guarenteed to know that size of the result set.
 		/// <para>
-		/// This method blocks until all of the queries have been processed by the database.
+		/// This method blocks until all of the _commands have been processed by the database.
 		/// </para>
 		/// </remarks>
-		internal void ExecuteQueries(SQLQuery[] queries, ResultSet[] results) {
-			// For each query
-			for (int i = 0; i < queries.Length; ++i) {
-				ExecuteQuery(queries[i], results[i]);
+		internal void ExecuteQueries(SqlCommand[] commands, ResultSet[] results) {
+			// For each command
+			for (int i = 0; i < commands.Length; ++i) {
+				ExecuteQuery(commands[i], results[i]);
 			}
 		}
 
@@ -915,15 +915,15 @@ namespace Deveel.Data.Client {
 		/// <param name="sql"></param>
 		/// <param name="result_set">The consumer for the results from the database.</param>
 		/// <remarks>
-		/// We are guarenteed that if the query succeeds that we know the size of the 
+		/// We are guarenteed that if the command succeeds that we know the size of the 
 		/// result set and at least first first row of the set.
 		/// <para>
 		/// This method will block until we have received the result header information.
 		/// </para>
 		/// </remarks>
-		internal void ExecuteQuery(SQLQuery sql, ResultSet result_set) {
+		internal void ExecuteQuery(SqlCommand sql, ResultSet result_set) {
 			UploadStreamableObjects(sql);
-			// Execute the query,
+			// Execute the command,
 			IQueryResponse resp = db_interface.ExecuteQuery(sql);
 
 			// The format of the result
@@ -932,13 +932,13 @@ namespace Deveel.Data.Client {
 				col_list[i] = resp.GetColumnDescription(i);
 			}
 			// Set up the result set to the result format and update the time taken to
-			// execute the query on the server.
+			// execute the command on the server.
 			result_set.ConnSetup(resp.ResultId, col_list, resp.RowCount);
 			result_set.SetQueryTime(resp.QueryTimeMillis);
 		}
 
 		/// <summary>
-		/// Called by ResultSet to query a part of a result from the server.
+		/// Called by ResultSet to command a part of a result from the server.
 		/// </summary>
 		/// <param name="result_id"></param>
 		/// <param name="start_row"></param>
@@ -1168,6 +1168,9 @@ namespace Deveel.Data.Client {
 		public virtual bool AutoCommit {
 			get { return auto_commit; }
 			set {
+				if (auto_commit == value)
+					return;
+
 				// The SQL to write into auto-commit mode.
 				if (value) {
 					CreateCommand("SET AUTO COMMIT ON").ExecuteNonQuery();

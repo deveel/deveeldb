@@ -40,13 +40,13 @@ namespace Deveel.Data.Server {
 	/// <remarks>
 	/// This receives database commands from the ADO.NET layer and dispatches the
 	/// queries to the database system.  It also manages <see cref="ResultSet"/>
-	/// maps for query results.
+	/// maps for command results.
 	/// <para>
 	/// This implementation does not handle authentication (login) / construction 
 	/// of the <see cref="DatabaseConnection"/> object, or disposing of the connection.
 	/// </para>
 	/// <para>
-	/// This implementation ignores the <c>AUTO-COMMIT</c> flag when a query is executed.
+	/// This implementation ignores the <c>AUTO-COMMIT</c> flag when a command is executed.
 	/// To implement <c>AUTO-COMMIT</c>, you should <c>commit</c> after a command is 
 	/// executed.
 	/// </para>
@@ -272,14 +272,14 @@ namespace Deveel.Data.Server {
 		}
 
 		/// <summary>
-		/// Wraps an <see cref="Exception"/> thrown by the execution of a query in 
+		/// Wraps an <see cref="Exception"/> thrown by the execution of a command in 
 		/// <see cref="DatabaseConnection"/> with an <see cref="DataException"/> and 
 		/// puts the appropriate error messages to the debug log.
 		/// </summary>
 		/// <param name="e"></param>
-		/// <param name="query"></param>
+		/// <param name="command"></param>
 		/// <returns></returns>
-		protected DataException HandleExecuteThrowable(Exception e, SQLQuery query) {
+		protected DataException HandleExecuteThrowable(Exception e, SqlCommand command) {
 			if (e is ParseException) {
 				Debug.WriteException(DebugLevel.Warning, e);
 
@@ -291,17 +291,17 @@ namespace Deveel.Data.Server {
 			if (e is TransactionException) {
 				TransactionException te = (TransactionException)e;
 
-				// Output query that was in error to debug log.
-				Debug.Write(DebugLevel.Information, this, "Transaction error on: " + query);
+				// Output command that was in error to debug log.
+				Debug.Write(DebugLevel.Information, this, "Transaction error on: " + command);
 				Debug.WriteException(DebugLevel.Information, e);
 
 				// Denotes a transaction exception.
 				return new DbDataException(e.Message, e.Message, 200 + te.Type, e);
 			} else {
 
-				// Output query that was in error to debug log.
+				// Output command that was in error to debug log.
 				Debug.Write(DebugLevel.Warning, this,
-							"Exception thrown during query processing on: " + query);
+							"Exception thrown during command processing on: " + command);
 				Debug.WriteException(DebugLevel.Warning, e);
 
 				// Error, we need to return exception to client.
@@ -355,7 +355,7 @@ namespace Deveel.Data.Server {
 			if (ob == null) {
 				// This basically means the streamable object hasn't been pushed onto the
 				// server.
-				throw new DataException("Invalid streamable object id in query.");
+				throw new DataException("Invalid streamable object id in command.");
 			} else {
 				return (IRef)ob;
 			}
@@ -378,7 +378,7 @@ namespace Deveel.Data.Server {
 				if (!blob_id_map.ContainsKey(s_ob_id)) {
 					// This basically means the streamable object hasn't been pushed onto the
 					// server.
-					throw new DataException("Invalid streamable object id in query.");
+					throw new DataException("Invalid streamable object id in command.");
 				} else {
 					Object ob = blob_id_map[s_ob_id];
 					blob_id_map.Remove(s_ob_id);
@@ -444,12 +444,12 @@ namespace Deveel.Data.Server {
 		}
 
 		/// <inheritdoc/>
-		public virtual IQueryResponse ExecuteQuery(SQLQuery query) {
+		public virtual IQueryResponse ExecuteQuery(SqlCommand command) {
 			CheckNotDisposed();
 
-			// Record the query start time
+			// Record the command start time
 			DateTime start_time = DateTime.Now;
-			// Where query result eventually resides.
+			// Where command result eventually resides.
 			ResultSetInfo result_set_info;
 			int result_id = -1;
 
@@ -457,7 +457,7 @@ namespace Deveel.Data.Server {
 			// IRef object that presumably has been pre-pushed onto the server from
 			// the client.
 			bool blobs_were_flushed = false;
-			Object[] vars = query.Variables;
+			Object[] vars = command.Variables;
 			if (vars != null) {
 				for (int i = 0; i < vars.Length; ++i) {
 					Object ob = vars[i];
@@ -467,9 +467,9 @@ namespace Deveel.Data.Server {
 						// Flush the streamable object from the cache
 						// Note that this also marks the blob as complete in the blob store.
 						IRef reference = FlushLargeObjectRefFromCache(s_object.Identifier);
-						// Set the IRef object in the query.
+						// Set the IRef object in the command.
 						vars[i] = reference;
-						// There are blobs in this query that were written to the blob store.
+						// There are blobs in this command that were written to the blob store.
 						blobs_were_flushed = true;
 					}
 				}
@@ -484,15 +484,15 @@ namespace Deveel.Data.Server {
 
 			try {
 
-				// Evaluate the sql query.
-				Table result = sql_executor.Execute(database_connection, query);
+				// Evaluate the sql command.
+				Table result = sql_executor.Execute(database_connection, command);
 
 				// Put the result in the result cache...  This will Lock this object
 				// until it is removed from the result set cache.  Returns an id that
 				// uniquely identifies this result set in future communication.
 				// NOTE: This locks the roots of the table so that its contents
 				//   may not be altered.
-				result_set_info = new ResultSetInfo(query, result);
+				result_set_info = new ResultSetInfo(command, result);
 				result_id = AddResultSet(result_set_info);
 
 			} catch (Exception e) {
@@ -501,15 +501,15 @@ namespace Deveel.Data.Server {
 					DisposeResultSet(result_id);
 				}
 
-				// Handle the throwable during query execution
-				throw HandleExecuteThrowable(e, query);
+				// Handle the throwable during command execution
+				throw HandleExecuteThrowable(e, command);
 
 			}
 
-			// The time it took the query to execute.
+			// The time it took the command to execute.
 			TimeSpan taken = DateTime.Now - start_time;
 
-			// Return the query response
+			// Return the command response
 			return new QueryResponse(result_id, result_set_info, (int)taken.TotalMilliseconds, "");
 
 		}
@@ -665,7 +665,7 @@ namespace Deveel.Data.Server {
 		// ---------- Inner classes ----------
 
 		/// <summary>
-		/// The response to a query.
+		/// The response to a command.
 		/// </summary>
 		private sealed class QueryResponse : IQueryResponse {
 			private readonly int result_id;
@@ -722,9 +722,9 @@ namespace Deveel.Data.Server {
 		/// </remarks>
 		private sealed class ResultSetInfo {
 			/// <summary>
-			/// The SQLQuery that was executed to produce this result.
+			/// The SqlCommand that was executed to produce this result.
 			/// </summary>
-			private SQLQuery query;
+			private SqlCommand command;
 
 			/// <summary>
 			/// The table that is the result.
@@ -768,10 +768,10 @@ namespace Deveel.Data.Server {
 			/// <summary>
 			/// Constructs the result set.
 			/// </summary>
-			/// <param name="query"></param>
+			/// <param name="command"></param>
 			/// <param name="table"></param>
-			internal ResultSetInfo(SQLQuery query, Table table) {
-				this.query = query;
+			internal ResultSetInfo(SqlCommand command, Table table) {
+				this.command = command;
 				this.result = table;
 				this.streamable_blob_map = new Hashtable();
 
@@ -826,10 +826,10 @@ namespace Deveel.Data.Server {
 			}
 
 			/// <summary>
-			/// Returns the SQLQuery that was used to produce this result.
+			/// Returns the SqlCommand that was used to produce this result.
 			/// </summary>
-			private SQLQuery SQLQuery {
-				get { return query; }
+			private SqlCommand SqlCommand {
+				get { return command; }
 			}
 
 			/// <summary>

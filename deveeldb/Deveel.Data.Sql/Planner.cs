@@ -28,7 +28,7 @@ using Deveel.Math;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
-	/// Various methods for forming query plans on SQL queries.
+	/// Various methods for forming command plans on SQL queries.
 	/// </summary>
 	internal class Planner {
 
@@ -82,7 +82,7 @@ namespace Deveel.Data.Sql {
 				TableExpressionFromSet sq_from_set = GenerateFromSet(sq_expr, db);
 				sq_from_set.Parent = from_set;
 				IQueryPlanNode sq_plan = FormQueryPlan(db, sq_expr, sq_from_set, null);
-				// Form this into a query plan type
+				// Form this into a command plan type
 				return new TObject(TType.QueryPlanType,
 								   new QueryPlan.CachePointNode(sq_plan));
 			}
@@ -156,7 +156,7 @@ namespace Deveel.Data.Sql {
 				String unique_key = ftdef.UniqueKey;
 				String alias = ftdef.Alias;
 
-				// If this is a sub-query table,
+				// If this is a sub-command table,
 				if (ftdef.IsSubQueryTable) {
 					// eg. FROM ( SELECT id FROM Part )
 					TableSelectExpression sub_query = ftdef.TableSelectExpression;
@@ -170,10 +170,10 @@ namespace Deveel.Data.Sql {
 					FromTableSubQuerySource source =
 						new FromTableSubQuerySource(db, unique_key, sub_query,
 													sub_query_from_set, alias_table_name);
-					// Add to list of subquery tables to add to query,
+					// Add to list of subquery tables to add to command,
 					from_set.AddTable(source);
 				}
-					// Else must be a standard query table,
+					// Else must be a standard command table,
 				else {
 					String name = ftdef.Name;
 
@@ -256,12 +256,12 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// Forms a query plan <see cref="IQueryPlanNode"/> from the given 
+		/// Forms a command plan <see cref="IQueryPlanNode"/> from the given 
 		/// <see cref="TableSelectExpression"/> and <see cref="TableExpressionFromSet"/>.
 		/// </summary>
 		/// <param name="db"></param>
-		/// <param name="expression">Describes the <i>SELECT</i> query 
-		/// (or sub-query).</param>
+		/// <param name="expression">Describes the <i>SELECT</i> command 
+		/// (or sub-command).</param>
 		/// <param name="from_set">Used to resolve expression references.</param>
 		/// <param name="order_by">A list of <see cref="ByColumn"/> objects 
 		/// that represent an optional <i>ORDER BY</i> clause. If this is null 
@@ -339,7 +339,7 @@ namespace Deveel.Data.Sql {
 
 			// -----
 
-			// Set up plans for each table in the from clause of the query.  For
+			// Set up plans for each table in the from clause of the command.  For
 			// sub-queries, we recurse.
 
 			QueryTableSetPlanner table_planner = new QueryTableSetPlanner();
@@ -347,13 +347,13 @@ namespace Deveel.Data.Sql {
 			for (int i = 0; i < from_set.SetCount; ++i) {
 				IFromTable table = from_set.GetTable(i);
 				if (table is FromTableSubQuerySource) {
-					// This represents a sub-query in the FROM clause
+					// This represents a sub-command in the FROM clause
 
 					FromTableSubQuerySource sq_table = (FromTableSubQuerySource)table;
 					TableSelectExpression sq_expr = sq_table.TableExpression;
 					TableExpressionFromSet sq_from_set = sq_table.FromSet;
 
-					// Form a plan for evaluating the sub-query FROM
+					// Form a plan for evaluating the sub-command FROM
 					IQueryPlanNode sq_plan = FormQueryPlan(db, sq_expr, sq_from_set, null);
 
 					// The top should always be a SubsetNode,
@@ -748,7 +748,7 @@ namespace Deveel.Data.Sql {
 				// If there are functional orderings,
 				// For this we must define a new FunctionTable with the expressions,
 				// then order by those columns, and then use another SubsetNode
-				// query node.
+				// command node.
 				int fsz = function_orders.Count;
 				if (fsz > 0) {
 					Expression[] funs = new Expression[fsz];
@@ -830,7 +830,7 @@ namespace Deveel.Data.Sql {
 
 		/// <summary>
 		/// A container object for the set of SelectColumn objects selected 
-		/// in a query.
+		/// in a command.
 		/// </summary>
 		private sealed class QuerySelectColumnSet {
 			/// <summary>
@@ -874,7 +874,7 @@ namespace Deveel.Data.Sql {
 
 			/// <summary>
 			/// Adds a single SelectColumn to the list of output columns 
-			/// from the query.
+			/// from the command.
 			/// </summary>
 			/// <param name="col"></param>
 			/// <remarks>
@@ -950,7 +950,7 @@ namespace Deveel.Data.Sql {
 			/// <param name="context"></param>
 			/// <remarks>
 			/// This is intended to be used for implied functions.  
-			/// For example, a query may have a function in a <i>GROUP BY</i> 
+			/// For example, a command may have a function in a <i>GROUP BY</i> 
 			/// clause. It's desirable to include the function in the 
 			/// column set but not in the final result.
 			/// </remarks>
@@ -994,7 +994,7 @@ namespace Deveel.Data.Sql {
 				for (int n = 0; n < exp_elements.Count; ++n) {
 					if (exp_elements[n] is TableSelectExpression) {
 						throw new StatementException(
-												 "Sub-query not allowed in column list.");
+												 "Sub-command not allowed in column list.");
 					}
 				}
 
@@ -1951,7 +1951,7 @@ namespace Deveel.Data.Sql {
 					// The single var
 					Variable single_var;
 
-					// If the operator is a sub-query we must be of the form,
+					// If the operator is a sub-command we must be of the form,
 					// 'a in ( 1, 2, 3 )'
 					if (op.IsSubQuery) {
 						single_var = exps[0].Variable;
@@ -2074,7 +2074,7 @@ namespace Deveel.Data.Sql {
 			/// </remarks>
 			private void EvaluateSubQueries(IList expressions, IList evaluate_order) {
 
-				// For each sub-query expression
+				// For each sub-command expression
 				for (int i = 0; i < expressions.Count; ++i) {
 					Expression andexp = (Expression)expressions[i];
 
@@ -2082,7 +2082,7 @@ namespace Deveel.Data.Sql {
 					Variable left_var = null;
 					IQueryPlanNode right_plan = null;
 
-					// Is this an easy sub-query?
+					// Is this an easy sub-command?
 					Operator op = (Operator)andexp.Last;
 					if (op.IsSubQuery) {
 						// Split the expression.
@@ -2090,7 +2090,7 @@ namespace Deveel.Data.Sql {
 						// Check that the left is a simple enough variable reference
 						left_var = exps[0].Variable;
 						if (left_var != null) {
-							// Check that the right is a sub-query plan.
+							// Check that the right is a sub-command plan.
 							right_plan = exps[1].QueryPlanNode;
 							if (right_plan != null) {
 								// Finally, check if the plan is correlated or not
@@ -2100,7 +2100,7 @@ namespace Deveel.Data.Sql {
 								//              Console.Out.WriteLine("Correlated variables: " + cv);
 								if (cv.Count == 0) {
 									// No correlated variables so we are a standard, non-correlated
-									// query!
+									// command!
 									is_exhaustive = false;
 								} else {
 									is_exhaustive = true;
@@ -2112,7 +2112,7 @@ namespace Deveel.Data.Sql {
 							is_exhaustive = true;
 						}
 					} else {
-						// Must be an exhaustive sub-query
+						// Must be an exhaustive sub-command
 						is_exhaustive = true;
 					}
 
@@ -2153,8 +2153,8 @@ namespace Deveel.Data.Sql {
 
 					} else {
 
-						// This is a simple sub-query expression plan with a single LHS
-						// variable and a single RHS sub-query.
+						// This is a simple sub-command expression plan with a single LHS
+						// variable and a single RHS sub-command.
 						ExpressionPlan exp_plan = new SimpleSubQueryExpressionPlan(this, andexp);
 						exp_plan.OptimizableValue = 0.3f;
 						evaluate_order.Add(exp_plan);
@@ -2174,7 +2174,7 @@ namespace Deveel.Data.Sql {
 			/// <param name="evaluate_order"></param>
 			/// <remarks>
 			/// If an expression represents a simple join condition then 
-			/// a join plan is made to the query plan tree. If an expression 
+			/// a join plan is made to the command plan tree. If an expression 
 			/// represents a more complex joining condition then an exhaustive 
 			/// search must be used.
 			/// </remarks>
@@ -2341,7 +2341,7 @@ namespace Deveel.Data.Sql {
 					if (op.IsLogical) {
 						sub_logic_expressions.Add(andexp);
 					}
-						// Does the expression have a sub-query?  (eg. Another select
+						// Does the expression have a sub-command?  (eg. Another select
 						//   statement somewhere in it)
 					else if (andexp.HasSubQuery) {
 						sub_query_expressions.Add(andexp);

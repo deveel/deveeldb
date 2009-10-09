@@ -29,7 +29,7 @@ using Deveel.Math;
 
 namespace Deveel.Data.Client {
     /// <summary>
-    /// An object which represents the result of a query on the server.
+    /// An object which represents the result of a command on the server.
     /// </summary>
     /// <remarks>
     /// This class is not designed to be multi-thread safe. A result-set should 
@@ -63,11 +63,6 @@ namespace Deveel.Data.Client {
 		internal DbConnection connection;
 
         /// <summary>
-        /// The <see cref="DbCommand"/> that this result is from.
-        /// </summary>
-		private DbCommand statement;
-
-        /// <summary>
         /// The current result_id for the information in the current result set.
         /// </summary>
 		internal int result_id;
@@ -79,7 +74,7 @@ namespace Deveel.Data.Client {
 		private ColumnDescription[] col_list;
 
         /// <summary>
-        /// The length of time it took to execute this query in ms.
+        /// The length of time it took to execute this command in ms.
         /// </summary>
 		private int query_time_ms;
 
@@ -154,9 +149,8 @@ namespace Deveel.Data.Client {
 		internal bool closed_on_server;
 
 
-		internal ResultSet(DbConnection connection, DbCommand statement) {
+		internal ResultSet(DbConnection connection) {
 			this.connection = connection;
-			this.statement = statement;
 			unique_id = unique_id_key++;
 			result_id = -1;
 			result_block = new ArrayList();
@@ -201,13 +195,13 @@ namespace Deveel.Data.Client {
 
         /// <summary>
         /// Sets the length of time in milliseconds (server-side) it took to execute 
-        /// this query.
+        /// this command.
         /// </summary>
         /// <param name="time_ms"></param>
         /// <remarks>
         /// Useful as feedback for the server-side optimisation systems.
         /// <para>
-        /// An int can <i>only</i> contain 35 weeks worth of milliseconds. So if a query 
+        /// An int can <i>only</i> contain 35 weeks worth of milliseconds. So if a command 
         /// takes longer than that this number will overflow.
         /// </para>
         /// </remarks>
@@ -220,7 +214,7 @@ namespace Deveel.Data.Client {
         /// 0 if the max number of rows is not important.
         /// </summary>
         /// <remarks>
-        /// This is set by <see cref="DbCommand"/> when a query is evaluated.
+        /// This is set by <see cref="DbCommand"/> when a command is evaluated.
         /// </remarks>
 		internal void SetMaxRowCount(int rowCount) {
 		    max_row_count = rowCount == 0 ? Int32.MaxValue : rowCount;
@@ -331,7 +325,7 @@ namespace Deveel.Data.Client {
         /// for a new one.
         /// </summary>
         /// <remarks>
-        /// This should be called before we execute a query.  It sends a command 
+        /// This should be called before we execute a command.  It sends a command 
         /// to the server to despose of any resources associated with the current 
         /// result_id.
         /// <para>
@@ -358,7 +352,7 @@ namespace Deveel.Data.Client {
 
         /// <summary>
         /// Returns the identificator that is used as a key to refer to the result set 
-        /// on the server that is the result of the query.
+        /// on the server that is the result of the command.
         /// </summary>
         /// <remarks>
         /// An identificator of -1 means there is no server side result set associated 
@@ -405,7 +399,7 @@ namespace Deveel.Data.Client {
         /// <c>CREATE</c>, <c>ALTER</c>, etc ).
         /// <para>
         /// <b>NOTE:</b> This is a minor hack because there is no real indication that this 
-        /// is a DML statement. Theoretically a SQL query could be constructed that meets a
+        /// is a DML statement. Theoretically a SQL command could be constructed that meets a
         /// ll these requirements and is processed incorrectly.
         /// </para>
         /// </remarks>
@@ -438,7 +432,7 @@ namespace Deveel.Data.Client {
 					return 0;
 				}
 			}
-			throw new DataException("Unable to format query result as an update value.");
+			throw new DataException("Unable to format command result as an update value.");
 		}
 
 
@@ -459,7 +453,6 @@ namespace Deveel.Data.Client {
 			}
 
 			connection = null;
-			statement = null;
 			col_list = null;
 			result_block = null;
 		}
@@ -619,7 +612,7 @@ namespace Deveel.Data.Client {
 
 
         /// <summary>
-        /// The number of milliseconds it took the server to execute this query.
+        /// The number of milliseconds it took the server to execute this command.
         /// </summary>
         /// <remarks>
         /// This is set after the call to <see cref="ConnSetup"/> so is available 

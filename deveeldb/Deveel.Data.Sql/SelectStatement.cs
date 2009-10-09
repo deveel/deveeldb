@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql {
 	/// </summary>
 	public class SelectStatement : Statement {
 		/// <summary>
-		/// The TableSelectExpression representing the select query itself.
+		/// The TableSelectExpression representing the select command itself.
 		/// </summary>
 		private TableSelectExpression select_expression;
 
@@ -65,16 +65,14 @@ namespace Deveel.Data.Sql {
 		/// given plan.
 		/// </exception>
 		internal static void CheckUserSelectPermissions(DatabaseQueryContext context, User user, IQueryPlanNode plan) {
-
-			// Discover the list of TableName objects this query touches,
+			// Discover the list of TableName objects this command touches,
 			ArrayList touched_tables = plan.DiscoverTableNames(new ArrayList());
 			Database dbase = context.Database;
 			// Check that the user is allowed to select from these tables.
 			for (int i = 0; i < touched_tables.Count; ++i) {
 				TableName t = (TableName)touched_tables[i];
 				if (!dbase.CanUserSelectFromTableObject(context, user, t, null)) {
-					throw new UserAccessException(
-										 "User not permitted to select from table: " + t);
+					throw new UserAccessException("User not permitted to select from table: " + t);
 				}
 			}
 		}
@@ -90,17 +88,14 @@ namespace Deveel.Data.Sql {
 			order_by = (ArrayList)cmd.GetObject("order_by");
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
-			TableExpressionFromSet from_set =
-									 Planner.GenerateFromSet(select_expression, db);
+			TableExpressionFromSet from_set = Planner.GenerateFromSet(select_expression, db);
 
 			// Form the plan
 			plan = Planner.FormQueryPlan(db, select_expression, from_set, order_by);
-
 		}
 
 
 		public override Table Evaluate() {
-
 			DatabaseQueryContext context = new DatabaseQueryContext(database);
 
 			// Check the permissions for this user to select from the tables in the
@@ -113,19 +108,16 @@ namespace Deveel.Data.Sql {
 				error = false;
 				return t;
 			} finally {
-				// If an error occured, dump the query plan to the debug log.
-				// Or just dump the query plan if debug level = Information
+				// If an error occured, dump the command plan to the debug log.
+				// Or just dump the command plan if debug level = Information
 				if (Debug.IsInterestedIn(DebugLevel.Information) ||
 					(error && Debug.IsInterestedIn(DebugLevel.Warning))) {
 					StringBuilder buf = new StringBuilder();
 					plan.DebugString(0, buf);
 
-					Debug.Write(DebugLevel.Warning, this,
-								"Query Plan debug:\n" +
-								buf.ToString());
+					Debug.Write(DebugLevel.Warning, this, "Query Plan debug:\n" + buf.ToString());
 				}
 			}
-
 		}
 
 		/// <inheritdoc/>

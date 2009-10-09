@@ -30,7 +30,7 @@ using SysMath = System.Math;
 namespace Deveel.Data {
 	/// <summary>
 	/// Represents a wrapper for a <see cref="IMutableTableDataSource"/> 
-	/// that fits into the query hierarchy level.
+	/// that fits into the command hierarchy level.
 	/// </summary>
 	/// <remarks>
 	/// A DataTable represents a table within a transaction. Adding, removing 
@@ -78,13 +78,6 @@ namespace Deveel.Data {
 			this.connection = connection;
 			this.data_source = data_source;
 		}
-
-		/*
-		TODO:
-		public override IDebugLogger Debug {
-			get { return connection.System.Debug; }
-		}
-		*/
 
 		/// <inheritdoc/>
 		protected override void BlankSelectableSchemes(int type) {
@@ -135,22 +128,28 @@ namespace Deveel.Data {
 			}
 		}
 
-		/**
-		 * Adds a given 'RowData' object to the table.  This should be used for
-		 * any rows added to the table.  The order that rows are added into a table
-		 * is not important.
-		 * <p>
-		 * This method performs some checking of the cells in the table.  It first
-		 * checks that all columns declared as 'not null' have a value that is not
-		 * null.  It then checks that a the added row will not cause any duplicates
-		 * in a column declared as unique.
-		 * <p>
-		 * It then uses the low level io manager to store the data.
-		 * <p>
-		 * SYNCHRONIZATION ISSUE: We are assuming this is running in a synchronized
-		 *   environment that is unable to add or alter rows in this object within
-		 *   the lifetime of this method.
-		 */
+		///<summary>
+		/// Adds a given <see cref="RowData"/> object to the table.
+		///</summary>
+		///<param name="row_data"></param>
+		/// <remarks>
+		/// This should be used for any rows added to the table. The order that rows are 
+		/// added into a table is not important.
+		/// <para>
+		/// This method performs some checking of the cells in the table. It first checks 
+		/// that all columns declared as <i>not null</i> have a value that is not* null. It 
+		/// then checks that a the added row will not cause any duplicates in a column declared 
+		/// as unique.
+		/// </para>
+		/// <para>
+		/// It then uses the low level io manager to store the data.
+		/// </para>
+		/// <para>
+		/// <b>Synchronization Issue</b>: We are assuming this is running in a synchronized environment 
+		/// that is unable to add or alter rows in this object within the lifetime of this method.
+		/// </para>
+		/// </remarks>
+		///<exception cref="DatabaseException"></exception>
 		public void Add(RowData row_data) {
 			CheckReadWriteLock();  // Write op
 

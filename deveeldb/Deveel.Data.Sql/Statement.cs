@@ -47,9 +47,9 @@ namespace Deveel.Data.Sql {
 		protected StatementTree cmd;
 
 		/// <summary>
-		/// The SQLQuery object that was used to produce this statement.
+		/// The SqlCommand object that was used to produce this statement.
 		/// </summary>
-		protected SQLQuery query;
+		protected SqlCommand command;
 
 		/// <summary>
 		/// The list of all IFromTable objects of resources referenced 
@@ -306,7 +306,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="db">The session that will execute the statement.</param>
 		/// <param name="stree">The <see cref="StatementTree"/> that contains 
 		/// the parsed content of the statement being executed.</param>
-		/// <param name="query"></param>
+		/// <param name="command"></param>
 		/// <remarks>
 		/// This is called before <see cref="Prepare"/> and <see cref="LockingMechanism.IsInExclusiveMode"/>
 		/// is called.
@@ -316,11 +316,11 @@ namespace Deveel.Data.Sql {
 		/// a call to this method.
 		/// </para>
 		/// </remarks>
-		public void Init(DatabaseConnection db, StatementTree stree, SQLQuery query) {
-			this.database = db;
-			this.user = db.User;
-			this.cmd = stree;
-			this.query = query;
+		public void Init(DatabaseConnection db, StatementTree stree, SqlCommand command) {
+			database = db;
+			user = db.User;
+			cmd = stree;
+			this.command = command;
 		}
 
 		/// <summary>

@@ -24,37 +24,37 @@ using System;
 
 namespace Deveel.Data.Client {
 	///<summary>
-	/// The response to a query executed via the <see cref="IDatabaseInterface.ExecuteQuery"/>
+	/// The response to a command executed via the <see cref="IDatabaseInterface.ExecuteQuery"/>
 	/// method in the <see cref="IDatabaseInterface"/> interface.
 	///</summary>
 	/// <remarks>
-	/// This contains general information about the result of the query.
+	/// This contains general information about the result of the command.
 	/// </remarks>
 	public interface IQueryResponse {
 	    ///<summary>
-	    /// Returns a number that identifies this query within the set of queries
+	    /// Returns a number that identifies this command within the set of queries
 	    /// executed on the connection.
 	    ///</summary>
 	    /// <remarks>
-	    /// This is used for identifying this query in subsequent operations.
+	    /// This is used for identifying this command in subsequent operations.
 	    /// </remarks>
 	    int ResultId { get; }
 
 	    ///<summary>
-        /// The time, in milliseconds, that the query took to execute.
+        /// The time, in milliseconds, that the command took to execute.
 	    ///</summary>
 	    int QueryTimeMillis { get; }
 
 	    ///<summary>
-        /// The total number of rows in the query result.
+        /// The total number of rows in the command result.
 	    ///</summary>
 	    /// <remarks>
-	    /// This is known ahead of time, even if no data in the query has been accessed.
+	    /// This is known ahead of time, even if no data in the command has been accessed.
 	    /// </remarks>
 	    int RowCount { get; }
 
         /// <summary>
-        /// The number of columns in the query result.
+        /// The number of columns in the command result.
         /// </summary>
 	    int ColumnCount { get; }
 
@@ -67,7 +67,7 @@ namespace Deveel.Data.Client {
 		ColumnDescription GetColumnDescription(int column);
 
 	    ///<summary>
-	    /// Returns any warnings about the query or <b>null</b> if there were no 
+	    /// Returns any warnings about the command or <b>null</b> if there were no 
 	    /// warnings.
 	    ///</summary>
 	    string Warnings { get; }

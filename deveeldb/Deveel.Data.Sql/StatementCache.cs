@@ -51,31 +51,20 @@ namespace Deveel.Data.Sql {
 		///<param name="hash_size"></param>
 		///<param name="max_size"></param>
 		///<param name="clean_percentage"></param>
-		public StatementCache(DatabaseSystem system,
-		                      int hash_size, int max_size, int clean_percentage) {
+		public StatementCache(DatabaseSystem system, int hash_size, int max_size, int clean_percentage) {
 			this.system = system;
 			cache = new Cache(hash_size, max_size, clean_percentage);
 		}
 
 		/// <summary>
-		/// Returns a IDebugLogger object we can use to log debug messages.
-		/// </summary>
-		/*
-		TODO:
-		public IDebugLogger Debug {
-			get { return system.Debug; }
-		}
-		*/
-
-		/// <summary>
-		/// Puts a new query string/StatementTree into the cache.
+		/// Puts a new command string/StatementTree into the cache.
 		/// </summary>
 		/// <param name="query_string"></param>
 		/// <param name="statement_tree"></param>
 		public void Set(String query_string, StatementTree statement_tree) {
 			lock (this) {
 				query_string = query_string.Trim();
-				// Is this query string already in the cache?
+				// Is this command string already in the cache?
 				if (cache.Get(query_string) == null) {
 					try {
 						Object cloned_tree = statement_tree.Clone();
@@ -89,7 +78,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		///<summary>
-		/// Gets a StatementTree for the query string if it is stored in the cache.
+		/// Gets a StatementTree for the command string if it is stored in the cache.
 		///</summary>
 		///<param name="query_string"></param>
 		///<returns></returns>
@@ -101,7 +90,7 @@ namespace Deveel.Data.Sql {
 				if (ob != null) {
 					try {
 						//        Console.Out.WriteLine("CACHE HIT!");
-						// We found a cached version of this query so deserialize and return
+						// We found a cached version of this command so deserialize and return
 						// it.
 						StatementTree cloned_tree = (StatementTree)ob;
 						return (StatementTree)cloned_tree.Clone();

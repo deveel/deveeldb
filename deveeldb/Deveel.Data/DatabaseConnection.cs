@@ -397,16 +397,6 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a IDebugLogger object that we can use to log debug messages to.
-		/// </summary>
-		/*
-		TODO:
-		public IDebugLogger Debug {
-			get { return logger; }
-		}
-		*/
-
-		/// <summary>
 		/// Returns the connection trigger manager for this connection.
 		/// </summary>
 		public ConnectionTriggerManager ConnectionTriggerManager {
@@ -554,7 +544,7 @@ namespace Deveel.Data {
 		/// of the session.
 		/// </remarks>
 		/// <returns>
-		/// Returns <b>true</b> if a table with the given <paramref name="tableName"/>
+		/// Returns <b>true</b> if a table with the given <paramref name="table_name"/>
 		/// exists within the underlying transaction, otherwise <b>false</b>.
 		/// </returns>
 		public bool TableExists(String table_name) {
@@ -785,18 +775,18 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Creates a new view.
 		/// </summary>
-		/// <param name="query"></param>
+		/// <param name="command"></param>
 		/// <param name="view">View meta informations used to create the view.</param>
 		/// <remarks>
 		/// Note that this is a transactional operation. You need to commit for 
 		/// the view to be visible to other transactions.
 		/// </remarks>
 		/// <exception cref="DatabaseException"/>
-		public void CreateView(SQLQuery query, ViewDef view) {
+		public void CreateView(SqlCommand command, ViewDef view) {
 			CheckAllowCreate(view.DataTableDef.TableName);
 
 			try {
-				view_manager.DefineView(view, query, User);
+				view_manager.DefineView(view, command, User);
 			} catch (DatabaseException e) {
 				Debug.WriteException(e);
 				throw new Exception("Database Exception: " + e.Message);

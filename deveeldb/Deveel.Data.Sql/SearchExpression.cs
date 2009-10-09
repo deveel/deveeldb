@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Search expression is a form of an <see cref="Expression"/> that is 
 	/// split up into component parts that can be easily formed into a 
-	/// search query.
+	/// search command.
 	/// </summary>
 	[Serializable]
 	public sealed class SearchExpression : IStatementTreeObject {

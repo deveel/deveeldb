@@ -60,17 +60,17 @@ namespace Deveel.Data.Client {
 	    ///<param name="offset">The offset into of the object of this block.</param>
 	    ///<param name="length">The length of the block being pushed.</param>
 	    /// <remarks>
-	    /// The server stores the large object for use with a future query. 
-	    /// For example,a sequence of with a query with large objects may operate as follows:
+	    /// The server stores the large object for use with a future command. 
+	    /// For example,a sequence of with a command with large objects may operate as follows:
 	    /// <list type="number">
 	    /// <item>Push 100 MB object (id = 104)</item>
-	    /// <item><see cref="ExecuteQuery"/> with query that contains a streamable object 
+	    /// <item><see cref="ExecuteQuery"/> with command that contains a streamable object 
 	    /// with id 104</item>
 	    /// </list>
 	    /// <para>
 	    /// The client may push any part of a streamable object onto the server, 
 	    /// however the streamable object must have been completely pushed for the 
-	    /// query to execute correctly.  For example, an 100 MB byte array may be 
+	    /// command to execute correctly.  For example, an 100 MB byte array may be 
 	    /// pushed onto the server in blocks of 64K (in 1,600 separate blocks).
 	    /// </para>
 	    /// </remarks>
@@ -78,17 +78,17 @@ namespace Deveel.Data.Client {
 	                                  byte[] buf, long offset, int length);
 
 		///<summary>
-		/// Executes the query and returns a <see cref="IQueryResponse"/> object that 
-		/// describes the result of the query.
+		/// Executes the command and returns a <see cref="IQueryResponse"/> object that 
+		/// describes the result of the command.
 		///</summary>
 		///<param name="sql"></param>
 		/// <remarks>
-		/// This method will block until the query has completed. The <see cref="IQueryResponse"/> 
+		/// This method will block until the command has completed. The <see cref="IQueryResponse"/> 
 		/// can be used to obtain the 'result id' variable that is used in subsequent 
-		/// queries to the engine to retrieve the actual result of the query.
+		/// queries to the engine to retrieve the actual result of the command.
 		/// </remarks>
 		///<returns></returns>
-		IQueryResponse ExecuteQuery(SQLQuery sql);
+		IQueryResponse ExecuteQuery(SqlCommand sql);
 
 		///<summary>
         /// Returns a part of a result set.
@@ -98,7 +98,7 @@ namespace Deveel.Data.Client {
 		///<param name="row_count"></param>
 		/// <remarks>
 		/// The result set part is referenced via the <see cref="IQueryResponse.ResultId">result id</see> 
-		/// found in the <see cref="IQueryResponse"/>. This is used to Read parts of the query 
+		/// found in the <see cref="IQueryResponse"/>. This is used to Read parts of the command 
 		/// once it has been found via <see cref="ExecuteQuery"/>.
 		/// <para>
         /// If the result contains any <see cref="StreamableObject"/> objects, then the 
@@ -111,12 +111,12 @@ namespace Deveel.Data.Client {
 		ResultPart GetResultPart(int result_id, int row_number, int row_count);
 
 		///<summary>
-        /// Disposes of a result of a query on the server.
+        /// Disposes of a result of a command on the server.
 		///</summary>
 		///<param name="result_id"></param>
 		/// <remarks>
-		/// This frees up server side resources allocated to a query. This should be 
-		/// called when the <see cref="ResultSet"/> of a query closes. We should try 
+		/// This frees up server side resources allocated to a command. This should be 
+		/// called when the <see cref="ResultSet"/> of a command closes. We should try 
 		/// and use this method as soon as possible because it frees locks on tables 
 		/// and allows deleted rows to be reclaimed.
 		/// </remarks>

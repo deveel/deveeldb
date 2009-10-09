@@ -175,7 +175,7 @@ namespace Deveel.Data.Sql {
 				ViewDef view_def = new ViewDef(data_table_def, plan_copy);
 
 				// And create the view object,
-				database.CreateView(query, view_def);
+				database.CreateView(command, view_def);
 
 				// The initial grants for a view is to give the user who created it
 				// full access.

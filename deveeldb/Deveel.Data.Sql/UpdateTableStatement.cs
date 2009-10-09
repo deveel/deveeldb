@@ -79,7 +79,7 @@ namespace Deveel.Data.Sql {
 		private TableName tname;
 
 		/// <summary>
-		/// The plan for the set of records we are updating in this query.
+		/// The plan for the set of records we are updating in this command.
 		/// </summary>
 		private IQueryPlanNode plan;
 

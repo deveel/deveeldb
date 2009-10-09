@@ -49,7 +49,7 @@ namespace Deveel.Data {
 		/// alter the currently open transaction.
 		/// <para>
 		/// <b>Note</b>: It is assumed that the <see cref="DatabaseConnection"/> is 
-		/// locked in exclusive mode when a query is executed (eg. via the <i>ExecuteXXX</i> 
+		/// locked in exclusive mode when a command is executed (eg. via the <i>ExecuteXXX</i> 
 		/// methods in <see cref="Statement"/>).
 		/// </para>
 		/// <para>
@@ -101,10 +101,12 @@ namespace Deveel.Data {
 		/// </remarks>
 		private sealed class InternalConnection : DbConnection {
 			public InternalConnection(DatabaseConnection db, IDatabaseInterface db_interface, int cache_size, int max_size)
-				: base(Client.ConnectionString.Empty, db_interface, cache_size, max_size) {
+				: base(ConnectionString.Empty, db_interface, cache_size, max_size) {
 				IsCaseInsensitiveIdentifiers = db.IsInCaseInsensitiveMode;
 				// we open internal connections at construction...
 				Open();
+
+				base.AutoCommit = false;
 			}
 
 			/// <inheritdoc/>

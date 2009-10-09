@@ -62,7 +62,7 @@ namespace Deveel.Data.Client {
 		/// There was an authentication error.
 		/// </summary>
 		/// <remarks>
-		/// A query couldn't be executed because the user does not have enough rights.
+		/// A command couldn't be executed because the user does not have enough rights.
 		/// </remarks>
 		public const int AUTHENTICATION_ERROR = 35;
 

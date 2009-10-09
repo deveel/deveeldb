@@ -51,7 +51,7 @@ namespace Deveel.Data.Client {
 		private bool escape_processing;
 
 		/// <summary>
-		/// The list of queries to execute in a batch.
+		/// The list of _commands to execute in a batch.
 		/// </summary>
 		private ArrayList batch_list;
 
@@ -65,7 +65,7 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		private int multi_result_set_index;
 
-		private SQLQuery[] queries;
+		private SqlCommand[] _commands;
 		private string commandText;
 
 		private DbParameterCollection parameters;
@@ -97,7 +97,7 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		/// <param name="count"></param>
 		/// <remarks>
-		/// This is intended for multiple result queries (such as batch statements).
+		/// This is intended for multiple result _commands (such as batch statements).
 		/// </remarks>
 		/// <returns></returns>
 		internal ResultSet[] InternalResultSetList(int count) {
@@ -116,7 +116,7 @@ namespace Deveel.Data.Client {
 			if (result_set_list == null) {
 				result_set_list = new ResultSet[count];
 				for (int i = 0; i < count; ++i) {
-					result_set_list[i] = new ResultSet(connection, this);
+					result_set_list[i] = new ResultSet(connection);
 				}
 			}
 
@@ -127,7 +127,7 @@ namespace Deveel.Data.Client {
 		/// Returns the single <see cref="ResultSet"/> object for this statement.
 		/// </summary>
 		/// <remarks>
-		/// This should only be used for single result queries.
+		/// This should only be used for single result _commands.
 		/// </remarks>
 		/// <returns></returns>
 		internal ResultSet InternalResultSet() {
@@ -331,7 +331,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Executes the given <see cref="SQLQuery"/> object and fill's in at 
+		/// Executes the given <see cref="SqlCommand"/> object and fill's in at 
 		/// most the top 10 entries of the result set.
 		/// </summary>
 		/// <param name="query"></param>
@@ -342,28 +342,28 @@ namespace Deveel.Data.Client {
 			if (connection.State != ConnectionState.Open)
 				throw new InvalidOperationException("The connection is closed.");
 
-			if (queries == null)
+			if (_commands == null)
 				throw new InvalidOperationException("The command text was not set.");
 
 			// Allocate the result set for this batch
-			ResultSet[] results = InternalResultSetList(queries.Length);
+			ResultSet[] results = InternalResultSetList(_commands.Length);
 
 			// Reset the result set index
 			multi_result_set_index = 0;
 
 			// For each query,
-			for (int i = 0; i < queries.Length; ++i) {
+			for (int i = 0; i < _commands.Length; ++i) {
 				// Prepare the query
-				queries[i].Prepare(escape_processing);
+				_commands[i].Prepare(escape_processing);
 				// Make sure the result set is closed
 				results[i].CloseCurrentResult();
 			}
 
 			// Execute each query
-			connection.ExecuteQueries(queries, results);
+			connection.ExecuteQueries(_commands, results);
 
 			// Post processing on the ResultSet objects
-			for (int i = 0; i < queries.Length; ++i) {
+			for (int i = 0; i < _commands.Length; ++i) {
 				ResultSet result_set = results[i];
 				// Set the fetch size
 				result_set.SetFetchSize(fetch_size);
@@ -450,17 +450,17 @@ namespace Deveel.Data.Client {
 		#region Implementation of IDbCommand
 
 		public void Prepare() {
-			if (queries == null || parameters.Count == 0)
+			if (_commands == null || parameters.Count == 0)
 				return;
 
 			//TODO: we should handle this better: it's nasty that a set
-			//      of parameters are set for all the queries...
+			//      of parameters are set for all the _commands...
 
-			for (int i = 0; i < queries.Length; i++) {
-				SQLQuery query = queries[i];
+			for (int i = 0; i < _commands.Length; i++) {
+				SqlCommand command = _commands[i];
 				for (int j = 0; j < parameters.Count; j++) {
 					DbParameter parameter = parameters[j];
-					query.SetVariable(j, CastHelper.CastToSQLType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
+					command.SetVariable(j, CastHelper.CastToSQLType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
 				}
 			}
 		}
@@ -599,13 +599,13 @@ namespace Deveel.Data.Client {
 					//TODO: this is a nasty hack to support multiple results: should be
 					//      done on server side...
 					string[] parts = value.Split(';');
-					queries = new SQLQuery[parts.Length];
+					_commands = new SqlCommand[parts.Length];
 					for (int i = 0; i < parts.Length; i++) {
-						queries[i] = new SQLQuery(parts[i]);
+						_commands[i] = new SqlCommand(parts[i]);
 					}
 					commandText = value;
 				} else {
-					queries = null;
+					_commands = null;
 					commandText = null;
 				}
 

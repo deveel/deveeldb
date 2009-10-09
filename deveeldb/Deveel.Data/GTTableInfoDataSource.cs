@@ -67,10 +67,10 @@ namespace Deveel.Data {
 
 			for (int i = 0; i < table_list.Length; ++i) {
 				String cur_type = transaction.GetTableType(table_list[i]);
-				// If the table is in the SYS_INFO schema, the type is defined as a
+				// If the table is in the SYSTEM schema, the type is defined as a
 				// SYSTEM TABLE.
 				if (cur_type.Equals("TABLE") &&
-					table_list[i].Schema.Equals("SYS_INFO")) {
+					table_list[i].Schema.Equals("SYSTEM")) {
 					cur_type = "SYSTEM TABLE";
 				}
 				table_types[i] = cur_type;

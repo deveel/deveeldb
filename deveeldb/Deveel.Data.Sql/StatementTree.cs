@@ -27,14 +27,14 @@ using Deveel.Math;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
-	/// A serializable container class for a parsed query language statement.
+	/// A serializable container class for a parsed command language statement.
 	/// </summary>
 	/// <remarks>
 	/// The structure of the tree is entirely dependant on the grammar that was used
 	/// to create the tree. This object is a convenient form that can be cached and
 	/// serialized to be stored.
 	/// <para>
-	/// Think of this as the model of a query after the grammar has been parsed
+	/// Think of this as the model of a command after the grammar has been parsed
 	/// and before it is evaluated.
 	/// </para>
 	/// </remarks>
@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql {
 		/// The type of statement this is.
 		/// </summary>
 		/// <remarks>
-		/// This is set to one of the query objects from the 
+		/// This is set to one of the command objects from the 
 		/// <see cref="Deveel.Data.Sql"/> namespace. For 
 		/// example, if this is a select statement then it points to 
 		/// <see cref="SelectStatement"/>.

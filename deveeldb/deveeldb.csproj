@@ -175,7 +175,7 @@
     <Compile Include="Deveel.Data.Client\RemoteDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Client\ResultPart.cs" />
     <Compile Include="Deveel.Data.Client\RowCache.cs" />
-    <Compile Include="Deveel.Data.Client\SQLQuery.cs" />
+    <Compile Include="Deveel.Data.Client\SqlCommand.cs" />
     <Compile Include="Deveel.Data.Client\StreamableObjectPart.cs" />
     <Compile Include="Deveel.Data.Client\StreamDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Client\TCPStreamDatabaseInterface.cs" />

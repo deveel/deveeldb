@@ -82,7 +82,7 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		public override void Prepare() {
-			// Get the show variables from the query model
+			// Get the show variables from the command model
 			show_type = (String)cmd.GetObject("show");
 			show_type = show_type.ToLower();
 			table_name = (String)cmd.GetObject("table_name");
@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql {
 			SQLQueryExecutor executor = new SQLQueryExecutor();
 
 			// The table we are showing,
-			TemporaryTable show_table;
+			// TemporaryTable show_table;
 
 			try {
 
@@ -108,43 +108,43 @@ namespace Deveel.Data.Sql {
 
 				if (show_type.Equals("schema")) {
 
-					SQLQuery query = new SQLQuery(
+					SqlCommand command = new SqlCommand(
 					   "  SELECT \"name\" AS \"schema_name\", " +
 					   "         \"type\", " +
 					   "         \"other\" AS \"notes\" " +
-					   "    FROM SYS_JDBC.ThisUserSchemaInfo " +
+					   "    FROM INFORMATION_SCHEMA.ThisUserSchemaInfo " +
 					   "ORDER BY \"schema_name\"");
-					return executor.Execute(database, query);
+					return executor.Execute(database, command);
 
 				} else if (show_type.Equals("tables")) {
 
 					String current_schema = database.CurrentSchema;
 
-					SQLQuery query = new SQLQuery(
+					SqlCommand command = new SqlCommand(
 					   "  SELECT \"Tables.TABLE_NAME\" AS \"table_name\", " +
 					   "         I_PRIVILEGE_STRING(\"agg_priv_bit\") AS \"user_privs\", " +
 					   "         \"Tables.TABLE_TYPE\" as \"table_type\" " +
-					   "    FROM SYS_JDBC.Tables, " +
+					   "    FROM INFORMATION_SCHEMA.Tables, " +
 					   "         ( SELECT AGGOR(\"priv_bit\") agg_priv_bit, " +
 					   "                  \"object\", \"param\" " +
-					   "             FROM SYS_JDBC.ThisUserSimpleGrant " +
+					   "             FROM INFORMATION_SCHEMA.ThisUserSimpleGrant " +
 					   "            WHERE \"object\" = 1 " +
 					   "         GROUP BY \"param\" )" +
-					   "   WHERE \"Tables.TABLE_SCHEM\" = ? " +
-					   "     AND CONCAT(\"Tables.TABLE_SCHEM\", '.', \"Tables.TABLE_NAME\") = \"param\" " +
+					   "   WHERE \"Tables.TABLE_SCHEMA\" = ? " +
+					   "     AND CONCAT(\"Tables.TABLE_SCHEMA\", '.', \"Tables.TABLE_NAME\") = \"param\" " +
 					   "ORDER BY \"Tables.TABLE_NAME\"");
-					query.AddVariable(current_schema);
+					command.AddVariable(current_schema);
 
-					return executor.Execute(database, query);
+					return executor.Execute(database, command);
 
 				} else if (show_type.Equals("status")) {
 
-					SQLQuery query = new SQLQuery(
+					SqlCommand command = new SqlCommand(
 					   "  SELECT \"stat_name\" AS \"name\", " +
 					   "         \"value\" " +
-					   "    FROM SYS_INFO.sUSRDatabaseStatistics ");
+					   "    FROM SYSTEM.sUSRDatabaseStatistics ");
 
-					return executor.Execute(database, query);
+					return executor.Execute(database, command);
 
 				} else if (show_type.Equals("describe_table")) {
 
@@ -154,49 +154,52 @@ namespace Deveel.Data.Sql {
 											"Unable to find table '" + table_name + "'");
 					}
 
-					SQLQuery query = new SQLQuery(
+					SqlCommand command = new SqlCommand(
 					  "  SELECT \"column\" AS \"name\", " +
 					  "         i_sql_type(\"type_desc\", \"size\", \"scale\") AS \"type\", " +
 					  "         \"not_null\", " +
 					  "         \"index_str\" AS \"index\", " +
 					  "         \"default\" " +
-					  "    FROM SYS_JDBC.ThisUserTableColumns " +
+					  "    FROM INFORMATION_SCHEMA.ThisUserTableColumns " +
 					  "   WHERE \"schema\" = ? " +
 					  "     AND \"table\" = ? " +
 					  "ORDER BY \"seq_no\" ");
-					query.AddVariable(tname.Schema);
-					query.AddVariable(tname.Name);
+					command.AddVariable(tname.Schema);
+					command.AddVariable(tname.Name);
 
-					return executor.Execute(database, query);
+					return executor.Execute(database, command);
 
 				} else if (show_type.Equals("connections")) {
 
-					SQLQuery query = new SQLQuery(
-					   "SELECT * FROM SYS_INFO.sUSRCurrentConnections");
+					SqlCommand command = new SqlCommand(
+					   "SELECT * FROM SYSTEM.sUSRCurrentConnections");
 
-					return executor.Execute(database, query);
+					return executor.Execute(database, command);
 
 				} else if (show_type.Equals("product")) {
 
-					SQLQuery query = new SQLQuery(
+					SqlCommand command = new SqlCommand(
 					   "SELECT \"name\", \"version\" FROM " +
-					   "  ( SELECT \"value\" AS \"name\" FROM SYS_INFO.sUSRProductInfo " +
+					   "  ( SELECT \"value\" AS \"name\" FROM SYSTEM.sUSRProductInfo " +
 					   "     WHERE \"var\" = 'name' ), " +
-					   "  ( SELECT \"value\" AS \"version\" FROM SYS_INFO.sUSRProductInfo " +
+					   "  ( SELECT \"value\" AS \"version\" FROM SYSTEM.sUSRProductInfo " +
 					   "     WHERE \"var\" = 'version' ) "
 					);
 
-					return executor.Execute(database, query);
+					return executor.Execute(database, command);
 
 				} else if (show_type.Equals("connection_info")) {
 
-					SQLQuery query = new SQLQuery(
-					   "SELECT * FROM SYS_INFO.sUSRConnectionInfo"
+					SqlCommand command = new SqlCommand(
+					   "SELECT * FROM SYSTEM.sUSRConnectionInfo"
 					);
 
-					return executor.Execute(database, query);
+					return executor.Execute(database, command);
 
-				} else if (show_type.Equals("jdbc_procedures")) {
+				} 
+				/*
+				suppressed...
+				else if (show_type.Equals("jdbc_procedures")) {
 					// Need implementing?
 					show_table = CreateEmptyTable(d, "JDBCProcedures",
 						new String[] { "PROCEDURE_CAT", "PROCEDURE_SCHEM", "PROCEDURE_NAME",
@@ -211,7 +214,7 @@ namespace Deveel.Data.Sql {
 				} else if (show_type.Equals("jdbc_catalogs")) {
 					// Need implementing?
 					show_table = CreateEmptyTable(d, "JDBCCatalogs",
-												  new String[] { "TABLE_CAT" });
+												  new String[] { "TABLE_CATALOG" });
 				} else if (show_type.Equals("jdbc_table_types")) {
 					// Describe the given table...
 					DataTableColumnDef[] fields = new DataTableColumnDef[1];
@@ -245,12 +248,14 @@ namespace Deveel.Data.Sql {
 				} else if (show_type.Equals("jdbc_index_info")) {
 					// Need implementing?
 					show_table = CreateEmptyTable(d, "JDBCIndexInfo",
-						  new String[] { "TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME",
+						  new String[] { "TABLE_CATALOG", "TABLE_SCHEM", "TABLE_NAME",
                 "NON_UNIQUE", "INDEX_QUALIFIER", "INDEX_NAME", "TYPE",
                 "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
                 "CARDINALITY", "PAGES", "FILTER_CONDITION"
               });
-				} else {
+				 }
+				 */
+				 else {
 					throw new StatementException("Unknown SHOW identifier: " + show_type);
 				}
 
@@ -262,7 +267,7 @@ namespace Deveel.Data.Sql {
 				throw new DatabaseException("Transaction Error: " + e.Message);
 			}
 
-			return show_table;
+			// return show_table;
 		}
 	}
 }

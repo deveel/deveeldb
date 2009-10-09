@@ -1,5 +1,5 @@
 //  
-//  SQLQuery.cs
+//  SqlCommand.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -37,7 +37,7 @@ namespace Deveel.Data.Client {
 	/// for faster translation by the database.
 	/// </para>
 	/// </remarks>
-	public sealed class SQLQuery : ICloneable {
+	public sealed class SqlCommand : ICloneable {
 		/// <summary>
 		/// The SQL String.  For example, "select * from Part".
 		/// </summary>
@@ -62,14 +62,14 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// Empty constructor.
 		/// </summary>
-		private SQLQuery() {
+		private SqlCommand() {
 		}
 
 		/// <summary>
 		/// Constructs the query.
 		/// </summary>
 		/// <param name="query"></param>
-		public SQLQuery(String query) {
+		public SqlCommand(String query) {
 			this.query = query;
 			parameters = new Object[8];
 			parameters_index = 0;
@@ -296,7 +296,7 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
-			SQLQuery q2 = (SQLQuery)ob;
+			SqlCommand q2 = (SqlCommand)ob;
 			// NOTE: This could do syntax analysis on the query string to determine
 			//   if it's the same or not.
 			if (query.Equals(q2.query)) {
@@ -319,7 +319,7 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public object Clone() {
-			SQLQuery q = new SQLQuery();
+			SqlCommand q = new SqlCommand();
 			q.query = query;
 			q.parameters = (Object[])parameters.Clone();
 			q.parameters_index = parameters_index;
@@ -366,22 +366,22 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Reads an <see cref="SQLQuery"/> object from the data input stream.
+		/// Reads an <see cref="SqlCommand"/> object from the data input stream.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static SQLQuery ReadFrom(BinaryReader input) {
+		public static SqlCommand ReadFrom(BinaryReader input) {
 			String query_string = input.ReadString();
-			SQLQuery query = new SQLQuery(query_string);
+			SqlCommand command = new SqlCommand(query_string);
 			int arg_length = input.ReadInt32();
 			for (int i = 0; i < arg_length; ++i) {
-				query.AddVariable(ObjectTransfer.ReadFrom(input));
+				command.AddVariable(ObjectTransfer.ReadFrom(input));
 			}
-			return query;
+			return command;
 		}
 
 		///<summary>
-		/// Serializes an <see cref="SQLQuery"/> object to a <see cref="ByteLongObject"/>.
+		/// Serializes an <see cref="SqlCommand"/> object to a <see cref="ByteLongObject"/>.
 		///</summary>
 		///<returns></returns>
 		///<exception cref="ApplicationException"></exception>
@@ -399,12 +399,12 @@ namespace Deveel.Data.Client {
 		}
 
 		///<summary>
-		/// Deserializes an <see cref="SQLQuery"/> object from a <see cref="ByteLongObject"/>.
+		/// Deserializes an <see cref="SqlCommand"/> object from a <see cref="ByteLongObject"/>.
 		///</summary>
 		///<param name="ob"></param>
 		///<returns></returns>
 		///<exception cref="ApplicationException"></exception>
-		public static SQLQuery DeserializeFromBlob(ByteLongObject ob) {
+		public static SqlCommand DeserializeFromBlob(ByteLongObject ob) {
 			BinaryReader input = new BinaryReader(new MemoryStream(ob.ToArray()), Encoding.UTF8);
 			try {
 				return ReadFrom(input);

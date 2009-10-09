@@ -32,7 +32,7 @@ namespace Deveel.Data {
 	/// This is an optimization to help sorting over a column in a table.
 	/// </summary>
 	/// <remarks>
-	/// It is an aid for sorting rows in a query without having to resort 
+	/// It is an aid for sorting rows in a command without having to resort 
 	/// to cell lookup. It uses memory to speed up sorting.
 	/// <para>
 	/// Sorting data is a central part of any database system. This object
@@ -151,16 +151,6 @@ namespace Deveel.Data {
 			is_built = false;
 			SetupComparator();
 		}
-
-		/// <summary>
-		/// Returns a IDebugLogger object that we can use to log debug messages.
-		/// </summary>
-		/*
-		TODO:
-		public IDebugLogger Debug {
-			get { return master_table.Debug; }
-		}
-		*/
 
 		/// <summary>
 		/// Sets the internal comparator that enables us to sort and lookup 

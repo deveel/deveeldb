@@ -25,7 +25,7 @@ using System;
 using Deveel.Math;
 
 namespace Deveel.Data.Functions {
-	// Given a priv_bit number (from SYS_INFO.sUSRGrant), this will return a
+	// Given a priv_bit number (from SYSTEM.sUSRGrant), this will return a
 	// text representation of the privilege.
 	internal sealed class PrivilegeString : Function {
 

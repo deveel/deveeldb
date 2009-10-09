@@ -107,7 +107,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The name of the schema that contains helper tables.
 		/// </summary>
-		public static readonly String JdbcSchema = "SYS_JDBC";
+		public static readonly String InformationSchema = "INFORMATIOM_SCHEMA";
 
 		/// <summary>
 		/// The NEW table used inside a triggered procedure to represent a triggered
@@ -187,7 +187,7 @@ namespace Deveel.Data {
 		/// The name of the system schema that contains tables refering to 
 		/// system information.
 		/// </summary>
-		public const String SystemSchema = TableDataConglomerate.SYSTEM_SCHEMA;
+		public const String SystemSchema = TableDataConglomerate.SystemSchema;
 
 		/// <summary>
 		/// The TableDataConglomerate that contains the conglomerate of tables for
@@ -1308,7 +1308,7 @@ namespace Deveel.Data {
 
 		private static void CreateSchemaInfoTables(DatabaseConnection connection) {
 			connection.CreateSchema(DefaultSchema, "DEFAULT");
-			connection.CreateSchema(JdbcSchema, "SYSTEM");
+			connection.CreateSchema(InformationSchema, "SYSTEM");
 		}
 
 		/// <summary>
@@ -1325,19 +1325,19 @@ namespace Deveel.Data {
 
 				// This view shows the grants that the user has (no join, only priv_bit).
 				stmt.CommandText =
-					"CREATE VIEW SYS_JDBC.ThisUserSimpleGrant AS " +
+					"CREATE VIEW INFORMATIOM_SCHEMA.ThisUserSimpleGrant AS " +
 					"  SELECT \"priv_bit\", \"object\", \"param\", \"grantee\", " +
 					"         \"grant_option\", \"granter\" " +
-					"    FROM SYS_INFO.sUSRGrant " +
+					"    FROM SYSTEM.sUSRGrant " +
 					"   WHERE ( grantee = user() OR grantee = '@PUBLIC' )";
 				stmt.ExecuteNonQuery();
 
 				// This view shows the grants that the user is allowed to see
 				stmt.CommandText =
-					"CREATE VIEW SYS_JDBC.ThisUserGrant AS " +
+					"CREATE VIEW INFORMATIOM_SCHEMA.ThisUserGrant AS " +
 					"  SELECT \"description\", \"object\", \"param\", \"grantee\", " +
 					"         \"grant_option\", \"granter\" " +
-					"    FROM SYS_INFO.sUSRGrant, SYS_INFO.sUSRPrivMap " +
+					"    FROM SYSTEM.sUSRGrant, SYSTEM.sUSRPrivMap " +
 					"   WHERE ( grantee = user() OR grantee = '@PUBLIC' )" +
 					"     AND sUSRGrant.priv_bit = sUSRPrivMap.priv_bit";
 				stmt.ExecuteNonQuery();
@@ -1345,11 +1345,11 @@ namespace Deveel.Data {
 				// A view that represents the list of schema this user is allowed to view
 				// the contents of.
 				stmt.CommandText =
-					"CREATE VIEW SYS_JDBC.ThisUserSchemaInfo AS " +
-					"  SELECT * FROM SYS_INFO.sUSRSchemaInfo " +
+					"CREATE VIEW INFORMATIOM_SCHEMA.ThisUserSchemaInfo AS " +
+					"  SELECT * FROM SYSTEM.sUSRSchemaInfo " +
 					"   WHERE \"name\" IN ( " +
 					"     SELECT \"param\" " +
-					"       FROM SYS_JDBC.ThisUserGrant " +
+					"       FROM INFORMATIOM_SCHEMA.ThisUserGrant " +
 					"      WHERE \"object\" = 65 " +
 					"        AND \"description\" = 'LIST' )";
 				stmt.ExecuteNonQuery();
@@ -1357,58 +1357,54 @@ namespace Deveel.Data {
 				// A view that exposes the sUSRTableColumn table but only for the tables
 				// this user has Read access to.
 				stmt.CommandText =
-					"CREATE VIEW SYS_JDBC.ThisUserTableColumns AS " +
-					"  SELECT * FROM SYS_INFO.sUSRTableColumns " +
+					"CREATE VIEW INFORMATIOM_SCHEMA.ThisUserTableColumns AS " +
+					"  SELECT * FROM SYSTEM.sUSRTableColumns " +
 					"   WHERE \"schema\" IN ( " +
-					"     SELECT \"name\" FROM SYS_JDBC.ThisUserSchemaInfo )";
+					"     SELECT \"name\" FROM INFORMATIOM_SCHEMA.ThisUserSchemaInfo )";
 				stmt.ExecuteNonQuery();
 
 				// A view that exposes the sUSRTableInfo table but only for the tables
 				// this user has Read access to.
 				stmt.CommandText =
-					"CREATE VIEW SYS_JDBC.ThisUserTableInfo AS " +
-					"  SELECT * FROM SYS_INFO.sUSRTableInfo " +
+					"CREATE VIEW INFORMATIOM_SCHEMA.ThisUserTableInfo AS " +
+					"  SELECT * FROM SYSTEM.sUSRTableInfo " +
 					"   WHERE \"schema\" IN ( " +
-					"     SELECT \"name\" FROM SYS_JDBC.ThisUserSchemaInfo )";
+					"     SELECT \"name\" FROM INFORMATIOM_SCHEMA.ThisUserSchemaInfo )";
 				stmt.ExecuteNonQuery();
 
-				// A JDBC helper view for the 'getTables' meta-data method
 				stmt.CommandText =
-					"  CREATE VIEW SYS_JDBC.Tables AS " +
-					"  SELECT NULL AS \"TABLE_CAT\", \n" +
-					"         \"schema\" AS \"TABLE_SCHEM\", \n" +
+					"  CREATE VIEW INFORMATIOM_SCHEMA.TABLES AS " +
+					"  SELECT NULL AS \"TABLE_CATALOG\", \n" +
+					"         \"schema\" AS \"TABLE_SCHEMA\", \n" +
 					"         \"name\" AS \"TABLE_NAME\", \n" +
 					"         \"type\" AS \"TABLE_TYPE\", \n" +
 					"         \"other\" AS \"REMARKS\", \n" +
-					"         NULL AS \"TYPE_CAT\", \n" +
-					"         NULL AS \"TYPE_SCHEM\", \n" +
+					"         NULL AS \"TYPE_CATALOG\", \n" +
+					"         NULL AS \"TYPE_SCHEMA\", \n" +
 					"         NULL AS \"TYPE_NAME\", \n" +
 					"         NULL AS \"SELF_REFERENCING_COL_NAME\", \n" +
 					"         NULL AS \"REF_GENERATION\" \n" +
-					"    FROM SYS_JDBC.ThisUserTableInfo \n";
+					"    FROM INFORMATIOM_SCHEMA.ThisUserTableInfo \n";
 				stmt.ExecuteNonQuery();
 
-				// A JDBC helper view for the 'getSchemas' meta-data method
 				stmt.CommandText =
-					"  CREATE VIEW SYS_JDBC.Schemas AS " +
-					"  SELECT \"name\" AS \"TABLE_SCHEM\", \n" +
+					"  CREATE VIEW INFORMATIOM_SCHEMA.SCHEMATA AS " +
+					"  SELECT \"name\" AS \"TABLE_SCHEMA\", \n" +
 					"         NULL AS \"TABLE_CATALOG\" \n" +
-					"    FROM SYS_JDBC.ThisUserSchemaInfo\n";
+					"    FROM INFORMATIOM_SCHEMA.ThisUserSchemaInfo\n";
 				stmt.ExecuteNonQuery();
 
-				// A JDBC helper view for the 'getCatalogs' meta-data method
 				stmt.CommandText =
-					"  CREATE VIEW SYS_JDBC.Catalogs AS " +
-					"  SELECT NULL AS \"TABLE_CAT\" \n" +
-					"    FROM SYS_INFO.sUSRSchemaInfo\n" + // Hacky, this will generate a 0 row
+					"  CREATE VIEW INFORMATIOM_SCHEMA.CATALOGS AS " +
+					"  SELECT NULL AS \"TABLE_CATALOG\" \n" +
+					"    FROM SYSTEM.sUSRSchemaInfo\n" + // Hacky, this will generate a 0 row
 					"   WHERE FALSE\n"; // table.
 				stmt.ExecuteNonQuery();
 
-				// A JDBC helper view for the 'getColumns' meta-data method
 				stmt.CommandText =
-					"  CREATE VIEW SYS_JDBC.Columns AS " +
-					"  SELECT NULL AS \"TABLE_CAT\",\n" +
-					"         \"schema\" AS \"TABLE_SCHEM\",\n" +
+					"  CREATE VIEW INFORMATIOM_SCHEMA.COLUMNS AS " +
+					"  SELECT NULL AS \"TABLE_CATALOG\",\n" +
+					"         \"schema\" AS \"TABLE_SCHEMA\",\n" +
 					"         \"table\" AS \"TABLE_NAME\",\n" +
 					"         \"column\" AS \"COLUMN_NAME\",\n" +
 					"         \"sql_type\" AS \"DATA_TYPE\",\n" +
@@ -1419,20 +1415,19 @@ namespace Deveel.Data {
 					"         IF(\"sql_type\" = -7, 2, 10) AS \"NUM_PREC_RADIX\",\n" +
 					"         IF(\"not_null\", 0, 1) AS \"NULLABLE\",\n" +
 					"         '' AS \"REMARKS\",\n" +
-					"         \"default\" AS \"COLUMN_DEF\",\n" +
+					"         \"default\" AS \"COLUMN_DEFAULT\",\n" +
 					"         NULL AS \"SQL_DATA_TYPE\",\n" +
 					"         NULL AS \"SQL_DATETIME_SUB\",\n" +
 					"         IF(\"size\" = -1, 1024, \"size\") AS \"CHAR_OCTET_LENGTH\",\n" +
 					"         \"seq_no\" + 1 AS \"ORDINAL_POSITION\",\n" +
 					"         IF(\"not_null\", 'NO', 'YES') AS \"IS_NULLABLE\"\n" +
-					"    FROM SYS_JDBC.ThisUserTableColumns\n";
+					"    FROM INFORMATIOM_SCHEMA.ThisUserTableColumns\n";
 				stmt.ExecuteNonQuery();
 
-				// A JDBC helper view for the 'getColumnPrivileges' meta-data method
 				stmt.CommandText =
-					"  CREATE VIEW SYS_JDBC.ColumnPrivileges AS " +
-					"  SELECT \"TABLE_CAT\",\n" +
-					"         \"TABLE_SCHEM\",\n" +
+					"  CREATE VIEW INFORMATIOM_SCHEMA.COLUMN_PRIVILEGES AS " +
+					"  SELECT \"TABLE_CATALOG\",\n" +
+					"         \"TABLE_SCHEMA\",\n" +
 					"         \"TABLE_NAME\",\n" +
 					"         \"COLUMN_NAME\",\n" +
 					"         IF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
@@ -1441,18 +1436,17 @@ namespace Deveel.Data {
 					"                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
 					"         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
 					"         IF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
-					"    FROM SYS_JDBC.Columns, SYS_JDBC.ThisUserGrant \n" +
-					"   WHERE CONCAT(Columns.TABLE_SCHEM, '.', Columns.TABLE_NAME) = \n" +
+					"    FROM INFORMATIOM_SCHEMA.COLUMNS, INFORMATIOM_SCHEMA.ThisUserGrant \n" +
+					"   WHERE CONCAT(COLUMNS.TABLE_SCHEMA, '.', COLUMNS.TABLE_NAME) = \n" +
 					"         ThisUserGrant.param \n" +
-					"     AND SYS_JDBC.ThisUserGrant.object = 1 \n" +
-					"     AND SYS_JDBC.ThisUserGrant.description IS NOT NULL \n";
+					"     AND INFORMATIOM_SCHEMA.ThisUserGrant.object = 1 \n" +
+					"     AND INFORMATIOM_SCHEMA.ThisUserGrant.description IS NOT NULL \n";
 				stmt.ExecuteNonQuery();
 
-				// A JDBC helper view for the 'getTablePrivileges' meta-data method
 				stmt.CommandText =
-					"  CREATE VIEW SYS_JDBC.TablePrivileges AS " +
-					"  SELECT \"TABLE_CAT\",\n" +
-					"         \"TABLE_SCHEM\",\n" +
+					"  CREATE VIEW INFORMATIOM_SCHEMA.TABLE_PRIVILEGES AS " +
+					"  SELECT \"TABLE_CATALOG\",\n" +
+					"         \"TABLE_SCHEMA\",\n" +
 					"         \"TABLE_NAME\",\n" +
 					"         IF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
 					"                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
@@ -1460,31 +1454,29 @@ namespace Deveel.Data {
 					"                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
 					"         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
 					"         IF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
-					"    FROM SYS_JDBC.Tables, SYS_JDBC.ThisUserGrant \n" +
-					"   WHERE CONCAT(Tables.TABLE_SCHEM, '.', Tables.TABLE_NAME) = \n" +
+					"    FROM INFORMATIOM_SCHEMA.TABLES, INFORMATIOM_SCHEMA.ThisUserGrant \n" +
+					"   WHERE CONCAT(TABLES.TABLE_SCHEMA, '.', TABLES.TABLE_NAME) = \n" +
 					"         ThisUserGrant.param \n" +
-					"     AND SYS_JDBC.ThisUserGrant.object = 1 \n" +
-					"     AND SYS_JDBC.ThisUserGrant.description IS NOT NULL \n";
+					"     AND INFORMATIOM_SCHEMA.ThisUserGrant.object = 1 \n" +
+					"     AND INFORMATIOM_SCHEMA.ThisUserGrant.description IS NOT NULL \n";
 				stmt.ExecuteNonQuery();
 
-				// A JDBC helper view for the 'getPrimaryKeys' meta-data method
 				stmt.CommandText =
-					"  CREATE VIEW SYS_JDBC.PrimaryKeys AS " +
-					"  SELECT NULL \"TABLE_CAT\",\n" +
+					"  CREATE VIEW INFORMATIOM_SCHEMA.PrimaryKeys AS " +
+					"  SELECT NULL \"TABLE_CATALOG\",\n" +
 					"         \"schema\" \"TABLE_SCHEM\",\n" +
 					"         \"table\" \"TABLE_NAME\",\n" +
 					"         \"column\" \"COLUMN_NAME\",\n" +
-					"         \"SYS_INFO.sUSRPrimaryColumns.seq_no\" \"KEY_SEQ\",\n" +
+					"         \"SYSTEM.sUSRPrimaryColumns.seq_no\" \"KEY_SEQ\",\n" +
 					"         \"name\" \"PK_NAME\"\n" +
-					"    FROM SYS_INFO.sUSRPKeyInfo, SYS_INFO.sUSRPrimaryColumns\n" +
+					"    FROM SYSTEM.sUSRPKeyInfo, SYSTEM.sUSRPrimaryColumns\n" +
 					"   WHERE sUSRPKeyInfo.id = sUSRPrimaryColumns.pk_id\n" +
 					"     AND \"schema\" IN\n" +
-					"            ( SELECT \"name\" FROM SYS_JDBC.ThisUserSchemaInfo )\n";
+					"            ( SELECT \"name\" FROM INFORMATIOM_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
 
-				// A JDBC helper view for the 'getImportedKeys' meta-data method
 				stmt.CommandText =
-					"  CREATE VIEW SYS_JDBC.ImportedKeys AS " +
+					"  CREATE VIEW INFORMATIOM_SCHEMA.ImportedKeys AS " +
 					"  SELECT NULL \"PKTABLE_CAT\",\n" +
 					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEM\",\n" +
 					"         \"sUSRFKeyInfo.ref_table\" \"PKTABLE_NAME\",\n" +
@@ -1499,15 +1491,14 @@ namespace Deveel.Data {
 					"         \"sUSRFKeyInfo.name\" \"FK_NAME\",\n" +
 					"         NULL \"PK_NAME\",\n" +
 					"         \"sUSRFKeyInfo.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYS_INFO.sUSRFKeyInfo, SYS_INFO.sUSRForeignColumns\n" +
+					"    FROM SYSTEM.sUSRFKeyInfo, SYSTEM.sUSRForeignColumns\n" +
 					"   WHERE sUSRFKeyInfo.id = sUSRForeignColumns.fk_id\n" +
 					"     AND \"sUSRFKeyInfo.schema\" IN\n" +
-					"              ( SELECT \"name\" FROM SYS_JDBC.ThisUserSchemaInfo )\n";
+					"              ( SELECT \"name\" FROM INFORMATIOM_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
 
-				// A JDBC helper view for the 'getExportedKeys' meta-data method
 				stmt.CommandText =
-					"  CREATE VIEW SYS_JDBC.ExportedKeys AS " +
+					"  CREATE VIEW INFORMATIOM_SCHEMA.ExportedKeys AS " +
 					"  SELECT NULL \"PKTABLE_CAT\",\n" +
 					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEM\",\n" +
 					"         \"sUSRFKeyInfo.ref_table\" \"PKTABLE_NAME\",\n" +
@@ -1522,15 +1513,14 @@ namespace Deveel.Data {
 					"         \"sUSRFKeyInfo.name\" \"FK_NAME\",\n" +
 					"         NULL \"PK_NAME\",\n" +
 					"         \"sUSRFKeyInfo.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYS_INFO.sUSRFKeyInfo, SYS_INFO.sUSRForeignColumns\n" +
+					"    FROM SYSTEM.sUSRFKeyInfo, SYSTEM.sUSRForeignColumns\n" +
 					"   WHERE sUSRFKeyInfo.id = sUSRForeignColumns.fk_id\n" +
 					"     AND \"sUSRFKeyInfo.schema\" IN\n" +
-					"              ( SELECT \"name\" FROM SYS_JDBC.ThisUserSchemaInfo )\n";
+					"              ( SELECT \"name\" FROM INFORMATIOM_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
 
-				// A JDBC helper view for the 'getCrossReference' meta-data method
 				stmt.CommandText =
-					"  CREATE VIEW SYS_JDBC.CrossReference AS " +
+					"  CREATE VIEW INFORMATIOM_SCHEMA.CrossReference AS " +
 					"  SELECT NULL \"PKTABLE_CAT\",\n" +
 					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEM\",\n" +
 					"         \"sUSRFKeyInfo.ref_table\" \"PKTABLE_NAME\",\n" +
@@ -1545,10 +1535,10 @@ namespace Deveel.Data {
 					"         \"sUSRFKeyInfo.name\" \"FK_NAME\",\n" +
 					"         NULL \"PK_NAME\",\n" +
 					"         \"sUSRFKeyInfo.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYS_INFO.sUSRFKeyInfo, SYS_INFO.sUSRForeignColumns\n" +
+					"    FROM SYSTEM.sUSRFKeyInfo, SYSTEM.sUSRForeignColumns\n" +
 					"   WHERE sUSRFKeyInfo.id = sUSRForeignColumns.fk_id\n" +
 					"     AND \"sUSRFKeyInfo.schema\" IN\n" +
-					"              ( SELECT \"name\" FROM SYS_JDBC.ThisUserSchemaInfo )\n";
+					"              ( SELECT \"name\" FROM INFORMATIOM_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
 			} catch (DataException e) {
 				if (e is DbDataException) {
@@ -1682,12 +1672,12 @@ namespace Deveel.Data {
 
 			// Revoke all existing grants on the internal stored procedures.
 			grants.RevokeAllGrantsOnObject(GrantObject.Table,
-			                               "SYS_INFO.SYSTEM_MAKE_BACKUP");
+			                               "SYSTEM.SYSTEM_MAKE_BACKUP");
 
 			// Grant execute priv with grant option to administrator
 			grants.Grant(Privileges.ProcedureExecute,
 			                GrantObject.Table,
-			                "SYS_INFO.SYSTEM_MAKE_BACKUP",
+			                "SYSTEM.SYSTEM_MAKE_BACKUP",
 			                admin_user, true, GRANTER);
 		}
 
@@ -1723,91 +1713,91 @@ namespace Deveel.Data {
 			manager.Grant(Privileges.SchemaAll, GrantObject.Schema,
 			                 "APP",
 			                 grantee, true, GRANTER);
-			// Add public grant for SYS_INFO
+			// Add public grant for SYSTEM
 			manager.Grant(Privileges.SchemaRead, GrantObject.Schema,
-			                 "SYS_INFO",
+			                 "SYSTEM",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			// Add public grant for SYS_JDBC
+			// Add public grant for INFORMATIOM_SCHEMA
 			manager.Grant(Privileges.SchemaRead, GrantObject.Schema,
-			                 "SYS_JDBC",
+			                 "INFORMATIOM_SCHEMA",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 
-			// For all tables in the SYS_INFO schema, grant all privileges to the
+			// For all tables in the SYSTEM schema, grant all privileges to the
 			// system user.
-			manager.GrantToAllTablesInSchema("SYS_INFO",
+			manager.GrantToAllTablesInSchema("SYSTEM",
 			                                    Privileges.TableAll, grantee, false, GRANTER);
 
 			// Set the public grants for the system tables,
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_INFO.sUSRConnectionInfo",
+			                 "SYSTEM.sUSRConnectionInfo",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_INFO.sUSRCurrentConnections",
+			                 "SYSTEM.sUSRCurrentConnections",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_INFO.sUSRDatabaseStatistics",
+			                 "SYSTEM.sUSRDatabaseStatistics",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_INFO.sUSRDatabaseVars",
+			                 "SYSTEM.sUSRDatabaseVars",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_INFO.sUSRProductInfo",
+			                 "SYSTEM.sUSRProductInfo",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_INFO.sUSRSQLTypeInfo",
+			                 "SYSTEM.sUSRSQLTypeInfo",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 
 			// Set public grants for the system views.
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.ThisUserGrant",
+			                 "INFORMATIOM_SCHEMA.ThisUserGrant",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.ThisUserSimpleGrant",
+			                 "INFORMATIOM_SCHEMA.ThisUserSimpleGrant",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.ThisUserSchemaInfo",
+			                 "INFORMATIOM_SCHEMA.ThisUserSchemaInfo",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.ThisUserTableColumns",
+			                 "INFORMATIOM_SCHEMA.ThisUserTableColumns",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.ThisUserTableInfo",
+			                 "INFORMATIOM_SCHEMA.ThisUserTableInfo",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.Tables",
+			                 "INFORMATIOM_SCHEMA.TABLES",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.Schemas",
+			                 "INFORMATIOM_SCHEMA.SCHEMATA",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.Catalogs",
+			                 "INFORMATIOM_SCHEMA.CATALOGS",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.Columns",
+			                 "INFORMATIOM_SCHEMA.COLUMNS",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.ColumnPrivileges",
+			                 "INFORMATIOM_SCHEMA.COLUMN_PRIVILEGES",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.TablePrivileges",
+			                 "INFORMATIOM_SCHEMA.TABLE_PRIVILEGES",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.PrimaryKeys",
+			                 "INFORMATIOM_SCHEMA.PrimaryKeys",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.ImportedKeys",
+			                 "INFORMATIOM_SCHEMA.ImportedKeys",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.ExportedKeys",
+			                 "INFORMATIOM_SCHEMA.ExportedKeys",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYS_JDBC.CrossReference",
+			                 "INFORMATIOM_SCHEMA.CrossReference",
 			                 GrantManager.PublicUsernameStr, false, GRANTER);
 		}
 
 		/**
-		 * Sets the system table listeners on the SYS_INFO.sUSRView table.  These
+		 * Sets the system table listeners on the SYSTEM.sUSRView table.  These
 		 * listeners are used to cache information
 		 * that is stored and retrieved from those tables.
 		 */
@@ -1817,7 +1807,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Goes through all tables in the database not in the SYS_INFO schema and
+		/// Goes through all tables in the database not in the SYSTEM schema and
 		/// adds an entry in the grant table for it.
 		/// </summary>
 		/// <param name="connection">The database transaction.</param>

@@ -28,11 +28,11 @@ namespace Deveel.Data.Sql {
 		}
 
 		///<summary>
-		/// Executes the given SQLQuery object on the given <see cref="DatabaseConnection"/> 
-		/// object.
+		/// Executes the given <see cref="SqlCommand"/> object on the given 
+		/// <see cref="DatabaseConnection"/> object.
 		///</summary>
 		///<param name="connection"></param>
-		///<param name="query"></param>
+		///<param name="command"></param>
 		/// <remarks>
 		/// This method does not perform any locking. Any locking must have happened 
 		/// before this method is called.
@@ -45,18 +45,18 @@ namespace Deveel.Data.Sql {
 		/// Returns a <see cref="Table"/> object that contains the result of the execution.
 		/// </returns>
 		///<exception cref="DataException"></exception>
-		public Table Execute(DatabaseConnection connection, SQLQuery query) {
+		public Table Execute(DatabaseConnection connection, SqlCommand command) {
 
 			// StatementTree caching
 
 			// Create a new parser and set the parameters...
-			String query_str = query.Query;
+			String query_str = command.Query;
 			StatementTree statement_tree = null;
 			StatementCache statement_cache =
 										  connection.System.StatementCache;
 
 			if (statement_cache != null) {
-				// Is this query cached?
+				// Is this command cached?
 				statement_tree = statement_cache.Get(query_str);
 			}
 			if (statement_tree == null) {
@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Substitute all parameter substitutions in the statement tree.
-			Object[] vars = query.Variables;
+			Object[] vars = command.Variables;
 			IExpressionPreparer preparer = new ExpressionPreparerImpl(vars);
 			statement_tree.PrepareAllExpressions(preparer);
 
@@ -95,7 +95,7 @@ namespace Deveel.Data.Sql {
 
 
 			// Initialize the statement
-			statement.Init(connection, statement_tree, query);
+			statement.Init(connection, statement_tree, command);
 
 			// Automated statement tree preparation
 			statement.ResolveTree();

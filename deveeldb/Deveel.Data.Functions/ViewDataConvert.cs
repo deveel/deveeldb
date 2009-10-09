@@ -44,10 +44,10 @@ namespace Deveel.Data.Functions {
 			// Get the parameters.  The first is a string describing the operation.
 			// The second is the binary data to process and output the information
 			// for.
-			TObject command = this[0].Evaluate(group, resolver, context);
+			TObject commandObj = this[0].Evaluate(group, resolver, context);
 			TObject data = this[1].Evaluate(group, resolver, context);
 
-			String command_str = command.Object.ToString();
+			String command_str = commandObj.Object.ToString();
 			ByteLongObject blob = (ByteLongObject)data.Object;
 
 			if (String.Compare(command_str, "referenced tables", true) == 0) {
@@ -70,8 +70,8 @@ namespace Deveel.Data.Functions {
 				node.DebugString(0, buf);
 				return TObject.GetString(buf.ToString());
 			} else if (String.Compare(command_str, "query string", true) == 0) {
-				SQLQuery query = SQLQuery.DeserializeFromBlob(blob);
-				return TObject.GetString(query.ToString());
+				SqlCommand command = SqlCommand.DeserializeFromBlob(blob);
+				return TObject.GetString(command.ToString());
 			}
 
 			return TObject.Null;

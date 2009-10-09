@@ -218,7 +218,7 @@ namespace Deveel.Data.Control {
 		///</summary>
 		/// <remarks>
 		/// A database may be shut down either through this method or by executing a 
-		/// query that shuts the system down (for example, <c>SHUTDOWN</c>).
+		/// command that shuts the system down (for example, <c>SHUTDOWN</c>).
 		/// <para>
 		/// When a database system is closed, it is not able to be restarted again
 		/// unless a new <see cref="DbSystem"/> object is obtained from the <see cref="DbController"/>.

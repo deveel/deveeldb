@@ -54,43 +54,43 @@ namespace Deveel.Data {
 		/// The name of the system schema where persistant conglomerate 
 		/// state is stored.
 		/// </summary>
-		public const String SYSTEM_SCHEMA = "SYS_INFO";
+		public const String SystemSchema = "SYSTEM";
 
 		/**
 		 * The schema info table.
 		 */
 		public static readonly TableName SCHEMA_INFO_TABLE =
-								   new TableName(SYSTEM_SCHEMA, "sUSRSchemaInfo");
+								   new TableName(SystemSchema, "sUSRSchemaInfo");
 
 		public static readonly TableName PERSISTENT_VAR_TABLE =
-								 new TableName(SYSTEM_SCHEMA, "sUSRDatabaseVars");
+								 new TableName(SystemSchema, "sUSRDatabaseVars");
 
 		public static readonly TableName FOREIGN_COLS_TABLE =
-							   new TableName(SYSTEM_SCHEMA, "sUSRForeignColumns");
+							   new TableName(SystemSchema, "sUSRForeignColumns");
 
 		public static readonly TableName UNIQUE_COLS_TABLE =
-								new TableName(SYSTEM_SCHEMA, "sUSRUniqueColumns");
+								new TableName(SystemSchema, "sUSRUniqueColumns");
 
 		public static readonly TableName PRIMARY_COLS_TABLE =
-							   new TableName(SYSTEM_SCHEMA, "sUSRPrimaryColumns");
+							   new TableName(SystemSchema, "sUSRPrimaryColumns");
 
 		public static readonly TableName CHECK_INFO_TABLE =
-									new TableName(SYSTEM_SCHEMA, "sUSRCheckInfo");
+									new TableName(SystemSchema, "sUSRCheckInfo");
 
 		public static readonly TableName UNIQUE_INFO_TABLE =
-								   new TableName(SYSTEM_SCHEMA, "sUSRUniqueInfo");
+								   new TableName(SystemSchema, "sUSRUniqueInfo");
 
 		public static readonly TableName FOREIGN_INFO_TABLE =
-									 new TableName(SYSTEM_SCHEMA, "sUSRFKeyInfo");
+									 new TableName(SystemSchema, "sUSRFKeyInfo");
 
 		public static readonly TableName PRIMARY_INFO_TABLE =
-									 new TableName(SYSTEM_SCHEMA, "sUSRPKeyInfo");
+									 new TableName(SystemSchema, "sUSRPKeyInfo");
 
 		public static readonly TableName SYS_SEQUENCE_INFO =
-								 new TableName(SYSTEM_SCHEMA, "sUSRSequenceInfo");
+								 new TableName(SystemSchema, "sUSRSequenceInfo");
 
 		public static readonly TableName SYS_SEQUENCE =
-									 new TableName(SYSTEM_SCHEMA, "sUSRSequence");
+									 new TableName(SystemSchema, "sUSRSequence");
 
 		/// <summary>
 		/// The TransactionSystem that this Conglomerate is a child of.
@@ -864,7 +864,7 @@ namespace Deveel.Data {
 			Transaction transaction = CreateTransaction();
 
 			// Insert the two default schema names,
-			transaction.CreateSchema(SYSTEM_SCHEMA, "SYSTEM");
+			transaction.CreateSchema(SystemSchema, "SYSTEM");
 
 			// -- Primary Keys --
 			// The 'id' columns are primary keys on all the system tables,
@@ -1834,7 +1834,7 @@ namespace Deveel.Data {
 									  TObject[] key_value) {
 
 			int key_size = key_value.Length;
-			// Now query table 2 to determine if the key values are present.
+			// Now command table 2 to determine if the key values are present.
 			// Use index scan on first key.
 			SelectableScheme ss = t2.GetColumnScheme(col2_indexes[0]);
 			IntegerVector list = ss.SelectEqual(key_value[0]);

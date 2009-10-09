@@ -192,7 +192,7 @@ namespace Deveel.Data.Server {
 			                    database_call_back);
 		}
 
-		public override IQueryResponse ExecuteQuery(SQLQuery query) {
+		public override IQueryResponse ExecuteQuery(SqlCommand command) {
 
 			// Check the interface isn't disposed (connection was closed).
 			CheckNotDisposed();
@@ -200,7 +200,7 @@ namespace Deveel.Data.Server {
 			User user = User;
 			DatabaseConnection database_connection = DatabaseConnection;
 
-			// Log this query if query logging is enabled
+			// Log this command if command logging is enabled
 			if (COMMAND_LOGGING && Database.System.LogQueries) {
 				// Output the instruction to the commands log.
 				StringBuilder log_str = new StringBuilder();
@@ -211,7 +211,7 @@ namespace Deveel.Data.Server {
 				log_str.Append(host_name);
 				log_str.Append("] ");
 				log_str.Append("Query: ");
-				log_str.Append(query.Query);
+				log_str.Append(command.Query);
 				log_str.Append('\n');
 				user.Database.CommandsLog.Write(log_str.ToString());
 			}
@@ -219,7 +219,7 @@ namespace Deveel.Data.Server {
 			// Write debug message (Information level)
 			if (Debug.IsInterestedIn(DebugLevel.Information)) {
 				Debug.Write(DebugLevel.Information, this, "Query From User: " + user.UserName + "@" + host_name);
-				Debug.Write(DebugLevel.Information, this, "Query: " + query.Query.Trim());
+				Debug.Write(DebugLevel.Information, this, "Query: " + command.Query.Trim());
 			}
 
 			// Get the locking mechanism.
@@ -242,8 +242,8 @@ namespace Deveel.Data.Server {
 					lock_mode = LockingMode.EXCLUSIVE_MODE;
 					locker.SetMode(lock_mode);
 
-					// Execute the query (behaviour for this comes from super).
-					response = base.ExecuteQuery(query);
+					// Execute the command (behaviour for this comes from super).
+					response = base.ExecuteQuery(command);
 
 					// Return the result.
 					return response;
@@ -271,7 +271,7 @@ namespace Deveel.Data.Server {
 				// This always happens after tables are unlocked.
 				// Also guarenteed to happen even if something fails.
 
-				// If we are in auto-commit mode then commit the query here.
+				// If we are in auto-commit mode then commit the command here.
 				// Do we auto-commit?
 				if (database_connection.AutoCommit) {
 					// Yes, so grab an exclusive Lock and auto-commit.
@@ -290,7 +290,7 @@ namespace Deveel.Data.Server {
 								// Dispose this response if the commit failed.
 								DisposeResult(response.ResultId);
 								// And throw the SQL Exception
-								throw HandleExecuteThrowable(e, query);
+								throw HandleExecuteThrowable(e, command);
 							}
 						}
 					} finally {
