@@ -177,16 +177,15 @@ namespace Deveel.Data {
 
 			public override int Read(byte[] buf, int off, int len) {
 				// As per the InputStream specification.
-				if (len == 0) {
-					return 0;
-				}
+				if (len <= 0)
+					throw new ArgumentException();
 
 				int size = blob.Length;
 				int to_read = System.Math.Min(len, size - index);
 
 				if (to_read <= 0) {
 					// Nothing can be Read
-					return -1;
+					return 0;
 				}
 
 				Array.Copy(blob.data, index, buf, off, to_read);

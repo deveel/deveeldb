@@ -90,5 +90,17 @@ namespace Deveel.Data.Util {
 		public virtual long Skip(long byteCount) {
 			return 0;
 		}
+
+		public static long Skip(Stream stream, long amount) {
+			long pos = stream.Position;
+			//if (stream is InputStream)
+			//    return ((InputStream) stream).Skip(amount);
+			long newPos = stream.Seek(amount, SeekOrigin.Current);
+			return newPos - pos;
+		}
+
+		public static long Skip(BinaryReader stream, long amount) {
+			return Skip(stream.BaseStream, amount);
+		}
 	}
 }

@@ -1,3 +1,20 @@
+2009-10-09  Antonello Provenzano  <antonello@deveel.com>
+	* TableDataConglomerate.cs: global renaming for code clarity
+		- SYS_INFO -> SYSTEM
+		- SYSTEM.sUSRSchemaInfo -> SYSTEM.SCHEMA_INFO
+	* Database.cs: 
+		- renamed SYS_INFO schema to 'SYSTEM' for code clarity
+		- renamed SYS_JDBC to INFORMATION_SCHEMA to comply with
+		the SQL standards
+			+ Catalogs -> CATALOGS (basically, no change)
+			+ Schemas -> SCHEMATA
+			+ Tables -> TABLES (basically, no change)
+			+ Columns -> COLUMNS (basically, no change)
+			+ ColumnPrivileges -> COLUMN_PRIVILEGES
+			+ TablePrivileges -> TABLE_PRIVILEGES
+	* ParameterSubstiturion.cs: implemented support for named
+	parameters.
+
 2009-10-05  Antonello Provenzano  <antonello@deveel.com>
 	* DatabaseEventHandler.cs: implementation to handle a different
 	behavior of the database event interface logic.

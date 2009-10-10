@@ -176,7 +176,7 @@ namespace Deveel.Data.Util {
 		/// <inheritdoc/>
 		public override int ReadByte() {
 			if (position >= size) {
-				return -1;
+				return 0;
 			}
 
 			if (buffer_pos == -1) {
@@ -197,9 +197,8 @@ namespace Deveel.Data.Util {
 
 		/// <inheritdoc/>
 		public override int Read(byte[] read_buf, int off, int len) {
-			if (len <= 0) {
-				return 0;
-			}
+			if (len <= 0)
+				throw new ArgumentException();
 
 			if (buffer_pos == -1) {
 				FillBuffer(position);
@@ -209,7 +208,7 @@ namespace Deveel.Data.Util {
 			long buffer_end = System.Math.Min(buffer_pos + BUFFER_SIZE, size);
 			int to_read = (int)System.Math.Min((long)len, buffer_end - position);
 			if (to_read <= 0) {
-				return -1;
+				return 0;
 			}
 			int has_read = 0;
 			while (to_read > 0) {

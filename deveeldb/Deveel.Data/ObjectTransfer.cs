@@ -105,6 +105,7 @@ namespace Deveel.Data {
 			if (ob == null) {
 				output.Write((byte)1);
 			} else if (ob is StringObject) {
+				/*
 				String str = ob.ToString();
 
 				// All strings send as char array,
@@ -112,6 +113,13 @@ namespace Deveel.Data {
 				output.Write(str.Length);
 				for (int i = 0; i < str.Length; i++)
 					output.Write(str[i]);
+				*/
+
+
+				byte[] buffer = Encoding.UTF8.GetBytes(ob.ToString());
+				output.Write((byte)18);
+				output.Write(buffer.Length);
+				output.Write(buffer, 0, buffer.Length);
 			} else if (ob is BigNumber) {
 				BigNumber n = (BigNumber)ob;
 				if (n.CanBeInt) {
@@ -216,12 +224,17 @@ namespace Deveel.Data {
 				case (18): {
 						// Handles strings > 64k
 						int len = input.ReadInt32();
+					/*
 						StringBuilder buf = new StringBuilder(len);
 						while (len > 0) {
 							buf.Append(input.ReadChar());
 							--len;
 						}
 						return StringObject.FromString(buf.ToString());
+					 */
+					byte[] buffer = new byte[len];
+					input.Read(buffer, 0, len);
+					return Encoding.UTF8.GetString(buffer);
 					}
 
 				case (24): {

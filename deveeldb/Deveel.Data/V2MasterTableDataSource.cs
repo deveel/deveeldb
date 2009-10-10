@@ -1271,14 +1271,16 @@ namespace Deveel.Data {
 			long skipped = 0;
 
 			while (skipped < amount) {
-				long last_skipped = 0;
-				if (input is InputStream) {
-					InputStream inputStream = (InputStream) input;
-					last_skipped = inputStream.Skip(count);
-				} else {
-					long pos = input.Position;
-					last_skipped = (input.Seek(count, SeekOrigin.Current) - pos);
-				}
+				long last_skipped = InputStream.Skip(input, count);
+				///*
+				//if (input is InputStream) {
+				//    InputStream inputStream = (InputStream) input;
+				//    last_skipped = inputStream.Skip(count);
+				//} else {
+				//*/
+				//    long pos = input.Position;
+				//    last_skipped = (input.Seek(count, SeekOrigin.Current) - pos);
+				////}
 				skipped += last_skipped;
 				count -= last_skipped;
 			}
