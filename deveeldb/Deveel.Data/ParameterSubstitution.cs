@@ -22,6 +22,8 @@
 
 using System;
 
+using Deveel.Data.Client;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// Represents a constant value that is to be lately binded to a constant 
@@ -38,11 +40,27 @@ namespace Deveel.Data {
 		/// </summary>
 		private readonly int parameter_id;
 
+		/// <summary>
+		/// The name of the parameter for the substitution.
+		/// </summary>
+		private readonly string name;
+
 		///<summary>
+		/// Constructs a <see cref="ParameterSubstitution"/> to employ in a command
+		/// which uses a <see cref="ParameterStyle.Marker"/> style.
 		///</summary>
-		///<param name="parameter_id"></param>
+		///<param name="parameter_id">The unique identifier of the parameter.</param>
 		public ParameterSubstitution(int parameter_id) {
 			this.parameter_id = parameter_id;
+		}
+
+		/// <summary>
+		/// Constructs a <see cref="ParameterSubstitution"/> to employ in a command
+		/// which uses a <see cref="ParameterStyle.Named"/> style.
+		/// </summary>
+		/// <param name="name">The name of the parameter.</param>
+		public ParameterSubstitution(string name) {
+			this.name = name;
 		}
 
 		/// <summary>
@@ -52,15 +70,24 @@ namespace Deveel.Data {
 			get { return parameter_id; }
 		}
 
+		/// <summary>
+		/// Gets the name of the parameter to substitue.
+		/// </summary>
+		public string Name {
+			get { return name; }
+		}
+
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
 			ParameterSubstitution sub = (ParameterSubstitution)ob;
-			return parameter_id == sub.parameter_id;
+			return (name == null || String.Compare(name, sub.name, false) != 0) && parameter_id == sub.parameter_id;
 		}
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			return base.GetHashCode();
+			if (name != null)
+				return name.GetHashCode();
+			return parameter_id.GetHashCode();
 		}
 	}
 }

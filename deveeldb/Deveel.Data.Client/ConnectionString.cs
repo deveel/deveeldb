@@ -43,6 +43,7 @@ namespace Deveel.Data.Client {
 			DefaultKeys.Add(SchemaKey.ToLower());
 			DefaultKeys.Add(CreateKey.ToLower());
 			DefaultKeys.Add(BootOrCreateKey.ToLower());
+			DefaultKeys.Add(ParameterStyleKey.ToLower());
 		}
 
 		private readonly Hashtable properties;
@@ -58,6 +59,7 @@ namespace Deveel.Data.Client {
 		private const string SchemaKey = "Schema";
 		private const string CreateKey = "Create";
 		private const string BootOrCreateKey = "BootOrCreate";
+		private const string ParameterStyleKey = "ParameterStyle";
 
 		private static readonly ArrayList DefaultKeys;
 
@@ -186,6 +188,17 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		public ParameterStyle ParameterStyle {
+			get {
+				object value = properties[ParameterStyleKey];
+				return (value == null ? ParameterStyle.Marker : (ParameterStyle) value);
+			}
+			set {
+				CheckReadOnly();
+				properties[ParameterStyleKey] = value;
+			}
+		}
+
 		private void CheckReadOnly() {
 			if (readOnly)
 				throw new InvalidOperationException("The connection string is readonly.");
@@ -263,6 +276,11 @@ namespace Deveel.Data.Client {
 				case "secret":
 				case "pass":
 					Password = Convert.ToString(value);
+					break;
+				case "parameterstyle":
+				case "useparameter":
+				case "paramstyle":
+					ParameterStyle = (ParameterStyle) Enum.Parse(typeof (ParameterStyle), value.ToString(), true);
 					break;
 				default:
 					properties[key] = value;

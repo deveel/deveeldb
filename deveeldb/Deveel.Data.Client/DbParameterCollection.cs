@@ -25,10 +25,12 @@ using System.Data;
 
 namespace Deveel.Data.Client {
 	public sealed class DbParameterCollection : IDataParameterCollection {
-		internal DbParameterCollection() {
+		internal DbParameterCollection(DbCommand command) {
+			this.command = command;
 			list = new ArrayList();
 		}
 
+		private readonly DbCommand command;
 		private readonly ArrayList list;
 
 		#region Implementation of IEnumerable
@@ -162,28 +164,59 @@ namespace Deveel.Data.Client {
 
 		#region Implementation of IDataParameterCollection
 
-		bool IDataParameterCollection.Contains(string parameterName) {
-			// we silently ignore named parameters (for the momernt)...
-			return false;
+		public bool Contains(string parameterName) {
+			return IndexOf(parameterName) != -1;
 		}
 
-		int IDataParameterCollection.IndexOf(string parameterName) {
-			// we silently ignore named parameters (for the momernt)...
+		public int IndexOf(string parameterName) {
+			CheckNamedStyle();
+			if (list.Count == 0)
+				return -1;
+
+			for (int i = 0; i < list.Count; i++) {
+				DbParameter parameter = (DbParameter) list[i];
+				if (parameter.ParameterName == null)
+					continue;
+				if (String.Compare(parameter.ParameterName, parameterName, false) == 0)
+					return i;
+			}
+
 			return -1;
 		}
 
-		void IDataParameterCollection.RemoveAt(string parameterName) {
-			// we silently ignore named parameters (for the momernt)...
+		public void RemoveAt(string parameterName) {
+			CheckNamedStyle();
+			int index = IndexOf(parameterName);
+			if (index == -1)
+				throw new ArgumentException("Parameter with name '" + parameterName + "' not found.");
+			list.RemoveAt(index);
 		}
 
 		object IDataParameterCollection.this[string parameterName] {
-			get {
-				// we silently ignore named parameters (for the momernt)...
-				return null;
-			}
-			set { throw new NotSupportedException(); }
+			get { return this[parameterName]; }
+			set { this[parameterName] = (DbParameter) value; }
 		}
 
 		#endregion
+
+		private void CheckNamedStyle() {
+			if (command.Connection.ConnectionString.ParameterStyle != ParameterStyle.Named)
+				throw new NotSupportedException("Named parameters are not supported in this context.");
+		}
+
+		public DbParameter this[string parameterName] {
+			get {
+				CheckNamedStyle();
+				int index = IndexOf(parameterName);
+				return (index == -1 ? null : (DbParameter)list[index]);
+			}
+			set {
+				CheckNamedStyle();
+				int index = IndexOf(parameterName);
+				if (index == -1)
+					throw new ArgumentException("Unable to find a parameter with the given name '" + parameterName + "'.");
+				list[index] = value;
+			}
+		}
 	}
 }

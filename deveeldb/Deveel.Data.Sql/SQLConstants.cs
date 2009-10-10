@@ -200,9 +200,11 @@ public class SQLConstants {
   internal const int CTALIAS = 201;
   internal const int GLOBVARIABLE = 202;
   internal const int QUOTEDGLOBVARIABLE = 203;
-  internal const int PARAMETER_REF = 204;
-  internal const int LETTER = 205;
-  internal const int DIGIT = 206;
+  internal const int NAMED_PARAMETER = 204;
+  internal const int PARAMETER_REF = 205;
+  internal const int NAMED_PARAMETER_PREFIX = 206;
+  internal const int LETTER = 207;
+  internal const int DIGIT = 208;
 
   internal const int DEFAULT = 0;
 
@@ -411,7 +413,9 @@ public class SQLConstants {
     "<CTALIAS>",
     "<GLOBVARIABLE>",
     "<QUOTEDGLOBVARIABLE>",
+    "<NAMED_PARAMETER>",
     "\"?\"",
+    "\"@\"",
     "<LETTER>",
     "<DIGIT>",
     "\";\"",

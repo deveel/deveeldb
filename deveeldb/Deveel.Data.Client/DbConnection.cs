@@ -1052,9 +1052,9 @@ namespace Deveel.Data.Client {
 			s_object_hold.Remove(s_object.Identifier);
 		}
 
-		// NOTE: For JDBC standalone apps, the thread that calls this will be a
+		// NOTE: For standalone apps, the thread that calls this will be a
 		//   WorkerThread.
-		//   For JDBC client/server apps, the thread that calls this will by the
+		//   For client/server apps, the thread that calls this will by the
 		//   connection thread that listens for data from the server.
 		public void OnDatabaseEvent(int event_type, String event_message) {
 			if (event_type == 99) {

@@ -103,7 +103,7 @@ namespace Deveel.Data.Server {
         /// <remarks>
         /// When a statement is being parsed, this object is sychronized.
         /// </remarks>
-		private SQLQueryExecutor sql_executor;
+		private SqlCommandExecutor sql_executor;
 		//  private SQL sql_parser;
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace Deveel.Data.Server {
 			this.user = user;
 			this.database_connection = connection;
 			// Set up the sql parser.
-			sql_executor = new SQLQueryExecutor();
+			sql_executor = new SqlCommandExecutor();
 			//    sql_parser = new SQL(new StringReader(""));
 		}
 

@@ -41,7 +41,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// The SQL String.  For example, "select * from Part".
 		/// </summary>
-		private String query;
+		private String text;
 
 		/// <summary>
 		/// Set to true when this query is prepared via the <see cref="Prepare"/> method.
@@ -54,9 +54,12 @@ namespace Deveel.Data.Client {
 		/// <remarks>
 		/// A variable substitution is set up in a prepared statement.
 		/// </remarks>
-		private Object[] parameters;
+		private object[] parameters;
+		private string[] parameters_names;
 		private int parameters_index;
 		private int parameter_count;
+
+		private ParameterStyle parameterStyle;
 
 
 		/// <summary>
@@ -66,12 +69,18 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Constructs the query.
+		/// Constructs the command.
 		/// </summary>
-		/// <param name="query"></param>
-		public SqlCommand(String query) {
-			this.query = query;
+		/// <param name="text"></param>
+		public SqlCommand(String text)
+			: this(text, ParameterStyle.Marker) {
+		}
+
+		public SqlCommand(string text, ParameterStyle parameterStyle) {
+			this.text = text;
+			this.parameterStyle = parameterStyle;
 			parameters = new Object[8];
+			parameters_names = new string[8];
 			parameters_index = 0;
 			parameter_count = 0;
 			prepared = false;
@@ -88,6 +97,12 @@ namespace Deveel.Data.Client {
 			Array.Copy(parameters, 0, new_list, 0, parameters.Length);
 			// Set the new list.
 			parameters = new_list;
+
+			if (parameterStyle == ParameterStyle.Named) {
+				string[] new_names_list = new string[new_size];
+				Array.Copy(parameters_names, 0, new_names_list, 0, parameters_names.Length);
+				parameters_names = new_names_list;
+			}
 		}
 
 		/// <summary>
@@ -109,14 +124,30 @@ namespace Deveel.Data.Client {
 		/// <see cref="bool"/>, <see cref="DateTime"/>, <see cref="String"/>) then 
 		/// it is serialized and the serialized form is wrapped in a <see cref="ByteLongObject"/>.
 		/// </remarks>
-		public void AddVariable(Object ob) {
-			ob = TranslateObjectType(ob);
-			parameters[parameters_index] = ob;
+		public void AddVariable(object ob) {
+			if (parameterStyle != ParameterStyle.Marker)
+				throw new NotSupportedException();
+
+			AddVariable(null, ob);
+		}
+
+		public void AddVariable(string name, object value) {
+			if ((name != null && name.Length > 0) &&
+				parameterStyle != ParameterStyle.Named)
+				throw new ArgumentException();
+			if ((name == null || name.Length == 0) &&
+				parameterStyle == ParameterStyle.Named)
+				throw new ArgumentException();
+
+			value = TranslateObjectType(value);
+
+			if (parameterStyle == ParameterStyle.Named)
+				parameters_names[parameters_index] = name;
+			parameters[parameters_index] = value;
 			++parameters_index;
 			++parameter_count;
-			if (parameters_index >= parameters.Length) {
+			if (parameters_index >= parameters.Length)
 				GrowParametersList(parameters_index + 8);
-			}
 		}
 
 		///<summary>
@@ -142,6 +173,40 @@ namespace Deveel.Data.Client {
 			parameter_count = System.Math.Max(parameters_index, parameter_count);
 		}
 
+		public object GetNamedVariable(string name) {
+			if (parameterStyle != ParameterStyle.Named)
+				throw new NotSupportedException();
+
+			for (int i = 0; i < parameters_names.Length; i++) {
+				string paramName = parameters_names[i];
+				//TODO: should we do a case-insensitive comparison?
+				if (String.Compare(paramName, name, false) == 0)
+					return parameters[i];
+			}
+
+			return null;
+		}
+
+		public void SetNamedVariable(string name, object value) {
+			if (parameterStyle != ParameterStyle.Named)
+				throw new NotSupportedException();
+
+			int toUpdate = -1;
+			for (int i = 0; i < parameters_names.Length; i++) {
+				string paramName = parameters_names[i];
+				//TODO: should we do a case-insensitive comparison?
+				if (String.Compare(paramName, name, false) == 0) {
+					toUpdate = i;
+					break;
+				}
+			}
+
+			if (toUpdate == -1)
+				throw new ArgumentException("Unable to find the variable named '" + name + "'.");
+
+			SetVariable(toUpdate, value);
+		}
+
 		///<summary>
 		/// Clears all the parameters.
 		///</summary>
@@ -151,13 +216,24 @@ namespace Deveel.Data.Client {
 			for (int i = 0; i < parameters.Length; ++i) {
 				parameters[i] = null;
 			}
+			if (parameterStyle == ParameterStyle.Named) {
+				for (int i = 0; i < parameters_names.Length; i++)
+					parameters_names[i] = null;
+			}
 		}
 
 		/// <summary>
 		/// Returns the query string.
 		/// </summary>
-		public string Query {
-			get { return query; }
+		public string Text {
+			get { return text; }
+		}
+
+		/// <summary>
+		/// Gets the parameter style used in this command.
+		/// </summary>
+		public ParameterStyle ParameterStyle {
+			get { return parameterStyle; }
 		}
 
 		///<summary>
@@ -171,127 +247,8 @@ namespace Deveel.Data.Client {
 			get { return parameters; }
 		}
 
-		/**
-		 * Given a JDBC escape code of the form {keyword ... parameters ...} this
-		 * will return the most optimal Mckoi SQL query for the code.
-		 */
-		private String escapeJDBCSubstitution(String jdbc_code) {
-			String code = jdbc_code.Substring(1, jdbc_code.Length - 2);
-			int kp_delim = code.IndexOf(' ');
-			if (kp_delim != -1) {
-				String keyword = code.Substring(0, kp_delim);
-				String body = code.Substring(kp_delim).Trim();
-
-				if (keyword.Equals("d")) {   // Process a date
-					return "DATE " + body;
-				}
-				if (keyword.Equals("t")) {   // Process a time
-					return "TIME " + body;
-				}
-				if (keyword.Equals("ts")) {  // Process a timestamp
-					return "TIMESTAMP " + body;
-				}
-				if (keyword.Equals("fn")) {  // A function
-					return body;
-				}
-				if (keyword.Equals("call") || keyword.Equals("?=")) {
-					throw new DbDataException("Stored procedures not supported.");
-				}
-				if (keyword.Equals("oj")) {  // Outer join
-					return body;
-				}
-
-				throw new DbDataException("Do not understand JDBC substitution keyword '" +
-										keyword + "' of " + jdbc_code);
-			} else {
-				throw new DbDataException("Malformed JDBC escape code: " + jdbc_code);
-			}
-
-		}
-
-		/**
-		 * Performs any JDBC escape processing on the query.  For example, the
-		 * code {d 'yyyy-mm-dd'} is converted to 'DATE 'yyyy-mm-dd'.
-		 */
-		private void doEscapeSubstitutions() {
-			// This is a fast but primitive parser that scans the SQL string and
-			// substitutes any {[code] ... } type escape sequences to the Mckoi
-			// equivalent.  This will not make substitutions of anything inside a
-			// quoted area of the query.
-
-			// Exit early if no sign of an escape code
-			if (query.IndexOf('{') == -1) {
-				return;
-			}
-
-			StringBuilder buf = new StringBuilder();
-			StringBuilder jdbc_escape = null;
-
-			int i = 0;
-			int sz = query.Length;
-			char state = '\0';
-			bool ignore_next = false;
-
-			while (i < sz) {
-				char c = query[i];
-
-				if (state == '\0') {  // If currently processing SQL code
-					if (c == '\'' || c == '\"') {
-						state = c;     // Set state to quote
-					} else if (c == '{') {
-						jdbc_escape = new StringBuilder();
-						state = '}';
-					}
-				} else if (state != 0) {  // If currently inside a quote or escape
-					if (!ignore_next) {
-						if (c == '\\') {
-							ignore_next = true;
-						} else {
-							// If at the end of a quoted area
-							if (c == (char)state) {
-								state = '\0';
-								if (c == '}') {
-									jdbc_escape.Append('}');
-									buf.Append(escapeJDBCSubstitution(jdbc_escape.ToString()));
-									jdbc_escape = null;
-									c = ' ';
-								}
-							}
-						}
-					} else {
-						ignore_next = false;
-					}
-				}
-
-				if (state != '}') {
-					// Copy the character
-					buf.Append(c);
-				} else {
-					jdbc_escape.Append(c);
-				}
-
-				++i;
-			}
-
-			if (state == '}') {
-				throw new DataException("Unterminated JDBC escape code in query: " +
-									   jdbc_escape);
-			}
-
-			query = buf.ToString();
-		}
-
-		///<summary>
-		/// Prepares the query by parsing the query string and performing any updates
-		/// that are required before being passed down to the lower layers of the
-		/// database engine for processing. 
-		///</summary>
-		///<param name="do_escape_processing"></param>
-		public void Prepare(bool do_escape_processing) {
-			if (do_escape_processing) {
-				doEscapeSubstitutions();
-			}
-			prepared = true;
+		public string[] VariableNames {
+			get { return parameters_names; }
 		}
 
 		/// <inheritdoc/>
@@ -299,7 +256,7 @@ namespace Deveel.Data.Client {
 			SqlCommand q2 = (SqlCommand)ob;
 			// NOTE: This could do syntax analysis on the query string to determine
 			//   if it's the same or not.
-			if (query.Equals(q2.query)) {
+			if (text.Equals(q2.text)) {
 				if (parameter_count == q2.parameter_count) {
 					for (int i = 0; i < parameter_count; ++i) {
 						if (parameters[i] != q2.parameters[i]) {
@@ -320,7 +277,7 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public object Clone() {
 			SqlCommand q = new SqlCommand();
-			q.query = query;
+			q.text = text;
 			q.parameters = (Object[])parameters.Clone();
 			q.parameters_index = parameters_index;
 			q.parameter_count = parameter_count;
@@ -331,12 +288,19 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public override string ToString() {
 			StringBuilder buf = new StringBuilder();
-			buf.Append("[ Query:\n[ ");
-			buf.Append(Query);
-			buf.Append(" ]\n");
+			buf.AppendLine("[ Command: ");
+			buf.Append("[ ");
+			buf.Append(Text);
+			buf.AppendLine(" ]");
 			if (parameter_count > 0) {
-				buf.Append("\nParams:\n[ ");
+				buf.AppendLine();
+				buf.AppendLine("Params: ");
+				buf.Append("[ ");
 				for (int i = 0; i < parameter_count; ++i) {
+					if (parameterStyle == ParameterStyle.Named) {
+						buf.Append(parameters_names[i]);
+						buf.Append(" : ");
+					}
 					Object ob = parameters[i];
 					if (ob == null) {
 						buf.Append("NULL");
@@ -347,7 +311,8 @@ namespace Deveel.Data.Client {
 				}
 				buf.Append(" ]");
 			}
-			buf.Append("\n]");
+			buf.AppendLine();
+			buf.Append("]");
 			return buf.ToString();
 		}
 
@@ -358,9 +323,13 @@ namespace Deveel.Data.Client {
 		///</summary>
 		///<param name="output"></param>
 		public void WriteTo(BinaryWriter output) {
-			output.Write(query);
+			output.Write(text);
+			output.Write((byte)parameterStyle);
 			output.Write(parameter_count);
 			for (int i = 0; i < parameter_count; ++i) {
+				if (parameterStyle == ParameterStyle.Named)
+					output.Write(parameters_names[i]);
+
 				ObjectTransfer.WriteTo(output, parameters[i]);
 			}
 		}
@@ -372,10 +341,18 @@ namespace Deveel.Data.Client {
 		/// <returns></returns>
 		public static SqlCommand ReadFrom(BinaryReader input) {
 			String query_string = input.ReadString();
-			SqlCommand command = new SqlCommand(query_string);
+			ParameterStyle style = (ParameterStyle)input.ReadByte();
+			SqlCommand command = new SqlCommand(query_string, style);
+
 			int arg_length = input.ReadInt32();
+
 			for (int i = 0; i < arg_length; ++i) {
-				command.AddVariable(ObjectTransfer.ReadFrom(input));
+				string name = null;
+				if (style == ParameterStyle.Named)
+					name = input.ReadString();
+
+				object value = ObjectTransfer.ReadFrom(input);
+				command.AddVariable(name, value);
 			}
 			return command;
 		}
@@ -386,7 +363,6 @@ namespace Deveel.Data.Client {
 		///<returns></returns>
 		///<exception cref="ApplicationException"></exception>
 		public ByteLongObject SerializeToBlob() {
-
 			MemoryStream bout = new MemoryStream();
 			BinaryWriter output = new BinaryWriter(bout);
 			try {

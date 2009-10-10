@@ -22,6 +22,7 @@ class SQL : SQLConstants {
         /// The parameter id.
         /// </summary>
         private int parameter_id = 0;
+        private Client.ParameterStyle parameterStyle = Client.ParameterStyle.Marker;
 
         /// <summary>
         /// Resets the parameter id.
@@ -33,6 +34,10 @@ class SQL : SQLConstants {
                 parameter_id = 0;
         }
 
+        public void SetParameterStyle(Client.ParameterStyle style) {
+                parameterStyle = style;
+        }
+
         /// <summary>
         /// Creates and returns a parameter substitution.
         /// </summary>
@@ -42,8 +47,13 @@ class SQL : SQLConstants {
         /// for a value later.
         /// </remarks>
         public ParameterSubstitution CreateSubstitution(String image) {
-                ParameterSubstitution ps = new ParameterSubstitution(parameter_id);
-                ++parameter_id;
+                ParameterSubstitution ps;
+                if (parameterStyle == Client.ParameterStyle.Marker) {
+                        ps = new ParameterSubstitution(parameter_id);
+                        ++parameter_id;
+                } else {
+                        ps = new ParameterSubstitution(image);
+                }
                 return ps;
         }
 
@@ -129,7 +139,7 @@ class SQL : SQLConstants {
 
   public void Test() {
     ParseExpression();
-    mcc_consume_token(207);
+    mcc_consume_token(209);
 
   }
 
@@ -201,8 +211,8 @@ class SQL : SQLConstants {
       throw new ParseException();
     }
     switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-    case 207:
-      mcc_consume_token(207);
+    case 209:
+      mcc_consume_token(209);
       break;
     case 0:
       mcc_consume_token(0);
@@ -500,9 +510,9 @@ class SQL : SQLConstants {
       mcc_consume_token(EXECUTE);
       mcc_consume_token(PROCEDURE);
       procedure_name = FunctionName();
-      mcc_consume_token(208);
+      mcc_consume_token(210);
       procedure_args = ExpressionList();
-      mcc_consume_token(209);
+      mcc_consume_token(211);
       cmd.SetObject("type", "procedure_trigger");
       cmd.SetObject("before_after", before_after);
       cmd.SetObject("procedure_name", procedure_name);
@@ -557,9 +567,9 @@ class SQL : SQLConstants {
   TType return_type = null;
     mcc_consume_token(FUNCTION);
     function_name = FunctionName();
-    mcc_consume_token(208);
+    mcc_consume_token(210);
     ProcParameterList(arg_names, arg_types);
-    mcc_consume_token(209);
+    mcc_consume_token(211);
     switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
     case RETURNS:
       mcc_consume_token(RETURNS);
@@ -626,10 +636,10 @@ class SQL : SQLConstants {
     mcc_consume_token(VIEW);
     view_name = TableName();
     switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-    case 208:
-      mcc_consume_token(208);
+    case 210:
+      mcc_consume_token(210);
       BasicColumnList(col_list);
-      mcc_consume_token(209);
+      mcc_consume_token(211);
       break;
     default:
       mcc_la1[15] = mcc_gen;
@@ -672,9 +682,9 @@ class SQL : SQLConstants {
     IndexName();
     mcc_consume_token(ON);
     TableName();
-    mcc_consume_token(208);
+    mcc_consume_token(210);
     BasicColumnList(new ArrayList());
-    mcc_consume_token(209);
+    mcc_consume_token(211);
     {return cmd;}
     throw new Exception("Missing return statement in function");
   }
@@ -700,14 +710,14 @@ class SQL : SQLConstants {
                                     table_list.Add(table_name);
     while (true) {
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 210:
+      case 212:
         ;
         break;
       default:
         mcc_la1[18] = mcc_gen;
         goto label_1;
       }
-      mcc_consume_token(210);
+      mcc_consume_token(212);
       table_name = TableName();
                                             table_list.Add(table_name);
     }label_1: ;
@@ -734,9 +744,9 @@ class SQL : SQLConstants {
   Expression[] args = null;
     mcc_consume_token(CALL);
     proc_name = ProcedureName();
-    mcc_consume_token(208);
+    mcc_consume_token(210);
     args = ExpressionList();
-    mcc_consume_token(209);
+    mcc_consume_token(211);
     cmd.SetObject("proc_name", proc_name);
     cmd.SetObject("args", args);
     {return cmd;}
@@ -963,12 +973,12 @@ class SQL : SQLConstants {
     switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
     case SELECT:
     case VALUES:
-    case 208:
+    case 210:
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 208:
-        mcc_consume_token(208);
+      case 210:
+        mcc_consume_token(210);
         BasicColumnList(col_list);
-        mcc_consume_token(209);
+        mcc_consume_token(211);
         break;
       default:
         mcc_la1[30] = mcc_gen;
@@ -1042,10 +1052,10 @@ class SQL : SQLConstants {
       throw new ParseException();
     }
     switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-    case 208:
-      mcc_consume_token(208);
+    case 210:
+      mcc_consume_token(210);
       args = ExpressionList();
-      mcc_consume_token(209);
+      mcc_consume_token(211);
       break;
     default:
       mcc_la1[34] = mcc_gen;
@@ -1336,14 +1346,14 @@ class SQL : SQLConstants {
     PrivListItem(list);
     while (true) {
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 210:
+      case 212:
         ;
         break;
       default:
         mcc_la1[46] = mcc_gen;
         goto label_3;
       }
-      mcc_consume_token(210);
+      mcc_consume_token(212);
       PrivListItem(list);
     }label_3: ;
     
@@ -1669,8 +1679,9 @@ class SQL : SQLConstants {
     case IDENTIFIER:
     case DOT_DELIMINATED_REF:
     case QUOTED_DELIMINATED_REF:
+    case NAMED_PARAMETER:
     case PARAMETER_REF:
-    case 208:
+    case 210:
       e = DoExpression();
                             {return e;}
       break;
@@ -1719,20 +1730,21 @@ class SQL : SQLConstants {
     case IDENTIFIER:
     case DOT_DELIMINATED_REF:
     case QUOTED_DELIMINATED_REF:
+    case NAMED_PARAMETER:
     case PARAMETER_REF:
-    case 208:
+    case 210:
       elem = InsertElement();
                              list.Add(elem);
       while (true) {
         switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-        case 210:
+        case 212:
           ;
           break;
         default:
           mcc_la1[65] = mcc_gen;
           goto label_4;
         }
-        mcc_consume_token(210);
+        mcc_consume_token(212);
         elem = InsertElement();
                                    list.Add(elem);
       }label_4: ;
@@ -1750,23 +1762,23 @@ class SQL : SQLConstants {
 // The list of columns to insert formatted as; eg.  (9, 4), (3, 2), (9, 9), ....
   public void InsertDataList(ArrayList data_list) {
   ArrayList insert_vals;
-    mcc_consume_token(208);
+    mcc_consume_token(210);
     insert_vals = InsertExpressionList();
-    mcc_consume_token(209);
+    mcc_consume_token(211);
                                                    data_list.Add(insert_vals);
     while (true) {
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 210:
+      case 212:
         ;
         break;
       default:
         mcc_la1[67] = mcc_gen;
         goto label_5;
       }
+      mcc_consume_token(212);
       mcc_consume_token(210);
-      mcc_consume_token(208);
       insert_vals = InsertExpressionList();
-      mcc_consume_token(209);
+      mcc_consume_token(211);
                                                        data_list.Add(insert_vals);
     }label_5: ;
     
@@ -1797,14 +1809,14 @@ class SQL : SQLConstants {
                            list.Add(col);
     while (true) {
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 210:
+      case 212:
         ;
         break;
       default:
         mcc_la1[69] = mcc_gen;
         goto label_6;
       }
-      mcc_consume_token(210);
+      mcc_consume_token(212);
       col = SelectColumn();
                                list.Add(col);
     }label_6: ;
@@ -1848,8 +1860,9 @@ class SQL : SQLConstants {
     case IDENTIFIER:
     case DOT_DELIMINATED_REF:
     case QUOTED_DELIMINATED_REF:
+    case NAMED_PARAMETER:
     case PARAMETER_REF:
-    case 208:
+    case 210:
       col.expression = DoExpression();
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
       case AS:
@@ -1910,14 +1923,14 @@ class SQL : SQLConstants {
                            list.Add(col);
     while (true) {
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 210:
+      case 212:
         ;
         break;
       default:
         mcc_la1[73] = mcc_gen;
         goto label_7;
       }
-      mcc_consume_token(210);
+      mcc_consume_token(212);
       exp = DoExpression();
                                col = new ByColumn();
                                col.exp = exp;
@@ -1958,14 +1971,14 @@ class SQL : SQLConstants {
                            list.Add(col);
     while (true) {
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 210:
+      case 212:
         ;
         break;
       default:
         mcc_la1[75] = mcc_gen;
         goto label_8;
       }
-      mcc_consume_token(210);
+      mcc_consume_token(212);
       exp = DoExpression();
                                ascending=true;
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
@@ -2026,10 +2039,10 @@ class SQL : SQLConstants {
     case QUOTED_DELIMINATED_REF:
       table = TableName();
       break;
-    case 208:
-      mcc_consume_token(208);
+    case 210:
+      mcc_consume_token(210);
       select_stmt = GetTableSelectExpression();
-      mcc_consume_token(209);
+      mcc_consume_token(211);
       break;
     default:
       mcc_la1[78] = mcc_gen;
@@ -2079,7 +2092,7 @@ class SQL : SQLConstants {
     case JOIN:
     case RIGHT:
     case INNER:
-    case 210:
+    case 212:
       FromClauseJoin(from_clause);
       break;
     default:
@@ -2092,8 +2105,8 @@ class SQL : SQLConstants {
   public void FromClauseJoin(FromClause from_clause) {
   Expression on_expression;
     switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-    case 210:
-      mcc_consume_token(210);
+    case 212:
+      mcc_consume_token(212);
           from_clause.addJoin(JoinType.INNER_JOIN);
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
       case OLD:
@@ -2111,7 +2124,7 @@ class SQL : SQLConstants {
       case IDENTIFIER:
       case DOT_DELIMINATED_REF:
       case QUOTED_DELIMINATED_REF:
-      case 208:
+      case 210:
         SelectTableList(from_clause);
         break;
       default:
@@ -2141,7 +2154,7 @@ class SQL : SQLConstants {
       case JOIN:
       case RIGHT:
       case INNER:
-      case 210:
+      case 212:
         FromClauseJoin(from_clause);
         break;
       default:
@@ -2171,7 +2184,7 @@ class SQL : SQLConstants {
       case JOIN:
       case RIGHT:
       case INNER:
-      case 210:
+      case 212:
         FromClauseJoin(from_clause);
         break;
       default:
@@ -2201,7 +2214,7 @@ class SQL : SQLConstants {
       case JOIN:
       case RIGHT:
       case INNER:
-      case 210:
+      case 212:
         FromClauseJoin(from_clause);
         break;
       default:
@@ -2289,14 +2302,14 @@ class SQL : SQLConstants {
                                                           decl_types.Add(type);
       while (true) {
         switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-        case 210:
+        case 212:
           ;
           break;
         default:
           mcc_la1[91] = mcc_gen;
           goto label_9;
         }
-        mcc_consume_token(210);
+        mcc_consume_token(212);
               name = null;
         switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
         case NAME:
@@ -2339,8 +2352,8 @@ class SQL : SQLConstants {
     exp = DoExpression();
       assignment_list.Add(new Assignment(Variable.Resolve(column), exp));
     switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-    case 210:
-      mcc_consume_token(210);
+    case 212:
+      mcc_consume_token(212);
       AssignmentList(assignment_list);
       break;
     default:
@@ -2353,22 +2366,22 @@ class SQL : SQLConstants {
 // Parses a list of column declarations.  eg. ' id NUMERIC(5, 20), number VARCHAR(90), ... '
 // and also any constraints.
   public void ColumnDeclarationList(ArrayList column_list, ArrayList constraint_list) {
-    mcc_consume_token(208);
+    mcc_consume_token(210);
     ColumnOrConstraintDefinition(column_list, constraint_list);
     while (true) {
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 210:
+      case 212:
         ;
         break;
       default:
         mcc_la1[95] = mcc_gen;
         goto label_10;
       }
-      mcc_consume_token(210);
+      mcc_consume_token(212);
       ColumnOrConstraintDefinition(column_list, constraint_list);
     }label_10: ;
     
-    mcc_consume_token(209);
+    mcc_consume_token(211);
   }
 
   public void ColumnOrConstraintDefinition(ArrayList column_list, ArrayList constraint_list) {
@@ -2761,8 +2774,8 @@ class SQL : SQLConstants {
     case OBJECT:
       mcc_consume_token(OBJECT);
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 208:
-        mcc_consume_token(208);
+      case 210:
+        mcc_consume_token(210);
         switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
         case DOT_DELIMINATED_REF:
           class_tok = mcc_consume_token(DOT_DELIMINATED_REF);
@@ -2775,7 +2788,7 @@ class SQL : SQLConstants {
           mcc_consume_token(-1);
           throw new ParseException();
         }
-        mcc_consume_token(209);
+        mcc_consume_token(211);
         break;
       default:
         mcc_la1[113] = mcc_gen;
@@ -2793,10 +2806,10 @@ class SQL : SQLConstants {
       if (mcc_2_6(2147483647)) {
         data_type = GetStringSQLType();
         switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-        case 208:
-          mcc_consume_token(208);
+        case 210:
+          mcc_consume_token(210);
           size = PositiveIntegerConstant();
-          mcc_consume_token(209);
+          mcc_consume_token(211);
           break;
         default:
           mcc_la1[114] = mcc_gen;
@@ -2852,12 +2865,12 @@ class SQL : SQLConstants {
         case SMALLINT:
           data_type = GetNumericSQLType();
           switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-          case 208:
-            mcc_consume_token(208);
+          case 210:
+            mcc_consume_token(210);
             size = PositiveIntegerConstant();
             switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-            case 210:
-              mcc_consume_token(210);
+            case 212:
+              mcc_consume_token(212);
               scale = PositiveIntegerConstant();
               break;
             default:
@@ -2865,7 +2878,7 @@ class SQL : SQLConstants {
               ;
               break;
             }
-            mcc_consume_token(209);
+            mcc_consume_token(211);
             break;
           default:
             mcc_la1[119] = mcc_gen;
@@ -2892,10 +2905,10 @@ class SQL : SQLConstants {
         case LONGVARBINARY:
           data_type = GetBinarySQLType();
           switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-          case 208:
-            mcc_consume_token(208);
+          case 210:
+            mcc_consume_token(210);
             size = PositiveIntegerConstant();
-            mcc_consume_token(209);
+            mcc_consume_token(211);
             break;
           default:
             mcc_la1[120] = mcc_gen;
@@ -2948,38 +2961,38 @@ class SQL : SQLConstants {
     case PRIMARY:
       mcc_consume_token(PRIMARY);
       mcc_consume_token(KEY);
-      mcc_consume_token(208);
+      mcc_consume_token(210);
       BasicColumnList(column_list);
-      mcc_consume_token(209);
+      mcc_consume_token(211);
                                                                constraint.SetPrimaryKey(column_list);
       break;
     case UNIQUE:
       mcc_consume_token(UNIQUE);
-      mcc_consume_token(208);
+      mcc_consume_token(210);
       BasicColumnList(column_list);
-      mcc_consume_token(209);
+      mcc_consume_token(211);
                                                              constraint.SetUnique(column_list);
       break;
     case CHECK:
       mcc_consume_token(CHECK);
-      mcc_consume_token(208);
+      mcc_consume_token(210);
       expression = DoExpression();
-      mcc_consume_token(209);
+      mcc_consume_token(211);
                                                              constraint.SetCheck(expression);
       break;
     case FOREIGN:
       mcc_consume_token(FOREIGN);
       mcc_consume_token(KEY);
-      mcc_consume_token(208);
+      mcc_consume_token(210);
       BasicColumnList(column_list);
-      mcc_consume_token(209);
+      mcc_consume_token(211);
       mcc_consume_token(REFERENCES);
       reference_table = TableName();
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 208:
-        mcc_consume_token(208);
+      case 210:
+        mcc_consume_token(210);
         BasicColumnList(column_list2);
-        mcc_consume_token(209);
+        mcc_consume_token(211);
         break;
       default:
         mcc_la1[124] = mcc_gen;
@@ -3191,14 +3204,14 @@ class SQL : SQLConstants {
                                   list.Add(col_name);
     while (true) {
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 210:
+      case 212:
         ;
         break;
       default:
         mcc_la1[140] = mcc_gen;
         goto label_12;
       }
-      mcc_consume_token(210);
+      mcc_consume_token(212);
       col_name = ColumnName();
                                   list.Add(col_name);
     }label_12: ;
@@ -3214,14 +3227,14 @@ class SQL : SQLConstants {
                                 list.Add(username);
     while (true) {
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-      case 210:
+      case 212:
         ;
         break;
       default:
         mcc_la1[141] = mcc_gen;
         goto label_13;
       }
-      mcc_consume_token(210);
+      mcc_consume_token(212);
       username = UserName();
                                 list.Add(username);
     }label_13: ;
@@ -3239,7 +3252,7 @@ class SQL : SQLConstants {
   public Expression ExpressionTest() {
   Expression exp;
     exp = DoExpression();
-    mcc_consume_token(207);
+    mcc_consume_token(209);
     {return exp;}
     throw new Exception("Missing return statement in function");
   }
@@ -3403,18 +3416,26 @@ class SQL : SQLConstants {
   bool negative = false;
   Object param_ob;
     switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-    case 208:
-      mcc_consume_token(208);
+    case 210:
+      mcc_consume_token(210);
             stack.Push(Operator.Get("(")); exp.Text.Append("(");
       expression(exp, stack);
-      mcc_consume_token(209);
+      mcc_consume_token(211);
                                      expEndParen(exp, stack); exp.Text.Append(")");
       break;
     case PARAMETER_REF:
       t = mcc_consume_token(PARAMETER_REF);
+            if (parameterStyle != Client.ParameterStyle.Marker) GenerateParseException();
             Object param_resolve = CreateSubstitution(t.image);
             exp.AddElement(param_resolve);
             exp.Text.Append('?');
+      break;
+    case NAMED_PARAMETER:
+      t = mcc_consume_token(NAMED_PARAMETER);
+            if (parameterStyle != Client.ParameterStyle.Named) GenerateParseException();
+            object named_param_resolve = CreateSubstitution(t.image);
+            exp.AddElement(named_param_resolve);
+            exp.Text.Append(t.image);
       break;
     default:
       mcc_la1[153] = mcc_gen;
@@ -3610,7 +3631,7 @@ class SQL : SQLConstants {
   public void SubQueryExpression(Expression exp, Stack stack) {
   TableSelectExpression select;
   Expression[] exp_arr;
-    mcc_consume_token(208);
+    mcc_consume_token(210);
     switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
     case SELECT:
       select = GetTableSelectExpression();
@@ -3624,7 +3645,7 @@ class SQL : SQLConstants {
         exp.Text.Append(" (" + Util.ExpressionListToString(exp_arr) + ")");
       break;
     }
-    mcc_consume_token(209);
+    mcc_consume_token(211);
   }
 
 // Parses a simple positive integer constant.
@@ -3936,7 +3957,7 @@ class SQL : SQLConstants {
     switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
     case COUNT:
       t = mcc_consume_token(COUNT);
-      mcc_consume_token(208);
+      mcc_consume_token(210);
       switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
       case DISTINCT:
         mcc_consume_token(DISTINCT);
@@ -3948,11 +3969,11 @@ class SQL : SQLConstants {
         break;
       }
       exp_list = FunctionParams();
-      mcc_consume_token(209);
+      mcc_consume_token(211);
       break;
     case TRIM:
       t = mcc_consume_token(TRIM);
-      mcc_consume_token(208);
+      mcc_consume_token(210);
       if (mcc_2_17(3)) {
         switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
         case BOTH:
@@ -3993,7 +4014,7 @@ class SQL : SQLConstants {
         ;
       }
       exp1 = DoExpression();
-      mcc_consume_token(209);
+      mcc_consume_token(211);
                           exp_list = new Expression[3];
                           String ttype = t2 == null ? "both" : t2.image.ToLower();
                           Object str_char = t3 == null ? TObject.GetString(" ") :
@@ -4007,11 +4028,11 @@ class SQL : SQLConstants {
       break;
     case CAST:
       t = mcc_consume_token(CAST);
-      mcc_consume_token(208);
+      mcc_consume_token(210);
       exp1 = DoExpression();
       mcc_consume_token(AS);
       cast_type = GetTType();
-      mcc_consume_token(209);
+      mcc_consume_token(211);
                           exp_list = new Expression[2];
                           String enc_form = TType.Encode(cast_type);
                           exp_list[0] = exp1;
@@ -4023,9 +4044,9 @@ class SQL : SQLConstants {
     case USER:
     case IDENTIFIER:
       t = FunctionIdentifier();
-      mcc_consume_token(208);
+      mcc_consume_token(210);
       exp_list = FunctionParams();
-      mcc_consume_token(209);
+      mcc_consume_token(211);
       break;
     default:
       mcc_la1[170] = mcc_gen;
@@ -4042,9 +4063,9 @@ class SQL : SQLConstants {
   Expression[] args;
     // PENDING: Handling arrays (eg. 'System.String[] { 'Antonello', 'Provenzano' }' or 'double[] { 25, 2, 75, 26 }' )
       t = mcc_consume_token(DOT_DELIMINATED_REF);
-    mcc_consume_token(208);
+    mcc_consume_token(210);
     args = ExpressionList();
-    mcc_consume_token(209);
+    mcc_consume_token(211);
     Expression[] comp_args = new Expression[args.Length + 1];
     Array.Copy(args, 0, comp_args, 1, args.Length);
     comp_args[0] = new Expression(TObject.GetString(t.image));
@@ -4106,20 +4127,21 @@ class SQL : SQLConstants {
     case IDENTIFIER:
     case DOT_DELIMINATED_REF:
     case QUOTED_DELIMINATED_REF:
+    case NAMED_PARAMETER:
     case PARAMETER_REF:
-    case 208:
+    case 210:
       e = DoExpression();
                          list.Add(e);
       while (true) {
         switch ((mcc_ntk==-1)?mcc_mntk():mcc_ntk) {
-        case 210:
+        case 212:
           ;
           break;
         default:
           mcc_la1[172] = mcc_gen;
           goto label_16;
         }
-        mcc_consume_token(210);
+        mcc_consume_token(212);
         e = DoExpression();
                                list.Add(e);
       }label_16: ;
@@ -4713,29 +4735,6 @@ class SQL : SQLConstants {
     finally { mcc_save(16, xla); }
   }
 
-  private bool mcc_3_13() {
-    if (mcc_scan_token(NOT)) return true;
-    if (mcc_3R_21()) return true;
-    return false;
-  }
-
-  private bool mcc_3R_40() {
-    if (mcc_scan_token(PARAMETER_REF)) return true;
-    return false;
-  }
-
-  private bool mcc_3_1() {
-    if (mcc_scan_token(SET)) return true;
-    if (mcc_scan_token(GROUPS)) return true;
-    return false;
-  }
-
-  private bool mcc_3R_39() {
-    if (mcc_scan_token(208)) return true;
-    if (mcc_3R_66()) return true;
-    return false;
-  }
-
   private bool mcc_3R_21() {
     Token xsp;
     xsp = mcc_scanpos;
@@ -4743,11 +4742,11 @@ class SQL : SQLConstants {
     mcc_scanpos = xsp;
     if (mcc_3R_40()) {
     mcc_scanpos = xsp;
+    if (mcc_3R_41()) {
+    mcc_scanpos = xsp;
     if (mcc_3_13()) {
     mcc_scanpos = xsp;
     if (mcc_3_14()) {
-    mcc_scanpos = xsp;
-    if (mcc_3R_41()) {
     mcc_scanpos = xsp;
     if (mcc_3R_42()) {
     mcc_scanpos = xsp;
@@ -4755,7 +4754,9 @@ class SQL : SQLConstants {
     mcc_scanpos = xsp;
     if (mcc_3R_44()) {
     mcc_scanpos = xsp;
-    if (mcc_3R_45()) return true;
+    if (mcc_3R_45()) {
+    mcc_scanpos = xsp;
+    if (mcc_3R_46()) return true;
     }
     }
     }
@@ -4764,11 +4765,7 @@ class SQL : SQLConstants {
     }
     }
     }
-    return false;
-  }
-
-  private bool mcc_3R_46() {
-    if (mcc_3R_65()) return true;
+    }
     return false;
   }
 
@@ -4778,13 +4775,13 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_53() {
+  private bool mcc_3R_54() {
     if (mcc_scan_token(REGEX_LITERAL)) return true;
     return false;
   }
 
   private bool mcc_3R_36() {
-    if (mcc_3R_54()) return true;
+    if (mcc_3R_55()) return true;
     return false;
   }
 
@@ -4804,36 +4801,60 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_22() {
-    if (mcc_3R_46()) return true;
+  private bool mcc_3R_84() {
+    if (mcc_3R_73()) return true;
     return false;
   }
 
-  private bool mcc_3R_52() {
-    if (mcc_scan_token(REGEX)) return true;
-    if (mcc_3R_66()) return true;
+  private bool mcc_3R_22() {
+    if (mcc_3R_47()) return true;
     return false;
   }
 
   private bool mcc_3R_83() {
-    if (mcc_3R_72()) return true;
+    Token xsp;
+    xsp = mcc_scanpos;
+    if (mcc_3R_84()) mcc_scanpos = xsp;
+    return false;
+  }
+
+  private bool mcc_3R_53() {
+    if (mcc_scan_token(REGEX)) return true;
+    if (mcc_3R_67()) return true;
     return false;
   }
 
   private bool mcc_3R_35() {
     Token xsp;
     xsp = mcc_scanpos;
-    if (mcc_3R_52()) {
+    if (mcc_3R_53()) {
     mcc_scanpos = xsp;
-    if (mcc_3R_53()) return true;
+    if (mcc_3R_54()) return true;
     }
     return false;
   }
 
-  private bool mcc_3R_82() {
+  private bool mcc_3R_81() {
+    if (mcc_3R_83()) return true;
+    return false;
+  }
+
+  private bool mcc_3R_75() {
+    if (mcc_scan_token(NOT)) return true;
+    return false;
+  }
+
+  private bool mcc_3R_55() {
     Token xsp;
     xsp = mcc_scanpos;
-    if (mcc_3R_83()) mcc_scanpos = xsp;
+    if (mcc_3R_75()) mcc_scanpos = xsp;
+    if (mcc_scan_token(BETWEEN)) return true;
+    if (mcc_3R_76()) return true;
+    return false;
+  }
+
+  private bool mcc_3R_80() {
+    if (mcc_scan_token(STAR)) return true;
     return false;
   }
 
@@ -4842,8 +4863,29 @@ class SQL : SQLConstants {
     return false;
   }
 
+  private bool mcc_3R_29() {
+    if (mcc_scan_token(NOT)) return true;
+    if (mcc_scan_token(IN)) return true;
+    return false;
+  }
+
   private bool mcc_3R_19() {
     if (mcc_3R_37()) return true;
+    return false;
+  }
+
+  private bool mcc_3R_28() {
+    if (mcc_scan_token(IN)) return true;
+    return false;
+  }
+
+  private bool mcc_3R_72() {
+    Token xsp;
+    xsp = mcc_scanpos;
+    if (mcc_3R_80()) {
+    mcc_scanpos = xsp;
+    if (mcc_3R_81()) return true;
+    }
     return false;
   }
 
@@ -4858,16 +4900,6 @@ class SQL : SQLConstants {
     }
     }
     if (mcc_3R_21()) return true;
-    return false;
-  }
-
-  private bool mcc_3R_80() {
-    if (mcc_3R_82()) return true;
-    return false;
-  }
-
-  private bool mcc_3R_74() {
-    if (mcc_scan_token(NOT)) return true;
     return false;
   }
 
@@ -4887,63 +4919,7 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_54() {
-    Token xsp;
-    xsp = mcc_scanpos;
-    if (mcc_3R_74()) mcc_scanpos = xsp;
-    if (mcc_scan_token(BETWEEN)) return true;
-    if (mcc_3R_75()) return true;
-    return false;
-  }
-
-  private bool mcc_3R_79() {
-    if (mcc_scan_token(STAR)) return true;
-    return false;
-  }
-
-  private bool mcc_3R_29() {
-    if (mcc_scan_token(NOT)) return true;
-    if (mcc_scan_token(IN)) return true;
-    return false;
-  }
-
-  private bool mcc_3R_28() {
-    if (mcc_scan_token(IN)) return true;
-    return false;
-  }
-
-  private bool mcc_3R_71() {
-    Token xsp;
-    xsp = mcc_scanpos;
-    if (mcc_3R_79()) {
-    mcc_scanpos = xsp;
-    if (mcc_3R_80()) return true;
-    }
-    return false;
-  }
-
-  private bool mcc_3_9() {
-    if (mcc_3R_18()) return true;
-    return false;
-  }
-
-  private bool mcc_3_10() {
-    Token xsp;
-    xsp = mcc_scanpos;
-    if (mcc_3R_19()) {
-    mcc_scanpos = xsp;
-    if (mcc_3R_20()) return true;
-    }
-    if (mcc_3R_21()) return true;
-    return false;
-  }
-
-  private bool mcc_3_6() {
-    if (mcc_3R_17()) return true;
-    return false;
-  }
-
-  private bool mcc_3R_69() {
+  private bool mcc_3R_70() {
     Token xsp;
     xsp = mcc_scanpos;
     if (mcc_scan_token(44)) {
@@ -4956,21 +4932,32 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_81() {
-    if (mcc_3R_21()) return true;
+  private bool mcc_3_9() {
+    if (mcc_3R_18()) return true;
     return false;
   }
 
-  private bool mcc_3R_47() {
-    if (mcc_3R_68()) return true;
+  private bool mcc_3R_48() {
+    if (mcc_3R_69()) return true;
     Token xsp;
     xsp = mcc_scanpos;
-    if (mcc_3R_69()) mcc_scanpos = xsp;
+    if (mcc_3R_70()) mcc_scanpos = xsp;
     return false;
   }
 
-  private bool mcc_3R_67() {
+  private bool mcc_3R_68() {
     if (mcc_scan_token(DOT_DELIMINATED_REF)) return true;
+    return false;
+  }
+
+  private bool mcc_3_10() {
+    Token xsp;
+    xsp = mcc_scanpos;
+    if (mcc_3R_19()) {
+    mcc_scanpos = xsp;
+    if (mcc_3R_20()) return true;
+    }
+    if (mcc_3R_21()) return true;
     return false;
   }
 
@@ -4997,30 +4984,35 @@ class SQL : SQLConstants {
     return false;
   }
 
+  private bool mcc_3_6() {
+    if (mcc_3R_17()) return true;
+    return false;
+  }
+
   private bool mcc_3R_25() {
     Token xsp;
     xsp = mcc_scanpos;
     if (mcc_3_15()) {
     mcc_scanpos = xsp;
-    if (mcc_3R_47()) return true;
+    if (mcc_3R_48()) return true;
     }
     return false;
   }
 
-  private bool mcc_3R_66() {
+  private bool mcc_3R_82() {
     if (mcc_3R_21()) return true;
     return false;
   }
 
-  private bool mcc_3R_51() {
-    if (mcc_3R_73()) return true;
-    if (mcc_scan_token(208)) return true;
-    if (mcc_3R_71()) return true;
-    if (mcc_scan_token(209)) return true;
+  private bool mcc_3R_52() {
+    if (mcc_3R_74()) return true;
+    if (mcc_scan_token(210)) return true;
+    if (mcc_3R_72()) return true;
+    if (mcc_scan_token(211)) return true;
     return false;
   }
 
-  private bool mcc_3R_77() {
+  private bool mcc_3R_78() {
     Token xsp;
     xsp = mcc_scanpos;
     if (mcc_scan_token(197)) {
@@ -5064,20 +5056,67 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_70() {
+  private bool mcc_3R_71() {
     if (mcc_scan_token(DISTINCT)) return true;
     return false;
   }
 
-  private bool mcc_3R_50() {
-    if (mcc_scan_token(CAST)) return true;
-    if (mcc_scan_token(208)) return true;
-    if (mcc_3R_72()) return true;
+  private bool mcc_3R_67() {
+    if (mcc_3R_21()) return true;
     return false;
   }
 
-  private bool mcc_3R_75() {
-    if (mcc_3R_81()) return true;
+  private bool mcc_3R_51() {
+    if (mcc_scan_token(CAST)) return true;
+    if (mcc_scan_token(210)) return true;
+    if (mcc_3R_73()) return true;
+    return false;
+  }
+
+  private bool mcc_3R_76() {
+    if (mcc_3R_82()) return true;
+    return false;
+  }
+
+  private bool mcc_3R_50() {
+    if (mcc_scan_token(TRIM)) return true;
+    if (mcc_scan_token(210)) return true;
+    Token xsp;
+    xsp = mcc_scanpos;
+    if (mcc_3_17()) mcc_scanpos = xsp;
+    if (mcc_3R_73()) return true;
+    return false;
+  }
+
+  private bool mcc_3R_49() {
+    if (mcc_scan_token(COUNT)) return true;
+    if (mcc_scan_token(210)) return true;
+    Token xsp;
+    xsp = mcc_scanpos;
+    if (mcc_3R_71()) mcc_scanpos = xsp;
+    if (mcc_3R_72()) return true;
+    if (mcc_scan_token(211)) return true;
+    return false;
+  }
+
+  private bool mcc_3R_26() {
+    if (mcc_scan_token(210)) return true;
+    return false;
+  }
+
+  private bool mcc_3R_27() {
+    Token xsp;
+    xsp = mcc_scanpos;
+    if (mcc_3R_49()) {
+    mcc_scanpos = xsp;
+    if (mcc_3R_50()) {
+    mcc_scanpos = xsp;
+    if (mcc_3R_51()) {
+    mcc_scanpos = xsp;
+    if (mcc_3R_52()) return true;
+    }
+    }
+    }
     return false;
   }
 
@@ -5088,60 +5127,18 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_49() {
-    if (mcc_scan_token(TRIM)) return true;
-    if (mcc_scan_token(208)) return true;
-    Token xsp;
-    xsp = mcc_scanpos;
-    if (mcc_3_17()) mcc_scanpos = xsp;
-    if (mcc_3R_72()) return true;
-    return false;
-  }
-
   private bool mcc_3_4() {
     if (mcc_scan_token(BINARY)) return true;
     if (mcc_scan_token(VARYING)) return true;
     return false;
   }
 
-  private bool mcc_3R_48() {
-    if (mcc_scan_token(COUNT)) return true;
-    if (mcc_scan_token(208)) return true;
-    Token xsp;
-    xsp = mcc_scanpos;
-    if (mcc_3R_70()) mcc_scanpos = xsp;
-    if (mcc_3R_71()) return true;
-    if (mcc_scan_token(209)) return true;
-    return false;
-  }
-
-  private bool mcc_3R_26() {
-    if (mcc_scan_token(208)) return true;
-    return false;
-  }
-
-  private bool mcc_3R_72() {
-    if (mcc_3R_66()) return true;
-    return false;
-  }
-
-  private bool mcc_3R_27() {
-    Token xsp;
-    xsp = mcc_scanpos;
-    if (mcc_3R_48()) {
-    mcc_scanpos = xsp;
-    if (mcc_3R_49()) {
-    mcc_scanpos = xsp;
-    if (mcc_3R_50()) {
-    mcc_scanpos = xsp;
-    if (mcc_3R_51()) return true;
-    }
-    }
-    }
-    return false;
-  }
-
   private bool mcc_3R_73() {
+    if (mcc_3R_67()) return true;
+    return false;
+  }
+
+  private bool mcc_3R_74() {
     Token xsp;
     xsp = mcc_scanpos;
     if (mcc_scan_token(40)) {
@@ -5154,33 +5151,76 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_76() {
+  private bool mcc_3R_77() {
     if (mcc_scan_token(SUBTRACT)) return true;
     return false;
   }
 
-  private bool mcc_3R_64() {
-    if (mcc_3R_77()) return true;
+  private bool mcc_3R_65() {
+    if (mcc_3R_78()) return true;
     return false;
   }
 
-  private bool mcc_3R_55() {
+  private bool mcc_3R_56() {
     if (mcc_scan_token(CONCAT)) return true;
+    return false;
+  }
+
+  private bool mcc_3R_64() {
+    Token xsp;
+    xsp = mcc_scanpos;
+    if (mcc_scan_token(16)) {
+    mcc_scanpos = xsp;
+    if (mcc_3R_77()) return true;
+    }
+    return false;
+  }
+
+  private bool mcc_3R_57() {
+    Token xsp;
+    xsp = mcc_scanpos;
+    if (mcc_scan_token(15)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(16)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(17)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(7)) return true;
+    }
+    }
+    }
+    return false;
+  }
+
+  private bool mcc_3R_46() {
+    Token xsp;
+    xsp = mcc_scanpos;
+    if (mcc_3R_64()) mcc_scanpos = xsp;
+    xsp = mcc_scanpos;
+    if (mcc_scan_token(194)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(196)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(198)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(199)) {
+    mcc_scanpos = xsp;
+    if (mcc_3R_65()) return true;
+    }
+    }
+    }
+    }
+    return false;
+  }
+
+  private bool mcc_3R_79() {
+    if (mcc_scan_token(NOT)) return true;
+    if (mcc_scan_token(LIKE)) return true;
     return false;
   }
 
   private bool mcc_3R_34() {
     if (mcc_scan_token(CLOB)) return true;
-    return false;
-  }
-
-  private bool mcc_3R_63() {
-    Token xsp;
-    xsp = mcc_scanpos;
-    if (mcc_scan_token(16)) {
-    mcc_scanpos = xsp;
-    if (mcc_3R_76()) return true;
-    }
     return false;
   }
 
@@ -5212,16 +5252,38 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_56() {
+  private bool mcc_3R_45() {
     Token xsp;
     xsp = mcc_scanpos;
-    if (mcc_scan_token(15)) {
+    if (mcc_scan_token(195)) {
     mcc_scanpos = xsp;
-    if (mcc_scan_token(16)) {
+    if (mcc_scan_token(19)) {
     mcc_scanpos = xsp;
-    if (mcc_scan_token(17)) {
+    if (mcc_scan_token(20)) return true;
+    }
+    }
+    return false;
+  }
+
+  private bool mcc_3R_69() {
+    Token xsp;
+    xsp = mcc_scanpos;
+    if (mcc_scan_token(8)) {
     mcc_scanpos = xsp;
-    if (mcc_scan_token(7)) return true;
+    if (mcc_scan_token(9)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(10)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(11)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(12)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(13)) {
+    mcc_scanpos = xsp;
+    if (mcc_scan_token(14)) return true;
+    }
+    }
+    }
     }
     }
     }
@@ -5232,27 +5294,6 @@ class SQL : SQLConstants {
     if (mcc_scan_token(LONG)) return true;
     if (mcc_scan_token(CHARACTER)) return true;
     if (mcc_scan_token(VARYING)) return true;
-    return false;
-  }
-
-  private bool mcc_3R_45() {
-    Token xsp;
-    xsp = mcc_scanpos;
-    if (mcc_3R_63()) mcc_scanpos = xsp;
-    xsp = mcc_scanpos;
-    if (mcc_scan_token(194)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(196)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(198)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(199)) {
-    mcc_scanpos = xsp;
-    if (mcc_3R_64()) return true;
-    }
-    }
-    }
-    }
     return false;
   }
 
@@ -5284,53 +5325,9 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_78() {
-    if (mcc_scan_token(NOT)) return true;
-    if (mcc_scan_token(LIKE)) return true;
-    return false;
-  }
-
   private bool mcc_3R_44() {
-    Token xsp;
-    xsp = mcc_scanpos;
-    if (mcc_scan_token(195)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(19)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(20)) return true;
-    }
-    }
-    return false;
-  }
-
-  private bool mcc_3R_68() {
-    Token xsp;
-    xsp = mcc_scanpos;
-    if (mcc_scan_token(8)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(9)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(10)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(11)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(12)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(13)) {
-    mcc_scanpos = xsp;
-    if (mcc_scan_token(14)) return true;
-    }
-    }
-    }
-    }
-    }
-    }
-    return false;
-  }
-
-  private bool mcc_3R_43() {
     if (mcc_scan_token(NEW)) return true;
-    if (mcc_3R_67()) return true;
+    if (mcc_3R_68()) return true;
     return false;
   }
 
@@ -5340,22 +5337,22 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_62() {
+  private bool mcc_3R_63() {
     if (mcc_scan_token(CURRENT_DATE)) return true;
     return false;
   }
 
-  private bool mcc_3R_61() {
+  private bool mcc_3R_62() {
     if (mcc_scan_token(CURRENT_TIME)) return true;
     return false;
   }
 
-  private bool mcc_3R_60() {
+  private bool mcc_3R_61() {
     if (mcc_scan_token(CURRENT_TIMESTAMP)) return true;
     return false;
   }
 
-  private bool mcc_3R_65() {
+  private bool mcc_3R_66() {
     Token xsp;
     xsp = mcc_scanpos;
     if (mcc_scan_token(8)) {
@@ -5378,7 +5375,7 @@ class SQL : SQLConstants {
     mcc_scanpos = xsp;
     if (mcc_scan_token(188)) {
     mcc_scanpos = xsp;
-    if (mcc_3R_78()) {
+    if (mcc_3R_79()) {
     mcc_scanpos = xsp;
     if (mcc_scan_token(190)) {
     mcc_scanpos = xsp;
@@ -5398,56 +5395,50 @@ class SQL : SQLConstants {
     return false;
   }
 
-  private bool mcc_3R_42() {
+  private bool mcc_3R_43() {
     Token xsp;
     xsp = mcc_scanpos;
-    if (mcc_3R_60()) {
-    mcc_scanpos = xsp;
     if (mcc_3R_61()) {
     mcc_scanpos = xsp;
-    if (mcc_3R_62()) return true;
+    if (mcc_3R_62()) {
+    mcc_scanpos = xsp;
+    if (mcc_3R_63()) return true;
     }
     }
     return false;
   }
 
-  private bool mcc_3R_59() {
+  private bool mcc_3R_60() {
     if (mcc_scan_token(TIMESTAMP)) return true;
     return false;
   }
 
   private bool mcc_3R_37() {
-    if (mcc_3R_55()) return true;
+    if (mcc_3R_56()) return true;
     return false;
   }
 
-  private bool mcc_3R_58() {
+  private bool mcc_3R_59() {
     if (mcc_scan_token(TIME)) return true;
     return false;
   }
 
-  private bool mcc_3R_57() {
+  private bool mcc_3R_58() {
     if (mcc_scan_token(DATE)) return true;
     return false;
   }
 
-  private bool mcc_3R_41() {
+  private bool mcc_3R_42() {
     Token xsp;
     xsp = mcc_scanpos;
-    if (mcc_3R_57()) {
-    mcc_scanpos = xsp;
     if (mcc_3R_58()) {
     mcc_scanpos = xsp;
-    if (mcc_3R_59()) return true;
+    if (mcc_3R_59()) {
+    mcc_scanpos = xsp;
+    if (mcc_3R_60()) return true;
     }
     }
     if (mcc_scan_token(STRING_LITERAL)) return true;
-    return false;
-  }
-
-  private bool mcc_3_8() {
-    if (mcc_scan_token(SET)) return true;
-    if (mcc_scan_token(NULL_LITERAL)) return true;
     return false;
   }
 
@@ -5457,7 +5448,46 @@ class SQL : SQLConstants {
   }
 
   private bool mcc_3R_38() {
-    if (mcc_3R_56()) return true;
+    if (mcc_3R_57()) return true;
+    return false;
+  }
+
+  private bool mcc_3_13() {
+    if (mcc_scan_token(NOT)) return true;
+    if (mcc_3R_21()) return true;
+    return false;
+  }
+
+  private bool mcc_3_8() {
+    if (mcc_scan_token(SET)) return true;
+    if (mcc_scan_token(NULL_LITERAL)) return true;
+    return false;
+  }
+
+  private bool mcc_3R_41() {
+    if (mcc_scan_token(NAMED_PARAMETER)) return true;
+    return false;
+  }
+
+  private bool mcc_3R_47() {
+    if (mcc_3R_66()) return true;
+    return false;
+  }
+
+  private bool mcc_3_1() {
+    if (mcc_scan_token(SET)) return true;
+    if (mcc_scan_token(GROUPS)) return true;
+    return false;
+  }
+
+  private bool mcc_3R_40() {
+    if (mcc_scan_token(PARAMETER_REF)) return true;
+    return false;
+  }
+
+  private bool mcc_3R_39() {
+    if (mcc_scan_token(210)) return true;
+    if (mcc_3R_67()) return true;
     return false;
   }
 
@@ -5506,7 +5536,7 @@ class SQL : SQLConstants {
       mcc_la1_5 = new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,786432,0,0,-2147483648,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,234913793,0,234913793,0,0,0,0,0,234913793,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,262143,0,0,0,0,0,0,0,0,0,0,65552,0,69648,2048,11662,512,32769,147488,0,0,0,0,0,0,0,0,0,64,192431,0,0,0,0,0,0,0,0,16777216,0,0,0,0,0,0,0,0,0,0,0,-805306368,536870912,536870912,0,32769,234881024,0,0,0,0,0,234913793,0,0,0,0,0,0,0,-805306368,0,0,0,0,0,0,0,0,0,0,234913793,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
    }
    private static void mcc_gla1_6() {
-      mcc_la1_6 = new int[] {0,32768,0,0,0,0,0,0,0,0,0,0,0,0,0,65536,0,0,262144,0,0,0,0,0,0,0,0,0,0,0,65536,0,65536,32,65536,0,0,0,0,32,32,0,0,0,0,240,262144,0,0,0,0,0,0,0,0,0,0,0,240,0,0,0,240,0,69886,262144,69886,262144,0,262144,0,48,72958,262144,0,262144,0,0,65776,0,240,262144,65776,0,262144,0,262144,0,262144,262144,48,262144,48,48,262144,262144,240,0,2,0,0,2,0,0,0,0,0,0,0,0,0,0,320,65536,65536,0,0,0,262144,65536,65536,0,0,0,65536,0,0,0,0,0,2,0,0,0,2,2,2,0,0,2,262144,262144,0,2,0,0,2,0,0,8,0,0,244,69632,252,0,3,0,0,0,2,0,2,0,0,32,0,0,0,8,32,0,262144,69886,0,240,240,48,48,48,48,48,240,240,48,240,240,48,32,};
+      mcc_la1_6 = new int[] {0,131072,0,0,0,0,0,0,0,0,0,0,0,0,0,262144,0,0,1048576,0,0,0,0,0,0,0,0,0,0,0,262144,0,262144,32,262144,0,0,0,0,32,32,0,0,0,0,240,1048576,0,0,0,0,0,0,0,0,0,0,0,240,0,0,0,240,0,274686,1048576,274686,1048576,0,1048576,0,48,277758,1048576,0,1048576,0,0,262384,0,240,1048576,262384,0,1048576,0,1048576,0,1048576,1048576,48,1048576,48,48,1048576,1048576,240,0,2,0,0,2,0,0,0,0,0,0,0,0,0,0,320,262144,262144,0,0,0,1048576,262144,262144,0,0,0,262144,0,0,0,0,0,2,0,0,0,2,2,2,0,0,2,1048576,1048576,0,2,0,0,2,0,0,8,0,0,244,274432,252,0,3,0,0,0,2,0,2,0,0,32,0,0,0,8,32,0,1048576,274686,0,240,240,48,48,48,48,48,240,240,48,240,240,48,32,};
    }
   private MccCalls[] mcc_2_rtns = new MccCalls[17];
   private bool mcc_rescan = false;
@@ -5677,8 +5707,8 @@ class SQL : SQLConstants {
 
   public ParseException GenerateParseException() {
     mcc_expentries.Clear();
-    bool[] la1tokens = new bool[211];
-    for (int i = 0; i < 211; i++) {
+    bool[] la1tokens = new bool[213];
+    for (int i = 0; i < 213; i++) {
       la1tokens[i] = false;
     }
     if (mcc_kind >= 0) {
@@ -5712,7 +5742,7 @@ class SQL : SQLConstants {
         }
       }
     }
-    for (int i = 0; i < 211; i++) {
+    for (int i = 0; i < 213; i++) {
       if (la1tokens[i]) {
         mcc_expentry = new int[1];
         mcc_expentry[0] = i;

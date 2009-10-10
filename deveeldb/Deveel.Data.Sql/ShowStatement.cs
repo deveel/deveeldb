@@ -96,7 +96,7 @@ namespace Deveel.Data.Sql {
 			Database d = database.Database;
 
 			// Construct an executor for interpreting SQL queries inside here.
-			SQLQueryExecutor executor = new SQLQueryExecutor();
+			SqlCommandExecutor executor = new SqlCommandExecutor();
 
 			// The table we are showing,
 			// TemporaryTable show_table;

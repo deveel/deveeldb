@@ -50,11 +50,14 @@ namespace Deveel.Data.Client {
 		private DbType dbType = DbType.Object;
 		private SQLTypes sqlType = SQLTypes.NULL;
 		private object value = DBNull.Value;
+		// marker style is the default
+		internal ParameterStyle paramStyle = ParameterStyle.Marker;
 		internal int index;
 		private int size;
 		private byte scale;
 		private string sourceColumn;
 		private DataRowVersion sourceVersion;
+		private string name;
 
 		#region Implementation of IDataParameter
 
@@ -76,9 +79,23 @@ namespace Deveel.Data.Client {
 			get { return true;}
 		}
 
-		string IDataParameter.ParameterName {
-			get { return "?"; }
-			set { throw new NotSupportedException(); }
+		public string ParameterName {
+			get { return paramStyle == ParameterStyle.Marker ? "?" : name; }
+			set {
+				if (paramStyle == ParameterStyle.Marker) {
+					if (value != null && value != "?")
+						throw new ArgumentException();
+				} else {
+					if (value == null)
+						throw new ArgumentNullException("value");
+					if (value.Length < 2)
+						throw new ArgumentException("The name must be of at least 2 characters and the first must be a @ prefix.");
+					if (value[0] != '@')
+						throw new ArgumentException("The name of the parameter must idnicate a @ prefix.");
+
+					name = value;
+				}
+			}
 		}
 
 		public string SourceColumn {

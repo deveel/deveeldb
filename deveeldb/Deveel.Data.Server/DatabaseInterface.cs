@@ -211,7 +211,7 @@ namespace Deveel.Data.Server {
 				log_str.Append(host_name);
 				log_str.Append("] ");
 				log_str.Append("Query: ");
-				log_str.Append(command.Query);
+				log_str.Append(command.Text);
 				log_str.Append('\n');
 				user.Database.CommandsLog.Write(log_str.ToString());
 			}
@@ -219,7 +219,7 @@ namespace Deveel.Data.Server {
 			// Write debug message (Information level)
 			if (Debug.IsInterestedIn(DebugLevel.Information)) {
 				Debug.Write(DebugLevel.Information, this, "Query From User: " + user.UserName + "@" + host_name);
-				Debug.Write(DebugLevel.Information, this, "Query: " + command.Query.Trim());
+				Debug.Write(DebugLevel.Information, this, "Query: " + command.Text.Trim());
 			}
 
 			// Get the locking mechanism.
