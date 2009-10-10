@@ -1,0 +1,57 @@
+﻿2009-10-10  Antonello Provenzano  <antonello@deveel.com>
+	* DbTrigger.cs: implemented to support the subscription
+	and creation of trigger events. 
+
+2009-10-09  Antonello Provenzano  <antonello@deveel.com>
+	* IClob.cs, IBlob.cs: new interface design which complies better to 
+	the	ADO.NET specifications
+		- DbStreamableClob and DbClob redesign.
+		- DbStreamableBlob and DbBlob redesign
+	* DbParameter.cs: 
+		- added support for DataSet retreieval (source column
+		and source version).
+		- changed the locig of value setting: now the value is
+		stored in its primary form, until it is prepared in
+		DbCommand, where it is casted to its SQL type (by calling
+		CallHelper)
+	* DbCommand.cs:
+		- modified the Prepare method to cast the value of parameters;
+		- command batches from CommandText (specifiying a semi-colon
+		in the text will cause the command to prepare the execution
+		of several statements);
+		- implemented the support for named parameters
+	* SQLQuery.cs: 
+		- implemented support for named parameters
+		- removed the JDBC escape processing
+		- class and file renamed to SqlCommand (the name
+		implies a query, while this can also be used to non-querying
+		commands)
+	* ConnectionString.cs: now it's possible to switch the style of
+	parameters in a command ('named' or 'marked').
+	* ParameterStyle.cs: added to let users to switch the style
+	of parameters passed in a command (future support for output
+	parameters)
+	* DbParameter.cs: implemented the support for named parameters
+	
+2009-10-08  Antonello Provenzano  <antonello@deveel.com>
+	* ConnectionString.cs: added to support a better connection
+	string formatting.
+	* DbConnection.cs: 
+		- modified to support ConnectionString formatting.
+		- removed the Login methods and moved the logic of authentication
+		to Open, to make it compliant with the ADO.NET specifications.
+		- added controls for the IDbConnection.ConnectionState
+		- Transactions logic adjusted: now BeginTransaction method disable
+		the AUTO COMMIT state; only one transaction per connection.
+	* DbTransaction.cs:
+		- modified to accomplish to the ADO.NET specifications;
+		- unreferences itself from the containing connection;
+		- implements an identificator (for DbCommand.Transaction)
+	* DbCommand.cs:
+		- implemented remaining support for ADO.NET specifications;
+		- support for the connection state
+		- only one DbDataReader instance per command.
+	* DbDataReader.cs:
+		- added an interal event to notify the owner command when
+		the reading has finished (closed or disposed)
+		- implemented the methods GetChars, GetSchemaTable

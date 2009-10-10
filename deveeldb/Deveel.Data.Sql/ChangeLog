@@ -1,0 +1,11 @@
+﻿2009-10-09  Antonello Provenzano  <antonello@deveel.com>
+	* ShowStatement.cs: 
+		- renamed schema 'SYS_INFO' to 'SYSTEM' for code clarity;
+		- changes to support the INFORMATION_SCHEMA standard
+		- suppressed the calls to JDBC elements (from McKoi)
+	* SQL.csc: Implemented support for named parameters
+	* SQLQueryExecutor.cs: 
+		- Implemented support for named parameters
+		- class and file renamed to SqlCommandExecutor
+		that better describes the scope (this can execute also non-query
+		commands, such as INSER, UPDATE, etc.)

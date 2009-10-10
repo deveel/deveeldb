@@ -55,6 +55,12 @@ DEVEELDB_PC = $(BUILD_DIR)/deveeldb.pc
 
 FILES = \
 	AssemblyInfo.cs \
+	Deveel.Data.Client/ConnectionString.cs \
+	Deveel.Data.Client/DbProcedureTrigger.cs \
+	Deveel.Data.Client/DbTrigger.cs \
+	Deveel.Data.Client/ParemeterStyle.cs \
+	Deveel.Data.Client/TriggerEventMoment.cs \
+	Deveel.Data.Client/TriggerEventTypes.cs \
 	Deveel.Data.Sql/CommitStatement.cs \
 	Deveel.Data.Sql/ConstraintType.cs \
 	Deveel.Data.Sql/CreateFunctionStatement.cs \
@@ -178,7 +184,7 @@ FILES = \
 	Deveel.Data.Client/RemoteDatabaseInterface.cs \
 	Deveel.Data.Client/ResultPart.cs \
 	Deveel.Data.Client/RowCache.cs \
-	Deveel.Data.Client/SQLQuery.cs \
+	Deveel.Data.Client/SqlCommand.cs \
 	Deveel.Data.Client/StreamableObjectPart.cs \
 	Deveel.Data.Client/StreamDatabaseInterface.cs \
 	Deveel.Data.Client/TCPStreamDatabaseInterface.cs \
@@ -235,7 +241,7 @@ FILES = \
 	Deveel.Data.Sql/SequenceStatement.cs \
 	Deveel.Data.Sql/SetStatement.cs \
 	Deveel.Data.Sql/ShowStatement.cs \
-	Deveel.Data.Sql/SQLQueryExecutor.cs \
+	Deveel.Data.Sql/SqlCommandExecutor.cs \
 	Deveel.Data.Sql/Statement.cs \
 	Deveel.Data.Sql/TableExpressionFromSet.cs \
 	Deveel.Data.Sql/TableSelectExpression.cs \

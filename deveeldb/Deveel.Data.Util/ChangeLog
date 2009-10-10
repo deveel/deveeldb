@@ -1,3 +1,7 @@
+2009-10-09  Antonello Provenzano  <antonello@deveel.com>
+	* PagedInputStream.cs: implemented support for Seek 
+	method operations.
+	
 2009-10-05  Antonello Provenzano  <antonello@deveel.com>
 	* ShellUserTerminal.cs: implemented to support Console
 	interface for diagnostics.

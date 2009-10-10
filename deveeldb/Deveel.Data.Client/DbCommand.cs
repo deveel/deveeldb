@@ -589,7 +589,10 @@ namespace Deveel.Data.Client {
 					string[] parts = value.Split(';');
 					commands = new SqlCommand[parts.Length];
 					for (int i = 0; i < parts.Length; i++) {
-						commands[i] = new SqlCommand(parts[i], connection.ConnectionString.ParameterStyle);
+						ParameterStyle style = ParameterStyle.Marker;
+						if (connection != null)
+							style = connection.ConnectionString.ParameterStyle;
+						commands[i] = new SqlCommand(parts[i], style);
 					}
 					commandText = value;
 				} else {

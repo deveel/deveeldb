@@ -94,6 +94,14 @@ namespace Deveel.Data.Client {
 			return parameter;
 		}
 
+		public DbParameter Add(string name, object value) {
+			CheckNamedStyle();
+			DbParameter parameter = new DbParameter(value);
+			parameter.paramStyle = command.Connection.ConnectionString.ParameterStyle;
+			parameter.ParameterName = name;
+			return parameter;
+		}
+
 		#region Implementation of IList
 
 		int IList.Add(object value) {

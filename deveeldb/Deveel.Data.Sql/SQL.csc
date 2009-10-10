@@ -30,6 +30,7 @@ class SQL {
 	/// The parameter id.
 	/// </summary>
 	private int parameter_id = 0;
+	private Client.ParameterStyle parameterStyle = Client.ParameterStyle.Marker;
 	
 	/// <summary>
 	/// Resets the parameter id.
@@ -41,6 +42,10 @@ class SQL {
 		parameter_id = 0;
 	}
 	
+	public void SetParameterStyle(Client.ParameterStyle style) {
+		parameterStyle = style;
+	}
+	
 	/// <summary>
 	/// Creates and returns a parameter substitution.
 	/// </summary>
@@ -50,8 +55,13 @@ class SQL {
 	/// for a value later.
 	/// </remarks>
 	public ParameterSubstitution CreateSubstitution(String image) {
-		ParameterSubstitution ps = new ParameterSubstitution(parameter_id);
-		++parameter_id;
+		ParameterSubstitution ps;
+		if (parameterStyle == Client.ParameterStyle.Marker) {
+			ps = new ParameterSubstitution(parameter_id);
+			++parameter_id;
+		} else {
+			ps = new ParameterSubstitution(image);
+		}
 		return ps;
 	}
   
@@ -422,7 +432,9 @@ TOKEN : {  /* IDENTIFIERS */
 | <CTALIAS: <IDENTIFIER> >
 | <GLOBVARIABLE: <DOT_DELIMINATED_REF> ".*" >
 | <QUOTEDGLOBVARIABLE: <QUOTED_DELIMINATED_REF> ".*" >
+| <NAMED_PARAMETER: <NAMED_PARAMETER_PREFIX> <IDENTIFIER> >
 | <PARAMETER_REF: "?" >
+| <NAMED_PARAMETER_PREFIX: "@" >
 
 | <#LETTER: ["a"-"z", "A"-"Z", "_"] >
 | <#DIGIT: ["0"-"9"]>
@@ -1894,9 +1906,18 @@ void Operand(Expression exp, Stack stack) :
   (   "(" { stack.Push(Operator.Get("(")); exp.Text.Append("("); }
         expression(exp, stack) ")" { expEndParen(exp, stack); exp.Text.Append(")"); }
     | t = <PARAMETER_REF>
-          { Object param_resolve = CreateSubstitution(t.image); 
+          { 
+            if (parameterStyle != Client.ParameterStyle.Marker) GenerateParseException();
+            Object param_resolve = CreateSubstitution(t.image); 
             exp.AddElement(param_resolve);
             exp.Text.Append('?');
+          }
+    | t = <NAMED_PARAMETER>
+          { 
+            if (parameterStyle != Client.ParameterStyle.Named) GenerateParseException();
+            object named_param_resolve = CreateSubstitution(t.image);
+            exp.AddElement(named_param_resolve);
+            exp.Text.Append(t.image);
           }
 
     | LOOKAHEAD(2) <NOT>
