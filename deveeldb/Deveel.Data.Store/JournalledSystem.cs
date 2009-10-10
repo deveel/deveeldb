@@ -23,6 +23,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 
@@ -650,13 +651,15 @@ namespace Deveel.Data.Store {
 							while (to_skip > 0) {
 								// original java way...
 								// to_skip -= din.skip(to_skip);
+								/*
 								if (din.BaseStream is InputStream) {
 									to_skip -= (int)((InputStream)din.BaseStream).Skip(to_skip);
 								} else {
+								*/
 									long curPos = din.BaseStream.Position;
 									long newPos = din.BaseStream.Seek(to_skip, SeekOrigin.Current);
 									to_skip -= (int)(newPos - curPos);
-								}
+								//}
 							}
 						}
 
@@ -758,13 +761,16 @@ namespace Deveel.Data.Store {
 				while (count > 0) {
 					// original java way...
 					// count -= din.skip(count);
-					if (din.BaseStream is InputStream) {
-						count -= (int)((InputStream)din.BaseStream).Skip(count);
-					} else {
-						long curPos = din.BaseStream.Position;
-						long newPos = din.BaseStream.Seek(count, SeekOrigin.Current);
-						count -= (int)(newPos - curPos);
-					}
+					///*
+					//if (din.BaseStream is InputStream) {
+					//    count -= (int)((InputStream)din.BaseStream).Skip(count);
+					//} else {
+					//*/
+					//    long curPos = din.BaseStream.Position;
+					//    long newPos = din.BaseStream.Seek(count, SeekOrigin.Current);
+					//    count -= (int)(newPos - curPos);
+					////}
+					count -= InputStream.Skip(din, count);
 				}
 
 				// The list of resources we updated
@@ -784,11 +790,17 @@ namespace Deveel.Data.Store {
 					if (type == 2) {       // Resource id tag
 						long id = din.ReadInt64();
 						int len = din.ReadInt32();
+						/*
+						TODO:
 						StringBuilder buf = new StringBuilder(len);
 						for (int i = 0; i < len; ++i) {
 							buf.Append(din.ReadChar());
 						}
 						String resource_name = buf.ToString();
+						*/
+						byte[] buf = new byte[len];
+						din.Read(buf, 0, len);
+						string resource_name = Encoding.UTF8.GetString(buf);
 
 						// Put this input the map
 						id_name_map[id] = resource_name;
@@ -885,16 +897,20 @@ namespace Deveel.Data.Store {
 					if (!resource_id_map.ContainsKey(resource_name)) {
 						++cur_seq_id;
 
-						int len = resource_name.Length;
+						//TODO: int len = resource_name.Length;
+						byte[] buf = Encoding.UTF8.GetBytes(resource_name);
 
 						// Write the header for this resource
 						output.Write(2L);
-						output.Write(8 + 4 + (len * 2));
+						output.Write(8 + 4 + (buf.Length));
 						output.Write(cur_seq_id);
-						output.Write(len);
+						output.Write(buf.Length);
+						output.Write(buf);
+						/*
+						TODO:
 						for (int i = 0; i < resource_name.Length; i++)
 							output.Write(resource_name[i]);
-
+						*/
 						// Put this id input the cache
 						v = cur_seq_id;
 						resource_id_map[resource_name] = v;
@@ -1812,13 +1828,11 @@ namespace Deveel.Data.Store {
 
 					if (to_process == null) {
 						// Nothing to process so wait
-						lock (lockObject) {
-							if (!finished && Monitor.Wait(lockObject)) {
-								/*
+						lock (this) {
+							if (!finished) {
 								try {
-									// Monitor.Wait(lockObject);
-								} catch (ThreadInterruptedException e) { /* ignore * }
-								*/
+									Monitor.Wait(this);
+								} catch (ThreadInterruptedException e) { /* ignore */ }
 							}
 						}
 
@@ -1839,15 +1853,14 @@ namespace Deveel.Data.Store {
 								Debug.WriteException(DebugLevel.Error, e);
 								// If there is an error persisting the best thing to do is
 								// finish
-								lock (lockObject) {
+								lock (this) {
 									finished = true;
-									Monitor.Pulse(lockObject);
 								}
 							}
 						}
 					}
 
-					lock (lockObject) {
+					lock (this) {
 						local_finished = finished;
 						// Remove the journals that we have just persisted.
 						if (to_process != null) {
@@ -1859,63 +1872,63 @@ namespace Deveel.Data.Store {
 							}
 						}
 						// Notify any threads waiting
-						Monitor.PulseAll(lockObject);
+						Monitor.PulseAll(this);
 					}
 
 				}
 
-				lock (lockObject) {
+				lock (this) {
 					actually_finished = true;
-					Monitor.PulseAll(lockObject);
+					Monitor.PulseAll(this);
 				}
 			}
 
+			[MethodImpl(MethodImplOptions.Synchronized)]
 			public void Finish() {
-				lock (lockObject) {
-					finished = true;
-					Monitor.PulseAll(lockObject);
-				}
+				finished = true;
+				Monitor.PulseAll(this);
 			}
 
+			[MethodImpl(MethodImplOptions.Synchronized)]
 			public void WaitUntilFinished() {
-				lock (lockObject) {
-					try {
-						while (!actually_finished &&
-							Monitor.Wait(lockObject)) {
-							// Monitor.Wait(lockObject);
-							continue;
-						}
-					} catch (ThreadInterruptedException e) {
-						throw new ApplicationException("Interrupted: " + e.Message);
+				try {
+					while (!actually_finished) {
+						Monitor.Wait(this);
 					}
+				} catch (ThreadInterruptedException e) {
+					throw new ApplicationException("Interrupted: " + e.Message);
 				}
+				Monitor.PulseAll(this);
 			}
 
 			/// <summary>
 			/// Persists the journal_archives list until the list is at least the given size.
 			/// </summary>
 			/// <param name="until_size"></param>
+			[MethodImpl(MethodImplOptions.Synchronized)]
 			public void PersistArchives(int until_size) {
-				lock (lockObject) {
-					Monitor.PulseAll(lockObject);
-					int sz;
+				Monitor.PulseAll(this);
+
+				int sz;
+				lock (js.top_journal_lock) {
+					sz = js.journal_archives.Count;
+				}
+				// Wait until the sz is smaller than 'until_size'
+				while (sz > until_size) {
+					try {
+						Monitor.Wait(this, 300);
+					} catch (ThreadInterruptedException e) {
+						/* ignore */
+					}
+
 					lock (js.top_journal_lock) {
 						sz = js.journal_archives.Count;
 					}
-					// Wait until the sz is smaller than 'until_size'
-					while (sz > until_size && Monitor.Wait(lockObject)) {
-						/*
-						try {
-							Monitor.Wait(lockObject);
-						} catch (ThreadInterruptedException e) { /* ignore * }
-						*/
-						lock (js.top_journal_lock) {
-							sz = js.journal_archives.Count;
-						}
-					}
 				}
+
 			}
 
+			[MethodImpl(MethodImplOptions.Synchronized)]
 			public void Start() {
 				thread.Start();
 			}

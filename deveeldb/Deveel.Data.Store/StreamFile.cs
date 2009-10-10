@@ -79,7 +79,7 @@ namespace Deveel.Data.Store {
 		public void Synch() {
 			lock (data) {
 				try {
-					//TODO: data.Flush();
+					data.Flush();
 					FSync.Sync(data);
 				} catch (SyncFailedException) {
 					// We ignore the exception which reduces the robustness
@@ -226,9 +226,9 @@ namespace Deveel.Data.Store {
 
 			public override int ReadByte() {
 				lock (file.data) {
-					if (fp >= file.end_pointer) {
-						return -1;
-					}
+					if (fp >= file.end_pointer)
+						return 0;
+
 					file.data.Seek(fp, SeekOrigin.Begin);
 					++fp;
 					return file.data.ReadByte();
@@ -244,12 +244,23 @@ namespace Deveel.Data.Store {
 			}
 
 			public override long Position {
-				get { return file.data.Position; }
-				set { file.data.Position = value; }
+				get { return fp; }
+				set { fp = value; }
 			}
 
 			public override long Seek(long offset, SeekOrigin origin) {
-				return file.data.Seek(offset, origin);
+				lock (file.data) {
+					if (origin == SeekOrigin.End)
+						throw new NotSupportedException();
+					if (offset < 0)
+						throw new NotSupportedException();
+
+					if (origin == SeekOrigin.Begin)
+						fp = offset;
+					else
+						fp += offset;
+					return fp;
+				}
 			}
 
 			public override void SetLength(long value) {
@@ -258,12 +269,9 @@ namespace Deveel.Data.Store {
 
 			public override int Read(byte[] buf, int off, int len) {
 				lock (file.data) {
-					if (len == 0) {
-						return 0;
-					}
 					len = (int)System.Math.Min((long)len, file.end_pointer - fp);
 					if (len <= 0) {
-						return -1;
+						return 0;
 					}
 
 					file.data.Seek(fp, SeekOrigin.Begin);

@@ -90,7 +90,7 @@ namespace Deveel.Data.Store {
 		/// The size of each page.
 		/// </summary>
 		private readonly int page_size;
-		
+
 		// ---------- Write locks ----------
 
 		/// <summary>
@@ -122,22 +122,22 @@ namespace Deveel.Data.Store {
 		/// <param name="page_size"></param>
 		/// <param name="sda_factory"></param>
 		/// <param name="enable_logging"></param>
-		internal LoggingBufferManager (string journal_path, bool read_only, 
-									int max_pages, int page_size, 
+		internal LoggingBufferManager(string journal_path, bool read_only,
+									int max_pages, int page_size,
 									IStoreDataAccessorFactory sda_factory, bool enable_logging) {
-			PageCacheComparer = new PageCacheComparerImpl (this);
+			PageCacheComparer = new PageCacheComparerImpl(this);
 			this.max_pages = max_pages;
 			this.page_size = page_size;
-	
+
 			check_point_in_progress = false;
 			write_lock_count = 0;
-	
+
 			current_T = 0;
-			page_list = new ArrayList ();
+			page_list = new ArrayList();
 			page_map = new BMPage[257];
 			unique_id_seq = 0;
-	
-			journalled_system = new JournalledSystem (journal_path, read_only, 
+
+			journalled_system = new JournalledSystem(journal_path, read_only,
 			page_size, sda_factory, enable_logging);
 		}
 
@@ -156,7 +156,7 @@ namespace Deveel.Data.Store {
 		internal LoggingBufferManager(string resource_path,
 			  string journal_path, bool read_only, int max_pages,
 			  int page_size, String file_ext, long max_slice_size,
-			  /*IDebugLogger debug, */ bool enable_logging)
+			/*IDebugLogger debug, */ bool enable_logging)
 			: this(journal_path, read_only, max_pages, page_size,
 				 new StoreDataAccessorFactoryImpl(resource_path, file_ext, max_slice_size), /*debug,*/ enable_logging) {
 		}

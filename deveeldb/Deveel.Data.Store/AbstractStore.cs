@@ -170,13 +170,13 @@ namespace Deveel.Data.Store {
 				BinaryReader din = new BinaryReader(b_in, Encoding.UTF8);
 
 				int magic = din.ReadInt32();
-				if (magic != Magic) {
+				if (magic != Magic)
 					throw new IOException("Format invalid: Magic value is not as expected.");
-				}
+
 				int version = din.ReadInt32();
-				if (version != 1) {
+				if (version != 1)
 					throw new IOException("Format invalid: unrecognised version.");
-				}
+
 				din.ReadInt64(); // ignore
 				byte status = din.ReadByte();
 				dirty_open = false;
@@ -209,12 +209,10 @@ namespace Deveel.Data.Store {
 					if (last_area_pointer < DataAreaOffset) {
 						Console.Out.WriteLine("last_boundary = " + last_boundary);
 						Console.Out.WriteLine("last_area_pointer = " + last_area_pointer);
-						throw new IOException(
-							"File corrupt: last_area_pointer is before data part of file.");
+						throw new IOException("File corrupt: last_area_pointer is before data part of file.");
 					}
 					if (last_area_pointer > file_length - 8) {
-						throw new IOException(
-							"File corrupt: last_area_pointer at the end of the file.");
+						throw new IOException("File corrupt: last_area_pointer at the end of the file.");
 					}
 
 					ReadByteArrayFrom(last_area_pointer, read_buf, 0, 8);
@@ -1494,7 +1492,7 @@ namespace Deveel.Data.Store {
 
 			public override int ReadByte() {
 				if (pointer >= end_pointer) {
-					return -1;
+					return 0;
 				}
 				int b = store.ReadByteFrom(pointer);
 				++pointer;
@@ -1522,9 +1520,9 @@ namespace Deveel.Data.Store {
 					return pointer;
 				} else if (origin == SeekOrigin.Begin) {
 					//TODO: check this...
-					if (pointer + offset > end_pointer)
+					if (offset > end_pointer)
 						throw new ArgumentException();
-					pointer += offset;
+					pointer = offset;
 					return pointer;
 				}
 				throw new NotSupportedException();
@@ -1537,7 +1535,7 @@ namespace Deveel.Data.Store {
 			public override int Read(byte[] buf, int off, int len) {
 				// Is the end of the stream reached?
 				if (pointer >= end_pointer) {
-					return -1;
+					return 0;
 				}
 				// How much can we Read?
 				int read_count = System.Math.Min(len, (int)(end_pointer - pointer));
@@ -1697,8 +1695,9 @@ namespace Deveel.Data.Store {
 			}
 
 			public char ReadChar() {
-				store.ReadByteArrayFrom(CheckPositionBounds(2), buffer, 0, 2);
-				return ByteBuffer.ReadChar(buffer, 0);
+				// store.ReadByteArrayFrom(CheckPositionBounds(2), buffer, 0, 2);
+				// return ByteBuffer.ReadChar(buffer, 0);
+				return (char) ReadInt2();
 			}
 
 
@@ -1757,8 +1756,11 @@ namespace Deveel.Data.Store {
 			}
 
 			public void WriteChar(char c) {
+				/*
 				ByteBuffer.WriteChar(c, buffer, 0);
 				store.WriteByteArrayTo(CheckPositionBounds(2), buffer, 0, 2);
+				*/
+				WriteInt2((short)c);
 			}
 
 

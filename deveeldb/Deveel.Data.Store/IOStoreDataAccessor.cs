@@ -151,7 +151,7 @@ namespace Deveel.Data.Store {
 		public void Synch() {
 			lock (l) {
 				try {
-					//TODO: data.Flush();
+					data.Flush();
 					FSync.Sync(data);
 				} catch (SyncFailedException) {
 					// There isn't much we can do about this exception.  By itself it
