@@ -25,6 +25,11 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>doc\deveeldb.XML</DocumentationFile>
     <GenerateDocumentation>true</GenerateDocumentation>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="BeforeBuild" command="java -classpath ..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=Deveel.Data.Sql Deveel.Data.Sql\SQL.csc" workingdir="${ProjectDir}" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
