@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -40,10 +40,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ICSharpCode.SharpZipLib, Version=0.85.5.452, Culture=neutral, PublicKeyToken=1b03e6acf1164f73">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\ICSharpCode.SharpZipLib.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -443,6 +439,28 @@
     <Compile Include="Deveel.Data.Sql\TokenMgrError.cs" />
     <Compile Include="Deveel.Data.Sql\Util.cs" />
     <Compile Include="Deveel.Data\IDatabaseEvent.cs" />
+    <Compile Include="Deveel.Zip\Adler32.cs" />
+    <Compile Include="Deveel.Zip\CheckedStream.cs" />
+    <Compile Include="Deveel.Zip\Checksum.cs" />
+    <Compile Include="Deveel.Zip\CompressionLevel.cs" />
+    <Compile Include="Deveel.Zip\CompressionStrategy.cs" />
+    <Compile Include="Deveel.Zip\CRC32.cs" />
+    <Compile Include="Deveel.Zip\Deflater.cs" />
+    <Compile Include="Deveel.Zip\DeflaterConstants.cs" />
+    <Compile Include="Deveel.Zip\DeflaterEngine.cs" />
+    <Compile Include="Deveel.Zip\DeflaterHuffman.cs" />
+    <Compile Include="Deveel.Zip\DeflaterOutputStream.cs" />
+    <Compile Include="Deveel.Zip\DeflaterPending.cs" />
+    <Compile Include="Deveel.Zip\GZipInputStream.cs" />
+    <Compile Include="Deveel.Zip\Inflater.cs" />
+    <Compile Include="Deveel.Zip\InflaterDynHeader.cs" />
+    <Compile Include="Deveel.Zip\InflaterHuffmanTree.cs" />
+    <Compile Include="Deveel.Zip\InflaterInputStream.cs" />
+    <Compile Include="Deveel.Zip\OutputWindow.cs" />
+    <Compile Include="Deveel.Zip\PendingBuffer.cs" />
+    <Compile Include="Deveel.Zip\ShiftUtil.cs" />
+    <Compile Include="Deveel.Zip\StreamManipulator.cs" />
+    <Compile Include="Deveel.Zip\ZipException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

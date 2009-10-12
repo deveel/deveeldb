@@ -26,10 +26,8 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Store;
-
-using ICSharpCode.SharpZipLib.Zip.Compression;
-
 using Deveel.Data.Util;
+using Deveel.Zip;
 
 namespace Deveel.Data {
 	/// <summary>
