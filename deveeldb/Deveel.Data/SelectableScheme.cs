@@ -159,21 +159,6 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Writes the entire contents of the scheme to a Stream object.
-		/// </summary>
-		/// <param name="output"></param>
-		public abstract void WriteTo(Stream output);
-
-		/// <summary>
-		/// Reads the entire contents of the scheme from a InputStream object.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <exception cref="Exception">
-		/// If the scheme is full of any information
-		/// </exception>
-		public abstract void ReadFrom(InputStream input);
-
-		/// <summary>
 		/// Returns an exact copy of this scheme including any optimization
 		/// information.
 		/// </summary>

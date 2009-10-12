@@ -239,60 +239,6 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Reads the entire state of the scheme from the input stream.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <exception cref="Exception">
-		/// Thrown if the scheme is not empty.
-		/// </exception>
-		public override void ReadFrom(InputStream input) {
-			if (set_list.Count != 0) {
-				throw new Exception("Error reading scheme, already a set in the Scheme");
-			}
-			BinaryReader din = new BinaryReader(input);
-			int vec_size = din.ReadInt32();
-
-			int row_count = Table.RowCount;
-			// Check we Read in as many indices as there are rows in the table
-			if (row_count != vec_size) {
-				throw new IOException(
-				   "Different table row count to indices in scheme. " +
-				   "table=" + row_count +
-				   ", vec_size=" + vec_size);
-			}
-
-			for (int i = 0; i < vec_size; ++i) {
-				int row = din.ReadInt32();
-				if (row < 0) { // || row >= row_count) {
-					set_list = new BlockIntegerList();
-					throw new IOException("Scheme contains out of table bounds index.");
-				}
-				set_list.Add(row);
-			}
-
-			System.Stats.Add(vec_size, "{session} InsertSearch.read_indices");
-
-			// NOTE: This must be removed in final, this is a post condition check to
-			//   make sure 'vec' is infact sorted
-			//checkSchemeSorted();
-		}
-
-		/// <summary>
-		/// Writes the entire state of the scheme to the output stream.
-		/// </summary>
-		/// <param name="output"></param>
-		public override void WriteTo(Stream output) {
-			BinaryWriter dout = new BinaryWriter(output);
-			int list_size = set_list.Count;
-			dout.Write(list_size);
-
-			IIntegerIterator i = set_list.GetIterator(0, list_size - 1);
-			while (i.MoveNext()) {
-				dout.Write(i.next());
-			}
-		}
-
-		/// <summary>
 		/// Returns an exact copy of this scheme including any optimization
 		/// information.
 		/// </summary>

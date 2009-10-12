@@ -74,14 +74,6 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override void ReadFrom(InputStream input) {
-		}
-
-		/// <inheritdoc/>
-		public override void WriteTo(Stream output) {
-		}
-
-		/// <inheritdoc/>
 		public override void Dispose() {
 			// Nothing to do!
 		}

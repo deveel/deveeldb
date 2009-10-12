@@ -74,22 +74,6 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		/// <remarks>
-		/// This is a trivial case for <see cref="BlindSearch"/> which doesn't 
-		/// require any data to be stored.
-		/// </remarks>
-		public override void ReadFrom(InputStream input) {
-		}
-
-		/// <inheritdoc/>
-		/// <remarks>
-		/// This is a trivial case for <see cref="BlindSearch"/> which doesn't 
-		/// require any data to be stored.
-		/// </remarks>
-		public override void WriteTo(Stream output) {
-		}
-
-		/// <inheritdoc/>
 		public override SelectableScheme Copy(ITableDataSource table, bool immutable) {
 			// Return a fresh object.  This implementation has no state so we can
 			// ignore the 'immutable' flag.
