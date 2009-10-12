@@ -1,7 +1,9 @@
 2009-10-12  Antonello Provenzano  <antonello@deveel.com>
 	* SelectableScheme.cs: removed methods WriteTo and ReadFrom 
 	(present in the old version of McKoi), to prepare the
-	introduction of new indices.
+		introduction of new indices.
+	* BlobStore.cs: removed references to #ZipLib to replace
+	it with Deveel Zip.
 	
 2009-10-09  Antonello Provenzano  <antonello@deveel.com>
 	* TableDataConglomerate.cs: global renaming for code clarity
