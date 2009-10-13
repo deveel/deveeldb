@@ -1696,8 +1696,7 @@ namespace Deveel.Data.Store {
 				get { return (int) (end_pointer - start_pointer); }
 			}
 
-			public void CopyTo(IAreaWriter dest,
-							   int size) {
+			public void CopyTo(IAreaWriter dest, int size) {
 				// NOTE: Assuming 'destination' is a StoreArea, the temporary buffer
 				// could be optimized away to a direct System.arraycopy.  However, this
 				// function would need to be written as a lower level IO function.
@@ -1737,9 +1736,8 @@ namespace Deveel.Data.Store {
 			}
 
 			public char ReadChar() {
-				// store.ReadByteArrayFrom(CheckPositionBounds(2), buffer, 0, 2);
-				// return ByteBuffer.ReadChar(buffer, 0);
-				return (char) ReadInt2();
+				store.ReadByteArrayFrom(CheckPositionBounds(2), buffer, 0, 2);
+				return ByteBuffer.ReadChar(buffer, 0);
 			}
 
 
@@ -1798,11 +1796,8 @@ namespace Deveel.Data.Store {
 			}
 
 			public void WriteChar(char c) {
-				/*
 				ByteBuffer.WriteChar(c, buffer, 0);
 				store.WriteByteArrayTo(CheckPositionBounds(2), buffer, 0, 2);
-				*/
-				WriteInt2((short)c);
 			}
 
 

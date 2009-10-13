@@ -39,10 +39,10 @@ namespace Deveel.Data.Client {
 	/// </remarks>
 	abstract class StreamableObject {
 		/// <summary>
-		/// The <see cref="DbConnection"/> object that this object was 
+		/// The <see cref="DeveelDbConnection"/> object that this object was 
 		/// returned as part of the result of.
 		/// </summary>
-		protected readonly DbConnection connection;
+		protected readonly DeveelDbConnection connection;
 
 		/// <summary>
 		/// The result_id of the ResultSet this clob is from.
@@ -64,7 +64,7 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		private readonly long size;
 
-		internal StreamableObject(DbConnection connection, int result_set_id, 
+		internal StreamableObject(DeveelDbConnection connection, int result_set_id, 
 			byte type, long streamable_object_id, long size) {
 			this.connection = connection;
 			this.result_set_id = result_set_id;

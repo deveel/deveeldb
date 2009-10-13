@@ -33,7 +33,7 @@ namespace Deveel.Data.Client {
 		/// <param name="trigger_name">The name of the trigger that fired.</param>
 		/// <remarks>
 		/// Trigger's are specified via the SQL syntax and a trigger listener can 
-		/// be registered via <see cref="DbConnection"/>.
+		/// be registered via <see cref="DeveelDbConnection"/>.
 		/// </remarks>
 		void OnTriggerFired(String trigger_name);
 	}

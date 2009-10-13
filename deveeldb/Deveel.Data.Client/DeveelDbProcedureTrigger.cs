@@ -1,5 +1,5 @@
 ﻿//  
-//  DbProcedureTrigger.cs
+//  DeveelDbProcedureTrigger.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -23,8 +23,8 @@ using System;
 using System.Text;
 
 namespace Deveel.Data.Client {
-	public class DbProcedureTrigger : DbTrigger {
-		public DbProcedureTrigger(DbConnection connection, string triggerName, string objectName, string procedureName) 
+	public class DeveelDbProcedureTrigger : DeveelDbTrigger {
+		public DeveelDbProcedureTrigger(DeveelDbConnection connection, string triggerName, string objectName, string procedureName) 
 			: base(connection, triggerName, objectName) {
 			this.procedureName = procedureName;
 		}
@@ -44,8 +44,8 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		internal override DbCommand GetCreateStatement() {
-			ParameterStyle paramStyle = Connection.ConnectionString.ParameterStyle;
+		internal override DeveelDbCommand GetCreateStatement() {
+			ParameterStyle paramStyle = Connection.Settings.ParameterStyle;
 
 			StringBuilder sb = new StringBuilder();
 			sb.Append("CREATE TRIGGER ");
@@ -80,7 +80,7 @@ namespace Deveel.Data.Client {
 
 			sb.Append(";");
 
-			DbCommand command = Connection.CreateCommand(sb.ToString());
+			DeveelDbCommand command = Connection.CreateCommand(sb.ToString());
 			if (paramStyle == ParameterStyle.Marker) {
 				command.Parameters.Add(Name);
 				command.Parameters.Add(ObjectName);
@@ -96,8 +96,8 @@ namespace Deveel.Data.Client {
 			return command;
 		}
 
-		internal override DbCommand GetDropStatement() {
-			ParameterStyle paramStyle = Connection.ConnectionString.ParameterStyle;
+		internal override DeveelDbCommand GetDropStatement() {
+			ParameterStyle paramStyle = Connection.Settings.ParameterStyle;
 
 			StringBuilder sb = new StringBuilder();
 			sb.Append("DROP CALLBACK TRIGGER ");
@@ -107,7 +107,7 @@ namespace Deveel.Data.Client {
 				sb.Append("@TriggerName");
 			sb.Append(";");
 
-			DbCommand command = Connection.CreateCommand(sb.ToString());
+			DeveelDbCommand command = Connection.CreateCommand(sb.ToString());
 
 			if (paramStyle == ParameterStyle.Marker)
 				command.Parameters.Add(Name);

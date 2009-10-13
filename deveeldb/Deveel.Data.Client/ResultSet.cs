@@ -58,9 +58,9 @@ namespace Deveel.Data.Client {
 		private int unique_id;
 
         /// <summary>
-        /// The <see cref="DbConnection"/> that this result set is in.
+        /// The <see cref="DeveelDbConnection"/> that this result set is in.
         /// </summary>
-		internal DbConnection connection;
+		internal DeveelDbConnection connection;
 
         /// <summary>
         /// The current result_id for the information in the current result set.
@@ -84,7 +84,7 @@ namespace Deveel.Data.Client {
 		private int result_row_count;
 
         /// <summary>
-        /// The maximum row count as set in the <see cref="DbCommand"/> by the 
+        /// The maximum row count as set in the <see cref="DeveelDbCommand"/> by the 
         /// <see cref="SetMaxRowCount"/> method or 0 if the max row count is 
         /// not important.
         /// </summary>
@@ -149,7 +149,7 @@ namespace Deveel.Data.Client {
 		internal bool closed_on_server;
 
 
-		internal ResultSet(DbConnection connection) {
+		internal ResultSet(DeveelDbConnection connection) {
 			this.connection = connection;
 			unique_id = unique_id_key++;
 			result_id = -1;
@@ -214,7 +214,7 @@ namespace Deveel.Data.Client {
         /// 0 if the max number of rows is not important.
         /// </summary>
         /// <remarks>
-        /// This is set by <see cref="DbCommand"/> when a command is evaluated.
+        /// This is set by <see cref="DeveelDbCommand"/> when a command is evaluated.
         /// </remarks>
 		internal void SetMaxRowCount(int rowCount) {
 		    max_row_count = rowCount == 0 ? Int32.MaxValue : rowCount;
@@ -440,7 +440,7 @@ namespace Deveel.Data.Client {
         /// Disposes of all resources associated with this result set.
         /// </summary>
         /// <remarks>
-        /// This could either be called from the <see cref="DbCommand.Dispose"/> method. Calls 
+        /// This could either be called from the <see cref="DeveelDbCommand.Dispose"/> method. Calls 
         /// to this object are undefined after this method has finished.
         /// </remarks>
 		internal void Dispose() {

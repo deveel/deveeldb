@@ -528,8 +528,7 @@ namespace Deveel.Data.Server {
 
 			if (row_number < 0 || row_number >= table.RowCount ||
 				row_end > table.RowCount) {
-				throw new DbDataException("Result part out of range.", null, 4,
-										(Exception)null);
+				throw new DbDataException("Result part out of range.", null, 4, (Exception) null);
 			}
 
 			try {
@@ -543,8 +542,7 @@ namespace Deveel.Data.Server {
 						Object client_ob;
 						if (t_object.Object is IRef) {
 							IRef reference = (IRef)t_object.Object;
-							client_ob = new StreamableObject(reference.Type,
-															 reference.RawSize, reference.Id);
+							client_ob = new StreamableObject(reference.Type, reference.RawSize, reference.Id);
 						} else {
 							client_ob = t_object.Object;
 						}

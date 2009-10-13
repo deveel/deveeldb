@@ -487,9 +487,7 @@ namespace Deveel.Data.Store {
 			return v;
 		}
 
-		internal int ReadByteArrayFrom(IJournalledResource data,
-					long position, byte[] buf, int off, int len) {
-
+		internal int ReadByteArrayFrom(IJournalledResource data, long position, byte[] buf, int off, int len) {
 			int orig_len = len;
 			long page_number = position / page_size;
 			int start_offset = (int)(position % page_size);
@@ -552,9 +550,7 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		internal void WriteByteArrayTo(IJournalledResource data,
-					long position, byte[] buf, int off, int len) {
-
+		internal void WriteByteArrayTo(IJournalledResource data, long position, byte[] buf, int off, int len) {
 			if (PARANOID_CHECKS) {
 				lock (write_lock) {
 					if (write_lock_count == 0) {

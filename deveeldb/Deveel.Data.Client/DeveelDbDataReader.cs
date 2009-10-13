@@ -1,5 +1,5 @@
 //  
-//  DbDataReader.cs
+//  DeveelDbDataReader.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -21,20 +21,22 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Data;
+using System.Data.Common;
 
 using Deveel.Math;
 
 namespace Deveel.Data.Client {
 	///<summary>
 	///</summary>
-	public sealed class DbDataReader : IDataReader {
-		private readonly DbCommand command;
+	public sealed class DeveelDbDataReader : DbDataReader {
+		private readonly DeveelDbCommand command;
 		internal event EventHandler Closed;
 
 		private static BigNumber BD_ZERO = BigNumber.fromInt(0);
 
-		internal DbDataReader(DbCommand command) {
+		internal DeveelDbDataReader(DeveelDbCommand command) {
 			this.command = command;
 		}
 
@@ -47,20 +49,22 @@ namespace Deveel.Data.Client {
 
 		#endregion
 
-		#region Implementation of IDataRecord
+		public override bool HasRows {
+			get { return command.ResultSet.RowCount > 0; }
+		}
 
 		/// <inheritdoc/>
-		public string GetName(int i) {
+		public override string GetName(int i) {
 			return command.ResultSet.GetColumn(i).Name;
 		}
 
 		/// <inheritdoc/>
-		public string GetDataTypeName(int i) {
+		public override string GetDataTypeName(int i) {
 			return command.ResultSet.GetColumn(i).SQLType.ToString().ToUpper();
 		}
 
 		/// <inheritdoc/>
-		public Type GetFieldType(int i) {
+		public override Type GetFieldType(int i) {
 			return command.ResultSet.GetColumn(i).ObjectType;
 		}
 
@@ -75,8 +79,12 @@ namespace Deveel.Data.Client {
 			return (ob is StringObject || ob is Data.StreamableObject);
 		}
 
+		public override IEnumerator GetEnumerator() {
+			return new DbEnumerator(this);
+		}
+
 		/// <inheritdoc/>
-		public object GetValue(int i) {
+		public override object GetValue(int i) {
 			Object ob = command.ResultSet.GetRawColumn(i);
 			if (ob == null) {
 				return ob;
@@ -100,12 +108,12 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		/// <exception cref="NotImplementedException"/>
-		public int GetValues(object[] values) {
+		public override int GetValues(object[] values) {
 			throw new NotImplementedException();
 		}
 
 		/// <inheritdoc/>
-		public int GetOrdinal(string name) {
+		public override int GetOrdinal(string name) {
 			return command.ResultSet.FindColumnIndex(name);
 		}
 
@@ -158,7 +166,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public bool GetBoolean(int i) {
+		public override bool GetBoolean(int i) {
 			Object ob = command.ResultSet.GetRawColumn(i);
 			if (ob == null) {
 				return false;
@@ -174,7 +182,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public byte GetByte(int i) {
+		public override byte GetByte(int i) {
 			// Translates from BigNumber
 			BigNumber num = GetBigNumber(i);
 			return num == null ? (byte)0 : num.ToByte();
@@ -182,7 +190,7 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		/// <exception cref="NotImplementedException"/>
-		public long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length) {
+		public override long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length) {
 			throw new NotImplementedException();
 		}
 
@@ -220,13 +228,13 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		/// <exception cref="NotImplementedException"/>
-		public char GetChar(int i) {
+		public override char GetChar(int i) {
 			throw new NotSupportedException();
 		}
 
 		/// <inheritdoc/>
 		/// <exception cref="NotImplementedException"/>
-		public long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length) {
+		public override long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length) {
 			IClob clob = GetClob(i);
 			if (clob == null)
 				return 0;
@@ -241,7 +249,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public Guid GetGuid(int i) {
+		public override Guid GetGuid(int i) {
 			string s = GetString(i);
 			if (s == null || s.Length == 0)
 				return Guid.Empty;
@@ -250,42 +258,42 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public short GetInt16(int i) {
+		public override short GetInt16(int i) {
 			// Translates from BigNumber
 			BigNumber num = GetBigNumber(i);
 			return num == null ? (short)0 : num.ToInt16();
 		}
 
 		/// <inheritdoc/>
-		public int GetInt32(int i) {
+		public override int GetInt32(int i) {
 			// Translates from BigNumber
 			BigNumber num = GetBigNumber(i);
 			return num == null ? 0 : num.ToInt32();
 		}
 
 		/// <inheritdoc/>
-		public long GetInt64(int i) {
+		public override long GetInt64(int i) {
 			// Translates from BigNumber
 			BigNumber num = GetBigNumber(i);
 			return num == null ? 0 : num.ToInt64();
 		}
 
 		/// <inheritdoc/>
-		public float GetFloat(int i) {
+		public override float GetFloat(int i) {
 			// Translates from BigNumber
 			BigNumber num = GetBigNumber(i);
 			return num == null ? 0 : num.ToSingle();
 		}
 
 		/// <inheritdoc/>
-		public double GetDouble(int i) {
+		public override double GetDouble(int i) {
 			// Translates from BigNumber
 			BigNumber num = GetBigNumber(i);
 			return num == null ? 0 : num.ToDouble();
 		}
 
 		/// <inheritdoc/>
-		public string GetString(int i) {
+		public override string GetString(int i) {
 			Object str = command.ResultSet.GetRawColumn(i);
 			if (str == null) {
 				return null;
@@ -305,7 +313,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public decimal GetDecimal(int i) {
+		public override decimal GetDecimal(int i) {
 			//TODO: find a better way...
 			BigNumber num = GetBigNumber(i);
 			return new decimal(num.ToDouble());
@@ -329,18 +337,23 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public DateTime GetDateTime(int i) {
+		public override DateTime GetDateTime(int i) {
 			return (DateTime) command.ResultSet.GetRawColumn(i);
 		}
 
 		/// <inheritdoc/>
 		/// <exception cref="NotImplementedException"/>
+		/*
 		IDataReader IDataRecord.GetData(int i) {
 			throw new NotImplementedException();
 		}
+		*/
+		public new IDataReader GetData(int i) {
+			return null;
+		}
 
 		/// <inheritdoc/>
-		public bool IsDBNull(int i) {
+		public override bool IsDBNull(int i) {
 			Object ob = command.ResultSet.GetRawColumn(i);
 			if (ob == null)
 				return true;
@@ -359,32 +372,28 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public int FieldCount {
+		public override int FieldCount {
 			get { return command.ResultSet.ColumnCount; }
 		}
 
 		/// <inheritdoc/>
-		public object this[int i] {
+		public override object this[int i] {
 			get { return GetValue(i); }
 		}
 
 		/// <inheritdoc/>
-		public object this[string name] {
+		public override object this[string name] {
 			get { return this[GetOrdinal(name)]; }
 		}
 
-		#endregion
-
-		#region Implementation of IDataReader
-
 		/// <inheritdoc/>
-		public void Close() {
+		public override void Close() {
 			command.ResultSet.Close();
 			if (Closed != null)
 				Closed(this, EventArgs.Empty);
 		}
 
-		public System.Data.DataTable GetSchemaTable() {
+		public override System.Data.DataTable GetSchemaTable() {
 			if (FieldCount == 0)
 				return null;
 
@@ -425,31 +434,29 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public bool NextResult() {
+		public override bool NextResult() {
 			return command.NextResult();
 		}
 
 		/// <inheritdoc/>
-		public bool Read() {
+		public override bool Read() {
 			return command.ResultSet.Next();
 		}
 
 		/// <inheritdoc/>
-		public int Depth {
+		public override int Depth {
 			get { return 0; }
 		}
 
 		//TODO: check this...
 		/// <inheritdoc/>
-		public bool IsClosed {
+		public override bool IsClosed {
 			get { return command.ResultSet.closed_on_server; }
 		}
 
 		/// <inheritdoc/>
-		public int RecordsAffected {
+		public override int RecordsAffected {
 			get { return command.UpdateCount; }
 		}
-
-		#endregion
 	}
 }

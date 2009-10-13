@@ -1363,7 +1363,8 @@ namespace Deveel.Data {
 				// Open a stream to the record
 				BinaryReader din = GetBReader(store.GetAreaInputStream(record_p));
 
-				SkipStream(din.BaseStream, 4 + (column * 8));
+				// SkipStream(din.BaseStream, 4 + (column * 8));
+				din.BaseStream.Seek(4 + (column*8), SeekOrigin.Current);
 				int cell_type = din.ReadInt32();
 				int cell_offset = din.ReadInt32();
 
@@ -1371,7 +1372,8 @@ namespace Deveel.Data {
 				int be_at = 4 + (column_count * 8);
 				int skip_amount = (be_at - cur_at) + cell_offset;
 
-				SkipStream(din.BaseStream, skip_amount);
+				// SkipStream(din.BaseStream, skip_amount);
+				din.BaseStream.Seek(skip_amount, SeekOrigin.Current);
 
 				Object ob;
 				if (cell_type == 1) {

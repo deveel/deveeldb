@@ -115,8 +115,8 @@ namespace Deveel.Data.Client {
 				// Write output the magic number
 				output.Write(0x0ced007);
 				// Write output the JDBC driver version
-				output.Write(DbConnection.DRIVER_MAJOR_VERSION);
-				output.Write(DbConnection.DRIVER_MINOR_VERSION);
+				output.Write(DeveelDbConnection.DRIVER_MAJOR_VERSION);
+				output.Write(DeveelDbConnection.DRIVER_MINOR_VERSION);
 				byte[] arr = bout.ToArray();
 				WriteCommandToServer(arr, 0, arr.Length);
 
@@ -187,19 +187,17 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public void PushStreamableObjectPart(byte type, long object_id,
-					  long object_length, byte[] buf, long offset, int length) {
+		public void PushStreamableObjectPart(byte type, long object_id, long object_length, byte[] buf, long offset, int length) {
 			try {
 				// Push the object part
-				int dispatch_id = connection_thread.PushStreamableObjectPart(
-								  type, object_id, object_length, buf, offset, length);
+				int dispatch_id = connection_thread.PushStreamableObjectPart(type, object_id, object_length, buf, offset, length);
 				// Get the response
 				ServerCommand command =
-						connection_thread.GetCommand(DbConnection.QUERY_TIMEOUT, dispatch_id);
+						connection_thread.GetCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatch_id);
 				// If command == null then we timed output
 				if (command == null) {
 					throw new DataException("Query timed output after " +
-										   DbConnection.QUERY_TIMEOUT + " seconds.");
+										   DeveelDbConnection.QUERY_TIMEOUT + " seconds.");
 				}
 
 				BinaryReader din = new BinaryReader(command.GetInputStream());
@@ -225,11 +223,11 @@ namespace Deveel.Data.Client {
 				int dispatch_id = connection_thread.ExecuteQuery(sql);
 				// Get the response
 				ServerCommand command =
-						connection_thread.GetCommand(DbConnection.QUERY_TIMEOUT, dispatch_id);
+						connection_thread.GetCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatch_id);
 				// If command == null then we timed output
 				if (command == null) {
 					throw new DataException("Query timed output after " +
-										   DbConnection.QUERY_TIMEOUT + " seconds.");
+										   DeveelDbConnection.QUERY_TIMEOUT + " seconds.");
 				}
 
 				BinaryReader input = new BinaryReader(command.GetInputStream());
@@ -330,11 +328,11 @@ namespace Deveel.Data.Client {
 
 				// Get the response
 				ServerCommand command =
-						connection_thread.GetCommand(DbConnection.QUERY_TIMEOUT, dispatch_id);
+						connection_thread.GetCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatch_id);
 				// If command == null then we timed output
 				if (command == null) {
 					throw new DataException("Downloading result part timed output after " +
-										   DbConnection.QUERY_TIMEOUT + " seconds.");
+										   DeveelDbConnection.QUERY_TIMEOUT + " seconds.");
 				}
 
 				// Wrap around a DataInputStream
@@ -375,11 +373,11 @@ namespace Deveel.Data.Client {
 				int dispatch_id = connection_thread.DisposeResult(result_id);
 				// Get the response
 				ServerCommand command =
-						connection_thread.GetCommand(DbConnection.QUERY_TIMEOUT, dispatch_id);
+						connection_thread.GetCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatch_id);
 				// If command == null then we timed output
 				if (command == null) {
 					throw new DataException("Dispose result timed output after " +
-										   DbConnection.QUERY_TIMEOUT + " seconds.");
+										   DeveelDbConnection.QUERY_TIMEOUT + " seconds.");
 				}
 
 				// Check the dispose was successful.
@@ -404,11 +402,11 @@ namespace Deveel.Data.Client {
 				int dispatch_id = connection_thread.GetStreamableObjectPart(result_id,
 													 streamable_object_id, offset, len);
 				ServerCommand command =
-						connection_thread.GetCommand(DbConnection.QUERY_TIMEOUT, dispatch_id);
+						connection_thread.GetCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatch_id);
 				// If command == null then we timed output
 				if (command == null) {
 					throw new DataException("GetStreamableObjectPart timed output after " +
-										   DbConnection.QUERY_TIMEOUT + " seconds.");
+										   DeveelDbConnection.QUERY_TIMEOUT + " seconds.");
 				}
 
 				BinaryReader din = new BinaryReader(command.GetInputStream());
@@ -441,11 +439,11 @@ namespace Deveel.Data.Client {
 				int dispatch_id = connection_thread.DisposeStreamableObject(
 														result_id, streamable_object_id);
 				ServerCommand command =
-						connection_thread.GetCommand(DbConnection.QUERY_TIMEOUT, dispatch_id);
+						connection_thread.GetCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatch_id);
 				// If command == null then we timed output
 				if (command == null) {
 					throw new DataException("DisposeStreamableObject timed output after " +
-										   DbConnection.QUERY_TIMEOUT + " seconds.");
+										   DeveelDbConnection.QUERY_TIMEOUT + " seconds.");
 				}
 
 				BinaryReader din = new BinaryReader(command.GetInputStream());

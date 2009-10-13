@@ -1,5 +1,5 @@
 //  
-//  DbCommand.cs
+//  DeveelDbCommand.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -23,18 +23,19 @@
 using System;
 using System.Collections;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 
 using Deveel.Math;
 
 namespace Deveel.Data.Client {
-	public sealed class DbCommand : IDbCommand {
+	public sealed class DeveelDbCommand : DbCommand {
 
 		/// <summary>
 		/// The <see cref="DbConnection"/> object for this statement.
 		/// </summary>
-		private DbConnection connection;
-		private DbTransaction transaction;
+		private DeveelDbConnection connection;
+		private DeveelDbTransaction transaction;
 
 		/// <summary>
 		/// The list of all <see cref="ResultSet"/> objects that represents the 
@@ -47,6 +48,7 @@ namespace Deveel.Data.Client {
 		private int max_row_count;
 		private int query_timeout;
 		private int fetch_size;
+		private bool designTimeVisible = true;
 
 		/// <summary>
 		/// The list of commands to execute in a batch.
@@ -66,24 +68,24 @@ namespace Deveel.Data.Client {
 		private SqlCommand[] commands;
 		private string commandText;
 
-		private DbParameterCollection parameters;
-		private DbDataReader reader;
+		private DeveelDbParameterCollection parameters;
+		private DeveelDbDataReader reader;
 
-		public DbCommand() {
-			parameters = new DbParameterCollection(this);
+		public DeveelDbCommand() {
+			parameters = new DeveelDbParameterCollection(this);
 		}
 
-		public DbCommand(string text)
+		public DeveelDbCommand(string text)
 			: this() {
 			CommandText = text;
 		}
 
-		public DbCommand(string text, DbConnection connection)
+		public DeveelDbCommand(string text, DeveelDbConnection connection)
 			: this(text) {
 			Connection = connection;
 		}
 
-		public DbCommand(string text, DbConnection connection, DbTransaction transaction)
+		public DeveelDbCommand(string text, DeveelDbConnection connection, DeveelDbTransaction transaction)
 			: this(text, connection) {
 			Transaction = transaction;
 		}
@@ -436,7 +438,7 @@ namespace Deveel.Data.Client {
 
 		#region Implementation of IDbCommand
 
-		public void Prepare() {
+		public override void Prepare() {
 			if (commands == null || parameters.Count == 0)
 				return;
 
@@ -446,13 +448,13 @@ namespace Deveel.Data.Client {
 			for (int i = 0; i < commands.Length; i++) {
 				SqlCommand command = commands[i];
 				for (int j = 0; j < parameters.Count; j++) {
-					DbParameter parameter = parameters[j];
+					DeveelDbParameter parameter = parameters[j];
 					command.SetVariable(j, CastHelper.CastToSQLType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
 				}
 			}
 		}
 
-		public void Cancel() {
+		public override void Cancel() {
 			if (result_set_list != null) {
 				for (int i = 0; i < result_set_list.Length; ++i) {
 					connection.DisposeResult(result_set_list[i].ResultId);
@@ -460,17 +462,17 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public DbParameter CreateParameter() {
-			DbParameter parameter = new DbParameter();
-			parameter.paramStyle = connection.ConnectionString.ParameterStyle;
+		public new DeveelDbParameter CreateParameter() {
+			DeveelDbParameter parameter = new DeveelDbParameter();
+			parameter.paramStyle = connection.Settings.ParameterStyle;
 			return parameter;
 		}
 
-		IDbDataParameter IDbCommand.CreateParameter() {
+		protected override DbParameter CreateDbParameter() {
 			return CreateParameter();
 		}
 
-		public int ExecuteNonQuery() {
+		public override int ExecuteNonQuery() {
 			ResultSet[] resultSet = ExecuteQuery();
 			if (resultSet.Length > 1)
 				throw new InvalidOperationException();
@@ -478,19 +480,22 @@ namespace Deveel.Data.Client {
 			return !resultSet[0].IsUpdate ? -1 : resultSet[0].ToInteger();
 		}
 
-		IDataReader IDbCommand.ExecuteReader() {
-			return ExecuteReader();
-		}
-
-		public DbDataReader ExecuteReader() {
+		public new DeveelDbDataReader ExecuteReader() {
 			if (reader != null)
 				throw new InvalidOperationException("A reader is already opened for this command.");
 
 			connection.StartState(ConnectionState.Fetching);
 			ExecuteQuery();
-			reader = new DbDataReader(this);
+			reader = new DeveelDbDataReader(this);
 			reader.Closed += new EventHandler(ReaderClosed);
 			return reader;
+		}
+
+		protected override System.Data.Common.DbDataReader ExecuteDbDataReader(CommandBehavior behavior) {
+			//TODO: support behaviors...
+			if (behavior != CommandBehavior.Default)
+				throw new ArgumentException("Behavior '" + behavior + "' not supported (yet).");
+			return ExecuteReader();
 		}
 
 		private void ReaderClosed(object sender, EventArgs e) {
@@ -498,14 +503,7 @@ namespace Deveel.Data.Client {
 			reader = null;
 		}
 
-		IDataReader IDbCommand.ExecuteReader(CommandBehavior behavior) {
-			//TODO: support behaviors...
-			if (behavior != CommandBehavior.Default)
-				throw new ArgumentException("Behavior '" + behavior + "' not supported (yet).");
-			return ExecuteReader();
-		}
-
-		public object ExecuteScalar() {
+		public override object ExecuteScalar() {
 			ResultSet[] result = ExecuteQuery();
 			if (result.Length > 1)
 				throw new InvalidOperationException();
@@ -535,7 +533,13 @@ namespace Deveel.Data.Client {
 			return ob;
 		}
 
-		public DbConnection Connection {
+		public override bool DesignTimeVisible {
+			get { return designTimeVisible; }
+			set { designTimeVisible = value;
+			}
+		}
+
+		public new DeveelDbConnection Connection {
 			get { return connection; }
 			set {
 				if (value == null)
@@ -548,26 +552,26 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		IDbConnection IDbCommand.Connection {
-			get { return connection; }
+		protected override DbConnection DbConnection {
+			get { return Connection; }
 			set {
-				if (!(value is DbConnection))
+				if (!(value is DeveelDbConnection))
 					throw new ArgumentException();
 
-				Connection = (DbConnection) value;
+				Connection = (DeveelDbConnection) value;
 			}
 		}
 
-		IDbTransaction IDbCommand.Transaction {
-			get { return transaction; }
+		protected override DbTransaction DbTransaction {
+			get { return Transaction; }
 			set {
-				if (!(value is DbTransaction))
-					throw new ArgumentException("Trying to set a transaction that is not a '" + typeof(DbTransaction) + "'.");
-				Transaction = (DbTransaction) value;
+				if (!(value is DeveelDbTransaction))
+					throw new ArgumentException("Trying to set a transaction that is not a '" + typeof(DeveelDbTransaction) + "'.");
+				Transaction = (DeveelDbTransaction) value;
 			}
 		}
 
-		public DbTransaction Transaction {
+		public new DeveelDbTransaction Transaction {
 			get { return transaction; }
 			set {
 				if (value == null && transaction != null)
@@ -580,7 +584,7 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public string CommandText {
+		public override string CommandText {
 			get { return commandText; }
 			set {
 				if (value != null) {
@@ -591,7 +595,7 @@ namespace Deveel.Data.Client {
 					for (int i = 0; i < parts.Length; i++) {
 						ParameterStyle style = ParameterStyle.Marker;
 						if (connection != null)
-							style = connection.ConnectionString.ParameterStyle;
+							style = connection.Settings.ParameterStyle;
 						commands[i] = new SqlCommand(parts[i], style);
 					}
 					commandText = value;
@@ -604,7 +608,7 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public int CommandTimeout {
+		public override int CommandTimeout {
 			get { return query_timeout; }
 			set {
 				if (value >= 0)
@@ -613,7 +617,7 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		CommandType IDbCommand.CommandType {
+		public override CommandType CommandType {
 			get { return CommandType.Text; }
 			set {
 				if (value != CommandType.Text)
@@ -621,20 +625,20 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		IDataParameterCollection IDbCommand.Parameters {
-			get { return parameters; }
+		protected override DbParameterCollection DbParameterCollection {
+			get { return Parameters; }
 		}
 
-		public DbParameterCollection Parameters {
+		public new DeveelDbParameterCollection Parameters {
 			get {
 				if (parameters == null)
-					parameters = new DbParameterCollection(this);
+					parameters = new DeveelDbParameterCollection(this);
 				return parameters;
 			}
 		}
 
 		//TODO: currently not supported...
-		UpdateRowSource IDbCommand.UpdatedRowSource {
+		public override UpdateRowSource UpdatedRowSource {
 			get { return UpdateRowSource.None; }
 			set {
 				if (value != UpdateRowSource.None)

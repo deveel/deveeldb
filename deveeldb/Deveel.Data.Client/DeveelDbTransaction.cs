@@ -1,5 +1,5 @@
 //  
-//  DbTransaction.cs
+//  DeveelDbTransaction.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -21,10 +21,11 @@
 
 using System;
 using System.Data;
+using System.Data.Common;
 
 namespace Deveel.Data.Client {
-	public sealed class DbTransaction : IDbTransaction {
-		internal DbTransaction(DbConnection conn, int id, bool autoCommit) {
+	public sealed class DeveelDbTransaction : DbTransaction {
+		internal DeveelDbTransaction(DeveelDbConnection conn, int id, bool autoCommit) {
 			this.id = id;
 			this.conn = conn;
 			this.autoCommit = autoCommit;
@@ -33,25 +34,38 @@ namespace Deveel.Data.Client {
 		private readonly int id;
 	    private bool committed;
 	    private bool rolledback;
-		private readonly DbConnection conn;
+		private readonly DeveelDbConnection conn;
 		private readonly bool autoCommit;
 
 		internal int Id {
 			get { return id; }
 		}
 
+
+		protected override DbConnection DbConnection {
+			get { return Connection; }
+		}
+
 		#region Implementation of IDisposable
 
-		public void Dispose() {
-            if (!committed && !rolledback)
-                Rollback();
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if ((conn != null && conn.State == ConnectionState.Open) && 
+					!committed && !rolledback)
+					Rollback();
+			}
+
+			base.Dispose(disposing);
 		}
 
 		#endregion
 
 		#region Implementation of IDbTransaction
 
-		public void Commit() {
+		public override void Commit() {
+			if (conn == null || conn.State != ConnectionState.Open)
+				throw new InvalidOperationException("The underlying connection must be opened.");
+
 			if (committed)
 				throw new InvalidOperationException("The transaction was already committed.");
 
@@ -68,7 +82,10 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public void Rollback() {
+		public override void Rollback() {
+			if (conn == null || conn.State != ConnectionState.Open)
+				throw new InvalidOperationException("The underlying connection must be opened.");
+
 			if (rolledback)
 				throw new InvalidOperationException("The transaction was already rolledback.");
 
@@ -85,15 +102,11 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		IDbConnection IDbTransaction.Connection {
-			get { return Connection; }
-		}
-
-	    public DbConnection Connection {
+	    public new DeveelDbConnection Connection {
             get { return conn; }
 	    }
 
-		IsolationLevel IDbTransaction.IsolationLevel {
+		public override IsolationLevel IsolationLevel {
 			get { return IsolationLevel.Serializable; }
 		}
 

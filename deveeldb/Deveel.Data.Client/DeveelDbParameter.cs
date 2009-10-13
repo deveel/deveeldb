@@ -1,5 +1,5 @@
 //  
-//  DbParameter.cs
+//  DeveelDbParameter.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -21,28 +21,29 @@
 
 using System;
 using System.Data;
+using System.Data.Common;
 
 using Deveel.Math;
 
 namespace Deveel.Data.Client {
-	public sealed class DbParameter : IDbDataParameter {
-		public DbParameter() {
+	public sealed class DeveelDbParameter : DbParameter {
+		public DeveelDbParameter() {
 		}
 
-		public DbParameter(SQLTypes sqlType) {
+		public DeveelDbParameter(SQLTypes sqlType) {
 			SqlType = sqlType;
 		}
 
-		public DbParameter(object value) {
+		public DeveelDbParameter(object value) {
 			Value = value;
 		}
 
-		public DbParameter(SQLTypes sqlType, int size)
+		public DeveelDbParameter(SQLTypes sqlType, int size)
 			: this(sqlType) {
 			this.size = size;
 		}
 
-		public DbParameter(SQLTypes sqlType, int size, string sourceColumn)
+		public DeveelDbParameter(SQLTypes sqlType, int size, string sourceColumn)
 			: this(sqlType, size) {
 			this.sourceColumn = sourceColumn;
 		}
@@ -52,7 +53,6 @@ namespace Deveel.Data.Client {
 		private object value = DBNull.Value;
 		// marker style is the default
 		internal ParameterStyle paramStyle = ParameterStyle.Marker;
-		internal int index;
 		private int size;
 		private byte scale;
 		private string sourceColumn;
@@ -61,12 +61,12 @@ namespace Deveel.Data.Client {
 
 		#region Implementation of IDataParameter
 
-		public DbType DbType {
+		public override DbType DbType {
 			get { return dbType; }
 			set { dbType = value; }
 		}
 
-		ParameterDirection IDataParameter.Direction {
+		public override ParameterDirection Direction {
 			get { return ParameterDirection.Input; }
 			set {
 				if (value != ParameterDirection.Input)
@@ -74,12 +74,22 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		//TODO: check...
-		public bool IsNullable {
-			get { return true;}
+		public override void ResetDbType() {
+			dbType = GetDbType(value);
 		}
 
-		public string ParameterName {
+		public override bool SourceColumnNullMapping {
+			get { return true; }
+			set { }
+		}
+
+		//TODO: check...
+		public override bool IsNullable {
+			get { return true;}
+			set { }
+		}
+
+		public override string ParameterName {
 			get { return paramStyle == ParameterStyle.Marker ? "?" : name; }
 			set {
 				if (paramStyle == ParameterStyle.Marker) {
@@ -98,17 +108,17 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public string SourceColumn {
+		public override string SourceColumn {
 			get { return sourceColumn; }
 			set { sourceColumn = value; }
 		}
 
-		public DataRowVersion SourceVersion {
+		public override DataRowVersion SourceVersion {
 			get { return sourceVersion; }
 			set { sourceVersion = value; }
 		}
 
-		public object Value {
+		public override object Value {
 			get { return value; }
 			set {
 				this.value = value;
@@ -123,7 +133,7 @@ namespace Deveel.Data.Client {
 
 		#region Implementation of IDbDataParameter
 
-		byte IDbDataParameter.Precision {
+		public new byte Precision {
 			get { return 0; }
 			set {
 				if (value != 0)
@@ -140,7 +150,7 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public int Size {
+		public override int Size {
 			get { return size; }
 			set { size = value; }
 		}

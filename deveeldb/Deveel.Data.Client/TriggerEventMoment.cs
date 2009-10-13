@@ -1,5 +1,5 @@
 ﻿//  
-//  DbProcedureTrigger.cs
+//  TriggerEventMoment.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>

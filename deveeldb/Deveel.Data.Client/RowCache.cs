@@ -66,7 +66,7 @@ namespace Deveel.Data.Client {
         /// </remarks>
         /// <returns></returns>
 		internal ArrayList GetResultPart(ArrayList result_block,
-			   DbConnection connection, int result_id, int row_index, int row_count,
+			   DeveelDbConnection connection, int result_id, int row_index, int row_count,
 			   int col_count, int total_row_count) {
 			lock (this) {
 				// What was requested....

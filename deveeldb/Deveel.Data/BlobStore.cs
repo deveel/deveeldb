@@ -932,7 +932,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// An <see cref="InputStream"/> implementation that reads from the underlying 
+		/// A <see cref="Stream"/> implementation that reads from the underlying 
 		/// blob data as fixed size pages.
 		/// </summary>
 		private class BLOBInputStream : PagedInputStream {

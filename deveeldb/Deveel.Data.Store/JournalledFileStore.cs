@@ -125,8 +125,7 @@ namespace Deveel.Data.Store {
 
 		/// <inheritdoc/>
 		protected override int ReadByteArrayFrom(long position, byte[] buf, int off, int len) {
-			return buffer_manager.ReadByteArrayFrom(store_resource,
-													position, buf, off, len);
+			return buffer_manager.ReadByteArrayFrom(store_resource, position, buf, off, len);
 		}
 
 		/// <inheritdoc/>
@@ -134,10 +133,8 @@ namespace Deveel.Data.Store {
 			buffer_manager.WriteByteTo(store_resource, position, b);
 		}
 
-		protected override void WriteByteArrayTo(long position,
-								 byte[] buf, int off, int len) {
-			buffer_manager.WriteByteArrayTo(store_resource,
-											position, buf, off, len);
+		protected override void WriteByteArrayTo(long position, byte[] buf, int off, int len) {
+			buffer_manager.WriteByteArrayTo(store_resource, position, buf, off, len);
 		}
 
 		/// <inheritdoc/>

@@ -1526,7 +1526,6 @@ namespace Deveel.Data.Store {
 			/// memory.
 			/// </remarks>
 			public override void Read(long page_number, byte[] buf, int off) {
-
 				lock (journal_map) {
 					if (!data_open) {
 						throw new IOException("Assertion failed: Data file is not open.");

@@ -1,5 +1,5 @@
 ﻿//  
-//  DbTrigger.cs
+//  DeveelDbTrigger.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -24,8 +24,8 @@ using System.Collections;
 using System.Text;
 
 namespace Deveel.Data.Client {
-	public class DbTrigger : IDisposable {
-		public DbTrigger(DbConnection connection, string triggerName, string objectName) {
+	public class DeveelDbTrigger : IDisposable {
+		public DeveelDbTrigger(DeveelDbConnection connection, string triggerName, string objectName) {
 			this.connection = connection;
 			this.triggerName = triggerName;
 			this.objectName = objectName;
@@ -36,12 +36,12 @@ namespace Deveel.Data.Client {
 
 		private string triggerName;
 		private readonly string objectName;
-		private readonly DbConnection connection;
+		private readonly DeveelDbConnection connection;
 		private TriggerEventTypes eventType = TriggerEventTypes.All;
 		private bool exists;
 		private readonly ITriggerListener listener;
 
-		internal DbConnection Connection {
+		internal DeveelDbConnection Connection {
 			get { return connection; }
 		}
 
@@ -70,7 +70,7 @@ namespace Deveel.Data.Client {
 		}
 
 		internal virtual bool Init() {
-			ParameterStyle paramStyle = connection.ConnectionString.ParameterStyle;
+			ParameterStyle paramStyle = connection.Settings.ParameterStyle;
 			string commandText = "   SELECT " +
 			                     "      IF(Triggers.schema IS NOT NULL, CONCAT(Triggers.schema,\".\", Triggers.name), Triggers.name) AS NAME," + 
                                  "      Triggers.on_object as ON_OBJECT " +
@@ -82,14 +82,14 @@ namespace Deveel.Data.Client {
 				commandText += "@TriggerName";
 			commandText += ";";
 
-			DbCommand command = connection.CreateCommand(commandText);
+			DeveelDbCommand command = connection.CreateCommand(commandText);
 			if (paramStyle == ParameterStyle.Marker)
 				command.Parameters.Add(triggerName);
 			else
 				command.Parameters.Add("@TriggerName", triggerName);
 			command.Prepare();
 
-			DbDataReader reader = command.ExecuteReader();
+			DeveelDbDataReader reader = command.ExecuteReader();
 			try {
 				if (reader.Read()) {
 					// if the trigger already exists, adjust the name with the schema...
@@ -129,8 +129,8 @@ namespace Deveel.Data.Client {
 			return sb.ToString();
 		}
 
-		internal virtual DbCommand GetCreateStatement() {
-			ParameterStyle paramStyle = connection.ConnectionString.ParameterStyle;
+		internal virtual DeveelDbCommand GetCreateStatement() {
+			ParameterStyle paramStyle = connection.Settings.ParameterStyle;
 
 			StringBuilder sb = new StringBuilder();
 			sb.Append("CREATE CALLBACK TRIGGER ");
@@ -150,7 +150,7 @@ namespace Deveel.Data.Client {
 
 			sb.Append(";");
 
-			DbCommand command = connection.CreateCommand(sb.ToString());
+			DeveelDbCommand command = connection.CreateCommand(sb.ToString());
 			if (paramStyle == ParameterStyle.Marker) {
 				command.Parameters.Add(triggerName);
 				command.Parameters.Add(objectName);
@@ -164,8 +164,8 @@ namespace Deveel.Data.Client {
 			return command;
 		}
 
-		internal virtual DbCommand GetDropStatement() {
-			ParameterStyle paramStyle = connection.ConnectionString.ParameterStyle;
+		internal virtual DeveelDbCommand GetDropStatement() {
+			ParameterStyle paramStyle = connection.Settings.ParameterStyle;
 
 			StringBuilder sb = new StringBuilder();
 			sb.Append("DROP CALLBACK TRIGGER ");
@@ -175,7 +175,7 @@ namespace Deveel.Data.Client {
 				sb.Append("@TriggerName");
 			sb.Append(";");
 
-			DbCommand command = connection.CreateCommand(sb.ToString());
+			DeveelDbCommand command = connection.CreateCommand(sb.ToString());
 
 			if (paramStyle == ParameterStyle.Marker)
 				command.Parameters.Add(triggerName);
@@ -198,7 +198,7 @@ namespace Deveel.Data.Client {
 
 		public void Subscribe(EventHandler e) {
 			if (!exists) {
-				DbCommand command = GetCreateStatement();
+				DeveelDbCommand command = GetCreateStatement();
 				command.ExecuteNonQuery();
 				connection.AddTriggerListener(triggerName, listener);
 				exists = true;
@@ -215,18 +215,18 @@ namespace Deveel.Data.Client {
 			TriggerFired -= e;
 
 			if (TriggerFired == null) {
-				DbCommand command = GetDropStatement();
+				DeveelDbCommand command = GetDropStatement();
 				command.ExecuteNonQuery();
 				exists = false;
 			}
 		}
 
 		private class TriggerListener : ITriggerListener {
-			public TriggerListener(DbTrigger trigger) {
+			public TriggerListener(DeveelDbTrigger trigger) {
 				this.trigger = trigger;
 			}
 
-			private readonly DbTrigger trigger;
+			private readonly DeveelDbTrigger trigger;
 
 			public void OnTriggerFired(string trigger_name) {
 				if (trigger_name != trigger.Name)

@@ -58,7 +58,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal static DbConnection CreateDbConnection(User user, DatabaseConnection connection) {
+		internal static DeveelDbConnection CreateDbConnection(User user, DatabaseConnection connection) {
 			InternalDatabaseInterface db_interface = new InternalDatabaseInterface(user, connection);
 			return new InternalConnection(connection, db_interface, 11, 4092000);
 		}
@@ -86,7 +86,7 @@ namespace Deveel.Data {
 		// ---------- Inner classes ----------
 
 		/// <summary>
-		/// A derived <see cref="IDbConnection"/> class from <see cref="DbConnection"/>.
+		/// A derived <see cref="IDbConnection"/> class from <see cref="DeveelDbConnection"/>.
 		/// </summary>
 		/// <remarks>
 		/// This class disables auto commit, and inherits case insensitivity 
@@ -99,9 +99,9 @@ namespace Deveel.Data {
 		/// command is probably a very bad idea.
 		/// </para>
 		/// </remarks>
-		private sealed class InternalConnection : DbConnection {
+		private sealed class InternalConnection : DeveelDbConnection {
 			public InternalConnection(DatabaseConnection db, IDatabaseInterface db_interface, int cache_size, int max_size)
-				: base(ConnectionString.Empty, db_interface, cache_size, max_size) {
+				: base(Client.ConnectionString.Empty, db_interface, cache_size, max_size) {
 				IsCaseInsensitiveIdentifiers = db.IsInCaseInsensitiveMode;
 				// we open internal connections at construction...
 				Open();
