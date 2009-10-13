@@ -1090,7 +1090,7 @@ namespace Deveel.Data {
 				if (st_type == 3) {
 					return new StreamReader(new BLOBInputStream(store, reference_id, size), Encoding.ASCII);
 				} else if (st_type == 4) {
-					return new StreamReader(new BLOBInputStream(store, reference_id, size), Encoding.UTF8);
+					return new StreamReader(new BLOBInputStream(store, reference_id, size), Encoding.Unicode);
 				} else {
 					throw new Exception("Unknown type.");
 				}

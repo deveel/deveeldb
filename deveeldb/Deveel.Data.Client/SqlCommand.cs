@@ -381,7 +381,7 @@ namespace Deveel.Data.Client {
 		///<returns></returns>
 		///<exception cref="ApplicationException"></exception>
 		public static SqlCommand DeserializeFromBlob(ByteLongObject ob) {
-			BinaryReader input = new BinaryReader(new MemoryStream(ob.ToArray()), Encoding.UTF8);
+			BinaryReader input = new BinaryReader(new MemoryStream(ob.ToArray()), Encoding.Unicode);
 			try {
 				return ReadFrom(input);
 			} catch (IOException e) {

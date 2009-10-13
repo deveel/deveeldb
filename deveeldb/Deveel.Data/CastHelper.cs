@@ -367,7 +367,7 @@ namespace Deveel.Data {
 					case (SQLTypes.VARBINARY):
 					// fall through
 					case (SQLTypes.LONGVARBINARY):
-						return new ByteLongObject(Encoding.UTF8.GetBytes(n.ToString()));
+						return new ByteLongObject(Encoding.Unicode.GetBytes(n.ToString()));
 					case (SQLTypes.NULL):
 						return null;
 					case (SQLTypes.OBJECT):
@@ -423,7 +423,7 @@ namespace Deveel.Data {
 					case (SQLTypes.VARBINARY):
 					// fall through
 					case (SQLTypes.LONGVARBINARY):
-						return new ByteLongObject(Encoding.UTF8.GetBytes(ob.ToString()));
+						return new ByteLongObject(Encoding.Unicode.GetBytes(ob.ToString()));
 					case (SQLTypes.NULL):
 						return null;
 					case (SQLTypes.OBJECT):
@@ -483,7 +483,7 @@ namespace Deveel.Data {
 					case (SQLTypes.VARBINARY):
 					// fall through
 					case (SQLTypes.LONGVARBINARY):
-						return new ByteLongObject(Encoding.UTF8.GetBytes(str));
+						return new ByteLongObject(Encoding.Unicode.GetBytes(str));
 					case (SQLTypes.NULL):
 						return null;
 					case (SQLTypes.OBJECT):

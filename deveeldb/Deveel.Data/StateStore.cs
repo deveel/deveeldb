@@ -121,7 +121,7 @@ namespace Deveel.Data {
 		/// <param name="list"></param>
 		/// <param name="pointer"></param>
 		private void ReadStateResourceList(IList list, long pointer) {
-			BinaryReader d_in = new BinaryReader(store.GetAreaInputStream(pointer), Encoding.UTF8);
+			BinaryReader d_in = new BinaryReader(store.GetAreaInputStream(pointer), Encoding.Unicode);
 			int version = d_in.ReadInt32(); // version
 			int count = (int) d_in.ReadInt64();
 			for (int i = 0; i < count; ++i) {
@@ -157,7 +157,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		private long WriteListToStore(ArrayList list) {
 			MemoryStream bout = new MemoryStream();
-			BinaryWriter d_out = new BinaryWriter(bout, Encoding.UTF8);
+			BinaryWriter d_out = new BinaryWriter(bout, Encoding.Unicode);
 			WriteStateResourceList(list, d_out);
 			d_out.Flush();
 			d_out.Close();

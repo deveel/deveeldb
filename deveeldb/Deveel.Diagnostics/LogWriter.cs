@@ -126,7 +126,7 @@ namespace Deveel.Diagnostics {
 
 		/// <inheritdoc/>
 		public override Encoding Encoding {
-			get { return Encoding.UTF8; }
+			get { return Encoding.Unicode; }
 		}
 
 		/// <inheritdoc/>

@@ -136,7 +136,7 @@ namespace Deveel.Data.Store {
 		/// <summary>
 		/// Starts the journal system.
 		/// </summary>
-		internal void start() {
+		internal void Start() {
 			if (ENABLE_LOGGING) {
 				lock (init_lock) {
 					if (journaling_thread == null) {
@@ -547,7 +547,7 @@ namespace Deveel.Data.Store {
 
 				this.journal_number = journal_number;
 				data = new StreamFile(file, read_only ? FileAccess.Read : FileAccess.ReadWrite);
-				data_out = new BinaryWriter(new BufferedStream(data.GetOutputStream()), Encoding.UTF8);
+				data_out = new BinaryWriter(new BufferedStream(data.GetOutputStream()), Encoding.Unicode);
 				data_out.Write(journal_number);
 				is_open = true;
 			}
@@ -586,7 +586,7 @@ namespace Deveel.Data.Store {
 				}
 
 				// The input stream.
-				BinaryReader din = new BinaryReader(data.GetInputStream(), Encoding.UTF8);
+				BinaryReader din = new BinaryReader(data.GetInputStream(), Encoding.Unicode);
 
 				try {
 					// Set the journal number for this
@@ -755,7 +755,7 @@ namespace Deveel.Data.Store {
 					Debug.Write(DebugLevel.Information, this, "Persisting: " + file);
 				}
 
-				BinaryReader din = new BinaryReader(data.GetInputStream(), Encoding.UTF8);
+				BinaryReader din = new BinaryReader(data.GetInputStream(), Encoding.Unicode);
 				long count = start;
 				// Skip to the offset
 				while (count > 0) {
@@ -800,7 +800,7 @@ namespace Deveel.Data.Store {
 						*/
 						byte[] buf = new byte[len];
 						din.Read(buf, 0, len);
-						string resource_name = Encoding.UTF8.GetString(buf);
+						string resource_name = Encoding.Unicode.GetString(buf);
 
 						// Put this input the map
 						id_name_map[id] = resource_name;
@@ -898,7 +898,7 @@ namespace Deveel.Data.Store {
 						++cur_seq_id;
 
 						//TODO: int len = resource_name.Length;
-						byte[] buf = Encoding.UTF8.GetBytes(resource_name);
+						byte[] buf = Encoding.Unicode.GetBytes(resource_name);
 
 						// Write the header for this resource
 						output.Write(2L);
@@ -1003,8 +1003,8 @@ namespace Deveel.Data.Store {
 					data_out.Write(resource_id);
 					//        data_out.Write(page_number);
 					//        data_out.Write(off);
-					data_out.Write(absolute_position / 8192);
-					data_out.Write(off + (int)(absolute_position & 8191));
+					data_out.Write((long)(absolute_position / 8192));
+					data_out.Write((int)(off + (int)(absolute_position & 8191)));
 					data_out.Write(len);
 
 					data_out.Write(buf, off, len);

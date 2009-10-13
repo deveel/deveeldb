@@ -39,7 +39,7 @@ namespace Deveel.Data.Client {
 		}
 
 		public Encoding Encoding {
-			get { return Encoding.UTF8; }
+			get { return Encoding.Unicode; }
 		}
 
 		// ---------- Implemented from IClob ----------

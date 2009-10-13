@@ -86,7 +86,7 @@ namespace Deveel.Data {
 		internal ByteLongObject SerializeToBlob() {
 			try {
 				MemoryStream byte_out = new MemoryStream();
-				BinaryWriter output = new BinaryWriter(byte_out, Encoding.UTF8);
+				BinaryWriter output = new BinaryWriter(byte_out, Encoding.Unicode);
 				// Write the version number
 				output.Write(1);
 				// Write the DataTableDef
@@ -118,7 +118,7 @@ namespace Deveel.Data {
 		internal static ViewDef DeserializeFromBlob(IBlobAccessor blob) {
 			Stream blob_in = blob.GetInputStream();
 			try {
-				BinaryReader input = new BinaryReader(blob_in, Encoding.UTF8);
+				BinaryReader input = new BinaryReader(blob_in, Encoding.Unicode);
 				// Read the version
 				int version = input.ReadInt32();
 				if (version == 1) {
@@ -132,8 +132,7 @@ namespace Deveel.Data {
 					IQueryPlanNode view_plan = (IQueryPlanNode)formatter.Deserialize(obj_stream);
 					return new ViewDef(view_def, view_plan);
 				} else {
-					throw new IOException(
-									   "Newer ViewDef version serialization: " + version);
+					throw new IOException("Newer ViewDef version serialization: " + version);
 				}
 
 			} catch (IOException e) {

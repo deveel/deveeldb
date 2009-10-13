@@ -138,7 +138,7 @@ namespace Deveel.Data {
 		/// <param name="output"></param>
 		/// <returns></returns>
 		private static BinaryWriter GetBWriter(Stream output) {
-			return new BinaryWriter(new BufferedStream(output, 512), Encoding.UTF8);
+			return new BinaryWriter(new BufferedStream(output, 512), Encoding.Unicode);
 		}
 
 		/// <summary>
@@ -147,7 +147,7 @@ namespace Deveel.Data {
 		/// <param name="input"></param>
 		/// <returns></returns>
 		private static BinaryReader GetBReader(Stream input) {
-			return new BinaryReader(new BufferedStream(input, 512), Encoding.UTF8);
+			return new BinaryReader(new BufferedStream(input, 512), Encoding.Unicode);
 		}
 
 		/// <summary>
@@ -157,7 +157,7 @@ namespace Deveel.Data {
 		private void SetupInitialStore() {
 			// Serialize the DataTableDef object
 			MemoryStream bout = new MemoryStream();
-			BinaryWriter dout = new BinaryWriter(bout, Encoding.UTF8);
+			BinaryWriter dout = new BinaryWriter(bout, Encoding.Unicode);
 			dout.Write(1);
 			DataTableDef.Write(dout);
 			// Convert to a byte array
@@ -165,7 +165,7 @@ namespace Deveel.Data {
 
 			// Serialize the DataIndexSetDef object
 			bout = new MemoryStream();
-			dout = new BinaryWriter(bout, Encoding.UTF8);
+			dout = new BinaryWriter(bout, Encoding.Unicode);
 			dout.Write(1);
 			DataIndexSetDef.Write(dout);
 			// Convert to byte array

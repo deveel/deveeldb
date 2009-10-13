@@ -46,7 +46,7 @@ namespace Deveel.Data.Client {
 		}
 
 		public Encoding Encoding {
-			get { return Type == 4 ? Encoding.UTF8 : Encoding.ASCII; }
+			get { return Type == 4 ? Encoding.Unicode : Encoding.ASCII; }
 		}
 
 		/// <inheritdoc/>

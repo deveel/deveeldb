@@ -125,7 +125,7 @@ namespace Deveel.Data.Store {
 				SetDataAreaSize(DataAreaOffset);
 				// New file so Write output the initial file area,
 				MemoryStream bout = new MemoryStream((int)BinAreaOffset);
-				BinaryWriter output = new BinaryWriter(bout, Encoding.UTF8);
+				BinaryWriter output = new BinaryWriter(bout, Encoding.Unicode);
 				// The file MAGIC
 				output.Write(Magic); // 0
 				// The file version
@@ -167,7 +167,7 @@ namespace Deveel.Data.Store {
 				byte[] read_buf = new byte[(int)BinAreaOffset];
 				ReadByteArrayFrom(0, read_buf, 0, read_buf.Length);
 				MemoryStream b_in = new MemoryStream(read_buf);
-				BinaryReader din = new BinaryReader(b_in, Encoding.UTF8);
+				BinaryReader din = new BinaryReader(b_in, Encoding.Unicode);
 
 				int magic = din.ReadInt32();
 				if (magic != Magic)
@@ -479,7 +479,7 @@ namespace Deveel.Data.Store {
 				byte[] read_buf = new byte[(int)BinAreaOffset];
 				ReadByteArrayFrom(0, read_buf, 0, read_buf.Length);
 				MemoryStream b_in = new MemoryStream(read_buf);
-				BinaryReader din = new BinaryReader(b_in, Encoding.UTF8);
+				BinaryReader din = new BinaryReader(b_in, Encoding.Unicode);
 
 				int magic = din.ReadInt32();
 				if (magic != Magic) {
@@ -807,10 +807,9 @@ namespace Deveel.Data.Store {
 		/// Reads the bins from the header information input the file.
 		/// </summary>
 		protected void ReadBins() {
-			ReadByteArrayFrom(BinAreaOffset,
-							  bin_area, 0, 128 * 8);
+			ReadByteArrayFrom(BinAreaOffset, bin_area, 0, 128 * 8);
 			MemoryStream bin = new MemoryStream(bin_area);
-			BinaryReader input = new BinaryReader(bin, Encoding.UTF8);
+			BinaryReader input = new BinaryReader(bin, Encoding.Unicode);
 			for (int i = 0; i < 128; ++i) {
 				free_bin_list[i] = input.ReadInt64();
 			}

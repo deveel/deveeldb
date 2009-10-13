@@ -71,8 +71,8 @@ namespace Deveel.Data {
 			if (ob == null) {
 				return 1;
 			} else if (ob is StringObject) {
-				//TODO: return (ob.ToString().Length * 2) + 1 + 4;
-				return Encoding.UTF8.GetByteCount(ob.ToString()) + 1 + 4;
+				return (ob.ToString().Length * 2) + 1 + 4;
+				// return Encoding.Unicode.GetByteCount(ob.ToString()) + 1 + 4;
 			} else if (ob is BigNumber) {
 				BigNumber n = (BigNumber)ob;
 				if (n.CanBeInt) {
@@ -116,7 +116,7 @@ namespace Deveel.Data {
 				*/
 
 
-				byte[] buffer = Encoding.UTF8.GetBytes(ob.ToString());
+				byte[] buffer = Encoding.Unicode.GetBytes(ob.ToString());
 				output.Write((byte)18);
 				output.Write(buffer.Length);
 				output.Write(buffer, 0, buffer.Length);
@@ -234,7 +234,7 @@ namespace Deveel.Data {
 					 */
 					byte[] buffer = new byte[len];
 					input.Read(buffer, 0, len);
-					return Encoding.UTF8.GetString(buffer);
+					return Encoding.Unicode.GetString(buffer);
 					}
 
 				case (24): {

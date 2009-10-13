@@ -227,7 +227,7 @@ namespace Deveel.Data.Store {
 			public override int ReadByte() {
 				lock (file.data) {
 					if (fp >= file.end_pointer)
-						return 0;
+						return -1;
 
 					file.data.Seek(fp, SeekOrigin.Begin);
 					++fp;
@@ -271,7 +271,7 @@ namespace Deveel.Data.Store {
 				lock (file.data) {
 					len = (int)System.Math.Min((long)len, file.end_pointer - fp);
 					if (len <= 0) {
-						return 0;
+						return -1;
 					}
 
 					file.data.Seek(fp, SeekOrigin.Begin);
