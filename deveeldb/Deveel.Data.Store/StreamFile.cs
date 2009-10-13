@@ -30,7 +30,7 @@ namespace Deveel.Data.Store {
 	/// A class used to write and read from/to a file on the underlying
 	/// filesystem.
 	/// </summary>
-	public class StreamFile {
+	public class StreamFile : IDisposable {
 		/// <summary>
 		/// The path to the file object. 
 		/// </summary>
@@ -47,10 +47,10 @@ namespace Deveel.Data.Store {
 		private long end_pointer;
 
 		/// <summary>
-		/// The <see cref="Stream"/> object where to write the data of 
-		/// this file.
+		/// The <see cref="Stream"/> object where to write and read the data
+		/// of this file.
 		/// </summary>
-		private Stream output_stream;
+		private readonly Stream fsstream;
 
 		/// <summary>
 		/// Constructor.
@@ -61,7 +61,7 @@ namespace Deveel.Data.Store {
 			this.file = file;
 			data = new FileStream(file, FileMode.OpenOrCreate, mode);
 			end_pointer = data.Length;
-			output_stream = new SFOutputStream(this);
+			fsstream = new SFFileStream(this);
 		}
 
 		/// <summary>
@@ -105,7 +105,7 @@ namespace Deveel.Data.Store {
 		/// <param name="buf"></param>
 		/// <param name="off"></param>
 		/// <param name="len"></param>
-		public void readFully(long position, byte[] buf, int off, int len) {
+		public void Read(long position, byte[] buf, int off, int len) {
 			lock (data) {
 				data.Seek(position, SeekOrigin.Begin);
 				int to_read = len;
@@ -128,6 +128,7 @@ namespace Deveel.Data.Store {
 			}
 		}
 
+		/*
 		/// <summary>
 		/// Opens a <see cref="Stream"/> used to write to the file.
 		/// </summary>
@@ -136,7 +137,7 @@ namespace Deveel.Data.Store {
 		/// </remarks>
 		/// <returns></returns>
 		public Stream GetOutputStream () {
-			return output_stream;
+			return fsstream;
 		}
 		
 		/// <summary>
@@ -145,147 +146,112 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		/// <returns></returns>
 		public Stream GetInputStream() {
-			return new SFInputStream(this);
+			return fsstream;
+		}
+		*/
+
+		public Stream FileStream {
+			get { return fsstream; }
+		}
+
+		public void Dispose() {
+			if (fsstream != null) {
+				Synch();
+				fsstream.Dispose();
+			}
 		}
 
 		// ---------- Inner classes ----------
 
-
-
-		class SFOutputStream : Stream {
-			public SFOutputStream(StreamFile file) {
-				this.file = file;
-			}
-
-			private readonly StreamFile file;
-
-			public override void WriteByte(byte i) {
-				lock (file.data) {
-					file.data.Seek(file.end_pointer, SeekOrigin.Begin);
-					file.data.WriteByte(i);
-					++file.end_pointer;
-				}
-			}
-
-			public override bool CanRead {
-				get { return false; }
-			}
-
-			public override bool CanSeek {
-				get { return true; }
-			}
-
-			public override bool CanWrite {
-				get { return true; }
-			}
-
-			public override long Length {
-				get { return file.Length; }
-			}
-
-			public override long Position {
-				get { return file.data.Position; }
-				set { file.data.Position = value; }
-			}
-
-			public override void Flush() {
-			}
-
-			public override long Seek(long offset, SeekOrigin origin) {
-				return file.data.Seek(offset, origin);
-			}
-
-			public override void SetLength(long value) {
-				throw new NotSupportedException();
-			}
-
-			public override int Read(byte[] buffer, int offset, int count) {
-				throw new NotSupportedException();
-			}
-
-			public override void Write(byte[] buf, int off, int len) {
-				if (len > 0) {
-					lock (file.data) {
-						file.data.Seek(file.end_pointer, SeekOrigin.Begin);
-						file.data.Write(buf, off, len);
-						file.end_pointer += len;
-					}
-				}
-			}
-		}
-
-
-
-		class SFInputStream : InputStream {
-			public SFInputStream(StreamFile file) {
+		private class SFFileStream : Stream {
+			public SFFileStream(StreamFile file) {
 				this.file = file;
 			}
 
 			private readonly StreamFile file;
 			private long fp = 0;
 
-			public override int ReadByte() {
-				lock (file.data) {
-					if (fp >= file.end_pointer)
-						return -1;
-
-					file.data.Seek(fp, SeekOrigin.Begin);
-					++fp;
-					return file.data.ReadByte();
-				}
-			}
-
-			public override bool CanSeek {
-				get { return true; }
-			}
-
-			public override long Length {
-				get { return file.data.Length; }
-			}
-
-			public override long Position {
-				get { return fp; }
-				set { fp = value; }
+			public override void Flush() {
 			}
 
 			public override long Seek(long offset, SeekOrigin origin) {
 				lock (file.data) {
-					if (origin == SeekOrigin.End)
-						throw new NotSupportedException();
-					if (offset < 0)
-						throw new NotSupportedException();
-
-					if (origin == SeekOrigin.Begin)
-						fp = offset;
-					else
-						fp += offset;
+					long file_len = file.end_pointer;
+					if (origin == SeekOrigin.Begin && offset > file_len)
+						return fp;
+					if (origin == SeekOrigin.Current && fp + offset > file_len)
+						return fp;
+					
+					fp = file.data.Seek(offset, origin);
 					return fp;
 				}
 			}
 
 			public override void SetLength(long value) {
+				//TODO: implement?
 				throw new NotSupportedException();
 			}
 
-			public override int Read(byte[] buf, int off, int len) {
+			public override int Read(byte[] buffer, int offset, int count) {
 				lock (file.data) {
-					len = (int)System.Math.Min((long)len, file.end_pointer - fp);
-					if (len <= 0) {
+					count = (int)System.Math.Min(count, file.end_pointer - fp);
+					if (count <= 0)
 						return -1;
-					}
 
-					file.data.Seek(fp, SeekOrigin.Begin);
-					int act_read = file.data.Read(buf, off, len);
+					fp = file.data.Seek(fp, SeekOrigin.Begin);
+					int act_read = file.data.Read(buffer, offset, count);
 					fp += act_read;
 					return act_read;
 				}
 			}
 
-			public override long Skip(long v) {
+			/*
+			public override void WriteByte(byte value) {
 				lock (file.data) {
-					fp += v;
+					file.data.Seek(file.end_pointer, SeekOrigin.Begin);
+					file.data.WriteByte(value);
+					++file.end_pointer;
+					++fp;
 				}
-				return v;
+			}
+			*/
+
+			public override void Write(byte[] buffer, int offset, int count) {
+				if (count > 0) {
+					lock (file.data) {
+						file.data.Seek(file.end_pointer, SeekOrigin.Begin);
+						file.data.Write(buffer, offset, count);
+						file.end_pointer += count;
+						fp += count;
+					}
+				}
+			}
+
+			public override bool CanRead {
+				get { return file.data.CanRead; }
+			}
+
+			public override bool CanSeek {
+				get { return file.data.CanSeek; }
+			}
+
+			public override bool CanWrite {
+				get { return file.data.CanWrite; }
+			}
+
+			public override long Length {
+				get { return file.end_pointer; }
+			}
+
+			public override long Position {
+				get { return fp; }
+				set {
+					//TODO: check if this is correct...
+					if (value > file.end_pointer)
+						throw new ArgumentOutOfRangeException("value");
+
+					fp = Seek(value, SeekOrigin.Begin);
+				}
 			}
 		}
 	}

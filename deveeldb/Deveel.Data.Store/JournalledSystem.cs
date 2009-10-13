@@ -335,7 +335,7 @@ namespace Deveel.Data.Store {
 			}
 
 			top_journal_file = new JournalFile(this, f, read_only);
-			top_journal_file.open(journal_number - 1);
+			top_journal_file.Open(journal_number - 1);
 		}
 
 		/// <summary>
@@ -537,7 +537,7 @@ namespace Deveel.Data.Store {
 			/// <exception cref="IOException">
 			/// If the journal file exists.
 			/// </exception>
-			internal void open(long journal_number) {
+			internal void Open(long journal_number) {
 				if (is_open) {
 					throw new IOException("Journal file is already open.");
 				}
@@ -547,7 +547,7 @@ namespace Deveel.Data.Store {
 
 				this.journal_number = journal_number;
 				data = new StreamFile(file, read_only ? FileAccess.Read : FileAccess.ReadWrite);
-				data_out = new BinaryWriter(new BufferedStream(data.GetOutputStream()), Encoding.Unicode);
+				data_out = new BinaryWriter(new BufferedStream(data.FileStream), Encoding.Unicode);
 				data_out.Write(journal_number);
 				is_open = true;
 			}
@@ -586,7 +586,7 @@ namespace Deveel.Data.Store {
 				}
 
 				// The input stream.
-				BinaryReader din = new BinaryReader(data.GetInputStream(), Encoding.Unicode);
+				BinaryReader din = new BinaryReader(data.FileStream, Encoding.Unicode);
 
 				try {
 					// Set the journal number for this
@@ -647,6 +647,8 @@ namespace Deveel.Data.Store {
 						}
 
 						if (skip_body) {
+							din.BaseStream.Seek(size, SeekOrigin.Begin);
+							/*
 							int to_skip = size;
 							while (to_skip > 0) {
 								// original java way...
@@ -655,12 +657,13 @@ namespace Deveel.Data.Store {
 								if (din.BaseStream is InputStream) {
 									to_skip -= (int)((InputStream)din.BaseStream).Skip(to_skip);
 								} else {
-								*/
+								*
 									long curPos = din.BaseStream.Position;
 									long newPos = din.BaseStream.Seek(to_skip, SeekOrigin.Current);
 									to_skip -= (int)(newPos - curPos);
 								//}
 							}
+							 * */
 						}
 
 					}
@@ -755,7 +758,9 @@ namespace Deveel.Data.Store {
 					Debug.Write(DebugLevel.Information, this, "Persisting: " + file);
 				}
 
-				BinaryReader din = new BinaryReader(data.GetInputStream(), Encoding.Unicode);
+				BinaryReader din = new BinaryReader(data.FileStream, Encoding.Unicode);
+				data.FileStream.Seek(start, SeekOrigin.Begin);
+				/*
 				long count = start;
 				// Skip to the offset
 				while (count > 0) {
@@ -765,13 +770,14 @@ namespace Deveel.Data.Store {
 					//if (din.BaseStream is InputStream) {
 					//    count -= (int)((InputStream)din.BaseStream).Skip(count);
 					//} else {
-					//*/
+					//*
 					//    long curPos = din.BaseStream.Position;
 					//    long newPos = din.BaseStream.Seek(count, SeekOrigin.Current);
 					//    count -= (int)(newPos - curPos);
 					////}
 					count -= InputStream.Skip(din, count);
 				}
+				*/
 
 				// The list of resources we updated
 				ArrayList resources_updated = new ArrayList();
@@ -790,24 +796,21 @@ namespace Deveel.Data.Store {
 					if (type == 2) {       // Resource id tag
 						long id = din.ReadInt64();
 						int len = din.ReadInt32();
-						/*
-						TODO:
-						StringBuilder buf = new StringBuilder(len);
+						StringBuilder buf = new StringBuilder();
 						for (int i = 0; i < len; ++i) {
 							buf.Append(din.ReadChar());
 						}
 						String resource_name = buf.ToString();
-						*/
+						/*
 						byte[] buf = new byte[len];
 						din.Read(buf, 0, len);
 						string resource_name = Encoding.Unicode.GetString(buf);
-
+						*/
 						// Put this input the map
 						id_name_map[id] = resource_name;
 
 						if (Debug.IsInterestedIn(DebugLevel.Information)) {
-							Debug.Write(DebugLevel.Information, this, "Journal Command: Tag: " + id +
-															   " = " + resource_name);
+							Debug.Write(DebugLevel.Information, this, "Journal Command: Tag: " + id + " = " + resource_name);
 						}
 
 						// Add this to the list of resources we updated.
@@ -897,20 +900,20 @@ namespace Deveel.Data.Store {
 					if (!resource_id_map.ContainsKey(resource_name)) {
 						++cur_seq_id;
 
-						//TODO: int len = resource_name.Length;
-						byte[] buf = Encoding.Unicode.GetBytes(resource_name);
+						int len = resource_name.Length;
+						// byte[] buf = Encoding.Unicode.GetBytes(resource_name);
 
 						// Write the header for this resource
 						output.Write(2L);
-						output.Write(8 + 4 + (buf.Length));
+						output.Write(8 + 4 + (len * 2));
 						output.Write(cur_seq_id);
-						output.Write(buf.Length);
-						output.Write(buf);
-						/*
-						TODO:
-						for (int i = 0; i < resource_name.Length; i++)
+						output.Write(len);
+						for (int i = 0; i < len; i++) {
 							output.Write(resource_name[i]);
-						*/
+						}
+						// output.Write(resource_name);
+						// for (int i = 0; i < resource_name.Length; i++)
+						//	output.Write(resource_name[i]);
 						// Put this id input the cache
 						v = cur_seq_id;
 						resource_id_map[resource_name] = v;
@@ -946,7 +949,7 @@ namespace Deveel.Data.Store {
 			/// </summary>
 			/// <param name="resource_name"></param>
 			/// <param name="new_size"></param>
-			internal void logResourceSizeChange(String resource_name, long new_size) {
+			internal void LogResourceSizeChange(String resource_name, long new_size) {
 				lock (this) {
 					// Build the header,
 					long v = WriteResourceName(resource_name, data_out);
@@ -1034,7 +1037,7 @@ namespace Deveel.Data.Store {
 				int page_length;
 
 				lock (this) {
-					data.readFully(position, buffer, 0, 36);
+					data.Read(position, buffer, 0, 36);
 					type = ByteBuffer.ReadInt8(buffer, 0);
 					resource_id = ByteBuffer.ReadInt8(buffer, 12);
 					page_number = ByteBuffer.ReadInt8(buffer, 20);
@@ -1051,7 +1054,7 @@ namespace Deveel.Data.Store {
 					}
 
 					// Read the content.
-					data.readFully(position + 36, buf, off + page_offset, page_length);
+					data.Read(position + 36, buf, off + page_offset, page_length);
 				}
 
 			}
@@ -1711,7 +1714,7 @@ namespace Deveel.Data.Store {
 					this.size = size;
 				}
 				lock (js.top_journal_lock) {
-					js.TopJournal.logResourceSizeChange(name, size);
+					js.TopJournal.LogResourceSizeChange(name, size);
 				}
 			}
 

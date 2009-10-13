@@ -39,7 +39,7 @@ namespace Deveel.Data.Util {
 	/// method.
 	/// </para>
 	/// </remarks>
-	public abstract class PagedInputStream : InputStream {
+	public abstract class PagedInputStream : Stream {
 		/// <summary>
 		/// The size of the buffer page.
 		/// </summary>
@@ -124,6 +124,14 @@ namespace Deveel.Data.Util {
 			get { return true; }
 		}
 
+		public override bool CanRead {
+			get { return true; }
+		}
+
+		public override bool CanWrite {
+			get { return false; }
+		}
+
 		/// <inheritdoc/>
 		public override long Position {
 			get { return position; }
@@ -140,37 +148,11 @@ namespace Deveel.Data.Util {
 			throw new NotSupportedException();
 		}
 
-		/// <inheritdoc/>
-		public override long Seek(long offset, SeekOrigin origin) {
-			if (offset < 0)
-				throw new NotSupportedException("Backward seeking not supported.");
+		public override void Write(byte[] buffer, int offset, int count) {
+			throw new  NotSupportedException();
+		}
 
-			if (origin == SeekOrigin.End)
-				throw new NotSupportedException("Seeking from end of the stream is not yet supported.");
-
-			long toSkip;
-			if (origin == SeekOrigin.Current) {
-				if (offset == 0)
-					return position;
-
-				if (offset < position)
-					throw new ArgumentException("The offset cannot be smaller than the current position " +
-					                            "when seeking from the current position of the stream.");
-
-				toSkip = offset - position;
-
-				if (position + toSkip >= size)
-					throw new ArgumentException("The offset ");
-			} else {
-				if (offset > size)
-					throw new ArgumentException();
-
-				toSkip = offset;
-			}
-
-			Skip(toSkip);
-
-			return position;
+		public override void Flush() {
 		}
 
 		/// <inheritdoc/>
@@ -228,6 +210,7 @@ namespace Deveel.Data.Util {
 			return has_read;
 		}
 
+		/*
 		/// <inheritdoc/>
 		public override long Skip(long n) {
 			long act_skip = System.Math.Min(n, size - position);
@@ -242,16 +225,40 @@ namespace Deveel.Data.Util {
 
 			return act_skip;
 		}
+		*/
 
+		/// <inheritdoc/>
+		public override long Seek(long offset, SeekOrigin origin) {
+			if (offset < 0)
+				throw new NotSupportedException("Backward seeking not supported.");
+
+			if (origin == SeekOrigin.End)
+				throw new NotSupportedException("Seeking from end of the stream is not yet supported.");
+
+			if (origin == SeekOrigin.Begin && offset <= position)
+				position = offset;
+			if (origin == SeekOrigin.Current && offset + position <= size)
+				position += offset;
+
+			if (buffer_pos == -1 || (position - buffer_pos) > BUFFER_SIZE) {
+				FillBuffer((position / BUFFER_SIZE) * BUFFER_SIZE);
+			}			
+
+			return position;
+		}
+
+		/*
 		/// <inheritdoc/>
 		public override int Available {
 			get { return (int)System.Math.Min((long)Int32.MaxValue, (size - position)); }
 		}
+		*/
 
 		/// <inheritdoc/>
 		public override void Close() {
 		}
 
+		/*
 		/// <inheritdoc/>
 		public override void Mark(int limit) {
 			mark_position = position;
@@ -274,6 +281,6 @@ namespace Deveel.Data.Util {
 		public override bool MarkSupported {
 			get { return true; }
 		}
-
+		*/
 	}
 }

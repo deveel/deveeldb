@@ -419,7 +419,6 @@
     <Compile Include="Deveel.Data.Util\Cache.cs" />
     <Compile Include="Deveel.Data.Util\HashMapList.cs" />
     <Compile Include="Deveel.Data.Collections\IIndexComparer.cs" />
-    <Compile Include="Deveel.Data.Util\InputStream.cs" />
     <Compile Include="Deveel.Data.Collections\IIntegerIterator.cs" />
     <Compile Include="Deveel.Data.Collections\IntegerListBlockInterface.cs" />
     <Compile Include="Deveel.Data.Collections\IIntegerList.cs" />

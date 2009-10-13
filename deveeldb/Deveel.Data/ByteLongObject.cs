@@ -130,7 +130,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Inner class that encapsulates the byte long object in an input stream.
 		/// </summary>
-		private class BLOBInputStream : InputStream {
+		private class BLOBInputStream : Stream {
 			private readonly ByteLongObject blob;
 			private int index;
 
@@ -149,6 +149,14 @@ namespace Deveel.Data {
 			}
 
 			public override bool CanSeek {
+				get { return false; }
+			}
+
+			public override bool CanRead {
+				get { return true; }
+			}
+
+			public override bool CanWrite {
 				get { return false; }
 			}
 
@@ -173,6 +181,13 @@ namespace Deveel.Data {
 
 			public override void SetLength(long value) {
 				throw new NotSupportedException();
+			}
+
+			public override void Write(byte[] buffer, int offset, int count) {
+				throw new NotSupportedException();
+			}
+
+			public override void Flush() {
 			}
 
 			public override int Read(byte[] buf, int off, int len) {

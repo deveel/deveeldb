@@ -192,23 +192,17 @@ namespace Deveel.Data.Util {
 		}
 
 		public static char ReadChar(byte[] arr, int offset) {
-			/*
-			TODO: check ...
 		  int c1 = (((int) arr[offset + 0]) & 0x0FF);
 		  int c2 = (((int) arr[offset + 1]) & 0x0FF);
 		  return (char) ((c1 << 8) + (c2));
-			 */
-			return BitConverter.ToChar(arr, offset);
+			//TODO: check... return BitConverter.ToChar(arr, offset);
 		}
 
 		public static void WriteChar(char value, byte[] arr, int offset) {
-			/*
-			TODO: check ...
-		  arr[offset + 0] = (byte) ((value >>> 8) & 0x0FF);
-		  arr[offset + 1] = (byte) ((value >>> 0) & 0x0FF);
-			*/
-			byte[] buff = BitConverter.GetBytes(value);
-			Array.Copy(buff, 0, arr, offset, buff.Length);
+		  arr[offset + 0] = (byte) (URShift(value, 8) & 0x0FF);
+		  arr[offset + 1] = (byte) (URShift(value, 0) & 0x0FF);
+			// byte[] buff = BitConverter.GetBytes(value);
+			Array.Copy(arr, 0, arr, offset, 2);
 		}
 
 		public static short ReadInt2(byte[] arr, int offset) {

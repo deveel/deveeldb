@@ -235,15 +235,13 @@ namespace Deveel.Data.Store {
 				if (open_existing && f.Length > max_slice_size) {
 					string f2 = SlicePartFile(1);
 					if (File.Exists(f2)) {
-						throw new IOException(
-										"File length exceeds maximum slice size setting.");
+						throw new IOException("File length exceeds maximum slice size setting.");
 					}
 					// We need to scatter the file.
 					if (!read_only) {
 						ConvertToScatteringStore(f);
 					} else {
-						throw new IOException(
-							  "Unable to convert to a scattered store because Read-only.");
+						throw new IOException("Unable to convert to a scattered store because Read-only.");
 					}
 				}
 

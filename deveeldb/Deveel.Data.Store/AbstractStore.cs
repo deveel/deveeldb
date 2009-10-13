@@ -1476,17 +1476,17 @@ namespace Deveel.Data.Store {
 
 		// ---------- Inner classes ----------
 
-		private class StoreAreaInputStream : InputStream {
+		private class StoreAreaInputStream : Stream {
 			private readonly AbstractStore store;
 			private long pointer;
 			private readonly long end_pointer;
-			private long mark_point;
+			// private long mark_point;
 
 			public StoreAreaInputStream(AbstractStore store, long pointer, long max_size) {
 				this.store = store;
 				this.pointer = pointer;
 				end_pointer = pointer + max_size;
-				mark_point = -1;
+				// mark_point = -1;
 			}
 
 			public override int ReadByte() {
@@ -1502,6 +1502,14 @@ namespace Deveel.Data.Store {
 				get { return true; }
 			}
 
+			public override bool CanRead {
+				get { return true; }
+			}
+
+			public override bool CanWrite {
+				get { return false; }
+			}
+
 			//TODO: check!
 			public override long Length {
 				get { return end_pointer; }
@@ -1510,10 +1518,32 @@ namespace Deveel.Data.Store {
 			//TODO: check!
 			public override long Position {
 				get { return pointer; }
-				set { throw new NotSupportedException(); }
+				set {
+					//TODO: is this correct?
+					if (value > end_pointer)
+						throw new ArgumentOutOfRangeException("value");
+
+					Seek(value, SeekOrigin.Begin);
+				}
 			}
 
 			public override long Seek(long offset, SeekOrigin origin) {
+				if (origin == SeekOrigin.Begin && offset > end_pointer)
+					return pointer;
+				if (origin == SeekOrigin.Current && offset + pointer > end_pointer)
+					return pointer;
+
+				if (origin == SeekOrigin.End)
+					throw new NotSupportedException();
+
+				if (origin == SeekOrigin.Begin)
+					pointer = offset;
+				else
+					pointer += offset;
+
+				return pointer;
+
+				/*
 				if (origin == SeekOrigin.Current) {
 					Skip(offset);
 					return pointer;
@@ -1525,9 +1555,17 @@ namespace Deveel.Data.Store {
 					return pointer;
 				}
 				throw new NotSupportedException();
+				*/
 			}
 
 			public override void SetLength(long value) {
+				throw new NotSupportedException();
+			}
+
+			public override void Flush() {
+			}
+
+			public override void Write(byte[] buffer, int offset, int count) {
 				throw new NotSupportedException();
 			}
 
@@ -1546,20 +1584,25 @@ namespace Deveel.Data.Store {
 				return read_count;
 			}
 
+			/*
 			public override long Skip(long skip) {
 				long to_skip = System.Math.Min(end_pointer - pointer, skip);
 				pointer += to_skip;
 				return to_skip;
 			}
+			*/
 
+			/*
 			public override int Available {
 				get { return (int) (end_pointer - pointer); }
 			}
+			*/
 
 			public override void Close() {
 				// Do nothing
 			}
 
+			/*
 			public override void Mark(int read_limit) {
 				mark_point = pointer;
 			}
@@ -1571,7 +1614,7 @@ namespace Deveel.Data.Store {
 			public override bool MarkSupported {
 				get { return true; }
 			}
-
+			*/
 		}
 
 

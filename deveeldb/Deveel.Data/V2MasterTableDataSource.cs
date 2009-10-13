@@ -1267,6 +1267,7 @@ namespace Deveel.Data {
 		// ---- GetCellContents ----
 
 		private static void SkipStream(Stream input, long amount) {
+			/*
 			long count = amount;
 			long skipped = 0;
 
@@ -1277,13 +1278,15 @@ namespace Deveel.Data {
 				//    InputStream inputStream = (InputStream) input;
 				//    last_skipped = inputStream.Skip(count);
 				//} else {
-				//*/
+				//*
 				//    long pos = input.Position;
 				//    last_skipped = (input.Seek(count, SeekOrigin.Current) - pos);
 				////}
 				skipped += last_skipped;
 				count -= last_skipped;
 			}
+			*/
+			input.Seek(amount, SeekOrigin.Current);
 		}
 
 

@@ -846,7 +846,7 @@ namespace Deveel.Data.Client {
 
 						// Get the InputStream from the StreamableObject hold
 						Object sob_id = id;
-						InputStream i_stream = (InputStream)s_object_hold[sob_id];
+						Stream i_stream = (Stream)s_object_hold[sob_id];
 						if (i_stream == null) {
 							throw new Exception(
 								"Assertion failed: Streamable object InputStream is not available.");

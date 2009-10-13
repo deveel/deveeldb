@@ -153,12 +153,10 @@ namespace Deveel.Data.Store {
 		/// <param name="file_ext"></param>
 		/// <param name="max_slice_size"></param>
 		/// <param name="enable_logging"></param>
-		internal LoggingBufferManager(string resource_path,
-			  string journal_path, bool read_only, int max_pages,
-			  int page_size, String file_ext, long max_slice_size,
-			/*IDebugLogger debug, */ bool enable_logging)
-			: this(journal_path, read_only, max_pages, page_size,
-				 new StoreDataAccessorFactoryImpl(resource_path, file_ext, max_slice_size), /*debug,*/ enable_logging) {
+		internal LoggingBufferManager(string resource_path, string journal_path, bool read_only, 
+			int max_pages, int page_size, String file_ext, long max_slice_size, bool enable_logging)
+			: this(journal_path, read_only, max_pages, page_size, 
+			new StoreDataAccessorFactoryImpl(resource_path, file_ext, max_slice_size), enable_logging) {
 		}
 
 		private class StoreDataAccessorFactoryImpl : IStoreDataAccessorFactory {
@@ -182,7 +180,7 @@ namespace Deveel.Data.Store {
 		/// Starts the buffer manager.
 		/// </summary>
 		public void Start() {
-			journalled_system.start();
+			journalled_system.Start();
 		}
 
 		/// <summary>
@@ -601,8 +599,7 @@ namespace Deveel.Data.Store {
 
 		}
 
-		internal void SetDataAreaSize(IJournalledResource data,
-							 long new_size) {
+		internal void SetDataAreaSize(IJournalledResource data, long new_size) {
 			data.SetSize(new_size);
 		}
 
@@ -965,6 +962,7 @@ namespace Deveel.Data.Store {
 			}
 		}
 
+		/*
 		/// <summary>
 		///A data resource that is being buffered. 
 		/// </summary>
@@ -1003,6 +1001,7 @@ namespace Deveel.Data.Store {
 				get { return name; }
 			}
 		}
+		*/
 
 		/// <summary>
 		/// A <see cref="IComparer"/> used to sort cache entries.
