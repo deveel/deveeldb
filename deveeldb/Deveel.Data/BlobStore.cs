@@ -308,9 +308,8 @@ namespace Deveel.Data {
 
 			int size = str.Length;
 
-			byte type = 4;
 			// Enable compression (ISSUE: Should this be enabled by default?)
-			type = (byte)(type | 0x010);
+			ReferenceType type = ReferenceType.UnicodeText | ReferenceType.Compressed;
 
 			//TODO: check the size and encoding of a char...
 			IClobRef reference = (IClobRef)AllocateLargeObject(type, size * 2);
@@ -350,7 +349,7 @@ namespace Deveel.Data {
 
 			byte[] src_buf = blob.ToArray();
 			int size = src_buf.Length;
-			IBlobRef reference = (IBlobRef)AllocateLargeObject((byte)2, size);
+			IBlobRef reference = (IBlobRef)AllocateLargeObject(ReferenceType.Binary, size);
 
 			byte[] copy_buf = new byte[BUF_SIZE];
 			int offset = 0;
@@ -470,7 +469,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal IRef AllocateLargeObject(byte type, long size) {
+		internal IRef AllocateLargeObject(ReferenceType type, long size) {
 			if (size < 0)
 				throw new IOException("Negative blob size not allowed.");
 
@@ -483,7 +482,7 @@ namespace Deveel.Data {
 				long blob_p = blob_area.Id;
 				// Set up the area header
 				blob_area.WriteInt4(0);           // Reserved for future
-				blob_area.WriteInt4(type);
+				blob_area.WriteInt4((int)type);
 				blob_area.WriteInt8(size);
 				blob_area.WriteInt8(page_count);
 				// Initialize the empty blob area
@@ -495,13 +494,12 @@ namespace Deveel.Data {
 
 				// Update the fixed_list and return the record number for this blob
 				long reference_id = AddToRecordList(blob_p);
-				byte st_type = (byte)(type & 0x0F);
-				if (st_type == 2) {
+				if ((type & ReferenceType.Binary) != 0) {
 					// Create a IBlobRef implementation that can access this blob
 					return new BlobRefImpl(this, reference_id, type, size, true);
-				} else if (st_type == 3) {
+				} else if ((type & ReferenceType.AsciiText) != 0) {
 					return new ClobRefImpl(this, reference_id, type, size, true);
-				} else if (st_type == 4) {
+				} else if ((type & ReferenceType.UnicodeText) != 0) {
 					return new ClobRefImpl(this, reference_id, type, size, true);
 				} else {
 					throw new IOException("Unknown large object type");
@@ -551,13 +549,13 @@ namespace Deveel.Data {
 			blob_area.Position = 0;
 			blob_area.ReadInt4();  // (reserved)
 			// Read the type
-			byte type = (byte)blob_area.ReadInt4();
+			ReferenceType type = (ReferenceType)blob_area.ReadInt4();
 			// The size of the block
 			long block_size = blob_area.ReadInt8();
 			// The number of pages in the blob
 			long page_count = blob_area.ReadInt8();
 
-			if (type == (byte)2) {
+			if ((type & ReferenceType.Binary) != 0) {
 				// Create a new IBlobRef object.
 				return new BlobRefImpl(this, reference_id, type, size, false);
 			} else {
@@ -781,7 +779,7 @@ namespace Deveel.Data {
 			// Open an IArea into the blob
 			IArea blob_area = store.GetArea(blob_p);
 			blob_area.ReadInt4();
-			byte type = (byte)blob_area.ReadInt4();
+			ReferenceType type = (ReferenceType)blob_area.ReadInt4();
 
 			// Convert to the page number
 			long page_number = (offset / (64 * 1024));
@@ -793,7 +791,7 @@ namespace Deveel.Data {
 			page_area.Position = 0;
 			int page_type = page_area.ReadInt4();
 			int page_size = page_area.ReadInt4();
-			if ((type & 0x010) != 0) {
+			if ((type & ReferenceType.Compressed) != 0) {
 				// The page is compressed
 				byte[] page_buf = new byte[page_size];
 				page_area.Read(page_buf, 0, page_size);
@@ -870,7 +868,7 @@ namespace Deveel.Data {
 			// Open an IArea into the blob
 			IMutableArea blob_area = store.GetMutableArea(blob_p);
 			blob_area.ReadInt4();
-			byte type = (byte)blob_area.ReadInt4();
+			ReferenceType type = (ReferenceType)blob_area.ReadInt4();
 			size = blob_area.ReadInt8();
 
 			// Assert that the area being Read is within the bounds of the blob
@@ -894,7 +892,7 @@ namespace Deveel.Data {
 			// Is the compression bit set?
 			byte[] to_write;
 			int write_length;
-			if ((type & 0x010) != 0) {
+			if ((type & ReferenceType.Compressed) != 0) {
 				// Yes, compression
 				Deflater deflater = new Deflater();
 				deflater.SetInput(buf, 0, length);
@@ -976,7 +974,7 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The type of large object.
 			/// </summary>
-			protected readonly byte type;
+			protected readonly ReferenceType type;
 
 			/// <summary>
 			/// Set to true if this large object is open for writing, otherwise the
@@ -992,7 +990,7 @@ namespace Deveel.Data {
 			/// <param name="type"></param>
 			/// <param name="size"></param>
 			/// <param name="open_for_write"></param>
-			internal AbstractRef(BlobStore store, long reference_id, byte type, long size,
+			internal AbstractRef(BlobStore store, long reference_id, ReferenceType type, long size,
 			                     bool open_for_write) {
 				this.store = store;
 				this.reference_id = reference_id;
@@ -1029,7 +1027,7 @@ namespace Deveel.Data {
 				get { return reference_id; }
 			}
 
-			public byte Type {
+			public ReferenceType Type {
 				get { return type; }
 			}
 
@@ -1066,17 +1064,16 @@ namespace Deveel.Data {
 			/// <param name="type"></param>
 			/// <param name="size"></param>
 			/// <param name="open_for_write"></param>
-			internal ClobRefImpl(BlobStore store, long reference_id, byte type, long size,
+			internal ClobRefImpl(BlobStore store, long reference_id, ReferenceType type, long size,
 			                     bool open_for_write)
 				: base(store, reference_id, type, size, open_for_write) {
 			}
 
 			public override int Length {
 				get {
-					byte st_type = (byte) (type & 0x0F);
-					if (st_type == 3) {
+					if ((type & ReferenceType.AsciiText) != 0) {
 						return (int) size;
-					} else if (st_type == 4) {
+					} else if ((type & ReferenceType.UnicodeText) != 0) {
 						return (int) (size/2);
 					} else {
 						throw new Exception("Unknown type.");
@@ -1085,11 +1082,10 @@ namespace Deveel.Data {
 			}
 
 			public TextReader GetTextReader() {
-				byte st_type = (byte)(type & 0x0F);
 				//TODO: check this...
-				if (st_type == 3) {
+				if ((type & ReferenceType.AsciiText) != 0) {
 					return new StreamReader(new BLOBInputStream(store, reference_id, size), Encoding.ASCII);
-				} else if (st_type == 4) {
+				} else if ((type & ReferenceType.UnicodeText) != 0) {
 					return new StreamReader(new BLOBInputStream(store, reference_id, size), Encoding.Unicode);
 				} else {
 					throw new Exception("Unknown type.");
@@ -1129,7 +1125,7 @@ namespace Deveel.Data {
 			/// <param name="type"></param>
 			/// <param name="size"></param>
 			/// <param name="open_for_write"></param>
-			internal BlobRefImpl(BlobStore store, long reference_id, byte type, long size,
+			internal BlobRefImpl(BlobStore store, long reference_id, ReferenceType type, long size,
 			                     bool open_for_write)
 				: base(store, reference_id, type, size, open_for_write) {
 			}

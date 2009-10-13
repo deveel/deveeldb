@@ -573,7 +573,7 @@ namespace Deveel.Data.Client {
 
 						Data.StreamableObject s_object = (Data.StreamableObject)vars[i];
 						long offset = 0;
-						byte type = s_object.Type;
+						ReferenceType type = s_object.Type;
 						long total_len = s_object.Size;
 						long id = s_object.Identifier;
 						byte[] buf = new byte[BUF_SIZE];
@@ -582,8 +582,7 @@ namespace Deveel.Data.Client {
 						Object sob_id = id;
 						Stream i_stream = (Stream)s_object_hold[sob_id];
 						if (i_stream == null) {
-							throw new Exception(
-								"Assertion failed: Streamable object InputStream is not available.");
+							throw new Exception("Assertion failed: Streamable object Stream is not available.");
 						}
 
 						while (offset < total_len) {
@@ -601,8 +600,7 @@ namespace Deveel.Data.Client {
 							}
 
 							// Send the part of the streamable object to the database.
-							db_interface.PushStreamableObjectPart(type, id, total_len,
-																  buf, offset, block_read);
+							db_interface.PushStreamableObjectPart(type, id, total_len, buf, offset, block_read);
 							// Increment the offset and upload the next part of the object.
 							offset += block_read;
 						}
@@ -763,7 +761,7 @@ namespace Deveel.Data.Client {
 		/// added to the hold.
 		/// </remarks>
 		/// <returns></returns>
-		internal Data.StreamableObject CreateStreamableObject(Stream x, int length, byte type) {
+		internal Data.StreamableObject CreateStreamableObject(Stream x, int length, ReferenceType type) {
 			long ob_id;
 			lock (s_object_hold) {
 				ob_id = s_object_id;

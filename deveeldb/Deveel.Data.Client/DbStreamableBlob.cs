@@ -35,8 +35,7 @@ namespace Deveel.Data.Client {
 	/// streamable blob is closed then this blob is no longer valid.
 	/// </remarks>
 	class DbStreamableBlob : StreamableObject, IBlob {
-		internal DbStreamableBlob(DeveelDbConnection connection, int result_set_id, byte type,
-					   long streamable_object_id, long size)
+		internal DbStreamableBlob(DeveelDbConnection connection, int result_set_id, ReferenceType type, long streamable_object_id, long size)
 			: base(connection, result_set_id, type, streamable_object_id, size) {
 		}
 

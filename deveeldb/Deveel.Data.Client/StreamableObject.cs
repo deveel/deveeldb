@@ -57,7 +57,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// The type of encoding of the stream.
 		/// </summary>
-		private readonly byte type;
+		private readonly ReferenceType type;
 
 		/// <summary>
 		/// The size of the streamable object.
@@ -65,7 +65,7 @@ namespace Deveel.Data.Client {
 		private readonly long size;
 
 		internal StreamableObject(DeveelDbConnection connection, int result_set_id, 
-			byte type, long streamable_object_id, long size) {
+			ReferenceType type, long streamable_object_id, long size) {
 			this.connection = connection;
 			this.result_set_id = result_set_id;
 			this.type = type;
@@ -84,7 +84,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// Returns the encoding type of this object.
 		/// </summary>
-		protected byte Type {
+		protected ReferenceType Type {
 			get { return type; }
 		}
 

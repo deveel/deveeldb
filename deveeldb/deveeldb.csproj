@@ -69,6 +69,7 @@
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
     <Compile Include="Deveel.Data\DatabaseEventHandler.cs" />
+    <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Deveel.Diagnostics\Debug.cs" />
     <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs">
       <SubType>Code</SubType>

@@ -153,7 +153,7 @@ namespace Deveel.Data {
 			} else if (ob is StreamableObject) {
 				StreamableObject ob_head = (StreamableObject)ob;
 				output.Write((byte)16);
-				output.Write(ob_head.Type);
+				output.Write((byte)ob_head.Type);
 				output.Write(ob_head.Size);
 				output.Write(ob_head.Identifier);
 			} else {
@@ -215,7 +215,7 @@ namespace Deveel.Data {
 					}
 
 				case (16): {
-						byte h_type = input.ReadByte();
+						ReferenceType h_type = (ReferenceType) input.ReadByte();
 						long h_size = input.ReadInt64();
 						long h_id = input.ReadInt64();
 						return new StreamableObject(h_type, h_size, h_id);

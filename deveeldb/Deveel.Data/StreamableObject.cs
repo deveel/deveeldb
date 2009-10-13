@@ -40,7 +40,7 @@ namespace Deveel.Data {
         /// <summary>
         /// The type of the object.
         /// </summary>
-		private readonly byte type;
+		private readonly ReferenceType type;
 
         /// <summary>
         /// The size of the object in bytes.
@@ -58,7 +58,7 @@ namespace Deveel.Data {
         /// <param name="type"></param>
         /// <param name="size"></param>
         /// <param name="id"></param>
-		public StreamableObject(byte type, long size, long id) {
+		public StreamableObject(ReferenceType type, long size, long id) {
 			this.type = type;
 			this.size = size;
 			this.id = id;
@@ -72,7 +72,7 @@ namespace Deveel.Data {
 		/// Returns 1 if it represents 2-byte unicde character object, 2 if it represents 
 		/// binary data.
 		/// </remarks>
-		public byte Type {
+		public ReferenceType Type {
 			get { return type; }
 		}
 

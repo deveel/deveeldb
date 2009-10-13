@@ -52,23 +52,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets the type of the large object that is being referenced.
 		/// </summary>
-		/// <remarks>
-		/// <list type="table">
-		///		<item>
-		///			<term>2</term>
-		///			<description>binary object</description>
-		///		</item>
-		///		<item>
-		///			<term>3</term>
-		///			<description>ASCII character object</description>
-		///		</item>
-		///		<item>
-		///			<term>4</term>
-		///			<description>Unicode character object</description>
-		///		</item>
-		/// </list>
-		/// </remarks>
-		byte Type { get; }
+		ReferenceType Type { get; }
 
 		/// <summary>
 		/// Gets the <i>raw</i> size of this large object in bytes when it is in its 

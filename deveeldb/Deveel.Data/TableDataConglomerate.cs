@@ -2355,7 +2355,7 @@ namespace Deveel.Data {
 		/// data sent from the client.
 		/// </remarks>
 		/// <returns></returns>
-		internal IRef CreateNewLargeObject(byte type, long size) {
+		internal IRef CreateNewLargeObject(ReferenceType type, long size) {
 			try {
 				// If the conglomerate is Read-only, a blob can not be created.
 				if (IsReadOnly) {

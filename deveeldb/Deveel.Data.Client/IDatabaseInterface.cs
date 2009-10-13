@@ -52,7 +52,7 @@ namespace Deveel.Data.Client {
 	    ///<summary>
 	    /// Pushes a part of a streamable object from the client onto the server.
 	    ///</summary>
-	    ///<param name="type">The <see cref="StreamableObject"/> type (1 = byte array, 2 = char array)</param>
+	    ///<param name="type">The <see cref="ReferenceType">type</see> of the object.</param>
 	    ///<param name="object_id">The identifier of the <see cref="StreamableObject"/> 
 	    /// for future queries.</param>
 	    ///<param name="object_length">The total length of the <see cref="StreamableObject"/>.</param>
@@ -74,7 +74,7 @@ namespace Deveel.Data.Client {
 	    /// pushed onto the server in blocks of 64K (in 1,600 separate blocks).
 	    /// </para>
 	    /// </remarks>
-	    void PushStreamableObjectPart(byte type, long object_id, long object_length,
+	    void PushStreamableObjectPart(ReferenceType type, long object_id, long object_length,
 	                                  byte[] buf, long offset, int length);
 
 		///<summary>

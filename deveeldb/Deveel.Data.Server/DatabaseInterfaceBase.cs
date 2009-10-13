@@ -320,7 +320,7 @@ namespace Deveel.Data.Server {
 		/// <param name="type"></param>
 		/// <param name="object_length"></param>
 		/// <returns></returns>
-		private IRef GetLargeObjectRefFor(long streamable_object_id, byte type, long object_length) {
+		private IRef GetLargeObjectRefFor(long streamable_object_id, ReferenceType type, long object_length) {
 			// Does this mapping already exist?
 			long s_ob_id = streamable_object_id;
 			Object ob = blob_id_map[s_ob_id];
@@ -427,7 +427,7 @@ namespace Deveel.Data.Server {
 		public abstract bool Login(string default_schema, string username, string password, IDatabaseCallBack call_back);
 
 		/// <inheritdoc/>
-		public void PushStreamableObjectPart(byte type, long object_id, long object_length, byte[] buf, long offset, int length) {
+		public void PushStreamableObjectPart(ReferenceType type, long object_id, long object_length, byte[] buf, long offset, int length) {
 			CheckNotDisposed();
 
 			try {

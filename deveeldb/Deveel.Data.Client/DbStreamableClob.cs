@@ -36,23 +36,23 @@ namespace Deveel.Data.Client {
 	/// this streamable clob is closed then this clob is no longer valid.
 	/// </remarks>
 	class DbStreamableClob : StreamableObject, IClob {
-		internal DbStreamableClob(DeveelDbConnection connection, int result_set_id, byte type, long streamable_object_id, long size)
+		internal DbStreamableClob(DeveelDbConnection connection, int result_set_id, ReferenceType type, long streamable_object_id, long size)
 			: base(connection, result_set_id, type, streamable_object_id, size) {
 		}
 
 		/// <inheritdoc/>
 		public long Length {
-			get { return Type == 4 ? RawSize/2 : RawSize; }
+			get { return Type == ReferenceType.UnicodeText ? RawSize/2 : RawSize; }
 		}
 
 		public Encoding Encoding {
-			get { return Type == 4 ? Encoding.Unicode : Encoding.ASCII; }
+			get { return Type == ReferenceType.UnicodeText ? Encoding.Unicode : Encoding.ASCII; }
 		}
 
 		/// <inheritdoc/>
 		public String GetString(long pos, int length) {
 			//TODO: verify this...
-			if (Type == 4)
+			if (Type == ReferenceType.UnicodeText)
 				pos = pos/2;
 
 			Stream stream = GetStream();

@@ -187,13 +187,12 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public void PushStreamableObjectPart(byte type, long object_id, long object_length, byte[] buf, long offset, int length) {
+		public void PushStreamableObjectPart(ReferenceType type, long object_id, long object_length, byte[] buf, long offset, int length) {
 			try {
 				// Push the object part
 				int dispatch_id = connection_thread.PushStreamableObjectPart(type, object_id, object_length, buf, offset, length);
 				// Get the response
-				ServerCommand command =
-						connection_thread.GetCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatch_id);
+				ServerCommand command = connection_thread.GetCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatch_id);
 				// If command == null then we timed output
 				if (command == null) {
 					throw new DataException("Query timed output after " +
@@ -323,7 +322,7 @@ namespace Deveel.Data.Client {
 			try {
 
 				// Get the first few rows of the result..
-				int dispatch_id = connection_thread.getResultPart(result_id,
+				int dispatch_id = connection_thread.GetResultPart(result_id,
 																  start_row, count_rows);
 
 				// Get the response
@@ -611,13 +610,13 @@ namespace Deveel.Data.Client {
 			/// Used input preparation to executing queries containing large objects.
 			/// </remarks>
 			/// <returns></returns>
-			internal int PushStreamableObjectPart(byte type, long object_id,
+			internal int PushStreamableObjectPart(ReferenceType type, long object_id,
 					   long object_length, byte[] buf, long offset, int length) {
 				lock (this) {
 					int dispatch_id = NextDispatchId();
 					com_data.Write(ProtocolConstants.PUSH_STREAMABLE_OBJECT_PART);
 					com_data.Write(dispatch_id);
-					com_data.Write(type);
+					com_data.Write((byte)type);
 					com_data.Write(object_id);
 					com_data.Write(object_length);
 					com_data.Write(length);
@@ -695,7 +694,7 @@ namespace Deveel.Data.Client {
 			/// <returns>
 			/// Returns the dispatch id key for the response from the server.
 			/// </returns>
-			internal int getResultPart(int result_id, int row_number, int row_count) {
+			internal int GetResultPart(int result_id, int row_number, int row_count) {
 				lock (this) {
 					int dispatch_id = NextDispatchId();
 					com_data.Write(ProtocolConstants.RESULT_SECTION);

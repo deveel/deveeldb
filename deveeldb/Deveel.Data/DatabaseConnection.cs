@@ -1179,10 +1179,11 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public IRef CreateNewLargeObject(byte type, long object_size) {
+		public IRef CreateNewLargeObject(ReferenceType type, long object_size) {
 			// Enable compression for string types (but not binary types).
-			if (type == 3 || type == 4) {
-				type = (byte)(type | 0x010);
+			if (type == ReferenceType.AsciiText || 
+				type == ReferenceType.UnicodeText) {
+				type |= ReferenceType.Compressed;
 			}
 			return conglomerate.CreateNewLargeObject(type, object_size);
 		}

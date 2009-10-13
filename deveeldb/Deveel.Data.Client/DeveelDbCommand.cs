@@ -141,7 +141,7 @@ namespace Deveel.Data.Client {
 		/// <param name="length"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		internal Data.StreamableObject CreateStreamableObject(Stream x, int length, byte type) {
+		internal Data.StreamableObject CreateStreamableObject(Stream x, int length, ReferenceType type) {
 			Data.StreamableObject s_ob = connection.CreateStreamableObject(x, length, type);
 			if (streamable_object_list == null) {
 				streamable_object_list = new ArrayList();
@@ -197,10 +197,8 @@ namespace Deveel.Data.Client {
 		internal IBlob AsBlob(Object ob) {
 			if (ob is Data.StreamableObject) {
 				Data.StreamableObject s_ob = (Data.StreamableObject)ob;
-				byte type = (byte)(s_ob.Type & 0x0F);
-				if (type == 2) {
-					return new DbStreamableBlob(connection, ResultSet.result_id, type,
-											   s_ob.Identifier, s_ob.Size);
+				if (s_ob.Type == ReferenceType.Binary) {
+					return new DbStreamableBlob(connection, ResultSet.result_id, s_ob.Type, s_ob.Identifier, s_ob.Size);
 				}
 			} else if (ob is ByteLongObject) {
 				return new DbBlob((ByteLongObject)ob);
@@ -216,11 +214,9 @@ namespace Deveel.Data.Client {
 		internal IClob AsClob(Object ob) {
 			if (ob is Data.StreamableObject) {
 				Data.StreamableObject s_ob = (Data.StreamableObject)ob;
-				byte type = (byte)(s_ob.Type & 0x0F);
-				if (type == 3 ||
-					type == 4) {
-					return new DbStreamableClob(connection, ResultSet.result_id, type,
-											   s_ob.Identifier, s_ob.Size);
+				if (s_ob.Type == ReferenceType.AsciiText ||
+					s_ob.Type == ReferenceType.UnicodeText) {
+					return new DbStreamableClob(connection, ResultSet.result_id, s_ob.Type, s_ob.Identifier, s_ob.Size);
 				}
 			} else if (ob is StringObject) {
 				return new DbClob(ob.ToString());

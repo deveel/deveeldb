@@ -1351,10 +1351,8 @@ namespace Deveel.Data {
 							if (master_index.Contains(i)) {
 								// It's in the master index which is wrong!  We should remake the
 								// indices.
-								Debug.Write(DebugLevel.Error, this,
-											  "Inconsistant: Row is removed but in index.");
-								Debug.Write(DebugLevel.Error, this,
-											  "Row: " + i + " Table: " + TableName);
+								Debug.Write(DebugLevel.Error, this, "Inconsistant: Row is removed but in index.");
+								Debug.Write(DebugLevel.Error, this, "Row: " + i + " Table: " + TableName);
 								// Mark the row as committed added because it is in the index.
 								WriteRecordType(i, 0x010);
 
