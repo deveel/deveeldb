@@ -176,7 +176,7 @@ namespace Deveel.Data {
 					exp.Text.Append(expression);
 					return exp;
 				} catch (ParseException e) {
-					throw new Exception(e.Message);
+					throw new SqlParseException(e, expression);
 				}
 			}
 		}

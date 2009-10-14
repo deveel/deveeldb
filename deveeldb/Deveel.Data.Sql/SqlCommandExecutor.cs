@@ -81,13 +81,17 @@ namespace Deveel.Data.Sql {
 				statement_tree = statement_cache.Get(commandText);
 			}
 			if (statement_tree == null) {
-				lock (sql_parser) {
-					sql_parser.SetParameterStyle(command.ParameterStyle);
-					sql_parser.ReInit(new StringReader(commandText));
-					sql_parser.Reset();
-					// Parse the statement.
-					statement_tree = sql_parser.Statement();
+				try {
+					lock (sql_parser) {
+						sql_parser.ReInit(new StringReader(commandText));
+						sql_parser.Reset();
+						// Parse the statement.
+						statement_tree = sql_parser.Statement();
+					}
+				} catch (ParseException e) {
+					throw new SqlParseException(e, commandText);
 				}
+
 				// Put the statement tree in the cache
 				if (statement_cache != null) {
 					statement_cache.Set(commandText, statement_tree);

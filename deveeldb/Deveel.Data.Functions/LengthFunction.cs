@@ -33,8 +33,7 @@ namespace Deveel.Data.Functions {
 			}
 		}
 
-		public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver,
-		                                 IQueryContext context) {
+		public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 			TObject ob = this[0].Evaluate(group, resolver, context);
 			if (ob.IsNull) {
 				return ob;

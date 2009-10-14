@@ -21,6 +21,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Globalization;
 
 namespace Deveel.Math {
 	///<summary>
@@ -433,6 +434,21 @@ namespace Deveel.Math {
 			return new BigNumber(NumberState.NaN_STATE, null);
 		}
 
+		public BigNumber Modulus(BigNumber number) {
+			if (number_state == 0) {
+				if (number.number_state == 0) {
+					BigDecimal div_by = number.big_decimal;
+					if (div_by.CompareTo(BD_ZERO) != 0) {
+						BigDecimal remainder;
+						big_decimal.Divide(div_by, 10, DecimalRoundingMode.HalfUp, out remainder);
+						return new BigNumber(NumberState.NONE, remainder);
+					}
+				}
+			}
+
+			return new BigNumber(NumberState.NaN_STATE, null);
+		}
+
 		///<summary>
 		///</summary>
 		///<returns></returns>
@@ -496,7 +512,7 @@ namespace Deveel.Math {
 			} else if (value != value) {
 				return NaN;
 			}
-			return new BigNumber(NumberState.NONE, new BigDecimal(Convert.ToString(value)));
+			return new BigNumber(NumberState.NONE, new BigDecimal(Convert.ToString(value, CultureInfo.InvariantCulture)));
 		}
 
 		/**

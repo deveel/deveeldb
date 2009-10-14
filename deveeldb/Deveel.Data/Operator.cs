@@ -38,6 +38,7 @@ namespace Deveel.Data {
 		private static readonly Hashtable any_map = new Hashtable();
 		private static readonly ConcatOperator concat_op = new ConcatOperator();
 		private static readonly DivideOperator div_op = new DivideOperator();
+		private static readonly ModulusOperator mod_op = new ModulusOperator();
 		private static readonly EqualOperator eq_op = new EqualOperator();
 		private static readonly GreaterOperator g_op = new GreaterOperator();
 
@@ -159,6 +160,7 @@ namespace Deveel.Data {
 				        Equals(sub_op) ||
 				        Equals(mul_op) ||
 				        Equals(div_op) ||
+						Equals(mod_op) ||
 				        Equals(concat_op));
 			}
 		}
@@ -421,6 +423,8 @@ namespace Deveel.Data {
 				return mul_op;
 			if (op.Equals("/"))
 				return div_op;
+			if (op.Equals("%"))
+				return mod_op;
 			if (op.Equals("||"))
 				return concat_op;
 			if (op.Equals("=") | op.Equals("=="))
@@ -696,6 +700,21 @@ namespace Deveel.Data {
 				return ob1.Divide(ob2);
 			}
 		} ;
+
+		#endregion
+
+		#region ModulusOperator
+
+		[Serializable]
+		private sealed class ModulusOperator : Operator {
+			public ModulusOperator()
+				: base("%", 20) {
+			}
+
+			public override TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				return ob1.Modulus(ob2);
+			}
+		}
 
 		#endregion
 

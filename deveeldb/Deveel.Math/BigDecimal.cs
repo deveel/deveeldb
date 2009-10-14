@@ -214,9 +214,11 @@ namespace Deveel.Math {
 			return Divide(value, scale, roundingMode);
 		}
 
-		public BigDecimal Divide(BigDecimal value, int newScale, DecimalRoundingMode roundingMode) {
+		public BigDecimal Divide(BigDecimal value, int newScale, DecimalRoundingMode roundingMode, out BigDecimal remainder) {
 			if (newScale < 0)
 				throw new ArithmeticException("scale is negative: " + newScale);
+
+			remainder = null;
 
 			if (intVal.Sign() == 0)	// handle special case of 0.0/0.0
 				return newScale == 0 ? Zero : new BigDecimal(Zero.intVal, newScale);
@@ -241,6 +243,8 @@ namespace Deveel.Math {
 
 			if (roundingMode == DecimalRoundingMode.Unnecessary)
 				throw new ArithmeticException("newScale is not large enough");
+
+			remainder = new BigDecimal(parts[1]);
 
 			int sign = intVal.Sign() * valIntVal.Sign();
 
@@ -281,6 +285,11 @@ namespace Deveel.Math {
 
 			// roundingMode == ROUND_DOWN
 			return new BigDecimal(unrounded, newScale);
+		}
+
+		public BigDecimal Divide(BigDecimal value, int newScale, DecimalRoundingMode roundingMode) {
+			BigDecimal remainder;
+			return Divide(value, newScale, roundingMode, out remainder);
 		}
 
 		public BigDecimal Remainder(BigDecimal value, int newScale) {

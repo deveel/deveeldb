@@ -29,8 +29,7 @@ namespace Deveel.Data.Functions {
 			: base("avg", parameters) {
 		}
 
-		protected override TObject EvalAggregate(IGroupResolver group, IQueryContext context,
-		                                      TObject ob1, TObject ob2) {
+		protected override TObject EvalAggregate(IGroupResolver group, IQueryContext context, TObject ob1, TObject ob2) {
 			// This will sum,
 			if (ob1 != null) {
 				if (ob2.IsNull) {

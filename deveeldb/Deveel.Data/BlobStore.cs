@@ -894,7 +894,7 @@ namespace Deveel.Data {
 			int write_length;
 			if ((type & ReferenceType.Compressed) != 0) {
 				// Yes, compression
-				Deflater deflater = new Deflater();
+				Deflater deflater = new Deflater(-1, false);
 				deflater.SetInput(buf, 0, length);
 				deflater.Finish();
 				to_write = new byte[65 * 1024];

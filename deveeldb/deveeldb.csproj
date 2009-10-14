@@ -9,11 +9,8 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Deveel.Data</RootNamespace>
-    <AssemblyName>libdeveeldb</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <ReleaseVersion>0.9.4.*</ReleaseVersion>
-    <SynchReleaseVersion>false</SynchReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,6 +27,7 @@
         <Command type="BeforeBuild" command="java -classpath ..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=Deveel.Data.Sql Deveel.Data.Sql\SQL.csc" workingdir="${ProjectDir}" />
       </CustomCommands>
     </CustomCommands>
+    <AssemblyName>libdeveeldb</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -38,6 +36,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AssemblyName>libdeveeldb</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -60,6 +59,7 @@
     <Compile Include="Deveel.Data.Sql\DropFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql\RollbackStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlParseException.cs" />
     <Compile Include="Deveel.Data.Store\FSync.cs" />
     <Compile Include="Deveel.Data.Store\IFSync.cs" />
     <Compile Include="Deveel.Data.Store\MacOSXFSync.cs" />
@@ -477,6 +477,42 @@
   -->
   <PropertyGroup>
     <PreBuildEvent>java -classpath $(ProjectDir)..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=$(ProjectDir)Deveel.Data.Sql $(ProjectDir)Deveel.Data.Sql\SQL.csc</PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug - Mono|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\Mono</OutputPath>
+    <DefineConstants>TRACE;DEBUG;MONO</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <GenerateDocumentation>true</GenerateDocumentation>
+    <AssemblyName>deveeldb</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug - .NET|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>doc\deveeldb.XML</DocumentationFile>
+    <GenerateDocumentation>true</GenerateDocumentation>
+    <AssemblyName>libdeveeldb</AssemblyName>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="BeforeBuild" command="java -classpath ..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=Deveel.Data.Sql Deveel.Data.Sql\SQL.csc" workingdir="${ProjectDir}" />
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - .NET|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AssemblyName>libdeveeldb</AssemblyName>
   </PropertyGroup>
   <ProjectExtensions>
     <MonoDevelop>

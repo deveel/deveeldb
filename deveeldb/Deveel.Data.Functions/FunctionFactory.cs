@@ -61,14 +61,35 @@ namespace Deveel.Data.Functions {
 		/// </summary>
 		private readonly Type[] construct_proto;
 
+		private static FunctionFactory intfuncs;
+
 
 		protected FunctionFactory() {
-			fun_class_mapping = new Hashtable();
+			fun_class_mapping = new Hashtable(CaseInsensitiveHashCodeProvider.DefaultInvariant, CaseInsensitiveComparer.DefaultInvariant);
 			// The is the prototype for the constructor when creating a new function.
 			construct_proto = new Type[1];
 			Object exp_arr_ob =
 				Array.CreateInstance(typeof(Expression), 0);
 			construct_proto[0] = exp_arr_ob.GetType();
+		}
+
+		/// <summary>
+		/// Gets an instance of <see cref="FunctionFactory"/> which contains
+		/// all the functions of the system.
+		/// </summary>
+		/// <remarks>
+		/// This proprerty is used internally when evaluating a function which
+		/// has no <see cref="IQueryContext"/> defined.
+		/// </remarks>
+		/// <seealso cref="IFunction.Evaluate"/>
+		internal static FunctionFactory Internal {
+			get {
+				if (intfuncs == null) {
+					intfuncs = new InternalFunctionFactory();
+					intfuncs.Init();
+				}
+				return intfuncs;
+			}
 		}
 
 		/// <summary>

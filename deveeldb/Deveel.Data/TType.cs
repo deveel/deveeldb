@@ -292,9 +292,9 @@ namespace Deveel.Data {
 		public static TType DecodeString(String encoded_str) {
 			int param_s = encoded_str.IndexOf('(');
 			int param_e = encoded_str.LastIndexOf(')');
-			String parameterss = encoded_str.Substring(param_s + 1, param_e);
+			String parameterss = encoded_str.Substring(param_s + 1, param_e - (param_s + 1));
 			string[] param_list = parameterss.Split(',');
-			SQLTypes sql_type = (SQLTypes)Int32.Parse(param_list[0]);
+			SQLTypes sql_type = (SQLTypes)Enum.Parse(typeof(SQLTypes), param_list[0], true);
 
 			if (encoded_str.StartsWith("BOOLEAN("))
 				return new TBooleanType(sql_type);

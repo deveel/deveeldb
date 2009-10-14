@@ -80,6 +80,145 @@ namespace Deveel.Data {
 			get { return ob; }
 		}
 
+		#region Implicit Operators
+
+		public static bool operator ==(TObject a, TObject b) {
+			if ((object)a == null && (object)b == null)
+				return true;
+			if ((object)a == null)
+				return false;
+			if ((object)b == null)
+				return false;
+
+			return a.IsEqual(b).ToBoolean();
+		}
+
+		public static bool operator !=(TObject a, TObject b) {
+			return !(a == b);
+		}
+
+		public static bool operator >(TObject a, TObject b) {
+			if (a == null && b == null)
+				return true;
+			if (a == null)
+				return false;
+
+			return a.Greater(b) == BooleanTrue;
+		}
+
+		public static bool operator <(TObject a, TObject b) {
+			return !(a > b);
+		}
+
+		public static TObject operator |(TObject a, TObject b) {
+			if (a == null && b == null)
+				return Null;
+			if (a == null)
+				return b;
+
+			if (a.TType is TStringType)
+				return a.Concat(b);
+			return a.Or(b);
+		}
+
+		public static TObject operator +(TObject a, TObject b) {
+			if (a == null && b == null)
+				return Null;
+			if (a == null)
+				throw new ArgumentNullException("a");
+
+			return a.Add(b);
+		}
+
+		public static TObject operator -(TObject a, TObject b) {
+			if (a == null && b == null)
+				return Null;
+			if (a == null)
+				return Null;
+
+			return a.Subtract(b);
+		}
+
+		public static TObject operator /(TObject a, TObject b) {
+			if (a == null && b == null)
+				return Null;
+			if (a == null)
+				return Null;
+
+			return a.Divide(b);
+		}
+
+		public static TObject operator *(TObject a, TObject b) {
+			if (a == null && b == null)
+				return Null;
+			if (a == null)
+				return Null;
+
+			return a.Multiply(a);
+		}
+
+		public static TObject operator !(TObject a) {
+			if (a == null)
+				return Null;
+
+			return a.Not();
+		}
+
+		#endregion
+
+		#region Explicit Operators
+
+		public static implicit operator TObject(string s) {
+			return GetString(s);
+		}
+
+		public static implicit operator TObject(int i) {
+			return GetInt4(i);
+		}
+
+		public static implicit operator TObject(long l) {
+			return GetInt8(l);
+		}
+
+		public static implicit operator TObject(bool b) {
+			return GetBoolean(b);
+		}
+
+		public static implicit operator TObject(DateTime d) {
+			return GetDateTime(d);
+		}
+
+		public static implicit operator TObject(double d) {
+			return GetDouble(d);
+		}
+
+		public static implicit operator TObject(BigNumber n) {
+			return GetBigNumber(n);
+		}
+
+		// backward
+		public static implicit operator String(TObject obj) {
+			return obj.ToString();
+		}
+
+		public static implicit operator Int64(TObject obj) {
+			return obj.ToBigNumber().ToInt64();
+		}
+
+		public static implicit operator Int32(TObject obj) {
+			return obj.ToBigNumber().ToInt32();
+		}
+
+		public static implicit operator Double(TObject obj) {
+			return obj.ToBigNumber().ToDouble();
+		}
+
+		public static implicit operator BigNumber(TObject obj) {
+			return obj.ToBigNumber();
+		}
+
+		#endregion
+
 		/// <summary>
 		/// Returns the approximate memory use of this object in bytes.
 		/// </summary>
@@ -529,6 +668,18 @@ namespace Deveel.Data {
 			}
 
 			return new TObject(result_type, v1.Divide(v2));
+		}
+
+		public TObject Modulus(TObject val) {
+			BigNumber v1 = ToBigNumber();
+			BigNumber v2 = val.ToBigNumber();
+			TType result_type = TType.GetWidestType(TType, val.TType);
+
+			if (v1 == null || v2 == null) {
+				return new TObject(result_type, null);
+			}
+
+			return new TObject(result_type, v1.Modulus(v2));
 		}
 
 		/// <summary>

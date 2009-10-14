@@ -186,14 +186,14 @@ namespace Deveel.Data {
 			} else if (StartFlag == AFTER_LAST_VALUE) {
 				buf.Append("AFTER_LAST_VALUE ");
 			}
-			buf.Append(Start);
+			buf.Append(Start.ToString());
 			buf.Append(" -> ");
 			if (EndFlag == LAST_VALUE) {
 				buf.Append("LAST_VALUE ");
 			} else if (EndFlag == BEFORE_FIRST_VALUE) {
 				buf.Append("BEFORE_FIRST_VALUE ");
 			}
-			buf.Append(End);
+			buf.Append(End.ToString());
 			return buf.ToString();
 		}
 

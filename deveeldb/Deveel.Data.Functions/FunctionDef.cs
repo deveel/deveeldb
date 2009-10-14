@@ -116,7 +116,13 @@ namespace Deveel.Data.Functions {
 		public IFunction GetFunction(IQueryContext context) {
 			if (cached_function != null)
 				return cached_function;
-			IFunctionLookup lookup = context.FunctionLookup;
+			IFunctionLookup lookup = null;
+			if (context == null) {
+				lookup = FunctionFactory.Internal;
+			} else {
+				lookup = context.FunctionLookup;
+			}
+			
 			cached_function = lookup.GenerateFunction(this);
 			if (cached_function == null)
 				throw new StatementException("IFunction '" + Name + "' doesn't exist.");
