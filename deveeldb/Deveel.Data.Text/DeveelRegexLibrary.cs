@@ -1,4 +1,4 @@
-//  
+﻿//  
 //  SystemRegexLibrary.cs
 //  
 //  Author:
@@ -20,32 +20,29 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Text.RegularExpressions;
 
 using Deveel.Data.Collections;
 
+using Deveel.Text.RegularExpressions;
+
 namespace Deveel.Data.Text {
-	/// <summary>
-	/// The default implementation of the system regular expression library.
-	/// </summary>
-	class SystemRegexLibrary : IRegexLibrary {
-		#region Public Methods
+	internal class DeveelRegexLibrary : IRegexLibrary {
 		public bool RegexMatch(string regularExpression, string expressionOps, string value) {
-			RegexOptions options = RegexOptions.None;
+			RegexFlags flags = RegexFlags.None;
 
 			if (expressionOps != null) {
 				if (expressionOps.IndexOf('i') != -1) {
-					options |= RegexOptions.IgnoreCase;
+					flags |= RegexFlags.IgnoreCase;
 				}
 				if (expressionOps.IndexOf('s') != -1) {
-					options |= RegexOptions.Singleline;
+					flags |= RegexFlags.DotNewLine;
 				}
 				if (expressionOps.IndexOf('m') != -1) {
-					options |= RegexOptions.Multiline;
+					flags |= RegexFlags.MultiLine;
 				}
 			}
 
-			Regex regex = new Regex(regularExpression, options);
+			Regex regex = new Regex(regularExpression, flags);
 			return regex.IsMatch(value);
 		}
 
@@ -59,21 +56,21 @@ namespace Deveel.Data.Text {
 			Regex regex;
 
 			try {
-				RegexOptions options = RegexOptions.None;
+				RegexFlags flags = RegexFlags.None;
 				if (expressionOps != null) {
 					if (expressionOps.IndexOf('i') != -1) {
-						options |= RegexOptions.IgnoreCase;
+						flags |= RegexFlags.IgnoreCase;
 					}
 					if (expressionOps.IndexOf('s') != -1) {
-						options |= RegexOptions.Singleline;
+						flags |= RegexFlags.DotNewLine;
 					}
 					if (expressionOps.IndexOf('m') != -1) {
-						options |= RegexOptions.Multiline;
+						flags |= RegexFlags.MultiLine;
 					}
 				}
 
-				regex = new Regex(regularExpression, options);
-			} catch (Exception) {
+				regex = new Regex(regularExpression, flags);
+			} catch (RegexException) {
 				// Incorrect syntax means we always match to an empty list,
 				return result_list;
 			}
@@ -96,6 +93,5 @@ namespace Deveel.Data.Text {
 
 			return result_list;
 		}
-		#endregion
 	}
 }

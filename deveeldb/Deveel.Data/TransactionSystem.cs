@@ -667,13 +667,11 @@ namespace Deveel.Data {
 				//      }
 
 				// Generate transaction error if dirty selects are detected?
-				transaction_error_on_dirty_select =
-					GetConfigBoolean("transaction_error_on_dirty_select", true);
+				transaction_error_on_dirty_select = GetConfigBoolean("transaction_error_on_dirty_select", true);
 				Debug.Write(DebugLevel.Message, this, "transaction_error_on_dirty_select = " + transaction_error_on_dirty_select);
 
 				// Case insensitive identifiers?
-				ignore_case_for_identifiers =
-					GetConfigBoolean("ignore_case_for_identifiers", false);
+				ignore_case_for_identifiers = GetConfigBoolean("ignore_case_for_identifiers", false);
 				Debug.Write(DebugLevel.Message, this, "ignore_case_for_identifiers = " + ignore_case_for_identifiers);
 
 				// ---- Store system setup ----
@@ -746,7 +744,7 @@ namespace Deveel.Data {
 					String lib = GetConfigString("regex_library", null);
 					lib_used = lib;
 					// Convert the library string to a class name
-					regex_bridge = lib != null ? RegexStringToClass(lib) : "Deveel.Data.Text.SystemRegex";
+					regex_bridge = lib != null ? RegexStringToClass(lib) : "Deveel.Data.Text.SystemDeveelRegexLibrary";
 				}
 
 				if (regex_bridge != null) {

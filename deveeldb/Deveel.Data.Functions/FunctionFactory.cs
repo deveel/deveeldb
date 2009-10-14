@@ -43,12 +43,14 @@ namespace Deveel.Data.Functions {
 			GLOB_EXPRESSION = new Expression();
 			GLOB_EXPRESSION.AddElement(TObject.GetString("*"));
 			GLOB_EXPRESSION.Text.Append("*");
+
+			GLOB_LIST = new Expression[] { GLOB_EXPRESSION };
 		}
 
 		///<summary>
 		/// Represents a function argument * for glob's such as <c>count(*)</c>
 		///</summary>
-		public static readonly Expression[] GLOB_LIST = new Expression[] { GLOB_EXPRESSION };
+		public static readonly Expression[] GLOB_LIST;
 
 		/// <summary>
 		/// The mapping of 'fun_name' to 'fun_type' for each function that's 

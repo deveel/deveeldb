@@ -514,13 +514,15 @@ namespace Deveel.Data.Client {
 			return db_interface.Login(default_schema, username, password, this);
 		}
 
-		public override void EnlistTransaction(System.Transactions.Transaction transaction) {
+#if !MONO
+		public override void EnlistTransaction (System.Transactions.Transaction transaction) {
 			if (currentTransaction != null)
-				throw new InvalidOperationException();
-
-			if (!transaction.EnlistPromotableSinglePhase(new PromotableConnection(this)))
-				throw new InvalidOperationException();
+				throw new InvalidOperationException ();
+	
+			if (!transaction.EnlistPromotableSinglePhase (new PromotableConnection (this)))
+				throw new InvalidOperationException ();
 		}
+#endif
 
 		public override void Open() {
 			lock (stateLock) {
@@ -1052,6 +1054,7 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+#if !MONO
 		private class PromotableConnection : IPromotableSinglePhaseNotification {
 			public PromotableConnection(DeveelDbConnection conn) {
 				this.conn = conn;
@@ -1085,5 +1088,6 @@ namespace Deveel.Data.Client {
 				conn.currentTransaction = null;
 			}
 		}
+#endif
 	}
 }

@@ -22,8 +22,6 @@
 
 using System;
 
-using Deveel.Data.Util;
-
 namespace Deveel.Data.Functions {
 	// A function that formats an input DateTime object to the format
 	// given using the string format.
