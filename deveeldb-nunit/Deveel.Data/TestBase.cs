@@ -28,8 +28,8 @@ namespace Deveel.Data {
 			system.Close();
 		}
 
-		protected DbConnection CreateConnection() {
-			return (DbConnection)system.GetConnection(AdminUser, AdminPassword);
+		protected DeveelDbConnection CreateConnection() {
+			return (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
 		}
 	}
 }

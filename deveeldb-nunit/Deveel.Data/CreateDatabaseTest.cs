@@ -10,9 +10,9 @@ namespace Deveel.Data {
 		[Test]
 		public void CreateTables() {
 			Console.Out.WriteLine("--- Creating Tables ---");
-			DbConnection connection = CreateConnection();
+			DeveelDbConnection connection = CreateConnection();
 
-			DbCommand command = connection.CreateCommand("    CREATE TABLE Person ( " +
+			DeveelDbCommand command = connection.CreateCommand("    CREATE TABLE Person ( " +
 									"       name      VARCHAR(100) NOT NULL, " +
 									"       age       INTEGER, " +
 									"       lives_in  VARCHAR(100) ) ");
@@ -33,11 +33,11 @@ namespace Deveel.Data {
 
 		[Test]
 		public void InsertDataPerson() {
-			DbConnection connection = CreateConnection();
+			DeveelDbConnection connection = CreateConnection();
 			
 			Console.Out.WriteLine("-- Adding to Person Table --");
 
-			DbCommand command;
+			DeveelDbCommand command;
 
 			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
 			                                             "      ( 'Robert Bellamy', 24, 'England' ) ");
@@ -95,11 +95,11 @@ namespace Deveel.Data {
 
 		[Test]
 		public void InsertDataMusicGroup() {
-			DbConnection connection = CreateConnection();
+			DeveelDbConnection connection = CreateConnection();
 
 			Console.Out.WriteLine("-- Adding to MusicGroup Table --");
 
-			DbCommand command = connection.CreateCommand("    INSERT INTO MusicGroup " +
+			DeveelDbCommand command = connection.CreateCommand("    INSERT INTO MusicGroup " +
 			                                             "      ( name, country_of_origin ) VALUES " +
 			                                             "      ( 'Oasis',       'England' ), " +
 			                                             "      ( 'Fatboy Slim', 'England' ), " +
@@ -119,11 +119,11 @@ namespace Deveel.Data {
 
 		[Test]
 		public void InsertDataListensTo() {
-			DbConnection connection = CreateConnection();
+			DeveelDbConnection connection = CreateConnection();
 
 			Console.Out.WriteLine("-- Adding to ListensTo Table --");
 
-			DbCommand command = connection.CreateCommand("    INSERT INTO ListensTo " +
+			DeveelDbCommand command = connection.CreateCommand("    INSERT INTO ListensTo " +
 			                                             "      ( person_name, music_group_name ) VALUES " +
 			                                             "      ( 'David Powell',             'Metallica' ), " +
 			                                             "      ( 'David Powell',             'Cure' ), " +
@@ -164,6 +164,12 @@ namespace Deveel.Data {
 			InsertDataListensTo();
 
 			Console.Out.WriteLine("--- Complete ---");
+		}
+
+		[Test]
+		public void OpenDatabase() {
+			// we do nothing here cause the SetUp and TearDown methods
+			// will open and close the connection...
 		}
 	}
 }
