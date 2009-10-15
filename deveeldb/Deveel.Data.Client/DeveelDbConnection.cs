@@ -873,7 +873,7 @@ namespace Deveel.Data.Client {
 		}
 
 		protected override DbCommand CreateDbCommand() {
-			return CreateDbCommand();
+			return CreateCommand();
 		}
 
 		/// <inheritdoc/>

@@ -55,11 +55,7 @@ namespace Deveel.Data.Sql {
 		/// The list of all IFromTable objects of resources referenced 
 		/// in this query.
 		/// </summary>
-#if NET_2_0
-		protected List<IFromTable> table_list = new List<IFromTable>();
-#else
 		protected ArrayList table_list = new ArrayList();
-#endif
 
 		/// <summary>
 		/// Resets this statement so it may be re-prepared and evaluated again.

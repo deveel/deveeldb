@@ -309,8 +309,9 @@ namespace Deveel.Data.Store {
 		}
 
 
-		public void Read(long position, byte[] buf, int off, int len) {
+		public int Read(long position, byte[] buf, int off, int len) {
 			// Reads the array (potentially across multiple slices).
+			int count = 0;
 			while (len > 0) {
 				int file_i = (int)(position / max_slice_size);
 				long file_p = (position % max_slice_size);
@@ -324,16 +325,22 @@ namespace Deveel.Data.Store {
 						if (!m_open) {
 							throw new IOException("Store not open.");
 						}
-						return;
+						return 0;
 					}
 					slice = (FileSlice)slice_list[file_i];
 				}
-				slice.data.Read(file_p, buf, off, file_len);
 
-				position += file_len;
-				off += file_len;
-				len -= file_len;
+				int read_count =slice.data.Read(file_p, buf, off, file_len);
+				if (read_count == 0)
+					break;
+
+				position += read_count;
+				off += read_count;
+				len -= read_count;
+				count += read_count;
 			}
+
+			return count;
 		}
 
 		public void Write(long position, byte[] buf, int off, int len) {

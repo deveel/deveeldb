@@ -82,6 +82,7 @@ namespace Deveel.Data {
 
 		#region Implicit Operators
 
+		/*
 		public static bool operator ==(TObject a, TObject b) {
 			if ((object)a == null && (object)b == null)
 				return true;
@@ -96,6 +97,7 @@ namespace Deveel.Data {
 		public static bool operator !=(TObject a, TObject b) {
 			return !(a == b);
 		}
+		*/
 
 		public static bool operator >(TObject a, TObject b) {
 			if (a == null && b == null)
@@ -269,8 +271,9 @@ namespace Deveel.Data {
 		/// </exception>
 		public bool ToBoolean(out bool isNull) {
 			if (TType is TBooleanType) {
-				isNull = false;
-				return (Boolean)Object;
+				object value = Object;
+				isNull = (value == null);
+				return (value == null ? false : (bool)value);
 			}
 			isNull = true;
 			return false;

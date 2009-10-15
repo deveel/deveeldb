@@ -741,10 +741,10 @@ namespace Deveel.Data {
 					// Convert the library string to a class name
 					regex_bridge = RegexStringToClass(force_lib);
 				} else {
-					String lib = GetConfigString("regex_library", null);
+					String lib = GetConfigString("regex_library", "Deveel.Data.Text.DeveelRegexLibrary");
 					lib_used = lib;
 					// Convert the library string to a class name
-					regex_bridge = lib != null ? RegexStringToClass(lib) : "Deveel.Data.Text.SystemDeveelRegexLibrary";
+					regex_bridge = lib != null ? RegexStringToClass(lib) : "Deveel.Data.Text.SystemRegexLibrary";
 				}
 
 				if (regex_bridge != null) {

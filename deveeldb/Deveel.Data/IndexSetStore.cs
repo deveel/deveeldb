@@ -385,7 +385,7 @@ namespace Deveel.Data {
 		/// that are used by this structure (as Long).
 		/// </summary>
 		/// <param name="list"></param>
-		public void addAllAreasUsed(ArrayList list) {
+		public void AddAllAreasUsed(ArrayList list) {
 			list.Add(start_area.Id);
 			list.Add(index_header_p);
 			for (int i = 0; i < index_blocks.Length; ++i) {

@@ -64,7 +64,7 @@ namespace Deveel.Data.Store {
 		public void Open(bool is_read_only) {
 			lock (l) {
 				data = new FileStream(file, FileMode.OpenOrCreate, is_read_only ? FileAccess.Read : FileAccess.ReadWrite);
-				size = file.Length;
+				size = data.Length;
 				is_open = true;
 			}
 		}
@@ -90,14 +90,16 @@ namespace Deveel.Data.Store {
 		}
 
 
-		public void Read(long position, byte[] buf, int off, int len) {
+		public int Read(long position, byte[] buf, int off, int len) {
 			// Make sure we don't Read past the end
 			lock (l) {
 				len = System.Math.Max(0, System.Math.Min(len, (int)(size - position)));
+				int count = 0;
 				if (position < size) {
 					data.Seek(position, SeekOrigin.Begin);
-					data.Read(buf, off, len);
+					count = data.Read(buf, off, len);
 				}
+				return count;
 			}
 		}
 

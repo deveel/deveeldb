@@ -196,7 +196,7 @@ namespace Deveel.Data.Store {
 				lock (file.data) {
 					count = (int)System.Math.Min(count, file.end_pointer - fp);
 					if (count <= 0)
-						return -1;
+						return 0;
 
 					fp = file.data.Seek(fp, SeekOrigin.Begin);
 					int act_read = file.data.Read(buffer, offset, count);

@@ -70,7 +70,10 @@ namespace Deveel.Data.Store {
 		/// <param name="buf"></param>
 		/// <param name="off"></param>
 		/// <param name="len"></param>
-		void Read(long position, byte[] buf, int off, int len);
+		/// <returns>
+		/// Returns the actual count of bytes read.
+		/// </returns>
+		int Read(long position, byte[] buf, int off, int len);
 
 		/// <summary>
 		/// Writes a block of data to the underlying data area from the byte 

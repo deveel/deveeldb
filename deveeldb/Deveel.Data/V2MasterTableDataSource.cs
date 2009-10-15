@@ -745,7 +745,7 @@ namespace Deveel.Data {
 				list_structure.AddAllAreasUsed(used_areas);
 
 				// Adds all the user areas input the index store.
-				index_store.addAllAreasUsed(used_areas);
+				index_store.AddAllAreasUsed(used_areas);
 
 				// Search the list structure for all areas
 				long elements = list_structure.AddressableNodeCount;

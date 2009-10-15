@@ -595,8 +595,7 @@ namespace Deveel.Data {
 				if (scheme_type.Equals("InsertSearch")) {
 					// Search the TableIndexDef for this column
 					DataIndexSetDef index_set_def = DataIndexSetDef;
-					int index_i = index_set_def.FindIndexForColumns(
-						new String[] { column_def.Name });
+					int index_i = index_set_def.FindIndexForColumns(new String[] { column_def.Name });
 					return CreateSelectableSchemeForIndex(index_set, table, index_i);
 				} else if (scheme_type.Equals("BlindSearch")) {
 					return new BlindSearch(table, column);
