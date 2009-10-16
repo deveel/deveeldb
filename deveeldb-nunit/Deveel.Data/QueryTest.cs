@@ -31,18 +31,73 @@ namespace Deveel.Data {
 		[Test()]
 		public void CountPeople() {
 			Console.Out.WriteLine("Counting the number of rows in 'Person' table...");
-			
+
 			IDbConnection connection = CreateConnection();
 			// Create a Statement object to execute the queries on,
 			IDbCommand statement = connection.CreateCommand();
 			IDataReader result;
-			
+
 			// How many rows are in the 'Person' table?
 			statement.CommandText = "SELECT COUNT(*) FROM Person";
 			result = statement.ExecuteReader();
 			if (result.Read()) {
 				Console.Out.WriteLine("Rows in 'Person' table: " + result.GetInt32(0));
 			}
+		}
+
+		[Test]
+		public void AvgAge() {
+			Console.Out.WriteLine("Computing the average ages of people in 'Person' table...");
+
+			IDbConnection connection = CreateConnection();
+
+			IDbCommand command = connection.CreateCommand();
+			command.CommandText = "SELECT AVG(age) FROM Person";
+			IDataReader reader = command.ExecuteReader();
+
+			if (reader.Read())
+				Console.Out.WriteLine("Average age of people: {0}", reader.GetDouble(0));
+
+			reader.Close();
+		}
+
+		[Test]
+		public void PeopleInAfrica() {
+			Console.Out.WriteLine("Selecting all the people in 'Person' table who live in Africa...");
+
+			IDbConnection connection = CreateConnection();
+
+			IDbCommand command = connection.CreateCommand();
+			command.CommandText = "SELECT name FROM Person WHERE lives_in = 'Africa' ORDER BY name";
+
+			IDataReader reader = command.ExecuteReader();
+			Console.Out.WriteLine("All people that live in Africa:");
+			while (reader.Read()) {
+				Console.Out.WriteLine("  " + reader.GetString(0));
+			}
+			Console.Out.WriteLine();
+		}
+
+		[Test]
+		public void OasisOrBeatles() {
+			// List the name and music group of all the people that listen to
+			// either 'Oasis' or 'Beatles'
+			IDbConnection connection = CreateConnection();
+			IDbCommand command = connection.CreateCommand();
+			command.CommandText = "   SELECT Person.name, MusicGroup.name " +
+								  "     FROM Person, ListensTo, MusicGroup " +
+								  "    WHERE MusicGroup.name IN ( 'Oasis', 'Beatles' ) " +
+								  "      AND Person.name = ListensTo.person_name " +
+								  "      AND ListensTo.music_group_name = MusicGroup.name " +
+								  " ORDER BY MusicGroup.name, Person.name ";
+			IDataReader result = command.ExecuteReader();
+			Console.Out.WriteLine("All people that listen to either Beatles or Oasis:");
+			while (result.Read()) {
+				Console.Out.Write("  " + result.GetString(0));
+				Console.Out.Write(" listens to ");
+				Console.Out.WriteLine(result.GetString(1));
+			}
+			Console.Out.WriteLine();
 		}
 	}
 }
