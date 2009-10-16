@@ -143,16 +143,6 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a IDebugLogger object that we use to log debug messages to.
-		/// </summary>
-		/*
-		TODO:
-		public IDebugLogger Debug {
-			get { return System.Debug; }
-		}
-		*/
-
-		/// <summary>
 		/// Returns the number of visible tables being managed by this transaction.
 		/// </summary>
 		protected virtual int VisibleTableCount {

@@ -33,7 +33,7 @@ namespace Deveel.Data.Store {
 	/// we may use it to implement a scattering store that includes data 
 	/// across multiple files in the filesystem.
 	/// </remarks>
-	interface IStoreDataAccessor {
+	interface IStoreDataAccessor : IDisposable {
 		/// <summary>
 		/// Returns true if the resource exists.
 		/// </summary>

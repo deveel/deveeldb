@@ -178,7 +178,7 @@ namespace Deveel.Data.Client {
 		}
 
 		protected override DbParameter GetParameter(int index) {
-			return this[index];
+			return list[index] as DbParameter;
 		}
 
 		protected override DbParameter GetParameter(string parameterName) {

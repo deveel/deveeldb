@@ -646,26 +646,8 @@ namespace Deveel.Data.Store {
 
 						}
 
-						if (skip_body) {
-							din.BaseStream.Seek(size, SeekOrigin.Begin);
-							/*
-							int to_skip = size;
-							while (to_skip > 0) {
-								// original java way...
-								// to_skip -= din.skip(to_skip);
-								/*
-								if (din.BaseStream is InputStream) {
-									to_skip -= (int)((InputStream)din.BaseStream).Skip(to_skip);
-								} else {
-								*
-									long curPos = din.BaseStream.Position;
-									long newPos = din.BaseStream.Seek(to_skip, SeekOrigin.Current);
-									to_skip -= (int)(newPos - curPos);
-								//}
-							}
-							 * */
-						}
-
+						if (skip_body)
+							din.BaseStream.Seek(size, SeekOrigin.Current);
 					}
 
 				} finally {
@@ -760,24 +742,6 @@ namespace Deveel.Data.Store {
 
 				BinaryReader din = new BinaryReader(data.FileStream, Encoding.Unicode);
 				data.FileStream.Seek(start, SeekOrigin.Begin);
-				/*
-				long count = start;
-				// Skip to the offset
-				while (count > 0) {
-					// original java way...
-					// count -= din.skip(count);
-					///*
-					//if (din.BaseStream is InputStream) {
-					//    count -= (int)((InputStream)din.BaseStream).Skip(count);
-					//} else {
-					//*
-					//    long curPos = din.BaseStream.Position;
-					//    long newPos = din.BaseStream.Seek(count, SeekOrigin.Current);
-					//    count -= (int)(newPos - curPos);
-					////}
-					count -= InputStream.Skip(din, count);
-				}
-				*/
 
 				// The list of resources we updated
 				ArrayList resources_updated = new ArrayList();
@@ -796,16 +760,11 @@ namespace Deveel.Data.Store {
 					if (type == 2) {       // Resource id tag
 						long id = din.ReadInt64();
 						int len = din.ReadInt32();
-						StringBuilder buf = new StringBuilder();
+						StringBuilder buf = new StringBuilder(len);
 						for (int i = 0; i < len; ++i) {
 							buf.Append(din.ReadChar());
 						}
 						String resource_name = buf.ToString();
-						/*
-						byte[] buf = new byte[len];
-						din.Read(buf, 0, len);
-						string resource_name = Encoding.Unicode.GetString(buf);
-						*/
 						// Put this input the map
 						id_name_map[id] = resource_name;
 
@@ -911,9 +870,6 @@ namespace Deveel.Data.Store {
 						for (int i = 0; i < len; i++) {
 							output.Write(resource_name[i]);
 						}
-						// output.Write(resource_name);
-						// for (int i = 0; i < resource_name.Length; i++)
-						//	output.Write(resource_name[i]);
 						// Put this id input the cache
 						v = cur_seq_id;
 						resource_id_map[resource_name] = v;
@@ -1803,7 +1759,6 @@ namespace Deveel.Data.Store {
 			private readonly Thread thread;
 			private bool finished = false;
 			private bool actually_finished;
-			private readonly object lockObject = new object();
 
 			internal JournalingThread(JournalledSystem js) {
 				this.js = js;
@@ -1910,7 +1865,6 @@ namespace Deveel.Data.Store {
 			[MethodImpl(MethodImplOptions.Synchronized)]
 			public void PersistArchives(int until_size) {
 				Monitor.PulseAll(this);
-
 				int sz;
 				lock (js.top_journal_lock) {
 					sz = js.journal_archives.Count;
@@ -1918,16 +1872,14 @@ namespace Deveel.Data.Store {
 				// Wait until the sz is smaller than 'until_size'
 				while (sz > until_size) {
 					try {
-						Monitor.Wait(this, 300);
+						Monitor.Wait(this);
 					} catch (ThreadInterruptedException e) {
 						/* ignore */
 					}
-
 					lock (js.top_journal_lock) {
 						sz = js.journal_archives.Count;
 					}
 				}
-
 			}
 
 			[MethodImpl(MethodImplOptions.Synchronized)]

@@ -210,23 +210,6 @@ namespace Deveel.Data.Util {
 			return has_read;
 		}
 
-		/*
-		/// <inheritdoc/>
-		public override long Skip(long n) {
-			long act_skip = System.Math.Min(n, size - position);
-
-			if (n < 0) {
-				throw new IOException("Negative skip");
-			}
-			position += act_skip;
-			if (buffer_pos == -1 || (position - buffer_pos) > BUFFER_SIZE) {
-				FillBuffer((position / BUFFER_SIZE) * BUFFER_SIZE);
-			}
-
-			return act_skip;
-		}
-		*/
-
 		/// <inheritdoc/>
 		public override long Seek(long offset, SeekOrigin origin) {
 			if (offset < 0)
@@ -247,40 +230,8 @@ namespace Deveel.Data.Util {
 			return position;
 		}
 
-		/*
-		/// <inheritdoc/>
-		public override int Available {
-			get { return (int)System.Math.Min((long)Int32.MaxValue, (size - position)); }
-		}
-		*/
-
 		/// <inheritdoc/>
 		public override void Close() {
 		}
-
-		/*
-		/// <inheritdoc/>
-		public override void Mark(int limit) {
-			mark_position = position;
-		}
-
-		/// <inheritdoc/>
-		public override void Reset() {
-			position = mark_position;
-			long fill_pos = (position / BUFFER_SIZE) * BUFFER_SIZE;
-			if (fill_pos != buffer_pos) {
-				try {
-					FillBuffer(fill_pos);
-				} catch (IOException e) {
-					throw new ApplicationException(e.Message);
-				}
-			}
-		}
-
-		/// <inheritdoc/>
-		public override bool MarkSupported {
-			get { return true; }
-		}
-		*/
 	}
 }

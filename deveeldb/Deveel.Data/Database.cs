@@ -458,12 +458,13 @@ namespace Deveel.Data {
 			locker.SetMode(LockingMode.EXCLUSIVE_MODE);
 			try {
 				try {
-					DeveelDbConnection conn = connection.GetDbConnection();
+					IDbConnection conn = connection.GetDbConnection();
 
 					// Is the username/password in the database?
-					DeveelDbCommand command = conn.CreateCommand(" SELECT \"UserName\" FROM \"sUSRPassword\" " +
-					                                    "  WHERE \"sUSRPassword.UserName\" = ? " +
-					                                    "    AND \"sUSRPassword.Password\" = ? ");
+					IDbCommand command = conn.CreateCommand();
+					command.CommandText = " SELECT \"UserName\" FROM \"sUSRPassword\" " +
+					                      "  WHERE \"sUSRPassword.UserName\" = ? " +
+					                      "    AND \"sUSRPassword.Password\" = ? ";
 					command.Parameters.Add(username);
 					command.Parameters.Add(password);
 					command.Prepare();

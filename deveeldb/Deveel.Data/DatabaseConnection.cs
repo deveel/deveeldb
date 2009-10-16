@@ -73,7 +73,7 @@ namespace Deveel.Data {
 		/// The current <see cref="IDbConnection"/> object that can be used 
 		/// to access the transaction internally.
 		/// </summary>
-		private DeveelDbConnection db_connection;
+		private IDbConnection db_connection;
 
 		/// <summary>
 		/// A Hashtable of DataTable objects that have been created within this connection.
@@ -304,7 +304,7 @@ namespace Deveel.Data {
 		/// </list>
 		/// </remarks>
 		/// <returns></returns>
-		public DeveelDbConnection GetDbConnection() {
+		public IDbConnection GetDbConnection() {
 			if (db_connection == null)
 				db_connection = InternalDbHelper.CreateDbConnection(User, this);
 			return db_connection;

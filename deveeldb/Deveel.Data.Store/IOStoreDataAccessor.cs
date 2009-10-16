@@ -162,5 +162,10 @@ namespace Deveel.Data.Store {
 				}
 			}
 		}
+
+		public void Dispose() {
+			if (data != null)
+				data.Close();
+		}
 	}
 }

@@ -446,5 +446,14 @@ namespace Deveel.Data.Store {
 
 		}
 
+		public void Dispose() {
+			int sz = slice_list.Count;
+			if (sz > 0) {
+				for (int i = 0; i < sz; i++) {
+					FileSlice slice = (FileSlice) slice_list[i];
+					slice.data.Dispose();
+				}
+			}
+		}
 	}
 }

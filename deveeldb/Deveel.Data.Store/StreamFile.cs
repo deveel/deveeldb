@@ -23,8 +23,6 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Util;
-
 namespace Deveel.Data.Store {
 	/// <summary>
 	/// A class used to write and read from/to a file on the underlying
@@ -128,28 +126,6 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		/*
-		/// <summary>
-		/// Opens a <see cref="Stream"/> used to write to the file.
-		/// </summary>
-		/// <remarks>
-		/// Only one output stream may be open on the file at once.
-		/// </remarks>
-		/// <returns></returns>
-		public Stream GetOutputStream () {
-			return fsstream;
-		}
-		
-		/// <summary>
-		/// Returns a <see cref="Stream"/> that allows us to read from the start to 
-		/// the end of the file.
-		/// </summary>
-		/// <returns></returns>
-		public Stream GetInputStream() {
-			return fsstream;
-		}
-		*/
-
 		public Stream FileStream {
 			get { return fsstream; }
 		}
@@ -204,17 +180,6 @@ namespace Deveel.Data.Store {
 					return act_read;
 				}
 			}
-
-			/*
-			public override void WriteByte(byte value) {
-				lock (file.data) {
-					file.data.Seek(file.end_pointer, SeekOrigin.Begin);
-					file.data.WriteByte(value);
-					++file.end_pointer;
-					++fp;
-				}
-			}
-			*/
 
 			public override void Write(byte[] buffer, int offset, int count) {
 				if (count > 0) {

@@ -958,47 +958,6 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		/*
-		/// <summary>
-		///A data resource that is being buffered. 
-		/// </summary>
-		private sealed class BResource {
-			/// <summary>
-			///The id assigned to the resource. 
-			/// </summary>
-			private readonly long id;
-
-			/// <summary>
-			///The unique name of the resource within the store. 
-			/// </summary>
-			private readonly String name;
-
-			/// <summary>
-			/// Constructs the resource. 
-			/// </summary>
-			/// <param name="id"></param>
-			/// <param name="name"></param>
-			BResource(long id, String name) {
-				this.id = id;
-				this.name = name;
-			}
-
-			/// <summary>
-			/// Returns the id assigned to this resource. 
-			/// </summary>
-			internal long Id {
-				get { return id; }
-			}
-
-			/// <summary>
-			/// Returns the name of this resource.
-			/// </summary>
-			internal string Name {
-				get { return name; }
-			}
-		}
-		*/
-
 		/// <summary>
 		/// A <see cref="IComparer"/> used to sort cache entries.
 		/// </summary>

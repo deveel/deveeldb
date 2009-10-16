@@ -1480,11 +1480,11 @@ namespace Deveel.Data.Store {
 			private readonly AbstractStore store;
 			private long pointer;
 			private readonly long end_pointer;
-			// private long mark_point;
+			private long start_pointer;
 
 			public StoreAreaInputStream(AbstractStore store, long pointer, long max_size) {
 				this.store = store;
-				this.pointer = pointer;
+				this.pointer = start_pointer = pointer;
 				end_pointer = pointer + max_size;
 				// mark_point = -1;
 			}
@@ -1512,7 +1512,7 @@ namespace Deveel.Data.Store {
 
 			//TODO: check!
 			public override long Length {
-				get { return end_pointer; }
+				get { return end_pointer - start_pointer; }
 			}
 
 			//TODO: check!
@@ -1542,20 +1542,6 @@ namespace Deveel.Data.Store {
 					pointer += offset;
 
 				return pointer;
-
-				/*
-				if (origin == SeekOrigin.Current) {
-					Skip(offset);
-					return pointer;
-				} else if (origin == SeekOrigin.Begin) {
-					//TODO: check this...
-					if (offset > end_pointer)
-						throw new ArgumentException();
-					pointer = offset;
-					return pointer;
-				}
-				throw new NotSupportedException();
-				*/
 			}
 
 			public override void SetLength(long value) {
@@ -1584,37 +1570,9 @@ namespace Deveel.Data.Store {
 				return read_count;
 			}
 
-			/*
-			public override long Skip(long skip) {
-				long to_skip = System.Math.Min(end_pointer - pointer, skip);
-				pointer += to_skip;
-				return to_skip;
-			}
-			*/
-
-			/*
-			public override int Available {
-				get { return (int) (end_pointer - pointer); }
-			}
-			*/
-
 			public override void Close() {
 				// Do nothing
 			}
-
-			/*
-			public override void Mark(int read_limit) {
-				mark_point = pointer;
-			}
-
-			public override void Reset() {
-				pointer = mark_point;
-			}
-
-			public override bool MarkSupported {
-				get { return true; }
-			}
-			*/
 		}
 
 

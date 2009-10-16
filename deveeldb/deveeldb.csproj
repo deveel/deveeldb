@@ -47,7 +47,15 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Deveel.Data.Client\ConnectionString.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbProcedureTrigger.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
     <Compile Include="Deveel.Data.Client\ParemeterStyle.cs" />
     <Compile Include="Deveel.Data.Client\TriggerEventMoment.cs" />
@@ -169,20 +177,10 @@
     <Compile Include="Deveel.Data.Client\ILocalBootable.cs" />
     <Compile Include="Deveel.Data.Client\DbBlob.cs" />
     <Compile Include="Deveel.Data.Client\DbClob.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
     <Compile Include="Deveel.Data.Client\ResultSet.cs" />
     <Compile Include="Deveel.Data.Client\DbDataException.cs" />
     <Compile Include="Deveel.Data.Client\DbStreamableBlob.cs" />
     <Compile Include="Deveel.Data.Client\DbStreamableClob.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\ProtocolConstants.cs" />
     <Compile Include="Deveel.Data.Client\IQueryResponse.cs" />
     <Compile Include="Deveel.Data.Client\RemoteDatabaseInterface.cs" />

@@ -239,16 +239,6 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the IDebugLogger object that we use to log debug messages to.
-		/// </summary>
-		/*
-		TODO:
-		public IDebugLogger Debug {
-			get { return System.Debug; }
-		}
-		*/
-
-		/// <summary>
 		/// Returns the name given to this conglomerate.
 		/// </summary>
 		internal string Name {
