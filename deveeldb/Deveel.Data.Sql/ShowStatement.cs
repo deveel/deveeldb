@@ -60,25 +60,6 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private SearchExpression where_clause = new SearchExpression();
 
-		/// <summary>
-		/// Creates an empty table with the given column names.
-		/// </summary>
-		/// <param name="d"></param>
-		/// <param name="name"></param>
-		/// <param name="cols"></param>
-		/// <returns></returns>
-		static TemporaryTable CreateEmptyTable(Database d, String name, String[] cols) {
-			// Describe the given table...
-			DataTableColumnDef[] fields = new DataTableColumnDef[cols.Length];
-			for (int i = 0; i < cols.Length; ++i) {
-				fields[i] = DataTableColumnDef.CreateStringColumn(cols[i]);
-			}
-			TemporaryTable temp_table = new TemporaryTable(d, name, fields);
-			// No entries...
-			temp_table.SetupAllSelectableSchemes();
-			return temp_table;
-		}
-
 		// ---------- Implemented from Statement ----------
 
 		public override void Prepare() {
@@ -197,64 +178,6 @@ namespace Deveel.Data.Sql {
 					return executor.Execute(database, command);
 
 				} 
-				/*
-				suppressed...
-				else if (show_type.Equals("jdbc_procedures")) {
-					// Need implementing?
-					show_table = CreateEmptyTable(d, "JDBCProcedures",
-						new String[] { "PROCEDURE_CAT", "PROCEDURE_SCHEM", "PROCEDURE_NAME",
-                           "R1", "R2", "R3", "REMARKS", "PROCEDURE_TYPE" });
-				} else if (show_type.Equals("jdbc_procedure_columns")) {
-					// Need implementing?
-					show_table = CreateEmptyTable(d, "JDBCProcedureColumns",
-						new String[] { "PROCEDURE_CAT", "PROCEDURE_SCHEM", "PROCEDURE_NAME",
-                           "COLUMN_NAME", "COLUMN_TYPE", "DATA_TYPE",
-                           "TYPE_NAME", "PRECISION", "LENGTH", "SCALE",
-                           "RADIX", "NULLABLE", "REMARKS" });
-				} else if (show_type.Equals("jdbc_catalogs")) {
-					// Need implementing?
-					show_table = CreateEmptyTable(d, "JDBCCatalogs",
-												  new String[] { "TABLE_CATALOG" });
-				} else if (show_type.Equals("jdbc_table_types")) {
-					// Describe the given table...
-					DataTableColumnDef[] fields = new DataTableColumnDef[1];
-					fields[0] = DataTableColumnDef.CreateStringColumn("TABLE_TYPE");
-
-					TemporaryTable temp_table =
-									   new TemporaryTable(d, "JDBCTableTypes", fields);
-					String[] supported_types = {
-            "TABLE", "VIEW", "SYSTEM TABLE",
-            "TRIGGER", "FUNCTION", "SEQUENCE" };
-					for (int i = 0; i < supported_types.Length; ++i) {
-						temp_table.NewRow();
-						temp_table.SetRowObject(TObject.GetString(supported_types[i]),
-												"JDBCTableTypes.TABLE_TYPE");
-					}
-					temp_table.SetupAllSelectableSchemes();
-					show_table = temp_table;
-					order_set = new int[] { 0 };
-				} else if (show_type.Equals("jdbc_best_row_identifier")) {
-					// Need implementing?
-					show_table = CreateEmptyTable(d, "JDBCBestRowIdentifier",
-						  new String[] { "SCOPE", "COLUMN_NAME", "DATA_TYPE", "TYPE_NAME",
-                "COLUMN_SIZE", "BUFFER_LENGTH", "DECIMAL_DIGITS",
-                "PSEUDO_COLUMN" });
-				} else if (show_type.Equals("jdbc_version_columns")) {
-					// Need implementing?
-					show_table = CreateEmptyTable(d, "JDBCVersionColumn",
-						  new String[] { "SCOPE", "COLUMN_NAME", "DATA_TYPE", "TYPE_NAME",
-                "COLUMN_SIZE", "BUFFER_LENGTH", "DECIMAL_DIGITS",
-                "PSEUDO_COLUMN" });
-				} else if (show_type.Equals("jdbc_index_info")) {
-					// Need implementing?
-					show_table = CreateEmptyTable(d, "JDBCIndexInfo",
-						  new String[] { "TABLE_CATALOG", "TABLE_SCHEM", "TABLE_NAME",
-                "NON_UNIQUE", "INDEX_QUALIFIER", "INDEX_NAME", "TYPE",
-                "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
-                "CARDINALITY", "PAGES", "FILTER_CONDITION"
-              });
-				 }
-				 */
 				 else {
 					throw new StatementException("Unknown SHOW identifier: " + show_type);
 				}

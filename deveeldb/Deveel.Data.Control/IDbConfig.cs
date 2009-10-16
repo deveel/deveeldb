@@ -21,6 +21,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 
 namespace Deveel.Data.Control {
 	///<summary>
@@ -30,7 +31,7 @@ namespace Deveel.Data.Control {
 	/// This object can be used to programmatically setup configuration 
 	/// properies in a database system.
 	/// </remarks>
-	public interface IDbConfig {
+	public interface IDbConfig : ICloneable, IEnumerable {
 		///<summary>
 		/// Returns the current path set for this configuration.
 		///</summary>
@@ -55,11 +56,23 @@ namespace Deveel.Data.Control {
 		///<returns></returns>
 		string GetValue(string property_key);
 
-		///<summary>
-		/// Makes an immutable copy of this configuration.
-		///</summary>
-		///<returns></returns>
-		IDbConfig ImmutableCopy();
-
+		/// <summary>
+		/// Merges the current configurations with the ones contained in
+		/// the given <paramref name="config">configuration</paramref>.
+		/// </summary>
+		/// <param name="config">The source configuration with which
+		/// to merge the current configuration.</param>
+		/// <remarks>
+		/// This method takes in considerations only the values not
+		/// already defined in the current configuration.
+		/// This means that if the key <c>name</c> is defined in the current
+		/// configuration and it's defined also in <paramref name="config"/>,
+		/// the second one won't be taken in consideration during the merge.
+		/// </remarks>
+		/// <returns>
+		/// Returns the current instance of the <see cref="IDbConfig"/>
+		/// resulting from the merge with the given <paramref name="config"/>.
+		/// </returns>
+		IDbConfig Merge(IDbConfig config);
 	}
 }

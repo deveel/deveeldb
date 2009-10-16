@@ -114,7 +114,7 @@ namespace Deveel.Data.Client {
 
 				// Write output the magic number
 				output.Write(0x0ced007);
-				// Write output the JDBC driver version
+				// Write output the driver version
 				output.Write(DeveelDbConnection.DRIVER_MAJOR_VERSION);
 				output.Write(DeveelDbConnection.DRIVER_MINOR_VERSION);
 				byte[] arr = bout.ToArray();

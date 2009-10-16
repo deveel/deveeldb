@@ -178,8 +178,7 @@ namespace Deveel.Data {
 				// All that match the given object parameter
 				// It's most likely this will reduce the search by the most so we do
 				// it first.
-				t1 = t1.SimpleSelect(context, param_col, EQUALS,
-										   new Expression(TObject.GetString(param)));
+				t1 = t1.SimpleSelect(context, param_col, EQUALS, new Expression(TObject.GetString(param)));
 
 				// The next is a single exhaustive select through the remaining records.
 				// It finds all grants that match either public or the grantee is the
@@ -189,18 +188,13 @@ namespace Deveel.Data {
 				Expression user_check =
 					Expression.Simple(grantee_col, EQUALS, TObject.GetString(username));
 				if (include_public_privs) {
-					user_check = new Expression(
-						user_check, Operator.Get("or"),
-						Expression.Simple(grantee_col, EQUALS, PublicUsername)
-					);
+					user_check = new Expression(user_check, Operator.Get("or"), Expression.Simple(grantee_col, EQUALS, PublicUsername));
 				}
 				// Expression: ("object_col" = object AND
 				//              ("grantee_col" = username OR "grantee_col" = 'public'))
 				// All that match the given username or public and given object
-				Expression expr = new Expression(
-					Expression.Simple(object_col, EQUALS, TObject.GetInt4((int)obj)),
-					Operator.Get("and"),
-					user_check);
+				Expression expr = new Expression(Expression.Simple(object_col, EQUALS, TObject.GetInt4((int) obj)),
+				                                 Operator.Get("and"), user_check);
 
 				// Are we only searching for grant options?
 				if (only_grant_options) {

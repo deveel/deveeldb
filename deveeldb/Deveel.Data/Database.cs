@@ -1711,141 +1711,63 @@ namespace Deveel.Data {
 			GrantManager manager = connection.GrantManager;
 
 			// Add schema grant for APP
-			manager.Grant(Privileges.SchemaAll, GrantObject.Schema,
-			                 "APP",
-			                 grantee, true, GRANTER);
+			manager.Grant(Privileges.SchemaAll, GrantObject.Schema, "APP", grantee, true, GRANTER);
 			// Add public grant for SYSTEM
-			manager.Grant(Privileges.SchemaRead, GrantObject.Schema,
-			                 "SYSTEM",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, "SYSTEM", GrantManager.PublicUsernameStr, false, GRANTER);
 			// Add public grant for INFORMATIOM_SCHEMA
-			manager.Grant(Privileges.SchemaRead, GrantObject.Schema,
-			                 "INFORMATIOM_SCHEMA",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, "INFORMATIOM_SCHEMA", GrantManager.PublicUsernameStr, false,
+			              GRANTER);
 
 			// For all tables in the SYSTEM schema, grant all privileges to the
 			// system user.
-			manager.GrantToAllTablesInSchema("SYSTEM",
-			                                    Privileges.TableAll, grantee, false, GRANTER);
+			manager.GrantToAllTablesInSchema("SYSTEM", Privileges.TableAll, grantee, false, GRANTER);
 
 			// Set the public grants for the system tables,
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYSTEM.sUSRConnectionInfo",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYSTEM.sUSRCurrentConnections",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYSTEM.sUSRDatabaseStatistics",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYSTEM.sUSRDatabaseVars",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYSTEM.sUSRProductInfo",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "SYSTEM.sUSRSQLTypeInfo",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRConnectionInfo", GrantManager.PublicUsernameStr,
+			              false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRCurrentConnections",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRDatabaseStatistics",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRDatabaseVars", GrantManager.PublicUsernameStr,
+			              false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRProductInfo", GrantManager.PublicUsernameStr,
+			              false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRSQLTypeInfo", GrantManager.PublicUsernameStr,
+			              false, GRANTER);
 
 			// Set public grants for the system views.
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.ThisUserGrant",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.ThisUserSimpleGrant",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.ThisUserSchemaInfo",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.ThisUserTableColumns",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.ThisUserTableInfo",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.ThisUserGrant",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.ThisUserSimpleGrant",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.ThisUserSchemaInfo",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.ThisUserTableColumns",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.ThisUserTableInfo",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
 
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.TABLES",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.SCHEMATA",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.CATALOGS",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.COLUMNS",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.COLUMN_PRIVILEGES",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.TABLE_PRIVILEGES",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.PrimaryKeys",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.ImportedKeys",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.ExportedKeys",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table,
-			                 "INFORMATIOM_SCHEMA.CrossReference",
-			                 GrantManager.PublicUsernameStr, false, GRANTER);
-		}
-
-		/**
-		 * Sets the system table listeners on the SYSTEM.sUSRView table.  These
-		 * listeners are used to cache information
-		 * that is stored and retrieved from those tables.
-		 */
-
-		private void SetSystemTableListeners() {
-			//    System.AddMasterTableListener(SysView, new ViewTableListener());
-		}
-
-		/// <summary>
-		/// Goes through all tables in the database not in the SYSTEM schema and
-		/// adds an entry in the grant table for it.
-		/// </summary>
-		/// <param name="connection">The database transaction.</param>
-		/// <param name="grantee">The grantee to apply the table privs to.</param>
-		/// <remarks>
-		/// This is for converting from a pre-grant database.
-		/// </remarks>
-		private static void ConvertPreGrant(DatabaseConnection connection, String grantee) {
-			const string GRANTER = InternalSecureUsername;
-			GrantManager manager = connection.GrantManager;
-
-			// Setup grants for any user schema that have been created.
-			SchemaDef[] all_schema = connection.GetSchemaList();
-			for (int i = 0; i < all_schema.Length; ++i) {
-				SchemaDef schema = all_schema[i];
-				// The admin user is given full privs to all tables in USER or DEFAULT
-				// schema.
-				if (schema.Type.Equals("USER") ||
-				    schema.Type.Equals("DEFAULT")) {
-					// Don't set grants for default schema
-					if (!schema.Type.Equals("DEFAULT")) {
-						manager.Grant(Privileges.TableAll, GrantObject.Schema,
-						                 schema.Name, grantee, true, GRANTER);
-					}
-					manager.GrantToAllTablesInSchema(schema.Name,
-					                                    Privileges.TableAll, grantee, true, GRANTER);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Converts tables from a database that are pre database schema.
-		/// </summary>
-		/// <param name="connection"></param>
-		private void ConvertPreSchema(DatabaseConnection connection) {
-			throw new DatabaseException(
-				"Converting from pre-schema no longer supported.");
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.TABLES", GrantManager.PublicUsernameStr,
+			              false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.SCHEMATA", GrantManager.PublicUsernameStr,
+			              false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.CATALOGS", GrantManager.PublicUsernameStr,
+			              false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.COLUMNS", GrantManager.PublicUsernameStr,
+			              false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.COLUMN_PRIVILEGES",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.TABLE_PRIVILEGES",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.PrimaryKeys",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.ImportedKeys",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.ExportedKeys",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATIOM_SCHEMA.CrossReference",
+			              GrantManager.PublicUsernameStr, false, GRANTER);
 		}
 
 		/// <summary>
@@ -2017,9 +1939,6 @@ namespace Deveel.Data {
 				throw new ApplicationException("IO Error: " + e.Message);
 			}
 
-			// Sets up the system table listeners
-			SetSystemTableListeners();
-
 			initialised = true;
 		}
 
@@ -2114,7 +2033,9 @@ namespace Deveel.Data {
 			TableDataConglomerate dest_conglomerate = new TableDataConglomerate(copy_system, copy_system.StoreSystem);
 
 			// Open the congloemrate
-			dest_conglomerate.MinimalCreate("DefaultDatabase");
+			//TODO: check ...
+			// dest_conglomerate.MinimalCreate("DefaultDatabase");
+			dest_conglomerate.MinimalCreate(Name);
 
 			try {
 				// Make a copy of this conglomerate into the destination conglomerate,

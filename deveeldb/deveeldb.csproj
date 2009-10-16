@@ -51,6 +51,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
@@ -60,6 +61,7 @@
     <Compile Include="Deveel.Data.Client\ParemeterStyle.cs" />
     <Compile Include="Deveel.Data.Client\TriggerEventMoment.cs" />
     <Compile Include="Deveel.Data.Client\TriggerEventTypes.cs" />
+    <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
     <Compile Include="Deveel.Data.Sql\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateFunctionStatement.cs" />

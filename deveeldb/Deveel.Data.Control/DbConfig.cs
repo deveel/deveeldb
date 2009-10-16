@@ -22,8 +22,11 @@
 
 using System;
 using System.Collections;
+using System.IO;
+using System.Net;
 
 using Deveel.Data.Control;
+using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -40,22 +43,24 @@ namespace Deveel.Data {
 		/// </summary>
 		private Hashtable key_map;
 
+		private static DefaultDbConfig default_config;
+
 		/// <summary>
 		/// Constructs the <see cref="IDbConfig"/>.
 		/// </summary>
 		/// <param name="current_path"></param>
 		public DbConfig(string current_path) {
 			this.current_path = current_path;
-			this.key_map = new Hashtable();
+			key_map = new Hashtable();
 		}
 
 		/// <summary>
 		/// Returns the default value for the configuration property with the 
 		/// given key.
 		/// </summary>
-		/// <param name="property_key"></param>
+		/// <param name="key"></param>
 		/// <returns></returns>
-		protected virtual String GetDefaultValue(String property_key) {
+		protected virtual String GetDefaultValue(String key) {
 			// This abstract implementation returns null for all default keys.
 			return null;
 		}
@@ -63,10 +68,20 @@ namespace Deveel.Data {
 		///<summary>
 		/// Sets the configuration value for the key property key.
 		///</summary>
-		///<param name="property_key"></param>
-		///<param name="val"></param>
-		public virtual void SetValue(String property_key, String val) {
-			key_map[property_key] = val;
+		///<param name="key"></param>
+		///<param name="value"></param>
+		public void SetValue(String key, String value) {
+			SetValue(key, value, "STRING");
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="key"></param>
+		/// <param name="value"></param>
+		/// <param name="type"></param>
+		public void SetValue(string key, string value, string type) {
+			key_map[key] = new ConfigProperty(key, value, type);
 		}
 
 		// ---------- Implemented from IDbConfig ----------
@@ -75,19 +90,103 @@ namespace Deveel.Data {
 			get { return current_path; }
 		}
 
-		public String GetValue(String property_key) {
-			// If the key is in the map, return it here
-			String val = (String)key_map[property_key];
-			if (val == null) {
-				return GetDefaultValue(property_key);
+		/// <summary>
+		/// Returns a <see cref="DefaultDbConfig">default</see> implementation
+		/// of <see cref="IDbConfig"/> which contains all the default settings
+		/// of the system.
+		/// </summary>
+		public static DefaultDbConfig Default {
+			get {
+				if (default_config == null)
+					default_config = new DefaultDbConfig();
+				return default_config;
 			}
-			return val;
 		}
 
-		public IDbConfig ImmutableCopy() {
-			DbConfig immutable_copy = new DbConfig(current_path);
-			immutable_copy.key_map = (Hashtable)key_map.Clone();
-			return immutable_copy;
+		public String GetValue(String property_key) {
+			// If the key is in the map, return it here
+			ConfigProperty property = key_map[property_key] as ConfigProperty;
+			if (property == null)
+				return GetDefaultValue(property_key);
+			return property.Value;
+		}
+
+		/// <inheritdoc/>
+		public IDbConfig Merge(IDbConfig config) {
+			foreach (ConfigProperty property in config) {
+				if (key_map.ContainsKey(property.Key))
+					continue;
+
+				key_map[property.Key] = property.Clone();
+			}
+
+			return this;
+		}
+
+		/// <inheritdoc/>
+		public object Clone() {
+			DbConfig config = new DbConfig(current_path);
+			config.key_map = (Hashtable) key_map.Clone();
+			return config;
+		}
+
+		public IEnumerator GetEnumerator() {
+			return key_map.Values.GetEnumerator();
+		}
+
+		///<summary>
+		/// Loads all the configuration values from the given <see cref="Stream"/>.
+		///</summary>
+		///<param name="input"></param>
+		/// <remarks>
+		/// The input stream must be formatted in a standard properties format.
+		/// </remarks>
+		public void LoadFromStream(Stream input) {
+			if (!input.CanRead)
+				throw new ArgumentException();
+
+			Properties config = new Properties();
+			config.Load(new BufferedStream(input));
+			// For each property in the file
+			IEnumerator en = config.PropertyNames.GetEnumerator();
+			while (en.MoveNext()) {
+				// Set the property value in this configuration.
+				String property_key = (String)en.Current;
+				SetValue(property_key, config.GetProperty(property_key));
+			}
+		}
+
+		///<summary>
+		/// Loads all the configuration settings from a configuration file.
+		///</summary>
+		///<param name="configuration_file"></param>
+		/// <remarks>
+		/// Useful if you want to load a default configuration from a <i>db.conf</i> file. 
+		/// The file must be formatted in a standard properties format.
+		/// </remarks>
+		public void LoadFromFile(string configuration_file) {
+			FileStream file_in = null;
+			try {
+				file_in = new FileStream(configuration_file, FileMode.Open, FileAccess.Read, FileShare.Read);
+				LoadFromStream(file_in);
+			} finally {
+				if (file_in != null)
+					file_in.Close();
+			}
+		}
+
+		///<summary>
+		/// Loads all the configuration values from the given URL.
+		///</summary>
+		///<param name="configuration_url"></param>
+		/// <remarks>
+		/// The file must be formatted in a standard properties format.
+		/// </remarks>
+		public void LoadFromUrl(Uri configuration_url) {
+			WebRequest request = WebRequest.Create(configuration_url);
+			WebResponse response = request.GetResponse();
+			LoadFromStream(response.GetResponseStream());
+			response.Close();
 		}
 	}
 }

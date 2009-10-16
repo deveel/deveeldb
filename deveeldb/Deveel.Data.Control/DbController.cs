@@ -38,6 +38,8 @@ namespace Deveel.Data.Control {
 		internal DbController() {
 		}
 
+		private const string DefaultDatabaseName = "DefaultDatabase";
+
 		/// <summary>
 		/// Returns the static controller for this environment.
 		/// </summary>
@@ -46,9 +48,29 @@ namespace Deveel.Data.Control {
 		}
 
 		///<summary>
-		/// Returns true if a database exists in the given directory of the
-		/// file system, otherwise returns false if the path doesn't contain a
-		/// database.
+		/// Checks if a database exists in the given directory of the file system, 
+		/// otherwise returns false if the path doesn't contain a database.
+		///</summary>
+		///<param name="config">The configuration of the database to check the 
+		/// existence of.</param>
+		/// <param name="name">The name of the database.</param>
+		/// <remarks>
+		///  The path string must be formatted using Unix '/' deliminators as
+		/// directory separators.
+		/// </remarks>
+		///<returns>
+		/// Returns true if a database exists at the given path, false otherwise.
+		/// </returns>
+		public bool DatabaseExists(IDbConfig config, string name) {
+			Database database = CreateDatabase(config, name);
+			bool b = database.Exists;
+			database.System.dispose();
+			return b;
+		}
+
+		///<summary>
+		/// Checks if a database exists in the given directory of the file system, 
+		/// otherwise returns false if the path doesn't contain a database.
 		///</summary>
 		///<param name="config">The configuration of the database to check the 
 		/// existence of.</param>
@@ -60,10 +82,10 @@ namespace Deveel.Data.Control {
 		/// Returns true if a database exists at the given path, false otherwise.
 		/// </returns>
 		public bool DatabaseExists(IDbConfig config) {
-			Database database = CreateDatabase(config);
-			bool b = database.Exists;
-			database.System.dispose();
-			return b;
+			string name = config.GetValue("name");
+			if (name == null)
+				name = DefaultDatabaseName;
+			return DatabaseExists(config, name);
 		}
 
 		///<summary>
@@ -87,8 +109,15 @@ namespace Deveel.Data.Control {
 		/// Thrown if the database path does not exist.
 		/// </exception>
 		public DbSystem CreateDatabase(IDbConfig config, String admin_user, String admin_pass) {
+			string name = config.GetValue("name");
+			if (name == null)
+				name = DefaultDatabaseName;
+			return CreateDatabase(config, name, admin_user, admin_pass);
+		}
+
+		public DbSystem CreateDatabase(IDbConfig config, string name, String admin_user, String admin_pass) {
 			// Create the Database object with this configuration.
-			Database database = CreateDatabase(config);
+			Database database = CreateDatabase(config, name);
 			DatabaseSystem system = database.System;
 
 			// Create the database.
@@ -122,8 +151,15 @@ namespace Deveel.Data.Control {
 		/// Thrown if the database does not exist in the path given in the configuration.
 		/// </exception>
 		public DbSystem StartDatabase(IDbConfig config) {
+			string name = config.GetValue("name");
+			if (name == null)
+				name = DefaultDatabaseName;
+			return StartDatabase(config, name);
+		}
+
+		public DbSystem StartDatabase(IDbConfig config, string name) {
 			// Create the Database object with this configuration.
-			Database database = CreateDatabase(config);
+			Database database = CreateDatabase(config, name);
 			DatabaseSystem system = database.System;
 
 			// First initialise the database
@@ -147,7 +183,7 @@ namespace Deveel.Data.Control {
 		/// </summary>
 		/// <param name="config"></param>
 		/// <returns></returns>
-		private static Database CreateDatabase(IDbConfig config) {
+		private static Database CreateDatabase(IDbConfig config, string name) {
 			DatabaseSystem system = new DatabaseSystem();
 
 			// Initialize the DatabaseSystem first,
@@ -162,7 +198,9 @@ namespace Deveel.Data.Control {
 
 			// Note, currently we only register one database, and it is named
 			//   'DefaultDatabase'.
-			Database database = new Database(system, "DefaultDatabase");
+			//TODO: check ...
+			// Database database = new Database(system, "DefaultDatabase");
+			Database database = new Database(system, name);
 
 			// Start up message
 			Debug.Write(DebugLevel.Message, typeof(DbController), "Starting Database Server");
