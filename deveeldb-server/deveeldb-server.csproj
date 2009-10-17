@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Deveel.CommandLine, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Deveel.CommandLine.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Configuration.Install" />
@@ -66,10 +70,6 @@
     <Compile Include="Deveel.Data.Util\NetworkInputStream.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Deveel.CommandLine\trunk\Deveel.CommandLine\Deveel.CommandLine.csproj">
-      <Project>{70DF1BEE-3416-427A-8FA2-D7DB8CA957A8}</Project>
-      <Name>Deveel.CommandLine</Name>
-    </ProjectReference>
     <ProjectReference Include="..\deveeldb\deveeldb.csproj">
       <Project>{50D02908-5743-4E72-83B5-77C5712EA59A}</Project>
       <Name>deveeldb</Name>
