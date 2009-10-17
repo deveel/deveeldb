@@ -7,40 +7,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-nunit", "deveeldb-
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Debug - .NET|Any CPU = Debug - .NET|Any CPU
+		Release - .NET|Any CPU = Release - .NET|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{50D02908-5743-4E72-83B5-77C5712EA59A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{50D02908-5743-4E72-83B5-77C5712EA59A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{50D02908-5743-4E72-83B5-77C5712EA59A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{50D02908-5743-4E72-83B5-77C5712EA59A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F077C127-8F87-4B60-AAD3-30AFCC9356D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F077C127-8F87-4B60-AAD3-30AFCC9356D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F077C127-8F87-4B60-AAD3-30AFCC9356D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F077C127-8F87-4B60-AAD3-30AFCC9356D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50D02908-5743-4E72-83B5-77C5712EA59A}.Debug - .NET|Any CPU.ActiveCfg = Debug - .NET|Any CPU
+		{50D02908-5743-4E72-83B5-77C5712EA59A}.Debug - .NET|Any CPU.Build.0 = Debug - .NET|Any CPU
+		{50D02908-5743-4E72-83B5-77C5712EA59A}.Release - .NET|Any CPU.ActiveCfg = Debug|Any CPU
+		{50D02908-5743-4E72-83B5-77C5712EA59A}.Release - .NET|Any CPU.Build.0 = Debug|Any CPU
+		{F077C127-8F87-4B60-AAD3-30AFCC9356D7}.Debug - .NET|Any CPU.ActiveCfg = Debug - .NET|Any CPU
+		{F077C127-8F87-4B60-AAD3-30AFCC9356D7}.Debug - .NET|Any CPU.Build.0 = Debug - .NET|Any CPU
+		{F077C127-8F87-4B60-AAD3-30AFCC9356D7}.Release - .NET|Any CPU.ActiveCfg = Debug|Any CPU
+		{F077C127-8F87-4B60-AAD3-30AFCC9356D7}.Release - .NET|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Packages.mdproj
-		Policies = $0
-		$0.TextStylePolicy = $1
-		$1.inheritsSet = Mono
-		$1.inheritsScope = text/plain
-		$1.scope = text/x-csharp
-		$0.CSharpFormattingPolicy = $2
-		$2.NamespaceBraceStyle = EndOfLine
-		$2.ClassBraceStyle = EndOfLine
-		$2.InterfaceBraceStyle = EndOfLine
-		$2.StructBraceStyle = EndOfLine
-		$2.EnumBraceStyle = EndOfLine
-		$2.MethodBraceStyle = EndOfLine
-		$2.ConstructorBraceStyle = EndOfLine
-		$2.DestructorBraceStyle = EndOfLine
-		$2.inheritsSet = Mono
-		$2.inheritsScope = text/x-csharp
-		$2.scope = text/x-csharp
 	EndGlobalSection
 EndGlobal
