@@ -1,0 +1,4 @@
+﻿2009-10-14  Antonello Provenzano  <antonello@deveel.com>
+	* FunctionDef.cs: when evaluating with a null query context
+	it will use the FunctionFactory.Internal to look for the
+	function to evaluate.

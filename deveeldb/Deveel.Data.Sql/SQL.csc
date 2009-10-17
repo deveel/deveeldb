@@ -41,11 +41,7 @@ class SQL {
 	public void Reset() {
 		parameter_id = 0;
 	}
-	
-	public void SetParameterStyle(Client.ParameterStyle style) {
-		parameterStyle = style;
-	}
-	
+		
 	/// <summary>
 	/// Creates and returns a parameter substitution.
 	/// </summary>
@@ -56,7 +52,7 @@ class SQL {
 	/// </remarks>
 	public ParameterSubstitution CreateSubstitution(String image) {
 		ParameterSubstitution ps;
-		if (parameterStyle == Client.ParameterStyle.Marker) {
+		if (image == null || image.Length == 0 || image.Equals("?")) {
 			ps = new ParameterSubstitution(parameter_id);
 			++parameter_id;
 		} else {
@@ -176,6 +172,7 @@ TOKEN: {
 | <ADD:        "+" >
 | <SUBTRACT:   "-" >
 | <CONCAT:     "||" >
+| <MODULUS:    "%" >
 
 }
 
@@ -816,7 +813,7 @@ StatementTree CreateIndex() :
   StatementTree cmd = new StatementTree(typeof(NoOpStatement));
 }
 {
-  (   [<UNIQUE>] <INDEX> IndexName() <ON>
+  (   [<UNIQUE> ] <INDEX> IndexName() <ON>
         TableName() "(" BasicColumnList(new ArrayList()) ")" )
   
   { return cmd; }
@@ -1874,16 +1871,14 @@ void OpPart(Expression exp, Stack stack) :
       // NOTE: Handling regex literals is a horrible horrible hack.  The <REGEX_LITERAL> 
       //   token starts with 'regex /' and the regex string follows.
     | (   <REGEX> { exp.Text.Append(" regex ");
-                                 expOperator(exp, stack, Operator.Get("regex"));
-                               }
-                               expression(exp, stack)
-                     | t=<REGEX_LITERAL>
-                        { regex_ob = Util.ToParamObject(t, case_insensitive_identifiers);
-                          exp.Text.Append(" regex " + regex_ob);
-                          expOperator(exp, stack, Operator.Get("regex"));
-                          exp.AddElement(regex_ob);
-                        }
-                   )
+                    expOperator(exp, stack, Operator.Get("regex")); }
+                  expression(exp, stack)
+                | t=<REGEX_LITERAL>
+                  { regex_ob = Util.ToParamObject(t, case_insensitive_identifiers);
+                    exp.Text.Append(" regex " + regex_ob);
+                    expOperator(exp, stack, Operator.Get("regex"));
+                    exp.AddElement(regex_ob); }
+       )
 
     | LOOKAHEAD(2) SubQueryOperator(exp, stack) SubQueryExpression(exp, stack) 
 
@@ -1901,22 +1896,21 @@ void Operand(Expression exp, Stack stack) :
   String time_fname;
   bool negative = false;
   Object param_ob;
+  Object param_resolve;
 }
 {
   (   "(" { stack.Push(Operator.Get("(")); exp.Text.Append("("); }
         expression(exp, stack) ")" { expEndParen(exp, stack); exp.Text.Append(")"); }
     | t = <PARAMETER_REF>
           { 
-            if (parameterStyle != Client.ParameterStyle.Marker) GenerateParseException();
-            Object param_resolve = CreateSubstitution(t.image); 
+            param_resolve = CreateSubstitution(t.image); 
             exp.AddElement(param_resolve);
             exp.Text.Append('?');
           }
     | t = <NAMED_PARAMETER>
           { 
-            if (parameterStyle != Client.ParameterStyle.Named) GenerateParseException();
-            object named_param_resolve = CreateSubstitution(t.image);
-            exp.AddElement(named_param_resolve);
+            param_resolve = CreateSubstitution(t.image);
+            exp.AddElement(param_resolve);
             exp.Text.Append(t.image);
           }
 
@@ -2029,7 +2023,7 @@ int PositiveIntegerConstant() :
   t = <NUMBER_LITERAL>
 
   { int val = Int32.Parse(t.image);
-    if (val < 0) GenerateParseException();
+    if (val < 0) throw GenerateParseException();
     return val;
   }
 }
@@ -2165,7 +2159,7 @@ String GetNumericOperator() :
 }
 {
    (   t=<DIVIDE> | t=<ADD> | t=<SUBTRACT>
-     | t=<STAR>   // This is "*" (multiply) 
+     | t=<STAR> | t = <MODULUS>  // This is "*" (multiply) 
    )
    { return t.image; }
 }

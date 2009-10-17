@@ -1,4 +1,26 @@
-﻿2009-10-10  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-15  Antonello Provenzano  <antonello@deveel.com>
+	* ConnectionString.cs: Added the keys 'CacheSize' and
+	'MaxCacheSize' to control the client cache.
+	
+2009-10-13  Antonello Provenzano  <antonello@deveel.com>
+	* DbConnection.cs: 
+		- renamed to DeveelDbConnection
+		- now derived by Commons.DbConnection
+		- added the support for System.Transactions
+	* DbTransaction.cs: 
+		- renamed to DeveelDbTransaction
+		- now derived by Commons.DbTransaction
+	* DbParamater.cs:
+		- renamed to DeveelDbParameter
+		- now derived from Commons.DbParameter
+	* DbCommand.cs:
+		- renamed to DeveelDbCommand
+		- now derived from Commons.DbCommand
+	* DeveelDbDataReader.cs:
+		- renamed to DeveelDbDataReader
+		- now derived from Commons.DbDataReader
+	
+2009-10-10  Antonello Provenzano  <antonello@deveel.com>
 	* DbTrigger.cs: implemented to support the subscription
 	and creation of trigger events. 
 

@@ -1,4 +1,7 @@
-﻿2009-10-05  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-15  Antonello Provenzano  <antonello@deveel.com>
+	* IStoreDataAccessor.cs: IDisposable pattern
+
+2009-10-05  Antonello Provenzano  <antonello@deveel.com>
 
 	* IFSync.cs: added to implement the feature request 2
 	* WindowsFSync.cs: default implementation for the Windows

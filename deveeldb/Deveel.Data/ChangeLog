@@ -1,3 +1,13 @@
+2009-10-15  Antonello Provenzano  <antonello@deveel.com>
+	* DatabaseConnection.cs: method GetDbConnection now returns
+	a generic IDbConnection.
+	* TransactionSystem.cs: now implements IDisposable pattern.
+
+2009-10-14  Antonello Provenzano  <antonello@deveel.com>
+	* TObject.cs: 
+		- introduced implicit and explicit operators.
+		- implemented the Mod function
+	
 2009-10-12  Antonello Provenzano  <antonello@deveel.com>
 	* SelectableScheme.cs: removed methods WriteTo and ReadFrom 
 	(present in the old version of McKoi), to prepare the

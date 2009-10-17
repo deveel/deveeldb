@@ -8,7 +8,7 @@ top_srcdir=..
 
 include $(top_srcdir)/config.make
 
-ifeq ($(CONFIG),DEBUG)
+ifeq ($(CONFIG),DEBUG____NET)
 ASSEMBLY_COMPILER_COMMAND = gmcs
 ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize- -debug "-define:DEBUG;TRACE"
 ASSEMBLY = bin/Debug/libdeveeldb.dll
@@ -17,13 +17,13 @@ COMPILE_TARGET = library
 PROJECT_REFERENCES = 
 BUILD_DIR = bin/Debug/
 
-ICSHARPCODE_SHARPZIPLIB_DLL_SOURCE=../lib/ICSharpCode.SharpZipLib.dll
 LIBDEVEELDB_DLL_MDB_SOURCE=bin/Debug/libdeveeldb.dll.mdb
 LIBDEVEELDB_DLL_MDB=$(BUILD_DIR)/libdeveeldb.dll.mdb
+DEVEELDB_DLL_MDB=
 
 endif
 
-ifeq ($(CONFIG),RELEASE)
+ifeq ($(CONFIG),RELEASE____NET)
 ASSEMBLY_COMPILER_COMMAND = gmcs
 ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize+ "-define:TRACE"
 ASSEMBLY = bin/Release/libdeveeldb.dll
@@ -32,8 +32,23 @@ COMPILE_TARGET = library
 PROJECT_REFERENCES = 
 BUILD_DIR = bin/Release/
 
-ICSHARPCODE_SHARPZIPLIB_DLL_SOURCE=../lib/ICSharpCode.SharpZipLib.dll
 LIBDEVEELDB_DLL_MDB=
+DEVEELDB_DLL_MDB=
+
+endif
+
+ifeq ($(CONFIG),DEBUG___MONO)
+ASSEMBLY_COMPILER_COMMAND = gmcs
+ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize- -debug "-define:TRACE;DEBUG;MONO"
+ASSEMBLY = bin/Debug/Mono/deveeldb.dll
+ASSEMBLY_MDB = $(ASSEMBLY).mdb
+COMPILE_TARGET = library
+PROJECT_REFERENCES = 
+BUILD_DIR = bin/Debug/Mono
+
+LIBDEVEELDB_DLL_MDB=
+DEVEELDB_DLL_MDB_SOURCE=bin/Debug/Mono/deveeldb.dll.mdb
+DEVEELDB_DLL_MDB=$(BUILD_DIR)/deveeldb.dll.mdb
 
 endif
 
@@ -41,8 +56,8 @@ AL=al2
 SATELLITE_ASSEMBLY_NAME=$(notdir $(basename $(ASSEMBLY))).resources.dll
 
 PROGRAMFILES = \
-	$(ICSHARPCODE_SHARPZIPLIB_DLL) \
-	$(LIBDEVEELDB_DLL_MDB)  
+	$(LIBDEVEELDB_DLL_MDB) \
+	$(DEVEELDB_DLL_MDB)  
 
 LINUX_PKGCONFIG = \
 	$(DEVEELDB_PC)  
@@ -50,14 +65,13 @@ LINUX_PKGCONFIG = \
 
 RESGEN=resgen2
 
-ICSHARPCODE_SHARPZIPLIB_DLL = $(BUILD_DIR)/ICSharpCode.SharpZipLib.dll
 DEVEELDB_PC = $(BUILD_DIR)/deveeldb.pc
 
 FILES = \
 	AssemblyInfo.cs \
 	Deveel.Data.Client/ConnectionString.cs \
-	Deveel.Data.Client/DbProcedureTrigger.cs \
-	Deveel.Data.Client/DbTrigger.cs \
+	Deveel.Data.Client/DeveelDbProcedureTrigger.cs \
+	Deveel.Data.Client/DeveelDbTrigger.cs \
 	Deveel.Data.Client/ParemeterStyle.cs \
 	Deveel.Data.Client/TriggerEventMoment.cs \
 	Deveel.Data.Client/TriggerEventTypes.cs \
@@ -77,6 +91,7 @@ FILES = \
 	Deveel.Data.Util/Properties.cs \
 	Deveel.Data.Util/ShellUserTerminal.cs \
 	Deveel.Data/DatabaseEventHandler.cs \
+	Deveel.Data/ReferenceType.cs \
 	Deveel.Diagnostics/Debug.cs \
 	Deveel.Diagnostics/DefaultDebugLogger.cs \
 	Deveel.Diagnostics/IDebugLogger.cs \
@@ -169,16 +184,16 @@ FILES = \
 	Deveel.Data.Client/ILocalBootable.cs \
 	Deveel.Data.Client/DbBlob.cs \
 	Deveel.Data.Client/DbClob.cs \
-	Deveel.Data.Client/DbCommand.cs \
-	Deveel.Data.Client/DbConnection.cs \
-	Deveel.Data.Client/DbDataReader.cs \
-	Deveel.Data.Client/DbParameter.cs \
-	Deveel.Data.Client/DbParameterCollection.cs \
+	Deveel.Data.Client/DeveelDbCommand.cs \
+	Deveel.Data.Client/DeveelDbConnection.cs \
+	Deveel.Data.Client/DeveelDbDataReader.cs \
+	Deveel.Data.Client/DeveelDbParameter.cs \
+	Deveel.Data.Client/DeveelDbParameterCollection.cs \
 	Deveel.Data.Client/ResultSet.cs \
 	Deveel.Data.Client/DbDataException.cs \
 	Deveel.Data.Client/DbStreamableBlob.cs \
 	Deveel.Data.Client/DbStreamableClob.cs \
-	Deveel.Data.Client/DbTransaction.cs \
+	Deveel.Data.Client/DeveelDbTransaction.cs \
 	Deveel.Data.Client/ProtocolConstants.cs \
 	Deveel.Data.Client/IQueryResponse.cs \
 	Deveel.Data.Client/RemoteDatabaseInterface.cs \
@@ -422,7 +437,6 @@ FILES = \
 	Deveel.Data.Util/Cache.cs \
 	Deveel.Data.Util/HashMapList.cs \
 	Deveel.Data.Collections/IIndexComparer.cs \
-	Deveel.Data.Util/InputStream.cs \
 	Deveel.Data.Collections/IIntegerIterator.cs \
 	Deveel.Data.Collections/IntegerListBlockInterface.cs \
 	Deveel.Data.Collections/IIntegerList.cs \
@@ -441,7 +455,29 @@ FILES = \
 	Deveel.Data.Sql/Token.cs \
 	Deveel.Data.Sql/TokenMgrError.cs \
 	Deveel.Data.Sql/Util.cs \
-	Deveel.Data/IDatabaseEvent.cs 
+	Deveel.Data/IDatabaseEvent.cs \
+	Deveel.Zip/Adler32.cs \
+	Deveel.Zip/CheckedStream.cs \
+	Deveel.Zip/Checksum.cs \
+	Deveel.Zip/CompressionLevel.cs \
+	Deveel.Zip/CompressionStrategy.cs \
+	Deveel.Zip/CRC32.cs \
+	Deveel.Zip/Deflater.cs \
+	Deveel.Zip/DeflaterConstants.cs \
+	Deveel.Zip/DeflaterEngine.cs \
+	Deveel.Zip/DeflaterHuffman.cs \
+	Deveel.Zip/DeflaterOutputStream.cs \
+	Deveel.Zip/DeflaterPending.cs \
+	Deveel.Zip/GZipInputStream.cs \
+	Deveel.Zip/Inflater.cs \
+	Deveel.Zip/InflaterDynHeader.cs \
+	Deveel.Zip/InflaterHuffmanTree.cs \
+	Deveel.Zip/InflaterInputStream.cs \
+	Deveel.Zip/OutputWindow.cs \
+	Deveel.Zip/PendingBuffer.cs \
+	Deveel.Zip/ShiftUtil.cs \
+	Deveel.Zip/StreamManipulator.cs \
+	Deveel.Zip/ZipException.cs 
 
 DATA_FILES = 
 
@@ -453,10 +489,10 @@ EXTRAS = \
 REFERENCES =  \
 	System \
 	System.Data \
+	System.Transactions \
 	System.Xml
 
-DLL_REFERENCES =  \
-	../lib/ICSharpCode.SharpZipLib.dll
+DLL_REFERENCES = 
 
 CLEANFILES = $(PROGRAMFILES) $(LINUX_PKGCONFIG) 
 
@@ -468,13 +504,16 @@ include $(top_srcdir)/Makefile.include
 
 
 
-$(eval $(call emit-deploy-target,ICSHARPCODE_SHARPZIPLIB_DLL))
 $(eval $(call emit-deploy-wrapper,DEVEELDB_PC,deveeldb.pc))
 
 
 $(eval $(call emit_resgen_targets))
 $(build_xamlg_list): %.xaml.g.cs: %.xaml
 	xamlg '$<'
+
+# Targets for Custom commands
+DEBUG - .NET_BeforeBuild:
+	(cd $(srcdir) && java -classpath ..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=Deveel.Data.Sql Deveel.Data.Sql\SQL.csc)
 
 
 $(ASSEMBLY_MDB): $(ASSEMBLY)
@@ -493,10 +532,10 @@ install-local: $(ASSEMBLY) $(ASSEMBLY_MDB)
 	$(call cp,$(ASSEMBLY),$(DESTDIR)$(libdir)/$(PACKAGE))
 	$(call cp,$(ASSEMBLY_MDB),$(DESTDIR)$(libdir)/$(PACKAGE))
 	mkdir -p '$(DESTDIR)$(libdir)\$(PACKAGE)'
-	$(call cp,$(ICSHARPCODE_SHARPZIPLIB_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
 	$(call cp,$(LIBDEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
 	mkdir -p '$(DESTDIR)$(libdir)\pkgconfig'
 	$(call cp,$(DEVEELDB_PC),$(DESTDIR)$(libdir)\pkgconfig)
+	$(call cp,$(DEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
 	make post-install-local-hook prefix=$(prefix)
 
 uninstall-local: $(ASSEMBLY) $(ASSEMBLY_MDB)
@@ -504,9 +543,9 @@ uninstall-local: $(ASSEMBLY) $(ASSEMBLY_MDB)
 	make uninstall-satellite-assemblies prefix=$(prefix)
 	$(call rm,$(ASSEMBLY),$(DESTDIR)$(libdir)/$(PACKAGE))
 	$(call rm,$(ASSEMBLY_MDB),$(DESTDIR)$(libdir)/$(PACKAGE))
-	$(call rm,$(ICSHARPCODE_SHARPZIPLIB_DLL),$(DESTDIR)$(libdir)\$(PACKAGE))
 	$(call rm,$(LIBDEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
 	$(call rm,$(DEVEELDB_PC),$(DESTDIR)$(libdir)\pkgconfig)
+	$(call rm,$(DEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
 	make post-uninstall-local-hook prefix=$(prefix)
 
 install: install-local
