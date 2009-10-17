@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B257CE12-326E-42B7-9BE6-C20C18A16D4E}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Deveel.Data.Server</RootNamespace>
+    <AssemblyName>deveeldbd</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ReleaseVersion>0.5.1.*</ReleaseVersion>
+    <SynchReleaseVersion>false</SynchReleaseVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.Install" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Deveel.Data.Control\TcpServerController.cs" />
+    <Compile Include="Deveel.Data.Server\ConnectionPoolModel.cs" />
+    <Compile Include="Deveel.Data.Server\ConnectionState.cs" />
+    <Compile Include="Deveel.Data.Server\IConnectionPoolServer.cs" />
+    <Compile Include="Deveel.Data.Server\TcpService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Server\TcpServiceInstaller.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Server\Processor.cs" />
+    <Compile Include="Deveel.Data.Server\MultiThreadedConnectionPoolServer.cs" />
+    <Compile Include="Deveel.Data.Server\Program.cs" />
+    <Compile Include="Deveel.Data.Server\IServerConnection.cs" />
+    <Compile Include="Deveel.Data.Server\SingleThreadedConnectionPoolServer.cs" />
+    <Compile Include="Deveel.Data.Server\StreamServerConnection.cs" />
+    <Compile Include="Deveel.Data.Server\TcpServerConnection.cs" />
+    <Compile Include="Deveel.Data.Server\TcpServer.cs" />
+    <Compile Include="Deveel.Data.Util\IInputStream.cs" />
+    <Compile Include="Deveel.Data.Util\LengthMarkedBufferedInputStream.cs" />
+    <Compile Include="Deveel.Data.Util\CommandLine.cs" />
+    <Compile Include="Deveel.Data.Util\NetworkInputStream.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Deveel.CommandLine\trunk\Deveel.CommandLine\Deveel.CommandLine.csproj">
+      <Project>{70DF1BEE-3416-427A-8FA2-D7DB8CA957A8}</Project>
+      <Name>Deveel.CommandLine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\deveeldb\deveeldb.csproj">
+      <Project>{50D02908-5743-4E72-83B5-77C5712EA59A}</Project>
+      <Name>deveeldb</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <StandardHeader inheritsSet="LGPLv3License" />
+          <ChangeLogPolicy inheritsSet="Mono" />
+        </Policies>
+        <Deployment.LinuxDeployData scriptName="deveeldb" />
+      </Properties>
+    </MonoDevelop>
+    <VisualStudio />
+  </ProjectExtensions>
+</Project>
