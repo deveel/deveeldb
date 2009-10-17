@@ -31,7 +31,7 @@ namespace Deveel.Diagnostics {
 	/// The implementation of where the log is written (to the console, file, 
 	/// window, etc) is implementation defined.
 	/// </remarks>
-	public interface IDebugLogger {
+	public interface IDebugLogger : IDisposable {
 		/// <summary>
 		/// Queries the current debug level.
 		/// </summary>

@@ -198,5 +198,10 @@ namespace Deveel.Diagnostics {
 				}
 			}
 		}
+
+		public void Dispose() {
+			if (output != null)
+				output.Dispose();
+		}
 	}
 }

@@ -183,7 +183,7 @@ namespace Deveel.Data.Server {
 
 		// ---------- Implemented from IDatabaseInterface ----------
 
-		public override bool Login(String default_schema, String username, String password,
+		public override bool Login(string database_name, String default_schema, String username, String password,
 							 IDatabaseCallBack database_call_back) {
 
 			Database database = Database;

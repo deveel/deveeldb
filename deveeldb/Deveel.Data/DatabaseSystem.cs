@@ -161,8 +161,8 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override void dispose() {
-			base.dispose();
+		public override void Dispose() {
+			base.Dispose();
 			worker_pool = null;
 			database_list = null;
 			user_manager = null;
@@ -342,7 +342,7 @@ namespace Deveel.Data {
 
 				lock (this) {
 					// Wipe all variables from this object
-					ds.dispose();
+					ds.Dispose();
 
 					finished = true;
 					Monitor.PulseAll(this);

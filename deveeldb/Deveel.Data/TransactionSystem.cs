@@ -39,7 +39,7 @@ namespace Deveel.Data {
 	/// <remarks>
 	/// Shared information includes configuration details, logging, etc.
 	/// </remarks>
-	public class TransactionSystem {
+	public class TransactionSystem : IDisposable {
 		/// <summary>
 		/// The stats object that keeps track of database statistics.
 		/// </summary>
@@ -176,6 +176,10 @@ namespace Deveel.Data {
 			stats.Set(0, "Runtime.Version: " + Environment.Version);
 			stats.Set(0, "Machine.ProcessorCount: " + Environment.ProcessorCount);
 			table_listeners = new ArrayList();
+		}
+
+		~TransactionSystem() {
+			Dispose(false);
 		}
 
 		/// <summary>
@@ -910,8 +914,14 @@ namespace Deveel.Data {
 			Dispatcher.PostEvent(time_to_wait, e);
 		}
 
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				GC.SuppressFinalize(this);
+				Dispose();
+			}
+		}
 
-		public virtual void dispose() {
+		public virtual void Dispose() {
 			if (buffer_manager != null) {
 				try {
 					// Set a check point
@@ -935,6 +945,7 @@ namespace Deveel.Data {
 			}
 			//    trigger_manager = null;
 			dispatcher = null;
+			Debug.Dispose();
 		}
 
 

@@ -2044,7 +2044,7 @@ namespace Deveel.Data {
 				// Close the congloemrate when finished.
 				dest_conglomerate.Close();
 				// Dispose the TransactionSystem
-				copy_system.dispose();
+				copy_system.Dispose();
 			}
 		}
 

@@ -424,7 +424,7 @@ namespace Deveel.Data.Server {
 		// ---------- Implemented from IDatabaseInterface ----------
 
 		/// <inheritdoc/>
-		public abstract bool Login(string default_schema, string username, string password, IDatabaseCallBack call_back);
+		public abstract bool Login(string database, string default_schema, string username, string password, IDatabaseCallBack call_back);
 
 		/// <inheritdoc/>
 		public void PushStreamableObjectPart(ReferenceType type, long object_id, long object_length, byte[] buf, long offset, int length) {

@@ -496,6 +496,7 @@ namespace Deveel.Data.Client {
 
 
 		internal virtual bool InternalOpen() {
+			string database = connectionString.Database;
 			string username = connectionString.UserName;
 			string password = connectionString.Password;
 			string default_schema = connectionString.Schema;
@@ -511,7 +512,7 @@ namespace Deveel.Data.Client {
 			}
 
 			// Login with the username/password
-			return db_interface.Login(default_schema, username, password, this);
+			return db_interface.Login(database, default_schema, username, password, this);
 		}
 
 #if !MONO

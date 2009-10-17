@@ -76,7 +76,7 @@ namespace Deveel.Diagnostics {
 			} else {
 				log_file_size = 0;
 			}
-			output = new StreamWriter(base_name, true);
+			output = new StreamWriter(new FileStream(base_name, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Inheritable), Encoding.Default);
 
 		}
 
@@ -103,7 +103,7 @@ namespace Deveel.Diagnostics {
 				File.Move(log_file, log_file + ".1");
 
 				// Create the new empty log file,
-				output = new StreamWriter(log_file, true);
+				output = new StreamWriter(new FileStream(log_file, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read), Encoding.Default);
 				log_file_size = 0;
 			}
 		}
@@ -126,7 +126,7 @@ namespace Deveel.Diagnostics {
 
 		/// <inheritdoc/>
 		public override Encoding Encoding {
-			get { return Encoding.Unicode; }
+			get { return output.Encoding; }
 		}
 
 		/// <inheritdoc/>
@@ -143,6 +143,13 @@ namespace Deveel.Diagnostics {
 				output.Flush();
 				output.Close();
 			}
+		}
+
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				Close();
+			}
+			base.Dispose(disposing);
 		}
 	}
 }

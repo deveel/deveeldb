@@ -53,6 +53,7 @@
     <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbConnectionStringBuilder.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
@@ -82,15 +83,9 @@
     <Compile Include="Deveel.Data\DatabaseEventHandler.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Deveel.Diagnostics\Debug.cs" />
-    <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Diagnostics\IDebugLogger.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Diagnostics\DebugLevel.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs"/>
+    <Compile Include="Deveel.Diagnostics\IDebugLogger.cs"/>
+    <Compile Include="Deveel.Diagnostics\DebugLevel.cs"/>
     <Compile Include="Deveel.Data.Functions\AbsFunction.cs" />
     <Compile Include="Deveel.Data.Functions\AggOrFunction.cs" />
     <Compile Include="Deveel.Data.Functions\AvgFunction.cs" />
@@ -511,16 +506,6 @@
   <PropertyGroup>
     <PreBuildEvent>java -classpath $(ProjectDir)..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=$(ProjectDir)Deveel.Data.Sql $(ProjectDir)Deveel.Data.Sql\SQL.csc</PreBuildEvent>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug - Mono|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\Mono</OutputPath>
-    <DefineConstants>TRACE;DEBUG;MONO</DefineConstants>
-    <WarningLevel>4</WarningLevel>
-    <GenerateDocumentation>true</GenerateDocumentation>
-    <AssemblyName>deveeldb</AssemblyName>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug - .NET|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -532,11 +517,6 @@
     <DocumentationFile>doc\deveeldb.XML</DocumentationFile>
     <GenerateDocumentation>true</GenerateDocumentation>
     <AssemblyName>libdeveeldb</AssemblyName>
-    <CustomCommands>
-      <CustomCommands>
-        <Command type="BeforeBuild" command="java -classpath ..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=Deveel.Data.Sql Deveel.Data.Sql\SQL.csc" workingdir="${ProjectDir}" />
-      </CustomCommands>
-    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - .NET|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -547,25 +527,4 @@
     <WarningLevel>4</WarningLevel>
     <AssemblyName>libdeveeldb</AssemblyName>
   </PropertyGroup>
-  <ProjectExtensions>
-    <MonoDevelop>
-      <Properties>
-        <Policies>
-          <StandardHeader inheritsSet="GPLv3License" />
-          <DotNetNamingPolicy DirectoryNamespaceAssociation="Flat" ResourceNamePolicy="FileFormatDefault" />
-          <ChangeLogPolicy inheritsSet="Mono" />
-        </Policies>
-        <MonoDevelop.Autotools.MakefileInfo IntegrationEnabled="true" RelativeMakefileName="Makefile">
-          <BuildFilesVar />
-          <DeployFilesVar />
-          <ResourcesVar />
-          <OthersVar />
-          <GacRefVar />
-          <AsmRefVar />
-          <ProjectRefVar />
-        </MonoDevelop.Autotools.MakefileInfo>
-      </Properties>
-    </MonoDevelop>
-    <VisualStudio />
-  </ProjectExtensions>
 </Project>

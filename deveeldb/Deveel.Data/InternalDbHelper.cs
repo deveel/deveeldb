@@ -157,7 +157,7 @@ namespace Deveel.Data {
 
 			// ---------- Implemented from IDatabaseInterface ----------
 
-			public override bool Login(String default_schema, String username, String password, IDatabaseCallBack call_back) {
+			public override bool Login(string database, String default_schema, String username, String password, IDatabaseCallBack call_back) {
 				// This should never be used for an internal connection.
 				throw new DataException("'login' is not supported for InterfaceDatabaseInterface");
 			}

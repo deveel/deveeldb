@@ -105,7 +105,7 @@ namespace Deveel.Data.Client {
 
 
 		/// <inheritdoc/>
-		public bool Login(String default_schema, String user, String password, IDatabaseCallBack call_back) {
+		public bool Login(string database, String default_schema, String user, String password, IDatabaseCallBack call_back) {
 			try {
 
 				// Do some handshaking,
@@ -151,6 +151,7 @@ namespace Deveel.Data.Client {
 					//   protocol.
 
 					bout = new MemoryStream();
+					output.Write(database);
 					output.Write(default_schema);
 					output.Write(user);
 					output.Write(password);

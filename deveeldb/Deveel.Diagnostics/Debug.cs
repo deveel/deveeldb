@@ -23,7 +23,7 @@ using System;
 using System.IO;
 
 namespace Deveel.Diagnostics {
-	public sealed class Debug {
+	public sealed class Debug : IDisposable {
 		private Debug(IDebugLogger logger) {
 			this.logger = logger;
 		}
@@ -75,6 +75,16 @@ namespace Deveel.Diagnostics {
 		internal static void SetDebugLevel(int level) {
 			if (current.logger is DefaultDebugLogger)
 				(current.logger as DefaultDebugLogger).SetDebugLevel(level);
+		}
+
+		void IDisposable.Dispose() {
+			if (logger != null)
+				logger.Dispose();
+		}
+
+		internal static void Dispose() {
+			if (current != null)
+				(current as IDisposable).Dispose();
 		}
 	}
 }

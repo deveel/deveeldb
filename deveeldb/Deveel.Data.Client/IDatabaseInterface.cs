@@ -32,6 +32,7 @@ namespace Deveel.Data.Client {
 		/// Attempts to log in to the database as the given username with the 
 		/// given password.
 		///</summary>
+		/// <param name="database"></param>
 		///<param name="default_schema"></param>
 		///<param name="username"></param>
 		///<param name="password"></param>
@@ -47,7 +48,7 @@ namespace Deveel.Data.Client {
 		///<returns>
 		/// Returns <b>true</b> if the authentication succeeded, otherwise false.
 		/// </returns>
-		bool Login(String default_schema, String username, String password, IDatabaseCallBack call_back);
+		bool Login(string database, String default_schema, String username, String password, IDatabaseCallBack call_back);
 
 	    ///<summary>
 	    /// Pushes a part of a streamable object from the client onto the server.

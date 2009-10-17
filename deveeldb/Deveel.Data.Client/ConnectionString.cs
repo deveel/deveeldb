@@ -54,6 +54,7 @@ namespace Deveel.Data.Client {
 
 		private const string HostKey = "Host";
 		private const string PortKey = "Port";
+		private const string DatabaseKey = "Database";
 		private const string UserNameKey = "UserName";
 		private const string PasswordKey = "Password";
 		private const string SchemaKey = "Schema";
@@ -196,6 +197,17 @@ namespace Deveel.Data.Client {
 			set {
 				CheckReadOnly();
 				properties[ParameterStyleKey] = value;
+			}
+		}
+
+		public string Database {
+			get {
+				object value = properties[DatabaseKey];
+				return (value == null ? String.Empty : (string) value);
+			}
+			set {
+				CheckReadOnly();
+				properties[DatabaseKey] = value;
 			}
 		}
 

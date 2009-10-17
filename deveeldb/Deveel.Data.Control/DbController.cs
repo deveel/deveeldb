@@ -64,7 +64,7 @@ namespace Deveel.Data.Control {
 		public bool DatabaseExists(IDbConfig config, string name) {
 			Database database = CreateDatabase(config, name);
 			bool b = database.Exists;
-			database.System.dispose();
+			database.System.Dispose();
 			return b;
 		}
 
