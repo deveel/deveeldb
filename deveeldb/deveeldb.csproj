@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -11,6 +11,7 @@
     <RootNamespace>Deveel.Data</RootNamespace>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AssemblyName>libdeveeldb</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -19,7 +20,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;NET_2_0</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <WarningLevel>3</WarningLevel>
     <DocumentationFile>doc\deveeldb.XML</DocumentationFile>
     <GenerateDocumentation>true</GenerateDocumentation>
     <CustomCommands>
@@ -27,7 +28,9 @@
         <Command type="BeforeBuild" command="java -classpath ..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=Deveel.Data.Sql Deveel.Data.Sql\SQL.csc" workingdir="${ProjectDir}" />
       </CustomCommands>
     </CustomCommands>
-    <AssemblyName>libdeveeldb</AssemblyName>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,7 +39,10 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AssemblyName>libdeveeldb</AssemblyName>
+    <OutputType>Library</OutputType>
+    <DebugSymbols>true</DebugSymbols>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -73,19 +79,16 @@
     <Compile Include="Deveel.Data.Sql\SqlParseException.cs" />
     <Compile Include="Deveel.Data.Store\FSync.cs" />
     <Compile Include="Deveel.Data.Store\IFSync.cs" />
-    <Compile Include="Deveel.Data.Store\MacOSXFSync.cs" />
     <Compile Include="Deveel.Data.Store\SyncFailedException.cs" />
-    <Compile Include="Deveel.Data.Store\UnixFSync.cs" />
-    <Compile Include="Deveel.Data.Store\WindowsFSync.cs" />
     <Compile Include="Deveel.Data.Text\DeveelRegexLibrary.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
     <Compile Include="Deveel.Data\DatabaseEventHandler.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Deveel.Diagnostics\Debug.cs" />
-    <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs"/>
-    <Compile Include="Deveel.Diagnostics\IDebugLogger.cs"/>
-    <Compile Include="Deveel.Diagnostics\DebugLevel.cs"/>
+    <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs" />
+    <Compile Include="Deveel.Diagnostics\IDebugLogger.cs" />
+    <Compile Include="Deveel.Diagnostics\DebugLevel.cs" />
     <Compile Include="Deveel.Data.Functions\AbsFunction.cs" />
     <Compile Include="Deveel.Data.Functions\AggOrFunction.cs" />
     <Compile Include="Deveel.Data.Functions\AvgFunction.cs" />
@@ -505,6 +508,8 @@
   -->
   <PropertyGroup>
     <PreBuildEvent>java -classpath $(ProjectDir)..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=$(ProjectDir)Deveel.Data.Sql $(ProjectDir)Deveel.Data.Sql\SQL.csc</PreBuildEvent>
+    <ProjectGuid>{50D02908-5743-4E72-83B5-77C5712EA59A}</ProjectGuid>
+    <RootNamespace>Deveel.Data</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug - .NET|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -516,7 +521,9 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>doc\deveeldb.XML</DocumentationFile>
     <GenerateDocumentation>true</GenerateDocumentation>
-    <AssemblyName>libdeveeldb</AssemblyName>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - .NET|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -525,6 +532,25 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AssemblyName>libdeveeldb</AssemblyName>
+    <OutputType>Library</OutputType>
+    <DebugSymbols>true</DebugSymbols>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug - Mono|AnyCPU' ">
+    <OutputType>Library</OutputType>
+    <OutputPath>bin\Debug\Mono\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <Optimize>false</Optimize>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE;DEBUG;NET_2_0;MONO</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DebugType>full</DebugType>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="BeforeBuild" command="java -classpath ${ProjectDir}/../util/csharpcc.jar csharpcc -OUTPUT_DIRECTORY=${ProjectDir}/Deveel.Data.Sql ${ProjectDir}/Deveel.Data.Sql/SQL.csc" workingdir="${ProjectDir}" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
 </Project>

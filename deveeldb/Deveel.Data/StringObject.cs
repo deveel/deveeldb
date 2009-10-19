@@ -56,6 +56,27 @@ namespace Deveel.Data {
 			return new StringReader(str);
 		}
 
+		public override bool Equals(object obj) {
+			if (obj == null)
+				return false;
+			if (obj is string)
+				return str == (obj as string);
+			if (obj is StringObject) {
+				StringObject sobj = (StringObject) obj;
+				if (str == null && sobj.str == null)
+					return true;
+				if (str == null && sobj.str != null)
+					return false;
+				return Equals(str, sobj.str);
+			}
+
+			throw new ArgumentException("Cannot compare to a string.");
+		}
+
+		public override int GetHashCode() {
+			return base.GetHashCode();
+		}
+
 		public override String ToString() {
 			return str;
 		}

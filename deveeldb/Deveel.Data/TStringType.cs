@@ -102,7 +102,7 @@ namespace Deveel.Data {
 				String country = "";
 				String variant = "";
 				if (locale_str.Length > 2) {
-					country = locale_str.Substring(2, 4);
+					country = locale_str.Substring(2, 2);
 					if (locale_str.Length > 4) {
 						variant = locale_str.Substring(4);
 					}

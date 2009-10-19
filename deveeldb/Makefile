@@ -8,9 +8,9 @@ top_srcdir=..
 
 include $(top_srcdir)/config.make
 
-ifeq ($(CONFIG),DEBUG____NET)
+ifeq ($(CONFIG),DEBUG)
 ASSEMBLY_COMPILER_COMMAND = gmcs
-ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize- -debug "-define:DEBUG;TRACE"
+ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:3 -optimize- -debug "-define:TRACE;DEBUG;NET_2_0"
 ASSEMBLY = bin/Debug/libdeveeldb.dll
 ASSEMBLY_MDB = $(ASSEMBLY).mdb
 COMPILE_TARGET = library
@@ -18,37 +18,32 @@ PROJECT_REFERENCES =
 BUILD_DIR = bin/Debug/
 
 LIBDEVEELDB_DLL_MDB_SOURCE=bin/Debug/libdeveeldb.dll.mdb
-LIBDEVEELDB_DLL_MDB=$(BUILD_DIR)/libdeveeldb.dll.mdb
-DEVEELDB_DLL_MDB=
 
 endif
 
-ifeq ($(CONFIG),RELEASE____NET)
+ifeq ($(CONFIG),RELEASE)
 ASSEMBLY_COMPILER_COMMAND = gmcs
-ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize+ "-define:TRACE"
+ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize+ -debug -define:DEBUG "-define:TRACE"
 ASSEMBLY = bin/Release/libdeveeldb.dll
-ASSEMBLY_MDB = 
+ASSEMBLY_MDB = $(ASSEMBLY).mdb
 COMPILE_TARGET = library
 PROJECT_REFERENCES = 
 BUILD_DIR = bin/Release/
 
-LIBDEVEELDB_DLL_MDB=
-DEVEELDB_DLL_MDB=
+LIBDEVEELDB_DLL_MDB_SOURCE=bin/Release/libdeveeldb.dll.mdb
 
 endif
 
 ifeq ($(CONFIG),DEBUG___MONO)
 ASSEMBLY_COMPILER_COMMAND = gmcs
-ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:4 -optimize- -debug "-define:TRACE;DEBUG;MONO"
-ASSEMBLY = bin/Debug/Mono/deveeldb.dll
+ASSEMBLY_COMPILER_FLAGS =  -noconfig -codepage:utf8 -warn:3 -optimize- -debug "-define:TRACE;DEBUG;NET_2_0;MONO"
+ASSEMBLY = bin/Debug/Mono/libdeveeldb.dll
 ASSEMBLY_MDB = $(ASSEMBLY).mdb
 COMPILE_TARGET = library
 PROJECT_REFERENCES = 
-BUILD_DIR = bin/Debug/Mono
+BUILD_DIR = bin/Debug/Mono/
 
-LIBDEVEELDB_DLL_MDB=
-DEVEELDB_DLL_MDB_SOURCE=bin/Debug/Mono/deveeldb.dll.mdb
-DEVEELDB_DLL_MDB=$(BUILD_DIR)/deveeldb.dll.mdb
+LIBDEVEELDB_DLL_MDB_SOURCE=bin/Debug/Mono/libdeveeldb.dll.mdb
 
 endif
 
@@ -56,8 +51,7 @@ AL=al2
 SATELLITE_ASSEMBLY_NAME=$(notdir $(basename $(ASSEMBLY))).resources.dll
 
 PROGRAMFILES = \
-	$(LIBDEVEELDB_DLL_MDB) \
-	$(DEVEELDB_DLL_MDB)  
+	$(LIBDEVEELDB_DLL_MDB)  
 
 LINUX_PKGCONFIG = \
 	$(DEVEELDB_PC)  
@@ -66,15 +60,23 @@ LINUX_PKGCONFIG = \
 RESGEN=resgen2
 
 DEVEELDB_PC = $(BUILD_DIR)/deveeldb.pc
+LIBDEVEELDB_DLL_MDB = $(BUILD_DIR)/libdeveeldb.dll.mdb
 
 FILES = \
 	AssemblyInfo.cs \
 	Deveel.Data.Client/ConnectionString.cs \
-	Deveel.Data.Client/DeveelDbProcedureTrigger.cs \
+	Deveel.Data.Client/DeveelDbCommand.cs \
+	Deveel.Data.Client/DeveelDbConnection.cs \
+	Deveel.Data.Client/DeveelDbConnectionStringBuilder.cs \
+	Deveel.Data.Client/DeveelDbDataReader.cs \
+	Deveel.Data.Client/DeveelDbParameter.cs \
+	Deveel.Data.Client/DeveelDbParameterCollection.cs \
+	Deveel.Data.Client/DeveelDbTransaction.cs \
 	Deveel.Data.Client/DeveelDbTrigger.cs \
 	Deveel.Data.Client/ParemeterStyle.cs \
 	Deveel.Data.Client/TriggerEventMoment.cs \
 	Deveel.Data.Client/TriggerEventTypes.cs \
+	Deveel.Data.Control/ConfigProperty.cs \
 	Deveel.Data.Sql/CommitStatement.cs \
 	Deveel.Data.Sql/ConstraintType.cs \
 	Deveel.Data.Sql/CreateFunctionStatement.cs \
@@ -82,12 +84,11 @@ FILES = \
 	Deveel.Data.Sql/DropFunctionStatement.cs \
 	Deveel.Data.Sql/DropSchemaStatement.cs \
 	Deveel.Data.Sql/RollbackStatement.cs \
+	Deveel.Data.Sql/SqlParseException.cs \
 	Deveel.Data.Store/FSync.cs \
 	Deveel.Data.Store/IFSync.cs \
-	Deveel.Data.Store/MacOSXFSync.cs \
 	Deveel.Data.Store/SyncFailedException.cs \
-	Deveel.Data.Store/UnixFSync.cs \
-	Deveel.Data.Store/WindowsFSync.cs \
+	Deveel.Data.Text/DeveelRegexLibrary.cs \
 	Deveel.Data.Util/Properties.cs \
 	Deveel.Data.Util/ShellUserTerminal.cs \
 	Deveel.Data/DatabaseEventHandler.cs \
@@ -184,16 +185,10 @@ FILES = \
 	Deveel.Data.Client/ILocalBootable.cs \
 	Deveel.Data.Client/DbBlob.cs \
 	Deveel.Data.Client/DbClob.cs \
-	Deveel.Data.Client/DeveelDbCommand.cs \
-	Deveel.Data.Client/DeveelDbConnection.cs \
-	Deveel.Data.Client/DeveelDbDataReader.cs \
-	Deveel.Data.Client/DeveelDbParameter.cs \
-	Deveel.Data.Client/DeveelDbParameterCollection.cs \
 	Deveel.Data.Client/ResultSet.cs \
 	Deveel.Data.Client/DbDataException.cs \
 	Deveel.Data.Client/DbStreamableBlob.cs \
 	Deveel.Data.Client/DbStreamableClob.cs \
-	Deveel.Data.Client/DeveelDbTransaction.cs \
 	Deveel.Data.Client/ProtocolConstants.cs \
 	Deveel.Data.Client/IQueryResponse.cs \
 	Deveel.Data.Client/RemoteDatabaseInterface.cs \
@@ -456,6 +451,38 @@ FILES = \
 	Deveel.Data.Sql/TokenMgrError.cs \
 	Deveel.Data.Sql/Util.cs \
 	Deveel.Data/IDatabaseEvent.cs \
+	Deveel.Text.RegularExpressions/BufferedStreamManager.cs \
+	Deveel.Text.RegularExpressions/BufferedTextReader.cs \
+	Deveel.Text.RegularExpressions/CharIndexedCharArray.cs \
+	Deveel.Text.RegularExpressions/CharIndexedReader.cs \
+	Deveel.Text.RegularExpressions/CharIndexedStream.cs \
+	Deveel.Text.RegularExpressions/CharIndexedString.cs \
+	Deveel.Text.RegularExpressions/CharIndexedStringBuilder.cs \
+	Deveel.Text.RegularExpressions/ICharIndexed.cs \
+	Deveel.Text.RegularExpressions/Regex.cs \
+	Deveel.Text.RegularExpressions/RegexErrorType.cs \
+	Deveel.Text.RegularExpressions/RegexException.cs \
+	Deveel.Text.RegularExpressions/RegexFilterStream.cs \
+	Deveel.Text.RegularExpressions/RegexFilterTextReader.cs \
+	Deveel.Text.RegularExpressions/RegexFlags.cs \
+	Deveel.Text.RegularExpressions/RegexMatch.cs \
+	Deveel.Text.RegularExpressions/RegexMatchEnumerator.cs \
+	Deveel.Text.RegularExpressions/RegexSyntax.cs \
+	Deveel.Text.RegularExpressions/RegexToken.cs \
+	Deveel.Text.RegularExpressions/RegexTokenAny.cs \
+	Deveel.Text.RegularExpressions/RegexTokenBackRef.cs \
+	Deveel.Text.RegularExpressions/RegexTokenChar.cs \
+	Deveel.Text.RegularExpressions/RegexTokenEnd.cs \
+	Deveel.Text.RegularExpressions/RegexTokenEndSub.cs \
+	Deveel.Text.RegularExpressions/RegexTokenLookAhead.cs \
+	Deveel.Text.RegularExpressions/RegexTokenOneOf.cs \
+	Deveel.Text.RegularExpressions/RegexTokenPOSIX.cs \
+	Deveel.Text.RegularExpressions/RegexTokenRange.cs \
+	Deveel.Text.RegularExpressions/RegexTokenRepeated.cs \
+	Deveel.Text.RegularExpressions/RegexTokenStart.cs \
+	Deveel.Text.RegularExpressions/RegexTokenWordBoundary.cs \
+	Deveel.Text.RegularExpressions/SyntaxKey.cs \
+	Deveel.Text.RegularExpressions/UncheckedRegex.cs \
 	Deveel.Zip/Adler32.cs \
 	Deveel.Zip/CheckedStream.cs \
 	Deveel.Zip/Checksum.cs \
@@ -512,12 +539,14 @@ $(build_xamlg_list): %.xaml.g.cs: %.xaml
 	xamlg '$<'
 
 # Targets for Custom commands
-DEBUG - .NET_BeforeBuild:
+DEBUG_BeforeBuild:
 	(cd $(srcdir) && java -classpath ..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=Deveel.Data.Sql Deveel.Data.Sql\SQL.csc)
 
+DEBUG - MONO_BeforeBuild:
+	(cd $(srcdir) && java -classpath $(srcdir)/../util/csharpcc.jar csharpcc -OUTPUT_DIRECTORY=$(srcdir)/Deveel.Data.Sql $(srcdir)/Deveel.Data.Sql/SQL.csc)
 
-$(ASSEMBLY_MDB): $(ASSEMBLY)
-$(ASSEMBLY): $(build_sources) $(build_resources) $(build_datafiles) $(DLL_REFERENCES) $(PROJECT_REFERENCES) $(build_xamlg_list) $(build_satellite_assembly_list)
+
+$(ASSEMBLY) $(ASSEMBLY_MDB): $(build_sources) $(build_resources) $(build_datafiles) $(DLL_REFERENCES) $(PROJECT_REFERENCES) $(build_xamlg_list) $(build_satellite_assembly_list)
 	make pre-all-local-hook prefix=$(prefix)
 	mkdir -p $(shell dirname $(ASSEMBLY))
 	make $(CONFIG)_BeforeBuild
@@ -531,11 +560,9 @@ install-local: $(ASSEMBLY) $(ASSEMBLY_MDB)
 	mkdir -p '$(DESTDIR)$(libdir)/$(PACKAGE)'
 	$(call cp,$(ASSEMBLY),$(DESTDIR)$(libdir)/$(PACKAGE))
 	$(call cp,$(ASSEMBLY_MDB),$(DESTDIR)$(libdir)/$(PACKAGE))
-	mkdir -p '$(DESTDIR)$(libdir)\$(PACKAGE)'
-	$(call cp,$(LIBDEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
-	mkdir -p '$(DESTDIR)$(libdir)\pkgconfig'
-	$(call cp,$(DEVEELDB_PC),$(DESTDIR)$(libdir)\pkgconfig)
-	$(call cp,$(DEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
+	mkdir -p '$(DESTDIR)$(libdir)/pkgconfig'
+	$(call cp,$(DEVEELDB_PC),$(DESTDIR)$(libdir)/pkgconfig)
+	$(call cp,$(LIBDEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)/$(PACKAGE))
 	make post-install-local-hook prefix=$(prefix)
 
 uninstall-local: $(ASSEMBLY) $(ASSEMBLY_MDB)
@@ -543,9 +570,8 @@ uninstall-local: $(ASSEMBLY) $(ASSEMBLY_MDB)
 	make uninstall-satellite-assemblies prefix=$(prefix)
 	$(call rm,$(ASSEMBLY),$(DESTDIR)$(libdir)/$(PACKAGE))
 	$(call rm,$(ASSEMBLY_MDB),$(DESTDIR)$(libdir)/$(PACKAGE))
-	$(call rm,$(LIBDEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
-	$(call rm,$(DEVEELDB_PC),$(DESTDIR)$(libdir)\pkgconfig)
-	$(call rm,$(DEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)\$(PACKAGE))
+	$(call rm,$(DEVEELDB_PC),$(DESTDIR)$(libdir)/pkgconfig)
+	$(call rm,$(LIBDEVEELDB_DLL_MDB),$(DESTDIR)$(libdir)/$(PACKAGE))
 	make post-uninstall-local-hook prefix=$(prefix)
 
 install: install-local

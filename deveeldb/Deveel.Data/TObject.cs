@@ -46,6 +46,12 @@ namespace Deveel.Data {
 		/// </summary>
 		private object ob;
 
+		/// <summary>
+		/// Constructs the <see cref="TObject"/> with the given <see cref="TType"/>
+		/// and value.
+		/// </summary>
+		/// <param name="type">The <see cref="TType"/> of the object.</param>
+		/// <param name="ob">The wrapped value of the object.</param>
 		public TObject(TType type, Object ob) {
 			this.type = type;
 			if (ob is String) {
@@ -82,8 +88,19 @@ namespace Deveel.Data {
 
 		#region Implicit Operators
 
-		/*
+		/// <summary>
+		/// The equality operator between two <see cref="TObject"/>.
+		/// </summary>
+		/// <param name="a">The first operand.</param>
+		/// <param name="b">The second operand.</param>
+		/// <returns>
+		/// Returns <b>true</b> if the two operands have the same
+		/// <see cref="TType"/> and the same <see cref="Object">value</see>.
+		/// </returns>
+		/// <seealso cref="Equals"/>
 		public static bool operator ==(TObject a, TObject b) {
+			if ((object)a == (object)b)
+				return true;
 			if ((object)a == null && (object)b == null)
 				return true;
 			if ((object)a == null)
@@ -91,14 +108,27 @@ namespace Deveel.Data {
 			if ((object)b == null)
 				return false;
 
-			return a.IsEqual(b).ToBoolean();
+			return a.Equals(b);
 		}
 
+		/// <summary>
+		/// The inequality operator between two <see cref="TObject"/>.
+		/// </summary>
+		/// <param name="a">The first operand.</param>
+		/// <param name="b">The second operand.</param>
+		/// <returns></returns>
+		/// <seealso cref="op_Equality"/>
 		public static bool operator !=(TObject a, TObject b) {
 			return !(a == b);
 		}
-		*/
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="a"></param>
+		/// <param name="b"></param>
+		/// <returns></returns>
+		/// <seealso cref="Greater"/>
 		public static bool operator >(TObject a, TObject b) {
 			if (a == null && b == null)
 				return true;
@@ -108,8 +138,26 @@ namespace Deveel.Data {
 			return a.Greater(b) == BooleanTrue;
 		}
 
+		public static bool operator >=(TObject a, TObject b) {
+			if (a == null && b == null)
+				return true;
+			if (a == null)
+				return false;
+
+			return a.GreaterEquals(b) == BooleanTrue;
+		}
+
 		public static bool operator <(TObject a, TObject b) {
 			return !(a > b);
+		}
+
+		public static bool operator <=(TObject a, TObject b) {
+			if (a == null && b == null)
+				return true;
+			if (a == null)
+				return false;
+
+			return a.LessEquals(b) == BooleanTrue;
 		}
 
 		public static TObject operator |(TObject a, TObject b) {
@@ -148,6 +196,15 @@ namespace Deveel.Data {
 				return Null;
 
 			return a.Divide(b);
+		}
+
+		public static TObject operator %(TObject a, TObject b) {
+			if (a == null && b == null)
+				return Null;
+			if (a == null)
+				return Null;
+
+			return a.Modulus(b);
 		}
 
 		public static TObject operator *(TObject a, TObject b) {
@@ -495,19 +552,40 @@ namespace Deveel.Data {
 		/// It's not clear what we would be testing the equality of with this method.
 		/// </exception>
 		public override bool Equals(object obj) {
-			throw new ApplicationException("equals method should not be used.");
+			// throw new ApplicationException("equals method should not be used.");
+			TObject tobj = obj as TObject;
+			if (tobj == null)
+				return false;
+			if (!type.Equals(tobj.type))
+				return false;
+			if (ob == null && tobj.ob == null)
+				return true;
+			if (ob == null && tobj.ob != null)
+				return false;
+			if (ob == null)
+				return false;
+			return ob.Equals(tobj.ob);
 		}
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			return base.GetHashCode();
+			return type.GetHashCode() ^ (ob == null ? 0 : ob.GetHashCode());
 		}
 
-		/**
-		 * Equality test.  Returns true if this object is equivalent to the given
-		 * TObject.  This means the types are the same, and the object itself is the
-		 * same.
-		 */
+		///<summary>
+		/// Verifies if the given object is equivalent to the current
+		/// instance of the <see cref="TObject"/>.
+		///</summary>
+		///<param name="obj">The <see cref="TObject"/> to verify.</param>
+		/// <remarks>
+		/// This method is different from <see cref="Equals"/> in which it
+		/// compares the type and values of the current <see cref="TObject"/> 
+		/// and the given <paramref name="obj">one</paramref>.
+		/// </remarks>
+		///<returns>
+		/// Returns <b>true</b> if this object is equivalent to the given 
+		/// <paramref name="obj">object</paramref>, or <b>false</b> otherwise.
+		/// </returns>
 		public bool ValuesEqual(TObject obj) {
 			if (this == obj) {
 				return true;

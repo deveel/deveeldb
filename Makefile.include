@@ -1,4 +1,4 @@
-VALID_CULTURES =  ar bg ca zh-CHS cs da de el en es fi fr he hu is it ja ko nl no pl pt ro ru hr sk sq sv th tr ur id uk be sl et lv lt fa vi hy az eu mk af ka fo hi ms kk ky sw uz tt pa gu ta te kn mr sa mn gl kok syr dv  ar-SA bg-BG ca-ES zh-TW cs-CZ da-DK de-DE el-GR en-US fi-FI fr-FR he-IL hu-HU is-IS it-IT ja-JP ko-KR nl-NL nb-NO pl-PL pt-BR ro-RO ru-RU hr-HR sk-SK sq-AL sv-SE th-TH tr-TR ur-PK id-ID uk-UA be-BY sl-SI et-EE lv-LV lt-LT fa-IR vi-VN hy-AM az-Latn-AZ eu-ES mk-MK af-ZA ka-GE fo-FO hi-IN ms-MY kk-KZ ky-KG sw-KE uz-Latn-UZ tt-RU pa-IN gu-IN ta-IN te-IN kn-IN mr-IN sa-IN mn-MN gl-ES kok-IN syr-SY dv-MV ar-IQ zh-CN de-CH en-GB es-MX fr-BE it-CH nl-BE nn-NO pt-PT sr-Latn-CS sv-FI az-Cyrl-AZ ms-BN uz-Cyrl-UZ ar-EG zh-HK de-AT en-AU es-ES fr-CA sr-Cyrl-CS ar-LY zh-SG de-LU en-CA es-GT fr-CH ar-DZ zh-MO de-LI en-NZ es-CR fr-LU ar-MA en-IE es-PA fr-MC ar-TN en-ZA es-DO ar-OM en-JM es-VE ar-YE en-029 es-CO ar-SY en-BZ es-PE ar-JO en-TT es-AR ar-LB en-ZW es-EC ar-KW en-PH es-CL ar-AE es-UY ar-BH es-PY ar-QA es-BO es-SV es-HN es-NI es-PR zh-CHT sr sma-NO bn-BD bs-Cyrl-BA tg-Cyrl-TJ en-SG en-MY mn-Mong-CN prs-AF wo-SN rw-RW qut-GT sah-RU gsw-FR co-FR rm-CH mi-NZ ug-CN br-FR moh-CA arn-CL ga-IE ii-CN sma-SE sr-Latn-BA quz-PE ig-NG kl-GL lb-LU ba-RU nso-ZA quz-BO yo-NG sms-FI ha-Latn-NG hr-BA fil-PH ps-AF fy-NL ne-NP am-ET iu-Cans-CA quz-EC si-LK smj-SE lo-LA km-KH cy-GB bo-CN se-SE smj-NO as-IN ml-IN se-FI or-IN sr-Cyrl-BA bn-IN en-IN dsb-DE tk-TM smn-FI oc-FR es-US se-NO mt-MT bs-Latn-BA zu-ZA xh-ZA tn-ZA tzm-Latn-DZ iu-Latn-CA hsb-DE
+VALID_CULTURES =   ar bg ca zh-CHS cs da de el en es fi fr he hu is it ja ko nl no pl pt ro ru hr sk sq sv th tr id uk be sl et lv lt fa vi hy eu mk af fo hi sw gu ta te kn mr gl kok ar-SA bg-BG ca-ES zh-TW cs-CZ da-DK de-DE el-GR en-US fi-FI fr-FR he-IL hu-HU is-IS it-IT ja-JP ko-KR nl-NL nb-NO pl-PL pt-BR ro-RO ru-RU hr-HR sk-SK sq-AL sv-SE th-TH tr-TR id-ID uk-UA be-BY sl-SI et-EE lv-LV lt-LT fa-IR vi-VN hy-AM eu-ES mk-MK af-ZA fo-FO hi-IN sw-KE gu-IN ta-IN te-IN kn-IN mr-IN gl-ES kok-IN ar-IQ zh-CN de-CH en-GB es-MX fr-BE it-CH nl-BE nn-NO pt-PT sv-FI ar-EG zh-HK de-AT en-AU es-ES fr-CA ar-LY zh-SG de-LU en-CA es-GT fr-CH ar-DZ zh-MO en-NZ es-CR fr-LU ar-MA en-IE es-PA ar-TN en-ZA es-DO ar-OM es-VE ar-YE es-CO ar-SY es-PE ar-JO es-AR ar-LB en-ZW es-EC ar-KW en-PH es-CL ar-AE es-UY ar-BH es-PY ar-QA es-BO es-SV es-HN es-NI es-PR zh-CHT
 
 s2q=$(subst \ ,?,$1)
 q2s=$(subst ?,\ ,$1)
@@ -65,10 +65,10 @@ DISTCLEANFILES = $(GENERATED_FILES) $(pc_files) $(BUILD_DIR)/*
 pkglib_SCRIPTS = $(ASSEMBLY)
 bin_SCRIPTS = $(BINARIES)
 
-linuxpkgconfigdir = @libdir@\pkgconfig
-linuxpkgconfig_DATA = $(LINUX_PKGCONFIG)
 programfilesdir = @libdir@/@PACKAGE@
 programfiles_DATA = $(PROGRAMFILES)
+linuxpkgconfigdir = @libdir@/pkgconfig
+linuxpkgconfig_DATA = $(LINUX_PKGCONFIG)
 
 
 # macros

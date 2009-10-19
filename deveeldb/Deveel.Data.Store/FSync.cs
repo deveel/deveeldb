@@ -1,4 +1,4 @@
-﻿//  
+//  
 //  FSync.cs
 //  
 //  Author:
@@ -48,6 +48,31 @@ namespace Deveel.Data.Store {
 		}
 
 		private static IFSync current;
+		
+		/// <summary>
+		/// Gets an implementation of <see cref="IFSync"/> specific
+		/// for Microsoft Windows operating systems.
+		/// </summary>
+		/// <value>
+		/// An implementation of <see cref="IFSync"/> specific
+		/// for Microsoft Windows operating systems.
+		/// </value>
+		public static IFSync Windows {
+			get { return new WindowsFSynch(); }
+		}
+		
+		/// <summary>
+		/// Gets an implementation of <see cref="IFsync"/> which
+		/// can be used in UNIX-like operating systems (*BSD,
+		/// Linux, etc.).
+		/// </summary>
+		public static IFSync Unix {
+			get { return new UnixFSync(); }
+		}
+		
+		public static IFSync MacOSX {
+			get { return new MacOSXFSync(); }
+		}
 
 		internal static void SetFSync(IFSync sync) {
 			current = sync;
@@ -63,8 +88,10 @@ namespace Deveel.Data.Store {
 			PlatformID platform = Environment.OSVersion.Platform;
 			if (platform == PlatformID.Unix)
 				return new UnixFSync();
+#if !MONO
 			if (platform == PlatformID.MacOSX)
 				return new MacOSXFSync();
+#endif
 
 			// if not of special platforms, this means it must be a
 			// windows platform...
@@ -157,6 +184,7 @@ namespace Deveel.Data.Store {
 			return true;
 		}
 
+#region FSyncWrapper
 		private class FSyncWrapper : IFSync {
 			public FSyncWrapper(object obj, MethodInfo method) {
 				this.obj = obj;
@@ -174,5 +202,98 @@ namespace Deveel.Data.Store {
 				}
 			}
 		}
+#endregion
+		
+#region WindowsFSync
+		/// <summary>
+		/// Synchronizes a <see cref="FileStream"/> with an underlying
+		/// Microsoft Windows platform.
+		/// </summary>
+		private sealed class WindowsFSynch : IFSync {
+#if NET_2_0
+			[System.Runtime.InteropServices.DllImport("kernel32")]
+			private static extern int FlushFileBuffers(Microsoft.Win32.SafeHandles.SafeFileHandle hFile);		
+#else
+			[System.Runtime.InteropServices.DllImport("kernel32")]
+			private static extern int FlushFileBuffers(IntPtr hFile);
+#endif
+
+			public void Sync(FileStream stream) {
+#if WIN32
+#if NET_2_0
+				if (FlushFileBuffers(stream.SafeFileHandle) == 0)
+#else
+				if (FlushFileBuffers(stream.Handle) == 0)
+#endif
+					throw new SyncFailedException();
+#else
+				throw new NotSupportedException();
+#endif
+
+			}
+		}
+#endregion
+		
+#region UnixFSync
+		/// <summary>
+		/// Synchronizes a <see cref="FileStream"/> with an underlying
+		/// Unix platform.
+		/// </summary>
+		private sealed class UnixFSync : IFSync {
+			/// <inheritdoc/>
+			/// <exception cref="NotSupportedException">
+			/// If the current platform is not supported. The support of
+			/// fsync operations under UNIX-like platforms (Linux, *BSD, etc.)
+			/// is done by a call to Mono: if the project was not compiled
+			/// with this it will throw this exception by default.
+			/// </exception>
+			public void Sync(FileStream stream) {
+#if !MONO
+				throw new NotSupportedException();
+#else
+				try {
+					/*
+					if (Mono.Unix.Native.Stdlib.fflush(stream.Handle) != 0)
+						Mono.Unix.UnixMarshal.ThrowExceptionForLastError();
+					*/
+					MethodInfo monoIOSyncMethod;
+					System.Type monoIO = Type.GetType("System.IO.MonoIO");
+					if (monoIO != null)
+						monoIOSyncMethod = monoIO.GetMethod("Flush");
+					else
+						throw new SyncFailedException();
+					
+					int erro = 0;
+					monoIOSyncMethod.Invoke(null, new object[] {stream.Handle, erro});
+					if (erro != 0)
+						throw new SyncFailedException();
+				} catch(Exception e) {
+					Diagnostics.Debug.Write(Diagnostics.DebugLevel.Error, this, "Error while synchronizing file.");
+					Diagnostics.Debug.WriteException(e);
+					throw new SyncFailedException();
+				}
+#endif
+			}			
+		}
+#endregion
+
+#region MacOSXFSync
+		/// <summary>
+		/// Synchronizes a <see cref="FileStream"/> with an underlying
+		/// MacOS X platform.
+		/// </summary>
+		private sealed class MacOSXFSync : IFSync {
+			/// <inheritdoc/>
+			/// <exception cref="NotSupportedException">
+			/// If the current platform is not supported. The support of
+			/// fsync operations under MacOS X platform is done by a call 
+			/// to Mono: if the project was not compiled with this it will
+			/// throw this exception by default.
+			/// </exception>
+			public void Sync(FileStream stream) {
+				throw new NotSupportedException();
+			}
+		}
+#endregion
 	}
 }

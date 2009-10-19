@@ -1,5 +1,5 @@
 
-EXTRA_DIST =  rules.make configure Makefile.include lib/ICSharpCode.SharpZipLib.dll lib/nunit.core.dll lib/nunit.framework.dll
+EXTRA_DIST =  rules.make configure Makefile.include lib/Deveel.CommandLine.dll lib/nunit.framework.dll lib/nunit.core.dll
 
 all: all-recursive
 
@@ -12,10 +12,19 @@ include $(top_srcdir)/rules.make
 
 #Warning: This is an automatically generated file, do not edit!
 ifeq ($(CONFIG),DEBUG)
- SUBDIRS =  deveeldb deveeldb-nunit
+ SUBDIRS =  deveeldb deveeldb-nunit deveeldb-server
 endif
 ifeq ($(CONFIG),RELEASE)
- SUBDIRS =  deveeldb deveeldb-nunit
+ SUBDIRS =  deveeldb deveeldb-nunit deveeldb-server
+endif
+ifeq ($(CONFIG),DEBUG___MONO)
+ SUBDIRS =  deveeldb deveeldb-nunit deveeldb-server
+endif
+ifeq ($(CONFIG),DEBUG____NET)
+ SUBDIRS = 
+endif
+ifeq ($(CONFIG),RELEASE____NET)
+ SUBDIRS = 
 endif
 
 

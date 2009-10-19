@@ -250,7 +250,7 @@ namespace Deveel.Data {
 		/// </example>
 		public void Intersect(Operator op, TObject val) {
 			int sz = range_set.Count;
-			ArrayList i = range_set.GetRange(0, range_set.Count);
+			ArrayList i = range_set.GetRange(0, sz);
 			Queue queue = new Queue(i);
 
 			if (op.Is("<>") || op.Is("is not")) {
@@ -271,7 +271,7 @@ namespace Deveel.Data {
 			} else {
 				bool nullCheck = !op.Is("is");
 				int j = 0;
-				while (j < i.Count) {
+				while (j < sz) {
 					object obj = i[j];
 					SelectableRange range = (SelectableRange)obj;
 					range = IntersectRange(range, op, val, nullCheck);
