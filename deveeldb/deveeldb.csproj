@@ -73,6 +73,16 @@
     <Compile Include="Deveel.Data.Client\TriggerEventMoment.cs" />
     <Compile Include="Deveel.Data.Client\TriggerEventTypes.cs" />
     <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
+    <Compile Include="Deveel.Data.Functions\ACosFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\ASinFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\ATanFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\CosFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\CosHFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\SinFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\SinHFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\SoundexFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\TanFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\TanHFunction.cs" />
     <Compile Include="Deveel.Data.Sql\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateFunctionStatement.cs" />
@@ -502,6 +512,9 @@
     <Compile Include="Deveel.Zip\ShiftUtil.cs" />
     <Compile Include="Deveel.Zip\StreamManipulator.cs" />
     <Compile Include="Deveel.Zip\ZipException.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="deveeldb.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

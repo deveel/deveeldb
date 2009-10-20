@@ -1,4 +1,9 @@
-﻿2009-10-09  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-20  Antonello Provenzano  <antonello@deveel.com>
+	* SQL.csc:
+		- Support of INTERVAL types
+		- Implemented the SOUNDS LIKE syntax
+		
+2009-10-09  Antonello Provenzano  <antonello@deveel.com>
 	* ShowStatement.cs: 
 		- renamed schema 'SYS_INFO' to 'SYSTEM' for code clarity;
 		- changes to support the INFORMATION_SCHEMA standard

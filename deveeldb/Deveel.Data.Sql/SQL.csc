@@ -269,6 +269,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <IGNORE:      "ignore">
 | <SCHEMA:      "schema">
 | <EXISTS:      "exists">
+| <SOUNDS:      "sounds">
 | <VALUES:      "values">
 | <HAVING:      "having">
 | <UNIQUE:      "unique">
@@ -2161,6 +2162,7 @@ String GetBooleanOperator() :
     | t=<NOTEQ>
     | LOOKAHEAD(2) <IS> <NOT> { return "IS NOT"; } | t=<IS> 
     | t=<LIKE> | <NOT> <LIKE> { return "NOT LIKE"; }
+    | LOOKAHEAD(2) <SOUNDS> <LIKE> { return "SOUNDS LIKE"; }
     | t=<AND> | t=<OR>
   )
   { return t.image; }

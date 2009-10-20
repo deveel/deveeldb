@@ -52,6 +52,7 @@ namespace Deveel.Data.Functions {
 			AddFunction("sql_trim", typeof(SQLTrimFunction));
 			AddFunction("ltrim", typeof(LTrimFunction));
 			AddFunction("rtrim", typeof(RTrimFunction));
+			AddFunction("soundex", typeof (SoundexFunction));
 			// Security
 			AddFunction("user", typeof(UserFunction));
 			AddFunction("privgroups", typeof(PrivGroupsFunction));
@@ -70,6 +71,14 @@ namespace Deveel.Data.Functions {
 			AddFunction("round", typeof(RoundFunction));
 			AddFunction("pow", typeof(PowFunction));
 			AddFunction("sqrt", typeof(SqrtFunction));
+			AddFunction("cos", typeof (CosFunction));
+			AddFunction("cosh", typeof (CosHFunction));
+			AddFunction("acos", typeof (ACosFunction));
+			AddFunction("tan", typeof (TanFunction));
+			AddFunction("tanh", typeof (TanHFunction));
+			AddFunction("sin", typeof (SinFunction));
+			AddFunction("sinh", typeof (SinHFunction));
+			AddFunction("asin", typeof (ASinFunction));
 			// Sequence operations
 			AddFunction("uniquekey", typeof(UniqueKeyFunction), FunctionType.StateBased);
 			AddFunction("nextval", typeof(NextValFunction), FunctionType.StateBased);

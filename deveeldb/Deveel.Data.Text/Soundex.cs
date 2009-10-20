@@ -27,10 +27,15 @@ namespace Deveel.Data.Text {
 		public Soundex(char[] mapping) {
 			this.mapping = mapping;
 		}
+
+		public Soundex()
+			: this(UsEnglishMapping.ToCharArray()) {
+		}
+
 		#endregion
 
 		#region Fields
-		private char[] mapping;
+		private readonly char[] mapping;
 
 		private static readonly string UsEnglishMapping = "01230120022455012623010202";
 

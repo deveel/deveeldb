@@ -1021,6 +1021,34 @@ namespace Deveel.Data {
 			return BooleanNull;
 		}
 
+		/// <summary>
+		/// Equality test for the similarity of two strings based on
+		/// the <c>SOUNDEX</c> algorithm.
+		/// </summary>
+		/// <param name="val">The value to compare.</param>
+		/// <remarks>
+		/// This method compares the two values based on the US-en
+		/// vocabulary mappings.
+		/// </remarks>
+		/// <returns>
+		/// Returns a boolean value indicating if the current object and the
+		/// given string value sounds similarly.
+		/// </returns>
+		public TObject SoundsLike(TObject val) {
+			if (!(val.TType is TStringType))
+				val = val.CastTo(TType.StringType);
+
+			//TODO: support more languages...
+			Text.Soundex soundex = Text.Soundex.UsEnglish;
+
+			string v1 = ToStringValue();
+			string v2 = val.ToStringValue();
+
+			string sd1 = soundex.Compute(v1);
+			string sd2 = soundex.Compute(v2);
+			return GetBoolean(String.Compare(sd1, sd2, false) == 0);
+		}
+
 
 		/// <summary>
 		/// Performs a logical NOT on this value.

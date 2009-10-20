@@ -51,8 +51,8 @@ namespace Deveel.Data {
 		private static readonly LesserOperator l_op = new LesserOperator();
 		private static readonly LesserEqualOperator leq_op = new LesserEqualOperator();
 
-		private static readonly PatternMatchTrueOperator like_op =
-			new PatternMatchTrueOperator();
+		private static readonly PatternMatchTrueOperator like_op = new PatternMatchTrueOperator();
+		private static readonly SoundsLikeOperator slike_op = new SoundsLikeOperator();
 
 		private static readonly MultiplyOperator mul_op = new MultiplyOperator();
 		private static readonly NotEqualOperator neq_op = new NotEqualOperator();
@@ -454,6 +454,8 @@ namespace Deveel.Data {
 				return like_op;
 			if (op.Equals("not like"))
 				return nlike_op;
+			if (op.Equals("sounds like"))
+				return slike_op;
 			if (op.Equals("regex"))
 				return regex_op;
 			if (op.Equals("in"))
@@ -730,6 +732,20 @@ namespace Deveel.Data {
 			                                 IGroupResolver group, IVariableResolver resolver,
 			                                 IQueryContext context) {
 				return ob1.IsEqual(ob2);
+			}
+		}
+
+		#endregion
+
+		#region SoundsLikeOperator
+
+		private sealed class SoundsLikeOperator : Operator {
+			public SoundsLikeOperator()
+				: base("sounds like", 4) {
+			}
+
+			public override TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				return ob1.SoundsLike(ob2);
 			}
 		}
 
