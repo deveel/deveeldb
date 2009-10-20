@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -89,6 +89,7 @@
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
     <Compile Include="Deveel.Data\DatabaseEventHandler.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
+    <Compile Include="Deveel.Data\TIntervalType.cs" />
     <Compile Include="Deveel.Diagnostics\Debug.cs" />
     <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs" />
     <Compile Include="Deveel.Diagnostics\IDebugLogger.cs" />
@@ -514,32 +515,6 @@
     <PreBuildEvent>java -classpath $(ProjectDir)..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=$(ProjectDir)Deveel.Data.Sql $(ProjectDir)Deveel.Data.Sql\SQL.csc</PreBuildEvent>
     <ProjectGuid>{50D02908-5743-4E72-83B5-77C5712EA59A}</ProjectGuid>
     <RootNamespace>Deveel.Data</RootNamespace>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug - .NET|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>doc\deveeldb.XML</DocumentationFile>
-    <GenerateDocumentation>true</GenerateDocumentation>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Deveel.Data</RootNamespace>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - .NET|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <OutputType>Library</OutputType>
-    <DebugSymbols>true</DebugSymbols>
-    <RootNamespace>Deveel.Data</RootNamespace>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug - Mono|AnyCPU' ">
     <OutputType>Library</OutputType>

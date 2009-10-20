@@ -56,6 +56,20 @@ namespace Deveel.Data {
 
 		TIMESTAMP = 93,
 
+		SECOND = 94,
+
+		MINUTE = 95,
+
+		HOUR = 96,
+
+		DAY = 97,
+
+		MONTH = 98,
+
+		YEAR = 99,
+
+		INTERVAL = 100,
+
 		BINARY = -2,
 
 		VARBINARY = -3,

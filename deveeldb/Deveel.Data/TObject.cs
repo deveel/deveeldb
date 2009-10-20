@@ -35,7 +35,7 @@ namespace Deveel.Data {
 	/// etc) along with the object value being represented itself.
 	/// </remarks>
 	[Serializable]
-	public sealed class TObject : IDeserializationCallback/*, IComparable*/ {
+	public sealed class TObject : IDeserializationCallback, IComparable {
 		/// <summary>
 		/// The type of this object.
 		/// </summary>
@@ -47,10 +47,10 @@ namespace Deveel.Data {
 		private object ob;
 
 		/// <summary>
-		/// Constructs the <see cref="TObject"/> with the given <see cref="TType"/>
-		/// and value.
+		/// Constructs a <see cref="TObject"/> for the given <see cref="Data.TType"/>
+		/// and a wrapped value.
 		/// </summary>
-		/// <param name="type">The <see cref="TType"/> of the object.</param>
+		/// <param name="type">The <see cref="Data.TType"/> of the object.</param>
 		/// <param name="ob">The wrapped value of the object.</param>
 		public TObject(TType type, Object ob) {
 			this.type = type;
@@ -316,6 +316,29 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Gets the value of the object as a <see cref="TimeSpan"/>.
+		/// </summary>
+		/// <returns>
+		/// Returns a <see cref="TimeSpan"/> if <see cref="TObject.TType"/> is a
+		/// <see cref="TIntervalType"/>, <c>NULL</c> otherwise.
+		/// </returns>
+		public TimeSpan ToTimeSpan() {
+			if (TType is TIntervalType)
+				return (TimeSpan) Object;
+			if (TType is TNumericType)
+				return new TimeSpan(ToBigNumber().ToInt64());
+			return TimeSpan.Zero;
+		}
+
+		public DateTime ToDateTime() {
+			if (TType is TDateType)
+				return (DateTime)Object;
+			if (TType is TNumericType)
+				return new DateTime(ToBigNumber().ToInt64(), DateTimeKind.Utc);
+			return DateTime.MinValue;
+		}
+
+		/// <summary>
 		/// Gets the value of the object as a <see cref="Number"/>.
 		/// </summary>
 		/// <param name="isNull"></param>
@@ -539,13 +562,11 @@ namespace Deveel.Data {
 			return CompareToNoNulls(tob);
 		}
 
-		/*
 		int IComparable.CompareTo(object obj) {
 			if (!(obj is TObject))
 				throw new ArgumentException();
 			return CompareTo((TObject)obj);
 		}
-		*/
 
 		/// <inheritdoc/>
 		/// <exception cref="ApplicationException">
@@ -680,15 +701,37 @@ namespace Deveel.Data {
 		/// is <see cref="TNumericType"/>.
 		/// </returns>
 		public TObject Add(TObject val) {
-			BigNumber v1 = ToBigNumber();
-			BigNumber v2 = val.ToBigNumber();
-			TType result_type = TType.GetWidestType(TType, val.TType);
+			if (TType is TDateType) {
+				DateTime v1 = ToDateTime();
+				if (val.TType is TNumericType) {
+					BigNumber v2 = val.ToBigNumber();
+					return new TObject(TType.DateType, v1.AddMilliseconds(v2.ToDouble()));
+				} else if (val.TType is TIntervalType) {
+					TimeSpan v2 = val.ToTimeSpan();
+					return new TObject(TType.DateType, v1.Add(v2));
+				}
+			} else if (TType is TIntervalType) {
+				TimeSpan v1 = ToTimeSpan();
+				if (val.TType is TIntervalType) {
+					TimeSpan v2 = val.ToTimeSpan();
+					return new TObject(TType, v1.Add(v2));
+				} else if (val.TType is TNumericType) {
+					BigNumber v2 = val.ToBigNumber();
+					return new TObject(TType, v1.Add(new TimeSpan(v2.ToInt32() * TimeSpan.TicksPerMillisecond)));
+				}
+			} else if (TType is TNumericType) {
+				BigNumber v1 = ToBigNumber();
+				BigNumber v2 = val.ToBigNumber();
+				TType result_type = TType.GetWidestType(TType, val.TType);
 
-			if (v1 == null || v2 == null) {
-				return new TObject(result_type, null);
+				if (v1 == null || v2 == null) {
+					return new TObject(result_type, null);
+				}
+
+				return new TObject(result_type, v1.Add(v2));
 			}
 
-			return new TObject(result_type, v1.Add(v2));
+			throw new InvalidOperationException();
 		}
 
 		/// <summary>
@@ -700,15 +743,40 @@ namespace Deveel.Data {
 		/// object is returned.
 		/// </returns>
 		public TObject Subtract(TObject val) {
-			BigNumber v1 = ToBigNumber();
-			BigNumber v2 = val.ToBigNumber();
-			TType result_type = TType.GetWidestType(TType, val.TType);
+			if (TType is TDateType) {
+				DateTime v1 = ToDateTime();
+				if (val.TType is TNumericType) {
+					BigNumber v2 = val.ToBigNumber();
+					return new TObject(TType.DateType, v1.Subtract(new TimeSpan(v2.ToInt32() * TimeSpan.TicksPerMillisecond)));
+				} else if (val.TType is TIntervalType) {
+					TimeSpan v2 = val.ToTimeSpan();
+					return new TObject(TType.DateType, v1.Subtract(v2));
+				} else if (val.TType is TDateType) {
+					DateTime v2 = val.ToDateTime();
+					return new TObject(TType.IntervalType, v1.Subtract(v2));
+				}
+			} else if (TType is TIntervalType) {
+				TimeSpan v1 = ToTimeSpan();
+				if (val.TType is TIntervalType) {
+					TimeSpan v2 = val.ToTimeSpan();
+					return new TObject(TType, v1.Add(v2));
+				} else if (val.TType is TNumericType) {
+					BigNumber v2 = val.ToBigNumber();
+					return new TObject(TType, v1.Add(new TimeSpan(v2.ToInt32() * TimeSpan.TicksPerMillisecond)));
+				}
+			} else if (TType is TNumericType) {
+				BigNumber v1 = ToBigNumber();
+				BigNumber v2 = val.ToBigNumber();
+				TType result_type = TType.GetWidestType(TType, val.TType);
 
-			if (v1 == null || v2 == null) {
-				return new TObject(result_type, null);
+				if (v1 == null || v2 == null) {
+					return new TObject(result_type, null);
+				}
+
+				return new TObject(result_type, v1.Subtract(v2));
 			}
 
-			return new TObject(result_type, v1.Subtract(v2));
+			throw new InvalidOperationException();
 		}
 
 		/// <summary>
@@ -837,11 +905,16 @@ namespace Deveel.Data {
 			return BooleanFalse;
 		}
 
-		/**
-		 * Comparison of this object and the given object.  The compared objects
-		 * must be the same type otherwise it returns null (doesn't know).  If either
-		 * this object or the given object is NULL then NULL is returned.
-		 */
+		///<summary>
+		/// Comparison of this object and the given object.
+		///</summary>
+		///<param name="val"></param>
+		/// <remarks>
+		/// The compared objects must be the same type otherwise it returns 
+		/// null (doesn't know). If either this object or the given object is 
+		/// <c>NULL</c> then <c>NULL</c> is returned.
+		/// </remarks>
+		///<returns></returns>
 		public TObject IsEqual(TObject val) {
 			// Check the types are comparable
 			if (ComparableTypes(val) && !IsNull && !val.IsNull) {
@@ -851,11 +924,16 @@ namespace Deveel.Data {
 			return BooleanNull;
 		}
 
-		/**
-		 * Comparison of this object and the given object.  The compared objects
-		 * must be the same type otherwise it returns null (doesn't know).  If either
-		 * this object or the given object is NULL then NULL is returned.
-		 */
+		///<summary>
+		/// Comparison of this object and the given object.
+		///</summary>
+		///<param name="val"></param>
+		/// <remarks>
+		/// The compared objects must be the same type otherwise it returns 
+		/// null (doesn't know). If either this object or the given object is 
+		/// <c>NULL</c> then <c>NULL</c> is returned.
+		/// </remarks>
+		///<returns></returns>
 		public TObject IsNotEqual(TObject val) {
 			// Check the types are comparable
 			if (ComparableTypes(val) && !IsNull && !val.IsNull) {
@@ -962,14 +1040,17 @@ namespace Deveel.Data {
 		}
 
 
-
-
 		// ---------- Casting methods -----------
 
-		/**
-		 * Returns a TObject of the given type and with the given object.  If
-		 * the object is not of the right type then it is cast to the correct type.
-		 */
+		///<summary>
+		/// Returns a TObject of the given type and with the given object.
+		///</summary>
+		///<param name="type"></param>
+		///<param name="ob"></param>
+		/// <remarks>
+		///  If the object is not of the right type then it is cast to the correct type.
+		/// </remarks>
+		///<returns></returns>
 		public static TObject CreateAndCastFromObject(TType type, Object ob) {
 			return new TObject(type, TType.CastObjectToTType(ob, type));
 		}
@@ -985,7 +1066,7 @@ namespace Deveel.Data {
 		}
 
 
-
+		/// <inheritdoc/>
 		public override string ToString() {
 			return IsNull ? "NULL" : Object.ToString();
 		}

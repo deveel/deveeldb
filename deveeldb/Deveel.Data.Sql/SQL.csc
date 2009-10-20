@@ -335,6 +335,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 // Data types,
 
 | <BIT:         "bit">
+| <DAY:         "day">
 | <INT:         "int">
 | <REAL:        "real">
 | <CLOB:        "clob">
@@ -343,7 +344,12 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <TEXT:        "text">
 | <DATE:        "date">
 | <TIME:        "time">
+| <YEAR:        "year">
+| <HOUR:        "hour">
 | <FLOAT:       "float">
+| <MONTH:       "month">
+| <SECOND:      "second">
+| <MINUTE:      "minute">
 | <BIGINT:      "bigint">
 | <DOUBLE:      "double">
 | <STRING:      "string">
@@ -356,6 +362,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <INTEGER:     "integer">
 | <VARCHAR:     "varchar">
 | <SMALLINT:    "smallint">
+| <INTERVAL:    "interval">
 | <VARBINARY:   "varbinary">
 | <TIMESTAMP:   "timestamp">
 | <LONGVARCHAR: "longvarchar">
@@ -1623,6 +1630,18 @@ SQLTypes GetBinarySQLType() :
   | <BLOB> { return SQLTypes.BLOB; }
 }
 
+SQLTypes GetIntervalSQLType() :
+{ }
+{
+    <SECOND> { return SQLTypes.SECOND; }
+  | <MINUTE> { return SQLTypes.MINUTE; }
+  | <HOUR>   { return SQLTypes.HOUR; }
+  | <DAY>    { return SQLTypes.DAY; }
+  | <MONTH>  { return SQLTypes.MONTH; }
+  | <YEAR>   { return SQLTypes.YEAR; }
+  | <INTERVAL> { return SQLTypes.INTERVAL; }
+}
+
 // Parses an SQL type and forms a TType object.  For example, "CHAR(500)" is
 // parsed to a TStringType with a maximum size of 500 and lexicographical
 // collation.
@@ -1664,6 +1683,8 @@ TType GetTType() :
     | data_type = GetBinarySQLType() [ "(" size = PositiveIntegerConstant() ")" ]
       { return TType.GetBinaryType(data_type, size); }
 
+    | data_type = GetIntervalSQLType() [ "(" size = PositiveIntegerConstant() ")" ]
+      { return TType.GetIntervalType(data_type, size); }
   )
 }
 

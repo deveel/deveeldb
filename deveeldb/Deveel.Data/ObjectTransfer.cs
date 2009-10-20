@@ -50,6 +50,8 @@ namespace Deveel.Data {
 				return 15 + 9;
 			} else if (ob is DateTime) {
 				return 8 + 9;
+			} else if (ob is TimeSpan) {
+				return 8 + 9;
 			} else if (ob is Boolean) {
 				return 2 + 9;
 			} else if (ob is ByteLongObject) {
@@ -83,6 +85,8 @@ namespace Deveel.Data {
 				byte[] buf = n.ToByteArray();
 				return buf.Length + 1 + 1 + 4 + 4;
 			} else if (ob is DateTime) {
+				return 8 + 1;
+			} else if (ob is TimeSpan) {
 				return 8 + 1;
 			} else if (ob is Boolean) {
 				return 1 + 1;
@@ -137,9 +141,13 @@ namespace Deveel.Data {
 					output.Write(buf);
 				}
 			} else if (ob is DateTime) {
-				DateTime d = (DateTime)ob;
-				output.Write((byte)9);
+				DateTime d = (DateTime) ob;
+				output.Write((byte) 9);
 				output.Write(d.Ticks);
+			} else if (ob is TimeSpan) {
+				TimeSpan t = (TimeSpan) ob;
+				output.Write((byte)10);
+				output.Write(t.Ticks);
 			} else if (ob is Boolean) {
 				Boolean b = (Boolean)ob;
 				output.Write((byte)12);
@@ -203,6 +211,9 @@ namespace Deveel.Data {
 				case (9):
 					long time = input.ReadInt64();
 					return new DateTime(time);
+				case (10):
+					long ticks = input.ReadInt64();
+					return new TimeSpan(ticks);
 
 				case (12):
 					return input.ReadBoolean();
