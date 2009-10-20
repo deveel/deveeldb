@@ -91,4 +91,10 @@
     <WarningLevel>3</WarningLevel>
     <DebugType>full</DebugType>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - Mono|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release - Mono</OutputPath>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
 </Project>
