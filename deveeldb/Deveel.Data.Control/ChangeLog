@@ -1,0 +1,10 @@
+﻿2009-10-16  Antonello Provenzano  <antonello@deveel.com>
+	* IDbConfig.cs:
+		- inherits from ICloneable (removed the method
+		ImmutableCopy)
+		- added method Merge
+		- inherits from IEnumerable (to traverse all the
+		properties).
+	* ConfigProperty.cs: promoted from DefaultDbConfig
+	* DefaultDbConfig.cs:
+		- method LoadFromStream moved to DbConfig
