@@ -66,7 +66,7 @@ namespace Deveel.Data.Client {
 		/// are accessed frequently.  Note that cells are only cached within a ResultSet 
 		/// bounds. Two different ResultSet's will not share cells in the cache.
 		/// </remarks>
-		private readonly RowCache row_cache;
+		private RowCache row_cache;
 
 		/// <summary>
 		/// The string used to make this connection.
@@ -87,12 +87,12 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// The interface to the database.
 		/// </summary>
-		private readonly IDatabaseInterface db_interface;
+		private IDatabaseInterface db_interface;
 
 		/// <summary>
 		/// The list of trigger listeners registered with the connection.
 		/// </summary>
-		private readonly ArrayList trigger_list;
+		private ArrayList trigger_list;
 
 		/// <summary>
 		/// A Thread that handles all dispatching of trigger events to the client.
@@ -133,7 +133,7 @@ namespace Deveel.Data.Client {
 		/// A mapping from a streamable object id to <see cref="Stream"/> used to 
 		/// represent the object when being uploaded to the database engine.
 		/// </summary>
-		private readonly Hashtable s_object_hold;
+		private Hashtable s_object_hold;
 
 		/// <summary>
 		/// An unique id count given to streamable object being uploaded to the server.
@@ -177,6 +177,14 @@ namespace Deveel.Data.Client {
 		}
 
 		public DeveelDbConnection(ConnectionString connectionString) {
+			this.connectionString = connectionString;
+			Init();
+		}
+
+		public DeveelDbConnection() {
+		}
+
+		private void Init() {
 			// IDatabaseInterface db_interface;
 			// String default_schema = Client.ConnectionString.DefaultSchema;
 			//if (connectionString.Schema != null)
@@ -202,7 +210,7 @@ namespace Deveel.Data.Client {
 
 				// Make the connection
 				TCPStreamDatabaseInterface tcp_db_interface = new TCPStreamDatabaseInterface(connectionString.Host,
-				                                                                             connectionString.Port);
+																							 connectionString.Port);
 				// Attempt to open a socket to the database.
 				tcp_db_interface.ConnectToDatabase();
 
@@ -225,8 +233,6 @@ namespace Deveel.Data.Client {
 			s_object_hold = new Hashtable();
 			s_object_id = 0;
 			state = ConnectionState.Closed;
-
-			//TODO: Login(default_schema, connectionString.UserName, connectionString.Password);
 		}
 
 		/// <summary>
@@ -923,6 +929,7 @@ namespace Deveel.Data.Client {
 				if (state != ConnectionState.Closed)
 					throw new InvalidOperationException("The connection is not closed");
 				connectionString = value;
+				Init();
 			}
 		}
 

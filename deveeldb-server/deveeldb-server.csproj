@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -8,7 +8,11 @@
     <ProjectGuid>{249A9D17-36E5-4870-9326-D7028DE5578D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>deveeldb-server</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -54,8 +58,12 @@
     <Compile Include="Deveel.Data.Server\StreamServerConnection.cs" />
     <Compile Include="Deveel.Data.Server\TcpServer.cs" />
     <Compile Include="Deveel.Data.Server\TcpServerConnection.cs" />
-    <Compile Include="Deveel.Data.Server\TcpService.cs" />
-    <Compile Include="Deveel.Data.Server\TcpServiceInstaller.cs" />
+    <Compile Include="Deveel.Data.Server\TcpService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Server\TcpServiceInstaller.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Util\CommandLine.cs" />
     <Compile Include="Deveel.Data.Util\IInputStream.cs" />
     <Compile Include="Deveel.Data.Util\LengthMarkedBufferedInputStream.cs" />
