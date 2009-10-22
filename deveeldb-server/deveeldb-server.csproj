@@ -6,14 +6,32 @@
     <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{249A9D17-36E5-4870-9326-D7028DE5578D}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AssemblyName>deveeldb-server</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>deveeldbd</AssemblyName>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <OldToolsVersion>2.0</OldToolsVersion>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>deveeldb-server.snk</AssemblyOriginatorKeyFile>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -52,7 +70,7 @@
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Configuration" />
-    <Reference Include="Deveel.CommandLine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <Reference Include="Deveel.CommandLine, Version=0.5.1.3130, Culture=neutral, PublicKeyToken=1f344e75a1973f38">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Deveel.CommandLine.dll</HintPath>
     </Reference>
@@ -81,6 +99,20 @@
     <Compile Include="Deveel.Data.Util\IInputStream.cs" />
     <Compile Include="Deveel.Data.Util\LengthMarkedBufferedInputStream.cs" />
     <Compile Include="Deveel.Data.Util\NetworkInputStream.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="deveeldb-server.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

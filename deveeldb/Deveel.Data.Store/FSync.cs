@@ -89,7 +89,8 @@ namespace Deveel.Data.Store {
 			if (platform == PlatformID.Unix)
 				return new UnixFSync();
 #if !MONO
-			if (platform == PlatformID.MacOSX)
+			//MacOSX
+			if (((int)platform == 6))
 				return new MacOSXFSync();
 #endif
 
@@ -219,16 +220,12 @@ namespace Deveel.Data.Store {
 #endif
 
 			public void Sync(FileStream stream) {
-#if WIN32
 #if NET_2_0
 				if (FlushFileBuffers(stream.SafeFileHandle) == 0)
 #else
 				if (FlushFileBuffers(stream.Handle) == 0)
 #endif
 					throw new SyncFailedException();
-#else
-				throw new NotSupportedException();
-#endif
 
 			}
 		}

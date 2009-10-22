@@ -6,8 +6,8 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("DeveelDB")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyDescription("Deveel ")]
+[assembly: AssemblyConfiguration("Deveel Database Management System")]
 [assembly: AssemblyCompany("Deveel")]
 [assembly: AssemblyProduct("deveeldb")]
 [assembly: AssemblyCopyright("Copyright ©  2009 Deveel")]
@@ -36,4 +36,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("0.9.6.0")]
 
 [assembly: AssemblyKeyFile("./deveeldb.snk")]
-[assembly: AssemblyDelaySign(true)]
+[assembly: AssemblyDelaySign(false)]

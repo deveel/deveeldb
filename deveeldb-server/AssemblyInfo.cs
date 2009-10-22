@@ -23,4 +23,5 @@ using System.Runtime.CompilerServices;
 // if desired. See the Mono documentation for more information about signing.
 
 [assembly: AssemblyDelaySign(false)]
-[assembly: AssemblyKeyFile("")]
+[assembly: AssemblyKeyFile("./deveeldb-server.snk")]
+

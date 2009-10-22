@@ -12,6 +12,8 @@
     <FileAlignment>512</FileAlignment>
     <AssemblyName>libdeveeldb</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <DelaySign>false</DelaySign>
+    <AssemblyOriginatorKeyFile>deveeldb.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,7 +22,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;NET_2_0</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>3</WarningLevel>
+    <WarningLevel>4</WarningLevel>
     <DocumentationFile>doc\deveeldb.XML</DocumentationFile>
     <GenerateDocumentation>true</GenerateDocumentation>
     <CustomCommands>
@@ -30,7 +32,6 @@
     </CustomCommands>
     <OutputType>Library</OutputType>
     <RootNamespace>Deveel.Data</RootNamespace>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <SignAssembly>true</SignAssembly>
     <AssemblyKeyFile>deveeldb.snk</AssemblyKeyFile>
   </PropertyGroup>
@@ -44,7 +45,6 @@
     <OutputType>Library</OutputType>
     <DebugSymbols>true</DebugSymbols>
     <RootNamespace>Deveel.Data</RootNamespace>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <SignAssembly>true</SignAssembly>
     <AssemblyKeyFile>deveeldb.snk</AssemblyKeyFile>
   </PropertyGroup>

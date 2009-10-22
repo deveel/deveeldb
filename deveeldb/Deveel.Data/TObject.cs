@@ -729,6 +729,11 @@ namespace Deveel.Data {
 				}
 
 				return new TObject(result_type, v1.Add(v2));
+			} else if (TType is TStringType) {
+				if (!(val.TType is TStringType))
+					val = val.CastTo(TType.StringType);
+
+				return Concat(val);
 			}
 
 			throw new InvalidOperationException();

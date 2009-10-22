@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -12,6 +12,9 @@
     <ReleaseVersion>0.9.2</ReleaseVersion>
     <SynchReleaseVersion>false</SynchReleaseVersion>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>deveeldb-nunit.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -49,10 +52,17 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Functions\FunctionTest.cs" />
     <Compile Include="Deveel.Data\CreateDatabaseTest.cs" />
+    <Compile Include="Deveel.Data\ExpressionTest.cs" />
+    <Compile Include="Deveel.Data\OperatorTest.cs" />
     <Compile Include="Deveel.Data\TestBase.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Deveel.Data\QueryTest.cs" />
+    <Compile Include="Deveel.Data\TObjectTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="deveeldb-nunit.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
