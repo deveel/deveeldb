@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -25,7 +25,7 @@
     <GenerateDocumentation>true</GenerateDocumentation>
     <CustomCommands>
       <CustomCommands>
-        <Command type="BeforeBuild" command="java -classpath ..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=Deveel.Data.Sql Deveel.Data.Sql\SQL.csc" workingdir="${ProjectDir}" />
+        <Command type="BeforeBuild" command="java -classpath ${ProjectDir}\..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=${ProjectDir}\Deveel.Data.Sql ${ProjectDir}\Deveel.Data.Sql\SQL.csc" workingdir="${ProjectDir}" />
       </CustomCommands>
     </CustomCommands>
     <OutputType>Library</OutputType>
@@ -558,4 +558,53 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyKeyFile>deveeldb.snk</AssemblyKeyFile>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release.Mono|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\Mono\</OutputPath>
+    <DefineConstants>NET_2_0;MONO</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>3</WarningLevel>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="BeforeBuild" command="java -classpath ${ProjectDir}/../util/csharpcc.jar csharpcc -OUTPUT_DIRECTORY=${ProjectDir}/Deveel.Data.Sql ${ProjectDir}/Deveel.Data.Sql/SQL.csc" workingdir="${ProjectDir}" />
+      </CustomCommands>
+    </CustomCommands>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug.Mono|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\Mono\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET_2_0;MONO</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <AssemblyKeyFile>deveeldb.snk</AssemblyKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <OutputType>Library</OutputType>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="BeforeBuild" command="java -classpath ${ProjectDir}/../util/csharpcc.jar csharpcc -OUTPUT_DIRECTORY=${ProjectDir}/Deveel.Data.Sql ${ProjectDir}/Deveel.Data.Sql/SQL.csc" workingdir="${ProjectDir}" />
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <MonoDevelop.Autotools.MakefileInfo RelativeMakefileName="Makefile.am" SyncReferences="true" IsAutotoolsProject="true" RelativeConfigureInPath="..">
+          <BuildFilesVar Sync="true" Name="FILES" />
+          <DeployFilesVar />
+          <ResourcesVar Sync="true" Name="RESOURCES" />
+          <OthersVar />
+          <GacRefVar Sync="true" Name="REFERENCES" />
+          <AsmRefVar Sync="true" Name="REFERENCES" />
+          <ProjectRefVar Sync="true" Name="REFERENCES" />
+        </MonoDevelop.Autotools.MakefileInfo>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>
