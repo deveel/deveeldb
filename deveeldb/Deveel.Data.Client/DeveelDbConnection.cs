@@ -172,8 +172,14 @@ namespace Deveel.Data.Client {
 			state = ConnectionState.Closed;
 		}
 
-		public DeveelDbConnection(string s)
-			: this(new ConnectionString(s)) {
+		/// <summary>
+		/// Constructs a <see cref="DeveelDbConnection"/> with a given connection string.
+		/// </summary>
+		/// <param name="connectionString">The string containing the configuration
+		/// to establish a connection with a local or remote database.</param>
+		/// <seealso cref="DeveelDbConnection(Client.ConnectionString)"/>
+		public DeveelDbConnection(string connectionString)
+			: this(new ConnectionString(connectionString)) {
 		}
 
 		public DeveelDbConnection(ConnectionString connectionString) {
@@ -181,6 +187,14 @@ namespace Deveel.Data.Client {
 			Init();
 		}
 
+		/// <summary>
+		/// Constructs an empty <see cref="DeveelDbConnection"/>.
+		/// </summary>
+		/// <remarks>
+		/// This construction of the <see cref="DeveelDbConnection"/> does not
+		/// contain any configuration to establish a connection: once created
+		/// the object, the <see cref="ConnectionString"/> property must be set.
+		/// </remarks>
 		public DeveelDbConnection() {
 		}
 
@@ -196,23 +210,22 @@ namespace Deveel.Data.Client {
 			// If we are to connect to a single user database running
 			// within this runtime.
 			if (connectionString.IsLocal) {
-				// Returns a list of two Objects, db_interface and database_name.
-				db_interface = ConnectToLocal(connectionString);
+				ConnectToLocal(connectionString);
 
 				// Internal row cache setting are set small.
 				row_cache_size = 43;
 				max_row_cache_size = 4092000;
-
 			} else {
 				try {
 					Thread.Sleep(85);
 				} catch (ThreadInterruptedException) { /* ignore */ }
 
+				string address = connectionString.Host;
+				if (address == Client.ConnectionString.LocalHost)
+					address = "localhost";
+
 				// Make the connection
-				TCPStreamDatabaseInterface tcp_db_interface = new TCPStreamDatabaseInterface(connectionString.Host,
-																							 connectionString.Port);
-				// Attempt to open a socket to the database.
-				tcp_db_interface.ConnectToDatabase();
+				TCPStreamDatabaseInterface tcp_db_interface = new TCPStreamDatabaseInterface(address, connectionString.Port);
 
 				db_interface = tcp_db_interface;
 
@@ -222,7 +235,6 @@ namespace Deveel.Data.Client {
 
 			}
 
-			this.connectionString = connectionString;
 			is_closed = true;
 			auto_commit = true;
 			trigger_list = new ArrayList();
@@ -238,8 +250,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// Makes a connection to a local database.
 		/// </summary>
-		/// <param name="address_part"></param>
-		/// <param name="info"></param>
+		/// <param name="connString"></param>
 		/// <remarks>
 		/// If a local database connection has not been made then it is created here.
 		/// </remarks>
@@ -247,17 +258,16 @@ namespace Deveel.Data.Client {
 		/// Returns a list of two elements, (<see cref="IDatabaseInterface"/>) db_interface 
 		/// and (<see cref="String"/>) database_name.
 		/// </returns>
-		private IDatabaseInterface ConnectToLocal(ConnectionString connString) {
+		private void ConnectToLocal(ConnectionString connString) {
 			lock (this) {
 				// If the ILocalBootable object hasn't been created yet, do so now via
 				// reflection.
-				IDatabaseInterface db_interface;
 
 				// The path to the configuration
-				String config_path = connString.Host;
+				String config_path = connString.Path;
 
 				// If no config_path, then assume it is ./db.conf
-				if (config_path.Length == 0)
+				if (config_path == null || config_path.Length == 0)
 					config_path = "./db.conf";
 
 
@@ -276,36 +286,6 @@ namespace Deveel.Data.Client {
 					db_interface = local_bootable.Connect();
 				} else {
 					// Otherwise we need to boot the local database.
-
-					// This will be the configuration input file
-					Stream config_in;
-					if (!config_path.StartsWith("file:/")) {
-						// Make the config_path into a URL and open an input stream to it.
-						Uri config_url;
-						try {
-							config_url = new Uri(config_path);
-						} catch (FormatException) {
-							throw new DataException("Malformed URL: " + config_path);
-						}
-
-						try {
-							// Try and open an input stream to the given configuration.
-							WebRequest request = WebRequest.Create(config_url);
-							WebResponse response = request.GetResponse();
-							config_in = response.GetResponseStream();
-						} catch (IOException) {
-							throw new DataException("Unable to open configuration file.  " +
-												   "I tried looking at '" + config_url + "'");
-						}
-					} else {
-						try {
-							// Try and open an input stream to the given configuration.
-							config_in = new FileStream(config_path, FileMode.Open, FileAccess.ReadWrite);
-						} catch (IOException) {
-							throw new DataException("Unable to open configuration file: " + config_path);
-						}
-
-					}
 
 					// Work out the root path (the place in the local file system where the
 					// configuration file is).
@@ -332,14 +312,86 @@ namespace Deveel.Data.Client {
 						root_path = Environment.CurrentDirectory;
 					}
 
+
+					// This will be the configuration input file
+					Stream config_in = null;
+					if (config_path.StartsWith("file://") ||
+						config_path.StartsWith("http://") ||
+						config_path.StartsWith("ftp://")) {
+						// Make the config_path into a URL and open an input stream to it.
+						Uri config_url;
+						try {
+							config_url = new Uri(config_path);
+						} catch (FormatException) {
+							throw new DataException("Malformed connection string : " + config_path);
+						}
+
+						try {
+							// Try and open an input stream to the given configuration.
+							WebRequest request = WebRequest.Create(config_url);
+							WebResponse response = request.GetResponse();
+							config_in = response.GetResponseStream();
+						} catch (IOException) {
+							throw new DataException("Unable to open configuration file.  " +
+												   "I tried looking at '" + config_url + "'");
+						}
+					} else {
+						// let's normalize the config path...
+						if (config_path.StartsWith("./")) {
+							config_path = Path.Combine(root_path, config_path.Substring(2, config_path.Length - 2));
+						} else if (Path.IsPathRooted(config_path) && config_path[1] != '/') {
+							// if this is not a network address, we strip out the leading trail...
+							config_path = config_path.Substring(1, config_path.Length - 1);
+							// and build the new path.
+							config_path = Path.Combine(root_path, config_path);
+						}
+
+						if (File.Exists(config_path)) {
+							try {
+								// Try and open an input stream to the given configuration.
+								config_in = new FileStream(config_path, FileMode.OpenOrCreate, FileAccess.Read);
+							} catch (IOException) {
+								throw new DataException("Unable to open configuration file: " + config_path);
+							}
+						}
+					}
+
 					// Get the configuration bundle that was set as the path,
-					DefaultDbConfig config = new DefaultDbConfig(root_path);
-					try {
-						config.LoadFromStream(config_in);
-						config_in.Close();
-					} catch (IOException e) {
-						throw new DataException("Error reading configuration file: " +
-											   config_path + " Reason: " + e.Message);
+					DbConfig config;
+					if (config_in != null) {
+						config = new DbConfig(root_path);
+
+						try {
+							config.LoadFromStream(config_in);
+							config_in.Close();
+						} catch (IOException e) {
+							throw new DataException("Error reading configuration file: " +
+							                        config_path + " Reason: " + e.Message);
+						}
+
+						// if the name found in the configuration file is different, we set it now...
+						string dbName = config.GetValue("name");
+						if (dbName != connString.Database)
+							config.SetValue("name", connString.Database);
+
+					} else {
+						// since no file was found we provide a default configuration ...
+						config = new DefaultDbConfig(root_path);
+
+						// ... and we autoratively set the name of the database to the one specified.
+						if (connString.Database != null)
+							config.SetValue("name", connString.Database);
+
+						string fileName = Path.GetFileName(config_path);
+						string path = Path.GetDirectoryName(config_path);
+						string database_path = config.GetValue("database_path");
+						path = Path.Combine(path, database_path);
+
+						if (!Directory.Exists(path))
+							Directory.CreateDirectory(path);
+
+						fileName = Path.Combine(path, fileName);
+						config.SaveTo(fileName);
 					}
 
 					bool create_db = connectionString.Create;
@@ -363,15 +415,13 @@ namespace Deveel.Data.Client {
 					// Error conditions;
 					// If we are creating but the database already exists.
 					if (create_db && database_exists) {
-						throw new DataException(
-							"Can not create database because a database already exists.");
+						throw new DataException("Can not create database because a database already exists.");
 					}
 					// If we are booting but the database doesn't exist.
 					if (!create_db && !database_exists) {
-						throw new DataException(
-							"Can not find a database to start.  Either the database needs to " +
-							"be created or the 'database_path' property of the configuration " +
-							"must be set to the location of the data files.");
+						throw new DataException("Can not find a database to start.  Either the database needs to " +
+						                        "be created or the 'database_path' property of the configuration " +
+						                        "must be set to the location of the data files.");
 					}
 
 					// Are we creating a new database?
@@ -386,8 +436,6 @@ namespace Deveel.Data.Client {
 						db_interface = local_bootable.Boot(config);
 					}
 				}
-
-				return db_interface;
 			}
 		}
 
@@ -413,34 +461,6 @@ namespace Deveel.Data.Client {
 					"connections.  This means you may not have included the correct " +
 					"library in your references.");
 			}
-		}
-
-		/// <summary>
-		/// Given a URL encoded arguments string, this will extract the var=value
-		/// pairs and write them in the given Properties object.
-		/// </summary>
-		/// <param name="url_vars"></param>
-		/// <param name="info"></param>
-		/// <remarks>
-		/// For example, the string 'create=true&amp;user=usr&amp;password=passwd' will 
-		/// extract the three values and write them in the Properties object.
-		/// </remarks>
-		private static void ParseEncodedVariables(String url_vars, Properties info) {
-			// Parse the url variables.
-			string[] tok = url_vars.Split('&');
-			for (int i = 0; i < tok.Length; i++) {
-				String token = tok[i].Trim();
-				int split_point = token.IndexOf("=");
-				if (split_point > 0) {
-					String key = token.Substring(0, split_point).ToLower();
-					String value = token.Substring(split_point + 1);
-					// Put the key/value pair in the 'info' object.
-					info[key] = value;
-				} else {
-					Console.Error.WriteLine("Ignoring url variable: '" + token + "'");
-				}
-			} // while
-
 		}
 
 
@@ -515,6 +535,15 @@ namespace Deveel.Data.Client {
 			// Set the default schema to username if it's null
 			if (default_schema == null) {
 				default_schema = username;
+			}
+
+			try {
+				if (db_interface is TCPStreamDatabaseInterface)
+					// Attempt to open a socket to the database.
+					(db_interface as TCPStreamDatabaseInterface).ConnectToDatabase();
+			} catch(Exception e) {
+				//TODO: log the exception...
+				return false;
 			}
 
 			// Login with the username/password

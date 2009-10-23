@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections;
+using System.Globalization;
 using System.IO;
 using System.Net;
 
@@ -130,6 +131,15 @@ namespace Deveel.Data {
 			return config;
 		}
 
+		/// <summary>
+		/// Gets an anumeration of all the key/value pairs set 
+		/// in this object. 
+		/// </summary>
+		/// <returns>
+		/// Returns an instance of <see cref="IEnumerator"/> which is used
+		/// to enumerate a set of <see cref="ConfigProperty"/> which represent
+		/// the configuration properties set.
+		/// </returns>
 		public IEnumerator GetEnumerator() {
 			return key_map.Values.GetEnumerator();
 		}
@@ -187,6 +197,34 @@ namespace Deveel.Data {
 			WebResponse response = request.GetResponse();
 			LoadFromStream(response.GetResponseStream());
 			response.Close();
+		}
+
+		public virtual void SaveTo(string fileName) {
+			FileStream fileStream = null;
+
+			try {
+				fileStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+				fileStream.SetLength(0);
+				fileStream.Seek(0, SeekOrigin.Begin);
+
+				Properties properties = new Properties();
+				foreach (ConfigProperty entry in key_map.Values) {
+					properties.SetProperty(entry.Key, entry.Value);
+				}
+
+				properties.Store(fileStream, null);
+			} finally {
+				if (fileStream != null)
+					fileStream.Close();
+			}
+		}
+
+		/// <summary>
+		/// Saves the current configurations to the current path
+		/// and to the default file name.
+		/// </summary>
+		public void SaveTo() {
+			SaveTo(Path.Combine(current_path, "db.conf"));
 		}
 	}
 }

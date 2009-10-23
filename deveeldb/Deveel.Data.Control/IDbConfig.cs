@@ -74,5 +74,16 @@ namespace Deveel.Data.Control {
 		/// resulting from the merge with the given <paramref name="config"/>.
 		/// </returns>
 		IDbConfig Merge(IDbConfig config);
+
+		/// <summary>
+		/// Saves the configurations in this object to the file located
+		/// at the path given.
+		/// </summary>
+		/// <param name="fileName">The name of the file where to save the
+		/// configurations contained in this object.</param>
+		/// <remarks>
+		/// This method 
+		/// </remarks>
+		void SaveTo(string fileName);
 	}
 }

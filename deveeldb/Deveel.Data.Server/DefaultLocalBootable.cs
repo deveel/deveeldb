@@ -84,7 +84,7 @@ namespace Deveel.Data.Server {
 				DbController controller = DbController.Default;
 				dbsys = controller.CreateDatabase(config, username, password);
 				IDatabaseInterface db_interface =
-				   new LocalJDBCDatabaseInterface(this, dbsys.Database, host_string);
+				   new LocalDatabaseInterface(this, dbsys.Database, host_string);
 
 				booted = true;
 				++open_connections;
@@ -102,13 +102,12 @@ namespace Deveel.Data.Server {
 			if (!booted) {
 				// Local connections are formatted as;
 				// 'Local/[type]/[connect_id]'
-				String host_string = "Local/Boot/";
+				const string host_string = "Local/Boot/";
 
 				// Start the DbSystem and bind it to a IDatabaseInterface.
 				DbController controller = DbController.Default;
 				dbsys = controller.StartDatabase(config);
-				IDatabaseInterface db_interface =
-				   new LocalJDBCDatabaseInterface(this, dbsys.Database, host_string);
+				IDatabaseInterface db_interface = new LocalDatabaseInterface(this, dbsys.Database, host_string);
 
 				booted = true;
 				++open_connections;
@@ -146,7 +145,7 @@ namespace Deveel.Data.Server {
 
 				// Create a IDatabaseInterface,
 				IDatabaseInterface db_interface =
-					new LocalJDBCDatabaseInterface(this, dbsys.Database, host_string);
+					new LocalDatabaseInterface(this, dbsys.Database, host_string);
 
 				++connect_id;
 				++open_connections;
@@ -167,11 +166,11 @@ namespace Deveel.Data.Server {
         /// dispose the parent <see cref="ILocalBootable"/> object when 
         /// the last open connection is disposed.
         /// </summary>
-		private class LocalJDBCDatabaseInterface : DatabaseInterface {
+		private class LocalDatabaseInterface : DatabaseInterface {
 			private readonly DefaultLocalBootable local_bootable;
 			bool closed;
 
-			public LocalJDBCDatabaseInterface(DefaultLocalBootable local_bootable, Database database, String host_string)
+			public LocalDatabaseInterface(DefaultLocalBootable local_bootable, Database database, String host_string)
 				: base(database, host_string) {
 				this.local_bootable = local_bootable;
 			}

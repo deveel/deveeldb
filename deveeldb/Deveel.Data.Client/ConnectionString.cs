@@ -3,12 +3,30 @@ using System.Collections;
 using System.Text;
 
 namespace Deveel.Data.Client {
+	/// <summary>
+	/// A class that encapsulates all the properties needed to build a valid
+	/// string to open a <see cref="DeveelDbConnection">connection</see> to
+	/// a local or remote database.
+	/// </summary>
 	public sealed class ConnectionString {
+		/// <summary>
+		/// Constructs an empty <see cref="ConnectionString"/>.
+		/// </summary>
 		public ConnectionString() {
 			properties = new Hashtable();
 			addProps = new Hashtable();
 		}
 
+		/// <summary>
+		/// Constructs a <see cref="ConnectionString"/> for the given credentials
+		/// and to the host identified.
+		/// </summary>
+		/// <param name="host">The address of the server to connect to.</param>
+		/// <param name="port">The number of the port on which the database server
+		/// listens for connections.</param>
+		/// <param name="username">The name used to identify the user within the database 
+		/// context given.</param>
+		/// <param name="password"></param>
 		public ConnectionString(string host, int port, string username, string password)
 			: this() {
 			Host = host;
@@ -17,10 +35,21 @@ namespace Deveel.Data.Client {
 			Password = password;
 		}
 
+		/// <summary>
+		/// Constructs a <see cref="ConnectionString"/> to the host given.
+		/// </summary>
+		/// <param name="host">The address of the server to connect to.</param>
+		/// <param name="port">The number of the port on which the database server
+		/// listens for connections.</param>
 		public ConnectionString(string host, int port)
 			: this(host, port, null, null) {
 		}
 
+		/// <summary>
+		/// Constructs a <see cref="ConnectionString"/> using the string representation
+		/// provided as base.
+		/// </summary>
+		/// <param name="s">The formatted string to be parsed.</param>
 		public ConnectionString(string s)
 			: this() {
 			if (s == null)
@@ -44,6 +73,7 @@ namespace Deveel.Data.Client {
 			DefaultKeys.Add(CreateKey.ToLower());
 			DefaultKeys.Add(BootOrCreateKey.ToLower());
 			DefaultKeys.Add(ParameterStyleKey.ToLower());
+			DefaultKeys.Add(PathKey.ToLower());
 		}
 
 		private readonly Hashtable properties;
@@ -61,19 +91,47 @@ namespace Deveel.Data.Client {
 		private const string CreateKey = "Create";
 		private const string BootOrCreateKey = "BootOrCreate";
 		private const string ParameterStyleKey = "ParameterStyle";
+		private const string PathKey = "Path";
 
 		private static readonly ArrayList DefaultKeys;
 
+		/// <summary>
+		/// The default port number for a network connection (9157), used when
+		/// not explicitely specified.
+		/// </summary>
+		/// <seealso cref="Port"/>
 		public const int DefaultPort = 9157;
+
+		/// <summary>
+		/// The string identifying a connection to a local database.
+		/// </summary>
+		/// <seealso cref="Host"/>
 		public const string LocalHost = "Local";
+
+		/// <summary>
+		/// The name of the default schema to use when it is not specified
+		/// by a user.
+		/// </summary>
+		/// <seealso cref="Schema"/>
 		public const string DefaultSchema = "APP";
 
+		/// <summary>
+		/// An empty and immutable connection string.
+		/// </summary>
 		public static readonly ConnectionString Empty = new ConnectionString(true);
 
+		/// <summary>
+		/// Gets an immutable key/value collection that describes the
+		/// connection properties.
+		/// </summary>
 		public IDictionary Properties {
 			get { return(IDictionary) properties.Clone(); }
 		}
 
+		/// <summary>
+		/// Gets a key/value pairs collection used to store non-standard
+		/// connection properties.
+		/// </summary>
 		public IDictionary AdditionalProperties {
 			get {
 				if (addPropsDirty) {
@@ -90,6 +148,9 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the name used to identify a user within a database context.
+		/// </summary>
 		public string UserName {
 			get { return (string)properties[UserNameKey]; }
 			set {
@@ -100,6 +161,10 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the password used to identify the user within the database context.
+		/// </summary>
+		/// <seealso cref="UserName"/>
 		public string Password {
 			get { return (string)properties[PasswordKey]; }
 			set {
@@ -115,6 +180,13 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the host address of the connection.
+		/// </summary>
+		/// <remarks>
+		/// This has to be set to <c>Local</c> if the connection must be
+		/// issued to a local database.
+		/// </remarks>
 		public string Host {
 			get { return (string)properties[HostKey]; }
 			set {
@@ -127,6 +199,9 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the default schema to which connect.
+		/// </summary>
 		public string Schema {
 			get { return (string) properties[SchemaKey]; }
 			set {
@@ -139,6 +214,11 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets whether the connection is to a local database.
+		/// </summary>
+		/// <seealso cref="Host"/>
+		/// <seealso cref="Path"/>
 		public bool IsLocal {
 			get {
 				string host = Host;
@@ -154,6 +234,24 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		/// <summary>
+		/// When a connection is issued to a local database, this property
+		/// is used to control the path to the configuration file of the database.
+		/// </summary>
+		public string Path {
+			get {
+				object value = properties[PathKey];
+				return (value == null ? null : (string) value);
+			}
+			set {
+				CheckReadOnly();
+				properties[PathKey] = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the port used for a network connection.
+		/// </summary>
 		public int Port {
 			get {
 				object value = properties[PortKey];
@@ -167,6 +265,13 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		/// <summary>
+		/// Dictates the local or remote system whether the connection must create
+		/// a new database when opened.
+		/// </summary>
+		/// <remarks>
+		/// This only works if the connection <see cref="IsLocal">is local</see>.
+		/// </remarks>
 		public bool Create {
 			get {
 				object value = properties[CreateKey];
@@ -178,6 +283,14 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		/// <summary>
+		/// Dictates the local or remote system whether the connection must create
+		/// a new database when opened, if does not exist already, or otherwise boot it.
+		/// </summary>
+		/// <remarks>
+		/// This only works if the connection <see cref="IsLocal">is local</see>.
+		/// </remarks>
+		/// <seealso cref="Create"/>
 		public bool BootOrCreate {
 			get {
 				object value = properties[BootOrCreateKey];
@@ -189,6 +302,10 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the style of parameters in prepared statements.
+		/// </summary>
+		/// <seealso cref="ParameterStyle"/>
 		public ParameterStyle ParameterStyle {
 			get {
 				object value = properties[ParameterStyleKey];
@@ -200,6 +317,9 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the name of the database to connect to.
+		/// </summary>
 		public string Database {
 			get {
 				object value = properties[DatabaseKey];
@@ -216,6 +336,11 @@ namespace Deveel.Data.Client {
 				throw new InvalidOperationException("The connection string is readonly.");
 		}
 
+		/// <summary>
+		/// Sets a given connection property.
+		/// </summary>
+		/// <param name="key">The key of the </param>
+		/// <param name="value"></param>
 		public void SetProperty(string key, object value) {
 			if (key == null)
 				throw new ArgumentNullException("key");
@@ -224,6 +349,13 @@ namespace Deveel.Data.Client {
 			IntSetProperty(key, value);
 		}
 
+		/// <summary>
+		/// Returns a string representation of the connection string.
+		/// </summary>
+		/// <returns>
+		/// Returns a valid formatted <see cref="string"/> for connecting
+		/// to local or remote database.
+		/// </returns>
 		public override string ToString() {
 			if (connection_string == null) {
 				if (properties.Count == 0)
@@ -293,6 +425,12 @@ namespace Deveel.Data.Client {
 				case "useparameter":
 				case "paramstyle":
 					ParameterStyle = (ParameterStyle) Enum.Parse(typeof (ParameterStyle), value.ToString(), true);
+					break;
+				case "path":
+				case "confpath":
+				case "configuration path":
+				case "config path":
+					Path = Convert.ToString(value);
 					break;
 				default:
 					properties[key] = value;

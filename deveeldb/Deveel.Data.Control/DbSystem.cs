@@ -21,6 +21,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Data;
 using System.Text;
 
@@ -39,7 +40,7 @@ namespace Deveel.Data.Control {
 	/// server component might be plugged into this object to open the database 
 	/// to remote access.
 	/// </remarks>
-	public sealed class DbSystem {
+	public sealed class DbSystem : IDisposable {
 		/// <summary>
 		/// The DbController object.
 		/// </summary>
@@ -64,6 +65,11 @@ namespace Deveel.Data.Control {
 		/// </summary>
 		private int internal_counter;
 
+		/// <summary>
+		/// A collection of all the connections opened by the system.
+		/// </summary>
+		private Hashtable connections;
+
 
 		internal DbSystem(DbController controller, IDbConfig config, Database database) {
 			this.controller = controller;
@@ -76,7 +82,13 @@ namespace Deveel.Data.Control {
 
 			// Enable commands to the database system...
 			database.SetIsExecutingCommands(true);
+		}
 
+		/// <summary>
+		/// Desctructor of the class <see cref="DbSystem"/>.
+		/// </summary>
+		~DbSystem() {
+			Dispose(false);
 		}
 
 		private void Shutdown(object sender, EventArgs e) {
@@ -145,8 +157,7 @@ namespace Deveel.Data.Control {
 			String host_string = buf.ToString();
 
 			// Create the database interface for an internal database connection.
-			IDatabaseInterface db_interface =
-							   new DatabaseInterface(Database, host_string);
+			IDatabaseInterface db_interface = new DatabaseInterface(Database, host_string);
 			// Create the DeveelDbConnection object (very minimal cache settings for an
 			// internal connection).
 			ConnectionString s = new ConnectionString();
@@ -154,7 +165,7 @@ namespace Deveel.Data.Control {
 			s.UserName = username;
 			s.Password = password;
 
-			DeveelDbConnection connection = new DeveelDbConnection(s, db_interface, 8, 4092000);
+			DBSConnection connection = new DBSConnection(this, internal_counter, s, db_interface, 8, 4092000);
 			// Attempt to log in with the given username and password (default schema)
 			connection.Open();
 			if (connection.State != ConnectionState.Open)
@@ -261,10 +272,66 @@ namespace Deveel.Data.Control {
 					Debug.WriteException(DebugLevel.Error, e);
 				}
 			}
+
+			if (connections != null) {
+				foreach (IDbConnection connection in connections.Values) {
+					if (connection.State != ConnectionState.Closed) {
+						try {
+							connection.Dispose();
+						} catch(Exception) {
+							// ignore the error since we're at disposal...
+						}
+					}
+				}
+
+				connections = null;
+			}
+
 			controller = null;
 			config = null;
 			database = null;
 		}
 
+		private class DBSConnection : DeveelDbConnection {
+			internal DBSConnection(DbSystem system, int id, ConnectionString connectionString, IDatabaseInterface db_interface, int cache_size, int max_size)
+				: base(connectionString, db_interface, cache_size, max_size) {
+				this.system = system;
+				this.id = id;
+			}
+
+			private readonly int id;
+			private readonly DbSystem system;
+
+			internal override bool InternalOpen() {
+				if (base.InternalOpen()) {
+					if (system.connections == null)
+						system.connections = new Hashtable();
+					system.connections.Add(id, this);
+					return true;
+				}
+				return false;
+			}
+
+			internal override bool InternalClose() {
+				if (base.InternalClose()) {
+					system.connections.Remove(id);
+					return true;
+				}
+
+				return false;
+			}
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				InternalDispose();
+			}
+		}
+
+		/// <inheritdoc/> 
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
 	}
 }
