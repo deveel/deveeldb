@@ -100,7 +100,8 @@ namespace Deveel.Data.Client {
 				// For blobs, return an instance of IBlob.
 				if (ob is ByteLongObject ||
 					ob is Data.StreamableObject) {
-					return command.AsBlob(ob);
+					// return command.AsBlob(ob);
+					return command.GetLob(ob);
 				}
 			}
 			return ob;
@@ -117,37 +118,14 @@ namespace Deveel.Data.Client {
 			return command.ResultSet.FindColumnIndex(name);
 		}
 
-		///<summary>
-		///</summary>
-		///<param name="i"></param>
-		///<returns></returns>
-		///<exception cref="DataException"></exception>
-		public IBlob GetBlob(int i) {
+		public DeveelDbLob GetLob(int i) {
 			// I'm assuming we must return 'null' for a null blob....
 			Object ob = command.ResultSet.GetRawColumn(i);
 			if (ob != null) {
 				try {
-					return command.AsBlob(ob);
+					return command.GetLob(ob);
 				} catch (InvalidCastException e) {
 					throw new DataException("Column " + i + " is not a binary column.");
-				}
-			}
-			return null;
-		}
-
-		///<summary>
-		///</summary>
-		///<param name="i"></param>
-		///<returns></returns>
-		///<exception cref="DataException"></exception>
-		public IClob GetClob(int i) {
-			// I'm assuming we must return 'null' for a null clob....
-			Object ob = command.ResultSet.GetRawColumn(i);
-			if (ob != null) {
-				try {
-					return command.AsClob(ob);
-				} catch (InvalidCastException) {
-					throw new DataException("Column " + i + " is not a character column.");
 				}
 			}
 			return null;
@@ -200,7 +178,8 @@ namespace Deveel.Data.Client {
 		/// <param name="columnIndex"></param>
 		/// <returns></returns>
 		public byte[] GetBytes(int columnIndex) {
-			IBlob b = GetBlob(columnIndex);
+			//IBlob b = GetBlob(columnIndex);
+			DeveelDbLob b = GetLob(columnIndex);
 			if (b == null) {
 				return null;
 			} else {
@@ -210,20 +189,6 @@ namespace Deveel.Data.Client {
 					throw new DataException("IBlob too large to return as byte[]");
 				}
 			}
-			//    Object ob = GetRawColumn(columnIndex);
-			//    if (ob == null) {
-			//      return null;
-			//    }
-			//    else if (ob is ByteLongObject) {
-			//      // Return a safe copy of the byte[] array (BLOB).
-			//      ByteLongObject b = (ByteLongObject) ob;
-			//      byte[] barr = new byte[b.length()];
-			//      System.arraycopy(b.ToArray(), 0, barr, 0, b.length());
-			//      return barr;
-			//    }
-			//    else {
-			//      throw new DataException("Unable to cast value in ResultSet to byte[]");
-			//    }
 		}
 
 		/// <inheritdoc/>
@@ -235,7 +200,8 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		/// <exception cref="NotImplementedException"/>
 		public override long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length) {
-			IClob clob = GetClob(i);
+			// IClob clob = GetClob(i);
+			DeveelDbLob clob = GetLob(i);
 			if (clob == null)
 				return 0;
 
@@ -341,13 +307,6 @@ namespace Deveel.Data.Client {
 			return (DateTime) command.ResultSet.GetRawColumn(i);
 		}
 
-		/// <inheritdoc/>
-		/// <exception cref="NotImplementedException"/>
-		/*
-		IDataReader IDataRecord.GetData(int i) {
-			throw new NotImplementedException();
-		}
-		*/
 		public new IDataReader GetData(int i) {
 			return null;
 		}

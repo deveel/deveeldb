@@ -25,6 +25,7 @@ using System.Collections;
 using System.Data;
 using System.Data.Common;
 using System.IO;
+using System.Text;
 
 using Deveel.Math;
 
@@ -189,40 +190,24 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		/// <summary>
-		/// Returns the given object as a IBlob instance.
-		/// </summary>
-		/// <param name="ob"></param>
-		/// <returns></returns>
-		internal IBlob AsBlob(Object ob) {
-			if (ob is Data.StreamableObject) {
-				Data.StreamableObject s_ob = (Data.StreamableObject)ob;
+		internal DeveelDbLob GetLob(object obj) {
+			if (obj is Data.StreamableObject) {
+				Data.StreamableObject s_ob = (Data.StreamableObject)obj;
 				if (s_ob.Type == ReferenceType.Binary) {
-					return new DbStreamableBlob(connection, ResultSet.result_id, s_ob.Type, s_ob.Identifier, s_ob.Size);
+					return new DeveelDbLob(connection, ResultSet.result_id, s_ob);
 				}
-			} else if (ob is ByteLongObject) {
-				return new DbBlob((ByteLongObject)ob);
+			} else if (obj is ByteLongObject) {
+				ByteLongObject blob = (ByteLongObject) obj;
+				return new DeveelDbLob(this, blob.GetInputStream(), ReferenceType.Binary, blob.Length);
+			} else if (obj is StringObject) {
+				StringObject clob = (StringObject) obj;
+				byte[] bytes = Encoding.Unicode.GetBytes(clob.ToString());
+				return new DeveelDbLob(this, new MemoryStream(bytes), ReferenceType.UnicodeText, bytes.Length);
 			}
-			throw new InvalidCastException();
+
+			throw new InvalidOperationException("Unable to convert into a LOB.");
 		}
 
-		/// <summary>
-		/// Returns the given object as a IClob instance.
-		/// </summary>
-		/// <param name="ob"></param>
-		/// <returns></returns>
-		internal IClob AsClob(Object ob) {
-			if (ob is Data.StreamableObject) {
-				Data.StreamableObject s_ob = (Data.StreamableObject)ob;
-				if (s_ob.Type == ReferenceType.AsciiText ||
-					s_ob.Type == ReferenceType.UnicodeText) {
-					return new DbStreamableClob(connection, ResultSet.result_id, s_ob.Type, s_ob.Identifier, s_ob.Size);
-				}
-			} else if (ob is StringObject) {
-				return new DbClob(ob.ToString());
-			}
-			throw new InvalidCastException();
-		}
 
 		/// <summary>
 		/// Casts an internal object to the sql_type given for return by methods
@@ -268,8 +253,8 @@ namespace Deveel.Data.Client {
 				case (SQLTypes.VARBINARY):
 				// fall through
 				case (SQLTypes.LONGVARBINARY):
-					IBlob b = AsBlob(ob);
-					return b.GetBytes(0, (int)b.Length);
+					DeveelDbLob lob = GetLob(ob);
+					return lob.GetBytes(0, (int) lob.Length);
 				case (SQLTypes.NULL):
 					return ob;
 				case (SQLTypes.OTHER):
@@ -286,9 +271,10 @@ namespace Deveel.Data.Client {
 					// (Not supported)
 					return ob;
 				case (SQLTypes.BLOB):
-					return AsBlob(ob);
+					// return AsBlob(ob);
 				case (SQLTypes.CLOB):
-					return AsClob(ob);
+					// return AsClob(ob);
+					return GetLob(ob);
 				case (SQLTypes.REF):
 					// (Not supported)
 					return ob;
@@ -312,10 +298,10 @@ namespace Deveel.Data.Client {
 		/// <returns></returns>
 		internal String MakeString(Object ob) {
 			if (ob is Data.StreamableObject) {
-				IClob clob = AsClob(ob);
+				DeveelDbLob clob = GetLob(ob);
 				long clob_len = clob.Length;
 				if (clob_len < 16384L * 65536L) {
-					return clob.GetString(1, (int)clob_len);
+					return clob.GetString(0, (int)clob_len);
 				}
 				throw new DataException("IClob too large to return as a string.");
 			} else if (ob is ByteLongObject) {
@@ -445,7 +431,42 @@ namespace Deveel.Data.Client {
 				SqlCommand command = commands[i];
 				for (int j = 0; j < parameters.Count; j++) {
 					DeveelDbParameter parameter = parameters[j];
-					command.SetVariable(j, CastHelper.CastToSQLType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
+					if (parameter.Value is DeveelDbLob) {
+						command.SetVariable(j, ((DeveelDbLob)parameter.Value).ObjectRef);
+					} else if (parameter.Value is Stream) {
+						Stream stream = (Stream) parameter.Value;
+						if (parameter.LongSize > 8 * 1024) {
+							DeveelDbLob lob = new DeveelDbLob(this, stream, parameter.ReferenceType, parameter.LongSize, true);
+							command.SetVariable(j, lob.ObjectRef);
+						} else {
+							if (parameter.ReferenceType == ReferenceType.Binary) {
+								command.SetVariable(j, new ByteLongObject(stream, parameter.Size));
+							} else if (parameter.ReferenceType == ReferenceType.AsciiText) {
+								StringBuilder sb = new StringBuilder();
+								for (int k = 0; k < parameter.Size; ++k) {
+									int v = stream.ReadByte();
+									if (v == -1)
+										throw new IOException("Premature EOF reached.");
+									sb.Append((char)v);
+								}
+								command.SetVariable(j, StringObject.FromString(sb.ToString()));
+							} else {
+								StringBuilder sb = new StringBuilder();
+								int halfLength = parameter.Size/2;
+								for (int k = 0; k < halfLength; ++k) {
+									int v1 = stream.ReadByte();
+									int v2 = stream.ReadByte();
+									if (v1 == -1 || v2 == -1)
+										throw new IOException("Premature EOF reached.");
+
+									sb.Append((char)((v1 << 8) + v2));
+								}
+
+								command.SetVariable(j, StringObject.FromString(sb.ToString()));
+							}
+						}
+					}else if (!(parameter.Value is DeveelDbLob))
+						command.SetVariable(j, CastHelper.CastToSQLType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
 				}
 			}
 		}

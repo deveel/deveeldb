@@ -66,11 +66,6 @@ namespace Deveel.Data.Util {
 		private readonly byte[] buf;
 
 		/// <summary>
-		/// Last marked position.
-		/// </summary>
-		private long mark_position;
-
-		/// <summary>
 		/// Constructs the input stream.
 		/// </summary>
 		/// <param name="page_size">The size of the pages when accessing 
@@ -81,7 +76,6 @@ namespace Deveel.Data.Util {
 			BUFFER_SIZE = page_size;
 			position = 0;
 			size = total_size;
-			mark_position = 0;
 			buf = new byte[BUFFER_SIZE];
 			buffer_pos = -1;
 		}

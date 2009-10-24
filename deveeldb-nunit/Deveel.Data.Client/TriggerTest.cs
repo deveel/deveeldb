@@ -8,7 +8,7 @@ namespace Deveel.Data.Client {
 	[TestFixture]
 	public sealed class TriggerTest : TestBase {
 		[Test]
-		public void CreateCallbackTrigger() {
+		public void CallbackTriggerOnAllEvents() {
 			DeveelDbConnection connection = CreateConnection();
 			Assert.IsTrue(connection.State == ConnectionState.Open);
 			
@@ -37,6 +37,23 @@ namespace Deveel.Data.Client {
 			Assert.AreEqual(1, count);
 
 			connection.Close();
+		}
+
+		[Test]
+		public void CallbackTriggerOnInsert() {
+			DeveelDbConnection connection = CreateConnection();
+			Assert.IsTrue(connection.State == ConnectionState.Open);
+
+			DeveelDbTrigger trigger = new DeveelDbTrigger(connection, "PersonCreated", "Person");
+			trigger.Subscribe(new EventHandler(PersonTableModified));
+
+			Console.Out.WriteLine("Inserting a new entry in the table 'Person'.");
+			DeveelDbCommand command = connection.CreateCommand("INSERT INTO Person (name, age, lives_in) VALUES ('Lorenzo Thione', 30, 'Texas')");
+			int count = command.ExecuteNonQuery();
+
+			Assert.AreEqual(1, count);
+
+			trigger.Dispose();
 		}
 
 		private static void PersonTableModified(object sender, EventArgs e) {

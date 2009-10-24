@@ -103,10 +103,8 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Check the procedure exists.
-				if (!proc_manager.ProcedureExists(p_name)) {
-					throw new DatabaseException("Procedure '" + p_name +
-												"' could not be found.");
-				}
+				if (!proc_manager.ProcedureExists(p_name))
+					throw new DatabaseException("Procedure '" + p_name + "' could not be found.");
 
 				// Resolve the listening type
 				TriggerEventType listen_type = new TriggerEventType();

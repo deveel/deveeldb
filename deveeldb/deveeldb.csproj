@@ -76,8 +76,10 @@
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbConnectionStringBuilder.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbLob.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbProcedureTrigger.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
     <Compile Include="Deveel.Data.Client\ParemeterStyle.cs" />

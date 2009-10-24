@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Client\ConnectionTest.cs" />
+    <Compile Include="Deveel.Data.Client\LobTest.cs" />
     <Compile Include="Deveel.Data.Functions\FunctionTest.cs" />
     <Compile Include="Deveel.Data\CreateDatabaseTest.cs" />
     <Compile Include="Deveel.Data\ExpressionTest.cs" />

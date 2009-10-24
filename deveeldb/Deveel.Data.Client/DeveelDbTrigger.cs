@@ -122,7 +122,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// The types of commands to listen for.
 		/// </summary>
-		private TriggerEventType eventType = TriggerEventType.Insert;
+		private TriggerEventType eventType = TriggerEventType.Insert | TriggerEventType.Update | TriggerEventType.Delete;
 
 		/// <summary>
 		/// Indicates whether the trigger already exists in the database.
@@ -171,12 +171,12 @@ namespace Deveel.Data.Client {
 		/// Gets or sets the types of data modification commands for which
 		/// to register the trigger.
 		/// </summary>
+		/// <remarks>
+		/// By default a callback trigger listens to all event types.
+		/// </remarks>
 		public TriggerEventType EventType {
 			get { return eventType; }
-			set {
-				CheckExisting();
-				eventType = value;
-			}
+			set { eventType = value; }
 		}
 
 		/// <summary>
@@ -244,11 +244,6 @@ namespace Deveel.Data.Client {
 			return false;
 		}
 
-		internal void CheckExisting() {
-			if (exists)
-				throw new InvalidOperationException("The trigger already exists.");
-		}
-
 		internal static string FormatEventType(TriggerEventType types) {
 			ArrayList list = new ArrayList();
 			bool before = false, after = false;
@@ -265,18 +260,31 @@ namespace Deveel.Data.Client {
 				list.Add(TriggerEventType.Delete);
 
 			StringBuilder sb = new StringBuilder();
-			if (before) {
-				for (int i = 0; i < list.Count; i++) {
-					sb.Append(((TriggerEventType) list[i]).ToString().ToUpper());
-					if (i < list.Count - 1)
-						sb.Append(" OR ");
+
+			if (before | after) {
+				if (before) {
+					for (int i = 0; i < list.Count; i++) {
+						sb.Append("BEFORE");
+						sb.Append(' ');
+						sb.Append(((TriggerEventType)list[i]).ToString().ToUpper());
+						if (i < list.Count - 1)
+							sb.Append(" OR ");
+					}
 				}
-			}
 
-			if (before && after)
-				sb.Append(" OR ");
+				if (before && after)
+					sb.Append(" OR ");
 
-			if (after) {
+				if (after) {
+					for (int i = 0; i < list.Count; i++) {
+						sb.Append("AFTER");
+						sb.Append(' ');
+						sb.Append(((TriggerEventType)list[i]).ToString().ToUpper());
+						if (i < list.Count - 1)
+							sb.Append(" OR ");
+					}
+				}
+			} else {
 				for (int i = 0; i < list.Count; i++) {
 					sb.Append(((TriggerEventType)list[i]).ToString().ToUpper());
 					if (i < list.Count - 1)

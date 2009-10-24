@@ -21,11 +21,20 @@ namespace Deveel.Data {
 			system = !DbController.Default.DatabaseExists(config, DatabaseName)
 						? DbController.Default.CreateDatabase(config, DatabaseName, AdminUser, AdminPassword)
 						: DbController.Default.StartDatabase(config, DatabaseName);
+
+			OnSetUp();
 		}
 
 		[TearDown]
 		public void TearDown() {
+			OnTearDown();
 			system.Close();
+		}
+
+		protected virtual void OnSetUp() {
+		}
+
+		protected virtual void OnTearDown() {
 		}
 
 		protected DeveelDbConnection CreateConnection() {

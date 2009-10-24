@@ -53,11 +53,12 @@ namespace Deveel.Data.Client {
 		private object value = DBNull.Value;
 		// marker style is the default
 		internal ParameterStyle paramStyle = ParameterStyle.Marker;
-		private int size;
+		private long size;
 		private byte scale;
 		private string sourceColumn;
 		private DataRowVersion sourceVersion;
 		private string name;
+		private ReferenceType ref_type = ReferenceType.Binary;
 
 		#region Implementation of IDataParameter
 
@@ -87,6 +88,11 @@ namespace Deveel.Data.Client {
 		public override bool IsNullable {
 			get { return true;}
 			set { }
+		}
+
+		public ReferenceType ReferenceType {
+			get { return ref_type; }
+			set { ref_type = value; }
 		}
 
 		public override string ParameterName {
@@ -151,6 +157,11 @@ namespace Deveel.Data.Client {
 		}
 
 		public override int Size {
+			get { return (int)size; }
+			set { size = value; }
+		}
+
+		public long LongSize {
 			get { return size; }
 			set { size = value; }
 		}

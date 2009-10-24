@@ -594,6 +594,10 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		internal void PushStreamableObjectPart(ReferenceType type, long objectId, long length, byte[] buffer, long offset, int count) {
+			db_interface.PushStreamableObjectPart(type, objectId, length, buffer, offset, count);
+		}
+
 		/// <summary>
 		/// Uploads any streamable objects found in an SqlCommand into the database.
 		/// </summary>
@@ -622,6 +626,8 @@ namespace Deveel.Data.Client {
 						if (i_stream == null) {
 							throw new Exception("Assertion failed: Streamable object Stream is not available.");
 						}
+
+						i_stream.Seek(0, SeekOrigin.Begin);
 
 						while (offset < total_len) {
 							// Fill the buffer
@@ -905,7 +911,7 @@ namespace Deveel.Data.Client {
 		}
 
 		public override void ChangeDatabase(string databaseName) {
-			//TODO: multiple databases not supported yet...
+			//TODO: multiple databases not officially supported yet...
 		}
 
 		protected override DbCommand CreateDbCommand() {
@@ -924,6 +930,62 @@ namespace Deveel.Data.Client {
 		/// <returns></returns>
 		public DeveelDbCommand CreateCommand(string commandText) {
 			return new DeveelDbCommand(commandText, this);
+		}
+
+		/// <summary>
+		/// Creates a new <c>CALLBACK</c> trigger for the connection, having
+		/// the given name and listening to event on the given database object 
+		/// (eg. table, view, etc.), which listens to every event.
+		/// </summary>
+		/// <param name="name">The name of the trigger to create.</param>
+		/// <param name="objectName">The name of the object for which to listen for events
+		/// of data modifications (either <c>INSERT</c>, <c>DELETE</c> or <c>UPDATE</c>).</param>
+		/// <remarks>
+		/// Triggers are listeners to events of data modification happening on a
+		/// database object they are attached to: every time a DML command modifies
+		/// the contents of a database object, a callback trigger is fired to notify
+		/// the client of the event.
+		/// <para>
+		/// Calling this method will not register a trigger on the database: this will
+		/// be done when the method <see cref="DeveelDbTrigger.Subscribe"/> is called for
+		/// the first time.
+		/// </para>
+		/// <para>
+		/// Callback triggers are destroyed at the end of a connection to the database.
+		/// </para>
+		/// <para>
+		/// To control on which event the trigger must be fired, the property 
+		/// <see cref="DeveelDbTrigger.EventType"/> must be set.
+		/// </para>
+		/// </remarks>
+		/// <returns>
+		/// Returns an instance of <see cref="DeveelDbTrigger"/> that represents a
+		/// <c>CALLBACK TRIGGER</c> on the connection.
+		/// </returns>
+		/// <seealso cref="DeveelDbTrigger"/>
+		public DeveelDbTrigger CreateCallbackTrigger(string name, string objectName) {
+			return new DeveelDbTrigger(this, name, objectName);
+		}
+
+		/// <summary>
+		/// Creates a new <c>CALLBACK</c> trigger for the connection, having
+		/// the given name and listening to event on the given database object 
+		/// (eg. table, view, etc.), which listens to the events given.
+		/// </summary>
+		/// <param name="name">The name of the trigger to create.</param>
+		/// <param name="objectName">The name of the object for which to listen for events
+		/// of data modifications (either <c>INSERT</c>, <c>DELETE</c> or <c>UPDATE</c>).</param>
+		/// <param name="listenTo">The <see cref="TriggerEventType">event types</see> to listen
+		/// for on the database object.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="DeveelDbTrigger"/> that represents a
+		/// <c>CALLBACK TRIGGER</c> on the connection.
+		/// </returns>
+		/// <seealso cref="DeveelDbTrigger"/>
+		public DeveelDbTrigger CreateCallbackTrigger(string name, string objectName, TriggerEventType listenTo) {
+			DeveelDbTrigger trigger = CreateCallbackTrigger(name, objectName);
+			trigger.EventType = listenTo;
+			return trigger;
 		}
 
 		/// <summary>
@@ -967,9 +1029,8 @@ namespace Deveel.Data.Client {
 			get { return 0; }
 		}
 
-		//TODO: we should support multiple databases...
 		public override string Database {
-			get { return "DefaultDatabase"; }
+			get { return Settings.Database; }
 		}
 
 		public override ConnectionState State {

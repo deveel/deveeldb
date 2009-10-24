@@ -1,4 +1,15 @@
-﻿2009-10-23  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-24  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbLob.cs: Implemented to support *LOBs streaming
+	to and from the database.
+	* IDbBlob.cs: suppressed
+	* IDbClob.cs: suppressed
+	* DbClob.cs: suppressed
+	* DbBlob.cs: suppressed
+	* DbStreamableBlob.cs: suppressed
+	* DbStreamableClob.cs: suppressed
+	* StreamableObject.cs: suppressed
+	
+2009-10-23  Antonello Provenzano  <antonello@deveel.com>
 	* DeveelDbTrigger.cs: now it checks the existence of the
 	trigger at 'Subscribe' (the connection could be closed
 	when creating a trigger, but open when subscribing).

@@ -238,7 +238,6 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <CAST:        "cast">
 | <LONG:        "long">
 | <NAME:        "name">
-| <JAVA:        "java">
 | <AFTER:       "after">
 | <START:       "start">
 | <COUNT:       "count">
@@ -264,6 +263,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <GROUPS:      "groups">
 | <REVOKE:      "revoke">
 | <OPTION:      "option">
+| <CSHARP:      "csharp">
 | <PUBLIC:      "public">
 | <EXCEPT:      "except">
 | <IGNORE:      "ignore">
@@ -730,7 +730,7 @@ StatementTree CreateFunction() :
   (   <FUNCTION> function_name = FunctionName()
       "(" ProcParameterList(arg_names, arg_types) ")"
       [ <RETURNS> return_type = GetTType() ]
-      <LANGUAGE> <JAVA> <NAME> loc_name = <STRING_LITERAL>
+      <LANGUAGE> <CSHARP> <NAME> loc_name = <STRING_LITERAL>
   )
 
   { cmd.SetObject("function_name", function_name);
@@ -2434,7 +2434,7 @@ Token SQLIdentifier() :
   (   name = <IDENTIFIER>
     | name = <OPTION> | name = <ACCOUNT> | name = <PASSWORD>
     | name = <PRIVILEGES> | name = <GROUPS> | name = <LANGUAGE>
-    | name = <NAME> | name = <JAVA> | name = <ACTION>
+    | name = <NAME> | name = <CSHARP> | name = <ACTION>
   )
   
   { return name; }
