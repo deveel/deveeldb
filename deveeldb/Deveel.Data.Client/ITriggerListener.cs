@@ -30,11 +30,13 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// Notifies this listener that the trigger with the name has been fired.
 		/// </summary>
-		/// <param name="trigger_name">The name of the trigger that fired.</param>
+		/// <param name="e">The argument object that describes the information
+		/// about a fired trigger.</param>
 		/// <remarks>
 		/// Trigger's are specified via the SQL syntax and a trigger listener can 
 		/// be registered via <see cref="DeveelDbConnection"/>.
 		/// </remarks>
-		void OnTriggerFired(String trigger_name);
+		/// <seealso cref="TriggerEventArgs"/>
+		void OnTriggerFired(TriggerEventArgs e);
 	}
 }

@@ -1,4 +1,21 @@
-﻿2009-10-15  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-23  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbTrigger.cs: now it checks the existence of the
+	trigger at 'Subscribe' (the connection could be closed
+	when creating a trigger, but open when subscribing).
+	* DeveelDbConnection.cs: 
+		- introduced the method CreateTrigger
+		- TriggerDispatchThread now creates a TriggerEventArgs
+		and passes also the additional field for the type.
+	* TriggerEventArgs.cs: added to support specialized
+	trigger event arguments.
+	* TriggerEventMoment.cs: removed in favor of 
+	Deveel.Data.TriggerEventType.
+	* TriggerEventType.cs: removed in favor of 
+	Deveel.Data.TriggerEventType.
+	* ITriggerListener.cs: the method OnTriggerFired now
+	accepts a TriggerEventArgs as argument.
+	
+2009-10-15  Antonello Provenzano  <antonello@deveel.com>
 	* ConnectionString.cs: Added the keys 'CacheSize' and
 	'MaxCacheSize' to control the client cache.
 	

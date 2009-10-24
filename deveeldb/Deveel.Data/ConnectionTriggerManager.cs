@@ -112,7 +112,7 @@ namespace Deveel.Data {
 		/// If any error occurred while serializing trigger parameters.
 		/// </exception>
 		public void CreateTableTrigger(String schema, String name,
-									   int type, TableName on_table,
+									   TriggerEventType type, TableName on_table,
 									   String procedure_name, TObject[] parameters) {
 			TableName trigger_table_name = new TableName(schema, name);
 
@@ -145,7 +145,7 @@ namespace Deveel.Data {
 				RowData row = new RowData(table);
 				row.SetColumnDataFromTObject(0, TObject.GetString(schema));
 				row.SetColumnDataFromTObject(1, TObject.GetString(name));
-				row.SetColumnDataFromTObject(2, TObject.GetInt4(type));
+				row.SetColumnDataFromTObject(2, TObject.GetInt4((int)type));
 				row.SetColumnDataFromTObject(3, TObject.GetString("T:" + on_table));
 				row.SetColumnDataFromTObject(4, TObject.GetString(procedure_name));
 				row.SetColumnDataFromTObject(5, TObject.GetObject(encoded_params));
@@ -265,7 +265,7 @@ namespace Deveel.Data {
 					TriggerInfo trigger_info = new TriggerInfo();
 					trigger_info.schema = trig_schem.Object.ToString();
 					trigger_info.name = trig_name.Object.ToString();
-					trigger_info.type = type.ToBigNumber().ToInt32();
+					trigger_info.type = (TriggerEventType) type.ToBigNumber().ToInt32();
 					trigger_info.on_object = on_object.Object.ToString();
 					trigger_info.action = action.Object.ToString();
 					trigger_info.misc = misc;
@@ -410,7 +410,7 @@ namespace Deveel.Data {
 			internal String name;
 			internal String on_object;
 			internal String schema;
-			internal int type;
+			internal TriggerEventType type;
 		}
 
 		#endregion

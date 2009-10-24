@@ -30,18 +30,9 @@ namespace Deveel.Data.Client {
 		}
 
 		private readonly string procedureName;
-		private TriggerEventMoment moment = TriggerEventMoment.After;
 
 		public string ProcedureName {
 			get { return procedureName; }
-		}
-
-		public TriggerEventMoment EventMoment {
-			get { return moment; }
-			set {
-				CheckExisting();
-				moment = value;
-			}
 		}
 
 		internal override DeveelDbCommand GetCreateStatement() {
@@ -49,74 +40,26 @@ namespace Deveel.Data.Client {
 
 			StringBuilder sb = new StringBuilder();
 			sb.Append("CREATE TRIGGER ");
-			if (paramStyle == ParameterStyle.Marker) {
-				sb.Append("?");
-			} else {
-				sb.Append("@TriggerName");
-			}
-			if (moment == TriggerEventMoment.Before) {
-				sb.Append(" BEFORE ");
-			} else {
-				sb.Append(" AFTER ");
-			}
+			sb.Append(Name);
 			sb.Append(" ");
-			sb.Append(FormatEventType(EventTypes));
+			sb.Append(FormatEventType(EventType));
 			sb.Append(" ON ");
-			if (paramStyle == ParameterStyle.Marker) {
-				sb.Append("?");
-			} else {
-				sb.Append("@TableName");
-			}
-
+			sb.Append(ObjectName);
 			sb.Append(" FOR EACH ROW EXECUTE PROCEDURE ");
-
-			if (paramStyle == ParameterStyle.Marker) {
-				sb.Append("?");
-			} else {
-				sb.Append("@ProcedureName");
-			}
+			sb.Append(procedureName);
 
 			//TODO: support parameters...
 
-			sb.Append(";");
-
 			DeveelDbCommand command = Connection.CreateCommand(sb.ToString());
-			if (paramStyle == ParameterStyle.Marker) {
-				command.Parameters.Add(Name);
-				command.Parameters.Add(ObjectName);
-				command.Parameters.Add(procedureName);
-			} else {
-				command.Parameters.Add("@TriggerName", Name);
-				command.Parameters.Add("@TableName", ObjectName);
-				command.Parameters.Add("@ProcedureName", procedureName);
-			}
-
-			command.Prepare();
-
 			return command;
 		}
 
 		internal override DeveelDbCommand GetDropStatement() {
-			ParameterStyle paramStyle = Connection.Settings.ParameterStyle;
-
 			StringBuilder sb = new StringBuilder();
-			sb.Append("DROP CALLBACK TRIGGER ");
-			if (paramStyle == ParameterStyle.Marker)
-				sb.Append("?");
-			else
-				sb.Append("@TriggerName");
-			sb.Append(";");
+			sb.Append("DROP TRIGGER ");
+			sb.Append(Name);
 
-			DeveelDbCommand command = Connection.CreateCommand(sb.ToString());
-
-			if (paramStyle == ParameterStyle.Marker)
-				command.Parameters.Add(Name);
-			else
-				command.Parameters.Add("@TriggerName", Name);
-
-			command.Prepare();
-
-			return command;
+			return Connection.CreateCommand(sb.ToString());
 		}
 	}
 }

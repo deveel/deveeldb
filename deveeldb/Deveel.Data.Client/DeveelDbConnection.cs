@@ -1031,9 +1031,10 @@ namespace Deveel.Data.Client {
 						//          Console.Out.WriteLine("TRIGGER EVENT: " + message);
 
 						string[] tok = message.Split(' ');
-						String trigger_name = tok[0];
-						String trigger_source = tok[1];
-						String trigger_fire_count = tok[2];
+						TriggerEventType event_type = (TriggerEventType) Convert.ToInt32(tok[0]);
+						String trigger_name = tok[1];
+						String trigger_source = tok[2];
+						int trigger_fire_count = Convert.ToInt32(tok[3]);
 
 						ArrayList fired_triggers = new ArrayList();
 						// Create a list of Listener's that are listening for this trigger.
@@ -1041,21 +1042,21 @@ namespace Deveel.Data.Client {
 							for (int i = 0; i < conn.trigger_list.Count; i += 2) {
 								String to_listen_for = (String)conn.trigger_list[i];
 								if (to_listen_for.Equals(trigger_name)) {
-									ITriggerListener listener =
-										(ITriggerListener)conn.trigger_list[i + 1];
+									ITriggerListener listener = (ITriggerListener)conn.trigger_list[i + 1];
 									// NOTE, we can't call 'listener.OnTriggerFired' here because
 									// it's not a good idea to call user code when we are
 									// synchronized over 'trigger_list' (deadlock concerns).
 									fired_triggers.Add(listener);
+									fired_triggers.Add(new TriggerEventArgs(trigger_source, trigger_name, event_type, trigger_fire_count));
 								}
 							}
 						}
 
 						// Fire them triggers.
-						for (int i = 0; i < fired_triggers.Count; ++i) {
-							ITriggerListener listener =
-								(ITriggerListener)fired_triggers[i];
-							listener.OnTriggerFired(trigger_name);
+						for (int i = 0; i < fired_triggers.Count; i += 2) {
+							ITriggerListener listener = (ITriggerListener)fired_triggers[i];
+							TriggerEventArgs e = (TriggerEventArgs) fired_triggers[i + 1];
+							listener.OnTriggerFired(e);
 						}
 
 					} catch (Exception t) {

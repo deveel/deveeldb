@@ -25,15 +25,40 @@ namespace Deveel.Data {
 	/// <summary>
 	/// The different types of high layer trigger events.
 	/// </summary>
+	[Flags]
 	public enum TriggerEventType {
 		///<summary>
 		///</summary>
-		Insert = 1,
+		Insert = 0x001,
 		///<summary>
 		///</summary>
-		Delete = 2,
+		Delete = 0x002,
 		///<summary>
 		///</summary>
-		Update = 3
+		Update = 0x004,
+
+		/// <summary>
+		/// An event that occurs <c>BEFORE</c> the modification of a 
+		/// table contents.
+		/// </summary>
+		Before = 0x010,
+
+		/// <summary>
+		/// An event that occurs <c>AFTER</c> the modification of a 
+		/// table contents.
+		/// </summary>
+		After = 0x020,
+
+		BeforeInsert = Before | Insert,
+
+		BeforeDelete = Before | Delete,
+
+		BefroeUpdate = Before | Update,
+
+		AfterInsert = After | Insert,
+
+		AfterUpdate = After | Update,
+
+		AfterDelete = After | Delete
 	}
 }

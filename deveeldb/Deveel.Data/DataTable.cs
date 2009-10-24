@@ -229,15 +229,13 @@ namespace Deveel.Data {
 			TableName table_name = TableName;
 
 			// Fire the 'before' trigger for an insert on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, table_name,
-																 row, true));
+			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row, true));
 
 			// Add the row to the underlying file system
 			int row_number = data_source.AddRow(row);
 
 			// Fire the 'after' trigger for an insert on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, table_name,
-																 row, false));
+			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row, false));
 
 			// NOTE: currently nothing being done with 'row_number' after it's added.
 			//   The underlying table data source manages the row index.
@@ -260,16 +258,13 @@ namespace Deveel.Data {
 			TableName table_name = TableName;
 
 			// Fire the 'before' trigger for the delete on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, table_name,
-																 row_number, true));
+			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row_number, true));
 
 			// Delete the row from the underlying database
 			data_source.RemoveRow(row_number);
 
 			// Fire the 'after' trigger for the delete on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, table_name,
-																 row_number, false));
-
+			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row_number, false));
 		}
 
 		/// <summary>
@@ -287,18 +282,13 @@ namespace Deveel.Data {
 			TableName table_name = TableName;
 
 			// Fire the 'before' trigger for the update on this table
-			connection.FireTableEvent(
-				 new TableModificationEvent(connection, table_name,
-											row_number, row, true));
+			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row_number, row, true));
 
 			// Update the row in the underlying database
 			data_source.UpdateRow(row_number, row);
 
 			// Fire the 'after' trigger for the update on this table
-			connection.FireTableEvent(
-				 new TableModificationEvent(connection, table_name,
-											row_number, row, false));
-
+			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row_number, row, false));
 		}
 
 		/// <summary>

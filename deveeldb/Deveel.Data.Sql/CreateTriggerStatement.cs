@@ -51,21 +51,25 @@ namespace Deveel.Data.Sql {
 			if (type.Equals("callback_trigger")) {
 				// Callback trigger - notifies the client when an event on a table
 				// occurs.
+				/*
 				if (types.Count > 1) {
-					throw new DatabaseException(
-						  "Multiple triggered types not allowed for callback triggers.");
+					throw new DatabaseException("Multiple triggered types not allowed for callback triggers.");
 				}
+				*/
 
-				String trig_type = ((String)types[0]).ToUpper();
-				TriggerEventType int_type;
-				if (trig_type.Equals("INSERT")) {
-					int_type = TriggerEventType.Insert;
-				} else if (trig_type.Equals("DELETE")) {
-					int_type = TriggerEventType.Delete;
-				} else if (trig_type.Equals("UPDATE")) {
-					int_type = TriggerEventType.Update;
-				} else {
-					throw new DatabaseException("Unknown trigger type: " + trig_type);
+				TriggerEventType int_type = new TriggerEventType();
+
+				for (int i = 0; i < types.Count; i++) {
+					String trig_type = ((String) types[i]).ToUpper();
+					if (trig_type.Equals("INSERT")) {
+						int_type |= TriggerEventType.Insert;
+					} else if (trig_type.Equals("DELETE")) {
+						int_type |= TriggerEventType.Delete;
+					} else if (trig_type.Equals("UPDATE")) {
+						int_type |= TriggerEventType.Update;
+					} else {
+						throw new DatabaseException("Unknown trigger type: " + trig_type);
+					}
 				}
 
 				database.CreateTrigger(trigger_name, tname.ToString(), int_type);
@@ -105,11 +109,11 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Resolve the listening type
-				int listen_type = 0;
+				TriggerEventType listen_type = new TriggerEventType();
 				if (before_after.Equals("before")) {
-					listen_type |= TableModificationEvent.BEFORE;
+					listen_type |= TriggerEventType.Before;
 				} else if (before_after.Equals("after")) {
-					listen_type |= TableModificationEvent.AFTER;
+					listen_type |= TriggerEventType.After;
 				} else {
 					throw new ApplicationException("Unknown before/after type.");
 				}
@@ -117,11 +121,11 @@ namespace Deveel.Data.Sql {
 				for (int i = 0; i < types.Count; ++i) {
 					String trig_type = (String)types[i];
 					if (trig_type.Equals("insert")) {
-						listen_type |= TableModificationEvent.INSERT;
+						listen_type |= TriggerEventType.Insert;
 					} else if (trig_type.Equals("delete")) {
-						listen_type |= TableModificationEvent.DELETE;
+						listen_type |= TriggerEventType.Delete;
 					} else if (trig_type.Equals("update")) {
-						listen_type |= TableModificationEvent.UPDATE;
+						listen_type |= TriggerEventType.Update;
 					}
 				}
 
@@ -133,8 +137,7 @@ namespace Deveel.Data.Sql {
 
 				// Create the trigger,
 				ConnectionTriggerManager manager = database.ConnectionTriggerManager;
-				manager.CreateTableTrigger(t_name.Schema, t_name.Name,
-										   listen_type, tname, p_name.ToString(), vals);
+				manager.CreateTableTrigger(t_name.Schema, t_name.Name, listen_type, tname, p_name.ToString(), vals);
 
 				// The initial grants for a trigger is to give the user who created it
 				// full access.

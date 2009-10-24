@@ -103,9 +103,8 @@ namespace Deveel.Data {
 		/// AddTriggerHandler(user, "my_trigger", TriggerEventType.Update, "Part", my_handler);
 		/// </code>
 		/// </example>
-		internal void AddTriggerListener(DatabaseConnection database,
-					   String trigger_name, TriggerEventType event_id, String trigger_source,
-													   ITriggerListener listener) {
+		internal void AddTriggerListener(DatabaseConnection database, String trigger_name, TriggerEventType event_id, 
+			string trigger_source, ITriggerListener listener) {
 			lock (this) {
 				// Has this trigger name already been defined for this user?
 				IList list = listener_map[database];
@@ -116,8 +115,7 @@ namespace Deveel.Data {
 					}
 				}
 
-				TriggerAction action = new TriggerAction(database, trigger_name, event_id,
-														 trigger_source, listener);
+				TriggerAction action = new TriggerAction(database, trigger_name, event_id, trigger_source, listener);
 
 				listener_map.Add(database, action);
 				table_map.Add(trigger_source, action);
@@ -129,8 +127,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="database"></param>
 		/// <param name="trigger_name"></param>
-		internal void RemoveTriggerListener(DatabaseConnection database,
-												String trigger_name) {
+		internal void RemoveTriggerListener(DatabaseConnection database, string trigger_name) {
 			lock (this) {
 				IList list = listener_map[database];
 				for (int i = 0; i < list.Count; ++i) {
@@ -163,9 +160,8 @@ namespace Deveel.Data {
 		/// Notifies all the handlers on a triggerSource (ie. a table) that a
 		/// specific type of event has happened, as denoted by the type.
 		/// </summary>
-		/// <param name="e"></param>
+		/// <param name="evt"></param>
 		private void FireTrigger(TriggerEvent evt) {
-
 			ArrayList trig_list;
 			// Get all the triggers for this trigger source,
 			//    Console.Out.WriteLine(evt.getSource());
@@ -183,7 +179,6 @@ namespace Deveel.Data {
 
 			// Post the event to go off approx 3ms from now.
 			system.PostEvent(3, system.CreateEvent(d));
-
 		}
 
 		private class FireTriggersDelegate : IDatabaseEvent {
@@ -198,7 +193,7 @@ namespace Deveel.Data {
 			public void Execute () {
 				for (int i = 0; i < trig_list.Count; ++i) {
 					TriggerAction action = (TriggerAction)trig_list[i];
-					if (evt.Type == action.trigger_event) {
+					if ((evt.Type & action.trigger_event) != 0) {
 						action.listener.FireTrigger (action.database, action.trigger_name, evt);
 					}
 				}

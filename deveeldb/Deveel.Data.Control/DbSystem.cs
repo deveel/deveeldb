@@ -92,7 +92,8 @@ namespace Deveel.Data.Control {
 		}
 
 		private void Shutdown(object sender, EventArgs e) {
-			InternalDispose();
+			// InternalDispose();
+			Dispose();
 		}
 
 		///<summary>
@@ -273,20 +274,22 @@ namespace Deveel.Data.Control {
 				}
 			}
 
-			if (connections != null) {
-				foreach (IDbConnection connection in connections.Values) {
-					if (connection.State != ConnectionState.Closed) {
-						try {
+			if (connections != null && connections.Count > 0) {
+				ArrayList list = new ArrayList(connections.Keys);
+				for (int i = list.Count - 1; i >= 0; i--) {
+					int id = (int) list[i];
+					IDbConnection connection = connections[id] as IDbConnection;
+
+					try {
+						if (connection != null)
 							connection.Dispose();
-						} catch(Exception) {
-							// ignore the error since we're at disposal...
-						}
+					} catch(Exception) {
+						// we ignore this ...
 					}
 				}
-
-				connections = null;
 			}
 
+			connections = null;
 			controller = null;
 			config = null;
 			database = null;

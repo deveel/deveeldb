@@ -27,71 +27,6 @@ namespace Deveel.Data {
 	/// The event information of when a table is modified inside a transaction.
 	/// </summary>
 	public class TableModificationEvent {
-
-		// ----- Statics -----
-
-		/// <summary>
-		/// Event that occurs before the action
-		/// </summary>
-		public const int BEFORE = 0x010;
-
-		/// <summary>
-		/// Event that occurs after the action
-		/// </summary>
-		public const int AFTER = 0x020;
-
-		// ---
-
-		/// <summary>
-		/// Event type for insert action.
-		/// </summary>
-		public const int INSERT = 0x001;
-
-		/// <summary>
-		/// Event type for update action.
-		/// </summary>
-		public const int UPDATE = 0x002;
-
-		/// <summary>
-		/// Event type for delete action.
-		/// </summary>
-		public const int DELETE = 0x004;
-
-		// ---
-
-		/// <summary>
-		/// Event for before an insert.
-		/// </summary>
-		public const int BEFORE_INSERT = BEFORE | INSERT;
-
-		/// <summary>
-		/// Event for after an insert.
-		/// </summary>
-		public const int AFTER_INSERT = AFTER | INSERT;
-
-		/// <summary>
-		/// Event for before an update.
-		/// </summary>
-		public const int BEFORE_UPDATE = BEFORE | UPDATE;
-
-		/// <summary>
-		/// Event for after an update.
-		/// </summary>
-		public const int AFTER_UPDATE = AFTER | UPDATE;
-
-		/// <summary>
-		/// Event for before a delete.
-		/// </summary>
-		public const int BEFORE_DELETE = BEFORE | DELETE;
-
-		/// <summary>
-		/// Event for after a delete.
-		/// </summary>
-		public const int AFTER_DELETE = AFTER | DELETE;
-
-
-		// ----- Members -----
-
 		/// <summary>
 		/// The DatabaseConnection of the table that the modification occurred in.
 		/// </summary>
@@ -105,7 +40,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The type of event that occurred.
 		/// </summary>
-		private readonly int event_type;
+		private readonly TriggerEventType event_type;
 
 		/// <summary>
 		/// A RowData object representing the row that is being inserted by 
@@ -126,29 +61,25 @@ namespace Deveel.Data {
 		/// </remarks>
 		private readonly int row_index = -1;
 
-		private TableModificationEvent(DatabaseConnection connection,
-			   TableName table_name, int row_index, RowData row_data,
-			   int type, bool before) {
+		private TableModificationEvent(DatabaseConnection connection, TableName table_name, int row_index, 
+			RowData row_data, TriggerEventType type, bool before) {
 			this.connection = connection;
 			this.table_name = table_name;
 			this.row_index = row_index;
 			this.row_data = row_data;
-			this.event_type = type | (before ? BEFORE : AFTER);
+			this.event_type = type | (before ? TriggerEventType.Before : TriggerEventType.After);
 		}
 
-		internal TableModificationEvent(DatabaseConnection connection, TableName table_name,
-							   RowData row_data, bool before)
-			: this(connection, table_name, -1, row_data, INSERT, before) {
+		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, RowData row_data, bool before)
+			: this(connection, table_name, -1, row_data, TriggerEventType.Insert, before) {
 		}
 
-		internal TableModificationEvent(DatabaseConnection connection, TableName table_name,
-							   int row_index, RowData row_data, bool before)
-			: this(connection, table_name, row_index, row_data, UPDATE, before) {
+		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, int row_index, RowData row_data, bool before)
+			: this(connection, table_name, row_index, row_data, TriggerEventType.Update, before) {
 		}
 
-		internal TableModificationEvent(DatabaseConnection connection, TableName table_name,
-							   int row_index, bool before)
-			: this(connection, table_name, row_index, null, DELETE, before) {
+		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, int row_index, bool before)
+			: this(connection, table_name, row_index, null, TriggerEventType.Delete, before) {
 		}
 
 		/// <summary>
@@ -161,7 +92,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Returns the event type.
 		/// </summary>
-		public int Type {
+		public TriggerEventType Type {
 			get { return event_type; }
 		}
 
@@ -169,35 +100,35 @@ namespace Deveel.Data {
 		/// Returns true if this is a BEFORE event.
 		/// </summary>
 		public bool IsBefore {
-			get { return (event_type & BEFORE) != 0; }
+			get { return (event_type & TriggerEventType.Before) != 0; }
 		}
 
 		/// <summary>
 		/// Returns true if this is a AFTER event.
 		/// </summary>
 		public bool IsAfter {
-			get { return (event_type & AFTER) != 0; }
+			get { return (event_type & TriggerEventType.After) != 0; }
 		}
 
 		/// <summary>
 		/// Returns true if this is an INSERT event.
 		/// </summary>
 		public bool IsInsert {
-			get { return (event_type & INSERT) != 0; }
+			get { return (event_type & TriggerEventType.Insert) != 0; }
 		}
 
 		/// <summary>
 		/// Returns true if this is an UPDATE event.
 		/// </summary>
 		public bool IsUpdate {
-			get { return (event_type & UPDATE) != 0; }
+			get { return (event_type & TriggerEventType.Update) != 0; }
 		}
 
 		/// <summary>
 		/// Returns true if this is an DELETE event.
 		/// </summary>
 		public bool IsDelete {
-			get { return (event_type & DELETE) != 0; }
+			get { return (event_type & TriggerEventType.Delete) != 0; }
 		}
 
 		/// <summary>
@@ -238,18 +169,18 @@ namespace Deveel.Data {
 		/// Returns true if the given listener type should be notified of this type
 		/// of table modification event.
 		/// </returns>
-		public bool IsListenedBy(int listen_t) {
+		public bool IsListenedBy(TriggerEventType listen_t) {
 			// If this is a BEFORE trigger, then we must be listening for BEFORE events,
 			// etc.
 			bool ba_match =
-			   ((event_type & BEFORE) != 0 && (listen_t & BEFORE) != 0) ||
-			   ((event_type & AFTER) != 0 && (listen_t & AFTER) != 0);
+			   ((event_type & TriggerEventType.Before) != 0 && (listen_t & TriggerEventType.Before) != 0) ||
+			   ((event_type & TriggerEventType.After) != 0 && (listen_t & TriggerEventType.After) != 0);
 			// If this is an INSERT trigger, then we must be listening for INSERT
 			// events, etc.
 			bool trig_match =
-			   ((event_type & INSERT) != 0 && (listen_t & INSERT) != 0) ||
-			   ((event_type & DELETE) != 0 && (listen_t & DELETE) != 0) ||
-			   ((event_type & UPDATE) != 0 && (listen_t & UPDATE) != 0);
+			   ((event_type & TriggerEventType.Insert) != 0 && (listen_t & TriggerEventType.Insert) != 0) ||
+			   ((event_type & TriggerEventType.Delete) != 0 && (listen_t & TriggerEventType.Delete) != 0) ||
+			   ((event_type & TriggerEventType.Update) != 0 && (listen_t & TriggerEventType.Update) != 0);
 			// If both of the above are true
 			return (ba_match && trig_match);
 		}

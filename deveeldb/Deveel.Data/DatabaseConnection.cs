@@ -1512,8 +1512,7 @@ namespace Deveel.Data {
 					lock (trigger_event_buffer) {
 						// If there is no active transaction then fire trigger immediately.
 						if (transaction == null) {
-							call_back.TriggerNotify(trigger_name, evt.Type,
-													evt.Source, evt.Count);
+							call_back.TriggerNotify(trigger_name, evt.Type, evt.Source, evt.Count);
 						}
 							// Otherwise add to buffer
 						else {

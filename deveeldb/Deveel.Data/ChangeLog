@@ -1,3 +1,10 @@
+2009-10-24  Antonello Provenzano  <antonello@deveel.com>
+	* TriggerEventType.cs:
+		- signed as Flag for multiplicity
+		- includes Before, After and combinations
+	* TableModificationEvent.cs: constants for the event types
+	replaced with TriggerEventType references
+	
 2009-10-20  Antonello Provenzano  <antonello@deveel.com>
 	* SQLTypes.cs: added the members for interval type (SECOND,
 	MINUTE, HOUR, DAY, MONTH, YEAR and INTERVAL)

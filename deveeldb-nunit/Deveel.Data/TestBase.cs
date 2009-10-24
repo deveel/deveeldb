@@ -18,9 +18,9 @@ namespace Deveel.Data {
 		[SetUp]
 		public void SetUp() {
 			DbConfig config = new DefaultDbConfig();
-			system = !DbController.Default.DatabaseExists(config)
-						? DbController.Default.CreateDatabase(config, AdminUser, AdminPassword)
-						: DbController.Default.StartDatabase(config);
+			system = !DbController.Default.DatabaseExists(config, DatabaseName)
+						? DbController.Default.CreateDatabase(config, DatabaseName, AdminUser, AdminPassword)
+						: DbController.Default.StartDatabase(config, DatabaseName);
 		}
 
 		[TearDown]

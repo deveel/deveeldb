@@ -171,6 +171,8 @@ namespace Deveel.Data.Server {
 			public void TriggerNotify(String trigger_name, TriggerEventType trigger_event,
 									  String trigger_source, int fire_count) {
 				StringBuilder message = new StringBuilder();
+				message.Append(Convert.ToInt32(trigger_event));
+				message.Append(' ');
 				message.Append(trigger_name);
 				message.Append(' ');
 				message.Append(trigger_source);

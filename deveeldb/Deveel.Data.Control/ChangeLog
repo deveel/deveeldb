@@ -1,4 +1,17 @@
-﻿2009-10-16  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-23  Antonello Provenzano  <antonello@deveel.com>
+	* DbSystem.cs: 
+		- the IDbConnection returned from method
+		GetConnection is now an internal DeveelDbConnection
+		instance which is referenced by DbSystem (so that when
+		this is closed or disposed all opened connections will 
+		be closed accordingly).
+		- DbSystem is now disposable: at disposal every connection
+		opened through GetConnection method will also be closed.
+	* IDbConfig.cs: added method SaveTo to save the configurations
+	to a given path.
+	* DbConfig.cs: implemented the method SaveTo and overloaded
+	
+2009-10-16  Antonello Provenzano  <antonello@deveel.com>
 	* IDbConfig.cs:
 		- inherits from ICloneable (removed the method
 		ImmutableCopy)

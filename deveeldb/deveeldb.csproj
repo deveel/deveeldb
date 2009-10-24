@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -81,8 +81,7 @@
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
     <Compile Include="Deveel.Data.Client\ParemeterStyle.cs" />
-    <Compile Include="Deveel.Data.Client\TriggerEventMoment.cs" />
-    <Compile Include="Deveel.Data.Client\TriggerEventTypes.cs" />
+    <Compile Include="Deveel.Data.Client\TriggerEventArgs.cs" />
     <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
     <Compile Include="Deveel.Data.Functions\ACosFunction.cs" />
     <Compile Include="Deveel.Data.Functions\ASinFunction.cs" />
@@ -606,5 +605,6 @@
         </MonoDevelop.Autotools.MakefileInfo>
       </Properties>
     </MonoDevelop>
+    <VisualStudio />
   </ProjectExtensions>
 </Project>

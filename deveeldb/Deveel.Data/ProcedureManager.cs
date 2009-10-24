@@ -318,6 +318,7 @@ namespace Deveel.Data {
 											 " doesn't exist.");
 			}
 
+			//TODO: check this...
 			int row_index = t.GetRowEnumerator().RowIndex;
 			TObject type_ob = t.GetCellContents(2, row_index);
 			TObject location_ob = t.GetCellContents(3, row_index);

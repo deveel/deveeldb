@@ -1,0 +1,3 @@
+﻿2009-10-24  Antonello Provenzano  <antonello@deveel.com>
+	* DatabaseInterface.cs: added a new field for trigger
+	messages that indicates the type of trigger.
