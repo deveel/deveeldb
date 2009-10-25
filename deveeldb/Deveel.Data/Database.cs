@@ -1465,7 +1465,7 @@ namespace Deveel.Data {
 				stmt.CommandText =
 					"  CREATE VIEW INFORMATIOM_SCHEMA.PrimaryKeys AS " +
 					"  SELECT NULL \"TABLE_CATALOG\",\n" +
-					"         \"schema\" \"TABLE_SCHEM\",\n" +
+					"         \"schema\" \"TABLE_SCHEMA\",\n" +
 					"         \"table\" \"TABLE_NAME\",\n" +
 					"         \"column\" \"COLUMN_NAME\",\n" +
 					"         \"SYSTEM.sUSRPrimaryColumns.seq_no\" \"KEY_SEQ\",\n" +
@@ -1478,12 +1478,12 @@ namespace Deveel.Data {
 
 				stmt.CommandText =
 					"  CREATE VIEW INFORMATIOM_SCHEMA.ImportedKeys AS " +
-					"  SELECT NULL \"PKTABLE_CAT\",\n" +
-					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEM\",\n" +
+					"  SELECT NULL \"PKTABLE_CATALOG\",\n" +
+					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
 					"         \"sUSRFKeyInfo.ref_table\" \"PKTABLE_NAME\",\n" +
 					"         \"sUSRForeignColumns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
-					"         NULL \"FKTABLE_CAT\",\n" +
-					"         \"sUSRFKeyInfo.schema\" \"FKTABLE_SCHEM\",\n" +
+					"         NULL \"FKTABLE_CATALOG\",\n" +
+					"         \"sUSRFKeyInfo.schema\" \"FKTABLE_SCHEMA\",\n" +
 					"         \"sUSRFKeyInfo.table\" \"FKTABLE_NAME\",\n" +
 					"         \"sUSRForeignColumns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
 					"         \"sUSRForeignColumns.seq_no\" \"KEY_SEQ\",\n" +
@@ -1501,11 +1501,11 @@ namespace Deveel.Data {
 				stmt.CommandText =
 					"  CREATE VIEW INFORMATIOM_SCHEMA.ExportedKeys AS " +
 					"  SELECT NULL \"PKTABLE_CAT\",\n" +
-					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEM\",\n" +
+					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
 					"         \"sUSRFKeyInfo.ref_table\" \"PKTABLE_NAME\",\n" +
 					"         \"sUSRForeignColumns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
 					"         NULL \"FKTABLE_CAT\",\n" +
-					"         \"sUSRFKeyInfo.schema\" \"FKTABLE_SCHEM\",\n" +
+					"         \"sUSRFKeyInfo.schema\" \"FKTABLE_SCHEMA\",\n" +
 					"         \"sUSRFKeyInfo.table\" \"FKTABLE_NAME\",\n" +
 					"         \"sUSRForeignColumns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
 					"         \"sUSRForeignColumns.seq_no\" \"KEY_SEQ\",\n" +
@@ -1521,13 +1521,13 @@ namespace Deveel.Data {
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATIOM_SCHEMA.CrossReference AS " +
+					"  CREATE VIEW INFORMATION_SCHEMA.CrossReference AS " +
 					"  SELECT NULL \"PKTABLE_CAT\",\n" +
-					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEM\",\n" +
+					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
 					"         \"sUSRFKeyInfo.ref_table\" \"PKTABLE_NAME\",\n" +
 					"         \"sUSRForeignColumns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
 					"         NULL \"FKTABLE_CAT\",\n" +
-					"         \"sUSRFKeyInfo.schema\" \"FKTABLE_SCHEM\",\n" +
+					"         \"sUSRFKeyInfo.schema\" \"FKTABLE_SCHEMA\",\n" +
 					"         \"sUSRFKeyInfo.table\" \"FKTABLE_NAME\",\n" +
 					"         \"sUSRForeignColumns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
 					"         \"sUSRForeignColumns.seq_no\" \"KEY_SEQ\",\n" +

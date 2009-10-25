@@ -153,6 +153,8 @@ namespace Deveel.Data.Client {
 
 		private static int transactionCounter = 0;
 
+		private DatabaseMetadata metadata;
+
 
 		// For synchronization in this object,
 		private readonly Object stateLock = new Object();
@@ -876,6 +878,22 @@ namespace Deveel.Data.Client {
 				Close();
 
 			base.Dispose(disposing);
+		}
+
+		public override System.Data.DataTable GetSchema() {
+			return GetSchema(null);
+		}
+
+		public override System.Data.DataTable GetSchema(string collectionName) {
+			if (collectionName == null)
+				collectionName = DbMetaDataCollectionNames.MetaDataCollections;
+			return GetSchema(collectionName, new string[0]);
+		}
+
+		public override System.Data.DataTable GetSchema(string collectionName, string[] restrictionValues) {
+			if (metadata == null)
+				metadata = new DatabaseMetadata(this);
+			return metadata.GetSchema(collectionName, restrictionValues);
 		}
 
 		#region Implementation of IDbConnection
