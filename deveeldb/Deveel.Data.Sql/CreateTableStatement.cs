@@ -23,6 +23,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Client;
+
 namespace Deveel.Data.Sql {
 	///<summary>
 	/// A parsed state container for the <c>CREATE</c> statement.
@@ -186,9 +188,15 @@ namespace Deveel.Data.Sql {
 
 			// Convert column_list to list of com.mckoi.database.DataTableColumnDef
 			int size = column_list.Count;
+			int identityIndex = -1;
 			columns = new ArrayList(size);
 			for (int i = 0; i < size; ++i) {
 				ColumnDef cdef = (ColumnDef)column_list[i];
+				if (cdef.Identity) {
+					if (identityIndex != -1)
+						throw new DatabaseException("Cannot specify more than one IDENTITY column in a table.");
+					identityIndex = i;
+				}
 				columns.Add(ConvertColumnDef(cdef));
 			}
 
@@ -199,9 +207,8 @@ namespace Deveel.Data.Sql {
 
 			String name_strip = tname.Name;
 
-			if (name_strip.IndexOf('.') != -1) {
+			if (name_strip.IndexOf('.') != -1)
 				throw new DatabaseException("Table name can not contain '.' character.");
-			}
 
 			bool ignores_case = database.IsInCaseInsensitiveMode;
 
@@ -225,8 +232,14 @@ namespace Deveel.Data.Sql {
 					unique_column_list.Add(col_name);
 				}
 				// If primary key then add to primary key columns
-				if (model_cdef.IsPrimaryKey) {
+				if (model_cdef.IsPrimaryKey ||
+					model_cdef.Identity) {
 					primary_key_column_list.Add(col_name);
+				}
+				// if identity then set it the default expression
+				if (model_cdef.Identity) {
+					// TableName seq_name = new TableName(tname.Schema, tname.Name + "_IDENTITY");
+					cdef.SetDefaultExpression(Expression.Parse("UNIQUEKEY('" + tname + "')"));
 				}
 			}
 
@@ -276,7 +289,6 @@ namespace Deveel.Data.Sql {
 				checker.CheckExpression(constraint.check_expression);
 				checker.CheckColumnList(constraint.column_list);
 			}
-
 		}
 
 		private class ColumnCheckerImpl : ColumnChecker {

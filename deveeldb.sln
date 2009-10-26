@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-server", "deveeldb
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-nhibernate", "deveeldb-nhibernate\deveeldb-nhibernate.csproj", "{E6D28250-DDDE-48E8-8D42-01D6B06E163E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-repair", "deveeldb-repair\deveeldb-repair.csproj", "{40C3B1A0-664A-42C5-B447-527E57CEC4F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug - Mono|Any CPU = Debug - Mono|Any CPU
@@ -49,6 +51,14 @@ Global
 		{E6D28250-DDDE-48E8-8D42-01D6B06E163E}.Release - Mono|Any CPU.Build.0 = Release - Mono|Any CPU
 		{E6D28250-DDDE-48E8-8D42-01D6B06E163E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6D28250-DDDE-48E8-8D42-01D6B06E163E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40C3B1A0-664A-42C5-B447-527E57CEC4F9}.Debug - Mono|Any CPU.ActiveCfg = Debug|Any CPU
+		{40C3B1A0-664A-42C5-B447-527E57CEC4F9}.Debug - Mono|Any CPU.Build.0 = Debug|Any CPU
+		{40C3B1A0-664A-42C5-B447-527E57CEC4F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40C3B1A0-664A-42C5-B447-527E57CEC4F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40C3B1A0-664A-42C5-B447-527E57CEC4F9}.Release - Mono|Any CPU.ActiveCfg = Release|Any CPU
+		{40C3B1A0-664A-42C5-B447-527E57CEC4F9}.Release - Mono|Any CPU.Build.0 = Release|Any CPU
+		{40C3B1A0-664A-42C5-B447-527E57CEC4F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40C3B1A0-664A-42C5-B447-527E57CEC4F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -51,6 +51,23 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private IQueryPlanNode plan;
 
+		private static bool IsIdentitySelect(TableSelectExpression expression) {
+			if (expression.columns.Count != 1)
+				return false;
+			if (expression.from_clause == null)
+				return false;
+			if (expression.from_clause.AllTables.Count != 1)
+				return false;
+
+			SelectColumn column = (SelectColumn) expression.columns[0];
+			if (column.resolved_name == null)
+				return false;
+			if (column.resolved_name.Name != "IDENTITY")
+				return false;
+
+			return true;
+		}
+
 
 
 		/// <summary>
@@ -82,10 +99,21 @@ namespace Deveel.Data.Sql {
 
 			// Prepare this object from the StatementTree,
 			// The select expression itself
-			select_expression =
-						  (TableSelectExpression)cmd.GetObject("table_expression");
+			select_expression = (TableSelectExpression)cmd.GetObject("table_expression");
 			// The order by information
 			order_by = (ArrayList)cmd.GetObject("order_by");
+
+			// check to see if the construct is the special one for
+			// selecting the latest IDENTITY value from a table
+			if (IsIdentitySelect(select_expression)) {
+				select_expression.columns.RemoveAt(0);
+				SelectColumn curValFunction = new SelectColumn();
+				
+				FromTableDef from_table = (FromTableDef) ((ArrayList) select_expression.from_clause.AllTables)[0];
+				curValFunction.expression = Expression.Parse("IDENTITY('" + from_table.Name + "')");
+				curValFunction.alias = "IDENTITY";
+				select_expression.columns.Add(curValFunction);
+			}
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
 			TableExpressionFromSet from_set = Planner.GenerateFromSet(select_expression, db);

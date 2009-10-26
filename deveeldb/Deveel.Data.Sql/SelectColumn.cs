@@ -62,6 +62,14 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		public Variable internal_name;
 
+		public static SelectColumn Identity {
+			get {
+				SelectColumn column = new SelectColumn();
+				column.resolved_name = new Variable("IDENTITY");
+				return column;
+			}
+		}
+
 
 		/// <inheritdoc/>
 		public void PrepareExpressions(IExpressionPreparer preparer) {

@@ -99,5 +99,17 @@ namespace Deveel.Data {
 			}
 			Console.Out.WriteLine();
 		}
+
+		[Test]
+		public void ListIdentities() {
+			IDbConnection connection = CreateConnection();
+			IDbCommand command = connection.CreateCommand();
+			command.CommandText = "SELECT IDENTITY FROM Person";
+
+			using (IDataReader reader = command.ExecuteReader()) {
+				if (reader.Read())
+					Console.Out.WriteLine("The latest identity for the table Person : {0}", reader.GetInt32(0));
+			}
+		}
 	}
 }

@@ -55,6 +55,10 @@ namespace Deveel.Data {
 			get { return System.FunctionLookup; }
 		}
 
+		internal DatabaseConnection Connection {
+			get { return database; }
+		}
+
 		///<summary>
 		/// Returns the GrantManager object that is used to determine grant 
 		/// information for the database.

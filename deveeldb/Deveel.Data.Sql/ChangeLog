@@ -1,4 +1,18 @@
-﻿2009-10-24  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-25  Antonello Provenzano  <antonello@deveel.com>
+	* SQL.csc: implementation of the syntax for supporting
+	IDENTITY columns in a table.
+	* ColumnDef.cs: added property 'Identity' to speficy
+	whether the column is an identity column.
+	* CreateTableStatement.cs:
+		- controls to verify no more than one identity column
+		is specified in the table
+		- sets the default expression for the column marked
+		as identity column
+	* SelectStatement.cs: when found the special construct
+	'SELECT IDENTITY FROM TableName' it converts to select
+	a CurValFunction for the given name
+	
+2009-10-24  Antonello Provenzano  <antonello@deveel.com>
 	* CreateTriggerStatement.cs: now CALLBACK trigger supports
 	multiple types.
 	

@@ -1064,6 +1064,20 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Returns the current unique identifier for the given table from
+		/// the current schema.
+		/// </summary>
+		/// <param name="table_name"></param>
+		/// <returns></returns>
+		public long CurrentUniqueID(TableName table_name) {
+			return Transaction.CurrentUniqueID(table_name);
+		}
+
+		public long CurrentUniqueID(string table_name) {
+			return CurrentUniqueID(TableName.Resolve(current_schema, table_name));
+		}
+
+		/// <summary>
 		/// If the given table name is a reserved name, then we must substitute it
 		/// with its correct form.
 		/// </summary>

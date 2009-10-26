@@ -781,8 +781,7 @@ namespace Deveel.Data {
 		/// of the expression in the given context.
 		/// </returns>
 		/// <threadsafety instance="false"/>
-		public TObject Evaluate(IGroupResolver group, IVariableResolver resolver,
-								IQueryContext context) {
+		public TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 			// Optimization - trivial case of 'a' or 'ab*' postfix are tested for
 			//   here.
 			int element_count = elements.Count;

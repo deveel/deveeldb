@@ -97,6 +97,7 @@
     <Compile Include="Deveel.Data.Functions\ATanFunction.cs" />
     <Compile Include="Deveel.Data.Functions\CosFunction.cs" />
     <Compile Include="Deveel.Data.Functions\CosHFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\IdentityFunction.cs" />
     <Compile Include="Deveel.Data.Functions\SinFunction.cs" />
     <Compile Include="Deveel.Data.Functions\SinHFunction.cs" />
     <Compile Include="Deveel.Data.Functions\SoundexFunction.cs" />

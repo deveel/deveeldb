@@ -295,6 +295,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <GROUPBY:     "group by">
 | <ORDERBY:     "order by">
 | <DEFERRED:    "deferred">
+| <IDENTITY:    "identity">
 | <DISTINCT:    "distinct">
 | <LANGUAGE:    "language">
 | <INCREMENT:   "increment">
@@ -1239,8 +1240,11 @@ TableSelectExpression GetTableSelectExpression() :
 }
 {
   ( <SELECT>
-        [ table_expr.distinct = SetQuantifier() ]
-        SelectColumnList(table_expr.columns)
+        ( 
+          <IDENTITY> { table_expr.columns.Add(Sql.SelectColumn.Identity); } |
+          [ table_expr.distinct = SetQuantifier() ] 
+          SelectColumnList(table_expr.columns) 
+        )
         [ <FROM> SelectTableList(table_expr.from_clause) ]
         [ <WHERE> ConditionsExpression(table_expr.where_clause) ]
 
@@ -1536,7 +1540,7 @@ ColumnDef ColumnDefinition() :
 {
   ( col_name = ColumnName() { column.Name = col_name; }
     ColumnDataType(column)
-
+    [ <IDENTITY> { column.Identity=true; } ]
     [ <SQLDEFAULT> default_exp = DoExpression() { column.SetDefaultExpression(default_exp); } ]
     ( ColumnConstraint(column) )*
     [ ( t=<INDEX_BLIST> | t=<INDEX_NONE> ) { column.SetIndex(t); } ] 
@@ -2201,7 +2205,7 @@ Token FunctionIdentifier() :
 { Token t;
 }
 {
-  ( t = <IF> | t = <USER> | t = <IDENTIFIER> )
+  ( t = <IF> | t = <USER> | t = <IDENTITY> | t = <IDENTIFIER> )
   { return t; }
 }
 

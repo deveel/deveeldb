@@ -1654,7 +1654,7 @@ namespace Deveel.Math {
                 else if (ch == '_' || (byte_len == 0 && (ch == ' ' || ch == '\t')))
                     continue;
                 else {
-                    int digit = CharToDigit(ch, radix);
+                    int digit = Convert.ToInt32(ch.ToString(), radix);
                     if (digit < 0)
                         break;
                     bytes[byte_len++] = (byte)digit;
@@ -2033,13 +2033,10 @@ namespace Deveel.Math {
 
         internal static int CharToDigit(char ch, int radix) {
             if (radix < CharMinRadix || radix > CharMaxRadix)
-                return -1;
+				return -1;
 
-            UnicodeCategory cat = Char.GetUnicodeCategory(ch);
-            if (((cat & UnicodeCategory.UppercaseLetter) != 0) ||
-                ((cat & UnicodeCategory.LowercaseLetter) != 0) ||
-                ((cat & UnicodeCategory.DecimalDigitNumber) != 0)) {
-                int digit = CharNumValue[((int)ch - 1) >> 7];
+			if (Char.IsUpper(ch) || Char.IsLower(ch) || Char.IsDigit(ch)) {
+                int digit = CharNumValue[(ch - 1) >> 7];
                 return (digit < radix) ? digit : -1;
             }
             /*

@@ -94,6 +94,9 @@ namespace Deveel.Data.Functions {
 			AddFunction("if", typeof(IfFunction));
 			AddFunction("coalesce", typeof(CoalesceFunction));
 
+			// identity
+			AddFunction("identity", typeof (IdentityFunction));
+
 			// Object instantiation (Internal)
 			AddFunction("_new_Object", typeof(ObjectInstantiation2));
 

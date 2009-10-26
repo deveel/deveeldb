@@ -1177,6 +1177,16 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Verifies whether a sequence generator for the given
+		/// name exists.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public bool  SequenceGeneratorExists(TableName name) {
+			return SequenceManager.SequenceGeneratorExists(this, name);
+		}
+
+		/// <summary>
 		/// Drops an existing sequence generator with the given name.
 		/// </summary>
 		/// <param name="name"></param>

@@ -334,6 +334,31 @@ namespace Deveel.Data {
 
 		}
 
+		internal static bool SequenceGeneratorExists(Transaction transaction, TableName table_name) {
+			// If the SYS_SEQUENCE or SYS_SEQUENCE_INFO tables don't exist then 
+			// we can't create the sequence generator
+			if (!transaction.TableExists(TableDataConglomerate.SYS_SEQUENCE) ||
+				!transaction.TableExists(TableDataConglomerate.SYS_SEQUENCE_INFO)) {
+				throw new Exception("System sequence tables do not exist.");
+			}
+
+			// The SEQUENCE and SEQUENCE_INFO table
+			IMutableTableDataSource seq =
+							 transaction.GetTable(TableDataConglomerate.SYS_SEQUENCE);
+			IMutableTableDataSource seqi =
+						transaction.GetTable(TableDataConglomerate.SYS_SEQUENCE_INFO);
+
+			// All rows in 'sequence_info' that match this table name.
+			SimpleTableQuery query = new SimpleTableQuery(seqi);
+			IntegerVector ivec =
+				query.SelectEqual(2, TObject.GetString(table_name.Name),
+										 1, TObject.GetString(table_name.Schema));
+
+			query.Dispose();
+
+			return ivec.Count > 0;
+		}
+
 		/// <summary>
 		/// Creates a new sequence generator with the given name and details.
 		/// </summary>

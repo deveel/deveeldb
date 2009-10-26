@@ -28,14 +28,14 @@ namespace Deveel.Data.Sql {
 	/// </summary>
 	public class SequenceStatement : Statement {
 
-		String type;
+		internal String type;
 
-		TableName seq_name;
+		internal TableName seq_name;
 
-		Expression increment;
+		internal Expression increment;
 		Expression min_value;
 		Expression max_value;
-		Expression start_value;
+		internal Expression start_value;
 		Expression cache_value;
 		bool cycle;
 

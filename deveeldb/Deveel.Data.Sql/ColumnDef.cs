@@ -39,6 +39,7 @@ namespace Deveel.Data.Sql {
 		private bool not_null;
 		private bool primary_key;
 		private bool unique;
+		private bool identity;
 
 		internal ColumnDef() {
 		}
@@ -87,6 +88,15 @@ namespace Deveel.Data.Sql {
 			get { return index_str; }
 		}
 
+		public bool Identity {
+			get { return identity; }
+			set {
+				if (value && !(Type is TNumericType))
+					throw new ParseException("Cannot set a non-numeric column as PRIMARY.");
+				identity = value;
+			}
+		}
+
 		///<summary>
 		/// Adds a constraint to this column.
 		///</summary>
@@ -95,10 +105,8 @@ namespace Deveel.Data.Sql {
 		public void AddConstraint(String constraint) {
 			if (constraint.Equals("NOT NULL")) {
 				not_null = true;
-				//      col.setNotNull(true);
 			} else if (constraint.Equals("NULL")) {
 				not_null = false;
-				//      col.setNotNull(false);
 			} else if (constraint.Equals("PRIMARY")) {
 				primary_key = true;
 			} else if (constraint.Equals("UNIQUE")) {
@@ -117,10 +125,8 @@ namespace Deveel.Data.Sql {
 		public void SetIndex(Token t) {
 			if (t.kind == SQLConstants.INDEX_NONE) {
 				index_str = "BlindSearch";
-				//      col.setIndexScheme("BlindSearch");
 			} else if (t.kind == SQLConstants.INDEX_BLIST) {
 				index_str = "InsertSearch";
-				//      col.setIndexScheme("InsertSearch");
 			} else {
 				throw new ParseException("Unrecognized indexing scheme.");
 			}
@@ -132,6 +138,9 @@ namespace Deveel.Data.Sql {
 		///<param name="exp"></param>
 		///<exception cref="ApplicationException"></exception>
 		public void SetDefaultExpression(Expression exp) {
+			if (identity)
+				throw new ParseException("Cannot specify a DEFAULT expression for an IDENTITY column.");
+
 			default_expression = exp;
 			try {
 				original_default_expression = (Expression)exp.Clone();

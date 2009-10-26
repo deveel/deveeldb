@@ -1,9 +1,0 @@
-Release notes for the version 0.9.8
-====================================================
-
-* ADO.NET Client
-	- Enhanched support for CALLBACK triggers: now it is possible to create DeveelDbTrigger
-	  objects to control events on a table modification command (INSERT, DELETE or UPDATE),
-	  being notified locally.
-	- Fixed the connection procedure to local hosts from direct calls to DeveelDbConnection
-	- Implemented support for LOB (Large OBjects) stream from client side
