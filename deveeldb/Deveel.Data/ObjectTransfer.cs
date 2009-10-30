@@ -245,7 +245,7 @@ namespace Deveel.Data {
 					 */
 					byte[] buffer = new byte[len];
 					input.Read(buffer, 0, len);
-					return Encoding.Unicode.GetString(buffer);
+					return StringObject.FromString(Encoding.Unicode.GetString(buffer));
 					}
 
 				case (24): {

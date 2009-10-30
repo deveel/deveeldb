@@ -88,8 +88,7 @@ namespace Deveel.Data.Server {
 			public ClientThread(MultiThreadedConnectionPoolServer parent, IServerConnection connection) {
 				this.parent = parent;
 				thread = new Thread(new ThreadStart(run));
-				//      setPriority(NORM_PRIORITY - 1);
-				thread.Name = "Mckoi - Client Connection";
+				thread.Name = "Deveel::Client Connection";
 
 				this.server_connection = connection;
 				client_closed = false;
@@ -118,8 +117,11 @@ namespace Deveel.Data.Server {
 					// Block until a complete command is available
 					server_connection.BlockForRequest();
 					processing_command = true;
+					/*
 					Database database = server_connection.Database;
 					database.Execute(null, null, new EventHandler(ProcessRequest));
+					*/
+					ThreadPool.QueueUserWorkItem(new WaitCallback(ProcessRequest));
 				} catch (IOException e) {
 					// If an IOException is generated, we must remove this provider from
 					// the list.
@@ -132,7 +134,7 @@ namespace Deveel.Data.Server {
 
 			}
 
-			private void ProcessRequest(object sender, EventArgs e) {
+			private void ProcessRequest(object state) {
 				try {
 					// Process the next request that's pending.
 					server_connection.ProcessRequest();
@@ -171,7 +173,7 @@ namespace Deveel.Data.Server {
 							closed = client_closed;
 						}
 						// Exit if the farmer thread has been closed...
-						if (closed == true) {
+						if (closed) {
 							// Remove this thread from the list of client threads.
 							lock (parent.client_threads) {
 								parent.client_threads.Remove(this);

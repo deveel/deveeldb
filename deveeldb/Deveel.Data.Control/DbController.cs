@@ -157,13 +157,14 @@ namespace Deveel.Data.Control {
 			if (configFile == null) {
 				configFile = DefaultConfigFileName;
 			} else {
-				path = Path.GetDirectoryName(path);
+				// we only allow the file extension .conf
+				string ext = Path.GetExtension(configFile);
+				if (String.Compare(ext, FileExtension, true) == 0) {
+					path = Path.GetDirectoryName(path);
+				} else {
+					configFile = DefaultConfigFileName;
+				}
 			}
-
-			// we only allow the file extension .conf
-			string ext = Path.GetExtension(configFile);
-			if (String.Compare(ext, FileExtension, true) != 0)
-				throw new ArgumentException("The file extension " + ext + " is not valid.");
 
 			// if the directory doesn't exist we will create one...
 			if (!Directory.Exists(path)) {
@@ -244,7 +245,7 @@ namespace Deveel.Data.Control {
 		public bool DatabaseExists(string name) {
 			// a fast fail...
 			Database database = databases[name] as Database;
-			return (database != null && database.Exists);
+			return (database != null && (database.IsInitialized || database.Exists));
 		}
 
 		/// <inheritdoc/>
@@ -285,10 +286,15 @@ namespace Deveel.Data.Control {
 			if (Directory.Exists(path))
 				Directory.Delete(path);
 
+			Directory.CreateDirectory(path);
+
 			DbConfig dbConfig = new DbConfig(path);
 			dbConfig.Merge(Config);
 			if (config != null)
 				dbConfig.Merge(config);
+
+			string configFile = Path.Combine(path, DefaultConfigFileName);
+			dbConfig.SaveTo(configFile);
 
 			Database database = CreateDatabase(dbConfig, name);
 
@@ -335,6 +341,9 @@ namespace Deveel.Data.Control {
 				dbConfig.Merge(config);
 
 			Database database = GetDatabase(name);
+
+			if (database.IsInitialized)
+				throw new ArgumentException("The database is already initialized.");
 
 			// First initialise the database
 			try {

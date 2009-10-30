@@ -114,9 +114,6 @@
       <Visible>False</Visible>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Deveel.Data.Server\ChangeLog" />
-  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <ProjectReference Include="..\deveeldb\deveeldb.csproj">

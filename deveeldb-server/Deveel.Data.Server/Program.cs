@@ -62,9 +62,23 @@ namespace Deveel.Data.Server {
 			option.ArgumentName = "host";
 			options.AddOption(option);
 
-			option = new CommandLineOption("p", "port", true, "Sets the TCP port where the clients must connect to.");
+			option = new CommandLineOption("u", "user", true, "The name of the user that computes the operation.");
+			option.ArgumentName = "name";
+			options.AddOption(option);
+
+			option = new CommandLineOption("p", "password", true,
+			                               "The password used to identify the user. When not " +
+			                               "provided explicitily, the application will ask to provide it in a masked way.");
+			option.HasOptionalArgument = true;
+			options.AddOption(option);
+
+			option = new CommandLineOption("port", true, "Sets the TCP port where the clients must connect to.");
 			option.ArgumentName = "port";
 			option.Type = typeof (int);
+			options.AddOption(option);
+
+			option = new CommandLineOption("d", "database", true, "The name of the database to boot or create.");
+			option.ArgumentName = "name";
 			options.AddOption(option);
 
 			option = new CommandLineOption("C", true,
@@ -78,39 +92,29 @@ namespace Deveel.Data.Server {
 
 			CommandLineOptionGroup commandsGroup = new CommandLineOptionGroup();
 
-			option = new CommandLineOption("n", "create", true,
+			option = new CommandLineOption("n", "create", false,
 			                               "Creates an empty database and adds a user with the given username and " +
 			                               "password with complete privs. This will not start the database server.");
-			option.ArgumentCount = 2;
-			option.ArgumentNames = new string[] { "user", "pass" };
-			option.ValueSeparator = ' ';
-			options.AddOption(option);
 			commandsGroup.AddOption(option);
 
-			option = new CommandLineOption("s", "shutdown", true,
+			option = new CommandLineOption("s", "shutdown", false,
 			                               "Shuts down the database server running on the host/port. [host] and " +
 			                               "[port] are optional, they default to 'localhost' and port 9157.");
-			option.ArgumentCount = 4;
-			// option.ArgumentName = "[host] [port] [admin_username] [admin_password]";
-			option.ArgumentNames = new string[] { "host", "port", "user", "pass" };
 			commandsGroup.AddOption(option);
 
-			option = new CommandLineOption("boot", false,
+			option = new CommandLineOption("b", "boot", false,
 			                               "Boots the database server from the information given in the configuration " +
 			                               "file. This switch is implied if no other function switch is provided.");
 			commandsGroup.AddOption(option);
 
-			option = new CommandLineOption("i", "install", true,
+			option = new CommandLineOption("i", "install", false,
 			                               "Installs the TCP/IP service in the current machine applying the given arguments " +
 			                               "to the installation process. All the configurations concerning the system " +
 			                               "will be recovered from a default configuration file in the same directory of " +
 			                               "the executable.");
-			option.ArgumentCount = 2;
-			option.ArgumentNames = new string[] { "user", "pass" };
-			option.ValueSeparator = ':';
 			commandsGroup.AddOption(option);
 
-			option = new CommandLineOption("u", "uninstall", true,
+			option = new CommandLineOption("r", "uninstall", false,
 			                               "If the TCP/IP service was previously installed in the current machine, this " +
 			                               "command uninstalls it definitively.");
 			commandsGroup.AddOption(option);
@@ -137,9 +141,10 @@ namespace Deveel.Data.Server {
 		/// </summary>
 		/// <param name="host"></param>
 		/// <param name="port"></param>
+		/// <param name="database"></param>
 		/// <param name="username"></param>
 		/// <param name="password"></param>
-		private static void doShutDown(String host, String port, String username, String password) {
+		private static void doShutDown(String host, String port, string database, String username, String password) {
 
 			// Actually - config bundle useless for this....
 			DeveelDbConnection connection;
@@ -149,12 +154,13 @@ namespace Deveel.Data.Server {
 				connectionString.Port = Int32.Parse(port);
 				connectionString.UserName = username;
 				connectionString.Password = password;
+				connectionString.Database = database;
 				connection = new DeveelDbConnection(connectionString.ToString());
 				connection.Open();
 			} catch (Exception e) {
 				Console.Error.WriteLine(e.Message);
 				Console.Error.WriteLine(e.StackTrace);
-				return;
+				throw;
 			}
 
 			try {
@@ -162,12 +168,14 @@ namespace Deveel.Data.Server {
 				statement.ExecuteNonQuery();
 			} catch (DataException e) {
 				Console.Out.WriteLine("Unable to shutdown database: " + e.Message);
+				throw;
 			}
 
 			try {
 				connection.Close();
 			} catch (DataException e) {
 				Console.Out.WriteLine("Unable to Close connection: " + e.Message);
+				throw;
 			}
 
 		}
@@ -213,7 +221,7 @@ namespace Deveel.Data.Server {
 		public static void Main(string[] args) {
 			CommandLineOptions options = GetOptions();
 			Configuration.CommandLine commandLine = CommandLineParser.Parse(ParseStyle.Gnu, options, args, true);
-			if (commandLine.HasOption("help") || commandLine.Options.Length == 0) {
+			if (commandLine.HasOption("help")) {
 				HelpFormatter formatter = new HelpFormatter();
 				formatter.Width = Console.WindowWidth;
 				formatter.WriteHelp("deveeldbd", null, options, null, true);
@@ -233,39 +241,21 @@ namespace Deveel.Data.Server {
 			Console.Out.WriteLine("  it under certain conditions. See COPYING for details of the");
 			Console.Out.WriteLine("  GPLv3 License.");
 
-			// The name of the database
-			const string database_name = "DefaultDatabase";
+			string username = commandLine.GetOptionValue("user");
+			string password = commandLine.GetOptionValue("password");
+			string host = commandLine.GetOptionValue("address", "localhost");
+			string port = commandLine.GetOptionValue("port", "9157");
+			string database = commandLine.GetOptionValue("database");
+
+			if (password == null && commandLine.HasOption('p')) {
+				// TODO: prompt a line to read the password as hidden...
+			}
 
 			if (commandLine.HasOption("shutdown")) {
 				// -shutdown [host] [port] [admin_username] [admin_password]
 				// Try to match the shutdown switch.
-				string[] sd_parm = commandLine.GetOptionValues("shutdown");
-				if (sd_parm.Length == 0)
-					return;
-				if (sd_parm.Length < 2 || sd_parm.Length > 4) {
-					Console.Out.WriteLine("Incorrect '-shutdown' format.");
-					return;
-				}
-				string username = null;
-				string password = null;
-				string host = "localhost";
-				string port = "9157";
 
-				if (sd_parm.Length == 2) {
-					username = sd_parm[0];
-					password = sd_parm[1];
-				} else if (sd_parm.Length == 3) {
-					host = sd_parm[0];
-					username = sd_parm[1];
-					password = sd_parm[2];
-				} else if (sd_parm.Length == 4) {
-					host = sd_parm[0];
-					port = sd_parm[1];
-					username = sd_parm[2];
-					password = sd_parm[3];
-				}
-
-				doShutDown(host, port, username, password);
+				doShutDown(host, port, database, username, password);
 				Environment.Exit(0);
 				return;
 			}
@@ -351,17 +341,22 @@ namespace Deveel.Data.Server {
 			}
 
 			// Try to match create switch.
-			String[] create_parm = commandLine.GetOptionValues("create");
-			if (create_parm != null) {
-				doCreate(database_name, create_parm[0], create_parm[1], config);
-				return;
+			if (commandLine.HasOption("create")) {
+				try {
+					doCreate(database, username, password, config);
+					Environment.Exit(0);
+				} catch(Exception e) {
+					Console.Error.WriteLine("An error occurred while creating the database.");
+					Console.Error.WriteLine(e.Message);
+					Environment.Exit(1);
+				}
 			}
 
 			// Log the start time.
 			DateTime start_time = DateTime.Now;
 
-			// Nothing matches, so we must be wanting to boot a new server
-			doBoot(Environment.CurrentDirectory, config);
+			// Nothing matches, so we must be wanting to boot a new server...
+			doBoot(commandLine.GetOptionValue("dbpath", Environment.CurrentDirectory), config);
 
 			TimeSpan count_time = DateTime.Now - start_time;
 			Console.Out.WriteLine("Boot time: " + count_time.TotalMilliseconds + "ms.");

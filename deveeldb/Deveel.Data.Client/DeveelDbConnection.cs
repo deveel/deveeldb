@@ -366,11 +366,22 @@ namespace Deveel.Data.Client {
 		}
 
 		public override string DataSource {
-			get { return Settings.Host + ":" + Settings.Port; }
+			get {
+				if (connectionString.IsLocal)
+					return String.Empty;
+				return Settings.Host + ":" + Settings.Port;
+			}
 		}
 
 		public override string ServerVersion {
-			get { return DRIVER_MAJOR_VERSION + "." + DRIVER_MINOR_VERSION; }
+			get {
+				if (connectionString.IsLocal) {
+					//TODO:
+					return String.Empty;
+				} else {
+					return ((RemoteDatabaseInterface)db_interface).ServerVersion.ToString(2);
+				}
+			}
 		}
 
 
@@ -423,7 +434,7 @@ namespace Deveel.Data.Client {
 			bool success = InternalOpen();
 
 			lock (stateLock) {
-				state = (success ? ConnectionState.Open : ConnectionState.Closed);
+				state = (success ? ConnectionState.Open : ConnectionState.Broken);
 			}
 
 			if (success) {
@@ -873,6 +884,9 @@ namespace Deveel.Data.Client {
 				if (auto_commit == value)
 					return;
 
+				if (currentTransaction != null)
+					throw new InvalidOperationException("A transaction is already opened.");
+
 				// The SQL to write into auto-commit mode.
 				if (value) {
 					CreateCommand("SET AUTO COMMIT ON").ExecuteNonQuery();
@@ -1011,9 +1025,6 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		internal const int DRIVER_MAJOR_VERSION = 1;
-		internal const int DRIVER_MINOR_VERSION = 0;
-
 		/// <summary>
 		/// The timeout for a query in seconds.
 		/// </summary>
@@ -1021,7 +1032,13 @@ namespace Deveel.Data.Client {
 
 		internal void SetState(ConnectionState connectionState) {
 			lock (stateLock) {
-				//TODO: add a concrete implementation ...
+				state = connectionState;
+			}
+		}
+
+		internal void EndState() {
+			lock (stateLock) {
+				state = ConnectionState.Open;
 			}
 		}
 

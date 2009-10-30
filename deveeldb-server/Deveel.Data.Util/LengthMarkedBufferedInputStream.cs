@@ -23,30 +23,27 @@ namespace Deveel.Data.Util {
 		/// </summary>
 		private IInputStream input;
 
-		/**
-		 * The buffer that is used to read in whatever is on the stream.
-		 */
+		/// <summary>
+		/// The buffer that is used to read in whatever is on the stream.
+		/// </summary>
 		private byte[] buf;
 
-		/**
-		 * The number of valid bytes in the buffer.
-		 */
+		/// <summary>
+		/// The number of valid bytes in the buffer.
+		/// </summary>
 		private int count;
 
-		/**
-		 * The area of the buffer that is marked as being an available command.
-		 * If it's -1 then there is no area marked.
-		 */
+		/// <summary>
+		/// The area of the buffer that is marked as being an available command.
+		/// If it's -1 then there is no area marked.
+		/// </summary>
 		private int marked_length;
 
-		/**
-		 * The current index of the marked area that is being read.
-		 */
+		/// <summary>
+		/// The current index of the marked area that is being read.
+		/// </summary>
 		private int marked_index;
 
-		/**
-		 * The Constructor.
-		 */
 		public LengthMarkedBufferedInputStream(IInputStream input) {
 			this.input = input;
 			buf = new byte[INITIAL_BUFFER_SIZE];
@@ -55,10 +52,13 @@ namespace Deveel.Data.Util {
 			marked_index = -1;
 		}
 
-		/**
-		 * Ensures that the buffer is large enough to store the given value.  If
-		 * it's not then it grows the buffer so it is big enough.
-		 */
+		/// <summary>
+		/// Ensures that the buffer is large enough to store the given value.
+		/// </summary>
+		/// <param name="new_size"></param>
+		/// <remarks>
+		/// If the buffer is not large enough this method grows it so it is big enough.
+		/// </remarks>
 		private void EnsureCapacity(int new_size) {
 			int old_size = buf.Length;
 			if (new_size > old_size) {
@@ -69,16 +69,20 @@ namespace Deveel.Data.Util {
 				buf = new byte[cap];
 				//      // Copy all the contents except the first 4 bytes (the size marker)
 				//      System.arraycopy(old_buf, 4, buf, 4, count - 4);
-				Array.Copy(old_buf, 0, buf, 0, count - 0);
+				Array.Copy(old_buf, 0, buf, 0, count);
 			}
 		}
 
-		/**
-		 * Private method, it is called when the end of the marked length is reached.
-		 * It performs various maintenance operations to ensure the buffer
-		 * consistency is maintained.
-		 * Assumes we are calling from a synchronized method.
-		 */
+		/// <summary>
+		/// Called when the end of the marked length is reached.
+		/// </summary>
+		/// <remarks>
+		/// It performs various maintenance operations to ensure the buffer consistency 
+		/// is maintained.
+		/// <para>
+		/// Assumes we are calling from a synchronized method.
+		/// </para>
+		/// </remarks>
 		private void HandleEndReached() {
 			//    System.out.println();
 			//    System.out.println("Shifting Buffer: ");
@@ -93,7 +97,7 @@ namespace Deveel.Data.Util {
 			marked_index = -1;
 		}
 
-		// ---------- Overwritten from FilterInputStream ----------
+		// ---------- Overwritten from Stream ----------
 
 		public override int ReadByte() {
 			lock (this) {
@@ -120,7 +124,7 @@ namespace Deveel.Data.Util {
 		}
 
 		public override bool CanRead {
-			get { throw new NotImplementedException(); }
+			get { return true; }
 		}
 
 		public override bool CanSeek {
@@ -188,16 +192,19 @@ namespace Deveel.Data.Util {
 
 		// ---------- These methods aid in reading state from the stream ----------
 
-		/**
-		 * Checks to see if there is a complete command waiting on the input stream.
-		 * Returns true if there is.  If this method returns true then it is safe
-		 * to go ahead and process a single command from this stream.
-		 * This will return true only once while there is a command pending until
-		 * that command is completely read in.
-		 * <p>
-		 * 'max_size' is the maximum number of bytes we are allowing before an
-		 * IOException is thrown.
-		 */
+		/// <summary>
+		/// Checks to see if there is a complete command waiting on the input stream.
+		/// </summary>
+		/// <param name="max_size">The maximum number of bytes we are allowing before an 
+		/// <see cref="IOException"/> is thrown.</param>
+		/// <remarks>
+		/// If this method returns true then it is safe to go ahead and process a single 
+		/// command from this stream. This will return true only once while there is a 
+		/// command pending until that command is completely read in.
+		/// </remarks>
+		/// <returns>
+		/// Returns true if there is a complete command.
+		/// </returns>
 		public bool PollForCommand(int max_size) {
 			lock (this) {
 				if (marked_length == -1) {
@@ -221,7 +228,7 @@ namespace Deveel.Data.Util {
 						//        System.out.println("-----");
 
 
-						if (read_in == -1) {
+						if (read_in == 0) {
 							throw new EndOfStreamException();
 						}
 						count = count + read_in;
@@ -233,10 +240,14 @@ namespace Deveel.Data.Util {
 
 						// Check: Is a complete command available?
 						if (count >= 4) {
+							/*
 							int length_marker = (((buf[0] & 0x0FF) << 24) +
 												 ((buf[1] & 0x0FF) << 16) +
 												 ((buf[2] & 0x0FF) << 8) +
 												 ((buf[3] & 0x0FF) << 0));
+							*/
+							int length_marker = ByteBuffer.ReadInt4(buf, 0);
+
 							if (count >= length_marker + 4) {
 								// Yes, complete command available.
 								// mark this area up.
@@ -254,19 +265,23 @@ namespace Deveel.Data.Util {
 			}
 		}
 
-		/**
-	   * Blocks until a complete command has been read in.
-	   */
-		public void blockForCommand() {
+		/// <summary>
+		/// Blocks until a complete command has been read in.
+		/// </summary>
+		public void BlockForCommand() {
 			lock (this) {
 				while (true) {
 
 					// Is there a command available?
 					if (count >= 4) {
+						/*
 						int length_marker = (((buf[0] & 0x0FF) << 24) +
 											 ((buf[1] & 0x0FF) << 16) +
 											 ((buf[2] & 0x0FF) << 8) +
 											 ((buf[3] & 0x0FF) << 0));
+						*/
+
+						int length_marker = ByteBuffer.ReadInt4(buf, 0);
 						if (count >= length_marker + 4) {
 							// Yes, complete command available.
 							// mark this area up.
@@ -284,7 +299,7 @@ namespace Deveel.Data.Util {
 					}
 					// Read in a block of data, block if nothing there
 					int read_in = input.Read(buf, count, buf.Length - count);
-					if (read_in == -1) {
+					if (read_in == 0) {
 						throw new EndOfStreamException();
 					}
 					count += read_in;

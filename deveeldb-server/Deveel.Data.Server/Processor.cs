@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Data;
 using System.IO;
+using System.Reflection;
 using System.Text;
 
 using Deveel.Data.Client;
@@ -132,12 +133,15 @@ namespace Deveel.Data.Server {
 				if (!ChangeDatabaseInterface(databaseName))
 					return Single(ProtocolConstants.DATABASE_NOT_FOUND);
 
-				byte[] ack_command = new byte[4 + 1 + 4 + 1];
+				Version version = Assembly.GetExecutingAssembly().GetName().Version;
+
+				byte[] ack_command = new byte[4 + 1 + 4 + 4 + 1];
 				// Send back an acknowledgement and the version number of the server
 				ByteBuffer.WriteInteger(ProtocolConstants.ACKNOWLEDGEMENT, ack_command, 0);
 				ack_command[4] = 1;
-				ByteBuffer.WriteInteger(SERVER_VERSION, ack_command, 5);
-				ack_command[9] = 0;
+				ByteBuffer.WriteInteger(version.Major, ack_command, 5);
+				ByteBuffer.WriteInteger(version.Minor, ack_command, 9);
+				ack_command[13] = 0;
 
 				// Set to the next state.
 				state = ConnectionState.NotAuthenticated;

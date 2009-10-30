@@ -223,5 +223,14 @@ namespace Deveel.Data.Control {
 		public bool DatabaseExists(string name) {
 			return controller.DatabaseExists(name);
 		}
+
+		internal void InitDatabases() {
+			string[] dbNames = controller.Databases;
+			for (int i = 0; i < dbNames.Length; i++) {
+				Database database = controller.GetDatabase(dbNames[i]);
+				if (!database.IsInitialized)
+					database.Init();
+			}
+		}
 	}
 }

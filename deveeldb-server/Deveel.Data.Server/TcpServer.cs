@@ -132,6 +132,9 @@ namespace Deveel.Data.Server {
 				this.connection_pool = new SingleThreadedConnectionPoolServer(server_controller);
 			}
 
+			// start all the databases handled...
+			server_controller.InitDatabases();
+
 			try {
 				// Bind the ServerSocket object to the port.
 				server_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);

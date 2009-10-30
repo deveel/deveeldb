@@ -319,7 +319,7 @@ namespace Deveel.Data.Client {
 		internal ResultSet[] ExecuteQuery() {
 			if (connection == null)
 				throw new InvalidOperationException("The connection was not set.");
-			if (connection.State != ConnectionState.Open)
+			if (connection.State == ConnectionState.Closed)
 				throw new InvalidOperationException("The connection is closed.");
 
 			if (commands == null)
@@ -493,21 +493,30 @@ namespace Deveel.Data.Client {
 			if (resultSet.Length > 1)
 				throw new InvalidOperationException();
 
-			return !resultSet[0].IsUpdate ? -1 : resultSet[0].ToInteger();
+			connection.SetState(ConnectionState.Executing);
+
+			int result = !resultSet[0].IsUpdate ? -1 : resultSet[0].ToInteger();
+
+			connection.EndState();
+
+			return result;
 		}
 
 		public new DeveelDbDataReader ExecuteReader() {
 			if (reader != null)
 				throw new InvalidOperationException("A reader is already opened for this command.");
 
-			connection.StartState(ConnectionState.Fetching);
+			if (connection.State == ConnectionState.Fetching)
+				throw new InvalidOperationException("The connection is already busy fetching data.");
+
+			connection.SetState(ConnectionState.Fetching);
 			ExecuteQuery();
 			reader = new DeveelDbDataReader(this);
 			reader.Closed += new EventHandler(ReaderClosed);
 			return reader;
 		}
 
-		protected override System.Data.Common.DbDataReader ExecuteDbDataReader(CommandBehavior behavior) {
+		protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) {
 			//TODO: support behaviors...
 			if (behavior != CommandBehavior.Default)
 				throw new ArgumentException("Behavior '" + behavior + "' not supported (yet).");
@@ -515,11 +524,13 @@ namespace Deveel.Data.Client {
 		}
 
 		private void ReaderClosed(object sender, EventArgs e) {
-			connection.EndState(ConnectionState.Fetching);
+			connection.EndState();
 			reader = null;
 		}
 
 		public override object ExecuteScalar() {
+			connection.SetState(ConnectionState.Executing);
+
 			ResultSet[] result = ExecuteQuery();
 			if (result.Length > 1)
 				throw new InvalidOperationException();
@@ -543,9 +554,12 @@ namespace Deveel.Data.Client {
 			}
 			// We don't support blobs in a scalar.
 			if (ob is ByteLongObject ||
-				ob is Data.StreamableObject) {
+				ob is StreamableObject) {
 				throw new DataException();
 			}
+
+			connection.EndState();
+
 			return ob;
 		}
 

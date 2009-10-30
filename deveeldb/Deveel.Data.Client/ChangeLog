@@ -1,4 +1,9 @@
-﻿2009-10-29  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-30  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbConnection.cs: if the Open method fails to
+	connect to the database, it sets the current stante
+	of the connection as 'Broken' (ADO.NET compliancy).
+	
+2009-10-29  Antonello Provenzano  <antonello@deveel.com>
 	* DeveelDbConnection.cs: 
 		- properties 'VerboseColumnNames', and 'IsStrictGetValue' 
 		moved to ConnectionString.

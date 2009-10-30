@@ -124,7 +124,7 @@ namespace Deveel.Data.Server {
 		}
 
 		public void BlockForRequest() {
-			marked_input.blockForCommand();
+			marked_input.BlockForCommand();
 		}
 
 		public void Ping() {

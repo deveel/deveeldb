@@ -539,7 +539,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PreBuildEvent>java -classpath $(ProjectDir)..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=$(ProjectDir)Deveel.Data.Sql $(ProjectDir)Deveel.Data.Sql\SQL.csc</PreBuildEvent>
+    <PreBuildEvent>REM java -classpath $(ProjectDir)..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=$(ProjectDir)Deveel.Data.Sql $(ProjectDir)Deveel.Data.Sql\SQL.csc</PreBuildEvent>
     <ProjectGuid>{50D02908-5743-4E72-83B5-77C5712EA59A}</ProjectGuid>
     <RootNamespace>Deveel.Data</RootNamespace>
   </PropertyGroup>

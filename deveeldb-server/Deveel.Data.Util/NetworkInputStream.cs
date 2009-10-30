@@ -37,7 +37,7 @@ namespace Deveel.Data.Util {
 			}
 
 			public int Available {
-				get { return Socket.Available; }
+				get { return (Socket.Connected ? Socket.Available : 0); }
 			}
 		}
 

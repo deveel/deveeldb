@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 using System.Data;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 
@@ -60,6 +61,11 @@ namespace Deveel.Data.Client {
 		private readonly string initial_database;
 
 		/// <summary>
+		/// The version of the server this interface is connected to.
+		/// </summary>
+		private Version serverVersion = new Version();
+
+		/// <summary>
 		/// Constructs a new <see cref="RemoteDatabaseInterface"/> which points to the
 		/// given initial database.
 		/// </summary>
@@ -68,25 +74,23 @@ namespace Deveel.Data.Client {
 			initial_database = database;
 		}
 
+		/// <summary>
+		/// Gets the version of the server this interface is connected to.
+		/// </summary>
+		public Version ServerVersion {
+			get { return serverVersion; }
+		}
+
+		public Version ClientVersion {
+			get { return Assembly.GetCallingAssembly().GetName().Version; }
+		}
 
 		/// <summary>
 		/// Writes the exception to the log stream.
 		/// </summary>
 		/// <param name="e"></param>
 		private static void logException(Exception e) {
-			/*
-			TODO:
-			TextWriter output = null;
-			//#IFDEF(NO_1.1)
-			output = DriverManager.getLogWriter();
-			//#ENDIF
-			if (output != null) {
-				e.printStackTrace(output);
-			}
-			//    else {
-			//      e.printStackTrace(System.err);
-			//    }
-			*/
+			//TODO:
 		}
 
 
@@ -130,8 +134,9 @@ namespace Deveel.Data.Client {
 				// Write output the magic number
 				output.Write(0x0ced007);
 				// Write output the driver version
-				output.Write(DeveelDbConnection.DRIVER_MAJOR_VERSION);
-				output.Write(DeveelDbConnection.DRIVER_MINOR_VERSION);
+				Version clientVersion = ClientVersion;
+				output.Write(clientVersion.Major);
+				output.Write(clientVersion.Minor);
 				output.Write(initial_database);
 				byte[] arr = bout.ToArray();
 				WriteCommandToServer(arr, 0, arr.Length);
@@ -142,11 +147,12 @@ namespace Deveel.Data.Client {
 
 				int ack = ByteBuffer.ReadInt4(response, 0);
 				if (ack == ProtocolConstants.ACKNOWLEDGEMENT) {
-					int server_version = 0;
 					// Is there anything more to Read?
 					if (response.Length > 4 && response[4] == 1) {
 						// Yes so Read the server version
-						server_version = ByteBuffer.ReadInt4(response, 5);
+						int serverMajorVersion = ByteBuffer.ReadInt4(response, 5);
+						int serverMinorVersion = ByteBuffer.ReadInt4(response, 9);
+						serverVersion = new Version(serverMajorVersion, serverMinorVersion);
 					}
 
 					// Send the username and password to the server
@@ -157,6 +163,7 @@ namespace Deveel.Data.Client {
 					//   protocol.
 
 					bout = new MemoryStream();
+					output = new BinaryWriter(bout);
 					output.Write(default_schema);
 					output.Write(user);
 					output.Write(password);
@@ -544,7 +551,7 @@ namespace Deveel.Data.Client {
 				thread.IsBackground = true;
 				thread.Name = "Connection Thread";
 				com_bytes = new MemoryStream();
-				com_data = new BinaryWriter(com_bytes);
+				com_data = new BinaryWriter(com_bytes, Encoding.Unicode);
 
 				commands_list = new ArrayList();
 				thread_closed = false;
@@ -617,7 +624,7 @@ namespace Deveel.Data.Client {
 					// non-blocking command parser on the server.
 					remote_interface.WriteCommandToServer(com_bytes.GetBuffer(), 0, (int)com_bytes.Length);
 					com_bytes = new MemoryStream();
-					com_data = new BinaryWriter(com_bytes);
+					com_data = new BinaryWriter(com_bytes, Encoding.Unicode);
 				}
 			}
 
