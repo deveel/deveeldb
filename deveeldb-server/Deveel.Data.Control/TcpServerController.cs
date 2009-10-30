@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
@@ -23,13 +21,13 @@ namespace Deveel.Data.Control {
 	/// If the underlying database is shut down then this server is also shut down.
 	/// </para>
 	/// </remarks>
-	public class TcpServerController {
+	public class TcpServerController : IDatabaseHandler {
 		/// <summary>
 		/// The default TCP port for DeveelDB SQL Database.
 		/// </summary>
 		internal const int DefaultPort = 9157;	//TODO: change this value...
 
-		private IDbConfig config;
+		private readonly DbController controller;
 
 		/// <summary>
 		/// An <see cref="IPAddress"/> representing the interface that server is 
@@ -51,13 +49,11 @@ namespace Deveel.Data.Control {
 		/// </summary>
 		private TcpServer server;
 
-		private readonly Hashtable databases;
-
 		/// <summary>
 		/// Constructs the TCP Server with the given <see cref="DbSystem"/> object, 
 		/// and sets the IP address and TCP port that we serve the database from.
 		/// </summary>
-		/// <param name="system"></param>
+		/// <param name="path">The root path to the database system root.</param>
 		/// <param name="bind_address"></param>
 		/// <param name="tcp_port"></param>
 		/// <remarks>
@@ -65,11 +61,10 @@ namespace Deveel.Data.Control {
 		/// from outside. To start the server it is needed a call the <see cref="Start"/>
 		/// method.
 		/// </remarks>
-		public TcpServerController(IDbConfig config, IPAddress bind_address, int tcp_port) {
-			this.config = config;
+		public TcpServerController(string path, IPAddress bind_address, int tcp_port) {
+			controller = DbController.Create(path);
 			this.bind_address = bind_address;
 			this.tcp_port = tcp_port;
-			databases = new Hashtable();
 			RegisterShutdownDelegate();
 		}
 
@@ -85,8 +80,8 @@ namespace Deveel.Data.Control {
 		/// from outside. To start the server it is needed a call the <see cref="Start"/>
 		/// method.
 		/// </remarks>
-		public TcpServerController(IDbConfig config, int tcp_port)
-			: this(config, null, tcp_port) {
+		public TcpServerController(string path, int tcp_port)
+			: this(path, null, tcp_port) {
 		}
 
 		/// <summary>
@@ -100,19 +95,15 @@ namespace Deveel.Data.Control {
 		/// from outside. To start the server it is needed a call the <see cref="Start"/>
 		/// method.
 		/// </remarks>
-		public TcpServerController(IDbConfig config) {
-			this.config = config;
-			databases = new Hashtable();
-
-			string root_path = GetRootPath(config.CurrentPath);
-			RetrieveDatabases(root_path);
+		public TcpServerController(DbController controller) {
+			this.controller = controller;
 
 			int port = DefaultPort;
 			IPAddress interface_address;
 
 			// Read the config properties.
-			String port_str = config.GetValue("server_port");
-			String interface_addr_str = config.GetValue("server_address");
+			String port_str = controller.Config.GetValue("server_port");
+			String interface_addr_str = controller.Config.GetValue("server_address");
 
 			if (port_str != null) {
 				try {
@@ -138,71 +129,17 @@ namespace Deveel.Data.Control {
 			RegisterShutdownDelegate();
 		}
 
-		private string GetRootPath(string basePath) {
-			string root_path = config.GetValue("root_path");
-			if (root_path == null || root_path == "env")
-				return basePath;
-			return Path.Combine(basePath, root_path);
-		}
-
-		private void RetrieveDatabases(string rootPath) {
-			string configFile = config.GetValue("config_file");
-			if (configFile == null)
-				configFile = "db.conf";
-
-			DbController controller = DbController.Default;
-			string[] sub_dirs = Directory.GetDirectories(rootPath);
-			for (int i = 0; i < sub_dirs.Length; i++) {
-				string dir_name = sub_dirs[i];
-				configFile = Path.Combine(dir_name, configFile);
-				DbConfig dbConfig;
-				if (File.Exists(configFile)) {
-					dbConfig = new DbConfig(dir_name);
-					dbConfig.LoadFromFile(configFile);
-				} else {
-					dbConfig = new DefaultDbConfig(dir_name);
-				}
-
-				IDbConfig defConfig = (IDbConfig)config.Clone();
-				defConfig.Merge(dbConfig);
-
-				string dbName = defConfig.GetValue("name");
-				if (dbName == null)
-					dbName = Path.GetDirectoryName(dir_name);
-
-				DbSystem dbSystem = controller.StartDatabase(dbConfig, dbName);
-				databases[dbName] = dbSystem.Database;
-			}
-		}
-
 		/// <summary>
 		/// Registers the delegate that closes this server when the database shuts-down.
 		/// </summary>
 		private void RegisterShutdownDelegate() {
-			foreach (Database database in databases.Values) {
-				database.RegisterShutDownDelegate(new StopEventImpl(this, database));
-			}
+			controller.DatabaseShutdown += new EventHandler(OnDatabaseShutdown);
 		}
 
-		private void OnDatabaseShutdown(Database database) {
+		private void OnDatabaseShutdown(object sender, EventArgs e) {
 			if (server != null) {
-				databases.Remove(database.Name);
-				if (databases.Count == 0)
+				if (controller.Databases.Length == 0)
 					Stop();
-			}
-		}
-
-		private class StopEventImpl : IDatabaseEvent {
-			public StopEventImpl(TcpServerController controller, Database database) {
-				this.controller = controller;
-				this.database = database;
-			}
-
-			private readonly Database database;
-			private readonly TcpServerController controller;
-
-			public void Execute() {
-				controller.OnDatabaseShutdown(database);
 			}
 		}
 
@@ -256,12 +193,21 @@ namespace Deveel.Data.Control {
 		/// name of the database specified.
 		/// </returns>
 		public Database GetDatabase(string name) {
-			return databases[name] as Database;
+			return controller.GetDatabase(name);
+		}
+
+		public Database CreateDatabase(IDbConfig config, string name, string adminUser, string adminPass) {
+			throw new NotSupportedException();
 		}
 
 		public void Execute(IDatabaseEvent dbEvent) {
-			foreach (Database database in databases.Values) {
-				database.Execute(null, null, dbEvent);
+			lock (controller) {
+				string[] dbNames = controller.Databases;
+				for (int i = 0; i < dbNames.Length; i++) {
+					string dbName = dbNames[i];
+					Database database = controller.GetDatabase(dbName);
+					database.Execute(null, null, dbEvent);
+				}
 			}
 		}
 
@@ -272,6 +218,10 @@ namespace Deveel.Data.Control {
 		/// <returns></returns>
 		public override String ToString() {
 			return server.ToString();
+		}
+
+		public bool DatabaseExists(string name) {
+			return controller.DatabaseExists(name);
 		}
 	}
 }

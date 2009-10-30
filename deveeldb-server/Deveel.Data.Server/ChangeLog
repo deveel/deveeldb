@@ -1,0 +1,5 @@
+﻿2009-10-29  Antonello Provenzano  <antonello@deveel.com>
+	* TcpServerController.cs: accepts the path to the system
+	root instead of the IDbConfig (it will be retrieved or
+	created by the DbController).
+	* Processor.cs: implemented support for ChangeDatabase

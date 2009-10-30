@@ -76,6 +76,8 @@ namespace Deveel.Data.Server {
 			option.ValueSeparator = '=';
 			options.AddOption(option);
 
+			CommandLineOptionGroup commandsGroup = new CommandLineOptionGroup();
+
 			option = new CommandLineOption("n", "create", true,
 			                               "Creates an empty database and adds a user with the given username and " +
 			                               "password with complete privs. This will not start the database server.");
@@ -83,8 +85,8 @@ namespace Deveel.Data.Server {
 			option.ArgumentNames = new string[] { "user", "pass" };
 			option.ValueSeparator = ' ';
 			options.AddOption(option);
+			commandsGroup.AddOption(option);
 
-			CommandLineOptionGroup commandsGroup = new CommandLineOptionGroup();
 			option = new CommandLineOption("s", "shutdown", true,
 			                               "Shuts down the database server running on the host/port. [host] and " +
 			                               "[port] are optional, they default to 'localhost' and port 9157.");
@@ -124,8 +126,8 @@ namespace Deveel.Data.Server {
 		private static void doCreate(String database_name, String username, String password, DbConfig config) {
 			DbController controller = DbController.Default;
 			// Create the database with the given configuration then Close it
-			if (!controller.DatabaseExists(config)) {
-				DbSystem database = controller.CreateDatabase(config, username, password);
+			if (!controller.DatabaseExists(database_name)) {
+				DbSystem database = controller.CreateDatabase(config, database_name, username, password);
 				database.Close();
 			}
 		}
@@ -147,7 +149,7 @@ namespace Deveel.Data.Server {
 				connectionString.Port = Int32.Parse(port);
 				connectionString.UserName = username;
 				connectionString.Password = password;
-				connection = new DeveelDbConnection(connectionString);
+				connection = new DeveelDbConnection(connectionString.ToString());
 				connection.Open();
 			} catch (Exception e) {
 				Console.Error.WriteLine(e.Message);
@@ -197,9 +199,9 @@ namespace Deveel.Data.Server {
 		/// Performs the boot command.
 		/// </summary>
 		/// <param name="conf"></param>
-		private static void doBoot(IDbConfig conf) {
+		private static void doBoot(string path, IDbConfig config) {
 			// Connect a TcpServerController to it.
-			TcpServerController serverController = new TcpServerController(conf);
+			TcpServerController serverController = new TcpServerController(DbController.Create(path, config));
 			// And start the server
 			serverController.Start();
 
@@ -359,7 +361,7 @@ namespace Deveel.Data.Server {
 			DateTime start_time = DateTime.Now;
 
 			// Nothing matches, so we must be wanting to boot a new server
-			doBoot(config);
+			doBoot(Environment.CurrentDirectory, config);
 
 			TimeSpan count_time = DateTime.Now - start_time;
 			Console.Out.WriteLine("Boot time: " + count_time.TotalMilliseconds + "ms.");

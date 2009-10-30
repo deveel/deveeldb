@@ -40,6 +40,7 @@ namespace Deveel.Data.Server {
 		private readonly TcpServerController controller;
 		private readonly Hashtable db_interfaces;
 		private DatabaseInterface db_interface;
+
 		private Database database;
 
 		internal Processor(TcpServerController controller, string host_string) {
@@ -55,10 +56,6 @@ namespace Deveel.Data.Server {
 		/// The database call back method that sends database events back to the client.
 		/// </summary>
 		private readonly IDatabaseCallBack db_call_back;
-
-		public Database Database {
-			get { return database; }
-		}
 
 		private class DatabaseCallBackImpl : IDatabaseCallBack {
 			public DatabaseCallBackImpl(Processor processor) {
@@ -82,18 +79,19 @@ namespace Deveel.Data.Server {
 			}
 		}
 
-		private DatabaseInterface GetDatabaseInterface(string databaseName) {
+		private bool ChangeDatabaseInterface(string databaseName) {
+			if (!controller.DatabaseExists(databaseName))
+				return false;
+
 			DatabaseInterface dbi = db_interfaces[databaseName] as DatabaseInterface;
 			if (dbi == null) {
-				database = controller.GetDatabase(databaseName);
-				if (database == null)
-					throw new InvalidOperationException();
-
-				dbi = new DatabaseInterface(database, host_string);
+				dbi = new DatabaseInterface(controller, databaseName, host_string);
 				db_interfaces[databaseName] = dbi;
 			}
 
-			return dbi;
+			database = controller.GetDatabase(databaseName);
+			db_interface = dbi;
+			return true;
 		}
 
 		protected static void PrintByteArray(byte[] array) {
@@ -118,10 +116,21 @@ namespace Deveel.Data.Server {
 
 			if (state == ConnectionState.Closed) {
 				// State 0 means we looking for the header...
+				BinaryReader reader = new BinaryReader(new MemoryStream(command), Encoding.ASCII);
+				/*
 				int magic = ByteBuffer.ReadInt4(command, 0);
 				// The driver version number
 				int maj_ver = ByteBuffer.ReadInt4(command, 4);
 				int min_ver = ByteBuffer.ReadInt4(command, 8);
+				*/
+				reader.ReadInt32();		// magic
+				reader.ReadInt32();		// server major version
+				reader.ReadInt32();		// server minor version
+
+				string databaseName = reader.ReadString();
+
+				if (!ChangeDatabaseInterface(databaseName))
+					return Single(ProtocolConstants.DATABASE_NOT_FOUND);
 
 				byte[] ack_command = new byte[4 + 1 + 4 + 1];
 				// Send back an acknowledgement and the version number of the server
@@ -151,16 +160,13 @@ namespace Deveel.Data.Server {
 			} else if (state == ConnectionState.NotAuthenticated) {
 				// State 4 means we looking for username and password...
 				MemoryStream bin = new MemoryStream(command);
-				BinaryReader din = new BinaryReader(bin, Encoding.Unicode);
-				string databaseName = din.ReadString();
+				BinaryReader din = new BinaryReader(bin, Encoding.ASCII);
 				string default_schema = din.ReadString();
 				string username = din.ReadString();
 				string password = din.ReadString();
 
-				db_interface = GetDatabaseInterface(databaseName);
-
 				try {
-					bool good = db_interface.Login(databaseName, default_schema, username, password, db_call_back);
+					bool good = db_interface.Login(default_schema, username, password, db_call_back);
 					if (good == false) {
 						// Close after 12 tries.
 						if (authentication_tries >= 12) {
@@ -174,7 +180,7 @@ namespace Deveel.Data.Server {
 						return Single(ProtocolConstants.USER_AUTHENTICATION_PASSED);
 					}
 				} catch (DataException e) {
-					
+
 				}
 
 				return null;
@@ -275,7 +281,9 @@ namespace Deveel.Data.Server {
 				throw new Exception("Special case dispatch id of -1 in query");
 			}
 
-			if (ins == ProtocolConstants.RESULT_SECTION) {
+			if (ins == ProtocolConstants.CHANGE_DATABASE) {
+				result = ChangeDatabase(dispatch_id, command);
+			} else if (ins == ProtocolConstants.RESULT_SECTION) {
 				result = ResultSection(dispatch_id, command);
 			} else if (ins == ProtocolConstants.QUERY) {
 				result = QueryCommand(dispatch_id, command);
@@ -317,6 +325,21 @@ namespace Deveel.Data.Server {
 
 		// ---------- Primitive commands ----------
 
+		private byte [] ChangeDatabase(int dispatch_id, byte[] command) {
+			// Read the query from the command.
+			MemoryStream bin = new MemoryStream(command, 8, command.Length - 8);
+			BinaryReader din = new BinaryReader(bin, Encoding.Unicode);
+
+			string databaseName = din.ReadString();
+
+			try {
+				db_interface.ChangeDatabase(databaseName);
+				state = ConnectionState.NotAuthenticated;
+				return SimpleSuccess(dispatch_id);
+			} catch (DataException e) {
+				return Exception(dispatch_id, e);
+			}
+		}
 
 		/// <summary>
 		/// Executes a query and returns the header for the result in the response.
@@ -541,6 +564,10 @@ namespace Deveel.Data.Server {
 		/// Returns true if the connection to the client is closed.
 		/// </summary>
 		public abstract bool IsClosed { get; }
+
+		public Database Database {
+			get { return database; }
+		}
 
 		// ---------- Finalize ----------
 		~Processor() {
