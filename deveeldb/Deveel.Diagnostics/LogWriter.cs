@@ -48,6 +48,7 @@ namespace Deveel.Diagnostics {
 		/// </summary>
 		private long log_file_size;
 		private TextWriter output;
+		private FileStream outputStream;
 
 		/**
 		 * Constructs the log writer.  The 'base_name' is the name of log file.
@@ -76,7 +77,9 @@ namespace Deveel.Diagnostics {
 			} else {
 				log_file_size = 0;
 			}
-			output = new StreamWriter(new FileStream(base_name, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Inheritable), Encoding.Default);
+
+			outputStream = new FileStream(base_name, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Inheritable);
+			output = new StreamWriter(outputStream, Encoding.Default);
 
 		}
 
@@ -142,6 +145,9 @@ namespace Deveel.Diagnostics {
 			lock (this) {
 				output.Flush();
 				output.Close();
+				if (outputStream != null)
+					outputStream.Dispose();
+				outputStream = null;
 			}
 		}
 

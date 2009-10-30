@@ -89,7 +89,7 @@ namespace Deveel.Data.Client {
 			if (ob == null) {
 				return ob;
 			}
-			if (command.Connection.IsStrictGetValue) {
+			if (command.Connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
 				ColumnDescription col_desc = command.ResultSet.GetColumn(i);
 				SQLTypes sql_type = col_desc.SQLType;
@@ -316,7 +316,7 @@ namespace Deveel.Data.Client {
 			Object ob = command.ResultSet.GetRawColumn(i);
 			if (ob == null)
 				return true;
-			if (command.Connection.IsStrictGetValue) {
+			if (command.Connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
 				ColumnDescription col_desc = command.ResultSet.GetColumn(i);
 				SQLTypes sql_type = col_desc.SQLType;
@@ -416,6 +416,14 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public override int RecordsAffected {
 			get { return command.UpdateCount; }
+		}
+
+		/// <summary>
+		/// Gets the instance of the <see cref="DeveelDbCommand"/>
+		/// that generated the reader.
+		/// </summary>
+		public DeveelDbCommand Command {
+			get { return command; }
 		}
 	}
 }

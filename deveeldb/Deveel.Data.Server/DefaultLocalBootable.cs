@@ -34,7 +34,15 @@ namespace Deveel.Data.Server {
 	/// <remarks>
 	/// This is to be used when you have a local client accessing a stand-alone database.
 	/// </remarks>
-	public class DefaultLocalBootable : ILocalBootable {
+	public class DefaultLocalBootable : ILocalBootable, IDatabaseHandler {
+		public DefaultLocalBootable(DbController controller, string databaseName) {
+			this.controller = controller;
+			this.databaseName = databaseName;
+		}
+
+		private readonly DbController controller;
+		private readonly string databaseName;
+
         /// <summary>
         /// Set to true if the database is booted.
         /// </summary>
@@ -70,21 +78,19 @@ namespace Deveel.Data.Server {
 		private Object connection_lock = new Object();
 
         /// <inheritdoc/>
-		public IDatabaseInterface Create(String username, String password, IDbConfig config) {
-			if (username.Equals("") || password.Equals("")) {
+		public IDatabaseInterface Create(string username, String password, IDbConfig config) {
+			if ((username == null || username.Equals("")) || 
+				(password == null || password.Equals("")))
 				throw new DataException("Username and Password must both be set.");
-			}
 
 			if (!booted) {
 				// Local connections are formatted as;
 				// 'Local/[type]/[connect_id]'
-				String host_string = "Local/Create/";
+				const string host_string = "Local/Create/";
 
 				// Create the DbSystem and bind it to a IDatabaseInterface.
-				DbController controller = DbController.Default;
-				dbsys = controller.CreateDatabase(config, username, password);
-				IDatabaseInterface db_interface =
-				   new LocalDatabaseInterface(this, dbsys.Database, host_string);
+				dbsys = controller.CreateDatabase(config, databaseName, username, password);
+				IDatabaseInterface db_interface = new LocalDatabaseInterface(this, host_string);
 
 				booted = true;
 				++open_connections;
@@ -94,7 +100,11 @@ namespace Deveel.Data.Server {
 			}
 
 			throw new DataException("Database is already created.");
+		}
 
+
+		Database IDatabaseHandler.GetDatabase(string name) {
+			return (dbsys == null ? null : dbsys.Database);
 		}
 
         /// <inheritdoc/>
@@ -105,9 +115,8 @@ namespace Deveel.Data.Server {
 				const string host_string = "Local/Boot/";
 
 				// Start the DbSystem and bind it to a IDatabaseInterface.
-				DbController controller = DbController.Default;
-				dbsys = controller.StartDatabase(config);
-				IDatabaseInterface db_interface = new LocalDatabaseInterface(this, dbsys.Database, host_string);
+				dbsys = controller.StartDatabase(config, databaseName);
+				IDatabaseInterface db_interface = new LocalDatabaseInterface(this, host_string);
 
 				booted = true;
 				++open_connections;
@@ -115,16 +124,15 @@ namespace Deveel.Data.Server {
 
 				return db_interface;
 
-			} else {
-				throw new DataException("Database was booted more than once.");
 			}
+			
+			throw new DataException("Database was booted more than once.");
 		}
 
         /// <inheritdoc/>
-		public bool CheckExists(IDbConfig config) {
+		public bool CheckExists() {
 			if (!booted) {
-				DbController controller = DbController.Default;
-				return controller.DatabaseExists(config);
+				return controller.DatabaseExists(databaseName);
 			} else {
 				throw new DataException("The database is already booted.");
 			}
@@ -144,8 +152,7 @@ namespace Deveel.Data.Server {
 				String host_string = "Local/Connection/" + connect_id;
 
 				// Create a IDatabaseInterface,
-				IDatabaseInterface db_interface =
-					new LocalDatabaseInterface(this, dbsys.Database, host_string);
+				IDatabaseInterface db_interface = new LocalDatabaseInterface(this, host_string);
 
 				++connect_id;
 				++open_connections;
@@ -170,8 +177,8 @@ namespace Deveel.Data.Server {
 			private readonly DefaultLocalBootable local_bootable;
 			bool closed;
 
-			public LocalDatabaseInterface(DefaultLocalBootable local_bootable, Database database, String host_string)
-				: base(database, host_string) {
+			public LocalDatabaseInterface(DefaultLocalBootable local_bootable, String host_string)
+				: base(local_bootable, null, host_string) {
 				this.local_bootable = local_bootable;
 			}
 

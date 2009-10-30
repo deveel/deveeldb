@@ -315,7 +315,6 @@ namespace Deveel.Data.Client {
 		/// Executes the given <see cref="SqlCommand"/> object and fill's in at 
 		/// most the top 10 entries of the result set.
 		/// </summary>
-		/// <param name="query"></param>
 		/// <returns></returns>
 		internal ResultSet[] ExecuteQuery() {
 			if (connection == null)
@@ -534,7 +533,7 @@ namespace Deveel.Data.Client {
 			if (ob == null)
 				return ob;
 
-			if (connection.IsStrictGetValue) {
+			if (connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
 				ColumnDescription col_desc = result[0].GetColumn(0);
 				SQLTypes sql_type = col_desc.SQLType;

@@ -48,7 +48,7 @@ namespace Deveel.Data.Client {
 			Array.Copy(restrictions, 3, types, 0, types.Length);
 
 			System.Data.DataTable dataTable = new System.Data.DataTable("Tables");
-			dataTable.Columns.Add("TABLE_CATELOG");
+			dataTable.Columns.Add("TABLE_CATALOG");
 			dataTable.Columns.Add("TABLE_SCHEMA");
 			dataTable.Columns.Add("TABLE_NAME");
 			dataTable.Columns.Add("TABLE_TYPE");
@@ -268,9 +268,9 @@ namespace Deveel.Data.Client {
 			dataTable.Columns.Add("IS_GRANTABLE", typeof(bool));
 
 			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.Table_Privileges \n" +
-			                                                   "    WHERE \"TABLE_SCHEM\" LIKE ? \n" +
+			                                                   "    WHERE \"TABLE_SCHEMA\" LIKE ? \n" +
 			                                                   "      AND \"TABLE_NAME\" LIKE ? \n" +
-			                                                   " ORDER BY \"TABLE_SCHEM\", \"TABLE_NAME\", \"PRIVILEGE\" ");
+			                                                   " ORDER BY \"TABLE_SCHEMA\", \"TABLE_NAME\", \"PRIVILEGE\" ");
 
 			command.Parameters.Add(schema);
 			command.Parameters.Add(table);
@@ -363,9 +363,9 @@ namespace Deveel.Data.Client {
 			dataTable.Columns.Add("DEFERRABILITY");
 
 			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.ImportedKeys \n" +
-			                                                   "    WHERE ( ? IS NULL OR \"FKTABLE_SCHEM\" = ? )\n" +
+			                                                   "    WHERE ( ? IS NULL OR \"FKTABLE_SCHEMA\" = ? )\n" +
 			                                                   "      AND \"FKTABLE_NAME\" = ? \n" +
-			                                                   "ORDER BY \"FKTABLE_SCHEM\", \"FKTABLE_NAME\", \"KEY_SEQ\"");
+			                                                   " ORDER BY \"FKTABLE_SCHEMA\", \"FKTABLE_NAME\", \"KEY_SEQ\"");
 
 			command.Parameters.Add(schema);
 			command.Parameters.Add(schema);
@@ -421,10 +421,10 @@ namespace Deveel.Data.Client {
 			dataTable.Columns.Add("PK_NAME");
 			dataTable.Columns.Add("DEFERRABILITY");
 
-			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM SYS_JDBC.ImportedKeys \n" +
-			                                                   "    WHERE ( ? IS NULL OR \"PKTABLE_SCHEM\" = ? ) \n" +
+			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.ImportedKeys \n" +
+			                                                   "    WHERE ( ? IS NULL OR \"PKTABLE_SCHEMA\" = ? ) \n" +
 			                                                   "      AND \"PKTABLE_NAME\" = ? \n" +
-			                                                   "ORDER BY \"FKTABLE_SCHEM\", \"FKTABLE_NAME\", \"KEY_SEQ\"");
+			                                                   "ORDER BY \"FKTABLE_SCHEMA\", \"FKTABLE_NAME\", \"KEY_SEQ\"");
 
 			command.Parameters.Add(schema);
 			command.Parameters.Add(schema);

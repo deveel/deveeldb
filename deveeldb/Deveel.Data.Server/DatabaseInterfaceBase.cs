@@ -27,6 +27,7 @@ using System.IO;
 
 using Deveel.Data.Client;
 using Deveel.Data.Collections;
+using Deveel.Data.Control;
 using Deveel.Data.Sql;
 
 using Deveel.Diagnostics;
@@ -60,10 +61,16 @@ namespace Deveel.Data.Server {
 	/// </para>
 	/// </remarks>
 	public abstract class DatabaseInterfaceBase : IDatabaseInterface {
+		/// <summary>
+		/// A pointer to the object that handles database within the
+		/// underlying system.
+		/// </summary>
+		private readonly IDatabaseHandler database_handler;
+
         /// <summary>
-        /// The Databas object that represents the context of this database interface.
+        /// The Database object that represents the context of this database interface.
         /// </summary>
-		private readonly Database database;
+		private Database database;
 
         /// <summary>
         /// The mapping that maps from result id number to <see cref="Table"/> object 
@@ -124,9 +131,13 @@ namespace Deveel.Data.Server {
 		///<summary>
         /// Sets up the database interface.
 		///</summary>
-		///<param name="database"></param>
-		protected DatabaseInterfaceBase(Database database) {
-			this.database = database;
+		/// <param name="handler"></param>
+		/// <param name="databaseName"></param>
+		protected DatabaseInterfaceBase(IDatabaseHandler handler, string databaseName) {
+			database_handler = handler;
+			if (databaseName != null && databaseName.Length > 0)
+				database = handler.GetDatabase(databaseName);
+
 			result_set_map = new Hashtable();
 			blob_id_map = new Hashtable();
 			unique_result_id = 1;
@@ -150,6 +161,11 @@ namespace Deveel.Data.Server {
         /// from <see cref="Login"/>.  This must be set before the object can be used.
         /// </remarks>
 		protected void Init(User user, DatabaseConnection connection) {
+			if (database == null)
+				throw new InvalidOperationException("None database was selected.");
+			if (connection.Database != database)
+				throw new InvalidOperationException("The connection is established to a different database.");
+
 			this.user = user;
 			this.database_connection = connection;
 			// Set up the sql parser.
@@ -170,17 +186,6 @@ namespace Deveel.Data.Server {
 	    protected User User {
 	        get { return user; }
 	    }
-
-        /// <summary>
-        /// Returns a <see cref="IDebugLogger"/> object that can be used to 
-        /// log debug messages against.
-        /// </summary>
-        /*
-		TODO:
-	    public IDebugLogger Debug {
-	        get { return Database.Debug; }
-	    }
-		*/
 
         /// <summary>
         /// Returns the <see cref="DatabaseConnection"/> objcet for this connection.
@@ -424,7 +429,7 @@ namespace Deveel.Data.Server {
 		// ---------- Implemented from IDatabaseInterface ----------
 
 		/// <inheritdoc/>
-		public abstract bool Login(string database, string default_schema, string username, string password, IDatabaseCallBack call_back);
+		public abstract bool Login(string default_schema, string username, string password, IDatabaseCallBack call_back);
 
 		/// <inheritdoc/>
 		public void PushStreamableObjectPart(ReferenceType type, long object_id, long object_length, byte[] buf, long offset, int length) {
@@ -441,6 +446,23 @@ namespace Deveel.Data.Server {
 				throw new DataException("IO Error: " + e.Message);
 			}
 
+		}
+
+		public virtual void ChangeDatabase(string name) {
+			CheckNotDisposed();
+
+			try {
+				Database db = database_handler.GetDatabase(name);
+				if (db == null)
+					throw new InvalidOperationException("Unable to change the database.");
+				if (database_connection != null)
+					database_connection.Close();
+
+				database = db;
+			} catch(Exception e) {
+				Debug.WriteException(e);
+				throw new DataException("Unable to change the database: " + e.Message);
+			}
 		}
 
 		/// <inheritdoc/>

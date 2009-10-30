@@ -1,3 +1,9 @@
-﻿2009-10-24  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-29  Antonello Provenzano  <antonello@deveel.com>
+	* DatabaseIntefaceBase.cs: now accepts IDatabaseHandler as
+	main constructor (the name of the current database is
+	accessory)
+	* DefaultLocalBootable.cs: now implements IDatabaseHandler
+	
+2009-10-24  Antonello Provenzano  <antonello@deveel.com>
 	* DatabaseInterface.cs: added a new field for trigger
 	messages that indicates the type of trigger.

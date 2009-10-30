@@ -1,3 +1,7 @@
+2009-10-29  Antonello Provenzano  <antonello@deveel.com>
+	* IDatabaseHandler.cs: implemented to generalize database
+	management (according to the new ChangeDatabase function).
+	
 2009-10-25  Antonello Provenzano  <antonello@deveel.com>
 	* DatabaseQueryContext.cs: added a new property Connection
 	to access the underlying DatabaseConnection

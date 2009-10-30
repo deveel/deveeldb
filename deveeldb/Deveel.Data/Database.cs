@@ -1504,7 +1504,7 @@ namespace Deveel.Data {
 					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
 					"         \"sUSRFKeyInfo.ref_table\" \"PKTABLE_NAME\",\n" +
 					"         \"sUSRForeignColumns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
-					"         NULL \"FKTABLE_CAT\",\n" +
+					"         NULL \"FKTABLE_CATALOG\",\n" +
 					"         \"sUSRFKeyInfo.schema\" \"FKTABLE_SCHEMA\",\n" +
 					"         \"sUSRFKeyInfo.table\" \"FKTABLE_NAME\",\n" +
 					"         \"sUSRForeignColumns.fcolumn\" \"FKCOLUMN_NAME\",\n" +

@@ -33,6 +33,11 @@ namespace Deveel.Data.Client {
 		public const int ACKNOWLEDGEMENT = 5;
 
 		/// <summary>
+		/// The specified database was not found.
+		/// </summary>
+		public const int DATABASE_NOT_FOUND = 7;
+
+		/// <summary>
 		/// Sent if login passed.
 		/// </summary>
 		public const int USER_AUTHENTICATION_PASSED = 10;
@@ -71,6 +76,11 @@ namespace Deveel.Data.Client {
 
 
 		// ---------- Commands ----------
+
+		/// <summary>
+		/// Changes the current database for the session.
+		/// </summary>
+		public const int CHANGE_DATABASE = 40;
 
 		/// <summary>
 		/// Query sent to the server for processing.

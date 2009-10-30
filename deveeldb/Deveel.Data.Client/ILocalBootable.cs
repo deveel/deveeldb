@@ -61,11 +61,10 @@ namespace Deveel.Data.Client {
 		///<summary>
         /// Attempts to test if the database exists or not.
 		///</summary>
-        ///<param name="config">The configuration variables.</param>
 		///<returns>
 		/// Returns true if the database exists, otherwise false.
 		/// </returns>
-		bool CheckExists(IDbConfig config);
+		bool CheckExists();
 
 	    ///<summary>
 	    /// Returns true if there is a database currently booted in the current 

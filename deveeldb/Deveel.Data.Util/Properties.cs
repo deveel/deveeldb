@@ -177,9 +177,9 @@ namespace Deveel.Data.Util {
 				if (needsEscape)
 					keyString = key.ToString();
 				else if (isDelim || Char.IsWhiteSpace(c))
-					keyString = line.Substring(start, start - (pos - 1));
+					keyString = line.Substring(start, (pos - 1) - start);
 				else
-					keyString = line.Substring(start, start - pos);
+					keyString = line.Substring(start, pos - start);
 
 				while (pos < line.Length
 					   && Char.IsWhiteSpace(c = line[pos]))

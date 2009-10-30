@@ -31,7 +31,7 @@ namespace Deveel.Diagnostics {
 	/// This is intended to help with debugging. It safely handles concurrent
 	/// output to the log.
 	/// </remarks>
-	public class Log {
+	public class Log : IDisposable {
 		/// <summary>
 		/// The output stream where log information is output to.
 		/// </summary>
@@ -133,6 +133,11 @@ namespace Deveel.Diagnostics {
 			public override void Close() {
 				// Don't do anything,
 			}
+		}
+
+		public void Dispose() {
+			if (log_output != null)
+				log_output.Dispose();
 		}
 	}
 }

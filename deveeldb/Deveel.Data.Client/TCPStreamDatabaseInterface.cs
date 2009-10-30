@@ -45,7 +45,8 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		private Socket socket;
 
-		internal TCPStreamDatabaseInterface(String host, int port) {
+		internal TCPStreamDatabaseInterface(String host, int port, string initial_database)
+			: base(initial_database) {
 			this.host = host;
 			this.port = port;
 		}

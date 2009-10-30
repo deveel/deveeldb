@@ -68,6 +68,8 @@ namespace Deveel.Diagnostics {
 		}
 
 		internal static void SetOutput(TextWriter writer) {
+			if (current == null)
+				current = new Debug(new DefaultDebugLogger());
 			if (current.logger is DefaultDebugLogger)
 				(current.logger as DefaultDebugLogger).SetOutput(writer);
 		}

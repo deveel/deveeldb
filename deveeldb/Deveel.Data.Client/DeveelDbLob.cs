@@ -121,7 +121,14 @@ namespace Deveel.Data.Client {
 			get { return CanRead; }
 		}
 
-		internal Data.StreamableObject ObjectRef {
+		/// <summary>
+		/// Gets the type of the object backed by the stream.
+		/// </summary>
+		public ReferenceType Type {
+			get { return type; }
+		}
+
+		internal StreamableObject ObjectRef {
 			get { return objectRef; }
 		}
 

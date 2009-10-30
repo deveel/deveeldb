@@ -17,10 +17,11 @@ namespace Deveel.Data {
 
 		[SetUp]
 		public void SetUp() {
+			DbController controller = DbController.Default;
 			DbConfig config = new DefaultDbConfig();
-			system = !DbController.Default.DatabaseExists(config, DatabaseName)
-						? DbController.Default.CreateDatabase(config, DatabaseName, AdminUser, AdminPassword)
-						: DbController.Default.StartDatabase(config, DatabaseName);
+			system = !controller.DatabaseExists(DatabaseName)
+						? controller.CreateDatabase(config, DatabaseName, AdminUser, AdminPassword)
+						: controller.StartDatabase(config, DatabaseName);
 
 			OnSetUp();
 		}

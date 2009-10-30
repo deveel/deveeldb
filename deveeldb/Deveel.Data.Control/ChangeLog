@@ -1,4 +1,18 @@
-﻿2009-10-23  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-29  Antonello Provenzano  <antonello@deveel.com>
+	* DbController.cs:
+		- implements IDatabaseHandler interface
+		- it's possible to create a controller for a given
+		path on the file-system
+		- Default property now is created on the current
+		executing directory.
+		- implements IDisposable to dispose every database
+		handled.
+		- DatabaseExists method now accepts only the name
+		argument
+		- implementation of ConnectToDatabase to access
+		an already created or booted database.
+	
+2009-10-23  Antonello Provenzano  <antonello@deveel.com>
 	* DbSystem.cs: 
 		- the IDbConnection returned from method
 		GetConnection is now an internal DeveelDbConnection

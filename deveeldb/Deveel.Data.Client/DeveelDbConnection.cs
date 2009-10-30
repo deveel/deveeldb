@@ -25,13 +25,11 @@ using System.Collections;
 using System.Data;
 using System.Data.Common;
 using System.IO;
-using System.Net;
 using System.Threading;
 using System.Transactions;
 
 using Deveel.Data.Control;
 using Deveel.Data.Server;
-using Deveel.Data.Util;
 using Deveel.Math;
 
 using IsolationLevel=System.Data.IsolationLevel;
@@ -49,6 +47,11 @@ namespace Deveel.Data.Client {
 	/// </para>
 	/// </remarks>
 	public class DeveelDbConnection : DbConnection, IDatabaseCallBack {
+		/// <summary>
+		/// The <see cref="DbController"/> in a local connection.
+		/// </summary>
+		private DbController controller;
+
 		/// <summary>
 		/// The mapping of the database configuration URL string to the 
 		/// <see cref="ILocalBootable"/> object that manages the connection.
@@ -100,26 +103,6 @@ namespace Deveel.Data.Client {
 		private TriggerDispatchThread trigger_thread;
 
 		/// <summary>
-		/// If the <see cref="DeveelDbDataReader.GetValue"/> method should return the 
-		/// raw object type (eg. <see cref="BigDecimal"/> for integer, <see cref="String"/> 
-		/// for chars, etc) then this is set to false.
-		/// If this is true (the default) the <see cref="DeveelDbDataReader.GetValue"/> methods 
-		/// return the correct object types as specified by the ADO.NET specification.
-		/// </summary>
-		private bool strict_get_object;
-
-		/// <summary>
-		/// If the <see cref="DeveelDbDataReader.GetName"/> method should return a succinct 
-		/// form of the column name as most implementations do, this should be set to 
-		/// false (the default).
-		/// </summary>
-		/// <remarks>
-		/// If old style verbose column names should be returned for compatibility with 
-		/// older versions, this is set to true.
-		/// </remarks>
-		private bool verbose_column_names;
-
-		/// <summary>
 		/// This is set to true if the ResultSet column lookup methods are case
 		/// insensitive.
 		/// </summary>
@@ -165,8 +148,6 @@ namespace Deveel.Data.Client {
 			is_closed = true;
 			auto_commit = true;
 			trigger_list = new ArrayList();
-			strict_get_object = true;
-			verbose_column_names = false;
 			case_insensitive_identifiers = false;
 			row_cache = new RowCache(cache_size, max_size);
 			s_object_hold = new Hashtable();
@@ -184,7 +165,7 @@ namespace Deveel.Data.Client {
 			: this(new ConnectionString(connectionString)) {
 		}
 
-		public DeveelDbConnection(ConnectionString connectionString) {
+		private DeveelDbConnection(ConnectionString connectionString) {
 			this.connectionString = connectionString;
 			Init();
 		}
@@ -227,7 +208,7 @@ namespace Deveel.Data.Client {
 					address = "localhost";
 
 				// Make the connection
-				TCPStreamDatabaseInterface tcp_db_interface = new TCPStreamDatabaseInterface(address, connectionString.Port);
+				TCPStreamDatabaseInterface tcp_db_interface = new TCPStreamDatabaseInterface(address, connectionString.Port, connectionString.Database);
 
 				db_interface = tcp_db_interface;
 
@@ -240,8 +221,6 @@ namespace Deveel.Data.Client {
 			is_closed = true;
 			auto_commit = true;
 			trigger_list = new ArrayList();
-			strict_get_object = true;
-			verbose_column_names = false;
 			case_insensitive_identifiers = false;
 			row_cache = new RowCache(row_cache_size, max_row_cache_size);
 			s_object_hold = new Hashtable();
@@ -266,19 +245,20 @@ namespace Deveel.Data.Client {
 				// reflection.
 
 				// The path to the configuration
-				String config_path = connString.Path;
+				string root_path = connString.Path;
 
-				// If no config_path, then assume it is ./db.conf
-				if (config_path == null || config_path.Length == 0)
-					config_path = "./db.conf";
+				controller = root_path == null ? DbController.Default : DbController.Create(root_path);
 
+				if (root_path == null)
+					root_path = Environment.CurrentDirectory;
 
 				// Is there already a local connection to this database?
-				String session_key = config_path.ToLower();
+				String session_key = root_path.ToLower();
 				ILocalBootable local_bootable = (ILocalBootable)local_session_map[session_key];
+
 				// No so create one and WriteByte it in the connection mapping
 				if (local_bootable == null) {
-					local_bootable = CreateDefaultLocalBootable();
+					local_bootable = CreateDefaultLocalBootable(root_path, connString.Database);
 					local_session_map[session_key] = local_bootable;
 				}
 
@@ -289,124 +269,19 @@ namespace Deveel.Data.Client {
 				} else {
 					// Otherwise we need to boot the local database.
 
-					// Work out the root path (the place in the local file system where the
-					// configuration file is).
-					string root_path;
-					// If the URL is a file, we can work out what the root path is.
-					if (config_path.StartsWith("file:/")) {
-						int start_i = config_path.IndexOf(":/");
-
-						// If the config_path is pointing inside a jar file, this denotes the
-						// end of the file part.
-						int file_end_i = config_path.IndexOf("!");
-						String config_file_part;
-						if (file_end_i == -1) {
-							config_file_part = config_path.Substring(start_i + 2);
-						} else {
-							config_file_part = config_path.Substring(start_i + 2, file_end_i - (start_i + 2));
-						}
-
-						string absolute_config_file = Path.GetFullPath(config_file_part);
-						root_path = Path.GetDirectoryName(absolute_config_file);
-					} else {
-						// This means the configuration file isn't sitting in the local file
-						// system, so we assume root is the current directory.
-						root_path = Environment.CurrentDirectory;
-					}
-
-
-					// This will be the configuration input file
-					Stream config_in = null;
-					if (config_path.StartsWith("file://") ||
-						config_path.StartsWith("http://") ||
-						config_path.StartsWith("ftp://")) {
-						// Make the config_path into a URL and open an input stream to it.
-						Uri config_url;
-						try {
-							config_url = new Uri(config_path);
-						} catch (FormatException) {
-							throw new DataException("Malformed connection string : " + config_path);
-						}
-
-						try {
-							// Try and open an input stream to the given configuration.
-							WebRequest request = WebRequest.Create(config_url);
-							WebResponse response = request.GetResponse();
-							config_in = response.GetResponseStream();
-						} catch (IOException) {
-							throw new DataException("Unable to open configuration file.  " +
-												   "I tried looking at '" + config_url + "'");
-						}
-					} else {
-						// let's normalize the config path...
-						if (config_path.StartsWith("./")) {
-							config_path = Path.Combine(root_path, config_path.Substring(2, config_path.Length - 2));
-						} else if (Path.IsPathRooted(config_path) && config_path[1] != '/') {
-							// if this is not a network address, we strip out the leading trail...
-							config_path = config_path.Substring(1, config_path.Length - 1);
-							// and build the new path.
-							config_path = Path.Combine(root_path, config_path);
-						}
-
-						if (File.Exists(config_path)) {
-							try {
-								// Try and open an input stream to the given configuration.
-								config_in = new FileStream(config_path, FileMode.OpenOrCreate, FileAccess.Read);
-							} catch (IOException) {
-								throw new DataException("Unable to open configuration file: " + config_path);
-							}
-						}
-					}
-
-					// Get the configuration bundle that was set as the path,
-					DbConfig config;
-					if (config_in != null) {
-						config = new DbConfig(root_path);
-
-						try {
-							config.LoadFromStream(config_in);
-							config_in.Close();
-						} catch (IOException e) {
-							throw new DataException("Error reading configuration file: " +
-							                        config_path + " Reason: " + e.Message);
-						}
-
-						// if the name found in the configuration file is different, we set it now...
-						string dbName = config.GetValue("name");
-						if (dbName != connString.Database)
-							config.SetValue("name", connString.Database);
-
-					} else {
-						// since no file was found we provide a default configuration ...
-						config = new DefaultDbConfig(root_path);
-
-						// ... and we autoratively set the name of the database to the one specified.
-						if (connString.Database != null)
-							config.SetValue("name", connString.Database);
-
-						string fileName = Path.GetFileName(config_path);
-						string path = Path.GetDirectoryName(config_path);
-						string database_path = config.GetValue("database_path");
-						path = Path.Combine(path, database_path);
-
-						if (!Directory.Exists(path))
-							Directory.CreateDirectory(path);
-
-						fileName = Path.Combine(path, fileName);
-						config.SaveTo(fileName);
-					}
-
 					bool create_db = connectionString.Create;
 					bool create_db_if_not_exist = connString.BootOrCreate;
 
-					// Include any properties from the 'info' object
-					foreach (DictionaryEntry entry in connString.AdditionalProperties) {
-						String key = entry.Key.ToString();
-						config.SetValue(key, Convert.ToString(entry.Value));
-					}
+					IDbConfig config = controller.Config;
+
+					string database_path = connString.AdditionalProperties["DatabasePath"] as string;
+					if (database_path == null)
+						database_path = Path.Combine(root_path, connString.Database);
+
+					//TODO: set the additional configurations from the connection string
 
 					// Check if the database exists
-					bool database_exists = local_bootable.CheckExists(config);
+					bool database_exists = local_bootable.CheckExists();
 
 					// If database doesn't exist and we've been told to create it if it
 					// doesn't exist, then set the 'create_db' flag.
@@ -422,8 +297,8 @@ namespace Deveel.Data.Client {
 					// If we are booting but the database doesn't exist.
 					if (!create_db && !database_exists) {
 						throw new DataException("Can not find a database to start.  Either the database needs to " +
-						                        "be created or the 'database_path' property of the configuration " +
-						                        "must be set to the location of the data files.");
+												"be created or the 'database_path' property of the configuration " +
+												"must be set to the location of the data files.");
 					}
 
 					// Are we creating a new database?
@@ -452,46 +327,22 @@ namespace Deveel.Data.Client {
 		/// <exception cref="DataException">
 		/// If the class <c>DefaultLocalBootable</c> was not found.
 		/// </exception>
-		private static ILocalBootable CreateDefaultLocalBootable() {
+		private static ILocalBootable CreateDefaultLocalBootable(string rootPath, string databaseName) {
 			try {
+				DbController controller;
+				if (rootPath == null)
+					controller = DbController.Default;
+				else
+					controller = DbController.Create(rootPath);
+
 				Type c = Type.GetType("Deveel.Data.Server.DefaultLocalBootable");
-				return (ILocalBootable)Activator.CreateInstance(c);
+				return (ILocalBootable)Activator.CreateInstance(c, new object[] { controller, databaseName });
 			} catch (Exception) {
 				// A lot of people ask us about this error so the message is verbose.
-				throw new DataException(
-					"I was unable to find the class that manages local database " +
-					"connections.  This means you may not have included the correct " +
-					"library in your references.");
+				throw new DataException("I was unable to find the class that manages local database " +
+				                        "connections.  This means you may not have included the correct " +
+				                        "library in your references.");
 			}
-		}
-
-
-		///<summary>
-		/// Toggles strict get object.
-		///</summary>
-		/// <remarks>
-		/// If the <see cref="DeveelDbDataReader.GetValue"/> method should return the 
-		/// raw object type (eg. <see cref="BigDecimal"/> for integer, <see cref="string"/>
-		/// for chars, etc) then this is set to false. If this is true (the default) the 
-		/// <see cref="DeveelDbDataReader.GetValue"/> methods return the correct object types 
-		/// as specified by the ADO.NET specification.
-		/// </remarks>
-		public bool IsStrictGetValue {
-			get { return strict_get_object; }
-			set { strict_get_object = value; }
-		}
-
-		///<summary>
-		/// Toggles verbose column names from <see cref="DeveelDbDataReader.GetName"/>.
-		///</summary>
-		/// <remarks>
-		/// If this is set to true, <see cref="DeveelDbDataReader.GetName"/> will return 
-		/// <c>APP.Part.id</c> for a column name. If it is false <see cref="DeveelDbDataReader.GetName"/> 
-		/// will return <c>id</c>. This property is for compatibility with older versions.
-		/// </remarks>
-		public bool VerboseColumnNames {
-			get { return verbose_column_names; }
-			set { verbose_column_names = value; }
 		}
 
 		///<summary>
@@ -502,7 +353,7 @@ namespace Deveel.Data.Client {
 		/// If this is true then <see cref="DeveelDbDataReader.GetString">GetString("app.id")</see> 
 		/// will match against <c>APP.id</c>, etc.
 		/// </remarks>
-		public bool IsCaseInsensitiveIdentifiers {
+		internal bool IsCaseInsensitiveIdentifiers {
 			set { case_insensitive_identifiers = value; }
 			get { return case_insensitive_identifiers; }
 		}
@@ -524,7 +375,6 @@ namespace Deveel.Data.Client {
 
 
 		internal virtual bool InternalOpen() {
-			string database = connectionString.Database;
 			string username = connectionString.UserName;
 			string password = connectionString.Password;
 			string default_schema = connectionString.Schema;
@@ -549,7 +399,7 @@ namespace Deveel.Data.Client {
 			}
 
 			// Login with the username/password
-			return db_interface.Login(database, default_schema, username, password, this);
+			return db_interface.Login(default_schema, username, password, this);
 		}
 
 #if !MONO
@@ -929,7 +779,15 @@ namespace Deveel.Data.Client {
 		}
 
 		public override void ChangeDatabase(string databaseName) {
-			//TODO: multiple databases not officially supported yet...
+			//TODO: check if any command is in Executing state before...
+			try {
+				db_interface.ChangeDatabase(databaseName);
+				connectionString.Database = databaseName;
+			} catch(DataException) {
+				throw;
+			} catch(Exception e) {
+				throw new DataException("An error occurred while changing the database: " + e.Message);
+			}
 		}
 
 		protected override DbCommand CreateDbCommand() {
@@ -1032,7 +890,7 @@ namespace Deveel.Data.Client {
 			set { Settings = new ConnectionString(value); }
 		}
 
-		public ConnectionString Settings {
+		internal ConnectionString Settings {
 			get { return connectionString; }
 			set {
 				if (state != ConnectionState.Closed)
@@ -1043,14 +901,16 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public int ConnectionTimeout {
+		public override int ConnectionTimeout {
 			get { return 0; }
 		}
 
+		/// <inheritdoc/>
 		public override string Database {
 			get { return Settings.Database; }
 		}
 
+		/// <inheritdoc/>
 		public override ConnectionState State {
 			get {
 				lock (stateLock) {
@@ -1159,13 +1019,7 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		internal static int QUERY_TIMEOUT = Int32.MaxValue;
 
-		internal void StartState(ConnectionState connectionState) {
-			lock (stateLock) {
-				//TODO: add a concrete implementation ...
-			}
-		}
-
-		internal void EndState(ConnectionState connectionState) {
+		internal void SetState(ConnectionState connectionState) {
 			lock (stateLock) {
 				//TODO: add a concrete implementation ...
 			}

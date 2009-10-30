@@ -24,6 +24,7 @@ using System;
 using System.Data;
 
 using Deveel.Data.Client;
+using Deveel.Data.Control;
 using Deveel.Data.Server;
 using Deveel.Data.Sql;
 
@@ -151,13 +152,13 @@ namespace Deveel.Data {
 		/// </summary>
 		private sealed class InternalDatabaseInterface : DatabaseInterfaceBase {
 			public InternalDatabaseInterface(User user, DatabaseConnection db)
-				: base(db.Database) {
+				: base(new SingleDatabaseHandler(db.Database), db.Database.Name) {
 				Init(user, db);
 			}
 
 			// ---------- Implemented from IDatabaseInterface ----------
 
-			public override bool Login(string database, String default_schema, String username, String password, IDatabaseCallBack call_back) {
+			public override bool Login(string default_schema, string username, string password, IDatabaseCallBack call_back) {
 				// This should never be used for an internal connection.
 				throw new DataException("'login' is not supported for InterfaceDatabaseInterface");
 			}
@@ -167,5 +168,23 @@ namespace Deveel.Data {
 			}
 		}
 
+		private sealed class SingleDatabaseHandler : IDatabaseHandler {
+			public SingleDatabaseHandler(Database database) {
+				this.database = database;
+			}
+
+			private readonly Database database;
+
+			public Database GetDatabase(string name) {
+				if (name != database.Name)
+					throw new ArgumentException();
+
+				return database;
+			}
+
+			public Database CreateDatabase(IDbConfig config, string name, string adminUser, string adminPass) {
+				throw new NotSupportedException();
+			}
+		}
 	}
 }

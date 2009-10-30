@@ -48,7 +48,14 @@ namespace Deveel.Data.Client {
 		///<returns>
 		/// Returns <b>true</b> if the authentication succeeded, otherwise false.
 		/// </returns>
-		bool Login(string database, String default_schema, String username, String password, IDatabaseCallBack call_back);
+		bool Login(string default_schema, string username, string password, IDatabaseCallBack call_back);
+
+		/// <summary>
+		/// Changes the database of the current transaction to the interface.
+		/// </summary>
+		/// <param name="database">The name of the database to which to establish
+		/// the current transaction.</param>
+		void ChangeDatabase(string database);
 
 	    ///<summary>
 	    /// Pushes a part of a streamable object from the client onto the server.

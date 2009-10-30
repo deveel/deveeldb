@@ -23,6 +23,8 @@ using System;
 using System.Collections;
 using System.Text;
 
+using Deveel.Math;
+
 namespace Deveel.Data.Client {
 	/// <summary>
 	/// A class that encapsulates all the properties needed to build a valid
@@ -88,6 +90,7 @@ namespace Deveel.Data.Client {
 			DefaultKeys = new ArrayList();
 			DefaultKeys.Add(HostKey.ToLower());
 			DefaultKeys.Add(PortKey.ToLower());
+			DefaultKeys.Add(DatabaseKey.ToLower());
 			DefaultKeys.Add(UserNameKey.ToLower());
 			DefaultKeys.Add(PasswordKey.ToLower());
 			DefaultKeys.Add(SchemaKey.ToLower());
@@ -95,6 +98,8 @@ namespace Deveel.Data.Client {
 			DefaultKeys.Add(BootOrCreateKey.ToLower());
 			DefaultKeys.Add(ParameterStyleKey.ToLower());
 			DefaultKeys.Add(PathKey.ToLower());
+			DefaultKeys.Add(StrictGetValueKey.ToLower());
+			DefaultKeys.Add(VerboseColumnNamesKey.ToLower());
 		}
 
 		private readonly Hashtable properties;
@@ -113,6 +118,8 @@ namespace Deveel.Data.Client {
 		private const string BootOrCreateKey = "BootOrCreate";
 		private const string ParameterStyleKey = "ParameterStyle";
 		private const string PathKey = "Path";
+		private const string StrictGetValueKey = "StrictGetValue";
+		private const string VerboseColumnNamesKey = "VerboseColumnNames";
 
 		private static readonly ArrayList DefaultKeys;
 
@@ -296,7 +303,7 @@ namespace Deveel.Data.Client {
 		public bool Create {
 			get {
 				object value = properties[CreateKey];
-				return (value == null ? true : (bool) value);
+				return (value == null ? false : (bool) value);
 			}
 			set {
 				CheckReadOnly();
@@ -315,7 +322,7 @@ namespace Deveel.Data.Client {
 		public bool BootOrCreate {
 			get {
 				object value = properties[BootOrCreateKey];
-				return (value == null ? true : (bool) value);
+				return (value == null ? false : (bool) value);
 			}
 			set {
 				CheckReadOnly();
@@ -351,6 +358,47 @@ namespace Deveel.Data.Client {
 				properties[DatabaseKey] = value;
 			}
 		}
+
+		///<summary>
+		/// Toggles strict get object.
+		///</summary>
+		/// <remarks>
+		/// If the <see cref="DeveelDbDataReader.GetValue"/> method should return the 
+		/// raw object type (eg. <see cref="BigDecimal"/> for integer, <see cref="string"/>
+		/// for chars, etc) then this is set to false. If this is true (the default) the 
+		/// <see cref="DeveelDbDataReader.GetValue"/> methods return the correct object types 
+		/// as specified by the ADO.NET specification.
+		/// </remarks>
+		public bool StrictGetValue {
+			get {
+				object value = properties[StrictGetValueKey];
+				return (value == null ? true : (bool) value);
+			}
+			set {
+				CheckReadOnly();
+				properties[StrictGetValueKey] = value;
+			}
+		}
+
+		///<summary>
+		/// Toggles verbose column names from <see cref="DeveelDbDataReader.GetName"/>.
+		///</summary>
+		/// <remarks>
+		/// If this is set to true, <see cref="DeveelDbDataReader.GetName"/> will return 
+		/// <c>APP.Part.id</c> for a column name. If it is false <see cref="DeveelDbDataReader.GetName"/> 
+		/// will return <c>id</c>.
+		/// </remarks>
+		public bool VerboseColumnNames {
+			get {
+				object value = properties[VerboseColumnNamesKey];
+				return (value == null ? false : (bool)value);
+			}
+			set {
+				CheckReadOnly();
+				properties[VerboseColumnNamesKey] = value;
+			}
+		}
+
 
 		private void CheckReadOnly() {
 			if (readOnly)
@@ -420,6 +468,12 @@ namespace Deveel.Data.Client {
 				case "port":
 					Port = Convert.ToInt32(value);
 					break;
+				case "database":
+				case "catalog":
+				case "initial catalog":
+				case "db":
+					Database = Convert.ToString(value);
+					break;
 				case "default schema":
 				case "schema":
 					Schema = Convert.ToString(value);
@@ -452,6 +506,23 @@ namespace Deveel.Data.Client {
 				case "configuration path":
 				case "config path":
 					Path = Convert.ToString(value);
+					break;
+				case "strict":
+				case "strictvalue":
+				case "strict value":
+				case "strictgetvalue":
+				case "strict get value":
+				case "getvalue strict":
+				case "getvaluestrict":
+				case "get value strict":
+					StrictGetValue = Convert.ToBoolean(value);
+					break;
+				case "verbose columns":
+				case "verbose column names":
+				case "verbosecolumns":
+				case "verbosecolumnnames":
+				case "column verbose":
+					VerboseColumnNames = Convert.ToBoolean(value);
 					break;
 				default:
 					properties[key] = value;

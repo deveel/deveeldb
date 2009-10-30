@@ -170,7 +170,7 @@ namespace Deveel.Data {
 		///</summary>
 		public TransactionSystem() {
 			// Setup generate properties from the environment.
-			Debug.Init(new DefaultDebugLogger());
+			// Debug.Init(new DefaultDebugLogger());
 			stats.Set(0, "OS.Platform: " + Environment.OSVersion.Platform);
 			stats.Set(0, "OS.Version: " + Environment.OSVersion.VersionString);
 			stats.Set(0, "Runtime.Version: " + Environment.Version);
@@ -284,6 +284,13 @@ namespace Deveel.Data {
 			}
 		}
 
+		/// <summary>
+		/// Gets an instance to the configurations set to the database system.
+		/// </summary>
+		internal IDbConfig Config {
+			get { return config; }
+		}
+
 		// ---------- Store System encapsulation ----------
 
 		/// <summary>
@@ -386,7 +393,7 @@ namespace Deveel.Data {
 			string path = Path.GetFullPath(path_string);
 			string res;
 			// If the path is absolute then return the absoluate reference
-			if (Path.IsPathRooted(path)) {
+			if (Path.IsPathRooted(path_string)) {
 				res = path;
 			} else {
 				// If the root path source is the environment then just return the path.
@@ -611,7 +618,7 @@ namespace Deveel.Data {
 					// The path where the database data files are stored.
 					String database_path = GetConfigString("database_path", "./data");
 					// The root path variable
-					String root_path_var = GetConfigString("root_path", "env");
+					String root_path_var = GetConfigString("root_path", null);
 
 					// Set the absolute database path
 					db_path = ParseFileString(config.CurrentPath, root_path_var, database_path);

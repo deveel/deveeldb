@@ -47,6 +47,11 @@ namespace Deveel.Data.Control {
 		private DbController controller;
 
 		/// <summary>
+		/// The name of the database referenced.
+		/// </summary>
+		private readonly string name;
+
+		/// <summary>
 		/// The <see cref="IDbConfig"/> object that describes the startup configuration 
 		/// of the database.
 		/// </summary>
@@ -71,7 +76,8 @@ namespace Deveel.Data.Control {
 		private Hashtable connections;
 
 
-		internal DbSystem(DbController controller, IDbConfig config, Database database) {
+		internal DbSystem(DbController controller, string name, IDbConfig config, Database database) {
+			this.name = name;
 			this.controller = controller;
 			this.config = config;
 			this.database = database;
@@ -158,7 +164,7 @@ namespace Deveel.Data.Control {
 			String host_string = buf.ToString();
 
 			// Create the database interface for an internal database connection.
-			IDatabaseInterface db_interface = new DatabaseInterface(Database, host_string);
+			IDatabaseInterface db_interface = new DatabaseInterface(controller, name, host_string);
 			// Create the DeveelDbConnection object (very minimal cache settings for an
 			// internal connection).
 			ConnectionString s = new ConnectionString();
@@ -261,19 +267,6 @@ namespace Deveel.Data.Control {
 		/// in the constructor.
 		/// </remarks>
 		private void InternalDispose() {
-			if (database != null && database.IsInitialized) {
-
-				// Disable commands (on worker threads) to the database system...
-				database.SetIsExecutingCommands(false);
-
-				try {
-					database.Shutdown();
-				} catch (DatabaseException e) {
-					Debug.Write(DebugLevel.Error, this, "Unable to shutdown database because of exception");
-					Debug.WriteException(DebugLevel.Error, e);
-				}
-			}
-
 			if (connections != null && connections.Count > 0) {
 				ArrayList list = new ArrayList(connections.Keys);
 				for (int i = list.Count - 1; i >= 0; i--) {
@@ -292,7 +285,6 @@ namespace Deveel.Data.Control {
 			connections = null;
 			controller = null;
 			config = null;
-			database = null;
 		}
 
 		private class DBSConnection : DeveelDbConnection {

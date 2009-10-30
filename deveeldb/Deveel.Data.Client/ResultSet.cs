@@ -163,7 +163,7 @@ namespace Deveel.Data.Client {
         /// Returns false by default.
         /// </remarks>
 	    internal bool VerboseColumnNames {
-	        get { return connection.VerboseColumnNames; }
+	        get { return connection.Settings.VerboseColumnNames; }
 	    }
 
 	    // ---------- Connection callback methods ----------

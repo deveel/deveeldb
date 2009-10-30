@@ -41,12 +41,12 @@ namespace Deveel.Data.Control {
 			: base(current_path) {
 			SetValue("database_path", "./data", "PATH");
 			SetValue("log_path", "./log", "PATH");
-			SetValue("name", "DefaultDatabase", "STRING");
-			SetValue("root_path", "env", "STRING");
+			// SetValue("name", "DefaultDatabase", "STRING");
+			// SetValue("root_path", "env", "STRING");
 			SetValue("server_port", "9157", "STRING");
 			SetValue("server_address", "127.0.0.1", "STRING");
 			SetValue("ignore_case_for_identifiers", "disabled", "BOOLEAN");
-			SetValue("regex_library", "Deveel.Data.Text.DeveelRegexLibrary", "STRING");
+			SetValue("regex_library", "Deveel.Text.DeveelRegexLibrary", "STRING");
 			SetValue("data_cache_size", "4194304", "INT");
 			SetValue("max_cache_entry_size", "8192", "INT");
 			SetValue("lookup_comparison_list", "enabled", "BOOLEAN");

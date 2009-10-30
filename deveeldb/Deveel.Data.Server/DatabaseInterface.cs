@@ -54,10 +54,11 @@ namespace Deveel.Data.Server {
 		/// <summary>
 		/// Sets up the processor.
 		/// </summary>
-		/// <param name="database"></param>
+		/// <param name="handler"></param>
+		/// <param name="databaseName"></param>
 		/// <param name="host_name"></param>
-		public DatabaseInterface(Database database, String host_name)
-			: base(database) {
+		public DatabaseInterface(IDatabaseHandler handler, string databaseName, String host_name)
+			: base(handler, databaseName) {
 			this.host_name = host_name;
 		}
 
@@ -85,7 +86,7 @@ namespace Deveel.Data.Server {
 				if (COMMAND_LOGGING && database.System.LogQueries) {
 					// Output the instruction to the commands log.
 					StringBuilder log_str = new StringBuilder();
-					log_str.Append("[ADO.NET] [");
+					log_str.Append("[CLIENT] [");
 					log_str.Append(username);
 					log_str.Append("] ");
 					log_str.Append('[');
@@ -185,7 +186,7 @@ namespace Deveel.Data.Server {
 
 		// ---------- Implemented from IDatabaseInterface ----------
 
-		public override bool Login(string database_name, String default_schema, String username, String password,
+		public override bool Login(String default_schema, String username, String password,
 							 IDatabaseCallBack database_call_back) {
 
 			Database database = Database;
@@ -206,7 +207,7 @@ namespace Deveel.Data.Server {
 			if (COMMAND_LOGGING && Database.System.LogQueries) {
 				// Output the instruction to the commands log.
 				StringBuilder log_str = new StringBuilder();
-				log_str.Append("[JDBC] [");
+				log_str.Append("[CLIENT] [");
 				log_str.Append(user.UserName);
 				log_str.Append("] ");
 				log_str.Append('[');

@@ -31,6 +31,10 @@ namespace Deveel.Data.Client {
 	/// This is a stream based communication protocol.
 	/// </remarks>
 	class StreamDatabaseInterface : RemoteDatabaseInterface {
+		internal StreamDatabaseInterface(string initial_database)
+			: base(initial_database) {
+		}
+
 		/// <summary>
 		/// The data output stream for the db protocol.
 		/// </summary>

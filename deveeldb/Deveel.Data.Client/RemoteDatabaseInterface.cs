@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 using System.Data;
 using System.IO;
+using System.Text;
 using System.Threading;
 
 using Deveel.Data.Util;
@@ -52,6 +53,20 @@ namespace Deveel.Data.Client {
 		/// all events that are received from the database.
 		/// </summary>
 		private IDatabaseCallBack database_call_back;
+
+		/// <summary>
+		/// The initial database for the connection.
+		/// </summary>
+		private readonly string initial_database;
+
+		/// <summary>
+		/// Constructs a new <see cref="RemoteDatabaseInterface"/> which points to the
+		/// given initial database.
+		/// </summary>
+		/// <param name="database">The initial database for the connection.</param>
+		internal RemoteDatabaseInterface(string database) {
+			initial_database = database;
+		}
 
 
 		/// <summary>
@@ -105,18 +120,19 @@ namespace Deveel.Data.Client {
 
 
 		/// <inheritdoc/>
-		public bool Login(string database, String default_schema, String user, String password, IDatabaseCallBack call_back) {
+		public bool Login(string default_schema, string user, string password, IDatabaseCallBack call_back) {
 			try {
 
 				// Do some handshaking,
 				MemoryStream bout = new MemoryStream();
-				BinaryWriter output = new BinaryWriter(bout);
+				BinaryWriter output = new BinaryWriter(bout, Encoding.ASCII);
 
 				// Write output the magic number
 				output.Write(0x0ced007);
 				// Write output the driver version
 				output.Write(DeveelDbConnection.DRIVER_MAJOR_VERSION);
 				output.Write(DeveelDbConnection.DRIVER_MINOR_VERSION);
+				output.Write(initial_database);
 				byte[] arr = bout.ToArray();
 				WriteCommandToServer(arr, 0, arr.Length);
 
@@ -126,16 +142,6 @@ namespace Deveel.Data.Client {
 
 				int ack = ByteBuffer.ReadInt4(response, 0);
 				if (ack == ProtocolConstants.ACKNOWLEDGEMENT) {
-
-					// History of server versions (inclusive)
-					//    Engine version |  server_version
-					//  -----------------|-------------------
-					//    0.00 - 0.91    |  0
-					//    0.92 -         |  1
-					//  -----------------|-------------------
-
-					// Server version defaults to 0
-					// Server version 0 is for all versions of the engine previous to 0.92
 					int server_version = 0;
 					// Is there anything more to Read?
 					if (response.Length > 4 && response[4] == 1) {
@@ -151,7 +157,6 @@ namespace Deveel.Data.Client {
 					//   protocol.
 
 					bout = new MemoryStream();
-					output.Write(database);
 					output.Write(default_schema);
 					output.Write(user);
 					output.Write(password);
@@ -172,10 +177,13 @@ namespace Deveel.Data.Client {
 
 					} else if (result == ProtocolConstants.USER_AUTHENTICATION_FAILED) {
 						throw new DataException("User Authentication failed.");
+					} else if (result == ProtocolConstants.DATABASE_NOT_FOUND) {
+						throw new DataException("The database specified was not found.");
 					} else {
 						throw new DataException("Unexpected response.");
 					}
-
+				} else if (ack == ProtocolConstants.DATABASE_NOT_FOUND) {
+					throw new DataException("The database was not found.");
 				} else {
 					throw new DataException("No acknowledgement received from server.");
 				}
@@ -215,9 +223,29 @@ namespace Deveel.Data.Client {
 
 		}
 
+		public void ChangeDatabase(string database) {
+			try {
+				// Change the current database
+				int dispatch_id = connection_thread.ChangeDatabase(database);
+				// get the response
+				ServerCommand command = connection_thread.GetCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatch_id);
+				if (command == null)
+					throw new DataException("Query timed output after " + DeveelDbConnection.QUERY_TIMEOUT + " seconds.");
+
+				BinaryReader din = new BinaryReader(command.GetInputStream());
+				int status = din.ReadInt32();
+				if (status == ProtocolConstants.FAILED)
+					throw new DataException("Change database failed: " + din.ReadString());
+				if (status == ProtocolConstants.DATABASE_NOT_FOUND)
+					throw new DataException("The database '" + database + "' was not found on the server.");
+			} catch(IOException e) {
+				logException(e);
+				throw new DataException("IO Error: " + e.Message);
+			}
+		}
+
 		/// <inheritdoc/>
 		public IQueryResponse ExecuteQuery(SqlCommand sql) {
-
 			try {
 				// Execute the command
 				int dispatch_id = connection_thread.ExecuteQuery(sql);
@@ -262,11 +290,6 @@ namespace Deveel.Data.Client {
 					throw new DataException("User doesn't have enough privs to " +
 										   access_type + " table " + table_name);
 				} else {
-					//        System.err.println(status);
-					//        int count = input.available();
-					//        for (int i = 0; i < count; ++i) {
-					//          System.err.print(input.Read() + ", ");
-					//        }
 					throw new DataException("Illegal response code from server.");
 				}
 
@@ -278,11 +301,11 @@ namespace Deveel.Data.Client {
 		}
 
 		private class QueryResponseImpl : IQueryResponse {
-			private int result_id;
-			private int query_time;
-			private int col_count;
-			private int row_count;
-			private ColumnDescription[] col_list;
+			private readonly int result_id;
+			private readonly int query_time;
+			private readonly int col_count;
+			private readonly int row_count;
+			private readonly ColumnDescription[] col_list;
 
 			public QueryResponseImpl(int resultId, int queryTime, int colCount, int rowCount, ColumnDescription[] colList) {
 				result_id = resultId;
@@ -595,6 +618,18 @@ namespace Deveel.Data.Client {
 					remote_interface.WriteCommandToServer(com_bytes.GetBuffer(), 0, (int)com_bytes.Length);
 					com_bytes = new MemoryStream();
 					com_data = new BinaryWriter(com_bytes);
+				}
+			}
+
+			internal int ChangeDatabase(string database) {
+				lock (this) {
+					int dispatch_id = NextDispatchId();
+					com_data.Write(ProtocolConstants.CHANGE_DATABASE);
+					com_data.Write(dispatch_id);
+					com_data.Write(database);
+					FlushCommand();
+
+					return dispatch_id;
 				}
 			}
 

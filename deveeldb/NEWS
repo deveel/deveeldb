@@ -1,13 +1,21 @@
 ﻿Release notes for the version 0.9.8
 ====================================================
 
-* Engine
+* Engine:
 	- Implemented the syntax for supporting IDENTITY columns specification and retrieval
 	of the latest identity values.
+	- Support for multiple databases: now it's possible to instantiate a database context
+	(using DbController) to hold a several databases. They can still be accessed by using
+	DbSystem objects, which now can be obtained also by calling 'ConnectToDatabase': this
+	doesn't require to start or create a database to access it, but it allows users to
+	access a running database.
 	
-* ADO.NET Client
+* ADO.NET Client:
 	- Enhanched support for CALLBACK triggers: now it is possible to create DeveelDbTrigger
 	  objects to control events on a table modification command (INSERT, DELETE or UPDATE),
 	  being notified locally.
 	- Fixed the connection procedure to local hosts from direct calls to DeveelDbConnection
 	- Implemented support for LOB (Large OBjects) stream from client side
+	- It is possible to change the database
+
+* Bug Fixes:

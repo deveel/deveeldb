@@ -1,4 +1,20 @@
-﻿2009-10-24  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-29  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbConnection.cs: 
+		- properties 'VerboseColumnNames', and 'IsStrictGetValue' 
+		moved to ConnectionString.
+		- IsCaseInsensitiveIdentifiers is made internal
+		- Settings property made internal
+		- constructor accepting ConnectionString argument
+		made private
+	
+2009-10-28  Antonello Provenzano  <antonello@deveel.com>
+	* ProtocolConstants.cs: added constant field 
+	CHANGE_DATABASE.
+	* DeveelDbConnection.cs: implemented the command to
+	change the current database.
+	* IDatabaseInterface.cs: added method ChangeDatabase
+	
+2009-10-24  Antonello Provenzano  <antonello@deveel.com>
 	* DeveelDbLob.cs: Implemented to support *LOBs streaming
 	to and from the database.
 	* IDbBlob.cs: suppressed
