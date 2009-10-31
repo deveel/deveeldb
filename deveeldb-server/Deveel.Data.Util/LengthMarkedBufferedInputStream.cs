@@ -209,8 +209,6 @@ namespace Deveel.Data.Util {
 			lock (this) {
 				if (marked_length == -1) {
 					int available = input.Available;
-					//      System.out.print(available);
-					//      System.out.print(", ");
 					if (count > 0 || available > 0) {
 						if ((count + available) > max_size) {
 							throw new IOException("Marked length is greater than max size ( " +
@@ -220,32 +218,17 @@ namespace Deveel.Data.Util {
 						EnsureCapacity(count + available);
 						int read_in = input.Read(buf, count, available);
 
-						//        System.out.println("-----");
-						//        for (int i = 0; i < available; ++i) {
-						//          System.out.print((char) buf[count + i] +
-						//                           "(" + (int) buf[count + i] + "),");
-						//        }
-						//        System.out.println("-----");
-
-
 						if (read_in == 0) {
-							throw new EndOfStreamException();
+							//TODO: Check this format...
+							// throw new EndOfStreamException();
+
+							// zero bytes read means that the stream is finished...
+							return false;
 						}
 						count = count + read_in;
 
-						//        else if (read_in != available) {
-						//          throw new IOException("Read in size mismatch: " +
-						//                        "read_in: " + read_in + " available: " + available);
-						//        }
-
 						// Check: Is a complete command available?
 						if (count >= 4) {
-							/*
-							int length_marker = (((buf[0] & 0x0FF) << 24) +
-												 ((buf[1] & 0x0FF) << 16) +
-												 ((buf[2] & 0x0FF) << 8) +
-												 ((buf[3] & 0x0FF) << 0));
-							*/
 							int length_marker = ByteBuffer.ReadInt4(buf, 0);
 
 							if (count >= length_marker + 4) {
@@ -253,9 +236,6 @@ namespace Deveel.Data.Util {
 								// mark this area up.
 								marked_length = length_marker + 4;
 								marked_index = 4;
-								//            System.out.println("Complete command available: ");
-								//            System.out.println("Length: " + marked_length +
-								//                               ", Index: " + marked_index);
 								return true;
 							}
 						}
@@ -274,21 +254,12 @@ namespace Deveel.Data.Util {
 
 					// Is there a command available?
 					if (count >= 4) {
-						/*
-						int length_marker = (((buf[0] & 0x0FF) << 24) +
-											 ((buf[1] & 0x0FF) << 16) +
-											 ((buf[2] & 0x0FF) << 8) +
-											 ((buf[3] & 0x0FF) << 0));
-						*/
-
 						int length_marker = ByteBuffer.ReadInt4(buf, 0);
 						if (count >= length_marker + 4) {
 							// Yes, complete command available.
 							// mark this area up.
 							marked_length = length_marker + 4;
 							marked_index = 4;
-							//          System.out.println("marked_length = " + marked_length);
-							//          System.out.println("marked_index = " + marked_index);
 							return;
 						}
 					}
@@ -300,7 +271,11 @@ namespace Deveel.Data.Util {
 					// Read in a block of data, block if nothing there
 					int read_in = input.Read(buf, count, buf.Length - count);
 					if (read_in == 0) {
-						throw new EndOfStreamException();
+						//TODO: Check this format...
+						// throw new EndOfStreamException();
+
+						// zero bytes read means that the stream is finished...
+						return;
 					}
 					count += read_in;
 				}

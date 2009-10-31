@@ -39,6 +39,13 @@ namespace Deveel.Data.Util {
 			public int Available {
 				get { return (Socket.Connected ? Socket.Available : 0); }
 			}
+
+			public override int Read(byte[] buffer, int offset, int size) {
+				if (!Socket.Connected)
+					return 0;
+
+				return base.Read(buffer, offset, size);
+			}
 		}
 
 		public int Available {
