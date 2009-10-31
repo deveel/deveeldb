@@ -230,7 +230,7 @@ namespace Deveel.Data {
 		/// each entry.
 		/// </remarks>
 		/// <returns></returns>
-		private int rehashRIDList(int old_rid_place) {
+		private int RehashRidList(int old_rid_place) {
 			CalcHashRidDifference(set_list.Count);
 
 			int new_rid_place = -1;
@@ -360,7 +360,7 @@ namespace Deveel.Data {
 			if (given_rid == -1) {
 				if (previous_rid + 1 == next_rid) {
 					// There's no room so we have to rehash the rid list.
-					given_rid = rehashRIDList(next_rid);
+					given_rid = RehashRidList(next_rid);
 				} else {
 					given_rid = ((next_rid + 1) + (previous_rid - 1)) / 2;
 				}
@@ -421,7 +421,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// The list will be built on the database dispatcher thread.
 		/// </remarks>
-		internal void requestBuildRIDList() {
+		internal void RequestBuildRidList() {
 			if (!IsBuilt) {
 				if (!request_processing) {
 					request_processing = true;

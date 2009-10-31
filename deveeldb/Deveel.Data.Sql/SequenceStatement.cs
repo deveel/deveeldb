@@ -41,33 +41,33 @@ namespace Deveel.Data.Sql {
 
 		// ----------- Implemented from Statement ----------
 
-		public override void Prepare() {
-			type = (String)cmd.GetObject("type");
-			String sname = (String)cmd.GetObject("seq_name");
-			String schema_name = database.CurrentSchema;
+		internal override void Prepare() {
+			type = GetString("type");
+			String sname = GetString("seq_name");
+			String schema_name = Connection.CurrentSchema;
 			seq_name = TableName.Resolve(schema_name, sname);
-			seq_name = database.TryResolveCase(seq_name);
+			seq_name = Connection.TryResolveCase(seq_name);
 
 			if (type.Equals("create")) {
 				// Resolve the function name into a TableName object.    
-				increment = (Expression)cmd.GetObject("increment");
-				min_value = (Expression)cmd.GetObject("min_value");
-				max_value = (Expression)cmd.GetObject("max_value");
-				start_value = (Expression)cmd.GetObject("start");
-				cache_value = (Expression)cmd.GetObject("cache");
-				cycle = cmd.GetObject("cycle") != null;
+				increment = GetExpression("increment");
+				min_value = GetExpression("min_value");
+				max_value = GetExpression("max_value");
+				start_value = GetExpression("start");
+				cache_value = GetExpression("cache");
+				cycle = GetValue("cycle") != null;
 			}
 
 		}
 
-		public override Table Evaluate() {
+		internal override Table Evaluate() {
 
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Does the schema exist?
-			bool ignore_case = database.IsInCaseInsensitiveMode;
+			bool ignore_case = Connection.IsInCaseInsensitiveMode;
 			SchemaDef schema =
-					  database.ResolveSchemaCase(seq_name.Schema, ignore_case);
+					  Connection.ResolveSchemaCase(seq_name.Schema, ignore_case);
 			if (schema == null) {
 				throw new DatabaseException("Schema '" + seq_name.Schema +
 											"' doesn't exist.");
@@ -78,14 +78,14 @@ namespace Deveel.Data.Sql {
 			if (type.Equals("create")) {
 
 				// Does the user have privs to create this sequence generator?
-				if (!database.Database.CanUserCreateSequenceObject(context,
-																		user, seq_name)) {
+				if (!Connection.Database.CanUserCreateSequenceObject(context,
+																		User, seq_name)) {
 					throw new UserAccessException(
 									"User not permitted to create sequence: " + seq_name);
 				}
 
 				// Does a table already exist with this name?
-				if (database.TableExists(seq_name)) {
+				if (Connection.TableExists(seq_name)) {
 					throw new DatabaseException("Database object with name '" + seq_name +
 												"' already exists.");
 				}
@@ -129,31 +129,30 @@ namespace Deveel.Data.Sql {
 								   "Start value is outside the min/max sequence bounds.");
 				}
 
-				database.CreateSequenceGenerator(seq_name,
+				Connection.CreateSequenceGenerator(seq_name,
 					   v_start_value, v_increment_by, v_min_value, v_max_value,
 					   v_cache, cycle);
 
 				// The initial grants for a sequence is to give the user who created it
 				// full access.
-				database.GrantManager.Grant(
+				Connection.GrantManager.Grant(
 					 Privileges.ProcedureAll, GrantObject.Table,
-					 seq_name.ToString(), user.UserName, true,
+					 seq_name.ToString(), User.UserName, true,
 					 Database.InternalSecureUsername);
 
 			} else if (type.Equals("drop")) {
 
 				// Does the user have privs to create this sequence generator?
-				if (!database.Database.CanUserDropSequenceObject(context,
-																	  user, seq_name)) {
+				if (!Connection.Database.CanUserDropSequenceObject(context,
+																	  User, seq_name)) {
 					throw new UserAccessException(
 									"User not permitted to drop sequence: " + seq_name);
 				}
 
-				database.DropSequenceGenerator(seq_name);
+				Connection.DropSequenceGenerator(seq_name);
 
 				// Drop the grants for this object
-				database.GrantManager.RevokeAllGrantsOnObject(
-											  GrantObject.Table, seq_name.ToString());
+				Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, seq_name.ToString());
 
 			} else {
 				throw new Exception("Unknown type: " + type);

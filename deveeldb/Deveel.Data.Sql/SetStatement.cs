@@ -57,31 +57,31 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		public override void Prepare() {
-			type = (String)cmd.GetObject("type");
-			var_name = (String)cmd.GetObject("var_name");
-			exp = (Expression)cmd.GetObject("exp");
-			value = (String)cmd.GetObject("value");
+		internal override void Prepare() {
+			type = GetString("type");
+			var_name = GetString("var_name");
+			exp = GetExpression("exp");
+			value = GetString("value");
 		}
 
-		public override Table Evaluate() {
+		internal override Table Evaluate() {
 
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			String com = type.ToLower();
 
 			if (com.Equals("varset")) {
-				database.SetVariable(var_name, exp);
+				Connection.SetVariable(var_name, exp);
 			} else if (com.Equals("isolationset")) {
-				database.TransactionIsolation = (IsolationLevel) Enum.Parse(typeof(IsolationLevel), value, true);
+				Connection.TransactionIsolation = (IsolationLevel) Enum.Parse(typeof(IsolationLevel), value, true);
 			} else if (com.Equals("autocommit")) {
 				value = value.ToLower();
 				if (value.Equals("on") ||
 					value.Equals("1")) {
-					database.AutoCommit = true;
+					Connection.AutoCommit = true;
 				} else if (value.Equals("off") ||
 						 value.Equals("0")) {
-					database.AutoCommit = false;
+					Connection.AutoCommit = false;
 				} else {
 					throw new DatabaseException("Unrecognised value for SET AUTO COMMIT");
 				}
@@ -91,7 +91,7 @@ namespace Deveel.Data.Sql {
 				// mid-process.
 
 				// Change the connection to the schema
-				database.SetDefaultSchema(value);
+				Connection.SetDefaultSchema(value);
 
 			} else {
 				throw new DatabaseException("Unrecognised set command.");

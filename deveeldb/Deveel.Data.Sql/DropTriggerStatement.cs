@@ -36,32 +36,31 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		public override void Prepare() {
-			trigger_name = (String)cmd.GetObject("trigger_name");
+		internal override void Prepare() {
+			trigger_name = GetString("trigger_name");
 		}
 
 		/// <inheritdoc/>
-		public override Table Evaluate() {
+		internal override Table Evaluate() {
 
-			String type = (String)cmd.GetObject("type");
+			String type = GetString("type");
 
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			if (type.Equals("callback_trigger")) {
-				database.DeleteTrigger(trigger_name);
+				Connection.DeleteTrigger(trigger_name);
 			} else {
 
 				// Convert the trigger into a table name,
-				String schema_name = database.CurrentSchema;
+				String schema_name = Connection.CurrentSchema;
 				TableName t_name = TableName.Resolve(schema_name, trigger_name);
-				t_name = database.TryResolveCase(t_name);
+				t_name = Connection.TryResolveCase(t_name);
 
-				ConnectionTriggerManager manager = database.ConnectionTriggerManager;
+				ConnectionTriggerManager manager = Connection.ConnectionTriggerManager;
 				manager.DropTrigger(t_name.Schema, t_name.Name);
 
 				// Drop the grants for this object
-				database.GrantManager.RevokeAllGrantsOnObject(
-											  GrantObject.Table, t_name.ToString());
+				Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, t_name.ToString());
 			}
 
 			// Return '0' if we created the trigger.

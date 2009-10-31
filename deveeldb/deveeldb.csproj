@@ -103,6 +103,8 @@
     <Compile Include="Deveel.Data.Functions\SoundexFunction.cs" />
     <Compile Include="Deveel.Data.Functions\TanFunction.cs" />
     <Compile Include="Deveel.Data.Functions\TanHFunction.cs" />
+    <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
+    <Compile Include="Deveel.Data.Sql\ColumnConstraints.cs" />
     <Compile Include="Deveel.Data.Sql\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateFunctionStatement.cs" />
@@ -117,6 +119,8 @@
     <Compile Include="Deveel.Data.Text\DeveelRegexLibrary.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
+    <Compile Include="Deveel.Data\ConstraintAction.cs" />
+    <Compile Include="Deveel.Data\ConstraintDeferrability.cs" />
     <Compile Include="Deveel.Data\DatabaseEventHandler.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
@@ -245,19 +249,18 @@
     <Compile Include="Deveel.Data.Sql\ByColumn.cs" />
     <Compile Include="Deveel.Data.Sql\CallStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnChecker.cs" />
-    <Compile Include="Deveel.Data.Sql\ColumnDef.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlColumn.cs" />
     <Compile Include="Deveel.Data.Sql\CompactStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\CompleteTransactionStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\ConstraintDef.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlConstraint.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DeleteStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql\FromClause.cs" />
-    <Compile Include="Deveel.Data.Sql\FromTableDef.cs" />
+    <Compile Include="Deveel.Data.Sql\FromTable.cs" />
     <Compile Include="Deveel.Data.Sql\FromTableDirectSource.cs" />
-    <Compile Include="Deveel.Data.Sql\IFromTable.cs" />
+    <Compile Include="Deveel.Data.Sql\IFromTableSource.cs" />
     <Compile Include="Deveel.Data.Sql\FromTableSubQuerySource.cs" />
     <Compile Include="Deveel.Data.Sql\FunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql\InsertStatement.cs" />
@@ -369,7 +372,6 @@
     <Compile Include="Deveel.Data\RawTableInformation.cs" />
     <Compile Include="Deveel.Data\RecordState.cs" />
     <Compile Include="Deveel.Data\ReferenceTable.cs" />
-    <Compile Include="Deveel.Data\RIDList.cs" />
     <Compile Include="Deveel.Data\IRootTable.cs" />
     <Compile Include="Deveel.Data\RowData.cs" />
     <Compile Include="Deveel.Data\IRowEnumerator.cs" />
@@ -384,7 +386,7 @@
     <Compile Include="Deveel.Data.Sql\StatementCache.cs" />
     <Compile Include="Deveel.Data\StatementException.cs" />
     <Compile Include="Deveel.Data.Sql\StatementTree.cs" />
-    <Compile Include="Deveel.Data\IStatementTreeObject.cs" />
+    <Compile Include="Deveel.Data.Sql\IStatementTreeObject.cs" />
     <Compile Include="Deveel.Data\StateStore.cs" />
     <Compile Include="Deveel.Data\IStoreSystem.cs" />
     <Compile Include="Deveel.Data\SubsetColumnTable.cs" />
@@ -539,7 +541,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PreBuildEvent>REM java -classpath $(ProjectDir)..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=$(ProjectDir)Deveel.Data.Sql $(ProjectDir)Deveel.Data.Sql\SQL.csc</PreBuildEvent>
+    <PreBuildEvent>java -classpath $(ProjectDir)..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=$(ProjectDir)Deveel.Data.Sql $(ProjectDir)Deveel.Data.Sql\SQL.csc</PreBuildEvent>
     <ProjectGuid>{50D02908-5743-4E72-83B5-77C5712EA59A}</ProjectGuid>
     <RootNamespace>Deveel.Data</RootNamespace>
   </PropertyGroup>

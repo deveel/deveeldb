@@ -487,7 +487,8 @@ StatementTree Statement() :
       | ob=Grant()
       | ob=Revoke()
       
-      | ob=CompleteTransaction()    // Either 'commit' or 'rollback'
+      | ob=Commit()
+      | ob=Rollback()
       | ob=Set()
       
       | ob=ShutDown()
@@ -642,9 +643,7 @@ StatementTree CreateTable() :
        table_name = TableName()
        ColumnDeclarationList(column_list, constraint_list)
      [ <CHECK> check_expression = DoExpression()
-            { ConstraintDef check_constraint = new ConstraintDef();
-              check_constraint.SetCheck(check_expression);
-              constraint_list.Add(check_constraint); }
+            { constraint_list.Add(SqlConstraint.Check(check_expression)); }
      ]
 
 //     [ CreateOptions(statement) ]
@@ -1105,19 +1104,23 @@ StatementTree Revoke() :
 }
 
 
-
-StatementTree CompleteTransaction() :
-{ StatementTree cmd = new StatementTree(typeof(CompleteTransactionStatement));
-  String command;
+StatementTree Commit() :
+{ 
+  StatementTree cmd = new StatementTree(typeof(CommitStatement)); 
 }
 {
+   <COMMIT>
 
-  (   <COMMIT>   { command = "commit"; }
-    | <ROLLBACK> { command = "rollback"; }
-  )
+  { return cmd; }
+}
 
-  { cmd.SetObject("command", command);
-    return cmd; }
+StatementTree Rollback() :
+{
+ StatementTree cmd = new StatementTree(typeof(RollbackStatement));
+}
+{
+  <ROLLBACK>
+  { return cmd; }
 }
 
 StatementTree Set() :
@@ -1234,7 +1237,7 @@ void PrivListItem(ArrayList list) :
 // A table expression 
 TableSelectExpression GetTableSelectExpression() :
 { TableSelectExpression table_expr = new TableSelectExpression();
-  String composite = "";
+  CompositeFunction composite = CompositeFunction.None;
   bool is_all = false;
   TableSelectExpression next_composite_expression;
 }
@@ -1242,15 +1245,15 @@ TableSelectExpression GetTableSelectExpression() :
   ( <SELECT>
         ( 
           <IDENTITY> { table_expr.columns.Add(Sql.SelectColumn.Identity); } |
-          [ table_expr.distinct = SetQuantifier() ] 
+          [ table_expr.Distinct = SetQuantifier() ] 
           SelectColumnList(table_expr.columns) 
         )
-        [ <FROM> SelectTableList(table_expr.from_clause) ]
-        [ <WHERE> ConditionsExpression(table_expr.where_clause) ]
+        [ <FROM> SelectTableList(table_expr.From) ]
+        [ <WHERE> ConditionsExpression(table_expr.Where) ]
 
-        [ <GROUPBY> SelectGroupByList(table_expr.group_by)
-          [ <GROUPMAX> table_expr.group_max = GroupMaxColumn() ] 
-          [ <HAVING> ConditionsExpression(table_expr.having_clause) ] ]
+        [ <GROUPBY> SelectGroupByList(table_expr.GroupBy)
+          [ <GROUPMAX> table_expr.GroupMax = GroupMaxColumn() ] 
+          [ <HAVING> ConditionsExpression(table_expr.Having) ] ]
 
         [ composite = GetComposite() [ <ALL> { is_all = true; } ]
           next_composite_expression = GetTableSelectExpression()
@@ -1262,44 +1265,44 @@ TableSelectExpression GetTableSelectExpression() :
 
 AlterTableAction GetAlterTableAction() :
 { String col_name, con_name;
-  ColumnDef column_def;
-  ConstraintDef constraint_def;
+  SqlColumn column;
+  SqlConstraint constraint_def;
   Expression default_exp;
   AlterTableAction action = new AlterTableAction();
 }
 {
   (   <SQLADD>
-      (   [ <SQLCOLUMN> ] column_def=ColumnDefinition()
-          { action.Action = "ADD";
-            action.Elements.Add(column_def);
+      (   [ <SQLCOLUMN> ] column=ColumnDefinition()
+          { action.Action = AlterTableActionType.AddColumn;
+            action.Elements.Add(column);
           }
         | constraint_def=TableConstraintDefinition()
-          { action.Action = "ADD_CONSTRAINT";
+          { action.Action = AlterTableActionType.AddConstraint;
             action.Elements.Add(constraint_def);
           }
       )
     | <ALTER> [ <SQLCOLUMN> ] col_name=ColumnName()
       (   <SET> default_exp=DoExpression()
-          { action.Action = "ALTERSET";
+          { action.Action = AlterTableActionType.SetDefault;
             action.Elements.Add(col_name);
             action.Elements.Add(default_exp);
           }
         | <DROP> <SQLDEFAULT>
-          { action.Action = "DROPDEFAULT";
+          { action.Action = AlterTableActionType.DropDefault;
             action.Elements.Add(col_name);
           }
       )
     | <DROP>
       (   [ <SQLCOLUMN> ] col_name=ColumnName()
-          { action.Action = "DROP";
+          { action.Action = AlterTableActionType.DropColumn;
             action.Elements.Add(col_name);
           }
         | <CONSTRAINT> con_name=ConstraintName()
-          { action.Action = "DROP_CONSTRAINT";
+          { action.Action = AlterTableActionType.DropConstraint;
             action.Elements.Add(con_name);
           }
         | <PRIMARY> <KEY>
-          { action.Action = "DROP_CONSTRAINT_PRIMARY_KEY";
+          { action.Action = AlterTableActionType.DropPrimaryKey;
           }
       )
   )
@@ -1364,26 +1367,25 @@ SelectColumn SelectColumn() :
 { SelectColumn col = new SelectColumn();
   String aliased_name;
   Token t;
+  Expression exp;
 }
 { 
-  (   col.expression = DoExpression() [ <AS> ] [ col.alias=TableAliasName() ]
-    | <STAR> { col.glob_name = "*"; }
-    | t = <GLOBVARIABLE> { col.glob_name = CaseCheck(t.image); }
-    | t = <QUOTEDGLOBVARIABLE> { col.glob_name = CaseCheck(Util.AsNonQuotedRef(t)); }
+  (   exp = DoExpression() { col.SetExpression(exp); } [ <AS> ] [ aliased_name=TableAliasName() { col.SetAlias(aliased_name); } ]
+    | <STAR> { col = Sql.SelectColumn.Glob("*"); }
+    | t = <GLOBVARIABLE> { col = Sql.SelectColumn.Glob(CaseCheck(t.image)); }
+    | t = <QUOTEDGLOBVARIABLE> { col = Sql.SelectColumn.Glob(CaseCheck(Util.AsNonQuotedRef(t))); }
   )
   { return col; }
 }
 
-void SelectGroupByList(ArrayList list) :
+void SelectGroupByList(IList list) :
 { ByColumn col;
   Expression exp;
 }
 {
-    exp = DoExpression() { col = new ByColumn();
-                           col.exp = exp;
+    exp = DoExpression() { col = new ByColumn(exp);
                            list.Add(col); }
-  ( "," exp = DoExpression() { col = new ByColumn();
-                               col.exp = exp;
+  ( "," exp = DoExpression() { col = new ByColumn(exp);
                                list.Add(col); } )*
   
 }
@@ -1408,14 +1410,10 @@ void SelectOrderByList(ArrayList list) :
 }
 {
     exp = DoExpression() [ ascending=OrderingSpec() ]
-                         { col = new ByColumn();
-                           col.exp = exp;
-                           col.ascending = ascending;
+                         { col = new ByColumn(exp, ascending);
                            list.Add(col); }
   ( "," exp = DoExpression() { ascending=true; } [ ascending=OrderingSpec() ]
-                         { col = new ByColumn();
-                           col.exp = exp;
-                           col.ascending = ascending;
+                         { col = new ByColumn(exp, ascending);
                            list.Add(col); } )*
   
 }
@@ -1454,7 +1452,7 @@ void FromClauseJoin(FromClause from_clause) :
   (
       (
         ","
-        { from_clause.addJoin(JoinType.INNER_JOIN);}
+        { from_clause.AddJoin(JoinType.INNER_JOIN);}
       ) [ SelectTableList(from_clause) ]
     | (
         [ <INNER> ] <JOIN> TableDeclaration(from_clause) <ON> on_expression=DoExpression()
@@ -1521,8 +1519,8 @@ void ColumnDeclarationList(ArrayList column_list, ArrayList constraint_list) :
 }
 
 void ColumnOrConstraintDefinition(ArrayList column_list, ArrayList constraint_list) :
-{ ColumnDef coldef = null;
-  ConstraintDef condef = null;
+{ SqlColumn coldef = null;
+  SqlConstraint condef = null;
 }
 {
   (   coldef = ColumnDefinition()           { column_list.Add(coldef); }
@@ -1530,18 +1528,18 @@ void ColumnOrConstraintDefinition(ArrayList column_list, ArrayList constraint_li
   )
 }
 
-ColumnDef ColumnDefinition() :
-{ ColumnDef column = new ColumnDef();
+SqlColumn ColumnDefinition() :
+{ SqlColumn column = new SqlColumn(true);
   Token t;
   Token col_constraint;
   Expression default_exp;
   String col_name;
 }
 {
-  ( col_name = ColumnName() { column.Name = col_name; }
+  ( col_name = ColumnName() { column.SetName(col_name); }
     ColumnDataType(column)
     [ <IDENTITY> { column.Identity=true; } ]
-    [ <SQLDEFAULT> default_exp = DoExpression() { column.SetDefaultExpression(default_exp); } ]
+    [ <SQLDEFAULT> default_exp = DoExpression() { column.Default = default_exp; } ]
     ( ColumnConstraint(column) )*
     [ ( t=<INDEX_BLIST> | t=<INDEX_NONE> ) { column.SetIndex(t); } ] 
   )
@@ -1551,7 +1549,7 @@ ColumnDef ColumnDefinition() :
 }
 
 // Constraint on a column, eg. 'NOT NULL', 'NULL', 'PRIMARY KEY', 'UNIQUE', etc.
-void ColumnConstraint(ColumnDef column) :
+void ColumnConstraint(SqlColumn column) :
 { Token t;
   String table_name;
   ArrayList col_list = new ArrayList();
@@ -1693,33 +1691,33 @@ TType GetTType() :
   )
 }
 
-// Data type of a ColumnDef (eg. "varchar(50)", etc)
-void ColumnDataType(ColumnDef column) :
+// Data type of a SqlColumn (eg. "varchar(50)", etc)
+void ColumnDataType(SqlColumn column) :
 { TType type;
 }
 {
-  type = GetTType() { column.Type = type; }
+  type = GetTType() { column.SetType(type); }
 }
 
 
-ConstraintDef TableConstraintDefinition() :
-{ ConstraintDef constraint = new ConstraintDef();
+SqlConstraint TableConstraintDefinition() :
+{ SqlConstraint constraint = null;
   ArrayList column_list = new ArrayList();
   ArrayList column_list2 = new ArrayList();
-  String constraint_name;
-  String update_rule = "NO ACTION";
-  String delete_rule = "NO ACTION";
+  String constraint_name = null;
+  ConstraintAction update_rule = ConstraintAction.NO_ACTION;
+  ConstraintAction delete_rule = ConstraintAction.NO_ACTION;
   Expression expression;
   String name;
   String reference_table;
   Token t;
 }
 {
-  ( [ <CONSTRAINT> constraint_name = ConstraintName() { constraint.Name = constraint_name; }  ]
+  ( [ <CONSTRAINT> constraint_name = ConstraintName() ]
 
-    (   <PRIMARY> <KEY> "(" BasicColumnList(column_list) ")" { constraint.SetPrimaryKey(column_list); }
-      | <UNIQUE> "(" BasicColumnList(column_list) ")"      { constraint.SetUnique(column_list); }
-      | <CHECK> "(" expression = DoExpression() ")"        { constraint.SetCheck(expression); }
+    (   <PRIMARY> <KEY> "(" BasicColumnList(column_list) ")" { constraint = SqlConstraint.PrimaryKey((string[])column_list.ToArray(typeof(string))); }
+      | <UNIQUE> "(" BasicColumnList(column_list) ")"      { constraint = SqlConstraint.Unique((string[])column_list.ToArray(typeof(string))); }
+      | <CHECK> "(" expression = DoExpression() ")"        { constraint = SqlConstraint.Check(expression); }
       | <FOREIGN> <KEY> "(" BasicColumnList(column_list) ")"
         <REFERENCES> reference_table=TableName() [ "(" BasicColumnList(column_list2) ")" ]
         [   LOOKAHEAD(2) ( <ON> <DELETE> delete_rule=ReferentialTrigger()
@@ -1729,7 +1727,7 @@ ConstraintDef TableConstraintDefinition() :
               [ <ON> <DELETE> delete_rule=ReferentialTrigger() ]
             )
         ]
-        { constraint.SetForeignKey(reference_table, column_list, column_list2, delete_rule, update_rule); }
+        { constraint = SqlConstraint.ForeignKey(reference_table, (string[])column_list.ToArray(typeof(string)), (string[])column_list2.ToArray(typeof(string)), delete_rule, update_rule); }
     )
 
     // Constraint deferrability
@@ -1737,26 +1735,27 @@ ConstraintDef TableConstraintDefinition() :
    
   )
   
-  { return constraint; }
+  { if (constraint_name != null) constraint.Name = constraint_name;
+    return constraint; }
 
 }
 
-String ReferentialTrigger() :
+ConstraintAction ReferentialTrigger() :
 { Token t;
-  String trigger_str;
+  ConstraintAction action;
 }
 {
-  (   <NO> <ACTION>                     { trigger_str="NO ACTION"; }
-    | <RESTRICT>                        { trigger_str="NO ACTION"; }
-    | <CASCADE>                         { trigger_str="CASCADE"; }
-    | LOOKAHEAD(2) <SET> <NULL_LITERAL> { trigger_str="SET NULL"; }
-    | <SET> <SQLDEFAULT>                { trigger_str="SET DEFAULT"; }
+  (   <NO> <ACTION>                     { action = ConstraintAction.NO_ACTION; }
+    | <RESTRICT>                        { action = ConstraintAction.NO_ACTION; }
+    | <CASCADE>                         { action = ConstraintAction.CASCADE; }
+    | LOOKAHEAD(2) <SET> <NULL_LITERAL> { action = ConstraintAction.SET_NULL; }
+    | <SET> <SQLDEFAULT>                { action = ConstraintAction.SET_DEFAULT; }
   )
 
-  { return trigger_str; }
+  { return action; }
 }
 
-void ConstraintAttributes(ConstraintDef constraint) :
+void ConstraintAttributes(SqlConstraint constraint) :
 {
 }
 {
@@ -1811,7 +1810,7 @@ void ConditionsExpression(SearchExpression se) :
 {
   exp = DoExpression()
 
-  { se.FromExpression = exp; }
+  { se.SetFromExpression(exp); }
 }
 
 
@@ -2296,12 +2295,16 @@ Expression[] ExpressionList() :
 }
 
 
-String GetComposite() :
-{ Token name; }
+CompositeFunction GetComposite() :
+{ CompositeFunction composite = CompositeFunction.None; }
 {
-  ( name = <UNION> | name = <INTERSECT> | name = <EXCEPT> )
+  ( 
+     <UNION> { composite = CompositeFunction.Union; } | 
+     <INTERSECT> { composite = CompositeFunction.Intersect; } | 
+     <EXCEPT> { composite = CompositeFunction.Except; }
+  )
   
-  { return name.image; }
+  { return composite; }
 }
 
 

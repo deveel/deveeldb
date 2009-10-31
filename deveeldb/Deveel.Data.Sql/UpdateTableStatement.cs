@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// An array of Assignment objects which represent what we are changing.
 		/// </summary>
-		private ArrayList column_sets;
+		private IList column_sets;
 
 		/// <summary>
 		/// If the update statement has a 'where' clause, then this is set here.
@@ -85,36 +85,36 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		public override void Prepare() {
+		internal override void Prepare() {
 
-			table_name = (String)cmd.GetObject("table_name");
-			column_sets = (ArrayList)cmd.GetObject("assignments");
-			where_condition = (SearchExpression)cmd.GetObject("where_clause");
-			limit = cmd.GetInt("limit");
+			table_name = GetString("table_name");
+			column_sets = GetList("assignments");
+			where_condition = (SearchExpression)GetValue("where_clause");
+			limit = GetInteger("limit");
 
 			// ---
 
 			// Resolve the TableName object.
-			tname = ResolveTableName(table_name, database);
+			tname = ResolveTableName(table_name, Connection);
 			// Does the table exist?
-			if (!database.TableExists(tname)) {
+			if (!Connection.TableExists(tname)) {
 				throw new DatabaseException("Table '" + tname + "' does not exist.");
 			}
 			// Get the table we are updating
-			update_table = database.GetTable(tname);
+			update_table = Connection.GetTable(tname);
 
 			// Form a TableSelectExpression that represents the select on the table
 			TableSelectExpression select_expression = new TableSelectExpression();
 			// Create the FROM clause
-			select_expression.from_clause.AddTable(table_name);
+			select_expression.From.AddTable(table_name);
 			// Set the WHERE clause
-			select_expression.where_clause = where_condition;
+			select_expression.Where = where_condition;
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
 			TableExpressionFromSet from_set =
-							   Planner.GenerateFromSet(select_expression, database);
+							   Planner.GenerateFromSet(select_expression, Connection);
 			// Form the plan
-			plan = Planner.FormQueryPlan(database, select_expression, from_set, null);
+			plan = Planner.FormQueryPlan(Connection, select_expression, from_set, null);
 
 			// Resolve the variables in the assignments.
 			for (int i = 0; i < column_sets.Count; ++i) {
@@ -125,22 +125,22 @@ namespace Deveel.Data.Sql {
 					throw new StatementException("Reference not found: " + orig_var);
 				}
 				orig_var.Set(new_var);
-				assignment.PrepareExpressions(from_set.ExpressionQualifier);
+				((IStatementTreeObject) assignment).PrepareExpressions(from_set.ExpressionQualifier);
 			}
 
 			// Resolve all tables linked to this
 			TableName[] linked_tables =
-									 database.QueryTablesRelationallyLinkedTo(tname);
+									 Connection.QueryTablesRelationallyLinkedTo(tname);
 			relationally_linked_tables = new ArrayList(linked_tables.Length);
 			for (int i = 0; i < linked_tables.Length; ++i) {
-				relationally_linked_tables.Add(database.GetTable(linked_tables[i]));
+				relationally_linked_tables.Add(Connection.GetTable(linked_tables[i]));
 			}
 
 		}
 
-		public override Table Evaluate() {
+		internal override Table Evaluate() {
 
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Generate a list of Variable objects that represent the list of columns
 			// being changed.
@@ -151,27 +151,28 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Check that this user has privs to update the table.
-			if (!database.Database.CanUserUpdateTableObject(context,
-														  user, tname, col_var_list)) {
+			if (!Connection.Database.CanUserUpdateTableObject(context,
+														  User, tname, col_var_list)) {
 				throw new UserAccessException(
 									"User not permitted to update table: " + table_name);
 			}
 
 			// Check the user has select permissions on the tables in the plan.
-			SelectStatement.CheckUserSelectPermissions(context, user, plan);
+			SelectStatement.CheckUserSelectPermissions(context, User, plan);
 
 			// Evaluate the plan to find the update set.
 			Table update_set = plan.Evaluate(context);
 
 			// Make an array of assignments
-			Assignment[] assign_list = (Assignment[])column_sets.ToArray(typeof(Assignment));
+			Assignment[] assign_list = new Assignment[column_sets.Count];
+			column_sets.CopyTo(assign_list, 0);
 			// Update the data table.
 			int update_count = update_table.Update(context,
 												   update_set, assign_list, limit);
 
 			// Notify TriggerManager that we've just done an update.
 			if (update_count > 0) {
-				database.OnTriggerEvent(new TriggerEvent(
+				Connection.OnTriggerEvent(new TriggerEvent(
 								  TriggerEventType.Update, tname.ToString(), update_count));
 			}
 

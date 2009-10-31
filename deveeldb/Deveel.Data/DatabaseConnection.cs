@@ -1352,7 +1352,11 @@ namespace Deveel.Data {
 		 * If identifiers are case insensitive, we resolve the case of the schema
 		 * name also.
 		 */
-		public SchemaDef resolveSchemaName(String name) {
+		///<summary>
+		///</summary>
+		///<param name="name"></param>
+		///<returns></returns>
+		public SchemaDef ResolveSchemaName(String name) {
 			bool ignore_case = IsInCaseInsensitiveMode;
 			return ResolveSchemaCase(name, ignore_case);
 		}
@@ -1376,7 +1380,7 @@ namespace Deveel.Data {
 
 		/// <inheritdoc cref="Data.Transaction.AddUniqueConstraint"/>
 		public void AddUniqueConstraint(TableName table_name, String[] cols,
-										short deferred, String constraint_name) {
+										ConstraintDeferrability deferred, String constraint_name) {
 			// Assert
 			CheckExclusive();
 			Transaction.AddUniqueConstraint(table_name, cols,deferred, constraint_name);
@@ -1385,8 +1389,8 @@ namespace Deveel.Data {
 		/// <inheritdoc cref="Data.Transaction.AddForeignKeyConstraint"/>
 		public void AddForeignKeyConstraint(TableName table, String[] cols,
 			TableName ref_table, String[] ref_cols,
-			String delete_rule, String update_rule,
-			short deferred, String constraint_name) {
+			ConstraintAction delete_rule, ConstraintAction update_rule,
+			ConstraintDeferrability deferred, String constraint_name) {
 			// Assert
 			CheckExclusive();
 			Transaction.AddForeignKeyConstraint(table, cols, ref_table, ref_cols,
@@ -1396,14 +1400,14 @@ namespace Deveel.Data {
 
 		/// <inheritdoc cref="Data.Transaction.AddPrimaryKeyConstraint"/>
 		public void AddPrimaryKeyConstraint(TableName table_name, String[] cols,
-											short deferred, String constraint_name) {
+											ConstraintDeferrability deferred, String constraint_name) {
 			// Assert
 			CheckExclusive();
 			Transaction.AddPrimaryKeyConstraint(table_name, cols, deferred, constraint_name);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.AddCheckConstraint"/>
-		public void AddCheckConstraint(TableName table_name, Expression expression, short deferred, String constraint_name) {
+		public void AddCheckConstraint(TableName table_name, Expression expression, ConstraintDeferrability deferred, String constraint_name) {
 			// Assert
 			CheckExclusive();
 			Transaction.AddCheckConstraint(table_name, expression, deferred, constraint_name);
@@ -1431,9 +1435,9 @@ namespace Deveel.Data {
 																	 constraint_name);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.queryTablesRelationallyLinkedTo"/>
+		/// <inheritdoc cref="Data.Transaction.QueryTablesRelationallyLinkedTo"/>
 		public TableName[] QueryTablesRelationallyLinkedTo(TableName table) {
-			return Transaction.queryTablesRelationallyLinkedTo(Transaction, table);
+			return Transaction.QueryTablesRelationallyLinkedTo(Transaction, table);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.QueryTableUniqueGroups"/>

@@ -28,24 +28,24 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private string schema_name;
 
-		public override void Prepare() {
-			schema_name = (String)cmd.GetObject("schema_name");
+		internal override void Prepare() {
+			schema_name = GetString("schema_name");
 		}
 
-		public override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
-			if (!database.Database.CanUserCreateAndDropSchema(context, user, schema_name))
+			if (!Connection.Database.CanUserCreateAndDropSchema(context, User, schema_name))
 				throw new UserAccessException("User not permitted to create or drop schema.");
 
-			bool ignore_case = database.IsInCaseInsensitiveMode;
-			SchemaDef schema = database.ResolveSchemaCase(schema_name, ignore_case);
+			bool ignore_case = Connection.IsInCaseInsensitiveMode;
+			SchemaDef schema = Connection.ResolveSchemaCase(schema_name, ignore_case);
 			if (schema == null) {
 				// Create the schema
-				database.CreateSchema(schema_name, "USER");
+				Connection.CreateSchema(schema_name, "USER");
 				// Set the default grants for the schema
-				database.GrantManager.Grant(Privileges.SchemaAll,
-							GrantObject.Schema, schema_name, user.UserName,
+				Connection.GrantManager.Grant(Privileges.SchemaAll,
+							GrantObject.Schema, schema_name, User.UserName,
 							true, Database.InternalSecureUsername);
 			} else {
 				throw new DatabaseException("Schema '" + schema_name +

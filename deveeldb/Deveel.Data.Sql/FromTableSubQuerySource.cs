@@ -24,10 +24,10 @@ using System;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
-	/// An implementation of <see cref="IFromTable"/> that wraps around a 
+	/// An implementation of <see cref="IFromTableSource"/> that wraps around a 
 	/// <see cref="TableSelectExpression"/> as a sub-query source.
 	/// </summary>
-	public class FromTableSubQuerySource : IFromTable {
+	public class FromTableSubQuerySource : IFromTableSource {
 		/// <summary>
 		/// The wrapped object.
 		/// </summary>
@@ -193,7 +193,7 @@ namespace Deveel.Data.Sql {
 
 		}
 
-		// ---------- Implemented from IFromTable ----------
+		// ---------- Implemented from IFromTableSource ----------
 
 		public string UniqueName {
 			get { return UniqueKey; }

@@ -36,31 +36,31 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		public override void Prepare() {
-			table_name = (String)cmd.GetObject("table_name");
+		internal override void Prepare() {
+			table_name = GetString("table_name");
 		}
 
 		/// <inheritdoc/>
-		public override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			//    TableName tname =
-			//                TableName.Resolve(database.getCurrentSchema(), table_name);
-			TableName tname = ResolveTableName(table_name, database);
+			//                TableName.Resolve(Connection.CurrentSchema, table_name);
+			TableName tname = ResolveTableName(table_name, Connection);
 			// Does the table exist?
-			if (!database.TableExists(tname)) {
+			if (!Connection.TableExists(tname)) {
 				throw new DatabaseException("Table '" + tname + "' does not exist.");
 			}
 
 			// Does the user have privs to compact this tables?
-			if (!database.Database.CanUserCompactTableObject(context,
-																  user, tname)) {
+			if (!Connection.Database.CanUserCompactTableObject(context,
+																  User, tname)) {
 				throw new UserAccessException(
 				   "User not permitted to compact table: " + table_name);
 			}
 
 			// Compact the table,
-			database.CompactTable(tname);
+			Connection.CompactTable(tname);
 
 			// Return '0' if success.
 			return FunctionTable.ResultTable(context, 0);

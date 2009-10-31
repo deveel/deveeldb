@@ -78,7 +78,7 @@ namespace Deveel.Diagnostics {
 				log_file_size = 0;
 			}
 
-			outputStream = new FileStream(base_name, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Inheritable);
+			outputStream = new FileStream(base_name, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
 			output = new StreamWriter(outputStream, Encoding.Default);
 
 		}

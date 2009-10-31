@@ -1,3 +1,16 @@
+2009-10-30  Antonello Provenzano  <antonello@deveel.com>
+	* IStatementTreeObject.cs: 
+		- made internal
+		- moved to namespace Deveel.Data.Sql
+	* Transaction.cs: 
+		- fields INITIALLY_DEFERRED, INITIALLY_IMMEDIATE 
+		and NOT_DEFERRABLE moved to the separate enumeration
+		ConstraintDeferrability
+		- fields for constraint actions moved to separate
+		enumeration ConstraintAction
+	* TableDataConglometate.cs: columns handling constraint
+	actions now store numeric values
+	
 2009-10-29  Antonello Provenzano  <antonello@deveel.com>
 	* IDatabaseHandler.cs: implemented to generalize database
 	management (according to the new ChangeDatabase function).

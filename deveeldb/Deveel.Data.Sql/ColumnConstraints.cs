@@ -1,9 +1,8 @@
-//  
-//  IStatementTreeObject.cs
+﻿//  
+//  ColumnConstraints.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
-//       Tobias Downer <toby@mckoi.com>
 // 
 //  Copyright (c) 2009 Deveel
 // 
@@ -22,23 +21,39 @@
 
 using System;
 
-using Deveel.Data.Sql;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	/// <summary>
-	/// An complex object that is to be contained within a <see cref="StatementTree"/> object.
+	/// The types of constraints that can be applied to a
+	/// column at definition.
 	/// </summary>
-	/// <remarks>
-	/// A statement tree object must be serializable, and it must be able to
-	/// reference all <see cref="Expression"/> objects so that they may be prepared.
-	/// </remarks>
-	public interface IStatementTreeObject : ICloneable {
+	[Flags]
+	public enum ColumnConstraints {
 		/// <summary>
-		/// Prepares all expressions in this statement tree object by 
-		/// passing the <see cref="IExpressionPreparer"/> object to the 
-		/// <see cref="Expression.Prepare"/> method of the expression.
+		/// None constraint for the column was set.
 		/// </summary>
-		/// <param name="preparer"></param>
-		void PrepareExpressions(IExpressionPreparer preparer);
+		None = 0x00,
+
+		/// <summary>
+		/// The column belongs to a <c>PRIMARY KEY</c> constraint
+		/// within the containing table.
+		/// </summary>
+		PrimaryKey = 0x01,
+
+		/// <summary>
+		/// Indiciates that the value of a column must be <c>UNIQUE</c>
+		/// for each row.
+		/// </summary>
+		Unique = 0x02,
+
+		/// <summary>
+		/// Constraints a column to contain only values that are
+		/// <c>NOT NULL</c>.
+		/// </summary>
+		NotNull = 0x04,
+
+		/// <summary>
+		/// All the column constraints possible.
+		/// </summary>
+		All = PrimaryKey | Unique | NotNull
 	}
 }

@@ -26,14 +26,14 @@ namespace Deveel.Data.Sql {
 	/// The statement that represents a <c>ROLLBACK</c> command.
 	/// </summary>
 	public sealed class RollbackStatement : Statement {
-		public override void Prepare() {
+		internal override void Prepare() {
 			// nothing to prepare...
 		}
 
-		public override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 			// Rollback the current transaction on this connection.
-			database.Rollback();
+			Connection.Rollback();
 			return FunctionTable.ResultTable(context, 0);
 		}
 	}

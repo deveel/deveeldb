@@ -133,7 +133,7 @@ namespace Deveel.Data {
 		/// The list of RIDList objects for each column in this table.  This is
 		/// a sorting optimization.
 		/// </summary>
-		protected RIDList[] column_rid_list;
+		// protected RIDList[] column_rid_list;
 
 		// ---------- Cached information ----------
 
@@ -1060,7 +1060,7 @@ namespace Deveel.Data {
 				table_indices = new MultiVersionTableIndices(System,
 															 table_name, table_def.ColumnCount);
 				// The column rid list cache
-				column_rid_list = new RIDList[table_def.ColumnCount];
+				// column_rid_list = new RIDList[table_def.ColumnCount];
 
 				// Setup the DataIndexSetDef
 				SetupDataIndexSetDef();
@@ -1162,10 +1162,12 @@ namespace Deveel.Data {
 				// If we have a rid_list for any of the columns, then update the indexing
 				// there,
 				for (int i = 0; i < column_count; ++i) {
+					/*
 					RIDList rid_list = column_rid_list[i];
 					if (rid_list != null) {
 						rid_list.RemoveRID(row_index);
 					}
+					*/
 				}
 
 				// Internally delete the row,
@@ -1646,7 +1648,7 @@ namespace Deveel.Data {
 			/// <param name="context"></param>
 			/// <exception cref="ApplicationException">
 			/// If the update action is "NO ACTION", and the constraint is 
-			/// <see cref="Transaction.INITIALLY_IMMEDIATE"/>, and 
+			/// <see cref="ConstraintDeferrability.INITIALLY_IMMEDIATE"/>, and 
 			/// the new key doesn't exist in the referral table.
 			/// </exception>
 			private void ExecuteUpdateReferentialAction(
@@ -1654,9 +1656,9 @@ namespace Deveel.Data {
 									  TObject[] original_key, TObject[] new_key,
 									  IQueryContext context) {
 
-				String update_rule = constraint.update_rule;
-				if (update_rule.Equals("NO ACTION") &&
-					constraint.deferred != Transaction.INITIALLY_IMMEDIATE) {
+				ConstraintAction update_rule = constraint.update_rule;
+				if (update_rule == ConstraintAction.NO_ACTION &&
+					constraint.deferred != ConstraintDeferrability.INITIALLY_IMMEDIATE) {
 					// Constraint check is deferred
 					return;
 				}
@@ -1673,7 +1675,7 @@ namespace Deveel.Data {
 
 				// Are there keys effected?
 				if (key_entries.Count > 0) {
-					if (update_rule.Equals("NO ACTION")) {
+					if (update_rule == ConstraintAction.NO_ACTION) {
 						// Throw an exception;
 						throw new DatabaseConstraintViolationException(
 							DatabaseConstraintViolationException.ForeignKeyViolation,
@@ -1692,25 +1694,24 @@ namespace Deveel.Data {
 							int row_index = key_entries[i];
 							RowData row_data = new RowData(key_table);
 							row_data.SetFromRow(row_index);
-							if (update_rule.Equals("CASCADE")) {
+							if (update_rule == ConstraintAction.CASCADE) {
 								// Update the keys
 								for (int n = 0; n < key_cols.Length; ++n) {
 									row_data.SetColumnData(key_cols[n], new_key[n]);
 								}
 								key_table.UpdateRow(row_index, row_data);
-							} else if (update_rule.Equals("SET NULL")) {
+							} else if (update_rule == ConstraintAction.SET_NULL) {
 								for (int n = 0; n < key_cols.Length; ++n) {
 									row_data.SetToNull(key_cols[n]);
 								}
 								key_table.UpdateRow(row_index, row_data);
-							} else if (update_rule.Equals("SET DEFAULT")) {
+							} else if (update_rule == ConstraintAction.SET_DEFAULT) {
 								for (int n = 0; n < key_cols.Length; ++n) {
 									row_data.SetToDefault(key_cols[n], context);
 								}
 								key_table.UpdateRow(row_index, row_data);
 							} else {
-								throw new Exception(
-										 "Do not understand referential action: " + update_rule);
+								throw new Exception("Do not understand referential action: " + update_rule);
 							}
 						}
 						// Check referential integrity of modified table,
@@ -1727,16 +1728,16 @@ namespace Deveel.Data {
 			/// <param name="context"></param>
 			/// <exception cref="ApplicationException">
 			/// If the delete action is "NO ACTION", and the constraint is 
-			/// <see cref="Transaction.INITIALLY_IMMEDIATE"/>, and 
+			/// <see cref="ConstraintDeferrability.INITIALLY_IMMEDIATE"/>, and 
 			/// the new key doesn't exist in the referral table.
 			/// </exception>
 			private void ExecuteDeleteReferentialAction(
 									  Transaction.ColumnGroupReference constraint,
 									  TObject[] original_key, IQueryContext context) {
 
-				String delete_rule = constraint.delete_rule;
-				if (delete_rule.Equals("NO ACTION") &&
-					constraint.deferred != Transaction.INITIALLY_IMMEDIATE) {
+				ConstraintAction delete_rule = constraint.delete_rule;
+				if (delete_rule == ConstraintAction.NO_ACTION &&
+					constraint.deferred != ConstraintDeferrability.INITIALLY_IMMEDIATE) {
 					// Constraint check is deferred
 					return;
 				}
@@ -1753,7 +1754,7 @@ namespace Deveel.Data {
 
 				// Are there keys effected?
 				if (key_entries.Count > 0) {
-					if (delete_rule.Equals("NO ACTION")) {
+					if (delete_rule == ConstraintAction.NO_ACTION) {
 						// Throw an exception;
 						throw new DatabaseConstraintViolationException(
 							DatabaseConstraintViolationException.ForeignKeyViolation,
@@ -1772,22 +1773,21 @@ namespace Deveel.Data {
 							int row_index = key_entries[i];
 							RowData row_data = new RowData(key_table);
 							row_data.SetFromRow(row_index);
-							if (delete_rule.Equals("CASCADE")) {
+							if (delete_rule == ConstraintAction.CASCADE) {
 								// Cascade the removal of the referenced rows
 								key_table.RemoveRow(row_index);
-							} else if (delete_rule.Equals("SET NULL")) {
+							} else if (delete_rule == ConstraintAction.SET_NULL) {
 								for (int n = 0; n < key_cols.Length; ++n) {
 									row_data.SetToNull(key_cols[n]);
 								}
 								key_table.UpdateRow(row_index, row_data);
-							} else if (delete_rule.Equals("SET DEFAULT")) {
+							} else if (delete_rule == ConstraintAction.SET_DEFAULT) {
 								for (int n = 0; n < key_cols.Length; ++n) {
 									row_data.SetToDefault(key_cols[n], context);
 								}
 								key_table.UpdateRow(row_index, row_data);
 							} else {
-								throw new Exception(
-										 "Do not understand referential action: " + delete_rule);
+								throw new Exception("Do not understand referential action: " + delete_rule);
 							}
 						}
 						// Check referential integrity of modified table,
@@ -2160,7 +2160,7 @@ namespace Deveel.Data {
 						// Check this table, adding the given row_index, immediate
 						TableDataConglomerate.CheckAddConstraintViolations(
 							transaction, this,
-							row_indices, Transaction.INITIALLY_IMMEDIATE);
+							row_indices, ConstraintDeferrability.INITIALLY_IMMEDIATE);
 					}
 
 				} catch (DatabaseConstraintViolationException e) {

@@ -62,19 +62,19 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		public override void Prepare() {
+		internal override void Prepare() {
 			// Get the show variables from the command model
-			show_type = (String)cmd.GetObject("show");
+			show_type = GetString("show");
 			show_type = show_type.ToLower();
-			table_name = (String)cmd.GetObject("table_name");
-			args = (Expression[])cmd.GetObject("args");
-			where_clause = (SearchExpression)cmd.GetObject("where_clause");
+			table_name = GetString("table_name");
+			args = (Expression[])GetValue("args");
+			where_clause = (SearchExpression)GetValue("where_clause");
 		}
 
-		public override Table Evaluate() {
+		internal override Table Evaluate() {
 
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
-			Database d = database.Database;
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
+			Database d = Connection.Database;
 
 			// Construct an executor for interpreting SQL queries inside here.
 			SqlCommandExecutor executor = new SqlCommandExecutor();
@@ -95,11 +95,11 @@ namespace Deveel.Data.Sql {
 					   "         \"other\" AS \"notes\" " +
 					   "    FROM INFORMATION_SCHEMA.ThisUserSchemaInfo " +
 					   "ORDER BY \"schema_name\"");
-					return executor.Execute(database, command);
+					return executor.Execute(Connection, command);
 
 				} else if (show_type.Equals("tables")) {
 
-					String current_schema = database.CurrentSchema;
+					String current_schema = Connection.CurrentSchema;
 
 					SqlCommand command = new SqlCommand(
 					   "  SELECT \"Tables.TABLE_NAME\" AS \"table_name\", " +
@@ -116,7 +116,7 @@ namespace Deveel.Data.Sql {
 					   "ORDER BY \"Tables.TABLE_NAME\"");
 					command.AddVariable(current_schema);
 
-					return executor.Execute(database, command);
+					return executor.Execute(Connection, command);
 
 				} else if (show_type.Equals("status")) {
 
@@ -125,12 +125,12 @@ namespace Deveel.Data.Sql {
 					   "         \"value\" " +
 					   "    FROM SYSTEM.sUSRDatabaseStatistics ");
 
-					return executor.Execute(database, command);
+					return executor.Execute(Connection, command);
 
 				} else if (show_type.Equals("describe_table")) {
 
-					TableName tname = ResolveTableName(table_name, database);
-					if (!database.TableExists(tname)) {
+					TableName tname = ResolveTableName(table_name, Connection);
+					if (!Connection.TableExists(tname)) {
 						throw new StatementException(
 											"Unable to find table '" + table_name + "'");
 					}
@@ -148,14 +148,14 @@ namespace Deveel.Data.Sql {
 					command.AddVariable(tname.Schema);
 					command.AddVariable(tname.Name);
 
-					return executor.Execute(database, command);
+					return executor.Execute(Connection, command);
 
 				} else if (show_type.Equals("connections")) {
 
 					SqlCommand command = new SqlCommand(
 					   "SELECT * FROM SYSTEM.sUSRCurrentConnections");
 
-					return executor.Execute(database, command);
+					return executor.Execute(Connection, command);
 
 				} else if (show_type.Equals("product")) {
 
@@ -167,7 +167,7 @@ namespace Deveel.Data.Sql {
 					   "     WHERE \"var\" = 'version' ) "
 					);
 
-					return executor.Execute(database, command);
+					return executor.Execute(Connection, command);
 
 				} else if (show_type.Equals("connection_info")) {
 
@@ -175,7 +175,7 @@ namespace Deveel.Data.Sql {
 					   "SELECT * FROM SYSTEM.sUSRConnectionInfo"
 					);
 
-					return executor.Execute(database, command);
+					return executor.Execute(Connection, command);
 
 				} 
 				 else {

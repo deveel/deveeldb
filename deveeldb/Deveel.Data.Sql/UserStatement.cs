@@ -52,9 +52,9 @@ namespace Deveel.Data.Sql {
 			// Do we lock this user?
 			if (lock_status != null) {
 				if (lock_status.Equals("LOCK")) {
-					db.SetUserLock(context, user, true);
+					db.SetUserLock(context, User, true);
 				} else {
-					db.SetUserLock(context, user, false);
+					db.SetUserLock(context, User, false);
 				}
 			}
 
@@ -85,21 +85,21 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		public override void Prepare() {
+		internal override void Prepare() {
 			// Nothing to do here
 		}
 
-		public override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
-			String command_type = (String)cmd.GetObject("type");
-			String username = (String)cmd.GetObject("username");
+			String command_type = GetString("type");
+			String username = GetString("username");
 
 			// True if current user is altering their own user record.
 			bool modify_own_record = command_type.Equals("ALTER USER") &&
-										user.UserName.Equals(username);
+										User.UserName.Equals(username);
 			// True if current user is allowed to create and drop users.
-			bool secure_access_privs = context.Database.CanUserCreateAndDropUsers(context, user);
+			bool secure_access_privs = context.Database.CanUserCreateAndDropUsers(context, User);
 
 			// Does the user have permissions to do this?  They must be part of the
 			// 'secure access' priv group or they are modifying there own record.
@@ -114,9 +114,9 @@ namespace Deveel.Data.Sql {
 			if (command_type.Equals("CREATE USER") ||
 				command_type.Equals("ALTER USER")) {
 
-				Expression password = (Expression)cmd.GetObject("password_expression");
-				Expression[] groups_list = (Expression[])cmd.GetObject("groups_list");
-				String lock_status = (String)cmd.GetObject("lock_status");
+				Expression password = GetExpression("password_expression");
+				Expression[] groups_list = (Expression[])GetValue("groups_list");
+				String lock_status = GetString("lock_status");
 
 				String password_str = null;
 				if (password != null) {

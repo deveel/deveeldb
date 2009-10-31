@@ -24,13 +24,13 @@ using System;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
-	/// An implementation of <see cref="IFromTable"/> that wraps around a 
+	/// An implementation of <see cref="IFromTableSource"/> that wraps around a 
 	/// <see cref="TableName"/>/<see cref="DataTableBase"/> object.
 	/// </summary>
 	/// <remarks>
 	/// The handles case insensitive resolution.
 	/// </remarks>
-	public class FromTableDirectSource : IFromTable {
+	public class FromTableDirectSource : IFromTableSource {
 		/// <summary>
 		/// The ITableQueryDef object that links to the underlying table.
 		/// </summary>
@@ -136,14 +136,13 @@ namespace Deveel.Data.Sql {
 		}
 
 
-		// ---------- Implemented from IFromTable ----------
+		// ---------- Implemented from IFromTableSource ----------
 
 		public string UniqueName {
 			get { return unique_name; }
 		}
 
-		public bool MatchesReference(String catalog,
-										String schema, String table) {
+		public bool MatchesReference(string catalog, string schema, string table) {
 			//    Console.Out.WriteLine("Matches reference: " + schema + " " + table);
 			//    Console.Out.WriteLine(table_name.getName());
 

@@ -1,9 +1,8 @@
-//  
-//  CommitStatement.cs
+﻿//  
+//  ConstraintAction.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
-//       Tobias Downer <toby@mckoi.com>
 // 
 //  Copyright (c) 2009 Deveel
 // 
@@ -22,27 +21,14 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
-	/// <summary>
-	/// The statements that represents a <c>COMMIT</c> command.
-	/// </summary>
-	public sealed class CommitStatement : Statement {
-		internal override void Prepare() {
-			// nothing to prepare...
-		}
-
-		internal override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-			//      try {
-			// Commit the current transaction on this connection.
-			Connection.Commit();
-			//      }
-			//      catch (TransactionException e) {
-			//        // This needs to be handled better!
-			//        Debug.WriteException(e);
-			//        throw new DatabaseException(e.Message);
-			//      }
-			return FunctionTable.ResultTable(context, 0);
-		}
+namespace Deveel.Data {
+	/**
+ * Foreign key referential trigger actions.
+ */
+	public enum ConstraintAction {
+		NO_ACTION = 0,
+		CASCADE = 1,
+		SET_NULL = 2,
+		SET_DEFAULT = 3
 	}
 }

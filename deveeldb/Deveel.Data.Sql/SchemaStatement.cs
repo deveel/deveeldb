@@ -40,32 +40,32 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		public override void Prepare() {
-			type = (String)cmd.GetObject("type");
-			schema_name = (String)cmd.GetObject("schema_name");
+		internal override void Prepare() {
+			type = GetString("type");
+			schema_name = GetString("schema_name");
 		}
 
-		public override Table Evaluate() {
+		internal override Table Evaluate() {
 
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			String com = type.ToLower();
 
-			if (!database.Database.CanUserCreateAndDropSchema(context, user, schema_name)) {
+			if (!Connection.Database.CanUserCreateAndDropSchema(context, User, schema_name)) {
 				throw new UserAccessException("User not permitted to create or drop schema.");
 			}
 
 			// Is this a create schema command?
 			if (com.Equals("create")) {
-				bool ignore_case = database.IsInCaseInsensitiveMode;
+				bool ignore_case = Connection.IsInCaseInsensitiveMode;
 				SchemaDef schema =
-							database.ResolveSchemaCase(schema_name, ignore_case);
+							Connection.ResolveSchemaCase(schema_name, ignore_case);
 				if (schema == null) {
 					// Create the schema
-					database.CreateSchema(schema_name, "USER");
+					Connection.CreateSchema(schema_name, "USER");
 					// Set the default grants for the schema
-					database.GrantManager.Grant(Privileges.SchemaAll,
-								GrantObject.Schema, schema_name, user.UserName,
+					Connection.GrantManager.Grant(Privileges.SchemaAll,
+								GrantObject.Schema, schema_name, User.UserName,
 								true, Database.InternalSecureUsername);
 				} else {
 					throw new DatabaseException("Schema '" + schema_name +
@@ -74,15 +74,15 @@ namespace Deveel.Data.Sql {
 			}
 				// Is this a drop schema command?
 			else if (com.Equals("drop")) {
-				bool ignore_case = database.IsInCaseInsensitiveMode;
+				bool ignore_case = Connection.IsInCaseInsensitiveMode;
 				SchemaDef schema =
-							database.ResolveSchemaCase(schema_name, ignore_case);
+							Connection.ResolveSchemaCase(schema_name, ignore_case);
 				// Only allow user to drop USER typed schemas
 				if (schema == null) {
 					throw new DatabaseException("Schema '" + schema_name + "' does not exist.");
 				} else if (schema.Type.Equals("USER")) {
 					// Check if the schema is empty.
-					TableName[] all_tables = database.Tables;
+					TableName[] all_tables = Connection.Tables;
 					String resolved_schema_name = schema.Name;
 					for (int i = 0; i < all_tables.Length; ++i) {
 						if (all_tables[i].Schema.Equals(resolved_schema_name)) {
@@ -91,9 +91,9 @@ namespace Deveel.Data.Sql {
 						}
 					}
 					// Drop the schema
-					database.DropSchema(schema.Name);
+					Connection.DropSchema(schema.Name);
 					// Revoke all the grants for the schema
-					database.GrantManager.RevokeAllGrantsOnObject(
+					Connection.GrantManager.RevokeAllGrantsOnObject(
 												   GrantObject.Schema, schema.Name);
 
 				} else {

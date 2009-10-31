@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The list of all columns to order by. (ByColumn)
 		/// </summary>
-		private ArrayList order_by;
+		private IList order_by;
 
 		/// <summary>
 		/// The list of columns in the 'order_by' clause fully resolved.
@@ -54,9 +54,9 @@ namespace Deveel.Data.Sql {
 		private static bool IsIdentitySelect(TableSelectExpression expression) {
 			if (expression.columns.Count != 1)
 				return false;
-			if (expression.from_clause == null)
+			if (expression.From == null)
 				return false;
-			if (expression.from_clause.AllTables.Count != 1)
+			if (expression.From.AllTables.Count != 1)
 				return false;
 
 			SelectColumn column = (SelectColumn) expression.columns[0];
@@ -94,14 +94,14 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		public override void Prepare() {
-			DatabaseConnection db = database;
+		internal override void Prepare() {
+			DatabaseConnection db = Connection;
 
 			// Prepare this object from the StatementTree,
 			// The select expression itself
-			select_expression = (TableSelectExpression)cmd.GetObject("table_expression");
+			select_expression = (TableSelectExpression)GetValue("table_expression");
 			// The order by information
-			order_by = (ArrayList)cmd.GetObject("order_by");
+			order_by = GetList("order_by");
 
 			// check to see if the construct is the special one for
 			// selecting the latest IDENTITY value from a table
@@ -109,9 +109,9 @@ namespace Deveel.Data.Sql {
 				select_expression.columns.RemoveAt(0);
 				SelectColumn curValFunction = new SelectColumn();
 				
-				FromTableDef from_table = (FromTableDef) ((ArrayList) select_expression.from_clause.AllTables)[0];
-				curValFunction.expression = Expression.Parse("IDENTITY('" + from_table.Name + "')");
-				curValFunction.alias = "IDENTITY";
+				FromTable from_table = (FromTable) ((ArrayList) select_expression.From.AllTables)[0];
+				curValFunction.SetExpression(Expression.Parse("IDENTITY('" + from_table.Name + "')"));
+				curValFunction.SetAlias("IDENTITY");
 				select_expression.columns.Add(curValFunction);
 			}
 
@@ -123,12 +123,12 @@ namespace Deveel.Data.Sql {
 		}
 
 
-		public override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Check the permissions for this user to select from the tables in the
 			// given plan.
-			CheckUserSelectPermissions(context, user, plan);
+			CheckUserSelectPermissions(context, User, plan);
 
 			bool error = true;
 			try {

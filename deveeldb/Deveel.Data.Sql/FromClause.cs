@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql {
 		private JoiningSet join_set = new JoiningSet();
 
 		/// <summary>
-		/// A list of all <see cref="FromTableDef"/> objects in this clause in 
+		/// A list of all <see cref="FromTable"/> objects in this clause in 
 		/// order of when they were specified.
 		/// </summary>
 		private ArrayList def_list = new ArrayList();
@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql {
 		}
 
 
-		private void AddTableDef(String table_name, FromTableDef def) {
+		private void AddTableDef(String table_name, FromTable table) {
 			if (table_name != null) {
 				if (all_table_names.Contains(table_name)) {
 					throw new ApplicationException("Duplicate table name in FROM clause: " + table_name);
@@ -74,11 +74,11 @@ namespace Deveel.Data.Sql {
 			}
 			// Create a new unique key for this table
 			String key = CreateNewKey();
-			def.UniqueKey = key;
+			table.UniqueKey = key;
 			// Add the table key to the join set
 			join_set.AddTable(new TableName(key));
 			// Add to the alias def map
-			def_list.Add(def);
+			def_list.Add(table);
 		}
 
 		/// <summary>
@@ -91,7 +91,7 @@ namespace Deveel.Data.Sql {
 		/// as (schema.table_name).
 		/// </remarks>
 		public void AddTable(String table_name) {
-			AddTableDef(table_name, new FromTableDef(table_name));
+			AddTableDef(table_name, new FromTable(table_name));
 		}
 
 		/// <summary>
@@ -100,7 +100,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="table_name"></param>
 		/// <param name="table_alias"></param>
 		public void AddTable(String table_name, String table_alias) {
-			AddTableDef(table_alias, new FromTableDef(table_name, table_alias));
+			AddTableDef(table_alias, new FromTable(table_name, table_alias));
 		}
 
 		/// <summary>
@@ -117,9 +117,9 @@ namespace Deveel.Data.Sql {
 			// This is an inner select in the FROM clause
 			if (table_name == null && select != null) {
 				if (table_alias == null) {
-					AddTableDef(null, new FromTableDef(select));
+					AddTableDef(null, new FromTable(select));
 				} else {
-					AddTableDef(table_alias, new FromTableDef(select, table_alias));
+					AddTableDef(table_alias, new FromTable(select, table_alias));
 				}
 			}
 				// This is a standard table reference in the FROM clause
@@ -141,7 +141,7 @@ namespace Deveel.Data.Sql {
 		/// Adds a Join to the from clause.
 		/// </summary>
 		/// <param name="type"></param>
-		public void addJoin(JoinType type) {
+		public void AddJoin(JoinType type) {
 			//    Console.Out.WriteLine("Add Join: " + type);
 			join_set.AddJoin(type);
 		}
@@ -164,7 +164,7 @@ namespace Deveel.Data.Sql {
 		///<param name="type">The type of the join.</param>
 		///<param name="on_expression">The expression representing the <c>ON</c>
 		/// condition.</param>
-		public void addJoin(JoinType type, Expression on_expression) {
+		public void AddJoin(JoinType type, Expression on_expression) {
 			join_set.AddJoin(type, on_expression);
 		}
 
@@ -196,7 +196,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		///<summary>
-		/// Returns a <see cref="ICollection">collection</see> of <see cref="FromTableDef"/> 
+		/// Returns a <see cref="ICollection">collection</see> of <see cref="FromTable"/> 
 		/// objects that represent all the tables that are in this from clause.
 		///</summary>
 		public ICollection AllTables {
@@ -204,7 +204,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <inheritdoc/>
-		public void PrepareExpressions(IExpressionPreparer preparer) {
+		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			// Prepare expressions in the JoiningSet first
 			int size = join_set.TableCount - 1;
 			for (int i = 0; i < size; ++i) {
@@ -215,14 +215,14 @@ namespace Deveel.Data.Sql {
 			}
 			// Prepare the StatementTree sub-queries in the from tables
 			for (int i = 0; i < def_list.Count; ++i) {
-				FromTableDef table_def = (FromTableDef)def_list[i];
-				table_def.PrepareExpressions(preparer);
+				FromTable table = (FromTable)def_list[i];
+				table.PrepareExpressions(preparer);
 			}
 
 		}
 
 		/// <inheritdoc/>
-		public Object Clone() {
+		public object Clone() {
 			FromClause v = (FromClause)MemberwiseClone();
 			v.join_set = (JoiningSet)join_set.Clone();
 			ArrayList cloned_def_list = new ArrayList(def_list.Count);
@@ -230,8 +230,8 @@ namespace Deveel.Data.Sql {
 			v.all_table_names = (ArrayList)all_table_names.Clone();
 
 			for (int i = 0; i < def_list.Count; ++i) {
-				FromTableDef table_def = (FromTableDef)def_list[i];
-				cloned_def_list.Add(table_def.Clone());
+				FromTable table = (FromTable)def_list[i];
+				cloned_def_list.Add(table.Clone());
 			}
 
 			return v;

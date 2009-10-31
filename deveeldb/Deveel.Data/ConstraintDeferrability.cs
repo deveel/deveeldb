@@ -1,9 +1,8 @@
-//  
-//  CommitStatement.cs
+﻿//  
+//  ConstraintDeferrability.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
-//       Tobias Downer <toby@mckoi.com>
 // 
 //  Copyright (c) 2009 Deveel
 // 
@@ -22,27 +21,13 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
-	/// <summary>
-	/// The statements that represents a <c>COMMIT</c> command.
-	/// </summary>
-	public sealed class CommitStatement : Statement {
-		internal override void Prepare() {
-			// nothing to prepare...
-		}
-
-		internal override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-			//      try {
-			// Commit the current transaction on this connection.
-			Connection.Commit();
-			//      }
-			//      catch (TransactionException e) {
-			//        // This needs to be handled better!
-			//        Debug.WriteException(e);
-			//        throw new DatabaseException(e.Message);
-			//      }
-			return FunctionTable.ResultTable(context, 0);
-		}
+namespace Deveel.Data {
+	/**
+ * The type of deferrance.
+ */
+	public enum ConstraintDeferrability : short {
+		INITIALLY_DEFERRED = 4,
+		INITIALLY_IMMEDIATE = 5,
+		NOT_DEFERRABLE = 6,
 	}
 }

@@ -34,13 +34,13 @@ namespace Deveel.Data.Sql {
 
 		String table_name;
 
-		ArrayList col_list;
+		IList col_list;
 
-		ArrayList values_list;    //list contains List of elements to insert
+		IList values_list;    //list contains List of elements to insert
 
 		StatementTree select;
 
-		ArrayList column_sets;
+		IList column_sets;
 
 		bool from_values = false;
 
@@ -90,15 +90,15 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		public override void Prepare() {
+		internal override void Prepare() {
 
 			// Prepare this object from the StatementTree
-			table_name = (String)cmd.GetObject("table_name");
-			col_list = (ArrayList)cmd.GetObject("col_list");
-			values_list = (ArrayList)cmd.GetObject("data_list");
-			select = (StatementTree)cmd.GetObject("select");
-			column_sets = (ArrayList)cmd.GetObject("assignments");
-			String type = (String)cmd.GetObject("type");
+			table_name = GetString("table_name");
+			col_list = GetList("col_list");
+			values_list = GetList("data_list");
+			select = (StatementTree)GetValue("select");
+			column_sets = GetList("assignments");
+			String type = GetString("type");
 			from_values = type.Equals("from_values");
 			from_select = type.Equals("from_select");
 			from_set = type.Equals("from_set");
@@ -116,20 +116,20 @@ namespace Deveel.Data.Sql {
 				}
 			}
 
-			tname = ResolveTableName(table_name, database);
+			tname = ResolveTableName(table_name, Connection);
 
 			// Does the table exist?
-			if (!database.TableExists(tname)) {
+			if (!Connection.TableExists(tname)) {
 				throw new DatabaseException("Table '" + tname + "' does not exist.");
 			}
 
 			// Add the from table direct source for this table
-			ITableQueryDef table_query_def = database.GetTableQueryDef(tname, null);
-			AddTable(new FromTableDirectSource(database,
+			ITableQueryDef table_query_def = Connection.GetTableQueryDef(tname, null);
+			AddTable(new FromTableDirectSource(Connection,
 								   table_query_def, "INSERT_TABLE", tname, tname));
 
 			// Get the table we are inserting to
-			insert_table = database.GetTable(tname);
+			insert_table = Connection.GetTable(tname);
 
 			// If column list is empty, then fill it with all columns from table.
 			if (from_values || from_select) {
@@ -193,7 +193,7 @@ namespace Deveel.Data.Sql {
 			} else if (from_select) {
 				// Prepare the select statement
 				prepared_select = new SelectStatement();
-				prepared_select.Init(database, select, null);
+				prepared_select.Init(Connection, select, null);
 				prepared_select.Prepare();
 			}
 
@@ -225,21 +225,21 @@ namespace Deveel.Data.Sql {
 
 			// Resolve all tables linked to this
 			TableName[] linked_tables =
-									 database.QueryTablesRelationallyLinkedTo(tname);
+									 Connection.QueryTablesRelationallyLinkedTo(tname);
 			relationally_linked_tables = new ArrayList(linked_tables.Length);
 			for (int i = 0; i < linked_tables.Length; ++i) {
-				relationally_linked_tables.Add(database.GetTable(linked_tables[i]));
+				relationally_linked_tables.Add(Connection.GetTable(linked_tables[i]));
 			}
 
 		}
 
-		public override Table Evaluate() {
+		internal override Table Evaluate() {
 
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Check that this user has privs to insert into the table.
-			if (!database.Database.CanUserInsertIntoTableObject(
-											context, user, tname, col_var_list)) {
+			if (!Connection.Database.CanUserInsertIntoTableObject(
+											context, User, tname, col_var_list)) {
 				throw new UserAccessException(
 				   "User not permitted to insert in to table: " + table_name);
 			}
@@ -289,8 +289,8 @@ namespace Deveel.Data.Sql {
 			} else if (from_set) {
 				// Insert rows from the set assignments.
 				RowData row_data = insert_table.createRowDataObject(context);
-				Assignment[] assignments = (Assignment[])
-							  column_sets.ToArray(typeof(Assignment));
+				Assignment[] assignments = new Assignment[column_sets.Count];
+				column_sets.CopyTo(assignments, 0);
 				row_data.SetupEntire(assignments, context);
 				insert_table.Add(row_data);
 				++insert_count;
@@ -298,7 +298,7 @@ namespace Deveel.Data.Sql {
 
 			// Notify TriggerManager that we've just done an update.
 			if (insert_count > 0) {
-				database.OnTriggerEvent(new TriggerEvent(
+				Connection.OnTriggerEvent(new TriggerEvent(
 								  TriggerEventType.Insert, tname.ToString(), insert_count));
 			}
 

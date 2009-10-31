@@ -150,13 +150,13 @@ namespace Deveel.Diagnostics {
 		public void Write(DebugLevel level, string class_string, string message) {
 			if (IsInterestedIn(level)) {
 
-				if (level >= DebugLevel.Error && level < DebugLevel.Message) {
-					InternalWrite(SYSTEM_ERR, level, class_string, message);
-				} else if (PRINT_ALERT_TO_MESSAGES) {
-					if (output != SYSTEM_ERR && level >= DebugLevel.Alert) { // && level < Message) {
-						InternalWrite(SYSTEM_ERR, level, class_string, message);
-					}
-				}
+				//if (level >= DebugLevel.Error && level < DebugLevel.Message) {
+				//    InternalWrite(SYSTEM_ERR, level, class_string, message);
+				//} else if (PRINT_ALERT_TO_MESSAGES) {
+				//    if (output != SYSTEM_ERR && level >= DebugLevel.Alert) { // && level < Message) {
+				//        InternalWrite(SYSTEM_ERR, level, class_string, message);
+				//    }
+				//}
 
 				InternalWrite(output, level, class_string, message);
 			}
@@ -178,14 +178,14 @@ namespace Deveel.Diagnostics {
 
 		public void WriteException(DebugLevel level, Exception e) {
 			lock (this) {
-				if (level >= DebugLevel.Error) {
-					lock (SYSTEM_ERR) {
-						SYSTEM_ERR.Write("[Deveel.Data.Debug.Debug - Exception thrown: '");
-						SYSTEM_ERR.Write(e.Message);
-						SYSTEM_ERR.WriteLine("']");
-						SYSTEM_ERR.WriteLine(e.StackTrace);
-					}
-				}
+				//if (level >= DebugLevel.Error) {
+				//    lock (SYSTEM_ERR) {
+				//        SYSTEM_ERR.Write("[Deveel.Data.Debug.Debug - Exception thrown: '");
+				//        SYSTEM_ERR.Write(e.Message);
+				//        SYSTEM_ERR.WriteLine("']");
+				//        SYSTEM_ERR.WriteLine(e.StackTrace);
+				//    }
+				//}
 
 				if (IsInterestedIn(level)) {
 					lock (output) {

@@ -82,61 +82,61 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 		/// <inheritdoc/>
-		public override void Prepare() {
+		internal override void Prepare() {
 
 			// Get variables from the model.
-			table_name = (String)cmd.GetObject("table_name");
-			where_condition = (SearchExpression)cmd.GetObject("where_clause");
-			limit = cmd.GetInt("limit");
+			table_name = GetString("table_name");
+			where_condition = (SearchExpression)GetValue("where_clause");
+			limit = GetInteger("limit");
 
 			// ---
 
 			// Resolve the TableName object.
-			tname = ResolveTableName(table_name, database);
+			tname = ResolveTableName(table_name, Connection);
 			// Does the table exist?
-			if (!database.TableExists(tname)) {
+			if (!Connection.TableExists(tname)) {
 				throw new DatabaseException("Table '" + tname + "' does not exist.");
 			}
 			// Get the table we are updating
-			update_table = database.GetTable(tname);
+			update_table = Connection.GetTable(tname);
 
 			// Form a TableSelectExpression that represents the select on the table
 			TableSelectExpression select_expression = new TableSelectExpression();
 			// Create the FROM clause
-			select_expression.from_clause.AddTable(table_name);
+			select_expression.From.AddTable(table_name);
 			// Set the WHERE clause
-			select_expression.where_clause = where_condition;
+			select_expression.Where = where_condition;
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
 			TableExpressionFromSet from_set =
-							   Planner.GenerateFromSet(select_expression, database);
+							   Planner.GenerateFromSet(select_expression, Connection);
 			// Form the plan
-			plan = Planner.FormQueryPlan(database, select_expression, from_set, null);
+			plan = Planner.FormQueryPlan(Connection, select_expression, from_set, null);
 
 			// Resolve all tables linked to this
 			TableName[] linked_tables =
-									 database.QueryTablesRelationallyLinkedTo(tname);
+									 Connection.QueryTablesRelationallyLinkedTo(tname);
 			relationally_linked_tables = new ArrayList(linked_tables.Length);
 			for (int i = 0; i < linked_tables.Length; ++i) {
-				relationally_linked_tables.Add(database.GetTable(linked_tables[i]));
+				relationally_linked_tables.Add(Connection.GetTable(linked_tables[i]));
 			}
 
 		}
 
 		/// <inheritdoc/>
-		public override Table Evaluate() {
+		internal override Table Evaluate() {
 
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Check that this user has privs to delete from the table.
-			if (!database.Database.CanUserDeleteFromTableObject(context,
-																	 user, tname)) {
+			if (!Connection.Database.CanUserDeleteFromTableObject(context,
+																	 User, tname)) {
 				throw new UserAccessException(
 							  "User not permitted to delete from table: " + table_name);
 			}
 
 			// Check the user has select permissions on the tables in the plan.
-			SelectStatement.CheckUserSelectPermissions(context, user, plan);
+			SelectStatement.CheckUserSelectPermissions(context, User, plan);
 
 			// Evaluates the delete statement...
 
@@ -148,7 +148,7 @@ namespace Deveel.Data.Sql {
 
 			// Notify TriggerManager that we've just done an update.
 			if (delete_count > 0) {
-				database.OnTriggerEvent(new TriggerEvent(
+				Connection.OnTriggerEvent(new TriggerEvent(
 								  TriggerEventType.Delete, tname.ToString(), delete_count));
 			}
 

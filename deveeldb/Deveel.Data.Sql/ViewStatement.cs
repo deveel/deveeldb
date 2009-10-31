@@ -60,26 +60,25 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		public override void Prepare() {
-			type = (String)cmd.GetObject("type");
-			view_name = (String)cmd.GetObject("view_name");
+		internal override void Prepare() {
+			type = GetString("type");
+			view_name = GetString("view_name");
 
-			String schema_name = database.CurrentSchema;
+			String schema_name = Connection.CurrentSchema;
 			vname = TableName.Resolve(schema_name, view_name);
-			vname = database.TryResolveCase(vname);
+			vname = Connection.TryResolveCase(vname);
 
 			if (type.Equals("create")) {
 				// Get the select expression
-				select_expression =
-							 (TableSelectExpression)cmd.GetObject("select_expression");
+				select_expression = (TableSelectExpression)GetValue("select_expression");
 				// Get the column name list
-				ArrayList col_list = (ArrayList)cmd.GetObject("column_list");
+				IList col_list = GetList("column_list");
 
 				// Generate the TableExpressionFromSet hierarchy for the expression,
 				TableExpressionFromSet from_set =
-								   Planner.GenerateFromSet(select_expression, database);
+								   Planner.GenerateFromSet(select_expression, Connection);
 				// Form the plan
-				plan = Planner.FormQueryPlan(database, select_expression, from_set,
+				plan = Planner.FormQueryPlan(Connection, select_expression, from_set,
 											 new ArrayList());
 
 				// Wrap the result around a SubsetNode to alias the columns in the
@@ -123,22 +122,21 @@ namespace Deveel.Data.Sql {
 
 		}
 
-		public override Table Evaluate() {
-
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			if (type.Equals("create")) {
 				// Does the user have privs to create this tables?
-				if (!database.Database.CanUserCreateTableObject(context,
-																	 user, vname)) {
+				if (!Connection.Database.CanUserCreateTableObject(context,
+																	 User, vname)) {
 					throw new UserAccessException(
 									  "User not permitted to create view: " + view_name);
 				}
 
 				// Does the schema exist?
-				bool ignore_case = database.IsInCaseInsensitiveMode;
+				bool ignore_case = Connection.IsInCaseInsensitiveMode;
 				SchemaDef schema =
-						database.ResolveSchemaCase(vname.Schema, ignore_case);
+						Connection.ResolveSchemaCase(vname.Schema, ignore_case);
 				if (schema == null) {
 					throw new DatabaseException("Schema '" + vname.Schema +
 												"' doesn't exist.");
@@ -148,10 +146,10 @@ namespace Deveel.Data.Sql {
 
 				// Check the permissions for this user to select from the tables in the
 				// given plan.
-				SelectStatement.CheckUserSelectPermissions(context, user, plan);
+				SelectStatement.CheckUserSelectPermissions(context, User, plan);
 
 				// Does the table already exist?
-				if (database.TableExists(vname)) {
+				if (Connection.TableExists(vname)) {
 					throw new DatabaseException("View or table with name '" + vname +
 												"' already exists.");
 				}
@@ -175,28 +173,28 @@ namespace Deveel.Data.Sql {
 				ViewDef view_def = new ViewDef(data_table_def, plan_copy);
 
 				// And create the view object,
-				database.CreateView(command, view_def);
+				Connection.CreateView(Command, view_def);
 
 				// The initial grants for a view is to give the user who created it
 				// full access.
-				database.GrantManager.Grant(
+				Connection.GrantManager.Grant(
 					 Privileges.TableAll, GrantObject.Table, vname.ToString(),
-					 user.UserName, true, Database.InternalSecureUsername);
+					 User.UserName, true, Database.InternalSecureUsername);
 
 			} else if (type.Equals("drop")) {
 
 				// Does the user have privs to drop this tables?
-				if (!database.Database.CanUserDropTableObject(context,
-																   user, vname)) {
+				if (!Connection.Database.CanUserDropTableObject(context,
+																   User, vname)) {
 					throw new UserAccessException(
 									  "User not permitted to drop view: " + view_name);
 				}
 
 				// Drop the view object
-				database.DropView(vname);
+				Connection.DropView(vname);
 
 				// Drop the grants for this object
-				database.GrantManager.RevokeAllGrantsOnObject(
+				Connection.GrantManager.RevokeAllGrantsOnObject(
 												GrantObject.Table, vname.ToString());
 
 			} else {

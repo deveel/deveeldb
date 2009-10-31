@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The action to perform.
 		/// </summary>
-		private String action;
+		private AlterTableActionType action;
 
 		///<summary>
 		///</summary>
@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Gets or sets the action to perform.
 		/// </summary>
-		public string Action {
+		public AlterTableActionType Action {
 			set { action = value; }
 			get { return action; }
 		}
@@ -56,13 +56,13 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Returns the ArrayList that represents the parameters of this action.
 		/// </summary>
-		public ArrayList Elements {
+		public IList Elements {
 			get { return elements; }
 		}
 
 
 		/// <inheritdoc/>
-		public void PrepareExpressions(IExpressionPreparer preparer) {
+		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			// This must search throw 'elements' for objects that we can prepare
 			for (int i = 0; i < elements.Count; ++i) {
 				Object ob = elements[i];
@@ -73,8 +73,7 @@ namespace Deveel.Data.Sql {
 				} else if (ob is IStatementTreeObject) {
 					((IStatementTreeObject)ob).PrepareExpressions(preparer);
 				} else {
-					throw new DatabaseException(
-											"Unrecognised expression: " + ob.GetType());
+					throw new DatabaseException("Unrecognised expression: " + ob.GetType());
 				}
 			}
 		}

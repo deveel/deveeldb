@@ -1,5 +1,5 @@
 //  
-//  FromTableDef.cs
+//  FromTable.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -28,12 +28,12 @@ namespace Deveel.Data.Sql {
 	/// table expression (<c>SELECT</c>).
 	/// </summary>
 	[Serializable]
-	public sealed class FromTableDef : ICloneable {
+	public sealed class FromTable : ICloneable {
 		/// <summary>
 		/// If this is true, then the table def represents a sub-query table.
 		/// </summary>
 		/// <remarks>
-		/// The <see cref="FromTableDef.TableSelectExpression"/> and <see cref="Alias"/> 
+		/// The <see cref="FromTable.TableSelectExpression"/> and <see cref="Alias"/> 
 		/// method can be used to get the table information.
 		/// </remarks>
 		/// <example>
@@ -68,7 +68,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="table_name"></param>
 		/// <param name="table_alias"></param>
-		public FromTableDef(String table_name, String table_alias) {
+		public FromTable(string table_name, string table_alias) {
 			this.table_name = table_name;
 			this.table_alias = table_alias;
 			subselect_table = null;
@@ -79,7 +79,7 @@ namespace Deveel.Data.Sql {
 		/// A simple table definition (not aliased).
 		/// </summary>
 		/// <param name="table_name"></param>
-		public FromTableDef(String table_name)
+		public FromTable(string table_name)
 			: this(table_name, null) {
 		}
 
@@ -88,7 +88,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="select"></param>
 		/// <param name="table_alias"></param>
-		public FromTableDef(TableSelectExpression select, String table_alias) {
+		public FromTable(TableSelectExpression select, string table_alias) {
 			subselect_table = select;
 			table_name = table_alias;
 			this.table_alias = table_alias;
@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql {
 		/// A simple sub-query table definition (not aliased).
 		/// </summary>
 		/// <param name="select"></param>
-		public FromTableDef(TableSelectExpression select) {
+		public FromTable(TableSelectExpression select) {
 			subselect_table = select;
 			table_name = null;
 			table_alias = null;
@@ -124,7 +124,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Gets or sets the unique key.
 		/// </summary>
-		public string UniqueKey {
+		internal string UniqueKey {
 			get { return unique_key; }
 			set { unique_key = value; }
 		}
@@ -147,15 +147,14 @@ namespace Deveel.Data.Sql {
 		/// Prepares the expressions in this table def.
 		///</summary>
 		///<param name="preparer"></param>
-		public void PrepareExpressions(IExpressionPreparer preparer) {
-			if (subselect_table != null) {
-				subselect_table.PrepareExpressions(preparer);
-			}
+		internal void PrepareExpressions(IExpressionPreparer preparer) {
+			if (subselect_table != null)
+				((IStatementTreeObject) subselect_table).PrepareExpressions(preparer);
 		}
 
 		/// <inheritdoc/>
 		public Object Clone() {
-			FromTableDef v = (FromTableDef)MemberwiseClone();
+			FromTable v = (FromTable)MemberwiseClone();
 			if (subselect_table != null) {
 				v.subselect_table = (TableSelectExpression)subselect_table.Clone();
 			}

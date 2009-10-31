@@ -1,5 +1,5 @@
 //  
-//  ConstraintDef.cs
+//  SqlConstraint.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -28,18 +28,20 @@ namespace Deveel.Data.Sql {
 	/// Represents a constraint definition (description) for a table.
 	/// </summary>
 	[Serializable]
-	public sealed class ConstraintDef : IStatementTreeObject {
-		// ---------- Statics that represent the base types of constraints ----------
+	public sealed class SqlConstraint : IStatementTreeObject {
+		private SqlConstraint(ConstraintType type) {
+			this.type = type;
+		}
 
 		// The type of constraint (from types in DataTableConstraintDef)
-		internal int type;
+		private ConstraintType type;
 
 		// The name of the constraint or null if the constraint has no name (in
 		// which case it must be given an auto generated unique name at some point).
 		private String name;
 
 		// The Check Expression
-		internal Expression check_expression;
+		private Expression check_expression;
 		// The serializable plain check expression as originally parsed
 		internal Expression original_check_expression;
 
@@ -50,17 +52,17 @@ namespace Deveel.Data.Sql {
 		internal ArrayList column_list2;
 
 		// The name of the table if referenced.
-		internal String reference_table_name;
+		private String reference_table_name;
 
 		// The foreign key update rule
-		String update_rule;
+		private ConstraintAction update_rule;
 
 		// The foreign key delete rule
-		String delete_rule;
+		private ConstraintAction delete_rule;
 
 		// Whether this constraint is deferred to when the transaction commits.
 		// ( By default we are 'initially immediate deferrable' )
-		internal short deferred = Transaction.INITIALLY_IMMEDIATE;
+		private ConstraintDeferrability deferred = ConstraintDeferrability.INITIALLY_IMMEDIATE;
 
 		/// <summary>
 		/// Gets or sets the name of the constraint.
@@ -70,22 +72,47 @@ namespace Deveel.Data.Sql {
 			set { name = value; }
 		}
 
+		/// <summary>
+		/// Gets the type of constraint.
+		/// </summary>
+		/// <seealso cref="ConstraintType"/>
+		public ConstraintType Type {
+			get { return type; }
+		}
+
+		public Expression CheckExpression {
+			get { return check_expression; }
+			set {
+				if (type != ConstraintType.Check)
+					throw new ArgumentException("Cannot set the value of this constraint.");
+
+				check_expression = value;
+				try {
+					original_check_expression = (Expression)value.Clone();
+				} catch (Exception e) {
+					throw new ApplicationException(e.Message);
+				}
+			}
+		}
+
 		///<summary>
 		/// Sets object up for a primary key constraint.
 		///</summary>
 		///<param name="list"></param>
-		public void SetPrimaryKey(ArrayList list) {
-			type = ConstraintType.PrimaryKey;
-			column_list = list;
+		public static SqlConstraint PrimaryKey(string[] columns) {
+			SqlConstraint constraint = new SqlConstraint(ConstraintType.PrimaryKey);
+			constraint.column_list = new ArrayList(columns);
+			return constraint;
 		}
 
 		///<summary>
 		/// Sets object up for a unique constraint.
 		///</summary>
 		///<param name="list"></param>
-		public void SetUnique(ArrayList list) {
-			type = ConstraintType.Unique;
-			column_list = list;
+		public static SqlConstraint Unique(string[] columns) {
+			SqlConstraint constraint = new SqlConstraint(ConstraintType.Unique);
+			constraint.column_list = new ArrayList(columns);
+			return constraint;
 		}
 
 		///<summary>
@@ -93,14 +120,10 @@ namespace Deveel.Data.Sql {
 		///</summary>
 		///<param name="exp"></param>
 		///<exception cref="ApplicationException"></exception>
-		public void SetCheck(Expression exp) {
-			type = ConstraintType.Check;
-			check_expression = exp;
-			try {
-				original_check_expression = (Expression)exp.Clone();
-			} catch (Exception e) {
-				throw new ApplicationException(e.Message);
-			}
+		public static SqlConstraint Check(Expression exp) {
+			SqlConstraint constraint = new SqlConstraint(ConstraintType.Check);
+			constraint.CheckExpression = exp;
+			return constraint;
 		}
 
 		///<summary>
@@ -111,31 +134,31 @@ namespace Deveel.Data.Sql {
 		///<param name="ref_col_list"></param>
 		///<param name="delete_rule"></param>
 		///<param name="update_rule"></param>
-		public void SetForeignKey(String ref_table, ArrayList col_list,
-								  ArrayList ref_col_list,
-								  String delete_rule, String update_rule) {
-			type = ConstraintType.ForeignKey;
-			reference_table_name = ref_table;
-			column_list = col_list;
-			column_list2 = ref_col_list;
-			this.delete_rule = delete_rule;
-			this.update_rule = update_rule;
+		public static SqlConstraint ForeignKey(String ref_table, string [] col_list,
+								  string[] ref_col_list,
+								  ConstraintAction delete_rule, ConstraintAction update_rule) {
+			SqlConstraint constraint = new SqlConstraint(ConstraintType.ForeignKey);
+			constraint.reference_table_name = ref_table;
+			constraint.column_list = new ArrayList(col_list);
+			constraint.column_list2 = new ArrayList(ref_col_list);
+			constraint.delete_rule = delete_rule;
+			constraint.update_rule = update_rule;
 
-			//    Console.Out.WriteLine("ConstraintDef setting rules: " + delete_rule + ", " + update_rule);
+			return constraint;
 		}
 
 		///<summary>
 		/// Sets that this constraint is initially deferred.
 		///</summary>
-		public void SetInitiallyDeferred() {
-			deferred = Transaction.INITIALLY_DEFERRED;
+		internal void SetInitiallyDeferred() {
+			deferred = ConstraintDeferrability.INITIALLY_DEFERRED;
 		}
 
 		/// <summary>
 		/// Sets that this constraint is not deferrable.
 		/// </summary>
-		public void SetNotDeferrable() {
-			deferred = Transaction.NOT_DEFERRABLE;
+		internal void SetNotDeferrable() {
+			deferred = ConstraintDeferrability.NOT_DEFERRABLE;
 		}
 
 
@@ -144,6 +167,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		public string[] ColumnList {
 			get { return (String[]) column_list.ToArray(typeof (string)); }
+			set { column_list = new ArrayList(value); }
 		}
 
 		/// <summary>
@@ -151,25 +175,35 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		public string[] ColumnList2 {
 			get { return (String[]) column_list2.ToArray(typeof (string)); }
+			set { column_list2 = new ArrayList(value); }
 		}
 
 		/// <summary>
 		/// Returns the delete rule if this is a foreign key reference.
 		/// </summary>
-		public string DeleteRule {
+		public ConstraintAction DeleteRule {
 			get { return delete_rule; }
 		}
 
 		/// <summary>
 		/// Returns the update rule if this is a foreign key reference.
 		/// </summary>
-		public string UpdateRule {
+		public ConstraintAction UpdateRule {
 			get { return update_rule; }
 		}
 
+		public string ReferenceTable {
+			get { return reference_table_name; }
+			set { reference_table_name = value; }
+		}
+
+		public ConstraintDeferrability Deferrability {
+			get { return deferred; }
+			set { deferred = value; }
+		}
 
 		/// <inheritdoc/>
-		public void PrepareExpressions(IExpressionPreparer preparer) {
+		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			if (check_expression != null) {
 				check_expression.Prepare(preparer);
 			}
@@ -177,7 +211,7 @@ namespace Deveel.Data.Sql {
 
 		/// <inheritdoc/>
 		public Object Clone() {
-			ConstraintDef v = (ConstraintDef)MemberwiseClone();
+			SqlConstraint v = (SqlConstraint)MemberwiseClone();
 			if (check_expression != null) {
 				v.check_expression = (Expression)check_expression.Clone();
 			}

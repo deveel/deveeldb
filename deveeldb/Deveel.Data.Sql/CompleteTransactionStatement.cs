@@ -32,12 +32,12 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		public override void Prepare() {
+		internal override void Prepare() {
 			command = (String)cmd.GetObject("command");
 		}
 
 		/// <inheritdoc/>
-		public override Table Evaluate() {
+		internal override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(database);
 
 			if (command.Equals("commit")) {

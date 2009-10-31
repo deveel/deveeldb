@@ -47,24 +47,6 @@ namespace Deveel.Data {
 	/// </remarks>
 	public class Transaction : SimpleTransaction, IDisposable {
 
-		// ---------- Constraint statics ----------
-		// These statics are for managing constraints.
-
-		/**
-		 * The type of deferrance.
-		 */
-		public const short INITIALLY_DEFERRED = 4;
-		public const short INITIALLY_IMMEDIATE = 5;
-		public const short NOT_DEFERRABLE = 6;
-
-		/**
-		 * Foreign key referential trigger actions.
-		 */
-		public const String NO_ACTION = "NO ACTION";
-		public const String CASCADE = "CASCADE";
-		public const String SET_NULL = "SET NULL";
-		public const String SET_DEFAULT = "SET DEFAULT";
-
 		// ---------- Member variables ----------
 
 		/// <summary>
@@ -766,7 +748,7 @@ namespace Deveel.Data {
 			}
 			// Check the constraints of all the rows in the table.
 			TableDataConglomerate.CheckAddConstraintViolations(
-							 this, table, rows, INITIALLY_IMMEDIATE);
+							 this, table, rows, ConstraintDeferrability.INITIALLY_IMMEDIATE);
 
 			// Add that we altered this table in the journal
 			MasterTableDataSource master = FindVisibleTable(table_name, false);
@@ -1220,7 +1202,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		public void AddUniqueConstraint(TableName table_name,
-						  String[] cols, short deferred, String constraint_name) {
+						  String[] cols, ConstraintDeferrability deferred, String constraint_name) {
 
 			TableName tn1 = TableDataConglomerate.UNIQUE_INFO_TABLE;
 			TableName tn2 = TableDataConglomerate.UNIQUE_COLS_TABLE;
@@ -1237,7 +1219,7 @@ namespace Deveel.Data {
 				rd.SetColumnDataFromObject(1, constraint_name);
 				rd.SetColumnDataFromObject(2, table_name.Schema);
 				rd.SetColumnDataFromObject(3, table_name.Name);
-				rd.SetColumnDataFromObject(4, BigNumber.fromInt(deferred));
+				rd.SetColumnDataFromObject(4, BigNumber.fromInt((short)deferred));
 				t.AddRow(rd);
 
 				// Insert the columns
@@ -1291,8 +1273,8 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void AddForeignKeyConstraint(TableName table, String[] cols,
 											TableName ref_table, String[] ref_cols,
-											String delete_rule, String update_rule,
-											short deferred, String constraint_name) {
+											ConstraintAction delete_rule, ConstraintAction update_rule,
+											ConstraintDeferrability deferred, String constraint_name) {
 			TableName tn1 = TableDataConglomerate.FOREIGN_INFO_TABLE;
 			TableName tn2 = TableDataConglomerate.FOREIGN_COLS_TABLE;
 			IMutableTableDataSource t = GetTable(tn1);
@@ -1319,8 +1301,8 @@ namespace Deveel.Data {
 
 				// If delete or update rule is 'SET NULL' then check the foreign key
 				// columns are not constrained as 'NOT NULL'
-				if (delete_rule.Equals("SET NULL") ||
-					update_rule.Equals("SET NULL")) {
+				if (delete_rule == ConstraintAction.SET_NULL ||
+					update_rule == ConstraintAction.SET_NULL) {
 					DataTableDef table_def = GetDataTableDef(table);
 					for (int i = 0; i < cols.Length; ++i) {
 						DataTableColumnDef column_def =
@@ -1344,9 +1326,9 @@ namespace Deveel.Data {
 				rd.SetColumnDataFromObject(3, table.Name);
 				rd.SetColumnDataFromObject(4, ref_table.Schema);
 				rd.SetColumnDataFromObject(5, ref_table.Name);
-				rd.SetColumnDataFromObject(6, update_rule);
-				rd.SetColumnDataFromObject(7, delete_rule);
-				rd.SetColumnDataFromObject(8, BigNumber.fromInt(deferred));
+				rd.SetColumnDataFromObject(6, BigNumber.fromInt((int)update_rule));
+				rd.SetColumnDataFromObject(7, BigNumber.fromInt((int)delete_rule));
+				rd.SetColumnDataFromObject(8, BigNumber.fromInt((short)deferred));
 				t.AddRow(rd);
 
 				// Insert the columns
@@ -1397,7 +1379,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		public void AddPrimaryKeyConstraint(TableName table_name, String[] cols,
-											short deferred, String constraint_name) {
+											ConstraintDeferrability deferred, String constraint_name) {
 
 			TableName tn1 = TableDataConglomerate.PRIMARY_INFO_TABLE;
 			TableName tn2 = TableDataConglomerate.PRIMARY_COLS_TABLE;
@@ -1414,7 +1396,7 @@ namespace Deveel.Data {
 				rd.SetColumnDataFromObject(1, constraint_name);
 				rd.SetColumnDataFromObject(2, table_name.Schema);
 				rd.SetColumnDataFromObject(3, table_name.Name);
-				rd.SetColumnDataFromObject(4, BigNumber.fromInt(deferred));
+				rd.SetColumnDataFromObject(4, BigNumber.fromInt((short)deferred));
 				t.AddRow(rd);
 
 				// Insert the columns
@@ -1462,7 +1444,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		public void AddCheckConstraint(TableName table_name,
-					 Expression expression, short deferred, String constraint_name) {
+					 Expression expression, ConstraintDeferrability deferred, String constraint_name) {
 
 			TableName tn = TableDataConglomerate.CHECK_INFO_TABLE;
 			IMutableTableDataSource t = GetTable(tn);
@@ -1479,7 +1461,7 @@ namespace Deveel.Data {
 				rd.SetColumnDataFromObject(2, table_name.Schema);
 				rd.SetColumnDataFromObject(3, table_name.Name);
 				rd.SetColumnDataFromObject(4, expression.Text.ToString());
-				rd.SetColumnDataFromObject(5, BigNumber.fromInt(deferred));
+				rd.SetColumnDataFromObject(5, BigNumber.fromInt((short)deferred));
 				if (col_count > 6) {
 					// Serialize the check expression
 					ByteLongObject serialized_expression =
@@ -1830,7 +1812,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public static TableName[] queryTablesRelationallyLinkedTo(
+		public static TableName[] QueryTablesRelationallyLinkedTo(
 							 SimpleTransaction transaction, TableName table) {
 			ArrayList list = new ArrayList();
 			ColumnGroupReference[] refs =
@@ -1891,8 +1873,7 @@ namespace Deveel.Data {
 					// constraint name
 					group.name = dt.Get(1, data[i]).Object.ToString();
 					group.columns = ToColumns(dtcols, cols);   // the list of columns
-					group.deferred = ((BigNumber)dt.Get(4,
-					                                    data[i]).Object).ToInt16();
+					group.deferred = (ConstraintDeferrability) ((BigNumber)dt.Get(4, data[i]).Object).ToInt16();
 					groups[i] = group;
 				}
 			} finally {
@@ -1941,8 +1922,7 @@ namespace Deveel.Data {
 					ColumnGroup group = new ColumnGroup();
 					group.name = dt.Get(1, row_index).Object.ToString();
 					group.columns = ToColumns(dtcols, ivec);
-					group.deferred = ((BigNumber)dt.Get(4,
-					                                    row_index).Object).ToInt16();
+					group.deferred = (ConstraintDeferrability) ((BigNumber)dt.Get(4, row_index).Object).ToInt16();
 					return group;
 				} else {
 					return null;
@@ -1984,8 +1964,7 @@ namespace Deveel.Data {
 
 					CheckExpression check = new CheckExpression();
 					check.name = dt.Get(1, row_index).Object.ToString();
-					check.deferred = ((BigNumber)dt.Get(5,
-					                                    row_index).Object).ToInt16();
+					check.deferred = (ConstraintDeferrability) ((BigNumber)dt.Get(5, row_index).Object).ToInt16();
 					// Is the deserialized version available?
 					if (t.DataTableDef.ColumnCount > 6) {
 						ByteLongObject sexp =
@@ -2082,10 +2061,9 @@ namespace Deveel.Data {
 					group.name = dt.Get(1, row_index).Object.ToString();
 					group.key_table_name = table_name;
 					group.ref_table_name = ref_table_name;
-					group.update_rule = dt.Get(6, row_index).Object.ToString();
-					group.delete_rule = dt.Get(7, row_index).Object.ToString();
-					group.deferred = ((BigNumber)dt.Get(8,
-					                                    row_index).Object).ToInt16();
+					group.update_rule = (ConstraintAction) dt.Get(6, row_index).ToBigNumber().ToInt32();
+					group.delete_rule = (ConstraintAction) dt.Get(7, row_index).ToBigNumber().ToInt32();
+					group.deferred = (ConstraintDeferrability) ((BigNumber)dt.Get(8, row_index).Object).ToInt16();
 
 					int cols_size = cols.Count;
 					String[] key_cols = new String[cols_size];
@@ -2180,9 +2158,9 @@ namespace Deveel.Data {
 					group.name = dt.Get(1, row_index).Object.ToString();
 					group.key_table_name = table_name;
 					group.ref_table_name = ref_table_name;
-					group.update_rule = dt.Get(6, row_index).Object.ToString();
-					group.delete_rule = dt.Get(7, row_index).Object.ToString();
-					group.deferred = ((BigNumber)dt.Get(8, row_index).Object).ToInt16();
+					group.update_rule = (ConstraintAction) dt.Get(6, row_index).ToBigNumber().ToInt32();
+					group.delete_rule = (ConstraintAction) dt.Get(7, row_index).ToBigNumber().ToInt32();
+					group.deferred = (ConstraintDeferrability) ((BigNumber)dt.Get(8, row_index).Object).ToInt16();
 
 					int cols_size = cols.Count;
 					String[] key_cols = new String[cols_size];
@@ -2390,7 +2368,7 @@ namespace Deveel.Data {
 			/// <summary>
 			/// Whether this is deferred or initially immediate.
 			/// </summary>
-			public short deferred;
+			public ConstraintDeferrability deferred;
 
 		}
 
@@ -2411,7 +2389,7 @@ namespace Deveel.Data {
 			/// <summary>
 			/// Whether this is deferred or initially immediate.
 			/// </summary>
-			public short deferred;
+			public ConstraintDeferrability deferred;
 
 		}
 
@@ -2452,17 +2430,17 @@ namespace Deveel.Data {
 			///<summary>
 			/// The update rule.
 			///</summary>
-			public String update_rule;
+			public ConstraintAction update_rule;
 
 			///<summary>
 			/// The delete rule.
 			///</summary>
-			public String delete_rule;
+			public ConstraintAction delete_rule;
 
 			///<summary>
 			/// Whether this is deferred or initially immediate.
 			///</summary>
-			public short deferred;
+			public ConstraintDeferrability deferred;
 
 		}
 

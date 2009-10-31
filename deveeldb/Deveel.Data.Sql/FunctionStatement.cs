@@ -41,24 +41,24 @@ namespace Deveel.Data.Sql {
 
 		// ----------- Implemented from Statement ----------
 
-		public override void Prepare() {
-			type = (String)cmd.GetObject("type");
-			String function_name = (String)cmd.GetObject("function_name");
+		internal override void Prepare() {
+			type = GetString("type");
+			String function_name = GetString("function_name");
 
 			// Resolve the function name into a TableName object.    
-			String schema_name = database.CurrentSchema;
+			String schema_name = Connection.CurrentSchema;
 			fun_name = TableName.Resolve(schema_name, function_name);
-			fun_name = database.TryResolveCase(fun_name);
+			fun_name = Connection.TryResolveCase(fun_name);
 
 		}
 
-		public override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Does the schema exist?
-			bool ignore_case = database.IsInCaseInsensitiveMode;
+			bool ignore_case = Connection.IsInCaseInsensitiveMode;
 			SchemaDef schema =
-					database.ResolveSchemaCase(fun_name.Schema, ignore_case);
+					Connection.ResolveSchemaCase(fun_name.Schema, ignore_case);
 			if (schema == null) {
 				throw new DatabaseException("Schema '" + fun_name.Schema +
 											"' doesn't exist.");
@@ -69,23 +69,23 @@ namespace Deveel.Data.Sql {
 			if (type.Equals("create")) {
 
 				// Does the user have privs to create this function?
-				if (!database.Database.CanUserCreateProcedureObject(context,
-																	   user, fun_name)) {
+				if (!Connection.Database.CanUserCreateProcedureObject(context,
+																	   User, fun_name)) {
 					throw new UserAccessException(
 									"User not permitted to create function: " + fun_name);
 				}
 
 				// Does a table already exist with this name?
-				if (database.TableExists(fun_name)) {
+				if (Connection.TableExists(fun_name)) {
 					throw new DatabaseException("Database object with name '" + fun_name +
 												"' already exists.");
 				}
 
 				// Get the information about the function we are creating
-				IList arg_names = (IList)cmd.GetObject("arg_names");
-				IList arg_types = (IList)cmd.GetObject("arg_types");
-				TObject loc_name = (TObject)cmd.GetObject("location_name");
-				TType return_type = (TType)cmd.GetObject("return_type");
+				IList arg_names = GetList("arg_names");
+				IList arg_types = GetList("arg_types");
+				TObject loc_name = (TObject)GetValue("location_name");
+				TType return_type = (TType)GetValue("return_type");
 
 				// Note that we currently ignore the arg_names list.
 
@@ -112,32 +112,31 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Create the .NET function,
-				ProcedureManager manager = database.ProcedureManager;
-				manager.DefineProcedure(proc_name, specification, return_type, arg_list, user.UserName);
+				ProcedureManager manager = Connection.ProcedureManager;
+				manager.DefineProcedure(proc_name, specification, return_type, arg_list, User.UserName);
 
 				// The initial grants for a procedure is to give the user who created it
 				// full access.
-				database.GrantManager.Grant(
+				Connection.GrantManager.Grant(
 					 Privileges.ProcedureAll, GrantObject.Table,
-					 proc_name.ToString(), user.UserName, true,
+					 proc_name.ToString(), User.UserName, true,
 					 Database.InternalSecureUsername);
 
 			} else if (type.Equals("drop")) {
 				// Does the user have privs to create this function?
-				if (!database.Database.CanUserDropProcedureObject(context,
-																	   user, fun_name)) {
+				if (!Connection.Database.CanUserDropProcedureObject(context,
+																	   User, fun_name)) {
 					throw new UserAccessException(
 									"User not permitted to drop function: " + fun_name);
 				}
 
 				// Drop the function
 				ProcedureName proc_name = new ProcedureName(fun_name);
-				ProcedureManager manager = database.ProcedureManager;
+				ProcedureManager manager = Connection.ProcedureManager;
 				manager.DeleteProcedure(proc_name);
 
 				// Drop the grants for this object
-				database.GrantManager.RevokeAllGrantsOnObject(
-											  GrantObject.Table, proc_name.ToString());
+				Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, proc_name.ToString());
 
 			} else {
 				throw new Exception("Unknown type: " + type);

@@ -27,41 +27,27 @@ namespace Deveel.Data.Sql {
 	/// The <c>SHUTDOWN</c> command statement.
 	/// </summary>
 	public class ShutdownStatement : Statement {
-		/// <summary>
-		/// Set to true if this statement is a shutdown statement.
-		/// </summary>
-		bool shutdown = false;
-
-
 
 		// ---------- Implemented from Statement ----------
 
-		public override void Prepare() {
-			Object command = cmd.GetObject("command");
-			shutdown = command.Equals("shutdown");
+		internal override void Prepare() {
+			// nothing to prepare
 		}
 
-		public override Table Evaluate() {
+		internal override Table Evaluate() {
 
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
-			// Is this a shutdown statement?
-			if (shutdown == true) {
-
-				// Check the user has privs to shutdown...
-				if (!database.Database.CanUserShutDown(context, user)) {
-					throw new UserAccessException(
-							 "User not permitted to shut down the database.");
-				}
-
-				// Shut down the database system.
-				database.Database.StartShutDownThread();
-
-				// Return 0 to indicate we going to be closing shop!
-				return FunctionTable.ResultTable(context, 0);
-
+			// Check the user has privs to shutdown...
+			if (!Connection.Database.CanUserShutDown(context, User)) {
+				throw new UserAccessException(
+						 "User not permitted to shut down the database.");
 			}
 
+			// Shut down the database system.
+			Connection.Database.StartShutDownThread();
+
+			// Return 0 to indicate we going to be closing shop!
 			return FunctionTable.ResultTable(context, 0);
 		}
 	}

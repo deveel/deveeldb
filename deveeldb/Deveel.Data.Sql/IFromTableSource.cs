@@ -1,5 +1,5 @@
 //  
-//  IFromTable.cs
+//  IFromTableSource.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql {
 	/// Each instance of this interface represents a single <i>FROM</i>
 	/// resource.
 	/// </remarks>
-	public interface IFromTable {
+	public interface IFromTableSource {
 		/// <summary>
 		/// Gets a unique name given to this table source.
 		/// </summary>

@@ -21,7 +21,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -31,17 +30,33 @@ namespace Deveel.Data.Sql {
 	/// </summary>
 	[Serializable]
 	public sealed class SearchExpression : IStatementTreeObject {
+		internal SearchExpression() {
+		}
+
+		/// <summary>
+		/// Constructs a new <see cref="SearchExpression"/> that encapsulates
+		/// the given <see cref="Expression"/>.
+		/// </summary>
+		/// <param name="expression">The <see cref="Expression"/> used to search
+		/// in a <c>SELECT</c> statement.</param>
+		public SearchExpression(Expression expression) {
+			search_expression = expression;
+		}
+
 		/// <summary>
 		/// The originating expression.
 		/// </summary>
 		private Expression search_expression;
 
 		/// <summary>
-		/// Gets or sets this search expression from the given expression.
+		/// Gets this search expression from the given expression.
 		/// </summary>
 		public Expression FromExpression {
 			get { return search_expression; }
-			set { search_expression = value; }
+		}
+
+		internal void SetFromExpression(Expression expression) {
+			search_expression = expression;
 		}
 
 		/// <summary>
@@ -64,25 +79,14 @@ namespace Deveel.Data.Sql {
 		/// Prepares the expression.
 		///</summary>
 		///<param name="preparer"></param>
-		public void Prepare(IExpressionPreparer preparer) {
+		internal void Prepare(IExpressionPreparer preparer) {
 			if (search_expression != null) {
 				search_expression.Prepare(preparer);
 			}
 		}
 
-		/// <summary>
-		/// Returns all the Elements from all expressions in this condition tree.
-		/// </summary>
-		internal IList AllElements {
-			get {
-				if (search_expression != null)
-					return search_expression.AllElements;
-				return new ArrayList();
-			}
-		}
-
 		/// <inheritdoc/>
-		public void PrepareExpressions(IExpressionPreparer preparer) {
+		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			Prepare(preparer);
 		}
 

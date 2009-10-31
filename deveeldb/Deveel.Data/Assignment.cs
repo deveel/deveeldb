@@ -22,6 +22,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// An assignment from a variable to an expression.
@@ -38,7 +40,7 @@ namespace Deveel.Data {
 	/// </code>
 	/// </example>
 	[Serializable]
-	public sealed class Assignment : IStatementTreeObject, ICloneable {
+	public sealed class Assignment : IStatementTreeObject {
 		/// <summary>
 		/// The <see cref="Data.Variable"/> that is the lhs of the assignment.
 		/// </summary>
@@ -75,7 +77,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public void PrepareExpressions(IExpressionPreparer preparer) {
+		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			if (expression != null)
 				expression.Prepare(preparer);
 		}

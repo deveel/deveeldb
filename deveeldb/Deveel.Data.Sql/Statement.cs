@@ -34,28 +34,74 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The Database context.
 		/// </summary>
-		protected DatabaseConnection database;
+		private DatabaseConnection database;
 
 		/// <summary>
 		/// The user context.
 		/// </summary>
-		protected User user;
+		private User user;
 
 		/// <summary>
 		/// The StatementTree object that is the container for the query.
 		/// </summary>
-		protected StatementTree cmd;
+		private StatementTree info;
 
 		/// <summary>
 		/// The SqlCommand object that was used to produce this statement.
 		/// </summary>
-		protected SqlCommand command;
+		private SqlCommand command;
 
 		/// <summary>
-		/// The list of all IFromTable objects of resources referenced 
+		/// The list of all IFromTableSource objects of resources referenced 
 		/// in this query.
 		/// </summary>
-		protected ArrayList table_list = new ArrayList();
+		private ArrayList table_list = new ArrayList();
+
+		/// <summary>
+		/// Gets a connection to the database where the statement will be executed.
+		/// </summary>
+		protected DatabaseConnection Connection {
+			get { return database; }
+		}
+
+		/// <summary>
+		/// Gets the user that is executing the statement.
+		/// </summary>
+		protected User User {
+			get { return user; }
+		}
+
+		/// <summary>
+		/// Gets the <see cref="SqlCommand">command</see> object that was used to 
+		/// produce the statement.
+		/// </summary>
+		protected SqlCommand Command {
+			get { return command; }
+		}
+
+		protected string GetString(string key) {
+			return (string)info.GetObject(key);
+		}
+
+		protected object GetValue(string key) {
+			return info.GetObject(key);
+		}
+
+		protected int GetInteger(string key) {
+			return info.GetInt(key);
+		}
+
+		protected bool GetBoolean(string key) {
+			return info.GetBoolean(key);
+		}
+
+		protected Expression GetExpression(string key) {
+			return (Expression) GetValue(key);
+		}
+
+		protected IList GetList(string key) {
+			return (IList) GetValue(key);
+		}
 
 		/// <summary>
 		/// Resets this statement so it may be re-prepared and evaluated again.
@@ -84,15 +130,13 @@ namespace Deveel.Data.Sql {
 		/// This is called after <see cref="Init"/> and before <see cref="Prepare"/>.
 		/// </para>
 		/// </remarks>
-		public void ResolveTree() {
-
+		internal void ResolveTree() {
 			// For every expression in this select we must go through and resolve
 			// any sub-queries we find to the correct Select object.
 			// This method will prepare the sub-query substitute the StatementTree
 			// object for a Select object in the expression.
 			IExpressionPreparer preparer = new ExpressionPreparerImpl(database);
-			cmd.PrepareAllExpressions(preparer);
-
+			info.PrepareAllExpressions(preparer);
 		}
 
 		private class ExpressionPreparerImpl : IExpressionPreparer {
@@ -121,12 +165,12 @@ namespace Deveel.Data.Sql {
 		/// <param name="column_name">The name of the column to find the
 		/// table for.</param>
 		/// <returns>
-		/// Returns a <see cref="IFromTable"/> representing the table the 
+		/// Returns a <see cref="IFromTableSource"/> representing the table the 
 		/// column with the given name is in, if found, otherwise <b>null</b>.
 		/// </returns>
-		internal IFromTable FindTableWithColumn(Variable column_name) {
+		internal IFromTableSource FindTableWithColumn(Variable column_name) {
 			for (int i = 0; i < table_list.Count; ++i) {
-				IFromTable table = (IFromTable)table_list[i];
+				IFromTableSource table = (IFromTableSource)table_list[i];
 				TableName tname = column_name.TableName;
 				String sch_name = null;
 				String tab_name = null;
@@ -193,13 +237,13 @@ namespace Deveel.Data.Sql {
 		/// <param name="schema"></param>
 		/// <param name="name"></param>
 		/// <returns>
-		/// Returns the first <see cref="IFromTable"/> that matches the given 
+		/// Returns the first <see cref="IFromTableSource"/> that matches the given 
 		/// schema, table reference, or <b>null</b> if no objects with the 
 		/// given schema/name reference match.
 		/// </returns>
-		internal IFromTable FindTableInQuery(String schema, String name) {
+		internal IFromTableSource FindTableInQuery(String schema, String name) {
 			for (int p = 0; p < table_list.Count; ++p) {
-				IFromTable table = (IFromTable)table_list[p];
+				IFromTableSource table = (IFromTableSource)table_list[p];
 				if (table.MatchesReference(null, schema, name)) {
 					return table;
 				}
@@ -230,7 +274,7 @@ namespace Deveel.Data.Sql {
 			int matches_found = 0;
 			// Find matches in our list of tables sources,
 			for (int i = 0; i < table_list.Count; ++i) {
-				IFromTable table = (IFromTable)table_list[i];
+				IFromTableSource table = (IFromTableSource)table_list[i];
 				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
 				if (rcc == 1) {
 					Variable matched =
@@ -285,13 +329,13 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// Add an <see cref="IFromTable"/> used within the query.
+		/// Add an <see cref="IFromTableSource"/> used within the query.
 		/// </summary>
 		/// <param name="table">The table to add to the query.</param>
 		/// <remarks>
 		/// These tables are used when we try to resolve a column name.
 		/// </remarks>
-		protected void AddTable(IFromTable table) {
+		protected void AddTable(IFromTableSource table) {
 			table_list.Add(table);
 		}
 
@@ -312,10 +356,10 @@ namespace Deveel.Data.Sql {
 		/// a call to this method.
 		/// </para>
 		/// </remarks>
-		public void Init(DatabaseConnection db, StatementTree stree, SqlCommand command) {
+		internal void Init(DatabaseConnection db, StatementTree stree, SqlCommand command) {
 			database = db;
 			user = db.User;
-			cmd = stree;
+			info = stree;
 			this.command = command;
 		}
 
@@ -358,7 +402,7 @@ namespace Deveel.Data.Sql {
 		/// </para>
 		/// </remarks>
 		/// <exception cref="DatabaseException"/>
-		public abstract void Prepare();
+		internal abstract void Prepare();
 
 		/// <summary>
 		/// Evaluates the statement after it is prepared.
@@ -371,6 +415,6 @@ namespace Deveel.Data.Sql {
 		/// </returns>
 		/// <exception cref="DatabaseException"/>
 		/// <exception cref="TransactionException"/>
-		public abstract Table Evaluate();
+		internal abstract Table Evaluate();
 	}
 }

@@ -1,4 +1,27 @@
-﻿2009-10-25  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-10-30  Antonello Provenzano  <antonello@deveel.com>
+	* AlterTableAction.cs: 'Action' property type changed to
+	AlterTableActionType.
+	* ByColumn.cs: 
+		- removed unused reference to 'name'
+		- encapsulated fields and made 'readonly'
+	* Statement.cs: methods Prepare and Evaluate made internal
+	* CompleteTransactionStatement.cs: suppressed and replaced by
+	CommitStatement and RollbackStatement classes
+	* ColumnDef.cs: 
+		- renamed in SqlColumn
+		- refactored
+	* ConstraintDef.cs:
+		- renamed to SqlConstraint
+		- refactored
+	* ConstraintType.cs: converted to enumeration
+	* FromTableDef.cs: renamed to FromTable
+	* IFromTable.cs: renamed to IFromTableSource
+	* SelectColumn.cs: 
+		- fields encapsulated
+		- refactored
+	* Util.cs: made internal
+	
+2009-10-25  Antonello Provenzano  <antonello@deveel.com>
 	* SQL.csc: implementation of the syntax for supporting
 	IDENTITY columns in a table.
 	* ColumnDef.cs: added property 'Identity' to speficy

@@ -28,22 +28,22 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private TableName fun_name;
 
-		public override void Prepare() {
-			String function_name = (String)cmd.GetObject("function_name");
+		internal override void Prepare() {
+			String function_name = GetString("function_name");
 
 			// Resolve the function name into a TableName object.    
-			String schema_name = database.CurrentSchema;
+			String schema_name = Connection.CurrentSchema;
 			fun_name = TableName.Resolve(schema_name, function_name);
-			fun_name = database.TryResolveCase(fun_name);
+			fun_name = Connection.TryResolveCase(fun_name);
 		}
 
-		public override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Does the schema exist?
-			bool ignore_case = database.IsInCaseInsensitiveMode;
+			bool ignore_case = Connection.IsInCaseInsensitiveMode;
 			SchemaDef schema =
-					database.ResolveSchemaCase(fun_name.Schema, ignore_case);
+					Connection.ResolveSchemaCase(fun_name.Schema, ignore_case);
 			if (schema == null) {
 				throw new DatabaseException("Schema '" + fun_name.Schema + "' doesn't exist.");
 			} else {
@@ -51,17 +51,17 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Does the user have privs to create this function?
-			if (!database.Database.CanUserDropProcedureObject(context, user, fun_name)) {
+			if (!Connection.Database.CanUserDropProcedureObject(context, User, fun_name)) {
 				throw new UserAccessException("User not permitted to drop function: " + fun_name);
 			}
 
 			// Drop the function
 			ProcedureName proc_name = new ProcedureName(fun_name);
-			ProcedureManager manager = database.ProcedureManager;
+			ProcedureManager manager = Connection.ProcedureManager;
 			manager.DeleteProcedure(proc_name);
 
 			// Drop the grants for this object
-			database.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, proc_name.ToString());
+			Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, proc_name.ToString());
 			// Return an update result table.
 			return FunctionTable.ResultTable(context, 0);
 		}

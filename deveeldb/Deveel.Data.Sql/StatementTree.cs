@@ -240,8 +240,7 @@ namespace Deveel.Data.Sql {
 		///<param name="entry"></param>
 		///<returns></returns>
 		///<exception cref="ApplicationException"></exception>
-		public static Object CloneSingleObject(Object entry) {
-
+		internal static Object CloneSingleObject(Object entry) {
 			// Immutable entries,
 			if (entry == null ||
 			    entry is TObject ||

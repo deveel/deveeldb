@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql {
 	/// </remarks>
 	class TableExpressionFromSet {
 		/// <summary>
-		/// The list of table resources in this set. (IFromTable).
+		/// The list of table resources in this set. (IFromTableSource).
 		/// </summary>
 		private readonly ArrayList table_resources;
 
@@ -119,7 +119,7 @@ namespace Deveel.Data.Sql {
 		/// Adds a table resource to the set.
 		/// </summary>
 		/// <param name="table_resource"></param>
-		public void AddTable(IFromTable table_resource) {
+		public void AddTable(IFromTableSource table_resource) {
 			table_resources.Add(table_resource);
 		}
 
@@ -155,10 +155,10 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// Exposes all the columns from the given <see cref="IFromTable"/>.
+		/// Exposes all the columns from the given <see cref="IFromTableSource"/>.
 		/// </summary>
 		/// <param name="table"></param>
-		public void ExposeAllColumnsFromSource(IFromTable table) {
+		public void ExposeAllColumnsFromSource(IFromTableSource table) {
 			Variable[] v = table.AllColumns;
 			for (int p = 0; p < v.Length; ++p) {
 				ExposeVariable(v[p]);
@@ -179,7 +179,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="tn"></param>
 		public void ExposeAllColumnsFromSource(TableName tn) {
-			IFromTable table = FindTable(tn.Schema, tn.Name);
+			IFromTableSource table = FindTable(tn.Schema, tn.Name);
 			if (table == null) {
 				throw new StatementException("Table name found: " + tn);
 			}
@@ -212,14 +212,14 @@ namespace Deveel.Data.Sql {
 		/// <param name="schema"></param>
 		/// <param name="name"></param>
 		/// <returns>
-		/// Returns the first <see cref="IFromTable"/> that matches the given 
+		/// Returns the first <see cref="IFromTableSource"/> that matches the given 
 		/// <paramref name="schema"/> and <paramref name="name"/> reference 
 		/// or <b>null</b> if no objects with the given <paramref name="schema"/> 
 		/// and <paramref name="name"/> reference match.
 		/// </returns>
-		internal IFromTable FindTable(String schema, String name) {
+		internal IFromTableSource FindTable(String schema, String name) {
 			for (int p = 0; p < SetCount; ++p) {
-				IFromTable table = GetTable(p);
+				IFromTableSource table = GetTable(p);
 				if (table.MatchesReference(null, schema, name)) {
 					return table;
 				}
@@ -228,19 +228,19 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// Returns the number of IFromTable objects in this set.
+		/// Returns the number of IFromTableSource objects in this set.
 		/// </summary>
 		internal int SetCount {
 			get { return table_resources.Count; }
 		}
 
 		/// <summary>
-		/// Returns the IFromTable object at the given index position in this set.
+		/// Returns the IFromTableSource object at the given index position in this set.
 		/// </summary>
 		/// <param name="i"></param>
 		/// <returns></returns>
-		internal IFromTable GetTable(int i) {
-			return (IFromTable)table_resources[i];
+		internal IFromTableSource GetTable(int i) {
+			return (IFromTableSource)table_resources[i];
 		}
 
 
@@ -354,7 +354,7 @@ namespace Deveel.Data.Sql {
 			Variable matched_var = null;
 
 			for (int i = 0; i < table_resources.Count; ++i) {
-				IFromTable table = (IFromTable)table_resources[i];
+				IFromTableSource table = (IFromTableSource)table_resources[i];
 				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
 				if (rcc == 0) {
 					// do nothing if no matches
@@ -432,7 +432,7 @@ namespace Deveel.Data.Sql {
 			//
 			//    // Find matches in our list of tables sources,
 			//    for (int i = 0; i < table_resources.size(); ++i) {
-			//      IFromTable table = (IFromTable) table_resources.get(i);
+			//      IFromTableSource table = (IFromTableSource) table_resources.get(i);
 			//      int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
 			//      if (rcc == 1) {
 			//        Variable matched =

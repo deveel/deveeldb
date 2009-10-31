@@ -141,7 +141,7 @@ namespace Deveel.Data.Sql {
 				  TableSelectExpression select_expression, DatabaseConnection db) {
 
 			// Get the 'from_clause' from the table expression
-			FromClause from_clause = select_expression.from_clause;
+			FromClause from_clause = select_expression.From;
 
 			// Prepares the from_clause joining set.
 			from_clause.JoinSet.Prepare(db);
@@ -152,7 +152,7 @@ namespace Deveel.Data.Sql {
 			// Add all tables from the 'from_clause'
 			IEnumerator tables = from_clause.AllTables.GetEnumerator();
 			while (tables.MoveNext()) {
-				FromTableDef ftdef = (FromTableDef)tables.Current;
+				FromTable ftdef = (FromTable)tables.Current;
 				String unique_key = ftdef.UniqueKey;
 				String alias = ftdef.Alias;
 
@@ -228,13 +228,13 @@ namespace Deveel.Data.Sql {
 
 					// If this column is aliased, add it as a function reference to the
 					// TableExpressionFromSet.
-					String alias = col.alias;
-					Variable v = col.expression.Variable;
+					String alias = col.Alias;
+					Variable v = col.Expression.Variable;
 					bool alias_match_v =
 							   (v != null && alias != null &&
 								from_set.StringCompare(v.Name, alias));
 					if (alias != null && !alias_match_v) {
-						from_set.AddFunctionRef(alias, col.expression);
+						from_set.AddFunctionRef(alias, col.Expression);
 						from_set.ExposeVariable(new Variable(alias));
 					} else if (v != null) {
 						Variable resolved = from_set.ResolveReference(v);
@@ -244,8 +244,8 @@ namespace Deveel.Data.Sql {
 							from_set.ExposeVariable(resolved);
 						}
 					} else {
-						String fun_name = col.expression.Text.ToString();
-						from_set.AddFunctionRef(fun_name, col.expression);
+						String fun_name = col.Expression.Text.ToString();
+						from_set.AddFunctionRef(fun_name, col.Expression);
 						from_set.ExposeVariable(new Variable(fun_name));
 					}
 				}
@@ -269,7 +269,7 @@ namespace Deveel.Data.Sql {
 		/// <returns></returns>
 		public static IQueryPlanNode FormQueryPlan(DatabaseConnection db,
 			  TableSelectExpression expression, TableExpressionFromSet from_set,
-			  ArrayList order_by) {
+			  IList order_by) {
 
 			IQueryContext context = new DatabaseQueryContext(db);
 
@@ -319,7 +319,7 @@ namespace Deveel.Data.Sql {
 				ArrayList prepared_col_set = column_set.s_col_list;
 				for (int i = 0; i < order_by.Count; ++i) {
 					ByColumn col = (ByColumn)order_by[i];
-					Expression exp = col.exp;
+					Expression exp = col.Expression;
 					if (exp.Count == 1) {
 						Object last_elem = exp.Last;
 						if (last_elem is TObject) {
@@ -327,9 +327,8 @@ namespace Deveel.Data.Sql {
 							if (bnum.Scale == 0) {
 								int col_ref = bnum.ToInt32() - 1;
 								if (col_ref >= 0 && col_ref < prepared_col_set.Count) {
-									SelectColumn scol =
-													  (SelectColumn)prepared_col_set[col_ref];
-									col.exp = new Expression(scol.expression);
+									SelectColumn scol = (SelectColumn)prepared_col_set[col_ref];
+									col.SetExpression(new Expression(scol.Expression));
 								}
 							}
 						}
@@ -345,7 +344,7 @@ namespace Deveel.Data.Sql {
 			QueryTableSetPlanner table_planner = new QueryTableSetPlanner();
 
 			for (int i = 0; i < from_set.SetCount; ++i) {
-				IFromTable table = from_set.GetTable(i);
+				IFromTableSource table = from_set.GetTable(i);
 				if (table is FromTableSubQuerySource) {
 					// This represents a sub-command in the FROM clause
 
@@ -388,11 +387,11 @@ namespace Deveel.Data.Sql {
 			// -----
 
 			// The WHERE and HAVING clauses
-			SearchExpression where_clause = expression.where_clause;
-			SearchExpression having_clause = expression.having_clause;
+			SearchExpression where_clause = expression.Where;
+			SearchExpression having_clause = expression.Having;
 
 			// Look at the join set and resolve the ON Expression to this statement
-			JoiningSet join_set = expression.from_clause.JoinSet;
+			JoiningSet join_set = expression.From.JoinSet;
 
 			// Perform a quick scan and see if there are any outer joins in the
 			// expression.
@@ -448,19 +447,19 @@ namespace Deveel.Data.Sql {
 				new_having_clause =
 					  FilterHavingClause(having_clause.FromExpression,
 										 extra_aggregate_functions, context);
-				having_clause.FromExpression = new_having_clause;
+				having_clause.SetFromExpression(new_having_clause);
 			}
 
 			// Any GROUP BY functions,
 			ArrayList group_by_functions = new ArrayList();
 
 			// Resolve the GROUP BY variable list references in this from set
-			ArrayList group_list_in = expression.group_by;
+			IList group_list_in = expression.GroupBy;
 			int gsz = group_list_in.Count;
 			Variable[] group_by_list = new Variable[gsz];
 			for (int i = 0; i < gsz; ++i) {
 				ByColumn by_column = (ByColumn)group_list_in[i];
-				Expression exp = by_column.exp;
+				Expression exp = by_column.Expression;
 				// Prepare the group by expression
 				exp.Prepare(from_set.ExpressionQualifier);
 				// Is the group by variable a complex expression?
@@ -490,7 +489,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Resolve GROUP MAX variable to a reference in this from set
-			Variable groupmax_column = expression.group_max;
+			Variable groupmax_column = expression.GroupMax;
 			if (groupmax_column != null) {
 				Variable v = from_set.ResolveReference(groupmax_column);
 				if (v == null) {
@@ -521,7 +520,7 @@ namespace Deveel.Data.Sql {
 				Variable[] aliases1 = new Variable[sz1];
 				for (int i = 0; i < sz1; ++i) {
 					SelectColumn scol = (SelectColumn)s_col_list1[i];
-					exp_list[i] = scol.expression;
+					exp_list[i] = scol.Expression;
 					col_names[i] = scol.internal_name.Name;
 					subset_vars[i] = new Variable(scol.internal_name);
 					aliases1[i] = new Variable(scol.resolved_name);
@@ -535,8 +534,7 @@ namespace Deveel.Data.Sql {
 
 			// Plan the where clause.  The returned node is the plan to evaluate the
 			// WHERE clause.
-			IQueryPlanNode node =
-						 table_planner.PlanSearchExpression(expression.where_clause);
+			IQueryPlanNode node = table_planner.PlanSearchExpression(expression.Where);
 
 			// Make up the functions list,
 			ArrayList functions_list = column_set.function_col_list;
@@ -544,7 +542,7 @@ namespace Deveel.Data.Sql {
 			ArrayList complete_fun_list = new ArrayList();
 			for (int i = 0; i < fsz; ++i) {
 				SelectColumn scol = (SelectColumn)functions_list[i];
-				complete_fun_list.Add(scol.expression);
+				complete_fun_list.Add(scol.Expression);
 				complete_fun_list.Add(scol.internal_name.Name);
 			}
 			for (int i = 0; i < extra_aggregate_functions.Count; ++i) {
@@ -604,7 +602,7 @@ namespace Deveel.Data.Sql {
 			int sz = s_col_list.Count;
 
 			// Evaluate the having clause if necessary
-			if (expression.having_clause.FromExpression != null) {
+			if (expression.Having.FromExpression != null) {
 				// Before we evaluate the having expression we must substitute all the
 				// aliased variables.
 				Expression having_expr = having_clause.FromExpression;
@@ -617,8 +615,8 @@ namespace Deveel.Data.Sql {
 
 			// Do we have a composite select expression to process?
 			IQueryPlanNode right_composite = null;
-			if (expression.next_composite != null) {
-				TableSelectExpression composite_expr = expression.next_composite;
+			if (expression.NextComposite != null) {
+				TableSelectExpression composite_expr = expression.NextComposite;
 				// Generate the TableExpressionFromSet hierarchy for the expression,
 				TableExpressionFromSet composite_from_set =
 											 GenerateFromSet(composite_expr, db);
@@ -642,7 +640,7 @@ namespace Deveel.Data.Sql {
 				}
 
 				// If we are distinct then add the DistinctNode here
-				if (expression.distinct) {
+				if (expression.Distinct) {
 					node = new QueryPlan.DistinctNode(node, subset_vars);
 				}
 
@@ -668,7 +666,7 @@ namespace Deveel.Data.Sql {
 			if (right_composite != null) {
 				// For the composite
 				node = new QueryPlan.CompositeNode(node, right_composite,
-							expression.composite_function, expression.is_composite_all);
+							expression.CompositeFunction, expression.IsCompositeAll);
 				// Final order by?
 				if (order_by != null) {
 					node = PlanForOrderBy(node, order_by, from_set, s_col_list);
@@ -696,7 +694,7 @@ namespace Deveel.Data.Sql {
 		/// </remarks>
 		/// <returns></returns>
 		public static IQueryPlanNode PlanForOrderBy(IQueryPlanNode plan,
-						ArrayList order_by, TableExpressionFromSet from_set,
+						IList order_by, TableExpressionFromSet from_set,
 						ArrayList s_col_list) {
 
 			TableName FUNCTION_TABLE = new TableName("FUNCTIONTABLE");
@@ -711,8 +709,8 @@ namespace Deveel.Data.Sql {
 
 				for (int i = 0; i < sz; ++i) {
 					ByColumn column = (ByColumn)order_by[i];
-					Expression exp = column.exp;
-					ascending_list[i] = column.ascending;
+					Expression exp = column.Expression;
+					ascending_list[i] = column.Ascending;
 					Variable v = exp.Variable;
 					if (v != null) {
 						Variable new_v = from_set.ResolveReference(v);
@@ -886,10 +884,10 @@ namespace Deveel.Data.Sql {
 			}
 
 			/// <summary>
-			/// Adds all the columns from the given IFromTable object.
+			/// Adds all the columns from the given IFromTableSource object.
 			/// </summary>
 			/// <param name="table"></param>
-			void AddAllFromTable(IFromTable table) {
+			void AddAllFromTable(IFromTableSource table) {
 				// Select all the tables
 				Variable[] vars = table.AllColumns;
 				int s_col_list_max = s_col_list.Count;
@@ -901,8 +899,8 @@ namespace Deveel.Data.Sql {
 					SelectColumn ncol = new SelectColumn();
 					Expression e = new Expression(v);
 					e.Text.Append(v.ToString());
-					ncol.alias = null;
-					ncol.expression = e;
+					ncol.SetAlias(null);
+					ncol.SetExpression(e);
 					ncol.resolved_name = v;
 					ncol.internal_name = v;
 
@@ -921,7 +919,7 @@ namespace Deveel.Data.Sql {
 			/// </remarks>
 			internal void SelectAllColumnsFromSource(TableName table_name) {
 				// Attempt to find the table in the from set.
-				IFromTable table = from_set.FindTable(
+				IFromTableSource table = from_set.FindTable(
 										table_name.Schema, table_name.Name);
 				if (table == null) {
 					throw new StatementException(table_name.ToString() +
@@ -937,7 +935,7 @@ namespace Deveel.Data.Sql {
 			/// </summary>
 			internal void SelectAllColumnsFromAllSources() {
 				for (int p = 0; p < from_set.SetCount; ++p) {
-					IFromTable table = from_set.GetTable(p);
+					IFromTableSource table = from_set.GetTable(p);
 					AddAllFromTable(table);
 				}
 			}
@@ -962,8 +960,8 @@ namespace Deveel.Data.Sql {
 									   IQueryContext context) {
 				SelectColumn scol = new SelectColumn();
 				scol.resolved_name = new Variable(fun_alias);
-				scol.alias = fun_alias;
-				scol.expression = function;
+				scol.SetAlias(fun_alias);
+				scol.SetExpression(function);
 				scol.internal_name = new Variable(FUNCTION_TABLE_NAME, fun_alias);
 
 				// If this is an aggregate column then add to aggregate count.
@@ -984,13 +982,13 @@ namespace Deveel.Data.Sql {
 			/// Prepares the given SelectColumn by fully qualifying the expression and
 			/// allocating it correctly within this context.
 			/// </summary>
-			/// <param name="column"></param>
+			/// <param name="col"></param>
 			/// <param name="context"></param>
 			private void PrepareSelectColumn(SelectColumn col, IQueryContext context) {
 				// Check to see if we have any Select statements in the
 				//   Expression.  This is necessary, because we can't have a
 				//   sub-select evaluated during list table downloading.
-				IList exp_elements = col.expression.AllElements;
+				IList exp_elements = col.Expression.AllElements;
 				for (int n = 0; n < exp_elements.Count; ++n) {
 					if (exp_elements[n] is TableSelectExpression) {
 						throw new StatementException(
@@ -999,11 +997,11 @@ namespace Deveel.Data.Sql {
 				}
 
 				// First fully qualify the select expression
-				col.expression.Prepare(from_set.ExpressionQualifier);
+				col.Expression.Prepare(from_set.ExpressionQualifier);
 
 				// If the expression isn't a simple variable, then add to
 				// function list.
-				Variable v = col.expression.Variable;
+				Variable v = col.Expression.Variable;
 				if (v == null) {
 					// This means we have a complex expression.
 
@@ -1011,14 +1009,14 @@ namespace Deveel.Data.Sql {
 					String agg_str = running_fun_number.ToString();
 
 					// If this is an aggregate column then add to aggregate count.
-					if (col.expression.HasAggregateFunction(context)) {
+					if (col.Expression.HasAggregateFunction(context)) {
 						++aggregate_count;
 						// Add '_A' code to end of internal name of column to signify this is
 						// an aggregate column
 						agg_str += "_A";
 					}
 						// If this is a constant column then add to constant cound.
-					else if (col.expression.IsConstant) {
+					else if (col.Expression.IsConstant) {
 						++constant_count;
 					} else {
 						// Must be an expression with variable's embedded ( eg.
@@ -1027,18 +1025,18 @@ namespace Deveel.Data.Sql {
 					function_col_list.Add(col);
 
 					col.internal_name = new Variable(FUNCTION_TABLE_NAME, agg_str);
-					if (col.alias == null) {
-						col.alias = col.expression.Text.ToString();
+					if (col.Alias == null) {
+						col.SetAlias(col.Expression.Text.ToString());
 					}
-					col.resolved_name = new Variable(col.alias);
+					col.resolved_name = new Variable(col.Alias);
 
 				} else {
 					// Not a complex expression
 					col.internal_name = v;
-					if (col.alias == null) {
+					if (col.Alias == null) {
 						col.resolved_name = v;
 					} else {
-						col.resolved_name = new Variable(col.alias);
+						col.resolved_name = new Variable(col.Alias);
 					}
 				}
 
@@ -1106,9 +1104,9 @@ namespace Deveel.Data.Sql {
 			/// the source.
 			/// </summary>
 			/// <param name="plan"></param>
-			/// <param name="from_def">The <see cref="IFromTable"/> that describes the source 
+			/// <param name="from_def">The <see cref="IFromTableSource"/> that describes the source 
 			/// created by the plan.</param>
-			public void AddTableSource(IQueryPlanNode plan, IFromTable from_def) {
+			public void AddTableSource(IQueryPlanNode plan, IFromTableSource from_def) {
 				Variable[] all_cols = from_def.AllColumns;
 				String[] unique_names = new String[] { from_def.UniqueName };
 				AddPlanTableSource(new PlanTableSource(plan, all_cols, unique_names));

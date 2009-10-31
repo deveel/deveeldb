@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql {
 	///<summary>
 	/// Various utility methods for the iterpreter.
 	///</summary>
-	public class Util {
+	class Util {
 
 		private static readonly TObject ZeroNumber = TObject.GetInt4(0);
 

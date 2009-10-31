@@ -22,7 +22,7 @@
 using System;
 
 namespace Deveel.Data.Sql {
-	public sealed class ConstraintType {
+	public enum ConstraintType {
 		///<summary>
 		/// A <c>PRIMARY KEY</c> constraint.
 		///</summary>
@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql {
 		/// of the columns in this table that are defined as the primary key.  
 		/// There may only be one primary key constraint per table.
 		/// </remarks>
-		public const int PrimaryKey = 1;
+		PrimaryKey = 1,
 
 		///<summary>
 		/// A UNIQUE constraint.
@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql {
 		/// With this constraint, the 'column_list' list contains the names of the 
 		/// columns in this table that must be unique.
 		/// </remarks>
-		public const int Unique = 2;
+		Unique = 2,
 
 		///<summary>
 		/// A FOREIGN_KEY constraint.
@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql {
 		/// the list of foreign key columns, and 'column_list2' optionally contains 
 		/// the referenced columns.
 		/// </remarks>
-		public const int ForeignKey = 3;
+		ForeignKey = 3,
 
 		///<summary>
 		/// A CHECK constraint.
@@ -60,6 +60,6 @@ namespace Deveel.Data.Sql {
 		/// With this constraint, the 'expression' object contains the expression 
 		/// that must evaluate to true when adding a column to the table.
 		/// </remarks>
-		public const int Check = 4;
+		Check = 4
 	}
 }

@@ -36,18 +36,18 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		public override void Prepare() {
+		internal override void Prepare() {
 		}
 
 		/// <inheritdoc/>
-		public override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(database);
+		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
-			String proc_name = (String)cmd.GetObject("proc_name");
-			Expression[] args = (Expression[])cmd.GetObject("args");
+			String proc_name = GetString("proc_name");
+			Expression[] args = (Expression[])GetValue("args");
 
 			// Get the procedure manager
-			ProcedureManager manager = database.ProcedureManager;
+			ProcedureManager manager = Connection.ProcedureManager;
 			ProcedureName name;
 
 			TableName p_name = null;
@@ -56,9 +56,9 @@ namespace Deveel.Data.Sql {
 			// function in the SYSTEM schema.
 			if (proc_name.IndexOf(".") == -1) {
 				// Resolve the procedure name into a TableName object.    
-				String schema_name = database.CurrentSchema;
+				String schema_name = Connection.CurrentSchema;
 				TableName tp_name = TableName.Resolve(Database.SystemSchema, proc_name);
-				tp_name = database.TryResolveCase(tp_name);
+				tp_name = Connection.TryResolveCase(tp_name);
 
 				// If exists then use this
 				if (manager.ProcedureExists(tp_name)) {
@@ -68,14 +68,14 @@ namespace Deveel.Data.Sql {
 
 			if (p_name == null) {
 				// Resolve the procedure name into a TableName object.    
-				String schema_name = database.CurrentSchema;
+				String schema_name = Connection.CurrentSchema;
 				TableName tp_name = TableName.Resolve(schema_name, proc_name);
-				tp_name = database.TryResolveCase(tp_name);
+				tp_name = Connection.TryResolveCase(tp_name);
 
 				// Does the schema exist?
-				bool ignore_case = database.IsInCaseInsensitiveMode;
+				bool ignore_case = Connection.IsInCaseInsensitiveMode;
 				SchemaDef schema =
-							database.ResolveSchemaCase(tp_name.Schema, ignore_case);
+							Connection.ResolveSchemaCase(tp_name.Schema, ignore_case);
 				if (schema == null) {
 					throw new DatabaseException("Schema '" + tp_name.Schema +
 												"' doesn't exist.");
@@ -96,8 +96,8 @@ namespace Deveel.Data.Sql {
 			name = new ProcedureName(p_name);
 
 			// Check the user has privs to use this stored procedure
-			if (!database.Database.CanUserExecuteStoredProcedure(context,
-															 user, name.ToString())) {
+			if (!Connection.Database.CanUserExecuteStoredProcedure(context,
+															 User, name.ToString())) {
 				throw new UserAccessException("User not permitted to call: " + proc_name);
 			}
 

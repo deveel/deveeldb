@@ -1,5 +1,5 @@
 //  
-//  CommitStatement.cs
+//  IStatementTreeObject.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -24,25 +24,19 @@ using System;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
-	/// The statements that represents a <c>COMMIT</c> command.
+	/// A complex object that is to be contained within a <see cref="StatementTree"/> object.
 	/// </summary>
-	public sealed class CommitStatement : Statement {
-		internal override void Prepare() {
-			// nothing to prepare...
-		}
-
-		internal override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-			//      try {
-			// Commit the current transaction on this connection.
-			Connection.Commit();
-			//      }
-			//      catch (TransactionException e) {
-			//        // This needs to be handled better!
-			//        Debug.WriteException(e);
-			//        throw new DatabaseException(e.Message);
-			//      }
-			return FunctionTable.ResultTable(context, 0);
-		}
+	/// <remarks>
+	/// A statement tree object must be serializable, and it must be able to
+	/// reference all <see cref="Expression"/> objects so that they may be prepared.
+	/// </remarks>
+	internal interface IStatementTreeObject : ICloneable {
+		/// <summary>
+		/// Prepares all expressions in this statement tree object by 
+		/// passing the <see cref="IExpressionPreparer"/> object to the 
+		/// <see cref="Expression.Prepare"/> method of the expression.
+		/// </summary>
+		/// <param name="preparer"></param>
+		void PrepareExpressions(IExpressionPreparer preparer);
 	}
 }

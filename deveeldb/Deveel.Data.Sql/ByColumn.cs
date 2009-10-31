@@ -30,22 +30,78 @@ namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class ByColumn : IStatementTreeObject {
 		/// <summary>
-		/// The name of the column in the 'by'.
+		/// Constructs the <c>BY</c> column reference with the expression
+		/// and the sort order given.
 		/// </summary>
-		public Variable name;
+		/// <param name="exp">The expression of the column reference.</param>
+		/// <param name="ascending">The sort order for the column. If this is
+		/// set to <b>true</b>, the column will be used to sort the results of
+		/// a query in ascending order.</param>
+		public ByColumn(Expression exp, bool ascending) {
+			this.exp = exp;
+			this.ascending = ascending;
+		}
+
+		/// <summary>
+		/// Constructs the <c>BY</c> column reference with the expression
+		/// given and the ascending sort order.
+		/// </summary>
+		/// <param name="exp">The expression of the column reference.</param>
+		public ByColumn(Expression exp)
+			: this(exp, true) {
+		}
+
+		/// <summary>
+		/// Constructs the <c>BY</c> column reference with the expression
+		/// and the sort order given.
+		/// </summary>
+		/// <param name="exp">The expression of the column reference.</param>
+		/// <param name="ascending">The sort order for the column. If this is
+		/// set to <b>true</b>, the column will be used to sort the results of
+		/// a query in ascending order.</param>
+		public ByColumn(string exp, bool ascending)
+			: this(Expression.Parse(exp), ascending) {
+		}
+
+		/// <summary>
+		/// Constructs the <c>BY</c> column reference with the expression
+		/// given and the ascending sort order.
+		/// </summary>
+		/// <param name="exp">The expression of the column reference.</param>
+		public ByColumn(string exp)
+			: this(exp, true) {
+		}
 
 		/// <summary>
 		/// The expression that we are ordering by.
 		/// </summary>
-		public Expression exp;
+		private Expression exp;
 
 		/// <summary>
 		/// If 'order by' then true if sort is ascending (default).
 		/// </summary>
-		public bool ascending = true;
+		private readonly bool ascending = true;
 
+		/// <summary>
+		/// Gets the expression used to order the result of a query.
+		/// </summary>
+		public Expression Expression {
+			get { return exp; }
+		}
 
-		public void PrepareExpressions(IExpressionPreparer preparer) {
+		/// <summary>
+		/// Gets a boolean value indicating whether we're sorting in ascending
+		/// or descending order.
+		/// </summary>
+		public bool Ascending {
+			get { return ascending; }
+		}
+
+		internal void SetExpression(Expression expression) {
+			exp = expression;
+		}
+
+		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			if (exp != null) {
 				exp.Prepare(preparer);
 			}
@@ -54,18 +110,14 @@ namespace Deveel.Data.Sql {
 		/// <inheritdoc/>
 		public Object Clone() {
 			ByColumn v = (ByColumn)MemberwiseClone();
-			if (name != null) {
-				v.name = (Variable)name.Clone();
-			}
-			if (exp != null) {
+			if (exp != null)
 				v.exp = (Expression)exp.Clone();
-			}
 			return v;
 		}
 
 		/// <inheritdoc/>
 		public override String ToString() {
-			return "ByColumn(" + name + ", " + exp + ", " + ascending + ")";
+			return "ByColumn(" + exp + ", " + ascending + ")";
 		}
 
 	}
