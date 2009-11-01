@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{DF38896D-7FCC-4AF8-8E6D-183E00BF6269}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <AssemblyName>DeveelDb.Entity</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.Entity">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Deveel.Data.Entity\BinaryExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\BranchExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\ColumnSortExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\CompositeExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\DeveelDbProviderManifest.cs" />
+    <Compile Include="Deveel.Data.Entity\DeveelDbProviderServices.cs" />
+    <Compile Include="Deveel.Data.Entity\ExistsExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\ExpressionBuilder.cs" />
+    <Compile Include="Deveel.Data.Entity\ExpressionScope.cs" />
+    <Compile Include="Deveel.Data.Entity\ExpressionVisitor.cs" />
+    <Compile Include="Deveel.Data.Entity\Expression.cs" />
+    <Compile Include="Deveel.Data.Entity\FunctionExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\IsNullExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\JoinExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\LikeExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\LiteralExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\Metadata.cs" />
+    <Compile Include="Deveel.Data.Entity\NegatableExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\PropertyExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\SelectExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\SelectExpressionVisitor.cs" />
+    <Compile Include="Deveel.Data.Entity\TableExpression.cs" />
+    <Compile Include="Deveel.Data.Entity\VariableExpression.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="SchemaMapping.msl" />
+    <EmbeddedResource Include="SchemaDefinition-1.0.ssdl" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\deveeldb\deveeldb.csproj">
+      <Project>{50D02908-5743-4E72-83B5-77C5712EA59A}</Project>
+      <Name>deveeldb</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ProviderManifest.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
