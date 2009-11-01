@@ -140,9 +140,9 @@ namespace Deveel.Data {
 				system.Stats.Decrement("OpenTransactionList.count");
 
 				if (TRACKING) {
-					Debug.Write(DebugLevel.Message, this, "Stacks:");
+					system.Debug.Write(DebugLevel.Message, this, "Stacks:");
 					for (int n = 0; n < open_transaction_stacks.Count; ++n) {
-						Debug.WriteException(DebugLevel.Message, (Exception)open_transaction_stacks[n]);
+						system.Debug.WriteException(DebugLevel.Message, (Exception)open_transaction_stacks[n]);
 					}
 				}
 

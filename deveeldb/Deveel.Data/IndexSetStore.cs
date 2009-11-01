@@ -165,8 +165,8 @@ namespace Deveel.Data {
 						}
 
 					} catch (IOException e) {
-						Debug.Write(DebugLevel.Error, this, "Error when freeing old index block.");
-						Debug.WriteException(e);
+						system.Debug.Write(DebugLevel.Error, this, "Error when freeing old index block.");
+						system.Debug.WriteException(e);
 					} finally {
 						store.UnlockForWrite();
 					}
@@ -675,7 +675,7 @@ namespace Deveel.Data {
 					// Commit finished.
 
 				} catch (IOException e) {
-					Debug.WriteException(e);
+					system.Debug.WriteException(e);
 					throw new ApplicationException("IO Error: " + e.Message);
 				}
 
@@ -828,7 +828,7 @@ namespace Deveel.Data {
 					return ilist;
 
 				} catch (IOException e) {
-					Debug.WriteException(e);
+					set_store.system.Debug.WriteException(e);
 					throw new Exception("IO Error: " + e.Message);
 				}
 
@@ -868,8 +868,8 @@ namespace Deveel.Data {
 							Dispose();
 						}
 					} catch (Exception e) {
-						Debug.Write(DebugLevel.Error, this, "Finalize error: " + e.Message);
-						Debug.WriteException(e);
+						set_store.system.Debug.Write(DebugLevel.Error, this, "Finalize error: " + e.Message);
+						set_store.system.Debug.WriteException(e);
 					}					
 				}
 			}
@@ -1077,8 +1077,8 @@ namespace Deveel.Data {
 					try {
 						set_store.store.GetArea(block_p).Read(buf, 0, area_size);
 					} catch (IOException e) {
-						Debug.Write(DebugLevel.Error, this, "block_p = " + block_p);
-						Debug.WriteException(e);
+						set_store.system.Debug.Write(DebugLevel.Error, this, "block_p = " + block_p);
+						set_store.system.Debug.WriteException(e);
 						throw new ApplicationException("IO Error: " + e.Message);
 					}
 

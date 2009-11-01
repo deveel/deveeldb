@@ -125,8 +125,10 @@
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Deveel.Data\TIntervalType.cs" />
-    <Compile Include="Deveel.Diagnostics\Debug.cs" />
     <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs" />
+    <Compile Include="Deveel.Diagnostics\EmptyDebugLogger.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Diagnostics\IDebugLogger.cs" />
     <Compile Include="Deveel.Diagnostics\DebugLevel.cs" />
     <Compile Include="Deveel.Data.Functions\AbsFunction.cs" />
@@ -200,6 +202,7 @@
     <Compile Include="Deveel.Data\OperatorSet.cs" />
     <Compile Include="Deveel.Data\ProductInfo.cs" />
     <Compile Include="Deveel.Data\TriggerEventType.cs" />
+    <Compile Include="Deveel.Diagnostics\LogEntry.cs" />
     <Compile Include="Deveel.Math\BigDecimal.cs" />
     <Compile Include="Deveel.Math\BigInteger.cs" />
     <Compile Include="Deveel.Math\DecimalRoundingMode.cs" />

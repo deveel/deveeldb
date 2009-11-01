@@ -24,6 +24,8 @@ using System;
 using System.Collections;
 using System.Threading;
 
+using Deveel.Diagnostics;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// Maintains a pool of worker threads that are used to dispatch commands 
@@ -79,6 +81,10 @@ namespace Deveel.Data {
 
 
 		// ---------- Thread Pooling methods ----------
+
+		internal IDebugLogger Debug {
+			get { return system.Debug; }
+		}
 
 		/// <summary>
 		/// This is called by a WorkerThread when it is decided that it is ready

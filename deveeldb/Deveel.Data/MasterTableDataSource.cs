@@ -340,6 +340,10 @@ namespace Deveel.Data {
 			get { return index_def; }
 		}
 
+		public IDebugLogger Debug {
+			get { return System.Debug; }
+		}
+
 		// ---------- Convenient statics ----------
 
 		/// <summary>
@@ -1962,7 +1966,7 @@ namespace Deveel.Data {
 				try {
 					row_index = mtds.AddRow(row_data);
 				} catch (IOException e) {
-					Debug.WriteException(e);
+					mtds.Debug.WriteException(e);
 					throw new ApplicationException("IO Error: " + e.Message);
 				}
 
@@ -2020,7 +2024,7 @@ namespace Deveel.Data {
 				try {
 					new_row_index = mtds.AddRow(row_data);
 				} catch (IOException e) {
-					Debug.WriteException(e);
+					mtds.Debug.WriteException(e);
 					throw new ApplicationException("IO Error: " + e.Message);
 				}
 

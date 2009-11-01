@@ -24,6 +24,8 @@ using System;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Store;
+
 namespace Deveel.Diagnostics {
 	/// <summary>
 	/// A <see cref="TextWriter"/> implementation that writes information to a 
@@ -50,35 +52,35 @@ namespace Deveel.Diagnostics {
 		private TextWriter output;
 		private FileStream outputStream;
 
-		/**
-		 * Constructs the log writer.  The 'base_name' is the name of log file.
-		 * 'max_size' is the maximum size the file can grow to before it is
-		 * copied to a log archive.
-		 */
 		///<summary>
+		/// Constructs the log writer.
 		///</summary>
-		///<param name="base_name"></param>
-		///<param name="max_size"></param>
-		///<param name="archive_count"></param>
+		///<param name="base_name">The base name of the log file: when the maximum size
+		/// is reached, the name of the file will be constructed with this name.</param>
+		///<param name="max_size">The maimum size that a log file can grow before
+		/// it is archived.</param>
+		///<param name="archive_count">The number of maximum archives to keep.</param>
 		///<exception cref="ApplicationException"></exception>
 		public LogWriter(string base_name, long max_size, int archive_count) {
-
-			if (archive_count < 1) {
+			if (archive_count < 1)
 				throw new ApplicationException("'archive_count' must be 1 or greater.");
-			}
 
-			this.log_file = base_name;
+			log_file = base_name;
 			this.max_size = max_size;
 			this.archive_count = archive_count;
+
+			FileMode mode;
 
 			// Does the file exist?
 			if (File.Exists(base_name)) {
 				log_file_size = new FileInfo(base_name).Length;
+				mode = FileMode.Append;
 			} else {
 				log_file_size = 0;
+				mode = FileMode.CreateNew;
 			}
 
-			outputStream = new FileStream(base_name, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+			outputStream = new FileStream(base_name, mode, FileAccess.Write, FileShare.Read);
 			output = new StreamWriter(outputStream, Encoding.Default);
 
 		}
@@ -106,7 +108,8 @@ namespace Deveel.Diagnostics {
 				File.Move(log_file, log_file + ".1");
 
 				// Create the new empty log file,
-				output = new StreamWriter(new FileStream(log_file, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read), Encoding.Default);
+				outputStream = new FileStream(log_file, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+				output = new StreamWriter(outputStream, Encoding.Default);
 				log_file_size = 0;
 			}
 		}
@@ -136,6 +139,7 @@ namespace Deveel.Diagnostics {
 		public override void Flush() {
 			lock (this) {
 				output.Flush();
+				FSync.Sync(outputStream);
 				CheckLogSize();
 			}
 		}
@@ -143,7 +147,7 @@ namespace Deveel.Diagnostics {
 		/// <inheritdoc/>
 		public override void Close() {
 			lock (this) {
-				output.Flush();
+				Flush();
 				output.Close();
 				if (outputStream != null)
 					outputStream.Dispose();

@@ -158,6 +158,11 @@ namespace Deveel.Data {
 		/// </summary>
 		private readonly ConnectionInternalTableInfo connection_internal_table_info;
 
+		/// <summary>
+		/// The <see cref="IDebugLogger"/> object that we can use to log messages to.
+		/// </summary>
+		private IDebugLogger logger;
+
 		// ----- Local flags -----
 
 		/// <summary>
@@ -190,8 +195,9 @@ namespace Deveel.Data {
 			this.database = database;
 			this.user = user;
 			this.call_back = call_back;
+			logger = database.Debug;
 			conglomerate = database.Conglomerate;
-			locking_mechanism = new LockingMechanism();
+			locking_mechanism = new LockingMechanism(logger);
 			trigger_event_buffer = new ArrayList();
 			trigger_event_list = new ArrayList();
 			tables_cache = new Hashtable();
@@ -387,6 +393,13 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void SetUser(User user) {
 			this.user = user;
+		}
+
+		/// <summary>
+		/// Gets an object that can be used to log debug messages to.
+		/// </summary>
+		public IDebugLogger Debug {
+			get { return logger; }
 		}
 
 		/// <summary>
@@ -1773,8 +1786,8 @@ namespace Deveel.Data {
 					try {
 						InternalDbHelper.DisposeDbConnection(db_connection);
 					} catch (Exception e) {
-						Debug.Write(DebugLevel.Error, this, "Error disposing internal connection.");
-						Debug.WriteException(DebugLevel.Error, e);
+						conn.Debug.Write(DebugLevel.Error, this, "Error disposing internal connection.");
+						conn.Debug.WriteException(DebugLevel.Error, e);
 						// We don't wrap this exception
 					}
 				}

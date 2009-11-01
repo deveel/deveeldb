@@ -22,6 +22,8 @@
 
 using System;
 
+using Deveel.Data.Control;
+
 namespace Deveel.Diagnostics {
 	/// <summary>
 	/// An interface for logging errors, warnings, messages, and exceptions 
@@ -32,6 +34,14 @@ namespace Deveel.Diagnostics {
 	/// window, etc) is implementation defined.
 	/// </remarks>
 	public interface IDebugLogger : IDisposable {
+		/// <summary>
+		/// Initialize the logger instance with the configuration
+		/// properties specified.
+		/// </summary>
+		/// <param name="config">The configurations used to configure
+		/// the logger.</param>
+		void Init(IDbConfig config);
+
 		/// <summary>
 		/// Queries the current debug level.
 		/// </summary>

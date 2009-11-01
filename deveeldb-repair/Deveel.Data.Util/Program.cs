@@ -64,7 +64,7 @@ namespace Deveel.Data {
 				config.SetValue("database_path", path);
 				config.SetValue("log_path", "");
 				config.SetValue("min_debug_level", "50000");
-				system.SetDebugOutput(new StringWriter());
+				config.SetValue("debug_logs", "disabled");
 				system.Init(config);
 				TableDataConglomerate conglomerate = ConstructConglomerate(system);
 				// Check it.

@@ -145,8 +145,8 @@ namespace Deveel.Data {
 					evt.runnable.Execute();
 
 				} catch (Exception e) {
-					Debug.Write(DebugLevel.Error, this, "SystemDispatchThread error");
-					Debug.WriteException(e);
+					system.Debug.Write(DebugLevel.Error, this, "SystemDispatchThread error");
+					system.Debug.WriteException(e);
 				}
 			}
 		}

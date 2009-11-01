@@ -180,7 +180,7 @@ namespace Deveel.Data.Server {
 								connection_state.SetProcessingRequest();
 
 								ServerConnectionState current_state = connection_state;
-								connection.Database.Execute(null, null, new ProcessRequestEventImpl(current_state));
+								connection.Database.Execute(null, null, new ProcessRequestEventImpl(this, current_state));
 
 							} // if (provider_state.HasPendingCommand) ....
 						} // if (!provider_state.IsProcessRequest)
@@ -193,18 +193,20 @@ namespace Deveel.Data.Server {
 						server_connections_list.RemoveAt(i);
 
 						// This happens if the connection closes.
-						Debug.Write(DebugLevel.Information, this, "IOException generated while checking connections, " +
+						parent.controller.Debug.Write(DebugLevel.Information, this, "IOException generated while checking connections, " +
 						                                          "removing provider.");
-						Debug.WriteException(DebugLevel.Information, e);
+						parent.controller.Debug.WriteException(DebugLevel.Information, e);
 					}
 				}
 			}
 
 			private class ProcessRequestEventImpl : IDatabaseEvent {
-				public ProcessRequestEventImpl(ServerConnectionState current_state) {
+				public ProcessRequestEventImpl(ServerFarmer farmer, ServerConnectionState current_state) {
+					this.farmer = farmer;
 					this.current_state = current_state;
 				}
 
+				private readonly ServerFarmer farmer;
 				private readonly ServerConnectionState current_state;
 
 				public void Execute() {
@@ -212,7 +214,7 @@ namespace Deveel.Data.Server {
 						// Process the next request that's pending.
 						current_state.Connection.ProcessRequest();
 					} catch (IOException ex) {
-						Debug.WriteException(DebugLevel.Information, ex);
+						farmer.parent.controller.Debug.WriteException(DebugLevel.Information, ex);
 					} finally {
 						// Then clear the state
 						// This makes sure that this provider may accept new
@@ -256,18 +258,18 @@ namespace Deveel.Data.Server {
 					connection_state.SetProcessingRequest();
 
 					// ISSUE: Pings are executed under 'null' user and database...
-					parent.controller.Execute(new PingEventImpl(connection_state));
-					//TODO: check ... 
-					// parent.database.Execute(null, null, new PingEventImpl(connection_state));
+					parent.controller.Execute(new PingEventImpl(this, connection_state));
 
 				} // if (!provider_state.isProcessRequest())
 			}
 
 			private class PingEventImpl : IDatabaseEvent {
-				public PingEventImpl(ServerConnectionState connection_state) {
+				public PingEventImpl(ServerFarmer farmer, ServerConnectionState connection_state) {
 					this.connection_state = connection_state;
+					this.farmer = farmer;
 				}
 
+				private readonly ServerFarmer farmer;
 				private readonly ServerConnectionState connection_state;
 
 				public void Execute() {
@@ -280,8 +282,8 @@ namespace Deveel.Data.Server {
 						try {
 							connection_state.Connection.Close();
 						} catch (IOException e2) { /* ignore */ }
-						Debug.Write(DebugLevel.Alert, this, "Closed because ping failed.");
-						Debug.WriteException(DebugLevel.Alert, ex);
+						farmer.parent.controller.Debug.Write(DebugLevel.Alert, this, "Closed because ping failed.");
+						farmer.parent.controller.Debug.WriteException(DebugLevel.Alert, ex);
 					} finally {
 						connection_state.ClearProcessingRequest();
 					}
@@ -329,7 +331,7 @@ namespace Deveel.Data.Server {
 
 				int method_poll_wait_time = poll_wait_time;
 
-				Debug.Write(DebugLevel.Message, this, "Polling frequency: " + method_poll_wait_time + "ms.");
+				parent.controller.Debug.Write(DebugLevel.Message, this, "Polling frequency: " + method_poll_wait_time + "ms.");
 
 				while (true) {
 					try {
@@ -375,8 +377,8 @@ namespace Deveel.Data.Server {
 						DisplayStatistics();
 
 					} catch (Exception e) {
-						Debug.Write(DebugLevel.Error, this, "Connection Pool Farmer Error");
-						Debug.WriteException(e);
+						parent.controller.Debug.Write(DebugLevel.Error, this, "Connection Pool Farmer Error");
+						parent.controller.Debug.WriteException(e);
 
 						// Wait for two seconds (so debug log isn't spammed)
 						lock (this) {

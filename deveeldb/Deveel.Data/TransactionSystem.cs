@@ -144,6 +144,11 @@ namespace Deveel.Data {
 		/// </summary>
 		private IStoreSystem store_system;
 
+		/// <summary>
+		/// A logger to output any debugging messages.
+		/// </summary>
+		private IDebugLogger logger;
+
 		// ---------- Low level row listeners ----------
 
 		/// <summary>
@@ -170,7 +175,6 @@ namespace Deveel.Data {
 		///</summary>
 		public TransactionSystem() {
 			// Setup generate properties from the environment.
-			// Debug.Init(new DefaultDebugLogger());
 			stats.Set(0, "OS.Platform: " + Environment.OSVersion.Platform);
 			stats.Set(0, "OS.Version: " + Environment.OSVersion.VersionString);
 			stats.Set(0, "Runtime.Version: " + Environment.Version);
@@ -308,12 +312,9 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This property must always return a debug logger that we can log to.
 		/// </remarks>
-		/*
-		TODO:
 		public IDebugLogger Debug {
 			get { return logger; }
 		}
-		*/
 
 		// ---------- Function factories ----------
 
@@ -389,7 +390,7 @@ namespace Deveel.Data {
 		/// We must provide the path to the root directory (eg. the directory 
 		/// where the config bundle is located).
 		/// </remarks>
-		private static string ParseFileString(string root_path, String root_info, String path_string) {
+		internal static string ParseFileString(string root_path, String root_info, String path_string) {
 			string path = Path.GetFullPath(path_string);
 			string res;
 			// If the path is absolute then return the absoluate reference
@@ -455,68 +456,51 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="config"></param>
 		private void SetupLog(IDbConfig config) {
-			String log_path_string = config.GetValue("log_path");
-			String root_path_var = config.GetValue("root_path");
-			String read_only_access = config.GetValue("read_only");
-			String debug_logs = config.GetValue("debug_logs");
-			bool read_only_bool = false;
-			if (read_only_access != null) {
-				read_only_bool = String.Compare(read_only_access, "enabled", true) == 0;
-			}
-			bool debug_logs_bool = true;
-			if (debug_logs != null) {
-				debug_logs_bool = String.Compare(debug_logs, "enabled", true) == 0;
-			}
+			//// Conditions for not initializing a log directory;
+			////  1. Read only access is enabled
+			////  2. log_path is empty or not set
 
-			// Conditions for not initializing a log directory;
-			//  1. Read only access is enabled
-			//  2. log_path is empty or not set
+			string log_path_string = config.GetValue("log_path");
+			string debug_logs = config.GetValue("debug_logs");
+			string read_only = config.GetValue("read_only");
+			string root_path_var = config.GetValue("root_path");
+
+			bool read_only_bool = false;
+			if (read_only != null)
+				read_only_bool = String.Compare(read_only, "enabled", true) == 0;
+			bool debug_logs_bool = true;
+			if (debug_logs != null)
+				debug_logs_bool = String.Compare(debug_logs, "enabled", true) == 0;
 
 			if (debug_logs_bool && !read_only_bool &&
-			    log_path_string != null && !log_path_string.Equals("")) {
+				log_path_string != null && !log_path_string.Equals("")) {
 				// First set up the debug information in this VM for the 'Debug' class.
-				string log_path = ParseFileString(config.CurrentPath, root_path_var,
-				                                  log_path_string);
+				string log_path = ParseFileString(config.CurrentPath, root_path_var, log_path_string);
 				// If the path doesn't exist the make it.
-				if (!Directory.Exists(log_path)) {
+				if (!Directory.Exists(log_path))
 					Directory.CreateDirectory(log_path);
-				}
-				// Set the log directory in the DatabaseSystem
+				
 				LogDirectory = log_path;
-
-				LogWriter f_writer;
-				string debug_log_file;
-				String dlog_file_name = "";
-				try {
-					dlog_file_name = config.GetValue("debug_log_file");
-					debug_log_file = Path.Combine(Path.GetFullPath(log_path), dlog_file_name);
-
-					// Allow log size to grow to 512k and allow 12 archives of the log
-					f_writer = new LogWriter(debug_log_file, 512*1024, 12);
-					f_writer.Write("**** Debug log started: " + DateTime.Now + " ****\n");
-					f_writer.Flush();
-				} catch (IOException) {
-					throw new Exception(
-						"Unable to open debug file '" + dlog_file_name +
-						"' in path '" + log_path + "'");
-				}
-				SetDebugOutput(f_writer);
 			}
 
-			// If 'debug_logs=disabled', don't Write out any debug logs
-			if (!debug_logs_bool) {
-				// Otherwise set it up so the output from the logs goes to a PrintWriter
-				// that doesn't do anything.  Basically - this means all log information
-				// will get sent into a black hole.
-				SetDebugOutput(new EmptyTextWriter());
+			string logger_type_string = config.GetValue("logger_type");
+
+			Type logger_type = null;
+			if (logger_type_string != null) {
+				logger_type = Type.GetType(logger_type_string, false, true);
+				if (!typeof(IDebugLogger).IsAssignableFrom(logger_type))
+					logger_type = null;
 			}
 
-			int debug_level = Int32.Parse(config.GetValue("debug_level"));
-			if (debug_level == -1) {
-				SetDebugLevel(255);
-			} else {
-				SetDebugLevel(debug_level);
-			}
+			// in case we don't log...
+			if (read_only_bool || !debug_logs_bool)
+				logger_type = typeof (EmptyDebugLogger);
+
+			if (logger_type == null)
+				logger_type = typeof (DefaultDebugLogger);
+
+			logger = (IDebugLogger) Activator.CreateInstance(logger_type, true);
+			logger.Init(config);
 		}
 
 		/// <summary>
@@ -654,8 +638,7 @@ namespace Deveel.Data {
 					int hash_size = DataCellCache.ClosestPrime(max_cache_size/55);
 
 					// Set up the data_cell_cache
-					data_cell_cache = new DataCellCache(this,
-					                                    max_cache_size, max_cache_entry_size, hash_size);
+					data_cell_cache = new DataCellCache(this, max_cache_size, max_cache_entry_size, hash_size);
 				} else {
 					Debug.Write(DebugLevel.Message, this, "Internal Data Cache disabled.");
 				}
@@ -722,7 +705,7 @@ namespace Deveel.Data {
 					// Set up the BufferManager
 					buffer_manager = new LoggingBufferManager(
 						db_path, journal_path, read_only_access, max_pages, page_size,
-						first_file_ext, max_slice_size, /*Debug,*/ enable_logging);
+						first_file_ext, max_slice_size, Debug, enable_logging);
 					// ^ This is a big constructor.  It sets up the logging manager and
 					//   sets a resource store data accessor converter to a scattering
 					//   implementation with a max slice size of 1 GB
@@ -811,24 +794,6 @@ namespace Deveel.Data {
 			// Set up the data_cell_cache
 			data_cell_cache =
 				new DataCellCache(this, max_cache_size, max_cache_entry_size);
-		}
-
-		///<summary>
-		/// Sets the TextWriter output for the debug logger.
-		///</summary>
-		///<param name="writer"></param>
-		public void SetDebugOutput(TextWriter writer) {
-			//    Console.Out.WriteLine("**** Setting debug log output ****" + writer);
-			//    Console.Out.WriteLine(logger);
-			Debug.SetOutput(writer);
-		}
-
-		/// <summary>
-		/// Sets the debug minimum level that is output to the logger.
-		/// </summary>
-		/// <param name="level"></param>
-		public void SetDebugLevel(int level) {
-			Debug.SetDebugLevel(level);
 		}
 
 		///<summary>
@@ -1002,32 +967,6 @@ namespace Deveel.Data {
 					this.factories = factories;
 				}
 			}
-		}
-
-		#endregion
-
-		#region Nested type: EmptyTextWriter
-
-		private class EmptyTextWriter : TextWriter {
-			public override void Write(int c) {
-			}
-
-			public override void Write(char[] cbuf, int off, int len) {
-			}
-
-			public override void Flush() {
-			}
-
-			public override void Close() {
-			}
-
-			#region Overrides of TextWriter
-
-			public override Encoding Encoding {
-				get { return Encoding.Unicode; }
-			}
-
-			#endregion
 		}
 
 		#endregion

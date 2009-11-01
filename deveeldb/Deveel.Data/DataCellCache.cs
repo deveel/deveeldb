@@ -244,7 +244,7 @@ namespace Deveel.Data {
 		public void Clear() {
 			lock (this) {
 				if (cache.NodeCount == 0 && current_cache_size != 0) {
-					Debug.Write(DebugLevel.Error, this, "Assertion failed - if nodeCount = 0 then current_cache_size must also be 0.");
+					system.Debug.Write(DebugLevel.Error, this, "Assertion failed - if nodeCount = 0 then current_cache_size must also be 0.");
 				}
 				if (cache.NodeCount != 0) {
 					cache.Clear();

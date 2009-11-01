@@ -143,8 +143,8 @@ namespace Deveel.Data.Server {
 				//CHECK: SO_TIMEOUT
 				server_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 0);
 			} catch (IOException e) {
-				Debug.WriteException(e);
-				Debug.Write(DebugLevel.Error, this, "Unable to start a server socket on port: " + port);
+				server_controller.Debug.WriteException(e);
+				server_controller.Debug.Write(DebugLevel.Error, this, "Unable to start a server socket on port: " + port);
 				throw new Exception(e.Message);
 			}
 
@@ -166,8 +166,8 @@ namespace Deveel.Data.Server {
 					PortConnection(s);
 				}
 			} catch (IOException e) {
-				Debug.WriteException(DebugLevel.Warning, e);
-				Debug.Write(DebugLevel.Warning, this, "Socket listen thread died.");
+				server_controller.Debug.WriteException(DebugLevel.Warning, e);
+				server_controller.Debug.Write(DebugLevel.Warning, this, "Socket listen thread died.");
 			}
 		}
 
@@ -200,8 +200,8 @@ namespace Deveel.Data.Server {
 				try {
 					server_socket.Close();
 				} catch (IOException e) {
-					Debug.Write(DebugLevel.Error, this, "Error closing JDBC Server.");
-					Debug.WriteException(e);
+					server_controller.Debug.Write(DebugLevel.Error, this, "Error closing Server.");
+					server_controller.Debug.WriteException(e);
 				}
 			}
 			connection_pool.Close();

@@ -51,6 +51,8 @@ namespace Deveel.Data {
 		/// </summary>
 		private bool was_checked;
 
+		private readonly IDebugLogger debug;
+
 
 		/// <summary>
 		/// Instantiate a new <see cref="Lock"/> object for the given access type.
@@ -58,13 +60,15 @@ namespace Deveel.Data {
 		/// <param name="type">The <see cref="AccessType">access type</see> of the lock.</param>
 		/// <param name="queue">The queue used to handle the access to database tables where
 		/// the Lock is placed.</param>
+		/// <param name="logger">A <see cref="IDebugLogger"/> used to output debug information.</param>
 		/// <remarks>
 		/// The construction of this object adds the Lock into the <see cref="LockingQueue"/>
 		/// provided as parameter.
 		/// </remarks>
-		internal Lock(AccessType type, LockingQueue queue) {
+		internal Lock(AccessType type, LockingQueue queue, IDebugLogger logger) {
 			this.type = type;
 			this.queue = queue;
+			debug = logger;
 			was_checked = false;
 			queue.AddLock(this);
 		}
@@ -100,8 +104,8 @@ namespace Deveel.Data {
 				// Prints out a warning if a Lock was released from the table queue but
 				// never had 'CheckAccess' called for it.
 				string table_name = queue.Table.TableName.ToString();
-				Debug.Write(DebugLevel.Error, this, "Lock on table '" + Table.TableName + "' was released but never checked.  " + ToString());
-				Debug.WriteException(new Exception("Lock Error Dump"));
+				debug.Write(DebugLevel.Error, this, "Lock on table '" + table_name + "' was released but never checked.  " + ToString());
+				debug.WriteException(new Exception("Lock Error Dump"));
 			}
 			//    else {
 			//      // Notify table we released Read/Write Lock

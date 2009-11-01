@@ -52,10 +52,12 @@ namespace Deveel.Data.Control {
 		private DbController(IDbConfig configContext) {
 			this.configContext = configContext;
 			databases = new Hashtable();
+			SetupLog(configContext);
 		}
 
 		private readonly Hashtable databases;
 		private readonly IDbConfig configContext;
+		private IDebugLogger logger;
 
 		/// <summary>
 		/// The default name of a database configuration file.
@@ -111,6 +113,14 @@ namespace Deveel.Data.Control {
 				databases.Keys.CopyTo(names, 0);
 				return names;
 			}
+		}
+
+		public IDebugLogger Debug {
+			get { return logger; }
+		}
+
+		private void SetupLog(IDbConfig config) {
+			//TODO:
 		}
 
 		/// <summary>
@@ -303,8 +313,8 @@ namespace Deveel.Data.Control {
 				database.Init();
 				database.RegisterShutDownDelegate(new StopEventImpl(this, database));
 			} catch (Exception e) {
-				Debug.Write(DebugLevel.Error, this, "Database create failed");
-				Debug.WriteException(e);
+				database.Debug.Write(DebugLevel.Error, this, "Database create failed");
+				database.Debug.WriteException(e);
 				throw new InvalidOperationException(e.Message);
 			}
 			// Return the DbSystem object for the newly created database.
@@ -349,8 +359,8 @@ namespace Deveel.Data.Control {
 			try {
 				database.Init();
 			} catch (DatabaseException e) {
-				Debug.Write(DebugLevel.Error, this, "Database init failed");
-				Debug.WriteException(e);
+				database.Debug.Write(DebugLevel.Error, this, "Database init failed");
+				database.Debug.WriteException(e);
 				throw new InvalidOperationException(e.Message);
 			}
 
@@ -408,7 +418,7 @@ namespace Deveel.Data.Control {
 			Database database = new Database(system, name);
 
 			// Start up message
-			Debug.Write(DebugLevel.Message, typeof(DbController), "Starting Database Server");
+			database.Debug.Write(DebugLevel.Message, typeof(DbController), "Starting Database Server");
 
 			return database;
 		}

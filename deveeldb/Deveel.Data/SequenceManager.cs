@@ -162,7 +162,7 @@ namespace Deveel.Data {
 					try {
 						sequence_access_transaction.Commit();
 					} catch (TransactionException e) {
-						Debug.WriteException(e);
+						conglomerate.Debug.WriteException(e);
 						throw new Exception("Transaction Error: " + e.Message);
 					}
 				}
@@ -228,7 +228,7 @@ namespace Deveel.Data {
 				try {
 					sequence_access_transaction.Commit();
 				} catch (TransactionException e) {
-					Debug.WriteException(e);
+					conglomerate.Debug.WriteException(e);
 					throw new Exception("Transaction Error: " + e.Message);
 				}
 			}

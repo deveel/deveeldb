@@ -146,10 +146,10 @@ namespace Deveel.Data {
 						}
 
 					} catch (Exception e) {
-						Debug.Write(DebugLevel.Error, this,
+						worker_pool.Debug.Write(DebugLevel.Error, this,
 									  "Worker thread interrupted because of exception:\n" +
 									  e.Message);
-						Debug.WriteException(e);
+						worker_pool.Debug.WriteException(e);
 					}
 				}
 			}

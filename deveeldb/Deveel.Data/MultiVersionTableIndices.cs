@@ -95,12 +95,9 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Returns the <see cref="IDebugLogger"/> object used to log debug messages.
 		/// </summary>
-		/*
-		TODO:
 		public IDebugLogger Debug {
 			get { return system.Debug; }
 		}
-		*/
 
 		/// <summary>
 		/// Updates the master records from the journal logs up to the given

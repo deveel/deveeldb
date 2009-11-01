@@ -329,7 +329,7 @@ namespace Deveel.Data {
 
 				int sz = ds.shut_down_delegates.Count;
 				if (sz == 0) {
-					Debug.Write(DebugLevel.Warning, this, "No shut down delegates registered!");
+					ds.Debug.Write(DebugLevel.Warning, this, "No shut down delegates registered!");
 				} else {
 					for (int i = 0; i < sz; ++i) {
 						IDatabaseEvent shut_down_delegate = (IDatabaseEvent) ds.shut_down_delegates[i];

@@ -72,12 +72,9 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Returns the IDebugLogger object that we can use to log debug messages.
 		/// </summary>
-		/*
-		TODO:
 		public IDebugLogger Debug {
 			get { return data_source.Debug; }
 		}
-		*/
 
 		/// <summary>
 		/// Called by the <see cref="MasterTableDataSource"/> to notify the 

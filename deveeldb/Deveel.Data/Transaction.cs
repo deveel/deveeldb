@@ -1977,10 +1977,10 @@ namespace Deveel.Data {
 							} catch (Exception e) {
 								// We weren't able to deserialize the expression so report the
 								// error to the log
-								Debug.Write(DebugLevel.Warning, typeof (Transaction),
+								transaction.Debug.Write(DebugLevel.Warning, typeof (Transaction),
 								            "Unable to deserialize the check expression.  " +
 								            "The error is: " + e.Message);
-								Debug.Write(DebugLevel.Warning, typeof (Transaction),
+								transaction.Debug.Write(DebugLevel.Warning, typeof (Transaction),
 								            "Parsing the check expression instead.");
 
 								check.expression = null;

@@ -1,3 +1,13 @@
+2009-10-31  Antonello Provenzano  <antonello@deveel.com>
+	* TransactionSystem.cs: 
+		- added property Debug that returns
+		a contextual IDebugLogger instance to log debug messages
+		for a specific database (suppressed Debug singleton from
+		Deveel.Diagnostics to support specific database logging).
+		- logic for setting up the debug logger moved to 
+		DefaultDebugLogger implementation (though new method Init
+		in IDebugLogger).
+
 2009-10-30  Antonello Provenzano  <antonello@deveel.com>
 	* IStatementTreeObject.cs: 
 		- made internal

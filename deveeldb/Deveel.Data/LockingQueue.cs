@@ -153,7 +153,7 @@ namespace Deveel.Data {
 						}
 
 						if (blocked == true) {
-							Debug.Write(DebugLevel.Information, this, "Blocking on Read.");
+							Table.Debug.Write(DebugLevel.Information, this, "Blocking on Read.");
 							//            Console.Out.WriteLine("READ BLOCK: " + queue);
 							try {
 								Monitor.Wait(this);
@@ -173,7 +173,7 @@ namespace Deveel.Data {
 						index = queue.IndexOf(l);
 						if (index != 0) {
 							blocked = true;
-							Debug.Write(DebugLevel.Information, this, "Blocking on Write.");
+							Table.Debug.Write(DebugLevel.Information, this, "Blocking on Write.");
 							//            Console.Out.WriteLine("Write BLOCK: " + queue);
 							try {
 								Monitor.Wait(this);

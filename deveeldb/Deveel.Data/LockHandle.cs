@@ -51,15 +51,18 @@ namespace Deveel.Data {
 		/// </summary>
 		private bool unlocked;
 
+		private readonly IDebugLogger debug;
+
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="lock_count">The number of locks that will be write into
 		/// this handle.</param>
-		internal LockHandle(int lock_count) {
+		internal LockHandle(int lock_count, IDebugLogger logger) {
 			lock_list = new Lock[lock_count];
 			lock_index = 0;
 			unlocked = false;
+			debug = logger;
 		}
 
 		/// <summary>
@@ -134,7 +137,7 @@ namespace Deveel.Data {
 		public void Dispose() {
 			if (!unlocked) {
 				UnlockAll();
-				Debug.Write(DebugLevel.Error, this, "Finalize released a table Lock - " +
+				debug.Write(DebugLevel.Error, this, "Finalize released a table Lock - " +
 				  "This indicates that there is a serious error.  Locks should " +
 				  "only have a very short life span.  The 'UnlockAll' method should " +
 				  "have been called before finalization.  " + ToString());

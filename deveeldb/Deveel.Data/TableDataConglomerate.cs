@@ -59,38 +59,17 @@ namespace Deveel.Data {
 		/**
 		 * The schema info table.
 		 */
-		public static readonly TableName SCHEMA_INFO_TABLE =
-								   new TableName(SystemSchema, "sUSRSchemaInfo");
-
-		public static readonly TableName PERSISTENT_VAR_TABLE =
-								 new TableName(SystemSchema, "sUSRDatabaseVars");
-
-		public static readonly TableName FOREIGN_COLS_TABLE =
-							   new TableName(SystemSchema, "sUSRForeignColumns");
-
-		public static readonly TableName UNIQUE_COLS_TABLE =
-								new TableName(SystemSchema, "sUSRUniqueColumns");
-
-		public static readonly TableName PRIMARY_COLS_TABLE =
-							   new TableName(SystemSchema, "sUSRPrimaryColumns");
-
-		public static readonly TableName CHECK_INFO_TABLE =
-									new TableName(SystemSchema, "sUSRCheckInfo");
-
-		public static readonly TableName UNIQUE_INFO_TABLE =
-								   new TableName(SystemSchema, "sUSRUniqueInfo");
-
-		public static readonly TableName FOREIGN_INFO_TABLE =
-									 new TableName(SystemSchema, "sUSRFKeyInfo");
-
-		public static readonly TableName PRIMARY_INFO_TABLE =
-									 new TableName(SystemSchema, "sUSRPKeyInfo");
-
-		public static readonly TableName SYS_SEQUENCE_INFO =
-								 new TableName(SystemSchema, "sUSRSequenceInfo");
-
-		public static readonly TableName SYS_SEQUENCE =
-									 new TableName(SystemSchema, "sUSRSequence");
+		public static readonly TableName SCHEMA_INFO_TABLE = new TableName(SystemSchema, "sUSRSchemaInfo");
+		public static readonly TableName PERSISTENT_VAR_TABLE = new TableName(SystemSchema, "sUSRDatabaseVars");
+		public static readonly TableName FOREIGN_COLS_TABLE = new TableName(SystemSchema, "sUSRForeignColumns");
+		public static readonly TableName UNIQUE_COLS_TABLE = new TableName(SystemSchema, "sUSRUniqueColumns");
+		public static readonly TableName PRIMARY_COLS_TABLE = new TableName(SystemSchema, "sUSRPrimaryColumns");
+		public static readonly TableName CHECK_INFO_TABLE = new TableName(SystemSchema, "sUSRCheckInfo");
+		public static readonly TableName UNIQUE_INFO_TABLE = new TableName(SystemSchema, "sUSRUniqueInfo");
+		public static readonly TableName FOREIGN_INFO_TABLE = new TableName(SystemSchema, "sUSRFKeyInfo");
+		public static readonly TableName PRIMARY_INFO_TABLE = new TableName(SystemSchema, "sUSRPKeyInfo");
+		public static readonly TableName SYS_SEQUENCE_INFO = new TableName(SystemSchema, "sUSRSequenceInfo");
+		public static readonly TableName SYS_SEQUENCE = new TableName(SystemSchema, "sUSRSequence");
 
 		/// <summary>
 		/// The TransactionSystem that this Conglomerate is a child of.
@@ -243,6 +222,10 @@ namespace Deveel.Data {
 		/// </summary>
 		internal string Name {
 			get { return name; }
+		}
+
+		internal IDebugLogger Debug {
+			get { return System.Debug; }
 		}
 
 		// ---------- Conglomerate state methods ----------
@@ -2160,7 +2143,7 @@ namespace Deveel.Data {
 							}
 						} else {
 							// NOTE: This error will pass the row by default
-							Debug.Write(DebugLevel.Error,
+							transaction.Debug.Write(DebugLevel.Error,
 							            typeof (TableDataConglomerate),
 							            DeferredString(deferred) + " check constraint violation (" +
 							            check.name + ") - '" + exp.Text +

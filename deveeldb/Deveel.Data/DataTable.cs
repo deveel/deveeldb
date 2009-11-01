@@ -589,6 +589,10 @@ namespace Deveel.Data {
 			}
 		}
 
+		 protected internal override IDebugLogger Debug {
+		 	get { return connection.System.Debug; }
+		 }
+
 
 		// ------------ Lock debugging methods ----------
 
@@ -678,8 +682,7 @@ namespace Deveel.Data {
 					Console.Error.Write(" debug_write_lock_count = " + debug_write_lock_count);
 					Console.Error.WriteLine(" isInExclusiveMode = " + IsInExclusiveMode);
 
-					Debug.WriteException(new ApplicationException(
-								"Invalid Read access on table '" + TableName + "'"));
+					Debug.WriteException(new ApplicationException("Invalid Read access on table '" + TableName + "'"));
 				}
 			}
 		}

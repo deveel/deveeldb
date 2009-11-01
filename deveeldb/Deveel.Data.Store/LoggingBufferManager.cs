@@ -124,7 +124,7 @@ namespace Deveel.Data.Store {
 		/// <param name="enable_logging"></param>
 		internal LoggingBufferManager(string journal_path, bool read_only,
 									int max_pages, int page_size,
-									IStoreDataAccessorFactory sda_factory, bool enable_logging) {
+									IStoreDataAccessorFactory sda_factory, IDebugLogger logger, bool enable_logging) {
 			PageCacheComparer = new PageCacheComparerImpl(this);
 			this.max_pages = max_pages;
 			this.page_size = page_size;
@@ -138,7 +138,7 @@ namespace Deveel.Data.Store {
 			unique_id_seq = 0;
 
 			journalled_system = new JournalledSystem(journal_path, read_only,
-			page_size, sda_factory, enable_logging);
+			page_size, sda_factory, logger, enable_logging);
 		}
 
 		/// <summary>
@@ -154,9 +154,9 @@ namespace Deveel.Data.Store {
 		/// <param name="max_slice_size"></param>
 		/// <param name="enable_logging"></param>
 		internal LoggingBufferManager(string resource_path, string journal_path, bool read_only, 
-			int max_pages, int page_size, String file_ext, long max_slice_size, bool enable_logging)
+			int max_pages, int page_size, String file_ext, long max_slice_size, IDebugLogger logger, bool enable_logging)
 			: this(journal_path, read_only, max_pages, page_size, 
-			new StoreDataAccessorFactoryImpl(resource_path, file_ext, max_slice_size), enable_logging) {
+			new StoreDataAccessorFactoryImpl(resource_path, file_ext, max_slice_size), logger, enable_logging) {
 		}
 
 		private class StoreDataAccessorFactoryImpl : IStoreDataAccessorFactory {

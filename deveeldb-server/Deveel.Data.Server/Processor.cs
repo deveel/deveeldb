@@ -74,8 +74,8 @@ namespace Deveel.Data.Server {
 					dout.Write(event_message);
 					processor.SendEvent(bout.ToArray());
 				} catch (IOException e) {
-					Debug.Write(DebugLevel.Error, this, "IO Error: " + e.Message);
-					Debug.WriteException(e);
+					processor.controller.Debug.Write(DebugLevel.Error, this, "IO Error: " + e.Message);
+					processor.controller.Debug.WriteException(e);
 				}
 			}
 		}
@@ -322,7 +322,7 @@ namespace Deveel.Data.Server {
 				}
 				db_interfaces.Clear();
 			} catch (Exception e) {
-				Debug.WriteException(DebugLevel.Error, e);
+				controller.Debug.WriteException(DebugLevel.Error, e);
 			}
 		}
 

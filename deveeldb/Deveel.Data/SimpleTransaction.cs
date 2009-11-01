@@ -142,6 +142,10 @@ namespace Deveel.Data {
 			get { return visible_tables; }
 		}
 
+		internal IDebugLogger Debug {
+			get { return System.Debug; }
+		}
+
 		/// <summary>
 		/// Returns the number of visible tables being managed by this transaction.
 		/// </summary>

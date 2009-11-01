@@ -56,6 +56,10 @@ namespace Deveel.Data.Sql {
 			cache = new Cache(hash_size, max_size, clean_percentage);
 		}
 
+		private IDebugLogger Debug {
+			get { return system.Debug; }
+		}
+
 		/// <summary>
 		/// Puts a new command string/StatementTree into the cache.
 		/// </summary>

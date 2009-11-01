@@ -37,6 +37,10 @@ namespace Deveel.Data.Server {
 			client_threads = new ArrayList();
 		}
 
+		public IDebugLogger Debug {
+			get { return controller.Debug; }
+		}
+
 		/// <inheritdoc/>
 		/// <remarks>
 		/// We then cycle through these connections determining whether any commands are 
@@ -128,8 +132,8 @@ namespace Deveel.Data.Server {
 					Close();
 
 					// This happens if the connection closes.
-					Debug.Write(DebugLevel.Information, this, "IOException generated while checking connections, removing provider.");
-					Debug.WriteException(DebugLevel.Information, e);
+					parent.Debug.Write(DebugLevel.Information, this, "IOException generated while checking connections, removing provider.");
+					parent.Debug.WriteException(DebugLevel.Information, e);
 				}
 
 			}
@@ -139,7 +143,7 @@ namespace Deveel.Data.Server {
 					// Process the next request that's pending.
 					server_connection.ProcessRequest();
 				} catch (IOException ex) {
-					Debug.WriteException(DebugLevel.Information, ex);
+					parent.Debug.WriteException(DebugLevel.Information, ex);
 				} finally {
 					// Not processing a command anymore so notify the ClientThread
 					processing_command = false;
@@ -184,8 +188,8 @@ namespace Deveel.Data.Server {
 						CheckCurrentConnection();
 
 					} catch (Exception e) {
-						Debug.Write(DebugLevel.Error, this, "Connection Pool Farmer Error");
-						Debug.WriteException(e);
+						parent.Debug.Write(DebugLevel.Error, this, "Connection Pool Farmer Error");
+						parent.Debug.WriteException(e);
 					}
 				}
 			}

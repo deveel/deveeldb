@@ -194,6 +194,14 @@ namespace Deveel.Data.Server {
 	        get { return database_connection; }
 	    }
 
+		/// <summary>
+		/// Gets an object that can be used to log debug information.
+		/// </summary>
+		protected IDebugLogger Debug {
+			//TODO: return an empty debug logger if database is null...
+			get { return (database != null ? database.Debug : null); }
+		}
+
         /// <summary>
         /// Adds this result set to the list of result sets being handled 
         /// through this processor.

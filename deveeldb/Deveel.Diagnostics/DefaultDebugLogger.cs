@@ -3,7 +3,6 @@
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
-//       Tobias Downer <toby@mckoi.com>
 // 
 //  Copyright (c) 2009 Deveel
 // 
@@ -21,7 +20,13 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Globalization;
 using System.IO;
+using System.Text;
+using System.Threading;
+
+using Deveel.Data;
+using Deveel.Data.Control;
 
 namespace Deveel.Diagnostics {
 	/// <summary>
@@ -34,106 +39,176 @@ namespace Deveel.Diagnostics {
 	/// shown.
 	/// </remarks>
 	public class DefaultDebugLogger : IDebugLogger {
-
-		/**
-		 * Set this to true if all alerts to messages are to be output to System.output.
-		 * The purpose of this flag is to aid debugging.
-		 */
-		private const bool PRINT_ALERT_TO_MESSAGES = false;
-
-
-		/**
-		 * The debug Lock object.
-		 */
+		/// <summary>
+		/// The debug Lock object.
+		/// </summary>
 		private readonly Object debug_lock = new Object();
 
-		/**
-		 * The PrintWriter for the system output stream.
-		 */
-		static readonly TextWriter SYSTEM_OUT = Console.Out;
-
-		/**
-		 * The PrintWriter for the system error stream.
-		 */
-		static readonly TextWriter SYSTEM_ERR = Console.Error;
-
-
-		/**
-		 * This variable specifies the level of debugging information that is
-		 * output.  Any debugging output above this level is output.
-		 */
+		/// <summary>
+		/// This variable specifies the level of debugging information that is
+		/// output.  Any debugging output above this level is output.
+		/// </summary>
 		private int debug_level = 0;
 
-		/**
-		 * The print stream where the debugging information is output to.
-		 */
-		private TextWriter output = SYSTEM_ERR;
+		/// <summary>
+		/// The string used to format the output message.
+		/// </summary>
+		private string message_format = "[{Thread}][{Time}] {Source} : {Level:Name} - {Message}";
 
-		/**
-		 * The print stream where the error information is output to.
-		 */
-		private TextWriter err = SYSTEM_ERR;
+		/// <summary>
+		/// The text writer where the debugging information is output to.
+		/// </summary>
+		private TextWriter output;
 
-
-		/**
-		 * Internal method that writes output the given information on the output
-		 * stream provided.
-		 */
-		private static void InternalWrite(TextWriter output,
-								  DebugLevel level, String class_string, String message) {
+		private void Write(LogEntry entry) {
 			lock (output) {
-				if (level < DebugLevel.Message) {
-					output.Write("> ");
-					output.Write(class_string);
-					output.Write(" ( lvl: ");
-					output.Write(level);
-					output.Write(" )\n  ");
+				StringBuilder sb = new StringBuilder();
+
+				if (entry.Level < DebugLevel.Message) {
+					sb.Append("> ");
 				} else {
-					output.Write("% ");
+					sb.Append("% ");
 				}
-				output.WriteLine(message);
+
+				sb.Append(FormatEntry(entry));
+				output.WriteLine(sb.ToString());
 				output.Flush();
 			}
 		}
 
-		///<summary>
-		/// Sets up the <see cref="TextWriter"/> to which the debug information 
-		/// is to be output to.
-		///</summary>
-		///<param name="output"></param>
-		public void SetOutput(TextWriter output) {
-			this.output = output;
+		protected virtual string FormatEntry(LogEntry entry) {
+			if (message_format == null || entry == null)
+				return String.Empty;
+
+			StringBuilder message = new StringBuilder();
+			StringBuilder field = null;
+
+			for (int i = 0; i < message_format.Length; i++) {
+				char c = message_format[i];
+				if (c == '{') {
+					field = new StringBuilder();
+					continue;
+				} 
+				if (c == '}' && field != null) {
+					string fieldValue = field.ToString();
+					string result = FormatField(entry, fieldValue);
+					message.Append(result);
+					field = null;
+					continue;
+				}
+
+				if (field != null) {
+					field.Append(c);
+				} else {
+					message.Append(c);
+				}
+			}
+
+			return message.ToString();
 		}
 
-		///<summary>
-		/// Sets the debug level that's to be output to the stream.
-		///</summary>
-		///<param name="level"></param>
-		/// <remarks>
-		/// Set to 255 to stop all output to the stream.
-		/// </remarks>
-		public void SetDebugLevel(int level) {
-			debug_level = level;
-		}
+		protected virtual string FormatField(LogEntry entry, string fieldName) {
+			if (fieldName == null || fieldName.Length == 0)
+				return null;
 
-		/**
-		 * Sets up the system so that the debug messenger will intercept event
-		 * dispatch errors and output the event to the debug stream.
-		 */
-		/*
-		TODO:
-	  public void listenToEventDispatcher() {
-		// This is only possible in versions of Java post 1.1
-	//#IFDEF(NO_1.1)
-		// According to the EventDispatchThread documentation, this is just a
-		// temporary hack until a proper API has been defined.
-		System.setProperty("sun.awt.exception.handler",
-						   "com.mckoi.debug.DispatchNotify");
-	//#ENDIF
-	  }
-		*/
+			string format = null;
+			int index = fieldName.IndexOf(':');
+			if (index != -1) {
+				format = fieldName.Substring(index + 1);
+				fieldName = fieldName.Substring(0, index);
+			}
+
+			if (fieldName.Length == 0)
+				return null;
+
+			switch (fieldName.ToLower()) {
+				case "message":
+					return (format != null ? String.Format(format, entry.Message) : entry.Message);
+				case "time":
+					return (format != null ? entry.Time.ToString(format, CultureInfo.InvariantCulture) : entry.Time.ToString());
+				case "source":
+					return (format != null ? String.Format(format, entry.Source) : entry.Source);
+				case "level": {
+					if (format != null)
+						format = format.ToLower();
+					if (format == "number" || format == null)
+						return entry.Level.Value.ToString();
+					if (format == "name")
+						return entry.Level.Name;
+					return String.Format(format, entry.Level.Value);
+				}
+				case "thread": {
+					string threadName = (entry.Thread == null ? AppDomain.GetCurrentThreadId().ToString() : entry.Thread);
+					return (format != null ? String.Format(format, threadName) : threadName);
+				}
+				default:
+					throw new ArgumentException("Unknown field " + fieldName);
+			}
+		}
 
 		// ---------- Implemented from IDebugLogger ----------
+
+		public void Init(IDbConfig config) {
+			string log_path_string = config.GetValue("log_path");
+			string root_path_var = config.GetValue("root_path");
+			string read_only_access = config.GetValue("read_only");
+			string debug_logs = config.GetValue("debug_logs");
+			bool read_only_bool = false;
+			if (read_only_access != null) {
+				read_only_bool = String.Compare(read_only_access, "enabled", true) == 0;
+			}
+			bool debug_logs_bool = true;
+			if (debug_logs != null) {
+				debug_logs_bool = String.Compare(debug_logs, "enabled", true) == 0;
+			}
+
+			// Conditions for not initializing a log directory;
+			//  1. Read only access is enabled
+			//  2. log_path is empty or not set
+
+			if (debug_logs_bool && !read_only_bool &&
+				log_path_string != null && !log_path_string.Equals("")) {
+				// First set up the debug information in this VM for the 'Debug' class.
+				string log_path = TransactionSystem.ParseFileString(config.CurrentPath, root_path_var,
+												  log_path_string);
+				// If the path doesn't exist the make it.
+				if (!Directory.Exists(log_path))
+					Directory.CreateDirectory(log_path);
+
+				LogWriter f_writer;
+				String dlog_file_name = "";
+				try {
+					dlog_file_name = config.GetValue("debug_log_file");
+					string debug_log_file = Path.Combine(Path.GetFullPath(log_path), dlog_file_name);
+
+					// Allow log size to grow to 512k and allow 12 archives of the log
+					//TODO: make it configurable...
+					f_writer = new LogWriter(debug_log_file, 512 * 1024, 12);
+					f_writer.Write("**** Debug log started: " + DateTime.Now + " ****\n");
+					f_writer.Flush();
+				} catch (IOException) {
+					throw new Exception("Unable to open debug file '" + dlog_file_name + "' in path '" + log_path + "'");
+				}
+				output = f_writer;
+			}
+
+			// If 'debug_logs=disabled', don't Write out any debug logs
+			if (!debug_logs_bool) {
+				// Otherwise set it up so the output from the logs goes to a PrintWriter
+				// that doesn't do anything.  Basically - this means all log information
+				// will get sent into a black hole.
+				output = new EmptyTextWriter();
+			}
+
+			debug_level = Int32.Parse(config.GetValue("debug_level"));
+			if (debug_level == -1)
+				// stops all the output
+				debug_level = 255;
+
+			string format = config.GetValue("debug_format");
+			if (format != null)
+				message_format = format;
+		}
 
 		public bool IsInterestedIn(DebugLevel level) {
 			return (level >= debug_level);
@@ -143,26 +218,19 @@ namespace Deveel.Diagnostics {
 			Write(level, ob.GetType().Name, message);
 		}
 
-		public void Write(DebugLevel level, Type cla, string message) {
-			Write(level, cla.Name, message);
+		public void Write(DebugLevel level, Type type, string message) {
+			Write(level, type.FullName, message);
 		}
 
-		public void Write(DebugLevel level, string class_string, string message) {
+		public void Write(DebugLevel level, string type_string, string message) {
 			if (IsInterestedIn(level)) {
-
-				//if (level >= DebugLevel.Error && level < DebugLevel.Message) {
-				//    InternalWrite(SYSTEM_ERR, level, class_string, message);
-				//} else if (PRINT_ALERT_TO_MESSAGES) {
-				//    if (output != SYSTEM_ERR && level >= DebugLevel.Alert) { // && level < Message) {
-				//        InternalWrite(SYSTEM_ERR, level, class_string, message);
-				//    }
-				//}
-
-				InternalWrite(output, level, class_string, message);
+				// InternalWrite(output, level, type_string, message);
+				Thread thread = Thread.CurrentThread;
+				Write(new LogEntry(thread.Name, message, type_string, level, DateTime.Now));
 			}
-
 		}
 
+		/*
 		private void WriteTime() {
 			lock (output) {
 				output.Write("[ TIME: ");
@@ -171,6 +239,7 @@ namespace Deveel.Diagnostics {
 				output.Flush();
 			}
 		}
+		*/
 
 		public void WriteException(Exception e) {
 			WriteException(DebugLevel.Error, e);
@@ -178,16 +247,13 @@ namespace Deveel.Diagnostics {
 
 		public void WriteException(DebugLevel level, Exception e) {
 			lock (this) {
-				//if (level >= DebugLevel.Error) {
-				//    lock (SYSTEM_ERR) {
-				//        SYSTEM_ERR.Write("[Deveel.Data.Debug.Debug - Exception thrown: '");
-				//        SYSTEM_ERR.Write(e.Message);
-				//        SYSTEM_ERR.WriteLine("']");
-				//        SYSTEM_ERR.WriteLine(e.StackTrace);
-				//    }
-				//}
-
+				StringBuilder sb = new StringBuilder();
+				sb.AppendLine(e.Message);
+				sb.Append(e.StackTrace);
+				Write(new LogEntry(Thread.CurrentThread.Name, sb.ToString(), null, level, DateTime.Now));
+				/*
 				if (IsInterestedIn(level)) {
+					// we keep this way for exceptions, but we need to change it...
 					lock (output) {
 						WriteTime();
 						output.Write("% ");
@@ -196,12 +262,35 @@ namespace Deveel.Diagnostics {
 						output.Flush();
 					}
 				}
+				*/
 			}
 		}
 
 		public void Dispose() {
 			if (output != null)
 				output.Dispose();
+		}
+
+		private class EmptyTextWriter : TextWriter {
+			public override void Write(int c) {
+			}
+
+			public override void Write(char[] cbuf, int off, int len) {
+			}
+
+			public override void Flush() {
+			}
+
+			public override void Close() {
+			}
+
+			#region Overrides of TextWriter
+
+			public override Encoding Encoding {
+				get { return Encoding.ASCII; }
+			}
+
+			#endregion
 		}
 	}
 }

@@ -108,7 +108,7 @@ namespace Deveel.Data {
 				JournalledFileStore store = createFileStore(name);
 				return store.Exists;
 			} catch (IOException e) {
-				Debug.WriteException(e);
+				system.Debug.WriteException(e);
 				throw new Exception("IO Error: " + e.Message);
 			}
 		}
@@ -132,7 +132,7 @@ namespace Deveel.Data {
 											   " already exists.");
 				}
 			} catch (IOException e) {
-				Debug.WriteException(e);
+				system.Debug.WriteException(e);
 				throw new Exception("IO Error: " + e.Message);
 			} catch (ThreadInterruptedException e) {
 				throw new ApplicationException("Interrupted: " + e.Message);
@@ -157,7 +157,7 @@ namespace Deveel.Data {
 											   " does not exist.");
 				}
 			} catch (IOException e) {
-				Debug.WriteException(e);
+				system.Debug.WriteException(e);
 				throw new Exception("IO Error: " + e.Message);
 			} catch (ThreadInterruptedException e) {
 				throw new ApplicationException("Interrupted: " + e.Message);
@@ -176,7 +176,7 @@ namespace Deveel.Data {
 				((JournalledFileStore)store).Close();
 				return true;
 			} catch (IOException e) {
-				Debug.WriteException(e);
+				system.Debug.WriteException(e);
 				throw new Exception("IO Error: " + e.Message);
 			} catch (ThreadInterruptedException e) {
 				throw new ApplicationException("Interrupted: " + e.Message);
@@ -194,7 +194,7 @@ namespace Deveel.Data {
 
 				return ((JournalledFileStore)store).Delete();
 			} catch (IOException e) {
-				Debug.WriteException(e);
+				system.Debug.WriteException(e);
 				throw new Exception("IO Error: " + e.Message);
 			} catch (ThreadInterruptedException e) {
 				throw new ApplicationException("Interrupted: " + e.Message);
@@ -210,10 +210,10 @@ namespace Deveel.Data {
 				LoggingBufferManager buffer_manager = system.BufferManager;
 				buffer_manager.SetCheckPoint(false);
 			} catch (IOException e) {
-				Debug.WriteException(e);
+				system.Debug.WriteException(e);
 				throw new Exception("IO Error: " + e.Message);
 			} catch (ThreadInterruptedException e) {
-				Debug.WriteException(e);
+				system.Debug.WriteException(e);
 				throw new Exception("Interrupted Error: " + e.Message);
 			}
 		}
@@ -225,7 +225,7 @@ namespace Deveel.Data {
 				// Okay, the file Lock exists.  This means either an extremely bad
 				// crash or there is another database locked on the files.  If we can
 				// delete the Lock then we can go on.
-				Debug.Write(DebugLevel.Warning, this, "File Lock file exists: " + flock_fn);
+				system.Debug.Write(DebugLevel.Warning, this, "File Lock file exists: " + flock_fn);
 				File.Delete(flock_fn);
 				if (File.Exists(flock_fn)) {
 					// If we couldn't delete, then most likely database being used.

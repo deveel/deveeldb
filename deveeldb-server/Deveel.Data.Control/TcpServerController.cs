@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 
 using Deveel.Data.Server;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Control {
 	/// <summary>
@@ -129,6 +130,10 @@ namespace Deveel.Data.Control {
 			RegisterShutdownDelegate();
 		}
 
+		public IDebugLogger Debug {
+			get { return controller.Debug; }
+		}
+
 		/// <summary>
 		/// Registers the delegate that closes this server when the database shuts-down.
 		/// </summary>
@@ -194,10 +199,6 @@ namespace Deveel.Data.Control {
 		/// </returns>
 		public Database GetDatabase(string name) {
 			return controller.GetDatabase(name);
-		}
-
-		public Database CreateDatabase(IDbConfig config, string name, string adminUser, string adminPass) {
-			throw new NotSupportedException();
 		}
 
 		public void Execute(IDatabaseEvent dbEvent) {

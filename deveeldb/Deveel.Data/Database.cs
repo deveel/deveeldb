@@ -400,6 +400,14 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Gets the <see cref="IDebugLogger"/> implementation from the parent 
+		/// <see cref="DatabaseSystem"/> context.
+		/// </summary>
+		public IDebugLogger Debug {
+			get { return System.Debug; }
+		}
+
+		/// <summary>
 		/// Returns a new <see cref="DatabaseConnection"/> instance that is 
 		/// used against this database.
 		/// </summary>
@@ -1872,8 +1880,7 @@ namespace Deveel.Data {
 			try {
 				string log_path = system.LogDirectory;
 				if (log_path != null && system.LogQueries) {
-					commands_log = new Log(Path.Combine(log_path, "commands.log"),
-					                       256*1024, 5);
+					commands_log = new Log(Path.Combine(log_path, "commands.log"), 256*1024, 5);
 				} else {
 					commands_log = Log.Null;
 				}
@@ -2027,14 +2034,11 @@ namespace Deveel.Data {
 			//     backing up the database.  Even if journalling is enabled, a power
 			//     failure will lose changes in the backup copy anyway.
 			config.SetValue("io_safety_level", "1");
-			StringWriter debug_output = new StringWriter();
-			copy_system.SetDebugOutput(debug_output);
+			config.SetValue("debug_logs", "disabled");
 			copy_system.Init(config);
 			TableDataConglomerate dest_conglomerate = new TableDataConglomerate(copy_system, copy_system.StoreSystem);
 
 			// Open the congloemrate
-			//TODO: check ...
-			// dest_conglomerate.MinimalCreate("DefaultDatabase");
 			dest_conglomerate.MinimalCreate(Name);
 
 			try {

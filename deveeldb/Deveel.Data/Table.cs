@@ -66,12 +66,9 @@ namespace Deveel.Data {
 		/// Returns a <see cref="IDebugLogger"/> object that we can use to log 
 		/// debug messages to.
 		/// </summary>
-		/*
-		TODO:
-		public virtual IDebugLogger Debug {
+		protected internal virtual IDebugLogger Debug {
 			get { return System.Debug; }
 		}
-		*/
 
 		/// <summary>
 		/// Returns the number of columns in the table.

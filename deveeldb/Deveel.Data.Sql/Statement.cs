@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 
 using Deveel.Data.Client;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -77,6 +78,13 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		protected SqlCommand Command {
 			get { return command; }
+		}
+
+		/// <summary>
+		/// Gets an <see cref="IDebugLogger"/> used to log commands.
+		/// </summary>
+		protected IDebugLogger Debug {
+			get { return database.Debug; }
 		}
 
 		protected string GetString(string key) {
