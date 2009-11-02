@@ -94,6 +94,7 @@
     <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\ArithmeticFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\CompressionFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\DateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\MiscFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\StringFunctionFactory.cs" />

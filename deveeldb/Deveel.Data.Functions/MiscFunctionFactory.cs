@@ -30,6 +30,8 @@ namespace Deveel.Data.Functions {
 
 			// identity
 			AddFunction("identity", typeof(IdentityFunction), FunctionType.StateBased);
+
+			AddFunction("version", typeof(VersionFunction));
 		}
 
 		#region ToNumberFunction
@@ -568,6 +570,26 @@ namespace Deveel.Data.Functions {
 				return cast_to_type;
 			}
 
+		}
+
+		#endregion
+
+		#region VersionFunction
+
+		[Serializable]
+		private class VersionFunction : Function {
+			public VersionFunction(Expression[] parameters) 
+				: base("version", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				Version version = ProductInfo.Current.Version;
+				return TObject.GetString(version.ToString(2));
+			}
+
+			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+				return TType.StringType;
+			}
 		}
 
 		#endregion

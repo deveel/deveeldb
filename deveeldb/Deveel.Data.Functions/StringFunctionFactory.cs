@@ -17,7 +17,11 @@ namespace Deveel.Data.Functions {
 			AddFunction("rtrim", typeof(RTrimFunction));
 			AddFunction("length", typeof(LengthFunction));
 			AddFunction("substring", typeof(SubstringFunction));
+			AddFunction("instr", typeof (InStrFunction));
 			AddFunction("soundex", typeof(SoundexFunction));
+			AddFunction("lpad", typeof(LPadFunction));
+			AddFunction("rpad", typeof(RPadFunction));
+			AddFunction("replace", typeof(ReplaceFunction));
 		}
 
 		#region ConcatFunction
@@ -336,8 +340,7 @@ namespace Deveel.Data.Functions {
 				: base("substring", parameters) {
 
 				if (ParameterCount < 1 || ParameterCount > 3) {
-					throw new Exception(
-						"Substring function needs one to three arguments.");
+					throw new Exception("Substring function needs one to three arguments.");
 				}
 			}
 
@@ -384,6 +387,63 @@ namespace Deveel.Data.Functions {
 
 		#endregion
 
+		#region InStrFunction
+
+		[Serializable]
+		private class InStrFunction : Function {
+			public InStrFunction(Expression[] parameters) 
+				: base("instr", parameters) {
+				if (ParameterCount < 2 || ParameterCount > 4)
+					throw new ArgumentException("The function INSTR must specify at least 2 and less than 4 parameters.");
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				int argc = ParameterCount;
+
+				TObject ob1 = this[0].Evaluate(group, resolver, context);
+				TObject ob2 = this[1].Evaluate(group, resolver, context);
+
+				if (ob1.IsNull)
+					return TObject.Null;
+
+				if (ob2.IsNull)
+					return TObject.GetInt4(-1);
+
+				string str = ob1.Object.ToString();
+				string pattern = ob2.Object.ToString();
+
+				if (str.Length == 0 || pattern.Length == 0)
+					return TObject.GetInt4(-1);
+
+				int startIndex = -1;
+				int endIndex = -1;
+
+				if (argc > 2) {
+					TObject ob3 = this[2].Evaluate(group, resolver, context);
+					if (!ob3.IsNull)
+						startIndex = ob3.ToBigNumber().ToInt32();
+				} 
+				if (argc > 3) {
+					TObject ob4 = this[3].Evaluate(group, resolver, context);
+					if (!ob4.IsNull)
+						endIndex = ob4.ToBigNumber().ToInt32();
+				}
+
+				int index = -1;
+				if (argc == 2) {
+					index = str.IndexOf(pattern);
+				} else if (argc == 3) {
+					index = str.IndexOf(pattern, startIndex);
+				} else {
+					index = str.IndexOf(pattern, startIndex, endIndex - startIndex);
+				}
+
+				return TObject.GetInt4(index);
+			}
+		}
+
+		#endregion
+
 		#region SoundexFunction
 
 		[Serializable]
@@ -399,6 +459,122 @@ namespace Deveel.Data.Functions {
 					obj = obj.CastTo(TType.StringType);
 
 				return TObject.GetString(Soundex.UsEnglish.Compute(obj.ToStringValue()));
+			}
+
+			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+				return TType.StringType;
+			}
+		}
+
+		#endregion
+
+		#region LPadFunction
+
+		[Serializable]
+		private class LPadFunction : Function {
+			public LPadFunction(Expression[] parameters) 
+				: base("lpad", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				int argc = ParameterCount;
+
+				TObject ob1 = this[0].Evaluate(group, resolver, context);
+				TObject ob2 = this[1].Evaluate(group, resolver, context);
+
+				if (ob1.IsNull)
+					return ob1;
+
+				char c = ' ';
+				if (argc > 2) {
+					TObject ob3 = this[2].Evaluate(group, resolver, context);
+					if (!ob3.IsNull) {
+						string pad = ob3.ToStringValue();
+						c = pad[0];
+					}
+				}
+
+				int totalWidth = ob2.ToBigNumber().ToInt32();
+				string s = ob1.ToStringValue();
+
+				string result = (argc == 1 ? s.PadLeft(totalWidth) : s.PadLeft(totalWidth, c));
+				return TObject.GetString(result);
+			}
+
+			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+				return TType.StringType;
+			}
+		}
+
+		#endregion
+
+		#region RPadFunction
+
+		[Serializable]
+		private class RPadFunction : Function {
+			public RPadFunction(Expression[] parameters) 
+				: base("rpad", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				int argc = ParameterCount;
+
+				TObject ob1 = this[0].Evaluate(group, resolver, context);
+				TObject ob2 = this[1].Evaluate(group, resolver, context);
+
+				if (ob1.IsNull)
+					return ob1;
+
+				char c = ' ';
+				if (argc > 2) {
+					TObject ob3 = this[2].Evaluate(group, resolver, context);
+					if (!ob3.IsNull) {
+						string pad = ob3.ToStringValue();
+						c = pad[0];
+					}
+				}
+
+				int totalWidth = ob2.ToBigNumber().ToInt32();
+				string s = ob1.ToStringValue();
+
+				string result = (argc == 1 ? s.PadRight(totalWidth) : s.PadRight(totalWidth, c));
+				return TObject.GetString(result);
+			}
+
+			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+				return TType.StringType;
+			}
+		}
+
+		#endregion
+
+		#region ReplaceFunction
+
+		[Serializable]
+		private class ReplaceFunction : Function {
+			public ReplaceFunction(Expression[] parameters) 
+				: base("replace", parameters) {
+				if (ParameterCount != 3)
+					throw new ArgumentException("The function REPLACE requires 3 parameters.");
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob1 = this[0].Evaluate(group, resolver, context);
+				TObject ob2 = this[1].Evaluate(group, resolver, context);
+				TObject ob3 = this[2].Evaluate(group, resolver, context);
+
+				if (ob1.IsNull)
+					return ob1;
+
+				if (ob2.IsNull)
+					return ob1;
+
+				string s = ob1.ToStringValue();
+				string oldValue = ob2.ToStringValue();
+				string newValue = ob3.ToStringValue();
+
+				string result = s.Replace(oldValue, newValue);
+				return TObject.GetString(result);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {

@@ -42,6 +42,19 @@ namespace Deveel.Data.Functions {
 			AddFunction("mod", typeof(ModFunction));
 			AddFunction("pow", typeof(PowFunction));
 			AddFunction("round", typeof(RoundFunction));
+			AddFunction("log", typeof(LogFunction));
+			AddFunction("log10", typeof(Log10Function));
+			AddFunction("pi", typeof(PiFunction));
+			AddFunction("e", typeof(EFunction));
+			AddFunction("ceil", typeof(CeilFunction));
+			AddFunction("ceiling", typeof(CeilFunction));
+			AddFunction("floor", typeof(FloorFunction));
+			AddFunction("radians", typeof(RadiansFunction));
+			AddFunction("degrees", typeof(DegreesFunction));
+			AddFunction("exp", typeof(ExpFunction));
+			AddFunction("cot", typeof (CotFunction));
+			AddFunction("arctan", typeof(ArcTanFunction));
+			AddFunction("rand", typeof(RandFunction));
 		}
 
 		#region AbsFunction
@@ -133,6 +146,53 @@ namespace Deveel.Data.Functions {
 			}
 		}
 
+
+		#endregion
+
+		#region ArcTanFunction
+
+		[Serializable]
+		private class ArcTanFunction : Function {
+			public ArcTanFunction(Expression[] parameters) 
+				: base("arctan", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return TObject.Null;
+
+				double degrees = ob.ToBigNumber().ToDouble();
+				double radians = RadiansFunction.ToRadians(degrees);
+				radians = System.Math.Tan(System.Math.Atan(radians));
+				degrees = DegreesFunction.ToDegrees(radians);
+
+				return TObject.GetBigNumber(BigNumber.fromDouble(degrees));
+			}
+		}
+
+		#endregion
+
+		#region CotFunction
+
+		[Serializable]
+		private class CotFunction : Function {
+			public CotFunction(Expression[] parameters) 
+				: base("cot", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return TObject.Null;
+
+				double degrees = ob.ToBigNumber().ToDouble();
+				double radians = RadiansFunction.ToRadians(degrees);
+				double cotan = 1.0/System.Math.Tan(radians);
+
+				return TObject.GetBigNumber(BigNumber.fromDouble(cotan));
+			}
+		}
 
 		#endregion
 
@@ -409,6 +469,256 @@ namespace Deveel.Data.Functions {
 					}
 				}
 				return TObject.GetBigNumber(v.SetScale(d, DecimalRoundingMode.HalfUp));
+			}
+		}
+
+		#endregion
+
+		#region LogFunction
+
+		[Serializable]
+		private class LogFunction : Function {
+			public LogFunction(Expression[] parameters) 
+				: base("log", parameters) {
+				if (ParameterCount > 2)
+					throw new ArgumentException("The LOG function accepts 1 or 2 arguments.");
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				int argc = ParameterCount;
+
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return ob;
+
+				if (ob.TType is TNumericType)
+					ob = ob.CastTo(TType.NumericType);
+
+				double a = ob.ToBigNumber().ToDouble();
+				double newBase = double.NaN;
+				if (argc == 2) {
+					TObject ob1 = this[1].Evaluate(group, resolver, context);
+					if (!ob1.IsNull) {
+						if (ob1.TType is TNumericType)
+							ob1 = ob.CastTo(TType.NumericType);
+
+						newBase = ob1.ToBigNumber().ToDouble();
+					}
+				}
+
+				double result = (argc == 1 ? System.Math.Log(a) : System.Math.Log(a, newBase));
+				return TObject.GetBigNumber(BigNumber.fromDouble(result));
+			}
+		}
+
+		#endregion
+
+		#region Log10Function
+
+		[Serializable]
+		private class Log10Function : Function {
+			public Log10Function(Expression[] parameters) 
+				: base("log10", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return ob;
+
+				if (ob.TType is TNumericType)
+					ob = ob.CastTo(TType.NumericType);
+
+				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Log10(ob.ToBigNumber().ToDouble())));
+			}
+		}
+
+		#endregion
+
+		#region PiFunction
+
+		[Serializable]
+		private class PiFunction : Function {
+			public PiFunction(Expression[] parameters) 
+				: base("pi", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.PI));
+			}
+		}
+
+		#endregion
+
+		#region EFunction
+
+		[Serializable]
+		private class EFunction : Function {
+			public EFunction(Expression[] parameters) 
+				: base("e", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.E));
+			}
+		}
+
+		#endregion
+
+		#region CeilFunction
+
+		[Serializable]
+		private class CeilFunction : Function {
+			public CeilFunction(Expression[] parameters) 
+				: base("ceil", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return TObject.Null;
+
+				if (!(ob.TType is TNumericType))
+					ob = ob.CastTo(TType.NumericType);
+
+				return TObject.GetBigNumber(BigNumber.fromDouble(ob.ToBigNumber().ToDouble()));
+			}
+		}
+
+		#endregion
+
+		#region FloorFunction
+
+		[Serializable]
+		private class FloorFunction : Function {
+			public FloorFunction(Expression[] parameters) 
+				: base("floor", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return TObject.Null;
+
+				if (!(ob.TType is TNumericType))
+					ob = ob.CastTo(TType.NumericType);
+
+				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Floor(ob.ToBigNumber().ToDouble())));
+			}
+		}
+
+		#endregion
+
+		#region RadiansFunction
+
+		[Serializable]
+		private class RadiansFunction : Function {
+			public RadiansFunction(Expression[] parameters) 
+				: base("radians", parameters) {
+			}
+
+			/// <summary>
+			/// The number of radians for one degree.
+			/// </summary>
+			private const double Degree = 0.0174532925;
+
+			internal static double ToRadians(double degrees) {
+				return degrees * Degree;
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return TObject.Null;
+
+				double degrees = ob.ToBigNumber().ToDouble();
+				double radians = ToRadians(degrees);
+
+				return TObject.GetBigNumber(BigNumber.fromDouble(radians));
+			}
+		}
+
+		#endregion
+
+		#region DegreesFunction
+
+		[Serializable]
+		private class DegreesFunction : Function {
+			public DegreesFunction(Expression[] parameters) 
+				: base("degrees", parameters) {
+			}
+
+			/// <summary>
+			/// The number of degrees for one radiant.
+			/// </summary>
+			private const double Radiant = 57.2957795;
+
+			internal static double ToDegrees(double radians) {
+				return radians*Radiant;
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return TObject.Null;
+
+				double radians = ob.ToBigNumber().ToDouble();
+				double degrees = ToDegrees(radians);
+
+				return TObject.GetBigNumber(BigNumber.fromDouble(degrees));
+			}
+		}
+
+		#endregion
+
+		#region ExpFunction
+
+		[Serializable]
+		private class ExpFunction : Function {
+			public ExpFunction(Expression[] parameters) 
+				: base("exp", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return TObject.Null;
+
+				if (!(ob.TType is TNumericType))
+					ob = ob.CastTo(TType.NumericType);
+
+				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Exp(ob.ToBigNumber().ToDouble())));
+			}
+		}
+
+		#endregion
+
+		#region RandFunction
+
+		[Serializable]
+		private class RandFunction : Function {
+			public RandFunction(Expression[] parameters) 
+				: base("rand", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				int argc = ParameterCount;
+
+				// TODO: should we initialize at higher level to keep the state?
+
+				Random random;
+				if (argc == 1) {
+					TObject ob = this[0].Evaluate(group, resolver, context);
+					if (!ob.IsNull)
+						random = new Random(ob.ToBigNumber().ToInt32());
+					else
+						random = new Random();
+				} else {
+					random = new Random();
+				}
+
+				double value = random.NextDouble();
+				return TObject.GetBigNumber(BigNumber.fromDouble(value));
 			}
 		}
 

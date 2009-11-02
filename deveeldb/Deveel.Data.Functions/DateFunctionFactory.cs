@@ -10,6 +10,11 @@ namespace Deveel.Data.Functions {
 			AddFunction("timeob", typeof(TimeObFunction));
 			AddFunction("timestampob", typeof(TimeStampObFunction));
 			AddFunction("dateformat", typeof(DateFormatFunction));
+			AddFunction("add_months", typeof(AddMonthsFunction));
+			AddFunction("months_between", typeof(MonthsBetweenFunction));
+			AddFunction("last_day", typeof(LastDayFunction));
+			AddFunction("next_day", typeof(NextDayFunction));
+			AddFunction("dbtimezone", typeof(DbTimeZoneFunction));
 		}
 
 		#region DateObFunction
@@ -205,6 +210,155 @@ namespace Deveel.Data.Functions {
 			}
 		}
 
+
+		#endregion
+
+		#region AddMonthsFunction
+
+		[Serializable]
+		private class AddMonthsFunction : Function {
+			public AddMonthsFunction(Expression[] parameters)
+				: base("add_months", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob1 = this[0].Evaluate(group, resolver, context);
+
+				if (ob1.IsNull || !(ob1.TType is TDateType))
+					return ob1;
+
+				TObject ob2 = this[1].Evaluate(group, resolver, context);
+				if (ob2.IsNull)
+					return ob1;
+
+				DateTime date = ob1.ToDateTime();
+				int value = ob2.ToBigNumber().ToInt32();
+
+				return TObject.GetDateTime(date.AddMonths(value));
+			}
+
+			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+				return TType.DateType;
+			}
+		}
+
+		#endregion
+
+		#region MonthsBetweenFunction
+
+		[Serializable]
+		private class MonthsBetweenFunction : Function {
+			public MonthsBetweenFunction(Expression[] parameters)
+				: base("months_between", parameters) {
+				if (ParameterCount != 2)
+					throw new ArgumentException("The MONTHS_BETWEEN function requires exactly 2 parameters.");
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob1 = this[0].Evaluate(group, resolver, context);
+				TObject ob2 = this[1].Evaluate(group, resolver, context);
+
+				if (ob1.IsNull || ob2.IsNull)
+					return TObject.Null;
+
+				DateTime date1 = ob1.ToDateTime();
+				DateTime date2 = ob2.ToDateTime();
+
+				TimeSpan span = date2.Subtract(date1);
+				DateTime interval = DateTime.MinValue + span;
+
+				return TObject.GetInt4(interval.Month - 1);
+			}
+		}
+
+		#endregion
+
+		#region LastDayFunction
+
+		[Serializable]
+		private class LastDayFunction : Function {
+			public LastDayFunction(Expression[] parameters)
+				: base("last_day", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return ob;
+
+				DateTime date = ob.ToDateTime();
+
+				DateTime evalDate = new DateTime(date.Year, date.Month, 1);
+				evalDate = evalDate.AddMonths(1).Subtract(new TimeSpan(1, 0, 0, 0, 0));
+
+				return TObject.GetDateTime(evalDate);
+			}
+		}
+
+		#endregion
+
+		#region NextDayFunction
+
+		[Serializable]
+		private class NextDayFunction : Function {
+			public NextDayFunction(Expression[] parameters) 
+				: base("next_day", parameters) {
+				if (ParameterCount != 2)
+					throw new ArgumentException("The function NET_DAY requires exactly 2 parameters.");
+			}
+
+			private static DateTime GetNextDateForDay(DateTime startDate, DayOfWeek desiredDay) {
+				// Given a date and day of week,
+				// find the next date whose day of the week equals the specified day of the week.
+				return startDate.AddDays(DaysToAdd(startDate.DayOfWeek, desiredDay));
+			}
+
+			private static int DaysToAdd(DayOfWeek current, DayOfWeek desired) {
+				// f( c, d ) = g( c, d ) mod 7, g( c, d ) > 7
+				//           = g( c, d ), g( c, d ) < = 7
+				//   where 0 <= c < 7 and 0 <= d < 7
+
+				int c = (int)current;
+				int d = (int)desired;
+				int n = (7 - c + d);
+
+				return (n > 7) ? n % 7 : n;
+			}
+
+			private static DayOfWeek GetDayOfWeek(TObject ob) {
+				if (ob.TType is TNumericType)
+					return (DayOfWeek) ob.ToBigNumber().ToInt32();
+				return (DayOfWeek) Enum.Parse(typeof (DayOfWeek), ob.ToStringValue(), true);
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob1 = this[0].Evaluate(group, resolver, context);
+				TObject ob2 = this[1].Evaluate(group, resolver, context);
+
+				if (ob1.IsNull || ob2.IsNull)
+					return TObject.Null;
+
+				DateTime date = ob1.ToDateTime();
+				DateTime nextDate = GetNextDateForDay(date, GetDayOfWeek(ob2));
+
+				return TObject.GetDateTime(nextDate);
+			}
+		}
+
+		#endregion
+
+		#region DbTimeZoneFunction
+
+		[Serializable]
+		private class DbTimeZoneFunction : Function {
+			public DbTimeZoneFunction(Expression[] parameters) 
+				: base("dbtimezone", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				return TObject.GetString(TimeZone.CurrentTimeZone.StandardName);
+			}
+		}
 
 		#endregion
 	}
