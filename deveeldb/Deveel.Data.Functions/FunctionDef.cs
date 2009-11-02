@@ -116,9 +116,9 @@ namespace Deveel.Data.Functions {
 		public IFunction GetFunction(IQueryContext context) {
 			if (cached_function != null)
 				return cached_function;
-			IFunctionLookup lookup = null;
+			IFunctionLookup lookup;
 			if (context == null) {
-				lookup = FunctionFactory.Internal;
+				lookup = FunctionFactory.Default;
 			} else {
 				lookup = context.FunctionLookup;
 			}

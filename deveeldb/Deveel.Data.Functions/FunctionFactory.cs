@@ -37,20 +37,20 @@ namespace Deveel.Data.Functions {
 	/// </remarks>
 	public abstract class FunctionFactory : IFunctionLookup {
 
-		private static readonly Expression GLOB_EXPRESSION;
+		private static readonly Expression GlobExpression;
 
 		static FunctionFactory() {
-			GLOB_EXPRESSION = new Expression();
-			GLOB_EXPRESSION.AddElement(TObject.GetString("*"));
-			GLOB_EXPRESSION.Text.Append("*");
+			GlobExpression = new Expression();
+			GlobExpression.AddElement(TObject.GetString("*"));
+			GlobExpression.Text.Append("*");
 
-			GLOB_LIST = new Expression[] { GLOB_EXPRESSION };
+			GlobList = new Expression[] { GlobExpression };
 		}
 
 		///<summary>
 		/// Represents a function argument * for glob's such as <c>count(*)</c>
 		///</summary>
-		public static readonly Expression[] GLOB_LIST;
+		public static readonly Expression[] GlobList;
 
 		/// <summary>
 		/// The mapping of 'fun_name' to 'fun_type' for each function that's 
@@ -63,7 +63,7 @@ namespace Deveel.Data.Functions {
 		/// </summary>
 		private readonly Type[] construct_proto;
 
-		private static FunctionFactory intfuncs;
+		private static FunctionFactory def;
 
 
 		protected FunctionFactory() {
@@ -76,21 +76,16 @@ namespace Deveel.Data.Functions {
 		}
 
 		/// <summary>
-		/// Gets an instance of <see cref="FunctionFactory"/> which contains
-		/// all the functions of the system.
+		/// Gets an instance of <see cref="FunctionFactory"/> that contains all
+		/// the built-in functions defined in the assembly.
 		/// </summary>
-		/// <remarks>
-		/// This proprerty is used internally when evaluating a function which
-		/// has no <see cref="IQueryContext"/> defined.
-		/// </remarks>
-		/// <seealso cref="IFunction.Evaluate"/>
-		internal static FunctionFactory Internal {
+		public static FunctionFactory Default {
 			get {
-				if (intfuncs == null) {
-					intfuncs = new InternalFunctionFactory();
-					intfuncs.Init();
+				if (def == null) {
+					def = new DefaultFunctionFactory();
+					def.Init();
 				}
-				return intfuncs;
+				return def;
 			}
 		}
 
@@ -278,6 +273,37 @@ namespace Deveel.Data.Functions {
 			public string FunctionFactoryName {
 				get { return factory.GetType().ToString(); }
 			}
-		};
+		}
+
+		#region DefaultFunctionFactory
+
+		/// <summary>
+		/// A <see cref="FunctionFactory"/> that encapsulates all the function factories
+		/// defined in the current assembly.
+		/// </summary>
+		private class DefaultFunctionFactory : FunctionFactory {
+			public override void Init() {
+				Assembly assembly = Assembly.GetCallingAssembly();
+				Type[] types = assembly.GetTypes();
+				int sz = types.Length;
+				for (int i = 0; i < sz; i++) {
+					Type type = types[i];
+					if (typeof(FunctionFactory).IsAssignableFrom(type)) {
+						if (type == typeof(FunctionFactory) ||
+							type == typeof(DefaultFunctionFactory))
+							continue;
+
+						FunctionFactory factory = (FunctionFactory) Activator.CreateInstance(type, true);
+						factory.Init();
+
+						foreach (DictionaryEntry entry in factory.fun_class_mapping) {
+							fun_class_mapping[entry.Key] = entry.Value;
+						}
+					}
+				}
+			}
+		}
+
+		#endregion
 	}
 }

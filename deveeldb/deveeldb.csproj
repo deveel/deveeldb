@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{50D02908-5743-4E72-83B5-77C5712EA59A}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -92,17 +92,11 @@
     <Compile Include="Deveel.Data.Client\DatabaseMetadata.cs" />
     <Compile Include="Deveel.Data.Client\TriggerEventArgs.cs" />
     <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
-    <Compile Include="Deveel.Data.Functions\ACosFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\ASinFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\ATanFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\CosFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\CosHFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\IdentityFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\SinFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\SinHFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\SoundexFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\TanFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\TanHFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\ArithmeticFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\DateFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\MiscFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\StringFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnConstraints.cs" />
     <Compile Include="Deveel.Data.Sql\CommitStatement.cs" />
@@ -131,50 +125,6 @@
     </Compile>
     <Compile Include="Deveel.Diagnostics\IDebugLogger.cs" />
     <Compile Include="Deveel.Diagnostics\DebugLevel.cs" />
-    <Compile Include="Deveel.Data.Functions\AbsFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\AggOrFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\AvgFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\BinaryToHexFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\CoalesceFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\ConcatFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\CurrValFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\DateFormatFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\DateObFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\DistinctCountFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\ForeignRuleConvert.cs" />
-    <Compile Include="Deveel.Data.Functions\GreatestFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\HexToBinaryFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\IfFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\ObjectInstantiation.cs" />
-    <Compile Include="Deveel.Data.Functions\ObjectInstantiation2.cs" />
-    <Compile Include="Deveel.Data.Functions\LeastFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\LengthFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\LowerFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\LTrimFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\MaxFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\MinFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\ModFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\NextValFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\PowFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\PrivGroupsFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\PrivilegeString.cs" />
-    <Compile Include="Deveel.Data.Functions\RoundFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\RTrimFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\SetValFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\SignFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\SQLCastFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\SQLTrimFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\SQLTypeString.cs" />
-    <Compile Include="Deveel.Data.Functions\SqrtFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\SubstringFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\SumFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\TimeObFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\TimeStampObFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\ToNumberFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\UniqueKeyFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\UpperFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\UserFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\ViewDataConvert.cs" />
     <Compile Include="Deveel.Data.Sql\UserStatement.cs" />
     <Compile Include="Deveel.Data.Text\CollationBoundMode.cs" />
     <Compile Include="Deveel.Data.Text\CollationDecomposition.cs" />
@@ -193,7 +143,6 @@
     <Compile Include="Deveel.Data.Text\SystemCollatorFactory.cs" />
     <Compile Include="Deveel.Data.Text\SystemRegexLibrary.cs" />
     <Compile Include="Deveel.Data\AccessType.cs" />
-    <Compile Include="Deveel.Data.Functions\CountFunction.cs" />
     <Compile Include="Deveel.Data\CompositeFunction.cs" />
     <Compile Include="Deveel.Data\GrantObject.cs" />
     <Compile Include="Deveel.Data\JoinType.cs" />

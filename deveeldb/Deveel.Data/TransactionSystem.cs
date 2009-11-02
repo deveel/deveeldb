@@ -619,8 +619,8 @@ namespace Deveel.Data {
 					throw new Exception(error_msg);
 				}
 
-				// Register the internal function factory,
-				AddFunctionFactory(new InternalFunctionFactory());
+				// Register the default function factory,
+				AddFunctionFactory(FunctionFactory.Default);
 
 				// Set up the DataCellCache from the values in the configuration
 				int max_cache_size = 0, max_cache_entry_size = 0;

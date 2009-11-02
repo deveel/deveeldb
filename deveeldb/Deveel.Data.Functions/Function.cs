@@ -89,7 +89,7 @@ namespace Deveel.Data.Functions {
 		/// </summary>
 		public bool IsGlob {
 			get {
-				if (parameters == FunctionFactory.GLOB_LIST) {
+				if (parameters == FunctionFactory.GlobList) {
 					return true;
 				}
 				if (parameters.Length == 1) {
