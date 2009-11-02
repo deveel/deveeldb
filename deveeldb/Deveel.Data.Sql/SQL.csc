@@ -385,6 +385,10 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <CURRENT_DATE:      "current_date">
 | <CURRENT_TIMESTAMP: "current_timestamp">
 
+// Current timezone
+
+| <DBTIMEZONE:        "dbtimezone">
+
 
 
 //| <DATA_TYPE: "bool" | "bit" | "tinyint" | "smallint" | "integer" | "bigint" | "float" | "real" |
@@ -1973,6 +1977,16 @@ void Operand(Expression exp, Stack stack) :
       exp.AddElement(f);
       exp.Text.Append(tt.image);
     }
+  )
+
+// Current timezone
+| (
+     tt=<DBTIMEZONE> { time_fname="DBTIMEZONE"; }
+     { exp_list = new Expression[0];
+       f = Util.ResolveFunctionName(time_fname, exp_list);
+       exp.AddElement(f);
+       exp.Text.Append(tt.image);
+     }
   )
       
 // object instantiation
