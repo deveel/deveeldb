@@ -2273,7 +2273,7 @@ Expression[] FunctionParams() :
 { Expression[] exp_list;
 }
 {
-  ( <STAR> { exp_list = FunctionFactory.GLOB_LIST; }
+  ( <STAR> { exp_list = FunctionFactory.GlobList; }
     | exp_list = ExpressionList()
   )
   

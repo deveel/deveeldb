@@ -1,3 +1,7 @@
+2009-10-31  Antonello Provenzano  <antonello@deveel.com>
+	* Cache.cs: implemented methods OnObjectRemoved and
+	OnObjectAdded for supporting inheritance
+	
 2009-10-09  Antonello Provenzano  <antonello@deveel.com>
 	* PagedInputStream.cs: implemented support for Seek 
 	method operations.
