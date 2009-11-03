@@ -79,7 +79,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Util\CancelWriter.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Deveel.CommandLine\trunk\Deveel.CommandLine\Deveel.CommandLine.csproj">
@@ -90,6 +90,9 @@
       <Project>{50D02908-5743-4E72-83B5-77C5712EA59A}</Project>
       <Name>deveeldb</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
