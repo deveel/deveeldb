@@ -237,6 +237,14 @@ namespace Deveel.Data.Store {
 		/// Unix platform.
 		/// </summary>
 		private sealed class UnixFSync : IFSync {
+			public UnixFSync() {
+				Type monoIO = Type.GetType("System.IO.MonoIO");
+				if (monoIO != null)
+					monoIOSyncMethod = monoIO.GetMethod("Flush");
+			}
+
+			private MethodInfo monoIOSyncMethod;
+
 			/// <inheritdoc/>
 			/// <exception cref="NotSupportedException">
 			/// If the current platform is not supported. The support of
@@ -253,20 +261,14 @@ namespace Deveel.Data.Store {
 					if (Mono.Unix.Native.Stdlib.fflush(stream.Handle) != 0)
 						Mono.Unix.UnixMarshal.ThrowExceptionForLastError();
 					*/
-					MethodInfo monoIOSyncMethod;
-					System.Type monoIO = Type.GetType("System.IO.MonoIO");
-					if (monoIO != null)
-						monoIOSyncMethod = monoIO.GetMethod("Flush");
-					else
+					if (monoIOSyncMethod == null)
 						throw new SyncFailedException();
 					
 					int erro = 0;
 					monoIOSyncMethod.Invoke(null, new object[] {stream.Handle, erro});
 					if (erro != 0)
 						throw new SyncFailedException();
-				} catch(Exception e) {
-					Diagnostics.Debug.Write(Diagnostics.DebugLevel.Error, this, "Error while synchronizing file.");
-					Diagnostics.Debug.WriteException(e);
+				} catch(Exception) {
 					throw new SyncFailedException();
 				}
 #endif
