@@ -472,6 +472,7 @@
     <Compile Include="Deveel.Zip\DeflaterOutputStream.cs" />
     <Compile Include="Deveel.Zip\DeflaterPending.cs" />
     <Compile Include="Deveel.Zip\GZipInputStream.cs" />
+    <Compile Include="Deveel.Zip\GZIPOutputStream.cs" />
     <Compile Include="Deveel.Zip\Inflater.cs" />
     <Compile Include="Deveel.Zip\InflaterDynHeader.cs" />
     <Compile Include="Deveel.Zip\InflaterHuffmanTree.cs" />
