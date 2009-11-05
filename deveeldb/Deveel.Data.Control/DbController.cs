@@ -264,6 +264,22 @@ namespace Deveel.Data.Control {
 		}
 
 		/// <summary>
+		/// Verifies if the database identified by the given name
+		/// was already initialized (by either <see cref="StartDatabase"/>
+		/// or <see cref="CreateDatabase"/>).
+		/// </summary>
+		/// <param name="databaseName">The name of the database to test.</param>
+		/// <returns>
+		/// Returns <b>true</b> if the database with the given name was already
+		/// initialized, or <b>false</b> if the database was not found or it was
+		/// not initialized.
+		/// </returns>
+		public bool IsInitialized(string databaseName) {
+			Database database = GetDatabase(databaseName);
+			return (database == null ? false : database.IsInitialized);
+		}
+
+		/// <summary>
 		/// Creates a new database with the given name and with initial
 		/// configurations.
 		/// </summary>

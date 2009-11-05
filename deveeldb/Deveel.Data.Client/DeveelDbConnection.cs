@@ -258,7 +258,7 @@ namespace Deveel.Data.Client {
 
 				// No so create one and WriteByte it in the connection mapping
 				if (local_bootable == null) {
-					local_bootable = CreateDefaultLocalBootable(root_path, connString.Database);
+					local_bootable = CreateDefaultLocalBootable(controller, connString.Database);
 					local_session_map[session_key] = local_bootable;
 				}
 
@@ -327,14 +327,8 @@ namespace Deveel.Data.Client {
 		/// <exception cref="DataException">
 		/// If the class <c>DefaultLocalBootable</c> was not found.
 		/// </exception>
-		private static ILocalBootable CreateDefaultLocalBootable(string rootPath, string databaseName) {
+		private static ILocalBootable CreateDefaultLocalBootable(DbController controller, string databaseName) {
 			try {
-				DbController controller;
-				if (rootPath == null)
-					controller = DbController.Default;
-				else
-					controller = DbController.Create(rootPath);
-
 				Type c = Type.GetType("Deveel.Data.Server.DefaultLocalBootable");
 				return (ILocalBootable)Activator.CreateInstance(c, new object[] { controller, databaseName });
 			} catch (Exception) {

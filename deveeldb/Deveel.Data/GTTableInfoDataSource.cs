@@ -124,7 +124,7 @@ namespace Deveel.Data {
 		static GTTableInfoDataSource() {
 
 			DataTableDef def = new DataTableDef();
-			def.TableName = new TableName(Database.SystemSchema, "sUSRTableInfo");
+			def.TableName = Database.SysTableInfo;
 
 			// Add column definitions
 			def.AddColumn(GetStringColumn("schema"));

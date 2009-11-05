@@ -81,7 +81,7 @@ namespace Deveel.Data.Client {
 			// Create the statement
 
 			DeveelDbCommand command = connection.CreateCommand("   SELECT * \n" +
-			                                                   "     FROM \"INFORMATION_SCHEMA.Tables\" \n" +
+			                                                   "     FROM \"INFORMATION_SCHEMA.TABLES\" \n" +
 			                                                   "    WHERE \"TABLE_SCHEMA\" LIKE ? \n" +
 			                                                   "      AND \"TABLE_NAME\" LIKE ? \n" +
 			                                                   type_part +
@@ -144,14 +144,14 @@ namespace Deveel.Data.Client {
 			dataTable.Columns.Add("NULLABLE", typeof(bool));
 			dataTable.Columns.Add("REMARKS");
 			dataTable.Columns.Add("COLUMN_DEFAULT");
-			dataTable.Columns.Add("SQL_DATA_TYPE", typeof(int));
+			dataTable.Columns.Add("SQL_DATA_TYPE");
 			dataTable.Columns.Add("SQL_DATETIME_SUB");
 			dataTable.Columns.Add("CHAR_OCTET_LENGTH", typeof(int));
 			dataTable.Columns.Add("ORDINAL_POSITION", typeof(int));
 			dataTable.Columns.Add("IS_NULLABLE", typeof (bool));
 
 			DeveelDbCommand command = connection.CreateCommand("  SELECT * \n" +
-			                                                   "    FROM INFORMATION_SCHEMA.Columns \n" +
+			                                                   "    FROM INFORMATION_SCHEMA.COLUMNS \n" +
 			                                                   "   WHERE \"TABLE_SCHEMA\" LIKE ? \n" +
 			                                                   "     AND \"TABLE_NAME\" LIKE ? \n" +
 			                                                   "     AND \"COLUMN_NAME\" LIKE ? \n" +
@@ -172,17 +172,16 @@ namespace Deveel.Data.Client {
 					row["TYPE_NAME"] = reader.GetString(5);
 					row["COLUMN_SIZE"] = reader.GetInt32(6);
 					row["BUFFER_LENGTH"] = reader.GetInt32(7);
-					row["TYPE_NAME"] = reader.GetString(8);
-					row["DECIMAL_DIGITS"] = reader.GetInt32(9);
-					row["NUM_PREC_RADIX"] = reader.GetInt32(10);
-					row["NULLABLE"] = reader.GetBoolean(11);
-					row["REMARKS"] = reader.GetString(12);
-					row["COLUMN_DEFAULT"] = reader.GetString(13);
-					row["SQL_DATA_TYPE"] = reader.GetInt32(14);
-					row["SQL_DATETIME_SUB"] = reader.GetString(15);
-					row["CHAR_OCTET_LENGTH"] = reader.GetInt32(16);
-					row["ORDINAL_POSITION"] = reader.GetInt32(17);
-					row["IS_NULLABLE"] = reader.GetBoolean(18);
+					row["DECIMAL_DIGITS"] = reader.GetInt32(8);
+					row["NUM_PREC_RADIX"] = reader.GetInt32(9);
+					row["NULLABLE"] = reader.GetBoolean(10);
+					row["REMARKS"] = reader.GetString(11);
+					row["COLUMN_DEFAULT"] = reader.GetString(12);
+					row["SQL_DATA_TYPE"] = reader.GetString(13);
+					row["SQL_DATETIME_SUB"] = reader.GetString(14);
+					row["CHAR_OCTET_LENGTH"] = reader.GetInt32(15);
+					row["ORDINAL_POSITION"] = reader.GetInt32(16);
+					row["IS_NULLABLE"] = reader.GetString(17) == "YES";
 					dataTable.Rows.Add(row);
 				}
 			}
@@ -201,6 +200,9 @@ namespace Deveel.Data.Client {
 			string table = restrictions[2];
 			string column = restrictions[3];
 
+			if (table == null)
+				throw new ArgumentException("The table name must be specified.");
+
 			if (column == null)
 				column = "%";
 
@@ -212,11 +214,12 @@ namespace Deveel.Data.Client {
 			dataTable.Columns.Add("COLUMN_NAME");
 			dataTable.Columns.Add("GRANTOR");
 			dataTable.Columns.Add("GRANTEE");
+			dataTable.Columns.Add("PRIVILEGE");
 			dataTable.Columns.Add("IS_GRANTABLE", typeof(bool));
 
-			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.Column_Privileges \n" +
-			                                                   "    WHERE (? IS NOT NULL OR \"TABLE_SCHEMA\" = ? ) \n" +
-			                                                   "      AND (? IS NOT NULL OR \"TABLE_NAME\" = ? ) \n" +
+			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.COLUMN_PRIVILEGES \n" +
+			                                                   "    WHERE (? IS NULL OR \"TABLE_SCHEMA\" = ? ) \n" +
+			                                                   "      AND (? IS NOT NULL AND \"TABLE_NAME\" = ? ) \n" +
 			                                                   "      AND \"COLUMN_NAME\" LIKE ? \n" +
 			                                                   " ORDER BY \"COLUMN_NAME\", \"PRIVILEGE\" ");
 			command.Parameters.Add(schema);
@@ -236,7 +239,8 @@ namespace Deveel.Data.Client {
 					row["COLUMN_NAME"] = reader.GetString(3);
 					row["GRANTOR"] = reader.GetString(4);
 					row["GRANTEE"] = reader.GetString(5);
-					row["IS_GRANTABLE"] = reader.GetBoolean(6);
+					row["PRIVILEGE"] = reader.GetString(6);
+					row["IS_GRANTABLE"] = reader.GetString(7) == "YES";
 					dataTable.Rows.Add(row);
 				}
 			}
@@ -263,11 +267,12 @@ namespace Deveel.Data.Client {
 			dataTable.Columns.Add("TABLE_CATALOG");
 			dataTable.Columns.Add("TABLE_SCHEMA");
 			dataTable.Columns.Add("TABLE_NAME");
+			dataTable.Columns.Add("PRIVILEGE");
 			dataTable.Columns.Add("GRANTOR");
 			dataTable.Columns.Add("GRANTEE");
 			dataTable.Columns.Add("IS_GRANTABLE", typeof(bool));
 
-			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.Table_Privileges \n" +
+			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES \n" +
 			                                                   "    WHERE \"TABLE_SCHEMA\" LIKE ? \n" +
 			                                                   "      AND \"TABLE_NAME\" LIKE ? \n" +
 			                                                   " ORDER BY \"TABLE_SCHEMA\", \"TABLE_NAME\", \"PRIVILEGE\" ");
@@ -284,7 +289,8 @@ namespace Deveel.Data.Client {
 					row["TABLE_NAME"] = reader.GetString(2);
 					row["GRANTOR"] = reader.GetString(3);
 					row["GRANTEE"] = reader.GetString(4);
-					row["IS_GRANTABLE"] = reader.GetBoolean(5);
+					row["PRIVILEGE"] = reader.GetString(5);
+					row["IS_GRANTABLE"] = reader.GetString(6) == "YES";
 					dataTable.Rows.Add(row);
 				}
 			}
@@ -580,11 +586,11 @@ namespace Deveel.Data.Client {
 			if (restrictions == null)
 				restrictions = new string[2];
 			if (connection != null &&
-				connection.Database != null &&
-				connection.Database.Length > 0 &&
+				connection.Settings.Schema != null &&
+				connection.Settings.Schema.Length > 0 &&
 				restrictions.Length > 1 &&
 				restrictions[1] == null)
-				restrictions[1] = connection.Database;
+				restrictions[1] = connection.Settings.Schema;
 
 			switch (collection) {
 				case "TABLES":

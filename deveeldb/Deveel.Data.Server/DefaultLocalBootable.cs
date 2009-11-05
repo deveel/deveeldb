@@ -115,7 +115,11 @@ namespace Deveel.Data.Server {
 				const string host_string = "Local/Boot/";
 
 				// Start the DbSystem and bind it to a IDatabaseInterface.
-				dbsys = controller.StartDatabase(config, databaseName);
+				if (controller.IsInitialized(databaseName))
+					dbsys = controller.ConnectToDatabase(databaseName);
+				else
+					dbsys = controller.StartDatabase(config, databaseName);
+
 				IDatabaseInterface db_interface = new LocalDatabaseInterface(this, host_string);
 
 				booted = true;
@@ -178,7 +182,7 @@ namespace Deveel.Data.Server {
 			bool closed;
 
 			public LocalDatabaseInterface(DefaultLocalBootable local_bootable, String host_string)
-				: base(local_bootable, null, host_string) {
+				: base(local_bootable, local_bootable.databaseName, host_string) {
 				this.local_bootable = local_bootable;
 			}
 

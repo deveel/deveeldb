@@ -437,8 +437,10 @@ namespace Deveel.Data.Client {
 					sb.Append('=');
 					sb.Append(entry.Value);
 
-					if (++i < properties.Count - 1)
+					if (i < properties.Count - 1)
 						sb.Append(';');
+
+					i++;
 				}
 
 				connection_string = sb.ToString();

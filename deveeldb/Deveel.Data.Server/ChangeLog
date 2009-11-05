@@ -1,4 +1,9 @@
-﻿2009-10-29  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-11-04  Antonello Provenzano  <antonello@deveel.com>
+	* DefaultLocalBootable.cs: now verifies if the database
+	was already initialized before booting and if so simply
+	connects to it, instead of starting it up.
+	
+2009-10-29  Antonello Provenzano  <antonello@deveel.com>
 	* DatabaseIntefaceBase.cs: now accepts IDatabaseHandler as
 	main constructor (the name of the current database is
 	accessory)
