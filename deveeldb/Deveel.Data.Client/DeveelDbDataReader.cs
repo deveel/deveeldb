@@ -358,7 +358,10 @@ namespace Deveel.Data.Client {
 
 			System.Data.DataTable table = new System.Data.DataTable("ColumnsInfo");
 
+			table.Columns.Add("Schema", typeof (string));
+			table.Columns.Add("Table", typeof (string));
 			table.Columns.Add("Name", typeof (string));
+			table.Columns.Add("FullName", typeof (string));
 			table.Columns.Add("SqlType", typeof (int));
 			table.Columns.Add("DbType", typeof (int));
 			table.Columns.Add("Type", typeof (string));
@@ -374,10 +377,40 @@ namespace Deveel.Data.Client {
 				DataRow row = table.NewRow();
 
 				ColumnDescription column = command.ResultSet.GetColumn(i);
-				row["Name"] = column.Name;
+
+				string fullColumnName = column.Name;
+
+				string schemaName = null;
+				string tableName = null;
+				string columnName = column.Name;
+				if (columnName.StartsWith("@f")) {
+					// this is a field, so take the table and schema of the field...
+					columnName = columnName.Substring(2, columnName.Length - 2);
+					fullColumnName = columnName;
+
+					int index = columnName.IndexOf('.');
+					schemaName = columnName.Substring(0, index);
+					columnName = columnName.Substring(index + 1);
+
+					index = columnName.IndexOf('.');
+					tableName = columnName.Substring(0, index);
+					columnName = columnName.Substring(index + 1);
+				} else if (columnName.StartsWith("@a")) {
+					// this is an alias: strip out the leading indicator...
+					columnName = columnName.Substring(2, columnName.Length - 2);
+					fullColumnName = columnName;
+				}
+
+				row["Schema"] = schemaName;
+				row["Table"] = tableName;
+				row["Name"] = columnName;
+				row["FullName"] = fullColumnName;
 				row["SqlType"] = (int)column.SQLType;
 				row["DbType"] = (int)column.Type;
-				row["Type"] = (column.ObjectType.IsPrimitive ? column.ObjectType.FullName : column.ObjectType.AssemblyQualifiedName);
+				if (column.Type != DbTypes.DB_UNKNOWN)
+					row["Type"] = (column.ObjectType.IsPrimitive ? column.ObjectType.FullName : column.ObjectType.AssemblyQualifiedName);
+				else
+					row["Type"] = null;
 				row["Size"] = column.Size;
 				row["Scale"] = column.Scale;
 				row["IsUnique"] = column.IsUnique;
