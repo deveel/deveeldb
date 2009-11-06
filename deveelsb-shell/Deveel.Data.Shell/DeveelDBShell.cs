@@ -1,9 +1,11 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Text;
 
 using Deveel.Commands;
 using Deveel.Configuration;
+using Deveel.Data.Control;
 using Deveel.Shell;
 
 namespace Deveel.Data.Shell {
@@ -14,13 +16,27 @@ namespace Deveel.Data.Shell {
 	[Option("path", true, "the base context path of the database system")]
 	[Option("?", "help", false, "prints the help usage")]
 	public sealed class DeveelDBShell : ShellApplication, IInterruptable {
-		private DeveelDBShell(string[] args)
-			: base(args) {
+		private DeveelDBShell() {
+			_cwdStack = new Stack();
+			try {
+				string cwd = Path.GetFullPath(".");
+				_cwdStack.Push(cwd);
+			} catch (IOException e) {
+				MessageDevice.WriteLine("cannot determine current working directory: " + e.Message);
+			}
 		}
 
 		private SqlStatementSeparator commandSeparator;
 		private SessionManager sessionManager;
 		private Connections connections;
+
+		    /**
+     * current working directory stack - to always open files relative to
+     * the currently open file.
+     */
+		private readonly Stack _cwdStack = new Stack();
+
+		private DbController controller;
 
 		protected override string Prompt {
 			get { return "DeveelDB> "; }
@@ -60,6 +76,10 @@ namespace Deveel.Data.Shell {
 			get { return CurrentSession; }
 		}
 
+		public DbController Controller {
+			get { return controller; }
+		}
+
 		public Connections Connections {
 			get {
 				if (connections == null)
@@ -68,11 +88,20 @@ namespace Deveel.Data.Shell {
 			}
 		}
 
-		protected override void Init(CommandLine args) {
+		protected override bool Init(CommandLine args) {
+			if (base.Init(args))
+				return true;
+
+			string path = args.GetOptionValue("path");
+			controller = (path == null || path.Length == 0) ? DbController.Default : DbController.Create(path);
+
+			Readline.WordBreakCharacters = " ,/()<>=\t\n".ToCharArray(); // TODO..
+
 			commandSeparator = new SqlStatementSeparator();
 			sessionManager = new SessionManager();
 
 			Properties.RegisterProperty("comments-remove", commandSeparator.GetRemoveCommentsProperty());
+			return false;
 		}
 
 		protected override void OnInterrupted() {
@@ -87,30 +116,43 @@ namespace Deveel.Data.Shell {
 			return false;
 		}
 
-		protected override void OnConfigure(CommandLineOptions options) {
-			CommandLineOptionGroup group = new CommandLineOptionGroup();
-
-			CommandLineOption option = new CommandLineOption("n", "create", false, "creates a new database");
-			group.AddOption(option);
-
-			option = new CommandLineOption("s", "shutdown", false, "shutdowns a database.");
-			group.AddOption(option);
-
-			option = new CommandLineOption("b", "startup", false, "boots a database");
-			group.AddOption(option);
-
-			options.AddOptionGroup(group);
-		}
-
 		protected override void OnShutdown() {
 			connections.Save();
 		}
 
+		/// <summary>
+		/// Gets the normalized path to a file.
+		/// </summary>
+		/// <param name="filename">The file name to normalize.</param>
+		/// <remarks>
+		/// If this is a relative filename, then open according to current 
+		/// working directory.
+		/// </remarks>
+		/// <returns>
+		/// Retuens a normalized version of the file name passed.
+		/// </returns>
+		internal string OpenFile(String filename) {
+			if (Path.IsPathRooted(filename))
+				filename = Path.Combine((string) _cwdStack.Peek(), filename);
+			return filename;
+		}
+
+		internal void SetCurrentDirectory(string dir) {
+			_cwdStack.Push(Path.GetFullPath(dir));
+		}
+
+		internal void ChangeDirectory() {
+			_cwdStack.Pop();
+		}
+
 		public SqlSession CreateSession(string connectionString, string alias) {
 			SqlSession session = new SqlSession(this, connectionString);
+			if (!session.IsConnected)
+				return null;
+
 			sessionManager.AddSession(session, alias);
 			sessionManager.SetCurrentSession(session);
-			SetPrompt(session.Name + ">");
+			SetPrompt(session.Name + "> ");
 			return session;
 		}
 
@@ -181,8 +223,8 @@ namespace Deveel.Data.Shell {
 		[STAThread]
 		static void Main(string[] args) {
 			try {
-				Run(typeof (DeveelDBShell), args);
-				Environment.Exit(0);
+				int exitCode = Run(typeof (DeveelDBShell), args);
+				Environment.Exit(exitCode);
 			} catch (Exception) {
 				Environment.Exit(1);
 			}

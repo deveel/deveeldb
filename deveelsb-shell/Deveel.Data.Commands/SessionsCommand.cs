@@ -2,7 +2,6 @@
 
 using Deveel.Commands;
 using Deveel.Data.Shell;
-using Deveel.Shell;
 
 namespace Deveel.Data.Commands {
 	[Command("sessions", ShortDescription = "lists all the sessions stored.")]

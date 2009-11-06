@@ -10,15 +10,13 @@ namespace Deveel.Data.Commands {
 	[Command("create", ShortDescription = "creates a database or a database object.")]
 	[CommandSynopsis("create database <name> user <user> [ identified by <password> ] [ <var>=<value> ... ]")]
 	[CommandSynopsis("create table | view | trigger ... ")]
+	[Option("create", false, "creates a new database")]
+	[OptionGroup("commands")]
 	class CreateCommand : SqlCommand {
 		// we disable the context for this command, since we want to 
 		// enable the function of creating a database...
 		public override bool RequiresContext {
 			get { return false; }
-		}
-
-		protected override bool IsUpdateCommand {
-			get { return true; }
 		}
 
 		public override CommandResultCode Execute(object context, string[] args) {
@@ -61,16 +59,9 @@ namespace Deveel.Data.Commands {
 				}
 
 				DbConfig config = null;
-				string dbPath = null;
 
 				if (args.Length > argIndex) {
-					dbPath = args[argIndex];
-					if (dbPath.IndexOf('=') != -1) {
-						argIndex = 8;
-						dbPath = null;
-					}
-
-					config = new DbConfig(args[2]);
+					config = new DbConfig(null);
 
 					if (args.Length > argIndex) {
 						for (int i = argIndex; i < args.Length; i++) {
@@ -93,16 +84,7 @@ namespace Deveel.Data.Commands {
 					adminPass = Readline.ReadPassword(adminUser + " password: ");
 
 				try {
-					DbController controller = dbPath != null ? DbController.Create(dbPath) : DbController.Default;
-					DbSystem system = controller.CreateDatabase(config, dbName, adminUser, adminPass);
-					Application.MessageDevice.WriteLine("database created successfully.");
-
-					DeveelDbConnection conn = (DeveelDbConnection) system.GetConnection(adminUser, adminPass);
-					SqlSession session = new SqlSession((DeveelDBShell) Application, conn);
-
-					((DeveelDBShell) Application).SessionManager.SetCurrentSession(session);
-					Application.SetPrompt(session.Name + "> ");
-
+					CreateDatabase(config, dbName, adminUser, adminPass);
 					return CommandResultCode.Success;
 				} catch (Exception) {
 					Application.MessageDevice.WriteLine("creation failed.");
@@ -113,16 +95,33 @@ namespace Deveel.Data.Commands {
 			return base.Execute(context, args);
 		}
 
-		public override void HandleCommandLine(CommandLine commandLine) {
+		private void CreateDatabase(DbConfig config, string name, string adminUser, string adminPass) {
+			DbSystem system = ((DeveelDBShell)Application).Controller.CreateDatabase(config, name, adminUser, adminPass);
+			Application.MessageDevice.WriteLine("database created successfully.");
+
+			DeveelDbConnection conn = (DeveelDbConnection)system.GetConnection(adminUser, adminPass);
+			SqlSession session = new SqlSession((DeveelDBShell)Application, conn);
+
+			((DeveelDBShell)Application).SessionManager.SetCurrentSession(session);
+			Application.SetPrompt(session.Name + "> ");
+		}
+
+		public override bool HandleCommandLine(CommandLine commandLine) {
 			if (!commandLine.HasOption("create"))
-				return;
+				return false;
 
 			string user = commandLine.GetOptionValue("user");
 			string pass = commandLine.GetOptionValue("pass");
 			string database = commandLine.GetOptionValue("database");
 
+			while (user == null || user.Length == 0) {
+				user = Readline.ReadLine("Username: ");
+				if (user == null || user.Length == 0)
+					Application.MessageDevice.WriteLine("you must specify a valid user name");
+			}
+
 			if (pass == null)
-				pass = Readline.ReadPassword(user + " password: ");
+				pass = Readline.ReadPassword("Password: ");
 
 			DbConfig config = new DbConfig(null);
 
@@ -135,6 +134,18 @@ namespace Deveel.Data.Commands {
 					config.SetValue(key, value);
 				}
 			}
+
+			try {
+				CreateDatabase(config, database, user, pass);
+			} catch (Exception e) {
+				Application.MessageDevice.WriteLine("error while creating: " + e.Message);
+				return true;
+			}
+
+			// we return 'false' cause we want that after this
+			// command is executed the application will stay open
+			// and we will query the database created...
+			return false;
 		}
 	}
 }

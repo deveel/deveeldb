@@ -5,7 +5,6 @@ using System.Threading;
 using Deveel.Commands;
 using Deveel.Data.Client;
 using Deveel.Data.Shell;
-using Deveel.Data.Util;
 using Deveel.Design;
 using Deveel.Shell;
 
@@ -13,27 +12,30 @@ namespace Deveel.Data.Commands {
 	abstract class SqlCommand : Command {
 		protected SqlCommand() {
 			_columnDelimiter = "|";
-			_rowLimit = 2000;
-			_showHeader = true;
-			_showFooter = true;
+			rowLimit = 2000;
+			showHeader = true;
+			showFooter = true;
 		}
 
-		private DeveelDbCommand _stmt;
+		private DeveelDbCommand dbCommand;
 		private String _columnDelimiter;
-		private int _rowLimit;
-		private bool _showHeader;
-		private bool _showFooter;
-		private volatile bool _running;
-		private StatementCanceller _statementCanceller;
-		private LongRunningTimeDisplay _longRunningDisplay;
+		private int rowLimit;
+		private bool showHeader;
+		private bool showFooter;
+		private volatile bool running;
 
-		private static readonly String[] TABLE_COMPLETER_KEYWORD = { "FROM", "INTO", "UPDATE", "TABLE", "ALIAS", "VIEW", /*create index*/"ON" };
+		private static StatementCanceller _statementCanceller;
+		private static LongRunningTimeDisplay _longRunningDisplay;
+
+		private static readonly string[] TableCompleterKeyword = { "FROM", "INTO", "UPDATE", "TABLE", "ALIAS", "VIEW", /*create index*/"ON" };
 
 		public override bool RequiresContext {
 			get { return true; }
 		}
 
-		protected abstract bool IsUpdateCommand { get; }
+		protected virtual bool IsUpdateCommand {
+			get { return true; }
+		}
 
 		private void SetColumnDelimiter(String value) {
 			_columnDelimiter = value;
@@ -43,39 +45,48 @@ namespace Deveel.Data.Commands {
 			get { return _columnDelimiter; }
 		}
 
-		private void SetRowLimit(int rowLimit) {
-			_rowLimit = rowLimit;
+		private void SetRowLimit(int value) {
+			rowLimit = value;
 		}
 
 		public int RowLimit {
-			get { return _rowLimit; }
+			get { return rowLimit; }
 		}
 
-		public void SetShowHeader(bool b) {
-			_showHeader = b;
+		public void SetShowHeader(bool value) {
+			showHeader = value;
 		}
 
 		private bool ShowHeader {
-			get { return _showHeader; }
+			get { return showHeader; }
 		}
 
-		private void SetShowFooter(bool b) {
-			_showFooter = b;
+		private void SetShowFooter(bool value) {
+			showFooter = value;
 		}
 
 		public bool ShowFooter {
-			get { return _showFooter; }
+			get { return showFooter; }
 		}
 
 		protected override void OnInit() {
-			Application.Properties.RegisterProperty("column-delimiter", new SQLColumnDelimiterProperty(this));
-			Application.Properties.RegisterProperty("sql-result-limit", new RowLimitProperty(this));
-			Application.Properties.RegisterProperty("sql-result-showheader", new ShowHeaderProperty(this));
-			Application.Properties.RegisterProperty("sql-result-showfooter", new ShowFooterProperty(this));
-			_statementCanceller = new StatementCanceller(new CurrentStatementCancelTarget(this));
-			new Thread(_statementCanceller.run).Start();
-			_longRunningDisplay = new LongRunningTimeDisplay("statement running", 30000);
-			new Thread(_longRunningDisplay.run).Start();
+			if (!Application.Properties.HasProperty("column-delimiter"))
+				Application.Properties.RegisterProperty("column-delimiter", new SQLColumnDelimiterProperty(this));
+			if (!Application.Properties.HasProperty("sql-result-limit"))
+				Application.Properties.RegisterProperty("sql-result-limit", new RowLimitProperty(this));
+			if (!Application.Properties.HasProperty("sql-result-showheader"))
+				Application.Properties.RegisterProperty("sql-result-showheader", new ShowHeaderProperty(this));
+			if (!Application.Properties.HasProperty("sql-result-showfooter"))
+				Application.Properties.RegisterProperty("sql-result-showfooter", new ShowFooterProperty(this));
+
+			if (_statementCanceller == null) {
+				_statementCanceller = new StatementCanceller(new CurrentStatementCancelTarget(this));
+				_statementCanceller.StartThread();
+			}
+			if (_longRunningDisplay == null) {
+				_longRunningDisplay = new LongRunningTimeDisplay("statement running", 30000);
+				_longRunningDisplay.StartThread();
+			}
 		}
 
 		public override bool IsComplete(string command) {
@@ -98,41 +109,43 @@ namespace Deveel.Data.Commands {
 			SqlSession session = (SqlSession) context;
 
 			string parmas = String.Join(" ", args);
-			string command = Name + " " + parmas;
+			string commandText = Name + " " + parmas;
 
-			if (command.EndsWith("/"))
-				command = command.Substring(0, command.Length - 1);
+			if (commandText.EndsWith("/"))
+				commandText = commandText.Substring(0, commandText.Length - 1);
 
 			DateTime startTime = DateTime.Now;
 			TimeSpan lapTime = TimeSpan.Zero;
 			TimeSpan execTime = TimeSpan.Zero;
 			DeveelDbDataReader rset = null;
-			_running = true;
+			running = true;
 			SignalInterruptHandler.Current.Push(_statementCanceller);
 
 			try {
-				if (command.StartsWith("commit")) {
+				if (commandText.StartsWith("commit")) {
 					session.Write("commit..");
 					session.Commit();
 					session.WriteLine(".done.");
-				} else if (command.StartsWith("rollback")) {
+				} else if (commandText.StartsWith("rollback")) {
 					session.Write("rollback..");
 					session.Rollback();
 					session.WriteLine(".done.");
 				} else {
 					int updateCount = -1;
 
-					_stmt = session.Connection.CreateCommand();
-					_statementCanceller.arm();
-					_longRunningDisplay.arm();
-					if (IsUpdateCommand) {
-						updateCount = _stmt.ExecuteNonQuery();
-					} else {
-						rset = _stmt.ExecuteReader();
-					}
-					_longRunningDisplay.disarm();
+					dbCommand = session.Connection.CreateCommand();
+					dbCommand.CommandText = commandText;
 
-					if (!_running) {
+					_statementCanceller.Arm();
+					_longRunningDisplay.Arm();
+					if (IsUpdateCommand) {
+						updateCount = this.dbCommand.ExecuteNonQuery();
+					} else {
+						rset = this.dbCommand.ExecuteReader();
+					}
+					_longRunningDisplay.Disarm();
+
+					if (!running) {
 						Application.MessageDevice.WriteLine("cancelled");
 						return CommandResultCode.Success;
 					}
@@ -141,14 +154,14 @@ namespace Deveel.Data.Commands {
 						ResultSetRenderer renderer = new ResultSetRenderer(rset, ColumnDelimiter, ShowHeader, ShowFooter,
 						                                                   RowLimit, Application.OutputDevice);
 						SignalInterruptHandler.Current.Push(renderer);
-						int rows = renderer.execute();
+						int rows = renderer.Execute();
 						SignalInterruptHandler.Current.Pop();
-						if (renderer.limitReached()) {
+						if (renderer.LimitReached) {
 							session.WriteLine("limit of " + RowLimit + " rows reached ..");
 							session.Write("> ");
 						}
 						session.Write(rows + " row" + ((rows == 1) ? "" : "s") + " in result");
-						lapTime = renderer.getFirstRowTime() - startTime;
+						lapTime = renderer.FirstRowTime - startTime;
 					} else {
 						if (updateCount >= 0) {
 							session.Write("affected " + updateCount + " rows");
@@ -175,7 +188,7 @@ namespace Deveel.Data.Commands {
 
 				// be smart and retrigger hashing of the tablenames.
 				if (Name.Equals("drop") || Name.Equals("create")) {
-					//TODO: tableCompleter.unhash(session);
+					session.UnhashCompleters();
 				}
 			} catch (Exception e) {
 				String msg = e.Message;
@@ -185,8 +198,8 @@ namespace Deveel.Data.Commands {
 				}
 				return CommandResultCode.ExecutionFailed;
 			} finally {
-				_statementCanceller.disarm();
-				_longRunningDisplay.disarm();
+				_statementCanceller.Disarm();
+				_longRunningDisplay.Disarm();
 				try {
 					if (rset != null) 
 						rset.Close();
@@ -210,10 +223,10 @@ namespace Deveel.Data.Commands {
 			 * look for keywords that expect table names
 			 */
 			int tableMatch = -1;
-			for (int i = 0; i < TABLE_COMPLETER_KEYWORD.Length; ++i) {
-				int match = canonCmd.IndexOf(TABLE_COMPLETER_KEYWORD[i]);
+			for (int i = 0; i < TableCompleterKeyword.Length; ++i) {
+				int match = canonCmd.IndexOf(TableCompleterKeyword[i]);
 				if (match >= 0) {
-					tableMatch = match + TABLE_COMPLETER_KEYWORD[i].Length;
+					tableMatch = match + TableCompleterKeyword[i].Length;
 					break;
 				}
 			}
@@ -223,7 +236,7 @@ namespace Deveel.Data.Commands {
 				 * ok, try to complete all columns from all tables since
 				 * we don't know yet what table the column will be from.
 				 */
-				return session.completeAllColumns(lastWord);
+				return session.CompleteAllColumns(lastWord);
 			}
 
 			int endTabMatch = -1;  // where the table declaration ends.
@@ -253,26 +266,29 @@ namespace Deveel.Data.Commands {
 				IEnumerator it = tableDeclParser(tables).GetEnumerator();
 				while (it.MoveNext()) {
 					DictionaryEntry entry = (DictionaryEntry)it.Current;
-					String alias = (String)entry.Key;
-					String tabName = (String)entry.Value;
-					tabName = session.correctTableName(tabName);
+					string alias = (String)entry.Key;
+					string tabName = (String)entry.Value;
+					tabName = session.CorrectTableName(tabName);
 					if (tabName == null)
 						continue;
-					ICollection columns = session.columnsFor(tabName);
+
+					ICollection columns = session.ColumnsFor(tabName);
 					IEnumerator cit = columns.GetEnumerator();
 					while (cit.MoveNext()) {
-						String col = (String)cit.Current;
+						string col = (string)cit.Current;
 						IList aliases = (IList)tmp[col];
-						if (aliases == null) aliases = new ArrayList();
+						if (aliases == null) 
+							aliases = new ArrayList();
 						aliases.Add(alias);
 						tmp.Add(col, aliases);
 					}
 				}
+
 				NameCompleter completer = new NameCompleter();
 				it = tmp.GetEnumerator();
 				while (it.MoveNext()) {
 					DictionaryEntry entry = (DictionaryEntry)it.Current;
-					String col = (String)entry.Key;
+					string col = (string)entry.Key;
 					IList aliases = (IList)entry.Value;
 					if (aliases.Count == 1) {
 						completer.AddName(col);
@@ -285,7 +301,7 @@ namespace Deveel.Data.Commands {
 				}
 				return completer.GetAlternatives(lastWord);
 			} else { // table completion.
-				return session.completeTableName(lastWord);
+				return session.CompleteTableName(lastWord);
 			}
 		}
 
@@ -300,16 +316,16 @@ namespace Deveel.Data.Commands {
 
 			private readonly SqlCommand command;
 
-			public void cancelRunningStatement() {
+			public void CancelRunningStatement() {
 				try {
 					command.Application.MessageDevice.WriteLine("cancel statement...");
 					command.Application.MessageDevice.Flush();
 					CancelWriter info = new CancelWriter(command.Application.MessageDevice);
-					info.print("please wait");
-					command._stmt.Cancel();
-					info.cancel();
+					info.Write("please wait");
+					command.dbCommand.Cancel();
+					info.Cancel();
 					command.Application.MessageDevice.WriteLine("done.");
-					command._running = false;
+					command.running = false;
 				} catch (Exception e) {
 					
 				}

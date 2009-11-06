@@ -14,10 +14,9 @@ namespace Deveel.Data.Commands {
  * sessions open that are otherwise being closed by some
  * firewalls :-)
  *
- * @author hzeller
- * @version $Revision: 1.1 $
  */
 	public class LongRunningTimeDisplay {
+		private readonly Thread thread;
 		private readonly long _startTimeDisplayAfter;
 		private readonly String _message;
 		private readonly CancelWriter _timeDisplay;
@@ -26,6 +25,7 @@ namespace Deveel.Data.Commands {
 		private volatile bool _armed;
 
 		public LongRunningTimeDisplay(String msg, long showAfter) {
+			thread = new Thread(Run);
 			_startTimeDisplayAfter = showAfter;
 			_message = msg;
 			_running = true;
@@ -34,29 +34,34 @@ namespace Deveel.Data.Commands {
 		}
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void arm() {
+		public void Arm() {
 			_lastArmTime = DateTime.Now;
 			_armed = true;
 			Monitor.Pulse(this);
 		}
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void disarm() {
+		public void Disarm() {
 			if (_armed) {
 				_armed = false;
-				_timeDisplay.cancel();
+				_timeDisplay.Cancel();
 				Monitor.Pulse(this);
 			}
 		}
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void stopThread() {
+		public void StartThread() {
+			thread.Start();
+		}
+
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		public void StopThread() {
 			_running = false;
 			Monitor.Pulse(this);
 		}
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void run() {
+		private void Run() {
 			try {
 				for (; ; ) {
 					while (_running && !_armed) {
@@ -71,11 +76,11 @@ namespace Deveel.Data.Commands {
 						long totalTime = (long)DateTime.Now.Subtract(_lastArmTime).TotalMilliseconds;
 						totalTime -= totalTime % 1000; // full seconds.
 						String time = TimeRenderer.RenderTime(totalTime);
-						_timeDisplay.cancel();
-						_timeDisplay.print(_message + " " + time);
+						_timeDisplay.Cancel();
+						_timeDisplay.Write(_message + " " + time);
 						Monitor.Wait(this, 5000);
 					}
-					_timeDisplay.cancel();
+					_timeDisplay.Cancel();
 				}
 			} catch (ThreadInterruptedException e) {
 				return;

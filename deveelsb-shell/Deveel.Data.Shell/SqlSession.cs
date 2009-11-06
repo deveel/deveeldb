@@ -18,6 +18,7 @@ namespace Deveel.Data.Shell {
 		private Database metaData;
 		private bool auto_commit;
 		private bool auto_commit_was_set;
+		private bool connected;
 
 		private NameCompleter sessionTables;
 		private NameCompleter sessionColumns;
@@ -64,6 +65,14 @@ namespace Deveel.Data.Shell {
 
 		public string Name {
 			get { return name; }
+		}
+
+		public string DatabaseInfo {
+			get { return conn.Database; }
+		}
+
+		public bool IsConnected {
+			get { return connected; }
 		}
 
 		public Table GetTable(String tableName) {
@@ -158,8 +167,9 @@ namespace Deveel.Data.Shell {
 				}
 			}
 
-			metaData = new Database(this);
+			//metaData = new Database(this);
 			connectTime = DateTime.Now;
+			connected = true;
 			return true;
 		}
 
@@ -241,7 +251,7 @@ namespace Deveel.Data.Shell {
 					sessionColumns = new NameCompleter();
 					while (!interrupted && table.MoveNext()) {
 						string tabName = (string)table.Current;
-						ICollection columns = columnsFor(tabName);
+						ICollection columns = ColumnsFor(tabName);
 						IEnumerator cit = columns.GetEnumerator();
 						while (cit.MoveNext()) {
 							String col = (String)cit.Current;
@@ -292,7 +302,7 @@ namespace Deveel.Data.Shell {
 		/**
 	* fixme: add this to the cached values determined by rehash.
 	*/
-		public ICollection columnsFor(String tabName) {
+		public ICollection ColumnsFor(String tabName) {
 			ArrayList result = new ArrayList();
 
 			String schema = null;
@@ -367,12 +377,12 @@ namespace Deveel.Data.Shell {
 			}
 		}
 
-		public IEnumerator completeAllColumns(string word) {
+		public IEnumerator CompleteAllColumns(string word) {
 			return sessionColumns == null ? null : sessionColumns.GetAlternatives(word);
 		}
 
-		public String correctTableName(String tabName) {
-			IEnumerator it = completeTableName(tabName);
+		public String CorrectTableName(String tabName) {
+			IEnumerator it = CompleteTableName(tabName);
 			if (it == null)
 				return null;
 
@@ -392,9 +402,13 @@ namespace Deveel.Data.Shell {
 			return (count == 1 || foundSameLengthMatch) ? correctedName : null;
 		}
 
-		public IEnumerator completeTableName(string partialTable) {
+		public IEnumerator CompleteTableName(string partialTable) {
 			NameCompleter completer = TableCompleter;
 			return completer == null ? null : completer.GetAlternatives(partialTable);
+		}
+
+		public void UnhashCompleters() {
+			sessionTables = null;
 		}
 	}
 }

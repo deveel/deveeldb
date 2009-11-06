@@ -8,8 +8,8 @@ using Deveel.Design;
 using Deveel.Shell;
 
 namespace Deveel.Data.Commands {
-	public class ResultSetRenderer : IInterruptable {
-		private readonly DeveelDbDataReader rset;
+	class ResultSetRenderer : IInterruptable {
+		private readonly DeveelDbDataReader reader;
 		private readonly System.Data.DataTable meta;
 		private readonly TableRenderer table;
 		private readonly int columns;
@@ -21,20 +21,15 @@ namespace Deveel.Data.Commands {
 		private readonly int rowLimit;
 		private volatile bool running;
 
-		public ResultSetRenderer(DeveelDbDataReader rset,
-								 String columnDelimiter,
-								 bool enableHeader, bool enableFooter,
-								 int limit,
-								 IOutputDevice output, int[] show) {
-			this.rset = rset;
+		public ResultSetRenderer(DeveelDbDataReader reader, string columnDelimiter, bool enableHeader, bool enableFooter, int limit, IOutputDevice output, int[] show) {
+			this.reader = reader;
 			beyondLimit = false;
 			firstRowTime = DateTime.MinValue;
 			showColumns = show;
 			rowLimit = limit;
-			meta = rset.GetSchemaTable();
-			columns = (show != null) ? show.Length : meta.Columns.Count;
-			table = new TableRenderer(getDisplayMeta(meta), output,
-										  columnDelimiter, enableHeader, enableFooter);
+			meta = reader.GetSchemaTable();
+			columns = (show != null) ? show.Length : meta.Rows.Count;
+			table = new TableRenderer(GetDisplayColumns(meta), output, columnDelimiter, enableHeader, enableFooter);
 		}
 
 		public ResultSetRenderer(DeveelDbDataReader rset, String columnDelimiter, bool enableHeader, bool enableFooter, int limit, IOutputDevice output)
@@ -47,11 +42,11 @@ namespace Deveel.Data.Commands {
 			running = false;
 		}
 
-		public ColumnDesign[] getDisplayMetaData() {
-			return table.Columns;
+		public ColumnDesign[] DisplayColumns {
+			get { return table.Columns; }
 		}
 
-		private String readClob(DeveelDbLob c) {
+		private String ReadClob(DeveelDbLob c) {
 			if (c == null)
 				return null;
 			StringBuilder result = new StringBuilder();
@@ -76,32 +71,32 @@ namespace Deveel.Data.Commands {
 			return result.ToString();
 		}
 
-		public int execute() {
+		public int Execute() {
 			int rows = 0;
 
 			running = true;
 			try {
-				while (running && rset.Read()) {
+				while (running && reader.Read()) {
 					ColumnValue[] currentRow = new ColumnValue[columns];
 					for (int i = 0; i < columns; ++i) {
-						int col = (showColumns != null) ? showColumns[i] : i + 1;
+						int col = (showColumns != null) ? showColumns[i] : i;
 						System.Data.DataRow row = meta.Rows[col];
+
 						SQLTypes type = (SQLTypes) row["SqlType"];
-						String colString;
-						if (type == SQLTypes.CLOB) {
-							colString = readClob(rset.GetLob(col));
-						} else {
-							colString = rset.GetString(col);
-						}
+						string colString = type == SQLTypes.CLOB ? ReadClob(reader.GetLob(col)) : reader.GetString(col);
+
 						ColumnValue thisCol = new ColumnValue(colString);
 						currentRow[i] = thisCol;
 					}
-					if (firstRowTime == DateTime.MinValue) {
+
+					if (firstRowTime == DateTime.MinValue)
 						// read first row completely.
 						firstRowTime = DateTime.Now;
-					}
+
 					table.AddRow(currentRow);
+
 					++rows;
+
 					if (rows >= rowLimit) {
 						beyondLimit = true;
 						break;
@@ -109,43 +104,39 @@ namespace Deveel.Data.Commands {
 				}
 
 				table.CloseTable();
+
 				if (!running) {
 					try {
-						rset.Command.Cancel();
+						reader.Command.Cancel();
 					} catch (Exception e) {
 						OutputDevice.Message.WriteLine("cancel statement failed: " + e.Message);
 					}
 				}
 			} finally {
-				rset.Close();
+				reader.Close();
 			}
 			return rows;
 		}
 
-		public bool limitReached() {
-			return beyondLimit;
+		public bool LimitReached {
+			get { return beyondLimit; }
 		}
 
-		public DateTime getFirstRowTime() {
-			return firstRowTime;
+		public DateTime FirstRowTime {
+			get { return firstRowTime; }
 		}
 
-		/**
-		 * determine meta data necesary for display.
-		 */
-		private ColumnDesign[] getDisplayMeta(System.Data.DataTable m) {
+		// determine meta data necesary for display.
+		private ColumnDesign[] GetDisplayColumns(System.Data.DataTable m) {
 			ColumnDesign[] result = new ColumnDesign[columns];
 
 			for (int i = 0; i < result.Length; ++i) {
-				int col = (showColumns != null) ? showColumns[i] : i + 1;
+				int col = (showColumns != null) ? showColumns[i] : i;
 				ColumnAlignment alignment = ColumnAlignment.Left;
 				System.Data.DataRow column = m.Rows[col];
 				String columnLabel = column["Name"].ToString();
 				SQLTypes type = (SQLTypes) column["SqlType"];
-				/*
-				int width = Math.max(m.getColumnDisplaySize(i),
-						 columnLabel.length());
-				*/
+
 				switch (type) {
 					case SQLTypes.NUMERIC:
 					case SQLTypes.INTEGER:

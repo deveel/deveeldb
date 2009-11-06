@@ -5,25 +5,31 @@ using System.Threading;
 using Deveel.Shell;
 
 namespace Deveel.Data.Commands {
-	/**
- * A thread to be used to cancel a statement running
- * in another thread.
- */
+	/// <summary>
+	/// A thread to be used to cancel a statement running in 
+	/// another thread.
+	/// </summary>
 	sealed class StatementCanceller : IInterruptable {
+		private readonly Thread thread;
 		private readonly CancelTarget _target;
 		private bool _armed;
 		private bool _running;
 		private volatile bool _cancelStatement;
 
-		/**
-		 * The target to be cancelled. Must not throw an Execption
-		 * and may to whatever it needs to do.
-		 */
+
+		/// <summary>
+		/// The target to be cancelled.
+		/// </summary>
+		/// <remarks>
+		/// Must not throw an Execption and may to whatever it 
+		/// needs to do.
+		/// </remarks>
 		public interface CancelTarget {
-			void cancelRunningStatement();
+			void CancelRunningStatement();
 		}
 
 		public StatementCanceller(CancelTarget target) {
+			thread = new Thread(Run);
 			_cancelStatement = false;
 			_armed = false;
 			_running = true;
@@ -38,27 +44,32 @@ namespace Deveel.Data.Commands {
 		}
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void stopThread() {
+		public void StartThread() {
+			thread.Start();
+		}
+
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		public void StopThread() {
 			_running = false;
 			Monitor.Pulse(this);
 		}
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void arm() {
+		public void Arm() {
 			_armed = true;
 			_cancelStatement = false;
 			Monitor.Pulse(this);
 		}
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void disarm() {
+		public void Disarm() {
 			_armed = false;
 			_cancelStatement = false;
 			Monitor.Pulse(this);
 		}
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void run() {
+		private void Run() {
 			try {
 				for (; ; ) {
 					while (_running && !_armed) {
@@ -70,7 +81,7 @@ namespace Deveel.Data.Commands {
 					}
 					if (_cancelStatement) {
 						try {
-							_target.cancelRunningStatement();
+							_target.CancelRunningStatement();
 						} catch (Exception e) {
 							/* ignore */
 						}

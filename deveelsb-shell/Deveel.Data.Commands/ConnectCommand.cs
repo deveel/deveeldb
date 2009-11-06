@@ -13,21 +13,24 @@ namespace Deveel.Data.Commands {
 	public sealed class ConnectCommand : Command {
 		public override string LongDescription {
 			get {
-				return "\tconnects to the server with the optional session name.\n"
-				       + "\tIf no session name is given, a session name is chosen.\n"
-				       + "\tIf a session name is given, this is stored as an alias\n"
-				       + "\tfor the string as well, so later you might connect with\n"
-				       + "\tthat alias conveniently instead:\n"
-				       + "\t\tconnect Host=192.168.0.1;User=SA;Password=123456;Database=foo myAlias\n"
-				       + "\tallows to later connect simply with\n"
-				       + "\t\tconnect myAlias\n"
-				       + "\tOf course, all strings and aliases are stored in your \n"
-				       + "\t~/.deveeldb configuration. All connects and aliases \n"
-				       + "\tare provided in the TAB-completion of this command.";
+				return "connects to the server with the optional session name.\n" + 
+					"If no session name is given, a session name is chosen.\n" + 
+					"If a session name is given, this is stored as an alias\n" + 
+					"for the string as well, so later you might connect with\n" + 
+					"that alias conveniently instead:\n" + 
+					"\tconnect \"Host=192.168.0.1;User=SA;Database=foo\" myAlias\n" + 
+					"allows to later connect simply with\n" + 
+					"\tconnect myAlias\n" + 
+					"Of course, all strings and aliases are stored in your \n" + 
+					"~/.deveeldb configuration. All connects and aliases \n" + 
+					"are provided in the TAB-completion of this command.";
 			}
 		}
 
-		public override void HandleCommandLine(CommandLine commandLine) {
+		public override bool HandleCommandLine(CommandLine commandLine) {
+			if (!commandLine.HasOption("host"))
+				return false;
+
 			string host = null;
 			string username = null;
 			string password = null;
@@ -62,33 +65,24 @@ namespace Deveel.Data.Commands {
 			if (commandLine.HasOption("d")) {
 				database = commandLine.GetOptionValue("d");
 			}
+
 			if (host != null) {
 				try {
 					Connect(host, port, database, username, password);
+					return true;
 				} catch (Exception e) {
 					OutputDevice.Message.WriteLine(e.Message);
+					return false;
 				}
 			}
+
+			return false;
 		}
 
 		public override void RegisterOptions(CommandLineOptions options) {
 			CommandLineOption option = new CommandLineOption("h", "host", true, "Host to connect to");
 			option.ArgumentName = "address";
 			options.AddOption(option);
-
-			/*
-			option = new CommandLineOption("u", "username", true, "Username to connect with");
-			option.ArgumentName = "username";
-			options.AddOption(option);
-
-			option = new CommandLineOption("p", "password", true, "Password to connect with");
-			option.ArgumentName = "password";
-			options.AddOption(option);
-
-			option = new CommandLineOption("d", "database", true, "Name of the database on the host");
-			option.ArgumentName = "name";
-			options.AddOption(option);
-			*/
 		}
 
 		private void Connect(string host, int port, string database, string username, string password) {
@@ -135,10 +129,12 @@ namespace Deveel.Data.Commands {
 			}
 			try {
 				SqlSession session = shell.CreateSession(connectionString, alias);
+				if (session == null) {
+					Application.MessageDevice.WriteLine("unable to connect to the database");
+					return CommandResultCode.ExecutionFailed;
+				}
 				if (alias != null)
 					shell.Connections.AddConnectionString(alias, connectionString);
-				shell.SessionManager.SetCurrentSession(session);
-				shell.SetPrompt(session.Name + "> ");
 				return CommandResultCode.Success;
 			} catch (Exception e) {
 				OutputDevice.Message.WriteLine(e.Message);

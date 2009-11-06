@@ -27,7 +27,7 @@ namespace Deveel.Data.Shell {
 		}
 
 		private void Build() {
-			string[] filter = new string[] { null, null, null };
+			string[] filter = new string[] { null, null, null, "TABLE", "SYSTEM TABLE", "VIEW" };
 			System.Data.DataTable tablesSchema = session.Connection.GetSchema(DeveelDbMetadataSchemaNames.Tables, filter);
 			for (int i = 0; i < tablesSchema.Rows.Count; i++) {
 				DataRow row = tablesSchema.Rows[i];
@@ -76,7 +76,7 @@ namespace Deveel.Data.Shell {
 			bool nullable = (bool) row["NULLABLE"];
 			Column column = new Column(table, columnName, position, dataTypeName, size, scale, nullable);
 			string defaultValue = row["COLUMN_DEFAULT"].ToString();
-			if (defaultValue != null)
+			if (defaultValue != null && defaultValue.Length > 0)
 				column.SetDefault(defaultValue);
 
 			string[] filter = new string[] { null, tableSchema, tableName, columnName };
@@ -90,9 +90,10 @@ namespace Deveel.Data.Shell {
 		private static Privilege BuildPrivilege(DataRow row) {
 			string grantor = row["GRANTOR"].ToString();
 			string grantee = row["GRANTEE"].ToString();
+			string priv = row["PRIVILEGE"].ToString();
 			bool grantable = (bool) row["IS_GRANTABLE"];
 
-			return new Privilege(grantor, grantee, grantable);
+			return new Privilege(grantor, grantee, priv, grantable);
 		}
 
 		private static void BuildPrimaryKey(Table table, DataRow row) {
