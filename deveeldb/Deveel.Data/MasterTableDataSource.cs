@@ -718,7 +718,7 @@ namespace Deveel.Data {
 				}
 
 				public int RowIndex {
-					get { return iterator.next(); }
+					get { return iterator.Next; }
 				}
 			}
 			public SelectableScheme GetColumnScheme(int column) {
@@ -1925,7 +1925,7 @@ namespace Deveel.Data {
 				}
 
 				public int RowIndex {
-					get { return iterator.next(); }
+					get { return iterator.Next; }
 				}
 			}
 			public TObject GetCellContents(int column, int row) {

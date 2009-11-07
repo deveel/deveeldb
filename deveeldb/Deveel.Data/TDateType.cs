@@ -28,7 +28,7 @@ namespace Deveel.Data {
 	/// </summary>
 	[Serializable]
 	public class TDateType : TType {
-		public TDateType(SQLTypes sql_type)
+		public TDateType(SqlType sql_type)
 			: base(sql_type) {
 		}
 

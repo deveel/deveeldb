@@ -34,7 +34,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private readonly int max_size;
 
-		public TBinaryType(SQLTypes sql_type, int max_size)
+		public TBinaryType(SqlType sql_type, int max_size)
 			: base(sql_type) {
 			this.max_size = max_size;
 		}

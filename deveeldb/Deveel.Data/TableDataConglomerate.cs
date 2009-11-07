@@ -558,7 +558,7 @@ namespace Deveel.Data {
 		///		name        TEXT NOT NULL,  // The name of the primary key constraint
 		///		schema      TEXT NOT NULL,  // The name of the schema
 		///		table       TEXT NOT NULL,  // The name of the table
-		///		deferred    BIT  NOT NULL,  // Whether deferred or immediate
+		///		deferred    Bit  NOT NULL,  // Whether deferred or immediate
 		///		PRIMARY KEY (id),
 		///		UNIQUE (schema, table)
 		///	);
@@ -572,7 +572,7 @@ namespace Deveel.Data {
 		///		ref_table   TEXT NOT NULL,  // The name of the table referenced
 		///		update_rule TEXT NOT NULL,  // The rule for updating to table
 		///		delete_rule TEXT NOT NULL,  // The rule for deleting from table
-		///		deferred    BIT  NOT NULL,  // Whether deferred or immediate
+		///		deferred    Bit  NOT NULL,  // Whether deferred or immediate
 		///		
 		///		PRIMARY KEY (id)
 		///	);
@@ -582,7 +582,7 @@ namespace Deveel.Data {
 		///		name        TEXT NOT NULL,  // The name of the unique constraint
 		///		schema      TEXT NOT NULL,  // The name of the schema
 		///		table       TEXT NOT NULL,  // The name of the table
-		///		deferred    BIT  NOT NULL,  // Whether deferred or immediate
+		///		deferred    Bit  NOT NULL,  // Whether deferred or immediate
 		///		
 		///		PRIMARY KEY (id)
 		///	);
@@ -593,7 +593,7 @@ namespace Deveel.Data {
 		///		schema      TEXT NOT NULL,  // The name of the schema
 		///		table       TEXT NOT NULL,  // The name of the table
 		///		expression  TEXT NOT NULL,  // The check expression
-		///		deferred    BIT  NOT NULL,  // Whether deferred or immediate
+		///		deferred    Bit  NOT NULL,  // Whether deferred or immediate
 		///		
 		///		PRIMARY KEY (id)
 		///	);
@@ -1961,7 +1961,7 @@ namespace Deveel.Data {
 					// Check: If column is an object, then deserialize and check the
 					//        object is an instance of the class constraint,
 					if (!cell.IsNull &&
-						column_def.SQLType == SQLTypes.OBJECT) {
+						column_def.SqlType == SqlType.Object) {
 						String class_constraint = column_def.TypeConstraintString;
 						// Everything is derived from System.Object so this optimization
 						// will not cause an object deserialization.

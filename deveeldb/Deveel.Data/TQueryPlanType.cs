@@ -30,7 +30,7 @@ namespace Deveel.Data {
 	public class TQueryPlanType : TType {
 		public TQueryPlanType()
 			// There is no SQL type for a query plan node so we make one up here
-			: base(SQLTypes.QUERY_PLAN_NODE) {
+			: base(SqlType.QueryPlanNode) {
 		}
 
 		/// <inheritdoc/>

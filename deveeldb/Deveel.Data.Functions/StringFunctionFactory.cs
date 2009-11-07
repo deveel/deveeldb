@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Text;
 
@@ -64,7 +64,7 @@ namespace Deveel.Data.Functions {
 				// or use a default StringType if no locale found.
 				TType type;
 				if (str_locale != null) {
-					type = new TStringType(SQLTypes.VARCHAR, -1,
+					type = new TStringType(SqlType.VarChar, -1,
 										   str_locale, str_strength, str_decomposition);
 				} else {
 					type = TType.StringType;
@@ -89,7 +89,7 @@ namespace Deveel.Data.Functions {
 				}
 
 				if (str_locale != null) {
-					return new TStringType(SQLTypes.VARCHAR, -1,
+					return new TStringType(SqlType.VarChar, -1,
 										   str_locale, str_strength, str_decomposition);
 				} else {
 					return TType.StringType;

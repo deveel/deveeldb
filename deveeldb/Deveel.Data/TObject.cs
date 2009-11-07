@@ -881,7 +881,7 @@ namespace Deveel.Data {
 
 				TStringType dest_type = st1;
 				if (str_locale != null) {
-					dest_type = new TStringType(SQLTypes.VARCHAR, -1,
+					dest_type = new TStringType(SqlType.VarChar, -1,
 											 str_locale, str_strength, str_decomposition);
 				}
 

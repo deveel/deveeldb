@@ -28,7 +28,7 @@ namespace Deveel.Data {
 	/// This is a description of a column and the data it stores.
 	/// </summary>
 	/// <remarks>
-	/// Specifically it stores the 'type' as defined input the <see cref="DbTypes"/> 
+	/// Specifically it stores the 'type' as defined input the <see cref="DbType"/> 
 	/// class, the 'size' if the column cells may be different lengths 
 	/// (eg, string), the name of the column, whether the column set must 
 	/// contain unique elements, and whether a cell may be added that is null.
@@ -41,9 +41,9 @@ namespace Deveel.Data {
 		private readonly String name;
 
 		/// <summary>
-		/// The type of the field, from the <see cref="DbTypes"/> object.
+		/// The type of the field, from the <see cref="DbType"/> object.
 		/// </summary>
-		private readonly DbTypes type;
+		private readonly DbType type;
 
 		/// <summary>
 		/// The size of the type.  The meaning of this field changes depending on the
@@ -64,7 +64,7 @@ namespace Deveel.Data {
 		/// the various SQL types. The value is initialised to -9332 to indicate
 		/// the sql type has not be defined.
 		/// </summary>
-		private SQLTypes sql_type = SQLTypes.UNKNOWN;
+		private SqlType sql_type = SqlType.Unknown;
 
 		/// <summary>
 		/// If true, the field may not be null.  If false, the column may contain
@@ -95,7 +95,7 @@ namespace Deveel.Data {
 		/// <param name="type"></param>
 		/// <param name="size"></param>
 		/// <param name="not_null"></param>
-		public ColumnDescription(String name, DbTypes type, int size, bool not_null) {
+		public ColumnDescription(String name, DbType type, int size, bool not_null) {
 			this.name = name;
 			this.type = type;
 			this.size = size;
@@ -104,7 +104,7 @@ namespace Deveel.Data {
 			unique_group = -1;
 		}
 
-		public ColumnDescription(String name, DbTypes type, bool not_null)
+		public ColumnDescription(String name, DbType type, bool not_null)
 			: this(name, type, -1, not_null) {
 		}
 
@@ -155,9 +155,9 @@ namespace Deveel.Data {
 		/// Returns an integer representing the type of the field.
 		/// </summary>
 		/// <remarks>
-		/// The types are outlined input <see cref="DbTypes"/>.
+		/// The types are outlined input <see cref="DbType"/>.
 		/// </remarks>
-		public DbTypes Type {
+		public DbType Type {
 			get { return type; }
 		}
 
@@ -165,7 +165,7 @@ namespace Deveel.Data {
 		/// Returns true if this column is a numeric type.
 		/// </summary>
 		public bool IsNumericType {
-			get { return (type == DbTypes.DB_NUMERIC); }
+			get { return (type == DbType.Numeric); }
 		}
 
 
@@ -176,31 +176,31 @@ namespace Deveel.Data {
 		/// This is only used to emulate SQL types input the database. They are 
 		/// mapped to the simpler internal types as follows:
 		/// <code>
-		///     DB_STRING := CHAR, VARCHAR, LONGVARCHAR
-		///    DB_NUMERIC := TINYINT, SMALLINT, INTEGER, BIGINT, FLOAT, REAL,
-		///                  DOUBLE, NUMERIC, DECIMAL
-		///       DB_DATE := DATE, TIME, TIMESTAMP
-		///    DB_BOOLEAN := BIT
-		///       DB_BLOB := BINARY, VARBINARY, LONGVARBINARY
-		///     DB_OBJECT := OBJECT
+		///     STRING := CHAR, VARCHAR, LONGVARCHAR
+		///    NUMERIC := TINYINT, SMALLINT, INTEGER, BIGINT, FLOAT, REAL,
+		///               DOUBLE, NUMERIC, DECIMAL
+		///       DATE := DATE, TIME, TIMESTAMP
+		///    BOOLEAN := BIT
+		///       BLOB := BINARY, VARBINARY, LONGVARBINARY
+		///     OBJECT := OBJECT
 		/// </code>
 		/// </remarks>
-		public SQLTypes SQLType {
+		public SqlType SQLType {
 			get {
-				if (sql_type == SQLTypes.UNKNOWN) {
+				if (sql_type == SqlType.Unknown) {
 					// If sql type is unknown find from internal type
-					if (type == DbTypes.DB_NUMERIC)
-						return SQLTypes.NUMERIC;
-					if (type == DbTypes.DB_STRING)
-						return SQLTypes.LONGVARCHAR;
-					if (type == DbTypes.DB_BOOLEAN)
-						return SQLTypes.BIT;
-					if (type == DbTypes.DB_TIME)
-						return SQLTypes.TIMESTAMP;
-					if (type == DbTypes.DB_BLOB)
-						return SQLTypes.LONGVARBINARY;
-					if (type == DbTypes.DB_OBJECT)
-						return SQLTypes.OBJECT;
+					if (type == DbType.Numeric)
+						return SqlType.Numeric;
+					if (type == DbType.String)
+						return SqlType.LongVarChar;
+					if (type == DbType.Boolean)
+						return SqlType.Bit;
+					if (type == DbType.Time)
+						return SqlType.TimeStamp;
+					if (type == DbType.Blob)
+						return SqlType.LongVarBinary;
+					if (type == DbType.Object)
+						return SqlType.Object;
 					throw new ApplicationException("Unrecognised internal type.");
 				}
 				return sql_type;
@@ -275,8 +275,8 @@ namespace Deveel.Data {
 		/// </remarks>
 		public bool IsQuantifiable {
 			get {
-				if (type == DbTypes.DB_BLOB ||
-				    type == DbTypes.DB_OBJECT) {
+				if (type == DbType.Blob ||
+				    type == DbType.Object) {
 					return false;
 				}
 				return true;
@@ -323,7 +323,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public static ColumnDescription ReadFrom(BinaryReader input) {
 			String name = input.ReadString();
-			DbTypes type = (DbTypes) input.ReadInt32();
+			DbType type = (DbType) input.ReadInt32();
 			int size = input.ReadInt32();
 			bool not_null = input.ReadBoolean();
 			bool unique = input.ReadBoolean();
@@ -332,7 +332,7 @@ namespace Deveel.Data {
 			ColumnDescription col_desc = new ColumnDescription(name, type, size, not_null);
 			if (unique) col_desc.SetUnique();
 			col_desc.UniqueGroup = unique_group;
-			col_desc.SQLType = (SQLTypes) input.ReadInt32();
+			col_desc.SQLType = (SqlType) input.ReadInt32();
 			col_desc.Scale = input.ReadInt32();
 
 			return col_desc;

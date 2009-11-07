@@ -100,7 +100,7 @@ namespace Deveel.Data {
 							return GetColumnValue(column, col_def.Name);
 						case 3:  // sql_type
 							return GetColumnValue(column,
-											   BigNumber.fromLong((int)col_def.SQLType));
+											   BigNumber.fromLong((int)col_def.SqlType));
 						case 4:  // type_desc
 							return GetColumnValue(column, col_def.SQLTypeString);
 						case 5:  // size

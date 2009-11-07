@@ -191,11 +191,11 @@
     <Compile Include="Deveel.Data\ObjectTransfer.cs" />
     <Compile Include="Deveel.Data\ObjectTranslator.cs" />
     <Compile Include="Deveel.Data\IRef.cs" />
-    <Compile Include="Deveel.Data\SQLTypes.cs" />
+    <Compile Include="Deveel.Data\SqlType.cs" />
     <Compile Include="Deveel.Data\StreamableObject.cs" />
     <Compile Include="Deveel.Data\IStringAccessor.cs" />
     <Compile Include="Deveel.Data\StringObject.cs" />
-    <Compile Include="Deveel.Data\DbTypes.cs" />
+    <Compile Include="Deveel.Data\DbType.cs" />
     <Compile Include="Deveel.Data\TypeUtil.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableAction.cs" />

@@ -49,7 +49,7 @@ namespace Deveel.Data {
 		///<param name="size">The size of the type (if any, -1 otherwise).</param>
 		///<param name="scale">The scale of the numberic type (or -1 if not 
 		/// specified).</param>
-		public TNumericType(SQLTypes sql_type, int size, int scale)
+		public TNumericType(SqlType sql_type, int size, int scale)
 			: base(sql_type) {
 			this.size = size;
 			this.scale = scale;

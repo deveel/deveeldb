@@ -34,7 +34,7 @@ namespace Deveel.Data {
 		private readonly String type_name;
 
 		public TObjectType(String type_name)
-			: base(SQLTypes.OBJECT) {
+			: base(SqlType.Object) {
 			this.type_name = type_name;
 		}
 

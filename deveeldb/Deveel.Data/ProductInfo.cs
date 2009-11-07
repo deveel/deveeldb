@@ -24,9 +24,9 @@ using System.Reflection;
 
 namespace Deveel.Data {
 	/// <summary>
-	/// 
+	/// Provides information about the current product.
 	/// </summary>
-	public sealed class ProductInfo {
+	internal sealed class ProductInfo {
 		private ProductInfo() {
 		}
 

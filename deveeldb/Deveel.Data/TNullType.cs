@@ -34,7 +34,7 @@ namespace Deveel.Data {
 	public class TNullType : TType {
 		public TNullType()
 			// There is no SQL type for a query plan node so we make one up here
-			: base(SQLTypes.NULL) {
+			: base(SqlType.Null) {
 		}
 
 		/// <inheritdoc/>

@@ -67,7 +67,7 @@ namespace Deveel.Data.Collections {
 	/// takes a constant amount of memory, this may not be acceptable.
 	/// </para>
 	/// </remarks>
-	public abstract class AbstractBlockIntegerList : IIntegerList {
+	internal abstract class AbstractBlockIntegerList : IIntegerList {
 		/// <summary>
 		/// The list of blocks (objects in this list are of type
 		/// <see cref="IntegerListBlockInterface"/>.
@@ -158,7 +158,7 @@ namespace Deveel.Data.Collections {
 				// The case when IIntegerList type is not known
 				IIntegerIterator i = i_list.GetIterator();
 				while (i.MoveNext()) {
-					Add(i.next());
+					Add(i.Next);
 				}
 			}
 
@@ -1067,21 +1067,23 @@ namespace Deveel.Data.Collections {
 				return cur_offset < end_offset;
 			}
 
-			public int next() {
-				++block_offset;
-				++cur_offset;
-				if (block_offset >= current_block_size) {
-					++block_index;
-					current_block =
-						(IntegerListBlockInterface)bil.block_list[block_index];
-					//        current_block = current_block.next;
-					current_block_size = current_block.Count;
-					block_offset = 0;
+			public int Next {
+				get {
+					++block_offset;
+					++cur_offset;
+					if (block_offset >= current_block_size) {
+						++block_index;
+						current_block =
+							(IntegerListBlockInterface) bil.block_list[block_index];
+						//        current_block = current_block.next;
+						current_block_size = current_block.Count;
+						block_offset = 0;
+					}
+					return current_block[block_offset];
 				}
-				return current_block[block_offset];
 			}
 
-			public bool hasPrevious() {
+			public bool MovePrevious() {
 				return cur_offset > start_offset;
 			}
 
@@ -1101,9 +1103,11 @@ namespace Deveel.Data.Collections {
 				}
 			}
 
-			public int previous() {
-				walkBack();
-				return current_block[block_offset];
+			public int Previous {
+				get {
+					walkBack();
+					return current_block[block_offset];
+				}
 			}
 
 			public void Remove() {
@@ -1169,9 +1173,9 @@ namespace Deveel.Data.Collections {
 		///<exception cref="ApplicationException"></exception>
 		public static void CheckSorted(IIntegerIterator iterator, IIndexComparer c) {
 			if (iterator.MoveNext()) {
-				int last_index = iterator.next();
+				int last_index = iterator.Next;
 				while (iterator.MoveNext()) {
-					int cur = iterator.next();
+					int cur = iterator.Next;
 					if (c.Compare(cur, last_index) < 0) {
 						throw new ApplicationException("List not sorted!");
 					}

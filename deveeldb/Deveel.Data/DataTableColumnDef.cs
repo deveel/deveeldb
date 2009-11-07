@@ -52,9 +52,9 @@ namespace Deveel.Data {
 
 		/// <summary>
 		/// The actual column type input the database (as defined input
-		/// <see cref="DbTypes"/>.
+		/// <see cref="Data.DbType"/>.
 		/// </summary>
-		private DbTypes db_type;
+		private DbType db_type;
 
 		/// <summary>
 		/// The default expression string.
@@ -98,7 +98,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The SQL type of the column.
 		/// </summary>
-		private SQLTypes sql_type;
+		private SqlType sql_type;
 
 		/// <summary>
 		/// The locale collation decomposition if this column represents a string.
@@ -164,39 +164,39 @@ namespace Deveel.Data {
 			set { constraints_format[0] = (byte) (value ? 1 : 0); }
 		}
 
-		public SQLTypes SQLType {
+		public SqlType SqlType {
 			get { return sql_type; }
 			set {
 				sql_type = value;
-				if (value == SQLTypes.BIT ||
-				    value == SQLTypes.BOOLEAN) {
-					db_type = DbTypes.DB_BOOLEAN;
-				} else if (value == SQLTypes.TINYINT ||
-				           value == SQLTypes.SMALLINT ||
-				           value == SQLTypes.INTEGER ||
-				           value == SQLTypes.BIGINT ||
-				           value == SQLTypes.FLOAT ||
-				           value == SQLTypes.REAL ||
-				           value == SQLTypes.DOUBLE ||
-				           value == SQLTypes.NUMERIC ||
-				           value == SQLTypes.DECIMAL) {
-					db_type = DbTypes.DB_NUMERIC;
-				} else if (value == SQLTypes.CHAR ||
-				           value == SQLTypes.VARCHAR ||
-				           value == SQLTypes.LONGVARCHAR) {
-					db_type = DbTypes.DB_STRING;
-				} else if (value == SQLTypes.DATE ||
-				           value == SQLTypes.TIME ||
-				           value == SQLTypes.TIMESTAMP) {
-					db_type = DbTypes.DB_TIME;
-				} else if (value == SQLTypes.BINARY ||
-				           value == SQLTypes.VARBINARY ||
-				           value == SQLTypes.LONGVARBINARY) {
-					db_type = DbTypes.DB_BLOB;
-				} else if (value == SQLTypes.OBJECT) {
-					db_type = DbTypes.DB_OBJECT;
+				if (value == SqlType.Bit ||
+				    value == SqlType.Boolean) {
+					db_type = Data.DbType.Boolean;
+				} else if (value == SqlType.TinyInt ||
+				           value == SqlType.SmallInt ||
+				           value == SqlType.Integer ||
+				           value == SqlType.BigInt ||
+				           value == SqlType.Float ||
+				           value == SqlType.Real ||
+				           value == SqlType.Double ||
+				           value == SqlType.Numeric ||
+				           value == SqlType.Decimal) {
+					db_type = DbType.Numeric;
+				} else if (value == SqlType.Char ||
+				           value == SqlType.VarChar ||
+				           value == SqlType.LongVarChar) {
+					db_type = DbType.String;
+				} else if (value == SqlType.Date ||
+				           value == SqlType.Time ||
+				           value == SqlType.TimeStamp) {
+					db_type = DbType.Time;
+				} else if (value == SqlType.Binary ||
+				           value == SqlType.VarBinary ||
+				           value == SqlType.LongVarBinary) {
+					db_type = DbType.Blob;
+				} else if (value == SqlType.Object) {
+					db_type = DbType.Object;
 				} else {
-					db_type = DbTypes.DB_UNKNOWN;
+					db_type = DbType.Unknown;
 				}
 			}
 		}
@@ -205,7 +205,7 @@ namespace Deveel.Data {
 		/// Returns the SQL type as a String.
 		/// </summary>
 		public string SQLTypeString {
-			get { return SQLType.ToString().ToUpper(); }
+			get { return SqlType.ToString().ToUpper(); }
 		}
 
 		/// <summary>
@@ -214,18 +214,18 @@ namespace Deveel.Data {
 		public string DbTypeString {
 			get {
 				switch (DbType) {
-					case DbTypes.DB_NUMERIC:
-						return "DB_NUMERIC";
-					case DbTypes.DB_STRING:
-						return "DB_STRING";
-					case DbTypes.DB_BOOLEAN:
-						return "DB_BOOLEAN";
-					case DbTypes.DB_TIME:
-						return "DB_TIME";
-					case DbTypes.DB_BLOB:
-						return "DB_BLOB";
-					case DbTypes.DB_OBJECT:
-						return "DB_OBJECT";
+					case DbType.Numeric:
+						return "NUMERIC";
+					case DbType.String:
+						return "STRING";
+					case DbType.Boolean:
+						return "BOOLEAN";
+					case DbType.Time:
+						return "TIME";
+					case DbType.Blob:
+						return "BLOB";
+					case DbType.Object:
+						return "OBJECT";
 					default:
 						return "UNKNOWN(" + DbType + ")";
 				}
@@ -242,22 +242,22 @@ namespace Deveel.Data {
 		///<summary>
 		///</summary>
 		///<exception cref="ArgumentException"></exception>
-		public DbTypes DbType {
+		public DbType DbType {
 			get { return db_type; }
 			set {
 				db_type = value;
-				if (value == DbTypes.DB_NUMERIC) {
-					sql_type = SQLTypes.NUMERIC;
-				} else if (value == DbTypes.DB_STRING) {
-					sql_type = SQLTypes.LONGVARCHAR;
-				} else if (value == DbTypes.DB_BOOLEAN) {
-					sql_type = SQLTypes.BIT;
-				} else if (value == DbTypes.DB_TIME) {
-					sql_type = SQLTypes.TIMESTAMP;
-				} else if (value == DbTypes.DB_BLOB) {
-					sql_type = SQLTypes.LONGVARBINARY;
-				} else if (value == DbTypes.DB_OBJECT) {
-					sql_type = SQLTypes.OBJECT;
+				if (value == DbType.Numeric) {
+					sql_type = SqlType.Numeric;
+				} else if (value == DbType.String) {
+					sql_type = SqlType.LongVarChar;
+				} else if (value == DbType.Boolean) {
+					sql_type = SqlType.Bit;
+				} else if (value == DbType.Time) {
+					sql_type = SqlType.TimeStamp;
+				} else if (value == DbType.Blob) {
+					sql_type = SqlType.LongVarBinary;
+				} else if (value == DbType.Object) {
+					sql_type = SqlType.Object;
 				} else {
 					throw new ArgumentException("Unrecognised internal type.");
 				}
@@ -318,8 +318,8 @@ namespace Deveel.Data {
 		/// </summary>
 		public bool IsIndexableType {
 			get {
-				if (DbType == DbTypes.DB_BLOB ||
-				    DbType == DbTypes.DB_OBJECT) {
+				if (DbType == DbType.Blob ||
+				    DbType == DbType.Object) {
 					return false;
 				}
 				return true;
@@ -432,7 +432,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		///<exception cref="ApplicationException"></exception>
 		public void SetFromTType(TType type) {
-			SQLType = type.SQLType;
+			SqlType = type.SQLType;
 			if (type is TStringType) {
 				TStringType str_type = (TStringType)type;
 				Size = str_type.MaximumSize;
@@ -471,7 +471,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void InitTTypeInfo() {
 			if (type == null) {
-				type = CreateTTypeFor(SQLType, Size, Scale,
+				type = CreateTTypeFor(SqlType, Size, Scale,
 				                      LocaleString, Strength, Decomposition,
 				                      TypeConstraintString);
 			}
@@ -505,7 +505,7 @@ namespace Deveel.Data {
 		public ColumnDescription ColumnDescriptionValue(String column_name) {
 			ColumnDescription field = new ColumnDescription(column_name, DbType, Size, IsNotNull);
 			field.Scale = Scale;
-			field.SQLType = SQLType;
+			field.SQLType = SqlType;
 
 			return field;
 		}
@@ -537,51 +537,51 @@ namespace Deveel.Data {
 		/// The type information is the sql_type, the size and the scale of the type.
 		/// </remarks>
 		/// <returns></returns>
-		private static TType CreateTTypeFor(SQLTypes sql_type, int size, int scale,
+		private static TType CreateTTypeFor(SqlType sql_type, int size, int scale,
 		                                    String locale, CollationStrength str_strength,
 		                                    CollationDecomposition str_decomposition,
 		                                    String typeString) {
 			switch (sql_type) {
-				case (SQLTypes.BIT):
-				case (SQLTypes.BOOLEAN):
+				case (SqlType.Bit):
+				case (SqlType.Boolean):
 					return TType.BooleanType;
 
-				case (SQLTypes.TINYINT):
-				case (SQLTypes.SMALLINT):
-				case (SQLTypes.INTEGER):
-				case (SQLTypes.BIGINT):
-				case (SQLTypes.FLOAT):
-				case (SQLTypes.REAL):
-				case (SQLTypes.DOUBLE):
-				case (SQLTypes.NUMERIC):
-				case (SQLTypes.DECIMAL):
+				case (SqlType.TinyInt):
+				case (SqlType.SmallInt):
+				case (SqlType.Integer):
+				case (SqlType.BigInt):
+				case (SqlType.Float):
+				case (SqlType.Real):
+				case (SqlType.Double):
+				case (SqlType.Numeric):
+				case (SqlType.Decimal):
 					return new TNumericType(sql_type, size, scale);
 
-				case (SQLTypes.CHAR):
-				case (SQLTypes.VARCHAR):
-				case (SQLTypes.LONGVARCHAR):
-				case (SQLTypes.CLOB):
+				case (SqlType.Char):
+				case (SqlType.VarChar):
+				case (SqlType.LongVarChar):
+				case (SqlType.Clob):
 					return new TStringType(sql_type, size, locale,
 					                       str_strength, str_decomposition);
 
-				case (SQLTypes.DATE):
-				case (SQLTypes.TIME):
-				case (SQLTypes.TIMESTAMP):
+				case (SqlType.Date):
+				case (SqlType.Time):
+				case (SqlType.TimeStamp):
 					return new TDateType(sql_type);
 
-				case (SQLTypes.BINARY):
-				case (SQLTypes.VARBINARY):
-				case (SQLTypes.LONGVARBINARY):
-				case (SQLTypes.BLOB):
+				case (SqlType.Binary):
+				case (SqlType.VarBinary):
+				case (SqlType.LongVarBinary):
+				case (SqlType.Blob):
 					return new TBinaryType(sql_type, size);
 
-				case (SQLTypes.OBJECT):
+				case (SqlType.Object):
 					return new TObjectType(typeString);
 
-				case (SQLTypes.ARRAY):
+				case (SqlType.Array):
 					return TType.ArrayType;
 
-				case (SQLTypes.NULL):
+				case (SqlType.Null):
 					return TType.NullType;
 
 				default:
@@ -597,7 +597,7 @@ namespace Deveel.Data {
 		public static DataTableColumnDef CreateNumericColumn(String name) {
 			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
-			column.SQLType = SQLTypes.NUMERIC;
+			column.SqlType = SqlType.Numeric;
 			column.InitTTypeInfo();
 			return column;
 		}
@@ -610,7 +610,7 @@ namespace Deveel.Data {
 		public static DataTableColumnDef CreateBooleanColumn(String name) {
 			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
-			column.SQLType = SQLTypes.BIT;
+			column.SqlType = SqlType.Bit;
 			column.InitTTypeInfo();
 			return column;
 		}
@@ -623,7 +623,7 @@ namespace Deveel.Data {
 		public static DataTableColumnDef CreateStringColumn(String name) {
 			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
-			column.SQLType = SQLTypes.VARCHAR;
+			column.SqlType = SqlType.VarChar;
 			column.Size = Int32.MaxValue;
 			column.InitTTypeInfo();
 			return column;
@@ -637,7 +637,7 @@ namespace Deveel.Data {
 		public static DataTableColumnDef CreateBinaryColumn(String name) {
 			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
-			column.SQLType = SQLTypes.LONGVARBINARY;
+			column.SqlType = SqlType.LongVarBinary;
 			column.Size = Int32.MaxValue;
 			column.IndexScheme = "BlindSearch";
 			column.InitTTypeInfo();
@@ -699,8 +699,8 @@ namespace Deveel.Data {
 			cd.name = input.ReadString();
 			int len = input.ReadInt32();
 			input.Read(cd.constraints_format, 0, len);
-			cd.sql_type = (SQLTypes) input.ReadInt32();
-			cd.db_type = (DbTypes) input.ReadInt32();
+			cd.sql_type = (SqlType) input.ReadInt32();
+			cd.db_type = (DbType) input.ReadInt32();
 			cd.size = input.ReadInt32();
 			cd.scale = input.ReadInt32();
 

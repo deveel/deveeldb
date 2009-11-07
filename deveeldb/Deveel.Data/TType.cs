@@ -49,22 +49,22 @@ namespace Deveel.Data {
 		/// <summary>
 		/// A default binary (SQL BLOB) type of unlimited maximum size.
 		/// </summary>
-		public static readonly TBinaryType BinaryType = new TBinaryType(SQLTypes.BLOB, -1);
+		public static readonly TBinaryType BinaryType = new TBinaryType(SqlType.Blob, -1);
 
 		/// <summary>
-		/// A default boolean (SQL BIT) type.
+		/// A default boolean (SQL Bit) type.
 		/// </summary>
-		public static readonly TBooleanType BooleanType = new TBooleanType(SQLTypes.BIT);
+		public static readonly TBooleanType BooleanType = new TBooleanType(SqlType.Bit);
 
 		/// <summary>
 		/// A default date (SQL TIMESTAMP) type.
 		/// </summary>
-		public static readonly TDateType DateType = new TDateType(SQLTypes.TIMESTAMP);
+		public static readonly TDateType DateType = new TDateType(SqlType.TimeStamp);
 
 		/// <summary>
 		/// A default time-span (SQL INTERVAL) type.
 		/// </summary>
-		public static readonly TIntervalType IntervalType = new TIntervalType(SQLTypes.INTERVAL, -1);
+		public static readonly TIntervalType IntervalType = new TIntervalType(SqlType.Interval, -1);
 
 		/// <summary>
 		/// A default NULL type.
@@ -74,7 +74,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// A default numeric (SQL NUMERIC) type of unlimited size and scale.
 		/// </summary>
-		public static readonly TNumericType NumericType = new TNumericType(SQLTypes.NUMERIC, -1, -1);
+		public static readonly TNumericType NumericType = new TNumericType(SqlType.Numeric, -1, -1);
 
 		/// <summary>
 		/// A type that represents a query plan (sub-select).
@@ -85,25 +85,25 @@ namespace Deveel.Data {
 		/// A default string (SQL VARCHAR) type of unlimited maximum size and
 		/// null locale.
 		/// </summary>
-		public static readonly TStringType StringType = new TStringType(SQLTypes.VARCHAR, -1, null);
+		public static readonly TStringType StringType = new TStringType(SqlType.VarChar, -1, null);
 
 		/// <summary>
-		/// The type as an SQL identifier from <see cref="SQLTypes"/>.
+		/// The type as an SQL identifier from <see cref="SqlType"/>.
 		/// </summary>
-		private readonly SQLTypes sql_type;
+		private readonly SqlType sql_type;
 
 		/// <summary>
-		/// Instantiate the <see cref="TType"/> for a given <see cref="SQLTypes"/>.
+		/// Instantiate the <see cref="TType"/> for a given <see cref="SqlType"/>.
 		/// </summary>
 		/// <param name="sql_type"></param>
-		protected TType(SQLTypes sql_type) {
+		protected TType(SqlType sql_type) {
 			this.sql_type = sql_type;
 		}
 
 		/// <summary>
 		/// Returns the SQL type of this <see cref="TType"/>.
 		/// </summary>
-		public SQLTypes SQLType {
+		public SqlType SQLType {
 			get { return sql_type; }
 		}
 
@@ -299,7 +299,7 @@ namespace Deveel.Data {
 			int param_e = encoded_str.LastIndexOf(')');
 			String parameterss = encoded_str.Substring(param_s + 1, param_e - (param_s + 1));
 			string[] param_list = parameterss.Split(',');
-			SQLTypes sql_type = (SQLTypes)Enum.Parse(typeof(SQLTypes), param_list[0], true);
+			SqlType sql_type = (SqlType)Enum.Parse(typeof(SqlType), param_list[0], true);
 
 			if (encoded_str.StartsWith("BOOLEAN("))
 				return new TBooleanType(sql_type);
@@ -383,7 +383,7 @@ namespace Deveel.Data {
 		/// If locale is null then collation is lexicographical.
 		/// </remarks>
 		/// <returns></returns>
-		public static TType GetStringType(SQLTypes sql_type, int size,
+		public static TType GetStringType(SqlType sql_type, int size,
 		                                  String locale, Text.CollationStrength strength, Text.CollationDecomposition decomposition) {
 			return new TStringType(sql_type, size, locale, strength, decomposition);
 		}
@@ -395,7 +395,7 @@ namespace Deveel.Data {
 		/// <param name="size"></param>
 		/// <param name="scale"></param>
 		/// <returns></returns>
-		public static TType GetNumericType(SQLTypes sql_type, int size, int scale) {
+		public static TType GetNumericType(SqlType sql_type, int size, int scale) {
 			return new TNumericType(sql_type, size, scale);
 		}
 
@@ -404,7 +404,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="sql_type"></param>
 		/// <returns></returns>
-		public static TType GetBooleanType(SQLTypes sql_type) {
+		public static TType GetBooleanType(SqlType sql_type) {
 			return new TBooleanType(sql_type);
 		}
 
@@ -413,11 +413,11 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="sql_type"></param>
 		/// <returns></returns>
-		public static TType GetDateType(SQLTypes sql_type) {
+		public static TType GetDateType(SqlType sql_type) {
 			return new TDateType(sql_type);
 		}
 
-		public static TType GetIntervalType(SQLTypes sql_type, int length) {
+		public static TType GetIntervalType(SqlType sql_type, int length) {
 			return new TIntervalType(sql_type, length);
 		}
 
@@ -427,7 +427,7 @@ namespace Deveel.Data {
 		/// <param name="sql_type"></param>
 		/// <param name="size"></param>
 		/// <returns></returns>
-		public static TType GetBinaryType(SQLTypes sql_type, int size) {
+		public static TType GetBinaryType(SqlType sql_type, int size) {
 			return new TBinaryType(sql_type, size);
 		}
 
@@ -451,7 +451,7 @@ namespace Deveel.Data {
 
 			int size = -1;
 			int scale = -1;
-			SQLTypes sql_type = type.SQLType;
+			SqlType sql_type = type.SQLType;
 
 			if (type is TStringType) {
 				size = ((TStringType) type).MaximumSize;
@@ -513,25 +513,25 @@ namespace Deveel.Data {
 		/// </example>
 		/// <returns></returns>
 		public static TType GetWidestType(TType t1, TType t2) {
-			SQLTypes t1SQLType = t1.SQLType;
-			SQLTypes t2SQLType = t2.SQLType;
-			if (t1SQLType == SQLTypes.DECIMAL) {
+			SqlType t1SQLType = t1.SQLType;
+			SqlType t2SQLType = t2.SQLType;
+			if (t1SQLType == SqlType.Decimal) {
 				return t1;
 			}
-			if (t2SQLType == SQLTypes.DECIMAL) {
+			if (t2SQLType == SqlType.Decimal) {
 				return t2;
 			}
-			if (t1SQLType == SQLTypes.NUMERIC) {
+			if (t1SQLType == SqlType.Numeric) {
 				return t1;
 			}
-			if (t2SQLType == SQLTypes.NUMERIC) {
+			if (t2SQLType == SqlType.Numeric) {
 				return t2;
 			}
 
-			if (t1SQLType == SQLTypes.BIT) {
-				return t2; // It can't be any smaller than a BIT
+			if (t1SQLType == SqlType.Bit) {
+				return t2; // It can't be any smaller than a Bit
 			}
-			if (t2SQLType == SQLTypes.BIT) {
+			if (t2SQLType == SqlType.Bit) {
 				return t1;
 			}
 
@@ -557,7 +557,7 @@ namespace Deveel.Data {
 			}
 			if (t1IntSize >= t2FloatSize || t2IntSize >= t1FloatSize) {
 				// Must be a long (8 bytes) and a real (4 bytes), widen to a double
-				return new TNumericType(SQLTypes.DOUBLE, 8, -1);
+				return new TNumericType(SqlType.Double, 8, -1);
 			}
 			// NOTREACHED - can't get here, the last three if statements cover
 			// all possibilities.
@@ -573,15 +573,15 @@ namespace Deveel.Data {
 		/// Returns the number of bytes required for data of 
 		/// that type, or 0 if not an int type.
 		/// </returns>
-		private static int GetIntSize(SQLTypes sqlType) {
+		private static int GetIntSize(SqlType sqlType) {
 			switch (sqlType) {
-				case SQLTypes.TINYINT:
+				case SqlType.TinyInt:
 					return 1;
-				case SQLTypes.SMALLINT:
+				case SqlType.SmallInt:
 					return 2;
-				case SQLTypes.INTEGER:
+				case SqlType.Integer:
 					return 4;
-				case SQLTypes.BIGINT:
+				case SqlType.BigInt:
 					return 8;
 				default:
 					return 0;
@@ -597,14 +597,14 @@ namespace Deveel.Data {
 		/// Returns the number of bytes required for data of 
 		/// that type, or 0 if not an int type.
 		/// </returns>
-		private static int GetFloatSize(SQLTypes sqlType) {
+		private static int GetFloatSize(SqlType sqlType) {
 			switch (sqlType) {
 				default:
 					return 0;
-				case SQLTypes.REAL:
+				case SqlType.Real:
 					return 4;
-				case SQLTypes.FLOAT:
-				case SQLTypes.DOUBLE:
+				case SqlType.Float:
+				case SqlType.Double:
 					return 8;
 			}
 		}

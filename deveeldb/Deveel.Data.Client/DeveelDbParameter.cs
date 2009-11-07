@@ -30,7 +30,7 @@ namespace Deveel.Data.Client {
 		public DeveelDbParameter() {
 		}
 
-		public DeveelDbParameter(SQLTypes sqlType) {
+		public DeveelDbParameter(SqlType sqlType) {
 			SqlType = sqlType;
 		}
 
@@ -38,18 +38,18 @@ namespace Deveel.Data.Client {
 			Value = value;
 		}
 
-		public DeveelDbParameter(SQLTypes sqlType, int size)
+		public DeveelDbParameter(SqlType sqlType, int size)
 			: this(sqlType) {
 			this.size = size;
 		}
 
-		public DeveelDbParameter(SQLTypes sqlType, int size, string sourceColumn)
+		public DeveelDbParameter(SqlType sqlType, int size, string sourceColumn)
 			: this(sqlType, size) {
 			this.sourceColumn = sourceColumn;
 		}
 
-		private DbType dbType = DbType.Object;
-		private SQLTypes sqlType = SQLTypes.NULL;
+		private System.Data.DbType dbType = System.Data.DbType.Object;
+		private SqlType sqlType = Data.SqlType.Null;
 		private object value = DBNull.Value;
 		// marker style is the default
 		internal ParameterStyle paramStyle = ParameterStyle.Marker;
@@ -62,7 +62,7 @@ namespace Deveel.Data.Client {
 
 		#region Implementation of IDataParameter
 
-		public override DbType DbType {
+		public override System.Data.DbType DbType {
 			get { return dbType; }
 			set { dbType = value; }
 		}
@@ -128,7 +128,7 @@ namespace Deveel.Data.Client {
 			get { return value; }
 			set {
 				this.value = value;
-				if (sqlType == SQLTypes.NULL) {
+				if (sqlType == Data.SqlType.Null) {
 					dbType = GetDbType(this.value);
 					sqlType = GetSqlType(this.value);
 				}
@@ -166,7 +166,7 @@ namespace Deveel.Data.Client {
 			set { size = value; }
 		}
 
-		public SQLTypes SqlType {
+		public SqlType SqlType {
 			get { return sqlType; }
 			set {
 				sqlType = value;
@@ -175,158 +175,158 @@ namespace Deveel.Data.Client {
 		}
 		#endregion
 
-		private static bool IsNumeric(DbType dbType) {
-			if (dbType == DbType.Decimal ||
-				dbType == DbType.Double ||
-				dbType == DbType.Single ||
-				dbType == DbType.VarNumeric)
+		private static bool IsNumeric(System.Data.DbType dbType) {
+			if (dbType == System.Data.DbType.Decimal ||
+				dbType == System.Data.DbType.Double ||
+				dbType == System.Data.DbType.Single ||
+				dbType == System.Data.DbType.VarNumeric)
 				return true;
 			return false;
 		}
 
-		private static DbType GetDbType(SQLTypes sqlType) {
+		private static System.Data.DbType GetDbType(SqlType sqlType) {
 			switch (sqlType) {
-				case SQLTypes.BIT:
-					return DbType.Boolean;
-				case SQLTypes.TINYINT:
-					return DbType.Byte;
-				case SQLTypes.SMALLINT:
-					return DbType.Int16;
-				case SQLTypes.INTEGER:
-					return DbType.Int32;
-				case SQLTypes.BIGINT:
-					return DbType.Int64;
-				case SQLTypes.FLOAT:
-					return DbType.Single;
-				case SQLTypes.REAL:
-				case SQLTypes.DOUBLE:
-					return DbType.Double;
+				case SqlType.Bit:
+					return System.Data.DbType.Boolean;
+				case SqlType.TinyInt:
+					return System.Data.DbType.Byte;
+				case SqlType.SmallInt:
+					return System.Data.DbType.Int16;
+				case SqlType.Integer:
+					return System.Data.DbType.Int32;
+				case SqlType.BigInt:
+					return System.Data.DbType.Int64;
+				case SqlType.Float:
+					return System.Data.DbType.Single;
+				case SqlType.Real:
+				case SqlType.Double:
+					return System.Data.DbType.Double;
 
-				case SQLTypes.TIME:
-					return DbType.Time;
-				case SQLTypes.TIMESTAMP:
-					return DbType.DateTime;
-				case SQLTypes.DATE:
-					return DbType.Date;
+				case SqlType.Time:
+					return System.Data.DbType.Time;
+				case SqlType.TimeStamp:
+					return System.Data.DbType.DateTime;
+				case SqlType.Date:
+					return System.Data.DbType.Date;
 
-				case SQLTypes.BINARY:
-				case SQLTypes.VARBINARY:
-				case SQLTypes.LONGVARBINARY:
-				case SQLTypes.BLOB:
-					return DbType.Binary;
+				case SqlType.Binary:
+				case SqlType.VarBinary:
+				case SqlType.LongVarBinary:
+				case SqlType.Blob:
+					return System.Data.DbType.Binary;
 
-				case SQLTypes.CHAR:
-					return DbType.StringFixedLength;
-				case SQLTypes.VARCHAR:
-				case SQLTypes.LONGVARCHAR:
-				case SQLTypes.CLOB:
-					return DbType.String;
+				case SqlType.Char:
+					return System.Data.DbType.StringFixedLength;
+				case SqlType.VarChar:
+				case SqlType.LongVarChar:
+				case SqlType.Clob:
+					return System.Data.DbType.String;
 
-				case SQLTypes.NULL:
-				case SQLTypes.OBJECT:
-					return DbType.Object;
+				case SqlType.Null:
+				case SqlType.Object:
+					return System.Data.DbType.Object;
 				default:
-					return DbType.Object;
+					return System.Data.DbType.Object;
 			}
 		}
 
-		private static DbType GetDbType(object value) {
+		private static System.Data.DbType GetDbType(object value) {
 			if (value is StringObject)
-				return DbType.String;
+				return System.Data.DbType.String;
 			if (value is ByteLongObject)
-				return DbType.Binary;
+				return System.Data.DbType.Binary;
 			if (value is BigNumber) {
 				BigNumber num = (BigNumber)value;
 				if (num.CanBeInt)
-					return DbType.Int32;
+					return System.Data.DbType.Int32;
 				if (num.CanBeLong)
-					return DbType.Int64;
-				return DbType.VarNumeric;
+					return System.Data.DbType.Int64;
+				return System.Data.DbType.VarNumeric;
 			}
 			if (value is TimeSpan)
-				return DbType.DateTime;
+				return System.Data.DbType.DateTime;
 			if (value is Enum)
-				return DbType.Int32;
+				return System.Data.DbType.Int32;
 			if (value is Guid)
-				return DbType.String;
+				return System.Data.DbType.String;
 
 			switch (Type.GetTypeCode(value.GetType())) {
 				case TypeCode.Boolean:
-					return DbType.Boolean;
+					return System.Data.DbType.Boolean;
 				case TypeCode.Byte:
-					return DbType.Byte;
+					return System.Data.DbType.Byte;
 				case TypeCode.Char:
-					return DbType.StringFixedLength;
+					return System.Data.DbType.StringFixedLength;
 				case TypeCode.DateTime:
-					return DbType.DateTime;
+					return System.Data.DbType.DateTime;
 				case TypeCode.Decimal:
-					return DbType.Decimal;
+					return System.Data.DbType.Decimal;
 				case TypeCode.Double:
-					return DbType.Double;
+					return System.Data.DbType.Double;
 				case TypeCode.Int16:
-					return DbType.Int16;
+					return System.Data.DbType.Int16;
 				case TypeCode.Int32:
-					return DbType.Int32;
+					return System.Data.DbType.Int32;
 				case TypeCode.Int64:
-					return DbType.Int64;
+					return System.Data.DbType.Int64;
 				case TypeCode.Object:
-					return DbType.Binary;
+					return System.Data.DbType.Binary;
 				case TypeCode.SByte:
-					return DbType.SByte;
+					return System.Data.DbType.SByte;
 				case TypeCode.Single:
-					return DbType.Single;
+					return System.Data.DbType.Single;
 				case TypeCode.String:
-					return DbType.String;
+					return System.Data.DbType.String;
 				case TypeCode.UInt16:
-					return DbType.UInt16;
+					return System.Data.DbType.UInt16;
 				case TypeCode.UInt32:
-					return DbType.UInt32;
+					return System.Data.DbType.UInt32;
 				case TypeCode.UInt64:
-					return DbType.UInt64;
+					return System.Data.DbType.UInt64;
 			}
-			return DbType.Object;
+			return System.Data.DbType.Object;
 		}
 
-		private static SQLTypes GetSqlType(object value) {
+		private static SqlType GetSqlType(object value) {
 			if (value is TimeSpan)
-				return SQLTypes.TIME;
+				return SqlType.Time;
 			if (value is Enum)
-				return SQLTypes.INTEGER;
+				return SqlType.Integer;
 			if (value is Guid)
-				return SQLTypes.CHAR;
+				return SqlType.Char;
 
 			switch (Type.GetTypeCode(value.GetType())) {
 				case TypeCode.Empty:
 					throw new SystemException("Invalid data type");
 
 				case TypeCode.Object:
-					return SQLTypes.BLOB;
+					return SqlType.Blob;
 				case TypeCode.DBNull:
-					return SQLTypes.NULL;
+					return SqlType.Null;
 				case TypeCode.Char:
 				case TypeCode.SByte:
 				case TypeCode.Boolean:
 				case TypeCode.Byte:
-					return SQLTypes.TINYINT;
+					return SqlType.TinyInt;
 				case TypeCode.Int16:
 				case TypeCode.UInt16:
-					return SQLTypes.SMALLINT;
+					return SqlType.SmallInt;
 				case TypeCode.Int32:
 				case TypeCode.UInt32:
-					return SQLTypes.INTEGER;
+					return SqlType.Integer;
 				case TypeCode.Int64:
 				case TypeCode.UInt64:
-					return SQLTypes.BIGINT;
+					return SqlType.BigInt;
 				case TypeCode.Single:
-					return SQLTypes.FLOAT;
+					return SqlType.Float;
 				case TypeCode.Double:
-					return SQLTypes.DOUBLE;
+					return SqlType.Double;
 				case TypeCode.Decimal:
-					return SQLTypes.DECIMAL;
+					return SqlType.Decimal;
 				case TypeCode.DateTime:
-					return SQLTypes.TIMESTAMP;
+					return SqlType.TimeStamp;
 				case TypeCode.String:
-					return SQLTypes.VARCHAR;
+					return SqlType.VarChar;
 				default:
 					throw new SystemException("Value is of unknown data type");
 			}

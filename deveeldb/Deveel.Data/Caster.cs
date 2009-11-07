@@ -107,8 +107,8 @@ namespace Deveel.Data {
 		/// the deserialized object.</param>
 		public static void DeserializeObjects(TObject[] args) {
 			for (int i = 0; i < args.Length; i++) {
-				SQLTypes sqlType = args[i].TType.SQLType;
-				if (sqlType != SQLTypes.OBJECT) {
+				SqlType sqlType = args[i].TType.SQLType;
+				if (sqlType != SqlType.Object) {
 					continue;	// not a OBJECT
 				}
 				Object argVal = args[i].Object;
@@ -134,7 +134,7 @@ namespace Deveel.Data {
 		public static ConstructorInfo FindBestConstructor(ConstructorInfo[] constructs, TObject[] args) {
 			int bestCost = 0;		// not used if bestConstructor is null
 			ConstructorInfo bestConstructor = null;
-			SQLTypes[] argSqlTypes = GetSqlTypes(args);
+			SqlType[] argSqlTypes = GetSqlTypes(args);
 			for (int i = 0; i < constructs.Length; ++i) {
 				ParameterInfo[] targets = constructs[i].GetParameters();
 				Type[] target_types = new Type[targets.Length];
@@ -160,8 +160,8 @@ namespace Deveel.Data {
 		///<returns>
 		/// Returns the SQL types of the args.
 		/// </returns>
-		public static SQLTypes[] GetSqlTypes(TObject[] args) {
-			SQLTypes[] sqlTypes = new SQLTypes[args.Length];
+		public static SqlType[] GetSqlTypes(TObject[] args) {
+			SqlType[] sqlTypes = new SqlType[args.Length];
 			for (int i = 0; i < args.Length; i++) {
 				sqlTypes[i] = GetSqlType(args[i]);
 			}
@@ -179,8 +179,8 @@ namespace Deveel.Data {
 		///<returns>
 		/// Returns the SQL type of the arg.
 		/// </returns>
-		public static SQLTypes GetSqlType(TObject arg) {
-			SQLTypes sqlType = arg.TType.SQLType;
+		public static SqlType GetSqlType(TObject arg) {
+			SqlType sqlType = arg.TType.SQLType;
 			Object argVal = arg.Object;
 			if (!(argVal is BigNumber)) {
 				return sqlType;	// We have special checks only for numeric values
@@ -188,68 +188,68 @@ namespace Deveel.Data {
 			BigNumber b = (BigNumber)argVal;
 			BigNumber bAbs;
 			switch (sqlType) {
-				case SQLTypes.NUMERIC:
-				case SQLTypes.DECIMAL:
+				case SqlType.Numeric:
+				case SqlType.Decimal:
 					// If the type is NUMERIC or DECIMAL, then look at the data value
 					// to see if it can be narrowed to int, long or double.
 					if (b.CanBeInt) {
-						sqlType = SQLTypes.INTEGER;
+						sqlType = SqlType.Integer;
 					} else if (b.CanBeLong) {
-						sqlType = SQLTypes.BIGINT;
+						sqlType = SqlType.BigInt;
 					} else {
 						bAbs = b.Abs();
 						if (b.Scale == 0) {
 							if (bAbs.CompareTo(maxBigNumInt) <= 0) {
-								sqlType = SQLTypes.INTEGER;
+								sqlType = SqlType.Integer;
 							} else if (bAbs.CompareTo(maxBigNumLong) <= 0) {
-								sqlType = SQLTypes.BIGINT;
+								sqlType = SqlType.BigInt;
 							}
 						} else if (bAbs.CompareTo(maxBigNumDouble) <= 0) {
-							sqlType = SQLTypes.DOUBLE;
+							sqlType = SqlType.Double;
 						}
 					}
 					// If we can't translate NUMERIC or DECIMAL to int, long or double,
 					// then leave it as is.
 					break;
-				case SQLTypes.BIT:
+				case SqlType.Bit:
 					if (b.CanBeInt) {
 						int n = b.ToInt32();
 						if (n == 0 || n == 1) {
-							return sqlType;	// Allowable BIT value
+							return sqlType;	// Allowable Bit value
 						}
 					}
 					// The value does not fit in a BIT, move up to a TINYINT
-					sqlType = SQLTypes.TINYINT;
-					goto case SQLTypes.TINYINT;
+					sqlType = SqlType.TinyInt;
+					goto case SqlType.TinyInt;
 				// FALL THROUGH
-				case SQLTypes.TINYINT:
+				case SqlType.TinyInt:
 					if (b.CompareTo(maxBigNumByte) <= 0 &&
 					b.CompareTo(minBigNumByte) >= 0) {
 						return sqlType;	// Fits in a TINYINT
 					}
 					// The value does not fit in a TINYINT, move up to a SMALLINT
-					sqlType = SQLTypes.SMALLINT;
-					goto case SQLTypes.SMALLINT;
+					sqlType = SqlType.SmallInt;
+					goto case SqlType.SmallInt;
 				// FALL THROUGH
-				case SQLTypes.SMALLINT:
+				case SqlType.SmallInt:
 					if (b.CompareTo(maxBigNumShort) <= 0 &&
 					b.CompareTo(minBigNumShort) >= 0) {
 						return sqlType;	// Fits in a SMALLINT
 					}
 					// The value does not fit in a SMALLINT, move up to a INTEGER
-					sqlType = SQLTypes.INTEGER;
-					goto case SQLTypes.INTEGER;
+					sqlType = SqlType.Integer;
+					goto case SqlType.Integer;
 				// FALL THROUGH
-				case SQLTypes.INTEGER:
+				case SqlType.Integer:
 					if (b.CompareTo(maxBigNumInt) <= 0 &&
 					b.CompareTo(minBigNumInt) >= 0) {
 						return sqlType;	// Fits in a INTEGER
 					}
 					// The value does not fit in a INTEGER, move up to a BIGINT
-					sqlType = SQLTypes.BIGINT;
+					sqlType = SqlType.BigInt;
 					// That's as far as we go
 					break;
-				case SQLTypes.REAL:
+				case SqlType.Real:
 					bAbs = b.Abs();
 					if (bAbs.CompareTo(maxBigNumFloat) <= 0 &&
 					(bAbs.CompareTo(minBigNumFloat) >= 0 ||
@@ -257,7 +257,7 @@ namespace Deveel.Data {
 						return sqlType;	// Fits in a REAL
 					}
 					// The value does not fit in a REAL, move up to a DOUBLE
-					sqlType = SQLTypes.DOUBLE;
+					sqlType = SqlType.Double;
 					break;
 				default:
 					break;
@@ -285,9 +285,9 @@ namespace Deveel.Data {
 				if (args[n] == null) {
 					sb.Append("null");
 				} else {
-					SQLTypes sqlType = GetSqlType(args[n]);
+					SqlType sqlType = GetSqlType(args[n]);
 					String typeName;
-					if (sqlType == SQLTypes.OBJECT) {
+					if (sqlType == SqlType.Object) {
 						Object argObj = args[n].Object;
 						if (argObj == null) {
 							typeName = "null";
@@ -315,7 +315,7 @@ namespace Deveel.Data {
 		/// Returns the cost of doing the cast for all arguments, or -1 
 		/// if the args can not be cast to the targets.
 		/// </returns>
-		static int GetCastingCost(TObject[] args, SQLTypes[] argSqlTypes, Type[] targets) {
+		static int GetCastingCost(TObject[] args, SqlType[] argSqlTypes, Type[] targets) {
 			if (targets.Length != argSqlTypes.Length) {
 				return -1;		// wrong number of args
 			}
@@ -380,7 +380,7 @@ namespace Deveel.Data {
 		/// <returns>
 		/// Returns the cost to do the cast, or -1 if the cast can not be done.
 		/// </returns>
-		static int GetCastingCost(TObject arg, SQLTypes argSqlType, Type target) {
+		static int GetCastingCost(TObject arg, SqlType argSqlType, Type target) {
 
 			//If the user has a method that takes a TObject, assume he can handle
 			//anything.
@@ -390,26 +390,26 @@ namespace Deveel.Data {
 
 			switch (argSqlType) {
 
-				case SQLTypes.BIT:
+				case SqlType.Bit:
 					return GetCastingCost(arg, bitPrims, bitTypes, target);
 
-				case SQLTypes.TINYINT:
+				case SqlType.TinyInt:
 					return GetCastingCost(arg, tinyPrims, tinyTypes, target);
 
-				case SQLTypes.SMALLINT:
+				case SqlType.SmallInt:
 					return GetCastingCost(arg, smallPrims, smallTypes, target);
 
-				case SQLTypes.INTEGER:
+				case SqlType.Integer:
 					return GetCastingCost(arg, intPrims, intTypes, target);
 
-				case SQLTypes.BIGINT:
+				case SqlType.BigInt:
 					return GetCastingCost(arg, bigPrims, bigTypes, target);
 
-				case SQLTypes.REAL:
+				case SqlType.Real:
 					return GetCastingCost(arg, floatPrims, floatTypes, target);
 
-				case SQLTypes.FLOAT:
-				case SQLTypes.DOUBLE:
+				case SqlType.Float:
+				case SqlType.Double:
 					return GetCastingCost(arg, doublePrims, doubleTypes, target);
 
 				// We only get a NUMERIC or DECIMAL type here if we were not able to
@@ -417,28 +417,28 @@ namespace Deveel.Data {
 				// require that these types be handled by a method that takes a TObject.
 				// That gets checked at the top of this method, so if we get to here
 				// the target is not a TOBject, so we don't know how to handle it.
-				case SQLTypes.NUMERIC:
-				case SQLTypes.DECIMAL:
+				case SqlType.Numeric:
+				case SqlType.Decimal:
 					return -1;
 
-				case SQLTypes.CHAR:
-				case SQLTypes.VARCHAR:
-				case SQLTypes.LONGVARCHAR:
+				case SqlType.Char:
+				case SqlType.VarChar:
+				case SqlType.LongVarChar:
 					return GetCastingCost(arg, stringPrims, stringTypes, target);
 
-				case SQLTypes.DATE:
-				case SQLTypes.TIME:
-				case SQLTypes.TIMESTAMP:
+				case SqlType.Date:
+				case SqlType.Time:
+				case SqlType.TimeStamp:
 					return GetCastingCost(arg, datePrims, dateTypes, target);
 
-				case SQLTypes.BINARY:
-				case SQLTypes.VARBINARY:
-				case SQLTypes.LONGVARBINARY:
+				case SqlType.Binary:
+				case SqlType.VarBinary:
+				case SqlType.LongVarBinary:
 					return -1;	// Can't handle these, user must use TObject
 
 				// We can cast a OBJECT only if the value is a subtype of the
 				// target class.
-				case SQLTypes.OBJECT:
+				case SqlType.Object:
 					Object argVal = arg.Object;
 					if (argVal == null || target.IsAssignableFrom(argVal.GetType())) {
 						return ObjectCost;
@@ -447,7 +447,7 @@ namespace Deveel.Data {
 
 				// If the declared data type is NULL, then we have no type info to
 				// determine how to cast it.
-				case SQLTypes.NULL:
+				case SqlType.Null:
 					return -1;
 
 				default:
@@ -582,7 +582,7 @@ namespace Deveel.Data {
 			String targetName = target.Name;
 
 			if (argVal is Boolean) {
-				//BIT
+				//Bit
 				if (targetName.Equals("boolean") ||
 					  typeof(Boolean).IsAssignableFrom(target)) {
 					return argVal;
@@ -621,7 +621,7 @@ namespace Deveel.Data {
 				if (typeof(string).IsAssignableFrom(target)) {
 					return s;
 				}
-			} else if (GetSqlType(arg) == SQLTypes.OBJECT) {
+			} else if (GetSqlType(arg) == SqlType.Object) {
 				// OBJECT
 				if (target.IsAssignableFrom(argVal.GetType())) {
 					return argVal;

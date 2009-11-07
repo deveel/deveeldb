@@ -33,7 +33,7 @@ namespace Deveel.Data {
 		///</summary>
 		public TArrayType()
 			// There is no SQL type for a query plan node so we make one up here
-			: base(SQLTypes.ARRAY) {
+			: base(SqlType.Array) {
 		}
 
 		/// <inheritdoc/>

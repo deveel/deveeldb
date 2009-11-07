@@ -92,7 +92,7 @@ namespace Deveel.Data.Client {
 			if (command.Connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
 				ColumnDescription col_desc = command.ResultSet.GetColumn(i);
-				SQLTypes sql_type = col_desc.SQLType;
+				SqlType sql_type = col_desc.SQLType;
 
 				return command.ObjectCast(ob, sql_type);
 
@@ -270,7 +270,7 @@ namespace Deveel.Data.Client {
 					// For date, time and timestamp we must format as per the JDBC
 					// specification.
 					if (str is DateTime) {
-						SQLTypes sql_type = command.ResultSet.GetColumn(i).SQLType;
+						SqlType sql_type = command.ResultSet.GetColumn(i).SQLType;
 						return command.ObjectCast(str, sql_type).ToString();
 					}
 					return str.ToString();
@@ -319,7 +319,7 @@ namespace Deveel.Data.Client {
 			if (command.Connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
 				ColumnDescription col_desc = command.ResultSet.GetColumn(i);
-				SQLTypes sql_type = col_desc.SQLType;
+				SqlType sql_type = col_desc.SQLType;
 
 				ob = command.ObjectCast(ob, sql_type);
 				if (ob == null || (ob is TObject && ((TObject)ob).IsNull))
@@ -407,7 +407,7 @@ namespace Deveel.Data.Client {
 				row["FullName"] = fullColumnName;
 				row["SqlType"] = (int)column.SQLType;
 				row["DbType"] = (int)column.Type;
-				if (column.Type != DbTypes.DB_UNKNOWN)
+				if (column.Type != DbType.Unknown)
 					row["Type"] = (column.ObjectType.IsPrimitive ? column.ObjectType.FullName : column.ObjectType.AssemblyQualifiedName);
 				else
 					row["Type"] = null;

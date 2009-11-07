@@ -35,7 +35,7 @@ namespace Deveel.Data.Collections {
 	/// chain to the next and previous block in the set.
 	/// </para>
 	/// </remarks>
-	public abstract class IntegerListBlockInterface {
+	internal abstract class IntegerListBlockInterface {
 		/// <summary>
 		/// The next block in the chain.
 		/// </summary>

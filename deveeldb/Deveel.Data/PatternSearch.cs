@@ -279,7 +279,7 @@ namespace Deveel.Data {
 		/// It requires a table to search, a column of the table, and a pattern.
 		/// It returns the rows in the table that match the pattern if any. 
 		/// Pattern searching only works successfully on columns that are of 
-		/// type <see cref="DbTypes.DB_STRING"/>. This works by first reducing the 
+		/// type <see cref="DbType.String"/>. This works by first reducing the 
 		/// search to all cells that contain the first section of text. ie. 
 		/// <c>pattern = "Anto% ___ano"</c> will first reduce search to all 
 		/// rows between <i>Anto</i> and <i>Anton</i>. This makes for better
@@ -295,7 +295,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// It requires a table to search, a column of the table, and a pattern.
 		/// It returns the rows in the table that match the pattern if any. Pattern searching 
-		/// only works successfully on columns that are of type DbTypes.String.
+		/// only works successfully on columns that are of type DbType.String.
 		/// This works by first reducing the search to all cells that contain the
 		/// first section of text. ie. pattern = "Anto% ___ano" will first reduce
 		/// search to all rows between "Anto" and "Anton".  This makes for better
@@ -422,7 +422,7 @@ namespace Deveel.Data {
 				// Get the expression (the contents of the cell at the given column, row)
 
 				bool pattern_matches = false;
-				TObject cell = table.GetCellContents(column, iterator.next());
+				TObject cell = table.GetCellContents(column, iterator.Next);
 				// Null values doesn't match with anything
 				if (!cell.IsNull) {
 					String expression = cell.Object.ToString();

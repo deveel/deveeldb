@@ -133,7 +133,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void SetColumnData(int column, TObject cell) {
 			DataTableColumnDef col = table_def[column];
-			if (table != null && col.SQLType != cell.TType.SQLType) {
+			if (table != null && col.SqlType != cell.TType.SQLType) {
 				// Cast the TObject
 				cell = cell.CastTo(col.TType);
 			}

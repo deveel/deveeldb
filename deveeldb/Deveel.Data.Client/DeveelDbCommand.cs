@@ -216,66 +216,66 @@ namespace Deveel.Data.Client {
 		/// <param name="ob"></param>
 		/// <param name="sql_type"></param>
 		/// <returns></returns>
-		internal Object ObjectCast(Object ob, SQLTypes sql_type) {
+		internal Object ObjectCast(Object ob, SqlType sql_type) {
 			switch (sql_type) {
-				case (SQLTypes.BIT):
+				case (SqlType.Bit):
 					return ob;
-				case (SQLTypes.TINYINT):
+				case (SqlType.TinyInt):
 					return ((BigNumber)ob).ToByte();
-				case (SQLTypes.SMALLINT):
+				case (SqlType.SmallInt):
 					return ((BigNumber)ob).ToInt16();
-				case (SQLTypes.INTEGER):
+				case (SqlType.Integer):
 					return ((BigNumber)ob).ToInt32();
-				case (SQLTypes.BIGINT):
+				case (SqlType.BigInt):
 					return ((BigNumber)ob).ToInt64();
-				case (SQLTypes.FLOAT):
+				case (SqlType.Float):
 					return ((BigNumber)ob).ToDouble();
-				case (SQLTypes.REAL):
+				case (SqlType.Real):
 					return ((BigNumber)ob).ToSingle();
-				case (SQLTypes.DOUBLE):
+				case (SqlType.Double):
 					return ((BigNumber)ob).ToDouble();
-				case (SQLTypes.NUMERIC):
+				case (SqlType.Numeric):
 					return ((BigNumber)ob).ToBigDecimal();
-				case (SQLTypes.DECIMAL):
+				case (SqlType.Decimal):
 					return ((BigNumber)ob).ToBigDecimal();
-				case (SQLTypes.CHAR):
+				case (SqlType.Char):
 					return MakeString(ob);
-				case (SQLTypes.VARCHAR):
+				case (SqlType.VarChar):
 					return MakeString(ob);
-				case (SQLTypes.LONGVARCHAR):
+				case (SqlType.LongVarChar):
 					return MakeString(ob);
-				case (SQLTypes.DATE):
-				case (SQLTypes.TIME):
-				case (SQLTypes.TIMESTAMP):
+				case (SqlType.Date):
+				case (SqlType.Time):
+				case (SqlType.TimeStamp):
 					return (DateTime)ob;
-				case (SQLTypes.BINARY):
+				case (SqlType.Binary):
 				// fall through
-				case (SQLTypes.VARBINARY):
+				case (SqlType.VarBinary):
 				// fall through
-				case (SQLTypes.LONGVARBINARY):
+				case (SqlType.LongVarBinary):
 					DeveelDbLob lob = GetLob(ob);
 					return lob.GetBytes(0, (int) lob.Length);
-				case (SQLTypes.NULL):
+				case (SqlType.Null):
 					return ob;
-				case (SQLTypes.OTHER):
+				case (SqlType.Other):
 					return ob;
-				case (SQLTypes.OBJECT):
+				case (SqlType.Object):
 					return ob;
-				case (SQLTypes.DISTINCT):
+				case (SqlType.Distinct):
 					// (Not supported)
 					return ob;
-				case (SQLTypes.STRUCT):
+				case (SqlType.Struct):
 					// (Not supported)
 					return ob;
-				case (SQLTypes.ARRAY):
+				case (SqlType.Array):
 					// (Not supported)
 					return ob;
-				case (SQLTypes.BLOB):
+				case (SqlType.Blob):
 					// return AsBlob(ob);
-				case (SQLTypes.CLOB):
+				case (SqlType.Clob):
 					// return AsClob(ob);
 					return GetLob(ob);
-				case (SQLTypes.REF):
+				case (SqlType.Ref):
 					// (Not supported)
 					return ob;
 				default:
@@ -547,7 +547,7 @@ namespace Deveel.Data.Client {
 			if (connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
 				ColumnDescription col_desc = result[0].GetColumn(0);
-				SQLTypes sql_type = col_desc.SQLType;
+				SqlType sql_type = col_desc.SQLType;
 
 				return ObjectCast(ob, sql_type);
 

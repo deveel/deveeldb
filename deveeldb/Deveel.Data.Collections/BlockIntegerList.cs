@@ -32,7 +32,7 @@ namespace Deveel.Data.Collections {
 	/// This type of structure is useful for large in-memory lists in which a
 	/// dd/remove performance must be fast.
 	/// </remarks>
-	public class BlockIntegerList : AbstractBlockIntegerList {
+	internal class BlockIntegerList : AbstractBlockIntegerList {
 		/// <summary>
 		/// Constructs the list.
 		/// </summary>

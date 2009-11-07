@@ -232,15 +232,15 @@ namespace Deveel.Data.Client {
 		internal bool ContainsLargeObjects() {
 			for (int i = 0; i < col_list.Length; ++i) {
 				ColumnDescription col = col_list[i];
-				SQLTypes sql_type = col.SQLType;
-				if (sql_type == SQLTypes.BINARY ||
-					sql_type == SQLTypes.VARBINARY ||
-					sql_type == SQLTypes.LONGVARBINARY ||
-					sql_type == SQLTypes.BLOB ||
-					sql_type == SQLTypes.CHAR ||
-					sql_type == SQLTypes.VARCHAR ||
-					sql_type == SQLTypes.LONGVARCHAR ||
-					sql_type == SQLTypes.CLOB) {
+				SqlType sql_type = col.SQLType;
+				if (sql_type == SqlType.Binary ||
+					sql_type == SqlType.VarBinary ||
+					sql_type == SqlType.LongVarBinary ||
+					sql_type == SqlType.Blob ||
+					sql_type == SqlType.Char ||
+					sql_type == SqlType.VarChar ||
+					sql_type == SqlType.LongVarChar ||
+					sql_type == SqlType.Clob) {
 					return true;
 				}
 			}
@@ -578,7 +578,7 @@ namespace Deveel.Data.Client {
 				last_was_null = false;
 				// If this is an object then deserialize it,
 				// ISSUE: Cache deserialized objects?
-				if (GetColumn(column).SQLType == SQLTypes.OBJECT) {
+				if (GetColumn(column).SQLType == SqlType.Object) {
 					ob = ObjectTranslator.Deserialize((ByteLongObject)ob);
 				}
 				return ob;

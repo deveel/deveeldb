@@ -76,7 +76,7 @@ namespace Deveel.Data.Collections {
 				// NOTE: We are guarenteed the size of the 'list' array matches the size
 				//   of input list.
 				while (i.MoveNext()) {
-					list[index] = i.next();
+					list[index] = i.Next;
 					++index;
 				}
 			}

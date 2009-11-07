@@ -234,7 +234,7 @@ namespace Deveel.Data {
 		/// Returns a <see cref="BlockIntegerList"/> that represents the given 
 		/// <paramref name="row_set"/> sorted in the order of this scheme.
 		/// </returns>
-		public BlockIntegerList InternalOrderIndexSet(IntegerVector row_set) {
+		public IIntegerList InternalOrderIndexSet(IntegerVector row_set) {
 			// The length of the set to order
 			int row_set_length = row_set.Count;
 
@@ -364,7 +364,7 @@ namespace Deveel.Data {
 
 			// Generates an IntegerVector which contains indices into 'row_set' in
 			// sorted order.
-			BlockIntegerList new_set = InternalOrderIndexSet(row_set);
+			IIntegerList new_set = InternalOrderIndexSet(row_set);
 
 			// Our 'new_set' should be the same size as 'row_set'
 			if (new_set.Count != row_set.Count) {

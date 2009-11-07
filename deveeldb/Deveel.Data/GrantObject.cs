@@ -22,6 +22,9 @@
 using System;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// An enumeration of the object of a grant operation.
+	/// </summary>
 	public enum GrantObject {
 		/// <summary>
 		/// Represents a TABLE object to grant privs over for the user.

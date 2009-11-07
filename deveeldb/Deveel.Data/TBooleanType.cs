@@ -33,7 +33,7 @@ namespace Deveel.Data {
 		///<summary>
 		///</summary>
 		///<param name="sql_type"></param>
-		public TBooleanType(SQLTypes sql_type)
+		public TBooleanType(SqlType sql_type)
 			: base(sql_type) {
 		}
 

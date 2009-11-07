@@ -303,7 +303,7 @@ namespace Deveel.Data {
 			}
 			IIntegerIterator i = set_list.GetIterator(start, end);
 			while (i.MoveNext()) {
-				ivec.AddInt(i.next());
+				ivec.AddInt(i.Next);
 			}
 			return ivec;
 		}

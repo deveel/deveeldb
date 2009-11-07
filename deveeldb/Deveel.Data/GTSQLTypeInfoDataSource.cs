@@ -67,7 +67,7 @@ namespace Deveel.Data {
 		/// <param name="suffix"></param>
 		/// <param name="oops"></param>
 		/// <param name="searchable"></param>
-		private void AddType(String name, SQLTypes type, int precision,
+		private void AddType(String name, SqlType type, int precision,
 							 String prefix, String suffix, String oops,
 							 bool searchable) {
 			key_value_pairs.Add(name);
@@ -84,27 +84,27 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <returns></returns>
 		public GTSQLTypeInfoDataSource Init() {
-			AddType("BIT", SQLTypes.BIT, 1, null, null, null, true);
-			AddType("BOOLEAN", SQLTypes.BIT, 1, null, null, null, true);
-			AddType("TINYINT", SQLTypes.TINYINT, 9, null, null, null, true);
-			AddType("SMALLINT", SQLTypes.SMALLINT, 9, null, null, null, true);
-			AddType("INTEGER", SQLTypes.INTEGER, 9, null, null, null, true);
-			AddType("BIGINT", SQLTypes.BIGINT, 9, null, null, null, true);
-			AddType("FLOAT", SQLTypes.FLOAT, 9, null, null, null, true);
-			AddType("REAL", SQLTypes.REAL, 9, null, null, null, true);
-			AddType("DOUBLE", SQLTypes.DOUBLE, 9, null, null, null, true);
-			AddType("NUMERIC", SQLTypes.NUMERIC, 9, null, null, null, true);
-			AddType("DECIMAL", SQLTypes.DECIMAL, 9, null, null, null, true);
-			AddType("CHAR", SQLTypes.CHAR, 9, "'", "'", null, true);
-			AddType("VARCHAR", SQLTypes.VARCHAR, 9, "'", "'", null, true);
-			AddType("LONGVARCHAR", SQLTypes.LONGVARCHAR, 9, "'", "'", null, true);
-			AddType("DATE", SQLTypes.DATE, 9, null, null, null, true);
-			AddType("TIME", SQLTypes.TIME, 9, null, null, null, true);
-			AddType("TIMESTAMP", SQLTypes.TIMESTAMP, 9, null, null, null, true);
-			AddType("BINARY", SQLTypes.BINARY, 9, null, null, null, false);
-			AddType("VARBINARY", SQLTypes.VARBINARY, 9, null, null, null, false);
-			AddType("LONGVARBINARY", SQLTypes.LONGVARBINARY, 9, null, null, null, false);
-			AddType("OBJECT", SQLTypes.OBJECT, 9, null, null, null, false);
+			AddType("BIT", SqlType.Bit, 1, null, null, null, true);
+			AddType("BOOLEAN", SqlType.Bit, 1, null, null, null, true);
+			AddType("TINYINT", SqlType.TinyInt, 9, null, null, null, true);
+			AddType("SMALLINT", SqlType.SmallInt, 9, null, null, null, true);
+			AddType("INTEGER", SqlType.Integer, 9, null, null, null, true);
+			AddType("BIGINT", SqlType.BigInt, 9, null, null, null, true);
+			AddType("FLOAT", SqlType.Float, 9, null, null, null, true);
+			AddType("REAL", SqlType.Real, 9, null, null, null, true);
+			AddType("DOUBLE", SqlType.Double, 9, null, null, null, true);
+			AddType("NUMERIC", SqlType.Numeric, 9, null, null, null, true);
+			AddType("DECIMAL", SqlType.Decimal, 9, null, null, null, true);
+			AddType("CHAR", SqlType.Char, 9, "'", "'", null, true);
+			AddType("VARCHAR", SqlType.VarChar, 9, "'", "'", null, true);
+			AddType("LONGVARCHAR", SqlType.LongVarChar, 9, "'", "'", null, true);
+			AddType("DATE", SqlType.Date, 9, null, null, null, true);
+			AddType("TIME", SqlType.Time, 9, null, null, null, true);
+			AddType("TIMESTAMP", SqlType.TimeStamp, 9, null, null, null, true);
+			AddType("BINARY", SqlType.Binary, 9, null, null, null, false);
+			AddType("VARBINARY", SqlType.VarBinary, 9, null, null, null, false);
+			AddType("LONGVARBINARY", SqlType.LongVarBinary, 9, null, null, null, false);
+			AddType("OBJECT", SqlType.Object, 9, null, null, null, false);
 
 			return this;
 		}

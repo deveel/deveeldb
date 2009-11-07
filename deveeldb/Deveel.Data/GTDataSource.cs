@@ -170,7 +170,7 @@ namespace Deveel.Data {
 			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
 			column.IsNotNull = true;
-			column.SQLType = SQLTypes.VARCHAR;
+			column.SqlType = SqlType.VarChar;
 			column.Size = Int32.MaxValue;
 			column.Scale = -1;
 			column.IndexScheme = "BlindSearch";
@@ -182,7 +182,7 @@ namespace Deveel.Data {
 			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
 			column.IsNotNull = true;
-			column.SQLType = SQLTypes.BIT;
+			column.SqlType = SqlType.Bit;
 			column.Size = -1;
 			column.Scale = -1;
 			column.IndexScheme = "BlindSearch";
@@ -194,7 +194,7 @@ namespace Deveel.Data {
 			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
 			column.IsNotNull = true;
-			column.SQLType = SQLTypes.NUMERIC;
+			column.SqlType = SqlType.Numeric;
 			column.Size = -1;
 			column.Scale = -1;
 			column.IndexScheme = "BlindSearch";
@@ -206,7 +206,7 @@ namespace Deveel.Data {
 			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
 			column.IsNotNull = true;
-			column.SQLType = SQLTypes.TIMESTAMP;
+			column.SqlType = SqlType.TimeStamp;
 			column.Size = -1;
 			column.Scale = -1;
 			column.IndexScheme = "BlindSearch";

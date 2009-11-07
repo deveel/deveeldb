@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 
 using Deveel.Math;
@@ -22,7 +22,7 @@ namespace Deveel.Data.Functions {
 		[Serializable]
 		sealed class DateObFunction : Function {
 
-			private readonly static TType DATE_TYPE = new TDateType(SQLTypes.DATE);
+			private readonly static TType DATE_TYPE = new TDateType(SqlType.Date);
 
 			private static readonly string[] formats = new string[] {
 		                                                        	"d-MMM-yy",				// the medium format
@@ -90,7 +90,7 @@ namespace Deveel.Data.Functions {
 		[Serializable]
 		sealed class TimeObFunction : Function {
 
-			private readonly static TType TIME_TYPE = new TDateType(SQLTypes.TIME);
+			private readonly static TType TIME_TYPE = new TDateType(SqlType.Time);
 
 			public TimeObFunction(Expression[] parameters)
 				: base("timeob", parameters) {
@@ -137,7 +137,7 @@ namespace Deveel.Data.Functions {
 		[Serializable]
 		class TimeStampObFunction : Function {
 
-			private readonly static TType TIMESTAMP_TYPE = new TDateType(SQLTypes.TIMESTAMP);
+			private readonly static TType TIMESTAMP_TYPE = new TDateType(SqlType.TimeStamp);
 
 			public TimeStampObFunction(Expression[] parameters)
 				: base("timestampob", parameters) {

@@ -31,53 +31,52 @@ namespace Deveel.Data.Collections {
 	/// This interface has a similar layout to <see cref="IEnumerator"/>
 	/// because represents an enumerator of a collection of integers. It 
 	/// differs from the above for the strong-typed layout and for the 
-	/// backward direction (<see cref="hasPrevious"/>).
+	/// backward direction (<see cref="MovePrevious"/>).
 	/// It also allow the deletion of the current value (<see cref="Remove"/>).
 	/// </remarks>
 	public interface IIntegerIterator {
-
-		/**
-		 * Returns <tt>true</tt> if this list iterator has more elements when
-		 * traversing the list in the forward direction. (In other words, returns
-		 * <tt>true</tt> if <tt>next</tt> would return an element rather than
-		 * throwing an exception.)
-		 */
 		///<summary>
+		/// Advances the iteration to the next element within the list.
 		///</summary>
-		///<returns></returns>
+		///<returns>
+		/// Returns <b>true</b> if the iterator has more elements when traversing 
+		/// the list in the forward direction, otherwise it returns <b>false</b>.
+		/// </returns>
 		bool MoveNext();
 
-		/**
-		 * Returns the next element in the list.  This method may be called
-		 * repeatedly to iterate through the list, or intermixed with calls to
-		 * <tt>previous</tt> to go back and forth.  (Note that alternating calls
-		 * to <tt>next</tt> and <tt>previous</tt> will return the same element
-		 * repeatedly.)
-		 */
-		int next();
+		///<summary>
+		/// Returns the next element in the list.
+		///</summary>
+		/// <remarks>
+		/// Alternating calls to <see cref="Next"/> and <see cref="Previous"/> will 
+		/// return the same element repeatedly.
+		/// </remarks>
+		int Next { get; }
 
-		/**
-		 * Returns <tt>true</tt> if this list iterator has more elements when
-		 * traversing the list in the reverse direction.  (In other words, returns
-		 * <tt>true</tt> if <tt>previous</tt> would return an element rather than
-		 * throwing an exception.)
-		 */
-		bool hasPrevious();
+		///<summary>
+		/// Reverses the direction of the iteration to the previous
+		/// element within the list.
+		///</summary>
+		///<returns>
+		/// Returns <b>true</b> if the iterator has more elements when traversing 
+		/// the list in the reverse direction, otherwise it returns <b>false</b>.
+		/// </returns>
+		bool MovePrevious();
 
-		/**
-		 * Returns the previous element in the list.  This method may be called
-		 * repeatedly to iterate through the list backwards, or intermixed with
-		 * calls to <tt>next</tt> to go back and forth.  (Note that alternating
-		 * calls to <tt>next</tt> and <tt>previous</tt> will return the same
-		 * element repeatedly.)
-		 */
-		int previous();
+		///<summary>
+		/// Returns the previous element in the list.
+		///</summary>
+		/// <remarks>
+		/// Alternating calls to <see cref="Next"/> and <see cref="Previous"/> will 
+		/// return the same element repeatedly.
+		/// </remarks>
+		int Previous { get; }
 
 		///<summary>
 		/// Removes from the list the last element returned by the iterator.
 		///</summary>
 		/// <remarks>
-		/// This method can be called only once per call to <see cref="next"/>. The behavior 
+		/// This method can be called only once per call to <see cref="Next"/>. The behavior 
 		/// of an iterator is unspecified if the underlying collection is modified while the 
 		/// iteration is in progress in any way other than by calling this method.
 		/// <para>
