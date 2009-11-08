@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{249A9D17-36E5-4870-9326-D7028DE5578D}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -84,6 +84,7 @@
     <Compile Include="Deveel.Data.Server\IServerConnection.cs" />
     <Compile Include="Deveel.Data.Server\MultiThreadedConnectionPoolServer.cs" />
     <Compile Include="Deveel.Data.Server\Processor.cs" />
+    <Compile Include="Deveel.Data.Server\ProductInfo.cs" />
     <Compile Include="Deveel.Data.Server\Program.cs" />
     <Compile Include="Deveel.Data.Server\SingleThreadedConnectionPoolServer.cs" />
     <Compile Include="Deveel.Data.Server\StreamServerConnection.cs" />
