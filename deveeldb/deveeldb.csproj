@@ -47,6 +47,7 @@
     <RootNamespace>Deveel.Data</RootNamespace>
     <SignAssembly>true</SignAssembly>
     <AssemblyKeyFile>deveeldb.snk</AssemblyKeyFile>
+    <DocumentationFile>bin\Release\deveeldb.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - Mono|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -106,8 +107,15 @@
     <Compile Include="Deveel.Data.Sql\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropSchemaStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\ParseException.cs" />
     <Compile Include="Deveel.Data.Sql\RollbackStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\SimpleCharStream.cs" />
+    <Compile Include="Deveel.Data.Sql\SQL.cs" />
+    <Compile Include="Deveel.Data.Sql\SQLConstants.cs" />
     <Compile Include="Deveel.Data.Sql\SqlParseException.cs" />
+    <Compile Include="Deveel.Data.Sql\SQLTokenManager.cs" />
+    <Compile Include="Deveel.Data.Sql\Token.cs" />
+    <Compile Include="Deveel.Data.Sql\TokenMgrError.cs" />
     <Compile Include="Deveel.Data.Store\FSync.cs" />
     <Compile Include="Deveel.Data.Store\IFSync.cs" />
     <Compile Include="Deveel.Data.Store\SyncFailedException.cs" />
@@ -418,13 +426,6 @@
     <Compile Include="Deveel.Data.Util\Stats.cs" />
     <Compile Include="Deveel.Data.Util\IUserTerminal.cs" />
     <Compile Include="Deveel.Data.Procedure\SystemBackup.cs" />
-    <Compile Include="Deveel.Data.Sql\ParseException.cs" />
-    <Compile Include="Deveel.Data.Sql\SimpleCharStream.cs" />
-    <Compile Include="Deveel.Data.Sql\SQL.cs" />
-    <Compile Include="Deveel.Data.Sql\SQLConstants.cs" />
-    <Compile Include="Deveel.Data.Sql\SQLTokenManager.cs" />
-    <Compile Include="Deveel.Data.Sql\Token.cs" />
-    <Compile Include="Deveel.Data.Sql\TokenMgrError.cs" />
     <Compile Include="Deveel.Data.Sql\Util.cs" />
     <Compile Include="Deveel.Data\IDatabaseEvent.cs" />
     <Compile Include="Deveel.Text.RegularExpressions\BufferedStreamManager.cs" />
