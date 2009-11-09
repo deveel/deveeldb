@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3AAB99B8-B698-4723-AE93-020EC8145E82}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <AssemblyName>Deveel.Data.UI</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=1.1.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.MicroKernel, Version=2.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Castle.MicroKernel.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=2.3.1.24483, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Deveel.Data.Commands\CancelTaskCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\Command.cs" />
+    <Compile Include="Deveel.Data.Commands\CommandSmallImageAttribute.cs" />
+    <Compile Include="Deveel.Data.Commands\ExecuteTaskCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\ICommand.cs" />
+    <Compile Include="Deveel.Data.Commands\ImageSource.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbCheckConstraint.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbConnectionString.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbConstraintType.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbColumn.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbConstraint.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbDataType.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbForeignKey.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbObject.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbPrimaryKey.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbSchema.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbTable.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbUniqueConstraint.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbView.cs" />
+    <Compile Include="Deveel.Data.Plugins\IPlugin.cs" />
+    <Compile Include="Deveel.Data.Plugins\PluginAttribute.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbConnectionStrings.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbObjectType.cs" />
+    <Compile Include="Deveel.Data\FileEditorInfo.cs" />
+    <Compile Include="Deveel.Data\IApplicationServices.cs" />
+    <Compile Include="Deveel.Data\IConfiguration.cs" />
+    <Compile Include="Deveel.Data.DbModel\IDbObject.cs" />
+    <Compile Include="Deveel.Data\IEditor.cs" />
+    <Compile Include="Deveel.Data\IFileEditorResolver.cs" />
+    <Compile Include="Deveel.Data\IHostWindow.cs" />
+    <Compile Include="Deveel.Data\ITask.cs" />
+    <Compile Include="Deveel.Data\ISettings.cs" />
+    <Compile Include="Deveel.Data\NotifyPropertyChanged.cs" />
+    <Compile Include="Deveel.Data\SettingsProperties.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\deveeldb\deveeldb.csproj">
+      <Project>{50D02908-5743-4E72-83B5-77C5712EA59A}</Project>
+      <Name>deveeldb</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\lightning.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\stop.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
