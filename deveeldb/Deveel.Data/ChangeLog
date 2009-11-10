@@ -1,3 +1,20 @@
+2009-11-09  Antonello Provenzano  <antonello@deveel.com>
+	* Database.cs: added the statement for creating the view
+	INFORMATION_SCHEMA.DATA_TYPES to obtain information
+	about the built-in data types
+	
+2009-11-07  Antonello Provenzano  <antonello@deveel.com>
+	* SQLTypes.cs: 
+		- renamed to SqlTypes
+		- members case normalized to C# naming style
+	* DbTypes.cs:
+		- renamed to DbType
+		- prefix DB_ stripped out
+		- members case normalized to C# naming style
+	* SelectableScheme.cs: method InternalOrderIndexSet
+	now returns IIntegerList
+	* ProductInfo.cs: made internal
+	
 2009-10-31  Antonello Provenzano  <antonello@deveel.com>
 	* TransactionSystem.cs: 
 		- added property Debug that returns

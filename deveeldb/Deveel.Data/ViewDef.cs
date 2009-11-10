@@ -22,6 +22,8 @@
 
 using System;
 using System.IO;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
@@ -128,8 +130,11 @@ namespace Deveel.Data {
 					byte[] buf = new byte[length];
 					input.Read(buf, 0, length);
 					MemoryStream obj_stream = new MemoryStream(buf);
+
 					BinaryFormatter formatter = new BinaryFormatter();
+					formatter.Binder = new ViewBinder();
 					IQueryPlanNode view_plan = (IQueryPlanNode)formatter.Deserialize(obj_stream);
+					obj_stream.Close();
 					return new ViewDef(view_def, view_plan);
 				} else {
 					throw new IOException("Newer ViewDef version serialization: " + version);
@@ -139,6 +144,18 @@ namespace Deveel.Data {
 				throw new ApplicationException("IO Error: " + e.Message);
 			} catch (TypeLoadException e) {
 				throw new ApplicationException("Class not found: " + e.Message);
+			}
+		}
+
+		private class ViewBinder : SerializationBinder {
+			public override Type BindToType(string assemblyName, string typeName) {
+				Assembly currAssembly = Assembly.GetAssembly(typeof (ViewDef));
+				string name = currAssembly.GetName().Name;
+				if (assemblyName.StartsWith(name)) {
+					assemblyName = currAssembly.GetName().FullName;
+				}
+
+				return Type.GetType(typeName + ", " + assemblyName, true, true);
 			}
 		}
 	}

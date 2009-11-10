@@ -1549,6 +1549,12 @@ namespace Deveel.Data {
 					"     AND \"sUSRFKeyInfo.schema\" IN\n" +
 					"              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
+
+				// export all the built-in data types...
+				stmt.CommandText = 
+					"  CREATE VIEW INFORMATION_SCHEMA.DATA_TYPES AS " +
+					"  SELECT * FROM SYSTEM.sUSRSQLTypeInfo\n";
+				stmt.ExecuteNonQuery();
 			} catch (DataException e) {
 				if (e is DbDataException) {
 					DbDataException dbDataException = (DbDataException) e;

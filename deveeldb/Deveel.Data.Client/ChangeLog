@@ -1,4 +1,19 @@
-﻿2009-10-30  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-11-09  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbCommand.cs: fixed the bug in ExecuteReader
+	that caused a reader to be still open even after an
+	exception occurred
+	* DeveelDbMetadataSchemaNames.cs: 
+		- added the member 'Schemata' to support the 
+		retrieval of schemas from	a database 
+		- added the member 'DataTypes' to support the
+		retrieval of built-in data-types info.
+	* DatabaseMetadata.cs: 
+		- added support for retrieval of schemata from 
+		a database
+		- added support for retrieval of database
+		built-in data-types
+	
+2009-10-30  Antonello Provenzano  <antonello@deveel.com>
 	* DeveelDbConnection.cs: if the Open method fails to
 	connect to the database, it sets the current stante
 	of the connection as 'Broken' (ADO.NET compliancy).

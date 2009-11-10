@@ -26,6 +26,8 @@ namespace Deveel.Data.Client {
 		private DeveelDbMetadataSchemaNames() {
 		}
 
+		public static readonly string DataTypes = "DataTypes";
+		public static readonly string Schemata = "Schemata";
 		public static readonly string PrimaryKeys = "PrimaryKeys";
 		public static readonly string ImportedKeys = "ImportedKeys";
 		public static readonly string ExportedKeys = "ExportedKeys";

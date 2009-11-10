@@ -17,7 +17,7 @@ using Deveel.Data.Functions;
 using Deveel.Data.Text;
 using Deveel.Data.Util;
 
-class SQL {
+internal class SQL {
 
 	// State variables for the parser,
 	
@@ -1248,7 +1248,7 @@ TableSelectExpression GetTableSelectExpression() :
 {
   ( <SELECT>
         ( 
-          <IDENTITY> { table_expr.columns.Add(Sql.SelectColumn.Identity); } |
+          LOOKAHEAD(2) <IDENTITY> { table_expr.columns.Add(Sql.SelectColumn.Identity); } |
           [ table_expr.Distinct = SetQuantifier() ] 
           SelectColumnList(table_expr.columns) 
         )
@@ -1587,66 +1587,66 @@ CollationDecomposition GetCollateDecomposition() :
 }
 
 
-SQLTypes GetStringSQLType() :
+SqlType GetStringSQLType() :
 { }
 {
-    LOOKAHEAD(2) ( <CHARACTER> <VARYING> ) { return SQLTypes.VARCHAR; }
-  | LOOKAHEAD(3) ( <LONG> <CHARACTER> <VARYING> ) { return SQLTypes.LONGVARCHAR; }
-  | ( <TEXT> | <STRING> | <LONGVARCHAR> ) { return SQLTypes.LONGVARCHAR; }
-  | ( <CHAR> | <CHARACTER> ) { return SQLTypes.CHAR; }
-  | <VARCHAR> { return SQLTypes.VARCHAR; }
-  | <CLOB> { return SQLTypes.CLOB; }
+    LOOKAHEAD(2) ( <CHARACTER> <VARYING> ) { return SqlType.VarChar; }
+  | LOOKAHEAD(3) ( <LONG> <CHARACTER> <VARYING> ) { return SqlType.LongVarChar; }
+  | ( <TEXT> | <STRING> | <LONGVARCHAR> ) { return SqlType.LongVarChar; }
+  | ( <CHAR> | <CHARACTER> ) { return SqlType.Char; }
+  | <VARCHAR> { return SqlType.VarChar; }
+  | <CLOB> { return SqlType.Clob; }
 }
 
-SQLTypes GetNumericSQLType() :
+SqlType GetNumericSQLType() :
 { }
 {
-    ( <INT> | <INTEGER> ) { return SQLTypes.INTEGER; }
-  | <TINYINT> { return SQLTypes.TINYINT; }
-  | <SMALLINT> { return SQLTypes.SMALLINT; }
-  | <BIGINT> { return SQLTypes.BIGINT; }
-  | <FLOAT> { return SQLTypes.FLOAT; }
-  | <REAL> { return SQLTypes.REAL; }
-  | <DOUBLE> { return SQLTypes.DOUBLE; }
-  | <NUMERIC> { return SQLTypes.NUMERIC; }
-  | <DECIMAL> { return SQLTypes.DECIMAL; }
+    ( <INT> | <INTEGER> ) { return SqlType.Integer; }
+  | <TINYINT> { return SqlType.TinyInt; }
+  | <SMALLINT> { return SqlType.SmallInt; }
+  | <BIGINT> { return SqlType.BigInt; }
+  | <FLOAT> { return SqlType.Float; }
+  | <REAL> { return SqlType.Real; }
+  | <DOUBLE> { return SqlType.Double; }
+  | <NUMERIC> { return SqlType.Numeric; }
+  | <DECIMAL> { return SqlType.Decimal; }
 }
 
-SQLTypes GetBooleanSQLType() :
+SqlType GetBooleanSQLType() :
 { }
 {
-  ( <BOOLEAN> | <BIT> ) { return SQLTypes.BOOLEAN; }
+  ( <BOOLEAN> | <BIT> ) { return SqlType.Boolean; }
 }
 
-SQLTypes GetDateSQLType() :
+SqlType GetDateSQLType() :
 { }
 {
-    <TIMESTAMP> { return SQLTypes.TIMESTAMP; }
-  | <TIME> { return SQLTypes.TIME; }
-  | <DATE> { return SQLTypes.DATE; }
+    <TIMESTAMP> { return SqlType.TimeStamp; }
+  | <TIME> { return SqlType.Time; }
+  | <DATE> { return SqlType.Date; }
 }
 
-SQLTypes GetBinarySQLType() :
+SqlType GetBinarySQLType() :
 { }
 {
-    LOOKAHEAD(2) ( <BINARY> <VARYING> ) { return SQLTypes.VARBINARY; }
-  | LOOKAHEAD(3) ( <LONG> <BINARY> <VARYING> ) { return SQLTypes.LONGVARBINARY; }
-  | <LONGVARBINARY> { return SQLTypes.LONGVARBINARY; }
-  | <VARBINARY> { return SQLTypes.VARBINARY; }
-  | <BINARY> { return SQLTypes.BINARY; }
-  | <BLOB> { return SQLTypes.BLOB; }
+    LOOKAHEAD(2) ( <BINARY> <VARYING> ) { return SqlType.VarBinary; }
+  | LOOKAHEAD(3) ( <LONG> <BINARY> <VARYING> ) { return SqlType.LongVarBinary; }
+  | <LONGVARBINARY> { return SqlType.LongVarBinary; }
+  | <VARBINARY> { return SqlType.VarBinary; }
+  | <BINARY> { return SqlType.Binary; }
+  | <BLOB> { return SqlType.Blob; }
 }
 
-SQLTypes GetIntervalSQLType() :
+SqlType GetIntervalSQLType() :
 { }
 {
-    <SECOND> { return SQLTypes.SECOND; }
-  | <MINUTE> { return SQLTypes.MINUTE; }
-  | <HOUR>   { return SQLTypes.HOUR; }
-  | <DAY>    { return SQLTypes.DAY; }
-  | <MONTH>  { return SQLTypes.MONTH; }
-  | <YEAR>   { return SQLTypes.YEAR; }
-  | <INTERVAL> { return SQLTypes.INTERVAL; }
+    <SECOND> { return SqlType.Second; }
+  | <MINUTE> { return SqlType.Minute; }
+  | <HOUR>   { return SqlType.Hour; }
+  | <DAY>    { return SqlType.Day; }
+  | <MONTH>  { return SqlType.Month; }
+  | <YEAR>   { return SqlType.Year; }
+  | <INTERVAL> { return SqlType.Interval; }
 }
 
 // Parses an SQL type and forms a TType object.  For example, "CHAR(500)" is
@@ -1654,7 +1654,7 @@ SQLTypes GetIntervalSQLType() :
 // collation.
 TType GetTType() :
 { Token t;
-  SQLTypes data_type;
+  SqlType data_type;
   int size = -1;
   int scale = -1;
   Token class_tok = null;

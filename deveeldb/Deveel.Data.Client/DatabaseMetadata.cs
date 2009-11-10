@@ -33,6 +33,40 @@ namespace Deveel.Data.Client {
 
 		private readonly DeveelDbConnection connection;
 
+		public System.Data.DataTable GetSchemata(string[] restrictions) {
+			if (restrictions == null)
+				throw new ArgumentException();
+
+			if (restrictions.Length > 1)
+				throw new ArgumentException();
+
+			string schema = restrictions[0];
+			if (schema == null)
+				schema = "%";
+
+			System.Data.DataTable dataTable = new System.Data.DataTable("Schemata");
+
+			dataTable.Columns.Add("TABLE_SCHEMA");
+			dataTable.Columns.Add("TABLE_CATALOG");
+
+			DeveelDbCommand command = connection.CreateCommand("   SELECT * \n" +
+															   "     FROM \"INFORMATION_SCHEMA.TABLES\" \n" +
+															   "    WHERE \"TABLE_SCHEMA\" LIKE ? \n" +
+															   " ORDER BY \"TABLE_SCHEMA\" \n");
+
+			command.Parameters.Add(schema);
+			command.Prepare();
+
+			using (DeveelDbDataReader reader = command.ExecuteReader()) {
+				DataRow row = dataTable.NewRow();
+				row["TABLE_SCHEMA"] = reader.GetString(0);
+				row["TABLE_CATALOG"] = reader.GetString(1);
+				dataTable.Rows.Add(row);
+			}
+
+			return dataTable;
+		}
+
 		public System.Data.DataTable GetTables(string[] restrictions) {
 			if (restrictions == null)
 				throw new ArgumentNullException("restrictions");
@@ -449,6 +483,7 @@ namespace Deveel.Data.Client {
 		public System.Data.DataTable GetRestrictions() {
 			object[][] restrictions = new object[][]
                 {
+					new object[] {"Schemata", "Schema", "", 0},
                     new object[] {"Tables", "Catalog", "", 0},
                     new object[] {"Tables", "Schema", "", 1},
                     new object[] {"Tables", "Table", "", 2},
@@ -556,6 +591,60 @@ namespace Deveel.Data.Client {
 			return dt;
 		}
 
+		public System.Data.DataTable GetDataTypes() {
+			System.Data.DataTable dataTable = new System.Data.DataTable("DataTypes");
+
+			dataTable.Columns.Add("TYPE_NAME", typeof(string));
+			dataTable.Columns.Add("DATA_TYPE", typeof(int));
+			dataTable.Columns.Add("PRECISION", typeof(int));
+			dataTable.Columns.Add("LITERAL_PREFIX", typeof(string));
+			dataTable.Columns.Add("LITERAL_SUFFIX", typeof(string));
+			dataTable.Columns.Add("CREATE_PARAMS", typeof(string));
+			dataTable.Columns.Add("NULLABLE", typeof(bool));
+			dataTable.Columns.Add("CASE_SENSITIVE", typeof(bool));
+			dataTable.Columns.Add("SEARCHABLE", typeof(bool));
+			dataTable.Columns.Add("UNSIGNED_ATTRIBUTE", typeof(bool));
+			dataTable.Columns.Add("FIXED_PREC_SCALE", typeof(bool));
+			dataTable.Columns.Add("AUTO_INCREMENT", typeof(bool));
+			dataTable.Columns.Add("LOCAL_TYPE_NAME");
+			dataTable.Columns.Add("MINIMUM_SCALE", typeof(int));
+			dataTable.Columns.Add("MAXIMUM_SCALE", typeof(int));
+			dataTable.Columns.Add("SQL_DATA_TYPE", typeof(string));
+			dataTable.Columns.Add("SQL_DATETIME_SUB", typeof(string));
+			dataTable.Columns.Add("NUM_PREC_RADIX", typeof(int));
+
+			DeveelDbCommand command = connection.CreateCommand("SELECT * FROM INFORMATION_SCHEMA.DATA_TYPES");
+
+			using (DeveelDbDataReader reader = command.ExecuteReader()) {
+				while (reader.Read()) {
+					DataRow row = dataTable.NewRow();
+
+					row["TYPE_NAME"] = reader.GetString(0);
+					row["DATA_TYPE"] = reader.GetInt32(1);
+					row["PRECISION"] = reader.GetInt32(2);
+					row["LITERAL_PREFIX"] = reader.GetString(3);
+					row["LITERAL_SUFFIX"] = reader.GetString(4);
+					row["CREATE_PARAMS"] = reader.GetString(5);
+					row["NULLABLE"] = reader.GetBoolean(6);
+					row["CASE_SENSITIVE"] = reader.GetBoolean(7);
+					row["SEARCHABLE"] = reader.GetBoolean(8);
+					row["UNSIGNED_ATTRIBUTE"] = reader.GetBoolean(9);
+					row["FIXED_PREC_SCALE"] = reader.GetBoolean(10);
+					row["AUTO_INCREMENT"] = reader.GetBoolean(11);
+					row["LOCAL_TYPE_NAME"] = reader.GetString(12);
+					row["MINIMUM_SCALE"] = reader.GetInt32(13);
+					row["MAXIMUM_SCALE"] = reader.GetInt32(14);
+					row["SQL_DATA_TYPE"] = reader.GetString(15);
+					row["SQL_DATETIME_SUB"] = reader.GetString(16);
+					row["NUM_PREC_RADIX"] = reader.GetInt32(17);
+
+					dataTable.Rows.Add(row);
+				}
+			}
+
+			return dataTable;
+		}
+
 		public virtual System.Data.DataTable GetSchema(string collection, String[] restrictions) {
 			if (connection.State != ConnectionState.Open)
 				throw new DataException("GetSchema can only be called on an open connection.");
@@ -573,7 +662,7 @@ namespace Deveel.Data.Client {
 					dt = GetDataSourceInformation();
 					break;
 				case "DATATYPES":
-					//TODO: dt = GetDataTypes();
+					dt = GetDataTypes();
 					break;
 				case "RESTRICTIONS":
 					dt = GetRestrictions();
@@ -593,6 +682,9 @@ namespace Deveel.Data.Client {
 				restrictions[1] = connection.Settings.Schema;
 
 			switch (collection) {
+				case "SCHEMATA":
+					dt = GetSchemata(restrictions);
+					break;
 				case "TABLES":
 					dt = GetTables(restrictions);
 					break;

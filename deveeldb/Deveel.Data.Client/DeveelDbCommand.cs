@@ -510,9 +510,16 @@ namespace Deveel.Data.Client {
 				throw new InvalidOperationException("The connection is already busy fetching data.");
 
 			connection.SetState(ConnectionState.Fetching);
-			ExecuteQuery();
-			reader = new DeveelDbDataReader(this);
-			reader.Closed += new EventHandler(ReaderClosed);
+
+			try {
+				ExecuteQuery();
+				reader = new DeveelDbDataReader(this);
+				reader.Closed += new EventHandler(ReaderClosed);
+			} catch(Exception) {
+				connection.EndState();
+				throw;
+			}
+
 			return reader;
 		}
 
