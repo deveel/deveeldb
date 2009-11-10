@@ -11,6 +11,8 @@ namespace Deveel.Data {
 
 		Form ActiveChild { get; }
 
+		IDbMetadataProvider MetadataProvider { get; }
+
 		ToolStrip ToolStrip { get; }
 
 
@@ -30,10 +32,12 @@ namespace Deveel.Data {
 
 		ToolStripMenuItem GetMenuItem(string name);
 
-		void AddPluginCommand(ICommand command);
+		void AddPluginCommand(Type commandType);
 
-		void AddToolStripCommand(int index, ICommand command);
+		void AddToolStripCommand(int index, Type commandType);
 
 		void AddToolStripSeperator(int index);
+
+		void ShowDatabaseInspector(IDbMetadataProvider metadataProvider, DockState dockState);
 	}
 }

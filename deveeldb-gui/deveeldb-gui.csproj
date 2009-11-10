@@ -8,7 +8,7 @@
     <ProjectGuid>{18C38DF0-527A-4A04-A486-A75449E7D143}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>deveeldb_gui</RootNamespace>
+    <RootNamespace>Deveel.Data</RootNamespace>
     <AssemblyName>deveeldb-gui</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -39,6 +39,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Castle.MicroKernel.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.TextEditor, Version=3.1.0.4977, Culture=neutral, PublicKeyToken=4d61825e8dd49f1a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\ICSharpCode.TextEditor.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -51,11 +55,44 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Commands\NewFileCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\OpenFileCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\SaveFileAsCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\SaveFileCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\ShowOptionsCommand.cs" />
+    <Compile Include="Deveel.Data.Plugins\CorePlugin.cs" />
     <Compile Include="Deveel.Data\ApplicationServices.cs" />
     <Compile Include="Deveel.Data\ApplicationSettings.cs" />
+    <Compile Include="Deveel.Data\Editor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data\Editor.Designer.cs">
+      <DependentUpon>Editor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Deveel.Data\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data\MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Deveel.Data\NewFileForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data\NewFileForm.Designer.cs">
+      <DependentUpon>NewFileForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Deveel.Data\OptionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data\OptionsForm.Designer.cs">
+      <DependentUpon>OptionsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Deveel.Data\SettingsProperties.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Deveel.Data\NewFileForm.resx">
+      <DependentUpon>NewFileForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -64,6 +101,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -84,6 +122,31 @@
       <Project>{50D02908-5743-4E72-83B5-77C5712EA59A}</Project>
       <Name>deveeldb</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Deveel.Data\Editor.resx">
+      <DependentUpon>Editor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Deveel.Data\MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Deveel.Data\OptionsForm.resx">
+      <DependentUpon>OptionsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Images\page.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\page_white.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\folder.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\disk.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\help.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

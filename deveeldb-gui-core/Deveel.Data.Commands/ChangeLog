@@ -1,0 +1,15 @@
+﻿2009-11-09  Antonello Provenzano  <antonello@devee.com>
+	* CloseActiveChildCommand.cs: implemented
+	* CloseChildrenCommand.cs: implemented
+	* CloseConnectionCommand.cs: implemented
+	* Command.cs: added reference to the current settings
+	(ISettings) of the application
+	* CommandControlBuilder.cs: implemented to support
+	complex command controls
+	* Command.cs:
+		- added property Editor to cast the current child 
+		as IEditor
+		- added property QueryEditor to cast the current
+		child as IQueryEditor
+	* IHostWindow.cs: added property MetadataProvider to
+	provide access for retrieving database metadata

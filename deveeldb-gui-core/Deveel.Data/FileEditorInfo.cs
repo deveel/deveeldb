@@ -6,10 +6,14 @@ namespace Deveel.Data {
 		private readonly string name;
 		private readonly string[] extensions;
 
-		public FileEditorInfo(string key, string name, string[] extensions) {
+		public FileEditorInfo(string key, string name, params string[] extensions) {
 			this.key = key;
 			this.extensions = extensions;
 			this.name = name;
+		}
+
+		public FileEditorInfo(string key, string name)
+			: this(key, name, new string[0]) {
 		}
 
 		public string[] Extensions {

@@ -48,14 +48,14 @@ namespace Deveel.Data.DbModel {
 			objects.Add(table);
 		}
 
-		public DbTable AddTable(string name) {
+		public DbTable AddTable(string name, string type) {
 			if (name == null)
 				throw new ArgumentNullException("name");
 
 			if (Contains(name))
 				throw new ArgumentException();
 
-			DbTable table = new DbTable(Schema, name);
+			DbTable table = new DbTable(Schema, name, type);
 			objects.Add(table);
 			return table;
 		}

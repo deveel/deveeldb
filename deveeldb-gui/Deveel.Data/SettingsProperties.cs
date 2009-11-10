@@ -2,6 +2,7 @@
 
 namespace Deveel.Data {
 	public static class SettingsProperties {
+		public const string DefaultFileFilter = "defaultFileFilter";
 		public const string DateTimeFormat = "dateTimeFormat";
 		public const string LoadPlugins = "loadPlugins";
 		public const string PluginFileFilter = "pluginFileFilter";

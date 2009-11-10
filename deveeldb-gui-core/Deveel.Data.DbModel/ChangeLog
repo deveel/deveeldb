@@ -1,0 +1,5 @@
+﻿2009-11-09  Antonello Provenzano  <antonello@deveel.com>
+	* DbObjectType.cs: added the member 'Database'
+	* DbView.cs: removed
+	* DbTable.cs: added field for the definition of the
+	type of table.

@@ -28,6 +28,7 @@ namespace Deveel.Data.Commands {
 		private IHostWindow hostWindow;
 		private Image smallImage;
 		private IApplicationServices services;
+		private ISettings settings;
 
 		public string Name {
 			get { return name; }
@@ -43,7 +44,10 @@ namespace Deveel.Data.Commands {
 
 		public IApplicationServices Services {
 			get { return services; }
-			set { services = value; }
+		}
+
+		protected ISettings Settings {
+			get { return settings; }
 		}
 
 		protected IHostWindow HostWindow {
@@ -60,6 +64,14 @@ namespace Deveel.Data.Commands {
 
 		public Image SmallImage {
 			get { return smallImage; }
+		}
+
+		protected IEditor Editor {
+			get { return HostWindow.ActiveChild as IEditor; }
+		}
+
+		protected IQueryEditor QueryEditor {
+			get { return HostWindow.ActiveChild as IQueryEditor; }
 		}
 
 		private Image RetrieveSmallImage() {
@@ -86,6 +98,14 @@ namespace Deveel.Data.Commands {
 
 		protected void SetSmallImage(Image image) {
 			smallImage = image;
+		}
+
+		internal void SetSettings(ISettings appSettings) {
+			settings = appSettings;
+		}
+
+		internal void SetServices(IApplicationServices appServices) {
+			services = appServices;
 		}
 
 		public abstract void Execute();

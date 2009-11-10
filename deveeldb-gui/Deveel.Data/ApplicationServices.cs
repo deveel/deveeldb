@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using Castle.Core;
 using Castle.MicroKernel;
 
+using Deveel.Data.Commands;
 using Deveel.Data.Plugins;
 
 namespace Deveel.Data {
@@ -12,6 +13,7 @@ namespace Deveel.Data {
 		private ApplicationServices() {
 			plugins = new Hashtable();
 			configTypes = new ArrayList();
+			commandHandler = new CommandHandler(this);
 		}
 
 		static ApplicationServices() {
@@ -22,6 +24,8 @@ namespace Deveel.Data {
 		private static readonly IKernel container;
 		private Hashtable plugins;
 		private readonly ArrayList configTypes;
+		private readonly CommandHandler commandHandler;
+
 		private static ApplicationServices current;
 
 		public static ApplicationServices Current {
@@ -30,6 +34,10 @@ namespace Deveel.Data {
 					current = new ApplicationServices();
 				return current;
 			}
+		}
+
+		public CommandHandler CommandHandler {
+			get { return commandHandler; }
 		}
 
 		public Type[] ConfigurationTypes {

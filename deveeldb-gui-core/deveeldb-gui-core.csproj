@@ -51,39 +51,82 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Commands\CancelTaskCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\CloseActiveChildCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\CloseChildrenCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\CloseConnectionCommand.cs" />
     <Compile Include="Deveel.Data.Commands\Command.cs" />
+    <Compile Include="Deveel.Data.Commands\CommandControlBuilder.cs" />
+    <Compile Include="Deveel.Data.Commands\CommandHandler.cs" />
     <Compile Include="Deveel.Data.Commands\CommandSmallImageAttribute.cs" />
     <Compile Include="Deveel.Data.Commands\ExecuteTaskCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\ExitCommand.cs" />
     <Compile Include="Deveel.Data.Commands\ICommand.cs" />
     <Compile Include="Deveel.Data.Commands\ImageSource.cs" />
+    <Compile Include="Deveel.Data.Commands\NewQueryFormCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\PrintCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\ResetConnectionCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\ToLowerCaseCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\ToUpperCaseCommand.cs" />
+    <Compile Include="Deveel.Data.Controls\ExceptionControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Controls\ExceptionControl.Designer.cs">
+      <DependentUpon>ExceptionControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Deveel.Data.Controls\PluginListControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Controls\PluginListControl.Designer.cs">
+      <DependentUpon>PluginListControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="Deveel.Data.DbModel\DbCheckConstraint.cs" />
     <Compile Include="Deveel.Data.DbModel\DbConnectionString.cs" />
     <Compile Include="Deveel.Data.DbModel\DbConstraintType.cs" />
     <Compile Include="Deveel.Data.DbModel\DbColumn.cs" />
     <Compile Include="Deveel.Data.DbModel\DbConstraint.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbDatabase.cs" />
     <Compile Include="Deveel.Data.DbModel\DbDataType.cs" />
     <Compile Include="Deveel.Data.DbModel\DbForeignKey.cs" />
     <Compile Include="Deveel.Data.DbModel\DbObject.cs" />
     <Compile Include="Deveel.Data.DbModel\DbPrimaryKey.cs" />
+    <Compile Include="Deveel.Data.DbModel\DbPrivilege.cs" />
     <Compile Include="Deveel.Data.DbModel\DbSchema.cs" />
     <Compile Include="Deveel.Data.DbModel\DbTable.cs" />
     <Compile Include="Deveel.Data.DbModel\DbUniqueConstraint.cs" />
-    <Compile Include="Deveel.Data.DbModel\DbView.cs" />
+    <Compile Include="Deveel.Data.DbModel\IDbGrantableObject.cs" />
     <Compile Include="Deveel.Data.Plugins\IPlugin.cs" />
+    <Compile Include="Deveel.Data.Plugins\Plugin.cs" />
     <Compile Include="Deveel.Data.Plugins\PluginAttribute.cs" />
     <Compile Include="Deveel.Data.DbModel\DbConnectionStrings.cs" />
     <Compile Include="Deveel.Data.DbModel\DbObjectType.cs" />
+    <Compile Include="Deveel.Data\DbMetadataService.cs" />
     <Compile Include="Deveel.Data\FileEditorInfo.cs" />
     <Compile Include="Deveel.Data\IApplicationServices.cs" />
+    <Compile Include="Deveel.Data\IBrowsableDocument.cs" />
     <Compile Include="Deveel.Data\IConfiguration.cs" />
     <Compile Include="Deveel.Data.DbModel\IDbObject.cs" />
+    <Compile Include="Deveel.Data\ICursorOffsetHandler.cs" />
+    <Compile Include="Deveel.Data\IDbMetadataProvider.cs" />
+    <Compile Include="Deveel.Data\IDbMetadataService.cs" />
     <Compile Include="Deveel.Data\IEditor.cs" />
     <Compile Include="Deveel.Data\IFileEditorResolver.cs" />
     <Compile Include="Deveel.Data\IHostWindow.cs" />
+    <Compile Include="Deveel.Data\IPrintable.cs" />
+    <Compile Include="Deveel.Data\IQueryBatchHandler.cs" />
+    <Compile Include="Deveel.Data\IQueryEditor.cs" />
     <Compile Include="Deveel.Data\ITask.cs" />
     <Compile Include="Deveel.Data\ISettings.cs" />
+    <Compile Include="Deveel.Data\ITextSearchProvider.cs" />
+    <Compile Include="Deveel.Data\ITextSearchService.cs" />
     <Compile Include="Deveel.Data\NotifyPropertyChanged.cs" />
+    <Compile Include="Deveel.Data\QueryEventArgs.cs" />
+    <Compile Include="Deveel.Data\ReplaceTextSearch.cs" />
     <Compile Include="Deveel.Data\SettingsProperties.cs" />
+    <Compile Include="Deveel.Data\SqlQuery.cs" />
+    <Compile Include="Deveel.Data\SqlQueryBatch.cs" />
+    <Compile Include="Deveel.Data\SqlQueryExecutor.cs" />
+    <Compile Include="Deveel.Data\TextSearch.cs" />
+    <Compile Include="Deveel.Data\TextSearchService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +140,24 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Images\stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\disconnect.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Deveel.Data.Controls\ExceptionControl.resx">
+      <DependentUpon>ExceptionControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Deveel.Data.Controls\PluginListControl.resx">
+      <DependentUpon>PluginListControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Images\text_lowercase.png" />
+    <EmbeddedResource Include="Images\text_uppercase.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\page_white.png" />
+    <EmbeddedResource Include="Images\database_refresh.png" />
+    <Content Include="Images\printer.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

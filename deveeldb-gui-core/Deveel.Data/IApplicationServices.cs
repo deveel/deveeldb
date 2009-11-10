@@ -3,6 +3,7 @@ using System.Collections;
 
 using Castle.MicroKernel;
 
+using Deveel.Data.Commands;
 using Deveel.Data.Plugins;
 
 namespace Deveel.Data {
@@ -14,6 +15,10 @@ namespace Deveel.Data {
 		ISettings Settings { get; }
 
 		IDictionary Plugins { get; }
+
+		CommandHandler CommandHandler { get; }
+
+		Type[] ConfigurationTypes { get; }
 
 
 		void LoadPlugin(IPlugin plugin);
