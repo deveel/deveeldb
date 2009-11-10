@@ -10,8 +10,7 @@ using Deveel.Data.Plugins;
 
 namespace Deveel.Data {
 	public sealed class ApplicationServices : IApplicationServices {
-		private ApplicationServices() {
-			plugins = new Hashtable();
+		public ApplicationServices() {
 			configTypes = new ArrayList();
 			commandHandler = new CommandHandler(this);
 		}
@@ -22,18 +21,12 @@ namespace Deveel.Data {
 		}
 
 		private static readonly IKernel container;
-		private Hashtable plugins;
+		private readonly Hashtable plugins = new Hashtable();
 		private readonly ArrayList configTypes;
 		private readonly CommandHandler commandHandler;
 
-		private static ApplicationServices current;
-
 		public static ApplicationServices Current {
-			get {
-				if (current == null)
-					current = new ApplicationServices();
-				return current;
-			}
+			get { return (ApplicationServices) container.GetService(typeof (IApplicationServices)); }
 		}
 
 		public CommandHandler CommandHandler {
@@ -68,9 +61,6 @@ namespace Deveel.Data {
 
 			Type pluginType = plugin.GetType();
 
-			if (plugins == null)
-				plugins = new Hashtable();
-
 			plugins[pluginType] = plugin;
 			container.AddComponent(pluginType.FullName, typeof(IPlugin), pluginType);
 		}
@@ -103,6 +93,10 @@ namespace Deveel.Data {
 						null);
 				}
 			}
+		}
+
+		public void RegisterSingletonComponent(string key, Type contractType, Type componentType) {
+			container.AddComponent(key, contractType, componentType, LifestyleType.Singleton);
 		}
 
 		public void RegisterComponent(string key, Type contractType, Type serviceType) {

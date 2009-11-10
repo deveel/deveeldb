@@ -8,10 +8,6 @@ namespace Deveel.Data.Commands {
 			: base("&Reset Connection") {
 		}
 
-		public override bool Enabled {
-			get { return Settings.Connection != null; }
-		}
-
 		public override void Execute() {
 			try {
 				HostWindow.SetPointerState(Cursors.WaitCursor);

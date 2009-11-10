@@ -117,22 +117,41 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="menuStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+  <metadata name="contextMenuStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
-  <metadata name="statusStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>125, 17</value>
+  <metadata name="resultContextMenuStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>537, 17</value>
   </metadata>
-  <metadata name="toolTip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>234, 17</value>
+  <metadata name="editorContextMenuStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>166, 17</value>
   </metadata>
-  <metadata name="notifyIcon.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>422, 17</value>
+  <metadata name="queryBackgroundWorker.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>349, 17</value>
   </metadata>
-  <metadata name="notifyIconContextMenuStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>528, 17</value>
-  </metadata>
-  <metadata name="toolStripLower.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>733, 17</value>
-  </metadata>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAQAQAAAAAAAAAAAAAAAAAAAAA
+        AACPWjAUj1owhI9aMKOPWjC2j1owyY9aMNqPWjDrj1ow+pRgOP+ZaED/onNO/6yBXv+PWjDZj1owNAAA
+        AAAAAAAAk14yaLePbP/WuaL/38Wy/+fUwv/u39P/9eri//v07//9+vb///79//vr3//77+b/wJx//5Ne
+        Mm8AAAAAAAAAAJhjNYnHo4T////////////////////////+/P/++/f//vfx//728f/krYX/+ujb/86u
+        lP+YYzWLAAAAAAAAAACdaDhXnWg49rOEWP/ZpHr/2J1u/9eaaf/YlWL/1pFc/9SOWP/TjVb/4pxo//rj
+        0f/YuqH/nWg4ngAAAAAAAAAAo247FKNuO6vVrYv//fDl//fHof/3z6z/+dW0//javP/43sH/+uHF//rk
+        zP/99ez/4s65/6NuO7MAAAAAAAAAAAAAAACpdD8otoVV//7+/f/63sH/+ty+//nbv//527//+d3A//rb
+        v//63ML//eve/+zczf+pdD/KAAAAAAAAAAAAAAAAsHpCHriFUf/+/Pn/+dy+//jbvv/43L//+dvB//nc
+        wP/53cH/+t3C//vn1P/17eL/sHpC5AAAAAAAAAAAAAAAALaBRgm4hEr//vv3//ncwP/43L7/+Ny+//jb
+        v//53b//+d2///ndwv/74sv//Pn1/7aBRvu2gUYBAAAAAAAAAAAAAAAAvIdK+fz28P/538f/+dy8//rc
+        vv/628D/+t3C//rdwf/53cP/++DJ///8+v/AjFL/vIdKDwAAAAAAAAAAAAAAAMONTdr159j/+uXS//na
+        u//527v/+tu+//rdwP/63cD/+d3D//vhyP///fv/yJNW/8ONTRIAAAAAAAAAAAAAAADKk1G78NnA//vt
+        4f/52r//+dzB//nexP/64Mf/+uLK//rizf/65dD///79/8uOWf/Kk1HxypNRRQAAAAAAAAAA0JlUpO3Q
+        sf//9vD/+uHK//vjzP/749D/++bT//vp1f/86dj//Orb/////f/SnHD/7tnA/9CZVOUAAAAAAAAAANWe
+        V5LryqT///37//3p1f/969j//erb//3t3//98OL//fHk//zw5P//////4J9v///7+f/ft4b/AAAAAAAA
+        AADao1qE68WZ///////87+L//fDn//3x6//99e7//fjx//369////Pr///////779//02r//2qNa6gAA
+        AAAAAAAA3qdcbeq/i////////////////////////fn0//vz6v/469n/+ObT//Xfxf/py6X/3qdc7d6n
+        XF0AAAAAAAAAAOKrXjbiq17G6ruA/+i2dv/msWz/5K9n/+KrXvDiq17j4qtez+KrXsziq1674qteqOKr
+        Xkviq14FAAMAAAADAAAAAwAAAAMAAAADAACAAwAAgAMAAIABAADAAQAAwAEAAMAAAADAAAAAwAAAAMAA
+        AADAAAAAwAAAAA==
+</value>
+  </data>
 </root>

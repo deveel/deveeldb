@@ -1,14 +1,24 @@
 ﻿using System;
+using System.Collections;
 using System.Windows.Forms;
 
 using Deveel.Data.Commands;
+using Deveel.Data.DbModel;
+using Deveel.Data.Plugins;
+using Deveel.Data.Properties;
 
 using WeifenLuo.WinFormsUI.Docking;
 
-namespace Deveel.Data.Deveel.Data {
+namespace Deveel.Data {
 	public partial class MainForm : Form, IHostWindow {
-		public MainForm(IApplicationServices services) {
+		public MainForm() {
 			InitializeComponent();
+			SetPointerState(Cursors.AppStarting);
+		}
+
+		public MainForm(IApplicationServices services)
+			: this() {
+			services.Settings.ConnectionStringsChanged += new EventHandler(Settings_ConnectionStringsChanged);
 			this.services = services;
 			commandControlBuilder = new CommandControlBuilder(services.CommandHandler);
 		}
@@ -17,6 +27,7 @@ namespace Deveel.Data.Deveel.Data {
 		private Form activeChild;
 		private readonly CommandControlBuilder commandControlBuilder;
 		private IDbMetadataProvider metadataProvider;
+		private bool initd;
 
 		public Form Form {
 			get { return this; }
@@ -120,34 +131,125 @@ namespace Deveel.Data.Deveel.Data {
 		}
 
 		private void MainForm_DragEnter(object sender, DragEventArgs e) {
-
+			e.Effect = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None;
 		}
 
 		private void MainForm_DragDrop(object sender, DragEventArgs e) {
-
+			if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+				string[] filePaths = (string[])(e.Data.GetData(DataFormats.FileDrop));
+				IFileEditorResolver resolver = (IFileEditorResolver)services.Resolve(typeof(IFileEditorResolver));
+				foreach (string filename in filePaths) {
+					IEditor editor = resolver.ResolveEditor(filename);
+					editor.FileName = filename;
+					editor.LoadFile();
+					DisplayDockedForm(editor as DockContent);
+				}
+			}
 		}
 
 		private void MainForm_Load(object sender, EventArgs e) {
 			services.Settings.ConnectionStringsChanged += new EventHandler(Settings_ConnectionStringsChanged);
 		}
 
-		void Settings_ConnectionStringsChanged(object sender, EventArgs e) {
-			throw new NotImplementedException();
+		private void Settings_ConnectionStringsChanged(object sender, EventArgs e) {
+			bool load = true;
+
+			if (initd) {
+
+				DialogResult result = MessageBox.Show(this,
+													  "The connections have changed, would you like to refresh the database connection?",
+													  "Reload Connection?",
+													  MessageBoxButtons.YesNo, MessageBoxIcon.Question,
+													  MessageBoxDefaultButton.Button1);
+				if (result != DialogResult.Yes)
+					load = false;
+			}
+
+			if (load)
+				LoadConnections();
+		}
+
+		private void LoadConnections() {
+			DbConnectionStrings connStrings = services.Settings.ConnectionStrings;
+
+			toolStripComboBoxConnection.Items.Clear();
+			foreach (DbConnectionString connString in connStrings.Strings) {
+				toolStripComboBoxConnection.Items.Add(connString);
+				if (connString.Name == Settings.Default.NammedConnection) {
+					toolStripComboBoxConnection.SelectedItem = connString;
+					((ApplicationSettings)services.Settings).ConnectionString = connString;
+					SetWindowTitle(connString.Name);
+				}
+			}
+		}
+
+		private void SetWindowTitle(string connectionName) {
+			Text = string.Format("DeveelDB Client [{0}]", connectionName);
 		}
 
 		private void MainForm_Shown(object sender, EventArgs e) {
 			services.InitPlugins();
+
+			DockContent provider = metadataProvider as DockContent;
+			if (provider != null)
+				provider.Activate();
+
+			initd = true;
+
+			SetPointerState(Cursors.Default);
+			SetStatus(null, string.Empty);
+
+			// services.CommandHandler.GetCommand(typeof(NewQueryFormCommand)).Execute();
 		}
 
 		private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
-			if (e.Cancel)
+			if (e.Cancel) {
 				return;
+			}
 
+			if (services.Settings.ConnectionString != null) {
+				Settings.Default.NammedConnection = services.Settings.ConnectionString.Name;
+				Settings.Default.Save();
+			}
 
+			ArrayList plugins = new ArrayList(services.Plugins.Values);
+			plugins.Reverse();
+			foreach (IPlugin plugin in plugins)
+				plugin.Unload();
+
+			services.Container.Dispose();
 		}
 
 		private void MainForm_MdiChildActivate(object sender, EventArgs e) {
 			activeChild = ActiveMdiChild;
+		}
+
+		private void hideShowToolStripMenuItem_Click(object sender, EventArgs e) {
+			if (WindowState == FormWindowState.Normal) {
+				Hide();
+				hideShowToolStripMenuItem.Text = "Show";
+				WindowState = FormWindowState.Minimized;
+			} else {
+				Show();
+				hideShowToolStripMenuItem.Text = "Hide";
+				WindowState = FormWindowState.Normal;
+			}
+		}
+
+		private void exitToolStripMenuItem_Click(object sender, EventArgs e) {
+			services.CommandHandler.GetCommand(typeof(ExitCommand)).Execute();
+		}
+
+		private void toolStripLower_DoubleClick(object sender, EventArgs e) {
+			if (WindowState == FormWindowState.Normal) {
+				Hide();
+				hideShowToolStripMenuItem.Text = "Show";
+				WindowState = FormWindowState.Minimized;
+			} else {
+				Show();
+				hideShowToolStripMenuItem.Text = "Hide";
+				WindowState = FormWindowState.Normal;
+			}
 		}
 	}
 }

@@ -90,7 +90,11 @@ namespace Deveel.Data.Commands {
 				return null;
 
 			try {
-				return Image.FromStream(stream);
+				Image sourceImage = Image.FromStream(stream);
+				Bitmap image = new Bitmap(sourceImage.Width, sourceImage.Height);
+				Graphics g = Graphics.FromImage(image);
+				g.DrawImage(sourceImage, 0, 0);
+				return image;
 			} finally {
 				stream.Close();
 			}

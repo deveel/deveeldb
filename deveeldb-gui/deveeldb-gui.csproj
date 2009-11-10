@@ -60,9 +60,16 @@
     <Compile Include="Deveel.Data.Commands\SaveFileAsCommand.cs" />
     <Compile Include="Deveel.Data.Commands\SaveFileCommand.cs" />
     <Compile Include="Deveel.Data.Commands\ShowOptionsCommand.cs" />
+    <Compile Include="Deveel.Data.Plugins\CoreConfiguration.cs" />
     <Compile Include="Deveel.Data.Plugins\CorePlugin.cs" />
     <Compile Include="Deveel.Data\ApplicationServices.cs" />
     <Compile Include="Deveel.Data\ApplicationSettings.cs" />
+    <Compile Include="Deveel.Data\CopyDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data\CopyDialog.Designer.cs">
+      <DependentUpon>CopyDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Deveel.Data\Editor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -86,6 +93,12 @@
     </Compile>
     <Compile Include="Deveel.Data\OptionsForm.Designer.cs">
       <DependentUpon>OptionsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Deveel.Data\QueryEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data\QueryEditor.Designer.cs">
+      <DependentUpon>QueryEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Deveel.Data\SettingsProperties.cs" />
     <Compile Include="Program.cs" />
@@ -124,6 +137,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Deveel.Data\CopyDialog.resx">
+      <DependentUpon>CopyDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Deveel.Data\Editor.resx">
       <DependentUpon>Editor.cs</DependentUpon>
     </EmbeddedResource>
@@ -133,6 +149,9 @@
     <EmbeddedResource Include="Deveel.Data\OptionsForm.resx">
       <DependentUpon>OptionsForm.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Deveel.Data\QueryEditor.resx">
+      <DependentUpon>QueryEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Images\page.png" />
   </ItemGroup>
@@ -146,7 +165,20 @@
     <None Include="Resources\disk.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="Resources\help.png" />
+    <None Include="SQL-Mode.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\folder_page_white.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\folder_page.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\disk.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

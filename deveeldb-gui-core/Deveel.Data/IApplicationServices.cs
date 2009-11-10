@@ -27,6 +27,8 @@ namespace Deveel.Data {
 
 		void RegisterConfiguration(Type configType);
 
+		void RegisterSingletonComponent(string key, Type contractType, Type componentType);
+
 		void RegisterComponent(string key, Type contractType, Type componentType);
 
 		void RegisterComponent(string key, Type componentType);

@@ -58,6 +58,7 @@
     <Compile Include="Deveel.Data.Commands\CommandControlBuilder.cs" />
     <Compile Include="Deveel.Data.Commands\CommandHandler.cs" />
     <Compile Include="Deveel.Data.Commands\CommandSmallImageAttribute.cs" />
+    <Compile Include="Deveel.Data.Commands\CopyQueryEditorFileNameCommand.cs" />
     <Compile Include="Deveel.Data.Commands\ExecuteTaskCommand.cs" />
     <Compile Include="Deveel.Data.Commands\ExitCommand.cs" />
     <Compile Include="Deveel.Data.Commands\ICommand.cs" />
@@ -99,8 +100,10 @@
     <Compile Include="Deveel.Data.Plugins\PluginAttribute.cs" />
     <Compile Include="Deveel.Data.DbModel\DbConnectionStrings.cs" />
     <Compile Include="Deveel.Data.DbModel\DbObjectType.cs" />
+    <Compile Include="Deveel.Data.Plugins\PluginComparer.cs" />
     <Compile Include="Deveel.Data\DbMetadataService.cs" />
     <Compile Include="Deveel.Data\FileEditorInfo.cs" />
+    <Compile Include="Deveel.Data\FileEditorResolver.cs" />
     <Compile Include="Deveel.Data\IApplicationServices.cs" />
     <Compile Include="Deveel.Data\IBrowsableDocument.cs" />
     <Compile Include="Deveel.Data\IConfiguration.cs" />

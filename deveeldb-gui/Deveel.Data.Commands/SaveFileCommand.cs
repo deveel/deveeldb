@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 
 namespace Deveel.Data.Commands {
+	[CommandSmallImage("Deveel.Data.Images.disk.png")]
 	public sealed class SaveFileCommand : Command {
 		public SaveFileCommand() 
 			: base("&Save File", Keys.Control | Keys.S, "Ctrl+S") {

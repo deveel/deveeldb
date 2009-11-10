@@ -31,6 +31,10 @@ namespace Deveel.Data {
 			get { return exception; }
 		}
 
+		public SqlQueryBatch Batch {
+			get { return batch; }
+		}
+
 		private void HandleBatchException(DbException dbException) {
 			exception = dbException;
 			messages.AppendLine(exception.Message);

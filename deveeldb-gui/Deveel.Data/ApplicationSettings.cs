@@ -15,6 +15,14 @@ namespace Deveel.Data {
 		private DeveelDbConnection connection;
 		private int untitledDocuments;
 
+		// settings...
+		private string connStringFile;
+		private string dateTimeFormat;
+		private string nullString;
+		private bool enableBatches;
+		private bool loadPlugins;
+		private string pluginFileFilter;
+
 		public event EventHandler ConnectionReset;
 
 		public event EventHandler ConnectionStringsChanged;
@@ -61,18 +69,45 @@ namespace Deveel.Data {
 		public void SetProperty(string key, object value) {
 			switch (key) {
 				case SettingsProperties.ConnectionStringsFile:
+					connStringFile = Convert.ToString(value);
 					break;
 				case SettingsProperties.DateTimeFormat:
+					dateTimeFormat = Convert.ToString(value);
 					break;
 				case SettingsProperties.EnableBatching:
+					enableBatches = Convert.ToBoolean(value);
 					break;
 				case SettingsProperties.LoadPlugins:
+					loadPlugins = Convert.ToBoolean(value);
 					break;
+				case SettingsProperties.NullString:
+					nullString = Convert.ToString(value);
+					break;
+				case SettingsProperties.PluginFileFilter:
+					pluginFileFilter = Convert.ToString(value);
+					break;
+				default:
+					throw new ArgumentException();
 			}
 		}
 
 		public object GetProperty(string key) {
-			throw new NotImplementedException();
+			switch (key) {
+				case SettingsProperties.ConnectionStringsFile:
+					return connStringFile;
+				case SettingsProperties.DateTimeFormat:
+					return dateTimeFormat;
+				case SettingsProperties.EnableBatching:
+					return enableBatches;
+				case SettingsProperties.NullString:
+					return nullString;
+				case SettingsProperties.LoadPlugins:
+					return loadPlugins;
+				case SettingsProperties.PluginFileFilter:
+					return pluginFileFilter;
+				default:
+					throw new ArgumentException();
+			}
 		}
 
 		public void CloseConnection() {
