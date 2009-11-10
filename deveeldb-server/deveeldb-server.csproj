@@ -64,16 +64,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Deveel.CommandLine, Version=0.5.1.37380, Culture=neutral, PublicKeyToken=1f344e75a1973f38, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Deveel.CommandLine.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Configuration" />
-    <Reference Include="Deveel.CommandLine, Version=0.5.1.3130, Culture=neutral, PublicKeyToken=1f344e75a1973f38">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\Deveel.CommandLine.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
