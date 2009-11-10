@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DEBUG
+using System;
 using System.Collections;
 using System.Text;
 
@@ -7,10 +8,6 @@ using Deveel.Data.Shell;
 namespace Deveel.Data.Commands {
 	/**
 	 * Resolves dependencies between a given set of tables in respect to their foreign keys.<br>
-	 * Created on: Sep 20, 2004<br>
-	 * 
-	 * @author <a href="mailto:martin.grotzke@javakaffee.de">Martin Grotzke</a>
-	 * @version $Id: DependencyResolver.java,v 1.3 2005-06-18 04:58:13 hzeller Exp $
 	 */
 	class DependencyResolver {
 
@@ -301,3 +298,4 @@ namespace Deveel.Data.Commands {
 		}
 	}
 }
+#endif

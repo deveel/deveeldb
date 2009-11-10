@@ -26,13 +26,16 @@ namespace Deveel.Data.Shell {
 				StringBuilder result = new StringBuilder();
 				userName = session.UserName;
 				hostname = connectionString.Host;
-				if (userName != null) result.Append(userName + "@");
-				if (dbName != null) result.Append(dbName);
-				if (dbName != null && hostname != null) result.Append(":");
+				if (userName != null) 
+					result.Append(userName + "@");
+				if (dbName != null) 
+					result.Append(dbName);
+				if (dbName != null && hostname != null) 
+					result.Append(":");
 				if (hostname != null) result.Append(hostname);
 				name = result.ToString();
 			}
-			String key = name;
+			string key = name;
 			int count = 0;
 			while (SessionNameExists(key)) {
 				++count;

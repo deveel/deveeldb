@@ -1,4 +1,5 @@
-﻿using System;
+#if DEBUG
+using System;
 using System.Collections;
 using System.Data;
 using System.IO;
@@ -15,14 +16,14 @@ namespace Deveel.Data.Commands {
 	internal class DumpImporter {
 		public DumpImporter(DumpCommand command, string fileName) {
 			this.command = command;
-			this.reader = reader;
+			this.fileName = fileName;
 		}
 
 		static DumpImporter() {
-			META_HEADERS = new ColumnDesign[3];
-			META_HEADERS[0] = new ColumnDesign("Field");
-			META_HEADERS[1] = new ColumnDesign("Type");
-			META_HEADERS[2] = new ColumnDesign("Max. length found", ColumnAlignment.Right);
+			MetaHeaders = new ColumnDesign[3];
+			MetaHeaders[0] = new ColumnDesign("Field");
+			MetaHeaders[1] = new ColumnDesign("Type");
+			MetaHeaders[2] = new ColumnDesign("Max. length found", ColumnAlignment.Right);
 		}
 
 		private readonly DumpCommand command;
@@ -34,7 +35,7 @@ namespace Deveel.Data.Commands {
 
 		private const string NULL_STR = "NULL";
 
-		protected static readonly ColumnDesign[] META_HEADERS;
+		protected static readonly ColumnDesign[] MetaHeaders;
 
 
 		public int CommitPoint {
@@ -63,7 +64,7 @@ namespace Deveel.Data.Commands {
 			return token.ToString();
 		}
 
-		protected bool SkipWhite() {
+		private bool SkipWhite() {
 			int c;
 			while ((c = reader.Peek()) > 0) {
 				if (c == '\n')
@@ -139,11 +140,10 @@ namespace Deveel.Data.Commands {
 				if (token.IndexOf('.') > 0) {
 					return Double.Parse(token);
 				}
-				if (token.Length < 10) {
+				if (token.Length < 10)
 					return Int32.Parse(token);
-				} else if (token.Length < 19) {
+				if (token.Length < 19)
 					return Int64.Parse(token);
-				}
 			} catch (FormatException e) {
 				RaiseException("Number format " + token + ": " + e.Message);
 			}
@@ -163,11 +163,11 @@ namespace Deveel.Data.Commands {
 			}
 		}
 
-		private static void printMetaDataInfo(MetaProperty[] prop) {
+		private static void PrintMetaDataInfo(MetaProperty[] prop) {
 			OutputDevice.Out.WriteLine();
-			META_HEADERS[0].ResetWidth();
-			META_HEADERS[1].ResetWidth();
-			TableRenderer table = new TableRenderer(META_HEADERS, OutputDevice.Out);
+			MetaHeaders[0].ResetWidth();
+			MetaHeaders[1].ResetWidth();
+			TableRenderer table = new TableRenderer(MetaHeaders, OutputDevice.Out);
 			for (int i = 0; i < prop.Length; ++i) {
 				ColumnValue[] row = new ColumnValue[3];
 				row[0] = new ColumnValue(prop[i].FieldName);
@@ -204,36 +204,36 @@ namespace Deveel.Data.Commands {
 		}
 
 		private DeveelDbParameter CreateParameter(MetaProperty metaProperty) {
-			DbTypes type = metaProperty.type;
+			DbType type = metaProperty.type;
 
 			DeveelDbParameter parameter = new DeveelDbParameter();
 
 			switch (type) {
-				case DbTypes.DB_NUMERIC:
-				case DbTypes.DB_NUMERIC_EXTENDED: {
+				case DbType.Numeric:
+				case DbType.NumericExtended: {
 					double number = ReadNumber();
-					if (type == DbTypes.DB_NUMERIC) {
-						parameter.SqlType = SQLTypes.NUMERIC;
-					} else if (type == DbTypes.DB_NUMERIC_EXTENDED) {
-						parameter.SqlType = SQLTypes.DOUBLE;
+					if (type == DbType.Numeric) {
+						parameter.SqlType = SqlType.Numeric;
+					} else if (type == DbType.NumericExtended) {
+						parameter.SqlType = SqlType.Double;
 					}
 
 					if (number == Double.NaN) {
 						parameter.Value = null;
 					} else {
-						if (type == DbTypes.DB_NUMERIC) {
+						if (type == DbType.Numeric) {
 							parameter.Value = BigNumber.fromDouble(number);
-						} else if (type == DbTypes.DB_NUMERIC_EXTENDED) {
+						} else if (type == DbType.NumericExtended) {
 							parameter.Value = number;
 						}
 					}
 					break;
 				}
 
-				case DbTypes.DB_TIME: {
+				case DbType.Time: {
 					String val = ReadString();
-					metaProperty.updateMaxLength(val);
-					parameter.SqlType = SQLTypes.TIMESTAMP;
+					metaProperty.UpdateMaxLength(val);
+					parameter.SqlType = SqlType.TimeStamp;
 
 					if (val == null) {
 						parameter.Value = null;
@@ -243,10 +243,10 @@ namespace Deveel.Data.Commands {
 					break;
 				}
 
-				case DbTypes.DB_STRING: {
+				case DbType.String: {
 					String val = ReadString();
-					metaProperty.updateMaxLength(val);
-					parameter.SqlType = SQLTypes.VARCHAR;
+					metaProperty.UpdateMaxLength(val);
+					parameter.SqlType = SqlType.VarChar;
 					parameter.Value = val;
 					break;
 				}
@@ -296,7 +296,7 @@ namespace Deveel.Data.Commands {
 				try {
 					if (reader != null)
 						reader.Close();
-				} catch (IOException e) {
+				} catch (IOException) {
 					OutputDevice.Message.WriteLine("closing file failed.");
 				}
 				command.EndInterruptableSection();
@@ -305,7 +305,7 @@ namespace Deveel.Data.Commands {
 
 		private CommandResultCode ReadTableDump(SqlSession session, bool hot) {
 			MetaProperty[] metaProperty = null;
-			String tableName = null;
+			string tableName;
 			int dumpVersion = -1;
 			int compatibleVersion = -1;
 			string henplusVersion = null;
@@ -317,8 +317,8 @@ namespace Deveel.Data.Commands {
 			long expectedRows = -1;
 			long estimatedRows = -1;
 			long problemRows = -1;
-			DeveelDbConnection conn = null;
-			DeveelDbCommand stmt = null;
+			DeveelDbConnection conn;
+			DeveelDbCommand dbCommand = null;
 
 			Expect('(');
 			token = ReadToken();
@@ -415,8 +415,8 @@ namespace Deveel.Data.Commands {
 						prep.Append(")");
 						//HenPlus.msg().println(prep.toString());
 						conn = session.Connection;
-						stmt = conn.CreateCommand();
-						stmt.CommandText = prep.ToString();
+						dbCommand = conn.CreateCommand();
+						dbCommand.CommandText = prep.ToString();
 					}
 
 					OutputDevice.Message.WriteLine((hot ? "importing" : "verifying")
@@ -451,14 +451,14 @@ namespace Deveel.Data.Commands {
 							DeveelDbParameter parameter = CreateParameter(metaProperty[i]);
 							Expect((i + 1 < metaProperty.Length) ? ',' : ')');
 
-							if (stmt != null)
-								stmt.Parameters.Add(parameter);
+							if (dbCommand != null)
+								dbCommand.Parameters.Add(parameter);
 						}
 
 						try {
-							if (stmt != null) {
-								stmt.Prepare();
-								stmt.ExecuteNonQuery();
+							if (dbCommand != null) {
+								dbCommand.Prepare();
+								dbCommand.ExecuteNonQuery();
 							}
 						} catch (DataException e) {
 							String msg = e.Message;
@@ -466,7 +466,7 @@ namespace Deveel.Data.Commands {
 							if (msg != null)
 								msg = msg.Trim();
 
-							command.reportProblem(msg);
+							command.ReportProblem(msg);
 							++problemRows;
 						}
 
@@ -484,10 +484,10 @@ namespace Deveel.Data.Commands {
 			}
 
 			// return final count.
-			command.finishProblemReports();
+			command.FinishProblemReports();
 
 			if (!hot) {
-				printMetaDataInfo(metaProperty);
+				PrintMetaDataInfo(metaProperty);
 			}
 
 			// final commit, if commitPoints are enabled.
@@ -515,3 +515,4 @@ namespace Deveel.Data.Commands {
 		}
 	}
 }
+#endif

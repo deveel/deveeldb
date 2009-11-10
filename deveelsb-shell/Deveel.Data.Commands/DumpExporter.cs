@@ -1,26 +1,27 @@
-﻿using System;
+#if DEBUG
+using System;
+using System.Collections;
 using System.Data;
 using System.IO;
 using System.Text;
 
+using Deveel.Collections;
 using Deveel.Commands;
-using Deveel.Data.Commands;
 using Deveel.Data.Shell;
 using Deveel.Design;
 using Deveel.Shell;
 
 namespace Deveel.Data.Commands {
 	internal class DumpExporter {
-		public DumpExporter(DumpCommand command) {
+		public DumpExporter(DumpCommand command, string fileName) {
 			this.command = command;
+			this.fileName = fileName;
 		}
 
+		private readonly string fileName;
 		private readonly DumpCommand command;
 
-		private CommandResultCode dumpTable(SqlSession session,
-					  String tabName,
-					  String whereClause,
-					  TextWriter dumpOut, String fileEncoding) {
+		private CommandResultCode dumpTable(SqlSession session, string tabName, string whereClause, TextWriter dumpOut, String fileEncoding) {
 
 			// asking for meta data is only possible with the correct
 			// table name.
@@ -46,7 +47,7 @@ namespace Deveel.Data.Commands {
 				}
 			}
 			TableDumpSource tableSource = new TableDumpSource(schema, tabName, !correctName, session);
-			tableSource.setWhereClause(whereClause);
+			tableSource.SetWhereClause(whereClause);
 			return dumpTable(session, tableSource, dumpOut, fileEncoding);
 		}
 
@@ -84,13 +85,13 @@ namespace Deveel.Data.Commands {
 			dumpOut.Write("  (meta (");
 			for (int i = 0; i < metaProps.Length; ++i) {
 				MetaProperty p = metaProps[i];
-				printWidth(dumpOut, p.fieldName, p.renderWidth(), i != 0);
+				printWidth(dumpOut, p.fieldName, p.RenderWidth, i != 0);
 			}
 			dumpOut.WriteLine(")");
 			dumpOut.Write("\t(");
 			for (int i = 0; i < metaProps.Length; ++i) {
 				MetaProperty p = metaProps[i];
-				printWidth(dumpOut, p.typeName, p.renderWidth(), i != 0);
+				printWidth(dumpOut, p.typeName, p.RenderWidth, i != 0);
 			}
 			dumpOut.WriteLine("))");
 
@@ -112,30 +113,30 @@ namespace Deveel.Data.Commands {
 					dumpOut.Write("(");
 
 					for (int i = 0; i < metaProps.Length; ++i) {
-						DbTypes thisType = metaProps[i].Type;
+						DbType thisType = metaProps[i].Type;
 
 						switch (thisType) {
-							case DbTypes.DB_NUMERIC:
-							case DbTypes.DB_NUMERIC_EXTENDED: {
-								String val = rset.GetString(i);
-								if (rset.IsDBNull(i))
-									dumpOut.Write("NULL");
-								else
-									dumpOut.Write(val);
-								break;
-							}
-
-							case DbTypes.DB_TIME: {
-								DateTime val = rset.GetDateTime(i);
-								if (rset.IsDBNull(i))
-									dumpOut.Write("NULL");
-								else {
-									quoteString(dumpOut, val.ToString());
+							case DbType.Numeric:
+							case DbType.NumericExtended: {
+									String val = rset.GetString(i);
+									if (rset.IsDBNull(i))
+										dumpOut.Write("NULL");
+									else
+										dumpOut.Write(val);
+									break;
 								}
-								break;
-							}
 
-							case DbTypes.DB_STRING: {
+							case DbType.Time: {
+									DateTime val = rset.GetDateTime(i);
+									if (rset.IsDBNull(i))
+										dumpOut.Write("NULL");
+									else {
+										quoteString(dumpOut, val.ToString());
+									}
+									break;
+								}
+
+							case DbType.String: {
 									String val = rset.GetString(i);
 									if (rset.IsDBNull(i))
 										dumpOut.Write("NULL");
@@ -219,5 +220,125 @@ namespace Deveel.Data.Commands {
 				output.Write(' ');
 			}
 		}
+
+		public CommandResultCode Export(SqlSession session, IList possibleTables) {
+			TextWriter output = null;
+			string tabName = null;
+			command.BeginInterruptableSection();
+			try {
+				DateTime startTime = DateTime.Now;
+				ArrayList alreadyDumped = new ArrayList();      // which tables got already dumped?
+
+				output = command.OpenOutputStream(fileName, "UTF-8");
+				IList/*<String>*/ tableSet = new ArrayList();
+
+				/* right now, we do only a sort, if there is any '*' found in tables. Probably
+				 * we might want to make this an option to dump-in */
+				bool needsSort = false;
+
+				CommandResultCode dumpResult = CommandResultCode.Success;
+
+				/* 1) collect tables */
+				foreach (string nextToken in possibleTables) {
+					if ("*".Equals(nextToken) || nextToken.IndexOf('*') > -1) {
+						needsSort = true;
+
+						IEnumerator iter = null;
+
+						if ("*".Equals(nextToken)) {
+							iter = session.TableCompleter.GetNamesEnumerator();
+						} else if (nextToken.IndexOf('*') > -1) {
+							String tablePrefix = nextToken.Substring(0, nextToken.Length - 1);
+							ISortedSet tableNames = session.TableCompleter.GetNames();
+							NameCompleter compl = new NameCompleter(tableNames);
+							iter = compl.GetAlternatives(tablePrefix);
+						}
+						while (iter.MoveNext()) {
+							tableSet.Add(iter.Current);
+						}
+					} else {
+						tableSet.Add(nextToken);
+					}
+				}
+
+				/* 2) resolve dependencies */
+				DependencyResolver.ResolverResult resolverResult = null;
+				IList/*<String>*/ tableSequence;
+				if (needsSort) {
+					tableSequence = new ArrayList();
+					OutputDevice.Message.WriteLine("Retrieving and sorting tables. This may take a while, please be patient.");
+
+					// get sorted tables
+					/*
+					TODO:
+					SQLMetaData meta = new SQLMetaDataBuilder().getMetaData(session,
+																			 tableSet.GetEnumerator());
+					DependencyResolver dr = new DependencyResolver(meta.getTables());
+					resolverResult = dr.sortTables();
+					IList/*<Table> tabs = resolverResult.getTables();
+					foreach (Shell.Table table in tabs) {
+						tableSequence.Add(table.Name);
+					}
+					*/
+				} else {
+					tableSequence = new ArrayList(tableSet);
+				}
+
+				/* 3) dump out */
+				if (tableSequence.Count > 1) {
+					OutputDevice.Message.WriteLine(tableSequence.Count + " tables to dump.");
+				}
+				IEnumerator it = tableSequence.GetEnumerator();
+				while (command.IsRunning && it.MoveNext()) {
+					string table = (String)it.Current;
+					if (!alreadyDumped.Contains(table)) {
+						// TODO: CommandResultCode result = dumpTable(session, table, null, output, "UTF-8", alreadyDumped);
+						CommandResultCode result = CommandResultCode.ExecutionFailed;
+						if (result != CommandResultCode.Success) {
+							dumpResult = result;
+						}
+					}
+				}
+
+				if (tableSequence.Count > 1) {
+					long duration = (long)(DateTime.Now - startTime).TotalMilliseconds;
+					OutputDevice.Message.WriteLine("Dumping " + tableSequence.Count + " tables took ");
+					TimeRenderer.PrintTime(duration, OutputDevice.Message);
+					OutputDevice.Message.WriteLine();
+				}
+
+				/* 4) warn about cycles */
+				if (resolverResult != null
+					 && resolverResult.getCyclicDependencies() != null
+					 && resolverResult.getCyclicDependencies().Count > 0) {
+					OutputDevice.Message.WriteLine("-----------\n"
+										   + "NOTE: There have been cyclic dependencies between several tables detected.\n" +
+										   "These may cause trouble when dumping in the currently dumped data.");
+					IEnumerator iter = resolverResult.getCyclicDependencies().GetEnumerator();
+					int count = 0;
+					StringBuilder sb = new StringBuilder();
+					while (iter.MoveNext()) {
+						IEnumerator iter2 = ((IList)iter.Current).GetEnumerator();
+						sb.Append("Cycle ").Append(count).Append(": ");
+						while (iter2.MoveNext()) {
+							sb.Append(((Shell.Table)iter2.Current).Name).Append(" -> ");
+						}
+						sb.Remove(sb.Length - 4, 4).Append('\n');
+					}
+					OutputDevice.Message.Write(sb.ToString());
+					/* todo: print out, what constraint to disable */
+				}
+
+				return dumpResult;
+			} catch (Exception e) {
+				OutputDevice.Message.WriteLine("dump table '" + tabName + "' failed: " + e.Message);
+				OutputDevice.Message.WriteLine(e.StackTrace);
+				return CommandResultCode.ExecutionFailed;
+			} finally {
+				if (output != null) output.Close();
+				command.EndInterruptableSection();
+			}
+		}
 	}
 }
+#endif

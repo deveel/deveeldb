@@ -9,6 +9,7 @@ using Deveel.Shell;
 namespace Deveel.Data.Commands {
 	[Command("connect", ShortDescription = "connects to a server.")]
 	[CommandSynopsis("connect <conn-string> [ <alias> ]")]
+	[CommandSynopsis("connect <alias>")]
 	[CommandGroup("sessions")]
 	public sealed class ConnectCommand : Command {
 		public override string LongDescription {

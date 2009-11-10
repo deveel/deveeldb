@@ -1,4 +1,5 @@
-﻿using System;
+#if DEBUG
+using System;
 using System.Collections;
 
 using Deveel.Shell;
@@ -6,49 +7,49 @@ using Deveel.Shell;
 namespace Deveel.Data.Commands {
 	internal class MetaProperty {
 		static MetaProperty() {
-			Types[DbTypes.DB_STRING] = "STRING";
-			Types[DbTypes.DB_NUMERIC] = "NUMERIC";
-			Types[DbTypes.DB_TIME] = "TIME";
-			Types[DbTypes.DB_BOOLEAN] = "BOOLEAN";
-			Types[DbTypes.DB_BLOB] = "BLOB";
+			Types[DbType.String] = "STRING";
+			Types[DbType.Numeric] = "NUMERIC";
+			Types[DbType.Time] = "TIME";
+			Types[DbType.Boolean] = "BOOLEAN";
+			Types[DbType.Blob] = "BLOB";
 
-			SQLTypes2TypeName[SQLTypes.CHAR] = Types[DbTypes.DB_STRING];
-			SQLTypes2TypeName[SQLTypes.VARCHAR] = Types[DbTypes.DB_STRING];
+			SQLTypes2TypeName[SqlType.Char] = Types[DbType.String];
+			SQLTypes2TypeName[SqlType.VarChar] = Types[DbType.String];
 
 			// hope that, 'OTHER' can be read/written as String..
-			SQLTypes2TypeName[SQLTypes.OTHER] = Types[DbTypes.DB_STRING];
+			SQLTypes2TypeName[SqlType.Other] = Types[DbType.String];
 
-			SQLTypes2TypeName[SQLTypes.LONGVARBINARY] = Types[DbTypes.DB_BLOB];
+			SQLTypes2TypeName[SqlType.LongVarBinary] = Types[DbType.Blob];
 			// CLOB not supported .. try string.
-			SQLTypes2TypeName[SQLTypes.LONGVARCHAR] = Types[DbTypes.DB_STRING];
+			SQLTypes2TypeName[SqlType.LongVarChar] = Types[DbType.String];
 
 			// not supported yet.
-			SQLTypes2TypeName[SQLTypes.BLOB] = Types[DbTypes.DB_BLOB];
+			SQLTypes2TypeName[SqlType.Blob] = Types[DbType.Blob];
 			// CLOB not supported .. try string.
-			SQLTypes2TypeName[SQLTypes.CLOB] = Types[DbTypes.DB_STRING];
+			SQLTypes2TypeName[SqlType.Clob] = Types[DbType.String];
 
 			// generic float.
-			SQLTypes2TypeName[SQLTypes.DOUBLE] = Types[DbTypes.DB_NUMERIC_EXTENDED];
-			SQLTypes2TypeName[SQLTypes.FLOAT] = Types[DbTypes.DB_NUMERIC_EXTENDED];
+			SQLTypes2TypeName[SqlType.Double] = Types[DbType.NumericExtended];
+			SQLTypes2TypeName[SqlType.Float] = Types[DbType.NumericExtended];
 
 			// generic numeric. could be integer or double
-			SQLTypes2TypeName[SQLTypes.BIGINT] = Types[DbTypes.DB_NUMERIC];
-			SQLTypes2TypeName[SQLTypes.NUMERIC] = Types[DbTypes.DB_NUMERIC];
-			SQLTypes2TypeName[SQLTypes.DECIMAL] = Types[DbTypes.DB_NUMERIC];
-			SQLTypes2TypeName[SQLTypes.BOOLEAN] = Types[DbTypes.DB_NUMERIC];
+			SQLTypes2TypeName[SqlType.BigInt] = Types[DbType.Numeric];
+			SQLTypes2TypeName[SqlType.Numeric] = Types[DbType.Numeric];
+			SQLTypes2TypeName[SqlType.Decimal] = Types[DbType.Numeric];
+			SQLTypes2TypeName[SqlType.Boolean] = Types[DbType.Numeric];
 			// generic integer.
-			SQLTypes2TypeName[SQLTypes.INTEGER] = Types[DbTypes.DB_NUMERIC];
-			SQLTypes2TypeName[SQLTypes.SMALLINT] = Types[DbTypes.DB_NUMERIC];
-			SQLTypes2TypeName[SQLTypes.TINYINT] = Types[DbTypes.DB_NUMERIC];
+			SQLTypes2TypeName[SqlType.Integer] = Types[DbType.Numeric];
+			SQLTypes2TypeName[SqlType.SmallInt] = Types[DbType.Numeric];
+			SQLTypes2TypeName[SqlType.TinyInt] = Types[DbType.Numeric];
 
-			SQLTypes2TypeName[SQLTypes.DATE] = Types[DbTypes.DB_TIME];
-			SQLTypes2TypeName[SQLTypes.TIME] = Types[DbTypes.DB_TIME];
-			SQLTypes2TypeName[SQLTypes.TIMESTAMP] = Types[DbTypes.DB_TIME];
+			SQLTypes2TypeName[SqlType.Date] = Types[DbType.Time];
+			SQLTypes2TypeName[SqlType.Time] = Types[DbType.Time];
+			SQLTypes2TypeName[SqlType.TimeStamp] = Types[DbType.Time];
 		}
 
 		private int maxLen;
 		public readonly String fieldName;
-		public DbTypes type;
+		public DbType type;
 		public String typeName;
 
 		public static readonly Hashtable Types = new Hashtable();
@@ -60,16 +61,16 @@ namespace Deveel.Data.Commands {
 			maxLen = -1;
 		}
 
-		public MetaProperty(String fieldName, int sqlType) {
+		public MetaProperty(String fieldName, SqlType sqlType) {
 			this.fieldName = fieldName;
 			typeName = (String)SQLTypes2TypeName[sqlType];
 			if (typeName == null) {
 				OutputDevice.Message.WriteLine("cannot handle type '" + type + "' for field '" + this.fieldName +
 											   "'; trying String..");
-				type = DbTypes.DB_STRING;
+				type = DbType.String;
 				typeName = (string) Types[this.type];
 			} else {
-				type = findType(typeName);
+				type = FindType(typeName);
 			}
 			maxLen = -1;
 		}
@@ -81,63 +82,64 @@ namespace Deveel.Data.Commands {
 		public String TypeName {
 			get { return typeName; }
 			set {
-				type = findType(value);
+				type = FindType(value);
 				typeName = value;
 			}
 		}
 
 
-		public void updateMaxLength(String val) {
+		public void UpdateMaxLength(String val) {
 			if (val != null) {
-				updateMaxLength(val.Length);
+				UpdateMaxLength(val.Length);
 			}
 		}
 
-		public void updateMaxLength(int maxLen) {
-			if (maxLen > this.maxLen) {
-				this.maxLen = maxLen;
+		public void UpdateMaxLength(int value) {
+			if (value > maxLen) {
+				maxLen = value;
 			}
 		}
 
 		public int MaxLength {
-			get { return this.maxLen; }
+			get { return maxLen; }
 		}
 
 		/**
 		 * find the type in the array. uses linear search, but this is
 		 * only a small list.
 		 */
-		private static DbTypes findType(String typeName) {
+		private static DbType FindType(String typeName) {
 			if (typeName == null) {
 				throw new ArgumentNullException("typeName");
 			}
 			typeName = typeName.ToUpper();
 			switch (typeName) {
 				case "STRING":
-					return DbTypes.DB_STRING;
+					return DbType.String;
 				case "NUMERIC":
 				case "DOUBLE":
 				case "INTEGER":
-					return DbTypes.DB_NUMERIC;
+					return DbType.Numeric;
 				case "NUMERIC_EXTENDED":
-					return DbTypes.DB_NUMERIC_EXTENDED;
+					return DbType.NumericExtended;
 				case "BOOLEAN":
-					return DbTypes.DB_BOOLEAN;
+					return DbType.Boolean;
 				case "TIME":
-					return DbTypes.DB_TIME;
+					return DbType.Time;
 				case "BLOB":
-					return DbTypes.DB_BLOB;
+					return DbType.Blob;
 			}
 
 			throw new ArgumentException("invalid type " + typeName);
 		}
 
-		public DbTypes Type {
+		public DbType Type {
 			get { return type; }
 		}
 
-		public int renderWidth() {
-			return System.Math.Max(typeName.Length, fieldName.Length);
+		public int RenderWidth {
+			get { return System.Math.Max(typeName.Length, fieldName.Length); }
 		}
 	}
 }
+#endif

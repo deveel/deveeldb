@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Threading;
 
 using Deveel.Commands;
 using Deveel.Data.Client;
@@ -24,8 +23,8 @@ namespace Deveel.Data.Commands {
 		private bool showFooter;
 		private volatile bool running;
 
-		private static StatementCanceller _statementCanceller;
-		private static LongRunningTimeDisplay _longRunningDisplay;
+		private static StatementCanceller statementCanceller;
+		private static LongRunningTimeDisplay longRunningDisplay;
 
 		private static readonly string[] TableCompleterKeyword = { "FROM", "INTO", "UPDATE", "TABLE", "ALIAS", "VIEW", /*create index*/"ON" };
 
@@ -79,13 +78,13 @@ namespace Deveel.Data.Commands {
 			if (!Application.Properties.HasProperty("sql-result-showfooter"))
 				Application.Properties.RegisterProperty("sql-result-showfooter", new ShowFooterProperty(this));
 
-			if (_statementCanceller == null) {
-				_statementCanceller = new StatementCanceller(new CurrentStatementCancelTarget(this));
-				_statementCanceller.StartThread();
+			if (statementCanceller == null) {
+				statementCanceller = new StatementCanceller(new CurrentStatementCancelTarget(this));
+				statementCanceller.StartThread();
 			}
-			if (_longRunningDisplay == null) {
-				_longRunningDisplay = new LongRunningTimeDisplay("statement running", 30000);
-				_longRunningDisplay.StartThread();
+			if (longRunningDisplay == null) {
+				longRunningDisplay = new LongRunningTimeDisplay("statement running", 30000);
+				longRunningDisplay.StartThread();
 			}
 		}
 
@@ -119,7 +118,7 @@ namespace Deveel.Data.Commands {
 			TimeSpan execTime = TimeSpan.Zero;
 			DeveelDbDataReader rset = null;
 			running = true;
-			SignalInterruptHandler.Current.Push(_statementCanceller);
+			SignalInterruptHandler.Current.Push(statementCanceller);
 
 			try {
 				if (commandText.StartsWith("commit")) {
@@ -136,14 +135,14 @@ namespace Deveel.Data.Commands {
 					dbCommand = session.Connection.CreateCommand();
 					dbCommand.CommandText = commandText;
 
-					_statementCanceller.Arm();
-					_longRunningDisplay.Arm();
+					statementCanceller.Arm();
+					longRunningDisplay.Arm();
 					if (IsUpdateCommand) {
 						updateCount = this.dbCommand.ExecuteNonQuery();
 					} else {
 						rset = this.dbCommand.ExecuteReader();
 					}
-					_longRunningDisplay.Disarm();
+					longRunningDisplay.Disarm();
 
 					if (!running) {
 						Application.MessageDevice.WriteLine("cancelled");
@@ -198,8 +197,8 @@ namespace Deveel.Data.Commands {
 				}
 				return CommandResultCode.ExecutionFailed;
 			} finally {
-				_statementCanceller.Disarm();
-				_longRunningDisplay.Disarm();
+				statementCanceller.Disarm();
+				longRunningDisplay.Disarm();
 				try {
 					if (rset != null) 
 						rset.Close();
@@ -219,9 +218,8 @@ namespace Deveel.Data.Commands {
 				return null;
 
 			String canonCmd = partialCommand.ToUpper();
-			/*
-			 * look for keywords that expect table names
-			 */
+
+			// look for keywords that expect table names
 			int tableMatch = -1;
 			for (int i = 0; i < TableCompleterKeyword.Length; ++i) {
 				int match = canonCmd.IndexOf(TableCompleterKeyword[i]);
@@ -232,10 +230,8 @@ namespace Deveel.Data.Commands {
 			}
 
 			if (tableMatch < 0) {
-				/*
-				 * ok, try to complete all columns from all tables since
-				 * we don't know yet what table the column will be from.
-				 */
+				// try to complete all columns from all tables since
+				// we don't know yet what table the column will be from.
 				return session.CompleteAllColumns(lastWord);
 			}
 
@@ -256,14 +252,13 @@ namespace Deveel.Data.Commands {
 			}
 
 			if (endTabMatch > tableMatch) {
-				/*
-				 * column completion for the tables mentioned between in the
-				 * table area. This acknowledges as well aliases and prepends
-				 * the names with these aliases, if necessary.
-				 */
-				String tables = partialCommand.Substring(tableMatch, endTabMatch - tableMatch);
+				// column completion for the tables mentioned between in the
+				// table area. This acknowledges as well aliases and prepends
+				// the names with these aliases, if necessary.
+				string tables = partialCommand.Substring(tableMatch, endTabMatch - tableMatch).Trim();
+
 				Hashtable tmp = new Hashtable();
-				IEnumerator it = tableDeclParser(tables).GetEnumerator();
+				IEnumerator it = TableDeclParser(tables).GetEnumerator();
 				while (it.MoveNext()) {
 					DictionaryEntry entry = (DictionaryEntry)it.Current;
 					string alias = (String)entry.Key;
@@ -305,10 +300,12 @@ namespace Deveel.Data.Commands {
 			}
 		}
 
-		/** 
- * A statement cancel target that accesses the instance
- * wide statement.
- */
+		#region CurrentStatementCancelTarget
+
+		/// <summary>
+		/// A statement cancel target that accesses the instance 
+		/// wide statement.
+		/// </summary>
 		private class CurrentStatementCancelTarget : StatementCanceller.CancelTarget {
 			public CurrentStatementCancelTarget(SqlCommand command) {
 				this.command = command;
@@ -320,23 +317,25 @@ namespace Deveel.Data.Commands {
 				try {
 					command.Application.MessageDevice.WriteLine("cancel statement...");
 					command.Application.MessageDevice.Flush();
+
 					CancelWriter info = new CancelWriter(command.Application.MessageDevice);
 					info.Write("please wait");
 					command.dbCommand.Cancel();
 					info.Cancel();
+
 					command.Application.MessageDevice.WriteLine("done.");
 					command.running = false;
-				} catch (Exception e) {
+				} catch (Exception) {
 					
 				}
 			}
 		}
 
-		/**
-     * parses 'tablename ((AS)? alias)? [,...]' and returns a map, that maps
-     * the names (or aliases) to the tablenames.
-     */
-		private IDictionary tableDeclParser(String tableDecl) {
+		#endregion
+
+		// parses 'tablename ((AS)? alias)? [,...]' and returns a map, that maps
+		// the names (or aliases) to the tablenames.
+		private static IDictionary TableDeclParser(String tableDecl) {
 			string[] tokenizer = tableDecl.Split('\t', '\n', '\r', '\f');
 			Hashtable result = new Hashtable();
 			String tok;
@@ -347,6 +346,7 @@ namespace Deveel.Data.Commands {
 				tok = tokenizer[i];
 				if (tok.Length == 1 && Char.IsWhiteSpace(tok[0]))
 					continue;
+
 				switch (state) {
 					case 0: { // initial/endstate
 							table = tok;
@@ -376,9 +376,8 @@ namespace Deveel.Data.Commands {
 							break;
 						}
 					case 3: {  // waiting for ',' at end of 'table (as)? alias'
-							if (!",".Equals(tok)) {
+							if (!",".Equals(tok))
 								// error: ',' expected.
-							}
 							state = 0;
 							break;
 						}
@@ -389,6 +388,7 @@ namespace Deveel.Data.Commands {
 						result.Add(alias, table);
 				}
 			}
+
 			// store any unfinished state..
 			if (state == 1 || state == 3) {
 				if (alias != null)
@@ -396,8 +396,11 @@ namespace Deveel.Data.Commands {
 			} else if (state == 2) {
 				// error: alias expected for $table.
 			}
+
 			return result;
 		}
+
+		#region RowLimitProperty
 
 		private class RowLimitProperty : PropertyHolder {
 			public RowLimitProperty(SqlCommand command)
@@ -431,6 +434,10 @@ namespace Deveel.Data.Commands {
 			}
 		}
 
+		#endregion
+
+		#region SQLColumnDelimiterProperty
+
 		private class SQLColumnDelimiterProperty : PropertyHolder {
 			public SQLColumnDelimiterProperty(SqlCommand command)
 				: base(command.ColumnDelimiter) {
@@ -454,14 +461,16 @@ namespace Deveel.Data.Commands {
 
 			public override String LongDescription {
 				get {
-					String dsc;
-					dsc = "\tSet another string that is used to separate columns in\n"
-						  + "\tSQL result sets. Usually this is a pipe-symbol '|', but\n"
-						  + "\tmaybe you want to have an empty string ?";
-					return dsc;
+					return "Set another string that is used to separate columns in\n" +
+					       "SQL result sets. Usually this is a pipe-symbol '|', but\n" +
+					       "maybe you want to have an empty string ?";
 				}
 			}
 		}
+
+		#endregion
+
+		#region ShowHeaderProperty
 
 		private class ShowHeaderProperty : BooleanPropertyHolder {
 
@@ -480,13 +489,14 @@ namespace Deveel.Data.Commands {
 				get { return "on"; }
 			}
 
-			/**
-			 * return a short descriptive string.
-			 */
 			public override String ShortDescription {
 				get { return "switches if header in selected tables should be shown"; }
 			}
 		}
+
+		#endregion
+
+		#region ShowFooterProperty
 
 		private class ShowFooterProperty : BooleanPropertyHolder {
 
@@ -505,12 +515,11 @@ namespace Deveel.Data.Commands {
 				get { return "on"; }
 			}
 
-			/**
-			 * return a short descriptive string.
-			 */
 			public override String ShortDescription {
 				get { return "switches if footer in selected tables should be shown"; }
 			}
 		}
+
+		#endregion
 	}
 }

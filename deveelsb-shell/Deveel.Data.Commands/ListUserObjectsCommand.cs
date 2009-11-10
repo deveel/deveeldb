@@ -42,8 +42,10 @@ namespace Deveel.Data.Commands {
 				types = new string[] { "TABLE", "SYSTEM TABLE" };
 			}
 
+			DeveelDbDataReader reader = null;
+
 			try {
-				DeveelDbDataReader reader = GetTables(session, schemaName, tableName, types);
+				reader = GetTables(session, schemaName, tableName, types);
 				int[] tableDispCols = { 1, 2, 3, 4 };
 				ResultSetRenderer renderer = new ResultSetRenderer(reader, "|", true, true, 10000,
 				                                                   OutputDevice.Out, tableDispCols);
@@ -60,6 +62,9 @@ namespace Deveel.Data.Commands {
 			} catch(Exception e) {
 				OutputDevice.Message.WriteLine(e.Message);
 				return CommandResultCode.ExecutionFailed;
+			} finally {
+				if (reader != null)
+					reader.Close();
 			}
 
 			return CommandResultCode.Success;

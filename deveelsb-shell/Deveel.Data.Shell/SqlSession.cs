@@ -33,6 +33,8 @@ namespace Deveel.Data.Shell {
 			conn = null;
 			propertyRegistry = new PropertyRegistry(this);
 
+			app.MessageDevice.WriteLine("connecting to " + connectionString);
+
 			if (Connect()) {
 				try {
 					SetAutoCommit(false);
@@ -157,6 +159,8 @@ namespace Deveel.Data.Shell {
 				return false;
 			}
 
+			app.MessageDevice.WriteLine("connected to " + conn.DataSource);
+
 			if (connectionString.UserName == null) {
 				try {
 					System.Data.DataTable table = conn.GetSchema("User");
@@ -235,7 +239,11 @@ namespace Deveel.Data.Shell {
 		}
 
 		public NameCompleter TableCompleter {
-			get { return sessionTables; }
+			get {
+				if (sessionTables == null)
+					RehashTableCompleter();
+				return sessionTables;
+			}
 		}
 
 		public NameCompleter AllColumnsCompleter {
@@ -247,7 +255,7 @@ namespace Deveel.Data.Shell {
 					NameCompleter tables = TableCompleter;
 					if (tables == null)
 						return null;
-					IEnumerator table = tables.GetNames();
+					IEnumerator table = tables.GetNamesEnumerator();
 					sessionColumns = new NameCompleter();
 					while (!interrupted && table.MoveNext()) {
 						string tabName = (string)table.Current;

@@ -67,7 +67,7 @@ namespace Deveel.Data.Shell {
 			string tableSchema = row["TABLE_SCHEMA"].ToString();
 			string tableName = row["TABLE_NAME"].ToString();
 			string columnName = row["COLUMN_NAME"].ToString();
-			SQLTypes dataType = (SQLTypes)(int) row["DATA_TYPE"];
+			SqlType dataType = (SqlType)(int) row["DATA_TYPE"];
 
 			int position = (int) row["ORDINAL_POSITION"];
 			string dataTypeName = row["TYPE_NAME"].ToString();

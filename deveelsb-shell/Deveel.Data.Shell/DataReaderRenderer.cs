@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -82,8 +82,8 @@ namespace Deveel.Data.Commands {
 						int col = (showColumns != null) ? showColumns[i] : i;
 						System.Data.DataRow row = meta.Rows[col];
 
-						SQLTypes type = (SQLTypes) row["SqlType"];
-						string colString = type == SQLTypes.CLOB ? ReadClob(reader.GetLob(col)) : reader.GetString(col);
+						SqlType type = (SqlType) row["SqlType"];
+						string colString = type == SqlType.Clob ? ReadClob(reader.GetLob(col)) : reader.GetString(col);
 
 						ColumnValue thisCol = new ColumnValue(colString);
 						currentRow[i] = thisCol;
@@ -135,14 +135,14 @@ namespace Deveel.Data.Commands {
 				ColumnAlignment alignment = ColumnAlignment.Left;
 				System.Data.DataRow column = m.Rows[col];
 				String columnLabel = column["Name"].ToString();
-				SQLTypes type = (SQLTypes) column["SqlType"];
+				SqlType type = (SqlType) column["SqlType"];
 
 				switch (type) {
-					case SQLTypes.NUMERIC:
-					case SQLTypes.INTEGER:
-					case SQLTypes.REAL:
-					case SQLTypes.SMALLINT:
-					case SQLTypes.TINYINT:
+					case SqlType.Numeric:
+					case SqlType.Integer:
+					case SqlType.Real:
+					case SqlType.SmallInt:
+					case SqlType.TinyInt:
 						alignment = ColumnAlignment.Right;
 						break;
 				}

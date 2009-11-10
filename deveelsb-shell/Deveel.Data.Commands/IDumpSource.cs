@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DEBUG
+using System;
 using System.Data;
 
 namespace Deveel.Data.Commands {
@@ -16,3 +17,4 @@ namespace Deveel.Data.Commands {
 		long ExpectedRows { get; }
 	}
 }
+#endif

@@ -10,8 +10,8 @@ namespace Deveel.Data.Commands {
 	public sealed class DisconnectCommand : Command {
 		public override string LongDescription {
 			get {
-				return "\tdisconnect current session. You can leave a session as\n"
-				       + "\twell if you just type CTRL-D";
+				return "disconnect current session. You can leave a session as\n" +
+				       "well if you just type CTRL-D";
 			}
 		}
 
