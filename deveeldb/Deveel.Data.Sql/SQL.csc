@@ -1248,9 +1248,9 @@ TableSelectExpression GetTableSelectExpression() :
 {
   ( <SELECT>
         ( 
-          LOOKAHEAD(2) <IDENTITY> { table_expr.columns.Add(Sql.SelectColumn.Identity); } |
+          LOOKAHEAD(2) <IDENTITY> { table_expr.Columns.Add(Sql.SelectColumn.Identity); } |
           [ table_expr.Distinct = SetQuantifier() ] 
-          SelectColumnList(table_expr.columns) 
+          SelectColumnList(table_expr.Columns) 
         )
         [ <FROM> SelectTableList(table_expr.From) ]
         [ <WHERE> ConditionsExpression(table_expr.Where) ]
@@ -1542,7 +1542,6 @@ SqlColumn ColumnDefinition() :
 {
   ( col_name = ColumnName() { column.SetName(col_name); }
     ColumnDataType(column)
-    [ <IDENTITY> { column.Identity=true; } ]
     [ <SQLDEFAULT> default_exp = DoExpression() { column.Default = default_exp; } ]
     ( ColumnConstraint(column) )*
     [ ( t=<INDEX_BLIST> | t=<INDEX_NONE> ) { column.SetIndex(t); } ] 
@@ -1649,6 +1648,12 @@ SqlType GetIntervalSQLType() :
   | <INTERVAL> { return SqlType.Interval; }
 }
 
+SqlType GetIdentitySQLType() :
+{ }
+{
+    <IDENTITY> { return SqlType.Identity; }
+}
+
 // Parses an SQL type and forms a TType object.  For example, "CHAR(500)" is
 // parsed to a TStringType with a maximum size of 500 and lexicographical
 // collation.
@@ -1676,6 +1681,9 @@ TType GetTType() :
       [ <COLLATE> t=<STRING_LITERAL> { loc = ((TObject) Util.ToParamObject(t, case_insensitive_identifiers)).ToString(); }
          [ strength=GetCollateStrength() ] [ decomposition = GetCollateDecomposition() ] ]
       { return TType.GetStringType(data_type, size, loc, strength, decomposition); }
+
+    | data_type = GetIdentitySQLType() 
+      { return TType.GetNumeric(data_type, -1, -1); }
 
     | data_type = GetNumericSQLType() [ "(" size = PositiveIntegerConstant()
                              [ "," scale = PositiveIntegerConstant() ] ")" ]
