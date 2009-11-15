@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The list of columns to select from. (SelectColumn)
 		/// </summary>
-		public ArrayList columns = new ArrayList();
+		private ArrayList columns = new ArrayList();
 
 		/// <summary>
 		/// The from clause.
@@ -135,6 +135,13 @@ namespace Deveel.Data.Sql {
 
 		public TableSelectExpression NextComposite {
 			get { return next_composite; }
+		}
+
+		/// <summary>
+		/// The list of columns to select from. (SelectColumn)
+		/// </summary>
+		public ArrayList Columns {
+			get { return columns; }
 		}
 
 		///<summary>

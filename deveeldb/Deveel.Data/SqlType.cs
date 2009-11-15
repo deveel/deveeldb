@@ -207,6 +207,12 @@ namespace Deveel.Data {
 		///<summary>
 		/// An unknown SQL type (either not supported by the system.
 		///</summary>
-		Unknown = -9332
+		Unknown = -9332,
+
+		/// <summary>
+		/// The type used to define an auto-incremental numeric
+		/// column type.
+		/// </summary>
+		Identity = 56
 	}
 }

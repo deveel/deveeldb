@@ -203,7 +203,7 @@ namespace Deveel.Data.Sql {
 			// Set up functions, aliases and exposed variables for this from set,
 
 			// The list of columns being selected (SelectColumn).
-			ArrayList columns = select_expression.columns;
+			ArrayList columns = select_expression.Columns;
 
 			// For each column being selected
 			for (int i = 0; i < columns.Count; ++i) {
@@ -279,7 +279,7 @@ namespace Deveel.Data.Sql {
 			QuerySelectColumnSet column_set = new QuerySelectColumnSet(from_set);
 
 			// The list of columns being selected (SelectColumn).
-			ArrayList columns = expression.columns;
+			ArrayList columns = expression.Columns;
 
 			// If there are 0 columns selected, then we assume the result should
 			// show all of the columns in the result.

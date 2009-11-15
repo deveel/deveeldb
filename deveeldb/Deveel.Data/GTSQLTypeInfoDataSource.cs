@@ -95,6 +95,7 @@ namespace Deveel.Data {
 			AddType("DOUBLE", SqlType.Double, 9, null, null, null, true);
 			AddType("NUMERIC", SqlType.Numeric, 9, null, null, null, true);
 			AddType("DECIMAL", SqlType.Decimal, 9, null, null, null, true);
+			AddType("IDENTITY", SqlType.Identity, 9, null, null, null, true);
 			AddType("CHAR", SqlType.Char, 9, "'", "'", null, true);
 			AddType("VARCHAR", SqlType.VarChar, 9, "'", "'", null, true);
 			AddType("LONGVARCHAR", SqlType.LongVarChar, 9, "'", "'", null, true);
@@ -145,7 +146,7 @@ namespace Deveel.Data {
 				case 10:  // fixed_prec_scale
 					return GetColumnValue(column, false);
 				case 11:  // auto_increment
-					return GetColumnValue(column, false);
+					return GetColumnValue(column, (SqlType)key_value_pairs[i + 1] == SqlType.Identity);
 				case 12:  // local_type_name
 					return GetColumnValue(column, null);
 				case 13:  // minimum_scale

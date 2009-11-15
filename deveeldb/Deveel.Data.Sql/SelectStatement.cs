@@ -52,14 +52,14 @@ namespace Deveel.Data.Sql {
 		private IQueryPlanNode plan;
 
 		private static bool IsIdentitySelect(TableSelectExpression expression) {
-			if (expression.columns.Count != 1)
+			if (expression.Columns.Count != 1)
 				return false;
 			if (expression.From == null)
 				return false;
 			if (expression.From.AllTables.Count != 1)
 				return false;
 
-			SelectColumn column = (SelectColumn) expression.columns[0];
+			SelectColumn column = (SelectColumn) expression.Columns[0];
 			if (column.resolved_name == null)
 				return false;
 			if (column.resolved_name.Name != "IDENTITY")
@@ -106,13 +106,13 @@ namespace Deveel.Data.Sql {
 			// check to see if the construct is the special one for
 			// selecting the latest IDENTITY value from a table
 			if (IsIdentitySelect(select_expression)) {
-				select_expression.columns.RemoveAt(0);
+				select_expression.Columns.RemoveAt(0);
 				SelectColumn curValFunction = new SelectColumn();
 				
 				FromTable from_table = (FromTable) ((ArrayList) select_expression.From.AllTables)[0];
 				curValFunction.SetExpression(Expression.Parse("IDENTITY('" + from_table.Name + "')"));
 				curValFunction.SetAlias("IDENTITY");
-				select_expression.columns.Add(curValFunction);
+				select_expression.Columns.Add(curValFunction);
 			}
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
