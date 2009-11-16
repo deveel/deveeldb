@@ -24,14 +24,13 @@ using System;
 using System.Reflection;
 using System.Text;
 
-using Deveel.Data;
 using Deveel.Math;
 
 namespace Deveel.Data {
 	/// <summary>
 	/// Methods to choose and perform casts from database type to native types.
 	/// </summary>
-	public class Caster {
+	internal class Caster {
 
 		///<summary>
 		/// The cost to cast to the closest .NET primitive type.
@@ -46,58 +45,57 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The maximum positive byte value as a BigNumber.
 		/// </summary>
-		private readonly static BigNumber maxBigNumByte = BigNumber.fromInt(Byte.MaxValue);
+		private readonly static BigNumber maxBigNumByte = Byte.MaxValue;
 
 		/// <summary>
 		/// The maximum positive byte value as a BigNumber.
 		/// </summary>
-		private readonly static BigNumber minBigNumByte = BigNumber.fromInt(Byte.MinValue);
+		private readonly static BigNumber minBigNumByte = Byte.MinValue;
 
 		/// <summary>
 		/// The maximum positive short value as a BigNumber.
 		/// </summary>
-		private readonly static BigNumber maxBigNumShort = BigNumber.fromInt(Int16.MaxValue);
+		private readonly static BigNumber maxBigNumShort = Int16.MaxValue;
 
 		/// <summary>
 		/// The maximum positive short value as a BigNumber.
 		/// </summary>
-		private readonly static BigNumber minBigNumShort = BigNumber.fromInt(Int16.MinValue);
+		private readonly static BigNumber minBigNumShort = Int16.MinValue;
 
 		/// <summary>
 		/// The maximum positive integer value as a BigNumber.
 		/// </summary>
-		private readonly static BigNumber maxBigNumInt = BigNumber.fromInt(Int32.MaxValue);
+		private readonly static BigNumber maxBigNumInt = Int32.MaxValue;
 
 		/// <summary>
 		/// The maximum positive integer value as a BigNumber.
 		/// </summary>
-		private readonly static BigNumber minBigNumInt = BigNumber.fromInt(Int32.MinValue);
+		private readonly static BigNumber minBigNumInt = Int32.MinValue;
 
 		/// <summary>
 		/// The maximum positive long value as a BigNumber.
 		/// </summary>
-		private readonly static BigNumber maxBigNumLong =
-										  BigNumber.fromLong(Int64.MaxValue);
+		private readonly static BigNumber maxBigNumLong = Int64.MaxValue;
 
 		/// <summary>
 		/// The maximum positive long value as a BigNumber.
 		/// </summary>
-		private readonly static BigNumber minBigNumLong = BigNumber.fromLong(Int64.MinValue);
+		private readonly static BigNumber minBigNumLong = Int64.MinValue;
 
 		/// <summary>
 		/// The maximum positive float value as a BigNumber.
 		/// </summary>
-		private readonly static BigNumber maxBigNumFloat = BigNumber.fromDouble(Single.MaxValue);
+		private readonly static BigNumber maxBigNumFloat = Single.MaxValue;
 
 		/// <summary>
 		/// The minimum positive float value as a BigNumber.
 		/// </summary>
-		private static readonly BigNumber minBigNumFloat = BigNumber.fromDouble(Single.MinValue);
+		private static readonly BigNumber minBigNumFloat = Single.MinValue;
 
 		/// <summary>
 		/// The maximum positive double value as a BigNumber.
 		/// </summary>
-		private static readonly BigNumber maxBigNumDouble = BigNumber.fromDouble(Double.MaxValue);
+		private static readonly BigNumber maxBigNumDouble = Double.MaxValue;
 
 		///<summary>
 		/// Find any OBJECTs in the args and deserialize them into real objects.

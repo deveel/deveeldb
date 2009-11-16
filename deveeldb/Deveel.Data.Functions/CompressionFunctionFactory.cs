@@ -2,7 +2,6 @@
 using System.IO;
 using System.Text;
 
-using Deveel.Math;
 using Deveel.Zip;
 
 namespace Deveel.Data.Functions {
@@ -67,7 +66,7 @@ namespace Deveel.Data.Functions {
 				CRC32 crc32 = new CRC32();
 				crc32.update(result);
 
-				return TObject.GetBigNumber(BigNumber.fromLong(crc32.getValue()));
+				return TObject.GetBigNumber(crc32.getValue());
 			}
 
 		}
@@ -108,7 +107,7 @@ namespace Deveel.Data.Functions {
 
 				Adler32 adler32 = new Adler32();
 				adler32.update(stream.ToArray());
-				return TObject.GetBigNumber(BigNumber.fromLong(adler32.getValue()));
+				return TObject.GetBigNumber(adler32.getValue());
 			}
 		}
 

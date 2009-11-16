@@ -34,7 +34,7 @@ namespace Deveel.Data.Client {
 		private readonly DeveelDbCommand command;
 		internal event EventHandler Closed;
 
-		private static BigNumber BD_ZERO = BigNumber.fromInt(0);
+		private static readonly BigNumber Zero = 0;
 
 		internal DeveelDbDataReader(DeveelDbCommand command) {
 			this.command = command;
@@ -139,7 +139,7 @@ namespace Deveel.Data.Client {
 			if (ob is BigNumber) {
 				return (BigNumber)ob;
 			} else {
-				return BigNumber.fromString(command.MakeString(ob));
+				return BigNumber.Parse(command.MakeString(ob));
 			}
 		}
 
@@ -151,7 +151,7 @@ namespace Deveel.Data.Client {
 			} else if (ob is Boolean) {
 				return (Boolean)ob;
 			} else if (ob is BigNumber) {
-				return ((BigNumber)ob).CompareTo(BD_ZERO) != 0;
+				return ((BigNumber)ob).CompareTo(Zero) != 0;
 			} else if (CanMakeString(ob)) {
 				return String.Compare(command.MakeString(ob), "true", true) == 0;
 			} else {

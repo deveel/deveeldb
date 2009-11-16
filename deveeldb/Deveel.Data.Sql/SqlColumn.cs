@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class SqlColumn : IStatementTreeObject {
 		private string name;
-		private bool fromParser;
+		private readonly bool fromParser;
 		private TType type;
 		private string index_str;
 
@@ -37,7 +37,6 @@ namespace Deveel.Data.Sql {
 		internal Expression original_default_expression;
 
 		private ColumnConstraints constraints = ColumnConstraints.None;
-		private bool identity;
 
 		internal SqlColumn(bool fromParser) {
 			this.fromParser = fromParser;
@@ -125,7 +124,7 @@ namespace Deveel.Data.Sql {
 		public Expression Default {
 			get { return default_expression; }
 			set {
-				if (identity) {
+				if (type.SQLType == SqlType.Identity) {
 					const string message = "Cannot specify a DEFAULT expression for an IDENTITY column.";
 					if (fromParser)
 						throw new ParseException(message);
@@ -177,7 +176,7 @@ namespace Deveel.Data.Sql {
 		/// If the <see cref="Type"/> of this column is not <c>NUMERIC</c>.
 		/// </exception>
 		public bool Identity {
-			get { return identity; }
+			get { return type.SQLType == SqlType.Identity; }
 			set {
 				if (value && !(Type is TNumericType)) {
 					const string message = "Cannot set a non-numeric column as IDENTITY.";
@@ -185,9 +184,9 @@ namespace Deveel.Data.Sql {
 						throw new ParseException(message);
 					throw new ArgumentException(message, "value");
 				}
-				identity = value;
 
 				if (value) {
+					type = TType.GetNumericType(SqlType.Identity, -1, -1);
 					// if this is an identity column it MUST be constrained...
 					constraints = ColumnConstraints.All;
 				}

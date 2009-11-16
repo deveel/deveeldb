@@ -22,10 +22,9 @@
 
 using System;
 
-using Deveel.Data.Util;
 using Deveel.Diagnostics;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Caching {
 	/// <summary>
 	/// Represents a cache for accesses to the the data cells within a 
 	/// <see cref="Table"/>.
@@ -46,42 +45,44 @@ namespace Deveel.Data {
 		/// A list of primes ordered from lowest to highest.
 		/// </summary>
 		private static readonly int[] PRIME_LIST = new int[]
-		                                           	{
-		                                           		3001, 4799, 13999, 15377, 21803, 24247, 35083, 40531, 43669, 44263, 47387
-		                                           		,
-		                                           		50377, 57059, 57773, 59399, 59999, 75913, 96821, 140551, 149011, 175633,
-		                                           		176389, 183299, 205507, 209771, 223099, 240259, 258551, 263909, 270761,
-		                                           		274679, 286129, 290531, 296269, 298021, 300961, 306407, 327493, 338851,
-		                                           		351037, 365489, 366811, 376769, 385069, 410623, 430709, 433729, 434509,
-		                                           		441913, 458531, 464351, 470531, 475207, 479629, 501703, 510709, 516017,
-		                                           		522211, 528527, 536311, 539723, 557567, 593587, 596209, 597451, 608897,
-		                                           		611069, 642547, 670511, 677827, 679051, 688477, 696743, 717683, 745931,
-		                                           		757109, 760813, 763957, 766261, 781559, 785597, 788353, 804493, 813559,
-		                                           		836917, 854257, 859973, 883217, 884789, 891493, 902281, 910199, 915199,
-		                                           		930847, 939749, 940483, 958609, 963847, 974887, 983849, 984299, 996211,
-		                                           		999217, 1007519, 1013329, 1014287, 1032959, 1035829, 1043593, 1046459,
-		                                           		1076171, 1078109, 1081027, 1090303, 1095613, 1098847, 1114037, 1124429,
-		                                           		1125017, 1130191, 1159393, 1170311, 1180631, 1198609, 1200809, 1212943,
-		                                           		1213087, 1226581, 1232851, 1287109, 1289867, 1297123, 1304987, 1318661,
-		                                           		1331107, 1343161, 1345471, 1377793, 1385117, 1394681, 1410803, 1411987,
-		                                           		1445261, 1460497, 1463981, 1464391, 1481173, 1488943, 1491547, 1492807,
-		                                           		1528993, 1539961, 1545001, 1548247, 1549843, 1551001, 1553023, 1571417,
-		                                           		1579099, 1600259, 1606153, 1606541, 1639751, 1649587, 1657661, 1662653,
-		                                           		1667051, 1675273, 1678837, 1715537, 1718489, 1726343, 1746281, 1749107,
-		                                           		1775489, 1781881, 1800157, 1806859, 1809149, 1826753, 1834607, 1846561,
-		                                           		1849241, 1851991, 1855033, 1879931, 1891133, 1893737, 1899137, 1909513,
-		                                           		1916599, 1917749, 1918549, 1919347, 1925557, 1946489, 1961551, 1965389,
-		                                           		2011073, 2033077, 2039761, 2054047, 2060171, 2082503, 2084107, 2095099,
-		                                           		2096011, 2112193, 2125601, 2144977, 2150831, 2157401, 2170141, 2221829,
-		                                           		2233019, 2269027, 2270771, 2292449, 2299397, 2303867, 2309891, 2312407,
-		                                           		2344301, 2348573, 2377007, 2385113, 2386661, 2390051, 2395763, 2422999,
-		                                           		2448367, 2500529, 2508203, 2509841, 2513677, 2516197, 2518151, 2518177,
-		                                           		2542091, 2547469, 2549951, 2556991, 2563601, 2575543, 2597629, 2599577,
-		                                           		2612249, 2620003, 2626363, 2626781, 2636773, 2661557, 2674297, 2691571,
-		                                           		2718269, 2725691, 2729381, 2772199, 2774953, 2791363, 2792939, 2804293,
-		                                           		2843021, 2844911, 2851313, 2863519, 2880797, 2891821, 2897731, 2904887,
-		                                           		2910251, 2928943, 2958341, 2975389
-		                                           	};
+		                                           {
+		                                           	3001, 4799, 13999, 15377, 21803, 24247, 35083, 40531, 43669, 44263, 47387
+		                                           	,
+		                                           	50377, 57059, 57773, 59399, 59999, 75913, 96821, 140551, 149011, 175633,
+		                                           	176389, 183299, 205507, 209771, 223099, 240259, 258551, 263909, 270761,
+		                                           	274679, 286129, 290531, 296269, 298021, 300961, 306407, 327493, 338851,
+		                                           	351037, 365489, 366811, 376769, 385069, 410623, 430709, 433729, 434509,
+		                                           	441913, 458531, 464351, 470531, 475207, 479629, 501703, 510709, 516017,
+		                                           	522211, 528527, 536311, 539723, 557567, 593587, 596209, 597451, 608897,
+		                                           	611069, 642547, 670511, 677827, 679051, 688477, 696743, 717683, 745931,
+		                                           	757109, 760813, 763957, 766261, 781559, 785597, 788353, 804493, 813559,
+		                                           	836917, 854257, 859973, 883217, 884789, 891493, 902281, 910199, 915199,
+		                                           	930847, 939749, 940483, 958609, 963847, 974887, 983849, 984299, 996211,
+		                                           	999217, 1007519, 1013329, 1014287, 1032959, 1035829, 1043593, 1046459,
+		                                           	1076171, 1078109, 1081027, 1090303, 1095613, 1098847, 1114037, 1124429,
+		                                           	1125017, 1130191, 1159393, 1170311, 1180631, 1198609, 1200809, 1212943,
+		                                           	1213087, 1226581, 1232851, 1287109, 1289867, 1297123, 1304987, 1318661,
+		                                           	1331107, 1343161, 1345471, 1377793, 1385117, 1394681, 1410803, 1411987,
+		                                           	1445261, 1460497, 1463981, 1464391, 1481173, 1488943, 1491547, 1492807,
+		                                           	1528993, 1539961, 1545001, 1548247, 1549843, 1551001, 1553023, 1571417,
+		                                           	1579099, 1600259, 1606153, 1606541, 1639751, 1649587, 1657661, 1662653,
+		                                           	1667051, 1675273, 1678837, 1715537, 1718489, 1726343, 1746281, 1749107,
+		                                           	1775489, 1781881, 1800157, 1806859, 1809149, 1826753, 1834607, 1846561,
+		                                           	1849241, 1851991, 1855033, 1879931, 1891133, 1893737, 1899137, 1909513,
+		                                           	1916599, 1917749, 1918549, 1919347, 1925557, 1946489, 1961551, 1965389,
+		                                           	2011073, 2033077, 2039761, 2054047, 2060171, 2082503, 2084107, 2095099,
+		                                           	2096011, 2112193, 2125601, 2144977, 2150831, 2157401, 2170141, 2221829,
+		                                           	2233019, 2269027, 2270771, 2292449, 2299397, 2303867, 2309891, 2312407,
+		                                           	2344301, 2348573, 2377007, 2385113, 2386661, 2390051, 2395763, 2422999,
+		                                           	2448367, 2500529, 2508203, 2509841, 2513677, 2516197, 2518151, 2518177,
+		                                           	2542091, 2547469, 2549951, 2556991, 2563601, 2575543, 2597629, 2599577,
+		                                           	2612249, 2620003, 2626363, 2626781, 2636773, 2661557, 2674297, 2691571,
+		                                           	2718269, 2725691, 2729381, 2772199, 2774953, 2791363, 2792939, 2804293,
+		                                           	2843021, 2844911, 2851313, 2863519, 2880797, 2891821, 2897731, 2904887,
+		                                           	2910251, 2928943, 2958341, 2975389
+		                                           };
+
+		private readonly ICache systemCache;
 
 		/// <summary>
 		/// The master cache.
@@ -101,30 +102,28 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The maximum size of a DataCell that is allowed to go in the cache.
 		/// </summary>
-		private int MAX_CELL_SIZE;
+		private int maxCellSize;
 
 		/// <summary>
 		/// Instantiate the <see cref="DataCellCache"/>.
 		/// </summary>
 		/// <param name="system"></param>
-		/// <param name="max_cache_size">The maximum size in bytes that the cache 
+		/// <param name="maxCacheSize">The maximum size in bytes that the cache 
 		/// is allowed to grow to (eg. 4000000).</param>
-		/// <param name="max_cell_size">The maximum size of an object that can be 
+		/// <param name="maxCellSize">The maximum size of an object that can be 
 		/// stored in the cache.</param>
-		/// <param name="hash_size">The number of elements in the hash (should be 
+		/// <param name="hashSize">The number of elements in the hash (should be 
 		/// a prime number).</param>
-		internal DataCellCache(TransactionSystem system,
-		                       int max_cache_size, int max_cell_size, int hash_size) {
+		internal DataCellCache(TransactionSystem system, ICache systemCache, int maxCacheSize, int maxCellSize, int hashSize) {
 			this.system = system;
-			MAX_CELL_SIZE = max_cell_size;
+			this.maxCellSize = maxCellSize;
 
-			cache = new DCCache(this, hash_size, max_cache_size);
+			cache = new DCCache(this, systemCache, hashSize, maxCacheSize);
 		}
 
-		internal DataCellCache(TransactionSystem system,
+		internal DataCellCache(TransactionSystem system, ICache systemCache,
 		                       int max_cache_size, int max_cell_size)
-			: this(system,
-			       max_cache_size, max_cell_size, 88547) {
+			: this(system, systemCache, max_cache_size, max_cell_size, 88547) {
 			// Good prime number hash size
 		}
 
@@ -149,7 +148,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void AlterCacheDynamics(int max_cache_size, int max_cell_size) {
 			lock (this) {
-				MAX_CELL_SIZE = max_cell_size;
+				maxCellSize = max_cell_size;
 				cache.SetCacheSize(max_cache_size);
 			}
 		}
@@ -178,7 +177,7 @@ namespace Deveel.Data {
 		public void Set(int table_key, int row, int column, TObject cell) {
 			lock (this) {
 				int memory_use = AmountMemory(cell);
-				if (memory_use <= MAX_CELL_SIZE) {
+				if (memory_use <= maxCellSize) {
 					// Generate the key
 					DCCacheKey key = new DCCacheKey(table_key, (short)column, row);
 					// If there is an existing object here, remove it from the cache and
@@ -287,18 +286,18 @@ namespace Deveel.Data {
 		/// <summary>
 		/// An implementation of <see cref="Cache"/>.
 		/// </summary>
-		private sealed class DCCache : Cache {
+		private sealed class DCCache : CacheWrapper {
 			private readonly DataCellCache cache;
 
 			/// <summary>
 			/// The maximum size that the cache can grow to in bytes.
 			/// </summary>
-			private int MAX_CACHE_SIZE;
+			private int maxCacheSize;
 
-			public DCCache(DataCellCache cache, int cache_hash_size, int max_cache_size)
-				: base(cache_hash_size, -1, 20) {
+			public DCCache(DataCellCache cache, ICache systemCache, int cache_hash_size, int max_cache_size)
+				: base(systemCache, cache_hash_size) {
 				this.cache = cache;
-				MAX_CACHE_SIZE = max_cache_size;
+				maxCacheSize = max_cache_size;
 			}
 
 
@@ -310,17 +309,16 @@ namespace Deveel.Data {
 			/// May cause a cache clean if the size is over the limit.
 			/// </remarks>
 			public void SetCacheSize(int cache_size) {
-				MAX_CACHE_SIZE = cache_size;
+				maxCacheSize = cache_size;
 				CheckClean();
 			}
 
 			// ----- Overwritten from Cache -----
 
 			protected override void CheckClean() {
-				if (cache.CurrentCacheSize >= MAX_CACHE_SIZE) {
+				if (cache.CurrentCacheSize >= maxCacheSize) {
 					// Update the current cache size (before we wiped).
-					cache.system.Stats.Set((int) cache.CurrentCacheSize,
-					                       "DataCellCache.current_cache_size");
+					cache.system.Stats.Set((int) cache.CurrentCacheSize, "DataCellCache.current_cache_size");
 					Clean();
 
 					// The number of times we've cleared away old data cell nodes.
@@ -329,7 +327,7 @@ namespace Deveel.Data {
 			}
 
 			protected override bool WipeMoreNodes() {
-				return (cache.CurrentCacheSize >= (int) ((MAX_CACHE_SIZE*100L)/115L));
+				return (cache.CurrentCacheSize >= (int) ((maxCacheSize*100L)/115L));
 			}
 
 			protected override void OnWipingNode(Object ob) {
@@ -343,8 +341,7 @@ namespace Deveel.Data {
 			protected override void OnGetWalks(long total_walks, long total_get_ops) {
 				int avg = (int) ((total_walks*1000000L)/total_get_ops);
 				cache.system.Stats.Set(avg, "DataCellCache.avg_hash_get_mul_1000000");
-				cache.system.Stats.Set((int) cache.CurrentCacheSize,
-				                       "DataCellCache.current_cache_size");
+				cache.system.Stats.Set((int) cache.CurrentCacheSize, "DataCellCache.current_cache_size");
 				cache.system.Stats.Set(NodeCount, "DataCellCache.current_node_count");
 			}
 		}

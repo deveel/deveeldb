@@ -83,7 +83,7 @@ namespace Deveel.Data.Sql {
 				return TObject.GetString(EscapeTranslated(raw_string));
 			}
 				//    else if (token.kind == SQLConstants.NUMBER_LITERAL) {
-				//      return TObject.GetBigNumber(BigNumber.fromString(token.image));
+				//      return TObject.GetBigNumber(BigNumber.Parse(token.image));
 				//    }
 			else if (token.kind == SQLConstants.BOOLEAN_LITERAL) {
 				return TObject.GetBoolean(String.Compare(token.image, "true", true) == 0);
@@ -151,8 +151,8 @@ namespace Deveel.Data.Sql {
 		///<returns></returns>
 		public static TObject ParseNumberToken(Token token, bool negative) {
 			return negative
-			       	? TObject.GetBigNumber(BigNumber.fromString("-" + token.image))
-			       	: TObject.GetBigNumber(BigNumber.fromString(token.image));
+			       	? TObject.GetBigNumber(BigNumber.Parse("-" + token.image))
+			       	: TObject.GetBigNumber(BigNumber.Parse(token.image));
 		}
 
 		///<summary>

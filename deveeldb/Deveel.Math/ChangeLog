@@ -1,0 +1,6 @@
+﻿2009-11-16  Antonello Provenzano  <antonello@deveel.com>
+	* BigNumber.cs: 
+		- 'fromDouble', 'fromInt', 'fromDouble' and 'fromLong' 
+		methods converted to implicit operator
+		- 'fromData' method renamed to 'Create'
+		- 'fromString' method renamed to 'Parse'

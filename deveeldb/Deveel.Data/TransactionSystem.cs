@@ -25,6 +25,7 @@ using System.Collections;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Control;
 using Deveel.Data.Functions;
 using Deveel.Data.Store;
@@ -509,7 +510,7 @@ namespace Deveel.Data {
 		/// <param name="property"></param>
 		/// <param name="default_val"></param>
 		/// <returns></returns>
-		public String GetConfigString(String property, String default_val) {
+		internal String GetConfigString(String property, String default_val) {
 			String v = config.GetValue(property);
 			if (v == null) {
 				return default_val;
@@ -523,7 +524,7 @@ namespace Deveel.Data {
 		/// <param name="property"></param>
 		/// <param name="default_val"></param>
 		/// <returns></returns>
-		public int GetConfigInt(String property, int default_val) {
+		internal int GetConfigInt(String property, int default_val) {
 			String v = config.GetValue(property);
 			if (v == null) {
 				return default_val;
@@ -537,7 +538,7 @@ namespace Deveel.Data {
 		/// <param name="property"></param>
 		/// <param name="default_val"></param>
 		/// <returns></returns>
-		public bool GetConfigBoolean(String property, bool default_val) {
+		internal bool GetConfigBoolean(String property, bool default_val) {
 			String v = config.GetValue(property);
 			if (v == null) {
 				return default_val;
@@ -637,8 +638,23 @@ namespace Deveel.Data {
 					// Find a prime hash size depending on the size of the cache.
 					int hash_size = DataCellCache.ClosestPrime(max_cache_size/55);
 
+					string cacheTypeString = GetConfigString("cache_type", "heap");
+					Type cacheType = String.Compare(cacheTypeString, "heap", true) == 0
+					            	? typeof(MemoryCache)
+					            	: Type.GetType(cacheTypeString, false, true);
+
+					if (cacheType == null)
+						cacheType = typeof(MemoryCache);
+
+					ICache cache;
+					if (cacheType == typeof(MemoryCache)) {
+						cache = new MemoryCache(hash_size, max_cache_size, 20);
+					} else {
+						cache = (ICache) Activator.CreateInstance(cacheType, true);
+					}
+
 					// Set up the data_cell_cache
-					data_cell_cache = new DataCellCache(this, max_cache_size, max_cache_entry_size, hash_size);
+					data_cell_cache = new DataCellCache(this, cache, max_cache_size, max_cache_entry_size, hash_size);
 				} else {
 					Debug.Write(DebugLevel.Message, this, "Internal Data Cache disabled.");
 				}
@@ -783,17 +799,6 @@ namespace Deveel.Data {
 				// Flush the contents of the function lookup object.
 				FlushCachedFunctionLookup();
 			}
-		}
-
-		/**
-		 * Hack - set up the DataCellCache in DatabaseSystem so we can use the
-		 * MasterTableDataSource object without having to boot a new DatabaseSystem.
-		 */
-
-		public void SetupRowCache(int max_cache_size, int max_cache_entry_size) {
-			// Set up the data_cell_cache
-			data_cell_cache =
-				new DataCellCache(this, max_cache_size, max_cache_entry_size);
 		}
 
 		///<summary>

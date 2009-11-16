@@ -32,8 +32,8 @@ namespace Deveel.Data {
 	/// type that is conformant to an SQL type.
 	/// </summary>
 	public class CastHelper {
-		private static BigNumber BD_ZERO = BigNumber.fromLong(0);
-		private static BigNumber BD_ONE = BigNumber.fromLong(1);
+		private static BigNumber BD_ZERO = 0L;
+		private static BigNumber BD_ONE = 1L;
 
 		private static readonly string[] date_format_sql;
 		private static readonly string[] time_format_sql;
@@ -128,7 +128,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		private static BigNumber ToBigNumber(String str) {
 			try {
-				return BigNumber.fromString(str);
+				return BigNumber.Parse(str);
 			} catch (Exception) {
 				return BD_ZERO;
 			}
@@ -334,20 +334,20 @@ namespace Deveel.Data {
 					// fall through
 					case (SqlType.Integer):
 						//          return new BigDecimal(n.intValue());
-						return BigNumber.fromLong(n.ToInt32());
+						return (BigNumber)n.ToInt32();
 					case (SqlType.BigInt):
 						//          return new BigDecimal(n.longValue());
-						return BigNumber.fromLong(n.ToInt64());
+						return (BigNumber)n.ToInt64();
 					case (SqlType.Float):
-						return BigNumber.fromString(Convert.ToString(n.ToDouble()));
+						return BigNumber.Parse(Convert.ToString(n.ToDouble()));
 					case (SqlType.Real):
-						return BigNumber.fromString(n.ToString());
+						return BigNumber.Parse(n.ToString());
 					case (SqlType.Double):
-						return BigNumber.fromString(Convert.ToString(n.ToDouble()));
+						return BigNumber.Parse(Convert.ToString(n.ToDouble()));
 					case (SqlType.Numeric):
 					// fall through
 					case (SqlType.Decimal):
-						return BigNumber.fromString(n.ToString());
+						return BigNumber.Parse(n.ToString());
 					case (SqlType.Char):
 						return StringObject.FromString(PaddedString(n.ToString(), sql_size));
 					case (SqlType.VarChar):
@@ -390,20 +390,20 @@ namespace Deveel.Data {
 					// fall through
 					case (SqlType.Integer):
 			//          return new BigDecimal(n.intValue());
-						return BigNumber.fromLong(Convert.ToInt32(ob));
+						return (BigNumber)Convert.ToInt32(ob);
 					case (SqlType.BigInt):
 						//          return new BigDecimal(n.longValue());
-						return BigNumber.fromLong(Convert.ToInt64(ob));
+						return (BigNumber)Convert.ToInt64(ob);
 					case (SqlType.Float):
-						return BigNumber.fromString(Convert.ToString(Convert.ToDouble(ob)));
+						return BigNumber.Parse(Convert.ToString(Convert.ToDouble(ob)));
 					case (SqlType.Real):
-						return BigNumber.fromString(Convert.ToString(ob));
+						return BigNumber.Parse(Convert.ToString(ob));
 					case (SqlType.Double):
-						return BigNumber.fromString(Convert.ToString(Convert.ToDouble(ob)));
+						return BigNumber.Parse(Convert.ToString(Convert.ToDouble(ob)));
 					case (SqlType.Numeric):
 					// fall through
 					case (SqlType.Decimal):
-						return BigNumber.fromString(ob.ToString());
+						return BigNumber.Parse(ob.ToString());
 					case (SqlType.Char):
 						return StringObject.FromString(PaddedString(ob.ToString(), sql_size));
 					case (SqlType.VarChar):
@@ -448,17 +448,17 @@ namespace Deveel.Data {
 					// fall through
 					case (SqlType.Integer):
 						//          return new BigDecimal(toBigDecimal(str).intValue());
-						return BigNumber.fromLong(ToBigNumber(str).ToInt32());
+						return (BigNumber)ToBigNumber(str).ToInt32();
 					case (SqlType.BigInt):
 						//          return new BigDecimal(toBigDecimal(str).longValue());
-						return BigNumber.fromLong(ToBigNumber(str).ToInt64());
+						return (BigNumber)ToBigNumber(str).ToInt64();
 					case (SqlType.Float):
-						return BigNumber.fromString(
+						return BigNumber.Parse(
 									  Convert.ToString(ToBigNumber(str).ToDouble()));
 					case (SqlType.Real):
 						return ToBigNumber(str);
 					case (SqlType.Double):
-						return BigNumber.fromString(
+						return BigNumber.Parse(
 									  Convert.ToString(ToBigNumber(str).ToDouble()));
 					case (SqlType.Numeric):
 					// fall through
@@ -559,7 +559,7 @@ namespace Deveel.Data {
 					case (SqlType.Numeric):
 					// fall through
 					case (SqlType.Decimal):
-						return BigNumber.fromLong(d.Ticks);
+						return (BigNumber)d.Ticks;
 					case (SqlType.Char):
 						return StringObject.FromString(PaddedString(FormatDateAsString(d), sql_size));
 					case (SqlType.VarChar):

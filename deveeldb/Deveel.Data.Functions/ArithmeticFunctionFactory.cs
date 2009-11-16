@@ -98,7 +98,7 @@ namespace Deveel.Data.Functions {
 				if (ob.TType is TNumericType)
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Acos(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Acos(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -120,7 +120,7 @@ namespace Deveel.Data.Functions {
 				if (ob.TType is TNumericType)
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Asin(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Asin(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -142,7 +142,7 @@ namespace Deveel.Data.Functions {
 				if (ob.TType is TNumericType)
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Atan(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Atan(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -167,7 +167,7 @@ namespace Deveel.Data.Functions {
 				radians = System.Math.Tan(System.Math.Atan(radians));
 				degrees = DegreesFunction.ToDegrees(radians);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(degrees));
+				return TObject.GetBigNumber(degrees);
 			}
 		}
 
@@ -190,7 +190,7 @@ namespace Deveel.Data.Functions {
 				double radians = RadiansFunction.ToRadians(degrees);
 				double cotan = 1.0/System.Math.Tan(radians);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(cotan));
+				return TObject.GetBigNumber(cotan);
 			}
 		}
 
@@ -212,7 +212,7 @@ namespace Deveel.Data.Functions {
 				if (ob.TType is TNumericType)
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Cos(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Cos(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -235,7 +235,7 @@ namespace Deveel.Data.Functions {
 				if (ob.TType is TNumericType)
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Cosh(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Cosh(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -282,7 +282,7 @@ namespace Deveel.Data.Functions {
 				if (ob.TType is TNumericType)
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Sin(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Sin(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -304,7 +304,7 @@ namespace Deveel.Data.Functions {
 				if (ob.TType is TNumericType)
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Sinh(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Sinh(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -350,7 +350,7 @@ namespace Deveel.Data.Functions {
 				if (ob.TType is TNumericType)
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(Math.BigNumber.fromDouble(System.Math.Tan(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Tan(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -373,7 +373,7 @@ namespace Deveel.Data.Functions {
 				if (ob.TType is TNumericType)
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(Math.BigNumber.fromDouble(System.Math.Tanh(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Tanh(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -507,7 +507,7 @@ namespace Deveel.Data.Functions {
 				}
 
 				double result = (argc == 1 ? System.Math.Log(a) : System.Math.Log(a, newBase));
-				return TObject.GetBigNumber(BigNumber.fromDouble(result));
+				return TObject.GetBigNumber(result);
 			}
 		}
 
@@ -529,7 +529,7 @@ namespace Deveel.Data.Functions {
 				if (ob.TType is TNumericType)
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Log10(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Log10(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -544,7 +544,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.PI));
+				return TObject.GetBigNumber(System.Math.PI);
 			}
 		}
 
@@ -559,7 +559,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.E));
+				return TObject.GetBigNumber(System.Math.E);
 			}
 		}
 
@@ -581,7 +581,7 @@ namespace Deveel.Data.Functions {
 				if (!(ob.TType is TNumericType))
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(ob.ToBigNumber().ToDouble()));
+				return TObject.GetBigNumber(ob.ToBigNumber().ToDouble());
 			}
 		}
 
@@ -603,7 +603,7 @@ namespace Deveel.Data.Functions {
 				if (!(ob.TType is TNumericType))
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Floor(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Floor(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -634,7 +634,7 @@ namespace Deveel.Data.Functions {
 				double degrees = ob.ToBigNumber().ToDouble();
 				double radians = ToRadians(degrees);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(radians));
+				return TObject.GetBigNumber(radians);
 			}
 		}
 
@@ -665,7 +665,7 @@ namespace Deveel.Data.Functions {
 				double radians = ob.ToBigNumber().ToDouble();
 				double degrees = ToDegrees(radians);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(degrees));
+				return TObject.GetBigNumber(degrees);
 			}
 		}
 
@@ -687,7 +687,7 @@ namespace Deveel.Data.Functions {
 				if (!(ob.TType is TNumericType))
 					ob = ob.CastTo(TType.NumericType);
 
-				return TObject.GetBigNumber(BigNumber.fromDouble(System.Math.Exp(ob.ToBigNumber().ToDouble())));
+				return TObject.GetBigNumber(System.Math.Exp(ob.ToBigNumber().ToDouble()));
 			}
 		}
 
@@ -718,7 +718,7 @@ namespace Deveel.Data.Functions {
 				}
 
 				double value = random.NextDouble();
-				return TObject.GetBigNumber(BigNumber.fromDouble(value));
+				return TObject.GetBigNumber(value);
 			}
 		}
 

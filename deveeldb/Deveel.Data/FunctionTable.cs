@@ -22,6 +22,7 @@
 
 using System;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Collections;
 using Deveel.Diagnostics;
 using Deveel.Math;
@@ -666,9 +667,8 @@ namespace Deveel.Data {
 		/// The column title is 'result'.
 		/// </remarks>
 		///<returns></returns>
-		public static Table ResultTable(DatabaseQueryContext context,
-		                                int result_val) {
-			return ResultTable(context, BigNumber.fromInt(result_val));
+		public static Table ResultTable(DatabaseQueryContext context, int result_val) {
+			return ResultTable(context, (BigNumber) result_val);
 		}
 
 

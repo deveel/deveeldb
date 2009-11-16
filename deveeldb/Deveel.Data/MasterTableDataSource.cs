@@ -24,6 +24,7 @@ using System;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Collections;
 using Deveel.Data.Store;
 

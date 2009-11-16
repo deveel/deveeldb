@@ -22,8 +22,8 @@
 
 using System;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Collections;
-using Deveel.Data.Util;
 using Deveel.Math;
 
 namespace Deveel.Data {
@@ -72,7 +72,7 @@ namespace Deveel.Data {
 		internal GrantManager(DatabaseConnection connection) {
 			this.connection = connection;
 			context = new DatabaseQueryContext(connection);
-			priv_cache = new Cache(129, 129, 20);
+			priv_cache = new MemoryCache(129, 129, 20);
 
 			grant_table_changed = false;
 
@@ -258,8 +258,8 @@ namespace Deveel.Data {
 
 				// Add the grant to the grants table.
 				RowData rdat = new RowData(grant_table);
-				rdat.SetColumnDataFromObject(0, BigNumber.fromInt(new_privs.ToInt32()));
-				rdat.SetColumnDataFromObject(1, BigNumber.fromInt((int)obj));
+				rdat.SetColumnDataFromObject(0, (BigNumber)new_privs.ToInt32());
+				rdat.SetColumnDataFromObject(1, (BigNumber)(int)obj);
 				rdat.SetColumnDataFromObject(2, param);
 				rdat.SetColumnDataFromObject(3, grantee);
 				rdat.SetColumnDataFromObject(4, grant_option ? "true" : "false");

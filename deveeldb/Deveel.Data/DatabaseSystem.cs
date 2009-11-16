@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 using System.Threading;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Control;
 using Deveel.Data.Sql;
 using Deveel.Diagnostics;

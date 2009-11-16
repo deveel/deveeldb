@@ -190,15 +190,12 @@ namespace Deveel.Data {
 												  TableDataConglomerate.SYS_SEQUENCE);
 				// Find the row with the id for this generator.
 				SimpleTableQuery query = new SimpleTableQuery(seq);
-				IntegerVector ivec = query.SelectEqual(0,
-													BigNumber.fromLong(generator.id));
+				IntegerVector ivec = query.SelectEqual(0, (BigNumber)generator.id);
 				// Checks
 				if (ivec.Count == 0) {
-					throw new StatementException("Sequence '" + generator.name +
-												 "' not found.");
+					throw new StatementException("Sequence '" + generator.name + "' not found.");
 				} else if (ivec.Count > 1) {
-					throw new Exception(
-										   "Assert failed: multiple id for sequence.");
+					throw new Exception("Assert failed: multiple id for sequence.");
 				}
 
 				// Get the row position

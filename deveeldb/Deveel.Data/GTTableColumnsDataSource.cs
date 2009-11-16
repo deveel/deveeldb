@@ -99,14 +99,13 @@ namespace Deveel.Data {
 						case 2:  // column
 							return GetColumnValue(column, col_def.Name);
 						case 3:  // sql_type
-							return GetColumnValue(column,
-											   BigNumber.fromLong((int)col_def.SqlType));
+							return GetColumnValue(column, (BigNumber)(int)col_def.SqlType);
 						case 4:  // type_desc
 							return GetColumnValue(column, col_def.SQLTypeString);
 						case 5:  // size
-							return GetColumnValue(column, BigNumber.fromLong(col_def.Size));
+							return GetColumnValue(column, (BigNumber)col_def.Size);
 						case 6:  // scale
-							return GetColumnValue(column, BigNumber.fromLong(col_def.Scale));
+							return GetColumnValue(column, (BigNumber)col_def.Scale);
 						case 7:  // not_null
 							return GetColumnValue(column, col_def.IsNotNull);
 						case 8:  // default
@@ -115,7 +114,7 @@ namespace Deveel.Data {
 						case 9:  // index_str
 							return GetColumnValue(column, col_def.IndexScheme);
 						case 10:  // seq_no
-							return GetColumnValue(column, BigNumber.fromLong(seq_no));
+							return GetColumnValue(column, (BigNumber)seq_no);
 						default:
 							throw new ApplicationException("Column out of bounds.");
 					}

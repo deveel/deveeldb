@@ -49,7 +49,7 @@ namespace Deveel.Data {
 			if (ob2 is BigNumber) {
 				BigNumber n2 = (BigNumber)ob2;
 				BigNumber n1 = !(bool)ob1 ?
-								  BigNumber.BIG_NUMBER_ZERO : BigNumber.BIG_NUMBER_ONE;
+								  BigNumber.Zero : BigNumber.One;
 				return n1.CompareTo(n2);
 			}
 

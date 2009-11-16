@@ -22,6 +22,9 @@
 
 using System;
 using System.Globalization;
+using System.Runtime.Serialization;
+
+using Deveel.Data.Util;
 
 namespace Deveel.Math {
 	///<summary>
@@ -34,8 +37,16 @@ namespace Deveel.Math {
 	[Serializable]
 	public sealed class BigNumber : Number {
 		private static readonly BigDecimal BD_ZERO = new BigDecimal(0);
-		public static readonly BigNumber BIG_NUMBER_ONE = fromLong(1);
-		public static readonly BigNumber BIG_NUMBER_ZERO = fromLong(0);
+
+		///<summary>
+		/// Represets a <see cref="BigNumber"/> for the 1 number.
+		///</summary>
+		public static readonly BigNumber One = 1L;
+
+		///<summary>
+		/// Represents a <see cref="BigNumber"/> for the 0 number.
+		///</summary>
+		public static readonly BigNumber Zero = 0L;
 
 		// Statics for negative infinity, positive infinity and NaN.
 		///<summary>
@@ -492,9 +503,7 @@ namespace Deveel.Math {
 		///</summary>
 		///<returns></returns>
 		public BigNumber Sqrt() {
-			double d = ToDouble();
-			d = System.Math.Sqrt(d);
-			return fromDouble(d);
+			return System.Math.Sqrt(ToDouble());
 		}
 
 
@@ -504,7 +513,7 @@ namespace Deveel.Math {
 		 * Creates a BigNumber from a double.
 		 */
 
-		public static BigNumber fromDouble (double value) {
+		public static implicit operator BigNumber(double value) {
 			if (value == Double.NegativeInfinity) {
 				return NegativeInfinity;
 			} else if (value == Double.PositiveInfinity) {
@@ -515,11 +524,7 @@ namespace Deveel.Math {
 			return new BigNumber(NumberState.NONE, new BigDecimal(Convert.ToString(value, CultureInfo.InvariantCulture)));
 		}
 
-		/**
-		 * Creates a BigNumber from a float.
-		 */
-
-		public static BigNumber fromFloat(float value) {
+		public static implicit operator  BigNumber(float value) {
 			if (value == Single.NegativeInfinity) {
 				return NegativeInfinity;
 			} else if (value == Single.PositiveInfinity) {
@@ -527,30 +532,37 @@ namespace Deveel.Math {
 			} else if (value != value) {
 				return NaN;
 			}
-			return new BigNumber(NumberState.NONE, new BigDecimal(Convert.ToString(value)));
+			return new BigNumber(NumberState.NONE, new BigDecimal(Convert.ToString(value, CultureInfo.InvariantCulture)));
 		}
 
-		/**
-		 * Creates a BigNumber from a long.
-		 */
-
-		public static BigNumber fromLong (long value) {
+		public static implicit operator BigNumber(long value) {
 			return new BigNumber(NumberState.NONE, BigDecimal.ValueOf(value));
 		}
 
-		/**
-		 * Creates a BigNumber from an int.
-		 */
-
-		public static BigNumber fromInt (int value) {
+		public static implicit operator BigNumber(int value) {
 			return new BigNumber(NumberState.NONE, BigDecimal.ValueOf(value));
+		}
+
+		public static implicit operator BigNumber(BigDecimal value) {
+			return new BigNumber(NumberState.NONE, value);
+		}
+
+		//TODO:
+		public static implicit operator BigNumber(decimal value) {
+			int[] bits = Decimal.GetBits(value);
+			byte[] buffer = new byte[(3 * 4) + 1];
+			buffer[0] = (byte)(bits[0] == 0 ? 0 : 1);
+			for (int i = bits.Length - 1; i >= 0; i--) {
+				ByteBuffer.WriteInteger(bits[i], buffer, i + 4);
+			}
+			return new BigNumber(NumberState.NONE, new BigDecimal(new BigInteger(buffer)));
 		}
 
 		/**
 		 * Creates a BigNumber from a string.
 		 */
 
-		public static BigNumber fromString (String str) {
+		public static BigNumber Parse (String str) {
 			if (str.Equals ("Infinity")) {
 				return PositiveInfinity;
 			} else if (str.Equals ("-Infinity")) {
@@ -563,25 +575,17 @@ namespace Deveel.Math {
 		}
 
 		/**
-		 * Creates a BigNumber from a BigDecimal.
-		 */
-
-		public static BigNumber fromBigDecimal(BigDecimal val) {
-			return new BigNumber(NumberState.NONE, val);
-		}
-
-		/**
 		 * Creates a BigNumber from the given data.
 		 */
 
-		public static BigNumber fromData(byte[] buf, int scale, NumberState state) {
+		public static BigNumber Create(byte[] buf, int scale, NumberState state) {
 			if (state == 0) {
 				// This inlines common numbers to save a bit of memory.
 				if (scale == 0 && buf.Length == 1) {
 					if (buf[0] == 0) {
-						return BIG_NUMBER_ZERO;
+						return Zero;
 					} else if (buf[0] == 1) {
-						return BIG_NUMBER_ONE;
+						return One;
 					}
 				}
 				return new BigNumber(buf, scale, state);

@@ -22,7 +22,6 @@
 
 using System;
 
-using Deveel.Data;
 using Deveel.Data.Collections;
 using Deveel.Math;
 

@@ -22,8 +22,8 @@
 
 using System;
 
+using Deveel.Data.Caching;
 using Deveel.Diagnostics;
-using Deveel.Data.Util;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql {
 		///<param name="clean_percentage"></param>
 		public StatementCache(DatabaseSystem system, int hash_size, int max_size, int clean_percentage) {
 			this.system = system;
-			cache = new Cache(hash_size, max_size, clean_percentage);
+			cache = new MemoryCache(hash_size, max_size, clean_percentage);
 		}
 
 		private IDebugLogger Debug {

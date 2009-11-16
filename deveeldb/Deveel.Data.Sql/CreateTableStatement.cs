@@ -190,7 +190,7 @@ namespace Deveel.Data.Sql {
 			columns = new ArrayList(size);
 			for (int i = 0; i < size; ++i) {
 				SqlColumn cdef = (SqlColumn)column_list[i];
-				if (cdef.Identity) {
+				if (cdef.Type.SQLType == SqlType.Identity) {
 					if (identityIndex != -1)
 						throw new DatabaseException("Cannot specify more than one IDENTITY column in a table.");
 					identityIndex = i;
@@ -231,11 +231,11 @@ namespace Deveel.Data.Sql {
 				}
 				// If primary key then add to primary key columns
 				if (model_cdef.IsPrimaryKey ||
-					model_cdef.Identity) {
+					model_cdef.Type.SQLType == SqlType.Identity) {
 					primary_key_column_list.Add(col_name);
 				}
 				// if identity then set it the default expression
-				if (model_cdef.Identity) {
+				if (model_cdef.Type.SQLType == SqlType.Identity) {
 					// TableName seq_name = new TableName(tname.Schema, tname.Name + "_IDENTITY");
 					cdef.SetDefaultExpression(Expression.Parse("UNIQUEKEY('" + tname + "')"));
 				}

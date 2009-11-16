@@ -60,7 +60,7 @@ namespace Deveel.Data {
 		public override TObject GetCellContents(int column, int row) {
 			int c1 = row / BIT_COUNT;
 			if (column == 0) {
-				return GetColumnValue(column, BigNumber.fromInt(c1));
+				return GetColumnValue(column, (BigNumber)c1);
 			} else {
 				int priv_bit = (1 << (row % BIT_COUNT));
 				String priv_string = null;

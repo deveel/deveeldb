@@ -1683,7 +1683,7 @@ TType GetTType() :
       { return TType.GetStringType(data_type, size, loc, strength, decomposition); }
 
     | data_type = GetIdentitySQLType() 
-      { return TType.GetNumeric(data_type, -1, -1); }
+      { return TType.GetNumericType(data_type, -1, -1); }
 
     | data_type = GetNumericSQLType() [ "(" size = PositiveIntegerConstant()
                              [ "," scale = PositiveIntegerConstant() ] ")" ]

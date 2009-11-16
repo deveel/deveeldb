@@ -412,7 +412,7 @@ namespace Deveel.Data {
 		/// <param name="val"></param>
 		/// <returns></returns>
 		public static TObject GetInt4(int val) {
-			return GetBigNumber(BigNumber.fromLong(val));
+			return GetBigNumber((BigNumber)val);
 		}
 
 		/// <summary>
@@ -421,7 +421,7 @@ namespace Deveel.Data {
 		/// <param name="val"></param>
 		/// <returns></returns>
 		public static TObject GetInt8(long val) {
-			return GetBigNumber(BigNumber.fromLong(val));
+			return GetBigNumber((BigNumber)val);
 		}
 
 		/// <summary>
@@ -430,7 +430,7 @@ namespace Deveel.Data {
 		/// <param name="val"></param>
 		/// <returns></returns>
 		public static TObject GetDouble(double val) {
-			return GetBigNumber(BigNumber.fromDouble(val));
+			return GetBigNumber((BigNumber)val);
 		}
 
 		/// <summary>

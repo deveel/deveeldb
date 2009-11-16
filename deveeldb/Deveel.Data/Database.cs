@@ -25,6 +25,7 @@ using System.Collections;
 using System.Data;
 using System.IO;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Client;
 using Deveel.Data.Control;
 using Deveel.Diagnostics;

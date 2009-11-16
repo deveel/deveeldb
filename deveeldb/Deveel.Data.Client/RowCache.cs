@@ -23,7 +23,7 @@
 using System;
 using System.Collections;
 
-using Deveel.Data.Util;
+using Deveel.Data.Caching;
 
 namespace Deveel.Data.Client {
     /// <summary>
@@ -46,7 +46,7 @@ namespace Deveel.Data.Client {
         /// <param name="max_size">The maximum size of the combined total of 
         /// all items in the cache.</param>
 		internal RowCache(int cache_size, int max_size) {
-			row_cache = new Cache(cache_size, cache_size, 20);
+			row_cache = new MemoryCache(cache_size, cache_size, 20);
 		}
 
         /// <summary>

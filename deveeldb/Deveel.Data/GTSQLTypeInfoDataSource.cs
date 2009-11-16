@@ -48,8 +48,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Constant for type_nullable types.
 		/// </summary>
-		private static readonly BigNumber TYPE_NULLABLE =
-						  BigNumber.fromInt(1);
+		private static readonly BigNumber TYPE_NULLABLE = 1;
 
 		public GTSQLTypeInfoDataSource(DatabaseConnection connection)
 			: base(connection.System) {
@@ -71,12 +70,11 @@ namespace Deveel.Data {
 							 String prefix, String suffix, String oops,
 							 bool searchable) {
 			key_value_pairs.Add(name);
-			key_value_pairs.Add(BigNumber.fromLong((int)type));
-			key_value_pairs.Add(BigNumber.fromLong(precision));
+			key_value_pairs.Add((BigNumber)(int)type);
+			key_value_pairs.Add((BigNumber)precision);
 			key_value_pairs.Add(prefix);
 			key_value_pairs.Add(suffix);
-			key_value_pairs.Add(searchable ? BigNumber.fromLong(3) :
-											 BigNumber.fromLong(0));
+			key_value_pairs.Add(searchable ? (BigNumber)3 : (BigNumber)0);
 		}
 
 		/// <summary>
@@ -150,15 +148,15 @@ namespace Deveel.Data {
 				case 12:  // local_type_name
 					return GetColumnValue(column, null);
 				case 13:  // minimum_scale
-					return GetColumnValue(column, BigNumber.fromLong(0));
+					return GetColumnValue(column, (BigNumber)0);
 				case 14:  // maximum_scale
-					return GetColumnValue(column, BigNumber.fromLong(10000000));
+					return GetColumnValue(column, (BigNumber)10000000);
 				case 15:  // sql_data_type
 					return GetColumnValue(column, null);
 				case 16:  // sql_datetype_sub
 					return GetColumnValue(column, null);
 				case 17:  // num_prec_radix
-					return GetColumnValue(column, BigNumber.fromLong(10));
+					return GetColumnValue(column, (BigNumber)10);
 				default:
 					throw new ApplicationException("Column out of bounds.");
 			}

@@ -1006,7 +1006,7 @@ namespace Deveel.Data {
 				} else if (ob is String) {
 					conv_object = TObject.GetString((String)ob);
 				} else if (ob is BigDecimal) {
-					conv_object = TObject.GetBigNumber(BigNumber.fromBigDecimal((BigDecimal)ob));
+					conv_object = TObject.GetBigNumber((BigDecimal)ob);
 				} else if (ob is DateTime) {
 					conv_object = TObject.GetDateTime((DateTime)ob);
 				} else if (ob is Boolean) {

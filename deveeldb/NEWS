@@ -9,6 +9,7 @@
 	DbSystem objects, which now can be obtained also by calling 'ConnectToDatabase': this
 	doesn't require to start or create a database to access it, but it allows users to
 	access a running database.
+	- The cache system now can be configured to use third party caching systems.
 	
 * ADO.NET Client:
 	- Enhanched support for CALLBACK triggers: now it is possible to create DeveelDbTrigger

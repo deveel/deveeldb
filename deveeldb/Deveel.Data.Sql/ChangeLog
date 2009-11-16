@@ -1,4 +1,9 @@
-﻿2009-10-30  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-11-15  Antonello Provenzano  <antonello@deveel.com>
+	* SQL.csc: IDENTITY is now a specific data type alias
+	to a NUMERIC column which has a DEFAULT to UNIQUEKEY 
+	function
+	
+2009-10-30  Antonello Provenzano  <antonello@deveel.com>
 	* AlterTableAction.cs: 'Action' property type changed to
 	AlterTableActionType.
 	* ByColumn.cs: 

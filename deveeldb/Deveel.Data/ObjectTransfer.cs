@@ -190,7 +190,7 @@ namespace Deveel.Data {
 						int blen = input.ReadInt32();
 						byte[] buf = new byte[blen];
 						input.Read(buf, 0, buf.Length);
-						return BigNumber.fromData(buf, scale, NumberState.NONE);
+						return BigNumber.Create(buf, scale, NumberState.NONE);
 					}
 
 				case (7): {
@@ -199,13 +199,13 @@ namespace Deveel.Data {
 						int blen = input.ReadInt32();
 						byte[] buf = new byte[blen];
 						input.Read(buf, 0, buf.Length);
-						return BigNumber.fromData(buf, scale, state);
+						return BigNumber.Create(buf, scale, state);
 					}
 
 				case (8): {
 						// 64-bit long numeric value
 						long val = input.ReadInt64();
-						return BigNumber.fromLong(val);
+						return (BigNumber)val;
 					}
 
 				case (9):
@@ -251,7 +251,7 @@ namespace Deveel.Data {
 				case (24): {
 						// 32-bit int numeric value
 						long val = (long)input.ReadInt32();
-						return BigNumber.fromLong(val);
+						return (BigNumber)val;
 					}
 
 				default:
