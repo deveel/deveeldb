@@ -26,9 +26,9 @@ using NUnit.Framework;
 
 
 namespace Deveel.Data {
-	[TestFixture()]
+	[TestFixture]
 	public class QueryTest : TestBase {
-		[Test()]
+		[Test(Description = "Counts the people in the table 'Person' with a SQL COUNT statement")]
 		public void CountPeople() {
 			Console.Out.WriteLine("Counting the number of rows in 'Person' table...");
 

@@ -15,6 +15,8 @@ namespace Deveel.Data {
 		private const string AdminUser = "SA";
 		private const string AdminPassword = "pass";
 
+		private static int conn_counter = -1;
+
 		[SetUp]
 		public void SetUp() {
 			DbController controller = DbController.Default;
@@ -40,6 +42,12 @@ namespace Deveel.Data {
 
 		protected DeveelDbConnection CreateConnection() {
 			return (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
+		}
+
+		protected DatabaseConnection CreateDatabaseConnection() {
+			string host_string = "Internal/Test/" + conn_counter++;
+			User user = system.Database.AuthenticateUser(AdminUser, AdminPassword, host_string);
+			return system.Database.CreateNewConnection(user, null);
 		}
 	}
 }

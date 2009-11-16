@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using NUnit.Framework;
 
@@ -27,7 +27,7 @@ namespace Deveel.Data {
 			Assert.IsTrue(obj1 != null);
 			Assert.IsTrue(obj1 == obj2);
 
-			obj2 = new TObject(new TStringType(SQLTypes.CHAR, 20, "enUS"), "test_b");
+			obj2 = new TObject(new TStringType(SqlType.Char, 20, "enUS"), "test_b");
 			Assert.IsTrue(obj1 != obj2);
 		}
 

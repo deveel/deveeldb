@@ -6,6 +6,8 @@ using NUnit.Framework;
 namespace Deveel.Data.Functions {
 	[TestFixture]
 	public sealed class FunctionTest {
+		#region Aritmetic Functions
+
 		[Test]
 		public void Abs() {
 			Expression exp = Expression.Parse("ABS(-45)");
@@ -16,6 +18,20 @@ namespace Deveel.Data.Functions {
 			result = exp.Evaluate(null, null, null);
 			Assert.IsTrue(result == TObject.GetDouble(5673.9049));
 		}
+
+		#endregion
+
+		#region String Functions
+
+		[Test]
+		public void Concat() {
+			Expression exp = Expression.Parse("CONCAT('str1', '|', 'str2')");
+			TObject result = exp.Evaluate(null, null, null);
+			string result_str = result.ToStringValue();
+			Assert.IsTrue(result_str == "str1|str2");
+		}
+
+		#endregion
 
 		#region Aggregate Functions
 
@@ -74,7 +90,7 @@ namespace Deveel.Data.Functions {
 				get { return sets.Count; }
 			}
 
-			public void AddToGroup(int setIndex, Variable variable, TObject value) {
+			private void AddToGroup(int setIndex, Variable variable, TObject value) {
 				if (setIndex >= sets.Count) {
 					for (int i = sets.Count - 1; i < setIndex; i++)
 						sets.Add(new Hashtable());
