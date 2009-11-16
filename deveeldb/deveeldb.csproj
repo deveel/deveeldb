@@ -68,6 +68,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Deveel.Data.Caching\CacheWrapper.cs" />
+    <Compile Include="Deveel.Data.Caching\MemoryCache.cs" />
     <Compile Include="Deveel.Data.Client\ConnectionString.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
       <SubType>Component</SubType>
@@ -266,7 +268,7 @@
     <Compile Include="Deveel.Data\IDatabaseProcedure.cs" />
     <Compile Include="Deveel.Data\DatabaseQueryContext.cs" />
     <Compile Include="Deveel.Data\DatabaseSystem.cs" />
-    <Compile Include="Deveel.Data\DataCellCache.cs" />
+    <Compile Include="Deveel.Data.Caching\DataCellCache.cs" />
     <Compile Include="Deveel.Data\DataIndexDef.cs" />
     <Compile Include="Deveel.Data\DataIndexSetDef.cs" />
     <Compile Include="Deveel.Data\DataTable.cs" />
