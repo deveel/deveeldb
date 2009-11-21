@@ -335,6 +335,8 @@ namespace Deveel.Data {
 					case (SqlType.Integer):
 						//          return new BigDecimal(n.intValue());
 						return (BigNumber)n.ToInt32();
+					case SqlType.Identity:
+						// fall through
 					case (SqlType.BigInt):
 						//          return new BigDecimal(n.longValue());
 						return (BigNumber)n.ToInt64();
@@ -391,6 +393,8 @@ namespace Deveel.Data {
 					case (SqlType.Integer):
 			//          return new BigDecimal(n.intValue());
 						return (BigNumber)Convert.ToInt32(ob);
+					case SqlType.Identity:
+						// fall through
 					case (SqlType.BigInt):
 						//          return new BigDecimal(n.longValue());
 						return (BigNumber)Convert.ToInt64(ob);
