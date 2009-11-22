@@ -30,7 +30,7 @@ using System.Text;
 using Deveel.Math;
 
 namespace Deveel.Data.Client {
-	public sealed class DeveelDbCommand : DbCommand {
+	public sealed class DeveelDbCommand : DbCommand, ICloneable {
 
 		/// <summary>
 		/// The <see cref="DbConnection"/> object for this statement.
@@ -684,5 +684,13 @@ namespace Deveel.Data.Client {
 		}
 
 		#endregion
+
+		public object Clone() {
+			DeveelDbCommand command = new DeveelDbCommand((string)commandText.Clone(), connection, transaction);
+			command.CommandTimeout = CommandTimeout;
+			foreach(DeveelDbParameter parameter in Parameters)
+				command.Parameters.Add((DeveelDbParameter) parameter.Clone());
+			return command;
+		}
 	}
 }

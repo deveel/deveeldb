@@ -26,7 +26,7 @@ using System.Data.Common;
 using Deveel.Math;
 
 namespace Deveel.Data.Client {
-	public sealed class DeveelDbParameter : DbParameter {
+	public sealed class DeveelDbParameter : DbParameter, ICloneable {
 		public DeveelDbParameter() {
 		}
 
@@ -330,6 +330,24 @@ namespace Deveel.Data.Client {
 				default:
 					throw new SystemException("Value is of unknown data type");
 			}
+		}
+
+		public object Clone() {
+			object paramValue = value;
+			if (paramValue is ICloneable)
+				paramValue = ((ICloneable) paramValue).Clone();
+			DeveelDbParameter parameter = new DeveelDbParameter();
+			parameter.value = paramValue;
+			parameter.sqlType = sqlType;
+			parameter.sourceColumn = sourceColumn;
+			parameter.dbType = dbType;
+			parameter.name = name;
+			parameter.sourceVersion = sourceVersion;
+			parameter.size = size;
+			parameter.scale = scale;
+			parameter.ref_type = ref_type;
+			parameter.paramStyle = paramStyle;
+			return parameter;
 		}
 	}
 }

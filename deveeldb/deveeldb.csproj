@@ -62,6 +62,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
@@ -71,6 +72,9 @@
     <Compile Include="Deveel.Data.Caching\CacheWrapper.cs" />
     <Compile Include="Deveel.Data.Caching\MemoryCache.cs" />
     <Compile Include="Deveel.Data.Client\ConnectionString.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbClientInstaller.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -87,6 +91,7 @@
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbProcedureTrigger.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbProviderFactory.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatedEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
@@ -489,7 +494,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="deveeldb.snk" />
-    <None Include="Package1.pkgxml" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
