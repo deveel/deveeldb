@@ -17,7 +17,8 @@ namespace Deveel.Data {
 
 		static ApplicationServices() {
 			container = new DefaultKernel();
-			container.AddComponent("ApplicationServices", typeof(IApplicationServices), typeof(ApplicationServices), LifestyleType.Singleton);
+			container.AddComponent("ApplicationServices", typeof(IApplicationServices), typeof(ApplicationServices),
+			                       LifestyleType.Singleton);
 		}
 
 		private static readonly IKernel container;
@@ -69,7 +70,10 @@ namespace Deveel.Data {
 			if (plugins == null || plugins.Count == 0)
 				return;
 
-			foreach (IPlugin plugin in plugins.Values) {
+			ArrayList pluginList = new ArrayList(plugins.Values);
+			pluginList.Sort(PluginComparer.Instance);
+
+			foreach (IPlugin plugin in pluginList) {
 				IHostWindow hostWindow = HostWindow;
 
 				try {
@@ -100,11 +104,11 @@ namespace Deveel.Data {
 		}
 
 		public void RegisterComponent(string key, Type contractType, Type serviceType) {
-			container.AddComponent(key, contractType, serviceType);
+			container.AddComponent(key, contractType, serviceType, LifestyleType.Transient);
 		}
 
 		public void RegisterComponent(string key, Type serviceType) {
-			container.AddComponent(key, serviceType);
+			container.AddComponent(key, serviceType, LifestyleType.Transient);
 		}
 
 		public void RegisterConfiguration(Type configType) {

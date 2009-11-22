@@ -2,11 +2,10 @@
 using System.Windows.Forms;
 
 namespace Deveel.Data.Commands {
+	[Command("SaveFileAs", "Save File &As...")]
+	[CommandShortcut(Keys.Control | Keys.Alt | Keys.S, "Ctrl+Alt+S")]
+	[CommandImage("Deveel.Data.Images.disk_multiple.png")]
 	public sealed class SaveFileAsCommand : Command {
-		public SaveFileAsCommand() 
-			: base("Save File &As...", Keys.Control | Keys.Alt | Keys.S, "Ctrl+Alt+S") {
-		}
-
 		public override bool Enabled {
 			get {
 				IEditor editor = HostWindow.Form.ActiveMdiChild as IEditor;

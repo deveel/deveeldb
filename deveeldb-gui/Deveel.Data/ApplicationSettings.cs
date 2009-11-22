@@ -3,6 +3,7 @@ using System.Data;
 
 using Deveel.Data.Client;
 using Deveel.Data.DbModel;
+using Deveel.Data.Properties;
 
 namespace Deveel.Data {
 	public sealed class ApplicationSettings : ISettings {
@@ -20,7 +21,9 @@ namespace Deveel.Data {
 		private string dateTimeFormat;
 		private string nullString;
 		private bool enableBatches;
+		private bool enableBatchesSet;
 		private bool loadPlugins;
+		private bool loadPluginsSet;
 		private string pluginFileFilter;
 
 		public event EventHandler ConnectionReset;
@@ -47,11 +50,7 @@ namespace Deveel.Data {
 		}
 
 		public DeveelDbConnection Connection {
-			get {
-				if (connection == null)
-					connection = new DeveelDbConnection(connectionString.ConnectionString);
-				return connection;
-			}
+			get { return connection; }
 		}
 
 		private void OnPastConnectionStringsChanged(EventArgs e) {
@@ -76,9 +75,11 @@ namespace Deveel.Data {
 					break;
 				case SettingsProperties.EnableBatching:
 					enableBatches = Convert.ToBoolean(value);
+					enableBatchesSet = true;
 					break;
 				case SettingsProperties.LoadPlugins:
 					loadPlugins = Convert.ToBoolean(value);
+					loadPluginsSet = true;
 					break;
 				case SettingsProperties.NullString:
 					nullString = Convert.ToString(value);
@@ -94,20 +95,26 @@ namespace Deveel.Data {
 		public object GetProperty(string key) {
 			switch (key) {
 				case SettingsProperties.ConnectionStringsFile:
-					return connStringFile;
+					return connStringFile == null ? Settings.Default.ConnectionsFileName : connStringFile;
 				case SettingsProperties.DateTimeFormat:
-					return dateTimeFormat;
+					return dateTimeFormat == null ? Settings.Default.DateTimeFormat : dateTimeFormat;
 				case SettingsProperties.EnableBatching:
-					return enableBatches;
+					return !enableBatchesSet ? Settings.Default.EnableBatches : enableBatches;
 				case SettingsProperties.NullString:
-					return nullString;
+					return nullString == null ? Settings.Default.NullText : nullString;
 				case SettingsProperties.LoadPlugins:
-					return loadPlugins;
+					return !loadPluginsSet ? Settings.Default.LoadPlugins : loadPlugins;
 				case SettingsProperties.PluginFileFilter:
-					return pluginFileFilter;
+					return pluginFileFilter == null ? Settings.Default.PluginFileFilter : pluginFileFilter;
 				default:
 					throw new ArgumentException();
 			}
+		}
+
+		public void OpenConnection() {
+			if (connection == null)
+				connection = new DeveelDbConnection(ConnectionString.ConnectionString);
+			connection.Open();
 		}
 
 		public void CloseConnection() {

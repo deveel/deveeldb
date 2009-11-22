@@ -103,6 +103,10 @@ namespace Deveel.Data {
 			get { return textEditor.Text; }
 		}
 
+		public bool SupportsHistory {
+			get { return true; }
+		}
+
 		public string Content {
 			get { return textEditor.Text; }
 			set { textEditor.Text = value; }
@@ -162,6 +166,14 @@ namespace Deveel.Data {
 				textEditor.Document.OffsetToPosition(startIndex),
 				textEditor.Document.OffsetToPosition(endPos));
 			SetCursorOffset(endPos);
+		}
+
+		public void Undo() {
+			textEditor.Undo();
+		}
+
+		public void Redo() {
+			textEditor.Redo();
 		}
 
 		#endregion

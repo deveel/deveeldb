@@ -1,11 +1,8 @@
 ﻿using System;
 
 namespace Deveel.Data.Commands {
+	[Command("Exit", "E&xit")]
 	public sealed class ExitCommand : Command {
-		public ExitCommand() 
-			: base("E&xit") {
-		}
-
 		public override void Execute() {
 			HostWindow.Form.Close();
 		}

@@ -12,6 +12,8 @@ namespace Deveel.Data {
 
 		string Text { get; }
 
+		bool SupportsHistory { get; }
+
 
 		void SetSyntax(string name);
 
@@ -24,5 +26,9 @@ namespace Deveel.Data {
 		void ClearSelectedText();
 
 		void HighlightText(int startIndex, int length);
+
+		void Undo();
+
+		void Redo();
 	}
 }

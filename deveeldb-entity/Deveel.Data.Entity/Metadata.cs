@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common.CommandTrees;
@@ -42,40 +42,40 @@ namespace Deveel.Data.Entity {
 			}
 		}
 
-		public static DbType GetDbType(TypeUsage typeUsage) {
+		public static System.Data.DbType GetDbType(TypeUsage typeUsage) {
 			PrimitiveType pt = (PrimitiveType) typeUsage.EdmType;
 
 			switch (pt.PrimitiveTypeKind) {
 				case PrimitiveTypeKind.Binary:
-					return DbType.Binary;
+					return System.Data.DbType.Binary;
 				case PrimitiveTypeKind.Boolean:
-					return DbType.Boolean;
+					return System.Data.DbType.Boolean;
 				case PrimitiveTypeKind.Byte:
-					return DbType.Byte;
+					return System.Data.DbType.Byte;
 				case PrimitiveTypeKind.DateTime:
-					return DbType.DateTime;
+					return System.Data.DbType.DateTime;
 				case PrimitiveTypeKind.DateTimeOffset:
-					return DbType.DateTime;
+					return System.Data.DbType.DateTime;
 				case PrimitiveTypeKind.Decimal:
-					return DbType.Decimal;
+					return System.Data.DbType.Decimal;
 				case PrimitiveTypeKind.Double:
-					return DbType.Double;
+					return System.Data.DbType.Double;
 				case PrimitiveTypeKind.Single:
-					return DbType.Single;
+					return System.Data.DbType.Single;
 				case PrimitiveTypeKind.Guid:
-					return DbType.Guid;
+					return System.Data.DbType.Guid;
 				case PrimitiveTypeKind.Int16:
-					return DbType.Int16;
+					return System.Data.DbType.Int16;
 				case PrimitiveTypeKind.Int32:
-					return DbType.Int32;
+					return System.Data.DbType.Int32;
 				case PrimitiveTypeKind.Int64:
-					return DbType.Int64;
+					return System.Data.DbType.Int64;
 				case PrimitiveTypeKind.SByte:
-					return DbType.SByte;
+					return System.Data.DbType.SByte;
 				case PrimitiveTypeKind.String:
-					return DbType.String;
+					return System.Data.DbType.String;
 				case PrimitiveTypeKind.Time:
-					return DbType.Time;
+					return System.Data.DbType.Time;
 				default:
 					throw new InvalidOperationException("Primitive type kind '" + pt.PrimitiveTypeKind + "' not supported.");
 			}

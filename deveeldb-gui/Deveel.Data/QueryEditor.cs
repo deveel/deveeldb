@@ -61,6 +61,10 @@ namespace Deveel.Data {
 			get { return Content; }
 		}
 
+		public bool SupportsHistory {
+			get { return true; }
+		}
+
 		public string Content {
 			get { return txtQuery.Text; }
 			set { txtQuery.Text = value; }
@@ -122,6 +126,14 @@ namespace Deveel.Data {
 				txtQuery.Document.OffsetToPosition(endPos));
 
 			SetCursorOffset(endPos);
+		}
+
+		public void Undo() {
+			txtQuery.Undo();
+		}
+
+		public void Redo() {
+			txtQuery.Redo();
 		}
 
 		#endregion

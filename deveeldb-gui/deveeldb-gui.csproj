@@ -60,8 +60,39 @@
     <Compile Include="Deveel.Data.Commands\SaveFileAsCommand.cs" />
     <Compile Include="Deveel.Data.Commands\SaveFileCommand.cs" />
     <Compile Include="Deveel.Data.Commands\ShowOptionsCommand.cs" />
+    <Compile Include="Deveel.Data.ConnectionStrings\ConnectionStringForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.ConnectionStrings\ConnectionStringForm.Designer.cs">
+      <DependentUpon>ConnectionStringForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Deveel.Data.ConnectionStrings\ConnectionStringsEditCommand.cs" />
+    <Compile Include="Deveel.Data.ConnectionStrings\ConnectionStringsPlugin.cs" />
+    <Compile Include="Deveel.Data.Metadata\EmptyTableCommand.cs" />
+    <Compile Include="Deveel.Data.Metadata\GenerateDeleteStatementCommand.cs" />
+    <Compile Include="Deveel.Data.Metadata\GenerateStatementCommand.cs" />
+    <Compile Include="Deveel.Data.Metadata\ShowDatabaseMetadataCommand.cs" />
     <Compile Include="Deveel.Data.Plugins\CoreConfiguration.cs" />
     <Compile Include="Deveel.Data.Plugins\CorePlugin.cs" />
+    <Compile Include="Deveel.Data.Metadata\DbMetadataPlugin.cs" />
+    <Compile Include="Deveel.Data.Search\FindNextCommand.cs" />
+    <Compile Include="Deveel.Data.Search\FindReplaceForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Search\FindReplaceForm.Designer.cs">
+      <DependentUpon>FindReplaceForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Deveel.Data.Search\GotoLineForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Search\GotoLineForm.Designer.cs">
+      <DependentUpon>GotoLineForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Deveel.Data.Search\ReplaceTextCommand.cs" />
+    <Compile Include="Deveel.Data.Search\SearchPlugin.cs" />
+    <Compile Include="Deveel.Data.Search\SearchTable.cs" />
+    <Compile Include="Deveel.Data.Search\ShowFindTextCommand.cs" />
+    <Compile Include="Deveel.Data.Search\ShowGotoLineCommand.cs" />
     <Compile Include="Deveel.Data\ApplicationServices.cs" />
     <Compile Include="Deveel.Data\ApplicationSettings.cs" />
     <Compile Include="Deveel.Data\CopyDialog.cs">
@@ -69,6 +100,12 @@
     </Compile>
     <Compile Include="Deveel.Data\CopyDialog.Designer.cs">
       <DependentUpon>CopyDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Deveel.Data.Metadata\DbMetadataForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Metadata\DbMetadataForm.Designer.cs">
+      <DependentUpon>DbMetadataForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Deveel.Data\Editor.cs">
       <SubType>Form</SubType>
@@ -178,7 +215,37 @@
     <EmbeddedResource Include="Images\folder_page.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Deveel.Data.ConnectionStrings\ConnectionStringForm.resx">
+      <DependentUpon>ConnectionStringForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Deveel.Data.Metadata\DbMetadataForm.resx">
+      <DependentUpon>DbMetadataForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Images\disk.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\database_edit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Deveel.Data.Search\GotoLineForm.resx">
+      <DependentUpon>GotoLineForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Images\disk_multiple.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\find.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Deveel.Data.Search\FindReplaceForm.resx">
+      <DependentUpon>FindReplaceForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Images\text_replace.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\table_delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\table_row_delete.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

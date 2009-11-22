@@ -2,12 +2,9 @@
 using System.Windows.Forms;
 
 namespace Deveel.Data.Commands {
-	[CommandSmallImage("Deveel.Data.Images.database_refresh.png")]
+	[Command("ResetConnection", "&Reset Connection")]
+	[CommandImage("Deveel.Data.Images.database_refresh.png")]
 	public sealed class ResetConnectionCommand : Command {
-		public ResetConnectionCommand()
-			: base("&Reset Connection") {
-		}
-
 		public override void Execute() {
 			try {
 				HostWindow.SetPointerState(Cursors.WaitCursor);

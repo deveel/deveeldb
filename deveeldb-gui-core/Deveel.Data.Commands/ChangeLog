@@ -1,4 +1,11 @@
-﻿2009-11-09  Antonello Provenzano  <antonello@devee.com>
+﻿2009-11-14  Antonello Provenzano  <antonello@deveel.com
+	* Commands.cs: now retrieves information from attributes
+	* CommandSmallImageAttribute.cs:
+		- renamed to CommandImageAttribute
+		- implements the interface ImageType to determine
+		which image is set to
+	
+2009-11-09  Antonello Provenzano  <antonello@deveel.com>
 	* CloseActiveChildCommand.cs: implemented
 	* CloseChildrenCommand.cs: implemented
 	* CloseConnectionCommand.cs: implemented

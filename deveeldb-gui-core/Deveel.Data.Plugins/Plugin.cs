@@ -9,6 +9,8 @@ namespace Deveel.Data.Plugins {
 			this.name = name;
 			this.description = description;
 			this.loadOrder = loadOrder;
+
+			RetrievePluginAttributes();
 		}
 
 		protected Plugin(string name, string description)
@@ -24,9 +26,9 @@ namespace Deveel.Data.Plugins {
 		}
 
 		private IApplicationServices services;
-		private readonly string name;
-		private readonly string description;
-		private readonly int loadOrder;
+		private string name;
+		private string description;
+		private int loadOrder;
 
 		public int Order {
 			get { return loadOrder; }
@@ -42,6 +44,16 @@ namespace Deveel.Data.Plugins {
 
 		protected IApplicationServices Services {
 			get { return services; }
+		}
+
+		private void RetrievePluginAttributes() {
+			PluginAttribute attribute = Attribute.GetCustomAttribute(GetType(), typeof(PluginAttribute)) as PluginAttribute;
+			if (attribute == null)
+				return;
+
+			name = attribute.Name;
+			loadOrder = attribute.Order;
+			description = attribute.Description;
 		}
 
 		public virtual void Load(IApplicationServices context) {

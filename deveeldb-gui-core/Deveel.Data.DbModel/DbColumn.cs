@@ -19,6 +19,8 @@ namespace Deveel.Data.DbModel {
 		private readonly DbDataType dataType;
 		private int size;
 		private int scale;
+		private bool nullable;
+		private bool identity;
 		private string defaultExpression;
 		private readonly ArrayList privileges;
 
@@ -51,6 +53,16 @@ namespace Deveel.Data.DbModel {
 
 		public override string FullName {
 			get { return base.FullName + "." + Name; }
+		}
+
+		public bool Nullable {
+			get { return nullable; }
+			set { nullable = value; }
+		}
+
+		public bool Identity {
+			get { return identity; }
+			set { identity = value; }
 		}
 
 		public void AddPrivilege(DbPrivilege privilege) {

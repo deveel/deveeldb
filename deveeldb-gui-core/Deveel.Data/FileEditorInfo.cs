@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Deveel.Data {
 	public sealed class FileEditorInfo {
@@ -26,6 +27,22 @@ namespace Deveel.Data {
 
 		public string Key {
 			get { return key; }
+		}
+
+		public override string ToString() {
+			StringBuilder sb = new StringBuilder(Name);
+			if (extensions.Length > 0) {
+				sb.Append("( ");
+				for (int i = 0; i < extensions.Length; i++) {
+					sb.Append("*.");
+					sb.Append(extensions[i]);
+					if (i < extensions.Length - 1)
+						sb.Append("; ");
+				}
+				sb.Append(" )");
+			}
+
+			return sb.ToString();
 		}
 	}
 }

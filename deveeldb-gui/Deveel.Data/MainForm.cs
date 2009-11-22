@@ -95,8 +95,8 @@ namespace Deveel.Data {
 			return null;
 		}
 
-		public void ShowDatabaseInspector(IDbMetadataProvider provider, DockState dockState) {
-			if (provider != null && provider != metadataProvider) {
+		public void ShowMetadata(IDbMetadataProvider provider, DockState dockState) {
+			if (metadataProvider != null && metadataProvider != provider) {
 				metadataProvider.Close();
 			}
 

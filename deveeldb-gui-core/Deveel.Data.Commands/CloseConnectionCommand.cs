@@ -2,12 +2,9 @@
 using System.Data;
 
 namespace Deveel.Data.Commands {
-	[CommandSmallImage("Deveel.Data.Images.disconnect.png")]
+	[Command("CloseConnection", "Close Current Connection")]
+	[CommandImage("Deveel.Data.Images.disconnect.png")]
 	public sealed class CloseConnectionCommand : Command {
-		public CloseConnectionCommand() 
-			: base("Close Current Connection") {
-		}
-
 		public override bool Enabled {
 			get {
 				if (Settings.Connection == null)

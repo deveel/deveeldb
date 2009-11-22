@@ -6,6 +6,8 @@ namespace Deveel.Data.Commands {
 	public interface ICommand {
 		string Name { get; }
 
+		string Text { get; }
+
 		Keys Shortcut { get; }
 
 		string ShortcutText { get; }

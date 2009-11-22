@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Reflection;
 using System.Windows.Forms;
 
 using SWFControl = System.Windows.Forms.Control;
@@ -77,9 +78,9 @@ namespace Deveel.Data.Commands {
 			button.DisplayStyle = ToolStripItemDisplayStyle.Image;
 			button.Image = cmd.SmallImage;
 			button.ImageTransparentColor = Color.Magenta;
-			button.Name = cmd.GetType().Name + "ToolStripButton";
+			button.Name = cmd.Name + "ToolStripButton";
 			button.Tag = cmd;
-			button.Text = cmd.Name;
+			button.Text = cmd.Text;
 			button.Click += CommandItemClick;
 
 			return button;
@@ -92,8 +93,8 @@ namespace Deveel.Data.Commands {
 			ToolStripMenuItem menuItem = new ToolStripMenuItem();
 			ICommand cmd = handler.GetCommand(commandType);
 
-			menuItem.Name = cmd.GetType().Name + "ToolStripMenuItem";
-			menuItem.Text = cmd.Name;
+			menuItem.Name = cmd.Name + "ToolStripMenuItem";
+			menuItem.Text = cmd.Text;
 			menuItem.Tag = cmd;
 			menuItem.ShortcutKeys = cmd.Shortcut;
 			menuItem.Image = cmd.SmallImage;
@@ -110,9 +111,9 @@ namespace Deveel.Data.Commands {
 			ICommand cmd = handler.GetCommand(commandType);
 
 			linkLabel.AutoSize = true;
-			linkLabel.Name = cmd.GetType().Name + "LinkLabel";
+			linkLabel.Name = cmd.Name + "LinkLabel";
 			linkLabel.TabStop = true;
-			linkLabel.Text = cmd.Name.Replace("&", string.Empty);
+			linkLabel.Text = cmd.Text.Replace("&", string.Empty);
 			linkLabel.Tag = cmd;
 			linkLabel.Padding = new Padding(4);
 			linkLabel.LinkClicked += LinkLabelLinkClicked;
@@ -130,6 +131,28 @@ namespace Deveel.Data.Commands {
 					}
 				}
 			}
+		}
+
+		public static int ToolStripMenuItemIndex(ToolStripMenuItem toolStrip, Type commandType) {
+			if (!typeof(ICommand).IsAssignableFrom(commandType))
+				throw new ArgumentException();
+
+			string itemName = GetItemName(commandType);
+			return toolStrip.DropDownItems.IndexOfKey(itemName);
+		}
+
+		private static string GetItemName(Type commandType) {
+			string commandName = commandType.Name;
+
+			if (Attribute.IsDefined(commandType, typeof(CommandAttribute))) {
+				CommandAttribute attribute = (CommandAttribute) Attribute.GetCustomAttribute(commandType, typeof(CommandAttribute));
+				commandName = attribute.Name;
+			} else if (typeof(ICommand).IsAssignableFrom(commandType)) {
+				ICommand command = (ICommand) Activator.CreateInstance(commandType, new object[0]);
+				commandName = command.Name;
+			}
+
+			return commandName + "ToolStripMenuItem";
 		}
 	}
 }

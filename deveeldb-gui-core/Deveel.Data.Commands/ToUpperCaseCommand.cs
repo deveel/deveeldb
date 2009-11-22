@@ -2,12 +2,10 @@
 using System.Windows.Forms;
 
 namespace Deveel.Data.Commands {
-	[CommandSmallImage("Deveel.Data.Images.text_uppercase.png")]
+	[Command("ToUpper", "Convert to 'UPPER CASE'")]
+	[CommandShortcut(Keys.Control | Keys.Shift | Keys.U, "Ctrl+Shift+U")]
+	[CommandImage("Deveel.Data.Images.text_uppercase.png")]
 	public sealed class ToUpperCaseCommand : Command {
-		public ToUpperCaseCommand() 
-			: base("Convert to UPPER CASE", Keys.Control | Keys.Shift | Keys.U, null) {
-		}
-
 		public override bool Enabled {
 			get { return Editor != null; }
 		}

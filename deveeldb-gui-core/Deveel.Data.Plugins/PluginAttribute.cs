@@ -9,6 +9,7 @@ namespace Deveel.Data.Plugins {
 
 		private readonly string name;
 		private int order;
+		private string description;
 
 		public string Name {
 			get { return name; }
@@ -17,6 +18,11 @@ namespace Deveel.Data.Plugins {
 		public int Order {
 			get { return order; }
 			set { order = value; }
+		}
+
+		public string Description {
+			get { return description; }
+			set { description = value; }
 		}
 	}
 }

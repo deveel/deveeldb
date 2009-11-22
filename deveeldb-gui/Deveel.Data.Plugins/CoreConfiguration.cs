@@ -42,6 +42,7 @@ namespace Deveel.Data.Plugins {
 			settings.SetProperty(SettingsProperties.LoadPlugins, settingsWrapper.LoadExternalPlugins);
 			settings.SetProperty(SettingsProperties.DateTimeFormat, settingsWrapper.DateTimeFormat);
 			settings.SetProperty(SettingsProperties.NullString, settingsWrapper.NullText);
+			settings.SetProperty(SettingsProperties.ConnectionStringsFile, settingsWrapper.ConnectionFileName);
 			SetChanged(false);
 		}
 
@@ -52,6 +53,7 @@ namespace Deveel.Data.Plugins {
 				LoadExternalPlugins = (bool) settings.GetProperty(SettingsProperties.LoadPlugins);
 				DateTimeFormat = (string) settings.GetProperty(SettingsProperties.DateTimeFormat);
 				NullText = (string) settings.GetProperty(SettingsProperties.NullString);
+				ConnectionFileName = (string) settings.GetProperty(SettingsProperties.ConnectionStringsFile);
 			}
 
 			private bool enableQueryBatches;
@@ -59,9 +61,11 @@ namespace Deveel.Data.Plugins {
 			private bool loadPlugins;
 			private string nullText;
 			private string dateTimeFormat;
+			private string connFileName;
 
 			[Category("Query")]
 			[Description("Set to true to enable the batches feature for queries passed to the server.")]
+			[DefaultValue(true)]
 			public bool EnableQueryBatches {
 				get { return enableQueryBatches; }
 				set {
@@ -73,7 +77,8 @@ namespace Deveel.Data.Plugins {
 			}
 
 			[Category("Plugins")]
-			[Description("The file filter used for finding plugins (*.PlugIn.dll)")]
+			[Description("The file filter used for finding plugins (*.Plugin.dll)")]
+			[DefaultValue("*.Plugin.dll")]
 			public string PlugInFileFilter {
 				get { return pluginFileFilter; }
 				set {
@@ -86,6 +91,7 @@ namespace Deveel.Data.Plugins {
 
 			[Category("Plugins")]
 			[Description("If true, external plugin files will be loaded (requires restart).")]
+			[DefaultValue(true)]
 			public bool LoadExternalPlugins {
 				get { return loadPlugins; }
 				set {
@@ -97,7 +103,8 @@ namespace Deveel.Data.Plugins {
 			}
 
 			[Category("Query")]
-			[Description("")]
+			[Description("The string format used to represent the TIME values obtained by querying a database. (yyyy-MM-dd HH:mm:ss.zz)")]
+			[DefaultValue("yyyy-MM-dd HH:mm:ss.zz")]
 			public string DateTimeFormat {
 				get { return dateTimeFormat; }
 				set {
@@ -109,13 +116,27 @@ namespace Deveel.Data.Plugins {
 			}
 
 			[Category("Query")]
-			[Description("")]
+			[Description("The string values used to represent NULL values obtained by querying a database. (<NULL>)")]
+			[DefaultValue("<NULL>")]
 			public string NullText {
 				get { return nullText; }
 				set {
 					if (nullText != value) {
 						nullText = value;
 						OnPropertyChanged("NullText");
+					}
+				}
+			}
+
+			[Category("Application")]
+			[Description("The file containing the stored connection strings.")]
+			[DefaultValue("connections.xml")]
+			public string ConnectionFileName {
+				get { return connFileName; }
+				set {
+					if (connFileName != value) {
+						connFileName = value;
+						OnPropertyChanged("ConnectionFileName");
 					}
 				}
 			}

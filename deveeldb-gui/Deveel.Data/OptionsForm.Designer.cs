@@ -25,9 +25,9 @@
 		private void InitializeComponent() {
 			this.lstSettingsProviders = new System.Windows.Forms.ListBox();
 			this.grpSettings = new System.Windows.Forms.GroupBox();
+			this.propertyGrid = new System.Windows.Forms.PropertyGrid();
 			this.btnOk = new System.Windows.Forms.Button();
 			this.btnCancel = new System.Windows.Forms.Button();
-			this.propertyGrid = new System.Windows.Forms.PropertyGrid();
 			this.grpSettings.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -50,6 +50,14 @@
 			this.grpSettings.TabStop = false;
 			this.grpSettings.Text = "Settings";
 			// 
+			// propertyGrid
+			// 
+			this.propertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.propertyGrid.Location = new System.Drawing.Point(3, 16);
+			this.propertyGrid.Name = "propertyGrid";
+			this.propertyGrid.Size = new System.Drawing.Size(385, 250);
+			this.propertyGrid.TabIndex = 0;
+			// 
 			// btnOk
 			// 
 			this.btnOk.Location = new System.Drawing.Point(500, 298);
@@ -70,14 +78,6 @@
 			this.btnCancel.UseVisualStyleBackColor = true;
 			this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
 			// 
-			// propertyGrid
-			// 
-			this.propertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.propertyGrid.Location = new System.Drawing.Point(3, 16);
-			this.propertyGrid.Name = "propertyGrid";
-			this.propertyGrid.Size = new System.Drawing.Size(385, 250);
-			this.propertyGrid.TabIndex = 0;
-			// 
 			// OptionsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -88,6 +88,8 @@
 			this.Controls.Add(this.grpSettings);
 			this.Controls.Add(this.lstSettingsProviders);
 			this.Name = "OptionsForm";
+			this.ShowIcon = false;
+			this.ShowInTaskbar = false;
 			this.Text = "Options";
 			this.Load += new System.EventHandler(this.OptionsForm_Load);
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.OptionsForm_FormClosing);

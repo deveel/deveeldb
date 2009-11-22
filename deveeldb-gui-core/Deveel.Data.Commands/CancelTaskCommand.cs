@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace Deveel.Data.Commands {
-	[CommandSmallImage("Deveel.Data.Images.stop.png")]
+	[CommandImage("Deveel.Data.Images.stop.png")]
 	public class CancelTaskCommand : Command {
 		public CancelTaskCommand() 
 			: base("&Cancel") {

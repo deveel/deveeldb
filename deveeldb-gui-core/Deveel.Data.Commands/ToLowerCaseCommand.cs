@@ -2,12 +2,10 @@
 using System.Windows.Forms;
 
 namespace Deveel.Data.Commands {
-	[CommandSmallImage("Deveel.Data.Images.text_lowercase.png")]
+	[Command("ToLower", "Convert to 'lower case'")]
+	[CommandShortcut(Keys.Control | Keys.U, "Ctrl+U")]
+	[CommandImage("Deveel.Data.Images.text_lowercase.png")]
 	public sealed class ToLowerCaseCommand : Command {
-		public ToLowerCaseCommand() 
-			: base("Convert to lower case", Keys.Control | Keys.U, null) {
-		}
-
 		public override bool Enabled {
 			get { return Editor != null; }
 		}

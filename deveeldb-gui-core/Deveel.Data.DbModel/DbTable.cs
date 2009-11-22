@@ -61,6 +61,19 @@ namespace Deveel.Data.DbModel {
 			}
 		}
 
+		public DbColumn IdentityColumn {
+			get {
+				IList columns = Columns;
+				for (int i = 0; i < columns.Count; i++) {
+					DbColumn column = (DbColumn) columns[i];
+					if (column.Identity)
+						return column;
+				}
+
+				return null;
+			}
+		}
+
 		private static int FindObjectIndex(IList list, string name) {
 			for (int i = 0; i < list.Count; i++) {
 				DbObject obj = (DbObject) list[i];

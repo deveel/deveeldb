@@ -1,4 +1,13 @@
-﻿2009-11-09  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-11-22  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbCommand.cs: implements ICloneable interface
+	* DeveelDbParamater.cs: implements ICloneable interface
+	* DeveelDbProviderFactory.cs: implemented and added support
+	for the LINQ for DeveelDB
+	* DeveelDbClientInstaller.cs: added to support the automatic
+	installation of the drivers into the running machine (not
+	tested on Mono)
+	
+2009-11-09  Antonello Provenzano  <antonello@deveel.com>
 	* DeveelDbCommand.cs: fixed the bug in ExecuteReader
 	that caused a reader to be still open even after an
 	exception occurred

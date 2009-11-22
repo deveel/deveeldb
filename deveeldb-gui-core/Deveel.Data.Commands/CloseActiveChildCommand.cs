@@ -2,11 +2,8 @@
 using System.Windows.Forms;
 
 namespace Deveel.Data.Commands {
+	[Command("Close", "&Close")]
 	public sealed class CloseActiveChildCommand : Command {
-		public CloseActiveChildCommand() 
-			: base("&Close") {
-		}
-
 		public override bool Enabled {
 			get { return HostWindow.ActiveChild != null; }
 		}

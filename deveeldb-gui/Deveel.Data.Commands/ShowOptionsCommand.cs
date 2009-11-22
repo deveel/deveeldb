@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 
 namespace Deveel.Data.Commands {
-	[CommandSmallImage("Deveel.Data.Images.cog.png")]
+	[CommandImage("Deveel.Data.Images.cog.png")]
 	public sealed class ShowOptionsCommand : Command {
 		public ShowOptionsCommand()
 			: base("Options") {

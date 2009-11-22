@@ -2,11 +2,8 @@
 using System.Windows.Forms;
 
 namespace Deveel.Data.Commands {
+	[Command("CloseChildren", "Close &All Windows")]
 	public sealed class CloseChildrenCommand : Command {
-		public CloseChildrenCommand() 
-			: base("Close &All Windows") {
-		}
-
 		public override bool Enabled {
 			get { return HostWindow.Form.MdiChildren.Length > 0; }
 		}

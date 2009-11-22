@@ -19,9 +19,9 @@ namespace Deveel.Data.Plugins {
 
 			CommandControlBuilder commandControlBuilder = new CommandControlBuilder(services.CommandHandler);
 
-			services.RegisterEditor(typeof(Editor), new FileEditorInfo("Text editor", "default"));
-			services.RegisterEditor(typeof(Editor), new FileEditorInfo("Text Editor", "txt-editor", "txt"));
-			services.RegisterEditor(typeof(QueryEditor), new FileEditorInfo("SQL Editor", "sql-editor", "sql"));
+			services.RegisterEditor(typeof(Editor), new FileEditorInfo("default", "Text editor"));
+			services.RegisterEditor(typeof(Editor), new FileEditorInfo("txt-editor", "Text Editor", "txt"));
+			services.RegisterEditor(typeof(QueryEditor), new FileEditorInfo("sql-editor", "SQL Editor", "sql"));
 
 			services.RegisterComponent("NewFileForm", typeof(NewFileForm));
 			services.RegisterComponent("OptionsForm", typeof(OptionsForm));
@@ -32,6 +32,7 @@ namespace Deveel.Data.Plugins {
 			ToolStripMenuItem editMenu = hostWindow.GetMenuItem("Edit");
 			ToolStripMenuItem queryMenu = hostWindow.GetMenuItem("Query");
 
+			// File
 			fileMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(NewQueryFormCommand)));
 			fileMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(NewFileCommand)));
 			fileMenu.DropDownItems.Add(new ToolStripSeparator());
@@ -44,20 +45,37 @@ namespace Deveel.Data.Plugins {
 			fileMenu.DropDownItems.Add(new ToolStripSeparator());
 			fileMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(ExitCommand)));
 
+			// Edit
+			editMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(UndoCommand)));
+			editMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(RedoCommand)));
+			editMenu.DropDownItems.Add(new ToolStripSeparator());
+			editMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(CutTextCommand)));
+			editMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(CopyTextCommand)));
+			editMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(PasteTextCommand)));
+			editMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(ToLowerCaseCommand)));
+			editMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(ToUpperCaseCommand)));
+			editMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(ToTitleCaseCommand)));
+			editMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(DeleteTextCommand)));
+			editMenu.DropDownItems.Add(new ToolStripSeparator());
+			editMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(ShowOptionsCommand)));
+
+			// Query
 			queryMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(ExecuteTaskCommand)));
 			queryMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(CancelTaskCommand)));
 			queryMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(ResetConnectionCommand)));
 			queryMenu.DropDownItems.Add(commandControlBuilder.CreateToolStripMenuItem(typeof(CloseConnectionCommand)));
+
 
 			CommandControlBuilder.MonitorMenuItemsOpeningForEnabling(hostWindow.Form.MainMenuStrip);
 
 			hostWindow.AddToolStripCommand(0, typeof(NewQueryFormCommand));
 			hostWindow.AddToolStripCommand(1, typeof(OpenFileCommand));
 			hostWindow.AddToolStripCommand(2, typeof(SaveFileCommand));
-			hostWindow.AddToolStripSeperator(3);
-			hostWindow.AddToolStripCommand(4, typeof(ExecuteTaskCommand));
-			hostWindow.AddToolStripCommand(5, typeof(CancelTaskCommand));
-			hostWindow.AddToolStripSeperator(6);
+			hostWindow.AddToolStripCommand(3, typeof(SaveFileAsCommand));
+			hostWindow.AddToolStripSeperator(4);
+			hostWindow.AddToolStripCommand(5, typeof(ExecuteTaskCommand));
+			hostWindow.AddToolStripCommand(6, typeof(CancelTaskCommand));
+			hostWindow.AddToolStripSeperator(7);
 			hostWindow.AddToolStripSeperator(-1);
 			hostWindow.AddToolStripCommand(-1, typeof(ResetConnectionCommand));
 

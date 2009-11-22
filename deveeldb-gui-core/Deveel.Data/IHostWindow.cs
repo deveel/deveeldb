@@ -38,6 +38,6 @@ namespace Deveel.Data {
 
 		void AddToolStripSeperator(int index);
 
-		void ShowDatabaseInspector(IDbMetadataProvider metadataProvider, DockState dockState);
+		void ShowMetadata(IDbMetadataProvider metadataProvider, DockState dockState);
 	}
 }

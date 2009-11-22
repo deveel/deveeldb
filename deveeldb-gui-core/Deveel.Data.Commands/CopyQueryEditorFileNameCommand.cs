@@ -2,11 +2,8 @@
 using System.Windows.Forms;
 
 namespace Deveel.Data.Commands {
+	[Command("CopyFileName", "Copy Filename")]
 	public class CopyQueryEditorFileNameCommand : Command {
-		public CopyQueryEditorFileNameCommand()
-			: base("Copy Filename") {
-		}
-
 		public override bool Enabled {
 			get { 
 				IEditor editor = HostWindow.Form.ActiveMdiChild as IEditor;

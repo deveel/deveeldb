@@ -3,11 +3,10 @@ using System.Drawing.Printing;
 using System.Windows.Forms;
 
 namespace Deveel.Data.Commands {
+	[Command("Print", "Print...")]
+	[CommandShortcut(Keys.Control | Keys.P, "Ctrl+P")]
+	[CommandImage("Deveel.Data.Images.printer.png")]
 	public sealed class PrintCommand : Command {
-		public PrintCommand() 
-			: base("Print...") {
-		}
-
 		public override bool Enabled {
 			get {
 				IPrintable printable = HostWindow.ActiveChild as IPrintable;
