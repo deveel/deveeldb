@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-nhibernate", "deve
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-repair", "deveeldb-repair\deveeldb-repair.csproj", "{40C3B1A0-664A-42C5-B447-527E57CEC4F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveelsb-shell", "deveelsb-shell\deveelsb-shell.csproj", "{B9CE38C4-D740-4F39-B9FA-849DB5B5474B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveelsb-shell", "deveeldb-shell\deveelsb-shell.csproj", "{B9CE38C4-D740-4F39-B9FA-849DB5B5474B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

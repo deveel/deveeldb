@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Data;
 
@@ -93,43 +93,43 @@ namespace Deveel.Data {
 		}
 
 		private void RegisterNumericTypes() {
-			RegisterColumnType(DbType.Boolean, "NUMBER(1,0)");
-			RegisterColumnType(DbType.Byte, "NUMBER(3,0)");
-			RegisterColumnType(DbType.Int16, "NUMBER(5,0)");
-			RegisterColumnType(DbType.Int32, "NUMBER(10,0)");
-			RegisterColumnType(DbType.Int64, "NUMBER(20,0)");
-			RegisterColumnType(DbType.UInt16, "NUMBER(5,0)");
-			RegisterColumnType(DbType.UInt32, "NUMBER(10,0)");
-			RegisterColumnType(DbType.UInt64, "NUMBER(20,0)");
+			RegisterColumnType(System.Data.DbType.Boolean, "NUMBER(1,0)");
+			RegisterColumnType(System.Data.DbType.Byte, "NUMBER(3,0)");
+			RegisterColumnType(System.Data.DbType.Int16, "NUMBER(5,0)");
+			RegisterColumnType(System.Data.DbType.Int32, "NUMBER(10,0)");
+			RegisterColumnType(System.Data.DbType.Int64, "NUMBER(20,0)");
+			RegisterColumnType(System.Data.DbType.UInt16, "NUMBER(5,0)");
+			RegisterColumnType(System.Data.DbType.UInt32, "NUMBER(10,0)");
+			RegisterColumnType(System.Data.DbType.UInt64, "NUMBER(20,0)");
 
-			RegisterColumnType(DbType.Single, "FLOAT(24)");
-			RegisterColumnType(DbType.Double, "DOUBLE PRECISION");
-			RegisterColumnType(DbType.Double, 19, "NUMBER($p,$s)");
-			RegisterColumnType(DbType.Decimal, "NUMBER(19,5)");
-			RegisterColumnType(DbType.Decimal, 19, "NUMBER($p,$s)");
+			RegisterColumnType(System.Data.DbType.Single, "FLOAT(24)");
+			RegisterColumnType(System.Data.DbType.Double, "DOUBLE PRECISION");
+			RegisterColumnType(System.Data.DbType.Double, 19, "NUMBER($p,$s)");
+			RegisterColumnType(System.Data.DbType.Decimal, "NUMBER(19,5)");
+			RegisterColumnType(System.Data.DbType.Decimal, 19, "NUMBER($p,$s)");
 		}
 
 		private void RegisterDateTimeTypes() {
-			RegisterColumnType(DbType.Date, "DATE");
-			RegisterColumnType(DbType.DateTime, "TIMESTAMP");
-			RegisterColumnType(DbType.Time, "TIME");
+			RegisterColumnType(System.Data.DbType.Date, "DATE");
+			RegisterColumnType(System.Data.DbType.DateTime, "TIMESTAMP");
+			RegisterColumnType(System.Data.DbType.Time, "TIME");
 			//TODO: interval type...
 		}
 
 		private void RegisterCharacterTypes() {
-			RegisterColumnType(DbType.AnsiStringFixedLength, "CHAR(255)");
-			RegisterColumnType(DbType.AnsiStringFixedLength, 2000, "CHAR($l)");
-			RegisterColumnType(DbType.AnsiString, "VARCHAR2(255)");
-			RegisterColumnType(DbType.AnsiString, 4000, "VARCHAR2($l)");
-			RegisterColumnType(DbType.StringFixedLength, "CHAR(255)");
-			RegisterColumnType(DbType.StringFixedLength, 2000, "CHAR($l)");
-			RegisterColumnType(DbType.String, "VARCHAR2(255)");
-			RegisterColumnType(DbType.String, 4000, "VARCHAR2($l)");
+			RegisterColumnType(System.Data.DbType.AnsiStringFixedLength, "CHAR(255)");
+			RegisterColumnType(System.Data.DbType.AnsiStringFixedLength, 2000, "CHAR($l)");
+			RegisterColumnType(System.Data.DbType.AnsiString, "VARCHAR2(255)");
+			RegisterColumnType(System.Data.DbType.AnsiString, 4000, "VARCHAR2($l)");
+			RegisterColumnType(System.Data.DbType.StringFixedLength, "CHAR(255)");
+			RegisterColumnType(System.Data.DbType.StringFixedLength, 2000, "CHAR($l)");
+			RegisterColumnType(System.Data.DbType.String, "VARCHAR2(255)");
+			RegisterColumnType(System.Data.DbType.String, 4000, "VARCHAR2($l)");
 		}
 
 		private void RegisterLargeObjectTypes() {
-			RegisterColumnType(DbType.Binary, 2147483647, "BLOB");
-			RegisterColumnType(DbType.AnsiString, 2147483647, "CLOB");
+			RegisterColumnType(System.Data.DbType.Binary, 2147483647, "BLOB");
+			RegisterColumnType(System.Data.DbType.AnsiString, 2147483647, "CLOB");
 		}
 
 		public override string GetSelectSequenceNextValString(string sequenceName) {
