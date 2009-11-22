@@ -222,7 +222,7 @@ namespace Deveel.Data.Commands {
 						parameter.Value = null;
 					} else {
 						if (type == DbType.Numeric) {
-							parameter.Value = BigNumber.fromDouble(number);
+							parameter.Value = (BigNumber)number;
 						} else if (type == DbType.NumericExtended) {
 							parameter.Value = number;
 						}

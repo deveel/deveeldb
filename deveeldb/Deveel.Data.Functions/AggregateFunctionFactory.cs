@@ -4,13 +4,13 @@ using System.Collections;
 namespace Deveel.Data.Functions {
 	internal class AggregateFunctionFacvtory : FunctionFactory {
 		public override void Init() {
-			AddFunction("aggor", typeof(AggOrFunction));
-			AddFunction("avg", typeof (AvgFunction));
-			AddFunction("count", typeof (CountFunction));
-			AddFunction("max", typeof(MaxFunction));
-			AddFunction("min", typeof(MinFunction));
-			AddFunction("sum", typeof(SumFunction));
-			AddFunction("distinct_count", typeof(DistinctCountFunction));
+			AddFunction("aggor", typeof(AggOrFunction), FunctionType.Aggregate);
+			AddFunction("avg", typeof (AvgFunction), FunctionType.Aggregate);
+			AddFunction("count", typeof (CountFunction), FunctionType.Aggregate);
+			AddFunction("max", typeof(MaxFunction), FunctionType.Aggregate);
+			AddFunction("min", typeof(MinFunction), FunctionType.Aggregate);
+			AddFunction("sum", typeof(SumFunction), FunctionType.Aggregate);
+			AddFunction("distinct_count", typeof(DistinctCountFunction), FunctionType.Aggregate);
 		}
 
 		#region AggOrFunction

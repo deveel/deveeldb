@@ -1283,7 +1283,7 @@ namespace Deveel.Data {
 					MasterTableDataSource master =
 												(MasterTableDataSource)table_list[i];
 					if (master.SourceIdentity.Equals(table_file_name)) {
-						return master.getRawDiagnosticTable();
+						return master.GetRawDiagnosticTable();
 					}
 				}
 			}

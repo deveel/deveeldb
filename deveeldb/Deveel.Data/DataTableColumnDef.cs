@@ -555,6 +555,7 @@ namespace Deveel.Data {
 				case (SqlType.Double):
 				case (SqlType.Numeric):
 				case (SqlType.Decimal):
+				case (SqlType.Identity):
 					return new TNumericType(sql_type, size, scale);
 
 				case (SqlType.Char):

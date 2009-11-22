@@ -585,8 +585,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal SelectableScheme CreateSelectableSchemeForColumn(
-						  IIndexSet index_set, ITableDataSource table, int column) {
+		internal SelectableScheme CreateSelectableSchemeForColumn(IIndexSet index_set, ITableDataSource table, int column) {
 			lock (this) {
 				// What's the type of scheme for this column?
 				DataTableColumnDef column_def = DataTableDef[column];
@@ -1386,7 +1385,7 @@ namespace Deveel.Data {
 		/// we can use to diagnose problems with the data in this source.
 		/// </summary>
 		/// <returns></returns>
-		internal IRawDiagnosticTable getRawDiagnosticTable() {
+		internal IRawDiagnosticTable GetRawDiagnosticTable() {
 			return new MRawDiagnosticTable();
 		}
 

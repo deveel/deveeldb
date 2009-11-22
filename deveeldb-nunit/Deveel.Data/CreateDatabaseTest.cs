@@ -13,20 +13,20 @@ namespace Deveel.Data {
 			DeveelDbConnection connection = CreateConnection();
 
 			DeveelDbCommand command = connection.CreateCommand("    CREATE TABLE Person ( " +
-			                                                   "       id        INTEGER IDENTITY, " +
+			                                                   "       id        IDENTITY, " +
 			                                                   "       name      VARCHAR(100) NOT NULL, " +
 			                                                   "       age       INTEGER, " +
 			                                                   "       lives_in  VARCHAR(100) ) ");
 			command.ExecuteNonQuery();
 
 			command = connection.CreateCommand("    CREATE TABLE ListensTo ( " +
-			                                   "       id               INTEGER IDENTITY, " +
+			                                   "       id               IDENTITY, " +
 			                                   "       person_name      VARCHAR(100) NOT NULL, " +
 			                                   "       music_group_name VARCHAR(250) NOT NULL ) ");
 			command.ExecuteNonQuery();
 
 			command = connection.CreateCommand("    CREATE TABLE MusicGroup ( " +
-			                                   "       id                INTEGER IDENTITY, " +
+			                                   "       id                IDENTITY, " +
 			                                   "       name              VARCHAR(250) NOT NULL, " +
 			                                   "       country_of_origin VARCHAR(100) ) ");
 			command.ExecuteNonQuery();
