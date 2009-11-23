@@ -41,9 +41,7 @@ namespace Deveel.Data {
 		private static readonly ModulusOperator mod_op = new ModulusOperator();
 		private static readonly EqualOperator eq_op = new EqualOperator();
 		private static readonly GreaterOperator g_op = new GreaterOperator();
-
-		private static readonly GreaterEqualOperator geq_op =
-			new GreaterEqualOperator();
+		private static readonly GreaterEqualOperator geq_op = new GreaterEqualOperator();
 
 		private static readonly Operator in_op;
 		private static readonly IsOperator is_op = new IsOperator();
@@ -58,8 +56,7 @@ namespace Deveel.Data {
 		private static readonly NotEqualOperator neq_op = new NotEqualOperator();
 		private static readonly Operator nin_op;
 
-		private static readonly PatternMatchFalseOperator nlike_op =
-			new PatternMatchFalseOperator();
+		private static readonly PatternMatchFalseOperator nlike_op = new PatternMatchFalseOperator();
 
 		private static readonly Operator not_op = new SimpleOperator("not", 3);
 		private static readonly OrOperator or_op = new OrOperator();
@@ -242,6 +239,157 @@ namespace Deveel.Data {
 		/// </summary>
 		internal string StringRepresentation {
 			get { return op; }
+		}
+
+		/// <summary>
+		/// Gets the operator used to evaluate the equality of
+		/// two <see cref="TObject"/> passed as parameters.
+		/// </summary>
+		public static Operator Equal {
+			get { return eq_op; }
+		}
+
+		/// <summary>
+		/// Gets the operator used to evaluate the inequality of
+		/// two <see cref="TObject"/> passed as parameters.
+		/// </summary>
+		public static Operator NotEqual {
+			get { return neq_op; }
+		}
+
+		/// <summary>
+		/// Gets an <see cref="Operator"/> used to evaluate if a given 
+		/// <see cref="TObject"/> is greater than another one.
+		/// </summary>
+		public static Operator Greater {
+			get { return g_op; }
+		}
+
+		/// <summary>
+		/// Gets an <see cref="Operator"/> used to evaluate if a given 
+		/// <see cref="TObject"/> is smaller than another one.
+		/// </summary>
+		public static Operator Lesser {
+			get { return l_op; }
+		}
+
+		/// <summary>
+		/// Gets an <see cref="Operator"/> used to evaluate if a given 
+		/// <see cref="TObject"/> is greater or equal than another one.
+		/// </summary>
+		public static Operator GreaterEqual {
+			get { return geq_op; }
+		}
+
+		/// <summary>
+		/// Gets an <see cref="Operator"/> used to evaluate if a given 
+		/// <see cref="TObject"/> is smaller or equal than another one.
+		/// </summary>
+		public static Operator LesserEqual {
+			get { return leq_op; }
+		}
+
+		/// <summary>
+		/// Gets an <see cref="Operator"/> that is used to compute an 
+		/// addition between two <see cref="TObject"/> given.
+		/// </summary>
+		/// <remarks>
+		/// The addition of an argument to another can be of the following
+		/// forms:
+		/// <list type="bullet">
+		///   <item>
+		///     <term>Mathematic</term>
+		///     <description>two numeric arguments</description>
+		///   </item>
+		///   <item>
+		///     <term>Numeric to time</term>
+		///     <description>the first argument is a <c>TIME</c> type
+		///     and the second is a <c>NUMERIC</c> value representing
+		///     the number of milliseconds to add, that will return
+		///     an <c>TIME</c>;</description>
+		///   </item>
+		///   <item>
+		///     <term>Interval to time</term>
+		///     <description>an <c>INTERVAL</c> of time is added to the 
+		///     first argument of type <c>DATE</c> resulting into another
+		///    <c>TIME</c> type.</description>
+		///   </item>
+		///   <item>
+		///     <term>String to string</term>
+		///     <description>conctas two strings (like <see cref="Concat"/>
+		///     operator)</description>
+		///   </item>
+		/// </list>
+		/// </remarks>
+		/// <seealso cref="Concat"/>
+		/// <seealso cref="Substract"/>
+		public static Operator Add {
+			get { return add_op; }
+		}
+
+		/// <summary>
+		/// Gets an <see cref="Operator"/> that is used to compute
+		/// a substraction between two arguments.
+		/// </summary>
+		/// <seealso cref="Add"/>
+		public static Operator Substract {
+			get { return sub_op; }
+		}
+
+		/// <summary>
+		/// Gets an <see cref="Operator"/> instance that multiplies
+		/// a first given argument by a second one.
+		/// </summary>
+		public static Operator Multiply {
+			get { return mul_op; }
+		}
+
+		public static Operator Divide {
+			get { return div_op; }
+		}
+
+		public static Operator Modulo {
+			get { return mod_op; }
+		}
+
+		public static Operator Concat {
+			get { return concat_op; }
+		}
+
+		public static Operator Like {
+			get { return like_op; }
+		}
+
+		public static Operator NotLike {
+			get { return nlike_op; }
+		}
+
+		public static Operator SoundsLike {
+			get { return slike_op; }
+		}
+
+		public static Operator Regex {
+			get { return regex_op; }
+		}
+
+		public static Operator NotIn {
+			get { return nin_op; }
+		}
+
+		public static Operator In {
+			get { return in_op; }
+		}
+
+		public static Operator Not {
+			get { return not_op; }
+		}
+
+		public static Operator And {
+			get { return and_op; }
+		}
+
+		public static Operator Or {
+			get { return or_op; }
 		}
 
 		///<summary>
@@ -1007,16 +1155,14 @@ namespace Deveel.Data {
 			public override TObject Evaluate(TObject ob1, TObject ob2,
 			                                 IGroupResolver group, IVariableResolver resolver,
 			                                 IQueryContext context) {
-				if (ob1.IsNull) {
+				if (ob1.IsNull)
 					return ob1;
-				}
-				if (ob2.IsNull) {
+				if (ob2.IsNull)
 					return ob2;
-				}
-				String val = ob1.CastTo(TType.StringType).ToStringValue();
-				String pattern = ob2.CastTo(TType.StringType).ToStringValue();
-				return TObject.GetBoolean(PatternSearch.RegexMatch(
-				                          	context.System, pattern, val));
+
+				string val = ob1.CastTo(TType.StringType).ToStringValue();
+				string pattern = ob2.CastTo(TType.StringType).ToStringValue();
+				return TObject.GetBoolean(PatternSearch.RegexMatch(context.System, pattern, val));
 			}
 		}
 
@@ -1026,10 +1172,6 @@ namespace Deveel.Data {
 
 		[Serializable]
 		private sealed class SimpleOperator : Operator {
-			public SimpleOperator(String str)
-				: base(str) {
-			}
-
 			public SimpleOperator(String str, int prec)
 				: base(str, prec) {
 			}

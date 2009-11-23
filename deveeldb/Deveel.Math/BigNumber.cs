@@ -51,13 +51,13 @@ namespace Deveel.Math {
 		// Statics for negative infinity, positive infinity and NaN.
 		///<summary>
 		///</summary>
-		public static readonly BigNumber NegativeInfinity = new BigNumber(NumberState.NEG_INF_STATE, null);
+		public static readonly BigNumber NegativeInfinity = new BigNumber(NumberState.NegativeInfinity, null);
 		///<summary>
 		///</summary>
-		public static readonly BigNumber PositiveInfinity = new BigNumber(NumberState.POS_INF_STATE, null);
+		public static readonly BigNumber PositiveInfinity = new BigNumber(NumberState.PositiveInfinity, null);
 		///<summary>
 		///</summary>
-		public static readonly BigNumber NaN = new BigNumber(NumberState.NaN_STATE, null);
+		public static readonly BigNumber NaN = new BigNumber(NumberState.NotANumber, null);
 
 		/// <summary>
 		/// The BigDecimal representation.
@@ -153,10 +153,10 @@ namespace Deveel.Math {
 		/// </summary>
 		private NumberState InverseState {
 			get {
-				if (number_state == NumberState.NEG_INF_STATE) {
-					return NumberState.POS_INF_STATE;
-				} else if (number_state == NumberState.POS_INF_STATE) {
-					return NumberState.NEG_INF_STATE;
+				if (number_state == NumberState.NegativeInfinity) {
+					return NumberState.PositiveInfinity;
+				} else if (number_state == NumberState.PositiveInfinity) {
+					return NumberState.NegativeInfinity;
 				} else {
 					return number_state;
 				}
@@ -176,11 +176,11 @@ namespace Deveel.Math {
 			switch (number_state) {
 				case (0):
 					return big_decimal.ToString();
-				case (NumberState.NEG_INF_STATE):
+				case (NumberState.NegativeInfinity):
 					return "-Infinity";
-				case (NumberState.POS_INF_STATE):
+				case (NumberState.PositiveInfinity):
 					return "Infinity";
-				case (NumberState.NaN_STATE):
+				case (NumberState.NotANumber):
 					return "NaN";
 				default:
 					throw new ApplicationException("Unknown number state");
@@ -192,11 +192,11 @@ namespace Deveel.Math {
 			switch (number_state) {
 				case (0):
 					return big_decimal.ToDouble();
-				case (NumberState.NEG_INF_STATE):
+				case (NumberState.NegativeInfinity):
 					return Double.NegativeInfinity;
-				case (NumberState.POS_INF_STATE):
+				case (NumberState.PositiveInfinity):
 					return Double.PositiveInfinity;
-				case (NumberState.NaN_STATE):
+				case (NumberState.NotANumber):
 					return Double.NaN;
 				default:
 					throw new ApplicationException("Unknown number state");
@@ -208,11 +208,11 @@ namespace Deveel.Math {
 			switch (number_state) {
 				case (0):
 					return big_decimal.ToSingle();
-				case (NumberState.NEG_INF_STATE):
+				case (NumberState.NegativeInfinity):
 					return Single.NegativeInfinity;
-				case (NumberState.POS_INF_STATE):
+				case (NumberState.PositiveInfinity):
 					return Single.PositiveInfinity;
-				case (NumberState.NaN_STATE):
+				case (NumberState.NotANumber):
 					return Single.NaN;
 				default:
 					throw new ApplicationException("Unknown number state");
@@ -307,12 +307,12 @@ namespace Deveel.Math {
 				} else {
 					// Comparing a regular number with a NaN number.
 					// If positive infinity or if NaN
-					if (number.number_state == NumberState.POS_INF_STATE ||
-						number.number_state == NumberState.NaN_STATE) {
+					if (number.number_state == NumberState.PositiveInfinity ||
+						number.number_state == NumberState.NotANumber) {
 						return -1;
 					}
 						// If negative infinity
-					else if (number.number_state == NumberState.NEG_INF_STATE) {
+					else if (number.number_state == NumberState.NegativeInfinity) {
 						return 1;
 					} else {
 						throw new ApplicationException("Unknown number state.");
@@ -323,12 +323,12 @@ namespace Deveel.Math {
 				// Are we comparing with a regular number?
 				if (number.number_state == 0) {
 					// Yes, negative infinity
-					if (number_state == NumberState.NEG_INF_STATE) {
+					if (number_state == NumberState.NegativeInfinity) {
 						return -1;
 					}
 						// positive infinity or NaN
-					else if (number_state == NumberState.POS_INF_STATE ||
-							 number_state == NumberState.NaN_STATE) {
+					else if (number_state == NumberState.PositiveInfinity ||
+							 number_state == NumberState.NotANumber) {
 						return 1;
 					} else {
 						throw new ApplicationException("Unknown number state.");
@@ -374,7 +374,7 @@ namespace Deveel.Math {
 				number.number_state == 0 && number.Scale == 0) {
 				BigInteger bi1 = big_decimal.ToInteger();
 				BigInteger bi2 = number.big_decimal.ToInteger();
-				return new BigNumber(NumberState.NONE, new BigDecimal(bi1.Or(bi2)));
+				return new BigNumber(NumberState.None, new BigDecimal(bi1.Or(bi2)));
 			} else {
 				return null;
 			}
@@ -387,7 +387,7 @@ namespace Deveel.Math {
 		public BigNumber Add (BigNumber number) {
 			if (number_state == 0) {
 				if (number.number_state == 0) {
-					return new BigNumber(NumberState.NONE, big_decimal.Add(number.big_decimal));
+					return new BigNumber(NumberState.None, big_decimal.Add(number.big_decimal));
 				} else {
 					return new BigNumber(number.number_state, null);
 				}
@@ -403,7 +403,7 @@ namespace Deveel.Math {
 		public BigNumber Subtract (BigNumber number) {
 			if (number_state == 0) {
 				if (number.number_state == 0) {
-					return new BigNumber(NumberState.NONE, big_decimal.Subtract(number.big_decimal));
+					return new BigNumber(NumberState.None, big_decimal.Subtract(number.big_decimal));
 				} else {
 					return new BigNumber(number.InverseState, null);
 				}
@@ -419,7 +419,7 @@ namespace Deveel.Math {
 		public BigNumber Multiply (BigNumber number) {
 			if (number_state == 0) {
 				if (number.number_state == 0) {
-					return new BigNumber(NumberState.NONE, big_decimal.Multiply(number.big_decimal));
+					return new BigNumber(NumberState.None, big_decimal.Multiply(number.big_decimal));
 				} else {
 					return new BigNumber(number.number_state, null);
 				}
@@ -437,12 +437,12 @@ namespace Deveel.Math {
 				if (number.number_state == 0) {
 					BigDecimal div_by = number.big_decimal;
 					if (div_by.CompareTo (BD_ZERO) != 0) {
-						return new BigNumber(NumberState.NONE, big_decimal.Divide(div_by, 10, DecimalRoundingMode.HalfUp));
+						return new BigNumber(NumberState.None, big_decimal.Divide(div_by, 10, DecimalRoundingMode.HalfUp));
 					}
 				}
 			}
 			// Return NaN if we can't divide
-			return new BigNumber(NumberState.NaN_STATE, null);
+			return new BigNumber(NumberState.NotANumber, null);
 		}
 
 		public BigNumber Modulus(BigNumber number) {
@@ -452,12 +452,12 @@ namespace Deveel.Math {
 					if (div_by.CompareTo(BD_ZERO) != 0) {
 						BigDecimal remainder;
 						big_decimal.Divide(div_by, 10, DecimalRoundingMode.HalfUp, out remainder);
-						return new BigNumber(NumberState.NONE, remainder);
+						return new BigNumber(NumberState.None, remainder);
 					}
 				}
 			}
 
-			return new BigNumber(NumberState.NaN_STATE, null);
+			return new BigNumber(NumberState.NotANumber, null);
 		}
 
 		///<summary>
@@ -465,9 +465,9 @@ namespace Deveel.Math {
 		///<returns></returns>
 		public BigNumber Abs () {
 			if (number_state == 0) {
-				return new BigNumber(NumberState.NONE, big_decimal.Abs());
-			} else if (number_state == NumberState.NEG_INF_STATE) {
-				return new BigNumber(NumberState.POS_INF_STATE, null);
+				return new BigNumber(NumberState.None, big_decimal.Abs());
+			} else if (number_state == NumberState.NegativeInfinity) {
+				return new BigNumber(NumberState.PositiveInfinity, null);
 			} else {
 				return new BigNumber(number_state, null);
 			}
@@ -479,7 +479,7 @@ namespace Deveel.Math {
 		public int Signum() {
 			if (number_state == 0) {
 				return big_decimal.Sign();
-			} else if (number_state == NumberState.NEG_INF_STATE) {
+			} else if (number_state == NumberState.NegativeInfinity) {
 				return -1;
 			} else {
 				return 1;
@@ -493,7 +493,7 @@ namespace Deveel.Math {
 		///<returns></returns>
 		public BigNumber SetScale (int d, DecimalRoundingMode round_enum) {
 			if (number_state == 0) {
-				return new BigNumber(NumberState.NONE, big_decimal.SetScale(d, round_enum));
+				return new BigNumber(NumberState.None, big_decimal.SetScale(d, round_enum));
 			}
 			// Can't round -inf, +inf and NaN
 			return this;
@@ -521,7 +521,7 @@ namespace Deveel.Math {
 			} else if (value != value) {
 				return NaN;
 			}
-			return new BigNumber(NumberState.NONE, new BigDecimal(Convert.ToString(value, CultureInfo.InvariantCulture)));
+			return new BigNumber(NumberState.None, new BigDecimal(Convert.ToString(value, CultureInfo.InvariantCulture)));
 		}
 
 		public static implicit operator  BigNumber(float value) {
@@ -532,19 +532,19 @@ namespace Deveel.Math {
 			} else if (value != value) {
 				return NaN;
 			}
-			return new BigNumber(NumberState.NONE, new BigDecimal(Convert.ToString(value, CultureInfo.InvariantCulture)));
+			return new BigNumber(NumberState.None, new BigDecimal(Convert.ToString(value, CultureInfo.InvariantCulture)));
 		}
 
 		public static implicit operator BigNumber(long value) {
-			return new BigNumber(NumberState.NONE, BigDecimal.ValueOf(value));
+			return new BigNumber(NumberState.None, BigDecimal.ValueOf(value));
 		}
 
 		public static implicit operator BigNumber(int value) {
-			return new BigNumber(NumberState.NONE, BigDecimal.ValueOf(value));
+			return new BigNumber(NumberState.None, BigDecimal.ValueOf(value));
 		}
 
 		public static implicit operator BigNumber(BigDecimal value) {
-			return new BigNumber(NumberState.NONE, value);
+			return new BigNumber(NumberState.None, value);
 		}
 
 		//TODO:
@@ -555,7 +555,7 @@ namespace Deveel.Math {
 			for (int i = bits.Length - 1; i >= 0; i--) {
 				ByteBuffer.WriteInteger(bits[i], buffer, i + 4);
 			}
-			return new BigNumber(NumberState.NONE, new BigDecimal(new BigInteger(buffer)));
+			return new BigNumber(NumberState.None, new BigDecimal(new BigInteger(buffer)));
 		}
 
 		/**
@@ -570,7 +570,7 @@ namespace Deveel.Math {
 			} else if (str.Equals ("NaN")) {
 				return NaN;
 			} else {
-				return new BigNumber(NumberState.NONE, new BigDecimal(str));
+				return new BigNumber(NumberState.None, new BigDecimal(str));
 			}
 		}
 
@@ -589,11 +589,11 @@ namespace Deveel.Math {
 					}
 				}
 				return new BigNumber(buf, scale, state);
-			} else if (state == NumberState.NEG_INF_STATE) {
+			} else if (state == NumberState.NegativeInfinity) {
 				return NegativeInfinity;
-			} else if (state == NumberState.POS_INF_STATE) {
+			} else if (state == NumberState.PositiveInfinity) {
 				return PositiveInfinity;
-			} else if (state == NumberState.NaN_STATE) {
+			} else if (state == NumberState.NotANumber) {
 				return NaN;
 			} else {
 				throw new ApplicationException("Unknown number state.");

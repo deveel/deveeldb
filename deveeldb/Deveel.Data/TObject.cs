@@ -247,6 +247,10 @@ namespace Deveel.Data {
 			return GetDateTime(d);
 		}
 
+		public static implicit operator TObject(TimeSpan t) {
+			return GetInterval(t);
+		}
+
 		public static implicit operator TObject(double d) {
 			return GetDouble(d);
 		}
@@ -469,6 +473,16 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public static TObject GetDateTime(DateTime d) {
 			return new TObject(TType.DateType, d);
+		}
+
+		/// <summary>
+		/// Returns a <see cref="TObject"/> of INTERVAL type that represents the
+		/// given interval of time.
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static TObject GetInterval(TimeSpan t) {
+			return new TObject(TType.IntervalType, t);
 		}
 
 		/// <summary>

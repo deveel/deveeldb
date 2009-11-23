@@ -23,9 +23,9 @@ using System;
 
 namespace Deveel.Math {
 	public enum NumberState : byte {
-	    NaN_STATE = 3,
-	    NEG_INF_STATE = 1,
-	    POS_INF_STATE = 2,
-	    NONE = 0
+	    NotANumber = 3,
+	    NegativeInfinity = 1,
+	    PositiveInfinity = 2,
+	    None = 0
 	}
 }
