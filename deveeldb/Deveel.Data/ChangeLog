@@ -1,3 +1,10 @@
+2009-11-23  Antonello Provenzano  <antonello@deveel.com>
+	* Operator.cs: 
+		- Added static properties for representing each 
+		single operator type
+		- Method 'Evaluate' overloaded to support static
+		operation (no context).
+	
 2009-11-16  Antonello Provenzano  <antonello@deveel.com>
 	* Cache.cs: moved to namespace Deveel.Data.Caching
 	* DataCellCache.cs: moved to namespace Deveel.Data.Caching

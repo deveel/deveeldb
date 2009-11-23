@@ -190,7 +190,7 @@ namespace Deveel.Data {
 						int blen = input.ReadInt32();
 						byte[] buf = new byte[blen];
 						input.Read(buf, 0, buf.Length);
-						return BigNumber.Create(buf, scale, NumberState.NONE);
+						return BigNumber.Create(buf, scale, NumberState.None);
 					}
 
 				case (7): {
