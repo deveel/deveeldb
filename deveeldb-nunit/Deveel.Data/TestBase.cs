@@ -17,7 +17,7 @@ namespace Deveel.Data {
 
 		private static int conn_counter = -1;
 
-		[SetUp]
+		[TestFixtureSetUp]
 		public void SetUp() {
 			DbController controller = DbController.Default;
 			DbConfig config = new DefaultDbConfig();
@@ -28,7 +28,7 @@ namespace Deveel.Data {
 			OnSetUp();
 		}
 
-		[TearDown]
+		[TestFixtureTearDown]
 		public void TearDown() {
 			OnTearDown();
 			system.Close();

@@ -1,4 +1,7 @@
-﻿2009-10-29  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-11-23  Antonello Provenzano  <antonello@deveel.com>
+	* DbController.cs: fixed a bug on the DatabaseExist method.
+	
+2009-10-29  Antonello Provenzano  <antonello@deveel.com>
 	* DbController.cs:
 		- implements IDatabaseHandler interface
 		- it's possible to create a controller for a given

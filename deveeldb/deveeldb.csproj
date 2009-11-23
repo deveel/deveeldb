@@ -574,6 +574,8 @@
         </MonoDevelop.Autotools.MakefileInfo>
       </Properties>
     </MonoDevelop>
-    <VisualStudio />
+    <VisualStudio>
+      <UserProperties PingPoet_SlashDocs_DocCommentIncludeFileBasePath="C:\Users\antonello\Documents\projects\deveel\deveeldb\trunk\deveeldb" PingPoet_SlashDocs_SlashDocPathReplacePattern="C:\Users\antonello\Documents\projects\deveel\deveeldb\trunk\deveeldb\docs\external${path}${filename}.xml" PingPoet_SlashDocs_SlashDocPathMatchPattern="^C:\\Users\\antonello\\Documents\\projects\\deveel\\deveeldb\\trunk\\deveeldb(?&lt;path&gt;(\\[a-zA-Z\\0-9 ,-_]+)*\\)(?&lt;filename&gt;[^&lt;&gt;:&quot;/\\|]+)\.cs$" />
+    </VisualStudio>
   </ProjectExtensions>
 </Project>

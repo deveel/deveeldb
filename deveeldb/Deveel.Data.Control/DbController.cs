@@ -255,7 +255,12 @@ namespace Deveel.Data.Control {
 		public bool DatabaseExists(string name) {
 			// a fast fail...
 			Database database = databases[name] as Database;
-			return (database != null && (database.IsInitialized || database.Exists));
+			if (database == null)
+				return false;
+			if (database.IsInitialized)
+				return true;
+
+			return database.Exists;
 		}
 
 		/// <inheritdoc/>
