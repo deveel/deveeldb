@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -27,7 +27,7 @@
     <GenerateDocumentation>true</GenerateDocumentation>
     <CustomCommands>
       <CustomCommands>
-        <Command type="BeforeBuild" command="java -classpath ${ProjectDir}\..\util\csharpcc.jar csharpcc -OUTPUT_DIRECTORY=${ProjectDir}\Deveel.Data.Sql ${ProjectDir}\Deveel.Data.Sql\SQL.csc" workingdir="${ProjectDir}" />
+        <Command type="BeforeBuild" command="java -classpath ${ProjectDir}/../util/csharpcc.jar csharpcc -OUTPUT_DIRECTORY=${ProjectDir}/Deveel.Data.Sql ${ProjectDir}/Deveel.Data.Sql/SQL.csc" workingdir="${ProjectDir}" />
       </CustomCommands>
     </CustomCommands>
     <OutputType>Library</OutputType>
@@ -43,22 +43,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>3</WarningLevel>
     <OutputType>Library</OutputType>
-    <DebugSymbols>true</DebugSymbols>
     <RootNamespace>Deveel.Data</RootNamespace>
     <SignAssembly>true</SignAssembly>
     <AssemblyKeyFile>deveeldb.snk</AssemblyKeyFile>
     <DocumentationFile>bin\Release\deveeldb.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - Mono|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Release\Mono\</OutputPath>
-    <DefineConstants>NET_2_0;MONO</DefineConstants>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>3</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -508,26 +496,7 @@
     <ProjectGuid>{50D02908-5743-4E72-83B5-77C5712EA59A}</ProjectGuid>
     <RootNamespace>Deveel.Data</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug - Mono|AnyCPU' ">
-    <OutputType>Library</OutputType>
-    <OutputPath>bin\Debug\Mono\</OutputPath>
-    <DebugSymbols>true</DebugSymbols>
-    <RootNamespace>Deveel.Data</RootNamespace>
-    <Optimize>false</Optimize>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <DefineConstants>TRACE;DEBUG;NET_2_0;MONO</DefineConstants>
-    <WarningLevel>3</WarningLevel>
-    <DebugType>full</DebugType>
-    <CustomCommands>
-      <CustomCommands>
-        <Command type="BeforeBuild" command="java -classpath ${ProjectDir}/../util/csharpcc.jar csharpcc -OUTPUT_DIRECTORY=${ProjectDir}/Deveel.Data.Sql ${ProjectDir}/Deveel.Data.Sql/SQL.csc" workingdir="${ProjectDir}" />
-      </CustomCommands>
-    </CustomCommands>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyKeyFile>deveeldb.snk</AssemblyKeyFile>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release.Mono|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\Mono\</OutputPath>
@@ -563,6 +532,10 @@
   <ProjectExtensions>
     <MonoDevelop>
       <Properties>
+        <Policies>
+          <StandardHeader inheritsSet="LGPLv2License" />
+          <ChangeLogPolicy inheritsSet="Mono" />
+        </Policies>
         <MonoDevelop.Autotools.MakefileInfo RelativeMakefileName="Makefile.am" SyncReferences="true" IsAutotoolsProject="true" RelativeConfigureInPath="..">
           <BuildFilesVar Sync="true" Name="FILES" />
           <DeployFilesVar />
@@ -574,8 +547,5 @@
         </MonoDevelop.Autotools.MakefileInfo>
       </Properties>
     </MonoDevelop>
-    <VisualStudio>
-      <UserProperties PingPoet_SlashDocs_DocCommentIncludeFileBasePath="C:\Users\antonello\Documents\projects\deveel\deveeldb\trunk\deveeldb" PingPoet_SlashDocs_SlashDocPathReplacePattern="C:\Users\antonello\Documents\projects\deveel\deveeldb\trunk\deveeldb\docs\external${path}${filename}.xml" PingPoet_SlashDocs_SlashDocPathMatchPattern="^C:\\Users\\antonello\\Documents\\projects\\deveel\\deveeldb\\trunk\\deveeldb(?&lt;path&gt;(\\[a-zA-Z\\0-9 ,-_]+)*\\)(?&lt;filename&gt;[^&lt;&gt;:&quot;/\\|]+)\.cs$" />
-    </VisualStudio>
   </ProjectExtensions>
 </Project>

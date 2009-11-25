@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -9,7 +9,6 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Deveel.Data.Util</RootNamespace>
-    <AssemblyName>deveeldbrep</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>true</SignAssembly>
@@ -23,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AssemblyName>deveeldbrep</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,9 +31,10 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AssemblyName>deveeldbrep</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Deveel.CommandLine, Version=0.5.1.3130, Culture=neutral, PublicKeyToken=1f344e75a1973f38, processorArchitecture=MSIL">
+    <Reference Include="Deveel.CommandLine, Version=0.5.1.7599, Culture=neutral, PublicKeyToken=1f344e75a1973f38">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Deveel.CommandLine.dll</HintPath>
     </Reference>

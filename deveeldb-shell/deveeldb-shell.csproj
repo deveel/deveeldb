@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -9,7 +9,6 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Deveel.Data</RootNamespace>
-    <AssemblyName>deveeldb</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -29,6 +28,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>deveelsb_shell</RootNamespace>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <AssemblyName>deveeldb</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -41,9 +41,29 @@
     <DebugSymbols>true</DebugSymbols>
     <RootNamespace>deveelsb_shell</RootNamespace>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <AssemblyName>deveeldb</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug.Mono|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\Mono</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET_2_0;MONO</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <AssemblyName>deveeldb-shell</AssemblyName>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release.Mono|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\Mono</OutputPath>
+    <DefineConstants>TRACE;NET_2_0;MONO</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <AssemblyName>deveeldb-shell</AssemblyName>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Deveel.CommandLine, Version=0.5.1.7599, Culture=neutral, PublicKeyToken=1f344e75a1973f38, processorArchitecture=MSIL">
+    <Reference Include="Deveel.CommandLine, Version=0.5.1.7599, Culture=neutral, PublicKeyToken=1f344e75a1973f38">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Deveel.CommandLine.dll</HintPath>
     </Reference>
@@ -110,9 +130,6 @@
       <Project>{50D02908-5743-4E72-83B5-77C5712EA59A}</Project>
       <Name>deveeldb</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
