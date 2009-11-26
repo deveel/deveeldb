@@ -23,7 +23,6 @@
 using System;
 using System.Collections;
 using System.IO;
-using System.Text;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Control;
@@ -52,14 +51,6 @@ namespace Deveel.Data {
 		/// tables that have unchecked in modifications.
 		/// </summary>
 		private bool always_reindex_dirty_tables = false;
-
-		/// <summary>
-		/// A LoggingBufferManager object used to manage pages of ScatteringFileStore
-		/// objects in the file system.  We can configure the maximum pages and page
-		/// size via this object, so we have control over how much memory from the
-		/// heap is used for buffering.
-		/// </summary>
-		private LoggingBufferManager buffer_manager;
 
 		/// <summary>
 		/// The configuration properties of the entire database system.
@@ -265,17 +256,6 @@ namespace Deveel.Data {
 		}
 
 		///<summary>
-		/// Returns the LoggingBufferManager object enabling us to create no file
-		/// stores in the file system.
-		///</summary>
-		/// <remarks>
-		/// This provides access to the buffer scheme that has been configured.
-		/// </remarks>
-		public LoggingBufferManager BufferManager {
-			get { return buffer_manager; }
-		}
-
-		///<summary>
 		/// Returns the regular expression library from the configuration file.
 		///</summary>
 		///<exception cref="ApplicationException"></exception>
@@ -412,45 +392,45 @@ namespace Deveel.Data {
 			return res;
 		}
 
-		private void SetupFSync(IDbConfig dbConfig) {
-			string fsyncTypeString = dbConfig.GetValue("fsync_type");
-			if (fsyncTypeString != null) {
-				// if the 'fsync_type' is set and the value is "default" we use 
-				// the one retrieved automatically at the call of FSync class...
-				if (String.Compare(fsyncTypeString, "default", true) == 0)
-					return;
+		//private void SetupFSync(IDbConfig dbConfig) {
+		//    string fsyncTypeString = dbConfig.GetValue("fsync_type");
+		//    if (fsyncTypeString != null) {
+		//        // if the 'fsync_type' is set and the value is "default" we use 
+		//        // the one retrieved automatically at the call of FSync class...
+		//        if (String.Compare(fsyncTypeString, "default", true) == 0)
+		//            return;
 
-				Type type = Type.GetType(fsyncTypeString, false, true);
-				if (type == null) {
-					// there is no custom implementation of the fsync() operation.
-					Debug.Write(DebugLevel.Warning, this,
-					            "The value of 'fsync_type' is set but the type '" + fsyncTypeString + "' was not found.");
-					return;
-				}
+		//        Type type = Type.GetType(fsyncTypeString, false, true);
+		//        if (type == null) {
+		//            // there is no custom implementation of the fsync() operation.
+		//            Debug.Write(DebugLevel.Warning, this,
+		//                        "The value of 'fsync_type' is set but the type '" + fsyncTypeString + "' was not found.");
+		//            return;
+		//        }
 
-				IFSync fsync = null;
+		//        IFSync fsync = null;
 
-				if (typeof(IFSync).IsAssignableFrom(type)) {
-					try {
-						fsync = (IFSync) Activator.CreateInstance(type, true);
-					} catch (Exception e) {
-						Debug.Write(DebugLevel.Warning, this,
-						            "Error while initializing the fsynch handler class '" + fsyncTypeString + "': " + e.Message);
-					}
-				} else {
-					// handle the case the type implements the Sync function but
-					// doesn't implements the IFSync interface...
-					try {
-						fsync = FSync.Create(type);
-					} catch (Exception) {
-						Debug.Write(DebugLevel.Warning, this, "The provided type '" + type.FullName + "' does not implement the Sync(FileStream) method.");
-					}
-				}
+		//        if (typeof(IFSync).IsAssignableFrom(type)) {
+		//            try {
+		//                fsync = (IFSync) Activator.CreateInstance(type, true);
+		//            } catch (Exception e) {
+		//                Debug.Write(DebugLevel.Warning, this,
+		//                            "Error while initializing the fsynch handler class '" + fsyncTypeString + "': " + e.Message);
+		//            }
+		//        } else {
+		//            // handle the case the type implements the Sync function but
+		//            // doesn't implements the IFSync interface...
+		//            try {
+		//                fsync = FSync.Create(type);
+		//            } catch (Exception) {
+		//                Debug.Write(DebugLevel.Warning, this, "The provided type '" + type.FullName + "' does not implement the Sync(FileStream) method.");
+		//            }
+		//        }
 
-				if (fsync != null)
-					FSync.SetFSync(fsync);
-			}
-		}
+		//        if (fsync != null)
+		//            FSync.SetFSync(fsync);
+		//    }
+		//}
 
 		/// <summary>
 		/// Sets up the log file from the config information.
@@ -589,36 +569,36 @@ namespace Deveel.Data {
 				SetupLog(config);
 
 				// The storage encapsulation that has been configured.
-				String storage_system = GetConfigString("storage_system", "v1file");
-
-				bool is_file_store_mode;
+				string storage_system = GetConfigString("storage_system", "v1file");
 
 				// Construct the system store.
 				if (String.Compare(storage_system, "v1file", true) == 0) {
 					Debug.Write(DebugLevel.Message, this, "Storage System: v1 file storage mode.");
-
-					// Check if the configuration provides a custom implementation of fsync()
-					SetupFSync(config);
-
-					// The path where the database data files are stored.
-					String database_path = GetConfigString("database_path", "./data");
-					// The root path variable
-					String root_path_var = GetConfigString("root_path", null);
-
-					// Set the absolute database path
-					db_path = ParseFileString(config.CurrentPath, root_path_var, database_path);
-
-					store_system = new V1FileStoreSystem(this, db_path, read_only_access);
-					is_file_store_mode = true;
+					store_system = new V1FileStoreSystem();
 				} else if (String.Compare(storage_system, "v1heap", true) == 0) {
 					Debug.Write(DebugLevel.Message, this, "Storage System: v1 heap storage mode.");
 					store_system = new V1HeapStoreSystem();
-					is_file_store_mode = false;
 				} else {
-					String error_msg = "Unknown storage_system property: " + storage_system;
-					Debug.Write(DebugLevel.Error, this, error_msg);
-					throw new Exception(error_msg);
+					string error_msg = "Unknown storage_system property: " + storage_system;
+
+					Type storageSystemType = Type.GetType(storage_system, false, true);
+					if (storageSystemType == null || 
+						!typeof(IStoreSystem).IsAssignableFrom(storageSystemType)) {
+						Debug.Write(DebugLevel.Error, this, error_msg);
+						throw new Exception(error_msg);
+					}
+
+					try {
+						store_system = (IStoreSystem) Activator.CreateInstance(storageSystemType, true);
+					} catch(Exception e) {
+						error_msg = "Error initializing '" + storageSystemType.FullName + "': " + e.Message;
+						Debug.Write(DebugLevel.Error, this, error_msg);
+						throw new Exception(error_msg);
+					}
 				}
+
+				// init the storage system
+				store_system.Init(this);
 
 				// Register the default function factory,
 				AddFunctionFactory(FunctionFactory.Default);
@@ -684,57 +664,61 @@ namespace Deveel.Data {
 				ignore_case_for_identifiers = GetConfigBoolean("ignore_case_for_identifiers", false);
 				Debug.Write(DebugLevel.Message, this, "ignore_case_for_identifiers = " + ignore_case_for_identifiers);
 
-				// ---- Store system setup ----
+				//// ---- Store system setup ----
 
-				if (is_file_store_mode) {
-					// Get the safety level of the file system where 10 is the most safe
-					// and 1 is the least safe.
-					int io_safety_level = GetConfigInt("io_safety_level", 10);
-					if (io_safety_level < 1 || io_safety_level > 10) {
-						Debug.Write(DebugLevel.Message, this, "Invalid io_safety_level value.  Setting to the most safe level.");
-						io_safety_level = 10;
-					}
-					Debug.Write(DebugLevel.Message, this, "io_safety_level = " + io_safety_level);
+				//if (is_file_store_mode) {
+				//    // sets up the fsync() functions in case this is a file-system
+				//    // backed storage 
+				//    SetupFSync(config);
 
-					// Logging is disabled when safety level is less or equal to 2
-					bool enable_logging = true;
-					if (io_safety_level <= 2) {
-						Debug.Write(DebugLevel.Message, this, "Disabling journaling and file sync.");
-						enable_logging = false;
-					}
+				//    // Get the safety level of the file system where 10 is the most safe
+				//    // and 1 is the least safe.
+				//    int io_safety_level = GetConfigInt("io_safety_level", 10);
+				//    if (io_safety_level < 1 || io_safety_level > 10) {
+				//        Debug.Write(DebugLevel.Message, this, "Invalid io_safety_level value.  Setting to the most safe level.");
+				//        io_safety_level = 10;
+				//    }
+				//    Debug.Write(DebugLevel.Message, this, "io_safety_level = " + io_safety_level);
 
-					Debug.Write(DebugLevel.Message, this, "Using stardard IO API for heap buffered file access.");
-					int page_size = GetConfigInt("buffered_io_page_size", 8192);
-					int max_pages = GetConfigInt("buffered_io_max_pages", 256);
+				//    // Logging is disabled when safety level is less or equal to 2
+				//    bool enable_logging = true;
+				//    if (io_safety_level <= 2) {
+				//        Debug.Write(DebugLevel.Message, this, "Disabling journaling and file sync.");
+				//        enable_logging = false;
+				//    }
 
-					// Output this information to the log
-					Debug.Write(DebugLevel.Message, this, "[Buffer Manager] Page Size: " + page_size);
-					Debug.Write(DebugLevel.Message, this, "[Buffer Manager] Max pages: " + max_pages);
+				//    Debug.Write(DebugLevel.Message, this, "Using stardard IO API for heap buffered file access.");
+				//    int page_size = GetConfigInt("buffered_io_page_size", 8192);
+				//    int max_pages = GetConfigInt("buffered_io_max_pages", 256);
 
-					// Journal path is currently always the same as database path.
-					string journal_path = db_path;
-					// Max slice size is 1 GB for file scattering class
-					const long max_slice_size = 16384*65536;
-					// First file extention is 'db'
-					const String first_file_ext = "db";
+				//    // Output this information to the log
+				//    Debug.Write(DebugLevel.Message, this, "[Buffer Manager] Page Size: " + page_size);
+				//    Debug.Write(DebugLevel.Message, this, "[Buffer Manager] Max pages: " + max_pages);
 
-					// Set up the BufferManager
-					buffer_manager = new LoggingBufferManager(
-						db_path, journal_path, read_only_access, max_pages, page_size,
-						first_file_ext, max_slice_size, Debug, enable_logging);
-					// ^ This is a big constructor.  It sets up the logging manager and
-					//   sets a resource store data accessor converter to a scattering
-					//   implementation with a max slice size of 1 GB
+				//    // Journal path is currently always the same as database path.
+				//    string journal_path = db_path;
+				//    // Max slice size is 1 GB for file scattering class
+				//    const long max_slice_size = 16384*65536;
+				//    // First file extention is 'db'
+				//    const String first_file_ext = "db";
 
-					// Start the buffer manager.
-					try {
-						buffer_manager.Start();
-					} catch (IOException e) {
-						Debug.Write(DebugLevel.Error, this, "Error starting buffer manager");
-						Debug.WriteException(DebugLevel.Error, e);
-						throw new ApplicationException("IO Error: " + e.Message);
-					}
-				}
+				//    // Set up the BufferManager
+				//    buffer_manager = new LoggingBufferManager(
+				//        db_path, journal_path, read_only_access, max_pages, page_size,
+				//        first_file_ext, max_slice_size, Debug, enable_logging);
+				//    // ^ This is a big constructor.  It sets up the logging manager and
+				//    //   sets a resource store data accessor converter to a scattering
+				//    //   implementation with a max slice size of 1 GB
+
+				//    // Start the buffer manager.
+				//    try {
+				//        buffer_manager.Start();
+				//    } catch (IOException e) {
+				//        Debug.Write(DebugLevel.Error, this, "Error starting buffer manager");
+				//        Debug.WriteException(DebugLevel.Error, e);
+				//        throw new ApplicationException("IO Error: " + e.Message);
+				//    }
+				//}
 
 				// What regular expression library are we using?
 				// If we want the engine to support other regular expression libraries
@@ -776,8 +760,7 @@ namespace Deveel.Data {
 
 				try {
 					// The 'function_factories' property.
-					String function_factories =
-						GetConfigString("function_factories", null);
+					string function_factories = GetConfigString("function_factories", null);
 					if (function_factories != null) {
 						string[] factories = function_factories.Split(';');
 						for (int i = 0; i < factories.Length; ++i) {
@@ -899,24 +882,26 @@ namespace Deveel.Data {
 		}
 
 		public virtual void Dispose() {
-			if (buffer_manager != null) {
-				try {
-					// Set a check point
-					store_system.SetCheckPoint();
-					// Stop the buffer manager
-					buffer_manager.Stop();
-				} catch (IOException e) {
-					Console.Out.WriteLine("Error stopping buffer manager.");
-					Console.Out.Write(e.StackTrace);
-				}
-			}
-			buffer_manager = null;
+			//if (buffer_manager != null) {
+			//    try {
+			//        // Set a check point
+			//        store_system.SetCheckPoint();
+			//        // Stop the buffer manager
+			//        buffer_manager.Stop();
+			//    } catch (IOException e) {
+			//        Console.Out.WriteLine("Error stopping buffer manager.");
+			//        Console.Out.Write(e.StackTrace);
+			//    }
+			//}
+			//buffer_manager = null;
+			if (store_system != null)
+				store_system.Dispose();
+			store_system = null;
 			regex_library = null;
 			data_cell_cache = null;
 			config = null;
 			log_directory = null;
 			function_factory_list = null;
-			store_system = null;
 			if (dispatcher != null) {
 				dispatcher.Finish();
 			}

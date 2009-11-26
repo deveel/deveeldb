@@ -101,7 +101,7 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		private JournalingThread journaling_thread;
 
-		private IDebugLogger logger;
+		private readonly IDebugLogger logger;
 
 
 		internal JournalledSystem(string journal_path, bool read_only, int page_size,

@@ -28,6 +28,7 @@ using System.IO;
 using Deveel.Data.Caching;
 using Deveel.Data.Client;
 using Deveel.Data.Control;
+using Deveel.Data.Store;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {

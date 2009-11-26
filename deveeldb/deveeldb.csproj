@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -118,7 +118,10 @@
     <Compile Include="Deveel.Data.Sql\TokenMgrError.cs" />
     <Compile Include="Deveel.Data.Store\FSync.cs" />
     <Compile Include="Deveel.Data.Store\IFSync.cs" />
+    <Compile Include="Deveel.Data.Store\IStoreSystem.cs" />
     <Compile Include="Deveel.Data.Store\SyncFailedException.cs" />
+    <Compile Include="Deveel.Data.Store\V1FileStoreSystem.cs" />
+    <Compile Include="Deveel.Data.Store\V1HeapStoreSystem.cs" />
     <Compile Include="Deveel.Data.Text\DeveelRegexLibrary.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
@@ -352,7 +355,6 @@
     <Compile Include="Deveel.Data.Sql\StatementTree.cs" />
     <Compile Include="Deveel.Data.Sql\IStatementTreeObject.cs" />
     <Compile Include="Deveel.Data\StateStore.cs" />
-    <Compile Include="Deveel.Data\IStoreSystem.cs" />
     <Compile Include="Deveel.Data\SubsetColumnTable.cs" />
     <Compile Include="Deveel.Data\SystemQueryContext.cs" />
     <Compile Include="Deveel.Data\Table.cs" />
@@ -388,8 +390,6 @@
     <Compile Include="Deveel.Data\User.cs" />
     <Compile Include="Deveel.Data\UserAccessException.cs" />
     <Compile Include="Deveel.Data\UserManager.cs" />
-    <Compile Include="Deveel.Data\V1FileStoreSystem.cs" />
-    <Compile Include="Deveel.Data\V1HeapStoreSystem.cs" />
     <Compile Include="Deveel.Data\V2MasterTableDataSource.cs" />
     <Compile Include="Deveel.Data\Variable.cs" />
     <Compile Include="Deveel.Data\IVariableResolver.cs" />
@@ -554,5 +554,6 @@
         </MonoDevelop.Autotools.MakefileInfo>
       </Properties>
     </MonoDevelop>
+    <VisualStudio />
   </ProjectExtensions>
 </Project>
