@@ -80,7 +80,9 @@ namespace Deveel.Data {
 		/// The name of all database objects that were dropped in this transaction.
 		/// This is used for a namespace collision test during commit.
 		/// </summary>
-		private ArrayList dropped_database_objects;
+		private readonly ArrayList dropped_database_objects;
+
+		private Hashtable cursors;
 
 		/// <summary>
 		/// The journal for this transaction.  This journal describes all changes
@@ -126,6 +128,8 @@ namespace Deveel.Data {
 			this.touched_tables = new ArrayList();
 			this.selected_from_tables = new ArrayList();
 			journal = new TransactionJournal();
+
+			cursors = new Hashtable();
 
 			// Set up all the visible tables
 			int sz = visible_tables.Count;
@@ -2286,6 +2290,9 @@ namespace Deveel.Data {
 			conglomerate = null;
 			touched_tables = null;
 			journal = null;
+
+			// Dispose all the cursors in the transaction
+			ClearCursors();
 		}
 
 		/**
@@ -2303,6 +2310,66 @@ namespace Deveel.Data {
 				closed = true;
 				Cleanup();
 			}
+		}
+
+		// ---------- Cursor management ----------
+
+		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, bool scrollable) {
+			if (cursors.ContainsKey(name))
+				throw new ArgumentException("The cursor '" + name + "' was already defined within this transaction.");
+
+			Cursor cursor = new Cursor(this, name, queryPlan, scrollable);
+			cursors[name] = cursor;
+
+			OnDatabaseObjectCreated(name);
+
+			return cursor;
+		}
+
+		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {
+			return DeclareCursor(name, queryPlan, true);
+		}
+
+		public Cursor GetCursor(TableName name) {
+			if (name == null)
+				throw new ArgumentNullException("name");
+
+			Cursor cursor = cursors[name] as Cursor;
+			if (cursor == null)
+				throw new ArgumentException("Cursor '" + name + "' was not declared.");
+
+			if (cursor.State == CursorState.Broken)
+				throw new InvalidOperationException("The state of the cursor is invalid.");
+
+			return cursor;
+		}
+
+		public void RemoveCursor(TableName name) {
+			if (name == null)
+				throw new ArgumentNullException("name");
+
+			Cursor cursor = cursors[name] as Cursor;
+			if (cursor == null)
+				throw new ArgumentException("Cursor '" + name + "' was not declared.");
+
+			cursor.InternalDispose();
+			cursors.Remove(name);
+
+			OnDatabaseObjectDropped(name);
+		}
+
+		protected void ClearCursors() {
+			ArrayList cursorsList = new ArrayList(cursors.Values);
+			for (int i = cursorsList.Count - 1; i >= 0; i--) {
+				Cursor cursor = cursorsList[i] as Cursor;
+				if (cursor == null)
+					continue;
+
+				cursor.Dispose();
+			}
+
+			cursors.Clear();
+			cursors = null;
 		}
 
 

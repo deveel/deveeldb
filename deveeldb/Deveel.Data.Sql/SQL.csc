@@ -238,6 +238,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <CAST:        "cast">
 | <LONG:        "long">
 | <NAME:        "name">
+| <OPEN:        "open">
 | <AFTER:       "after">
 | <START:       "start">
 | <COUNT:       "count">
@@ -249,6 +250,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <LIMIT:       "limit">
 | <INNER:       "inner">
 | <INDEX:       "index">
+| <CLOSE:       "close">
 | <CROSS:       "cross">
 | <OUTER:       "outer">
 | <CHECK:       "check">
@@ -256,9 +258,12 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <UNION:       "union">
 | <GRANT:       "grant">
 | <USAGE:       "usage">
+| <FETCH:       "fetch">
 | <SQLRETURN:   "return">
 | <BEFORE:      "before">
 | <UNLOCK:      "unlock">
+| <CURSOR:      "cursor">
+| <SCROLL:      "scroll">
 | <ACTION:      "action">
 | <GROUPS:      "groups">
 | <REVOKE:      "revoke">
@@ -276,6 +281,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <SQLCOLUMN:   "column">
 | <RETURNS:     "returns">
 | <ACCOUNT:     "account">
+| <DECLARE:     "declare">
 | <LEADING:     "leading">
 | <NATURAL:     "natural">
 | <BETWEEN:     "between">
@@ -376,6 +382,14 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <READUNCOMMITTED:           "read uncommitted">
 | <REPEATABLEREAD:            "repeatable read">
 | <SERIALIZABLE:              "serializable">
+
+// Fetch orientations
+| <FIRST:        "first">
+| <LAST:         "last">
+| <NEXT:         "next">
+| <PRIOR:        "prior">
+| <ABSOLUTE:     "absolute">
+| <RELATIVE:     "relative">
 
 | <CASCADE:                   "cascade">
 
@@ -488,6 +502,12 @@ StatementTree Statement() :
       | ob=Show()
       | ob=Call()
 
+      | ob=Declare()
+      | ob=Fetch()
+
+      | ob=Open()
+      | ob=Close()
+
       | ob=Grant()
       | ob=Revoke()
       
@@ -545,6 +565,33 @@ StatementTree Drop() :
 }
 
 
+StatementTree Declare() :
+{ StatementTree ob; }
+{
+  (  <DECLARE>
+     ( ob=DeclareCursor() )
+  )
+  
+  { return ob; }
+}
+
+StatementTree Open() :
+{ StatementTree ob; }
+{
+  (  <OPEN>
+     ( ob=OpenCursor() )
+  )
+  { return ob; }
+}
+
+StatementTree Close() :
+{ StatementTree ob; }
+{
+  (  <CLOSE>
+     ( ob=CloseCursor() )
+  )
+  { return ob; }
+}
 
 
 StatementTree Select() :
@@ -969,6 +1016,79 @@ void UserManagerCommand(StatementTree cmd) :
 }
 
 
+StatementTree DeclareCursor() :
+{
+  Token name;
+  bool scrollable = false;
+  TableSelectExpression select_expr;
+  ArrayList order_by = new ArrayList();
+}
+{
+  name = SQLIdentifier() [ <SCROLL> { scrollable=true; } ] <CURSOR> 
+  <FOR> select_expr = GetTableSelectExpression()
+  [ <ORDERBY> SelectOrderByList(order_by) ]
+
+  { StatementTree ob = new StatementTree(typeof(DeclareCursorStatement));
+    ob.SetObject("name", name.image);
+    ob.SetBoolean("scrollable", scrollable);
+    ob.SetObject("select_expression", select_expr);
+    ob.SetObject("order_by", order_by);
+    return ob;
+  }
+}
+
+StatementTree OpenCursor() :
+{ Token name; }
+{
+  name = SQLIdentifier()
+
+  { StatementTree ob = new StatementTree(typeof(OpenCursorStatement));
+    ob.SetObject("name", name.image);
+    return ob;
+  }
+}
+
+StatementTree CloseCursor() :
+{ Token name; }
+{
+  name = SQLIdentifier()
+
+  { StatementTree ob = new StatementTree(typeof(CloseCursorStatement));
+    ob.SetObject("name", name.image);
+    return ob;
+  }
+}
+
+StatementTree Fetch() :
+{
+  Token cursor_name;
+  FetchOrientation orientation = FetchOrientation.Next;
+  int pos = -1;
+}
+{
+  <FETCH> [
+    [ <NEXT> { orientation = FetchOrientation.Next; } |
+      <PRIOR> { orientation = FetchOrientation.Prior; } |
+      <FIRST> { orientation = FetchOrientation.First; } |
+      <LAST> { orientation = FetchOrientation.Last; } |
+      <RELATIVE> { orientation = FetchOrientation.Relative; } 
+        pos = PositiveIntegerConstant() |
+      <ABSOLUTE> { orientation = FetchOrientation.Absolute; }
+        pos = PositiveIntegerConstant()
+    ]
+      
+    <FROM>
+  ]
+
+  cursor_name = SQLIdentifier()
+
+  { StatementTree ob = new StatementTree(typeof(FetchStatement));
+    ob.SetObject("name", cursor_name.image);
+    ob.SetObject("orientation", orientation);
+    ob.SetObject("position", pos);
+    return ob;
+  }
+}
 
 
 StatementTree Delete() :

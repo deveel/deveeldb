@@ -1,4 +1,7 @@
-﻿2009-11-15  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-11-25  Antonello Provenzano  <antonello@deveel.com>
+	* SQL.csc: added syntax for the support of CURSORs.
+	
+2009-11-15  Antonello Provenzano  <antonello@deveel.com>
 	* SQL.csc: IDENTITY is now a specific data type alias
 	to a NUMERIC column which has a DEFAULT to UNIQUEKEY 
 	function

@@ -95,13 +95,18 @@
     <Compile Include="Deveel.Data.Functions\MiscFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\StringFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
+    <Compile Include="Deveel.Data.Sql\CloseCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnConstraints.cs" />
     <Compile Include="Deveel.Data.Sql\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateSchemaStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DeclareCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropSchemaStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\FetchOrientation.cs" />
+    <Compile Include="Deveel.Data.Sql\FetchStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\OpenCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ParseException.cs" />
     <Compile Include="Deveel.Data.Sql\RollbackStatement.cs" />
     <Compile Include="Deveel.Data.Sql\SimpleCharStream.cs" />
@@ -119,6 +124,8 @@
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
     <Compile Include="Deveel.Data\ConstraintAction.cs" />
     <Compile Include="Deveel.Data\ConstraintDeferrability.cs" />
+    <Compile Include="Deveel.Data\Cursor.cs" />
+    <Compile Include="Deveel.Data\CursorState.cs" />
     <Compile Include="Deveel.Data\DatabaseEventHandler.cs" />
     <Compile Include="Deveel.Data.Caching\ICache.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />

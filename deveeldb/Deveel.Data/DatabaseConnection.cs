@@ -1517,6 +1517,20 @@ namespace Deveel.Data {
 			connection_trigger_manager.PerformTriggerAction(evt);
 		}
 
+		// ----------- Cursor management -----------
+
+		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, bool scrollable) {
+			return Transaction.DeclareCursor(name, queryPlan, scrollable);
+		}
+
+		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {
+			return DeclareCursor(name, queryPlan, true);
+		}
+
+		public Cursor GetCursor(TableName name) {
+			return Transaction.GetCursor(name);
+		}
+
 		// ---------- Implemented from ITriggerListener ----------
 
 		///<summary>

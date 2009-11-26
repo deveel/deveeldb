@@ -1,3 +1,8 @@
+2009-11-25  Antonello Provenzano  <antonello@deveel.com>
+	* Transaction.cs: added support for cursors
+	* DatabaseConnection.cs: implemented methods to callback
+	to the transaction instance for cursor management
+	
 2009-11-23  Antonello Provenzano  <antonello@deveel.com>
 	* Operator.cs: 
 		- Added static properties for representing each 
