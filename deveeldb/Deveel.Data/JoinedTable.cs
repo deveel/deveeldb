@@ -189,7 +189,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override int FindFieldName(Variable v) {
+		public override int FindFieldName(VariableName v) {
 			int col_index = 0;
 			for (int i = 0; i < reference_list.Length; ++i) {
 				int col = reference_list[i].FindFieldName(v);
@@ -202,7 +202,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override Variable GetResolvedVariable(int column) {
+		public override VariableName GetResolvedVariable(int column) {
 			Table parent_table = reference_list[column_table[column]];
 			return parent_table.GetResolvedVariable(column_filter[column]);
 		}

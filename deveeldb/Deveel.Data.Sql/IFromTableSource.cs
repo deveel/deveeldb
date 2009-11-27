@@ -101,16 +101,16 @@ namespace Deveel.Data.Sql {
 		/// specific.
 		/// </remarks>
 		/// <returns>
-		/// Returns a <see cref="Variable"/> that is a fully resolved form of 
+		/// Returns a <see cref="VariableName"/> that is a fully resolved form of 
 		/// the given <paramref name="column"/> in the current table set.
 		/// </returns>
-		Variable ResolveColumn(string catalog, string schema, string table, string column);
+		VariableName ResolveColumn(string catalog, string schema, string table, string column);
 
 		/// <summary>
-		/// Returns an array of <see cref="Variable"/> objects that references 
+		/// Returns an array of <see cref="VariableName"/> objects that references 
 		/// each column available in the table set item in order from left 
 		/// column to right column.
 		/// </summary>
-		Variable[] AllColumns { get; }
+		VariableName[] AllColumns { get; }
 	}
 }

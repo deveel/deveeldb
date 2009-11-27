@@ -35,10 +35,10 @@ namespace Deveel.Data {
 		/// themselves.
 		/// </summary>
 		/// <param name="array"></param>
-		private static void CloneArray(Variable[] array) {
+		private static void CloneArray(VariableName[] array) {
 			if (array != null) {
 				for (int i = 0; i < array.Length; ++i) {
-					array[i] = (Variable)array[i].Clone();
+					array[i] = (VariableName)array[i].Clone();
 				}
 			}
 		}
@@ -518,10 +518,10 @@ namespace Deveel.Data {
 
 				// Assert that all variables in the expression are identical.
 				IList all_vars = exp.AllVariables;
-				Variable v = null;
+				VariableName v = null;
 				int sz = all_vars.Count;
 				for (int i = 0; i < sz; ++i) {
-					Variable cv = (Variable)all_vars[i];
+					VariableName cv = (VariableName)all_vars[i];
 					if (v != null) {
 						if (!cv.Equals(v)) {
 							throw new ApplicationException("Assertion failed: " +
@@ -587,7 +587,7 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The LHS variable.
 			/// </summary>
-			private Variable left_var;
+			private VariableName left_var;
 
 			/// <summary>
 			/// The operator to select under (=, &lt;&gt;, &gt;, &lt;, &gt;=, &lt;=).
@@ -599,7 +599,7 @@ namespace Deveel.Data {
 			/// </summary>
 			private Expression right_expression;
 
-			public SimpleSelectNode(IQueryPlanNode child, Variable left_var, Operator op, Expression right_expression)
+			public SimpleSelectNode(IQueryPlanNode child, VariableName left_var, Operator op, Expression right_expression)
 				: base(child) {
 				this.left_var = left_var;
 				this.op = op;
@@ -627,7 +627,7 @@ namespace Deveel.Data {
 
 			public override Object Clone() {
 				SimpleSelectNode node = (SimpleSelectNode)base.Clone();
-				node.left_var = (Variable)left_var.Clone();
+				node.left_var = (VariableName)left_var.Clone();
 				node.right_expression = (Expression)right_expression.Clone();
 				return node;
 			}
@@ -649,7 +649,7 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The list of columns to select the range of.
 			/// </summary>
-			private readonly Variable[] columns;
+			private readonly VariableName[] columns;
 
 			/// <summary>
 			/// The values of the cells to equi-select (must be constant expressions).
@@ -657,7 +657,7 @@ namespace Deveel.Data {
 			private readonly Expression[] values;
 
 			public MultiColumnEquiSelectNode(IQueryPlanNode child,
-											 Variable[] columns, Expression[] values)
+											 VariableName[] columns, Expression[] values)
 				: base(child) {
 				this.columns = columns;
 				this.values = values;
@@ -871,7 +871,7 @@ namespace Deveel.Data {
 				// Perform the pattern search expression on the table.
 				// Split the expression,
 				Expression[] exps = expression.Split();
-				Variable lhs_var = exps[0].Variable;
+				VariableName lhs_var = exps[0].VariableName;
 				if (lhs_var != null) {
 					// LHS is a simple variable so do a simple select
 					Operator op = (Operator) expression.Last;
@@ -915,17 +915,17 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The original columns in the child that we are to make the subset of.
 			/// </summary>
-			private readonly Variable[] original_columns;
+			private readonly VariableName[] original_columns;
 
 			/// <summary>
 			/// New names to assign the columns.
 			/// </summary>
-			private readonly Variable[] new_column_names;
+			private readonly VariableName[] new_column_names;
 
 
 			public SubsetNode(IQueryPlanNode child,
-							  Variable[] original_columns,
-							  Variable[] new_column_names)
+							  VariableName[] original_columns,
+							  VariableName[] new_column_names)
 				: base(child) {
 				this.original_columns = original_columns;
 				this.new_column_names = new_column_names;
@@ -974,7 +974,7 @@ namespace Deveel.Data {
 			/// Returns the list of original columns that represent the mappings from
 			/// the columns in this subset.
 			/// </summary>
-			public Variable[] OriginalColumns {
+			public VariableName[] OriginalColumns {
 				get { return original_columns; }
 			}
 
@@ -982,7 +982,7 @@ namespace Deveel.Data {
 			/// Returns the list of new column names that represent the new 
 			/// columns in this subset.
 			/// </summary>
-			public Variable[] NewColumnNames {
+			public VariableName[] NewColumnNames {
 				get { return new_column_names; }
 			}
 
@@ -1017,9 +1017,9 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The list of columns to be distinct.
 			/// </summary>
-			private readonly Variable[] columns;
+			private readonly VariableName[] columns;
 
-			public DistinctNode(IQueryPlanNode child, Variable[] columns)
+			public DistinctNode(IQueryPlanNode child, VariableName[] columns)
 				: base(child) {
 				this.columns = columns;
 			}
@@ -1063,14 +1063,14 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The list of columns to sort.
 			/// </summary>
-			private readonly Variable[] columns;
+			private readonly VariableName[] columns;
 
 			/// <summary>
 			/// Whether to sort the column in ascending or descending order
 			/// </summary>
 			private readonly bool[] correct_ascending;
 
-			public SortNode(IQueryPlanNode child, Variable[] columns, bool[] ascending)
+			public SortNode(IQueryPlanNode child, VariableName[] columns, bool[] ascending)
 				: base(child) {
 				this.columns = columns;
 				correct_ascending = ascending;
@@ -1151,12 +1151,12 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The columns to group by.
 			/// </summary>
-			private readonly Variable[] columns;
+			private readonly VariableName[] columns;
 
 			/// <summary>
 			/// The group max column.
 			/// </summary>
-			private Variable group_max_column;
+			private VariableName group_max_column;
 
 			/// <summary>
 			/// Any aggregate functions (or regular function columns) that 
@@ -1178,8 +1178,8 @@ namespace Deveel.Data {
 			/// <param name="group_max_column"></param>
 			/// <param name="function_list"></param>
 			/// <param name="name_list"></param>
-			public GroupNode(IQueryPlanNode child, Variable[] columns,
-							 Variable group_max_column,
+			public GroupNode(IQueryPlanNode child, VariableName[] columns,
+							 VariableName group_max_column,
 							 Expression[] function_list, String[] name_list)
 				: base(child) {
 				this.columns = columns;
@@ -1195,7 +1195,7 @@ namespace Deveel.Data {
 			/// <param name="group_max_column"></param>
 			/// <param name="function_list"></param>
 			/// <param name="name_list"></param>
-			public GroupNode(IQueryPlanNode child, Variable group_max_column,
+			public GroupNode(IQueryPlanNode child, VariableName group_max_column,
 							 Expression[] function_list, String[] name_list)
 				: this(child, null, group_max_column, function_list, name_list) {
 			}
@@ -1235,7 +1235,7 @@ namespace Deveel.Data {
 				CloneArray(node.columns);
 				CloneArray(node.function_list);
 				if (group_max_column != null) {
-					node.group_max_column = (Variable)group_max_column.Clone();
+					node.group_max_column = (VariableName)group_max_column.Clone();
 				} else {
 					node.group_max_column = null;
 				}
@@ -1458,15 +1458,15 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The columns in the left table.
 			/// </summary>
-			private readonly Variable[] left_columns;
+			private readonly VariableName[] left_columns;
 
 			/// <summary>
 			/// The columns in the right table.
 			/// </summary>
-			private readonly Variable[] right_columns;
+			private readonly VariableName[] right_columns;
 
 			public EquiJoinNode(IQueryPlanNode left, IQueryPlanNode right,
-								Variable[] left_cols, Variable[] right_cols)
+								VariableName[] left_cols, VariableName[] right_cols)
 				: base(left, right) {
 				left_columns = left_cols;
 				right_columns = right_cols;
@@ -1481,8 +1481,8 @@ namespace Deveel.Data {
 				// PENDING: This needs to migrate to a better implementation that
 				//   exploits multi-column indexes if one is defined that can be used.
 
-				Variable first_left = left_columns[0];
-				Variable first_right = right_columns[0];
+				VariableName first_left = left_columns[0];
+				VariableName first_right = right_columns[0];
 
 				Operator EQUALS_OP = Operator.Get("=");
 
@@ -1497,8 +1497,8 @@ namespace Deveel.Data {
 					// Form the expression
 					Expression rest_expression = new Expression();
 					for (int i = 1; i < sz; ++i) {
-						Variable left_var = left_columns[i];
-						Variable right_var = right_columns[i];
+						VariableName left_var = left_columns[i];
+						VariableName right_var = right_columns[i];
 						rest_expression.AddElement(left_var);
 						rest_expression.AddElement(right_var);
 						rest_expression.AddOperator(EQUALS_OP);
@@ -1535,7 +1535,7 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The variable in the left table to be joined.
 			/// </summary>
-			private Variable left_var;
+			private VariableName left_var;
 
 			/// <summary>
 			/// The operator to join under (=, &lt;&gt;, &gt;, &lt;, &gt;=, &lt;=).
@@ -1548,7 +1548,7 @@ namespace Deveel.Data {
 			private Expression right_expression;
 
 			public JoinNode(IQueryPlanNode left, IQueryPlanNode right,
-							Variable left_var, Operator join_op,
+							VariableName left_var, Operator join_op,
 							Expression right_expression)
 				: base(left, right) {
 				this.left_var = left_var;
@@ -1564,8 +1564,8 @@ namespace Deveel.Data {
 
 				// If the right_expression is a simple variable then we have the option
 				// of optimizing this join by putting the smallest table on the LHS.
-				Variable rhs_var = right_expression.Variable;
-				Variable lhs_var = left_var;
+				VariableName rhs_var = right_expression.VariableName;
+				VariableName lhs_var = left_var;
 				Operator op = join_op;
 				if (rhs_var != null) {
 					// We should arrange the expression so the right table is the smallest
@@ -1600,7 +1600,7 @@ namespace Deveel.Data {
 
 			public override Object Clone() {
 				JoinNode node = (JoinNode)base.Clone();
-				node.left_var = (Variable)left_var.Clone();
+				node.left_var = (VariableName)left_var.Clone();
 				node.right_expression = (Expression)right_expression.Clone();
 				return node;
 			}
@@ -1766,7 +1766,7 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The columns in the left table.
 			/// </summary>
-			private readonly Variable[] left_columns;
+			private readonly VariableName[] left_columns;
 
 			/// <summary>
 			/// The SubQuery operator, eg. '= ANY', '&lt;&gt; ALL'
@@ -1774,7 +1774,7 @@ namespace Deveel.Data {
 			private readonly Operator sub_query_operator;
 
 			public NonCorrelatedAnyAllNode(IQueryPlanNode left, IQueryPlanNode right,
-									  Variable[] left_vars, Operator subquery_op)
+									  VariableName[] left_vars, Operator subquery_op)
 				: base(left, right) {
 				this.left_columns = left_vars;
 				this.sub_query_operator = subquery_op;

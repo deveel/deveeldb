@@ -99,8 +99,8 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="col_name"></param>
 		/// <returns></returns>
-		private Variable ResolveToVariable(String col_name) {
-			Variable partial = Variable.Resolve(col_name);
+		private VariableName ResolveToVariable(String col_name) {
+			VariableName partial = VariableName.Resolve(col_name);
 			return partial;
 			//    return partial.ResolveTableName(TableName.Resolve(Name));
 		}
@@ -131,7 +131,7 @@ namespace Deveel.Data {
 		///<param name="cell"></param>
 		///<param name="col_name"></param>
 		public void SetRowCell(TObject cell, String col_name) {
-			Variable v = ResolveToVariable(col_name);
+			VariableName v = ResolveToVariable(col_name);
 			SetRowCell(cell, FindFieldName(v), row_count - 1);
 		}
 
@@ -153,7 +153,7 @@ namespace Deveel.Data {
 		///<param name="ob"></param>
 		///<param name="col_name"></param>
 		public void SetRowObject(TObject ob, String col_name) {
-			Variable v = ResolveToVariable(col_name);
+			VariableName v = ResolveToVariable(col_name);
 			SetRowObject(ob, FindFieldName(v));
 		}
 
@@ -177,7 +177,7 @@ namespace Deveel.Data {
 		/// <param name="to_col"></param>
 		public void SetCellFrom(Table table, int src_col, int src_row,
 								String to_col) {
-			Variable v = ResolveToVariable(to_col);
+			VariableName v = ResolveToVariable(to_col);
 			TObject cell = table.GetCellContents(src_col, src_row);
 			SetRowCell(cell, FindFieldName(v), row_count - 1);
 		}
@@ -194,13 +194,13 @@ namespace Deveel.Data {
 		public void CopyFrom(Table table, int row) {
 			NewRow();
 
-			Variable[] vars = new Variable[table.ColumnCount];
+			VariableName[] vars = new VariableName[table.ColumnCount];
 			for (int i = 0; i < vars.Length; ++i) {
 				vars[i] = table.GetResolvedVariable(i);
 			}
 
 			for (int i = 0; i < ColumnCount; ++i) {
-				Variable v = GetResolvedVariable(i);
+				VariableName v = GetResolvedVariable(i);
 				String col_name = v.Name;
 				try {
 					int tcol_index = -1;

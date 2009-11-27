@@ -206,7 +206,7 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		public Variable ResolveColumn(String catalog, String schema,
+		public VariableName ResolveColumn(String catalog, String schema,
 									  String table, String column) {
 
 			// Does this table name represent the correct schema?
@@ -228,31 +228,31 @@ namespace Deveel.Data.Sql {
 					if (i == -1) {
 						throw new ApplicationException("Could not resolve '" + column + "'");
 					}
-					return new Variable(table_name, column);
+					return new VariableName(table_name, column);
 				} else {
 					// Case insensitive search (this is slower than case sensitive).
 					int col_count = data_table_def.ColumnCount;
 					for (int i = 0; i < col_count; ++i) {
 						String col_name = data_table_def[i].Name;
 						if (String.Compare(col_name, column, true) == 0) {
-							return new Variable(table_name, col_name);
+							return new VariableName(table_name, col_name);
 						}
 					}
 					throw new ApplicationException("Could not resolve '" + column + "'");
 				}
 			} else {  // if (column == null)
 				// Return the first column in the table
-				return new Variable(table_name, data_table_def[0].Name);
+				return new VariableName(table_name, data_table_def[0].Name);
 			}
 
 		}
 
-		public Variable[] AllColumns {
+		public VariableName[] AllColumns {
 			get {
 				int col_count = data_table_def.ColumnCount;
-				Variable[] vars = new Variable[col_count];
+				VariableName[] vars = new VariableName[col_count];
 				for (int i = 0; i < col_count; ++i) {
-					vars[i] = new Variable(table_name, data_table_def[i].Name);
+					vars[i] = new VariableName(table_name, data_table_def[i].Name);
 				}
 				return vars;
 			}

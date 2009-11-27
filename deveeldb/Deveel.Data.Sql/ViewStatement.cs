@@ -84,8 +84,8 @@ namespace Deveel.Data.Sql {
 				// Wrap the result around a SubsetNode to alias the columns in the
 				// table correctly for this view.
 				int sz = (col_list == null) ? 0 : col_list.Count;
-				Variable[] original_vars = from_set.GenerateResolvedVariableList();
-				Variable[] new_column_vars = new Variable[original_vars.Length];
+				VariableName[] original_vars = from_set.GenerateResolvedVariableList();
+				VariableName[] new_column_vars = new VariableName[original_vars.Length];
 
 				if (sz > 0) {
 					if (sz != original_vars.Length) {
@@ -94,18 +94,18 @@ namespace Deveel.Data.Sql {
 					}
 					for (int i = 0; i < sz; ++i) {
 						String col_name = (String)col_list[i];
-						new_column_vars[i] = new Variable(vname, col_name);
+						new_column_vars[i] = new VariableName(vname, col_name);
 					}
 				} else {
 					sz = original_vars.Length;
 					for (int i = 0; i < sz; ++i) {
-						new_column_vars[i] = new Variable(vname, original_vars[i].Name);
+						new_column_vars[i] = new VariableName(vname, original_vars[i].Name);
 					}
 				}
 
 				// Check there are no repeat column names in the table.
 				for (int i = 0; i < sz; ++i) {
-					Variable cur_v = new_column_vars[i];
+					VariableName cur_v = new_column_vars[i];
 					for (int n = i + 1; n < sz; ++n) {
 						if (new_column_vars[n].Equals(cur_v)) {
 							throw new DatabaseException(

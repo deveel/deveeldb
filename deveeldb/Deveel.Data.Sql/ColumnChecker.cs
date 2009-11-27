@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql {
 			if (expression != null) {
 				IList list = expression.AllVariables;
 				for (int i = 0; i < list.Count; ++i) {
-					Variable v = (Variable)list[i];
+					VariableName v = (VariableName)list[i];
 					String orig_col = v.Name;
 					String resolved_column = ResolveColumnName(orig_col);
 					if (resolved_column == null) {

@@ -148,7 +148,7 @@ namespace Deveel.Data.Sql {
 		/// part of the query (eg. <c>SELECT a, b, (a + 1) d</c> exposes 
 		/// variables a, b and d).
 		/// </remarks>
-		public void ExposeVariable(Variable v) {
+		public void ExposeVariable(VariableName v) {
 			//    Console.Out.WriteLine("ExposeVariable: " + v);
 			//    Console.Out.WriteLine(new Exception().StackTrace);
 			exposed_variables.Add(v);
@@ -159,7 +159,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="table"></param>
 		public void ExposeAllColumnsFromSource(IFromTableSource table) {
-			Variable[] v = table.AllColumns;
+			VariableName[] v = table.AllColumns;
 			for (int p = 0; p < v.Length; ++p) {
 				ExposeVariable(v[p]);
 			}
@@ -194,14 +194,14 @@ namespace Deveel.Data.Sql {
 		/// referencable from the final result of the table expression.
 		/// </remarks>
 		/// <returns>
-		/// Returns an array of <see cref="Variable"/> representing all the 
+		/// Returns an array of <see cref="VariableName"/> representing all the 
 		/// variables exposed in the set.
 		/// </returns>
-		public Variable[] GenerateResolvedVariableList() {
+		public VariableName[] GenerateResolvedVariableList() {
 			int sz = exposed_variables.Count;
-			Variable[] list = new Variable[sz];
+			VariableName[] list = new VariableName[sz];
 			for (int i = 0; i < sz; ++i) {
-				list[i] = new Variable((Variable)exposed_variables[i]);
+				list[i] = new VariableName((VariableName)exposed_variables[i]);
 			}
 			return list;
 		}
@@ -258,7 +258,7 @@ namespace Deveel.Data.Sql {
 		/// if unable to dereference assignment because it does not
 		/// exist.
 		/// </returns>
-		internal Expression DereferenceAssignment(Variable v) {
+		internal Expression DereferenceAssignment(VariableName v) {
 			TableName tname = v.TableName;
 			String var_name = v.Name;
 			// We are guarenteed not to match with a function if the table name part
@@ -297,7 +297,7 @@ namespace Deveel.Data.Sql {
 		/// If the variable can not be unambiguously resolved to a function or aliased 
 		/// column.
 		/// </exception>
-		private Variable ResolveAssignmentReference(Variable v) {
+		private VariableName ResolveAssignmentReference(VariableName v) {
 			TableName tname = v.TableName;
 			String var_name = v.Name;
 			// We are guarenteed not to match with a function if the table name part
@@ -307,7 +307,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Search for the function with this name
-			Variable last_found = null;
+			VariableName last_found = null;
 			int matches_found = 0;
 			for (int i = 0; i < function_resources.Count; i += 2) {
 				String fun_name = (String)function_resources[i];
@@ -315,7 +315,7 @@ namespace Deveel.Data.Sql {
 					if (matches_found > 0) {
 						throw new StatementException("Ambiguous reference '" + v + "'");
 					}
-					last_found = new Variable(fun_name);
+					last_found = new VariableName(fun_name);
 					++matches_found;
 				}
 			}
@@ -334,13 +334,13 @@ namespace Deveel.Data.Sql {
 		/// but the returned expressions are fully qualified.
 		/// </remarks>
 		/// <returns>
-		/// Returns a resolved <see cref="Variable"/> or <b>nnull</b>, if the 
+		/// Returns a resolved <see cref="VariableName"/> or <b>nnull</b>, if the 
 		/// variable does not resolve to anything.
 		/// </returns>
 		/// <exception cref="StatementException">
 		/// If the variable is an ambiguous reference.
 		/// </exception>
-		private Variable ResolveTableColumnReference(Variable v) {
+		private VariableName ResolveTableColumnReference(VariableName v) {
 			TableName tname = v.TableName;
 			String sch_name = null;
 			String tab_name = null;
@@ -351,7 +351,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Find matches in our list of tables sources,
-			Variable matched_var = null;
+			VariableName matched_var = null;
 
 			for (int i = 0; i < table_resources.Count; ++i) {
 				IFromTableSource table = (IFromTableSource)table_resources[i];
@@ -379,7 +379,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="v"></param>
 		/// <remarks>
 		/// If the variable name references a table column, an expression 
-		/// with a single <see cref="Variable"/> element is returned.
+		/// with a single <see cref="VariableName"/> element is returned.
 		/// If the variable name references a function, an expression of the 
 		/// function is returned.
 		/// <para>
@@ -388,13 +388,13 @@ namespace Deveel.Data.Sql {
 		/// </para>
 		/// </remarks>
 		/// <returns>
-		/// Returns a resolved <see cref="Variable"/> or <b>nnull</b>,
+		/// Returns a resolved <see cref="VariableName"/> or <b>nnull</b>,
 		/// if the variable does not resolve to anything.
 		/// </returns>
 		/// <exception cref="StatementException">
 		/// If the variable is an ambiguous reference.
 		/// </exception>
-		internal Variable ResolveReference(Variable v) {
+		internal VariableName ResolveReference(VariableName v) {
 			// Try and resolve against alias names first,
 			ArrayList list = new ArrayList();
 
@@ -411,12 +411,12 @@ namespace Deveel.Data.Sql {
 			//      }
 			//    }
 
-			Variable function_var = ResolveAssignmentReference(v);
+			VariableName function_var = ResolveAssignmentReference(v);
 			if (function_var != null) {
 				list.Add(function_var);
 			}
 
-			Variable tc_var = ResolveTableColumnReference(v);
+			VariableName tc_var = ResolveTableColumnReference(v);
 			if (tc_var != null) {
 				list.Add(tc_var);
 			}
@@ -449,7 +449,7 @@ namespace Deveel.Data.Sql {
 			if (list_size == 0) {
 				return null;
 			} else if (list_size == 1) {
-				return (Variable)list[0];
+				return (VariableName)list[0];
 			} else {
 				//      // Check if the variables are the same?
 				//      Variable cv = (Variable) list.get(0);
@@ -481,8 +481,8 @@ namespace Deveel.Data.Sql {
 		/// <exception cref="StatementException">
 		/// If resolution is ambiguous within a set.
 		/// </exception>
-		private CorrelatedVariable GlobalResolveReference(int level, Variable v) {
-			Variable nv = ResolveReference(v);
+		private CorrelatedVariable GlobalResolveReference(int level, VariableName v) {
+			VariableName nv = ResolveReference(v);
 			if (nv == null && Parent != null) {
 				// If we need to descend to the parent, increment the level.
 				return Parent.GlobalResolveReference(level + 1, v);
@@ -503,8 +503,8 @@ namespace Deveel.Data.Sql {
 		/// correlated variable.
 		/// </remarks>
 		/// <returns></returns>
-		private Object QualifyVariable(Variable v_in) {
-			Variable v = ResolveReference(v_in);
+		private Object QualifyVariable(VariableName v_in) {
+			VariableName v = ResolveReference(v_in);
 			if (v == null) {
 				// If not found, try and resolve in parent set (correlated)
 				if (Parent != null) {
@@ -526,7 +526,7 @@ namespace Deveel.Data.Sql {
 
 		/// <summary>
 		/// Returns an <see cref="IExpressionPreparer"/> that qualifies all 
-		/// variables in an expression to either a qualified <see cref="Variable"/> 
+		/// variables in an expression to either a qualified <see cref="VariableName"/> 
 		/// or a <see cref="CorrelatedVariable"/>.
 		/// </summary>
 		internal IExpressionPreparer ExpressionQualifier {
@@ -541,10 +541,10 @@ namespace Deveel.Data.Sql {
 			private readonly TableExpressionFromSet expression;
 
 			public bool CanPrepare(Object element) {
-				return element is Variable;
+				return element is VariableName;
 			}
 			public Object Prepare(Object element) {
-				return expression.QualifyVariable((Variable)element);
+				return expression.QualifyVariable((VariableName)element);
 			}
 		}
 	}

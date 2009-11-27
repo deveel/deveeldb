@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The group max variable or null if no group max.
 		/// </summary>
-		private Variable group_max;
+		private VariableName group_max;
 
 		/// <summary>
 		/// The having clause.
@@ -115,7 +115,7 @@ namespace Deveel.Data.Sql {
 			get { return group_by; }
 		}
 
-		public Variable GroupMax {
+		public VariableName GroupMax {
 			get { return group_max; }
 			set { group_max = value; }
 		}
@@ -205,7 +205,7 @@ namespace Deveel.Data.Sql {
 				v.group_by = (ArrayList)StatementTree.CloneSingleObject(group_by);
 			}
 			if (group_max != null) {
-				v.group_max = (Variable)group_max.Clone();
+				v.group_max = (VariableName)group_max.Clone();
 			}
 			if (having_clause != null) {
 				v.having_clause = (SearchExpression)having_clause.Clone();

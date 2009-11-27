@@ -560,10 +560,10 @@ namespace Deveel.Data {
 
 			// The table to check
 			DataTable connect_priv = context.GetTable(SysUserconnect);
-			Variable un_col = connect_priv.GetResolvedVariable(0);
-			Variable proto_col = connect_priv.GetResolvedVariable(1);
-			Variable host_col = connect_priv.GetResolvedVariable(2);
-			Variable access_col = connect_priv.GetResolvedVariable(3);
+			VariableName un_col = connect_priv.GetResolvedVariable(0);
+			VariableName proto_col = connect_priv.GetResolvedVariable(1);
+			VariableName host_col = connect_priv.GetResolvedVariable(2);
+			VariableName access_col = connect_priv.GetResolvedVariable(3);
 			// Query: where UserName = %username%
 			Table t = connect_priv.SimpleSelect(context, un_col, Operator.Get("="),
 			                                    new Expression(TObject.GetString(username)));
@@ -606,7 +606,7 @@ namespace Deveel.Data {
 		/// </returns>
 		public bool UserExists(DatabaseQueryContext context, String username) {
 			DataTable table = context.GetTable(SysPassword);
-			Variable c1 = table.GetResolvedVariable(0);
+			VariableName c1 = table.GetResolvedVariable(0);
 			// All sUSRPassword where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="), new Expression(TObject.GetString(username)));
 			return t.RowCount > 0;
@@ -683,7 +683,7 @@ namespace Deveel.Data {
 			Expression USER_EXPR = new Expression(TObject.GetString(username));
 
 			DataTable table = context.GetTable(SysUserpriv);
-			Variable c1 = table.GetResolvedVariable(0);
+			VariableName c1 = table.GetResolvedVariable(0);
 			// All sUSRUserPriv where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
 			// Delete all the groups
@@ -715,7 +715,7 @@ namespace Deveel.Data {
 
 			// Now delete the username from the sUSRUserConnectPriv table
 			DataTable table = context.GetTable(SysUserconnect);
-			Variable c1 = table.GetResolvedVariable(0);
+			VariableName c1 = table.GetResolvedVariable(0);
 			Table t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
 			table.Delete(t);
 
@@ -741,7 +741,7 @@ namespace Deveel.Data {
 
 			// Delete the current username from the sUSRPassword table
 			DataTable table = context.GetTable(SysPassword);
-			Variable c1 = table.GetResolvedVariable(0);
+			VariableName c1 = table.GetResolvedVariable(0);
 			Table t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
 			if (t.RowCount == 1) {
 				table.Delete(t);
@@ -765,7 +765,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public String[] GroupsUserBelongsTo(DatabaseQueryContext context, String username) {
 			DataTable table = context.GetTable(SysUserpriv);
-			Variable c1 = table.GetResolvedVariable(0);
+			VariableName c1 = table.GetResolvedVariable(0);
 			// All sUSRUserPriv where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
 			                             new Expression(TObject.GetString(username)));
@@ -797,8 +797,8 @@ namespace Deveel.Data {
 		public bool UserBelongsToGroup(DatabaseQueryContext context,
 		                               String username, String group) {
 			DataTable table = context.GetTable(SysUserpriv);
-			Variable c1 = table.GetResolvedVariable(0);
-			Variable c2 = table.GetResolvedVariable(1);
+			VariableName c1 = table.GetResolvedVariable(0);
+			VariableName c2 = table.GetResolvedVariable(1);
 			// All sUSRUserPriv where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
 			                             new Expression(TObject.GetString(username)));
@@ -881,8 +881,8 @@ namespace Deveel.Data {
 
 			// Internally we implement this by adding the user to the #locked group.
 			DataTable table = context.GetTable(SysUserpriv);
-			Variable c1 = table.GetResolvedVariable(0);
-			Variable c2 = table.GetResolvedVariable(1);
+			VariableName c1 = table.GetResolvedVariable(0);
+			VariableName c2 = table.GetResolvedVariable(1);
 			// All sUSRUserPriv where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
 			                             new Expression(TObject.GetString(username)));
@@ -999,7 +999,7 @@ namespace Deveel.Data {
 		/// table operations) for the given user, otherwise <b>false</b>.
 		/// </returns>
 		private static bool UserHasTableObjectGrant(DatabaseQueryContext context,
-		                                            User user, TableName table_name, Variable[] columns,
+		                                            User user, TableName table_name, VariableName[] columns,
 		                                            int grant) {
 			// The internal secure user has full privs on everything
 			if (user.UserName.Equals(InternalSecureUsername)) {
@@ -1153,7 +1153,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public bool CanUserSelectFromTableObject(
 			DatabaseQueryContext context, User user, TableName table,
-			Variable[] columns) {
+			VariableName[] columns) {
 			if (UserHasTableObjectGrant(context, user, table, columns,
 			                            Privileges.Select)) {
 				return true;
@@ -1174,7 +1174,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public bool CanUserInsertIntoTableObject(
 			DatabaseQueryContext context, User user, TableName table,
-			Variable[] columns) {
+			VariableName[] columns) {
 			if (UserHasTableObjectGrant(context, user, table, columns,
 			                            Privileges.Insert)) {
 				return true;
@@ -1190,7 +1190,7 @@ namespace Deveel.Data {
 		/// </summary>
 		public bool CanUserUpdateTableObject(
 			DatabaseQueryContext context, User user, TableName table,
-			Variable[] columns) {
+			VariableName[] columns) {
 			if (UserHasTableObjectGrant(context, user, table, columns,
 			                            Privileges.Update)) {
 				return true;
@@ -2221,8 +2221,8 @@ namespace Deveel.Data {
 		private static void UpdateDatabaseVars(IQueryContext context,
 		                                       DataTable database_vars, String key, String value) {
 			// The references to the first and second column (key/value)
-			Variable c1 = database_vars.GetResolvedVariable(0); // First column
-			Variable c2 = database_vars.GetResolvedVariable(1); // Second column
+			VariableName c1 = database_vars.GetResolvedVariable(0); // First column
+			VariableName c2 = database_vars.GetResolvedVariable(1); // Second column
 
 			// Assignment: second column = value
 			Assignment assignment = new Assignment(c2, new Expression(TObject.GetString(value)));

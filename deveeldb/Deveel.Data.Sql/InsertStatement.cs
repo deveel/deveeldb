@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql {
 		/// The list of Variable objects the represent the list of columns being
 		/// inserted into in this query.
 		/// </summary>
-		private Variable[] col_var_list;
+		private VariableName[] col_var_list;
 
 		/// <summary>
 		/// The TableName we are inserting into.
@@ -143,11 +143,11 @@ namespace Deveel.Data.Sql {
 				// Resolve 'col_list' into a list of column indices into the insert
 				// table.
 				col_index_list = new int[col_list.Count];
-				col_var_list = new Variable[col_list.Count];
+				col_var_list = new VariableName[col_list.Count];
 				for (int i = 0; i < col_list.Count; ++i) {
 					//        Variable col = Variable.resolve(tname, (String) col_list.get(i));
-					Variable in_var = Variable.Resolve((String)col_list[i]);
-					Variable col = ResolveColumn(in_var);
+					VariableName in_var = VariableName.Resolve((String)col_list[i]);
+					VariableName col = ResolveColumn(in_var);
 					int index = insert_table.FastFindFieldName(col);
 					if (index == -1) {
 						throw new DatabaseException("Can't find column: " + col);
@@ -215,8 +215,8 @@ namespace Deveel.Data.Sql {
 					}
 
 					// Resolve the column names in the columns set.
-					Variable v = assignment.Variable;
-					Variable resolved_v = ResolveVariableName(v);
+					VariableName v = assignment.VariableName;
+					VariableName resolved_v = ResolveVariableName(v);
 					v.Set(resolved_v);
 					ResolveExpression(assignment.Expression);
 				}

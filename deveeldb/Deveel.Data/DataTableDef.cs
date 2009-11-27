@@ -133,7 +133,7 @@ namespace Deveel.Data {
 			if (exp != null) {
 				IList list = exp.AllVariables;
 				for (int i = 0; i < list.Count; ++i) {
-					Variable v = (Variable)list[i];
+					VariableName v = (VariableName)list[i];
 					String col_name = v.Name;
 					// Can we resolve this to a variable input the table?
 					if (ignore_case) {

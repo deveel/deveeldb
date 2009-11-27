@@ -147,7 +147,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override int FindFieldName(Variable v) {
+		public override int FindFieldName(VariableName v) {
 			return master_table.FindFieldName(v);
 		}
 
@@ -157,7 +157,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override Variable GetResolvedVariable(int column) {
+		public override VariableName GetResolvedVariable(int column) {
 			return master_table.GetResolvedVariable(column);
 		}
 

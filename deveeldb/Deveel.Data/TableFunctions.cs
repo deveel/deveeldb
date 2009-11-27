@@ -53,7 +53,7 @@ namespace Deveel.Data {
 		///    Table.col > ANY ( SELECT .... )
 		/// </code>
 		/// </example>
-		internal static Table AnyAllNonCorrelated(Table left_table, Variable[] left_vars,
+		internal static Table AnyAllNonCorrelated(Table left_table, VariableName[] left_vars,
 										 Operator op, Table right_table) {
 			// Check the right table and the correct number of columns,
 			if (right_table.ColumnCount != left_vars.Length) {

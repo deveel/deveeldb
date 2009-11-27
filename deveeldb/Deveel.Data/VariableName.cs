@@ -41,12 +41,11 @@ namespace Deveel.Data {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	public sealed class Variable : ICloneable, IComparable {
+	public sealed class VariableName : ICloneable, IComparable {
 		/// <summary>
 		/// Static that represents an unknown table name.
 		/// </summary>
-		private static readonly TableName UnknownTableName =
-										   new TableName("##UNKNOWN_TABLE_NAME##");
+		private static readonly TableName UnknownTableName = new TableName("##UNKNOWN_TABLE_NAME##");
 
 		/// <summary>
 		/// The TableName that is the context of this column.  This may be
@@ -59,7 +58,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private String column_name;
 
-		public Variable(TableName table_name, String column_name) {
+		public VariableName(TableName table_name, String column_name) {
 			if (table_name == null || column_name == null) {
 				throw new ArgumentNullException();
 			}
@@ -67,11 +66,11 @@ namespace Deveel.Data {
 			this.column_name = column_name;
 		}
 
-		public Variable(String column_name)
+		public VariableName(String column_name)
 			: this(UnknownTableName, column_name) {
 		}
 
-		public Variable(Variable v) {
+		public VariableName(VariableName v) {
 			table_name = v.table_name;
 			column_name = v.column_name;
 		}
@@ -107,11 +106,11 @@ namespace Deveel.Data {
 
 		/// <summary>
 		/// Attempts to resolve a string '[table_name].[column]' to a 
-		/// <see cref="Variable"/> instance.
+		/// <see cref="VariableName"/> instance.
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		public static Variable Resolve(String name) {
+		public static VariableName Resolve(String name) {
 			int div = name.LastIndexOf(".");
 			if (div != -1) {
 				// Column represents '[something].[name]'
@@ -119,15 +118,15 @@ namespace Deveel.Data {
 				// Make the '[something]' into a TableName
 				TableName table_name = TableName.Resolve(name.Substring(0, div));
 				// Set the variable name
-				return new Variable(table_name, column_name);
+				return new VariableName(table_name, column_name);
 			}
 			// Column represents '[something]'
-			return new Variable(name);
+			return new VariableName(name);
 		}
 
 		/// <summary>
 		/// Attempts to resolve a string '[table_name].[column]' to a 
-		/// <see cref="Variable"/> instance.
+		/// <see cref="VariableName"/> instance.
 		/// </summary>
 		/// <param name="tname"></param>
 		/// <param name="name"></param>
@@ -137,34 +136,34 @@ namespace Deveel.Data {
 		/// given object.
 		/// </remarks>
 		/// <returns></returns>
-		public static Variable Resolve(TableName tname, String name) {
-			Variable v = Resolve(name);
+		public static VariableName Resolve(TableName tname, String name) {
+			VariableName v = Resolve(name);
 			return v.TableName == null
-			       	? new Variable(tname, v.Name)
-			       	: (v.TableName.Schema == null ? new Variable(new TableName(tname.Schema, v.TableName.Name), v.Name) : v);
+			       	? new VariableName(tname, v.Name)
+			       	: (v.TableName.Schema == null ? new VariableName(new TableName(tname.Schema, v.TableName.Name), v.Name) : v);
 		}
 
 
 		/// <summary>
-		/// Returns a <see cref="Variable"/> that is resolved against a 
-		/// table name context only if the <see cref="Variable"/> is 
+		/// Returns a <see cref="VariableName"/> that is resolved against a 
+		/// table name context only if the <see cref="VariableName"/> is 
 		/// unknown in this object.
 		/// </summary>
 		/// <param name="tablen"></param>
 		/// <returns></returns>
-		public Variable ResolveTableName(TableName tablen) {
+		public VariableName ResolveTableName(TableName tablen) {
 			return table_name.Equals(UnknownTableName)
-			       	? new Variable(tablen, Name)
-			       	: new Variable(table_name.ResolveSchema(tablen.Schema), Name);
+			       	? new VariableName(tablen, Name)
+			       	: new VariableName(table_name.ResolveSchema(tablen.Schema), Name);
 		}
 
 		/// <summary>
-		/// Sets this <see cref="Variable"/> object with information 
-		/// from the given <see cref="Variable"/>.
+		/// Sets this <see cref="VariableName"/> object with information 
+		/// from the given <see cref="VariableName"/>.
 		/// </summary>
 		/// <param name="from"></param>
 		/// <returns></returns>
-		public Variable Set(Variable from) {
+		public VariableName Set(VariableName from) {
 			table_name = from.table_name;
 			column_name = from.column_name;
 			return this;
@@ -193,14 +192,14 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
-			Variable cn = (Variable)ob;
+			VariableName cn = (VariableName)ob;
 			return cn.table_name.Equals(table_name) &&
 				   cn.column_name.Equals(column_name);
 		}
 
 		/// <inheritdoc/>
 		public int CompareTo(Object ob) {
-			Variable cn = (Variable)ob;
+			VariableName cn = (VariableName)ob;
 			int v = table_name.CompareTo(cn.table_name);
 			return v == 0 ? column_name.CompareTo(cn.column_name) : v;
 		}

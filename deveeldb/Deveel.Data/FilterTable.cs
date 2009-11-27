@@ -85,11 +85,11 @@ namespace Deveel.Data {
 			get { return parent.HasRootsLocked; }
 		}
 
-		public override int FindFieldName(Variable v) {
+		public override int FindFieldName(VariableName v) {
 			return parent.FindFieldName(v);
 		}
 
-		public override Variable GetResolvedVariable(int column) {
+		public override VariableName GetResolvedVariable(int column) {
 			return parent.GetResolvedVariable(column);
 		}
 

@@ -75,7 +75,7 @@ namespace Deveel.Data.Sql {
 		///</summary>
 		///<param name="token"></param>
 		///<param name="upper_identifiers">If is true then all identifiers are made upper case 
-		/// before being returned (eg. if the object returns is a <see cref="Variable"/> object).</param>
+		/// before being returned (eg. if the object returns is a <see cref="VariableName"/> object).</param>
 		///<returns></returns>
 		public static Object ToParamObject(Token token, bool upper_identifiers) {
 			if (token.kind == SQLConstants.STRING_LITERAL) {
@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql {
 				if (upper_identifiers) {
 					name = name.ToUpper();
 				}
-				Variable v;
+				VariableName v;
 				int div = name.LastIndexOf(".");
 				if (div != -1) {
 					// Column represents '[something].[name]'
@@ -119,10 +119,10 @@ namespace Deveel.Data.Sql {
 					TableName table_name = TableName.Resolve(name.Substring(0, div));
 
 					// Set the variable name
-					v = new Variable(table_name, column_name);
+					v = new VariableName(table_name, column_name);
 				} else {
 					// Column represents '[something]'
-					v = new Variable(name);
+					v = new VariableName(name);
 				}
 				return v;
 			} else {  // Otherwise it must be a reserved word, so just return the image
@@ -131,7 +131,7 @@ namespace Deveel.Data.Sql {
 				if (upper_identifiers) {
 					name = name.ToUpper();
 				}
-				return new Variable(token.image);
+				return new VariableName(token.image);
 			}
 		}
 

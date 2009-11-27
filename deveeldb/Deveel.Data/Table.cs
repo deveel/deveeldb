@@ -102,7 +102,7 @@ namespace Deveel.Data {
 		/// <exception cref="ApplicationException">
 		/// If the column can't be found.
 		/// </exception>
-		public TType GetTTypeForColumn(Variable v) {
+		public TType GetTTypeForColumn(VariableName v) {
 			return GetTTypeForColumn(FindFieldName(v));
 		}
 
@@ -112,16 +112,16 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="v"></param>
 		/// <returns></returns>
-		public abstract int FindFieldName(Variable v);
+		public abstract int FindFieldName(VariableName v);
 
 
 		/// <summary>
-		/// Returns a fully qualified <see cref="Variable"/> object 
+		/// Returns a fully qualified <see cref="VariableName"/> object 
 		/// that represents the name of the column at the given index.
 		/// </summary>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		public abstract Variable GetResolvedVariable(int column);
+		public abstract VariableName GetResolvedVariable(int column);
 
 		/// <summary>
 		/// Returns a <see cref="SelectableScheme"/> for the given column 
@@ -376,7 +376,7 @@ namespace Deveel.Data {
 		/// set of ranges that are returned that meet the given criteria.
 		/// </remarks>
 		/// <returns></returns>
-		public Table RangeSelect(Variable col_var, SelectableRange[] ranges) {
+		public Table RangeSelect(VariableName col_var, SelectableRange[] ranges) {
 			// If this table is empty then there is no range to select so
 			// trivially return this object.
 			if (RowCount == 0) {
@@ -442,7 +442,7 @@ namespace Deveel.Data {
 		/// evaluated once).
 		/// </remarks>
 		/// <returns></returns>
-		public Table SimpleSelect(IQueryContext context, Variable lhs_var, Operator op, Expression rhs) {
+		public Table SimpleSelect(IQueryContext context, VariableName lhs_var, Operator op, Expression rhs) {
 			String DEBUG_SELECT_WITH = null;
 
 			// Find the row with the name given in the condition.
@@ -488,7 +488,7 @@ namespace Deveel.Data {
 					// Perform the any/all sub-query on the constant table.
 
 					return TableFunctions.AnyAllNonCorrelated(
-						   this, new Variable[] { lhs_var }, op, ttable);
+						   this, new VariableName[] { lhs_var }, op, ttable);
 
 				} else {
 					throw new Exception("Error with format or RHS expression.");
@@ -581,7 +581,7 @@ namespace Deveel.Data {
 		/// <param name="rhs"></param>
 		/// <remarks>
 		/// A simple join operation is one that has a single joining operator, 
-		/// a <see cref="Variable"/> on the lhs and a simple expression on the 
+		/// a <see cref="VariableName"/> on the lhs and a simple expression on the 
 		/// rhs that includes only columns in the rhs table. For example, 
 		/// <c>id = part_id</c> or <c>id == part_id * 2</c> or <c>id == part_id + vendor_id * 2</c>
 		/// <para>
@@ -601,7 +601,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public Table SimpleJoin(IQueryContext context, Table table, Variable lhs_var, Operator op, Expression rhs) {
+		public Table SimpleJoin(IQueryContext context, Table table, VariableName lhs_var, Operator op, Expression rhs) {
 
 			// Find the row with the name given in the condition.
 			int lhs_column = FindFieldName(lhs_var);
@@ -730,7 +730,7 @@ namespace Deveel.Data {
 		/// expression, the RHS subquery and the ANY operator to use.
 		/// </summary>
 		/// <param name="context">The context of the query.</param>
-		/// <param name="lhs">The left has side expression. The <see cref="Variable"/>
+		/// <param name="lhs">The left has side expression. The <see cref="VariableName"/>
 		/// objects in this expression must all reference columns in this table.</param>
 		/// <param name="op">The operator to use.</param>
 		/// <param name="right_table">The subquery table should only contain 
@@ -745,7 +745,7 @@ namespace Deveel.Data {
 		/// <para>
 		/// Note that unlike the other join and select methods in this 
 		/// object this will take a complex expression as the lhs provided 
-		/// all the <see cref="Variable"/> objects resolve to this table.
+		/// all the <see cref="VariableName"/> objects resolve to this table.
 		/// </para>
 		/// </remarks>
 		/// <returns>
@@ -786,7 +786,7 @@ namespace Deveel.Data {
 			Table source_table;
 			int lhs_col_index;
 			// Is the lhs expression a single variable?
-			Variable lhs_var = lhs.Variable;
+			VariableName lhs_var = lhs.VariableName;
 			// NOTE: It'll be less common for this part to be called.
 			if (lhs_var == null) {
 				// This is a complex expression so make a FunctionTable as our new
@@ -879,7 +879,7 @@ namespace Deveel.Data {
 		/// the RHS subquery and the ALL operator to use.
 		/// </summary>
 		/// <param name="context">The context of the query.</param>
-		/// <param name="lhs">Expression containing <see cref="Variable"/> 
+		/// <param name="lhs">Expression containing <see cref="VariableName"/> 
 		/// objects referencing columns in this table.</param>
 		/// <param name="op">The operator to use.</param>
 		/// <param name="table">The subquery table containing only one column.</param>
@@ -955,7 +955,7 @@ namespace Deveel.Data {
 			Table source_table;
 			int lhs_col_index;
 			// Is the lhs expression a single variable?
-			Variable lhs_var = lhs.Variable;
+			VariableName lhs_var = lhs.VariableName;
 			// NOTE: It'll be less common for this part to be called.
 			if (lhs_var == null) {
 				// This is a complex expression so make a FunctionTable as our new
@@ -1499,7 +1499,7 @@ namespace Deveel.Data {
 		/// <exception cref="DatabaseException">
 		/// If the given column name was not found.
 		/// </exception>
-		public VirtualTable OrderByColumn(Variable column, bool ascending) {
+		public VirtualTable OrderByColumn(VariableName column, bool ascending) {
 			int col_index = FindFieldName(column);
 			if (col_index == -1) {
 				throw new ApplicationException("Unknown column in 'OrderByColumn' ( " + column + " )");
@@ -1507,7 +1507,7 @@ namespace Deveel.Data {
 			return OrderByColumn(col_index, ascending);
 		}
 
-		public VirtualTable OrderByColumn(Variable column) {
+		public VirtualTable OrderByColumn(VariableName column) {
 			return OrderByColumn(column, true);
 		}
 
@@ -1991,7 +1991,7 @@ namespace Deveel.Data {
 		/// Returns the index of the column for the given name, or -1
 		/// if not found.
 		/// </returns>
-		public int FastFindFieldName(Variable col) {
+		public int FastFindFieldName(VariableName col) {
 			lock (COL_LOOKUP_LOCK) {
 				if (col_name_lookup == null) {
 					col_name_lookup = new Hashtable(30);
@@ -2030,7 +2030,7 @@ namespace Deveel.Data {
 			private readonly Table table;
 			private int row_index = -1;
 
-			private int FindColumnName(Variable variable) {
+			private int FindColumnName(VariableName variable) {
 				int col_index = table.FastFindFieldName(variable);
 				if (col_index == -1) {
 					throw new ApplicationException("Can't find column: " + variable);
@@ -2045,11 +2045,11 @@ namespace Deveel.Data {
 				set { row_index = value; }
 			}
 
-			public TObject Resolve(Variable variable) {
+			public TObject Resolve(VariableName variable) {
 				return table.GetCellContents(FindColumnName(variable), row_index);
 			}
 
-			public TType ReturnTType(Variable variable) {
+			public TType ReturnTType(VariableName variable) {
 				return table.GetTTypeForColumn(variable);
 			}
 

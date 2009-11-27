@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The list of columns in the 'order_by' clause fully resolved.
 		/// </summary>
-		private Variable[] order_cols;
+		private VariableName[] order_cols;
 
 		/// <summary>
 		/// The plan for evaluating this select expression.

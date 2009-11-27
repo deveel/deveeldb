@@ -105,7 +105,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			TObject val;
-			Variable v = this[0].Variable;
+			VariableName v = this[0].VariableName;
 			// If the aggregate parameter is a simple variable, then use optimal
 			// routine,
 			if (v != null) {

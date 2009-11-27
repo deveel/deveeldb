@@ -66,14 +66,14 @@ namespace Deveel.Data {
 		private DataTableDef subset_table_def;
 
 		/// <summary>
-		/// The resolved <see cref="Variable"/> aliases for this subset.
+		/// The resolved <see cref="VariableName"/> aliases for this subset.
 		/// </summary>
 		/// <remarks>
 		/// These are returned by <see cref="GetResolvedVariable"/> and used in searches for 
 		/// <see cref="FindFieldName"/>. This can be used to remap the variable names 
 		/// used to match the columns.
 		/// </remarks>
-		private Variable[] aliases;
+		private VariableName[] aliases;
 
 
 		///<summary>
@@ -89,7 +89,7 @@ namespace Deveel.Data {
 		/// <param name="mapping">The array containing a map to the column in 
 		/// the parent table that we want the column number to reference.</param>
 		/// <param name="aliases"></param>
-		public void SetColumnMap(int[] mapping, Variable[] aliases) {
+		public void SetColumnMap(int[] mapping, VariableName[] aliases) {
 			reverse_column_map = new int[parent.ColumnCount];
 			for (int i = 0; i < reverse_column_map.Length; ++i) {
 				reverse_column_map[i] = -1;
@@ -120,7 +120,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override int FindFieldName(Variable v) {
+		public override int FindFieldName(VariableName v) {
 			for (int i = 0; i < aliases.Length; ++i) {
 				if (v.Equals(aliases[i])) {
 					return i;
@@ -135,7 +135,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override Variable GetResolvedVariable(int column) {
+		public override VariableName GetResolvedVariable(int column) {
 			return aliases[column];
 		}
 

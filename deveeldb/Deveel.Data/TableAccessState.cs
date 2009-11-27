@@ -88,7 +88,7 @@ namespace Deveel.Data {
 		/// Returns a fully qualified name for the column at the given index
 		/// within the underlying table.
 		/// </returns>
-		public Variable GetResolvedVariable(int column) {
+		public VariableName GetResolvedVariable(int column) {
 			return table.GetResolvedVariable(column);
 		}
 

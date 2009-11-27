@@ -51,7 +51,7 @@ namespace Deveel.Data {
 		/// and 9.  Return types must be either a String, BigDecimal or Boolean.
 		/// </remarks>
 		/// <returns></returns>
-		TObject Resolve(Variable variable, int set_index);
+		TObject Resolve(VariableName variable, int set_index);
 
 		/// <summary>
 		/// Returns a <see cref="IVariableResolver"/> that can be used to 

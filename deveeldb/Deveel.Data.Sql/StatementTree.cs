@@ -101,7 +101,7 @@ namespace Deveel.Data.Sql {
 			    ob is Boolean ||
 			    ob is String ||
 			    ob is BigDecimal ||
-			    ob is Variable ||
+			    ob is VariableName ||
 			    ob is int ||
 			    ob is TObject ||
 			    ob is TType ||
@@ -259,8 +259,8 @@ namespace Deveel.Data.Sql {
 					exps[n] = (Expression)exps[n].Clone();
 				}
 				entry = exps;
-			} else if (entry is Variable) {
-				entry = ((Variable)entry).Clone();
+			} else if (entry is VariableName) {
+				entry = ((VariableName)entry).Clone();
 			} else if (entry is IStatementTreeObject) {
 				entry = ((IStatementTreeObject)entry).Clone();
 			} else if (entry is StatementTree) {

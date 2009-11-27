@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The fully resolved name that this column is given in the resulting table.
 		/// </summary>
-		internal Variable resolved_name;
+		internal VariableName resolved_name;
 
 		/// <summary>
 		/// The alias of this column string.
@@ -92,7 +92,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The name of this column used internally to reference it.
 		/// </summary>
-		internal Variable internal_name;
+		internal VariableName internal_name;
 
 		/// <summary>
 		/// Returns a new instance of a <see cref="SelectColumn"/> that is
@@ -101,7 +101,7 @@ namespace Deveel.Data.Sql {
 		public static SelectColumn Identity {
 			get {
 				SelectColumn column = new SelectColumn();
-				column.resolved_name = new Variable("IDENTITY");
+				column.resolved_name = new VariableName("IDENTITY");
 				return column;
 			}
 		}
@@ -159,13 +159,13 @@ namespace Deveel.Data.Sql {
 		public object Clone() {
 			SelectColumn v = (SelectColumn)MemberwiseClone();
 			if (resolved_name != null) {
-				v.resolved_name = (Variable)resolved_name.Clone();
+				v.resolved_name = (VariableName)resolved_name.Clone();
 			}
 			if (expression != null) {
 				v.expression = (Expression)expression.Clone();
 			}
 			if (internal_name != null) {
-				v.internal_name = (Variable)internal_name.Clone();
+				v.internal_name = (VariableName)internal_name.Clone();
 			}
 			return v;
 		}

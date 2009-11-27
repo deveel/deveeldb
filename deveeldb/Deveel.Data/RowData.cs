@@ -264,7 +264,7 @@ namespace Deveel.Data {
 			TObject ob = assignment.Expression.Evaluate(null, vresolver, context);
 
 			// Check the variable name is within this row.
-			Variable variable = assignment.Variable;
+			VariableName variable = assignment.VariableName;
 			int column = FindFieldName(variable.Name);
 
 			// Set the column to the resolved value.
@@ -414,7 +414,7 @@ namespace Deveel.Data {
 				get { return assignment_count; }
 			}
 
-			public TObject Resolve(Variable variable) {
+			public TObject Resolve(VariableName variable) {
 				String col_name = variable.Name;
 
 				int col_index = row_data.table_def.FindColumnName(col_name);
@@ -431,7 +431,7 @@ namespace Deveel.Data {
 				return cell;
 			}
 
-			public TType ReturnTType(Variable variable) {
+			public TType ReturnTType(VariableName variable) {
 				String col_name = variable.Name;
 
 				int col_index = row_data.table_def.FindColumnName(col_name);

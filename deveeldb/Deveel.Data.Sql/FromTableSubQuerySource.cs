@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The list of all variable names in the resultant source.
 		/// </summary>
-		private Variable[] vars;
+		private VariableName[] vars;
 
 		/// <summary>
 		/// Set to true if this should do case insensitive resolutions.
@@ -157,7 +157,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="table"></param>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		private bool MatchesVar(Variable v, String catalog, String schema,
+		private bool MatchesVar(VariableName v, String catalog, String schema,
 											   String table, String column) {
 			TableName tn = v.TableName;
 			String cn = v.Name;
@@ -232,7 +232,7 @@ namespace Deveel.Data.Sql {
 
 			int matched_count = 0;
 			for (int i = 0; i < vars.Length; ++i) {
-				Variable v = vars[i];
+				VariableName v = vars[i];
 				if (MatchesVar(v, catalog, schema, table, column)) {
 					++matched_count;
 				}
@@ -242,7 +242,7 @@ namespace Deveel.Data.Sql {
 
 		}
 
-		public Variable ResolveColumn(String catalog, String schema,
+		public VariableName ResolveColumn(String catalog, String schema,
 									  String table, String column) {
 			EnsureVarList();
 
@@ -250,7 +250,7 @@ namespace Deveel.Data.Sql {
 			//                       table + ", " + column);
 
 			for (int i = 0; i < vars.Length; ++i) {
-				Variable v = vars[i];
+				VariableName v = vars[i];
 				if (MatchesVar(v, catalog, schema, table, column)) {
 					//        Console.Out.WriteLine("Result: " + v);
 					return v;
@@ -260,7 +260,7 @@ namespace Deveel.Data.Sql {
 			throw new ApplicationException("Couldn't resolve to a column.");
 		}
 
-		public Variable[] AllColumns {
+		public VariableName[] AllColumns {
 			get {
 				EnsureVarList();
 				return vars;

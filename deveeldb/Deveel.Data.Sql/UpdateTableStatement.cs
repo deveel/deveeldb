@@ -119,8 +119,8 @@ namespace Deveel.Data.Sql {
 			// Resolve the variables in the assignments.
 			for (int i = 0; i < column_sets.Count; ++i) {
 				Assignment assignment = (Assignment)column_sets[i];
-				Variable orig_var = assignment.Variable;
-				Variable new_var = from_set.ResolveReference(orig_var);
+				VariableName orig_var = assignment.VariableName;
+				VariableName new_var = from_set.ResolveReference(orig_var);
 				if (new_var == null) {
 					throw new StatementException("Reference not found: " + orig_var);
 				}
@@ -144,10 +144,10 @@ namespace Deveel.Data.Sql {
 
 			// Generate a list of Variable objects that represent the list of columns
 			// being changed.
-			Variable[] col_var_list = new Variable[column_sets.Count];
+			VariableName[] col_var_list = new VariableName[column_sets.Count];
 			for (int i = 0; i < col_var_list.Length; ++i) {
 				Assignment assign = (Assignment)column_sets[i];
-				col_var_list[i] = assign.Variable;
+				col_var_list[i] = assign.VariableName;
 			}
 
 			// Check that this user has privs to update the table.

@@ -293,7 +293,7 @@ namespace Deveel.Data {
 		/// group entry in the group list. The group list is a linked integer 
 		/// list that chains through each row item in the list.
 		/// </remarks>
-		public void CreateGroupMatrix(Variable[] col_list) {
+		public void CreateGroupMatrix(VariableName[] col_list) {
 			// If we have zero rows, then don't bother creating the matrix.
 			if (RowCount <= 0 || col_list.Length <= 0) {
 				return;
@@ -414,7 +414,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		///<returns></returns>
-		public Table MergeWithReference(Variable max_column) {
+		public Table MergeWithReference(VariableName max_column) {
 			Table table = ReferenceTable;
 
 			IntegerVector row_list;
@@ -624,7 +624,7 @@ namespace Deveel.Data {
 			SubsetColumnTable result = new SubsetColumnTable(function_table);
 
 			int[] map = new int[] {0};
-			Variable[] vars = new Variable[] {new Variable("result")};
+			VariableName[] vars = new VariableName[] {new VariableName("result")};
 			result.SetColumnMap(map, vars);
 
 			return result;
@@ -728,7 +728,7 @@ namespace Deveel.Data {
 				}
 			}
 
-			public TObject Resolve(Variable variable, int set_index) {
+			public TObject Resolve(VariableName variable, int set_index) {
 				//      String col_name = variable.getName();
 
 				int col_index = table.ReferenceTable.FastFindFieldName(variable);
@@ -823,11 +823,11 @@ namespace Deveel.Data {
 					get { throw new ApplicationException("setID not implemented here..."); }
 				}
 
-				public TObject Resolve(Variable variable) {
+				public TObject Resolve(VariableName variable) {
 					return tgr.Resolve(variable, set_index);
 				}
 
-				public TType ReturnTType(Variable variable) {
+				public TType ReturnTType(VariableName variable) {
 					int col_index = tgr.table.ReferenceTable.FastFindFieldName(variable);
 					if (col_index == -1) {
 						throw new ApplicationException("Can't find column: " + variable);

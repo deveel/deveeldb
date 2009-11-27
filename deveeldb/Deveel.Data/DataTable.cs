@@ -726,14 +726,14 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override Variable GetResolvedVariable(int column) {
+		public override VariableName GetResolvedVariable(int column) {
 			CheckSafeOperation();  // safe op
 
 			return base.GetResolvedVariable(column);
 		}
 
 		/// <inheritdoc/>
-		public override int FindFieldName(Variable v) {
+		public override int FindFieldName(VariableName v) {
 			CheckSafeOperation();  // safe op
 
 			return base.FindFieldName(v);

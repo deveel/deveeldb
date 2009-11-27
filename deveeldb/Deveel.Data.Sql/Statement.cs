@@ -176,7 +176,7 @@ namespace Deveel.Data.Sql {
 		/// Returns a <see cref="IFromTableSource"/> representing the table the 
 		/// column with the given name is in, if found, otherwise <b>null</b>.
 		/// </returns>
-		internal IFromTableSource FindTableWithColumn(Variable column_name) {
+		internal IFromTableSource FindTableWithColumn(VariableName column_name) {
 			for (int i = 0; i < table_list.Count; ++i) {
 				IFromTableSource table = (IFromTableSource)table_list[i];
 				TableName tname = column_name.TableName;
@@ -204,7 +204,7 @@ namespace Deveel.Data.Sql {
 		/// Returns <b>true</b> if a table containing a column with the 
 		/// given name exists, otherwise <b>false</b>.
 		/// </returns>
-		internal bool ExistsTableWithColumn(Variable column_name) {
+		internal bool ExistsTableWithColumn(VariableName column_name) {
 			return FindTableWithColumn(column_name) != null;
 		}
 
@@ -214,11 +214,11 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="alias_name"></param>
 		/// <returns>
-		/// Returns a list of all fully qualified <see cref="Variable"/> 
+		/// Returns a list of all fully qualified <see cref="VariableName"/> 
 		/// that match the alias name, or an empty array if no matches 
 		/// found.
 		/// </returns>
-		internal virtual ArrayList ResolveAgainstAliases(Variable alias_name) {
+		internal virtual ArrayList ResolveAgainstAliases(VariableName alias_name) {
 			return new ArrayList(0);
 		}
 
@@ -261,11 +261,11 @@ namespace Deveel.Data.Sql {
 
 		/// <summary>
 		/// Attempts to resolve an ambiguous column name (such as <i>id</i>)
-		/// into a <see cref="Variable"/> from the tables in this statement.
+		/// into a <see cref="VariableName"/> from the tables in this statement.
 		/// </summary>
 		/// <param name="v">The column name to resolve.</param>
 		/// <returns></returns>
-		internal Variable ResolveColumn(Variable v) {
+		internal VariableName ResolveColumn(VariableName v) {
 			// Try and resolve against alias names first,
 			ArrayList list = new ArrayList();
 			list.AddRange(ResolveAgainstAliases(v));
@@ -285,7 +285,7 @@ namespace Deveel.Data.Sql {
 				IFromTableSource table = (IFromTableSource)table_list[i];
 				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
 				if (rcc == 1) {
-					Variable matched =
+					VariableName matched =
 								  table.ResolveColumn(null, sch_name, tab_name, col_name);
 					list.Add(matched);
 				} else if (rcc > 1) {
@@ -297,7 +297,7 @@ namespace Deveel.Data.Sql {
 			if (total_matches == 0) {
 				throw new StatementException("Can't find column: " + v);
 			} else if (total_matches == 1) {
-				return (Variable)list[0];
+				return (VariableName)list[0];
 			} else if (total_matches > 1) {
 				// if there more than one match, check if they all match the identical
 				// resource,
@@ -316,7 +316,7 @@ namespace Deveel.Data.Sql {
 		///</summary>
 		///<param name="v"></param>
 		///<returns></returns>
-		public Variable ResolveVariableName(Variable v) {
+		public VariableName ResolveVariableName(VariableName v) {
 			return ResolveColumn(v);
 		}
 
@@ -330,8 +330,8 @@ namespace Deveel.Data.Sql {
 			// NOTE: This gets variables in all function parameters.
 			IList vars = exp.AllVariables;
 			for (int i = 0; i < vars.Count; ++i) {
-				Variable v = (Variable)vars[i];
-				Variable to_set = ResolveVariableName(v);
+				VariableName v = (VariableName)vars[i];
+				VariableName to_set = ResolveVariableName(v);
 				v.Set(to_set);
 			}
 		}

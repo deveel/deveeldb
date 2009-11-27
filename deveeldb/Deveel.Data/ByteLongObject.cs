@@ -103,7 +103,7 @@ namespace Deveel.Data {
 		/// <returns>
 		/// </returns>
 		public byte[] ToArray() {
-			return data;
+			return (byte[]) data.Clone();
 		}
 
 		/// <summary>
@@ -114,7 +114,7 @@ namespace Deveel.Data {
 			return new BLOBInputStream(this);
 		}
 
-		/// </inheritdoc>
+		/// <inheritdoc/>
 		public override String ToString() {
 			StringBuilder buf = new StringBuilder();
 			if (data == null) {

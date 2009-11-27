@@ -81,8 +81,8 @@ namespace Deveel.Data {
 			// Find all the trigger entries with this name
 			Operator EQUALS = Operator.Get("=");
 
-			Variable schemav = table.GetResolvedVariable(0);
-			Variable namev = table.GetResolvedVariable(1);
+			VariableName schemav = table.GetResolvedVariable(0);
+			VariableName namev = table.GetResolvedVariable(1);
 
 			Table t = table.SimpleSelect(context, namev, EQUALS,
 										 new Expression(TObject.GetString(name)));

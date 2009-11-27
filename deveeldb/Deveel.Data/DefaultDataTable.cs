@@ -142,13 +142,13 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override Variable GetResolvedVariable(int column) {
+		public override VariableName GetResolvedVariable(int column) {
 			String col_name = DataTableDef[column].Name;
-			return new Variable(TableName, col_name);
+			return new VariableName(TableName, col_name);
 		}
 
 		/// <inheritdoc/>
-		public override int FindFieldName(Variable v) {
+		public override int FindFieldName(VariableName v) {
 			// Check this is the correct table first...
 			TableName table_name = v.TableName;
 			DataTableDef table_def = DataTableDef;

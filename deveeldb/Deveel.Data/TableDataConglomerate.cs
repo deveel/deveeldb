@@ -1615,7 +1615,7 @@ namespace Deveel.Data {
 				this.row_index = row;
 			}
 
-			private int findColumnName(Variable variable) {
+			private int findColumnName(VariableName variable) {
 				int col_index = table.DataTableDef.FindColumnName(
 																  variable.Name);
 				if (col_index == -1) {
@@ -1630,12 +1630,12 @@ namespace Deveel.Data {
 				get { return row_index; }
 			}
 
-			public TObject Resolve(Variable variable) {
+			public TObject Resolve(VariableName variable) {
 				int col_index = findColumnName(variable);
 				return table.GetCellContents(col_index, row_index);
 			}
 
-			public TType ReturnTType(Variable variable) {
+			public TType ReturnTType(VariableName variable) {
 				int col_index = findColumnName(variable);
 				return table.DataTableDef[col_index].TType;
 			}

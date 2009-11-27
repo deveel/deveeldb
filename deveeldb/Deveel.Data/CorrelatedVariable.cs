@@ -38,9 +38,9 @@ namespace Deveel.Data {
 	[Serializable]
 	public class CorrelatedVariable : ICloneable {
 		/// <summary>
-		/// The <see cref="Variable"/> reference itself.
+		/// The <see cref="VariableName"/> reference itself.
 		/// </summary>
-		private Variable variable;
+		private VariableName variable;
 
 		/// <summary>
 		/// The number of sub-query branches back that the reference for this
@@ -54,7 +54,7 @@ namespace Deveel.Data {
 		private TObject eval_result;
 
 
-		public CorrelatedVariable(Variable variable, int level_offset) {
+		public CorrelatedVariable(VariableName variable, int level_offset) {
 			this.variable = variable;
 			this.query_level_offset = level_offset;
 		}
@@ -62,7 +62,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Returns the wrapped Variable.
 		/// </summary>
-		public Variable Variable {
+		public VariableName VariableName {
 			get { return variable; }
 		}
 
@@ -84,7 +84,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="resolver"></param>
 		public void SetFromResolver(IVariableResolver resolver) {
-			Variable v = Variable;
+			VariableName v = VariableName;
 			EvalResult = resolver.Resolve(v);
 		}
 
@@ -106,13 +106,13 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public object Clone() {
 			CorrelatedVariable v = (CorrelatedVariable)MemberwiseClone();
-			v.variable = (Variable)variable.Clone();
+			v.variable = (VariableName)variable.Clone();
 			return v;
 		}
 
 		/// <inheritdoc/>
 		public override String ToString() {
-			return "CORRELATED: " + Variable + " = " + EvalResult;
+			return "CORRELATED: " + VariableName + " = " + EvalResult;
 		}
 
 	}

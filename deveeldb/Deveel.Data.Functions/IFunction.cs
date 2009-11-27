@@ -82,7 +82,7 @@ namespace Deveel.Data.Functions {
 		/// <param name="preparer"></param>
 		/// <remarks>
 		/// This is intended to be used if we need to resolve aspects such as 
-		/// <see cref="Variable"/> references. For example, a variable reference 
+		/// <see cref="VariableName"/> references. For example, a variable reference 
 		/// to <i>number</i> may become <i>APP.Table.NUMBER</i>.
 		/// </remarks>
 		void PrepareParameters(IExpressionPreparer preparer);

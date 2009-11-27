@@ -96,7 +96,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override int FindFieldName(Variable v) {
+		public override int FindFieldName(VariableName v) {
 			TableName table_name = v.TableName;
 			if (table_name != null && table_name.Equals(TableName)) {
 				return DataTableDef.FastFindColumnName(v.Name);
@@ -105,8 +105,8 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override Variable GetResolvedVariable(int column) {
-			return new Variable(TableName,
+		public override VariableName GetResolvedVariable(int column) {
+			return new VariableName(TableName,
 								DataTableDef[column].Name);
 		}
 

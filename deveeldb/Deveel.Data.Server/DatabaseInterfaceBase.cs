@@ -836,7 +836,7 @@ namespace Deveel.Data.Server {
 				int col_count = table.ColumnCount;
 				col_desc = new ColumnDescription[col_count];
 				for (int i = 0; i < col_count; ++i) {
-					Variable v = table.GetResolvedVariable(i);
+					VariableName v = table.GetResolvedVariable(i);
 					String field_name;
 					if (v.TableName == null) {
 						// This means the column is an alias

@@ -166,11 +166,11 @@ namespace Deveel.Data {
 				// The system grants table.
 				DataTable grant_table = connection.GetTable(Database.SysGrants);
 
-				Variable object_col = grant_table.GetResolvedVariable(1);
-				Variable param_col = grant_table.GetResolvedVariable(2);
-				Variable grantee_col = grant_table.GetResolvedVariable(3);
-				Variable grant_option_col = grant_table.GetResolvedVariable(4);
-				Variable granter_col = grant_table.GetResolvedVariable(5);
+				VariableName object_col = grant_table.GetResolvedVariable(1);
+				VariableName param_col = grant_table.GetResolvedVariable(2);
+				VariableName grantee_col = grant_table.GetResolvedVariable(3);
+				VariableName grant_option_col = grant_table.GetResolvedVariable(4);
+				VariableName granter_col = grant_table.GetResolvedVariable(5);
 				Operator EQUALS = Operator.Get("=");
 
 				Table t1 = grant_table;
@@ -388,11 +388,11 @@ namespace Deveel.Data {
 			// The system grants table.
 			DataTable grant_table = connection.GetTable(Database.SysGrants);
 
-			Variable object_col = grant_table.GetResolvedVariable(1);
-			Variable param_col = grant_table.GetResolvedVariable(2);
-			Variable grantee_col = grant_table.GetResolvedVariable(3);
-			Variable grant_option_col = grant_table.GetResolvedVariable(4);
-			Variable granter_col = grant_table.GetResolvedVariable(5);
+			VariableName object_col = grant_table.GetResolvedVariable(1);
+			VariableName param_col = grant_table.GetResolvedVariable(2);
+			VariableName grantee_col = grant_table.GetResolvedVariable(3);
+			VariableName grant_option_col = grant_table.GetResolvedVariable(4);
+			VariableName granter_col = grant_table.GetResolvedVariable(5);
 			Operator EQUALS = Operator.Get("=");
 
 			Table t1 = grant_table;
@@ -454,8 +454,8 @@ namespace Deveel.Data {
 			// The system grants table.
 			DataTable grant_table = connection.GetTable(Database.SysGrants);
 
-			Variable object_col = grant_table.GetResolvedVariable(1);
-			Variable param_col = grant_table.GetResolvedVariable(2);
+			VariableName object_col = grant_table.GetResolvedVariable(1);
+			VariableName param_col = grant_table.GetResolvedVariable(2);
 			// All that match the given object
 			Table t1 = grant_table.SimpleSelect(context, object_col,
 						   Operator.Get("="), new Expression(TObject.GetInt4((int)obj)));

@@ -231,7 +231,7 @@ namespace Deveel.Data {
 		///	    <description></description>
 		///	  </item>
 		///	  <item>
-		///	    <term><see cref="Variable"/></term>
+		///	    <term><see cref="VariableName"/></term>
 		///	    <description>A variable that can be a constant value or a 
 		///	    reference to a column in a table.</description>
 		///	  </item>
@@ -260,7 +260,7 @@ namespace Deveel.Data {
 			} else if (ob is TObject ||
 					 ob is ParameterSubstitution ||
 					 ob is CorrelatedVariable ||
-					 ob is Variable ||
+					 ob is VariableName ||
 					 ob is FunctionDef ||
 					 ob is Operator ||
 					 ob is IStatementTreeObject
@@ -356,7 +356,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a complete <see cref="IList">list</see> of <see cref="Variable"/> 
+		/// Returns a complete <see cref="IList">list</see> of <see cref="VariableName"/> 
 		/// objects in this expression not including correlated variables.
 		/// </summary>
 		public IList AllVariables {
@@ -364,7 +364,7 @@ namespace Deveel.Data {
 				ArrayList vars = new ArrayList();
 				for (int i = 0; i < elements.Count; ++i) {
 					Object ob = elements[i];
-					if (ob is Variable) {
+					if (ob is VariableName) {
 						vars.Add(ob);
 					} else if (ob is FunctionDef) {
 						Expression[] parameterss = ((FunctionDef) ob).Parameters;
@@ -491,7 +491,7 @@ namespace Deveel.Data {
 								}
 							}
 						}
-					} else if (ob is Variable) {
+					} else if (ob is VariableName) {
 						return false;
 					} else if (ob is FunctionDef) {
 						Expression[] parameterss = ((FunctionDef) ob).Parameters;
@@ -620,16 +620,16 @@ namespace Deveel.Data {
 
 
 		///<summary>
-		/// Returns the <see cref="Variable"/> if this expression evaluates to a single variable, 
+		/// Returns the <see cref="VariableName"/> if this expression evaluates to a single variable, 
 		/// otherwise returns null.
 		///</summary>
 		/// <remarks>
 		/// A correlated variable will not be returned.
 		/// </remarks>
-		public Variable Variable {
+		public VariableName VariableName {
 			get {
 				object ob = this[0];
-				return Count == 1 && ob is Variable ? (Variable) ob : null;
+				return Count == 1 && ob is VariableName ? (VariableName) ob : null;
 			}
 		}
 
@@ -838,8 +838,8 @@ namespace Deveel.Data {
 			if (ob is TObject ||
 				ob is Operator) {
 				return ob;
-			} else if (ob is Variable) {
-				return resolver.Resolve((Variable)ob);
+			} else if (ob is VariableName) {
+				return resolver.Resolve((VariableName)ob);
 			} else if (ob is CorrelatedVariable) {
 				return ((CorrelatedVariable)ob).EvalResult;
 			} else if (ob is FunctionDef) {
@@ -890,7 +890,7 @@ namespace Deveel.Data {
 		/// We determine the returned value of the expression by looking at the 
 		/// last element of the expression. If the last element is a <see cref="TType"/> 
 		/// object, it returns the type. If the last element is a <see cref="IFunction"/>, 
-		/// <see cref="Operator"/> or <see cref="Variable"/> then it returns 
+		/// <see cref="Operator"/> or <see cref="VariableName"/> then it returns 
 		/// the type that these objects have set as their result type.
 		/// </remarks>
 		public TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -905,8 +905,8 @@ namespace Deveel.Data {
 				Operator op = (Operator)ob;
 				return op.ReturnTType;
 			} 
-			if (ob is Variable) {
-				Variable variable = (Variable)ob;
+			if (ob is VariableName) {
+				VariableName variable = (VariableName)ob;
 				return resolver.ReturnTType(variable);
 			} 
 			if (ob is CorrelatedVariable) {
@@ -961,8 +961,8 @@ namespace Deveel.Data {
 					// immutable so we do not need to clone these
 				} else if (element is CorrelatedVariable) {
 					element = ((CorrelatedVariable)element).Clone();
-				} else if (element is Variable) {
-					element = ((Variable)element).Clone();
+				} else if (element is VariableName) {
+					element = ((VariableName)element).Clone();
 				} else if (element is FunctionDef) {
 					element = ((FunctionDef)element).Clone();
 				} else if (element is IStatementTreeObject) {

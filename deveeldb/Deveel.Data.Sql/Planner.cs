@@ -117,7 +117,7 @@ namespace Deveel.Data.Sql {
 					// aggregate list.
 					aggregate_list.Add(having_expr);
 					// And substitute it with a variable reference.
-					Variable v = Variable.Resolve("FUNCTIONTABLE.HAVINGAG_" +
+					VariableName v = VariableName.Resolve("FUNCTIONTABLE.HAVINGAG_" +
 												  aggregate_list.Count);
 					return new Expression(v);
 				} else {
@@ -229,15 +229,15 @@ namespace Deveel.Data.Sql {
 					// If this column is aliased, add it as a function reference to the
 					// TableExpressionFromSet.
 					String alias = col.Alias;
-					Variable v = col.Expression.Variable;
+					VariableName v = col.Expression.VariableName;
 					bool alias_match_v =
 							   (v != null && alias != null &&
 								from_set.StringCompare(v.Name, alias));
 					if (alias != null && !alias_match_v) {
 						from_set.AddFunctionRef(alias, col.Expression);
-						from_set.ExposeVariable(new Variable(alias));
+						from_set.ExposeVariable(new VariableName(alias));
 					} else if (v != null) {
-						Variable resolved = from_set.ResolveReference(v);
+						VariableName resolved = from_set.ResolveReference(v);
 						if (resolved == null) {
 							from_set.ExposeVariable(v);
 						} else {
@@ -246,7 +246,7 @@ namespace Deveel.Data.Sql {
 					} else {
 						String fun_name = col.Expression.Text.ToString();
 						from_set.AddFunctionRef(fun_name, col.Expression);
-						from_set.ExposeVariable(new Variable(fun_name));
+						from_set.ExposeVariable(new VariableName(fun_name));
 					}
 				}
 
@@ -456,14 +456,14 @@ namespace Deveel.Data.Sql {
 			// Resolve the GROUP BY variable list references in this from set
 			IList group_list_in = expression.GroupBy;
 			int gsz = group_list_in.Count;
-			Variable[] group_by_list = new Variable[gsz];
+			VariableName[] group_by_list = new VariableName[gsz];
 			for (int i = 0; i < gsz; ++i) {
 				ByColumn by_column = (ByColumn)group_list_in[i];
 				Expression exp = by_column.Expression;
 				// Prepare the group by expression
 				exp.Prepare(from_set.ExpressionQualifier);
 				// Is the group by variable a complex expression?
-				Variable v = exp.Variable;
+				VariableName v = exp.VariableName;
 
 				Expression group_by_expression;
 				if (v == null) {
@@ -482,16 +482,16 @@ namespace Deveel.Data.Sql {
 					// Complex expression so add this to the function list.
 					int group_by_fun_num = group_by_functions.Count;
 					group_by_functions.Add(group_by_expression);
-					v = new Variable(GROUP_BY_FUNCTION_TABLE,
+					v = new VariableName(GROUP_BY_FUNCTION_TABLE,
 									 "#GROUPBY-" + group_by_fun_num);
 				}
 				group_by_list[i] = v;
 			}
 
 			// Resolve GROUP MAX variable to a reference in this from set
-			Variable groupmax_column = expression.GroupMax;
+			VariableName groupmax_column = expression.GroupMax;
 			if (groupmax_column != null) {
-				Variable v = from_set.ResolveReference(groupmax_column);
+				VariableName v = from_set.ResolveReference(groupmax_column);
 				if (v == null) {
 					throw new StatementException("Could find GROUP MAX reference '" +
 												 groupmax_column + "'");
@@ -516,14 +516,14 @@ namespace Deveel.Data.Sql {
 				int sz1 = s_col_list1.Count;
 				String[] col_names = new String[sz1];
 				Expression[] exp_list = new Expression[sz1];
-				Variable[] subset_vars = new Variable[sz1];
-				Variable[] aliases1 = new Variable[sz1];
+				VariableName[] subset_vars = new VariableName[sz1];
+				VariableName[] aliases1 = new VariableName[sz1];
 				for (int i = 0; i < sz1; ++i) {
 					SelectColumn scol = (SelectColumn)s_col_list1[i];
 					exp_list[i] = scol.Expression;
 					col_names[i] = scol.internal_name.Name;
-					subset_vars[i] = new Variable(scol.internal_name);
-					aliases1[i] = new Variable(scol.resolved_name);
+					subset_vars[i] = new VariableName(scol.internal_name);
+					aliases1[i] = new VariableName(scol.resolved_name);
 				}
 
 				return new QueryPlan.SubsetNode(
@@ -628,15 +628,15 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Do we do a final subset column?
-			Variable[] aliases = null;
+			VariableName[] aliases = null;
 			if (do_subset_column) {
 				// Make up the lists
-				Variable[] subset_vars = new Variable[sz];
-				aliases = new Variable[sz];
+				VariableName[] subset_vars = new VariableName[sz];
+				aliases = new VariableName[sz];
 				for (int i = 0; i < sz; ++i) {
 					SelectColumn scol = (SelectColumn)s_col_list[i];
-					subset_vars[i] = new Variable(scol.internal_name);
-					aliases[i] = new Variable(scol.resolved_name);
+					subset_vars[i] = new VariableName(scol.internal_name);
+					aliases[i] = new VariableName(scol.resolved_name);
 				}
 
 				// If we are distinct then add the DistinctNode here
@@ -702,7 +702,7 @@ namespace Deveel.Data.Sql {
 			// Sort on the ORDER BY clause
 			if (order_by.Count > 0) {
 				int sz = order_by.Count;
-				Variable[] order_list = new Variable[sz];
+				VariableName[] order_list = new VariableName[sz];
 				bool[] ascending_list = new bool[sz];
 
 				ArrayList function_orders = new ArrayList();
@@ -711,9 +711,9 @@ namespace Deveel.Data.Sql {
 					ByColumn column = (ByColumn)order_by[i];
 					Expression exp = column.Expression;
 					ascending_list[i] = column.Ascending;
-					Variable v = exp.Variable;
+					VariableName v = exp.VariableName;
 					if (v != null) {
-						Variable new_v = from_set.ResolveReference(v);
+						VariableName new_v = from_set.ResolveReference(v);
 						if (new_v == null) {
 							throw new StatementException(
 												   "Can not resolve ORDER BY variable: " + v);
@@ -735,7 +735,7 @@ namespace Deveel.Data.Sql {
 						// The new ordering functions are called 'FUNCTIONTABLE.#ORDER-n'
 						// where n is the number of the ordering expression.
 						order_list[i] =
-							new Variable(FUNCTION_TABLE, "#ORDER-" + function_orders.Count);
+							new VariableName(FUNCTION_TABLE, "#ORDER-" + function_orders.Count);
 						function_orders.Add(exp);
 					}
 
@@ -761,7 +761,7 @@ namespace Deveel.Data.Sql {
 						//   information from it to create a new SubsetNode that
 						//   doesn't include the functional orders we have attached here.
 						QueryPlan.SubsetNode top_subset_node = (QueryPlan.SubsetNode)plan;
-						Variable[] mapped_names = top_subset_node.NewColumnNames;
+						VariableName[] mapped_names = top_subset_node.NewColumnNames;
 
 						// Defines the sort functions
 						plan = new QueryPlan.CreateFunctionsNode(plan, funs, fnames);
@@ -802,12 +802,12 @@ namespace Deveel.Data.Sql {
 									 Expression expression, ArrayList s_col_list) {
 			IList all_vars = expression.AllVariables;
 			for (int i = 0; i < all_vars.Count; ++i) {
-				Variable v = (Variable)all_vars[i];
+				VariableName v = (VariableName)all_vars[i];
 				SubstituteAliasedVariable(v, s_col_list);
 			}
 		}
 
-		private static void SubstituteAliasedVariable(Variable v,
+		private static void SubstituteAliasedVariable(VariableName v,
 													  ArrayList s_col_list) {
 			if (s_col_list != null) {
 				int sz = s_col_list.Count;
@@ -889,11 +889,11 @@ namespace Deveel.Data.Sql {
 			/// <param name="table"></param>
 			void AddAllFromTable(IFromTableSource table) {
 				// Select all the tables
-				Variable[] vars = table.AllColumns;
+				VariableName[] vars = table.AllColumns;
 				int s_col_list_max = s_col_list.Count;
 				for (int i = 0; i < vars.Length; ++i) {
 					// The Variable
-					Variable v = vars[i];
+					VariableName v = vars[i];
 
 					// Make up the SelectColumn
 					SelectColumn ncol = new SelectColumn();
@@ -956,13 +956,13 @@ namespace Deveel.Data.Sql {
 			/// Returns an absolute Variable object that can be used to 
 			/// reference this hidden column.
 			/// </returns>
-			internal Variable AddHiddenFunction(String fun_alias, Expression function,
+			internal VariableName AddHiddenFunction(String fun_alias, Expression function,
 									   IQueryContext context) {
 				SelectColumn scol = new SelectColumn();
-				scol.resolved_name = new Variable(fun_alias);
+				scol.resolved_name = new VariableName(fun_alias);
 				scol.SetAlias(fun_alias);
 				scol.SetExpression(function);
-				scol.internal_name = new Variable(FUNCTION_TABLE_NAME, fun_alias);
+				scol.internal_name = new VariableName(FUNCTION_TABLE_NAME, fun_alias);
 
 				// If this is an aggregate column then add to aggregate count.
 				if (function.HasAggregateFunction(context)) {
@@ -1001,7 +1001,7 @@ namespace Deveel.Data.Sql {
 
 				// If the expression isn't a simple variable, then add to
 				// function list.
-				Variable v = col.Expression.Variable;
+				VariableName v = col.Expression.VariableName;
 				if (v == null) {
 					// This means we have a complex expression.
 
@@ -1024,11 +1024,11 @@ namespace Deveel.Data.Sql {
 					}
 					function_col_list.Add(col);
 
-					col.internal_name = new Variable(FUNCTION_TABLE_NAME, agg_str);
+					col.internal_name = new VariableName(FUNCTION_TABLE_NAME, agg_str);
 					if (col.Alias == null) {
 						col.SetAlias(col.Expression.Text.ToString());
 					}
-					col.resolved_name = new Variable(col.Alias);
+					col.resolved_name = new VariableName(col.Alias);
 
 				} else {
 					// Not a complex expression
@@ -1036,7 +1036,7 @@ namespace Deveel.Data.Sql {
 					if (col.Alias == null) {
 						col.resolved_name = v;
 					} else {
-						col.resolved_name = new Variable(col.Alias);
+						col.resolved_name = new VariableName(col.Alias);
 					}
 				}
 
@@ -1107,7 +1107,7 @@ namespace Deveel.Data.Sql {
 			/// <param name="from_def">The <see cref="IFromTableSource"/> that describes the source 
 			/// created by the plan.</param>
 			public void AddTableSource(IQueryPlanNode plan, IFromTableSource from_def) {
-				Variable[] all_cols = from_def.AllColumns;
+				VariableName[] all_cols = from_def.AllColumns;
 				String[] unique_names = new String[] { from_def.UniqueName };
 				AddPlanTableSource(new PlanTableSource(plan, all_cols, unique_names));
 			}
@@ -1159,7 +1159,7 @@ namespace Deveel.Data.Sql {
 			/// <returns></returns>
 			public static PlanTableSource ConcatTableSources(PlanTableSource left, PlanTableSource right, IQueryPlanNode plan) {
 				// Merge the variable list
-				Variable[] new_var_list = new Variable[left.var_list.Length +
+				VariableName[] new_var_list = new VariableName[left.var_list.Length +
 													   right.var_list.Length];
 				int i = 0;
 				for (int n = 0; n < left.var_list.Length; ++n) {
@@ -1210,11 +1210,11 @@ namespace Deveel.Data.Sql {
 
 			/// <summary>
 			/// Finds and returns the PlanTableSource in the list of tables that
-			/// contains the given <see cref="Variable"/> reference.
+			/// contains the given <see cref="VariableName"/> reference.
 			/// </summary>
 			/// <param name="reference"></param>
 			/// <returns></returns>
-			public PlanTableSource FindTableSource(Variable reference) {
+			public PlanTableSource FindTableSource(VariableName reference) {
 				int sz = table_list.Count;
 
 				// If there is only 1 plan then assume the variable is in there.
@@ -1245,11 +1245,11 @@ namespace Deveel.Data.Sql {
 					return null;
 				}
 
-				PlanTableSource plan = FindTableSource((Variable)var_list[0]);
+				PlanTableSource plan = FindTableSource((VariableName)var_list[0]);
 				int i = 1;
 				int sz = var_list.Count;
 				while (i < sz) {
-					PlanTableSource p2 = FindTableSource((Variable)var_list[i]);
+					PlanTableSource p2 = FindTableSource((VariableName)var_list[i]);
 					if (plan != p2) {
 						return null;
 					}
@@ -1335,7 +1335,7 @@ namespace Deveel.Data.Sql {
 				ArrayList touched_plans = new ArrayList();
 				int sz = all_vars.Count;
 				for (int i = 0; i < sz; ++i) {
-					Variable v = (Variable)all_vars[i];
+					VariableName v = (VariableName)all_vars[i];
 					PlanTableSource plan = FindTableSource(v);
 					if (!touched_plans.Contains(plan)) {
 						touched_plans.Add(plan);
@@ -1605,8 +1605,8 @@ namespace Deveel.Data.Sql {
 			/// </summary>
 			private sealed class SingleVarPlan {
 				internal PlanTableSource table_source;
-				internal Variable single_var;
-				internal Variable variable;
+				internal VariableName single_var;
+				internal VariableName variable;
 				internal Expression expression;
 			}
 
@@ -1619,7 +1619,7 @@ namespace Deveel.Data.Sql {
 			/// <param name="single_var"></param>
 			/// <param name="exp_parts"></param>
 			/// <param name="op"></param>
-			private static void AddSingleVarPlanTo(ArrayList list, PlanTableSource table, Variable variable, Variable single_var, Expression[] exp_parts, Operator op) {
+			private static void AddSingleVarPlanTo(ArrayList list, PlanTableSource table, VariableName variable, VariableName single_var, Expression[] exp_parts, Operator op) {
 				Expression exp = new Expression(exp_parts[0], op, exp_parts[1]);
 				// Is this source in the list already?
 				int sz = list.Count;
@@ -1668,11 +1668,11 @@ namespace Deveel.Data.Sql {
 
 			private class SimpleSelectExpressionPlan : ExpressionPlan {
 				private readonly QueryTableSetPlanner qtsp;
-				private readonly Variable single_var;
+				private readonly VariableName single_var;
 				private readonly Operator op;
 				private readonly Expression expression;
 
-				public SimpleSelectExpressionPlan(QueryTableSetPlanner qtsp, Variable v, Operator op,
+				public SimpleSelectExpressionPlan(QueryTableSetPlanner qtsp, VariableName v, Operator op,
 												  Expression e) {
 					this.qtsp = qtsp;
 					single_var = v;
@@ -1689,9 +1689,9 @@ namespace Deveel.Data.Sql {
 
 			private class SimpleSingleExpressionPlan : ExpressionPlan {
 				private readonly QueryTableSetPlanner qtsp;
-				private readonly Variable single_var;
+				private readonly VariableName single_var;
 				private readonly Expression expression;
-				public SimpleSingleExpressionPlan(QueryTableSetPlanner qtsp, Variable v, Expression e) {
+				public SimpleSingleExpressionPlan(QueryTableSetPlanner qtsp, VariableName v, Expression e) {
 					this.qtsp = qtsp;
 					single_var = v;
 					expression = e;
@@ -1706,9 +1706,9 @@ namespace Deveel.Data.Sql {
 
 			private class ComplexSingleExpressionPlan : ExpressionPlan {
 				private readonly QueryTableSetPlanner qtsp;
-				private readonly Variable single_var;
+				private readonly VariableName single_var;
 				private readonly Expression expression;
-				public ComplexSingleExpressionPlan(QueryTableSetPlanner qtsp, Variable v, Expression e) {
+				public ComplexSingleExpressionPlan(QueryTableSetPlanner qtsp, VariableName v, Expression e) {
 					this.qtsp = qtsp;
 					single_var = v;
 					expression = e;
@@ -1723,9 +1723,9 @@ namespace Deveel.Data.Sql {
 
 			private class SimplePatternExpressionPlan : ExpressionPlan {
 				private QueryTableSetPlanner qtsp;
-				private Variable single_var;
+				private VariableName single_var;
 				private Expression expression;
-				public SimplePatternExpressionPlan(QueryTableSetPlanner qtsp, Variable v, Expression e) {
+				public SimplePatternExpressionPlan(QueryTableSetPlanner qtsp, VariableName v, Expression e) {
 					this.qtsp = qtsp;
 					single_var = v;
 					expression = e;
@@ -1784,7 +1784,7 @@ namespace Deveel.Data.Sql {
 				public override void AddToPlanTree() {
 					Operator op = (Operator)expression.Last;
 					Expression[] exps = expression.Split();
-					Variable left_var = exps[0].Variable;
+					VariableName left_var = exps[0].VariableName;
 					IQueryPlanNode right_plan = exps[1].QueryPlanNode;
 
 					// Find the table source for this variable
@@ -1794,7 +1794,7 @@ namespace Deveel.Data.Sql {
 					// Update the plan
 					table_source.UpdatePlan(
 						 new QueryPlan.NonCorrelatedAnyAllNode(
-							   left_plan, right_plan, new Variable[] { left_var }, op));
+							   left_plan, right_plan, new VariableName[] { left_var }, op));
 				}
 			}
 
@@ -1828,8 +1828,8 @@ namespace Deveel.Data.Sql {
 					Expression[] exps = expression.Split();
 
 					// Get the list of variables in the left hand and right hand side
-					Variable lhs_v = exps[0].Variable;
-					Variable rhs_v = exps[1].Variable;
+					VariableName lhs_v = exps[0].VariableName;
+					VariableName rhs_v = exps[1].VariableName;
 					IList lhs_vars = exps[0].AllVariables;
 					IList rhs_vars = exps[1].AllVariables;
 
@@ -1947,19 +1947,19 @@ namespace Deveel.Data.Sql {
 					// Split the expression
 					Expression[] exps = andexp.Split();
 					// The single var
-					Variable single_var;
+					VariableName single_var;
 
 					// If the operator is a sub-command we must be of the form,
 					// 'a in ( 1, 2, 3 )'
 					if (op.IsSubQuery) {
-						single_var = exps[0].Variable;
+						single_var = exps[0].VariableName;
 						if (single_var != null) {
 							ExpressionPlan exp_plan = new SimpleSelectExpressionPlan(this,
 																	 single_var, op, exps[1]);
 							exp_plan.OptimizableValue = 0.2f;
 							evaluate_order.Add(exp_plan);
 						} else {
-							single_var = (Variable)exps[0].AllVariables[0];
+							single_var = (VariableName)exps[0].AllVariables[0];
 							ExpressionPlan exp_plan = new ComplexSingleExpressionPlan(this,
 																		single_var, andexp);
 							exp_plan.OptimizableValue = 0.8f;
@@ -1974,14 +1974,14 @@ namespace Deveel.Data.Sql {
 							exps[0] = exps[1];
 							exps[1] = temp_exp;
 							op = op.Reverse();
-							single_var = (Variable)exps[0].AllVariables[0];
+							single_var = (VariableName)exps[0].AllVariables[0];
 						} else {
-							single_var = (Variable)all_vars[0];
+							single_var = (VariableName)all_vars[0];
 						}
 						// The table source
 						PlanTableSource table_source = FindTableSource(single_var);
 						// Simple LHS?
-						Variable v = exps[0].Variable;
+						VariableName v = exps[0].VariableName;
 						if (v != null) {
 							AddSingleVarPlanTo(simple_plan_list, table_source, v,
 											   single_var, exps, op);
@@ -2035,7 +2035,7 @@ namespace Deveel.Data.Sql {
 					Expression[] exps = expr.Split();
 					// If the LHS is a single variable and the RHS is a constant then
 					// the conditions are right for a simple pattern search.
-					Variable lhs_v = exps[0].Variable;
+					VariableName lhs_v = exps[0].VariableName;
 					if (expr.IsConstant) {
 						ExpressionPlan expr_plan = new ConstantExpressionPlan(this, expr);
 						expr_plan.OptimizableValue = 0f;
@@ -2077,7 +2077,7 @@ namespace Deveel.Data.Sql {
 					Expression andexp = (Expression)expressions[i];
 
 					bool is_exhaustive;
-					Variable left_var = null;
+					VariableName left_var = null;
 					IQueryPlanNode right_plan = null;
 
 					// Is this an easy sub-command?
@@ -2086,7 +2086,7 @@ namespace Deveel.Data.Sql {
 						// Split the expression.
 						Expression[] exps = andexp.Split();
 						// Check that the left is a simple enough variable reference
-						left_var = exps[0].Variable;
+						left_var = exps[0].VariableName;
 						if (left_var != null) {
 							// Check that the right is a sub-command plan.
 							right_plan = exps[1].QueryPlanNode;
@@ -2137,7 +2137,7 @@ namespace Deveel.Data.Sql {
 							for (int n = 0; n < sz; ++n) {
 								CorrelatedVariable cv =
 													(CorrelatedVariable)all_correlated[n];
-								all_vars.Add(cv.Variable);
+								all_vars.Add(cv.VariableName);
 							}
 
 							// An exhaustive expression plan which might require a join or a
@@ -2192,8 +2192,8 @@ namespace Deveel.Data.Sql {
 					Expression[] exps = expr.Split();
 
 					// Get the list of variables in the left hand and right hand side
-					Variable lhs_v = exps[0].Variable;
-					Variable rhs_v = exps[1].Variable;
+					VariableName lhs_v = exps[0].VariableName;
+					VariableName rhs_v = exps[1].VariableName;
 
 					// Work out how optimizable the join is.
 					// The calculation is as follows;
@@ -2667,7 +2667,7 @@ namespace Deveel.Data.Sql {
 			/// The list of fully qualified Variable objects that are accessable 
 			/// within this plan.
 			/// </summary>
-			internal readonly Variable[] var_list;
+			internal readonly VariableName[] var_list;
 
 			/// <summary>
 			/// The list of unique key names of the tables in this plan.
@@ -2691,7 +2691,7 @@ namespace Deveel.Data.Sql {
 			internal Expression right_on_expr;
 
 
-			public PlanTableSource(IQueryPlanNode plan, Variable[] var_list,
+			public PlanTableSource(IQueryPlanNode plan, VariableName[] var_list,
 								   String[] table_unique_names) {
 				this.plan = plan;
 				this.var_list = var_list;
@@ -2771,7 +2771,7 @@ namespace Deveel.Data.Sql {
 			/// </summary>
 			/// <param name="v"></param>
 			/// <returns></returns>
-			public bool ContainsVariable(Variable v) {
+			public bool ContainsVariable(VariableName v) {
 				//      Console.Out.WriteLine("Looking for: " + v);
 				for (int i = 0; i < var_list.Length; ++i) {
 					//        Console.Out.WriteLine(var_list[i]);

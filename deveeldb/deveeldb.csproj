@@ -102,6 +102,7 @@
     <Compile Include="Deveel.Data.Sql\CreateFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DeclareCursorStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DeclareVariableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql\FetchOrientation.cs" />
@@ -391,7 +392,7 @@
     <Compile Include="Deveel.Data\UserAccessException.cs" />
     <Compile Include="Deveel.Data\UserManager.cs" />
     <Compile Include="Deveel.Data\V2MasterTableDataSource.cs" />
-    <Compile Include="Deveel.Data\Variable.cs" />
+    <Compile Include="Deveel.Data\VariableName.cs" />
     <Compile Include="Deveel.Data\IVariableResolver.cs" />
     <Compile Include="Deveel.Data\ViewDef.cs" />
     <Compile Include="Deveel.Data\ViewManager.cs" />

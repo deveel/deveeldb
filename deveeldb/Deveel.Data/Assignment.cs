@@ -42,9 +42,9 @@ namespace Deveel.Data {
 	[Serializable]
 	public sealed class Assignment : IStatementTreeObject {
 		/// <summary>
-		/// The <see cref="Data.Variable"/> that is the lhs of the assignment.
+		/// The <see cref="VariableName"/> that is the lhs of the assignment.
 		/// </summary>
-		private Variable variable;
+		private VariableName variable;
 
 		/// <summary>
 		/// Set expression that is the rhs of the assignment.
@@ -57,7 +57,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="variable"></param>
 		/// <param name="expression"></param>
-		public Assignment(Variable variable, Expression expression) {
+		public Assignment(VariableName variable, Expression expression) {
 			this.variable = variable;
 			this.expression = expression;
 		}
@@ -65,7 +65,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Returns the variable for this assignment.
 		/// </summary>
-		public Variable Variable {
+		public VariableName VariableName {
 			get { return variable; }
 		}
 
@@ -85,7 +85,7 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public object Clone() {
 			Assignment v = (Assignment)MemberwiseClone();
-			v.variable = (Variable)variable.Clone();
+			v.variable = (VariableName)variable.Clone();
 			v.expression = (Expression)expression.Clone();
 			return v;
 		}
