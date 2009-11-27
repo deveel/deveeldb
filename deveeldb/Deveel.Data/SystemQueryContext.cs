@@ -99,5 +99,13 @@ namespace Deveel.Data {
 		public override string UserName {
 			get { return "@SYSTEM"; }
 		}
+
+		public override Variable GetVariable(string name) {
+			return transaction.Variables.GetVariable(name);
+		}
+
+		public override void SetVariable(string name, Expression value) {
+			transaction.Variables.SetVariable(name, value, this);
+		}
 	}
 }

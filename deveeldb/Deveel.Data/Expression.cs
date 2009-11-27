@@ -258,17 +258,18 @@ namespace Deveel.Data {
 			if (ob == null) {
 				elements.Add(TObject.Null);
 			} else if (ob is TObject ||
-					 ob is ParameterSubstitution ||
-					 ob is CorrelatedVariable ||
-					 ob is VariableName ||
-					 ob is FunctionDef ||
-					 ob is Operator ||
-					 ob is IStatementTreeObject
+			           ob is ParameterSubstitution ||
+			           ob is VariableRef ||
+			           ob is CorrelatedVariable ||
+			           ob is VariableName ||
+			           ob is FunctionDef ||
+			           ob is Operator ||
+			           ob is IStatementTreeObject
 				) {
 				elements.Add(ob);
 			} else {
 				throw new ApplicationException("Unknown element type added to expression: " +
-								ob.GetType());
+				                               ob.GetType());
 			}
 		}
 
@@ -836,15 +837,19 @@ namespace Deveel.Data {
 		private Object ElementToObject(int n, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 			Object ob = elements[n];
 			if (ob is TObject ||
-				ob is Operator) {
+			    ob is Operator) {
 				return ob;
 			} else if (ob is VariableName) {
-				return resolver.Resolve((VariableName)ob);
+				return resolver.Resolve((VariableName) ob);
 			} else if (ob is CorrelatedVariable) {
-				return ((CorrelatedVariable)ob).EvalResult;
+				return ((CorrelatedVariable) ob).EvalResult;
 			} else if (ob is FunctionDef) {
-				IFunction fun = ((FunctionDef)ob).GetFunction(context);
+				IFunction fun = ((FunctionDef) ob).GetFunction(context);
 				return fun.Evaluate(group, resolver, context);
+			} else if (ob is VariableRef) {
+				VariableRef variableRef = (VariableRef) ob;
+				Variable variable = context.GetVariable(variableRef.Variable);
+				return (variable == null ? TObject.Null : variable.Value);
 			} else {
 				if (ob == null) {
 					throw new NullReferenceException("Null element in expression");
@@ -912,7 +917,13 @@ namespace Deveel.Data {
 			if (ob is CorrelatedVariable) {
 				CorrelatedVariable variable = (CorrelatedVariable)ob;
 				return variable.ReturnTType;
-			} 
+			}
+			if (ob is VariableRef) {
+				VariableRef variableRef = (VariableRef) ob;
+				Variable variable = context.GetVariable(variableRef.Variable);
+				if (variable != null)
+					return variable.Type;
+			}
 			
 			throw new ApplicationException("Unable to determine type for expression.");
 		}
@@ -926,7 +937,7 @@ namespace Deveel.Data {
 		/// </returns>
 		public object Clone() {
 			// Shallow clone
-			Expression v = (Expression)MemberwiseClone();
+			Expression v = (Expression) MemberwiseClone();
 			v.eval_stack = null;
 			//    v.text = new StringBuffer(new String(text));
 			int size = elements.Count;
@@ -939,34 +950,35 @@ namespace Deveel.Data {
 
 				if (element is TObject) {
 					// TObject is immutable except for TArrayType and TQueryPlanType
-					TObject tob = (TObject)element;
+					TObject tob = (TObject) element;
 					TType ttype = tob.TType;
 					// For a query plan
 					if (ttype is TQueryPlanType) {
-						IQueryPlanNode node = (IQueryPlanNode)tob.Object;
-						node = (IQueryPlanNode)node.Clone();
+						IQueryPlanNode node = (IQueryPlanNode) tob.Object;
+						node = (IQueryPlanNode) node.Clone();
 						element = new TObject(ttype, node);
 					}
 						// For an array
 					else if (ttype is TArrayType) {
-						Expression[] arr = (Expression[])tob.Object;
-						arr = (Expression[])arr.Clone();
+						Expression[] arr = (Expression[]) tob.Object;
+						arr = (Expression[]) arr.Clone();
 						for (int n = 0; n < arr.Length; ++n) {
-							arr[n] = (Expression)arr[n].Clone();
+							arr[n] = (Expression) arr[n].Clone();
 						}
 						element = new TObject(ttype, arr);
 					}
 				} else if (element is Operator ||
-						 element is ParameterSubstitution) {
+				           element is ParameterSubstitution ||
+				           element is VariableRef) {
 					// immutable so we do not need to clone these
 				} else if (element is CorrelatedVariable) {
-					element = ((CorrelatedVariable)element).Clone();
+					element = ((CorrelatedVariable) element).Clone();
 				} else if (element is VariableName) {
-					element = ((VariableName)element).Clone();
+					element = ((VariableName) element).Clone();
 				} else if (element is FunctionDef) {
-					element = ((FunctionDef)element).Clone();
+					element = ((FunctionDef) element).Clone();
 				} else if (element is IStatementTreeObject) {
-					element = ((IStatementTreeObject)element).Clone();
+					element = ((IStatementTreeObject) element).Clone();
 				} else {
 					throw new ApplicationException(element.GetType().ToString());
 				}

@@ -71,7 +71,7 @@ namespace Deveel.Data.Sql {
 			String com = type.ToLower();
 
 			if (com.Equals("varset")) {
-				Connection.SetVariable(var_name, exp);
+				Connection.SetVariable(var_name, exp, context);
 			} else if (com.Equals("isolationset")) {
 				Connection.TransactionIsolation = (IsolationLevel) Enum.Parse(typeof(IsolationLevel), value, true);
 			} else if (com.Equals("autocommit")) {

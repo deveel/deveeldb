@@ -1,7 +1,38 @@
+2009-11-27  Antonello Provenzano  <antonello@deveel.com>
+	* Variable.cs: renamed to VariableName to support the
+	definition of a more complex variable set system
+	* Variable.cs: implemented to support the definition
+	of varibales, with types and names set
+	* DatabaseConnection.cs: added support for handling
+	session variables:
+		- 'GetVariable' method renamed to 'GetPersistentVariable'
+		- 'SetVariable' method renamed to 'SetPersistentVariable'
+		- implemented method 'GetVariable' to return session
+		variables
+		- modified the implementation of the method	'SetVariable'
+	* SimpleTransaction.cs: implemented variable handling mechanism
+	* Database.cs: generated table sUSRConnectionVariables
+	granted
+	* Expression.cs: resolves variable references
+	* IQueryContext.cs: added method GetVariable
+	
 2009-11-25  Antonello Provenzano  <antonello@deveel.com>
 	* Transaction.cs: added support for cursors
 	* DatabaseConnection.cs: implemented methods to callback
 	to the transaction instance for cursor management
+	* IStoreSystem.cs: moved to Deveel.Data.Store namespace
+	for coherency
+	* V1FileStoreSystem.cs: moved to Deveel.Data.Store 
+	namespace for coherency
+	* V1HeapStoreSystem.cs: moved to Deveel.Data.Store namespace
+	for coherency
+	* TransactionSystem.cs: 
+		- added support for the specification of external 
+		implementations of IStoreSystem
+		- V1FileStoreSystem initialization moved from the
+		TransactionSystem.Init method to the V1FileStoreSystem.Init
+		method.
+		- LoggingBufferManager reference moved to V1FileStoreSystem
 	
 2009-11-23  Antonello Provenzano  <antonello@deveel.com>
 	* Operator.cs: 

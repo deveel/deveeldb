@@ -110,5 +110,13 @@ namespace Deveel.Data {
 		public override string UserName {
 			get { return database.User.UserName; }
 		}
+
+		public override Variable GetVariable(string name) {
+			return database.GetVariable(name);
+		}
+
+		public override void SetVariable(string name, Expression value) {
+			database.SetVariable(name, value, this);
+		}
 	}
 }

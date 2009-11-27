@@ -2228,7 +2228,6 @@ namespace Deveel.Data {
 		///	</para>
 		/// </remarks>
 		public void Commit() {
-
 			if (!closed) {
 				try {
 					closed = true;
@@ -2254,7 +2253,6 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		public void Rollback() {
-
 			if (!closed) {
 				try {
 					closed = true;
@@ -2293,6 +2291,8 @@ namespace Deveel.Data {
 
 			// Dispose all the cursors in the transaction
 			ClearCursors();
+
+			Variables.Clear();
 		}
 
 		/**
@@ -2382,10 +2382,11 @@ namespace Deveel.Data {
 		private readonly static DataTableDef[] INTERNAL_DEF_LIST;
 
 		static Transaction() {
-			INTERNAL_DEF_LIST = new DataTableDef[3];
+			INTERNAL_DEF_LIST = new DataTableDef[4];
 			INTERNAL_DEF_LIST[0] = GTTableColumnsDataSource.DEF_DATA_TABLE_DEF;
 			INTERNAL_DEF_LIST[1] = GTTableInfoDataSource.DEF_DATA_TABLE_DEF;
 			INTERNAL_DEF_LIST[2] = GTProductDataSource.DEF_DATA_TABLE_DEF;
+			INTERNAL_DEF_LIST[3] = GTVariablesDataSource.DEF_DATA_TABLE_DEF;
 		}
 
 		/// <summary>
@@ -2411,7 +2412,9 @@ namespace Deveel.Data {
 				if (index == 1)
 					return new GTTableInfoDataSource(transaction).Init();
 				if (index == 2)
-					return new GTProductDataSource(transaction).Init();				
+					return new GTProductDataSource(transaction).Init();
+				if (index == 3)
+					return new GTVariablesDataSource(transaction).Init();
 				
 				throw new Exception();
 			}

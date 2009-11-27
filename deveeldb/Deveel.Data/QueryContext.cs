@@ -86,5 +86,13 @@ namespace Deveel.Data {
 			if (marked_tables != null)
 				marked_tables.Clear();
 		}
+
+		public virtual Variable GetVariable(string name) {
+			return null;
+		}
+
+		public virtual void SetVariable(string name, Expression value) {
+			// nothing to do by default...
+		}
 	}
 }

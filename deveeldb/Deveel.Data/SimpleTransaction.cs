@@ -87,6 +87,8 @@ namespace Deveel.Data {
 		/// </summary>
 		private bool read_only;
 
+		private VariablesManager variables;
+
 
 		/**
 		 * Constructs the AbstractTransaction.  SequenceManager may be null in which
@@ -101,6 +103,8 @@ namespace Deveel.Data {
 			sequence_value_cache = new Hashtable();
 
 			this.sequence_manager = sequence_manager;
+
+			variables = new VariablesManager();
 
 			this.read_only = false;
 		}
@@ -125,6 +129,10 @@ namespace Deveel.Data {
 		/// </remarks>
 		public virtual bool IsReadOnly {
 			get { return read_only; }
+		}
+
+		internal VariablesManager Variables {
+			get { return variables; }
 		}
 
 		/// <summary>

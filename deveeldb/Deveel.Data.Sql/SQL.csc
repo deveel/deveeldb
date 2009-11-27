@@ -60,7 +60,10 @@ internal class SQL {
 		}
 		return ps;
 	}
-  
+
+	private VariableRef CreateVariableRef(string image) {
+		return new VariableRef(image.Substring(1, image.Length - 1));
+	}
   
 	/// <summary>
 	/// If the parser has been defined as case insensitive then this
@@ -293,6 +296,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <MINVALUE:    "minvalue">
 | <MAXVALUE:    "maxvalue">
 | <FUNCTION:    "function">
+| <CONSTANT:    "constant">
 | <SEQUENCE:    "sequence">
 | <RESTRICT:    "restrict">
 | <PASSWORD:    "password">
@@ -459,6 +463,7 @@ TOKEN : {  /* IDENTIFIERS */
 | <NAMED_PARAMETER: <NAMED_PARAMETER_PREFIX> <IDENTIFIER> >
 | <PARAMETER_REF: "?" >
 | <NAMED_PARAMETER_PREFIX: "@" >
+| <VARIABLE_REF: ":" <IDENTIFIER> >
 
 | <#LETTER: ["a"-"z", "A"-"Z", "_"] >
 | <#DIGIT: ["0"-"9"]>
@@ -513,6 +518,8 @@ StatementTree Statement() :
       
       | ob=Commit()
       | ob=Rollback()
+
+      | ob=DeclareVariable()
       | ob=Set()
       
       | ob=ShutDown()
@@ -569,10 +576,34 @@ StatementTree Declare() :
 { StatementTree ob; }
 {
   (  <DECLARE>
-     ( ob=DeclareCursor() )
+     ( 
+       ob=DeclareCursor()
+     )
   )
   
   { return ob; }
+}
+
+StatementTree DeclareVariable() :
+{ StatementTree ob = new StatementTree(typeof(DeclareVariableStatement));
+  Token name;
+  TType type;
+  Expression default_value = null;
+  bool constant = false, not_null = false;
+}
+{
+  name = <IDENTIFIER> [ <CONSTANT> { constant = true; } ]
+   type = GetTType()
+  [ <NOT> <NULL_LITERAL> { not_null = true; } ]
+  [ <ASSIGNMENT> default_value = DoExpression() ]
+
+  { ob.SetObject("name", name.image);
+    ob.SetObject("type", type);
+    ob.SetBoolean("constant", constant);
+    ob.SetBoolean("not_null", not_null);
+    ob.SetObject("default", default_value);
+    return ob; 
+  }
 }
 
 StatementTree Open() :
@@ -1518,8 +1549,8 @@ void SelectGroupByList(IList list) :
  * NOTE: This is an extension, allows for us to specify a column to return the
  *  max value for each row representing a group.
  */
-Variable GroupMaxColumn() :
-{ Variable var; }
+VariableName GroupMaxColumn() :
+{ VariableName var; }
 {
   var = ColumnNameVariable()
   { return var; }
@@ -1626,7 +1657,7 @@ void AssignmentList(ArrayList assignment_list) :
 }
 {
   ( column=ColumnName() <ASSIGNMENT> exp=DoExpression()
-    { assignment_list.Add(new Assignment(Variable.Resolve(column), exp)); }
+    { assignment_list.Add(new Assignment(VariableName.Resolve(column), exp)); }
     [ "," AssignmentList(assignment_list) ]   
   )
 }
@@ -2052,8 +2083,9 @@ void Operand(Expression exp, Stack stack) :
   Expression[] exp_list;
   String time_fname;
   bool negative = false;
-  Object param_ob;
-  Object param_resolve;
+  object param_ob;
+  object param_resolve;
+  VariableRef variable_ref;
 }
 {
   (   "(" { stack.Push(Operator.Get("(")); exp.Text.Append("("); }
@@ -2068,6 +2100,13 @@ void Operand(Expression exp, Stack stack) :
           { 
             param_resolve = CreateSubstitution(t.image);
             exp.AddElement(param_resolve);
+            exp.Text.Append(t.image);
+          }
+
+    | t = <VARIABLE_REF>
+          {
+            variable_ref = CreateVariableRef(t.image);
+            exp.AddElement(variable_ref);
             exp.Text.Append(t.image);
           }
 
@@ -2528,14 +2567,14 @@ String ColumnName() :
   { return CaseCheck(Util.AsNonQuotedRef(name)); }
 }
 
-// Parses a column name as a Variable object  
-Variable ColumnNameVariable() :
+// Parses a column name as a VariableName object  
+VariableName ColumnNameVariable() :
 { Token name; }
 {
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() |
     name = <DOT_DELIMINATED_REF> | name = <QUOTED_DELIMINATED_REF> )
 
-  { return (Variable) Util.ToParamObject(name, case_insensitive_identifiers); } 
+  { return (VariableName) Util.ToParamObject(name, case_insensitive_identifiers); } 
 }
 
 // Parses an aliased table name  

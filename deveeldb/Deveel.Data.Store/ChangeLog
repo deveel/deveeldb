@@ -1,3 +1,12 @@
+2009-11-25  Antonello Provenzano  <antonello@deveel.com>
+	* IStoreSystem.cs: 
+		- made public
+		- added method 'Init' for the initialization logic
+		- inherits from IDisposable interface
+	* V1FileStoreSystem.cs:
+		- constructor made parameterless
+		- implements 'Init' method from IStoreSystem
+	
 2009-10-17  Antonello Provenzano  <antonello@deveel.com>
 	* FSync.cs: classes WindowsFSync, UnixFSync and
 	MacOSXFSync moved to this to provide default implementations

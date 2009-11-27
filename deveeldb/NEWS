@@ -1,4 +1,17 @@
-﻿Release notes for the version 0.9.8
+﻿Release notes for the version 0.9.9
+====================================================
+
+* Engine:
+	- It is possible to specify a custom-developed storage-system at configuration, to override
+	the default ones (v1file and v1heap).
+	- Support for CURSOR declaration: this makes the system more and more compliant to the
+	SQL standard specifications and opens to a stored procedures model
+	- Session variables supported, including the definition of the type, constant, not-null
+	constraint and default value (eg. "test CONSTANT NUMERIC(12,1) = 1235,1", "test1 STRING NOT 
+	NULL").
+	
+
+Release notes for the version 0.9.8
 ====================================================
 
 * Engine:

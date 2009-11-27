@@ -90,7 +90,7 @@ namespace Deveel.Data.Functions {
 				get { return sets.Count; }
 			}
 
-			private void AddToGroup(int setIndex, Variable variable, TObject value) {
+			private void AddToGroup(int setIndex, VariableName variable, TObject value) {
 				if (setIndex >= sets.Count) {
 					for (int i = sets.Count - 1; i < setIndex; i++)
 						sets.Add(new Hashtable());
@@ -106,10 +106,10 @@ namespace Deveel.Data.Functions {
 			}
 
 			public void AddToGroup(int setIndex, string variable, TObject value) {
-				AddToGroup(setIndex, Variable.Resolve(variable), value);
+				AddToGroup(setIndex, VariableName.Resolve(variable), value);
 			}
 
-			public TObject Resolve(Variable variable, int set_index) {
+			public TObject Resolve(VariableName variable, int set_index) {
 				IVariableResolver resolver = GetVariableResolver(set_index);
 				return resolver.Resolve(variable);
 			}
@@ -134,11 +134,11 @@ namespace Deveel.Data.Functions {
 					get { return set_index; }
 				}
 
-				public TObject Resolve(Variable variable) {
+				public TObject Resolve(VariableName variable) {
 					return values[variable] as TObject;
 				}
 
-				public TType ReturnTType(Variable variable) {
+				public TType ReturnTType(VariableName variable) {
 					TObject obj = values[variable] as TObject;
 					return obj == null ? TType.NullType : obj.TType;
 				}

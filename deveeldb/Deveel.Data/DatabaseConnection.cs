@@ -249,17 +249,13 @@ namespace Deveel.Data {
 						// OLD and NEW system tables (if applicable)
 						transaction.AddInternalTableInfo(old_new_table_info);
 						// Model views as tables (obviously)
-						transaction.AddInternalTableInfo(
-							ViewManager.CreateInternalTableInfo(view_manager, transaction));
+						transaction.AddInternalTableInfo(ViewManager.CreateInternalTableInfo(view_manager, transaction));
 						// Model procedures as tables
-						transaction.AddInternalTableInfo(
-							ProcedureManager.CreateInternalTableInfo(transaction));
+						transaction.AddInternalTableInfo(ProcedureManager.CreateInternalTableInfo(transaction));
 						// Model sequences as tables
-						transaction.AddInternalTableInfo(
-							SequenceManager.CreateInternalTableInfo(transaction));
+						transaction.AddInternalTableInfo(SequenceManager.CreateInternalTableInfo(transaction));
 						// Model triggers as tables
-						transaction.AddInternalTableInfo(
-							ConnectionTriggerManager.CreateInternalTableInfo(transaction));
+						transaction.AddInternalTableInfo(ConnectionTriggerManager.CreateInternalTableInfo(transaction));
 
 						// Notify any table backed caches that this transaction has started.
 						int sz = table_backed_cache_list.Count;
@@ -451,10 +447,12 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="exp"></param>
+		/// <param name="context">A context used to evaluate the expression
+		/// forming the value of the variable.</param>
 		/// <remarks>
 		/// This is a generic way of setting properties of the session.
 		/// <para>
-		/// Currently supported variables are:
+		/// Special variables, that are recalled by the system, are:
 		/// <list type="bullet">
 		/// <item><c>ERROR_ON_DIRTY_SELECT</c>: set to <b>true</b> for turning 
 		/// the transaction conflict off on the session.</item>
@@ -464,12 +462,34 @@ namespace Deveel.Data {
 		/// </list>
 		/// </para>
 		/// </remarks>
-		public void SetVariable(String name, Expression exp) {
+		public void SetVariable(string name, Expression exp, IQueryContext context) {
 			if (name.ToUpper().Equals("ERROR_ON_DIRTY_SELECT")) {
 				error_on_dirty_select = ToBooleanValue(exp);
 			} else if (name.ToUpper().Equals("CASE_INSENSITIVE_IDENTIFIERS")) {
 				case_insensitive_identifiers = ToBooleanValue(exp);
+			} else {
+				Transaction.Variables.SetVariable(name, exp, context);
 			}
+		}
+
+		public Variable DeclareVariable(string name, TType type, bool constant, bool notNull) {
+			return Transaction.Variables.DeclareVariable(name, type, constant, notNull);
+		}
+
+		public Variable DeclareVariable(string name, TType type, bool notNull) {
+			return DeclareVariable(name, type, false, notNull);
+		}
+
+		public Variable DeclareVariable(string name, TType type) {
+			return DeclareVariable(name, type, false);
+		}
+
+		public Variable GetVariable(string name) {
+			return Transaction.Variables.GetVariable(name);
+		}
+
+		internal void RemoveVariable(string name) {
+			Transaction.Variables.RemoveVariable(name);
 		}
 
 		/// <summary>
@@ -479,7 +499,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		private static bool ToBooleanValue(Expression exp) {
 			bool isNull;
-			Boolean b = exp.Evaluate(null, null, null).ToBoolean(out isNull);
+			bool b = exp.Evaluate(null, null, null).ToBoolean(out isNull);
 			if (isNull)
 				throw new StatementException("Expression does not evaluate to a bool (true or false).");
 			return b;
@@ -546,6 +566,10 @@ namespace Deveel.Data {
 		/// </remarks>
 		public TableName[] Tables {
 			get { return Transaction.GetTables(); }
+		}
+
+		internal VariablesManager Variables {
+			get { return Transaction.Variables; }
 		}
 
 		/// <summary>
@@ -1380,14 +1404,14 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc cref="Data.Transaction.SetPersistentVariable"/>
-		public void SetVariable(String variable, String value) {
+		public void SetPersistentVariable(string variable, String value) {
 			// Assert
 			CheckExclusive();
 			Transaction.SetPersistentVariable(variable, value);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.GetPersistantVariable"/>
-		public String GetVariable(String variable) {
+		public String GetPersistentVariable(string variable) {
 			return Transaction.GetPersistantVariable(variable);
 		}
 

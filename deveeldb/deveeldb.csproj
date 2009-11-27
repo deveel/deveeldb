@@ -132,9 +132,13 @@
     <Compile Include="Deveel.Data\CursorState.cs" />
     <Compile Include="Deveel.Data\DatabaseEventHandler.cs" />
     <Compile Include="Deveel.Data.Caching\ICache.cs" />
+    <Compile Include="Deveel.Data\GTVariablesDataSource.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Deveel.Data\TIntervalType.cs" />
+    <Compile Include="Deveel.Data\Variable.cs" />
+    <Compile Include="Deveel.Data\VariableRef.cs" />
+    <Compile Include="Deveel.Data\VariablesManager.cs" />
     <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs" />
     <Compile Include="Deveel.Diagnostics\EmptyDebugLogger.cs">
       <SubType>Code</SubType>

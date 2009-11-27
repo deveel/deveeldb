@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{F077C127-8F87-4B60-AAD3-30AFCC9356D7}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -21,7 +21,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>3</WarningLevel>
     <OutputType>Library</OutputType>
@@ -29,31 +29,14 @@
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <OutputType>Library</OutputType>
-    <RootNamespace>Deveel.Data</RootNamespace>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <DefineConstants>TRACE;NET_2_0</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release.Mono|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\Mono</OutputPath>
-    <DefineConstants>TRACE;NET_2_0;MONO</DefineConstants>
-    <WarningLevel>4</WarningLevel>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug.Mono|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\Mono</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NET_2_0;MONO</DefineConstants>
-    <WarningLevel>4</WarningLevel>
+    <RootNamespace>Deveel.Data</RootNamespace>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <ItemGroup>
@@ -73,6 +56,7 @@
     <Compile Include="Deveel.Data.Client\LobTest.cs" />
     <Compile Include="Deveel.Data.Functions\FunctionTest.cs" />
     <Compile Include="Deveel.Data\CreateDatabaseTest.cs" />
+    <Compile Include="Deveel.Data\CursorTest.cs" />
     <Compile Include="Deveel.Data\ExpressionTest.cs" />
     <Compile Include="Deveel.Data\OperatorTest.cs" />
     <Compile Include="Deveel.Data\TestBase.cs" />
@@ -80,6 +64,7 @@
     <Compile Include="Deveel.Data\QueryTest.cs" />
     <Compile Include="Deveel.Data\TObjectTests.cs" />
     <Compile Include="Deveel.Data.Client\TriggerTest.cs" />
+    <Compile Include="Deveel.Data\VariableTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="deveeldb-nunit.snk" />
@@ -110,4 +95,38 @@
     </MonoDevelop>
     <VisualStudio />
   </ProjectExtensions>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug - Mono|AnyCPU' ">
+    <OutputType>Library</OutputType>
+    <OutputPath>bin\Debug\Mono</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <Optimize>false</Optimize>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <DefineConstants>DEBUG;TRACE;MONO</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - Mono|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release - Mono</OutputPath>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug.Mono|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\Mono</OutputPath>
+    <DefineConstants>DEBUG;TRACE;MONO</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Deveel.Data</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release.Mono|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release\Mono</OutputPath>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
 </Project>

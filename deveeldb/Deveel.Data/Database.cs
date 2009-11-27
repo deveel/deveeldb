@@ -1557,6 +1557,8 @@ namespace Deveel.Data {
 					"  CREATE VIEW INFORMATION_SCHEMA.DATA_TYPES AS " +
 					"  SELECT * FROM SYSTEM.sUSRSQLTypeInfo\n";
 				stmt.ExecuteNonQuery();
+
+				//TODO: export the variables too...
 			} catch (DataException e) {
 				if (e is DbDataException) {
 					DbDataException dbDataException = (DbDataException) e;
@@ -1743,6 +1745,8 @@ namespace Deveel.Data {
 			              false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRCurrentConnections",
 			              GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRVariables", GrantManager.PublicUsernameStr, false,
+			              GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRDatabaseStatistics",
 			              GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRDatabaseVars", GrantManager.PublicUsernameStr,

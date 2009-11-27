@@ -8,17 +8,17 @@ namespace Deveel.Data {
 		[Test]
 		public void SimpleExpression() {
 			Expression exp = Expression.Parse("a = b");
-			Assert.IsTrue(exp[0].Equals(Variable.Resolve("a")));
-			Assert.IsTrue(exp[1].Equals(Variable.Resolve("b")));
+			Assert.IsTrue(exp[0].Equals(VariableName.Resolve("a")));
+			Assert.IsTrue(exp[1].Equals(VariableName.Resolve("b")));
 			Assert.IsTrue(exp[2] == Operator.Get("="));
 
 			exp = Expression.Parse("a=Table.Column");
-			Assert.AreEqual(exp[0], Variable.Resolve("a"));
-			Assert.AreEqual(exp[1], Variable.Resolve(TableName.Resolve("Table"), "Column"));
+			Assert.AreEqual(exp[0], VariableName.Resolve("a"));
+			Assert.AreEqual(exp[1], VariableName.Resolve(TableName.Resolve("Table"), "Column"));
 			Assert.IsTrue(exp[2] == Operator.Get("="));
 
 			exp = Expression.Parse("b > 35");
-			Assert.AreEqual(exp[0], Variable.Resolve("b"));
+			Assert.AreEqual(exp[0], VariableName.Resolve("b"));
 			Assert.IsTrue(((TObject)exp[1]).ValuesEqual(TObject.GetInt4(35)));
 
 			exp = Expression.Parse("47");
@@ -26,9 +26,9 @@ namespace Deveel.Data {
 			Assert.IsTrue(((TObject)exp[0]).ValuesEqual(TObject.GetInt4(47)));
 
 			exp = Expression.Parse("a * (b + c)");
-			Assert.AreEqual(exp[0], Variable.Resolve("a"));
-			Assert.AreEqual(exp[1], Variable.Resolve("b"));
-			Assert.AreEqual(exp[2], Variable.Resolve("c"));
+			Assert.AreEqual(exp[0], VariableName.Resolve("a"));
+			Assert.AreEqual(exp[1], VariableName.Resolve("b"));
+			Assert.AreEqual(exp[2], VariableName.Resolve("c"));
 			Assert.AreEqual(exp[3], Operator.Get("+"));
 			Assert.AreEqual(exp[4], Operator.Get("*"));
 
@@ -49,7 +49,7 @@ namespace Deveel.Data {
 			Assert.AreEqual(fdef.Name, "LENGTH");
 			Assert.AreEqual(fdef.Parameters.Length, 1);
 			Assert.AreEqual(fdef.Parameters[0].AllVariables.Count, 1);
-			Assert.AreEqual(fdef.Parameters[0].AllVariables[0], Variable.Resolve("a"));
+			Assert.AreEqual(fdef.Parameters[0].AllVariables[0], VariableName.Resolve("a"));
 
 			exp = Expression.Parse("LENGTH('test')");
 			fdef = (Functions.FunctionDef)exp[0];

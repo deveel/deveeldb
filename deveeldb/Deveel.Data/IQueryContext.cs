@@ -117,5 +117,26 @@ namespace Deveel.Data {
 		/// <seealso cref="GetCachedNode"/>
 		void ClearCache();
 
+		// -------------- Variables ----------------
+
+		/// <summary>
+		/// Gets a declared variable with the given name.
+		/// </summary>
+		/// <param name="name">The name of the variable
+		/// to return.</param>
+		/// <returns>
+		/// Returns a declared <see cref="Variable"/> having
+		/// the given name or <c>null</c> if no variables were 
+		/// found for the given name.
+		/// </returns>
+		Variable GetVariable(string name);
+
+		/// <summary>
+		/// Sets the value of a variable identified by the
+		/// given name.
+		/// </summary>
+		/// <param name="name">The name of the variable to set.</param>
+		/// <param name="value">The value to set for the variable.</param>
+		void SetVariable(string name, Expression value);
 	}
 }
