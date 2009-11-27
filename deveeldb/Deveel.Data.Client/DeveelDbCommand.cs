@@ -547,6 +547,9 @@ namespace Deveel.Data.Client {
 			if (result[0].ColumnCount > 1)
 				throw new DataException();
 
+			if (!result[0].first())
+				return null;
+
 			Object ob = result[0].GetRawColumn(0);
 			if (ob == null)
 				return ob;

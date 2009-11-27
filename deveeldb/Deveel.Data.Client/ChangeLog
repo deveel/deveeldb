@@ -1,4 +1,7 @@
-﻿2009-11-22  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-11-27  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbCommand.cs: fixed a bug on SelectScalar
+	
+2009-11-22  Antonello Provenzano  <antonello@deveel.com>
 	* DeveelDbCommand.cs: implements ICloneable interface
 	* DeveelDbParamater.cs: implements ICloneable interface
 	* DeveelDbProviderFactory.cs: implemented and added support
