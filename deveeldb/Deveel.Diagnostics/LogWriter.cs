@@ -103,7 +103,8 @@ namespace Deveel.Diagnostics {
 				for (int i = archive_count - 1; i > 0; --i) {
 					string source = log_file + "." + i;
 					string dest = log_file + "." + (i + 1);
-					File.Move(source, dest);
+					if (File.Exists(source))
+						File.Move(source, dest);
 				}
 				File.Move(log_file, log_file + ".1");
 
