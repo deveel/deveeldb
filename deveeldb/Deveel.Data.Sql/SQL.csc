@@ -303,6 +303,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <TRAILING:    "trailing">
 //| <NOTNULL:     "not null">
 | <GROUPBY:     "group by">
+| <EXTRACT:     "extract">
 | <ORDERBY:     "order by">
 | <DEFERRED:    "deferred">
 | <IDENTITY:    "identity">
@@ -2078,7 +2079,7 @@ void OpPart(Expression exp, Stack stack) :
   
 
 void Operand(Expression exp, Stack stack) :
-{ Token t, tt;
+{ Token t, tt = null;
   FunctionDef f;
   Expression[] exp_list;
   String time_fname;
@@ -2154,6 +2155,22 @@ void Operand(Expression exp, Stack stack) :
        exp.AddElement(f);
        exp.Text.Append(tt.image);
      }
+  )
+
+// Interval conversion
+| (
+    <INTERVAL> t=<STRING_LITERAL>
+    [ tt=<YEAR> | tt=<MONTH> | tt=<DAY> | tt=<HOUR> | tt=<MINUTE> | tt=<SECOND> ]
+    { object param_ob2 = Util.ToParamObject(t, case_insensitive_identifiers);
+      string field = null;
+      if (tt != null) field = tt.image;
+      exp_list = new Expression[2];
+      exp_list[0] = new Expression(param_ob2);
+      exp_list[1] = new Expression(TObject.GetString(field));
+      f =  Util.ResolveFunctionName("intervalob", exp_list);
+      exp.AddElement(f);
+      exp.Text.Append("INTERVAL").Append(" ").Append(t.image).Append(" ").Append(tt.image);
+    }
   )
       
 // object instantiation
@@ -2412,6 +2429,15 @@ FunctionDef Function() :
                           exp_list[1].Text.Append("'" + str_char + "'");
                           exp_list[2] = exp1;
                           return Util.ResolveFunctionName("sql_trim", exp_list);
+                        }
+
+    | (t = <EXTRACT> "(" ( t2 = <YEAR> | t2=<MONTH> | t2=<DAY> | t2=<HOUR> | t2=<MINUTE> | t2=<SECOND> )
+                           <FROM> exp1=DoExpression() ")" )
+                        { exp_list = new Expression[2];
+                          exp_list[0] = new Expression(TObject.GetString(t2.image.ToLower()));
+                          exp_list[0].Text.Append("'" + t2.image + "'");
+                          exp_list[1] = exp1;
+                          return Util.ResolveFunctionName("extract", exp_list);
                         }
     // CAST function
     | ( t = <CAST> "(" exp1=DoExpression() <AS> cast_type=GetTType() ")" )

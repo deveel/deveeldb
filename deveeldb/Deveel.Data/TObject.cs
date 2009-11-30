@@ -35,7 +35,7 @@ namespace Deveel.Data {
 	/// etc) along with the object value being represented itself.
 	/// </remarks>
 	[Serializable]
-	public sealed class TObject : IDeserializationCallback, IComparable {
+	public sealed class TObject : IDeserializationCallback, IComparable, IConvertible {
 		/// <summary>
 		/// The type of this object.
 		/// </summary>
@@ -502,9 +502,21 @@ namespace Deveel.Data {
 				return Null;
 			if (ob is BigNumber)
 				return GetBigNumber((BigNumber)ob);
+			if (ob is byte)
+				return GetBigNumber((byte) ob);
+			if (ob is int)
+				return GetBigNumber((int)ob);
+			if (ob is long)
+				return GetBigNumber((long) ob);
+			if (ob is float)
+				return GetBigNumber((float) ob);
+			if (ob is double)
+				return GetBigNumber((double) ob);
 			if (ob is StringObject)
 				return GetString((StringObject)ob);
-			if (ob is Boolean)
+			if (ob is string)
+				return GetString(StringObject.FromString((string) ob));
+			if (ob is bool)
 				return GetBoolean((Boolean)ob);
 			if (ob is DateTime)
 				return GetDateTime((DateTime)ob);
@@ -1122,5 +1134,113 @@ namespace Deveel.Data {
 			if (ob is string)
 				ob = StringObject.FromString((string) ob);
 		}
+
+		#region Implementation of IConvertible
+
+		TypeCode IConvertible.GetTypeCode() {
+			return TypeCode.Object;
+		}
+
+		bool IConvertible.ToBoolean(IFormatProvider provider) {
+			return ToBoolean();
+		}
+
+		char IConvertible.ToChar(IFormatProvider provider) {
+			string s = ToStringValue();
+			return (s == null || s.Length == 0 ? '\0' : s[0]);
+		}
+
+		[CLSCompliant(false)]
+		sbyte IConvertible.ToSByte(IFormatProvider provider) {
+			throw new NotSupportedException();
+		}
+
+		byte IConvertible.ToByte(IFormatProvider provider) {
+			return ToBigNumber().ToByte();
+		}
+
+		short IConvertible.ToInt16(IFormatProvider provider) {
+			return ToBigNumber().ToInt16();
+		}
+
+		[CLSCompliant(false)]
+		ushort IConvertible.ToUInt16(IFormatProvider provider) {
+			throw new NotSupportedException();
+		}
+
+		int IConvertible.ToInt32(IFormatProvider provider) {
+			return ToBigNumber().ToInt32();
+		}
+
+		[CLSCompliant(false)]
+		uint IConvertible.ToUInt32(IFormatProvider provider) {
+			throw new NotSupportedException();
+		}
+
+		long IConvertible.ToInt64(IFormatProvider provider) {
+			return ToBigNumber().ToInt64();
+		}
+
+		[CLSCompliant(false)]
+		ulong IConvertible.ToUInt64(IFormatProvider provider) {
+			throw new NotSupportedException();
+		}
+
+		float IConvertible.ToSingle(IFormatProvider provider) {
+			return (float) ToBigNumber().ToDouble();
+		}
+
+		double IConvertible.ToDouble(IFormatProvider provider) {
+			return ToBigNumber().ToDouble();
+		}
+
+		decimal IConvertible.ToDecimal(IFormatProvider provider) {
+			//TODO:
+			throw new NotImplementedException();
+		}
+
+		DateTime IConvertible.ToDateTime(IFormatProvider provider) {
+			return ToDateTime();
+		}
+
+		string IConvertible.ToString(IFormatProvider provider) {
+			return ToStringValue();
+		}
+
+		object IConvertible.ToType(Type conversionType, IFormatProvider provider) {
+			// standard comversions...
+			if (conversionType == typeof(bool))
+				return (this as IConvertible).ToBoolean(provider);
+			if (conversionType == typeof(byte))
+				return (this as IConvertible).ToByte(provider);
+			if (conversionType == typeof(short))
+				return (this as IConvertible).ToInt16(provider);
+			if (conversionType == typeof(int))
+				return (this as IConvertible).ToInt32(provider);
+			if (conversionType == typeof(long))
+				return (this as IConvertible).ToInt64(provider);
+			if (conversionType == typeof(float))
+				return (this as IConvertible).ToSingle(provider);
+			if (conversionType == typeof(double))
+				return (this as IConvertible).ToDouble(provider);
+			if (conversionType == typeof(decimal))
+				return (this as IConvertible).ToDecimal(provider);
+			if (conversionType == typeof(char))
+				return (this as IConvertible).ToChar(provider);
+			if (conversionType == typeof(DateTime))
+				return (this as IConvertible).ToDateTime(provider);
+			if (conversionType == typeof(string))
+				return (this as IConvertible).ToString(provider);
+
+			// non standard...
+			if (conversionType == typeof(TimeSpan))
+				return ToTimeSpan();
+			if (conversionType == typeof(BigNumber))
+				return ToBigNumber();
+
+			throw new NotSupportedException("Cannot convert to type '" + conversionType + "'.");
+		}
+
+		#endregion
 	}
 }

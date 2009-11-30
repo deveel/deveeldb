@@ -42,11 +42,6 @@ namespace Deveel.Data.Sql {
 		private IList order_by;
 
 		/// <summary>
-		/// The list of columns in the 'order_by' clause fully resolved.
-		/// </summary>
-		private VariableName[] order_cols;
-
-		/// <summary>
 		/// The plan for evaluating this select expression.
 		/// </summary>
 		private IQueryPlanNode plan;

@@ -27,7 +27,6 @@ using System.Text;
 
 using Deveel.Data.Collections;
 using Deveel.Data.Store;
-using Deveel.Data.Store;
 
 using Deveel.Diagnostics;
 using Deveel.Data.Util;
@@ -71,6 +70,8 @@ namespace Deveel.Data {
 		public static readonly TableName PRIMARY_INFO_TABLE = new TableName(SystemSchema, "sUSRPKeyInfo");
 		public static readonly TableName SYS_SEQUENCE_INFO = new TableName(SystemSchema, "sUSRSequenceInfo");
 		public static readonly TableName SYS_SEQUENCE = new TableName(SystemSchema, "sUSRSequence");
+		public static readonly TableName UDT_TABLE = new TableName(SystemSchema, "sUSRUDT");
+		public static readonly TableName UDT_COLS_TABLE = new TableName(SystemSchema, "sUSRUDTColumns");
 
 		/// <summary>
 		/// The TransactionSystem that this Conglomerate is a child of.
@@ -765,6 +766,26 @@ namespace Deveel.Data {
 			table.TableName = PERSISTENT_VAR_TABLE;
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("variable"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("value"));
+			transaction.AlterCreateTable(table, 91, 128);
+
+			// the UDT tables...
+			table = new DataTableDef();
+			table.TableName = UDT_TABLE;
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("final"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("parent"));
+			transaction.AlterCreateTable(table, 91, 128);
+
+			table = new DataTableDef();
+			table.TableName = UDT_COLS_TABLE;
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("type_id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("col_type"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("size"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("scale"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("not_null"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// Commit and close the transaction.
@@ -3291,9 +3312,8 @@ namespace Deveel.Data {
 					int table_id = NextUniqueTableID();
 
 					// Create the object.
-					V2MasterTableDataSource master_table =
-						new V2MasterTableDataSource(System,
-							 StoreSystem, open_transactions, blob_store);
+					V2MasterTableDataSource master_table = new V2MasterTableDataSource(System, StoreSystem, open_transactions,
+					                                                                   blob_store);
 					master_table.Create(table_id, table_def);
 
 					// Add to the list of all tables.

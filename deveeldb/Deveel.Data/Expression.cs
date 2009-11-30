@@ -164,7 +164,13 @@ namespace Deveel.Data {
 		/// Care should be taken to not use this method inside an inner loop 
 		/// because it creates a lot of objects.
 		/// </remarks>
-		/// <returns></returns>
+		/// <returns>
+		/// Returns an <see cref="Expression"/> instance that represents the
+		/// string passed as argument.
+		/// </returns>
+		/// <exception cref="SqlParseException">
+		/// If the <paramref name="expression"/> string is invalid.
+		/// </exception>
 		public static Expression Parse(String expression) {
 			lock (expression_parser) {
 				try {
@@ -182,6 +188,85 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Statically evaluates a string expression into a result.
+		/// </summary>
+		/// <param name="expression">The expression to evaluate.</param>
+		/// <param name="resolver">An instance of <see cref="IVariableResolver"/>
+		/// used to resolve every variable in the context.</param>
+		/// <returns>
+		/// Returns a <see cref="TObject"/> that is the result of the evaluation
+		/// of the given expression string.
+		/// </returns>
+		public static TObject Evaluate(string expression, IVariableResolver resolver) {
+			Expression exp = Parse(expression);
+			return exp.Evaluate(resolver, null);
+		}
+
+		public static TObject Evaluate(string expression, params object[] args) {
+#if NET_2_0
+			System.Collections.Generic.IDictionary<string, object> argsDict =
+				new System.Collections.Generic.Dictionary<string, object>();
+#else
+			IDictionary argsDict = new Hashtable();
+#endif
+			if (args != null && args.Length > 0) {
+				for (int i = 0; i < args.Length; i++)
+					argsDict.Add("arg" + i, args[i]);
+			}
+
+			return Evaluate(expression, argsDict);
+		}
+
+		public static TObject Evaluate(string expression, IDictionary args) {
+			VariableResolver resolver = new VariableResolver();
+			if (args != null) {
+				foreach(DictionaryEntry entry in args) {
+					string argName = (string) entry.Key;
+					if (argName == null || argName.Length == 0)
+						throw new ArgumentException("Found an argument with a name not specified.");
+
+					if (!Char.IsLetterOrDigit(argName[0]))
+						throw new ArgumentException("The argument name '" + argName + "' is invalid.");
+
+					try {
+						resolver.AddVariable(argName, entry.Value);
+					} catch(Exception e) {
+						throw new ArgumentException("It was not possible to add the variable &" + argName + ": " + e.Message, e);
+					}
+				}
+			}
+
+			Expression exp = Parse(expression);
+			exp.Prepare(new VariableExpressionPreparer());
+			return exp.Evaluate(resolver, null);
+		}
+
+#if NET_2_0
+		public static TObject Evaluate(string expression, System.Collections.Generic.IDictionary<string, object> args) {
+			return Evaluate(expression, (IDictionary) args);
+		}
+#endif
+
+		public static TObject Evaluate(string expression) {
+			return Evaluate(expression, (IVariableResolver) null);
+		}
+
+		/// <summary>
+		/// Expression preparer used to replace a variable-reference
+		/// to it's name.
+		/// </summary>
+		private sealed class VariableExpressionPreparer : IExpressionPreparer {
+			public bool CanPrepare(object element) {
+				return (element is VariableRef);
+			}
+
+			public object Prepare(object element) {
+				VariableRef varRef = (VariableRef) element;
+				return new VariableName(varRef.Variable);
+			}
+		}
+
+		/// <summary>
 		/// A static expression parser.  To use this we must first synchronize over 
 		/// the object.
 		/// </summary>
@@ -194,7 +279,7 @@ namespace Deveel.Data {
 		/// <param name="op"></param>
 		/// <param name="ob2"></param>
 		/// <returns></returns>
-		public static Expression Simple(Object ob1, Operator op, Object ob2) {
+		public static Expression Simple(object ob1, Operator op, object ob2) {
 			Expression exp = new Expression(ob1);
 			exp.AddElement(ob2);
 			exp.AddElement(op);

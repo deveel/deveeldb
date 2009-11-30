@@ -1255,7 +1255,7 @@ namespace Deveel.Data {
 		}
 
 
-		internal override void checkForCleanup() {
+		internal override void CheckForCleanup() {
 			lock (this) {
 				//    index_store.cleanUpEvent();
 				gc.Collect(false);
@@ -1314,8 +1314,8 @@ namespace Deveel.Data {
 
 			//    // If the database stats need updating then do so now.
 			//    if (s_run_total_hits >= 1600) {
-			//      getSystem().stats().add(s_run_total_hits, total_hits_key);
-			//      getSystem().stats().add(s_run_file_hits, file_hits_key);
+			//      System.Stats.Add(s_run_total_hits, total_hits_key);
+			//      System.Stats.Add(s_run_file_hits, file_hits_key);
 			//      s_run_total_hits = 0;
 			//      s_run_file_hits = 0;
 			//    }

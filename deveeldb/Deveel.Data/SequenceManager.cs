@@ -389,18 +389,17 @@ namespace Deveel.Data {
 						transaction.GetTable(TableDataConglomerate.SYS_SEQUENCE_INFO);
 
 			// All rows in 'sequence_info' that match this table name.
-			SimpleTableQuery query = new SimpleTableQuery(seqi);
-			IntegerVector ivec =
-				query.SelectEqual(2, TObject.GetString(table_name.Name),
-										 1, TObject.GetString(table_name.Schema));
+			using (SimpleTableQuery query = new SimpleTableQuery(seqi)) {
+				IntegerVector ivec =
+					query.SelectEqual(2, TObject.GetString(table_name.Name),
+					                  1, TObject.GetString(table_name.Schema));
 
-			if (ivec.Count > 0) {
-				throw new Exception(
-					"Sequence generator with name '" + table_name + "' already exists.");
+				if (ivec.Count > 0)
+					throw new Exception("Sequence generator with name '" + table_name + "' already exists.");
+
+				// Dispose the query object
+				// query.Dispose();
 			}
-
-			// Dispose the query object
-			query.Dispose();
 
 			// Generate a unique id for the sequence info table
 			long unique_id =

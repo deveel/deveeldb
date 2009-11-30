@@ -489,7 +489,7 @@ namespace Deveel.Data {
 					return GetDynamicTable(table_name);
 				}
 			} else {
-				// Otherwise make a view of tha master table data source and WriteByte it in
+				// Otherwise make a view of tha master table data source and write it in
 				// the cache.
 				table = CreateMutableTableDataSourceAtCommit(master);
 

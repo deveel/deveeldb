@@ -398,6 +398,7 @@ namespace Deveel.Data {
 		/// The left side of each mathematical operator must be a variable, 
 		/// and the right side must be a constant (parameter subsitution or 
 		/// correlated value).
+		/// </para>
 		/// <para>
 		/// Breaking any of these rules will mean the range select can not 
 		/// happen.
@@ -409,7 +410,6 @@ namespace Deveel.Data {
 		/// (col &gt; 10 AND col &lt; 100) OR col &gt; 1000 OR col == 10
 		/// </code>
 		/// </example>
-		/// </remarks>
 		[Serializable]
 		public class RangeSelectNode : SingleQueryPlanNode {
 			/// <summary>

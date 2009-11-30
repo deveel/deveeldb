@@ -33,7 +33,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Deveel.Data</RootNamespace>
     <SignAssembly>true</SignAssembly>
-    <AssemblyKeyFile>deveeldb.snk</AssemblyKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -45,7 +44,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Deveel.Data</RootNamespace>
     <SignAssembly>true</SignAssembly>
-    <AssemblyKeyFile>deveeldb.snk</AssemblyKeyFile>
     <DocumentationFile>bin\Release\deveeldb.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
@@ -94,6 +92,18 @@
     <Compile Include="Deveel.Data.Functions\DateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\MiscFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\StringFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnConstraintAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnConstraints.cs" />
+    <Compile Include="Deveel.Data.Mapping\ForeignKeyAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\FunctionAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\INamedConstraint.cs" />
+    <Compile Include="Deveel.Data.Mapping\NotNullAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\PrimaryKeyAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\TableAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\UniqueAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\UserDefinedType.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql\CloseCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnConstraints.cs" />
@@ -134,10 +144,17 @@
     <Compile Include="Deveel.Data.Caching\ICache.cs" />
     <Compile Include="Deveel.Data\GTVariablesDataSource.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
+    <Compile Include="Deveel.Data\IUDTHandler.cs" />
+    <Compile Include="Deveel.Data\IUserDefinedType.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Deveel.Data\TIntervalType.cs" />
+    <Compile Include="Deveel.Data\TUserDefinedType.cs" />
+    <Compile Include="Deveel.Data\UDTManager.cs" />
+    <Compile Include="Deveel.Data\UserTypeDef.cs" />
+    <Compile Include="Deveel.Data\UserTypeMemberDef.cs" />
     <Compile Include="Deveel.Data\Variable.cs" />
     <Compile Include="Deveel.Data\VariableRef.cs" />
+    <Compile Include="Deveel.Data\VariableResolver.cs" />
     <Compile Include="Deveel.Data\VariablesManager.cs" />
     <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs" />
     <Compile Include="Deveel.Diagnostics\EmptyDebugLogger.cs">
@@ -532,7 +549,6 @@
     <WarningLevel>3</WarningLevel>
     <RootNamespace>Deveel.Data</RootNamespace>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <AssemblyKeyFile>deveeldb.snk</AssemblyKeyFile>
     <SignAssembly>true</SignAssembly>
     <OutputType>Library</OutputType>
     <CustomCommands>

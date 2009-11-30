@@ -73,6 +73,41 @@ namespace Deveel.Data.Functions {
 
 		#endregion
 
+		#region Time Functions
+
+		[Test]
+		public void TimeStamp() {
+			Expression exp = Expression.Parse("TIMESTAMP '2000-12-31 23:59:59'");
+			TObject result = exp.Evaluate(null, null, null);
+			Assert.IsTrue(result.TType is TDateType);
+			DateTime dateTime = result.ToDateTime();
+			Assert.AreEqual(new DateTime(2000, 12, 31, 23, 59, 59), dateTime);
+		}
+
+		[Test]
+		public void Extract() {
+			Expression exp = Expression.Parse("EXTRACT(YEAR FROM TIMESTAMP '2000-12-31 23:59:59')");
+			TObject result = exp.Evaluate(null, null, null);
+			Assert.IsTrue(result.TType is TNumericType);
+			Assert.AreEqual(2000, result.ToBigNumber().ToInt32());
+
+			exp = Expression.Parse("EXTRACT(MONTH FROM TIMESTAMP '2000-12-31 23:59:59')");
+			result = exp.Evaluate(null, null, null);
+			Assert.IsTrue(result.TType is TNumericType);
+			Assert.AreEqual(12, result.ToBigNumber().ToInt32());
+		}
+
+		[Test]
+		public void Interval() {
+			Expression exp = Expression.Parse("INTERVAL '3' DAY");
+			TObject result = exp.Evaluate(null, null, null);
+			Assert.IsTrue(result.TType is TIntervalType);
+			TimeSpan timeSpan = result.ToTimeSpan();
+			Assert.AreEqual(3, timeSpan.TotalDays);
+		}
+
+		#endregion
+
 		#region GroupResolver
 
 		private class GroupResolver : IGroupResolver {

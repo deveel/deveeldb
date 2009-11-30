@@ -1,3 +1,11 @@
+2009-11-28  Antonello Provenzano  <antonello@deveel.com>
+	* Expression.cs: added static method 'Evaluate' to evaluate
+	a given string into an expression out of context.
+	* TObject.cs: implements the IConvertible interface.
+	* ObjectTransfer.cs: initial support for IUserDefinedType
+	* TableDataConglomerate.cs: added logic for the creation
+	of the tables dedicated to the handling of UDTs.
+	
 2009-11-27  Antonello Provenzano  <antonello@deveel.com>
 	* Variable.cs: renamed to VariableName to support the
 	definition of a more complex variable set system

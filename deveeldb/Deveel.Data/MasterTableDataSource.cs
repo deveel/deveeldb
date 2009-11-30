@@ -27,7 +27,6 @@ using System.Text;
 using Deveel.Data.Caching;
 using Deveel.Data.Collections;
 using Deveel.Data.Store;
-using Deveel.Data.Store;
 
 using Deveel.Diagnostics;
 
@@ -206,8 +205,8 @@ namespace Deveel.Data {
 			this.store_system = store_system;
 			this.open_transactions = open_transactions;
 			this.blob_store = blob_store;
-			this.gc = new MasterTableGC(this);
-			this.cache = system.DataCellCache;
+			gc = new MasterTableGC(this);
+			cache = system.DataCellCache;
 			is_closed = true;
 
 			if (DATA_CELL_CACHING) {
@@ -225,12 +224,9 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Returns the IDebugLogger object that can be used to log debug messages.
 		/// </summary>
-		/*
-		TODO:
 		public IDebugLogger Debug {
 			get { return System.Debug; }
 		}
-		*/
 
 		/// <summary>
 		/// Returns the TableName of this table source.
@@ -293,7 +289,7 @@ namespace Deveel.Data {
 				bool all_merged = table_indices.MergeJournalChanges(commit_id);
 				// If all journal entries merged then schedule deleted row collection.
 				if (all_merged && !IsReadOnly) {
-					checkForCleanup();
+					CheckForCleanup();
 				}
 			}
 		}
@@ -340,10 +336,6 @@ namespace Deveel.Data {
 		/// </summary>
 		internal DataIndexSetDef DataIndexSetDef {
 			get { return index_def; }
-		}
-
-		public IDebugLogger Debug {
-			get { return System.Debug; }
 		}
 
 		// ---------- Convenient statics ----------
@@ -602,11 +594,12 @@ namespace Deveel.Data {
 					DataIndexSetDef index_set_def = DataIndexSetDef;
 					int index_i = index_set_def.FindIndexForColumns(new String[] { column_def.Name });
 					return CreateSelectableSchemeForIndex(index_set, table, index_i);
-				} else if (scheme_type.Equals("BlindSearch")) {
-					return new BlindSearch(table, column);
-				} else {
-					throw new ApplicationException("Unknown scheme type");
 				}
+
+				if (scheme_type.Equals("BlindSearch"))
+					return new BlindSearch(table, column);
+				
+				throw new ApplicationException("Unknown scheme type");
 			}
 		}
 
@@ -625,28 +618,25 @@ namespace Deveel.Data {
 		internal SelectableScheme CreateSelectableSchemeForIndex(IIndexSet index_set, ITableDataSource table, int index_i) {
 			lock (this) {
 				// Get the IndexDef object
-				DataIndexDef index_def = DataIndexSetDef[index_i];
+				DataIndexDef indexDef = DataIndexSetDef[index_i];
 
-				if (index_def.Type.Equals("BLIST")) {
-					String[] cols = index_def.ColumnNames;
-					DataTableDef table_def = DataTableDef;
+				if (indexDef.Type.Equals("BLIST")) {
+					string[] cols = indexDef.ColumnNames;
+					DataTableDef tableDef = DataTableDef;
 					if (cols.Length == 1) {
 						// If a single column
-						int col_index = table_def.FindColumnName(cols[0]);
+						int col_index = tableDef.FindColumnName(cols[0]);
 						// Get the index from the index set and set up the new InsertSearch
 						// scheme.
-						IIntegerList index_list =
-							index_set.GetIndex(index_def.Pointer);
+						IIntegerList index_list = index_set.GetIndex(indexDef.Pointer);
 						InsertSearch iis = new InsertSearch(table, col_index, index_list);
 						return iis;
-					} else {
-						throw new Exception(
-							"Multi-column indexes not supported at this time.");
 					}
-				} else {
-					throw new Exception("Unrecognised type.");
+					
+					throw new Exception("Multi-column indexes not supported at this time.");
 				}
 
+				throw new Exception("Unrecognised type.");
 			}
 		}
 
@@ -992,10 +982,8 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal IMutableTableDataSource CreateTableDataSourceAtCommit(
-													SimpleTransaction transaction) {
-			return CreateTableDataSourceAtCommit(transaction,
-												 new MasterTableJournal(TableID));
+		internal IMutableTableDataSource CreateTableDataSourceAtCommit(SimpleTransaction transaction) {
+			return CreateTableDataSourceAtCommit(transaction, new MasterTableJournal(TableID));
 		}
 
 		/// <summary>
@@ -1044,28 +1032,25 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Sets up the DataTableDef.
 		/// </summary>
-		/// <param name="table_def"></param>
+		/// <param name="tableDef"></param>
 		/// <remarks>
 		/// This would typically only ever be called from the <i>create</i>
 		/// method.
 		/// </remarks>
-		protected void SetupDataTableDef(DataTableDef table_def) {
+		protected void SetupDataTableDef(DataTableDef tableDef) {
 			lock (this) {
 				// Check table_id isn't too large.
 				if ((table_id & 0x0F0000000) != 0) {
 					throw new ApplicationException("'table_id' exceeds maximum possible keys.");
 				}
 
-				this.table_def = table_def;
+				table_def = tableDef;
 
 				// The name of the table to create,
 				TableName table_name = table_def.TableName;
 
 				// Create table indices
-				table_indices = new MultiVersionTableIndices(System,
-															 table_name, table_def.ColumnCount);
-				// The column rid list cache
-				// column_rid_list = new RIDList[table_def.ColumnCount];
+				table_indices = new MultiVersionTableIndices(System, table_name, tableDef.ColumnCount);
 
 				// Setup the DataIndexSetDef
 				SetupDataIndexSetDef();
@@ -1138,7 +1123,6 @@ namespace Deveel.Data {
 			int row_number;
 
 			lock (this) {
-
 				row_number = InternalAddRow(data);
 
 			} // lock
@@ -1164,23 +1148,11 @@ namespace Deveel.Data {
 		/// </remarks>
 		private void DoHardRowRemove(int row_index) {
 			lock (this) {
-				// If we have a rid_list for any of the columns, then update the indexing
-				// there,
-				for (int i = 0; i < column_count; ++i) {
-					/*
-					RIDList rid_list = column_rid_list[i];
-					if (rid_list != null) {
-						rid_list.RemoveRID(row_index);
-					}
-					*/
-				}
-
 				// Internally delete the row,
 				InternalDeleteRow(row_index);
 
 				// Update stats
 				system.Stats.Increment(delete_hits_key);
-
 			}
 		}
 
@@ -1230,7 +1202,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		internal bool HardCheckAndReclaimRow(int record_index) {
-			lock (this) {
+			lock(this) {
 				// ASSERTION: We are not under a root Lock.
 				if (!IsRootLocked) {
 					// Row already deleted?
@@ -1245,10 +1217,9 @@ namespace Deveel.Data {
 						}
 					}
 					return false;
-				} else {
-					throw new ApplicationException("Assertion failed: " +
-									"Can't remove row, table is under a root Lock.");
 				}
+
+				throw new ApplicationException("Assertion failed: Can't remove row, table is under a root Lock.");
 			}
 		}
 
@@ -1260,20 +1231,19 @@ namespace Deveel.Data {
 		/// Returns a type that is compatible with RawDiagnosticTable record 
 		/// type.
 		/// </returns>
-		internal RecordState recordTypeInfo(int record_index) {
+		internal RecordState RecordTypeInfo(int record_index) {
 			lock (this) {
 				//    ++record_index;
 				if (RecordDeleted(record_index)) {
 					return RecordState.Deleted;
 				}
 				int type_key = ReadRecordType(record_index) & 0x0F0;
-				if (type_key == 0) {
+				if (type_key == 0)
 					return RecordState.Uncommitted;
-				} else if (type_key == 0x010) {
+				if (type_key == 0x010)
 					return RecordState.CommittedAdded;
-				} else if (type_key == 0x020) {
+				if (type_key == 0x020)
 					return RecordState.CommittedRemoved;
-				}
 				return RecordState.Error;
 
 			}
@@ -1295,8 +1265,7 @@ namespace Deveel.Data {
 				//   VERY important we assert there's no pending transactions.
 				if (IsRootLocked || HasTransactionChangesPending) {
 					// This shouldn't happen if we are calling from 'open'.
-					throw new Exception(
-						"Odd, we are root locked or have pending journal changes.");
+					throw new Exception("Odd, we are root locked or have pending journal changes.");
 				}
 
 				// This is pointless if we are in Read only mode.
@@ -1316,7 +1285,7 @@ namespace Deveel.Data {
 						// Is this record marked as deleted?
 						if (!RecordDeleted(i)) {
 							// Get the type flags for this record.
-							RecordState type = recordTypeInfo(i);
+							RecordState type = RecordTypeInfo(i);
 							// Check if this record is marked as committed removed, or is an
 							// uncommitted record.
 							if (type == RecordState.CommittedRemoved ||
@@ -1387,7 +1356,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <returns></returns>
 		internal IRawDiagnosticTable GetRawDiagnosticTable() {
-			return new MRawDiagnosticTable();
+			return new MRawDiagnosticTable(this);
 		}
 
 
@@ -1443,7 +1412,7 @@ namespace Deveel.Data {
 					--root_lock;
 					// If the last Lock is removed, schedule a possible collection.
 					if (root_lock == 0) {
-						checkForCleanup();
+						CheckForCleanup();
 					}
 				}
 			}
@@ -1478,7 +1447,7 @@ namespace Deveel.Data {
 		/// Checks to determine if it is safe to clean up any resources in the
 		/// table, and if it is safe to do so, the space is reclaimed.
 		/// </summary>
-		internal abstract void checkForCleanup();
+		internal abstract void CheckForCleanup();
 
 
 		internal string TransactionChangeString {
@@ -1513,6 +1482,10 @@ namespace Deveel.Data {
 		/// This interface allows for the inspection and repair of data files.
 		/// </remarks>
 		private sealed class MRawDiagnosticTable : IRawDiagnosticTable {
+			public MRawDiagnosticTable(MasterTableDataSource mtds) {
+				this.mtds = mtds;
+			}
+
 			private readonly MasterTableDataSource mtds;
 
 			// ---------- Implemented from IRawDiagnosticTable -----------
@@ -1533,7 +1506,7 @@ namespace Deveel.Data {
 
 			public RecordState GetRecordState(int record_index) {
 				try {
-					return mtds.recordTypeInfo(record_index);
+					return mtds.RecordTypeInfo(record_index);
 				} catch (IOException e) {
 					throw new ApplicationException(e.Message);
 				}
@@ -1615,7 +1588,7 @@ namespace Deveel.Data {
 			/// The SelectableScheme array that represents the schemes for the
 			/// columns within this transaction.
 			/// </summary>
-			private SelectableScheme[] column_schemes;
+			private readonly SelectableScheme[] column_schemes;
 
 			/// <summary>
 			/// A journal of changes to this source since it was created.
@@ -1632,11 +1605,10 @@ namespace Deveel.Data {
 										   MasterTableJournal journal) {
 				this.mtds = mtds;
 				this.transaction = transaction;
-				this.index_set =
-						transaction.GetIndexSetForTable(mtds);
+				index_set = transaction.GetIndexSetForTable(mtds);
 				int col_count = DataTableDef.ColumnCount;
-				this.table_name = DataTableDef.TableName;
-				this.tran_read_only = transaction.IsReadOnly;
+				table_name = DataTableDef.TableName;
+				tran_read_only = transaction.IsReadOnly;
 				row_list_rebuild = 0;
 				scheme_rebuilds = new int[col_count];
 				column_schemes = new SelectableScheme[col_count];

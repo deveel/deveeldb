@@ -15,6 +15,14 @@ namespace Deveel.Data.Functions {
 			AddFunction("last_day", typeof(LastDayFunction));
 			AddFunction("next_day", typeof(NextDayFunction));
 			AddFunction("dbtimezone", typeof(DbTimeZoneFunction));
+			AddFunction("extract", typeof(ExtractFunction));
+			AddFunction("year", typeof(YearFunction));
+			AddFunction("month", typeof(MonthFunction));
+			AddFunction("day", typeof(DayFunction));
+			AddFunction("hour", typeof(HourFunction));
+			AddFunction("minute", typeof(MinuteFunction));
+			AddFunction("second", typeof(SecondFunction));
+			AddFunction("intervalob", typeof(IntervalObFunction));
 		}
 
 		#region DateObFunction
@@ -56,26 +64,21 @@ namespace Deveel.Data.Functions {
 				if (exp_res.IsNull) {
 					return DateVal(DateTime.Now);
 				}
-					// If expression resolves to a BigDecimal, then treat as number of
-					// seconds since midnight Jan 1st, 1970
-				else if (exp_res.TType is TNumericType) {
-					BigNumber num = (BigNumber)exp_res.Object;
+				// If expression resolves to a BigDecimal, then treat as number of
+				// seconds since midnight Jan 1st, 1970
+				if (exp_res.TType is TNumericType) {
+					BigNumber num = (BigNumber) exp_res.Object;
 					return DateVal(new DateTime(num.ToInt64()));
 				}
 
-				String date_str = exp_res.Object.ToString();
+				string date_str = exp_res.Object.ToString();
 
-				// We need to synchronize here unfortunately because the Java
-				// DateFormat objects are not thread-safe.
-				lock (formats) {
-					// Try and parse date
-					try {
-						return DateVal(DateTime.ParseExact(date_str, formats, CultureInfo.CurrentCulture, DateTimeStyles.None));
-					} catch {
-						throw new Exception("Unable to parse date string '" + date_str + "'");
-					}
+				// Try and parse date
+				try {
+					return DateVal(DateTime.ParseExact(date_str, formats, CultureInfo.CurrentCulture, DateTimeStyles.None));
+				} catch {
+					throw new Exception("Unable to parse date string '" + date_str + "'");
 				}
-
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -357,6 +360,258 @@ namespace Deveel.Data.Functions {
 
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				return TObject.GetString(TimeZone.CurrentTimeZone.StandardName);
+			}
+		}
+
+		#endregion
+
+		#region ExtractFunction
+
+		[Serializable]
+		private class ExtractFunction : Function {
+			public ExtractFunction(Expression[] parameters) 
+				: base("extract", parameters) {
+			}
+
+			private static int GetYears(int days) {
+				return (int) (days/365.25);
+			}
+
+			internal static int ExtractField(string field, TObject obj) {
+				DateTime dateTime = DateTime.MinValue;
+				TimeSpan timeSpan = TimeSpan.Zero;
+				bool fromTs = false;
+
+				if (obj.TType is TDateType) {
+					dateTime = obj.ToDateTime();
+				} else if (obj.TType is TIntervalType) {
+					timeSpan = obj.ToTimeSpan();
+					fromTs = true;
+				} else {
+					obj = obj.CastTo(TType.DateType);
+					dateTime = obj.ToDateTime();
+				}
+
+				int value;
+
+				if (fromTs) {
+					switch (field) {
+						case "year": value = GetYears(timeSpan.Days); break;
+						//TODO: case "month": value = timeSpan.Month; break;
+						case "day": value = timeSpan.Days; break;
+						case "hour": value = timeSpan.Hours; break;
+						case "minute": value = timeSpan.Minutes; break;
+						case "second": value = timeSpan.Seconds; break;
+						default: throw new InvalidOperationException("Field " + field + " not supported in an INTERVAL type.");
+					}
+				} else {
+					switch (field) {
+						case "year": value = dateTime.Year; break;
+						case "month": value = dateTime.Month; break;
+						case "day": value = dateTime.Day; break;
+						case "hour": value = dateTime.Hour; break;
+						case "minute": value = dateTime.Minute; break;
+						case "second": value = dateTime.Second; break;
+						default: throw new InvalidOperationException("Field " + field + " not supported in a TIME type.");
+					}
+				}
+
+				return value;
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject field = this[0].Evaluate(group, resolver, context);
+				TObject date = this[1].Evaluate(group, resolver, context);
+
+				if (field.IsNull)
+					throw new ArgumentException("The first parameter of EXTRACT function can't be NULL.");
+
+				if (date.IsNull)
+					return TObject.Null;
+
+				string field_str = field.ToStringValue();
+
+				return TObject.GetInt4(ExtractField(field_str, date));
+			}
+		}
+
+		#endregion
+
+		#region YearFunction
+
+		[Serializable]
+		private class YearFunction : Function {
+			public YearFunction(Expression[] parameters) 
+				: base("year", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return ob;
+
+				return ExtractFunction.ExtractField("year", ob);
+			}
+		}
+
+		#endregion
+
+		#region MonthFunction
+
+		[Serializable]
+		private class MonthFunction : Function {
+			public MonthFunction(Expression[] parameters)
+				: base("month", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return ob;
+
+				return ExtractFunction.ExtractField("month", ob);
+			}
+		}
+
+		#endregion
+
+		#region DayFunction
+
+		[Serializable]
+		private class DayFunction : Function {
+			public DayFunction(Expression[] parameters)
+				: base("day", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return ob;
+
+				return ExtractFunction.ExtractField("day", ob);
+			}
+		}
+
+		#endregion
+
+		#region HourFunction
+
+		[Serializable]
+		private class HourFunction : Function {
+			public HourFunction(Expression[] parameters)
+				: base("hour", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return ob;
+
+				return ExtractFunction.ExtractField("hour", ob);
+			}
+		}
+
+		#endregion
+
+		#region MinuteFunction
+
+		[Serializable]
+		private class MinuteFunction : Function {
+			public MinuteFunction(Expression[] parameters)
+				: base("minute", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return ob;
+
+				return ExtractFunction.ExtractField("minute", ob);
+			}
+		}
+
+		#endregion
+
+		#region SecondFunction
+
+		[Serializable]
+		private class SecondFunction : Function {
+			public SecondFunction(Expression[] parameters)
+				: base("second", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return ob;
+
+				return ExtractFunction.ExtractField("second", ob);
+			}
+		}
+
+		#endregion
+
+		#region IntervalFunction
+
+		[Serializable]
+		private class IntervalObFunction : Function {
+			public IntervalObFunction(Expression[] parameters) 
+				: base("intervalob", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return ob;
+
+				if (!(ob.TType is TStringType))
+					ob = ob.CastTo(TType.StringType);
+
+				string s = ob.ToStringValue();
+
+				string field = null;
+				if (ParameterCount > 1) {
+					TObject field_ob = this[1].Evaluate(group, resolver, context);
+					if (!field_ob.IsNull)
+						field = field_ob.ToStringValue();
+				}
+
+				TimeSpan interval;
+				if (field != null && field.Length > 0) {
+					int value = Int32.Parse(s);
+
+					switch(field.ToLower()) {
+						case "year":
+							interval = new TimeSpan((long)(TimeSpan.TicksPerDay * 365.25) * value);
+							break;
+						case "month":
+							//TODO:
+							throw new NotImplementedException();
+						case "day":
+							interval = new TimeSpan(TimeSpan.TicksPerDay * value);
+							break;
+						case "hour":
+							interval = new TimeSpan(TimeSpan.TicksPerHour * value);
+							break;
+						case "minute":
+							interval = new TimeSpan(TimeSpan.TicksPerMinute * value);
+							break;
+						case "second":
+							interval = new TimeSpan(TimeSpan.TicksPerSecond * value);
+							break;
+						default:
+							throw new InvalidOperationException("The conversion to INTERVAL is not supported for " + field + ".");
+					}
+				} else {
+					//TODO:
+					throw new NotImplementedException();
+				}
+
+				return interval;
+			}
+
+			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+				return TType.IntervalType;
 			}
 		}
 

@@ -31,7 +31,18 @@ namespace Deveel.Data {
 	/// Provides static methods for transfering different types of 
 	/// objects over a Data input/output stream.
 	/// </summary>
-	public class ObjectTransfer {
+	public
+#if NET_2_0
+	static
+#else
+	sealed
+#endif
+	class ObjectTransfer {
+#if !NET_2_0
+		private ObjectTransfer() {
+		}
+#endif
+
 		///<summary>
 		/// Makes an estimate of the size of the object.
 		///</summary>
@@ -41,62 +52,77 @@ namespace Deveel.Data {
 		/// </remarks>
 		///<returns></returns>
 		///<exception cref="IOException"></exception>
-		public static int SizeOf(Object ob) {
-			if (ob == null) {
+		public static int SizeOf(object ob) {
+			if (ob == null)
 				return 9;
-			} else if (ob is StringObject) {
+			if (ob is StringObject)
 				return (ob.ToString().Length * 2) + 9;
-			} else if (ob is BigNumber) {
+			if (ob is BigNumber)
 				return 15 + 9;
-			} else if (ob is DateTime) {
+			if (ob is DateTime)
 				return 8 + 9;
-			} else if (ob is TimeSpan) {
+			if (ob is TimeSpan)
 				return 8 + 9;
-			} else if (ob is Boolean) {
+			if (ob is bool)
 				return 2 + 9;
-			} else if (ob is ByteLongObject) {
+			if (ob is ByteLongObject)
 				return ((ByteLongObject)ob).Length + 9;
-			} else if (ob is StreamableObject) {
+			if (ob is StreamableObject)
 				return 5 + 9;
-			} else {
-				throw new IOException("Unrecognised type: " + ob.GetType());
-			}
+			if (ob is IUserDefinedType)
+				//TODO: be more specific...
+				return 1000 + 9;
+			
+			throw new IOException("Unrecognised type: " + ob.GetType());
 		}
 
 		///<summary>
 		/// Returns the exact size an object will take up when serialized.
 		///</summary>
-		///<param name="ob"></param>
+		///<param name="ob">The object for which to extimate the exact
+		/// size of.</param>
 		///<returns></returns>
 		///<exception cref="IOException"></exception>
 		public static int ExactSizeOf(Object ob) {
-			if (ob == null) {
+			if (ob == null)
 				return 1;
-			} else if (ob is StringObject) {
-				return (ob.ToString().Length * 2) + 1 + 4;
-				// return Encoding.Unicode.GetByteCount(ob.ToString()) + 1 + 4;
-			} else if (ob is BigNumber) {
-				BigNumber n = (BigNumber)ob;
-				if (n.CanBeInt) {
+			if (ob is StringObject)
+				return (ob.ToString().Length*2) + 1 + 4;
+			if (ob is BigNumber) {
+				BigNumber n = (BigNumber) ob;
+				if (n.CanBeInt)
 					return 4 + 1;
-				} else if (n.CanBeLong) {
+				if (n.CanBeLong)
 					return 8 + 1;
-				}
 				byte[] buf = n.ToByteArray();
 				return buf.Length + 1 + 1 + 4 + 4;
-			} else if (ob is DateTime) {
-				return 8 + 1;
-			} else if (ob is TimeSpan) {
-				return 8 + 1;
-			} else if (ob is Boolean) {
-				return 1 + 1;
-			} else if (ob is ByteLongObject) {
-				return ((ByteLongObject)ob).Length + 1 + 8;
-			} else if (ob is StreamableObject) {
-				return 1 + 1 + 4;
-			} else {
-				throw new IOException("Unrecognised type: " + ob.GetType());
 			}
+			if (ob is DateTime)
+				return 8 + 1;
+			if (ob is TimeSpan)
+				return 8 + 1;
+			if (ob is bool)
+				return 1 + 1;
+			if (ob is ByteLongObject)
+				return ((ByteLongObject) ob).Length + 1 + 8;
+			if (ob is StreamableObject)
+				return 1 + 1 + 4;
+			if (ob is IUserDefinedType) {
+				int size = 1;
+				IUserDefinedType udt = (IUserDefinedType) ob;
+				UserTypeDef tableDef = udt.TypeDef;
+
+				string typeName = tableDef.Name.ToString();
+				size += 4 + typeName.Length*2;
+
+				int colCount = tableDef.MemberCount;
+				for (int i = 0; i < colCount; i++) {
+					object value = udt.GetValue(i);
+					size += 1 + ExactSizeOf(value);
+				}
+				return size;
+			}
+			throw new IOException("Unrecognised type: " + ob.GetType());
 		}
 
 		///<summary>
@@ -107,34 +133,23 @@ namespace Deveel.Data {
 		///<exception cref="IOException"></exception>
 		public static void WriteTo(BinaryWriter output, Object ob) {
 			if (ob == null) {
-				output.Write((byte)1);
+				output.Write((byte) 1);
 			} else if (ob is StringObject) {
-				/*
-				String str = ob.ToString();
-
-				// All strings send as char array,
-				output.Write((byte)18);
-				output.Write(str.Length);
-				for (int i = 0; i < str.Length; i++)
-					output.Write(str[i]);
-				*/
-
-
 				byte[] buffer = Encoding.Unicode.GetBytes(ob.ToString());
-				output.Write((byte)18);
+				output.Write((byte) 18);
 				output.Write(buffer.Length);
 				output.Write(buffer, 0, buffer.Length);
 			} else if (ob is BigNumber) {
-				BigNumber n = (BigNumber)ob;
+				BigNumber n = (BigNumber) ob;
 				if (n.CanBeInt) {
-					output.Write((byte)24);
+					output.Write((byte) 24);
 					output.Write(n.ToInt32());
 				} else if (n.CanBeLong) {
-					output.Write((byte)8);
+					output.Write((byte) 8);
 					output.Write(n.ToInt64());
 				} else {
-					output.Write((byte)7);
-					output.Write((byte)n.State);
+					output.Write((byte) 7);
+					output.Write((byte) n.State);
 					output.Write(n.Scale);
 					byte[] buf = n.ToByteArray();
 					output.Write(buf.Length);
@@ -146,27 +161,46 @@ namespace Deveel.Data {
 				output.Write(d.Ticks);
 			} else if (ob is TimeSpan) {
 				TimeSpan t = (TimeSpan) ob;
-				output.Write((byte)10);
+				output.Write((byte) 10);
 				output.Write(t.Ticks);
 			} else if (ob is Boolean) {
-				Boolean b = (Boolean)ob;
-				output.Write((byte)12);
+				Boolean b = (Boolean) ob;
+				output.Write((byte) 12);
 				output.Write(b);
 			} else if (ob is ByteLongObject) {
-				ByteLongObject barr = (ByteLongObject)ob;
-				output.Write((byte)15);
+				ByteLongObject barr = (ByteLongObject) ob;
+				output.Write((byte) 15);
 				byte[] arr = barr.ToArray();
 				output.Write(arr.LongLength);
 				output.Write(arr);
 			} else if (ob is StreamableObject) {
-				StreamableObject ob_head = (StreamableObject)ob;
-				output.Write((byte)16);
-				output.Write((byte)ob_head.Type);
+				StreamableObject ob_head = (StreamableObject) ob;
+				output.Write((byte) 16);
+				output.Write((byte) ob_head.Type);
 				output.Write(ob_head.Size);
 				output.Write(ob_head.Identifier);
+			} else if (ob is IUserDefinedType) {
+				IUserDefinedType udt = (IUserDefinedType) ob;
+				output.Write((byte) 34);
+
+				UserTypeDef tableDef = udt.TypeDef;
+				string typeName = tableDef.Name.ToString();
+				byte[] buffer = Encoding.Unicode.GetBytes(typeName);
+				output.Write(buffer.Length);
+				output.Write(buffer);
+
+				int colCount = tableDef.MemberCount;
+				for (int i = 0; i < colCount; i++) {
+					object colValue = udt.GetValue(i);
+					WriteTo(output, colValue);
+				}
 			} else {
 				throw new IOException("Unrecognised type: " + ob.GetType());
 			}
+		}
+
+		public static Object ReadFrom(BinaryReader input) {
+			return ReadFrom(input, null);
 		}
 
 		/// <summary>
@@ -174,7 +208,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static Object ReadFrom(BinaryReader input) {
+		public static Object ReadFrom(BinaryReader input, IUDTHandler udtHandler) {
 			byte type = input.ReadByte();
 
 			switch (type) {
@@ -233,26 +267,39 @@ namespace Deveel.Data {
 					}
 
 				case (18): {
-						// Handles strings > 64k
-						int len = input.ReadInt32();
-					/*
-						StringBuilder buf = new StringBuilder(len);
-						while (len > 0) {
-							buf.Append(input.ReadChar());
-							--len;
-						}
-						return StringObject.FromString(buf.ToString());
-					 */
+					// Handles strings > 64k
+					int len = input.ReadInt32();
 					byte[] buffer = new byte[len];
 					input.Read(buffer, 0, len);
 					return StringObject.FromString(Encoding.Unicode.GetString(buffer));
-					}
+				}
 
 				case (24): {
 						// 32-bit int numeric value
 						long val = (long)input.ReadInt32();
 						return (BigNumber)val;
 					}
+				case (34): {
+					if (udtHandler == null)
+						throw new NotSupportedException("Reading UDTs outside a context is not supported.");
+
+					int nameLen = input.ReadInt32();
+					byte[] nameBuffer = new byte[nameLen];
+					input.Read(nameBuffer, 0, nameLen);
+					TableName name = new TableName(Encoding.Unicode.GetString(nameBuffer));
+
+					IUserDefinedType udt = udtHandler.GetUserDefinedType(name);
+					if (udt == null)
+						throw new InvalidOperationException("The user-defined type (UDT) " + name + " was not found in the context.");
+
+					int colCount = udt.TypeDef.MemberCount;
+					for (int i = 0; i < colCount; i++) {
+						object value = ReadFrom(input, udtHandler);
+						udt.SetValue(i, value);
+					}
+
+					return udt;
+				}
 
 				default:
 					throw new IOException("Unrecognised type: " + type);

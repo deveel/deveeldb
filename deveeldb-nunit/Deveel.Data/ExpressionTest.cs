@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 
 using NUnit.Framework;
 
@@ -36,7 +37,7 @@ namespace Deveel.Data {
 			Assert.IsTrue(((TObject)exp[0]).ValuesEqual(TObject.GetInt4(34)));
 			Assert.IsTrue(((TObject)exp[1]).ValuesEqual(TObject.GetInt4(159)));
 			Assert.AreEqual(exp[2], Operator.Get("+"));
-			TObject result = exp.Evaluate(null, null);
+			TObject result = exp.Evaluate(null, null, null);
 			Assert.IsTrue(exp.IsConstant);
 			Assert.IsTrue(result.ValuesEqual(TObject.GetInt4(193)));
 		}
@@ -73,6 +74,24 @@ namespace Deveel.Data {
 			exp = Expression.Parse("@Param");
 			Assert.IsTrue(exp[0] is ParameterSubstitution);
 			Assert.AreEqual(((ParameterSubstitution)exp[0]).Name, "@Param");
+		}
+
+		[Test]
+		public void StaticEvaluate() {
+			TObject result = Expression.Evaluate("CURRENT_TIMESTAMP");
+			Assert.IsTrue(result.TType is TDateType);
+			Console.Out.WriteLine("CURRENT_TIMESTAMP = {0}", result);
+
+			result = Expression.Evaluate("LENGTH(:arg0)", "test_string");
+			Assert.IsTrue(result.TType is TNumericType);
+			Assert.AreEqual(11, result);
+			Console.Out.WriteLine("LENGTH(:arg0 = 'test_string') = {0}", result);
+
+			IDictionary args = new Hashtable();
+			args["a"] = 12;
+			args["b"] = 45;
+			args["c"] = 23.65;
+			result = Expression.Evaluate("a * (b + c)", args);
 		}
 	}
 }

@@ -1,4 +1,7 @@
-﻿2009-11-01  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-11-27  Antonello Provenzano  <antonello@deveel.com>
+	* DateFunctionFactory.cs: implemented the function EXTRACT
+	
+2009-11-01  Antonello Provenzano  <antonello@deveel.com>
 	* InternalFunctionFactory.cs: functions groupped by domain 
 	into separate files.
 	* FunctionFactory.cs: 
