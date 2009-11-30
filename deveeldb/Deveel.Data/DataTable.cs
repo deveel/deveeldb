@@ -114,7 +114,7 @@ namespace Deveel.Data {
 		/// Returns a <see cref="RowData"/> representing a row for the addition 
 		/// of data to the table.
 		/// </returns>
-		public RowData createRowDataObject(IQueryContext context) {
+		public RowData CreateRowDataObject(IQueryContext context) {
 			CheckSafeOperation();  // safe op
 			return new RowData(this);
 		}
@@ -410,6 +410,39 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Deletes a single row that is at the current offset
+		/// of the given cursor.
+		/// </summary>
+		/// <param name="cursor">The cursor used to locate the offset of
+		/// the row to delete.</param>
+		/// <returns>
+		/// Returns 1 that indicates a single row was deleted.
+		/// </returns>
+		/// <exception cref="ArgumentException">
+		/// If the given cursor refers to a table which is different from
+		/// this one or if the given <paramref name="cursor"/> state is not
+		/// <see cref="CursorState.Opened"/>.
+		/// </exception>
+		public int DeleteCurrent(Cursor cursor) {
+			if (cursor.SelectedTable != this)
+				throw new ArgumentException("Cannot delete from a cursor which is not on the table.");
+
+			if (cursor.State != CursorState.Opened)
+				throw new ArgumentException("The cursor is not opened.");
+
+			int rowIndex = cursor.RowIndex;
+			if (rowIndex < 0)
+				throw new ArgumentException("The cursor is not at a valid offset.");
+
+			RemoveRow(rowIndex);
+
+			// Perform a referential integrity check on any changes to the table.
+			data_source.ConstraintIntegrityCheck();
+
+			return 1;
+		}
+
+		/// <summary>
 		/// Updates the table by applying the assignment operations over each row
 		/// that is found in the input table set.
 		/// </summary>
@@ -465,8 +498,8 @@ namespace Deveel.Data {
 
 			// NOTE: Assume there's no duplicate rows.
 
-			RowData original_data = createRowDataObject(context);
-			RowData row_data = createRowDataObject(context);
+			RowData original_data = CreateRowDataObject(context);
+			RowData row_data = CreateRowDataObject(context);
 
 			// If limit less than zero then limit is whole set.
 			if (limit < 0) {
@@ -502,7 +535,38 @@ namespace Deveel.Data {
 			}
 
 			return update_count;
+		}
 
+		public int UpdateCurrent(IQueryContext context, Cursor cursor, Assignment[] assign_list) {
+			CheckReadWriteLock();
+
+			if (cursor.SelectedTable != this)
+				throw new ArgumentException("The cursor given evaluates to another table.");
+
+			// NOTE: Assume there's no duplicate rows.
+
+			RowData original_data = CreateRowDataObject(context);
+			RowData row_data = CreateRowDataObject(context);
+
+			int rowIndex = cursor.RowIndex;
+
+			// Make a RowData object from this row (plus keep the original intact
+			// incase we need to roll back to it).
+			original_data.SetFromRow(rowIndex);
+			row_data.SetFromRow(rowIndex);
+
+			for (int n = 0; n < assign_list.Length; ++n) {
+				Assignment assignment = assign_list[n];
+				row_data.Evaluate(assignment, context);
+			}
+
+			// Update the row
+			UpdateRow(rowIndex, row_data);
+
+			// Perform a referential integrity check on any changes to the table.
+			data_source.ConstraintIntegrityCheck();
+
+			return 1;
 		}
 
 		/// <inheritdoc/>

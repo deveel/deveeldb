@@ -1543,16 +1543,50 @@ namespace Deveel.Data {
 
 		// ----------- Cursor management -----------
 
+		/// <summary>
+		/// Declares a cursor identified by the given name and on
+		/// the specified query.
+		/// </summary>
+		/// <param name="name">The name of the cursor to create.</param>
+		/// <param name="queryPlan">The query used by the cursor to iterate
+		/// through the results.</param>
+		/// <param name="scrollable">A flag that allows a cursor to iterate
+		/// in all the directions (not only forward-driven).</param>
+		/// <returns>
+		/// Returns the newly created <see cref="Cursor"/> instance.
+		/// </returns>
 		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, bool scrollable) {
 			return Transaction.DeclareCursor(name, queryPlan, scrollable);
 		}
 
+		/// <summary>
+		/// Declares a scrollable cursor identified by the given name and on
+		/// the specified query.
+		/// </summary>
+		/// <param name="name">The name of the cursor to create.</param>
+		/// <param name="queryPlan">The query used by the cursor to iterate
+		/// through the results.</param>
+		/// <returns>
+		/// Returns the newly created <see cref="Cursor"/> instance.
+		/// </returns>
 		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {
 			return DeclareCursor(name, queryPlan, true);
 		}
 
+		/// <summary>
+		/// Gets the instance of a cursor name.
+		/// </summary>
+		/// <param name="name">The name of the cursor to get.</param>
+		/// <returns>
+		/// Returns the instance of the <see cref="Cursor"/> identified by
+		/// the given name, or <c>null</c> if it was not found.
+		/// </returns>
 		public Cursor GetCursor(TableName name) {
 			return Transaction.GetCursor(name);
+		}
+
+		public bool CursorExists(TableName name) {
+			return Transaction.CursorExists(name);
 		}
 
 		// ---------- Implemented from ITriggerListener ----------

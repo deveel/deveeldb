@@ -1,3 +1,7 @@
+2009-11-30  Antonello Provenzano  <antonello@deveel.com>
+	* DataTable.cs: supports function for deleting the
+	row at the current index of a cursor.
+	
 2009-11-28  Antonello Provenzano  <antonello@deveel.com>
 	* Expression.cs: added static method 'Evaluate' to evaluate
 	a given string into an expression out of context.

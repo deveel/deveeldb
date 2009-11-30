@@ -648,16 +648,23 @@ StatementTree Update() :
   ArrayList assignments = new ArrayList();
   SearchExpression where_clause = new SearchExpression();
   int limit = -1;
+  bool from_cursor = false;
+  string cursor_name = null;
 }
 {
   ( <UPDATE> table_name = TableName() <SET> AssignmentList(assignments)
-        [ <WHERE> ConditionsExpression(where_clause) ]
+        [ <WHERE> 
+          ( <CURRENT> <OF> cursor_name = TableName() { from_cursor = true; } |
+            ConditionsExpression(where_clause) )
+        ]
         [ <LIMIT> limit = PositiveIntegerConstant() ] 
   )
 
   { cmd.SetObject("table_name", table_name);
     cmd.SetObject("assignments", assignments);
     cmd.SetObject("where_clause", where_clause);
+    cmd.SetObject("from_cursor", from_cursor);
+    cmd.SetObject("cursor_name", cursor_name);
     cmd.SetInt("limit", limit);
     return cmd; }
 }
@@ -1094,19 +1101,19 @@ StatementTree CloseCursor() :
 StatementTree Fetch() :
 {
   Token cursor_name;
-  FetchOrientation orientation = FetchOrientation.Next;
-  int pos = -1;
+  string orientation = "next";
+  int offset = -1;
 }
 {
   <FETCH> [
-    [ <NEXT> { orientation = FetchOrientation.Next; } |
-      <PRIOR> { orientation = FetchOrientation.Prior; } |
-      <FIRST> { orientation = FetchOrientation.First; } |
-      <LAST> { orientation = FetchOrientation.Last; } |
-      <RELATIVE> { orientation = FetchOrientation.Relative; } 
-        pos = PositiveIntegerConstant() |
-      <ABSOLUTE> { orientation = FetchOrientation.Absolute; }
-        pos = PositiveIntegerConstant()
+    [ <NEXT> { orientation = "next"; } |
+      <PRIOR> { orientation = "prior"; } |
+      <FIRST> { orientation = "first"; } |
+      <LAST> { orientation = "last"; } |
+      <RELATIVE> { orientation = "relative"; } 
+        offset = PositiveIntegerConstant() |
+      <ABSOLUTE> { orientation = "absolute"; }
+        offset = PositiveIntegerConstant()
     ]
       
     <FROM>
@@ -1117,7 +1124,7 @@ StatementTree Fetch() :
   { StatementTree ob = new StatementTree(typeof(FetchStatement));
     ob.SetObject("name", cursor_name.image);
     ob.SetObject("orientation", orientation);
-    ob.SetObject("position", pos);
+    ob.SetObject("offset", offset);
     return ob;
   }
 }
@@ -1128,17 +1135,24 @@ StatementTree Delete() :
   String table_name;
   SearchExpression where_clause = new SearchExpression();
   int limit = -1;
+  string cursor_name = null;
+  bool from_cursor = false;
 }
 {
 
   ( <DELETE> <FROM> table_name = TableName()
-        [ <WHERE> ConditionsExpression(where_clause) ]
+        [ <WHERE> 
+          ( <CURRENT> <OF> cursor_name = TableName() { from_cursor = true; } | 
+            ConditionsExpression(where_clause)) 
+        ]
         [ <LIMIT> limit = PositiveIntegerConstant() ] 
   )
 
   { cmd.SetObject("table_name", table_name);
     cmd.SetObject("where_clause", where_clause);
     cmd.SetInt("limit", limit);
+    cmd.SetObject("from_cursor", from_cursor);
+    cmd.SetObject("cursor_name", cursor_name);
     return cmd; }
 
 }

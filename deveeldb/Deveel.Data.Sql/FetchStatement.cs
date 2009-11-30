@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private FetchOrientation orientation;
 
-		private int position;
+		private int offset;
 
 		internal override void Prepare() {
 			DatabaseConnection db = Connection;
@@ -50,8 +50,8 @@ namespace Deveel.Data.Sql {
 			if (name_strip.IndexOf('.') != -1)
 				throw new DatabaseException("Cursor name can not contain '.' character.");
 
-			orientation = (FetchOrientation) GetValue("orientation");
-			position = GetInteger("position");
+			orientation = (FetchOrientation)Enum.Parse(typeof(FetchOrientation), GetString("orientation"), true);
+			offset = GetInteger("offset");
 		}
 
 		internal override Table Evaluate() {

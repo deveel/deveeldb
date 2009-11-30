@@ -1,4 +1,12 @@
-﻿2009-11-25  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-11-30  Antonello Provenzano  <antonello@deveel.com>
+	* SQL.csc: syntax "WHERE CURRENT OF" added to DELETE
+	and UPDATE statements
+	* DeleteStatement.cs: added support for the deletion
+	of the current row of a cursor
+	* UpdateStatement.cs: added support for the update
+	of the current row of a cursor
+	
+2009-11-25  Antonello Provenzano  <antonello@deveel.com>
 	* SQL.csc: added syntax for the support of CURSORs.
 	
 2009-11-15  Antonello Provenzano  <antonello@deveel.com>

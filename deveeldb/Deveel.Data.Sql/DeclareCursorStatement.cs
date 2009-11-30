@@ -54,18 +54,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private IQueryPlanNode plan;
 
-		internal static void CheckUserSelectPermissions(DatabaseQueryContext context, User user, IQueryPlanNode plan) {
-			// Discover the list of TableName objects this command touches,
-			ArrayList touched_tables = plan.DiscoverTableNames(new ArrayList());
-			Database dbase = context.Database;
-			// Check that the user is allowed to select from these tables.
-			for (int i = 0; i < touched_tables.Count; ++i) {
-				TableName t = (TableName)touched_tables[i];
-				if (!dbase.CanUserSelectFromTableObject(context, user, t, null)) {
-					throw new UserAccessException("User not permitted to select from table: " + t);
-				}
-			}
-		}
+		private TableExpressionFromSet from_set;
 
 		internal override void Prepare() {
 			DatabaseConnection db = Connection;
@@ -84,12 +73,12 @@ namespace Deveel.Data.Sql {
 
 			// Prepare this object from the StatementTree,
 			// The select expression itself
-			select_expression = (TableSelectExpression)GetValue("table_expression");
+			select_expression = (TableSelectExpression)GetValue("select_expression");
 			// The order by information
 			order_by = GetList("order_by");
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
-			TableExpressionFromSet from_set = Planner.GenerateFromSet(select_expression, db);
+			from_set = Planner.GenerateFromSet(select_expression, db);
 
 			// Form the plan
 			plan = Planner.FormQueryPlan(db, select_expression, from_set, order_by);
@@ -100,13 +89,14 @@ namespace Deveel.Data.Sql {
 
 			// Check the permissions for this user to select from the tables in the
 			// given plan.
-			CheckUserSelectPermissions(context, User, plan);
+			SelectStatement.CheckUserSelectPermissions(context, User, plan);
 
 			bool error = true;
 			try {
-				Connection.DeclareCursor(resolved_name, plan, scrollable);
+				Cursor cursor = Connection.DeclareCursor(resolved_name, plan, scrollable);
+				cursor.From = from_set;
 				error = false;
-				return FunctionTable.ResultTable(context, 1);
+				return FunctionTable.ResultTable(context, 0);
 			} finally {
 				// If an error occured, dump the command plan to the debug log.
 				// Or just dump the command plan if debug level = Information

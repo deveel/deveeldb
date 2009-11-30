@@ -22,6 +22,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// The class that represents a <c>CURSOR</c> to iterate through
@@ -53,7 +55,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The current state of this cursor.
 		/// </summary>
-		private CursorState state;
+		private CursorState state = CursorState.Closed;
 
 		/// <summary>
 		/// A flag that marks if the cursor is scrollable (can fetch
@@ -88,6 +90,8 @@ namespace Deveel.Data {
 		/// </summary>
 		private int rowCount;
 
+		private TableExpressionFromSet fromSet;
+
 		/// <summary>
 		/// Gets the current <see cref="CursorState"/> of the cursor.
 		/// </summary>
@@ -104,6 +108,26 @@ namespace Deveel.Data {
 		/// </summary>
 		public TableName Name {
 			get { return name; }
+		}
+
+		/// <summary>
+		/// Gets the current index to the row within thwe
+		/// </summary>
+		internal int RowIndex {
+			get { return rowIndex; }
+		}
+
+		/// <summary>
+		/// Gets the table which is the result of the evaluation of the
+		/// query that generated the cursor.
+		/// </summary>
+		internal Table SelectedTable {
+			get { return result; }
+		}
+
+		internal TableExpressionFromSet From {
+			get { return fromSet; }
+			set { fromSet = value; }
 		}
 
 		/// <summary>

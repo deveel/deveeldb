@@ -196,8 +196,7 @@ namespace Deveel.Data {
 		// ----- Operations within the context of this transaction -----
 
 		/// <inheritdoc/>
-		internal override IMutableTableDataSource
-				 CreateMutableTableDataSourceAtCommit(MasterTableDataSource master) {
+		internal override IMutableTableDataSource CreateMutableTableDataSourceAtCommit(MasterTableDataSource master) {
 			// Create the table for this transaction.
 			IMutableTableDataSource table = master.CreateTableDataSourceAtCommit(this);
 			// Log in the journal that this table was touched by the transaction.
@@ -2356,6 +2355,10 @@ namespace Deveel.Data {
 			cursors.Remove(name);
 
 			OnDatabaseObjectDropped(name);
+		}
+
+		public bool CursorExists(TableName name) {
+			return cursors.ContainsKey(name);
 		}
 
 		protected void ClearCursors() {
