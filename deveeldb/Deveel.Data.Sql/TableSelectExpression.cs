@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections;
+using System.Text;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -64,6 +65,10 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private SearchExpression where_clause = new SearchExpression();
 
+		/// <summary>
+		/// A flag indicating if the WHERE clause was set.
+		/// </summary>
+		private bool whereSet;
 
 		/// <summary>
 		/// The list of columns to group by. (ByColumn)
@@ -103,7 +108,10 @@ namespace Deveel.Data.Sql {
 
 		public SearchExpression Where {
 			get { return where_clause; }
-			set { where_clause = value; }
+			set {
+				where_clause = value;
+				whereSet = true;
+			}
 		}
 
 		public bool Distinct {
@@ -192,28 +200,42 @@ namespace Deveel.Data.Sql {
 		/// <inheritdoc/>
 		public Object Clone() {
 			TableSelectExpression v = (TableSelectExpression)MemberwiseClone();
-			if (columns != null) {
+			if (columns != null)
 				v.columns = (ArrayList)StatementTree.CloneSingleObject(columns);
-			}
-			if (from_clause != null) {
+			if (from_clause != null)
 				v.from_clause = (FromClause)from_clause.Clone();
-			}
-			if (where_clause != null) {
+			if (where_clause != null)
 				v.where_clause = (SearchExpression)where_clause.Clone();
-			}
-			if (group_by != null) {
+			if (group_by != null)
 				v.group_by = (ArrayList)StatementTree.CloneSingleObject(group_by);
-			}
-			if (group_max != null) {
+			if (group_max != null)
 				v.group_max = (VariableName)group_max.Clone();
-			}
-			if (having_clause != null) {
+			if (having_clause != null)
 				v.having_clause = (SearchExpression)having_clause.Clone();
-			}
-			if (next_composite != null) {
+			if (next_composite != null)
 				v.next_composite = (TableSelectExpression)next_composite.Clone();
-			}
 			return v;
+		}
+
+		public override string ToString() {
+			StringBuilder sb = new StringBuilder("SELECT ");
+			for (int i = 0; i < columns.Count; i++) {
+				SelectColumn column = (SelectColumn) columns[i];
+				column.DumpTo(sb);
+
+				if (i < columns.Count - 1)
+					sb.Append(", ");
+			}
+
+			sb.Append(" FROM ");
+			from_clause.DumpTo(sb);
+
+			if (whereSet) {
+				sb.Append(" WHERE ");
+				where_clause.DumpTo(sb);
+			}
+
+			return sb.ToString();
 		}
 	}
 }

@@ -68,12 +68,12 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Constructs the source.
 		/// </summary>
-		/// <param name="connection"></param>
+		/// <param name="case_insensitive"></param>
 		/// <param name="table_query"></param>
 		/// <param name="unique_name"></param>
 		/// <param name="given_name"></param>
 		/// <param name="root_name"></param>
-		public FromTableDirectSource(DatabaseConnection connection,
+		public FromTableDirectSource(bool case_insensitive,
 									 ITableQueryDef table_query, String unique_name,
 									 TableName given_name, TableName root_name) {
 			this.unique_name = unique_name;
@@ -85,7 +85,7 @@ namespace Deveel.Data.Sql {
 				this.table_name = root_name;
 			}
 			// Is the database case insensitive?
-			this.case_insensitive = connection.IsInCaseInsensitiveMode;
+			this.case_insensitive = case_insensitive;
 			this.table_query = table_query;
 		}
 

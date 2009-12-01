@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections;
+using System.Text;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -235,6 +236,10 @@ namespace Deveel.Data.Sql {
 			}
 
 			return v;
+		}
+
+		internal void DumpTo(StringBuilder sb) {
+			//TODO:
 		}
 	}
 }

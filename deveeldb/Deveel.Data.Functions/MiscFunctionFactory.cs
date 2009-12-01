@@ -1,4 +1,25 @@
-﻿using System;
+﻿//  
+//  InternalFunctionFactory.cs
+//  
+//  Author:
+//       Antonello Provenzano <antonello@deveel.com>
+// 
+//  Copyright (c) 2009 Deveel
+// 
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+// 
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+// 
+//  You should have received a copy of the GNU General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+using System;
 using System.IO;
 using System.Text;
 
@@ -32,6 +53,11 @@ namespace Deveel.Data.Functions {
 			AddFunction("identity", typeof(IdentityFunction), FunctionType.StateBased);
 
 			AddFunction("version", typeof(VersionFunction));
+			AddFunction("nullif", typeof(NullIfFunction));
+			AddFunction("length", typeof(LengthFunction));
+
+			AddFunction("sql_exists", typeof(ExistsFunction));
+			AddFunction("sql_unique", typeof(UniqueFunction));
 		}
 
 		#region ToNumberFunction
@@ -590,6 +616,144 @@ namespace Deveel.Data.Functions {
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
 				return TType.StringType;
 			}
+		}
+
+		#endregion
+
+		#region NullIfFunction
+
+		[Serializable]
+		private class NullIfFunction : Function {
+			public NullIfFunction(Expression[] parameters) 
+				: base("nullif", parameters) {
+				if (ParameterCount != 2)
+					throw new ArgumentException("The NULLIF function must define exactly 2 parameters.");
+			}
+
+			#region Overrides of Function
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob1 = this[0].Evaluate(group, resolver, context);
+				TObject ob2 = this[1].Evaluate(group, resolver, context);
+
+				if (ob1.IsNull)
+					throw new InvalidOperationException("Cannot compare to a NULL argument.");
+
+				if (!ob1.TType.IsComparableType(ob2.TType))
+					throw new InvalidOperationException("The types of the two arguments are not comparable.");
+
+				return ob1.CompareTo(ob2) == 0 ? TObject.Null : ob1;
+			}
+
+			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+				TObject ob1 = this[0].Evaluate(resolver, context);
+				return ob1.TType;
+			}
+
+			#endregion
+		}
+
+		#endregion
+
+		#region LengthFunction
+
+		[Serializable]
+		class LengthFunction : Function {
+			public LengthFunction(Expression[] parameters)
+				: base("length", parameters) {
+
+				if (ParameterCount != 1)
+					throw new Exception("Length function must have one argument.");
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull) {
+					return ob;
+				}
+				if (ob.TType is TBinaryType) {
+					IBlobAccessor blob = (IBlobAccessor)ob.Object;
+					return TObject.GetInt4(blob.Length);
+				}
+				if (ob.TType is TStringType) {
+					IStringAccessor str = (IStringAccessor)ob.Object;
+					return TObject.GetInt4(str.Length);
+				}
+				return TObject.GetInt4(ob.Object.ToString().Length);
+			}
+
+		}
+
+		#endregion
+
+		#region ExistsFunction
+
+		[Serializable]
+		private class ExistsFunction : Function {
+			public ExistsFunction(Expression[] parameters) 
+				: base("sql_exists", parameters) {
+			}
+
+			#region Overrides of Function
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (ob.IsNull)
+					return TObject.GetBoolean(false);
+
+				if (!(ob.TType is TQueryPlanType))
+					throw new InvalidOperationException("The EXISTS function must have a query argument.");
+
+				IQueryPlanNode plan = ob.Object as IQueryPlanNode;
+				if (plan == null)
+					throw new InvalidOperationException();
+
+				Table table = plan.Evaluate(context);
+				return table.RowCount > 0;
+			}
+
+			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+				return TType.BooleanType;
+			}
+
+			#endregion
+		}
+
+		#endregion
+
+		#region UniqueFunction
+
+		[Serializable]
+		private class UniqueFunction : Function {
+			public UniqueFunction(Expression[] parameters) 
+				: base("sql_unique", parameters) {
+			}
+
+			#region Overrides of Function
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+
+				if (ob.IsNull)
+					return TObject.Null;
+
+				if (!(ob.TType is TQueryPlanType))
+					throw new ArgumentException("The function UNIQUE must be evaluated against a query.");
+
+				IQueryPlanNode plan = (IQueryPlanNode) ob.Object;
+				if (plan == null)
+					return TObject.Null;
+
+				Table table = plan.Evaluate(context);
+
+				throw new NotImplementedException();
+			}
+
+			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+				return TType.BooleanType;
+			}
+
+			#endregion
 		}
 
 		#endregion

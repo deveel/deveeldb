@@ -486,6 +486,15 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="queryPlan"></param>
+		/// <returns></returns>
+		public static TObject GetQueryPlan(IQueryPlanNode queryPlan) {
+			return new TObject(TType.QueryPlanType, queryPlan);
+		}
+
+		/// <summary>
 		/// Returns a TObject of NULL type that represents a null value.
 		/// </summary>
 		public static TObject Null {

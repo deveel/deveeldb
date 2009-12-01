@@ -871,21 +871,20 @@ namespace Deveel.Data {
 			// Optimization - trivial case of 'a' or 'ab*' postfix are tested for
 			//   here.
 			int element_count = elements.Count;
-			if (element_count == 1) {
+			if (element_count == 1)
 				return (TObject)ElementToObject(0, group, resolver, context);
-			} else if (element_count == 3) {
+			if (element_count == 3) {
 				TObject o1 = (TObject)ElementToObject(0, group, resolver, context);
 				TObject o2 = (TObject)ElementToObject(1, group, resolver, context);
 				Operator op = (Operator)elements[2];
 				return op.Evaluate(o1, o2, group, resolver, context);
 			}
 
-			if (eval_stack == null) {
+			if (eval_stack == null)
 				eval_stack = new ArrayList();
-			}
 
 			for (int n = 0; n < element_count; ++n) {
-				Object val = ElementToObject(n, group, resolver, context);
+				object val = ElementToObject(n, group, resolver, context);
 				if (val is Operator) {
 					// Pop the last two values off the stack, evaluate them and push
 					// the new value back on.
@@ -924,23 +923,42 @@ namespace Deveel.Data {
 			if (ob is TObject ||
 			    ob is Operator) {
 				return ob;
-			} else if (ob is VariableName) {
+			}
+			if (ob is VariableName)
 				return resolver.Resolve((VariableName) ob);
-			} else if (ob is CorrelatedVariable) {
+			if (ob is CorrelatedVariable)
 				return ((CorrelatedVariable) ob).EvalResult;
-			} else if (ob is FunctionDef) {
+			if (ob is FunctionDef) {
 				IFunction fun = ((FunctionDef) ob).GetFunction(context);
 				return fun.Evaluate(group, resolver, context);
-			} else if (ob is VariableRef) {
+			} 
+			if (ob is VariableRef) {
 				VariableRef variableRef = (VariableRef) ob;
 				Variable variable = context.GetVariable(variableRef.Variable);
 				return (variable == null ? TObject.Null : variable.Value);
-			} else {
-				if (ob == null) {
-					throw new NullReferenceException("Null element in expression");
-				}
-				throw new ApplicationException("Unknown element type: " + ob.GetType());
 			}
+
+			if (ob is TableSelectExpression) {
+				DatabaseQueryContext queryContext = context as DatabaseQueryContext;
+				if (queryContext == null)
+					throw new ApplicationException("Cannot evaluate a select expression outside a context or not in a " +
+					                               "database context.");
+
+				TableSelectExpression selectExpression = (TableSelectExpression) ob;
+
+				// Generate the TableExpressionFromSet hierarchy for the expression,
+				TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, queryContext.Connection);
+
+				// Form the plan
+				IQueryPlanNode plan = Planner.FormQueryPlan(queryContext.Connection, selectExpression, from_set, new ArrayList());
+
+				return TObject.GetQueryPlan(plan);
+			}
+
+			if (ob == null)
+				throw new NullReferenceException("Null element in expression");
+
+			throw new ApplicationException("Unknown element type: " + ob.GetType());
 		}
 
 		/// <summary>

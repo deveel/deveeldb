@@ -125,8 +125,7 @@ namespace Deveel.Data.Sql {
 
 			// Add the from table direct source for this table
 			ITableQueryDef table_query_def = Connection.GetTableQueryDef(tname, null);
-			AddTable(new FromTableDirectSource(Connection,
-								   table_query_def, "INSERT_TABLE", tname, tname));
+			AddTable(new FromTableDirectSource(Connection.IsInCaseInsensitiveMode, table_query_def, "INSERT_TABLE", tname, tname));
 
 			// Get the table we are inserting to
 			insert_table = Connection.GetTable(tname);

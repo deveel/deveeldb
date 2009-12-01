@@ -79,13 +79,13 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="connection"></param>
-		public TableExpressionFromSet(DatabaseConnection connection) {
+		/// <param name="case_insensitive"></param>
+		public TableExpressionFromSet(bool case_insensitive) {
 			table_resources = new ArrayList();
 			function_resources = new ArrayList();
 			exposed_variables = new ArrayList();
 			// Is the database case insensitive?
-			this.case_insensitive = connection.IsInCaseInsensitiveMode;
+			this.case_insensitive = case_insensitive;
 		}
 
 		/// <summary>

@@ -537,6 +537,12 @@ namespace Deveel.Data {
 			return update_count;
 		}
 
+		/// <summary>
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="cursor"></param>
+		/// <param name="assign_list"></param>
+		/// <returns></returns>
 		public int UpdateCurrent(IQueryContext context, Cursor cursor, Assignment[] assign_list) {
 			CheckReadWriteLock();
 

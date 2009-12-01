@@ -65,12 +65,12 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Constructs the source.
 		/// </summary>
-		/// <param name="connection"></param>
+		/// <param name="case_insensitive"></param>
 		/// <param name="unique_key"></param>
 		/// <param name="table_expression"></param>
 		/// <param name="from_set"></param>
 		/// <param name="aliased_table_name"></param>
-		internal FromTableSubQuerySource(DatabaseConnection connection,
+		internal FromTableSubQuerySource(bool case_insensitive,
 									   String unique_key,
 									   TableSelectExpression table_expression,
 									   TableExpressionFromSet from_set,
@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql {
 			this.from_set = from_set;
 			this.end_table_name = aliased_table_name;
 			// Is the database case insensitive?
-			this.case_insensitive = connection.IsInCaseInsensitiveMode;
+			this.case_insensitive = case_insensitive;
 		}
 
 		/// <summary>

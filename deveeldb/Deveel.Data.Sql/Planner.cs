@@ -137,9 +137,7 @@ namespace Deveel.Data.Sql {
 		/// This object is used to help qualify variable references.
 		/// </remarks>
 		/// <returns></returns>
-		internal static TableExpressionFromSet GenerateFromSet(
-				  TableSelectExpression select_expression, DatabaseConnection db) {
-
+		internal static TableExpressionFromSet GenerateFromSet(TableSelectExpression select_expression, DatabaseConnection db) {
 			// Get the 'from_clause' from the table expression
 			FromClause from_clause = select_expression.From;
 
@@ -147,7 +145,7 @@ namespace Deveel.Data.Sql {
 			from_clause.JoinSet.Prepare(db);
 
 			// Create a TableExpressionFromSet for this table expression
-			TableExpressionFromSet from_set = new TableExpressionFromSet(db);
+			TableExpressionFromSet from_set = new TableExpressionFromSet(db.IsInCaseInsensitiveMode);
 
 			// Add all tables from the 'from_clause'
 			IEnumerator tables = from_clause.AllTables.GetEnumerator();
@@ -160,16 +158,14 @@ namespace Deveel.Data.Sql {
 				if (ftdef.IsSubQueryTable) {
 					// eg. FROM ( SELECT id FROM Part )
 					TableSelectExpression sub_query = ftdef.TableSelectExpression;
-					TableExpressionFromSet sub_query_from_set =
-														GenerateFromSet(sub_query, db);
+					TableExpressionFromSet sub_query_from_set = GenerateFromSet(sub_query, db);
 					// The aliased name of the table
 					TableName alias_table_name = null;
 					if (alias != null) {
 						alias_table_name = new TableName(alias);
 					}
-					FromTableSubQuerySource source =
-						new FromTableSubQuerySource(db, unique_key, sub_query,
-													sub_query_from_set, alias_table_name);
+					FromTableSubQuerySource source = new FromTableSubQuerySource(db.IsInCaseInsensitiveMode, unique_key, sub_query,
+					                                                             sub_query_from_set, alias_table_name);
 					// Add to list of subquery tables to add to command,
 					from_set.AddTable(source);
 				}
@@ -180,10 +176,8 @@ namespace Deveel.Data.Sql {
 					// Resolve to full table name
 					TableName table_name = db.ResolveTableName(name);
 
-					if (!db.TableExists(table_name)) {
-						throw new StatementException(
-									   "Table '" + table_name + "' was not found.");
-					}
+					if (!db.TableExists(table_name))
+						throw new StatementException("Table '" + table_name + "' was not found.");
 
 					TableName given_name = null;
 					if (alias != null) {
@@ -191,10 +185,9 @@ namespace Deveel.Data.Sql {
 					}
 
 					// Get the ITableQueryDef object for this table name (aliased).
-					ITableQueryDef table_query_def =
-											   db.GetTableQueryDef(table_name, given_name);
-					FromTableDirectSource source = new FromTableDirectSource(db,
-									  table_query_def, unique_key, given_name, table_name);
+					ITableQueryDef table_query_def = db.GetTableQueryDef(table_name, given_name);
+					FromTableDirectSource source = new FromTableDirectSource(db.IsInCaseInsensitiveMode, table_query_def, unique_key,
+					                                                         given_name, table_name);
 
 					from_set.AddTable(source);
 				}

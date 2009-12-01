@@ -15,13 +15,15 @@ namespace Deveel.Data.Functions {
 			AddFunction("sql_trim", typeof(SQLTrimFunction));
 			AddFunction("ltrim", typeof(LTrimFunction));
 			AddFunction("rtrim", typeof(RTrimFunction));
-			AddFunction("length", typeof(LengthFunction));
 			AddFunction("substring", typeof(SubstringFunction));
 			AddFunction("instr", typeof (InStrFunction));
 			AddFunction("soundex", typeof(SoundexFunction));
 			AddFunction("lpad", typeof(LPadFunction));
 			AddFunction("rpad", typeof(RPadFunction));
 			AddFunction("replace", typeof(ReplaceFunction));
+			AddFunction("char_length", typeof(CharLengthFunction));
+			AddFunction("character_length", typeof(CharLengthFunction));
+			AddFunction("octet_length", typeof(OctetLengthFunction));
 		}
 
 		#region ConcatFunction
@@ -302,36 +304,6 @@ namespace Deveel.Data.Functions {
 
 		#endregion
 
-		#region LengthFunction
-
-		class LengthFunction : Function {
-			public LengthFunction(Expression[] parameters)
-				: base("length", parameters) {
-
-				if (ParameterCount != 1)
-					throw new Exception("Length function must have one argument.");
-			}
-
-			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
-				TObject ob = this[0].Evaluate(group, resolver, context);
-				if (ob.IsNull) {
-					return ob;
-				}
-				if (ob.TType is TBinaryType) {
-					IBlobAccessor blob = (IBlobAccessor)ob.Object;
-					return TObject.GetInt4(blob.Length);
-				}
-				if (ob.TType is TStringType) {
-					IStringAccessor str = (IStringAccessor)ob.Object;
-					return TObject.GetInt4(str.Length);
-				}
-				return TObject.GetInt4(ob.Object.ToString().Length);
-			}
-
-		}
-
-		#endregion
-
 		#region SubstringFunction
 
 		[Serializable]
@@ -580,6 +552,66 @@ namespace Deveel.Data.Functions {
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
 				return TType.StringType;
 			}
+		}
+
+		#endregion
+
+		#region CharLengthFunction
+
+		[Serializable]
+		private class CharLengthFunction : Function {
+			public CharLengthFunction(Expression[] parameters) 
+				: base("char_length", parameters) {
+			}
+
+			#region Overrides of Function
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (!(ob.TType is TStringType) || ob.IsNull)
+					return TObject.Null;
+
+				IStringAccessor s = (IStringAccessor)ob.Object;
+				if (s == null)
+					return TObject.Null;
+
+				return s.Length;
+			}
+
+			#endregion
+		}
+
+		#endregion
+
+		#region OctetLengthFunction
+
+		[Serializable]
+		private class OctetLengthFunction : Function {
+			public OctetLengthFunction(Expression[] parameters) 
+				: base("octet_length", parameters) {
+			}
+
+			#region Overrides of Function
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				TObject ob = this[0].Evaluate(group, resolver, context);
+				if (!(ob.TType is TStringType) || ob.IsNull)
+					return TObject.Null;
+
+				IStringAccessor s = (IStringAccessor)ob.Object;
+				if (s == null)
+					return TObject.Null;
+
+				// by default a character is an UNICODE, which requires 
+				// two bytes...
+				long size = s.Length * 2;
+				if (s is IRef)
+					size = (s as IRef).RawSize;
+
+				return size;
+			}
+
+			#endregion
 		}
 
 		#endregion

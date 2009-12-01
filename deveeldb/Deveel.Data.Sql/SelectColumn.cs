@@ -69,7 +69,7 @@ namespace Deveel.Data.Sql {
 		/// If the column represents a glob of columns (eg. 'Part.*' or '*') then 
 		/// this is set to the glob string and 'expression' is left blank.
 		/// </summary>
-		internal String glob_name;
+		internal string glob_name;
 
 		/// <summary>
 		/// The fully resolved name that this column is given in the resulting table.
@@ -79,7 +79,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The alias of this column string.
 		/// </summary>
-		private String alias;
+		private string alias;
 
 		/// <summary>
 		/// The expression of this column.
@@ -132,6 +132,16 @@ namespace Deveel.Data.Sql {
 			alias = name;
 		}
 
+		internal void DumpTo(StringBuilder sb) {
+			if (glob_name != null && glob_name.Length > 0) {
+				sb.Append(glob_name);
+			} else {
+				sb.Append(expression.Text.ToString());
+				if (alias != null && alias.Length > 0)
+					sb.Append(" AS ").Append(alias);
+			}
+		}
+
 		/// <inheritdoc/>
 		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			if (expression != null) {
@@ -158,15 +168,12 @@ namespace Deveel.Data.Sql {
 		/// <inheritdoc/>
 		public object Clone() {
 			SelectColumn v = (SelectColumn)MemberwiseClone();
-			if (resolved_name != null) {
+			if (resolved_name != null)
 				v.resolved_name = (VariableName)resolved_name.Clone();
-			}
-			if (expression != null) {
+			if (expression != null)
 				v.expression = (Expression)expression.Clone();
-			}
-			if (internal_name != null) {
+			if (internal_name != null)
 				v.internal_name = (VariableName)internal_name.Clone();
-			}
 			return v;
 		}
 

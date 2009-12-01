@@ -21,6 +21,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Text;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -104,6 +105,10 @@ namespace Deveel.Data.Sql {
 			if (search_expression != null)
 				return search_expression.ToString();
 			return "NO SEARCH EXPRESSION";
+		}
+
+		internal void DumpTo(StringBuilder sb) {
+			sb.Append(search_expression.Text.ToString());
 		}
 	}
 }
