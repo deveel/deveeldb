@@ -1,6 +1,13 @@
+2009-12-01  Antonello Provenzano  <antonello@deveel.com>
+	* Expression.cs: support for CaseExpressions
+	
 2009-11-30  Antonello Provenzano  <antonello@deveel.com>
 	* DataTable.cs: supports function for deleting the
 	row at the current index of a cursor.
+	* Expression.cs: added support for evaluation the 
+	generation and evaluation of query plans.
+	* TObject.cs: implemented method GetQueryPlan to
+	support the creation of TQueryPlanType objects.
 	
 2009-11-28  Antonello Provenzano  <antonello@deveel.com>
 	* Expression.cs: added static method 'Evaluate' to evaluate

@@ -1,4 +1,10 @@
-﻿2009-11-27  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-11-30  Antonello Provenzano  <antonello@deveel.com>
+	* MiscFunctionFactory.cs: implemented NULLIF function
+	* StringFunctionFactory.cs: 
+		- LengthFunction class moved to MiscFunctionFactory
+		- Implemented CHARACTER_LENGTH and OCTET_LENGTH functions
+	
+2009-11-27  Antonello Provenzano  <antonello@deveel.com>
 	* DateFunctionFactory.cs: implemented the function EXTRACT
 	
 2009-11-01  Antonello Provenzano  <antonello@deveel.com>

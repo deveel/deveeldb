@@ -9,10 +9,15 @@
 	- Session variables supported, including the definition of the type, constant, not-null
 	constraint and default value (eg. "test CONSTANT NUMERIC(12,1) = 1235,1", "test1 STRING NOT 
 	NULL").
+	- Users now can define CASE WHEN select expressions (eg. "CASE WHEN a < b THEN 34 ELSE 12") 
+	to switch	between values given conditions.
 * Functions:
 	- The standard SQL-92 function EXTRACT and its equivalents (YEAR, MONTH, DAY, HOUR, MINUTE
 	and SECOND) has been implemented.
 	- SQL INTERVAL conversion (eg. "INTERVAL '3' DAYS") is now supported
+	- NULLIF, that will return the first argument if not equal to the second or NULL
+	- CHARACTER_LENGTH (CHAR_LENGTH) and OCTET_LENGTH to determine the length of a string value
+	- EXISTS function to verify a sub-query evaluates to a a number of rows higher than 0
 	
 
 Release notes for the version 0.9.8

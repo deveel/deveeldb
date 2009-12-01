@@ -349,8 +349,7 @@ namespace Deveel.Data {
 			           ob is VariableName ||
 			           ob is FunctionDef ||
 			           ob is Operator ||
-			           ob is IStatementTreeObject
-				) {
+			           ob is IStatementTreeObject) {
 				elements.Add(ob);
 			} else {
 				throw new ApplicationException("Unknown element type added to expression: " +
@@ -919,7 +918,7 @@ namespace Deveel.Data {
 		/// <paramref name="resolver"/>. If the element is a function then it 
 		/// is evaluated and the result is returned.</remarks>
 		private Object ElementToObject(int n, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
-			Object ob = elements[n];
+			object ob = elements[n];
 			if (ob is TObject ||
 			    ob is Operator) {
 				return ob;
@@ -953,6 +952,11 @@ namespace Deveel.Data {
 				IQueryPlanNode plan = Planner.FormQueryPlan(queryContext.Connection, selectExpression, from_set, new ArrayList());
 
 				return TObject.GetQueryPlan(plan);
+			}
+
+			if (ob is CaseExpression) {
+				CaseExpression caseExpression = (CaseExpression) ob;
+				return caseExpression.Evaluate(group, resolver, context);
 			}
 
 			if (ob == null)
@@ -1002,7 +1006,7 @@ namespace Deveel.Data {
 		/// the type that these objects have set as their result type.
 		/// </remarks>
 		public TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-			Object ob = elements[elements.Count - 1];
+			object ob = elements[elements.Count - 1];
 			if (ob is FunctionDef) {
 				IFunction fun = ((FunctionDef)ob).GetFunction(context);
 				return fun.ReturnTType(resolver, context);
@@ -1049,7 +1053,7 @@ namespace Deveel.Data {
 
 			// Clone items in the elements list
 			for (int i = 0; i < size; ++i) {
-				Object element = elements[i];
+				object element = elements[i];
 
 				if (element is TObject) {
 					// TObject is immutable except for TArrayType and TQueryPlanType

@@ -224,6 +224,8 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <SQLADD:      "add">
 | <FOR:         "for">
 | <ROW:         "row">
+| <CASE:        "case">
+| <ELSE:        "else">
 | <EACH:        "each">
 | <CALL:        "call">
 | <BOTH:        "both">
@@ -242,6 +244,8 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <LONG:        "long">
 | <NAME:        "name">
 | <OPEN:        "open">
+| <THEN:        "then">
+| <WHEN:        "when">
 | <AFTER:       "after">
 | <START:       "start">
 | <COUNT:       "count">
@@ -297,6 +301,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <MAXVALUE:    "maxvalue">
 | <FUNCTION:    "function">
 | <CONSTANT:    "constant">
+| <READONLY:    "readonly">
 | <SEQUENCE:    "sequence">
 | <RESTRICT:    "restrict">
 | <PASSWORD:    "password">
@@ -312,6 +317,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <INCREMENT:   "increment">
 | <PROCEDURE:   "procedure">
 | <CHARACTER:   "character">
+| <CURRENTOF:   "current of">
 | <IMMEDIATE:   "immediate">
 | <INITIALLY:   "initially">
 | <TEMPORARY:   "temporary">
@@ -320,6 +326,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <CONSTRAINT:  "constraint">
 | <DEFERRABLE:  "deferrable">
 | <REFERENCES:  "references">
+| <INSENSITIVE: "insensitive">
 
 | <PRIMARY:     "primary">
 | <FOREIGN:     "foreign">
@@ -653,8 +660,8 @@ StatementTree Update() :
 }
 {
   ( <UPDATE> table_name = TableName() <SET> AssignmentList(assignments)
-        [ <WHERE> 
-          ( <CURRENT> <OF> cursor_name = TableName() { from_cursor = true; } |
+        [ <WHERE>
+          ( <CURRENTOF> cursor_name = TableName() { from_cursor = true; } |
             ConditionsExpression(where_clause) )
         ]
         [ <LIMIT> limit = PositiveIntegerConstant() ] 
@@ -1063,9 +1070,10 @@ StatementTree DeclareCursor() :
   ArrayList order_by = new ArrayList();
 }
 {
-  name = SQLIdentifier() [ <SCROLL> { scrollable=true; } ] <CURSOR> 
+  name = SQLIdentifier() [ <INSENSITIVE> ] [ <SCROLL> { scrollable=true; } ] <CURSOR> 
   <FOR> select_expr = GetTableSelectExpression()
   [ <ORDERBY> SelectOrderByList(order_by) ]
+  [ <FOR> <READONLY> ]
 
   { StatementTree ob = new StatementTree(typeof(DeclareCursorStatement));
     ob.SetObject("name", name.image);
@@ -1142,8 +1150,8 @@ StatementTree Delete() :
 
   ( <DELETE> <FROM> table_name = TableName()
         [ <WHERE> 
-          ( <CURRENT> <OF> cursor_name = TableName() { from_cursor = true; } | 
-            ConditionsExpression(where_clause)) 
+          ( <CURRENTOF> cursor_name = TableName() { from_cursor = true; } | 
+            ConditionsExpression(where_clause) )
         ]
         [ <LIMIT> limit = PositiveIntegerConstant() ] 
   )
@@ -1333,8 +1341,6 @@ StatementTree ShutDown() :
   { cmd.SetObject("command", "shutdown");
     return cmd; }
 }
-
-
 
 
 
@@ -1957,6 +1963,13 @@ void ConstraintAttributes(SqlConstraint constraint) :
   )
 }
 
+void CaseCondition(ArrayList list) :
+{ Expression test = null, result = null; }
+{
+  <WHEN> test = DoExpression()
+  <THEN> result = DoExpression()
+  { list.Add(new CaseCondition(test, result)); }
+}
 
 
 // A list of column names
@@ -2101,6 +2114,7 @@ void Operand(Expression exp, Stack stack) :
   object param_ob;
   object param_resolve;
   VariableRef variable_ref;
+  TableSelectExpression select_expression = null;
 }
 {
   (   "(" { stack.Push(Operator.Get("(")); exp.Text.Append("("); }
@@ -2186,7 +2200,44 @@ void Operand(Expression exp, Stack stack) :
       exp.Text.Append("INTERVAL").Append(" ").Append(t.image).Append(" ").Append(tt.image);
     }
   )
-      
+
+// Exists function
+| (
+    <EXISTS> "(" select_expression = GetTableSelectExpression() ")" {
+      exp_list = new Expression[1];
+      exp_list[0] = new Expression(select_expression);
+      f = Util.ResolveFunctionName("sql_exists", exp_list);
+      exp.AddElement(f);
+      exp.Text.Append("EXISTS(").Append(select_expression.ToString()).Append(")");
+    }
+  )
+  
+
+// Unique function
+| (
+    <UNIQUE> "(" select_expression = GetTableSelectExpression() ")" {
+      exp_list = new Expression[1];
+      exp_list[0] = new Expression(select_expression);
+      f = Util.ResolveFunctionName("sql_unique", exp_list);
+      exp.AddElement(f);
+      exp.Text.Append("UNIQUE(").Append(select_expression.ToString()).Append(")");
+    }
+  )
+
+// CASE expression
+| (
+    <CASE> { CaseExpression case_exp = new CaseExpression(); 
+             Expression case_cond_test, case_cond; }
+      <WHEN> case_cond_test = DoExpression() <THEN> case_cond = DoExpression()
+           { case_exp.AddCondition(new CaseCondition(case_cond_test, case_cond)); }
+     ( <WHEN> case_cond_test = DoExpression() <THEN> case_cond = DoExpression()
+           { case_exp.AddCondition(new CaseCondition(case_cond_test, case_cond)); } )*
+     [ <ELSE> case_cond = DoExpression() { case_exp.Else = case_cond; } ]
+
+     { exp.AddElement(case_exp); 
+       exp.Text.Append(case_exp.ToString()); }
+  )
+
 // object instantiation
     | ( <NEW> f = Instantiation()
           { exp.AddElement(f); exp.Text.Append(f); }

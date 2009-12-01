@@ -179,8 +179,7 @@ namespace Deveel.Data.Sql {
 							for (int p = 0; p < elem_list.Count; ++p) {
 								Object ob = elem_list[p];
 								if (ob is SelectStatement) {
-									throw new DatabaseException(
-													 "Illegal to have sub-select in expression.");
+									throw new DatabaseException("Illegal to have sub-select in expression.");
 								}
 							}
 							// Resolve the expression.
@@ -206,10 +205,9 @@ namespace Deveel.Data.Sql {
 					Expression exp = assignment.Expression;
 					IList elem_list = exp.AllElements;
 					for (int n = 0; n < elem_list.Count; ++n) {
-						Object ob = elem_list[n];
+						object ob = elem_list[n];
 						if (ob is SelectStatement) {
-							throw new DatabaseException(
-												 "Illegal to have sub-select in SET clause.");
+							throw new DatabaseException("Illegal to have sub-select in SET clause.");
 						}
 					}
 
@@ -237,11 +235,8 @@ namespace Deveel.Data.Sql {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Check that this user has privs to insert into the table.
-			if (!Connection.Database.CanUserInsertIntoTableObject(
-											context, User, tname, col_var_list)) {
-				throw new UserAccessException(
-				   "User not permitted to insert in to table: " + table_name);
-			}
+			if (!Connection.Database.CanUserInsertIntoTableObject(context, User, tname, col_var_list))
+				throw new UserAccessException("User not permitted to insert in to table: " + table_name);
 
 			// Are we inserting from a select statement or from a 'set' assignment
 			// list?
@@ -268,9 +263,8 @@ namespace Deveel.Data.Sql {
 				// (A IRowEnumerator for a table being modified is undefined).
 				IntegerVector row_list = new IntegerVector();
 				IRowEnumerator en = result.GetRowEnumerator();
-				while (en.MoveNext()) {
+				while (en.MoveNext())
 					row_list.AddInt(en.RowIndex);
-				}
 
 				// For each row of the select table.
 				int sz = row_list.Count;
@@ -296,10 +290,8 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Notify TriggerManager that we've just done an update.
-			if (insert_count > 0) {
-				Connection.OnTriggerEvent(new TriggerEvent(
-								  TriggerEventType.Insert, tname.ToString(), insert_count));
-			}
+			if (insert_count > 0)
+				Connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Insert, tname.ToString(), insert_count));
 
 			// Return the number of rows we inserted.
 			return FunctionTable.ResultTable(context, insert_count);

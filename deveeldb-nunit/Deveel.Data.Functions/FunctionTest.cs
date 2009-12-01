@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Functions {
 	[TestFixture]
-	public sealed class FunctionTest {
+	public sealed class FunctionTest : TestBase {
 		#region Aritmetic Functions
 
 		[Test]
@@ -104,6 +104,34 @@ namespace Deveel.Data.Functions {
 			Assert.IsTrue(result.TType is TIntervalType);
 			TimeSpan timeSpan = result.ToTimeSpan();
 			Assert.AreEqual(3, timeSpan.TotalDays);
+		}
+
+		#endregion
+
+		#region MiscFunctions
+
+		[Test]
+		public void NullIf() {
+			TObject result = Expression.Evaluate("NULLIF('test1', 'test2')");
+			Assert.IsTrue(TObject.GetString("test1") == result);
+
+			result = Expression.Evaluate("NULLIF(24 * 2, 48)");
+			Assert.IsTrue(TObject.Null == result);
+
+			result = Expression.Evaluate("NULLIF(3, 5)");
+			Assert.AreEqual(3, result);
+		}
+
+		[Test]
+		public void ExistsFunction() {
+			const string sql = "EXISTS(SELECT * FROM Person)";
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			DatabaseQueryContext queryContext = new DatabaseQueryContext(connection);
+			Expression exp = Expression.Parse(sql);
+			TObject result = exp.Evaluate(null, queryContext);
+			
+			Console.Out.WriteLine("{0} = {1}", sql, result);
 		}
 
 		#endregion
