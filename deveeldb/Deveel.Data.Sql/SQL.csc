@@ -600,7 +600,7 @@ StatementTree DeclareVariable() :
   bool constant = false, not_null = false;
 }
 {
-  name = <IDENTIFIER> [ <CONSTANT> { constant = true; } ]
+  name = SQLIdentifier() [ <CONSTANT> { constant = true; } ]
    type = GetTType()
   [ <NOT> <NULL_LITERAL> { not_null = true; } ]
   [ <ASSIGNMENT> default_value = DoExpression() ]
@@ -1424,6 +1424,7 @@ TableSelectExpression GetTableSelectExpression() :
           [ table_expr.Distinct = SetQuantifier() ] 
           SelectColumnList(table_expr.Columns) 
         )
+        [ <INTO> GetIntoClause(table_expr.Into) ]
         [ <FROM> SelectTableList(table_expr.From) ]
         [ <WHERE> ConditionsExpression(table_expr.Where) ]
 
@@ -1486,7 +1487,15 @@ AlterTableAction GetAlterTableAction() :
   { return action; }
 }
 
-
+void GetIntoClause(IntoClause into) :
+{ string table_name = null;  
+  Token var_ref = null; }
+{
+   ( table_name = TableName() { into.SetTableName(table_name); } |
+     var_ref = <VARIABLE_REF> { into.AddElement(CreateVariableRef(var_ref.image)); }
+     ("," var_ref = <VARIABLE_REF> { into.AddElement(CreateVariableRef(var_ref.image)); } )*
+   )
+}
 
 // An element to insert, either an expression or DEFAULT for the default
 // element.
@@ -1963,14 +1972,6 @@ void ConstraintAttributes(SqlConstraint constraint) :
   )
 }
 
-void CaseCondition(ArrayList list) :
-{ Expression test = null, result = null; }
-{
-  <WHEN> test = DoExpression()
-  <THEN> result = DoExpression()
-  { list.Add(new CaseCondition(test, result)); }
-}
-
 
 // A list of column names
 ArrayList BasicColumnList(ArrayList list) :
@@ -2226,13 +2227,10 @@ void Operand(Expression exp, Stack stack) :
 
 // CASE expression
 | (
-    <CASE> { CaseExpression case_exp = new CaseExpression(); 
-             Expression case_cond_test, case_cond; }
-      <WHEN> case_cond_test = DoExpression() <THEN> case_cond = DoExpression()
-           { case_exp.AddCondition(new CaseCondition(case_cond_test, case_cond)); }
-     ( <WHEN> case_cond_test = DoExpression() <THEN> case_cond = DoExpression()
-           { case_exp.AddCondition(new CaseCondition(case_cond_test, case_cond)); } )*
-     [ <ELSE> case_cond = DoExpression() { case_exp.Else = case_cond; } ]
+    <CASE> { CaseExpression case_exp = new CaseExpression(); Expression else_exp = null; }
+      CaseCondition(case_exp)
+     ( CaseCondition(case_exp) )*
+     [ <ELSE> else_exp = DoExpression() { case_exp.Else = else_exp; } ]
 
      { exp.AddElement(case_exp); 
        exp.Text.Append(case_exp.ToString()); }
@@ -2282,6 +2280,13 @@ void Operand(Expression exp, Stack stack) :
         }
   )
 
+}
+
+void CaseCondition(CaseExpression exp) :
+{ Expression test = null, result = null; }
+{
+  ( <WHEN> test = DoExpression() <THEN> result = DoExpression() )
+  { exp.AddCondition(new CaseCondition(test, result)); }
 }
 
 void SubQueryExpression(Expression exp, Stack stack) :

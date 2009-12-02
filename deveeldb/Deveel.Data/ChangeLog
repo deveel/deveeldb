@@ -1,5 +1,7 @@
 2009-12-01  Antonello Provenzano  <antonello@deveel.com>
 	* Expression.cs: support for CaseExpressions
+	* Variable.cs: added the overload method for SetValue
+	to support the direct set of the value.
 	
 2009-11-30  Antonello Provenzano  <antonello@deveel.com>
 	* DataTable.cs: supports function for deleting the

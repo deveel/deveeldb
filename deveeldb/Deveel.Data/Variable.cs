@@ -145,26 +145,35 @@ namespace Deveel.Data {
 		/// <param name="context">The context used to resolve the expression
 		/// into the final value of the variable.</param>
 		public void SetValue(Expression expression, IQueryContext context) {
-			if (constant && is_set)
-				throw new InvalidOperationException("The variable '" + name + "' is constant and the value was already set.");
-
 			if (expression == null)
 				throw new ArgumentNullException("expression");
 
 			original_expression = (Expression) expression.Clone();
-			value = expression.Evaluate(null, null, context);
+			TObject val = expression.Evaluate(null, null, context);
+
+			SetValue(val);
+		}
+
+		/// <summary>
+		/// Sets the value of the variable.
+		/// </summary>
+		/// <param name="value">The value to set.</param>
+		public void SetValue(TObject value) {
+			if (constant && is_set)
+				throw new InvalidOperationException("The variable '" + name + "' is constant and the value was already set.");
 
 			try {
 				if (!type.Equals(value.TType))
 					value = value.CastTo(type);
-			} catch(Exception) {
+			} catch (Exception) {
 				throw new InvalidOperationException("It was not possible to convert the value type " + value.TType +
-				                                    " to the variable type " + type + ".");
+													" to the variable type " + type + ".");
 			}
 
 			if (value.IsNull && notNull)
 				throw new InvalidOperationException("The constant is marked as NOT NULL and a NULL value was assigned.");
 
+			this.value = value;
 			is_set = true;
 		}
 

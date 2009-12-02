@@ -105,6 +105,7 @@
     <Compile Include="Deveel.Data.Mapping\UniqueAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\UserDefinedType.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
+    <Compile Include="Deveel.Data.Sql\IntoClause.cs" />
     <Compile Include="Deveel.Data\CaseCondition.cs" />
     <Compile Include="Deveel.Data.Sql\CloseCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnConstraints.cs" />

@@ -209,10 +209,8 @@ namespace Deveel.Data {
 		///<param name="exp_list"></param>
 		///<param name="col_names"></param>
 		///<param name="context"></param>
-		public FunctionTable(Expression[] exp_list, String[] col_names,
-		                     DatabaseQueryContext context)
-			: this(context.Database.SingleRowTable,
-			       exp_list, col_names, context) {
+		public FunctionTable(Expression[] exp_list, String[] col_names, DatabaseQueryContext context)
+			: this(context.Database.SingleRowTable, exp_list, col_names, context) {
 		}
 
 		///<summary>

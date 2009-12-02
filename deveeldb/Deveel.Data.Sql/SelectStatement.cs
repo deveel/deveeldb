@@ -63,8 +63,6 @@ namespace Deveel.Data.Sql {
 			return true;
 		}
 
-
-
 		/// <summary>
 		/// Checks the permissions for this user to determine if they are 
 		/// allowed to select (read) from tables in the given plan.
@@ -128,6 +126,10 @@ namespace Deveel.Data.Sql {
 			bool error = true;
 			try {
 				Table t = plan.Evaluate(context);
+
+				if (select_expression.Into.HasElements)
+					t = select_expression.Into.SelectInto(context, t);
+
 				error = false;
 				return t;
 			} finally {

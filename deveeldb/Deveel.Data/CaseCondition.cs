@@ -39,6 +39,8 @@ namespace Deveel.Data {
 		public CaseCondition(Expression testCondition, Expression result) {
 			if (testCondition == null)
 				throw new ArgumentNullException("testCondition");
+			if (result == null)
+				throw new ArgumentNullException("result");
 
 			this.testCondition = testCondition;
 			this.result = result;

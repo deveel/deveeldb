@@ -85,6 +85,8 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private SearchExpression having_clause = new SearchExpression();
 
+		private readonly IntoClause into = new IntoClause();
+
 
 		/// <summary>
 		/// If there is a composite function this is set to the composite 
@@ -104,6 +106,10 @@ namespace Deveel.Data.Sql {
 
 		public FromClause From {
 			get { return from_clause; }
+		}
+
+		public IntoClause Into {
+			get { return into; }
 		}
 
 		public SearchExpression Where {

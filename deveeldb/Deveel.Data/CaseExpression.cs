@@ -1,5 +1,5 @@
 ﻿//  
-//  Statement.cs
+//  CaseExpression.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -21,6 +21,7 @@
 
 using System;
 using System.Collections;
+using System.Text;
 
 using Deveel.Data.Sql;
 
@@ -49,6 +50,15 @@ namespace Deveel.Data {
 			set { elseExpression = value; }
 		}
 
+		/// <summary>
+		/// Gets the <see cref="CaseCondition"/> at the index given
+		/// within the expression.
+		/// </summary>
+		/// <param name="index">The index of the condition to get.</param>
+		/// <returns>
+		/// Returns a <see cref="CaseCondition"/> object at the given index
+		/// within the expresison.
+		/// </returns>
 		public CaseCondition this[int index] {
 			get { return conditions[index] as CaseCondition; }
 		}
@@ -111,6 +121,24 @@ namespace Deveel.Data {
 				return elseExpression.Evaluate(group, resolver, context);
 
 			return TObject.Null;
+		}
+
+		public override string ToString() {
+			StringBuilder sb = new StringBuilder();
+			sb.Append("CASE ");
+			for (int i = 0; i < conditions.Count; i++) {
+				CaseCondition condition = (CaseCondition) conditions[i];
+				sb.Append("WHEN ");
+				sb.Append(condition.TestCondition.Text.ToString());
+				sb.Append("THEN ");
+				sb.Append(condition.Result.Text.ToString());
+				sb.Append(" ");
+			}
+
+			if (elseExpression != null)
+				sb.Append("ELSE ").Append(elseExpression.Text.ToString());
+
+			return sb.ToString();
 		}
 	}
 }
