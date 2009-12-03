@@ -45,8 +45,6 @@ namespace Deveel.Data {
 			RegisterFunction("abs", new StandardSQLFunction("abs"));
 			RegisterFunction("sign", new StandardSQLFunction("sign", NHibernateUtil.Int32));
 
-			//TODO: Soon...
-			/*
 			RegisterFunction("acos", new StandardSQLFunction("acos", NHibernateUtil.Double));
 			RegisterFunction("asin", new StandardSQLFunction("asin", NHibernateUtil.Double));
 			RegisterFunction("atan", new StandardSQLFunction("atan", NHibernateUtil.Double));
@@ -55,27 +53,20 @@ namespace Deveel.Data {
 			RegisterFunction("sinh", new StandardSQLFunction("sinh", NHibernateUtil.Double));
 			RegisterFunction("tan", new StandardSQLFunction("tan", NHibernateUtil.Double));
 			RegisterFunction("tanh", new StandardSQLFunction("tanh", NHibernateUtil.Double));
-			*/
 			RegisterFunction("sqrt", new StandardSQLFunction("sqrt", NHibernateUtil.Double));
 
-			// TODO: Soon...
-			/*
 			RegisterFunction("round", new StandardSQLFunction("round"));
 			RegisterFunction("ceil", new StandardSQLFunction("ceil"));
 			RegisterFunction("floor", new StandardSQLFunction("floor"));
-			RegisterFunction("atan2", new StandardSQLFunction("atan2", NHibernateUtil.Single));
+			// RegisterFunction("atan2", new StandardSQLFunction("atan2", NHibernateUtil.Single));
 			RegisterFunction("log", new StandardSQLFunction("log", NHibernateUtil.Int32));
 			RegisterFunction("mod", new StandardSQLFunction("mod", NHibernateUtil.Int32));
-			RegisterFunction("power", new StandardSQLFunction("power", NHibernateUtil.Single));
-			*/
+			RegisterFunction("pow", new StandardSQLFunction("power", NHibernateUtil.Single));
 
 			RegisterFunction("lower", new StandardSQLFunction("lower"));
 			RegisterFunction("ltrim", new StandardSQLFunction("ltrim"));
 			RegisterFunction("rtrim", new StandardSQLFunction("rtrim"));
-			// TODO: Soon...
-			/*
 			RegisterFunction("soundex", new StandardSQLFunction("soundex"));
-			*/
 			RegisterFunction("upper", new StandardSQLFunction("upper"));
 			RegisterFunction("right", new SQLFunctionTemplate(NHibernateUtil.String, "substr(?1, -?2)"));
 
@@ -113,7 +104,7 @@ namespace Deveel.Data {
 			RegisterColumnType(System.Data.DbType.Date, "DATE");
 			RegisterColumnType(System.Data.DbType.DateTime, "TIMESTAMP");
 			RegisterColumnType(System.Data.DbType.Time, "TIME");
-			//TODO: interval type...
+			RegisterColumnType(System.Data.DbType.DateTimeOffset, "INTERVAL");
 		}
 
 		private void RegisterCharacterTypes() {
