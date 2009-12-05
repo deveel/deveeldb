@@ -38,6 +38,12 @@ namespace Deveel.Data {
 
 			reader.Close();
 
+			command = connection.CreateCommand("name VARCHAR");
+			command.ExecuteNonQuery();
+			Console.Out.WriteLine("Declared variable :name.");
+
+			command = connection.CreateCommand("FETCH NEXT FROM c_person INTO :name");
+
 			command = connection.CreateCommand("CLOSE c_person");
 			command.ExecuteNonQuery();
 
