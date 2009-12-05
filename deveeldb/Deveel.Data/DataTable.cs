@@ -427,6 +427,13 @@ namespace Deveel.Data {
 			if (cursor.SelectedTable != this)
 				throw new ArgumentException("Cannot delete from a cursor which is not on the table.");
 
+			// it is possible to delete only from cursors marked
+			// FOR UPDATE
+			if (!cursor.IsUpdate)
+				throw new InvalidOperationException("Cannot delete using a cursor not marked FOR UPDATE.");
+
+			// it is not possible to determine a valid position of a
+			// closed cursor
 			if (cursor.State != CursorState.Opened)
 				throw new ArgumentException("The cursor is not opened.");
 
@@ -545,6 +552,9 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public int UpdateCurrent(IQueryContext context, Cursor cursor, Assignment[] assign_list) {
 			CheckReadWriteLock();
+
+			if (!cursor.IsUpdate)
+				throw new InvalidOperationException("Cannot update a table from a cursor not marked FOR UPDATE.");
 
 			if (cursor.SelectedTable != this)
 				throw new ArgumentException("The cursor given evaluates to another table.");

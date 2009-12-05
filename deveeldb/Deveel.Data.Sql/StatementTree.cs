@@ -98,8 +98,8 @@ namespace Deveel.Data.Sql {
 			}
 			// Check on is derived from a known type
 			if (ob == null ||
-			    ob is Boolean ||
-			    ob is String ||
+			    ob is bool ||
+			    ob is string ||
 			    ob is BigDecimal ||
 			    ob is VariableName ||
 			    ob is int ||

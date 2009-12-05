@@ -27,10 +27,7 @@ using Deveel.Diagnostics;
 
 namespace Deveel.Data.Sql {
 	public sealed class DeclareCursorStatement : Statement {
-		/// <summary>
-		/// If the cursor is scrollable.
-		/// </summary>
-		private bool scrollable;
+		private CursorAttributes attributes;
 
 		/// <summary>
 		/// The name of the cursor to declare.
@@ -61,9 +58,23 @@ namespace Deveel.Data.Sql {
 
 			name = GetString("name");
 
-			scrollable = GetBoolean("scrollable");
+			attributes = new CursorAttributes();
 
-			String schema_name = db.CurrentSchema;
+			bool scrollable = GetBoolean("scrollable");
+			bool update = GetBoolean("update");
+			bool insensitive = GetBoolean("insensitive");
+
+			attributes |= update ? CursorAttributes.Update : CursorAttributes.ReadOnly;
+
+			if (update && (scrollable || insensitive))
+				throw new DatabaseException("A scrollable or insensitive cursor cannot be updateable.");
+
+			if (scrollable)
+				attributes |= CursorAttributes.Scrollable;
+			if (insensitive)
+				attributes |= CursorAttributes.Insensitive;
+
+			string schema_name = db.CurrentSchema;
 			resolved_name = TableName.Resolve(schema_name, name);
 
 			string name_strip = resolved_name.Name;
@@ -93,7 +104,7 @@ namespace Deveel.Data.Sql {
 
 			bool error = true;
 			try {
-				Cursor cursor = Connection.DeclareCursor(resolved_name, plan, scrollable);
+				Cursor cursor = Connection.DeclareCursor(resolved_name, plan, attributes);
 				cursor.From = from_set;
 				error = false;
 				return FunctionTable.ResultTable(context, 0);

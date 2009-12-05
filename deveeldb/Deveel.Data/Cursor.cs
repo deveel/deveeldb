@@ -35,11 +35,21 @@ namespace Deveel.Data {
 	/// and they cannot be accessed anymore.
 	/// </remarks>
 	public sealed class Cursor : IEnumerator, IDisposable {
-		internal Cursor(Transaction transaction, TableName name, IQueryPlanNode queryPlan, bool scrollable) {
+		internal Cursor(Transaction transaction, TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
 			this.transaction = transaction;
 			this.name = name;
 			this.queryPlan = queryPlan;
-			this.scrollable = scrollable;
+
+			if ((attributes & CursorAttributes.ReadOnly) != 0 &&
+				(attributes & CursorAttributes.Update) != 0)
+				throw new ArgumentException("A read-only cursor cannot be marked also for update.");
+
+			if (((attributes & CursorAttributes.Insensitive) != 0 ||
+				(attributes & CursorAttributes.Scrollable) != 0) &&
+				(attributes & CursorAttributes.Update) != 0)
+				throw new ArgumentException("A scrollable or insensitive cursor cannot be updateable.");
+
+			this.attributes = attributes;
 		}
 
 		/// <summary>
@@ -58,10 +68,9 @@ namespace Deveel.Data {
 		private CursorState state = CursorState.Closed;
 
 		/// <summary>
-		/// A flag that marks if the cursor is scrollable (can fetch
-		/// more than the next element in the iteration).
+		/// The attributes defined for the cursor.
 		/// </summary>
-		private readonly bool scrollable;
+		private readonly CursorAttributes attributes;
 
 		/// <summary>
 		/// The query that was used to generate the cursor.
@@ -203,6 +212,59 @@ namespace Deveel.Data {
 			state = CursorState.Closed;
 		}
 
+		public Table Fetch(FetchOrientation orientation) {
+			return Fetch(orientation, -1);
+		}
+
+		public Table Fetch(FetchOrientation orientation, int offset) {
+			CheckCursorOpen();
+
+			if (offset != -1 &&
+				(orientation != FetchOrientation.Relative &&
+				orientation != FetchOrientation.Absolute))
+				throw new ArgumentException("Cannot specifiy an offset for the fetch that is not absolute or relative.");
+
+			if (orientation == FetchOrientation.Next && ++rowIndex > rowCount)
+				throw new InvalidOperationException("The cursor '" + name + "' is after the last row.");
+			if (orientation == FetchOrientation.Prior) {
+				CheckScrollable();
+
+				if (--rowIndex < 0)
+					throw new InvalidOperationException("Cannot fetch before the first row.");
+			} else if (orientation == FetchOrientation.Last) {
+				rowIndex = rowCount;
+			} else if (orientation == FetchOrientation.First) {
+				CheckScrollable();
+
+				rowIndex = 0;
+			} else if (orientation == FetchOrientation.Absolute) {
+				if (offset < rowIndex && !IsScrollable)
+					throw new InvalidOperationException("The absolute position is before the current row and the cursor " +
+					                                    "is not scrollable.");
+				if (offset >= rowCount)
+					throw new InvalidOperationException("The absolute position is after the last row of the cursor.");
+				if (offset < 0)
+					throw new InvalidOperationException("The absolute position if before the first row of the cursor.");
+
+				rowIndex = offset;
+			} else if (orientation == FetchOrientation.Relative) {
+				int pos = rowIndex + offset;
+
+				if (pos < rowIndex && !IsScrollable)
+					throw new InvalidOperationException("The absolute position is before the current row and the cursor " +
+														"is not scrollable.");
+
+				if (pos >= rowCount)
+					throw new InvalidOperationException("The relative position if after the last row of the cursor.");
+				if (pos < 0)
+					throw new InvalidOperationException("The relative position is before the first row of the cursor.");
+
+				rowIndex = pos;
+			}
+
+			return BuildRowTable();
+		}
+
 		/// <summary>
 		/// Checks if the cursor has a row after the current index.
 		/// </summary>
@@ -227,12 +289,7 @@ namespace Deveel.Data {
 		/// the last row within the enumeration.
 		/// </exception>
 		public Table FetchNext() {
-			CheckCursorOpen();
-			
-			if (++rowIndex > rowCount)
-				throw new InvalidOperationException("The cursor '" + name + "' is after the last row.");
-
-			return BuildRowTable();
+			return Fetch(FetchOrientation.Next);
 		}
 
 		/// <summary>
@@ -244,7 +301,7 @@ namespace Deveel.Data {
 		/// </returns>
 		/// <seealso cref="IsScrollable"/>
 		public bool HasPrevious() {
-			return scrollable && rowIndex > 0;
+			return IsScrollable && rowIndex > 0;
 		}
 
 		/// <summary>
@@ -267,16 +324,8 @@ namespace Deveel.Data {
 		/// </exception>
 		/// <seealso cref="IsScrollable"/>
 		/// <seealso cref="HasPrevious"/>
-		public Table FetchPrevious() {
-			// first we need to check the cursor is scrollable...
-			CheckScrollable();
-
-			CheckCursorOpen();
-
-			if (--rowIndex < 0)
-				throw new InvalidOperationException("The cursor '" + name + "' is before the first row.");
-
-			return BuildRowTable();
+		public Table FetchPrior() {
+			return Fetch(FetchOrientation.Prior);
 		}
 
 		/// <summary>
@@ -298,13 +347,7 @@ namespace Deveel.Data {
 		/// </exception>
 		/// <seealso cref="IsScrollable"/>
 		public Table FetchFirst() {
-			CheckCursorOpen();
-
-			CheckScrollable();
-
-			rowIndex = 0;
-
-			return BuildRowTable();
+			return Fetch(FetchOrientation.First);
 		}
 
 		/// <summary>
@@ -326,11 +369,48 @@ namespace Deveel.Data {
 		/// </exception>
 		/// <seealso cref="IsScrollable"/>
 		public Table FetchLast() {
-			CheckScrollable();
+			return Fetch(FetchOrientation.Last);
+		}
 
-			rowIndex = rowCount - 1;
+		public Table FetchRelative(int offset) {
+			return Fetch(FetchOrientation.Relative, offset);
+		}
 
-			return BuildRowTable();
+		public Table FetchAbsolute(int offset) {
+			return Fetch(FetchOrientation.Absolute, offset);
+		}
+
+		public Table FetchInto(FetchOrientation orientation, int offset, DatabaseQueryContext context, IntoClause into) {
+			Table table = Fetch(orientation, offset);
+			return into.SelectInto(context, table);
+		}
+
+		public Table FetchInto(FetchOrientation orientation, DatabaseQueryContext context, IntoClause into) {
+			return FetchInto(orientation, -1, context, into);
+		}
+
+		public Table FetchNextInto(DatabaseQueryContext context, IntoClause into) {
+			return FetchInto(FetchOrientation.Next, context, into);
+		}
+
+		public Table FetchPriorInto(DatabaseQueryContext context, IntoClause into) {
+			return FetchInto(FetchOrientation.Prior, context, into);
+		}
+
+		public Table FetchFirstInto(DatabaseQueryContext context, IntoClause into) {
+			return FetchInto(FetchOrientation.First, -1, context, into);
+		}
+
+		public Table FetchLastInto(DatabaseQueryContext context, IntoClause into) {
+			return FetchInto(FetchOrientation.Last, context, into);
+		}
+
+		public Table FetchRelativeInto(DatabaseQueryContext context, int offset, IntoClause into) {
+			return FetchInto(FetchOrientation.Relative, offset, context, into);
+		}
+
+		public Table FetchAbsoluteInto(DatabaseQueryContext context, int offset, IntoClause into) {
+			return FetchInto(FetchOrientation.Absolute, offset, context, into);
 		}
 
 		/// <summary>
@@ -382,7 +462,19 @@ namespace Deveel.Data {
 		/// element in the iteration.
 		/// </remarks>
 		public bool IsScrollable {
-			get { return scrollable; }
+			get { return (attributes & CursorAttributes.Scrollable) != 0; }
+		}
+
+		public bool IsUpdate {
+			get { return (attributes & CursorAttributes.Update) != 0; }
+		}
+
+		public bool IsReadOnly {
+			get { return (attributes & CursorAttributes.ReadOnly) != 0; }
+		}
+
+		public CursorAttributes Attributes {
+			get { return attributes; }
 		}
 	}
 }

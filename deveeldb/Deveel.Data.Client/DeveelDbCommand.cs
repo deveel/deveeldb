@@ -142,8 +142,8 @@ namespace Deveel.Data.Client {
 		/// <param name="length"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		internal Data.StreamableObject CreateStreamableObject(Stream x, int length, ReferenceType type) {
-			Data.StreamableObject s_ob = connection.CreateStreamableObject(x, length, type);
+		internal StreamableObject CreateStreamableObject(Stream x, int length, ReferenceType type) {
+			StreamableObject s_ob = connection.CreateStreamableObject(x, length, type);
 			if (streamable_object_list == null) {
 				streamable_object_list = new ArrayList();
 			}

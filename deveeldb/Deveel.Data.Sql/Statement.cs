@@ -285,8 +285,7 @@ namespace Deveel.Data.Sql {
 				IFromTableSource table = (IFromTableSource)table_list[i];
 				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
 				if (rcc == 1) {
-					VariableName matched =
-								  table.ResolveColumn(null, sch_name, tab_name, col_name);
+					VariableName matched = table.ResolveColumn(null, sch_name, tab_name, col_name);
 					list.Add(matched);
 				} else if (rcc > 1) {
 					throw new StatementException("Ambiguous column name (" + v + ")");

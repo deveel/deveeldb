@@ -2313,11 +2313,11 @@ namespace Deveel.Data {
 
 		// ---------- Cursor management ----------
 
-		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, bool scrollable) {
+		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
 			if (cursors.ContainsKey(name))
 				throw new ArgumentException("The cursor '" + name + "' was already defined within this transaction.");
 
-			Cursor cursor = new Cursor(this, name, queryPlan, scrollable);
+			Cursor cursor = new Cursor(this, name, queryPlan, attributes);
 			cursors[name] = cursor;
 
 			OnDatabaseObjectCreated(name);
@@ -2326,7 +2326,7 @@ namespace Deveel.Data {
 		}
 
 		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {
-			return DeclareCursor(name, queryPlan, true);
+			return DeclareCursor(name, queryPlan, CursorAttributes.ReadOnly);
 		}
 
 		public Cursor GetCursor(TableName name) {

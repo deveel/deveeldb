@@ -1550,13 +1550,12 @@ namespace Deveel.Data {
 		/// <param name="name">The name of the cursor to create.</param>
 		/// <param name="queryPlan">The query used by the cursor to iterate
 		/// through the results.</param>
-		/// <param name="scrollable">A flag that allows a cursor to iterate
-		/// in all the directions (not only forward-driven).</param>
+		/// <param name="attributes">The attributes to define a cursor.</param>
 		/// <returns>
 		/// Returns the newly created <see cref="Cursor"/> instance.
 		/// </returns>
-		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, bool scrollable) {
-			return Transaction.DeclareCursor(name, queryPlan, scrollable);
+		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
+			return Transaction.DeclareCursor(name, queryPlan, attributes);
 		}
 
 		/// <summary>
@@ -1570,7 +1569,7 @@ namespace Deveel.Data {
 		/// Returns the newly created <see cref="Cursor"/> instance.
 		/// </returns>
 		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {
-			return DeclareCursor(name, queryPlan, true);
+			return DeclareCursor(name, queryPlan, CursorAttributes.ReadOnly);
 		}
 
 		/// <summary>

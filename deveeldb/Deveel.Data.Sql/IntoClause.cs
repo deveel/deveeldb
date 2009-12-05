@@ -23,7 +23,7 @@ using System;
 using System.Collections;
 
 namespace Deveel.Data.Sql {
-	public sealed class IntoClause {
+	public sealed class IntoClause : ICloneable {
 		public IntoClause() {
 			elements = new ArrayList();
 		}
@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql {
 		/// The list of target elements (VariableRef
 		/// or TableName).
 		/// </summary>
-		private readonly ArrayList elements;
+		private ArrayList elements;
 
 		internal bool HasElements {
 			get { return elements.Count > 0; }
@@ -158,5 +158,19 @@ namespace Deveel.Data.Sql {
 				return FunctionTable.ResultTable(context, 1);
 			}
 		}
+
+		#region Implementation of ICloneable
+
+		public object Clone() {
+			IntoClause clause = new IntoClause();
+			if (tableName != null)
+				clause.tableName = tableName;
+			if (resolvedTableName != null)
+				clause.resolvedTableName = resolvedTableName;
+			clause.elements = (ArrayList) elements.Clone();
+			return clause;
+		}
+
+		#endregion
 	}
 }

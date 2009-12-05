@@ -30,12 +30,7 @@ namespace Deveel.Data.Sql {
 
 		private string name;
 
-		/// <summary>
-		/// The orientation of the fetch.
-		/// </summary>
-		private FetchOrientation orientation;
-
-		private int offset;
+		private CursorFetch fetch_info;
 
 		internal override void Prepare() {
 			DatabaseConnection db = Connection;
@@ -50,35 +45,28 @@ namespace Deveel.Data.Sql {
 			if (name_strip.IndexOf('.') != -1)
 				throw new DatabaseException("Cursor name can not contain '.' character.");
 
-			orientation = (FetchOrientation)Enum.Parse(typeof(FetchOrientation), GetString("orientation"), true);
-			offset = GetInteger("offset");
+			fetch_info = (CursorFetch) GetValue("fetch");
 		}
 
 		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
+
 			Cursor cursor = Connection.GetCursor(resolved_name);
 			if (cursor == null)
 				throw new InvalidOperationException("The cursor '" + name + "' was not defined within this transaction.");
 
-			Table result;
+			int offset = -1;
+			if (fetch_info.Offset != null) {
+				// we resolve any variable in the expression of the offset
+				Expression offsetExpr = (Expression) fetch_info.Offset.Clone();
+				ResolveExpression(offsetExpr);
 
-			switch(orientation) {
-				case FetchOrientation.First:
-					result = cursor.FetchFirst();
-					break;
-				case FetchOrientation.Last:
-					result = cursor.FetchLast();
-					break;
-				case FetchOrientation.Next:
-					result = cursor.FetchNext();
-					break;
-				case FetchOrientation.Prior:
-					result = cursor.FetchPrevious();
-					break;
-				default:
-					throw new InvalidOperationException("Orientation of the fetch not supported.");
+				// and finally the value of the offset
+				offset = offsetExpr.Evaluate(null, context);
 			}
 
-			return result;
+			// so we finally fetch from the cursor
+			return cursor.Fetch(fetch_info.Orientation, offset);
 		}
 	}
 }
