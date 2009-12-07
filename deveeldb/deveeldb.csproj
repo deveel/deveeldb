@@ -99,14 +99,20 @@
     <Compile Include="Deveel.Data.Mapping\FunctionAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\INamedConstraint.cs" />
+    <Compile Include="Deveel.Data.Mapping\MappingContext.cs" />
+    <Compile Include="Deveel.Data.Mapping\MemberTypes.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeAttributeMapping.cs" />
     <Compile Include="Deveel.Data.Mapping\NotNullAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\PrimaryKeyAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\TableAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeMapping.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeMemberMapping.cs" />
     <Compile Include="Deveel.Data.Mapping\UniqueAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\UserDefinedType.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql\CursorFetch.cs" />
     <Compile Include="Deveel.Data.Sql\IntoClause.cs" />
+    <Compile Include="Deveel.Data.Sql\TNamedUserDefinedType.cs" />
     <Compile Include="Deveel.Data\CaseCondition.cs" />
     <Compile Include="Deveel.Data.Sql\CloseCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnConstraints.cs" />
@@ -140,6 +146,7 @@
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
     <Compile Include="Deveel.Data\CaseExpression.cs" />
+    <Compile Include="Deveel.Data\UserObject.cs" />
     <Compile Include="Deveel.Data\ConstraintAction.cs" />
     <Compile Include="Deveel.Data\ConstraintDeferrability.cs" />
     <Compile Include="Deveel.Data\Cursor.cs" />
@@ -149,14 +156,13 @@
     <Compile Include="Deveel.Data.Caching\ICache.cs" />
     <Compile Include="Deveel.Data\GTVariablesDataSource.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
-    <Compile Include="Deveel.Data\IUDTHandler.cs" />
-    <Compile Include="Deveel.Data\IUserDefinedType.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Deveel.Data\TIntervalType.cs" />
     <Compile Include="Deveel.Data\TUserDefinedType.cs" />
     <Compile Include="Deveel.Data\UDTManager.cs" />
-    <Compile Include="Deveel.Data\UserTypeDef.cs" />
-    <Compile Include="Deveel.Data\UserTypeMemberDef.cs" />
+    <Compile Include="Deveel.Data\UserType.cs" />
+    <Compile Include="Deveel.Data\UserTypeAttribute.cs" />
+    <Compile Include="Deveel.Data\UserTypeAttributes.cs" />
     <Compile Include="Deveel.Data\Variable.cs" />
     <Compile Include="Deveel.Data\VariableRef.cs" />
     <Compile Include="Deveel.Data\VariableResolver.cs" />
@@ -516,6 +522,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="deveeldb.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Deveel.Xml\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

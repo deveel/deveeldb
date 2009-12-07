@@ -1,5 +1,5 @@
 ﻿//  
-//  TObject.cs
+//  TypeAttribute.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -21,13 +21,17 @@
 
 using System;
 
-namespace Deveel.Data {
-	/// <exclude/>
-	public interface IUserDefinedType {
-		UserTypeDef TypeDef { get; }
+namespace Deveel.Data.Mapping {
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+	public sealed class TypeAttribute : Attribute {
+		public TypeAttribute(string typeName) {
+			this.typeName = typeName;
+		}
 
-		object GetValue(int index);
+		private readonly string typeName;
 
-		void SetValue(int index, object value);
+		public string TypeName {
+			get { return typeName; }
+		}
 	}
 }

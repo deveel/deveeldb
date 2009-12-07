@@ -49,9 +49,14 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbDateTime.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbNumber.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbString.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbType.cs" />
+    <Compile Include="Deveel.Data.Client\Driver.cs" />
+    <Compile Include="Deveel.Data.Client\NumberState.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

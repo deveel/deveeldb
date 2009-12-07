@@ -92,6 +92,10 @@ namespace Deveel.Data.Client {
 			return value == null ? 0 : value.GetHashCode();
 		}
 
+		public override string ToString() {
+			return isNull ? null : value;
+		}
+
 		#region Operators
 
 		public static DeveelDbBoolean operator ==(DeveelDbString a, DeveelDbString b) {

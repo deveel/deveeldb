@@ -216,6 +216,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <NO:          "no">
 | <ALL:         "all">
 | <ANY:         "any">
+| <END:         "end">
 | <SET:         "set">
 | <USE:         "use">
 | <ASC:         "asc">
@@ -1065,19 +1066,22 @@ void UserManagerCommand(StatementTree cmd) :
 StatementTree DeclareCursor() :
 {
   Token name;
-  bool scrollable = false;
+  bool scrollable = false, update = false, insensitive = false;
   TableSelectExpression select_expr;
   ArrayList order_by = new ArrayList();
 }
 {
-  name = SQLIdentifier() [ <INSENSITIVE> ] [ <SCROLL> { scrollable=true; } ] <CURSOR> 
-  <FOR> select_expr = GetTableSelectExpression()
-  [ <ORDERBY> SelectOrderByList(order_by) ]
-  [ <FOR> <READONLY> ]
+  name = SQLIdentifier() [ <INSENSITIVE> { insensitive = true;} ] 
+     [ <SCROLL> { scrollable=true; } ] <CURSOR> 
+     <FOR> select_expr = GetTableSelectExpression()
+     [ <ORDERBY> SelectOrderByList(order_by) ]
+     [ <FOR> ( <READONLY> | <UPDATE> { update = true; } ) ]
 
   { StatementTree ob = new StatementTree(typeof(DeclareCursorStatement));
     ob.SetObject("name", name.image);
     ob.SetBoolean("scrollable", scrollable);
+    ob.SetBoolean("insensitive", insensitive);
+    ob.SetBoolean("update", update);
     ob.SetObject("select_expression", select_expr);
     ob.SetObject("order_by", order_by);
     return ob;
@@ -1109,19 +1113,18 @@ StatementTree CloseCursor() :
 StatementTree Fetch() :
 {
   Token cursor_name;
-  string orientation = "next";
-  int offset = -1;
+  CursorFetch fetch = new CursorFetch();
 }
 {
   <FETCH> [
-    [ <NEXT> { orientation = "next"; } |
-      <PRIOR> { orientation = "prior"; } |
-      <FIRST> { orientation = "first"; } |
-      <LAST> { orientation = "last"; } |
-      <RELATIVE> { orientation = "relative"; } 
-        offset = PositiveIntegerConstant() |
-      <ABSOLUTE> { orientation = "absolute"; }
-        offset = PositiveIntegerConstant()
+    [ <NEXT> { fetch.Orientation = FetchOrientation.Next; } |
+      <PRIOR> { fetch.Orientation = FetchOrientation.Prior; } |
+      <FIRST> { fetch.Orientation = FetchOrientation.First; } |
+      <LAST> { fetch.Orientation = FetchOrientation.Last; } |
+      <RELATIVE> { fetch.Orientation = FetchOrientation.Relative; } 
+        fetch.Offset = DoExpression() |
+      <ABSOLUTE> { fetch.Orientation = FetchOrientation.Absolute; }
+        fetch.Offset = DoExpression()
     ]
       
     <FROM>
@@ -1129,10 +1132,11 @@ StatementTree Fetch() :
 
   cursor_name = SQLIdentifier()
 
+  [ <INTO> GetIntoClause(fetch.Into) ]
+
   { StatementTree ob = new StatementTree(typeof(FetchStatement));
     ob.SetObject("name", cursor_name.image);
-    ob.SetObject("orientation", orientation);
-    ob.SetObject("offset", offset);
+    ob.SetObject("fetch", fetch);
     return ob;
   }
 }
@@ -2231,9 +2235,18 @@ void Operand(Expression exp, Stack stack) :
       CaseCondition(case_exp)
      ( CaseCondition(case_exp) )*
      [ <ELSE> else_exp = DoExpression() { case_exp.Else = else_exp; } ]
+   <END>
 
      { exp.AddElement(case_exp); 
        exp.Text.Append(case_exp.ToString()); }
+  )
+
+// Query expression
+| (
+    select_expression = GetTableSelectExpression() {
+        exp.AddElement(select_expression);
+        exp.Text.Append(select_expression.ToString());
+    }
   )
 
 // object instantiation

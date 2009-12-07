@@ -1,5 +1,5 @@
 ﻿//  
-//  UserTypeMemberDef.cs
+//  UserTypeAttribute.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -26,11 +26,17 @@ namespace Deveel.Data {
 	/// The class that defines a single member of a 
 	/// user-defined type.
 	/// </summary>
-	public sealed class UserTypeMemberDef {
-		public UserTypeMemberDef(string name, TType type) {
+	public sealed class UserTypeAttribute {
+		internal UserTypeAttribute(UserType userType, string name, TType type) {
+			this.userType = userType;
 			this.name = name;
 			this.type = type;
 		}
+
+		/// <summary>
+		/// The UDT declaring this member.
+		/// </summary>
+		private readonly UserType userType;
 
 		/// <summary>
 		/// The name of the member.
@@ -46,6 +52,18 @@ namespace Deveel.Data {
 		/// </summary>
 		private readonly TType type;
 
+		/// <summary>
+		/// Gets the instance of <see cref="UserType"/> that declares 
+		/// the member.
+		/// </summary>
+		public UserType DeclaringType {
+			get { return userType; }
+		}
+
+		/// <summary>
+		/// Gets the instance of <see cref="TType"/> that defines
+		/// the type of data handled by the member.
+		/// </summary>
 		public TType Type {
 			get { return type; }
 		}
@@ -58,6 +76,9 @@ namespace Deveel.Data {
 			get { return offset; }
 		}
 
+		/// <summary>
+		/// Gets the size defined by the <see cref="Type"/>, if supported.
+		/// </summary>
 		public int Size {
 			get {
 				if (type is TNumericType)
@@ -72,6 +93,10 @@ namespace Deveel.Data {
 			}
 		}
 
+		/// <summary>
+		/// Gets the numeric scale defined by the <see cref="Type"/>,
+		/// if supported.
+		/// </summary>
 		public int Scale {
 			get {
 				TNumericType numericType = type as TNumericType;
@@ -79,6 +104,9 @@ namespace Deveel.Data {
 			}
 		}
 
+		/// <summary>
+		/// Gets the <see cref="Data.SqlType"/> handled.
+		/// </summary>
 		public SqlType SqlType {
 			get { return type.SQLType; }
 		}

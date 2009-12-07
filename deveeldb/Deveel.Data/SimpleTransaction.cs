@@ -752,14 +752,12 @@ namespace Deveel.Data {
 		/// value for the generator.
 		/// </exception>
 		public void SetSequenceValue(TableName name, long value) {
-			if (IsReadOnly) {
-				throw new Exception(
-						  "Sequence operation not permitted for Read only transaction.");
-			}
+			if (IsReadOnly)
+				throw new Exception("Sequence operation not permitted for Read only transaction.");
+
 			// Check: if null sequence manager then sequence ops not allowed.
-			if (sequence_manager == null) {
+			if (sequence_manager == null)
 				throw new Exception("Sequence operations are not permitted.");
-			}
 
 			SequenceManager seq = sequence_manager;
 			seq.SetValue(this, name, value);
@@ -778,11 +776,9 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public long CurrentUniqueID(TableName table_name) {
 			MasterTableDataSource master = FindVisibleTable(table_name, false);
-			if (master == null) {
-				throw new StatementException(
-							   "Table with name '" + table_name + "' could not be " +
-								"found to retrieve unique id.");
-			}
+			if (master == null)
+				throw new StatementException("Table with name '" + table_name + "' could not be found to retrieve unique id.");
+
 			return master.CurrentUniqueId;
 		}
 
@@ -800,17 +796,13 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public long NextUniqueID(TableName table_name) {
-			if (IsReadOnly) {
-				throw new Exception(
-						  "Sequence operation not permitted for Read only transaction.");
-			}
+			if (IsReadOnly)
+				throw new Exception("Sequence operation not permitted for read only transaction.");
 
 			MasterTableDataSource master = FindVisibleTable(table_name, false);
-			if (master == null) {
-				throw new StatementException(
-							   "Table with name '" + table_name + "' could not be " +
-								"found to retrieve unique id.");
-			}
+			if (master == null)
+				throw new StatementException("Table with name '" + table_name + "' could not be found to retrieve unique id.");
+
 			return master.NextUniqueId;
 		}
 
@@ -824,17 +816,13 @@ namespace Deveel.Data {
 		/// when altering a table or when we need to fix sequence corruption.
 		/// </remarks>
 		public void SetUniqueID(TableName table_name, long unique_id) {
-			if (IsReadOnly) {
-				throw new Exception(
-						  "Sequence operation not permitted for Read only transaction.");
-			}
+			if (IsReadOnly)
+				throw new Exception("Sequence operation not permitted for read only transaction.");
 
 			MasterTableDataSource master = FindVisibleTable(table_name, false);
-			if (master == null) {
-				throw new StatementException(
-							   "Table with name '" + table_name + "' could not be " +
-								"found to set unique id.");
-			}
+			if (master == null)
+				throw new StatementException("Table with name '" + table_name + "' could not be found to set unique id.");
+
 			master.SetUniqueID(unique_id);
 		}
 	}

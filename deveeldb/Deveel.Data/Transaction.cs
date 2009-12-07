@@ -112,10 +112,7 @@ namespace Deveel.Data {
 		private bool closed;
 
 
-		internal Transaction(TableDataConglomerate conglomerate,
-					long commit_id, ArrayList visible_tables,
-					ArrayList table_indices)
-
+		internal Transaction(TableDataConglomerate conglomerate, long commit_id, ArrayList visible_tables, ArrayList table_indices)
 			: base(conglomerate.System, conglomerate.SequenceManager) {
 
 			this.conglomerate = conglomerate;
@@ -417,10 +414,8 @@ namespace Deveel.Data {
 		public void CreateTable(DataTableDef table_def, int data_sector_size, int index_sector_size) {
 			TableName table_name = table_def.TableName;
 			MasterTableDataSource master = FindVisibleTable(table_name, false);
-			if (master != null) {
-				throw new StatementException(
-										 "Table '" + table_name + "' already exists.");
-			}
+			if (master != null)
+				throw new StatementException("Table '" + table_name + "' already exists.");
 
 			table_def.SetImmutable();
 
@@ -2373,6 +2368,35 @@ namespace Deveel.Data {
 
 			cursors.Clear();
 			cursors = null;
+		}
+
+		// ----------- UDT Management --------------------
+
+		public void CreateUserType(UserType userType) {
+			TableName typeName = userType.Name;
+			if (UserTypeExists(typeName))
+				throw new InvalidOperationException("The type " + typeName + " already exists.");
+
+			UDTManager.CreateType(this, userType);
+
+			OnDatabaseObjectCreated(typeName);
+		}
+
+		public void DropUserType(TableName typeName) {
+			if (!UserTypeExists(typeName))
+				throw new InvalidOperationException("The type '" + typeName + "' was not found.");
+
+			UDTManager.DropType(this, typeName);
+
+			OnDatabaseObjectDropped(typeName);
+		}
+
+		public UserType GetUserType(TableName typeName) {
+			return UDTManager.GetUserTypeDef(this, typeName);
+		}
+
+		public bool UserTypeExists(TableName typeName) {
+			return UDTManager.TypeExists(this, typeName);
 		}
 
 

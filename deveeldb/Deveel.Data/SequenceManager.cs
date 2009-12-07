@@ -492,8 +492,7 @@ namespace Deveel.Data {
 
 				if (generator.type == 1) {
 					// Native generator
-					return transaction.NextUniqueID(
-						new TableName(name.Schema, name.Name));
+					return transaction.NextUniqueID(new TableName(name.Schema, name.Name));
 				} else {
 					// Custom sequence generator
 					return generator.current_val;

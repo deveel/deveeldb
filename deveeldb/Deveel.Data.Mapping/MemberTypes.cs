@@ -1,5 +1,5 @@
 ﻿//  
-//  TypeAttribute.cs
+//  MemberTypes.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -22,21 +22,10 @@
 using System;
 
 namespace Deveel.Data.Mapping {
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-	public sealed class TableAttribute : Attribute {
-		public TableAttribute(string name) {
-			this.name = name;
-		}
-
-		public TableAttribute()
-			: this(null) {
-		}
-
-		private string name;
-
-		public string TableName {
-			get { return name; }
-			set { name = value; }
-		}
+	[Flags]
+	public enum MemberTypes {
+		Attribute = 0x01,
+		Procedure = 0x02,
+		Function = 0x04
 	}
 }

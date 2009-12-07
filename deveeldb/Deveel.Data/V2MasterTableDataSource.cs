@@ -1375,7 +1375,11 @@ namespace Deveel.Data {
 				// SkipStream(din.BaseStream, skip_amount);
 				din.BaseStream.Seek(skip_amount, SeekOrigin.Current);
 
-				Object ob;
+				// Get the TType for this column
+				// NOTE: It's possible this call may need optimizing?
+				TType ttype = DataTableDef[column].TType;
+
+				object ob;
 				if (cell_type == 1) {
 					// If standard object type
 					ob = ObjectTransfer.ReadFrom(din);
@@ -1396,9 +1400,6 @@ namespace Deveel.Data {
 					throw new Exception("Unrecognised cell type input data.");
 				}
 
-				// Get the TType for this column
-				// NOTE: It's possible this call may need optimizing?
-				TType ttype = DataTableDef[column].TType;
 				// Wrap it around a TObject
 				cell = new TObject(ttype, ob);
 

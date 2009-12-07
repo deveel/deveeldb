@@ -1,4 +1,8 @@
-﻿2009-11-30  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-12-07  Antonello Provenzano  <antonello@deveel.com>
+	* SQL.csc: implemented support for supporting sub-query
+	expressions
+	
+2009-11-30  Antonello Provenzano  <antonello@deveel.com>
 	* SQL.csc: syntax "WHERE CURRENT OF" added to DELETE
 	and UPDATE statements
 	* DeleteStatement.cs: added support for the deletion

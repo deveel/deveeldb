@@ -1,5 +1,5 @@
 ﻿//  
-//  TUserDefinedType.cs
+//  TNamedUserDefinedType.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -21,40 +21,40 @@
 
 using System;
 
-namespace Deveel.Data {
-	/// <exclude/>
-	public sealed class TUserDefinedType : TType {
-		public TUserDefinedType(UserType userType) 
+namespace Deveel.Data.Sql {
+	/// <summary>
+	/// An temporary implementation of <see cref="TType"/>
+	/// used to handle parsing named types during a SQL
+	/// statement (that defines an UDT by its name).
+	/// </summary>
+	internal class TNamedUserDefinedType : TType {
+		public TNamedUserDefinedType(string typeName) 
 			: base(SqlType.Object) {
-			this.userType = userType;
+			this.typeName = typeName;
 		}
 
-		private readonly UserType userType;
-
-		/// <summary>
-		/// Gets the definition of the type.
-		/// </summary>
-		public UserType UserType {
-			get { return userType; }
-		}
+		private readonly string typeName;
 
 		#region Overrides of TType
 
+		public string TypeName {
+			get { return typeName; }
+		}
+
 		public override int Compare(object x, object y) {
-			throw new InvalidOperationException("Cannot compare two user-defined types.");
+			throw new InvalidOperationException();
 		}
 
 		public override bool IsComparableType(TType type) {
-			// it is not possible (yet) to compare UDTs
-			return false;
+			throw new InvalidOperationException();
 		}
 
 		public override int CalculateApproximateMemoryUse(object ob) {
-			return 1000;
+			throw new InvalidOperationException();
 		}
 
 		public override Type GetObjectType() {
-			return typeof(UserObject);
+			return typeof(string);
 		}
 
 		#endregion

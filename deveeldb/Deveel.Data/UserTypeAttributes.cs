@@ -1,5 +1,5 @@
 ﻿//  
-//  IUDTHandler.cs
+//  UserTypeAttributes.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -22,8 +22,10 @@
 using System;
 
 namespace Deveel.Data {
-	/// <exclude/>
-	public interface IUDTHandler {
-		IUserDefinedType GetUserDefinedType(TableName typeName);
+	[Flags]
+	public enum UserTypeAttributes {
+		Sealed = 0x01,
+		Abstract = 0x02,
+		Primitive = 0x04
 	}
 }

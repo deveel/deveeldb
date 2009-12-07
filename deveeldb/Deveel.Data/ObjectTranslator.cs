@@ -40,13 +40,13 @@ namespace Deveel.Data {
 		public static Object Translate(Object ob) {
 			if (ob == null)
 				return null;
-			if (ob is String)
+			if (ob is string)
 				return StringObject.FromString((String)ob);
 			if (ob is StringObject ||
 				ob is BigNumber ||
 				ob is DateTime ||
 				ob is ByteLongObject ||
-				ob is Boolean ||
+				ob is bool ||
 				ob is StreamableObject)
 				return ob;
 			if (ob is byte[])

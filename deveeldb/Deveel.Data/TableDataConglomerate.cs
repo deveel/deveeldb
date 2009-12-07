@@ -137,6 +137,11 @@ namespace Deveel.Data {
 		private readonly SequenceManager sequence_manager;
 
 		/// <summary>
+		/// The <see cref="Data.UDTManager"/> object for this conglomerate.
+		/// </summary>
+		private readonly UDTManager udt_manager;
+
+		/// <summary>
 		/// The list of transactions that are currently open over this conglomerate.
 		/// </summary>
 		/// <remarks>
@@ -177,15 +182,15 @@ namespace Deveel.Data {
 
 
 
-		internal TableDataConglomerate(TransactionSystem system,
-									 IStoreSystem store_system) {
+		internal TableDataConglomerate(TransactionSystem system, IStoreSystem store_system) {
 			this.system = system;
 			this.store_system = store_system;
-			this.open_transactions = new OpenTransactionList(system);
-			this.modification_listeners = new Hashtable();
-			this.namespace_journal_list = new ArrayList();
+			open_transactions = new OpenTransactionList(system);
+			modification_listeners = new Hashtable();
+			namespace_journal_list = new ArrayList();
 
-			this.sequence_manager = new SequenceManager(this);
+			sequence_manager = new SequenceManager(this);
+			udt_manager = new UDTManager(this);
 
 		}
 
@@ -209,6 +214,10 @@ namespace Deveel.Data {
 		/// </summary>
 		internal SequenceManager SequenceManager {
 			get { return sequence_manager; }
+		}
+
+		internal UDTManager UDTManager {
+			get { return udt_manager; }
 		}
 
 
@@ -774,8 +783,9 @@ namespace Deveel.Data {
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("final"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("attrs"));
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("parent"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("ext_parent"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			table = new DataTableDef();
@@ -1037,9 +1047,8 @@ namespace Deveel.Data {
 		internal void MinimalCreate(String name) {
 			this.name = name;
 
-			if (Exists(name)) {
+			if (Exists(name))
 				throw new IOException("Conglomerate already exists: " + name);
-			}
 
 			// Lock the store system (generates an IOException if exclusive Lock
 			// can not be made).

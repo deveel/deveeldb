@@ -1,3 +1,20 @@
+2009-12-06  Antonello Provenzano  <antonello@deveel.com>
+	* ObjectTransfer.cs: ReadFrom accepts a TType as argument
+	* V2MasterTableDataSource.cs: calls to ObjectTransfer
+	now pass also the TType of the column (to support UDTs)
+	* SimpleTransaction.cs: the constructor now accepts a 
+	UDTManager instance as argument
+	
+2009-12-03  Antonello Provenzano  <antonello@deveel.com>
+	* Cursor.cs: 
+		- the boolean flags have been replaced by an instance 
+		of CursorAttributes
+		- supports ABSOLUTE and RELATIVE orientations
+		- it is now possible to fetch into a given set of
+		variables or table
+	* DatabaseConnection.cs: method 'DeclareCursor' now 
+	accepts CursorAttributes as argument
+	
 2009-12-01  Antonello Provenzano  <antonello@deveel.com>
 	* Expression.cs: support for CaseExpressions
 	* Variable.cs: added the overload method for SetValue
