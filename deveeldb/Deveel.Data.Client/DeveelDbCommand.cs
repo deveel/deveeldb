@@ -489,17 +489,17 @@ namespace Deveel.Data.Client {
 		}
 
 		public override int ExecuteNonQuery() {
-			ResultSet[] resultSet = ExecuteQuery();
-			if (resultSet.Length > 1)
-				throw new InvalidOperationException();
-
 			connection.SetState(ConnectionState.Executing);
 
-			int result = !resultSet[0].IsUpdate ? -1 : resultSet[0].ToInteger();
+			try {
+				ResultSet[] resultSet = ExecuteQuery();
+				if (resultSet.Length > 1)
+					throw new InvalidOperationException();
 
-			connection.EndState();
-
-			return result;
+				return !resultSet[0].IsUpdate ? -1 : resultSet[0].ToInteger();
+			} finally {
+				connection.EndState();
+			}
 		}
 
 		public new DeveelDbDataReader ExecuteReader() {
@@ -538,39 +538,41 @@ namespace Deveel.Data.Client {
 		public override object ExecuteScalar() {
 			connection.SetState(ConnectionState.Executing);
 
-			ResultSet[] result = ExecuteQuery();
-			if (result.Length > 1)
-				throw new InvalidOperationException();
+			try {
+				ResultSet[] result = ExecuteQuery();
+				if (result.Length > 1)
+					throw new InvalidOperationException();
 
-			if (result[0].RowCount > 1)
-				throw new DataException();
-			if (result[0].ColumnCount > 1)
-				throw new DataException();
+				if (result[0].RowCount > 1)
+					throw new DataException();
+				if (result[0].ColumnCount > 1)
+					throw new DataException();
 
-			if (!result[0].first())
-				return null;
+				if (!result[0].first())
+					return null;
 
-			Object ob = result[0].GetRawColumn(0);
-			if (ob == null)
+				Object ob = result[0].GetRawColumn(0);
+				if (ob == null)
+					return ob;
+
+				if (connection.Settings.StrictGetValue) {
+					// Convert depending on the column type,
+					ColumnDescription col_desc = result[0].GetColumn(0);
+					SqlType sql_type = col_desc.SQLType;
+
+					return ObjectCast(ob, sql_type);
+
+				}
+				// We don't support blobs in a scalar.
+				if (ob is ByteLongObject ||
+					ob is StreamableObject) {
+					throw new DataException();
+				}
+
 				return ob;
-
-			if (connection.Settings.StrictGetValue) {
-				// Convert depending on the column type,
-				ColumnDescription col_desc = result[0].GetColumn(0);
-				SqlType sql_type = col_desc.SQLType;
-
-				return ObjectCast(ob, sql_type);
-
+			} finally {
+				connection.EndState();
 			}
-			// We don't support blobs in a scalar.
-			if (ob is ByteLongObject ||
-				ob is StreamableObject) {
-				throw new DataException();
-			}
-
-			connection.EndState();
-
-			return ob;
 		}
 
 		public override bool DesignTimeVisible {

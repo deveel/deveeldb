@@ -1945,8 +1945,7 @@ namespace Deveel.Data {
 
 				// Commit and close the connection.
 				connection.Commit();
-				connection.LockingMechanism.FinishMode(
-					LockingMode.EXCLUSIVE_MODE);
+				connection.LockingMechanism.FinishMode(LockingMode.EXCLUSIVE_MODE);
 				connection.Close();
 			} catch (TransactionException e) {
 				// This would be very strange error to receive for in initializing
