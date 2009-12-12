@@ -87,12 +87,34 @@ namespace Deveel.Data {
 				marked_tables.Clear();
 		}
 
+		public virtual Variable DeclareVariable(string name, TType type, bool constant, bool notNull) {
+			return null;
+		}
+
 		public virtual Variable GetVariable(string name) {
 			return null;
 		}
 
 		public virtual void SetVariable(string name, Expression value) {
 			// nothing to do by default...
+		}
+
+		/// <inheritdoc/>
+		public virtual Cursor DeclareCursor(TableName name, IQueryPlanNode planNode, CursorAttributes attributes) {
+			return null;
+		}
+
+		/// <inheritdoc/>
+		public virtual Cursor GetCursror(TableName name) {
+			return null;
+		}
+
+		/// <inheritdoc/>
+		public virtual void OpenCursor(TableName name) {
+		}
+
+		/// <inheritdoc/>
+		public virtual void CloseCursor(TableName name) {
 		}
 	}
 }

@@ -120,6 +120,22 @@ namespace Deveel.Data {
 		// -------------- Variables ----------------
 
 		/// <summary>
+		/// Declares a variable, identified by the given name,
+		/// within the current query context.
+		/// </summary>
+		/// <param name="name">The name of the variable to declare.</param>
+		/// <param name="type">The type of the variable.</param>
+		/// <param name="constant">A flag indicating whether the variable
+		/// is <c>constant</c> (default value is required and cannot be 
+		/// changed).</param>
+		/// <param name="notNull">A flag indicating whether the variable
+		/// can be set to <c>null</c>.</param>
+		/// <returns>
+		/// Returns a reference to the <see cref="Variable"/> object created.
+		/// </returns>
+		Variable DeclareVariable(string name, TType type, bool constant, bool notNull);
+
+		/// <summary>
 		/// Gets a declared variable with the given name.
 		/// </summary>
 		/// <param name="name">The name of the variable
@@ -138,5 +154,15 @@ namespace Deveel.Data {
 		/// <param name="name">The name of the variable to set.</param>
 		/// <param name="value">The value to set for the variable.</param>
 		void SetVariable(string name, Expression value);
+
+		// -------------- Cursors ----------------
+
+		Cursor DeclareCursor(TableName name, IQueryPlanNode planNode, CursorAttributes attributes);
+
+		Cursor GetCursror(TableName name);
+
+		void OpenCursor(TableName name);
+
+		void CloseCursor(TableName name);
 	}
 }

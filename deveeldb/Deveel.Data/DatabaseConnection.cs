@@ -25,6 +25,7 @@ using System.Collections;
 using System.Data;
 
 using Deveel.Data.Client;
+using Deveel.Data.Procedures;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {
@@ -302,7 +303,7 @@ namespace Deveel.Data {
 		///		<item>This method returns the same <see cref="IDbConnection"/> on multiple 
 		///		calls to this method (while a transaction is open).</item>
 		///		<item>The <see cref="DatabaseConnection"/> must be locked in 
-		///		<see cref="LockingMode.EXCLUSIVE_MODE"/> mode or the queries will fail.</item>
+		///		<see cref="LockingMode.Exclusive"/> mode or the queries will fail.</item>
 		/// </list>
 		/// </remarks>
 		/// <returns></returns>
@@ -812,18 +813,18 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Creates a new view.
 		/// </summary>
-		/// <param name="command"></param>
+		/// <param name="query"></param>
 		/// <param name="view">View meta informations used to create the view.</param>
 		/// <remarks>
 		/// Note that this is a transactional operation. You need to commit for 
 		/// the view to be visible to other transactions.
 		/// </remarks>
 		/// <exception cref="DatabaseException"/>
-		public void CreateView(SqlCommand command, ViewDef view) {
+		public void CreateView(SqlQuery query, ViewDef view) {
 			CheckAllowCreate(view.DataTableDef.TableName);
 
 			try {
-				view_manager.DefineView(view, command, User);
+				view_manager.DefineView(view, query, User);
 			} catch (DatabaseException e) {
 				Debug.WriteException(e);
 				throw new Exception("Database Exception: " + e.Message);
@@ -1586,6 +1587,24 @@ namespace Deveel.Data {
 
 		public bool CursorExists(TableName name) {
 			return Transaction.CursorExists(name);
+		}
+
+		// ---------- User-Defined Types management ----------
+
+		public UserType GetUserType(TableName name) {
+			return Transaction.GetUserType(name);
+		}
+
+		public void CreateUserType(UserType type) {
+			Transaction.CreateUserType(type);
+		}
+
+		public void DropUserType(TableName name) {
+			Transaction.DropUserType(name);
+		}
+
+		public bool UserTypeExists(TableName name) {
+			return Transaction.UserTypeExists(name);
 		}
 
 		// ---------- Implemented from ITriggerListener ----------

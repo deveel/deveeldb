@@ -43,13 +43,13 @@ namespace Deveel.Data {
 		/// Returns <b>true</b> if this preparer will prepare the given object in 
 		/// an expression.
 		/// </returns>
-		bool CanPrepare(Object element);
+		bool CanPrepare(object element);
 
 		/// <summary>
 		/// Returns the new translated object to be mutated from the given element.
 		/// </summary>
 		/// <param name="element"></param>
 		/// <returns></returns>
-		object Prepare(Object element);
+		object Prepare(object element);
 	}
 }

@@ -333,17 +333,11 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Does the user have privs to create this tables?
-			if (!Connection.Database.CanUserCreateTableObject(context,
-																 User, tname)) {
-				throw new UserAccessException(
-				   "User not permitted to create table: " + table_name);
-			}
-
+			if (!Connection.Database.CanUserCreateTableObject(context, User, tname))
+				throw new UserAccessException("User not permitted to create table: " + table_name);
 
 
 			// PENDING: Creation of temporary tables...
-
-
 
 
 			// Does the table already exist?

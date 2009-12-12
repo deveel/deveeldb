@@ -22,6 +22,8 @@
 
 using System;
 
+using Deveel.Data.Procedures;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// A statement that calls a procedure, and returns a resultant table.
@@ -32,6 +34,46 @@ namespace Deveel.Data.Sql {
 	/// of the database in the given directory on the disk.
 	/// </remarks>
 	public class CallStatement : Statement {
+		/// <summary>
+		/// Constructs the statement with the name of the 
+		/// procedure to call and a set of given arguments.
+		/// </summary>
+		/// <param name="procedure">The name of the procedure 
+		/// to call.</param>
+		/// <param name="args">The set of arguments to pass to
+		/// the procedure called.</param>
+		public CallStatement(string procedure, Expression[] args) {
+			SetValue("proc_name", procedure);
+			SetValue("args", args);
+		}
+
+		/// <summary>
+		/// Constructs the statement with the name of the 
+		/// procedure to call.
+		/// </summary>
+		/// <param name="procedure">The name of the procedure 
+		/// to call.</param>
+		public CallStatement(string procedure)
+			: this(procedure, null) {
+		}
+
+		internal CallStatement() {
+		}
+
+		/// <summary>
+		/// Gets the name of the procedure to call.
+		/// </summary>
+		public string Procedure {
+			get { return GetString("proc_name"); }
+		}
+
+		/// <summary>
+		/// Gets the array of the arguments passed to the 
+		/// procedure called.
+		/// </summary>
+		public Expression[] Arguments {
+			get { return (Expression[]) GetValue("args"); }
+		}
 
 		// ---------- Implemented from Statement ----------
 
@@ -77,16 +119,14 @@ namespace Deveel.Data.Sql {
 				SchemaDef schema =
 							Connection.ResolveSchemaCase(tp_name.Schema, ignore_case);
 				if (schema == null) {
-					throw new DatabaseException("Schema '" + tp_name.Schema +
-												"' doesn't exist.");
+					throw new DatabaseException("Schema '" + tp_name.Schema + "' doesn't exist.");
 				} else {
 					tp_name = new TableName(schema.Name, tp_name.Name);
 				}
 
 				// If this doesn't exist then generate the error
 				if (!manager.ProcedureExists(tp_name)) {
-					throw new DatabaseException("Stored procedure '" + proc_name +
-												"' was not found.");
+					throw new DatabaseException("Stored procedure '" + proc_name + "' was not found.");
 				}
 
 				p_name = tp_name;
@@ -107,8 +147,7 @@ namespace Deveel.Data.Sql {
 				if (args[i].IsConstant) {
 					vals[i] = args[i].Evaluate(null, null, context);
 				} else {
-					throw new StatementException(
-									 "CALL argument is not a constant: " + args[i].Text);
+					throw new StatementException("CALL argument is not a constant: " + args[i].Text);
 				}
 			}
 

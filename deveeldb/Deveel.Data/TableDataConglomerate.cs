@@ -247,8 +247,7 @@ namespace Deveel.Data {
 		/// <param name="table_id"></param>
 		private void MarkAsCommittedDropped(int table_id) {
 			MasterTableDataSource master_table = GetMasterTable(table_id);
-			state_store.AddDeleteResource(
-					new StateStore.StateResource(table_id, CreateEncodedTableFile(master_table)));
+			state_store.AddDeleteResource(new StateStore.StateResource(table_id, CreateEncodedTableFile(master_table)));
 		}
 
 		/// <summary>
@@ -263,22 +262,11 @@ namespace Deveel.Data {
 		/// determine the file structure of the table.
 		/// </remarks>
 		/// <returns></returns>
-		private MasterTableDataSource LoadMasterTable(int table_id,
-							  String table_str, int table_type) {
-
+		private MasterTableDataSource LoadMasterTable(int table_id, string table_str, int table_type) {
 			// Open the table
-			if (table_type == 1) {
-				/*
-				TODO:
-				V1MasterTableDataSource master =
-					new V1MasterTableDataSource(getSystem(),
-									   storeSystem(), open_transactions);
-				if (master.exists(table_str)) {
-					return master;
-				}
-				*/
+			if (table_type == 1)
 				throw new NotSupportedException();
-			} else if (table_type == 2) {
+			if (table_type == 2) {
 				V2MasterTableDataSource master =
 					new V2MasterTableDataSource(System,
 						   StoreSystem, open_transactions, blob_store);
@@ -3345,6 +3333,26 @@ namespace Deveel.Data {
 				}
 			}
 
+		}
+
+		internal MasterTableDataSource CreateTemporaryDataSource(DataTableDef table_def) {
+			lock (commit_lock) {
+				try {
+					// The unique id that identifies this table,
+					int table_id = NextUniqueTableID();
+
+					V2MasterTableDataSource temporary = new V2MasterTableDataSource(System, new V1HeapStoreSystem(), open_transactions, blob_store);
+
+					temporary.Create(table_id, table_def);
+
+					table_list.Add(temporary);
+
+					return temporary;
+				} catch(Exception e) {
+					Debug.WriteException(e);
+					throw new ApplicationException("Unable to create temporary table '" + table_def.Name + "' - " + e.Message);
+				}
+			}
 		}
 
 		/// <summary>

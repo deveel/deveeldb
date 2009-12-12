@@ -252,7 +252,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public IQueryResponse ExecuteQuery(SqlCommand sql) {
+		public IQueryResponse ExecuteQuery(SqlQuery sql) {
 			try {
 				// Execute the command
 				int dispatch_id = connection_thread.ExecuteQuery(sql);
@@ -683,7 +683,7 @@ namespace Deveel.Data.Client {
 			/// <returns>
 			/// Returns the dispatch id key for the response from the server.
 			/// </returns>
-			internal int ExecuteQuery(SqlCommand sql) {
+			internal int ExecuteQuery(SqlQuery sql) {
 				lock (this) {
 					int dispatch_id = NextDispatchId();
 					com_data.Write(ProtocolConstants.QUERY);

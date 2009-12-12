@@ -26,6 +26,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 using Deveel.Data.Collections;
+using Deveel.Data.Procedures;
 
 namespace Deveel.Data {
 	/// <summary>

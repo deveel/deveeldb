@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql {
 			Database d = Connection.Database;
 
 			// Construct an executor for interpreting SQL queries inside here.
-			SqlCommandExecutor executor = new SqlCommandExecutor();
+			SqlQueryExecutor executor = new SqlQueryExecutor();
 
 			// The table we are showing,
 			// TemporaryTable show_table;
@@ -89,19 +89,19 @@ namespace Deveel.Data.Sql {
 
 				if (show_type.Equals("schema")) {
 
-					SqlCommand command = new SqlCommand(
+					SqlQuery query = new SqlQuery(
 					   "  SELECT \"name\" AS \"schema_name\", " +
 					   "         \"type\", " +
 					   "         \"other\" AS \"notes\" " +
 					   "    FROM INFORMATION_SCHEMA.ThisUserSchemaInfo " +
 					   "ORDER BY \"schema_name\"");
-					return executor.Execute(Connection, command);
+					return executor.Execute(Connection, query);
 
 				} else if (show_type.Equals("tables")) {
 
 					String current_schema = Connection.CurrentSchema;
 
-					SqlCommand command = new SqlCommand(
+					SqlQuery query = new SqlQuery(
 					   "  SELECT \"Tables.TABLE_NAME\" AS \"table_name\", " +
 					   "         I_PRIVILEGE_STRING(\"agg_priv_bit\") AS \"user_privs\", " +
 					   "         \"Tables.TABLE_TYPE\" as \"table_type\" " +
@@ -114,18 +114,18 @@ namespace Deveel.Data.Sql {
 					   "   WHERE \"Tables.TABLE_SCHEMA\" = ? " +
 					   "     AND CONCAT(\"Tables.TABLE_SCHEMA\", '.', \"Tables.TABLE_NAME\") = \"param\" " +
 					   "ORDER BY \"Tables.TABLE_NAME\"");
-					command.AddVariable(current_schema);
+					query.AddVariable(current_schema);
 
-					return executor.Execute(Connection, command);
+					return executor.Execute(Connection, query);
 
 				} else if (show_type.Equals("status")) {
 
-					SqlCommand command = new SqlCommand(
+					SqlQuery query = new SqlQuery(
 					   "  SELECT \"stat_name\" AS \"name\", " +
 					   "         \"value\" " +
 					   "    FROM SYSTEM.sUSRDatabaseStatistics ");
 
-					return executor.Execute(Connection, command);
+					return executor.Execute(Connection, query);
 
 				} else if (show_type.Equals("describe_table")) {
 
@@ -135,7 +135,7 @@ namespace Deveel.Data.Sql {
 											"Unable to find table '" + table_name + "'");
 					}
 
-					SqlCommand command = new SqlCommand(
+					SqlQuery query = new SqlQuery(
 					  "  SELECT \"column\" AS \"name\", " +
 					  "         i_sql_type(\"type_desc\", \"size\", \"scale\") AS \"type\", " +
 					  "         \"not_null\", " +
@@ -145,21 +145,21 @@ namespace Deveel.Data.Sql {
 					  "   WHERE \"schema\" = ? " +
 					  "     AND \"table\" = ? " +
 					  "ORDER BY \"seq_no\" ");
-					command.AddVariable(tname.Schema);
-					command.AddVariable(tname.Name);
+					query.AddVariable(tname.Schema);
+					query.AddVariable(tname.Name);
 
-					return executor.Execute(Connection, command);
+					return executor.Execute(Connection, query);
 
 				} else if (show_type.Equals("connections")) {
 
-					SqlCommand command = new SqlCommand(
+					SqlQuery query = new SqlQuery(
 					   "SELECT * FROM SYSTEM.sUSRCurrentConnections");
 
-					return executor.Execute(Connection, command);
+					return executor.Execute(Connection, query);
 
 				} else if (show_type.Equals("product")) {
 
-					SqlCommand command = new SqlCommand(
+					SqlQuery query = new SqlQuery(
 					   "SELECT \"name\", \"version\" FROM " +
 					   "  ( SELECT \"value\" AS \"name\" FROM SYSTEM.sUSRProductInfo " +
 					   "     WHERE \"var\" = 'name' ), " +
@@ -167,15 +167,15 @@ namespace Deveel.Data.Sql {
 					   "     WHERE \"var\" = 'version' ) "
 					);
 
-					return executor.Execute(Connection, command);
+					return executor.Execute(Connection, query);
 
 				} else if (show_type.Equals("connection_info")) {
 
-					SqlCommand command = new SqlCommand(
+					SqlQuery query = new SqlQuery(
 					   "SELECT * FROM SYSTEM.sUSRConnectionInfo"
 					);
 
-					return executor.Execute(Connection, command);
+					return executor.Execute(Connection, query);
 
 				} 
 				 else {

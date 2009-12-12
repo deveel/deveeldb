@@ -203,7 +203,7 @@ namespace Deveel.Data {
 					bool nullable = query.Get(5, i) == 1;
 
 					// so we finally add the member
-					type.AddMember(name, ttype, nullable);
+					type.AddAttribute(name, ttype, nullable);
 				}
 			}
 

@@ -1,5 +1,5 @@
-//  
-//  LockingMode.cs
+﻿//  
+//  ReturnStatement.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -21,14 +21,29 @@
 
 using System;
 
-namespace Deveel.Data {
-	/// <summary>
-	/// Used in the <see cref="LockingMechanism.SetMode"/> method to request 
-	/// either shared or exclusive access to the database.
-	/// </summary>
-	public enum LockingMode {
-		Shared = 1,
-		Exclusive = 2,
-		None = -1
+namespace Deveel.Data.Sql {
+	public sealed class ReturnStatement : Statement {
+		public ReturnStatement(Expression expression) {
+			SetValue("return", expression);
+		}
+
+		public Expression ReturnExpression {
+			get { return GetExpression("return"); }
+		}
+
+		#region Overrides of Statement
+
+		internal override void Prepare() {
+		}
+
+		internal override Table Evaluate() {
+			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
+
+			Expression expression = ReturnExpression;
+			//TODO: set it to the parent execution block...
+			return FunctionTable.ResultTable(context, 0);
+		}
+
+		#endregion
 	}
 }

@@ -28,7 +28,16 @@ namespace Deveel.Data {
 	/// </summary>
 	public sealed class UserTypeAttribute {
 		internal UserTypeAttribute(UserType userType, string name, TType type) {
+			if (userType == null)
+				throw new ArgumentNullException("userType");
+			 
 			this.userType = userType;
+			this.name = name;
+			this.type = type;
+		}
+
+		// special constructor for SQL statements
+		internal UserTypeAttribute(string name, TType type) {
 			this.name = name;
 			this.type = type;
 		}
@@ -36,7 +45,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The UDT declaring this member.
 		/// </summary>
-		private readonly UserType userType;
+		internal UserType userType;
 
 		/// <summary>
 		/// The name of the member.

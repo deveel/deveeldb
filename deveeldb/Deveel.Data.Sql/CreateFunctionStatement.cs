@@ -23,6 +23,8 @@ using System;
 using System.Collections;
 using System.Reflection;
 
+using Deveel.Data.Procedures;
+
 namespace Deveel.Data.Sql {
 	public sealed class CreateFunctionStatement : Statement {
 		/// <summary>

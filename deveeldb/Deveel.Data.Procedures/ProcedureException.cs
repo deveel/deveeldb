@@ -1,8 +1,9 @@
 //  
-//  LockingMode.cs
+//  ProcedureException.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
+//       Tobias Downer <toby@mckoi.com>
 // 
 //  Copyright (c) 2009 Deveel
 // 
@@ -21,14 +22,29 @@
 
 using System;
 
-namespace Deveel.Data {
-	/// <summary>
-	/// Used in the <see cref="LockingMechanism.SetMode"/> method to request 
-	/// either shared or exclusive access to the database.
-	/// </summary>
-	public enum LockingMode {
-		Shared = 1,
-		Exclusive = 2,
-		None = -1
+namespace Deveel.Data.Procedures {
+	///<summary>
+	/// An exception that is generated from a stored procedure when some 
+	/// erronious condition occurs.
+	///</summary>
+	/// <remarks>
+	/// This error is typically returned back to the client.
+	/// </remarks>
+	public class ProcedureException : Exception {
+		///<summary>
+		///</summary>
+		///<param name="message"></param>
+		/// <param name="innerException"></param>
+		public ProcedureException(string message, Exception innerException)
+			: base(message, innerException) {
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="message"></param>
+		public ProcedureException(string message)
+			: base(message) {
+		}
 	}
 }

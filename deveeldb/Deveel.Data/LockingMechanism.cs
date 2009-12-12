@@ -94,7 +94,7 @@ namespace Deveel.Data {
 
 		/// <summary>
 		/// This contains the number of threads that have requested to go into
-		/// 'shared mode'. It is incremented each time <see cref="SetMode">SetMode(SHARED_MODE)</see> 
+		/// 'shared mode'. It is incremented each time <see cref="SetMode">SetMode(Shared)</see> 
 		/// is called.
 		/// </summary>
 		private int shared_mode = 0;
@@ -288,7 +288,7 @@ namespace Deveel.Data {
 					}
 				}
 
-				if (mode == LockingMode.EXCLUSIVE_MODE) {
+				if (mode == LockingMode.Exclusive) {
 
 					// Set this thread to exclusive mode, and wait until all shared modes
 					// have completed.
@@ -305,7 +305,7 @@ namespace Deveel.Data {
 
 					debug.Write(DebugLevel.Information, this, "Locked into ** EXCLUSIVE MODE **");
 
-				} else if (mode == LockingMode.SHARED_MODE) {
+				} else if (mode == LockingMode.Shared) {
 
 					// Increase the threads counter that are in shared mode.
 
@@ -334,20 +334,20 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void FinishMode(LockingMode mode) {
 			lock (this) {
-				if (mode == LockingMode.EXCLUSIVE_MODE) {
+				if (mode == LockingMode.Exclusive) {
 					in_exclusive_mode = false;
 					Monitor.PulseAll(this);
 
 					debug.Write(DebugLevel.Information, this, "UnLocked from ** EXCLUSIVE MODE **");
 
-				} else if (mode == LockingMode.SHARED_MODE) {
+				} else if (mode == LockingMode.Shared) {
 					--shared_mode;
 					if (shared_mode == 0 && in_exclusive_mode) {
 						Monitor.PulseAll(this);
 					} else if (shared_mode < 0) {
 						shared_mode = 0;
 						Monitor.PulseAll(this);
-						throw new Exception("Too many 'FinishMode(SHARED_MODE)' calls");
+						throw new Exception("Too many 'FinishMode(Shared)' calls");
 					}
 
 					debug.Write(DebugLevel.Information, this, "UnLocked from SHARED MODE");

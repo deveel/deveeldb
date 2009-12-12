@@ -22,7 +22,14 @@
 using System;
 
 namespace Deveel.Data.Sql {
+	/// <summary>
+	/// Closes an open cursor within the current execution context.
+	/// </summary>
 	public sealed class CloseCursorStatement : Statement {
+		public CloseCursorStatement(string cursorName) {
+			SetValue("name", cursorName);
+		}
+
 		private string name;
 
 		private TableName resolved_name;

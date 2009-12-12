@@ -35,8 +35,8 @@ namespace Deveel.Data {
 	/// and they cannot be accessed anymore.
 	/// </remarks>
 	public sealed class Cursor : IEnumerator, IDisposable {
-		internal Cursor(Transaction transaction, TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
-			this.transaction = transaction;
+		internal Cursor(ICursorContext context, TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
+			this.context = context;
 			this.name = name;
 			this.queryPlan = queryPlan;
 
@@ -50,12 +50,9 @@ namespace Deveel.Data {
 				throw new ArgumentException("A scrollable or insensitive cursor cannot be updateable.");
 
 			this.attributes = attributes;
-		}
 
-		/// <summary>
-		/// A reference to the transaction contect that manages the cursor.
-		/// </summary>
-		private readonly Transaction transaction;
+			context.OnCursorCreated(this);
+		}
 
 		/// <summary>
 		/// The name of the cursor.
@@ -100,6 +97,11 @@ namespace Deveel.Data {
 		private int rowCount;
 
 		private TableExpressionFromSet fromSet;
+
+		/// <summary>
+		/// A reference to the context that manages the cursor.
+		/// </summary>
+		private readonly ICursorContext context;
 
 		/// <summary>
 		/// Gets the current <see cref="CursorState"/> of the cursor.
@@ -418,7 +420,7 @@ namespace Deveel.Data {
 		/// context where it was declared.
 		/// </summary>
 		public void Dispose() {
-			transaction.RemoveCursor(name);
+			context.OnCursorDisposing(this);
 		}
 
 		#region CursorRowTable

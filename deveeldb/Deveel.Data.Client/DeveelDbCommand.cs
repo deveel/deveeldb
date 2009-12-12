@@ -52,7 +52,7 @@ namespace Deveel.Data.Client {
 		private bool designTimeVisible = true;
 
 		/// <summary>
-		/// The list of commands to execute in a batch.
+		/// The list of _queries to execute in a batch.
 		/// </summary>
 		private ArrayList batch_list;
 
@@ -66,7 +66,7 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		private int multi_result_set_index;
 
-		private SqlCommand[] commands;
+		private SqlQuery[] _queries;
 		private string commandText;
 
 		private DeveelDbParameterCollection parameters;
@@ -97,7 +97,7 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		/// <param name="count"></param>
 		/// <remarks>
-		/// This is intended for multiple result commands (such as batch statements).
+		/// This is intended for multiple result _queries (such as batch statements).
 		/// </remarks>
 		/// <returns></returns>
 		internal ResultSet[] InternalResultSetList(int count) {
@@ -312,7 +312,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Executes the given <see cref="SqlCommand"/> object and fill's in at 
+		/// Executes the given <see cref="SqlQuery"/> object and fill's in at 
 		/// most the top 10 entries of the result set.
 		/// </summary>
 		/// <returns></returns>
@@ -322,11 +322,11 @@ namespace Deveel.Data.Client {
 			if (connection.State == ConnectionState.Closed)
 				throw new InvalidOperationException("The connection is closed.");
 
-			if (commands == null)
+			if (_queries == null)
 				throw new InvalidOperationException("The command text was not set.");
 
 			// Allocate the result set for this batch
-			ResultSet[] results = InternalResultSetList(commands.Length);
+			ResultSet[] results = InternalResultSetList(_queries.Length);
 
 			// Reset the result set index
 			multi_result_set_index = 0;
@@ -337,10 +337,10 @@ namespace Deveel.Data.Client {
 				results[i].CloseCurrentResult();
 
 			// Execute each query
-			connection.ExecuteQueries(commands, results);
+			connection.ExecuteQueries(_queries, results);
 
 			// Post processing on the ResultSet objects
-			for (int i = 0; i < commands.Length; ++i) {
+			for (int i = 0; i < _queries.Length; ++i) {
 				ResultSet result_set = results[i];
 				// Set the fetch size
 				result_set.SetFetchSize(fetch_size);
@@ -420,26 +420,26 @@ namespace Deveel.Data.Client {
 		#region Implementation of IDbCommand
 
 		public override void Prepare() {
-			if (commands == null || parameters.Count == 0)
+			if (_queries == null || parameters.Count == 0)
 				return;
 
 			//TODO: we should handle this better: it's nasty that a set
-			//      of parameters are set for all the commands...
+			//      of parameters are set for all the _queries...
 
-			for (int i = 0; i < commands.Length; i++) {
-				SqlCommand command = commands[i];
+			for (int i = 0; i < _queries.Length; i++) {
+				SqlQuery query = _queries[i];
 				for (int j = 0; j < parameters.Count; j++) {
 					DeveelDbParameter parameter = parameters[j];
 					if (parameter.Value is DeveelDbLob) {
-						command.SetVariable(j, ((DeveelDbLob)parameter.Value).ObjectRef);
+						query.SetVariable(j, ((DeveelDbLob)parameter.Value).ObjectRef);
 					} else if (parameter.Value is Stream) {
 						Stream stream = (Stream) parameter.Value;
 						if (parameter.LongSize > 8 * 1024) {
 							DeveelDbLob lob = new DeveelDbLob(this, stream, parameter.ReferenceType, parameter.LongSize, true);
-							command.SetVariable(j, lob.ObjectRef);
+							query.SetVariable(j, lob.ObjectRef);
 						} else {
 							if (parameter.ReferenceType == ReferenceType.Binary) {
-								command.SetVariable(j, new ByteLongObject(stream, parameter.Size));
+								query.SetVariable(j, new ByteLongObject(stream, parameter.Size));
 							} else if (parameter.ReferenceType == ReferenceType.AsciiText) {
 								StringBuilder sb = new StringBuilder();
 								for (int k = 0; k < parameter.Size; ++k) {
@@ -448,7 +448,7 @@ namespace Deveel.Data.Client {
 										throw new IOException("Premature EOF reached.");
 									sb.Append((char)v);
 								}
-								command.SetVariable(j, StringObject.FromString(sb.ToString()));
+								query.SetVariable(j, StringObject.FromString(sb.ToString()));
 							} else {
 								StringBuilder sb = new StringBuilder();
 								int halfLength = parameter.Size/2;
@@ -461,11 +461,11 @@ namespace Deveel.Data.Client {
 									sb.Append((char)((v1 << 8) + v2));
 								}
 
-								command.SetVariable(j, StringObject.FromString(sb.ToString()));
+								query.SetVariable(j, StringObject.FromString(sb.ToString()));
 							}
 						}
 					}else if (!(parameter.Value is DeveelDbLob))
-						command.SetVariable(j, CastHelper.CastToSQLType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
+						query.SetVariable(j, CastHelper.CastToSQLType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
 				}
 			}
 		}
@@ -633,16 +633,16 @@ namespace Deveel.Data.Client {
 					//TODO: this is a nasty hack to support multiple results: should be
 					//      done on server side...
 					string[] parts = value.Split(';');
-					commands = new SqlCommand[parts.Length];
+					_queries = new SqlQuery[parts.Length];
 					for (int i = 0; i < parts.Length; i++) {
 						ParameterStyle style = ParameterStyle.Marker;
 						if (connection != null)
 							style = connection.Settings.ParameterStyle;
-						commands[i] = new SqlCommand(parts[i], style);
+						_queries[i] = new SqlQuery(parts[i], style);
 					}
 					commandText = value;
 				} else {
-					commands = null;
+					_queries = null;
 					commandText = null;
 				}
 

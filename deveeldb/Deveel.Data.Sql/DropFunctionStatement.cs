@@ -21,6 +21,8 @@
 
 using System;
 
+using Deveel.Data.Procedures;
+
 namespace Deveel.Data.Sql {
 	public sealed class DropFunctionStatement : Statement {
 		/// <summary>

@@ -31,7 +31,7 @@ namespace Deveel.Data.Server {
 	/// An implementation of <see cref="IDatabaseInterface"/> on the server-side.
 	///</summary>
 	/// <remarks>
-	/// This receives database commands and dispatches them to the database system.
+	/// This receives database _queries and dispatches them to the database system.
 	/// This assumes that all calls to the methods here are in a <see cref="WorkerThread"/>
 	/// thread.
 	/// <para>
@@ -42,7 +42,7 @@ namespace Deveel.Data.Server {
 	/// </remarks>
 	public class DatabaseInterface : DatabaseInterfaceBase {
 		/// <summary>
-		/// Set this to true if command logging is enabled.
+		/// Set this to true if Query logging is enabled.
 		/// </summary>
 		private const bool COMMAND_LOGGING = true;
 
@@ -84,7 +84,7 @@ namespace Deveel.Data.Server {
 			if (User == null) {
 
 				if (COMMAND_LOGGING && database.System.LogQueries) {
-					// Output the instruction to the commands log.
+					// Output the instruction to the _queries log.
 					StringBuilder log_str = new StringBuilder();
 					log_str.Append("[CLIENT] [");
 					log_str.Append(username);
@@ -116,7 +116,7 @@ namespace Deveel.Data.Server {
 
 					// Put the connection in exclusive mode
 					LockingMechanism locker = database_connection.LockingMechanism;
-					locker.SetMode(LockingMode.EXCLUSIVE_MODE);
+					locker.SetMode(LockingMode.Exclusive);
 					try {
 
 						// By default, JDBC connections are auto-commit
@@ -141,7 +141,7 @@ namespace Deveel.Data.Server {
 							Debug.WriteException(DebugLevel.Warning, e);
 						} finally {
 							// Guarentee that we unluck from EXCLUSIVE
-							locker.FinishMode(LockingMode.EXCLUSIVE_MODE);
+							locker.FinishMode(LockingMode.Exclusive);
 						}
 					}
 
@@ -195,7 +195,7 @@ namespace Deveel.Data.Server {
 			                    database_call_back);
 		}
 
-		public override IQueryResponse ExecuteQuery(SqlCommand command) {
+		public override IQueryResponse ExecuteQuery(SqlQuery query) {
 
 			// Check the interface isn't disposed (connection was closed).
 			CheckNotDisposed();
@@ -203,9 +203,9 @@ namespace Deveel.Data.Server {
 			User user = User;
 			DatabaseConnection database_connection = DatabaseConnection;
 
-			// Log this command if command logging is enabled
+			// Log this Query if Query logging is enabled
 			if (COMMAND_LOGGING && Database.System.LogQueries) {
-				// Output the instruction to the commands log.
+				// Output the instruction to the _queries log.
 				StringBuilder log_str = new StringBuilder();
 				log_str.Append("[CLIENT] [");
 				log_str.Append(user.UserName);
@@ -214,7 +214,7 @@ namespace Deveel.Data.Server {
 				log_str.Append(host_name);
 				log_str.Append("] ");
 				log_str.Append("Query: ");
-				log_str.Append(command.Text);
+				log_str.Append(query.Text);
 				log_str.Append('\n');
 				user.Database.CommandsLog.Write(log_str.ToString());
 			}
@@ -222,12 +222,12 @@ namespace Deveel.Data.Server {
 			// Write debug message (Information level)
 			if (Debug.IsInterestedIn(DebugLevel.Information)) {
 				Debug.Write(DebugLevel.Information, this, "Query From User: " + user.UserName + "@" + host_name);
-				Debug.Write(DebugLevel.Information, this, "Query: " + command.Text.Trim());
+				Debug.Write(DebugLevel.Information, this, "Query: " + query.Text.Trim());
 			}
 
 			// Get the locking mechanism.
 			LockingMechanism locker = database_connection.LockingMechanism;
-			LockingMode lock_mode = LockingMode.NONE;
+			LockingMode lock_mode = LockingMode.None;
 			IQueryResponse response = null;
 			try {
 				try {
@@ -242,11 +242,11 @@ namespace Deveel.Data.Server {
 					// because we could change the contract of this method so that
 					// it is not thread safe.  This would require that the callee ensures
 					// more than one thread can not execute queries on the connection.
-					lock_mode = LockingMode.EXCLUSIVE_MODE;
+					lock_mode = LockingMode.Exclusive;
 					locker.SetMode(lock_mode);
 
-					// Execute the command (behaviour for this comes from super).
-					response = base.ExecuteQuery(command);
+					// Execute the Query (behaviour for this comes from super).
+					response = base.ExecuteQuery(query);
 
 					// Return the result.
 					return response;
@@ -255,7 +255,7 @@ namespace Deveel.Data.Server {
 					try {
 						// This is executed no matter what happens.  Very important we
 						// unlock the tables.
-						if (lock_mode != LockingMode.NONE) {
+						if (lock_mode != LockingMode.None) {
 							locker.FinishMode(lock_mode);
 						}
 					} catch (Exception e) {
@@ -274,13 +274,13 @@ namespace Deveel.Data.Server {
 				// This always happens after tables are unlocked.
 				// Also guarenteed to happen even if something fails.
 
-				// If we are in auto-commit mode then commit the command here.
+				// If we are in auto-commit mode then commit the Query here.
 				// Do we auto-commit?
 				if (database_connection.AutoCommit) {
 					// Yes, so grab an exclusive Lock and auto-commit.
 					try {
 						// Lock into exclusive mode.
-						locker.SetMode(LockingMode.EXCLUSIVE_MODE);
+						locker.SetMode(LockingMode.Exclusive);
 						// If an error occured then roll-back
 						if (response == null) {
 							// Rollback.
@@ -293,11 +293,11 @@ namespace Deveel.Data.Server {
 								// Dispose this response if the commit failed.
 								DisposeResult(response.ResultId);
 								// And throw the SQL Exception
-								throw HandleExecuteThrowable(e, command);
+								throw HandleExecuteThrowable(e, query);
 							}
 						}
 					} finally {
-						locker.FinishMode(LockingMode.EXCLUSIVE_MODE);
+						locker.FinishMode(LockingMode.Exclusive);
 					}
 				}
 
@@ -312,12 +312,12 @@ namespace Deveel.Data.Server {
 				LockingMechanism locker = database.LockingMechanism;
 				try {
 					// Lock into exclusive mode,
-					locker.SetMode(LockingMode.EXCLUSIVE_MODE);
+					locker.SetMode(LockingMode.Exclusive);
 					// Roll back any open transaction.
 					database.Rollback();
 				} finally {
 					// Finish being in exclusive mode.
-					locker.FinishMode(LockingMode.EXCLUSIVE_MODE);
+					locker.FinishMode(LockingMode.Exclusive);
 					// Close the database connection object.
 					database.Close();
 					// Log out the user

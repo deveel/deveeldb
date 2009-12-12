@@ -32,6 +32,10 @@ namespace Deveel.Data.Sql {
 	/// interpretted statements.
 	/// </summary>
 	public abstract class Statement {
+		internal Statement() {
+			info = new StatementTree(GetType());
+		}
+
 		/// <summary>
 		/// The Database context.
 		/// </summary>
@@ -48,9 +52,9 @@ namespace Deveel.Data.Sql {
 		private StatementTree info;
 
 		/// <summary>
-		/// The SqlCommand object that was used to produce this statement.
+		/// The SqlQuery object that was used to produce this statement.
 		/// </summary>
-		private SqlCommand command;
+		private SqlQuery query;
 
 		/// <summary>
 		/// The list of all IFromTableSource objects of resources referenced 
@@ -73,15 +77,19 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// Gets the <see cref="SqlCommand">command</see> object that was used to 
+		/// Gets the <see cref="SqlQuery">Query</see> object that was used to 
 		/// produce the statement.
 		/// </summary>
-		protected SqlCommand Command {
-			get { return command; }
+		protected SqlQuery Query {
+			get { return query; }
+		}
+
+		internal StatementTree Info {
+			get { return info; }
 		}
 
 		/// <summary>
-		/// Gets an <see cref="IDebugLogger"/> used to log commands.
+		/// Gets an <see cref="IDebugLogger"/> used to log _queries.
 		/// </summary>
 		protected IDebugLogger Debug {
 			get { return database.Debug; }
@@ -109,6 +117,26 @@ namespace Deveel.Data.Sql {
 
 		protected IList GetList(string key) {
 			return (IList) GetValue(key);
+		}
+
+		protected void SetValue(string key, object value) {
+			info.SetObject(key, value);
+		}
+
+		protected void SetValue(string key, int value) {
+			SetValue(key, (object)value);
+		}
+
+		protected void SetValue(string key, bool value) {
+			SetValue(key, (object)value);
+		}
+
+		protected void SetValue(string key, string value) {
+			SetValue(key, (object)value);
+		}
+
+		protected void SetValue(string key, Expression value) {
+			SetValue(key, (object)value);
 		}
 
 		/// <summary>
@@ -157,7 +185,8 @@ namespace Deveel.Data.Sql {
 			public bool CanPrepare(Object element) {
 				return element is StatementTree;
 			}
-			public Object Prepare(Object element) {
+
+			public object Prepare(Object element) {
 				StatementTree stmt_tree = (StatementTree)element;
 				SelectStatement stmt = new SelectStatement();
 				stmt.Init(database, stmt_tree, null);
@@ -234,8 +263,12 @@ namespace Deveel.Data.Sql {
 		/// the table to the cased version of the table name.
 		/// </remarks>
 		/// <returns></returns>
-		internal TableName ResolveTableName(String name, DatabaseConnection db) {
+		internal TableName ResolveTableName(string name, DatabaseConnection db) {
 			return db.ResolveTableName(name);
+		}
+
+		internal TableName ResolveTableName(string name) {
+			return database.ResolveTableName(name);
 		}
 
 		/// <summary>
@@ -353,7 +386,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="db">The session that will execute the statement.</param>
 		/// <param name="stree">The <see cref="StatementTree"/> that contains 
 		/// the parsed content of the statement being executed.</param>
-		/// <param name="command"></param>
+		/// <param name="query"></param>
 		/// <remarks>
 		/// This is called before <see cref="Prepare"/> and <see cref="LockingMechanism.IsInExclusiveMode"/>
 		/// is called.
@@ -363,11 +396,11 @@ namespace Deveel.Data.Sql {
 		/// a call to this method.
 		/// </para>
 		/// </remarks>
-		internal void Init(DatabaseConnection db, StatementTree stree, SqlCommand command) {
+		internal void Init(DatabaseConnection db, StatementTree stree, SqlQuery query) {
 			database = db;
 			user = db.User;
 			info = stree;
-			this.command = command;
+			this.query = query;
 		}
 
 		/// <summary>
@@ -386,9 +419,9 @@ namespace Deveel.Data.Sql {
 		/// The rules for safety should be as follows: 
 		/// <list type="bullet">
 		/// <item>
-		/// If the database is in <see cref="LockingMode.EXCLUSIVE_MODE"/> mode, 
+		/// If the database is in <see cref="LockingMode.Exclusive"/> mode, 
 		/// then we need to wait until it's switched back to 
-		/// <see cref="LockingMode.SHARED_MODE"/> mode before this method is called.
+		/// <see cref="LockingMode.Shared"/> mode before this method is called.
 		/// </item>
 		/// <item>
 		/// All collection of information done here should not involve 

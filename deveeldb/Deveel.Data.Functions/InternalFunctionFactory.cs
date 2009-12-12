@@ -186,8 +186,8 @@ namespace Deveel.Data.Functions {
 					node.DebugString(0, buf);
 					return TObject.GetString(buf.ToString());
 				} else if (String.Compare(command_str, "query string", true) == 0) {
-					SqlCommand command = SqlCommand.DeserializeFromBlob(blob);
-					return TObject.GetString(command.ToString());
+					SqlQuery query = SqlQuery.DeserializeFromBlob(blob);
+					return TObject.GetString(query.ToString());
 				}
 
 				return TObject.Null;

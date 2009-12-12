@@ -23,8 +23,6 @@
 using System;
 using System.Collections;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// This class represents a temporary table that is built from data that is 

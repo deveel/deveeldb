@@ -28,6 +28,7 @@ using System.IO;
 using Deveel.Data.Caching;
 using Deveel.Data.Client;
 using Deveel.Data.Control;
+using Deveel.Data.Procedures;
 using Deveel.Data.Store;
 using Deveel.Diagnostics;
 
@@ -465,7 +466,7 @@ namespace Deveel.Data {
 			DatabaseQueryContext context = new DatabaseQueryContext(connection);
 			connection.CurrentSchema = SystemSchema;
 			LockingMechanism locker = connection.LockingMechanism;
-			locker.SetMode(LockingMode.EXCLUSIVE_MODE);
+			locker.SetMode(LockingMode.Exclusive);
 			try {
 				try {
 					IDbConnection conn = connection.GetDbConnection();
@@ -514,7 +515,7 @@ namespace Deveel.Data {
 					Debug.WriteException(DebugLevel.Warning, e);
 				} finally {
 					// Guarentee that we unluck from EXCLUSIVE
-					locker.FinishMode(LockingMode.EXCLUSIVE_MODE);
+					locker.FinishMode(LockingMode.Exclusive);
 				}
 				// And make sure we close (dispose) of the temporary connection.
 				connection.Close();
@@ -1816,7 +1817,7 @@ namespace Deveel.Data {
 
 				DatabaseConnection connection = CreateNewConnection(null, null);
 				DatabaseQueryContext context = new DatabaseQueryContext(connection);
-				connection.LockingMechanism.SetMode(LockingMode.EXCLUSIVE_MODE);
+				connection.LockingMechanism.SetMode(LockingMode.Exclusive);
 				connection.CurrentSchema = SystemSchema;
 
 				// Create the schema information tables introduced in version 0.90
@@ -1853,7 +1854,7 @@ namespace Deveel.Data {
 				}
 
 				connection.LockingMechanism.FinishMode(
-					LockingMode.EXCLUSIVE_MODE);
+					LockingMode.Exclusive);
 				connection.Close();
 
 				// Close the conglomerate.
@@ -1921,7 +1922,7 @@ namespace Deveel.Data {
 				// Check the state of the conglomerate,
 				DatabaseConnection connection = CreateNewConnection(null, null);
 				DatabaseQueryContext context = new DatabaseQueryContext(connection);
-				connection.LockingMechanism.SetMode(LockingMode.EXCLUSIVE_MODE);
+				connection.LockingMechanism.SetMode(LockingMode.Exclusive);
 				if (!connection.TableExists(TableDataConglomerate.PERSISTENT_VAR_TABLE)) {
 					throw new DatabaseException(
 						"The sUSRDatabaseVars table doesn't exist.  This means the " +
@@ -1945,7 +1946,7 @@ namespace Deveel.Data {
 
 				// Commit and close the connection.
 				connection.Commit();
-				connection.LockingMechanism.FinishMode(LockingMode.EXCLUSIVE_MODE);
+				connection.LockingMechanism.FinishMode(LockingMode.Exclusive);
 				connection.Close();
 			} catch (TransactionException e) {
 				// This would be very strange error to receive for in initializing

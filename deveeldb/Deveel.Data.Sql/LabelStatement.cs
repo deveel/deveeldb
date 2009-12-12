@@ -1,5 +1,5 @@
-//  
-//  LockingMode.cs
+﻿//  
+//  LabelStatement.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -21,14 +21,18 @@
 
 using System;
 
-namespace Deveel.Data {
-	/// <summary>
-	/// Used in the <see cref="LockingMechanism.SetMode"/> method to request 
-	/// either shared or exclusive access to the database.
-	/// </summary>
-	public enum LockingMode {
-		Shared = 1,
-		Exclusive = 2,
-		None = -1
+namespace Deveel.Data.Sql {
+	public sealed class LabelStatement : Statement {
+		#region Overrides of Statement
+
+		internal override void Prepare() {
+		}
+
+		internal override Table Evaluate() {
+			//TODO: label an execution block...
+			return FunctionTable.ResultTable(new DatabaseQueryContext(Connection), 0);
+		}
+
+		#endregion
 	}
 }

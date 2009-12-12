@@ -107,5 +107,21 @@ namespace Deveel.Data {
 		public override void SetVariable(string name, Expression value) {
 			transaction.Variables.SetVariable(name, value, this);
 		}
+
+		public override Cursor DeclareCursor(TableName name, IQueryPlanNode planNode, CursorAttributes attributes) {
+			throw new NotSupportedException();
+		}
+
+		public override Cursor GetCursror(TableName name) {
+			throw new NotSupportedException();
+		}
+
+		public override void OpenCursor(TableName name) {
+			throw new NotSupportedException();
+		}
+
+		public override void CloseCursor(TableName name) {
+			throw new NotSupportedException();
+		}
 	}
 }

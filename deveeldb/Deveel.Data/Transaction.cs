@@ -45,7 +45,7 @@ namespace Deveel.Data {
 	/// master data.
 	/// </para>
 	/// </remarks>
-	public class Transaction : SimpleTransaction, IDisposable {
+	public class Transaction : SimpleTransaction, IDisposable, ICursorContext {
 
 		// ---------- Member variables ----------
 
@@ -82,6 +82,12 @@ namespace Deveel.Data {
 		/// </summary>
 		private readonly ArrayList dropped_database_objects;
 
+		/// <summary>
+		/// The list of temporary tables, which survive for the time of the
+		/// transaction: when committed or rolledback they will be disposed.
+		/// </summary>
+		private readonly ArrayList temporary_tables;
+
 		private Hashtable cursors;
 
 		/// <summary>
@@ -117,13 +123,14 @@ namespace Deveel.Data {
 
 			this.conglomerate = conglomerate;
 			this.commit_id = commit_id;
-			this.closed = false;
+			closed = false;
 
-			this.created_database_objects = new ArrayList();
-			this.dropped_database_objects = new ArrayList();
+			created_database_objects = new ArrayList();
+			dropped_database_objects = new ArrayList();
 
-			this.touched_tables = new ArrayList();
-			this.selected_from_tables = new ArrayList();
+			touched_tables = new ArrayList();
+			selected_from_tables = new ArrayList();
+			temporary_tables = new ArrayList();
 			journal = new TransactionJournal();
 
 			cursors = new Hashtable();
@@ -426,8 +433,7 @@ namespace Deveel.Data {
 			}
 
 			// Create the new master table and add to list of visible tables.
-			master = conglomerate.CreateMasterTable(table_def, data_sector_size,
-													index_sector_size);
+			master = conglomerate.CreateMasterTable(table_def, data_sector_size, index_sector_size);
 			// Add this table (and an index set) for this table.
 			AddVisibleTable(master, master.CreateIndexSet());
 
@@ -444,7 +450,6 @@ namespace Deveel.Data {
 
 			// Notify that this database object has been successfully created.
 			OnDatabaseObjectCreated(table_name);
-
 		}
 
 		/// <summary>
@@ -462,6 +467,23 @@ namespace Deveel.Data {
 			// data sector size defaults to 251
 			// index sector size defaults to 1024
 			CreateTable(table_def, 251, 1024);
+		}
+
+		public void CreateTemporaryTable(DataTableDef table_def) {
+			TableName table_name = table_def.TableName;
+			MasterTableDataSource master = FindVisibleTable(table_name, false);
+			if (master != null)
+				throw new StatementException("Table '" + table_name + "' already exists.");
+
+			table_def.SetImmutable();
+
+			MasterTableDataSource temp = conglomerate.CreateTemporaryDataSource(table_def);
+			AddVisibleTable(temp, temp.CreateIndexSet());
+
+			SequenceManager.AddNativeTableGenerator(this, table_name);
+
+			// Notify that this database object has been successfully created.
+			OnDatabaseObjectCreated(table_name);
 		}
 
 		/// <summary>
@@ -2308,16 +2330,21 @@ namespace Deveel.Data {
 
 		// ---------- Cursor management ----------
 
+		void ICursorContext.OnCursorCreated(Cursor cursor) {
+			cursors[cursor.Name] = cursor;
+
+			OnDatabaseObjectCreated(cursor.Name);
+		}
+
+		void ICursorContext.OnCursorDisposing(Cursor cursor) {
+			RemoveCursor(cursor.Name);
+		}
+
 		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
 			if (cursors.ContainsKey(name))
 				throw new ArgumentException("The cursor '" + name + "' was already defined within this transaction.");
 
-			Cursor cursor = new Cursor(this, name, queryPlan, attributes);
-			cursors[name] = cursor;
-
-			OnDatabaseObjectCreated(name);
-
-			return cursor;
+			return new Cursor(this, name, queryPlan, attributes);
 		}
 
 		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {

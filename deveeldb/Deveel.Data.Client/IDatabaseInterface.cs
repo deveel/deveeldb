@@ -96,7 +96,7 @@ namespace Deveel.Data.Client {
 		/// queries to the engine to retrieve the actual result of the command.
 		/// </remarks>
 		///<returns></returns>
-		IQueryResponse ExecuteQuery(SqlCommand sql);
+		IQueryResponse ExecuteQuery(SqlQuery sql);
 
 		///<summary>
         /// Returns a part of a result set.

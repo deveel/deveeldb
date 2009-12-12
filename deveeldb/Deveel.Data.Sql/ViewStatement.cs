@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql {
 	/// </summary>
 	public class ViewStatement : Statement {
 		/// <summary>
-		/// The type of command we are running through this ViewStatement.
+		/// The type of Query we are running through this ViewStatement.
 		/// </summary>
 		private String type;
 
@@ -46,13 +46,13 @@ namespace Deveel.Data.Sql {
 		private TableName vname;
 
 		/// <summary>
-		/// If this is a create command, the TableSelectExpression that forms 
+		/// If this is a create Query, the TableSelectExpression that forms 
 		/// the view.
 		/// </summary>
 		private TableSelectExpression select_expression;
 
 		/// <summary>
-		/// If this is a create command, the IQueryPlanNode that represents the 
+		/// If this is a create Query, the IQueryPlanNode that represents the 
 		/// view plan.
 		/// </summary>
 		private IQueryPlanNode plan;
@@ -173,7 +173,7 @@ namespace Deveel.Data.Sql {
 				ViewDef view_def = new ViewDef(data_table_def, plan_copy);
 
 				// And create the view object,
-				Connection.CreateView(Command, view_def);
+				Connection.CreateView(Query, view_def);
 
 				// The initial grants for a view is to give the user who created it
 				// full access.
@@ -198,7 +198,7 @@ namespace Deveel.Data.Sql {
 												GrantObject.Table, vname.ToString());
 
 			} else {
-				throw new ApplicationException("Unknown view command type: " + type);
+				throw new ApplicationException("Unknown view Query type: " + type);
 			}
 
 			return FunctionTable.ResultTable(context, 0);

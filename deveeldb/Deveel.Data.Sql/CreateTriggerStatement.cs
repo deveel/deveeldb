@@ -23,6 +23,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Procedures;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// A parsed state container for the <c>CREATE TRIGGER</c> statement.

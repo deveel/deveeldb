@@ -1,5 +1,5 @@
-//  
-//  LockingMode.cs
+﻿//  
+//  DatabaseQueryContext.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -21,14 +21,12 @@
 
 using System;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	/// <summary>
-	/// Used in the <see cref="LockingMechanism.SetMode"/> method to request 
-	/// either shared or exclusive access to the database.
+	/// Inheriting classes of <see cref="StatementContainer"/> will have
+	/// the ability to chain statements into a sequence.
 	/// </summary>
-	public enum LockingMode {
-		Shared = 1,
-		Exclusive = 2,
-		None = -1
+	public abstract class StatementContainer : Statement {
+		
 	}
 }

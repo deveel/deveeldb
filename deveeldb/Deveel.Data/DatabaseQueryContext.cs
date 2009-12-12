@@ -111,12 +111,38 @@ namespace Deveel.Data {
 			get { return database.User.UserName; }
 		}
 
+		public override Variable DeclareVariable(string name, TType type, bool constant, bool notNull) {
+			return database.DeclareVariable(name, type, constant, notNull);
+		}
+
 		public override Variable GetVariable(string name) {
 			return database.GetVariable(name);
 		}
 
 		public override void SetVariable(string name, Expression value) {
 			database.SetVariable(name, value, this);
+		}
+
+		public override Cursor DeclareCursor(TableName name, IQueryPlanNode planNode, CursorAttributes attributes) {
+			return database.DeclareCursor(name, planNode, attributes);
+		}
+
+		public override Cursor GetCursror(TableName name) {
+			return database.GetCursor(name);
+		}
+
+		public override void OpenCursor(TableName name) {
+			Cursor cursor = GetCursror(name);
+			if (cursor == null)
+				throw new DatabaseException("The cursor '" + name + "' was not defined within the current context.");
+			cursor.Open(this);
+		}
+
+		public override void CloseCursor(TableName name) {
+			Cursor cursor = GetCursror(name);
+			if (cursor == null)
+				throw new DatabaseException("The cursor '" + name + "' was not defined within the current context.");
+			cursor.Close();
 		}
 	}
 }

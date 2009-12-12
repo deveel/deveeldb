@@ -24,6 +24,8 @@ using System;
 using System.Collections;
 using System.Reflection;
 
+using Deveel.Data.Procedures;
+
 namespace Deveel.Data.Sql {
 	///<summary>
 	/// A handler for defining and dropping functions.
@@ -69,10 +71,8 @@ namespace Deveel.Data.Sql {
 			if (type.Equals("create")) {
 
 				// Does the user have privs to create this function?
-				if (!Connection.Database.CanUserCreateProcedureObject(context,
-																	   User, fun_name)) {
-					throw new UserAccessException(
-									"User not permitted to create function: " + fun_name);
+				if (!Connection.Database.CanUserCreateProcedureObject(context, User, fun_name)) {
+					throw new UserAccessException("User not permitted to create function: " + fun_name);
 				}
 
 				// Does a table already exist with this name?

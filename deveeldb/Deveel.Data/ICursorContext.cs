@@ -1,5 +1,5 @@
-//  
-//  LockingMode.cs
+﻿//  
+//  ICursorContext.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -23,12 +23,22 @@ using System;
 
 namespace Deveel.Data {
 	/// <summary>
-	/// Used in the <see cref="LockingMechanism.SetMode"/> method to request 
-	/// either shared or exclusive access to the database.
+	/// The context where cursors are declared and disposed.
 	/// </summary>
-	public enum LockingMode {
-		Shared = 1,
-		Exclusive = 2,
-		None = -1
+	internal interface ICursorContext {
+		/// <summary>
+		/// Callback method invoked when a cursor has been 
+		/// instanttiated.
+		/// </summary>
+		/// <param name="cursor">The reference to the cursor 
+		/// instantiated.</param>
+		void OnCursorCreated(Cursor cursor);
+
+		/// <summary>
+		/// Callback method invoked before a cursor is disposed.
+		/// </summary>
+		/// <param name="cursor">The reference to the cursor 
+		/// that is being disposed.</param>
+		void OnCursorDisposing(Cursor cursor);
 	}
 }
