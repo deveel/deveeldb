@@ -1,3 +1,23 @@
+2009-12-11  Antonello Provenzano  <antonello@deveel.com>
+	* IQueryContext.cs: 
+		- introduced reference methods to support cursors 
+		management (declaration, opening, closing, dropping)
+		- added method DeclareVariable to support the
+		declaration of variables within the context
+	* Transaction.cs: implements interface ICursorContext to
+	generalize disposal of cursros
+	* Cursor.cs: replaced reference to Transaction object with
+	reference to ICursorContext.
+	
+2009-12-10  Antonello Provenzano  <antonello@deveel.com>
+	* TableDataConglomerate.cs: implemented methods for
+	handling temporary tables.
+	* Transaction.cs: added support for TEMPORARY tables
+	
+2009-12-09  Antonello Provenzano  <antonello@deveel.com>
+	* DatabaseConnection.cs: callback methods to Transaction
+	class for UDTs management.
+	
 2009-12-06  Antonello Provenzano  <antonello@deveel.com>
 	* ObjectTransfer.cs: ReadFrom accepts a TType as argument
 	* V2MasterTableDataSource.cs: calls to ObjectTransfer

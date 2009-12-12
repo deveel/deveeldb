@@ -1,4 +1,23 @@
-﻿2009-12-07  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-12-11  Antonello Provenzano  <antonello@deveel.com>
+	* DeclareVariableStatement.cs: Evaluate method now
+	calls the the IQueryContext.DeclareVariable instead
+	of the DatabaseConnection itself.
+	* Statement.cs: StatementTree initialized by default
+	and returned by an internal property.
+	
+2009-12-10  Antonello Provenzano  <antonello@deveel.com>
+	* Statement.cs: implemented protected methods to set 
+	state values
+	* CallStatement.cs:
+		- Added property Procedure to get and set the name
+		of the procedure to call
+		- Added method SetArgument to set the arguments of
+		the call
+	
+2009-12-09  Antonello Provenzano  <antonello@deveel.com>
+	* SQL.csc: syntax for UDT management
+	
+2009-12-07  Antonello Provenzano  <antonello@deveel.com>
 	* SQL.csc: implemented support for supporting sub-query
 	expressions
 	

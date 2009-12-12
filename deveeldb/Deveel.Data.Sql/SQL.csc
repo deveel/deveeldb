@@ -240,6 +240,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <VIEW:        "view">
 | <LOCK:        "lock">
 | <WITH:        "with">
+| <TYPE:        "type">
 | <USER:        "user">
 | <CAST:        "cast">
 | <LONG:        "long">
@@ -262,6 +263,8 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <CROSS:       "cross">
 | <OUTER:       "outer">
 | <CHECK:       "check">
+| <FINAL:       "final">
+| <UNDER:       "under">
 | <USING:       "using">
 | <UNION:       "union">
 | <GRANT:       "grant">
@@ -312,6 +315,7 @@ TOKEN [IGNORE_CASE] : { /* KEYWORDS */
 | <EXTRACT:     "extract">
 | <ORDERBY:     "order by">
 | <DEFERRED:    "deferred">
+| <EXTERNAL:    "external">
 | <IDENTITY:    "identity">
 | <DISTINCT:    "distinct">
 | <LANGUAGE:    "language">
@@ -553,6 +557,7 @@ StatementTree Create() :
       | ob=CreateSequence()
       | ob=CreateUser()
       | ob=CreateView()
+      | ob=CreateType()
     )
   )
   
@@ -1285,6 +1290,78 @@ StatementTree Revoke() :
   }
 }
 
+StatementTree CreateType() : 
+{ StatementTree cmd = new StatementTree(typeof(NoOpStatement)); 
+  string type_name;
+  string parent_type = null;
+  Token ext_parent_type = null;
+  bool external = false;
+  bool final = false;
+  ArrayList members = new ArrayList(); }
+{
+   ( <TYPE> type_name =TableName() <AS> <OBJECT>
+     [ <UNDER> parent_type=TableName() ]
+     [ <EXTERNAL> <NAME> ext_parent_type=<STRING_LITERAL> 
+       <LANGUAGE> <CSHARP> { external =true; } ]
+     TypeMemberDeclarations(members)
+     [ <NOT> <FINAL> | <FINAL> { final = true; } ]
+   )
+
+  { cmd.SetObject("type_name", type_name);
+    if (external)cmd.SetObject("parent_type", parent_type);
+    else cmd.SetObject("parent_type", ext_parent_type.image);
+    cmd.SetBoolean("external", external);
+    cmd.SetBoolean("final", final);
+    cmd.SetObject("members", members);
+    return cmd; }
+}
+
+StatementTree DropType() :
+{ StatementTree cmd = new StatementTree(typeof(DropTypeStatement));
+  string type_name;
+  ArrayList type_list = new ArrayList(); }
+{
+  ( <TYPE> type_name = TableName() { type_list.Add(type_name); }
+        ( "," type_name = TableName() { type_list.Add(type_name); } )* )
+
+  { cmd.SetObject("type_list", type_list);
+    return cmd; }
+}
+
+void TypeMemberDeclarations(ArrayList members) :
+{ }
+{
+  "(" TypeAttributeOrFunctionDeclaration(members)
+     ( "," TypeAttributeOrFunctionDeclaration(members) )*
+  ")"
+}
+
+void TypeAttributeOrFunctionDeclaration(ArrayList members) :
+{ }
+{
+   TypeAttributeDeclaration(members) |
+   TypeFunctionDeclaration(members)
+}
+
+void TypeFunctionDeclaration(ArrayList members) :
+{ ArrayList arg_names = new ArrayList(); 
+  ArrayList arg_types = new ArrayList(); }
+{
+    ( <FUNCTION> FunctionName()
+    "(" ProcParameterList(arg_names, arg_types) ")"
+    [ <RETURNS> GetTType() ]
+  )
+}
+
+void TypeAttributeDeclaration(ArrayList members) :
+{ Token name; 
+  TType type;
+  bool not_null = false; }
+{
+  ( name = SQLIdentifier() type=GetTType() 
+    [ <NOT> <NULL_LITERAL> { not_null=true; } ] )
+  { members.Add(new SqlTypeAttribute(name.image, type, not_null)); }
+}
 
 StatementTree Commit() :
 { 
