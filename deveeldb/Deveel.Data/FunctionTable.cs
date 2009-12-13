@@ -666,7 +666,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		///<returns></returns>
 		public static Table ResultTable(DatabaseQueryContext context, int result_val) {
-			return ResultTable(context, (BigNumber) result_val);
+			return ResultTable(context, (object)(BigNumber)result_val);
 		}
 
 

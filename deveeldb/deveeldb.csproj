@@ -216,10 +216,17 @@
     <Compile Include="Deveel.Diagnostics\LogEntry.cs" />
     <Compile Include="Deveel.Math\BigDecimal.cs" />
     <Compile Include="Deveel.Math\BigInteger.cs" />
-    <Compile Include="Deveel.Math\DecimalRoundingMode.cs" />
-    <Compile Include="Deveel.Math\MPN.cs" />
-    <Compile Include="Deveel.Math\Number.cs" />
-    <Compile Include="Deveel.Math\NumberState.cs" />
+    <Compile Include="Deveel.Data\BigNumber.cs" />
+    <Compile Include="Deveel.Math\BitLevel.cs" />
+    <Compile Include="Deveel.Math\CharHelper.cs" />
+    <Compile Include="Deveel.Math\Conversion.cs" />
+    <Compile Include="Deveel.Math\Division.cs" />
+    <Compile Include="Deveel.Math\Elementary.cs" />
+    <Compile Include="Deveel.Math\Logical.cs" />
+    <Compile Include="Deveel.Math\MathContext.cs" />
+    <Compile Include="Deveel.Math\Messages.Designer.cs" />
+    <Compile Include="Deveel.Math\Messages1.Designer.cs" />
+    <Compile Include="Deveel.Math\Multiplication.cs" />
     <Compile Include="Deveel.Data.Server\DatabaseInterfaceBase.cs" />
     <Compile Include="Deveel.Data.Server\DefaultLocalBootable.cs" />
     <Compile Include="Deveel.Data.Server\DatabaseInterface.cs" />
@@ -460,7 +467,6 @@
     <Compile Include="Deveel.Data.Store\IStoreDataAccessor.cs" />
     <Compile Include="Deveel.Data.Store\StreamFile.cs" />
     <Compile Include="Deveel.Data.Collections\AbstractBlockIntegerList.cs" />
-    <Compile Include="Deveel.Math\BigNumber.cs" />
     <Compile Include="Deveel.Data.Collections\BlockIntegerList.cs" />
     <Compile Include="Deveel.Data.Util\ByteBuffer.cs" />
     <Compile Include="Deveel.Data.Caching\Cache.cs" />
@@ -478,6 +484,11 @@
     <Compile Include="Deveel.Data.Procedures\SystemBackup.cs" />
     <Compile Include="Deveel.Data.Sql\Util.cs" />
     <Compile Include="Deveel.Data\IDatabaseEvent.cs" />
+    <Compile Include="Deveel.Data\NumberState.cs" />
+    <Compile Include="Deveel.Math\Primality.cs" />
+    <Compile Include="Deveel.Math\RoundingMode.cs" />
+    <Compile Include="Deveel.Math\SR.cs" />
+    <Compile Include="Deveel.Math\Utils.cs" />
     <Compile Include="Deveel.Text.RegularExpressions\BufferedStreamManager.cs" />
     <Compile Include="Deveel.Text.RegularExpressions\BufferedTextReader.cs" />
     <Compile Include="Deveel.Text.RegularExpressions\CharIndexedCharArray.cs" />
@@ -536,6 +547,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="deveeldb.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Deveel.Math\Messages.resx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Deveel.Xml\" />

@@ -322,30 +322,32 @@ namespace Deveel.Data {
 				}
 			}
 
-			// Cast from a number
-			if (ob is Number) {
-				Number n = (Number)ob;
+			// Cast from a convertible type (generally numbers)
+			if (ob is IConvertible) {
+				IConvertible n = (IConvertible)ob;
 				switch (sql_type) {
 					case (SqlType.Bit):
-						return n.ToInt32() == 0 ? false : true;
+					case (SqlType.Boolean):
+						return n.ToBoolean(null);
 					case (SqlType.TinyInt):
-					// fall through
 					case (SqlType.SmallInt):
-					// fall through
 					case (SqlType.Integer):
-						//          return new BigDecimal(n.intValue());
-						return (BigNumber)n.ToInt32();
+						return (BigNumber)n.ToInt32(null);
 					case SqlType.Identity:
-						// fall through
 					case (SqlType.BigInt):
-						//          return new BigDecimal(n.longValue());
-						return (BigNumber)n.ToInt64();
+						return (BigNumber)n.ToInt64(null);
 					case (SqlType.Float):
-						return BigNumber.Parse(Convert.ToString(n.ToDouble()));
 					case (SqlType.Real):
-						return BigNumber.Parse(n.ToString());
 					case (SqlType.Double):
-						return BigNumber.Parse(Convert.ToString(n.ToDouble()));
+						double d = n.ToDouble(null);
+						NumberState state = NumberState.None;
+						if (Double.IsNaN(d))
+							state = NumberState.NotANumber;
+						else if (Double.IsPositiveInfinity(d))
+							state = NumberState.PositiveInfinity;
+						else if (Double.IsNegativeInfinity(d))
+							state = NumberState.NegativeInfinity;
+						return new BigNumber(state, new BigDecimal(d));
 					case (SqlType.Numeric):
 					// fall through
 					case (SqlType.Decimal):
@@ -357,11 +359,9 @@ namespace Deveel.Data {
 					case (SqlType.LongVarChar):
 						return StringObject.FromString(n.ToString());
 					case (SqlType.Date):
-						return ToDate(n.ToInt64());
 					case (SqlType.Time):
-						return ToDate(n.ToInt64());
 					case (SqlType.TimeStamp):
-						return ToDate(n.ToInt64());
+						return ToDate(n.ToInt64(null));
 					case (SqlType.Blob):
 					// fall through
 					case (SqlType.Binary):
@@ -374,14 +374,13 @@ namespace Deveel.Data {
 						return null;
 					case (SqlType.Object):
 						return ToObject(ob);
-					case (SqlType.Boolean):
-						return n.ToInt32() == 0 ? false : true;
 					default:
 						throw new ApplicationException("Can't cast number to " + sql_type.ToString().ToUpper());
 				}
 			}  // if (ob is Number)
 
 			// Cast from a number
+			/*
 			if (IsNumber(ob)) {
 				switch (sql_type) {
 					case (SqlType.Bit):
@@ -438,7 +437,7 @@ namespace Deveel.Data {
 						throw new ApplicationException("Can't cast number to " + sql_type.ToString().ToUpper());
 				}
 			}  // if (ob is Number)
-
+			*/
 
 			// Cast from a string
 			if (ob is StringObject || ob is String) {

@@ -468,7 +468,7 @@ namespace Deveel.Data.Functions {
 						d = ob2.ToBigNumber().ToInt32();
 					}
 				}
-				return TObject.GetBigNumber(v.SetScale(d, DecimalRoundingMode.HalfUp));
+				return TObject.GetBigNumber(v.SetScale(d, RoundingMode.HalfUp));
 			}
 		}
 
