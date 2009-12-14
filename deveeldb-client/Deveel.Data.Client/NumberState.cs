@@ -1,5 +1,5 @@
 ﻿// 
-//  DeveelDbException.cs
+//  NumberState.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -20,19 +20,12 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Data.Common;
 
 namespace Deveel.Data.Client {
-	public class DeveelDbException : DbException {
-		public DeveelDbException() {
-		}
-
-		public DeveelDbException(string message)
-			: base(message) {
-		}
-
-		internal DeveelDbException(string message, int errorCode)
-			: base(message, errorCode) {
-		}
+	internal enum NumberState {
+	    NotANumber = 3,
+	    NegativeInfinity = 1,
+	    PositiveInfinity = 2,
+	    None = 0
 	}
 }

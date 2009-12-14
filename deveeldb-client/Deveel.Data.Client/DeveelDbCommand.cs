@@ -25,23 +25,52 @@ using System.Data.Common;
 
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbCommand : DbCommand {
+		public DeveelDbCommand() {
+			parameters = new DeveelDbParameterCollection();
+		}
+
+		private bool designTimeVisible;
+		private DeveelDbConnection connection;
+		private DeveelDbTransaction transaction;
+		private int commandTimeout;
+		private bool timeoutWasSet;
+		private string commandText;
+		private DeveelDbParameterCollection parameters;
+
 		public override void Prepare() {
 			throw new NotImplementedException();
 		}
 
 		public override string CommandText {
-			get { throw new NotImplementedException(); }
-			set { throw new NotImplementedException(); }
+			get { return commandText; }
+			set { commandText = value; }
 		}
 
 		public override int CommandTimeout {
-			get { throw new NotImplementedException(); }
-			set { throw new NotImplementedException(); }
+			get {
+				if (timeoutWasSet)
+					return commandTimeout;
+				if (connection != null)
+					return connection.Settings.QueryTimeout;
+				return -1;
+			}
+			set {
+				if (value < 0) {
+					timeoutWasSet = false;
+					commandTimeout = -1;
+				} else {
+					commandTimeout = value;
+					timeoutWasSet = true;
+				}
+			}
 		}
 
 		public override CommandType CommandType {
-			get { throw new NotImplementedException(); }
-			set { throw new NotImplementedException(); }
+			get { return CommandType.Text; }
+			set {
+				if (value != CommandType.Text)
+					throw new NotSupportedException();	// yet...
+			}
 		}
 
 		public override UpdateRowSource UpdatedRowSource {
@@ -50,22 +79,53 @@ namespace Deveel.Data.Client {
 		}
 
 		protected override DbConnection DbConnection {
-			get { throw new NotImplementedException(); }
-			set { throw new NotImplementedException(); }
+			get { return Connection; }
+			set { Connection = (DeveelDbConnection) value; }
+		}
+
+		public new DeveelDbConnection Connection {
+			get { return connection; }
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+
+				if (connection != value)
+					Transaction = null;
+
+				connection = value;
+				transaction = connection.currentTransaction;
+			}
 		}
 
 		protected override DbParameterCollection DbParameterCollection {
-			get { throw new NotImplementedException(); }
+			get { return Parameters; }
+		}
+
+		public new DeveelDbParameterCollection Parameters {
+			get { return parameters; }
 		}
 
 		protected override DbTransaction DbTransaction {
-			get { throw new NotImplementedException(); }
-			set { throw new NotImplementedException(); }
+			get { return Transaction; }
+			set { Transaction = (DeveelDbTransaction) value; }
+		}
+
+		public new DeveelDbTransaction Transaction {
+			get { return transaction; }
+			set {
+				if (value == null && transaction != null)
+					transaction = null;
+				else if (transaction != null &&
+					(value != null && value.Id != transaction.Id))
+					throw new ArgumentException();
+
+				transaction = value;
+			}
 		}
 
 		public override bool DesignTimeVisible {
-			get { throw new NotImplementedException(); }
-			set { throw new NotImplementedException(); }
+			get { return designTimeVisible; }
+			set { designTimeVisible = value; }
 		}
 
 		public override void Cancel() {
@@ -77,6 +137,13 @@ namespace Deveel.Data.Client {
 		}
 
 		protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) {
+			if (behavior != CommandBehavior.Default)
+				throw new NotSupportedException();	// yet...
+
+			return ExecuteReader();
+		}
+
+		public new DeveelDbDataReader ExecuteReader() {
 			throw new NotImplementedException();
 		}
 

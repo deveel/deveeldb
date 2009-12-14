@@ -1,5 +1,5 @@
 ﻿// 
-//  DeveelDbException.cs
+//  DeveelDbType.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -19,20 +19,18 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Data.Common;
-
 namespace Deveel.Data.Client {
-	public class DeveelDbException : DbException {
-		public DeveelDbException() {
-		}
-
-		public DeveelDbException(string message)
-			: base(message) {
-		}
-
-		internal DeveelDbException(string message, int errorCode)
-			: base(message, errorCode) {
-		}
+	public enum DeveelDbType : byte {
+		Null = 1,
+		String = 18,
+		Int4 = 24,
+		Int8 = 8,
+		Number = 7,
+		Boolean = 12,
+		Time = 9,
+		Interval = 10,
+		Binary = 15,
+		LOB = 16,
+		UDT = 32
 	}
 }
