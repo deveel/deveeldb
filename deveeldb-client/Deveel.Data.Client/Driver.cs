@@ -348,14 +348,12 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public byte[] GetStreamableObjectPart(int result_id, long streamable_object_id, long offset, int len) {
+		public byte[] GetLargeObjectPart(int resultId, long objectId, long offset, int len) {
 			try {
-				int dispatch_id = StreamableObjectSectionCommand(result_id, streamable_object_id, offset, len);
+				int dispatch_id = StreamableObjectSectionCommand(resultId, objectId, offset, len);
 				ServerResponse response = GetResponse(dispatch_id);
-				// If command == null then we timed output
-				if (response == null) {
-					throw new DeveelDbException("GetStreamableObjectPart timed output after " + queryTimeout + " seconds.");
-				}
+				if (response == null)
+					throw new DeveelDbException("GetLargeObjectPart timed output after " + queryTimeout + " seconds.");
 
 				ServerStatus status = response.Status;
 
@@ -377,30 +375,28 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public void PushStreamableObjectPart(ReferenceType type, long object_id, long object_length, byte[] buf, long offset, int length) {
+		public void PushLargeObjectPart(ReferenceType type, long objectId, long objectLength, byte[] buf, long offset, int length) {
 			try {
-				int dispatch_id = PushStreamableObjectPartCommand(type, object_id, object_length, buf, offset, length);
+				int dispatch_id = PushStreamableObjectPartCommand(type, objectId, objectLength, buf, offset, length);
 				ServerResponse response = GetResponse(dispatch_id);
 				if (response == null)
 					throw new DeveelDbException("Query timed output after " + queryTimeout + " seconds.");
 
 				ServerStatus status = response.Status;
-				if (status == ServerStatus.Failed) {
+				if (status == ServerStatus.Failed)
 					throw new DeveelDbException("Push object failed: " + response.ReadString());
-				}
 			} catch (IOException e) {
 				//TODO: log the error...
 				throw new DeveelDbException("IO Error: " + e.Message);
 			}
 		}
 
-		public void DisposeStreamableObject(int resultId, long streamableObjectId) {
+		public void DisposeLargeObject(int resultId, long streamableObjectId) {
 			try {
 				int dispatchId = DisposeStreamableObjectCommand(resultId, streamableObjectId);
 				ServerResponse response = GetResponse(dispatchId);
-				if (response == null) {
-					throw new DeveelDbException("DisposeStreamableObject timed output after " + queryTimeout + " seconds.");
-				}
+				if (response == null)
+					throw new DeveelDbException("DisposeLargeObject timed output after " + queryTimeout + " seconds.");
 
 				ServerStatus status = response.Status;
 
@@ -480,6 +476,12 @@ namespace Deveel.Data.Client {
 
 						return new DeveelDbBinary(buffer, 0, (int)length);
 					}
+				case DeveelDbType.LOB: {
+					ReferenceType refType = (ReferenceType) reader.ReadByte();
+					long size = reader.ReadInt64();
+					long id = reader.ReadInt64();
+					return new LargeObjectRef(id, refType, size);
+				}
 				case DeveelDbType.UDT:
 					throw new NotSupportedException();
 				default:
@@ -488,23 +490,23 @@ namespace Deveel.Data.Client {
 		}
 
 		private static void WriteObject(BinaryWriter writer, object obj) {
-			if (obj == null || (obj is INullable && ((INullable)obj).IsNull)) {
-				writer.Write((byte)DeveelDbType.Null);
+			if (obj == null || (obj is INullable && ((INullable) obj).IsNull)) {
+				writer.Write((byte) DeveelDbType.Null);
 			} else if (obj is DeveelDbBoolean) {
-				DeveelDbBoolean b = (DeveelDbBoolean)obj;
-				writer.Write((byte)DeveelDbType.Boolean);
+				DeveelDbBoolean b = (DeveelDbBoolean) obj;
+				writer.Write((byte) DeveelDbType.Boolean);
 				writer.Write(b.Value);
 			} else if (obj is DeveelDbNumber) {
-				DeveelDbNumber n = (DeveelDbNumber)obj;
+				DeveelDbNumber n = (DeveelDbNumber) obj;
 				if (n.IsFromInt32) {
-					writer.Write((byte)DeveelDbType.Int4);
+					writer.Write((byte) DeveelDbType.Int4);
 					writer.Write(n.ToInt32());
 				} else if (n.IsFromInt64) {
-					writer.Write((byte)DeveelDbType.Int8);
+					writer.Write((byte) DeveelDbType.Int8);
 					writer.Write(n.ToInt64());
 				} else {
-					writer.Write((byte)DeveelDbType.Number);
-					writer.Write((byte)n.State);
+					writer.Write((byte) DeveelDbType.Number);
+					writer.Write((byte) n.State);
 					writer.Write(n.Scale);
 
 					byte[] buffer = n.ToByteArray();
@@ -512,25 +514,31 @@ namespace Deveel.Data.Client {
 					writer.Write(buffer);
 				}
 			} else if (obj is DeveelDbString) {
-				DeveelDbString s = (DeveelDbString)obj;
-				writer.Write((byte)DeveelDbType.String);
+				DeveelDbString s = (DeveelDbString) obj;
+				writer.Write((byte) DeveelDbType.String);
 				byte[] buffer = Encoding.Unicode.GetBytes(s.Value);
 				writer.Write(buffer.Length);
 				writer.Write(buffer);
 			} else if (obj is DeveelDbDateTime) {
-				DeveelDbDateTime d = (DeveelDbDateTime)obj;
-				writer.Write((byte)DeveelDbType.Time);
+				DeveelDbDateTime d = (DeveelDbDateTime) obj;
+				writer.Write((byte) DeveelDbType.Time);
 				writer.Write(d.Value.Ticks);
 			} else if (obj is DeveelDbTimeSpan) {
-				DeveelDbTimeSpan t = (DeveelDbTimeSpan)obj;
-				writer.Write((byte)DeveelDbType.Interval);
+				DeveelDbTimeSpan t = (DeveelDbTimeSpan) obj;
+				writer.Write((byte) DeveelDbType.Interval);
 				writer.Write(t.Value.Ticks);
 			} else if (obj is DeveelDbBinary) {
-				DeveelDbBinary b = (DeveelDbBinary)obj;
-				writer.Write((byte)DeveelDbType.Binary);
+				DeveelDbBinary b = (DeveelDbBinary) obj;
+				writer.Write((byte) DeveelDbType.Binary);
 				byte[] buffer = b.Value;
 				writer.Write(buffer.LongLength);
 				writer.Write(buffer);
+			} else if (obj is LargeObjectRef) {
+				LargeObjectRef objectRef = (LargeObjectRef) obj;
+				writer.Write((byte)DeveelDbType.LOB);
+				writer.Write((byte)objectRef.Type);
+				writer.Write(objectRef.Size);
+				writer.Write(objectRef.Id);
 			} else {
 				throw new NotSupportedException();
 			}
@@ -690,6 +698,10 @@ namespace Deveel.Data.Client {
 			triggerListeners[triggerName] = listener;
 		}
 
+		public EventHandler GetTriggerListener(string triggerName) {
+			return triggerListeners[triggerName] as EventHandler;
+		}
+
 		public void RemoveTriggerListener(string triggerName, EventHandler listener) {
 			if (!triggerListeners.ContainsKey(triggerName))
 				return;
@@ -766,6 +778,26 @@ namespace Deveel.Data.Client {
 			return true;
 		}
 
+		private readonly Hashtable lobStreams = new Hashtable();
+		private int objId = -1;
+
+		public LargeObjectRef CreateLargeObject(Stream lobStream, int length, ReferenceType type) {
+			long ob_id;
+			lock (lobStreams) {
+				ob_id = objId++;
+				lobStreams[ob_id] = lobStream;
+			}
+			return new LargeObjectRef(ob_id, type, length);
+		}
+
+		public void RemoveLargeObject(LargeObjectRef objectRef) {
+			lobStreams.Remove(objectRef.Id);
+		}
+
+		public Stream GetLargeObject(LargeObjectRef objectRef) {
+			return lobStreams[objectRef.Id] as Stream;
+		}
+
 		public static Driver Create(string host, int port, int timeout) {
 			Stream stream;
 
@@ -810,7 +842,7 @@ namespace Deveel.Data.Client {
 
 		#endregion
 
-		#region serverResponse
+		#region ServerResponse
 
 		class ServerResponse {
 			public ServerResponse(int dispatchId, byte[] buffer) {

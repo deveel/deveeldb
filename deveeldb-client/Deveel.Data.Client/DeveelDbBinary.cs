@@ -24,7 +24,7 @@ using System.Data.SqlTypes;
 using System.IO;
 
 namespace Deveel.Data.Client {
-	public struct DeveelDbBinary : INullable {
+	public struct DeveelDbBinary : INullable, ISizeable {
 		private DeveelDbBinary(byte[] data, int offset, int count, bool isNull) {
 			if (isNull) {
 				this.data = null;
@@ -66,6 +66,10 @@ namespace Deveel.Data.Client {
 					throw new InvalidOperationException();
 				return data.Length;
 			}
+		}
+
+		int ISizeable.Size {
+			get { return Length; }
 		}
 
 		public byte [] Value {

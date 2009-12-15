@@ -4,17 +4,19 @@ namespace Deveel.Data.Client {
 	internal class ColumnInfo {
 		private readonly string name;
 		private readonly DeveelDbType type;
+		private readonly SqlType sqlType;
 		private readonly int size;
 		private readonly int scale;
 		private readonly bool notNull;
 		private bool unique;
 		private int uniqueGroup;
 
-		public ColumnInfo(string name, int type, int size, int scale, bool notNull) {
+		public ColumnInfo(string name, int type, SqlType sqlType, int size, int scale, bool notNull) {
 			this.name = name;
 			this.notNull = notNull;
 			this.scale = scale;
 			this.size = size;
+			this.sqlType = sqlType;
 			this.type = ConvertFromDbType(type);
 		}
 
@@ -42,8 +44,24 @@ namespace Deveel.Data.Client {
 			get { return type; }
 		}
 
+		public SqlType SqlType {
+			get { return sqlType; }
+		}
+
 		public string Name {
 			get { return name; }
+		}
+
+		public bool IsQuantifiable {
+			get { return type != DeveelDbType.LOB && type != DeveelDbType.UDT; }
+		}
+
+		public bool IsNumericType {
+			get {
+				return type == DeveelDbType.Int4 ||
+				       type == DeveelDbType.Int8 ||
+				       type == DeveelDbType.Number;
+			}
 		}
 
 		private static DeveelDbType ConvertFromDbType(int value) {

@@ -75,6 +75,10 @@ namespace Deveel.Data.Client {
 			keymaps["ROW CACHE SIZE"] = RowCacheSizeKey;
 			keymaps[QueryTimeoutKey.ToUpper()] = QueryTimeoutKey;
 			keymaps["QUERY TIMEOUT"] = QueryTimeoutKey;
+			keymaps[IgnoreIdentifiersCaseKey.ToUpper()] = IgnoreIdentifiersCaseKey;
+			keymaps["IGNORE CASE"] = IgnoreIdentifiersCaseKey;
+			keymaps["IGNORE ID CASE"] = IgnoreIdentifiersCaseKey;
+			keymaps["ID CASE IGNORED"] = IgnoreIdentifiersCaseKey;
 		}
 
 		private const string HostKey = "Host";
@@ -90,6 +94,7 @@ namespace Deveel.Data.Client {
 		private const string PersistSecurityInfoKey = "PersistSecurityInfo";
 		private const string RowCacheSizeKey = "RowCacheSize";
 		private const string QueryTimeoutKey = "QueryTimeout";
+		private const string IgnoreIdentifiersCaseKey = "IgnoreIdentifiersCase";
 
 		private const string DefaultHost = "localhost";
 		private const int DefaultPort = 9157;
@@ -104,6 +109,7 @@ namespace Deveel.Data.Client {
 		private const bool DefaultPersistSecurityInfo = false;
 		private const int DefaultRowCacheSize = 1024;
 		private const int DefaultQueryTimeout = Int32.MaxValue;
+		private const bool DefaultIgnoreIdentifiersCase = true;
 
 		private static readonly Dictionary<string, object> defaults;
 		private static readonly Dictionary<string, string> keymaps;
@@ -119,6 +125,7 @@ namespace Deveel.Data.Client {
 		private bool persistSecurityInfo;
 		private int rowCacheSize;
 		private int queryTimeout;
+		private bool ignoreCase;
 
 		private ArrayList keys;
 
@@ -151,6 +158,7 @@ namespace Deveel.Data.Client {
 					keys.Add(ParameterStyleKey);
 					keys.Add(RowCacheSizeKey);
 					keys.Add(QueryTimeoutKey);
+					keys.Add(IgnoreIdentifiersCaseKey);
 					keys = ArrayList.ReadOnly(keys);
 				}
 				return keys;
@@ -170,7 +178,8 @@ namespace Deveel.Data.Client {
 				list.Add(verboseColumnNames);
 				list.Add(paramStyle);
 				list.Add(rowCacheSize);
-				keys.Add(queryTimeout);
+				list.Add(queryTimeout);
+				list.Add(ignoreCase);
 				return list;
 			}
 		}
@@ -311,6 +320,16 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		[DisplayName("Ignore Identifiers Case")]
+		[RefreshProperties(RefreshProperties.All)]
+		public bool IgnoreIdentifiersCase {
+			get { return ignoreCase; }
+			set {
+				base[IgnoreIdentifiersCaseKey] = value;
+				ignoreCase = value;
+			}
+		}
+
 		private void InitToDefault() {
 			host = DefaultHost;
 			port = DefaultPort;
@@ -323,6 +342,7 @@ namespace Deveel.Data.Client {
 			persistSecurityInfo = DefaultPersistSecurityInfo;
 			rowCacheSize = DefaultRowCacheSize;
 			queryTimeout = DefaultQueryTimeout;
+			ignoreCase = DefaultIgnoreIdentifiersCase;
 		}
 
 		private void SetValue(string key, object value) {
@@ -419,6 +439,14 @@ namespace Deveel.Data.Client {
 						base.Remove(key);
 					} else {
 						QueryTimeout = ToInt32(value);
+					}
+					break;
+				case IgnoreIdentifiersCaseKey:
+					if (value == null) {
+						ignoreCase = DefaultIgnoreIdentifiersCase;
+						base.Remove(key);
+					} else {
+						IgnoreIdentifiersCase = ToBoolean(value);
 					}
 					break;
 				default:

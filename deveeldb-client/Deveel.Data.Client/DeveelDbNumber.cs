@@ -168,6 +168,14 @@ namespace Deveel.Data.Client {
 			return value.MovePointRight(value.Scale).ToBigInteger().ToByteArray();
 		}
 
+		public BigDecimal ToBigDecimal() {
+			return value;
+		}
+
+		public BigInteger ToBigInteger() {
+			return value.ToBigInteger();
+		}
+
 		//TODO: operators...
 	}
 }

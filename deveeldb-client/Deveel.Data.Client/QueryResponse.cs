@@ -42,14 +42,12 @@ namespace Deveel.Data.Client {
 			bool notNull = input.ReadBoolean();
 			bool unique = input.ReadBoolean();
 			int uniqueGroup = input.ReadInt32();
-			int sqlType = input.ReadInt32();
+			SqlType sqlType = (SqlType) input.ReadInt32();
 			int scale = input.ReadInt32();
 
-			ColumnInfo columnInfo = new ColumnInfo(name, type, size, scale, notNull);
+			ColumnInfo columnInfo = new ColumnInfo(name, type, sqlType, size, scale, notNull);
 			if (unique)
 				columnInfo.SetUnique(uniqueGroup);
-
-			//TODO: convert and set the SQL type...
 
 			return columnInfo;
 		}

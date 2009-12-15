@@ -12,7 +12,7 @@ using Deveel.Diagnostics;
 
 namespace Deveel.Data.Server {
 	/// <summary>
-	/// This processes commands from a client and dispatches the commands 
+	/// This processes _queries from a client and dispatches the _queries 
 	/// to the database.
 	/// </summary>
 	/// <remarks>
@@ -104,7 +104,7 @@ namespace Deveel.Data.Server {
 		}
 
 		/// <summary>
-		/// Processes a single command from the client.
+		/// Processes a single Query from the client.
 		/// </summary>
 		/// <param name="command"></param>
 		/// <returns>
@@ -113,16 +113,16 @@ namespace Deveel.Data.Server {
 		/// </returns>
 		internal byte[] ProcessCommand(byte[] command) {
 
-			//    PrintByteArray(command);
+			//    PrintByteArray(Query);
 
 			if (state == ConnectionState.Closed) {
 				// State 0 means we looking for the header...
 				BinaryReader reader = new BinaryReader(new MemoryStream(command), Encoding.ASCII);
 				/*
-				int magic = ByteBuffer.ReadInt4(command, 0);
+				int magic = ByteBuffer.ReadInt4(Query, 0);
 				// The driver version number
-				int maj_ver = ByteBuffer.ReadInt4(command, 4);
-				int min_ver = ByteBuffer.ReadInt4(command, 8);
+				int maj_ver = ByteBuffer.ReadInt4(Query, 4);
+				int min_ver = ByteBuffer.ReadInt4(Query, 8);
 				*/
 				reader.ReadInt32();		// magic
 				reader.ReadInt32();		// server major version
@@ -274,7 +274,7 @@ namespace Deveel.Data.Server {
 		private byte[] ProcessQuery(byte[] command) {
 			byte[] result;
 
-			// The first int is the command.
+			// The first int is the Query.
 			int ins = ByteBuffer.ReadInt4(command, 0);
 
 			// Otherwise must be a dispatch type request.
@@ -303,7 +303,7 @@ namespace Deveel.Data.Server {
 				Close();
 				result = null;
 			} else {
-				throw new Exception("Command (" + ins + ") not understood.");
+				throw new Exception("Query (" + ins + ") not understood.");
 			}
 
 			return result;
@@ -327,10 +327,10 @@ namespace Deveel.Data.Server {
 		}
 
 
-		// ---------- Primitive commands ----------
+		// ---------- Primitive _queries ----------
 
 		private byte [] ChangeDatabase(int dispatch_id, byte[] command) {
-			// Read the query from the command.
+			// Read the query from the Query.
 			MemoryStream bin = new MemoryStream(command, 8, command.Length - 8);
 			BinaryReader din = new BinaryReader(bin, Encoding.Unicode);
 
@@ -353,15 +353,15 @@ namespace Deveel.Data.Server {
 		/// <remarks>
 		/// This keeps track of all result sets because sections of the result are 
 		/// later queries via the <see cref="ProtocolConstants.RESULT_SECTION"/>
-		/// command.
+		/// Query.
 		/// </remarks>
 		/// <returns></returns>
 		private byte[] QueryCommand(int dispatch_id, byte[] command) {
 
-			// Read the query from the command.
+			// Read the query from the Query.
 			MemoryStream bin = new MemoryStream(command, 8, command.Length - 8);
 			BinaryReader din = new BinaryReader(bin, Encoding.Unicode);
-			SqlCommand query = SqlCommand.ReadFrom(din);
+			SqlQuery query = SqlQuery.ReadFrom(din);
 
 			try {
 				// Do the query
@@ -424,7 +424,7 @@ namespace Deveel.Data.Server {
 
 		/// <summary>
 		/// Responds with a part of the result set of a query made via the 
-		/// <see cref="ProtocolConstants.QUERY"/> command.
+		/// <see cref="ProtocolConstants.QUERY"/> Query.
 		/// </summary>
 		/// <param name="dispatch_id">The number we need to respond with.</param>
 		/// <param name="command"></param>
@@ -515,7 +515,7 @@ namespace Deveel.Data.Server {
 		}
 
 		/// <summary>
-		/// Disposes of a result set we queries via the <see cref="ProtocolConstants.QUERY"/> command.
+		/// Disposes of a result set we queries via the <see cref="ProtocolConstants.QUERY"/> Query.
 		/// </summary>
 		/// <param name="dispatch_id"></param>
 		/// <param name="command"></param>

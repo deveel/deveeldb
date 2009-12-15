@@ -569,7 +569,7 @@ namespace Deveel.Data.Client {
 
 			DataRow row = dt.NewRow();
 			row["CompositeIdentifierSeparatorPattern"] = "\\.";
-			row["DataSourceProductName"] = "MySQL";
+			row["DataSourceProductName"] = "DeveelDB";
 			row["DataSourceProductVersion"] = connection.ServerVersion;
 			row["DataSourceProductVersionNormalized"] = connection.ServerVersion;
 			row["GroupByBehavior"] = GroupByBehavior.Unrelated;

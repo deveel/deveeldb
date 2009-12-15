@@ -8,8 +8,8 @@ using Deveel.Data.Util;
 
 namespace Deveel.Data.Server {
 	/// <summary>
-	/// A generic stream protocol server that reads commands from a stream from 
-	/// each connection and dispatches the commands appropriately.
+	/// A generic stream protocol server that reads _queries from a stream from 
+	/// each connection and dispatches the _queries appropriately.
 	/// </summary>
 	internal abstract class StreamServerConnection : Processor, IServerConnection {
 		/// <summary>
@@ -25,7 +25,7 @@ namespace Deveel.Data.Server {
 		private const int INPUT_BUFFER_SIZE = 16384;
 
 		/// <summary>
-		/// The <see cref="LengthMarkedBufferedInputStream"/> we use to poll for commands 
+		/// The <see cref="LengthMarkedBufferedInputStream"/> we use to poll for _queries 
 		/// from the client.
 		/// </summary>
 		private LengthMarkedBufferedInputStream marked_input;
@@ -55,15 +55,15 @@ namespace Deveel.Data.Server {
 		//   for the details.
 		protected override void SendEvent(byte[] event_msg) {
 			lock (output) {
-				// Command length...
+				// Query length...
 				output.Write(4 + 4 + event_msg.Length);
 				// Dispatch id...
 				output.Write(-1);
-				// Command id...
+				// Query id...
 				output.Write(ProtocolConstants.DATABASE_EVENT);
 				// The message...
 				output.Write(event_msg, 0, event_msg.Length);
-				// Flush command to server.
+				// Flush Query to server.
 				output.Flush();
 			}
 		}
@@ -80,12 +80,12 @@ namespace Deveel.Data.Server {
 		}
 
 		public void ProcessRequest() {
-			// Only allow 8 commands to execute in sequence before we free this
+			// Only allow 8 _queries to execute in sequence before we free this
 			// worker to the worker pool.
 			// We have a limit incase of potential DOS problems.
 			int sequence_limit = 8;
 
-			// Read the command into a 'byte[]' array and pass to the command
+			// Read the Query into a 'byte[]' array and pass to the Query
 			// processor.
 			int com_length = marked_input.Available;
 			while (com_length > 0) {
@@ -95,7 +95,7 @@ namespace Deveel.Data.Server {
 					read_index += marked_input.Read(command, read_index, (com_length - read_index));
 				}
 
-				// Process the command
+				// Process the Query
 				byte[] response = ProcessCommand(command);
 				if (response != null) {
 
@@ -108,7 +108,7 @@ namespace Deveel.Data.Server {
 
 				}
 
-				// If there's another command pending then process that one also,
+				// If there's another Query pending then process that one also,
 				com_length = 0;
 				if (sequence_limit > 0) {
 					if (RequestPending()) {
@@ -129,13 +129,13 @@ namespace Deveel.Data.Server {
 
 		public void Ping() {
 			lock (output) {
-				// Command length...
+				// Query length...
 				output.Write(8);
 				// Dispatch id...
 				output.Write(-1);
-				// Ping command id...
+				// Ping Query id...
 				output.Write(ProtocolConstants.PING);
-				// Flush command to server.
+				// Flush Query to server.
 				output.Flush();
 			}
 		}

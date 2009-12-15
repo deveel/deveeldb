@@ -24,7 +24,7 @@ using System.Data.SqlTypes;
 using System.Globalization;
 
 namespace Deveel.Data.Client {
-	public struct DeveelDbString : IComparable, INullable {
+	public struct DeveelDbString : IComparable, INullable, ISizeable {
 		public DeveelDbString(string value) {
 			this.value = value;
 			isNull = (value == null);
@@ -96,6 +96,10 @@ namespace Deveel.Data.Client {
 			return isNull ? null : value;
 		}
 
+		public char[] ToCharArray() {
+			return isNull ? null : value.ToCharArray();
+		}
+
 		#region Operators
 
 		public static DeveelDbBoolean operator ==(DeveelDbString a, DeveelDbString b) {
@@ -132,6 +136,14 @@ namespace Deveel.Data.Client {
 
 		public static implicit operator DeveelDbString(string s) {
 			return new DeveelDbString(s);
+		}
+
+		#endregion
+
+		#region Implementation of ISizeable
+
+		int ISizeable.Size {
+			get { return Length; }
 		}
 
 		#endregion
