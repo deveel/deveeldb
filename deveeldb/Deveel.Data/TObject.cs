@@ -227,57 +227,69 @@ namespace Deveel.Data {
 
 		#region Explicit Operators
 
-		public static implicit operator TObject(string s) {
+		public static explicit operator TObject(string s) {
 			return GetString(s);
 		}
 
-		public static implicit operator TObject(int i) {
+		public static explicit operator TObject(int i) {
 			return GetInt4(i);
 		}
 
-		public static implicit operator TObject(long l) {
+		public static explicit operator TObject(long l) {
 			return GetInt8(l);
 		}
 
-		public static implicit operator TObject(bool b) {
+		public static explicit operator TObject(bool b) {
 			return GetBoolean(b);
 		}
 
-		public static implicit operator TObject(DateTime d) {
+		public static explicit operator TObject(DateTime d) {
 			return GetDateTime(d);
 		}
 
-		public static implicit operator TObject(TimeSpan t) {
+		public static explicit operator TObject(TimeSpan t) {
 			return GetInterval(t);
 		}
 
-		public static implicit operator TObject(double d) {
+		public static explicit operator TObject(Interval i) {
+			return GetInterval(i);
+		}
+
+		public static explicit operator TObject(double d) {
 			return GetDouble(d);
 		}
 
-		public static implicit operator TObject(BigNumber n) {
+		public static explicit operator TObject(BigNumber n) {
 			return GetBigNumber(n);
 		}
 
 		// backward
-		public static implicit operator String(TObject obj) {
+		public static explicit operator String(TObject obj) {
 			return obj.ToString();
 		}
 
-		public static implicit operator Int64(TObject obj) {
+		public static explicit operator Int64(TObject obj) {
 			return obj.ToBigNumber().ToInt64();
 		}
 
-		public static implicit operator Int32(TObject obj) {
+		public static explicit operator Int32(TObject obj) {
 			return obj.ToBigNumber().ToInt32();
 		}
 
-		public static implicit operator Double(TObject obj) {
+		public static explicit operator Double(TObject obj) {
 			return obj.ToBigNumber().ToDouble();
 		}
 
-		public static implicit operator BigNumber(TObject obj) {
+		public static explicit operator BigNumber(TObject obj) {
 			return obj.ToBigNumber();
+		}
+
+		public static explicit operator TimeSpan(TObject obj) {
+			return obj.ToTimeSpan();
+		}
+
+		public static explicit operator Interval(TObject obj) {
+			return obj.ToInterval();
 		}
 
 		#endregion
@@ -327,11 +339,19 @@ namespace Deveel.Data {
 		/// <see cref="TIntervalType"/>, <c>NULL</c> otherwise.
 		/// </returns>
 		public TimeSpan ToTimeSpan() {
-			if (TType is TIntervalType)
-				return (TimeSpan) Object;
+			if (TType is TIntervalType) {
+				Interval interval = (Interval) Object;
+				return interval.ToTimeSpan();
+			}
 			if (TType is TNumericType)
 				return new TimeSpan(ToBigNumber().ToInt64());
 			return TimeSpan.Zero;
+		}
+
+		public Interval ToInterval() {
+			if (TType is TIntervalType)
+				return (Interval) Object;
+			return Interval.Zero;
 		}
 
 		public DateTime ToDateTime() {
@@ -476,13 +496,17 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a <see cref="TObject"/> of INTERVAL type that represents the
-		/// given interval of time.
+		/// Returns a <see cref="TObject"/> of INTERVAL DAY TO SECOND type that 
+		/// represents the given interval of time.
 		/// </summary>
 		/// <param name="t"></param>
 		/// <returns></returns>
 		public static TObject GetInterval(TimeSpan t) {
-			return new TObject(TType.IntervalType, t);
+			return new TObject(TType.GetIntervalType(SqlType.DayToSecond), new Interval(t.Days, t.Hours, t.Minutes, t.Seconds));
+		}
+
+		public static TObject GetInterval(Interval i) {
+			return new TObject(TType.IntervalType, i);
 		}
 
 		/// <summary>
@@ -738,21 +762,20 @@ namespace Deveel.Data {
 		public TObject Add(TObject val) {
 			if (TType is TDateType) {
 				DateTime v1 = ToDateTime();
-				if (val.TType is TNumericType) {
-					BigNumber v2 = val.ToBigNumber();
-					return new TObject(TType.DateType, v1.AddMilliseconds(v2.ToDouble()));
-				} else if (val.TType is TIntervalType) {
-					TimeSpan v2 = val.ToTimeSpan();
-					return new TObject(TType.DateType, v1.Add(v2));
+				if (val.TType is TIntervalType) {
+					Interval v2 = val.ToInterval();
+					v1 = v1.AddYears(v2.Years)
+						.AddMonths(v2.Months)
+						.AddDays(v2.Days)
+						.AddMinutes(v2.Minutes)
+						.AddSeconds(v2.Seconds);
+					return new TObject(TType.DateType, v1);
 				}
 			} else if (TType is TIntervalType) {
-				TimeSpan v1 = ToTimeSpan();
+				Interval v1 = ToInterval();
 				if (val.TType is TIntervalType) {
-					TimeSpan v2 = val.ToTimeSpan();
+					Interval v2 = val.ToInterval();
 					return new TObject(TType, v1.Add(v2));
-				} else if (val.TType is TNumericType) {
-					BigNumber v2 = val.ToBigNumber();
-					return new TObject(TType, v1.Add(new TimeSpan(v2.ToInt32() * TimeSpan.TicksPerMillisecond)));
 				}
 			} else if (TType is TNumericType) {
 				BigNumber v1 = ToBigNumber();
@@ -785,24 +808,25 @@ namespace Deveel.Data {
 		public TObject Subtract(TObject val) {
 			if (TType is TDateType) {
 				DateTime v1 = ToDateTime();
-				if (val.TType is TNumericType) {
-					BigNumber v2 = val.ToBigNumber();
-					return new TObject(TType.DateType, v1.Subtract(new TimeSpan(v2.ToInt32() * TimeSpan.TicksPerMillisecond)));
-				} else if (val.TType is TIntervalType) {
-					TimeSpan v2 = val.ToTimeSpan();
-					return new TObject(TType.DateType, v1.Subtract(v2));
-				} else if (val.TType is TDateType) {
+				if (val.TType is TIntervalType) {
+					Interval v2 = val.ToInterval();
+					v1 = v1.AddYears(-v2.Years)
+						.AddMonths(-v2.Months)
+						.AddDays(-v2.Days)
+						.AddMinutes(-v2.Minutes)
+						.AddSeconds(-v2.Seconds);
+
+					return new TObject(TType.DateType, v1);
+				} 
+				if (val.TType is TDateType) {
 					DateTime v2 = val.ToDateTime();
-					return new TObject(TType.IntervalType, v1.Subtract(v2));
+					return new TObject(TType.IntervalType, new Interval(v1, v2));
 				}
 			} else if (TType is TIntervalType) {
-				TimeSpan v1 = ToTimeSpan();
+				Interval v1 = ToInterval();
 				if (val.TType is TIntervalType) {
-					TimeSpan v2 = val.ToTimeSpan();
+					Interval v2 = val.ToInterval();
 					return new TObject(TType, v1.Add(v2));
-				} else if (val.TType is TNumericType) {
-					BigNumber v2 = val.ToBigNumber();
-					return new TObject(TType, v1.Add(new TimeSpan(v2.ToInt32() * TimeSpan.TicksPerMillisecond)));
 				}
 			} else if (TType is TNumericType) {
 				BigNumber v1 = ToBigNumber();
@@ -1244,6 +1268,8 @@ namespace Deveel.Data {
 			// non standard...
 			if (conversionType == typeof(TimeSpan))
 				return ToTimeSpan();
+			if (conversionType == typeof(Interval))
+				return ToInterval();
 			if (conversionType == typeof(BigNumber))
 				return ToBigNumber();
 

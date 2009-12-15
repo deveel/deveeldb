@@ -159,6 +159,9 @@
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
     <Compile Include="Deveel.Data\CaseExpression.cs" />
     <Compile Include="Deveel.Data\ICursorContext.cs" />
+    <Compile Include="Deveel.Data\Interval.cs" />
+    <Compile Include="Deveel.Data\IntervalField.cs" />
+    <Compile Include="Deveel.Data\IntervalForm.cs" />
     <Compile Include="Deveel.Data\ProcedureResult.cs" />
     <Compile Include="Deveel.Data\UserObject.cs" />
     <Compile Include="Deveel.Data\ConstraintAction.cs" />

@@ -62,7 +62,7 @@ namespace Deveel.Data.Sql {
 				ResolveExpression(offsetExpr);
 
 				// and finally the value of the offset
-				offset = offsetExpr.Evaluate(null, context);
+				offset = (int) offsetExpr.Evaluate(null, context);
 			}
 
 			// so we finally fetch from the cursor

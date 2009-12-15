@@ -1899,15 +1899,13 @@ SqlType GetBinarySQLType() :
 }
 
 SqlType GetIntervalSQLType() :
-{ }
+{ SqlType sqlType = SqlType.Interval; }
 {
-    <SECOND> { return SqlType.Second; }
-  | <MINUTE> { return SqlType.Minute; }
-  | <HOUR>   { return SqlType.Hour; }
-  | <DAY>    { return SqlType.Day; }
-  | <MONTH>  { return SqlType.Month; }
-  | <YEAR>   { return SqlType.Year; }
-  | <INTERVAL> { return SqlType.Interval; }
+  <INTERVAL>
+  [ ( <YEAR> <TO> <MONTH> ) { sqlType = SqlType.YearToMonth; } | 
+    ( <DAY> <TO> <SECOND> ) { sqlType = SqlType.DayToSecond; } ]
+
+  { return sqlType; }
 }
 
 SqlType GetIdentitySQLType() :
@@ -1960,8 +1958,8 @@ TType GetTType() :
     | data_type = GetBinarySQLType() [ "(" size = PositiveIntegerConstant() ")" ]
       { return TType.GetBinaryType(data_type, size); }
 
-    | data_type = GetIntervalSQLType() [ "(" size = PositiveIntegerConstant() ")" ]
-      { return TType.GetIntervalType(data_type, size); }
+    | data_type = GetIntervalSQLType()
+      { return TType.GetIntervalType(data_type); }
   )
 }
 
@@ -2197,6 +2195,7 @@ void Operand(Expression exp, Stack stack) :
   object param_resolve;
   VariableRef variable_ref;
   TableSelectExpression select_expression = null;
+  string interval_form = "full";
 }
 {
   (   "(" { stack.Push(Operator.Get("(")); exp.Text.Append("("); }
@@ -2270,16 +2269,19 @@ void Operand(Expression exp, Stack stack) :
 // Interval conversion
 | (
     <INTERVAL> t=<STRING_LITERAL>
-    [ tt=<YEAR> | tt=<MONTH> | tt=<DAY> | tt=<HOUR> | tt=<MINUTE> | tt=<SECOND> ]
+    [ <YEAR> { interval_form = "YEAR"; } [ <TO> <MONTH> { interval_form="YEAR TO MONTH"; } ] | 
+      <MONTH> { interval_form = "MONTH"; } | 
+      <DAY> { interval_form = "DAY"; } [ <TO> <SECOND> { interval_form = "DAY TO SECOND"; } ] | 
+      <HOUR> { interval_form = "HOUR"; } | 
+      <MINUTE> { interval_form = "MINUTE"; } | 
+      <SECOND> { interval_form = "SECOND"; } ]
     { object param_ob2 = Util.ToParamObject(t, case_insensitive_identifiers);
-      string field = null;
-      if (tt != null) field = tt.image;
       exp_list = new Expression[2];
       exp_list[0] = new Expression(param_ob2);
-      exp_list[1] = new Expression(TObject.GetString(field));
+      exp_list[1] = new Expression(TObject.GetString(interval_form));
       f =  Util.ResolveFunctionName("intervalob", exp_list);
       exp.AddElement(f);
-      exp.Text.Append("INTERVAL").Append(" ").Append(t.image).Append(" ").Append(tt.image);
+      exp.Text.Append("INTERVAL").Append(" ").Append(t.image).Append(" ").Append(interval_form);
     }
   )
 
@@ -2809,6 +2811,8 @@ Token SQLIdentifier() :
     | name = <OPTION> | name = <ACCOUNT> | name = <PASSWORD>
     | name = <PRIVILEGES> | name = <GROUPS> | name = <LANGUAGE>
     | name = <NAME> | name = <CSHARP> | name = <ACTION>
+    | name = <YEAR> | name = <MONTH> | name = <DAY> | name = <HOUR>
+    | name = <MINUTE> | name = <SECOND>
   )
   
   { return name; }

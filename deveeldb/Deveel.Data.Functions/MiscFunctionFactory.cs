@@ -140,13 +140,13 @@ namespace Deveel.Data.Functions {
 			}
 			
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
-				string table_name = this[0].Evaluate(group, resolver, context);
+				TObject table_name = this[0].Evaluate(group, resolver, context);
 				long v = -1;
 				try {
-					context.CurrentSequenceValue(table_name);
+					context.CurrentSequenceValue(table_name.ToStringValue());
 				} catch (StatementException) {
 					if (context is DatabaseQueryContext) {
-						v = ((DatabaseQueryContext)context).Connection.CurrentUniqueID(table_name);
+						v = ((DatabaseQueryContext)context).Connection.CurrentUniqueID(table_name.ToStringValue());
 					} else {
 						throw new InvalidOperationException();
 					}
@@ -709,7 +709,7 @@ namespace Deveel.Data.Functions {
 					throw new InvalidOperationException();
 
 				Table table = plan.Evaluate(context);
-				return table.RowCount > 0;
+				return (TObject)(table.RowCount > 0);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {

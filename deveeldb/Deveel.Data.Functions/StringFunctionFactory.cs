@@ -575,7 +575,7 @@ namespace Deveel.Data.Functions {
 				if (s == null)
 					return TObject.Null;
 
-				return s.Length;
+				return (TObject) s.Length;
 			}
 
 			#endregion
@@ -608,7 +608,7 @@ namespace Deveel.Data.Functions {
 				if (s is IRef)
 					size = (s as IRef).RawSize;
 
-				return size;
+				return (TObject) size;
 			}
 
 			#endregion

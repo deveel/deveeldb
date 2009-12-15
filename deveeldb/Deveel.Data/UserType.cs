@@ -328,7 +328,7 @@ namespace Deveel.Data {
 					break;
 				case SqlType.Interval:
 					parent = IntervalType;
-					ttype = TType.GetIntervalType(sqlType, size);
+					ttype = TType.GetIntervalType(sqlType);
 					break;
 				case SqlType.Binary:
 				case SqlType.VarBinary:

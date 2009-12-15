@@ -12,7 +12,7 @@ namespace Deveel.Data.Functions {
 		public void Abs() {
 			Expression exp = Expression.Parse("ABS(-45)");
 			TObject result = exp.Evaluate(null, null, null);
-			Assert.IsTrue(result == 45);
+			Assert.IsTrue((int)result == 45);
 
 			exp = Expression.Parse("ABS(-5673.9049)");
 			result = exp.Evaluate(null, null, null);
@@ -38,37 +38,37 @@ namespace Deveel.Data.Functions {
 		[Test]
 		public void Avg() {
 			GroupResolver groupResolver = new GroupResolver();
-			groupResolver.AddToGroup(0, "a", 34);
-			groupResolver.AddToGroup(1, "a", 56);
-			groupResolver.AddToGroup(2, "a", 11);
-			groupResolver.AddToGroup(3, "a", 89);
-			groupResolver.AddToGroup(0, "b", 44);
-			groupResolver.AddToGroup(1, "b", 154);
-			groupResolver.AddToGroup(2, "b", 27);
-			groupResolver.AddToGroup(3, "b", 564);
+			groupResolver.AddToGroup(0, "a", (TObject) 34);
+			groupResolver.AddToGroup(1, "a", (TObject) 56);
+			groupResolver.AddToGroup(2, "a", (TObject) 11);
+			groupResolver.AddToGroup(3, "a", (TObject) 89);
+			groupResolver.AddToGroup(0, "b", (TObject) 44);
+			groupResolver.AddToGroup(1, "b", (TObject) 154);
+			groupResolver.AddToGroup(2, "b", (TObject) 27);
+			groupResolver.AddToGroup(3, "b", (TObject) 564);
 			Expression exp = Expression.Parse("AVG(a)");
 			TObject result = exp.Evaluate(groupResolver, null, null);
-			Assert.IsTrue(result == 47.5);
+			Assert.IsTrue(result == (TObject) 47.5);
 
 			exp = Expression.Parse("AVG(b)");
 			result = exp.Evaluate(groupResolver, null, null);
-			Assert.IsTrue(result == 197.25);
+			Assert.IsTrue(result == (TObject) 197.25);
 		}
 
 		[Test]
 		public void Count() {
 			GroupResolver groupResolver = new GroupResolver();
-			groupResolver.AddToGroup(0, "a", 34);
-			groupResolver.AddToGroup(1, "a", 56);
-			groupResolver.AddToGroup(2, "a", 11);
-			groupResolver.AddToGroup(3, "a", 89);
+			groupResolver.AddToGroup(0, "a", (TObject) 34);
+			groupResolver.AddToGroup(1, "a", (TObject) 56);
+			groupResolver.AddToGroup(2, "a", (TObject) 11);
+			groupResolver.AddToGroup(3, "a", (TObject) 89);
 			Expression exp = Expression.Parse("COUNT(a)");
 			TObject result = exp.Evaluate(groupResolver, null, null);
-			Assert.IsTrue(result == 4);
+			Assert.IsTrue(result == (TObject) 4);
 
 			exp = Expression.Parse("COUNT(*)");
 			result = exp.Evaluate(groupResolver, null, null);
-			Assert.IsTrue(result == 4);
+			Assert.IsTrue(result == (TObject) 4);
 		}
 
 		#endregion

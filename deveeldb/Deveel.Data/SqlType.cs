@@ -112,31 +112,11 @@ namespace Deveel.Data {
 
 		///<summary>
 		///</summary>
-		Second = 94,
-
-		///<summary>
-		///</summary>
-		Minute = 95,
-
-		///<summary>
-		///</summary>
-		Hour = 96,
-
-		///<summary>
-		///</summary>
-		Day = 97,
-
-		///<summary>
-		///</summary>
-		Month = 98,
-
-		///<summary>
-		///</summary>
-		Year = 99,
-
-		///<summary>
-		///</summary>
 		Interval = 100,
+
+		YearToMonth = 101,
+
+		DayToSecond = 102,
 
 		///<summary>
 		///</summary>

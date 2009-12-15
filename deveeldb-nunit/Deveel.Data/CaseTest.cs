@@ -10,7 +10,7 @@ namespace Deveel.Data {
 			TObject result = Expression.Evaluate("CASE " +
 			                                     "  WHEN true THEN 1" +
 			                                     "  ELSE 0");
-			Assert.IsTrue(result == 1);
+			Assert.IsTrue(result == (TObject) 1);
 		}
 	}
 }

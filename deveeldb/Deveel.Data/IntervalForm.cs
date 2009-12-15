@@ -1,5 +1,5 @@
-//  
-//  TIntervalType.cs
+﻿//  
+//  IntervalForm.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -19,31 +19,10 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-
 namespace Deveel.Data {
-	public sealed class TIntervalType : TType {
-		public TIntervalType(SqlType type)
-			: base(type) {
-		}
-
-		public override int Compare(object x, object y) {
-			Interval a = (Interval) x;
-			Interval b = (Interval) y;
-
-			return a.CompareTo(b);
-		}
-
-		public override bool IsComparableType(TType ttype) {
-			return (ttype is TIntervalType);
-		}
-
-		public override int CalculateApproximateMemoryUse(object ob) {
-			return 4 + (6 * 4);
-		}
-
-		public override Type GetObjectType() {
-			return typeof (Interval);
-		}
+	public enum IntervalForm {
+		YearToMonth = 0x01,
+		DayToSecond = 0x02,
+		Full = YearToMonth | DayToSecond
 	}
 }

@@ -73,6 +73,8 @@ namespace Deveel.Data.Mapping {
 			if (memberType == typeof(DateTime))
 				return SqlType.TimeStamp;
 			if (memberType == typeof(TimeSpan))
+				return SqlType.DayToSecond;
+			if (memberType == typeof(Interval))
 				return SqlType.Interval;
 
 			if (memberType == typeof(Stream))
@@ -102,13 +104,9 @@ namespace Deveel.Data.Mapping {
 				case SqlType.TimeStamp:
 					return TType.GetDateType(sqlType);
 				case SqlType.Interval:
-				case SqlType.Year:
-				case SqlType.Month:
-				case SqlType.Day:
-				case SqlType.Hour:
-				case SqlType.Minute:
-				case SqlType.Second:
-					return TType.GetIntervalType(sqlType, size);
+				case SqlType.YearToMonth:
+				case SqlType.DayToSecond:
+					return TType.GetIntervalType(sqlType);
 				default:
 					throw new ArgumentException();
 			}

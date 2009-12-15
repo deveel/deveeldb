@@ -7,23 +7,23 @@ namespace Deveel.Data {
 	public sealed class TObjectTests {
 		[Test]
 		public void IntegerEqual() {
-			TObject obj1 = 32;
-			TObject obj2 = 21;
+			TObject obj1 = (TObject) 32;
+			TObject obj2 = (TObject) 21;
 			Assert.IsTrue(obj1 != obj2);
 
-			obj1 = 21;
-			obj2 = 21;
+			obj1 = (TObject) 21;
+			obj2 = (TObject) 21;
 			Assert.IsTrue(obj1 == obj2);
 		}
 
 		[Test]
 		public void StringEqual() {
-			TObject obj1 = "test1";
-			TObject obj2 = "test2";
+			TObject obj1 = (TObject) "test1";
+			TObject obj2 = (TObject) "test2";
 			Assert.IsTrue(obj1 != obj2);
 
-			obj1 = "test_a";
-			obj2 = "test_a";
+			obj1 = (TObject) "test_a";
+			obj2 = (TObject) "test_a";
 			Assert.IsTrue(obj1 != null);
 			Assert.IsTrue(obj1 == obj2);
 

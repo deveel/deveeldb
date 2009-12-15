@@ -64,7 +64,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// A default time-span (SQL INTERVAL) type.
 		/// </summary>
-		public static readonly TIntervalType IntervalType = new TIntervalType(SqlType.Interval, -1);
+		public static readonly TIntervalType IntervalType = new TIntervalType(SqlType.Interval);
 
 		/// <summary>
 		/// A default NULL type.
@@ -417,8 +417,8 @@ namespace Deveel.Data {
 			return new TDateType(sql_type);
 		}
 
-		public static TType GetIntervalType(SqlType sql_type, int length) {
-			return new TIntervalType(sql_type, length);
+		public static TType GetIntervalType(SqlType sql_type) {
+			return new TIntervalType(sql_type);
 		}
 
 		/// <summary>

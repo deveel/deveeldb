@@ -189,18 +189,18 @@ namespace Deveel.Data {
 			using(SimpleTableQuery query = new SimpleTableQuery(udtCols)) {
 				IntegerVector ivec = query.SelectEqual(0, parent_id);
 				for (int i = 0; i < ivec.Count; i++) {
-					string name = query.Get(1, i);
+					string name = (string) query.Get(1, i);
 
 					// the information used to rebuild the TType
-					int type_id = query.Get(2, i);
-					int size = query.Get(3, i);
-					int scale = query.Get(4, i);
+					int type_id = (int) query.Get(2, i);
+					int size = (int) query.Get(3, i);
+					int scale = (int) query.Get(4, i);
 
 					// reconstruct the type (whether is primitive or a UDT)
 					TType ttype = GetTType(transaction, type_id, size, scale);
 
 					// whether the member can accept nullable values
-					bool nullable = query.Get(5, i) == 1;
+					bool nullable = (int) query.Get(5, i) == 1;
 
 					// so we finally add the member
 					type.AddAttribute(name, ttype, nullable);
@@ -224,8 +224,8 @@ namespace Deveel.Data {
 
 				int row = ivec[0];
 
-				string schema_name = query.Get(1, row);
-				string type_name = query.Get(2, row);
+				string schema_name = (string) query.Get(1, row);
+				string type_name = (string) query.Get(2, row);
 
 				typeName = new TableName(schema_name, type_name);
 			}
@@ -245,7 +245,7 @@ namespace Deveel.Data {
 			if (typeId == -5)
 				return TType.GetDateType(SqlType.Date);
 			if (typeId == -6)
-				return TType.GetIntervalType(SqlType.Interval, size);
+				return TType.GetIntervalType(SqlType.Interval);
 
 			// if it is not one of the primitive types, it must be one
 			// of those defined by users...

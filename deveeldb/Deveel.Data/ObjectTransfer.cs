@@ -49,10 +49,16 @@ namespace Deveel.Data {
 				return (ob.ToString().Length*2) + 9;
 			if (ob is BigNumber)
 				return 15 + 9;
+			/*
 			if (ob is DateTime)
 				return 8 + 9;
 			if (ob is TimeSpan)
 				return 8 + 9;
+			*/
+			if (ob is DateTime)
+				return 28 + 9;
+			if (ob is Interval)
+				return 24 + 9;
 			if (ob is bool)
 				return 2 + 9;
 			if (ob is ByteLongObject)
@@ -86,10 +92,16 @@ namespace Deveel.Data {
 				byte[] buf = n.ToByteArray();
 				return buf.Length + 1 + 1 + 4 + 4;
 			}
+			/*
 			if (ob is DateTime)
 				return 8 + 1;
 			if (ob is TimeSpan)
 				return 8 + 1;
+			*/
+			if (ob is DateTime)
+				return 6 + 2 + 1;
+			if (ob is Interval)
+				return 6 + 1;
 			if (ob is bool)
 				return 1 + 1;
 			if (ob is ByteLongObject)
@@ -140,7 +152,9 @@ namespace Deveel.Data {
 					output.Write(buf.Length);
 					output.Write(buf);
 				}
-			} else if (ob is DateTime) {
+			} 
+			/*
+			else if (ob is DateTime) {
 				DateTime d = (DateTime) ob;
 				output.Write((byte) 9);
 				output.Write(d.Ticks);
@@ -148,27 +162,48 @@ namespace Deveel.Data {
 				TimeSpan t = (TimeSpan) ob;
 				output.Write((byte) 10);
 				output.Write(t.Ticks);
+			} 
+			*/
+			else if (ob is DateTime) {
+				DateTime d = (DateTime) ob;
+				output.Write((byte)9);
+				output.Write((byte)d.Year);
+				output.Write((byte)d.Month);
+				output.Write((byte)d.Day);
+				output.Write((byte)d.Hour);
+				output.Write((byte)d.Minute);
+				output.Write((byte)d.Second);
+				output.Write((short)d.Millisecond);
+			} else if (ob is Interval) {
+				Interval interval = (Interval) ob;
+				output.Write((byte)10);
+				output.Write((byte)interval.Years);
+				output.Write((byte)interval.Months);
+				output.Write((byte)interval.Days);
+				output.Write((byte)interval.Hours);
+				output.Write((byte)interval.Seconds);
+				output.Write((byte)interval.Seconds);
 			} else if (ob is Boolean) {
-				Boolean b = (Boolean) ob;
-				output.Write((byte) 12);
+				bool b = (bool)ob;
+				output.Write((byte)12);
 				output.Write(b);
 			} else if (ob is ByteLongObject) {
-				ByteLongObject barr = (ByteLongObject) ob;
-				output.Write((byte) 15);
+				ByteLongObject barr = (ByteLongObject)ob;
+				output.Write((byte)15);
 				byte[] arr = barr.ToArray();
 				output.Write(arr.LongLength);
 				output.Write(arr);
 			} else if (ob is StreamableObject) {
-				StreamableObject ob_head = (StreamableObject) ob;
-				output.Write((byte) 16);
-				output.Write((byte) ob_head.Type);
+				StreamableObject ob_head = (StreamableObject)ob;
+				output.Write((byte)16);
+				output.Write((byte)ob_head.Type);
 				output.Write(ob_head.Size);
 				output.Write(ob_head.Identifier);
 			} else if (ob is UserObject) {
-				UserObject ob_comp = (UserObject) ob;
+				UserObject ob_comp = (UserObject)ob;
 				output.Write((byte)32);
 
-				foreach(object value in ob_comp.Values) {
+				foreach (object value in ob_comp.Values) {
 					WriteTo(output, value);
 				}
 			} else {
@@ -225,13 +260,25 @@ namespace Deveel.Data {
 					return (BigNumber) val;
 				}
 
-				case (9):
-					long time = input.ReadInt64();
-					return new DateTime(time);
-				case (10):
-					long ticks = input.ReadInt64();
-					return new TimeSpan(ticks);
-
+				case (9): {
+					byte year = input.ReadByte();
+					byte month = input.ReadByte();
+					byte day = input.ReadByte();
+					byte hour = input.ReadByte();
+					byte minute = input.ReadByte();
+					byte second = input.ReadByte();
+					short millis = input.ReadInt16();
+					return new DateTime(year, month, day, hour, minute, second, millis);
+				}
+				case (10): {
+					byte years = input.ReadByte();
+					byte months = input.ReadByte();
+					byte days = input.ReadByte();
+					byte hours = input.ReadByte();
+					byte minutes = input.ReadByte();
+					byte seconds = input.ReadByte();
+					return new Interval(years, months, days, hours, minutes, seconds);
+				}
 				case (12):
 					return input.ReadBoolean();
 

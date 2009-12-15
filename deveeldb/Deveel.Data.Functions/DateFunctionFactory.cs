@@ -1,8 +1,6 @@
 using System;
 using System.Globalization;
 
-using Deveel.Math;
-
 namespace Deveel.Data.Functions {
 	internal class DateFunctionFactory : FunctionFactory {
 		public override void Init() {
@@ -267,10 +265,8 @@ namespace Deveel.Data.Functions {
 				DateTime date1 = ob1.ToDateTime();
 				DateTime date2 = ob2.ToDateTime();
 
-				TimeSpan span = date2.Subtract(date1);
-				DateTime interval = DateTime.MinValue + span;
-
-				return TObject.GetInt4(interval.Month - 1);
+				Interval span = new Interval(date1, date2);
+				return TObject.GetInt4(span.Months);
 			}
 		}
 
@@ -373,19 +369,15 @@ namespace Deveel.Data.Functions {
 				: base("extract", parameters) {
 			}
 
-			private static int GetYears(int days) {
-				return (int) (days/365.25);
-			}
-
 			internal static int ExtractField(string field, TObject obj) {
 				DateTime dateTime = DateTime.MinValue;
-				TimeSpan timeSpan = TimeSpan.Zero;
+				Interval timeSpan = Interval.Zero;
 				bool fromTs = false;
 
 				if (obj.TType is TDateType) {
 					dateTime = obj.ToDateTime();
 				} else if (obj.TType is TIntervalType) {
-					timeSpan = obj.ToTimeSpan();
+					timeSpan = obj.ToInterval();
 					fromTs = true;
 				} else {
 					obj = obj.CastTo(TType.DateType);
@@ -396,8 +388,8 @@ namespace Deveel.Data.Functions {
 
 				if (fromTs) {
 					switch (field) {
-						case "year": value = GetYears(timeSpan.Days); break;
-						//TODO: case "month": value = timeSpan.Month; break;
+						case "year": value = timeSpan.Days; break;
+						case "month": value = timeSpan.Months; break;
 						case "day": value = timeSpan.Days; break;
 						case "hour": value = timeSpan.Hours; break;
 						case "minute": value = timeSpan.Minutes; break;
@@ -450,7 +442,7 @@ namespace Deveel.Data.Functions {
 				if (ob.IsNull)
 					return ob;
 
-				return ExtractFunction.ExtractField("year", ob);
+				return (TObject) ExtractFunction.ExtractField("year", ob);
 			}
 		}
 
@@ -469,7 +461,7 @@ namespace Deveel.Data.Functions {
 				if (ob.IsNull)
 					return ob;
 
-				return ExtractFunction.ExtractField("month", ob);
+				return (TObject) ExtractFunction.ExtractField("month", ob);
 			}
 		}
 
@@ -488,7 +480,7 @@ namespace Deveel.Data.Functions {
 				if (ob.IsNull)
 					return ob;
 
-				return ExtractFunction.ExtractField("day", ob);
+				return (TObject) ExtractFunction.ExtractField("day", ob);
 			}
 		}
 
@@ -507,7 +499,7 @@ namespace Deveel.Data.Functions {
 				if (ob.IsNull)
 					return ob;
 
-				return ExtractFunction.ExtractField("hour", ob);
+				return (TObject) ExtractFunction.ExtractField("hour", ob);
 			}
 		}
 
@@ -526,7 +518,7 @@ namespace Deveel.Data.Functions {
 				if (ob.IsNull)
 					return ob;
 
-				return ExtractFunction.ExtractField("minute", ob);
+				return (TObject) ExtractFunction.ExtractField("minute", ob);
 			}
 		}
 
@@ -545,7 +537,7 @@ namespace Deveel.Data.Functions {
 				if (ob.IsNull)
 					return ob;
 
-				return ExtractFunction.ExtractField("second", ob);
+				return (TObject) ExtractFunction.ExtractField("second", ob);
 			}
 		}
 
@@ -576,38 +568,44 @@ namespace Deveel.Data.Functions {
 						field = field_ob.ToStringValue();
 				}
 
-				TimeSpan interval;
+				Interval interval = Interval.Zero;
 				if (field != null && field.Length > 0) {
-					int value = Int32.Parse(s);
-
 					switch(field.ToLower()) {
 						case "year":
-							interval = new TimeSpan((long)(TimeSpan.TicksPerDay * 365.25) * value);
+							interval = new Interval(Int32.Parse(s), 0);
 							break;
 						case "month":
-							//TODO:
-							throw new NotImplementedException();
+							interval = new Interval(0, Int32.Parse(s));
+							break;
 						case "day":
-							interval = new TimeSpan(TimeSpan.TicksPerDay * value);
+							interval = new Interval(Int32.Parse(s), 0, 0, 0);
 							break;
 						case "hour":
-							interval = new TimeSpan(TimeSpan.TicksPerHour * value);
+							interval = new Interval(0, Int32.Parse(s), 0, 0);
 							break;
 						case "minute":
-							interval = new TimeSpan(TimeSpan.TicksPerMinute * value);
+							interval = new Interval(0, 0, Int32.Parse(s), 0);
 							break;
 						case "second":
-							interval = new TimeSpan(TimeSpan.TicksPerSecond * value);
+							interval = new Interval(0, 0, 0, Int32.Parse(s));
+							break;
+						case "day to second":
+							interval = Interval.Parse(s, IntervalForm.DayToSecond);
+							break;
+						case "year to month":
+							interval = Interval.Parse(s, IntervalForm.YearToMonth);
+							break;
+						case "full":
+							interval = Interval.Parse(s, IntervalForm.Full);
 							break;
 						default:
 							throw new InvalidOperationException("The conversion to INTERVAL is not supported for " + field + ".");
 					}
 				} else {
-					//TODO:
-					throw new NotImplementedException();
+					interval = Interval.Parse(s, IntervalForm.Full);
 				}
 
-				return interval;
+				return (TObject) interval;
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {

@@ -58,7 +58,7 @@ namespace Deveel.Data {
 			Assert.AreEqual(fdef.Parameters.Length, 1);
 			Assert.AreEqual(fdef.Parameters[0].AllElements.Count, 1);
 			TObject result = fdef.GetFunction(null).Evaluate(null, null, null);
-			Assert.IsTrue(result == 4);
+			Assert.IsTrue(result == (TObject) 4);
 
 			exp = Expression.Parse("LENGTH(CAST(CURRENT_TIMESTAMP AS VARCHAR))");
 			fdef = (Functions.FunctionDef) exp[0];

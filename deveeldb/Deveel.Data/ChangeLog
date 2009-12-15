@@ -1,3 +1,23 @@
+2009-12-15  Antonello Provenzano  <antonello@deveel.com>
+	* TIntervalType.cs: 
+		- definition of the type doesn't require the length 
+		anymore and accept an SqlType specification
+		- CompareTo type refactored to accept comparisons
+		only with Interval and for the type given
+	* TType.cs: the 'IntervalType' field now is built upon
+	a FULL INTERVAL type.
+	* SqlType.cs: 
+		- removed fields Year, Month, Day, Hour, Minute 
+		and Second
+		- added fields YearToMonth and DayToSecond
+	* TObject.cs: 
+		- replaced support for INTERVAL types
+		from TimeStamp to Interval
+		- 'implicit' operators replaced with 'explicit's
+	* ObjectTransfer.cs: 
+		- INTERVAL types are now handled by	Interval type
+		- changed serialization type of DateTimes
+	
 2009-12-11  Antonello Provenzano  <antonello@deveel.com>
 	* IQueryContext.cs: 
 		- introduced reference methods to support cursors 

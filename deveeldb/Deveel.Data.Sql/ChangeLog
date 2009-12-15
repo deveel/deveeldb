@@ -1,4 +1,7 @@
-﻿2009-12-11  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-12-15  Antonello Provenzano  <antonello@deveel.com>
+	* SQL.csc: syntax for INTERVAL types fixed
+	
+2009-12-11  Antonello Provenzano  <antonello@deveel.com>
 	* DeclareVariableStatement.cs: Evaluate method now
 	calls the the IQueryContext.DeclareVariable instead
 	of the DatabaseConnection itself.
