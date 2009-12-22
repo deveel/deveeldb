@@ -397,7 +397,7 @@
     <Compile Include="Deveel.Data\RecordState.cs" />
     <Compile Include="Deveel.Data\ReferenceTable.cs" />
     <Compile Include="Deveel.Data\IRootTable.cs" />
-    <Compile Include="Deveel.Data\RowData.cs" />
+    <Compile Include="Deveel.Data\DataRow.cs" />
     <Compile Include="Deveel.Data\IRowEnumerator.cs" />
     <Compile Include="Deveel.Data\SchemaDef.cs" />
     <Compile Include="Deveel.Data\SelectableRange.cs" />

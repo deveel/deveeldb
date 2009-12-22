@@ -1,4 +1,4 @@
-﻿//  
+//  
 //  IntoClause.cs
 //  
 //  Author:
@@ -117,11 +117,11 @@ namespace Deveel.Data.Sql {
 
 				int rowCount = table.RowCount;
 				for (int i = 0; i < rowCount; i++) {
-					RowData row = new RowData(dest_table);
+					DataRow row = new DataRow(dest_table);
 
 					for (int j = 0; j < colCount; j++) {
 						TObject cell = table.GetCellContents(j, i);
-						row.SetColumnDataFromTObject(j, cell);
+						row.SetValue(j, cell);
 					}
 
 					dest_table.Add(row);

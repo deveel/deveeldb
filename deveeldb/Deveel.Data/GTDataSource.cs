@@ -83,7 +83,7 @@ namespace Deveel.Data {
 		// ---------- Implemented from IMutableTableDataSource ----------
 
 		/// <inheritdoc/>
-		public virtual int AddRow(RowData row_data) {
+		public virtual int AddRow(DataRow dataRow) {
 			throw new Exception("Functionality not available.");
 		}
 
@@ -93,7 +93,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public virtual int UpdateRow(int row_index, RowData row_data) {
+		public virtual int UpdateRow(int row_index, DataRow dataRow) {
 			throw new Exception("Functionality not available.");
 		}
 

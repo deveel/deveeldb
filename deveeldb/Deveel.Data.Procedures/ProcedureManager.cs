@@ -224,16 +224,16 @@ namespace Deveel.Data.Procedures {
 			DataTable table = connection.GetTable(Database.SysFunction);
 
 			// The new row to insert/update    
-			RowData row_data = new RowData(table);
-			row_data.SetColumnDataFromObject(0, procedure_name.Schema);
-			row_data.SetColumnDataFromObject(1, procedure_name.Name);
-			row_data.SetColumnDataFromObject(2, "Type1");
-			row_data.SetColumnDataFromObject(3, specification);
+			DataRow dataRow = new DataRow(table);
+			dataRow.SetValue(0, procedure_name.Schema);
+			dataRow.SetValue(1, procedure_name.Name);
+			dataRow.SetValue(2, "Type1");
+			dataRow.SetValue(3, specification);
 			if (return_type != null) {
-				row_data.SetColumnDataFromObject(4, TType.Encode(return_type));
+				dataRow.SetValue(4, TType.Encode(return_type));
 			}
-			row_data.SetColumnDataFromObject(5, TType.Encode(param_types));
-			row_data.SetColumnDataFromObject(6, username);
+			dataRow.SetValue(5, TType.Encode(param_types));
+			dataRow.SetValue(6, username);
 
 			// Find the entry from the procedure table that equal this name
 			Table t = FindProcedureEntry(table, procedure_name);
@@ -244,7 +244,7 @@ namespace Deveel.Data.Procedures {
 			}
 
 			// Insert the new entry,
-			table.Add(row_data);
+			table.Add(dataRow);
 
 			// Notify that this database object has been successfully created.
 			connection.DatabaseObjectCreated(proc_table_name);

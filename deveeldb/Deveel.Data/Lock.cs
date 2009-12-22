@@ -109,7 +109,7 @@ namespace Deveel.Data {
 			}
 			//    else {
 			//      // Notify table we released Read/Write Lock
-			//      Table.notifyReleaseRWLock(type);
+			//      Table.OnReadWriteLockRelease(type);
 			//    }
 		}
 
@@ -139,7 +139,7 @@ namespace Deveel.Data {
 				queue.CheckAccess(this);
 				was_checked = true;
 				//      // Notify table we are Read/Write locked
-				//      Table.OnAddRWLock(type);
+				//      Table.OnReadWriteLockEstablish(type);
 			}
 		}
 

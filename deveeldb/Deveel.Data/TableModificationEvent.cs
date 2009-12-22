@@ -43,7 +43,7 @@ namespace Deveel.Data {
 		private readonly TriggerEventType event_type;
 
 		/// <summary>
-		/// A RowData object representing the row that is being inserted by 
+		/// A DataRow object representing the row that is being inserted by 
 		/// this modification.
 		/// </summary>
 		/// <remarks>
@@ -51,7 +51,7 @@ namespace Deveel.Data {
 		/// BEFORE then this data represents the new data in the table and
 		/// can be modified.  This represents the NEW information.
 		/// </remarks>
-		private readonly RowData row_data;
+		private readonly DataRow dataRow;
 
 		/// <summary>
 		/// The row index of the table that is before removed by this modification.
@@ -62,20 +62,20 @@ namespace Deveel.Data {
 		private readonly int row_index = -1;
 
 		private TableModificationEvent(DatabaseConnection connection, TableName table_name, int row_index, 
-			RowData row_data, TriggerEventType type, bool before) {
+			DataRow dataRow, TriggerEventType type, bool before) {
 			this.connection = connection;
 			this.table_name = table_name;
 			this.row_index = row_index;
-			this.row_data = row_data;
+			this.dataRow = dataRow;
 			this.event_type = type | (before ? TriggerEventType.Before : TriggerEventType.After);
 		}
 
-		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, RowData row_data, bool before)
-			: this(connection, table_name, -1, row_data, TriggerEventType.Insert, before) {
+		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, DataRow dataRow, bool before)
+			: this(connection, table_name, -1, dataRow, TriggerEventType.Insert, before) {
 		}
 
-		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, int row_index, RowData row_data, bool before)
-			: this(connection, table_name, row_index, row_data, TriggerEventType.Update, before) {
+		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, int row_index, DataRow dataRow, bool before)
+			: this(connection, table_name, row_index, dataRow, TriggerEventType.Update, before) {
 		}
 
 		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, int row_index, bool before)
@@ -147,12 +147,12 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the RowData object that represents the change that is being
+		/// Returns the DataRow object that represents the change that is being
 		/// made to the table either by an INSERT or UPDATE.  For a DELETE event this
 		/// return null.
 		/// </summary>
-		public RowData RowData {
-			get { return row_data; }
+		public DataRow DataRow {
+			get { return dataRow; }
 		}
 
 		///<summary>

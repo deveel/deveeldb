@@ -33,7 +33,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Adds a row to the source.
 		/// </summary>
-		/// <param name="row_data">The row to add.</param>
+		/// <param name="dataRow">The row to add.</param>
 		/// <remarks>
 		/// This will add a permanent record into the the underlying data 
 		/// structure. It will also update the indexing schemes as appropriate, 
@@ -47,7 +47,7 @@ namespace Deveel.Data {
 		/// <exception cref="IOException">
 		/// If the row addition was not possible because of IO reasons.
 		/// </exception>
-		int AddRow(RowData row_data);
+		int AddRow(DataRow dataRow);
 
 		/// <summary>
 		/// Completely removes a row from the source.
@@ -69,7 +69,7 @@ namespace Deveel.Data {
 		/// Updates a row in the source.
 		/// </summary>
 		/// <param name="row_index">Index of the row to update.</param>
-		/// <param name="row_data">Row data to update.</param>
+		/// <param name="dataRow">Row data to update.</param>
 		/// <remarks>
 		/// This will make a permanent change to the underlying data structure.
 		/// It will update the indexing schemes as appropriate, and also add the row 
@@ -84,7 +84,7 @@ namespace Deveel.Data {
 		/// If the row index not being a valid reference to a record in this 
 		/// data source.
 		/// </exception>
-		int UpdateRow(int row_index, RowData row_data);
+		int UpdateRow(int row_index, DataRow dataRow);
 
 		/// <summary>
 		/// Flushes all changes made on this table to the backing

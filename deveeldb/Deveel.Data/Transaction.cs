@@ -652,19 +652,18 @@ namespace Deveel.Data {
 					IRowEnumerator e = c_table.GetRowEnumerator();
 					while (e.MoveNext()) {
 						int row_index = e.RowIndex;
-						RowData row_data = new RowData(altered_table);
+						DataRow dataRow = new DataRow(altered_table);
 						for (int i = 0; i < col_map.Length; ++i) {
 							int col = col_map[i];
 							if (col != -1) {
-								row_data.SetColumnData(i,
-													   c_table.GetCellContents(col, row_index));
+								dataRow.SetValue(i, c_table.GetCellContents(col, row_index));
 							}
 						}
-						row_data.SetToDefault(context);
+						dataRow.SetToDefault(context);
 						// Note we use a low level 'AddRow' method on the master table
 						// here.  This does not touch the table indexes.  The indexes are
 						// built later.
-						int new_row_number = new_master_table.AddRow(row_data);
+						int new_row_number = new_master_table.AddRow(dataRow);
 						// Set the record as committed added
 						new_master_table.WriteRecordType(new_row_number, 0x010);
 					}
@@ -981,11 +980,11 @@ namespace Deveel.Data {
 				//     sUSRSchemaInfo.name = name
 				if (!dt.Exists(1, name)) {
 					// Add the entry to the schema info table.
-					RowData rd = new RowData(t);
+					DataRow rd = new DataRow(t);
 					BigNumber unique_id = NextUniqueID(table_name);
-					rd.SetColumnDataFromObject(0, unique_id);
-					rd.SetColumnDataFromObject(1, name);
-					rd.SetColumnDataFromObject(2, type);
+					rd.SetValue(0, unique_id);
+					rd.SetValue(1, name);
+					rd.SetValue(2, type);
 					// Third (other) column is left as null
 					t.AddRow(rd);
 				} else {
@@ -1232,22 +1231,22 @@ namespace Deveel.Data {
 			try {
 
 				// Insert a value into UNIQUE_INFO_TABLE
-				RowData rd = new RowData(t);
+				DataRow rd = new DataRow(t);
 				BigNumber unique_id = NextUniqueID(tn1);
 				constraint_name = MakeUniqueConstraintName(constraint_name, unique_id);
-				rd.SetColumnDataFromObject(0, unique_id);
-				rd.SetColumnDataFromObject(1, constraint_name);
-				rd.SetColumnDataFromObject(2, table_name.Schema);
-				rd.SetColumnDataFromObject(3, table_name.Name);
-				rd.SetColumnDataFromObject(4, (BigNumber)((short)deferred));
+				rd.SetValue(0, unique_id);
+				rd.SetValue(1, constraint_name);
+				rd.SetValue(2, table_name.Schema);
+				rd.SetValue(3, table_name.Name);
+				rd.SetValue(4, (BigNumber)((short)deferred));
 				t.AddRow(rd);
 
 				// Insert the columns
 				for (int i = 0; i < cols.Length; ++i) {
-					rd = new RowData(tcols);
-					rd.SetColumnDataFromObject(0, unique_id);            // unique id
-					rd.SetColumnDataFromObject(1, cols[i]);              // column name
-					rd.SetColumnDataFromObject(2, (BigNumber)i);         // sequence number
+					rd = new DataRow(tcols);
+					rd.SetValue(0, unique_id);            // unique id
+					rd.SetValue(1, cols[i]);              // column name
+					rd.SetValue(2, (BigNumber)i);         // sequence number
 					tcols.AddRow(rd);
 				}
 
@@ -1337,27 +1336,27 @@ namespace Deveel.Data {
 				}
 
 				// Insert a value into FOREIGN_INFO_TABLE
-				RowData rd = new RowData(t);
+				DataRow rd = new DataRow(t);
 				BigNumber unique_id = NextUniqueID(tn1);
 				constraint_name = MakeUniqueConstraintName(constraint_name, unique_id);
-				rd.SetColumnDataFromObject(0, unique_id);
-				rd.SetColumnDataFromObject(1, constraint_name);
-				rd.SetColumnDataFromObject(2, table.Schema);
-				rd.SetColumnDataFromObject(3, table.Name);
-				rd.SetColumnDataFromObject(4, ref_table.Schema);
-				rd.SetColumnDataFromObject(5, ref_table.Name);
-				rd.SetColumnDataFromObject(6, (BigNumber)((int)update_rule));
-				rd.SetColumnDataFromObject(7, (BigNumber)((int)delete_rule));
-				rd.SetColumnDataFromObject(8, (BigNumber)((short)deferred));
+				rd.SetValue(0, unique_id);
+				rd.SetValue(1, constraint_name);
+				rd.SetValue(2, table.Schema);
+				rd.SetValue(3, table.Name);
+				rd.SetValue(4, ref_table.Schema);
+				rd.SetValue(5, ref_table.Name);
+				rd.SetValue(6, (BigNumber)((int)update_rule));
+				rd.SetValue(7, (BigNumber)((int)delete_rule));
+				rd.SetValue(8, (BigNumber)((short)deferred));
 				t.AddRow(rd);
 
 				// Insert the columns
 				for (int i = 0; i < cols.Length; ++i) {
-					rd = new RowData(tcols);
-					rd.SetColumnDataFromObject(0, unique_id);            // unique id
-					rd.SetColumnDataFromObject(1, cols[i]);              // column name
-					rd.SetColumnDataFromObject(2, ref_cols[i]);          // ref column name
-					rd.SetColumnDataFromObject(3, (BigNumber)i); // sequence number
+					rd = new DataRow(tcols);
+					rd.SetValue(0, unique_id);            // unique id
+					rd.SetValue(1, cols[i]);              // column name
+					rd.SetValue(2, ref_cols[i]);          // ref column name
+					rd.SetValue(3, (BigNumber)i); // sequence number
 					tcols.AddRow(rd);
 				}
 
@@ -1409,22 +1408,22 @@ namespace Deveel.Data {
 			try {
 
 				// Insert a value into PRIMARY_INFO_TABLE
-				RowData rd = new RowData(t);
+				DataRow rd = new DataRow(t);
 				BigNumber unique_id = NextUniqueID(tn1);
 				constraint_name = MakeUniqueConstraintName(constraint_name, unique_id);
-				rd.SetColumnDataFromObject(0, unique_id);
-				rd.SetColumnDataFromObject(1, constraint_name);
-				rd.SetColumnDataFromObject(2, table_name.Schema);
-				rd.SetColumnDataFromObject(3, table_name.Name);
-				rd.SetColumnDataFromObject(4, (BigNumber)((short)deferred));
+				rd.SetValue(0, unique_id);
+				rd.SetValue(1, constraint_name);
+				rd.SetValue(2, table_name.Schema);
+				rd.SetValue(3, table_name.Name);
+				rd.SetValue(4, (BigNumber)((short)deferred));
 				t.AddRow(rd);
 
 				// Insert the columns
 				for (int i = 0; i < cols.Length; ++i) {
-					rd = new RowData(tcols);
-					rd.SetColumnDataFromObject(0, unique_id);            // unique id
-					rd.SetColumnDataFromObject(1, cols[i]);              // column name
-					rd.SetColumnDataFromObject(2, (BigNumber)i);         // Sequence number
+					rd = new DataRow(tcols);
+					rd.SetValue(0, unique_id);            // unique id
+					rd.SetValue(1, cols[i]);              // column name
+					rd.SetValue(2, (BigNumber)i);         // Sequence number
 					tcols.AddRow(rd);
 				}
 
@@ -1475,18 +1474,17 @@ namespace Deveel.Data {
 				// Insert check constraint data.
 				BigNumber unique_id = NextUniqueID(tn);
 				constraint_name = MakeUniqueConstraintName(constraint_name, unique_id);
-				RowData rd = new RowData(t);
-				rd.SetColumnDataFromObject(0, unique_id);
-				rd.SetColumnDataFromObject(1, constraint_name);
-				rd.SetColumnDataFromObject(2, table_name.Schema);
-				rd.SetColumnDataFromObject(3, table_name.Name);
-				rd.SetColumnDataFromObject(4, expression.Text.ToString());
-				rd.SetColumnDataFromObject(5, (BigNumber)((short)deferred));
+				DataRow rd = new DataRow(t);
+				rd.SetValue(0, unique_id);
+				rd.SetValue(1, constraint_name);
+				rd.SetValue(2, table_name.Schema);
+				rd.SetValue(3, table_name.Name);
+				rd.SetValue(4, expression.Text.ToString());
+				rd.SetValue(5, (BigNumber)((short)deferred));
 				if (col_count > 6) {
 					// Serialize the check expression
-					ByteLongObject serialized_expression =
-											  ObjectTranslator.Serialize(expression);
-					rd.SetColumnDataFromObject(6, serialized_expression);
+					ByteLongObject serialized_expression = ObjectTranslator.Serialize(expression);
+					rd.SetValue(6, serialized_expression);
 				}
 				t.AddRow(rd);
 

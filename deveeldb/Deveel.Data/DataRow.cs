@@ -1,5 +1,5 @@
 //  
-//  RowData.cs
+//  DataRow.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -29,30 +29,29 @@ namespace Deveel.Data {
 	/// Represents a row of data to be added into a table.
 	///</summary>
 	/// <remarks>
-	/// There are two types of RowData object.  Those that are empty and contain
+	/// There are two types of DataRow object.  Those that are empty and contain
 	/// blank data, and those that contain information to either be inserted
 	/// into a table, or has be retrieved from a row.
 	/// <para>
-	/// Any <see cref="RowData"/> objects that need to be set to <c>null</c> should 
+	/// Any <see cref="DataRow"/> objects that need to be set to <c>null</c> should 
 	/// be done so explicitly.
 	/// </para>
 	/// <para>
-	/// We must call a <see cref="SetColumnData"/> method for <i>every</i> column in 
-	/// the row to form.
+	/// We must call a <c>SetValue</c> method for <i>every</i> column in the row to form.
 	/// </para>
 	/// <para>
 	/// This method (or derived classes) must only use safe methods in <see cref="DataTable"/>.
 	/// </para>
 	/// </remarks>
-	public class RowData {
+	public class DataRow {
 
 		/// <summary>
-		/// The TransactionSystem this RowData is a context of.
+		/// The TransactionSystem this DataRow is a context of.
 		/// </summary>
 		private readonly TransactionSystem system;
 
 		/// <summary>
-		/// The <see cref="ITableDataSource"/> object that this <see cref="RowData"/> 
+		/// The <see cref="ITableDataSource"/> object that this <see cref="DataRow"/> 
 		/// is in, or is destined to be in.
 		/// </summary>
 		private readonly ITableDataSource table;
@@ -73,14 +72,14 @@ namespace Deveel.Data {
 		private readonly int col_count;
 
 		/// <summary>
-		/// Creates a <see cref="RowData"/> object without an underlying table.
+		/// Creates a <see cref="DataRow"/> object without an underlying table.
 		/// </summary>
 		/// <param name="system"></param>
 		/// <param name="col_count"></param>
 		/// <remarks>
 		/// This is used for copying from one table to a different one.
 		/// </remarks>
-		public RowData(TransactionSystem system, int col_count) {
+		internal DataRow(TransactionSystem system, int col_count) {
 			this.system = system;
 			this.col_count = col_count;
 			data_cell_list = new TObject[col_count];
@@ -90,7 +89,7 @@ namespace Deveel.Data {
 		/// Creates a blank row on the given underlying table.
 		/// </summary>
 		/// <param name="table"></param>
-		public RowData(ITableDataSource table) {
+		internal DataRow(ITableDataSource table) {
 			system = table.System;
 			this.table = table;
 			table_def = table.DataTableDef;
@@ -99,13 +98,28 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Populates the RowData object with information from a specific row 
+		/// Gets or sets the value of the column at the given
+		/// column index.
+		/// </summary>
+		/// <param name="column">The index of the column to get
+		/// or set the value of a column.</param>
+		/// <returns>
+		/// Return a <see cref="TObject"/> that encapsulates the value
+		/// of the column at the given index of the row.
+		/// </returns>
+		public TObject this[int column] {
+			get { return GetValue(column); }
+			set { SetValue(column, value); }
+		}
+
+		/// <summary>
+		/// Populates the DataRow object with information from a specific row 
 		/// from the underlying DataTable.
 		/// </summary>
 		/// <param name="row"></param>
 		internal void SetFromRow(int row) {
 			for (int col = 0; col < col_count; ++col) {
-				SetColumnData(col, table.GetCellContents(col, row));
+				SetValue(col, table.GetCellContents(col, row));
 			}
 		}
 
@@ -123,46 +137,55 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Sets up a column by casting the value from the given <see cref="TObject"/> 
-		/// to a type that is compatible with the column.
+		/// Sets the value of a column for this row.
 		/// </summary>
-		/// <param name="column"></param>
-		/// <param name="cell"></param>
+		/// <param name="column">The zero-based index of the column for which
+		/// to set the value.</param>
+		/// <param name="value">The object value to set: if not an instance
+		/// of <see cref="TObject"/>, it will be casted.</param>
 		/// <remarks>
-		/// This is useful when we are copying information from one table to another.
+		/// This overload of the method of <c>SetValue</c> method accepts a
+		/// generic value parameter that can be every kind of (allowed) data
+		/// type from the framework: if not an instance of <see cref="TObject"/>
+		/// this method will cast it accordingly to the definition of the
+		/// data type of the column.
 		/// </remarks>
-		public void SetColumnData(int column, TObject cell) {
-			DataTableColumnDef col = table_def[column];
-			if (table != null && col.SqlType != cell.TType.SQLType) {
-				// Cast the TObject
-				cell = cell.CastTo(col.TType);
+		public void SetValue(int column, object value) {
+			if (!typeof (TObject).IsInstanceOfType(value)) {
+				DataTableColumnDef col_def = table_def[column];
+
+				if (value is String)
+					value = StringObject.FromString((string)value);
+
+				// Create a TObject from the given object to the given type
+				value = TObject.CreateAndCastFromObject(col_def.TType, value);
 			}
-			SetColumnDataFromTObject(column, cell);
+
+			SetValue(column, (TObject)value);
 		}
 
-		///<summary>
-		/// Sets up a column from an Object.
-		///</summary>
-		///<param name="column"></param>
-		///<param name="ob"></param>
-		public void SetColumnDataFromObject(int column, Object ob) {
-			DataTableColumnDef col_def = table_def[column];
+		/// <summary>
+		/// Sets the value of a column for this row.
+		/// </summary>
+		/// <param name="column">The zero-based index of the column for which
+		/// to set the value.</param>
+		/// <param name="value">The value to set for the column.</param>
+		public void SetValue(int column, TObject value) {
+			DataTableColumnDef col = table_def[column];
+			if (table != null && col.SqlType != value.TType.SQLType) {
+				// Cast the TObject
+				value = value.CastTo(col.TType);
+			}
 
-			if (ob is String)
-				ob = StringObject.FromString((String)ob);
-
-			// Create a TObject from the given object to the given type
-			TObject cell = TObject.CreateAndCastFromObject(col_def.TType, ob);
-			SetColumnDataFromTObject(column, cell);
+			data_cell_list[column] = value;
 		}
 
-		///<summary>
-		/// Sets up a column from a TObject.
-		///</summary>
-		///<param name="column"></param>
-		///<param name="ob"></param>
-		public void SetColumnDataFromTObject(int column, TObject ob) {
-			data_cell_list[column] = ob;
+		public void SetValue(string columnName, TObject value) {
+			int columnIndex = FindFieldName(columnName);
+			if (columnIndex == -1)
+				throw new ArgumentException("Cannot find the column '" + columnName + "' in the table.");
+
+			SetValue(columnIndex, value);
 		}
 
 		///<summary>
@@ -171,7 +194,7 @@ namespace Deveel.Data {
 		///<param name="column"></param>
 		public void SetToNull(int column) {
 			DataTableColumnDef col_def = table_def[column];
-			SetColumnDataFromTObject(column, new TObject(col_def.TType, null));
+			SetValue(column, new TObject(col_def.TType, null));
 		}
 
 		///<summary>
@@ -185,7 +208,7 @@ namespace Deveel.Data {
 				Expression exp = column_def.GetDefaultExpression(system);
 				if (exp != null) {
 					TObject def_val = Evaluate(exp, context);
-					SetColumnData(column, def_val);
+					SetValue(column, def_val);
 					return;
 				}
 			}
@@ -198,7 +221,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		public TObject GetCellData(int column) {
+		public TObject GetValue(int column) {
 			TObject cell = data_cell_list[column];
 			if (cell == null) {
 				DataTableColumnDef col_def = table_def[column];
@@ -207,22 +230,30 @@ namespace Deveel.Data {
 			return cell;
 		}
 
+		public TObject GetValue(string columnName) {
+			int columnIndex = FindFieldName(columnName);
+			if (columnIndex == -1)
+				throw new ArgumentException("Cannot find the column '" + columnName + "' in the table.");
+
+			return GetValue(columnIndex);
+		}
+
 		///<summary>
 		/// Returns the name of the given column number.
 		///</summary>
 		///<param name="column"></param>
 		///<returns></returns>
-		public String GetColumnName(int column) {
+		public string GetColumnName(int column) {
 			return table_def[column].Name;
 		}
 
 		///<summary>
-		/// Finds the field in this RowData with the given name.
+		/// Finds the field in this DataRow with the given name.
 		///</summary>
-		///<param name="column_name"></param>
+		///<param name="columnName"></param>
 		///<returns></returns>
-		public int FindFieldName(String column_name) {
-			return table_def.FindColumnName(column_name);
+		public int FindFieldName(string columnName) {
+			return table_def.FindColumnName(columnName);
 		}
 
 		/// <summary>
@@ -250,7 +281,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Evaluates a single assignment on this RowData object.
+		/// Evaluates a single assignment on this DataRow object.
 		/// </summary>
 		/// <param name="assignment"></param>
 		/// <param name="context"></param>
@@ -268,7 +299,7 @@ namespace Deveel.Data {
 			int column = FindFieldName(variable.Name);
 
 			// Set the column to the resolved value.
-			SetColumnData(column, ob);
+			SetValue(column, ob);
 		}
 
 		/// <summary>
@@ -337,7 +368,7 @@ namespace Deveel.Data {
 					// Cast the object to the type of the column
 					ob = ob.CastTo(table_def[table_column].TType);
 					// Set the column to the resolved value.
-					SetColumnDataFromTObject(table_column, ob);
+					SetValue(table_column, ob);
 				} else {
 					// The element must be 'DEFAULT'.  If it's not throw an error.  If it
 					// is, the default value will be set later.
@@ -367,9 +398,9 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override String ToString() {
+		public override string ToString() {
 			StringBuilder buf = new StringBuilder();
-			buf.Append("[RowData: ");
+			buf.Append("[DataRow: ");
 			for (int i = 0; i < col_count; ++i) {
 				buf.Append(data_cell_list[i].Object);
 				buf.Append(", ");
@@ -378,12 +409,12 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a IVariableResolver to use within this RowData context.
+		/// Returns a IVariableResolver to use within this DataRow context.
 		/// </summary>
 		private IVariableResolver VariableResolver {
 			get {
 				if (variable_resolver == null) {
-					variable_resolver = new RDVariableResolver(this);
+					variable_resolver = new DRVariableResolver(this);
 				} else {
 					variable_resolver.NextAssignment();
 				}
@@ -391,19 +422,19 @@ namespace Deveel.Data {
 			}
 		}
 
-		private RDVariableResolver variable_resolver = null;
+		private DRVariableResolver variable_resolver = null;
 
 		// ---------- Inner classes ----------
 
 		/// <summary>
 		/// Variable resolver for this context.
 		/// </summary>
-		private class RDVariableResolver : IVariableResolver {
-			private readonly RowData row_data;
+		private class DRVariableResolver : IVariableResolver {
+			private readonly DataRow dataRow;
 			private int assignment_count = 0;
 
-			public RDVariableResolver(RowData rowData) {
-				row_data = rowData;
+			public DRVariableResolver(DataRow dataRow) {
+				this.dataRow = dataRow;
 			}
 
 			internal void NextAssignment() {
@@ -417,12 +448,12 @@ namespace Deveel.Data {
 			public TObject Resolve(VariableName variable) {
 				String col_name = variable.Name;
 
-				int col_index = row_data.table_def.FindColumnName(col_name);
+				int col_index = dataRow.table_def.FindColumnName(col_name);
 				if (col_index == -1) {
 					throw new ApplicationException("Can't find column: " + col_name);
 				}
 
-				TObject cell = row_data.data_cell_list[col_index];
+				TObject cell = dataRow.data_cell_list[col_index];
 
 				if (cell == null) {
 					throw new ApplicationException("Column " + col_name + " hasn't been set yet.");
@@ -434,12 +465,12 @@ namespace Deveel.Data {
 			public TType ReturnTType(VariableName variable) {
 				String col_name = variable.Name;
 
-				int col_index = row_data.table_def.FindColumnName(col_name);
+				int col_index = dataRow.table_def.FindColumnName(col_name);
 				if (col_index == -1) {
 					throw new ApplicationException("Can't find column: " + col_name);
 				}
 
-				return row_data.table_def[col_index].TType;
+				return dataRow.table_def[col_index].TType;
 			}
 
 		}

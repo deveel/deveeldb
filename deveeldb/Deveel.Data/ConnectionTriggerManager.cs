@@ -143,14 +143,14 @@ namespace Deveel.Data {
 
 				// Insert the entry into the trigger table,
 				DataTable table = connection.GetTable(Database.SysDataTrigger);
-				RowData row = new RowData(table);
-				row.SetColumnDataFromTObject(0, TObject.GetString(schema));
-				row.SetColumnDataFromTObject(1, TObject.GetString(name));
-				row.SetColumnDataFromTObject(2, TObject.GetInt4((int)type));
-				row.SetColumnDataFromTObject(3, TObject.GetString("T:" + on_table));
-				row.SetColumnDataFromTObject(4, TObject.GetString(procedure_name));
-				row.SetColumnDataFromTObject(5, TObject.GetObject(encoded_params));
-				row.SetColumnDataFromTObject(6, TObject.GetString(connection.User.UserName));
+				DataRow row = new DataRow(table);
+				row.SetValue(0, TObject.GetString(schema));
+				row.SetValue(1, TObject.GetString(name));
+				row.SetValue(2, TObject.GetInt4((int)type));
+				row.SetValue(3, TObject.GetString("T:" + on_table));
+				row.SetValue(4, TObject.GetString(procedure_name));
+				row.SetValue(5, TObject.GetObject(encoded_params));
+				row.SetValue(6, TObject.GetString(connection.User.UserName));
 				table.Add(row);
 
 				// Invalidate the list
@@ -329,7 +329,7 @@ namespace Deveel.Data {
 							// update, and OLD to be the row before the update.
 							connection.SetOldNewTableState(
 								new DatabaseConnection.OldNewTableState(table_name,
-																		evt.RowIndex, evt.RowData, evt.IsBefore));
+																		evt.RowIndex, evt.DataRow, evt.IsBefore));
 
 							try {
 								// Invoke the procedure (no arguments)

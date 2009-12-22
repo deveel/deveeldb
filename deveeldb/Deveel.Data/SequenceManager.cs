@@ -201,21 +201,21 @@ namespace Deveel.Data {
 				// Get the row position
 				int row_i = ivec[0];
 
-				// Create the RowData
-				RowData row_data = new RowData(seq);
+				// Create the DataRow
+				DataRow dataRow = new DataRow(seq);
 
 				// Set the content of the row data
-				row_data.SetColumnDataFromTObject(0, TObject.GetInt8(generator.id));
-				row_data.SetColumnDataFromTObject(1, TObject.GetInt8(generator.last_value));
-				row_data.SetColumnDataFromTObject(2, TObject.GetInt8(generator.increment_by));
-				row_data.SetColumnDataFromTObject(3, TObject.GetInt8(generator.min_value));
-				row_data.SetColumnDataFromTObject(4, TObject.GetInt8(generator.max_value));
-				row_data.SetColumnDataFromTObject(5, TObject.GetInt8(generator.start));
-				row_data.SetColumnDataFromTObject(6, TObject.GetInt8(generator.cache));
-				row_data.SetColumnDataFromTObject(7, TObject.GetBoolean(generator.cycle));
+				dataRow.SetValue(0, TObject.GetInt8(generator.id));
+				dataRow.SetValue(1, TObject.GetInt8(generator.last_value));
+				dataRow.SetValue(2, TObject.GetInt8(generator.increment_by));
+				dataRow.SetValue(3, TObject.GetInt8(generator.min_value));
+				dataRow.SetValue(4, TObject.GetInt8(generator.max_value));
+				dataRow.SetValue(5, TObject.GetInt8(generator.start));
+				dataRow.SetValue(6, TObject.GetInt8(generator.cache));
+				dataRow.SetValue(7, TObject.GetBoolean(generator.cycle));
 
 				// Update the row
-				seq.UpdateRow(row_i, row_data);
+				seq.UpdateRow(row_i, dataRow);
 
 				// Dispose the resources
 				query.Dispose();
@@ -273,12 +273,12 @@ namespace Deveel.Data {
 			long unique_id =
 					transaction.NextUniqueID(TableDataConglomerate.SYS_SEQUENCE_INFO);
 
-			RowData row_data = new RowData(table);
-			row_data.SetColumnDataFromObject(0, unique_id);
-			row_data.SetColumnDataFromObject(1, table_name.Schema);
-			row_data.SetColumnDataFromObject(2, table_name.Name);
-			row_data.SetColumnDataFromObject(3, 1);
-			table.AddRow(row_data);
+			DataRow dataRow = new DataRow(table);
+			dataRow.SetValue(0, unique_id);
+			dataRow.SetValue(1, table_name.Schema);
+			dataRow.SetValue(2, table_name.Name);
+			dataRow.SetValue(3, 1);
+			table.AddRow(dataRow);
 
 		}
 
@@ -402,28 +402,27 @@ namespace Deveel.Data {
 			}
 
 			// Generate a unique id for the sequence info table
-			long unique_id =
-					transaction.NextUniqueID(TableDataConglomerate.SYS_SEQUENCE_INFO);
+			long unique_id = transaction.NextUniqueID(TableDataConglomerate.SYS_SEQUENCE_INFO);
 
 			// Insert the new row
-			RowData row_data = new RowData(seqi);
-			row_data.SetColumnDataFromObject(0, unique_id);
-			row_data.SetColumnDataFromObject(1, table_name.Schema);
-			row_data.SetColumnDataFromObject(2, table_name.Name);
-			row_data.SetColumnDataFromObject(3, 2);
-			seqi.AddRow(row_data);
+			DataRow dataRow = new DataRow(seqi);
+			dataRow.SetValue(0, unique_id);
+			dataRow.SetValue(1, table_name.Schema);
+			dataRow.SetValue(2, table_name.Name);
+			dataRow.SetValue(3, 2);
+			seqi.AddRow(dataRow);
 
 			// Insert into the SEQUENCE table.
-			row_data = new RowData(seq);
-			row_data.SetColumnDataFromObject(0, unique_id);
-			row_data.SetColumnDataFromObject(1, start_value);
-			row_data.SetColumnDataFromObject(2, increment_by);
-			row_data.SetColumnDataFromObject(3, min_value);
-			row_data.SetColumnDataFromObject(4, max_value);
-			row_data.SetColumnDataFromObject(5, start_value);
-			row_data.SetColumnDataFromObject(6, cache);
-			row_data.SetColumnDataFromObject(7, cycle);
-			seq.AddRow(row_data);
+			dataRow = new DataRow(seq);
+			dataRow.SetValue(0, unique_id);
+			dataRow.SetValue(1, start_value);
+			dataRow.SetValue(2, increment_by);
+			dataRow.SetValue(3, min_value);
+			dataRow.SetValue(4, max_value);
+			dataRow.SetValue(5, start_value);
+			dataRow.SetValue(6, cache);
+			dataRow.SetValue(7, cycle);
+			seq.AddRow(dataRow);
 
 		}
 

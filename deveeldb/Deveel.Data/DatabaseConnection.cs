@@ -1901,7 +1901,7 @@ namespace Deveel.Data {
 			}
 
 			private bool HasNEWTable {
-				get { return conn.current_old_new_state.NEW_row_data != null; }
+				get { return conn.current_old_new_state.NEW_data_row != null; }
 			}
 
 			public int TableCount {
@@ -1967,22 +1967,21 @@ namespace Deveel.Data {
 
 						// Copy data from the table to the new table
 						DataTable dtable = conn.GetTable(conn.current_old_new_state.trigger_source);
-						RowData old_row_data = new RowData(table);
+						DataRow old_row = new DataRow(table);
 						int row_index = conn.current_old_new_state.OLD_row_index;
 						for (int i = 0; i < t_def.ColumnCount; ++i) {
-							old_row_data.SetColumnDataFromTObject(i,
-														dtable.GetCellContents(i, row_index));
+							old_row.SetValue(i, dtable.GetCellContents(i, row_index));
 						}
 						// All OLD tables are immutable
 						table.SetImmutable(true);
-						table.SetRowData(old_row_data);
+						table.SetRowData(old_row);
 
 						return table;
 					}
 				}
 
 				table.SetImmutable(!conn.current_old_new_state.mutable_NEW);
-				table.SetRowData(conn.current_old_new_state.NEW_row_data);
+				table.SetRowData(conn.current_old_new_state.NEW_data_row);
 
 				return table;
 			}
@@ -1995,7 +1994,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private sealed class TriggeredOldNewDataSource : GTDataSource {
 			private readonly DataTableDef table_def;
-			private RowData content;
+			private DataRow content;
 			private bool immutable;
 
 			public TriggeredOldNewDataSource(TransactionSystem system, DataTableDef table_def)
@@ -2007,8 +2006,8 @@ namespace Deveel.Data {
 				this.immutable = im;
 			}
 
-			internal void SetRowData(RowData row_data) {
-				this.content = row_data;
+			internal void SetRowData(DataRow dataRow) {
+				this.content = dataRow;
 			}
 
 			public override DataTableDef DataTableDef {
@@ -2023,10 +2022,10 @@ namespace Deveel.Data {
 				if (row < 0 || row > 0) {
 					throw new Exception("Row index out of bounds.");
 				}
-				return content.GetCellData(column);
+				return content.GetValue(column);
 			}
 
-			public override int AddRow(RowData row_data) {
+			public override int AddRow(DataRow dataRow) {
 				throw new Exception("Inserting into table '" +
 							  DataTableDef.TableName + "' is not permitted.");
 			}
@@ -2036,7 +2035,7 @@ namespace Deveel.Data {
 							  DataTableDef.TableName + "' is not permitted.");
 			}
 
-			public override int UpdateRow(int row_index, RowData row_data) {
+			public override int UpdateRow(int row_index, DataRow dataRow) {
 				if (immutable) {
 					throw new Exception("Updating table '" +
 								DataTableDef.TableName + "' is not permitted.");
@@ -2047,7 +2046,7 @@ namespace Deveel.Data {
 
 				int sz = DataTableDef.ColumnCount;
 				for (int i = 0; i < sz; ++i) {
-					content.SetColumnDataFromTObject(i, row_data.GetCellData(i));
+					content.SetValue(i, dataRow.GetValue(i));
 				}
 
 				return 0;
@@ -2151,10 +2150,10 @@ namespace Deveel.Data {
 			internal int OLD_row_index = -1;
 
 			/// <summary>
-			/// The RowData of the new data that is being inserted/updated in the trigger
+			/// The DataRow of the new data that is being inserted/updated in the trigger
 			/// source table.
 			/// </summary>
-			internal RowData NEW_row_data;
+			internal DataRow NEW_data_row;
 
 			/// <summary>
 			/// If true then the 'new_data' information is mutable which would be true for
@@ -2176,10 +2175,10 @@ namespace Deveel.Data {
 			/// </summary>
 			internal DataTable NEW_data_table;
 
-			internal OldNewTableState(TableName table_source, int old_d, RowData new_d, bool is_mutable) {
+			internal OldNewTableState(TableName table_source, int old_d, DataRow new_d, bool is_mutable) {
 				trigger_source = table_source;
 				OLD_row_index = old_d;
-				NEW_row_data = new_d;
+				NEW_data_row = new_d;
 				mutable_NEW = is_mutable;
 			}
 

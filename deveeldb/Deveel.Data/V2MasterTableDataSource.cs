@@ -280,7 +280,7 @@ namespace Deveel.Data {
 			index_store = new IndexSetStore(store, System);
 			try {
 				index_store.Init(index_header_p);
-			} catch (IOException e) {
+			} catch (IOException) {
 				// If this failed try writing output a new empty index set.
 				// ISSUE: Should this occur here?  This is really an attempt at repairing
 				//   the index store.
@@ -506,12 +506,12 @@ namespace Deveel.Data {
 		/// record. It is the responsibility of the callee to add the record 
 		/// into the general file structure.
 		/// <para>
-		/// If the <see cref="RowData"/>contains any references to IBlob objects 
+		/// If the <see cref="DataRow"/>contains any references to IBlob objects 
 		/// then a reference count to the blob is generated at this point.
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		private long WriteRecordToStore(RowData data) {
+		private long WriteRecordToStore(DataRow data) {
 
 			// Calculate how much space this record will use
 			int row_cells = data.ColumnCount;
@@ -525,7 +525,7 @@ namespace Deveel.Data {
 				// Establish a reference to any blobs input the record
 				int all_records_size = 0;
 				for (int i = 0; i < row_cells; ++i) {
-					TObject cell = data.GetCellData(i);
+					TObject cell = data.GetValue(i);
 					int sz;
 					int ctype;
 					if (cell.Object is IRef) {
@@ -568,7 +568,7 @@ namespace Deveel.Data {
 
 				// Now Write a serialization of the cells themselves,
 				for (int i = 0; i < row_cells; ++i) {
-					TObject t_object = data.GetCellData(i);
+					TObject t_object = data.GetValue(i);
 					int ctype = cell_type[i];
 					if (ctype == 1) {
 						// Regular object
@@ -620,12 +620,12 @@ namespace Deveel.Data {
 		/// </remarks>
 		private void CopyRecordFrom(MasterTableDataSource src_master_table,int record_id) {
 
-			// Copy the record from the source table input a RowData object,
+			// Copy the record from the source table input a DataRow object,
 			int sz = src_master_table.DataTableDef.ColumnCount;
-			RowData row_data = new RowData(System, sz);
+			DataRow dataRow = new DataRow(System, sz);
 			for (int i = 0; i < sz; ++i) {
 				TObject tob = src_master_table.GetCellContents(i, record_id);
-				row_data.SetColumnDataFromTObject(i, tob);
+				dataRow.SetValue(i, tob);
 			}
 
 			try {
@@ -633,7 +633,7 @@ namespace Deveel.Data {
 
 				// Write record to this table but don't update any structures for the new
 				// record.
-				long record_p = WriteRecordToStore(row_data);
+				long record_p = WriteRecordToStore(dataRow);
 
 				// Add this record into the table structure at the given index
 				AddToRecordList(record_id, record_p);
@@ -1225,7 +1225,7 @@ namespace Deveel.Data {
 			index_set.Dispose();
 		}
 
-		internal override int InternalAddRow(RowData data) {
+		internal override int InternalAddRow(DataRow data) {
 
 			long row_number;
 			int int_row_number;
@@ -1243,7 +1243,7 @@ namespace Deveel.Data {
 				int row_cells = data.ColumnCount;
 				for (int i = 0; i < row_cells; ++i) {
 					// Put the row/column/TObject into the cache.
-					cache.Set(table_id, int_row_number, i, data.GetCellData(i));
+					cache.Set(table_id, int_row_number, i, data.GetValue(i));
 				}
 			}
 

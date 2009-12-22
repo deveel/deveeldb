@@ -1,4 +1,4 @@
-﻿//  
+//  
 //  UDTManager.cs
 //  
 //  Author:
@@ -77,17 +77,17 @@ namespace Deveel.Data {
 			long id = transaction.NextUniqueID(TableDataConglomerate.UDT_TABLE);
 
 			// insert a new row for the type
-			RowData row = new RowData(udt);
-			row.SetColumnDataFromObject(0, id);
-			row.SetColumnDataFromObject(1, typeName.Schema);
-			row.SetColumnDataFromObject(2, typeName.Name);
-			row.SetColumnDataFromObject(3, (int)type.Attributes);
+			DataRow row = new DataRow(udt);
+			row.SetValue(0, id);
+			row.SetValue(1, typeName.Schema);
+			row.SetValue(2, typeName.Name);
+			row.SetValue(3, (int)type.Attributes);
 			if (parentTypeId != TypeNotFound)
-				row.SetColumnDataFromObject(4, parentTypeId);		// parent type
+				row.SetValue(4, parentTypeId);		// parent type
 			else
-				row.SetColumnDataFromObject(4, null);
+				row.SetValue(4, null);
 			if (type.IsExternal)
-				row.SetColumnDataFromObject(5, type.ExternalTypeString);
+				row.SetValue(5, type.ExternalTypeString);
 
 			udt.AddRow(row);
 
@@ -97,13 +97,13 @@ namespace Deveel.Data {
 
 				int type_id = GetTTypeId(transaction, attribute.Type);
 
-				RowData cols_row = new RowData(udtCols);
-				cols_row.SetColumnDataFromObject(0, id);				// defining type id
-				cols_row.SetColumnDataFromObject(1, attribute.Name);	// member name
-				cols_row.SetColumnDataFromObject(2, type_id);			// member type
-				cols_row.SetColumnDataFromObject(3, attribute.Size);	// type size
-				cols_row.SetColumnDataFromObject(4, attribute.Scale);	// type scale (in case of numerics)
-				cols_row.SetColumnDataFromObject(5, attribute.Nullable ? 1 : 0);	// nullable
+				DataRow cols_row = new DataRow(udtCols);
+				cols_row.SetValue(0, id);				// defining type id
+				cols_row.SetValue(1, attribute.Name);	// member name
+				cols_row.SetValue(2, type_id);			// member type
+				cols_row.SetValue(3, attribute.Size);	// type size
+				cols_row.SetValue(4, attribute.Scale);	// type scale (in case of numerics)
+				cols_row.SetValue(5, attribute.Nullable ? 1 : 0);	// nullable
 				udtCols.AddRow(cols_row);
 			}
 		}

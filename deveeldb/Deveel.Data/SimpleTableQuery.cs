@@ -297,11 +297,11 @@ namespace Deveel.Data {
 				mtable.RemoveRow(ivec[0]);
 			}
 			// Insert the new key
-			RowData row_data = new RowData(table);
+			DataRow dataRow = new DataRow(table);
 			for (int i = 0; i < table_def.ColumnCount; ++i) {
-				row_data.SetColumnDataFromObject(i, vals[i]);
+				dataRow.SetValue(i, vals[i]);
 			}
-			mtable.AddRow(row_data);
+			mtable.AddRow(dataRow);
 		}
 
 		/// <summary>

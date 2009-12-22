@@ -105,7 +105,7 @@ namespace Deveel.Data {
 			lock (this) {
 				queue.Remove(l);
 				// Notify the table that we have released a Lock from it.
-				l.Table.notifyReleaseRWLock(l.Type);
+				l.Table.OnReadWriteLockRelease(l.Type);
 				//    Console.Out.WriteLine("Removing Lock: " + Lock);
 				Monitor.PulseAll(this);
 			}
@@ -185,7 +185,7 @@ namespace Deveel.Data {
 				}
 
 				// Notify the Lock table that we've got a Lock on it.
-				l.Table.OnAddRWLock(l.Type);
+				l.Table.OnReadWriteLockEstablish(l.Type);
 
 			} /* lock (this) */
 

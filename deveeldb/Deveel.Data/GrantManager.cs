@@ -257,13 +257,13 @@ namespace Deveel.Data {
 				DataTable grant_table = connection.GetTable(Database.SysGrants);
 
 				// Add the grant to the grants table.
-				RowData rdat = new RowData(grant_table);
-				rdat.SetColumnDataFromObject(0, (BigNumber)new_privs.ToInt32());
-				rdat.SetColumnDataFromObject(1, (BigNumber)(int)obj);
-				rdat.SetColumnDataFromObject(2, param);
-				rdat.SetColumnDataFromObject(3, grantee);
-				rdat.SetColumnDataFromObject(4, grant_option ? "true" : "false");
-				rdat.SetColumnDataFromObject(5, granter);
+				DataRow rdat = new DataRow(grant_table);
+				rdat.SetValue(0, (BigNumber)new_privs.ToInt32());
+				rdat.SetValue(1, (BigNumber)(int)obj);
+				rdat.SetValue(2, param);
+				rdat.SetValue(3, grantee);
+				rdat.SetValue(4, grant_option ? "true" : "false");
+				rdat.SetValue(5, granter);
 				grant_table.Add(rdat);
 
 				// Invalidate the privilege cache

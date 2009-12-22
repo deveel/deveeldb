@@ -1341,7 +1341,7 @@ namespace Deveel.Data {
 		/// a table is successfully committed.
 		/// <para>
 		/// The BEFORE_* type triggers are given the opportunity to modify the contents 
-		/// of the RowData before the update or insert occurs.  All triggers may generate 
+		/// of the DataRow before the update or insert occurs.  All triggers may generate 
 		/// an exception which will cause the transaction to rollback.
 		/// </para>
 		/// <para>

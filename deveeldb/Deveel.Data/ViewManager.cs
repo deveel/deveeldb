@@ -184,12 +184,12 @@ namespace Deveel.Data {
 			TableName view_name = data_table_def.TableName;
 
 			// Create the view record
-			RowData rdat = new RowData(view_table);
-			rdat.SetColumnDataFromObject(0, data_table_def.Schema);
-			rdat.SetColumnDataFromObject(1, data_table_def.Name);
-			rdat.SetColumnDataFromObject(2, query.SerializeToBlob());
-			rdat.SetColumnDataFromObject(3, view.SerializeToBlob());
-			rdat.SetColumnDataFromObject(4, user.UserName);
+			DataRow rdat = new DataRow(view_table);
+			rdat.SetValue(0, data_table_def.Schema);
+			rdat.SetValue(1, data_table_def.Name);
+			rdat.SetValue(2, query.SerializeToBlob());
+			rdat.SetValue(3, view.SerializeToBlob());
+			rdat.SetValue(4, user.UserName);
 
 			// Find the entry from the view that equals this name
 			Table t = FindViewEntry(view_table, view_name);

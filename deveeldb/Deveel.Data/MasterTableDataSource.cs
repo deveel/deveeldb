@@ -483,7 +483,7 @@ namespace Deveel.Data {
 		/// change where it eventually migrates into the master index and schemes.
 		/// </remarks>
 		/// <returns></returns>
-		internal abstract int InternalAddRow(RowData data);
+		internal abstract int InternalAddRow(DataRow data);
 
 		/// <summary>
 		/// Returns the cell contents of the given cell in the table.
@@ -1119,7 +1119,7 @@ namespace Deveel.Data {
 		/// change where it eventually migrates into the master index and schemes.
 		/// </remarks>
 		/// <returns></returns>
-		internal int AddRow(RowData data) {
+		internal int AddRow(DataRow data) {
 			int row_number;
 
 			lock (this) {
@@ -1669,24 +1669,24 @@ namespace Deveel.Data {
 						int sz = key_entries.Count;
 						for (int i = 0; i < sz; ++i) {
 							int row_index = key_entries[i];
-							RowData row_data = new RowData(key_table);
-							row_data.SetFromRow(row_index);
+							DataRow dataRow = new DataRow(key_table);
+							dataRow.SetFromRow(row_index);
 							if (update_rule == ConstraintAction.CASCADE) {
 								// Update the keys
 								for (int n = 0; n < key_cols.Length; ++n) {
-									row_data.SetColumnData(key_cols[n], new_key[n]);
+									dataRow.SetValue(key_cols[n], new_key[n]);
 								}
-								key_table.UpdateRow(row_index, row_data);
+								key_table.UpdateRow(row_index, dataRow);
 							} else if (update_rule == ConstraintAction.SET_NULL) {
 								for (int n = 0; n < key_cols.Length; ++n) {
-									row_data.SetToNull(key_cols[n]);
+									dataRow.SetToNull(key_cols[n]);
 								}
-								key_table.UpdateRow(row_index, row_data);
+								key_table.UpdateRow(row_index, dataRow);
 							} else if (update_rule == ConstraintAction.SET_DEFAULT) {
 								for (int n = 0; n < key_cols.Length; ++n) {
-									row_data.SetToDefault(key_cols[n], context);
+									dataRow.SetToDefault(key_cols[n], context);
 								}
-								key_table.UpdateRow(row_index, row_data);
+								key_table.UpdateRow(row_index, dataRow);
 							} else {
 								throw new Exception("Do not understand referential action: " + update_rule);
 							}
@@ -1748,21 +1748,21 @@ namespace Deveel.Data {
 						int sz = key_entries.Count;
 						for (int i = 0; i < sz; ++i) {
 							int row_index = key_entries[i];
-							RowData row_data = new RowData(key_table);
-							row_data.SetFromRow(row_index);
+							DataRow dataRow = new DataRow(key_table);
+							dataRow.SetFromRow(row_index);
 							if (delete_rule == ConstraintAction.CASCADE) {
 								// Cascade the removal of the referenced rows
 								key_table.RemoveRow(row_index);
 							} else if (delete_rule == ConstraintAction.SET_NULL) {
 								for (int n = 0; n < key_cols.Length; ++n) {
-									row_data.SetToNull(key_cols[n]);
+									dataRow.SetToNull(key_cols[n]);
 								}
-								key_table.UpdateRow(row_index, row_data);
+								key_table.UpdateRow(row_index, dataRow);
 							} else if (delete_rule == ConstraintAction.SET_DEFAULT) {
 								for (int n = 0; n < key_cols.Length; ++n) {
-									row_data.SetToDefault(key_cols[n], context);
+									dataRow.SetToDefault(key_cols[n], context);
 								}
-								key_table.UpdateRow(row_index, row_data);
+								key_table.UpdateRow(row_index, dataRow);
 							} else {
 								throw new Exception("Do not understand referential action: " + delete_rule);
 							}
@@ -1922,7 +1922,7 @@ namespace Deveel.Data {
 
 			// ---------- Table Modification ----------
 
-			public int AddRow(RowData row_data) {
+			public int AddRow(DataRow dataRow) {
 
 				// Check the transaction isn't Read only.
 				if (tran_read_only) {
@@ -1937,7 +1937,7 @@ namespace Deveel.Data {
 				// Add to the master.
 				int row_index;
 				try {
-					row_index = mtds.AddRow(row_data);
+					row_index = mtds.AddRow(dataRow);
 				} catch (IOException e) {
 					mtds.Debug.WriteException(e);
 					throw new ApplicationException("IO Error: " + e.Message);
@@ -1975,7 +1975,7 @@ namespace Deveel.Data {
 
 			}
 
-			public int UpdateRow(int row_index, RowData row_data) {
+			public int UpdateRow(int row_index, DataRow dataRow) {
 
 				// Check the transaction isn't Read only.
 				if (tran_read_only) {
@@ -1995,7 +1995,7 @@ namespace Deveel.Data {
 				// Add to the master.
 				int new_row_index;
 				try {
-					new_row_index = mtds.AddRow(row_data);
+					new_row_index = mtds.AddRow(dataRow);
 				} catch (IOException e) {
 					mtds.Debug.WriteException(e);
 					throw new ApplicationException("IO Error: " + e.Message);

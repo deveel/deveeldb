@@ -661,9 +661,9 @@ namespace Deveel.Data {
 
 			// Add this user to the password table.
 			DataTable table = context.GetTable(SysPassword);
-			RowData rdat = new RowData(table);
-			rdat.SetColumnDataFromObject(0, username);
-			rdat.SetColumnDataFromObject(1, password);
+			DataRow rdat = new DataRow(table);
+			rdat.SetValue(0, username);
+			rdat.SetValue(1, password);
 			table.Add(rdat);
 		}
 
@@ -749,9 +749,9 @@ namespace Deveel.Data {
 
 				// Add the new username
 				table = context.GetTable(SysPassword);
-				RowData rdat = new RowData(table);
-				rdat.SetColumnDataFromObject(0, username);
-				rdat.SetColumnDataFromObject(1, password);
+				DataRow rdat = new DataRow(table);
+				rdat.SetValue(0, username);
+				rdat.SetValue(1, password);
 				table.Add(rdat);
 			} else {
 				throw new DatabaseException("Username '" + username + "' was not found.");
@@ -850,9 +850,9 @@ namespace Deveel.Data {
 				// The user priv table
 				DataTable table = context.GetTable(SysUserpriv);
 				// Add this user to the group.
-				RowData rdat = new RowData(table);
-				rdat.SetColumnDataFromObject(0, username);
-				rdat.SetColumnDataFromObject(1, group);
+				DataRow rdat = new DataRow(table);
+				rdat.SetValue(0, username);
+				rdat.SetValue(1, group);
 				table.Add(rdat);
 			}
 			// NOTE: we silently ignore the case when a user already belongs to the
@@ -895,9 +895,9 @@ namespace Deveel.Data {
 			if (lock_status && !user_belongs_to_lock_group) {
 				// Lock the user by adding the user to the Lock group
 				// Add this user to the locked group.
-				RowData rdat = new RowData(table);
-				rdat.SetColumnDataFromObject(0, username);
-				rdat.SetColumnDataFromObject(1, LockGroup);
+				DataRow rdat = new DataRow(table);
+				rdat.SetValue(0, username);
+				rdat.SetValue(1, LockGroup);
 				table.Add(rdat);
 			} else if (!lock_status && user_belongs_to_lock_group) {
 				// Unlock the user by removing the user from the Lock group
@@ -926,11 +926,11 @@ namespace Deveel.Data {
 			// The user connect priv table
 			DataTable table = context.GetTable(SysUserconnect);
 			// Add the protocol and host to the table
-			RowData rdat = new RowData(table);
-			rdat.SetColumnDataFromObject(0, user);
-			rdat.SetColumnDataFromObject(1, protocol);
-			rdat.SetColumnDataFromObject(2, host);
-			rdat.SetColumnDataFromObject(3, "ALLOW");
+			DataRow rdat = new DataRow(table);
+			rdat.SetValue(0, user);
+			rdat.SetValue(1, protocol);
+			rdat.SetValue(2, host);
+			rdat.SetValue(3, "ALLOW");
 			table.Add(rdat);
 		}
 
