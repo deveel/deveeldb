@@ -207,7 +207,7 @@ namespace Deveel.Data {
 				buf.Append(type.SQLType);
 				buf.Append(')');
 			} else if (type is TStringType) {
-				TStringType str_type = (TStringType)type;
+				TStringType str_type = (TStringType) type;
 				buf.Append("STRING(");
 				buf.Append(type.SQLType);
 				buf.Append(',');
@@ -215,12 +215,12 @@ namespace Deveel.Data {
 				buf.Append(",'");
 				buf.Append(str_type.LocaleString);
 				buf.Append("',");
-				buf.Append((int)str_type.Strength);
+				buf.Append((int) str_type.Strength);
 				buf.Append(',');
-				buf.Append((int)str_type.Decomposition);
+				buf.Append((int) str_type.Decomposition);
 				buf.Append(')');
 			} else if (type is TNumericType) {
-				TNumericType num_type = (TNumericType)type;
+				TNumericType num_type = (TNumericType) type;
 				buf.Append("NUMERIC(");
 				buf.Append(type.SQLType);
 				buf.Append(',');
@@ -229,7 +229,7 @@ namespace Deveel.Data {
 				buf.Append(num_type.Scale);
 				buf.Append(')');
 			} else if (type is TBinaryType) {
-				TBinaryType bin_type = (TBinaryType)type;
+				TBinaryType bin_type = (TBinaryType) type;
 				buf.Append("BINARY(");
 				buf.Append(type.SQLType);
 				buf.Append(',');
@@ -239,6 +239,10 @@ namespace Deveel.Data {
 				buf.Append("DATE(");
 				buf.Append(type.SQLType);
 				buf.Append(')');
+			} else if (type is TIntervalType) {
+				buf.Append("INTERVAL(");
+				buf.Append(type.SQLType);
+				buf.Append(")");
 			} else if (type is TNullType) {
 				buf.Append("NULL(");
 				buf.Append(type.SQLType);
@@ -324,6 +328,8 @@ namespace Deveel.Data {
 			}
 			if (encoded_str.StartsWith("DATE("))
 				return new TDateType(sql_type);
+			if (encoded_str.StartsWith("INTERVAL("))
+				return new TIntervalType(sql_type);
 			if (encoded_str.StartsWith("NULL("))
 				return new TNullType();
 			if (encoded_str.StartsWith("OBJECT(")) {
@@ -492,10 +498,14 @@ namespace Deveel.Data {
 				return NumericType;
 			if (c == typeof (DateTime))
 				return DateType;
-			if (c == typeof (Boolean))
+			if (c == typeof (bool))
 				return BooleanType;
 			if (c == typeof (ByteLongObject))
 				return BinaryType;
+			if (c == typeof(TimeSpan))
+				return new TIntervalType(SqlType.DayToSecond);
+			if (c == typeof(Interval))
+				return IntervalType;
 
 			throw new ArgumentException("Don't know how to convert " + c + " to a TType.");
 		}

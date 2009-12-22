@@ -1,4 +1,4 @@
-﻿//  
+//  
 //  DeveelDbRowUpdatedEventArgs.cs
 //  
 //  Author:
@@ -27,7 +27,7 @@ namespace Deveel.Data.Client {
 	public delegate void DeveelDbRowUpdatedEventHandler(object sender, DeveelDbRowUpdatedEventArgs e);
 
 	public sealed class DeveelDbRowUpdatedEventArgs : RowUpdatedEventArgs {
-		public DeveelDbRowUpdatedEventArgs(DataRow dataRow, DeveelDbCommand command, StatementType statementType, DataTableMapping tableMapping) 
+		public DeveelDbRowUpdatedEventArgs(System.Data.DataRow dataRow, DeveelDbCommand command, StatementType statementType, DataTableMapping tableMapping) 
 			: base(dataRow, command, statementType, tableMapping) {
 		}
 

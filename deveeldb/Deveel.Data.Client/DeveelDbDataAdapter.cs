@@ -1,4 +1,4 @@
-﻿//  
+//  
 //  DeveelDbDataAdapter.cs
 //  
 //  Author:
@@ -111,11 +111,11 @@ namespace Deveel.Data.Client {
 			return (command == null ? null : command.Parameters[parameterIndex]);
 		}
 
-		protected override RowUpdatedEventArgs CreateRowUpdatedEvent(DataRow dataRow, IDbCommand command, StatementType statementType, DataTableMapping tableMapping) {
+		protected override RowUpdatedEventArgs CreateRowUpdatedEvent(System.Data.DataRow dataRow, IDbCommand command, StatementType statementType, DataTableMapping tableMapping) {
 			return new DeveelDbRowUpdatedEventArgs(dataRow, (DeveelDbCommand) command, statementType, tableMapping);
 		}
 
-		protected override RowUpdatingEventArgs CreateRowUpdatingEvent(DataRow dataRow, IDbCommand command, StatementType statementType, DataTableMapping tableMapping) {
+		protected override RowUpdatingEventArgs CreateRowUpdatingEvent(System.Data.DataRow dataRow, IDbCommand command, StatementType statementType, DataTableMapping tableMapping) {
 			return new DeveelDbRowUpdatingEventArgs(dataRow, (DeveelDbCommand) command, statementType, tableMapping);
 		}
 

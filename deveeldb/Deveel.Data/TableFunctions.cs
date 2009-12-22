@@ -96,7 +96,7 @@ namespace Deveel.Data {
 
 			IntegerVector select_vec;
 
-			if (op.IsSubQueryForm(OperatorSet.ALL)) {
+			if (op.IsSubQueryForm(OperatorSubType.All)) {
 				// ----- ALL operation -----
 				// We work out as follows:
 				//   For >, >= type ALL we find the highest value in 'table' and
@@ -143,7 +143,7 @@ namespace Deveel.Data {
 				} else {
 					throw new Exception("Don't understand operator '" + op + "' in ALL.");
 				}
-			} else if (op.IsSubQueryForm(OperatorSet.ANY)) {
+			} else if (op.IsSubQueryForm(OperatorSubType.Any)) {
 
 				// ----- ANY operation -----
 				// We work out as follows:

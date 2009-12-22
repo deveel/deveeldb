@@ -246,7 +246,7 @@ namespace Deveel.Data.Sql {
 				// Set each row from the VALUES table,
 				for (int i = 0; i < values_list.Count; ++i) {
 					IList insert_elements = (IList)values_list[i];
-					DataRow dataRow = insert_table.NewDataRow();
+					DataRow dataRow = insert_table.NewRow();
 					dataRow.SetupEntire(col_index_list, insert_elements, context);
 					insert_table.Add(dataRow);
 					++insert_count;
@@ -270,7 +270,7 @@ namespace Deveel.Data.Sql {
 				int sz = row_list.Count;
 				for (int i = 0; i < sz; ++i) {
 					int rindex = row_list[i];
-					DataRow dataRow = insert_table.NewDataRow();
+					DataRow dataRow = insert_table.NewRow();
 					for (int n = 0; n < col_index_list.Length; ++n) {
 						TObject cell = result.GetCellContents(n, rindex);
 						dataRow.SetValue(col_index_list[n], cell);
@@ -281,7 +281,7 @@ namespace Deveel.Data.Sql {
 				}
 			} else if (from_set) {
 				// Insert rows from the set assignments.
-				DataRow dataRow = insert_table.NewDataRow();
+				DataRow dataRow = insert_table.NewRow();
 				Assignment[] assignments = new Assignment[column_sets.Count];
 				column_sets.CopyTo(assignments, 0);
 				dataRow.SetupEntire(assignments, context);

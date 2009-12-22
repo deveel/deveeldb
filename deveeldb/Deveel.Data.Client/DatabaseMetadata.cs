@@ -1,4 +1,4 @@
-﻿//  
+//  
 //  DatabaseMetadata.cs
 //  
 //  Author:
@@ -58,7 +58,7 @@ namespace Deveel.Data.Client {
 			command.Prepare();
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
-				DataRow row = dataTable.NewRow();
+				System.Data.DataRow row = dataTable.NewRow();
 				row["TABLE_SCHEMA"] = reader.GetString(0);
 				row["TABLE_CATALOG"] = reader.GetString(1);
 				dataTable.Rows.Add(row);
@@ -131,7 +131,7 @@ namespace Deveel.Data.Client {
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
-					DataRow row = dataTable.NewRow();
+					System.Data.DataRow row = dataTable.NewRow();
 					row["TABLE_CATALOG"] = reader.GetString(0);
 					row["TABLE_SCHEMA"] = reader.GetString(1);
 					row["TABLE_NAME"] = reader.GetString(2);
@@ -197,7 +197,7 @@ namespace Deveel.Data.Client {
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
-					DataRow row = dataTable.NewRow();
+					System.Data.DataRow row = dataTable.NewRow();
 					row["TABLE_CATALOG"] = reader.GetString(0);
 					row["TABLE_SCHEMA"] = reader.GetString(1);
 					row["TABLE_NAME"] = reader.GetString(2);
@@ -266,7 +266,7 @@ namespace Deveel.Data.Client {
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
-					DataRow row = dataTable.NewRow();
+					System.Data.DataRow row = dataTable.NewRow();
 					row["TABLE_CATALOG"] = reader.GetString(0);
 					row["TABLE_SCHEMA"] = reader.GetString(1);
 					row["TABLE_NAME"] = reader.GetString(2);
@@ -317,7 +317,7 @@ namespace Deveel.Data.Client {
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
-					DataRow row = dataTable.NewRow();
+					System.Data.DataRow row = dataTable.NewRow();
 					row["TABLE_CATALOG"] = reader.GetString(0);
 					row["TABLE_SCHEMA"] = reader.GetString(1);
 					row["TABLE_NAME"] = reader.GetString(2);
@@ -363,7 +363,7 @@ namespace Deveel.Data.Client {
 			command.Prepare();
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
-				DataRow row = dataTable.NewRow();
+				System.Data.DataRow row = dataTable.NewRow();
 				row["TABLE_CATALOG"] = reader.GetString(0);
 				row["TABLE_SCHEMA"] = reader.GetString(1);
 				row["TABLE_NAME"] = reader.GetString(2);
@@ -567,7 +567,7 @@ namespace Deveel.Data.Client {
 			dt.Columns.Add("StringLiteralPattern", typeof(string));
 			dt.Columns.Add("SupportedJoinOperators", typeof(SupportedJoinOperators));
 
-			DataRow row = dt.NewRow();
+			System.Data.DataRow row = dt.NewRow();
 			row["CompositeIdentifierSeparatorPattern"] = "\\.";
 			row["DataSourceProductName"] = "DeveelDB";
 			row["DataSourceProductVersion"] = connection.ServerVersion;
@@ -617,7 +617,7 @@ namespace Deveel.Data.Client {
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
-					DataRow row = dataTable.NewRow();
+					System.Data.DataRow row = dataTable.NewRow();
 
 					row["TYPE_NAME"] = reader.GetString(0);
 					row["DATA_TYPE"] = reader.GetInt32(1);
@@ -717,7 +717,7 @@ namespace Deveel.Data.Client {
 
 		private static void FillTable(System.Data.DataTable dt, object[][] data) {
 			foreach (object[] dataItem in data) {
-				DataRow row = dt.NewRow();
+				System.Data.DataRow row = dt.NewRow();
 				for (int i = 0; i < dataItem.Length; i++)
 					row[i] = dataItem[i];
 				dt.Rows.Add(row);

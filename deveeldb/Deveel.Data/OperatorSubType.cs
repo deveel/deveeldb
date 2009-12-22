@@ -1,5 +1,5 @@
 //  
-//  OperatorSet.cs
+//  OperatorSubType.cs
 //  
 //  Author:
 //       Antonello Provenzano <antonello@deveel.com>
@@ -22,12 +22,12 @@
 using System;
 
 namespace Deveel.Data {
-	public enum OperatorSet {
+	public enum OperatorSubType {
 		/**
  * The ANY and ALL enumerator.
  */
-		ALL = 2,
-		ANY = 1,
-		NONE = 0
+		All = 2,
+		Any = 1,
+		None = 0
 	}
 }

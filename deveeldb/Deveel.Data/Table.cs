@@ -1057,17 +1057,12 @@ namespace Deveel.Data {
 		/// conditional.
 		/// </remarks>
 		/// <returns></returns>
-		public Table Join(Table table) {
-
-			bool QUICK_NAT_JOIN = true;
-
+		public Table Join(Table table, bool quick) {
 			Table out_table;
 
-			if (QUICK_NAT_JOIN) {
-
+			if (quick) {
 				// This implementation doesn't materialize the join
 				out_table = new NaturallyJoinedTable(this, table);
-
 			} else {
 
 				Table[] tabs = new Table[2];
@@ -1128,7 +1123,19 @@ namespace Deveel.Data {
 			}
 
 			return out_table;
+		}
 
+		/// <summary>
+		/// Performs a natural join of this table with the given table.
+		/// </summary>
+		/// <param name="table"></param>
+		/// <remarks>
+		///  This is the same as calling the <see cref="SimpleJoin"/> with no 
+		/// conditional.
+		/// </remarks>
+		/// <returns></returns>
+		public Table Join(Table table) {
+			return Join(table, true);
 		}
 
 		/// <summary>
@@ -1219,16 +1226,15 @@ namespace Deveel.Data {
 
 				if (DEBUG_QUERY) {
 					if (Debug.IsInterestedIn(DebugLevel.Information)) {
-						Debug.Write(DebugLevel.Information, this,
-									this + " = " + this + ".union(" + table + " )");
+						Debug.Write(DebugLevel.Information, this, this + " = " + this + ".Union(" + table + " )");
 					}
 				}
 				return this;
-			} else if (RowCount == 0) {
+			} 
+			if (RowCount == 0) {
 				if (DEBUG_QUERY) {
 					if (Debug.IsInterestedIn(DebugLevel.Information)) {
-						Debug.Write(DebugLevel.Information, this,
-									table + " = " + this + ".union(" + table + " )");
+						Debug.Write(DebugLevel.Information, this, table + " = " + this + ".Union(" + table + " )");
 					}
 				}
 				return table;

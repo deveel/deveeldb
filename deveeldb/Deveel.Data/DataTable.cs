@@ -113,7 +113,7 @@ namespace Deveel.Data {
 		/// Returns a <see cref="DataRow"/> representing a row for the addition 
 		/// of data to the table.
 		/// </returns>
-		public DataRow NewDataRow() {
+		public DataRow NewRow() {
 			CheckSafeOperation();  // safe op
 			return new DataRow(this);
 		}
@@ -504,8 +504,8 @@ namespace Deveel.Data {
 
 			// NOTE: Assume there's no duplicate rows.
 
-			DataRow original_data = NewDataRow();
-			DataRow dataRow = NewDataRow();
+			DataRow original_data = NewRow();
+			DataRow dataRow = NewRow();
 
 			// If limit less than zero then limit is whole set.
 			if (limit < 0) {
@@ -560,8 +560,8 @@ namespace Deveel.Data {
 
 			// NOTE: Assume there's no duplicate rows.
 
-			DataRow original_data = NewDataRow();
-			DataRow dataRow = NewDataRow();
+			DataRow original_data = NewRow();
+			DataRow dataRow = NewRow();
 
 			int rowIndex = cursor.RowIndex;
 

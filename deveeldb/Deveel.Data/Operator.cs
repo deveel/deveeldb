@@ -81,7 +81,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// If this is a set operator such as ANY or ALL then this is set with the flag type.
 		/// </summary>
-		private readonly OperatorSet set_type;
+		private readonly OperatorSubType sub_type;
 
 		static Operator() {
 			// Populate the static ANY and ALL mapping
@@ -105,20 +105,20 @@ namespace Deveel.Data {
 		}
 
 		protected Operator(String op)
-			: this(op, 0, OperatorSet.NONE) {
+			: this(op, 0, OperatorSubType.None) {
 		}
 
 		protected Operator(String op, int precedence)
-			: this(op, precedence, OperatorSet.NONE) {
+			: this(op, precedence, OperatorSubType.None) {
 		}
 
-		protected Operator(String op, int precedence, OperatorSet set_type) {
-			if (set_type != OperatorSet.NONE && set_type != OperatorSet.ANY && set_type != OperatorSet.ALL) {
-				throw new ArgumentException("Invalid set_type.");
+		protected Operator(String op, int precedence, OperatorSubType sub_type) {
+			if (sub_type != OperatorSubType.None && sub_type != OperatorSubType.Any && sub_type != OperatorSubType.All) {
+				throw new ArgumentException("Invalid sub_type.");
 			}
 			this.op = op;
 			this.precedence = precedence;
-			this.set_type = set_type;
+			this.sub_type = sub_type;
 		}
 
 
@@ -198,7 +198,7 @@ namespace Deveel.Data {
 		/// </summary>
 		public bool IsSubQuery {
 			get {
-				return (set_type != OperatorSet.NONE ||
+				return (sub_type != OperatorSubType.None ||
 				        Equals(in_op) ||
 				        Equals(nin_op));
 			}
@@ -217,8 +217,8 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Returns the sub query representation of this operator.
 		/// </summary>
-		private OperatorSet SubQueryFormRepresentation {
-			get { return set_type; }
+		private OperatorSubType SubQueryFormRepresentation {
+			get { return sub_type; }
 		}
 
 		/// <summary>
@@ -445,11 +445,11 @@ namespace Deveel.Data {
 		/// </remarks>
 		public Operator Inverse() {
 			if (IsSubQuery) {
-				OperatorSet inv_type;
-				if (IsSubQueryForm(OperatorSet.ANY)) {
-					inv_type = OperatorSet.ALL;
-				} else if (IsSubQueryForm(OperatorSet.ALL)) {
-					inv_type = OperatorSet.ANY;
+				OperatorSubType inv_type;
+				if (IsSubQueryForm(OperatorSubType.Any)) {
+					inv_type = OperatorSubType.All;
+				} else if (IsSubQueryForm(OperatorSubType.All)) {
+					inv_type = OperatorSubType.Any;
 				} else {
 					throw new Exception("Can not handle sub-query form.");
 				}
@@ -493,8 +493,8 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public bool IsSubQueryForm(OperatorSet type) {
-			return type == set_type;
+		public bool IsSubQueryForm(OperatorSubType type) {
+			return type == sub_type;
 		}
 
 		/// <summary>
@@ -502,13 +502,13 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public Operator GetSubQueryForm(OperatorSet type) {
+		public Operator GetSubQueryForm(OperatorSubType type) {
 			Operator result_op = null;
-			if (type == OperatorSet.ANY) {
+			if (type == OperatorSubType.Any) {
 				result_op = (Operator) any_map[op];
-			} else if (type == OperatorSet.ALL) {
+			} else if (type == OperatorSubType.All) {
 				result_op = (Operator) all_map[op];
-			} else if (type == OperatorSet.NONE) {
+			} else if (type == OperatorSubType.None) {
 				result_op = Get(op);
 			}
 
@@ -526,9 +526,9 @@ namespace Deveel.Data {
 		public Operator GetSubQueryForm(String type_str) {
 			String s = type_str.ToUpper();
 			if (s.Equals("SINGLE") || s.Equals("ANY") || s.Equals("SOME")) {
-				return GetSubQueryForm(OperatorSet.ANY);
+				return GetSubQueryForm(OperatorSubType.Any);
 			} else if (s.Equals("ALL")) {
-				return GetSubQueryForm(OperatorSet.ALL);
+				return GetSubQueryForm(OperatorSubType.All);
 			}
 			throw new ApplicationException("Do not understand subquery type '" + type_str + "'");
 		}
@@ -537,9 +537,9 @@ namespace Deveel.Data {
 		public override string ToString() {
 			StringBuilder buf = new StringBuilder();
 			buf.Append(op);
-			if (set_type == OperatorSet.ANY) {
+			if (sub_type == OperatorSubType.Any) {
 				buf.Append(" ANY");
-			} else if (set_type == OperatorSet.ALL) {
+			} else if (sub_type == OperatorSubType.All) {
 				buf.Append(" ALL");
 			}
 			return buf.ToString();
@@ -548,7 +548,7 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
 			Operator oob = (Operator)ob;
-			return op.Equals(oob.op) && set_type == oob.set_type;
+			return op.Equals(oob.op) && sub_type == oob.sub_type;
 		}
 
 		/// <inheritdoc/>
@@ -661,7 +661,7 @@ namespace Deveel.Data {
 		[Serializable]
 		private sealed class AllOperator : Operator {
 			public AllOperator(String op)
-				: base(op, 8, OperatorSet.ALL) {
+				: base(op, 8, OperatorSubType.All) {
 			}
 
 			public override TObject Evaluate(TObject ob1, TObject ob2,
@@ -685,13 +685,13 @@ namespace Deveel.Data {
 					// Evaluate the plan,
 					Table t = plan.Evaluate(context);
 
-					Operator rev_plain_op = GetSubQueryForm(OperatorSet.NONE).Reverse();
+					Operator rev_plain_op = GetSubQueryForm(OperatorSubType.None).Reverse();
 					if (t.AllColumnMatchesValue(0, rev_plain_op, ob1)) {
 						return TObject.BooleanTrue;
 					}
 					return TObject.BooleanFalse;
 				} else if (ob2.TType is TArrayType) {
-					Operator plain_op = GetSubQueryForm(OperatorSet.NONE);
+					Operator plain_op = GetSubQueryForm(OperatorSubType.None);
 					Expression[] exp_list = (Expression[])ob2.Object;
 					// Assume true unless otherwise found to be false or NULL.
 					TObject ret_val = TObject.BooleanTrue;
@@ -761,7 +761,7 @@ namespace Deveel.Data {
 		[Serializable]
 		private sealed class AnyOperator : Operator {
 			public AnyOperator(String op)
-				: base(op, 8, OperatorSet.ANY) {
+				: base(op, 8, OperatorSubType.Any) {
 			}
 
 			public override TObject Evaluate(TObject ob1, TObject ob2,
@@ -786,13 +786,13 @@ namespace Deveel.Data {
 					Table t = plan.Evaluate(context);
 
 					// The ANY operation
-					Operator rev_plain_op = GetSubQueryForm(OperatorSet.NONE).Reverse();
+					Operator rev_plain_op = GetSubQueryForm(OperatorSubType.None).Reverse();
 					if (t.ColumnMatchesValue(0, rev_plain_op, ob1)) {
 						return TObject.BooleanTrue;
 					}
 					return TObject.BooleanFalse;
 				} else if (ob2.TType is TArrayType) {
-					Operator plain_op = GetSubQueryForm(OperatorSet.NONE);
+					Operator plain_op = GetSubQueryForm(OperatorSubType.None);
 					Expression[] exp_list = (Expression[])ob2.Object;
 					// Assume there are no matches
 					TObject ret_val = TObject.BooleanFalse;

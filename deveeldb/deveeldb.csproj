@@ -213,7 +213,7 @@
     <Compile Include="Deveel.Data\JoinType.cs" />
     <Compile Include="Deveel.Data\JournalCommand.cs" />
     <Compile Include="Deveel.Data\LockingMode.cs" />
-    <Compile Include="Deveel.Data\OperatorSet.cs" />
+    <Compile Include="Deveel.Data\OperatorSubType.cs" />
     <Compile Include="Deveel.Data\ProductInfo.cs" />
     <Compile Include="Deveel.Data\TriggerEventType.cs" />
     <Compile Include="Deveel.Diagnostics\LogEntry.cs" />

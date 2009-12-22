@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The name of the table we are altering.
 		/// </summary>
-		private String table_name;
+		private string table_name;
 
 		/// <summary>
 		/// The list of actions to perform in this alter statement.
@@ -56,7 +56,18 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private CreateTableStatement create_stmt;
 
+		/// <summary>
+		/// Gets or sets the name (qualified or unqualified) of 
+		/// the table to alter.
+		/// </summary>
+		public string TableName {
+			get { return GetString("table_name"); }
+			set { SetValue("table_name", value); }
+		}
 
+		public void SetCreate(CreateTableStatement statement) {
+			SetValue("create_statement", statement.Info);
+		}
 
 		/// <summary>
 		/// Adds an action to perform in this alter statement.
@@ -119,7 +130,7 @@ namespace Deveel.Data.Sql {
 				create_stmt.Init(Connection, create_statement, null);
 				create_stmt.Prepare();
 				table_name = create_stmt.table_name;
-				//      create_statement.repare(db, User);
+				//      create_statement.Prepare(db, User);
 			} else {
 				// If we don't have a create statement, then this is an SQL alter
 				// command.

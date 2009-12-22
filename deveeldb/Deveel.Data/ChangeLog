@@ -1,3 +1,15 @@
+2009-12-21  Antonello Provenzano  <antonello@deveel.com>	
+	* RowData.cs:
+		- renamed to 'DataRow'
+		- methods SetColumnData, SetColumnDataFromObject
+		and SetColumnDataFromTObject joined into a single
+		method 'SetValue'
+		- constructors made 'internal'
+		- method GetCellData renamed to 'GetValue'
+	* DataTable.cs: method 'CreateRowDataObject' renamed
+	to 'NewDataRow' (also parameter IQueryContext removed).
+	* TType.cs: Encode/Decode support for INTERVAL
+	
 2009-12-15  Antonello Provenzano  <antonello@deveel.com>
 	* TIntervalType.cs: 
 		- definition of the type doesn't require the length 

@@ -374,7 +374,7 @@ namespace Deveel.Data.Client {
 			table.Columns.Add("UniqueGroup", typeof (int));
 
 			for (int i = 0; i < FieldCount; i++) {
-				DataRow row = table.NewRow();
+				System.Data.DataRow row = table.NewRow();
 
 				ColumnDescription column = command.ResultSet.GetColumn(i);
 
