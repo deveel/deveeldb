@@ -87,6 +87,8 @@
     <Compile Include="Deveel.Data.Client\TriggerEventArgs.cs" />
     <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
     <Compile Include="Deveel.Data.Control\DbDirectAccess.cs" />
+    <Compile Include="Deveel.Data.Control\DirectCommand.cs" />
+    <Compile Include="Deveel.Data.Control\DirectCommandType.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\ArithmeticFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\CompressionFunctionFactory.cs" />
@@ -115,6 +117,8 @@
     <Compile Include="Deveel.Data.Procedures\ProcedureQueryContext.cs" />
     <Compile Include="Deveel.Data.Procedures\StoredProcedure.cs" />
     <Compile Include="Deveel.Data.Procedures\ProcedureBody.cs" />
+    <Compile Include="Deveel.Data.Server\ClientConnectionState.cs" />
+    <Compile Include="Deveel.Data.Server\Processor.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTypeStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateViewStatement.cs" />

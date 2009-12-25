@@ -1344,12 +1344,11 @@ namespace Deveel.Data {
 		public void SetDefaultSchema(String schema_name) {
 			bool ignore_case = IsInCaseInsensitiveMode;
 			SchemaDef schema = ResolveSchemaCase(schema_name, ignore_case);
-			if (schema == null) {
+			if (schema == null)
 				throw new ApplicationException("Schema '" + schema_name + "' does not exist.");
-			} else {
-				// Set the default schema for this connection
-				CurrentSchema = schema.Name;
-			}
+				
+			// Set the default schema for this connection
+			CurrentSchema = schema.Name;
 		}
 
 		// NOTE: These methods are copied because they simply call through to the

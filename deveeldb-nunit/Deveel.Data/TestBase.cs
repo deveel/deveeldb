@@ -11,11 +11,15 @@ namespace Deveel.Data {
 	public abstract class TestBase {
 		private DbSystem system;
 
-		private const string DatabaseName = "testdb";
-		private const string AdminUser = "SA";
-		private const string AdminPassword = "pass";
+		protected const string DatabaseName = "testdb";
+		protected const string AdminUser = "SA";
+		protected const string AdminPassword = "pass";
 
 		private static int conn_counter = -1;
+
+		protected DbSystem System {
+			get { return system; }
+		}
 
 		[TestFixtureSetUp]
 		public void SetUp() {

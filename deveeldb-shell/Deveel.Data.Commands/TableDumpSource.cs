@@ -57,7 +57,7 @@ namespace Deveel.Data.Commands {
 				System.Data.DataTable columnsTable = conn.GetSchema(DeveelDbMetadataSchemaNames.Columns,
 														new string[] { null, schema, table, null });
 				for (int i = 0; i < columnsTable.Rows.Count; i++) {
-					DataRow row = columnsTable.Rows[i];
+					System.Data.DataRow row = columnsTable.Rows[i];
 					String columnName = row["COLUMN_NAME"].ToString();
 					if (doubleCheck.Contains(columnName))
 						continue;

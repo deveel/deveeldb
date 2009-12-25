@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -84,11 +84,9 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Deveel.Data.Control\TcpServerController.cs" />
     <Compile Include="Deveel.Data.Server\ConnectionPoolModel.cs" />
-    <Compile Include="Deveel.Data.Server\ConnectionState.cs" />
     <Compile Include="Deveel.Data.Server\IConnectionPoolServer.cs" />
     <Compile Include="Deveel.Data.Server\IServerConnection.cs" />
     <Compile Include="Deveel.Data.Server\MultiThreadedConnectionPoolServer.cs" />
-    <Compile Include="Deveel.Data.Server\Processor.cs" />
     <Compile Include="Deveel.Data.Server\ProductInfo.cs" />
     <Compile Include="Deveel.Data.Server\Program.cs" />
     <Compile Include="Deveel.Data.Server\SingleThreadedConnectionPoolServer.cs" />

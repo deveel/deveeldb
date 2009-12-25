@@ -42,7 +42,7 @@ namespace Deveel.Data.Server {
 		/// <param name="input"></param>
 		/// <param name="output"></param>
 		internal StreamServerConnection(TcpServerController controller, string host_string, Stream input, Stream output)
-			: base(controller, host_string) {
+			: base(controller.Controller, host_string) {
 
 			this.marked_input = new LengthMarkedBufferedInputStream(input as IInputStream);
 			this.output = new BinaryWriter(new BufferedStream(output, OUTPUT_BUFFER_SIZE), Encoding.Unicode);
@@ -71,8 +71,8 @@ namespace Deveel.Data.Server {
 		// ---------- Implemented from IServerConnection ----------
 
 		public bool RequestPending() {
-			ConnectionState state = State;
-			if (state == ConnectionState.Processing) {
+			ClientConnectionState state = ClientState;
+			if (state == ClientConnectionState.Processing) {
 				return marked_input.PollForCommand(Int32.MaxValue);
 			} else {
 				return marked_input.PollForCommand(256);

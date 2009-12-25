@@ -30,127 +30,101 @@ using Deveel.Diagnostics;
 
 namespace Deveel.Data.Control {
 	public sealed class DbDirectAccess : IDisposable, DatabaseConnection.CallBack {
-		internal DbDirectAccess(DbSystem system, User user) {
-			this.user = user;
-			connection = system.Database.CreateNewConnection(user, this);
+		internal DbDirectAccess(DbSystem system, User user, string defaultSchema) {
+			Connect(system, user, defaultSchema);
+
 			context = new DatabaseQueryContext(connection);
-			table_list = new ArrayList();
 		}
 
-		private readonly User user;
-		private readonly DatabaseConnection connection;
+		internal DbDirectAccess(DatabaseConnection connection) {
+			//this constructor skips the connect process...
+			this.connection = connection;
+
+			context = new DatabaseQueryContext(connection);
+		}
+
+		private DatabaseConnection connection;
 		private readonly DatabaseQueryContext context;
 		private readonly ArrayList table_list;
 
+		/// <summary>
+		/// The event raised when a trigger is fired within the current
+		/// underlying connection to the database.
+		/// </summary>
 		public event EventHandler TriggerEvent;
 
-		private bool CheckColumnNamesMatch(string col1, String col2) {
-			return String.Compare(col1, col2, connection.IsInCaseInsensitiveMode) == 0;
+		/// <summary>
+		/// Gets the user owner of the current underlying connection.
+		/// </summary>
+		public User User {
+			get { return connection.User; }
 		}
 
-		private static void CheckColumnConstraint(String col_name, String[] cols, TableName table, String constraint_name) {
-			for (int i = 0; i < cols.Length; ++i) {
-				if (col_name.Equals(cols[i])) {
-					throw new DatabaseConstraintViolationException(
-							DatabaseConstraintViolationException.DropColumnViolation,
-							  "Constraint violation (" + constraint_name +
-							  ") dropping column " + col_name + " because of " +
-							  "referential constraint in " + table);
+		private void Connect(DbSystem system, User user, string defaultSchema) {
+			connection = system.Database.CreateNewConnection(user, this);
+
+			// Put the connection in exclusive mode
+			LockingMechanism locker = connection.LockingMechanism;
+			locker.SetMode(LockingMode.Exclusive);
+			try {
+				connection.AutoCommit = true;
+
+				// Set the default schema for this connection if it exists
+				if (connection.SchemaExists(defaultSchema)) {
+					connection.SetDefaultSchema(defaultSchema);
+				} else {
+					connection.Debug.Write(DebugLevel.Warning, this, "Couldn't change to '" + defaultSchema + "' schema.");
+					// If we can't change to the schema then change to the APP schema
+					connection.SetDefaultSchema("APP");
+				}
+			} finally {
+				try {
+					// Make sure we commit the connection.
+					connection.Commit();
+				} catch (TransactionException e) {
+					// Just issue a warning...
+					connection.Debug.WriteException(DebugLevel.Warning, e);
+				} finally {
+					// Guarentee that we unluck from EXCLUSIVE
+					locker.FinishMode(LockingMode.Exclusive);
 				}
 			}
-
 		}
 
-		private void CheckUserSelectPermissions(IQueryPlanNode plan) {
-			// Discover the list of TableName objects this command touches,
-			ArrayList touched_tables = plan.DiscoverTableNames(new ArrayList());
-			Database dbase = context.Database;
-			// Check that the user is allowed to select from these tables.
-			for (int i = 0; i < touched_tables.Count; ++i) {
-				TableName t = (TableName)touched_tables[i];
-				if (!dbase.CanUserSelectFromTableObject(context, user, t, null)) {
-					throw new UserAccessException("User not permitted to select from table: " + t);
-				}
-			}
-		}
+		#region Method Implementations
 
-		private static bool IsIdentitySelect(TableSelectExpression expression) {
-			if (expression.Columns.Count != 1)
-				return false;
-			if (expression.From == null)
-				return false;
-			if (expression.From.AllTables.Count != 1)
-				return false;
+		private object ExecuteCommandImpl(DirectCommand command) {
+			object result = null;
 
-			SelectColumn column = (SelectColumn)expression.Columns[0];
-			if (column.resolved_name == null)
-				return false;
-			if (column.resolved_name.Name != "IDENTITY")
-				return false;
-
-			return true;
-		}
-
-		private void ResolveExpression(Expression exp) {
-			// NOTE: This gets variables in all function parameters.
-			IList vars = exp.AllVariables;
-			for (int i = 0; i < vars.Count; ++i) {
-				VariableName v = (VariableName)vars[i];
-				VariableName to_set = ResolveColumn(v);
-				v.Set(to_set);
-			}
-		}
-
-		private VariableName ResolveColumn(VariableName v) {
-			// Try and resolve against alias names first,
-			ArrayList list = new ArrayList();
-
-			TableName tname = v.TableName;
-			String sch_name = null;
-			String tab_name = null;
-			String col_name = v.Name;
-			if (tname != null) {
-				sch_name = tname.Schema;
-				tab_name = tname.Name;
+			switch (command.CommandType) {
+				case DirectCommandType.CreateSchema:
+					CreateSchemaImpl((string)command.GetRequired("schema"));
+					break;
+				case DirectCommandType.DropSchema:
+					DropSchemaImpl((string)command.GetRequired("schema"));
+					break;
+				case DirectCommandType.CreateTable:
+					CreateTableImpl((DataTableDef)command.GetRequired("table"), (bool)command.GetOptional("if_not_exists", false));
+					break;
+				case DirectCommandType.AlterTable:
+					AlterTableImpl((TableName)command.GetRequired("table_name"), (IList)command.GetRequired("actions"));
+					break;
+				case DirectCommandType.AlterCreateTable:
+					AlterCreateTableImpl((DataTableDef)command.GetRequired("table"));
+					break;
+				case DirectCommandType.DropTables:
+					result = DropTablesImpl((TableName[]) command.GetRequired("table_names"), (bool) command.GetOptional("only_if_exist", false));
+					break;
+				default:
+					throw new NotImplementedException("The support for command type '" + command.CommandType + "' is not supported.");
 			}
 
-			int matches_found = 0;
-			// Find matches in our list of tables sources,
-			for (int i = 0; i < table_list.Count; ++i) {
-				IFromTableSource table = (IFromTableSource) table_list[i];
-				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
-				if (rcc == 1) {
-					VariableName matched = table.ResolveColumn(null, sch_name, tab_name, col_name);
-					list.Add(matched);
-				} else if (rcc > 1) {
-					throw new StatementException("Ambiguous column name (" + v + ")");
-				}
-			}
-
-			int total_matches = list.Count;
-			if (total_matches == 0)
-				throw new StatementException("Can't find column: " + v);
-			if (total_matches == 1)
-				return (VariableName) list[0];
-
-			if (total_matches > 1)
-				// if there more than one match, check if they all match the identical
-				// resource,
-				throw new StatementException("Ambiguous column name (" + v + ")");
-
-			// Should never reach here but we include this exception to keep the
-			// compiler happy.
-			throw new ApplicationException("Negative total matches?");
+			return result;
 		}
-
-		private void AddTable(IFromTableSource table) {
-			table_list.Add(table);
-		}
-
 
 		#region Schemata Management
 
-		public void CreateSchema(string name) {
+		private void CreateSchemaImpl(string name) {
 			if (!connection.Database.CanUserCreateAndDropSchema(context, connection.User, name))
 				throw new UserAccessException("User not permitted to create or drop schema.");
 
@@ -163,10 +137,10 @@ namespace Deveel.Data.Control {
 			connection.CreateSchema(name, "USER");
 			// Set the default grants for the schema
 			connection.GrantManager.Grant(Privileges.SchemaAll, GrantObject.Schema, name, connection.User.UserName, true,
-			                              Database.InternalSecureUsername);
+										  Database.InternalSecureUsername);
 		}
 
-		public void DropSchema(string name) {
+		private void DropSchemaImpl(string name) {
 			if (!connection.Database.CanUserCreateAndDropSchema(context, connection.User, name))
 				throw new UserAccessException("User not permitted to create or drop schema.");
 
@@ -196,50 +170,29 @@ namespace Deveel.Data.Control {
 
 		#region Tables Management
 
-		public void AddConstraint(TableName tableName, DataTableConstraintDef constraint) {
-			if (constraint.Type == ConstraintType.PrimaryKey) {
-				connection.AddPrimaryKeyConstraint(tableName, constraint.Columns, constraint.Deferred, constraint.Name);
-			} else if (constraint.Type == ConstraintType.ForeignKey) {
-				// Currently we forbid referencing a table in another schema
-				TableName ref_table = TableName.Resolve(constraint.ReferencedTableName);
-				ConstraintAction update_rule = constraint.UpdateRule;
-				ConstraintAction delete_rule = constraint.DeleteRule;
-				if (!tableName.Schema.Equals(ref_table.Schema))
-					throw new DatabaseException("Foreign key reference error: " +
-					                            "Not permitted to reference a table outside of the schema: " +
-					                            tableName + " -> " + ref_table);
+		private void CreateTableImpl(DataTableDef tableDef, bool ifNotExists) {
+			TableName tableName = ResolveName(tableDef.TableName);
 
-				connection.AddForeignKeyConstraint(tableName, constraint.Columns, ref_table, constraint.ReferencedColumns,
-				                                   delete_rule, update_rule, constraint.Deferred, constraint.Name);
-			} else if (constraint.Type == ConstraintType.Unique) {
-				connection.AddUniqueConstraint(tableName, constraint.Columns, constraint.Deferred, constraint.Name);
-			} else if (constraint.Type == ConstraintType.Check) {
-				connection.AddCheckConstraint(tableName, constraint.original_check_expression, constraint.Deferred, constraint.Name);
-			} else {
-				throw new DatabaseException("Unrecognized constraint type.");
-			}
-		}
-
-		public void CreateTable(DataTableDef tableDef, bool ifNotExists) {
 			// Does the schema exist?
 			bool ignore_case = connection.IsInCaseInsensitiveMode;
-			SchemaDef schema = connection.ResolveSchemaCase(tableDef.Schema, ignore_case);
+			SchemaDef schema = connection.ResolveSchemaCase(tableName.Schema, ignore_case);
 			if (schema == null)
-				throw new DatabaseException("Schema '" + tableDef.Schema + "' doesn't exist.");
-
-			TableName tname = new TableName(schema.Name, tableDef.Name);
+				throw new DatabaseException("Schema '" + tableName.Schema + "' doesn't exist.");
 
 			// Does the user have privs to create this tables?
-			if (!connection.Database.CanUserCreateTableObject(context, connection.User, tname))
+			if (!connection.Database.CanUserCreateTableObject(context, connection.User, tableName))
 				throw new UserAccessException("User not permitted to create table: " + tableDef.TableName);
 
 			// Does the table already exist?
-			if (connection.TableExists(tname)) {
+			if (connection.TableExists(tableName)) {
 				if (!ifNotExists)
 					throw new InvalidOperationException("The table '" + tableDef.TableName +
-					                                    "' already exists and IF NOT EXISTS clause was not specified.");
+														"' already exists and IF NOT EXISTS clause was not specified.");
 				return;
 			}
+
+			tableDef.TableName = tableName;
+			tableDef.TableType = "Deveel.Data.VariableSizeDataTableFile";
 
 			// Create the data table definition and tell the database to create
 			// it.
@@ -247,31 +200,11 @@ namespace Deveel.Data.Control {
 
 			// The initial grants for a table is to give the user who created it
 			// full access.
-			connection.GrantManager.Grant(Privileges.TableAll, GrantObject.Table, tname.ToString(),
-			                              connection.User.UserName, true, Database.InternalSecureUsername);
+			connection.GrantManager.Grant(Privileges.TableAll, GrantObject.Table, tableName.ToString(),
+										  connection.User.UserName, true, Database.InternalSecureUsername);
 		}
 
-		public void AlterCreateTable(DataTableDef tableDef) {
-			// Does the user have privs to alter this tables?
-			if (!connection.Database.CanUserAlterTableObject(context, connection.User, tableDef.TableName))
-				throw new UserAccessException("User not permitted to alter table: " + tableDef.TableName);
-
-			TableName tableName = tableDef.TableName;
-			// Is the table in the database already?
-			if (connection.TableExists(tableName)) {
-				// Drop any schema for this table,
-				connection.DropAllConstraintsForTable(tableName);
-				connection.UpdateTable(tableDef);
-			}
-				// If the table isn't in the database,
-			else {
-				connection.CreateTable(tableDef);
-			}
-
-			// Any pending constraints have to be setup after this
-		}
-
-		public void AlterTable(TableName tableName, IList actions) {
+		private void AlterTableImpl(TableName tableName, IList actions) {
 			// Get the table definition for the table name,
 			DataTableDef table_def = connection.GetTable(tableName).DataTableDef;
 			String table_name = table_def.Name;
@@ -339,20 +272,20 @@ namespace Deveel.Data.Control {
 			for (int i = 0; i < actions.Count; ++i) {
 				AlterTableAction action = (AlterTableAction)actions[i];
 				if (action.Action == AlterTableActionType.AddColumn) {
-					SqlColumn cdef = (SqlColumn)action.Elements[0];
-					if (cdef.IsUnique || cdef.IsPrimaryKey) {
+					DataTableColumnDef cdef = (DataTableColumnDef)action.Elements[0];
+					/*
+					TODO: check this ...
+					if (cdef.IsUnique || cdef.IsPrimaryKey)
 						throw new DatabaseException("Can not use UNIQUE or PRIMARY KEY " +
 													"column constraint when altering a column.  Use " +
 													"ADD CONSTRAINT instead.");
-					}
-					// Convert to a DataTableColumnDef
-					DataTableColumnDef col = CreateTableStatement.ConvertColumnDef(cdef);
+					*/
 
-					checker.CheckExpression(col.GetDefaultExpression(connection.System));
-					string col_name = col.Name;
+					checker.CheckExpression(cdef.GetDefaultExpression(connection.System));
+					string col_name = cdef.Name;
 					// If column name starts with [table_name]. then strip it off
-					col.Name = checker.StripTableName(table_name, col_name);
-					new_table.AddColumn(col);
+					cdef.Name = checker.StripTableName(table_name, col_name);
+					new_table.AddColumn(cdef);
 					table_altered = true;
 				}
 			}
@@ -365,7 +298,7 @@ namespace Deveel.Data.Control {
 					int drop_count = connection.DropNamedConstraint(tableName, constraint_name);
 					if (drop_count == 0)
 						throw new DatabaseException("Named constraint to drop on table " + tableName + " was not found: " +
-						                            constraint_name);
+													constraint_name);
 				} else if (action.Action == AlterTableActionType.DropPrimaryKey) {
 					bool constraint_dropped = connection.DropPrimaryKeyConstraintForTable(tableName, null);
 					if (!constraint_dropped)
@@ -377,26 +310,26 @@ namespace Deveel.Data.Control {
 			for (int i = 0; i < actions.Count; ++i) {
 				AlterTableAction action = (AlterTableAction)actions[i];
 				if (action.Action == AlterTableActionType.AddConstraint) {
-					SqlConstraint constraint = (SqlConstraint)action.Elements[0];
+					DataTableConstraintDef constraint = (DataTableConstraintDef)action.Elements[0];
 					bool foreign_constraint = (constraint.Type == ConstraintType.ForeignKey);
 					TableName ref_tname = null;
 					if (foreign_constraint) {
-						ref_tname = connection.ResolveTableName(constraint.ReferenceTable);
+						ref_tname = connection.ResolveTableName(constraint.ReferencedTableName);
 						if (connection.IsInCaseInsensitiveMode)
 							ref_tname = connection.TryResolveCase(ref_tname);
-						constraint.ReferenceTable = ref_tname.ToString();
+						constraint.SetReferencedTableName(ref_tname.ToString());
 					}
 
-					checker.StripColumnList(table_name, constraint.column_list);
-					checker.StripColumnList(constraint.ReferenceTable, constraint.column_list2);
+					checker.StripColumnList(table_name, constraint.ColumnsList);
+					checker.StripColumnList(constraint.ReferencedTableName, constraint.ReferencedColumnsList);
 					checker.CheckExpression(constraint.CheckExpression);
-					checker.CheckColumnList(constraint.column_list);
-					if (foreign_constraint && constraint.column_list2 != null) {
+					checker.CheckColumnList(constraint.ColumnsList);
+					if (foreign_constraint && constraint.ReferencedColumns != null) {
 						ColumnChecker referenced_checker = ColumnChecker.GetStandardColumnChecker(connection, ref_tname);
-						referenced_checker.CheckColumnList(constraint.column_list2);
+						referenced_checker.CheckColumnList(constraint.ReferencedColumnsList);
 					}
 
-					CreateTableStatement.AddSchemaConstraint(connection, tableName, constraint);
+					AddConstraintImpl(tableName, constraint);
 				}
 			}
 
@@ -414,7 +347,27 @@ namespace Deveel.Data.Control {
 			}
 		}
 
-		public int DropTables(TableName[] tableNames, bool onlyIfExist) {
+		private void AlterCreateTableImpl(DataTableDef tableDef) {
+			// Does the user have privs to alter this tables?
+			if (!connection.Database.CanUserAlterTableObject(context, connection.User, tableDef.TableName))
+				throw new UserAccessException("User not permitted to alter table: " + tableDef.TableName);
+
+			TableName tableName = tableDef.TableName;
+			// Is the table in the database already?
+			if (connection.TableExists(tableName)) {
+				// Drop any schema for this table,
+				connection.DropAllConstraintsForTable(tableName);
+				connection.UpdateTable(tableDef);
+			}
+				// If the table isn't in the database,
+			else {
+				connection.CreateTable(tableDef);
+			}
+
+			// Any pending constraints have to be setup after this
+		}
+
+		private int DropTablesImpl(TableName[] tableNames, bool onlyIfExist) {
 			// Check there are no duplicate entries in the list of tables to drop
 			for (int i = 0; i < tableNames.Length; ++i) {
 				TableName check = tableNames[i];
@@ -490,6 +443,279 @@ namespace Deveel.Data.Control {
 			}
 
 			return droppedTableCount;
+		}
+
+		private void AddConstraintImpl(TableName tableName, DataTableConstraintDef constraint) {
+			tableName = ResolveName(tableName);
+
+			if (constraint.Type == ConstraintType.PrimaryKey) {
+				connection.AddPrimaryKeyConstraint(tableName, constraint.Columns, constraint.Deferred, constraint.Name);
+			} else if (constraint.Type == ConstraintType.ForeignKey) {
+				// Currently we forbid referencing a table in another schema
+				TableName ref_table = TableName.Resolve(constraint.ReferencedTableName);
+				ConstraintAction update_rule = constraint.UpdateRule;
+				ConstraintAction delete_rule = constraint.DeleteRule;
+				if (!tableName.Schema.Equals(ref_table.Schema))
+					throw new DatabaseException("Foreign key reference error: " +
+												"Not permitted to reference a table outside of the schema: " +
+												tableName + " -> " + ref_table);
+
+				connection.AddForeignKeyConstraint(tableName, constraint.Columns, ref_table, constraint.ReferencedColumns,
+												   delete_rule, update_rule, constraint.Deferred, constraint.Name);
+			} else if (constraint.Type == ConstraintType.Unique) {
+				connection.AddUniqueConstraint(tableName, constraint.Columns, constraint.Deferred, constraint.Name);
+			} else if (constraint.Type == ConstraintType.Check) {
+				connection.AddCheckConstraint(tableName, constraint.original_check_expression, constraint.Deferred, constraint.Name);
+			} else {
+				throw new DatabaseException("Unrecognized constraint type.");
+			}
+		}
+
+		#endregion
+
+		#endregion
+
+		public object ExecuteCommand(DirectCommand command) {
+			LockingMechanism locker = connection.LockingMechanism;
+			LockingMode lock_mode = LockingMode.None;
+			object response = null;
+
+			try {
+				try {
+
+					// For simplicity - all database locking is now exclusive inside
+					// a transaction.  This means it is not possible to execute
+					// queries concurrently inside a transaction.  However, we are
+					// still able to execute queries concurrently from different
+					// connections.
+					//
+					// It's debatable whether we even need to perform this Lock anymore
+					// because we could change the contract of this method so that
+					// it is not thread safe.  This would require that the callee ensures
+					// more than one thread can not execute queries on the connection.
+					lock_mode = LockingMode.Exclusive;
+					locker.SetMode(lock_mode);
+
+					response = ExecuteCommandImpl(command);
+
+					// Return the result.
+					return response;
+
+				} finally {
+					try {
+						// This is executed no matter what happens.  Very important we
+						// unlock the tables.
+						if (lock_mode != LockingMode.None) {
+							locker.FinishMode(lock_mode);
+						}
+					} catch(Exception e) {
+						// If this throws an exception, we should output it to the debug
+						// log and screen.
+						Console.Error.WriteLine(e.Message);
+						Console.Error.WriteLine(e.StackTrace);
+						connection.Debug.Write(DebugLevel.Error, this, "Exception finishing locks");
+						connection.Debug.WriteException(e);
+						// Note, we can't throw an error here because we may already be in
+						// an exception that happened in the above 'try' block.
+					}
+				}
+
+			} finally {
+				// This always happens after tables are unlocked.
+				// Also guarenteed to happen even if something fails.
+
+				// If we are in auto-commit mode then commit the Query here.
+				// Do we auto-commit?
+				if (connection.AutoCommit) {
+					// Yes, so grab an exclusive Lock and auto-commit.
+					try {
+						// Lock into exclusive mode.
+						locker.SetMode(LockingMode.Exclusive);
+						// If an error occured then roll-back
+						if (response == null) {
+							// Rollback.
+							connection.Rollback();
+						} else {
+							// Otherwise commit.
+							connection.Commit();
+						}
+					} finally {
+						locker.FinishMode(LockingMode.Exclusive);
+					}
+				}
+			}
+		}
+
+		private bool CheckColumnNamesMatch(string col1, String col2) {
+			return String.Compare(col1, col2, connection.IsInCaseInsensitiveMode) == 0;
+		}
+
+		private static void CheckColumnConstraint(String col_name, String[] cols, TableName table, String constraint_name) {
+			for (int i = 0; i < cols.Length; ++i) {
+				if (col_name.Equals(cols[i])) {
+					throw new DatabaseConstraintViolationException(
+							DatabaseConstraintViolationException.DropColumnViolation,
+							  "Constraint violation (" + constraint_name +
+							  ") dropping column " + col_name + " because of " +
+							  "referential constraint in " + table);
+				}
+			}
+
+		}
+
+		private void CheckUserSelectPermissions(IQueryPlanNode plan) {
+			// Discover the list of TableName objects this command touches,
+			ArrayList touched_tables = plan.DiscoverTableNames(new ArrayList());
+			Database dbase = context.Database;
+			// Check that the user is allowed to select from these tables.
+			for (int i = 0; i < touched_tables.Count; ++i) {
+				TableName t = (TableName)touched_tables[i];
+				if (!dbase.CanUserSelectFromTableObject(context, User, t, null)) {
+					throw new UserAccessException("User not permitted to select from table: " + t);
+				}
+			}
+		}
+
+		private static bool IsIdentitySelect(TableSelectExpression expression) {
+			if (expression.Columns.Count != 1)
+				return false;
+			if (expression.From == null)
+				return false;
+			if (expression.From.AllTables.Count != 1)
+				return false;
+
+			SelectColumn column = (SelectColumn)expression.Columns[0];
+			if (column.resolved_name == null)
+				return false;
+			if (column.resolved_name.Name != "IDENTITY")
+				return false;
+
+			return true;
+		}
+
+		private void ResolveExpression(Expression exp) {
+			// NOTE: This gets variables in all function parameters.
+			IList vars = exp.AllVariables;
+			for (int i = 0; i < vars.Count; ++i) {
+				VariableName v = (VariableName)vars[i];
+				VariableName to_set = ResolveColumn(v);
+				v.Set(to_set);
+			}
+		}
+
+		private TableName ResolveName(TableName name) {
+			string schema_name = connection.CurrentSchema;
+			name = TableName.Resolve(schema_name, name.Name);
+
+			string name_strip = name.Name;
+
+			if (name_strip.IndexOf('.') != -1)
+				throw new DatabaseException("Table name can not contain '.' character.");
+
+			return name;
+		}
+
+		private VariableName ResolveColumn(VariableName v) {
+			// Try and resolve against alias names first,
+			ArrayList list = new ArrayList();
+
+			TableName tname = v.TableName;
+			String sch_name = null;
+			String tab_name = null;
+			String col_name = v.Name;
+			if (tname != null) {
+				sch_name = tname.Schema;
+				tab_name = tname.Name;
+			}
+
+			int matches_found = 0;
+			// Find matches in our list of tables sources,
+			for (int i = 0; i < table_list.Count; ++i) {
+				IFromTableSource table = (IFromTableSource) table_list[i];
+				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
+				if (rcc == 1) {
+					VariableName matched = table.ResolveColumn(null, sch_name, tab_name, col_name);
+					list.Add(matched);
+				} else if (rcc > 1) {
+					throw new StatementException("Ambiguous column name (" + v + ")");
+				}
+			}
+
+			int total_matches = list.Count;
+			if (total_matches == 0)
+				throw new StatementException("Can't find column: " + v);
+			if (total_matches == 1)
+				return (VariableName) list[0];
+
+			if (total_matches > 1)
+				// if there more than one match, check if they all match the identical
+				// resource,
+				throw new StatementException("Ambiguous column name (" + v + ")");
+
+			// Should never reach here but we include this exception to keep the
+			// compiler happy.
+			throw new ApplicationException("Negative total matches?");
+		}
+
+		private void AddTable(IFromTableSource table) {
+			table_list.Add(table);
+		}
+
+
+		#region Schemata Management
+
+		public void CreateSchema(string name) {
+			ExecuteCommand(new DirectCommand(DirectCommandType.CreateSchema, "schema", name));
+		}
+
+		public void DropSchema(string name) {
+			ExecuteCommand(new DirectCommand(DirectCommandType.DropSchema, "schema", name));
+		}
+
+		#endregion
+
+		#region Tables Management
+
+		public void AddConstraint(TableName tableName, DataTableConstraintDef constraint) {
+			AlterTableAction action = new AlterTableAction();
+			action.Action = AlterTableActionType.AddConstraint;
+			action.Elements.Add(constraint);
+			ArrayList actions = new ArrayList();
+			actions.Add(action);
+			AlterTable(tableName, actions);
+		}
+
+		public void DropConstraint(TableName tableName, string constraintName) {
+			AlterTableAction action = new AlterTableAction();
+			action.Action = AlterTableActionType.DropConstraint;
+			action.Elements.Add(constraintName);
+			ArrayList actions = new ArrayList();
+			actions.Add(action);
+			AlterTable(tableName, actions);
+		}
+
+		public void DropPrimaryKey(TableName tableName) {
+			AlterTableAction action = new AlterTableAction();
+			action.Action = AlterTableActionType.DropPrimaryKey;
+			ArrayList actions = new ArrayList();
+			actions.Add(action);
+			AlterTable(tableName, actions);
+		}
+
+		public void CreateTable(DataTableDef tableDef, bool ifNotExists) {
+			ExecuteCommand(new DirectCommand(DirectCommandType.CreateTable, "table", tableDef, "if_not_exists", ifNotExists));
+		}
+
+		public void AlterCreateTable(DataTableDef tableDef) {
+			ExecuteCommand(new DirectCommand(DirectCommandType.AlterCreateTable, "table", tableDef));
+		}
+
+		public void AlterTable(TableName tableName, IList actions) {
+			ExecuteCommand(new DirectCommand(DirectCommandType.AlterTable, "table_name", tableName, "actions", actions));
+		}
+
+		public int DropTables(TableName[] tableNames, bool onlyIfExist) {
+			return (int) ExecuteCommand(new DirectCommand(DirectCommandType.DropTables, "table_names", tableNames, "only_if_exist", onlyIfExist));
 		}
 
 		#endregion
@@ -774,7 +1000,7 @@ namespace Deveel.Data.Control {
 				relationallyLinkedTables.Add(connection.GetTable(linked_tables[i]));
 
 			// Check that this user has privs to insert into the table.
-			if (!connection.Database.CanUserInsertIntoTableObject(context, user, tableName, col_var_list))
+			if (!connection.Database.CanUserInsertIntoTableObject(context, User, tableName, col_var_list))
 				throw new UserAccessException("User not permitted to insert in to table: " + tableName);
 
 			// Insert rows from the set assignments.
@@ -873,7 +1099,7 @@ namespace Deveel.Data.Control {
 
 
 			// Check that this user has privs to insert into the table.
-			if (!connection.Database.CanUserInsertIntoTableObject(context, user, tableName, col_var_list))
+			if (!connection.Database.CanUserInsertIntoTableObject(context, User, tableName, col_var_list))
 				throw new UserAccessException("User not permitted to insert in to table: " + tableName);
 
 			// Are we inserting from a select statement or from a 'set' assignment
@@ -1030,6 +1256,22 @@ namespace Deveel.Data.Control {
 
 		public int Update(TableName tableName, Assignment[] assignments, Expression searchExpression) {
 			return Update(tableName, assignments,searchExpression,  -1);
+		}
+
+		#endregion
+
+		#region Transaction
+
+		public void Commit() {
+			connection.Commit();
+		}
+
+		public void Rollback() {
+			connection.Rollback();
+		}
+
+		public void SetAutoCommit(bool state) {
+			connection.AutoCommit = state;
 		}
 
 		#endregion

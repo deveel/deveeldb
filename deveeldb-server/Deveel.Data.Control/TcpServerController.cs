@@ -134,6 +134,10 @@ namespace Deveel.Data.Control {
 			get { return controller.Debug; }
 		}
 
+		internal DbController Controller {
+			get { return controller; }
+		}
+
 		/// <summary>
 		/// Registers the delegate that closes this server when the database shuts-down.
 		/// </summary>

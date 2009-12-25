@@ -207,6 +207,10 @@ namespace Deveel.Data.Control {
 			return GetConnection(null, username, password);
 		}
 
+		public DbDirectAccess GetDirectAccess(string username, string password) {
+			return GetDirectAccess(null, username, password);
+		}
+
 		public DbDirectAccess GetDirectAccess(string schema, string username, string password) {
 			// Create the host string, formatted as 'Internal/[hash number]/[counter]'
 			StringBuilder buf = new StringBuilder();
@@ -219,8 +223,11 @@ namespace Deveel.Data.Control {
 			}
 			string connString = buf.ToString();
 
+			if (schema == null)
+				schema = username;
+
 			User user = database.AuthenticateUser(username, password, connString);
-			return new DbDirectAccess(this, user);
+			return new DbDirectAccess(this, user, schema);
 		}
 
 		// ---------- Global methods ----------

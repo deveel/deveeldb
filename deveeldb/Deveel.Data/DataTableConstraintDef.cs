@@ -101,8 +101,16 @@ namespace Deveel.Data {
 			get { return (string[]) columns.ToArray(typeof(string)); }
 		}
 
+		internal ArrayList ColumnsList {
+			get { return columns; }
+		}
+
 		public string [] ReferencedColumns {
 			get { return (string[]) refColumns.ToArray(typeof(string)); }
+		}
+
+		internal ArrayList ReferencedColumnsList {
+			get { return refColumns; }
 		}
 
 		/// <summary>
@@ -131,6 +139,10 @@ namespace Deveel.Data {
 		public ConstraintDeferrability Deferred {
 			get { return deferred; }
 			set { deferred = value; }
+		}
+
+		internal void SetReferencedTableName(string tableName) {
+			refTableName = tableName;
 		}
 
 		public static DataTableConstraintDef PrimaryKey(string name, string[] columnNames) {

@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="Deveel.Data.Client\ConnectionTest.cs" />
     <Compile Include="Deveel.Data.Client\LobTest.cs" />
+    <Compile Include="Deveel.Data.Control\DirectAccessTest.cs" />
     <Compile Include="Deveel.Data.Functions\FunctionTest.cs" />
     <Compile Include="Deveel.Data.Sql\SelectTest.cs" />
     <Compile Include="Deveel.Data\CaseTest.cs" />
