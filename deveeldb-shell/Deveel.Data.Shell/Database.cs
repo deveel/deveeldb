@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Data;
 
@@ -30,12 +30,12 @@ namespace Deveel.Data.Shell {
 			string[] filter = new string[] { null, null, null, "TABLE", "SYSTEM TABLE", "VIEW" };
 			System.Data.DataTable tablesSchema = session.Connection.GetSchema(DeveelDbMetadataSchemaNames.Tables, filter);
 			for (int i = 0; i < tablesSchema.Rows.Count; i++) {
-				DataRow row = tablesSchema.Rows[i];
+				System.Data.DataRow row = tablesSchema.Rows[i];
 				BuildTable(row);
 			}
 		}
 
-		private void BuildTable(DataRow row) {
+		private void BuildTable(System.Data.DataRow row) {
 			string tableSchema = row["TABLE_SCHEMA"].ToString();
 			string tableName = row["TABLE_NAME"].ToString();
 			string tableType = row["TABLE_TYPE"].ToString();
@@ -63,7 +63,7 @@ namespace Deveel.Data.Shell {
 			tables.Add(table);
 		}
 
-		private void BuildColumn(Table table, DataRow row) {
+		private void BuildColumn(Table table, System.Data.DataRow row) {
 			string tableSchema = row["TABLE_SCHEMA"].ToString();
 			string tableName = row["TABLE_NAME"].ToString();
 			string columnName = row["COLUMN_NAME"].ToString();
@@ -87,7 +87,7 @@ namespace Deveel.Data.Shell {
 			table.AddColumn(column);
 		}
 
-		private static Privilege BuildPrivilege(DataRow row) {
+		private static Privilege BuildPrivilege(System.Data.DataRow row) {
 			string grantor = row["GRANTOR"].ToString();
 			string grantee = row["GRANTEE"].ToString();
 			string priv = row["PRIVILEGE"].ToString();
@@ -96,7 +96,7 @@ namespace Deveel.Data.Shell {
 			return new Privilege(grantor, grantee, priv, grantable);
 		}
 
-		private static void BuildPrimaryKey(Table table, DataRow row) {
+		private static void BuildPrimaryKey(Table table, System.Data.DataRow row) {
 			string name = row["PK_NAME"] as string;
 			PrimaryKey primaryKey;
 			if (name != null) {
@@ -114,7 +114,7 @@ namespace Deveel.Data.Shell {
 			primaryKey.AddColumn(columnName);
 		}
 
-		private static void BuildForeignKey(Table table, DataRow row) {
+		private static void BuildForeignKey(Table table, System.Data.DataRow row) {
 			string name = row["FK_NAME"].ToString();
 			ForeignKey fkey = table.GetForeignKey(name);
 			if (fkey == null) {

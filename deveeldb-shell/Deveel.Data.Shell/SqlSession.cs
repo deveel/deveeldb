@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Data;
 using System.IO;
@@ -323,7 +323,7 @@ namespace Deveel.Data.Shell {
 				System.Data.DataTable columnsTable = Connection.GetSchema(DeveelDbMetadataSchemaNames.Columns,
 				                                                          new string[] {null, schema, tabName, null});
 				for (int i = 0; i < columnsTable.Rows.Count; i++) {
-					DataRow row = columnsTable.Rows[i];
+					System.Data.DataRow row = columnsTable.Rows[i];
 					result.Add(row["COLUMN_NAME"].ToString());
 				}
 			} catch (Exception e) {
@@ -340,7 +340,7 @@ namespace Deveel.Data.Shell {
 				System.Data.DataTable tablesTable = Connection.GetSchema(DeveelDbMetadataSchemaNames.Tables,
 				                                                         new string[] {null, null, null, "TABLE", "VIEW"});
 				for (int i = 0; i < tablesTable.Rows.Count; i++) {
-					DataRow row = tablesTable.Rows[i];
+					System.Data.DataRow row = tablesTable.Rows[i];
 					sessionTables.AddName(row["TABLE_NAME"].ToString());
 				}
 			} catch (Exception e) {
