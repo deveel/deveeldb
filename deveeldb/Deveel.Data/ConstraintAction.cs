@@ -26,9 +26,9 @@ namespace Deveel.Data {
  * Foreign key referential trigger actions.
  */
 	public enum ConstraintAction {
-		NO_ACTION = 0,
-		CASCADE = 1,
-		SET_NULL = 2,
-		SET_DEFAULT = 3
+		NoAction = 0,
+		Cascade = 1,
+		SetNull = 2,
+		SetDefault = 3
 	}
 }

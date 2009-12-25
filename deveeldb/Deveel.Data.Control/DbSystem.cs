@@ -27,7 +27,6 @@ using System.Text;
 
 using Deveel.Data.Client;
 using Deveel.Data.Server;
-using Deveel.Diagnostics;
 
 namespace Deveel.Data.Control {
 	///<summary>
@@ -206,6 +205,22 @@ namespace Deveel.Data.Control {
 		/// </exception>
 		public IDbConnection GetConnection(String username, String password) {
 			return GetConnection(null, username, password);
+		}
+
+		public DbDirectAccess GetDirectAccess(string schema, string username, string password) {
+			// Create the host string, formatted as 'Internal/[hash number]/[counter]'
+			StringBuilder buf = new StringBuilder();
+			buf.Append("Internal/");
+			buf.Append(GetHashCode());
+			buf.Append('/');
+			lock (this) {
+				buf.Append(internal_counter);
+				++internal_counter;
+			}
+			string connString = buf.ToString();
+
+			User user = database.AuthenticateUser(username, password, connString);
+			return new DbDirectAccess(this, user);
 		}
 
 		// ---------- Global methods ----------

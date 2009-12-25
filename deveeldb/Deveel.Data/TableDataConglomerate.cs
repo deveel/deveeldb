@@ -880,17 +880,17 @@ namespace Deveel.Data {
 			fk_col[0] = "pk_id";
 			transaction.AddForeignKeyConstraint(
 					  PRIMARY_COLS_TABLE, fk_col, PRIMARY_INFO_TABLE, fk_ref_col,
-					  ConstraintAction.NO_ACTION, ConstraintAction.NO_ACTION,
+					  ConstraintAction.NoAction, ConstraintAction.NoAction,
 					  ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_PK_FK");
 			fk_col[0] = "fk_id";
 			transaction.AddForeignKeyConstraint(
 					  FOREIGN_COLS_TABLE, fk_col, FOREIGN_INFO_TABLE, fk_ref_col,
-					  ConstraintAction.NO_ACTION, ConstraintAction.NO_ACTION,
+					  ConstraintAction.NoAction, ConstraintAction.NoAction,
 					  ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_FK_FK");
 			fk_col[0] = "un_id";
 			transaction.AddForeignKeyConstraint(
 					  UNIQUE_COLS_TABLE, fk_col, UNIQUE_INFO_TABLE, fk_ref_col,
-					  ConstraintAction.NO_ACTION, ConstraintAction.NO_ACTION,
+					  ConstraintAction.NoAction, ConstraintAction.NoAction,
 					  ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_UNIQUE_FK");
 
 			// sUSRPKeyInfo 'schema', 'table' column is a unique set,

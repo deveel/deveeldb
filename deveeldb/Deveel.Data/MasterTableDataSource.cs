@@ -1634,7 +1634,7 @@ namespace Deveel.Data {
 									  IQueryContext context) {
 
 				ConstraintAction update_rule = constraint.update_rule;
-				if (update_rule == ConstraintAction.NO_ACTION &&
+				if (update_rule == ConstraintAction.NoAction &&
 					constraint.deferred != ConstraintDeferrability.INITIALLY_IMMEDIATE) {
 					// Constraint check is deferred
 					return;
@@ -1652,7 +1652,7 @@ namespace Deveel.Data {
 
 				// Are there keys effected?
 				if (key_entries.Count > 0) {
-					if (update_rule == ConstraintAction.NO_ACTION) {
+					if (update_rule == ConstraintAction.NoAction) {
 						// Throw an exception;
 						throw new DatabaseConstraintViolationException(
 							DatabaseConstraintViolationException.ForeignKeyViolation,
@@ -1671,18 +1671,18 @@ namespace Deveel.Data {
 							int row_index = key_entries[i];
 							DataRow dataRow = new DataRow(key_table);
 							dataRow.SetFromRow(row_index);
-							if (update_rule == ConstraintAction.CASCADE) {
+							if (update_rule == ConstraintAction.Cascade) {
 								// Update the keys
 								for (int n = 0; n < key_cols.Length; ++n) {
 									dataRow.SetValue(key_cols[n], new_key[n]);
 								}
 								key_table.UpdateRow(row_index, dataRow);
-							} else if (update_rule == ConstraintAction.SET_NULL) {
+							} else if (update_rule == ConstraintAction.SetNull) {
 								for (int n = 0; n < key_cols.Length; ++n) {
 									dataRow.SetToNull(key_cols[n]);
 								}
 								key_table.UpdateRow(row_index, dataRow);
-							} else if (update_rule == ConstraintAction.SET_DEFAULT) {
+							} else if (update_rule == ConstraintAction.SetDefault) {
 								for (int n = 0; n < key_cols.Length; ++n) {
 									dataRow.SetToDefault(key_cols[n], context);
 								}
@@ -1713,7 +1713,7 @@ namespace Deveel.Data {
 									  TObject[] original_key, IQueryContext context) {
 
 				ConstraintAction delete_rule = constraint.delete_rule;
-				if (delete_rule == ConstraintAction.NO_ACTION &&
+				if (delete_rule == ConstraintAction.NoAction &&
 					constraint.deferred != ConstraintDeferrability.INITIALLY_IMMEDIATE) {
 					// Constraint check is deferred
 					return;
@@ -1731,7 +1731,7 @@ namespace Deveel.Data {
 
 				// Are there keys effected?
 				if (key_entries.Count > 0) {
-					if (delete_rule == ConstraintAction.NO_ACTION) {
+					if (delete_rule == ConstraintAction.NoAction) {
 						// Throw an exception;
 						throw new DatabaseConstraintViolationException(
 							DatabaseConstraintViolationException.ForeignKeyViolation,
@@ -1750,15 +1750,15 @@ namespace Deveel.Data {
 							int row_index = key_entries[i];
 							DataRow dataRow = new DataRow(key_table);
 							dataRow.SetFromRow(row_index);
-							if (delete_rule == ConstraintAction.CASCADE) {
+							if (delete_rule == ConstraintAction.Cascade) {
 								// Cascade the removal of the referenced rows
 								key_table.RemoveRow(row_index);
-							} else if (delete_rule == ConstraintAction.SET_NULL) {
+							} else if (delete_rule == ConstraintAction.SetNull) {
 								for (int n = 0; n < key_cols.Length; ++n) {
 									dataRow.SetToNull(key_cols[n]);
 								}
 								key_table.UpdateRow(row_index, dataRow);
-							} else if (delete_rule == ConstraintAction.SET_DEFAULT) {
+							} else if (delete_rule == ConstraintAction.SetDefault) {
 								for (int n = 0; n < key_cols.Length; ++n) {
 									dataRow.SetToDefault(key_cols[n], context);
 								}

@@ -391,7 +391,7 @@ namespace Deveel.Data.Sql {
 			bool all_inner_joins = true;
 			for (int i = 0; i < join_set.TableCount - 1; ++i) {
 				JoinType type = join_set.GetJoinType(i);
-				if (type != JoinType.INNER_JOIN) {
+				if (type != JoinType.Inner) {
 					all_inner_joins = false;
 				}
 			}
@@ -409,7 +409,7 @@ namespace Deveel.Data.Sql {
 					}
 				} else {
 					// Not all inner joins,
-					if (type == JoinType.INNER_JOIN && on_expression == null) {
+					if (type == JoinType.Inner && on_expression == null) {
 						// Regular join with no ON expression, so no preparation necessary
 					} else {
 						// Either an inner join with an ON expression, or an outer join with
@@ -1499,17 +1499,17 @@ namespace Deveel.Data.Sql {
 				// This means plan1 and plan2 are linked by a common join and ON
 				// expression which we evaluate now.
 				bool outer_join;
-				if (join_type == JoinType.LEFT_OUTER_JOIN) {
+				if (join_type == JoinType.Left) {
 					// Mark the left plan
 					left_plan.UpdatePlan(new QueryPlan.MarkerNode(
 													left_plan.Plan, "OUTER_JOIN"));
 					outer_join = true;
-				} else if (join_type == JoinType.RIGHT_OUTER_JOIN) {
+				} else if (join_type == JoinType.Right) {
 					// Mark the right plan
 					right_plan.UpdatePlan(new QueryPlan.MarkerNode(
 													right_plan.Plan, "OUTER_JOIN"));
 					outer_join = true;
-				} else if (join_type == JoinType.INNER_JOIN) {
+				} else if (join_type == JoinType.Inner) {
 					// Inner join with ON expression
 					outer_join = false;
 				} else {
@@ -2689,8 +2689,8 @@ namespace Deveel.Data.Sql {
 				this.plan = plan;
 				this.var_list = var_list;
 				this.unique_names = table_unique_names;
-				left_join_type = JoinType.NONE;
-				right_join_type = JoinType.NONE;
+				left_join_type = JoinType.None;
+				right_join_type = JoinType.None;
 				is_updated = false;
 			}
 

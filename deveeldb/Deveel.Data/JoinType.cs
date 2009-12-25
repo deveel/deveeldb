@@ -23,10 +23,10 @@ using System;
 
 namespace Deveel.Data {
 	public enum JoinType {
-		INNER_JOIN = 1,
-		LEFT_OUTER_JOIN = 2,
-		RIGHT_OUTER_JOIN = 3,
-		FULL_OUTER_JOIN = 4,
-		NONE = -1,
+		Inner = 1,
+		Left = 2,
+		Right = 3,
+		Full = 4,
+		None = -1,
 	}
 }

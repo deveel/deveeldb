@@ -86,6 +86,7 @@
     <Compile Include="Deveel.Data.Client\DatabaseMetadata.cs" />
     <Compile Include="Deveel.Data.Client\TriggerEventArgs.cs" />
     <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
+    <Compile Include="Deveel.Data.Control\DbDirectAccess.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\ArithmeticFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\CompressionFunctionFactory.cs" />
@@ -129,7 +130,7 @@
     <Compile Include="Deveel.Data.Sql\CloseCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnConstraints.cs" />
     <Compile Include="Deveel.Data.Sql\CommitStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\ConstraintType.cs" />
+    <Compile Include="Deveel.Data\ConstraintType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DeclareCursorStatement.cs" />
@@ -158,6 +159,7 @@
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
     <Compile Include="Deveel.Data\CaseExpression.cs" />
+    <Compile Include="Deveel.Data\DataTableConstraintDef.cs" />
     <Compile Include="Deveel.Data\ICursorContext.cs" />
     <Compile Include="Deveel.Data\Interval.cs" />
     <Compile Include="Deveel.Data\IntervalField.cs" />

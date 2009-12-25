@@ -1718,19 +1718,19 @@ void FromClauseJoin(FromClause from_clause) :
   (
       (
         ","
-        { from_clause.AddJoin(JoinType.INNER_JOIN);}
+        { from_clause.AddJoin(JoinType.Inner);}
       ) [ SelectTableList(from_clause) ]
     | (
         [ <INNER> ] <JOIN> TableDeclaration(from_clause) <ON> on_expression=DoExpression()
-        { from_clause.AddPreviousJoin(JoinType.INNER_JOIN, on_expression); }
+        { from_clause.AddPreviousJoin(JoinType.Inner, on_expression); }
       ) [ FromClauseJoin(from_clause) ]
     | (
         <LEFT> [<OUTER>] <JOIN> TableDeclaration(from_clause) <ON> on_expression=DoExpression()
-        { from_clause.AddPreviousJoin(JoinType.LEFT_OUTER_JOIN, on_expression); }
+        { from_clause.AddPreviousJoin(JoinType.Left, on_expression); }
       ) [ FromClauseJoin(from_clause) ]
     | (
         <RIGHT> [<OUTER>] <JOIN> TableDeclaration(from_clause) <ON> on_expression=DoExpression()
-        { from_clause.AddPreviousJoin(JoinType.RIGHT_OUTER_JOIN, on_expression); }
+        { from_clause.AddPreviousJoin(JoinType.Right, on_expression); }
       ) [ FromClauseJoin(from_clause) ]
   )
 
@@ -1977,8 +1977,8 @@ SqlConstraint TableConstraintDefinition() :
   ArrayList column_list = new ArrayList();
   ArrayList column_list2 = new ArrayList();
   String constraint_name = null;
-  ConstraintAction update_rule = ConstraintAction.NO_ACTION;
-  ConstraintAction delete_rule = ConstraintAction.NO_ACTION;
+  ConstraintAction update_rule = ConstraintAction.NoAction;
+  ConstraintAction delete_rule = ConstraintAction.NoAction;
   Expression expression;
   String name;
   String reference_table;
@@ -2017,11 +2017,11 @@ ConstraintAction ReferentialTrigger() :
   ConstraintAction action;
 }
 {
-  (   <NO> <ACTION>                     { action = ConstraintAction.NO_ACTION; }
-    | <RESTRICT>                        { action = ConstraintAction.NO_ACTION; }
-    | <CASCADE>                         { action = ConstraintAction.CASCADE; }
-    | LOOKAHEAD(2) <SET> <NULL_LITERAL> { action = ConstraintAction.SET_NULL; }
-    | <SET> <SQLDEFAULT>                { action = ConstraintAction.SET_DEFAULT; }
+  (   <NO> <ACTION>                     { action = ConstraintAction.NoAction; }
+    | <RESTRICT>                        { action = ConstraintAction.NoAction; }
+    | <CASCADE>                         { action = ConstraintAction.Cascade; }
+    | LOOKAHEAD(2) <SET> <NULL_LITERAL> { action = ConstraintAction.SetNull; }
+    | <SET> <SQLDEFAULT>                { action = ConstraintAction.SetDefault; }
   )
 
   { return action; }

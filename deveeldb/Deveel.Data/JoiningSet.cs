@@ -176,7 +176,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public Object Clone() {
+		public object Clone() {
 			JoiningSet v = (JoiningSet)MemberwiseClone();
 			int size = join_set.Count;
 			ArrayList cloned_join_set = new ArrayList(size);
@@ -201,19 +201,19 @@ namespace Deveel.Data {
 
 		// ---------- Inner classes ----------
 		[Serializable]
-		public sealed class JoinPart : ICloneable {
+		private sealed class JoinPart : ICloneable {
 			/// <summary>
-			/// The type of join.  Either LEFT_OUTER_JOIN,
-			/// RIGHT_OUTER_JOIN, FULL_OUTER_JOIN, INNER_JOIN.
+			/// The type of join.  Either Left,
+			/// Right, Full, Inner.
 			/// </summary>
-			internal JoinType type;
+			public readonly JoinType type;
 
 			/// <summary>
 			/// The expression that we are joining on (eg. ON clause in SQL).  If there
 			/// is no ON expression (such as in the case of natural joins) then this is
 			/// null.
 			/// </summary>
-			internal Expression on_expression;
+			public Expression on_expression;
 
 			public JoinPart(JoinType type, Expression on_expression) {
 				this.type = type;
@@ -227,9 +227,8 @@ namespace Deveel.Data {
 			/// <inheritdoc/>
 			public Object Clone() {
 				JoinPart v = (JoinPart)MemberwiseClone();
-				if (on_expression != null) {
+				if (on_expression != null)
 					v.on_expression = (Expression)on_expression.Clone();
-				}
 				return v;
 			}
 		}

@@ -1,4 +1,4 @@
-﻿//  
+//  
 //  ForeignKeyAttribute.cs
 //  
 //  Author:
@@ -38,7 +38,7 @@ namespace Deveel.Data.Mapping {
 		}
 
 		public ForeignKeyAttribute(string name, Type referencedType)
-			: this(name, referencedType, ConstraintAction.CASCADE, ConstraintAction.CASCADE) {
+			: this(name, referencedType, ConstraintAction.Cascade, ConstraintAction.Cascade) {
 		}
 
 		public ForeignKeyAttribute(Type referencedType)

@@ -21,7 +21,7 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data {
 	public enum ConstraintType {
 		///<summary>
 		/// A <c>PRIMARY KEY</c> constraint.

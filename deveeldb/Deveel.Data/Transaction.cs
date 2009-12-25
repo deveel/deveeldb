@@ -1320,8 +1320,8 @@ namespace Deveel.Data {
 
 				// If delete or update rule is 'SET NULL' then check the foreign key
 				// columns are not constrained as 'NOT NULL'
-				if (delete_rule == ConstraintAction.SET_NULL ||
-					update_rule == ConstraintAction.SET_NULL) {
+				if (delete_rule == ConstraintAction.SetNull ||
+					update_rule == ConstraintAction.SetNull) {
 					DataTableDef table_def = GetDataTableDef(table);
 					for (int i = 0; i < cols.Length; ++i) {
 						DataTableColumnDef column_def =

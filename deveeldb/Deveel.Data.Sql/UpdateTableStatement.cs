@@ -189,7 +189,7 @@ namespace Deveel.Data.Sql {
 			Assignment[] assign_list = new Assignment[column_sets.Count];
 			column_sets.CopyTo(assign_list, 0);
 
-			if (from_cursor) {
+			if (!from_cursor) {
 				// Check the user has select permissions on the tables in the plan.
 				SelectStatement.CheckUserSelectPermissions(context, User, plan);
 
