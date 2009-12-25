@@ -117,8 +117,10 @@
     <Compile Include="Deveel.Data.Procedures\ProcedureBody.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTypeStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CursorFetch.cs" />
     <Compile Include="Deveel.Data.Sql\DropTypeStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DropViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql\IfStatement.cs" />
     <Compile Include="Deveel.Data.Sql\IntoClause.cs" />
     <Compile Include="Deveel.Data.Sql\LabelStatement.cs" />
