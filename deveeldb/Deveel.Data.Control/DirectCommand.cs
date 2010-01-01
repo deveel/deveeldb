@@ -74,6 +74,12 @@ namespace Deveel.Data.Control {
 			args[name] = value;
 		}
 
+		internal object[] ToArgsArray() {
+			object[] array = new object[args.Count];
+			args.Values.CopyTo(array, 0);
+			return array;
+		}
+
 		#region Implementation of ICloneable
 
 		public object Clone() {

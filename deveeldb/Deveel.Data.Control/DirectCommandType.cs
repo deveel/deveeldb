@@ -19,7 +19,6 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 using System;
 
 namespace Deveel.Data.Control {
@@ -29,6 +28,17 @@ namespace Deveel.Data.Control {
 		CreateTable,
 		AlterTable,
 		AlterCreateTable,
-		DropTables
+		DropTables,
+		CreateView,
+		DropView,
+		CreateTrigger,
+		DropTrigger,
+		Insert,
+		Delete,
+		Update,
+		Select,
+		Call,
+		Commit,
+		Rollback
 	}
 }

@@ -29,6 +29,10 @@ using Deveel.Data.Sql;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Control {
+	/// <summary>
+	/// Defines a commonly accessible method to interact with the underlying
+	/// database by executing commands through an authorized connection.
+	/// </summary>
 	public sealed class DbDirectAccess : IDisposable, DatabaseConnection.CallBack {
 		internal DbDirectAccess(DbSystem system, User user, string defaultSchema) {
 			Connect(system, user, defaultSchema);
@@ -52,6 +56,10 @@ namespace Deveel.Data.Control {
 		/// underlying connection to the database.
 		/// </summary>
 		public event EventHandler TriggerEvent;
+
+		public event EventHandler CommandExecuting;
+		public event EventHandler CommandExecuted;
+		public event EventHandler CommandError;
 
 		/// <summary>
 		/// Gets the user owner of the current underlying connection.
@@ -114,6 +122,73 @@ namespace Deveel.Data.Control {
 					break;
 				case DirectCommandType.DropTables:
 					result = DropTablesImpl((TableName[]) command.GetRequired("table_names"), (bool) command.GetOptional("only_if_exist", false));
+					break;
+				case DirectCommandType.CreateView:
+					CreateViewImpl((TableName) command.GetRequired("name"), (string[]) command.GetOptional("columns", null),
+					               (TableSelectExpression) command.GetRequired("select"));
+					break;
+				case DirectCommandType.DropView:
+					DropViewImpl((TableName)command.GetRequired("name"));
+					break;
+				case DirectCommandType.CreateTrigger: {
+					object name = command.GetRequired("name");
+					TableName onTable = (TableName) command.GetRequired("table_name");
+					TriggerEventType eventType = (TriggerEventType) command.GetRequired("event_type");
+					ProcedureName procedureName = (ProcedureName) command.GetOptional("procedure", null);
+					Expression[] procedureArgs = (Expression[]) command.GetOptional("args", null);
+
+					if (procedureName != null) {
+						CreateProcedureTriggerImpl((TableName)name, onTable, eventType, procedureName, procedureArgs);
+					} else {
+						CreateCallbackTriggerImpl((string)name, onTable, eventType);
+					}
+					break;
+				}
+				case DirectCommandType.DropTrigger: {
+					object name = command.GetRequired("name");
+					if (name is TableName) {
+						DropProcedureTriggerImpl((TableName)name);
+					} else {
+						DropCallbackTriggerImpl((string)name);
+					}
+					break;
+				}
+
+				case DirectCommandType.Call:
+					result = CallImpl((ProcedureName) command.GetRequired("name"), (Expression[]) command.GetOptional("args", null));
+					break;
+
+				case DirectCommandType.Select:
+					result = SelectImpl((TableSelectExpression) command.GetRequired("expression"),
+					                    (ByColumn[]) command.GetOptional("order_by", null));
+					break;
+				case DirectCommandType.Insert: {
+					TableName tableName = (TableName) command.GetRequired("table_name");
+					Assignment[] assignments = (Assignment[]) command.GetOptional("assignments", null);
+					IList values = (IList) command.GetOptional("values", null);
+					if (assignments != null) {
+						InsertImpl(tableName, assignments);
+						result = 1;
+					} else if (values != null) {
+						string[] columns = (string[]) command.GetOptional("columns", null);
+						result = InsertImpl(tableName, columns, values);
+					}
+					break;
+				}
+				case DirectCommandType.Delete:
+					result = DeleteImpl((TableName) command.GetRequired("table_name"),
+					                    (Expression) command.GetRequired("search_expression"), (int) command.GetOptional("limit", -1));
+					break;
+				case DirectCommandType.Update:
+					result = UpdateImpl((TableName) command.GetRequired("table_name"),
+					                    (Assignment[]) command.GetRequired("assignments"),
+					                    (Expression) command.GetRequired("search_expression"), (int) command.GetOptional("limit", -1));
+					break;
+				case DirectCommandType.Commit:
+					CommitImpl();
+					break;
+				case DirectCommandType.Rollback:
+					RollbackImpl();
 					break;
 				default:
 					throw new NotImplementedException("The support for command type '" + command.CommandType + "' is not supported.");
@@ -473,7 +548,574 @@ namespace Deveel.Data.Control {
 
 		#endregion
 
+		#region Views Management
+
+		private void CreateViewImpl(TableName name, string[] columnNames, TableSelectExpression selectExpression) {
+			// Generate the TableExpressionFromSet hierarchy for the expression,
+			TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, connection);
+			// Form the plan
+			IQueryPlanNode plan = Planner.FormQueryPlan(connection, selectExpression, from_set, new ArrayList());
+
+			// Wrap the result around a SubsetNode to alias the columns in the
+			// table correctly for this view.
+			int sz = (columnNames == null) ? 0 : columnNames.Length;
+			VariableName[] original_vars = from_set.GenerateResolvedVariableList();
+			VariableName[] new_column_vars = new VariableName[original_vars.Length];
+
+			if (sz > 0) {
+				if (sz != original_vars.Length)
+					throw new StatementException("Column list is not the same size as the columns selected.");
+
+				for (int i = 0; i < sz; ++i) {
+					String col_name = columnNames[i];
+					new_column_vars[i] = new VariableName(name, col_name);
+				}
+			} else {
+				sz = original_vars.Length;
+				for (int i = 0; i < sz; ++i) {
+					new_column_vars[i] = new VariableName(name, original_vars[i].Name);
+				}
+			}
+
+			// Check there are no repeat column names in the table.
+			for (int i = 0; i < sz; ++i) {
+				VariableName cur_v = new_column_vars[i];
+				for (int n = i + 1; n < sz; ++n) {
+					if (new_column_vars[n].Equals(cur_v)) {
+						throw new DatabaseException("Duplicate column name '" + cur_v + "' in view.  " +
+													"A view may not contain duplicate column names.");
+					}
+				}
+			}
+
+			// Wrap the plan around a SubsetNode plan
+			plan = new QueryPlan.SubsetNode(plan, original_vars, new_column_vars);
+
+			// Does the user have privs to create this tables?
+			if (!connection.Database.CanUserCreateTableObject(context, connection.User, name))
+				throw new UserAccessException("User not permitted to create view: " + name);
+
+			// Does the schema exist?
+			bool ignore_case = connection.IsInCaseInsensitiveMode;
+			SchemaDef schema = connection.ResolveSchemaCase(name.Schema, ignore_case);
+			if (schema == null)
+				throw new DatabaseException("Schema '" + name.Schema + "' doesn't exist.");
+
+			name = new TableName(schema.Name, name.Name);
+
+			// Check the permissions for this user to select from the tables in the
+			// given plan.
+			CheckUserSelectPermissions(plan);
+
+			// Does the table already exist?
+			if (connection.TableExists(name))
+				throw new DatabaseException("View or table with name '" + name + "' already exists.");
+
+			// Before evaluation, make a clone of the plan,
+			IQueryPlanNode plan_copy;
+			try {
+				plan_copy = (IQueryPlanNode)plan.Clone();
+			} catch (Exception e) {
+				connection.Debug.WriteException(e);
+				throw new DatabaseException("Clone error: " + e.Message);
+			}
+
+			// We have to execute the plan to get the DataTableDef that represents the
+			// result of the view execution.
+			Table t = plan.Evaluate(context);
+			DataTableDef data_table_def = new DataTableDef(t.DataTableDef);
+			data_table_def.TableName = name;
+
+			// Create a ViewDef object,
+			ViewDef view_def = new ViewDef(data_table_def, plan_copy);
+
+			// And create the view object,
+			//TODO: check the .ToString() method to return the correct SQL syntax...
+			connection.CreateView(new SqlQuery(selectExpression.ToString()), view_def);
+
+			// The initial grants for a view is to give the user who created it
+			// full access.
+			connection.GrantManager.Grant(
+				 Privileges.TableAll, GrantObject.Table, name.ToString(),
+				 connection.User.UserName, true, Database.InternalSecureUsername);
+		}
+
+		private void DropViewImpl(TableName name) {
+			// Does the user have privs to drop this tables?
+			if (!connection.Database.CanUserDropTableObject(context, connection.User, name))
+				throw new UserAccessException("User not permitted to drop view: " + name);
+
+			// Drop the view object
+			connection.DropView(name);
+
+			// Drop the grants for this object
+			connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, name.ToString());
+		}
+
 		#endregion
+
+		#region Triggers Management
+
+		private void CreateCallbackTriggerImpl(string name, TableName tableName, TriggerEventType eventType) {
+			if ((eventType & TriggerEventType.After) != 0 ||
+				(eventType & TriggerEventType.Before) != 0)
+				throw new ArgumentException("Invalid event type for a callback trigger.");
+
+			connection.CreateTrigger(name, tableName.ToString(), eventType);
+		}
+
+		private void DropCallbackTriggerImpl(string name) {
+			connection.DeleteTrigger(name);
+		}
+
+		private void CreateProcedureTriggerImpl(TableName name, TableName tableName, TriggerEventType eventType, ProcedureName procedure, Expression[] args) {
+			// Get the procedure manager
+			ProcedureManager proc_manager = connection.ProcedureManager;
+
+			// Check the trigger name doesn't clash with any existing database object.
+			if (connection.TableExists(name))
+				throw new DatabaseException("A database object with name '" + name + "' already exists.");
+
+			// Check the procedure exists.
+			if (!proc_manager.ProcedureExists(procedure))
+				throw new DatabaseException("Procedure '" + procedure + "' could not be found.");
+
+			// Resolve the procedure arguments,
+			TObject[] vals = new TObject[args.Length];
+			for (int i = 0; i < args.Length; ++i)
+				vals[i] = args[i].Evaluate(null, null, context);
+
+			// Create the trigger,
+			ConnectionTriggerManager manager = connection.ConnectionTriggerManager;
+			manager.CreateTableTrigger(name.Schema, name.Name, eventType, tableName, procedure.ToString(), vals);
+
+			// The initial grants for a trigger is to give the user who created it
+			// full access.
+			connection.GrantManager.Grant(Privileges.ProcedureAll, GrantObject.Table, name.ToString(), connection.User.UserName,
+										  true, Database.InternalSecureUsername);
+		}
+
+		private void DropProcedureTriggerImpl(TableName name) {
+			ConnectionTriggerManager manager = connection.ConnectionTriggerManager;
+			manager.DropTrigger(name.Schema, name.Name);
+
+			// Drop the grants for this object
+			connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, name.ToString());
+		}
+
+		#endregion
+
+		#region Procedures Management
+
+		private TObject CallImpl(ProcedureName procedureName, Expression[] args) {
+			ProcedureManager manager = connection.ProcedureManager;
+
+			// If this doesn't exist then generate the error
+			if (!manager.ProcedureExists(procedureName))
+				throw new DatabaseException("Stored procedure '" + procedureName + "' was not found.");
+
+			// Check the user has privs to use this stored procedure
+			if (!connection.Database.CanUserExecuteStoredProcedure(context, connection.User, procedureName.ToString()))
+				throw new UserAccessException("User not permitted to call: " + procedureName);
+
+			// Evaluate the arguments
+			TObject[] vals = new TObject[args.Length];
+			for (int i = 0; i < args.Length; ++i) {
+				if (args[i].IsConstant) {
+					vals[i] = args[i].Evaluate(null, null, context);
+				} else {
+					throw new StatementException("CALL argument is not a constant: " + args[i].Text);
+				}
+			}
+
+			// Invoke the procedure
+			return manager.InvokeProcedure(procedureName, vals);
+		}
+
+		#endregion
+
+		#region Select
+
+		private Table SelectImpl(TableSelectExpression selectExpression, ByColumn[] orderBy) {
+			// check to see if the construct is the special one for
+			// selecting the latest IDENTITY value from a table
+			if (IsIdentitySelect(selectExpression)) {
+				selectExpression.Columns.RemoveAt(0);
+				SelectColumn curValFunction = new SelectColumn();
+
+				FromTable from_table = (FromTable)((ArrayList)selectExpression.From.AllTables)[0];
+				curValFunction.SetExpression(Expression.Parse("IDENTITY('" + from_table.Name + "')"));
+				curValFunction.SetAlias("IDENTITY");
+				selectExpression.Columns.Add(curValFunction);
+			}
+
+			// Generate the TableExpressionFromSet hierarchy for the expression,
+			TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, connection);
+
+			// Form the plan
+			IQueryPlanNode plan = Planner.FormQueryPlan(connection, selectExpression, from_set, orderBy);
+
+			// Check the permissions for this user to select from the tables in the
+			// given plan.
+			CheckUserSelectPermissions(plan);
+
+			bool error = true;
+			try {
+				Table t = plan.Evaluate(context);
+
+				if (selectExpression.Into.HasElements)
+					t = selectExpression.Into.SelectInto(context, t);
+
+				error = false;
+				return t;
+			} finally {
+				// If an error occured, dump the command plan to the debug log.
+				// Or just dump the command plan if debug level = Information
+				if (connection.Debug.IsInterestedIn(DebugLevel.Information) ||
+					(error && connection.Debug.IsInterestedIn(DebugLevel.Warning))) {
+					StringBuilder buf = new StringBuilder();
+					plan.DebugString(0, buf);
+
+					connection.Debug.Write(DebugLevel.Warning, this, "Query Plan debug:\n" + buf);
+				}
+			}
+		}
+
+		#endregion
+
+		#region Delete
+
+		private int DeleteImpl(TableName tableName, Expression searchExpression, int limit) {
+			// Does the table exist?
+			if (!connection.TableExists(tableName))
+				throw new DatabaseException("Table '" + tableName + "' does not exist.");
+
+			// Form a TableSelectExpression that represents the select on the table
+			TableSelectExpression selectExpression = new TableSelectExpression();
+			// Create the FROM clause
+			selectExpression.From.AddTable(tableName.ToString());
+			// Set the WHERE clause
+			selectExpression.Where = new SearchExpression(searchExpression);
+
+			// Generate the TableExpressionFromSet hierarchy for the expression,
+			TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, connection);
+			// Form the plan
+			IQueryPlanNode plan = Planner.FormQueryPlan(connection, selectExpression, from_set, null);
+
+			// Get the table we are updating
+			DataTable updateTable = connection.GetTable(tableName);
+
+			// Resolve all tables linked to this
+			TableName[] linked_tables = connection.QueryTablesRelationallyLinkedTo(tableName);
+			ArrayList relationallyLinkedTables = new ArrayList(linked_tables.Length);
+			for (int i = 0; i < linked_tables.Length; ++i) {
+				relationallyLinkedTables.Add(connection.GetTable(linked_tables[i]));
+			}
+
+			// Check that this user has privs to delete from the table.
+			if (!connection.Database.CanUserDeleteFromTableObject(context, connection.User, tableName))
+				throw new UserAccessException("User not permitted to delete from table: " + tableName);
+
+			// Check the user has select permissions on the tables in the plan.
+			CheckUserSelectPermissions(plan);
+
+			// Evaluates the delete statement...
+
+			// Evaluate the plan to find the update set.
+			Table delete_set = plan.Evaluate(context);
+
+			// Delete from the data table.
+			int delete_count = updateTable.Delete(delete_set, limit);
+
+			// Notify TriggerManager that we've just done an update.
+			if (delete_count > 0)
+				connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Delete, tableName.ToString(), delete_count));
+
+			return delete_count;
+		}
+
+		#endregion
+
+		#region Insert
+
+		private void InsertImpl(TableName tableName, Assignment[] assignments) {
+			// Does the table exist?
+			if (!connection.TableExists(tableName))
+				throw new DatabaseException("Table '" + tableName + "' does not exist.");
+
+			VariableName[] col_var_list = new VariableName[assignments.Length];
+			for (int i = 0; i < assignments.Length; i++)
+				col_var_list[i] = ResolveColumn(assignments[i].VariableName);
+
+			// Add the from table direct source for this table
+			ITableQueryDef table_query_def = connection.GetTableQueryDef(tableName, null);
+			AddTable(new FromTableDirectSource(connection.IsInCaseInsensitiveMode, table_query_def, "INSERT_TABLE", tableName, tableName));
+
+			// Get the table we are inserting to
+			DataTable insert_table = connection.GetTable(tableName);
+
+			// If there's a sub select in an expression in the 'SET' clause then
+			// throw an error.
+			for (int i = 0; i < assignments.Length; ++i) {
+				Assignment assignment = assignments[i];
+				Expression exp = assignment.Expression;
+				IList elem_list = exp.AllElements;
+				for (int n = 0; n < elem_list.Count; ++n) {
+					object ob = elem_list[n];
+					if (ob is SelectStatement) {
+						throw new DatabaseException("Illegal to have sub-select in SET clause.");
+					}
+				}
+
+				// Resolve the column names in the columns set.
+				VariableName v = assignment.VariableName;
+				VariableName resolved_v = ResolveColumn(v);
+				v.Set(resolved_v);
+				ResolveExpression(assignment.Expression);
+			}
+
+			// Resolve all tables linked to this
+			TableName[] linked_tables = connection.QueryTablesRelationallyLinkedTo(tableName);
+			ArrayList relationallyLinkedTables = new ArrayList(linked_tables.Length);
+			for (int i = 0; i < linked_tables.Length; ++i)
+				relationallyLinkedTables.Add(connection.GetTable(linked_tables[i]));
+
+			// Check that this user has privs to insert into the table.
+			if (!connection.Database.CanUserInsertIntoTableObject(context, User, tableName, col_var_list))
+				throw new UserAccessException("User not permitted to insert in to table: " + tableName);
+
+			// Insert rows from the set assignments.
+			DataRow dataRow = insert_table.NewRow();
+			Assignment[] assigns = new Assignment[assignments.Length];
+			assignments.CopyTo(assigns, 0);
+			dataRow.SetupEntire(assigns, context);
+			insert_table.Add(dataRow);
+
+			// Notify TriggerManager that we've just done an update.
+			connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Insert, tableName.ToString(), 1));
+		}
+
+		private int InsertImpl(TableName tableName, string[] columns, IList values) {
+			// Check 'values_list' contains all same size size insert element arrays.
+			int first_len = -1;
+			for (int n = 0; n < values.Count; ++n) {
+				IList exp_list = (IList)values[n];
+				if (first_len == -1 || first_len == exp_list.Count) {
+					first_len = exp_list.Count;
+				} else {
+					throw new DatabaseException("The insert data list varies in size.");
+				}
+			}
+
+			// Does the table exist?
+			if (!connection.TableExists(tableName))
+				throw new DatabaseException("Table '" + tableName + "' does not exist.");
+
+			// Add the from table direct source for this table
+			ITableQueryDef table_query_def = connection.GetTableQueryDef(tableName, null);
+			AddTable(new FromTableDirectSource(connection.IsInCaseInsensitiveMode, table_query_def, "INSERT_TABLE", tableName, tableName));
+
+			// Get the table we are inserting to
+			DataTable insert_table = connection.GetTable(tableName);
+
+			ArrayList col_list = new ArrayList(columns);
+
+			// If 'col_list' is empty we must pick every entry from the insert
+			// table.
+			if (col_list.Count == 0) {
+				for (int i = 0; i < insert_table.ColumnCount; ++i) {
+					col_list.Add(insert_table.GetColumnDef(i).Name);
+				}
+			}
+			// Resolve 'col_list' into a list of column indices into the insert
+			// table.
+			int[] col_index_list = new int[col_list.Count];
+			VariableName[] col_var_list = new VariableName[col_list.Count];
+			for (int i = 0; i < col_list.Count; ++i) {
+				VariableName in_var = VariableName.Resolve((String)col_list[i]);
+				VariableName col = ResolveColumn(in_var);
+				int index = insert_table.FastFindFieldName(col);
+				if (index == -1) {
+					throw new DatabaseException("Can't find column: " + col);
+				}
+				col_index_list[i] = index;
+				col_var_list[i] = col;
+			}
+
+			// If values to insert is different from columns list,
+			if (col_list.Count != ((IList)values[0]).Count)
+				throw new DatabaseException("Number of columns to insert is different from columns selected to insert to.");
+
+			// Resolve all expressions in the added list.
+			// For each value
+			for (int i = 0; i < values.Count; ++i) {
+				// Each value is a list of either expressions or "DEFAULT"
+				IList insert_elements = (IList)values[i];
+				int sz = insert_elements.Count;
+				for (int n = 0; n < sz; ++n) {
+					object elem = insert_elements[n];
+					if (elem is Expression) {
+						Expression exp = (Expression)elem;
+						IList elem_list = exp.AllElements;
+						for (int p = 0; p < elem_list.Count; ++p) {
+							object ob = elem_list[p];
+							if (ob is SelectStatement)
+								throw new DatabaseException("Illegal to have sub-select in expression.");
+						}
+						// Resolve the expression.
+						ResolveExpression(exp);
+					}
+				}
+			}
+
+			// Resolve all tables linked to this
+			TableName[] linked_tables = connection.QueryTablesRelationallyLinkedTo(tableName);
+			ArrayList relationallyLinkedTables = new ArrayList(linked_tables.Length);
+			for (int i = 0; i < linked_tables.Length; ++i)
+				relationallyLinkedTables.Add(connection.GetTable(linked_tables[i]));
+
+
+			// Check that this user has privs to insert into the table.
+			if (!connection.Database.CanUserInsertIntoTableObject(context, User, tableName, col_var_list))
+				throw new UserAccessException("User not permitted to insert in to table: " + tableName);
+
+			// Are we inserting from a select statement or from a 'set' assignment
+			// list?
+			int insert_count = 0;
+
+			// Set each row from the VALUES table,
+			for (int i = 0; i < values.Count; ++i) {
+				IList insert_elements = (IList)values[i];
+				DataRow dataRow = insert_table.NewRow();
+				dataRow.SetupEntire(col_index_list, insert_elements, context);
+				insert_table.Add(dataRow);
+				++insert_count;
+			}
+
+			// Notify TriggerManager that we've just done an update.
+			if (insert_count > 0)
+				connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Insert, tableName.ToString(), insert_count));
+
+			return insert_count;
+		}
+
+		#endregion
+
+		#region Update
+
+		private int UpdateImpl(TableName tableName, Assignment[] assignments, Expression searchExpression, int limit) {
+			// Does the table exist?
+			if (!connection.TableExists(tableName))
+				throw new DatabaseException("Table '" + tableName + "' does not exist.");
+
+			// Get the table we are updating
+			DataTable updateTable = connection.GetTable(tableName);
+
+			// Form a TableSelectExpression that represents the select on the table
+			TableSelectExpression select_expression = new TableSelectExpression();
+			// Create the FROM clause
+			select_expression.From.AddTable(tableName.ToString());
+			// Set the WHERE clause
+			select_expression.Where = new SearchExpression(searchExpression);
+
+			// Generate the TableExpressionFromSet hierarchy for the expression,
+			TableExpressionFromSet from_set = Planner.GenerateFromSet(select_expression, connection);
+			// Form the plan
+			IQueryPlanNode plan = Planner.FormQueryPlan(connection, select_expression, from_set, null);
+
+			// Resolve the variables in the assignments.
+			for (int i = 0; i < assignments.Length; ++i) {
+				Assignment assignment = assignments[i];
+				VariableName orig_var = assignment.VariableName;
+				VariableName new_var = from_set.ResolveReference(orig_var);
+				if (new_var == null)
+					throw new StatementException("Reference not found: " + orig_var);
+
+				orig_var.Set(new_var);
+				((IStatementTreeObject)assignment).PrepareExpressions(from_set.ExpressionQualifier);
+			}
+
+			// Resolve all tables linked to this
+			TableName[] linked_tables = connection.QueryTablesRelationallyLinkedTo(tableName);
+			ArrayList relationallyLinkedTables = new ArrayList(linked_tables.Length);
+			for (int i = 0; i < linked_tables.Length; ++i) {
+				relationallyLinkedTables.Add(connection.GetTable(linked_tables[i]));
+			}
+
+			// Generate a list of Variable objects that represent the list of columns
+			// being changed.
+			VariableName[] col_var_list = new VariableName[assignments.Length];
+			for (int i = 0; i < col_var_list.Length; ++i) {
+				Assignment assign = assignments[i];
+				col_var_list[i] = assign.VariableName;
+			}
+
+			// Check that this user has privs to update the table.
+			if (!connection.Database.CanUserUpdateTableObject(context, connection.User, tableName, col_var_list))
+				throw new UserAccessException("User not permitted to update table: " + tableName);
+
+			// Make an array of assignments
+			Assignment[] assign_list = new Assignment[assignments.Length];
+			assignments.CopyTo(assign_list, 0);
+
+			// Check the user has select permissions on the tables in the plan.
+			CheckUserSelectPermissions(plan);
+
+			// Evaluate the plan to find the update set.
+			Table update_set = plan.Evaluate(context);
+
+			// Update the data table.
+			int update_count = updateTable.Update(context, update_set, assign_list, limit);
+
+			// Notify TriggerManager that we've just done an update.
+			if (update_count > 0)
+				connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Update, tableName.ToString(), update_count));
+
+			return update_count;
+		}
+
+		#endregion
+
+		#region Transactions
+
+		private void CommitImpl() {
+			connection.Commit();
+		}
+
+		private void RollbackImpl() {
+			connection.Rollback();
+		}
+
+		#endregion
+
+		#endregion
+
+		private void OnCommandExecuting(DirectCommand command) {
+			if (CommandExecuting != null)
+				CommandExecuting(this, new DirectCommandEventArgs(command.CommandType, command.ToArgsArray()));
+		}
+
+		private void OnCommandExecuted(DirectCommand command, object result) {
+			if (CommandExecuted != null)
+				CommandExecuted(this, new DirectCommandEventArgs(command.CommandType, command.ToArgsArray(), result));
+		}
+
+		private void OnCommandError(DirectCommand command, Exception error) {
+			if (CommandError != null)
+				CommandError(this, new DirectCommandEventArgs(command.CommandType, command.ToArgsArray(), error));
+		}
+
+		private delegate object CommandDelegate(DirectCommand command);
+
+		public IAsyncResult BeginExecuteCommand(DirectCommand command, AsyncCallback callback, object state) {
+			CommandDelegate del = new CommandDelegate(ExecuteCommand);
+			return del.BeginInvoke(command, callback, state);
+		}
+
+		public object EndExecuteCommand(IAsyncResult result) {
+			CommandDelegate del = (CommandDelegate) result.AsyncState;
+			return del.EndInvoke(result);
+		}
 
 		public object ExecuteCommand(DirectCommand command) {
 			LockingMechanism locker = connection.LockingMechanism;
@@ -496,11 +1138,17 @@ namespace Deveel.Data.Control {
 					lock_mode = LockingMode.Exclusive;
 					locker.SetMode(lock_mode);
 
+					OnCommandExecuting(command);
+
 					response = ExecuteCommandImpl(command);
+
+					OnCommandExecuted(command, response);
 
 					// Return the result.
 					return response;
-
+				} catch (Exception e) {
+					OnCommandError(command, e);
+					throw;
 				} finally {
 					try {
 						// This is executed no matter what happens.  Very important we
@@ -545,6 +1193,8 @@ namespace Deveel.Data.Control {
 				}
 			}
 		}
+
+		#region Private Util Methods
 
 		private bool CheckColumnNamesMatch(string col1, String col2) {
 			return String.Compare(col1, col2, connection.IsInCaseInsensitiveMode) == 0;
@@ -661,6 +1311,8 @@ namespace Deveel.Data.Control {
 			table_list.Add(table);
 		}
 
+		#endregion
+
 
 		#region Schemata Management
 
@@ -718,110 +1370,25 @@ namespace Deveel.Data.Control {
 			return (int) ExecuteCommand(new DirectCommand(DirectCommandType.DropTables, "table_names", tableNames, "only_if_exist", onlyIfExist));
 		}
 
+		public bool DropTable(TableName tableName, bool onlyIfExists) {
+			return DropTables(new TableName[] {tableName}, onlyIfExists) != 1;
+		}
+
 		#endregion
 
 		#region Views Management
 
 		public void CreateView(TableName name, string[] columnNames, TableSelectExpression selectExpression) {
-			// Generate the TableExpressionFromSet hierarchy for the expression,
-			TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, connection);
-			// Form the plan
-			IQueryPlanNode plan = Planner.FormQueryPlan(connection, selectExpression, from_set, new ArrayList());
+			ExecuteCommand(new DirectCommand(DirectCommandType.CreateView, "name", name, "columns", columnNames, "select",
+			                                 selectExpression));
+		}
 
-			// Wrap the result around a SubsetNode to alias the columns in the
-			// table correctly for this view.
-			int sz = (columnNames == null) ? 0 : columnNames.Length;
-			VariableName[] original_vars = from_set.GenerateResolvedVariableList();
-			VariableName[] new_column_vars = new VariableName[original_vars.Length];
-
-			if (sz > 0) {
-				if (sz != original_vars.Length)
-					throw new StatementException("Column list is not the same size as the columns selected.");
-
-				for (int i = 0; i < sz; ++i) {
-					String col_name = columnNames[i];
-					new_column_vars[i] = new VariableName(name, col_name);
-				}
-			} else {
-				sz = original_vars.Length;
-				for (int i = 0; i < sz; ++i) {
-					new_column_vars[i] = new VariableName(name, original_vars[i].Name);
-				}
-			}
-
-			// Check there are no repeat column names in the table.
-			for (int i = 0; i < sz; ++i) {
-				VariableName cur_v = new_column_vars[i];
-				for (int n = i + 1; n < sz; ++n) {
-					if (new_column_vars[n].Equals(cur_v)) {
-						throw new DatabaseException("Duplicate column name '" + cur_v + "' in view.  " +
-													"A view may not contain duplicate column names.");
-					}
-				}
-			}
-
-			// Wrap the plan around a SubsetNode plan
-			plan = new QueryPlan.SubsetNode(plan, original_vars, new_column_vars);
-
-			// Does the user have privs to create this tables?
-			if (!connection.Database.CanUserCreateTableObject(context, connection.User, name))
-				throw new UserAccessException("User not permitted to create view: " + name);
-
-			// Does the schema exist?
-			bool ignore_case = connection.IsInCaseInsensitiveMode;
-			SchemaDef schema = connection.ResolveSchemaCase(name.Schema, ignore_case);
-			if (schema == null)
-				throw new DatabaseException("Schema '" + name.Schema + "' doesn't exist.");
-			
-			name = new TableName(schema.Name, name.Name);
-
-			// Check the permissions for this user to select from the tables in the
-			// given plan.
-			CheckUserSelectPermissions(plan);
-
-			// Does the table already exist?
-			if (connection.TableExists(name))
-				throw new DatabaseException("View or table with name '" + name + "' already exists.");
-
-			// Before evaluation, make a clone of the plan,
-			IQueryPlanNode plan_copy;
-			try {
-				plan_copy = (IQueryPlanNode)plan.Clone();
-			} catch (Exception e) {
-				connection.Debug.WriteException(e);
-				throw new DatabaseException("Clone error: " + e.Message);
-			}
-
-			// We have to execute the plan to get the DataTableDef that represents the
-			// result of the view execution.
-			Table t = plan.Evaluate(context);
-			DataTableDef data_table_def = new DataTableDef(t.DataTableDef);
-			data_table_def.TableName = name;
-
-			// Create a ViewDef object,
-			ViewDef view_def = new ViewDef(data_table_def, plan_copy);
-
-			// And create the view object,
-			//TODO: check the .ToString() method to return the correct SQL syntax...
-			connection.CreateView(new SqlQuery(selectExpression.ToString()), view_def);
-
-			// The initial grants for a view is to give the user who created it
-			// full access.
-			connection.GrantManager.Grant(
-				 Privileges.TableAll, GrantObject.Table, name.ToString(),
-				 connection.User.UserName, true, Database.InternalSecureUsername);
+		public void CreateView(TableName name, TableSelectExpression selectExpression) {
+			CreateView(name, null, selectExpression);
 		}
 
 		public void DropView(TableName name) {
-			// Does the user have privs to drop this tables?
-			if (!connection.Database.CanUserDropTableObject(context, connection.User, name))
-				throw new UserAccessException("User not permitted to drop view: " + name);
-
-			// Drop the view object
-			connection.DropView(name);
-
-			// Drop the grants for this object
-			connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, name.ToString());
+			ExecuteCommand(new DirectCommand(DirectCommandType.DropView, "name", name));
 		}
 
 		#endregion
@@ -829,46 +1396,21 @@ namespace Deveel.Data.Control {
 		#region Triggers Management
 
 		public void CreateCallbackTrigger(string name, TableName tableName, TriggerEventType eventType) {
-			connection.CreateTrigger(name, tableName.ToString(), eventType);
+			ExecuteCommand(new DirectCommand(DirectCommandType.CreateTrigger, "name", name, "table_name", tableName, "event_type",
+			                                 eventType));
 		}
 
 		public void DropCallbackTrigger(string name) {
-			connection.DeleteTrigger(name);
+			ExecuteCommand(new DirectCommand(DirectCommandType.DropTrigger, "name", name));
 		}
 
 		public void CreateProcedureTrigger(TableName name, TableName tableName, TriggerEventType eventType, ProcedureName procedureName, Expression[] args) {
-			// Get the procedure manager
-			ProcedureManager proc_manager = connection.ProcedureManager;
-
-			// Check the trigger name doesn't clash with any existing database object.
-			if (connection.TableExists(name))
-				throw new DatabaseException("A database object with name '" + name + "' already exists.");
-
-			// Check the procedure exists.
-			if (!proc_manager.ProcedureExists(procedureName))
-				throw new DatabaseException("Procedure '" + procedureName + "' could not be found.");
-
-			// Resolve the procedure arguments,
-			TObject[] vals = new TObject[args.Length];
-			for (int i = 0; i < args.Length; ++i)
-				vals[i] = args[i].Evaluate(null, null, context);
-
-			// Create the trigger,
-			ConnectionTriggerManager manager = connection.ConnectionTriggerManager;
-			manager.CreateTableTrigger(name.Schema, name.Name, eventType, tableName, procedureName.ToString(), vals);
-
-			// The initial grants for a trigger is to give the user who created it
-			// full access.
-			connection.GrantManager.Grant(Privileges.ProcedureAll, GrantObject.Table, name.ToString(), connection.User.UserName,
-			                              true, Database.InternalSecureUsername);
+			ExecuteCommand(new DirectCommand(DirectCommandType.CreateTrigger, "name", name, "table_name", tableName, "event_type",
+			                                 eventType, "procedure", procedureName, "args", args));
 		}
 
 		public void DropProcedureTrigger(TableName name) {
-			ConnectionTriggerManager manager = connection.ConnectionTriggerManager;
-			manager.DropTrigger(name.Schema, name.Name);
-
-			// Drop the grants for this object
-			connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, name.ToString());
+			ExecuteCommand(new DirectCommand(DirectCommandType.DropTrigger, "name", name));
 		}
 
 		#endregion
@@ -876,28 +1418,7 @@ namespace Deveel.Data.Control {
 		#region Procedures Management
 
 		public TObject Call(ProcedureName procedureName, Expression[] args) {
-			ProcedureManager manager = connection.ProcedureManager;
-
-			// If this doesn't exist then generate the error
-			if (!manager.ProcedureExists(procedureName))
-				throw new DatabaseException("Stored procedure '" + procedureName + "' was not found.");
-
-			// Check the user has privs to use this stored procedure
-			if (!connection.Database.CanUserExecuteStoredProcedure(context, connection.User, procedureName.ToString()))
-				throw new UserAccessException("User not permitted to call: " + procedureName);
-
-			// Evaluate the arguments
-			TObject[] vals = new TObject[args.Length];
-			for (int i = 0; i < args.Length; ++i) {
-				if (args[i].IsConstant) {
-					vals[i] = args[i].Evaluate(null, null, context);
-				} else {
-					throw new StatementException("CALL argument is not a constant: " + args[i].Text);
-				}
-			}
-
-			// Invoke the procedure
-			return manager.InvokeProcedure(procedureName, vals);
+			return (TObject) ExecuteCommand(new DirectCommand(DirectCommandType.Call, "name", procedureName, "args", args));
 		}
 
 		#endregion
@@ -905,48 +1426,7 @@ namespace Deveel.Data.Control {
 		#region Select
 
 		public Table Select(TableSelectExpression selectExpression, ByColumn[] orderBy) {
-			// check to see if the construct is the special one for
-			// selecting the latest IDENTITY value from a table
-			if (IsIdentitySelect(selectExpression)) {
-				selectExpression.Columns.RemoveAt(0);
-				SelectColumn curValFunction = new SelectColumn();
-
-				FromTable from_table = (FromTable)((ArrayList)selectExpression.From.AllTables)[0];
-				curValFunction.SetExpression(Expression.Parse("IDENTITY('" + from_table.Name + "')"));
-				curValFunction.SetAlias("IDENTITY");
-				selectExpression.Columns.Add(curValFunction);
-			}
-
-			// Generate the TableExpressionFromSet hierarchy for the expression,
-			TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, connection);
-
-			// Form the plan
-			IQueryPlanNode plan = Planner.FormQueryPlan(connection, selectExpression, from_set, orderBy);
-
-			// Check the permissions for this user to select from the tables in the
-			// given plan.
-			CheckUserSelectPermissions(plan);
-
-			bool error = true;
-			try {
-				Table t = plan.Evaluate(context);
-
-				if (selectExpression.Into.HasElements)
-					t = selectExpression.Into.SelectInto(context, t);
-
-				error = false;
-				return t;
-			} finally {
-				// If an error occured, dump the command plan to the debug log.
-				// Or just dump the command plan if debug level = Information
-				if (connection.Debug.IsInterestedIn(DebugLevel.Information) ||
-					(error && connection.Debug.IsInterestedIn(DebugLevel.Warning))) {
-					StringBuilder buf = new StringBuilder();
-					plan.DebugString(0, buf);
-
-					connection.Debug.Write(DebugLevel.Warning, this, "Query Plan debug:\n" + buf);
-				}
-			}
+			return (Table) ExecuteCommand(new DirectCommand(DirectCommandType.Select, "expression", selectExpression, "order_by", orderBy));
 		}
 
 		public Table Select(TableSelectExpression selectExpression) {
@@ -958,60 +1438,7 @@ namespace Deveel.Data.Control {
 		#region Insert
 
 		public void Insert(TableName tableName, Assignment[] assignments) {
-			// Does the table exist?
-			if (!connection.TableExists(tableName))
-				throw new DatabaseException("Table '" + tableName + "' does not exist.");
-
-			VariableName[] col_var_list = new VariableName[assignments.Length];
-			for (int i = 0; i < assignments.Length; i++)
-				col_var_list[i] = ResolveColumn(assignments[i].VariableName);
-
-			// Add the from table direct source for this table
-			ITableQueryDef table_query_def = connection.GetTableQueryDef(tableName, null);
-			AddTable(new FromTableDirectSource(connection.IsInCaseInsensitiveMode, table_query_def, "INSERT_TABLE", tableName, tableName));
-
-			// Get the table we are inserting to
-			DataTable insert_table = connection.GetTable(tableName);
-
-			// If there's a sub select in an expression in the 'SET' clause then
-			// throw an error.
-			for (int i = 0; i < assignments.Length; ++i) {
-				Assignment assignment = assignments[i];
-				Expression exp = assignment.Expression;
-				IList elem_list = exp.AllElements;
-				for (int n = 0; n < elem_list.Count; ++n) {
-					object ob = elem_list[n];
-					if (ob is SelectStatement) {
-						throw new DatabaseException("Illegal to have sub-select in SET clause.");
-					}
-				}
-
-				// Resolve the column names in the columns set.
-				VariableName v = assignment.VariableName;
-				VariableName resolved_v = ResolveColumn(v);
-				v.Set(resolved_v);
-				ResolveExpression(assignment.Expression);
-			}
-
-			// Resolve all tables linked to this
-			TableName[] linked_tables = connection.QueryTablesRelationallyLinkedTo(tableName);
-			ArrayList relationallyLinkedTables = new ArrayList(linked_tables.Length);
-			for (int i = 0; i < linked_tables.Length; ++i)
-				relationallyLinkedTables.Add(connection.GetTable(linked_tables[i]));
-
-			// Check that this user has privs to insert into the table.
-			if (!connection.Database.CanUserInsertIntoTableObject(context, User, tableName, col_var_list))
-				throw new UserAccessException("User not permitted to insert in to table: " + tableName);
-
-			// Insert rows from the set assignments.
-			DataRow dataRow = insert_table.NewRow();
-			Assignment[] assigns = new Assignment[assignments.Length];
-			assignments.CopyTo(assigns, 0);
-			dataRow.SetupEntire(assigns, context);
-			insert_table.Add(dataRow);
-
-			// Notify TriggerManager that we've just done an update.
-			connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Insert, tableName.ToString(), 1));
+			ExecuteCommand(new DirectCommand(DirectCommandType.Insert, "table_name", tableName, "assignments", assignments));
 		}
 
 		public int Insert(TableName tableName, IList values) {
@@ -1019,107 +1446,8 @@ namespace Deveel.Data.Control {
 		}
 
 		public int Insert(TableName tableName, string[] columns, IList values) {
-			// Check 'values_list' contains all same size size insert element arrays.
-			int first_len = -1;
-			for (int n = 0; n < values.Count; ++n) {
-				IList exp_list = (IList)values[n];
-				if (first_len == -1 || first_len == exp_list.Count) {
-					first_len = exp_list.Count;
-				} else {
-					throw new DatabaseException("The insert data list varies in size.");
-				}
-			}
-
-			// Does the table exist?
-			if (!connection.TableExists(tableName))
-				throw new DatabaseException("Table '" + tableName + "' does not exist.");
-
-			// Add the from table direct source for this table
-			ITableQueryDef table_query_def = connection.GetTableQueryDef(tableName, null);
-			AddTable(new FromTableDirectSource(connection.IsInCaseInsensitiveMode, table_query_def, "INSERT_TABLE", tableName, tableName));
-
-			// Get the table we are inserting to
-			DataTable insert_table = connection.GetTable(tableName);
-
-			ArrayList col_list = new ArrayList(columns);
-
-			// If 'col_list' is empty we must pick every entry from the insert
-			// table.
-			if (col_list.Count == 0) {
-				for (int i = 0; i < insert_table.ColumnCount; ++i) {
-					col_list.Add(insert_table.GetColumnDef(i).Name);
-				}
-			}
-			// Resolve 'col_list' into a list of column indices into the insert
-			// table.
-			int[] col_index_list = new int[col_list.Count];
-			VariableName[] col_var_list = new VariableName[col_list.Count];
-			for (int i = 0; i < col_list.Count; ++i) {
-				VariableName in_var = VariableName.Resolve((String)col_list[i]);
-				VariableName col = ResolveColumn(in_var);
-				int index = insert_table.FastFindFieldName(col);
-				if (index == -1) {
-					throw new DatabaseException("Can't find column: " + col);
-				}
-				col_index_list[i] = index;
-				col_var_list[i] = col;
-			}
-
-			// If values to insert is different from columns list,
-			if (col_list.Count != ((IList)values[0]).Count)
-				throw new DatabaseException("Number of columns to insert is different from columns selected to insert to.");
-
-			// Resolve all expressions in the added list.
-			// For each value
-			for (int i = 0; i < values.Count; ++i) {
-				// Each value is a list of either expressions or "DEFAULT"
-				IList insert_elements = (IList)values[i];
-				int sz = insert_elements.Count;
-				for (int n = 0; n < sz; ++n) {
-					object elem = insert_elements[n];
-					if (elem is Expression) {
-						Expression exp = (Expression)elem;
-						IList elem_list = exp.AllElements;
-						for (int p = 0; p < elem_list.Count; ++p) {
-							object ob = elem_list[p];
-							if (ob is SelectStatement)
-								throw new DatabaseException("Illegal to have sub-select in expression.");
-						}
-						// Resolve the expression.
-						ResolveExpression(exp);
-					}
-				}
-			}
-
-			// Resolve all tables linked to this
-			TableName[] linked_tables = connection.QueryTablesRelationallyLinkedTo(tableName);
-			ArrayList relationallyLinkedTables = new ArrayList(linked_tables.Length);
-			for (int i = 0; i < linked_tables.Length; ++i)
-				relationallyLinkedTables.Add(connection.GetTable(linked_tables[i]));
-
-
-			// Check that this user has privs to insert into the table.
-			if (!connection.Database.CanUserInsertIntoTableObject(context, User, tableName, col_var_list))
-				throw new UserAccessException("User not permitted to insert in to table: " + tableName);
-
-			// Are we inserting from a select statement or from a 'set' assignment
-			// list?
-			int insert_count = 0;
-
-			// Set each row from the VALUES table,
-			for (int i = 0; i < values.Count; ++i) {
-				IList insert_elements = (IList)values[i];
-				DataRow dataRow = insert_table.NewRow();
-				dataRow.SetupEntire(col_index_list, insert_elements, context);
-				insert_table.Add(dataRow);
-				++insert_count;
-			}
-
-			// Notify TriggerManager that we've just done an update.
-			if (insert_count > 0)
-				connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Insert, tableName.ToString(), insert_count));
-
-			return insert_count;
+			return (int) ExecuteCommand(new DirectCommand(DirectCommandType.Insert, "table_name", tableName, "columns", columns,
+			                                              "values", values));
 		}
 
 		#endregion
@@ -1127,52 +1455,8 @@ namespace Deveel.Data.Control {
 		#region Delete
 
 		public int Delete(TableName tableName, Expression searchExpression, int limit) {
-			// Does the table exist?
-			if (!connection.TableExists(tableName))
-				throw new DatabaseException("Table '" + tableName + "' does not exist.");
-
-			// Form a TableSelectExpression that represents the select on the table
-			TableSelectExpression selectExpression = new TableSelectExpression();
-			// Create the FROM clause
-			selectExpression.From.AddTable(tableName.ToString());
-			// Set the WHERE clause
-			selectExpression.Where = new SearchExpression(searchExpression);
-
-			// Generate the TableExpressionFromSet hierarchy for the expression,
-			TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, connection);
-			// Form the plan
-			IQueryPlanNode plan = Planner.FormQueryPlan(connection, selectExpression, from_set, null);
-
-			// Get the table we are updating
-			DataTable updateTable = connection.GetTable(tableName);
-
-			// Resolve all tables linked to this
-			TableName[] linked_tables = connection.QueryTablesRelationallyLinkedTo(tableName);
-			ArrayList relationallyLinkedTables = new ArrayList(linked_tables.Length);
-			for (int i = 0; i < linked_tables.Length; ++i) {
-				relationallyLinkedTables.Add(connection.GetTable(linked_tables[i]));
-			}
-
-			// Check that this user has privs to delete from the table.
-			if (!connection.Database.CanUserDeleteFromTableObject(context, connection.User, tableName))
-				throw new UserAccessException("User not permitted to delete from table: " + tableName);
-
-			// Check the user has select permissions on the tables in the plan.
-			CheckUserSelectPermissions(plan);
-
-			// Evaluates the delete statement...
-
-			// Evaluate the plan to find the update set.
-			Table delete_set = plan.Evaluate(context);
-
-			// Delete from the data table.
-			int delete_count = updateTable.Delete(delete_set, limit);
-
-			// Notify TriggerManager that we've just done an update.
-			if (delete_count > 0)
-				connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Delete, tableName.ToString(), delete_count));
-
-			return delete_count;
+			return (int)ExecuteCommand(new DirectCommand(DirectCommandType.Delete, "table_name", tableName, "search_expression",
+				                                 searchExpression, "limit", limit));
 		}
 
 		public int Delete(TableName tableName, Expression searchExpression) {
@@ -1184,74 +1468,8 @@ namespace Deveel.Data.Control {
 		#region Update
 
 		public int Update(TableName tableName, Assignment[] assignments, Expression searchExpression, int limit) {
-			// Does the table exist?
-			if (!connection.TableExists(tableName))
-				throw new DatabaseException("Table '" + tableName + "' does not exist.");
-
-			// Get the table we are updating
-			DataTable updateTable = connection.GetTable(tableName);
-
-			// Form a TableSelectExpression that represents the select on the table
-			TableSelectExpression select_expression = new TableSelectExpression();
-			// Create the FROM clause
-			select_expression.From.AddTable(tableName.ToString());
-			// Set the WHERE clause
-			select_expression.Where = new SearchExpression(searchExpression);
-
-			// Generate the TableExpressionFromSet hierarchy for the expression,
-			TableExpressionFromSet from_set = Planner.GenerateFromSet(select_expression, connection);
-			// Form the plan
-			IQueryPlanNode plan = Planner.FormQueryPlan(connection, select_expression, from_set, null);
-
-			// Resolve the variables in the assignments.
-			for (int i = 0; i < assignments.Length; ++i) {
-				Assignment assignment = assignments[i];
-				VariableName orig_var = assignment.VariableName;
-				VariableName new_var = from_set.ResolveReference(orig_var);
-				if (new_var == null)
-					throw new StatementException("Reference not found: " + orig_var);
-
-				orig_var.Set(new_var);
-				((IStatementTreeObject)assignment).PrepareExpressions(from_set.ExpressionQualifier);
-			}
-
-			// Resolve all tables linked to this
-			TableName[] linked_tables = connection.QueryTablesRelationallyLinkedTo(tableName);
-			ArrayList relationallyLinkedTables = new ArrayList(linked_tables.Length);
-			for (int i = 0; i < linked_tables.Length; ++i) {
-				relationallyLinkedTables.Add(connection.GetTable(linked_tables[i]));
-			}
-
-			// Generate a list of Variable objects that represent the list of columns
-			// being changed.
-			VariableName[] col_var_list = new VariableName[assignments.Length];
-			for (int i = 0; i < col_var_list.Length; ++i) {
-				Assignment assign = assignments[i];
-				col_var_list[i] = assign.VariableName;
-			}
-
-			// Check that this user has privs to update the table.
-			if (!connection.Database.CanUserUpdateTableObject(context, connection.User, tableName, col_var_list))
-				throw new UserAccessException("User not permitted to update table: " + tableName);
-
-			// Make an array of assignments
-			Assignment[] assign_list = new Assignment[assignments.Length];
-			assignments.CopyTo(assign_list, 0);
-
-			// Check the user has select permissions on the tables in the plan.
-			CheckUserSelectPermissions(plan);
-
-			// Evaluate the plan to find the update set.
-			Table update_set = plan.Evaluate(context);
-
-			// Update the data table.
-			int update_count = updateTable.Update(context, update_set, assign_list, limit);
-
-			// Notify TriggerManager that we've just done an update.
-			if (update_count > 0)
-				connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Update, tableName.ToString(), update_count));
-
-			return update_count;
+			return (int)ExecuteCommand(new DirectCommand(DirectCommandType.Update, "table_name", tableName, "assignments", assignments,
+				                                 "search_expression", searchExpression, "limit", limit));
 		}
 
 		public int Update(TableName tableName, Assignment[] assignments, Expression searchExpression) {
@@ -1263,15 +1481,19 @@ namespace Deveel.Data.Control {
 		#region Transaction
 
 		public void Commit() {
-			connection.Commit();
+			ExecuteCommand(new DirectCommand(DirectCommandType.Commit));
 		}
 
 		public void Rollback() {
-			connection.Rollback();
+			ExecuteCommand(new DirectCommand(DirectCommandType.Rollback));
 		}
 
 		public void SetAutoCommit(bool state) {
 			connection.AutoCommit = state;
+		}
+
+		public void SetDefaultSchema(string schema) {
+			connection.SetDefaultSchema(schema);
 		}
 
 		#endregion

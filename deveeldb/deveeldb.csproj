@@ -86,8 +86,11 @@
     <Compile Include="Deveel.Data.Client\DatabaseMetadata.cs" />
     <Compile Include="Deveel.Data.Client\TriggerEventArgs.cs" />
     <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
-    <Compile Include="Deveel.Data.Control\DbDirectAccess.cs" />
+    <Compile Include="Deveel.Data.Control\DbDirectAccess.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Control\DirectCommand.cs" />
+    <Compile Include="Deveel.Data.Control\DirectCommandEventArgs.cs" />
     <Compile Include="Deveel.Data.Control\DirectCommandType.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\ArithmeticFunctionFactory.cs" />
