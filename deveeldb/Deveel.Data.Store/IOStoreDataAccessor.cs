@@ -63,7 +63,7 @@ namespace Deveel.Data.Store {
 
 		public void Open(bool is_read_only) {
 			lock (l) {
-				data = new FileStream(file, FileMode.OpenOrCreate, is_read_only ? FileAccess.Read : FileAccess.ReadWrite);
+				data = new FileStream(file, FileMode.OpenOrCreate, is_read_only ? FileAccess.Read : FileAccess.ReadWrite, FileShare.ReadWrite, 1024, FileOptions.WriteThrough);
 				size = data.Length;
 				is_open = true;
 			}
@@ -154,7 +154,7 @@ namespace Deveel.Data.Store {
 			lock (l) {
 				try {
 					data.Flush();
-					FSync.Sync(data);
+					// FSync.Sync(data);
 				} catch (SyncFailedException) {
 					// There isn't much we can do about this exception.  By itself it
 					// doesn't indicate a terminating error so it's a good idea to ignore

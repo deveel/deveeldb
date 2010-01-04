@@ -121,6 +121,7 @@
     <Compile Include="Deveel.Data.Procedures\StoredProcedure.cs" />
     <Compile Include="Deveel.Data.Procedures\ProcedureBody.cs" />
     <Compile Include="Deveel.Data.Server\ClientConnectionState.cs" />
+    <Compile Include="Deveel.Data.Server\EmbeddedProcessor.cs" />
     <Compile Include="Deveel.Data.Server\Processor.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTypeStatement.cs" />

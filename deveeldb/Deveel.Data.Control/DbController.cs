@@ -305,7 +305,7 @@ namespace Deveel.Data.Control {
 		/// <exception cref="InvalidOperationException">
 		/// If an error occurred while initializing the database.
 		/// </exception>
-		public DbSystem CreateDatabase(IDbConfig config, string name, String adminUser, String adminPass) {
+		public DbSystem CreateDatabase(IDbConfig config, string name, string adminUser, string adminPass) {
 			if (name == null)
 				throw new ArgumentNullException("name");
 
