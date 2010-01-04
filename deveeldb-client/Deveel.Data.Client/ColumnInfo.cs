@@ -66,6 +66,7 @@ namespace Deveel.Data.Client {
 
 		private static DeveelDbType ConvertFromDbType(int value) {
 			switch(value) {
+				case -1: case 0: return DeveelDbType.Unknown;
 				case 1: return DeveelDbType.String;
 				case 2: return DeveelDbType.Number;
 				case 3: return DeveelDbType.Time;

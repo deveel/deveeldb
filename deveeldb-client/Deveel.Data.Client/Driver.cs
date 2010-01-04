@@ -32,17 +32,11 @@ using System.Threading;
 using Deveel.Math;
 
 namespace Deveel.Data.Client {
-	internal class Driver {
-		private Driver(Stream stream, int queryTimeout) {
-			this.stream = stream;
-			input = new BinaryReader(new BufferedStream(stream, 32768));
-			output = new BinaryWriter(new BufferedStream(stream, 32768));
+	internal abstract class Driver {
+		protected Driver(int queryTimeout) {
 			this.queryTimeout = queryTimeout;
 		}
 
-		private readonly BinaryReader input;
-		private readonly BinaryWriter output;
-		private Stream stream;
 		private bool closed;
 		private Version serverVersion;
 		private readonly int queryTimeout;
@@ -61,26 +55,15 @@ namespace Deveel.Data.Client {
 			get { return Assembly.GetCallingAssembly().GetName().Version; }
 		}
 
+		protected bool IsClosed {
+			get { return closed; }
+		}
+
 		#region Commands
 
-		private void WriteCommand(byte[] command, int offset, int size) {
-			if (closed)
-				throw new InvalidOperationException();
+		protected abstract void WriteCommand(byte[] command, int offset, int size);
 
-			output.Write(size);
-			output.Write(command, offset, size);
-			output.Flush();
-		}
-
-		private byte[] ReadNextCommand(int timeout) {
-			if (closed)
-				throw new InvalidOperationException();
-
-			int size = input.ReadInt32();
-			byte[] buffer = new byte[size];
-			input.Read(buffer, 0, size);
-			return buffer;
-		}
+		protected abstract byte[] ReadNextCommand(int timeout);
 
 		private int CloseCommand() {
 			lock (this) {
@@ -225,6 +208,9 @@ namespace Deveel.Data.Client {
 		}
 
 		private ServerStatus SendCredentials(string schema, string user, string pass) {
+			if (schema == null || schema.Length == 0)
+				schema = user;
+
 			MemoryStream tempStream = new MemoryStream();
 			BinaryWriter writer = new BinaryWriter(tempStream);
 			writer.Write(schema);
@@ -277,7 +263,7 @@ namespace Deveel.Data.Client {
 				if (serverResponse == null)
 					throw new DeveelDbException("Query timed output after " + command.CommandTimeout + " seconds.");
 
-				BinaryReader reader = new BinaryReader(serverResponse.GetStream());
+				BinaryReader reader = new BinaryReader(serverResponse.GetStream(), Encoding.Unicode);
 
 				ServerStatus status = serverResponse.Status;
 				if (status == ServerStatus.Success)
@@ -408,6 +394,8 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		protected abstract void Dispose();
+
 		public void Close() {
 			int dispatchId = CloseCommand();
 			ServerResponse response = GetResponse(dispatchId);
@@ -416,10 +404,8 @@ namespace Deveel.Data.Client {
 			}
 
 			try {
-				output.Flush();
+				Dispose();
 			} finally {
-				stream.Close();
-				stream = null;
 				closed = true;
 			}
 		}
@@ -545,7 +531,7 @@ namespace Deveel.Data.Client {
 		}
 
 		internal static int SizeOf(object ob) {
-			if (ob == null)
+			if (ob == null || ob == DBNull.Value)
 				return 9;
 			if (ob is DeveelDbString)
 				return (ob.ToString().Length * 2) + 9;
@@ -798,7 +784,7 @@ namespace Deveel.Data.Client {
 			return lobStreams[objectRef.Id] as Stream;
 		}
 
-		public static Driver Create(string host, int port, int timeout) {
+		public static Driver CreateRemote(string host, int port, int timeout) {
 			Stream stream;
 
 			try {
@@ -810,7 +796,36 @@ namespace Deveel.Data.Client {
 				throw new DeveelDbException();
 			}
 
-			return new Driver(stream, timeout);
+			return new RemoteDriver(stream, timeout);
+		}
+
+		public static Driver CreateLocal(string path, int timeout) {
+			object connObj, controllerObj;
+
+			try {
+				controllerObj = CreateController(path);
+				string hostString = "Local/" + Environment.MachineName + ":" + Environment.UserName + "@" + path;
+				connObj = CreateEmbeddedConnection(controllerObj, hostString);
+			} catch(Exception) {
+				throw new DeveelDbException();
+			}
+
+			return new EmbeddedDriver(controllerObj, connObj, timeout);
+		}
+
+		private static object CreateController(string path) {
+			const string controllerTypeString = "Deveel.Data.Control.DbController, deveeldb";
+			Type controllerType = Type.GetType(controllerTypeString, true, true);
+			MethodInfo createMethod = controllerType.GetMethod("Create", BindingFlags.Public | BindingFlags.Static, null,
+			                                                   new Type[] {typeof(string)}, null);
+			return createMethod.Invoke(null, new object[] {path});
+		}
+
+		private static object CreateEmbeddedConnection(object controllerObj, string connString) {
+			const string connTypeString = "Deveel.Data.Server.EmbeddedProcessor, deveeldb";
+			Type connType = Type.GetType(connTypeString, true, true);
+			ConstructorInfo ctor = connType.GetConstructor(new Type[] { controllerObj.GetType(), typeof(string) });
+			return ctor.Invoke(new object[] { controllerObj, connString } );
 		}
 
 		#region HandShakeResponse

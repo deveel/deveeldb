@@ -25,6 +25,7 @@ namespace Deveel.Data.Client {
 			defaults.Add(UserNameKey, DefaultUserName);
 			defaults.Add(PasswordKey, DefaultPassword);
 			defaults.Add(SchemaKey, DefaultSchema);
+			defaults.Add(PathKey, DefaultPath);
 			defaults.Add(CreateKey, DefaultCreate);
 			defaults.Add(BootOrCreateKey, DefaultBootOrCreate);
 			defaults.Add(ParameterStyleKey, DefaultParameterStyle);
@@ -44,11 +45,18 @@ namespace Deveel.Data.Client {
 			keymaps["DB"] = DatabaseKey;
 			keymaps[SchemaKey.ToUpper()] = SchemaKey;
 			keymaps["DEFAULT SCHEMA"] = SchemaKey;
+			keymaps[PathKey.ToUpper()] = PathKey;
+			keymaps["DATA PATH"] = PathKey;
+			keymaps["DATABASE PATH"] = PathKey;
+			keymaps["DATAPATH"] = PathKey;
+			keymaps["DATABASEPATH"] = PathKey;
 			keymaps[CreateKey.ToUpper()] = CreateKey;
 			keymaps[BootOrCreateKey] = BootOrCreateKey;
 			keymaps["BOOT OR CREATE"] = BootOrCreateKey;
 			keymaps["CREATE OR BOOT"] = BootOrCreateKey;
 			keymaps["CREATEORBOOT"] = BootOrCreateKey;
+			keymaps[CreateKey.ToUpper()] = CreateKey;
+			keymaps["CREATE DATABASE"] = CreateKey;
 			keymaps[UserNameKey.ToUpper()] = UserNameKey;
 			keymaps["USER"] = UserNameKey;
 			keymaps["USER NAME"] = UserNameKey;
@@ -87,6 +95,7 @@ namespace Deveel.Data.Client {
 		private const string UserNameKey = "UserName";
 		private const string PasswordKey = "Password";
 		private const string SchemaKey = "Schema";
+		private const string PathKey = "Path";
 		private const string CreateKey = "Create";
 		private const string BootOrCreateKey = "BootOrCreate";
 		private const string ParameterStyleKey = "ParameterStyle";
@@ -102,6 +111,7 @@ namespace Deveel.Data.Client {
 		private const string DefaultUserName = "";
 		private const string DefaultPassword = "";
 		private const string DefaultSchema = "";
+		private const string DefaultPath = ".";
 		private const bool DefaultCreate = false;
 		private const bool DefaultBootOrCreate = false;
 		private const ParameterStyle DefaultParameterStyle = ParameterStyle.Marker;
@@ -120,12 +130,15 @@ namespace Deveel.Data.Client {
 		private string userName;
 		private string password;
 		private string schema;
+		private string path;
 		private bool verboseColumnNames;
 		private ParameterStyle paramStyle;
 		private bool persistSecurityInfo;
 		private int rowCacheSize;
 		private int queryTimeout;
 		private bool ignoreCase;
+		private bool create;
+		private bool bootOrCreate;
 
 		private ArrayList keys;
 
@@ -151,6 +164,7 @@ namespace Deveel.Data.Client {
 					keys.Add(PortKey);
 					keys.Add(DatabaseKey);
 					keys.Add(SchemaKey);
+					keys.Add(PathKey);
 					keys.Add(UserNameKey);
 					keys.Add(PasswordKey);
 					keys.Add(PersistSecurityInfoKey);
@@ -159,6 +173,8 @@ namespace Deveel.Data.Client {
 					keys.Add(RowCacheSizeKey);
 					keys.Add(QueryTimeoutKey);
 					keys.Add(IgnoreIdentifiersCaseKey);
+					keys.Add(CreateKey);
+					keys.Add(BootOrCreateKey);
 					keys = ArrayList.ReadOnly(keys);
 				}
 				return keys;
@@ -172,6 +188,7 @@ namespace Deveel.Data.Client {
 				list.Add(port);
 				list.Add(database);
 				list.Add(schema);
+				list.Add(path);
 				list.Add(userName);
 				list.Add(password);
 				list.Add(persistSecurityInfo);
@@ -180,6 +197,8 @@ namespace Deveel.Data.Client {
 				list.Add(rowCacheSize);
 				list.Add(queryTimeout);
 				list.Add(ignoreCase);
+				list.Add(create);
+				list.Add(bootOrCreate);
 				return list;
 			}
 		}
@@ -300,6 +319,16 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		[DisplayName("Data Path")]
+		[RefreshProperties(RefreshProperties.All)]
+		public string Path {
+			get { return path; }
+			set {
+				base[PathKey] = value;
+				path = value;
+			}
+		}
+
 		[DisplayName("Row Cache Size")]
 		[RefreshProperties(RefreshProperties.All)]
 		public int RowCacheSize {
@@ -330,6 +359,26 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		[DisplayName("Create New Database")]
+		[RefreshProperties(RefreshProperties.All)]
+		public bool Create {
+			get { return create; }
+			set {
+				base[CreateKey] = value;
+				create = value;
+			}
+		}
+
+		[DisplayName("Boot/Create Database")]
+		[RefreshProperties(RefreshProperties.All)]
+		public bool BootOrCreate {
+			get { return bootOrCreate; }
+			set {
+				base[BootOrCreateKey] = value;
+				bootOrCreate = value;
+			}
+		}
+
 		private void InitToDefault() {
 			host = DefaultHost;
 			port = DefaultPort;
@@ -337,12 +386,15 @@ namespace Deveel.Data.Client {
 			userName = DefaultUserName;
 			password = DefaultPassword;
 			schema = DefaultSchema;
+			path = DefaultPath;
 			paramStyle = DefaultParameterStyle;
 			verboseColumnNames = DefaultVerboseColumnName;
 			persistSecurityInfo = DefaultPersistSecurityInfo;
 			rowCacheSize = DefaultRowCacheSize;
 			queryTimeout = DefaultQueryTimeout;
 			ignoreCase = DefaultIgnoreIdentifiersCase;
+			create = DefaultCreate;
+			bootOrCreate = DefaultBootOrCreate;
 		}
 
 		private void SetValue(string key, object value) {
@@ -383,6 +435,14 @@ namespace Deveel.Data.Client {
 						base.Remove(key);
 					} else {
 						Schema = value.ToString();
+					}
+					break;
+				case PathKey:
+					if (value == null) {
+						path = DefaultPath;
+						base.Remove(key);
+					} else {
+						Path = value.ToString();
 					}
 					break;
 				case UserNameKey:
@@ -449,7 +509,24 @@ namespace Deveel.Data.Client {
 						IgnoreIdentifiersCase = ToBoolean(value);
 					}
 					break;
+				case CreateKey:
+					if (value == null) {
+						create = DefaultCreate;
+						base.Remove(key);
+					} else {
+						Create = ToBoolean(value);
+					}
+					break;
+				case BootOrCreateKey:
+					if (value == null) {
+						bootOrCreate = DefaultBootOrCreate;
+						base.Remove(key);
+					} else {
+						BootOrCreate = ToBoolean(value);
+					}
+					break;
 				default:
+					//TODO: support additional parameters for Boot/Create process...
 					throw new ArgumentException();
 			}
 		}

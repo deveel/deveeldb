@@ -21,6 +21,7 @@
 
 namespace Deveel.Data.Client {
 	public enum DeveelDbType : byte {
+		Unknown = 0,
 		Null = 1,
 		String = 18,
 		Int4 = 24,

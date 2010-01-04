@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Client\ColumnInfo.cs" />
+    <Compile Include="Deveel.Data.Client\DatabaseCreateException.cs" />
     <Compile Include="Deveel.Data.Client\DatabaseMetadata.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbAuthenticationException.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbBinary.cs" />
@@ -68,12 +69,14 @@
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbType.cs" />
     <Compile Include="Deveel.Data.Client\Driver.cs" />
+    <Compile Include="Deveel.Data.Client\EmbeddedDriver.cs" />
     <Compile Include="Deveel.Data.Client\ISizeable.cs" />
     <Compile Include="Deveel.Data.Client\LargeObjectRef.cs" />
     <Compile Include="Deveel.Data.Client\NumberState.cs" />
     <Compile Include="Deveel.Data.Client\ParameterStyle.cs" />
     <Compile Include="Deveel.Data.Client\QueryResponse.cs" />
     <Compile Include="Deveel.Data.Client\ReferenceType.cs" />
+    <Compile Include="Deveel.Data.Client\RemoteDriver.cs" />
     <Compile Include="Deveel.Data.Client\ResultSet.cs" />
     <Compile Include="Deveel.Data.Client\RowCache.cs" />
     <Compile Include="Deveel.Data.Client\SqlType.cs" />

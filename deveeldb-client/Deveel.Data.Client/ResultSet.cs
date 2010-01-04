@@ -20,7 +20,7 @@ namespace Deveel.Data.Client {
 		private Hashtable columnsMap;
 		private bool closedOnServer;
 
-		private int realIndex = Int32.MaxValue;
+		private int realIndex = -1;
 		private int fetchSize;
 		private int maxRowCount;
 		private int blockTopRow;

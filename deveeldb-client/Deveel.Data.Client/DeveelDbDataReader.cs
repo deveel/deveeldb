@@ -35,6 +35,10 @@ namespace Deveel.Data.Client {
 		private DeveelDbCommand command;
 		private ResultSet result;
 
+		public DeveelDbCommand Command {
+			get { return command; }
+		}
+
 		private object GetValue(int index, bool checkNull) {
 			if (result.IsClosed)
 				throw new InvalidOperationException();
@@ -467,6 +471,7 @@ namespace Deveel.Data.Client {
 				case DeveelDbType.LOB:
 					return typeof(System.IO.Stream);
 				case DeveelDbType.Null:
+				case DeveelDbType.Unknown:
 					return typeof(DBNull);
 				default:
 					throw new InvalidOperationException();

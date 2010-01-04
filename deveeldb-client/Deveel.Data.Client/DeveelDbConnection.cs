@@ -167,11 +167,24 @@ namespace Deveel.Data.Client {
 			SetState(ConnectionState.Connecting, true);
 
 			try {
-				driver = Driver.Create(settings.Host, settings.Port, settings.QueryTimeout);
+				if (IsLocal) {
+					driver = Driver.CreateLocal(settings.Path, settings.QueryTimeout);
+					if (settings.Create) {
+						((EmbeddedDriver) driver).CreateDatabase(settings.Database, settings.UserName, settings.Password);
+					} else {
+						((EmbeddedDriver) driver).StartDatabase(settings.Database);
+					}
+				} else {
+					driver = Driver.CreateRemote(settings.Host, settings.Port, settings.QueryTimeout);
+				}
+
 				driver.Authenticate(settings);
 
 				SetState(ConnectionState.Open, false);
-			} catch(Exception) {
+			} catch (DeveelDbException) {
+				SetState(ConnectionState.Broken, true);
+				throw;
+			} catch (Exception) {
 				SetState(ConnectionState.Broken, true);
 				throw new DeveelDbException();
 			}
@@ -204,6 +217,10 @@ namespace Deveel.Data.Client {
 					database = settings.Database;
 				}
 			}
+		}
+
+		internal bool IsLocal {
+			get { return settings != null && String.Compare(settings.Host, "(local)", true) == 0; }
 		}
 
 		public override string Database {
