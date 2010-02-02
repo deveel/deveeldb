@@ -212,7 +212,7 @@ namespace Deveel.Data.Client {
 			string commandText = "   SELECT " +
 			                     "      IF(Triggers.schema IS NOT NULL, CONCAT(Triggers.schema,'.', Triggers.name), Triggers.name) AS NAME," + 
                                  "      Triggers.on_object as ON_OBJECT " +
-								 "   FROM SYSTEM.sUSRDataTrigger AS Triggers " +
+								 "   FROM SYSTEM.data_trigger AS Triggers " +
 								 "   WHERE Triggers.name = ";
 			if (paramStyle == ParameterStyle.Marker)
 				commandText += "?";

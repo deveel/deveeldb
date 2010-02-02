@@ -30,7 +30,6 @@ using Deveel.Data.Store;
 
 using Deveel.Diagnostics;
 using Deveel.Data.Util;
-using Deveel.Math;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -59,19 +58,45 @@ namespace Deveel.Data {
 		/**
 		 * The schema info table.
 		 */
-		public static readonly TableName SCHEMA_INFO_TABLE = new TableName(SystemSchema, "sUSRSchemaInfo");
-		public static readonly TableName PERSISTENT_VAR_TABLE = new TableName(SystemSchema, "sUSRDatabaseVars");
-		public static readonly TableName FOREIGN_COLS_TABLE = new TableName(SystemSchema, "sUSRForeignColumns");
-		public static readonly TableName UNIQUE_COLS_TABLE = new TableName(SystemSchema, "sUSRUniqueColumns");
-		public static readonly TableName PRIMARY_COLS_TABLE = new TableName(SystemSchema, "sUSRPrimaryColumns");
-		public static readonly TableName CHECK_INFO_TABLE = new TableName(SystemSchema, "sUSRCheckInfo");
-		public static readonly TableName UNIQUE_INFO_TABLE = new TableName(SystemSchema, "sUSRUniqueInfo");
-		public static readonly TableName FOREIGN_INFO_TABLE = new TableName(SystemSchema, "sUSRFKeyInfo");
-		public static readonly TableName PRIMARY_INFO_TABLE = new TableName(SystemSchema, "sUSRPKeyInfo");
-		public static readonly TableName SYS_SEQUENCE_INFO = new TableName(SystemSchema, "sUSRSequenceInfo");
-		public static readonly TableName SYS_SEQUENCE = new TableName(SystemSchema, "sUSRSequence");
-		public static readonly TableName UDT_TABLE = new TableName(SystemSchema, "sUSRUDT");
-		public static readonly TableName UDT_COLS_TABLE = new TableName(SystemSchema, "sUSRUDTColumns");
+		///<summary>
+		///</summary>
+		public static readonly TableName SchemaInfoTable = new TableName(SystemSchema, "schema_info");
+		///<summary>
+		///</summary>
+		public static readonly TableName PersistentVarTable = new TableName(SystemSchema, "database_vars");
+		///<summary>
+		///</summary>
+		public static readonly TableName ForeignColsTable = new TableName(SystemSchema, "foreign_columns");
+		///<summary>
+		///</summary>
+		public static readonly TableName UniqueColsTable = new TableName(SystemSchema, "unique_columns");
+		///<summary>
+		///</summary>
+		public static readonly TableName PrimaryColsTable = new TableName(SystemSchema, "primary_columns");
+		///<summary>
+		///</summary>
+		public static readonly TableName CheckInfoTable = new TableName(SystemSchema, "check_info");
+		///<summary>
+		///</summary>
+		public static readonly TableName UniqueInfoTable = new TableName(SystemSchema, "unique_info");
+		///<summary>
+		///</summary>
+		public static readonly TableName ForeignInfoTable = new TableName(SystemSchema, "fkey_info");
+		///<summary>
+		///</summary>
+		public static readonly TableName PrimaryInfoTable = new TableName(SystemSchema, "pkey_info");
+		///<summary>
+		///</summary>
+		public static readonly TableName SysSequenceInfo = new TableName(SystemSchema, "sequence_info");
+		///<summary>
+		///</summary>
+		public static readonly TableName SysSequence = new TableName(SystemSchema, "sequence");
+		///<summary>
+		///</summary>
+		public static readonly TableName UdtTable = new TableName(SystemSchema, "udt_info");
+		///<summary>
+		///</summary>
+		public static readonly TableName UdtMembersTable = new TableName(SystemSchema, "udt_member");
 
 		/// <summary>
 		/// The TransactionSystem that this Conglomerate is a child of.
@@ -520,17 +545,17 @@ namespace Deveel.Data {
 		///   <listheader>
 		///     <item>Table name</item>
 		///   </listheader>
-		///   <item>sUSRPKeyInfo</item>
+		///   <item>pkey_info</item>
 		///   <description>Primary key constraint information.</description>
-		///   <item>sUSRFKeyInfo</item>
+		///   <item>fkey_info</item>
 		///   <description>Foreign key constraint information.</description>
-		///   <item>sUSRUniqueInfo</item>
+		///   <item>unique_info</item>
 		///   <description>Unique set constraint information.</description>
-		///   <item>sUSRCheckInfo</item>
+		///   <item>check_info</item>
 		///   <description>Check constraint information.</description>
-		///   <item>sUSRPrimaryColumns</item>
+		///   <item>primary_columns</item>
 		///   <description>Primary columns information (refers to PKeyInfo)</description>
-		///   <item>sUSRUniqueColumns</item>
+		///   <item>unique_columns</item>
 		///   <description>Unique columns information (refers to UniqueInfo)</description>
 		///   <item>sUSRForeignColumns1</item>
 		///   <description>Foreign column information (refers to FKeyInfo)</description>
@@ -552,7 +577,7 @@ namespace Deveel.Data {
 		/// <para>
 		/// The schema layout for these tables:
 		/// <code>
-		/// CREATE TABLE sUSRPKeyInfo (
+		/// CREATE TABLE pkey_info (
 		///		id          NUMERIC NOT NULL,
 		///		name        TEXT NOT NULL,  // The name of the primary key constraint
 		///		schema      TEXT NOT NULL,  // The name of the schema
@@ -562,7 +587,7 @@ namespace Deveel.Data {
 		///		UNIQUE (schema, table)
 		///	);
 		///	
-		/// CREATE TABLE sUSRFKeyInfo (
+		/// CREATE TABLE fkey_info (
 		///		id          NUMERIC NOT NULL,
 		///		name        TEXT NOT NULL,  // The name of the foreign key constraint
 		///		schema      TEXT NOT NULL,  // The name of the schema
@@ -576,7 +601,7 @@ namespace Deveel.Data {
 		///		PRIMARY KEY (id)
 		///	);
 		///	
-		/// CREATE TABLE sUSRUniqueInfo (
+		/// CREATE TABLE unique_info (
 		///		id          NUMERIC NOT NULL,
 		///		name        TEXT NOT NULL,  // The name of the unique constraint
 		///		schema      TEXT NOT NULL,  // The name of the schema
@@ -586,7 +611,7 @@ namespace Deveel.Data {
 		///		PRIMARY KEY (id)
 		///	);
 		///	
-		/// CREATE TABLE sUSRCheckInfo (
+		/// CREATE TABLE check_info (
 		///		id          NUMERIC NOT NULL,
 		///		name        TEXT NOT NULL,  // The name of the check constraint
 		///		schema      TEXT NOT NULL,  // The name of the schema
@@ -597,7 +622,7 @@ namespace Deveel.Data {
 		///		PRIMARY KEY (id)
 		///	);
 		///	
-		/// CREATE TABLE sUSRPrimaryColumns (
+		/// CREATE TABLE primary_columns (
 		///		pk_id   NUMERIC NOT NULL, // The primary key constraint id
 		///		column  TEXT NOT NULL,    // The name of the primary
 		///		seq_no  INTEGER NOT NULL, // The sequence number of this constraint
@@ -605,7 +630,7 @@ namespace Deveel.Data {
 		///		FOREIGN KEY pk_id REFERENCES pkey_info
 		///	);
 		///	
-		/// CREATE TABLE sUSRUniqueColumns (
+		/// CREATE TABLE unique_columns (
 		///		un_id   NUMERIC NOT NULL, // The unique constraint id
 		///		column  TEXT NOT NULL,    // The column that is unique
 		///		seq_no  INTEGER NOT NULL, // The sequence number of this constraint
@@ -623,7 +648,7 @@ namespace Deveel.Data {
 		///		FOREIGN KEY fk_id REFERENCES fkey_info
 		///	);
 		///	
-		/// CREATE TABLE sUSRSchemaInfo (
+		/// CREATE TABLE schema_info (
 		///		id     NUMERIC NOT NULL,
 		///		name   TEXT NOT NULL,
 		///		type   TEXT,              // Schema type (system, etc)
@@ -632,7 +657,7 @@ namespace Deveel.Data {
 		///		UNIQUE ( name )
 		///	);
 		///	
-		/// CREATE TABLE sUSRTableInfo (
+		/// CREATE TABLE table_info (
 		///		id     NUMERIC NOT NULL,
 		///		name   TEXT NOT NULL,     // The name of the table
 		///		schema TEXT NOT NULL,     // The name of the schema of this table
@@ -643,7 +668,7 @@ namespace Deveel.Data {
 		///	);
 		///	
 		/// CREATE TABLE sUSRColumnColumns (
-		///		t_id    NUMERIC NOT NULL,  // Foreign key to sUSRTableInfo
+		///		t_id    NUMERIC NOT NULL,  // Foreign key to table_info
 		///		column  TEXT NOT NULL,     // The column name
 		///		seq_no  INTEGER NOT NULL,  // The sequence in the table
 		///		type    TEXT NOT NULL,     // The SQL type of this column
@@ -666,7 +691,7 @@ namespace Deveel.Data {
 			DataTableDef table;
 
 			table = new DataTableDef();
-			table.TableName = SYS_SEQUENCE_INFO;
+			table.TableName = SysSequenceInfo;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
@@ -674,7 +699,7 @@ namespace Deveel.Data {
 			transaction.AlterCreateTable(table, 187, 128);
 
 			table = new DataTableDef();
-			table.TableName = SYS_SEQUENCE;
+			table.TableName = SysSequence;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_id"));
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("last_value"));
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("increment"));
@@ -686,7 +711,7 @@ namespace Deveel.Data {
 			transaction.AlterCreateTable(table, 187, 128);
 
 			table = new DataTableDef();
-			table.TableName = PRIMARY_INFO_TABLE;
+			table.TableName = PrimaryInfoTable;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
@@ -695,7 +720,7 @@ namespace Deveel.Data {
 			transaction.AlterCreateTable(table, 187, 128);
 
 			table = new DataTableDef();
-			table.TableName = FOREIGN_INFO_TABLE;
+			table.TableName = ForeignInfoTable;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
@@ -708,7 +733,7 @@ namespace Deveel.Data {
 			transaction.AlterCreateTable(table, 187, 128);
 
 			table = new DataTableDef();
-			table.TableName = UNIQUE_INFO_TABLE;
+			table.TableName = UniqueInfoTable;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
@@ -717,7 +742,7 @@ namespace Deveel.Data {
 			transaction.AlterCreateTable(table, 187, 128);
 
 			table = new DataTableDef();
-			table.TableName = CHECK_INFO_TABLE;
+			table.TableName = CheckInfoTable;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
@@ -729,21 +754,21 @@ namespace Deveel.Data {
 			transaction.AlterCreateTable(table, 187, 128);
 
 			table = new DataTableDef();
-			table.TableName = PRIMARY_COLS_TABLE;
+			table.TableName = PrimaryColsTable;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("pk_id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("column"));
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_no"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			table = new DataTableDef();
-			table.TableName = UNIQUE_COLS_TABLE;
+			table.TableName = UniqueColsTable;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("un_id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("column"));
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_no"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			table = new DataTableDef();
-			table.TableName = FOREIGN_COLS_TABLE;
+			table.TableName = ForeignColsTable;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("fk_id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("fcolumn"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("pcolumn"));
@@ -751,7 +776,7 @@ namespace Deveel.Data {
 			transaction.AlterCreateTable(table, 91, 128);
 
 			table = new DataTableDef();
-			table.TableName = SCHEMA_INFO_TABLE;
+			table.TableName = SchemaInfoTable;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
@@ -760,14 +785,14 @@ namespace Deveel.Data {
 
 			// Stores misc variables of the database,
 			table = new DataTableDef();
-			table.TableName = PERSISTENT_VAR_TABLE;
+			table.TableName = PersistentVarTable;
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("variable"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("value"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// the UDT tables...
 			table = new DataTableDef();
-			table.TableName = UDT_TABLE;
+			table.TableName = UdtTable;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
@@ -777,7 +802,7 @@ namespace Deveel.Data {
 			transaction.AlterCreateTable(table, 91, 128);
 
 			table = new DataTableDef();
-			table.TableName = UDT_COLS_TABLE;
+			table.TableName = UdtMembersTable;
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("type_id"));
 			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
 			table.AddColumn(DataTableColumnDef.CreateNumericColumn("col_type"));
@@ -838,11 +863,11 @@ namespace Deveel.Data {
 		/// the conglomerate.
 		/// </summary>
 		internal void ResetAllSystemTableID() {
-			ResetTableID(PRIMARY_INFO_TABLE);
-			ResetTableID(FOREIGN_INFO_TABLE);
-			ResetTableID(UNIQUE_INFO_TABLE);
-			ResetTableID(CHECK_INFO_TABLE);
-			ResetTableID(SCHEMA_INFO_TABLE);
+			ResetTableID(PrimaryInfoTable);
+			ResetTableID(ForeignInfoTable);
+			ResetTableID(UniqueInfoTable);
+			ResetTableID(CheckInfoTable);
+			ResetTableID(SchemaInfoTable);
 		}
 
 		/// <summary>
@@ -862,15 +887,15 @@ namespace Deveel.Data {
 			// -- Primary Keys --
 			// The 'id' columns are primary keys on all the system tables,
 			String[] id_col = new String[] { "id" };
-			transaction.AddPrimaryKeyConstraint(PRIMARY_INFO_TABLE,
+			transaction.AddPrimaryKeyConstraint(PrimaryInfoTable,
 					  id_col, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_PK_PK");
-			transaction.AddPrimaryKeyConstraint(FOREIGN_INFO_TABLE,
+			transaction.AddPrimaryKeyConstraint(ForeignInfoTable,
 					  id_col, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_FK_PK");
-			transaction.AddPrimaryKeyConstraint(UNIQUE_INFO_TABLE,
+			transaction.AddPrimaryKeyConstraint(UniqueInfoTable,
 					  id_col, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_UNIQUE_PK");
-			transaction.AddPrimaryKeyConstraint(CHECK_INFO_TABLE,
+			transaction.AddPrimaryKeyConstraint(CheckInfoTable,
 					  id_col, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_CHECK_PK");
-			transaction.AddPrimaryKeyConstraint(SCHEMA_INFO_TABLE,
+			transaction.AddPrimaryKeyConstraint(SchemaInfoTable,
 					  id_col, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_SCHEMA_PK");
 
 			// -- Foreign Keys --
@@ -879,47 +904,47 @@ namespace Deveel.Data {
 			String[] fk_ref_col = new String[] { "id" };
 			fk_col[0] = "pk_id";
 			transaction.AddForeignKeyConstraint(
-					  PRIMARY_COLS_TABLE, fk_col, PRIMARY_INFO_TABLE, fk_ref_col,
+					  PrimaryColsTable, fk_col, PrimaryInfoTable, fk_ref_col,
 					  ConstraintAction.NoAction, ConstraintAction.NoAction,
 					  ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_PK_FK");
 			fk_col[0] = "fk_id";
 			transaction.AddForeignKeyConstraint(
-					  FOREIGN_COLS_TABLE, fk_col, FOREIGN_INFO_TABLE, fk_ref_col,
+					  ForeignColsTable, fk_col, ForeignInfoTable, fk_ref_col,
 					  ConstraintAction.NoAction, ConstraintAction.NoAction,
 					  ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_FK_FK");
 			fk_col[0] = "un_id";
 			transaction.AddForeignKeyConstraint(
-					  UNIQUE_COLS_TABLE, fk_col, UNIQUE_INFO_TABLE, fk_ref_col,
+					  UniqueColsTable, fk_col, UniqueInfoTable, fk_ref_col,
 					  ConstraintAction.NoAction, ConstraintAction.NoAction,
 					  ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_UNIQUE_FK");
 
-			// sUSRPKeyInfo 'schema', 'table' column is a unique set,
+			// pkey_info 'schema', 'table' column is a unique set,
 			// (You are only allowed one primary key per table).
 			String[] columns = new String[] { "schema", "table" };
-			transaction.AddUniqueConstraint(PRIMARY_INFO_TABLE,
+			transaction.AddUniqueConstraint(PrimaryInfoTable,
 				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_PKEY_ST_UNIQUE");
-			// sUSRSchemaInfo 'name' column is a unique column,
+			// schema_info 'name' column is a unique column,
 			columns = new String[] { "name" };
-			transaction.AddUniqueConstraint(SCHEMA_INFO_TABLE,
+			transaction.AddUniqueConstraint(SchemaInfoTable,
 				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_SCHEMA_UNIQUE");
 			//    columns = new String[] { "name" };
 			columns = new String[] { "name", "schema" };
-			// sUSRPKeyInfo 'name' column is a unique column,
-			transaction.AddUniqueConstraint(PRIMARY_INFO_TABLE,
+			// pkey_info 'name' column is a unique column,
+			transaction.AddUniqueConstraint(PrimaryInfoTable,
 				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_PKEY_UNIQUE");
-			// sUSRFKeyInfo 'name' column is a unique column,
-			transaction.AddUniqueConstraint(FOREIGN_INFO_TABLE,
+			// fkey_info 'name' column is a unique column,
+			transaction.AddUniqueConstraint(ForeignInfoTable,
 				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_FKEY_UNIQUE");
-			// sUSRUniqueInfo 'name' column is a unique column,
-			transaction.AddUniqueConstraint(UNIQUE_INFO_TABLE,
+			// unique_info 'name' column is a unique column,
+			transaction.AddUniqueConstraint(UniqueInfoTable,
 				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_UNIQUE_UNIQUE");
-			// sUSRCheckInfo 'name' column is a unique column,
-			transaction.AddUniqueConstraint(CHECK_INFO_TABLE,
+			// check_info 'name' column is a unique column,
+			transaction.AddUniqueConstraint(CheckInfoTable,
 				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_CHECK_UNIQUE");
 
-			// sUSRDatabaseVars 'variable' is unique
+			// database_vars 'variable' is unique
 			columns = new String[] { "variable" };
-			transaction.AddUniqueConstraint(PERSISTENT_VAR_TABLE,
+			transaction.AddUniqueConstraint(PersistentVarTable,
 			   columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_DATABASEVARS_UNIQUE");
 
 			// Insert the version number of the database

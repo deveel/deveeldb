@@ -1,3 +1,6 @@
+2010-01-24  Antonello Provenzano  <antonello@deveel.com>
+	* DatabaseSystem.cs: 
+	
 2009-12-21  Antonello Provenzano  <antonello@deveel.com>	
 	* RowData.cs:
 		- renamed to 'DataRow'

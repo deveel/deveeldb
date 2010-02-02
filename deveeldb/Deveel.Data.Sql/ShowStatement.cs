@@ -123,7 +123,7 @@ namespace Deveel.Data.Sql {
 					SqlQuery query = new SqlQuery(
 					   "  SELECT \"stat_name\" AS \"name\", " +
 					   "         \"value\" " +
-					   "    FROM SYSTEM.sUSRDatabaseStatistics ");
+					   "    FROM SYSTEM.database_stats");
 
 					return executor.Execute(Connection, query);
 

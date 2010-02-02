@@ -266,7 +266,7 @@ namespace Deveel.Data {
 			for (int i = 0; i < sz; ++i) {
 				MasterTableDataSource master_table = GetVisibleTable(i);
 				TableName table_name = master_table.DataTableDef.TableName;
-				if (table_name.Equals(TableDataConglomerate.SYS_SEQUENCE_INFO)) {
+				if (table_name.Equals(TableDataConglomerate.SysSequenceInfo)) {
 					last_entry = master_table;
 				} else {
 					copy_list.Add(master_table);
@@ -971,13 +971,13 @@ namespace Deveel.Data {
 		/// If a schema with the same <paramref name="name"/> already exists.
 		/// </exception>
 		public void CreateSchema(String name, String type) {
-			TableName table_name = TableDataConglomerate.SCHEMA_INFO_TABLE;
+			TableName table_name = TableDataConglomerate.SchemaInfoTable;
 			IMutableTableDataSource t = GetTable(table_name);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 
 			try {
 				// Select entries where;
-				//     sUSRSchemaInfo.name = name
+				//     schema_info.name = name
 				if (!dt.Exists(1, name)) {
 					// Add the entry to the schema info table.
 					DataRow rd = new DataRow(t);
@@ -1012,7 +1012,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		public void DropSchema(String name) {
-			TableName table_name = TableDataConglomerate.SCHEMA_INFO_TABLE;
+			TableName table_name = TableDataConglomerate.SchemaInfoTable;
 			IMutableTableDataSource t = GetTable(table_name);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 
@@ -1030,7 +1030,7 @@ namespace Deveel.Data {
 		/// <param name="name"></param>
 		/// <returns></returns>
 		public bool SchemaExists(String name) {
-			TableName table_name = TableDataConglomerate.SCHEMA_INFO_TABLE;
+			TableName table_name = TableDataConglomerate.SchemaInfoTable;
 			IMutableTableDataSource t = GetTable(table_name);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 
@@ -1053,7 +1053,7 @@ namespace Deveel.Data {
 		public SchemaDef ResolveSchemaCase(String name, bool ignore_case) {
 			// The list of schema
 			SimpleTableQuery dt = new SimpleTableQuery(
-								 GetTable(TableDataConglomerate.SCHEMA_INFO_TABLE));
+								 GetTable(TableDataConglomerate.SchemaInfoTable));
 
 			try {
 				IRowEnumerator e = dt.GetRowEnumerator();
@@ -1099,7 +1099,7 @@ namespace Deveel.Data {
 		public SchemaDef[] GetSchemaList() {
 			// The list of schema
 			SimpleTableQuery dt = new SimpleTableQuery(
-								 GetTable(TableDataConglomerate.SCHEMA_INFO_TABLE));
+								 GetTable(TableDataConglomerate.SchemaInfoTable));
 			IRowEnumerator e = dt.GetRowEnumerator();
 			SchemaDef[] arr = new SchemaDef[dt.RowCount];
 			int i = 0;
@@ -1129,7 +1129,7 @@ namespace Deveel.Data {
 		/// overwritten.
 		/// </remarks>
 		public void SetPersistentVariable(String variable, String value) {
-			TableName table_name = TableDataConglomerate.PERSISTENT_VAR_TABLE;
+			TableName table_name = TableDataConglomerate.PersistentVarTable;
 			IMutableTableDataSource t = GetTable(table_name);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 			dt.SetVariable(0, new Object[] { variable, value });
@@ -1143,7 +1143,7 @@ namespace Deveel.Data {
 		/// <param name="variable"></param>
 		/// <returns></returns>
 		public String GetPersistantVariable(String variable) {
-			TableName table_name = TableDataConglomerate.PERSISTENT_VAR_TABLE;
+			TableName table_name = TableDataConglomerate.PersistentVarTable;
 			IMutableTableDataSource t = GetTable(table_name);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 			String val = dt.GetVariable(1, 0, variable).ToString();
@@ -1223,14 +1223,14 @@ namespace Deveel.Data {
 		public void AddUniqueConstraint(TableName table_name,
 						  String[] cols, ConstraintDeferrability deferred, String constraint_name) {
 
-			TableName tn1 = TableDataConglomerate.UNIQUE_INFO_TABLE;
-			TableName tn2 = TableDataConglomerate.UNIQUE_COLS_TABLE;
+			TableName tn1 = TableDataConglomerate.UniqueInfoTable;
+			TableName tn2 = TableDataConglomerate.UniqueColsTable;
 			IMutableTableDataSource t = GetTable(tn1);
 			IMutableTableDataSource tcols = GetTable(tn2);
 
 			try {
 
-				// Insert a value into UNIQUE_INFO_TABLE
+				// Insert a value into UniqueInfoTable
 				DataRow rd = new DataRow(t);
 				BigNumber unique_id = NextUniqueID(tn1);
 				constraint_name = MakeUniqueConstraintName(constraint_name, unique_id);
@@ -1294,8 +1294,8 @@ namespace Deveel.Data {
 											TableName ref_table, String[] ref_cols,
 											ConstraintAction delete_rule, ConstraintAction update_rule,
 											ConstraintDeferrability deferred, String constraint_name) {
-			TableName tn1 = TableDataConglomerate.FOREIGN_INFO_TABLE;
-			TableName tn2 = TableDataConglomerate.FOREIGN_COLS_TABLE;
+			TableName tn1 = TableDataConglomerate.ForeignInfoTable;
+			TableName tn2 = TableDataConglomerate.ForeignColsTable;
 			IMutableTableDataSource t = GetTable(tn1);
 			IMutableTableDataSource tcols = GetTable(tn2);
 
@@ -1335,7 +1335,7 @@ namespace Deveel.Data {
 					}
 				}
 
-				// Insert a value into FOREIGN_INFO_TABLE
+				// Insert a value into ForeignInfoTable
 				DataRow rd = new DataRow(t);
 				BigNumber unique_id = NextUniqueID(tn1);
 				constraint_name = MakeUniqueConstraintName(constraint_name, unique_id);
@@ -1400,14 +1400,14 @@ namespace Deveel.Data {
 		public void AddPrimaryKeyConstraint(TableName table_name, String[] cols,
 											ConstraintDeferrability deferred, String constraint_name) {
 
-			TableName tn1 = TableDataConglomerate.PRIMARY_INFO_TABLE;
-			TableName tn2 = TableDataConglomerate.PRIMARY_COLS_TABLE;
+			TableName tn1 = TableDataConglomerate.PrimaryInfoTable;
+			TableName tn2 = TableDataConglomerate.PrimaryColsTable;
 			IMutableTableDataSource t = GetTable(tn1);
 			IMutableTableDataSource tcols = GetTable(tn2);
 
 			try {
 
-				// Insert a value into PRIMARY_INFO_TABLE
+				// Insert a value into PrimaryInfoTable
 				DataRow rd = new DataRow(t);
 				BigNumber unique_id = NextUniqueID(tn1);
 				constraint_name = MakeUniqueConstraintName(constraint_name, unique_id);
@@ -1465,7 +1465,7 @@ namespace Deveel.Data {
 		public void AddCheckConstraint(TableName table_name,
 					 Expression expression, ConstraintDeferrability deferred, String constraint_name) {
 
-			TableName tn = TableDataConglomerate.CHECK_INFO_TABLE;
+			TableName tn = TableDataConglomerate.CheckInfoTable;
 			IMutableTableDataSource t = GetTable(tn);
 			int col_count = t.DataTableDef.ColumnCount;
 
@@ -1605,9 +1605,9 @@ namespace Deveel.Data {
 		/// </returns>
 		public bool DropPrimaryKeyConstraintForTable(TableName table_name, String constraint_name) {
 			IMutableTableDataSource t =
-								 GetTable(TableDataConglomerate.PRIMARY_INFO_TABLE);
+								 GetTable(TableDataConglomerate.PrimaryInfoTable);
 			IMutableTableDataSource t2 =
-								 GetTable(TableDataConglomerate.PRIMARY_COLS_TABLE);
+								 GetTable(TableDataConglomerate.PrimaryColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -1672,9 +1672,9 @@ namespace Deveel.Data {
 										 TableName table, String constraint_name) {
 
 			IMutableTableDataSource t =
-								 GetTable(TableDataConglomerate.UNIQUE_INFO_TABLE);
+								 GetTable(TableDataConglomerate.UniqueInfoTable);
 			IMutableTableDataSource t2 =
-								 GetTable(TableDataConglomerate.UNIQUE_COLS_TABLE);
+								 GetTable(TableDataConglomerate.UniqueColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -1730,7 +1730,7 @@ namespace Deveel.Data {
 										 TableName table, String constraint_name) {
 
 			IMutableTableDataSource t =
-								 GetTable(TableDataConglomerate.CHECK_INFO_TABLE);
+								 GetTable(TableDataConglomerate.CheckInfoTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 
 			try {
@@ -1778,9 +1778,9 @@ namespace Deveel.Data {
 										 TableName table, String constraint_name) {
 
 			IMutableTableDataSource t =
-								 GetTable(TableDataConglomerate.FOREIGN_INFO_TABLE);
+								 GetTable(TableDataConglomerate.ForeignInfoTable);
 			IMutableTableDataSource t2 =
-								 GetTable(TableDataConglomerate.FOREIGN_COLS_TABLE);
+								 GetTable(TableDataConglomerate.ForeignColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -1866,9 +1866,9 @@ namespace Deveel.Data {
 		public static ColumnGroup[] QueryTableUniqueGroups(
 						SimpleTransaction transaction, TableName table_name) {
 			ITableDataSource t =
-			  transaction.GetTableDataSource(TableDataConglomerate.UNIQUE_INFO_TABLE);
+			  transaction.GetTableDataSource(TableDataConglomerate.UniqueInfoTable);
 			ITableDataSource t2 =
-			  transaction.GetTableDataSource(TableDataConglomerate.UNIQUE_COLS_TABLE);
+			  transaction.GetTableDataSource(TableDataConglomerate.UniqueColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -1915,9 +1915,9 @@ namespace Deveel.Data {
 		public static ColumnGroup QueryTablePrimaryKeyGroup(
 						SimpleTransaction transaction, TableName table_name) {
 			ITableDataSource t =
-			  transaction.GetTableDataSource(TableDataConglomerate.PRIMARY_INFO_TABLE);
+			  transaction.GetTableDataSource(TableDataConglomerate.PrimaryInfoTable);
 			ITableDataSource t2 =
-			  transaction.GetTableDataSource(TableDataConglomerate.PRIMARY_COLS_TABLE);
+			  transaction.GetTableDataSource(TableDataConglomerate.PrimaryColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -1966,7 +1966,7 @@ namespace Deveel.Data {
 		public static CheckExpression[] QueryTableCheckExpressions(
 						SimpleTransaction transaction, TableName table_name) {
 			ITableDataSource t =
-				transaction.GetTableDataSource(TableDataConglomerate.CHECK_INFO_TABLE);
+				transaction.GetTableDataSource(TableDataConglomerate.CheckInfoTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 
 			CheckExpression[] checks;
@@ -2045,9 +2045,9 @@ namespace Deveel.Data {
 						SimpleTransaction transaction, TableName table_name) {
 
 			ITableDataSource t =
-			  transaction.GetTableDataSource(TableDataConglomerate.FOREIGN_INFO_TABLE);
+			  transaction.GetTableDataSource(TableDataConglomerate.ForeignInfoTable);
 			ITableDataSource t2 =
-			  transaction.GetTableDataSource(TableDataConglomerate.FOREIGN_COLS_TABLE);
+			  transaction.GetTableDataSource(TableDataConglomerate.ForeignColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -2142,9 +2142,9 @@ namespace Deveel.Data {
 					SimpleTransaction transaction, TableName ref_table_name) {
 
 			ITableDataSource t =
-			  transaction.GetTableDataSource(TableDataConglomerate.FOREIGN_INFO_TABLE);
+			  transaction.GetTableDataSource(TableDataConglomerate.ForeignInfoTable);
 			ITableDataSource t2 =
-			  transaction.GetTableDataSource(TableDataConglomerate.FOREIGN_COLS_TABLE);
+			  transaction.GetTableDataSource(TableDataConglomerate.ForeignColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 

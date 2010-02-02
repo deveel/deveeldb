@@ -113,7 +113,7 @@ namespace Deveel.Data {
 		static GTStatisticsDataSource() {
 
 			DataTableDef def = new DataTableDef();
-			def.TableName = new TableName(Database.SystemSchema, "sUSRDatabaseStatistics");
+			def.TableName = new TableName(Database.SystemSchema, "database_stats");
 
 			// Add column definitions
 			def.AddColumn(GetStringColumn("stat_name"));

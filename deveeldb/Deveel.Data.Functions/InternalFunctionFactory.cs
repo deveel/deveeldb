@@ -404,7 +404,7 @@ namespace Deveel.Data.Functions {
 
 		#region PrivilegeString
 
-		// Given a priv_bit number (from SYSTEM.sUSRGrant), this will return a
+		// Given a priv_bit number (from SYSTEM.grant), this will return a
 		// text representation of the privilege.
 		[Serializable]
 		class PrivilegeString : Function {

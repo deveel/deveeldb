@@ -135,10 +135,8 @@ namespace Deveel.Data {
 			user_manager = new UserManager();
 
 			if (config != null) {
-				bool status;
-
 				// Set up the statement cache.
-				status = GetConfigBoolean("statement_cache", true);
+				bool status = GetConfigBoolean("statement_cache", true);
 				if (status) {
 					statement_cache = new StatementCache(this, 127, 140, 20);
 				}

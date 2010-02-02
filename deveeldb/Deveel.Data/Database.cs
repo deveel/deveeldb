@@ -127,64 +127,64 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The system internally generated 'sUSRDataTrigger' table.
 		/// </summary>
-		public static readonly TableName SysDataTrigger = new TableName(SystemSchema, "sUSRDataTrigger");
+		public static readonly TableName SysDataTrigger = new TableName(SystemSchema, "data_trigger");
 
 		/// <summary>
-		/// The system internally generated 'sUSRDatabaseStatistics' table.
+		/// The system internally generated 'database_stats' table.
 		/// </summary>
-		public static readonly TableName SysDbStatistics = new TableName(SystemSchema, "sUSRDatabaseStatistics");
+		public static readonly TableName SysDbStatistics = new TableName(SystemSchema, "database_stats");
 
 		/// <summary>
 		/// The function table.
 		/// </summary>
-		public static readonly TableName SysFunction = new TableName(SystemSchema, "sUSRFunction");
+		public static readonly TableName SysFunction = new TableName(SystemSchema, "function");
 
 		/// <summary>
 		/// The function factory table.
 		/// </summary>
-		public static readonly TableName SysFunctionfactory = new TableName(SystemSchema, "sUSRFunctionFactory");
+		public static readonly TableName SysFunctionfactory = new TableName(SystemSchema, "function_factory");
 
 		///<summary>
 		///</summary>
-		public static readonly TableName SysGrants = new TableName(SystemSchema, "sUSRGrant");
+		public static readonly TableName SysGrants = new TableName(SystemSchema, "grant");
 
 		/// <summary>
 		/// The label table.
 		/// </summary>
-		public static readonly TableName SysLabel = new TableName(SystemSchema, "sUSRLabel");
+		public static readonly TableName SysLabel = new TableName(SystemSchema, "label");
 
 		/// <summary>
 		/// The password privs and grants table.
 		/// </summary>
-		public static readonly TableName SysPassword = new TableName(SystemSchema, "sUSRPassword");
+		public static readonly TableName SysPassword = new TableName(SystemSchema, "password");
 
 		/// <summary>
 		/// The services table.
 		/// </summary>
-		public static readonly TableName SysService = new TableName(SystemSchema, "sUSRService");
+		public static readonly TableName SysService = new TableName(SystemSchema, "service");
 
 		/// <summary>
-		/// The system internally generated 'sUSRTableColumns' table.
+		/// The system internally generated 'table_columns' table.
 		/// </summary>
-		public static readonly TableName SysTableColumns = new TableName(SystemSchema, "sUSRTableColumns");
+		public static readonly TableName SysTableColumns = new TableName(SystemSchema, "table_columns");
 
 		/// <summary>
-		/// The system internally generated 'sUSRTableInfo' table.
+		/// The system internally generated 'table_info' table.
 		/// </summary>
-		public static readonly TableName SysTableInfo = new TableName(SystemSchema, "sUSRTableInfo");
+		public static readonly TableName SysTableInfo = new TableName(SystemSchema, "table_info");
 
 		///<summary>
 		///</summary>
-		public static readonly TableName SysUserconnect = new TableName(SystemSchema, "sUSRUserConnectPriv");
+		public static readonly TableName SysUserConnect = new TableName(SystemSchema, "user_connect_priv");
 
 		///<summary>
 		///</summary>
-		public static readonly TableName SysUserpriv = new TableName(SystemSchema, "sUSRUserPriv");
+		public static readonly TableName SysUserPriv = new TableName(SystemSchema, "user_priv");
 
 		/// <summary>
 		/// The view table.
 		/// </summary>
-		public static readonly TableName SysView = new TableName(SystemSchema, "sUSRView");
+		public static readonly TableName SysView = new TableName(SystemSchema, "view");
 
 		/// <summary>
 		/// The name of the system schema that contains tables refering to 
@@ -448,7 +448,7 @@ namespace Deveel.Data {
 		/// This method also returns <b>null</b> if a user exists but was 
 		/// denied access from the given host string. The given <i>host name</i>
 		/// is formatted in the database host connection encoding. This 
-		/// method checks all the values from the <see cref="SysUserpriv"/> 
+		/// method checks all the values from the <see cref="SysUserPriv"/> 
 		/// table for this user for the given protocol.
 		/// It first checks if the user is specifically <b>denied</b> access 
 		/// from the given host.It then checks if the user is <b>allowed</b> 
@@ -473,9 +473,9 @@ namespace Deveel.Data {
 
 					// Is the username/password in the database?
 					IDbCommand command = conn.CreateCommand();
-					command.CommandText = " SELECT \"UserName\" FROM \"sUSRPassword\" " +
-					                      "  WHERE \"sUSRPassword.UserName\" = ? " +
-					                      "    AND \"sUSRPassword.Password\" = ? ";
+					command.CommandText = " SELECT \"UserName\" FROM \"password\" " +
+					                      "  WHERE \"password.UserName\" = ? " +
+					                      "    AND \"password.Password\" = ? ";
 					command.Parameters.Add(username);
 					command.Parameters.Add(password);
 					command.Prepare();
@@ -560,7 +560,7 @@ namespace Deveel.Data {
 			}
 
 			// The table to check
-			DataTable connect_priv = context.GetTable(SysUserconnect);
+			DataTable connect_priv = context.GetTable(SysUserConnect);
 			VariableName un_col = connect_priv.GetResolvedVariable(0);
 			VariableName proto_col = connect_priv.GetResolvedVariable(1);
 			VariableName host_col = connect_priv.GetResolvedVariable(2);
@@ -608,7 +608,7 @@ namespace Deveel.Data {
 		public bool UserExists(DatabaseQueryContext context, String username) {
 			DataTable table = context.GetTable(SysPassword);
 			VariableName c1 = table.GetResolvedVariable(0);
-			// All sUSRPassword where UserName = %username%
+			// All password where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="), new Expression(TObject.GetString(username)));
 			return t.RowCount > 0;
 		}
@@ -683,9 +683,9 @@ namespace Deveel.Data {
 			Operator EQUALS_OP = Operator.Get("=");
 			Expression USER_EXPR = new Expression(TObject.GetString(username));
 
-			DataTable table = context.GetTable(SysUserpriv);
+			DataTable table = context.GetTable(SysUserPriv);
 			VariableName c1 = table.GetResolvedVariable(0);
-			// All sUSRUserPriv where UserName = %username%
+			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
 			// Delete all the groups
 			table.Delete(t);
@@ -714,13 +714,13 @@ namespace Deveel.Data {
 			// First delete all the groups from the user priv table
 			DeleteAllUserGroups(context, username);
 
-			// Now delete the username from the sUSRUserConnectPriv table
-			DataTable table = context.GetTable(SysUserconnect);
+			// Now delete the username from the user_connect_priv table
+			DataTable table = context.GetTable(SysUserConnect);
 			VariableName c1 = table.GetResolvedVariable(0);
 			Table t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
 			table.Delete(t);
 
-			// Finally delete the username from the sUSRPassword table
+			// Finally delete the username from the 'password' table
 			table = context.GetTable(SysPassword);
 			c1 = table.GetResolvedVariable(0);
 			t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
@@ -740,7 +740,7 @@ namespace Deveel.Data {
 			Operator EQUALS_OP = Operator.Get("=");
 			Expression USER_EXPR = new Expression(TObject.GetString(username));
 
-			// Delete the current username from the sUSRPassword table
+			// Delete the current username from the 'password' table
 			DataTable table = context.GetTable(SysPassword);
 			VariableName c1 = table.GetResolvedVariable(0);
 			Table t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
@@ -765,9 +765,9 @@ namespace Deveel.Data {
 		/// <param name="username"></param>
 		/// <returns></returns>
 		public String[] GroupsUserBelongsTo(DatabaseQueryContext context, String username) {
-			DataTable table = context.GetTable(SysUserpriv);
+			DataTable table = context.GetTable(SysUserPriv);
 			VariableName c1 = table.GetResolvedVariable(0);
-			// All sUSRUserPriv where UserName = %username%
+			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
 			                             new Expression(TObject.GetString(username)));
 			int sz = t.RowCount;
@@ -797,10 +797,10 @@ namespace Deveel.Data {
 		/// </returns>
 		public bool UserBelongsToGroup(DatabaseQueryContext context,
 		                               String username, String group) {
-			DataTable table = context.GetTable(SysUserpriv);
+			DataTable table = context.GetTable(SysUserPriv);
 			VariableName c1 = table.GetResolvedVariable(0);
 			VariableName c2 = table.GetResolvedVariable(1);
-			// All sUSRUserPriv where UserName = %username%
+			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
 			                             new Expression(TObject.GetString(username)));
 			// All from this set where PrivGroupName = %group%
@@ -816,7 +816,7 @@ namespace Deveel.Data {
 		/// <param name="username">The name of the user to be added.</param>
 		/// <param name="group">The name of the group to add the user to.</param>
 		/// <remarks>
-		/// This makes an entry in the <see cref="SysUserpriv"/> for this user 
+		/// This makes an entry in the <see cref="SysUserPriv"/> for this user 
 		/// and the given group.
 		/// If the user already belongs to the group then no changes are made.
 		/// <para>
@@ -848,7 +848,7 @@ namespace Deveel.Data {
 			// Check the user doesn't belong to the group
 			if (!UserBelongsToGroup(context, username, group)) {
 				// The user priv table
-				DataTable table = context.GetTable(SysUserpriv);
+				DataTable table = context.GetTable(SysUserPriv);
 				// Add this user to the group.
 				DataRow rdat = new DataRow(table);
 				rdat.SetValue(0, username);
@@ -881,10 +881,10 @@ namespace Deveel.Data {
 			String username = user.UserName;
 
 			// Internally we implement this by adding the user to the #locked group.
-			DataTable table = context.GetTable(SysUserpriv);
+			DataTable table = context.GetTable(SysUserPriv);
 			VariableName c1 = table.GetResolvedVariable(0);
 			VariableName c2 = table.GetResolvedVariable(1);
-			// All sUSRUserPriv where UserName = %username%
+			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
 			                             new Expression(TObject.GetString(username)));
 			// All from this set where PrivGroupName = %group%
@@ -924,7 +924,7 @@ namespace Deveel.Data {
 		public void GrantHostAccessToUser(DatabaseQueryContext context,
 		                                  String user, String protocol, String host) {
 			// The user connect priv table
-			DataTable table = context.GetTable(SysUserconnect);
+			DataTable table = context.GetTable(SysUserConnect);
 			// Add the protocol and host to the table
 			DataRow rdat = new DataRow(table);
 			rdat.SetValue(0, user);
@@ -1340,7 +1340,7 @@ namespace Deveel.Data {
 					"CREATE VIEW INFORMATION_SCHEMA.ThisUserSimpleGrant AS " +
 					"  SELECT \"priv_bit\", \"object\", \"param\", \"grantee\", " +
 					"         \"grant_option\", \"granter\" " +
-					"    FROM SYSTEM.sUSRGrant " +
+					"    FROM SYSTEM.grant " +
 					"   WHERE ( grantee = user() OR grantee = '@PUBLIC' )";
 				stmt.ExecuteNonQuery();
 
@@ -1349,16 +1349,16 @@ namespace Deveel.Data {
 					"CREATE VIEW INFORMATION_SCHEMA.ThisUserGrant AS " +
 					"  SELECT \"description\", \"object\", \"param\", \"grantee\", " +
 					"         \"grant_option\", \"granter\" " +
-					"    FROM SYSTEM.sUSRGrant, SYSTEM.sUSRPrivMap " +
+					"    FROM SYSTEM.grant, SYSTEM.sUSRPrivMap " +
 					"   WHERE ( grantee = user() OR grantee = '@PUBLIC' )" +
-					"     AND sUSRGrant.priv_bit = sUSRPrivMap.priv_bit";
+					"     AND grant.priv_bit = sUSRPrivMap.priv_bit";
 				stmt.ExecuteNonQuery();
 
 				// A view that represents the list of schema this user is allowed to view
 				// the contents of.
 				stmt.CommandText =
 					"CREATE VIEW INFORMATION_SCHEMA.ThisUserSchemaInfo AS " +
-					"  SELECT * FROM SYSTEM.sUSRSchemaInfo " +
+					"  SELECT * FROM SYSTEM.schema_info " +
 					"   WHERE \"name\" IN ( " +
 					"     SELECT \"param\" " +
 					"       FROM INFORMATION_SCHEMA.ThisUserGrant " +
@@ -1370,16 +1370,16 @@ namespace Deveel.Data {
 				// this user has Read access to.
 				stmt.CommandText =
 					"CREATE VIEW INFORMATION_SCHEMA.ThisUserTableColumns AS " +
-					"  SELECT * FROM SYSTEM.sUSRTableColumns " +
+					"  SELECT * FROM SYSTEM.table_columns " +
 					"   WHERE \"schema\" IN ( " +
 					"     SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )";
 				stmt.ExecuteNonQuery();
 
-				// A view that exposes the sUSRTableInfo table but only for the tables
+				// A view that exposes the 'table_info' table but only for the tables
 				// this user has Read access to.
 				stmt.CommandText =
 					"CREATE VIEW INFORMATION_SCHEMA.ThisUserTableInfo AS " +
-					"  SELECT * FROM SYSTEM.sUSRTableInfo " +
+					"  SELECT * FROM SYSTEM.table_info " +
 					"   WHERE \"schema\" IN ( " +
 					"     SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )";
 				stmt.ExecuteNonQuery();
@@ -1409,7 +1409,7 @@ namespace Deveel.Data {
 				stmt.CommandText =
 					"  CREATE VIEW INFORMATION_SCHEMA.CATALOGS AS " +
 					"  SELECT NULL AS \"TABLE_CATALOG\" \n" +
-					"    FROM SYSTEM.sUSRSchemaInfo\n" + // Hacky, this will generate a 0 row
+					"    FROM SYSTEM.schema_info\n" + // Hacky, this will generate a 0 row
 					"   WHERE FALSE\n"; // table.
 				stmt.ExecuteNonQuery();
 
@@ -1479,10 +1479,10 @@ namespace Deveel.Data {
 					"         \"schema\" \"TABLE_SCHEMA\",\n" +
 					"         \"table\" \"TABLE_NAME\",\n" +
 					"         \"column\" \"COLUMN_NAME\",\n" +
-					"         \"SYSTEM.sUSRPrimaryColumns.seq_no\" \"KEY_SEQ\",\n" +
+					"         \"SYSTEM.primary_columns.seq_no\" \"KEY_SEQ\",\n" +
 					"         \"name\" \"PK_NAME\"\n" +
-					"    FROM SYSTEM.sUSRPKeyInfo, SYSTEM.sUSRPrimaryColumns\n" +
-					"   WHERE sUSRPKeyInfo.id = sUSRPrimaryColumns.pk_id\n" +
+					"    FROM SYSTEM.pkey_info, SYSTEM.primary_columns\n" +
+					"   WHERE pkey_info.id = primary_columns.pk_id\n" +
 					"     AND \"schema\" IN\n" +
 					"            ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
@@ -1490,66 +1490,66 @@ namespace Deveel.Data {
 				stmt.CommandText =
 					"  CREATE VIEW INFORMATION_SCHEMA.ImportedKeys AS " +
 					"  SELECT NULL \"PKTABLE_CATALOG\",\n" +
-					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
-					"         \"sUSRFKeyInfo.ref_table\" \"PKTABLE_NAME\",\n" +
-					"         \"sUSRForeignColumns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
+					"         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
+					"         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
+					"         \"foreign_columns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
 					"         NULL \"FKTABLE_CATALOG\",\n" +
-					"         \"sUSRFKeyInfo.schema\" \"FKTABLE_SCHEMA\",\n" +
-					"         \"sUSRFKeyInfo.table\" \"FKTABLE_NAME\",\n" +
-					"         \"sUSRForeignColumns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
-					"         \"sUSRForeignColumns.seq_no\" \"KEY_SEQ\",\n" +
-					"         I_FRULE_CONVERT(\"sUSRFKeyInfo.update_rule\") \"UPDATE_RULE\",\n" +
-					"         I_FRULE_CONVERT(\"sUSRFKeyInfo.delete_rule\") \"DELETE_RULE\",\n" +
-					"         \"sUSRFKeyInfo.name\" \"FK_NAME\",\n" +
+					"         \"fkey_info.schema\" \"FKTABLE_SCHEMA\",\n" +
+					"         \"fkey_info.table\" \"FKTABLE_NAME\",\n" +
+					"         \"foreign_columns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
+					"         \"foreign_columns.seq_no\" \"KEY_SEQ\",\n" +
+					"         I_FRULE_CONVERT(\"fkey_info.update_rule\") \"UPDATE_RULE\",\n" +
+					"         I_FRULE_CONVERT(\"fkey_info.delete_rule\") \"DELETE_RULE\",\n" +
+					"         \"fkey_info.name\" \"FK_NAME\",\n" +
 					"         NULL \"PK_NAME\",\n" +
-					"         \"sUSRFKeyInfo.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYSTEM.sUSRFKeyInfo, SYSTEM.sUSRForeignColumns\n" +
-					"   WHERE sUSRFKeyInfo.id = sUSRForeignColumns.fk_id\n" +
-					"     AND \"sUSRFKeyInfo.schema\" IN\n" +
+					"         \"fkey_info.deferred\" \"DEFERRABILITY\"\n" +
+					"    FROM SYSTEM.fkey_info, SYSTEM.foreign_columns\n" +
+					"   WHERE fkey_info.id = foreign_columns.fk_id\n" +
+					"     AND \"fkey_info.schema\" IN\n" +
 					"              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
 					"  CREATE VIEW INFORMATION_SCHEMA.ExportedKeys AS " +
 					"  SELECT NULL \"PKTABLE_CAT\",\n" +
-					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
-					"         \"sUSRFKeyInfo.ref_table\" \"PKTABLE_NAME\",\n" +
-					"         \"sUSRForeignColumns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
+					"         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
+					"         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
+					"         \"foreign_columns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
 					"         NULL \"FKTABLE_CATALOG\",\n" +
-					"         \"sUSRFKeyInfo.schema\" \"FKTABLE_SCHEMA\",\n" +
-					"         \"sUSRFKeyInfo.table\" \"FKTABLE_NAME\",\n" +
-					"         \"sUSRForeignColumns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
-					"         \"sUSRForeignColumns.seq_no\" \"KEY_SEQ\",\n" +
-					"         I_FRULE_CONVERT(\"sUSRFKeyInfo.update_rule\") \"UPDATE_RULE\",\n" +
-					"         I_FRULE_CONVERT(\"sUSRFKeyInfo.delete_rule\") \"DELETE_RULE\",\n" +
-					"         \"sUSRFKeyInfo.name\" \"FK_NAME\",\n" +
+					"         \"fkey_info.schema\" \"FKTABLE_SCHEMA\",\n" +
+					"         \"fkey_info.table\" \"FKTABLE_NAME\",\n" +
+					"         \"foreign_columns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
+					"         \"foreign_columns.seq_no\" \"KEY_SEQ\",\n" +
+					"         I_FRULE_CONVERT(\"fkey_info.update_rule\") \"UPDATE_RULE\",\n" +
+					"         I_FRULE_CONVERT(\"fkey_info.delete_rule\") \"DELETE_RULE\",\n" +
+					"         \"fkey_info.name\" \"FK_NAME\",\n" +
 					"         NULL \"PK_NAME\",\n" +
-					"         \"sUSRFKeyInfo.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYSTEM.sUSRFKeyInfo, SYSTEM.sUSRForeignColumns\n" +
-					"   WHERE sUSRFKeyInfo.id = sUSRForeignColumns.fk_id\n" +
-					"     AND \"sUSRFKeyInfo.schema\" IN\n" +
+					"         \"fkey_info.deferred\" \"DEFERRABILITY\"\n" +
+					"    FROM SYSTEM.fkey_info, SYSTEM.foreign_columns\n" +
+					"   WHERE fkey_info.id = foreign_columns.fk_id\n" +
+					"     AND \"fkey_info.schema\" IN\n" +
 					"              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
 					"  CREATE VIEW INFORMATION_SCHEMA.CrossReference AS " +
 					"  SELECT NULL \"PKTABLE_CAT\",\n" +
-					"         \"sUSRFKeyInfo.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
-					"         \"sUSRFKeyInfo.ref_table\" \"PKTABLE_NAME\",\n" +
-					"         \"sUSRForeignColumns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
+					"         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
+					"         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
+					"         \"foreign_columns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
 					"         NULL \"FKTABLE_CAT\",\n" +
-					"         \"sUSRFKeyInfo.schema\" \"FKTABLE_SCHEMA\",\n" +
-					"         \"sUSRFKeyInfo.table\" \"FKTABLE_NAME\",\n" +
-					"         \"sUSRForeignColumns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
-					"         \"sUSRForeignColumns.seq_no\" \"KEY_SEQ\",\n" +
-					"         I_FRULE_CONVERT(\"sUSRFKeyInfo.update_rule\") \"UPDATE_RULE\",\n" +
-					"         I_FRULE_CONVERT(\"sUSRFKeyInfo.delete_rule\") \"DELETE_RULE\",\n" +
-					"         \"sUSRFKeyInfo.name\" \"FK_NAME\",\n" +
+					"         \"fkey_info.schema\" \"FKTABLE_SCHEMA\",\n" +
+					"         \"fkey_info.table\" \"FKTABLE_NAME\",\n" +
+					"         \"foreign_columns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
+					"         \"foreign_columns.seq_no\" \"KEY_SEQ\",\n" +
+					"         I_FRULE_CONVERT(\"fkey_info.update_rule\") \"UPDATE_RULE\",\n" +
+					"         I_FRULE_CONVERT(\"fkey_info.delete_rule\") \"DELETE_RULE\",\n" +
+					"         \"fkey_info.name\" \"FK_NAME\",\n" +
 					"         NULL \"PK_NAME\",\n" +
-					"         \"sUSRFKeyInfo.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYSTEM.sUSRFKeyInfo, SYSTEM.sUSRForeignColumns\n" +
-					"   WHERE sUSRFKeyInfo.id = sUSRForeignColumns.fk_id\n" +
-					"     AND \"sUSRFKeyInfo.schema\" IN\n" +
+					"         \"fkey_info.deferred\" \"DEFERRABILITY\"\n" +
+					"    FROM SYSTEM.fkey_info, SYSTEM.foreign_columns\n" +
+					"   WHERE fkey_info.id = foreign_columns.fk_id\n" +
+					"     AND \"fkey_info.schema\" IN\n" +
 					"              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
 
@@ -1576,90 +1576,89 @@ namespace Deveel.Data {
 
 		private static void CreateSystemTables(DatabaseConnection connection) {
 			// --- The user management tables ---
-			DataTableDef sUSRPassword = new DataTableDef();
-			sUSRPassword.TableName = SysPassword;
-			sUSRPassword.AddColumn(DataTableColumnDef.CreateStringColumn("UserName"));
-			sUSRPassword.AddColumn(DataTableColumnDef.CreateStringColumn("Password"));
+			DataTableDef password = new DataTableDef();
+			password.TableName = SysPassword;
+			password.AddColumn(DataTableColumnDef.CreateStringColumn("UserName"));
+			password.AddColumn(DataTableColumnDef.CreateStringColumn("Password"));
 
-			DataTableDef sUSRUserPriv = new DataTableDef();
-			sUSRUserPriv.TableName = SysUserpriv;
-			sUSRUserPriv.AddColumn(DataTableColumnDef.CreateStringColumn("UserName"));
-			sUSRUserPriv.AddColumn(
-				DataTableColumnDef.CreateStringColumn("PrivGroupName"));
+			DataTableDef userPriv = new DataTableDef();
+			userPriv.TableName = SysUserPriv;
+			userPriv.AddColumn(DataTableColumnDef.CreateStringColumn("UserName"));
+			userPriv.AddColumn(DataTableColumnDef.CreateStringColumn("PrivGroupName"));
 
-			DataTableDef sUSRUserConnectPriv = new DataTableDef();
-			sUSRUserConnectPriv.TableName = SysUserconnect;
-			sUSRUserConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("UserName"));
-			sUSRUserConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("Protocol"));
-			sUSRUserConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("Host"));
-			sUSRUserConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("Access"));
+			DataTableDef userConnectPriv = new DataTableDef();
+			userConnectPriv.TableName = SysUserConnect;
+			userConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("UserName"));
+			userConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("Protocol"));
+			userConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("Host"));
+			userConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("Access"));
 
-			DataTableDef sUSRGrant = new DataTableDef();
-			sUSRGrant.TableName = SysGrants;
-			sUSRGrant.AddColumn(DataTableColumnDef.CreateNumericColumn("priv_bit"));
-			sUSRGrant.AddColumn(DataTableColumnDef.CreateNumericColumn("object"));
-			sUSRGrant.AddColumn(DataTableColumnDef.CreateStringColumn("param"));
-			sUSRGrant.AddColumn(DataTableColumnDef.CreateStringColumn("grantee"));
-			sUSRGrant.AddColumn(DataTableColumnDef.CreateStringColumn("grant_option"));
-			sUSRGrant.AddColumn(DataTableColumnDef.CreateStringColumn("granter"));
+			DataTableDef grant = new DataTableDef();
+			grant.TableName = SysGrants;
+			grant.AddColumn(DataTableColumnDef.CreateNumericColumn("priv_bit"));
+			grant.AddColumn(DataTableColumnDef.CreateNumericColumn("object"));
+			grant.AddColumn(DataTableColumnDef.CreateStringColumn("param"));
+			grant.AddColumn(DataTableColumnDef.CreateStringColumn("grantee"));
+			grant.AddColumn(DataTableColumnDef.CreateStringColumn("grant_option"));
+			grant.AddColumn(DataTableColumnDef.CreateStringColumn("granter"));
 
-			DataTableDef sUSRService = new DataTableDef();
-			sUSRService.TableName = SysService;
-			sUSRService.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			sUSRService.AddColumn(DataTableColumnDef.CreateStringColumn("class"));
-			sUSRService.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
+			DataTableDef service = new DataTableDef();
+			service.TableName = SysService;
+			service.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			service.AddColumn(DataTableColumnDef.CreateStringColumn("class"));
+			service.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
 
-			DataTableDef sUSRFunctionFactory = new DataTableDef();
-			sUSRFunctionFactory.TableName = SysFunctionfactory;
-			sUSRFunctionFactory.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			sUSRFunctionFactory.AddColumn(DataTableColumnDef.CreateStringColumn("class"));
-			sUSRFunctionFactory.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
+			DataTableDef functionFactory = new DataTableDef();
+			functionFactory.TableName = SysFunctionfactory;
+			functionFactory.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			functionFactory.AddColumn(DataTableColumnDef.CreateStringColumn("class"));
+			functionFactory.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
 
-			DataTableDef sUSRFunction = new DataTableDef();
-			sUSRFunction.TableName = SysFunction;
-			sUSRFunction.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			sUSRFunction.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			sUSRFunction.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
-			sUSRFunction.AddColumn(DataTableColumnDef.CreateStringColumn("location"));
-			sUSRFunction.AddColumn(DataTableColumnDef.CreateStringColumn("return_type"));
-			sUSRFunction.AddColumn(DataTableColumnDef.CreateStringColumn("args_type"));
-			sUSRFunction.AddColumn(DataTableColumnDef.CreateStringColumn("username"));
+			DataTableDef function = new DataTableDef();
+			function.TableName = SysFunction;
+			function.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
+			function.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			function.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
+			function.AddColumn(DataTableColumnDef.CreateStringColumn("location"));
+			function.AddColumn(DataTableColumnDef.CreateStringColumn("return_type"));
+			function.AddColumn(DataTableColumnDef.CreateStringColumn("args_type"));
+			function.AddColumn(DataTableColumnDef.CreateStringColumn("username"));
 
-			DataTableDef sUSRView = new DataTableDef();
-			sUSRView.TableName = SysView;
-			sUSRView.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			sUSRView.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			sUSRView.AddColumn(DataTableColumnDef.CreateBinaryColumn("query"));
-			sUSRView.AddColumn(DataTableColumnDef.CreateBinaryColumn("data"));
-			sUSRView.AddColumn(DataTableColumnDef.CreateStringColumn("username"));
+			DataTableDef view = new DataTableDef();
+			view.TableName = SysView;
+			view.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
+			view.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			view.AddColumn(DataTableColumnDef.CreateBinaryColumn("query"));
+			view.AddColumn(DataTableColumnDef.CreateBinaryColumn("data"));
+			view.AddColumn(DataTableColumnDef.CreateStringColumn("username"));
 
-			DataTableDef sUSRLabel = new DataTableDef();
-			sUSRLabel.TableName = SysLabel;
-			sUSRLabel.AddColumn(DataTableColumnDef.CreateNumericColumn("object_type"));
-			sUSRLabel.AddColumn(DataTableColumnDef.CreateStringColumn("object_name"));
-			sUSRLabel.AddColumn(DataTableColumnDef.CreateStringColumn("label"));
+			DataTableDef label = new DataTableDef();
+			label.TableName = SysLabel;
+			label.AddColumn(DataTableColumnDef.CreateNumericColumn("object_type"));
+			label.AddColumn(DataTableColumnDef.CreateStringColumn("object_name"));
+			label.AddColumn(DataTableColumnDef.CreateStringColumn("label"));
 
-			DataTableDef sUSRDataTrigger = new DataTableDef();
-			sUSRDataTrigger.TableName = SysDataTrigger;
-			sUSRDataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			sUSRDataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			sUSRDataTrigger.AddColumn(DataTableColumnDef.CreateNumericColumn("type"));
-			sUSRDataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("on_object"));
-			sUSRDataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("action"));
-			sUSRDataTrigger.AddColumn(DataTableColumnDef.CreateBinaryColumn("misc"));
-			sUSRDataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("username"));
+			DataTableDef dataTrigger = new DataTableDef();
+			dataTrigger.TableName = SysDataTrigger;
+			dataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
+			dataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			dataTrigger.AddColumn(DataTableColumnDef.CreateNumericColumn("type"));
+			dataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("on_object"));
+			dataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("action"));
+			dataTrigger.AddColumn(DataTableColumnDef.CreateBinaryColumn("misc"));
+			dataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("username"));
 
 			// Create the tables
-			connection.AlterCreateTable(sUSRPassword, 91, 128);
-			connection.AlterCreateTable(sUSRUserPriv, 91, 128);
-			connection.AlterCreateTable(sUSRUserConnectPriv, 91, 128);
-			connection.AlterCreateTable(sUSRGrant, 195, 128);
-			connection.AlterCreateTable(sUSRService, 91, 128);
-			connection.AlterCreateTable(sUSRFunctionFactory, 91, 128);
-			connection.AlterCreateTable(sUSRFunction, 91, 128);
-			connection.AlterCreateTable(sUSRView, 91, 128);
-			connection.AlterCreateTable(sUSRLabel, 91, 128);
-			connection.AlterCreateTable(sUSRDataTrigger, 91, 128);
+			connection.AlterCreateTable(password, 91, 128);
+			connection.AlterCreateTable(userPriv, 91, 128);
+			connection.AlterCreateTable(userConnectPriv, 91, 128);
+			connection.AlterCreateTable(grant, 195, 128);
+			connection.AlterCreateTable(service, 91, 128);
+			connection.AlterCreateTable(functionFactory, 91, 128);
+			connection.AlterCreateTable(function, 91, 128);
+			connection.AlterCreateTable(view, 91, 128);
+			connection.AlterCreateTable(label, 91, 128);
+			connection.AlterCreateTable(dataTrigger, 91, 128);
 		}
 
 		///<summary>
@@ -1748,9 +1747,9 @@ namespace Deveel.Data {
 			              GrantManager.PublicUsernameStr, false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRVariables", GrantManager.PublicUsernameStr, false,
 			              GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRDatabaseStatistics",
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.database_stats",
 			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRDatabaseVars", GrantManager.PublicUsernameStr,
+			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.database_vars", GrantManager.PublicUsernameStr,
 			              false, GRANTER);
 			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sUSRProductInfo", GrantManager.PublicUsernameStr,
 			              false, GRANTER);
@@ -1923,9 +1922,9 @@ namespace Deveel.Data {
 				DatabaseConnection connection = CreateNewConnection(null, null);
 				DatabaseQueryContext context = new DatabaseQueryContext(connection);
 				connection.LockingMechanism.SetMode(LockingMode.Exclusive);
-				if (!connection.TableExists(TableDataConglomerate.PERSISTENT_VAR_TABLE)) {
+				if (!connection.TableExists(TableDataConglomerate.PersistentVarTable)) {
 					throw new DatabaseException(
-						"The sUSRDatabaseVars table doesn't exist.  This means the " +
+						"The database_vars table doesn't exist.  This means the " +
 						"database is pre-schema version 1 or the table has been deleted." +
 						"If you are converting an old version of the database, please " +
 						"convert the database using an older release.");
@@ -1933,7 +1932,7 @@ namespace Deveel.Data {
 
 				// What version is the data?
 				DataTable database_vars =
-					connection.GetTable(TableDataConglomerate.PERSISTENT_VAR_TABLE);
+					connection.GetTable(TableDataConglomerate.PersistentVarTable);
 				IDictionary vars = database_vars.ToDictionary();
 				String db_version = vars["database.version"].ToString();
 				// If the version doesn't equal the current version, throw an error.
@@ -2215,7 +2214,7 @@ namespace Deveel.Data {
 		// ---------- Static methods ----------
 
 		/// <summary>
-		/// Given the sUSRDatabaseVars table, this will update the given key with
+		/// Given the database_vars table, this will update the given key with
 		/// the given value in the table in the current transaction.
 		/// </summary>
 		/// <param name="context"></param>

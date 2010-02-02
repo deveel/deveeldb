@@ -143,7 +143,7 @@ namespace Deveel.Data {
 		static GTTableColumnsDataSource() {
 
 			DataTableDef def = new DataTableDef();
-			def.TableName = new TableName(Database.SystemSchema, "sUSRTableColumns");
+			def.TableName = new TableName(Database.SystemSchema, "table_columns");
 
 			// Add column definitions
 			def.AddColumn(GetStringColumn("schema"));

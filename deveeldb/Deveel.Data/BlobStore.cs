@@ -23,11 +23,12 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 
 using Deveel.Data.Store;
 using Deveel.Data.Util;
-using Deveel.Zip;
+//TODO: check ... using Deveel.Zip;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -795,6 +796,8 @@ namespace Deveel.Data {
 				// The page is compressed
 				byte[] page_buf = new byte[page_size];
 				page_area.Read(page_buf, 0, page_size);
+				/*
+				TODO: check...
 				Inflater inflater = new Inflater();
 				inflater.SetInput(page_buf, 0, page_size);
 				try {
@@ -807,6 +810,20 @@ namespace Deveel.Data {
 					throw new IOException("ZIP Data Format Error: " + e.Message);
 				}
 				// inflater.End();
+				*/
+
+#if NET_2_0
+				DeflateStream deflateStream = new DeflateStream(new MemoryStream(page_buf, 0, page_size), CompressionMode.Decompress, false);
+				try {
+					int result_length = deflateStream.Read(buf, off, length);
+					if (result_length != length)
+						throw new Exception("Assert failed: decompressed length is incorrect.");
+				} catch(InvalidDataException e) {
+					throw new IOException("ZIP Data Format Error: " + e.Message);
+				}
+#else
+				throw new NotSupported();
+#endif
 			} else {
 				// The page is not compressed
 				page_area.Read(buf, off, length);
@@ -894,11 +911,21 @@ namespace Deveel.Data {
 			int write_length;
 			if ((type & ReferenceType.Compressed) != 0) {
 				// Yes, compression
+				/*
+				TODO: verify this...
 				Deflater deflater = new Deflater(-1, false);
 				deflater.SetInput(buf, 0, length);
 				deflater.Finish();
 				to_write = new byte[65 * 1024];
 				write_length = deflater.Deflate(to_write);
+				*/
+#if NET_2_0
+				DeflateStream deflateStream = new DeflateStream(new MemoryStream(buf, 0, length), CompressionMode.Compress, false);
+				to_write = new byte[65 * 1024];
+				write_length = deflateStream.Read(to_write, 0, to_write.Length);
+#else
+				throw new NotSupportedException();
+#endif
 			} else {
 				// No compression
 				to_write = buf;
