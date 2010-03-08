@@ -1,4 +1,15 @@
-﻿2009-11-27  Antonello Provenzano  <antonello@deveel.com>
+﻿2010-02-05  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbConnectionStringBuilder.cs: 
+		- refactored as the	one in the standalone client library 
+		(for consistency)
+		- added key StrictGetValue (that differs from the standalone
+		client) to return the value as non converted
+	* DeveelDbConnection.cs: replaced references to ConnectionString
+	with DeveelDbConnectionStringBuilder
+	* DeveelDbCommand.cs: refactored to reflect the same behavior
+	of the standalone client (for consistency).
+	
+2009-11-27  Antonello Provenzano  <antonello@deveel.com>
 	* DeveelDbCommand.cs: fixed a bug on SelectScalar
 	
 2009-11-22  Antonello Provenzano  <antonello@deveel.com>

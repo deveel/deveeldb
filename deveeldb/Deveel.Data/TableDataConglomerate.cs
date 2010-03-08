@@ -1,24 +1,17 @@
-//  
-//  TableDataConglomerate.cs
-//  
-//  Author:
-//       Antonello Provenzano <antonello@deveel.com>
-//       Tobias Downer <toby@mckoi.com>
 // 
-//  Copyright (c) 2009 Deveel
+//  Copyright 2010  Deveel
 // 
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
 // 
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
+//        http://www.apache.org/licenses/LICENSE-2.0
 // 
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 
 using System;
 using System.Collections;
@@ -888,15 +881,15 @@ namespace Deveel.Data {
 			// The 'id' columns are primary keys on all the system tables,
 			String[] id_col = new String[] { "id" };
 			transaction.AddPrimaryKeyConstraint(PrimaryInfoTable,
-					  id_col, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_PK_PK");
+					  id_col, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_PK_PK");
 			transaction.AddPrimaryKeyConstraint(ForeignInfoTable,
-					  id_col, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_FK_PK");
+					  id_col, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_FK_PK");
 			transaction.AddPrimaryKeyConstraint(UniqueInfoTable,
-					  id_col, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_UNIQUE_PK");
+					  id_col, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_UNIQUE_PK");
 			transaction.AddPrimaryKeyConstraint(CheckInfoTable,
-					  id_col, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_CHECK_PK");
+					  id_col, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_CHECK_PK");
 			transaction.AddPrimaryKeyConstraint(SchemaInfoTable,
-					  id_col, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_SCHEMA_PK");
+					  id_col, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_SCHEMA_PK");
 
 			// -- Foreign Keys --
 			// Create the foreign key references,
@@ -906,46 +899,46 @@ namespace Deveel.Data {
 			transaction.AddForeignKeyConstraint(
 					  PrimaryColsTable, fk_col, PrimaryInfoTable, fk_ref_col,
 					  ConstraintAction.NoAction, ConstraintAction.NoAction,
-					  ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_PK_FK");
+					  ConstraintDeferrability.InitiallyImmediate, "SYSTEM_PK_FK");
 			fk_col[0] = "fk_id";
 			transaction.AddForeignKeyConstraint(
 					  ForeignColsTable, fk_col, ForeignInfoTable, fk_ref_col,
 					  ConstraintAction.NoAction, ConstraintAction.NoAction,
-					  ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_FK_FK");
+					  ConstraintDeferrability.InitiallyImmediate, "SYSTEM_FK_FK");
 			fk_col[0] = "un_id";
 			transaction.AddForeignKeyConstraint(
 					  UniqueColsTable, fk_col, UniqueInfoTable, fk_ref_col,
 					  ConstraintAction.NoAction, ConstraintAction.NoAction,
-					  ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_UNIQUE_FK");
+					  ConstraintDeferrability.InitiallyImmediate, "SYSTEM_UNIQUE_FK");
 
 			// pkey_info 'schema', 'table' column is a unique set,
 			// (You are only allowed one primary key per table).
 			String[] columns = new String[] { "schema", "table" };
 			transaction.AddUniqueConstraint(PrimaryInfoTable,
-				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_PKEY_ST_UNIQUE");
+				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_PKEY_ST_UNIQUE");
 			// schema_info 'name' column is a unique column,
 			columns = new String[] { "name" };
 			transaction.AddUniqueConstraint(SchemaInfoTable,
-				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_SCHEMA_UNIQUE");
+				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_SCHEMA_UNIQUE");
 			//    columns = new String[] { "name" };
 			columns = new String[] { "name", "schema" };
 			// pkey_info 'name' column is a unique column,
 			transaction.AddUniqueConstraint(PrimaryInfoTable,
-				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_PKEY_UNIQUE");
+				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_PKEY_UNIQUE");
 			// fkey_info 'name' column is a unique column,
 			transaction.AddUniqueConstraint(ForeignInfoTable,
-				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_FKEY_UNIQUE");
+				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_FKEY_UNIQUE");
 			// unique_info 'name' column is a unique column,
 			transaction.AddUniqueConstraint(UniqueInfoTable,
-				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_UNIQUE_UNIQUE");
+				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_UNIQUE_UNIQUE");
 			// check_info 'name' column is a unique column,
 			transaction.AddUniqueConstraint(CheckInfoTable,
-				 columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_CHECK_UNIQUE");
+				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_CHECK_UNIQUE");
 
 			// database_vars 'variable' is unique
 			columns = new String[] { "variable" };
 			transaction.AddUniqueConstraint(PersistentVarTable,
-			   columns, ConstraintDeferrability.INITIALLY_IMMEDIATE, "SYSTEM_DATABASEVARS_UNIQUE");
+			   columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_DATABASEVARS_UNIQUE");
 
 			// Insert the version number of the database
 			transaction.SetPersistentVariable("database.version", "1.4");
@@ -1706,9 +1699,9 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		internal static String DeferredString(ConstraintDeferrability deferred) {
 			switch (deferred) {
-				case (ConstraintDeferrability.INITIALLY_IMMEDIATE):
+				case (ConstraintDeferrability.InitiallyImmediate):
 					return "Immediate";
-				case (ConstraintDeferrability.INITIALLY_DEFERRED):
+				case (ConstraintDeferrability.InitiallyDeferred):
 					return "Deferred";
 				default:
 					throw new ApplicationException("Unknown deferred string.");
@@ -2044,9 +2037,9 @@ namespace Deveel.Data {
 		/// table.</param>
 		/// <param name="deferred"></param>
 		/// <remarks>
-		/// If deferred is <see cref="ConstraintDeferrability.INITIALLY_IMMEDIATE"/>
+		/// If deferred is <see cref="ConstraintDeferrability.InitiallyImmediate"/>
 		/// only immediate constraints are tested. If deferred  is
-		/// <see cref="ConstraintDeferrability.INITIALLY_DEFERRED"/> all constraints 
+		/// <see cref="ConstraintDeferrability.InitiallyDeferred"/> all constraints 
 		/// are tested.
 		/// </remarks>
 		/// <exception cref="DatabaseConstraintViolationException">
@@ -2073,8 +2066,8 @@ namespace Deveel.Data {
 			Transaction.ColumnGroup primary_key =
 					   Transaction.QueryTablePrimaryKeyGroup(transaction, table_name);
 			if (primary_key != null &&
-				(deferred == ConstraintDeferrability.INITIALLY_DEFERRED ||
-				 primary_key.deferred == ConstraintDeferrability.INITIALLY_IMMEDIATE)) {
+				(deferred == ConstraintDeferrability.InitiallyDeferred ||
+				 primary_key.deferred == ConstraintDeferrability.InitiallyImmediate)) {
 
 				// For each row added to this column
 				for (int rn = 0; rn < row_indices.Length; ++rn) {
@@ -2096,8 +2089,8 @@ namespace Deveel.Data {
 						  Transaction.QueryTableUniqueGroups(transaction, table_name);
 			for (int i = 0; i < unique_constraints.Length; ++i) {
 				Transaction.ColumnGroup unique = unique_constraints[i];
-				if (deferred == ConstraintDeferrability.INITIALLY_DEFERRED ||
-					unique.deferred == ConstraintDeferrability.INITIALLY_IMMEDIATE) {
+				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
+					unique.deferred == ConstraintDeferrability.InitiallyImmediate) {
 
 					// For each row added to this column
 					for (int rn = 0; rn < row_indices.Length; ++rn) {
@@ -2121,8 +2114,8 @@ namespace Deveel.Data {
 				  Transaction.QueryTableForeignKeyReferences(transaction, table_name);
 			for (int i = 0; i < foreign_constraints.Length; ++i) {
 				Transaction.ColumnGroupReference reference = foreign_constraints[i];
-				if (deferred == ConstraintDeferrability.INITIALLY_DEFERRED ||
-					reference.deferred == ConstraintDeferrability.INITIALLY_IMMEDIATE) {
+				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
+					reference.deferred == ConstraintDeferrability.InitiallyImmediate) {
 					// For each row added to this column
 					for (int rn = 0; rn < row_indices.Length; ++rn) {
 						// Make sure the referenced record exists
@@ -2162,8 +2155,8 @@ namespace Deveel.Data {
 			// For each check constraint, check that it evaluates to true.
 			for (int i = 0; i < check_constraints.Length; ++i) {
 				Transaction.CheckExpression check = check_constraints[i];
-				if (deferred == ConstraintDeferrability.INITIALLY_DEFERRED ||
-					check.deferred == ConstraintDeferrability.INITIALLY_IMMEDIATE) {
+				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
+					check.deferred == ConstraintDeferrability.InitiallyImmediate) {
 
 					check = system.PrepareTransactionCheckConstraint(table_def, check);
 					Expression exp = check.expression;
@@ -2209,9 +2202,9 @@ namespace Deveel.Data {
 		/// <param name="row_index">The row that was added to the table.</param>
 		/// <param name="deferred"></param>
 		/// <remarks>
-		/// If deferred is <see cref="ConstraintDeferrability.INITIALLY_IMMEDIATE"/>
+		/// If deferred is <see cref="ConstraintDeferrability.InitiallyImmediate"/>
 		/// only immediate constraints are tested. If deferred  is
-		/// <see cref="ConstraintDeferrability.INITIALLY_DEFERRED"/> all constraints 
+		/// <see cref="ConstraintDeferrability.InitiallyDeferred"/> all constraints 
 		/// are tested.
 		/// </remarks>
 		/// <exception cref="DatabaseConstraintViolationException">
@@ -2236,9 +2229,9 @@ namespace Deveel.Data {
 		/// the table.</param>
 		/// <param name="deferred"></param>
 		/// <remarks>
-		/// If deferred is <see cref="ConstraintDeferrability.INITIALLY_IMMEDIATE"/>
+		/// If deferred is <see cref="ConstraintDeferrability.InitiallyImmediate"/>
 		/// only immediate constraints are tested. If deferred  is
-		/// <see cref="ConstraintDeferrability.INITIALLY_DEFERRED"/> all constraints 
+		/// <see cref="ConstraintDeferrability.InitiallyDeferred"/> all constraints 
 		/// are tested.
 		/// </remarks>
 		/// <exception cref="DatabaseConstraintViolationException">
@@ -2264,8 +2257,8 @@ namespace Deveel.Data {
 															 transaction, table_name);
 			for (int i = 0; i < foreign_constraints.Length; ++i) {
 				Transaction.ColumnGroupReference reference = foreign_constraints[i];
-				if (deferred == ConstraintDeferrability.INITIALLY_DEFERRED ||
-					reference.deferred == ConstraintDeferrability.INITIALLY_IMMEDIATE) {
+				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
+					reference.deferred == ConstraintDeferrability.InitiallyImmediate) {
 					// For each row removed from this column
 					for (int rn = 0; rn < row_indices.Length; ++rn) {
 						// Make sure the referenced record exists
@@ -2307,9 +2300,9 @@ namespace Deveel.Data {
 		/// <param name="row_index">The row that was removed from the table.</param>
 		/// <param name="deferred"></param>
 		/// <remarks>
-		/// If deferred is <see cref="ConstraintDeferrability.INITIALLY_IMMEDIATE"/>
+		/// If deferred is <see cref="ConstraintDeferrability.InitiallyImmediate"/>
 		/// only immediate constraints are tested. If deferred  is
-		/// <see cref="ConstraintDeferrability.INITIALLY_DEFERRED"/> all constraints 
+		/// <see cref="ConstraintDeferrability.InitiallyDeferred"/> all constraints 
 		/// are tested.
 		/// </remarks>
 		/// <exception cref="DatabaseConstraintViolationException">
@@ -2334,9 +2327,9 @@ namespace Deveel.Data {
 		/// and we need to check existing data in a table is conformant with 
 		/// the new constraint changes.
 		/// <para>
-		/// If deferred is <see cref="ConstraintDeferrability.INITIALLY_IMMEDIATE"/>
+		/// If deferred is <see cref="ConstraintDeferrability.InitiallyImmediate"/>
 		/// only immediate constraints are tested. If deferred  is
-		/// <see cref="ConstraintDeferrability.INITIALLY_DEFERRED"/> all constraints 
+		/// <see cref="ConstraintDeferrability.InitiallyDeferred"/> all constraints 
 		/// are tested.
 		/// </para>
 		/// </remarks>
@@ -2356,7 +2349,7 @@ namespace Deveel.Data {
 			}
 			// Check the constraints of all the rows in the table.
 			CheckAddConstraintViolations(transaction, table,
-										 rows, ConstraintDeferrability.INITIALLY_DEFERRED);
+										 rows, ConstraintDeferrability.InitiallyDeferred);
 		}
 
 
@@ -2973,7 +2966,7 @@ namespace Deveel.Data {
 							if (table_info.master.TableID == table_id) {
 								CheckAllAddConstraintViolations(check_transaction,
 																changed_table_source[n],
-																ConstraintDeferrability.INITIALLY_DEFERRED);
+																ConstraintDeferrability.InitiallyDeferred);
 							}
 						}
 					}
@@ -2997,7 +2990,7 @@ namespace Deveel.Data {
 							// violation.
 							CheckRemoveConstraintViolations(check_transaction,
 															changed_table_source[i], normalized_removed_rows,
-															ConstraintDeferrability.INITIALLY_DEFERRED);
+															ConstraintDeferrability.InitiallyDeferred);
 
 							// Find the normalized added rows.
 							int[] normalized_added_rows =
@@ -3006,7 +2999,7 @@ namespace Deveel.Data {
 							// violation.
 							CheckAddConstraintViolations(check_transaction,
 														 changed_table_source[i], normalized_added_rows,
-														 ConstraintDeferrability.INITIALLY_DEFERRED);
+														 ConstraintDeferrability.InitiallyDeferred);
 
 							// Set up the list of added and removed rows
 							table_info.norm_added_rows = normalized_added_rows;

@@ -1,24 +1,17 @@
-//  
-//  DbSystem.cs
-//  
-//  Author:
-//       Antonello Provenzano <antonello@deveel.com>
-//       Tobias Downer <toby@mckoi.com>
 // 
-//  Copyright (c) 2009 Deveel
+//  Copyright 2010  Deveel
 // 
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
 // 
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
+//        http://www.apache.org/licenses/LICENSE-2.0
 // 
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 
 using System;
 using System.Collections;
@@ -166,12 +159,12 @@ namespace Deveel.Data.Control {
 			IDatabaseInterface db_interface = new DatabaseInterface(controller, name, host_string);
 			// Create the DeveelDbConnection object (very minimal cache settings for an
 			// internal connection).
-			ConnectionString s = new ConnectionString();
+			DeveelDbConnectionStringBuilder s = new DeveelDbConnectionStringBuilder();
 			s.Schema = schema;
 			s.UserName = username;
 			s.Password = password;
 
-			DBSConnection connection = new DBSConnection(this, internal_counter, s, db_interface, 8, 4092000);
+			DBSConnection connection = new DBSConnection(this, internal_counter, s.ToString(), db_interface, 8, 4092000);
 			// Attempt to log in with the given username and password (default schema)
 			connection.Open();
 			if (connection.State != ConnectionState.Open)
@@ -310,7 +303,7 @@ namespace Deveel.Data.Control {
 		}
 
 		private class DBSConnection : DeveelDbConnection {
-			internal DBSConnection(DbSystem system, int id, ConnectionString connectionString, IDatabaseInterface db_interface, int cache_size, int max_size)
+			internal DBSConnection(DbSystem system, int id, string connectionString, IDatabaseInterface db_interface, int cache_size, int max_size)
 				: base(connectionString, db_interface, cache_size, max_size) {
 				this.system = system;
 				this.id = id;

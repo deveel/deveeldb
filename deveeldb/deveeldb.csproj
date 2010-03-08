@@ -57,7 +57,6 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Deveel.Data.Caching\CacheWrapper.cs" />
     <Compile Include="Deveel.Data.Caching\MemoryCache.cs" />
-    <Compile Include="Deveel.Data.Client\ConnectionString.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbClientInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -98,23 +97,57 @@
     <Compile Include="Deveel.Data.Functions\DateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\MiscFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\StringFunctionFactory.cs" />
-    <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\ColumnConstraintAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\ColumnConstraints.cs" />
-    <Compile Include="Deveel.Data.Mapping\ForeignKeyAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\FunctionAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\INamedConstraint.cs" />
-    <Compile Include="Deveel.Data.Mapping\MappingContext.cs" />
-    <Compile Include="Deveel.Data.Mapping\MemberTypes.cs" />
-    <Compile Include="Deveel.Data.Mapping\TypeAttributeMapping.cs" />
-    <Compile Include="Deveel.Data.Mapping\NotNullAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\PrimaryKeyAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\TableAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\TypeAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\TypeMapping.cs" />
-    <Compile Include="Deveel.Data.Mapping\TypeMemberMapping.cs" />
-    <Compile Include="Deveel.Data.Mapping\UniqueAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\ColumnConstraintAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\ColumnConstraints.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\ForeignKeyAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\FunctionAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\INamedConstraint.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\MappingContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\MemberTypes.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\NotNullAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\PrimaryKeyAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\TableAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\TypeAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\TypeAttributeMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\TypeMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\TypeMemberMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\UniqueAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Procedures\ParameterDirection.cs" />
     <Compile Include="Deveel.Data.Procedures\ProcedureParameter.cs" />
     <Compile Include="Deveel.Data.Procedures\ProcedureQueryContext.cs" />
@@ -124,7 +157,9 @@
     <Compile Include="Deveel.Data.Server\EmbeddedProcessor.cs" />
     <Compile Include="Deveel.Data.Server\Processor.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
-    <Compile Include="Deveel.Data.Sql\CreateTypeStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateTypeStatement.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Sql\CreateViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CursorFetch.cs" />
     <Compile Include="Deveel.Data.Sql\DropTypeStatement.cs" />
@@ -165,7 +200,6 @@
     <Compile Include="Deveel.Data.Store\SyncFailedException.cs" />
     <Compile Include="Deveel.Data.Store\V1FileStoreSystem.cs" />
     <Compile Include="Deveel.Data.Store\V1HeapStoreSystem.cs" />
-    <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
     <Compile Include="Deveel.Data\CaseExpression.cs" />
     <Compile Include="Deveel.Data\DataTableConstraintDef.cs" />
@@ -174,7 +208,6 @@
     <Compile Include="Deveel.Data\IntervalField.cs" />
     <Compile Include="Deveel.Data\IntervalForm.cs" />
     <Compile Include="Deveel.Data\ProcedureResult.cs" />
-    <Compile Include="Deveel.Data\UserObject.cs" />
     <Compile Include="Deveel.Data\ConstraintAction.cs" />
     <Compile Include="Deveel.Data\ConstraintDeferrability.cs" />
     <Compile Include="Deveel.Data\Cursor.cs" />
@@ -188,9 +221,18 @@
     <Compile Include="Deveel.Data\TIntervalType.cs" />
     <Compile Include="Deveel.Data\TUserDefinedType.cs" />
     <Compile Include="Deveel.Data\UDTManager.cs" />
-    <Compile Include="Deveel.Data\UserType.cs" />
-    <Compile Include="Deveel.Data\UserTypeAttribute.cs" />
-    <Compile Include="Deveel.Data\UserTypeAttributes.cs" />
+    <Compile Include="Deveel.Data\UserObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data\UserType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data\UserTypeAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data\UserTypeAttributes.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Data\Variable.cs" />
     <Compile Include="Deveel.Data\VariableRef.cs" />
     <Compile Include="Deveel.Data\VariableResolver.cs" />
@@ -562,7 +604,7 @@
     <MonoDevelop>
       <Properties>
         <Policies>
-          <StandardHeader inheritsSet="LGPLv2License" />
+          <StandardHeader inheritsSet="Apache2License" />
           <ChangeLogPolicy inheritsSet="Mono" />
         </Policies>
         <MonoDevelop.Autotools.MakefileInfo RelativeMakefileName="Makefile.am" SyncReferences="true" IsAutotoolsProject="true" RelativeConfigureInPath="..">

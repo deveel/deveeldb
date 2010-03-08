@@ -1,30 +1,24 @@
-//  
-//  DbConfig.cs
-//  
-//  Author:
-//       Antonello Provenzano <antonello@deveel.com>
-//       Tobias Downer <toby@mckoi.com>
 // 
-//  Copyright (c) 2009 Deveel
+//  Copyright 2010  Deveel
 // 
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
 // 
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
+//        http://www.apache.org/licenses/LICENSE-2.0
 // 
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 
 using System;
 using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Text;
 
 using Deveel.Data.Control;
 using Deveel.Data.Util;
@@ -53,6 +47,50 @@ namespace Deveel.Data {
 		public DbConfig(string current_path) {
 			this.current_path = current_path;
 			key_map = new Hashtable();
+		}
+
+		private static void FormatForOutput(String str, StringBuilder buffer, bool key) {
+			if (key) {
+				buffer.Length = 0;
+				buffer.EnsureCapacity(str.Length);
+			} else
+				buffer.EnsureCapacity(buffer.Length + str.Length);
+			bool head = true;
+			int size = str.Length;
+			for (int i = 0; i < size; i++) {
+				char c = str[i];
+				switch (c) {
+					case '\n':
+						buffer.Append("\\n");
+						break;
+					case '\r':
+						buffer.Append("\\r");
+						break;
+					case '\t':
+						buffer.Append("\\t");
+						break;
+					case ' ':
+						buffer.Append(head ? "\\ " : " ");
+						break;
+					case '\\':
+					case '!':
+					case '#':
+					case '=':
+					case ':':
+						buffer.Append('\\').Append(c);
+						break;
+					default:
+						if (c < ' ' || c > '~') {
+							String hex = ((int)c).ToString("{0:x4}");
+							buffer.Append("\\u0000".Substring(0, 6 - hex.Length));
+							buffer.Append(hex);
+						} else
+							buffer.Append(c);
+						break;
+				}
+				if (c != ' ')
+					head = key;
+			}
 		}
 
 		/// <summary>
@@ -155,6 +193,7 @@ namespace Deveel.Data {
 			if (!input.CanRead)
 				throw new ArgumentException();
 
+			/*
 			Properties config = new Properties();
 			config.Load(new BufferedStream(input));
 			// For each property in the file
@@ -163,6 +202,152 @@ namespace Deveel.Data {
 				// Set the property value in this configuration.
 				String property_key = (String)en.Current;
 				SetValue(property_key, config.GetProperty(property_key));
+			}
+			*/
+
+			StreamReader reader = new StreamReader(input, Encoding.GetEncoding("ISO-8859-1"));
+			string line;
+
+			while ((line = reader.ReadLine()) != null) {
+				char c = '\0';
+				int pos = 0;
+
+				// Trim the leading white spaces first
+				while (pos < line.Length &&
+					Char.IsWhiteSpace(c = line[pos]))
+					pos++;
+
+				// If empty line or begins with a comment character, skip this line.
+				if ((line.Length - pos) == 0 || 
+					line[pos] == '#' || 
+					line[pos] == '!')
+					continue;
+
+				// The characters up to the next Whitespace, ':', or '='
+				// describe the key.  But look for escape sequences.
+				// Try to short-circuit when there is no escape char.
+				int start = pos;
+				bool needsEscape = line.IndexOf('\\', pos) != -1;
+				StringBuilder key = needsEscape ? new StringBuilder() : null;
+				while (pos < line.Length &&
+					!Char.IsWhiteSpace(c = line[pos++]) &&
+					c != '=' && c != ':') {
+					if (needsEscape && c == '\\') {
+						if (pos == line.Length) {
+							// The line continues on the next line.  If there
+							// is no next line, just treat it as a key with an
+							// empty value.
+							line = reader.ReadLine();
+							if (line == null)
+								line = "";
+							pos = 0;
+							while (pos < line.Length && 
+								Char.IsWhiteSpace(c = line[pos]))
+								pos++;
+						} else {
+							c = line[pos++];
+							switch(c) {
+								case 'n':
+									key.Append('\n');
+									break;
+								case 't':
+									key.Append('\t');
+									break;
+								case 'r':
+									key.Append('\r');
+									break;
+								case 'u':
+									if (pos + 4 <= line.Length) {
+										char uni = (char) Convert.ToInt32(line.Substring(pos, 4), 16);
+										key.Append(uni);
+										pos += 4;
+									} // else throw exception?
+									break;
+								default:
+									key.Append(c);
+									break;
+							}
+						}
+					} else if (needsEscape)
+						key.Append(c);
+				}
+
+				bool isDelim = (c == ':' || c == '=');
+
+				string keyString;
+				if (needsEscape)
+					keyString = key.ToString();
+				else if (isDelim || Char.IsWhiteSpace(c))
+					keyString = line.Substring(start, (pos - 1) - start);
+				else
+					keyString = line.Substring(start, pos - start);
+
+				while (pos < line.Length && 
+					Char.IsWhiteSpace(c = line[pos]))
+					pos++;
+
+				if (!isDelim && (c == ':' || c == '=')) {
+					pos++;
+					while (pos < line.Length && 
+						Char.IsWhiteSpace(c = line[pos]))
+						pos++;
+				}
+
+				// Short-circuit if no escape chars found.
+				if (!needsEscape) {
+					SetValue(keyString, line.Substring(pos));
+					continue;
+				}
+
+				// Escape char found so iterate through the rest of the line.
+				StringBuilder element = new StringBuilder(line.Length - pos);
+				while (pos < line.Length) {
+					c = line[pos++];
+					if (c == '\\') {
+						if (pos == line.Length) {
+							// The line continues on the next line.
+							line = reader.ReadLine();
+
+							// We might have seen a backslash at the end of
+							// the file.  The JDK ignores the backslash in
+							// this case, so we follow for compatibility.
+							if (line == null)
+								break;
+
+							pos = 0;
+							while (pos < line.Length
+								   && Char.IsWhiteSpace(c = line[pos]))
+								pos++;
+							element.EnsureCapacity(line.Length - pos + element.Length);
+						} else {
+							c = line[pos++];
+							switch (c) {
+								case 'n':
+									element.Append('\n');
+									break;
+								case 't':
+									element.Append('\t');
+									break;
+								case 'r':
+									element.Append('\r');
+									break;
+								case 'u':
+									if (pos + 4 <= line.Length) {
+										char uni = (char)Convert.ToInt32(line.Substring(pos, 4), 16);
+										element.Append(uni);
+										pos += 4;
+									}        // else throw exception?
+									break;
+								default:
+									element.Append(c);
+									break;
+							}
+						}
+					} else
+						element.Append(c);
+				}
+				
+				SetValue(keyString, element.ToString());
 			}
 		}
 
@@ -199,7 +384,8 @@ namespace Deveel.Data {
 			response.Close();
 		}
 
-		public virtual void SaveTo(string fileName) {
+		public void SaveTo(string fileName) {
+			/*
 			FileStream fileStream = null;
 
 			try {
@@ -217,14 +403,44 @@ namespace Deveel.Data {
 				if (fileStream != null)
 					fileStream.Close();
 			}
+			*/
+
+			FileStream fileStream = null;
+
+			try {
+				fileStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+				fileStream.SetLength(0);
+				fileStream.Seek(0, SeekOrigin.Begin);
+
+				SaveTo(fileStream);
+			} finally {
+				if (fileStream != null)
+					fileStream.Close();
+			}
 		}
 
 		/// <summary>
-		/// Saves the current configurations to the current path
-		/// and to the default file name.
+		/// 
 		/// </summary>
-		public void SaveTo() {
-			SaveTo(Path.Combine(current_path, "db.conf"));
+		/// <param name="stream"></param>
+		public void SaveTo(Stream stream) {
+			if (stream == null)
+				throw new ArgumentNullException("stream");
+			if (!stream.CanWrite)
+				throw new ArgumentException("The stream is not writeable.");
+
+			StreamWriter writer = new StreamWriter(stream, Encoding.GetEncoding("ISO-8859-1"));
+			writer.WriteLine("#" + DateTime.Now);
+
+			StringBuilder s = new StringBuilder(); // Reuse the same buffer.
+			foreach (DictionaryEntry entry in this) {
+				FormatForOutput((String)entry.Key, s, true);
+				s.Append('=');
+				FormatForOutput((String)entry.Value, s, false);
+				writer.WriteLine(s);
+			}
+
+			writer.Flush();
 		}
 	}
 }

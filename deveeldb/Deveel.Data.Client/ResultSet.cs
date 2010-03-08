@@ -1,31 +1,22 @@
-//  
-//  ResultSet.cs
-//  
-//  Author:
-//       Antonello Provenzano <antonello@deveel.com>
-//       Tobias Downer <toby@mckoi.com>
 // 
-//  Copyright (c) 2009 Deveel
+//  Copyright 2010  Deveel
 // 
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
 // 
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
+//        http://www.apache.org/licenses/LICENSE-2.0
 // 
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 
 using System;
 using System.Collections;
 using System.Data;
 using System.IO;
-
-using Deveel.Math;
 
 namespace Deveel.Data.Client {
     /// <summary>
@@ -127,15 +118,6 @@ namespace Deveel.Data.Client {
         /// This is set up by <see cref="EnsureIndexLoaded"/>.
         /// </remarks>
 		private int real_index_offset = -1;
-
-        /// <summary>
-        /// Set to true if the last <see cref="GetRawColumn"/> method 
-        /// was a null.
-        /// </summary>
-        /// <remarks>
-        /// Otherwise set to false.
-        /// </remarks>
-		private bool last_was_null;
 
         /// <summary>
         /// A <see cref="Hashtable"/> that acts as a cache for column 
@@ -275,30 +257,25 @@ namespace Deveel.Data.Client {
         /// the server.
         /// </remarks>
 		internal void UpdateResultPart(int row_index, int row_count) {
-
 			// If row_count is 0 then we don't need to do anything.
-			if (row_count == 0) {
+			if (row_count == 0)
 				return;
-			}
 
-			if (row_index + row_count < 0) {
-				throw new DataException(
-								  "ResultSet row index is before the start of the set.");
-			} else if (row_index < 0) {
+			if (row_index + row_count < 0)
+				throw new DataException("ResultSet row index is before the start of the set.");
+
+			if (row_index < 0) {
 				row_index = 0;
 				row_count = row_count + row_index;
 			}
 
-			if (row_index >= RowCount) {
-				throw new DataException(
-									 "ResultSet row index is after the end of the set.");
-			} else if (row_index + row_count > RowCount) {
+			if (row_index >= RowCount)
+				throw new DataException("ResultSet row index is after the end of the set.");
+			if (row_index + row_count > RowCount)
 				row_count = RowCount - row_index;
-			}
 
-			if (result_id == -1) {
+			if (result_id == -1)
 				throw new DataException("result_id == -1.  No result to get from.");
-			}
 
 			try {
 
@@ -313,11 +290,8 @@ namespace Deveel.Data.Client {
 				// Set the number of rows in the block.
 				block_row_count = row_count;
 			} catch (IOException e) {
-				Console.Error.WriteLine(e.Message); 
-				Console.Error.WriteLine(e.StackTrace);
 				throw new DataException("IO Error: " + e.Message);
 			}
-
 		}
 
         /// <summary>
@@ -510,7 +484,6 @@ namespace Deveel.Data.Client {
 				name = name.ToUpper();
 			}
 
-			int index;
 			if (!column_hash.ContainsKey(name)) {
 				int col_count = ColumnCount;
 				// First construct an unquoted list of all column names
@@ -539,7 +512,7 @@ namespace Deveel.Data.Client {
 				}
 
 				// If not found then search for column name ending,
-				String point_name = "." + name;
+				string point_name = "." + name;
 				for (int i = 0; i < col_count; ++i) {
 					String col_name = cols[i];
 					if (col_name.EndsWith(point_name)) {
@@ -548,14 +521,10 @@ namespace Deveel.Data.Client {
 					}
 				}
 
-				//      // DEBUG: output the list of columns,
-				//      for (int i = 0; i < col_count; ++i) {
-				//        Console.Out.WriteLine(cols[i]);
-				//      }
 				throw new DataException("Couldn't find column with name: " + name);
-			} else {
-				return (int)column_hash[name];
 			}
+			
+			return (int)column_hash[name];
 		}
 
         /// <summary>
@@ -575,7 +544,6 @@ namespace Deveel.Data.Client {
 			Object ob = result_block[real_index_offset + column];
 			// Null check of the returned object,
 			if (ob != null) {
-				last_was_null = false;
 				// If this is an object then deserialize it,
 				// ISSUE: Cache deserialized objects?
 				if (GetColumn(column).SQLType == SqlType.Object) {
@@ -583,7 +551,6 @@ namespace Deveel.Data.Client {
 				}
 				return ob;
 			}
-			last_was_null = true;
 			return null;
 		}
 
@@ -637,145 +604,17 @@ namespace Deveel.Data.Client {
 			CloseCurrentResult();
 		}
 
-		//======================================================================
-		// Methods for accessing results by column index
-		//======================================================================
-
-		/*
-		TODO: ???
-		public Stream getBinaryStream(int columnIndex) {
-			IBlob blob = GetBlob(columnIndex);
-			if (blob == null) {
-				return null;
-			} else {
-				return blob.getBinaryStream();
-			}
-			//    Object ob = GetRawColumn(columnIndex);
-			//    if (ob == null) {
-			//      return null;
-			//    }
-			//    else if (ob is ByteLongObject) {
-			//      ByteLongObject b = (ByteLongObject) ob;
-			//      return new ByteArrayInputStream(b.ToArray());
-			//    }
-			//    else {
-			//      throw new DataException(
-			//                      "Unable to cast value in ResultSet to binary stream");
-			//    }
-		}
-
-		//=====================================================================
-		// Advanced features:
-		//=====================================================================
-
-		public ResultSetMetaData getMetaData() {
-			return new MResultSetMetaData(this);
-		}
-		*/
-
 		public void SetFetchSize(int rows) {
 		    fetch_size = rows > 0 ? System.Math.Min(rows, MaximumFetchSize) : DefaultFetchSize;
 		}
 
-		//#IFDEF(JDBC2.0)
-
-		//---------------------------------------------------------------------
-		// Getters and Setters
-		//---------------------------------------------------------------------
-
-		/*
-		TODO: ???
-		public TextReader getCharacterStream(int columnIndex) {
-			IClob c = GetClob(columnIndex);
-			if (c == null) {
-				return null;
-			} else {
-				return c.getCharacterStream();
-			}
-		}
-		*/
-
-
-		//---------------------------------------------------------------------
-		// Traversal/Positioning
-		//---------------------------------------------------------------------
-
-		public bool isBeforeFirst() {
-			return real_index < 0;
-		}
-
-		public bool isAfterLast() {
-			return real_index >= RowCount;
-		}
-
-		public bool isFirst() {
-			return real_index == 0;
-		}
-
-		public bool isLast() {
-			return real_index == RowCount - 1;
-		}
-
-		public void beforeFirst() {
-			real_index = -1;
-		}
-
-		public void afterLast() {
-			real_index = RowCount;
-		}
-
-		public bool first() {
+    	public bool First() {
 			real_index = 0;
 			RealIndexUpdate();
 			return real_index < RowCount;
 		}
 
-		public bool last() {
-			real_index = RowCount - 1;
-			RealIndexUpdate();
-			return real_index >= 0;
-		}
-
-		public int getRow() {
-			return real_index + 1;
-		}
-
-		public bool absolute(int row) {
-			if (row > 0) {
-				real_index = row - 1;
-			} else if (row < 0) {
-				real_index = RowCount + row;
-			}
-			RealIndexUpdate();
-
-			return (real_index >= 0 && real_index < RowCount);
-		}
-
-		public bool relative(int rows) {
-			real_index += rows;
-
-			int row_count = RowCount;
-			if (real_index < -1) {
-				real_index = -1;
-			}
-			if (real_index > row_count) {
-				real_index = row_count;
-			}
-			RealIndexUpdate();
-
-			return (real_index >= 0 && real_index < RowCount);
-		}
-
-		public bool previous() {
-			if (real_index >= 0) {
-				--real_index;
-				RealIndexUpdate();
-			}
-
-			return real_index >= 0;
-		}
-
-        ~ResultSet() {
+    	~ResultSet() {
             Dispose();
         }
 	}

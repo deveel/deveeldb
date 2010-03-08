@@ -1,24 +1,17 @@
-//  
-//  MasterTableDataSource.cs
-//  
-//  Author:
-//       Antonello Provenzano <antonello@deveel.com>
-//       Tobias Downer <toby@mckoi.com>
 // 
-//  Copyright (c) 2009 Deveel
+//  Copyright 2010  Deveel
 // 
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
 // 
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
+//        http://www.apache.org/licenses/LICENSE-2.0
 // 
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 
 using System;
 using System.IO;
@@ -1625,7 +1618,7 @@ namespace Deveel.Data {
 			/// <param name="context"></param>
 			/// <exception cref="ApplicationException">
 			/// If the update action is "NO ACTION", and the constraint is 
-			/// <see cref="ConstraintDeferrability.INITIALLY_IMMEDIATE"/>, and 
+			/// <see cref="ConstraintDeferrability.InitiallyImmediate"/>, and 
 			/// the new key doesn't exist in the referral table.
 			/// </exception>
 			private void ExecuteUpdateReferentialAction(
@@ -1635,7 +1628,7 @@ namespace Deveel.Data {
 
 				ConstraintAction update_rule = constraint.update_rule;
 				if (update_rule == ConstraintAction.NoAction &&
-					constraint.deferred != ConstraintDeferrability.INITIALLY_IMMEDIATE) {
+					constraint.deferred != ConstraintDeferrability.InitiallyImmediate) {
 					// Constraint check is deferred
 					return;
 				}
@@ -1705,7 +1698,7 @@ namespace Deveel.Data {
 			/// <param name="context"></param>
 			/// <exception cref="ApplicationException">
 			/// If the delete action is "NO ACTION", and the constraint is 
-			/// <see cref="ConstraintDeferrability.INITIALLY_IMMEDIATE"/>, and 
+			/// <see cref="ConstraintDeferrability.InitiallyImmediate"/>, and 
 			/// the new key doesn't exist in the referral table.
 			/// </exception>
 			private void ExecuteDeleteReferentialAction(
@@ -1714,7 +1707,7 @@ namespace Deveel.Data {
 
 				ConstraintAction delete_rule = constraint.delete_rule;
 				if (delete_rule == ConstraintAction.NoAction &&
-					constraint.deferred != ConstraintDeferrability.INITIALLY_IMMEDIATE) {
+					constraint.deferred != ConstraintDeferrability.InitiallyImmediate) {
 					// Constraint check is deferred
 					return;
 				}
@@ -2137,7 +2130,7 @@ namespace Deveel.Data {
 						// Check this table, adding the given row_index, immediate
 						TableDataConglomerate.CheckAddConstraintViolations(
 							transaction, this,
-							row_indices, ConstraintDeferrability.INITIALLY_IMMEDIATE);
+							row_indices, ConstraintDeferrability.InitiallyImmediate);
 					}
 
 				} catch (DatabaseConstraintViolationException e) {

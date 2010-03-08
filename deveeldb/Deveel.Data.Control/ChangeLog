@@ -1,4 +1,10 @@
-﻿2009-11-23  Antonello Provenzano  <antonello@deveel.com>
+﻿2010-03-05  Antonello Provenzano  <antonello@deveel.com>
+	* IDbConfig.cs: method SaveTo now accepts a Stream argument
+	instead of the destination file.
+	* DbConfig.cs: LoadFromStream and SaveTo methods modified
+	to bypass the use of Properties class.
+	
+2009-11-23  Antonello Provenzano  <antonello@deveel.com>
 	* DbController.cs: fixed a bug on the DatabaseExist method.
 	
 2009-10-29  Antonello Provenzano  <antonello@deveel.com>

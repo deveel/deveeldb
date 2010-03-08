@@ -1,24 +1,17 @@
-//  
-//  DeveelDbConnection.cs
-//  
-//  Author:
-//       Antonello Provenzano <antonello@deveel.com>
-//       Tobias Downer <toby@mckoi.com>
 // 
-//  Copyright (c) 2009 Deveel
+//  Copyright 2010  Deveel
 // 
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
 // 
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
+//        http://www.apache.org/licenses/LICENSE-2.0
 // 
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 
 using System;
 using System.Collections;
@@ -30,7 +23,6 @@ using System.Transactions;
 
 using Deveel.Data.Control;
 using Deveel.Data.Server;
-using Deveel.Math;
 
 using IsolationLevel=System.Data.IsolationLevel;
 
@@ -74,7 +66,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// The string used to make this connection.
 		/// </summary>
-		private ConnectionString connectionString;
+		private DeveelDbConnectionStringBuilder connectionString;
 
 		/// <summary>
 		/// Set to true if the connection is closed.
@@ -142,8 +134,8 @@ namespace Deveel.Data.Client {
 		// For synchronization in this object,
 		private readonly Object stateLock = new Object();
 
-		internal DeveelDbConnection(ConnectionString connectionString, IDatabaseInterface db_interface, int cache_size, int max_size) {
-			this.connectionString = connectionString;
+		internal DeveelDbConnection(string connectionString, IDatabaseInterface db_interface, int cache_size, int max_size) {
+			this.connectionString = new DeveelDbConnectionStringBuilder(connectionString);
 			this.db_interface = db_interface;
 			is_closed = true;
 			auto_commit = true;
@@ -160,12 +152,12 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		/// <param name="connectionString">The string containing the configuration
 		/// to establish a connection with a local or remote database.</param>
-		/// <seealso cref="DeveelDbConnection(Client.ConnectionString)"/>
+		/// <seealso cref="DeveelDbConnection(DeveelDbConnectionStringBuilder)"/>
 		public DeveelDbConnection(string connectionString)
-			: this(new ConnectionString(connectionString)) {
+			: this(new DeveelDbConnectionStringBuilder(connectionString)) {
 		}
 
-		private DeveelDbConnection(ConnectionString connectionString) {
+		private DeveelDbConnection(DeveelDbConnectionStringBuilder connectionString) {
 			this.connectionString = connectionString;
 			Init();
 		}
@@ -182,18 +174,13 @@ namespace Deveel.Data.Client {
 		}
 
 		private void Init() {
-			// IDatabaseInterface db_interface;
-			// String default_schema = Client.ConnectionString.DefaultSchema;
-			//if (connectionString.Schema != null)
-			//	default_schema = connectionString.Schema;
-
 			int row_cache_size;
 			int max_row_cache_size;
 
 			// If we are to connect to a single user database running
 			// within this runtime.
-			if (connectionString.IsLocal) {
-				ConnectToLocal(connectionString);
+			if (IsLocal(connectionString.Host)) {
+				ConnectToLocal();
 
 				// Internal row cache setting are set small.
 				row_cache_size = 43;
@@ -203,14 +190,10 @@ namespace Deveel.Data.Client {
 					Thread.Sleep(85);
 				} catch (ThreadInterruptedException) { /* ignore */ }
 
-				string address = connectionString.Host;
-				if (address == Client.ConnectionString.LocalHost)
-					address = "localhost";
-
 				// Make the connection
-				TCPStreamDatabaseInterface tcp_db_interface = new TCPStreamDatabaseInterface(address, connectionString.Port, connectionString.Database);
-
-				db_interface = tcp_db_interface;
+				db_interface = new TCPStreamDatabaseInterface(connectionString.Host,
+				                                              connectionString.Port,
+				                                              connectionString.Database);
 
 				// For remote connection, row cache uses more memory.
 				row_cache_size = 4111;
@@ -231,7 +214,6 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// Makes a connection to a local database.
 		/// </summary>
-		/// <param name="connString"></param>
 		/// <remarks>
 		/// If a local database connection has not been made then it is created here.
 		/// </remarks>
@@ -239,13 +221,13 @@ namespace Deveel.Data.Client {
 		/// Returns a list of two elements, (<see cref="IDatabaseInterface"/>) db_interface 
 		/// and (<see cref="String"/>) database_name.
 		/// </returns>
-		private void ConnectToLocal(ConnectionString connString) {
+		private void ConnectToLocal() {
 			lock (this) {
 				// If the ILocalBootable object hasn't been created yet, do so now via
 				// reflection.
 
 				// The path to the configuration
-				string root_path = connString.Path;
+				string root_path = connectionString.Path;
 
 				controller = root_path == null ? DbController.Default : DbController.Create(root_path);
 
@@ -258,7 +240,7 @@ namespace Deveel.Data.Client {
 
 				// No so create one and WriteByte it in the connection mapping
 				if (local_bootable == null) {
-					local_bootable = CreateDefaultLocalBootable(controller, connString.Database);
+					local_bootable = CreateDefaultLocalBootable(controller, connectionString.Database);
 					local_session_map[session_key] = local_bootable;
 				}
 
@@ -270,15 +252,16 @@ namespace Deveel.Data.Client {
 					// Otherwise we need to boot the local database.
 
 					bool create_db = connectionString.Create;
-					bool create_db_if_not_exist = connString.BootOrCreate;
+					bool create_db_if_not_exist = connectionString.BootOrCreate;
 
 					IDbConfig config = controller.Config;
 
-					string database_path = connString.AdditionalProperties["DatabasePath"] as string;
-					if (database_path == null)
-						database_path = Path.Combine(root_path, connString.Database);
-
 					//TODO: set the additional configurations from the connection string
+					/*
+					string database_path = connectionString.AdditionalProperties["DatabasePath"] as string;
+					if (database_path == null)
+						database_path = Path.Combine(root_path, connectionString.Database);
+					*/
 
 					// Check if the database exists
 					bool database_exists = local_bootable.CheckExists();
@@ -303,8 +286,8 @@ namespace Deveel.Data.Client {
 
 					// Are we creating a new database?
 					if (create_db) {
-						String username = connString.UserName;
-						String password = connString.Password;
+						String username = connectionString.UserName;
+						String password = connectionString.Password;
 
 						db_interface = local_bootable.Create(username, password, config);
 					}
@@ -339,6 +322,10 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		private static bool IsLocal(string host) {
+			return String.Compare(host, "{local}", true) == 0;
+		}
+
 		///<summary>
 		/// Toggles whether this connection is handling identifiers as case
 		/// insensitive or not. 
@@ -360,22 +347,11 @@ namespace Deveel.Data.Client {
 		}
 
 		public override string DataSource {
-			get {
-				if (connectionString.IsLocal)
-					return String.Empty;
-				return Settings.Host + ":" + Settings.Port;
-			}
+			get { return IsLocal(Settings.Host) ? String.Empty : Settings.Host + ":" + Settings.Port; }
 		}
 
 		public override string ServerVersion {
-			get {
-				if (connectionString.IsLocal) {
-					//TODO:
-					return String.Empty;
-				} else {
-					return ((RemoteDatabaseInterface)db_interface).ServerVersion.ToString(2);
-				}
-			}
+			get { return IsLocal(Settings.Host) ? String.Empty : ((RemoteDatabaseInterface)db_interface).ServerVersion.ToString(2); }
 		}
 
 
@@ -895,10 +871,10 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public override string ConnectionString {
 			get { return Settings.ToString(); }
-			set { Settings = new ConnectionString(value); }
+			set { Settings = new DeveelDbConnectionStringBuilder(value); }
 		}
 
-		internal ConnectionString Settings {
+		internal DeveelDbConnectionStringBuilder Settings {
 			get { return connectionString; }
 			set {
 				if (state != ConnectionState.Closed)
