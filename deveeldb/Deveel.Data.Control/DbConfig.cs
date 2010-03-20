@@ -15,13 +15,11 @@
 
 using System;
 using System.Collections;
-using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
 
 using Deveel.Data.Control;
-using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -38,7 +36,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private Hashtable key_map;
 
-		private static DefaultDbConfig default_config;
+		private static DbConfig default_config;
 
 		/// <summary>
 		/// Constructs the <see cref="IDbConfig"/>.
@@ -47,6 +45,63 @@ namespace Deveel.Data {
 		public DbConfig(string current_path) {
 			this.current_path = current_path;
 			key_map = new Hashtable();
+		}
+
+		/// <summary>
+		/// Constructs the <see cref="DbConfig"/> to the currently
+		/// executing directory.
+		/// </summary>
+		public DbConfig()
+			: this(".") {
+		}
+
+		/// <summary>
+		/// Gets or sets the path to the database.
+		/// </summary>
+		public string DatabasePath {
+			set { SetValue(ConfigKeys.DatabasePath, value); }
+			get { return GetValue(ConfigKeys.DatabasePath); }
+		}
+
+		///<summary>
+		/// Gets or sets the path of the log.
+		///</summary>
+		public string LogPath {
+			get { return GetValue(ConfigKeys.LogPath); }
+			set { SetValue(ConfigKeys.LogPath, value); }
+		}
+
+		/// <summary>
+		/// Gets or sets that the engine ignores case for identifiers.
+		/// </summary>
+		public bool IgnoreIdentifierCase {
+			get {
+				string value = GetValue(ConfigKeys.IgnoreIdentifiersCase);
+				return (value == "enabled" ? true : false);
+			}
+			set { SetValue(ConfigKeys.IgnoreIdentifiersCase, value ? "enabled" : "disabled"); }
+		}
+
+		/// <summary>
+		/// Gets or sets that the database is read-only.
+		/// </summary>
+		public bool ReadOnly {
+			get {
+				string value = GetValue(ConfigKeys.ReadOnly);
+				return (value == "enabled" ? true : false);
+			}
+			set { SetValue(ConfigKeys.ReadOnly, value ? "enabled" : "disabled"); }
+		}
+
+		/// <summary>
+		/// Gets or sets the minimum debug level for output to the debug log file.
+		/// </summary>
+		public int MinimumDebugLevel {
+			get {
+				string value = GetValue(ConfigKeys.DebugLevel);
+				return (value == null ? -1 : Int32.Parse(value));
+			}
+			set { SetValue(ConfigKeys.DebugLevel, value.ToString()); }
 		}
 
 		private static void FormatForOutput(String str, StringBuilder buffer, bool key) {
@@ -109,18 +164,8 @@ namespace Deveel.Data {
 		///</summary>
 		///<param name="key"></param>
 		///<param name="value"></param>
-		public void SetValue(String key, String value) {
-			SetValue(key, value, "STRING");
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="key"></param>
-		/// <param name="value"></param>
-		/// <param name="type"></param>
-		public void SetValue(string key, string value, string type) {
-			key_map[key] = new ConfigProperty(key, value, type);
+		public void SetValue(string key, string value) {
+			key_map[key] = new ConfigProperty(key, value, null);
 		}
 
 		// ---------- Implemented from IDbConfig ----------
@@ -130,14 +175,14 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a <see cref="DefaultDbConfig">default</see> implementation
+		/// Returns a <see cref="DbConfig">default</see> implementation
 		/// of <see cref="IDbConfig"/> which contains all the default settings
 		/// of the system.
 		/// </summary>
-		public static DefaultDbConfig Default {
+		public static DbConfig Default {
 			get {
 				if (default_config == null)
-					default_config = new DefaultDbConfig();
+					default_config = CreateDefault(".");
 				return default_config;
 			}
 		}
@@ -433,14 +478,43 @@ namespace Deveel.Data {
 			writer.WriteLine("#" + DateTime.Now);
 
 			StringBuilder s = new StringBuilder(); // Reuse the same buffer.
-			foreach (DictionaryEntry entry in this) {
-				FormatForOutput((String)entry.Key, s, true);
+			foreach (DictionaryEntry entry in key_map) {
+				ConfigProperty property = (ConfigProperty) entry.Value;
+
+				//TODO: format and print the optional comment...
+
+				FormatForOutput(property.Key, s, true);
 				s.Append('=');
-				FormatForOutput((String)entry.Value, s, false);
+				FormatForOutput(property.Value, s, false);
 				writer.WriteLine(s);
 			}
 
 			writer.Flush();
+		}
+
+		public static DbConfig CreateDefault(string path) {
+			DbConfig config = new DbConfig(path);
+			config.SetValue("storage_system", "v1heap");
+			config.SetValue("database_path", "./data");
+			config.SetValue("log_path", "./log");
+			/*
+			Moved out of the kernel...
+			config.SetValue("server_port", "9157");
+			config.SetValue("server_address", "127.0.0.1");
+			*/
+			config.SetValue("ignore_case_for_identifiers", "disabled");
+			config.SetValue("regex_library", "Deveel.Text.DeveelRegexLibrary");
+			config.SetValue("data_cache_size", "4194304");
+			config.SetValue("max_cache_entry_size", "8192");
+			config.SetValue("lookup_comparison_list", "enabled");
+			config.SetValue("maximum_worker_threads", "4");
+			config.SetValue("dont_synch_filesystem", "disabled");
+			config.SetValue("transaction_error_on_dirty_select", "enabled");
+			config.SetValue("read_only", "disabled");
+			config.SetValue("debug_log_file", "debug.log");
+			config.SetValue("debug_level", "20");
+			config.SetValue("table_lock_check", "enabled");
+			return config;
 		}
 	}
 }

@@ -2027,7 +2027,7 @@ namespace Deveel.Data {
 			// Note that this sets up a typical destination conglomerate and changes
 			// the cache size and disables the debug log.
 			TransactionSystem copy_system = new TransactionSystem();
-			DefaultDbConfig config = new DefaultDbConfig();
+			DbConfig config = DbConfig.Default;
 			config.DatabasePath = Path.GetFullPath(path);
 			config.LogPath = "";
 			config.MinimumDebugLevel = 50000;

@@ -84,7 +84,9 @@
     <Compile Include="Deveel.Data.Client\ParemeterStyle.cs" />
     <Compile Include="Deveel.Data.Client\DatabaseMetadata.cs" />
     <Compile Include="Deveel.Data.Client\TriggerEventArgs.cs" />
+    <Compile Include="Deveel.Data.Control\ConfigKeys.cs" />
     <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
+    <Compile Include="Deveel.Data.Control\ConfigUtil.cs" />
     <Compile Include="Deveel.Data.Control\DbDirectAccess.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -171,6 +173,13 @@
     <Compile Include="Deveel.Data.Sql\SqlTypeAttribute.cs" />
     <Compile Include="Deveel.Data.Sql\StatementContainer.cs" />
     <Compile Include="Deveel.Data.Sql\TNamedUserDefinedType.cs" />
+    <Compile Include="Deveel.Data.Store\FSync.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Store\IFSync.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Store\StorageType.cs" />
     <Compile Include="Deveel.Data\CaseCondition.cs" />
     <Compile Include="Deveel.Data.Sql\CloseCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnConstraints.cs" />
@@ -194,8 +203,6 @@
     <Compile Include="Deveel.Data.Sql\SQLTokenManager.cs" />
     <Compile Include="Deveel.Data.Sql\Token.cs" />
     <Compile Include="Deveel.Data.Sql\TokenMgrError.cs" />
-    <Compile Include="Deveel.Data.Store\FSync.cs" />
-    <Compile Include="Deveel.Data.Store\IFSync.cs" />
     <Compile Include="Deveel.Data.Store\IStoreSystem.cs" />
     <Compile Include="Deveel.Data.Store\SyncFailedException.cs" />
     <Compile Include="Deveel.Data.Store\V1FileStoreSystem.cs" />
@@ -305,7 +312,6 @@
     <Compile Include="Deveel.Data.Control\IDbConfig.cs" />
     <Compile Include="Deveel.Data.Control\DbController.cs" />
     <Compile Include="Deveel.Data.Control\DbSystem.cs" />
-    <Compile Include="Deveel.Data.Control\DefaultDbConfig.cs" />
     <Compile Include="Deveel.Data\IBlobAccessor.cs" />
     <Compile Include="Deveel.Data\IBlobRef.cs" />
     <Compile Include="Deveel.Data\ByteLongObject.cs" />

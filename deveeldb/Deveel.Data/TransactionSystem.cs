@@ -357,34 +357,6 @@ namespace Deveel.Data {
 			}
 		}
 
-		/// <summary>
-		/// Parses a file string to an absolute position in the file system.
-		/// </summary>
-		/// <remarks>
-		/// We must provide the path to the root directory (eg. the directory 
-		/// where the config bundle is located).
-		/// </remarks>
-		internal static string ParseFileString(string root_path, String root_info, String path_string) {
-			string path = Path.GetFullPath(path_string);
-			string res;
-			// If the path is absolute then return the absoluate reference
-			if (Path.IsPathRooted(path_string)) {
-				res = path;
-			} else {
-				// If the root path source is the environment then just return the path.
-				if (root_info != null &&
-				    root_info.Equals("env")) {
-					return path;
-				}
-					// If the root path source is the configuration file then
-					// concat the configuration path with the path string and return it.
-				else {
-					res = Path.Combine(root_path, path_string);
-				}
-			}
-			return res;
-		}
-
 		//private void SetupFSync(IDbConfig dbConfig) {
 		//    string fsyncTypeString = dbConfig.GetValue("fsync_type");
 		//    if (fsyncTypeString != null) {
@@ -434,22 +406,16 @@ namespace Deveel.Data {
 			////  1. Read only access is enabled
 			////  2. log_path is empty or not set
 
-			string log_path_string = config.GetValue("log_path");
-			string debug_logs = config.GetValue("debug_logs");
-			string read_only = config.GetValue("read_only");
+			string log_path_string = ConfigUtil.GetStringValue(config, "log_path", null);
 			string root_path_var = config.GetValue("root_path");
 
-			bool read_only_bool = false;
-			if (read_only != null)
-				read_only_bool = String.Compare(read_only, "enabled", true) == 0;
-			bool debug_logs_bool = true;
-			if (debug_logs != null)
-				debug_logs_bool = String.Compare(debug_logs, "enabled", true) == 0;
+			bool read_only_bool = ConfigUtil.GetBooleanValue(config, "read_only", false);
+			bool debug_logs_bool = ConfigUtil.GetBooleanValue(config, "debug_logs", true);
 
 			if (debug_logs_bool && !read_only_bool &&
-				log_path_string != null && !log_path_string.Equals("")) {
+				log_path_string != null) {
 				// First set up the debug information in this VM for the 'Debug' class.
-				string log_path = ParseFileString(config.CurrentPath, root_path_var, log_path_string);
+				string log_path = ConfigUtil.ParseFileString(config.CurrentPath, root_path_var, log_path_string);
 				// If the path doesn't exist the make it.
 				if (!Directory.Exists(log_path))
 					Directory.CreateDirectory(log_path);
@@ -476,49 +442,6 @@ namespace Deveel.Data {
 			logger = (IDebugLogger) Activator.CreateInstance(logger_type, true);
 			logger.Init(config);
 		}
-
-		/// <summary>
-		/// Returns a configuration value, or the default if it's not found.
-		/// </summary>
-		/// <param name="property"></param>
-		/// <param name="default_val"></param>
-		/// <returns></returns>
-		internal String GetConfigString(String property, String default_val) {
-			String v = config.GetValue(property);
-			if (v == null) {
-				return default_val;
-			}
-			return v.Trim();
-		}
-
-		/// <summary>
-		/// Returns a configuration value, or the default if it's not found.
-		/// </summary>
-		/// <param name="property"></param>
-		/// <param name="default_val"></param>
-		/// <returns></returns>
-		internal int GetConfigInt(String property, int default_val) {
-			String v = config.GetValue(property);
-			if (v == null) {
-				return default_val;
-			}
-			return Int32.Parse(v);
-		}
-
-		/// <summary>
-		/// Returns a configuration value, or the default if it's not found.
-		/// </summary>
-		/// <param name="property"></param>
-		/// <param name="default_val"></param>
-		/// <returns></returns>
-		internal bool GetConfigBoolean(String property, bool default_val) {
-			String v = config.GetValue(property);
-			if (v == null) {
-				return default_val;
-			}
-			return String.Compare(v.Trim(), "enabled", true) == 0;
-		}
-
 
 		/// <summary>
 		/// Given a regular expression string representing a particular library, this
@@ -556,13 +479,13 @@ namespace Deveel.Data {
 				this.config = config;
 
 				// Set the read_only property
-				read_only_access = GetConfigBoolean("read_only", false);
+				read_only_access = ConfigUtil.GetBooleanValue(config, "read_only", false);
 
 				// Setup the log
 				SetupLog(config);
 
 				// The storage encapsulation that has been configured.
-				string storage_system = GetConfigString("storage_system", "v1file");
+				string storage_system = ConfigUtil.GetStringValue(config, ConfigKeys.StorageSystem, "v1file");
 
 				// Construct the system store.
 				if (String.Compare(storage_system, "v1file", true) == 0) {
@@ -599,8 +522,8 @@ namespace Deveel.Data {
 				// Set up the DataCellCache from the values in the configuration
 				int max_cache_size = 0, max_cache_entry_size = 0;
 
-				max_cache_size = GetConfigInt("data_cache_size", 0);
-				max_cache_entry_size = GetConfigInt("max_cache_entry_size", 0);
+				max_cache_size = ConfigUtil.GetIntegerValue(config, "data_cache_size", 0);
+				max_cache_entry_size = ConfigUtil.GetIntegerValue(config, "max_cache_entry_size", 0);
 
 				if (max_cache_size >= 4096 &&
 				    max_cache_entry_size >= 16 &&
@@ -611,7 +534,7 @@ namespace Deveel.Data {
 					// Find a prime hash size depending on the size of the cache.
 					int hash_size = DataCellCache.ClosestPrime(max_cache_size/55);
 
-					string cacheTypeString = GetConfigString("cache_type", "heap");
+					string cacheTypeString = ConfigUtil.GetStringValue(config, "cache_type", "heap");
 					Type cacheType = String.Compare(cacheTypeString, "heap", true) == 0
 					            	? typeof(MemoryCache)
 					            	: Type.GetType(cacheTypeString, false, true);
@@ -650,11 +573,11 @@ namespace Deveel.Data {
 				//      }
 
 				// Generate transaction error if dirty selects are detected?
-				transaction_error_on_dirty_select = GetConfigBoolean("transaction_error_on_dirty_select", true);
+				transaction_error_on_dirty_select = ConfigUtil.GetBooleanValue(config, ConfigKeys.TransactionErrorOnDirtySelect, true);
 				Debug.Write(DebugLevel.Message, this, "transaction_error_on_dirty_select = " + transaction_error_on_dirty_select);
 
 				// Case insensitive identifiers?
-				ignore_case_for_identifiers = GetConfigBoolean("ignore_case_for_identifiers", false);
+				ignore_case_for_identifiers = ConfigUtil.GetBooleanValue(config, ConfigKeys.IgnoreIdentifiersCase, false);
 				Debug.Write(DebugLevel.Message, this, "ignore_case_for_identifiers = " + ignore_case_for_identifiers);
 
 				//// ---- Store system setup ----
@@ -717,10 +640,9 @@ namespace Deveel.Data {
 				// If we want the engine to support other regular expression libraries
 				// then include the additional entries here.
 
-				String regex_bridge;
-				String lib_used;
-
-				String force_lib = GetConfigString("force_regex_library", null);
+				string regex_bridge;
+				string lib_used;
+				string force_lib = ConfigUtil.GetStringValue(config, "force_regex_library", null);
 
 				// Are we forcing a particular regular expression library?
 				if (force_lib != null) {
@@ -728,7 +650,7 @@ namespace Deveel.Data {
 					// Convert the library string to a class name
 					regex_bridge = RegexStringToClass(force_lib);
 				} else {
-					string lib = GetConfigString("regex_library", "Deveel.Data.Text.SystemRegexLibrary");
+					string lib = ConfigUtil.GetStringValue(config, ConfigKeys.RegexLibrary, "Deveel.Data.Text.SystemRegexLibrary");
 					lib_used = lib;
 					// Convert the library string to a class name
 					regex_bridge = lib != null ? RegexStringToClass(lib) : "Deveel.Data.Text.SystemRegexLibrary";
@@ -753,7 +675,7 @@ namespace Deveel.Data {
 
 				try {
 					// The 'function_factories' property.
-					string function_factories = GetConfigString("function_factories", null);
+					string function_factories = ConfigUtil.GetStringValue(config, "function_factories", null);
 					if (function_factories != null) {
 						string[] factories = function_factories.Split(';');
 						for (int i = 0; i < factories.Length; ++i) {

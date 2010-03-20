@@ -29,6 +29,24 @@ namespace Deveel.Data.Store {
 	/// </remarks>
 	public interface IStoreSystem : IDisposable {
 		/// <summary>
+		/// Gets a value that indicates wheter this storage system
+		/// stores and retrieves data within the file system
+		/// or the random-access memory.
+		/// </summary>
+		/// <remarks>
+		/// This property must be <i>static</i>, that means it must be accessible 
+		/// even before any call to <see cref="Init"/> method.
+		/// <para>
+		/// The reason of this behavior is that the system will query
+		/// the instance of <see cref="IStoreSystem"/> to check whether
+		/// has it to build up or lookup for a file based storage or a
+		/// memory based one.
+		/// </para>
+		/// </remarks>
+		/// <seealso cref="Store.StorageType"/>
+		StorageType StorageType { get; }
+
+		/// <summary>
 		/// Initializes the storage system within the given
 		/// <see cref="TransactionSystem"/> context.
 		/// </summary>

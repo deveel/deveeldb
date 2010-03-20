@@ -36,6 +36,10 @@ namespace Deveel.Data.Store {
 			store_name_map = new Hashtable();
 		}
 
+		public StorageType StorageType {
+			get { return StorageType.Memory; }
+		}
+
 		/// <inheritdoc/>
 		public void Init(TransactionSystem system) {
 		}

@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 using System.IO;
 
+using Deveel.Data.Store;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Control {
@@ -80,7 +81,7 @@ namespace Deveel.Data.Control {
 		public static DbController Default {
 			get {
 				if (DefaultController == null)
-					DefaultController = Create(Path.Combine(Environment.CurrentDirectory, DefaultConfigFileName));
+					DefaultController = Create(Path.Combine(Environment.CurrentDirectory, DefaultConfigFileName), DbConfig.Default);
 				return DefaultController;
 			}
 		}
@@ -114,6 +115,10 @@ namespace Deveel.Data.Control {
 
 		private void SetupLog(IDbConfig config) {
 			//TODO:
+		}
+
+		public static DbController Create(IDbConfig config) {
+			return Create(null, config);
 		}
 
 		/// <summary>
@@ -153,47 +158,57 @@ namespace Deveel.Data.Control {
 		/// If the <paramref name="path"/> provided is <b>null</b>.
 		/// </exception>
 		public static DbController Create(string path, IDbConfig config) {
+			StorageType storageType = ConfigUtil.GetStorageType(config);
+
 			if (path == null)
-				throw new ArgumentNullException("path");
+				path = Environment.CurrentDirectory;
 
-			string configFile = Path.GetFileName(path);
-			if (configFile == null) {
-				configFile = DefaultConfigFileName;
-			} else {
-				// we only allow the file extension .conf
-				string ext = Path.GetExtension(configFile);
-				if (String.Compare(ext, FileExtension, true) == 0) {
-					path = Path.GetDirectoryName(path);
-				} else {
+			IDbConfig mainConfig;
+
+			if (storageType == StorageType.File) {
+				string configFile = Path.GetFileName(path);
+				if (configFile == null) {
 					configFile = DefaultConfigFileName;
+				} else {
+					// we only allow the file extension .conf
+					string ext = Path.GetExtension(configFile);
+					if (String.Compare(ext, FileExtension, true) == 0) {
+						path = Path.GetDirectoryName(path);
+					} else {
+						configFile = DefaultConfigFileName;
+					}
 				}
+
+				// if the directory doesn't exist we will create one...
+				if (!Directory.Exists(path))
+					Directory.CreateDirectory(path);
+
+				mainConfig = GetConfig((DbConfig)config.Clone(), path, configFile);
+			} else {
+				mainConfig = (DbConfig) config.Clone();
 			}
 
-			// if the directory doesn't exist we will create one...
-			if (!Directory.Exists(path)) {
-				Directory.CreateDirectory(path);
-			}
-
-			IDbConfig mainConfig = GetConfig(new DefaultDbConfig(path), path, configFile);
 			DbController controller = new DbController(mainConfig);
 
-			// done with the main configuration... now look for the databases...
-			string[] subDirs = Directory.GetDirectories(path);
-			for (int i = 0; i < subDirs.Length; i++) {
-				string dir = subDirs[i];
-				IDbConfig dbConfig = GetConfig(mainConfig, dir, null);
+			if (storageType == StorageType.File) {
+				// done with the main configuration... now look for the databases...
+				string[] subDirs = Directory.GetDirectories(path);
+				for (int i = 0; i < subDirs.Length; i++) {
+					string dir = subDirs[i];
+					IDbConfig dbConfig = GetConfig(mainConfig, dir, null);
 
-				string name = dbConfig.GetValue("name");
-				if (name == null)
-					name = dir.Substring(dir.LastIndexOf(Path.DirectorySeparatorChar) + 1);
+					string name = dbConfig.GetValue("name");
+					if (name == null)
+						name = dir.Substring(dir.LastIndexOf(Path.DirectorySeparatorChar) + 1);
 
-				if (controller.DatabaseExists(name))
-					throw new InvalidOperationException("The database '" + name + "' was already registered.");
+					if (controller.DatabaseExists(name))
+						throw new InvalidOperationException("The database '" + name + "' was already registered.");
 
-				Database database = CreateDatabase(dbConfig, name);
-				if (database.Exists) {
-					database.RegisterShutDownDelegate(new StopEventImpl(controller, database));
-					controller.databases[name] = database;
+					Database database = CreateDatabase(dbConfig, name);
+					if (database.Exists) {
+						database.RegisterShutDownDelegate(new StopEventImpl(controller, database));
+						controller.databases[name] = database;
+					}
 				}
 			}
 
@@ -305,20 +320,31 @@ namespace Deveel.Data.Control {
 			if (DatabaseExists(name))
 				throw new ArgumentException("A database '" + name + "' already exists.");
 
-			// we ensure that the CurrentPath points to where we want it to point
-			string path = Path.Combine(Config.CurrentPath, name);
-			if (Directory.Exists(path))
-				Directory.Delete(path);
+			StorageType storageType = ConfigUtil.GetStorageType(config);
 
-			Directory.CreateDirectory(path);
+			DbConfig dbConfig;
+			string path = "";
+			if (storageType == StorageType.File) {
+				// we ensure that the CurrentPath points to where we want it to point
+				path = Path.Combine(Config.CurrentPath, name);
+				if (Directory.Exists(path))
+					Directory.Delete(path);
 
-			DbConfig dbConfig = new DbConfig(path);
+				Directory.CreateDirectory(path);
+
+				dbConfig = new DbConfig(path);
+			} else {
+				dbConfig = new DbConfig();
+			}
+
 			dbConfig.Merge(Config);
 			if (config != null)
 				dbConfig.Merge(config);
 
-			string configFile = Path.Combine(path, DefaultConfigFileName);
-			dbConfig.SaveTo(configFile);
+			if (storageType == StorageType.File) {
+				string configFile = Path.Combine(path, DefaultConfigFileName);
+				dbConfig.SaveTo(configFile);
+			}
 
 			Database database = CreateDatabase(dbConfig, name);
 
@@ -415,6 +441,7 @@ namespace Deveel.Data.Control {
 		/// Creates a Database object for the given IDbConfig configuration.
 		/// </summary>
 		/// <param name="config"></param>
+		/// <param name="name"></param>
 		/// <returns></returns>
 		private static Database CreateDatabase(IDbConfig config, string name) {
 			DatabaseSystem system = new DatabaseSystem();

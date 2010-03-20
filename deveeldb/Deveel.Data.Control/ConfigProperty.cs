@@ -24,18 +24,12 @@ namespace Deveel.Data.Control {
 
 		private readonly string key;
 		private readonly string value;
-		private readonly string type;
 		private readonly string comment;
 
-		internal ConfigProperty(string key, string default_value, string type, string comment) {
+		internal ConfigProperty(string key, string default_value, string comment) {
 			this.key = key;
 			this.value = default_value;
-			this.type = type;
 			this.comment = comment;
-		}
-
-		internal ConfigProperty(string key, string default_value, string type)
-			: this(key, default_value, type, null) {
 		}
 
 		public string Key {
@@ -44,10 +38,6 @@ namespace Deveel.Data.Control {
 
 		public string Value {
 			get { return value; }
-		}
-
-		public string Type {
-			get { return type; }
 		}
 
 		public string Comment {

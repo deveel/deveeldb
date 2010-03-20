@@ -51,6 +51,22 @@ namespace Deveel.Data.Control {
 		string GetValue(string property_key);
 
 		/// <summary>
+		/// Sets the value for the configuration property with the
+		/// given name.
+		/// </summary>
+		/// <param name="property">The name of the configuration property 
+		/// to set.</param>
+		/// <param name="value">The string value to set to the property.</param>
+		/// <remarks>
+		/// If a property with the same name was already set, calling this method
+		/// will change the value of the property given.
+		/// </remarks>
+		/// <exception cref="ArgumentNullException">
+		/// If the <paramref name="property"/> name provided is <b>null</b> or empty.
+		/// </exception>
+		void SetValue(string property, string value);
+
+		/// <summary>
 		/// Merges the current configurations with the ones contained in
 		/// the given <paramref name="config">configuration</paramref>.
 		/// </summary>

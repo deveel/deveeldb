@@ -130,22 +130,23 @@ namespace Deveel.Data {
 
 			if (config != null) {
 				// Set up the statement cache.
-				bool status = GetConfigBoolean("statement_cache", true);
-				if (status) {
+				if (ConfigUtil.GetBooleanValue(config, "statement_cache", true)) {
 					statement_cache = new StatementCache(this, 127, 140, 20);
+					Debug.Write(DebugLevel.Message, typeof(DatabaseSystem), "statement cache ENABLED");
+				} else {
+					Debug.Write(DebugLevel.Message, typeof(DatabaseSystem), "statement cache DISABLED");
 				}
-				Debug.Write(DebugLevel.Message, typeof (DatabaseSystem), "statement_cache = " + status);
 
 				// The maximum number of worker threads.
-				int max_worker_threads = GetConfigInt("maximum_worker_threads", 4);
-				if (max_worker_threads <= 0) {
+				int max_worker_threads = ConfigUtil.GetIntegerValue(config, "maximum_worker_threads", 4);
+				if (max_worker_threads <= 0)
 					max_worker_threads = 1;
-				}
+
 				Debug.Write(DebugLevel.Message, typeof (DatabaseSystem), "Max worker threads set to: " + max_worker_threads);
 				worker_pool = new WorkerPool(this, max_worker_threads);
 
 				// Should we be logging commands?
-				query_logging = GetConfigBoolean("query_logging", false);
+				query_logging = ConfigUtil.GetBooleanValue(config, "query_logging", false);
 			} else {
 				throw new ApplicationException("Config bundle already set.");
 			}

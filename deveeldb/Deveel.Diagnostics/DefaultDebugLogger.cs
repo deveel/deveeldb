@@ -163,7 +163,7 @@ namespace Deveel.Diagnostics {
 			if (debug_logs_bool && !read_only_bool &&
 				log_path_string != null && !log_path_string.Equals("")) {
 				// First set up the debug information in this VM for the 'Debug' class.
-				string log_path = TransactionSystem.ParseFileString(config.CurrentPath, root_path_var,
+				string log_path = ConfigUtil.ParseFileString(config.CurrentPath, root_path_var,
 												  log_path_string);
 				// If the path doesn't exist the make it.
 				if (!Directory.Exists(log_path))
