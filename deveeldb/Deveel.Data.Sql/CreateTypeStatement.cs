@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql {
 
 		#region Overrides of Statement
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			type_name = GetString("type_name");
 
 			parent_type_name = GetString("parent_type");
@@ -89,7 +89,7 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Does the user have privs to create this type?

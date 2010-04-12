@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql {
 
 		// ----------- Implemented from Statement ----------
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			type = GetString("type");
 			String sname = GetString("seq_name");
 			String schema_name = Connection.CurrentSchema;
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql {
 
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 

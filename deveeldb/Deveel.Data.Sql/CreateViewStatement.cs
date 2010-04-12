@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql {
 
 		#region Overrides of Statement
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			view_name = GetString("view_name");
 
 			String schema_name = Connection.CurrentSchema;
@@ -97,7 +97,7 @@ namespace Deveel.Data.Sql {
 			plan = new QueryPlan.SubsetNode(plan, original_vars, new_column_vars);
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Does the user have privs to create this tables?

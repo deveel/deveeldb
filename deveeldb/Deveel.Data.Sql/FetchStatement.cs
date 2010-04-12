@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql {
 
 		private CursorFetch fetch_info;
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			DatabaseConnection db = Connection;
 
 			name = GetString("name");
@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql {
 			fetch_info = (CursorFetch) GetValue("fetch");
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			Cursor cursor = Connection.GetCursor(resolved_name);

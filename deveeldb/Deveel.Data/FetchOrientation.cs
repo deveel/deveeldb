@@ -13,26 +13,13 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using System;
-
-namespace Deveel.Data.Control {
-	public enum DirectCommandType {
-		CreateSchema,
-		DropSchema,
-		CreateTable,
-		AlterTable,
-		AlterCreateTable,
-		DropTables,
-		CreateView,
-		DropView,
-		CreateTrigger,
-		DropTrigger,
-		Insert,
-		Delete,
-		Update,
-		Select,
-		Call,
-		Commit,
-		Rollback
+namespace Deveel.Data {
+	public enum FetchOrientation {
+		Next = 0x01,
+		Prior = 0x02,
+		First = 0x03,
+		Last = 0x04,
+		Absolute = 0x05,
+		Relative = 0x06
 	}
 }

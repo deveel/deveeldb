@@ -83,7 +83,7 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 
 			// Prepare this object from the StatementTree
 			table_name = GetString("table_name");
@@ -185,7 +185,7 @@ namespace Deveel.Data.Sql {
 				// Prepare the select statement
 				prepared_select = new SelectStatement();
 				prepared_select.Init(Connection, select, null);
-				prepared_select.Prepare();
+				prepared_select.PrepareStatement();
 			}
 
 			// If from a set, then resolve all values,
@@ -223,7 +223,7 @@ namespace Deveel.Data.Sql {
 
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
@@ -246,7 +246,7 @@ namespace Deveel.Data.Sql {
 				}
 			} else if (from_select) {
 				// Insert rows from the result select table.
-				Table result = prepared_select.Evaluate();
+				Table result = prepared_select.EvaluateStatement();
 				if (result.ColumnCount != col_index_list.Length) {
 					throw new DatabaseException(
 							"Number of columns in result don't match columns to insert.");

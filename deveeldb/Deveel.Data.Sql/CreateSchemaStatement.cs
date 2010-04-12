@@ -22,11 +22,11 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private string schema_name;
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			schema_name = GetString("schema_name");
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			if (!Connection.Database.CanUserCreateAndDropSchema(context, User, schema_name))

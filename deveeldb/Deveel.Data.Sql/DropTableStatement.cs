@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		internal override void Prepare() {
+		protected override void Prepare() {
 			only_if_exists = GetBoolean("only_if_exists");
 			drop_tables = GetList("table_list");
 
@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <inheritdoc/>
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			int list_size = drop_tables.Count;

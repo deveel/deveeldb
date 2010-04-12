@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql {
 
 		#region Overrides of Statement
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			drop_types = GetList("type_list");
 
 			// Check there are no duplicate entries in the list of tables to drop
@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			int list_size = drop_types.Count;

@@ -83,7 +83,7 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 		/// <inheritdoc/>
-		internal override void Prepare() {
+		protected override void Prepare() {
 
 			// Get variables from the model.
 			table_name = GetString("table_name");
@@ -134,7 +134,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <inheritdoc/>
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 

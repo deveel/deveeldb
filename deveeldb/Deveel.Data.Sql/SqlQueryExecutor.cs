@@ -116,10 +116,10 @@ namespace Deveel.Data.Sql {
 			statement.ResolveTree();
 
 			// Prepare the statement.
-			statement.Prepare();
+			statement.PrepareStatement();
 
 			// Evaluate the SQL statement.
-			Table result = statement.Evaluate();
+			Table result = statement.EvaluateStatement();
 
 			return result;
 

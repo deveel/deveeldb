@@ -89,7 +89,7 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 
 			table_name = GetString("table_name");
 			column_sets = GetList("assignments");
@@ -160,7 +160,7 @@ namespace Deveel.Data.Sql {
 
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Generate a list of Variable objects that represent the list of columns

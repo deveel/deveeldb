@@ -27,10 +27,10 @@ namespace Deveel.Data.Sql {
 
 		#region Overrides of Statement
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			Expression expression = ReturnExpression;

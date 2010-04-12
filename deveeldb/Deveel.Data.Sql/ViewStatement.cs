@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			type = GetString("type");
 			view_name = GetString("view_name");
 
@@ -115,7 +115,7 @@ namespace Deveel.Data.Sql {
 
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			if (type.Equals("create")) {

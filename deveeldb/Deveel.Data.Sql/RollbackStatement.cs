@@ -20,11 +20,11 @@ namespace Deveel.Data.Sql {
 	/// The statement that represents a <c>ROLLBACK</c> command.
 	/// </summary>
 	public sealed class RollbackStatement : Statement {
-		internal override void Prepare() {
+		protected override void Prepare() {
 			// nothing to prepare...
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 			// Rollback the current transaction on this connection.
 			Connection.Rollback();

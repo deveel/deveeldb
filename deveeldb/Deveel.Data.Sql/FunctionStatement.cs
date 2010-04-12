@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql {
 
 		// ----------- Implemented from Statement ----------
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			type = GetString("type");
 			String function_name = GetString("function_name");
 
@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql {
 
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Does the schema exist?

@@ -33,12 +33,12 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			type = GetString("type");
 			schema_name = GetString("schema_name");
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 

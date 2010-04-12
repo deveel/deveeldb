@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			// Get the show variables from the command model
 			show_type = GetString("show");
 			show_type = show_type.ToLower();
@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql {
 			where_clause = (SearchExpression)GetValue("where_clause");
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 			Database d = Connection.Database;

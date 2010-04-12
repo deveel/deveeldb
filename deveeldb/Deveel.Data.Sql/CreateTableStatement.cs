@@ -168,7 +168,7 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 
 			// Get the state from the model
 			temporary = GetBoolean("temporary");
@@ -310,7 +310,7 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 

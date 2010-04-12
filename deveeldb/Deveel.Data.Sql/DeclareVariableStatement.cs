@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql {
 		private TType type;
 		private Expression default_value;
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			name = GetString("name");
 			type = (TType) GetValue("type");
 			constant = GetBoolean("constant");
@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql {
 				throw new InvalidOperationException("A constant variable must specify a default value.");
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseConnection db = Connection;
 			DatabaseQueryContext context = new DatabaseQueryContext(db);
 

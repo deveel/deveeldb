@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql {
 	/// Represents a constraint definition (description) for a table.
 	/// </summary>
 	[Serializable]
-	public sealed class SqlConstraint : IStatementTreeObject {
+	sealed class SqlConstraint : IStatementTreeObject {
 		private SqlConstraint(ConstraintType type) {
 			this.type = type;
 		}

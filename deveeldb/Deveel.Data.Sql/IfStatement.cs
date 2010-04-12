@@ -19,11 +19,11 @@ namespace Deveel.Data.Sql {
 	public sealed class IfStatement : Statement {
 		#region Overrides of Statement
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			throw new NotImplementedException();
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			throw new NotImplementedException();
 		}
 

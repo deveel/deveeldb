@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			DatabaseConnection db = Connection;
 
 			// Prepare this object from the StatementTree,
@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql {
 		}
 
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Check the permissions for this user to select from the tables in the

@@ -20,7 +20,7 @@ namespace Deveel.Data.Sql {
 	/// Represents a column definition (description).
 	/// </summary>
 	[Serializable]
-	public sealed class SqlColumn : IStatementTreeObject {
+	sealed class SqlColumn : IStatementTreeObject {
 		private string name;
 		private readonly bool fromParser;
 		private TType type;

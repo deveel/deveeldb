@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private TableName fun_name;
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			String function_name = GetString("function_name");
 
 			// Resolve the function name into a TableName object.    
@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql {
 			fun_name = Connection.TryResolveCase(fun_name);
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Does the schema exist?

@@ -90,9 +90,7 @@
     <Compile Include="Deveel.Data.Control\DbDirectAccess.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Deveel.Data.Control\DirectCommand.cs" />
-    <Compile Include="Deveel.Data.Control\DirectCommandEventArgs.cs" />
-    <Compile Include="Deveel.Data.Control\DirectCommandType.cs" />
+    <Compile Include="Deveel.Data.Control\StatementEventArgs.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\ArithmeticFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\CompressionFunctionFactory.cs" />
@@ -158,7 +156,7 @@
     <Compile Include="Deveel.Data.Server\ClientConnectionState.cs" />
     <Compile Include="Deveel.Data.Server\EmbeddedProcessor.cs" />
     <Compile Include="Deveel.Data.Server\Processor.cs" />
-    <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
+    <Compile Include="Deveel.Data\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTypeStatement.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -191,7 +189,7 @@
     <Compile Include="Deveel.Data.Sql\DeclareVariableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropSchemaStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\FetchOrientation.cs" />
+    <Compile Include="Deveel.Data\FetchOrientation.cs" />
     <Compile Include="Deveel.Data.Sql\FetchStatement.cs" />
     <Compile Include="Deveel.Data.Sql\OpenCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ParseException.cs" />
@@ -328,8 +326,8 @@
     <Compile Include="Deveel.Data\DbType.cs" />
     <Compile Include="Deveel.Data\TypeUtil.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\AlterTableAction.cs" />
-    <Compile Include="Deveel.Data.Sql\ByColumn.cs" />
+    <Compile Include="Deveel.Data\AlterTableAction.cs" />
+    <Compile Include="Deveel.Data\ByColumn.cs" />
     <Compile Include="Deveel.Data.Sql\CallStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnChecker.cs" />
     <Compile Include="Deveel.Data.Sql\SqlColumn.cs" />
@@ -340,11 +338,11 @@
     <Compile Include="Deveel.Data.Sql\DeleteStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropTriggerStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\FromClause.cs" />
-    <Compile Include="Deveel.Data.Sql\FromTable.cs" />
-    <Compile Include="Deveel.Data.Sql\FromTableDirectSource.cs" />
-    <Compile Include="Deveel.Data.Sql\IFromTableSource.cs" />
-    <Compile Include="Deveel.Data.Sql\FromTableSubQuerySource.cs" />
+    <Compile Include="Deveel.Data\FromClause.cs" />
+    <Compile Include="Deveel.Data\FromTable.cs" />
+    <Compile Include="Deveel.Data\FromTableDirectSource.cs" />
+    <Compile Include="Deveel.Data\IFromTableSource.cs" />
+    <Compile Include="Deveel.Data\FromTableSubQuerySource.cs" />
     <Compile Include="Deveel.Data.Sql\FunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql\InsertStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ShutdownStatement.cs" />
@@ -352,16 +350,16 @@
     <Compile Include="Deveel.Data.Sql\Planner.cs" />
     <Compile Include="Deveel.Data.Sql\PrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql\SchemaStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\SearchExpression.cs" />
+    <Compile Include="Deveel.Data\SearchExpression.cs" />
     <Compile Include="Deveel.Data.Sql\SelectStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\SelectColumn.cs" />
+    <Compile Include="Deveel.Data\SelectColumn.cs" />
     <Compile Include="Deveel.Data.Sql\SequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql\SetStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ShowStatement.cs" />
     <Compile Include="Deveel.Data.Sql\SqlQueryExecutor.cs" />
     <Compile Include="Deveel.Data.Sql\Statement.cs" />
     <Compile Include="Deveel.Data.Sql\TableExpressionFromSet.cs" />
-    <Compile Include="Deveel.Data.Sql\TableSelectExpression.cs" />
+    <Compile Include="Deveel.Data\TableSelectExpression.cs" />
     <Compile Include="Deveel.Data.Sql\UpdateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ViewStatement.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunction.cs" />
@@ -559,6 +557,7 @@
     <EmbeddedResource Include="Deveel.Math\Messages.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Deveel.Data.Commands\" />
     <Folder Include="Deveel.Xml\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

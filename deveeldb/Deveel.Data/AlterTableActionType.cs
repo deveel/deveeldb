@@ -15,39 +15,45 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data {
 	/// <summary>
-	/// The types of constraints that can be applied to a
-	/// column at definition.
+	/// The possible types of actions in a <see cref="AlterTableAction"/>
+	/// expression.
 	/// </summary>
-	[Flags]
-	enum ColumnConstraints {
+	public enum AlterTableActionType {
 		/// <summary>
-		/// None constraint for the column was set.
+		/// Adds a defined column to a table.
 		/// </summary>
-		None = 0x00,
+		AddColumn = 1,
 
 		/// <summary>
-		/// The column belongs to a <c>PRIMARY KEY</c> constraint
-		/// within the containing table.
+		/// Modifies a table by removing a given column.
 		/// </summary>
-		PrimaryKey = 0x01,
+		DropColumn = 2,
 
 		/// <summary>
-		/// Indiciates that the value of a column must be <c>UNIQUE</c>
-		/// for each row.
+		/// Adds a new constraint to the table.
 		/// </summary>
-		Unique = 0x02,
+		AddConstraint = 3,
 
 		/// <summary>
-		/// Constraints a column to contain only values that are
-		/// <c>NOT NULL</c>.
+		/// Drops a named constraint from a table.
 		/// </summary>
-		NotNull = 0x04,
+		DropConstraint = 4,
 
 		/// <summary>
-		/// All the column constraints possible.
+		/// Drops a <c>PRIMARY KEY</c> constraint from a table.
 		/// </summary>
-		All = PrimaryKey | Unique | NotNull
+		DropPrimaryKey = 5,
+
+		/// <summary>
+		/// Alters a table column setting the <c>DEFAULT</c> expression.
+		/// </summary>
+		SetDefault = 6,
+
+		/// <summary>
+		/// Drops the <c>DEFAULT</c> expression from a given column.
+		/// </summary>
+		DropDefault = 7,
 	}
 }

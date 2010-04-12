@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The list of actions to perform in this alter statement.
 		/// </summary>
-		private ArrayList actions;
+		private IList actions;
 
 		/// <summary>
 		/// The TableName object.
@@ -55,21 +55,41 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		public string TableName {
 			get { return GetString("table_name"); }
-			set { SetValue("table_name", value); }
+			set {
+				if (value == null || value.Length == 0)
+					throw new ArgumentNullException("value");
+				
+				SetValue("table_name", value);
+			}
 		}
 
-		public void SetCreate(CreateTableStatement statement) {
-			SetValue("create_statement", statement.Info);
+		public CreateTableStatement CreateStatement {
+			get { return (CreateTableStatement) GetValue("create_statement"); }
+			set {
+				if (!IsEmpty("alter_action"))
+					throw new StatementException("Cannot set a CREATE statement if other actions were set.");
+				if (value == null) {
+					SetValue("create_statement", (StatementTree) null);
+				} else {
+					SetValue("create_statement", value.Info);
+				}
+			}
 		}
 
-		/// <summary>
-		/// Adds an action to perform in this alter statement.
-		/// </summary>
-		/// <param name="action"></param>
-		public void AddAction(AlterTableAction action) {
-			if (actions == null)
-				actions = new ArrayList();
-			actions.Add(action);
+		public IList Actions {
+			get { return GetList("alter_actions", true); }
+		}
+
+		protected override bool OnListAdd(string key, object value, ref object newValue) {
+			if (key == "alter_actions") {
+				if (!(value is AlterTableAction))
+					throw new ArgumentException("The value must be a " + typeof(AlterTableAction) + ".");
+
+				if (ContainsKey("create_statement"))
+					throw new StatementException("Cannot add an action if the CREATE statement was already set.");
+			}
+
+			return base.OnListAdd(key, value, ref newValue);
 		}
 
 		/// <summary>
@@ -109,11 +129,15 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		internal override void Prepare() {
+		protected override void Prepare() {
 
 			// Get variables from the model
 			table_name = GetString("table_name");
-			AddAction((AlterTableAction)GetValue("alter_action"));
+			actions = GetList("alter_actions", true);
+			if (ContainsKey("alter_action")) {
+				actions.Add(GetValue("alter_action"));
+			}
+
 			create_statement = (StatementTree)GetValue("create_statement");
 
 			// ---
@@ -121,7 +145,7 @@ namespace Deveel.Data.Sql {
 			if (create_statement != null) {
 				create_stmt = new CreateTableStatement();
 				create_stmt.Init(Connection, create_statement, null);
-				create_stmt.Prepare();
+				create_stmt.PrepareStatement();
 				table_name = create_stmt.table_name;
 				//      create_statement.Prepare(db, User);
 			} else {
@@ -138,7 +162,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <inheritdoc/>
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			String schema_name = Connection.CurrentSchema;

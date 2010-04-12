@@ -23,11 +23,11 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			// Nothing to prepare
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			// No-op returns a result value of '0'
 			return FunctionTable.ResultTable(new DatabaseQueryContext(Connection), 0);
 		}

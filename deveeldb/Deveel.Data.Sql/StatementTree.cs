@@ -63,7 +63,7 @@ namespace Deveel.Data.Sql {
 		///</summary>
 		///<param name="statement_type">The string defining the <see cref="Type"/>
 		/// of the statement.</param>
-		public StatementTree(String statement_type)
+		internal StatementTree(String statement_type)
 			: this(Type.GetType(statement_type, true, true)) {
 		}
 
@@ -71,7 +71,7 @@ namespace Deveel.Data.Sql {
 		/// Constructs the <see cref="StatementTree"/>.
 		///</summary>
 		///<param name="statement_type">The <see cref="Type"/> of the statement.</param>
-		public StatementTree(Type statement_type) {
+		internal StatementTree(Type statement_type) {
 			if (!typeof(Statement).IsAssignableFrom(statement_type))
 				throw new ArgumentException("The type '" + statement_type + "' is not derived from Statement.");
 			this.statement_type = statement_type;
@@ -115,6 +115,10 @@ namespace Deveel.Data.Sql {
 				                               "' is not derived from a recognised class");
 			}
 
+		}
+
+		public bool Contains(string key) {
+			return map.ContainsKey(key);
 		}
 
 		///<summary>

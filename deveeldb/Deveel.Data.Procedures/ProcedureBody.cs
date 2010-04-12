@@ -34,7 +34,7 @@ namespace Deveel.Data.Procedures {
 
 			statement.ResolveTree();
 
-			statement.Prepare();
+			statement.PrepareStatement();
 		}
 
 		public void AddStatement(Statement statement) {

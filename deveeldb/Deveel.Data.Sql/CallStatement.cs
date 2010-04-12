@@ -71,11 +71,11 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		internal override void Prepare() {
+		protected override void Prepare() {
 		}
 
 		/// <inheritdoc/>
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			String proc_name = GetString("proc_name");

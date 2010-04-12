@@ -317,7 +317,7 @@ namespace Deveel.Data {
 					ViewDef view_def = (ViewDef)cache[cache_key];
 
 					if (view_def == null) {
-						// Not in the cache, so deserialize it and WriteByte it in the cache.
+						// Not in the cache, so deserialize it and write it in the cache.
 						IBlobAccessor blob =
 							  (IBlobAccessor)view_table.GetCellContents(3, row).Object;
 						// Derserialize the blob

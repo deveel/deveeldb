@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql {
 	/// interpretted statements.
 	/// </summary>
 	public abstract class Statement {
-		internal Statement() {
+		protected Statement() {
 			info = new StatementTree(GetType());
 		}
 
@@ -54,6 +54,11 @@ namespace Deveel.Data.Sql {
 		/// in this query.
 		/// </summary>
 		private ArrayList table_list = new ArrayList();
+
+		private bool prepared;
+		private bool evaluated;
+
+		private StatementTree originalInfo;
 
 		/// <summary>
 		/// Gets a connection to the database where the statement will be executed.
@@ -108,8 +113,27 @@ namespace Deveel.Data.Sql {
 			return (Expression) GetValue(key);
 		}
 
+		protected bool ContainsKey(string key) {
+			return info == null ? false : info.Contains(key);
+		}
+
+		protected bool IsEmpty(string key) {
+			IList list = GetList(key);
+			return (list == null ? true : list.Count == 0);
+		}
+
 		protected IList GetList(string key) {
-			return (IList) GetValue(key);
+			return GetList(key, false);
+		}
+
+		protected IList GetList(string key, bool safe) {
+			IList list = (IList) GetValue(key);
+			if (list == null && safe) {
+				list = new BackedList(this, key);
+				SetValue(key, list);
+			}
+
+			return list;
 		}
 
 		protected void SetValue(string key, object value) {
@@ -138,10 +162,16 @@ namespace Deveel.Data.Sql {
 		/// <remarks>
 		/// Useful for repeating a query multiple times.
 		/// </remarks>
-		internal virtual void Reset() {
+		public void Reset() {
 			database = null;
 			user = null;
 			table_list = new ArrayList();
+
+			if (originalInfo != null)
+				info = (StatementTree) originalInfo.Clone();
+
+			evaluated = false;
+			prepared = false;
 		}
 
 		/// <summary>
@@ -392,8 +422,23 @@ namespace Deveel.Data.Sql {
 		internal void Init(DatabaseConnection db, StatementTree stree, SqlQuery query) {
 			database = db;
 			user = db.User;
-			info = stree;
+			if (stree != null)
+				info = stree;
 			this.query = query;
+		}
+
+		internal void PrepareStatement() {
+			if (prepared)
+				throw new StatementException("The statement has been already prepared.");
+			if (evaluated)
+				throw new StatementException("The statement has been already executed.");
+
+			if (info != null)
+				originalInfo = (StatementTree) info.Clone();
+
+			Prepare();
+
+			prepared = true;
 		}
 
 		/// <summary>
@@ -435,7 +480,20 @@ namespace Deveel.Data.Sql {
 		/// </para>
 		/// </remarks>
 		/// <exception cref="DatabaseException"/>
-		internal abstract void Prepare();
+		protected abstract void Prepare();
+
+		internal Table EvaluateStatement() {
+			if (!prepared)
+				throw new StatementException("The statement is in an invalid state: must be prepared.");
+			if (evaluated)
+				throw new StatementException("The statement has already been evaluated.");
+
+			Table result = Evaluate();
+
+			evaluated = true;
+
+			return result;
+		}
 
 		/// <summary>
 		/// Evaluates the statement after it is prepared.
@@ -448,6 +506,154 @@ namespace Deveel.Data.Sql {
 		/// </returns>
 		/// <exception cref="DatabaseException"/>
 		/// <exception cref="TransactionException"/>
-		internal abstract Table Evaluate();
+		protected abstract Table Evaluate();
+
+		protected virtual bool OnListAdd(string key, object value, ref object newValue) {
+			return true;
+		}
+
+		protected virtual void OnListAdded(string key, object value, int index) {
+		}
+
+		protected virtual bool OnListRemove(string key, object value) {
+			return true;
+		}
+
+		protected virtual bool OnListRemoved(string key, object value) {
+			return true;
+		}
+
+		protected virtual bool OnListRemoveAt(string key, int index) {
+			IList list = GetList(key);
+			return OnListRemove(key, list[index]);
+		}
+
+		protected virtual bool OnListClear(string key) {
+			return true;
+		}
+
+		protected virtual bool OnListInsert(string key, int index, object value, ref object newValue) {
+			return true;
+		}
+
+		protected virtual void OnListInserted(string key, int index, object value) {
+		}
+
+		protected virtual bool OnListSet(string key, int index, object value, ref object newValue) {
+			return true;
+		}
+
+
+		#region BackedList
+
+		private class BackedList : IList {
+			public BackedList(Statement statement, string key) {
+				this.statement = statement;
+				this.key = key;
+				list = new ArrayList();
+			}
+
+			private readonly Statement statement;
+			private readonly string key;
+			private readonly ArrayList list;
+
+			#region Implementation of IEnumerable
+
+			public IEnumerator GetEnumerator() {
+				return list.GetEnumerator();
+			}
+
+			#endregion
+
+			#region Implementation of ICollection
+
+			public void CopyTo(Array array, int index) {
+				list.CopyTo(array, index);
+			}
+
+			public int Count {
+				get { return list.Count; }
+			}
+
+			public object SyncRoot {
+				get { return list.SyncRoot; }
+			}
+
+			public bool IsSynchronized {
+				get { return list.IsSynchronized; }
+			}
+
+			#endregion
+
+			#region Implementation of IList
+
+			public int Add(object value) {
+				int index = -1;
+				object newValue = value;
+				if (statement.OnListAdd(key, value, ref newValue)) {
+					index = list.Add(newValue);
+					statement.OnListAdded(key, newValue, index);
+				}
+
+				return index;
+			}
+
+			public bool Contains(object value) {
+				return list.Contains(value);
+			}
+
+			public void Clear() {
+				if (statement.OnListClear(key))
+					list.Clear();
+			}
+
+			public int IndexOf(object value) {
+				return list.IndexOf(value);
+			}
+
+			public void Insert(int index, object value) {
+				object newValue = value;
+				if (statement.OnListInsert(key, index, value, ref newValue)) {
+					list.Insert(index, newValue);
+					statement.OnListInserted(key, index, newValue);
+				}
+			}
+
+			public void Remove(object value) {
+				if (statement.OnListRemove(key, value)) {
+					list.Remove(value);
+					statement.OnListRemoved(key, value);
+				}
+			}
+
+			public void RemoveAt(int index) {
+				if (statement.OnListRemoveAt(key, index)) {
+					list.RemoveAt(index);
+					statement.OnListRemoved(key, index);
+				}
+			}
+
+			public object this[int index] {
+				get { return list[index]; }
+				set {
+					object newValue = value;
+					if (statement.OnListSet(key, index, value, ref newValue)) {
+						list[index] = newValue;
+					}
+				}
+			}
+
+			public bool IsReadOnly {
+				get { return list.IsReadOnly; }
+			}
+
+			public bool IsFixedSize {
+				get { return list.IsFixedSize; }
+			}
+
+			#endregion
+		}
+
+		#endregion
 	}
 }

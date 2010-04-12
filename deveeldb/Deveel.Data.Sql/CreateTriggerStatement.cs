@@ -27,11 +27,11 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		internal override void Prepare() {
+		protected override void Prepare() {
 		}
 
 		/// <inheritdoc/>
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 
 			String trigger_name = GetString("trigger_name");
 			String type = GetString("type");

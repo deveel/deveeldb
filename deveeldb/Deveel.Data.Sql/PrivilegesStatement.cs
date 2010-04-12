@@ -24,11 +24,11 @@ namespace Deveel.Data.Sql {
 	public class PrivilegesStatement : Statement {
 		// ---------- Implemented from Statement ----------
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			// Nothing to do here
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 

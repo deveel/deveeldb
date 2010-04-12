@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 using Deveel.Math;
@@ -188,8 +189,8 @@ namespace Deveel.Data.Sql {
 
 			// Set up functions, aliases and exposed variables for this from set,
 
-			// The list of columns being selected (SelectColumn).
-			ArrayList columns = select_expression.Columns;
+			// The list of columns being selected.
+			List<SelectColumn> columns = select_expression.Columns;
 
 			// For each column being selected
 			for (int i = 0; i < columns.Count; ++i) {
@@ -264,8 +265,8 @@ namespace Deveel.Data.Sql {
 			// What we are selecting
 			QuerySelectColumnSet column_set = new QuerySelectColumnSet(from_set);
 
-			// The list of columns being selected (SelectColumn).
-			ArrayList columns = expression.Columns;
+			// The list of columns being selected.
+			List<SelectColumn> columns = expression.Columns;
 
 			// If there are 0 columns selected, then we assume the result should
 			// show all of the columns in the result.
@@ -273,7 +274,7 @@ namespace Deveel.Data.Sql {
 
 			// For each column being selected
 			for (int i = 0; i < columns.Count; ++i) {
-				SelectColumn col = (SelectColumn)columns[i];
+				SelectColumn col = columns[i];
 				// Is this a glob?  (eg. Part.* )
 				if (col.glob_name != null) {
 					// Find the columns globbed and add to the 's_col_list' result.

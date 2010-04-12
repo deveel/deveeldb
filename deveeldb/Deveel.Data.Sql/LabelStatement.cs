@@ -19,10 +19,10 @@ namespace Deveel.Data.Sql {
 	public sealed class LabelStatement : Statement {
 		#region Overrides of Statement
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			//TODO: label an execution block...
 			return FunctionTable.ResultTable(new DatabaseQueryContext(Connection), 0);
 		}

@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql {
 
 		private TableExpressionFromSet from_set;
 
-		internal override void Prepare() {
+		protected override void Prepare() {
 			DatabaseConnection db = Connection;
 
 			name = GetString("name");
@@ -89,7 +89,7 @@ namespace Deveel.Data.Sql {
 			plan = Planner.FormQueryPlan(db, select_expression, from_set, order_by);
 		}
 
-		internal override Table Evaluate() {
+		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Check the permissions for this user to select from the tables in the
