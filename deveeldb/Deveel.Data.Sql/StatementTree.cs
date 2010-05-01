@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql {
 		///<param name="statement_type">The <see cref="Type"/> of the statement.</param>
 		internal StatementTree(Type statement_type) {
 			if (!typeof(Statement).IsAssignableFrom(statement_type))
-				throw new ArgumentException("The type '" + statement_type + "' is not derived from Statement.");
+				throw new ArgumentException("The type '" + statement_type + "' is not derived from " + typeof(Statement) + ".");
 			this.statement_type = statement_type;
 			map = new Hashtable();
 		}

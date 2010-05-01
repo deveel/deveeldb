@@ -21,10 +21,132 @@ using Deveel.Data.Procedures;
 
 namespace Deveel.Data.Sql {
 	public sealed class CreateFunctionStatement : Statement {
+		public CreateFunctionStatement(TableName functionName, IList args, TType returnType, string location) {
+			FunctionName = functionName;
+
+			if (args != null) {
+				for (int i = 0; i < args.Count; i++)
+					Arguments.Add(args[i]);
+			}
+
+			ReturnType = returnType;
+			Location = location;
+		}
+
+		public CreateFunctionStatement(TableName functionName, TType returnType, string location)
+			: this(functionName, null, returnType, location) {
+		}
+
+		public CreateFunctionStatement() {
+		}
+
 		/// <summary>
 		/// The name of the function.
 		/// </summary>
 		private TableName fun_name;
+
+		public TableName FunctionName {
+			get { return TableName.Resolve(GetString("function_name")); }
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+				SetValue("function_name", value.ToString(false));
+			}
+		}
+
+		public IList Arguments {
+			get { return GetList("args", true); }
+		}
+
+		public TType ReturnType {
+			get { return (TType) GetValue("return_type"); }
+			set {
+				if (value == null)
+					throw new ArgumentException("value");
+				SetValue("return_type", value);
+			}
+		}
+
+		public string Location {
+			get { return GetString("location_name"); }
+			set {
+				if (String.IsNullOrEmpty(value))
+					throw new ArgumentNullException("value");
+				SetValue("location_name", value);
+			}
+		}
+
+		private void RemoveArgument(string name) {
+			int argIndex = -1;
+			IList argNames = GetList("arg_names");
+			int sz = argNames.Count;
+
+			for (int i = sz - 1; i >= 0; i--) {
+				string argName = (string)argNames[i];
+				if (argName == name) {
+					argNames.RemoveAt(i);
+					argIndex = i;
+					break;
+				}
+			}
+
+			if (argIndex != -1) {
+				GetList("arg_types").RemoveAt(argIndex);
+			}
+		}
+
+		protected override bool OnListAdd(string key, object value, ref object newValue) {
+			if (key == "args") {
+				FunctionArgument arg = value as FunctionArgument;
+				if (arg == null)
+					throw new ArgumentException();
+
+				GetList("arg_names").Add(arg.Name);
+				GetList("arg_types").Add(arg.Type);
+			}
+
+			return base.OnListAdd(key, value, ref newValue);
+		}
+
+		protected override bool OnListRemoved(string key, object value) {
+			if (key == "args") {
+				FunctionArgument arg = (FunctionArgument) value;
+				RemoveArgument(arg.Name);
+			}
+
+			return base.OnListRemoved(key, value);
+		}
+
+		protected override bool OnListRemoveAt(string key, int index) {
+			if (key == "args") {
+				FunctionArgument arg = (FunctionArgument) GetList("args")[index];
+				RemoveArgument(arg.Name);
+			}
+			return base.OnListRemoveAt(key, index);
+		}
+
+		protected override bool OnListClear(string key) {
+			if (key == "args") {
+				GetList("arg_names").Clear();
+				GetList("arg_types").Clear();
+			}
+
+			return base.OnListClear(key);
+		}
+
+		protected override bool OnListInsert(string key, int index, object value, ref object newValue) {
+			if (key == "args")	//TODO:
+				throw new NotSupportedException("Inserting not yet supported for the arguments list.");
+
+			return base.OnListInsert(key, index, value, ref newValue);
+		}
+
+		protected override bool OnListSet(string key, int index, object value, ref object newValue) {
+			if (key == "args")	//TODO:
+				throw new NotSupportedException("Settingnot yet supported for the arguments list.");
+
+			return base.OnListSet(key, index, value, ref newValue);
+		}
 
 		protected override void Prepare() {
 			String function_name = GetString("function_name");

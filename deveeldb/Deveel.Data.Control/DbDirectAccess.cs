@@ -49,9 +49,9 @@ namespace Deveel.Data.Control {
 		/// </summary>
 		public event EventHandler TriggerEvent;
 
-		public event EventHandler CommandExecuting;
-		public event EventHandler CommandExecuted;
-		public event EventHandler CommandError;
+		public event StatementEventHandler StatementExecuting;
+		public event StatementEventHandler StatementExecuted;
+		public event StatementEventHandler StatementError;
 
 		/// <summary>
 		/// Gets the user owner of the current underlying connection.
@@ -93,7 +93,7 @@ namespace Deveel.Data.Control {
 
 		#region Method Implementations
 
-		private object ExecuteStatementImpl(Statement statement) {
+		private Table ExecuteStatementImpl(Statement statement) {
 			// Initialize the statement
 			statement.Init(connection, null, null);
 
@@ -104,26 +104,24 @@ namespace Deveel.Data.Control {
 			statement.PrepareStatement();
 
 			// Evaluate the SQL statement.
-			Table result = statement.EvaluateStatement();
-
-			return result;
+			return statement.EvaluateStatement();
 		}
 
 		#endregion
 
-		private void OnStatementExecuting(Statement statement) {
-			if (CommandExecuting != null)
-				CommandExecuting(this, new StatementEventArgs(statement));
+		private void OnStatementExecuting(StatementEventArgs args) {
+			if (StatementExecuting != null)
+				StatementExecuting(this, args);
 		}
 
-		private void OnStatementExecuted(Statement statement, object result) {
-			if (CommandExecuted != null)
-				CommandExecuted(this, new StatementEventArgs(statement, result));
+		private void OnStatementExecuted(StatementEventArgs args) {
+			if (StatementExecuted != null)
+				StatementExecuted(this, args);
 		}
 
-		private void OnStatementError(Statement statement, Exception error) {
-			if (CommandError != null)
-				CommandError(this, new StatementEventArgs(statement, error));
+		private void OnStatementError(StatementEventArgs args) {
+			if (StatementError != null)
+				StatementError(this, args);
 		}
 
 		private delegate object StatementDelegate(Statement statement);
@@ -141,9 +139,11 @@ namespace Deveel.Data.Control {
 		public object ExecuteStatement(Statement statement) {
 			LockingMechanism locker = connection.LockingMechanism;
 			LockingMode lock_mode = LockingMode.None;
-			object response = null;
+			Table response = null;
 
 			try {
+				StatementEventArgs args = new StatementEventArgs(statement);
+
 				try {
 
 					// For simplicity - all database locking is now exclusive inside
@@ -159,16 +159,23 @@ namespace Deveel.Data.Control {
 					lock_mode = LockingMode.Exclusive;
 					locker.SetMode(lock_mode);
 
-					OnStatementExecuting(statement);
+					OnStatementExecuting(args);
 
 					response = ExecuteStatementImpl(statement);
 
-					OnStatementExecuted(statement, response);
+					args.SetResult(response);
+
+					OnStatementExecuted(args);
 
 					// Return the result.
 					return response;
 				} catch (Exception e) {
-					OnStatementError(statement, e);
+					StatementException error = e as StatementException;
+					if (error == null)
+						error = new StatementException(e.Message);
+
+					args.SetError(error);
+					OnStatementError(args);
 					throw;
 				} finally {
 					try {

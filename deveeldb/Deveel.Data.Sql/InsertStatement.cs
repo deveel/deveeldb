@@ -24,22 +24,15 @@ namespace Deveel.Data.Sql {
 	/// insert statement for processing.
 	/// </summary>
 	public class InsertStatement : Statement {
+		private string table_name;
+		private IList col_list;
+		private IList values_list;    //list contains List of elements to insert
+		private StatementTree select;
+		private IList column_sets;
 
-		String table_name;
-
-		IList col_list;
-
-		IList values_list;    //list contains List of elements to insert
-
-		StatementTree select;
-
-		IList column_sets;
-
-		bool from_values = false;
-
-		bool from_select = false;
-
-		bool from_set = false;
+		private bool from_values = false;
+		private bool from_select = false;
+		private bool from_set = false;
 
 		// -----
 

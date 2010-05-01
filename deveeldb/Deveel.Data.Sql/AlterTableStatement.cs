@@ -21,6 +21,25 @@ namespace Deveel.Data.Sql {
 	/// Logic for the <c>ALTER TABLE</c> SQL statement.
 	/// </summary>
 	public class AlterTableStatement : Statement {
+		public AlterTableStatement(TableName tableName, CreateTableStatement createStatement) {
+			TableName = tableName;
+			CreateStatement = createStatement;
+		}
+
+		public AlterTableStatement(TableName tableName, AlterTableAction action) {
+			TableName = tableName;
+			Actions.Add(action);
+		}
+
+		public AlterTableStatement(TableName tableName, ICollection actions) {
+			TableName = tableName;
+			foreach(AlterTableAction action in actions)
+				Actions.Add(action);
+		}
+
+		public AlterTableStatement() {
+		}
+
 		/// <summary>
 		/// The create statement that we use to alter the current table.
 		/// </summary>
@@ -53,13 +72,13 @@ namespace Deveel.Data.Sql {
 		/// Gets or sets the name (qualified or unqualified) of 
 		/// the table to alter.
 		/// </summary>
-		public string TableName {
-			get { return GetString("table_name"); }
+		public TableName TableName {
+			get { return TableName.Resolve(GetString("table_name")); }
 			set {
-				if (value == null || value.Length == 0)
+				if (value == null)
 					throw new ArgumentNullException("value");
 				
-				SetValue("table_name", value);
+				SetValue("table_name", value.ToString(false));
 			}
 		}
 

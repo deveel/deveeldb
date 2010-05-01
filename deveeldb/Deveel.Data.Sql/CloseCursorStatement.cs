@@ -24,9 +24,24 @@ namespace Deveel.Data.Sql {
 			SetValue("name", cursorName);
 		}
 
-		private string name;
+		public CloseCursorStatement() {
+		}
 
+		private string name;
 		private TableName resolved_name;
+
+		/// <summary>
+		/// Gets or sets the qualified name of the curosr to close.
+		/// </summary>
+		public TableName CursorName {
+			get { return TableName.Resolve(GetString("name")); }
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+
+				SetValue("name", value.ToString(false));
+			}
+		}
 
 		protected override void Prepare() {
 			DatabaseConnection db = Connection;

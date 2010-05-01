@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql {
 			: this(procedure, null) {
 		}
 
-		internal CallStatement() {
+		public CallStatement() {
 		}
 
 		/// <summary>
@@ -58,6 +58,12 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		public string Procedure {
 			get { return GetString("proc_name"); }
+			set {
+				if (String.IsNullOrEmpty(value))
+					throw new ArgumentNullException("value");
+
+				SetValue("proc_name", value);
+			}
 		}
 
 		/// <summary>
@@ -66,6 +72,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		public Expression[] Arguments {
 			get { return (Expression[]) GetValue("args"); }
+			set { SetValue("args", value); }
 		}
 
 		// ---------- Implemented from Statement ----------

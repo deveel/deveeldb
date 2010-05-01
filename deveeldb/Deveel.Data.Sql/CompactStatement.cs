@@ -20,11 +20,26 @@ namespace Deveel.Data.Sql {
 	/// Statement that handles <c>COMPACT</c> SQL command.
 	/// </summary>
 	public class CompactStatement : Statement {
+		public CompactStatement(TableName tableName) {
+			TableName = tableName;
+		}
+
+		public CompactStatement() {
+		}
 
 		/// <summary>
 		/// The name the table that we are to update.
 		/// </summary>
 		private String table_name;
+
+		public TableName TableName {
+			get { return TableName.Resolve(GetString("table_name")); }
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+				SetValue("table_name", value.ToString(false));
+			}
+		}
 
 		// ---------- Implemented from Statement ----------
 

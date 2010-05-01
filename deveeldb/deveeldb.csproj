@@ -90,7 +90,6 @@
     <Compile Include="Deveel.Data.Control\DbDirectAccess.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Deveel.Data.Control\StatementEventArgs.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\ArithmeticFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\CompressionFunctionFactory.cs" />
@@ -156,6 +155,8 @@
     <Compile Include="Deveel.Data.Server\ClientConnectionState.cs" />
     <Compile Include="Deveel.Data.Server\EmbeddedProcessor.cs" />
     <Compile Include="Deveel.Data.Server\Processor.cs" />
+    <Compile Include="Deveel.Data.Sql\FunctionArgument.cs" />
+    <Compile Include="Deveel.Data.Sql\StatementEventArgs.cs" />
     <Compile Include="Deveel.Data\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTypeStatement.cs">
       <SubType>Code</SubType>

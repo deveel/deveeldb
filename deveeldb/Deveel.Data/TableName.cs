@@ -110,8 +110,27 @@ namespace Deveel.Data {
 		// ----
 
 		/// <inheritdoc/>
-		public override String ToString() {
-			return Schema != null ? Schema + "." + Name : Name;
+		public override string ToString() {
+			return ToString(true);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="unknownSchema">Toggles whether to include
+		/// the schema part of the table name if the schema is
+		/// <c>unknown</c>.</param>
+		/// <returns></returns>
+		public string ToString(bool unknownSchema) {
+			string s = Name;
+			string schema = Schema;
+			if (schema != null) {
+				if (schema.Equals(UnknownSchemaName) &&
+					unknownSchema)
+					s = schema + "." + s;
+			}
+
+			return s;
 		}
 
 		/// <inheritdoc/>
