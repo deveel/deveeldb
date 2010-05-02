@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections;
 using System.Text;
 
 namespace Deveel.Data {
@@ -362,6 +363,17 @@ namespace Deveel.Data {
 				priv_bit = priv_bit << 1;
 			}
 			return buf.ToString();
+		}
+
+		internal IList ToStringList() {
+			ArrayList list = new ArrayList();
+			int priv_bit = 1;
+			for (int i = 0; i < 11; ++i) {
+				if ((privs & priv_bit) != 0)
+					list.Add(FormatPriv(priv_bit));
+				priv_bit = priv_bit << 1;
+			}
+			return list;
 		}
 
 		/// <inheritdoc/>

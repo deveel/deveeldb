@@ -17,9 +17,25 @@ using System;
 
 namespace Deveel.Data.Sql {
 	public sealed class OpenCursorStatement : Statement {
-		private string name;
+		public OpenCursorStatement(TableName cursorName) {
+			CursorName = cursorName;
+		}
 
+		public OpenCursorStatement() {
+		}
+
+		private string name;
 		private TableName resolved_name;
+
+		public TableName CursorName {
+			get { return TableName.Resolve(GetString("name")); }
+			set {
+				if (value == null)
+					throw new ArgumentNullException("value");
+
+				SetValue("name", value.ToString(false));
+			}
+		}
 
 		protected override void Prepare() {
 			DatabaseConnection db = Connection;

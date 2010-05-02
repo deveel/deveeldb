@@ -17,10 +17,26 @@ using System;
 
 namespace Deveel.Data.Sql {
 	public sealed class DropSchemaStatement : Statement {
+		public DropSchemaStatement(string schemaName) {
+			SchemaName = schemaName;
+		}
+
+		public DropSchemaStatement() {	
+		}
+
 		/// <summary>
 		/// The name of the schema.
 		/// </summary>
 		private String schema_name;
+
+		public string SchemaName {
+			get { return GetString("schema_name"); }
+			set {
+				if (String.IsNullOrEmpty(value))
+					throw new ArgumentNullException("value");
+				SetValue("schema_name", value);
+			}
+		}
 
 		protected override void Prepare() {
 			schema_name = GetString("schema_name");

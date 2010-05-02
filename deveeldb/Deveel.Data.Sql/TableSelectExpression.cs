@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Deveel.Data.Sql {
@@ -37,7 +38,7 @@ namespace Deveel.Data.Sql {
 	/// in the various clauses of this object.
 	/// </remarks>
 	[Serializable]
-	public sealed class TableSelectExpression : IStatementTreeObject, ICloneable {
+	public sealed class TableSelectExpression : IStatementTreeObject {
 		/// <summary>
 		/// True if we only search for distinct elements.
 		/// </summary>
@@ -46,7 +47,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The list of columns to select from. (SelectColumn)
 		/// </summary>
-		private ArrayList columns = new ArrayList();
+		private List<SelectColumn> columns = new List<SelectColumn>();
 
 		/// <summary>
 		/// The from clause.
@@ -64,9 +65,9 @@ namespace Deveel.Data.Sql {
 		private bool whereSet;
 
 		/// <summary>
-		/// The list of columns to group by. (ByColumn)
+		/// The list of columns to group by.
 		/// </summary>
-		private ArrayList group_by = new ArrayList();
+		private List<ByColumn> group_by = new List<ByColumn>();
 
 		/// <summary>
 		/// The group max variable or null if no group max.
@@ -118,7 +119,7 @@ namespace Deveel.Data.Sql {
 			set { distinct = value; }
 		}
 
-		public IList GroupBy {
+		public List<ByColumn> GroupBy {
 			get { return group_by; }
 		}
 
@@ -145,9 +146,9 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// The list of columns to select from. (SelectColumn)
+		/// The list of columns to select from.
 		/// </summary>
-		public ArrayList Columns {
+		public List<SelectColumn> Columns {
 			get { return columns; }
 		}
 
@@ -200,13 +201,13 @@ namespace Deveel.Data.Sql {
 		public Object Clone() {
 			TableSelectExpression v = (TableSelectExpression)MemberwiseClone();
 			if (columns != null)
-				v.columns = (ArrayList)StatementTree.CloneSingleObject(columns);
+				v.columns = (List<SelectColumn>)StatementTree.CloneSingleObject(columns);
 			if (from_clause != null)
 				v.from_clause = (FromClause)from_clause.Clone();
 			if (where_clause != null)
 				v.where_clause = (SearchExpression)where_clause.Clone();
 			if (group_by != null)
-				v.group_by = (ArrayList)StatementTree.CloneSingleObject(group_by);
+				v.group_by = (List<ByColumn>)StatementTree.CloneSingleObject(group_by);
 			if (group_max != null)
 				v.group_max = (VariableName)group_max.Clone();
 			if (having_clause != null)
@@ -219,7 +220,7 @@ namespace Deveel.Data.Sql {
 		public override string ToString() {
 			StringBuilder sb = new StringBuilder("SELECT ");
 			for (int i = 0; i < columns.Count; i++) {
-				SelectColumn column = (SelectColumn) columns[i];
+				SelectColumn column = columns[i];
 				column.DumpTo(sb);
 
 				if (i < columns.Count - 1)

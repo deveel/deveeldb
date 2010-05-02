@@ -64,10 +64,10 @@ namespace Deveel.Data.Sql {
 		/// <param name="from_set"></param>
 		/// <param name="aliased_table_name"></param>
 		internal FromTableSubQuerySource(bool case_insensitive,
-									   String unique_key,
-									   TableSelectExpression table_expression,
-									   TableExpressionFromSet from_set,
-									   TableName aliased_table_name) {
+		                                 String unique_key,
+		                                 TableSelectExpression table_expression,
+		                                 TableExpressionFromSet from_set,
+		                                 TableName aliased_table_name) {
 			this.unique_key = unique_key;
 			this.table_expression = table_expression;
 			this.from_set = from_set;
@@ -151,7 +151,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="column"></param>
 		/// <returns></returns>
 		private bool MatchesVar(VariableName v, String catalog, String schema,
-											   String table, String column) {
+		                        String table, String column) {
 			TableName tn = v.TableName;
 			String cn = v.Name;
 
@@ -193,7 +193,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public bool MatchesReference(String catalog,
-										String schema, String table) {
+		                             String schema, String table) {
 			if (schema == null && table == null) {
 				return true;
 			}
@@ -215,7 +215,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public int ResolveColumnCount(String catalog, String schema,
-									  String table, String column) {
+		                              String table, String column) {
 			EnsureVarList();
 
 			if (catalog == null && schema == null && table == null && column == null) {
@@ -236,7 +236,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public VariableName ResolveColumn(String catalog, String schema,
-									  String table, String column) {
+		                                  String table, String column) {
 			EnsureVarList();
 
 			//    Console.Out.WriteLine("ResolveColumn: " + catalog + ", " + schema + ", " +

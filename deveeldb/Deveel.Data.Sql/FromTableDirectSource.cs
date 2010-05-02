@@ -67,8 +67,8 @@ namespace Deveel.Data.Sql {
 		/// <param name="given_name"></param>
 		/// <param name="root_name"></param>
 		public FromTableDirectSource(bool case_insensitive,
-									 ITableQueryDef table_query, String unique_name,
-									 TableName given_name, TableName root_name) {
+		                             ITableQueryDef table_query, String unique_name,
+		                             TableName given_name, TableName root_name) {
 			this.unique_name = unique_name;
 			this.data_table_def = table_query.DataTableDef;
 			this.root_name = root_name;
@@ -141,12 +141,12 @@ namespace Deveel.Data.Sql {
 
 			// Does this table name represent the correct schema?
 			if (schema != null &&
-				!StringCompare(schema, table_name.Schema)) {
+			    !StringCompare(schema, table_name.Schema)) {
 				// If schema is present and we can't resolve to this schema then false
 				return false;
 			}
 			if (table != null &&
-				!StringCompare(table, table_name.Name)) {
+			    !StringCompare(table, table_name.Name)) {
 				// If table name is present and we can't resolve to this table name
 				// then return false
 				return false;
@@ -157,7 +157,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public int ResolveColumnCount(String catalog, String schema,
-									  String table, String column) {
+		                              String table, String column) {
 			// NOTE: With this type, we can only ever return either 1 or 0 because
 			//   it's impossible to have an ambiguous reference
 
@@ -165,12 +165,12 @@ namespace Deveel.Data.Sql {
 
 			// Does this table name represent the correct schema?
 			if (schema != null &&
-				!StringCompare(schema, table_name.Schema)) {
+			    !StringCompare(schema, table_name.Schema)) {
 				// If schema is present and we can't resolve to this schema then return 0
 				return 0;
 			}
 			if (table != null &&
-				!StringCompare(table, table_name.Name)) {
+			    !StringCompare(table, table_name.Name)) {
 				// If table name is present and we can't resolve to this table name then
 				// return 0
 				return 0;
@@ -200,16 +200,16 @@ namespace Deveel.Data.Sql {
 		}
 
 		public VariableName ResolveColumn(String catalog, String schema,
-									  String table, String column) {
+		                                  String table, String column) {
 
 			// Does this table name represent the correct schema?
 			if (schema != null &&
-				!StringCompare(schema, table_name.Schema)) {
+			    !StringCompare(schema, table_name.Schema)) {
 				// If schema is present and we can't resolve to this schema
 				throw new ApplicationException("Incorrect schema.");
 			}
 			if (table != null &&
-				!StringCompare(table, table_name.Name)) {
+			    !StringCompare(table, table_name.Name)) {
 				// If table name is present and we can't resolve to this table name
 				throw new ApplicationException("Incorrect table.");
 			}

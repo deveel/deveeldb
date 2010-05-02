@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Deveel.Data.Sql {
@@ -26,6 +27,9 @@ namespace Deveel.Data.Sql {
 	/// </remarks>
 	[Serializable]
 	public sealed class FromClause : IStatementTreeObject {
+		internal FromClause() {
+		}
+
 		/// <summary>
 		/// The JoiningSet object that we have created to represent the joins 
 		/// in this <c>FROM</c> clause.
@@ -36,7 +40,7 @@ namespace Deveel.Data.Sql {
 		/// A list of all <see cref="FromTable"/> objects in this clause in 
 		/// order of when they were specified.
 		/// </summary>
-		private ArrayList def_list = new ArrayList();
+		private List<FromTable> def_list = new List<FromTable>();
 
 		/// <summary>
 		/// A list of all table names in this from clause.
@@ -193,7 +197,7 @@ namespace Deveel.Data.Sql {
 		/// Returns a <see cref="ICollection">collection</see> of <see cref="FromTable"/> 
 		/// objects that represent all the tables that are in this from clause.
 		///</summary>
-		public ICollection AllTables {
+		public ICollection<FromTable> AllTables {
 			get { return def_list; }
 		}
 
@@ -209,7 +213,7 @@ namespace Deveel.Data.Sql {
 			}
 			// Prepare the StatementTree sub-queries in the from tables
 			for (int i = 0; i < def_list.Count; ++i) {
-				FromTable table = (FromTable)def_list[i];
+				FromTable table = def_list[i];
 				table.PrepareExpressions(preparer);
 			}
 
@@ -219,13 +223,13 @@ namespace Deveel.Data.Sql {
 		public object Clone() {
 			FromClause v = (FromClause)MemberwiseClone();
 			v.join_set = (JoiningSet)join_set.Clone();
-			ArrayList cloned_def_list = new ArrayList(def_list.Count);
+			List<FromTable> cloned_def_list = new List<FromTable>(def_list.Count);
 			v.def_list = cloned_def_list;
 			v.all_table_names = (ArrayList)all_table_names.Clone();
 
 			for (int i = 0; i < def_list.Count; ++i) {
-				FromTable table = (FromTable)def_list[i];
-				cloned_def_list.Add(table.Clone());
+				FromTable table = def_list[i];
+				cloned_def_list.Add((FromTable)table.Clone());
 			}
 
 			return v;

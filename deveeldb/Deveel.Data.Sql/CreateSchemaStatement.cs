@@ -58,8 +58,7 @@ namespace Deveel.Data.Sql {
 							GrantObject.Schema, schema_name, User.UserName,
 							true, Database.InternalSecureUsername);
 			} else {
-				throw new DatabaseException("Schema '" + schema_name +
-											"' already exists.");
+				throw new DatabaseException("Schema '" + schema_name + "' already exists.");
 			}
 
 			return FunctionTable.ResultTable(context, 0);
