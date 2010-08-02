@@ -210,10 +210,18 @@ namespace Deveel.Data {
 			return Evaluate(expression, argsDict);
 		}
 
+#if NET_2_0
+		public static TObject Evaluate(string expression, System.Collections.Generic.IDictionary<string, object> args) {
+#else
 		public static TObject Evaluate(string expression, IDictionary args) {
+#endif
 			VariableResolver resolver = new VariableResolver();
 			if (args != null) {
+#if NET_2_0
+				foreach(System.Collections.Generic.KeyValuePair<string, object> entry in args) {
+#else
 				foreach(DictionaryEntry entry in args) {
+#endif
 					string argName = (string) entry.Key;
 					if (argName == null || argName.Length == 0)
 						throw new ArgumentException("Found an argument with a name not specified.");
@@ -233,12 +241,6 @@ namespace Deveel.Data {
 			exp.Prepare(new VariableExpressionPreparer());
 			return exp.Evaluate(resolver, null);
 		}
-
-#if NET_2_0
-		public static TObject Evaluate(string expression, System.Collections.Generic.IDictionary<string, object> args) {
-			return Evaluate(expression, (IDictionary) args);
-		}
-#endif
 
 		public static TObject Evaluate(string expression) {
 			return Evaluate(expression, (IVariableResolver) null);
