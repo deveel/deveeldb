@@ -35,7 +35,7 @@ namespace Deveel.Data.Shell {
 			}
 		}
 
-		private void BuildTable(System.Data.DataRow row) {
+		private void BuildTable(DataRow row) {
 			string tableSchema = row["TABLE_SCHEMA"].ToString();
 			string tableName = row["TABLE_NAME"].ToString();
 			string tableType = row["TABLE_TYPE"].ToString();
@@ -43,7 +43,7 @@ namespace Deveel.Data.Shell {
 			Table table = new Table(tableSchema, tableName, tableType);
 
 			string[] filter = new string[] { null, tableSchema, tableName, null };
-			System.Data.DataTable dataTable = session.Connection.GetSchema(DeveelDbMetadataSchemaNames.TablePrivileges, filter);
+			DataTable dataTable = session.Connection.GetSchema(DeveelDbMetadataSchemaNames.TablePrivileges, filter);
 
 			for (int i = 0; i < dataTable.Rows.Count; i++)
 				table.AddPrivilege(BuildPrivilege(dataTable.Rows[i]));
@@ -63,11 +63,11 @@ namespace Deveel.Data.Shell {
 			tables.Add(table);
 		}
 
-		private void BuildColumn(Table table, System.Data.DataRow row) {
+		private void BuildColumn(Table table, DataRow row) {
 			string tableSchema = row["TABLE_SCHEMA"].ToString();
 			string tableName = row["TABLE_NAME"].ToString();
 			string columnName = row["COLUMN_NAME"].ToString();
-			SqlType dataType = (SqlType)(int) row["DATA_TYPE"];
+			//TODO: SqlType dataType = (SqlType)(int) row["DATA_TYPE"];
 
 			int position = (int) row["ORDINAL_POSITION"];
 			string dataTypeName = row["TYPE_NAME"].ToString();

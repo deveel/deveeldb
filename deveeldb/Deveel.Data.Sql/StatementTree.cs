@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Math;
 
@@ -248,25 +249,23 @@ namespace Deveel.Data.Sql {
 			    entry is int) {
 				// Immutable entries
 			} else if (entry is Expression) {
-				entry = ((Expression)entry).Clone();
+				entry = ((Expression) entry).Clone();
 			} else if (entry is Expression[]) {
-				Expression[] exps = (Expression[])((Expression[])entry).Clone();
+				Expression[] exps = (Expression[]) ((Expression[]) entry).Clone();
 				// Clone each element of the array
 				for (int n = 0; n < exps.Length; ++n) {
-					exps[n] = (Expression)exps[n].Clone();
+					exps[n] = (Expression) exps[n].Clone();
 				}
 				entry = exps;
 			} else if (entry is VariableName) {
-				entry = ((VariableName)entry).Clone();
+				entry = ((VariableName) entry).Clone();
 			} else if (entry is IStatementTreeObject) {
-				entry = ((IStatementTreeObject)entry).Clone();
+				entry = ((IStatementTreeObject) entry).Clone();
 			} else if (entry is StatementTree) {
-				entry = ((StatementTree)entry).Clone();
+				entry = ((StatementTree) entry).Clone();
 			} else if (entry is IList) {
-				// Clone the list by making a new ArrayList and adding a cloned version
-				// of each element into it.
-				IList list = (IList)entry;
-				ArrayList cloned_list = new ArrayList(list.Count);
+				IList list = (IList) entry;
+				IList cloned_list = (IList)Activator.CreateInstance(entry.GetType(), new object[] { list.Count });
 				IEnumerator i = list.GetEnumerator();
 				while (i.MoveNext()) {
 					cloned_list.Add(CloneSingleObject(i.Current));

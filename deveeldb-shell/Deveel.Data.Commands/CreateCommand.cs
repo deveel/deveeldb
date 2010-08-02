@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections;
 
 using Deveel.Commands;
 using Deveel.Configuration;
 using Deveel.Data.Client;
-using Deveel.Data.Control;
 using Deveel.Data.Shell;
 
 namespace Deveel.Data.Commands {
@@ -58,10 +58,10 @@ namespace Deveel.Data.Commands {
 					}
 				}
 
-				DbConfig config = null;
+				Hashtable config = null;
 
 				if (args.Length > argIndex) {
-					config = new DbConfig(null);
+					config = new Hashtable();
 
 					if (args.Length > argIndex) {
 						for (int i = argIndex; i < args.Length; i++) {
@@ -71,11 +71,11 @@ namespace Deveel.Data.Commands {
 							var = var.Substring(index + 1);
 
 							if (String.Compare(varname, "config", true) == 0) {
-								config.LoadFromFile(var);
+								//TODO: LoadFromFile(var);
 								continue;
 							}
 
-							config.SetValue(varname, var);
+							config[varname] = var;
 						}
 					}
 				}
@@ -95,11 +95,33 @@ namespace Deveel.Data.Commands {
 			return base.Execute(context, args);
 		}
 
-		private void CreateDatabase(DbConfig config, string name, string adminUser, string adminPass) {
+		private void CreateDatabase(IDictionary config, string name, string adminUser, string adminPass) {
+			DeveelDbConnectionStringBuilder connString = new DeveelDbConnectionStringBuilder();
+			connString.Host = "(local)";
+			connString.UserName = adminUser;
+			connString.Password = adminPass;
+			connString.Database = name;
+			connString.Create = true;
+
+			//TODO: set the additional parameters...
+
+			/*
 			DbSystem system = ((DeveelDBShell)Application).Controller.CreateDatabase(config, name, adminUser, adminPass);
 			Application.MessageDevice.WriteLine("database created successfully.");
 
 			DeveelDbConnection conn = (DeveelDbConnection)system.GetConnection(adminUser, adminPass);
+			*/
+
+			DeveelDbConnection conn = new DeveelDbConnection(connString.ConnectionString);
+
+			try {
+				conn.Open();
+			} catch(DatabaseCreateException) {
+				Application.MessageDevice.WriteLine("An error occurred while creating the database '" + name + "'.");
+				return;
+			}
+
+			Application.MessageDevice.WriteLine("database created successfully.");
 			SqlSession session = new SqlSession((DeveelDBShell)Application, conn);
 
 			((DeveelDBShell)Application).SessionManager.SetCurrentSession(session);
@@ -123,7 +145,7 @@ namespace Deveel.Data.Commands {
 			if (pass == null)
 				pass = Readline.ReadPassword("Password: ");
 
-			DbConfig config = new DbConfig(null);
+			Hashtable config = new Hashtable();
 
 			// Find all '-C*' style switches,
 			String[] c_args = commandLine.GetOptionValues('C');
@@ -131,7 +153,7 @@ namespace Deveel.Data.Commands {
 				for (int i = 0; i < c_args.Length; i += 2) {
 					string key = c_args[0];
 					string value = c_args[1];
-					config.SetValue(key, value);
+					config[key] = value;
 				}
 			}
 

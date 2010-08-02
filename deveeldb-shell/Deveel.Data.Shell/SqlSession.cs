@@ -13,7 +13,7 @@ namespace Deveel.Data.Shell {
 		private string name;
 		private DateTime connectTime;
 		private long statementCount;
-		private readonly ConnectionString connectionString;
+		private readonly DeveelDbConnectionStringBuilder connectionString;
 		private DeveelDbConnection conn;
 		private Database metaData;
 		private bool auto_commit;
@@ -28,7 +28,7 @@ namespace Deveel.Data.Shell {
 
 		internal SqlSession(DeveelDBShell app, string connectionString) {
 			this.app = app;
-			this.connectionString = new ConnectionString(connectionString);
+			this.connectionString = new DeveelDbConnectionStringBuilder(connectionString);
 			statementCount = 0;
 			conn = null;
 			propertyRegistry = new PropertyRegistry(this);
@@ -47,7 +47,7 @@ namespace Deveel.Data.Shell {
 
 		internal SqlSession(DeveelDBShell app, DeveelDbConnection conn) {
 			this.app = app;
-			connectionString = new ConnectionString(conn.ConnectionString);
+			connectionString = new DeveelDbConnectionStringBuilder(conn.ConnectionString);
 			this.conn = conn;
 			statementCount = 0;
 			propertyRegistry = new PropertyRegistry(this);
@@ -61,7 +61,7 @@ namespace Deveel.Data.Shell {
 			get { return propertyRegistry; }
 		}
 
-		public ConnectionString ConnectionString {
+		public DeveelDbConnectionStringBuilder ConnectionString {
 			get { return connectionString; }
 		}
 

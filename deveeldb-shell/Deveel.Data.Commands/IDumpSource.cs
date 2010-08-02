@@ -1,20 +1,20 @@
-﻿#if DEBUG
-using System;
-using System.Data;
+﻿//#if DEBUG
+//using System;
+//using System.Data;
 
-namespace Deveel.Data.Commands {
-	internal interface IDumpSource {
-		MetaProperty[] MetaProperties { get; }
+//namespace Deveel.Data.Commands {
+//    internal interface IDumpSource {
+//        MetaProperty[] MetaProperties { get; }
 
-		string Description { get; }
+//        string Description { get; }
 
-		string TableName { get; }
+//        string TableName { get; }
 
-		IDbCommand Command { get; }
+//        IDbCommand Command { get; }
 
-		IDataReader Reader { get; }
+//        IDataReader Reader { get; }
 
-		long ExpectedRows { get; }
-	}
-}
-#endif
+//        long ExpectedRows { get; }
+//    }
+//}
+//#endif

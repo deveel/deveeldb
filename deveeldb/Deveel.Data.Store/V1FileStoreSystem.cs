@@ -134,6 +134,9 @@ namespace Deveel.Data.Store {
 					return;
 				}
 
+				/*
+				Obsolete
+				
 				IFSync fsync = null;
 
 				if (typeof(IFSync).IsAssignableFrom(type)) {
@@ -155,6 +158,7 @@ namespace Deveel.Data.Store {
 
 				if (fsync != null)
 					FSync.SetFSync(fsync);
+				*/
 			}
 		}
 

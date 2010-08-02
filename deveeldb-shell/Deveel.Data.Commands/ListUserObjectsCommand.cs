@@ -63,7 +63,7 @@ namespace Deveel.Data.Commands {
 				OutputDevice.Message.WriteLine(e.Message);
 				return CommandResultCode.ExecutionFailed;
 			} finally {
-				if (reader != null)
+				if (reader != null && !reader.IsClosed)
 					reader.Close();
 			}
 

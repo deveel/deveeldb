@@ -3,7 +3,6 @@
 using Deveel.Commands;
 using Deveel.Configuration;
 using Deveel.Data.Client;
-using Deveel.Data.Control;
 using Deveel.Data.Shell;
 
 namespace Deveel.Data.Commands {
@@ -63,10 +62,18 @@ namespace Deveel.Data.Commands {
 		}
 
 		private void DropDatabase(string name, string adminUser, string adminPass) {
+			DeveelDbConnectionStringBuilder connString = new DeveelDbConnectionStringBuilder();
+			connString.Database = name;
+			connString.UserName = adminUser;
+			connString.Password = adminPass;
+
+			/*
 			DbSystem system = ((DeveelDBShell)Application).Controller.ConnectToDatabase(name);
 			Application.MessageDevice.WriteLine("database created successfully.");
 
 			DeveelDbConnection conn = (DeveelDbConnection)system.GetConnection(adminUser, adminPass);
+			*/
+			DeveelDbConnection conn = new DeveelDbConnection(connString.ConnectionString);
 			DeveelDbCommand command = conn.CreateCommand("SHUTDOWN");
 			command.ExecuteNonQuery();
 			conn.Close();

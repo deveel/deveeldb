@@ -821,8 +821,7 @@ StatementTree DropTrigger() :
 
 
 StatementTree CreateFunction() :
-{ StatementTree cmd = new StatementTree(typeof(FunctionStatement));
-  cmd.SetObject("type", "create");
+{ StatementTree cmd = new StatementTree(typeof(CreateFunctionStatement));
   String function_name;
   ArrayList arg_names = new ArrayList();
   ArrayList arg_types = new ArrayList();
@@ -849,8 +848,7 @@ StatementTree CreateFunction() :
 
 
 StatementTree DropFunction() :
-{ StatementTree cmd = new StatementTree(typeof(FunctionStatement));
-  cmd.SetObject("type", "drop");
+{ StatementTree cmd = new StatementTree(typeof(DropFunctionStatement));
   String function_name;
 }
 {
@@ -863,7 +861,7 @@ StatementTree DropFunction() :
 
 
 StatementTree CreateSchema() :
-{ StatementTree cmd = new StatementTree(typeof(SchemaStatement));
+{ StatementTree cmd = new StatementTree(typeof(CreateSchemaStatement));
   cmd.SetObject("type", "create");
   String schema_name;
 }
@@ -876,7 +874,7 @@ StatementTree CreateSchema() :
 
 
 StatementTree DropSchema() :
-{ StatementTree cmd = new StatementTree(typeof(SchemaStatement));
+{ StatementTree cmd = new StatementTree(typeof(DropSchemaStatement));
   cmd.SetObject("type", "drop");
   String schema_name;
 }
@@ -889,7 +887,7 @@ StatementTree DropSchema() :
 
 
 StatementTree CreateView() :
-{ StatementTree cmd = new StatementTree(typeof(ViewStatement));
+{ StatementTree cmd = new StatementTree(typeof(CreateViewStatement));
   String view_name;
   TableSelectExpression select_cmd;
   ArrayList col_list = new ArrayList();
@@ -898,22 +896,20 @@ StatementTree CreateView() :
   (   <VIEW> view_name = TableName() [ "(" BasicColumnList(col_list) ")" ]
         <AS> select_cmd = GetTableSelectExpression() )
 
-  { cmd.SetObject("type", "create");
-    cmd.SetObject("view_name", view_name);
+  { cmd.SetObject("view_name", view_name);
     cmd.SetObject("column_list", col_list);
     cmd.SetObject("select_expression", select_cmd);
     return cmd; }
 }
 
 StatementTree DropView() :
-{ StatementTree cmd = new StatementTree(typeof(ViewStatement));
+{ StatementTree cmd = new StatementTree(typeof(DropViewStatement));
   String view_name;
 }
 {
   (   <VIEW> view_name = TableName() )
   
-  { cmd.SetObject("type", "drop");
-    cmd.SetObject("view_name", view_name);
+  { cmd.SetObject("view_name", view_name);
     return cmd;
   }
 }
@@ -1246,7 +1242,7 @@ StatementTree Show() :
 
 
 StatementTree Grant() :
-{ StatementTree cmd = new StatementTree(typeof(PrivilegesStatement));
+{ StatementTree cmd = new StatementTree(typeof(GrantStatement));
   ArrayList priv_list = new ArrayList();
   String priv_object;
   ArrayList grant_to;
@@ -1258,10 +1254,9 @@ StatementTree Grant() :
     [ <WITH> <GRANT> <OPTION> { grant_option = true; } ]
   )
   
-  { cmd.SetObject("command", "GRANT");
-    cmd.SetObject("priv_list", priv_list);
+  { cmd.SetObject("priv_list", priv_list);
     cmd.SetObject("priv_object", priv_object);
-    cmd.SetObject("grant_to", grant_to);
+    cmd.SetObject("users", grant_to);
     cmd.SetBoolean("grant_option", grant_option);
     return cmd;
   }
@@ -1269,7 +1264,7 @@ StatementTree Grant() :
 
 
 StatementTree Revoke() :
-{ StatementTree cmd = new StatementTree(typeof(PrivilegesStatement));
+{ StatementTree cmd = new StatementTree(typeof(RevokeStatement));
   ArrayList priv_list = new ArrayList();
   String priv_object;
   ArrayList revoke_from;
@@ -1281,11 +1276,10 @@ StatementTree Revoke() :
     <FROM> revoke_from=UserNameList(new ArrayList())
   )
   
-  { cmd.SetObject("command", "REVOKE");
-    cmd.SetObject("priv_list", priv_list);
+  { cmd.SetObject("priv_list", priv_list);
     cmd.SetObject("priv_object", priv_object);
-    cmd.SetObject("revoke_from", revoke_from);
-    cmd.SetBoolean("revoke_grant_option", revoke_grant_option);
+    cmd.SetObject("users", revoke_from);
+    cmd.SetBoolean("grant_option", revoke_grant_option);
     return cmd;
   }
 }
@@ -1620,7 +1614,7 @@ bool SetQuantifier() :
 }
      
 
-void SelectColumnList(ArrayList list) :
+void SelectColumnList(IList list) :
 { SelectColumn col;
 }
 {

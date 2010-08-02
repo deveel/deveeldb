@@ -124,9 +124,9 @@ namespace Deveel.Data {
 		public string ToString(bool unknownSchema) {
 			string s = Name;
 			string schema = Schema;
-			if (schema != null) {
-				if (schema.Equals(UnknownSchemaName) &&
-					unknownSchema)
+			if (!String.IsNullOrEmpty(schema)) {
+				if ((schema.Equals(UnknownSchemaName) && unknownSchema) ||
+					!schema.Equals(unknownSchema))
 					s = schema + "." + s;
 			}
 

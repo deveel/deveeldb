@@ -174,12 +174,6 @@
     <Compile Include="Deveel.Data.Sql\SqlTypeAttribute.cs" />
     <Compile Include="Deveel.Data.Sql\StatementContainer.cs" />
     <Compile Include="Deveel.Data.Sql\TNamedUserDefinedType.cs" />
-    <Compile Include="Deveel.Data.Store\FSync.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Store\IFSync.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Deveel.Data.Store\StorageType.cs" />
     <Compile Include="Deveel.Data\CaseCondition.cs" />
     <Compile Include="Deveel.Data.Sql\CloseCursorStatement.cs" />
@@ -362,7 +356,6 @@
     <Compile Include="Deveel.Data.Sql\TableExpressionFromSet.cs" />
     <Compile Include="Deveel.Data.Sql\TableSelectExpression.cs" />
     <Compile Include="Deveel.Data.Sql\UpdateTableStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\ViewStatement.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunction.cs" />
     <Compile Include="Deveel.Data\DataTableBase.cs" />
     <Compile Include="Deveel.Data.Functions\Function.cs" />

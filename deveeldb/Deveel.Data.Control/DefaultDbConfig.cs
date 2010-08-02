@@ -61,58 +61,9 @@ namespace Deveel.Data.Control {
 
 		// ---------- Variable helper setters ----------
 
-		/// <summary>
-		/// Gets or sets the path to the database.
-		/// </summary>
-		public string DatabasePath {
-			set { SetValue("database_path", value); }
-			get { return GetValue("database_path"); }
-		}
-
 		public string DatabaseName {
 			get { return GetValue("name"); }
 			set { SetValue("name", value); }
-		}
-
-		///<summary>
-		/// Gets or sets the path of the log.
-		///</summary>
-		public string LogPath {
-			get { return GetValue("log_path"); }
-			set { SetValue("log_path", value); }
-		}
-
-		/// <summary>
-		/// Gets or sets that the engine ignores case for identifiers.
-		/// </summary>
-		public bool IgnoreIdentifierCase {
-			get {
-				string value = GetValue("ignore_case_for_identifiers");
-				return (value == "enabled" ? true : false);
-			}
-			set { SetValue("ignore_case_for_identifiers", value ? "enabled" : "disabled"); }
-		}
-
-		/// <summary>
-		/// Gets or sets that the database is read-only.
-		/// </summary>
-		public bool ReadOnly {
-			get {
-				string value = GetValue("read_only");
-				return (value == "enabled" ? true : false);
-			}
-			set { SetValue("read_only", value ? "enabled" : "disabled"); }
-		}
-
-		/// <summary>
-		/// Gets or sets the minimum debug level for output to the debug log file.
-		/// </summary>
-		public int MinimumDebugLevel {
-			get {
-				string value = GetValue("debug_level");
-				return (value == null ? -1 : Int32.Parse(value));
-			}
-			set { SetValue("debug_level", value.ToString()); }
 		}
 	}
 }

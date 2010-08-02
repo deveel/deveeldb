@@ -73,7 +73,7 @@ namespace Deveel.Diagnostics {
 				mode = FileMode.CreateNew;
 			}
 
-			outputStream = new FileStream(base_name, mode, FileAccess.Write, FileShare.Read);
+			outputStream = new FileStream(base_name, mode, FileAccess.Write, FileShare.Read, 1024, FileOptions.WriteThrough);
 			output = new StreamWriter(outputStream, Encoding.Default);
 
 		}
@@ -133,7 +133,7 @@ namespace Deveel.Diagnostics {
 		public override void Flush() {
 			lock (this) {
 				output.Flush();
-				FSync.Sync(outputStream);
+				// FSync.Sync(outputStream);
 				CheckLogSize();
 			}
 		}

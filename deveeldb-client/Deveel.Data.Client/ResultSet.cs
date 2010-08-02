@@ -20,6 +20,7 @@ namespace Deveel.Data.Client {
 		private Hashtable columnsMap;
 		private bool closedOnServer;
 
+		private bool closed;
 		private int realIndex = -1;
 		private int fetchSize;
 		private int maxRowCount;
@@ -66,7 +67,7 @@ namespace Deveel.Data.Client {
 		}
 
 		public bool IsClosed {
-			get { return closedOnServer; }
+			get { return closed; }
 		}
 
 		private void RealIndexUpdate() {
@@ -140,6 +141,8 @@ namespace Deveel.Data.Client {
 				if (columnsMap != null)
 					columnsMap.Clear();
 			}
+
+			closed = true;
 		}
 
 		public void UpdateResultPart(int row_index, int row_count) {

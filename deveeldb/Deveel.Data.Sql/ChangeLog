@@ -1,4 +1,23 @@
-﻿2009-12-24  Antonello Provenzano  <antonello@deveel.com>
+﻿2010-05-03  Antonello Provenzano  <antonello@deveel.com>
+	* StatementTree.cs:
+		- added support for cloning generic lists
+	
+2010-03-21  Antonello Provenzano  <antonello@deveel.com>
+	* Statement.cs:
+		- added flags for 'Prepare' and 'Evaluate' events
+		- Prepare and Event methods made protected to be
+		overridden by classes external to the assembly
+		- implemented PrepareStatement and ExecuteStatement
+		to set and check the states of the statement
+		- method Reset made public
+	
+2010-03-20  Antonello Provenzano  <antonello@deveel.com>
+	* ColumnConstraints.cs: made internal
+	* SqlColumn.cs: made internal
+	* FromClause.cs: now it's not possible to instantiate
+	the class outside the library (protected constructor).
+	
+2009-12-24  Antonello Provenzano  <antonello@deveel.com>
 	* ConstraintType.cs: moved to namespace Deveel.Data
 
 2009-12-15  Antonello Provenzano  <antonello@deveel.com>

@@ -15,17 +15,14 @@ namespace Deveel.Data.Shell {
 			_sessions = new TreeMap();
 		}
 
-		private String CreateSessionName(SqlSession session, String name) {
-			String userName = null;
-			String dbName = null;
-			String hostname = null;
-			ConnectionString connectionString = session.ConnectionString;
+		private String CreateSessionName(SqlSession session, string name) {
+			DeveelDbConnectionStringBuilder connectionString = session.ConnectionString;
 
 			if (name == null || name.Length == 0) {
-				dbName = connectionString.Database;
+				string dbName = connectionString.Database;
 				StringBuilder result = new StringBuilder();
-				userName = session.UserName;
-				hostname = connectionString.Host;
+				string userName = session.UserName;
+				string hostname = connectionString.Host;
 				if (userName != null) 
 					result.Append(userName + "@");
 				if (dbName != null) 

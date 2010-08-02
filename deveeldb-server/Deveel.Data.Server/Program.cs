@@ -149,7 +149,7 @@ namespace Deveel.Data.Server {
 			// Actually - config bundle useless for this....
 			DeveelDbConnection connection;
 			try {
-				ConnectionString connectionString = new ConnectionString();
+				DeveelDbConnectionStringBuilder connectionString = new DeveelDbConnectionStringBuilder();
 				connectionString.Host = host;
 				connectionString.Port = Int32.Parse(port);
 				connectionString.UserName = username;
@@ -303,7 +303,7 @@ namespace Deveel.Data.Server {
 			string absolute_config_path = Path.GetFullPath(conf_file);
 			string root_path = Path.GetDirectoryName(absolute_config_path);
 			// Create a default DBConfig object
-			DefaultDbConfig config = new DefaultDbConfig(root_path);
+			DbConfig config = DbConfig.CreateDefault(root_path);
 			try {
 				if (File.Exists(conf_file))
 					config.LoadFromFile(conf_file);

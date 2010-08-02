@@ -55,7 +55,7 @@ namespace Deveel.Data.Shell {
 			TableRenderer table = new TableRenderer(SessionColumns, output);
 			foreach (DictionaryEntry entry in config.Properties) {
 				string sessionName = (string)entry.Key;
-				ConnectionString connString = new ConnectionString((string)entry.Value);
+				DeveelDbConnectionStringBuilder connString = new DeveelDbConnectionStringBuilder((string)entry.Value);
 
 				SqlSession session = application.SessionManager.GetSessionByName(sessionName);
 				String prepend = (session != null && sessionName.Equals(application.CurrentSession.Name) ? " * " : "   ");

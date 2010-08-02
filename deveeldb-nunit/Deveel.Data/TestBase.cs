@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 using Deveel.Data.Client;
 using Deveel.Data.Control;
@@ -16,8 +17,16 @@ namespace Deveel.Data {
 
 		private static int conn_counter = -1;
 
+		private DeveelDbConnection connection;
+		private bool generated;
+		private bool generateOnce;
+
 		protected DbSystem System {
 			get { return system; }
+		}
+
+		protected DeveelDbConnection Connection {
+			get { return connection; }
 		}
 
 		protected virtual void OnCreateTables(DeveelDbConnection connection) {
@@ -39,6 +48,7 @@ namespace Deveel.Data {
 
 			Attribute attribute = Attribute.GetCustomAttribute(GetType(), typeof(GenerateDatabaseAttribute), false);
 			if (attribute == null || ((GenerateDatabaseAttribute)attribute).Generate) {
+				generateOnce = true;
 				GenerateDatabase();
 			}
 
@@ -72,15 +82,37 @@ namespace Deveel.Data {
 		protected virtual void OnTearDown() {
 		}
 
-		private void GenerateDatabase() {
-			using (DeveelDbConnection connection = CreateConnection()) {
-				GenerateTables(connection);
-				OnCreateTables(connection);
+		[SetUp]
+		public virtual void TestSetUp() {
+			if (!generateOnce && !generated)
+				GenerateDatabase();
+		}
 
-				InsertDataPerson(connection);
-				InsertDataMusicGroup(connection);
-				InsertDataListensTo(connection);
-				OnInsertData(connection);
+		[TearDown]
+		public virtual void TestTearDown() {
+			if (generated && !generateOnce) {
+				if (connection != null)
+					connection.Dispose();
+			}
+		}
+
+		private void GenerateDatabase() {
+			if (!generated) {
+				try {
+					connection = CreateConnection();
+					GenerateTables(connection);
+					OnCreateTables(connection);
+
+					InsertDataPerson(connection);
+					InsertDataMusicGroup(connection);
+					InsertDataListensTo(connection);
+					OnInsertData(connection);
+
+					generated = true;
+				} finally {
+					if (connection != null)
+						connection.Dispose();
+				}
 			}
 		}
 

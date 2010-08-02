@@ -5,7 +5,6 @@ using System.Text;
 
 using Deveel.Commands;
 using Deveel.Configuration;
-using Deveel.Data.Control;
 using Deveel.Shell;
 
 namespace Deveel.Data.Shell {
@@ -35,8 +34,6 @@ namespace Deveel.Data.Shell {
      * the currently open file.
      */
 		private readonly Stack _cwdStack = new Stack();
-
-		private DbController controller;
 
 		protected override string Prompt {
 			get { return "DeveelDB> "; }
@@ -76,10 +73,6 @@ namespace Deveel.Data.Shell {
 			get { return CurrentSession; }
 		}
 
-		public DbController Controller {
-			get { return controller; }
-		}
-
 		public Connections Connections {
 			get {
 				if (connections == null)
@@ -91,9 +84,6 @@ namespace Deveel.Data.Shell {
 		protected override bool Init(CommandLine args) {
 			if (base.Init(args))
 				return true;
-
-			string path = args.GetOptionValue("path");
-			controller = (path == null || path.Length == 0) ? DbController.Default : DbController.Create(path);
 
 			Readline.WordBreakCharacters = " ,/()<>=\t\n".ToCharArray(); // TODO..
 
@@ -117,7 +107,8 @@ namespace Deveel.Data.Shell {
 		}
 
 		protected override void OnShutdown() {
-			connections.Save();
+			if (connections != null)
+				connections.Save();
 		}
 
 		/// <summary>

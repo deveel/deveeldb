@@ -52,7 +52,7 @@ namespace Deveel.Data.Commands {
 			StringBuilder result = new StringBuilder();
 			long restLimit = clobLimit;
 			try {
-				Encoding encoding = (c.Type == ReferenceType.AsciiText ? Encoding.ASCII : Encoding.Unicode);
+				Encoding encoding = (c.Type == ReferenceType.Ascii ? Encoding.ASCII : Encoding.Unicode);
 				TextReader input = new StreamReader(c, encoding);
 				char[] buf = new char[4096];
 				int r;
@@ -82,8 +82,9 @@ namespace Deveel.Data.Commands {
 						int col = (showColumns != null) ? showColumns[i] : i;
 						System.Data.DataRow row = meta.Rows[col];
 
-						SqlType type = (SqlType) row["SqlType"];
-						string colString = type == SqlType.Clob ? ReadClob(reader.GetLob(col)) : reader.GetString(col);
+						DeveelDbType type = (DeveelDbType)((int) row["DbType"]);
+						//TODO: check this: what if is it a BLOB?
+						string colString = type == DeveelDbType.LOB ? ReadClob(reader.GetLob(col)) : reader.GetString(col);
 
 						ColumnValue thisCol = new ColumnValue(colString);
 						currentRow[i] = thisCol;
@@ -135,17 +136,13 @@ namespace Deveel.Data.Commands {
 				ColumnAlignment alignment = ColumnAlignment.Left;
 				System.Data.DataRow column = m.Rows[col];
 				String columnLabel = column["Name"].ToString();
-				SqlType type = (SqlType) column["SqlType"];
+				DeveelDbType type = (DeveelDbType)((int) column["DbType"]);
 
-				switch (type) {
-					case SqlType.Numeric:
-					case SqlType.Integer:
-					case SqlType.Real:
-					case SqlType.SmallInt:
-					case SqlType.TinyInt:
-						alignment = ColumnAlignment.Right;
-						break;
-				}
+				if (type == DeveelDbType.Int4 ||
+					type == DeveelDbType.Int8 ||
+					type == DeveelDbType.Number)
+					alignment = ColumnAlignment.Right;
+
 				result[i] = new ColumnDesign(columnLabel, alignment);
 			}
 			return result;

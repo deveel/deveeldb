@@ -14,17 +14,17 @@ namespace Deveel.Data.Commands {
 	public sealed class ConnectCommand : Command {
 		public override string LongDescription {
 			get {
-				return "connects to the server with the optional session name.\n" + 
-					"If no session name is given, a session name is chosen.\n" + 
-					"If a session name is given, this is stored as an alias\n" + 
-					"for the string as well, so later you might connect with\n" + 
-					"that alias conveniently instead:\n" + 
-					"\tconnect \"Host=192.168.0.1;User=SA;Database=foo\" myAlias\n" + 
-					"allows to later connect simply with\n" + 
-					"\tconnect myAlias\n" + 
-					"Of course, all strings and aliases are stored in your \n" + 
-					"~/.deveeldb configuration. All connects and aliases \n" + 
-					"are provided in the TAB-completion of this command.";
+				return "connects to the server with the optional session name.\n" +
+				       "If no session name is given, a session name is chosen.\n" +
+				       "If a session name is given, this is stored as an alias\n" +
+				       "for the string as well, so later you might connect with\n" +
+				       "that alias conveniently instead:\n" +
+				       "\tconnect \"Host=192.168.0.1;User=SA;Database=foo\" myAlias\n" +
+				       "allows to later connect simply with\n" +
+				       "\tconnect myAlias\n" +
+				       "Of course, all strings and aliases are stored in your \n" +
+				       "~/.deveeldb configuration. All connects and aliases \n" +
+				       "are provided in the TAB-completion of this command.";
 			}
 		}
 
@@ -35,7 +35,7 @@ namespace Deveel.Data.Commands {
 			string host = null;
 			string username = null;
 			string password = null;
-			int port = ConnectionString.DefaultPort;
+			int port = -1;
 			string database = null;
 
 			string[] args = commandLine.Arguments;
@@ -55,7 +55,7 @@ namespace Deveel.Data.Commands {
 					password = Readline.ReadPassword("Password: ");
 			}
 			if (commandLine.HasOption("h")) {
-				host = commandLine.GetOptionValue("h", ConnectionString.LocalHost);
+				host = commandLine.GetOptionValue("h", "{Local}");
 				int index = host.IndexOf(':');
 				if (index != -1) {
 					string sPort = host.Substring(index + 1);
@@ -87,7 +87,11 @@ namespace Deveel.Data.Commands {
 		}
 
 		private void Connect(string host, int port, string database, string username, string password) {
-			ConnectionString connectionString = new ConnectionString(host, port, username, password);
+			DeveelDbConnectionStringBuilder connectionString = new DeveelDbConnectionStringBuilder();
+			connectionString.Host = host;
+			connectionString.Port = port;
+			connectionString.UserName = username;
+			connectionString.Password = password;
 			if (database != null)
 				connectionString.Database = database;
 

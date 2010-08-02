@@ -1,4 +1,21 @@
-﻿2010-03-05  Antonello Provenzano  <antonello@deveel.com>
+﻿2010-03-31  Antonello Provenzano  <antonello@deveel.com>
+	* DbDirectAccess.cs:
+		- *Command methods changed to *Statement
+		- methods arguments changed from DirectCommand to
+		Statement type
+	
+2010-03-08  Antonello Provenzano  <antonello@deveel.com>
+	* DbConfig.cs: modified to accomodate the instatiation
+	of a 'default' configuration set (DefaultDbConfig class
+	removed).
+	* DbController.cs: added overloaded method 'Create' that
+	accepts just a IDbConfig instance (mainly for memory-based
+	environments).
+	* IDbConfig.cs: introduced method SetValue to make a
+	configuration object also writeable
+	* ConfigProperty.cs: removed the "Type" property
+	
+2010-03-05  Antonello Provenzano  <antonello@deveel.com>
 	* IDbConfig.cs: method SaveTo now accepts a Stream argument
 	instead of the destination file.
 	* DbConfig.cs: LoadFromStream and SaveTo methods modified

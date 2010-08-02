@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -8,7 +8,7 @@
     <ProjectGuid>{B9CE38C4-D740-4F39-B9FA-849DB5B5474B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Deveel.Data</RootNamespace>
+    <RootNamespace>Deveel.Data.Shell</RootNamespace>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -16,6 +16,8 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <AssemblyName>deveeldb-shell</AssemblyName>
+    <StartupObject>Deveel.Data.Shell.DeveelDBShell</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -26,9 +28,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <OutputType>Exe</OutputType>
-    <RootNamespace>deveelsb_shell</RootNamespace>
+    <RootNamespace>Deveel.Data.Shell</RootNamespace>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <AssemblyName>deveeldb</AssemblyName>
+    <AssemblyName>deveeldb-shell</AssemblyName>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -39,9 +42,9 @@
     <WarningLevel>4</WarningLevel>
     <OutputType>Exe</OutputType>
     <DebugSymbols>true</DebugSymbols>
-    <RootNamespace>deveelsb_shell</RootNamespace>
+    <RootNamespace>Deveel.Data.Shell</RootNamespace>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <AssemblyName>deveeldb</AssemblyName>
+    <AssemblyName>deveeldb-shell</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug.Mono|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -96,6 +99,7 @@
     <Compile Include="Deveel.Data.Commands\SelectCommand.cs" />
     <Compile Include="Deveel.Data.Commands\SelectDumpSource.cs" />
     <Compile Include="Deveel.Data.Commands\SessionsCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\SetCommand.cs" />
     <Compile Include="Deveel.Data.Commands\SqlCommand.cs" />
     <Compile Include="Deveel.Data.Commands\StatementCanceller.cs" />
     <Compile Include="Deveel.Data.Commands\StatusCommand.cs" />
@@ -126,9 +130,9 @@
     <Compile Include="AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\deveeldb\deveeldb.csproj">
-      <Project>{50D02908-5743-4E72-83B5-77C5712EA59A}</Project>
-      <Name>deveeldb</Name>
+    <ProjectReference Include="..\deveeldb-client\deveeldb-client.csproj">
+      <Project>{AABEE61B-B0A7-48C6-9D73-696EF68C87D2}</Project>
+      <Name>deveeldb-client</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

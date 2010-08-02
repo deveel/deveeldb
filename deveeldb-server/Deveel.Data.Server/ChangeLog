@@ -1,4 +1,9 @@
-﻿2009-10-30  Antonello Provenzano  <antonello@deveel.com>
+﻿2009-12-25  Antonello Provenzano  <antonello@deveel.com>
+	* Processor.cs: 
+		- made public
+		- moved to core library
+	
+2009-10-30  Antonello Provenzano  <antonello@deveel.com>
 	* Processor.cs: in the ACK response now it's returned the
 	exact minor and major version of the server (identified by
 	the Assembly file version).
