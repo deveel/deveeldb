@@ -233,7 +233,8 @@ namespace Deveel.Data.Control {
 				fileExists = files.Length == 1;
 			}			
 
-			DbConfig config = new DbConfig(path);
+			DbConfig config = new DbConfig();
+			config.CurrentPath = path;
 
 			if (parentConfig != null)
 				config.Merge(parentConfig);
@@ -324,6 +325,7 @@ namespace Deveel.Data.Control {
 
 			DbConfig dbConfig;
 			string path = "";
+			dbConfig = new DbConfig();
 			if (storageType == StorageType.File) {
 				// we ensure that the CurrentPath points to where we want it to point
 				path = Path.Combine(Config.CurrentPath, name);
@@ -332,9 +334,7 @@ namespace Deveel.Data.Control {
 
 				Directory.CreateDirectory(path);
 
-				dbConfig = new DbConfig(path);
-			} else {
-				dbConfig = new DbConfig();
+				dbConfig.CurrentPath = path;
 			}
 
 			dbConfig.Merge(Config);
@@ -385,7 +385,8 @@ namespace Deveel.Data.Control {
 
 			string path = Path.Combine(Config.CurrentPath, name);
 
-			DbConfig dbConfig = new DbConfig(path);
+			DbConfig dbConfig = new DbConfig();
+			dbConfig.CurrentPath = path;
 			dbConfig.Merge(Config);
 			if (config != null)
 				dbConfig.Merge(config);

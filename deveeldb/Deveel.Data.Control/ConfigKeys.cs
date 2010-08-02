@@ -33,6 +33,12 @@ namespace Deveel.Data.Control {
 	/// </remarks>
 	/// <seealso cref="DbConfig"/>
 	public static class ConfigKeys {
+		/// <summary>
+		/// Defines the base for resolving the application
+		/// other paths defined by the environment.
+		/// </summary>
+		public const string BasePath = "base_path";
+		
 		public const string DatabasePath = "database_path";
 
 		public const string LogPath = "log_path";

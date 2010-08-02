@@ -1,4 +1,8 @@
-﻿2010-03-31  Antonello Provenzano  <antonello@deveel.com>
+2010-08-02  Antonello Provenzano  <antonello@deveel.com>
+	* DbConfig.cs: base path definition moved off from the
+	constructor; it is now a configuration key.
+	
+2010-03-31  Antonello Provenzano  <antonello@deveel.com>
 	* DbDirectAccess.cs:
 		- *Command methods changed to *Statement
 		- methods arguments changed from DirectCommand to

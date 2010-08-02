@@ -27,11 +27,6 @@ namespace Deveel.Data {
 	/// </summary>
 	public class DbConfig : IDbConfig {
 		/// <summary>
-		/// The current base path of the database configuration.
-		/// </summary>
-		private readonly string current_path;
-
-		/// <summary>
 		/// The Hashtable mapping from configuration key to value for the key.
 		/// </summary>
 		private Hashtable key_map;
@@ -41,18 +36,8 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Constructs the <see cref="IDbConfig"/>.
 		/// </summary>
-		/// <param name="current_path"></param>
-		public DbConfig(string current_path) {
-			this.current_path = current_path;
+		public DbConfig() {
 			key_map = new Hashtable();
-		}
-
-		/// <summary>
-		/// Constructs the <see cref="DbConfig"/> to the currently
-		/// executing directory.
-		/// </summary>
-		public DbConfig()
-			: this(".") {
 		}
 
 		/// <summary>
@@ -171,7 +156,11 @@ namespace Deveel.Data {
 		// ---------- Implemented from IDbConfig ----------
 
 		public string CurrentPath {
-			get { return current_path; }
+			get { 
+				string value = GetValue(ConfigKeys.BasePath);
+				return value == null ? "." : value;
+			}
+			set { SetValue(ConfigKeys.BasePath, value); }
 		}
 
 		/// <summary>
@@ -182,7 +171,7 @@ namespace Deveel.Data {
 		public static DbConfig Default {
 			get {
 				if (default_config == null)
-					default_config = CreateDefault(".");
+					default_config = CreateDefault();
 				return default_config;
 			}
 		}
@@ -209,7 +198,7 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public object Clone() {
-			DbConfig config = new DbConfig(current_path);
+			DbConfig config = new DbConfig();
 			config.key_map = (Hashtable) key_map.Clone();
 			return config;
 		}
@@ -492,8 +481,8 @@ namespace Deveel.Data {
 			writer.Flush();
 		}
 
-		public static DbConfig CreateDefault(string path) {
-			DbConfig config = new DbConfig(path);
+		public static DbConfig CreateDefault() {
+			DbConfig config = new DbConfig();
 			config.SetValue("storage_system", "v1heap");
 			config.SetValue("database_path", "./data");
 			config.SetValue("log_path", "./log");
