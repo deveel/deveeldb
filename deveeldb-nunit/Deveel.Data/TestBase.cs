@@ -46,12 +46,6 @@ namespace Deveel.Data {
 						? controller.CreateDatabase(config, DatabaseName, AdminUser, AdminPassword)
 						: controller.StartDatabase(config, DatabaseName);
 
-			Attribute attribute = Attribute.GetCustomAttribute(GetType(), typeof(GenerateDatabaseAttribute), false);
-			if (attribute == null || ((GenerateDatabaseAttribute)attribute).Generate) {
-				generateOnce = true;
-				GenerateDatabase();
-			}
-
 			OnSetUp();
 		}
 

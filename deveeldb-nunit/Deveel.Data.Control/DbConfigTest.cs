@@ -19,7 +19,7 @@ namespace Deveel.Data.Control {
 
 			MemoryStream stream = new MemoryStream(Encoding.GetEncoding("ISO-8859-1").GetBytes(sb.ToString()));
 
-			DbConfig config = new DbConfig(null);
+			DbConfig config = new DbConfig();
 			config.LoadFromStream(stream);
 
 			string value = config.GetValue("key1");
@@ -40,7 +40,7 @@ namespace Deveel.Data.Control {
 
 		[Test]
 		public void SaveToTest() {
-			DbConfig config = new DbConfig(null);
+			DbConfig config = new DbConfig();
 			config.SetValue("key1", "value1");
 			config.SetValue("key2", "on");
 			config.SetValue("key3", "true");
