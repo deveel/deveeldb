@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{DAAD2156-3B47-4330-91C7-BEEDB196AEFB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <AssemblyName>deveeldb-client</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>deveeldb-client.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Deveel.Data.Client\ColumnInfo.cs" />
+    <Compile Include="Deveel.Data.Client\DatabaseCreateException.cs" />
+    <Compile Include="Deveel.Data.Client\DatabaseMetadata.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbAuthenticationException.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbBinary.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbBoolean.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbConnectionStringBuilder.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbDataAdapter.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbDateTime.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbLob.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbMetadataSchemaNames.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbNumber.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbServerException.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbString.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbTimeSpan.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbType.cs" />
+    <Compile Include="Deveel.Data.Client\Driver.cs" />
+    <Compile Include="Deveel.Data.Client\EmbeddedDriver.cs" />
+    <Compile Include="Deveel.Data.Client\ISizeable.cs" />
+    <Compile Include="Deveel.Data.Client\LargeObjectRef.cs" />
+    <Compile Include="Deveel.Data.Client\NumberState.cs" />
+    <Compile Include="Deveel.Data.Client\ParameterStyle.cs" />
+    <Compile Include="Deveel.Data.Client\QueryResponse.cs" />
+    <Compile Include="Deveel.Data.Client\ReferenceType.cs" />
+    <Compile Include="Deveel.Data.Client\RemoteDriver.cs" />
+    <Compile Include="Deveel.Data.Client\ResultSet.cs" />
+    <Compile Include="Deveel.Data.Client\RowCache.cs" />
+    <Compile Include="Deveel.Data.Client\SqlType.cs" />
+    <Compile Include="Deveel.Data.Client\TriggerEventArgs.cs" />
+    <Compile Include="Deveel.Data.Client\TriggerEventType.cs" />
+    <Compile Include="Deveel.Math\BigDecimal.cs" />
+    <Compile Include="Deveel.Math\BigInteger.cs" />
+    <Compile Include="Deveel.Math\BitLevel.cs" />
+    <Compile Include="Deveel.Math\CharHelper.cs" />
+    <Compile Include="Deveel.Math\Conversion.cs" />
+    <Compile Include="Deveel.Math\Division.cs" />
+    <Compile Include="Deveel.Math\Elementary.cs" />
+    <Compile Include="Deveel.Math\Logical.cs" />
+    <Compile Include="Deveel.Math\MathContext.cs" />
+    <Compile Include="Deveel.Math\Messages.Designer.cs" />
+    <Compile Include="Deveel.Math\Messages1.Designer.cs" />
+    <Compile Include="Deveel.Math\Multiplication.cs" />
+    <Compile Include="Deveel.Math\Primality.cs" />
+    <Compile Include="Deveel.Math\RoundingMode.cs" />
+    <Compile Include="Deveel.Math\SR.cs" />
+    <Compile Include="Deveel.Math\Utils.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Deveel.Math\Messages.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="deveeldb-client.snk" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

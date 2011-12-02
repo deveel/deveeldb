@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{14FF1F27-B78A-4A89-A1EA-3F926078543D}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>deveeldb_shell.vs2010</RootNamespace>
+    <AssemblyName>deveeldb-shell.vs2010</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="deveel-cli">
+      <HintPath>..\..\lib\deveel-cli.dll</HintPath>
+    </Reference>
+    <Reference Include="deveelrl">
+      <HintPath>..\..\lib\deveelrl.dll</HintPath>
+    </Reference>
+    <Reference Include="shellapp">
+      <HintPath>..\..\lib\shellapp.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Deveel.Data.Collections\ISet.cs" />
+    <Compile Include="Deveel.Data.Collections\ISortedDictionary.cs" />
+    <Compile Include="Deveel.Data.Collections\ISortedSet.cs" />
+    <Compile Include="Deveel.Data.Collections\SortedMatchEnumerator.cs" />
+    <Compile Include="Deveel.Data.Collections\TreeDictionary.cs" />
+    <Compile Include="Deveel.Data.Collections\TreeSet.cs" />
+    <Compile Include="Deveel.Data.Commands\AlterCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\CommitCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\ConnectCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\CreateCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\DeleteCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\DependencyResolver.cs" />
+    <Compile Include="Deveel.Data.Commands\DescribeCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\DisconnectCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\DropCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\DumpCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\DumpExporter.cs" />
+    <Compile Include="Deveel.Data.Commands\DumpImporter.cs" />
+    <Compile Include="Deveel.Data.Commands\EncodingMismatchException.cs" />
+    <Compile Include="Deveel.Data.Commands\IDumpSource.cs" />
+    <Compile Include="Deveel.Data.Commands\InsertCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\ListUserObjectsCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\LongRunningTimeDisplay.cs" />
+    <Compile Include="Deveel.Data.Commands\MetaProperty.cs" />
+    <Compile Include="Deveel.Data.Commands\RehashCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\RenameSessionCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\RollbackCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\SelectCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\SelectDumpSource.cs" />
+    <Compile Include="Deveel.Data.Commands\SessionsCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\SqlCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\StatementCanceller.cs" />
+    <Compile Include="Deveel.Data.Commands\StatusCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\SwitchCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\TableDumpSource.cs" />
+    <Compile Include="Deveel.Data.Commands\TablesCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\UpdateCommand.cs" />
+    <Compile Include="Deveel.Data.Commands\ViewsCommand.cs" />
+    <Compile Include="Deveel.Data.Shell\Column.cs" />
+    <Compile Include="Deveel.Data.Shell\Connections.cs" />
+    <Compile Include="Deveel.Data.Shell\Database.cs" />
+    <Compile Include="Deveel.Data.Shell\DataReaderRenderer.cs" />
+    <Compile Include="Deveel.Data.Shell\DeveelDBShell.cs" />
+    <Compile Include="Deveel.Data.Shell\ForeignKey.cs" />
+    <Compile Include="Deveel.Data.Shell\PrimaryKey.cs" />
+    <Compile Include="Deveel.Data.Shell\Privilege.cs" />
+    <Compile Include="Deveel.Data.Shell\ProductInfo.cs" />
+    <Compile Include="Deveel.Data.Shell\SessionManager.cs" />
+    <Compile Include="Deveel.Data.Shell\SqlSession.cs" />
+    <Compile Include="Deveel.Data.Shell\SqlStatementSeparator.cs" />
+    <Compile Include="Deveel.Data.Shell\Table.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\deveeldb-client\deveeldb-client.vs2010.csproj">
+      <Project>{DAAD2156-3B47-4330-91C7-BEEDB196AEFB}</Project>
+      <Name>deveeldb-client.vs2010</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

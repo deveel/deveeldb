@@ -1,0 +1,15 @@
+﻿2009-12-25  Antonello Provenzano  <antonello@deveel.com>
+	* Processor.cs: 
+		- made public
+		- moved to core library
+	
+2009-10-30  Antonello Provenzano  <antonello@deveel.com>
+	* Processor.cs: in the ACK response now it's returned the
+	exact minor and major version of the server (identified by
+	the Assembly file version).
+	
+2009-10-29  Antonello Provenzano  <antonello@deveel.com>
+	* TcpServerController.cs: accepts the path to the system
+	root instead of the IDbConfig (it will be retrieved or
+	created by the DbController).
+	* Processor.cs: implemented support for ChangeDatabase

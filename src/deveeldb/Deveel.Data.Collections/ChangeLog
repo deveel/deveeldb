@@ -1,0 +1,8 @@
+﻿2009-11-07  Antonello Provenzano  <antonello@deveel.com>
+	* AbstractBlockIntegerList.cs: made internal
+	* BlockIntegerList.cs: made internal
+	* IIntegerIterator.cs:
+		- method next() converted to property Next
+		- method previous() converted to property Previous
+		- method hasPrevious() renamed to MovePrevious
+	* IntegerListBlockInterface.cs: made internal

@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{AB455501-BEA5-4A0D-A773-C09B176A4C6A}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <AssemblyName>deveeldbd</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>deveeldb-server.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="deveel-cli">
+      <HintPath>..\..\lib\deveel-cli.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Configuration.Install" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Deveel.Data.Control\TcpServerController.cs" />
+    <Compile Include="Deveel.Data.Server\ConnectionPoolModel.cs" />
+    <Compile Include="Deveel.Data.Server\IConnectionPoolServer.cs" />
+    <Compile Include="Deveel.Data.Server\IServerConnection.cs" />
+    <Compile Include="Deveel.Data.Server\MultiThreadedConnectionPoolServer.cs" />
+    <Compile Include="Deveel.Data.Server\ProductInfo.cs" />
+    <Compile Include="Deveel.Data.Server\Program.cs" />
+    <Compile Include="Deveel.Data.Server\SingleThreadedConnectionPoolServer.cs" />
+    <Compile Include="Deveel.Data.Server\StreamServerConnection.cs" />
+    <Compile Include="Deveel.Data.Server\TcpServer.cs" />
+    <Compile Include="Deveel.Data.Server\TcpServerConnection.cs" />
+    <Compile Include="Deveel.Data.Server\TcpService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Server\TcpServiceInstaller.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Util\IInputStream.cs" />
+    <Compile Include="Deveel.Data.Util\LengthMarkedBufferedInputStream.cs" />
+    <Compile Include="Deveel.Data.Util\NetworkInputStream.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\deveeldb\deveeldb.vs2010.csproj">
+      <Project>{A14222AE-1B48-4863-A0CA-1D6C2AB2190B}</Project>
+      <Name>deveeldb.vs2010</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Deveel.Data.Server\ChangeLog" />
+    <None Include="deveeldb-server.snk" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

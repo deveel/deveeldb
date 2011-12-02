@@ -1,0 +1,521 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A14222AE-1B48-4863-A0CA-1D6C2AB2190B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <AssemblyName>ddb</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>deveeldb.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration.Install" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Deveel.Data.Caching\Cache.cs" />
+    <Compile Include="Deveel.Data.Caching\CacheWrapper.cs" />
+    <Compile Include="Deveel.Data.Caching\DataCellCache.cs" />
+    <Compile Include="Deveel.Data.Caching\ICache.cs" />
+    <Compile Include="Deveel.Data.Caching\MemoryCache.cs" />
+    <Compile Include="Deveel.Data.Client\DatabaseMetadata.cs" />
+    <Compile Include="Deveel.Data.Client\DbDataException.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbClientInstaller.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbConnectionStringBuilder.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbDataAdapter.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbLob.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbMetadataSchemaNames.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbProcedureTrigger.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbProviderFactory.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatedEventArgs.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
+    <Compile Include="Deveel.Data.Client\IDatabaseCallBack.cs" />
+    <Compile Include="Deveel.Data.Client\IDatabaseInterface.cs" />
+    <Compile Include="Deveel.Data.Client\ILocalBootable.cs" />
+    <Compile Include="Deveel.Data.Client\IQueryResponse.cs" />
+    <Compile Include="Deveel.Data.Client\ITriggerListener.cs" />
+    <Compile Include="Deveel.Data.Client\ParemeterStyle.cs" />
+    <Compile Include="Deveel.Data.Client\ProtocolConstants.cs" />
+    <Compile Include="Deveel.Data.Client\RemoteDatabaseInterface.cs" />
+    <Compile Include="Deveel.Data.Client\ResultPart.cs" />
+    <Compile Include="Deveel.Data.Client\ResultSet.cs" />
+    <Compile Include="Deveel.Data.Client\RowCache.cs" />
+    <Compile Include="Deveel.Data.Client\SqlQuery.cs" />
+    <Compile Include="Deveel.Data.Client\StreamableObjectPart.cs" />
+    <Compile Include="Deveel.Data.Client\StreamDatabaseInterface.cs" />
+    <Compile Include="Deveel.Data.Client\TCPStreamDatabaseInterface.cs" />
+    <Compile Include="Deveel.Data.Client\TriggerEventArgs.cs" />
+    <Compile Include="Deveel.Data.Collections\AbstractBlockIntegerList.cs" />
+    <Compile Include="Deveel.Data.Collections\BlockIntegerList.cs" />
+    <Compile Include="Deveel.Data.Collections\IIndexComparer.cs" />
+    <Compile Include="Deveel.Data.Collections\IIntegerIterator.cs" />
+    <Compile Include="Deveel.Data.Collections\IIntegerList.cs" />
+    <Compile Include="Deveel.Data.Collections\IntegerListBlockInterface.cs" />
+    <Compile Include="Deveel.Data.Collections\IntegerVector.cs" />
+    <Compile Include="Deveel.Data.Control\ConfigKeys.cs" />
+    <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
+    <Compile Include="Deveel.Data.Control\ConfigUtil.cs" />
+    <Compile Include="Deveel.Data.Control\DbConfig.cs" />
+    <Compile Include="Deveel.Data.Control\DbController.cs" />
+    <Compile Include="Deveel.Data.Control\DbDirectAccess.cs" />
+    <Compile Include="Deveel.Data.Control\DbSystem.cs" />
+    <Compile Include="Deveel.Data.Control\IDbConfig.cs" />
+    <Compile Include="Deveel.Data.Functions\AggregateFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\ArithmeticFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\CompressionFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\DateFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\Function.cs" />
+    <Compile Include="Deveel.Data.Functions\FunctionDef.cs" />
+    <Compile Include="Deveel.Data.Functions\FunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\FunctionType.cs" />
+    <Compile Include="Deveel.Data.Functions\IFunction.cs" />
+    <Compile Include="Deveel.Data.Functions\IFunctionInfo.cs" />
+    <Compile Include="Deveel.Data.Functions\IFunctionLookup.cs" />
+    <Compile Include="Deveel.Data.Functions\InternalFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\MiscFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Functions\StringFunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnConstraintAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnConstraints.cs" />
+    <Compile Include="Deveel.Data.Mapping\ForeignKeyAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\FunctionAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\INamedConstraint.cs" />
+    <Compile Include="Deveel.Data.Mapping\MappingContext.cs" />
+    <Compile Include="Deveel.Data.Mapping\MemberTypes.cs" />
+    <Compile Include="Deveel.Data.Mapping\NotNullAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\PrimaryKeyAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\TableAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeAttributeMapping.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeMapping.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeMemberMapping.cs" />
+    <Compile Include="Deveel.Data.Mapping\UniqueAttribute.cs" />
+    <Compile Include="Deveel.Data.Procedures\ParameterDirection.cs" />
+    <Compile Include="Deveel.Data.Procedures\ProcedureBody.cs" />
+    <Compile Include="Deveel.Data.Procedures\ProcedureException.cs" />
+    <Compile Include="Deveel.Data.Procedures\ProcedureManager.cs" />
+    <Compile Include="Deveel.Data.Procedures\ProcedureName.cs" />
+    <Compile Include="Deveel.Data.Procedures\ProcedureParameter.cs" />
+    <Compile Include="Deveel.Data.Procedures\ProcedureQueryContext.cs" />
+    <Compile Include="Deveel.Data.Procedures\StoredProcedure.cs" />
+    <Compile Include="Deveel.Data.Procedures\SystemBackup.cs" />
+    <Compile Include="Deveel.Data.Server\ClientConnectionState.cs" />
+    <Compile Include="Deveel.Data.Server\DatabaseInterface.cs" />
+    <Compile Include="Deveel.Data.Server\DatabaseInterfaceBase.cs" />
+    <Compile Include="Deveel.Data.Server\DefaultLocalBootable.cs" />
+    <Compile Include="Deveel.Data.Server\EmbeddedProcessor.cs" />
+    <Compile Include="Deveel.Data.Server\Processor.cs" />
+    <Compile Include="Deveel.Data.Sql\AlterTableAction.cs" />
+    <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
+    <Compile Include="Deveel.Data.Sql\AlterTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\ByColumn.cs" />
+    <Compile Include="Deveel.Data.Sql\CallStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CloseCursorStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\ColumnChecker.cs" />
+    <Compile Include="Deveel.Data.Sql\ColumnConstraints.cs" />
+    <Compile Include="Deveel.Data.Sql\CommitStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CompactStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateFunctionStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateSchemaStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateTypeStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateViewStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CursorFetch.cs" />
+    <Compile Include="Deveel.Data.Sql\DeclareCursorStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DeclareVariableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DeleteStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DropFunctionStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DropSchemaStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DropTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DropTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DropTypeStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DropViewStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\FetchStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\FromClause.cs" />
+    <Compile Include="Deveel.Data.Sql\FromTable.cs" />
+    <Compile Include="Deveel.Data.Sql\FromTableDirectSource.cs" />
+    <Compile Include="Deveel.Data.Sql\FromTableSubQuerySource.cs" />
+    <Compile Include="Deveel.Data.Sql\FunctionArgument.cs" />
+    <Compile Include="Deveel.Data.Sql\GrantStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\IFromTableSource.cs" />
+    <Compile Include="Deveel.Data.Sql\IfStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\InsertStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\IntoClause.cs" />
+    <Compile Include="Deveel.Data.Sql\IStatementTreeObject.cs" />
+    <Compile Include="Deveel.Data.Sql\LabelStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\NoOpStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\OpenCursorStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\ParseException.cs" />
+    <Compile Include="Deveel.Data.Sql\Planner.cs" />
+    <Compile Include="Deveel.Data.Sql\PrivilegesStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\ReturnStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\RevokeStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\RollbackStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\SchemaStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\SearchExpression.cs" />
+    <Compile Include="Deveel.Data.Sql\SelectColumn.cs" />
+    <Compile Include="Deveel.Data.Sql\SelectStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\SequenceStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\SetStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\ShowStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\ShutdownStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\SimpleCharStream.cs" />
+    <Compile Include="Deveel.Data.Sql\SQL.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlColumn.cs" />
+    <Compile Include="Deveel.Data.Sql\SQLConstants.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlConstraint.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlParseException.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlQueryExecutor.cs" />
+    <Compile Include="Deveel.Data.Sql\SQLTokenManager.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlTypeAttribute.cs" />
+    <Compile Include="Deveel.Data.Sql\Statement.cs" />
+    <Compile Include="Deveel.Data.Sql\StatementCache.cs" />
+    <Compile Include="Deveel.Data.Sql\StatementContainer.cs" />
+    <Compile Include="Deveel.Data.Sql\StatementEventArgs.cs" />
+    <Compile Include="Deveel.Data.Sql\StatementTree.cs" />
+    <Compile Include="Deveel.Data.Sql\TableExpressionFromSet.cs" />
+    <Compile Include="Deveel.Data.Sql\TableSelectExpression.cs" />
+    <Compile Include="Deveel.Data.Sql\TNamedUserDefinedType.cs" />
+    <Compile Include="Deveel.Data.Sql\Token.cs" />
+    <Compile Include="Deveel.Data.Sql\TokenMgrError.cs" />
+    <Compile Include="Deveel.Data.Sql\UpdateTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\UserStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\Util.cs" />
+    <Compile Include="Deveel.Data.Sql\ViewStatement.cs" />
+    <Compile Include="Deveel.Data.Store\AbstractStore.cs" />
+    <Compile Include="Deveel.Data.Store\FixedRecordList.cs" />
+    <Compile Include="Deveel.Data.Store\FSync.cs" />
+    <Compile Include="Deveel.Data.Store\HeapStore.cs" />
+    <Compile Include="Deveel.Data.Store\IArea.cs" />
+    <Compile Include="Deveel.Data.Store\IAreaWriter.cs" />
+    <Compile Include="Deveel.Data.Store\IBlobStore.cs" />
+    <Compile Include="Deveel.Data.Store\IFSync.cs" />
+    <Compile Include="Deveel.Data.Store\IJournalledResource.cs" />
+    <Compile Include="Deveel.Data.Store\IMutableArea.cs" />
+    <Compile Include="Deveel.Data.Store\IOStoreDataAccessor.cs" />
+    <Compile Include="Deveel.Data.Store\IStore.cs" />
+    <Compile Include="Deveel.Data.Store\IStoreDataAccessor.cs" />
+    <Compile Include="Deveel.Data.Store\IStoreSystem.cs" />
+    <Compile Include="Deveel.Data.Store\JournalledFileStore.cs" />
+    <Compile Include="Deveel.Data.Store\JournalledSystem.cs" />
+    <Compile Include="Deveel.Data.Store\LoggingBufferManager.cs" />
+    <Compile Include="Deveel.Data.Store\ScatteringStoreDataAccessor.cs" />
+    <Compile Include="Deveel.Data.Store\StorageType.cs" />
+    <Compile Include="Deveel.Data.Store\StreamFile.cs" />
+    <Compile Include="Deveel.Data.Store\SyncFailedException.cs" />
+    <Compile Include="Deveel.Data.Store\V1FileStoreSystem.cs" />
+    <Compile Include="Deveel.Data.Store\V1HeapStoreSystem.cs" />
+    <Compile Include="Deveel.Data.Text\CollationBoundMode.cs" />
+    <Compile Include="Deveel.Data.Text\CollationDecomposition.cs" />
+    <Compile Include="Deveel.Data.Text\CollationKey.cs" />
+    <Compile Include="Deveel.Data.Text\CollationStrength.cs" />
+    <Compile Include="Deveel.Data.Text\DoubleMetaphone.cs" />
+    <Compile Include="Deveel.Data.Text\ICollator.cs" />
+    <Compile Include="Deveel.Data.Text\ICollatorFactory.cs" />
+    <Compile Include="Deveel.Data.Text\IRegexLibrary.cs" />
+    <Compile Include="Deveel.Data.Text\ISearchEngine.cs" />
+    <Compile Include="Deveel.Data.Text\Metaphone.cs" />
+    <Compile Include="Deveel.Data.Text\RefinedSoundex.cs" />
+    <Compile Include="Deveel.Data.Text\SearchResult.cs" />
+    <Compile Include="Deveel.Data.Text\SearchTextRow.cs" />
+    <Compile Include="Deveel.Data.Text\Soundex.cs" />
+    <Compile Include="Deveel.Data.Text\SystemCollatorFactory.cs" />
+    <Compile Include="Deveel.Data.Text\SystemRegexLibrary.cs" />
+    <Compile Include="Deveel.Data.Util\ByteBuffer.cs" />
+    <Compile Include="Deveel.Data.Util\HashMapList.cs" />
+    <Compile Include="Deveel.Data.Util\IUserTerminal.cs" />
+    <Compile Include="Deveel.Data.Util\PagedInputStream.cs" />
+    <Compile Include="Deveel.Data.Util\Properties.cs" />
+    <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
+    <Compile Include="Deveel.Data.Util\Stats.cs" />
+    <Compile Include="Deveel.Data\AccessType.cs" />
+    <Compile Include="Deveel.Data\Assignment.cs" />
+    <Compile Include="Deveel.Data\BigNumber.cs" />
+    <Compile Include="Deveel.Data\BlindSearch.cs" />
+    <Compile Include="Deveel.Data\BlobStore.cs" />
+    <Compile Include="Deveel.Data\ByteLongObject.cs" />
+    <Compile Include="Deveel.Data\CaseCondition.cs" />
+    <Compile Include="Deveel.Data\CaseExpression.cs" />
+    <Compile Include="Deveel.Data\Caster.cs" />
+    <Compile Include="Deveel.Data\CastHelper.cs" />
+    <Compile Include="Deveel.Data\CollatedBaseSearch.cs" />
+    <Compile Include="Deveel.Data\ColumnDescription.cs" />
+    <Compile Include="Deveel.Data\CompositeFunction.cs" />
+    <Compile Include="Deveel.Data\CompositeTable.cs" />
+    <Compile Include="Deveel.Data\ConnectionTriggerManager.cs" />
+    <Compile Include="Deveel.Data\ConstraintAction.cs" />
+    <Compile Include="Deveel.Data\ConstraintDeferrability.cs" />
+    <Compile Include="Deveel.Data\ConstraintType.cs" />
+    <Compile Include="Deveel.Data\CorrelatedVariable.cs" />
+    <Compile Include="Deveel.Data\Cursor.cs" />
+    <Compile Include="Deveel.Data\CursorAttributes.cs" />
+    <Compile Include="Deveel.Data\CursorState.cs" />
+    <Compile Include="Deveel.Data\Database.cs" />
+    <Compile Include="Deveel.Data\DatabaseConnection.cs" />
+    <Compile Include="Deveel.Data\DatabaseConstraintViolationException.cs" />
+    <Compile Include="Deveel.Data\DatabaseDispatcher.cs" />
+    <Compile Include="Deveel.Data\DatabaseEventHandler.cs" />
+    <Compile Include="Deveel.Data\DatabaseException.cs" />
+    <Compile Include="Deveel.Data\DatabaseQueryContext.cs" />
+    <Compile Include="Deveel.Data\DatabaseSystem.cs" />
+    <Compile Include="Deveel.Data\DataIndexDef.cs" />
+    <Compile Include="Deveel.Data\DataIndexSetDef.cs" />
+    <Compile Include="Deveel.Data\DataRow.cs" />
+    <Compile Include="Deveel.Data\DataTable.cs" />
+    <Compile Include="Deveel.Data\DataTableBase.cs" />
+    <Compile Include="Deveel.Data\DataTableColumnDef.cs" />
+    <Compile Include="Deveel.Data\DataTableConstraintDef.cs" />
+    <Compile Include="Deveel.Data\DataTableDef.cs" />
+    <Compile Include="Deveel.Data\DbType.cs" />
+    <Compile Include="Deveel.Data\DefaultDataTable.cs" />
+    <Compile Include="Deveel.Data\DumpHelper.cs" />
+    <Compile Include="Deveel.Data\Expression.cs" />
+    <Compile Include="Deveel.Data\FetchOrientation.cs" />
+    <Compile Include="Deveel.Data\FilterTable.cs" />
+    <Compile Include="Deveel.Data\FunctionTable.cs" />
+    <Compile Include="Deveel.Data\GrantManager.cs" />
+    <Compile Include="Deveel.Data\GrantObject.cs" />
+    <Compile Include="Deveel.Data\GTConnectionInfoDataSource.cs" />
+    <Compile Include="Deveel.Data\GTCurrentConnectionsDataSource.cs" />
+    <Compile Include="Deveel.Data\GTDataSource.cs" />
+    <Compile Include="Deveel.Data\GTPrivMapDataSource.cs" />
+    <Compile Include="Deveel.Data\GTProductDataSource.cs" />
+    <Compile Include="Deveel.Data\GTSQLTypeInfoDataSource.cs" />
+    <Compile Include="Deveel.Data\GTStatisticsDataSource.cs" />
+    <Compile Include="Deveel.Data\GTTableColumnsDataSource.cs" />
+    <Compile Include="Deveel.Data\GTTableInfoDataSource.cs" />
+    <Compile Include="Deveel.Data\GTVariablesDataSource.cs" />
+    <Compile Include="Deveel.Data\IBlobAccessor.cs" />
+    <Compile Include="Deveel.Data\IBlobRef.cs" />
+    <Compile Include="Deveel.Data\IClobRef.cs" />
+    <Compile Include="Deveel.Data\ICursorContext.cs" />
+    <Compile Include="Deveel.Data\IDatabaseEvent.cs" />
+    <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
+    <Compile Include="Deveel.Data\IDatabaseProcedure.cs" />
+    <Compile Include="Deveel.Data\IDataTableListener.cs" />
+    <Compile Include="Deveel.Data\IExpressionPreparer.cs" />
+    <Compile Include="Deveel.Data\IGroupResolver.cs" />
+    <Compile Include="Deveel.Data\IIndexSet.cs" />
+    <Compile Include="Deveel.Data\IInternalTableInfo.cs" />
+    <Compile Include="Deveel.Data\ImportedKey.cs" />
+    <Compile Include="Deveel.Data\IMutableTableDataSource.cs" />
+    <Compile Include="Deveel.Data\IndexSetStore.cs" />
+    <Compile Include="Deveel.Data\INHelper.cs" />
+    <Compile Include="Deveel.Data\InsertSearch.cs" />
+    <Compile Include="Deveel.Data\InternalDbHelper.cs" />
+    <Compile Include="Deveel.Data\InternalTableInfo.cs" />
+    <Compile Include="Deveel.Data\InternalTableInfo2.cs" />
+    <Compile Include="Deveel.Data\Interval.cs" />
+    <Compile Include="Deveel.Data\IntervalField.cs" />
+    <Compile Include="Deveel.Data\IntervalForm.cs" />
+    <Compile Include="Deveel.Data\IProcedureConnection.cs" />
+    <Compile Include="Deveel.Data\IQueryContext.cs" />
+    <Compile Include="Deveel.Data\IQueryPlanNode.cs" />
+    <Compile Include="Deveel.Data\IRawDiagnosticTable.cs" />
+    <Compile Include="Deveel.Data\IRef.cs" />
+    <Compile Include="Deveel.Data\IRootTable.cs" />
+    <Compile Include="Deveel.Data\IRowEnumerator.cs" />
+    <Compile Include="Deveel.Data\IStringAccessor.cs" />
+    <Compile Include="Deveel.Data\ITableDataSource.cs" />
+    <Compile Include="Deveel.Data\ITableQueryDef.cs" />
+    <Compile Include="Deveel.Data\ITriggerListener.cs" />
+    <Compile Include="Deveel.Data\IVariableResolver.cs" />
+    <Compile Include="Deveel.Data\JoinedTable.cs" />
+    <Compile Include="Deveel.Data\JoiningSet.cs" />
+    <Compile Include="Deveel.Data\JoinType.cs" />
+    <Compile Include="Deveel.Data\JournalCommand.cs" />
+    <Compile Include="Deveel.Data\Lock.cs" />
+    <Compile Include="Deveel.Data\LockHandle.cs" />
+    <Compile Include="Deveel.Data\LockingMechanism.cs" />
+    <Compile Include="Deveel.Data\LockingMode.cs" />
+    <Compile Include="Deveel.Data\LockingQueue.cs" />
+    <Compile Include="Deveel.Data\MasterTableDataSource.cs" />
+    <Compile Include="Deveel.Data\MasterTableGC.cs" />
+    <Compile Include="Deveel.Data\MasterTableJournal.cs" />
+    <Compile Include="Deveel.Data\MultiVersionTableIndices.cs" />
+    <Compile Include="Deveel.Data\NaturallyJoinedTable.cs" />
+    <Compile Include="Deveel.Data\NumberState.cs" />
+    <Compile Include="Deveel.Data\ObjectTransfer.cs" />
+    <Compile Include="Deveel.Data\ObjectTranslator.cs" />
+    <Compile Include="Deveel.Data\OpenTransactionList.cs" />
+    <Compile Include="Deveel.Data\Operator.cs" />
+    <Compile Include="Deveel.Data\OperatorSubType.cs" />
+    <Compile Include="Deveel.Data\OuterTable.cs" />
+    <Compile Include="Deveel.Data\ParameterSubstitution.cs" />
+    <Compile Include="Deveel.Data\PatternSearch.cs" />
+    <Compile Include="Deveel.Data\Privileges.cs" />
+    <Compile Include="Deveel.Data\ProcedureResult.cs" />
+    <Compile Include="Deveel.Data\ProductInfo.cs" />
+    <Compile Include="Deveel.Data\QueryContext.cs" />
+    <Compile Include="Deveel.Data\QueryPlan.cs" />
+    <Compile Include="Deveel.Data\RawTableInformation.cs" />
+    <Compile Include="Deveel.Data\RecordState.cs" />
+    <Compile Include="Deveel.Data\ReferenceTable.cs" />
+    <Compile Include="Deveel.Data\ReferenceType.cs" />
+    <Compile Include="Deveel.Data\SchemaDef.cs" />
+    <Compile Include="Deveel.Data\SelectableRange.cs" />
+    <Compile Include="Deveel.Data\SelectableRangeSet.cs" />
+    <Compile Include="Deveel.Data\SelectableScheme.cs" />
+    <Compile Include="Deveel.Data\SequenceManager.cs" />
+    <Compile Include="Deveel.Data\SimpleRowEnumerator.cs" />
+    <Compile Include="Deveel.Data\SimpleTableQuery.cs" />
+    <Compile Include="Deveel.Data\SimpleTransaction.cs" />
+    <Compile Include="Deveel.Data\SqlType.cs" />
+    <Compile Include="Deveel.Data\StatementException.cs" />
+    <Compile Include="Deveel.Data\StateStore.cs" />
+    <Compile Include="Deveel.Data\StreamableObject.cs" />
+    <Compile Include="Deveel.Data\StringObject.cs" />
+    <Compile Include="Deveel.Data\SubsetColumnTable.cs" />
+    <Compile Include="Deveel.Data\SystemQueryContext.cs" />
+    <Compile Include="Deveel.Data\Table.cs" />
+    <Compile Include="Deveel.Data\TableAccessState.cs" />
+    <Compile Include="Deveel.Data\TableBackedCache.cs" />
+    <Compile Include="Deveel.Data\TableCommitModificationEvent.cs" />
+    <Compile Include="Deveel.Data\TableDataConglomerate.cs" />
+    <Compile Include="Deveel.Data\TableFunctions.cs" />
+    <Compile Include="Deveel.Data\TableModificationEvent.cs" />
+    <Compile Include="Deveel.Data\TableName.cs" />
+    <Compile Include="Deveel.Data\TArrayType.cs" />
+    <Compile Include="Deveel.Data\TBinaryType.cs" />
+    <Compile Include="Deveel.Data\TBooleanType.cs" />
+    <Compile Include="Deveel.Data\TDateType.cs" />
+    <Compile Include="Deveel.Data\TemporaryTable.cs" />
+    <Compile Include="Deveel.Data\TIntervalType.cs" />
+    <Compile Include="Deveel.Data\TNullType.cs" />
+    <Compile Include="Deveel.Data\TNumericType.cs" />
+    <Compile Include="Deveel.Data\TObject.cs" />
+    <Compile Include="Deveel.Data\TObjectType.cs" />
+    <Compile Include="Deveel.Data\TQueryPlanType.cs" />
+    <Compile Include="Deveel.Data\Transaction.cs" />
+    <Compile Include="Deveel.Data\TransactionException.cs" />
+    <Compile Include="Deveel.Data\TransactionJournal.cs" />
+    <Compile Include="Deveel.Data\TransactionModificationListener.cs" />
+    <Compile Include="Deveel.Data\TransactionSystem.cs" />
+    <Compile Include="Deveel.Data\TriggerEvent.cs" />
+    <Compile Include="Deveel.Data\TriggerEventType.cs" />
+    <Compile Include="Deveel.Data\TriggerManager.cs" />
+    <Compile Include="Deveel.Data\TStringType.cs" />
+    <Compile Include="Deveel.Data\TType.cs" />
+    <Compile Include="Deveel.Data\TUserDefinedType.cs" />
+    <Compile Include="Deveel.Data\TypeUtil.cs" />
+    <Compile Include="Deveel.Data\UDTManager.cs" />
+    <Compile Include="Deveel.Data\User.cs" />
+    <Compile Include="Deveel.Data\UserAccessException.cs" />
+    <Compile Include="Deveel.Data\UserManager.cs" />
+    <Compile Include="Deveel.Data\UserObject.cs" />
+    <Compile Include="Deveel.Data\UserType.cs" />
+    <Compile Include="Deveel.Data\UserTypeAttribute.cs" />
+    <Compile Include="Deveel.Data\UserTypeAttributes.cs" />
+    <Compile Include="Deveel.Data\V2MasterTableDataSource.cs" />
+    <Compile Include="Deveel.Data\Variable.cs" />
+    <Compile Include="Deveel.Data\VariableName.cs" />
+    <Compile Include="Deveel.Data\VariableRef.cs" />
+    <Compile Include="Deveel.Data\VariableResolver.cs" />
+    <Compile Include="Deveel.Data\VariablesManager.cs" />
+    <Compile Include="Deveel.Data\ViewDef.cs" />
+    <Compile Include="Deveel.Data\ViewManager.cs" />
+    <Compile Include="Deveel.Data\VirtualTable.cs" />
+    <Compile Include="Deveel.Data\WorkerPool.cs" />
+    <Compile Include="Deveel.Data\WorkerThread.cs" />
+    <Compile Include="Deveel.Diagnostics\DebugLevel.cs" />
+    <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs" />
+    <Compile Include="Deveel.Diagnostics\EmptyDebugLogger.cs" />
+    <Compile Include="Deveel.Diagnostics\IDebugLogger.cs" />
+    <Compile Include="Deveel.Diagnostics\Log.cs" />
+    <Compile Include="Deveel.Diagnostics\LogEntry.cs" />
+    <Compile Include="Deveel.Diagnostics\LogWriter.cs" />
+    <Compile Include="Deveel.Math\BigDecimal.cs" />
+    <Compile Include="Deveel.Math\BigInteger.cs" />
+    <Compile Include="Deveel.Math\BitLevel.cs" />
+    <Compile Include="Deveel.Math\CharHelper.cs" />
+    <Compile Include="Deveel.Math\Conversion.cs" />
+    <Compile Include="Deveel.Math\Division.cs" />
+    <Compile Include="Deveel.Math\Elementary.cs" />
+    <Compile Include="Deveel.Math\Logical.cs" />
+    <Compile Include="Deveel.Math\MathContext.cs" />
+    <Compile Include="Deveel.Math\Messages.Designer.cs" />
+    <Compile Include="Deveel.Math\Messages1.Designer.cs" />
+    <Compile Include="Deveel.Math\Multiplication.cs" />
+    <Compile Include="Deveel.Math\Primality.cs" />
+    <Compile Include="Deveel.Math\RoundingMode.cs" />
+    <Compile Include="Deveel.Math\SR.cs" />
+    <Compile Include="Deveel.Math\Utils.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Deveel.Data.Client\ChangeLog" />
+    <None Include="Deveel.Data.Collections\ChangeLog" />
+    <None Include="Deveel.Data.Control\ChangeLog" />
+    <None Include="Deveel.Data.Functions\ChangeLog" />
+    <None Include="Deveel.Data.Server\ChangeLog" />
+    <None Include="Deveel.Data.Sql\ChangeLog" />
+    <None Include="Deveel.Data.Store\ChangeLog" />
+    <None Include="Deveel.Data.Util\ChangeLog" />
+    <None Include="Deveel.Data\ChangeLog" />
+    <None Include="Deveel.Diagnostics\ChangeLog" />
+    <None Include="deveeldb.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Deveel.Math\Messages.resx" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>$(ProjectDir)..\..\lib\csharpcc\csharpcc.exe -OUTPUT_DIRECTORY="$(ProjectDir)Deveel.Data.Sql" "$(ProjectDir)Deveel.Data.Sql\SQL.csc"</PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
