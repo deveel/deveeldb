@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Diagnostics;
 
@@ -71,8 +72,7 @@ namespace Deveel.Data.Sql {
 				TableExpressionFromSet from_set =
 								   Planner.GenerateFromSet(select_expression, Connection);
 				// Form the plan
-				plan = Planner.FormQueryPlan(Connection, select_expression, from_set,
-											 new ArrayList());
+				plan = Planner.FormQueryPlan(Connection, select_expression, from_set, new List<ByColumn>());
 
 				// Wrap the result around a SubsetNode to alias the columns in the
 				// table correctly for this view.

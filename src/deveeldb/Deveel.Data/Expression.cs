@@ -422,24 +422,23 @@ namespace Deveel.Data {
 		/// Returns a complete <see cref="IList">list</see> of <see cref="VariableName"/> 
 		/// objects in this expression not including correlated variables.
 		/// </summary>
-		public IList AllVariables {
+		public IList<VariableName> AllVariables {
 			get {
-				ArrayList vars = new ArrayList();
-				for (int i = 0; i < elements.Count; ++i) {
-					Object ob = elements[i];
+				List<VariableName> vars = new List<VariableName>();
+				foreach (IExpressionElement ob in elements) {
 					if (ob is VariableName) {
-						vars.Add(ob);
+						vars.Add((VariableName) ob);
 					} else if (ob is FunctionDef) {
-						Expression[] parameterss = ((FunctionDef) ob).Parameters;
-						for (int n = 0; n < parameterss.Length; ++n) {
-							vars.AddRange(parameterss[n].AllVariables);
+						Expression[] parameters = ((FunctionDef) ob).Parameters;
+						foreach (Expression parameter in parameters) {
+							vars.AddRange(parameter.AllVariables);
 						}
 					} else if (ob is TObject) {
 						TObject tob = (TObject) ob;
 						if (tob.TType is TArrayType) {
-							Expression[] exp_list = (Expression[]) tob.Object;
-							for (int n = 0; n < exp_list.Length; ++n) {
-								vars.AddRange(exp_list[n].AllVariables);
+							Expression[] expList = (Expression[]) tob.Object;
+							foreach (Expression exp in expList) {
+								vars.AddRange(exp.AllVariables);
 							}
 						}
 					}
@@ -917,7 +916,7 @@ namespace Deveel.Data {
 				TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, queryContext.Connection);
 
 				// Form the plan
-				IQueryPlanNode plan = Planner.FormQueryPlan(queryContext.Connection, selectExpression, from_set, new ArrayList());
+				IQueryPlanNode plan = Planner.FormQueryPlan(queryContext.Connection, selectExpression, from_set, new List<ByColumn>());
 
 				return TObject.CreateQueryPlan(plan);
 			}

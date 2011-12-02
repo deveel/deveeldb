@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Data.Common;
 
 using NUnit.Framework;
 
@@ -87,7 +89,7 @@ namespace Deveel.Data {
 			Assert.AreEqual(11, result);
 			Console.Out.WriteLine("LENGTH(:arg0 = 'test_string') = {0}", result);
 
-			IDictionary args = new Hashtable();
+			IDictionary<string, object> args = new Dictionary<string, object>();
 			args["a"] = 12;
 			args["b"] = 45;
 			args["c"] = 23.65;

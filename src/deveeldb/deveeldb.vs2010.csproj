@@ -196,6 +196,8 @@
     <Compile Include="Deveel.Data.Sql\OpenCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ParseException.cs" />
     <Compile Include="Deveel.Data.Sql\Planner.cs" />
+    <Compile Include="Deveel.Data.Sql\Planner_PlanTableSource.cs" />
+    <Compile Include="Deveel.Data.Sql\Planner_QueryTableSetPlanner.cs" />
     <Compile Include="Deveel.Data.Sql\PrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql\RevokeStatement.cs" />

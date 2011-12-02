@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Deveel.Data.Functions {
@@ -119,9 +120,9 @@ namespace Deveel.Data.Functions {
 		/// </remarks>
 		public virtual IList AllVariables {
 			get {
-				ArrayList result_list = new ArrayList();
+				List<VariableName> result_list = new List<VariableName>();
 				for (int i = 0; i < parameters.Length; ++i) {
-					IList l = parameters[i].AllVariables;
+					IList<VariableName> l = parameters[i].AllVariables;
 					result_list.AddRange(l);
 				}
 				return result_list;

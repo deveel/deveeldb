@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -100,14 +101,13 @@ namespace Deveel.Data.Sql {
 		internal void CheckExpression(Expression expression) {
 
 			if (expression != null) {
-				IList list = expression.AllVariables;
+				IList<VariableName> list = expression.AllVariables;
 				for (int i = 0; i < list.Count; ++i) {
-					VariableName v = (VariableName)list[i];
+					VariableName v = list[i];
 					String orig_col = v.Name;
 					String resolved_column = ResolveColumnName(orig_col);
 					if (resolved_column == null) {
-						throw new DatabaseException("Column '" + orig_col +
-													"' not found in the table.");
+						throw new DatabaseException("Column '" + orig_col + "' not found in the table.");
 					}
 					// Resolve the column name
 					if (!orig_col.Equals(resolved_column)) {

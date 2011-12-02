@@ -503,11 +503,11 @@ namespace Deveel.Data {
 				Expression exp = expression;
 
 				// Assert that all variables in the expression are identical.
-				IList all_vars = exp.AllVariables;
+				IList<VariableName> allVars = exp.AllVariables;
 				VariableName v = null;
-				int sz = all_vars.Count;
+				int sz = allVars.Count;
 				for (int i = 0; i < sz; ++i) {
-					VariableName cv = (VariableName)all_vars[i];
+					VariableName cv = allVars[i];
 					if (v != null) {
 						if (!cv.Equals(v)) {
 							throw new ApplicationException("Assertion failed: " +

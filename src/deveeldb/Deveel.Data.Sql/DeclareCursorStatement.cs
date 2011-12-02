@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 using Deveel.Diagnostics;
@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The list of all columns to order by. (ByColumn)
 		/// </summary>
-		private IList order_by;
+		private IList<ByColumn> order_by;
 
 		/// <summary>
 		/// The plan for evaluating this select expression.
@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql {
 			// The select expression itself
 			select_expression = (TableSelectExpression)GetValue("select_expression");
 			// The order by information
-			order_by = GetList("order_by");
+			order_by = (IList<ByColumn>) GetList("order_by");
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
 			from_set = Planner.GenerateFromSet(select_expression, db);
