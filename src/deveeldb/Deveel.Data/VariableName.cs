@@ -34,7 +34,7 @@ namespace Deveel.Data {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	public sealed class VariableName : ICloneable, IComparable {
+	public sealed class VariableName : IExpressionElement, ICloneable, IComparable {
 		/// <summary>
 		/// Static that represents an unknown table name.
 		/// </summary>

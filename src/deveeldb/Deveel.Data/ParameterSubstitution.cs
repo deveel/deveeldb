@@ -27,11 +27,11 @@ namespace Deveel.Data {
 	/// This object is used as a marker in the elements of a expression.
 	/// </remarks>
 	[Serializable]
-	public class ParameterSubstitution {
+	public class ParameterSubstitution : IExpressionElement {
 		/// <summary>
 		/// The zero-based numerical number of this parameter substitution.
 		/// </summary>
-		private readonly int parameter_id;
+		private readonly int parameterId;
 
 		/// <summary>
 		/// The name of the parameter for the substitution.
@@ -42,9 +42,9 @@ namespace Deveel.Data {
 		/// Constructs a <see cref="ParameterSubstitution"/> to employ in a command
 		/// which uses a <see cref="ParameterStyle.Marker"/> style.
 		///</summary>
-		///<param name="parameter_id">The unique identifier of the parameter.</param>
-		public ParameterSubstitution(int parameter_id) {
-			this.parameter_id = parameter_id;
+		///<param name="parameterId">The unique identifier of the parameter.</param>
+		public ParameterSubstitution(int parameterId) {
+			this.parameterId = parameterId;
 		}
 
 		/// <summary>
@@ -60,7 +60,7 @@ namespace Deveel.Data {
 		/// Returns the number of this parameter id.
 		/// </summary>
 		public int Id {
-			get { return parameter_id; }
+			get { return parameterId; }
 		}
 
 		/// <summary>
@@ -73,14 +73,12 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
 			ParameterSubstitution sub = (ParameterSubstitution)ob;
-			return (name == null || String.Compare(name, sub.name, false) != 0) && parameter_id == sub.parameter_id;
+			return (name == null || String.Compare(name, sub.name, false) != 0) && parameterId == sub.parameterId;
 		}
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			if (name != null)
-				return name.GetHashCode();
-			return parameter_id.GetHashCode();
+			return name != null ? name.GetHashCode() : parameterId.GetHashCode();
 		}
 	}
 }

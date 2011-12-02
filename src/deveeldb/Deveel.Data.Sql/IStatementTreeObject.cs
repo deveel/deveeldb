@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql {
 	/// A statement tree object must be serializable, and it must be able to
 	/// reference all <see cref="Expression"/> objects so that they may be prepared.
 	/// </remarks>
-	internal interface IStatementTreeObject : ICloneable {
+	internal interface IStatementTreeObject : IExpressionElement, ICloneable {
 		/// <summary>
 		/// Prepares all expressions in this statement tree object by 
 		/// passing the <see cref="IExpressionPreparer"/> object to the 

@@ -25,7 +25,7 @@ namespace Deveel.Data {
 	/// etc) along with the object value being represented itself.
 	/// </remarks>
 	[Serializable]
-	public sealed partial class TObject : IDeserializationCallback, IComparable, IComparable<TObject> {
+	public sealed partial class TObject : IExpressionElement, IDeserializationCallback, IComparable, IComparable<TObject> {
 		/// <summary>
 		/// The type of this object.
 		/// </summary>

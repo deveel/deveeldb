@@ -17,12 +17,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Text;
 
 using Deveel.Data.Functions;
 using Deveel.Data.Sql;
-using Deveel.Math;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -63,7 +61,7 @@ namespace Deveel.Data {
 	/// </code>
 	/// </example>
 	[Serializable]
-	public sealed class Expression : ICloneable, IDeserializationCallback {
+	public sealed class Expression : ICloneable {
 		/// <summary>
 		/// The list of elements followed by operators in our expression.
 		/// </summary>
@@ -77,12 +75,12 @@ namespace Deveel.Data {
 		/// This list is stored in postfix order.
 		/// </para>
 		/// </remarks>
-		private ArrayList elements = new ArrayList();
+		private List<IExpressionElement> elements = new List<IExpressionElement>();
 
 		/// <summary>
 		/// The evaluation stack for when the expression is evaluated.
 		/// </summary>
-		private ArrayList eval_stack;
+		private ArrayList evalStack;
 
 		/// <summary>
 		/// The expression as a plain human readable string.
@@ -104,7 +102,7 @@ namespace Deveel.Data {
 		/// Constructs a new <see cref="Expression"/> with a single object element.
 		/// </summary>
 		/// <param name="ob"></param>
-		public Expression(Object ob)
+		public Expression(object ob)
 			: this() {
 			AddElement(ob);
 		}
@@ -197,12 +195,7 @@ namespace Deveel.Data {
 		}
 
 		public static TObject Evaluate(string expression, params object[] args) {
-#if NET_2_0
-			System.Collections.Generic.IDictionary<string, object> argsDict =
-				new System.Collections.Generic.Dictionary<string, object>();
-#else
-			IDictionary argsDict = new Hashtable();
-#endif
+			IDictionary<string, object> argsDict = new Dictionary<string, object>();
 			if (args != null && args.Length > 0) {
 				for (int i = 0; i < args.Length; i++)
 					argsDict.Add("arg" + i, args[i]);
@@ -211,20 +204,12 @@ namespace Deveel.Data {
 			return Evaluate(expression, argsDict);
 		}
 
-#if NET_2_0
-		public static TObject Evaluate(string expression, System.Collections.Generic.IDictionary<string, object> args) {
-#else
-		public static TObject Evaluate(string expression, IDictionary args) {
-#endif
+		public static TObject Evaluate(string expression, IDictionary<string, object> args) {
 			VariableResolver resolver = new VariableResolver();
 			if (args != null) {
-#if NET_2_0
-				foreach(System.Collections.Generic.KeyValuePair<string, object> entry in args) {
-#else
-				foreach(DictionaryEntry entry in args) {
-#endif
+				foreach(KeyValuePair<string, object> entry in args) {
 					string argName = (string) entry.Key;
-					if (argName == null || argName.Length == 0)
+					if (String.IsNullOrEmpty(argName))
 						throw new ArgumentException("Found an argument with a name not specified.");
 
 					if (!Char.IsLetterOrDigit(argName[0]))
@@ -335,21 +320,13 @@ namespace Deveel.Data {
 		/// <exception cref="ArgumentException">
 		/// If the given <paramref name="ob">object</paramref> is not permitted.
 		/// </exception>
-		public void AddElement(Object ob) {
+		public void AddElement(object ob) {
 			if (ob == null) {
 				elements.Add(TObject.Null);
-			} else if (ob is TObject ||
-			           ob is ParameterSubstitution ||
-			           ob is VariableRef ||
-			           ob is CorrelatedVariable ||
-			           ob is VariableName ||
-			           ob is FunctionDef ||
-			           ob is Operator ||
-			           ob is IStatementTreeObject) {
-				elements.Add(ob);
+			} else if (ob is IExpressionElement) {
+				elements.Add((IExpressionElement)ob);
 			} else {
-				throw new ApplicationException("Unknown element type added to expression: " +
-				                               ob.GetType());
+				throw new ApplicationException("Unknown element type added to expression: " + ob.GetType());
 			}
 		}
 
@@ -405,7 +382,12 @@ namespace Deveel.Data {
 		/// </remarks>
 		public object this[int n] {
 			get { return elements[n]; }
-			set { elements[n] = value; }
+			set {
+				if (value != null && 
+					!typeof(IExpressionElement).IsInstanceOfType(value))
+					throw new ArgumentException("Cannot set into expression an element of type " + value.GetType());
+				elements[n] = (IExpressionElement) value;
+			}
 		}
 
 
@@ -421,8 +403,8 @@ namespace Deveel.Data {
 		/// Pushes an element onto the evaluation stack.
 		/// </summary>
 		/// <param name="ob"></param>
-		private void Push(Object ob) {
-			eval_stack.Add(ob);
+		private void Push(object ob) {
+			evalStack.Add(ob);
 		}
 
 		/// <summary>
@@ -430,9 +412,9 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <returns></returns>
 		private Object Pop() {
-			int pos = eval_stack.Count - 1;
-			object obj = eval_stack[pos];
-			eval_stack.RemoveAt(pos);
+			int pos = evalStack.Count - 1;
+			object obj = evalStack[pos];
+			evalStack.RemoveAt(pos);
 			return obj;
 		}
 
@@ -518,26 +500,26 @@ namespace Deveel.Data {
 				// If the preparer will prepare this type of object then set the
 				// entry with the prepared object.
 				if (preparer.CanPrepare(ob)) {
-					elements[n] = preparer.Prepare(ob);
+					elements[n] = (IExpressionElement) preparer.Prepare(ob);
 				}
 
-				Expression[] exp_list = null;
+				Expression[] expList = null;
 				if (ob is FunctionDef) {
 					FunctionDef func = (FunctionDef)ob;
-					exp_list = func.Parameters;
+					expList = func.Parameters;
 				} else if (ob is TObject) {
 					TObject tob = (TObject)ob;
 					if (tob.TType is TArrayType) {
-						exp_list = (Expression[])tob.Object;
+						expList = (Expression[])tob.Object;
 					}
 				} else if (ob is IStatementTreeObject) {
 					IStatementTreeObject stree = (IStatementTreeObject)ob;
 					stree.PrepareExpressions(preparer);
 				}
 
-				if (exp_list != null) {
-					for (int p = 0; p < exp_list.Length; ++p) {
-						exp_list[p].Prepare(preparer);
+				if (expList != null) {
+					for (int p = 0; p < expList.Length; ++p) {
+						expList[p].Prepare(preparer);
 					}
 				}
 
@@ -555,31 +537,29 @@ namespace Deveel.Data {
 		/// </remarks>
 		public bool IsConstant {
 			get {
-				for (int n = 0; n < elements.Count; ++n) {
-					Object ob = elements[n];
+				foreach (IExpressionElement ob in elements) {
 					if (ob is TObject) {
 						TObject tob = (TObject) ob;
 						TType ttype = tob.TType;
 						// If this is a query plan, return false
 						if (ttype is TQueryPlanType)
 							return false;
+
 						// If this is an array, check the array for constants
 						if (ttype is TArrayType) {
-							Expression[] exp_list = (Expression[]) tob.Object;
-							for (int p = 0; p < exp_list.Length; ++p) {
-								if (!exp_list[p].IsConstant) {
+							Expression[] expList = (Expression[]) tob.Object;
+							foreach (Expression exp in expList) {
+								if (!exp.IsConstant)
 									return false;
-								}
 							}
 						}
 					} else if (ob is VariableName) {
 						return false;
 					} else if (ob is FunctionDef) {
 						Expression[] parameterss = ((FunctionDef) ob).Parameters;
-						for (int p = 0; p < parameterss.Length; ++p) {
-							if (!parameterss[p].IsConstant) {
+						foreach (Expression parameter in parameterss) {
+							if (!parameter.IsConstant)
 								return false;
-							}
 						}
 					}
 				}
@@ -594,14 +574,11 @@ namespace Deveel.Data {
 		public bool HasSubQuery {
 			get {
 				IList list = AllElements;
-				int len = list.Count;
-				for (int n = 0; n < len; ++n) {
-					Object ob = list[n];
+				foreach (IExpressionElement ob in list) {
 					if (ob is TObject) {
 						TObject tob = (TObject) ob;
-						if (tob.TType is TQueryPlanType) {
+						if (tob.TType is TQueryPlanType)
 							return true;
-						}
 					}
 				}
 				return false;
@@ -617,8 +594,7 @@ namespace Deveel.Data {
 		/// otherwise <b>false</b>.
 		/// </returns>
 		public bool ContainsNotOperator() {
-			for (int n = 0; n < elements.Count; ++n) {
-				Object ob = elements[n];
+			foreach (IExpressionElement ob in elements) {
 				if (ob is Operator && ((Operator)ob).IsNot)
 					return true;
 			}
@@ -636,12 +612,10 @@ namespace Deveel.Data {
 		/// <paramref name="level"/> variable for each sub-plan.
 		/// </remarks>
 		///<returns></returns>
-		public IList<CorrelatedVariable> DiscoverCorrelatedVariables(ref int level, IList<CorrelatedVariable> list) {
+		internal IList<CorrelatedVariable> DiscoverCorrelatedVariables(ref int level, IList<CorrelatedVariable> list) {
 			IList elems = AllElements;
-			int sz = elems.Count;
 			// For each element
-			for (int i = 0; i < sz; ++i) {
-				Object ob = elems[i];
+			foreach (object ob in elems) {
 				if (ob is CorrelatedVariable) {
 					CorrelatedVariable v = (CorrelatedVariable)ob;
 					if (v.QueryLevelOffset == level) {
@@ -666,12 +640,10 @@ namespace Deveel.Data {
 		/// This is used for determining all the tables that a query plan touches.
 		/// </remarks>
 		///<returns></returns>
-		public IList<TableName> DiscoverTableNames(IList<TableName> list) {
+		internal IList<TableName> DiscoverTableNames(IList<TableName> list) {
 			IList elems = AllElements;
-			int sz = elems.Count;
 			// For each element
-			for (int i = 0; i < sz; ++i) {
-				Object ob = elems[i];
+			foreach (object ob in elems) {
 				if (ob is TObject) {
 					TObject tob = (TObject)ob;
 					if (tob.TType is TQueryPlanType) {
@@ -735,16 +707,16 @@ namespace Deveel.Data {
 				throw new ApplicationException("Can only split expressions with more than 1 element.");
 
 			int midpoint = -1;
-			int stack_size = 0;
+			int stackSize = 0;
 			for (int n = 0; n < Count - 1; ++n) {
 				object ob = this[n];
 				if (ob is Operator) {
-					--stack_size;
+					--stackSize;
 				} else {
-					++stack_size;
+					++stackSize;
 				}
 
-				if (stack_size == 1) {
+				if (stackSize == 1) {
 					midpoint = n;
 				}
 			}
@@ -781,17 +753,17 @@ namespace Deveel.Data {
 		/// </remarks>
 		public Expression EndExpression {
 			get {
-				int stack_size = 1;
+				int stackSize = 1;
 				int end = Count - 1;
 				for (int n = end; n > 0; --n) {
 					Object ob = this[n];
 					if (ob is Operator) {
-						++stack_size;
+						++stackSize;
 					} else {
-						--stack_size;
+						--stackSize;
 					}
 
-					if (stack_size == 0) {
+					if (stackSize == 0) {
 						// Now, n .. end represents the new expression.
 						Expression new_exp = new Expression();
 						for (int i = n; i <= end; ++i) {
@@ -810,26 +782,26 @@ namespace Deveel.Data {
 		/// splitted by the given operator.
 		/// </summary>
 		/// <param name="list"></param>
-		/// <param name="logical_op"></param>
+		/// <param name="logicalOp"></param>
 		/// <remarks>
 		/// For example, given the expression <c>(a = b AND b = c AND (a = 2 OR c = 1))</c>,
-		/// calling this method with <paramref name="logical_op"/> = AND 
+		/// calling this method with <paramref name="logicalOp"/> = AND 
 		/// will return a list of the three expressions.
 		/// <para>
 		/// This is a common function used to split up an expressions into 
 		/// logical components for processing.
 		/// </para>
 		/// </remarks>
-		public IList BreakByOperator(IList list, String logical_op) {
+		internal IList<Expression> BreakByOperator(IList<Expression> list, string logicalOp) {
 			// The last operator must be 'and'
-			Object ob = Last;
+			object ob = Last;
 			if (ob is Operator) {
 				Operator op = (Operator)ob;
-				if (op.Is(logical_op)) {
+				if (op.Is(logicalOp)) {
 					// Last operator is 'and' so split and recurse.
 					Expression[] exps = Split();
-					list = exps[0].BreakByOperator(list, logical_op);
-					list = exps[1].BreakByOperator(list, logical_op);
+					list = exps[0].BreakByOperator(list, logicalOp);
+					list = exps[1].BreakByOperator(list, logicalOp);
 					return list;
 				}
 			}
@@ -875,8 +847,8 @@ namespace Deveel.Data {
 				return op.Evaluate(o1, o2, group, resolver, context);
 			}
 
-			if (eval_stack == null)
-				eval_stack = new ArrayList();
+			if (evalStack == null)
+				evalStack = new ArrayList();
 
 			for (int n = 0; n < element_count; ++n) {
 				object val = ElementToObject(n, group, resolver, context);
@@ -980,10 +952,9 @@ namespace Deveel.Data {
 					TObject tob = (TObject)ob;
 					if (tob.TType is TArrayType) {
 						Expression[] list = (Expression[])tob.Object;
-						for (int i = 0; i < list.Length; ++i) {
-							if (list[i].HasAggregateFunction(context)) {
+						foreach (Expression expression in list) {
+							if (expression.HasAggregateFunction(context))
 								return true;
-							}
 						}
 					}
 				}
@@ -1041,16 +1012,15 @@ namespace Deveel.Data {
 		public object Clone() {
 			// Shallow clone
 			Expression v = (Expression) MemberwiseClone();
-			v.eval_stack = null;
+			v.evalStack = null;
 			//    v.text = new StringBuffer(new String(text));
 			int size = elements.Count;
-			ArrayList cloned_elements = new ArrayList(size);
-			v.elements = cloned_elements;
+			List<IExpressionElement> clonedElements = new List<IExpressionElement>(size);
+			v.elements = clonedElements;
 
 			// Clone items in the elements list
-			for (int i = 0; i < size; ++i) {
-				object element = elements[i];
-
+			foreach (IExpressionElement element in elements) {
+				IExpressionElement clonedElement = element;
 				if (element is TObject) {
 					// TObject is immutable except for TArrayType and TQueryPlanType
 					TObject tob = (TObject) element;
@@ -1059,7 +1029,7 @@ namespace Deveel.Data {
 					if (ttype is TQueryPlanType) {
 						IQueryPlanNode node = (IQueryPlanNode) tob.Object;
 						node = (IQueryPlanNode) node.Clone();
-						element = new TObject(ttype, node);
+						clonedElement = new TObject(ttype, node);
 					}
 						// For an array
 					else if (ttype is TArrayType) {
@@ -1068,31 +1038,26 @@ namespace Deveel.Data {
 						for (int n = 0; n < arr.Length; ++n) {
 							arr[n] = (Expression) arr[n].Clone();
 						}
-						element = new TObject(ttype, arr);
+						clonedElement = new TObject(ttype, arr);
 					}
 				} else if (element is Operator ||
 				           element is ParameterSubstitution ||
 				           element is VariableRef) {
 					// immutable so we do not need to clone these
-				} else if (element is CorrelatedVariable) {
-					element = ((CorrelatedVariable) element).Clone();
-				} else if (element is VariableName) {
-					element = ((VariableName) element).Clone();
-				} else if (element is FunctionDef) {
-					element = ((FunctionDef) element).Clone();
-				} else if (element is IStatementTreeObject) {
-					element = ((IStatementTreeObject) element).Clone();
+				} else if (element is ICloneable) {
+					clonedElement = ((ICloneable) element).Clone() as IExpressionElement;
 				} else {
 					throw new ApplicationException(element.GetType().ToString());
 				}
-				cloned_elements.Add(element);
+
+				clonedElements.Add(clonedElement);
 			}
 
 			return v;
 		}
 
 		/// <inheritdoc/>
-		public override String ToString() {
+		public override string ToString() {
 			StringBuilder buf = new StringBuilder();
 			buf.Append("[ Expression ");
 			if (Text != null) {
@@ -1109,28 +1074,6 @@ namespace Deveel.Data {
 			}
 			buf.Append(" ]");
 			return buf.ToString();
-		}
-
-		void IDeserializationCallback.OnDeserialization(object sender) {
-			int sz = elements.Count;
-			for (int i = 0; i < sz; ++i) {
-				Object ob = elements[i];
-				TObject conv_object = null;
-				if (ob == null) {
-					conv_object = TObject.Null;
-				} else if (ob is String) {
-					conv_object = TObject.CreateString((String)ob);
-				} else if (ob is BigDecimal) {
-					conv_object = TObject.CreateBigNumber((BigDecimal)ob);
-				} else if (ob is DateTime) {
-					conv_object = TObject.CreateDateTime((DateTime)ob);
-				} else if (ob is Boolean) {
-					conv_object = TObject.CreateBoolean((bool)ob);
-				}
-				if (conv_object != null) {
-					elements[i] = conv_object;
-				}
-			}
 		}
 	}
 }

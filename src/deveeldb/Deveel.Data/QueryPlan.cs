@@ -430,7 +430,7 @@ namespace Deveel.Data {
 			/// Returns a list of expressions that can be safely executed as 
 			/// a set of <i>and</i> operations.
 			/// </returns>
-			private static IList CreateAndList(IList list, Expression exp) {
+			private static IList<Expression> CreateAndList(IList<Expression> list, Expression exp) {
 				return exp.BreakByOperator(list, "and");
 			}
 
@@ -466,17 +466,13 @@ namespace Deveel.Data {
 			/// <param name="field"></param>
 			/// <param name="range"></param>
 			/// <param name="exp"></param>
-			private static void CalcRange(IQueryContext context,
-								   DataTableColumnDef field,
-								   SelectableRangeSet range,
-								   Expression exp) {
+			private static void CalcRange(IQueryContext context, DataTableColumnDef field, SelectableRangeSet range, Expression exp) {
 				Operator op = (Operator)exp.Last;
 				if (op.IsLogical) {
 					if (op.Is("and")) {
-						IList andList = CreateAndList(new ArrayList(), exp);
-						int sz = andList.Count;
-						for (int i = 0; i < sz; ++i) {
-							UpdateRange(context, range, field, (Expression)andList[i]);
+						IList<Expression> andList = CreateAndList(new List<Expression>(), exp);
+						foreach (Expression andExp in andList) {
+							UpdateRange(context, range, field, andExp);
 						}
 					} else if (op.Is("or")) {
 						// Split left and right of logical operator.

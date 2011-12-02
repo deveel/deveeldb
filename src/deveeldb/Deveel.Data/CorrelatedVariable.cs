@@ -29,7 +29,7 @@ namespace Deveel.Data {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	public class CorrelatedVariable : ICloneable {
+	public class CorrelatedVariable : IExpressionElement, ICloneable {
 		/// <summary>
 		/// The <see cref="VariableName"/> reference itself.
 		/// </summary>

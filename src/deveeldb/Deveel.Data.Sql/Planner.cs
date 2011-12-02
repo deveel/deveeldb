@@ -2225,7 +2225,7 @@ namespace Deveel.Data.Sql {
 					Expression expr = (Expression)sublogic_exprs[i];
 
 					// Break the expression down to a list of OR expressions,
-					IList or_exprs = expr.BreakByOperator(new ArrayList(), "or");
+					IList<Expression> orExprs = expr.BreakByOperator(new List<Expression>(), "or");
 
 					// An optimizations here;
 
@@ -2239,8 +2239,8 @@ namespace Deveel.Data.Sql {
 
 					PlanTableSource common = null;
 
-					for (int n = 0; n < or_exprs.Count; ++n) {
-						Expression or_expr = (Expression)or_exprs[n];
+					for (int n = 0; n < orExprs.Count; ++n) {
+						Expression or_expr = (Expression)orExprs[n];
 						IList vars = or_expr.AllVariables;
 						// If there are no variables then don't bother with this expression
 						if (vars.Count > 0) {
@@ -2284,8 +2284,8 @@ namespace Deveel.Data.Sql {
 			/// Generates a plan to evaluate the given list of expressions
 			/// (logically separated with AND).
 			/// </summary>
-			/// <param name="and_list"></param>
-			private void PlanForExpressionList(IList and_list) {
+			/// <param name="andList"></param>
+			private void PlanForExpressionList(IList<Expression> andList) {
 				ArrayList sub_logic_expressions = new ArrayList();
 				// The list of expressions that have a sub-select in them.
 				ArrayList sub_query_expressions = new ArrayList();
@@ -2300,8 +2300,8 @@ namespace Deveel.Data.Sql {
 				ArrayList multi_vars = new ArrayList();
 
 				// Separate out each condition type.
-				for (int i = 0; i < and_list.Count; ++i) {
-					Object el = and_list[i];
+				for (int i = 0; i < andList.Count; ++i) {
+					Object el = andList[i];
 					Expression andexp = (Expression)el;
 					// If we end with a logical operator then we must recurse them
 					// through this method.
@@ -2514,9 +2514,9 @@ namespace Deveel.Data.Sql {
 					} else if (last_op.Is("and")) {
 						// parsing an AND block
 						// The list of AND expressions that are here
-						IList and_list = CreateAndList(new ArrayList(), exp);
+						IList<Expression> andList = CreateAndList(new List<Expression>(), exp);
 
-						PlanForExpressionList(and_list);
+						PlanForExpressionList(andList);
 
 					} else {
 						throw new Exception("Unknown logical operator: " + ob);
@@ -2524,9 +2524,9 @@ namespace Deveel.Data.Sql {
 
 				} else {
 					// Not a logical expression so just plan for this single expression.
-					ArrayList exp_list = new ArrayList(1);
-					exp_list.Add(exp);
-					PlanForExpressionList(exp_list);
+					List<Expression> expList = new List<Expression>(1);
+					expList.Add(exp);
+					PlanForExpressionList(expList);
 				}
 
 			}
@@ -2578,7 +2578,7 @@ namespace Deveel.Data.Sql {
 			/// </para>
 			/// </remarks>
 			/// <returns></returns>
-			private static IList CreateAndList(IList list, Expression exp) {
+			private static IList<Expression> CreateAndList(IList<Expression> list, Expression exp) {
 				return exp.BreakByOperator(list, "and");
 			}
 
