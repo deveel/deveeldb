@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -682,12 +681,12 @@ namespace Deveel.Data {
 					// The sub-query plan
 					IQueryPlanNode plan = (IQueryPlanNode)ob2.Object;
 					// Discover the correlated variables for this plan.
-					ArrayList list = plan.DiscoverCorrelatedVariables(1, new ArrayList());
+					IList<CorrelatedVariable> list = plan.DiscoverCorrelatedVariables(1, new List<CorrelatedVariable>());
 
 					if (list.Count > 0) {
 						// Set the correlated variables from the IVariableResolver
 						for (int i = 0; i < list.Count; ++i) {
-							((CorrelatedVariable) list[i]).SetFromResolver(resolver);
+							list[i].SetFromResolver(resolver);
 						}
 						// Clear the cache in the context
 						context.ClearCache();
@@ -765,7 +764,7 @@ namespace Deveel.Data {
 					// The sub-query plan
 					IQueryPlanNode plan = (IQueryPlanNode)ob2.Object;
 					// Discover the correlated variables for this plan.
-					ArrayList list = plan.DiscoverCorrelatedVariables(1, new ArrayList());
+					IList<CorrelatedVariable> list = plan.DiscoverCorrelatedVariables(1, new List<CorrelatedVariable>());
 
 					if (list.Count > 0) {
 						// Set the correlated variables from the IVariableResolver

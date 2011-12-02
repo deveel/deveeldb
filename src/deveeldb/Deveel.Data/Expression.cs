@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
@@ -635,7 +636,7 @@ namespace Deveel.Data {
 		/// <paramref name="level"/> variable for each sub-plan.
 		/// </remarks>
 		///<returns></returns>
-		public ArrayList DiscoverCorrelatedVariables(ref int level, ArrayList list) {
+		public IList<CorrelatedVariable> DiscoverCorrelatedVariables(ref int level, IList<CorrelatedVariable> list) {
 			IList elems = AllElements;
 			int sz = elems.Count;
 			// For each element
@@ -665,7 +666,7 @@ namespace Deveel.Data {
 		/// This is used for determining all the tables that a query plan touches.
 		/// </remarks>
 		///<returns></returns>
-		public ArrayList DiscoverTableNames(ArrayList list) {
+		public IList<TableName> DiscoverTableNames(IList<TableName> list) {
 			IList elems = AllElements;
 			int sz = elems.Count;
 			// For each element

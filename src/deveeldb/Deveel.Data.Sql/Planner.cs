@@ -2079,8 +2079,7 @@ namespace Deveel.Data.Sql {
 							right_plan = exps[1].QueryPlanNode;
 							if (right_plan != null) {
 								// Finally, check if the plan is correlated or not
-								ArrayList cv =
-									  right_plan.DiscoverCorrelatedVariables(1, new ArrayList());
+								IList<CorrelatedVariable> cv = right_plan.DiscoverCorrelatedVariables(1, new List<CorrelatedVariable>());
 								//              Console.Out.WriteLine("Right Plan: " + right_plan);
 								//              Console.Out.WriteLine("Correlated variables: " + cv);
 								if (cv.Count == 0) {
@@ -2109,8 +2108,7 @@ namespace Deveel.Data.Sql {
 
 						// Also find all correlated variables.
 						int level = 0;
-						IList all_correlated =
-									andexp.DiscoverCorrelatedVariables(ref level, new ArrayList());
+						IList<CorrelatedVariable> all_correlated = andexp.DiscoverCorrelatedVariables(ref level, new List<CorrelatedVariable>());
 						int sz = all_correlated.Count;
 
 						// If there are no variables (and no correlated variables) then this
@@ -2122,8 +2120,7 @@ namespace Deveel.Data.Sql {
 						} else {
 
 							for (int n = 0; n < sz; ++n) {
-								CorrelatedVariable cv =
-													(CorrelatedVariable)all_correlated[n];
+								CorrelatedVariable cv = all_correlated[n];
 								all_vars.Add(cv.VariableName);
 							}
 

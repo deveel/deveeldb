@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 using Deveel.Diagnostics;
@@ -69,11 +70,11 @@ namespace Deveel.Data.Sql {
 		/// </exception>
 		internal static void CheckUserSelectPermissions(DatabaseQueryContext context, User user, IQueryPlanNode plan) {
 			// Discover the list of TableName objects this command touches,
-			ArrayList touched_tables = plan.DiscoverTableNames(new ArrayList());
+			IList<TableName> touched_tables = plan.DiscoverTableNames(new List<TableName>());
 			Database dbase = context.Database;
 			// Check that the user is allowed to select from these tables.
 			for (int i = 0; i < touched_tables.Count; ++i) {
-				TableName t = (TableName)touched_tables[i];
+				TableName t = touched_tables[i];
 				if (!dbase.CanUserSelectFromTableObject(context, user, t, null)) {
 					throw new UserAccessException("User not permitted to select from table: " + t);
 				}

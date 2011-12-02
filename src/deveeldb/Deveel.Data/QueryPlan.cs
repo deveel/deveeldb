@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Deveel.Data {
@@ -84,12 +85,12 @@ namespace Deveel.Data {
 			public abstract Table Evaluate(IQueryContext context);
 
 			/// <inheritdoc/>
-			public virtual ArrayList DiscoverTableNames(ArrayList list) {
+			public virtual IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				return child.DiscoverTableNames(list);
 			}
 
 			/// <inheritdoc/>
-			public virtual ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public virtual IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return child.DiscoverCorrelatedVariables(level, list);
 			}
 
@@ -146,13 +147,13 @@ namespace Deveel.Data {
 			public abstract Table Evaluate(IQueryContext context);
 
 			/// <inheritdoc/>
-			public virtual ArrayList DiscoverTableNames(ArrayList list) {
+			public virtual IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				return right.DiscoverTableNames(
 					left.DiscoverTableNames(list));
 			}
 
 			/// <inheritdoc/>
-			public virtual ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public virtual IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return right.DiscoverCorrelatedVariables(level,
 						 left.DiscoverCorrelatedVariables(level, list));
 			}
@@ -181,10 +182,6 @@ namespace Deveel.Data {
 		}
 
 
-
-
-
-
 		/// <summary>
 		/// The node for fetching a table from the current transaction.
 		/// </summary>
@@ -208,7 +205,7 @@ namespace Deveel.Data {
 				alias_name = aliased_as;
 			}
 
-			public virtual ArrayList DiscoverTableNames(ArrayList list) {
+			public virtual IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				if (!list.Contains(table_name)) {
 					list.Add(table_name);
 				}
@@ -227,7 +224,7 @@ namespace Deveel.Data {
 			}
 
 			/// <inheritdoc/>
-			public virtual ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public virtual IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return list;
 			}
 
@@ -259,7 +256,7 @@ namespace Deveel.Data {
 		[Serializable]
 		public class SingleRowTableNode : IQueryPlanNode {
 			/// <inheritdoc/>
-			public virtual ArrayList DiscoverTableNames(ArrayList list) {
+			public virtual IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				return list;
 			}
 
@@ -271,7 +268,7 @@ namespace Deveel.Data {
 			}
 
 			/// <inheritdoc/>
-			public virtual ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public virtual IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return list;
 			}
 
@@ -298,8 +295,8 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <remarks>
 		/// This is a tree node that has no children, however the child can 
-		/// be created by calling <see cref="createViewChildNode"/>. This node 
-		/// can be removed from a plan tree by calling <see cref="createViewChildNode"/>
+		/// be created by calling <see cref="CreateViewChildNode"/>. This node 
+		/// can be removed from a plan tree by calling <see cref="CreateViewChildNode"/>
 		/// and substituting this node with the returned child. 
 		/// For a planner that normalizes and optimizes plan trees, this is 
 		/// a useful feature.
@@ -328,13 +325,13 @@ namespace Deveel.Data {
 			/// <returns>
 			/// Returns the <see cref="IQueryPlanNode"/> that resolves to the view.
 			/// </returns>
-			public virtual IQueryPlanNode createViewChildNode(IQueryContext context) {
+			public virtual IQueryPlanNode CreateViewChildNode(IQueryContext context) {
 				DatabaseQueryContext db = (DatabaseQueryContext)context;
 				return db.CreateViewQueryPlanNode(table_name);
 			}
 
 			/// <inheritdoc/>
-			public virtual ArrayList DiscoverTableNames(ArrayList list) {
+			public virtual IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				if (!list.Contains(table_name)) {
 					list.Add(table_name);
 				}
@@ -344,7 +341,7 @@ namespace Deveel.Data {
 			/// <inheritdoc/>
 			public virtual Table Evaluate(IQueryContext context) {
 				// Create the view child node
-				IQueryPlanNode node = createViewChildNode(context);
+				IQueryPlanNode node = CreateViewChildNode(context);
 				// Evaluate the plan
 				Table t = node.Evaluate(context);
 
@@ -354,7 +351,7 @@ namespace Deveel.Data {
 			}
 
 			/// <inheritdoc/>
-			public virtual ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public virtual IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return list;
 			}
 
@@ -476,10 +473,10 @@ namespace Deveel.Data {
 				Operator op = (Operator)exp.Last;
 				if (op.IsLogical) {
 					if (op.Is("and")) {
-						IList and_list = CreateAndList(new ArrayList(), exp);
-						int sz = and_list.Count;
+						IList andList = CreateAndList(new ArrayList(), exp);
+						int sz = andList.Count;
 						for (int i = 0; i < sz; ++i) {
-							UpdateRange(context, range, field, (Expression)and_list[i]);
+							UpdateRange(context, range, field, (Expression)andList[i]);
 						}
 					} else if (op.Is("or")) {
 						// Split left and right of logical operator.
@@ -544,12 +541,12 @@ namespace Deveel.Data {
 			}
 
 			/// <inheritdoc/>
-			public override ArrayList DiscoverTableNames(ArrayList list) {
+			public override IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				return expression.DiscoverTableNames(base.DiscoverTableNames(list));
 			}
 
 			/// <inheritdoc/>
-			public override ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public override IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				//      Console.Out.WriteLine(expression);
 				return expression.DiscoverCorrelatedVariables(ref level,
 						 base.DiscoverCorrelatedVariables(level, list));
@@ -608,12 +605,11 @@ namespace Deveel.Data {
 										  left_var, op, right_expression);
 			}
 
-			public override ArrayList DiscoverTableNames(ArrayList list) {
-				return right_expression.DiscoverTableNames(
-												   base.DiscoverTableNames(list));
+			public override IList<TableName> DiscoverTableNames(IList<TableName> list) {
+				return right_expression.DiscoverTableNames(base.DiscoverTableNames(list));
 			}
 
-			public override ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public override IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return right_expression.DiscoverCorrelatedVariables(ref level,
 						 base.DiscoverCorrelatedVariables(level, list));
 			}
@@ -670,12 +666,12 @@ namespace Deveel.Data {
 				return t;
 			}
 
-			public override ArrayList DiscoverTableNames(ArrayList list) {
-				throw new ApplicationException("PENDING");
+			public override IList<TableName> DiscoverTableNames(IList<TableName> list) {
+				throw new NotImplementedException();
 			}
 
-			public override ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
-				throw new ApplicationException("PENDING");
+			public override IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
+				throw new NotImplementedException();
 			}
 
 			public override Object Clone() {
@@ -726,11 +722,11 @@ namespace Deveel.Data {
 				return t.ExhaustiveSelect(context, expression);
 			}
 
-			public override ArrayList DiscoverTableNames(ArrayList list) {
+			public override IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				return expression.DiscoverTableNames(base.DiscoverTableNames(list));
 			}
 
-			public override ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public override IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return expression.DiscoverCorrelatedVariables(ref level,
 						 base.DiscoverCorrelatedVariables(level, list));
 			}
@@ -771,11 +767,11 @@ namespace Deveel.Data {
 				return t.ExhaustiveSelect(context, expression);
 			}
 
-			public override ArrayList DiscoverTableNames(ArrayList list) {
+			public override IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				return expression.DiscoverTableNames(base.DiscoverTableNames(list));
 			}
 
-			public override ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public override IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return expression.DiscoverCorrelatedVariables(ref level,
 						 base.DiscoverCorrelatedVariables(level, list));
 			}
@@ -816,11 +812,11 @@ namespace Deveel.Data {
 				return child.Evaluate(context);
 			}
 
-			public override ArrayList DiscoverTableNames(ArrayList list) {
+			public override IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				return expression.DiscoverTableNames(base.DiscoverTableNames(list));
 			}
 
-			public override ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public override IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return expression.DiscoverCorrelatedVariables(ref level,
 						 base.DiscoverCorrelatedVariables(level, list));
 			}
@@ -879,11 +875,11 @@ namespace Deveel.Data {
 				return t;
 			}
 
-			public override ArrayList DiscoverTableNames(ArrayList list) {
+			public override IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				return expression.DiscoverTableNames(base.DiscoverTableNames(list));
 			}
 
-			public override ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public override IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return expression.DiscoverCorrelatedVariables(ref level,
 						 base.DiscoverCorrelatedVariables(level, list));
 			}
@@ -1207,7 +1203,7 @@ namespace Deveel.Data {
 				return fun_table.MergeWithReference(group_max_column);
 			}
 
-			public override ArrayList DiscoverTableNames(ArrayList list) {
+			public override IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				list = base.DiscoverTableNames(list);
 				for (int i = 0; i < function_list.Length; ++i) {
 					list = function_list[i].DiscoverTableNames(list);
@@ -1215,7 +1211,7 @@ namespace Deveel.Data {
 				return list;
 			}
 
-			public override ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public override IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				list = base.DiscoverCorrelatedVariables(level, list);
 				for (int i = 0; i < function_list.Length; ++i) {
 					list = function_list[i].DiscoverCorrelatedVariables(ref level, list);
@@ -1297,7 +1293,7 @@ namespace Deveel.Data {
 				return t;
 			}
 
-			public override ArrayList DiscoverTableNames(ArrayList list) {
+			public override IList<TableName> DiscoverTableNames(IList<TableName> list) {
 				list = base.DiscoverTableNames(list);
 				for (int i = 0; i < function_list.Length; ++i) {
 					list = function_list[i].DiscoverTableNames(list);
@@ -1305,7 +1301,7 @@ namespace Deveel.Data {
 				return list;
 			}
 
-			public override ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public override IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				list = base.DiscoverCorrelatedVariables(level, list);
 				for (int i = 0; i < function_list.Length; ++i) {
 					list = function_list[i].DiscoverCorrelatedVariables(ref level, list);
@@ -1581,12 +1577,11 @@ namespace Deveel.Data {
 											  lhs_var, op, right_expression);
 			}
 
-			public override ArrayList DiscoverTableNames(ArrayList list) {
-				return right_expression.DiscoverTableNames(
-												   base.DiscoverTableNames(list));
+			public override IList<TableName> DiscoverTableNames(IList<TableName> list) {
+				return right_expression.DiscoverTableNames(base.DiscoverTableNames(list));
 			}
 
-			public override ArrayList DiscoverCorrelatedVariables(int level, ArrayList list) {
+			public override IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list) {
 				return right_expression.DiscoverCorrelatedVariables(ref level,
 						 base.DiscoverCorrelatedVariables(level, list));
 			}

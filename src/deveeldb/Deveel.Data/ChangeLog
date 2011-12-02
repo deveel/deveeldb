@@ -10,6 +10,11 @@
 		- explicit conversion operators made implicit
 	* Operator.cs: added overload of the method Evaluate to
 	support evaluation outside a context
+	* IQueryPlanNode.cs: 
+		- DiscoverCorrelatedVariables return method made generic 
+		to explicitly specify the type of the list
+		- DiscoverTableNames return method made generic to
+		explicitly specify the type of the list
 
 2010-05-01  Antonello Provenzano  <antonello@deveel.com>
 	* TableName.cs: added an overload of the method ToString

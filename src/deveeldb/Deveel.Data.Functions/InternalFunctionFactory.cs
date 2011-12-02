@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
@@ -162,17 +163,18 @@ namespace Deveel.Data.Functions {
 				if (String.Compare(command_str, "referenced tables", true) == 0) {
 					ViewDef view_def = ViewDef.DeserializeFromBlob(blob);
 					IQueryPlanNode node = view_def.QueryPlanNode;
-					ArrayList touched_tables = node.DiscoverTableNames(new ArrayList());
+					IList<TableName> touchedTables = node.DiscoverTableNames(new List<TableName>());
 					StringBuilder buf = new StringBuilder();
-					int sz = touched_tables.Count;
+					int sz = touchedTables.Count;
 					for (int i = 0; i < sz; ++i) {
-						buf.Append(touched_tables[i]);
+						buf.Append(touchedTables[i]);
 						if (i < sz - 1) {
 							buf.Append(", ");
 						}
 					}
 					return TObject.CreateString(buf.ToString());
-				} else if (String.Compare(command_str, "plan dump", true) == 0) {
+				} 
+				if (String.Compare(command_str, "plan dump", true) == 0) {
 					ViewDef view_def = ViewDef.DeserializeFromBlob(blob);
 					IQueryPlanNode node = view_def.QueryPlanNode;
 					StringBuilder buf = new StringBuilder();
