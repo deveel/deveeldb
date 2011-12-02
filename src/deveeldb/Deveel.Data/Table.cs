@@ -1938,11 +1938,10 @@ namespace Deveel.Data {
 			// NOTE: This will be a NullPointerException if the result is not a
 			//   boolean type.
 			//TODO: check...
-			bool isNull;
-			bool bresult = result.ToBoolean(out isNull);
-			if (isNull)
+			bool? bresult = result.ToNullableBoolean();
+			if (!bresult.HasValue)
 				throw new NullReferenceException();
-			return bresult;
+			return bresult.Value;
 		}
 
 		/// <summary>

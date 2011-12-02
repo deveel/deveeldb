@@ -3,6 +3,8 @@
 		- splitted into partial classes to make it easier 
 		to manage
 		- Get* methods renamed to Create*, that is more logical
+		- ToBoolean(out bool) method replaced by method
+		bool? ToNullableBoolean()
 		- Null property removed (redundant use of NullObject field)
 		- NullObject field renamed to Null
 		- explicit conversion operators made implicit

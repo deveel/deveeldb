@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Globalization;
 using System.Runtime.Serialization;
 
 namespace Deveel.Data {
@@ -26,7 +25,7 @@ namespace Deveel.Data {
 	/// etc) along with the object value being represented itself.
 	/// </remarks>
 	[Serializable]
-	public sealed partial class TObject : IDeserializationCallback, IComparable {
+	public sealed partial class TObject : IDeserializationCallback, IComparable, IComparable<TObject> {
 		/// <summary>
 		/// The type of this object.
 		/// </summary>
@@ -305,7 +304,7 @@ namespace Deveel.Data {
 
 		int IComparable.CompareTo(object obj) {
 			if (!(obj is TObject))
-				throw new ArgumentException();
+				throw new NotSupportedException("Cannot compare other than TObject instances (for the moment).");
 			return CompareTo((TObject)obj);
 		}
 

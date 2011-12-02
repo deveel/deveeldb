@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Deveel.Data {
@@ -24,40 +25,41 @@ namespace Deveel.Data {
 	[Serializable]
 	public abstract class Operator {
 		// ---------- Statics ----------
+		// ANY/ALL
+		private static readonly Dictionary<string, Operator> AllMap = new Dictionary<string, Operator>();
+		private static readonly Dictionary<string, Operator> AnyMap = new Dictionary<string, Operator>();
 
-		private static readonly AddOperator add_op = new AddOperator();
-		private static readonly Hashtable all_map = new Hashtable();
-		private static readonly AndOperator and_op = new AndOperator();
-		private static readonly Hashtable any_map = new Hashtable();
-		private static readonly ConcatOperator concat_op = new ConcatOperator();
-		private static readonly DivideOperator div_op = new DivideOperator();
-		private static readonly ModulusOperator mod_op = new ModulusOperator();
-		private static readonly EqualOperator eq_op = new EqualOperator();
-		private static readonly GreaterOperator g_op = new GreaterOperator();
-		private static readonly GreaterEqualOperator geq_op = new GreaterEqualOperator();
+		// LOGICAL
+		private static readonly AndOperator AndOp = new AndOperator();
+		private static readonly OrOperator OrOp = new OrOperator();
+		private static readonly Operator InOp;
+		private static readonly Operator NinOp;
+		private static readonly Operator NotOp = new SimpleOperator("not", 3);
+		private static readonly EqualOperator EqOp = new EqualOperator();
+		private static readonly NotEqualOperator NeqOp = new NotEqualOperator();
+		private static readonly IsOperator IsOp = new IsOperator();
+		private static readonly IsNotOperator IsnOp = new IsNotOperator();
+		private static readonly GreaterOperator GOp = new GreaterOperator();
+		private static readonly GreaterEqualOperator GeqOp = new GreaterEqualOperator();
+		private static readonly LesserOperator LOp = new LesserOperator();
+		private static readonly LesserEqualOperator LeqOp = new LesserEqualOperator();
 
-		private static readonly Operator in_op;
-		private static readonly IsOperator is_op = new IsOperator();
-		private static readonly IsNotOperator isn_op = new IsNotOperator();
-		private static readonly LesserOperator l_op = new LesserOperator();
-		private static readonly LesserEqualOperator leq_op = new LesserEqualOperator();
+		// ARITHMETICAL
+		private static readonly AddOperator AddOp = new AddOperator();
+		private static readonly SubtractOperator SubOp = new SubtractOperator();
+		private static readonly ConcatOperator ConcatOp = new ConcatOperator();
+		private static readonly DivideOperator DivOp = new DivideOperator();
+		private static readonly ModulusOperator ModOp = new ModulusOperator();
+		private static readonly MultiplyOperator MulOp = new MultiplyOperator();
 
-		private static readonly PatternMatchTrueOperator like_op = new PatternMatchTrueOperator();
-		private static readonly SoundsLikeOperator slike_op = new SoundsLikeOperator();
+		// STRING PATTERN
+		private static readonly PatternMatchTrueOperator LikeOp = new PatternMatchTrueOperator();
+		private static readonly SoundsLikeOperator SlikeOp = new SoundsLikeOperator();
+		private static readonly PatternMatchFalseOperator NlikeOp = new PatternMatchFalseOperator();
+		private static readonly RegexOperator RegexOp = new RegexOperator();
 
-		private static readonly MultiplyOperator mul_op = new MultiplyOperator();
-		private static readonly NotEqualOperator neq_op = new NotEqualOperator();
-		private static readonly Operator nin_op;
-
-		private static readonly PatternMatchFalseOperator nlike_op = new PatternMatchFalseOperator();
-
-		private static readonly Operator not_op = new SimpleOperator("not", 3);
-		private static readonly OrOperator or_op = new OrOperator();
-
-		private static readonly ParenOperator par1_op = new ParenOperator("(");
-		private static readonly ParenOperator par2_op = new ParenOperator(")");
-		private static readonly RegexOperator regex_op = new RegexOperator();
-		private static readonly SubtractOperator sub_op = new SubtractOperator();
+		private static readonly ParenOperator Par1Op = new ParenOperator("(");
+		private static readonly ParenOperator Par2Op = new ParenOperator(")");
 
 		// ---------- Member ----------
 
@@ -74,44 +76,46 @@ namespace Deveel.Data {
 		/// <summary>
 		/// If this is a set operator such as ANY or ALL then this is set with the flag type.
 		/// </summary>
-		private readonly OperatorSubType sub_type;
+		private readonly OperatorSubType subType;
 
 		static Operator() {
 			// Populate the static ANY and ALL mapping
-			any_map.Add("=", new AnyOperator("="));
-			any_map.Add("<>", new AnyOperator("<>"));
-			any_map.Add(">", new AnyOperator(">"));
-			any_map.Add(">=", new AnyOperator(">="));
-			any_map.Add("<", new AnyOperator("<"));
-			any_map.Add("<=", new AnyOperator("<="));
+			AnyMap.Add("=", new AnyOperator("="));
+			AnyMap.Add("<>", new AnyOperator("<>"));
+			AnyMap.Add(">", new AnyOperator(">"));
+			AnyMap.Add(">=", new AnyOperator(">="));
+			AnyMap.Add("<", new AnyOperator("<"));
+			AnyMap.Add("<=", new AnyOperator("<="));
 
-			all_map.Add("=", new AllOperator("="));
-			all_map.Add("<>", new AllOperator("<>"));
-			all_map.Add(">", new AllOperator(">"));
-			all_map.Add(">=", new AllOperator(">="));
-			all_map.Add("<", new AllOperator("<"));
-			all_map.Add("<=", new AllOperator("<="));
+			AllMap.Add("=", new AllOperator("="));
+			AllMap.Add("<>", new AllOperator("<>"));
+			AllMap.Add(">", new AllOperator(">"));
+			AllMap.Add(">=", new AllOperator(">="));
+			AllMap.Add("<", new AllOperator("<"));
+			AllMap.Add("<=", new AllOperator("<="));
 
 			// The IN and NOT IN operator are '= ANY' and '<> ALL' respectively.
-			in_op = (Operator) any_map["="];
-			nin_op = (Operator) all_map["<>"];
+			InOp = AnyMap["="];
+			NinOp = AllMap["<>"];
 		}
 
-		protected Operator(String op)
+		protected Operator(string op)
 			: this(op, 0, OperatorSubType.None) {
 		}
 
-		protected Operator(String op, int precedence)
+		protected Operator(string op, int precedence)
 			: this(op, precedence, OperatorSubType.None) {
 		}
 
-		protected Operator(String op, int precedence, OperatorSubType sub_type) {
-			if (sub_type != OperatorSubType.None && sub_type != OperatorSubType.Any && sub_type != OperatorSubType.All) {
-				throw new ArgumentException("Invalid sub_type.");
-			}
+		protected Operator(string op, int precedence, OperatorSubType subType) {
+			if (subType != OperatorSubType.None && 
+				subType != OperatorSubType.Any && 
+				subType != OperatorSubType.All)
+				throw new ArgumentException("Invlid subType.", "subType");
+
 			this.op = op;
 			this.precedence = precedence;
-			this.sub_type = sub_type;
+			this.subType = subType;
 		}
 
 
@@ -129,14 +133,14 @@ namespace Deveel.Data {
 		/// </summary>
 		public bool IsCondition {
 			get {
-				return (Equals(eq_op) ||
-				        Equals(neq_op) ||
-				        Equals(g_op) ||
-				        Equals(l_op) ||
-				        Equals(geq_op) ||
-				        Equals(leq_op) ||
-				        Equals(is_op) ||
-				        Equals(isn_op));
+				return (Equals(EqOp) ||
+				        Equals(NeqOp) ||
+				        Equals(GOp) ||
+				        Equals(LOp) ||
+				        Equals(GeqOp) ||
+				        Equals(LeqOp) ||
+				        Equals(IsOp) ||
+				        Equals(IsnOp));
 			}
 		}
 
@@ -146,12 +150,12 @@ namespace Deveel.Data {
 		/// </summary>
 		public bool IsMathematical {
 			get {
-				return (Equals(add_op) ||
-				        Equals(sub_op) ||
-				        Equals(mul_op) ||
-				        Equals(div_op) ||
-						Equals(mod_op) ||
-				        Equals(concat_op));
+				return (Equals(AddOp) ||
+				        Equals(SubOp) ||
+				        Equals(MulOp) ||
+				        Equals(DivOp) ||
+						Equals(ModOp) ||
+				        Equals(ConcatOp));
 			}
 		}
 
@@ -161,9 +165,9 @@ namespace Deveel.Data {
 		/// </summary>
 		public bool IsPattern {
 			get {
-				return (Equals(like_op) ||
-				        Equals(nlike_op) ||
-				        Equals(regex_op));
+				return (Equals(LikeOp) ||
+				        Equals(NlikeOp) ||
+				        Equals(RegexOp));
 			}
 		}
 
@@ -173,8 +177,8 @@ namespace Deveel.Data {
 		/// </summary>
 		public bool IsLogical {
 			get {
-				return (Equals(and_op) ||
-				        Equals(or_op));
+				return (Equals(AndOp) ||
+				        Equals(OrOp));
 			}
 		}
 
@@ -182,7 +186,7 @@ namespace Deveel.Data {
 		/// Gets the <i>is not</i> conditional operator (<pre>IS NOT</pre>).
 		/// </summary>
 		public bool IsNot {
-			get { return Equals(not_op); }
+			get { return Equals(NotOp); }
 		}
 
 		/// <summary>
@@ -191,9 +195,9 @@ namespace Deveel.Data {
 		/// </summary>
 		public bool IsSubQuery {
 			get {
-				return (sub_type != OperatorSubType.None ||
-				        Equals(in_op) ||
-				        Equals(nin_op));
+				return (subType != OperatorSubType.None ||
+				        Equals(InOp) ||
+				        Equals(NinOp));
 			}
 		}
 
@@ -203,7 +207,7 @@ namespace Deveel.Data {
 		public bool IsNotInversible {
 			get {
 				// The REGEX op, and mathematical operators are not inversible.
-				return Equals(regex_op) || IsMathematical;
+				return Equals(RegexOp) || IsMathematical;
 			}
 		}
 
@@ -211,7 +215,7 @@ namespace Deveel.Data {
 		/// Returns the sub query representation of this operator.
 		/// </summary>
 		private OperatorSubType SubQueryFormRepresentation {
-			get { return sub_type; }
+			get { return subType; }
 		}
 
 		/// <summary>
@@ -219,7 +223,7 @@ namespace Deveel.Data {
 		/// </summary>
 		public TType ReturnTType {
 			get {
-				if (Equals(concat_op))
+				if (Equals(ConcatOp))
 					return TType.StringType;
 				if (IsMathematical)
 					return TType.NumericType;
@@ -239,7 +243,7 @@ namespace Deveel.Data {
 		/// two <see cref="TObject"/> passed as parameters.
 		/// </summary>
 		public static Operator Equal {
-			get { return eq_op; }
+			get { return EqOp; }
 		}
 
 		/// <summary>
@@ -247,7 +251,7 @@ namespace Deveel.Data {
 		/// two <see cref="TObject"/> passed as parameters.
 		/// </summary>
 		public static Operator NotEqual {
-			get { return neq_op; }
+			get { return NeqOp; }
 		}
 
 		/// <summary>
@@ -255,7 +259,7 @@ namespace Deveel.Data {
 		/// <see cref="TObject"/> is greater than another one.
 		/// </summary>
 		public static Operator Greater {
-			get { return g_op; }
+			get { return GOp; }
 		}
 
 		/// <summary>
@@ -263,7 +267,7 @@ namespace Deveel.Data {
 		/// <see cref="TObject"/> is smaller than another one.
 		/// </summary>
 		public static Operator Lesser {
-			get { return l_op; }
+			get { return LOp; }
 		}
 
 		/// <summary>
@@ -271,7 +275,7 @@ namespace Deveel.Data {
 		/// <see cref="TObject"/> is greater or equal than another one.
 		/// </summary>
 		public static Operator GreaterEqual {
-			get { return geq_op; }
+			get { return GeqOp; }
 		}
 
 		/// <summary>
@@ -279,7 +283,7 @@ namespace Deveel.Data {
 		/// <see cref="TObject"/> is smaller or equal than another one.
 		/// </summary>
 		public static Operator LesserEqual {
-			get { return leq_op; }
+			get { return LeqOp; }
 		}
 
 		/// <summary>
@@ -317,7 +321,7 @@ namespace Deveel.Data {
 		/// <seealso cref="Concat"/>
 		/// <seealso cref="Substract"/>
 		public static Operator Add {
-			get { return add_op; }
+			get { return AddOp; }
 		}
 
 		/// <summary>
@@ -326,7 +330,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <seealso cref="Add"/>
 		public static Operator Substract {
-			get { return sub_op; }
+			get { return SubOp; }
 		}
 
 		/// <summary>
@@ -334,63 +338,65 @@ namespace Deveel.Data {
 		/// a first given argument by a second one.
 		/// </summary>
 		public static Operator Multiply {
-			get { return mul_op; }
+			get { return MulOp; }
 		}
 
 		public static Operator Divide {
-			get { return div_op; }
+			get { return DivOp; }
 		}
 
 		public static Operator Modulo {
-			get { return mod_op; }
+			get { return ModOp; }
 		}
 
 		public static Operator Concat {
-			get { return concat_op; }
+			get { return ConcatOp; }
 		}
 
 		public static Operator Like {
-			get { return like_op; }
+			get { return LikeOp; }
 		}
 
 		public static Operator NotLike {
-			get { return nlike_op; }
+			get { return NlikeOp; }
 		}
 
 		public static Operator SoundsLike {
-			get { return slike_op; }
+			get { return SlikeOp; }
 		}
 
 		public static Operator Regex {
-			get { return regex_op; }
+			get { return RegexOp; }
 		}
 
 		public static Operator NotIn {
-			get { return nin_op; }
+			get { return NinOp; }
 		}
 
 		public static Operator In {
-			get { return in_op; }
+			get { return InOp; }
 		}
 
 		public static Operator Not {
-			get { return not_op; }
+			get { return NotOp; }
 		}
 
 		public static Operator And {
-			get { return and_op; }
+			get { return AndOp; }
 		}
 
 		public static Operator Or {
-			get { return or_op; }
+			get { return OrOp; }
 		}
 
 		///<summary>
+		/// Checks if the given operator string representation equals
+		/// the current one.
 		///</summary>
-		///<param name="given_op"></param>
+		///<param name="givenOp"></param>
 		///<returns></returns>
-		public bool Is(String given_op) {
-			return given_op.Equals(op);
+		public bool Is(string givenOp) {
+			return op.Equals(givenOp);
 		}
 
 		/// <summary>
@@ -427,16 +433,16 @@ namespace Deveel.Data {
 		/// becomes <c>id &lt; 9</c>.
 		/// </remarks>
 		public Operator Reverse() {
-			if (Equals(eq_op) || Equals(neq_op) || Equals(is_op) || Equals(isn_op))
+			if (Equals(EqOp) || Equals(NeqOp) || Equals(IsOp) || Equals(IsnOp))
 				return this;
-			if (Equals(g_op))
-				return l_op;
-			if (Equals(l_op))
-				return g_op;
-			if (Equals(geq_op))
-				return leq_op;
-			if (Equals(leq_op))
-				return geq_op;
+			if (Equals(GOp))
+				return LOp;
+			if (Equals(LOp))
+				return GOp;
+			if (Equals(GeqOp))
+				return LeqOp;
+			if (Equals(LeqOp))
+				return GeqOp;
 
 			throw new ApplicationException("Can't reverse a non conditional operator.");
 		}
@@ -450,43 +456,43 @@ namespace Deveel.Data {
 		/// </remarks>
 		public Operator Inverse() {
 			if (IsSubQuery) {
-				OperatorSubType inv_type;
+				OperatorSubType invType;
 				if (IsSubQueryForm(OperatorSubType.Any)) {
-					inv_type = OperatorSubType.All;
+					invType = OperatorSubType.All;
 				} else if (IsSubQueryForm(OperatorSubType.All)) {
-					inv_type = OperatorSubType.Any;
+					invType = OperatorSubType.Any;
 				} else {
 					throw new Exception("Can not handle sub-query form.");
 				}
 
-				Operator inv_op = Get(op).Inverse();
+				Operator invOp = Get(op).Inverse();
 
-				return inv_op.GetSubQueryForm(inv_type);
+				return invOp.GetSubQueryForm(invType);
 			}
-			if (Equals(eq_op))
-				return neq_op;
-			if (Equals(neq_op))
-				return eq_op;
-			if (Equals(g_op))
-				return leq_op;
-			if (Equals(l_op))
-				return geq_op;
-			if (Equals(geq_op))
-				return l_op;
-			if (Equals(leq_op))
-				return g_op;
-			if (Equals(and_op))
-				return or_op;
-			if (Equals(or_op))
-				return and_op;
-			if (Equals(like_op))
-				return nlike_op;
-			if (Equals(nlike_op))
-				return like_op;
-			if (Equals(is_op))
-				return isn_op;
-			if (Equals(isn_op))
-				return is_op;
+			if (Equals(EqOp))
+				return NeqOp;
+			if (Equals(NeqOp))
+				return EqOp;
+			if (Equals(GOp))
+				return LeqOp;
+			if (Equals(LOp))
+				return GeqOp;
+			if (Equals(GeqOp))
+				return LOp;
+			if (Equals(LeqOp))
+				return GOp;
+			if (Equals(AndOp))
+				return OrOp;
+			if (Equals(OrOp))
+				return AndOp;
+			if (Equals(LikeOp))
+				return NlikeOp;
+			if (Equals(NlikeOp))
+				return LikeOp;
+			if (Equals(IsOp))
+				return IsnOp;
+			if (Equals(IsnOp))
+				return IsOp;
 
 			throw new ApplicationException("Can't inverse operator '" + op + "'");
 		}
@@ -499,7 +505,7 @@ namespace Deveel.Data {
 		/// <param name="type"></param>
 		/// <returns></returns>
 		public bool IsSubQueryForm(OperatorSubType type) {
-			return type == sub_type;
+			return type == subType;
 		}
 
 		/// <summary>
@@ -508,57 +514,59 @@ namespace Deveel.Data {
 		/// <param name="type"></param>
 		/// <returns></returns>
 		public Operator GetSubQueryForm(OperatorSubType type) {
-			Operator result_op = null;
+			Operator resultOp = null;
 			if (type == OperatorSubType.Any) {
-				result_op = (Operator) any_map[op];
+				AnyMap.TryGetValue(op, out resultOp);
 			} else if (type == OperatorSubType.All) {
-				result_op = (Operator) all_map[op];
+				AllMap.TryGetValue(op, out resultOp);
 			} else if (type == OperatorSubType.None) {
-				result_op = Get(op);
+				resultOp = Get(op);
 			}
 
-			if (result_op == null) {
+			if (resultOp == null)
 				throw new ApplicationException("Couldn't change the form of operator '" + op + "'.");
-			}
-			return result_op;
+
+			return resultOp;
 		}
 
 		/// <summary>
 		/// Returns the ANY or ALL form of this operator.
 		/// </summary>
-		/// <param name="type_str"></param>
+		/// <param name="typeString"></param>
 		/// <returns></returns>
-		public Operator GetSubQueryForm(String type_str) {
-			String s = type_str.ToUpper();
-			if (s.Equals("SINGLE") || s.Equals("ANY") || s.Equals("SOME")) {
+		public Operator GetSubQueryForm(string typeString) {
+			string s = typeString.ToUpper();
+			if (s.Equals("SINGLE", StringComparison.InvariantCultureIgnoreCase) || 
+				s.Equals("ANY", StringComparison.InvariantCultureIgnoreCase) ||
+				s.Equals("SOME", StringComparison.InvariantCultureIgnoreCase))
 				return GetSubQueryForm(OperatorSubType.Any);
-			} else if (s.Equals("ALL")) {
+			if (s.Equals("ALL", StringComparison.InvariantCultureIgnoreCase))
 				return GetSubQueryForm(OperatorSubType.All);
-			}
-			throw new ApplicationException("Do not understand subquery type '" + type_str + "'");
+
+			throw new ApplicationException("Do not understand subquery type '" + typeString + "'");
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
 			StringBuilder buf = new StringBuilder();
 			buf.Append(op);
-			if (sub_type == OperatorSubType.Any) {
+			if (subType == OperatorSubType.Any) {
 				buf.Append(" ANY");
-			} else if (sub_type == OperatorSubType.All) {
+			} else if (subType == OperatorSubType.All) {
 				buf.Append(" ALL");
 			}
 			return buf.ToString();
 		}
 
 		/// <inheritdoc/>
-		public override bool Equals(Object ob) {
-			Operator oob = (Operator)ob;
-			return op.Equals(oob.op) && sub_type == oob.sub_type;
+		public override bool Equals(object obj) {
+			Operator other = (Operator)obj;
+			return op.Equals(other.op) && subType == other.subType;
 		}
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			return base.GetHashCode();
+			return op.GetHashCode() + subType.GetHashCode();
 		}
 
 
@@ -569,58 +577,58 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public static Operator Get(String op) {
 			if (op.Equals("+"))
-				return add_op;
+				return AddOp;
 			if (op.Equals("-"))
-				return sub_op;
+				return SubOp;
 			if (op.Equals("*"))
-				return mul_op;
+				return MulOp;
 			if (op.Equals("/"))
-				return div_op;
+				return DivOp;
 			if (op.Equals("%"))
-				return mod_op;
+				return ModOp;
 			if (op.Equals("||"))
-				return concat_op;
+				return ConcatOp;
 			if (op.Equals("=") | op.Equals("=="))
-				return eq_op;
+				return EqOp;
 			if (op.Equals("<>") | op.Equals("!="))
-				return neq_op;
+				return NeqOp;
 			if (op.Equals(">"))
-				return g_op;
+				return GOp;
 			if (op.Equals("<"))
-				return l_op;
+				return LOp;
 			if (op.Equals(">="))
-				return geq_op;
+				return GeqOp;
 			if (op.Equals("<="))
-				return leq_op;
+				return LeqOp;
 			if (op.Equals("("))
-				return par1_op;
+				return Par1Op;
 			if (op.Equals(")"))
-				return par2_op;
+				return Par2Op;
 
 			// Operators that are words, convert to lower case...
 			op = op.ToLower();
 			if (op.Equals("is"))
-				return is_op;
+				return IsOp;
 			if (op.Equals("is not"))
-				return isn_op;
+				return IsnOp;
 			if (op.Equals("like"))
-				return like_op;
+				return LikeOp;
 			if (op.Equals("not like"))
-				return nlike_op;
+				return NlikeOp;
 			if (op.Equals("sounds like"))
-				return slike_op;
+				return SlikeOp;
 			if (op.Equals("regex"))
-				return regex_op;
+				return RegexOp;
 			if (op.Equals("in"))
-				return in_op;
+				return InOp;
 			if (op.Equals("not in"))
-				return nin_op;
+				return NinOp;
 			if (op.Equals("not"))
-				return not_op;
+				return NotOp;
 			if (op.Equals("and"))
-				return and_op;
+				return AndOp;
 			if (op.Equals("or"))
-				return or_op;
+				return OrOp;
 
 
 			throw new ApplicationException("Unrecognised operator type: " + op);
@@ -665,13 +673,11 @@ namespace Deveel.Data {
 
 		[Serializable]
 		private sealed class AllOperator : Operator {
-			public AllOperator(String op)
+			public AllOperator(string op)
 				: base(op, 8, OperatorSubType.All) {
 			}
 
-			public override TObject Evaluate(TObject ob1, TObject ob2,
-			                                 IGroupResolver group, IVariableResolver resolver,
-			                                 IQueryContext context) {
+			public override TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				if (ob2.TType is TQueryPlanType) {
 					// The sub-query plan
 					IQueryPlanNode plan = (IQueryPlanNode)ob2.Object;
@@ -690,34 +696,32 @@ namespace Deveel.Data {
 					// Evaluate the plan,
 					Table t = plan.Evaluate(context);
 
-					Operator rev_plain_op = GetSubQueryForm(OperatorSubType.None).Reverse();
-					if (t.AllColumnMatchesValue(0, rev_plain_op, ob1)) {
-						return TObject.BooleanTrue;
-					}
-					return TObject.BooleanFalse;
-				} else if (ob2.TType is TArrayType) {
-					Operator plain_op = GetSubQueryForm(OperatorSubType.None);
-					Expression[] exp_list = (Expression[])ob2.Object;
+					Operator revPlainOp = GetSubQueryForm(OperatorSubType.None).Reverse();
+					return t.AllColumnMatchesValue(0, revPlainOp, ob1) ? TObject.BooleanTrue : TObject.BooleanFalse;
+				} 
+				if (ob2.TType is TArrayType) {
+					Operator plainOp = GetSubQueryForm(OperatorSubType.None);
+					Expression[] expList = (Expression[])ob2.Object;
 					// Assume true unless otherwise found to be false or NULL.
-					TObject ret_val = TObject.BooleanTrue;
-					for (int i = 0; i < exp_list.Length; ++i) {
-						TObject exp_item = exp_list[i].Evaluate(group, resolver, context);
+					TObject retVal = TObject.BooleanTrue;
+					for (int i = 0; i < expList.Length; ++i) {
+						TObject expItem = expList[i].Evaluate(group, resolver, context);
 						// If there is a null item, we return null if not otherwise found to
 						// be false.
-						if (exp_item.IsNull) {
-							ret_val = TObject.BooleanNull;
+						if (expItem.IsNull) {
+							retVal = TObject.BooleanNull;
 						}
 							// If it doesn't match return false
-						else if (!IsTrue(plain_op.Evaluate(ob1, exp_item, null, null, null))) {
+						else if (!IsTrue(plainOp.Evaluate(ob1, expItem, null, null, null))) {
 							return TObject.BooleanFalse;
 						}
 					}
 					// Otherwise return true or null.  If all match and no NULLs return
 					// true.  If all match and there are NULLs then return NULL.
-					return ret_val;
-				} else {
-					throw new ApplicationException("Unknown RHS of ALL.");
+					return retVal;
 				}
+					
+				throw new ApplicationException("Unknown RHS of ALL.");
 			}
 		}
 
@@ -731,31 +735,18 @@ namespace Deveel.Data {
 				: base("and", 2) {
 			}
 
-			public override TObject Evaluate(TObject ob1, TObject ob2,
-			                                 IGroupResolver group, IVariableResolver resolver,
-			                                 IQueryContext context) {
-				bool isB1Null, isB2Null;
-				Boolean b1 = ob1.ToBoolean(out isB1Null);
-				Boolean b2 = ob2.ToBoolean(out isB2Null);
+			public override TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				bool? b1 = ob1.ToNullableBoolean();
+				bool? b2 = ob2.ToNullableBoolean();
 
 				// If either ob1 or ob2 are null
-				if (isB1Null) {
-					if (!isB2Null) {
-						if (b2.Equals(false)) {
-							return TObject.BooleanFalse;
-						}
-					}
-					return TObject.BooleanNull;
-				} else if (isB2Null) {
-					if (b1.Equals(false)) {
-						return TObject.BooleanFalse;
-					}
-					return TObject.BooleanNull;
-				}
+				if (!b1.HasValue)
+					return b2.HasValue ? (b2.Equals(false) ? TObject.BooleanFalse : TObject.BooleanNull) : TObject.BooleanNull;
+				if (!b2.HasValue)
+					return b1.Equals(false) ? TObject.BooleanFalse : TObject.BooleanNull;
 
 				// If both true.
-				return TObject.CreateBoolean(b1.Equals(true) &&
-				                          b2.Equals(true));
+				return TObject.CreateBoolean(b1.Equals(true) & b2.Equals(true));
 			}
 		}
 
@@ -769,9 +760,7 @@ namespace Deveel.Data {
 				: base(op, 8, OperatorSubType.Any) {
 			}
 
-			public override TObject Evaluate(TObject ob1, TObject ob2,
-			                                 IGroupResolver group, IVariableResolver resolver,
-			                                 IQueryContext context) {
+			public override TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				if (ob2.TType is TQueryPlanType) {
 					// The sub-query plan
 					IQueryPlanNode plan = (IQueryPlanNode)ob2.Object;
@@ -791,34 +780,35 @@ namespace Deveel.Data {
 					Table t = plan.Evaluate(context);
 
 					// The ANY operation
-					Operator rev_plain_op = GetSubQueryForm(OperatorSubType.None).Reverse();
-					if (t.ColumnMatchesValue(0, rev_plain_op, ob1)) {
+					Operator revPlainOp = GetSubQueryForm(OperatorSubType.None).Reverse();
+					if (t.ColumnMatchesValue(0, revPlainOp, ob1)) {
 						return TObject.BooleanTrue;
 					}
 					return TObject.BooleanFalse;
-				} else if (ob2.TType is TArrayType) {
-					Operator plain_op = GetSubQueryForm(OperatorSubType.None);
-					Expression[] exp_list = (Expression[])ob2.Object;
+				} 
+				if (ob2.TType is TArrayType) {
+					Operator plainOp = GetSubQueryForm(OperatorSubType.None);
+					Expression[] expList = (Expression[])ob2.Object;
 					// Assume there are no matches
-					TObject ret_val = TObject.BooleanFalse;
-					for (int i = 0; i < exp_list.Length; ++i) {
-						TObject exp_item = exp_list[i].Evaluate(group, resolver, context);
+					TObject retVal = TObject.BooleanFalse;
+					for (int i = 0; i < expList.Length; ++i) {
+						TObject expItem = expList[i].Evaluate(group, resolver, context);
 						// If null value, return null if there isn't otherwise a match found.
-						if (exp_item.IsNull) {
-							ret_val = TObject.BooleanNull;
+						if (expItem.IsNull) {
+							retVal = TObject.BooleanNull;
 						}
 							// If there is a match, the ANY set test is true
-						else if (IsTrue(plain_op.Evaluate(ob1, exp_item, null, null, null))) {
+						else if (IsTrue(plainOp.Evaluate(ob1, expItem, null, null, null))) {
 							return TObject.BooleanTrue;
 						}
 					}
 					// No matches, so return either false or NULL.  If there are no matches
 					// and no nulls, return false.  If there are no matches and there are
 					// nulls present, return null.
-					return ret_val;
-				} else {
-					throw new ApplicationException("Unknown RHS of ANY.");
+					return retVal;
 				}
+					
+				throw new ApplicationException("Unknown RHS of ANY.");
 			}
 		}
 
@@ -1048,31 +1038,18 @@ namespace Deveel.Data {
 				: base("or", 1) {
 			}
 
-			public override TObject Evaluate(TObject ob1, TObject ob2,
-			                                 IGroupResolver group, IVariableResolver resolver,
-			                                 IQueryContext context) {
-				bool isB1Null, isB2Null;
-				Boolean b1 = ob1.ToBoolean(out isB1Null);
-				Boolean b2 = ob2.ToBoolean(out isB2Null);
+			public override TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				bool? b1 = ob1.ToNullableBoolean();
+				bool? b2 = ob2.ToNullableBoolean();
 
 				// If either ob1 or ob2 are null
-				if (isB1Null) {
-					if (!isB2Null) {
-						if (b2.Equals(true)) {
-							return TObject.BooleanTrue;
-						}
-					}
-					return TObject.BooleanNull;
-				} else if (isB2Null) {
-					if (b1.Equals(true)) {
-						return TObject.BooleanTrue;
-					}
-					return TObject.BooleanNull;
-				}
+				if (!b1.HasValue)
+					return b2.HasValue ? (b2.Equals(true) ? TObject.BooleanTrue : TObject.BooleanNull) : TObject.BooleanNull;
+				if (!b2.HasValue)
+					return b1.Equals(true) ? TObject.BooleanTrue : TObject.BooleanNull;
 
 				// If both true.
-				return TObject.CreateBoolean(b1.Equals(true) ||
-				                          b2.Equals(true));
+				return TObject.CreateBoolean(b1.Equals(true) | b2.Equals(true));
 			}
 		}
 

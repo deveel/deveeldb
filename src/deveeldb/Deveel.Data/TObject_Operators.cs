@@ -419,14 +419,11 @@ namespace Deveel.Data {
 		/// </returns>
 		public TObject Not() {
 			// If type is null
-			if (IsNull) {
+			if (IsNull)
 				return this;
-			}
-			bool isNull;
-			bool b = ToBoolean(out isNull);
-			if (!isNull)
-				return CreateBoolean(!b);
-			return BooleanNull;
+
+			bool? b = ToNullableBoolean();
+			return b.HasValue ? CreateBoolean(!b.Value) : BooleanNull;
 		}
 
 		/// <summary>

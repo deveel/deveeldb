@@ -61,25 +61,13 @@ namespace Deveel.Data {
 			return DateTime.MinValue;
 		}
 
-		/// <summary>
-		/// Gets the value of the object as a <see cref="Number"/>.
-		/// </summary>
-		/// <param name="isNull"></param>
-		/// <returns>
-		/// Returns a <see cref="Boolean"/> if <see cref="TObject.TType"/> is a
-		/// <see cref="TBooleanType"/>.
-		/// </returns>
-		/// <exception cref="InvalidCastException">
-		/// If the value wrapped by this object is not a <see cref="TBooleanType"/>.
-		/// </exception>
-		public bool ToBoolean(out bool isNull) {
+
+		public bool? ToNullableBoolean() {
 			if (TType is TBooleanType) {
 				object value = Object;
-				isNull = (value == null);
-				return (value == null ? false : (bool)value);
+				return (bool?) value;
 			}
-			isNull = true;
-			return false;
+			return null;
 		}
 
 		/// <summary>
@@ -92,10 +80,9 @@ namespace Deveel.Data {
 		/// <exception cref="InvalidCastException">
 		/// If the value wrapped by this object is not a <see cref="TBooleanType"/>.
 		/// </exception>
-		/// <seealso cref="ToBoolean(out bool)"/>
 		public bool ToBoolean() {
-			bool isNull;
-			return ToBoolean(out isNull);
+			bool? b = ToNullableBoolean();
+			return b.HasValue && b.Value;
 		}
 
 		/// <summary>
