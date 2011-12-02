@@ -1,3 +1,14 @@
+2011-11-02  Antonello Provenzano  <antonello@deveel.com>
+	* TObject.cs: 
+		- splitted into partial classes to make it easier 
+		to manage
+		- Get* methods renamed to Create*, that is more logical
+		- Null property removed (redundant use of NullObject field)
+		- NullObject field renamed to Null
+		- explicit conversion operators made implicit
+	* Operator.cs: added overload of the method Evaluate to
+	support evaluation outside a context
+
 2010-05-01  Antonello Provenzano  <antonello@deveel.com>
 	* TableName.cs: added an overload of the method ToString
 	that accepts a boolean to include the 'UnknownSchema'.

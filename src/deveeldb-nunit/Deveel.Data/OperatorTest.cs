@@ -9,24 +9,19 @@ namespace Deveel.Data {
 		public void Add() {
 			// NUMERIC
 			Operator op = Operator.Get("+");
-			TObject obj1 = (TObject) 1, obj2 = (TObject) 5;
+			TObject obj1 = 1, obj2 = 5;
 			TObject result = op.Evaluate(obj1, obj2, null, null, null);
-			Assert.IsTrue(result == (TObject) 6);
+			Assert.IsTrue(result == 6);
 
 			// STRING
-			obj1 = (TObject) "str1";
-			obj2 = (TObject) "str2";
+			obj1 = "str1";
+			obj2 = "str2";
 			result = op.Evaluate(obj1, obj2, null, null, null);
-			Assert.IsTrue(result == (TObject) "str1str2");
-
-			// TIME + NUMERIC
-			obj1 = (TObject) new DateTime(2000, 12, 31);
-			obj2 = (TObject)(1*24*60*60*1000);
-			result = op.Evaluate(obj1, obj2, null, null, null);
-			Assert.IsTrue(result == (TObject) new DateTime(2001, 1, 1));
-
+			Assert.IsTrue(result == "str1str2");
+			
 			// TIME + INTERVAL
-			obj2 = (TObject) new TimeSpan(1, 0, 0,0);
+			obj1 = new DateTime(2000, 12, 31);
+			obj2 = new TimeSpan(1, 0, 0,0);
 			result = op.Evaluate(obj1, obj2, null, null, null);
 			Assert.IsTrue(result == (TObject) new DateTime(2001, 1, 1));
 		}
@@ -35,28 +30,39 @@ namespace Deveel.Data {
 		public void Substract() {
 			// NUMERIC
 			Operator op = Operator.Get("-");
-			TObject obj1 = (TObject) 1, obj2 = (TObject) 5;
+			TObject obj1 = 1, obj2 = 5;
 			TObject result = op.Evaluate(obj2, obj1, null, null, null);
-			Assert.IsTrue(result == (TObject) 4);
-
-			// TIME - NUMERIC
-			obj1 = (TObject) new DateTime(2001, 1, 1);
-			obj2 = (TObject)(1*24*60*60*1000);
-			result = op.Evaluate(obj1, obj2, null, null, null);
-			Assert.IsTrue(result == (TObject) new DateTime(2000, 12, 31));
-
+			Assert.IsTrue(result == 4);
+			
 			// TIME - INTERVAL
-			obj2 = (TObject) new TimeSpan(1, 0, 0, 0);
+			obj1 = new DateTime(2001, 1, 1);
+			obj2 = new TimeSpan(1, 0, 0, 0);
 			result = op.Evaluate(obj1, obj2, null, null, null);
-			Assert.IsTrue(result == (TObject) new DateTime(2000, 12, 31));
+			Assert.IsTrue(result == new DateTime(2000, 12, 31));
 		}
 
 		[Test]
 		public void Concat() {
 			Operator op = Operator.Get("||");
-			TObject obj1 = (TObject) "str1", obj2 = (TObject) "str2";
+			TObject obj1 = "str1", obj2 = "str2";
 			TObject result = op.Evaluate(obj1, obj2, null, null, null);
-			Assert.IsTrue(result == (TObject) "str1str2");
+			Assert.IsTrue(result == "str1str2");
+		}
+
+		[Test]
+		public void Multiply() {
+			Operator op = Operator.Multiply;
+			TObject obj1 = 22, obj2 = 3;
+			TObject result = op.Evaluate(obj1, obj2);
+			Assert.AreEqual(66, result);
+		}
+
+		[Test]
+		public void Divide() {
+			Operator op = Operator.Divide;
+			TObject obj1 = 127, obj2 = 3;
+			TObject result = op.Evaluate(obj1, obj2);
+			Assert.AreEqual(42.3333333333, result);
 		}
 	}
 }

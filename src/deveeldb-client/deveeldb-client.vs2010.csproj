@@ -48,10 +48,16 @@
     <Compile Include="Deveel.Data.Client\DeveelDbAuthenticationException.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbBinary.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbBoolean.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbConnectionStringBuilder.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbDataAdapter.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbDataAdapter.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbDateTime.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />

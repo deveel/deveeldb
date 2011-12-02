@@ -561,25 +561,25 @@ namespace Deveel.Data {
 			VariableName access_col = connect_priv.GetResolvedVariable(3);
 			// Query: where UserName = %username%
 			Table t = connect_priv.SimpleSelect(context, un_col, Operator.Get("="),
-			                                    new Expression(TObject.GetString(username)));
+			                                    new Expression(TObject.CreateString(username)));
 			// Query: where %protocol% like Protocol
-			Expression exp = Expression.Simple(TObject.GetString(protocol),
+			Expression exp = Expression.Simple(TObject.CreateString(protocol),
 			                                   Operator.Get("like"), proto_col);
 			t = t.ExhaustiveSelect(context, exp);
 			// Query: where %host% like Host
-			exp = Expression.Simple(TObject.GetString(host),
+			exp = Expression.Simple(TObject.CreateString(host),
 			                        Operator.Get("like"), host_col);
 			t = t.ExhaustiveSelect(context, exp);
 
 			// Those that are DENY
 			Table t2 = t.SimpleSelect(context, access_col, Operator.Get("="),
-			                          new Expression(TObject.GetString("DENY")));
+			                          new Expression(TObject.CreateString("DENY")));
 			if (t2.RowCount > 0) {
 				return false;
 			}
 			// Those that are ALLOW
 			Table t3 = t.SimpleSelect(context, access_col, Operator.Get("="),
-			                          new Expression(TObject.GetString("ALLOW")));
+			                          new Expression(TObject.CreateString("ALLOW")));
 			if (t3.RowCount > 0) {
 				return true;
 			}
@@ -603,7 +603,7 @@ namespace Deveel.Data {
 			DataTable table = context.GetTable(SysPassword);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All password where UserName = %username%
-			Table t = table.SimpleSelect(context, c1, Operator.Get("="), new Expression(TObject.GetString(username)));
+			Table t = table.SimpleSelect(context, c1, Operator.Get("="), new Expression(TObject.CreateString(username)));
 			return t.RowCount > 0;
 		}
 
@@ -675,7 +675,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void DeleteAllUserGroups(DatabaseQueryContext context, String username) {
 			Operator EQUALS_OP = Operator.Get("=");
-			Expression USER_EXPR = new Expression(TObject.GetString(username));
+			Expression USER_EXPR = new Expression(TObject.CreateString(username));
 
 			DataTable table = context.GetTable(SysUserPriv);
 			VariableName c1 = table.GetResolvedVariable(0);
@@ -703,7 +703,7 @@ namespace Deveel.Data {
 			//  and not allow the delete if there are.
 
 			Operator EQUALS_OP = Operator.Get("=");
-			Expression USER_EXPR = new Expression(TObject.GetString(username));
+			Expression USER_EXPR = new Expression(TObject.CreateString(username));
 
 			// First delete all the groups from the user priv table
 			DeleteAllUserGroups(context, username);
@@ -732,7 +732,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void AlterUserPassword(DatabaseQueryContext context, String username, String password) {
 			Operator EQUALS_OP = Operator.Get("=");
-			Expression USER_EXPR = new Expression(TObject.GetString(username));
+			Expression USER_EXPR = new Expression(TObject.CreateString(username));
 
 			// Delete the current username from the 'password' table
 			DataTable table = context.GetTable(SysPassword);
@@ -763,7 +763,7 @@ namespace Deveel.Data {
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
-			                             new Expression(TObject.GetString(username)));
+			                             new Expression(TObject.CreateString(username)));
 			int sz = t.RowCount;
 			string[] groups = new string[sz];
 			IRowEnumerator row_enum = t.GetRowEnumerator();
@@ -796,10 +796,10 @@ namespace Deveel.Data {
 			VariableName c2 = table.GetResolvedVariable(1);
 			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
-			                             new Expression(TObject.GetString(username)));
+			                             new Expression(TObject.CreateString(username)));
 			// All from this set where PrivGroupName = %group%
 			t = t.SimpleSelect(context, c2, Operator.Get("="),
-			                   new Expression(TObject.GetString(group)));
+			                   new Expression(TObject.CreateString(group)));
 			return t.RowCount > 0;
 		}
 
@@ -880,10 +880,10 @@ namespace Deveel.Data {
 			VariableName c2 = table.GetResolvedVariable(1);
 			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
-			                             new Expression(TObject.GetString(username)));
+			                             new Expression(TObject.CreateString(username)));
 			// All from this set where PrivGroupName = %group%
 			t = t.SimpleSelect(context, c2, Operator.Get("="),
-			                   new Expression(TObject.GetString(LockGroup)));
+			                   new Expression(TObject.CreateString(LockGroup)));
 
 			bool user_belongs_to_lock_group = t.RowCount > 0;
 			if (lock_status && !user_belongs_to_lock_group) {
@@ -2222,9 +2222,9 @@ namespace Deveel.Data {
 			VariableName c2 = database_vars.GetResolvedVariable(1); // Second column
 
 			// Assignment: second column = value
-			Assignment assignment = new Assignment(c2, new Expression(TObject.GetString(value)));
+			Assignment assignment = new Assignment(c2, new Expression(TObject.CreateString(value)));
 			// All rows from database_vars where first column = the key
-			Table t1 = database_vars.SimpleSelect(context, c1, Operator.Get("="), new Expression(TObject.GetString(key)));
+			Table t1 = database_vars.SimpleSelect(context, c1, Operator.Get("="), new Expression(TObject.CreateString(key)));
 
 			// Update the variable
 			database_vars.Update(context, t1, new Assignment[] {assignment}, -1);

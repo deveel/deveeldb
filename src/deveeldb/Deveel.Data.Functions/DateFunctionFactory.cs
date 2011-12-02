@@ -218,7 +218,7 @@ namespace Deveel.Data.Functions {
 				}
 
 				String format_string = format.ToString();
-				return TObject.GetString(d.ToString(format_string));
+				return TObject.CreateString(d.ToString(format_string));
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -250,7 +250,7 @@ namespace Deveel.Data.Functions {
 				DateTime date = ob1.ToDateTime();
 				int value = ob2.ToBigNumber().ToInt32();
 
-				return TObject.GetDateTime(date.AddMonths(value));
+				return TObject.CreateDateTime(date.AddMonths(value));
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -281,7 +281,7 @@ namespace Deveel.Data.Functions {
 				DateTime date2 = ob2.ToDateTime();
 
 				Interval span = new Interval(date1, date2);
-				return TObject.GetInt4(span.Months);
+				return TObject.CreateInt4(span.Months);
 			}
 		}
 
@@ -305,7 +305,7 @@ namespace Deveel.Data.Functions {
 				DateTime evalDate = new DateTime(date.Year, date.Month, 1);
 				evalDate = evalDate.AddMonths(1).Subtract(new TimeSpan(1, 0, 0, 0, 0));
 
-				return TObject.GetDateTime(evalDate);
+				return TObject.CreateDateTime(evalDate);
 			}
 		}
 
@@ -355,7 +355,7 @@ namespace Deveel.Data.Functions {
 				DateTime date = ob1.ToDateTime();
 				DateTime nextDate = GetNextDateForDay(date, GetDayOfWeek(ob2));
 
-				return TObject.GetDateTime(nextDate);
+				return TObject.CreateDateTime(nextDate);
 			}
 		}
 
@@ -370,7 +370,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
-				return TObject.GetString(TimeZone.CurrentTimeZone.StandardName);
+				return TObject.CreateString(TimeZone.CurrentTimeZone.StandardName);
 			}
 		}
 
@@ -438,7 +438,7 @@ namespace Deveel.Data.Functions {
 
 				string field_str = field.ToStringValue();
 
-				return TObject.GetInt4(ExtractField(field_str, date));
+				return TObject.CreateInt4(ExtractField(field_str, date));
 			}
 		}
 

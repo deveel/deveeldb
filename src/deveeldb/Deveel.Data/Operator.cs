@@ -408,6 +408,18 @@ namespace Deveel.Data {
 		                                 IQueryContext context);
 
 		/// <summary>
+		/// Evaluates two <see cref="TObject"/> instances outside a context.
+		/// </summary>
+		/// <param name="obj1">First operand.</param>
+		/// <param name="obj2">Second operand.</param>
+		/// <returns>
+		/// Returns a <see cref="TObject"/> as result of the evaluation.
+		/// </returns>
+		public TObject Evaluate(TObject obj1, TObject obj2) {
+			return Evaluate(obj1, obj2, null, null, null);
+		}
+
+		/// <summary>
 		/// Returns an Operator that is the reverse of this Operator.
 		/// </summary>
 		/// <remarks>
@@ -742,7 +754,7 @@ namespace Deveel.Data {
 				}
 
 				// If both true.
-				return TObject.GetBoolean(b1.Equals(true) &&
+				return TObject.CreateBoolean(b1.Equals(true) &&
 				                          b2.Equals(true));
 			}
 		}
@@ -1059,7 +1071,7 @@ namespace Deveel.Data {
 				}
 
 				// If both true.
-				return TObject.GetBoolean(b1.Equals(true) ||
+				return TObject.CreateBoolean(b1.Equals(true) ||
 				                          b2.Equals(true));
 			}
 		}
@@ -1102,7 +1114,7 @@ namespace Deveel.Data {
 				}
 				String val = ob1.CastTo(TType.StringType).ToStringValue();
 				String pattern = ob2.CastTo(TType.StringType).ToStringValue();
-				return TObject.GetBoolean(
+				return TObject.CreateBoolean(
 					!PatternSearch.FullPatternMatch(pattern, val, '\\'));
 			}
 		}
@@ -1129,7 +1141,7 @@ namespace Deveel.Data {
 				String val = ob1.CastTo(TType.StringType).ToStringValue();
 				String pattern = ob2.CastTo(TType.StringType).ToStringValue();
 
-				TObject result = TObject.GetBoolean(
+				TObject result = TObject.CreateBoolean(
 					PatternSearch.FullPatternMatch(pattern, val, '\\'));
 				return result;
 			}
@@ -1155,7 +1167,7 @@ namespace Deveel.Data {
 
 				string val = ob1.CastTo(TType.StringType).ToStringValue();
 				string pattern = ob2.CastTo(TType.StringType).ToStringValue();
-				return TObject.GetBoolean(PatternSearch.RegexMatch(context.System, pattern, val));
+				return TObject.CreateBoolean(PatternSearch.RegexMatch(context.System, pattern, val));
 			}
 		}
 

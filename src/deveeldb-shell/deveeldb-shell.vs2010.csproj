@@ -47,57 +47,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Deveel.Data.Collections\ISet.cs" />
-    <Compile Include="Deveel.Data.Collections\ISortedDictionary.cs" />
-    <Compile Include="Deveel.Data.Collections\ISortedSet.cs" />
-    <Compile Include="Deveel.Data.Collections\SortedMatchEnumerator.cs" />
-    <Compile Include="Deveel.Data.Collections\TreeDictionary.cs" />
-    <Compile Include="Deveel.Data.Collections\TreeSet.cs" />
-    <Compile Include="Deveel.Data.Commands\AlterCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\CommitCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\ConnectCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\CreateCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\DeleteCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\DependencyResolver.cs" />
-    <Compile Include="Deveel.Data.Commands\DescribeCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\DisconnectCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\DropCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\DumpCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\DumpExporter.cs" />
-    <Compile Include="Deveel.Data.Commands\DumpImporter.cs" />
-    <Compile Include="Deveel.Data.Commands\EncodingMismatchException.cs" />
-    <Compile Include="Deveel.Data.Commands\IDumpSource.cs" />
-    <Compile Include="Deveel.Data.Commands\InsertCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\ListUserObjectsCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\LongRunningTimeDisplay.cs" />
-    <Compile Include="Deveel.Data.Commands\MetaProperty.cs" />
-    <Compile Include="Deveel.Data.Commands\RehashCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\RenameSessionCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\RollbackCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\SelectCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\SelectDumpSource.cs" />
-    <Compile Include="Deveel.Data.Commands\SessionsCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\SqlCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\StatementCanceller.cs" />
-    <Compile Include="Deveel.Data.Commands\StatusCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\SwitchCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\TableDumpSource.cs" />
-    <Compile Include="Deveel.Data.Commands\TablesCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\UpdateCommand.cs" />
-    <Compile Include="Deveel.Data.Commands\ViewsCommand.cs" />
-    <Compile Include="Deveel.Data.Shell\Column.cs" />
-    <Compile Include="Deveel.Data.Shell\Connections.cs" />
-    <Compile Include="Deveel.Data.Shell\Database.cs" />
-    <Compile Include="Deveel.Data.Shell\DataReaderRenderer.cs" />
-    <Compile Include="Deveel.Data.Shell\DeveelDBShell.cs" />
-    <Compile Include="Deveel.Data.Shell\ForeignKey.cs" />
-    <Compile Include="Deveel.Data.Shell\PrimaryKey.cs" />
-    <Compile Include="Deveel.Data.Shell\Privilege.cs" />
-    <Compile Include="Deveel.Data.Shell\ProductInfo.cs" />
-    <Compile Include="Deveel.Data.Shell\SessionManager.cs" />
-    <Compile Include="Deveel.Data.Shell\SqlSession.cs" />
-    <Compile Include="Deveel.Data.Shell\SqlStatementSeparator.cs" />
-    <Compile Include="Deveel.Data.Shell\Table.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

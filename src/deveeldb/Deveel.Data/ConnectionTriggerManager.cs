@@ -80,9 +80,9 @@ namespace Deveel.Data {
 			VariableName namev = table.GetResolvedVariable(1);
 
 			Table t = table.SimpleSelect(context, namev, EQUALS,
-										 new Expression(TObject.GetString(name)));
+										 new Expression(TObject.CreateString(name)));
 			return t.ExhaustiveSelect(context, Expression.Simple(
-												schemav, EQUALS, TObject.GetString(schema)));
+												schemav, EQUALS, TObject.CreateString(schema)));
 		}
 
 		/// <summary>
@@ -138,13 +138,13 @@ namespace Deveel.Data {
 				// Insert the entry into the trigger table,
 				DataTable table = connection.GetTable(Database.SysDataTrigger);
 				DataRow row = new DataRow(table);
-				row.SetValue(0, TObject.GetString(schema));
-				row.SetValue(1, TObject.GetString(name));
-				row.SetValue(2, TObject.GetInt4((int)type));
-				row.SetValue(3, TObject.GetString("T:" + on_table));
-				row.SetValue(4, TObject.GetString(procedure_name));
+				row.SetValue(0, TObject.CreateString(schema));
+				row.SetValue(1, TObject.CreateString(name));
+				row.SetValue(2, TObject.CreateInt4((int)type));
+				row.SetValue(3, TObject.CreateString("T:" + on_table));
+				row.SetValue(4, TObject.CreateString(procedure_name));
 				row.SetValue(5, TObject.GetObject(encoded_params));
-				row.SetValue(6, TObject.GetString(connection.User.UserName));
+				row.SetValue(6, TObject.CreateString(connection.User.UserName));
 				table.Add(row);
 
 				// Invalidate the list

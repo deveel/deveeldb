@@ -124,9 +124,9 @@ namespace Deveel.Data {
 			VariableName namev = table.GetResolvedVariable(1);
 
 			Table t = table.SimpleSelect(context, namev, EQUALS,
-							  new Expression(TObject.GetString(view_name.Name)));
+							  new Expression(TObject.CreateString(view_name.Name)));
 			t = t.ExhaustiveSelect(context, Expression.Simple(
-						  schemav, EQUALS, TObject.GetString(view_name.Schema)));
+						  schemav, EQUALS, TObject.CreateString(view_name.Schema)));
 
 			// This should be at most 1 row in size
 			if (t.RowCount > 1) {

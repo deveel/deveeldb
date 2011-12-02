@@ -2272,7 +2272,7 @@ void Operand(Expression exp, Stack stack) :
     { object param_ob2 = Util.ToParamObject(t, case_insensitive_identifiers);
       exp_list = new Expression[2];
       exp_list[0] = new Expression(param_ob2);
-      exp_list[1] = new Expression(TObject.GetString(interval_form));
+      exp_list[1] = new Expression(TObject.CreateString(interval_form));
       f =  Util.ResolveFunctionName("intervalob", exp_list);
       exp.AddElement(f);
       exp.Text.Append("INTERVAL").Append(" ").Append(t.image).Append(" ").Append(interval_form);
@@ -2577,9 +2577,9 @@ FunctionDef Function() :
                          [ t3=<STRING_LITERAL> ] <FROM> ] exp1=DoExpression() ")" ) 
                         { exp_list = new Expression[3];
                           String ttype = t2 == null ? "both" : t2.image.ToLower();
-                          Object str_char = t3 == null ? TObject.GetString(" ") :
+                          Object str_char = t3 == null ? TObject.CreateString(" ") :
                                                          Util.ToParamObject(t3, case_insensitive_identifiers);
-                          exp_list[0] = new Expression(TObject.GetString(ttype));
+                          exp_list[0] = new Expression(TObject.CreateString(ttype));
                           exp_list[0].Text.Append("'" + ttype + "'");
                           exp_list[1] = new Expression(str_char);
                           exp_list[1].Text.Append("'" + str_char + "'");
@@ -2590,7 +2590,7 @@ FunctionDef Function() :
     | (t = <EXTRACT> "(" ( t2 = <YEAR> | t2=<MONTH> | t2=<DAY> | t2=<HOUR> | t2=<MINUTE> | t2=<SECOND> )
                            <FROM> exp1=DoExpression() ")" )
                         { exp_list = new Expression[2];
-                          exp_list[0] = new Expression(TObject.GetString(t2.image.ToLower()));
+                          exp_list[0] = new Expression(TObject.CreateString(t2.image.ToLower()));
                           exp_list[0].Text.Append("'" + t2.image + "'");
                           exp_list[1] = exp1;
                           return Util.ResolveFunctionName("extract", exp_list);
@@ -2600,7 +2600,7 @@ FunctionDef Function() :
                         { exp_list = new Expression[2];
                           String enc_form = TType.Encode(cast_type);
                           exp_list[0] = exp1;
-                          exp_list[1] = new Expression(TObject.GetString(enc_form));
+                          exp_list[1] = new Expression(TObject.CreateString(enc_form));
                           exp_list[1].Text.Append("'" + enc_form + "'");
                           return Util.ResolveFunctionName("sql_cast", exp_list);
                         }
@@ -2626,7 +2626,7 @@ FunctionDef Instantiation() :
   
   { Expression[] comp_args = new Expression[args.Length + 1];
     Array.Copy(args, 0, comp_args, 1, args.Length);
-    comp_args[0] = new Expression(TObject.GetString(t.image));
+    comp_args[0] = new Expression(TObject.CreateString(t.image));
     comp_args[0].Text.Append("'" + t.image + "'");
     return Util.ResolveFunctionName("_new_Object", comp_args); }
 }

@@ -331,7 +331,7 @@ namespace Deveel.Data.Client {
 		/// insensitive or not. 
 		///</summary>
 		/// <remarks>
-		/// If this is true then <see cref="DeveelDbDataReader.GetString">GetString("app.id")</see> 
+		/// If this is true then <see cref="DeveelDbDataReader.GetString">CreateString("app.id")</see> 
 		/// will match against <c>APP.id</c>, etc.
 		/// </remarks>
 		internal bool IsCaseInsensitiveIdentifiers {

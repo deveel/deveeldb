@@ -34,7 +34,7 @@ namespace Deveel.Data.Functions {
 
 		static FunctionFactory() {
 			GlobExpression = new Expression();
-			GlobExpression.AddElement(TObject.GetString("*"));
+			GlobExpression.AddElement(TObject.CreateString("*"));
 			GlobExpression.Text.Append("*");
 
 			GlobList = new Expression[] { GlobExpression };

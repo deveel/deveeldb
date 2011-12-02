@@ -2315,7 +2315,7 @@ namespace Deveel.Data.Sql {
 					if (!(lob is Operator) ||
 						((Operator)lob).IsMathematical) {
 						Operator EQUAL_OP = Operator.Get("=");
-						andexp.AddElement(TObject.GetBoolean(true));
+						andexp.AddElement(TObject.CreateBoolean(true));
 						andexp.AddOperator(EQUAL_OP);
 						op = EQUAL_OP;
 					} else {
