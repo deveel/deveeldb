@@ -18,3 +18,4 @@
 /src/deveeldb-client/obj
 *.user
 *.suo
+/src/deveeldb-client/bin

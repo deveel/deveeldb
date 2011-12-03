@@ -388,9 +388,8 @@ namespace Deveel.Data.Control {
 
 			StorageType storageType = GetStorageType(config);
 
-			DbConfig dbConfig;
 			string path = "";
-			dbConfig = new DbConfig();
+			DbConfig dbConfig = new DbConfig();
 			if (storageType == StorageType.File) {
 				// we ensure that the CurrentPath points to where we want it to point
 				path = Path.Combine(Config.CurrentPath, name);

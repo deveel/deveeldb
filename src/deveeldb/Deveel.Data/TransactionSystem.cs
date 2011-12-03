@@ -400,46 +400,44 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Sets up the log file from the config information.
 		/// </summary>
-		/// <param name="config"></param>
-		private void SetupLog(DbConfig config) {
+		private void SetupLog() {
 			//// Conditions for not initializing a log directory;
 			////  1. Read only access is enabled
 			////  2. log_path is empty or not set
 
-			string log_path_string = config.GetStringValue("log_path", null);
+			string logPathString = config.LogPath;
 			string root_path_var = config.GetValue("root_path");
 
-			bool read_only_bool = config.GetBooleanValue("read_only", false);
-			bool debug_logs_bool = config.GetBooleanValue("debug_logs", true);
+			bool readOnly = config.ReadOnly;
+			bool debugLogs = config.GetBooleanValue("debug_logs", true);
 
-			if (debug_logs_bool && !read_only_bool &&
-				log_path_string != null) {
+			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
 				// First set up the debug information in this VM for the 'Debug' class.
-				string log_path = config.ParseFileString(root_path_var, log_path_string);
+				string logPath = config.ParseFileString(root_path_var, logPathString);
 				// If the path doesn't exist the make it.
-				if (!Directory.Exists(log_path))
-					Directory.CreateDirectory(log_path);
+				if (!Directory.Exists(logPath))
+					Directory.CreateDirectory(logPath);
 				
-				LogDirectory = log_path;
+				LogDirectory = logPath;
 			}
 
-			string logger_type_string = config.GetValue("logger_type");
+			string loggerTypeString = config.GetValue("logger_type");
 
-			Type logger_type = null;
-			if (logger_type_string != null) {
-				logger_type = Type.GetType(logger_type_string, false, true);
-				if (!typeof(IDebugLogger).IsAssignableFrom(logger_type))
-					logger_type = null;
+			Type loggerType = null;
+			if (loggerTypeString != null) {
+				loggerType = Type.GetType(loggerTypeString, false, true);
+				if (!typeof(IDebugLogger).IsAssignableFrom(loggerType))
+					loggerType = null;
 			}
 
 			// in case we don't log...
-			if (read_only_bool || !debug_logs_bool)
-				logger_type = typeof (EmptyDebugLogger);
+			if (readOnly || !debugLogs)
+				loggerType = typeof (EmptyDebugLogger);
 
-			if (logger_type == null)
-				logger_type = typeof (DefaultDebugLogger);
+			if (loggerType == null)
+				loggerType = typeof (DefaultDebugLogger);
 
-			logger = (IDebugLogger) Activator.CreateInstance(logger_type, true);
+			logger = (IDebugLogger) Activator.CreateInstance(loggerType, true);
 			logger.Init(config);
 		}
 
@@ -479,25 +477,25 @@ namespace Deveel.Data {
 				this.config = config;
 
 				// Set the read_only property
-				read_only_access = config.GetBooleanValue("read_only", false);
+				read_only_access = config.ReadOnly;
 
 				// Setup the log
-				SetupLog(config);
+				SetupLog();
 
 				// The storage encapsulation that has been configured.
-				string storage_system = config.GetStringValue(ConfigKeys.StorageSystem, "v1file");
+				string storageSystem = config.GetStringValue(ConfigKeys.StorageSystem, "v1file");
 
 				// Construct the system store.
-				if (String.Compare(storage_system, "v1file", true) == 0) {
+				if (String.Compare(storageSystem, "v1file", true) == 0) {
 					Debug.Write(DebugLevel.Message, this, "Storage System: v1 file storage mode.");
 					store_system = new V1FileStoreSystem();
-				} else if (String.Compare(storage_system, "v1heap", true) == 0) {
+				} else if (String.Compare(storageSystem, "v1heap", true) == 0) {
 					Debug.Write(DebugLevel.Message, this, "Storage System: v1 heap storage mode.");
 					store_system = new V1HeapStoreSystem();
 				} else {
-					string error_msg = "Unknown storage_system property: " + storage_system;
+					string error_msg = "Unknown storage_system property: " + storageSystem;
 
-					Type storageSystemType = Type.GetType(storage_system, false, true);
+					Type storageSystemType = Type.GetType(storageSystem, false, true);
 					if (storageSystemType == null || 
 						!typeof(IStoreSystem).IsAssignableFrom(storageSystemType)) {
 						Debug.Write(DebugLevel.Error, this, error_msg);
@@ -520,19 +518,19 @@ namespace Deveel.Data {
 				AddFunctionFactory(FunctionFactory.Default);
 
 				// Set up the DataCellCache from the values in the configuration
-				int max_cache_size = 0, max_cache_entry_size = 0;
+				int maxCacheSize = 0, max_cache_entry_size = 0;
 
-				max_cache_size = config.GetIntegerValue("data_cache_size", 0);
-				max_cache_entry_size = config.GetIntegerValue("max_cache_entry_size", 0);
+				maxCacheSize = config.GetIntegerValue(ConfigKeys.DataCacheSize, 0);
+				max_cache_entry_size = config.GetIntegerValue(ConfigKeys.MaxCacheEntrySize, 0);
 
-				if (max_cache_size >= 4096 &&
+				if (maxCacheSize >= 4096 &&
 				    max_cache_entry_size >= 16 &&
-				    max_cache_entry_size < (max_cache_size/2)) {
-					Debug.Write(DebugLevel.Message, this,"Internal Data Cache size:          " + max_cache_size);
+				    max_cache_entry_size < (maxCacheSize/2)) {
+					Debug.Write(DebugLevel.Message, this,"Internal Data Cache size:          " + maxCacheSize);
 					Debug.Write(DebugLevel.Message, this,"Internal Data Cache max cell size: " + max_cache_entry_size);
 
 					// Find a prime hash size depending on the size of the cache.
-					int hash_size = DataCellCache.ClosestPrime(max_cache_size/55);
+					int hash_size = DataCellCache.ClosestPrime(maxCacheSize/55);
 
 					string cacheTypeString = config.GetStringValue("cache_type", "heap");
 					Type cacheType = String.Compare(cacheTypeString, "heap", true) == 0
@@ -544,13 +542,13 @@ namespace Deveel.Data {
 
 					ICache cache;
 					if (cacheType == typeof(MemoryCache)) {
-						cache = new MemoryCache(hash_size, max_cache_size, 20);
+						cache = new MemoryCache(hash_size, maxCacheSize, 20);
 					} else {
 						cache = (ICache) Activator.CreateInstance(cacheType, true);
 					}
 
 					// Set up the data_cell_cache
-					data_cell_cache = new DataCellCache(this, cache, max_cache_size, max_cache_entry_size, hash_size);
+					data_cell_cache = new DataCellCache(this, cache, maxCacheSize, max_cache_entry_size, hash_size);
 				} else {
 					Debug.Write(DebugLevel.Message, this, "Internal Data Cache disabled.");
 				}
@@ -580,94 +578,38 @@ namespace Deveel.Data {
 				ignore_case_for_identifiers = config.GetBooleanValue(ConfigKeys.IgnoreIdentifiersCase, false);
 				Debug.Write(DebugLevel.Message, this, "ignore_case_for_identifiers = " + ignore_case_for_identifiers);
 
-				//// ---- Store system setup ----
-
-				//if (is_file_store_mode) {
-				//    // sets up the fsync() functions in case this is a file-system
-				//    // backed storage 
-				//    SetupFSync(config);
-
-				//    // Get the safety level of the file system where 10 is the most safe
-				//    // and 1 is the least safe.
-				//    int io_safety_level = GetConfigInt("io_safety_level", 10);
-				//    if (io_safety_level < 1 || io_safety_level > 10) {
-				//        Debug.Write(DebugLevel.Message, this, "Invalid io_safety_level value.  Setting to the most safe level.");
-				//        io_safety_level = 10;
-				//    }
-				//    Debug.Write(DebugLevel.Message, this, "io_safety_level = " + io_safety_level);
-
-				//    // Logging is disabled when safety level is less or equal to 2
-				//    bool enable_logging = true;
-				//    if (io_safety_level <= 2) {
-				//        Debug.Write(DebugLevel.Message, this, "Disabling journaling and file sync.");
-				//        enable_logging = false;
-				//    }
-
-				//    Debug.Write(DebugLevel.Message, this, "Using stardard IO API for heap buffered file access.");
-				//    int page_size = GetConfigInt("buffered_io_page_size", 8192);
-				//    int max_pages = GetConfigInt("buffered_io_max_pages", 256);
-
-				//    // Output this information to the log
-				//    Debug.Write(DebugLevel.Message, this, "[Buffer Manager] Page Size: " + page_size);
-				//    Debug.Write(DebugLevel.Message, this, "[Buffer Manager] Max pages: " + max_pages);
-
-				//    // Journal path is currently always the same as database path.
-				//    string journal_path = db_path;
-				//    // Max slice size is 1 GB for file scattering class
-				//    const long max_slice_size = 16384*65536;
-				//    // First file extention is 'db'
-				//    const String first_file_ext = "db";
-
-				//    // Set up the BufferManager
-				//    buffer_manager = new LoggingBufferManager(
-				//        db_path, journal_path, read_only_access, max_pages, page_size,
-				//        first_file_ext, max_slice_size, Debug, enable_logging);
-				//    // ^ This is a big constructor.  It sets up the logging manager and
-				//    //   sets a resource store data accessor converter to a scattering
-				//    //   implementation with a max slice size of 1 GB
-
-				//    // Start the buffer manager.
-				//    try {
-				//        buffer_manager.Start();
-				//    } catch (IOException e) {
-				//        Debug.Write(DebugLevel.Error, this, "Error starting buffer manager");
-				//        Debug.WriteException(DebugLevel.Error, e);
-				//        throw new ApplicationException("IO Error: " + e.Message);
-				//    }
-				//}
-
 				// What regular expression library are we using?
 				// If we want the engine to support other regular expression libraries
 				// then include the additional entries here.
 
-				string regex_bridge;
-				string lib_used;
-				string force_lib = config.GetStringValue("force_regex_library", null);
+				string regexBridge;
+				string libUsed;
+				string forceLib = config.GetStringValue("force_regex_library", null);
 
 				// Are we forcing a particular regular expression library?
-				if (force_lib != null) {
-					lib_used = force_lib;
+				if (forceLib != null) {
+					libUsed = forceLib;
 					// Convert the library string to a class name
-					regex_bridge = RegexStringToClass(force_lib);
+					regexBridge = RegexStringToClass(forceLib);
 				} else {
 					string lib = config.GetStringValue(ConfigKeys.RegexLibrary, "Deveel.Data.Text.SystemRegexLibrary");
-					lib_used = lib;
+					libUsed = lib;
 					// Convert the library string to a class name
-					regex_bridge = lib != null ? RegexStringToClass(lib) : "Deveel.Data.Text.SystemRegexLibrary";
+					regexBridge = lib != null ? RegexStringToClass(lib) : "Deveel.Data.Text.SystemRegexLibrary";
 				}
 
-				if (regex_bridge != null) {
+				if (regexBridge != null) {
 					try {
-						Type c = Type.GetType(regex_bridge);
+						Type c = Type.GetType(regexBridge);
 						regex_library = (IRegexLibrary) Activator.CreateInstance(c);
-						Debug.Write(DebugLevel.Message, this, "Using regex bridge: " + lib_used);
+						Debug.Write(DebugLevel.Message, this, "Using regex bridge: " + libUsed);
 					} catch (Exception e) {
-						Debug.Write(DebugLevel.Error, this, "Unable to load regex bridge: " + regex_bridge);
+						Debug.Write(DebugLevel.Error, this, "Unable to load regex bridge: " + regexBridge);
 						Debug.WriteException(DebugLevel.Warning, e);
 					}
 				} else {
-					if (lib_used != null)
-						Debug.Write(DebugLevel.Error, this, "Regex library not known: " + lib_used);
+					if (libUsed != null)
+						Debug.Write(DebugLevel.Error, this, "Regex library not known: " + libUsed);
 					Debug.Write(DebugLevel.Message, this, "Regex features disabled.");
 				}
 
@@ -675,9 +617,9 @@ namespace Deveel.Data {
 
 				try {
 					// The 'function_factories' property.
-					string function_factories = config.GetStringValue("function_factories", null);
-					if (function_factories != null) {
-						string[] factories = function_factories.Split(';');
+					string functionFactories = config.GetStringValue("function_factories", null);
+					if (functionFactories != null) {
+						string[] factories = functionFactories.Split(';');
 						for (int i = 0; i < factories.Length; ++i) {
 							string factory_class = factories[i];
 							Type c = Type.GetType(factory_class);
