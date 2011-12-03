@@ -42,73 +42,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Deveel.Data.Client\ColumnInfo.cs" />
-    <Compile Include="Deveel.Data.Client\DatabaseCreateException.cs" />
-    <Compile Include="Deveel.Data.Client\DatabaseMetadata.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbAuthenticationException.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbBinary.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbBoolean.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Client\DeveelDbConnectionStringBuilder.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbDataAdapter.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbDateTime.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbLob.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbMetadataSchemaNames.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbNumber.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbServerException.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbString.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbTimeSpan.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbType.cs" />
-    <Compile Include="Deveel.Data.Client\Driver.cs" />
-    <Compile Include="Deveel.Data.Client\EmbeddedDriver.cs" />
-    <Compile Include="Deveel.Data.Client\ISizeable.cs" />
-    <Compile Include="Deveel.Data.Client\LargeObjectRef.cs" />
-    <Compile Include="Deveel.Data.Client\NumberState.cs" />
-    <Compile Include="Deveel.Data.Client\ParameterStyle.cs" />
-    <Compile Include="Deveel.Data.Client\QueryResponse.cs" />
-    <Compile Include="Deveel.Data.Client\ReferenceType.cs" />
-    <Compile Include="Deveel.Data.Client\RemoteDriver.cs" />
-    <Compile Include="Deveel.Data.Client\ResultSet.cs" />
-    <Compile Include="Deveel.Data.Client\RowCache.cs" />
-    <Compile Include="Deveel.Data.Client\SqlType.cs" />
-    <Compile Include="Deveel.Data.Client\TriggerEventArgs.cs" />
-    <Compile Include="Deveel.Data.Client\TriggerEventType.cs" />
-    <Compile Include="Deveel.Math\BigDecimal.cs" />
-    <Compile Include="Deveel.Math\BigInteger.cs" />
-    <Compile Include="Deveel.Math\BitLevel.cs" />
-    <Compile Include="Deveel.Math\CharHelper.cs" />
-    <Compile Include="Deveel.Math\Conversion.cs" />
-    <Compile Include="Deveel.Math\Division.cs" />
-    <Compile Include="Deveel.Math\Elementary.cs" />
-    <Compile Include="Deveel.Math\Logical.cs" />
-    <Compile Include="Deveel.Math\MathContext.cs" />
-    <Compile Include="Deveel.Math\Messages.Designer.cs" />
-    <Compile Include="Deveel.Math\Messages1.Designer.cs" />
-    <Compile Include="Deveel.Math\Multiplication.cs" />
-    <Compile Include="Deveel.Math\Primality.cs" />
-    <Compile Include="Deveel.Math\RoundingMode.cs" />
-    <Compile Include="Deveel.Math\SR.cs" />
-    <Compile Include="Deveel.Math\Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Deveel.Math\Messages.resx" />
+    <None Include="deveeldb-client.snk" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="deveeldb-client.snk" />
+    <Folder Include="Deveel.Data.Client\" />
+    <Folder Include="Deveel.Math\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

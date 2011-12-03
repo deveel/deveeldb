@@ -76,17 +76,17 @@
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
     <Compile Include="Deveel.Data.Client\IDatabaseCallBack.cs" />
-    <Compile Include="Deveel.Data.Protocol\IDatabaseInterface.cs" />
-    <Compile Include="Deveel.Data.Protocol\ILocalBootable.cs" />
-    <Compile Include="Deveel.Data.Protocol\IQueryResponse.cs" />
+    <Compile Include="Deveel.Data.Client\IDatabaseInterface.cs" />
+    <Compile Include="Deveel.Data.Client\ILocalBootable.cs" />
+    <Compile Include="Deveel.Data.Client\IQueryResponse.cs" />
     <Compile Include="Deveel.Data.Client\ITriggerListener.cs" />
     <Compile Include="Deveel.Data.Client\ParemeterStyle.cs" />
-    <Compile Include="Deveel.Data.Protocol\ProtocolConstants.cs" />
+    <Compile Include="Deveel.Data.Client\ProtocolConstants.cs" />
     <Compile Include="Deveel.Data.Client\RemoteDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Client\ResultPart.cs" />
     <Compile Include="Deveel.Data.Client\ResultSet.cs" />
     <Compile Include="Deveel.Data.Client\RowCache.cs" />
-    <Compile Include="Deveel.Data.Protocol\SqlQuery.cs" />
+    <Compile Include="Deveel.Data.Client\SqlQuery.cs" />
     <Compile Include="Deveel.Data.Client\StreamableObjectPart.cs" />
     <Compile Include="Deveel.Data.Client\StreamDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Client\TCPStreamDatabaseInterface.cs" />
@@ -196,8 +196,6 @@
     <Compile Include="Deveel.Data.Sql\OpenCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ParseException.cs" />
     <Compile Include="Deveel.Data.Sql\Planner.cs" />
-    <Compile Include="Deveel.Data.Sql\Planner_PlanTableSource.cs" />
-    <Compile Include="Deveel.Data.Sql\Planner_QueryTableSetPlanner.cs" />
     <Compile Include="Deveel.Data.Sql\PrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql\RevokeStatement.cs" />
@@ -290,7 +288,7 @@
     <Compile Include="Deveel.Data\Caster.cs" />
     <Compile Include="Deveel.Data\CastHelper.cs" />
     <Compile Include="Deveel.Data\CollatedBaseSearch.cs" />
-    <Compile Include="Deveel.Data.Protocol\ColumnDescription.cs" />
+    <Compile Include="Deveel.Data\ColumnDescription.cs" />
     <Compile Include="Deveel.Data\CompositeFunction.cs" />
     <Compile Include="Deveel.Data\CompositeTable.cs" />
     <Compile Include="Deveel.Data\ConnectionTriggerManager.cs" />
@@ -344,7 +342,6 @@
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\IDatabaseProcedure.cs" />
     <Compile Include="Deveel.Data\IDataTableListener.cs" />
-    <Compile Include="Deveel.Data\IExpressionElement.cs" />
     <Compile Include="Deveel.Data\IExpressionPreparer.cs" />
     <Compile Include="Deveel.Data\IGroupResolver.cs" />
     <Compile Include="Deveel.Data\IIndexSet.cs" />
@@ -437,8 +434,6 @@
     <Compile Include="Deveel.Data\TNumericType.cs" />
     <Compile Include="Deveel.Data\TObject.cs" />
     <Compile Include="Deveel.Data\TObjectType.cs" />
-    <Compile Include="Deveel.Data\TObject_Convertible.cs" />
-    <Compile Include="Deveel.Data\TObject_Operators.cs" />
     <Compile Include="Deveel.Data\TQueryPlanType.cs" />
     <Compile Include="Deveel.Data\Transaction.cs" />
     <Compile Include="Deveel.Data\TransactionException.cs" />
@@ -478,59 +473,33 @@
     <Compile Include="Deveel.Diagnostics\Log.cs" />
     <Compile Include="Deveel.Diagnostics\LogEntry.cs" />
     <Compile Include="Deveel.Diagnostics\LogWriter.cs" />
-    <Compile Include="Deveel.Math\BigDecimal.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\BigInteger.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\BitLevel.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\CharHelper.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\Conversion.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\Division.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\Elementary.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\Logical.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\MathContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Deveel.Math\BigDecimal.cs" />
+    <Compile Include="Deveel.Math\BigInteger.cs" />
+    <Compile Include="Deveel.Math\BitLevel.cs" />
+    <Compile Include="Deveel.Math\CharHelper.cs" />
+    <Compile Include="Deveel.Math\Conversion.cs" />
+    <Compile Include="Deveel.Math\Division.cs" />
+    <Compile Include="Deveel.Math\Elementary.cs" />
+    <Compile Include="Deveel.Math\Logical.cs" />
+    <Compile Include="Deveel.Math\MathContext.cs" />
     <Compile Include="Deveel.Math\Messages.Designer.cs" />
     <Compile Include="Deveel.Math\Messages1.Designer.cs" />
-    <Compile Include="Deveel.Math\Multiplication.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\Primality.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\RoundingMode.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\SR.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Math\Utils.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Deveel.Math\Multiplication.cs" />
+    <Compile Include="Deveel.Math\Primality.cs" />
+    <Compile Include="Deveel.Math\RoundingMode.cs" />
+    <Compile Include="Deveel.Math\SR.cs" />
+    <Compile Include="Deveel.Math\Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Deveel.Data.Client\ChangeLog" />
+    <None Include="Deveel.Data.Client\DeveelDbProcedureTrigger.cs.old" />
     <None Include="Deveel.Data.Collections\ChangeLog" />
     <None Include="Deveel.Data.Control\ChangeLog" />
     <None Include="Deveel.Data.Functions\ChangeLog" />
     <None Include="Deveel.Data.Server\ChangeLog" />
     <None Include="Deveel.Data.Sql\ChangeLog" />
+    <None Include="Deveel.Data.Sql\SQL.csc" />
     <None Include="Deveel.Data.Store\ChangeLog" />
     <None Include="Deveel.Data.Util\ChangeLog" />
     <None Include="Deveel.Data\ChangeLog" />

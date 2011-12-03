@@ -1,0 +1,166 @@
+﻿2010-02-05  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbConnectionStringBuilder.cs: 
+		- refactored as the	one in the standalone client library 
+		(for consistency)
+		- added key StrictGetValue (that differs from the standalone
+		client) to return the value as non converted
+	* DeveelDbConnection.cs: replaced references to ConnectionString
+	with DeveelDbConnectionStringBuilder
+	* DeveelDbCommand.cs: refactored to reflect the same behavior
+	of the standalone client (for consistency).
+	
+2009-11-27  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbCommand.cs: fixed a bug on SelectScalar
+	
+2009-11-22  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbCommand.cs: implements ICloneable interface
+	* DeveelDbParamater.cs: implements ICloneable interface
+	* DeveelDbProviderFactory.cs: implemented and added support
+	for the LINQ for DeveelDB
+	* DeveelDbClientInstaller.cs: added to support the automatic
+	installation of the drivers into the running machine (not
+	tested on Mono)
+	
+2009-11-09  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbCommand.cs: fixed the bug in ExecuteReader
+	that caused a reader to be still open even after an
+	exception occurred
+	* DeveelDbMetadataSchemaNames.cs: 
+		- added the member 'Schemata' to support the 
+		retrieval of schemas from	a database 
+		- added the member 'DataTypes' to support the
+		retrieval of built-in data-types info.
+	* DatabaseMetadata.cs: 
+		- added support for retrieval of schemata from 
+		a database
+		- added support for retrieval of database
+		built-in data-types
+	
+2009-10-30  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbConnection.cs: if the Open method fails to
+	connect to the database, it sets the current stante
+	of the connection as 'Broken' (ADO.NET compliancy).
+	
+2009-10-29  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbConnection.cs: 
+		- properties 'VerboseColumnNames', and 'IsStrictGetValue' 
+		moved to ConnectionString.
+		- IsCaseInsensitiveIdentifiers is made internal
+		- Settings property made internal
+		- constructor accepting ConnectionString argument
+		made private
+	
+2009-10-28  Antonello Provenzano  <antonello@deveel.com>
+	* ProtocolConstants.cs: added constant field 
+	CHANGE_DATABASE.
+	* DeveelDbConnection.cs: implemented the command to
+	change the current database.
+	* IDatabaseInterface.cs: added method ChangeDatabase
+	
+2009-10-24  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbLob.cs: Implemented to support *LOBs streaming
+	to and from the database.
+	* IDbBlob.cs: suppressed
+	* IDbClob.cs: suppressed
+	* DbClob.cs: suppressed
+	* DbBlob.cs: suppressed
+	* DbStreamableBlob.cs: suppressed
+	* DbStreamableClob.cs: suppressed
+	* StreamableObject.cs: suppressed
+	
+2009-10-23  Antonello Provenzano  <antonello@deveel.com>
+	* DeveelDbTrigger.cs: now it checks the existence of the
+	trigger at 'Subscribe' (the connection could be closed
+	when creating a trigger, but open when subscribing).
+	* DeveelDbConnection.cs: 
+		- introduced the method CreateTrigger
+		- TriggerDispatchThread now creates a TriggerEventArgs
+		and passes also the additional field for the type.
+	* TriggerEventArgs.cs: added to support specialized
+	trigger event arguments.
+	* TriggerEventMoment.cs: removed in favor of 
+	Deveel.Data.TriggerEventType.
+	* TriggerEventType.cs: removed in favor of 
+	Deveel.Data.TriggerEventType.
+	* ITriggerListener.cs: the method OnTriggerFired now
+	accepts a TriggerEventArgs as argument.
+	
+2009-10-15  Antonello Provenzano  <antonello@deveel.com>
+	* ConnectionString.cs: Added the keys 'CacheSize' and
+	'MaxCacheSize' to control the client cache.
+	
+2009-10-13  Antonello Provenzano  <antonello@deveel.com>
+	* DbConnection.cs: 
+		- renamed to DeveelDbConnection
+		- now derived by Commons.DbConnection
+		- added the support for System.Transactions
+	* DbTransaction.cs: 
+		- renamed to DeveelDbTransaction
+		- now derived by Commons.DbTransaction
+	* DbParamater.cs:
+		- renamed to DeveelDbParameter
+		- now derived from Commons.DbParameter
+	* DbCommand.cs:
+		- renamed to DeveelDbCommand
+		- now derived from Commons.DbCommand
+	* DeveelDbDataReader.cs:
+		- renamed to DeveelDbDataReader
+		- now derived from Commons.DbDataReader
+	
+2009-10-10  Antonello Provenzano  <antonello@deveel.com>
+	* DbTrigger.cs: implemented to support the subscription
+	and creation of trigger events. 
+
+2009-10-09  Antonello Provenzano  <antonello@deveel.com>
+	* IClob.cs, IBlob.cs: new interface design which complies better to 
+	the	ADO.NET specifications
+		- DbStreamableClob and DbClob redesign.
+		- DbStreamableBlob and DbBlob redesign
+	* DbParameter.cs: 
+		- added support for DataSet retreieval (source column
+		and source version).
+		- changed the locig of value setting: now the value is
+		stored in its primary form, until it is prepared in
+		DbCommand, where it is casted to its SQL type (by calling
+		CallHelper)
+	* DbCommand.cs:
+		- modified the Prepare method to cast the value of parameters;
+		- command batches from CommandText (specifiying a semi-colon
+		in the text will cause the command to prepare the execution
+		of several statements);
+		- implemented the support for named parameters
+	* SQLQuery.cs: 
+		- implemented support for named parameters
+		- removed the JDBC escape processing
+		- class and file renamed to SqlCommand (the name
+		implies a query, while this can also be used to non-querying
+		commands)
+	* ConnectionString.cs: now it's possible to switch the style of
+	parameters in a command ('named' or 'marked').
+	* ParameterStyle.cs: added to let users to switch the style
+	of parameters passed in a command (future support for output
+	parameters)
+	* DbParameter.cs: implemented the support for named parameters
+	
+2009-10-08  Antonello Provenzano  <antonello@deveel.com>
+	* ConnectionString.cs: added to support a better connection
+	string formatting.
+	* DbConnection.cs: 
+		- modified to support ConnectionString formatting.
+		- removed the Login methods and moved the logic of authentication
+		to Open, to make it compliant with the ADO.NET specifications.
+		- added controls for the IDbConnection.ConnectionState
+		- Transactions logic adjusted: now BeginTransaction method disable
+		the AUTO COMMIT state; only one transaction per connection.
+	* DbTransaction.cs:
+		- modified to accomplish to the ADO.NET specifications;
+		- unreferences itself from the containing connection;
+		- implements an identificator (for DbCommand.Transaction)
+	* DbCommand.cs:
+		- implemented remaining support for ADO.NET specifications;
+		- support for the connection state
+		- only one DbDataReader instance per command.
+	* DbDataReader.cs:
+		- added an interal event to notify the owner command when
+		the reading has finished (closed or disposed)
+		- implemented the methods GetChars, GetSchemaTable

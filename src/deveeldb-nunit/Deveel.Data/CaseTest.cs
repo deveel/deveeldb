@@ -10,7 +10,7 @@ namespace Deveel.Data {
 		public void StandaloneTest() {
 			TObject result = Expression.Evaluate("CASE " +
 			                                     "  WHEN true THEN 1" +
-			                                     "  ELSE 0");
+			                                     "  ELSE 0 END");
 			Assert.IsTrue(result == (TObject) 1);
 		}
 		
@@ -22,7 +22,7 @@ namespace Deveel.Data {
 			vars["var3"] = 22;
 			vars["var4"] = 13;
 			
-			string expression = "CASE var3 WHEN var1 ELSE var4" ;
+			string expression = "CASE var3 WHEN var1 ELSE var4 END" ;
 			TObject result = Expression.Evaluate(expression, vars);
 			
 			Assert.IsTrue(result == (TObject)22);

@@ -4,7 +4,6 @@ using System.Text;
 
 using Deveel.Data.Client;
 using Deveel.Data.Control;
-using Deveel.Data.Protocol;
 using Deveel.Data.Util;
 
 namespace Deveel.Data.Server {
