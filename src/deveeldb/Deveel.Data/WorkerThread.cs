@@ -38,7 +38,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The command we are currently processing.
 		/// </summary>
-		private IDatabaseEvent command;
+		private EventHandler command;
 		/// <summary>
 		/// The time the command was started.
 		/// </summary>
@@ -55,7 +55,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="worker_pool"></param>
 		public WorkerThread(WorkerPool worker_pool) {
-			thread = new Thread(new ThreadStart(run));
+			thread = new Thread(new ThreadStart(Run));
 			// thread.IsBackground = true;
 			thread.Name = THREAD_NAME;
 			this.worker_pool = worker_pool;
@@ -81,7 +81,7 @@ namespace Deveel.Data {
 		/// <param name="user"></param>
 		/// <param name="database_connection"></param>
 		/// <param name="runner"></param>
-		internal void Execute(User user, DatabaseConnection database_connection, IDatabaseEvent runner) {
+		internal void Execute(User user, DatabaseConnection database_connection, EventHandler runner) {
 			// This should help to prevent deadlock
 			lock (this) {
 				if (command == null) {
@@ -96,7 +96,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Starts executing this worker thread.
 		/// </summary>
-		private void run() {
+		private void Run() {
 			lock (this) {
 				while (true) {
 					try {
@@ -106,7 +106,7 @@ namespace Deveel.Data {
 								// Record the time this command was started.
 								start_time = DateTime.Now;
 								// Run the command
-								command.Execute();
+								command(this, EventArgs.Empty);
 							} finally {
 								command = null;
 								// Record the time the command ended.

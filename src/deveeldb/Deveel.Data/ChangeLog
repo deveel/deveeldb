@@ -1,3 +1,12 @@
+2011-12-03  Antonello Provenzano  <antonello@deveel.com>
+	* DatabaseSystem.cs: replaced list of IDatabaseEvent objects
+	with pure delegates for the Shutdown event
+	* Database.cs: 
+		- splitted into multiple partial classes for easier 
+		manageability
+		- overload of the method RegisterShutdownDelegate
+		with IDatabaseEvent removed
+
 2010-05-01  Antonello Provenzano  <antonello@deveel.com>
 	* TableName.cs: added an overload of the method ToString
 	that accepts a boolean to include the 'UnknownSchema'.

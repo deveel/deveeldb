@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 
 using Deveel.Data.Caching;
@@ -33,43 +34,43 @@ namespace Deveel.Data {
 	/// plug-ins, user management, etc.
 	/// </remarks>
 	public sealed class DatabaseSystem : TransactionSystem {
-		private readonly ArrayList shut_down_delegates = new ArrayList();
+		private EventHandler shutdownCallback;
 
 		/// <summary>
 		/// The list of Database objects that this system is being managed by this environment.
 		/// </summary>
-		private ArrayList database_list;
+		private List<Database> database_list;
 
 		/// <summary>
 		/// True if all queries on the database should be logged in the 'commands.log'
 		/// file in the log directory.
 		/// </summary>
-		private bool query_logging;
+		private bool queryLogging;
 
 		/// <summary>
 		/// Set to true when the database is shut down.
 		/// </summary>
-		private bool shutdown = false;
+		private bool shutdown;
 
 		/// <summary>
 		/// The thread to run to shut down the database system.
 		/// </summary>
-		private ShutdownThread shutdown_thread;
+		private ShutdownThread shutdownThread;
 
 		/// <summary>
 		/// The StatementCache that maintains a cache of parsed queries.
 		/// </summary>
-		private StatementCache statement_cache = null;
+		private StatementCache statementCache = null;
 
 		/// <summary>
 		/// The UserManager object that handles users connected to the database engine.
 		/// </summary>
-		private UserManager user_manager;
+		private UserManager userManager;
 
 		/// <summary>
 		/// The WorkerPool object that manages access to the database(s) in the system.
 		/// </summary>
-		private WorkerPool worker_pool;
+		private WorkerPool workerPool;
 
 
 		// ---------- Queries ----------
@@ -79,7 +80,7 @@ namespace Deveel.Data {
 		/// the log directory), this returns true.  Otherwise it returns false.
 		/// </summary>
 		public bool LogQueries {
-			get { return query_logging; }
+			get { return queryLogging; }
 		}
 
 
@@ -94,7 +95,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		public StatementCache StatementCache {
-			get { return statement_cache; }
+			get { return statementCache; }
 		}
 
 
@@ -108,7 +109,7 @@ namespace Deveel.Data {
 		/// connected, and any inter-user communication (triggers).
 		/// </remarks>
 		internal UserManager UserManager {
-			get { return user_manager; }
+			get { return userManager; }
 		}
 
 		/// <summary>
@@ -123,15 +124,15 @@ namespace Deveel.Data {
 		public override void Init(DbConfig config) {
 			base.Init(config);
 
-			database_list = new ArrayList();
+			database_list = new List<Database>();
 
 			// Create the user manager.
-			user_manager = new UserManager();
+			userManager = new UserManager();
 
 			if (config != null) {
 				// Set up the statement cache.
 				if (config.GetBooleanValue("statement_cache", true)) {
-					statement_cache = new StatementCache(this, 127, 140, 20);
+					statementCache = new StatementCache(this, 127, 140, 20);
 					Debug.Write(DebugLevel.Message, typeof(DatabaseSystem), "statement cache ENABLED");
 				} else {
 					Debug.Write(DebugLevel.Message, typeof(DatabaseSystem), "statement cache DISABLED");
@@ -143,10 +144,10 @@ namespace Deveel.Data {
 					max_worker_threads = 1;
 
 				Debug.Write(DebugLevel.Message, typeof (DatabaseSystem), "Max worker threads set to: " + max_worker_threads);
-				worker_pool = new WorkerPool(this, max_worker_threads);
+				workerPool = new WorkerPool(this, max_worker_threads);
 
 				// Should we be logging commands?
-				query_logging = config.GetBooleanValue("query_logging", false);
+				queryLogging = config.GetBooleanValue("query_logging", false);
 			} else {
 				throw new ApplicationException("Config bundle already set.");
 			}
@@ -157,9 +158,9 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public override void Dispose() {
 			base.Dispose();
-			worker_pool = null;
+			workerPool = null;
 			database_list = null;
-			user_manager = null;
+			userManager = null;
 		}
 
 		/// <summary>
@@ -188,7 +189,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		internal void WaitUntilAllWorkersQuiet() {
-			worker_pool.WaitUntilAllWorkersQuiet();
+			workerPool.WaitUntilAllWorkersQuiet();
 		}
 
 		/// <summary>
@@ -201,12 +202,11 @@ namespace Deveel.Data {
 		/// Otherwise no commands are executed until this is enabled.
 		/// </remarks>
 		internal void SetIsExecutingCommands(bool status) {
-			worker_pool.SetIsExecutingCommands(status);
+			workerPool.SetIsExecutingCommands(status);
 		}
 
 		/// <summary>
-		/// Executes database functions from the 'run' method of the given 
-		/// runnable instance on the first available worker thread.
+		/// Executes the given delegate on the first available worker thread.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <param name="database"></param>
@@ -218,8 +218,8 @@ namespace Deveel.Data {
 		/// of threads active at any one time rather than a unique thread for 
 		/// each connection.
 		/// </remarks>
-		internal void Execute(User user, DatabaseConnection database, IDatabaseEvent runner) {
-			worker_pool.Execute(user, database, runner);
+		internal void Execute(User user, DatabaseConnection database, EventHandler runner) {
+			workerPool.Execute(user, database, runner);
 		}
 
 		// ---------- Shut down methods ----------
@@ -233,8 +233,8 @@ namespace Deveel.Data {
 		/// system.  This is only called once and shuts down the relevant
 		/// database services.
 		/// </remarks>
-		internal void RegisterShutDownDelegate(IDatabaseEvent value) {
-			shut_down_delegates.Add(value);
+		internal void RegisterShutDownDelegate(EventHandler callback) {
+			shutdownCallback = (EventHandler) Delegate.Combine(shutdownCallback, callback);
 		}
 
 		/// <summary>
@@ -249,8 +249,8 @@ namespace Deveel.Data {
 		internal void StartShutDownThread() {
 			if (!shutdown) {
 				shutdown = true;
-				shutdown_thread = new ShutdownThread(this);
-				shutdown_thread.Start();
+				shutdownThread = new ShutdownThread(this);
+				shutdownThread.Start();
 			}
 		}
 
@@ -259,13 +259,13 @@ namespace Deveel.Data {
 		/// has finished).
 		/// </summary>
 		internal void WaitUntilShutdown() {
-			shutdown_thread.WaitTillFinished();
+			shutdownThread.WaitTillFinished();
 		}
 
 		internal void RegisterDatabase(Database database) {
 			lock (this) {
 				if (database_list == null)
-					database_list = new ArrayList();
+					database_list = new List<Database>();
 				if (database_list.Contains(database))
 					throw new DatabaseException("The database '" + database.Name + "' is already registered.");
 
@@ -280,12 +280,12 @@ namespace Deveel.Data {
 		/// </summary>
 		private class ShutdownThread {
 			private readonly Thread thread;
-			private DatabaseSystem ds;
-			private bool finished = false;
+			private readonly DatabaseSystem ds;
+			private bool finished;
 
 			internal ShutdownThread(DatabaseSystem ds) {
 				this.ds = ds;
-				thread = new Thread(new ThreadStart(run));
+				thread = new Thread(new ThreadStart(Run));
 				thread.Name = "Shutdown Thread";
 			}
 
@@ -300,7 +300,7 @@ namespace Deveel.Data {
 				}
 			}
 
-			private void run() {
+			private void Run() {
 				lock (this) {
 					if (finished) {
 						return;
@@ -319,19 +319,14 @@ namespace Deveel.Data {
 				ds.WaitUntilAllWorkersQuiet();
 
 				// Close the worker pool
-				ds.worker_pool.Shutdown();
+				ds.workerPool.Shutdown();
 
-				int sz = ds.shut_down_delegates.Count;
-				if (sz == 0) {
-					ds.Debug.Write(DebugLevel.Warning, this, "No shut down delegates registered!");
+				EventHandler callback = ds.shutdownCallback;
+				if (callback == null) {
+					ds.Debug.Write(DebugLevel.Warning, this, "No shut down callbacks registered!");
 				} else {
-					for (int i = 0; i < sz; ++i) {
-						IDatabaseEvent shut_down_delegate = (IDatabaseEvent) ds.shut_down_delegates[i];
-						if (shut_down_delegate != null)
-							// Run the shut down delegates
-							shut_down_delegate.Execute();
-					}
-					ds.shut_down_delegates.Clear();
+					callback(this, EventArgs.Empty);
+					ds.shutdownCallback = null;
 				}
 
 				lock (this) {

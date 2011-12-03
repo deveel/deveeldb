@@ -125,8 +125,8 @@ namespace Deveel.Data.Server {
 		/**
 		 * Performs the create command.
 		 */
-		private static void doCreate(String database_name, String username, String password, DbConfig config) {
-			DbController controller = DbController.Default;
+		private static void doCreate(string database_name, string username, string password, DbConfig config) {
+			DbController controller = DbController.Create(Environment.CurrentDirectory, config);
 			// Create the database with the given configuration then Close it
 			if (!controller.DatabaseExists(database_name)) {
 				DbSystem database = controller.CreateDatabase(config, database_name, username, password);

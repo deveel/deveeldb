@@ -460,8 +460,7 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public void DisposeStreamableObject(int result_id, long streamable_object_id) {
 			try {
-				int dispatch_id = connection_thread.DisposeStreamableObject(
-														result_id, streamable_object_id);
+				int dispatch_id = connection_thread.DisposeStreamableObject(result_id, streamable_object_id);
 				ServerCommand command =
 						connection_thread.GetCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatch_id);
 				// If command == null then we timed output

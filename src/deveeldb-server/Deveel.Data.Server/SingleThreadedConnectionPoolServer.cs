@@ -124,7 +124,7 @@ namespace Deveel.Data.Server {
 			 */
 			public ServerFarmer(SingleThreadedConnectionPoolServer parent) {
 				this.parent = parent;
-				thread = new Thread(new ThreadStart(run));
+				thread = new Thread(new ThreadStart(Run));
 				//      setPriority(NORM_PRIORITY - 1);
 
 				// The time in ms between each poll of the 'available' method.
@@ -180,7 +180,8 @@ namespace Deveel.Data.Server {
 								connection_state.SetProcessingRequest();
 
 								ServerConnectionState current_state = connection_state;
-								connection.Database.Execute(null, null, new ProcessRequestEventImpl(this, current_state));
+								ProcessRequestEventImpl requestCallback = new ProcessRequestEventImpl(this, current_state);
+								connection.Database.Execute(null, null, requestCallback.Execute);
 
 							} // if (provider_state.HasPendingCommand) ....
 						} // if (!provider_state.IsProcessRequest)
@@ -200,7 +201,7 @@ namespace Deveel.Data.Server {
 				}
 			}
 
-			private class ProcessRequestEventImpl : IDatabaseEvent {
+			private class ProcessRequestEventImpl {
 				public ProcessRequestEventImpl(ServerFarmer farmer, ServerConnectionState current_state) {
 					this.farmer = farmer;
 					this.current_state = current_state;
@@ -209,7 +210,7 @@ namespace Deveel.Data.Server {
 				private readonly ServerFarmer farmer;
 				private readonly ServerConnectionState current_state;
 
-				public void Execute() {
+				public void Execute(object sender, EventArgs args) {
 					try {
 						// Process the next request that's pending.
 						current_state.Connection.ProcessRequest();
@@ -258,37 +259,56 @@ namespace Deveel.Data.Server {
 					connection_state.SetProcessingRequest();
 
 					// ISSUE: Pings are executed under 'null' user and database...
-					parent.controller.Execute(new PingEventImpl(this, connection_state));
+					//PingCallback pingCallback  = new PingCallback(this, connection_state);
+					parent.controller.Execute(delegate {
+					                          	try {
+					                          		// Ping the client? - This closes the provider if the
+					                          		// ping fails.
+					                          		connection_state.Connection.Ping();
+					                          	} catch (IOException ex) {
+					                          		// Close connection
+					                          		try {
+					                          			connection_state.Connection.Close();
+					                          		} catch (IOException e2) {
+					                          			/* ignore */
+					                          		}
+					                          		parent.controller.Debug.Write(DebugLevel.Alert, this, "Closed because ping failed.");
+					                          		parent.controller.Debug.WriteException(DebugLevel.Alert, ex);
+					                          	} finally {
+					                          		connection_state.ClearProcessingRequest();
+					                          	}
+
+					                          });
 
 				} // if (!provider_state.isProcessRequest())
 			}
 
-			private class PingEventImpl : IDatabaseEvent {
-				public PingEventImpl(ServerFarmer farmer, ServerConnectionState connection_state) {
-					this.connection_state = connection_state;
-					this.farmer = farmer;
-				}
+			//private class PingCallback {
+			//    public PingCallback(ServerFarmer farmer, ServerConnectionState connection_state) {
+			//        this.connection_state = connection_state;
+			//        this.farmer = farmer;
+			//    }
 
-				private readonly ServerFarmer farmer;
-				private readonly ServerConnectionState connection_state;
+			//    private readonly ServerFarmer farmer;
+			//    private readonly ServerConnectionState connection_state;
 
-				public void Execute() {
-					try {
-						// Ping the client? - This closes the provider if the
-						// ping fails.
-						connection_state.Connection.Ping();
-					} catch (IOException ex) {
-						// Close connection
-						try {
-							connection_state.Connection.Close();
-						} catch (IOException e2) { /* ignore */ }
-						farmer.parent.controller.Debug.Write(DebugLevel.Alert, this, "Closed because ping failed.");
-						farmer.parent.controller.Debug.WriteException(DebugLevel.Alert, ex);
-					} finally {
-						connection_state.ClearProcessingRequest();
-					}
-				}
-			}
+			//    public void Execute(object sender, EventArgs args) {
+			//        try {
+			//            // Ping the client? - This closes the provider if the
+			//            // ping fails.
+			//            connection_state.Connection.Ping();
+			//        } catch (IOException ex) {
+			//            // Close connection
+			//            try {
+			//                connection_state.Connection.Close();
+			//            } catch (IOException e2) { /* ignore */ }
+			//            farmer.parent.controller.Debug.Write(DebugLevel.Alert, this, "Closed because ping failed.");
+			//            farmer.parent.controller.Debug.WriteException(DebugLevel.Alert, ex);
+			//        } finally {
+			//            connection_state.ClearProcessingRequest();
+			//        }
+			//    }
+			//}
 
 
 			/// <summary>
@@ -324,7 +344,8 @@ namespace Deveel.Data.Server {
 			/**
 			 * The Runnable method of the farmer thread.
 			 */
-			public void run() {
+
+			private void Run() {
 				int yield_count = 0;
 				DateTime do_ping_time = DateTime.Now.AddMilliseconds(PING_BREAK);
 				int ping_count = 200;

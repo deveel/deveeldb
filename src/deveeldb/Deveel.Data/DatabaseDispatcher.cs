@@ -58,7 +58,7 @@ namespace Deveel.Data {
 		/// Creates an event object that is passed into <see cref="PostEvent"/> method 
 		/// to run the given <see cref="Delegate"/> method after the time has passed.
 		/// </summary>
-		/// <param name="runnable"></param>
+		/// <param name="callback"></param>
 		/// <returns></returns>
 		/// <remarks>
 		/// The event created here can be safely posted on the event queue as many
@@ -66,8 +66,8 @@ namespace Deveel.Data {
 		/// to service some event.  Just post it on the dispatcher when you want
 		/// it run.
 		/// </remarks>
-		public object CreateEvent(IDatabaseEvent runnable) {
-			return new DatabaseEvent(runnable);
+		public object CreateEvent(EventHandler callback) {
+			return new DatabaseEvent(callback);
 		}
 
 		/// <summary>
@@ -82,7 +82,7 @@ namespace Deveel.Data {
 				// Remove this event from the queue,
 				event_queue.Remove(e);
 				// Set the correct time for the event.
-				evt.time_to_run_event = DateTime.Now.AddMilliseconds(time_to_wait);
+				evt.TimeToRunEvent = DateTime.Now.AddMilliseconds(time_to_wait);
 				// Add to the queue in correct order
 				int index = event_queue.BinarySearch(e);
 				if (index < 0) {
@@ -120,7 +120,7 @@ namespace Deveel.Data {
 							if (event_queue.Count > 0) {
 								// Get the top entry, do we execute it yet?
 								evt = (DatabaseEvent)event_queue[0];
-								TimeSpan diff = evt.time_to_run_event - DateTime.Now;
+								TimeSpan diff = evt.TimeToRunEvent - DateTime.Now;
 								// If we got to wait for the event then do so now...
 								if (diff.TotalMilliseconds >= 0) {
 									evt = null;
@@ -136,7 +136,7 @@ namespace Deveel.Data {
 					}
 
 					// 'evt' is our event to run,
-					evt.runnable.Execute();
+					evt.Callback(this, EventArgs.Empty);
 
 				} catch (Exception e) {
 					system.Debug.Write(DebugLevel.Error, this, "SystemDispatchThread error");
@@ -148,21 +148,20 @@ namespace Deveel.Data {
 		// ---------- Inner classes ----------
 
 		class DatabaseEvent : IComparable {
-			internal DateTime time_to_run_event;
-			internal readonly IDatabaseEvent runnable;
+			public DateTime TimeToRunEvent;
+			public readonly EventHandler Callback;
 
-			internal DatabaseEvent(IDatabaseEvent runnable) {
-				this.runnable = runnable;
+			internal DatabaseEvent(EventHandler callback) {
+				Callback = callback;
 			}
 
 			public int CompareTo(Object ob) {
 				DatabaseEvent evt2 = (DatabaseEvent)ob;
-				TimeSpan dif = time_to_run_event - evt2.time_to_run_event;
-				if (dif.TotalMilliseconds > 0) {
+				TimeSpan dif = TimeToRunEvent - evt2.TimeToRunEvent;
+				if (dif.TotalMilliseconds > 0)
 					return 1;
-				} else if (dif.TotalMilliseconds < 0) {
+				if (dif.TotalMilliseconds < 0)
 					return -1;
-				}
 				return 0;
 			}
 		}

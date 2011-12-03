@@ -228,27 +228,26 @@ namespace Deveel.Data.Client {
 				// reflection.
 
 				// The path to the configuration
-				string root_path = connectionString.Path;
+				string rootPath = connectionString.Path;
+				if (String.IsNullOrEmpty(rootPath))
+					rootPath = Environment.CurrentDirectory;
 
-				controller = root_path == null ? DbController.Default : DbController.Create(root_path);
-
-				if (root_path == null)
-					root_path = Environment.CurrentDirectory;
+				controller = DbController.Create(rootPath);
 
 				// Is there already a local connection to this database?
-				String session_key = root_path.ToLower();
-				ILocalBootable local_bootable = (ILocalBootable)local_session_map[session_key];
+				String session_key = rootPath.ToLower();
+				ILocalBootable localBootable = (ILocalBootable)local_session_map[session_key];
 
 				// No so create one and WriteByte it in the connection mapping
-				if (local_bootable == null) {
-					local_bootable = CreateDefaultLocalBootable(controller, connectionString.Database);
-					local_session_map[session_key] = local_bootable;
+				if (localBootable == null) {
+					localBootable = CreateDefaultLocalBootable(controller, connectionString.Database);
+					local_session_map[session_key] = localBootable;
 				}
 
 				// Is the connection booted already?
-				if (local_bootable.IsBooted) {
+				if (localBootable.IsBooted) {
 					// Yes, so simply login.
-					db_interface = local_bootable.Connect();
+					db_interface = localBootable.Connect();
 				} else {
 					// Otherwise we need to boot the local database.
 
@@ -265,7 +264,7 @@ namespace Deveel.Data.Client {
 					*/
 
 					// Check if the database exists
-					bool database_exists = local_bootable.CheckExists();
+					bool database_exists = localBootable.CheckExists();
 
 					// If database doesn't exist and we've been told to create it if it
 					// doesn't exist, then set the 'create_db' flag.
@@ -290,11 +289,11 @@ namespace Deveel.Data.Client {
 						String username = connectionString.UserName;
 						String password = connectionString.Password;
 
-						db_interface = local_bootable.Create(username, password, config);
+						db_interface = localBootable.Create(username, password, config);
 					}
 						// Otherwise we must be logging onto a database,
 					else {
-						db_interface = local_bootable.Boot(config);
+						db_interface = localBootable.Boot(config);
 					}
 				}
 			}

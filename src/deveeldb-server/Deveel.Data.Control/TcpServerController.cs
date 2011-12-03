@@ -205,7 +205,7 @@ namespace Deveel.Data.Control {
 			return controller.GetDatabase(name);
 		}
 
-		public void Execute(IDatabaseEvent dbEvent) {
+		public void Execute(EventHandler dbEvent) {
 			lock (controller) {
 				string[] dbNames = controller.Databases;
 				for (int i = 0; i < dbNames.Length; i++) {

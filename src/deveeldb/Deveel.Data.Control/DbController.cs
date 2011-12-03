@@ -39,8 +39,6 @@ namespace Deveel.Data.Control {
 	/// </para>
 	/// </remarks>
 	public sealed class DbController : IDatabaseHandler, IDisposable {
-		private static DbController DefaultController;
-
 		/// <summary>
 		/// This object can not be constructed publicaly.
 		/// </summary>
@@ -48,6 +46,10 @@ namespace Deveel.Data.Control {
 			this.configContext = configContext;
 			databases = new Hashtable();
 			SetupLog(configContext);
+		}
+
+		~DbController() {
+			Dispose(false);
 		}
 
 		private readonly Hashtable databases;
@@ -69,23 +71,6 @@ namespace Deveel.Data.Control {
 		/// shutted down</see>.
 		/// </summary>
 		public event EventHandler DatabaseShutdown;
-
-		/// <summary>
-		/// Gets a default instance of the <see cref="DbController"/>.
-		/// </summary>
-		/// <remarks>
-		/// This will return a <see cref="DbController"/> which points
-		/// to the <see cref="Environment.CurrentDirectory">current executing
-		/// directory</see> and to the <see cref="DefaultConfigFileName">default
-		/// configuration file</see>.
-		/// </remarks>
-		public static DbController Default {
-			get {
-				if (DefaultController == null)
-					DefaultController = Create(Path.Combine(Environment.CurrentDirectory, DefaultConfigFileName), DbConfig.Default);
-				return DefaultController;
-			}
-		}
 
 		/// <summary>
 		/// Gets the main configuration for the controller.
@@ -116,6 +101,19 @@ namespace Deveel.Data.Control {
 
 		private void SetupLog(DbConfig config) {
 			//TODO:
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				// if we are still managing databases, call a Shutdown on each one...
+				if (databases.Count > 0) {
+					foreach (Database database in databases.Values) {
+						database.Shutdown();
+					}
+
+					databases.Clear();
+				}
+			}
 		}
 
 		/// <summary>
@@ -272,7 +270,8 @@ namespace Deveel.Data.Control {
 
 					Database database = CreateDatabase(dbConfig, name);
 					if (database.Exists) {
-						database.RegisterShutDownDelegate(new StopEventImpl(controller, database));
+						DatabaseShutdownCallback callback = new DatabaseShutdownCallback(controller, database);
+						database.RegisterShutDownDelegate(new EventHandler(callback.Execute));
 						controller.databases[name] = database;
 					}
 				}
@@ -416,7 +415,8 @@ namespace Deveel.Data.Control {
 			try {
 				database.Create(adminUser, adminPass);
 				database.Init();
-				database.RegisterShutDownDelegate(new StopEventImpl(this, database));
+				DatabaseShutdownCallback callback = new DatabaseShutdownCallback(this, database);
+				database.RegisterShutDownDelegate(callback.Execute);
 			} catch (Exception e) {
 				database.Debug.Write(DebugLevel.Error, this, "Database create failed");
 				database.Debug.WriteException(e);
@@ -537,8 +537,8 @@ namespace Deveel.Data.Control {
 				DatabaseShutdown(this, EventArgs.Empty);
 		}
 
-		private class StopEventImpl : IDatabaseEvent {
-			public StopEventImpl(DbController controller, Database database) {
+		private class DatabaseShutdownCallback {
+			public DatabaseShutdownCallback(DbController controller, Database database) {
 				this.controller = controller;
 				this.database = database;
 			}
@@ -546,18 +546,14 @@ namespace Deveel.Data.Control {
 			private readonly Database database;
 			private readonly DbController controller;
 
-			public void Execute() {
+			public void Execute(object sender, EventArgs args) {
 				controller.OnDatabaseShutdown(database);
 			}
 		}
 
 		public void Dispose() {
-			// if we are still managing databases, call a Shutdown on each one...
-			if (databases.Count > 0) {
-				foreach (Database database in databases.Values) {
-					database.Shutdown();
-				}
-			}
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 	}
 }

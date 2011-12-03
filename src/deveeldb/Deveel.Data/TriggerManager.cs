@@ -168,30 +168,38 @@ namespace Deveel.Data {
 			}
 
 			// Post an event that fires the triggers for each listener.
-			FireTriggersDelegate d = new FireTriggersDelegate(evt, trig_list);
+			//FireTriggersDelegate d = new FireTriggersDelegate(evt, trig_list);
 
 			// Post the event to go off approx 3ms from now.
-			system.PostEvent(3, system.CreateEvent(d));
+			system.PostEvent(3, system.CreateEvent(delegate {
+			                                       	for (int i = 0; i < trig_list.Count; ++i) {
+			                                       		TriggerAction action = (TriggerAction) trig_list[i];
+			                                       		if ((evt.Type & action.trigger_event) != 0) {
+			                                       			action.listener.FireTrigger(action.database, action.trigger_name, evt);
+			                                       		}
+			                                       	}
+
+			                                       }));
 		}
 
-		private class FireTriggersDelegate : IDatabaseEvent {
-			public FireTriggersDelegate(TriggerEvent evt, ArrayList trig_list) {
-				this.evt = evt;
-				this.trig_list = trig_list;
-			}
+		//private class FireTriggersDelegate {
+		//    public FireTriggersDelegate(TriggerEvent evt, ArrayList trig_list) {
+		//        this.evt = evt;
+		//        this.trig_list = trig_list;
+		//    }
 
-			private readonly ArrayList trig_list;
-			private readonly TriggerEvent evt;
+		//    private readonly ArrayList trig_list;
+		//    private readonly TriggerEvent evt;
 			
-			public void Execute () {
-				for (int i = 0; i < trig_list.Count; ++i) {
-					TriggerAction action = (TriggerAction)trig_list[i];
-					if ((evt.Type & action.trigger_event) != 0) {
-						action.listener.FireTrigger (action.database, action.trigger_name, evt);
-					}
-				}
-			}
-		}
+		//    public void Execute (object sender, EventArgs args) {
+		//        for (int i = 0; i < trig_list.Count; ++i) {
+		//            TriggerAction action = (TriggerAction)trig_list[i];
+		//            if ((evt.Type & action.trigger_event) != 0) {
+		//                action.listener.FireTrigger (action.database, action.trigger_name, evt);
+		//            }
+		//        }
+		//    }
+		//}
 
 		// ---------- Inner classes ----------
 

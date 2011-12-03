@@ -148,7 +148,7 @@ namespace Deveel.Data {
 		/// active at any one time rather than a unique thread for each 
 		/// connection.
 		/// </remarks>
-		public void Execute(User user, DatabaseConnection database, IDatabaseEvent runner) {
+		public void Execute(User user, DatabaseConnection database, EventHandler runner) {
 			lock (available_worker_threads) {
 				if (is_executing_commands) {
 					WorkerThread worker = FirstWaitingThread;
@@ -249,9 +249,9 @@ namespace Deveel.Data {
 		private sealed class RunCommand {
 			public readonly User user;
 			public readonly DatabaseConnection database;
-			public readonly IDatabaseEvent runnable;
+			public readonly EventHandler runnable;
 
-			public RunCommand(User user, DatabaseConnection database, IDatabaseEvent runnable) {
+			public RunCommand(User user, DatabaseConnection database, EventHandler runnable) {
 				this.user = user;
 				this.database = database;
 				this.runnable = runnable;

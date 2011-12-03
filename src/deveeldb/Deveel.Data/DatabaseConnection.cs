@@ -1644,7 +1644,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Fires any triggers that are pending in the trigger buffer.
 		/// </summary>
-		private void FirePendingTriggerEvents () {
+		private void FirePendingTriggerEvents() {
 			int sz;
 			lock (trigger_event_buffer) {
 				sz = trigger_event_buffer.Count;
@@ -1652,31 +1652,43 @@ namespace Deveel.Data {
 			if (sz > 0) {
 				// Post an event that fires the triggers for each listener.
 				// Post the event to go off approx 3ms from now.
-				database.PostEvent (3, database.CreateEvent (new FirePendingTriggerEventsImpl(this)));
+				database.PostEvent(3, database.CreateEvent(delegate {
+				                                           	lock (trigger_event_buffer) {
+				                                           		// Fire all pending trigger events in buffer
+				                                           		for (int i = 0; i < trigger_event_buffer.Count; i += 2) {
+				                                           			String trigger_name = (String) trigger_event_buffer[i];
+				                                           			TriggerEvent evt = (TriggerEvent) trigger_event_buffer[i + 1];
+				                                           			call_back.TriggerNotify(trigger_name, evt.Type, evt.Source, evt.Count);
+				                                           		}
+				                                           		// Clear the buffer
+				                                           		trigger_event_buffer.Clear();
+				                                           	}
+
+				                                           }));
 			}
-			
+
 		}
-		
-		class FirePendingTriggerEventsImpl : IDatabaseEvent {
-			public FirePendingTriggerEventsImpl (DatabaseConnection conn) {
-				this.conn = conn;
-			}
+
+		//class FirePendingTriggerEventsImpl : IDatabaseEvent {
+		//    public FirePendingTriggerEventsImpl (DatabaseConnection conn) {
+		//        this.conn = conn;
+		//    }
 			
-			private DatabaseConnection conn;
+		//    private DatabaseConnection conn;
 			
-			public void Execute () {
-				lock (conn.trigger_event_buffer) {
-					// Fire all pending trigger events in buffer
-					for (int i = 0; i < conn.trigger_event_buffer.Count; i += 2) {
-						String trigger_name = (String)conn.trigger_event_buffer[i];
-						TriggerEvent evt = (TriggerEvent)conn.trigger_event_buffer[i + 1];
-						conn.call_back.TriggerNotify (trigger_name, evt.Type, evt.Source, evt.Count);
-					}
-					// Clear the buffer
-					conn.trigger_event_buffer.Clear ();
-				}
-			}
-		}
+		//    public void Execute () {
+		//        lock (conn.trigger_event_buffer) {
+		//            // Fire all pending trigger events in buffer
+		//            for (int i = 0; i < conn.trigger_event_buffer.Count; i += 2) {
+		//                String trigger_name = (String)conn.trigger_event_buffer[i];
+		//                TriggerEvent evt = (TriggerEvent)conn.trigger_event_buffer[i + 1];
+		//                conn.call_back.TriggerNotify (trigger_name, evt.Type, evt.Source, evt.Count);
+		//            }
+		//            // Clear the buffer
+		//            conn.trigger_event_buffer.Clear ();
+		//        }
+		//    }
+		//}
 
 
 		/// <summary>

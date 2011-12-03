@@ -87,6 +87,7 @@
     <Compile Include="Deveel.Data.Sql\SQLTokenManager.cs" />
     <Compile Include="Deveel.Data.Sql\Token.cs" />
     <Compile Include="Deveel.Data.Sql\TokenMgrError.cs" />
+    <Compile Include="Deveel.Data\Database_Users.cs" />
     <Compile Include="Deveel.Data\ParemeterStyle.cs" />
     <Compile Include="Deveel.Data.Client\ProtocolConstants.cs" />
     <Compile Include="Deveel.Data.Client\RemoteDatabaseInterface.cs" />
@@ -297,7 +298,6 @@
     <Compile Include="Deveel.Data\DatabaseConnection.cs" />
     <Compile Include="Deveel.Data\DatabaseConstraintViolationException.cs" />
     <Compile Include="Deveel.Data\DatabaseDispatcher.cs" />
-    <Compile Include="Deveel.Data\DatabaseEventHandler.cs" />
     <Compile Include="Deveel.Data\DatabaseException.cs" />
     <Compile Include="Deveel.Data\DatabaseQueryContext.cs" />
     <Compile Include="Deveel.Data\DatabaseSystem.cs" />
@@ -332,7 +332,6 @@
     <Compile Include="Deveel.Data\IBlobRef.cs" />
     <Compile Include="Deveel.Data\IClobRef.cs" />
     <Compile Include="Deveel.Data\ICursorContext.cs" />
-    <Compile Include="Deveel.Data\IDatabaseEvent.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\IDatabaseProcedure.cs" />
     <Compile Include="Deveel.Data\IDataTableListener.cs" />

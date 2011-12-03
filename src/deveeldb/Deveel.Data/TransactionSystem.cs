@@ -709,7 +709,7 @@ namespace Deveel.Data {
 		/// method to run the given <see cref="EventHandler"/> method after the 
 		/// time has passed.
 		/// </summary>
-		/// <param name="runnable"></param>
+		/// <param name="callback"></param>
 		/// <remarks>
 		/// The event created here can be safely posted on the event queue as many
 		/// times as you like.  It's useful to create an event as a persistant object
@@ -717,18 +717,18 @@ namespace Deveel.Data {
 		/// it run!
 		/// </remarks>
 		/// <returns></returns>
-		internal Object CreateEvent(IDatabaseEvent runnable) {
-			return Dispatcher.CreateEvent(runnable);
+		internal object CreateEvent(EventHandler callback) {
+			return Dispatcher.CreateEvent(callback);
 		}
 
 		/// <summary>
 		/// Adds a new event to be dispatched on the queue after 'time_to_wait'
 		/// milliseconds has passed.
 		/// </summary>
-		/// <param name="time_to_wait"></param>
+		/// <param name="timeToWait"></param>
 		/// <param name="e">An event object returned by <see cref="CreateEvent"/>.</param>
-		internal void PostEvent(int time_to_wait, Object e) {
-			Dispatcher.PostEvent(time_to_wait, e);
+		internal void PostEvent(int timeToWait, object e) {
+			Dispatcher.PostEvent(timeToWait, e);
 		}
 
 		private void Dispose(bool disposing) {
