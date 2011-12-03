@@ -29,27 +29,27 @@ namespace Deveel.Data {
 		private static BigNumber BD_ZERO = 0L;
 		private static BigNumber BD_ONE = 1L;
 
-		private static readonly string[] date_format_sql;
-		private static readonly string[] time_format_sql;
-		private static readonly string[] ts_format_sql;
+		private static readonly string[] SqlDateFormat;
+		private static readonly string[] SqlTimeFormat;
+		private static readonly string[] SqlTimeStampFormat;
 
 		static CastHelper() {
 			// The SQL time/date formatters
-			date_format_sql = new string[1];
-			date_format_sql[0] = "yyyy-MM-dd";
+			SqlDateFormat = new string[1];
+			SqlDateFormat[0] = "yyyy-MM-dd";
 
 			//TODO: check this format on .NET ...
-			time_format_sql = new string[4];
-			time_format_sql[0] = "HH:mm:ss.fff z";
-			time_format_sql[1] = "HH:mm:ss.fff";
-			time_format_sql[2] = "HH:mm:ss z";
-			time_format_sql[3] = "HH:mm:ss";
+			SqlTimeFormat = new string[4];
+			SqlTimeFormat[0] = "HH:mm:ss.fff z";
+			SqlTimeFormat[1] = "HH:mm:ss.fff";
+			SqlTimeFormat[2] = "HH:mm:ss z";
+			SqlTimeFormat[3] = "HH:mm:ss";
 
-			ts_format_sql = new string[4];
-			ts_format_sql[0] = "yyyy-MM-dd HH:mm:ss.fff z";
-			ts_format_sql[1] = "yyyy-MM-dd HH:mm:ss.fff";
-			ts_format_sql[2] = "yyyy-MM-dd HH:mm:ss z";
-			ts_format_sql[3] = "yyyy-MM-dd HH:mm:ss";
+			SqlTimeStampFormat = new string[4];
+			SqlTimeStampFormat[0] = "yyyy-MM-dd HH:mm:ss.fff z";
+			SqlTimeStampFormat[1] = "yyyy-MM-dd HH:mm:ss.fff";
+			SqlTimeStampFormat[2] = "yyyy-MM-dd HH:mm:ss z";
+			SqlTimeStampFormat[3] = "yyyy-MM-dd HH:mm:ss";
 		}
 
 
@@ -73,10 +73,10 @@ namespace Deveel.Data {
 		/// <param name="d"></param>
 		/// <returns></returns>
 		private static String FormatDateAsString(DateTime d) {
-			lock (ts_format_sql) {
+			lock (SqlTimeStampFormat) {
 				// ISSUE: We have to assume the date is a time stamp because we don't
 				//   know if the date object represents an SQL DATE, TIMESTAMP or TIME.
-				return d.ToString(ts_format_sql[1], CultureInfo.InvariantCulture);
+				return d.ToString(SqlTimeStampFormat[1], CultureInfo.InvariantCulture);
 			}
 		}
 
@@ -135,8 +135,7 @@ namespace Deveel.Data {
 		/// <param name="df"></param>
 		/// <returns></returns>
 		private static String DateErrorString(String msg, string[] df) {
-			String pattern = "(" + df[0] + ")";
-			return msg + pattern;
+			return String.Format("{0} ({1})", msg, df[0]);
 		}
 
 		/// <summary>
@@ -145,11 +144,11 @@ namespace Deveel.Data {
 		/// <param name="str"></param>
 		/// <returns></returns>
 		public static DateTime ToDate(String str) {
-			lock (date_format_sql) {
+			lock (SqlDateFormat) {
 				try {
-					return DateTime.ParseExact(str, date_format_sql, CultureInfo.InvariantCulture, DateTimeStyles.None);
+					return DateTime.ParseExact(str, SqlDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None);
 				} catch (FormatException) {
-					throw new Exception(DateErrorString("Unable to parse string as a date ", date_format_sql));
+					throw new Exception(DateErrorString("Unable to parse string as a date ", SqlDateFormat));
 				}
 			}
 		}
@@ -160,11 +159,11 @@ namespace Deveel.Data {
 		/// <param name="str"></param>
 		/// <returns></returns>
 		public static DateTime ToTime(String str) {
-			lock (time_format_sql) {
+			lock (SqlTimeFormat) {
 				try {
-					return DateTime.ParseExact(str, time_format_sql, CultureInfo.InvariantCulture, DateTimeStyles.None);
+					return DateTime.ParseExact(str, SqlTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None);
 				} catch(FormatException) {
-					throw new Exception(DateErrorString("Unable to parse string as a time ", time_format_sql));
+					throw new Exception(DateErrorString("Unable to parse string as a time ", SqlTimeFormat));
 				}
 			}
 		}
@@ -175,11 +174,11 @@ namespace Deveel.Data {
 		/// <param name="str"></param>
 		/// <returns></returns>
 		public static DateTime ToTimeStamp(String str) {
-			lock (ts_format_sql) {
+			lock (SqlTimeStampFormat) {
 				try {
-					return DateTime.ParseExact(str, ts_format_sql, CultureInfo.InvariantCulture, DateTimeStyles.None);
+					return DateTime.ParseExact(str, SqlTimeStampFormat, CultureInfo.InvariantCulture, DateTimeStyles.None);
 				} catch (FormatException) {
-					throw new Exception(DateErrorString("Unable to parse string as a timestamp ", ts_format_sql));
+					throw new Exception(DateErrorString("Unable to parse string as a timestamp ", SqlTimeStampFormat));
 				}
 			}
 		}

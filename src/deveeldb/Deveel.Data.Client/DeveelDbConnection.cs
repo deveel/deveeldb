@@ -22,6 +22,7 @@ using System.Threading;
 using System.Transactions;
 
 using Deveel.Data.Control;
+using Deveel.Data.Protocol;
 using Deveel.Data.Server;
 
 using IsolationLevel=System.Data.IsolationLevel;

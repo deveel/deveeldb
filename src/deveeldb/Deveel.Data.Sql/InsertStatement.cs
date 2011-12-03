@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
 
@@ -30,9 +31,9 @@ namespace Deveel.Data.Sql {
 		private StatementTree select;
 		private IList column_sets;
 
-		private bool from_values = false;
-		private bool from_select = false;
-		private bool from_set = false;
+		private bool from_values;
+		private bool from_select;
+		private bool from_set;
 
 		// -----
 
@@ -161,7 +162,7 @@ namespace Deveel.Data.Sql {
 						Object elem = insert_elements[n];
 						if (elem is Expression) {
 							Expression exp = (Expression)elem;
-							IList elem_list = exp.AllElements;
+							IList<object> elem_list = exp.AllElements;
 							for (int p = 0; p < elem_list.Count; ++p) {
 								Object ob = elem_list[p];
 								if (ob is SelectStatement) {
@@ -186,15 +187,12 @@ namespace Deveel.Data.Sql {
 
 				// If there's a sub select in an expression in the 'SET' clause then
 				// throw an error.
-				for (int i = 0; i < column_sets.Count; ++i) {
-					Assignment assignment = (Assignment)column_sets[i];
+				foreach (Assignment assignment in column_sets) {
 					Expression exp = assignment.Expression;
-					IList elem_list = exp.AllElements;
-					for (int n = 0; n < elem_list.Count; ++n) {
-						object ob = elem_list[n];
-						if (ob is SelectStatement) {
+					IList<object> elem_list = exp.AllElements;
+					foreach (object ob in elem_list) {
+						if (ob is SelectStatement)
 							throw new DatabaseException("Illegal to have sub-select in SET clause.");
-						}
 					}
 
 					// Resolve the column names in the columns set.

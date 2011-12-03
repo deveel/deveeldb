@@ -18,6 +18,7 @@ using System;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Protocol;
 using Deveel.Data.Text;
 
 namespace Deveel.Data {

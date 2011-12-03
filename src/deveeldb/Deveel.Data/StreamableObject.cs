@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.Client;
+using Deveel.Data.Protocol;
 
 namespace Deveel.Data {
 	/// <summary>

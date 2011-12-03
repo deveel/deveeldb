@@ -15,11 +15,11 @@
 
 using System;
 
-namespace Deveel.Data.Client {
+namespace Deveel.Data.Protocol {
 	/// <summary>
 	/// Constants used in the database communication protocol.
 	/// </summary>
-	public sealed class ProtocolConstants {
+	public static class ProtocolConstants {
 		/// <summary>
 		/// Sent as an acknowledgement to a command.
 		/// </summary>

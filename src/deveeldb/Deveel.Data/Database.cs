@@ -1560,7 +1560,7 @@ namespace Deveel.Data {
 					Debug.Write(DebugLevel.Error, this, dbDataException.ServerErrorStackTrace);
 				}
 				Debug.WriteException(DebugLevel.Error, e);
-				throw new Exception("SQL Error: " + e.Message);
+				throw new Exception("SQL Error: " + e.Message, e);
 			}
 		}
 

@@ -17,7 +17,7 @@ using System;
 
 using Deveel.Data.Control;
 
-namespace Deveel.Data.Client {
+namespace Deveel.Data.Protocol {
 	///<summary>
     /// An interface that is implemented by an object that boots up 
     /// the database.

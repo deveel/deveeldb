@@ -3061,7 +3061,7 @@ namespace Deveel.Math {
 
 		[OnDeserialized]
 		internal void AfterDeserialization(StreamingContext context) {
-			intVal.AfterDeserialization(context);
+			// intVal.AfterDeserialization(context);
 			_bitLength = intVal.BitLength;
 			if (_bitLength < 64) {
 				smallValue = intVal.ToInt64();

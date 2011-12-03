@@ -21,6 +21,7 @@ using System.IO;
 using Deveel.Data.Client;
 using Deveel.Data.Collections;
 using Deveel.Data.Control;
+using Deveel.Data.Protocol;
 using Deveel.Data.Sql;
 
 using Deveel.Diagnostics;

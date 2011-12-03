@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql {
@@ -854,8 +853,8 @@ namespace Deveel.Data.Sql {
 				// Check to see if we have any Select statements in the
 				//   Expression.  This is necessary, because we can't have a
 				//   sub-select evaluated during list table downloading.
-				IList exp_elements = col.Expression.AllElements;
-				foreach (object element in exp_elements) {
+				IList<object> expElements = col.Expression.AllElements;
+				foreach (object element in expElements) {
 					if (element is TableSelectExpression)
 						throw new StatementException("Sub-command not allowed in column list.");
 				}

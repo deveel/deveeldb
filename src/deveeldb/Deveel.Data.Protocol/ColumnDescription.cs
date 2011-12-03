@@ -17,7 +17,7 @@
 using System;
 using System.IO;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Protocol {
 	/// <summary>
 	/// This is a description of a column and the data it stores.
 	/// </summary>

@@ -138,12 +138,10 @@ namespace Deveel.Data.Functions {
 		/// </remarks>
 		public virtual IList AllElements {
 			get {
-				ArrayList result_list = new ArrayList();
-				for (int i = 0; i < parameters.Length; ++i) {
-					IList l = parameters[i].AllElements;
-					result_list.AddRange(l);
-				}
-				return result_list;
+				List<object> elements = new List<object>();
+				foreach (Expression parameter in parameters)
+					elements.AddRange(parameter.AllElements);
+				return elements;
 			}
 		}
 
@@ -157,17 +155,15 @@ namespace Deveel.Data.Functions {
 		/// </remarks>
 		/// <returns></returns>
 		public bool IsAggregate(IQueryContext context) {
-			if (is_aggregate) {
+			if (is_aggregate)
 				return true;
-			} else {
-				// Check if arguments are aggregates
-				for (int i = 0; i < parameters.Length; ++i) {
-					Expression exp = parameters[i];
-					if (exp.HasAggregateFunction(context)) {
-						return true;
-					}
-				}
+
+			// Check if arguments are aggregates
+			foreach (Expression parameter in parameters) {
+				if (parameter.HasAggregateFunction(context))
+					return true;
 			}
+
 			return false;
 		}
 

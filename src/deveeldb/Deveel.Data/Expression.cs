@@ -443,7 +443,7 @@ namespace Deveel.Data {
 						}
 					}
 				}
-				return vars;
+				return vars.AsReadOnly();
 			}
 		}
 
@@ -451,24 +451,23 @@ namespace Deveel.Data {
 		/// Returns a complete list of all element objects that are in this expression 
 		/// and in the parameters of the functions of this expression.
 		/// </summary>
-		public IList AllElements {
+		public IList<object> AllElements {
 			get {
-				ArrayList elems = new ArrayList();
-				for (int i = 0; i < elements.Count; ++i) {
-					Object ob = elements[i];
+				List<object> elems = new List<object>();
+				foreach (IExpressionElement ob in elements) {
 					if (ob is Operator) {
 						// don't add operators...
 					} else if (ob is FunctionDef) {
-						Expression[] parameterss = ((FunctionDef) ob).Parameters;
-						for (int n = 0; n < parameterss.Length; ++n) {
-							elems.AddRange(parameterss[n].AllElements);
+						Expression[] parameters = ((FunctionDef) ob).Parameters;
+						foreach (Expression parameter in parameters) {
+							elems.AddRange(parameter.AllElements);
 						}
 					} else if (ob is TObject) {
 						TObject tob = (TObject) ob;
 						if (tob.TType is TArrayType) {
-							Expression[] exp_list = (Expression[]) tob.Object;
-							for (int n = 0; n < exp_list.Length; ++n) {
-								elems.AddRange(exp_list[n].AllElements);
+							Expression[] expList = (Expression[]) tob.Object;
+							foreach (Expression expression in expList) {
+								elems.AddRange(expression.AllElements);
 							}
 						} else {
 							elems.Add(ob);
@@ -477,7 +476,7 @@ namespace Deveel.Data {
 						elems.Add(ob);
 					}
 				}
-				return elems;
+				return elems.AsReadOnly();
 			}
 		}
 
@@ -572,7 +571,7 @@ namespace Deveel.Data {
 		/// </summary>
 		public bool HasSubQuery {
 			get {
-				IList list = AllElements;
+				IList<object> list = AllElements;
 				foreach (IExpressionElement ob in list) {
 					if (ob is TObject) {
 						TObject tob = (TObject) ob;
@@ -612,7 +611,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		///<returns></returns>
 		internal IList<CorrelatedVariable> DiscoverCorrelatedVariables(ref int level, IList<CorrelatedVariable> list) {
-			IList elems = AllElements;
+			IList<object> elems = AllElements;
 			// For each element
 			foreach (object ob in elems) {
 				if (ob is CorrelatedVariable) {
@@ -640,7 +639,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		///<returns></returns>
 		internal IList<TableName> DiscoverTableNames(IList<TableName> list) {
-			IList elems = AllElements;
+			IList<object> elems = AllElements;
 			// For each element
 			foreach (object ob in elems) {
 				if (ob is TObject) {
@@ -660,7 +659,7 @@ namespace Deveel.Data {
 		///</summary>
 		public IQueryPlanNode QueryPlanNode {
 			get {
-				Object ob = this[0];
+				object ob = elements[0];
 				if (Count == 1 && ob is TObject) {
 					TObject tob = (TObject) ob;
 					if (tob.TType is TQueryPlanType)
@@ -680,7 +679,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public VariableName VariableName {
 			get {
-				object ob = this[0];
+				object ob = elements[0];
 				return Count == 1 && ob is VariableName ? (VariableName) ob : null;
 			}
 		}
@@ -708,7 +707,7 @@ namespace Deveel.Data {
 			int midpoint = -1;
 			int stackSize = 0;
 			for (int n = 0; n < Count - 1; ++n) {
-				object ob = this[n];
+				object ob = elements[n];
 				if (ob is Operator) {
 					--stackSize;
 				} else {
@@ -725,11 +724,11 @@ namespace Deveel.Data {
 
 			Expression lhs = new Expression();
 			for (int n = 0; n <= midpoint; ++n)
-				lhs.AddElement(this[n]);
+				lhs.AddElement(elements[n]);
 
 			Expression rhs = new Expression();
 			for (int n = midpoint + 1; n < Count - 1; ++n)
-				rhs.AddElement(this[n]);
+				rhs.AddElement(elements[n]);
 
 			return new Expression[] { lhs, rhs };
 		}
@@ -755,7 +754,7 @@ namespace Deveel.Data {
 				int stackSize = 1;
 				int end = Count - 1;
 				for (int n = end; n > 0; --n) {
-					Object ob = this[n];
+					object ob = elements[n];
 					if (ob is Operator) {
 						++stackSize;
 					} else {
@@ -764,11 +763,11 @@ namespace Deveel.Data {
 
 					if (stackSize == 0) {
 						// Now, n .. end represents the new expression.
-						Expression new_exp = new Expression();
+						Expression newExp = new Expression();
 						for (int i = n; i <= end; ++i) {
-							new_exp.AddElement(this[i]);
+							newExp.AddElement(elements[i]);
 						}
-						return new_exp;
+						return newExp;
 					}
 				}
 

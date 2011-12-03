@@ -20,6 +20,7 @@ using System.Data.Common;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Protocol;
 using Deveel.Math;
 
 namespace Deveel.Data.Client {
