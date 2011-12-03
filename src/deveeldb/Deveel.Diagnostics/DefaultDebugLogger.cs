@@ -19,7 +19,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
-using Deveel.Data;
 using Deveel.Data.Control;
 
 namespace Deveel.Diagnostics {
@@ -42,12 +41,12 @@ namespace Deveel.Diagnostics {
 		/// This variable specifies the level of debugging information that is
 		/// output.  Any debugging output above this level is output.
 		/// </summary>
-		private int debug_level = 0;
+		private int debugLevel = 0;
 
 		/// <summary>
 		/// The string used to format the output message.
 		/// </summary>
-		private string message_format = "[{Thread}][{Time}] {Source} : {Level:Name} - {Message}";
+		private string messageFormat = "[{Thread}][{Time}] {Source} : {Level:Name} - {Message}";
 
 		/// <summary>
 		/// The text writer where the debugging information is output to.
@@ -71,14 +70,14 @@ namespace Deveel.Diagnostics {
 		}
 
 		protected virtual string FormatEntry(LogEntry entry) {
-			if (message_format == null || entry == null)
+			if (messageFormat == null || entry == null)
 				return String.Empty;
 
 			StringBuilder message = new StringBuilder();
 			StringBuilder field = null;
 
-			for (int i = 0; i < message_format.Length; i++) {
-				char c = message_format[i];
+			for (int i = 0; i < messageFormat.Length; i++) {
+				char c = messageFormat[i];
 				if (c == '{') {
 					field = new StringBuilder();
 					continue;
@@ -102,7 +101,7 @@ namespace Deveel.Diagnostics {
 		}
 
 		protected virtual string FormatField(LogEntry entry, string fieldName) {
-			if (fieldName == null || fieldName.Length == 0)
+			if (String.IsNullOrEmpty(fieldName))
 				return null;
 
 			string format = null;
@@ -143,69 +142,59 @@ namespace Deveel.Diagnostics {
 		// ---------- Implemented from IDebugLogger ----------
 
 		public void Init(DbConfig config) {
-			string log_path_string = config.GetValue("log_path");
-			string root_path_var = config.GetValue("root_path");
-			string read_only_access = config.GetValue("read_only");
-			string debug_logs = config.GetValue("debug_logs");
-			bool read_only_bool = false;
-			if (read_only_access != null) {
-				read_only_bool = String.Compare(read_only_access, "enabled", true) == 0;
-			}
-			bool debug_logs_bool = true;
-			if (debug_logs != null) {
-				debug_logs_bool = String.Compare(debug_logs, "enabled", true) == 0;
-			}
+			string logPathString = config.LogPath;
+			string rootPathVar = config.GetValue("root_path");
+			bool readOnly = config.GetBooleanValue(ConfigKeys.ReadOnly, false);
+			bool debugLogs = config.GetBooleanValue(ConfigKeys.DebugLogs, true);
 
 			// Conditions for not initializing a log directory;
 			//  1. Read only access is enabled
 			//  2. log_path is empty or not set
 
-			if (debug_logs_bool && !read_only_bool &&
-				log_path_string != null && !log_path_string.Equals("")) {
+			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
 				// First set up the debug information in this VM for the 'Debug' class.
-				string log_path = ConfigUtil.ParseFileString(config.CurrentPath, root_path_var,
-												  log_path_string);
+				string logPath = config.ParseFileString(rootPathVar, logPathString);
 				// If the path doesn't exist the make it.
-				if (!Directory.Exists(log_path))
-					Directory.CreateDirectory(log_path);
+				if (!Directory.Exists(logPath))
+					Directory.CreateDirectory(logPath);
 
-				LogWriter f_writer;
-				String dlog_file_name = "";
+				LogWriter fileWriter;
+				string dlogFileName = "";
 				try {
-					dlog_file_name = config.GetValue("debug_log_file");
-					string debug_log_file = Path.Combine(Path.GetFullPath(log_path), dlog_file_name);
+					dlogFileName = config.DebugLogFile;
+					string debugLogFile = Path.Combine(Path.GetFullPath(logPath), dlogFileName);
 
 					// Allow log size to grow to 512k and allow 12 archives of the log
 					//TODO: make it configurable...
-					f_writer = new LogWriter(debug_log_file, 512 * 1024, 12);
-					f_writer.Write("**** Debug log started: " + DateTime.Now + " ****\n");
-					f_writer.Flush();
+					fileWriter = new LogWriter(debugLogFile, 512 * 1024, 12);
+					fileWriter.WriteLine("**** Debug log started: {0} ****", DateTime.Now);
+					fileWriter.Flush();
 				} catch (IOException) {
-					throw new Exception("Unable to open debug file '" + dlog_file_name + "' in path '" + log_path + "'");
+					throw new Exception("Unable to open debug file '" + dlogFileName + "' in path '" + logPath + "'");
 				}
-				output = f_writer;
+				output = fileWriter;
 			}
 
 			// If 'debug_logs=disabled', don't Write out any debug logs
-			if (!debug_logs_bool) {
+			if (!debugLogs) {
 				// Otherwise set it up so the output from the logs goes to a PrintWriter
 				// that doesn't do anything.  Basically - this means all log information
 				// will get sent into a black hole.
 				output = new EmptyTextWriter();
 			}
 
-			debug_level = Int32.Parse(config.GetValue("debug_level"));
-			if (debug_level == -1)
+			debugLevel = config.DebugLevel;
+			if (debugLevel == -1)
 				// stops all the output
-				debug_level = 255;
+				debugLevel = 255;
 
 			string format = config.GetValue("debug_format");
 			if (format != null)
-				message_format = format;
+				messageFormat = format;
 		}
 
 		public bool IsInterestedIn(DebugLevel level) {
-			return (level >= debug_level);
+			return (level >= debugLevel);
 		}
 
 		public void Write(DebugLevel level, object ob, string message) {

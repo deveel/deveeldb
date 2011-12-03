@@ -30,7 +30,7 @@ namespace Deveel.Data.Control {
 		/// </summary>
 		private Dictionary<string, ConfigProperty> properties;
 
-		private static DbConfig default_config;
+		private static DbConfig defaultConfig;
 
 		/// <summary>
 		/// Constructs the <see cref="DbConfig"/>.
@@ -80,12 +80,17 @@ namespace Deveel.Data.Control {
 		/// <summary>
 		/// Gets or sets the minimum debug level for output to the debug log file.
 		/// </summary>
-		public int MinimumDebugLevel {
+		public int DebugLevel {
 			get {
 				string value = GetValue(ConfigKeys.DebugLevel);
 				return (value == null ? -1 : Int32.Parse(value));
 			}
 			set { SetValue(ConfigKeys.DebugLevel, value.ToString()); }
+		}
+
+		public string DebugLogFile {
+			get { return GetStringValue(ConfigKeys.DebugLogFile, null); }
+			set { SetValue(ConfigKeys.DebugLogFile, value); }
 		}
 
 		private static void FormatForOutput(String str, StringBuilder buffer, bool key) {
@@ -157,7 +162,7 @@ namespace Deveel.Data.Control {
 		/// of the system.
 		/// </summary>
 		public static DbConfig Default {
-			get { return default_config ?? (default_config = CreateDefault()); }
+			get { return defaultConfig ?? (defaultConfig = CreateDefault()); }
 		}
 
 		public string GetValue(string propertyKey) {
@@ -185,6 +190,33 @@ namespace Deveel.Data.Control {
 		public int GetIntegerValue(string property, int defaultValue) {
 			String v = GetValue(property);
 			return v == null ? defaultValue : Int32.Parse(v);
+		}
+
+		/// <summary>
+		/// Parses a file string to an absolute position in the file system.
+		/// </summary>
+		/// <remarks>
+		/// We must provide the path to the root directory (eg. the directory 
+		/// where the config bundle is located).
+		/// </remarks>
+		public string ParseFileString(string rootInfo, string pathString) {
+			string path = Path.GetFullPath(pathString);
+			string res;
+			// If the path is absolute then return the absoluate reference
+			if (Path.IsPathRooted(pathString)) {
+				res = path;
+			} else {
+				// If the root path source is the environment then just return the path.
+				if (rootInfo != null && rootInfo.Equals("env"))
+					return path;
+
+				// If the root path source is the configuration file then
+				// concat the configuration path with the path string and return it.
+
+				res = Path.Combine(CurrentPath, pathString);
+			}
+
+			return res;
 		}
 
 
@@ -475,7 +507,7 @@ namespace Deveel.Data.Control {
 
 			StringBuilder s = new StringBuilder(); // Reuse the same buffer.
 			foreach (KeyValuePair<string, ConfigProperty> entry in properties) {
-				ConfigProperty property = (ConfigProperty) entry.Value;
+				ConfigProperty property = entry.Value;
 
 				//TODO: format and print the optional comment...
 

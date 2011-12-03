@@ -174,7 +174,7 @@ namespace Deveel.Data.Store {
 			string root_path_var = transactionSystem.Config.GetStringValue("root_path", null);
 
 			// Set the absolute database path
-			path = ConfigUtil.ParseFileString(transactionSystem.Config.CurrentPath, root_path_var, database_path);
+			path = transactionSystem.Config.ParseFileString(root_path_var, database_path);
 
 			read_only = transactionSystem.ReadOnlyAccess;
 

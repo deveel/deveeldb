@@ -68,6 +68,8 @@ namespace Deveel.Data.Control {
 
 		public const string DebugLevel = "debug_level";
 
+		public const string DebugLogs = "debug_logs";
+
 		public const string TableLockCheck = "table_lock_check";
 	}
 }

@@ -100,7 +100,6 @@
     <Compile Include="Deveel.Data.Collections\IntegerVector.cs" />
     <Compile Include="Deveel.Data.Control\ConfigKeys.cs" />
     <Compile Include="Deveel.Data.Control\ConfigProperty.cs" />
-    <Compile Include="Deveel.Data.Control\ConfigUtil.cs" />
     <Compile Include="Deveel.Data.Control\DbConfig.cs" />
     <Compile Include="Deveel.Data.Control\DbController.cs" />
     <Compile Include="Deveel.Data.Control\DbDirectAccess.cs" />

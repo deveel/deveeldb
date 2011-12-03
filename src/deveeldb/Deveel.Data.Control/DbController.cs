@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.Store;
@@ -117,6 +118,70 @@ namespace Deveel.Data.Control {
 			//TODO:
 		}
 
+		/// <summary>
+		/// A dictionary used to cache the pairs of the storage
+		/// systems names with their <see cref="StorageType"/>.
+		/// </summary>
+		private static readonly Dictionary<string, StorageType> cache = new Dictionary<string, StorageType>(30);
+
+		/// <summary>
+		/// Gets the type of storage for the system defined in the
+		/// configuration given.
+		/// </summary>
+		/// <param name="config">The <see cref="DbConfig">database 
+		/// configuration object</see> that defines the storage system 
+		/// for which to retrieve its kind of storage.</param>
+		/// <returns>
+		/// Returns a <see cref="StorageType"/> defined by the storage
+		/// system configured.
+		/// </returns>
+		/// <seealso cref="GetStorageType(string)"/>
+		private static StorageType GetStorageType(DbConfig config) {
+			string typeName = config.GetValue(ConfigKeys.StorageSystem);
+			if (typeName == null)
+				throw new InvalidOperationException("A storage system must be specified.");
+
+			return GetStorageType(typeName);
+		}
+
+		private static StorageType GetStorageType(string typeName) {
+			if (String.IsNullOrEmpty(typeName))
+				throw new ArgumentNullException("typeName");
+
+			StorageType storageType;
+			if (!cache.TryGetValue(typeName, out storageType)) {
+				// in case we're using the internal storage system aliases
+				if (String.Compare(typeName, "v1file", true) == 0)
+					storageType = StorageType.File;
+				else if (String.Compare(typeName, "v1heap", true) == 0)
+					storageType = StorageType.Memory;
+				else {
+					Type type = Type.GetType(typeName, false, true);
+					if (type == null)
+						throw new InvalidOperationException("The storage system type '" + typeName + "' was not found.");
+
+					if (!typeof(IStoreSystem).IsAssignableFrom(type))
+						throw new InvalidOperationException("The type '" + type + "' is not assignable from '" + typeof(IStoreSystem) +
+															"'.");
+
+					IStoreSystem storeSystem;
+
+					try {
+						storeSystem = (IStoreSystem)Activator.CreateInstance(type, true);
+					} catch (Exception e) {
+						throw new InvalidOperationException("An error occurred while initializing the type '" + type + "': " + e.Message);
+					}
+
+					storageType = storeSystem.StorageType;
+				}
+
+				cache[typeName] = storageType;
+			}
+
+			return storageType;
+		}
+
+
 		public static DbController Create(DbConfig config) {
 			return Create(null, config);
 		}
@@ -158,7 +223,7 @@ namespace Deveel.Data.Control {
 		/// If the <paramref name="path"/> provided is <b>null</b>.
 		/// </exception>
 		public static DbController Create(string path, DbConfig config) {
-			StorageType storageType = ConfigUtil.GetStorageType(config);
+			StorageType storageType = GetStorageType(config);
 
 			if (path == null)
 				path = Environment.CurrentDirectory;
@@ -321,7 +386,7 @@ namespace Deveel.Data.Control {
 			if (DatabaseExists(name))
 				throw new ArgumentException("A database '" + name + "' already exists.");
 
-			StorageType storageType = ConfigUtil.GetStorageType(config);
+			StorageType storageType = GetStorageType(config);
 
 			DbConfig dbConfig;
 			string path = "";

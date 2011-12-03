@@ -415,7 +415,7 @@ namespace Deveel.Data {
 			if (debug_logs_bool && !read_only_bool &&
 				log_path_string != null) {
 				// First set up the debug information in this VM for the 'Debug' class.
-				string log_path = ConfigUtil.ParseFileString(config.CurrentPath, root_path_var, log_path_string);
+				string log_path = config.ParseFileString(root_path_var, log_path_string);
 				// If the path doesn't exist the make it.
 				if (!Directory.Exists(log_path))
 					Directory.CreateDirectory(log_path);
