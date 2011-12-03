@@ -17,6 +17,7 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
+using Deveel.Data.Protocol;
 using Deveel.Math;
 
 namespace Deveel.Data {

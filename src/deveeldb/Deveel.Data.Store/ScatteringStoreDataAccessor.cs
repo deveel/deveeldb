@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -27,7 +27,7 @@ namespace Deveel.Data.Store {
 	/// When one store data resource reaches a certain threshold size, the content 
 	/// <i>flows</i> over to the next file.
 	/// </remarks>
-	public class ScatteringStoreDataAccessor : IStoreDataAccessor {
+	class ScatteringStoreDataAccessor : IStoreDataAccessor {
 		/// <summary>
 		///The path of this store in the file system. 
 		/// </summary>
@@ -36,52 +36,56 @@ namespace Deveel.Data.Store {
 		/// <summary>
 		/// The name of the file in the file system minus the extension.
 		/// </summary>
-		private readonly String file_name;
+		private readonly string fileName;
 
 		/// <summary>
 		/// The extension of the first file in the sliced set.
 		/// </summary>
-		private readonly String first_ext;
+		private readonly string firstExt;
 
 		/// <summary>
 		/// The maximum size a file slice can grow too before a new slice is created. 
 		/// </summary>
-		private readonly long max_slice_size;
+		private readonly long maxSliceSize;
 
 		/// <summary>
 		/// The list of RandomAccessFile objects for each file that represents a
 		/// slice of the store.  (FileSlice objects)
 		/// </summary>
-		private ArrayList slice_list;
+		private List<FileSlice> sliceList;
 
 		/// <summary>
 		/// The current actual physical size of the store data on disk.
 		/// </summary>
-		private long true_file_length;
+		private long trueFileLength;
 
 		/// <summary>
 		/// A lock when modifying the true_data_size, and slice_list. 
 		/// </summary>
-		private readonly Object l = new Object();
+		private readonly object l = new Object();
 
 		/// <summary>
 		/// Set when the store is openned.
 		/// </summary>
-		private bool m_open = false;
+		private bool open;
 
 		/// <summary>
 		/// Constructs the store data accessor.
 		/// </summary>
 		/// <param name="path"></param>
-		/// <param name="file_name"></param>
-		/// <param name="first_ext"></param>
-		/// <param name="max_slice_size"></param>
-		public ScatteringStoreDataAccessor(string path, string file_name, string first_ext, long max_slice_size) {
-			slice_list = new ArrayList();
+		/// <param name="fileName"></param>
+		/// <param name="firstExt"></param>
+		/// <param name="maxSliceSize"></param>
+		public ScatteringStoreDataAccessor(string path, string fileName, string firstExt, long maxSliceSize) {
+			sliceList = new List<FileSlice>();
 			this.path = path;
-			this.file_name = file_name;
-			this.first_ext = first_ext;
-			this.max_slice_size = max_slice_size;
+			this.fileName = fileName;
+			this.firstExt = firstExt;
+			this.maxSliceSize = maxSliceSize;
+		}
+
+		~ScatteringStoreDataAccessor() {
+			Dispose(false);
 		}
 
 		/// <summary>
@@ -90,47 +94,46 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		/// <param name="f"></param>
 		public void ConvertToScatteringStore(string f) {
-			const int BUFFER_SIZE = 65536;
+			const int bufferSize = 65536;
 
 			FileStream src = new FileStream(f, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-			long file_size = new FileInfo(f).Length;
-			long current_p = max_slice_size;
-			long to_write = System.Math.Min(file_size - current_p, max_slice_size);
-			int write_to_part = 1;
+			long fileSize = new FileInfo(f).Length;
+			long currentP = maxSliceSize;
+			long toWrite = System.Math.Min(fileSize - currentP, maxSliceSize);
+			int writeToPart = 1;
 
-			byte[] copy_buffer = new byte[BUFFER_SIZE];
+			byte[] copy_buffer = new byte[bufferSize];
 
-			while (to_write > 0) {
+			while (toWrite > 0) {
+				src.Seek(currentP, SeekOrigin.Begin);
 
-				src.Seek(current_p, SeekOrigin.Begin);
-
-				string to_f = SlicePartFile(write_to_part);
-				if (File.Exists(to_f)) {
+				string toF = SlicePartFile(writeToPart);
+				if (File.Exists(toF))
 					throw new IOException("Copy error, slice already exists.");
+
+				FileStream destStream = new FileStream(toF, FileMode.OpenOrCreate, FileAccess.Write);
+
+				while (toWrite > 0) {
+					int sizeToCopy = (int)System.Math.Min(bufferSize, toWrite);
+
+					src.Read(copy_buffer, 0, sizeToCopy);
+					destStream.Write(copy_buffer, 0, sizeToCopy);
+
+					currentP += sizeToCopy;
+					toWrite -= sizeToCopy;
 				}
-				FileStream to_raf = new FileStream(to_f, FileMode.OpenOrCreate, FileAccess.Write);
 
-				while (to_write > 0) {
-					int size_to_copy = (int)System.Math.Min(BUFFER_SIZE, to_write);
+				destStream.Flush();
+				destStream.Close();
 
-					src.Read(copy_buffer, 0, size_to_copy);
-					to_raf.Write(copy_buffer, 0, size_to_copy);
-
-					current_p += size_to_copy;
-					to_write -= size_to_copy;
-				}
-
-				to_raf.Flush();
-				to_raf.Close();
-
-				to_write = System.Math.Min(file_size - current_p, max_slice_size);
-				++write_to_part;
+				toWrite = System.Math.Min(fileSize - currentP, maxSliceSize);
+				++writeToPart;
 			}
 
 			// Truncate the source file
-			if (file_size > max_slice_size) {
+			if (fileSize > maxSliceSize) {
 				src.Seek(0, SeekOrigin.Begin);
-				src.SetLength(max_slice_size);
+				src.SetLength(maxSliceSize);
 			}
 			src.Close();
 
@@ -147,11 +150,11 @@ namespace Deveel.Data.Store {
 		/// </remarks>
 		/// <returns></returns>
 		private string SlicePartFile(int i) {
-			if (i == 0) {
-				return Path.Combine(path, file_name + "." + first_ext);
-			}
+			if (i == 0)
+				return Path.Combine(path, fileName + "." + firstExt);
+
 			StringBuilder fn = new StringBuilder();
-			fn.Append(file_name);
+			fn.Append(fileName);
 			fn.Append(".");
 			if (i < 10) {
 				fn.Append("00");
@@ -194,105 +197,99 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		/// <returns></returns>
 		private long DiscoverSize() {
-			long running_total = 0;
+			long runningTotal = 0;
 
 			lock (l) {
 				// Does the file exist?
 				int i = 0;
 				string f = SlicePartFile(i);
 				while (File.Exists(f)) {
-					running_total += CreateSliceDataAccessor(f).Size;
+					runningTotal += CreateSliceDataAccessor(f).Size;
 
 					++i;
 					f = SlicePartFile(i);
 				}
 			}
 
-			return running_total;
+			return runningTotal;
 		}
 
 		// ---------- Implemented from IStoreDataAccessor ----------
 
-		public void Open(bool read_only) {
-			long running_length;
-
+		public void Open(bool readOnly) {
 			lock (l) {
-				slice_list = new ArrayList();
+				sliceList = new List<FileSlice>();
 
 				// Does the file exist?
 				string f = SlicePartFile(0);
-				bool open_existing = File.Exists(f);
+				bool openExisting = File.Exists(f);
 
 				// If the file already exceeds the threshold and there isn't a secondary
 				// file then we need to convert the file.
-				if (open_existing && f.Length > max_slice_size) {
+				if (openExisting && f.Length > maxSliceSize) {
 					string f2 = SlicePartFile(1);
-					if (File.Exists(f2)) {
+					if (File.Exists(f2))
 						throw new IOException("File length exceeds maximum slice size setting.");
-					}
+
 					// We need to scatter the file.
-					if (!read_only) {
-						ConvertToScatteringStore(f);
-					} else {
+					if (readOnly)
 						throw new IOException("Unable to convert to a scattered store because Read-only.");
-					}
+						
+					ConvertToScatteringStore(f);
 				}
 
 				// Setup the first file slice
 				FileSlice slice = new FileSlice();
 				slice.data = CreateSliceDataAccessor(f);
-				slice.data.Open(read_only);
+				slice.data.Open(readOnly);
 
-				slice_list.Add(slice);
-				running_length = slice.data.Size;
+				sliceList.Add(slice);
+				long runningLength = slice.data.Size;
 
 				// If we are opening a store that exists already, there may be other
 				// slices we need to setup.
-				if (open_existing) {
+				if (openExisting) {
 					int i = 1;
-					string slice_part = SlicePartFile(i);
-					while (File.Exists(slice_part)) {
+					string slicePart = SlicePartFile(i);
+					while (File.Exists(slicePart)) {
 						// Create the new slice information for this part of the file.
 						slice = new FileSlice();
-						slice.data = CreateSliceDataAccessor(slice_part);
-						slice.data.Open(read_only);
+						slice.data = CreateSliceDataAccessor(slicePart);
+						slice.data.Open(readOnly);
 
-						slice_list.Add(slice);
-						running_length += slice.data.Size;
+						sliceList.Add(slice);
+						runningLength += slice.data.Size;
 
 						++i;
-						slice_part = SlicePartFile(i);
+						slicePart = SlicePartFile(i);
 					}
 				}
 
-				true_file_length = running_length;
+				trueFileLength = runningLength;
 
-				m_open = true;
+				open = true;
 			}
 		}
 
 		public void Close() {
 			lock (l) {
-				int sz = slice_list.Count;
-				for (int i = 0; i < sz; ++i) {
-					FileSlice slice = (FileSlice)slice_list[i];
+				foreach (FileSlice slice in sliceList) {
 					slice.data.Close();
 				}
-				slice_list = null;
-				m_open = false;
+				sliceList = null;
+				open = false;
 			}
 		}
 
 		public bool Delete() {
 			// The number of files
-			int count_files = StoreFilesCount;
+			int countFiles = StoreFilesCount;
 			// Delete each file from back to front
-			for (int i = count_files - 1; i >= 0; --i) {
+			for (int i = countFiles - 1; i >= 0; --i) {
 				string f = SlicePartFile(i);
-				bool delete_success = CreateSliceDataAccessor(f).Delete();
-				if (!delete_success) {
+				bool deleteSuccess = CreateSliceDataAccessor(f).Delete();
+				if (!deleteSuccess)
 					return false;
-				}
 			}
 			return true;
 		}
@@ -306,31 +303,31 @@ namespace Deveel.Data.Store {
 			// Reads the array (potentially across multiple slices).
 			int count = 0;
 			while (len > 0) {
-				int file_i = (int)(position / max_slice_size);
-				long file_p = (position % max_slice_size);
-				int file_len = (int)System.Math.Min((long)len, max_slice_size - file_p);
+				int fileI = (int)(position / maxSliceSize);
+				long fileP = (position % maxSliceSize);
+				int fileLen = (int)System.Math.Min((long)len, maxSliceSize - fileP);
 
 				FileSlice slice;
 				lock (l) {
 					// Return if out of bounds.
-					if (file_i < 0 || file_i >= slice_list.Count) {
+					if (fileI < 0 || fileI >= sliceList.Count) {
 						// Error if not open
-						if (!m_open) {
+						if (!open)
 							throw new IOException("Store not open.");
-						}
+
 						return 0;
 					}
-					slice = (FileSlice)slice_list[file_i];
+					slice = sliceList[fileI];
 				}
 
-				int read_count =slice.data.Read(file_p, buf, off, file_len);
-				if (read_count == 0)
+				int readCount =slice.data.Read(fileP, buf, off, fileLen);
+				if (readCount == 0)
 					break;
 
-				position += read_count;
-				off += read_count;
-				len -= read_count;
-				count += read_count;
+				position += readCount;
+				off += readCount;
+				len -= readCount;
+				count += readCount;
 			}
 
 			return count;
@@ -339,66 +336,65 @@ namespace Deveel.Data.Store {
 		public void Write(long position, byte[] buf, int off, int len) {
 			// Writes the array (potentially across multiple slices).
 			while (len > 0) {
-				int file_i = (int)(position / max_slice_size);
-				long file_p = (position % max_slice_size);
-				int file_len = (int)System.Math.Min((long)len, max_slice_size - file_p);
+				int fileI = (int)(position / maxSliceSize);
+				long fileP = (position % maxSliceSize);
+				int fileLen = (int)System.Math.Min((long)len, maxSliceSize - fileP);
 
 				FileSlice slice;
 				lock (l) {
 					// Return if out of bounds.
-					if (file_i < 0 || file_i >= slice_list.Count) {
-						if (!m_open) {
+					if (fileI < 0 || fileI >= sliceList.Count) {
+						if (!open)
 							throw new IOException("Store not open.");
-						}
+
 						return;
 					}
-					slice = (FileSlice)slice_list[file_i];
+					slice = sliceList[fileI];
 				}
-				slice.data.Write(file_p, buf, off, file_len);
+				slice.data.Write(fileP, buf, off, fileLen);
 
-				position += file_len;
-				off += file_len;
-				len -= file_len;
+				position += fileLen;
+				off += fileLen;
+				len -= fileLen;
 			}
 		}
 
-		public void SetSize(long length) {
+		public void SetSize(long newSize) {
 			lock (l) {
 				// The size we need to grow the data area
-				long total_size_to_grow = length - true_file_length;
+				long totalSizeToGrow = newSize - trueFileLength;
 				// Assert that we aren't shrinking the data area size.
-				if (total_size_to_grow < 0) {
+				if (totalSizeToGrow < 0) {
 					throw new IOException("Unable to make the data area size " +
 										  "smaller for this type of store.");
 				}
 
-				while (total_size_to_grow > 0) {
+				while (totalSizeToGrow > 0) {
 					// Grow the last slice by this size
-					int last = slice_list.Count - 1;
-					FileSlice slice = (FileSlice)slice_list[last];
-					long old_slice_length = slice.data.Size;
-					long to_grow = System.Math.Min(total_size_to_grow,
-											(max_slice_size - old_slice_length));
+					int last = sliceList.Count - 1;
+					FileSlice slice = sliceList[last];
+					long oldSliceLength = slice.data.Size;
+					long toGrow = System.Math.Min(totalSizeToGrow, (maxSliceSize - oldSliceLength));
 
 					// Flush the buffer and set the length of the file
-					slice.data.SetSize(old_slice_length + to_grow);
+					slice.data.SetSize(oldSliceLength + toGrow);
 					// Synchronize the file change.  XP appears to defer a file size change
 					// and it can result in errors if the JVM is terminated.
 					slice.data.Synch();
 
-					total_size_to_grow -= to_grow;
+					totalSizeToGrow -= toGrow;
 					// Create a new empty slice if we need to extend the data area
-					if (total_size_to_grow > 0) {
-						string slice_file = SlicePartFile(last + 1);
+					if (totalSizeToGrow > 0) {
+						string sliceFile = SlicePartFile(last + 1);
 
 						slice = new FileSlice();
-						slice.data = CreateSliceDataAccessor(slice_file);
+						slice.data = CreateSliceDataAccessor(sliceFile);
 						slice.data.Open(false);
 
-						slice_list.Add(slice);
+						sliceList.Add(slice);
 					}
 				}
-				true_file_length = length;
+				trueFileLength = newSize;
 			}
 
 		}
@@ -406,22 +402,15 @@ namespace Deveel.Data.Store {
 		public long Size {
 			get {
 				lock (l) {
-					if (m_open) {
-						return true_file_length;
-					} else {
-						return DiscoverSize();
-					}
+					return open ? trueFileLength : DiscoverSize();
 				}
 			}
 		}
 
 		public void Synch() {
 			lock (l) {
-				int sz = slice_list.Count;
-				for (int i = 0; i < sz; ++i) {
-					FileSlice slice = (FileSlice)slice_list[i];
+				foreach (FileSlice slice in sliceList)
 					slice.data.Synch();
-				}
 			}
 		}
 
@@ -439,14 +428,17 @@ namespace Deveel.Data.Store {
 
 		}
 
-		public void Dispose() {
-			int sz = slice_list.Count;
-			if (sz > 0) {
-				for (int i = 0; i < sz; i++) {
-					FileSlice slice = (FileSlice) slice_list[i];
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				foreach (FileSlice slice in sliceList) {
 					slice.data.Dispose();
 				}
 			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 	}
 }

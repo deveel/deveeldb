@@ -14,23 +14,21 @@
 //    limitations under the License.
 
 using System;
+using System.Collections;
 
-namespace Deveel.Data.Client {
+namespace Deveel.Data.Protocol {
 	/// <summary>
-	/// Defines the style used in a command to define the kind of 
-	/// parameters permitted.
+	/// A container class that holds a part of a result set.
 	/// </summary>
-	public enum ParameterStyle {
-		/// <summary>
-		/// A marker parameter is represented by a question mark (<c>?</c>) 
-		/// in the text of the command.
-		/// </summary>
-		Marker = 1,
+	public class ResultPart : ArrayList {
 
-		/// <summary>
-		/// When using this style, parameters are represented by names prefixed
-		/// by a <c>@</c> symbol.
-		/// </summary>
-		Named = 2
+		public ResultPart()
+			: base() {
+		}
+
+		public ResultPart(int initial_size)
+			: base(initial_size) {
+		}
+
 	}
 }

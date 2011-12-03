@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Client {
+namespace Deveel.Data.Protocol {
 	///<summary>
     /// Represents a response from the server for a section of a streamable object.
 	///</summary>

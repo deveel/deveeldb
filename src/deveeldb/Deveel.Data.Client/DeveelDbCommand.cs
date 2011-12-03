@@ -20,6 +20,7 @@ using System.Data.Common;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Protocol;
 using Deveel.Math;
 
 namespace Deveel.Data.Client {
@@ -129,7 +130,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Generates a new <see cref="Data.StreamableObject"/> and stores it in the hold for 
+		/// Generates a new <see cref="StreamableObject"/> and stores it in the hold for 
 		/// future access by the server.
 		/// </summary>
 		/// <param name="x"></param>
@@ -185,8 +186,8 @@ namespace Deveel.Data.Client {
 		}
 
 		internal DeveelDbLob GetLob(object obj) {
-			if (obj is Data.StreamableObject) {
-				Data.StreamableObject s_ob = (Data.StreamableObject)obj;
+			if (obj is StreamableObject) {
+				StreamableObject s_ob = (StreamableObject)obj;
 				if (s_ob.Type == ReferenceType.Binary) {
 					return new DeveelDbLob(connection, ResultSet.result_id, s_ob);
 				}
@@ -291,7 +292,7 @@ namespace Deveel.Data.Client {
 		/// </remarks>
 		/// <returns></returns>
 		internal String MakeString(Object ob) {
-			if (ob is Data.StreamableObject) {
+			if (ob is StreamableObject) {
 				DeveelDbLob clob = GetLob(ob);
 				long clob_len = clob.Length;
 				if (clob_len < 16384L * 65536L) {
@@ -393,8 +394,8 @@ namespace Deveel.Data.Client {
 				if (streamable_object_list != null) {
 					int sz = streamable_object_list.Count;
 					for (int i = 0; i < sz; ++i) {
-						Data.StreamableObject s_object =
-									   (Data.StreamableObject)streamable_object_list[i];
+						StreamableObject s_object =
+									   (StreamableObject)streamable_object_list[i];
 						connection.RemoveStreamableObject(s_object);
 					}
 					streamable_object_list = null;

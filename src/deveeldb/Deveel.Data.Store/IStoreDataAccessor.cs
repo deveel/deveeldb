@@ -43,12 +43,12 @@ namespace Deveel.Data.Store {
 		/// <summary>
 		/// Opens the underlying data area representation.
 		/// </summary>
-		/// <param name="read_only"></param>
+		/// <param name="readOnly"></param>
 		/// <remarks>
 		/// If the resource doesn't exist then it is created and the 
 		/// size is set to 0.
 		/// </remarks>
-		void Open(bool read_only);
+		void Open(bool readOnly);
 
 		/// <summary>
 		/// Closes the underlying data area representation.
@@ -81,12 +81,12 @@ namespace Deveel.Data.Store {
 		/// <summary>
 		/// Sets the size of the underlying data area to the given size.
 		/// </summary>
-		/// <param name="new_size"></param>
+		/// <param name="newSize"></param>
 		/// <remarks>
 		/// If the size of the data area is increased, the content between 
 		/// the old size and the new size is implementation defined.
 		/// </remarks>
-		void SetSize(long new_size);
+		void SetSize(long newSize);
 
 
 		/// <summary>

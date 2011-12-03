@@ -4,6 +4,7 @@ options {
   OPTIMIZE_TOKEN_MANAGER = true;
 //  IGNORE_CASE = true;
   DEBUG_PARSER = false;
+  VISIBILITY_INTERNAL = true;
 }
 
 PARSER_BEGIN(SQL)
@@ -30,7 +31,7 @@ internal class SQL {
 	/// The parameter id.
 	/// </summary>
 	private int parameter_id = 0;
-	private Client.ParameterStyle parameterStyle = Client.ParameterStyle.Marker;
+	private ParameterStyle parameterStyle = ParameterStyle.Marker;
 	
 	/// <summary>
 	/// Resets the parameter id.

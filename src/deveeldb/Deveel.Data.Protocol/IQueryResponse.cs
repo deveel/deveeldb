@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Client {
+namespace Deveel.Data.Protocol {
 	///<summary>
 	/// The response to a command executed via the <see cref="IDatabaseInterface.ExecuteQuery"/>
 	/// method in the <see cref="IDatabaseInterface"/> interface.

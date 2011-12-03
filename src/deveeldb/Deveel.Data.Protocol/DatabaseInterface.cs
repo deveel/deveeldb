@@ -19,7 +19,7 @@ using System.Text;
 using Deveel.Data.Client;
 using Deveel.Diagnostics;
 
-namespace Deveel.Data.Server {
+namespace Deveel.Data.Protocol {
 	///<summary>
 	/// An implementation of <see cref="IDatabaseInterface"/> on the server-side.
 	///</summary>

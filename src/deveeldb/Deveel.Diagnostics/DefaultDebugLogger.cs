@@ -159,18 +159,17 @@ namespace Deveel.Diagnostics {
 					Directory.CreateDirectory(logPath);
 
 				LogWriter fileWriter;
-				string dlogFileName = "";
-				try {
-					dlogFileName = config.DebugLogFile;
-					string debugLogFile = Path.Combine(Path.GetFullPath(logPath), dlogFileName);
+				string dlogFileName = config.DebugLogFile;
+				string debugLogFile = Path.Combine(Path.GetFullPath(logPath), dlogFileName);
 
+				try {
 					// Allow log size to grow to 512k and allow 12 archives of the log
 					//TODO: make it configurable...
 					fileWriter = new LogWriter(debugLogFile, 512 * 1024, 12);
 					fileWriter.WriteLine("**** Debug log started: {0} ****", DateTime.Now);
 					fileWriter.Flush();
 				} catch (IOException) {
-					throw new Exception("Unable to open debug file '" + dlogFileName + "' in path '" + logPath + "'");
+					throw new Exception("Unable to open debug file '" + debugLogFile + "' in path '" + logPath + "'");
 				}
 				output = fileWriter;
 			}

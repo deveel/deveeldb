@@ -45,20 +45,24 @@ namespace Deveel.Data.Store {
 		/// <summary>
 		/// True if the file is open.
 		/// </summary>
-		private bool is_open;
+		private bool isOpen;
 
 		internal IOStoreDataAccessor(string file) {
 			this.file = file;
-			this.is_open = false;
+			isOpen = false;
+		}
+
+		~IOStoreDataAccessor() {
+			Dispose(false);
 		}
 
 		// ---------- Implemented from IStoreDataAccessor ----------
 
-		public void Open(bool is_read_only) {
+		public void Open(bool readOnly) {
 			lock (l) {
-				data = new FileStream(file, FileMode.OpenOrCreate, is_read_only ? FileAccess.Read : FileAccess.ReadWrite, FileShare.ReadWrite, 1024, FileOptions.WriteThrough);
+				data = new FileStream(file, FileMode.OpenOrCreate, readOnly ? FileAccess.Read : FileAccess.ReadWrite, FileShare.ReadWrite, 1024, FileOptions.WriteThrough);
 				size = data.Length;
-				is_open = true;
+				isOpen = true;
 			}
 		}
 
@@ -66,12 +70,12 @@ namespace Deveel.Data.Store {
 			lock (l) {
 				data.Close();
 				data = null;
-				is_open = false;
+				isOpen = false;
 			}
 		}
 
 		public bool Delete() {
-			if (!is_open) {
+			if (!isOpen) {
 				File.Delete(file);
 				return !Exists;
 			}
@@ -82,6 +86,14 @@ namespace Deveel.Data.Store {
 			get { return File.Exists(file); }
 		}
 
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (data != null) {
+					data.Dispose();
+					data = null;
+				}
+			}
+		}
 
 		public int Read(long position, byte[] buf, int off, int len) {
 			// Make sure we don't Read past the end
@@ -107,26 +119,21 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		public void SetSize(long new_size) {
+		public void SetSize(long newSize) {
 			lock (l) {
 				// If expanding the size of the file,
-				if (new_size > this.size) {
+				if (newSize > size) {
 					// Seek to the new size - 1 and Write a single byte to the end of the
 					// file.
-					long p = new_size - 1;
+					long p = newSize - 1;
 					if (p > 0) {
 						data.Seek(p, SeekOrigin.Begin);
 						data.WriteByte(0);
-						this.size = new_size;
+						size = newSize;
 					}
-				} else if (new_size < this.size) {
-					// Otherwise the size of the file is shrinking, so setLength().
-					// Note that we don't use 'setLength' to grow the file because of a
-					// bug in the Linux 1.2, 1.3 and 1.4 JVM that generates an error when
-					// expanding the size of a file via 'setLength' on some file systems
-					// (specifically VFAT).
-					data.SetLength(new_size);
-					this.size = new_size;
+				} else if (newSize < size) {
+					data.SetLength(newSize);
+					size = newSize;
 				}
 			}
 		}
@@ -134,11 +141,7 @@ namespace Deveel.Data.Store {
 		public long Size {
 			get {
 				lock (l) {
-					if (is_open) {
-						return size;
-					} else {
-						return new FileInfo(file).Length;
-					}
+					return isOpen ? size : new FileInfo(file).Length;
 				}
 			}
 		}
@@ -147,8 +150,7 @@ namespace Deveel.Data.Store {
 			lock (l) {
 				try {
 					data.Flush();
-					// FSync.Sync(data);
-				} catch (SyncFailedException) {
+				} catch (IOException) {
 					// There isn't much we can do about this exception.  By itself it
 					// doesn't indicate a terminating error so it's a good idea to ignore
 					// it.  Should it be silently ignored?
@@ -157,8 +159,8 @@ namespace Deveel.Data.Store {
 		}
 
 		public void Dispose() {
-			if (data != null)
-				data.Close();
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 	}
 }

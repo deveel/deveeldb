@@ -21,6 +21,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 
+using Deveel.Data.Protocol;
 using Deveel.Data.Util;
 
 namespace Deveel.Data.Client {
@@ -749,7 +750,7 @@ namespace Deveel.Data.Client {
 			/// </summary>
 			/// <param name="result_id"></param>
 			/// <param name="streamable_object_id">The identifier of the object to
-			/// download: this is returned by <see cref="Data.StreamableObject.Identifier"/></param>
+			/// download: this is returned by <see cref="StreamableObject.Identifier"/></param>
 			/// <param name="offset"></param>
 			/// <param name="length"></param>
 			/// <remarks>

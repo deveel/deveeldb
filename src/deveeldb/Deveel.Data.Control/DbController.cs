@@ -258,9 +258,10 @@ namespace Deveel.Data.Control {
 			if (storageType == StorageType.File) {
 				// done with the main configuration... now look for the databases...
 				string[] subDirs = Directory.GetDirectories(path);
-				for (int i = 0; i < subDirs.Length; i++) {
-					string dir = subDirs[i];
+				foreach (string dir in subDirs) {
 					DbConfig dbConfig = GetConfig(mainConfig, dir, null);
+					if (dbConfig == null)
+						continue;
 
 					string name = dbConfig.GetValue("name");
 					if (name == null)
@@ -296,7 +297,10 @@ namespace Deveel.Data.Control {
 				// config file, otherwise we quit...
 				configFile = files.Length == 1 ? Path.GetFileName(files[0]) : configFile;
 				fileExists = files.Length == 1;
-			}			
+			}
+
+			if (!fileExists)
+				return null;
 
 			DbConfig config = new DbConfig();
 			config.CurrentPath = path;
@@ -305,10 +309,7 @@ namespace Deveel.Data.Control {
 				config.Merge(parentConfig);
 
 			// if the config file exists, we load the settings from there...
-			if (fileExists)
-				config.LoadFromFile(configFile);
-			else
-				config.SaveTo(configFile);
+			config.LoadFromFile(configFile);
 
 			return config;
 		}
@@ -355,7 +356,7 @@ namespace Deveel.Data.Control {
 		/// </returns>
 		public bool IsInitialized(string databaseName) {
 			Database database = GetDatabase(databaseName);
-			return (database == null ? false : database.IsInitialized);
+			return (database != null && database.IsInitialized);
 		}
 
 		/// <summary>

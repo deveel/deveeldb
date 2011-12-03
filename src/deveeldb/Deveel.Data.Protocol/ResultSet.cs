@@ -18,7 +18,9 @@ using System.Collections;
 using System.Data;
 using System.IO;
 
-namespace Deveel.Data.Client {
+using Deveel.Data.Client;
+
+namespace Deveel.Data.Protocol {
     /// <summary>
     /// An object which represents the result of a command on the server.
     /// </summary>

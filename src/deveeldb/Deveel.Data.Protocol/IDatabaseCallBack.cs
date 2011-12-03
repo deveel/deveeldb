@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Client {
+namespace Deveel.Data.Protocol {
 	///<summary>
 	/// An interface that is input to the IDatabaseInterface as a way to be
 	/// notified of event information from inside the database.

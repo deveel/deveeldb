@@ -22,6 +22,7 @@ using System.Threading;
 using System.Transactions;
 
 using Deveel.Data.Control;
+using Deveel.Data.Protocol;
 using Deveel.Data.Server;
 
 using IsolationLevel=System.Data.IsolationLevel;
@@ -442,11 +443,11 @@ namespace Deveel.Data.Client {
 			try {
 				for (int i = 0; i < vars.Length; ++i) {
 					// For each streamable object.
-					if (vars[i] != null && vars[i] is Data.StreamableObject) {
+					if (vars[i] != null && vars[i] is StreamableObject) {
 						// Buffer size is fixed to 64 KB
 						const int BUF_SIZE = 64 * 1024;
 
-						Data.StreamableObject s_object = (Data.StreamableObject)vars[i];
+						StreamableObject s_object = (StreamableObject)vars[i];
 						long offset = 0;
 						ReferenceType type = s_object.Type;
 						long total_len = s_object.Size;
@@ -627,18 +628,18 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Creates a <see cref="Data.StreamableObject"/> on the client side 
+		/// Creates a <see cref="StreamableObject"/> on the client side 
 		/// given a <see cref="Stream"/>, and length and a type.
 		/// </summary>
 		/// <param name="x"></param>
 		/// <param name="length"></param>
 		/// <param name="type"></param>
 		/// <remarks>
-		/// When this method returns, a <see cref="Data.StreamableObject"/> entry will be 
+		/// When this method returns, a <see cref="StreamableObject"/> entry will be 
 		/// added to the hold.
 		/// </remarks>
 		/// <returns></returns>
-		internal Data.StreamableObject CreateStreamableObject(Stream x, int length, ReferenceType type) {
+		internal StreamableObject CreateStreamableObject(Stream x, int length, ReferenceType type) {
 			long ob_id;
 			lock (s_object_hold) {
 				ob_id = s_object_id;
@@ -647,17 +648,17 @@ namespace Deveel.Data.Client {
 				s_object_hold[ob_id] = x;
 			}
 			// Create and return the StreamableObject
-			return new Data.StreamableObject(type, length, ob_id);
+			return new StreamableObject(type, length, ob_id);
 		}
 
 		/// <summary>
-		/// Removes the <see cref="Data.StreamableObject"/> from the hold on the client.
+		/// Removes the <see cref="StreamableObject"/> from the hold on the client.
 		/// </summary>
 		/// <param name="s_object"></param>
 		/// <remarks>
 		/// This should be called when the <see cref="DeveelDbCommand"/> closes.
 		/// </remarks>
-		internal void RemoveStreamableObject(Data.StreamableObject s_object) {
+		internal void RemoveStreamableObject(StreamableObject s_object) {
 			s_object_hold.Remove(s_object.Identifier);
 		}
 

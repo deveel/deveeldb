@@ -24,11 +24,11 @@ namespace Deveel.Data.Control {
 	/// <summary>
 	///  Provides configurations for the whole database system.
 	/// </summary>
-	public sealed class DbConfig {
+	public sealed class DbConfig : IEnumerable<KeyValuePair<string, string>> {
 		/// <summary>
 		/// The Hashtable mapping from configuration key to value for the key.
 		/// </summary>
-		private Dictionary<string, ConfigProperty> properties;
+		private Dictionary<string, string> properties;
 
 		private static DbConfig defaultConfig;
 
@@ -36,7 +36,7 @@ namespace Deveel.Data.Control {
 		/// Constructs the <see cref="DbConfig"/>.
 		/// </summary>
 		public DbConfig() {
-			properties = new Dictionary<string, ConfigProperty>();
+			properties = new Dictionary<string, string>();
 		}
 
 		/// <summary>
@@ -143,7 +143,15 @@ namespace Deveel.Data.Control {
 		///<param name="key"></param>
 		///<param name="value"></param>
 		public void SetValue(string key, string value) {
-			properties[key] = new ConfigProperty(key, value, null);
+			properties[key] = value;
+		}
+
+		public void SetValue(string propertyKey, bool value) {
+			properties[propertyKey] = (value ? "enabled" : "disabled");
+		}
+
+		public void SetValue(string propertyKey, int value) {
+			properties[propertyKey] = value.ToString();
 		}
 
 		// ---------- Implemented from IDbConfig ----------
@@ -171,10 +179,10 @@ namespace Deveel.Data.Control {
 
 		public string GetValue(string propertyKey, string defaultValue) {
 			// If the key is in the map, return it here
-			ConfigProperty property;
+			string property;
 			if (!properties.TryGetValue(propertyKey, out property))
 				return defaultValue;
-			return property.Value;			
+			return property;
 		}
 
 		public bool GetBooleanValue(string propertyKey, bool defaultValue) {
@@ -222,11 +230,11 @@ namespace Deveel.Data.Control {
 
 		/// <inheritdoc/>
 		public DbConfig Merge(DbConfig config) {
-			foreach (ConfigProperty property in config) {
+			foreach (KeyValuePair<string, string> property in config.properties) {
 				if (properties.ContainsKey(property.Key))
 					continue;
 
-				properties[property.Key] = (ConfigProperty) property.Clone();
+				properties[property.Key] = (string) property.Value.Clone();
 			}
 
 			return this;
@@ -235,11 +243,15 @@ namespace Deveel.Data.Control {
 		/// <inheritdoc/>
 		public object Clone() {
 			DbConfig config = new DbConfig();
-			config.properties = new Dictionary<string, ConfigProperty>();
-			foreach (KeyValuePair<string, ConfigProperty> pair in properties) {
-				config.properties[pair.Key] = pair.Value.Clone() as ConfigProperty;
+			config.properties = new Dictionary<string, string>();
+			foreach (KeyValuePair<string, string> pair in properties) {
+				config.properties[pair.Key] = (string) pair.Value.Clone();
 			}
 			return config;
+		}
+
+		IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator() {
+			return properties.GetEnumerator();
 		}
 
 		/// <summary>
@@ -248,11 +260,11 @@ namespace Deveel.Data.Control {
 		/// </summary>
 		/// <returns>
 		/// Returns an instance of <see cref="IEnumerator"/> which is used
-		/// to enumerate a set of <see cref="ConfigProperty"/> which represent
+		/// to enumerate a set of <see cref="KeyValuePair{TKey,TValue}"/> which represent
 		/// the configuration properties set.
 		/// </returns>
 		public IEnumerator GetEnumerator() {
-			return properties.Values.GetEnumerator();
+			return properties.GetEnumerator();
 		}
 
 		///<summary>
@@ -310,9 +322,7 @@ namespace Deveel.Data.Control {
 							// The line continues on the next line.  If there
 							// is no next line, just treat it as a key with an
 							// empty value.
-							line = reader.ReadLine();
-							if (line == null)
-								line = "";
+							line = reader.ReadLine() ?? "";
 							pos = 0;
 							while (pos < line.Length && 
 								Char.IsWhiteSpace(c = line[pos]))
@@ -362,7 +372,7 @@ namespace Deveel.Data.Control {
 				if (!isDelim && (c == ':' || c == '=')) {
 					pos++;
 					while (pos < line.Length && 
-						Char.IsWhiteSpace(c = line[pos]))
+						Char.IsWhiteSpace(line[pos]))
 						pos++;
 				}
 
@@ -389,7 +399,7 @@ namespace Deveel.Data.Control {
 
 							pos = 0;
 							while (pos < line.Length
-								   && Char.IsWhiteSpace(c = line[pos]))
+								   && Char.IsWhiteSpace(line[pos]))
 								pos++;
 							element.EnsureCapacity(line.Length - pos + element.Length);
 						} else {
@@ -506,14 +516,12 @@ namespace Deveel.Data.Control {
 			writer.WriteLine("#" + DateTime.Now);
 
 			StringBuilder s = new StringBuilder(); // Reuse the same buffer.
-			foreach (KeyValuePair<string, ConfigProperty> entry in properties) {
-				ConfigProperty property = entry.Value;
-
+			foreach (KeyValuePair<string, string> entry in properties) {
 				//TODO: format and print the optional comment...
 
-				FormatForOutput(property.Key, s, true);
+				FormatForOutput(entry.Key, s, true);
 				s.Append('=');
-				FormatForOutput(property.Value, s, false);
+				FormatForOutput(entry.Value, s, false);
 				writer.WriteLine(s);
 			}
 
@@ -522,26 +530,26 @@ namespace Deveel.Data.Control {
 
 		public static DbConfig CreateDefault() {
 			DbConfig config = new DbConfig();
-			config.SetValue("storage_system", "v1heap");
-			config.SetValue("database_path", "./data");
-			config.SetValue("log_path", "./log");
+			config.SetValue(ConfigKeys.StorageSystem, "v1heap");
+			config.SetValue(ConfigKeys.DatabasePath, "./data");
+			config.SetValue(ConfigKeys.LogPath, "./log");
 			/*
 			Moved out of the kernel...
 			config.SetValue("server_port", "9157");
 			config.SetValue("server_address", "127.0.0.1");
 			*/
-			config.SetValue("ignore_case_for_identifiers", "disabled");
-			config.SetValue("regex_library", "Deveel.Text.DeveelRegexLibrary");
-			config.SetValue("data_cache_size", "4194304");
-			config.SetValue("max_cache_entry_size", "8192");
-			config.SetValue("lookup_comparison_list", "enabled");
-			config.SetValue("maximum_worker_threads", "4");
-			config.SetValue("dont_synch_filesystem", "disabled");
-			config.SetValue("transaction_error_on_dirty_select", "enabled");
-			config.SetValue("read_only", "disabled");
-			config.SetValue("debug_log_file", "debug.log");
-			config.SetValue("debug_level", "20");
-			config.SetValue("table_lock_check", "enabled");
+			config.SetValue(ConfigKeys.IgnoreIdentifiersCase, "disabled");
+			config.SetValue(ConfigKeys.RegexLibrary, "Deveel.Text.DeveelRegexLibrary");
+			config.SetValue(ConfigKeys.DataCacheSize, "4194304");
+			config.SetValue(ConfigKeys.MaxCacheEntrySize, "8192");
+			config.SetValue(ConfigKeys.LookupComparisonList, "enabled");
+			config.SetValue(ConfigKeys.MaxWorkerThreads, "4");
+			//config.SetValue("dont_synch_filesystem", "disabled");
+			config.SetValue(ConfigKeys.TransactionErrorOnDirtySelect, "enabled");
+			config.SetValue(ConfigKeys.ReadOnly, "disabled");
+			config.SetValue(ConfigKeys.DebugLogFile, "debug.log");
+			config.SetValue(ConfigKeys.DebugLevel, "20");
+			config.SetValue(ConfigKeys.TableLockCheck, "enabled");
 			return config;
 		}
 	}

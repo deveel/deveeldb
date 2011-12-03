@@ -15,9 +15,7 @@
 
 using System;
 
-using Deveel.Data.Client;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Protocol {
 	/// <summary>
 	/// An object that is streamable (such as a long binary object, or 
 	/// a long string object).

@@ -18,6 +18,7 @@ using System;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Protocol;
 using Deveel.Data.Text;
 
 namespace Deveel.Data {
@@ -496,7 +497,7 @@ namespace Deveel.Data {
 		///</summary>
 		///<param name="column_name"></param>
 		///<returns></returns>
-		public ColumnDescription ColumnDescriptionValue(String column_name) {
+		internal ColumnDescription ColumnDescriptionValue(String column_name) {
 			ColumnDescription field = new ColumnDescription(column_name, DbType, Size, IsNotNull);
 			field.Scale = Scale;
 			field.SQLType = SqlType;

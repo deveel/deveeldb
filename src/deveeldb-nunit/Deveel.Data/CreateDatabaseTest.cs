@@ -22,7 +22,7 @@ namespace Deveel.Data {
 			this.storageType = storageType;
 		}
 
-		protected virtual void OnConfigure(DbConfig config) {
+		private void OnConfigure(DbConfig config) {
 			if (storageType == StorageType.File) {
 				config.SetValue("storage_system", "v1file");
 			} else if (storageType == StorageType.Memory) {
@@ -31,19 +31,21 @@ namespace Deveel.Data {
 		}
 
 
-		[SetUp]
+		[TestFixtureSetUp]
 		public void SetUp() {
-			DbController controller = DbController.Default;
-			DbConfig config = controller.Config;
+			DbConfig config = DbConfig.Default;
+			OnConfigure(config);
+			DbController controller = DbController.Create(Environment.CurrentDirectory, config);
 
 			system = !controller.DatabaseExists(DatabaseName)
 						? controller.CreateDatabase(config, DatabaseName, AdminUser, AdminPassword)
 						: controller.StartDatabase(config, DatabaseName);
 
 			connection = (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
+			connection.AutoCommit = true;
 		}
 
-		[TearDown]
+		[TestFixtureTearDown]
 		public void TearDown() {
 			if (connection != null)
 				connection.Close();

@@ -35,13 +35,13 @@ namespace Deveel.Data.Store {
 		/// <summary>
 		/// Pointer to the end of the file. 
 		/// </summary>
-		private long end_pointer;
+		private long endPointer;
 
 		/// <summary>
 		/// The <see cref="Stream"/> object where to write and read the data
 		/// of this file.
 		/// </summary>
-		private readonly Stream fsstream;
+		private Stream fsstream;
 
 		/// <summary>
 		/// Constructor.
@@ -51,8 +51,22 @@ namespace Deveel.Data.Store {
 		public StreamFile(string file, FileAccess mode) {
 			this.file = file;
 			data = new FileStream(file, FileMode.OpenOrCreate, mode, FileShare.Read, 1024, FileOptions.WriteThrough);
-			end_pointer = data.Length;
+			endPointer = data.Length;
 			fsstream = new SFFileStream(this);
+		}
+
+		~StreamFile() {
+			Dispose(false);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (fsstream != null) {
+					Synch();
+					fsstream.Dispose();
+					fsstream = null;
+				}
+			}
 		}
 
 		/// <summary>
@@ -71,8 +85,7 @@ namespace Deveel.Data.Store {
 			lock (data) {
 				try {
 					data.Flush();
-					// FSync.Sync(data);
-				} catch (SyncFailedException) {
+				} catch (IOException) {
 					// We ignore the exception which reduces the robustness
 					// of the journal file for the OS where this problem occurs.
 					// Unfortunately there's no sane way to handle this excption when it
@@ -99,10 +112,10 @@ namespace Deveel.Data.Store {
 		public void Read(long position, byte[] buf, int off, int len) {
 			lock (data) {
 				data.Seek(position, SeekOrigin.Begin);
-				int to_read = len;
-				while (to_read > 0) {
-					int read = data.Read(buf, off, to_read);
-					to_read -= read;
+				int toRead = len;
+				while (toRead > 0) {
+					int read = data.Read(buf, off, toRead);
+					toRead -= read;
 					off += read;
 				}
 			}
@@ -114,7 +127,7 @@ namespace Deveel.Data.Store {
 		public long Length {
 			get {
 				lock (data) {
-					return end_pointer;
+					return endPointer;
 				}
 			}
 		}
@@ -124,10 +137,8 @@ namespace Deveel.Data.Store {
 		}
 
 		public void Dispose() {
-			if (fsstream != null) {
-				Synch();
-				fsstream.Dispose();
-			}
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		// ---------- Inner classes ----------
@@ -145,10 +156,10 @@ namespace Deveel.Data.Store {
 
 			public override long Seek(long offset, SeekOrigin origin) {
 				lock (file.data) {
-					long file_len = file.end_pointer;
-					if (origin == SeekOrigin.Begin && offset > file_len)
+					long fileLen = file.endPointer;
+					if (origin == SeekOrigin.Begin && offset > fileLen)
 						return fp;
-					if (origin == SeekOrigin.Current && fp + offset > file_len)
+					if (origin == SeekOrigin.Current && fp + offset > fileLen)
 						return fp;
 					
 					fp = file.data.Seek(offset, origin);
@@ -163,7 +174,7 @@ namespace Deveel.Data.Store {
 
 			public override int Read(byte[] buffer, int offset, int count) {
 				lock (file.data) {
-					count = (int)System.Math.Min(count, file.end_pointer - fp);
+					count = (int)System.Math.Min(count, file.endPointer - fp);
 					if (count <= 0)
 						return 0;
 
@@ -177,9 +188,9 @@ namespace Deveel.Data.Store {
 			public override void Write(byte[] buffer, int offset, int count) {
 				if (count > 0) {
 					lock (file.data) {
-						file.data.Seek(file.end_pointer, SeekOrigin.Begin);
+						file.data.Seek(file.endPointer, SeekOrigin.Begin);
 						file.data.Write(buffer, offset, count);
-						file.end_pointer += count;
+						file.endPointer += count;
 						fp += count;
 					}
 				}
@@ -198,14 +209,14 @@ namespace Deveel.Data.Store {
 			}
 
 			public override long Length {
-				get { return file.end_pointer; }
+				get { return file.endPointer; }
 			}
 
 			public override long Position {
 				get { return fp; }
 				set {
 					//TODO: check if this is correct...
-					if (value > file.end_pointer)
+					if (value > file.endPointer)
 						throw new ArgumentOutOfRangeException("value");
 
 					fp = Seek(value, SeekOrigin.Begin);

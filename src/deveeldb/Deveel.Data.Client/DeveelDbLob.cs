@@ -18,6 +18,8 @@ using System.Data;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Protocol;
+
 namespace Deveel.Data.Client {
 	/// <summary>
 	/// Represents a *LOB (Large OBject) that can be streamed
@@ -30,7 +32,7 @@ namespace Deveel.Data.Client {
 		/// <param name="connection">The connection used to retrieve the LOB.</param>
 		/// <param name="resultId">The identification number of the result-set
 		/// on the server to which this LOB belongs to.</param>
-		internal DeveelDbLob(DeveelDbConnection connection, int resultId, Data.StreamableObject objectRef) {
+		internal DeveelDbLob(DeveelDbConnection connection, int resultId, StreamableObject objectRef) {
 			this.connection = connection;
 			this.resultId = resultId;
 			this.objectRef = objectRef;
@@ -71,7 +73,7 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		private readonly DeveelDbConnection connection;
 
-		private readonly Data.StreamableObject objectRef;
+		private readonly StreamableObject objectRef;
 		private readonly FileAccess access;
 
 		private readonly ReferenceType type;

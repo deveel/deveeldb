@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Protocol;
 
 namespace Deveel.Data.Client {
     /// <summary>

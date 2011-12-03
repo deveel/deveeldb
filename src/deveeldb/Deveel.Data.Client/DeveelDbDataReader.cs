@@ -18,6 +18,7 @@ using System.Collections;
 using System.Data;
 using System.Data.Common;
 
+using Deveel.Data.Protocol;
 using Deveel.Math;
 
 namespace Deveel.Data.Client {
@@ -69,7 +70,7 @@ namespace Deveel.Data.Client {
 		/// <param name="ob"></param>
 		/// <returns></returns>
 		private static bool CanMakeString(Object ob) {
-			return (ob is StringObject || ob is Data.StreamableObject);
+			return (ob is StringObject || ob is StreamableObject);
 		}
 
 		public override IEnumerator GetEnumerator() {
@@ -92,7 +93,7 @@ namespace Deveel.Data.Client {
 			} else {
 				// For blobs, return an instance of IBlob.
 				if (ob is ByteLongObject ||
-					ob is Data.StreamableObject) {
+					ob is StreamableObject) {
 					// return command.AsBlob(ob);
 					return command.GetLob(ob);
 				}

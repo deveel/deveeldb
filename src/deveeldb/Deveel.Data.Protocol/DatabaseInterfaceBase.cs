@@ -25,7 +25,7 @@ using Deveel.Data.Sql;
 
 using Deveel.Diagnostics;
 
-namespace Deveel.Data.Server {
+namespace Deveel.Data.Protocol {
 	///<summary>
 	/// An abstract implementation of <see cref="DatabaseInterface"/> that 
 	/// provides a connection between a single <see cref="DatabaseConnection"/> and 
@@ -838,8 +838,7 @@ namespace Deveel.Data.Server {
 						// This means the column is an schema/table/column reference
 						field_name = "@f" + v.ToString();
 					}
-					col_desc[i] =
-							   table.GetColumnDef(i).ColumnDescriptionValue(field_name);
+					col_desc[i] = table.GetColumnDef(i).ColumnDescriptionValue(field_name);
 					//        col_desc[i] = new ColumnDescription(field_name, table.getFieldAt(i));
 				}
 

@@ -14,11 +14,12 @@
 //    limitations under the License.
 
 using System;
-using System.Data;
 using System.IO;
 using System.Text;
 
-namespace Deveel.Data.Client {
+using Deveel.Data.Protocol;
+
+namespace Deveel.Data {
 	///<summary>
 	/// Represents an SQL query to the database.
 	///</summary>

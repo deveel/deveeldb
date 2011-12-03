@@ -15,7 +15,9 @@
 
 using System;
 
-namespace Deveel.Data.Client {
+using Deveel.Data.Protocol;
+
+namespace Deveel.Data.Protocol {
 	///<summary>
 	/// The interface with the <see cref="Database"/> whether it be remotely via 
 	/// TCP/IP or locally within the current runtime.

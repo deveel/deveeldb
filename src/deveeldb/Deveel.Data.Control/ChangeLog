@@ -1,3 +1,7 @@
+2011-12-03  Antonello Provenzano  <antonello@deveel.com>
+	* DbController.cs: The check for existing databases in
+	file mode now doesn't create configuration files
+
 2010-08-02  Antonello Provenzano  <antonello@deveel.com>
 	* DbConfig.cs: base path definition moved off from the
 	constructor; it is now a configuration key.

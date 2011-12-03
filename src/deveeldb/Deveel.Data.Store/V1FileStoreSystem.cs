@@ -133,32 +133,6 @@ namespace Deveel.Data.Store {
 								"The value of 'fsync_type' is set but the type '" + fsyncTypeString + "' was not found.");
 					return;
 				}
-
-				/*
-				Obsolete
-				
-				IFSync fsync = null;
-
-				if (typeof(IFSync).IsAssignableFrom(type)) {
-					try {
-						fsync = (IFSync)Activator.CreateInstance(type, true);
-					} catch (Exception e) {
-						system.Debug.Write(DebugLevel.Warning, this,
-									"Error while initializing the fsynch handler class '" + fsyncTypeString + "': " + e.Message);
-					}
-				} else {
-					// handle the case the type implements the Sync function but
-					// doesn't implements the IFSync interface...
-					try {
-						fsync = FSync.Create(type);
-					} catch (Exception) {
-						system.Debug.Write(DebugLevel.Warning, this, "The provided type '" + type.FullName + "' does not implement the Sync(FileStream) method.");
-					}
-				}
-
-				if (fsync != null)
-					FSync.SetFSync(fsync);
-				*/
 			}
 		}
 
