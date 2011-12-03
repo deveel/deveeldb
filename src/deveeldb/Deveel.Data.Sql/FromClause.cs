@@ -198,7 +198,7 @@ namespace Deveel.Data.Sql {
 		/// objects that represent all the tables that are in this from clause.
 		///</summary>
 		public ICollection<FromTable> AllTables {
-			get { return def_list; }
+			get { return def_list.AsReadOnly(); }
 		}
 
 		/// <inheritdoc/>

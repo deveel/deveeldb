@@ -44,12 +44,12 @@ namespace Deveel.Data {
 			}
 
 			DateTime end = DateTime.Now;
-			Console.Out.WriteLine("Inserted 1000 rows in {0}ms.", (end - start).TotalMilliseconds);
+			Console.Out.WriteLine("Inserted 1000 rows in {0}.", (end - start));
 
 			command = conn.CreateCommand("SELECT COUNT(*) FROM TestTable");
-			long count = (long) command.ExecuteScalar();
+			BigNumber count = (BigNumber) command.ExecuteScalar();
 
-			Assert.AreEqual(1000, count, "Not all the rows were inserted");
+			Assert.AreEqual(1000, count.ToInt32(), "Not all the rows were inserted");
 
 			start = DateTime.Now;
 
@@ -60,7 +60,7 @@ namespace Deveel.Data {
 			Console.Out.WriteLine("Rolled-back in {0}", (end - start));
 
 			command = conn.CreateCommand("SELECT COUNT(*) FROM TestTable");
-			count = (long)command.ExecuteScalar();
+			count = (BigNumber)command.ExecuteScalar();
 
 			Assert.AreEqual(0, count, "After rollback there shouldn't be any rows in the table.");
 		}
@@ -84,7 +84,7 @@ namespace Deveel.Data {
 			}
 
 			DateTime end = DateTime.Now;
-			Console.Out.WriteLine("Inserted 1000 rows in {0}ms.", (end - start));
+			Console.Out.WriteLine("Inserted 1000 rows in {0}.", (end - start));
 
 			start = DateTime.Now;
 
@@ -92,10 +92,10 @@ namespace Deveel.Data {
 
 			end = DateTime.Now;
 
-			Console.Out.WriteLine("Committed in {0}ms.", (end - start));
+			Console.Out.WriteLine("Committed in {0}.", (end - start));
 
 			command = conn.CreateCommand("SELECT COUNT(*) FROM TestTable");
-			long count = (long)command.ExecuteScalar();
+			BigNumber count = (BigNumber)command.ExecuteScalar();
 
 			Console.Out.WriteLine("Numer of rows inserted into TestTable : {0}", count);
 		}

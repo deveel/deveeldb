@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 using Deveel.Diagnostics;
@@ -95,7 +96,7 @@ namespace Deveel.Data.Sql {
 				select_expression.Columns.RemoveAt(0);
 				SelectColumn curValFunction = new SelectColumn();
 				
-				FromTable from_table = (FromTable) ((ArrayList) select_expression.From.AllTables)[0];
+				FromTable from_table = ((IList<FromTable>) select_expression.From.AllTables)[0];
 				curValFunction.SetExpression(Expression.Parse("IDENTITY('" + from_table.Name + "')"));
 				curValFunction.SetAlias("IDENTITY");
 				select_expression.Columns.Add(curValFunction);

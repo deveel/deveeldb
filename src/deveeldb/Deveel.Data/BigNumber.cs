@@ -482,9 +482,9 @@ namespace Deveel.Data {
 		 */
 
 		public static implicit operator BigNumber(double value) {
-			if (value == Double.NegativeInfinity) {
+			if (double.IsNegativeInfinity(value)) {
 				return NegativeInfinity;
-			} else if (value == Double.PositiveInfinity) {
+			} else if (double.IsPositiveInfinity(value)) {
 				return PositiveInfinity;
 			} else if (value != value) {
 				return NaN;
@@ -493,9 +493,9 @@ namespace Deveel.Data {
 		}
 
 		public static implicit operator  BigNumber(float value) {
-			if (value == Single.NegativeInfinity) {
+			if (float.IsNegativeInfinity(value)) {
 				return NegativeInfinity;
-			} else if (value == Single.PositiveInfinity) {
+			} else if (float.IsPositiveInfinity(value)) {
 				return PositiveInfinity;
 			} else if (value != value) {
 				return NaN;
