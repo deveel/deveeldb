@@ -105,7 +105,6 @@
     <Compile Include="Deveel.Data.Control\DbController.cs" />
     <Compile Include="Deveel.Data.Control\DbDirectAccess.cs" />
     <Compile Include="Deveel.Data.Control\DbSystem.cs" />
-    <Compile Include="Deveel.Data.Control\IDbConfig.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunction.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\ArithmeticFunctionFactory.cs" />

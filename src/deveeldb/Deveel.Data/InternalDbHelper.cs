@@ -175,7 +175,7 @@ namespace Deveel.Data {
 				return database;
 			}
 
-			public Database CreateDatabase(IDbConfig config, string name, string adminUser, string adminPass) {
+			public Database CreateDatabase(DbConfig config, string name, string adminUser, string adminPass) {
 				throw new NotSupportedException();
 			}
 		}

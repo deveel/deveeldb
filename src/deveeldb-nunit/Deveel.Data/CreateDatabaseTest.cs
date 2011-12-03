@@ -22,7 +22,7 @@ namespace Deveel.Data {
 			this.storageType = storageType;
 		}
 
-		protected virtual void OnConfigure(IDbConfig config) {
+		protected virtual void OnConfigure(DbConfig config) {
 			if (storageType == StorageType.File) {
 				config.SetValue("storage_system", "v1file");
 			} else if (storageType == StorageType.Memory) {
@@ -34,7 +34,7 @@ namespace Deveel.Data {
 		[SetUp]
 		public void SetUp() {
 			DbController controller = DbController.Default;
-			IDbConfig config = controller.Config;
+			DbConfig config = controller.Config;
 
 			system = !controller.DatabaseExists(DatabaseName)
 						? controller.CreateDatabase(config, DatabaseName, AdminUser, AdminPassword)

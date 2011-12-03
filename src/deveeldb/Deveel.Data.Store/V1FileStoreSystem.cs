@@ -118,7 +118,7 @@ namespace Deveel.Data.Store {
 			return new JournalledFileStore(file_name, buffer_manager, read_only);
 		}
 
-		private void SetupFSync(IDbConfig dbConfig) {
+		private void SetupFSync(DbConfig dbConfig) {
 			string fsyncTypeString = dbConfig.GetValue("fsync_type");
 			if (fsyncTypeString != null) {
 				// if the 'fsync_type' is set and the value is "default" we use 
@@ -169,9 +169,9 @@ namespace Deveel.Data.Store {
 			system = transactionSystem;
 
 			// The path where the database data files are stored.
-			string database_path = ConfigUtil.GetStringValue(transactionSystem.Config, "database_path", "./data");
+			string database_path = transactionSystem.Config.GetStringValue("database_path", "./data");
 			// The root path variable
-			string root_path_var = ConfigUtil.GetStringValue(transactionSystem.Config, "root_path", null);
+			string root_path_var = transactionSystem.Config.GetStringValue("root_path", null);
 
 			// Set the absolute database path
 			path = ConfigUtil.ParseFileString(transactionSystem.Config.CurrentPath, root_path_var, database_path);
@@ -191,7 +191,7 @@ namespace Deveel.Data.Store {
 
 			// Get the safety level of the file system where 10 is the most safe
 			// and 1 is the least safe.
-			int io_safety_level = ConfigUtil.GetIntegerValue(transactionSystem.Config, "io_safety_level", 10);
+			int io_safety_level = transactionSystem.Config.GetIntegerValue("io_safety_level", 10);
 			if (io_safety_level < 1 || io_safety_level > 10) {
 				system.Debug.Write(DebugLevel.Message, this, "Invalid io_safety_level value.  Setting to the most safe level.");
 				io_safety_level = 10;
@@ -207,8 +207,8 @@ namespace Deveel.Data.Store {
 			}
 
 			system.Debug.Write(DebugLevel.Message, this, "Using stardard IO API for heap buffered file access.");
-			int page_size = ConfigUtil.GetIntegerValue(transactionSystem.Config, "buffered_io_page_size", 8192);
-			int max_pages = ConfigUtil.GetIntegerValue(transactionSystem.Config, "buffered_io_max_pages", 256);
+			int page_size = transactionSystem.Config.GetIntegerValue("buffered_io_page_size", 8192);
+			int max_pages = transactionSystem.Config.GetIntegerValue("buffered_io_max_pages", 256);
 
 			// Output this information to the log
 			system.Debug.Write(DebugLevel.Message, this, "[Buffer Manager] Page Size: " + page_size);

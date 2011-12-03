@@ -205,7 +205,7 @@ namespace Deveel.Data.Server {
 		/// Performs the boot command.
 		/// </summary>
 		/// <param name="conf"></param>
-		private static void doBoot(string path, IDbConfig config) {
+		private static void doBoot(string path, DbConfig config) {
 			// Connect a TcpServerController to it.
 			TcpServerController serverController = new TcpServerController(DbController.Create(path, config));
 			// And start the server

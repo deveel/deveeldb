@@ -43,14 +43,14 @@ namespace Deveel.Data.Control {
 		/// <summary>
 		/// This object can not be constructed publicaly.
 		/// </summary>
-		private DbController(IDbConfig configContext) {
+		private DbController(DbConfig configContext) {
 			this.configContext = configContext;
 			databases = new Hashtable();
 			SetupLog(configContext);
 		}
 
 		private readonly Hashtable databases;
-		private readonly IDbConfig configContext;
+		private readonly DbConfig configContext;
 		private IDebugLogger logger;
 
 		/// <summary>
@@ -93,8 +93,8 @@ namespace Deveel.Data.Control {
 		/// The object returned by this property is a copy of the
 		/// original: every change to the values will be ignored.
 		/// </remarks>
-		public IDbConfig Config {
-			get { return (IDbConfig) configContext.Clone(); }
+		public DbConfig Config {
+			get { return configContext; }
 		}
 
 		/// <summary>
@@ -113,11 +113,11 @@ namespace Deveel.Data.Control {
 			get { return logger; }
 		}
 
-		private void SetupLog(IDbConfig config) {
+		private void SetupLog(DbConfig config) {
 			//TODO:
 		}
 
-		public static DbController Create(IDbConfig config) {
+		public static DbController Create(DbConfig config) {
 			return Create(null, config);
 		}
 
@@ -131,7 +131,7 @@ namespace Deveel.Data.Control {
 		/// Returns an instance of <see cref="DbController"/> which points
 		/// to the given path.
 		/// </returns>
-		/// <seealso cref="Create(string,Deveel.Data.Control.IDbConfig)"/>
+		/// <seealso cref="Create(string,Deveel.Data.Control.DbConfig)"/>
 		public static DbController Create(string path) {
 			return Create(path, null);
 		}
@@ -157,13 +157,13 @@ namespace Deveel.Data.Control {
 		/// <exception cref="ArgumentNullException">
 		/// If the <paramref name="path"/> provided is <b>null</b>.
 		/// </exception>
-		public static DbController Create(string path, IDbConfig config) {
+		public static DbController Create(string path, DbConfig config) {
 			StorageType storageType = ConfigUtil.GetStorageType(config);
 
 			if (path == null)
 				path = Environment.CurrentDirectory;
 
-			IDbConfig mainConfig;
+			DbConfig mainConfig;
 
 			if (storageType == StorageType.File) {
 				string configFile = Path.GetFileName(path);
@@ -195,7 +195,7 @@ namespace Deveel.Data.Control {
 				string[] subDirs = Directory.GetDirectories(path);
 				for (int i = 0; i < subDirs.Length; i++) {
 					string dir = subDirs[i];
-					IDbConfig dbConfig = GetConfig(mainConfig, dir, null);
+					DbConfig dbConfig = GetConfig(mainConfig, dir, null);
 
 					string name = dbConfig.GetValue("name");
 					if (name == null)
@@ -215,7 +215,7 @@ namespace Deveel.Data.Control {
 			return controller;
 		}
 
-		private static IDbConfig GetConfig(IDbConfig parentConfig, string path, string configFile) {
+		private static DbConfig GetConfig(DbConfig parentConfig, string path, string configFile) {
 			if (configFile == null)
 				configFile = DefaultConfigFileName;
 
@@ -314,7 +314,7 @@ namespace Deveel.Data.Control {
 		/// <exception cref="InvalidOperationException">
 		/// If an error occurred while initializing the database.
 		/// </exception>
-		public DbSystem CreateDatabase(IDbConfig config, string name, string adminUser, string adminPass) {
+		public DbSystem CreateDatabase(DbConfig config, string name, string adminUser, string adminPass) {
 			if (name == null)
 				throw new ArgumentNullException("name");
 
@@ -379,7 +379,7 @@ namespace Deveel.Data.Control {
 		/// <exception cref="InvalidOperationException">
 		/// If an error occurred while initializing the database.
 		/// </exception>
-		public DbSystem StartDatabase(IDbConfig config, string name) {
+		public DbSystem StartDatabase(DbConfig config, string name) {
 			if (!DatabaseExists(name))
 				throw new ArgumentException("Database '" + name + "' not existing.", "name");
 
@@ -444,7 +444,7 @@ namespace Deveel.Data.Control {
 		/// <param name="config"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		private static Database CreateDatabase(IDbConfig config, string name) {
+		private static Database CreateDatabase(DbConfig config, string name) {
 			DatabaseSystem system = new DatabaseSystem();
 
 			// Initialize the DatabaseSystem first,

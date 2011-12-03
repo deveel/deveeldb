@@ -38,7 +38,7 @@ namespace Deveel.Data {
 		[TestFixtureSetUp]
 		public void SetUp() {
 			DbController controller = DbController.Default;
-			IDbConfig config = controller.Config;
+			DbConfig config = controller.Config;
 
 			OnConfigure(config);
 
@@ -55,7 +55,7 @@ namespace Deveel.Data {
 			system.Close();
 		}
 
-		protected virtual void OnConfigure(IDbConfig config) {
+		protected virtual void OnConfigure(DbConfig config) {
 			StorageBasedAttribute storageAttr = Attribute.GetCustomAttribute(GetType(), typeof(StorageBasedAttribute)) as StorageBasedAttribute;
 			if (storageAttr != null) {
 				if (storageAttr.Type == StorageType.File) {

@@ -254,7 +254,7 @@ namespace Deveel.Data.Client {
 					bool create_db = connectionString.Create;
 					bool create_db_if_not_exist = connectionString.BootOrCreate;
 
-					IDbConfig config = controller.Config;
+					DbConfig config = controller.Config;
 
 					//TODO: set the additional configurations from the connection string
 					/*

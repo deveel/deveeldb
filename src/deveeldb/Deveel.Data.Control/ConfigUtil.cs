@@ -35,7 +35,7 @@ namespace Deveel.Data.Control {
 		/// Gets the type of storage for the system defined in the
 		/// configuration given.
 		/// </summary>
-		/// <param name="config">The <see cref="IDbConfig">database 
+		/// <param name="config">The <see cref="DbConfig">database 
 		/// configuration object</see> that defines the storage system 
 		/// for which to retrieve its kind of storage.</param>
 		/// <returns>
@@ -43,7 +43,7 @@ namespace Deveel.Data.Control {
 		/// system configured.
 		/// </returns>
 		/// <seealso cref="GetStorageType(string)"/>
-		public static StorageType GetStorageType(IDbConfig config) {
+		public static StorageType GetStorageType(DbConfig config) {
 			string typeName = config.GetValue(ConfigKeys.StorageSystem);
 			if (typeName == null)
 				throw new InvalidOperationException("A storage system must be specified.");
@@ -86,21 +86,6 @@ namespace Deveel.Data.Control {
 			}
 
 			return storageType;
-		}
-
-		public static bool GetBooleanValue(IDbConfig config, string propertyKey, bool defaultValue) {
-			String v = config.GetValue(propertyKey);
-			return v == null ? defaultValue : String.Compare(v.Trim(), "enabled", true) == 0;
-		}
-
-		public static string GetStringValue(IDbConfig config, string propertyKey, string defaultValue) {
-			String v = config.GetValue(propertyKey);
-			return v == null ? defaultValue : v.Trim();
-		}
-
-		public static int GetIntegerValue(IDbConfig config, string property, int defaultValue) {
-			String v = config.GetValue(property);
-			return v == null ? defaultValue : Int32.Parse(v);
 		}
 
 		/// <summary>

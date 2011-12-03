@@ -71,7 +71,7 @@ namespace Deveel.Data.Server {
 		private Object connection_lock = new Object();
 
         /// <inheritdoc/>
-		public IDatabaseInterface Create(string username, String password, IDbConfig config) {
+		public IDatabaseInterface Create(string username, String password, DbConfig config) {
 			if ((username == null || username.Equals("")) || 
 				(password == null || password.Equals("")))
 				throw new DataException("Username and Password must both be set.");
@@ -101,7 +101,7 @@ namespace Deveel.Data.Server {
 		}
 
         /// <inheritdoc/>
-		public IDatabaseInterface Boot(IDbConfig config) {
+		public IDatabaseInterface Boot(DbConfig config) {
 			if (!booted) {
 				// Local connections are formatted as;
 				// 'Local/[type]/[connect_id]'

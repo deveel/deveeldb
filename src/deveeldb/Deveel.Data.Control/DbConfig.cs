@@ -15,29 +15,28 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
 
-using Deveel.Data.Control;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Control {
 	/// <summary>
-	///  An basic implementation of <see cref="IDbConfig"/>.
+	///  Provides configurations for the whole database system.
 	/// </summary>
-	public class DbConfig : IDbConfig {
+	public sealed class DbConfig {
 		/// <summary>
 		/// The Hashtable mapping from configuration key to value for the key.
 		/// </summary>
-		private Hashtable key_map;
+		private Dictionary<string, ConfigProperty> properties;
 
 		private static DbConfig default_config;
 
 		/// <summary>
-		/// Constructs the <see cref="IDbConfig"/>.
+		/// Constructs the <see cref="DbConfig"/>.
 		/// </summary>
 		public DbConfig() {
-			key_map = new Hashtable();
+			properties = new Dictionary<string, ConfigProperty>();
 		}
 
 		/// <summary>
@@ -62,9 +61,9 @@ namespace Deveel.Data {
 		public bool IgnoreIdentifierCase {
 			get {
 				string value = GetValue(ConfigKeys.IgnoreIdentifiersCase);
-				return (value == "enabled" ? true : false);
+				return (value == "enabled" || value == "true");
 			}
-			set { SetValue(ConfigKeys.IgnoreIdentifiersCase, value ? "enabled" : "disabled"); }
+			set { SetValue(ConfigKeys.IgnoreIdentifiersCase, value ? "true" : "false"); }
 		}
 
 		/// <summary>
@@ -73,9 +72,9 @@ namespace Deveel.Data {
 		public bool ReadOnly {
 			get {
 				string value = GetValue(ConfigKeys.ReadOnly);
-				return (value == "enabled" ? true : false);
+				return (value == "enabled" || value == "true");
 			}
-			set { SetValue(ConfigKeys.ReadOnly, value ? "enabled" : "disabled"); }
+			set { SetValue(ConfigKeys.ReadOnly, value ? "true" : "false"); }
 		}
 
 		/// <summary>
@@ -133,24 +132,13 @@ namespace Deveel.Data {
 			}
 		}
 
-		/// <summary>
-		/// Returns the default value for the configuration property with the 
-		/// given key.
-		/// </summary>
-		/// <param name="key"></param>
-		/// <returns></returns>
-		protected virtual String GetDefaultValue(String key) {
-			// This abstract implementation returns null for all default keys.
-			return null;
-		}
-
 		///<summary>
 		/// Sets the configuration value for the key property key.
 		///</summary>
 		///<param name="key"></param>
 		///<param name="value"></param>
 		public void SetValue(string key, string value) {
-			key_map[key] = new ConfigProperty(key, value, null);
+			properties[key] = new ConfigProperty(key, value, null);
 		}
 
 		// ---------- Implemented from IDbConfig ----------
@@ -158,39 +146,55 @@ namespace Deveel.Data {
 		public string CurrentPath {
 			get { 
 				string value = GetValue(ConfigKeys.BasePath);
-				return value == null ? "." : value;
+				return value ?? ".";
 			}
 			set { SetValue(ConfigKeys.BasePath, value); }
 		}
 
 		/// <summary>
 		/// Returns a <see cref="DbConfig">default</see> implementation
-		/// of <see cref="IDbConfig"/> which contains all the default settings
+		/// of <see cref="DbConfig"/> which contains all the default settings
 		/// of the system.
 		/// </summary>
 		public static DbConfig Default {
-			get {
-				if (default_config == null)
-					default_config = CreateDefault();
-				return default_config;
-			}
+			get { return default_config ?? (default_config = CreateDefault()); }
 		}
 
-		public String GetValue(String property_key) {
-			// If the key is in the map, return it here
-			ConfigProperty property = key_map[property_key] as ConfigProperty;
-			if (property == null)
-				return GetDefaultValue(property_key);
-			return property.Value;
+		public string GetValue(string propertyKey) {
+			return GetValue(propertyKey, null);
 		}
+
+		public string GetValue(string propertyKey, string defaultValue) {
+			// If the key is in the map, return it here
+			ConfigProperty property;
+			if (!properties.TryGetValue(propertyKey, out property))
+				return defaultValue;
+			return property.Value;			
+		}
+
+		public bool GetBooleanValue(string propertyKey, bool defaultValue) {
+			String v = GetValue(propertyKey);
+			return v == null ? defaultValue : String.Compare(v.Trim(), "enabled", true) == 0;
+		}
+
+		public string GetStringValue(string propertyKey, string defaultValue) {
+			String v = GetValue(propertyKey);
+			return v == null ? defaultValue : v.Trim();
+		}
+
+		public int GetIntegerValue(string property, int defaultValue) {
+			String v = GetValue(property);
+			return v == null ? defaultValue : Int32.Parse(v);
+		}
+
 
 		/// <inheritdoc/>
-		public IDbConfig Merge(IDbConfig config) {
+		public DbConfig Merge(DbConfig config) {
 			foreach (ConfigProperty property in config) {
-				if (key_map.ContainsKey(property.Key))
+				if (properties.ContainsKey(property.Key))
 					continue;
 
-				key_map[property.Key] = property.Clone();
+				properties[property.Key] = (ConfigProperty) property.Clone();
 			}
 
 			return this;
@@ -199,7 +203,10 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public object Clone() {
 			DbConfig config = new DbConfig();
-			config.key_map = (Hashtable) key_map.Clone();
+			config.properties = new Dictionary<string, ConfigProperty>();
+			foreach (KeyValuePair<string, ConfigProperty> pair in properties) {
+				config.properties[pair.Key] = pair.Value.Clone() as ConfigProperty;
+			}
 			return config;
 		}
 
@@ -213,7 +220,7 @@ namespace Deveel.Data {
 		/// the configuration properties set.
 		/// </returns>
 		public IEnumerator GetEnumerator() {
-			return key_map.Values.GetEnumerator();
+			return properties.Values.GetEnumerator();
 		}
 
 		///<summary>
@@ -428,7 +435,7 @@ namespace Deveel.Data {
 				fileStream.Seek(0, SeekOrigin.Begin);
 
 				Properties properties = new Properties();
-				foreach (ConfigProperty entry in key_map.Values) {
+				foreach (ConfigProperty entry in properties.Values) {
 					properties.SetProperty(entry.Key, entry.Value);
 				}
 
@@ -467,7 +474,7 @@ namespace Deveel.Data {
 			writer.WriteLine("#" + DateTime.Now);
 
 			StringBuilder s = new StringBuilder(); // Reuse the same buffer.
-			foreach (DictionaryEntry entry in key_map) {
+			foreach (KeyValuePair<string, ConfigProperty> entry in properties) {
 				ConfigProperty property = (ConfigProperty) entry.Value;
 
 				//TODO: format and print the optional comment...

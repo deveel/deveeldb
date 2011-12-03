@@ -40,7 +40,7 @@ namespace Deveel.Data.Client {
 		///<returns>
         /// Returns a <see cref="IDatabaseInterface"/> for talking to the database.
 		/// </returns>
-		IDatabaseInterface Create(String username, String password, IDbConfig config);
+		IDatabaseInterface Create(String username, String password, DbConfig config);
 
 		///<summary>
         /// Boots the database with the given configuration.
@@ -49,7 +49,7 @@ namespace Deveel.Data.Client {
 		///<returns>
         /// Returns a <see cref="IDatabaseInterface"/> for talking to the database.
 		/// </returns>
-		IDatabaseInterface Boot(IDbConfig config);
+		IDatabaseInterface Boot(DbConfig config);
 
 		///<summary>
         /// Attempts to test if the database exists or not.

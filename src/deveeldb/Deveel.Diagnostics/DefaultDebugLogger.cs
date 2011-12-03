@@ -142,7 +142,7 @@ namespace Deveel.Diagnostics {
 
 		// ---------- Implemented from IDebugLogger ----------
 
-		public void Init(IDbConfig config) {
+		public void Init(DbConfig config) {
 			string log_path_string = config.GetValue("log_path");
 			string root_path_var = config.GetValue("root_path");
 			string read_only_access = config.GetValue("read_only");

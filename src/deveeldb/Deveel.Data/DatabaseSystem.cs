@@ -120,7 +120,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override void Init(IDbConfig config) {
+		public override void Init(DbConfig config) {
 			base.Init(config);
 
 			database_list = new ArrayList();
@@ -130,7 +130,7 @@ namespace Deveel.Data {
 
 			if (config != null) {
 				// Set up the statement cache.
-				if (ConfigUtil.GetBooleanValue(config, "statement_cache", true)) {
+				if (config.GetBooleanValue("statement_cache", true)) {
 					statement_cache = new StatementCache(this, 127, 140, 20);
 					Debug.Write(DebugLevel.Message, typeof(DatabaseSystem), "statement cache ENABLED");
 				} else {
@@ -138,7 +138,7 @@ namespace Deveel.Data {
 				}
 
 				// The maximum number of worker threads.
-				int max_worker_threads = ConfigUtil.GetIntegerValue(config, "maximum_worker_threads", 4);
+				int max_worker_threads = config.GetIntegerValue("maximum_worker_threads", 4);
 				if (max_worker_threads <= 0)
 					max_worker_threads = 1;
 
@@ -146,7 +146,7 @@ namespace Deveel.Data {
 				worker_pool = new WorkerPool(this, max_worker_threads);
 
 				// Should we be logging commands?
-				query_logging = ConfigUtil.GetBooleanValue(config, "query_logging", false);
+				query_logging = config.GetBooleanValue("query_logging", false);
 			} else {
 				throw new ApplicationException("Config bundle already set.");
 			}
