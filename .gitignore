@@ -16,3 +16,4 @@
 /src/deveeldb/obj
 /src/deveeldb/bin
 /src/deveeldb-client/obj
+*.user

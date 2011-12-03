@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<Schema Namespace="Deveel"
-        Provider="Deveel.Data.Entity"
-        ProviderManifestToken="5"
-        Alias="Self"
-        xmlns="http://schemas.microsoft.com/ado/2006/04/edm/ssdl">
-  <EntityContainer Name="Schema">
-  </EntityContainer>
-</Schema>

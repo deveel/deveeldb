@@ -1,3 +1,0 @@
-﻿2009-10-31  Antonello Provenzano  <antonello@deveel.com>
-	* IDebugLogger.cs: added method Init to delegate
-	the initialization logic.
