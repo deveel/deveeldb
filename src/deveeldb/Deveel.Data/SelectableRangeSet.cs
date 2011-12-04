@@ -66,10 +66,10 @@ namespace Deveel.Data {
 			TObject end = range.End;
 			byte end_flag = range.EndFlag;
 
-			bool inclusive = op.Is("is") || op.Is("=") ||
-								op.Is(">=") || op.Is("<=");
+			bool inclusive = op.IsEquivalent("is") || op.IsEquivalent("=") ||
+								op.IsEquivalent(">=") || op.IsEquivalent("<=");
 
-			if (op.Is("is") || op.Is("=") || op.Is(">") || op.Is(">=")) {
+			if (op.IsEquivalent("is") || op.IsEquivalent("=") || op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 				// With this operator, NULL values must return null.
 				if (null_check && val.IsNull) {
 					return null;
@@ -88,7 +88,7 @@ namespace Deveel.Data {
 					}
 				}
 			}
-			if (op.Is("is") || op.Is("=") || op.Is("<") || op.Is("<=")) {
+			if (op.IsEquivalent("is") || op.IsEquivalent("=") || op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 				// With this operator, NULL values must return null.
 				if (null_check && val.IsNull) {
 					return null;
@@ -246,8 +246,8 @@ namespace Deveel.Data {
 			ArrayList i = range_set.GetRange(0, sz);
 			Queue queue = new Queue(i);
 
-			if (op.Is("<>") || op.Is("is not")) {
-				bool nullCheck = op.Is("<>");
+			if (op.IsEquivalent("<>") || op.IsEquivalent("is not")) {
+				bool nullCheck = op.IsEquivalent("<>");
 				int j = 0;
 				while (j < queue.Count) {
 					object obj = queue.Peek();
@@ -262,7 +262,7 @@ namespace Deveel.Data {
 					j++;
 				}
 			} else {
-				bool nullCheck = !op.Is("is");
+				bool nullCheck = !op.IsEquivalent("is");
 				int j = 0;
 				while (j < sz) {
 					object obj = i[j];

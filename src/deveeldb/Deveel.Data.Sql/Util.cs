@@ -221,7 +221,7 @@ namespace Deveel.Data.Sql {
 			Operator op = (Operator)exp.Last;
 			Expression[] exps = exp.Split();
 
-			if (op.IsNot) {
+			if (op.IsNegation) {
 				// If the operator is NOT then return the normalized form of the LHS.
 				// We toggle the inverse flag.
 				return Normalize(exps[0], !inverse);

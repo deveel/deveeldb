@@ -618,7 +618,7 @@ namespace Deveel.Data {
 		public bool ContainsNotOperator() {
 			for (int n = 0; n < elements.Count; ++n) {
 				Object ob = elements[n];
-				if (ob is Operator && ((Operator)ob).IsNot)
+				if (ob is Operator && ((Operator)ob).IsNegation)
 					return true;
 			}
 			return false;
@@ -824,7 +824,7 @@ namespace Deveel.Data {
 			Object ob = Last;
 			if (ob is Operator) {
 				Operator op = (Operator)ob;
-				if (op.Is(logical_op)) {
+				if (op.IsEquivalent(logical_op)) {
 					// Last operator is 'and' so split and recurse.
 					Expression[] exps = Split();
 					list = exps[0].BreakByOperator(list, logical_op);

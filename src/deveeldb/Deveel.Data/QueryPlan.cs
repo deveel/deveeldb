@@ -475,13 +475,13 @@ namespace Deveel.Data {
 								   Expression exp) {
 				Operator op = (Operator)exp.Last;
 				if (op.IsLogical) {
-					if (op.Is("and")) {
+					if (op.IsEquivalent("and")) {
 						IList and_list = CreateAndList(new ArrayList(), exp);
 						int sz = and_list.Count;
 						for (int i = 0; i < sz; ++i) {
 							UpdateRange(context, range, field, (Expression)and_list[i]);
 						}
-					} else if (op.Is("or")) {
+					} else if (op.IsEquivalent("or")) {
 						// Split left and right of logical operator.
 						Expression[] exps = exp.Split();
 						// Calculate the range of the left and right

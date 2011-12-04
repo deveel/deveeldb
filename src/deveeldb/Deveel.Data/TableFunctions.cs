@@ -103,21 +103,21 @@ namespace Deveel.Data {
 				//   empty table.
 				//   For <> type ALL we use the 'not in' algorithm.
 
-				if (op.Is(">") || op.Is(">=")) {
+				if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 					// Select the last from the set (the highest value),
 					TObject[] highest_cells =
 											right_table.GetLastCellContent(right_col_map);
 					// Select from the source table all rows that are > or >= to the
 					// highest cell,
 					select_vec = left_table.SelectRows(left_col_map, op, highest_cells);
-				} else if (op.Is("<") || op.Is("<=")) {
+				} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 					// Select the first from the set (the lowest value),
 					TObject[] lowest_cells =
 										   right_table.GetFirstCellContent(right_col_map);
 					// Select from the source table all rows that are < or <= to the
 					// lowest cell,
 					select_vec = left_table.SelectRows(left_col_map, op, lowest_cells);
-				} else if (op.Is("=")) {
+				} else if (op.IsEquivalent("=")) {
 					// Select the single value from the set (if there is one).
 					TObject[] single_cell =
 										 right_table.GetSingleCellContent(right_col_map);
@@ -129,7 +129,7 @@ namespace Deveel.Data {
 						// a value in RHS).
 						return left_table.EmptySelect();
 					}
-				} else if (op.Is("<>")) {
+				} else if (op.IsEquivalent("<>")) {
 					// Equiv. to NOT IN
 					select_vec = INHelper.NotIn(left_table, right_table,
 												left_col_map, right_col_map);
@@ -150,25 +150,25 @@ namespace Deveel.Data {
 				//   For <> type ANY we iterate through 'source' only including those
 				//   rows that a <> query on 'table' returns size() != 0.
 
-				if (op.Is(">") || op.Is(">=")) {
+				if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 					// Select the first from the set (the lowest value),
 					TObject[] lowest_cells =
 										   right_table.GetFirstCellContent(right_col_map);
 					// Select from the source table all rows that are > or >= to the
 					// lowest cell,
 					select_vec = left_table.SelectRows(left_col_map, op, lowest_cells);
-				} else if (op.Is("<") || op.Is("<=")) {
+				} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 					// Select the last from the set (the highest value),
 					TObject[] highest_cells =
 											right_table.GetLastCellContent(right_col_map);
 					// Select from the source table all rows that are < or <= to the
 					// highest cell,
 					select_vec = left_table.SelectRows(left_col_map, op, highest_cells);
-				} else if (op.Is("=")) {
+				} else if (op.IsEquivalent("=")) {
 					// Equiv. to IN
 					select_vec = INHelper.In(left_table, right_table,
 											 left_col_map, right_col_map);
-				} else if (op.Is("<>")) {
+				} else if (op.IsEquivalent("<>")) {
 					// Select the value that is the same of the entire column
 					TObject[] cells = right_table.GetSingleCellContent(right_col_map);
 					if (cells != null) {

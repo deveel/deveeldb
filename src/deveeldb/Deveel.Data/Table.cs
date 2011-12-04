@@ -489,13 +489,13 @@ namespace Deveel.Data {
 
 			}
 				// If we are doing a LIKE or REGEX pattern search
-			else if (op.Is("like") || op.Is("not like") || op.Is("regex")) {
+			else if (op.IsEquivalent("like") || op.IsEquivalent("not like") || op.IsEquivalent("regex")) {
 
 				// Evaluate the right hand side.  We know rhs is constant so don't
 				// bother passing a IVariableResolver object.
 				TObject rhs_const = rhs.Evaluate(null, context);
 
-				if (op.Is("regex")) {
+				if (op.IsEquivalent("regex")) {
 					// Use the regular expression search to determine matching rows.
 					rows = SelectFromRegex(column, op, rhs_const);
 				} else {
@@ -823,22 +823,22 @@ namespace Deveel.Data {
 			//   rows that a <> query on 'table' returns size() != 0.
 
 			IntegerVector select_vec;
-			if (op.Is(">") || op.Is(">=")) {
+			if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 				// Select the first from the set (the lowest value),
 				TObject lowest_cell = table.GetFirstCellContent(0);
 				// Select from the source table all rows that are > or >= to the
 				// lowest cell,
 				select_vec = source_table.SelectRows(lhs_col_index, op, lowest_cell);
-			} else if (op.Is("<") || op.Is("<=")) {
+			} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 				// Select the last from the set (the highest value),
 				TObject highest_cell = table.GetLastCellContent(0);
 				// Select from the source table all rows that are < or <= to the
 				// highest cell,
 				select_vec = source_table.SelectRows(lhs_col_index, op, highest_cell);
-			} else if (op.Is("=")) {
+			} else if (op.IsEquivalent("=")) {
 				// Equiv. to IN
 				select_vec = INHelper.In(source_table, table, lhs_col_index, 0);
-			} else if (op.Is("<>")) {
+			} else if (op.IsEquivalent("<>")) {
 				// Select the value that is the same of the entire column
 				TObject cell = table.GetSingleCellContent(0);
 				if (cell != null) {
@@ -918,19 +918,19 @@ namespace Deveel.Data {
 				TObject lhs_const = lhs.Evaluate(null, context);
 				bool compared_to_true;
 				// The various operators
-				if (op.Is(">") || op.Is(">=")) {
+				if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 					// Find the maximum value in the table
 					TObject cell = table.GetLastCellContent(0);
 					compared_to_true = CompareCells(lhs_const, cell, op);
-				} else if (op.Is("<") || op.Is("<=")) {
+				} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 					// Find the minimum value in the table
 					TObject cell = table.GetFirstCellContent(0);
 					compared_to_true = CompareCells(lhs_const, cell, op);
-				} else if (op.Is("=")) {
+				} else if (op.IsEquivalent("=")) {
 					// Only true if rhs is a single value
 					TObject cell = table.GetSingleCellContent(0);
 					compared_to_true = (cell != null && CompareCells(lhs_const, cell, op));
-				} else if (op.Is("<>")) {
+				} else if (op.IsEquivalent("<>")) {
 					// true only if lhs_cell is not found in column.
 					compared_to_true = !table.ColumnContainsCell(0, lhs_const);
 				} else {
@@ -993,19 +993,19 @@ namespace Deveel.Data {
 			//   For <> type ALL we use the 'not in' algorithm.
 
 			IntegerVector select_vec;
-			if (op.Is(">") || op.Is(">=")) {
+			if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 				// Select the last from the set (the highest value),
 				TObject highest_cell = table.GetLastCellContent(0);
 				// Select from the source table all rows that are > or >= to the
 				// highest cell,
 				select_vec = source_table.SelectRows(lhs_col_index, op, highest_cell);
-			} else if (op.Is("<") || op.Is("<=")) {
+			} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 				// Select the first from the set (the lowest value),
 				TObject lowest_cell = table.GetFirstCellContent(0);
 				// Select from the source table all rows that are < or <= to the
 				// lowest cell,
 				select_vec = source_table.SelectRows(lhs_col_index, op, lowest_cell);
-			} else if (op.Is("=")) {
+			} else if (op.IsEquivalent("=")) {
 				// Select the single value from the set (if there is one).
 				TObject single_cell = table.GetSingleCellContent(0);
 				if (single_cell != null) {
@@ -1016,7 +1016,7 @@ namespace Deveel.Data {
 					// a value in RHS).
 					return EmptySelect();
 				}
-			} else if (op.Is("<>")) {
+			} else if (op.IsEquivalent("<>")) {
 				// Equiv. to NOT IN
 				select_vec = INHelper.NotIn(source_table, table, lhs_col_index, 0);
 			} else {
@@ -1580,17 +1580,17 @@ namespace Deveel.Data {
 
 			// If the operator is a standard operator, use the interned SelectableScheme
 			// methods.
-			if (op.Is("=")) {
+			if (op.IsEquivalent("=")) {
 				return ss.SelectEqual(cell);
-			} else if (op.Is("<>")) {
+			} else if (op.IsEquivalent("<>")) {
 				return ss.SelectNotEqual(cell);
-			} else if (op.Is(">")) {
+			} else if (op.IsEquivalent(">")) {
 				return ss.SelectGreater(cell);
-			} else if (op.Is("<")) {
+			} else if (op.IsEquivalent("<")) {
 				return ss.SelectLess(cell);
-			} else if (op.Is(">=")) {
+			} else if (op.IsEquivalent(">=")) {
 				return ss.SelectGreaterOrEqual(cell);
-			} else if (op.Is("<=")) {
+			} else if (op.IsEquivalent("<=")) {
 				return ss.SelectLessOrEqual(cell);
 			}
 
@@ -1672,7 +1672,7 @@ namespace Deveel.Data {
 				return new IntegerVector();
 			}
 
-			if (op.Is("not like")) {
+			if (op.IsEquivalent("not like")) {
 				// How this works:
 				//   Find the set or rows that are like the pattern.
 				//   Find the complete set of rows in the column.

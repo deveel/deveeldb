@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Deveel.Data {
@@ -25,46 +26,18 @@ namespace Deveel.Data {
 	public abstract class Operator {
 		// ---------- Statics ----------
 
-		private static readonly AddOperator add_op = new AddOperator();
-		private static readonly Hashtable all_map = new Hashtable();
-		private static readonly AndOperator and_op = new AndOperator();
-		private static readonly Hashtable any_map = new Hashtable();
-		private static readonly ConcatOperator concat_op = new ConcatOperator();
-		private static readonly DivideOperator div_op = new DivideOperator();
-		private static readonly ModulusOperator mod_op = new ModulusOperator();
-		private static readonly EqualOperator eq_op = new EqualOperator();
-		private static readonly GreaterOperator g_op = new GreaterOperator();
-		private static readonly GreaterEqualOperator geq_op = new GreaterEqualOperator();
+		private static readonly Dictionary<string, Operator> AllMap = new Dictionary<string, Operator>(); 
+		private static readonly Dictionary<string, Operator> AnyMap = new Dictionary<string, Operator>();
 
-		private static readonly Operator in_op;
-		private static readonly IsOperator is_op = new IsOperator();
-		private static readonly IsNotOperator isn_op = new IsNotOperator();
-		private static readonly LesserOperator l_op = new LesserOperator();
-		private static readonly LesserEqualOperator leq_op = new LesserEqualOperator();
-
-		private static readonly PatternMatchTrueOperator like_op = new PatternMatchTrueOperator();
-		private static readonly SoundsLikeOperator slike_op = new SoundsLikeOperator();
-
-		private static readonly MultiplyOperator mul_op = new MultiplyOperator();
-		private static readonly NotEqualOperator neq_op = new NotEqualOperator();
-		private static readonly Operator nin_op;
-
-		private static readonly PatternMatchFalseOperator nlike_op = new PatternMatchFalseOperator();
-
-		private static readonly Operator not_op = new SimpleOperator("not", 3);
-		private static readonly OrOperator or_op = new OrOperator();
-
-		private static readonly ParenOperator par1_op = new ParenOperator("(");
-		private static readonly ParenOperator par2_op = new ParenOperator(")");
-		private static readonly RegexOperator regex_op = new RegexOperator();
-		private static readonly SubtractOperator sub_op = new SubtractOperator();
+		private static readonly ParenOperator Par1Op = new ParenOperator("(");
+		private static readonly ParenOperator Par2Op = new ParenOperator(")");
 
 		// ---------- Member ----------
 
 		/// <summary>
 		/// A string that represents this operator.
 		/// </summary>
-		private readonly String op;
+		private readonly string op;
 
 		/// <summary>
 		/// The precedence of this operator.
@@ -74,213 +47,43 @@ namespace Deveel.Data {
 		/// <summary>
 		/// If this is a set operator such as ANY or ALL then this is set with the flag type.
 		/// </summary>
-		private readonly OperatorSubType sub_type;
-
-		static Operator() {
-			// Populate the static ANY and ALL mapping
-			any_map.Add("=", new AnyOperator("="));
-			any_map.Add("<>", new AnyOperator("<>"));
-			any_map.Add(">", new AnyOperator(">"));
-			any_map.Add(">=", new AnyOperator(">="));
-			any_map.Add("<", new AnyOperator("<"));
-			any_map.Add("<=", new AnyOperator("<="));
-
-			all_map.Add("=", new AllOperator("="));
-			all_map.Add("<>", new AllOperator("<>"));
-			all_map.Add(">", new AllOperator(">"));
-			all_map.Add(">=", new AllOperator(">="));
-			all_map.Add("<", new AllOperator("<"));
-			all_map.Add("<=", new AllOperator("<="));
-
-			// The IN and NOT IN operator are '= ANY' and '<> ALL' respectively.
-			in_op = (Operator) any_map["="];
-			nin_op = (Operator) all_map["<>"];
-		}
-
-		protected Operator(String op)
-			: this(op, 0, OperatorSubType.None) {
-		}
-
-		protected Operator(String op, int precedence)
-			: this(op, precedence, OperatorSubType.None) {
-		}
-
-		protected Operator(String op, int precedence, OperatorSubType sub_type) {
-			if (sub_type != OperatorSubType.None && sub_type != OperatorSubType.Any && sub_type != OperatorSubType.All) {
-				throw new ArgumentException("Invalid sub_type.");
-			}
-			this.op = op;
-			this.precedence = precedence;
-			this.sub_type = sub_type;
-		}
-
-
-		/// <summary>
-		/// Gets the operator precedence used to evaluate it within
-		/// an <see cref="Expression"/>.
-		/// </summary>
-		public int Precedence {
-			get { return precedence; }
-		}
-
-		/// <summary>
-		/// Gets <b>true</b> if the operator is a condition operator,
-		/// otherwise <b>false</b>.
-		/// </summary>
-		public bool IsCondition {
-			get {
-				return (Equals(eq_op) ||
-				        Equals(neq_op) ||
-				        Equals(g_op) ||
-				        Equals(l_op) ||
-				        Equals(geq_op) ||
-				        Equals(leq_op) ||
-				        Equals(is_op) ||
-				        Equals(isn_op));
-			}
-		}
-
-		/// <summary>
-		/// Gets <b>true</b> if the operator is a mathematical operator,
-		/// otherwise <b>false</b>.
-		/// </summary>
-		public bool IsMathematical {
-			get {
-				return (Equals(add_op) ||
-				        Equals(sub_op) ||
-				        Equals(mul_op) ||
-				        Equals(div_op) ||
-						Equals(mod_op) ||
-				        Equals(concat_op));
-			}
-		}
-
-		/// <summary>
-		/// Gets <b>true</b> if the operator is a pattern operator,
-		/// otherwise <b>false</b>.
-		/// </summary>
-		public bool IsPattern {
-			get {
-				return (Equals(like_op) ||
-				        Equals(nlike_op) ||
-				        Equals(regex_op));
-			}
-		}
-
-		/// <summary>
-		/// Gets <b>true</b> if the operator is a logical operator,
-		/// otherwise <b>false</b>.
-		/// </summary>
-		public bool IsLogical {
-			get {
-				return (Equals(and_op) ||
-				        Equals(or_op));
-			}
-		}
-
-		/// <summary>
-		/// Gets the <i>is not</i> conditional operator (<pre>IS NOT</pre>).
-		/// </summary>
-		public bool IsNot {
-			get { return Equals(not_op); }
-		}
-
-		/// <summary>
-		/// Gets <b>true</b> if the operator is sub-query operator,
-		/// otherwise <b>false</b>
-		/// </summary>
-		public bool IsSubQuery {
-			get {
-				return (sub_type != OperatorSubType.None ||
-				        Equals(in_op) ||
-				        Equals(nin_op));
-			}
-		}
-
-		/// <summary>
-		/// Returns true if this operator is not inversible.
-		/// </summary>
-		public bool IsNotInversible {
-			get {
-				// The REGEX op, and mathematical operators are not inversible.
-				return Equals(regex_op) || IsMathematical;
-			}
-		}
-
-		/// <summary>
-		/// Returns the sub query representation of this operator.
-		/// </summary>
-		private OperatorSubType SubQueryFormRepresentation {
-			get { return sub_type; }
-		}
-
-		/// <summary>
-		/// The type of object this Operator evaluates to.
-		/// </summary>
-		public TType ReturnTType {
-			get {
-				if (Equals(concat_op))
-					return TType.StringType;
-				if (IsMathematical)
-					return TType.NumericType;
-				return TType.BooleanType;
-			}
-		}
-
-		/// <summary>
-		/// Returns the string value of this operator.
-		/// </summary>
-		internal string StringRepresentation {
-			get { return op; }
-		}
+		private readonly OperatorSubType subType;
 
 		/// <summary>
 		/// Gets the operator used to evaluate the equality of
 		/// two <see cref="TObject"/> passed as parameters.
 		/// </summary>
-		public static Operator Equal {
-			get { return eq_op; }
-		}
+		public static readonly Operator Equal = new EqualOperator();
 
 		/// <summary>
 		/// Gets the operator used to evaluate the inequality of
 		/// two <see cref="TObject"/> passed as parameters.
 		/// </summary>
-		public static Operator NotEqual {
-			get { return neq_op; }
-		}
+		public static readonly Operator NotEqual = new NotEqualOperator();
 
 		/// <summary>
 		/// Gets an <see cref="Operator"/> used to evaluate if a given 
 		/// <see cref="TObject"/> is greater than another one.
 		/// </summary>
-		public static Operator Greater {
-			get { return g_op; }
-		}
+		public static readonly Operator Greater = new GreaterOperator();
 
 		/// <summary>
 		/// Gets an <see cref="Operator"/> used to evaluate if a given 
 		/// <see cref="TObject"/> is smaller than another one.
 		/// </summary>
-		public static Operator Lesser {
-			get { return l_op; }
-		}
+		public static readonly Operator Lesser = new LesserOperator();
 
 		/// <summary>
 		/// Gets an <see cref="Operator"/> used to evaluate if a given 
 		/// <see cref="TObject"/> is greater or equal than another one.
 		/// </summary>
-		public static Operator GreaterEqual {
-			get { return geq_op; }
-		}
+		public static readonly Operator GreaterEqual = new GreaterEqualOperator();
 
 		/// <summary>
 		/// Gets an <see cref="Operator"/> used to evaluate if a given 
 		/// <see cref="TObject"/> is smaller or equal than another one.
 		/// </summary>
-		public static Operator LesserEqual {
-			get { return leq_op; }
-		}
+		public static readonly Operator LesserEqual = new LesserEqualOperator();
 
 		/// <summary>
 		/// Gets an <see cref="Operator"/> that is used to compute an 
@@ -315,82 +118,204 @@ namespace Deveel.Data {
 		/// </list>
 		/// </remarks>
 		/// <seealso cref="Concat"/>
-		/// <seealso cref="Substract"/>
-		public static Operator Add {
-			get { return add_op; }
-		}
+		/// <seealso cref="Subtract"/>
+		public static readonly Operator Add = new AddOperator();
 
 		/// <summary>
 		/// Gets an <see cref="Operator"/> that is used to compute
 		/// a substraction between two arguments.
 		/// </summary>
 		/// <seealso cref="Add"/>
-		public static Operator Substract {
-			get { return sub_op; }
-		}
+		public static readonly Operator Subtract = new SubtractOperator();
 
 		/// <summary>
 		/// Gets an <see cref="Operator"/> instance that multiplies
 		/// a first given argument by a second one.
 		/// </summary>
-		public static Operator Multiply {
-			get { return mul_op; }
+		public static readonly Operator Multiply = new MultiplyOperator();
+
+		public static readonly Operator Divide = new DivideOperator();
+
+		public static readonly Operator Modulo = new ModulusOperator();
+
+		public static readonly Operator Concat = new ConcatOperator();
+
+		public static readonly Operator Like = new PatternMatchTrueOperator();
+
+		public static readonly Operator NotLike = new PatternMatchFalseOperator();
+
+		public static readonly Operator SoundsLike = new SoundsLikeOperator();
+
+		public static readonly Operator Regex = new RegexOperator();
+
+		public static readonly Operator NotIn;
+
+		public static readonly Operator In;
+
+		public static readonly Operator Is = new IsOperator();
+
+		public static readonly Operator IsNot = new IsNotOperator();
+
+		public static readonly Operator Not = new SimpleOperator("not", 3);
+
+		public static readonly Operator And = new AndOperator();
+
+		public static readonly Operator Or = new OrOperator();
+
+		static Operator() {
+			// Populate the static ANY and ALL mapping
+			AnyMap.Add("=", new AnyOperator("="));
+			AnyMap.Add("<>", new AnyOperator("<>"));
+			AnyMap.Add(">", new AnyOperator(">"));
+			AnyMap.Add(">=", new AnyOperator(">="));
+			AnyMap.Add("<", new AnyOperator("<"));
+			AnyMap.Add("<=", new AnyOperator("<="));
+
+			AllMap.Add("=", new AllOperator("="));
+			AllMap.Add("<>", new AllOperator("<>"));
+			AllMap.Add(">", new AllOperator(">"));
+			AllMap.Add(">=", new AllOperator(">="));
+			AllMap.Add("<", new AllOperator("<"));
+			AllMap.Add("<=", new AllOperator("<="));
+
+			// The IN and NOT IN operator are '= ANY' and '<> ALL' respectively.
+			In = AnyMap["="];
+			NotIn = AllMap["<>"];
 		}
 
-		public static Operator Divide {
-			get { return div_op; }
+		protected Operator(string op)
+			: this(op, 0, OperatorSubType.None) {
 		}
 
-		public static Operator Modulo {
-			get { return mod_op; }
+		protected Operator(string op, int precedence)
+			: this(op, precedence, OperatorSubType.None) {
 		}
 
-		public static Operator Concat {
-			get { return concat_op; }
+		protected Operator(String op, int precedence, OperatorSubType subType) {
+			if (subType != OperatorSubType.None && subType != OperatorSubType.Any && subType != OperatorSubType.All)
+				throw new ArgumentException("Invalid sub type.", "subType");
+
+			this.op = op;
+			this.precedence = precedence;
+			this.subType = subType;
 		}
 
-		public static Operator Like {
-			get { return like_op; }
+
+		/// <summary>
+		/// Returns the string value of this operator.
+		/// </summary>
+		internal string StringRepresentation {
+			get { return op; }
 		}
 
-		public static Operator NotLike {
-			get { return nlike_op; }
+		/// <summary>
+		/// Gets the operator precedence used to evaluate it within
+		/// an <see cref="Expression"/>.
+		/// </summary>
+		public int Precedence {
+			get { return precedence; }
 		}
 
-		public static Operator SoundsLike {
-			get { return slike_op; }
+		/// <summary>
+		/// Gets <b>true</b> if the operator is a condition operator,
+		/// otherwise <b>false</b>.
+		/// </summary>
+		public bool IsCondition {
+			get {
+				return (Equals(Equal) ||
+				        Equals(NotEqual) ||
+				        Equals(Greater) ||
+				        Equals(Lesser) ||
+				        Equals(GreaterEqual) ||
+				        Equals(LesserEqual) ||
+				        Equals(Is) ||
+				        Equals(IsNot));
+			}
 		}
 
-		public static Operator Regex {
-			get { return regex_op; }
+		/// <summary>
+		/// Gets <b>true</b> if the operator is a mathematical operator,
+		/// otherwise <b>false</b>.
+		/// </summary>
+		public bool IsMathematical {
+			get {
+				return (Equals(Add) ||
+				        Equals(Subtract) ||
+				        Equals(Multiply) ||
+				        Equals(Divide) ||
+						Equals(Modulo) ||
+				        Equals(Concat));
+			}
 		}
 
-		public static Operator NotIn {
-			get { return nin_op; }
+		/// <summary>
+		/// Gets <b>true</b> if the operator is a pattern operator,
+		/// otherwise <b>false</b>.
+		/// </summary>
+		public bool IsPattern {
+			get {
+				return (Equals(Like) ||
+				        Equals(NotLike) ||
+				        Equals(Regex));
+			}
 		}
 
-		public static Operator In {
-			get { return in_op; }
+		/// <summary>
+		/// Gets <b>true</b> if the operator is a logical operator,
+		/// otherwise <b>false</b>.
+		/// </summary>
+		public bool IsLogical {
+			get {
+				return (Equals(And) ||
+				        Equals(Or));
+			}
 		}
 
-		public static Operator Not {
-			get { return not_op; }
+		public bool IsNegation {
+			get { return Equals(Not); }
 		}
 
-		public static Operator And {
-			get { return and_op; }
+		/// <summary>
+		/// Gets <b>true</b> if the operator is sub-query operator,
+		/// otherwise <b>false</b>
+		/// </summary>
+		public bool IsSubQuery {
+			get {
+				return (subType != OperatorSubType.None ||
+				        Equals(In) ||
+				        Equals(NotIn));
+			}
 		}
 
-		public static Operator Or {
-			get { return or_op; }
+		/// <summary>
+		/// Returns true if this operator is not inversible.
+		/// </summary>
+		public bool IsNotInversible {
+			get {
+				// The REGEX op, and mathematical operators are not inversible.
+				return Equals(Regex) || IsMathematical;
+			}
+		}
+
+		/// <summary>
+		/// The type of object this Operator evaluates to.
+		/// </summary>
+		public TType ReturnTType {
+			get {
+				if (Equals(Concat))
+					return TType.StringType;
+				if (IsMathematical)
+					return TType.NumericType;
+				return TType.BooleanType;
+			}
 		}
 
 		///<summary>
 		///</summary>
-		///<param name="given_op"></param>
+		///<param name="givenOp"></param>
 		///<returns></returns>
-		public bool Is(String given_op) {
-			return given_op.Equals(op);
+		public bool IsEquivalent(string givenOp) {
+			return givenOp.Equals(op);
 		}
 
 		/// <summary>
@@ -404,8 +329,11 @@ namespace Deveel.Data {
 		/// <returns>
 		/// Returns a <see cref="TObject"/> as result of the evaluation.
 		/// </returns>
-		public abstract TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver,
-		                                 IQueryContext context);
+		public abstract TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context);
+
+		public TObject Evaluate(TObject obj1, TObject obj2) {
+			return Evaluate(obj1, obj2, null, null, null);
+		}
 
 		/// <summary>
 		/// Returns an Operator that is the reverse of this Operator.
@@ -415,16 +343,16 @@ namespace Deveel.Data {
 		/// becomes <c>id &lt; 9</c>.
 		/// </remarks>
 		public Operator Reverse() {
-			if (Equals(eq_op) || Equals(neq_op) || Equals(is_op) || Equals(isn_op))
+			if (Equals(Equal) || Equals(NotEqual) || Equals(Is) || Equals(IsNot))
 				return this;
-			if (Equals(g_op))
-				return l_op;
-			if (Equals(l_op))
-				return g_op;
-			if (Equals(geq_op))
-				return leq_op;
-			if (Equals(leq_op))
-				return geq_op;
+			if (Equals(Greater))
+				return Lesser;
+			if (Equals(Lesser))
+				return Greater;
+			if (Equals(GreaterEqual))
+				return LesserEqual;
+			if (Equals(LesserEqual))
+				return GreaterEqual;
 
 			throw new ApplicationException("Can't reverse a non conditional operator.");
 		}
@@ -438,43 +366,43 @@ namespace Deveel.Data {
 		/// </remarks>
 		public Operator Inverse() {
 			if (IsSubQuery) {
-				OperatorSubType inv_type;
+				OperatorSubType invType;
 				if (IsSubQueryForm(OperatorSubType.Any)) {
-					inv_type = OperatorSubType.All;
+					invType = OperatorSubType.All;
 				} else if (IsSubQueryForm(OperatorSubType.All)) {
-					inv_type = OperatorSubType.Any;
+					invType = OperatorSubType.Any;
 				} else {
 					throw new Exception("Can not handle sub-query form.");
 				}
 
-				Operator inv_op = Get(op).Inverse();
+				Operator invOp = Get(op).Inverse();
 
-				return inv_op.GetSubQueryForm(inv_type);
+				return invOp.GetSubQueryForm(invType);
 			}
-			if (Equals(eq_op))
-				return neq_op;
-			if (Equals(neq_op))
-				return eq_op;
-			if (Equals(g_op))
-				return leq_op;
-			if (Equals(l_op))
-				return geq_op;
-			if (Equals(geq_op))
-				return l_op;
-			if (Equals(leq_op))
-				return g_op;
-			if (Equals(and_op))
-				return or_op;
-			if (Equals(or_op))
-				return and_op;
-			if (Equals(like_op))
-				return nlike_op;
-			if (Equals(nlike_op))
-				return like_op;
-			if (Equals(is_op))
-				return isn_op;
-			if (Equals(isn_op))
-				return is_op;
+			if (Equals(Equal))
+				return NotEqual;
+			if (Equals(NotEqual))
+				return Equal;
+			if (Equals(Greater))
+				return LesserEqual;
+			if (Equals(Lesser))
+				return GreaterEqual;
+			if (Equals(GreaterEqual))
+				return Lesser;
+			if (Equals(LesserEqual))
+				return Greater;
+			if (Equals(And))
+				return Or;
+			if (Equals(Or))
+				return And;
+			if (Equals(Like))
+				return NotLike;
+			if (Equals(NotLike))
+				return Like;
+			if (Equals(Is))
+				return IsNot;
+			if (Equals(IsNot))
+				return Is;
 
 			throw new ApplicationException("Can't inverse operator '" + op + "'");
 		}
@@ -487,7 +415,7 @@ namespace Deveel.Data {
 		/// <param name="type"></param>
 		/// <returns></returns>
 		public bool IsSubQueryForm(OperatorSubType type) {
-			return type == sub_type;
+			return type == subType;
 		}
 
 		/// <summary>
@@ -496,57 +424,57 @@ namespace Deveel.Data {
 		/// <param name="type"></param>
 		/// <returns></returns>
 		public Operator GetSubQueryForm(OperatorSubType type) {
-			Operator result_op = null;
+			Operator resultOp = null;
 			if (type == OperatorSubType.Any) {
-				result_op = (Operator) any_map[op];
+				AnyMap.TryGetValue(op, out resultOp);
 			} else if (type == OperatorSubType.All) {
-				result_op = (Operator) all_map[op];
+				AllMap.TryGetValue(op, out resultOp);
 			} else if (type == OperatorSubType.None) {
-				result_op = Get(op);
+				resultOp = Get(op);
 			}
 
-			if (result_op == null) {
+			if (resultOp == null)
 				throw new ApplicationException("Couldn't change the form of operator '" + op + "'.");
-			}
-			return result_op;
+
+			return resultOp;
 		}
 
 		/// <summary>
 		/// Returns the ANY or ALL form of this operator.
 		/// </summary>
-		/// <param name="type_str"></param>
+		/// <param name="typeString"></param>
 		/// <returns></returns>
-		public Operator GetSubQueryForm(String type_str) {
-			String s = type_str.ToUpper();
-			if (s.Equals("SINGLE") || s.Equals("ANY") || s.Equals("SOME")) {
+		public Operator GetSubQueryForm(string typeString) {
+			string s = typeString.ToUpper();
+			if (s.Equals("SINGLE") || s.Equals("ANY") || s.Equals("SOME"))
 				return GetSubQueryForm(OperatorSubType.Any);
-			} else if (s.Equals("ALL")) {
+			if (s.Equals("ALL"))
 				return GetSubQueryForm(OperatorSubType.All);
-			}
-			throw new ApplicationException("Do not understand subquery type '" + type_str + "'");
+
+			throw new ApplicationException("Do not understand subquery type '" + typeString + "'");
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			StringBuilder buf = new StringBuilder();
-			buf.Append(op);
-			if (sub_type == OperatorSubType.Any) {
-				buf.Append(" ANY");
-			} else if (sub_type == OperatorSubType.All) {
-				buf.Append(" ALL");
+			StringBuilder sb = new StringBuilder();
+			sb.Append(op);
+			if (subType == OperatorSubType.Any) {
+				sb.Append(" ANY");
+			} else if (subType == OperatorSubType.All) {
+				sb.Append(" ALL");
 			}
-			return buf.ToString();
+			return sb.ToString();
 		}
 
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
 			Operator oob = (Operator)ob;
-			return op.Equals(oob.op) && sub_type == oob.sub_type;
+			return op.Equals(oob.op) && subType == oob.subType;
 		}
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			return base.GetHashCode();
+			return op.GetHashCode() ^ subType.GetHashCode();
 		}
 
 
@@ -555,60 +483,60 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="op"></param>
 		/// <returns></returns>
-		public static Operator Get(String op) {
+		public static Operator Get(string op) {
 			if (op.Equals("+"))
-				return add_op;
+				return Add;
 			if (op.Equals("-"))
-				return sub_op;
+				return Subtract;
 			if (op.Equals("*"))
-				return mul_op;
+				return Multiply;
 			if (op.Equals("/"))
-				return div_op;
+				return Divide;
 			if (op.Equals("%"))
-				return mod_op;
+				return Modulo;
 			if (op.Equals("||"))
-				return concat_op;
+				return Concat;
 			if (op.Equals("=") | op.Equals("=="))
-				return eq_op;
+				return Equal;
 			if (op.Equals("<>") | op.Equals("!="))
-				return neq_op;
+				return NotEqual;
 			if (op.Equals(">"))
-				return g_op;
+				return Greater;
 			if (op.Equals("<"))
-				return l_op;
+				return Lesser;
 			if (op.Equals(">="))
-				return geq_op;
+				return GreaterEqual;
 			if (op.Equals("<="))
-				return leq_op;
+				return LesserEqual;
 			if (op.Equals("("))
-				return par1_op;
+				return Par1Op;
 			if (op.Equals(")"))
-				return par2_op;
+				return Par2Op;
 
 			// Operators that are words, convert to lower case...
 			op = op.ToLower();
-			if (op.Equals("is"))
-				return is_op;
-			if (op.Equals("is not"))
-				return isn_op;
-			if (op.Equals("like"))
-				return like_op;
-			if (op.Equals("not like"))
-				return nlike_op;
-			if (op.Equals("sounds like"))
-				return slike_op;
-			if (op.Equals("regex"))
-				return regex_op;
-			if (op.Equals("in"))
-				return in_op;
-			if (op.Equals("not in"))
-				return nin_op;
-			if (op.Equals("not"))
-				return not_op;
-			if (op.Equals("and"))
-				return and_op;
-			if (op.Equals("or"))
-				return or_op;
+			if (op.Equals("is", StringComparison.InvariantCultureIgnoreCase))
+				return Is;
+			if (op.Equals("is not", StringComparison.InvariantCultureIgnoreCase))
+				return IsNot;
+			if (op.Equals("like", StringComparison.InvariantCultureIgnoreCase))
+				return Like;
+			if (op.Equals("not like", StringComparison.InvariantCultureIgnoreCase))
+				return NotLike;
+			if (op.Equals("sounds like", StringComparison.InvariantCultureIgnoreCase))
+				return SoundsLike;
+			if (op.Equals("regex", StringComparison.InvariantCultureIgnoreCase))
+				return Regex;
+			if (op.Equals("in", StringComparison.InvariantCultureIgnoreCase))
+				return In;
+			if (op.Equals("not in", StringComparison.InvariantCultureIgnoreCase))
+				return NotIn;
+			if (op.Equals("not", StringComparison.InvariantCultureIgnoreCase))
+				return Not;
+			if (op.Equals("and", StringComparison.InvariantCultureIgnoreCase))
+				return And;
+			if (op.Equals("or", StringComparison.InvariantCultureIgnoreCase))
+				return Or;
 
 
 			throw new ApplicationException("Unrecognised operator type: " + op);
@@ -640,12 +568,10 @@ namespace Deveel.Data {
 				: base("+", 10) {
 			}
 
-			public override TObject Evaluate(TObject ob1, TObject ob2,
-			                                 IGroupResolver group, IVariableResolver resolver,
-			                                 IQueryContext context) {
+			public override TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				return ob1.Add(ob2);
 			}
-		} ;
+		}
 
 		#endregion
 
@@ -657,9 +583,7 @@ namespace Deveel.Data {
 				: base(op, 8, OperatorSubType.All) {
 			}
 
-			public override TObject Evaluate(TObject ob1, TObject ob2,
-			                                 IGroupResolver group, IVariableResolver resolver,
-			                                 IQueryContext context) {
+			public override TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				if (ob2.TType is TQueryPlanType) {
 					// The sub-query plan
 					IQueryPlanNode plan = (IQueryPlanNode)ob2.Object;
@@ -668,8 +592,8 @@ namespace Deveel.Data {
 
 					if (list.Count > 0) {
 						// Set the correlated variables from the IVariableResolver
-						for (int i = 0; i < list.Count; ++i) {
-							((CorrelatedVariable) list[i]).SetFromResolver(resolver);
+						foreach (CorrelatedVariable variable in list) {
+							variable.SetFromResolver(resolver);
 						}
 						// Clear the cache in the context
 						context.ClearCache();
@@ -678,34 +602,31 @@ namespace Deveel.Data {
 					// Evaluate the plan,
 					Table t = plan.Evaluate(context);
 
-					Operator rev_plain_op = GetSubQueryForm(OperatorSubType.None).Reverse();
-					if (t.AllColumnMatchesValue(0, rev_plain_op, ob1)) {
-						return TObject.BooleanTrue;
-					}
-					return TObject.BooleanFalse;
-				} else if (ob2.TType is TArrayType) {
-					Operator plain_op = GetSubQueryForm(OperatorSubType.None);
-					Expression[] exp_list = (Expression[])ob2.Object;
+					Operator revPlainOp = GetSubQueryForm(OperatorSubType.None).Reverse();
+					return t.AllColumnMatchesValue(0, revPlainOp, ob1);
+				}
+				if (ob2.TType is TArrayType) {
+					Operator plainOp = GetSubQueryForm(OperatorSubType.None);
+					Expression[] expList = (Expression[])ob2.Object;
 					// Assume true unless otherwise found to be false or NULL.
-					TObject ret_val = TObject.BooleanTrue;
-					for (int i = 0; i < exp_list.Length; ++i) {
-						TObject exp_item = exp_list[i].Evaluate(group, resolver, context);
+					TObject retVal = TObject.BooleanTrue;
+					foreach (Expression exp in expList) {
+						TObject expItem = exp.Evaluate(group, resolver, context);
 						// If there is a null item, we return null if not otherwise found to
 						// be false.
-						if (exp_item.IsNull) {
-							ret_val = TObject.BooleanNull;
-						}
+						if (expItem.IsNull) {
+							retVal = TObject.BooleanNull;
+						} else if (!IsTrue(plainOp.Evaluate(ob1, expItem, null, null, null))) {
 							// If it doesn't match return false
-						else if (!IsTrue(plain_op.Evaluate(ob1, exp_item, null, null, null))) {
 							return TObject.BooleanFalse;
 						}
 					}
 					// Otherwise return true or null.  If all match and no NULLs return
 					// true.  If all match and there are NULLs then return NULL.
-					return ret_val;
-				} else {
-					throw new ApplicationException("Unknown RHS of ALL.");
+					return retVal;
 				}
+
+				throw new ApplicationException("Unknown RHS of ALL.");
 			}
 		}
 
@@ -744,9 +665,7 @@ namespace Deveel.Data {
 				: base(op, 8, OperatorSubType.Any) {
 			}
 
-			public override TObject Evaluate(TObject ob1, TObject ob2,
-			                                 IGroupResolver group, IVariableResolver resolver,
-			                                 IQueryContext context) {
+			public override TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				if (ob2.TType is TQueryPlanType) {
 					// The sub-query plan
 					IQueryPlanNode plan = (IQueryPlanNode)ob2.Object;
@@ -755,8 +674,8 @@ namespace Deveel.Data {
 
 					if (list.Count > 0) {
 						// Set the correlated variables from the IVariableResolver
-						for (int i = 0; i < list.Count; ++i) {
-							((CorrelatedVariable) list[i]).SetFromResolver(resolver);
+						foreach (CorrelatedVariable variable in list) {
+							variable.SetFromResolver(resolver);
 						}
 						// Clear the cache in the context
 						context.ClearCache();
@@ -766,34 +685,31 @@ namespace Deveel.Data {
 					Table t = plan.Evaluate(context);
 
 					// The ANY operation
-					Operator rev_plain_op = GetSubQueryForm(OperatorSubType.None).Reverse();
-					if (t.ColumnMatchesValue(0, rev_plain_op, ob1)) {
-						return TObject.BooleanTrue;
-					}
-					return TObject.BooleanFalse;
-				} else if (ob2.TType is TArrayType) {
+					Operator revPlainOp = GetSubQueryForm(OperatorSubType.None).Reverse();
+					return t.ColumnMatchesValue(0, revPlainOp, ob1);
+				}
+				if (ob2.TType is TArrayType) {
 					Operator plain_op = GetSubQueryForm(OperatorSubType.None);
-					Expression[] exp_list = (Expression[])ob2.Object;
+					Expression[] expList = (Expression[])ob2.Object;
 					// Assume there are no matches
-					TObject ret_val = TObject.BooleanFalse;
-					for (int i = 0; i < exp_list.Length; ++i) {
-						TObject exp_item = exp_list[i].Evaluate(group, resolver, context);
+					TObject retVal = TObject.BooleanFalse;
+					foreach (Expression exp in expList) {
+						TObject exp_item = exp.Evaluate(group, resolver, context);
 						// If null value, return null if there isn't otherwise a match found.
 						if (exp_item.IsNull) {
-							ret_val = TObject.BooleanNull;
-						}
+							retVal = TObject.BooleanNull;
+						} else if (IsTrue(plain_op.Evaluate(ob1, exp_item, null, null, null))) {
 							// If there is a match, the ANY set test is true
-						else if (IsTrue(plain_op.Evaluate(ob1, exp_item, null, null, null))) {
 							return TObject.BooleanTrue;
 						}
 					}
 					// No matches, so return either false or NULL.  If there are no matches
 					// and no nulls, return false.  If there are no matches and there are
 					// nulls present, return null.
-					return ret_val;
-				} else {
-					throw new ApplicationException("Unknown RHS of ANY.");
+					return retVal;
 				}
+
+				throw new ApplicationException("Unknown RHS of ANY.");
 			}
 		}
 

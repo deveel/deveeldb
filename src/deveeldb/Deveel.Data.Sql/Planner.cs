@@ -2413,7 +2413,7 @@ namespace Deveel.Data.Sql {
 				if (ob is Operator && ((Operator)ob).IsLogical) {
 					Operator last_op = (Operator)ob;
 
-					if (last_op.Is("or")) {
+					if (last_op.IsEquivalent("or")) {
 						// parsing an OR block
 						// Split left and right of logical operator.
 						Expression[] exps = exp.Split();
@@ -2514,7 +2514,7 @@ namespace Deveel.Data.Sql {
 						// Set the new table list
 						table_list = new_table_list;
 
-					} else if (last_op.Is("and")) {
+					} else if (last_op.IsEquivalent("and")) {
 						// parsing an AND block
 						// The list of AND expressions that are here
 						IList and_list = CreateAndList(new ArrayList(), exp);
