@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Client;
 using Deveel.Data.Protocol;
@@ -384,7 +385,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="exp"></param>
 		internal void ResolveExpression(Expression exp) {
 			// NOTE: This gets variables in all function parameters.
-			IList vars = exp.AllVariables;
+			IList<VariableName> vars = exp.AllVariables;
 			for (int i = 0; i < vars.Count; ++i) {
 				VariableName v = (VariableName)vars[i];
 				VariableName to_set = ResolveVariableName(v);

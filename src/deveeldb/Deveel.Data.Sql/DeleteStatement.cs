@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.QueryPlanning;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Logic for the <c>DELETE FROM</c> SQL statement.

@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Data;
 
 using Deveel.Data.Procedures;
+using Deveel.Data.QueryPlanning;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {
@@ -500,8 +501,8 @@ namespace Deveel.Data {
 		public IQueryPlanNode CreateObjectFetchQueryPlan(TableName table_name, TableName aliased_name) {
 			string tableType = GetTableType(table_name);
 			if (tableType.Equals("VIEW"))
-				return new QueryPlan.FetchViewNode(table_name, aliased_name);
-			return new QueryPlan.FetchTableNode(table_name, aliased_name);
+				return new FetchViewNode(table_name, aliased_name);
+			return new FetchTableNode(table_name, aliased_name);
 		}
 
 		// ---------- Schema management and constraint methods ----------

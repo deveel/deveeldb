@@ -15,7 +15,9 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
+using Deveel.Data.QueryPlanning;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Sql {
@@ -63,16 +65,16 @@ namespace Deveel.Data.Sql {
 
 			if (type.Equals("create")) {
 				// Get the select expression
-				select_expression = (TableSelectExpression)GetValue("select_expression");
+				select_expression = (TableSelectExpression) GetValue("select_expression");
 				// Get the column name list
 				IList col_list = GetList("column_list");
 
 				// Generate the TableExpressionFromSet hierarchy for the expression,
 				TableExpressionFromSet from_set =
-								   Planner.GenerateFromSet(select_expression, Connection);
+					Planner.GenerateFromSet(select_expression, Connection);
 				// Form the plan
 				plan = Planner.FormQueryPlan(Connection, select_expression, from_set,
-											 new ArrayList());
+				                             new List<ByColumn>());
 
 				// Wrap the result around a SubsetNode to alias the columns in the
 				// table correctly for this view.
@@ -83,10 +85,10 @@ namespace Deveel.Data.Sql {
 				if (sz > 0) {
 					if (sz != original_vars.Length) {
 						throw new StatementException(
-							   "Column list is not the same size as the columns selected.");
+							"Column list is not the same size as the columns selected.");
 					}
 					for (int i = 0; i < sz; ++i) {
-						String col_name = (String)col_list[i];
+						String col_name = (String) col_list[i];
 						new_column_vars[i] = new VariableName(vname, col_name);
 					}
 				} else {
@@ -109,10 +111,8 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Wrap the plan around a SubsetNode plan
-				plan = new QueryPlan.SubsetNode(plan, original_vars, new_column_vars);
-
+				plan = new SubsetNode(plan, original_vars, new_column_vars);
 			}
-
 		}
 
 		protected override Table Evaluate() {

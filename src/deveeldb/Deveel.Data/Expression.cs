@@ -15,11 +15,13 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
 
 using Deveel.Data.Functions;
+using Deveel.Data.QueryPlanning;
 using Deveel.Data.Sql;
 using Deveel.Math;
 
@@ -439,13 +441,13 @@ namespace Deveel.Data {
 		/// Returns a complete <see cref="IList">list</see> of <see cref="VariableName"/> 
 		/// objects in this expression not including correlated variables.
 		/// </summary>
-		public IList AllVariables {
+		public IList<VariableName> AllVariables {
 			get {
-				ArrayList vars = new ArrayList();
+				List<VariableName> vars = new List<VariableName>();
 				for (int i = 0; i < elements.Count; ++i) {
-					Object ob = elements[i];
+					object ob = elements[i];
 					if (ob is VariableName) {
-						vars.Add(ob);
+						vars.Add((VariableName)ob);
 					} else if (ob is FunctionDef) {
 						Expression[] parameterss = ((FunctionDef) ob).Parameters;
 						for (int n = 0; n < parameterss.Length; ++n) {
@@ -635,7 +637,7 @@ namespace Deveel.Data {
 		/// <paramref name="level"/> variable for each sub-plan.
 		/// </remarks>
 		///<returns></returns>
-		public ArrayList DiscoverCorrelatedVariables(ref int level, ArrayList list) {
+		public IList<CorrelatedVariable> DiscoverCorrelatedVariables(ref int level, IList<CorrelatedVariable> list) {
 			IList elems = AllElements;
 			int sz = elems.Count;
 			// For each element
@@ -665,7 +667,7 @@ namespace Deveel.Data {
 		/// This is used for determining all the tables that a query plan touches.
 		/// </remarks>
 		///<returns></returns>
-		public ArrayList DiscoverTableNames(ArrayList list) {
+		public IList<TableName> DiscoverTableNames(IList<TableName> list) {
 			IList elems = AllElements;
 			int sz = elems.Count;
 			// For each element
@@ -809,26 +811,26 @@ namespace Deveel.Data {
 		/// splitted by the given operator.
 		/// </summary>
 		/// <param name="list"></param>
-		/// <param name="logical_op"></param>
+		/// <param name="logicalOp"></param>
 		/// <remarks>
 		/// For example, given the expression <c>(a = b AND b = c AND (a = 2 OR c = 1))</c>,
-		/// calling this method with <paramref name="logical_op"/> = AND 
+		/// calling this method with <paramref name="logicalOp"/> = AND 
 		/// will return a list of the three expressions.
 		/// <para>
 		/// This is a common function used to split up an expressions into 
 		/// logical components for processing.
 		/// </para>
 		/// </remarks>
-		public IList BreakByOperator(IList list, String logical_op) {
+		internal IList<Expression> BreakByOperator(IList<Expression> list, string logicalOp) {
 			// The last operator must be 'and'
-			Object ob = Last;
+			object ob = Last;
 			if (ob is Operator) {
 				Operator op = (Operator)ob;
-				if (op.IsEquivalent(logical_op)) {
+				if (op.IsEquivalent(logicalOp)) {
 					// Last operator is 'and' so split and recurse.
 					Expression[] exps = Split();
-					list = exps[0].BreakByOperator(list, logical_op);
-					list = exps[1].BreakByOperator(list, logical_op);
+					list = exps[0].BreakByOperator(list, logicalOp);
+					list = exps[1].BreakByOperator(list, logicalOp);
 					return list;
 				}
 			}
@@ -944,7 +946,7 @@ namespace Deveel.Data {
 				TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, queryContext.Connection);
 
 				// Form the plan
-				IQueryPlanNode plan = Planner.FormQueryPlan(queryContext.Connection, selectExpression, from_set, new ArrayList());
+				IQueryPlanNode plan = Planner.FormQueryPlan(queryContext.Connection, selectExpression, from_set, new List<ByColumn>());
 
 				return TObject.CreateQueryPlan(plan);
 			}

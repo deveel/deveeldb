@@ -15,6 +15,9 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+
+using Deveel.Data.QueryPlanning;
 
 namespace Deveel.Data.Sql {
 	public sealed class CreateViewStatement : Statement {
@@ -59,7 +62,7 @@ namespace Deveel.Data.Sql {
 			// Generate the TableExpressionFromSet hierarchy for the expression,
 			TableExpressionFromSet from_set = Planner.GenerateFromSet(select_expression, Connection);
 			// Form the plan
-			plan = Planner.FormQueryPlan(Connection, select_expression, from_set, new ArrayList());
+			plan = Planner.FormQueryPlan(Connection, select_expression, from_set, new List<ByColumn>());
 
 			// Wrap the result around a SubsetNode to alias the columns in the
 			// table correctly for this view.
@@ -94,7 +97,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Wrap the plan around a SubsetNode plan
-			plan = new QueryPlan.SubsetNode(plan, original_vars, new_column_vars);
+			plan = new SubsetNode(plan, original_vars, new_column_vars);
 		}
 
 		protected override Table Evaluate() {

@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.QueryPlanning;
+
 namespace Deveel.Data {
 	public sealed partial class DatabaseConnection {
 		/// <summary>

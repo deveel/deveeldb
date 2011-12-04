@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.QueryPlanning;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// The instance class that stores all the information about an 

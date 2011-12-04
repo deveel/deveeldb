@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.QueryPlanning;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// An interface to an object that describes characteristics of a table based

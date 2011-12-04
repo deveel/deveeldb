@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.QueryPlanning;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// An implementation of TType for a query plan value.

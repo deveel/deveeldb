@@ -17,6 +17,7 @@ using System;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.QueryPlanning;
 using Deveel.Math;
 
 namespace Deveel.Data.Functions {

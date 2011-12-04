@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.QueryPlanning;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// A <see cref="TObject"/> is a strongly typed object in a database engine.

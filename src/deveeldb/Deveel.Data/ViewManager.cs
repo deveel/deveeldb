@@ -18,6 +18,7 @@ using System.Collections;
 
 using Deveel.Data.Client;
 using Deveel.Data.Collections;
+using Deveel.Data.QueryPlanning;
 
 namespace Deveel.Data {
 	/// <summary>

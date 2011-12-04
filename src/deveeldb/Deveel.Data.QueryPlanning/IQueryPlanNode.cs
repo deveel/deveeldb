@@ -14,10 +14,10 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
-namespace Deveel.Data {
+namespace Deveel.Data.QueryPlanning {
 	///<summary>
 	/// A node element of a query plan tree.
 	///</summary>
@@ -57,7 +57,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		ArrayList DiscoverTableNames(ArrayList list);
+		IList<TableName> DiscoverTableNames(IList<TableName> list);
 
 		/// <summary>
 		/// Discovers all the correlated variables in the plan (and plan children)
@@ -71,7 +71,7 @@ namespace Deveel.Data {
 		/// <c>DiscoverCorrelatedVariables(0)</c>
 		/// </remarks>
 		/// <returns></returns>
-		ArrayList DiscoverCorrelatedVariables(int level, ArrayList list);
+		IList<CorrelatedVariable> DiscoverCorrelatedVariables(int level, IList<CorrelatedVariable> list);
 
 		/// <summary>
 		/// Writes a textural representation of the node to the <see cref="StringBuilder"/>

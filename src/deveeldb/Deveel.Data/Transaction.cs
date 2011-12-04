@@ -18,6 +18,7 @@ using System.Collections;
 using System.IO;
 
 using Deveel.Data.Collections;
+using Deveel.Data.QueryPlanning;
 using Deveel.Diagnostics;
 using Deveel.Math;
 

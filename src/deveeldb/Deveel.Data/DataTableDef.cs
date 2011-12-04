@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Deveel.Data {
@@ -125,9 +126,9 @@ namespace Deveel.Data {
 			// mode attempt to resolve the column name to a valid column input this
 			// def.
 			if (exp != null) {
-				IList list = exp.AllVariables;
+				IList<VariableName> list = exp.AllVariables;
 				for (int i = 0; i < list.Count; ++i) {
-					VariableName v = (VariableName)list[i];
+					VariableName v = list[i];
 					String col_name = v.Name;
 					// Can we resolve this to a variable input the table?
 					if (ignore_case) {

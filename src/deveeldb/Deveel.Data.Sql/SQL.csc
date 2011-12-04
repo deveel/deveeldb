@@ -13,6 +13,7 @@ namespace Deveel.Data.Sql;
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Functions;
 using Deveel.Data.Text;
@@ -643,7 +644,7 @@ StatementTree Close() :
 StatementTree Select() :
 { StatementTree cmd = new StatementTree(typeof(SelectStatement));
   TableSelectExpression table_expr;
-  ArrayList order_by = new ArrayList();
+  List<ByColumn> order_by = new List<ByColumn>();
 }
 {
   ( table_expr = GetTableSelectExpression()
@@ -1070,7 +1071,7 @@ StatementTree DeclareCursor() :
   Token name;
   bool scrollable = false, update = false, insensitive = false;
   TableSelectExpression select_expr;
-  ArrayList order_by = new ArrayList();
+  List<ByColumn> order_by = new List<ByColumn>();
 }
 {
   name = SQLIdentifier() [ <INSENSITIVE> { insensitive = true;} ] 
@@ -1664,7 +1665,7 @@ VariableName GroupMaxColumn() :
 
 
 
-void SelectOrderByList(ArrayList list) :
+void SelectOrderByList(IList list) :
 { ByColumn col;
   Expression exp;
   bool ascending = true;

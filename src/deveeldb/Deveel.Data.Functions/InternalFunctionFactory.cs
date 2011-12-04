@@ -15,10 +15,12 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
 using Deveel.Data.Client;
+using Deveel.Data.QueryPlanning;
 using Deveel.Math;
 
 namespace Deveel.Data.Functions {
@@ -162,7 +164,7 @@ namespace Deveel.Data.Functions {
 				if (String.Compare(command_str, "referenced tables", true) == 0) {
 					ViewDef view_def = ViewDef.DeserializeFromBlob(blob);
 					IQueryPlanNode node = view_def.QueryPlanNode;
-					ArrayList touched_tables = node.DiscoverTableNames(new ArrayList());
+					IList<TableName> touched_tables = node.DiscoverTableNames(new List<TableName>());
 					StringBuilder buf = new StringBuilder();
 					int sz = touched_tables.Count;
 					for (int i = 0; i < sz; ++i) {

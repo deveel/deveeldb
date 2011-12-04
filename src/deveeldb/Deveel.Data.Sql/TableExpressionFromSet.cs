@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql {
 	/// chain to another <see cref="TableExpressionFromSet"/> and resolve 
 	/// references over a complex sub-query hierarchy.
 	/// </remarks>
-	class TableExpressionFromSet {
+	public sealed class TableExpressionFromSet {
 		/// <summary>
 		/// The list of table resources in this set. (IFromTableSource).
 		/// </summary>

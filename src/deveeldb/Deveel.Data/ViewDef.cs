@@ -20,6 +20,8 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
+using Deveel.Data.QueryPlanning;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// A definition of a view stored in the database.

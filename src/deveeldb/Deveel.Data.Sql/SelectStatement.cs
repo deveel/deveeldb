@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.QueryPlanning;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Sql {
@@ -33,7 +34,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The list of all columns to order by. (ByColumn)
 		/// </summary>
-		private IList order_by;
+		private IList<ByColumn> order_by;
 
 		/// <summary>
 		/// The plan for evaluating this select expression.
@@ -70,14 +71,12 @@ namespace Deveel.Data.Sql {
 		/// </exception>
 		internal static void CheckUserSelectPermissions(DatabaseQueryContext context, User user, IQueryPlanNode plan) {
 			// Discover the list of TableName objects this command touches,
-			ArrayList touched_tables = plan.DiscoverTableNames(new ArrayList());
+			IList<TableName> touched_tables = plan.DiscoverTableNames(new List<TableName>());
 			Database dbase = context.Database;
 			// Check that the user is allowed to select from these tables.
-			for (int i = 0; i < touched_tables.Count; ++i) {
-				TableName t = (TableName)touched_tables[i];
-				if (!dbase.CanUserSelectFromTableObject(context, user, t, null)) {
+			foreach (TableName t in touched_tables) {
+				if (!dbase.CanUserSelectFromTableObject(context, user, t, null))
 					throw new UserAccessException("User not permitted to select from table: " + t);
-				}
 			}
 		}
 
@@ -88,7 +87,7 @@ namespace Deveel.Data.Sql {
 			// The select expression itself
 			select_expression = (TableSelectExpression)GetValue("table_expression");
 			// The order by information
-			order_by = GetList("order_by");
+			order_by = (IList<ByColumn>) GetList("order_by");
 
 			// check to see if the construct is the special one for
 			// selecting the latest IDENTITY value from a table
