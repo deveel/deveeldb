@@ -194,7 +194,7 @@ namespace Deveel.Data.Functions {
 				if (cob.IsNull) {
 					return cob;
 				} else if (ttype.IsNull) {
-					return TObject.GetString((StringObject)null);
+					return TObject.CreateString((StringObject)null);
 				}
 				String characters = cob.Object.ToString();
 				String ttype_str = ttype.Object.ToString();
@@ -227,7 +227,7 @@ namespace Deveel.Data.Functions {
 					str = str.Substring(0, System.Math.Max(0, scan + 1));
 				}
 
-				return TObject.GetString(str);
+				return TObject.CreateString(str);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -266,7 +266,7 @@ namespace Deveel.Data.Functions {
 				}
 				str = str.Substring(System.Math.Min(scan, str.Length));
 
-				return TObject.GetString(str);
+				return TObject.CreateString(str);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -308,7 +308,7 @@ namespace Deveel.Data.Functions {
 				}
 				str = str.Substring(0, System.Math.Max(0, scan + 1));
 
-				return TObject.GetString(str);
+				return TObject.CreateString(str);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -353,17 +353,17 @@ namespace Deveel.Data.Functions {
 					arg1 = 1;
 				}
 				if (arg1 > str_length) {
-					return TObject.GetString("");
+					return TObject.CreateString("");
 				}
 				if (arg2 + arg1 > str_length) {
 					arg2 = (str_length - arg1) + 1;
 				}
 				if (arg2 < 1) {
-					return TObject.GetString("");
+					return TObject.CreateString("");
 				}
 
 				//TODO: check this...
-				return TObject.GetString(str.Substring(arg1 - 1, (arg1 + arg2) - 1));
+				return TObject.CreateString(str.Substring(arg1 - 1, (arg1 + arg2) - 1));
 			}
 
 			protected override TType ReturnTType() {
@@ -394,13 +394,13 @@ namespace Deveel.Data.Functions {
 					return TObject.Null;
 
 				if (ob2.IsNull)
-					return TObject.GetInt4(-1);
+					return TObject.CreateInt4(-1);
 
 				string str = ob1.Object.ToString();
 				string pattern = ob2.Object.ToString();
 
 				if (str.Length == 0 || pattern.Length == 0)
-					return TObject.GetInt4(-1);
+					return TObject.CreateInt4(-1);
 
 				int startIndex = -1;
 				int endIndex = -1;
@@ -425,7 +425,7 @@ namespace Deveel.Data.Functions {
 					index = str.IndexOf(pattern, startIndex, endIndex - startIndex);
 				}
 
-				return TObject.GetInt4(index);
+				return TObject.CreateInt4(index);
 			}
 		}
 
@@ -445,7 +445,7 @@ namespace Deveel.Data.Functions {
 				if (!(obj.TType is TStringType))
 					obj = obj.CastTo(TType.StringType);
 
-				return TObject.GetString(Soundex.UsEnglish.Compute(obj.ToStringValue()));
+				return TObject.CreateString(Soundex.UsEnglish.Compute(obj.ToStringValue()));
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -485,7 +485,7 @@ namespace Deveel.Data.Functions {
 				string s = ob1.ToStringValue();
 
 				string result = (argc == 1 ? s.PadLeft(totalWidth) : s.PadLeft(totalWidth, c));
-				return TObject.GetString(result);
+				return TObject.CreateString(result);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -525,7 +525,7 @@ namespace Deveel.Data.Functions {
 				string s = ob1.ToStringValue();
 
 				string result = (argc == 1 ? s.PadRight(totalWidth) : s.PadRight(totalWidth, c));
-				return TObject.GetString(result);
+				return TObject.CreateString(result);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -561,7 +561,7 @@ namespace Deveel.Data.Functions {
 				string newValue = ob3.ToStringValue();
 
 				string result = s.Replace(oldValue, newValue);
-				return TObject.GetString(result);
+				return TObject.CreateString(result);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {

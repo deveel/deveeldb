@@ -646,7 +646,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		///<returns></returns>
 		public static Table ResultTable(DatabaseQueryContext context, Object ob) {
-			return ResultTable(context, TObject.GetObject(ob));
+			return ResultTable(context, TObject.CreateObject(ob));
 		}
 
 		///<summary>

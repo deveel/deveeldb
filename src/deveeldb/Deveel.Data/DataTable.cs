@@ -40,37 +40,208 @@ namespace Deveel.Data {
 		/// <summary>
 		/// A low level access to the underlying transactional data source.
 		/// </summary>
-		private readonly IMutableTableDataSource data_source;
-
-
-		/**
-		 * ------
-		 * NOTE: Following values are only kept for Lock debugging reasons.  These
-		 *   is no technical reason why they shouldn't be removed.  They allow us
-		 *   to check that a data table is locked correctly when accesses are
-		 *   performed on it.
-		 * ------
-		 */
-
-		const bool LOCK_DEBUG = true;
+		private readonly IMutableTableDataSource dataSource;
 
 		/// <summary>
 		/// The number of read locks we have on this table.
 		/// </summary>
-		private int debug_read_lock_count = 0;
+		private int debugReadLockCount;
 
 		/// <summary>
 		/// The number of write locks we have on this table (this should 
 		/// only ever be 0 or 1).
 		/// </summary>
-		private int debug_write_lock_count = 0;
+		private int debugWriteLockCount;
 
 
-		internal DataTable(DatabaseConnection connection,
-				  IMutableTableDataSource data_source)
+		internal DataTable(DatabaseConnection connection, IMutableTableDataSource dataSource)
 			: base(connection.Database) {
 			this.connection = connection;
-			this.data_source = data_source;
+			this.dataSource = dataSource;
+		}
+
+		/// <inheritdoc/>
+		public override int RowCount {
+			get {
+				CheckReadLock(); // Read op
+				return dataSource.RowCount;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override DataTableDef DataTableDef {
+			get {
+				CheckSafeOperation(); // safe op
+
+				return dataSource.DataTableDef;
+			}
+		}
+
+		/// <summary>
+		/// Returns the schema that this table is within.
+		/// </summary>
+		public string Schema {
+			get {
+				CheckSafeOperation(); // safe op
+
+				return DataTableDef.Schema;
+			}
+		}
+
+		/// <inheritdoc/>
+		public override bool HasRootsLocked {
+			get {
+				// There is no reason why we would need to know this information at
+				// this level.
+				// We need to deprecate this properly.
+				throw new ApplicationException("hasRootsLocked is deprecated.");
+			}
+		}
+
+		protected internal override IDebugLogger Debug {
+			get { return connection.System.Debug; }
+		}
+
+		/// <inheritdoc/>
+		public override int ColumnCount {
+			get {
+				CheckSafeOperation(); // safe op
+
+				return base.ColumnCount;
+			}
+		}
+
+		/// <summary>
+		/// Adds a new row of data to the table.
+		/// </summary>
+		/// <param name="row"></param>
+		/// <remarks>
+		/// First of all, this tells the underlying database mechanism to 
+		/// add the data to this table.  It then add the row information to 
+		/// each SelectableScheme.
+		/// </remarks>
+		private void AddRow(DataRow row) {
+			// This table name (for event notification)
+			TableName tableName = TableName;
+
+			// Fire the 'before' trigger for an insert on this table
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, row, true));
+
+			// Add the row to the underlying file system
+			dataSource.AddRow(row);
+
+			// Fire the 'after' trigger for an insert on this table
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, row, false));
+
+			// NOTE: currently nothing being done with 'row_number' after it's added.
+			//   The underlying table data source manages the row index.
+
+		}
+
+		/// <summary>
+		/// Removes the given row from the table.
+		/// </summary>
+		/// <param name="rowNumber">The index of the row to delete.</param>
+		/// <remarks>
+		/// This is called just before the row is actually deleted. The method 
+		/// is provided to allow for some maintenance of any search structures 
+		/// such as B-Trees.
+		/// This is called from the <see cref="Delete(Deveel.Data.Table)"/>.
+		/// </remarks>
+		private void RemoveRow(int rowNumber) {
+
+			// This table name (for event notification)
+			TableName tableName = TableName;
+
+			// Fire the 'before' trigger for the delete on this table
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, true));
+
+			// Delete the row from the underlying database
+			dataSource.RemoveRow(rowNumber);
+
+			// Fire the 'after' trigger for the delete on this table
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, false));
+		}
+
+		/// <summary>
+		/// Updates the given row with the given data in this table.
+		/// </summary>
+		/// <param name="rowNumber"></param>
+		/// <param name="row"></param>
+		/// <remarks>
+		/// This method will likely add the modified data to a new row and 
+		/// delete the old version of the row.
+		/// </remarks>
+		private void UpdateRow(int rowNumber, DataRow row) {
+
+			// This table name (for event notification)
+			TableName tableName = TableName;
+
+			// Fire the 'before' trigger for the update on this table
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, row, true));
+
+			// Update the row in the underlying database
+			dataSource.UpdateRow(rowNumber, row);
+
+			// Fire the 'after' trigger for the update on this table
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, row, false));
+		}
+
+		/// <summary>
+		/// Checks the database is in exclusive mode.
+		/// </summary>
+		private void CheckInExclusiveMode() {
+			if (!IsInExclusiveMode) {
+				Debug.WriteException(new Exception(
+				                     	"Performed exclusive operation on table and not in exclusive mode!"));
+			}
+		}
+
+		/// <summary>
+		/// Check that we can safely Read from this table.
+		/// </summary>
+		private void CheckReadLock() {
+#if DEBUG
+			// All 'sUSR' tables are given Read access because they may only be
+			// written under exclusive mode anyway.
+
+			bool isInternalTable = TableName.Schema.Equals(Database.SystemSchema);
+
+			if (!(isInternalTable ||
+			      debugReadLockCount > 0 ||
+			      debugWriteLockCount > 0 ||
+			      IsInExclusiveMode)) {
+
+				Console.Error.WriteLine();
+				Console.Error.Write(" is_internal_table = " + isInternalTable);
+				Console.Error.Write(" debug_read_lock_count = " + debugReadLockCount);
+				Console.Error.Write(" debug_write_lock_count = " + debugWriteLockCount);
+				Console.Error.WriteLine(" isInExclusiveMode = " + IsInExclusiveMode);
+
+				Debug.WriteException(new ApplicationException("Invalid Read access on table '" + TableName + "'"));
+			}
+#endif
+		}
+
+		/// <summary>
+		/// Check that we can safely read/write from this table.
+		/// </summary>
+		/// <remarks>
+		/// This should catch any synchronization concurrent issues.
+		/// </remarks>
+		private void CheckReadWriteLock() {
+#if DEBUG
+			// We have to own exactly one Write Lock, or be in exclusive mode.
+			if (!(debugWriteLockCount == 1 || IsInExclusiveMode))
+				Debug.WriteException(new ApplicationException("Invalid Read/Write access on table '" + TableName + "'"));
+#endif
+		}
+
+		/// <summary>
+		/// Check that we can run a safe operation.
+		/// </summary>
+		private void CheckSafeOperation() {
+			// no operation - nothing to check for...
 		}
 
 		/// <inheritdoc/>
@@ -81,19 +252,101 @@ namespace Deveel.Data {
 		protected override SelectableScheme GetRootColumnScheme(int column) {
 			CheckReadLock();  // Read op
 
-			return data_source.GetColumnScheme(column);
+			return dataSource.GetColumnScheme(column);
+		}
+
+		/// <inheritdoc/>
+		internal override void AddDataTableListener(IDataTableListener listener) {
+			// Currently we do nothing with this info.
+		}
+
+
+		/// <inheritdoc/>
+		internal override void RemoveDataTableListener(IDataTableListener listener) {
+			// Currently we do nothing with this info.
+		}
+
+
+
+
+		// -------- Methods implemented for DefaultDataTable --------
+
+		/// <inheritdoc/>
+		internal override void SetToRowTableDomain(int column, IntegerVector row_set, ITableDataSource ancestor) {
+			CheckReadLock();  // Read op
+
+			if (ancestor != this && ancestor != dataSource) {
+				throw new Exception("Method routed to incorrect table ancestor.");
+			}
+		}
+
+		/// <summary>
+		/// This is called by the <see cref="Lock"/> lass to notify this 
+		/// <see cref="DataTable"/> that a read/write lock has been applied 
+		/// to this table.
+		/// </summary>
+		/// <param name="lockType"></param>
+		/// <remarks>
+		/// This is for Lock debugging purposes only.
+		/// </remarks>
+		internal void OnReadWriteLockEstablish(AccessType lockType) {
+#if DEBUG
+			if (lockType == AccessType.Read) {
+				++debugReadLockCount;
+			} else if (lockType == AccessType.Write) {
+				++debugWriteLockCount;
+				if (debugWriteLockCount > 1)
+					throw new ApplicationException(">1 write Lock on table " + TableName);
+			} else {
+				throw new ApplicationException("Unknown Lock type: " + lockType);
+			}
+#endif
+		}
+
+		/// <summary>
+		/// This is called by <see cref="Lock"/> to notify this table that a 
+		/// read/write lock has been released from it.
+		/// </summary>
+		/// <param name="lockType">The type of the lock released.</param>
+		/// <remarks>
+		/// This is for lock debugging purposes only.
+		/// </remarks>
+		internal void OnReadWriteLockRelease(AccessType lockType) {
+#if DEBUG
+			if (lockType == AccessType.Read) {
+				--debugReadLockCount;
+			} else if (lockType == AccessType.Write) {
+				--debugWriteLockCount;
+			} else {
+				Debug.WriteException(new Exception("Unknown Lock type: " + lockType));
+			}
+#endif
+		}
+
+		/// <inheritdoc/>
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+			CheckReadLock();  // Read op
+
+			return base.GetSelectableSchemeFor(column, original_column, table);
+		}
+
+		/// <inheritdoc/>
+		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
+			CheckReadLock();  // Read op
+
+			return base.ResolveToRawTable(info);
 		}
 
 		/// <summary>
 		/// Declares the table as a new type.
 		/// </summary>
-		/// <param name="new_name">The name of the declared table.</param>
+		/// <param name="newName">The name of the declared table.</param>
 		/// <returns>
 		/// Returns a <see cref="ReferenceTable"/> representing the new 
 		/// declaration of the table.
 		/// </returns>
-		public ReferenceTable DeclareAs(TableName new_name) {
-			return new ReferenceTable(this, new_name);
+		public ReferenceTable DeclareAs(TableName newName) {
+			return new ReferenceTable(this, newName);
 		}
 
 		/// <summary>
@@ -110,15 +363,6 @@ namespace Deveel.Data {
 		public DataRow NewRow() {
 			CheckSafeOperation();  // safe op
 			return new DataRow(this);
-		}
-
-		/// <inheritdoc/>
-		public override int RowCount {
-			get {
-				CheckReadLock(); // Read op
-
-				return data_source.RowCount;
-			}
 		}
 
 		///<summary>
@@ -146,16 +390,14 @@ namespace Deveel.Data {
 		public void Add(DataRow dataRow) {
 			CheckReadWriteLock();  // Write op
 
-			if (!dataRow.IsSameTable(this)) {
-				throw new DatabaseException(
-							   "Internal Error: Using DataRow from different table");
-			}
+			if (!dataRow.IsSameTable(this))
+				throw new DatabaseException("Internal Error: Using DataRow from different table");
 
 			// Checks passed, so add to table.
 			AddRow(dataRow);
 
 			// Perform a referential integrity check on any changes to the table.
-			data_source.ConstraintIntegrityCheck();
+			dataSource.ConstraintIntegrityCheck();
 		}
 
 		/// <summary>
@@ -194,94 +436,15 @@ namespace Deveel.Data {
 		public void Add(DataRow[] dataRowArr) {
 			CheckReadWriteLock();  // Write op
 
-			for (int i = 0; i < dataRowArr.Length; ++i) {
-				DataRow dataRow = dataRowArr[i];
-				if (!dataRow.IsSameTable(this)) {
-					throw new DatabaseException(
-								   "Internal Error: Using DataRow from different table");
-				}
+			foreach (DataRow dataRow in dataRowArr) {
+				if (!dataRow.IsSameTable(this))
+					throw new DatabaseException("Internal Error: Using DataRow from different table");
+
 				AddRow(dataRow);
 			}
 
 			// Perform a referential integrity check on any changes to the table.
-			data_source.ConstraintIntegrityCheck();
-		}
-
-		/// <summary>
-		/// Adds a new row of data to the table.
-		/// </summary>
-		/// <param name="row"></param>
-		/// <remarks>
-		/// First of all, this tells the underlying database mechanism to 
-		/// add the data to this table.  It then add the row information to 
-		/// each SelectableScheme.
-		/// </remarks>
-		private void AddRow(DataRow row) {
-
-			// This table name (for event notification)
-			TableName table_name = TableName;
-
-			// Fire the 'before' trigger for an insert on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row, true));
-
-			// Add the row to the underlying file system
-			int row_number = data_source.AddRow(row);
-
-			// Fire the 'after' trigger for an insert on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row, false));
-
-			// NOTE: currently nothing being done with 'row_number' after it's added.
-			//   The underlying table data source manages the row index.
-
-		}
-
-		/// <summary>
-		/// Removes the given row from the table.
-		/// </summary>
-		/// <param name="row_number">The index of the row to delete.</param>
-		/// <remarks>
-		/// This is called just before the row is actually deleted. The method 
-		/// is provided to allow for some maintenance of any search structures 
-		/// such as B-Trees.
-		/// This is called from the <see cref="Delete(Deveel.Data.Table)"/>.
-		/// </remarks>
-		private void RemoveRow(int row_number) {
-
-			// This table name (for event notification)
-			TableName table_name = TableName;
-
-			// Fire the 'before' trigger for the delete on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row_number, true));
-
-			// Delete the row from the underlying database
-			data_source.RemoveRow(row_number);
-
-			// Fire the 'after' trigger for the delete on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row_number, false));
-		}
-
-		/// <summary>
-		/// Updates the given row with the given data in this table.
-		/// </summary>
-		/// <param name="row_number"></param>
-		/// <param name="row"></param>
-		/// <remarks>
-		/// This method will likely add the modified data to a new row and 
-		/// delete the old version of the row.
-		/// </remarks>
-		private void UpdateRow(int row_number, DataRow row) {
-
-			// This table name (for event notification)
-			TableName table_name = TableName;
-
-			// Fire the 'before' trigger for the update on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row_number, row, true));
-
-			// Update the row in the underlying database
-			data_source.UpdateRow(row_number, row);
-
-			// Fire the 'after' trigger for the update on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, table_name, row_number, row, false));
+			dataSource.ConstraintIntegrityCheck();
 		}
 
 		/// <summary>
@@ -315,61 +478,55 @@ namespace Deveel.Data {
 		public int Delete(Table table, int limit) {
 			CheckReadWriteLock();  // Write op
 
-			IntegerVector row_set = new IntegerVector(table.RowCount);
+			IntegerVector rowSet = new IntegerVector(table.RowCount);
 			IRowEnumerator e = table.GetRowEnumerator();
 			while (e.MoveNext()) {
-				row_set.AddInt(e.RowIndex);
+				rowSet.AddInt(e.RowIndex);
 			}
-			e = null;
 
 			// HACKY: Find the first column of this table in the search table.  This
 			//   will allow us to generate a row set of only the rows in the search
 			//   table.
-			int first_column = table.FindFieldName(GetResolvedVariable(0));
+			int firstColumn = table.FindFieldName(GetResolvedVariable(0));
 
-			if (first_column == -1) {
+			if (firstColumn == -1)
 				throw new DatabaseException("Search table does not contain any " +
-											"reference to table being deleted from");
-			}
+				                            "reference to table being deleted from");
 
 			// Generate a row set that is in this tables domain.
-			table.SetToRowTableDomain(first_column, row_set, this);
+			table.SetToRowTableDomain(firstColumn, rowSet, this);
 
 			// row_set may contain duplicate row indices, therefore we must sort so
 			// any duplicates are grouped and therefore easier to find.
-			row_set.QuickSort();
+			rowSet.QuickSort();
 
 			// If limit less than zero then limit is whole set.
-			if (limit < 0) {
+			if (limit < 0)
 				limit = Int32.MaxValue;
-			}
 
 			// Remove each row in row set in turn.  Make sure we don't remove the
 			// same row index twice.
-			int len = SysMath.Min(row_set.Count, limit);
-			int last_removed = -1;
-			int remove_count = 0;
+			int len = SysMath.Min(rowSet.Count, limit);
+			int lastRemoved = -1;
+			int removeCount = 0;
 			for (int i = 0; i < len; ++i) {
-				int to_remove = row_set[i];
-				if (to_remove < last_removed) {
-					throw new DatabaseException(
-					  "Internal error: row sorting error or row_set not in the range > 0");
-				}
+				int toRemove = rowSet[i];
+				if (toRemove < lastRemoved)
+					throw new DatabaseException("Internal error: row sorting error or row_set not in the range > 0");
 
-				if (to_remove != last_removed) {
-					RemoveRow(to_remove);
-					last_removed = to_remove;
-					++remove_count;
+				if (toRemove != lastRemoved) {
+					RemoveRow(toRemove);
+					lastRemoved = toRemove;
+					++removeCount;
 				}
 
 			}
 
-			if (remove_count > 0) {
+			if (removeCount > 0)
 				// Perform a referential integrity check on any changes to the table.
-				data_source.ConstraintIntegrityCheck();
-			}
+				dataSource.ConstraintIntegrityCheck();
 
-			return remove_count;
+			return removeCount;
 		}
 
 		/// <summary>
@@ -437,7 +594,7 @@ namespace Deveel.Data {
 			RemoveRow(rowIndex);
 
 			// Perform a referential integrity check on any changes to the table.
-			data_source.ConstraintIntegrityCheck();
+			dataSource.ConstraintIntegrityCheck();
 
 			return 1;
 		}
@@ -448,7 +605,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="table"></param>
-		/// <param name="assign_list"></param>
+		/// <param name="assignList"></param>
 		/// <param name="limit">The maximum number of rows to update (if less
 		/// than zero, no limit).</param>
 		/// <remarks>
@@ -473,77 +630,73 @@ namespace Deveel.Data {
 		/// <returns>
 		/// Returns the number of rows updated in this table.
 		/// </returns>
-		public int Update(IQueryContext context, Table table, Assignment[] assign_list, int limit) {
+		public int Update(IQueryContext context, Table table, Assignment[] assignList, int limit) {
 			CheckReadWriteLock();  // Write op
 
 			// Get the rows from the input table.
-			IntegerVector row_set = new IntegerVector();
+			IntegerVector rowSet = new IntegerVector();
 			IRowEnumerator e = table.GetRowEnumerator();
 			while (e.MoveNext()) {
-				row_set.AddInt(e.RowIndex);
+				rowSet.AddInt(e.RowIndex);
 			}
-			e = null;
 
 			// HACKY: Find the first column of this table in the search table.  This
 			//   will allow us to generate a row set of only the rows in the search
 			//   table.
-			int first_column = table.FindFieldName(GetResolvedVariable(0));
-			if (first_column == -1) {
+			int firstColumn = table.FindFieldName(GetResolvedVariable(0));
+			if (firstColumn == -1)
 				throw new DatabaseException("Search table does not contain any " +
-											"reference to table being updated from");
-			}
+				                            "reference to table being updated from");
 
 			// Convert the row_set to this table's domain.
-			table.SetToRowTableDomain(first_column, row_set, this);
+			table.SetToRowTableDomain(firstColumn, rowSet, this);
 
 			// NOTE: Assume there's no duplicate rows.
 
-			DataRow original_data = NewRow();
+			DataRow originalData = NewRow();
 			DataRow dataRow = NewRow();
 
 			// If limit less than zero then limit is whole set.
-			if (limit < 0) {
+			if (limit < 0)
 				limit = Int32.MaxValue;
-			}
 
 			// Update each row in row set in turn up to the limit.
-			int len = SysMath.Min(row_set.Count, limit);
-			int update_count = 0;
+			int len = SysMath.Min(rowSet.Count, limit);
+			int updateCount = 0;
 			for (int i = 0; i < len; ++i) {
-				int to_update = row_set[i];
+				int toUpdate = rowSet[i];
 
 				// Make a DataRow object from this row (plus keep the original intact
 				// incase we need to roll back to it).
-				original_data.SetFromRow(to_update);
-				dataRow.SetFromRow(to_update);
+				originalData.SetFromRow(toUpdate);
+				dataRow.SetFromRow(toUpdate);
 
 				// Run each assignment on the DataRow.
-				for (int n = 0; n < assign_list.Length; ++n) {
-					Assignment assignment = assign_list[n];
+				for (int n = 0; n < assignList.Length; ++n) {
+					Assignment assignment = assignList[n];
 					dataRow.Evaluate(assignment, context);
 				}
 
 				// Update the row
-				UpdateRow(to_update, dataRow);
+				UpdateRow(toUpdate, dataRow);
 
-				++update_count;
+				++updateCount;
 			}
 
-			if (update_count > 0) {
+			if (updateCount > 0)
 				// Perform a referential integrity check on any changes to the table.
-				data_source.ConstraintIntegrityCheck();
-			}
+				dataSource.ConstraintIntegrityCheck();
 
-			return update_count;
+			return updateCount;
 		}
 
 		/// <summary>
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="cursor"></param>
-		/// <param name="assign_list"></param>
+		/// <param name="assignList"></param>
 		/// <returns></returns>
-		public int UpdateCurrent(IQueryContext context, Cursor cursor, Assignment[] assign_list) {
+		public int UpdateCurrent(IQueryContext context, Cursor cursor, Assignment[] assignList) {
 			CheckReadWriteLock();
 
 			if (!cursor.IsUpdate)
@@ -554,18 +707,18 @@ namespace Deveel.Data {
 
 			// NOTE: Assume there's no duplicate rows.
 
-			DataRow original_data = NewRow();
+			DataRow originalData = NewRow();
 			DataRow dataRow = NewRow();
 
 			int rowIndex = cursor.RowIndex;
 
 			// Make a DataRow object from this row (plus keep the original intact
 			// incase we need to roll back to it).
-			original_data.SetFromRow(rowIndex);
+			originalData.SetFromRow(rowIndex);
 			dataRow.SetFromRow(rowIndex);
 
-			for (int n = 0; n < assign_list.Length; ++n) {
-				Assignment assignment = assign_list[n];
+			for (int n = 0; n < assignList.Length; ++n) {
+				Assignment assignment = assignList[n];
 				dataRow.Evaluate(assignment, context);
 			}
 
@@ -573,68 +726,23 @@ namespace Deveel.Data {
 			UpdateRow(rowIndex, dataRow);
 
 			// Perform a referential integrity check on any changes to the table.
-			data_source.ConstraintIntegrityCheck();
+			dataSource.ConstraintIntegrityCheck();
 
 			return 1;
-		}
-
-		/// <inheritdoc/>
-		public override DataTableDef DataTableDef {
-			get {
-				CheckSafeOperation(); // safe op
-
-				return data_source.DataTableDef;
-			}
-		}
-
-		/// <summary>
-		/// Returns the schema that this table is within.
-		/// </summary>
-		public string Schema {
-			get {
-				CheckSafeOperation(); // safe op
-
-				return DataTableDef.Schema;
-			}
-		}
-
-		/// <inheritdoc/>
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			// Currently we do nothing with this info.
-		}
-
-
-		/// <inheritdoc/>
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			// Currently we do nothing with this info.
-		}
-
-
-
-
-		// -------- Methods implemented for DefaultDataTable --------
-
-		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set, ITableDataSource ancestor) {
-			CheckReadLock();  // Read op
-
-			if (ancestor != this && ancestor != data_source) {
-				throw new Exception("Method routed to incorrect table ancestor.");
-			}
 		}
 
 		/// <inheritdoc/>
 		public override TObject GetCellContents(int column, int row) {
 			CheckSafeOperation();  // safe op
 
-			return data_source.GetCellContents(column, row);
+			return dataSource.GetCellContents(column, row);
 		}
 
 		/// <inheritdoc/>
 		public override IRowEnumerator GetRowEnumerator() {
 			CheckReadLock(); // Read op
 
-			return data_source.GetRowEnumerator();
+			return dataSource.GetRowEnumerator();
 		}
 
 
@@ -642,76 +750,18 @@ namespace Deveel.Data {
 		public override void LockRoot(int lock_key) {
 			CheckSafeOperation();  // safe op
 
-			data_source.AddRootLock();
+			dataSource.AddRootLock();
 		}
 
 		/// <inheritdoc/>
 		public override void UnlockRoot(int lock_key) {
 			CheckSafeOperation();  // safe op
 
-			data_source.RemoveRootLock();
+			dataSource.RemoveRootLock();
 		}
-
-		/// <inheritdoc/>
-		public override bool HasRootsLocked {
-			get {
-				// There is no reason why we would need to know this information at
-				// this level.
-				// We need to deprecate this properly.
-				throw new ApplicationException("hasRootsLocked is deprecated.");
-			}
-		}
-
-		 protected internal override IDebugLogger Debug {
-		 	get { return connection.System.Debug; }
-		 }
 
 
 		// ------------ Lock debugging methods ----------
-
-		/// <summary>
-		/// This is called by the <see cref="Lock"/> lass to notify this 
-		/// <see cref="DataTable"/> that a read/write lock has been applied 
-		/// to this table.
-		/// </summary>
-		/// <param name="lock_type"></param>
-		/// <remarks>
-		/// This is for Lock debugging purposes only.
-		/// </remarks>
-		internal void OnReadWriteLockEstablish(AccessType lock_type) {
-			if (LOCK_DEBUG) {
-				if (lock_type == AccessType.Read) {
-					++debug_read_lock_count;
-				} else if (lock_type == AccessType.Write) {
-					++debug_write_lock_count;
-					if (debug_write_lock_count > 1) {
-						throw new ApplicationException(">1 write Lock on table " + TableName);
-					}
-				} else {
-					throw new ApplicationException("Unknown Lock type: " + lock_type);
-				}
-			}
-		}
-
-		/// <summary>
-		/// This is called by <see cref="Lock"/> to notify this table that a 
-		/// read/write lock has been released from it.
-		/// </summary>
-		/// <param name="lock_type">The type of the lock released.</param>
-		/// <remarks>
-		/// This is for lock debugging purposes only.
-		/// </remarks>
-		internal void OnReadWriteLockRelease(AccessType lock_type) {
-			if (LOCK_DEBUG) {
-				if (lock_type == AccessType.Read) {
-					--debug_read_lock_count;
-				} else if (lock_type == AccessType.Write) {
-					--debug_write_lock_count;
-				} else {
-					Debug.WriteException(new Exception("Unknown Lock type: " + lock_type));
-				}
-			}
-		}
 
 		/// <summary>
 		/// Returns true if the database is in exclusive mode.
@@ -720,81 +770,6 @@ namespace Deveel.Data {
 			get {
 				// Check the connection locking mechanism is in exclusive mode
 				return connection.LockingMechanism.IsInExclusiveMode;
-			}
-		}
-
-		/// <summary>
-		/// Checks the database is in exclusive mode.
-		/// </summary>
-		private void CheckInExclusiveMode() {
-			if (!IsInExclusiveMode) {
-				Debug.WriteException(new Exception(
-				   "Performed exclusive operation on table and not in exclusive mode!"));
-			}
-		}
-
-		/// <summary>
-		/// Check that we can safely Read from this table.
-		/// </summary>
-		private void CheckReadLock() {
-			if (LOCK_DEBUG) {
-				// All 'sUSR' tables are given Read access because they may only be
-				// written under exclusive mode anyway.
-
-				bool is_internal_table =
-							  TableName.Schema.Equals(Database.SystemSchema);
-
-				if (!(is_internal_table ||
-					  debug_read_lock_count > 0 ||
-					  debug_write_lock_count > 0 ||
-					  IsInExclusiveMode)) {
-
-					Console.Error.WriteLine();
-					Console.Error.Write(" is_internal_table = " + is_internal_table);
-					Console.Error.Write(" debug_read_lock_count = " + debug_read_lock_count);
-					Console.Error.Write(" debug_write_lock_count = " + debug_write_lock_count);
-					Console.Error.WriteLine(" isInExclusiveMode = " + IsInExclusiveMode);
-
-					Debug.WriteException(new ApplicationException("Invalid Read access on table '" + TableName + "'"));
-				}
-			}
-		}
-
-		/// <summary>
-		/// Check that we can safely read/write from this table.
-		/// </summary>
-		/// <remarks>
-		/// This should catch any synchronization concurrent issues.
-		/// </remarks>
-		private void CheckReadWriteLock() {
-			if (LOCK_DEBUG) {
-				// We have to own exactly one Write Lock, or be in exclusive mode.
-				if (!(debug_write_lock_count == 1 || IsInExclusiveMode)) {
-					Debug.WriteException(
-						   new ApplicationException("Invalid Read/Write access on table '" +
-									 TableName + "'"));
-				}
-			}
-		}
-
-		/// <summary>
-		/// Check that we can run a safe operation.
-		/// </summary>
-		private void CheckSafeOperation() {
-			// no operation - nothing to check for...
-		}
-
-
-
-		// ---------- Overwritten to output debug info ----------
-		// NOTE: These can all safely be commented out.
-
-		/// <inheritdoc/>
-		public override int ColumnCount {
-			get {
-				CheckSafeOperation(); // safe op
-
-				return base.ColumnCount;
 			}
 		}
 
@@ -810,20 +785,6 @@ namespace Deveel.Data {
 			CheckSafeOperation();  // safe op
 
 			return base.FindFieldName(v);
-		}
-
-		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
-			CheckReadLock();  // Read op
-
-			return base.GetSelectableSchemeFor(column, original_column, table);
-		}
-
-		/// <inheritdoc/>
-		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
-			CheckReadLock();  // Read op
-
-			return base.ResolveToRawTable(info);
 		}
 	}
 }

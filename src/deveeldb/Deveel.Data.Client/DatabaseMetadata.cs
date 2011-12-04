@@ -413,14 +413,14 @@ namespace Deveel.Data.Client {
 				/*
 				while (reader.Read()) {
 					DataRow row = dataTable.NewRow();
-					row["PKTABLE_CATALOG"] = reader.GetString(0);
-					row["PKTABLE_SCHEMA"] = reader.GetString(1);
-					row["PKTABLE_NAME"] = reader.GetString(2);
-					row["PKCOLUMN_NAME"] = reader.GetString(3);
-					row["FKTABLE_CATALOG"] = reader.GetString(4);
-					row["FKTABLE_SCHEMA"] = reader.GetString(5);
-					row["FKTABLE_NAME"] = reader.GetString(6);
-					row["FKCOLUMN_NAME"] = reader.GetString(7);
+					row["PKTABLE_CATALOG"] = reader.CreateString(0);
+					row["PKTABLE_SCHEMA"] = reader.CreateString(1);
+					row["PKTABLE_NAME"] = reader.CreateString(2);
+					row["PKCOLUMN_NAME"] = reader.CreateString(3);
+					row["FKTABLE_CATALOG"] = reader.CreateString(4);
+					row["FKTABLE_SCHEMA"] = reader.CreateString(5);
+					row["FKTABLE_NAME"] = reader.CreateString(6);
+					row["FKCOLUMN_NAME"] = reader.CreateString(7);
 					dataTable.Rows.Add(row);
 				}
 				*/

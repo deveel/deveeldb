@@ -60,7 +60,7 @@ namespace Deveel.Data {
 		/// <seealso cref="AddVariable(string,Deveel.Data.TObject)"/>
 		public void AddVariable(string name, object value) {
 			if (!(value is TObject))
-				value = TObject.GetObject(value);
+				value = TObject.CreateObject(value);
 
 			AddVariable(name, (TObject)value);
 		}

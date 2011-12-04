@@ -719,31 +719,18 @@ namespace Deveel.Data {
 				: base("and", 2) {
 			}
 
-			public override TObject Evaluate(TObject ob1, TObject ob2,
-			                                 IGroupResolver group, IVariableResolver resolver,
-			                                 IQueryContext context) {
-				bool isB1Null, isB2Null;
-				Boolean b1 = ob1.ToBoolean(out isB1Null);
-				Boolean b2 = ob2.ToBoolean(out isB2Null);
+			public override TObject Evaluate(TObject ob1, TObject ob2, IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				bool? b1 = ob1.ToNullableBoolean();
+				bool? b2 = ob2.ToNullableBoolean();
 
 				// If either ob1 or ob2 are null
-				if (isB1Null) {
-					if (!isB2Null) {
-						if (b2.Equals(false)) {
-							return TObject.BooleanFalse;
-						}
-					}
-					return TObject.BooleanNull;
-				} else if (isB2Null) {
-					if (b1.Equals(false)) {
-						return TObject.BooleanFalse;
-					}
-					return TObject.BooleanNull;
-				}
+				if (!b1.HasValue)
+					return b2.HasValue && b2.Equals(false) ? TObject.BooleanFalse : TObject.BooleanNull;
+				if (!b2.HasValue)
+					return b1.Equals(false) ? TObject.BooleanFalse : TObject.BooleanNull;
 
 				// If both true.
-				return TObject.GetBoolean(b1.Equals(true) &&
-				                          b2.Equals(true));
+				return TObject.CreateBoolean(b1.Equals(true) && b2.Equals(true));
 			}
 		}
 
@@ -1039,28 +1026,17 @@ namespace Deveel.Data {
 			public override TObject Evaluate(TObject ob1, TObject ob2,
 			                                 IGroupResolver group, IVariableResolver resolver,
 			                                 IQueryContext context) {
-				bool isB1Null, isB2Null;
-				Boolean b1 = ob1.ToBoolean(out isB1Null);
-				Boolean b2 = ob2.ToBoolean(out isB2Null);
+				bool? b1 = ob1.ToNullableBoolean();
+				bool? b2 = ob2.ToNullableBoolean();
 
 				// If either ob1 or ob2 are null
-				if (isB1Null) {
-					if (!isB2Null) {
-						if (b2.Equals(true)) {
-							return TObject.BooleanTrue;
-						}
-					}
-					return TObject.BooleanNull;
-				} else if (isB2Null) {
-					if (b1.Equals(true)) {
-						return TObject.BooleanTrue;
-					}
-					return TObject.BooleanNull;
-				}
+				if (!b1.HasValue)
+					return b2.HasValue && b2.Value.Equals(true) ? TObject.BooleanTrue : TObject.BooleanNull;
+				if (!b2.HasValue)
+					return b1.Value.Equals(true) ? TObject.BooleanTrue : TObject.BooleanNull;
 
 				// If both true.
-				return TObject.GetBoolean(b1.Equals(true) ||
-				                          b2.Equals(true));
+				return TObject.CreateBoolean(b1.Equals(true) || b2.Equals(true));
 			}
 		}
 
@@ -1102,7 +1078,7 @@ namespace Deveel.Data {
 				}
 				String val = ob1.CastTo(TType.StringType).ToStringValue();
 				String pattern = ob2.CastTo(TType.StringType).ToStringValue();
-				return TObject.GetBoolean(
+				return TObject.CreateBoolean(
 					!PatternSearch.FullPatternMatch(pattern, val, '\\'));
 			}
 		}
@@ -1129,7 +1105,7 @@ namespace Deveel.Data {
 				String val = ob1.CastTo(TType.StringType).ToStringValue();
 				String pattern = ob2.CastTo(TType.StringType).ToStringValue();
 
-				TObject result = TObject.GetBoolean(
+				TObject result = TObject.CreateBoolean(
 					PatternSearch.FullPatternMatch(pattern, val, '\\'));
 				return result;
 			}
@@ -1155,7 +1131,7 @@ namespace Deveel.Data {
 
 				string val = ob1.CastTo(TType.StringType).ToStringValue();
 				string pattern = ob2.CastTo(TType.StringType).ToStringValue();
-				return TObject.GetBoolean(PatternSearch.RegexMatch(context.System, pattern, val));
+				return TObject.CreateBoolean(PatternSearch.RegexMatch(context.System, pattern, val));
 			}
 		}
 

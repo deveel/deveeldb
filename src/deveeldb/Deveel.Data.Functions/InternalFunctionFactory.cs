@@ -77,7 +77,7 @@ namespace Deveel.Data.Functions {
 					throw new ApplicationException("Unrecognised foreign key rule: " + str);
 				}
 				// Return the correct enumeration
-				return TObject.GetInt4(v);
+				return TObject.CreateInt4(v);
 			}
 
 		}
@@ -124,7 +124,7 @@ namespace Deveel.Data.Functions {
 					result_str.Append(')');
 				}
 
-				return TObject.GetString(result_str.ToString());
+				return TObject.CreateString(result_str.ToString());
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -171,16 +171,16 @@ namespace Deveel.Data.Functions {
 							buf.Append(", ");
 						}
 					}
-					return TObject.GetString(buf.ToString());
+					return TObject.CreateString(buf.ToString());
 				} else if (String.Compare(command_str, "plan dump", true) == 0) {
 					ViewDef view_def = ViewDef.DeserializeFromBlob(blob);
 					IQueryPlanNode node = view_def.QueryPlanNode;
 					StringBuilder buf = new StringBuilder();
 					node.DebugString(0, buf);
-					return TObject.GetString(buf.ToString());
+					return TObject.CreateString(buf.ToString());
 				} else if (String.Compare(command_str, "query string", true) == 0) {
 					SqlQuery query = SqlQuery.DeserializeFromBlob(blob);
-					return TObject.GetString(query.ToString());
+					return TObject.CreateString(query.ToString());
 				}
 
 				return TObject.Null;
@@ -417,7 +417,7 @@ namespace Deveel.Data.Functions {
 				int priv_bit = ((BigNumber)priv_bit_ob.Object).ToInt32();
 				Privileges privs = new Privileges();
 				privs = privs.Add(priv_bit);
-				return TObject.GetString(privs.ToString());
+				return TObject.CreateString(privs.ToString());
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {

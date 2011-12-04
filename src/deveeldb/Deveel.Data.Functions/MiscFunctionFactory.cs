@@ -93,7 +93,7 @@ namespace Deveel.Data.Functions {
 				TObject res = this[0].Evaluate(group, resolver, context);
 				if (res.TType is TBooleanType) {
 					// Does the result equal true?
-					if (res.CompareTo(TObject.GetBoolean(true)) == 0) {
+					if (res.CompareTo(TObject.CreateBoolean(true)) == 0) {
 						// Resolved to true so evaluate the first argument
 						return this[1].Evaluate(group, resolver, context);
 					} else {
@@ -149,7 +149,7 @@ namespace Deveel.Data.Functions {
 				if (v == -1)
 					throw new InvalidOperationException("Unable to determine the sequence of the table " + table_name);
 
-				return TObject.GetInt8(v);
+				return TObject.CreateInt8(v);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -175,7 +175,7 @@ namespace Deveel.Data.Functions {
 
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver,
 											 IQueryContext context) {
-				return TObject.GetString(context.UserName);
+				return TObject.CreateString(context.UserName);
 			}
 
 			protected override TType ReturnTType() {
@@ -255,7 +255,7 @@ namespace Deveel.Data.Functions {
 						throw new Exception("IO ApplicationException: " + e.Message);
 					}
 
-					return TObject.GetString(buf.ToString());
+					return TObject.CreateString(buf.ToString());
 				} else {
 					throw new Exception("'binarytohex' parameter type is not a binary object.");
 				}
@@ -445,7 +445,7 @@ namespace Deveel.Data.Functions {
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				String str = this[0].Evaluate(group, resolver, context).Object.ToString();
 				long v = context.CurrentSequenceValue(str);
-				return TObject.GetInt8(v);
+				return TObject.CreateInt8(v);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -471,7 +471,7 @@ namespace Deveel.Data.Functions {
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				String str = this[0].Evaluate(group, resolver, context).Object.ToString();
 				long v = context.NextSequenceValue(str);
-				return TObject.GetInt8(v);
+				return TObject.CreateInt8(v);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -501,7 +501,7 @@ namespace Deveel.Data.Functions {
 				BigNumber num = this[1].Evaluate(group, resolver, context).ToBigNumber();
 				long v = num.ToInt64();
 				context.SetSequenceValue(str, v);
-				return TObject.GetInt8(v);
+				return TObject.CreateInt8(v);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -528,7 +528,7 @@ namespace Deveel.Data.Functions {
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				String str = this[0].Evaluate(group, resolver, context).Object.ToString();
 				long v = context.NextSequenceValue(str);
-				return TObject.GetInt8(v);
+				return TObject.CreateInt8(v);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -604,7 +604,7 @@ namespace Deveel.Data.Functions {
 
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				Version version = ProductInfo.Current.Version;
-				return TObject.GetString(version.ToString(2));
+				return TObject.CreateString(version.ToString(2));
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
@@ -667,13 +667,13 @@ namespace Deveel.Data.Functions {
 				}
 				if (ob.TType is TBinaryType) {
 					IBlobAccessor blob = (IBlobAccessor)ob.Object;
-					return TObject.GetInt4(blob.Length);
+					return TObject.CreateInt4(blob.Length);
 				}
 				if (ob.TType is TStringType) {
 					IStringAccessor str = (IStringAccessor)ob.Object;
-					return TObject.GetInt4(str.Length);
+					return TObject.CreateInt4(str.Length);
 				}
-				return TObject.GetInt4(ob.Object.ToString().Length);
+				return TObject.CreateInt4(ob.Object.ToString().Length);
 			}
 
 		}
@@ -693,7 +693,7 @@ namespace Deveel.Data.Functions {
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				TObject ob = this[0].Evaluate(group, resolver, context);
 				if (ob.IsNull)
-					return TObject.GetBoolean(false);
+					return TObject.CreateBoolean(false);
 
 				if (!(ob.TType is TQueryPlanType))
 					throw new InvalidOperationException("The EXISTS function must have a query argument.");

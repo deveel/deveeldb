@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 
 using Deveel.Diagnostics;
@@ -36,9 +37,9 @@ namespace Deveel.Data {
 	/// </remarks>
 	class DatabaseDispatcher {
 		private readonly Thread thread;
-		private readonly ArrayList event_queue = new ArrayList();
+		private readonly List<object> eventQueue = new List<object>();
 
-		private TransactionSystem system;
+		private readonly TransactionSystem system;
 
 		private bool finished;
 
@@ -47,7 +48,7 @@ namespace Deveel.Data {
 		 */
 		internal DatabaseDispatcher(TransactionSystem system) {
 			this.system = system;
-			thread = new Thread(new ThreadStart(run));
+			thread = new Thread(new ThreadStart(Run));
 			thread.IsBackground = true;
 			thread.Name = "Database Dispatcher";
 			finished = false;
@@ -72,23 +73,23 @@ namespace Deveel.Data {
 
 		/// <summary>
 		/// Adds a new event to be dispatched on the queue after the given
-		/// <paramref name="time_to_wait"/> milliseconds has passed.
+		/// <paramref name="timeToWait"/> milliseconds has passed.
 		/// </summary>
-		/// <param name="time_to_wait"></param>
+		/// <param name="timeToWait"></param>
 		/// <param name="e"></param>
-		public void PostEvent(int time_to_wait, Object e) {
+		public void PostEvent(int timeToWait, object e) {
 			lock (this) {
 				DatabaseEvent evt = (DatabaseEvent)e;
 				// Remove this event from the queue,
-				event_queue.Remove(e);
+				eventQueue.Remove(e);
 				// Set the correct time for the event.
-				evt.TimeToRunEvent = DateTime.Now.AddMilliseconds(time_to_wait);
+				evt.TimeToRunEvent = DateTime.Now.AddMilliseconds(timeToWait);
 				// Add to the queue in correct order
-				int index = event_queue.BinarySearch(e);
+				int index = eventQueue.BinarySearch(e);
 				if (index < 0) {
 					index = -(index + 1);
 				}
-				event_queue.Insert(index, e);
+				eventQueue.Insert(index, e);
 
 				Monitor.PulseAll(this);
 			}
@@ -105,10 +106,9 @@ namespace Deveel.Data {
 		}
 
 
-		private void run() {
+		private void Run() {
 			while (true) {
 				try {
-
 					DatabaseEvent evt = null;
 					lock (this) {
 						while (evt == null) {
@@ -117,9 +117,9 @@ namespace Deveel.Data {
 								return;
 							}
 
-							if (event_queue.Count > 0) {
+							if (eventQueue.Count > 0) {
 								// Get the top entry, do we execute it yet?
-								evt = (DatabaseEvent)event_queue[0];
+								evt = (DatabaseEvent)eventQueue[0];
 								TimeSpan diff = evt.TimeToRunEvent - DateTime.Now;
 								// If we got to wait for the event then do so now...
 								if (diff.TotalMilliseconds >= 0) {
@@ -132,7 +132,7 @@ namespace Deveel.Data {
 							}
 						}
 						// Remove the top event from the list,
-						event_queue.RemoveAt(0);
+						eventQueue.RemoveAt(0);
 					}
 
 					// 'evt' is our event to run,

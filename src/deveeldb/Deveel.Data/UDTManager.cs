@@ -62,7 +62,7 @@ namespace Deveel.Data {
 			// let's check to see if another type with the same name 
 			// already exists within this schema...
 			using (SimpleTableQuery query = new SimpleTableQuery(udt)) {
-				IntegerVector ivec = query.SelectEqual(1, TObject.GetString(typeName.Schema), 2, TObject.GetString(typeName.Name));
+				IntegerVector ivec = query.SelectEqual(1, TObject.CreateString(typeName.Schema), 2, TObject.CreateString(typeName.Name));
 				if (ivec.Count > 0)
 					throw new Exception("User-defined type with name '" + typeName + "' already exists.");
 			}
@@ -285,7 +285,7 @@ namespace Deveel.Data {
 			// already exists within this schema...
 			int id;
 			using (SimpleTableQuery query = new SimpleTableQuery(udt_table)) {
-				IntegerVector ivec = query.SelectEqual(1, TObject.GetString(typeName.Schema), 2, TObject.GetString(typeName.Name));
+				IntegerVector ivec = query.SelectEqual(1, TObject.CreateString(typeName.Schema), 2, TObject.CreateString(typeName.Name));
 				if (ivec.Count == 0)
 					throw new Exception("User-defined type with name '" + typeName + "' not found.");
 
@@ -306,7 +306,7 @@ namespace Deveel.Data {
 			// let's check to see if another type with the same name 
 			// already exists within this schema...
 			using (SimpleTableQuery query = new SimpleTableQuery(udt)) {
-				IntegerVector ivec = query.SelectEqual(1, TObject.GetString(typeName.Schema), 2, TObject.GetString(typeName.Name));
+				IntegerVector ivec = query.SelectEqual(1, TObject.CreateString(typeName.Schema), 2, TObject.CreateString(typeName.Name));
 				return ivec.Count > 0;
 			}
 		}

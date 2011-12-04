@@ -1,3 +1,11 @@
+2011-12-04  Antonello Provenzano  <antonello@deveel.com>
+	* TObject.cs:
+		- Split in multiple partial classes for better manageability
+		- Explicit converter operators converted to implicit
+		- ToBoolean(out bool) converted to ToNullableBoolean()
+		- Removed redundant Null property and field NullObject
+		renamed to Null
+
 2011-12-03  Antonello Provenzano  <antonello@deveel.com>
 	* DatabaseSystem.cs: replaced list of IDatabaseEvent objects
 	with pure delegates for the Shutdown event

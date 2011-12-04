@@ -436,6 +436,8 @@
     <Compile Include="Deveel.Data\TNumericType.cs" />
     <Compile Include="Deveel.Data\TObject.cs" />
     <Compile Include="Deveel.Data\TObjectType.cs" />
+    <Compile Include="Deveel.Data\TObject_Convertible.cs" />
+    <Compile Include="Deveel.Data\TObject_Operators.cs" />
     <Compile Include="Deveel.Data\TQueryPlanType.cs" />
     <Compile Include="Deveel.Data\Transaction.cs" />
     <Compile Include="Deveel.Data\TransactionException.cs" />

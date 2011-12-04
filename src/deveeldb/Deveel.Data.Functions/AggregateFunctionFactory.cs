@@ -184,7 +184,7 @@ namespace Deveel.Data.Functions {
 				if (result.IsNull) {
 					return result;
 				}
-				return result.Divide(TObject.GetInt4(group.Count));
+				return result.Divide(TObject.CreateInt4(group.Count));
 			}
 		}
 
@@ -213,7 +213,7 @@ namespace Deveel.Data.Functions {
 				TObject result;
 				// if, count(*)
 				if (size == 0 || IsGlob) {
-					result = TObject.GetInt4(size);
+					result = TObject.CreateInt4(size);
 				} else {
 					// Otherwise we need to count the number of non-null entries in the
 					// columns list(s).
@@ -229,7 +229,7 @@ namespace Deveel.Data.Functions {
 						}
 					}
 
-					result = TObject.GetInt4(total_count);
+					result = TObject.CreateInt4(total_count);
 				}
 
 				return result;
@@ -274,7 +274,7 @@ namespace Deveel.Data.Functions {
 				int rows = group.Count;
 				if (rows <= 1) {
 					// If count of entries in group is 0 or 1
-					return TObject.GetInt4(rows);
+					return TObject.CreateInt4(rows);
 				}
 
 				// Make an array of all cells in the group that we are finding which
@@ -341,7 +341,7 @@ namespace Deveel.Data.Functions {
 					}
 				}
 
-				return TObject.GetInt4(distinct_count);
+				return TObject.CreateInt4(distinct_count);
 			}
 
 			private class ComparerImpl : IComparer {

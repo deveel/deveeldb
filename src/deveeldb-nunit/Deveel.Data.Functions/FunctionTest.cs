@@ -16,7 +16,7 @@ namespace Deveel.Data.Functions {
 
 			exp = Expression.Parse("ABS(-5673.9049)");
 			result = exp.Evaluate(null, null, null);
-			Assert.IsTrue(result == TObject.GetDouble(5673.9049));
+			Assert.IsTrue(result == TObject.CreateDouble(5673.9049));
 		}
 
 		#endregion
@@ -113,7 +113,7 @@ namespace Deveel.Data.Functions {
 		[Test]
 		public void NullIf() {
 			TObject result = Expression.Evaluate("NULLIF('test1', 'test2')");
-			Assert.IsTrue(TObject.GetString("test1") == result);
+			Assert.IsTrue(TObject.CreateString("test1") == result);
 
 			result = Expression.Evaluate("NULLIF(24 * 2, 48)");
 			Assert.IsTrue(TObject.Null == result);

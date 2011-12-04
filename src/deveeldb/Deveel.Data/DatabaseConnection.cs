@@ -346,11 +346,10 @@ namespace Deveel.Data {
 		/// <param name="exp"></param>
 		/// <returns></returns>
 		private static bool ToBooleanValue(Expression exp) {
-			bool isNull;
-			bool b = exp.Evaluate(null, null, null).ToBoolean(out isNull);
-			if (isNull)
+			bool? b = exp.Evaluate(null, null, null).ToNullableBoolean();
+			if (!b.HasValue)
 				throw new StatementException("Expression does not evaluate to a bool (true or false).");
-			return b;
+			return b.Value;
 		}
 
 		/// <summary>

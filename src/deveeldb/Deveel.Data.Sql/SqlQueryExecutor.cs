@@ -146,7 +146,7 @@ namespace Deveel.Data.Sql {
 					int param_id = ps.Id;
 					value = query.Variables[param_id];
 				}
-				return TObject.GetObject(value);
+				return TObject.CreateObject(value);
 			}
 		}
 	}

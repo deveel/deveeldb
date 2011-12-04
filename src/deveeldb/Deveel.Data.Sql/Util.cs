@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql {
 	///</summary>
 	class Util {
 
-		private static readonly TObject ZeroNumber = TObject.GetInt4(0);
+		private static readonly TObject ZeroNumber = TObject.CreateInt4(0);
 
 		///<summary>
 		/// Returns the Token as a non quoted reference.
@@ -73,20 +73,20 @@ namespace Deveel.Data.Sql {
 		public static Object ToParamObject(Token token, bool upper_identifiers) {
 			if (token.kind == SQLConstants.STRING_LITERAL) {
 				String raw_string = token.image.Substring(1, token.image.Length - 2);
-				return TObject.GetString(EscapeTranslated(raw_string));
+				return TObject.CreateString(EscapeTranslated(raw_string));
 			}
 				//    else if (token.kind == SQLConstants.NUMBER_LITERAL) {
-				//      return TObject.GetBigNumber(BigNumber.Parse(token.image));
+				//      return TObject.CreateBigNumber(BigNumber.Parse(token.image));
 				//    }
 			else if (token.kind == SQLConstants.BOOLEAN_LITERAL) {
-				return TObject.GetBoolean(String.Compare(token.image, "true", true) == 0);
+				return TObject.CreateBoolean(String.Compare(token.image, "true", true) == 0);
 			} else if (token.kind == SQLConstants.NULL_LITERAL) {
 				return TObject.Null;
 			} else if (token.kind == SQLConstants.REGEX_LITERAL) {
 				// Horrible hack,
 				// Get rid of the 'regex' string at the start,
 				String str = token.image.Substring(5).Trim();
-				return TObject.GetString(str);
+				return TObject.CreateString(str);
 			} else if (token.kind == SQLConstants.QUOTED_VARIABLE ||
 					   token.kind == SQLConstants.GLOBVARIABLE ||  // eg. Part.*
 					   token.kind == SQLConstants.IDENTIFIER ||
@@ -144,8 +144,8 @@ namespace Deveel.Data.Sql {
 		///<returns></returns>
 		public static TObject ParseNumberToken(Token token, bool negative) {
 			return negative
-			       	? TObject.GetBigNumber(BigNumber.Parse("-" + token.image))
-			       	: TObject.GetBigNumber(BigNumber.Parse(token.image));
+			       	? TObject.CreateBigNumber(BigNumber.Parse("-" + token.image))
+			       	: TObject.CreateBigNumber(BigNumber.Parse(token.image));
 		}
 
 		///<summary>
@@ -270,7 +270,7 @@ namespace Deveel.Data.Sql {
 		/// </remarks>
 		/// <returns></returns>
 		private static Expression StandardInverse(Expression exp) {
-			return new Expression(exp, Operator.Get("="), new Expression(TObject.GetBoolean(false)));
+			return new Expression(exp, Operator.Get("="), new Expression(TObject.CreateBoolean(false)));
 		}
 
 		///<summary>

@@ -946,7 +946,7 @@ namespace Deveel.Data {
 				// Form the plan
 				IQueryPlanNode plan = Planner.FormQueryPlan(queryContext.Connection, selectExpression, from_set, new ArrayList());
 
-				return TObject.GetQueryPlan(plan);
+				return TObject.CreateQueryPlan(plan);
 			}
 
 			if (ob is CaseExpression) {
@@ -1118,13 +1118,13 @@ namespace Deveel.Data {
 				if (ob == null) {
 					conv_object = TObject.Null;
 				} else if (ob is String) {
-					conv_object = TObject.GetString((String)ob);
+					conv_object = TObject.CreateString((String)ob);
 				} else if (ob is BigDecimal) {
-					conv_object = TObject.GetBigNumber((BigDecimal)ob);
+					conv_object = TObject.CreateBigNumber((BigDecimal)ob);
 				} else if (ob is DateTime) {
-					conv_object = TObject.GetDateTime((DateTime)ob);
+					conv_object = TObject.CreateDateTime((DateTime)ob);
 				} else if (ob is Boolean) {
-					conv_object = TObject.GetBoolean((bool)ob);
+					conv_object = TObject.CreateBoolean((bool)ob);
 				}
 				if (conv_object != null) {
 					elements[i] = conv_object;

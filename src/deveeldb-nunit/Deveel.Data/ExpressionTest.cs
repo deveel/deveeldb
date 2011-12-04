@@ -20,11 +20,11 @@ namespace Deveel.Data {
 
 			exp = Expression.Parse("b > 35");
 			Assert.AreEqual(exp[0], VariableName.Resolve("b"));
-			Assert.IsTrue(((TObject)exp[1]).ValuesEqual(TObject.GetInt4(35)));
+			Assert.IsTrue(((TObject)exp[1]).ValuesEqual(TObject.CreateInt4(35)));
 
 			exp = Expression.Parse("47");
 			Assert.IsTrue(exp.IsConstant);
-			Assert.IsTrue(((TObject)exp[0]).ValuesEqual(TObject.GetInt4(47)));
+			Assert.IsTrue(((TObject)exp[0]).ValuesEqual(TObject.CreateInt4(47)));
 
 			exp = Expression.Parse("a * (b + c)");
 			Assert.AreEqual(exp[0], VariableName.Resolve("a"));
@@ -34,12 +34,12 @@ namespace Deveel.Data {
 			Assert.AreEqual(exp[4], Operator.Get("*"));
 
 			exp = Expression.Parse("34 + 159");
-			Assert.IsTrue(((TObject)exp[0]).ValuesEqual(TObject.GetInt4(34)));
-			Assert.IsTrue(((TObject)exp[1]).ValuesEqual(TObject.GetInt4(159)));
+			Assert.IsTrue(((TObject)exp[0]).ValuesEqual(TObject.CreateInt4(34)));
+			Assert.IsTrue(((TObject)exp[1]).ValuesEqual(TObject.CreateInt4(159)));
 			Assert.AreEqual(exp[2], Operator.Get("+"));
 			TObject result = exp.Evaluate(null, null, null);
 			Assert.IsTrue(exp.IsConstant);
-			Assert.IsTrue(result.ValuesEqual(TObject.GetInt4(193)));
+			Assert.IsTrue(result.ValuesEqual(TObject.CreateInt4(193)));
 		}
 
 		[Test]

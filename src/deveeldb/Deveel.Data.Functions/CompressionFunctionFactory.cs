@@ -82,7 +82,7 @@ namespace Deveel.Data.Functions {
 				Crc32 crc32 = new Crc32();
 				crc32.ComputeHash(stream);
 
-				return TObject.GetBigNumber(crc32.CrcValue);
+				return TObject.CreateBigNumber(crc32.CrcValue);
 			}
 
 		}
@@ -123,7 +123,7 @@ namespace Deveel.Data.Functions {
 
 				Adler32 adler32 = new Adler32();
 				byte[] result = adler32.ComputeHash(stream);
-				return TObject.GetBigNumber(BitConverter.ToInt32(result, 0));
+				return TObject.CreateBigNumber(BitConverter.ToInt32(result, 0));
 			}
 		}
 

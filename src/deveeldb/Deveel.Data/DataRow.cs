@@ -53,30 +53,30 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The definition of the table.
 		/// </summary>
-		private readonly DataTableDef table_def;
+		private readonly DataTableDef tableDef;
 
 		/// <summary>
 		/// A list of TObject objects in the table.
 		/// </summary>
-		private readonly TObject[] data_cell_list;
+		private readonly TObject[] dataCellList;
 
 		/// <summary>
 		/// The number of columns in the row.
 		/// </summary>
-		private readonly int col_count;
+		private readonly int colCount;
 
 		/// <summary>
 		/// Creates a <see cref="DataRow"/> object without an underlying table.
 		/// </summary>
 		/// <param name="system"></param>
-		/// <param name="col_count"></param>
+		/// <param name="colCount"></param>
 		/// <remarks>
 		/// This is used for copying from one table to a different one.
 		/// </remarks>
-		internal DataRow(TransactionSystem system, int col_count) {
+		internal DataRow(TransactionSystem system, int colCount) {
 			this.system = system;
-			this.col_count = col_count;
-			data_cell_list = new TObject[col_count];
+			this.colCount = colCount;
+			dataCellList = new TObject[colCount];
 		}
 
 		/// <summary>
@@ -86,9 +86,9 @@ namespace Deveel.Data {
 		internal DataRow(ITableDataSource table) {
 			system = table.System;
 			this.table = table;
-			table_def = table.DataTableDef;
-			col_count = table_def.ColumnCount;
-			data_cell_list = new TObject[col_count];
+			tableDef = table.DataTableDef;
+			colCount = tableDef.ColumnCount;
+			dataCellList = new TObject[colCount];
 		}
 
 		/// <summary>
@@ -112,7 +112,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="row"></param>
 		internal void SetFromRow(int row) {
-			for (int col = 0; col < col_count; ++col) {
+			for (int col = 0; col < colCount; ++col) {
 				SetValue(col, table.GetCellContents(col, row));
 			}
 		}
@@ -146,7 +146,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void SetValue(int column, object value) {
 			if (!typeof (TObject).IsInstanceOfType(value)) {
-				DataTableColumnDef col_def = table_def[column];
+				DataTableColumnDef col_def = tableDef[column];
 
 				if (value is String)
 					value = StringObject.FromString((string)value);
@@ -165,13 +165,13 @@ namespace Deveel.Data {
 		/// to set the value.</param>
 		/// <param name="value">The value to set for the column.</param>
 		public void SetValue(int column, TObject value) {
-			DataTableColumnDef col = table_def[column];
+			DataTableColumnDef col = tableDef[column];
 			if (table != null && col.SqlType != value.TType.SQLType) {
 				// Cast the TObject
 				value = value.CastTo(col.TType);
 			}
 
-			data_cell_list[column] = value;
+			dataCellList[column] = value;
 		}
 
 		public void SetValue(string columnName, TObject value) {
@@ -187,7 +187,7 @@ namespace Deveel.Data {
 		///</summary>
 		///<param name="column"></param>
 		public void SetToNull(int column) {
-			DataTableColumnDef col_def = table_def[column];
+			DataTableColumnDef col_def = tableDef[column];
 			SetValue(column, new TObject(col_def.TType, null));
 		}
 
@@ -198,8 +198,8 @@ namespace Deveel.Data {
 		///<param name="context"></param>
 		public void SetToDefault(int column, IQueryContext context) {
 			if (table != null) {
-				DataTableColumnDef column_def = table_def[column];
-				Expression exp = column_def.GetDefaultExpression(system);
+				DataTableColumnDef columnDef = tableDef[column];
+				Expression exp = columnDef.GetDefaultExpression(system);
 				if (exp != null) {
 					TObject def_val = Evaluate(exp, context);
 					SetValue(column, def_val);
@@ -216,10 +216,10 @@ namespace Deveel.Data {
 		/// <param name="column"></param>
 		/// <returns></returns>
 		public TObject GetValue(int column) {
-			TObject cell = data_cell_list[column];
+			TObject cell = dataCellList[column];
 			if (cell == null) {
-				DataTableColumnDef col_def = table_def[column];
-				cell = new TObject(col_def.TType, null);
+				DataTableColumnDef colDef = tableDef[column];
+				cell = new TObject(colDef.TType, null);
 			}
 			return cell;
 		}
@@ -238,7 +238,7 @@ namespace Deveel.Data {
 		///<param name="column"></param>
 		///<returns></returns>
 		public string GetColumnName(int column) {
-			return table_def[column].Name;
+			return tableDef[column].Name;
 		}
 
 		///<summary>
@@ -247,14 +247,14 @@ namespace Deveel.Data {
 		///<param name="columnName"></param>
 		///<returns></returns>
 		public int FindFieldName(string columnName) {
-			return table_def.FindColumnName(columnName);
+			return tableDef.FindColumnName(columnName);
 		}
 
 		/// <summary>
 		/// Returns the number of columns (cells) in this row.
 		/// </summary>
 		public int ColumnCount {
-			get { return col_count; }
+			get { return colCount; }
 		}
 
 		/// <summary>
@@ -266,9 +266,9 @@ namespace Deveel.Data {
 		/// <param name="context"></param>
 		/// <returns></returns>
 		private TObject Evaluate(Expression expression, IQueryContext context) {
-			bool ignore_case = system.IgnoreIdentifierCase;
+			bool ignoreCase = system.IgnoreIdentifierCase;
 			// Resolve any variables to the table_def for this expression.
-			table_def.ResolveColumns(ignore_case, expression);
+			tableDef.ResolveColumns(ignoreCase, expression);
 			// Get the variable resolver and evaluate over this data.
 			IVariableResolver vresolver = VariableResolver;
 			return expression.Evaluate(null, vresolver, context);
@@ -307,8 +307,8 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <exception cref="DatabaseException"/>
 		public void SetToDefault(IQueryContext context) {
-			for (int i = 0; i < col_count; ++i) {
-				if (data_cell_list[i] == null) {
+			for (int i = 0; i < colCount; ++i) {
+				if (dataCellList[i] == null) {
 					SetToDefault(i, context);
 				}
 			}
@@ -336,8 +336,8 @@ namespace Deveel.Data {
 		/// Sets up an entire row given the list of insert elements and a list of
 		/// indices to the columns to set.
 		/// </summary>
-		/// <param name="col_indices">Indices of the columns where to set the values.</param>
-		/// <param name="insert_elements">List of all the elements to insert at the specified indices.</param>
+		/// <param name="colIndices">Indices of the columns where to set the values.</param>
+		/// <param name="insertElements">List of all the elements to insert at the specified indices.</param>
 		/// <param name="context"></param>
 		/// <remarks>
 		/// An insert element is either an expression that is resolved to a constant, 
@@ -345,31 +345,28 @@ namespace Deveel.Data {
 		/// to the default value of the column.
 		/// </remarks>
 		/// <exception cref="DatabaseException"/>
-		public void SetupEntire(int[] col_indices, IList insert_elements, IQueryContext context) {
-			int elem_size = insert_elements.Count;
-			if (col_indices.Length != elem_size) {
-				throw new DatabaseException(
-							   "Column indices and expression array sizes don't match");
-			}
+		public void SetupEntire(int[] colIndices, IList insertElements, IQueryContext context) {
+			int elemSize = insertElements.Count;
+			if (colIndices.Length != elemSize)
+				throw new DatabaseException("Column indices and expression array sizes don't match");
+
 			// Get the variable resolver and evaluate over this data.
 			IVariableResolver vresolver = VariableResolver;
-			for (int i = 0; i < col_indices.Length; ++i) {
-				Object element = insert_elements[i];
+			for (int i = 0; i < colIndices.Length; ++i) {
+				Object element = insertElements[i];
 				if (element is Expression) {
 					// Evaluate to the object to insert
 					TObject ob = ((Expression)element).Evaluate(null, vresolver, context);
-					int table_column = col_indices[i];
+					int tableColumn = colIndices[i];
 					// Cast the object to the type of the column
-					ob = ob.CastTo(table_def[table_column].TType);
+					ob = ob.CastTo(tableDef[tableColumn].TType);
 					// Set the column to the resolved value.
-					SetValue(table_column, ob);
+					SetValue(tableColumn, ob);
 				} else {
 					// The element must be 'DEFAULT'.  If it's not throw an error.  If it
 					// is, the default value will be set later.
-					if (!element.Equals("DEFAULT")) {
-						throw new DatabaseException(
-												"Invalid value in 'insert_elements' list.");
-					}
+					if (!element.Equals("DEFAULT"))
+						throw new DatabaseException("Invalid value in 'insert_elements' list.");
 				}
 			}
 			// Any that are left as 'null', set to default value.
@@ -380,23 +377,23 @@ namespace Deveel.Data {
 		/// Sets up an entire row given the array of Expressions and a list of indices
 		/// to the columns to set.
 		///</summary>
-		///<param name="col_indices"></param>
+		///<param name="colIndices"></param>
 		///<param name="exps"></param>
 		///<param name="context"></param>
 		/// <remarks>
 		/// Any columns that are not set by this method are set to the default 
 		/// value as defined for the column.
 		/// </remarks>
-		public void SetupEntire(int[] col_indices, Expression[] exps, IQueryContext context) {
-			SetupEntire(col_indices, (IList)exps, context);
+		public void SetupEntire(int[] colIndices, Expression[] exps, IQueryContext context) {
+			SetupEntire(colIndices, (IList)exps, context);
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
 			StringBuilder buf = new StringBuilder();
 			buf.Append("[DataRow: ");
-			for (int i = 0; i < col_count; ++i) {
-				buf.Append(data_cell_list[i].Object);
+			for (int i = 0; i < colCount; ++i) {
+				buf.Append(dataCellList[i].Object);
 				buf.Append(", ");
 			}
 			return buf.ToString();
@@ -407,16 +404,16 @@ namespace Deveel.Data {
 		/// </summary>
 		private IVariableResolver VariableResolver {
 			get {
-				if (variable_resolver == null) {
-					variable_resolver = new DRVariableResolver(this);
+				if (variableResolver == null) {
+					variableResolver = new DRVariableResolver(this);
 				} else {
-					variable_resolver.NextAssignment();
+					variableResolver.NextAssignment();
 				}
-				return variable_resolver;
+				return variableResolver;
 			}
 		}
 
-		private DRVariableResolver variable_resolver = null;
+		private DRVariableResolver variableResolver = null;
 
 		// ---------- Inner classes ----------
 
@@ -425,46 +422,43 @@ namespace Deveel.Data {
 		/// </summary>
 		private class DRVariableResolver : IVariableResolver {
 			private readonly DataRow dataRow;
-			private int assignment_count = 0;
+			private int assignmentCount = 0;
 
 			public DRVariableResolver(DataRow dataRow) {
 				this.dataRow = dataRow;
 			}
 
 			internal void NextAssignment() {
-				++assignment_count;
+				++assignmentCount;
 			}
 
 			public int SetId {
-				get { return assignment_count; }
+				get { return assignmentCount; }
 			}
 
 			public TObject Resolve(VariableName variable) {
-				String col_name = variable.Name;
+				string colName = variable.Name;
 
-				int col_index = dataRow.table_def.FindColumnName(col_name);
-				if (col_index == -1) {
-					throw new ApplicationException("Can't find column: " + col_name);
-				}
+				int colIndex = dataRow.tableDef.FindColumnName(colName);
+				if (colIndex == -1)
+					throw new ApplicationException("Can't find column: " + colName);
 
-				TObject cell = dataRow.data_cell_list[col_index];
+				TObject cell = dataRow.dataCellList[colIndex];
 
-				if (cell == null) {
-					throw new ApplicationException("Column " + col_name + " hasn't been set yet.");
-				}
+				if (cell == null)
+					throw new ApplicationException("Column " + colName + " hasn't been set yet.");
 
 				return cell;
 			}
 
 			public TType ReturnTType(VariableName variable) {
-				String col_name = variable.Name;
+				string colName = variable.Name;
 
-				int col_index = dataRow.table_def.FindColumnName(col_name);
-				if (col_index == -1) {
-					throw new ApplicationException("Can't find column: " + col_name);
-				}
+				int colIndex = dataRow.tableDef.FindColumnName(colName);
+				if (colIndex == -1)
+					throw new ApplicationException("Can't find column: " + colName);
 
-				return dataRow.table_def[col_index].TType;
+				return dataRow.tableDef[colIndex].TType;
 			}
 
 		}

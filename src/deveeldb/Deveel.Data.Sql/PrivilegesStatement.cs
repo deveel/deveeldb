@@ -139,10 +139,10 @@ namespace Deveel.Data.Sql {
 			OLD:
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
-			String command_type = GetString("command");
+			String command_type = CreateString("command");
 
 			IList priv_list = GetList("priv_list");
-			string priv_object = GetString("priv_object");
+			string priv_object = CreateString("priv_object");
 
 			GrantObject grant_object;
 			String grant_param;
@@ -179,7 +179,7 @@ namespace Deveel.Data.Sql {
 
 			if (command_type.Equals("GRANT")) {
 				IList grant_to = GetList("users");
-				bool grant_option = GetBoolean("grant_option");
+				bool grant_option = CreateBoolean("grant_option");
 
 				// Get the grant manager.
 				GrantManager manager = context.GrantManager;
@@ -240,7 +240,7 @@ namespace Deveel.Data.Sql {
 
 			} else if (command_type.Equals("REVOKE")) {
 				IList revoke_from = GetList("users");
-				bool revoke_grant_option = GetBoolean("grant_option");
+				bool revoke_grant_option = CreateBoolean("grant_option");
 
 				// Get the grant manager.
 				GrantManager manager = context.GrantManager;

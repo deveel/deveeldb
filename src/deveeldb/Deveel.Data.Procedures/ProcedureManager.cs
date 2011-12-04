@@ -64,9 +64,9 @@ namespace Deveel.Data.Procedures {
 			VariableName namev = table.GetResolvedVariable(1);
 
 			Table t = table.SimpleSelect(context, namev, EQUALS,
-			                             new Expression(TObject.GetString(procedure_name.Name)));
+			                             new Expression(TObject.CreateString(procedure_name.Name)));
 			t = t.ExhaustiveSelect(context, Expression.Simple(
-			                                	schemav, EQUALS, TObject.GetString(procedure_name.Schema)));
+			                                	schemav, EQUALS, TObject.CreateString(procedure_name.Schema)));
 
 			// This should be at most 1 row in size
 			if (t.RowCount > 1) {

@@ -2163,14 +2163,12 @@ namespace Deveel.Data {
 
 					// For each row being added to this column
 					for (int rn = 0; rn < row_indices.Length; ++rn) {
-						TableRowVariableResolver resolver =
-									  new TableRowVariableResolver(table, row_indices[rn]);
+						TableRowVariableResolver resolver = new TableRowVariableResolver(table, row_indices[rn]);
 						TObject ob = exp.Evaluate(null, resolver, context);
-						bool isNull;
-						bool b = ob.ToBoolean(out isNull);
+						bool? b = ob.ToNullableBoolean();
 
-						if (!isNull) {
-							if (!b) {
+						if (b.HasValue) {
+							if (!b.Value) {
 								// Evaluated to false so don't allow this row to be added.
 								throw new DatabaseConstraintViolationException(
 								   DatabaseConstraintViolationException.CheckViolation,

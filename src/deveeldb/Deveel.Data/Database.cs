@@ -1308,9 +1308,9 @@ namespace Deveel.Data {
 			VariableName c2 = database_vars.GetResolvedVariable(1); // Second column
 
 			// Assignment: second column = value
-			Assignment assignment = new Assignment(c2, new Expression(TObject.GetString(value)));
+			Assignment assignment = new Assignment(c2, new Expression(TObject.CreateString(value)));
 			// All rows from database_vars where first column = the key
-			Table t1 = database_vars.SimpleSelect(context, c1, Operator.Get("="), new Expression(TObject.GetString(key)));
+			Table t1 = database_vars.SimpleSelect(context, c1, Operator.Get("="), new Expression(TObject.CreateString(key)));
 
 			// Update the variable
 			database_vars.Update(context, t1, new Assignment[] {assignment}, -1);
