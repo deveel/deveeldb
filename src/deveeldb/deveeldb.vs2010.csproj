@@ -87,6 +87,15 @@
     <Compile Include="Deveel.Data.Sql\SQLTokenManager.cs" />
     <Compile Include="Deveel.Data.Sql\Token.cs" />
     <Compile Include="Deveel.Data.Sql\TokenMgrError.cs" />
+    <Compile Include="Deveel.Data\DatabaseConnection_Constraints.cs" />
+    <Compile Include="Deveel.Data\DatabaseConnection_Cursors.cs" />
+    <Compile Include="Deveel.Data\DatabaseConnection_Procedures.cs" />
+    <Compile Include="Deveel.Data\DatabaseConnection_Schemata.cs" />
+    <Compile Include="Deveel.Data\DatabaseConnection_Sequences.cs" />
+    <Compile Include="Deveel.Data\DatabaseConnection_Tables.cs" />
+    <Compile Include="Deveel.Data\DatabaseConnection_Triggers.cs" />
+    <Compile Include="Deveel.Data\DatabaseConnection_Variables.cs" />
+    <Compile Include="Deveel.Data\DatabaseConnection_Views.cs" />
     <Compile Include="Deveel.Data\Database_Users.cs" />
     <Compile Include="Deveel.Data\ParemeterStyle.cs" />
     <Compile Include="Deveel.Data.Client\ProtocolConstants.cs" />

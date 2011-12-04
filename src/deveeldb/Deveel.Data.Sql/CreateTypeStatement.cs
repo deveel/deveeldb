@@ -50,9 +50,9 @@ namespace Deveel.Data.Sql {
 			string schema_name = Connection.CurrentSchema;
 			resolved_type_name = TableName.Resolve(schema_name, type_name);
 
-			if (parent_type_name != null && parent_type_name.Length > 0) {
+			if (!String.IsNullOrEmpty(parent_type_name)) {
 				if (external)
-					throw new Exception("External types not yest supported.");
+					throw new Exception("External types not supported yet.");
 
 				res_parent_type_name = TableName.Resolve(schema_name, parent_type_name);
 				parent = Connection.GetUserType(res_parent_type_name);
