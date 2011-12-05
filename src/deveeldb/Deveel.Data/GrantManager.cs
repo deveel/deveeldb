@@ -82,7 +82,7 @@ namespace Deveel.Data {
 				this.manager = manager;
 			}
 
-			internal override void PurgeCache(IntegerVector added_rows, IntegerVector removed_rows) {
+			protected override void PurgeCache(IntegerVector addedRows, IntegerVector removedRows) {
 				// If there were changed then invalidate the cache
 				if (manager.grant_table_changed) {
 					manager.InvalidateGrantCache();
@@ -90,8 +90,8 @@ namespace Deveel.Data {
 				}
 					// Otherwise, if there were committed added or removed changes also
 					// invalidate the cache,
-				else if ((added_rows != null && added_rows.Count > 0) ||
-						 (removed_rows != null && removed_rows.Count > 0)) {
+				else if ((addedRows != null && addedRows.Count > 0) ||
+						 (removedRows != null && removedRows.Count > 0)) {
 					manager.InvalidateGrantCache();
 				}
 			}

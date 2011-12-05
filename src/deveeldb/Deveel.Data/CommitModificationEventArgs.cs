@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010  Deveel
+﻿// 
+//  Copyright 2011  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -17,6 +17,36 @@ using System;
 
 namespace Deveel.Data {
 	///<summary>
+	/// A listener that is notified of table modification events made by a
+	/// transaction, both immediately inside a transaction and when a 
+	/// transaction commits.
+	///</summary>
+	/// <remarks>
+	/// These events can occur either immediately before or immediately
+	/// after the data is modified or during a commit.
+	/// <para>
+	/// This event occurs after constraint checks, and before the change is 
+	/// actually committed to the database.  If this method generates an 
+	/// exception then the change is rolled back and any changes made by the 
+	/// transaction are lost.  This action is generated inside a 'commit Lock' 
+	/// of the conglomerate, and therefore care should be taken with the 
+	/// performance of this method.
+	/// </para>
+	/// <para>
+	/// The event object provides access to a <see cref="SimpleTransaction"/>
+	/// object that is a read-only view of the database in its committed state 
+	/// (if this operation is successful). The transaction can be used to perform 
+	/// any last minute deferred constraint checks.
+	/// </para>
+	/// <para>
+	/// This action is useful for last minute abortion of a transaction, or for
+	/// updating cache information.  It can not be used as a triggering mechanism
+	/// and should never call back to user code.
+	/// </para>
+	/// </remarks>
+	public delegate void CommitModificationEventHandler(SimpleTransaction sender, CommitModificationEventArgs args);
+
+	///<summary>
 	/// An object that encapsulates all row modification information about a 
 	/// table when a change to the table is about to be committed.
 	///</summary>
@@ -24,57 +54,35 @@ namespace Deveel.Data {
 	/// The object provides information about what rows in the table were changed
 	/// (inserted/updated/deleted).
 	/// </remarks>
-	public class TableCommitModificationEvent {
-		/// <summary>
-		/// A SimpleTransaction that can be used to query tables in the database -
-		/// the view of which will be the view when the transaction is committed.
-		/// </summary>
-		private readonly SimpleTransaction transaction;
-
+	public sealed class CommitModificationEventArgs : EventArgs {
 		/// <summary>
 		/// The name of the table that is being changed.
 		/// </summary>
-		private readonly TableName table_name;
+		private readonly TableName tableName;
 
 		/// <summary>
 		/// A normalized list of all rows that were added by the transaction 
 		/// being committed.
 		/// </summary>
-		private readonly int[] added_rows;
+		private readonly int[] addedRows;
 
 		/// <summary>
 		/// A normalized list of all rows that were removed by the transaction 
 		/// being committed.
 		/// </summary>
-		private readonly int[] removed_rows;
+		private readonly int[] removedRows;
 
-		///<summary>
-		///</summary>
-		///<param name="transaction"></param>
-		///<param name="table_name"></param>
-		///<param name="added"></param>
-		///<param name="removed"></param>
-		public TableCommitModificationEvent(SimpleTransaction transaction,
-								TableName table_name, int[] added, int[] removed) {
-			this.transaction = transaction;
-			this.table_name = table_name;
-			added_rows = added;
-			removed_rows = removed;
-		}
-
-		/// <summary>
-		/// Returns the Transaction that represents the view of the database when
-		/// the changes to the table have been committed.
-		/// </summary>
-		public SimpleTransaction Transaction {
-			get { return transaction; }
+		internal CommitModificationEventArgs(TableName tableName, int[] addedRows, int[] removedRows) {
+			this.tableName = tableName;
+			this.addedRows = addedRows;
+			this.removedRows = removedRows;
 		}
 
 		/// <summary>
 		/// Returns the name of the table.
 		/// </summary>
 		public TableName TableName {
-			get { return table_name; }
+			get { return tableName; }
 		}
 
 		///<summary>
@@ -87,7 +95,7 @@ namespace Deveel.Data {
 		/// in this list.
 		/// </remarks>
 		public int[] AddedRows {
-			get { return added_rows; }
+			get { return addedRows; }
 		}
 
 
@@ -101,7 +109,7 @@ namespace Deveel.Data {
 		/// in this list.
 		/// </remarks>
 		public int[] RemovedRows {
-			get { return removed_rows; }
+			get { return removedRows; }
 		}
 	}
 }

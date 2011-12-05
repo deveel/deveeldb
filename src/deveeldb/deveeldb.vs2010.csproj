@@ -113,6 +113,7 @@
     <Compile Include="Deveel.Data.Sql\SQLTokenManager.cs" />
     <Compile Include="Deveel.Data.Sql\Token.cs" />
     <Compile Include="Deveel.Data.Sql\TokenMgrError.cs" />
+    <Compile Include="Deveel.Data\CommitModificationEventArgs.cs" />
     <Compile Include="Deveel.Data\DatabaseConnection_Constraints.cs" />
     <Compile Include="Deveel.Data\DatabaseConnection_Cursors.cs" />
     <Compile Include="Deveel.Data\DatabaseConnection_Procedures.cs" />
@@ -448,8 +449,12 @@
     <Compile Include="Deveel.Data\Table.cs" />
     <Compile Include="Deveel.Data\TableAccessState.cs" />
     <Compile Include="Deveel.Data\TableBackedCache.cs" />
-    <Compile Include="Deveel.Data\TableCommitModificationEvent.cs" />
     <Compile Include="Deveel.Data\TableDataConglomerate.cs" />
+    <Compile Include="Deveel.Data\TableDataConglomerate_Commit.cs" />
+    <Compile Include="Deveel.Data\TableDataConglomerate_Constraints.cs" />
+    <Compile Include="Deveel.Data\TableDataConglomerate_Create.cs" />
+    <Compile Include="Deveel.Data\TableDataConglomerate_Diagnostics.cs" />
+    <Compile Include="Deveel.Data\TableDataConglomerate_Transactions.cs" />
     <Compile Include="Deveel.Data\TableFunctions.cs" />
     <Compile Include="Deveel.Data\TableModificationEvent.cs" />
     <Compile Include="Deveel.Data\TableName.cs" />
@@ -469,8 +474,10 @@
     <Compile Include="Deveel.Data\Transaction.cs" />
     <Compile Include="Deveel.Data\TransactionException.cs" />
     <Compile Include="Deveel.Data\TransactionJournal.cs" />
-    <Compile Include="Deveel.Data\TransactionModificationListener.cs" />
     <Compile Include="Deveel.Data\TransactionSystem.cs" />
+    <Compile Include="Deveel.Data\Transaction_Constraints.cs" />
+    <Compile Include="Deveel.Data\Transaction_Schemata.cs" />
+    <Compile Include="Deveel.Data\Transaction_Tables.cs" />
     <Compile Include="Deveel.Data\TriggerEvent.cs" />
     <Compile Include="Deveel.Data\TriggerEventType.cs" />
     <Compile Include="Deveel.Data\TriggerManager.cs" />

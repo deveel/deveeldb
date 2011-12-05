@@ -373,8 +373,7 @@ namespace Deveel.Data {
 				this.ctm = ctm;
 			}
 
-			internal override void PurgeCache(
-				IntegerVector added_rows, IntegerVector removed_rows) {
+			protected override void PurgeCache(IntegerVector addedRows, IntegerVector removedRows) {
 				// Note that this is called when a transaction is started or stopped.
 
 				// If the trigger table was modified, we need to invalidate the trigger
@@ -385,8 +384,8 @@ namespace Deveel.Data {
 				}
 					// If any data has been committed removed then completely flush the
 					// cache.
-				else if ((removed_rows != null && removed_rows.Count > 0) ||
-						 (added_rows != null && added_rows.Count > 0)) {
+				else if ((removedRows != null && removedRows.Count > 0) ||
+						 (addedRows != null && addedRows.Count > 0)) {
 					ctm.InvalidateTriggerList();
 				}
 			}

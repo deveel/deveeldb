@@ -14,10 +14,8 @@
 //    limitations under the License.
 
 using System;
-using System.IO;
 
 using Deveel.Data.Collections;
-using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>

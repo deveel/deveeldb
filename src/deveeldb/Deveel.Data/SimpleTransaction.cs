@@ -251,7 +251,7 @@ namespace Deveel.Data {
 		/// whose content is determined by some function), this should return 
 		/// the table here as a <see cref="IMutableTableDataSource"/> object.
 		/// </summary>
-		/// <param name="table_name"></param>
+		/// <param name="tableName"></param>
 		/// <remarks>
 		/// It is intended this is implemented by derived classes to handle 
 		/// dynamically generated tables (tables based on some function or 
@@ -261,40 +261,40 @@ namespace Deveel.Data {
 		/// <exception cref="StatementException">
 		/// If the table is not defined an exception is generated.
 		/// </exception>
-		protected virtual IMutableTableDataSource GetDynamicTable(TableName table_name) {
+		protected virtual IMutableTableDataSource GetDynamicTable(TableName tableName) {
 			// By default, dynamic tables are not implemented.
-			throw new StatementException("Table '" + table_name + "' not found.");
+			throw new StatementException("Table '" + tableName + "' not found.");
 		}
 
 		/// <summary>
 		/// Returns the <see cref="DataTableDef"/> for a dynamic table defined 
 		/// in this transaction.
 		/// </summary>
-		/// <param name="table_name"></param>
+		/// <param name="tableName"></param>
 		/// <remarks>
 		/// It is intended this is implemented by derived classes to handle 
 		/// dynamically generated tables (tables based on some function or 
 		/// from an external data source)
 		/// </remarks>
 		/// <returns></returns>
-		protected virtual DataTableDef GetDynamicDataTableDef(TableName table_name) {
+		protected virtual DataTableDef GetDynamicDataTableDef(TableName tableName) {
 			// By default, dynamic tables are not implemented.
-			throw new StatementException("Table '" + table_name + "' not found.");
+			throw new StatementException("Table '" + tableName + "' not found.");
 		}
 
 		/// <summary>
 		/// Returns a string type describing the type of the dynamic table.
 		/// </summary>
-		/// <param name="table_name"></param>
+		/// <param name="tableName"></param>
 		/// <remarks>
 		/// It is intended this is implemented by derived classes to handle 
 		/// dynamically generated tables (tables based on some function or 
 		/// from an external data source)
 		/// </remarks>
 		/// <returns></returns>
-		protected virtual String GetDynamicTableType(TableName table_name) {
+		protected virtual String GetDynamicTableType(TableName tableName) {
 			// By default, dynamic tables are not implemented.
-			throw new StatementException("Table '" + table_name + "' not found.");
+			throw new StatementException("Table '" + tableName + "' not found.");
 		}
 
 		/// <summary>

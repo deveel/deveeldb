@@ -54,35 +54,30 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The table that this cache is backed by.
 		/// </summary>
-		private readonly TableName backed_by_table;
+		private readonly TableName backedByTable;
 
 		/// <summary>
 		/// The list of added rows to the table above when a change 
 		/// is committed.
 		/// </summary>
-		private readonly IntegerVector added_list;
+		private readonly IntegerVector addedList;
 
 		/// <summary>
 		/// The list of removed rows from the table above when a change 
 		/// is committed.
 		/// </summary>
-		private readonly IntegerVector removed_list;
+		private readonly IntegerVector removedList;
 
 		/// <summary>
 		/// Set to true when the backing DatabaseConnection has a transaction open.
 		/// </summary>
-		private bool transaction_active;
-
-		/// <summary>
-		/// The listener object.
-		/// </summary>
-		private TransactionModificationListener listener;
+		private bool transactionActive;
 
 		protected TableBackedCache(TableName table) {
-			this.backed_by_table = table;
+			backedByTable = table;
 
-			added_list = new IntegerVector();
-			removed_list = new IntegerVector();
+			addedList = new IntegerVector();
+			removedList = new IntegerVector();
 		}
 
 		/// <summary>
@@ -98,6 +93,16 @@ namespace Deveel.Data {
 			}
 		}
 
+		private void CommitModification(SimpleTransaction sender, CommitModificationEventArgs args) {
+			TableName tableName = args.TableName;
+			if (tableName.Equals(backedByTable)) {
+				lock (removedList) {
+					AddRowsToList(args.AddedRows, addedList);
+					AddRowsToList(args.RemovedRows, removedList);
+				}
+			}			
+		}
+
 		/// <summary>
 		/// Attaches this object to a conglomerate.
 		/// </summary>
@@ -105,28 +110,7 @@ namespace Deveel.Data {
 		/// This applies the appropriate listeners to the tables.
 		/// </remarks>
 		internal void AttachTo(TableDataConglomerate conglomerate) {
-			//    TableDataConglomerate conglomerate = connection.getConglomerate();
-			TableName table_name = backed_by_table;
-			listener = new TransactionModificationListenerImpl(this);
-			conglomerate.AddTransactionModificationListener(table_name, listener);
-		}
-
-		private class TransactionModificationListenerImpl : TransactionModificationListener {
-			private readonly TableBackedCache tbc;
-
-			public TransactionModificationListenerImpl(TableBackedCache tbc) {
-				this.tbc = tbc;
-			}
-
-			public void OnTableCommitChange(TableCommitModificationEvent evt) {
-				TableName table_name = evt.TableName;
-				if (table_name.Equals(tbc.backed_by_table)) {
-					lock (tbc.removed_list) {
-						AddRowsToList(evt.AddedRows, tbc.added_list);
-						AddRowsToList(evt.RemovedRows, tbc.removed_list);
-					}
-				}
-			}
+			conglomerate.AddCommitModificationEventHandler(backedByTable, CommitModification);
 		}
 
 		/// <summary>
@@ -134,9 +118,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="conglomerate"></param>
 		internal void DetatchFrom(TableDataConglomerate conglomerate) {
-			//    TableDataConglomerate conglomerate = connection.getConglomerate();
-			TableName table_name = backed_by_table;
-			conglomerate.RemoveTransactionModificationListener(table_name, listener);
+			conglomerate.RemoveCommitModificationEventHandler(backedByTable, CommitModification);
 		}
 
 		/// <summary>
@@ -150,7 +132,7 @@ namespace Deveel.Data {
 		/// information being incorrect.
 		/// </remarks>
 		internal void OnTransactionStarted() {
-			transaction_active = true;
+			transactionActive = true;
 			InternalPurgeCache();
 		}
 
@@ -165,7 +147,7 @@ namespace Deveel.Data {
 		/// cache.
 		/// </remarks>
 		internal void OnTransactionFinished() {
-			transaction_active = false;
+			transactionActive = false;
 			InternalPurgeCache();
 		}
 
@@ -176,12 +158,12 @@ namespace Deveel.Data {
 		private void InternalPurgeCache() {
 			// Make copies of the added_list and removed_list
 			IntegerVector add, remove;
-			lock (removed_list) {
-				add = new IntegerVector(added_list);
-				remove = new IntegerVector(removed_list);
+			lock (removedList) {
+				add = new IntegerVector(addedList);
+				remove = new IntegerVector(removedList);
 				// Clear the added and removed list
-				added_list.Clear();
-				removed_list.Clear();
+				addedList.Clear();
+				removedList.Clear();
 			}
 			// Make changes to the cache
 			PurgeCache(add, remove);
@@ -191,14 +173,14 @@ namespace Deveel.Data {
 		/// This method is called when the transaction starts and finishes and must
 		/// purge the cache of all invalidated entries.
 		/// </summary>
-		/// <param name="added_rows"></param>
-		/// <param name="removed_rows"></param>
+		/// <param name="addedRows"></param>
+		/// <param name="removedRows"></param>
 		/// <remarks>
 		/// This method must <b>not</b> make any queries on the database. It must
 		/// only, at the most, purge the cache of invalid entries.  A trivial
 		/// implementation of this might completely clear the cache of all data if
-		/// <paramref name="removed_rows"/>.Count &gt; 0.
+		/// <paramref name="removedRows"/>.Count &gt; 0.
 		/// </remarks>
-		internal abstract void PurgeCache(IntegerVector added_rows, IntegerVector removed_rows);
+		protected abstract void PurgeCache(IntegerVector addedRows, IntegerVector removedRows);
 	}
 }
