@@ -55,12 +55,12 @@ namespace Deveel.Data {
 		TableName GetTableName(int i);
 
 		/// <summary>
-		/// Returns the <see cref="DataTableDef"/> object that describes the table 
+		/// Returns the <see cref="DataTableInfo"/> object that describes the table 
 		/// at the given index in this container.
 		/// </summary>
 		/// <param name="i"></param>
 		/// <returns></returns>
-		DataTableDef GetDataTableDef(int i);
+		DataTableInfo GetDataTableDef(int i);
 
 		/// <summary>
 		/// Returns true if this container contains a table with the given name.

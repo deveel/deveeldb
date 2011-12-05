@@ -34,7 +34,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <exception cref="DatabaseException"/>
 		public void CreateView(SqlQuery query, ViewDef view) {
-			CheckAllowCreate(view.DataTableDef.TableName);
+			CheckAllowCreate(view.DataTableInfo.TableName);
 
 			try {
 				view_manager.DefineView(view, query, User);

@@ -32,9 +32,9 @@ namespace Deveel.Data.Sql {
 		private readonly ITableQueryDef table_query;
 
 		/// <summary>
-		/// The DataTableDef object that describes the table.
+		/// The DataTableInfo object that describes the table.
 		/// </summary>
-		private readonly DataTableDef data_table_def;
+		private readonly DataTableInfo dataTableInfo;
 
 		/// <summary>
 		/// The unique name given to this source.
@@ -72,7 +72,7 @@ namespace Deveel.Data.Sql {
 		                             ITableQueryDef table_query, String unique_name,
 		                             TableName given_name, TableName root_name) {
 			this.unique_name = unique_name;
-			this.data_table_def = table_query.DataTableDef;
+			this.dataTableInfo = table_query.DataTableInfo;
 			this.root_name = root_name;
 			if (given_name != null) {
 				this.table_name = given_name;
@@ -181,15 +181,15 @@ namespace Deveel.Data.Sql {
 			if (column != null) {
 				if (!case_insensitive) {
 					// Can we resolve the column in this table?
-					int i = data_table_def.FastFindColumnName(column);
+					int i = dataTableInfo.FastFindColumnName(column);
 					// If i doesn't equal -1 then we've found our column
 					return i == -1 ? 0 : 1;
 				} else {
 					// Case insensitive search (this is slower than case sensitive).
 					int resolve_count = 0;
-					int col_count = data_table_def.ColumnCount;
+					int col_count = dataTableInfo.ColumnCount;
 					for (int i = 0; i < col_count; ++i) {
-						if (String.Compare(data_table_def[i].Name, column, true) == 0) {
+						if (String.Compare(dataTableInfo[i].Name, column, true) == 0) {
 							++resolve_count;
 						}
 					}
@@ -197,7 +197,7 @@ namespace Deveel.Data.Sql {
 				}
 			} else {  // if (column == null)
 				// Return the column count
-				return data_table_def.ColumnCount;
+				return dataTableInfo.ColumnCount;
 			}
 		}
 
@@ -219,16 +219,16 @@ namespace Deveel.Data.Sql {
 			if (column != null) {
 				if (!case_insensitive) {
 					// Can we resolve the column in this table?
-					int i = data_table_def.FastFindColumnName(column);
+					int i = dataTableInfo.FastFindColumnName(column);
 					if (i == -1) {
 						throw new ApplicationException("Could not resolve '" + column + "'");
 					}
 					return new VariableName(table_name, column);
 				} else {
 					// Case insensitive search (this is slower than case sensitive).
-					int col_count = data_table_def.ColumnCount;
+					int col_count = dataTableInfo.ColumnCount;
 					for (int i = 0; i < col_count; ++i) {
-						String col_name = data_table_def[i].Name;
+						String col_name = dataTableInfo[i].Name;
 						if (String.Compare(col_name, column, true) == 0) {
 							return new VariableName(table_name, col_name);
 						}
@@ -237,17 +237,17 @@ namespace Deveel.Data.Sql {
 				}
 			} else {  // if (column == null)
 				// Return the first column in the table
-				return new VariableName(table_name, data_table_def[0].Name);
+				return new VariableName(table_name, dataTableInfo[0].Name);
 			}
 
 		}
 
 		public VariableName[] AllColumns {
 			get {
-				int col_count = data_table_def.ColumnCount;
+				int col_count = dataTableInfo.ColumnCount;
 				VariableName[] vars = new VariableName[col_count];
 				for (int i = 0; i < col_count; ++i) {
-					vars[i] = new VariableName(table_name, data_table_def[i].Name);
+					vars[i] = new VariableName(table_name, dataTableInfo[i].Name);
 				}
 				return vars;
 			}

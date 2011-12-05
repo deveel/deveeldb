@@ -42,8 +42,8 @@ namespace Deveel.Data {
 
 		// ---------- Implemented from GTDataSource ----------
 
-		public override DataTableDef DataTableDef {
-			get { return DEF_DATA_TABLE_DEF; }
+		public override DataTableInfo DataTableInfo {
+			get { return InfoDataTableInfo; }
 		}
 
 		public override int RowCount {
@@ -77,23 +77,23 @@ namespace Deveel.Data {
 		// ---------- Static ----------
 
 		/// <summary>
-		/// The data table def that describes this table of data source.
+		/// The data table info that describes this table of data source.
 		/// </summary>
-		internal static readonly DataTableDef DEF_DATA_TABLE_DEF;
+		internal static readonly DataTableInfo InfoDataTableInfo;
 
 		static GTPrivMapDataSource() {
 
-			DataTableDef def = new DataTableDef();
-			def.TableName = new TableName(Database.SystemSchema, "sUSRPrivMap");
+			DataTableInfo info = new DataTableInfo();
+			info.TableName = new TableName(Database.SystemSchema, "sUSRPrivMap");
 
 			// Add column definitions
-			def.AddColumn(GetNumericColumn("priv_bit"));
-			def.AddColumn(GetStringColumn("description"));
+			info.AddColumn(GetNumericColumn("priv_bit"));
+			info.AddColumn(GetStringColumn("description"));
 
 			// Set to immutable
-			def.SetImmutable();
+			info.SetImmutable();
 
-			DEF_DATA_TABLE_DEF = def;
+			InfoDataTableInfo = info;
 
 		}
 

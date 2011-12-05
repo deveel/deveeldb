@@ -249,7 +249,7 @@ namespace Deveel.Data {
 			internalSystemUser = new User(InternalSecureUsername, this, "", DateTime.Now);
 
 			// Create the single row table
-			TemporaryTable t = new TemporaryTable(this,"SINGLE_ROW_TABLE", new DataTableColumnDef[0]);
+			TemporaryTable t = new TemporaryTable(this,"SINGLE_ROW_TABLE", new DataTableColumnInfo[0]);
 			t.NewRow();
 			singleRowTable = t;
 
@@ -689,77 +689,77 @@ namespace Deveel.Data {
 
 		private static void CreateSystemTables(DatabaseConnection connection) {
 			// --- The user management tables ---
-			DataTableDef password = new DataTableDef();
+			DataTableInfo password = new DataTableInfo();
 			password.TableName = SysPassword;
-			password.AddColumn(DataTableColumnDef.CreateStringColumn("UserName"));
-			password.AddColumn(DataTableColumnDef.CreateStringColumn("Password"));
+			password.AddColumn(DataTableColumnInfo.CreateStringColumn("UserName"));
+			password.AddColumn(DataTableColumnInfo.CreateStringColumn("Password"));
 
-			DataTableDef userPriv = new DataTableDef();
+			DataTableInfo userPriv = new DataTableInfo();
 			userPriv.TableName = SysUserPriv;
-			userPriv.AddColumn(DataTableColumnDef.CreateStringColumn("UserName"));
-			userPriv.AddColumn(DataTableColumnDef.CreateStringColumn("PrivGroupName"));
+			userPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("UserName"));
+			userPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("PrivGroupName"));
 
-			DataTableDef userConnectPriv = new DataTableDef();
+			DataTableInfo userConnectPriv = new DataTableInfo();
 			userConnectPriv.TableName = SysUserConnect;
-			userConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("UserName"));
-			userConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("Protocol"));
-			userConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("Host"));
-			userConnectPriv.AddColumn(DataTableColumnDef.CreateStringColumn("Access"));
+			userConnectPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("UserName"));
+			userConnectPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("Protocol"));
+			userConnectPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("Host"));
+			userConnectPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("Access"));
 
-			DataTableDef grant = new DataTableDef();
+			DataTableInfo grant = new DataTableInfo();
 			grant.TableName = SysGrants;
-			grant.AddColumn(DataTableColumnDef.CreateNumericColumn("priv_bit"));
-			grant.AddColumn(DataTableColumnDef.CreateNumericColumn("object"));
-			grant.AddColumn(DataTableColumnDef.CreateStringColumn("param"));
-			grant.AddColumn(DataTableColumnDef.CreateStringColumn("grantee"));
-			grant.AddColumn(DataTableColumnDef.CreateStringColumn("grant_option"));
-			grant.AddColumn(DataTableColumnDef.CreateStringColumn("granter"));
+			grant.AddColumn(DataTableColumnInfo.CreateNumericColumn("priv_bit"));
+			grant.AddColumn(DataTableColumnInfo.CreateNumericColumn("object"));
+			grant.AddColumn(DataTableColumnInfo.CreateStringColumn("param"));
+			grant.AddColumn(DataTableColumnInfo.CreateStringColumn("grantee"));
+			grant.AddColumn(DataTableColumnInfo.CreateStringColumn("grant_option"));
+			grant.AddColumn(DataTableColumnInfo.CreateStringColumn("granter"));
 
-			DataTableDef service = new DataTableDef();
+			DataTableInfo service = new DataTableInfo();
 			service.TableName = SysService;
-			service.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			service.AddColumn(DataTableColumnDef.CreateStringColumn("class"));
-			service.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
+			service.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			service.AddColumn(DataTableColumnInfo.CreateStringColumn("class"));
+			service.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
 
-			DataTableDef functionFactory = new DataTableDef();
+			DataTableInfo functionFactory = new DataTableInfo();
 			functionFactory.TableName = SysFunctionfactory;
-			functionFactory.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			functionFactory.AddColumn(DataTableColumnDef.CreateStringColumn("class"));
-			functionFactory.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
+			functionFactory.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			functionFactory.AddColumn(DataTableColumnInfo.CreateStringColumn("class"));
+			functionFactory.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
 
-			DataTableDef function = new DataTableDef();
+			DataTableInfo function = new DataTableInfo();
 			function.TableName = SysFunction;
-			function.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			function.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			function.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
-			function.AddColumn(DataTableColumnDef.CreateStringColumn("location"));
-			function.AddColumn(DataTableColumnDef.CreateStringColumn("return_type"));
-			function.AddColumn(DataTableColumnDef.CreateStringColumn("args_type"));
-			function.AddColumn(DataTableColumnDef.CreateStringColumn("username"));
+			function.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
+			function.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			function.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
+			function.AddColumn(DataTableColumnInfo.CreateStringColumn("location"));
+			function.AddColumn(DataTableColumnInfo.CreateStringColumn("return_type"));
+			function.AddColumn(DataTableColumnInfo.CreateStringColumn("args_type"));
+			function.AddColumn(DataTableColumnInfo.CreateStringColumn("username"));
 
-			DataTableDef view = new DataTableDef();
+			DataTableInfo view = new DataTableInfo();
 			view.TableName = SysView;
-			view.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			view.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			view.AddColumn(DataTableColumnDef.CreateBinaryColumn("query"));
-			view.AddColumn(DataTableColumnDef.CreateBinaryColumn("data"));
-			view.AddColumn(DataTableColumnDef.CreateStringColumn("username"));
+			view.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
+			view.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			view.AddColumn(DataTableColumnInfo.CreateBinaryColumn("query"));
+			view.AddColumn(DataTableColumnInfo.CreateBinaryColumn("data"));
+			view.AddColumn(DataTableColumnInfo.CreateStringColumn("username"));
 
-			DataTableDef label = new DataTableDef();
+			DataTableInfo label = new DataTableInfo();
 			label.TableName = SysLabel;
-			label.AddColumn(DataTableColumnDef.CreateNumericColumn("object_type"));
-			label.AddColumn(DataTableColumnDef.CreateStringColumn("object_name"));
-			label.AddColumn(DataTableColumnDef.CreateStringColumn("label"));
+			label.AddColumn(DataTableColumnInfo.CreateNumericColumn("object_type"));
+			label.AddColumn(DataTableColumnInfo.CreateStringColumn("object_name"));
+			label.AddColumn(DataTableColumnInfo.CreateStringColumn("label"));
 
-			DataTableDef dataTrigger = new DataTableDef();
+			DataTableInfo dataTrigger = new DataTableInfo();
 			dataTrigger.TableName = SysDataTrigger;
-			dataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			dataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			dataTrigger.AddColumn(DataTableColumnDef.CreateNumericColumn("type"));
-			dataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("on_object"));
-			dataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("action"));
-			dataTrigger.AddColumn(DataTableColumnDef.CreateBinaryColumn("misc"));
-			dataTrigger.AddColumn(DataTableColumnDef.CreateStringColumn("username"));
+			dataTrigger.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
+			dataTrigger.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			dataTrigger.AddColumn(DataTableColumnInfo.CreateNumericColumn("type"));
+			dataTrigger.AddColumn(DataTableColumnInfo.CreateStringColumn("on_object"));
+			dataTrigger.AddColumn(DataTableColumnInfo.CreateStringColumn("action"));
+			dataTrigger.AddColumn(DataTableColumnInfo.CreateBinaryColumn("misc"));
+			dataTrigger.AddColumn(DataTableColumnInfo.CreateStringColumn("username"));
 
 			// Create the tables
 			connection.AlterCreateTable(password, 91, 128);

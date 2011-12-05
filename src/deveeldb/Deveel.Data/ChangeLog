@@ -1,3 +1,8 @@
+2011-12-05  Antonello Provenzano  <antonello@deveel.com>
+	* DataTableDef.cs: 
+		- renamed to DataTableInfo
+		- removed the TableType property
+
 2011-12-04  Antonello Provenzano  <antonello@deveel.com>
 	* TObject.cs:
 		- Split in multiple partial classes for better manageability

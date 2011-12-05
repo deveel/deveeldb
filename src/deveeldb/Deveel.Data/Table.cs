@@ -83,7 +83,7 @@ namespace Deveel.Data {
 		/// If the column can't be found.
 		/// </exception>
 		public TType GetTTypeForColumn(int column) {
-			return DataTableDef[column].TType;
+			return DataTableInfo[column].TType;
 		}
 
 		/// <summary>
@@ -187,7 +187,7 @@ namespace Deveel.Data {
 		public abstract IRowEnumerator GetRowEnumerator();
 
 		/// <summary>
-		/// Returns a <see cref="DataTableDef"/> object that defines the name 
+		/// Returns a <see cref="DataTableInfo"/> object that defines the name 
 		/// of the table and the layout of the columns of the table.
 		/// </summary>
 		/// <remarks>
@@ -196,7 +196,7 @@ namespace Deveel.Data {
 		/// <c>PERSON</c> joined with a table called <c>MUSIC</c> becomes a table 
 		/// called <c>PERSON#MUSIC</c> in a null schema.
 		/// </remarks>
-		public abstract DataTableDef DataTableDef { get; }
+		public abstract DataTableInfo DataTableInfo { get; }
 
 		/// <summary>
 		/// Adds a <see cref="IDataTableListener"/> to the <see cref="DataTable"/>
@@ -273,13 +273,13 @@ namespace Deveel.Data {
 		// ---------- Convenience methods ----------
 
 		/// <summary>
-		/// Returns the <see cref="DataTableColumnDef"/> object for the 
+		/// Returns the <see cref="DataTableColumnInfo"/> object for the 
 		/// given column index.
 		/// </summary>
 		/// <param name="col_index"></param>
 		/// <returns></returns>
-		public DataTableColumnDef GetColumnDef(int col_index) {
-			return DataTableDef[col_index];
+		public DataTableColumnInfo GetColumnDef(int col_index) {
+			return DataTableInfo[col_index];
 		}
 
 
@@ -467,10 +467,10 @@ namespace Deveel.Data {
 					// Construct a temporary table with a single column that we are
 					// comparing to.
 					TemporaryTable ttable;
-					DataTableColumnDef col = GetColumnDef(FindFieldName(lhs_var));
+					DataTableColumnInfo col = GetColumnDef(FindFieldName(lhs_var));
 					DatabaseQueryContext db_context = (DatabaseQueryContext)context;
 					ttable = new TemporaryTable(db_context.Database,
-											 "single", new DataTableColumnDef[] { col });
+											 "single", new DataTableColumnInfo[] { col });
 
 					for (int i = 0; i < list.Length; ++i) {
 						ttable.NewRow();
@@ -516,11 +516,11 @@ namespace Deveel.Data {
 			else {
 
 				// Is the column we are searching on indexable?
-				DataTableColumnDef col_def = GetColumnDef(column);
-				if (!col_def.IsIndexableType) {
+				DataTableColumnInfo colInfo = GetColumnDef(column);
+				if (!colInfo.IsIndexableType) {
 					throw new StatementException("Can not search on field type " +
-												 col_def.SQLTypeString +
-												 " in '" + col_def.Name + "'");
+												 colInfo.SQLTypeString +
+												 " in '" + colInfo.Name + "'");
 				}
 
 				// Evaluate the right hand side.  We know rhs is constant so don't
@@ -801,8 +801,8 @@ namespace Deveel.Data {
 			// Check that the first column of 'table' is of a compatible type with
 			// source table column (lhs_col_index).
 			// ISSUE: Should we convert to the correct type via a FunctionTable?
-			DataTableColumnDef source_col = source_table.GetColumnDef(lhs_col_index);
-			DataTableColumnDef dest_col = table.GetColumnDef(0);
+			DataTableColumnInfo source_col = source_table.GetColumnDef(lhs_col_index);
+			DataTableColumnInfo dest_col = table.GetColumnDef(0);
 			if (!source_col.TType.IsComparableType(dest_col.TType)) {
 				throw new ApplicationException("The type of the sub-query expression " +
 								source_col.SQLTypeString + " is incompatible " +
@@ -970,8 +970,8 @@ namespace Deveel.Data {
 			// Check that the first column of 'table' is of a compatible type with
 			// source table column (lhs_col_index).
 			// ISSUE: Should we convert to the correct type via a FunctionTable?
-			DataTableColumnDef source_col = source_table.GetColumnDef(lhs_col_index);
-			DataTableColumnDef dest_col = table.GetColumnDef(0);
+			DataTableColumnInfo source_col = source_table.GetColumnDef(lhs_col_index);
+			DataTableColumnInfo dest_col = table.GetColumnDef(0);
 			if (!source_col.TType.IsComparableType(dest_col.TType)) {
 				throw new ApplicationException("The type of the sub-query expression " +
 								source_col.SQLTypeString + " is incompatible " +
@@ -1459,7 +1459,7 @@ namespace Deveel.Data {
 		/// </returns>
 		public VirtualTable OrderByColumn(int col_index, bool ascending) {
 			// Check the field can be sorted
-			DataTableColumnDef col_def = GetColumnDef(col_index);
+			DataTableColumnInfo colInfo = GetColumnDef(col_index);
 
 			IntegerVector rows = SelectAll(col_index);
 

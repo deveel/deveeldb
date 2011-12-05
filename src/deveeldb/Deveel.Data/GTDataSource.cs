@@ -55,7 +55,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public abstract DataTableDef DataTableDef { get; }
+		public abstract DataTableInfo DataTableInfo { get; }
 
 		/// <inheritdoc/>
 		public abstract int RowCount { get; }
@@ -148,7 +148,7 @@ namespace Deveel.Data {
 		/// the given <paramref name="column"/>.
 		/// </returns>
 		protected TObject GetColumnValue(int column, Object ob) {
-			TType type = DataTableDef[column].TType;
+			TType type = DataTableInfo[column].TType;
 			return new TObject(type, ob);
 		}
 
@@ -156,11 +156,11 @@ namespace Deveel.Data {
 		protected virtual void Dispose() {
 		}
 
-		// Convenience methods for constructing a DataTableDef for the dynamically
+		// Convenience methods for constructing a DataTableInfo for the dynamically
 		// generated table.
 
-		protected static DataTableColumnDef GetStringColumn(String name) {
-			DataTableColumnDef column = new DataTableColumnDef();
+		protected static DataTableColumnInfo GetStringColumn(String name) {
+			DataTableColumnInfo column = new DataTableColumnInfo();
 			column.Name = name;
 			column.IsNotNull = true;
 			column.SqlType = SqlType.VarChar;
@@ -171,8 +171,8 @@ namespace Deveel.Data {
 			return column;
 		}
 
-		protected static DataTableColumnDef GetBooleanColumn(String name) {
-			DataTableColumnDef column = new DataTableColumnDef();
+		protected static DataTableColumnInfo GetBooleanColumn(String name) {
+			DataTableColumnInfo column = new DataTableColumnInfo();
 			column.Name = name;
 			column.IsNotNull = true;
 			column.SqlType = SqlType.Bit;
@@ -183,8 +183,8 @@ namespace Deveel.Data {
 			return column;
 		}
 
-		protected static DataTableColumnDef GetNumericColumn(String name) {
-			DataTableColumnDef column = new DataTableColumnDef();
+		protected static DataTableColumnInfo GetNumericColumn(String name) {
+			DataTableColumnInfo column = new DataTableColumnInfo();
 			column.Name = name;
 			column.IsNotNull = true;
 			column.SqlType = SqlType.Numeric;
@@ -195,8 +195,8 @@ namespace Deveel.Data {
 			return column;
 		}
 
-		protected static DataTableColumnDef GetDateColumn(String name) {
-			DataTableColumnDef column = new DataTableColumnDef();
+		protected static DataTableColumnInfo GetDateColumn(String name) {
+			DataTableColumnInfo column = new DataTableColumnInfo();
 			column.Name = name;
 			column.IsNotNull = true;
 			column.SqlType = SqlType.TimeStamp;

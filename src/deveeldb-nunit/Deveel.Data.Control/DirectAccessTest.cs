@@ -23,12 +23,12 @@ namespace Deveel.Data.Control {
 				TableName tableName = new TableName("DA_TestTable");
 				DataTableDef tableDef = new DataTableDef();
 				tableDef.TableName = tableName;
-				tableDef.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-				tableDef.AddColumn(DataTableColumnDef.CreateNumericColumn("count"));
-				tableDef.AddColumn(DataTableColumnDef.CreateBooleanColumn("is_set"));
+				tableDef.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+				tableDef.AddColumn(DataTableColumnInfo.CreateNumericColumn("count"));
+				tableDef.AddColumn(DataTableColumnInfo.CreateBooleanColumn("is_set"));
 				directAccess.CreateTable(tableDef, true);
 
-				directAccess.AddConstraint(tableName, DataTableConstraintDef.PrimaryKey("DA_TestTable_PK", new string[] { "name" }));
+				directAccess.AddConstraint(tableName, DataTableConstraintInfo.PrimaryKey("DA_TestTable_PK", new string[] { "name" }));
 
 				directAccess.Commit();
 			} catch(Exception e) {

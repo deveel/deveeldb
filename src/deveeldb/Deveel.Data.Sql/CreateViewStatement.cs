@@ -140,14 +140,14 @@ namespace Deveel.Data.Sql {
 				throw new DatabaseException("Clone error: " + e.Message);
 			}
 
-			// We have to execute the plan to get the DataTableDef that represents the
+			// We have to execute the plan to get the DataTableInfo that represents the
 			// result of the view execution.
 			Table t = plan.Evaluate(context);
-			DataTableDef data_table_def = new DataTableDef(t.DataTableDef);
-			data_table_def.TableName = vname;
+			DataTableInfo dataTableInfo = t.DataTableInfo.Clone();
+			dataTableInfo.TableName = vname;
 
 			// Create a ViewDef object,
-			ViewDef view_def = new ViewDef(data_table_def, plan_copy);
+			ViewDef view_def = new ViewDef(dataTableInfo, plan_copy);
 
 			// And create the view object,
 			Connection.CreateView(Query, view_def);

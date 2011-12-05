@@ -193,17 +193,17 @@ namespace Deveel.Data.Sql {
 
 			if (create_statement != null) {
 				// Create the data table definition and tell the database to update it.
-				DataTableDef table_def = create_stmt.CreateDataTableDef();
-				TableName tname1 = table_def.TableName;
+				DataTableInfo tableInfo = create_stmt.CreateDataTableDef();
+				TableName tname1 = tableInfo.TableName;
 				// Is the table in the database already?
 				if (Connection.TableExists(tname1)) {
 					// Drop any schema for this table,
 					Connection.DropAllConstraintsForTable(tname1);
-					Connection.UpdateTable(table_def);
+					Connection.UpdateTable(tableInfo);
 				}
 					// If the table isn't in the database,
 				else {
-					Connection.CreateTable(table_def);
+					Connection.CreateTable(tableInfo);
 				}
 
 				// Setup the constraints
@@ -215,9 +215,9 @@ namespace Deveel.Data.Sql {
 				// SQL alter command using the alter table actions,
 
 				// Get the table definition for the table name,
-				DataTableDef table_def = Connection.GetTable(tname).DataTableDef;
-				String table_name = table_def.Name;
-				DataTableDef new_table = table_def.NoColumnCopy();
+				DataTableInfo tableInfo = Connection.GetTable(tname).DataTableInfo;
+				String table_name = tableInfo.Name;
+				DataTableInfo new_table = tableInfo.NoColumnCopy();
 
 				// Returns a ColumnChecker implementation for this table.
 				ColumnChecker checker =
@@ -227,9 +227,8 @@ namespace Deveel.Data.Sql {
 				// the constraints are changed.
 				bool table_altered = false;
 
-				for (int n = 0; n < table_def.ColumnCount; ++n) {
-					DataTableColumnDef column =
-						new DataTableColumnDef(table_def[n]);
+				for (int n = 0; n < tableInfo.ColumnCount; ++n) {
+					DataTableColumnInfo column = tableInfo[n].Clone();
 					String col_name = column.Name;
 					// Apply any actions to this column
 					bool mark_dropped = false;
@@ -290,8 +289,8 @@ namespace Deveel.Data.Sql {
 							                            "column constraint when altering a column.  Use " +
 							                            "ADD CONSTRAINT instead.");
 						}
-						// Convert to a DataTableColumnDef
-						DataTableColumnDef col = CreateTableStatement.ConvertColumnDef(cdef);
+						// Convert to a DataTableColumnInfo
+						DataTableColumnInfo col = CreateTableStatement.ConvertColumnDef(cdef);
 
 						checker.CheckExpression(
 							col.GetDefaultExpression(Connection.System));
@@ -339,8 +338,7 @@ namespace Deveel.Data.Sql {
 						}
 
 						checker.StripColumnList(table_name, constraint.column_list);
-						checker.StripColumnList(constraint.ReferenceTable,
-						                        constraint.column_list2);
+						checker.StripColumnList(constraint.ReferenceTable, constraint.column_list2);
 						checker.CheckExpression(constraint.CheckExpression);
 						checker.CheckColumnList(constraint.column_list);
 						if (foreign_constraint && constraint.column_list2 != null) {

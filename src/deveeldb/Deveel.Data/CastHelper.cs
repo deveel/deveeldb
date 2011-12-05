@@ -187,7 +187,7 @@ namespace Deveel.Data {
 
 		///<summary>
 		/// Casts an object to the SQL type specified by the 
-		/// given <see cref="DataTableColumnDef"/> object.
+		/// given <see cref="DataTableColumnInfo"/> object.
 		///</summary>
 		///<param name="ob">The <see cref="Object"/> to cast to the given type.</param>
 		///<param name="sql_type">The destination <see cref="SqlType">SQL type</see>.</param>

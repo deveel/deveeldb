@@ -30,7 +30,7 @@ namespace Deveel.Data {
 	/// </summary>
 	/// <remarks>
 	/// It provides primitive table operations such as retrieving a cell from 
-	/// a table, accessing the table's <see cref="DataTableDef"/>, accessing 
+	/// a table, accessing the table's <see cref="DataTableInfo"/>, accessing 
 	/// indexes, and providing views of transactional versions of the data.
 	/// <para>
 	/// Logically, a master table data source contains a dynamic number of rows 
@@ -101,15 +101,15 @@ namespace Deveel.Data {
 		// ---------- Persistant data ----------
 
 		/// <summary>
-		/// A DataTableDef object that describes the table topology.  This includes
+		/// A DataTableInfo object that describes the table topology.  This includes
 		/// the name and columns of the table.
 		/// </summary>
-		protected DataTableDef table_def;
+		protected DataTableInfo tableInfo;
 
 		/// <summary>
-		/// A DataIndexSetDef object that describes the indexes on the table.
+		/// A DataIndexSetInfo object that describes the indexes on the table.
 		/// </summary>
-		protected DataIndexSetDef index_def;
+		protected DataIndexSetInfo IndexInfo;
 
 		/// <summary>
 		/// A cached TableName for this data source.
@@ -225,21 +225,21 @@ namespace Deveel.Data {
 		/// Returns the TableName of this table source.
 		/// </summary>
 		public TableName TableName {
-			get { return DataTableDef.TableName; }
+			get { return DataTableInfo.TableName; }
 		}
 
 		/// <summary>
 		/// Returns the name of this table source.
 		/// </summary>
 		public string Name {
-			get { return DataTableDef.Name; }
+			get { return DataTableInfo.Name; }
 		}
 
 		/// <summary>
 		/// Returns the schema name of this table source.
 		/// </summary>
 		public string Schema {
-			get { return DataTableDef.Schema; }
+			get { return DataTableInfo.Schema; }
 		}
 
 		/// <summary>
@@ -314,21 +314,21 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the DataTableDef object that represents the topology of this
+		/// Returns the DataTableInfo object that represents the topology of this
 		/// table data source (name, columns, etc).
 		/// </summary>
 		/// <remarks>
 		/// This information can't be changed during the lifetime of a data source.
 		/// </remarks>
-		internal DataTableDef DataTableDef {
-			get { return table_def; }
+		internal DataTableInfo DataTableInfo {
+			get { return tableInfo; }
 		}
 
 		/// <summary>
-		/// Returns the DataIndexSetDef object that represents the indexes on this table.
+		/// Returns the DataIndexSetInfo object that represents the indexes on this table.
 		/// </summary>
-		internal DataIndexSetDef DataIndexSetDef {
-			get { return index_def; }
+		internal DataIndexSetInfo DataIndexSetInfo {
+			get { return IndexInfo; }
 		}
 
 		// ---------- Convenient statics ----------
@@ -574,18 +574,18 @@ namespace Deveel.Data {
 		internal SelectableScheme CreateSelectableSchemeForColumn(IIndexSet index_set, ITableDataSource table, int column) {
 			lock (this) {
 				// What's the type of scheme for this column?
-				DataTableColumnDef column_def = DataTableDef[column];
+				DataTableColumnInfo columnInfo = DataTableInfo[column];
 
 				// If the column isn't indexable then return a BlindSearch object
-				if (!column_def.IsIndexableType) {
+				if (!columnInfo.IsIndexableType) {
 					return new BlindSearch(table, column);
 				}
 
-				String scheme_type = column_def.IndexScheme;
+				String scheme_type = columnInfo.IndexScheme;
 				if (scheme_type.Equals("InsertSearch")) {
 					// Search the TableIndexDef for this column
-					DataIndexSetDef index_set_def = DataIndexSetDef;
-					int index_i = index_set_def.FindIndexForColumns(new String[] { column_def.Name });
+					DataIndexSetInfo indexSetInfo = DataIndexSetInfo;
+					int index_i = indexSetInfo.FindIndexForColumns(new String[] { columnInfo.Name });
 					return CreateSelectableSchemeForIndex(index_set, table, index_i);
 				}
 
@@ -598,7 +598,7 @@ namespace Deveel.Data {
 
 		/// <summary>
 		/// Creates a SelectableScheme object for the given index in the index 
-		/// set def in this table.
+		/// set info in this table.
 		/// </summary>
 		/// <param name="index_set"></param>
 		/// <param name="table"></param>
@@ -611,17 +611,17 @@ namespace Deveel.Data {
 		internal SelectableScheme CreateSelectableSchemeForIndex(IIndexSet index_set, ITableDataSource table, int index_i) {
 			lock (this) {
 				// Get the IndexDef object
-				DataIndexDef indexDef = DataIndexSetDef[index_i];
+				DataIndexInfo indexInfo = DataIndexSetInfo[index_i];
 
-				if (indexDef.Type.Equals("BLIST")) {
-					string[] cols = indexDef.ColumnNames;
-					DataTableDef tableDef = DataTableDef;
+				if (indexInfo.Type.Equals("BLIST")) {
+					string[] cols = indexInfo.ColumnNames;
+					DataTableInfo tableInfo = DataTableInfo;
 					if (cols.Length == 1) {
 						// If a single column
-						int col_index = tableDef.FindColumnName(cols[0]);
+						int col_index = tableInfo.FindColumnName(cols[0]);
 						// Get the index from the index set and set up the new InsertSearch
 						// scheme.
-						IIntegerList index_list = index_set.GetIndex(indexDef.Pointer);
+						IIntegerList index_list = index_set.GetIndex(indexInfo.Pointer);
 						InsertSearch iis = new InsertSearch(table, col_index, index_list);
 						return iis;
 					}
@@ -662,8 +662,8 @@ namespace Deveel.Data {
 				get { return mtds.system; }
 			}
 
-			public DataTableDef DataTableDef {
-				get { return mtds.DataTableDef; }
+			public DataTableInfo DataTableInfo {
+				get { return mtds.DataTableInfo; }
 			}
 
 			public int RowCount {
@@ -732,7 +732,7 @@ namespace Deveel.Data {
 			lock (this) {
 				IIndexSet index_set = CreateIndexSet();
 
-				DataIndexSetDef index_set_def = DataIndexSetDef;
+				DataIndexSetInfo indexSetInfo = DataIndexSetInfo;
 
 				int row_count = RawRowCount;
 
@@ -756,7 +756,7 @@ namespace Deveel.Data {
 				CommitIndexSet(index_set);
 
 				// Now go ahead and build each index in this table
-				int index_count = index_set_def.IndexCount;
+				int index_count = indexSetInfo.IndexCount;
 				for (int i = 0; i < index_count; ++i) {
 					BuildIndex(i);
 				}
@@ -765,7 +765,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Builds the given index number (from the <see cref="DataIndexSetDef"/>).
+		/// Builds the given index number (from the <see cref="DataIndexSetInfo"/>).
 		/// </summary>
 		/// <param name="index_number"></param>
 		/// <remarks>
@@ -782,7 +782,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void BuildIndex(int index_number) {
 			lock (this) {
-				DataIndexSetDef index_set_def = DataIndexSetDef;
+				DataIndexSetInfo indexSetInfo = DataIndexSetInfo;
 
 				IIndexSet index_set = CreateIndexSet();
 
@@ -999,23 +999,23 @@ namespace Deveel.Data {
 		// ---------- File IO level table modification ----------
 
 		/// <summary>
-		/// Sets up the <see cref="DataIndexSetDef"/> object from the information 
+		/// Sets up the <see cref="DataIndexSetInfo"/> object from the information 
 		/// set in this object
 		/// </summary>
 		/// <remarks>
-		/// This will only setup a default <see cref="DataIndexSetDef"/> on the 
-		/// information in the <see cref="DataTableDef"/>.
+		/// This will only setup a default <see cref="DataIndexSetInfo"/> on the 
+		/// information in the <see cref="DataTableInfo"/>.
 		/// </remarks>
 		protected void SetupDataIndexSetDef() {
 			lock (this) {
-				// Create the initial DataIndexSetDef object.
-				index_def = new DataIndexSetDef(table_def.TableName);
-				for (int i = 0; i < table_def.ColumnCount; ++i) {
-					DataTableColumnDef col_def = table_def[i];
-					if (col_def.IsIndexableType &&
-						col_def.IndexScheme.Equals("InsertSearch")) {
-						index_def.AddDataIndexDef(new DataIndexDef("ANON-COLUMN:" + i,
-																   new String[] { col_def.Name }, i + 1,
+				// Create the initial DataIndexSetInfo object.
+				IndexInfo = new DataIndexSetInfo(tableInfo.TableName);
+				for (int i = 0; i < tableInfo.ColumnCount; ++i) {
+					DataTableColumnInfo colInfo = tableInfo[i];
+					if (colInfo.IsIndexableType &&
+						colInfo.IndexScheme.Equals("InsertSearch")) {
+						IndexInfo.AddIndex(new DataIndexInfo("ANON-COLUMN:" + i,
+																   new String[] { colInfo.Name }, i + 1,
 																   "BLIST", false));
 					}
 				}
@@ -1023,29 +1023,29 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Sets up the DataTableDef.
+		/// Sets up the DataTableInfo.
 		/// </summary>
-		/// <param name="tableDef"></param>
+		/// <param name="tableInfo"></param>
 		/// <remarks>
 		/// This would typically only ever be called from the <i>create</i>
 		/// method.
 		/// </remarks>
-		protected void SetupDataTableDef(DataTableDef tableDef) {
+		protected void SetupDataTableDef(DataTableInfo tableInfo) {
 			lock (this) {
 				// Check table_id isn't too large.
 				if ((table_id & 0x0F0000000) != 0) {
 					throw new ApplicationException("'table_id' exceeds maximum possible keys.");
 				}
 
-				table_def = tableDef;
+				tableInfo = tableInfo;
 
 				// The name of the table to create,
-				TableName table_name = table_def.TableName;
+				TableName table_name = tableInfo.TableName;
 
 				// Create table indices
-				table_indices = new MultiVersionTableIndices(System, table_name, tableDef.ColumnCount);
+				table_indices = new MultiVersionTableIndices(System, table_name, tableInfo.ColumnCount);
 
-				// Setup the DataIndexSetDef
+				// Setup the DataIndexSetInfo
 				SetupDataIndexSetDef();
 			}
 		}
@@ -1056,8 +1056,8 @@ namespace Deveel.Data {
 		protected void LoadInternal() {
 			lock (this) {
 				// Set up the stat keys.
-				String table_name = table_def.Name;
-				String schema_name = table_def.Schema;
+				String table_name = tableInfo.Name;
+				String schema_name = tableInfo.Schema;
 				String n = table_name;
 				if (schema_name.Length > 0) {
 					n = schema_name + "." + table_name;
@@ -1068,7 +1068,7 @@ namespace Deveel.Data {
 				delete_hits_key = "MasterTableDataSource.Hits.Delete." + n;
 				insert_hits_key = "MasterTableDataSource.Hits.Insert." + n;
 
-				column_count = table_def.ColumnCount;
+				column_count = tableInfo.ColumnCount;
 
 				is_closed = false;
 			}
@@ -1493,8 +1493,8 @@ namespace Deveel.Data {
 				}
 			}
 
-			public DataTableDef DataTableDef {
-				get { return mtds.DataTableDef; }
+			public DataTableInfo DataTableInfo {
+				get { return mtds.DataTableInfo; }
 			}
 
 			public RecordState GetRecordState(int record_index) {
@@ -1599,8 +1599,8 @@ namespace Deveel.Data {
 				this.mtds = mtds;
 				this.transaction = transaction;
 				index_set = transaction.GetIndexSetForTable(mtds);
-				int col_count = DataTableDef.ColumnCount;
-				table_name = DataTableDef.TableName;
+				int col_count = DataTableInfo.ColumnCount;
+				table_name = DataTableInfo.TableName;
 				tran_read_only = transaction.IsReadOnly;
 				row_list_rebuild = 0;
 				scheme_rebuilds = new int[col_count];
@@ -1637,9 +1637,9 @@ namespace Deveel.Data {
 				// immediate.
 				IMutableTableDataSource key_table =
 										 transaction.GetTable(constraint.key_table_name);
-				DataTableDef table_def = key_table.DataTableDef;
+				DataTableInfo tableInfo = key_table.DataTableInfo;
 				int[] key_cols = TableDataConglomerate.FindColumnIndices(
-													  table_def, constraint.key_columns);
+													  tableInfo, constraint.key_columns);
 				IntegerVector key_entries =
 					   TableDataConglomerate.FindKeys(key_table, key_cols, original_key);
 
@@ -1716,9 +1716,9 @@ namespace Deveel.Data {
 				// immediate.
 				IMutableTableDataSource key_table =
 										 transaction.GetTable(constraint.key_table_name);
-				DataTableDef table_def = key_table.DataTableDef;
+				DataTableInfo tableInfo = key_table.DataTableInfo;
 				int[] key_cols = TableDataConglomerate.FindColumnIndices(
-													  table_def, constraint.key_columns);
+													  tableInfo, constraint.key_columns);
 				IntegerVector key_entries =
 					   TableDataConglomerate.FindKeys(key_table, key_cols, original_key);
 
@@ -1851,8 +1851,8 @@ namespace Deveel.Data {
 				get { return mtds.System; }
 			}
 
-			public DataTableDef DataTableDef {
-				get { return mtds.DataTableDef; }
+			public DataTableInfo DataTableInfo {
+				get { return mtds.DataTableInfo; }
 			}
 
 			public int RowCount {
@@ -2020,8 +2020,8 @@ namespace Deveel.Data {
 					}
 
 					// This table name
-					DataTableDef table_def = DataTableDef;
-					TableName table_name = table_def.TableName;
+					DataTableInfo tableInfo = DataTableInfo;
+					TableName table_name = tableInfo.TableName;
 					IQueryContext context =
 							   new SystemQueryContext(transaction, table_name.Schema);
 
@@ -2071,7 +2071,7 @@ namespace Deveel.Data {
 								int row_index = rows_deleted[i];
 								// What was the key before it was updated/deleted
 								int[] cols = TableDataConglomerate.FindColumnIndices(
-															  table_def, constraint.ref_columns);
+															  tableInfo, constraint.ref_columns);
 								TObject[] original_key = new TObject[cols.Length];
 								int null_count = 0;
 								for (int p = 0; p < cols.Length; ++p) {

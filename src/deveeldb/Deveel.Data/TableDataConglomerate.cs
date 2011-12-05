@@ -805,7 +805,7 @@ namespace Deveel.Data {
 		/// Creates a table store in this conglomerate with the given name and 
 		/// returns a reference to the table.
 		/// </summary>
-		/// <param name="tableDef">The table meta definition.</param>
+		/// <param name="tableInfo">The table meta definition.</param>
 		/// <param name="dataSectorSize">The size of the data sectors 
 		/// (affects performance and size of the file).</param>
 		/// <param name="indexSectorSize">The size of the index sectors.</param>
@@ -819,7 +819,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal MasterTableDataSource CreateMasterTable(DataTableDef tableDef, int dataSectorSize, int indexSectorSize) {
+		internal MasterTableDataSource CreateMasterTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
 			lock (CommitLock) {
 				try {
 					// EFFICIENCY: Currently this writes to the conglomerate state file
@@ -831,7 +831,7 @@ namespace Deveel.Data {
 
 					// Create the object.
 					V2MasterTableDataSource masterTable = new V2MasterTableDataSource(System, StoreSystem, openTransactions, blobStore);
-					masterTable.Create(tableId, tableDef);
+					masterTable.Create(tableId, tableInfo);
 
 					// Add to the list of all tables.
 					tableList.Add(masterTable);
@@ -847,12 +847,12 @@ namespace Deveel.Data {
 					return masterTable;
 				} catch (IOException e) {
 					Debug.WriteException(e);
-					throw new ApplicationException("Unable to create master table '" + tableDef.Name + "' - " + e.Message);
+					throw new ApplicationException("Unable to create master table '" + tableInfo.Name + "' - " + e.Message);
 				}
 			}
 		}
 
-		internal MasterTableDataSource CreateTemporaryDataSource(DataTableDef tableDef) {
+		internal MasterTableDataSource CreateTemporaryDataSource(DataTableInfo tableInfo) {
 			lock (CommitLock) {
 				try {
 					// The unique id that identifies this table,
@@ -860,14 +860,14 @@ namespace Deveel.Data {
 
 					V2MasterTableDataSource temporary = new V2MasterTableDataSource(System, new V1HeapStoreSystem(), openTransactions, blobStore);
 
-					temporary.Create(tableId, tableDef);
+					temporary.Create(tableId, tableInfo);
 
 					tableList.Add(temporary);
 
 					return temporary;
 				} catch(Exception e) {
 					Debug.WriteException(e);
-					throw new ApplicationException("Unable to create temporary table '" + tableDef.Name + "' - " + e.Message);
+					throw new ApplicationException("Unable to create temporary table '" + tableInfo.Name + "' - " + e.Message);
 				}
 			}
 		}
@@ -921,7 +921,7 @@ namespace Deveel.Data {
 					return masterTable;
 				} catch (IOException e) {
 					Debug.WriteException(e);
-					throw new Exception("Unable to copy master table '" + srcMasterTable.DataTableDef.Name + "' - " + e.Message);
+					throw new Exception("Unable to copy master table '" + srcMasterTable.DataTableInfo.Name + "' - " + e.Message);
 				}
 			}
 
@@ -946,7 +946,7 @@ namespace Deveel.Data {
 			}
 
 			private int FindColumnName(VariableName variable) {
-				int colIndex = table.DataTableDef.FindColumnName(variable.Name);
+				int colIndex = table.DataTableInfo.FindColumnName(variable.Name);
 				if (colIndex == -1)
 					throw new ApplicationException("Can't find column: " + variable);
 
@@ -966,7 +966,7 @@ namespace Deveel.Data {
 
 			public TType ReturnTType(VariableName variable) {
 				int colIndex = FindColumnName(variable);
-				return table.DataTableDef[colIndex].TType;
+				return table.DataTableInfo[colIndex].TType;
 			}
 		}
 

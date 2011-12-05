@@ -24,8 +24,8 @@ namespace Deveel.Data {
 	/// qualified in the system.  Such uses of this object would 
 	/// not typically be used against any context.  For example, 
 	/// it would not be desirable to use <i>ColumnName</i> in 
-	/// <see cref="DataTableDef"/> because the column names contained 
-	/// in <see cref="DataTableDef"/> are within a known context.  
+	/// <see cref="DataTableInfo"/> because the column names contained 
+	/// in <see cref="DataTableInfo"/> are within a known context.  
 	/// This object is intended for use within parser processes 
 	/// where free standing column names with potentially no context 
 	/// are required.
@@ -98,7 +98,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Attempts to resolve a string '[table_name].[column]' to a 
+		/// Attempts to resolve a string '[tableName].[column]' to a 
 		/// <see cref="VariableName"/> instance.
 		/// </summary>
 		/// <param name="name"></param>
@@ -118,7 +118,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Attempts to resolve a string '[table_name].[column]' to a 
+		/// Attempts to resolve a string '[tableName].[column]' to a 
 		/// <see cref="VariableName"/> instance.
 		/// </summary>
 		/// <param name="tname"></param>

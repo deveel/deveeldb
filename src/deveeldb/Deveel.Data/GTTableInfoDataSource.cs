@@ -74,8 +74,8 @@ namespace Deveel.Data {
 
 		// ---------- Implemented from GTDataSource ----------
 
-		public override DataTableDef DataTableDef {
-			get { return DEF_DATA_TABLE_DEF; }
+		public override DataTableInfo DataTableInfo {
+			get { return InfoDataTableInfo; }
 		}
 
 		public override int RowCount {
@@ -110,25 +110,25 @@ namespace Deveel.Data {
 		// ---------- Static ----------
 
 		/// <summary>
-		/// The data table def that describes this table of data source.
+		/// The data table info that describes this table of data source.
 		/// </summary>
-		internal static readonly DataTableDef DEF_DATA_TABLE_DEF;
+		internal static readonly DataTableInfo InfoDataTableInfo;
 
 		static GTTableInfoDataSource() {
 
-			DataTableDef def = new DataTableDef();
-			def.TableName = Database.SysTableInfo;
+			DataTableInfo info = new DataTableInfo();
+			info.TableName = Database.SysTableInfo;
 
 			// Add column definitions
-			def.AddColumn(GetStringColumn("schema"));
-			def.AddColumn(GetStringColumn("name"));
-			def.AddColumn(GetStringColumn("type"));
-			def.AddColumn(GetStringColumn("other"));
+			info.AddColumn(GetStringColumn("schema"));
+			info.AddColumn(GetStringColumn("name"));
+			info.AddColumn(GetStringColumn("type"));
+			info.AddColumn(GetStringColumn("other"));
 
 			// Set to immutable
-			def.SetImmutable();
+			info.SetImmutable();
 
-			DEF_DATA_TABLE_DEF = def;
+			InfoDataTableInfo = info;
 
 		}
 	}

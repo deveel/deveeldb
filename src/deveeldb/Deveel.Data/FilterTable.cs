@@ -70,8 +70,8 @@ namespace Deveel.Data {
 			get { return parent.RowCount; }
 		}
 
-		public override DataTableDef DataTableDef {
-			get { return parent.DataTableDef; }
+		public override DataTableInfo DataTableInfo {
+			get { return parent.DataTableInfo; }
 		}
 
 		public override bool HasRootsLocked {

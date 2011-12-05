@@ -40,40 +40,40 @@ namespace Deveel.Data {
 		private readonly TableName table_name;
 
 		/// <summary>
-		/// The modified DataTableDef object for this reference.
+		/// The modified DataTableInfo object for this reference.
 		/// </summary>
-		private readonly DataTableDef modified_table_def;
+		private readonly DataTableInfo modifiedTableInfo;
 
 
 		internal ReferenceTable(Table table, TableName tname)
 			: base(table) {
 			table_name = tname;
 
-			// Create a modified table def based on the parent def.
-			modified_table_def = new DataTableDef(table.DataTableDef);
-			modified_table_def.TableName = tname;
-			modified_table_def.SetImmutable();
+			// Create a modified table info based on the parent info.
+			modifiedTableInfo = table.DataTableInfo.Clone();
+			modifiedTableInfo.TableName = tname;
+			modifiedTableInfo.SetImmutable();
 		}
 
 		/// <summary>
 		/// Constructs the <see cref="ReferenceTable"/> given the parent 
-		/// table, and a new <see cref="DataTableDef"/> that describes the 
+		/// table, and a new <see cref="DataTableInfo"/> that describes the 
 		/// columns in this table.
 		/// </summary>
 		/// <param name="table"></param>
-		/// <param name="def"></param>
+		/// <param name="info"></param>
 		/// <remarks>
 		/// This is used if we want to redefine the column names.
 		/// <para>
-		/// Note that the given DataTableDef must contain the same number of 
+		/// Note that the given DataTableInfo must contain the same number of 
 		/// columns as the parent table, and the columns must be the same type.
 		/// </para>
 		/// </remarks>
-		internal ReferenceTable(Table table, DataTableDef def)
+		internal ReferenceTable(Table table, DataTableInfo info)
 			: base(table) {
-			table_name = def.TableName;
+			table_name = info.TableName;
 
-			modified_table_def = def;
+			modifiedTableInfo = info;
 		}
 
 		/// <summary>
@@ -84,15 +84,15 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override DataTableDef DataTableDef {
-			get { return modified_table_def; }
+		public override DataTableInfo DataTableInfo {
+			get { return modifiedTableInfo; }
 		}
 
 		/// <inheritdoc/>
 		public override int FindFieldName(VariableName v) {
 			TableName table_name = v.TableName;
 			if (table_name != null && table_name.Equals(TableName)) {
-				return DataTableDef.FastFindColumnName(v.Name);
+				return DataTableInfo.FastFindColumnName(v.Name);
 			}
 			return -1;
 		}
@@ -100,7 +100,7 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public override VariableName GetResolvedVariable(int column) {
 			return new VariableName(TableName,
-								DataTableDef[column].Name);
+								DataTableInfo[column].Name);
 		}
 
 		/// <inheritdoc/>

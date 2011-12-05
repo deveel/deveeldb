@@ -26,7 +26,7 @@ namespace Deveel.Data {
 		/// Returns the fully resolved table name.
 		/// </summary>
 		public TableName TableName {
-			get { return DataTableDef.TableName; }
+			get { return DataTableInfo.TableName; }
 		}
 
 		/// <inheritdoc/>

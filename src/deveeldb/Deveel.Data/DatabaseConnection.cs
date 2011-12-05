@@ -478,16 +478,16 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public ITableQueryDef GetTableQueryDef(TableName tableName, TableName aliasedAs) {
-			// Produce the data table def for this database object.
-			DataTableDef dtf = GetDataTableDef(tableName);
-			// If the table is aliased, set a new DataTableDef with the given name
+			// Produce the data table info for this database object.
+			DataTableInfo dtf = GetDataTableDef(tableName);
+			// If the table is aliased, set a new DataTableInfo with the given name
 			if (aliasedAs != null) {
-				dtf = new DataTableDef(dtf);
+				dtf = dtf.Clone();
 				dtf.TableName = aliasedAs;
 				dtf.SetImmutable();
 			}
-			DataTableDef data_table_def = dtf;
-			return new TableQueryDefImpl(this, data_table_def, tableName, aliasedAs);
+			DataTableInfo dataTableInfo = dtf;
+			return new TableQueryDefImpl(this, dataTableInfo, tableName, aliasedAs);
 
 		}
 
@@ -684,35 +684,35 @@ namespace Deveel.Data {
 
 
 		/// <summary>
-		/// A list of DataTableDef system table definitions for tables internal to
+		/// A list of DataTableInfo system table definitions for tables internal to
 		/// the database connection.
 		/// </summary>
-		private readonly static DataTableDef[] InternalDefList;
+		private readonly static DataTableInfo[] InternalInfoList;
 
 		static DatabaseConnection() {
-			InternalDefList = new DataTableDef[5];
-			InternalDefList[0] = GTStatisticsDataSource.DEF_DATA_TABLE_DEF;
-			InternalDefList[1] = GTConnectionInfoDataSource.DEF_DATA_TABLE_DEF;
-			InternalDefList[2] = GTCurrentConnectionsDataSource.DEF_DATA_TABLE_DEF;
-			InternalDefList[3] = GTSQLTypeInfoDataSource.DEF_DATA_TABLE_DEF;
-			InternalDefList[4] = GTPrivMapDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList = new DataTableInfo[5];
+			InternalInfoList[0] = GTStatisticsDataSource.InfoDataTableInfo;
+			InternalInfoList[1] = GTConnectionInfoDataSource.InfoDataTableInfo;
+			InternalInfoList[2] = GTCurrentConnectionsDataSource.InfoDataTableInfo;
+			InternalInfoList[3] = GTSQLTypeInfoDataSource.InfoDataTableInfo;
+			InternalInfoList[4] = GTPrivMapDataSource.InfoDataTableInfo;
 		}
 
 		private class TableQueryDefImpl : ITableQueryDef {
 			private readonly DatabaseConnection conn;
-			private readonly DataTableDef dataTableDef;
+			private readonly DataTableInfo dataTableInfo;
 			private readonly TableName tableName;
 			private readonly TableName aliasedAs;
 
-			public TableQueryDefImpl(DatabaseConnection conn, DataTableDef dataTableDef, TableName tableName, TableName aliasedAs) {
+			public TableQueryDefImpl(DatabaseConnection conn, DataTableInfo dataTableInfo, TableName tableName, TableName aliasedAs) {
 				this.conn = conn;
-				this.dataTableDef = dataTableDef;
+				this.dataTableInfo = dataTableInfo;
 				this.aliasedAs = aliasedAs;
 				this.tableName = tableName;
 			}
 
-			public DataTableDef DataTableDef {
-				get { return dataTableDef; }
+			public DataTableInfo DataTableInfo {
+				get { return dataTableInfo; }
 			}
 
 			public IQueryPlanNode QueryPlanNode {
@@ -728,7 +728,7 @@ namespace Deveel.Data {
 			private readonly DatabaseConnection conn;
 
 			public ConnectionInternalTableInfo(DatabaseConnection conn)
-				: base("SYSTEM TABLE", InternalDefList) {
+				: base("SYSTEM TABLE", InternalInfoList) {
 				this.conn = conn;
 			}
 

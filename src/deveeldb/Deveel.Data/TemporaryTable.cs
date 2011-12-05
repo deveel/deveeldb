@@ -27,9 +27,9 @@ namespace Deveel.Data {
 	/// </remarks>
 	public sealed class TemporaryTable : DefaultDataTable {
 		/// <summary>
-		/// The DataTableDef object that describes the columns in this table.
+		/// The DataTableInfo object that describes the columns in this table.
 		/// </summary>
-		private readonly DataTableDef table_def;
+		private readonly DataTableInfo tableInfo;
 
 		/// <summary>
 		/// A list that represents the storage of TObject[] arrays for each row of the table.
@@ -41,17 +41,17 @@ namespace Deveel.Data {
 		///<param name="database"></param>
 		///<param name="name"></param>
 		///<param name="fields"></param>
-		public TemporaryTable(Database database, String name, DataTableColumnDef[] fields)
+		public TemporaryTable(Database database, String name, DataTableColumnInfo[] fields)
 			: base(database) {
 
 			table_storage = new ArrayList();
 
-			table_def = new DataTableDef();
-			table_def.TableName = new TableName(null, name);
+			tableInfo = new DataTableInfo();
+			tableInfo.TableName = new TableName(null, name);
 			for (int i = 0; i < fields.Length; ++i) {
-				table_def.AddVirtualColumn(new DataTableColumnDef(fields[i]));
+				tableInfo.AddVirtualColumn(fields[i].Clone());
 			}
-			table_def.SetImmutable();
+			tableInfo.SetImmutable();
 		}
 
 		/// <summary>
@@ -63,9 +63,9 @@ namespace Deveel.Data {
 		public TemporaryTable(String name, Table based_on)
 			: base(based_on.Database) {
 
-			table_def = new DataTableDef(based_on.DataTableDef);
-			table_def.TableName = new TableName(null, name);
-			table_def.SetImmutable();
+			tableInfo = based_on.DataTableInfo.Clone();
+			tableInfo.TableName = new TableName(null, name);
+			tableInfo.SetImmutable();
 		}
 
 		/// <summary>
@@ -76,8 +76,8 @@ namespace Deveel.Data {
 		public TemporaryTable(Table based_on)
 			: base(based_on.Database) {
 
-			table_def = new DataTableDef(based_on.DataTableDef);
-			table_def.SetImmutable();
+			tableInfo = based_on.DataTableInfo.Clone();
+			tableInfo.SetImmutable();
 		}
 
 
@@ -231,8 +231,8 @@ namespace Deveel.Data {
 		/* ====== Methods that are implemented for Table interface ====== */
 
 		/// <inheritdoc/>
-		public override DataTableDef DataTableDef {
-			get { return table_def; }
+		public override DataTableInfo DataTableInfo {
+			get { return tableInfo; }
 		}
 
 		/// <inheritdoc/>
@@ -292,11 +292,11 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		internal static TemporaryTable SingleColumnTable(Database database, String col_name, Type c) {
 			TType ttype = TType.FromType(c);
-			DataTableColumnDef col_def = new DataTableColumnDef();
-			col_def.Name = col_name;
-			col_def.SetFromTType(ttype);
+			DataTableColumnInfo colInfo = new DataTableColumnInfo();
+			colInfo.Name = col_name;
+			colInfo.SetFromTType(ttype);
 			TemporaryTable table = new TemporaryTable(database, "single",
-												new DataTableColumnDef[] { col_def });
+												new DataTableColumnInfo[] { colInfo });
 
 			//      int type = TypeUtil.ToDbType(c);
 			//      TableField[] fields =

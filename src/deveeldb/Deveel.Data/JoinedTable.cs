@@ -57,10 +57,10 @@ namespace Deveel.Data {
 		private int sorted_against_column = -1;
 
 		/// <summary>
-		/// The <see cref="DataTableDef"/> object that describes the columns and name 
+		/// The <see cref="DataTableInfo"/> object that describes the columns and name 
 		/// of this table.
 		/// </summary>
-		private DataTableDef vt_table_def;
+		private DataTableInfo vtTableInfo;
 
 		/// <summary>
 		/// Incremented when the roots are locked.
@@ -106,7 +106,7 @@ namespace Deveel.Data {
 			int col_count = ColumnCount;
 			column_scheme = new SelectableScheme[col_count];
 
-			vt_table_def = new DataTableDef();
+			vtTableInfo = new DataTableInfo();
 
 			// Generate look up tables for column_table and column_filter information
 
@@ -116,7 +116,7 @@ namespace Deveel.Data {
 			for (int i = 0; i < reference_list.Length; ++i) {
 
 				Table cur_table = reference_list[i];
-				DataTableDef cur_table_def = cur_table.DataTableDef;
+				DataTableInfo curTableInfo = cur_table.DataTableInfo;
 				int ref_col_count = cur_table.ColumnCount;
 
 				// For each column
@@ -125,18 +125,16 @@ namespace Deveel.Data {
 					column_table[index] = i;
 					++index;
 
-					// Add this column to the data table def of this table.
-					vt_table_def.AddVirtualColumn(
-									 new DataTableColumnDef(cur_table_def[n]));
+					// Add this column to the data table info of this table.
+					vtTableInfo.AddVirtualColumn(curTableInfo[n].Clone());
 				}
-
 			}
 
-			// Final setup the DataTableDef for this virtual table
+			// Final setup the DataTableInfo for this virtual table
 
-			vt_table_def.TableName = new TableName(null, "#VIRTUAL TABLE#");
+			vtTableInfo.TableName = new TableName(null, "#VIRTUAL TABLE#");
 
-			vt_table_def.SetImmutable();
+			vtTableInfo.SetImmutable();
 
 		}
 
@@ -342,7 +340,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="DataTableDef"/> object that describes the 
+		/// Returns the <see cref="DataTableInfo"/> object that describes the 
 		/// columns in this table.
 		/// </summary>
 		/// <remarks>
@@ -350,8 +348,8 @@ namespace Deveel.Data {
 		/// the columns in the children in the order set. The name of a virtual table i
 		/// s the concat of all the parent table names. The schema is set to null.
 		/// </remarks>
-		public override DataTableDef DataTableDef {
-			get { return vt_table_def; }
+		public override DataTableInfo DataTableInfo {
+			get { return vtTableInfo; }
 		}
 
 		/// <inheritdoc/>

@@ -83,7 +83,7 @@ namespace Deveel.Data {
 		/// The DataTableInfo object that describes the columns in this function
 		/// table.
 		/// </summary>
-		private readonly DataTableDef fun_table_def;
+		private readonly DataTableInfo funTableInfo;
 
 		/// <summary>
 		/// A unique id given to this FunctionTable when it is created.  No two
@@ -157,14 +157,14 @@ namespace Deveel.Data {
 			cr_resolver = cross_ref_table.GetVariableResolver();
 			cr_resolver.SetId = 0;
 
-			// Create a DataTableDef object for this function table.
-			fun_table_def = new DataTableDef();
-			fun_table_def.TableName = FunctionTableName;
+			// Create a DataTableInfo object for this function table.
+			funTableInfo = new DataTableInfo();
+			funTableInfo.TableName = FunctionTableName;
 
 			exp_list = new Expression[in_exp_list.Length];
 			exp_info = new byte[in_exp_list.Length];
 
-			// Create a new DataTableColumnDef for each expression, and work out if the
+			// Create a new DataTableColumnInfo for each expression, and work out if the
 			// expression is simple or not.
 			for (int i = 0; i < in_exp_list.Length; ++i) {
 				Expression expr = in_exp_list[i];
@@ -180,15 +180,15 @@ namespace Deveel.Data {
 					exp_list[i] = expr;
 					exp_info[i] = 0;
 				}
-				// Make the column def
-				DataTableColumnDef column = new DataTableColumnDef();
+				// Make the column info
+				DataTableColumnInfo column = new DataTableColumnInfo();
 				column.Name = col_names[i];
 				column.SetFromTType(expr.ReturnTType(cr_resolver, context));
-				fun_table_def.AddVirtualColumn(column);
+				funTableInfo.AddVirtualColumn(column);
 			}
 
-			// Make sure the table def isn't changed from this point on.
-			fun_table_def.SetImmutable();
+			// Make sure the table info isn't changed from this point on.
+			funTableInfo.SetImmutable();
 
 			// Function tables are the size of the referring table.
 			row_count = cross_ref_table.RowCount;
@@ -216,8 +216,8 @@ namespace Deveel.Data {
 			get { return cross_ref_table; }
 		}
 
-		public override DataTableDef DataTableDef {
-			get { return fun_table_def; }
+		public override DataTableInfo DataTableInfo {
+			get { return funTableInfo; }
 		}
 
 		public override bool HasRootsLocked {
@@ -824,7 +824,7 @@ namespace Deveel.Data {
 						throw new ApplicationException("Can't find column: " + variable);
 					}
 
-					return tgr.table.ReferenceTable.DataTableDef[col_index].TType;
+					return tgr.table.ReferenceTable.DataTableInfo[col_index].TType;
 				}
 
 				#endregion

@@ -179,14 +179,14 @@ namespace Deveel.Data {
 			for (int i = 0; i < size; ++i) {
 				MasterTableDataSource master =
 										  (MasterTableDataSource)visible_tables[i];
-				DataTableDef table_def = master.DataTableDef;
+				DataTableInfo tableInfo = master.DataTableInfo;
 				if (ignore_case) {
-					if (table_def.TableName.EqualsIgnoreCase(table_name)) {
+					if (tableInfo.TableName.EqualsIgnoreCase(table_name)) {
 						return master;
 					}
 				} else {
 					// Not ignore case
-					if (table_def.TableName.Equals(table_name)) {
+					if (tableInfo.TableName.Equals(table_name)) {
 						return master;
 					}
 				}
@@ -267,7 +267,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="DataTableDef"/> for a dynamic table defined 
+		/// Returns the <see cref="DataTableInfo"/> for a dynamic table defined 
 		/// in this transaction.
 		/// </summary>
 		/// <param name="tableName"></param>
@@ -277,7 +277,7 @@ namespace Deveel.Data {
 		/// from an external data source)
 		/// </remarks>
 		/// <returns></returns>
-		protected virtual DataTableDef GetDynamicDataTableDef(TableName tableName) {
+		protected virtual DataTableInfo GetDynamicDataTableDef(TableName tableName) {
 			// By default, dynamic tables are not implemented.
 			throw new StatementException("Table '" + tableName + "' not found.");
 		}
@@ -495,14 +495,14 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="DataTableDef"/> for the table with the given 
+		/// Returns the <see cref="DataTableInfo"/> for the table with the given 
 		/// name that is visible within this transaction.
 		/// </summary>
 		/// <param name="table_name"></param>
 		/// <returns>
 		/// Returns null if table name doesn't refer to a table that exists.
 		/// </returns>
-		public DataTableDef GetDataTableDef(TableName table_name) {
+		public DataTableInfo GetDataTableDef(TableName table_name) {
 			// If this is a dynamic table then handle specially
 			if (IsDynamicTable(table_name)) {
 				return GetDynamicDataTableDef(table_name);
@@ -512,9 +512,9 @@ namespace Deveel.Data {
 				for (int i = 0; i < sz; ++i) {
 					MasterTableDataSource master =
 											 (MasterTableDataSource)visible_tables[i];
-					DataTableDef table_def = master.DataTableDef;
-					if (table_def.TableName.Equals(table_name)) {
-						return table_def;
+					DataTableInfo tableInfo = master.DataTableInfo;
+					if (tableInfo.TableName.Equals(table_name)) {
+						return tableInfo;
 					}
 				}
 				return null;
@@ -535,8 +535,8 @@ namespace Deveel.Data {
 			for (int i = 0; i < sz; ++i) {
 				MasterTableDataSource master =
 										 (MasterTableDataSource)visible_tables[i];
-				DataTableDef table_def = master.DataTableDef;
-				tables[i] = new TableName(table_def.Schema, table_def.Name);
+				DataTableInfo tableInfo = master.DataTableInfo;
+				tables[i] = new TableName(tableInfo.Schema, tableInfo.Name);
 			}
 
 			// Add any internal system tables to the list

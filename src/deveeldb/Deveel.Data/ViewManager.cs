@@ -172,15 +172,15 @@ namespace Deveel.Data {
 		/// If multiple views were found for the given view name.
 		/// </exception>
 		public void DefineView(ViewDef view, SqlQuery query, User user) {
-			DataTableDef data_table_def = view.DataTableDef;
+			DataTableInfo dataTableInfo = view.DataTableInfo;
 			DataTable view_table = connection.GetTable(Database.SysView);
 
-			TableName view_name = data_table_def.TableName;
+			TableName view_name = dataTableInfo.TableName;
 
 			// Create the view record
 			DataRow rdat = new DataRow(view_table);
-			rdat.SetValue(0, data_table_def.Schema);
-			rdat.SetValue(1, data_table_def.Name);
+			rdat.SetValue(0, dataTableInfo.Schema);
+			rdat.SetValue(1, dataTableInfo.Name);
 			rdat.SetValue(2, query.SerializeToBlob());
 			rdat.SetValue(3, view.SerializeToBlob());
 			rdat.SetValue(4, user.UserName);
@@ -388,9 +388,9 @@ namespace Deveel.Data {
 				return "VIEW";
 			}
 
-			public override DataTableDef GetDataTableDef(int i) {
+			public override DataTableInfo GetDataTableDef(int i) {
 				return GetViewDef(view_cache,
-				                  transaction.GetTable(Database.SysView), i).DataTableDef;
+				                  transaction.GetTable(Database.SysView), i).DataTableInfo;
 			}
 
 			public override IMutableTableDataSource CreateInternalTable(int i) {

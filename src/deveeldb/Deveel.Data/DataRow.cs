@@ -53,7 +53,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The definition of the table.
 		/// </summary>
-		private readonly DataTableDef tableDef;
+		private readonly DataTableInfo tableInfo;
 
 		/// <summary>
 		/// A list of TObject objects in the table.
@@ -86,8 +86,8 @@ namespace Deveel.Data {
 		internal DataRow(ITableDataSource table) {
 			system = table.System;
 			this.table = table;
-			tableDef = table.DataTableDef;
-			colCount = tableDef.ColumnCount;
+			tableInfo = table.DataTableInfo;
+			colCount = tableInfo.ColumnCount;
 			dataCellList = new TObject[colCount];
 		}
 
@@ -146,13 +146,13 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void SetValue(int column, object value) {
 			if (!typeof (TObject).IsInstanceOfType(value)) {
-				DataTableColumnDef col_def = tableDef[column];
+				DataTableColumnInfo colInfo = tableInfo[column];
 
 				if (value is String)
 					value = StringObject.FromString((string)value);
 
 				// Create a TObject from the given object to the given type
-				value = TObject.CreateAndCastFromObject(col_def.TType, value);
+				value = TObject.CreateAndCastFromObject(colInfo.TType, value);
 			}
 
 			SetValue(column, (TObject)value);
@@ -165,7 +165,7 @@ namespace Deveel.Data {
 		/// to set the value.</param>
 		/// <param name="value">The value to set for the column.</param>
 		public void SetValue(int column, TObject value) {
-			DataTableColumnDef col = tableDef[column];
+			DataTableColumnInfo col = tableInfo[column];
 			if (table != null && col.SqlType != value.TType.SQLType) {
 				// Cast the TObject
 				value = value.CastTo(col.TType);
@@ -187,8 +187,8 @@ namespace Deveel.Data {
 		///</summary>
 		///<param name="column"></param>
 		public void SetToNull(int column) {
-			DataTableColumnDef col_def = tableDef[column];
-			SetValue(column, new TObject(col_def.TType, null));
+			DataTableColumnInfo colInfo = tableInfo[column];
+			SetValue(column, new TObject(colInfo.TType, null));
 		}
 
 		///<summary>
@@ -198,8 +198,8 @@ namespace Deveel.Data {
 		///<param name="context"></param>
 		public void SetToDefault(int column, IQueryContext context) {
 			if (table != null) {
-				DataTableColumnDef columnDef = tableDef[column];
-				Expression exp = columnDef.GetDefaultExpression(system);
+				DataTableColumnInfo columnInfo = tableInfo[column];
+				Expression exp = columnInfo.GetDefaultExpression(system);
 				if (exp != null) {
 					TObject def_val = Evaluate(exp, context);
 					SetValue(column, def_val);
@@ -218,8 +218,8 @@ namespace Deveel.Data {
 		public TObject GetValue(int column) {
 			TObject cell = dataCellList[column];
 			if (cell == null) {
-				DataTableColumnDef colDef = tableDef[column];
-				cell = new TObject(colDef.TType, null);
+				DataTableColumnInfo colInfo = tableInfo[column];
+				cell = new TObject(colInfo.TType, null);
 			}
 			return cell;
 		}
@@ -238,7 +238,7 @@ namespace Deveel.Data {
 		///<param name="column"></param>
 		///<returns></returns>
 		public string GetColumnName(int column) {
-			return tableDef[column].Name;
+			return tableInfo[column].Name;
 		}
 
 		///<summary>
@@ -247,7 +247,7 @@ namespace Deveel.Data {
 		///<param name="columnName"></param>
 		///<returns></returns>
 		public int FindFieldName(string columnName) {
-			return tableDef.FindColumnName(columnName);
+			return tableInfo.FindColumnName(columnName);
 		}
 
 		/// <summary>
@@ -267,8 +267,8 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		private TObject Evaluate(Expression expression, IQueryContext context) {
 			bool ignoreCase = system.IgnoreIdentifierCase;
-			// Resolve any variables to the table_def for this expression.
-			tableDef.ResolveColumns(ignoreCase, expression);
+			// Resolve any variables to the DataTableInfo for this expression.
+			tableInfo.ResolveColumns(ignoreCase, expression);
 			// Get the variable resolver and evaluate over this data.
 			IVariableResolver vresolver = VariableResolver;
 			return expression.Evaluate(null, vresolver, context);
@@ -359,7 +359,7 @@ namespace Deveel.Data {
 					TObject ob = ((Expression)element).Evaluate(null, vresolver, context);
 					int tableColumn = colIndices[i];
 					// Cast the object to the type of the column
-					ob = ob.CastTo(tableDef[tableColumn].TType);
+					ob = ob.CastTo(tableInfo[tableColumn].TType);
 					// Set the column to the resolved value.
 					SetValue(tableColumn, ob);
 				} else {
@@ -439,7 +439,7 @@ namespace Deveel.Data {
 			public TObject Resolve(VariableName variable) {
 				string colName = variable.Name;
 
-				int colIndex = dataRow.tableDef.FindColumnName(colName);
+				int colIndex = dataRow.tableInfo.FindColumnName(colName);
 				if (colIndex == -1)
 					throw new ApplicationException("Can't find column: " + colName);
 
@@ -454,11 +454,11 @@ namespace Deveel.Data {
 			public TType ReturnTType(VariableName variable) {
 				string colName = variable.Name;
 
-				int colIndex = dataRow.tableDef.FindColumnName(colName);
+				int colIndex = dataRow.tableInfo.FindColumnName(colName);
 				if (colIndex == -1)
 					throw new ApplicationException("Can't find column: " + colName);
 
-				return dataRow.tableDef[colIndex].TType;
+				return dataRow.tableInfo[colIndex].TType;
 			}
 
 		}

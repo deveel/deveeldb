@@ -35,13 +35,13 @@ namespace Deveel.Data {
 		TransactionSystem System { get; }
 
 		/// <summary>
-		/// Returns a <see cref="DataTableDef"/> object that defines 
+		/// Returns a <see cref="DataTableInfo"/> object that defines 
 		/// the layout of the table that this data is in.
 		/// </summary>
 		/// <value>
 		/// This may return 'null' if there is no table definition.
 		/// </value>
-		DataTableDef DataTableDef { get; }
+		DataTableInfo DataTableInfo { get; }
 
 		///<summary>
 		/// Returns the number of rows in this data source.
