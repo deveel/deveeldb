@@ -459,13 +459,13 @@ namespace Deveel.Data {
 			out_table.Set(tabs, row_sets);
 
 			// Output this as debugging information
-			if (DEBUG_QUERY) {
+#if DEBUG
 				if (Debug.IsInterestedIn(DebugLevel.Information)) {
 					Debug.Write(DebugLevel.Information, this,
 					            out_table + " = " + this + ".MergeWithReference(" +
 					            ReferenceTable + ", " + max_column + " )");
 				}
-			}
+#endif
 
 			table = out_table;
 			return table;
@@ -563,38 +563,29 @@ namespace Deveel.Data {
 			return new SimpleRowEnumerator(row_count);
 		}
 
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			// Add a data table listener to the reference table.
-			// NOTE: This will cause the reference table to have the same listener
-			//   registered twice if the 'MergeWithReference' method is used.  While
-			//   this isn't perfect behaviour, it means if 'MergeWithReference' isn't
-			//   used, we still will be notified of changes in the reference table
-			//   which will alter the values in this table.
-			ReferenceTable.AddDataTableListener(listener);
-		}
+		// NOTE: This will cause the reference table to have the same listener
+		//   registered twice if the 'MergeWithReference' method is used.  While
+		//   this isn't perfect behaviour, it means if 'MergeWithReference' isn't
+		//   used, we still will be notified of changes in the reference table
+		//   which will alter the values in this table.
 
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			// Removes a data table listener to the reference table.
-			// ( see notes above... )
-			ReferenceTable.RemoveDataTableListener(listener);
-		}
 
-		public override void LockRoot(int lock_key) {
+		public override void LockRoot(int lockKey) {
 			// We Lock the reference table.
 			// NOTE: This cause the reference table to Lock twice when we use the
 			//  'MergeWithReference' method.  While this isn't perfect behaviour, it
 			//  means if 'MergeWithReference' isn't used, we still maintain a safe
 			//  level of locking.
-			ReferenceTable.LockRoot(lock_key);
+			ReferenceTable.LockRoot(lockKey);
 		}
 
-		public override void UnlockRoot(int lock_key) {
+		public override void UnlockRoot(int lockKey) {
 			// We unlock the reference table.
 			// NOTE: This cause the reference table to unlock twice when we use the
 			//  'MergeWithReference' method.  While this isn't perfect behaviour, it
 			//  means if 'MergeWithReference' isn't used, we still maintain a safe
 			//  level of locking.
-			ReferenceTable.UnlockRoot(lock_key);
+			ReferenceTable.UnlockRoot(lockKey);
 		}
 
 		// ---------- Convenience statics ----------

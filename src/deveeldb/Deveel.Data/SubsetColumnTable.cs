@@ -97,7 +97,7 @@ namespace Deveel.Data {
 
 			for (int i = 0; i < mapping.Length; ++i) {
 				int map_to = mapping[i];
-				DataTableColumnInfo colInfo = parent.GetColumnDef(map_to).Clone();
+				DataTableColumnInfo colInfo = parent.GetColumn(map_to).Clone();
 				colInfo.Name = aliases[i].Name;
 				subsetTableInfo.AddVirtualColumn(colInfo);
 				reverse_column_map[map_to] = i;
@@ -132,15 +132,15 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 
 			// We need to map the original_column if the original column is a reference
 			// in this subset column table.  Otherwise we leave as is.
 			// The reason is because FilterTable pretends the call came from its
 			// parent if a request is made on this table.
-			int mapped_original_column = original_column;
+			int mapped_original_column = originalColumn;
 			if (table == this) {
-				mapped_original_column = column_map[original_column];
+				mapped_original_column = column_map[originalColumn];
 			}
 
 			return base.GetSelectableSchemeFor(column_map[column],
@@ -148,10 +148,10 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
+		internal override void SetToRowTableDomain(int column, IntegerVector rowSet,
 									   ITableDataSource ancestor) {
 
-			base.SetToRowTableDomain(column_map[column], row_set, ancestor);
+			base.SetToRowTableDomain(column_map[column], rowSet, ancestor);
 		}
 
 		/// <inheritdoc/>

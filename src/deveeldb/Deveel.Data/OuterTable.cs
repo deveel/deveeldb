@@ -106,7 +106,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column,
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn,
 												Table table) {
 
 			if (column_scheme[column] == null) {
@@ -118,7 +118,7 @@ namespace Deveel.Data {
 			if (table == this) {
 				return column_scheme[column];
 			} else {
-				return column_scheme[column].GetSubsetScheme(table, original_column);
+				return column_scheme[column].GetSubsetScheme(table, originalColumn);
 			}
 
 		}
@@ -133,7 +133,7 @@ namespace Deveel.Data {
 			} else {
 				if (outer_rows[table_num] == null) {
 					// Special case, handling outer entries (NULL)
-					return new TObject(GetColumnDef(column).TType, null);
+					return new TObject(GetColumn(column).TType, null);
 				} else {
 					row = outer_rows[table_num][row];
 					return parent_table.GetCellContents(column_filter[column], row);

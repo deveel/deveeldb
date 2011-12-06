@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 
@@ -1043,7 +1044,7 @@ namespace Deveel.Data {
 				// What version is the data?
 				DataTable database_vars =
 					connection.GetTable(TableDataConglomerate.PersistentVarTable);
-				IDictionary vars = database_vars.ToDictionary();
+				IDictionary<string, object> vars = database_vars.ToDictionary();
 				String db_version = vars["database.version"].ToString();
 				// If the version doesn't equal the current version, throw an error.
 				if (!db_version.Equals("1.4")) {

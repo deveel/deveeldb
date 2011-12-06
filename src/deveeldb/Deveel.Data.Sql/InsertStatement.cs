@@ -122,7 +122,7 @@ namespace Deveel.Data.Sql {
 				// table.
 				if (col_list.Count == 0) {
 					for (int i = 0; i < insert_table.ColumnCount; ++i) {
-						col_list.Add(insert_table.GetColumnDef(i).Name);
+						col_list.Add(insert_table.GetColumn(i).Name);
 					}
 				}
 				// Resolve 'col_list' into a list of column indices into the insert

@@ -838,7 +838,7 @@ namespace Deveel.Data.Protocol {
 						// This means the column is an schema/table/column reference
 						field_name = "@f" + v.ToString();
 					}
-					col_desc[i] = table.GetColumnDef(i).ColumnDescriptionValue(field_name);
+					col_desc[i] = table.GetColumn(i).ColumnDescriptionValue(field_name);
 					//        col_desc[i] = new ColumnDescription(field_name, table.getFieldAt(i));
 				}
 

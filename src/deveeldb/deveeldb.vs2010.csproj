@@ -371,7 +371,6 @@
     <Compile Include="Deveel.Data\ICursorContext.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\IDatabaseProcedure.cs" />
-    <Compile Include="Deveel.Data\IDataTableListener.cs" />
     <Compile Include="Deveel.Data\IExpressionPreparer.cs" />
     <Compile Include="Deveel.Data\IGroupResolver.cs" />
     <Compile Include="Deveel.Data\IIndexSet.cs" />
@@ -458,6 +457,9 @@
     <Compile Include="Deveel.Data\TableFunctions.cs" />
     <Compile Include="Deveel.Data\TableModificationEvent.cs" />
     <Compile Include="Deveel.Data\TableName.cs" />
+    <Compile Include="Deveel.Data\Table_Join.cs" />
+    <Compile Include="Deveel.Data\Table_Order.cs" />
+    <Compile Include="Deveel.Data\Table_Select.cs" />
     <Compile Include="Deveel.Data\TArrayType.cs" />
     <Compile Include="Deveel.Data\TBinaryType.cs" />
     <Compile Include="Deveel.Data\TBooleanType.cs" />

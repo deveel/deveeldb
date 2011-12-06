@@ -251,23 +251,13 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			// Nothing to be notified on with a Temporary table...
-		}
-
-		/// <inheritdoc/>
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			// No listeners can be in a TemporaryTable.
-		}
-
-		/// <inheritdoc/>
-		public override void LockRoot(int lock_key) {
+		public override void LockRoot(int lockKey) {
 			// We don't need to do anything for temporary tables, because they have
 			// no root to Lock.
 		}
 
 		/// <inheritdoc/>
-		public override void UnlockRoot(int lock_key) {
+		public override void UnlockRoot(int lockKey) {
 			// We don't need to do anything for temporary tables, because they have
 			// no root to unlock.
 		}

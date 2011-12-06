@@ -156,7 +156,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 
 			SelectableScheme scheme = column_scheme[column];
 			if (scheme == null) {
@@ -171,12 +171,12 @@ namespace Deveel.Data {
 			}
 				// Otherwise, get the scheme to calculate a subset of the given scheme.
 			else {
-				return scheme.GetSubsetScheme(table, original_column);
+				return scheme.GetSubsetScheme(table, originalColumn);
 			}
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
+		internal override void SetToRowTableDomain(int column, IntegerVector rowSet,
 								 ITableDataSource ancestor) {
 			if (ancestor != this) {
 				throw new Exception("Method routed to incorrect table ancestor.");
@@ -214,35 +214,22 @@ namespace Deveel.Data {
 			return new SimpleRowEnumerator(RowCount);
 		}
 
-		/// <inheritdoc/>
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			for (int i = 0; i < composite_tables.Length; ++i) {
-				composite_tables[i].AddDataTableListener(listener);
-			}
-		}
 
 		/// <inheritdoc/>
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			for (int i = 0; i < composite_tables.Length; ++i) {
-				composite_tables[i].RemoveDataTableListener(listener);
-			}
-		}
-
-		/// <inheritdoc/>
-		public override void LockRoot(int lock_key) {
+		public override void LockRoot(int lockKey) {
 			// For each table, recurse.
 			roots_locked++;
 			for (int i = 0; i < composite_tables.Length; ++i) {
-				composite_tables[i].LockRoot(lock_key);
+				composite_tables[i].LockRoot(lockKey);
 			}
 		}
 
 		/// <inheritdoc/>
-		public override void UnlockRoot(int lock_key) {
+		public override void UnlockRoot(int lockKey) {
 			// For each table, recurse.
 			roots_locked--;
 			for (int i = 0; i < composite_tables.Length; ++i) {
-				composite_tables[i].UnlockRoot(lock_key);
+				composite_tables[i].UnlockRoot(lockKey);
 			}
 		}
 

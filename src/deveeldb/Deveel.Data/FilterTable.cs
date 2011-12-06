@@ -86,7 +86,7 @@ namespace Deveel.Data {
 			return parent.GetResolvedVariable(column);
 		}
 
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 			if (column_scheme == null) {
 				column_scheme = new SelectableScheme[parent.ColumnCount];
 			}
@@ -102,7 +102,7 @@ namespace Deveel.Data {
 				}
 
 				// Scheme is not cached in this table so ask the parent.
-				scheme = parent.GetSelectableSchemeFor(column, original_column, t);
+				scheme = parent.GetSelectableSchemeFor(column, originalColumn, t);
 				if (table == this) {
 					column_scheme[column] = scheme;
 				}
@@ -113,18 +113,18 @@ namespace Deveel.Data {
 					return scheme;
 				} else {
 					// Otherwise we must calculate the subset of the scheme
-					return scheme.GetSubsetScheme(table, original_column);
+					return scheme.GetSubsetScheme(table, originalColumn);
 				}
 			}
 			return scheme;
 		}
 
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
+		internal override void SetToRowTableDomain(int column, IntegerVector rowSet,
 		                                           ITableDataSource ancestor) {
 			if (ancestor == this || ancestor == parent) {
 				return;
 			} else {
-				parent.SetToRowTableDomain(column, row_set, ancestor);
+				parent.SetToRowTableDomain(column, rowSet, ancestor);
 			}
 		}
 
@@ -140,20 +140,12 @@ namespace Deveel.Data {
 			return parent.GetRowEnumerator();
 		}
 
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			parent.AddDataTableListener(listener);
+		public override void LockRoot(int lockKey) {
+			parent.LockRoot(lockKey);
 		}
 
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			parent.RemoveDataTableListener(listener);
-		}
-
-		public override void LockRoot(int lock_key) {
-			parent.LockRoot(lock_key);
-		}
-
-		public override void UnlockRoot(int lock_key) {
-			parent.UnlockRoot(lock_key);
+		public override void UnlockRoot(int lockKey) {
+			parent.UnlockRoot(lockKey);
 		}
 
 

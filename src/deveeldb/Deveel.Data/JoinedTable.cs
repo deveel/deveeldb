@@ -231,7 +231,7 @@ namespace Deveel.Data {
 		/// <see cref="VirtualTable"/> row domain.
 		/// </summary>
 		/// <param name="column"></param>
-		/// <param name="original_column"></param>
+		/// <param name="originalColumn"></param>
 		/// <param name="table"></param>
 		/// <remarks>
 		/// This searches down through the tables ancestors until it comes across a table 
@@ -239,7 +239,7 @@ namespace Deveel.Data {
 		/// In most cases, this will be the root <see cref="DataTable"/>.
 		/// </remarks>
 		/// <returns></returns>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 
 			// First check if the given SelectableScheme is in the column_scheme array
 			SelectableScheme scheme = column_scheme[column];
@@ -247,7 +247,7 @@ namespace Deveel.Data {
 				if (table == this) {
 					return scheme;
 				} else {
-					return scheme.GetSubsetScheme(table, original_column);
+					return scheme.GetSubsetScheme(table, originalColumn);
 				}
 			}
 
@@ -264,7 +264,7 @@ namespace Deveel.Data {
 				ss = isop;
 				column_scheme[column] = ss;
 				if (table != this) {
-					ss = ss.GetSubsetScheme(table, original_column);
+					ss = ss.GetSubsetScheme(table, originalColumn);
 				}
 
 			} else {
@@ -272,7 +272,7 @@ namespace Deveel.Data {
 				// a parent index.
 				Table parent_table = reference_list[column_table[column]];
 				ss = parent_table.GetSelectableSchemeFor(
-										 column_filter[column], original_column, table);
+										 column_filter[column], originalColumn, table);
 				if (table == this) {
 					column_scheme[column] = ss;
 				}
@@ -282,7 +282,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set, ITableDataSource ancestor) {
+		internal override void SetToRowTableDomain(int column, IntegerVector rowSet, ITableDataSource ancestor) {
 			if (ancestor == this)
 				return;
 
@@ -290,9 +290,9 @@ namespace Deveel.Data {
 			Table parent_table = reference_list[table_num];
 
 			// Resolve the rows into the parents indices.  (MANGLES row_set)
-			ResolveAllRowsForTableAt(row_set, table_num);
+			ResolveAllRowsForTableAt(rowSet, table_num);
 
-			parent_table.SetToRowTableDomain(column_filter[column], row_set, ancestor);
+			parent_table.SetToRowTableDomain(column_filter[column], rowSet, ancestor);
 		}
 
 		/// <summary>
@@ -365,36 +365,22 @@ namespace Deveel.Data {
 			return new SimpleRowEnumerator(RowCount);
 		}
 
-		/// <inheritdoc/>
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].AddDataTableListener(listener);
-			}
-		}
 
 		/// <inheritdoc/>
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].RemoveDataTableListener(listener);
-			}
-		}
-
-
-		/// <inheritdoc/>
-		public override void LockRoot(int lock_key) {
+		public override void LockRoot(int lockKey) {
 			// For each table, recurse.
 			roots_locked++;
 			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].LockRoot(lock_key);
+				reference_list[i].LockRoot(lockKey);
 			}
 		}
 
 		/// <inheritdoc/>
-		public override void UnlockRoot(int lock_key) {
+		public override void UnlockRoot(int lockKey) {
 			// For each table, recurse.
 			roots_locked--;
 			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].UnlockRoot(lock_key);
+				reference_list[i].UnlockRoot(lockKey);
 			}
 		}
 

@@ -162,7 +162,7 @@ namespace Deveel.Data {
 
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column,
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn,
 												Table table) {
 			SelectableScheme scheme = GetRootColumnScheme(column);
 
@@ -177,11 +177,11 @@ namespace Deveel.Data {
 				return scheme;
 
 			// Otherwise, get the scheme to calculate a subset of the given scheme.
-			return scheme.GetSubsetScheme(table, original_column);
+			return scheme.GetSubsetScheme(table, originalColumn);
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
+		internal override void SetToRowTableDomain(int column, IntegerVector rowSet,
 								 ITableDataSource ancestor) {
 			if (ancestor != this) {
 				throw new Exception("Method routed to incorrect table ancestor.");

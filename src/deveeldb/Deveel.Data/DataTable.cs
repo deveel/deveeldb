@@ -255,24 +255,10 @@ namespace Deveel.Data {
 			return dataSource.GetColumnScheme(column);
 		}
 
-		/// <inheritdoc/>
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			// Currently we do nothing with this info.
-		}
-
-
-		/// <inheritdoc/>
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			// Currently we do nothing with this info.
-		}
-
-
-
-
 		// -------- Methods implemented for DefaultDataTable --------
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set, ITableDataSource ancestor) {
+		internal override void SetToRowTableDomain(int column, IntegerVector rowSet, ITableDataSource ancestor) {
 			CheckReadLock();  // Read op
 
 			if (ancestor != this && ancestor != dataSource) {
@@ -324,10 +310,10 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 			CheckReadLock();  // Read op
 
-			return base.GetSelectableSchemeFor(column, original_column, table);
+			return base.GetSelectableSchemeFor(column, originalColumn, table);
 		}
 
 		/// <inheritdoc/>
@@ -747,14 +733,14 @@ namespace Deveel.Data {
 
 
 		/// <inheritdoc/>
-		public override void LockRoot(int lock_key) {
+		public override void LockRoot(int lockKey) {
 			CheckSafeOperation();  // safe op
 
 			dataSource.AddRootLock();
 		}
 
 		/// <inheritdoc/>
-		public override void UnlockRoot(int lock_key) {
+		public override void UnlockRoot(int lockKey) {
 			CheckSafeOperation();  // safe op
 
 			dataSource.RemoveRootLock();
