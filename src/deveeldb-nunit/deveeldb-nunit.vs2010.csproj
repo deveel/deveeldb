@@ -56,7 +56,6 @@
     <Compile Include="Deveel.Data\CaseTest.cs" />
     <Compile Include="Deveel.Data\CreateDatabaseTest.cs" />
     <Compile Include="Deveel.Data\CursorTest.cs" />
-    <Compile Include="Deveel.Data\ExpressionTest.cs" />
     <Compile Include="Deveel.Data\OperatorTest.cs" />
     <Compile Include="Deveel.Data\PerformanceTest.cs" />
     <Compile Include="Deveel.Data\QueryTest.cs" />

@@ -136,14 +136,13 @@ namespace Deveel.Data.Functions {
 		/// If this returns an empty list, then the function has no input elements at 
 		/// all. (something like: <c>upper(user())</c>)
 		/// </remarks>
-		public virtual IList AllElements {
+		public virtual IList<object> AllElements {
 			get {
-				ArrayList result_list = new ArrayList();
-				for (int i = 0; i < parameters.Length; ++i) {
-					IList l = parameters[i].AllElements;
-					result_list.AddRange(l);
+				List<object> resultList = new List<object>();
+				foreach (Expression parameter in parameters) {
+					resultList.AddRange(parameter.AllElements);
 				}
-				return result_list;
+				return resultList;
 			}
 		}
 
@@ -157,17 +156,15 @@ namespace Deveel.Data.Functions {
 		/// </remarks>
 		/// <returns></returns>
 		public bool IsAggregate(IQueryContext context) {
-			if (is_aggregate) {
+			if (is_aggregate)
 				return true;
-			} else {
-				// Check if arguments are aggregates
-				for (int i = 0; i < parameters.Length; ++i) {
-					Expression exp = parameters[i];
-					if (exp.HasAggregateFunction(context)) {
-						return true;
-					}
-				}
+
+			// Check if arguments are aggregates
+			foreach (Expression parameter in parameters) {
+				if (parameter.HasAggregateFunction(context))
+					return true;
 			}
+
 			return false;
 		}
 
@@ -181,8 +178,8 @@ namespace Deveel.Data.Functions {
 		/// to <i>number</i> may become <i>APP.Table.NUMBER</i>.
 		/// </remarks>
 		public void PrepareParameters(IExpressionPreparer preparer) {
-			for (int i = 0; i < parameters.Length; ++i) {
-				parameters[i].Prepare(preparer);
+			foreach (Expression parameter in parameters) {
+				parameter.Prepare(preparer);
 			}
 		}
 

@@ -15,7 +15,6 @@
 
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -821,8 +820,8 @@ namespace Deveel.Data {
 		 */
 
 		private static void ClearAllGrants(DatabaseConnection connection) {
-			DataTable grant_table = connection.GetTable(SysGrants);
-			grant_table.Delete(grant_table);
+			DataTable grantTable = connection.GetTable(SysGrants);
+			grantTable.Delete(grantTable);
 		}
 
 		/// <summary>

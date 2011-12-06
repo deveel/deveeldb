@@ -27,7 +27,7 @@ namespace Deveel.Data {
 	/// This object is used as a marker in the elements of a expression.
 	/// </remarks>
 	[Serializable]
-	public class ParameterSubstitution {
+	public class ParameterSubstitution : IExpressionElement {
 		/// <summary>
 		/// The zero-based numerical number of this parameter substitution.
 		/// </summary>

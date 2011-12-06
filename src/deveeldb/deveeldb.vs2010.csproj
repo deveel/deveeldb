@@ -124,6 +124,8 @@
     <Compile Include="Deveel.Data\DatabaseConnection_Variables.cs" />
     <Compile Include="Deveel.Data\DatabaseConnection_Views.cs" />
     <Compile Include="Deveel.Data\Database_Users.cs" />
+    <Compile Include="Deveel.Data\ExpressionDebuggerProxy.cs" />
+    <Compile Include="Deveel.Data\IExpressionElement.cs" />
     <Compile Include="Deveel.Data\ParemeterStyle.cs" />
     <Compile Include="Deveel.Data.Client\ProtocolConstants.cs" />
     <Compile Include="Deveel.Data.Client\RemoteDatabaseInterface.cs" />
@@ -348,7 +350,6 @@
     <Compile Include="Deveel.Data\DataTableInfo.cs" />
     <Compile Include="Deveel.Data\DbType.cs" />
     <Compile Include="Deveel.Data\DefaultDataTable.cs" />
-    <Compile Include="Deveel.Data\DumpHelper.cs" />
     <Compile Include="Deveel.Data\Expression.cs" />
     <Compile Include="Deveel.Data\FetchOrientation.cs" />
     <Compile Include="Deveel.Data\FilterTable.cs" />

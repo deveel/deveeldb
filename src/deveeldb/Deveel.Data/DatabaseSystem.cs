@@ -139,12 +139,12 @@ namespace Deveel.Data {
 				}
 
 				// The maximum number of worker threads.
-				int max_worker_threads = config.GetIntegerValue("maximum_worker_threads", 4);
-				if (max_worker_threads <= 0)
-					max_worker_threads = 1;
+				int maxWorkerThreads = config.GetIntegerValue("maximum_worker_threads", 4);
+				if (maxWorkerThreads <= 0)
+					maxWorkerThreads = 1;
 
-				Debug.Write(DebugLevel.Message, typeof (DatabaseSystem), "Max worker threads set to: " + max_worker_threads);
-				workerPool = new WorkerPool(this, max_worker_threads);
+				Debug.Write(DebugLevel.Message, typeof (DatabaseSystem), "Max worker threads set to: " + maxWorkerThreads);
+				workerPool = new WorkerPool(this, maxWorkerThreads);
 
 				// Should we be logging commands?
 				queryLogging = config.GetBooleanValue("query_logging", false);
@@ -273,7 +273,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		#region Nested type: ShutdownThread
+		#region ShutdownThread
 
 		/// <summary>
 		/// The shut down thread.  Started when 'shutDown' is called.
