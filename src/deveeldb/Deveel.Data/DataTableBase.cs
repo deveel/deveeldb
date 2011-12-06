@@ -30,7 +30,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public bool TypeEquals(IRootTable table) {
+		bool IRootTable.TypeEquals(IRootTable table) {
 			if (table is DataTableBase) {
 				DataTableBase dest = (DataTableBase)table;
 				return (TableName.Equals(dest.TableName));

@@ -37,12 +37,12 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The schemes to describe the entity relation in the given column.
 		/// </summary>
-		private SelectableScheme[] column_scheme;
+		private SelectableScheme[] columnScheme;
 
 		/// <summary>
 		/// The Table we are filtering the columns from.
 		/// </summary>
-		protected Table parent;
+		protected readonly Table parent;
 
 		///<summary>
 		///</summary>
@@ -87,45 +87,40 @@ namespace Deveel.Data {
 		}
 
 		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
-			if (column_scheme == null) {
-				column_scheme = new SelectableScheme[parent.ColumnCount];
-			}
+			if (columnScheme == null)
+				columnScheme = new SelectableScheme[parent.ColumnCount];
 
 			// Is there a local scheme available?
-			SelectableScheme scheme = column_scheme[column];
+			SelectableScheme scheme = columnScheme[column];
 			if (scheme == null) {
 				// If we are asking for the selectable schema of this table we must
 				// tell the parent we are looking for its selectable scheme.
 				Table t = table;
-				if (table == this) {
+				if (table == this)
 					t = parent;
-				}
 
 				// Scheme is not cached in this table so ask the parent.
 				scheme = parent.GetSelectableSchemeFor(column, originalColumn, t);
-				if (table == this) {
-					column_scheme[column] = scheme;
-				}
+				if (table == this)
+					columnScheme[column] = scheme;
 			} else {
 				// If this has a cached scheme and we are in the correct domain then
 				// return it.
-				if (table == this) {
+				if (table == this)
 					return scheme;
-				} else {
-					// Otherwise we must calculate the subset of the scheme
-					return scheme.GetSubsetScheme(table, originalColumn);
-				}
+
+				// Otherwise we must calculate the subset of the scheme
+				return scheme.GetSubsetScheme(table, originalColumn);
 			}
+
 			return scheme;
 		}
 
-		internal override void SetToRowTableDomain(int column, IntegerVector rowSet,
-		                                           ITableDataSource ancestor) {
-			if (ancestor == this || ancestor == parent) {
+		internal override void SetToRowTableDomain(int column, IntegerVector rowSet, ITableDataSource ancestor) {
+			if (ancestor == this || ancestor == parent)
 				return;
-			} else {
-				parent.SetToRowTableDomain(column, rowSet, ancestor);
-			}
+
+			parent.SetToRowTableDomain(column, rowSet, ancestor);
 		}
 
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
@@ -150,16 +145,14 @@ namespace Deveel.Data {
 
 
 		public override void PrintGraph(TextWriter output, int indent) {
-			for (int i = 0; i < indent; ++i) {
+			for (int i = 0; i < indent; ++i)
 				output.Write(' ');
-			}
 			output.WriteLine("F[" + GetType());
 
 			parent.PrintGraph(output, indent + 2);
 
-			for (int i = 0; i < indent; ++i) {
+			for (int i = 0; i < indent; ++i)
 				output.Write(' ');
-			}
 			output.WriteLine("]");
 		}
 	}

@@ -37,7 +37,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// This represents the new name of the table.
 		/// </summary>
-		private readonly TableName table_name;
+		private readonly TableName tableName;
 
 		/// <summary>
 		/// The modified DataTableInfo object for this reference.
@@ -45,13 +45,13 @@ namespace Deveel.Data {
 		private readonly DataTableInfo modifiedTableInfo;
 
 
-		internal ReferenceTable(Table table, TableName tname)
+		internal ReferenceTable(Table table, TableName tableName)
 			: base(table) {
-			table_name = tname;
+			this.tableName = tableName;
 
 			// Create a modified table info based on the parent info.
 			modifiedTableInfo = table.DataTableInfo.Clone();
-			modifiedTableInfo.TableName = tname;
+			modifiedTableInfo.TableName = tableName;
 			modifiedTableInfo.SetImmutable();
 		}
 
@@ -71,7 +71,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal ReferenceTable(Table table, DataTableInfo info)
 			: base(table) {
-			table_name = info.TableName;
+			tableName = info.TableName;
 
 			modifiedTableInfo = info;
 		}
@@ -80,7 +80,7 @@ namespace Deveel.Data {
 		/// Gets the declared name of the table.
 		/// </summary>
 		public TableName TableName {
-			get { return table_name; }
+			get { return tableName; }
 		}
 
 		/// <inheritdoc/>
@@ -90,21 +90,19 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override int FindFieldName(VariableName v) {
-			TableName table_name = v.TableName;
-			if (table_name != null && table_name.Equals(TableName)) {
+			TableName otherTableName = v.TableName;
+			if (otherTableName != null && otherTableName.Equals(TableName))
 				return DataTableInfo.FastFindColumnName(v.Name);
-			}
 			return -1;
 		}
 
 		/// <inheritdoc/>
 		public override VariableName GetResolvedVariable(int column) {
-			return new VariableName(TableName,
-								DataTableInfo[column].Name);
+			return new VariableName(TableName, DataTableInfo[column].Name);
 		}
 
 		/// <inheritdoc/>
-		public bool TypeEquals(IRootTable table) {
+		bool IRootTable.TypeEquals(IRootTable table) {
 			return (this == table);
 		}
 	}

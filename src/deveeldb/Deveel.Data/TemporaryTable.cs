@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -34,23 +34,24 @@ namespace Deveel.Data {
 		/// <summary>
 		/// A list that represents the storage of TObject[] arrays for each row of the table.
 		/// </summary>
-		private readonly ArrayList table_storage;
+		private readonly List<TObject[]> tableStorage;
 
 		///<summary>
 		///</summary>
 		///<param name="database"></param>
 		///<param name="name"></param>
 		///<param name="fields"></param>
-		public TemporaryTable(Database database, String name, DataTableColumnInfo[] fields)
+		public TemporaryTable(Database database, string name, DataTableColumnInfo[] fields)
 			: base(database) {
 
-			table_storage = new ArrayList();
+			tableStorage = new List<TObject[]>();
 
 			tableInfo = new DataTableInfo();
 			tableInfo.TableName = new TableName(null, name);
 			for (int i = 0; i < fields.Length; ++i) {
 				tableInfo.AddVirtualColumn(fields[i].Clone());
 			}
+
 			tableInfo.SetImmutable();
 		}
 
@@ -59,11 +60,11 @@ namespace Deveel.Data {
 		/// fields from the given <see cref="Table"/> object.
 		/// </summary>
 		/// <param name="name"></param>
-		/// <param name="based_on"></param>
-		public TemporaryTable(String name, Table based_on)
-			: base(based_on.Database) {
+		/// <param name="basedOn"></param>
+		public TemporaryTable(string name, Table basedOn)
+			: base(basedOn.Database) {
 
-			tableInfo = based_on.DataTableInfo.Clone();
+			tableInfo = basedOn.DataTableInfo.Clone();
 			tableInfo.TableName = new TableName(null, name);
 			tableInfo.SetImmutable();
 		}
@@ -72,11 +73,11 @@ namespace Deveel.Data {
 		/// Constructs this <see cref="TemporaryTable"/> based on the given 
 		/// <see cref="Table"/> object.
 		/// </summary>
-		/// <param name="based_on"></param>
-		public TemporaryTable(Table based_on)
-			: base(based_on.Database) {
+		/// <param name="basedOn"></param>
+		public TemporaryTable(Table basedOn)
+			: base(basedOn.Database) {
 
-			tableInfo = based_on.DataTableInfo.Clone();
+			tableInfo = basedOn.DataTableInfo.Clone();
 			tableInfo.SetImmutable();
 		}
 
@@ -88,10 +89,10 @@ namespace Deveel.Data {
 		/// Resolves the given column name (eg 'id' or 'Customer.id' or 
 		/// 'default.Customer.id') to a column in this table.
 		/// </summary>
-		/// <param name="col_name"></param>
+		/// <param name="columnName"></param>
 		/// <returns></returns>
-		private VariableName ResolveToVariable(String col_name) {
-			VariableName partial = VariableName.Resolve(col_name);
+		private VariableName ResolveToVariable(string columnName) {
+			VariableName partial = VariableName.Resolve(columnName);
 			return partial;
 			//    return partial.ResolveTableName(TableName.Resolve(Name));
 		}
@@ -100,7 +101,7 @@ namespace Deveel.Data {
 		/// Creates a new row where cells can be inserted into.
 		/// </summary>
 		public void NewRow() {
-			table_storage.Add(new TObject[ColumnCount]);
+			tableStorage.Add(new TObject[ColumnCount]);
 			SetRowCount(RowCount + 1);
 		}
 
@@ -111,7 +112,7 @@ namespace Deveel.Data {
 		///<param name="column"></param>
 		///<param name="row"></param>
 		public void SetRowCell(TObject cell, int column, int row) {
-			TObject[] cells = (TObject[])table_storage[row];
+			TObject[] cells = tableStorage[row];
 			cells[column] = cell;
 		}
 
@@ -120,9 +121,9 @@ namespace Deveel.Data {
 		/// the given <see cref="TObject"/>.
 		///</summary>
 		///<param name="cell"></param>
-		///<param name="col_name"></param>
-		public void SetRowCell(TObject cell, String col_name) {
-			VariableName v = ResolveToVariable(col_name);
+		///<param name="columnName"></param>
+		public void SetRowCell(TObject cell, string columnName) {
+			VariableName v = ResolveToVariable(columnName);
 			SetRowCell(cell, FindFieldName(v), RowCount - 1);
 		}
 
@@ -131,10 +132,10 @@ namespace Deveel.Data {
 		/// the given TObject.
 		///</summary>
 		///<param name="ob"></param>
-		///<param name="col_index"></param>
-		///<param name="row"></param>
-		public void SetRowObject(TObject ob, int col_index, int row) {
-			SetRowCell(ob, col_index, row);
+		///<param name="columnIndex"></param>
+		///<param name="rowIndex"></param>
+		public void SetRowObject(TObject ob, int columnIndex, int rowIndex) {
+			SetRowCell(ob, columnIndex, rowIndex);
 		}
 
 		///<summary>
@@ -142,9 +143,9 @@ namespace Deveel.Data {
 		/// the given TObject.
 		///</summary>
 		///<param name="ob"></param>
-		///<param name="col_name"></param>
-		public void SetRowObject(TObject ob, String col_name) {
-			VariableName v = ResolveToVariable(col_name);
+		///<param name="columnName"></param>
+		public void SetRowObject(TObject ob, string columnName) {
+			VariableName v = ResolveToVariable(columnName);
 			SetRowObject(ob, FindFieldName(v));
 		}
 
@@ -153,23 +154,22 @@ namespace Deveel.Data {
 		/// the given TObject.
 		///</summary>
 		///<param name="ob"></param>
-		///<param name="col_index"></param>
-		public void SetRowObject(TObject ob, int col_index) {
-			SetRowObject(ob, col_index, RowCount - 1);
+		///<param name="columnIndex"></param>
+		public void SetRowObject(TObject ob, int columnIndex) {
+			SetRowObject(ob, columnIndex, RowCount - 1);
 		}
 
 		/// <summary>
-		/// Copies the cell from the given table (src_col, src_row) to the 
-		/// last row of the column specified of this table.
+		/// Copies the cell from the given table (srcColumnIndex, srcRowIndex) 
+		/// to the last row of the column specified of this table.
 		/// </summary>
 		/// <param name="table"></param>
-		/// <param name="src_col"></param>
-		/// <param name="src_row"></param>
-		/// <param name="to_col"></param>
-		public void SetCellFrom(Table table, int src_col, int src_row,
-								String to_col) {
-			VariableName v = ResolveToVariable(to_col);
-			TObject cell = table.GetCellContents(src_col, src_row);
+		/// <param name="srcColumnIndex"></param>
+		/// <param name="srcRowIndex"></param>
+		/// <param name="destColumnName"></param>
+		public void SetCellFrom(Table table, int srcColumnIndex, int srcRowIndex, string destColumnName) {
+			VariableName v = ResolveToVariable(destColumnName);
+			TObject cell = table.GetCellContents(srcColumnIndex, srcRowIndex);
 			SetRowCell(cell, FindFieldName(v), RowCount - 1);
 		}
 
@@ -194,13 +194,13 @@ namespace Deveel.Data {
 				VariableName v = GetResolvedVariable(i);
 				String col_name = v.Name;
 				try {
-					int tcol_index = -1;
-					for (int n = 0; n < vars.Length || tcol_index == -1; ++n) {
+					int tcolIndex = -1;
+					for (int n = 0; n < vars.Length || tcolIndex == -1; ++n) {
 						if (vars[n].Name.Equals(col_name)) {
-							tcol_index = n;
+							tcolIndex = n;
 						}
 					}
-					SetRowCell(table.GetCellContents(tcol_index, row), i, RowCount - 1);
+					SetRowCell(table.GetCellContents(tcolIndex, row), i, RowCount - 1);
 				} catch (Exception e) {
 					Debug.WriteException(e);
 					throw new ApplicationException(e.Message);
@@ -223,8 +223,8 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void SetupAllSelectableSchemes() {
 			BlankSelectableSchemes(1);   // <- blind search
-			for (int row_number = 0; row_number < RowCount; ++row_number) {
-				AddRowToColumnSchemes(row_number);
+			for (int rowNumber = 0; rowNumber < RowCount; ++rowNumber) {
+				AddRowToColumnSchemes(rowNumber);
 			}
 		}
 
@@ -237,11 +237,11 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override TObject GetCellContents(int column, int row) {
-			TObject[] cells = (TObject[])table_storage[row];
+			TObject[] cells = tableStorage[row];
 			TObject cell = cells[column];
-			if (cell == null) {
+			if (cell == null)
 				throw new ApplicationException("NULL cell!  (" + column + ", " + row + ")");
-			}
+
 			return cell;
 		}
 
@@ -277,23 +277,15 @@ namespace Deveel.Data {
 		/// Creates a table with a single column with the given name and type.
 		/// </summary>
 		/// <param name="database"></param>
-		/// <param name="col_name"></param>
-		/// <param name="c"></param>
+		/// <param name="columnName"></param>
+		/// <param name="columnType"></param>
 		/// <returns></returns>
-		internal static TemporaryTable SingleColumnTable(Database database, String col_name, Type c) {
-			TType ttype = TType.FromType(c);
+		internal static TemporaryTable SingleColumnTable(Database database, string columnName, Type columnType) {
+			TType ttype = TType.FromType(columnType);
 			DataTableColumnInfo colInfo = new DataTableColumnInfo();
-			colInfo.Name = col_name;
+			colInfo.Name = columnName;
 			colInfo.SetFromTType(ttype);
-			TemporaryTable table = new TemporaryTable(database, "single",
-												new DataTableColumnInfo[] { colInfo });
-
-			//      int type = TypeUtil.ToDbType(c);
-			//      TableField[] fields =
-			//                 { new TableField(col_name, type, Integer.MAX_VALUE, false) };
-			//      TemporaryTable table = new TemporaryTable(database, "single", fields);
-			return table;
+			return new TemporaryTable(database, "single", new DataTableColumnInfo[] { colInfo });
 		}
-
 	}
 }

@@ -29,7 +29,7 @@ namespace Deveel.Data {
 	/// This interface is used for unions.
 	/// </para>
 	/// </remarks>
-	public interface IRootTable {
+	interface IRootTable {
 		/// <summary>
 		/// This is function is used to check that two root tables are identical.
 		/// </summary>

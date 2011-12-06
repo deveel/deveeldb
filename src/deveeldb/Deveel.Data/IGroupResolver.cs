@@ -37,25 +37,24 @@ namespace Deveel.Data {
 		/// Returns the value of a variable of a group.
 		/// </summary>
 		/// <param name="variable"></param>
-		/// <param name="set_index"></param>
+		/// <param name="setIndex"></param>
 		/// <remarks>
 		/// The set index signifies the set item of the group.  For example, 
 		/// if the group contains 10 items, then set_index may be between 0 
 		/// and 9.  Return types must be either a String, BigDecimal or Boolean.
 		/// </remarks>
 		/// <returns></returns>
-		TObject Resolve(VariableName variable, int set_index);
+		TObject Resolve(VariableName variable, int setIndex);
 
 		/// <summary>
 		/// Returns a <see cref="IVariableResolver"/> that can be used to 
 		/// resolve variable in the get set of the group.
 		/// </summary>
-		/// <param name="set_index"></param>
+		/// <param name="setIndex"></param>
 		/// <remarks>
 		/// The object returned is undefined after the next call to this method.
 		/// </remarks>
 		/// <returns></returns>
-		IVariableResolver GetVariableResolver(int set_index);
-
+		IVariableResolver GetVariableResolver(int setIndex);
 	}
 }

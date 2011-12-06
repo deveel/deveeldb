@@ -390,7 +390,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		static TableName SubstituteReservedTableName(TableName tableName) {
 			// We do not allow tables to be created with a reserved name
-			String name = tableName.Name;
+			string name = tableName.Name;
 			if (String.Compare(name, "OLD", true) == 0)
 				return Database.OldTriggerTable;
 			if (String.Compare(name, "NEW", true) == 0)
@@ -409,11 +409,10 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal static void CheckAllowCreate(TableName tableName) {
 			// We do not allow tables to be created with a reserved name
-			String name = tableName.Name;
+			string name = tableName.Name;
 			if (String.Compare(name, "OLD", true) == 0 ||
 				String.Compare(name, "NEW", true) == 0) {
-				throw new StatementException("Table name '" + tableName +
-											 "' is reserved.");
+				throw new StatementException("Table name '" + tableName + "' is reserved.");
 			}
 		}
 
@@ -619,19 +618,18 @@ namespace Deveel.Data {
 		/// </exception>
 		public void Rollback() {
 			// Are we currently allowed to commit/rollback?
-			if (closeTransactionDisabled) {
+			if (closeTransactionDisabled)
 				throw new Exception("Rollback is not allowed.");
-			}
 
-			if (user != null) {
+			if (user != null)
 				user.RefreshLastCommandTime();
-			}
 
 			// NOTE, always connection exclusive op.
 			tablesCache.Clear();
 
 			if (transaction != null) {
 				LockingMechanism.Reset();
+
 				try {
 					transaction.Rollback();
 				} finally {
@@ -642,8 +640,7 @@ namespace Deveel.Data {
 						try {
 							InternalDbHelper.DisposeDbConnection(dbConnection);
 						} catch (Exception e) {
-							Debug.Write(DebugLevel.Error, this,
-										  "Error disposing internal JDBC connection.");
+							Debug.Write(DebugLevel.Error, this, "Error disposing internal ADO.NET connection.");
 							Debug.WriteException(DebugLevel.Error, e);
 							// We don't wrap this exception
 						}
@@ -665,18 +662,18 @@ namespace Deveel.Data {
 			} finally {
 				if (tableBackedCacheList != null) {
 					try {
-						int sz = tableBackedCacheList.Count;
-						for (int i = 0; i < sz; ++i) {
-							TableBackedCache cache =
-										   (TableBackedCache)tableBackedCacheList[i];
+						foreach (TableBackedCache cache in tableBackedCacheList)
 							cache.DetatchFrom(conglomerate);
-						}
+
 						tableBackedCacheList = null;
 					} catch (Exception e) {
+#if DEBUG
 						Console.Error.WriteLine(e.Message);
 						Console.Error.WriteLine(e.StackTrace);
+#endif
 					}
 				}
+
 				// Remove any trigger listeners set for this connection,
 				database.TriggerManager.ClearAllDatabaseConnectionTriggers(this);
 			}

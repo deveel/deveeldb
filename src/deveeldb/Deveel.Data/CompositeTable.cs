@@ -31,65 +31,65 @@ namespace Deveel.Data {
 		/// The 'master table' used to resolve information about this table such as
 		/// fields and field types.
 		/// </summary>
-		private readonly Table master_table;
+		private readonly Table masterTable;
 
 		/// <summary>
 		/// The tables being made a composite of.
 		/// </summary>
-		private readonly Table[] composite_tables;
+		private readonly Table[] compositeTables;
 
 		/// <summary>
 		/// The list of indexes of rows to include in each table.
 		/// </summary>
-		private IntegerVector[] table_indexes;
+		private IntegerVector[] tableIndexes;
 
 		/// <summary>
 		/// The schemes to describe the entity relation in the given column.
 		/// </summary>
-		private readonly SelectableScheme[] column_scheme;
+		private readonly SelectableScheme[] columnScheme;
 
 		/// <summary>
 		/// The number of root locks on this table.
 		/// </summary>
-		private int roots_locked;
+		private int rootsLocked;
 
 		/// <summary>
-		/// Constructs the composite table given the <paramref name="master_table"/> 
+		/// Constructs the composite table given the <paramref name="masterTable"/> 
 		/// (the column structure this composite table is based on), and 
 		/// a list of tables to be the composite of this table.
 		/// </summary>
-		/// <param name="master_table">The table defining the master structure 
+		/// <param name="masterTable">The table defining the master structure 
 		/// for the composition. this must be one of the tables listed in
-		/// <paramref name="composite_list"/>.</param>
-		/// <param name="composite_list">The list of tables to compose given 
+		/// <paramref name="compositeTables"/>.</param>
+		/// <param name="compositeTables">The list of tables to compose given 
 		/// the structure of the master table.</param>
 		/// <remarks>
 		/// <b>Note:</b> This does not set up table indexes for a composite 
 		/// function.
 		/// </remarks>
-		public CompositeTable(Table master_table, Table[] composite_list)
+		public CompositeTable(Table masterTable, Table[] compositeTables)
 			: base() {
-			this.master_table = master_table;
-			composite_tables = composite_list;
-			column_scheme = new SelectableScheme[master_table.ColumnCount];
+			this.masterTable = masterTable;
+			this.compositeTables = compositeTables;
+			columnScheme = new SelectableScheme[masterTable.ColumnCount];
 		}
 
 		/// <summary>
 		/// Consturcts the composite table assuming the first item in the 
 		/// list is the master table.
 		/// </summary>
-		/// <param name="composite_list">The list of the tables to compose.</param>
-		public CompositeTable(Table[] composite_list)
-			: this(composite_list[0], composite_list) {
+		/// <param name="compositeTables">The list of the tables to compose.</param>
+		public CompositeTable(Table[] compositeTables)
+			: this(compositeTables[0], compositeTables) {
 		}
 
 
 		/// <summary>
 		/// Removes duplicate rows from the table.
 		/// </summary>
-		/// <param name="pre_sorted">If <b>true</b>, each composite index 
+		/// <param name="preSorted">If <b>true</b>, each composite index 
 		/// is already in sorted order.</param>
-		private void RemoveDuplicates(bool pre_sorted) {
+		private void RemoveDuplicates(bool preSorted) {
 			throw new NotImplementedException();
 		}
 
@@ -100,112 +100,107 @@ namespace Deveel.Data {
 		/// <param name="function"></param>
 		/// <param name="all">If <b>true</b>, duplicated rows are removed.</param>
 		public void SetupIndexesForCompositeFunction(CompositeFunction function, bool all) {
-			int size = composite_tables.Length;
-			table_indexes = new IntegerVector[size];
+			int size = compositeTables.Length;
+			tableIndexes = new IntegerVector[size];
 
 			if (function == CompositeFunction.Union) {
 				// Include all row sets in all tables
 				for (int i = 0; i < size; ++i) {
-					table_indexes[i] = composite_tables[i].SelectAll();
+					tableIndexes[i] = compositeTables[i].SelectAll();
 				}
-				if (!all) {
+				if (!all)
 					RemoveDuplicates(false);
-				}
 			} else {
 				throw new ApplicationException("Unrecognised composite function");
 			}
-
 		}
 
 		// ---------- Implemented from Table ----------
 
 		/// <inheritdoc/>
 		public override Database Database {
-			get { return master_table.Database; }
+			get { return masterTable.Database; }
 		}
 
 		/// <inheritdoc/>
 		public override int ColumnCount {
-			get { return master_table.ColumnCount; }
+			get { return masterTable.ColumnCount; }
 		}
 
 		/// <inheritdoc/>
 		public override int RowCount {
 			get {
-				int row_count = 0;
-				for (int i = 0; i < table_indexes.Length; ++i) {
-					row_count += table_indexes[i].Count;
-				}
-				return row_count;
+				int rowCount = 0;
+				for (int i = 0; i < tableIndexes.Length; ++i)
+					rowCount += tableIndexes[i].Count;
+				return rowCount;
 			}
 		}
 
 		/// <inheritdoc/>
 		public override int FindFieldName(VariableName v) {
-			return master_table.FindFieldName(v);
+			return masterTable.FindFieldName(v);
 		}
 
 		/// <inheritdoc/>
 		public override DataTableInfo DataTableInfo {
-			get { return master_table.DataTableInfo; }
+			get { return masterTable.DataTableInfo; }
 		}
 
 		/// <inheritdoc/>
 		public override VariableName GetResolvedVariable(int column) {
-			return master_table.GetResolvedVariable(column);
+			return masterTable.GetResolvedVariable(column);
 		}
 
 		/// <inheritdoc/>
 		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
-
-			SelectableScheme scheme = column_scheme[column];
+			SelectableScheme scheme = columnScheme[column];
 			if (scheme == null) {
 				scheme = new BlindSearch(this, column);
-				column_scheme[column] = scheme;
+				columnScheme[column] = scheme;
 			}
 
 			// If we are getting a scheme for this table, simple return the information
 			// from the column_trees Vector.
-			if (table == this) {
+			if (table == this)
 				return scheme;
-			}
-				// Otherwise, get the scheme to calculate a subset of the given scheme.
-			else {
-				return scheme.GetSubsetScheme(table, originalColumn);
-			}
+
+			// Otherwise, get the scheme to calculate a subset of the given scheme.
+			return scheme.GetSubsetScheme(table, originalColumn);
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector rowSet,
-								 ITableDataSource ancestor) {
-			if (ancestor != this) {
+		internal override void SetToRowTableDomain(int column, IntegerVector rowSet, ITableDataSource ancestor) {
+			if (ancestor != this)
 				throw new Exception("Method routed to incorrect table ancestor.");
-			}
 		}
 
 		/// <inheritdoc/>
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
+#if DEBUG
 			Console.Error.WriteLine("Efficiency Warning in DataTable.ResolveToRawTable.");
-			IntegerVector row_set = new IntegerVector();
+#endif
+
+			IntegerVector rowSet = new IntegerVector();
 			IRowEnumerator e = GetRowEnumerator();
 			while (e.MoveNext()) {
-				row_set.AddInt(e.RowIndex);
+				rowSet.AddInt(e.RowIndex);
 			}
-			info.Add(this, row_set);
+			info.Add(this, rowSet);
 			return info;
 		}
 
 		/// <inheritdoc/>
 		public override TObject GetCellContents(int column, int row) {
-			for (int i = 0; i < table_indexes.Length; ++i) {
-				IntegerVector ivec = table_indexes[i];
+			for (int i = 0; i < tableIndexes.Length; ++i) {
+				IntegerVector ivec = tableIndexes[i];
 				int sz = ivec.Count;
-				if (row < sz) {
-					return composite_tables[i].GetCellContents(column, ivec[row]);
-				} else {
-					row -= sz;
-				}
+				if (row < sz)
+					return compositeTables[i].GetCellContents(column, ivec[row]);
+
+				row -= sz;
 			}
+
 			throw new ApplicationException("Row '" + row + "' out of bounds.");
 		}
 
@@ -218,30 +213,30 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public override void LockRoot(int lockKey) {
 			// For each table, recurse.
-			roots_locked++;
-			for (int i = 0; i < composite_tables.Length; ++i) {
-				composite_tables[i].LockRoot(lockKey);
+			rootsLocked++;
+			for (int i = 0; i < compositeTables.Length; ++i) {
+				compositeTables[i].LockRoot(lockKey);
 			}
 		}
 
 		/// <inheritdoc/>
 		public override void UnlockRoot(int lockKey) {
 			// For each table, recurse.
-			roots_locked--;
-			for (int i = 0; i < composite_tables.Length; ++i) {
-				composite_tables[i].UnlockRoot(lockKey);
+			rootsLocked--;
+			for (int i = 0; i < compositeTables.Length; ++i) {
+				compositeTables[i].UnlockRoot(lockKey);
 			}
 		}
 
 		/// <inheritdoc/>
 		public override bool HasRootsLocked {
-			get { return roots_locked != 0; }
+			get { return rootsLocked != 0; }
 		}
 
 		// ---------- Implemented from IRootTable ----------
 
 		/// <inheritdoc/>
-		public bool TypeEquals(IRootTable table) {
+		bool IRootTable.TypeEquals(IRootTable table) {
 			return (this == table);
 			//    return true;
 		}

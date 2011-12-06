@@ -125,44 +125,6 @@ namespace Deveel.Data {
 			}
 		}
 
-		/////<summary>
-		///// Notifies when a trigger has fired for this user.
-		/////</summary>
-		/////<param name="database"></param>
-		/////<param name="trigger_name"></param>
-		/////<param name="evt"></param>
-		///// <remarks>
-		///// If there are no open transactions on this connection then we do a straight call 
-		///// back trigger notify.  If there is a transaction open then trigger events are added
-		///// to the 'trigger_event_buffer' which fires when the connection transaction
-		///// is committed or rolled back.
-		///// </remarks>
-		/////<exception cref="ApplicationException"></exception>
-		//public void FireTrigger(DatabaseConnection database, String trigger_name, TriggerEvent evt) {
-		//    if (this != database) {
-		//        throw new ApplicationException("User object mismatch.");
-		//    }
-
-		//    try {
-		//        // Did we pass in a call back interface?
-		//        if (call_back != null) {
-		//            lock (triggerEventBuffer) {
-		//                // If there is no active transaction then fire trigger immediately.
-		//                if (transaction == null) {
-		//                    call_back.TriggerNotify(trigger_name, evt.Type, evt.Source, evt.Count);
-		//                }
-		//                    // Otherwise add to buffer
-		//                else {
-		//                    triggerEventBuffer.Add(trigger_name);
-		//                    triggerEventBuffer.Add(evt);
-		//                }
-		//            }
-		//        }
-		//    } catch (Exception e) {
-		//        Debug.Write(DebugLevel.Error, this, "TRIGGER Exception: " + e.Message);
-		//    }
-		//}
-
 		/// <summary>
 		/// Fires any triggers that are pending in the trigger buffer.
 		/// </summary>
@@ -189,27 +151,6 @@ namespace Deveel.Data {
 
 		}
 
-		//class FirePendingTriggerEventsImpl : IDatabaseEvent {
-		//    public FirePendingTriggerEventsImpl (DatabaseConnection conn) {
-		//        this.conn = conn;
-		//    }
-
-		//    private DatabaseConnection conn;
-
-		//    public void Execute () {
-		//        lock (conn.trigger_event_buffer) {
-		//            // Fire all pending trigger events in buffer
-		//            for (int i = 0; i < conn.trigger_event_buffer.Count; i += 2) {
-		//                String trigger_name = (String)conn.trigger_event_buffer[i];
-		//                TriggerEvent evt = (TriggerEvent)conn.trigger_event_buffer[i + 1];
-		//                conn.call_back.TriggerNotify (trigger_name, evt.Type, evt.Source, evt.Count);
-		//            }
-		//            // Clear the buffer
-		//            conn.trigger_event_buffer.Clear ();
-		//        }
-		//    }
-		//}
-
 		// ---------- Triggered OLD/NEW table handling ----------
 		// These methods are used by the ConnectionTriggerManager object to
 		// temporarily create OLD and NEW tables in this connection from inside a
@@ -224,11 +165,16 @@ namespace Deveel.Data {
 			return currentOldNewState;
 		}
 
-		/**
-		 * Sets the current state of the old/new tables.  When nesting OLD/NEW
-		 * tables for nested stored procedures, the current state should be first
-		 * recorded and reverted back when the nested procedure finishes.
-		 */
+
+		/// <summary>
+		/// Sets the current state of the old/new tables.
+		/// </summary>
+		/// <param name="state"></param>
+		/// <remarks>
+		/// When nesting OLD/NEW tables for nested stored procedures, 
+		/// the current state should be first recorded and reverted 
+		/// back when the nested procedure finishes.
+		/// </remarks>
 		internal void SetOldNewTableState(OldNewTableState state) {
 			currentOldNewState = state;
 		}
@@ -245,43 +191,36 @@ namespace Deveel.Data {
 			}
 
 			private bool HasOLDTable {
-				get { return conn.currentOldNewState.OLD_row_index != -1; }
+				get { return conn.currentOldNewState.OldRowIndex != -1; }
 			}
 
 			private bool HasNEWTable {
-				get { return conn.currentOldNewState.NEW_data_row != null; }
+				get { return conn.currentOldNewState.NewDataRow != null; }
 			}
 
 			public int TableCount {
 				get {
 					int count = 0;
-					if (HasOLDTable) {
+					if (HasOLDTable)
 						++count;
-					}
-					if (HasNEWTable) {
+					if (HasNEWTable)
 						++count;
-					}
 					return count;
 				}
 			}
 
 			public int FindTableName(TableName name) {
-				if (HasOLDTable && name.Equals(Database.OldTriggerTable)) {
+				if (HasOLDTable && name.Equals(Database.OldTriggerTable))
 					return 0;
-				}
-				if (HasNEWTable && name.Equals(Database.NewTriggerTable)) {
-					if (HasOLDTable)
-						return 1;
-					return 0;
-				}
+				if (HasNEWTable && name.Equals(Database.NewTriggerTable))
+					return HasOLDTable ? 1 : 0;
 				return -1;
 			}
 
 			public TableName GetTableName(int i) {
 				if (HasOLDTable) {
-					if (i == 0) {
+					if (i == 0)
 						return Database.OldTriggerTable;
-					}
 				}
 				return Database.NewTriggerTable;
 			}
@@ -295,7 +234,7 @@ namespace Deveel.Data {
 			}
 
 			public DataTableInfo GetDataTableDef(int i) {
-				DataTableInfo tableInfo = conn.GetDataTableDef(conn.currentOldNewState.trigger_source);
+				DataTableInfo tableInfo = conn.GetDataTableDef(conn.currentOldNewState.TriggerSource);
 				DataTableInfo newTableInfo = tableInfo.Clone();
 				newTableInfo.TableName = GetTableName(i);
 				return newTableInfo;
@@ -310,22 +249,22 @@ namespace Deveel.Data {
 					if (index == 0) {
 
 						// Copy data from the table to the new table
-						DataTable dtable = conn.GetTable(conn.currentOldNewState.trigger_source);
-						DataRow old_row = new DataRow(table);
-						int row_index = conn.currentOldNewState.OLD_row_index;
+						DataTable dtable = conn.GetTable(conn.currentOldNewState.TriggerSource);
+						DataRow oldRow = new DataRow(table);
+						int rowIndex = conn.currentOldNewState.OldRowIndex;
 						for (int i = 0; i < tInfo.ColumnCount; ++i) {
-							old_row.SetValue(i, dtable.GetCellContents(i, row_index));
+							oldRow.SetValue(i, dtable.GetCellContents(i, rowIndex));
 						}
 						// All OLD tables are immutable
 						table.SetImmutable(true);
-						table.SetRowData(old_row);
+						table.SetRowData(oldRow);
 
 						return table;
 					}
 				}
 
-				table.SetImmutable(!conn.currentOldNewState.mutable_NEW);
-				table.SetRowData(conn.currentOldNewState.NEW_data_row);
+				table.SetImmutable(!conn.currentOldNewState.MutableNew);
+				table.SetRowData(conn.currentOldNewState.NewDataRow);
 
 				return table;
 			}
@@ -422,19 +361,19 @@ namespace Deveel.Data {
 			/// <summary>
 			///  The name of the table that is the trigger source.
 			/// </summary>
-			internal TableName trigger_source;
+			public readonly TableName TriggerSource;
 
 			/// <summary>
 			/// The row index of the OLD data that is being updated or deleted in the
 			/// trigger source table.
 			/// </summary>
-			internal int OLD_row_index = -1;
+			public readonly int OldRowIndex = -1;
 
 			/// <summary>
 			/// The DataRow of the new data that is being inserted/updated in the trigger
 			/// source table.
 			/// </summary>
-			internal DataRow NEW_data_row;
+			public readonly DataRow NewDataRow;
 
 			/// <summary>
 			/// If true then the 'new_data' information is mutable which would be true for
@@ -444,23 +383,23 @@ namespace Deveel.Data {
 			/// For example, we would want to change the data in the row that caused the 
 			/// trigger to fire.
 			/// </remarks>
-			internal bool mutable_NEW;
+			public readonly bool MutableNew;
 
 			/// <summary>
 			/// The DataTable object that represents the OLD table, if set.
 			/// </summary>
-			internal DataTable OLD_data_table;
+			public DataTable OldDataTable;
 
 			/// <summary>
 			/// The DataTable object that represents the NEW table, if set.
 			/// </summary>
-			internal DataTable NEW_data_table;
+			public DataTable NewDataTable;
 
 			internal OldNewTableState(TableName table_source, int old_d, DataRow new_d, bool is_mutable) {
-				trigger_source = table_source;
-				OLD_row_index = old_d;
-				NEW_data_row = new_d;
-				mutable_NEW = is_mutable;
+				TriggerSource = table_source;
+				OldRowIndex = old_d;
+				NewDataRow = new_d;
+				MutableNew = is_mutable;
 			}
 
 			internal OldNewTableState() {
