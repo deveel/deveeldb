@@ -191,7 +191,7 @@ namespace Deveel.Data {
 			funTableInfo.SetImmutable();
 
 			// Function tables are the size of the referring table.
-			row_count = cross_ref_table.RowCount;
+			SetRowCount(cross_ref_table.RowCount);
 
 			// Set schemes to 'blind search'.
 			BlankSelectableSchemes(1);
@@ -560,7 +560,7 @@ namespace Deveel.Data {
 		}
 
 		public override IRowEnumerator GetRowEnumerator() {
-			return new SimpleRowEnumerator(row_count);
+			return new SimpleRowEnumerator(RowCount);
 		}
 
 		// NOTE: This will cause the reference table to have the same listener

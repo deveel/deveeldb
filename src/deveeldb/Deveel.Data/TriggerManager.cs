@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Util;
 
@@ -46,72 +47,68 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The parent TransactionSystem object.
 		/// </summary>
-		private TransactionSystem system;
+		private readonly TransactionSystem system;
 		/// <summary>
 		/// Maps from the user session (User) to the list of TriggerAction 
 		/// objects for this user.
 		/// </summary>
-		private HashMapList listener_map;
+		private readonly HashMapList listenerMap;
 
 		/// <summary>
 		/// Maps from the trigger source string to the list of TriggerAction
 		/// objects that are listening for events from this source.
 		/// </summary>
-		private HashMapList table_map;
+		private readonly HashMapList tableMap;
 
 		internal TriggerManager(TransactionSystem system) {
 			this.system = system;
-			listener_map = new HashMapList();
-			table_map = new HashMapList();
+			listenerMap = new HashMapList();
+			tableMap = new HashMapList();
 		}
 
 		/// <summary>
-		/// Flushes the list of <see cref="TriggerEvent"/> objects and 
+		/// Flushes the list of <see cref="TriggerEventArgs"/> objects and 
 		/// dispatches them to the users that are listening.
 		/// </summary>
-		/// <param name="event_list"></param>
+		/// <param name="eventList"></param>
 		/// <remarks>
 		/// This is called after the given connection has successfully 
 		/// committed and closed.
 		/// </remarks>
-		internal void FlushTriggerEvents(ArrayList event_list) {
-			for (int i = 0; i < event_list.Count; ++i) {
-				TriggerEvent evt = (TriggerEvent)event_list[i];
-				FireTrigger(evt);
+		internal void FlushTriggerEvents(IEnumerable<TriggerEventArgs> eventList) {
+			foreach (TriggerEventArgs args in eventList) {
+				FireTrigger(args);
 			}
 		}
 
 		/// <summary>
-		/// Adds a listener for an event with the given 'id' for the user session.
+		/// Adds a handler for an event with the given 'id' for the user session.
 		/// </summary>
 		/// <param name="database"></param>
-		/// <param name="trigger_name"></param>
-		/// <param name="event_id"></param>
-		/// <param name="trigger_source"></param>
-		/// <param name="listener"></param>
+		/// <param name="triggerName"></param>
+		/// <param name="eventType"></param>
+		/// <param name="triggerSource"></param>
+		/// <param name="handler"></param>
 		/// <example>
 		/// In the following example the handler is notified of all update 
 		/// events on the 'Part' table:
 		/// <code>
-		/// AddTriggerHandler(user, "my_trigger", TriggerEventType.Update, "Part", my_handler);
+		/// AddTrigger(user, "my_trigger", TriggerEventType.Update, "Part", my_handler);
 		/// </code>
 		/// </example>
-		internal void AddTriggerListener(DatabaseConnection database, String trigger_name, TriggerEventType event_id, 
-			string trigger_source, ITriggerListener listener) {
+		internal void AddTrigger(DatabaseConnection database, string triggerName, TriggerEventType eventType, string triggerSource, TriggerEventHandler handler) {
 			lock (this) {
 				// Has this trigger name already been defined for this user?
-				IList list = listener_map[database];
-				for (int i = 0; i < list.Count; ++i) {
-					TriggerAction act = (TriggerAction)list[i];
-					if (act.Name.Equals(trigger_name)) {
-						throw new ApplicationException("Duplicate trigger name '" + trigger_name + "'");
-					}
+				IList list = listenerMap[database];
+				foreach (TriggerAction act in list) {
+					if (act.Name.Equals(triggerName))
+						throw new ApplicationException("Duplicate trigger name '" + triggerName + "'");
 				}
 
-				TriggerAction action = new TriggerAction(database, trigger_name, event_id, trigger_source, listener);
+				TriggerAction action = new TriggerAction(database, triggerName, eventType, triggerSource, handler);
 
-				listener_map.Add(database, action);
-				table_map.Add(trigger_source, action);
+				listenerMap.Add(database, action);
+				tableMap.Add(triggerSource, action);
 			}
 		}
 
@@ -119,19 +116,18 @@ namespace Deveel.Data {
 		/// Removes a trigger for the given user session.
 		/// </summary>
 		/// <param name="database"></param>
-		/// <param name="trigger_name"></param>
-		internal void RemoveTriggerListener(DatabaseConnection database, string trigger_name) {
+		/// <param name="triggerName"></param>
+		internal void RemoveTrigger(DatabaseConnection database, string triggerName) {
 			lock (this) {
-				IList list = listener_map[database];
-				for (int i = 0; i < list.Count; ++i) {
-					TriggerAction action = (TriggerAction)list[i];
-					if (action.Name.Equals(trigger_name)) {
-						listener_map.Remove(database, action);
-						table_map.Remove(action.trigger_source, action);
+				IList list = listenerMap[database];
+				foreach (TriggerAction action in list) {
+					if (action.Name.Equals(triggerName)) {
+						listenerMap.Remove(database, action);
+						tableMap.Remove(action.TriggerSource, action);
 						return;
 					}
 				}
-				throw new ApplicationException("Trigger name '" + trigger_name + "' not found.");
+				throw new ApplicationException("Trigger name '" + triggerName + "' not found.");
 			}
 		}
 
@@ -141,10 +137,9 @@ namespace Deveel.Data {
 		/// <param name="database"></param>
 		internal void ClearAllDatabaseConnectionTriggers(DatabaseConnection database) {
 			lock (this) {
-				IList list = listener_map.Clear(database);
-				for (int i = 0; i < list.Count; ++i) {
-					TriggerAction action = (TriggerAction)list[i];
-					table_map.Remove(action.trigger_source, action);
+				IList list = listenerMap.Clear(database);
+				foreach (TriggerAction action in list) {
+					tableMap.Remove(action.TriggerSource, action);
 				}
 			}
 		}
@@ -153,53 +148,29 @@ namespace Deveel.Data {
 		/// Notifies all the handlers on a triggerSource (ie. a table) that a
 		/// specific type of event has happened, as denoted by the type.
 		/// </summary>
-		/// <param name="evt"></param>
-		private void FireTrigger(TriggerEvent evt) {
-			ArrayList trig_list;
+		/// <param name="args"></param>
+		private void FireTrigger(TriggerEventArgs args) {
+			ArrayList trigList;
 			// Get all the triggers for this trigger source,
-			//    Console.Out.WriteLine(evt.getSource());
-			//    Console.Out.WriteLine(table_map);
 			lock (this) {
-				IList list = table_map[evt.Source];
-				if (list.Count == 0) {
+				IList list = tableMap[args.Source];
+				if (list.Count == 0)
 					return;
-				}
-				trig_list = new ArrayList(list);
+
+				trigList = new ArrayList(list);
 			}
 
-			// Post an event that fires the triggers for each listener.
-			//FireTriggersDelegate d = new FireTriggersDelegate(evt, trig_list);
+			// Post an event that fires the triggers for each handler.
 
 			// Post the event to go off approx 3ms from now.
 			system.PostEvent(3, system.CreateEvent(delegate {
-			                                       	for (int i = 0; i < trig_list.Count; ++i) {
-			                                       		TriggerAction action = (TriggerAction) trig_list[i];
-			                                       		if ((evt.Type & action.trigger_event) != 0) {
-			                                       			action.listener.FireTrigger(action.database, action.trigger_name, evt);
+			                                       	foreach (TriggerAction action in trigList) {
+			                                       		if ((args.Type & action.EventType) != 0) {
+			                                       			action.Handler(action.Connection, args);
 			                                       		}
 			                                       	}
-
 			                                       }));
 		}
-
-		//private class FireTriggersDelegate {
-		//    public FireTriggersDelegate(TriggerEvent evt, ArrayList trig_list) {
-		//        this.evt = evt;
-		//        this.trig_list = trig_list;
-		//    }
-
-		//    private readonly ArrayList trig_list;
-		//    private readonly TriggerEvent evt;
-			
-		//    public void Execute (object sender, EventArgs args) {
-		//        for (int i = 0; i < trig_list.Count; ++i) {
-		//            TriggerAction action = (TriggerAction)trig_list[i];
-		//            if ((evt.Type & action.trigger_event) != 0) {
-		//                action.listener.FireTrigger (action.database, action.trigger_name, evt);
-		//            }
-		//        }
-		//    }
-		//}
 
 		// ---------- Inner classes ----------
 
@@ -208,26 +179,41 @@ namespace Deveel.Data {
 		/// event for a user.
 		/// </summary>
 		private sealed class TriggerAction {
-			internal DatabaseConnection database;
-			internal String trigger_name;   // The name of the trigger.
-			internal ITriggerListener listener;       // The trigger listener.
-			internal String trigger_source; // The source of the trigger.
-			internal TriggerEventType trigger_event;  // Event we are to listen for.
+			private readonly DatabaseConnection connection;
+			private readonly string triggerName;   // The name of the trigger.
+			private readonly TriggerEventHandler handler;       // The trigger handler.
+			private readonly string triggerSource; // The source of the trigger.
+			private readonly TriggerEventType eventType;  // Event we are to listen for.
 
-			internal TriggerAction(DatabaseConnection database, String name, TriggerEventType type,
-						  String trigger_source, ITriggerListener listener) {
-				this.database = database;
-				this.trigger_name = name;
-				this.trigger_event = type;
-				this.listener = listener;
-				this.trigger_source = trigger_source;
+			internal TriggerAction(DatabaseConnection connection, string triggerName, TriggerEventType eventType, string triggerSource, TriggerEventHandler handler) {
+				this.connection = connection;
+				this.triggerName = triggerName;
+				this.eventType = eventType;
+				this.handler = handler;
+				this.triggerSource = triggerSource;
 			}
 
 			/// <summary>
 			/// Returns the name of the trigger.
 			/// </summary>
 			public string Name {
-				get { return trigger_name; }
+				get { return triggerName; }
+			}
+
+			public TriggerEventHandler Handler {
+				get { return handler; }
+			}
+
+			public string TriggerSource {
+				get { return triggerSource; }
+			}
+
+			public TriggerEventType EventType {
+				get { return eventType; }
+			}
+
+			public DatabaseConnection Connection {
+				get { return connection; }
 			}
 		}
 	}

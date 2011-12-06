@@ -277,7 +277,7 @@ namespace Deveel.Data.Sql {
 
 			// Notify TriggerManager that we've just done an update.
 			if (insert_count > 0)
-				Connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Insert, tname.ToString(), insert_count));
+				Connection.OnTriggerEvent(new TriggerEventArgs(TriggerEventType.Insert, tname.ToString(), insert_count));
 
 			// Return the number of rows we inserted.
 			return FunctionTable.ResultTable(context, insert_count);

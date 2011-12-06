@@ -101,7 +101,7 @@ namespace Deveel.Data {
 		/// </summary>
 		public void NewRow() {
 			table_storage.Add(new TObject[ColumnCount]);
-			++row_count;
+			SetRowCount(RowCount + 1);
 		}
 
 		///<summary>
@@ -123,7 +123,7 @@ namespace Deveel.Data {
 		///<param name="col_name"></param>
 		public void SetRowCell(TObject cell, String col_name) {
 			VariableName v = ResolveToVariable(col_name);
-			SetRowCell(cell, FindFieldName(v), row_count - 1);
+			SetRowCell(cell, FindFieldName(v), RowCount - 1);
 		}
 
 		///<summary>
@@ -155,7 +155,7 @@ namespace Deveel.Data {
 		///<param name="ob"></param>
 		///<param name="col_index"></param>
 		public void SetRowObject(TObject ob, int col_index) {
-			SetRowObject(ob, col_index, row_count - 1);
+			SetRowObject(ob, col_index, RowCount - 1);
 		}
 
 		/// <summary>
@@ -170,7 +170,7 @@ namespace Deveel.Data {
 								String to_col) {
 			VariableName v = ResolveToVariable(to_col);
 			TObject cell = table.GetCellContents(src_col, src_row);
-			SetRowCell(cell, FindFieldName(v), row_count - 1);
+			SetRowCell(cell, FindFieldName(v), RowCount - 1);
 		}
 
 		/// <summary>
@@ -200,7 +200,7 @@ namespace Deveel.Data {
 							tcol_index = n;
 						}
 					}
-					SetRowCell(table.GetCellContents(tcol_index, row), i, row_count - 1);
+					SetRowCell(table.GetCellContents(tcol_index, row), i, RowCount - 1);
 				} catch (Exception e) {
 					Debug.WriteException(e);
 					throw new ApplicationException(e.Message);
@@ -223,7 +223,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void SetupAllSelectableSchemes() {
 			BlankSelectableSchemes(1);   // <- blind search
-			for (int row_number = 0; row_number < row_count; ++row_number) {
+			for (int row_number = 0; row_number < RowCount; ++row_number) {
 				AddRowToColumnSchemes(row_number);
 			}
 		}
@@ -247,7 +247,7 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override IRowEnumerator GetRowEnumerator() {
-			return new SimpleRowEnumerator(row_count);
+			return new SimpleRowEnumerator(RowCount);
 		}
 
 		/// <inheritdoc/>

@@ -134,8 +134,8 @@ namespace Deveel.Data {
 			logger = database.Debug;
 			conglomerate = database.Conglomerate;
 			lockingMechanism = new LockingMechanism(logger);
-			triggerEventBuffer = new ArrayList();
-			triggerEventList = new ArrayList();
+			triggerEventBuffer = new List<TriggerEventArgs>();
+			triggerEventList = new List<TriggerEventArgs>();
 			autoCommit = true;
 
 			current_schema = Database.DefaultSchema;

@@ -48,16 +48,16 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The number of rows in the table.
 		/// </summary>
-		protected int row_count;
+		private int rowCount;
 
 		/// <summary>
 		/// A list of schemes for managing the data relations of each column.
 		/// </summary>
-		private SelectableScheme[] column_scheme;
+		private SelectableScheme[] columnScheme;
 
 		internal DefaultDataTable(Database database) {
 			this.database = database;
-			row_count = 0;
+			rowCount = 0;
 		}
 
 		/// <summary>
@@ -65,6 +65,10 @@ namespace Deveel.Data {
 		/// </summary>
 		public override Database Database {
 			get { return database; }
+		}
+
+		protected void SetRowCount(int value) {
+			rowCount = value;
 		}
 
 		/// <summary>
@@ -79,7 +83,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		protected virtual SelectableScheme GetRootColumnScheme(int column) {
-			return column_scheme[column];
+			return columnScheme[column];
 		}
 
 		/// <summary>
@@ -88,7 +92,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="column">Index of the clumn to clear the scheme.</param>
 		protected void ClearColumnScheme(int column) {
-			column_scheme[column] = null;
+			columnScheme[column] = null;
 		}
 
 		/// <summary>
@@ -115,12 +119,12 @@ namespace Deveel.Data {
 		/// If 1 then <see cref="BlindSearch"/> (slower but uses no memory 
 		/// and doesn't require insert and delete to be logged).</param>
 		protected virtual void BlankSelectableSchemes(int type) {
-			column_scheme = new SelectableScheme[ColumnCount];
-			for (int i = 0; i < column_scheme.Length; ++i) {
+			columnScheme = new SelectableScheme[ColumnCount];
+			for (int i = 0; i < columnScheme.Length; ++i) {
 				if (type == 0) {
-					column_scheme[i] = new InsertSearch(this, i);
+					columnScheme[i] = new InsertSearch(this, i);
 				} else if (type == 1) {
-					column_scheme[i] = new BlindSearch(this, i);
+					columnScheme[i] = new BlindSearch(this, i);
 				}
 			}
 		}
@@ -132,29 +136,28 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override int RowCount {
-			get { return row_count; }
+			get { return rowCount; }
 		}
 
 		/// <inheritdoc/>
 		public override VariableName GetResolvedVariable(int column) {
-			String col_name = DataTableInfo[column].Name;
-			return new VariableName(TableName, col_name);
+			string colName = DataTableInfo[column].Name;
+			return new VariableName(TableName, colName);
 		}
 
 		/// <inheritdoc/>
 		public override int FindFieldName(VariableName v) {
 			// Check this is the correct table first...
-			TableName table_name = v.TableName;
+			TableName tableName = v.TableName;
 			DataTableInfo tableInfo = DataTableInfo;
-			if (table_name != null && table_name.Equals(TableName)) {
+			if (tableName != null && tableName.Equals(TableName)) {
 				// Look for the column name
-				String col_name = v.Name;
+				string colName = v.Name;
 				int size = ColumnCount;
 				for (int i = 0; i < size; ++i) {
 					DataTableColumnInfo col = tableInfo[i];
-					if (col.Name.Equals(col_name)) {
+					if (col.Name.Equals(colName))
 						return i;
-					}
 				}
 			}
 			return -1;
@@ -162,14 +165,8 @@ namespace Deveel.Data {
 
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn,
-												Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 			SelectableScheme scheme = GetRootColumnScheme(column);
-
-			//    Console.Out.WriteLine("DefaultDataTable.GetSelectableSchemaFor(" +
-			//                       column + ", " + original_column + ", " + table);
-
-			//    Console.Out.WriteLine(this);
 
 			// If we are getting a scheme for this table, simple return the information
 			// from the column_trees Vector.
@@ -181,39 +178,37 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector rowSet,
-								 ITableDataSource ancestor) {
-			if (ancestor != this) {
+		internal override void SetToRowTableDomain(int column, IntegerVector rowSet, ITableDataSource ancestor) {
+			if (ancestor != this)
 				throw new Exception("Method routed to incorrect table ancestor.");
-			}
 		}
 
 		/// <inheritdoc/>
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
+#if DEBUG
 			Console.Error.WriteLine("Efficiency Warning in DataTable.ResolveToRawTable.");
-			IntegerVector row_set = new IntegerVector();
+#endif
+
+			IntegerVector rowSet = new IntegerVector();
 			IRowEnumerator e = GetRowEnumerator();
 			while (e.MoveNext()) {
-				row_set.AddInt(e.RowIndex);
+				rowSet.AddInt(e.RowIndex);
 			}
-			info.Add(this, row_set);
+			info.Add(this, rowSet);
 			return info;
 		}
 
-		/* ===== Convenience methods for updating internal information =====
-		   =============== regarding the SelectableSchemes ================= */
 
 		/// <summary>
 		/// Adds a single column of a row to the selectable scheme indexing.
 		/// </summary>
-		/// <param name="row_number"></param>
-		/// <param name="column_number"></param>
-		internal void AddCellToColumnSchemes(int row_number, int column_number) {
-			bool indexable_type =
-						 DataTableInfo[column_number].IsIndexableType;
-			if (indexable_type) {
-				SelectableScheme ss = GetRootColumnScheme(column_number);
-				ss.Insert(row_number);
+		/// <param name="rowNumber"></param>
+		/// <param name="columnNumber"></param>
+		internal void AddCellToColumnSchemes(int rowNumber, int columnNumber) {
+			bool indexableType = DataTableInfo[columnNumber].IsIndexableType;
+			if (indexableType) {
+				SelectableScheme ss = GetRootColumnScheme(columnNumber);
+				ss.Insert(rowNumber);
 			}
 		}
 
@@ -222,14 +217,14 @@ namespace Deveel.Data {
 		/// objects for each column need to be notified of the rows existance,
 		/// therefore build up the relational model for the columns.
 		/// </summary>
-		/// <param name="row_number"></param>
-		internal void AddRowToColumnSchemes(int row_number) {
-			int col_count = ColumnCount;
+		/// <param name="rowNumber"></param>
+		internal void AddRowToColumnSchemes(int rowNumber) {
+			int colCount = ColumnCount;
 			DataTableInfo tableInfo = DataTableInfo;
-			for (int i = 0; i < col_count; ++i) {
+			for (int i = 0; i < colCount; ++i) {
 				if (tableInfo[i].IsIndexableType) {
 					SelectableScheme ss = GetRootColumnScheme(i);
-					ss.Insert(row_number);
+					ss.Insert(rowNumber);
 				}
 			}
 		}
@@ -238,21 +233,20 @@ namespace Deveel.Data {
 		/// This is called when an index to a row needs to be removed from the
 		/// SelectableScheme objects.
 		/// </summary>
-		/// <param name="row_number"></param>
+		/// <param name="rowNumber"></param>
 		/// <remarks>
 		/// This occurs when we have a modification log of row removals that haven't 
 		/// actually happened to old backed up scheme.
 		/// </remarks>
-		internal void removeRowToColumnSchemes(int row_number) {
-			int col_count = ColumnCount;
+		internal void RemoveRowToColumnSchemes(int rowNumber) {
+			int colCount = ColumnCount;
 			DataTableInfo tableInfo = DataTableInfo;
-			for (int i = 0; i < col_count; ++i) {
+			for (int i = 0; i < colCount; ++i) {
 				if (tableInfo[i].IsIndexableType) {
 					SelectableScheme ss = GetRootColumnScheme(i);
-					ss.Remove(row_number);
+					ss.Remove(rowNumber);
 				}
 			}
 		}
-
 	}
 }
