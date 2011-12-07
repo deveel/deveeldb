@@ -114,14 +114,14 @@ namespace Deveel.Data {
 		/// <summary>
 		/// A cached TableName for this data source.
 		/// </summary>
-		private TableName cached_table_name;
+		private TableName cachedTableName;
 
 		/// <summary>
 		/// A multi-version representation of the table indices kept for this table
 		/// including the row list and the scheme indices.  This contains the
 		/// transaction journals.
 		/// </summary>
-		protected MultiVersionTableIndices table_indices;
+		protected MultiVersionTableIndices TableIndices;
 
 		/// <summary>
 		/// The list of RIDList objects for each column in this table.  This is
@@ -248,11 +248,11 @@ namespace Deveel.Data {
 		internal TableName CachedTableName {
 			get {
 				lock (this) {
-					if (cached_table_name != null) {
-						return cached_table_name;
+					if (cachedTableName != null) {
+						return cachedTableName;
 					}
-					cached_table_name = TableName;
-					return cached_table_name;
+					cachedTableName = TableName;
+					return cachedTableName;
 				}
 			}
 		}
@@ -279,7 +279,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void MergeJournalChanges(long commit_id) {
 			lock (this) {
-				bool all_merged = table_indices.MergeJournalChanges(commit_id);
+				bool all_merged = TableIndices.MergeJournalChanges(commit_id);
 				// If all journal entries merged then schedule deleted row collection.
 				if (all_merged && !IsReadOnly) {
 					CheckForCleanup();
@@ -300,7 +300,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		internal MasterTableJournal[] FindAllJournalsSince(long commit_id) {
 			lock (this) {
-				return table_indices.FindAllJournalsSince(commit_id);
+				return TableIndices.FindAllJournalsSince(commit_id);
 			}
 		}
 
@@ -730,37 +730,33 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void BuildIndexes() {
 			lock (this) {
-				IIndexSet index_set = CreateIndexSet();
+				IIndexSet indexSet = CreateIndexSet();
 
-				DataIndexSetDef index_set_def = DataIndexSetDef;
+				DataIndexSetDef indexSetDef = DataIndexSetDef;
 
-				int row_count = RawRowCount;
+				int rowCount = RawRowCount;
 
 				// Master index is always on index position 0
-				IIntegerList master_index = index_set.GetIndex(0);
+				IIntegerList masterIndex = indexSet.GetIndex(0);
 
 				// First, update the master index
-				for (int row_index = 0; row_index < row_count; ++row_index) {
+				for (int rowIndex = 0; rowIndex < rowCount; ++rowIndex) {
 					// If this row isn't deleted, set the index information for it,
-					if (!RecordDeleted(row_index)) {
-						// First add to master index
-						bool inserted = master_index.UniqueInsertSort(row_index);
-						if (!inserted) {
-							throw new Exception(
-								"Assertion failed: Master index entry was duplicated.");
-						}
+					if (!RecordDeleted(rowIndex)) {
+						// First add to master inde
+						if (!masterIndex.UniqueInsertSort(rowIndex))
+							throw new Exception("Assertion failed: Master index entry was duplicated.");
 					}
 				}
 
 				// Commit the master index
-				CommitIndexSet(index_set);
+				CommitIndexSet(indexSet);
 
 				// Now go ahead and build each index in this table
-				int index_count = index_set_def.IndexCount;
-				for (int i = 0; i < index_count; ++i) {
+				int indexCount = indexSetDef.IndexCount;
+				for (int i = 0; i < indexCount; ++i) {
 					BuildIndex(i);
 				}
-
 			}
 		}
 
@@ -782,33 +778,26 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void BuildIndex(int index_number) {
 			lock (this) {
-				DataIndexSetDef index_set_def = DataIndexSetDef;
-
-				IIndexSet index_set = CreateIndexSet();
+				IIndexSet indexSet = CreateIndexSet();
 
 				// Master index is always on index position 0
-				IIntegerList master_index = index_set.GetIndex(0);
+				IIntegerList masterIndex = indexSet.GetIndex(0);
 				// A minimal ITableDataSource for constructing the indexes
-				ITableDataSource min_table_source = MinimalTableDataSource(master_index);
+				ITableDataSource minTableSource = MinimalTableDataSource(masterIndex);
 
 				// Set up schemes for the index,
-				SelectableScheme scheme = CreateSelectableSchemeForIndex(index_set,
-																		 min_table_source, index_number);
+				SelectableScheme scheme = CreateSelectableSchemeForIndex(indexSet, minTableSource, index_number);
 
 				// Rebuild the entire index
-				int row_count = RawRowCount;
-				for (int row_index = 0; row_index < row_count; ++row_index) {
-
+				int rowCount = RawRowCount;
+				for (int rowIndex = 0; rowIndex < rowCount; ++rowIndex) {
 					// If this row isn't deleted, set the index information for it,
-					if (!RecordDeleted(row_index)) {
-						scheme.Insert(row_index);
-					}
-
+					if (!RecordDeleted(rowIndex))
+						scheme.Insert(rowIndex);
 				}
 
 				// Commit the index
-				CommitIndexSet(index_set);
-
+				CommitIndexSet(indexSet);
 			}
 		}
 
@@ -816,9 +805,9 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Adds a new transaction modification to this master table source.
 		/// </summary>
-		/// <param name="commit_id"></param>
+		/// <param name="commitId"></param>
 		/// <param name="change"></param>
-		/// <param name="index_set">Represents the changed index information to 
+		/// <param name="indexSet">Represents the changed index information to 
 		/// commit to this table.</param>
 		/// <remarks>
 		/// This information represents the information that was added/removed 
@@ -827,24 +816,22 @@ namespace Deveel.Data {
 		/// It's guarenteed that 'commit_id' additions will be sequential.
 		/// </para>
 		/// </remarks>
-		internal void CommitTransactionChange(long commit_id,
-									MasterTableJournal change, IIndexSet index_set) {
+		internal void CommitTransactionChange(long commitId, MasterTableJournal change, IIndexSet indexSet) {
 			lock (this) {
 				// ASSERT: Can't do this if source is Read only.
-				if (IsReadOnly) {
+				if (IsReadOnly)
 					throw new ApplicationException("Can't commit transaction journal, table is Read only.");
-				}
 
-				change.CommitId = commit_id;
+				change.CommitId = commitId;
 
 				try {
 
 					// Add this journal to the multi version table indices log
-					table_indices.AddTransactionJournal(change);
+					TableIndices.AddTransactionJournal(change);
 
 					// Write the modified index set to the index store
 					// (Updates the index file)
-					CommitIndexSet(index_set);
+					CommitIndexSet(indexSet);
 
 					// Update the state of the committed added data to the file system.
 					// (Updates data to the allocation file)
@@ -865,35 +852,31 @@ namespace Deveel.Data {
 
 					int size = change.EntriesCount;
 					for (int i = 0; i < size; ++i) {
-						byte b = change.GetCommand(i);
-						int row_index = change.GetRowIndex(i);
+						JournalCommandType b = change.GetCommand(i);
+						int rowIndex = change.GetRowIndex(i);
 						// Was a row added or removed?
-						if (MasterTableJournal.IsAddCommand(b)) {
-
+						if (b == JournalCommandType.AddRow) {
 							// Record commit added
-							int old_type = WriteRecordType(row_index, 0x010);
+							int oldType = WriteRecordType(rowIndex, 0x010);
 							// Check the record was in an uncommitted state before we changed
 							// it.
-							if ((old_type & 0x0F0) != 0) {
-								WriteRecordType(row_index, old_type & 0x0F0);
-								throw new ApplicationException("Record " + row_index + " of table " + this +
-												" was not in an uncommitted state!");
+							if ((oldType & 0x0F0) != 0) {
+								WriteRecordType(rowIndex, oldType & 0x0F0);
+								throw new ApplicationException("Record " + rowIndex + " of table " + this +
+								                               " was not in an uncommitted state!");
 							}
 
-						} else if (MasterTableJournal.IsRemoveCommand(b)) {
-
+						} else if (b == JournalCommandType.RemoveRow) {
 							// Record commit removed
-							int old_type = WriteRecordType(row_index, 0x020);
+							int oldType = WriteRecordType(rowIndex, 0x020);
 							// Check the record was in an added state before we removed it.
-							if ((old_type & 0x0F0) != 0x010) {
-								WriteRecordType(row_index, old_type & 0x0F0);
-								//            Console.Out.WriteLine(change);
-								throw new ApplicationException("Record " + row_index + " of table " + this +
-												" was not in an added state!");
+							if ((oldType & 0x0F0) != 0x010) {
+								WriteRecordType(rowIndex, oldType & 0x0F0);
+								throw new ApplicationException("Record " + rowIndex + " of table " + this +
+								                               " was not in an added state!");
 							}
 							// Notify collector that this row has been marked as deleted.
-							gc.MarkRowAsDeleted(row_index);
-
+							gc.MarkRowAsDeleted(rowIndex);
 						}
 					}
 
@@ -916,10 +899,8 @@ namespace Deveel.Data {
 		internal void RollbackTransactionChange(MasterTableJournal change) {
 			lock (this) {
 				// ASSERT: Can't do this is source is Read only.
-				if (IsReadOnly) {
-					throw new ApplicationException(
-						"Can't rollback transaction journal, table is Read only.");
-				}
+				if (IsReadOnly)
+					throw new ApplicationException("Can't rollback transaction journal, table is Read only.");
 
 				// Any rows added in the journal are marked as committed deleted and the
 				// journal is then discarded.
@@ -928,24 +909,24 @@ namespace Deveel.Data {
 					// Mark all rows in the data_store as appropriate to the changes.
 					int size = change.EntriesCount;
 					for (int i = 0; i < size; ++i) {
-						byte b = change.GetCommand(i);
-						int row_index = change.GetRowIndex(i);
+						JournalCommandType b = change.GetCommand(i);
+						int rowIndex = change.GetRowIndex(i);
 						// Make row as added or removed.
-						if (MasterTableJournal.IsAddCommand(b)) {
+						if (b == JournalCommandType.AddRow) {
 							// Record commit removed (we are rolling back remember).
 							//          int old_type = data_store.WriteRecordType(row_index + 1, 0x020);
-							int old_type = WriteRecordType(row_index, 0x020);
+							int oldType = WriteRecordType(rowIndex, 0x020);
 							// Check the record was in an uncommitted state before we changed
 							// it.
-							if ((old_type & 0x0F0) != 0) {
+							if ((oldType & 0x0F0) != 0) {
 								//            data_store.WriteRecordType(row_index + 1, old_type & 0x0F0);
-								WriteRecordType(row_index, old_type & 0x0F0);
-								throw new ApplicationException("Record " + row_index + " was not in an " +
-												"uncommitted state!");
+								WriteRecordType(rowIndex, oldType & 0x0F0);
+								throw new ApplicationException("Record " + rowIndex + " was not in an " +
+								                               "uncommitted state!");
 							}
 							// Notify collector that this row has been marked as deleted.
-							gc.MarkRowAsDeleted(row_index);
-						} else if (MasterTableJournal.IsRemoveCommand(b)) {
+							gc.MarkRowAsDeleted(rowIndex);
+						} else if (b == JournalCommandType.RemoveRow) {
 							// Any journal entries marked as TABLE_REMOVE are ignored because
 							// we are rolling back.  This means the row is not logically changed.
 						}
@@ -1011,11 +992,11 @@ namespace Deveel.Data {
 				// Create the initial DataIndexSetDef object.
 				index_def = new DataIndexSetDef(table_def.TableName);
 				for (int i = 0; i < table_def.ColumnCount; ++i) {
-					DataTableColumnDef col_def = table_def[i];
-					if (col_def.IsIndexableType &&
-						col_def.IndexScheme.Equals("InsertSearch")) {
+					DataTableColumnDef colDef = table_def[i];
+					if (colDef.IsIndexableType &&
+						colDef.IndexScheme.Equals("InsertSearch")) {
 						index_def.AddDataIndexDef(new DataIndexDef("ANON-COLUMN:" + i,
-																   new String[] { col_def.Name }, i + 1,
+																   new String[] { colDef.Name }, i + 1,
 																   "BLIST", false));
 					}
 				}
@@ -1043,7 +1024,7 @@ namespace Deveel.Data {
 				TableName table_name = table_def.TableName;
 
 				// Create table indices
-				table_indices = new MultiVersionTableIndices(System, table_name, tableDef.ColumnCount);
+				TableIndices = new MultiVersionTableIndices(System, table_name, tableDef.ColumnCount);
 
 				// Setup the DataIndexSetDef
 				SetupDataIndexSetDef();
@@ -1056,11 +1037,11 @@ namespace Deveel.Data {
 		protected void LoadInternal() {
 			lock (this) {
 				// Set up the stat keys.
-				String table_name = table_def.Name;
-				String schema_name = table_def.Schema;
-				String n = table_name;
-				if (schema_name.Length > 0) {
-					n = schema_name + "." + table_name;
+				string tableName = table_def.Name;
+				string schemaName = table_def.Schema;
+				string n = tableName;
+				if (schemaName.Length > 0) {
+					n = schemaName + "." + tableName;
 				}
 				root_lock_key = "MasterTableDataSource.RootLocks." + n;
 				total_hits_key = "MasterTableDataSource.Hits.Total." + n;
@@ -1113,10 +1094,10 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		internal int AddRow(DataRow data) {
-			int row_number;
+			int rowNumber;
 
 			lock (this) {
-				row_number = InternalAddRow(data);
+				rowNumber = InternalAddRow(data);
 
 			} // lock
 
@@ -1124,13 +1105,13 @@ namespace Deveel.Data {
 			System.Stats.Increment(insert_hits_key);
 
 			// Return the record index of the new data in the table
-			return row_number;
+			return rowNumber;
 		}
 
 		/// <summary>
 		/// Actually deletes the row from the table.
 		/// </summary>
-		/// <param name="row_index"></param>
+		/// <param name="rowIndex"></param>
 		/// <remarks>
 		/// This is a permanent removal of the row from the table. After this 
 		/// method is called, the row can not be retrieved again. This is 
@@ -1139,10 +1120,10 @@ namespace Deveel.Data {
 		/// There is no checking in this method.
 		/// </para>
 		/// </remarks>
-		private void DoHardRowRemove(int row_index) {
+		private void DoHardRowRemove(int rowIndex) {
 			lock (this) {
 				// Internally delete the row,
-				InternalDeleteRow(row_index);
+				InternalDeleteRow(rowIndex);
 
 				// Update stats
 				system.Stats.Increment(delete_hits_key);
@@ -1175,12 +1156,11 @@ namespace Deveel.Data {
 					if ((type_key & 0x0F0) == 0x020) {
 						DoHardRowRemove(record_index);
 					} else {
-						throw new ApplicationException(
-							"Row isn't marked as committed removed: " + record_index);
+						throw new ApplicationException("Row isn't marked as committed removed: " + record_index);
 					}
 				} else {
 					throw new ApplicationException("Assertion failed: " +
-									"Can't remove row, table is under a root Lock.");
+					                               "Can't remove row, table is under a root Lock.");
 				}
 			}
 		}
@@ -1189,23 +1169,23 @@ namespace Deveel.Data {
 		/// Checks the given record index, and if it's possible to reclaim it 
 		/// then it does so here.
 		/// </summary>
-		/// <param name="record_index"></param>
+		/// <param name="recordIndex"></param>
 		/// <remarks>
 		/// Rows are only removed if they are marked as committed removed.
 		/// </remarks>
 		/// <returns></returns>
-		internal bool HardCheckAndReclaimRow(int record_index) {
+		internal bool HardCheckAndReclaimRow(int recordIndex) {
 			lock(this) {
 				// ASSERTION: We are not under a root Lock.
 				if (!IsRootLocked) {
 					// Row already deleted?
-					if (!RecordDeleted(record_index)) {
-						int type_key = ReadRecordType(record_index);
+					if (!RecordDeleted(recordIndex)) {
+						int typeKey = ReadRecordType(recordIndex);
 						// Check this record is marked as committed removed.
-						if ((type_key & 0x0F0) == 0x020) {
+						if ((typeKey & 0x0F0) == 0x020) {
 							//          Console.Out.WriteLine("[" + getName() + "] " +
 							//                             "Hard Removing: " + record_index);
-							DoHardRowRemove(record_index);
+							DoHardRowRemove(recordIndex);
 							return true;
 						}
 					}
@@ -1230,12 +1210,12 @@ namespace Deveel.Data {
 				if (RecordDeleted(record_index)) {
 					return RecordState.Deleted;
 				}
-				int type_key = ReadRecordType(record_index) & 0x0F0;
-				if (type_key == 0)
+				int typeKey = ReadRecordType(record_index) & 0x0F0;
+				if (typeKey == 0)
 					return RecordState.Uncommitted;
-				if (type_key == 0x010)
+				if (typeKey == 0x010)
 					return RecordState.CommittedAdded;
-				if (type_key == 0x020)
+				if (typeKey == 0x020)
 					return RecordState.CommittedRemoved;
 				return RecordState.Error;
 
@@ -1252,7 +1232,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		protected void DoOpeningScan() {
 			lock (this) {
-				DateTime in_time = DateTime.Now;
+				DateTime inTime = DateTime.Now;
 
 				// ASSERTION: No root locks and no pending transaction changes,
 				//   VERY important we assert there's no pending transactions.
@@ -1333,7 +1313,7 @@ namespace Deveel.Data {
 
 				}
 
-				TimeSpan bench_time = DateTime.Now - in_time;
+				TimeSpan bench_time = DateTime.Now - inTime;
 				if (Debug.IsInterestedIn(DebugLevel.Information)) {
 					Debug.Write(DebugLevel.Information, this,
 								  "Opening scan for " + ToString() + " (" + TableName + ") took " +
@@ -1446,7 +1426,7 @@ namespace Deveel.Data {
 		internal string TransactionChangeString {
 			get {
 				lock (this) {
-					return table_indices.TransactionChangeString;
+					return TableIndices.TransactionChangeString;
 				}
 			}
 		}
@@ -1458,7 +1438,7 @@ namespace Deveel.Data {
 		internal bool HasTransactionChangesPending {
 			get {
 				lock (this) {
-					return table_indices.HasTransactionChangesPending;
+					return TableIndices.HasTransactionChangesPending;
 				}
 			}
 		}
@@ -1790,31 +1770,26 @@ namespace Deveel.Data {
 			/// because multiple reads are valid.
 			/// </remarks>
 			private void EnsureRowIndexListCurrent() {
-				int rebuild_index = row_list_rebuild;
-				int journal_count = table_journal.EntriesCount;
-				while (rebuild_index < journal_count) {
-					byte command = table_journal.GetCommand(rebuild_index);
-					int row_index = table_journal.GetRowIndex(rebuild_index);
-					if (MasterTableJournal.IsAddCommand(command)) {
+				int rebuildIndex = row_list_rebuild;
+				int journalCount = table_journal.EntriesCount;
+				while (rebuildIndex < journalCount) {
+					JournalCommandType command = table_journal.GetCommand(rebuildIndex);
+					int rowIndex = table_journal.GetRowIndex(rebuildIndex);
+					if (command == JournalCommandType.AddRow) {
 						// Add to 'row_list'.
-						bool b = RowIndexList.UniqueInsertSort(row_index);
-						if (b == false) {
-							throw new ApplicationException(
-								  "Row index already used in this table (" + row_index + ")");
-						}
-					} else if (MasterTableJournal.IsRemoveCommand(command)) {
+						if (!RowIndexList.UniqueInsertSort(rowIndex))
+							throw new ApplicationException("Row index already used in this table (" + rowIndex + ")");
+					} else if (command == JournalCommandType.RemoveRow) {
 						// Remove from 'row_list'
-						bool b = RowIndexList.RemoveSort(row_index);
-						if (b == false) {
+						if (!RowIndexList.RemoveSort(rowIndex))
 							throw new ApplicationException("Row index removed that wasn't in this table!");
-						}
 					} else {
 						throw new ApplicationException("Unrecognised journal command.");
 					}
-					++rebuild_index;
+					++rebuildIndex;
 				}
 				// It's now current (row_list_rebuild == journal_count);
-				row_list_rebuild = rebuild_index;
+				row_list_rebuild = rebuildIndex;
 			}
 
 			/// <summary>
@@ -1828,21 +1803,21 @@ namespace Deveel.Data {
 				//   this section of code because writes are exclusive operations
 				//   within a transaction.
 				// Are there journal entries pending on this scheme since?
-				int rebuild_index = scheme_rebuilds[column];
-				int journal_count = table_journal.EntriesCount;
-				while (rebuild_index < journal_count) {
-					byte command = table_journal.GetCommand(rebuild_index);
-					int row_index = table_journal.GetRowIndex(rebuild_index);
-					if (MasterTableJournal.IsAddCommand(command)) {
+				int rebuildIndex = scheme_rebuilds[column];
+				int journalCount = table_journal.EntriesCount;
+				while (rebuildIndex < journalCount) {
+					JournalCommandType command = table_journal.GetCommand(rebuildIndex);
+					int row_index = table_journal.GetRowIndex(rebuildIndex);
+					if (command == JournalCommandType.AddRow) {
 						scheme.Insert(row_index);
-					} else if (MasterTableJournal.IsRemoveCommand(command)) {
+					} else if (command == JournalCommandType.RemoveRow) {
 						scheme.Remove(row_index);
 					} else {
 						throw new ApplicationException("Unrecognised journal command.");
 					}
-					++rebuild_index;
+					++rebuildIndex;
 				}
-				scheme_rebuilds[column] = rebuild_index;
+				scheme_rebuilds[column] = rebuildIndex;
 			}
 
 			// ---------- Implemented from IMutableTableDataSource ----------
@@ -1939,7 +1914,7 @@ namespace Deveel.Data {
 				// Note this doesn't need to be synchronized because we are exclusive on
 				// this table.
 				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommand.TABLE_ADD, row_index);
+				table_journal.AddEntry(JournalCommandType.AddRow, row_index);
 
 				return row_index;
 			}
@@ -1964,7 +1939,7 @@ namespace Deveel.Data {
 				// Note this doesn't need to be synchronized because we are exclusive on
 				// this table.
 				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommand.TABLE_REMOVE, row_index);
+				table_journal.AddEntry(JournalCommandType.RemoveRow, row_index);
 
 			}
 
@@ -1983,7 +1958,7 @@ namespace Deveel.Data {
 				// Note this doesn't need to be synchronized because we are exclusive on
 				// this table.
 				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommand.TABLE_UPDATE_REMOVE, row_index);
+				table_journal.AddEntry(JournalCommandType.UpdateRemoveRow, row_index);
 
 				// Add to the master.
 				int new_row_index;
@@ -1997,7 +1972,7 @@ namespace Deveel.Data {
 				// Note this doesn't need to be synchronized because we are exclusive on
 				// this table.
 				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommand.TABLE_UPDATE_ADD, new_row_index);
+				table_journal.AddEntry(JournalCommandType.UpdateAddRow, new_row_index);
 
 				return new_row_index;
 			}
@@ -2013,102 +1988,96 @@ namespace Deveel.Data {
 
 			public void ConstraintIntegrityCheck() {
 				try {
-
 					// Early exit condition
-					if (last_entry_ri_check == table_journal.EntriesCount) {
+					if (last_entry_ri_check == table_journal.EntriesCount)
 						return;
-					}
 
 					// This table name
 					DataTableDef table_def = DataTableDef;
 					TableName table_name = table_def.TableName;
-					IQueryContext context =
-							   new SystemQueryContext(transaction, table_name.Schema);
+					IQueryContext context = new SystemQueryContext(transaction, table_name.Schema);
 
 					// Are there any added, deleted or updated entries in the journal since
 					// we last checked?
-					IntegerVector rows_updated = new IntegerVector();
-					IntegerVector rows_deleted = new IntegerVector();
-					IntegerVector rows_added = new IntegerVector();
+					IntegerVector rowsUpdated = new IntegerVector();
+					IntegerVector rowsDeleted = new IntegerVector();
+					IntegerVector rowsAdded = new IntegerVector();
 
 					int size = table_journal.EntriesCount;
 					for (int i = last_entry_ri_check; i < size; ++i) {
-						byte tc = table_journal.GetCommand(i);
+						JournalCommandType tc = table_journal.GetCommand(i);
 						int row_index = table_journal.GetRowIndex(i);
-						if (tc == JournalCommand.TABLE_REMOVE ||
-							tc == JournalCommand.TABLE_UPDATE_REMOVE) {
-							rows_deleted.AddInt(row_index);
+						if (tc == JournalCommandType.RemoveRow ||
+						    tc == JournalCommandType.UpdateRemoveRow) {
+							rowsDeleted.AddInt(row_index);
 							// If this is in the rows_added list, remove it from rows_added
-							int ra_i = rows_added.IndexOf(row_index);
+							int ra_i = rowsAdded.IndexOf(row_index);
 							if (ra_i != -1) {
-								rows_added.RemoveIntAt(ra_i);
+								rowsAdded.RemoveIntAt(ra_i);
 							}
-						} else if (tc == JournalCommand.TABLE_ADD ||
-								 tc == JournalCommand.TABLE_UPDATE_ADD) {
-							rows_added.AddInt(row_index);
+						} else if (tc == JournalCommandType.AddRow ||
+						           tc == JournalCommandType.UpdateAddRow) {
+							rowsAdded.AddInt(row_index);
 						}
 
-						if (tc == JournalCommand.TABLE_UPDATE_REMOVE) {
-							rows_updated.AddInt(row_index);
-						} else if (tc == JournalCommand.TABLE_UPDATE_ADD) {
-							rows_updated.AddInt(row_index);
+						if (tc == JournalCommandType.UpdateRemoveRow) {
+							rowsUpdated.AddInt(row_index);
+						} else if (tc == JournalCommandType.UpdateAddRow) {
+							rowsUpdated.AddInt(row_index);
 						}
 					}
 
 					// Were there any updates or deletes?
-					if (rows_deleted.Count > 0) {
+					if (rowsDeleted.Count > 0) {
 						// Get all references on this table
-						Transaction.ColumnGroupReference[] foreign_constraints =
-							 Transaction.QueryTableImportedForeignKeyReferences(transaction,
-																				table_name);
+						Transaction.ColumnGroupReference[] foreignConstraints =
+							 Transaction.QueryTableImportedForeignKeyReferences(transaction, table_name);
 
 						// For each foreign constraint
-						for (int n = 0; n < foreign_constraints.Length; ++n) {
-							Transaction.ColumnGroupReference constraint =
-																	   foreign_constraints[n];
+						for (int n = 0; n < foreignConstraints.Length; ++n) {
+							Transaction.ColumnGroupReference constraint = foreignConstraints[n];
 							// For each deleted/updated record in the table,
-							for (int i = 0; i < rows_deleted.Count; ++i) {
-								int row_index = rows_deleted[i];
+							for (int i = 0; i < rowsDeleted.Count; ++i) {
+								int rowIndex = rowsDeleted[i];
 								// What was the key before it was updated/deleted
-								int[] cols = TableDataConglomerate.FindColumnIndices(
-															  table_def, constraint.ref_columns);
-								TObject[] original_key = new TObject[cols.Length];
-								int null_count = 0;
+								int[] cols = TableDataConglomerate.FindColumnIndices(table_def, constraint.ref_columns);
+								TObject[] originalKey = new TObject[cols.Length];
+								int nullCount = 0;
 								for (int p = 0; p < cols.Length; ++p) {
-									original_key[p] = GetCellContents(cols[p], row_index);
-									if (original_key[p].IsNull) {
-										++null_count;
+									originalKey[p] = GetCellContents(cols[p], rowIndex);
+									if (originalKey[p].IsNull) {
+										++nullCount;
 									}
 								}
 								// Check the original key isn't null
-								if (null_count != cols.Length) {
+								if (nullCount != cols.Length) {
 									// Is is an update?
-									int update_index = rows_updated.IndexOf(row_index);
-									if (update_index != -1) {
+									int updateIndex = rowsUpdated.IndexOf(rowIndex);
+									if (updateIndex != -1) {
 										// Yes, this is an update
-										int row_index_add = rows_updated[update_index + 1];
+										int rowIndexAdd = rowsUpdated[updateIndex + 1];
 										// It must be an update, so first see if the change caused any
 										// of the keys to change.
-										bool key_changed = false;
-										TObject[] key_updated_to = new TObject[cols.Length];
+										bool keyChanged = false;
+										TObject[] keyUpdatedTo = new TObject[cols.Length];
 										for (int p = 0; p < cols.Length; ++p) {
-											key_updated_to[p] = GetCellContents(cols[p], row_index_add);
-											if (original_key[p].CompareTo(key_updated_to[p]) != 0) {
-												key_changed = true;
+											keyUpdatedTo[p] = GetCellContents(cols[p], rowIndexAdd);
+											if (originalKey[p].CompareTo(keyUpdatedTo[p]) != 0) {
+												keyChanged = true;
 											}
 										}
-										if (key_changed) {
+										if (keyChanged) {
 											// Allow the delete, and execute the action,
 											// What did the key update to?
 											ExecuteUpdateReferentialAction(constraint,
-																original_key, key_updated_to, context);
+																originalKey, keyUpdatedTo, context);
 										}
 										// If the key didn't change, we don't need to do anything.
 									} else {
 										// No, so it must be a delete,
 										// This will look at the referencee table and if it contains
 										// the key, work out what to do with it.
-										ExecuteDeleteReferentialAction(constraint, original_key,
+										ExecuteDeleteReferentialAction(constraint, originalKey,
 																	   context);
 									}
 
@@ -2121,33 +2090,28 @@ namespace Deveel.Data {
 					}
 
 					// Were there any rows added (that weren't deleted)?
-					if (rows_added.Count > 0) {
-						int[] row_indices = rows_added.ToIntArray();
+					if (rowsAdded.Count > 0) {
+						int[] rowIndices = rowsAdded.ToIntArray();
 
 						// Check for any field constraint violations in the added rows
-						TableDataConglomerate.CheckFieldConstraintViolations(
-															 transaction, this, row_indices);
+						TableDataConglomerate.CheckFieldConstraintViolations(transaction, this, rowIndices);
 						// Check this table, adding the given row_index, immediate
-						TableDataConglomerate.CheckAddConstraintViolations(
-							transaction, this,
-							row_indices, ConstraintDeferrability.InitiallyImmediate);
+						TableDataConglomerate.CheckAddConstraintViolations(transaction, this, rowIndices, ConstraintDeferrability.InitiallyImmediate);
 					}
-
 				} catch (DatabaseConstraintViolationException e) {
 
 					// If a constraint violation, roll back the changes since the last
 					// check.
-					int rollback_point = table_journal.EntriesCount - last_entry_ri_check;
-					if (row_list_rebuild <= rollback_point) {
-						table_journal.RollbackEntries(rollback_point);
+					int rollbackPoint = table_journal.EntriesCount - last_entry_ri_check;
+					if (row_list_rebuild <= rollbackPoint) {
+						table_journal.RollbackEntries(rollbackPoint);
 					} else {
 						Console.Out.WriteLine(
 						   "Warning: rebuild_pointer is after rollback point so we can't " +
 						   "rollback to the point before the constraint violation.");
 					}
 
-					throw e;
-
+					throw;
 				} finally {
 					// Make sure we update the 'last_entry_ri_check' variable
 					last_entry_ri_check = table_journal.EntriesCount;

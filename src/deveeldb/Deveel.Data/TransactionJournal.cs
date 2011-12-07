@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
 
@@ -38,26 +39,11 @@ namespace Deveel.Data {
 	/// they need to be atomic operations and can be accessed by multiple threads.
 	/// </para>
 	/// </remarks>
-	sealed class TransactionJournal {
-
-		/**
-		 * Journal commands.
-		 */
-		internal const byte TABLE_ADD = 1;  // Add a row to a table.
-		// (params: table_id, row_index)
-		internal const byte TABLE_REMOVE = 2;  // Remove a row from a table.
-		// (params: table_id, row_index)
-		internal const byte TABLE_CREATE = 3;  // Create a new table.
-		// (params: table_id)
-		internal const byte TABLE_DROP = 4;  // Drop a table.
-		// (params: table_id)
-		internal const byte TABLE_CONSTRAINT_ALTER = 5; // Alter constraints of a table.
-		// (params: table_id)
-
+	public sealed class TransactionJournal : IEnumerable<JournalCommand> {
 		/// <summary>
 		/// The number of entries in this journal.
 		/// </summary>
-		private int journal_entries;
+		private int journalEntries;
 
 		/// <summary>
 		/// The list of table's that have been touched by this transaction.
@@ -70,40 +56,43 @@ namespace Deveel.Data {
 		/// This object records the 'table_id' of the touched tables in a sorted list.
 		/// </para>
 		/// </remarks>
-		private readonly IntegerVector touched_tables;
+		private readonly IntegerVector touchedTables;
 
 		/// <summary>
 		/// A byte[] array that represents the set of commands a transaction
 		/// performed on a table.
 		/// </summary>
-		private byte[] command_journal;
+		private byte[] commandJournal;
 
 		/// <summary>
 		/// An <see cref="IntegerVector"/> that is filled with parameters from the 
 		/// command journal.
 		/// </summary>
 		/// <remarks>
-		/// For example, a <see cref="TABLE_ADD"/> journal log will have as parameters 
-		/// the table id the row was added to, and the row_index that was added.
+		/// For example, a <see cref="JournalCommandType.AddRow"/> journal log will have 
+		/// as parameters the table id the row was added to, and the row_index that was added.
 		/// </remarks>
-		private readonly IntegerVector command_parameters;
+		private readonly List<int> commandParameters;
 
 		// Optimization, these flags are set to true when various types of journal
 		// entries are made to the transaction journal.
-		private bool has_added_table_rows, has_removed_table_rows,
-				 has_created_tables, has_dropped_tables, has_constraint_alterations;
+		private bool hasAddedTableRows,
+		             hasRemovedTableRows,
+		             hasCreatedTables,
+		             hasDroppedTables,
+		             hasConstraintAlterations;
 
 		internal TransactionJournal() {
-			journal_entries = 0;
-			command_journal = new byte[16];
-			command_parameters = new IntegerVector(32);
-			touched_tables = new IntegerVector(8);
+			journalEntries = 0;
+			commandJournal = new byte[16];
+			commandParameters = new List<int>(32);
+			touchedTables = new IntegerVector(8);
 
-			has_added_table_rows = false;
-			has_removed_table_rows = false;
-			has_created_tables = false;
-			has_dropped_tables = false;
-			has_constraint_alterations = false;
+			hasAddedTableRows = false;
+			hasRemovedTableRows = false;
+			hasCreatedTables = false;
+			hasDroppedTables = false;
+			hasConstraintAlterations = false;
 		}
 
 		/// <summary>
@@ -111,17 +100,17 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="command"></param>
 		private void AddCommand(byte command) {
-			if (journal_entries >= command_journal.Length) {
+			if (journalEntries >= commandJournal.Length) {
 				// Resize command array.
-				int grow_size = System.Math.Min(4000, journal_entries);
-				byte[] new_command_journal = new byte[journal_entries + grow_size];
-				Array.Copy(command_journal, 0, new_command_journal, 0,
-								 journal_entries);
-				command_journal = new_command_journal;
+				int grow_size = System.Math.Min(4000, journalEntries);
+				byte[] new_command_journal = new byte[journalEntries + grow_size];
+				Array.Copy(commandJournal, 0, new_command_journal, 0,
+				           journalEntries);
+				commandJournal = new_command_journal;
 			}
 
-			command_journal[journal_entries] = command;
-			++journal_entries;
+			commandJournal[journalEntries] = command;
+			++journalEntries;
 		}
 
 		/// <summary>
@@ -129,7 +118,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="param"></param>
 		private void AddParameter(int param) {
-			command_parameters.AddInt(param);
+			commandParameters.Add(param);
 		}
 
 		/// <summary>
@@ -138,19 +127,19 @@ namespace Deveel.Data {
 		/// <param name="table_id"></param>
 		internal void EntryAddTouchedTable(int table_id) {
 			lock (this) {
-				int pos = touched_tables.SortedIndexOf(table_id);
+				int pos = touchedTables.SortedIndexOf(table_id);
 				// If table_id already in the touched table list.
-				if (pos < touched_tables.Count &&
-					touched_tables[pos] == table_id) {
+				if (pos < touchedTables.Count &&
+				    touchedTables[pos] == table_id) {
 					return;
 				}
 				// If position to insert >= size of the touched tables set then add to
 				// the end of the set.
-				if (pos >= touched_tables.Count) {
-					touched_tables.AddInt(table_id);
+				if (pos >= touchedTables.Count) {
+					touchedTables.AddInt(table_id);
 				} else {
 					// Otherwise, insert into sorted order.
-					touched_tables.InsertIntAt(table_id, pos);
+					touchedTables.InsertIntAt(table_id, pos);
 				}
 			}
 		}
@@ -159,14 +148,14 @@ namespace Deveel.Data {
 		/// Makes a journal entry that a table entry has been added to the table 
 		/// with the given id.
 		/// </summary>
-		/// <param name="table_id"></param>
-		/// <param name="row_index"></param>
-		internal void EntryAddTableRow(int table_id, int row_index) {
+		/// <param name="tableId"></param>
+		/// <param name="rowIndex"></param>
+		internal void EntryAddTableRow(int tableId, int rowIndex) {
 			lock (this) {
-				//    has_added_table_rows = true;
-				AddCommand(TABLE_ADD);
-				AddParameter(table_id);
-				AddParameter(row_index);
+				hasAddedTableRows = true;
+				AddCommand((byte) JournalCommandType.AddRow);
+				AddParameter(tableId);
+				AddParameter(rowIndex);
 			}
 		}
 
@@ -174,14 +163,14 @@ namespace Deveel.Data {
 		/// Makes a journal entry that a table entry has been removed from the 
 		/// table with the given id.
 		/// </summary>
-		/// <param name="table_id"></param>
-		/// <param name="row_index"></param>
-		internal void EntryRemoveTableRow(int table_id, int row_index) {
+		/// <param name="tableId"></param>
+		/// <param name="rowIndex"></param>
+		internal void EntryRemoveTableRow(int tableId, int rowIndex) {
 			lock (this) {
-				//    has_removed_table_rows = true;
-				AddCommand(TABLE_REMOVE);
-				AddParameter(table_id);
-				AddParameter(row_index);
+				hasRemovedTableRows = true;
+				AddCommand((byte) JournalCommandType.RemoveRow);
+				AddParameter(tableId);
+				AddParameter(rowIndex);
 			}
 		}
 
@@ -189,12 +178,12 @@ namespace Deveel.Data {
 		/// Makes a journal entry that a table with the given 'table_id' has 
 		/// been created by this transaction.
 		/// </summary>
-		/// <param name="table_id"></param>
-		internal void EntryTableCreate(int table_id) {
+		/// <param name="tableId"></param>
+		internal void EntryTableCreate(int tableId) {
 			lock (this) {
-				has_created_tables = true;
-				AddCommand(TABLE_CREATE);
-				AddParameter(table_id);
+				hasCreatedTables = true;
+				AddCommand((byte) JournalCommandType.CreateTable);
+				AddParameter(tableId);
 			}
 		}
 
@@ -202,12 +191,12 @@ namespace Deveel.Data {
 		/// Makes a journal entry that a table with the given 'table_id' has 
 		/// been dropped by this transaction.
 		/// </summary>
-		/// <param name="table_id"></param>
-		internal void EntryTableDrop(int table_id) {
+		/// <param name="tableId"></param>
+		internal void EntryTableDrop(int tableId) {
 			lock (this) {
-				has_dropped_tables = true;
-				AddCommand(TABLE_DROP);
-				AddParameter(table_id);
+				hasDroppedTables = true;
+				AddCommand((byte) JournalCommandType.DropTable);
+				AddParameter(tableId);
 			}
 		}
 
@@ -215,12 +204,12 @@ namespace Deveel.Data {
 		/// Makes a journal entry that a table with the given 'table_id' has 
 		/// been altered by this transaction.
 		/// </summary>
-		/// <param name="table_id"></param>
-		internal void EntryTableConstraintAlter(int table_id) {
+		/// <param name="tableId"></param>
+		internal void EntryTableConstraintAlter(int tableId) {
 			lock (this) {
-				has_constraint_alterations = true;
-				AddCommand(TABLE_CONSTRAINT_ALTER);
-				AddParameter(table_id);
+				hasConstraintAlterations = true;
+				AddCommand((byte) JournalCommandType.ConstraintAlter);
+				AddParameter(tableId);
 			}
 		}
 
@@ -243,113 +232,111 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		internal MasterTableJournal[] MakeMasterTableJournals() {
-			ArrayList table_journals = new ArrayList();
-			int param_index = 0;
+			List<MasterTableJournal> tableJournals = new List<MasterTableJournal>();
+			int paramIndex = 0;
 
-			MasterTableJournal master_journal = null;
+			MasterTableJournal masterJournal = null;
 
-			for (int i = 0; i < journal_entries; ++i) {
-				byte c = command_journal[i];
-				if (c == TABLE_ADD || c == TABLE_REMOVE) {
-					int table_id = command_parameters[param_index];
-					int row_index = command_parameters[param_index + 1];
-					param_index += 2;
+			for (int i = 0; i < journalEntries; ++i) {
+				JournalCommandType c = (JournalCommandType) commandJournal[i];
+				if (c == JournalCommandType.AddRow ||
+				    c == JournalCommandType.RemoveRow) {
+					int tableId = commandParameters[paramIndex];
+					int rowIndex = commandParameters[paramIndex + 1];
+					paramIndex += 2;
 
 					// Do we already have this table journal?
-					if (master_journal == null ||
-						master_journal.TableId != table_id) {
+					if (masterJournal == null ||
+					    masterJournal.TableId != tableId) {
 						// Try to find the journal in the list.
-						int size = table_journals.Count;
-						master_journal = null;
-						for (int n = 0; n < size && master_journal == null; ++n) {
-							MasterTableJournal test_journal =
-												   (MasterTableJournal)table_journals[n];
-							if (test_journal.TableId == table_id) {
-								master_journal = test_journal;
-							}
+						int size = tableJournals.Count;
+						masterJournal = null;
+						for (int n = 0; n < size && masterJournal == null; ++n) {
+							MasterTableJournal testJournal = tableJournals[n];
+							if (testJournal.TableId == tableId)
+								masterJournal = testJournal;
 						}
 
 						// Not found so add to list.
-						if (master_journal == null) {
-							master_journal = new MasterTableJournal(table_id);
-							table_journals.Add(master_journal);
+						if (masterJournal == null) {
+							masterJournal = new MasterTableJournal(tableId);
+							tableJournals.Add(masterJournal);
 						}
-
 					}
 
 					// Add this change to the table journal.
-					master_journal.AddEntry(c, row_index);
-
-				} else if (c == TABLE_CREATE ||
-						 c == TABLE_DROP ||
-						 c == TABLE_CONSTRAINT_ALTER) {
-					param_index += 1;
+					masterJournal.AddEntry(c, rowIndex);
+				} else if (c == JournalCommandType.CreateTable ||
+				           c == JournalCommandType.DropTable ||
+				           c == JournalCommandType.ConstraintAlter) {
+					paramIndex += 1;
 				} else {
 					throw new ApplicationException("Unknown journal command.");
 				}
 			}
 
 			// Return the array.
-			return (MasterTableJournal[])table_journals.ToArray(typeof(MasterTableJournal));
-
+			return tableJournals.ToArray();
 		}
 
 		/// <summary>
 		/// Returns the list of tables id's that were dropped by this journal.
 		/// </summary>
 		/// <returns></returns>
-		internal IntegerVector GetTablesDropped() {
-			IntegerVector dropped_tables = new IntegerVector();
+		internal List<int> GetTablesDropped() {
+			List<int> droppedTables = new List<int>();
 			// Optimization, quickly return empty set if we know there are no tables.
-			if (!has_dropped_tables) {
-				return dropped_tables;
-			}
+			if (!hasDroppedTables)
+				return droppedTables;
 
-			int param_index = 0;
-			for (int i = 0; i < journal_entries; ++i) {
-				byte c = command_journal[i];
-				if (c == TABLE_ADD || c == TABLE_REMOVE) {
-					param_index += 2;
-				} else if (c == TABLE_CREATE || c == TABLE_CONSTRAINT_ALTER) {
-					param_index += 1;
-				} else if (c == TABLE_DROP) {
-					dropped_tables.AddInt(command_parameters[param_index]);
-					param_index += 1;
+			int paramIndex = 0;
+			for (int i = 0; i < journalEntries; ++i) {
+				JournalCommandType c = (JournalCommandType) commandJournal[i];
+				if (c == JournalCommandType.AddRow ||
+				    c == JournalCommandType.RemoveRow) {
+					paramIndex += 2;
+				} else if (c == JournalCommandType.CreateTable ||
+				           c == JournalCommandType.ConstraintAlter) {
+					paramIndex += 1;
+				} else if (c == JournalCommandType.DropTable) {
+					droppedTables.Add(commandParameters[paramIndex]);
+					paramIndex += 1;
 				} else {
 					throw new ApplicationException("Unknown journal command.");
 				}
 			}
 
-			return dropped_tables;
+			return droppedTables;
 		}
 
 		/// <summary>
 		/// Returns the list of tables id's that were created by this journal.
 		/// </summary>
 		/// <returns></returns>
-		internal IntegerVector GetTablesCreated() {
-			IntegerVector created_tables = new IntegerVector();
+		internal List<int> GetTablesCreated() {
+			List<int> createdTables = new List<int>();
 			// Optimization, quickly return empty set if we know there are no tables.
-			if (!has_created_tables) {
-				return created_tables;
-			}
+			if (!hasCreatedTables)
+				return createdTables;
 
-			int param_index = 0;
-			for (int i = 0; i < journal_entries; ++i) {
-				byte c = command_journal[i];
-				if (c == TABLE_ADD || c == TABLE_REMOVE) {
-					param_index += 2;
-				} else if (c == TABLE_DROP || c == TABLE_CONSTRAINT_ALTER) {
-					param_index += 1;
-				} else if (c == TABLE_CREATE) {
-					created_tables.AddInt(command_parameters[param_index]);
-					param_index += 1;
+			int paramIndex = 0;
+			for (int i = 0; i < journalEntries; ++i) {
+				JournalCommandType c = (JournalCommandType) commandJournal[i];
+				if (c == JournalCommandType.AddRow ||
+				    c == JournalCommandType.RemoveRow) {
+					paramIndex += 2;
+				} else if (c == JournalCommandType.DropTable ||
+				           c == JournalCommandType.ConstraintAlter) {
+					paramIndex += 1;
+				} else if (c == JournalCommandType.CreateTable) {
+					createdTables.Add(commandParameters[paramIndex]);
+					paramIndex += 1;
 				} else {
 					throw new ApplicationException("Unknown journal command.");
 				}
 			}
 
-			return created_tables;
+			return createdTables;
 		}
 
 		/// <summary>
@@ -357,29 +344,90 @@ namespace Deveel.Data {
 		/// this journal.
 		/// </summary>
 		/// <returns></returns>
-		internal IntegerVector GetTablesConstraintAltered() {
-			IntegerVector caltered_tables = new IntegerVector();
+		internal List<int> GetTablesConstraintAltered() {
+			List<int> calteredTables = new List<int>();
 			// Optimization, quickly return empty set if we know there are no tables.
-			if (!has_constraint_alterations) {
-				return caltered_tables;
-			}
+			if (!hasConstraintAlterations)
+				return calteredTables;
 
-			int param_index = 0;
-			for (int i = 0; i < journal_entries; ++i) {
-				byte c = command_journal[i];
-				if (c == TABLE_ADD || c == TABLE_REMOVE) {
-					param_index += 2;
-				} else if (c == TABLE_DROP || c == TABLE_CREATE) {
-					param_index += 1;
-				} else if (c == TABLE_CONSTRAINT_ALTER) {
-					caltered_tables.AddInt(command_parameters[param_index]);
-					param_index += 1;
+			int paramIndex = 0;
+			for (int i = 0; i < journalEntries; ++i) {
+				JournalCommandType c = (JournalCommandType) commandJournal[i];
+				if (c == JournalCommandType.AddRow ||
+				    c == JournalCommandType.RemoveRow) {
+					paramIndex += 2;
+				} else if (c == JournalCommandType.DropTable ||
+				           c == JournalCommandType.CreateTable) {
+					paramIndex += 1;
+				} else if (c == JournalCommandType.ConstraintAlter) {
+					calteredTables.Add(commandParameters[paramIndex]);
+					paramIndex += 1;
 				} else {
 					throw new ApplicationException("Unknown journal command.");
 				}
 			}
 
-			return caltered_tables;
+			return calteredTables;
 		}
+
+		public IEnumerator<JournalCommand> GetEnumerator() {
+			return new CommandEnumerator(this);
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
+		}
+
+		#region CommandEnumerator
+
+		class CommandEnumerator : IEnumerator<JournalCommand> {
+			private readonly TransactionJournal journal;
+			private int index;
+			private int entryCount;
+
+			public CommandEnumerator(TransactionJournal journal) {
+				this.journal = journal;
+				index = -1;
+				entryCount = journal.journalEntries;
+			}
+
+			private void AssertCoeherent() {
+				if (entryCount != journal.journalEntries)
+					throw new InvalidOperationException("The journal has changed: this enumeration is not coherent.");
+			}
+
+			public void Dispose() {
+			}
+
+			public bool MoveNext() {
+				AssertCoeherent();
+				return ++index < entryCount;
+			}
+
+			public void Reset() {
+				entryCount = journal.journalEntries;
+				index = -1;
+			}
+
+			public JournalCommand Current {
+				get {
+					AssertCoeherent();
+					JournalCommandType commandType = (JournalCommandType) journal.commandJournal[index];
+					int tableId = journal.commandParameters[index];
+					int rowIndex = -1;
+					if (commandType == JournalCommandType.AddRow ||
+						commandType == JournalCommandType.RemoveRow)
+						rowIndex = journal.commandParameters[index + 1];
+
+					return new JournalCommand(commandType, tableId, rowIndex);
+				}
+			}
+
+			object IEnumerator.Current {
+				get { return Current; }
+			}
+		}
+
+		#endregion
 	}
 }

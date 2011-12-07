@@ -82,7 +82,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// True if an error should be generated on a dirty select.
 		/// </summary>
-		private bool transaction_error_on_dirty_select;
+		private bool transactionErrorOnDirtySelect;
 
 		/// <summary>
 		/// True if this transaction is closed.
@@ -123,7 +123,7 @@ namespace Deveel.Data {
 
 			// Defaults to true (should be changed by called 'setErrorOnDirtySelect'
 			// method.
-			transaction_error_on_dirty_select = true;
+			transactionErrorOnDirtySelect = true;
 		}
 
 		/// <summary>
@@ -147,6 +147,13 @@ namespace Deveel.Data {
 				//   it is accessed by OpenTransactionList synchronized.
 				return commitId;
 			}
+		}
+
+		/// <summary>
+		/// Gets the journal of changes made during this transaction.
+		/// </summary>
+		public TransactionJournal Journal {
+			get { return journal; }
 		}
 
 		// ----- Operations within the context of this transaction -----
@@ -179,54 +186,50 @@ namespace Deveel.Data {
 
 			// The list to copy (in the order to copy in).
 			// We WriteByte the 'SEQUENCE_INFO' at the very end of the table list to copy.
-			ArrayList copy_list = new ArrayList(sz);
+			List<MasterTableDataSource> copyList = new List<MasterTableDataSource>(sz);
 
 			MasterTableDataSource lastEntry = null;
 			for (int i = 0; i < sz; ++i) {
-				MasterTableDataSource master_table = GetVisibleTable(i);
-				TableName table_name = master_table.DataTableDef.TableName;
-				if (table_name.Equals(TableDataConglomerate.SysSequenceInfo)) {
-					lastEntry = master_table;
+				MasterTableDataSource masterTable = GetVisibleTable(i);
+				TableName tableName = masterTable.DataTableDef.TableName;
+				if (tableName.Equals(TableDataConglomerate.SysSequenceInfo)) {
+					lastEntry = masterTable;
 				} else {
-					copy_list.Add(master_table);
+					copyList.Add(masterTable);
 				}
 			}
-			copy_list.Insert(0, lastEntry);
+
+			copyList.Insert(0, lastEntry);
 
 			try {
 				// For each master table,
 				for (int i = 0; i < sz; ++i) {
 
-					MasterTableDataSource master_table =
-										   (MasterTableDataSource)copy_list[i];
-					TableName table_name = master_table.DataTableDef.TableName;
+					MasterTableDataSource masterTable = copyList[i];
+					TableName tableName = masterTable.DataTableDef.TableName;
 
 					// Create a destination transaction
-					Transaction dest_transaction = destConglomerate.CreateTransaction();
+					Transaction destTransaction = destConglomerate.CreateTransaction();
 
 					// The view of this table within this transaction.
-					IIndexSet index_set = GetIndexSetForTable(master_table);
+					IIndexSet indexSet = GetIndexSetForTable(masterTable);
 
 					// If the table already exists then drop it
-					if (dest_transaction.TableExists(table_name)) {
-						dest_transaction.DropTable(table_name);
-					}
+					if (destTransaction.TableExists(tableName))
+						destTransaction.DropTable(tableName);
 
 					// Copy it into the destination conglomerate.
-					dest_transaction.CopyTable(master_table, index_set);
+					destTransaction.CopyTable(masterTable, indexSet);
 
 					// Close and commit the transaction in the destination conglomeration.      
-					dest_transaction.Commit();
+					destTransaction.Commit();
 
 					// Dispose the IIndexSet
-					index_set.Dispose();
-
+					indexSet.Dispose();
 				}
-
 			} catch (TransactionException e) {
 				Debug.WriteException(e);
-				throw new Exception("Transaction Error when copying table: " +
-										   e.Message);
+				throw new Exception("Transaction Error when copying table: " + e.Message);
 			}
 		}
 
@@ -250,8 +253,8 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		internal bool TransactionErrorOnDirtySelect {
-			get { return transaction_error_on_dirty_select; }
-			set { transaction_error_on_dirty_select = value; }
+			get { return transactionErrorOnDirtySelect; }
+			set { transactionErrorOnDirtySelect = value; }
 		}
 
 
@@ -292,15 +295,15 @@ namespace Deveel.Data {
 		/// Notifies this transaction that a database object with the given 
 		/// name has successfully been created.
 		/// </summary>
-		/// <param name="table_name"></param>
-		internal void OnDatabaseObjectCreated(TableName table_name) {
+		/// <param name="tableName"></param>
+		internal void OnDatabaseObjectCreated(TableName tableName) {
 			// If this table name was dropped, then remove from the drop list
-			bool dropped = droppedDatabaseObjects.Contains(table_name);
-			droppedDatabaseObjects.Remove(table_name);
+			bool dropped = droppedDatabaseObjects.Contains(tableName);
+			droppedDatabaseObjects.Remove(tableName);
 			// If the above operation didn't remove a table name then add to the
 			// created database objects list.
 			if (!dropped) {
-				createdDatabaseObjects.Add(table_name);
+				createdDatabaseObjects.Add(tableName);
 			}
 		}
 
@@ -308,15 +311,15 @@ namespace Deveel.Data {
 		/// Notifies this transaction that a database object with the given 
 		/// name has successfully been dropped.
 		/// </summary>
-		/// <param name="table_name"></param>
-		internal void OnDatabaseObjectDropped(TableName table_name) {
+		/// <param name="tableName"></param>
+		internal void OnDatabaseObjectDropped(TableName tableName) {
 			// If this table name was created, then remove from the create list
-			bool created = createdDatabaseObjects.Contains(table_name);
-			createdDatabaseObjects.Remove(table_name);
+			bool created = createdDatabaseObjects.Contains(tableName);
+			createdDatabaseObjects.Remove(tableName);
 			// If the above operation didn't remove a table name then add to the
 			// dropped database objects list.
 			if (!created) {
-				droppedDatabaseObjects.Add(table_name);
+				droppedDatabaseObjects.Add(tableName);
 			}
 		}
 
@@ -348,9 +351,9 @@ namespace Deveel.Data {
 		/// if it doesn't exist in the DatabaseVars table otherwise it is 
 		/// overwritten.
 		/// </remarks>
-		public void SetPersistentVariable(String variable, String value) {
-			TableName table_name = TableDataConglomerate.PersistentVarTable;
-			IMutableTableDataSource t = GetTable(table_name);
+		public void SetPersistentVariable(string variable, string value) {
+			TableName tableName = TableDataConglomerate.PersistentVarTable;
+			IMutableTableDataSource t = GetTable(tableName);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 			dt.SetVariable(0, new Object[] { variable, value });
 			dt.Dispose();
@@ -363,8 +366,8 @@ namespace Deveel.Data {
 		/// <param name="variable"></param>
 		/// <returns></returns>
 		public String GetPersistantVariable(String variable) {
-			TableName table_name = TableDataConglomerate.PersistentVarTable;
-			IMutableTableDataSource t = GetTable(table_name);
+			TableName tableName = TableDataConglomerate.PersistentVarTable;
+			IMutableTableDataSource t = GetTable(tableName);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 			String val = dt.GetVariable(1, 0, variable).ToString();
 			dt.Dispose();
@@ -376,22 +379,18 @@ namespace Deveel.Data {
 		/// initializes it with the given details.
 		/// </summary>
 		/// <param name="name"></param>
-		/// <param name="start_value"></param>
-		/// <param name="increment_by"></param>
-		/// <param name="min_value"></param>
-		/// <param name="max_value"></param>
+		/// <param name="startValue"></param>
+		/// <param name="incrementBy"></param>
+		/// <param name="minValue"></param>
+		/// <param name="maxValue"></param>
 		/// <param name="cache"></param>
 		/// <param name="cycle"></param>
 		/// <remarks>
 		/// This does <b>not</b> check if the given name clashes with an existing 
 		/// database object.
 		/// </remarks>
-		public void CreateSequenceGenerator(
-					 TableName name, long start_value, long increment_by,
-					 long min_value, long max_value, long cache, bool cycle) {
-			SequenceManager.CreateSequenceGenerator(this,
-				 name, start_value, increment_by, min_value, max_value, cache,
-				 cycle);
+		public void CreateSequenceGenerator(TableName name, long startValue, long incrementBy, long minValue, long maxValue, long cache, bool cycle) {
+			SequenceManager.CreateSequenceGenerator(this, name, startValue, incrementBy, minValue, maxValue, cache, cycle);
 
 			// Notify that this database object has been created
 			OnDatabaseObjectCreated(name);
@@ -453,9 +452,7 @@ namespace Deveel.Data {
 				try {
 					closed = true;
 					// Get the conglomerate to do this commit.
-					conglomerate.ProcessCommit(this, VisibleTables,
-											   selectedFromTables,
-											   touchedTables, journal);
+					conglomerate.ProcessCommit(this, VisibleTables, selectedFromTables, touchedTables, journal);
 				} finally {
 					Cleanup();
 				}
@@ -496,9 +493,7 @@ namespace Deveel.Data {
 
 			// Dispose all the table we touched
 			try {
-				for (int i = 0; i < touchedTables.Count; ++i) {
-					IMutableTableDataSource source =
-										   (IMutableTableDataSource)touchedTables[i];
+				foreach (IMutableTableDataSource source in touchedTables) {
 					source.Dispose();
 				}
 			} catch (Exception e) {
@@ -523,10 +518,8 @@ namespace Deveel.Data {
 		 */
 
 		internal void dispose() {
-			if (!IsReadOnly) {
-				throw new Exception(
-					"Assertion failed - tried to dispose a non Read-only transaction.");
-			}
+			if (!IsReadOnly)
+				throw new Exception("Assertion failed - tried to dispose a non Read-only transaction.");
 			if (!closed) {
 				closed = true;
 				Cleanup();

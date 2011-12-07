@@ -14,40 +14,40 @@
 //    limitations under the License.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text;
-
-using Deveel.Data.Collections;
 
 namespace Deveel.Data {
 	/// <summary>
 	/// A journal of changes that occured to a table in a data conglomerate during
 	/// a transaction.
 	/// </summary>
-	public class MasterTableJournal {
+	public sealed class MasterTableJournal : IEnumerable<JournalCommand> {
 		/// <summary>
 		/// The commit id given to this change when it is committed.
 		/// </summary>
 		/// <remarks>
 		/// This is only set when the journal is a committed change to the database.
 		/// </remarks>
-		private long commit_id;
+		private long commitId;
 
 
 		/// <summary>
 		/// The master table id.
 		/// </summary>
-		private int table_id;
+		private readonly int tableId;
 
 		/// <summary>
 		/// The number of entries in this journal.
 		/// </summary>
-		private int journal_entries;
+		private int journalEntries;
 
 		/// <summary>
 		/// A byte[] array that represents the set of commands a transaction
 		/// performed on this table.
 		/// </summary>
-		private byte[] command_journal;
+		private byte[] commandJournal;
 
 		/// <summary>
 		/// An IntegerVector that is filled with parameters from the command journal.
@@ -56,12 +56,12 @@ namespace Deveel.Data {
 		/// For example, a 'TABLE_ADD' journal log will have as parameters the
 		/// row_index that was added to this table.
 		/// </remarks>
-		private readonly IntegerVector command_parameters;
+		private readonly List<int> commandParameters;
 
-		internal MasterTableJournal(int table_id) {
-			this.table_id = table_id;
-			command_journal = new byte[16];
-			command_parameters = new IntegerVector(32);
+		internal MasterTableJournal(int tableId) {
+			this.tableId = tableId;
+			commandJournal = new byte[16];
+			commandParameters = new List<int>(32);
 		}
 
 		internal MasterTableJournal()
@@ -69,40 +69,21 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns true if the given command is an addition command.
-		/// </summary>
-		/// <param name="command"></param>
-		/// <returns></returns>
-		internal static bool IsAddCommand(byte command) {
-			return ((command & 0x03) == JournalCommand.TABLE_ADD);
-		}
-
-		/// <summary>
-		/// Returns true if the given command is a removal command.
-		/// </summary>
-		/// <param name="command"></param>
-		/// <returns></returns>
-		internal static bool IsRemoveCommand(byte command) {
-			return ((command & 0x03) == JournalCommand.TABLE_REMOVE);
-		}
-
-		/// <summary>
 		/// Adds a command to the journal.
 		/// </summary>
 		/// <param name="command"></param>
-		private void AddCommand(byte command) {
-			if (journal_entries >= command_journal.Length) {
+		private void AddCommand(JournalCommandType command) {
+			if (journalEntries >= commandJournal.Length) {
 				// Resize command array.
-				int grow_size = System.Math.Min(4000, journal_entries);
-				grow_size = System.Math.Max(4, grow_size);
-				byte[] new_command_journal = new byte[journal_entries + grow_size];
-				Array.Copy(command_journal, 0, new_command_journal, 0,
-								 journal_entries);
-				command_journal = new_command_journal;
+				int growSize = System.Math.Min(4000, journalEntries);
+				growSize = System.Math.Max(4, growSize);
+				byte[] newCommandJournal = new byte[journalEntries + growSize];
+				Array.Copy(commandJournal, 0, newCommandJournal, 0, journalEntries);
+				commandJournal = newCommandJournal;
 			}
 
-			command_journal[journal_entries] = command;
-			++journal_entries;
+			commandJournal[journalEntries] = (byte)command;
+			++journalEntries;
 		}
 
 		/// <summary>
@@ -110,7 +91,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="param"></param>
 		private void AddParameter(int param) {
-			command_parameters.AddInt(param);
+			commandParameters.Add(param);
 		}
 
 		/// <summary>
@@ -118,18 +99,18 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="n"></param>
 		private void RemoveTopEntries(int n) {
-			journal_entries = journal_entries - n;
-			command_parameters.Crop(0, command_parameters.Count - n);
+			journalEntries = journalEntries - n;
+			commandParameters.RemoveRange(0, commandParameters.Count - n);
 		}
 
 		/// <summary>
 		/// Adds a new command to this journal.
 		/// </summary>
 		/// <param name="command"></param>
-		/// <param name="row_index"></param>
-		internal void AddEntry(byte command, int row_index) {
+		/// <param name="rowIndex"></param>
+		internal void AddEntry(JournalCommandType command, int rowIndex) {
 			AddCommand(command);
-			AddParameter(row_index);
+			AddParameter(rowIndex);
 		}
 
 		// ---------- Getters ----------
@@ -144,22 +125,22 @@ namespace Deveel.Data {
 		/// change to the database.
 		/// </remarks>
 		internal long CommitId {
-			get { return commit_id; }
-			set { commit_id = value; }
+			get { return commitId; }
+			set { commitId = value; }
 		}
 
 		/// <summary>
 		/// Gets the table id of the master table this journal is for.
 		/// </summary>
 		internal int TableId {
-			get { return table_id; }
+			get { return tableId; }
 		}
 
 		/// <summary>
 		/// Gets the number of entries in the journal.
 		/// </summary>
 		internal int EntriesCount {
-			get { return journal_entries; }
+			get { return journalEntries; }
 		}
 
 		/// <summary>
@@ -169,8 +150,8 @@ namespace Deveel.Data {
 		/// <returns>
 		/// Return a byte value for a command of an entry at the given index.
 		/// </returns>
-		internal byte GetCommand(int n) {
-			return command_journal[n];
+		internal JournalCommandType GetCommand(int n) {
+			return (JournalCommandType) commandJournal[n];
 		}
 
 		/// <summary>
@@ -182,7 +163,7 @@ namespace Deveel.Data {
 		/// at the given index.
 		/// </returns>
 		internal int GetRowIndex(int n) {
-			return command_parameters[n];
+			return commandParameters[n];
 		}
 
 		/// <summary>
@@ -197,28 +178,30 @@ namespace Deveel.Data {
 		/// Returns an array of integers of all the rows added in the journal.
 		/// </returns>
 		internal int[] NormalizedAddedRows() {
-			IntegerVector list = new IntegerVector();
+			List<int> list = new List<int>();
 			int size = EntriesCount;
 			for (int i = 0; i < size; ++i) {
-				byte tc = GetCommand(i);
-				if (tc == JournalCommand.TABLE_ADD || tc == JournalCommand.TABLE_UPDATE_ADD) {
-					int row_index = GetRowIndex(i);
+				JournalCommandType tc = GetCommand(i);
+				if (tc == JournalCommandType.AddRow || 
+					tc == JournalCommandType.UpdateAddRow) {
+					int rowIndex = GetRowIndex(i);
 					// If row added, add to list
-					list.AddInt(row_index);
-				} else if (tc == JournalCommand.TABLE_REMOVE || tc == JournalCommand.TABLE_UPDATE_REMOVE) {
+					list.Add(rowIndex);
+				} else if (tc == JournalCommandType.RemoveRow ||
+					tc == JournalCommandType.UpdateRemoveRow) {
 					// If row removed, if the row is already in the list
 					// it's removed from the list, otherwise we leave as is.
-					int row_index = GetRowIndex(i);
-					int found_at = list.IndexOf(row_index);
-					if (found_at != -1) {
-						list.RemoveIntAt(found_at);
+					int rowIndex = GetRowIndex(i);
+					int foundAt = list.IndexOf(rowIndex);
+					if (foundAt != -1) {
+						list.RemoveAt(foundAt);
 					}
 				} else {
 					throw new ApplicationException("Unknown command in journal.");
 				}
 			}
 
-			return list.ToIntArray();
+			return list.ToArray();
 		}
 
 		/// <summary>
@@ -228,17 +211,18 @@ namespace Deveel.Data {
 		/// Returns an array of integers of all the rows removed in the journal.
 		/// </returns>
 		internal int[] NormalizedRemovedRows() {
-			IntegerVector list = new IntegerVector();
+			List<int> list = new List<int>();
 			int size = EntriesCount;
 			for (int i = 0; i < size; ++i) {
-				byte tc = GetCommand(i);
-				if (tc == JournalCommand.TABLE_REMOVE || tc == JournalCommand.TABLE_UPDATE_REMOVE) {
+				JournalCommandType tc = GetCommand(i);
+				if (tc == JournalCommandType.RemoveRow || 
+					tc == JournalCommandType.UpdateRemoveRow) {
 					// If removed add to the list.
 					int row_index = GetRowIndex(i);
-					list.AddInt(row_index);
+					list.Add(row_index);
 				}
 			}
-			return list.ToIntArray();
+			return list.ToArray();
 		}
 
 		/// <summary>
@@ -265,21 +249,22 @@ namespace Deveel.Data {
 		/// Returns an array of three integer lists for all the rows modified
 		/// in the journal (added, removed and updated).
 		/// </returns>
-		internal IntegerVector[] AllChangeInformation() {
-			IntegerVector[] lists = new IntegerVector[3];
+		internal List<int>[] AllChangeInformation() {
+			List<int>[] lists = new List<int>[3];
 			for (int i = 0; i < 3; ++i) {
-				lists[i] = new IntegerVector();
+				lists[i] = new List<int>();
 			}
 			int size = EntriesCount;
 			for (int i = 0; i < size; ++i) {
-				byte tc = GetCommand(i);
-				int row_index = GetRowIndex(i);
-				if (tc == JournalCommand.TABLE_ADD) {
-					lists[0].AddInt(row_index);
-				} else if (tc == JournalCommand.TABLE_REMOVE) {
-					lists[1].AddInt(row_index);
-				} else if (tc == JournalCommand.TABLE_UPDATE_ADD || tc == JournalCommand.TABLE_UPDATE_REMOVE) {
-					lists[2].AddInt(row_index);
+				JournalCommandType tc = GetCommand(i);
+				int rowIndex = GetRowIndex(i);
+				if (tc == JournalCommandType.AddRow) {
+					lists[0].Add(rowIndex);
+				} else if (tc == JournalCommandType.RemoveRow) {
+					lists[1].Add(rowIndex);
+				} else if (tc == JournalCommandType.UpdateAddRow ||
+				           tc == JournalCommandType.UpdateRemoveRow) {
+					lists[2].Add(rowIndex);
 				} else {
 					throw new Exception("Don't understand journal command.");
 				}
@@ -298,30 +283,28 @@ namespace Deveel.Data {
 		/// rows deleted (that weren't added) are removed from the journal.
 		/// </remarks>
 		internal void RollbackEntries(int n) {
-			if (n > journal_entries) {
-				throw new Exception(
-					"Trying to roll back more journal entries than are in the journal.");
-			}
+			if (n > journalEntries)
+				throw new Exception("Trying to roll back more journal entries than are in the journal.");
 
-			IntegerVector to_add = new IntegerVector();
+			List<int> toAdd = new List<int>();
 
 			// Find all entries and added new rows to the table
 			int size = EntriesCount;
 			for (int i = size - n; i < size; ++i) {
-				byte tc = GetCommand(i);
-				if (tc == JournalCommand.TABLE_ADD || tc == JournalCommand.TABLE_UPDATE_ADD) {
-					to_add.AddInt(GetRowIndex(i));
+				JournalCommandType tc = GetCommand(i);
+				if (tc == JournalCommandType.AddRow || 
+					tc == JournalCommandType.UpdateAddRow) {
+					toAdd.Add(GetRowIndex(i));
 				}
 			}
 
 			// Delete the top entries
 			RemoveTopEntries(n);
 			// Mark all added entries to deleted.
-			for (int i = 0; i < to_add.Count; ++i) {
-				AddEntry(JournalCommand.TABLE_ADD, to_add[i]);
-				AddEntry(JournalCommand.TABLE_REMOVE, to_add[i]);
+			for (int i = 0; i < toAdd.Count; ++i) {
+				AddEntry(JournalCommandType.AddRow, toAdd[i]);
+				AddEntry(JournalCommandType.RemoveRow, toAdd[i]);
 			}
-
 		}
 
 
@@ -331,7 +314,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Tests a conflict over the journal during a transaction commit.
 		/// </summary>
-		/// <param name="table_def"></param>
+		/// <param name="tableDef"></param>
 		/// <param name="journal"></param>
 		/// <remarks>
 		/// It assumes that this journal is the journal that is attempting 
@@ -341,41 +324,39 @@ namespace Deveel.Data {
 		/// <exception cref="TransactionException">
 		/// If it detects a clash between journal entries.
 		/// </exception>
-		internal void TestCommitClash(DataTableDef table_def, MasterTableJournal journal) {
+		internal void TestCommitClash(DataTableDef tableDef, MasterTableJournal journal) {
 			// Very nasty search here...
-			//    int cost = entries() * journal.entries();
-			//    Console.Out.Write(" CLASH COST = " + cost + " ");
-
 			for (int i = 0; i < EntriesCount; ++i) {
-				byte tc = GetCommand(i);
-				if (IsRemoveCommand(tc)) {   // command - row remove
-					int row_index = GetRowIndex(i);
-					//        Console.Out.WriteLine("* " + row_index);
+				JournalCommandType tc = GetCommand(i);
+				if (tc == JournalCommandType.RemoveRow) {   // command - row remove
+					int rowIndex = GetRowIndex(i);
 					for (int n = 0; n < journal.EntriesCount; ++n) {
-						//          Console.Out.Write(" " + journal.GetRowIndex(n));
-						if (IsRemoveCommand(journal.GetCommand(n)) &&
-							journal.GetRowIndex(n) == row_index) {
+						if (journal.GetCommand(n) == JournalCommandType.RemoveRow &&
+							journal.GetRowIndex(n) == rowIndex) {
 							throw new TransactionException(
 							   TransactionException.RowRemoveClash,
 							   "Concurrent Serializable Transaction Conflict(1): " +
-							   "Current row remove clash ( row: " + row_index + ", table: " +
-							   table_def.TableName + " )");
+							   "Current row remove clash ( row: " + rowIndex + ", table: " +
+							   tableDef.TableName + " )");
 						}
 					}
-					//        Console.Out.WriteLine();
 				}
 			}
 		}
 
 
+		public IEnumerator<JournalCommand> GetEnumerator() {
+			return new CommandEnumerator(this);
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			StringBuilder buf = new StringBuilder();
 			buf.Append("[MasterTableJournal] [");
-			buf.Append(commit_id);
+			buf.Append(commitId);
 			buf.Append("] (");
 			for (int i = 0; i < EntriesCount; ++i) {
-				byte c = GetCommand(i);
+				JournalCommandType c = GetCommand(i);
 				int row_index = GetRowIndex(i);
 				buf.Append("(");
 				buf.Append(c);
@@ -386,5 +367,57 @@ namespace Deveel.Data {
 			buf.Append(")");
 			return buf.ToString();
 		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
+		}
+
+		#region CommandEnumerator
+
+		class CommandEnumerator : IEnumerator<JournalCommand> {
+			private readonly MasterTableJournal journal;
+			private int entryCount;
+			private int index;
+
+			public CommandEnumerator(MasterTableJournal journal) {
+				this.journal = journal;
+				index = -1;
+				entryCount = journal.EntriesCount;
+			}
+
+			private void AssertConsistent() {
+				if (entryCount != journal.EntriesCount)
+					throw new InvalidOperationException("The journal has changed: the enumeration is not consistent.");
+			}
+
+			public void Dispose() {
+			}
+
+			public bool MoveNext() {
+				AssertConsistent();
+				return ++index < entryCount;
+			}
+
+			public void Reset() {
+				entryCount = journal.EntriesCount;
+				index = -1;
+			}
+
+			public JournalCommand Current {
+				get {
+					AssertConsistent();
+					JournalCommandType commandType = journal.GetCommand(index);
+					int rowIndex = journal.GetRowIndex(index);
+					return new JournalCommand(commandType, -1, rowIndex);
+
+				}
+			}
+
+			object IEnumerator.Current {
+				get { return Current; }
+			}
+		}
+
+		#endregion
 	}
 }

@@ -372,7 +372,7 @@ namespace Deveel.Data {
 			column_count = table_def.ColumnCount;
 
 			// Open table indices
-			table_indices = new MultiVersionTableIndices(System,
+			TableIndices = new MultiVersionTableIndices(System,
 								   table_def.TableName, table_def.ColumnCount);
 			// The column rid list cache
 			// column_rid_list = new RIDList[table_def.ColumnCount];
@@ -445,7 +445,7 @@ namespace Deveel.Data {
 					StoreSystem.CloseStore(store);
 
 					table_def = null;
-					table_indices = null;
+					TableIndices = null;
 					// column_rid_list = null;
 					is_closed = true;
 				}

@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -42,7 +41,7 @@ namespace Deveel.Data {
 		/// Tries to commit a transaction to the conglomerate.
 		/// </summary>
 		/// <param name="transaction">The transaction to commit from.</param>
-		/// <param name="visible_tables">The list of visible tables at the end 
+		/// <param name="visibleTables">The list of visible tables at the end 
 		/// of the commit (<see cref="MasterTableDataSource"/>)</param>
 		/// <param name="selectedFromTables">The list of tables that this 
 		/// transaction performed <i>select</i> like queries on (<see cref="MasterTableDataSource"/>)</param>
@@ -72,7 +71,7 @@ namespace Deveel.Data {
 		///   <item>Otherwise commit the transaction.</item>
 		/// </list>
 		/// </remarks>
-		internal void ProcessCommit(Transaction transaction, ArrayList visible_tables,
+		internal void ProcessCommit(Transaction transaction, IList<MasterTableDataSource> visibleTables,
 						   IEnumerable<MasterTableDataSource> selectedFromTables,
 						   IList<IMutableTableDataSource> touchedTables, TransactionJournal journal) {
 
@@ -91,11 +90,11 @@ namespace Deveel.Data {
 			MasterTableJournal[] changedTables = journalList.ToArray();
 
 			// The list of tables created by this journal.
-			IntegerVector createdTables = journal.GetTablesCreated();
+			IList<int> createdTables = journal.GetTablesCreated();
 			// Ths list of tables dropped by this journal.
-			IntegerVector droppedTables = journal.GetTablesDropped();
+			IList<int> droppedTables = journal.GetTablesDropped();
 			// The list of tables that constraints were alter by this journal
-			IntegerVector constraintAlteredTables = journal.GetTablesConstraintAltered();
+			IList<int> constraintAlteredTables = journal.GetTablesConstraintAltered();
 
 			// Exit early if nothing changed (this is a Read-only transaction)
 			if (changedTables.Length == 0 &&
@@ -550,7 +549,7 @@ namespace Deveel.Data {
 						}
 					} finally {
 						try {
-							// Dispose the 'check_transaction'
+							// Dispose the 'checkTransaction'
 							if (checkTransaction != null) {
 								checkTransaction.dispose();
 								CloseTransaction(checkTransaction);
@@ -661,7 +660,7 @@ namespace Deveel.Data {
 		/// This should be called as part of a transaction commit.
 		/// </para>
 		/// </remarks>
-		private void CommitToTables(IntegerVector createdTables, IntegerVector droppedTables) {
+		private void CommitToTables(IList<int> createdTables, IList<int> droppedTables) {
 			// Add created tables to the committed tables list.
 			for (int i = 0; i < createdTables.Count; ++i) {
 				// For all created tables, add to the visible list and remove from the

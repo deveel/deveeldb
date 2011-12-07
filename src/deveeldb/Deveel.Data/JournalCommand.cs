@@ -16,12 +16,55 @@
 using System;
 
 namespace Deveel.Data {
-	internal class JournalCommand {
-		// (params: table_id, row_index)
-		internal const byte TABLE_ADD = 1;         // Add a row to a table.
-		// (params: table_id, row_index)
-		internal const byte TABLE_REMOVE = 2;         // Remove a row from a table.
-		internal const byte TABLE_UPDATE_ADD = 5;  // Add a row from an update.
-		internal const byte TABLE_UPDATE_REMOVE = 6;  // Remove a row from an update.
+	/// <summary>
+	/// A command registered in a table or a transaction journal
+	/// </summary>
+	public struct JournalCommand {
+		private readonly JournalCommandType commandType;
+		private readonly int tableId;
+		private readonly int rowIndex;
+
+		/// <summary>
+		/// Constructs a journal command.
+		/// </summary>
+		/// <param name="commandType"></param>
+		/// <param name="tableId"></param>
+		public JournalCommand(JournalCommandType commandType, int tableId) 
+			: this(commandType, tableId, -1) {
+		}
+
+		/// <summary>
+		/// Constructs a journal command.
+		/// </summary>
+		/// <param name="commandType"></param>
+		/// <param name="tableId"></param>
+		/// <param name="rowIndex"></param>
+		public JournalCommand(JournalCommandType commandType, int tableId, int rowIndex) 
+			: this() {
+			this.commandType = commandType;
+			this.tableId = tableId;
+			this.rowIndex = rowIndex;
+		}
+
+		/// <summary>
+		/// Gets the index of a row argument of the command.
+		/// </summary>
+		public int RowIndex {
+			get { return rowIndex; }
+		}
+
+		/// <summary>
+		/// Gets the table id argument of the command.
+		/// </summary>
+		public int TableId {
+			get { return tableId; }
+		}
+
+		/// <summary>
+		/// Gets the kind of command.
+		/// </summary>
+		public JournalCommandType CommandType {
+			get { return commandType; }
+		}
 	}
 }
