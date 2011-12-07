@@ -39,7 +39,7 @@ namespace Deveel.Data {
 		/// Gets the table meta informations describing the logical topology
 		/// of the columns in the underyling table.
 		/// </summary>
-		DataTableInfo DataTableInfo { get; }
+		DataTableDef DataTableDef { get; }
 
 		/// <summary>
 		/// Gets the state of the record at the given index in the table.

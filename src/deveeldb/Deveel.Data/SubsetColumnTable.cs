@@ -42,7 +42,7 @@ namespace Deveel.Data {
 		/// The number of entries of this should match the number of columns in this 
 		/// table.
 		/// </remarks>
-		private int[] columnIndexMap;
+		private int[] column_map;
 
 		/// <summary>
 		/// Maps from the column in the parent table, to the column in this table.
@@ -50,13 +50,13 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// The size of this should match the number of columns in the parent table.
 		/// </remarks>
-		private int[] reverseColumnIndexMap;
+		private int[] reverse_column_map;
 
 		/// <summary>
-		/// The <see cref="DataTableInfo"/> object that describes the subset column of 
+		/// The <see cref="DataTableDef"/> object that describes the subset column of 
 		/// this table.
 		/// </summary>
-		private DataTableInfo subsetTableInfo;
+		private DataTableDef subset_table_def;
 
 		/// <summary>
 		/// The resolved <see cref="VariableName"/> aliases for this subset.
@@ -83,27 +83,28 @@ namespace Deveel.Data {
 		/// the parent table that we want the column number to reference.</param>
 		/// <param name="aliases"></param>
 		public void SetColumnMap(int[] mapping, VariableName[] aliases) {
-			reverseColumnIndexMap = new int[parent.ColumnCount];
-			for (int i = 0; i < reverseColumnIndexMap.Length; ++i) {
-				reverseColumnIndexMap[i] = -1;
+			reverse_column_map = new int[parent.ColumnCount];
+			for (int i = 0; i < reverse_column_map.Length; ++i) {
+				reverse_column_map[i] = -1;
 			}
-			columnIndexMap = mapping;
+			column_map = mapping;
 
 			this.aliases = aliases;
 
-			subsetTableInfo = new DataTableInfo();
-			DataTableInfo parentInfo = parent.DataTableInfo;
-			subsetTableInfo.TableName = parentInfo.TableName;
+			subset_table_def = new DataTableDef();
+			DataTableDef parent_def = parent.DataTableDef;
+			subset_table_def.TableName = parent_def.TableName;
 
 			for (int i = 0; i < mapping.Length; ++i) {
-				int mapTo = mapping[i];
-				DataTableColumnInfo colInfo = parent.GetColumn(mapTo).Clone();
-				colInfo.Name = aliases[i].Name;
-				subsetTableInfo.AddVirtualColumn(colInfo);
-				reverseColumnIndexMap[mapTo] = i;
+				int map_to = mapping[i];
+				DataTableColumnDef col_def =
+								  new DataTableColumnDef(parent.GetColumnDef(map_to));
+				col_def.Name = aliases[i].Name;
+				subset_table_def.AddVirtualColumn(col_def);
+				reverse_column_map[map_to] = i;
 			}
 
-			subsetTableInfo.SetImmutable();
+			subset_table_def.SetImmutable();
 		}
 
 		/// <inheritdoc/>
@@ -122,8 +123,8 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override DataTableInfo DataTableInfo {
-			get { return subsetTableInfo; }
+		public override DataTableDef DataTableDef {
+			get { return subset_table_def; }
 		}
 
 		/// <inheritdoc/>
@@ -132,22 +133,26 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
 
 			// We need to map the original_column if the original column is a reference
 			// in this subset column table.  Otherwise we leave as is.
 			// The reason is because FilterTable pretends the call came from its
 			// parent if a request is made on this table.
-			int mappedOriginalColumn = originalColumn;
-			if (table == this)
-				mappedOriginalColumn = columnIndexMap[originalColumn];
+			int mapped_original_column = original_column;
+			if (table == this) {
+				mapped_original_column = column_map[original_column];
+			}
 
-			return base.GetSelectableSchemeFor(columnIndexMap[column], mappedOriginalColumn, table);
+			return base.GetSelectableSchemeFor(column_map[column],
+												mapped_original_column, table);
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector rowSet, ITableDataSource ancestor) {
-			base.SetToRowTableDomain(columnIndexMap[column], rowSet, ancestor);
+		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
+									   ITableDataSource ancestor) {
+
+			base.SetToRowTableDomain(column_map[column], row_set, ancestor);
 		}
 
 		/// <inheritdoc/>
@@ -158,13 +163,13 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override TObject GetCellContents(int column, int row) {
-			return parent.GetCellContents(columnIndexMap[column], row);
+			return parent.GetCellContents(column_map[column], row);
 		}
 
 		// ---------- Implemented from IRootTable ----------
 
 		/// <inheritdoc/>
-		bool IRootTable.TypeEquals(IRootTable table) {
+		public bool TypeEquals(IRootTable table) {
 			return (this == table);
 		}
 

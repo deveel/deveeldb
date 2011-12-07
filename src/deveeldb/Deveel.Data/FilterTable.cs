@@ -37,12 +37,12 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The schemes to describe the entity relation in the given column.
 		/// </summary>
-		private SelectableScheme[] columnScheme;
+		private SelectableScheme[] column_scheme;
 
 		/// <summary>
 		/// The Table we are filtering the columns from.
 		/// </summary>
-		protected readonly Table parent;
+		protected Table parent;
 
 		///<summary>
 		///</summary>
@@ -70,8 +70,8 @@ namespace Deveel.Data {
 			get { return parent.RowCount; }
 		}
 
-		public override DataTableInfo DataTableInfo {
-			get { return parent.DataTableInfo; }
+		public override DataTableDef DataTableDef {
+			get { return parent.DataTableDef; }
 		}
 
 		public override bool HasRootsLocked {
@@ -86,41 +86,46 @@ namespace Deveel.Data {
 			return parent.GetResolvedVariable(column);
 		}
 
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
-			if (columnScheme == null)
-				columnScheme = new SelectableScheme[parent.ColumnCount];
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+			if (column_scheme == null) {
+				column_scheme = new SelectableScheme[parent.ColumnCount];
+			}
 
 			// Is there a local scheme available?
-			SelectableScheme scheme = columnScheme[column];
+			SelectableScheme scheme = column_scheme[column];
 			if (scheme == null) {
 				// If we are asking for the selectable schema of this table we must
 				// tell the parent we are looking for its selectable scheme.
 				Table t = table;
-				if (table == this)
+				if (table == this) {
 					t = parent;
+				}
 
 				// Scheme is not cached in this table so ask the parent.
-				scheme = parent.GetSelectableSchemeFor(column, originalColumn, t);
-				if (table == this)
-					columnScheme[column] = scheme;
+				scheme = parent.GetSelectableSchemeFor(column, original_column, t);
+				if (table == this) {
+					column_scheme[column] = scheme;
+				}
 			} else {
 				// If this has a cached scheme and we are in the correct domain then
 				// return it.
-				if (table == this)
+				if (table == this) {
 					return scheme;
-
-				// Otherwise we must calculate the subset of the scheme
-				return scheme.GetSubsetScheme(table, originalColumn);
+				} else {
+					// Otherwise we must calculate the subset of the scheme
+					return scheme.GetSubsetScheme(table, original_column);
+				}
 			}
-
 			return scheme;
 		}
 
-		internal override void SetToRowTableDomain(int column, IntegerVector rowSet, ITableDataSource ancestor) {
-			if (ancestor == this || ancestor == parent)
+		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
+		                                           ITableDataSource ancestor) {
+			if (ancestor == this || ancestor == parent) {
 				return;
-
-			parent.SetToRowTableDomain(column, rowSet, ancestor);
+			} else {
+				parent.SetToRowTableDomain(column, row_set, ancestor);
+			}
 		}
 
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
@@ -135,24 +140,34 @@ namespace Deveel.Data {
 			return parent.GetRowEnumerator();
 		}
 
-		public override void LockRoot(int lockKey) {
-			parent.LockRoot(lockKey);
+		internal override void AddDataTableListener(IDataTableListener listener) {
+			parent.AddDataTableListener(listener);
 		}
 
-		public override void UnlockRoot(int lockKey) {
-			parent.UnlockRoot(lockKey);
+		internal override void RemoveDataTableListener(IDataTableListener listener) {
+			parent.RemoveDataTableListener(listener);
+		}
+
+		public override void LockRoot(int lock_key) {
+			parent.LockRoot(lock_key);
+		}
+
+		public override void UnlockRoot(int lock_key) {
+			parent.UnlockRoot(lock_key);
 		}
 
 
 		public override void PrintGraph(TextWriter output, int indent) {
-			for (int i = 0; i < indent; ++i)
+			for (int i = 0; i < indent; ++i) {
 				output.Write(' ');
+			}
 			output.WriteLine("F[" + GetType());
 
 			parent.PrintGraph(output, indent + 2);
 
-			for (int i = 0; i < indent; ++i)
+			for (int i = 0; i < indent; ++i) {
 				output.Write(' ');
+			}
 			output.WriteLine("]");
 		}
 	}

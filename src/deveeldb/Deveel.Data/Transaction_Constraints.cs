@@ -164,10 +164,10 @@ namespace Deveel.Data {
 				// columns are not constrained as 'NOT NULL'
 				if (deleteRule == ConstraintAction.SetNull ||
 					updateRule == ConstraintAction.SetNull) {
-					DataTableInfo tableInfo = GetDataTableDef(table);
+					DataTableDef tableDef = GetDataTableDef(table);
 					for (int i = 0; i < cols.Length; ++i) {
-						DataTableColumnInfo columnInfo = tableInfo[tableInfo.FindColumnName(cols[i])];
-						if (columnInfo.IsNotNull) {
+						DataTableColumnDef column_def = tableDef[tableDef.FindColumnName(cols[i])];
+						if (column_def.IsNotNull) {
 							throw new StatementException("Foreign key reference '" + table +
 								   "' -> '" + refTable + "' update or delete triggered " +
 								   "action is SET NULL for columns that are constrained as " +
@@ -299,7 +299,7 @@ namespace Deveel.Data {
 		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, string constraintName) {
 			TableName tn = TableDataConglomerate.CheckInfoTable;
 			IMutableTableDataSource t = GetTable(tn);
-			int colCount = t.DataTableInfo.ColumnCount;
+			int colCount = t.DataTableDef.ColumnCount;
 
 			try {
 				// Insert check constraint data.
@@ -774,7 +774,7 @@ namespace Deveel.Data {
 					check.name = dt.Get(1, row_index).Object.ToString();
 					check.deferred = (ConstraintDeferrability)((BigNumber)dt.Get(5, row_index).Object).ToInt16();
 					// Is the deserialized version available?
-					if (t.DataTableInfo.ColumnCount > 6) {
+					if (t.DataTableDef.ColumnCount > 6) {
 						ByteLongObject sexp = (ByteLongObject)dt.Get(6, row_index).Object;
 						if (sexp != null) {
 							try {

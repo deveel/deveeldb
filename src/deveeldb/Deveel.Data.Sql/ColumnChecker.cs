@@ -63,11 +63,11 @@ namespace Deveel.Data.Sql {
 		/// <param name="table_domain"></param>
 		/// <param name="column_list"></param>
 		/// <returns></returns>
-		internal IList<string> StripColumnList(String table_domain, IList<string> column_list) {
+		internal ArrayList StripColumnList(String table_domain, ArrayList column_list) {
 			if (column_list != null) {
 				int size = column_list.Count;
 				for (int i = 0; i < size; ++i) {
-					String res = StripTableName(table_domain, column_list[i]);
+					String res = StripTableName(table_domain, (String)column_list[i]);
 					column_list[i] = res;
 				}
 			}
@@ -118,7 +118,7 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Don't allow select statements because they don't convert to a
-				// text string that we can encode into the DataTableInfo file.
+				// text string that we can encode into the DataTableDef file.
 				if (expression.HasSubQuery) {
 					throw new DatabaseException("Sub-queries not permitted in " +
 												"the check constraint expression.");
@@ -138,13 +138,15 @@ namespace Deveel.Data.Sql {
 		/// If any column names are not found in the columns in the 
 		/// statement.
 		/// </exception>
-		internal void CheckColumnList(IList<string> list) {
+		internal void CheckColumnList(ArrayList list) {
 			if (list != null) {
 				for (int i = 0; i < list.Count; ++i) {
-					String col = list[i];
+					String col = (String)list[i];
 					String resolved_col = ResolveColumnName(col);
-					if (resolved_col == null)
-						throw new DatabaseException("Column '" + col + "' not found the table.");
+					if (resolved_col == null) {
+						throw new DatabaseException(
+											 "Column '" + col + "' not found the table.");
+					}
 					list[i] = resolved_col;
 				}
 			}
@@ -163,28 +165,28 @@ namespace Deveel.Data.Sql {
 		/// <param name="tname"></param>
 		/// <returns></returns>
 		internal static ColumnChecker GetStandardColumnChecker(DatabaseConnection database, TableName tname) {
-			DataTableInfo tableInfo = database.GetTable(tname).DataTableInfo;
+			DataTableDef table_def = database.GetTable(tname).DataTableDef;
 			bool ignores_case = database.IsInCaseInsensitiveMode;
 
 			// Implement the checker
-			return new StandardColumnChecker(tableInfo, ignores_case);
+			return new StandardColumnChecker(table_def, ignores_case);
 		}
 
 		private class StandardColumnChecker : ColumnChecker {
-			public StandardColumnChecker(DataTableInfo tableInfo, bool ignore_cases) {
-				this.tableInfo = tableInfo;
+			public StandardColumnChecker(DataTableDef table_def, bool ignore_cases) {
+				this.table_def = table_def;
 				this.ignores_case = ignore_cases;
 			}
 
-			private DataTableInfo tableInfo;
+			private DataTableDef table_def;
 			private bool ignores_case;
 
 			internal override String ResolveColumnName(String col_name) {
 				// We need to do case sensitive and case insensitive resolution,
 				String found_col = null;
-				for (int n = 0; n < tableInfo.ColumnCount; ++n) {
-					DataTableColumnInfo col =
-										  (DataTableColumnInfo)tableInfo[n];
+				for (int n = 0; n < table_def.ColumnCount; ++n) {
+					DataTableColumnDef col =
+										  (DataTableColumnDef)table_def[n];
 					if (!ignores_case) {
 						if (col.Name.Equals(col_name)) {
 							return col_name;

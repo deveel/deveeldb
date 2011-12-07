@@ -74,9 +74,9 @@ namespace Deveel.Data {
 				if (left_col_map[i] == -1) {
 					throw new Exception("Invalid reference: " + left_vars[i]);
 				}
-				DataTableColumnInfo left_type =
-										   left_table.GetColumn(left_col_map[i]);
-				DataTableColumnInfo right_type = right_table.GetColumn(i);
+				DataTableColumnDef left_type =
+										   left_table.GetColumnDef(left_col_map[i]);
+				DataTableColumnDef right_type = right_table.GetColumnDef(i);
 				if (!left_type.TType.IsComparableType(right_type.TType)) {
 					throw new ApplicationException(
 						"The type of the sub-query expression " + left_vars[i] + "(" +

@@ -233,8 +233,8 @@ namespace Deveel.Data.Control {
 
 		#region Implementation of CallBack
 
-		void DatabaseConnection.CallBack.TriggerNotify(string triggerName, TriggerEventType triggerEvent, string triggerSource, int fireCount) {
-			TriggerEventArgs args = new TriggerEventArgs(triggerName, triggerEvent, triggerSource, fireCount);
+		void DatabaseConnection.CallBack.TriggerNotify(string trigger_name, TriggerEventType trigger_event, string trigger_source, int fire_count) {
+			TriggerEventArgs args = new TriggerEventArgs(trigger_source, trigger_name, trigger_event, fire_count);
 			if (TriggerEvent != null)
 				TriggerEvent(this, args);
 		}

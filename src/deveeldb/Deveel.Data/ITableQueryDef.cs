@@ -28,19 +28,19 @@ namespace Deveel.Data {
 	/// <para>
 	/// This object is used by the planner to see ahead of time what sort of table
 	/// we are dealing with. 
-	/// For example, a view is stored with a <see cref="DataTableInfo"/>
+	/// For example, a view is stored with a <see cref="DataTableDef"/>
 	/// describing the resultant columns, and the <see cref="IQueryPlanNode"/>
 	/// to produce the view result. The query planner requires the information in 
-	/// <see cref="DataTableInfo"/> to resolve references in the query, and the 
+	/// <see cref="DataTableDef"/> to resolve references in the query, and the 
 	/// <see cref="IQueryPlanNode"/> to add into the resultant plan tree.
 	/// </para>
 	/// </remarks>
 	public interface ITableQueryDef {
 		/// <summary>
-		/// Returns an immutable <see cref="DataTableInfo"/> that describes 
+		/// Returns an immutable <see cref="DataTableDef"/> that describes 
 		/// the columns in this table source, and the name of the table.
 		/// </summary>
-		DataTableInfo DataTableInfo { get; }
+		DataTableDef DataTableDef { get; }
 
 		/// <summary>
 		/// Returns a <see cref="IQueryPlanNode"/> that can be put into a plan 

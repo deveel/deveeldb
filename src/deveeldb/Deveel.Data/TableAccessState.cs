@@ -62,11 +62,11 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the DataTableInfo object that contains information on the 
+		/// Returns the DataTableDef object that contains information on the 
 		/// columns of the table.
 		/// </summary>
-		public DataTableInfo DataTableInfo {
-			get { return table.DataTableInfo; }
+		public DataTableDef DataTableDef {
+			get { return table.DataTableDef; }
 		}
 
 		/// <summary>
@@ -74,7 +74,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="column">Index of the column to resolve.</param>
 		/// <remarks>
-		/// This, together with <see cref="DataTableInfo"/> is used to find the 
+		/// This, together with <see cref="DataTableDef"/> is used to find the 
 		/// fully qualified name of a column of the table.
 		/// </remarks>
 		/// <returns>

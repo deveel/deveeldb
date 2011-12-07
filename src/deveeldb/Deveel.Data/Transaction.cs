@@ -184,7 +184,7 @@ namespace Deveel.Data {
 			MasterTableDataSource lastEntry = null;
 			for (int i = 0; i < sz; ++i) {
 				MasterTableDataSource master_table = GetVisibleTable(i);
-				TableName table_name = master_table.DataTableInfo.TableName;
+				TableName table_name = master_table.DataTableDef.TableName;
 				if (table_name.Equals(TableDataConglomerate.SysSequenceInfo)) {
 					lastEntry = master_table;
 				} else {
@@ -199,7 +199,7 @@ namespace Deveel.Data {
 
 					MasterTableDataSource master_table =
 										   (MasterTableDataSource)copy_list[i];
-					TableName table_name = master_table.DataTableInfo.TableName;
+					TableName table_name = master_table.DataTableDef.TableName;
 
 					// Create a destination transaction
 					Transaction dest_transaction = destConglomerate.CreateTransaction();
@@ -635,17 +635,17 @@ namespace Deveel.Data {
 		// ---------- Transaction inner classes ----------
 
 		/// <summary>
-		/// A list of DataTableInfo system table definitions for tables internal 
+		/// A list of DataTableDef system table definitions for tables internal 
 		/// to the transaction.
 		/// </summary>
-		private readonly static DataTableInfo[] InternalInfoList;
+		private readonly static DataTableDef[] INTERNAL_DEF_LIST;
 
 		static Transaction() {
-			InternalInfoList = new DataTableInfo[4];
-			InternalInfoList[0] = GTTableColumnsDataSource.InfoDataTableInfo;
-			InternalInfoList[1] = GTTableInfoDataSource.InfoDataTableInfo;
-			InternalInfoList[2] = GTProductDataSource.InfoDataTableInfo;
-			InternalInfoList[3] = GTVariablesDataSource.InfoDataTableInfo;
+			INTERNAL_DEF_LIST = new DataTableDef[4];
+			INTERNAL_DEF_LIST[0] = GTTableColumnsDataSource.DEF_DATA_TABLE_DEF;
+			INTERNAL_DEF_LIST[1] = GTTableInfoDataSource.DEF_DATA_TABLE_DEF;
+			INTERNAL_DEF_LIST[2] = GTProductDataSource.DEF_DATA_TABLE_DEF;
+			INTERNAL_DEF_LIST[3] = GTVariablesDataSource.DEF_DATA_TABLE_DEF;
 		}
 
 		/// <summary>
@@ -659,7 +659,7 @@ namespace Deveel.Data {
 			private readonly Transaction transaction;
 
 			public TransactionInternalTables(Transaction transaction)
-				: base("SYSTEM TABLE", InternalInfoList) {
+				: base("SYSTEM TABLE", INTERNAL_DEF_LIST) {
 				this.transaction = transaction;
 			}
 

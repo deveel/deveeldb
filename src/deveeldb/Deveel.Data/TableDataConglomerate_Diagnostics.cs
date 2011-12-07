@@ -34,8 +34,8 @@ namespace Deveel.Data {
 			// Get the table
 			IMutableTableDataSource table = transaction.GetTable(tname);
 			// Find the index of the column name called 'id'
-			DataTableInfo tableInfo = table.DataTableInfo;
-			int colIndex = tableInfo.FindColumnName("id");
+			DataTableDef tableDef = table.DataTableDef;
+			int colIndex = tableDef.FindColumnName("id");
 			if (colIndex == -1)
 				throw new ApplicationException("Column name 'id' not found.");
 

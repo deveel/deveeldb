@@ -15,21 +15,28 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data {
 	/// <summary>
-	/// A complex object that is to be contained within a <see cref="StatementTree"/> object.
+	/// A <see cref="IDataTableListener"/> is notified of all 
+	/// modifications to the raw entries of the data table.
 	/// </summary>
 	/// <remarks>
-	/// A statement tree object must be serializable, and it must be able to
-	/// reference all <see cref="Expression"/> objects so that they may be prepared.
+	/// This listener can be used for detecting changes in VIEWs, 
+	/// for triggers or for caching of common queries.
 	/// </remarks>
-	internal interface IStatementTreeObject : ICloneable {
+	interface IDataTableListener {
 		/// <summary>
-		/// Prepares all expressions in this statement tree object by 
-		/// passing the <see cref="IExpressionPreparer"/> object to the 
-		/// <see cref="Expression.Prepare"/> method of the expression.
+		/// Called before a row entry in the table is deleted.
 		/// </summary>
-		/// <param name="preparer"></param>
-		void PrepareExpressions(IExpressionPreparer preparer);
+		/// <param name="table"></param>
+		/// <param name="row_index"></param>
+		void OnRowDeleted(DataTable table, int row_index);
+
+		/// <summary>
+		/// Called after a row entry in the table is added.
+		/// </summary>
+		/// <param name="table"></param>
+		/// <param name="row_index"></param>
+		void OnRowAdded(DataTable table, int row_index);
 	}
 }

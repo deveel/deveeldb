@@ -222,7 +222,7 @@ namespace Deveel.Data {
 						// For each journal, determine if there's any clashes.
 						foreach (MasterTableJournal tableJournal in journalsSince) {
 							// This will thrown an exception if a commit classes.
-							changeJournal.TestCommitClash(master.DataTableInfo, tableJournal);
+							changeJournal.TestCommitClash(master.DataTableDef, tableJournal);
 						}
 					}
 

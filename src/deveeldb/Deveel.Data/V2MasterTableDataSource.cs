@@ -42,8 +42,8 @@ namespace Deveel.Data {
 	///    | version                       |
 	///    | table id                      |
 	///    | table sequence id             |
-	///    | pointer to DataTableInfo       |
-	///    | pointer to DataIndexSetInfo    |
+	///    | pointer to DataTableDef       |
+	///    | pointer to DataIndexSetDef    |
 	///    | pointer to index block        |
 	///    | LIST BLOCK HEADER pointer     |
 	///    +-------------------------------+
@@ -148,19 +148,19 @@ namespace Deveel.Data {
 		/// the <see cref="Create"/> method).
 		/// </summary>
 		private void SetupInitialStore() {
-			// Serialize the DataTableInfo object
+			// Serialize the DataTableDef object
 			MemoryStream bout = new MemoryStream();
 			BinaryWriter dout = new BinaryWriter(bout, Encoding.Unicode);
 			dout.Write(1);
-			DataTableInfo.Write(dout);
+			DataTableDef.Write(dout);
 			// Convert to a byte array
 			byte[] data_table_def_buf = bout.ToArray();
 
-			// Serialize the DataIndexSetInfo object
+			// Serialize the DataIndexSetDef object
 			bout = new MemoryStream();
 			dout = new BinaryWriter(bout, Encoding.Unicode);
 			dout.Write(1);
-			DataIndexSetInfo.Write(dout);
+			DataIndexSetDef.Write(dout);
 			// Convert to byte array
 			byte[] index_set_def_buf = bout.ToArray();
 
@@ -173,11 +173,11 @@ namespace Deveel.Data {
 				// Allocate an 80 byte header
 				IAreaWriter header_writer = store.CreateArea(80);
 				long header_p = header_writer.Id;
-				// Allocate space to store the DataTableInfo serialization
+				// Allocate space to store the DataTableDef serialization
 				IAreaWriter data_table_def_writer =
 										   store.CreateArea(data_table_def_buf.Length);
 				long data_table_def_p = data_table_def_writer.Id;
-				// Allocate space to store the DataIndexSetInfo serialization
+				// Allocate space to store the DataIndexSetDef serialization
 				IAreaWriter data_index_set_writer =
 											store.CreateArea(index_set_def_buf.Length);
 				long data_index_set_def_p = data_index_set_writer.Id;
@@ -195,13 +195,13 @@ namespace Deveel.Data {
 				header_writer.WriteInt4(1);                  // Version
 				header_writer.WriteInt4(table_id);           // table_id
 				header_writer.WriteInt8(sequence_id);       // initial sequence id
-				header_writer.WriteInt8(data_table_def_p);  // pointer to DataTableInfo
-				header_writer.WriteInt8(data_index_set_def_p); // pointer to DataIndexSetInfo
+				header_writer.WriteInt8(data_table_def_p);  // pointer to DataTableDef
+				header_writer.WriteInt8(data_index_set_def_p); // pointer to DataIndexSetDef
 				header_writer.WriteInt8(index_header_p);    // index header pointer
 				header_writer.WriteInt8(list_header_p);     // list header pointer
 				header_writer.Finish();
 
-				// Write the dataTableInfo
+				// Write the data_table_def
 				data_table_def_writer.Write(data_table_def_buf);
 				data_table_def_writer.Finish();
 
@@ -242,27 +242,27 @@ namespace Deveel.Data {
 			}
 			this.table_id = header_area.ReadInt4();         // table_id
 			this.sequence_id = header_area.ReadInt8();     // sequence id
-			long def_p = header_area.ReadInt8();           // pointer to DataTableInfo
-			long index_def_p = header_area.ReadInt8();     // pointer to DataIndexSetInfo
+			long def_p = header_area.ReadInt8();           // pointer to DataTableDef
+			long index_def_p = header_area.ReadInt8();     // pointer to DataIndexSetDef
 			this.index_header_p = header_area.ReadInt8();  // pointer to index header
 			this.list_header_p = header_area.ReadInt8();   // pointer to list header
 
-			// Read the data table info
+			// Read the data table def
 			BinaryReader din = GetBReader(store.GetAreaInputStream(def_p));
 			version = din.ReadInt32();
 			if (version != 1) {
-				throw new IOException("Incorrect DataTableInfo version identifier.");
+				throw new IOException("Incorrect DataTableDef version identifier.");
 			}
-			tableInfo = DataTableInfo.Read(din);
+			table_def = DataTableDef.Read(din);
 			din.Close();
 
-			// Read the data index set info
+			// Read the data index set def
 			din = GetBReader(store.GetAreaInputStream(index_def_p));
 			version = din.ReadInt32();
 			if (version != 1) {
-				throw new IOException("Incorrect DataIndexSetInfo version identifier.");
+				throw new IOException("Incorrect DataIndexSetDef version identifier.");
 			}
-			IndexInfo = DataIndexSetInfo.Read(din);
+			index_def = DataIndexSetDef.Read(din);
 			din.Close();
 
 			// Read the list header
@@ -279,7 +279,7 @@ namespace Deveel.Data {
 				//   the index store.
 				index_store = new IndexSetStore(store, System);
 				index_header_p = index_store.Create();
-				index_store.AddIndexLists(tableInfo.ColumnCount + 1, (byte)1, 1024);
+				index_store.AddIndexLists(table_def.ColumnCount + 1, (byte)1, 1024);
 				header_area.Position = 32;
 				header_area.WriteInt8(index_header_p);
 				header_area.Position = 0;
@@ -292,15 +292,15 @@ namespace Deveel.Data {
 		/// Create this master table input the file system at the given path.
 		/// </summary>
 		/// <param name="table_id"></param>
-		/// <param name="tableInfo"></param>
+		/// <param name="table_def"></param>
 		/// <remarks>
 		/// This will initialise the various file objects and result input a new empty 
 		/// master table to store data input.
 		/// </remarks>
-		public void Create(int table_id, DataTableInfo tableInfo) {
+		public void Create(int table_id, DataTableDef table_def) {
 
-			// Set the data table info object
-			SetupDataTableDef(tableInfo);
+			// Set the data table def object
+			SetupDataTableDef(table_def);
 
 			// Initially set the table sequence_id to 1
 			this.sequence_id = 1;
@@ -325,7 +325,7 @@ namespace Deveel.Data {
 
 			// Initialize the store to an empty state,
 			SetupInitialStore();
-			index_store.AddIndexLists(tableInfo.ColumnCount + 1, (byte)1, 1024);
+			index_store.AddIndexLists(table_def.ColumnCount + 1, (byte)1, 1024);
 
 			// Load internal state
 			LoadInternal();
@@ -369,13 +369,13 @@ namespace Deveel.Data {
 			ReadStoreHeaders();
 
 			// Set the column count
-			column_count = tableInfo.ColumnCount;
+			column_count = table_def.ColumnCount;
 
 			// Open table indices
 			table_indices = new MultiVersionTableIndices(System,
-								   tableInfo.TableName, tableInfo.ColumnCount);
+								   table_def.TableName, table_def.ColumnCount);
 			// The column rid list cache
-			// column_rid_list = new RIDList[DataTableInfo.ColumnCount];
+			// column_rid_list = new RIDList[table_def.ColumnCount];
 
 			// Load internal state
 			LoadInternal();
@@ -444,7 +444,7 @@ namespace Deveel.Data {
 					// Close the store input the store system.
 					StoreSystem.CloseStore(store);
 
-					tableInfo = null;
+					table_def = null;
 					table_indices = null;
 					// column_rid_list = null;
 					is_closed = true;
@@ -462,7 +462,7 @@ namespace Deveel.Data {
 		internal void Copy(int table_id, MasterTableDataSource src_master_table, IIndexSet index_set) {
 
 			// Basically we need to copy all the data and then set the new index view.
-			Create(table_id, src_master_table.DataTableInfo);
+			Create(table_id, src_master_table.DataTableDef);
 
 			// The record list.
 			IIntegerList master_index = index_set.GetIndex(0);
@@ -614,7 +614,7 @@ namespace Deveel.Data {
 		private void CopyRecordFrom(MasterTableDataSource src_master_table,int record_id) {
 
 			// Copy the record from the source table input a DataRow object,
-			int sz = src_master_table.DataTableInfo.ColumnCount;
+			int sz = src_master_table.DataTableDef.ColumnCount;
 			DataRow dataRow = new DataRow(System, sz);
 			for (int i = 0; i < sz; ++i) {
 				TObject tob = src_master_table.GetCellContents(i, record_id);
@@ -730,7 +730,7 @@ namespace Deveel.Data {
 				used_areas.Add(header_area.Id);
 
 				header_area.Position = 16;
-				// Add the DataTableInfo and DataIndexSetInfo objects
+				// Add the DataTableDef and DataIndexSetDef objects
 				used_areas.Add(header_area.ReadInt8());
 				used_areas.Add(header_area.ReadInt8());
 
@@ -803,7 +803,7 @@ namespace Deveel.Data {
 				// Read and setup the pointers
 				ReadStoreHeaders();
 				// Set the column count
-				column_count = tableInfo.ColumnCount;
+				column_count = table_def.ColumnCount;
 			} catch (IOException e) {
 				// If this fails, the table is not recoverable.
 				terminal.WriteLine("! Table is not repairable because the file headers are corrupt.");
@@ -845,7 +845,7 @@ namespace Deveel.Data {
 			// Check indexes
 			terminal.WriteLine("- Rebuilding all table index information.");
 
-			int index_count = tableInfo.ColumnCount + 1;
+			int index_count = table_def.ColumnCount + 1;
 			for (int i = 0; i < index_count; ++i) {
 				index_store.CommitDropIndex(i);
 			}
@@ -1370,7 +1370,7 @@ namespace Deveel.Data {
 
 				// Get the TType for this column
 				// NOTE: It's possible this call may need optimizing?
-				TType ttype = DataTableInfo[column].TType;
+				TType ttype = DataTableDef[column].TType;
 
 				object ob;
 				if (cell_type == 1) {

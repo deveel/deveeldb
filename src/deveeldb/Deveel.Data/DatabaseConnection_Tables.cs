@@ -157,11 +157,11 @@ namespace Deveel.Data {
 		/// <param name="name">Name of the table to return the 
 		/// meta informations.</param>
 		/// <returns>
-		/// Returns the <see cref="DataTableInfo"/> representing the meta 
+		/// Returns the <see cref="DataTableDef"/> representing the meta 
 		/// informations for the tabl identified by <paramref name="name"/> 
 		/// if found, otherwise <b>null</b>.
 		/// </returns>
-		public DataTableInfo GetDataTableDef(TableName name) {
+		public DataTableDef GetDataTableDef(TableName name) {
 			name = SubstituteReservedTableName(name);
 			return Transaction.GetDataTableDef(name);
 		}
@@ -185,17 +185,17 @@ namespace Deveel.Data {
 				// Special handling of NEW and OLD table, we cache the DataTable in the
 				// OldNewTableState object,
 				if (name.Equals(Database.OldTriggerTable)) {
-					if (currentOldNewState.OldDataTable == null) {
-						currentOldNewState.OldDataTable =
+					if (currentOldNewState.OLD_data_table == null) {
+						currentOldNewState.OLD_data_table =
 										new DataTable(this, Transaction.GetTable(name));
 					}
-					return currentOldNewState.OldDataTable;
+					return currentOldNewState.OLD_data_table;
 				} else if (name.Equals(Database.NewTriggerTable)) {
-					if (currentOldNewState.NewDataTable == null) {
-						currentOldNewState.NewDataTable =
+					if (currentOldNewState.NEW_data_table == null) {
+						currentOldNewState.NEW_data_table =
 										new DataTable(this, Transaction.GetTable(name));
 					}
-					return currentOldNewState.NewDataTable;
+					return currentOldNewState.NEW_data_table;
 				}
 
 				// Ask the transaction for the table
@@ -239,21 +239,21 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Creates a new table within the context of the transaction.
 		/// </summary>
-		/// <param name="tableInfo">Table meta informations for creating the table.</param>
+		/// <param name="table_def">Table meta informations for creating the table.</param>
 		/// <exception cref="StatementException">
 		/// If the name of the table is reserved and the creation of the table 
 		/// should be prevented.
 		/// </exception>
-		public void CreateTable(DataTableInfo tableInfo) {
-			CheckAllowCreate(tableInfo.TableName);
-			Transaction.CreateTable(tableInfo);
+		public void CreateTable(DataTableDef table_def) {
+			CheckAllowCreate(table_def.TableName);
+			Transaction.CreateTable(table_def);
 		}
 
 		/// <summary>
 		/// Creates a new table within this transaction with the given 
 		/// sector size.
 		/// </summary>
-		/// <param name="tableInfo">Meta informations used to create the table.</param>
+		/// <param name="table_def">Meta informations used to create the table.</param>
 		/// <param name="data_sector_size">Size of data sectors of the table.</param>
 		/// <param name="index_sector_size">Size of the index sectors of the table.</param>
 		/// <remarks>
@@ -264,31 +264,31 @@ namespace Deveel.Data {
 		/// will be ignored.
 		/// </remarks>
 		/// <exception cref="StatementException">
-		/// If a table with the same name (specified by <paramref name="tableInfo"/>) 
+		/// If a table with the same name (specified by <paramref name="table_def"/>) 
 		/// already exists.
 		/// </exception>
-		public void CreateTable(DataTableInfo tableInfo, int data_sector_size, int index_sector_size) {
-			CheckAllowCreate(tableInfo.TableName);
-			Transaction.CreateTable(tableInfo, data_sector_size, index_sector_size);
+		public void CreateTable(DataTableDef table_def, int data_sector_size, int index_sector_size) {
+			CheckAllowCreate(table_def.TableName);
+			Transaction.CreateTable(table_def, data_sector_size, index_sector_size);
 		}
 
 		/// <summary>
 		/// Alters a table within the underlying transaction.
 		/// </summary>
-		/// <param name="tableInfo">Table metadata informations for aletring the table</param>
+		/// <param name="table_def">Table metadata informations for aletring the table</param>
 		/// <exception cref="StatementException">
 		/// If the name of the table is reserved and the creation of the table 
 		/// should be prevented.
 		/// </exception>
-		public void UpdateTable(DataTableInfo tableInfo) {
-			CheckAllowCreate(tableInfo.TableName);
-			Transaction.AlterTable(tableInfo.TableName, tableInfo);
+		public void UpdateTable(DataTableDef table_def) {
+			CheckAllowCreate(table_def.TableName);
+			Transaction.AlterTable(table_def.TableName, table_def);
 		}
 
 		/// <summary>
 		/// Alters a table within the underlying transaction.
 		/// </summary>
-		/// <param name="tableInfo">Table metadata informations for altering 
+		/// <param name="table_def">Table metadata informations for altering 
 		/// the table.</param>
 		/// <param name="data_sector_size"></param>
 		/// <param name="index_sector_size"></param>
@@ -298,16 +298,16 @@ namespace Deveel.Data {
 		/// changed so that the given <paramref name="data_sector_size"/> value 
 		/// is unapplicable, then the value will be ignored.
 		/// </remarks>
-		public void UpdateTable(DataTableInfo tableInfo, int data_sector_size, int index_sector_size) {
-			CheckAllowCreate(tableInfo.TableName);
-			Transaction.AlterTable(tableInfo.TableName, tableInfo, data_sector_size, index_sector_size);
+		public void UpdateTable(DataTableDef table_def, int data_sector_size, int index_sector_size) {
+			CheckAllowCreate(table_def.TableName);
+			Transaction.AlterTable(table_def.TableName, table_def, data_sector_size, index_sector_size);
 		}
 
 		/// <summary>
-		/// If a table exists with the given table name (defined by <paramref name="tableInfo"/>)
+		/// If a table exists with the given table name (defined by <paramref name="table_def"/>)
 		/// alters its the structure, otherwise creates a new table.
 		/// </summary>
-		/// <param name="tableInfo">Meta informations for altering or creating a table.</param>
+		/// <param name="table_def">Meta informations for altering or creating a table.</param>
 		/// <param name="data_sector_size">Size of data sectors of the table.</param>
 		/// <param name="index_sector_size">Size of the index sectors of the table.</param>
 		/// <remarks>
@@ -317,25 +317,25 @@ namespace Deveel.Data {
 		/// <paramref name="data_sector_size"/> and <paramref name="index_sector_size"/> 
 		/// values are unapplicable and will be ignored.
 		/// </remarks>
-		public void AlterCreateTable(DataTableInfo tableInfo, int data_sector_size, int index_sector_size) {
-			if (!TableExists(tableInfo.TableName)) {
-				CreateTable(tableInfo, data_sector_size, index_sector_size);
+		public void AlterCreateTable(DataTableDef table_def, int data_sector_size, int index_sector_size) {
+			if (!TableExists(table_def.TableName)) {
+				CreateTable(table_def, data_sector_size, index_sector_size);
 			} else {
-				UpdateTable(tableInfo, data_sector_size, index_sector_size);
+				UpdateTable(table_def, data_sector_size, index_sector_size);
 			}
 		}
 
 		/// <summary>
-		/// If a table exists with the given table name (defined by <paramref name="tableInfo"/>)
+		/// If a table exists with the given table name (defined by <paramref name="table_def"/>)
 		/// alters its the structure, otherwise creates a new table.
 		/// </summary>
-		/// <param name="tableInfo">Meta informations for altering or creating a table.</param>
+		/// <param name="table_def">Meta informations for altering or creating a table.</param>
 		/// <exception cref="StatementException"></exception>
-		public void AlterCreateTable(DataTableInfo tableInfo) {
-			if (!TableExists(tableInfo.TableName)) {
-				CreateTable(tableInfo);
+		public void AlterCreateTable(DataTableDef table_def) {
+			if (!TableExists(table_def.TableName)) {
+				CreateTable(table_def);
 			} else {
-				UpdateTable(tableInfo);
+				UpdateTable(table_def);
 			}
 		}
 

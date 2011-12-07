@@ -24,7 +24,7 @@ namespace Deveel.Data {
 	/// An operator for an expression.
 	/// </summary>
 	[Serializable]
-	public abstract class Operator : IExpressionElement {
+	public abstract class Operator {
 		// ---------- Statics ----------
 
 		private static readonly Dictionary<string, Operator> AllMap = new Dictionary<string, Operator>(); 

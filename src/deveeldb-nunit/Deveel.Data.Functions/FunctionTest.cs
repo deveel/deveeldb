@@ -172,16 +172,16 @@ namespace Deveel.Data.Functions {
 				AddToGroup(setIndex, VariableName.Resolve(variable), value);
 			}
 
-			public TObject Resolve(VariableName variable, int setIndex) {
-				IVariableResolver resolver = GetVariableResolver(setIndex);
+			public TObject Resolve(VariableName variable, int set_index) {
+				IVariableResolver resolver = GetVariableResolver(set_index);
 				return resolver.Resolve(variable);
 			}
 
-			public IVariableResolver GetVariableResolver(int setIndex) {
-				Hashtable keyValues = sets[setIndex] as Hashtable;
+			public IVariableResolver GetVariableResolver(int set_index) {
+				Hashtable keyValues = sets[set_index] as Hashtable;
 				if (keyValues == null)
 					keyValues = new Hashtable();
-				return new VariableResolver(setIndex, keyValues);
+				return new VariableResolver(set_index, keyValues);
 			}
 
 			private class VariableResolver : IVariableResolver {

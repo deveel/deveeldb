@@ -15,7 +15,6 @@
 
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.Collections;
 using Deveel.Diagnostics;
@@ -43,7 +42,6 @@ namespace Deveel.Data {
 		/// </summary>
 		private readonly IMutableTableDataSource dataSource;
 
-#if DEBUG
 		/// <summary>
 		/// The number of read locks we have on this table.
 		/// </summary>
@@ -54,7 +52,7 @@ namespace Deveel.Data {
 		/// only ever be 0 or 1).
 		/// </summary>
 		private int debugWriteLockCount;
-#endif
+
 
 		internal DataTable(DatabaseConnection connection, IMutableTableDataSource dataSource)
 			: base(connection.Database) {
@@ -71,10 +69,11 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override DataTableInfo DataTableInfo {
+		public override DataTableDef DataTableDef {
 			get {
 				CheckSafeOperation(); // safe op
-				return dataSource.DataTableInfo;
+
+				return dataSource.DataTableDef;
 			}
 		}
 
@@ -84,7 +83,8 @@ namespace Deveel.Data {
 		public string Schema {
 			get {
 				CheckSafeOperation(); // safe op
-				return DataTableInfo.Schema;
+
+				return DataTableDef.Schema;
 			}
 		}
 
@@ -106,6 +106,7 @@ namespace Deveel.Data {
 		public override int ColumnCount {
 			get {
 				CheckSafeOperation(); // safe op
+
 				return base.ColumnCount;
 			}
 		}
@@ -124,13 +125,13 @@ namespace Deveel.Data {
 			TableName tableName = TableName;
 
 			// Fire the 'before' trigger for an insert on this table
-			connection.FireTableEvent(new TableModificationEvent(tableName, row, true));
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, row, true));
 
 			// Add the row to the underlying file system
 			dataSource.AddRow(row);
 
 			// Fire the 'after' trigger for an insert on this table
-			connection.FireTableEvent(new TableModificationEvent(tableName, row, false));
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, row, false));
 
 			// NOTE: currently nothing being done with 'row_number' after it's added.
 			//   The underlying table data source manages the row index.
@@ -148,17 +149,18 @@ namespace Deveel.Data {
 		/// This is called from the <see cref="Delete(Deveel.Data.Table)"/>.
 		/// </remarks>
 		private void RemoveRow(int rowNumber) {
+
 			// This table name (for event notification)
 			TableName tableName = TableName;
 
 			// Fire the 'before' trigger for the delete on this table
-			connection.FireTableEvent(new TableModificationEvent(tableName, rowNumber, true));
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, true));
 
 			// Delete the row from the underlying database
 			dataSource.RemoveRow(rowNumber);
 
 			// Fire the 'after' trigger for the delete on this table
-			connection.FireTableEvent(new TableModificationEvent(tableName, rowNumber, false));
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, false));
 		}
 
 		/// <summary>
@@ -171,25 +173,28 @@ namespace Deveel.Data {
 		/// delete the old version of the row.
 		/// </remarks>
 		private void UpdateRow(int rowNumber, DataRow row) {
+
 			// This table name (for event notification)
 			TableName tableName = TableName;
 
 			// Fire the 'before' trigger for the update on this table
-			connection.FireTableEvent(new TableModificationEvent(tableName, rowNumber, row, true));
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, row, true));
 
 			// Update the row in the underlying database
 			dataSource.UpdateRow(rowNumber, row);
 
 			// Fire the 'after' trigger for the update on this table
-			connection.FireTableEvent(new TableModificationEvent(tableName, rowNumber, row, false));
+			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, row, false));
 		}
 
 		/// <summary>
 		/// Checks the database is in exclusive mode.
 		/// </summary>
 		private void CheckInExclusiveMode() {
-			if (!IsInExclusiveMode)
-				Debug.WriteException(new Exception("Performed exclusive operation on table and not in exclusive mode!"));
+			if (!IsInExclusiveMode) {
+				Debug.WriteException(new Exception(
+				                     	"Performed exclusive operation on table and not in exclusive mode!"));
+			}
 		}
 
 		/// <summary>
@@ -197,7 +202,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private void CheckReadLock() {
 #if DEBUG
-			// All 'system' tables are given Read access because they may only be
+			// All 'sUSR' tables are given Read access because they may only be
 			// written under exclusive mode anyway.
 
 			bool isInternalTable = TableName.Schema.Equals(Database.SystemSchema);
@@ -208,9 +213,9 @@ namespace Deveel.Data {
 			      IsInExclusiveMode)) {
 
 				Console.Error.WriteLine();
-				Console.Error.Write(" isInternalTable = " + isInternalTable);
-				Console.Error.Write(" debugReadLockCount = " + debugReadLockCount);
-				Console.Error.Write(" debugWriteLockCount = " + debugWriteLockCount);
+				Console.Error.Write(" is_internal_table = " + isInternalTable);
+				Console.Error.Write(" debug_read_lock_count = " + debugReadLockCount);
+				Console.Error.Write(" debug_write_lock_count = " + debugWriteLockCount);
 				Console.Error.WriteLine(" isInExclusiveMode = " + IsInExclusiveMode);
 
 				Debug.WriteException(new ApplicationException("Invalid Read access on table '" + TableName + "'"));
@@ -250,14 +255,29 @@ namespace Deveel.Data {
 			return dataSource.GetColumnScheme(column);
 		}
 
+		/// <inheritdoc/>
+		internal override void AddDataTableListener(IDataTableListener listener) {
+			// Currently we do nothing with this info.
+		}
+
+
+		/// <inheritdoc/>
+		internal override void RemoveDataTableListener(IDataTableListener listener) {
+			// Currently we do nothing with this info.
+		}
+
+
+
+
 		// -------- Methods implemented for DefaultDataTable --------
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector rowSet, ITableDataSource ancestor) {
+		internal override void SetToRowTableDomain(int column, IntegerVector row_set, ITableDataSource ancestor) {
 			CheckReadLock();  // Read op
 
-			if (ancestor != this && ancestor != dataSource)
+			if (ancestor != this && ancestor != dataSource) {
 				throw new Exception("Method routed to incorrect table ancestor.");
+			}
 		}
 
 		/// <summary>
@@ -304,14 +324,16 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
 			CheckReadLock();  // Read op
-			return base.GetSelectableSchemeFor(column, originalColumn, table);
+
+			return base.GetSelectableSchemeFor(column, original_column, table);
 		}
 
 		/// <inheritdoc/>
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
 			CheckReadLock();  // Read op
+
 			return base.ResolveToRawTable(info);
 		}
 
@@ -411,7 +433,7 @@ namespace Deveel.Data {
 		/// If the any of the given <paramref name="dataRowArr"/> was generated by 
 		/// another data table.
 		/// </exception>
-		public void Add(IEnumerable<DataRow> dataRowArr) {
+		public void Add(DataRow[] dataRowArr) {
 			CheckReadWriteLock();  // Write op
 
 			foreach (DataRow dataRow in dataRowArr) {
@@ -725,14 +747,14 @@ namespace Deveel.Data {
 
 
 		/// <inheritdoc/>
-		public override void LockRoot(int lockKey) {
+		public override void LockRoot(int lock_key) {
 			CheckSafeOperation();  // safe op
 
 			dataSource.AddRootLock();
 		}
 
 		/// <inheritdoc/>
-		public override void UnlockRoot(int lockKey) {
+		public override void UnlockRoot(int lock_key) {
 			CheckSafeOperation();  // safe op
 
 			dataSource.RemoveRootLock();

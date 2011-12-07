@@ -31,9 +31,9 @@ namespace Deveel.Data {
 	public sealed class SimpleTableQuery : IDisposable {
 
 		/// <summary>
-		/// The DataTableInfo for this table.
+		/// The DataTableDef for this table.
 		/// </summary>
-		private readonly DataTableInfo tableInfo;
+		private readonly DataTableDef table_def;
 
 		/// <summary>
 		/// The ITableDataSource we are wrapping.
@@ -63,7 +63,7 @@ namespace Deveel.Data {
 		public SimpleTableQuery(ITableDataSource in_table) {
 			//    in_table.AddRootLock();
 			table = in_table;
-			tableInfo = table.DataTableInfo;
+			table_def = table.DataTableDef;
 		}
 
 		/// <summary>
@@ -129,7 +129,7 @@ namespace Deveel.Data {
 		/// from the underlying table which equal to the given <paramref name="value"/>.
 		/// </returns>
 		public IntegerVector SelectEqual(int column, Object value) {
-			TType ttype = tableInfo[column].TType;
+			TType ttype = table_def[column].TType;
 			TObject cell = new TObject(ttype, value);
 			return SelectEqual(column, cell);
 		}
@@ -185,8 +185,8 @@ namespace Deveel.Data {
 		/// </returns>
 		public IntegerVector SelectEqual(int col1, Object val1,
 												int col2, Object val2) {
-			TType t1 = tableInfo[col1].TType;
-			TType t2 = tableInfo[col2].TType;
+			TType t1 = table_def[col1].TType;
+			TType t2 = table_def[col2].TType;
 
 			TObject cell1 = new TObject(t1, val1);
 			TObject cell2 = new TObject(t2, val2);
@@ -291,7 +291,7 @@ namespace Deveel.Data {
 			}
 			// Insert the new key
 			DataRow dataRow = new DataRow(table);
-			for (int i = 0; i < tableInfo.ColumnCount; ++i) {
+			for (int i = 0; i < table_def.ColumnCount; ++i) {
 				dataRow.SetValue(i, vals[i]);
 			}
 			mtable.AddRow(dataRow);

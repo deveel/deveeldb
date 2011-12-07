@@ -173,127 +173,127 @@ namespace Deveel.Data {
 			// Create the transaction
 			Transaction transaction = CreateTransaction();
 
-			DataTableInfo table;
+			DataTableDef table;
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = SysSequenceInfo;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("type"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("type"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = SysSequence;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_id"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("last_value"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("increment"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("minvalue"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("maxvalue"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("start"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("cache"));
-			table.AddColumn(DataTableColumnInfo.CreateBooleanColumn("cycle"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_id"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("last_value"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("increment"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("minvalue"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("maxvalue"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("start"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("cache"));
+			table.AddColumn(DataTableColumnDef.CreateBooleanColumn("cycle"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = PrimaryInfoTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("table"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("deferred"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = ForeignInfoTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("ref_schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("ref_table"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("update_rule"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("delete_rule"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("table"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("ref_schema"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("ref_table"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("update_rule"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("delete_rule"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("deferred"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = UniqueInfoTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("table"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("deferred"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = CheckInfoTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("expression"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("table"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("expression"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("deferred"));
 			table.AddColumn(
-					DataTableColumnInfo.CreateBinaryColumn("serialized_expression"));
+					DataTableColumnDef.CreateBinaryColumn("serialized_expression"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = PrimaryColsTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("pk_id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("column"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_no"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("pk_id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("column"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_no"));
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = UniqueColsTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("un_id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("column"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_no"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("un_id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("column"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_no"));
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = ForeignColsTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("fk_id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("fcolumn"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("pcolumn"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_no"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("fk_id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("fcolumn"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("pcolumn"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_no"));
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = SchemaInfoTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("other"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("other"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// Stores misc variables of the database,
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = PersistentVarTable;
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("variable"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("value"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("variable"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("value"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// the UDT tables...
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = UdtTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("attrs"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("parent"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("ext_parent"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("attrs"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("parent"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("ext_parent"));
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableInfo();
+			table = new DataTableDef();
 			table.TableName = UdtMembersTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("type_id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("col_type"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("size"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("scale"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("not_null"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("type_id"));
+			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("col_type"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("size"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("scale"));
+			table.AddColumn(DataTableColumnDef.CreateNumericColumn("not_null"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// Commit and close the transaction.

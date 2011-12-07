@@ -22,32 +22,32 @@ namespace Deveel.Data {
 	/// Represents index meta-information on a table. 
 	///</summary>
 	/// <remarks>
-	/// This information is part of DataIndexSetInfo and is stored with 
+	/// This information is part of DataIndexSetDef and is stored with 
 	/// the contents of a table.
 	/// </remarks>
-	public sealed class DataIndexInfo : ICloneable {
+	public class DataIndexDef {
 		/// <summary>
 		/// The name of this index.
 		/// </summary>
-		private readonly string indexName;
+		private readonly String index_name;
 
 		/// <summary>
 		/// The list of column name that this index represents.  For example, if this
 		/// is a composite primary key, this would contain each column name in the
 		/// primary key.
 		/// </summary>
-		private readonly string[] columnNames;
+		private readonly String[] column_names;
 
 		/// <summary>
 		/// Returns the index set pointer of this index.  This value is used when
 		/// requesting the index from an IIndexSet.
 		/// </summary>
-		private readonly int indexPointer;
+		private readonly int index_pointer;
 
 		/// <summary>
 		/// The type of Index this is.  Currently only 'BLIST' is supported.
 		/// </summary>
-		private readonly string indexType;
+		private readonly String index_type;
 
 		/// <summary>
 		/// True if this index may only contain unique values.
@@ -56,47 +56,56 @@ namespace Deveel.Data {
 
 		///<summary>
 		///</summary>
-		///<param name="indexName"></param>
-		///<param name="columnNames"></param>
-		///<param name="indexPointer"></param>
-		///<param name="indexType"></param>
+		///<param name="index_name"></param>
+		///<param name="column_names"></param>
+		///<param name="index_pointer"></param>
+		///<param name="index_type"></param>
 		///<param name="unique"></param>
-		public DataIndexInfo(string indexName, string[] columnNames, int indexPointer, string indexType, bool unique) {
-			this.indexName = indexName;
-			this.columnNames = (string[])columnNames.Clone();
-			this.indexPointer = indexPointer;
-			this.indexType = indexType;
+		public DataIndexDef(String index_name, String[] column_names,
+							int index_pointer, String index_type, bool unique) {
+
+			this.index_name = index_name;
+			this.column_names = (String[])column_names.Clone();
+			this.index_pointer = index_pointer;
+			this.index_type = index_type;
 			this.unique = unique;
 
 		}
 
+		///<summary>
+		///</summary>
+		///<param name="def"></param>
+		public DataIndexDef(DataIndexDef def)
+			: this(def.index_name, def.column_names, def.index_pointer, def.index_type,
+				 def.unique) {
+		}
 
 		///<summary>
 		/// Returns the name of this index.
 		///</summary>
 		public string Name {
-			get { return indexName; }
+			get { return index_name; }
 		}
 
 		///<summary>
 		/// Returns the column names that make up this index.
 		///</summary>
 		public string[] ColumnNames {
-			get { return columnNames; }
+			get { return column_names; }
 		}
 
 		/// <summary>
 		/// Returns the pointer to the index in the IIndexSet.
 		/// </summary>
 		public int Pointer {
-			get { return indexPointer; }
+			get { return index_pointer; }
 		}
 
 		///<summary>
 		/// Returns a String that describes the type of index this is.
 		///</summary>
 		public string Type {
-			get { return indexType; }
+			get { return index_type; }
 		}
 
 		/// <summary>
@@ -112,45 +121,38 @@ namespace Deveel.Data {
 		///<param name="dout"></param>
 		public void Write(BinaryWriter dout) {
 			dout.Write(1);
-			dout.Write(indexName);
-			dout.Write(columnNames.Length);
-			for (int i = 0; i < columnNames.Length; ++i) {
-				dout.Write(columnNames[i]);
+			dout.Write(index_name);
+			dout.Write(column_names.Length);
+			for (int i = 0; i < column_names.Length; ++i) {
+				dout.Write(column_names[i]);
 			}
-			dout.Write(indexPointer);
-			dout.Write(indexType);
+			dout.Write(index_pointer);
+			dout.Write(index_type);
 			dout.Write(unique);
 		}
 
 		/// <summary>
-		/// Reads a DataIndexInfo from the given <see cref="BinaryReader"/> object.
+		/// Reads a DataIndexDef from the given <see cref="BinaryReader"/> object.
 		/// </summary>
 		/// <param name="din"></param>
 		/// <returns></returns>
-		public static DataIndexInfo Read(BinaryReader din) {
+		public static DataIndexDef Read(BinaryReader din) {
 			int version = din.ReadInt32();
-			if (version != 1)
+			if (version != 1) {
 				throw new IOException("Don't understand version.");
-
-			string indexName = din.ReadString();
+			}
+			String index_name = din.ReadString();
 			int sz = din.ReadInt32();
-			string[] cols = new String[sz];
+			String[] cols = new String[sz];
 			for (int i = 0; i < sz; ++i) {
 				cols[i] = din.ReadString();
 			}
-			int indexPointer = din.ReadInt32();
-			string indexType = din.ReadString();
+			int index_pointer = din.ReadInt32();
+			String index_type = din.ReadString();
 			bool unique = din.ReadBoolean();
 
-			return new DataIndexInfo(indexName, cols, indexPointer, indexType, unique);
-		}
-
-		object ICloneable.Clone() {
-			return Clone();
-		}
-
-		public DataIndexInfo Clone() {
-			return new DataIndexInfo(indexName, (string[]) columnNames.Clone(), indexPointer, indexType, unique);
+			return new DataIndexDef(index_name, cols,
+									index_pointer, index_type, unique);
 		}
 	}
 }

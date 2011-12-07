@@ -19,16 +19,21 @@ namespace Deveel.Data {
 	/// <summary>
 	/// The event information of when a table is modified inside a transaction.
 	/// </summary>
-	class TableModificationEvent {
+	public class TableModificationEvent {
+		/// <summary>
+		/// The DatabaseConnection of the table that the modification occurred in.
+		/// </summary>
+		private readonly DatabaseConnection connection;
+
 		/// <summary>
 		/// The name of the table that was modified.
 		/// </summary>
-		private readonly TableName tableName;
+		private readonly TableName table_name;
 
 		/// <summary>
 		/// The type of event that occurred.
 		/// </summary>
-		private readonly TriggerEventType eventType;
+		private readonly TriggerEventType event_type;
 
 		/// <summary>
 		/// A DataRow object representing the row that is being inserted by 
@@ -47,53 +52,83 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This is set for UPDATE and DELETE events.  This represents the OLD information.
 		/// </remarks>
-		private readonly int rowIndex = -1;
+		private readonly int row_index = -1;
 
-		private TableModificationEvent(TableName tableName, int rowIndex, DataRow dataRow, TriggerEventType eventType) {
-			this.tableName = tableName;
-			this.rowIndex = rowIndex;
+		private TableModificationEvent(DatabaseConnection connection, TableName table_name, int row_index, 
+			DataRow dataRow, TriggerEventType type, bool before) {
+			this.connection = connection;
+			this.table_name = table_name;
+			this.row_index = row_index;
 			this.dataRow = dataRow;
-			this.eventType = eventType;
+			this.event_type = type | (before ? TriggerEventType.Before : TriggerEventType.After);
 		}
 
-		internal TableModificationEvent(TableName tableName, DataRow dataRow, bool before)
-			: this(tableName, -1, dataRow, TriggerEventType.Insert | (before ? TriggerEventType.Before : TriggerEventType.After)) {
+		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, DataRow dataRow, bool before)
+			: this(connection, table_name, -1, dataRow, TriggerEventType.Insert, before) {
 		}
 
-		internal TableModificationEvent(TableName tableName, int rowIndex, DataRow dataRow, bool before)
-			: this(tableName, rowIndex, dataRow, TriggerEventType.Update | (before ? TriggerEventType.Before : TriggerEventType.After)) {
+		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, int row_index, DataRow dataRow, bool before)
+			: this(connection, table_name, row_index, dataRow, TriggerEventType.Update, before) {
 		}
 
-		internal TableModificationEvent(TableName tableName, int rowIndex, bool before)
-			: this(tableName, rowIndex, null, TriggerEventType.Delete | (before ? TriggerEventType.Before : TriggerEventType.After)) {
+		internal TableModificationEvent(DatabaseConnection connection, TableName table_name, int row_index, bool before)
+			: this(connection, table_name, row_index, null, TriggerEventType.Delete, before) {
+		}
+
+		/// <summary>
+		/// Returns the DatabaseConnection that this event fired in.
+		/// </summary>
+		public DatabaseConnection DatabaseConnection {
+			get { return connection; }
 		}
 
 		/// <summary>
 		/// Returns the event type.
 		/// </summary>
 		public TriggerEventType Type {
-			get { return eventType; }
+			get { return event_type; }
 		}
 
 		/// <summary>
 		/// Returns true if this is a BEFORE event.
 		/// </summary>
 		public bool IsBefore {
-			get { return (eventType & TriggerEventType.Before) != 0; }
+			get { return (event_type & TriggerEventType.Before) != 0; }
 		}
 
 		/// <summary>
 		/// Returns true if this is a AFTER event.
 		/// </summary>
 		public bool IsAfter {
-			get { return (eventType & TriggerEventType.After) != 0; }
+			get { return (event_type & TriggerEventType.After) != 0; }
+		}
+
+		/// <summary>
+		/// Returns true if this is an INSERT event.
+		/// </summary>
+		public bool IsInsert {
+			get { return (event_type & TriggerEventType.Insert) != 0; }
+		}
+
+		/// <summary>
+		/// Returns true if this is an UPDATE event.
+		/// </summary>
+		public bool IsUpdate {
+			get { return (event_type & TriggerEventType.Update) != 0; }
+		}
+
+		/// <summary>
+		/// Returns true if this is an DELETE event.
+		/// </summary>
+		public bool IsDelete {
+			get { return (event_type & TriggerEventType.Delete) != 0; }
 		}
 
 		/// <summary>
 		/// Returns the name of the table of this modification.
 		/// </summary>
 		public TableName TableName {
-			get { return tableName; }
+			get { return table_name; }
 		}
 
 		/// <summary>
@@ -101,7 +136,7 @@ namespace Deveel.Data {
 		/// event or -1 if event type is INSERT.
 		/// </summary>
 		public int RowIndex {
-			get { return rowIndex; }
+			get { return row_index; }
 		}
 
 		/// <summary>
@@ -130,17 +165,17 @@ namespace Deveel.Data {
 		public bool IsListenedBy(TriggerEventType listen_t) {
 			// If this is a BEFORE trigger, then we must be listening for BEFORE events,
 			// etc.
-			bool baMatch =
-			   ((eventType & TriggerEventType.Before) != 0 && (listen_t & TriggerEventType.Before) != 0) ||
-			   ((eventType & TriggerEventType.After) != 0 && (listen_t & TriggerEventType.After) != 0);
+			bool ba_match =
+			   ((event_type & TriggerEventType.Before) != 0 && (listen_t & TriggerEventType.Before) != 0) ||
+			   ((event_type & TriggerEventType.After) != 0 && (listen_t & TriggerEventType.After) != 0);
 			// If this is an INSERT trigger, then we must be listening for INSERT
 			// events, etc.
-			bool trigMatch =
-			   ((eventType & TriggerEventType.Insert) != 0 && (listen_t & TriggerEventType.Insert) != 0) ||
-			   ((eventType & TriggerEventType.Delete) != 0 && (listen_t & TriggerEventType.Delete) != 0) ||
-			   ((eventType & TriggerEventType.Update) != 0 && (listen_t & TriggerEventType.Update) != 0);
+			bool trig_match =
+			   ((event_type & TriggerEventType.Insert) != 0 && (listen_t & TriggerEventType.Insert) != 0) ||
+			   ((event_type & TriggerEventType.Delete) != 0 && (listen_t & TriggerEventType.Delete) != 0) ||
+			   ((event_type & TriggerEventType.Update) != 0 && (listen_t & TriggerEventType.Update) != 0);
 			// If both of the above are true
-			return (baMatch && trigMatch);
+			return (ba_match && trig_match);
 		}
 	}
 }

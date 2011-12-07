@@ -24,9 +24,9 @@ using Deveel.Data.Text;
 namespace Deveel.Data {
 	/// <summary>
 	/// Used to managed all the informations about a column in a table
-	/// (<see cref="DataTableInfo"/>).
+	/// (<see cref="DataTableDef"/>).
 	/// </summary>
-	public sealed class DataTableColumnInfo : ICloneable {
+	public class DataTableColumnDef {
 		/// <summary>
 		/// An array of bytes containing the column constraints 
 		/// format information.
@@ -38,47 +38,47 @@ namespace Deveel.Data {
 		/// must be derived from to be added to this column.  If not specified,
 		/// it defaults to <see cref="object"/>.
 		/// </summary>
-		private string typeConstraint = "";
+		private String class_constraint = "";
 
 		/// <summary>
 		/// The constraining Type object itself.
 		/// </summary>
-		private Type constrainingType;
+		private Type constraining_class;
 
 		/// <summary>
 		/// The actual column type input the database (as defined input
 		/// <see cref="Data.DbType"/>.
 		/// </summary>
-		private DbType dbType;
+		private DbType db_type;
 
 		/// <summary>
 		/// The default expression string.
 		/// </summary>
-		private string defaultExpressionString;
+		private String default_expression_string;
 
 		/// <summary>
 		/// If this is a foreign key, the table.column that this foreign key
 		/// refers to.
 		/// </summary>
 		[Obsolete]
-		private string foreignKey = "";
+		private String foreign_key = "";
 
 		/// <summary>
 		/// The type of index to use on this column.
 		/// </summary>
-		private string indexDesc = "";
+		private String index_desc = "";
 
 		/// <summary>
 		/// The locale string if this column represents a string.  If this is an
 		/// empty string, the column has no locale (the string is collated
 		/// lexicographically).
 		/// </summary>
-		private string localeString = "";
+		private String locale_str = "";
 
 		/// <summary>
 		/// The name of the column.
 		/// </summary>
-		private string name;
+		private String name;
 
 		/// <summary>
 		/// The scale of the data.
@@ -93,23 +93,52 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The SQL type of the column.
 		/// </summary>
-		private SqlType sqlType;
+		private SqlType sql_type;
 
 		/// <summary>
 		/// The locale collation decomposition if this column represents a string.
 		/// </summary>
-		private CollationDecomposition stringDecomposition;
+		private CollationDecomposition str_decomposition;
 
 		/// <summary>
 		/// The locale collation strength if this column represents a string.
 		/// </summary>
-		private CollationStrength stringStrength;
+		private CollationStrength str_strength;
 
 		/// <summary>
 		/// The TType object for this column.
 		/// </summary>
 		public TType type;
 
+
+		///<summary>
+		///</summary>
+		public DataTableColumnDef() {
+		}
+
+		///<summary>
+		///</summary>
+		///<param name="column_def"></param>
+		public DataTableColumnDef(DataTableColumnDef column_def) {
+			Array.Copy(column_def.constraints_format, 0,
+			           constraints_format, 0, constraints_format.Length);
+			name = column_def.name;
+			sql_type = column_def.sql_type;
+			db_type = column_def.db_type;
+			size = column_def.size;
+			scale = column_def.scale;
+			locale_str = column_def.locale_str;
+			str_strength = column_def.str_strength;
+			str_decomposition = column_def.str_decomposition;
+			if (column_def.default_expression_string != null) {
+				default_expression_string = column_def.default_expression_string;
+				//      default_exp = new Expression(column_def.default_exp);
+			}
+			foreign_key = column_def.foreign_key;
+			index_desc = column_def.index_desc;
+			class_constraint = column_def.class_constraint;
+			type = column_def.type;
+		}
 
 		// ---------- Set methods ----------
 
@@ -131,12 +160,12 @@ namespace Deveel.Data {
 		}
 
 		public SqlType SqlType {
-			get { return sqlType; }
+			get { return sql_type; }
 			set {
-				sqlType = value;
+				sql_type = value;
 				if (value == SqlType.Bit ||
 				    value == SqlType.Boolean) {
-					dbType = DbType.Boolean;
+					db_type = Data.DbType.Boolean;
 				} else if (value == SqlType.TinyInt ||
 				           value == SqlType.SmallInt ||
 				           value == SqlType.Integer ||
@@ -146,23 +175,23 @@ namespace Deveel.Data {
 				           value == SqlType.Double ||
 				           value == SqlType.Numeric ||
 				           value == SqlType.Decimal) {
-					dbType = DbType.Numeric;
+					db_type = DbType.Numeric;
 				} else if (value == SqlType.Char ||
 				           value == SqlType.VarChar ||
 				           value == SqlType.LongVarChar) {
-					dbType = DbType.String;
+					db_type = DbType.String;
 				} else if (value == SqlType.Date ||
 				           value == SqlType.Time ||
 				           value == SqlType.TimeStamp) {
-					dbType = DbType.Time;
+					db_type = DbType.Time;
 				} else if (value == SqlType.Binary ||
 				           value == SqlType.VarBinary ||
 				           value == SqlType.LongVarBinary) {
-					dbType = DbType.Blob;
+					db_type = DbType.Blob;
 				} else if (value == SqlType.Object) {
-					dbType = DbType.Object;
+					db_type = DbType.Object;
 				} else {
-					dbType = DbType.Unknown;
+					db_type = DbType.Unknown;
 				}
 			}
 		}
@@ -173,25 +202,57 @@ namespace Deveel.Data {
 		public string SQLTypeString {
 			get { return SqlType.ToString().ToUpper(); }
 		}
+
+		/// <summary>
+		/// Returns the type as a String.
+		/// </summary>
+		public string DbTypeString {
+			get {
+				switch (DbType) {
+					case DbType.Numeric:
+						return "NUMERIC";
+					case DbType.String:
+						return "STRING";
+					case DbType.Boolean:
+						return "BOOLEAN";
+					case DbType.Time:
+						return "TIME";
+					case DbType.Blob:
+						return "BLOB";
+					case DbType.Object:
+						return "OBJECT";
+					default:
+						return "UNKNOWN(" + DbType + ")";
+				}
+			}
+		}
+
+		/// <summary>
+		/// Returns the <see cref="Type"/> of object that represents this column.
+		/// </summary>
+		public Type ColumnType {
+			get { return TypeUtil.ToType(DbType); }
+		}
+
 		///<summary>
 		///</summary>
 		///<exception cref="ArgumentException"></exception>
 		public DbType DbType {
-			get { return dbType; }
+			get { return db_type; }
 			set {
-				dbType = value;
+				db_type = value;
 				if (value == DbType.Numeric) {
-					sqlType = SqlType.Numeric;
+					sql_type = SqlType.Numeric;
 				} else if (value == DbType.String) {
-					sqlType = SqlType.LongVarChar;
+					sql_type = SqlType.LongVarChar;
 				} else if (value == DbType.Boolean) {
-					sqlType = SqlType.Bit;
+					sql_type = SqlType.Bit;
 				} else if (value == DbType.Time) {
-					sqlType = SqlType.TimeStamp;
+					sql_type = SqlType.TimeStamp;
 				} else if (value == DbType.Blob) {
-					sqlType = SqlType.LongVarBinary;
+					sql_type = SqlType.LongVarBinary;
 				} else if (value == DbType.Object) {
-					sqlType = SqlType.Object;
+					sql_type = SqlType.Object;
 				} else {
 					throw new ArgumentException("Unrecognised internal type.");
 				}
@@ -215,19 +276,19 @@ namespace Deveel.Data {
 		///<summary>
 		///</summary>
 		public string LocaleString {
-			get { return localeString; }
+			get { return locale_str; }
 		}
 
 		///<summary>
 		///</summary>
 		public CollationStrength Strength {
-			get { return stringStrength; }
+			get { return str_strength; }
 		}
 
 		///<summary>
 		///</summary>
 		public CollationDecomposition Decomposition {
-			get { return stringDecomposition; }
+			get { return str_decomposition; }
 		}
 
 		/// <summary>
@@ -237,8 +298,13 @@ namespace Deveel.Data {
 		/// It will be either <i>InsertSearch</i> or <b>BlindSearch</b>.
 		/// </remarks>
 		public string IndexScheme {
-			get { return String.IsNullOrEmpty(indexDesc) ? "InsertSearch" : indexDesc; }
-			set { indexDesc = value; }
+			get {
+				if (index_desc.Equals("")) {
+					return "InsertSearch";
+				}
+				return index_desc;
+			}
+			set { index_desc = value; }
 		}
 
 		/// <summary>
@@ -246,7 +312,13 @@ namespace Deveel.Data {
 		/// otherwise <b>false</b>.
 		/// </summary>
 		public bool IsIndexableType {
-			get { return DbType != DbType.Blob && DbType != DbType.Object; }
+			get {
+				if (DbType == DbType.Blob ||
+				    DbType == DbType.Object) {
+					return false;
+				}
+				return true;
+			}
 		}
 
 		///<summary>
@@ -256,40 +328,41 @@ namespace Deveel.Data {
 		///</summary>
 		///<exception cref="ApplicationException"></exception>
 		public string TypeConstraintString {
-			get { return typeConstraint; }
+			get { return class_constraint; }
 			set {
-				typeConstraint = value;
+				class_constraint = value;
 				try {
 					// Denotes an array
 					if (value.EndsWith("[]")) {
-						string arrayTypeName = value.Substring(0, value.Length - 2);
-						Type arrayType;
+						String array_class =
+							value.Substring(0, value.Length - 2);
+						Type ac;
 						// Arrays of primitive types,
-						if (arrayTypeName.Equals("bool")) {
-							arrayType = typeof (bool);
-						} else if (arrayTypeName.Equals("byte")) {
-							arrayType = typeof (byte);
-						} else if (arrayTypeName.Equals("char")) {
-							arrayType = typeof (char);
-						} else if (arrayTypeName.Equals("short")) {
-							arrayType = typeof (short);
-						} else if (arrayTypeName.Equals("int")) {
-							arrayType = typeof (int);
-						} else if (arrayTypeName.Equals("long")) {
-							arrayType = typeof (long);
-						} else if (arrayTypeName.Equals("float")) {
-							arrayType = typeof (float);
-						} else if (arrayTypeName.Equals("double")) {
-							arrayType = typeof (double);
+						if (array_class.Equals("bool")) {
+							ac = typeof (bool);
+						} else if (array_class.Equals("byte")) {
+							ac = typeof (byte);
+						} else if (array_class.Equals("char")) {
+							ac = typeof (char);
+						} else if (array_class.Equals("short")) {
+							ac = typeof (short);
+						} else if (array_class.Equals("int")) {
+							ac = typeof (int);
+						} else if (array_class.Equals("long")) {
+							ac = typeof (long);
+						} else if (array_class.Equals("float")) {
+							ac = typeof (float);
+						} else if (array_class.Equals("double")) {
+							ac = typeof (double);
 						} else {
 							// Otherwise a standard array.
-							arrayType = Type.GetType(arrayTypeName, true, true);
+							ac = Type.GetType(array_class, true, true);
 						}
 						// Make it into an array
-						constrainingType = Array.CreateInstance(arrayType, 0).GetType();
+						constraining_class = Array.CreateInstance(ac, 0).GetType();
 					} else {
 						// Not an array
-						constrainingType = Type.GetType(value, true, true);
+						constraining_class = Type.GetType(value, true, true);
 					}
 				} catch (TypeLoadException) {
 					throw new ApplicationException("Unable to resolve class: " + value);
@@ -302,7 +375,7 @@ namespace Deveel.Data {
 		/// <see cref="System.Type"/> the objects stored in the column must be derived from.
 		/// </summary>
 		public Type TypeConstraint {
-			get { return constrainingType; }
+			get { return constraining_class; }
 		}
 
 		/// <summary>
@@ -318,19 +391,20 @@ namespace Deveel.Data {
 
 		///<summary>
 		///</summary>
-		///<param name="locale"></param>
+		///<param name="locale_str"></param>
 		///<param name="strength"></param>
 		///<param name="decomposition"></param>
-		public void SetStringLocale(string locale, CollationStrength strength, CollationDecomposition decomposition) {
+		public void SetStringLocale(String locale_str,
+		                            CollationStrength strength, CollationDecomposition decomposition) {
 			// Sets this column to be of the given locale.  For example, the string
 			// "frFR" denotes french/france.  See Deveel.Data.TStringType.cs
 			// for more information.
-			if (locale == null) {
-				localeString = "";
+			if (locale_str == null) {
+				this.locale_str = "";
 			} else {
-				localeString = locale;
-				stringStrength = strength;
-				stringDecomposition = decomposition;
+				this.locale_str = locale_str;
+				str_strength = strength;
+				str_decomposition = decomposition;
 			}
 		}
 
@@ -338,16 +412,16 @@ namespace Deveel.Data {
 		///</summary>
 		///<param name="expression"></param>
 		public void SetDefaultExpression(Expression expression) {
-			defaultExpressionString = expression.Text.ToString();
+			default_expression_string = expression.Text.ToString();
 		}
 
 		///<summary>
-		/// Sets this <see cref="DataTableColumnInfo"/> object up from information 
+		/// Sets this <see cref="DataTableColumnDef"/> object up from information 
 		/// input the <see cref="TType"/> object.
 		///</summary>
 		///<param name="type"></param>
 		/// <remarks>
-		/// This is useful when we need to create a <see cref="DataTableColumnInfo"/>
+		/// This is useful when we need to create a <see cref="DataTableColumnDef"/>
 		/// object to store information based on nothing more than a <see cref="TType"/> 
 		/// object.  This comes input useful for purely functional tables.
 		/// </remarks>
@@ -390,7 +464,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This should be called at the last part of a DataColumn setup.
 		/// </remarks>
-		internal void InitTTypeInfo() {
+		public void InitTTypeInfo() {
 			if (type == null) {
 				type = CreateTTypeFor(SqlType, Size, Scale,
 				                      LocaleString, Strength, Decomposition,
@@ -403,10 +477,10 @@ namespace Deveel.Data {
 		///<param name="system"></param>
 		///<returns></returns>
 		public Expression GetDefaultExpression(TransactionSystem system) {
-			if (defaultExpressionString == null)
+			if (default_expression_string == null) {
 				return null;
-
-			Expression exp = Expression.Parse(defaultExpressionString);
+			}
+			Expression exp = Expression.Parse(default_expression_string);
 			return exp;
 		}
 
@@ -414,7 +488,7 @@ namespace Deveel.Data {
 		///</summary>
 		///<returns></returns>
 		public String GetDefaultExpressionString() {
-			return defaultExpressionString;
+			return default_expression_string;
 		}
 
 		///<summary>
@@ -431,24 +505,38 @@ namespace Deveel.Data {
 			return field;
 		}
 
+		/// <summary>
+		/// Dumps information about this object to the <see cref="TextWriter"/>.
+		/// </summary>
+		/// <param name="output"></param>
+		public void Dump(TextWriter output) {
+			output.Write(Name);
+			output.Write("(");
+			output.Write(SQLTypeString);
+			output.Write(")");
+		}
+
 		// ---------- Convenient static methods ----------
 
 		/// <summary>
 		/// Returns a TType object for a column with the given type information.
 		/// </summary>
-		/// <param name="sqlType"></param>
+		/// <param name="sql_type"></param>
 		/// <param name="size"></param>
 		/// <param name="scale"></param>
 		/// <param name="locale"></param>
-		/// <param name="strength"></param>
-		/// <param name="decomposition"></param>
+		/// <param name="str_strength"></param>
+		/// <param name="str_decomposition"></param>
 		/// <param name="typeString"></param>
 		/// <remarks>
-		/// The type information is the sqlType, the size and the scale of the type.
+		/// The type information is the sql_type, the size and the scale of the type.
 		/// </remarks>
 		/// <returns></returns>
-		private static TType CreateTTypeFor(SqlType sqlType, int size, int scale, string locale, CollationStrength strength, CollationDecomposition decomposition, string typeString) {
-			switch (sqlType) {
+		private static TType CreateTTypeFor(SqlType sql_type, int size, int scale,
+		                                    String locale, CollationStrength str_strength,
+		                                    CollationDecomposition str_decomposition,
+		                                    String typeString) {
+			switch (sql_type) {
 				case (SqlType.Bit):
 				case (SqlType.Boolean):
 					return TType.BooleanType;
@@ -463,24 +551,25 @@ namespace Deveel.Data {
 				case (SqlType.Numeric):
 				case (SqlType.Decimal):
 				case (SqlType.Identity):
-					return new TNumericType(sqlType, size, scale);
+					return new TNumericType(sql_type, size, scale);
 
 				case (SqlType.Char):
 				case (SqlType.VarChar):
 				case (SqlType.LongVarChar):
 				case (SqlType.Clob):
-					return new TStringType(sqlType, size, locale, strength, decomposition);
+					return new TStringType(sql_type, size, locale,
+					                       str_strength, str_decomposition);
 
 				case (SqlType.Date):
 				case (SqlType.Time):
 				case (SqlType.TimeStamp):
-					return new TDateType(sqlType);
+					return new TDateType(sql_type);
 
 				case (SqlType.Binary):
 				case (SqlType.VarBinary):
 				case (SqlType.LongVarBinary):
 				case (SqlType.Blob):
-					return new TBinaryType(sqlType, size);
+					return new TBinaryType(sql_type, size);
 
 				case (SqlType.Object):
 					return new TObjectType(typeString);
@@ -497,12 +586,12 @@ namespace Deveel.Data {
 		}
 
 		///<summary>
-		/// Creates a DataTableColumnInfo that holds a numeric value.
+		/// Creates a DataTableColumnDef that holds a numeric value.
 		///</summary>
 		///<param name="name"></param>
 		///<returns></returns>
-		public static DataTableColumnInfo CreateNumericColumn(String name) {
-			DataTableColumnInfo column = new DataTableColumnInfo();
+		public static DataTableColumnDef CreateNumericColumn(String name) {
+			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
 			column.SqlType = SqlType.Numeric;
 			column.InitTTypeInfo();
@@ -510,12 +599,12 @@ namespace Deveel.Data {
 		}
 
 		///<summary>
-		/// Creates a DataTableColumnInfo that holds a boolean value.
+		/// Creates a DataTableColumnDef that holds a boolean value.
 		///</summary>
 		///<param name="name"></param>
 		///<returns></returns>
-		public static DataTableColumnInfo CreateBooleanColumn(String name) {
-			DataTableColumnInfo column = new DataTableColumnInfo();
+		public static DataTableColumnDef CreateBooleanColumn(String name) {
+			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
 			column.SqlType = SqlType.Bit;
 			column.InitTTypeInfo();
@@ -523,12 +612,12 @@ namespace Deveel.Data {
 		}
 
 		///<summary>
-		/// Creates a DataTableColumnInfo that holds a string value.
+		/// Creates a DataTableColumnDef that holds a string value.
 		///</summary>
 		///<param name="name"></param>
 		///<returns></returns>
-		public static DataTableColumnInfo CreateStringColumn(String name) {
-			DataTableColumnInfo column = new DataTableColumnInfo();
+		public static DataTableColumnDef CreateStringColumn(String name) {
+			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
 			column.SqlType = SqlType.VarChar;
 			column.Size = Int32.MaxValue;
@@ -537,12 +626,12 @@ namespace Deveel.Data {
 		}
 
 		///<summary>
-		/// Creates a DataTableColumnInfo that holds a binary value.
+		/// Creates a DataTableColumnDef that holds a binary value.
 		///</summary>
 		///<param name="name"></param>
 		///<returns></returns>
-		public static DataTableColumnInfo CreateBinaryColumn(String name) {
-			DataTableColumnInfo column = new DataTableColumnInfo();
+		public static DataTableColumnDef CreateBinaryColumn(String name) {
+			DataTableColumnDef column = new DataTableColumnDef();
 			column.Name = name;
 			column.SqlType = SqlType.LongVarBinary;
 			column.Size = Int32.MaxValue;
@@ -564,31 +653,31 @@ namespace Deveel.Data {
 			output.Write(name);
 			output.Write(constraints_format.Length);
 			output.Write(constraints_format);
-			output.Write((int) sqlType);
-			output.Write((int) dbType);
+			output.Write((int) sql_type);
+			output.Write((int) db_type);
 			output.Write(size);
 			output.Write(scale);
 
-			if (defaultExpressionString != null) {
+			if (default_expression_string != null) {
 				output.Write(true);
-				output.Write(defaultExpressionString);
+				output.Write(default_expression_string);
 				//new String(default_exp.text().toString()));
 			} else {
 				output.Write(false);
 			}
 
-			output.Write(foreignKey);
-			output.Write(indexDesc);
-			output.Write(typeConstraint); // Introduced input version 2.
+			output.Write(foreign_key);
+			output.Write(index_desc);
+			output.Write(class_constraint); // Introduced input version 2.
 
 			// Format the 'other' string
 			StringBuilder other = new StringBuilder();
 			other.Append("|");
-			other.Append(localeString);
+			other.Append(locale_str);
 			other.Append("|");
-			other.Append((int)stringStrength);
+			other.Append((int)str_strength);
 			other.Append("|");
-			other.Append((int)stringDecomposition);
+			other.Append((int)str_decomposition);
 			other.Append("|");
 			// And Write it
 			output.Write(other.ToString());
@@ -599,83 +688,58 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		internal static DataTableColumnInfo Read(BinaryReader input) {
+		internal static DataTableColumnDef Read(BinaryReader input) {
 			int ver = input.ReadInt32();
 
-			DataTableColumnInfo cd = new DataTableColumnInfo();
+			DataTableColumnDef cd = new DataTableColumnDef();
 			cd.name = input.ReadString();
 			int len = input.ReadInt32();
 			input.Read(cd.constraints_format, 0, len);
-			cd.sqlType = (SqlType) input.ReadInt32();
-			cd.dbType = (DbType) input.ReadInt32();
+			cd.sql_type = (SqlType) input.ReadInt32();
+			cd.db_type = (DbType) input.ReadInt32();
 			cd.size = input.ReadInt32();
 			cd.scale = input.ReadInt32();
 
 			bool b = input.ReadBoolean();
 			if (b) {
-				cd.defaultExpressionString = input.ReadString();
+				cd.default_expression_string = input.ReadString();
 				//      cd.default_exp = Expression.Parse(input.readUTF());
 			}
-			cd.foreignKey = input.ReadString();
-			cd.indexDesc = input.ReadString();
+			cd.foreign_key = input.ReadString();
+			cd.index_desc = input.ReadString();
 			if (ver > 1) {
 				String cc = input.ReadString();
 				if (!cc.Equals("")) {
 					cd.TypeConstraintString = cc;
 				}
 			} else {
-				cd.typeConstraint = "";
+				cd.class_constraint = "";
 			}
 
 			// Parse the 'other' string
-			string other = input.ReadString();
+			String other = input.ReadString();
 			if (other.Length > 0) {
 				if (other.StartsWith("|")) {
 					// Read the string locale, collation strength and disposition
 					int cur_i = 1;
 					int next_break = other.IndexOf("|", cur_i);
-					cd.localeString = other.Substring(cur_i, next_break - cur_i);
+					cd.locale_str = other.Substring(cur_i, next_break - cur_i);
 
 					cur_i = next_break + 1;
 					next_break = other.IndexOf("|", cur_i);
-					cd.stringStrength = (CollationStrength) Int32.Parse(other.Substring(cur_i, next_break - cur_i));
+					cd.str_strength = (CollationStrength) Int32.Parse(other.Substring(cur_i, next_break - cur_i));
 
 					cur_i = next_break + 1;
 					next_break = other.IndexOf("|", cur_i);
-					cd.stringDecomposition = (CollationDecomposition) Int32.Parse(other.Substring(cur_i, next_break - cur_i));
+					cd.str_decomposition = (CollationDecomposition) Int32.Parse(other.Substring(cur_i, next_break - cur_i));
 				} else {
-					throw new FormatException("Incorrectly formatted DataTableColumnInfo data.");
+					throw new FormatException("Incorrectly formatted DataTableColumnDef data.");
 				}
 			}
 
 			cd.InitTTypeInfo();
 
 			return cd;
-		}
-
-		object ICloneable.Clone() {
-			return Clone();
-		}
-
-		public DataTableColumnInfo Clone() {
-			DataTableColumnInfo columnInfo = new DataTableColumnInfo();
-			Array.Copy(constraints_format, 0, columnInfo.constraints_format, 0, constraints_format.Length);
-			columnInfo.name = name;
-			columnInfo.sqlType = sqlType;
-			columnInfo.dbType = dbType;
-			columnInfo.size = size;
-			columnInfo.scale = scale;
-			columnInfo.localeString = localeString;
-			columnInfo.stringStrength = stringStrength;
-			columnInfo.stringDecomposition = stringDecomposition;
-			if (defaultExpressionString != null) {
-				columnInfo.defaultExpressionString = defaultExpressionString;
-			}
-			columnInfo.foreignKey = foreignKey;
-			columnInfo.indexDesc = indexDesc;
-			columnInfo.typeConstraint = typeConstraint;
-			columnInfo.type = type;
-			return columnInfo;
 		}
 	}
 }

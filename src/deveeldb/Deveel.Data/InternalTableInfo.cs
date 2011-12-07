@@ -31,21 +31,21 @@ namespace Deveel.Data {
 		/// </summary>
 		private readonly TableName[] table_list;
 		/// <summary>
-		/// The list of DataTableInfo objects that descibe each table in the 
+		/// The list of DataTableDef objects that descibe each table in the 
 		/// above list.
 		/// </summary>
-		private readonly DataTableInfo[] tableInfoList;
+		private readonly DataTableDef[] table_def_list;
 		/// <summary>
 		/// The table type of table objects returned by this method.
 		/// </summary>
 		private readonly String table_type;
 
-		internal InternalTableInfo(String type, DataTableInfo[] tableInfoList) {
-			this.tableInfoList = tableInfoList;
+		internal InternalTableInfo(String type, DataTableDef[] table_def_list) {
+			this.table_def_list = table_def_list;
 			table_type = type;
-			table_list = new TableName[tableInfoList.Length];
+			table_list = new TableName[table_def_list.Length];
 			for (int i = 0; i < table_list.Length; ++i) {
-				table_list[i] = tableInfoList[i].TableName;
+				table_list[i] = table_def_list[i].TableName;
 			}
 		}
 
@@ -70,8 +70,8 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public DataTableInfo GetDataTableDef(int i) {
-			return tableInfoList[i];
+		public DataTableDef GetDataTableDef(int i) {
+			return table_def_list[i];
 		}
 
 		/// <inheritdoc/>

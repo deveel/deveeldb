@@ -25,21 +25,21 @@ namespace Deveel.Data {
 		}
 
 		static GTVariablesDataSource() {
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = new TableName(Database.SystemSchema, "sUSRVariables");
+			DataTableDef def = new DataTableDef();
+			def.TableName = new TableName(Database.SystemSchema, "sUSRVariables");
 
 			// Add column definitions
-			info.AddColumn(GetStringColumn("var"));
-			info.AddColumn(GetStringColumn("type"));
-			info.AddColumn(GetStringColumn("value"));
-			info.AddColumn(GetBooleanColumn("constant"));
-			info.AddColumn(GetBooleanColumn("not_null"));
-			info.AddColumn(GetBooleanColumn("is_set"));
+			def.AddColumn(GetStringColumn("var"));
+			def.AddColumn(GetStringColumn("type"));
+			def.AddColumn(GetStringColumn("value"));
+			def.AddColumn(GetBooleanColumn("constant"));
+			def.AddColumn(GetBooleanColumn("not_null"));
+			def.AddColumn(GetBooleanColumn("is_set"));
 
 			// Set to immutable
-			info.SetImmutable();
+			def.SetImmutable();
 
-			InfoDataTableInfo = info;
+			DEF_DATA_TABLE_DEF = def;
 		}
 
 		private SimpleTransaction transaction;
@@ -49,10 +49,10 @@ namespace Deveel.Data {
 		/// </summary>
 		private ArrayList key_value_pairs;
 
-		internal static readonly DataTableInfo InfoDataTableInfo;
+		internal static readonly DataTableDef DEF_DATA_TABLE_DEF;
 
-		public override DataTableInfo DataTableInfo {
-			get { return InfoDataTableInfo; }
+		public override DataTableDef DataTableDef {
+			get { return DEF_DATA_TABLE_DEF; }
 		}
 
 		public override int RowCount {

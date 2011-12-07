@@ -28,7 +28,7 @@ namespace Deveel.Data {
 	/// </summary>
 	/// <remarks>
 	/// It is an object that can be easily serialized and deserialized to/from 
-	/// the system view table. It contains the <see cref="DataTableInfo"/>
+	/// the system view table. It contains the <see cref="Data.DataTableDef"/>
 	/// that describes the characteristics of the view result, and a
 	/// <see cref="IQueryPlanNode"/> that describes 
 	/// how the view can be constructed.
@@ -36,9 +36,9 @@ namespace Deveel.Data {
 	public class ViewDef {
 
 		/// <summary>
-		/// The <see cref="DataTableInfo"/> object that describes the view column info.
+		/// The <see cref="DataTableDef"/> object that describes the view column def.
 		/// </summary>
-		private readonly DataTableInfo viewInfo;
+		private readonly DataTableDef view_def;
 
 		/// <summary>
 		/// The <see cref="IQueryPlanNode"/> that is used to evaluate the view.
@@ -47,18 +47,18 @@ namespace Deveel.Data {
 
 		///<summary>
 		///</summary>
-		///<param name="viewInfo"></param>
+		///<param name="view_def"></param>
 		///<param name="query_node"></param>
-		public ViewDef(DataTableInfo viewInfo, IQueryPlanNode query_node) {
-			this.viewInfo = viewInfo;
+		public ViewDef(DataTableDef view_def, IQueryPlanNode query_node) {
+			this.view_def = view_def;
 			this.view_query_node = query_node;
 		}
 
 		///<summary>
-		/// Returns the DataTableInfo for this view.
+		/// Returns the DataTableDef for this view.
 		///</summary>
-		public DataTableInfo DataTableInfo {
-			get { return viewInfo; }
+		public DataTableDef DataTableDef {
+			get { return view_def; }
 		}
 
 		///<summary>
@@ -86,8 +86,8 @@ namespace Deveel.Data {
 				BinaryWriter output = new BinaryWriter(byte_out, Encoding.Unicode);
 				// Write the version number
 				output.Write(1);
-				// Write the DataTableInfo
-				DataTableInfo.Write(output);
+				// Write the DataTableDef
+				DataTableDef.Write(output);
 				// Serialize the IQueryPlanNode
 				BinaryFormatter formatter = new BinaryFormatter();
 				MemoryStream obj_stream = new MemoryStream();
@@ -119,8 +119,8 @@ namespace Deveel.Data {
 				// Read the version
 				int version = input.ReadInt32();
 				if (version == 1) {
-					DataTableInfo viewInfo = DataTableInfo.Read(input);
-					viewInfo.SetImmutable();
+					DataTableDef view_def = DataTableDef.Read(input);
+					view_def.SetImmutable();
 					int length = input.ReadInt32();
 					byte[] buf = new byte[length];
 					input.Read(buf, 0, length);
@@ -130,7 +130,7 @@ namespace Deveel.Data {
 					formatter.Binder = new ViewBinder();
 					IQueryPlanNode view_plan = (IQueryPlanNode)formatter.Deserialize(obj_stream);
 					obj_stream.Close();
-					return new ViewDef(viewInfo, view_plan);
+					return new ViewDef(view_def, view_plan);
 				} else {
 					throw new IOException("Newer ViewDef version serialization: " + version);
 				}

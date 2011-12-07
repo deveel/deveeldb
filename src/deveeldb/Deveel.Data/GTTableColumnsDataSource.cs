@@ -32,9 +32,9 @@ namespace Deveel.Data {
 		/// </summary>
 		private Transaction transaction;
 		/// <summary>
-		/// The list of all DataTableInfo visible to the transaction.
+		/// The list of all DataTableDef visible to the transaction.
 		/// </summary>
-		private DataTableInfo[] visible_tables;
+		private DataTableDef[] visible_tables;
 		/// <summary>
 		/// The number of rows in this table.
 		/// </summary>
@@ -52,20 +52,20 @@ namespace Deveel.Data {
 		public GTTableColumnsDataSource Init() {
 			// All the tables
 			TableName[] list = transaction.GetTables();
-			visible_tables = new DataTableInfo[list.Length];
+			visible_tables = new DataTableDef[list.Length];
 			row_count = 0;
 			for (int i = 0; i < list.Length; ++i) {
-				DataTableInfo info = transaction.GetDataTableDef(list[i]);
-				row_count += info.ColumnCount;
-				visible_tables[i] = info;
+				DataTableDef def = transaction.GetDataTableDef(list[i]);
+				row_count += def.ColumnCount;
+				visible_tables[i] = def;
 			}
 			return this;
 		}
 
 		// ---------- Implemented from GTDataSource ----------
 
-		public override DataTableInfo DataTableInfo {
-			get { return InfoDataTableInfo; }
+		public override DataTableDef DataTableDef {
+			get { return DEF_DATA_TABLE_DEF; }
 		}
 
 		public override int RowCount {
@@ -77,35 +77,35 @@ namespace Deveel.Data {
 			int sz = visible_tables.Length;
 			int rs = 0;
 			for (int n = 0; n < sz; ++n) {
-				DataTableInfo info = visible_tables[n];
+				DataTableDef def = visible_tables[n];
 				int b = rs;
-				rs += info.ColumnCount;
+				rs += def.ColumnCount;
 				if (row >= b && row < rs) {
 					// This is the column that was requested,
 					int seq_no = row - b;
-					DataTableColumnInfo colInfo = info[seq_no];
+					DataTableColumnDef col_def = def[seq_no];
 					switch (column) {
 						case 0:  // schema
-							return GetColumnValue(column, info.Schema);
+							return GetColumnValue(column, def.Schema);
 						case 1:  // table
-							return GetColumnValue(column, info.Name);
+							return GetColumnValue(column, def.Name);
 						case 2:  // column
-							return GetColumnValue(column, colInfo.Name);
+							return GetColumnValue(column, col_def.Name);
 						case 3:  // sql_type
-							return GetColumnValue(column, (BigNumber)(int)colInfo.SqlType);
+							return GetColumnValue(column, (BigNumber)(int)col_def.SqlType);
 						case 4:  // type_desc
-							return GetColumnValue(column, colInfo.SQLTypeString);
+							return GetColumnValue(column, col_def.SQLTypeString);
 						case 5:  // size
-							return GetColumnValue(column, (BigNumber)colInfo.Size);
+							return GetColumnValue(column, (BigNumber)col_def.Size);
 						case 6:  // scale
-							return GetColumnValue(column, (BigNumber)colInfo.Scale);
+							return GetColumnValue(column, (BigNumber)col_def.Scale);
 						case 7:  // not_null
-							return GetColumnValue(column, colInfo.IsNotNull);
+							return GetColumnValue(column, col_def.IsNotNull);
 						case 8:  // default
 							return GetColumnValue(column,
-											   colInfo.GetDefaultExpressionString());
+											   col_def.GetDefaultExpressionString());
 						case 9:  // index_str
-							return GetColumnValue(column, colInfo.IndexScheme);
+							return GetColumnValue(column, col_def.IndexScheme);
 						case 10:  // seq_no
 							return GetColumnValue(column, (BigNumber)seq_no);
 						default:
@@ -129,32 +129,32 @@ namespace Deveel.Data {
 		// ---------- Static ----------
 
 		/// <summary>
-		/// The data table info that describes this table of data source.
+		/// The data table def that describes this table of data source.
 		/// </summary>
-		internal static readonly DataTableInfo InfoDataTableInfo;
+		internal static readonly DataTableDef DEF_DATA_TABLE_DEF;
 
 		static GTTableColumnsDataSource() {
 
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = new TableName(Database.SystemSchema, "table_columns");
+			DataTableDef def = new DataTableDef();
+			def.TableName = new TableName(Database.SystemSchema, "table_columns");
 
 			// Add column definitions
-			info.AddColumn(GetStringColumn("schema"));
-			info.AddColumn(GetStringColumn("table"));
-			info.AddColumn(GetStringColumn("column"));
-			info.AddColumn(GetNumericColumn("sql_type"));
-			info.AddColumn(GetStringColumn("type_desc"));
-			info.AddColumn(GetNumericColumn("size"));
-			info.AddColumn(GetNumericColumn("scale"));
-			info.AddColumn(GetBooleanColumn("not_null"));
-			info.AddColumn(GetStringColumn("default"));
-			info.AddColumn(GetStringColumn("index_str"));
-			info.AddColumn(GetNumericColumn("seq_no"));
+			def.AddColumn(GetStringColumn("schema"));
+			def.AddColumn(GetStringColumn("table"));
+			def.AddColumn(GetStringColumn("column"));
+			def.AddColumn(GetNumericColumn("sql_type"));
+			def.AddColumn(GetStringColumn("type_desc"));
+			def.AddColumn(GetNumericColumn("size"));
+			def.AddColumn(GetNumericColumn("scale"));
+			def.AddColumn(GetBooleanColumn("not_null"));
+			def.AddColumn(GetStringColumn("default"));
+			def.AddColumn(GetStringColumn("index_str"));
+			def.AddColumn(GetNumericColumn("seq_no"));
 
 			// Set to immutable
-			info.SetImmutable();
+			def.SetImmutable();
 
-			InfoDataTableInfo = info;
+			DEF_DATA_TABLE_DEF = def;
 		}
 	}
 }

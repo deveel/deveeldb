@@ -24,8 +24,8 @@ namespace Deveel.Data {
 	/// qualified in the system.  Such uses of this object would 
 	/// not typically be used against any context.  For example, 
 	/// it would not be desirable to use <i>ColumnName</i> in 
-	/// <see cref="DataTableInfo"/> because the column names contained 
-	/// in <see cref="DataTableInfo"/> are within a known context.  
+	/// <see cref="DataTableDef"/> because the column names contained 
+	/// in <see cref="DataTableDef"/> are within a known context.  
 	/// This object is intended for use within parser processes 
 	/// where free standing column names with potentially no context 
 	/// are required.
@@ -34,7 +34,7 @@ namespace Deveel.Data {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	public sealed class VariableName : IExpressionElement, ICloneable, IComparable {
+	public sealed class VariableName : ICloneable, IComparable {
 		/// <summary>
 		/// Static that represents an unknown table name.
 		/// </summary>
@@ -44,39 +44,39 @@ namespace Deveel.Data {
 		/// The TableName that is the context of this column.  This may be
 		/// <see cref="UnknownTableName"/> if the table name is not known.
 		/// </summary>
-		private TableName tableName;
+		private TableName table_name;
 
 		/// <summary>
 		/// The column name itself.
 		/// </summary>
-		private string columnName;
+		private String column_name;
 
-		public VariableName(TableName tableName, string columnName) {
-			if (tableName == null || columnName == null)
+		public VariableName(TableName table_name, String column_name) {
+			if (table_name == null || column_name == null) {
 				throw new ArgumentNullException();
-
-			this.tableName = tableName;
-			this.columnName = columnName;
+			}
+			this.table_name = table_name;
+			this.column_name = column_name;
 		}
 
-		public VariableName(string columnName)
-			: this(UnknownTableName, columnName) {
+		public VariableName(String column_name)
+			: this(UnknownTableName, column_name) {
 		}
 
 		public VariableName(VariableName v) {
-			tableName = v.tableName;
-			columnName = v.columnName;
+			table_name = v.table_name;
+			column_name = v.column_name;
 		}
 
 		/// <summary>
 		/// Returns the <see cref="TableName"/> context.
 		/// </summary>
 		public TableName TableName {
-			get { return !(tableName.Equals(UnknownTableName)) ? tableName : null; }
+			get { return !(table_name.Equals(UnknownTableName)) ? table_name : null; }
 			set {
 				if (value == null)
 					throw new ArgumentNullException("value");
-				tableName = value;
+				table_name = value;
 			}
 		}
 
@@ -89,36 +89,36 @@ namespace Deveel.Data {
 		/// is resolved from one form to another.
 		/// </remarks>
 		public string Name {
-			get { return columnName; }
+			get { return column_name; }
 			set {
 				if (value == null)
 					throw new ArgumentNullException("value");
-				columnName = value;
+				column_name = value;
 			}
 		}
 
 		/// <summary>
-		/// Attempts to resolve a string '[tableName].[column]' to a 
+		/// Attempts to resolve a string '[table_name].[column]' to a 
 		/// <see cref="VariableName"/> instance.
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		public static VariableName Resolve(string name) {
+		public static VariableName Resolve(String name) {
 			int div = name.LastIndexOf(".");
 			if (div != -1) {
 				// Column represents '[something].[name]'
-				string columnName = name.Substring(div + 1);
+				String column_name = name.Substring(div + 1);
 				// Make the '[something]' into a TableName
-				TableName tableName = TableName.Resolve(name.Substring(0, div));
+				TableName table_name = TableName.Resolve(name.Substring(0, div));
 				// Set the variable name
-				return new VariableName(tableName, columnName);
+				return new VariableName(table_name, column_name);
 			}
 			// Column represents '[something]'
 			return new VariableName(name);
 		}
 
 		/// <summary>
-		/// Attempts to resolve a string '[tableName].[column]' to a 
+		/// Attempts to resolve a string '[table_name].[column]' to a 
 		/// <see cref="VariableName"/> instance.
 		/// </summary>
 		/// <param name="tname"></param>
@@ -129,7 +129,7 @@ namespace Deveel.Data {
 		/// given object.
 		/// </remarks>
 		/// <returns></returns>
-		public static VariableName Resolve(TableName tname, string name) {
+		public static VariableName Resolve(TableName tname, String name) {
 			VariableName v = Resolve(name);
 			return v.TableName == null
 			       	? new VariableName(tname, v.Name)
@@ -145,9 +145,9 @@ namespace Deveel.Data {
 		/// <param name="tablen"></param>
 		/// <returns></returns>
 		public VariableName ResolveTableName(TableName tablen) {
-			return tableName.Equals(UnknownTableName)
+			return table_name.Equals(UnknownTableName)
 			       	? new VariableName(tablen, Name)
-			       	: new VariableName(tableName.ResolveSchema(tablen.Schema), Name);
+			       	: new VariableName(table_name.ResolveSchema(tablen.Schema), Name);
 		}
 
 		/// <summary>
@@ -157,8 +157,8 @@ namespace Deveel.Data {
 		/// <param name="from"></param>
 		/// <returns></returns>
 		public VariableName Set(VariableName from) {
-			tableName = from.tableName;
-			columnName = from.columnName;
+			table_name = from.table_name;
+			column_name = from.column_name;
 			return this;
 		}
 
@@ -175,23 +175,31 @@ namespace Deveel.Data {
 			return TableName != null ? TableName + "." + Name : Name;
 		}
 
+		public String ToTechString() {
+			TableName tn = TableName;
+			if (tn != null) {
+				return tn.Schema + "^" + tn.Name + "^" + Name;
+			}
+			return Name;
+		}
+
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
 			VariableName cn = (VariableName)ob;
-			return cn.tableName.Equals(tableName) &&
-				   cn.columnName.Equals(columnName);
+			return cn.table_name.Equals(table_name) &&
+				   cn.column_name.Equals(column_name);
 		}
 
 		/// <inheritdoc/>
 		public int CompareTo(Object ob) {
 			VariableName cn = (VariableName)ob;
-			int v = tableName.CompareTo(cn.tableName);
-			return v == 0 ? columnName.CompareTo(cn.columnName) : v;
+			int v = table_name.CompareTo(cn.table_name);
+			return v == 0 ? column_name.CompareTo(cn.column_name) : v;
 		}
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			return tableName.GetHashCode() + columnName.GetHashCode();
+			return table_name.GetHashCode() + column_name.GetHashCode();
 		}
 	}
 }

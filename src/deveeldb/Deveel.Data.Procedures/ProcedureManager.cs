@@ -810,23 +810,23 @@ namespace Deveel.Data.Procedures {
 				: base(transaction, Database.SysFunction) {
 			}
 
-			private static DataTableInfo createDataTableDef(String schema, String name) {
-				// Create the DataTableInfo that describes this entry
-				DataTableInfo info = new DataTableInfo();
-				info.TableName = new TableName(schema, name);
+			private static DataTableDef createDataTableDef(String schema, String name) {
+				// Create the DataTableDef that describes this entry
+				DataTableDef def = new DataTableDef();
+				def.TableName = new TableName(schema, name);
 
 				// Add column definitions
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("location"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("return_type"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("param_args"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("owner"));
+				def.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
+				def.AddColumn(DataTableColumnDef.CreateStringColumn("location"));
+				def.AddColumn(DataTableColumnDef.CreateStringColumn("return_type"));
+				def.AddColumn(DataTableColumnDef.CreateStringColumn("param_args"));
+				def.AddColumn(DataTableColumnDef.CreateStringColumn("owner"));
 
 				// Set to immutable
-				info.SetImmutable();
+				def.SetImmutable();
 
-				// Return the data table info
-				return info;
+				// Return the data table def
+				return def;
 			}
 
 
@@ -834,7 +834,7 @@ namespace Deveel.Data.Procedures {
 				return "FUNCTION";
 			}
 
-			public override DataTableInfo GetDataTableDef(int i) {
+			public override DataTableDef GetDataTableDef(int i) {
 				TableName table_name = GetTableName(i);
 				return createDataTableDef(table_name.Schema, table_name.Name);
 			}
@@ -858,7 +858,7 @@ namespace Deveel.Data.Procedures {
 					String schema = table.GetCellContents(0, row_i).Object.ToString();
 					String name = table.GetCellContents(1, row_i).Object.ToString();
 
-					DataTableInfo tableInfo = createDataTableDef(schema, name);
+					DataTableDef table_def = createDataTableDef(schema, name);
 					TObject type = table.GetCellContents(2, row_i);
 					TObject location = table.GetCellContents(3, row_i);
 					TObject return_type = table.GetCellContents(4, row_i);
@@ -867,7 +867,7 @@ namespace Deveel.Data.Procedures {
 
 					// Implementation of IMutableTableDataSource that describes this
 					// procedure.
-					GTDataSourceImpl data_source = new GTDataSourceImpl(transaction.System, tableInfo);
+					GTDataSourceImpl data_source = new GTDataSourceImpl(transaction.System, table_def);
 					data_source.type = type;
 					data_source.location = location;
 					data_source.return_type = return_type;
@@ -881,20 +881,20 @@ namespace Deveel.Data.Procedures {
 			}
 
 			private class GTDataSourceImpl : GTDataSource {
-				private readonly DataTableInfo tableInfo;
+				private readonly DataTableDef table_def;
 				internal TObject type;
 				internal TObject location;
 				internal TObject return_type;
 				internal TObject param_types;
 				internal TObject owner;
 
-				public GTDataSourceImpl(TransactionSystem system, DataTableInfo tableInfo)
+				public GTDataSourceImpl(TransactionSystem system, DataTableDef tableDef)
 					: base(system) {
-					tableInfo = tableInfo;
+					table_def = tableDef;
 				}
 
-				public override DataTableInfo DataTableInfo {
-					get { return tableInfo; }
+				public override DataTableDef DataTableDef {
+					get { return table_def; }
 				}
 
 				public override int RowCount {

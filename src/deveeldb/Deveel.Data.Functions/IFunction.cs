@@ -15,7 +15,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace Deveel.Data.Functions {
 	/// <summary>
@@ -56,7 +55,7 @@ namespace Deveel.Data.Functions {
 		/// If this returns an empty list, then the function has no input elements at 
 		/// all. (something like: <c>upper(user())</c>)
 		/// </remarks>
-		IList<object> AllElements { get; }
+		IList AllElements { get; }
 
 
 		/// <summary>

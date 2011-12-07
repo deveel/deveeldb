@@ -21,7 +21,7 @@ namespace Deveel.Data {
 	/// an opened session.
 	/// </summary>
 	[Serializable]
-	public sealed class VariableRef : IExpressionElement {
+	public sealed class VariableRef {
 		/// <summary>
 		/// Constructs the reference to the given variable name.
 		/// </summary>
@@ -47,7 +47,7 @@ namespace Deveel.Data {
 
 		public override bool Equals(object obj) {
 			VariableRef varRef = obj as VariableRef;
-			return varRef != null && varName.Equals(varRef.varName);
+			return varRef == null ? false : varName.Equals(varRef.varName);
 		}
 
 		public override int GetHashCode() {

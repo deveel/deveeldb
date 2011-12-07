@@ -134,8 +134,8 @@ namespace Deveel.Data {
 			logger = database.Debug;
 			conglomerate = database.Conglomerate;
 			lockingMechanism = new LockingMechanism(logger);
-			triggerEventBuffer = new List<TriggerEventArgs>();
-			triggerEventList = new List<TriggerEventArgs>();
+			triggerEventBuffer = new ArrayList();
+			triggerEventList = new ArrayList();
 			autoCommit = true;
 
 			current_schema = Database.DefaultSchema;
@@ -390,7 +390,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		static TableName SubstituteReservedTableName(TableName tableName) {
 			// We do not allow tables to be created with a reserved name
-			string name = tableName.Name;
+			String name = tableName.Name;
 			if (String.Compare(name, "OLD", true) == 0)
 				return Database.OldTriggerTable;
 			if (String.Compare(name, "NEW", true) == 0)
@@ -409,10 +409,11 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal static void CheckAllowCreate(TableName tableName) {
 			// We do not allow tables to be created with a reserved name
-			string name = tableName.Name;
+			String name = tableName.Name;
 			if (String.Compare(name, "OLD", true) == 0 ||
 				String.Compare(name, "NEW", true) == 0) {
-				throw new StatementException("Table name '" + tableName + "' is reserved.");
+				throw new StatementException("Table name '" + tableName +
+											 "' is reserved.");
 			}
 		}
 
@@ -477,16 +478,16 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public ITableQueryDef GetTableQueryDef(TableName tableName, TableName aliasedAs) {
-			// Produce the data table info for this database object.
-			DataTableInfo dtf = GetDataTableDef(tableName);
-			// If the table is aliased, set a new DataTableInfo with the given name
+			// Produce the data table def for this database object.
+			DataTableDef dtf = GetDataTableDef(tableName);
+			// If the table is aliased, set a new DataTableDef with the given name
 			if (aliasedAs != null) {
-				dtf = dtf.Clone();
+				dtf = new DataTableDef(dtf);
 				dtf.TableName = aliasedAs;
 				dtf.SetImmutable();
 			}
-			DataTableInfo dataTableInfo = dtf;
-			return new TableQueryDefImpl(this, dataTableInfo, tableName, aliasedAs);
+			DataTableDef data_table_def = dtf;
+			return new TableQueryDefImpl(this, data_table_def, tableName, aliasedAs);
 
 		}
 
@@ -618,18 +619,19 @@ namespace Deveel.Data {
 		/// </exception>
 		public void Rollback() {
 			// Are we currently allowed to commit/rollback?
-			if (closeTransactionDisabled)
+			if (closeTransactionDisabled) {
 				throw new Exception("Rollback is not allowed.");
+			}
 
-			if (user != null)
+			if (user != null) {
 				user.RefreshLastCommandTime();
+			}
 
 			// NOTE, always connection exclusive op.
 			tablesCache.Clear();
 
 			if (transaction != null) {
 				LockingMechanism.Reset();
-
 				try {
 					transaction.Rollback();
 				} finally {
@@ -640,7 +642,8 @@ namespace Deveel.Data {
 						try {
 							InternalDbHelper.DisposeDbConnection(dbConnection);
 						} catch (Exception e) {
-							Debug.Write(DebugLevel.Error, this, "Error disposing internal ADO.NET connection.");
+							Debug.Write(DebugLevel.Error, this,
+										  "Error disposing internal JDBC connection.");
 							Debug.WriteException(DebugLevel.Error, e);
 							// We don't wrap this exception
 						}
@@ -662,18 +665,18 @@ namespace Deveel.Data {
 			} finally {
 				if (tableBackedCacheList != null) {
 					try {
-						foreach (TableBackedCache cache in tableBackedCacheList)
+						int sz = tableBackedCacheList.Count;
+						for (int i = 0; i < sz; ++i) {
+							TableBackedCache cache =
+										   (TableBackedCache)tableBackedCacheList[i];
 							cache.DetatchFrom(conglomerate);
-
+						}
 						tableBackedCacheList = null;
 					} catch (Exception e) {
-#if DEBUG
 						Console.Error.WriteLine(e.Message);
 						Console.Error.WriteLine(e.StackTrace);
-#endif
 					}
 				}
-
 				// Remove any trigger listeners set for this connection,
 				database.TriggerManager.ClearAllDatabaseConnectionTriggers(this);
 			}
@@ -681,35 +684,35 @@ namespace Deveel.Data {
 
 
 		/// <summary>
-		/// A list of DataTableInfo system table definitions for tables internal to
+		/// A list of DataTableDef system table definitions for tables internal to
 		/// the database connection.
 		/// </summary>
-		private readonly static DataTableInfo[] InternalInfoList;
+		private readonly static DataTableDef[] InternalDefList;
 
 		static DatabaseConnection() {
-			InternalInfoList = new DataTableInfo[5];
-			InternalInfoList[0] = GTStatisticsDataSource.InfoDataTableInfo;
-			InternalInfoList[1] = GTConnectionInfoDataSource.InfoDataTableInfo;
-			InternalInfoList[2] = GTCurrentConnectionsDataSource.InfoDataTableInfo;
-			InternalInfoList[3] = GTSQLTypeInfoDataSource.InfoDataTableInfo;
-			InternalInfoList[4] = GTPrivMapDataSource.InfoDataTableInfo;
+			InternalDefList = new DataTableDef[5];
+			InternalDefList[0] = GTStatisticsDataSource.DEF_DATA_TABLE_DEF;
+			InternalDefList[1] = GTConnectionInfoDataSource.DEF_DATA_TABLE_DEF;
+			InternalDefList[2] = GTCurrentConnectionsDataSource.DEF_DATA_TABLE_DEF;
+			InternalDefList[3] = GTSQLTypeInfoDataSource.DEF_DATA_TABLE_DEF;
+			InternalDefList[4] = GTPrivMapDataSource.DEF_DATA_TABLE_DEF;
 		}
 
 		private class TableQueryDefImpl : ITableQueryDef {
 			private readonly DatabaseConnection conn;
-			private readonly DataTableInfo dataTableInfo;
+			private readonly DataTableDef dataTableDef;
 			private readonly TableName tableName;
 			private readonly TableName aliasedAs;
 
-			public TableQueryDefImpl(DatabaseConnection conn, DataTableInfo dataTableInfo, TableName tableName, TableName aliasedAs) {
+			public TableQueryDefImpl(DatabaseConnection conn, DataTableDef dataTableDef, TableName tableName, TableName aliasedAs) {
 				this.conn = conn;
-				this.dataTableInfo = dataTableInfo;
+				this.dataTableDef = dataTableDef;
 				this.aliasedAs = aliasedAs;
 				this.tableName = tableName;
 			}
 
-			public DataTableInfo DataTableInfo {
-				get { return dataTableInfo; }
+			public DataTableDef DataTableDef {
+				get { return dataTableDef; }
 			}
 
 			public IQueryPlanNode QueryPlanNode {
@@ -725,7 +728,7 @@ namespace Deveel.Data {
 			private readonly DatabaseConnection conn;
 
 			public ConnectionInternalTableInfo(DatabaseConnection conn)
-				: base("SYSTEM TABLE", InternalInfoList) {
+				: base("SYSTEM TABLE", InternalDefList) {
 				this.conn = conn;
 			}
 

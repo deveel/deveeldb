@@ -29,7 +29,7 @@ namespace Deveel.Data.Functions {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	public sealed class FunctionDef : IExpressionElement, ICloneable {
+	public sealed class FunctionDef : ICloneable {
 		/// <summary>
 		/// The name of the function.
 		/// </summary>

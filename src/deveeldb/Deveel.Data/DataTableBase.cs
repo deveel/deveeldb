@@ -26,11 +26,11 @@ namespace Deveel.Data {
 		/// Returns the fully resolved table name.
 		/// </summary>
 		public TableName TableName {
-			get { return DataTableInfo.TableName; }
+			get { return DataTableDef.TableName; }
 		}
 
 		/// <inheritdoc/>
-		bool IRootTable.TypeEquals(IRootTable table) {
+		public bool TypeEquals(IRootTable table) {
 			if (table is DataTableBase) {
 				DataTableBase dest = (DataTableBase)table;
 				return (TableName.Equals(dest.TableName));

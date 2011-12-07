@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -83,14 +82,12 @@ namespace Deveel.Data {
 			Assert.IsTrue(result.TType is TDateType);
 			Console.Out.WriteLine("CURRENT_TIMESTAMP = {0}", result);
 
-			/*
 			result = Expression.Evaluate("LENGTH(:arg0)", "test_string");
 			Assert.IsTrue(result.TType is TNumericType);
 			Assert.AreEqual(11, result);
 			Console.Out.WriteLine("LENGTH(:arg0 = 'test_string') = {0}", result);
-			*/
 
-			Dictionary<string, object> args = new Dictionary<string, object>();
+			IDictionary args = new Hashtable();
 			args["a"] = 12;
 			args["b"] = 45;
 			args["c"] = 23.65;

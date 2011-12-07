@@ -45,7 +45,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Completely removes a row from the source.
 		/// </summary>
-		/// <param name="rowIndex">Index of the row to remove.</param>
+		/// <param name="row_index">Index of the row to remove.</param>
 		/// <remarks>
 		/// This will permanently remove the record from the underlying data 
 		/// structure. It also updates the indexing schemes and removes the 
@@ -56,12 +56,12 @@ namespace Deveel.Data {
 		/// If the row index does not reference a valid row within the context
 		/// of this data source.
 		/// </exception>
-		void RemoveRow(int rowIndex);
+		void RemoveRow(int row_index);
 
 		/// <summary>
 		/// Updates a row in the source.
 		/// </summary>
-		/// <param name="rowIndex">Index of the row to update.</param>
+		/// <param name="row_index">Index of the row to update.</param>
 		/// <param name="dataRow">Row data to update.</param>
 		/// <remarks>
 		/// This will make a permanent change to the underlying data structure.
@@ -77,7 +77,7 @@ namespace Deveel.Data {
 		/// If the row index not being a valid reference to a record in this 
 		/// data source.
 		/// </exception>
-		int UpdateRow(int rowIndex, DataRow dataRow);
+		int UpdateRow(int row_index, DataRow dataRow);
 
 		/// <summary>
 		/// Flushes all changes made on this table to the backing

@@ -109,7 +109,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public abstract DataTableInfo GetDataTableDef(int i);
+		public abstract DataTableDef GetDataTableDef(int i);
 
 		/// <inheritdoc/>
 		public abstract String GetTableType(int i);

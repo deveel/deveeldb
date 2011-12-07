@@ -57,10 +57,10 @@ namespace Deveel.Data {
 		private int sorted_against_column = -1;
 
 		/// <summary>
-		/// The <see cref="DataTableInfo"/> object that describes the columns and name 
+		/// The <see cref="DataTableDef"/> object that describes the columns and name 
 		/// of this table.
 		/// </summary>
-		private DataTableInfo vtTableInfo;
+		private DataTableDef vt_table_def;
 
 		/// <summary>
 		/// Incremented when the roots are locked.
@@ -106,7 +106,7 @@ namespace Deveel.Data {
 			int col_count = ColumnCount;
 			column_scheme = new SelectableScheme[col_count];
 
-			vtTableInfo = new DataTableInfo();
+			vt_table_def = new DataTableDef();
 
 			// Generate look up tables for column_table and column_filter information
 
@@ -116,7 +116,7 @@ namespace Deveel.Data {
 			for (int i = 0; i < reference_list.Length; ++i) {
 
 				Table cur_table = reference_list[i];
-				DataTableInfo curTableInfo = cur_table.DataTableInfo;
+				DataTableDef cur_table_def = cur_table.DataTableDef;
 				int ref_col_count = cur_table.ColumnCount;
 
 				// For each column
@@ -125,16 +125,18 @@ namespace Deveel.Data {
 					column_table[index] = i;
 					++index;
 
-					// Add this column to the data table info of this table.
-					vtTableInfo.AddVirtualColumn(curTableInfo[n].Clone());
+					// Add this column to the data table def of this table.
+					vt_table_def.AddVirtualColumn(
+									 new DataTableColumnDef(cur_table_def[n]));
 				}
+
 			}
 
-			// Final setup the DataTableInfo for this virtual table
+			// Final setup the DataTableDef for this virtual table
 
-			vtTableInfo.TableName = new TableName(null, "#VIRTUAL TABLE#");
+			vt_table_def.TableName = new TableName(null, "#VIRTUAL TABLE#");
 
-			vtTableInfo.SetImmutable();
+			vt_table_def.SetImmutable();
 
 		}
 
@@ -231,7 +233,7 @@ namespace Deveel.Data {
 		/// <see cref="VirtualTable"/> row domain.
 		/// </summary>
 		/// <param name="column"></param>
-		/// <param name="originalColumn"></param>
+		/// <param name="original_column"></param>
 		/// <param name="table"></param>
 		/// <remarks>
 		/// This searches down through the tables ancestors until it comes across a table 
@@ -239,7 +241,7 @@ namespace Deveel.Data {
 		/// In most cases, this will be the root <see cref="DataTable"/>.
 		/// </remarks>
 		/// <returns></returns>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
 
 			// First check if the given SelectableScheme is in the column_scheme array
 			SelectableScheme scheme = column_scheme[column];
@@ -247,7 +249,7 @@ namespace Deveel.Data {
 				if (table == this) {
 					return scheme;
 				} else {
-					return scheme.GetSubsetScheme(table, originalColumn);
+					return scheme.GetSubsetScheme(table, original_column);
 				}
 			}
 
@@ -264,7 +266,7 @@ namespace Deveel.Data {
 				ss = isop;
 				column_scheme[column] = ss;
 				if (table != this) {
-					ss = ss.GetSubsetScheme(table, originalColumn);
+					ss = ss.GetSubsetScheme(table, original_column);
 				}
 
 			} else {
@@ -272,7 +274,7 @@ namespace Deveel.Data {
 				// a parent index.
 				Table parent_table = reference_list[column_table[column]];
 				ss = parent_table.GetSelectableSchemeFor(
-										 column_filter[column], originalColumn, table);
+										 column_filter[column], original_column, table);
 				if (table == this) {
 					column_scheme[column] = ss;
 				}
@@ -282,7 +284,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector rowSet, ITableDataSource ancestor) {
+		internal override void SetToRowTableDomain(int column, IntegerVector row_set, ITableDataSource ancestor) {
 			if (ancestor == this)
 				return;
 
@@ -290,9 +292,9 @@ namespace Deveel.Data {
 			Table parent_table = reference_list[table_num];
 
 			// Resolve the rows into the parents indices.  (MANGLES row_set)
-			ResolveAllRowsForTableAt(rowSet, table_num);
+			ResolveAllRowsForTableAt(row_set, table_num);
 
-			parent_table.SetToRowTableDomain(column_filter[column], rowSet, ancestor);
+			parent_table.SetToRowTableDomain(column_filter[column], row_set, ancestor);
 		}
 
 		/// <summary>
@@ -340,7 +342,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="DataTableInfo"/> object that describes the 
+		/// Returns the <see cref="DataTableDef"/> object that describes the 
 		/// columns in this table.
 		/// </summary>
 		/// <remarks>
@@ -348,8 +350,8 @@ namespace Deveel.Data {
 		/// the columns in the children in the order set. The name of a virtual table i
 		/// s the concat of all the parent table names. The schema is set to null.
 		/// </remarks>
-		public override DataTableInfo DataTableInfo {
-			get { return vtTableInfo; }
+		public override DataTableDef DataTableDef {
+			get { return vt_table_def; }
 		}
 
 		/// <inheritdoc/>
@@ -365,22 +367,36 @@ namespace Deveel.Data {
 			return new SimpleRowEnumerator(RowCount);
 		}
 
-
 		/// <inheritdoc/>
-		public override void LockRoot(int lockKey) {
-			// For each table, recurse.
-			roots_locked++;
+		internal override void AddDataTableListener(IDataTableListener listener) {
 			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].LockRoot(lockKey);
+				reference_list[i].AddDataTableListener(listener);
 			}
 		}
 
 		/// <inheritdoc/>
-		public override void UnlockRoot(int lockKey) {
+		internal override void RemoveDataTableListener(IDataTableListener listener) {
+			for (int i = 0; i < reference_list.Length; ++i) {
+				reference_list[i].RemoveDataTableListener(listener);
+			}
+		}
+
+
+		/// <inheritdoc/>
+		public override void LockRoot(int lock_key) {
+			// For each table, recurse.
+			roots_locked++;
+			for (int i = 0; i < reference_list.Length; ++i) {
+				reference_list[i].LockRoot(lock_key);
+			}
+		}
+
+		/// <inheritdoc/>
+		public override void UnlockRoot(int lock_key) {
 			// For each table, recurse.
 			roots_locked--;
 			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].UnlockRoot(lockKey);
+				reference_list[i].UnlockRoot(lock_key);
 			}
 		}
 

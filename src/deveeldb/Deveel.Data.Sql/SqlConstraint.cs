@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
+using System.Collections;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql {
 			this.type = type;
 		}
 
-		// The type of constraint (from types in DataTableConstraintInfo)
+		// The type of constraint (from types in DataTableConstraintDef)
 		private ConstraintType type;
 
 		// The name of the constraint or null if the constraint has no name (in
@@ -39,10 +39,10 @@ namespace Deveel.Data.Sql {
 		internal Expression original_check_expression;
 
 		// The first column list
-		internal List<string> column_list;
+		internal ArrayList column_list;
 
 		// The second column list
-		internal List<string> column_list2;
+		internal ArrayList column_list2;
 
 		// The name of the table if referenced.
 		private String reference_table_name;
@@ -94,7 +94,7 @@ namespace Deveel.Data.Sql {
 		///<param name="list"></param>
 		public static SqlConstraint PrimaryKey(string[] columns) {
 			SqlConstraint constraint = new SqlConstraint(ConstraintType.PrimaryKey);
-			constraint.column_list = new List<string>(columns);
+			constraint.column_list = new ArrayList(columns);
 			return constraint;
 		}
 
@@ -104,7 +104,7 @@ namespace Deveel.Data.Sql {
 		///<param name="list"></param>
 		public static SqlConstraint Unique(string[] columns) {
 			SqlConstraint constraint = new SqlConstraint(ConstraintType.Unique);
-			constraint.column_list = new List<string>(columns);
+			constraint.column_list = new ArrayList(columns);
 			return constraint;
 		}
 
@@ -132,8 +132,8 @@ namespace Deveel.Data.Sql {
 								  ConstraintAction delete_rule, ConstraintAction update_rule) {
 			SqlConstraint constraint = new SqlConstraint(ConstraintType.ForeignKey);
 			constraint.reference_table_name = ref_table;
-			constraint.column_list = new List<string>(col_list);
-			constraint.column_list2 = new List<string>(ref_col_list);
+			constraint.column_list = new ArrayList(col_list);
+			constraint.column_list2 = new ArrayList(ref_col_list);
 			constraint.delete_rule = delete_rule;
 			constraint.update_rule = update_rule;
 
@@ -159,16 +159,16 @@ namespace Deveel.Data.Sql {
 		/// Returns the first column list as a string array.
 		/// </summary>
 		public string[] ColumnList {
-			get { return column_list.ToArray(); }
-			set { column_list = new List<string>(value); }
+			get { return (String[]) column_list.ToArray(typeof (string)); }
+			set { column_list = new ArrayList(value); }
 		}
 
 		/// <summary>
 		/// Returns the first column list as a string array.
 		/// </summary>
 		public string[] ColumnList2 {
-			get { return column_list2.ToArray(); }
-			set { column_list2 = new List<string>(value); }
+			get { return (String[]) column_list2.ToArray(typeof (string)); }
+			set { column_list2 = new ArrayList(value); }
 		}
 
 		/// <summary>
@@ -203,16 +203,16 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <inheritdoc/>
-		public object Clone() {
+		public Object Clone() {
 			SqlConstraint v = (SqlConstraint)MemberwiseClone();
 			if (check_expression != null) {
 				v.check_expression = (Expression)check_expression.Clone();
 			}
 			if (column_list != null) {
-				v.column_list = new List<string>(column_list);
+				v.column_list = (ArrayList)column_list.Clone();
 			}
 			if (column_list2 != null) {
-				v.column_list2 = new List<string>(column_list2);
+				v.column_list2 = (ArrayList)column_list2.Clone();
 			}
 			return v;
 		}

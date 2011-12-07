@@ -15,7 +15,7 @@
 
 
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -41,24 +41,24 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of triggers currently in view. (TriggerInfo)
 		/// </summary>
-		private readonly List<TriggerInfo> triggersActive;
+		private readonly ArrayList triggers_active;
 
 		/// <summary>
 		/// If this is false then the list is not validated and must be refreshed
 		/// when we next access trigger information.
 		/// </summary>
-		private bool listValidated;
+		private bool list_validated;
 
 		/// <summary>
 		/// True if the trigger table was modified during the last transaction.
 		/// </summary>
-		private bool triggerModified;
+		private bool trigger_modified;
 
 		internal ConnectionTriggerManager(DatabaseConnection connection) {
 			this.connection = connection;
-			triggersActive = new List<TriggerInfo>();
-			listValidated = false;
-			triggerModified = false;
+			triggers_active = new ArrayList();
+			list_validated = false;
+			trigger_modified = false;
 			// Attach a commit trigger listener
 			connection.AttachTableBackedCache(new CTMBackedCache(this));
 		}
@@ -74,11 +74,15 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		private static Table FindTrigger(IQueryContext context, Table table, String schema, String name) {
 			// Find all the trigger entries with this name
+			Operator EQUALS = Operator.Get("=");
+
 			VariableName schemav = table.GetResolvedVariable(0);
 			VariableName namev = table.GetResolvedVariable(1);
 
-			Table t = table.SimpleSelect(context, namev, Operator.Equal, new Expression(TObject.CreateString(name)));
-			return t.ExhaustiveSelect(context, Expression.Simple(schemav, Operator.Equal, TObject.CreateString(schema)));
+			Table t = table.SimpleSelect(context, namev, EQUALS,
+										 new Expression(TObject.CreateString(name)));
+			return t.ExhaustiveSelect(context, Expression.Simple(
+												schemav, EQUALS, TObject.CreateString(schema)));
 		}
 
 		/// <summary>
@@ -88,8 +92,8 @@ namespace Deveel.Data {
 		/// <param name="schema">The schema name of the trigger.</param>
 		/// <param name="name">The name of the trigger.</param>
 		/// <param name="type">The type of trigger.</param>
-		/// <param name="onTable">The table on which the trigger will be executed.</param>
-		/// <param name="procedureName">The name of the procedure to execute.</param>
+		/// <param name="on_table">The table on which the trigger will be executed.</param>
+		/// <param name="procedure_name">The name of the procedure to execute.</param>
 		/// <param name="parameters">Any constant parameters for the triggering procedure.</param>
 		/// <remarks>
 		/// If the session is committed then the trigger is made a 
@@ -102,32 +106,34 @@ namespace Deveel.Data {
 		/// <exception cref="IOException">
 		/// If any error occurred while serializing trigger parameters.
 		/// </exception>
-		public void CreateTableTrigger(string schema, string name, TriggerEventType type, TableName onTable, string procedureName, TObject[] parameters) {
-			TableName triggerTableName = new TableName(schema, name);
+		public void CreateTableTrigger(String schema, String name,
+									   TriggerEventType type, TableName on_table,
+									   String procedure_name, TObject[] parameters) {
+			TableName trigger_table_name = new TableName(schema, name);
 
 			// Check this name is not reserved
-			DatabaseConnection.CheckAllowCreate(triggerTableName);
+			DatabaseConnection.CheckAllowCreate(trigger_table_name);
 
 			// Before adding the trigger, make sure this name doesn't already Resolve
 			// to an object in the database with this schema/name.
-			if (!connection.TableExists(triggerTableName)) {
+			if (!connection.TableExists(trigger_table_name)) {
 				// Encode the parameters
-				MemoryStream stream = new MemoryStream();
+				MemoryStream bout = new MemoryStream();
 				try {
-					BinaryWriter writer = new BinaryWriter(stream);
-					writer.Write(1); // version
-					MemoryStream objStream = new MemoryStream();
+					BinaryWriter ob_out = new BinaryWriter(bout);
+					ob_out.Write(1); // version
+					MemoryStream obj_stream = new MemoryStream();
 					BinaryFormatter formatter = new BinaryFormatter();
-					formatter.Serialize(objStream, parameters);
-					objStream.Flush();
-					byte[] buf = objStream.ToArray();
-					writer.Write(buf.Length);
-					writer.Write(buf);
-					writer.Flush();
+					formatter.Serialize(obj_stream, parameters);
+					obj_stream.Flush();
+					byte[] buf = obj_stream.ToArray();
+					ob_out.Write(buf.Length);
+					ob_out.Write(buf);
+					ob_out.Flush();
 				} catch (IOException e) {
 					throw new Exception("IO Error: " + e.Message);
 				}
-				byte[] encoded_params = stream.ToArray();
+				byte[] encoded_params = bout.ToArray();
 
 				// Insert the entry into the trigger table,
 				DataTable table = connection.GetTable(Database.SysDataTrigger);
@@ -135,8 +141,8 @@ namespace Deveel.Data {
 				row.SetValue(0, TObject.CreateString(schema));
 				row.SetValue(1, TObject.CreateString(name));
 				row.SetValue(2, TObject.CreateInt4((int)type));
-				row.SetValue(3, TObject.CreateString("T:" + onTable));
-				row.SetValue(4, TObject.CreateString(procedureName));
+				row.SetValue(3, TObject.CreateString("T:" + on_table));
+				row.SetValue(4, TObject.CreateString(procedure_name));
 				row.SetValue(5, TObject.CreateObject(encoded_params));
 				row.SetValue(6, TObject.CreateString(connection.User.UserName));
 				table.Add(row);
@@ -145,12 +151,13 @@ namespace Deveel.Data {
 				InvalidateTriggerList();
 
 				// Notify that this database object has been successfully created.
-				connection.DatabaseObjectCreated(triggerTableName);
+				connection.DatabaseObjectCreated(trigger_table_name);
 
 				// Flag that this transaction modified the trigger table.
-				triggerModified = true;
+				trigger_modified = true;
 			} else {
-				throw new Exception("Trigger name '" + schema + "." + name + "' already in use.");
+				throw new Exception("Trigger name '" + schema + "." + name +
+									"' already in use.");
 			}
 		}
 
@@ -163,26 +170,28 @@ namespace Deveel.Data {
 		/// If none or more than one trigger was found for the given 
 		/// <paramref name="name"/> in the given <paramref name="schema"/>.
 		/// </exception>
-		public void DropTrigger(string schema, string name) {
+		public void DropTrigger(String schema, String name) {
 			IQueryContext context = new DatabaseQueryContext(connection);
 			DataTable table = connection.GetTable(Database.SysDataTrigger);
 
 			// Find the trigger
 			Table t = FindTrigger(context, table, schema, name);
 
-			if (t.RowCount == 0)
-				throw new StatementException("Trigger '" + schema + "." + name + "' not found.");
-			if (t.RowCount > 1)
+			if (t.RowCount == 0) {
+				throw new StatementException("Trigger '" + schema + "." + name +
+											 "' not found.");
+			} else if (t.RowCount > 1) {
 				throw new Exception("Assertion failed: multiple entries for the same trigger name.");
+			} else {
+				// Drop this trigger,
+				table.Delete(t);
 
-			// Drop this trigger,
-			table.Delete(t);
+				// Notify that this database object has been successfully dropped.
+				connection.DatabaseObjectDropped(new TableName(schema, name));
 
-			// Notify that this database object has been successfully dropped.
-			connection.DatabaseObjectDropped(new TableName(schema, name));
-
-			// Flag that this transaction modified the trigger table.
-			triggerModified = true;
+				// Flag that this transaction modified the trigger table.
+				trigger_modified = true;
+			}
 		}
 
 		/// <summary>
@@ -197,22 +206,22 @@ namespace Deveel.Data {
 		/// If multiple triggers were found for the given <paramref name="name"/> 
 		/// in the given <paramref name="schema"/>.
 		/// </exception>
-		public bool TriggerExists(string schema, string name) {
+		public bool TriggerExists(String schema, String name) {
 			IQueryContext context = new DatabaseQueryContext(connection);
 			DataTable table = connection.GetTable(Database.SysDataTrigger);
 
 			// Find the trigger
 			Table t = FindTrigger(context, table, schema, name);
 
-			if (t.RowCount == 0)
+			if (t.RowCount == 0) {
 				// Trigger wasn't found
 				return false;
-
-			if (t.RowCount > 1)
+			} else if (t.RowCount > 1) {
 				throw new Exception("Assertion failed: multiple entries for the same trigger name.");
-
-			// Trigger found
-			return true;
+			} else {
+				// Trigger found
+				return true;
+			}
 		}
 
 		/// <summary>
@@ -224,43 +233,43 @@ namespace Deveel.Data {
 		/// underlying database session.
 		/// </remarks>
 		private void InvalidateTriggerList() {
-			listValidated = false;
-			triggersActive.Clear();
+			list_validated = false;
+			triggers_active.Clear();
 		}
 
 		/// <summary>
 		/// Build the trigger list if it is not validated.
 		/// </summary>
 		private void BuildTriggerList() {
-			if (!listValidated) {
+			if (!list_validated) {
 				// Cache the trigger table
 				DataTable table = connection.GetTable(Database.SysDataTrigger);
 				IRowEnumerator e = table.GetRowEnumerator();
 
 				// For each row
 				while (e.MoveNext()) {
-					int rowIndex = e.RowIndex;
+					int row_index = e.RowIndex;
 
-					TObject triggerSchema = table.GetCellContents(0, rowIndex);
-					TObject triggerName = table.GetCellContents(1, rowIndex);
-					TObject type = table.GetCellContents(2, rowIndex);
-					TObject onObject = table.GetCellContents(3, rowIndex);
-					TObject action = table.GetCellContents(4, rowIndex);
-					TObject misc = table.GetCellContents(5, rowIndex);
+					TObject trig_schem = table.GetCellContents(0, row_index);
+					TObject trig_name = table.GetCellContents(1, row_index);
+					TObject type = table.GetCellContents(2, row_index);
+					TObject on_object = table.GetCellContents(3, row_index);
+					TObject action = table.GetCellContents(4, row_index);
+					TObject misc = table.GetCellContents(5, row_index);
 
-					TriggerInfo triggerInfo = new TriggerInfo();
-					triggerInfo.Schema = triggerSchema.Object.ToString();
-					triggerInfo.Name = triggerName.Object.ToString();
-					triggerInfo.Type = (TriggerEventType) type.ToBigNumber().ToInt32();
-					triggerInfo.OnObject = onObject.Object.ToString();
-					triggerInfo.Action = action.Object.ToString();
-					triggerInfo.Misc = misc;
+					TriggerInfo trigger_info = new TriggerInfo();
+					trigger_info.schema = trig_schem.Object.ToString();
+					trigger_info.name = trig_name.Object.ToString();
+					trigger_info.type = (TriggerEventType) type.ToBigNumber().ToInt32();
+					trigger_info.on_object = on_object.Object.ToString();
+					trigger_info.action = action.Object.ToString();
+					trigger_info.misc = misc;
 
 					// Add to the list
-					triggersActive.Add(triggerInfo);
+					triggers_active.Add(trigger_info);
 				}
 
-				listValidated = true;
+				list_validated = true;
 			}
 		}
 
@@ -282,42 +291,47 @@ namespace Deveel.Data {
 				BuildTriggerList();
 
 				// On object value to test for,
-				TableName tableName = evt.TableName;
-				string onObTest = "T:" + tableName;
+				TableName table_name = evt.TableName;
+				String on_ob_test = "T:" + table_name.ToString();
 
 				// Search the triggers list for an event that matches this event
-				foreach (TriggerInfo triggerInfo in triggersActive) {
-					if (triggerInfo.OnObject.Equals(onObTest)) {
+				int sz = triggers_active.Count;
+				for (int i = 0; i < sz; ++i) {
+					TriggerInfo t_info = (TriggerInfo)triggers_active[i];
+					if (t_info.on_object.Equals(on_ob_test)) {
 						// Table name matches
 						// Do the types match?  eg. before/after match, and
 						// insert/delete/update is being listened to.
-						if (evt.IsListenedBy(triggerInfo.Type)) {
+						if (evt.IsListenedBy(t_info.type)) {
 							// Type matches this trigger, so we need to fire it
 							// Parse the action string
-							string action = triggerInfo.Action;
-
+							String action = t_info.action;
 							// Get the procedure name to fire (qualify it against the schema
 							// of the table being fired).
-							ProcedureName procedureName = ProcedureName.Qualify(tableName.Schema, action);
-
+							ProcedureName procedure_name =
+								ProcedureName.Qualify(table_name.Schema, action);
 							// Set up OLD and NEW tables
 
 							// Record the old table state
-							DatabaseConnection.OldNewTableState currentState = connection.GetOldNewTableState();
+							DatabaseConnection.OldNewTableState current_state =
+								connection.GetOldNewTableState();
 
 							// Set the new table state
 							// If an INSERT event then we setup NEW to be the row being inserted
 							// If an DELETE event then we setup OLD to be the row being deleted
 							// If an UPDATE event then we setup NEW to be the row after the
 							// update, and OLD to be the row before the update.
-							connection.SetOldNewTableState(new DatabaseConnection.OldNewTableState(tableName, evt.RowIndex, evt.DataRow, evt.IsBefore));
+							connection.SetOldNewTableState(
+								new DatabaseConnection.OldNewTableState(table_name,
+																		evt.RowIndex, evt.DataRow, evt.IsBefore));
 
 							try {
 								// Invoke the procedure (no arguments)
-								connection.ProcedureManager.InvokeProcedure(procedureName, new TObject[0]);
+								connection.ProcedureManager.InvokeProcedure(
+									procedure_name, new TObject[0]);
 							} finally {
 								// Reset the OLD and NEW tables to previous values
-								connection.SetOldNewTableState(currentState);
+								connection.SetOldNewTableState(current_state);
 							}
 						}
 					}
@@ -341,14 +355,18 @@ namespace Deveel.Data {
 
 		// ---------- Inner classes ----------
 
-		#region CTMBackedCache
+		#region Nested type: CTMBackedCache
 
 		/// <summary>
 		/// A TableBackedCache that manages the list of session level triggers that
 		/// are currently active on this session.
 		/// </summary>
 		private class CTMBackedCache : TableBackedCache {
-			private readonly ConnectionTriggerManager ctm;
+			private ConnectionTriggerManager ctm;
+
+			/**
+			 * Constructor.
+			 */
 
 			public CTMBackedCache(ConnectionTriggerManager ctm)
 				: base(Database.SysDataTrigger) {
@@ -360,9 +378,9 @@ namespace Deveel.Data {
 
 				// If the trigger table was modified, we need to invalidate the trigger
 				// list.  This covers the case when we rollback a trigger table change
-				if (ctm.triggerModified) {
+				if (ctm.trigger_modified) {
 					ctm.InvalidateTriggerList();
-					ctm.triggerModified = false;
+					ctm.trigger_modified = false;
 				}
 					// If any data has been committed removed then completely flush the
 					// cache.
@@ -375,50 +393,51 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region TriggerInfo
+		#region Nested type: TriggerInfo
 
 		/// <summary>
 		/// Container class for all trigger actions defined on the database.
 		/// </summary>
 		private class TriggerInfo {
-			public string Action;
-			public TObject Misc;
-			public string Name;
-			public string OnObject;
-			public string Schema;
-			public TriggerEventType Type;
+			internal String action;
+			internal TObject misc;
+			internal String name;
+			internal String on_object;
+			internal String schema;
+			internal TriggerEventType type;
 		}
 
 		#endregion
 
-		#region TriggerInternalTableInfo
+		#region Nested type: TriggerInternalTableInfo
 
 		/// <summary>
 		/// An object that models the list of triggers as table objects in a
 		/// transaction.
 		/// </summary>
-		private sealed class TriggerInternalTableInfo : InternalTableInfo2 {
+		private sealed class TriggerInternalTableInfo
+			: InternalTableInfo2 {
 			internal TriggerInternalTableInfo(Transaction transaction)
 				: base(transaction, Database.SysDataTrigger) {
 			}
 
-			private static DataTableInfo CreateDataTableInfo(String schema, String name) {
-				// Create the DataTableInfo that describes this entry
-				DataTableInfo info = new DataTableInfo();
-				info.TableName = new TableName(schema, name);
+			private static DataTableDef createDataTableDef(String schema, String name) {
+				// Create the DataTableDef that describes this entry
+				DataTableDef def = new DataTableDef();
+				def.TableName = new TableName(schema, name);
 
 				// Add column definitions
-				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("type"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("on_object"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("procedure_name"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("param_args"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("owner"));
+				def.AddColumn(DataTableColumnDef.CreateNumericColumn("type"));
+				def.AddColumn(DataTableColumnDef.CreateStringColumn("on_object"));
+				def.AddColumn(DataTableColumnDef.CreateStringColumn("procedure_name"));
+				def.AddColumn(DataTableColumnDef.CreateStringColumn("param_args"));
+				def.AddColumn(DataTableColumnDef.CreateStringColumn("owner"));
 
 				// Set to immutable
-				info.SetImmutable();
+				def.SetImmutable();
 
-				// Return the data table info
-				return info;
+				// Return the data table def
+				return def;
 			}
 
 
@@ -426,49 +445,49 @@ namespace Deveel.Data {
 				return "TRIGGER";
 			}
 
-			public override DataTableInfo GetDataTableDef(int i) {
-				TableName tableName = GetTableName(i);
-				return CreateDataTableInfo(tableName.Schema, tableName.Name);
+			public override DataTableDef GetDataTableDef(int i) {
+				TableName table_name = GetTableName(i);
+				return createDataTableDef(table_name.Schema, table_name.Name);
 			}
 
 			public override IMutableTableDataSource CreateInternalTable(int index) {
-				IMutableTableDataSource table = transaction.GetTable(Database.SysDataTrigger);
-				IRowEnumerator rowEnum = table.GetRowEnumerator();
+				IMutableTableDataSource table =
+					transaction.GetTable(Database.SysDataTrigger);
+				IRowEnumerator row_e = table.GetRowEnumerator();
 				int p = 0;
 				int i;
-				int rowIndex = -1;
-				while (rowEnum.MoveNext()) {
-					i = rowEnum.RowIndex;
+				int row_i = -1;
+				while (row_e.MoveNext()) {
+					i = row_e.RowIndex;
 					if (p == index) {
-						rowIndex = i;
+						row_i = i;
 					} else {
 						++p;
 					}
 				}
-
 				if (p == index) {
-					string schema = table.GetCellContents(0, rowIndex).Object.ToString();
-					string name = table.GetCellContents(1, rowIndex).Object.ToString();
+					String schema = table.GetCellContents(0, row_i).Object.ToString();
+					String name = table.GetCellContents(1, row_i).Object.ToString();
 
-					DataTableInfo tableInfo = CreateDataTableInfo(schema, name);
-					TObject type = table.GetCellContents(2, rowIndex);
-					TObject onObject = table.GetCellContents(3, rowIndex);
-					TObject procedureName = table.GetCellContents(4, rowIndex);
-					TObject paramArgs = table.GetCellContents(5, rowIndex);
-					TObject owner = table.GetCellContents(6, rowIndex);
+					DataTableDef table_def = createDataTableDef(schema, name);
+					TObject type = table.GetCellContents(2, row_i);
+					TObject on_object = table.GetCellContents(3, row_i);
+					TObject procedure_name = table.GetCellContents(4, row_i);
+					TObject param_args = table.GetCellContents(5, row_i);
+					TObject owner = table.GetCellContents(6, row_i);
 
 					// Implementation of IMutableTableDataSource that describes this
 					// trigger.
-					GTDataSourceImpl intTable = new GTDataSourceImpl(transaction.System, tableInfo);
-					intTable.type = type;
-					intTable.on_object = onObject;
-					intTable.procedure_name = procedureName;
-					intTable.param_args = paramArgs;
-					intTable.owner = owner;
-					return intTable;
+					GTDataSourceImpl int_table = new GTDataSourceImpl(transaction.System, table_def);
+					int_table.type = type;
+					int_table.on_object = on_object;
+					int_table.procedure_name = procedure_name;
+					int_table.param_args = param_args;
+					int_table.owner = owner;
+					return int_table;
+				} else {
+					throw new Exception("Index out of bounds.");
 				}
-
-				throw new ArgumentOutOfRangeException("index");
 			}
 
 			#region Nested type: GTDataSourceImpl
@@ -478,16 +497,16 @@ namespace Deveel.Data {
 				internal TObject owner;
 				internal TObject param_args;
 				internal TObject procedure_name;
-				private DataTableInfo tableInfo;
+				private DataTableDef table_def;
 				internal TObject type;
 
-				public GTDataSourceImpl(TransactionSystem system, DataTableInfo tableInfo)
+				public GTDataSourceImpl(TransactionSystem system, DataTableDef tableDef)
 					: base(system) {
-					tableInfo = tableInfo;
+					table_def = tableDef;
 				}
 
-				public override DataTableInfo DataTableInfo {
-					get { return tableInfo; }
+				public override DataTableDef DataTableDef {
+					get { return table_def; }
 				}
 
 				public override int RowCount {

@@ -15,6 +15,7 @@
 
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -112,8 +113,9 @@ namespace Deveel.Data {
 					lock (this) {
 						while (evt == null) {
 							// Return if finished
-							if (finished)
+							if (finished) {
 								return;
+							}
 
 							if (eventQueue.Count > 0) {
 								// Get the top entry, do we execute it yet?
