@@ -313,17 +313,17 @@ namespace Deveel.Data {
 							  DataTableInfo.TableName + "' is not permitted.");
 			}
 
-			public override void RemoveRow(int row_index) {
+			public override void RemoveRow(int rowIndex) {
 				throw new Exception("Deleting from table '" +
 							  DataTableInfo.TableName + "' is not permitted.");
 			}
 
-			public override int UpdateRow(int row_index, DataRow dataRow) {
+			public override int UpdateRow(int rowIndex, DataRow dataRow) {
 				if (immutable) {
 					throw new Exception("Updating table '" +
 								DataTableInfo.TableName + "' is not permitted.");
 				}
-				if (row_index < 0 || row_index > 0) {
+				if (rowIndex < 0 || rowIndex > 0) {
 					throw new Exception("Row index out of bounds.");
 				}
 

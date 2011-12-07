@@ -37,8 +37,8 @@ namespace Deveel.Data {
 		/// If a schema with the same <paramref name="name"/> already exists.
 		/// </exception>
 		public void CreateSchema(string name, string type) {
-			TableName table_name = TableDataConglomerate.SchemaInfoTable;
-			IMutableTableDataSource t = GetTable(table_name);
+			TableName tableName = TableDataConglomerate.SchemaInfoTable;
+			IMutableTableDataSource t = GetTable(tableName);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 
 			try {
@@ -49,7 +49,7 @@ namespace Deveel.Data {
 
 				// Add the entry to the schema info table.
 				DataRow rd = new DataRow(t);
-				BigNumber uniqueId = NextUniqueID(table_name);
+				BigNumber uniqueId = NextUniqueID(tableName);
 				rd.SetValue(0, uniqueId);
 				rd.SetValue(1, name);
 				rd.SetValue(2, type);
@@ -128,13 +128,13 @@ namespace Deveel.Data {
 					SchemaDef result = null;
 					while (e.MoveNext()) {
 						int rowIndex = e.RowIndex;
-						String cur_name = dt.Get(1, rowIndex).Object.ToString();
-						if (String.Compare(name, cur_name, true) == 0) {
+						string curName = dt.Get(1, rowIndex).Object.ToString();
+						if (String.Compare(name, curName, true) == 0) {
 							if (result != null)
 								throw new StatementException("Ambiguous schema name: '" + name + "'");
 
 							string type = dt.Get(2, rowIndex).Object.ToString();
-							result = new SchemaDef(cur_name, type);
+							result = new SchemaDef(curName, type);
 						}
 					}
 					return result;

@@ -126,6 +126,7 @@
     <Compile Include="Deveel.Data\Database_Users.cs" />
     <Compile Include="Deveel.Data\ExpressionDebuggerProxy.cs" />
     <Compile Include="Deveel.Data\IExpressionElement.cs" />
+    <Compile Include="Deveel.Data\JournalCommand.cs" />
     <Compile Include="Deveel.Data\ParemeterStyle.cs" />
     <Compile Include="Deveel.Data.Client\ProtocolConstants.cs" />
     <Compile Include="Deveel.Data.Client\RemoteDatabaseInterface.cs" />
@@ -401,7 +402,7 @@
     <Compile Include="Deveel.Data\JoinedTable.cs" />
     <Compile Include="Deveel.Data\JoiningSet.cs" />
     <Compile Include="Deveel.Data\JoinType.cs" />
-    <Compile Include="Deveel.Data\JournalCommand.cs" />
+    <Compile Include="Deveel.Data\JournalCommandType.cs" />
     <Compile Include="Deveel.Data\Lock.cs" />
     <Compile Include="Deveel.Data\LockHandle.cs" />
     <Compile Include="Deveel.Data\LockingMechanism.cs" />

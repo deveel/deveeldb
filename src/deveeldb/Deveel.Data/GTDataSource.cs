@@ -81,12 +81,12 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public virtual void RemoveRow(int row_index) {
+		public virtual void RemoveRow(int rowIndex) {
 			throw new Exception("Functionality not available.");
 		}
 
 		/// <inheritdoc/>
-		public virtual int UpdateRow(int row_index, DataRow dataRow) {
+		public virtual int UpdateRow(int rowIndex, DataRow dataRow) {
 			throw new Exception("Functionality not available.");
 		}
 

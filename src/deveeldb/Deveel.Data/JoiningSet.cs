@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -38,12 +38,12 @@ namespace Deveel.Data {
 		/// The list of tables we are joining together a JoinPart object that
 		/// represents how the tables are joined.
 		/// </summary>
-		private ArrayList join_set;
+		private List<object> joinSet;
 
 		///<summary>
 		///</summary>
 		public JoiningSet() {
-			join_set = new ArrayList();
+			joinSet = new List<object>();
 		}
 
 		/// <summary>
@@ -62,25 +62,25 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Adds a new table into the set being joined.
 		/// </summary>
-		/// <param name="table_name">The name of the table to add.</param>
+		/// <param name="tableName">The name of the table to add.</param>
 		/// <remarks>
 		/// The table name should be the unique name that distinguishes 
 		/// this table in the table set.
 		/// </remarks>
-		public void AddTable(TableName table_name) {
-			join_set.Add(table_name);
+		public void AddTable(TableName tableName) {
+			joinSet.Add(tableName);
 		}
 
 		/// <summary>
 		/// Add a joining type to the previous entry from the end.
 		/// </summary>
 		/// <param name="type"></param>
-		/// <param name="on_expression"></param>
+		/// <param name="onExpression"></param>
 		/// <remarks>
 		/// This is an artifact of how joins are parsed.
 		/// </remarks>
-		public void AddPreviousJoin(JoinType type, Expression on_expression) {
-			join_set.Insert(join_set.Count - 1, new JoinPart(type, on_expression));
+		public void AddPreviousJoin(JoinType type, Expression onExpression) {
+			joinSet.Insert(joinSet.Count - 1, new JoinPart(type, onExpression));
 		}
 
 		/// <summary>
@@ -89,7 +89,7 @@ namespace Deveel.Data {
 		/// <param name="type"></param>
 		/// <param name="on_expression"></param>
 		public void AddJoin(JoinType type, Expression on_expression) {
-			join_set.Add(new JoinPart(type, on_expression));
+			joinSet.Add(new JoinPart(type, on_expression));
 		}
 
 		/// <summary>
@@ -97,14 +97,14 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="type">Join type to add to the set.</param>
 		public void AddJoin(JoinType type) {
-			join_set.Add(new JoinPart(type));
+			joinSet.Add(new JoinPart(type));
 		}
 
 		/// <summary>
 		/// Gets the number of tables that are in this set.
 		/// </summary>
 		public int TableCount {
-			get { return (join_set.Count + 1)/2; }
+			get { return (joinSet.Count + 1)/2; }
 		}
 
 		/// <summary>
@@ -123,7 +123,7 @@ namespace Deveel.Data {
 		/// <paramref name="n"/> of the set.
 		/// </returns>
 		public TableName this[int n] {
-			get { return (TableName) join_set[n*2]; }
+			get { return (TableName) joinSet[n*2]; }
 		}
 
 		/// <summary>
@@ -132,7 +132,7 @@ namespace Deveel.Data {
 		/// <param name="n"></param>
 		/// <param name="table"></param>
 		private void SetTable(int n, TableName table) {
-			join_set[n * 2] = table;
+			joinSet[n * 2] = table;
 		}
 
 		/// <summary>
@@ -156,7 +156,7 @@ namespace Deveel.Data {
 		/// <returns>
 		/// </returns>
 		public JoinType GetJoinType(int n) {
-			return ((JoinPart)join_set[(n * 2) + 1]).type;
+			return ((JoinPart)joinSet[(n * 2) + 1]).type;
 		}
 
 		/// <summary>
@@ -165,18 +165,18 @@ namespace Deveel.Data {
 		/// <param name="n">Index of the table to get the subsequent 
 		/// join type.</param>
 		public Expression GetOnExpression(int n) {
-			return ((JoinPart)join_set[(n * 2) + 1]).on_expression;
+			return ((JoinPart)joinSet[(n * 2) + 1]).on_expression;
 		}
 
 		/// <inheritdoc/>
 		public object Clone() {
 			JoiningSet v = (JoiningSet)MemberwiseClone();
-			int size = join_set.Count;
-			ArrayList cloned_join_set = new ArrayList(size);
-			v.join_set = cloned_join_set;
+			int size = joinSet.Count;
+			List<object> clonedJoinSet = new List<object>(size);
+			v.joinSet = clonedJoinSet;
 
 			for (int i = 0; i < size; ++i) {
-				Object element = join_set[i];
+				Object element = joinSet[i];
 				if (element is TableName) {
 					// immutable so leave alone
 				} else if (element is JoinPart) {
@@ -184,7 +184,8 @@ namespace Deveel.Data {
 				} else {
 					throw new ApplicationException(element.GetType().ToString());
 				}
-				cloned_join_set.Add(element);
+
+				clonedJoinSet.Add(element);
 			}
 
 			return v;

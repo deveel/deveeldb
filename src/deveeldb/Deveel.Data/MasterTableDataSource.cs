@@ -1037,7 +1037,7 @@ namespace Deveel.Data {
 					throw new ApplicationException("'table_id' exceeds maximum possible keys.");
 				}
 
-				tableInfo = tableInfo;
+				this.tableInfo = tableInfo;
 
 				// The name of the table to create,
 				TableName table_name = tableInfo.TableName;
