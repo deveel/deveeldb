@@ -57,7 +57,7 @@ namespace Deveel.Data {
 		private int sorted_against_column = -1;
 
 		/// <summary>
-		/// The <see cref="DataTableDef"/> object that describes the columns and name 
+		/// The <see cref="TableInfo"/> object that describes the columns and name 
 		/// of this table.
 		/// </summary>
 		private DataTableDef vt_table_def;
@@ -116,7 +116,7 @@ namespace Deveel.Data {
 			for (int i = 0; i < reference_list.Length; ++i) {
 
 				Table cur_table = reference_list[i];
-				DataTableDef cur_table_def = cur_table.DataTableDef;
+				DataTableDef cur_table_def = cur_table.TableInfo;
 				int ref_col_count = cur_table.ColumnCount;
 
 				// For each column
@@ -342,7 +342,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="DataTableDef"/> object that describes the 
+		/// Returns the <see cref="TableInfo"/> object that describes the 
 		/// columns in this table.
 		/// </summary>
 		/// <remarks>
@@ -350,7 +350,7 @@ namespace Deveel.Data {
 		/// the columns in the children in the order set. The name of a virtual table i
 		/// s the concat of all the parent table names. The schema is set to null.
 		/// </remarks>
-		public override DataTableDef DataTableDef {
+		public override DataTableDef TableInfo {
 			get { return vt_table_def; }
 		}
 

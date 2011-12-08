@@ -125,6 +125,9 @@
     <Compile Include="Deveel.Data\DatabaseConnection_Views.cs" />
     <Compile Include="Deveel.Data\Database_Users.cs" />
     <Compile Include="Deveel.Data\JournalCommandType.cs" />
+    <Compile Include="Deveel.Data\MasterTableDataSource_Diagnostics.cs" />
+    <Compile Include="Deveel.Data\MasterTableDataSource_Indexes.cs" />
+    <Compile Include="Deveel.Data\MasterTableDataSource_Transactions.cs" />
     <Compile Include="Deveel.Data\ParemeterStyle.cs" />
     <Compile Include="Deveel.Data.Client\ProtocolConstants.cs" />
     <Compile Include="Deveel.Data.Client\RemoteDatabaseInterface.cs" />

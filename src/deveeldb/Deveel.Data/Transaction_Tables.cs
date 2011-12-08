@@ -196,7 +196,7 @@ namespace Deveel.Data {
 			AddVisibleTable(master, master.CreateIndexSet());
 
 			// Log in the journal that this transaction touched the table_id.
-			int tableId = master.TableID;
+			int tableId = master.TableId;
 			journal.EntryAddTouchedTable(tableId);
 
 			// Log in the journal that we created this table.
@@ -286,7 +286,7 @@ namespace Deveel.Data {
 			RemoveVisibleTable(master);
 
 			// Log in the journal that this transaction touched the table_id.
-			int tableId = master.TableID;
+			int tableId = master.TableId;
 			journal.EntryAddTouchedTable(tableId);
 
 			// Log in the journal that we dropped this table.
@@ -320,7 +320,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		internal void CopyTable(MasterTableDataSource srcMasterTable, IIndexSet indexSet) {
-			DataTableDef tableDef = srcMasterTable.DataTableDef;
+			DataTableDef tableDef = srcMasterTable.TableInfo;
 			TableName tableName = tableDef.TableName;
 			MasterTableDataSource master = FindVisibleTable(tableName, false);
 			if (master != null)
@@ -332,7 +332,7 @@ namespace Deveel.Data {
 			AddVisibleTable(master, master.CreateIndexSet());
 
 			// Log in the journal that this transaction touched the table_id.
-			int tableId = master.TableID;
+			int tableId = master.TableId;
 			journal.EntryAddTouchedTable(tableId);
 
 			// Log in the journal that we created this table.
@@ -389,7 +389,7 @@ namespace Deveel.Data {
 
 			// Work out which columns we have to copy to where
 			int[] colMap = new int[tableDef.ColumnCount];
-			DataTableDef origTd = cTable.DataTableDef;
+			DataTableDef origTd = cTable.TableInfo;
 			for (int i = 0; i < colMap.Length; ++i) {
 				string colName = tableDef[i].Name;
 				colMap[i] = origTd.FindColumnName(colName);
@@ -517,7 +517,7 @@ namespace Deveel.Data {
 				throw new StatementException("Table '" + tableName + "' doesn't exist.");
 
 			// Log in the journal that this transaction touched the table_id.
-			int tableId = master.TableID;
+			int tableId = master.TableId;
 
 			journal.EntryAddTouchedTable(tableId);
 			// Log in the journal that we dropped this table.

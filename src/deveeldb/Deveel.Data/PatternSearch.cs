@@ -296,7 +296,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal static IntegerVector Search(Table table, int column, String pattern, char escape_char) {
 			// Get the type for the column
-			TType col_type = table.DataTableDef[column].TType;
+			TType col_type = table.TableInfo[column].TType;
 
 			// If the column type is not a string type then report an error.
 			if (!(col_type is TStringType)) {

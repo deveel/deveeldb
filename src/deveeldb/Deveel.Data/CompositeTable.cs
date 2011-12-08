@@ -146,8 +146,8 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override DataTableDef DataTableDef {
-			get { return master_table.DataTableDef; }
+		public override DataTableDef TableInfo {
+			get { return master_table.TableInfo; }
 		}
 
 		/// <inheritdoc/>

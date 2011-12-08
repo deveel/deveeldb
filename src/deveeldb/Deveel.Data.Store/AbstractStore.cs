@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -639,13 +640,12 @@ namespace Deveel.Data.Store {
 		/// </remarks>
 		///<returns></returns>
 		///<exception cref="IOException"></exception>
-		public ArrayList FindAllocatedAreasNotIn(ArrayList list) {
-
+		public List<long> FindAllocatedAreasNotIn(List<long> list) {
 			// Sort the list
 			list.Sort();
 
 			// The list of leaked areas
-			ArrayList leaked_areas = new ArrayList();
+			List<long> leaked_areas = new List<long>();
 
 			int list_index = 0;
 

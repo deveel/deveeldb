@@ -505,7 +505,7 @@ namespace Deveel.Data {
 					table_def = tableDef;
 				}
 
-				public override DataTableDef DataTableDef {
+				public override DataTableDef TableInfo {
 					get { return table_def; }
 				}
 

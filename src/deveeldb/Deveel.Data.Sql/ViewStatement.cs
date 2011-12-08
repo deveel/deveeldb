@@ -159,7 +159,7 @@ namespace Deveel.Data.Sql {
 				// We have to execute the plan to get the DataTableDef that represents the
 				// result of the view execution.
 				Table t = plan.Evaluate(context);
-				DataTableDef data_table_def = new DataTableDef(t.DataTableDef);
+				DataTableDef data_table_def = new DataTableDef(t.TableInfo);
 				data_table_def.TableName = vname;
 
 				// Create a ViewDef object,

@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Deveel.Data.Store {
@@ -159,7 +159,7 @@ namespace Deveel.Data.Store {
 		/// store that are used by this structure.
 		/// </summary>
 		/// <param name="list">The destination list where to copy the pointers.</param>
-		public void AddAllAreasUsed(ArrayList list) {
+		public void AddAllAreasUsed(IList<long> list) {
 			list.Add(list_header_p);
 			for (int i = 0; i < list_block_count; ++i) {
 				list.Add(list_block_element[i]);

@@ -178,7 +178,7 @@ namespace Deveel.Data {
 			int size = visibleTables.Count;
 			for (int i = 0; i < size; ++i) {
 				MasterTableDataSource master = visibleTables[i];
-				DataTableDef table_def = master.DataTableDef;
+				DataTableDef table_def = master.TableInfo;
 				if (ignoreCase) {
 					if (table_def.TableName.EqualsIgnoreCase(tableName))
 						return master;
@@ -496,7 +496,7 @@ namespace Deveel.Data {
 
 			// Otherwise return from the pool of visible tables
 			foreach (MasterTableDataSource master in visibleTables) {
-				DataTableDef tableDef = master.DataTableDef;
+				DataTableDef tableDef = master.TableInfo;
 				if (tableDef.TableName.Equals(tableName))
 					return tableDef;
 			}
@@ -516,7 +516,7 @@ namespace Deveel.Data {
 			// Add the master tables
 			for (int i = 0; i < sz; ++i) {
 				MasterTableDataSource master = visibleTables[i];
-				DataTableDef tableDef = master.DataTableDef;
+				DataTableDef tableDef = master.TableInfo;
 				tables[i] = new TableName(tableDef.Schema, tableDef.Name);
 			}
 
@@ -770,7 +770,7 @@ namespace Deveel.Data {
 			if (master == null)
 				throw new StatementException("Table with name '" + tableName + "' could not be found to retrieve unique id.");
 
-			return master.NextUniqueId;
+			return master.GetNextUniqueId();
 		}
 
 		/// <summary>

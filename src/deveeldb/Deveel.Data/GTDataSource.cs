@@ -55,7 +55,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public abstract DataTableDef DataTableDef { get; }
+		public abstract DataTableDef TableInfo { get; }
 
 		/// <inheritdoc/>
 		public abstract int RowCount { get; }
@@ -148,7 +148,7 @@ namespace Deveel.Data {
 		/// the given <paramref name="column"/>.
 		/// </returns>
 		protected TObject GetColumnValue(int column, Object ob) {
-			TType type = DataTableDef[column].TType;
+			TType type = TableInfo[column].TType;
 			return new TObject(type, ob);
 		}
 

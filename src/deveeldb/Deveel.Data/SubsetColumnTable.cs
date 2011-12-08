@@ -53,7 +53,7 @@ namespace Deveel.Data {
 		private int[] reverse_column_map;
 
 		/// <summary>
-		/// The <see cref="DataTableDef"/> object that describes the subset column of 
+		/// The <see cref="TableInfo"/> object that describes the subset column of 
 		/// this table.
 		/// </summary>
 		private DataTableDef subset_table_def;
@@ -92,7 +92,7 @@ namespace Deveel.Data {
 			this.aliases = aliases;
 
 			subset_table_def = new DataTableDef();
-			DataTableDef parent_def = parent.DataTableDef;
+			DataTableDef parent_def = parent.TableInfo;
 			subset_table_def.TableName = parent_def.TableName;
 
 			for (int i = 0; i < mapping.Length; ++i) {
@@ -123,7 +123,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override DataTableDef DataTableDef {
+		public override DataTableDef TableInfo {
 			get { return subset_table_def; }
 		}
 

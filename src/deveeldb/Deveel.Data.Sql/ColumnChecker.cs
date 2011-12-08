@@ -165,7 +165,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="tname"></param>
 		/// <returns></returns>
 		internal static ColumnChecker GetStandardColumnChecker(DatabaseConnection database, TableName tname) {
-			DataTableDef table_def = database.GetTable(tname).DataTableDef;
+			DataTableDef table_def = database.GetTable(tname).TableInfo;
 			bool ignores_case = database.IsInCaseInsensitiveMode;
 
 			// Implement the checker

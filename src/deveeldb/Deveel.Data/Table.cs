@@ -83,7 +83,7 @@ namespace Deveel.Data {
 		/// If the column can't be found.
 		/// </exception>
 		public TType GetTTypeForColumn(int column) {
-			return DataTableDef[column].TType;
+			return TableInfo[column].TType;
 		}
 
 		/// <summary>
@@ -187,7 +187,7 @@ namespace Deveel.Data {
 		public abstract IRowEnumerator GetRowEnumerator();
 
 		/// <summary>
-		/// Returns a <see cref="DataTableDef"/> object that defines the name 
+		/// Returns a <see cref="TableInfo"/> object that defines the name 
 		/// of the table and the layout of the columns of the table.
 		/// </summary>
 		/// <remarks>
@@ -196,7 +196,7 @@ namespace Deveel.Data {
 		/// <c>PERSON</c> joined with a table called <c>MUSIC</c> becomes a table 
 		/// called <c>PERSON#MUSIC</c> in a null schema.
 		/// </remarks>
-		public abstract DataTableDef DataTableDef { get; }
+		public abstract DataTableDef TableInfo { get; }
 
 		/// <summary>
 		/// Adds a <see cref="IDataTableListener"/> to the <see cref="DataTable"/>
@@ -279,7 +279,7 @@ namespace Deveel.Data {
 		/// <param name="col_index"></param>
 		/// <returns></returns>
 		public DataTableColumnDef GetColumnDef(int col_index) {
-			return DataTableDef[col_index];
+			return TableInfo[col_index];
 		}
 
 

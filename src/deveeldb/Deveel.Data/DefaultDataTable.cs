@@ -127,7 +127,7 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override int ColumnCount {
-			get { return DataTableDef.ColumnCount; }
+			get { return TableInfo.ColumnCount; }
 		}
 
 		/// <inheritdoc/>
@@ -137,7 +137,7 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override VariableName GetResolvedVariable(int column) {
-			String col_name = DataTableDef[column].Name;
+			String col_name = TableInfo[column].Name;
 			return new VariableName(TableName, col_name);
 		}
 
@@ -145,7 +145,7 @@ namespace Deveel.Data {
 		public override int FindFieldName(VariableName v) {
 			// Check this is the correct table first...
 			TableName table_name = v.TableName;
-			DataTableDef table_def = DataTableDef;
+			DataTableDef table_def = TableInfo;
 			if (table_name != null && table_name.Equals(TableName)) {
 				// Look for the column name
 				String col_name = v.Name;
@@ -210,7 +210,7 @@ namespace Deveel.Data {
 		/// <param name="column_number"></param>
 		internal void AddCellToColumnSchemes(int row_number, int column_number) {
 			bool indexable_type =
-						 DataTableDef[column_number].IsIndexableType;
+						 TableInfo[column_number].IsIndexableType;
 			if (indexable_type) {
 				SelectableScheme ss = GetRootColumnScheme(column_number);
 				ss.Insert(row_number);
@@ -225,7 +225,7 @@ namespace Deveel.Data {
 		/// <param name="row_number"></param>
 		internal void AddRowToColumnSchemes(int row_number) {
 			int col_count = ColumnCount;
-			DataTableDef table_def = DataTableDef;
+			DataTableDef table_def = TableInfo;
 			for (int i = 0; i < col_count; ++i) {
 				if (table_def[i].IsIndexableType) {
 					SelectableScheme ss = GetRootColumnScheme(i);
@@ -245,7 +245,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void removeRowToColumnSchemes(int row_number) {
 			int col_count = ColumnCount;
-			DataTableDef table_def = DataTableDef;
+			DataTableDef table_def = TableInfo;
 			for (int i = 0; i < col_count; ++i) {
 				if (table_def[i].IsIndexableType) {
 					SelectableScheme ss = GetRootColumnScheme(i);

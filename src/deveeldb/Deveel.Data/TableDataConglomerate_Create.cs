@@ -455,9 +455,7 @@ namespace Deveel.Data {
 		/// does not require any initial system tables (because this information 
 		/// is copied from the source conglomerate.
 		/// </remarks>
-		internal void MinimalCreate(String name) {
-			this.name = name;
-
+		internal void MinimalCreate() {
 			if (Exists(name))
 				throw new IOException("Conglomerate already exists: " + name);
 
@@ -495,20 +493,18 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Creates a new conglomerate at the given path in the file system.
 		/// </summary>
-		/// <param name="name"></param>
 		/// <remarks>
 		/// This must be an empty directory where files can be stored. This 
 		/// will create the conglomerate and exit in an open (read/write) state.
 		/// </remarks>
-		public void Create(String name) {
-			MinimalCreate(name);
+		public void Create() {
+			MinimalCreate();
 
 			// Initialize the conglomerate system tables.
 			InitializeSystemTableSchema();
 
 			// Commit the state
 			stateStore.Commit();
-
 		} 
 	}
 }

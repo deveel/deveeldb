@@ -66,7 +66,7 @@ namespace Deveel.Data {
 		/// columns of the table.
 		/// </summary>
 		public DataTableDef DataTableDef {
-			get { return table.DataTableDef; }
+			get { return table.TableInfo; }
 		}
 
 		/// <summary>

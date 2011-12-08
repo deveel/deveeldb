@@ -924,7 +924,8 @@ namespace Deveel.Data {
 
 			try {
 				// Create the conglomerate
-				conglomerate.Create(Name);
+				conglomerate.Name = Name;
+				conglomerate.Create();
 
 				DatabaseConnection connection = CreateNewConnection(null, null);
 				DatabaseQueryContext context = new DatabaseQueryContext(connection);
@@ -1026,7 +1027,8 @@ namespace Deveel.Data {
 				}
 
 				// Open the conglomerate
-				conglomerate.Open(Name);
+				conglomerate.Name = Name;
+				conglomerate.Open();
 
 				// Check the state of the conglomerate,
 				DatabaseConnection connection = CreateNewConnection(null, null);
@@ -1135,14 +1137,13 @@ namespace Deveel.Data {
 		///  This method can copy information while the database is <i>live</i>.
 		/// </remarks>
 		public void LiveCopyTo(string path) {
-			if (initialised == false) {
+			if (initialised == false)
 				throw new ApplicationException("The database is not initialized.");
-			}
 
 			// Set up the destination conglomerate to copy all the data to,
 			// Note that this sets up a typical destination conglomerate and changes
 			// the cache size and disables the debug log.
-			TransactionSystem copy_system = new TransactionSystem();
+			TransactionSystem copySystem = new TransactionSystem();
 			DbConfig config = DbConfig.Default;
 			config.DatabasePath = Path.GetFullPath(path);
 			config.LogPath = "";
@@ -1156,20 +1157,22 @@ namespace Deveel.Data {
 			//     failure will lose changes in the backup copy anyway.
 			config.SetValue("io_safety_level", "1");
 			config.SetValue("debug_logs", "disabled");
-			copy_system.Init(config);
-			TableDataConglomerate dest_conglomerate = new TableDataConglomerate(copy_system, copy_system.StoreSystem);
+			copySystem.Init(config);
+
+			TableDataConglomerate destConglomerate = new TableDataConglomerate(copySystem, copySystem.StoreSystem);
 
 			// Open the congloemrate
-			dest_conglomerate.MinimalCreate(Name);
+			destConglomerate.Name = Name;
+			destConglomerate.MinimalCreate();
 
 			try {
 				// Make a copy of this conglomerate into the destination conglomerate,
-				conglomerate.LiveCopyTo(dest_conglomerate);
+				conglomerate.LiveCopyTo(destConglomerate);
 			} finally {
 				// Close the congloemrate when finished.
-				dest_conglomerate.Close();
+				destConglomerate.Close();
 				// Dispose the TransactionSystem
-				copy_system.Dispose();
+				copySystem.Dispose();
 			}
 		}
 

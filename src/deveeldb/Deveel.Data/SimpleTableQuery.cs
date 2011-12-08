@@ -63,7 +63,7 @@ namespace Deveel.Data {
 		public SimpleTableQuery(ITableDataSource in_table) {
 			//    in_table.AddRootLock();
 			table = in_table;
-			table_def = table.DataTableDef;
+			table_def = table.TableInfo;
 		}
 
 		/// <summary>

@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.IO;
-using System.Text;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Collections;
@@ -30,7 +28,7 @@ namespace Deveel.Data {
 	/// </summary>
 	/// <remarks>
 	/// It provides primitive table operations such as retrieving a cell from 
-	/// a table, accessing the table's <see cref="DataTableDef"/>, accessing 
+	/// a table, accessing the table's <see cref="TableInfo"/>, accessing 
 	/// indexes, and providing views of transactional versions of the data.
 	/// <para>
 	/// Logically, a master table data source contains a dynamic number of rows 
@@ -57,8 +55,7 @@ namespace Deveel.Data {
 	/// with different types of storage schemes.
 	/// </para>
 	/// </remarks>
-	abstract class MasterTableDataSource {
-
+	public abstract partial class MasterTableDataSource {
 
 		// ---------- System information ----------
 
@@ -66,24 +63,24 @@ namespace Deveel.Data {
 		/// The global TransactionSystem object that points to the global system
 		/// that this table source belongs to.
 		/// </summary>
-		private TransactionSystem system;
+		private readonly TransactionSystem system;
 
 		/// <summary>
 		/// The IStoreSystem implementation that represents the data persistence layer.
 		/// </summary>
-		private IStoreSystem store_system;
+		private readonly IStoreSystem storeSystem;
 
 		// ---------- State information ----------
 
 		/// <summary>
 		/// An integer that uniquely identifies this data source within the conglomerate.
 		/// </summary>
-		protected int table_id;
+		private int tableId;
 
 		/// <summary>
 		/// True if this table source is closed.
 		/// </summary>
-		protected bool is_closed;
+		private bool isClosed;
 
 		// ---------- Root locking ----------
 
@@ -96,7 +93,7 @@ namespace Deveel.Data {
 		/// is still being pointed to in this file (even possibly committed deleted
 		/// data).
 		/// </remarks>
-		private int root_lock;
+		private int rootLock;
 
 		// ---------- Persistant data ----------
 
@@ -104,12 +101,12 @@ namespace Deveel.Data {
 		/// A DataTableDef object that describes the table topology.  This includes
 		/// the name and columns of the table.
 		/// </summary>
-		protected DataTableDef table_def;
+		private DataTableDef tableInfo;
 
 		/// <summary>
 		/// A DataIndexSetDef object that describes the indexes on the table.
 		/// </summary>
-		protected DataIndexSetDef index_def;
+		private DataIndexSetDef indexInfo;
 
 		/// <summary>
 		/// A cached TableName for this data source.
@@ -121,89 +118,58 @@ namespace Deveel.Data {
 		/// including the row list and the scheme indices.  This contains the
 		/// transaction journals.
 		/// </summary>
-		protected MultiVersionTableIndices TableIndices;
-
-		/// <summary>
-		/// The list of RIDList objects for each column in this table.  This is
-		/// a sorting optimization.
-		/// </summary>
-		// protected RIDList[] column_rid_list;
+		private MultiVersionTableIndices tableIndices;
 
 		// ---------- Cached information ----------
 
 		/// <summary>
 		/// Set to false to disable cell caching.
 		/// </summary>
-		protected bool DATA_CELL_CACHING = true;
+		private readonly bool dataCellCaching = true;
 
 		/// <summary>
 		/// A reference to the DataCellCache object.
 		/// </summary>
-		protected readonly DataCellCache cache;
+		private readonly DataCellCache cache;
 
-		/// <summary>
-		/// The number of columns in this table.  This is a cached optimization.
-		/// </summary>
-		protected int column_count;
-
-
-
-		// --------- Parent information ----------
-
-		/// <summary>
-		/// The list of all open transactions managed by the parent conglomerate.
-		/// </summary>
-		/// <remarks>
-		/// This is a thread safe object, and is updated whenever new transactions
-		/// are created, or transactions are closed.
-		/// </remarks>
-		private OpenTransactionList open_transactions;
-
-		// ---------- Row garbage collection ----------
 
 		/// <summary>
 		/// Manages scanning and deleting of rows marked as deleted within this
 		/// data source.
 		/// </summary>
-		protected MasterTableGC gc;
-
-		// ---------- IBlob management ----------
+		private readonly MasterTableGC gc;
 
 		/// <summary>
 		/// An abstracted reference to a BlobStore for managing blob 
 		/// references and blob data.
 		/// </summary>
-		protected IBlobStore blob_store;
+		private readonly IBlobStore blobStore;
 
 		// ---------- Stat keys ----------
 
-		// The keys we use for Database.stats() for information for this table.
-		protected String root_lock_key;
-		protected String total_hits_key;
-		protected String file_hits_key;
-		protected String delete_hits_key;
-		protected String insert_hits_key;
+		// The keys we use for Database.Stats for information for this table.
+		private string rootLockKey;
+		private string totalHitsKey;
+		private string fileHitsKey;
+		private string deleteHitsKey;
+		private string insertHitsKey;
 
 		/// <summary>
 		/// Constructs the <see cref="MasterTableDataSource"/>.
 		/// </summary>
 		/// <param name="system"></param>
-		/// <param name="store_system"></param>
-		/// <param name="open_transactions">An object that manages the list of 
-		/// open transactions in the conglomerate.</param>
-		/// <param name="blob_store"></param>
-		internal MasterTableDataSource(TransactionSystem system, IStoreSystem store_system,
-			OpenTransactionList open_transactions, IBlobStore blob_store) {
+		/// <param name="storeSystem"></param>
+		/// <param name="blobStore"></param>
+		protected MasterTableDataSource(TransactionSystem system, IStoreSystem storeSystem, IBlobStore blobStore) {
 			this.system = system;
-			this.store_system = store_system;
-			this.open_transactions = open_transactions;
-			this.blob_store = blob_store;
+			this.storeSystem = storeSystem;
+			this.blobStore = blobStore;
 			gc = new MasterTableGC(this);
 			cache = system.DataCellCache;
-			is_closed = true;
+			isClosed = true;
 
-			if (DATA_CELL_CACHING) {
-				DATA_CELL_CACHING = (cache != null);
+			if (dataCellCaching) {
+				dataCellCaching = (cache != null);
 			}
 		}
 
@@ -217,29 +183,33 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Returns the IDebugLogger object that can be used to log debug messages.
 		/// </summary>
-		public IDebugLogger Debug {
+		protected IDebugLogger Debug {
 			get { return System.Debug; }
+		}
+
+		internal IDebugLogger InternalDebug {
+			get { return Debug; }
 		}
 
 		/// <summary>
 		/// Returns the TableName of this table source.
 		/// </summary>
 		public TableName TableName {
-			get { return DataTableDef.TableName; }
+			get { return TableInfo.TableName; }
 		}
 
 		/// <summary>
 		/// Returns the name of this table source.
 		/// </summary>
 		public string Name {
-			get { return DataTableDef.Name; }
+			get { return TableInfo.Name; }
 		}
 
 		/// <summary>
 		/// Returns the schema name of this table source.
 		/// </summary>
 		public string Schema {
-			get { return DataTableDef.Schema; }
+			get { return TableInfo.Schema; }
 		}
 
 		/// <summary>
@@ -248,69 +218,17 @@ namespace Deveel.Data {
 		internal TableName CachedTableName {
 			get {
 				lock (this) {
-					if (cachedTableName != null) {
-						return cachedTableName;
-					}
-					cachedTableName = TableName;
-					return cachedTableName;
+					return cachedTableName ?? (cachedTableName = TableName);
 				}
 			}
 		}
-
-		/// <summary>
-		/// Updates the master records from the journal logs up to the given
-		/// <paramref name="commit_id"/>.
-		/// </summary>
-		/// <param name="commit_id"></param>
-		/// <remarks>
-		/// This could be a fairly expensive operation if there are a lot of 
-		/// modifications because each change could require a lookup of 
-		/// records in the data source.
-		/// <para>
-		/// <b>Note</b>: It's extremely important that when this is called, 
-		/// there are no transaction open that are using the merged journal. 
-		/// If there is, then a transaction may be able to see changes in a 
-		/// table that were made after the transaction started.
-		/// </para>
-		/// <para>
-		/// After this method is called, it's best to update the index file
-		/// with a call to 'synchronizeIndexFiles'
-		/// </para>
-		/// </remarks>
-		internal void MergeJournalChanges(long commit_id) {
-			lock (this) {
-				bool all_merged = TableIndices.MergeJournalChanges(commit_id);
-				// If all journal entries merged then schedule deleted row collection.
-				if (all_merged && !IsReadOnly) {
-					CheckForCleanup();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Returns a list of all <see cref="MasterTableJournal"/> objects that 
-		/// have been successfully committed against this table that have an 
-		/// <paramref name="commit_id"/> that is greater or equal to the given.
-		/// </summary>
-		/// <param name="commit_id"></param>
-		/// <remarks>
-		/// This is part of the conglomerate commit check phase and will be 
-		/// on a commit_lock.
-		/// </remarks>
-		/// <returns></returns>
-		internal MasterTableJournal[] FindAllJournalsSince(long commit_id) {
-			lock (this) {
-				return TableIndices.FindAllJournalsSince(commit_id);
-			}
-		}
-
-		// ---------- Getters ----------
 
 		/// <summary>
 		/// Returns table_id - the unique identifier for this data source.
 		/// </summary>
-		internal int TableID {
-			get { return table_id; }
+		public int TableId {
+			get { return tableId; }
+			protected set { tableId = value; }
 		}
 
 		/// <summary>
@@ -320,68 +238,19 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This information can't be changed during the lifetime of a data source.
 		/// </remarks>
-		internal DataTableDef DataTableDef {
-			get { return table_def; }
+		public DataTableDef TableInfo {
+			get { return tableInfo; }
+			protected set { tableInfo = value; }
 		}
 
 		/// <summary>
-		/// Returns the DataIndexSetDef object that represents the indexes on this table.
+		/// Returns the <see cref="DataIndexSetDef"/> object that represents 
+		/// the indexes on this table.
 		/// </summary>
-		internal DataIndexSetDef DataIndexSetDef {
-			get { return index_def; }
+		public DataIndexSetDef IndexSetInfo {
+			get { return indexInfo; }
+			protected set { indexInfo = value; }
 		}
-
-		// ---------- Convenient statics ----------
-
-		/// <summary>
-		/// Creates a unique table name to give a file.
-		/// </summary>
-		/// <param name="system"></param>
-		/// <param name="table_id">A guarenteed unique number between all tables.</param>
-		/// <param name="table_name"></param>
-		/// <remarks>
-		/// This could be changed to suit a particular OS's style of filesystem 
-		/// namespace. Or it could return some arbitarily unique number. 
-		/// However, for debugging purposes it's often a good idea to return a 
-		/// name that a user can recognise.
-		/// </remarks>
-		/// <returns></returns>
-		protected static String MakeTableFileName(TransactionSystem system,
-												int table_id, TableName table_name) {
-
-			// NOTE: We may want to change this for different file systems.
-			//   For example DOS is not able to handle more than 8 characters
-			//   and is case insensitive.
-			String tid = table_id.ToString();
-			int pad = 3 - tid.Length;
-			StringBuilder buf = new StringBuilder();
-			for (int i = 0; i < pad; ++i) {
-				buf.Append('0');
-			}
-
-			String str = table_name.ToString().Replace('.', '_');
-
-			// Go through each character and remove each non a-z,A-Z,0-9,_ character.
-			// This ensure there are no strange characters in the file name that the
-			// underlying OS may not like.
-			StringBuilder osified_name = new StringBuilder();
-			int count = 0;
-			for (int i = 0; i < str.Length || count > 64; ++i) {
-				char c = str[i];
-				if ((c >= 'a' && c <= 'z') ||
-					(c >= 'A' && c <= 'Z') ||
-					(c >= '0' && c <= '9') ||
-					c == '_') {
-					osified_name.Append(c);
-					++count;
-				}
-			}
-
-			return buf.ToString() + tid + osified_name.ToString();
-		}
-
-
-		// ---------- Abstract methods ----------
 
 		/// <summary>
 		/// Returns a string that uniquely identifies this table within the
@@ -391,37 +260,7 @@ namespace Deveel.Data {
 		/// For example, the filename of the table.  This string can be used 
 		/// to open and initialize the table also.
 		/// </remarks>
-		internal abstract string SourceIdentity { get; }
-
-		/// <summary>
-		/// Sets the record type for the given record in the table and returns 
-		/// the previous state of the record.
-		/// </summary>
-		/// <param name="row_index"></param>
-		/// <param name="row_state"></param>
-		/// <remarks>
-		/// This is used to change the state of a row in the table.
-		/// </remarks>
-		/// <returns></returns>
-		internal abstract int WriteRecordType(int row_index, int row_state);
-
-		/// <summary>
-		/// Reads the record state for the given record in the table.
-		/// </summary>
-		/// <param name="row_index"></param>
-		/// <returns></returns>
-		internal abstract int ReadRecordType(int row_index);
-
-		/// <summary>
-		/// Returns true if the record with the given index is deleted from the 
-		/// table.
-		/// </summary>
-		/// <param name="row_index"></param>
-		/// <remarks>
-		/// A deleted row can not be read.
-		/// </remarks>
-		/// <returns></returns>
-		internal abstract bool RecordDeleted(int row_index);
+		public abstract string SourceIdentity { get; set; }
 
 		/// <summary>
 		/// Returns the raw count or rows in the table, including uncommited,
@@ -430,39 +269,231 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This is basically the maximum number of rows we can iterate through.
 		/// </remarks>
-		internal abstract int RawRowCount { get; }
+		public abstract int RawRowCount { get; }
+
+		/// <summary>
+		/// Atomically returns the current 'unique_id' value for this table.
+		/// </summary>
+		public abstract long CurrentUniqueId { get; }
+
+		/// <summary>
+		/// Atomically returns the next 'unique_id' value from this table.
+		/// </summary>
+		public abstract long GetNextUniqueId();
+
+		/// <summary>
+		/// Returns true if a compact table is necessary.
+		/// </summary>
+		/// <remarks>
+		/// By default, we return true however it is recommended this method 
+		/// is overwritten and the table tested.
+		/// </remarks>
+		public virtual bool Compact {
+			get { return true; }
+		}
+
+		/// <summary>
+		/// Returns true if this table source is closed.
+		/// </summary>
+		public bool IsClosed {
+			get {
+				lock (this) {
+					return isClosed;
+				}
+			}
+			protected set {
+				lock (this) {
+					isClosed = value;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Returns true if the source is read only.
+		/// </summary>
+		public bool IsReadOnly {
+			get { return system.ReadOnlyAccess; }
+		}
+
+		/// <summary>
+		/// Returns the IStoreSystem object used to manage stores in the 
+		/// persistence system.
+		/// </summary>
+		protected IStoreSystem StoreSystem {
+			get { return storeSystem; }
+		}
+
+		/// <summary>
+		/// Returns true if the table is currently under a root lock (has 1 
+		/// or more root locks on it).
+		/// </summary>
+		public bool IsRootLocked {
+			get {
+				lock (this) {
+					return rootLock > 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Returns true if this table has any journal modifications that have 
+		/// not yet been incorporated into master index.
+		/// </summary>
+		internal bool HasTransactionChangesPending {
+			get {
+				lock (this) {
+					return tableIndices.HasTransactionChangesPending;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Manages scanning and deleting of rows marked as deleted within this
+		/// data source.
+		/// </summary>
+		protected MasterTableGC TableGC {
+			get { return gc; }
+		}
+
+		/// <summary>
+		/// An abstracted reference to a BlobStore for managing blob 
+		/// references and blob data.
+		/// </summary>
+		protected IBlobStore BlobStore {
+			get { return blobStore; }
+		}
+
+		protected string RootLockKey {
+			get { return rootLockKey; }
+		}
+
+		protected string FileHitsKey {
+			get { return fileHitsKey; }
+		}
+
+		protected string DeleteHitsKey {
+			get { return deleteHitsKey; }
+		}
+
+		protected string TotalHitsKey {
+			get { return totalHitsKey; }
+		}
+
+		protected string InsertHitsKey {
+			get { return insertHitsKey; }
+		}
+
+		/// <summary>
+		/// A reference to the DataCellCache object.
+		/// </summary>
+		protected DataCellCache Cache {
+			get { return cache; }
+		}
+
+		/// <summary>
+		/// Gets whether the cell value caching is enabled.
+		/// </summary>
+		protected bool CellCaching {
+			get { return dataCellCaching; }
+		}
+
+		/// <summary>
+		/// Opens an existing master table.
+		/// </summary>
+		/// <remarks>
+		/// This will set up the internal state of this object with the 
+		/// data read input.
+		/// </remarks>
+		public void Open() {
+			bool needsCheck = OpenTable();
+
+			// Create table indices
+			tableIndices = new MultiVersionTableIndices(System, this);
+
+			// Load internal state
+			LoadInternal();
+
+			if (needsCheck) {
+				// Do an opening scan of the table.  Any records that are uncommited
+				// must be marked as deleted.
+				DoOpeningScan();
+			}
+		}
+
+		/// <summary>
+		/// Create this master table object.
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="info"></param>
+		/// <remarks>
+		/// This will initialise the various objects and result input a new empty 
+		/// master table to store data input.
+		/// </remarks>
+		public void Create(int id, DataTableDef info) {
+			// Set the data table def object
+			SetTableInfo(info);
+
+			// Load internal state
+			LoadInternal();
+
+			// Set up internal state of this object
+			TableId = id;
+
+			CreateTable();
+		}
+
+		// ---------- Abstract methods ----------
+
+		/// <summary>
+		/// Concretely creates the table, setting up the underlying state.
+		/// </summary>
+		protected abstract void CreateTable();
+
+		/// <summary>
+		/// Opens an existing table from the underlying implementation.
+		/// </summary>
+		/// <returns>
+		/// Returns <b>true</b> if the table needs to be scanned for
+		/// errors, or <b>false</b> if the open process can continue.
+		/// </returns>
+		protected abstract bool OpenTable();
+
+		/// <summary>
+		/// Sets the record type for the given record in the table and returns 
+		/// the previous state of the record.
+		/// </summary>
+		/// <param name="rowIndex"></param>
+		/// <param name="rowState"></param>
+		/// <remarks>
+		/// This is used to change the state of a row in the table.
+		/// </remarks>
+		/// <returns></returns>
+		public abstract int WriteRecordType(int rowIndex, int rowState);
+
+		/// <summary>
+		/// Reads the record state for the given record in the table.
+		/// </summary>
+		/// <param name="rowIndex"></param>
+		/// <returns></returns>
+		public abstract int ReadRecordType(int rowIndex);
+
+		/// <summary>
+		/// Returns true if the record with the given index is deleted from the 
+		/// table.
+		/// </summary>
+		/// <param name="rowIndex"></param>
+		/// <remarks>
+		/// A deleted row can not be read.
+		/// </remarks>
+		/// <returns></returns>
+		protected abstract bool IsRecordDeleted(int rowIndex);
 
 		/// <summary>
 		/// Removes the row at the given index so that any resources associated
 		/// with the row may be immediately available to be recycled.
 		/// </summary>
-		/// <param name="row_index"></param>
-		internal abstract void InternalDeleteRow(int row_index);
-
-		/// <summary>
-		/// Creates and returns an <see cref="IIndexSet"/> object that is used 
-		/// to create indices for this table source.
-		/// </summary>
-		/// <remarks>
-		/// The <see cref="IIndexSet"/> represents a snapshot of the table and 
-		/// the given point in time.
-		/// <para>
-		/// <b>Note</b> Not synchronized because we synchronize in the 
-		/// <see cref="IndexSetStore"/> object.
-		/// </para>
-		/// </remarks>
-		/// <returns></returns>
-		internal abstract IIndexSet CreateIndexSet();
-
-		/// <summary>
-		/// Commits changes made to an IndexSet returned by the 
-		/// <see cref="CreateIndexSet"/> method.
-		/// </summary>
-		/// <param name="index_set"></param>
-		/// <remarks>
-		/// This method also disposes the IndexSet so it is no longer valid.
-		/// </remarks>
-		internal abstract void CommitIndexSet(IIndexSet index_set);
+		/// <param name="rowIndex"></param>
+		protected abstract void OnDeleteRow(int rowIndex);
 
 		/// <summary>
 		/// Adds a new row to this table and returns an index that is used to
@@ -476,7 +507,7 @@ namespace Deveel.Data {
 		/// change where it eventually migrates into the master index and schemes.
 		/// </remarks>
 		/// <returns></returns>
-		internal abstract int InternalAddRow(DataRow data);
+		protected abstract int OnAddRow(DataRow data);
 
 		/// <summary>
 		/// Returns the cell contents of the given cell in the table.
@@ -489,17 +520,7 @@ namespace Deveel.Data {
 		/// such extensive caching as others.
 		/// </remarks>
 		/// <returns></returns>
-		internal abstract TObject InternalGetCellContents(int column, int row);
-
-		/// <summary>
-		/// Atomically returns the current 'unique_id' value for this table.
-		/// </summary>
-		internal abstract long CurrentUniqueId { get; }
-
-		/// <summary>
-		/// Atomically returns the next 'unique_id' value from this table.
-		/// </summary>
-		internal abstract long NextUniqueId { get; }
+		protected abstract TObject OnGetCellContents(int column, int row);
 
 		/// <summary>
 		/// Sets the unique id for this store.
@@ -509,16 +530,16 @@ namespace Deveel.Data {
 		/// This must only be used under extraordinary circumstances, such as 
 		/// restoring from a backup, or converting from one file to another.
 		/// </remarks>
-		internal abstract void SetUniqueID(long value);
+		public abstract void SetUniqueID(long value);
 
 		/// <summary>
 		/// Disposes of all in-memory resources associated with this table and
 		/// invalidates this object.
 		/// </summary>
-		/// <param name="pending_drop">If true the table is to be disposed 
+		/// <param name="pendingDrop">If true the table is to be disposed 
 		/// pending a call to <see cref="Drop"/> and any persistant resources 
 		/// that are allocated may be freed.</param>
-		internal abstract void Dispose(bool pending_drop);
+		public abstract void Dispose(bool pendingDrop);
 
 		/// <summary>
 		/// Disposes and drops this table.
@@ -530,7 +551,7 @@ namespace Deveel.Data {
 		/// If the dispose failed for any reason, it returns <b>false</b>, 
 		/// otherwise <b>true</b>.
 		/// </returns>
-		internal abstract bool Drop();
+		public abstract bool Drop();
 
 		/// <summary>
 		/// Called by the 'shutdown hook' on the conglomerate.
@@ -540,545 +561,77 @@ namespace Deveel.Data {
 		/// mode and then prevent any further access to the object after it 
 		/// returns.  It must operate very quickly.
 		/// </remarks>
-		internal abstract void ShutdownHookCleanup();
-
-
+		public abstract void ShutdownHookCleanup();
 
 		/// <summary>
-		/// Returns true if a compact table is necessary.
+		/// Creates a new master table data source that is a copy of the 
+		/// given <see cref="MasterTableDataSource"/> object.
 		/// </summary>
-		/// <remarks>
-		/// By default, we return true however it is recommended this method 
-		/// is overwritten and the table tested.
-		/// </remarks>
-		internal virtual bool Compact {
-			get { return true; }
-		}
-
-		/// <summary>
-		/// Creates a <see cref="SelectableScheme"/> object for the given 
-		/// column in this table.
-		/// </summary>
-		/// <param name="index_set"></param>
-		/// <param name="table"></param>
-		/// <param name="column"></param>
-		/// <remarks>
-		/// This reads the index from the index set (if there is one) then wraps
-		/// it around the selectable schema as appropriate.
-		/// <para>
-		/// <b>Note</b>: This needs to be deprecated in support of composite 
-		/// indexes.
-		/// </para>
-		/// </remarks>
-		/// <returns></returns>
-		internal SelectableScheme CreateSelectableSchemeForColumn(IIndexSet index_set, ITableDataSource table, int column) {
-			lock (this) {
-				// What's the type of scheme for this column?
-				DataTableColumnDef column_def = DataTableDef[column];
-
-				// If the column isn't indexable then return a BlindSearch object
-				if (!column_def.IsIndexableType) {
-					return new BlindSearch(table, column);
-				}
-
-				String scheme_type = column_def.IndexScheme;
-				if (scheme_type.Equals("InsertSearch")) {
-					// Search the TableIndexDef for this column
-					DataIndexSetDef index_set_def = DataIndexSetDef;
-					int index_i = index_set_def.FindIndexForColumns(new String[] { column_def.Name });
-					return CreateSelectableSchemeForIndex(index_set, table, index_i);
-				}
-
-				if (scheme_type.Equals("BlindSearch"))
-					return new BlindSearch(table, column);
-				
-				throw new ApplicationException("Unknown scheme type");
-			}
-		}
-
-		/// <summary>
-		/// Creates a SelectableScheme object for the given index in the index 
-		/// set def in this table.
-		/// </summary>
-		/// <param name="index_set"></param>
-		/// <param name="table"></param>
-		/// <param name="index_i"></param>
-		/// <remarks>
-		/// This reads the index from the index set (if there is one) then 
-		/// wraps it around the selectable schema as appropriate.
-		/// </remarks>
-		/// <returns></returns>
-		internal SelectableScheme CreateSelectableSchemeForIndex(IIndexSet index_set, ITableDataSource table, int index_i) {
-			lock (this) {
-				// Get the IndexDef object
-				DataIndexDef indexDef = DataIndexSetDef[index_i];
-
-				if (indexDef.Type.Equals("BLIST")) {
-					string[] cols = indexDef.ColumnNames;
-					DataTableDef tableDef = DataTableDef;
-					if (cols.Length == 1) {
-						// If a single column
-						int col_index = tableDef.FindColumnName(cols[0]);
-						// Get the index from the index set and set up the new InsertSearch
-						// scheme.
-						IIntegerList index_list = index_set.GetIndex(indexDef.Pointer);
-						InsertSearch iis = new InsertSearch(table, col_index, index_list);
-						return iis;
-					}
-					
-					throw new Exception("Multi-column indexes not supported at this time.");
-				}
-
-				throw new Exception("Unrecognised type.");
-			}
-		}
+		/// <param name="tableId">The table id to given the new table.</param>
+		/// <param name="srcMasterTable">The table to copy.</param>
+		/// <param name="indexSet">The view of the table to be copied.</param>
+		public abstract void CopyFrom(int tableId, MasterTableDataSource srcMasterTable, IIndexSet indexSet);
 
 		/// <summary>
 		/// Creates a minimal <see cref="ITableDataSource"/> implementation 
 		/// that represents this <see cref="MasterTableDataSource"/>.
 		/// </summary>
-		/// <param name="master_index"></param>
+		/// <param name="masterIndex"></param>
 		/// <remarks>
 		/// The implementation returned does not implement the 
 		/// <see cref="ITableDataSource.GetColumnScheme"/> method.
 		/// </remarks>
 		/// <returns></returns>
-		protected ITableDataSource MinimalTableDataSource(IIntegerList master_index) {
+		protected ITableDataSource GetMinimalTableDataSource(IIntegerList masterIndex) {
 			// Make a ITableDataSource that represents the master table over this
 			// index.
-			return new TableDataSourceImpl(this, master_index);
-		}
-
-		private class TableDataSourceImpl : ITableDataSource {
-			private readonly MasterTableDataSource mtds;
-			private readonly IIntegerList master_index;
-
-			public TableDataSourceImpl(MasterTableDataSource mtds, IIntegerList master_index) {
-				this.mtds = mtds;
-				this.master_index = master_index;
-			}
-
-			public TransactionSystem System {
-				get { return mtds.system; }
-			}
-
-			public DataTableDef DataTableDef {
-				get { return mtds.DataTableDef; }
-			}
-
-			public int RowCount {
-				get {
-					// NOTE: Returns the number of rows in the master index before journal
-					//   entries have been made.
-					return master_index.Count;
-				}
-			}
-
-			public IRowEnumerator GetRowEnumerator() {
-					// NOTE: Returns iterator across master index before journal entry
-					//   changes.
-					// Get an iterator across the row list.
-					IIntegerIterator iterator = master_index.GetIterator();
-					// Wrap it around a IRowEnumerator object.
-					return new RowEnumerationImpl(iterator);
-			}
-
-			private class RowEnumerationImpl : IRowEnumerator {
-				public RowEnumerationImpl(IIntegerIterator iterator) {
-					this.iterator = iterator;
-				}
-
-				private readonly IIntegerIterator iterator;
-
-				public bool MoveNext() {
-					return iterator.MoveNext();
-				}
-
-				public void Reset() {
-				}
-
-				public object Current {
-					get { return RowIndex; }
-				}
-
-				public int RowIndex {
-					get { return iterator.Next; }
-				}
-			}
-			public SelectableScheme GetColumnScheme(int column) {
-				throw new ApplicationException("Not implemented.");
-			}
-			public TObject GetCellContents(int column, int row) {
-				return mtds.GetCellContents(column, row);
-			}
-		}
-
-		/// <summary>
-		/// Builds a complete index set on the data in this table.
-		/// </summary>
-		/// <remarks>
-		/// This must only be called when either:
-		/// <list type="bullet">
-		/// <item>we are under a commit lock</item>
-		/// <item>there is a guarentee that no concurrect access to the indexing 
-		/// information can happen (such as when we are creating the table).</item>
-		/// </list>
-		/// <para>
-		/// <b>Note</b> We assume that the index information for this table is 
-		/// blank before this method is called.
-		/// </para>
-		/// </remarks>
-		internal void BuildIndexes() {
-			lock (this) {
-				IIndexSet indexSet = CreateIndexSet();
-
-				DataIndexSetDef indexSetDef = DataIndexSetDef;
-
-				int rowCount = RawRowCount;
-
-				// Master index is always on index position 0
-				IIntegerList masterIndex = indexSet.GetIndex(0);
-
-				// First, update the master index
-				for (int rowIndex = 0; rowIndex < rowCount; ++rowIndex) {
-					// If this row isn't deleted, set the index information for it,
-					if (!RecordDeleted(rowIndex)) {
-						// First add to master inde
-						if (!masterIndex.UniqueInsertSort(rowIndex))
-							throw new Exception("Assertion failed: Master index entry was duplicated.");
-					}
-				}
-
-				// Commit the master index
-				CommitIndexSet(indexSet);
-
-				// Now go ahead and build each index in this table
-				int indexCount = indexSetDef.IndexCount;
-				for (int i = 0; i < indexCount; ++i) {
-					BuildIndex(i);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Builds the given index number (from the <see cref="DataIndexSetDef"/>).
-		/// </summary>
-		/// <param name="index_number"></param>
-		/// <remarks>
-		/// This must only be called when either:
-		/// <list type="bullet">
-		/// <item>we are under a commit lock</item>
-		/// <item>there is a guarentee that no concurrect access to the indexing 
-		/// information can happen (such as when we are creating the table).</item>
-		/// </list>
-		/// <para>
-		/// <b>Note</b> We assume that the index number in this table is blank before this
-		/// method is called.
-		/// </para>
-		/// </remarks>
-		internal void BuildIndex(int index_number) {
-			lock (this) {
-				IIndexSet indexSet = CreateIndexSet();
-
-				// Master index is always on index position 0
-				IIntegerList masterIndex = indexSet.GetIndex(0);
-				// A minimal ITableDataSource for constructing the indexes
-				ITableDataSource minTableSource = MinimalTableDataSource(masterIndex);
-
-				// Set up schemes for the index,
-				SelectableScheme scheme = CreateSelectableSchemeForIndex(indexSet, minTableSource, index_number);
-
-				// Rebuild the entire index
-				int rowCount = RawRowCount;
-				for (int rowIndex = 0; rowIndex < rowCount; ++rowIndex) {
-					// If this row isn't deleted, set the index information for it,
-					if (!RecordDeleted(rowIndex))
-						scheme.Insert(rowIndex);
-				}
-
-				// Commit the index
-				CommitIndexSet(indexSet);
-			}
-		}
-
-
-		/// <summary>
-		/// Adds a new transaction modification to this master table source.
-		/// </summary>
-		/// <param name="commitId"></param>
-		/// <param name="change"></param>
-		/// <param name="indexSet">Represents the changed index information to 
-		/// commit to this table.</param>
-		/// <remarks>
-		/// This information represents the information that was added/removed 
-		/// in the table in this transaction.
-		/// <para>
-		/// It's guarenteed that 'commit_id' additions will be sequential.
-		/// </para>
-		/// </remarks>
-		internal void CommitTransactionChange(long commitId, MasterTableJournal change, IIndexSet indexSet) {
-			lock (this) {
-				// ASSERT: Can't do this if source is Read only.
-				if (IsReadOnly)
-					throw new ApplicationException("Can't commit transaction journal, table is Read only.");
-
-				change.CommitId = commitId;
-
-				try {
-
-					// Add this journal to the multi version table indices log
-					TableIndices.AddTransactionJournal(change);
-
-					// Write the modified index set to the index store
-					// (Updates the index file)
-					CommitIndexSet(indexSet);
-
-					// Update the state of the committed added data to the file system.
-					// (Updates data to the allocation file)
-					//
-					// ISSUE: This can add up to a lot of changes to the allocation file and
-					//   the runtime could potentially be terminated in the middle of
-					//   the update.  If an interruption happens the allocation information
-					//   may be incorrectly flagged.  The type of corruption this would
-					//   result in would be;
-					//   + From an 'update' the updated record may disappear.
-					//   + From a 'delete' the deleted record may not delete.
-					//   + From an 'insert' the inserted record may not insert.
-					//
-					// Note, the possibility of this type of corruption occuring has been
-					// minimized as best as possible given the current architecture.
-					// Also note that is not possible for a table file to become corrupted
-					// beyond recovery from this issue.
-
-					int size = change.EntriesCount;
-					for (int i = 0; i < size; ++i) {
-						JournalCommandType b = change.GetCommand(i);
-						int rowIndex = change.GetRowIndex(i);
-						// Was a row added or removed?
-						if (b == JournalCommandType.AddRow) {
-							// Record commit added
-							int oldType = WriteRecordType(rowIndex, 0x010);
-							// Check the record was in an uncommitted state before we changed
-							// it.
-							if ((oldType & 0x0F0) != 0) {
-								WriteRecordType(rowIndex, oldType & 0x0F0);
-								throw new ApplicationException("Record " + rowIndex + " of table " + this +
-								                               " was not in an uncommitted state!");
-							}
-
-						} else if (b == JournalCommandType.RemoveRow) {
-							// Record commit removed
-							int oldType = WriteRecordType(rowIndex, 0x020);
-							// Check the record was in an added state before we removed it.
-							if ((oldType & 0x0F0) != 0x010) {
-								WriteRecordType(rowIndex, oldType & 0x0F0);
-								throw new ApplicationException("Record " + rowIndex + " of table " + this +
-								                               " was not in an added state!");
-							}
-							// Notify collector that this row has been marked as deleted.
-							gc.MarkRowAsDeleted(rowIndex);
-						}
-					}
-
-				} catch (IOException e) {
-					Debug.WriteException(e);
-					throw new ApplicationException("IO Error: " + e.Message);
-				}
-
-			}
-		}
-
-		/// <summary>
-		/// Rolls back a transaction change in this table source.
-		/// </summary>
-		/// <param name="change"></param>
-		/// <remarks>
-		/// Any rows added to the table will be uncommited rows (type_key = 0).  
-		/// Those rows must be marked as committed deleted.
-		/// </remarks>
-		internal void RollbackTransactionChange(MasterTableJournal change) {
-			lock (this) {
-				// ASSERT: Can't do this is source is Read only.
-				if (IsReadOnly)
-					throw new ApplicationException("Can't rollback transaction journal, table is Read only.");
-
-				// Any rows added in the journal are marked as committed deleted and the
-				// journal is then discarded.
-
-				try {
-					// Mark all rows in the data_store as appropriate to the changes.
-					int size = change.EntriesCount;
-					for (int i = 0; i < size; ++i) {
-						JournalCommandType b = change.GetCommand(i);
-						int rowIndex = change.GetRowIndex(i);
-						// Make row as added or removed.
-						if (b == JournalCommandType.AddRow) {
-							// Record commit removed (we are rolling back remember).
-							//          int old_type = data_store.WriteRecordType(row_index + 1, 0x020);
-							int oldType = WriteRecordType(rowIndex, 0x020);
-							// Check the record was in an uncommitted state before we changed
-							// it.
-							if ((oldType & 0x0F0) != 0) {
-								//            data_store.WriteRecordType(row_index + 1, old_type & 0x0F0);
-								WriteRecordType(rowIndex, oldType & 0x0F0);
-								throw new ApplicationException("Record " + rowIndex + " was not in an " +
-								                               "uncommitted state!");
-							}
-							// Notify collector that this row has been marked as deleted.
-							gc.MarkRowAsDeleted(rowIndex);
-						} else if (b == JournalCommandType.RemoveRow) {
-							// Any journal entries marked as TABLE_REMOVE are ignored because
-							// we are rolling back.  This means the row is not logically changed.
-						}
-					}
-
-					// The journal entry is discarded, the indices do not need to be updated
-					// to reflect this rollback.
-				} catch (IOException e) {
-					Debug.WriteException(e);
-					throw new ApplicationException("IO Error: " + e.Message);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Returns a <see cref="IMutableTableDataSource"/> object that represents 
-		/// this data source at the time the given transaction started.
-		/// </summary>
-		/// <param name="transaction"></param>
-		/// <remarks>
-		/// Any modifications to the returned table are logged in the table 
-		/// journal.
-		/// <para>
-		/// This is a key method in this object because it allows us to get a 
-		/// data source that represents the data in the table before any 
-		/// modifications may have been committed.
-		/// </para>
-		/// </remarks>
-		/// <returns></returns>
-		internal IMutableTableDataSource CreateTableDataSourceAtCommit(SimpleTransaction transaction) {
-			return CreateTableDataSourceAtCommit(transaction, new MasterTableJournal(TableID));
-		}
-
-		/// <summary>
-		/// Returns a <see cref="IMutableTableDataSource"/> object that represents 
-		/// this data source at the time the given transaction started, and also 
-		/// makes any modifications that are described by the journal in the 
-		/// table.
-		/// </summary>
-		/// <param name="transaction"></param>
-		/// <param name="journal"></param>
-		/// <remarks>
-		/// This method is useful for merging the changes made by a transaction 
-		/// into a view of the table.
-		/// </remarks>
-		/// <returns></returns>
-		internal IMutableTableDataSource CreateTableDataSourceAtCommit(SimpleTransaction transaction, MasterTableJournal journal) {
-			return new MMutableTableDataSource(this, transaction, journal);
-		}
-
-		// ---------- File IO level table modification ----------
-
-		/// <summary>
-		/// Sets up the <see cref="DataIndexSetDef"/> object from the information 
-		/// set in this object
-		/// </summary>
-		/// <remarks>
-		/// This will only setup a default <see cref="DataIndexSetDef"/> on the 
-		/// information in the <see cref="DataTableDef"/>.
-		/// </remarks>
-		protected void SetupDataIndexSetDef() {
-			lock (this) {
-				// Create the initial DataIndexSetDef object.
-				index_def = new DataIndexSetDef(table_def.TableName);
-				for (int i = 0; i < table_def.ColumnCount; ++i) {
-					DataTableColumnDef colDef = table_def[i];
-					if (colDef.IsIndexableType &&
-						colDef.IndexScheme.Equals("InsertSearch")) {
-						index_def.AddDataIndexDef(new DataIndexDef("ANON-COLUMN:" + i,
-																   new String[] { colDef.Name }, i + 1,
-																   "BLIST", false));
-					}
-				}
-			}
+			return new MinimalTableDataSource(this, masterIndex);
 		}
 
 		/// <summary>
 		/// Sets up the DataTableDef.
 		/// </summary>
-		/// <param name="tableDef"></param>
+		/// <param name="info"></param>
 		/// <remarks>
 		/// This would typically only ever be called from the <i>create</i>
 		/// method.
 		/// </remarks>
-		protected void SetupDataTableDef(DataTableDef tableDef) {
+		protected void SetTableInfo(DataTableDef info) {
 			lock (this) {
 				// Check table_id isn't too large.
-				if ((table_id & 0x0F0000000) != 0) {
+				if ((tableId & 0x0F0000000) != 0)
 					throw new ApplicationException("'table_id' exceeds maximum possible keys.");
-				}
 
-				table_def = tableDef;
-
-				// The name of the table to create,
-				TableName table_name = table_def.TableName;
+				tableInfo = info;
 
 				// Create table indices
-				TableIndices = new MultiVersionTableIndices(System, table_name, tableDef.ColumnCount);
+				tableIndices = new MultiVersionTableIndices(System, this);
 
 				// Setup the DataIndexSetDef
-				SetupDataIndexSetDef();
+				SetIndexSetInfo();
 			}
 		}
 
 		/// <summary>
 		/// Loads the internal variables.
 		/// </summary>
-		protected void LoadInternal() {
+		private void LoadInternal() {
 			lock (this) {
 				// Set up the stat keys.
-				string tableName = table_def.Name;
-				string schemaName = table_def.Schema;
+				string tableName = tableInfo.Name;
+				string schemaName = tableInfo.Schema;
 				string n = tableName;
 				if (schemaName.Length > 0) {
 					n = schemaName + "." + tableName;
 				}
-				root_lock_key = "MasterTableDataSource.RootLocks." + n;
-				total_hits_key = "MasterTableDataSource.Hits.Total." + n;
-				file_hits_key = "MasterTableDataSource.Hits.File." + n;
-				delete_hits_key = "MasterTableDataSource.Hits.Delete." + n;
-				insert_hits_key = "MasterTableDataSource.Hits.Insert." + n;
+				rootLockKey = "MasterTableDataSource.RootLocks." + n;
+				totalHitsKey = "MasterTableDataSource.Hits.Total." + n;
+				fileHitsKey = "MasterTableDataSource.Hits.File." + n;
+				deleteHitsKey = "MasterTableDataSource.Hits.Delete." + n;
+				insertHitsKey = "MasterTableDataSource.Hits.Insert." + n;
 
-				column_count = table_def.ColumnCount;
-
-				is_closed = false;
+				isClosed = false;
 			}
-		}
-
-		/// <summary>
-		/// Returns true if this table source is closed.
-		/// </summary>
-		internal bool IsClosed {
-			get {
-				lock (this) {
-					return is_closed;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Returns true if the source is read only.
-		/// </summary>
-		internal bool IsReadOnly {
-			get { return system.ReadOnlyAccess; }
-		}
-
-		/// <summary>
-		/// Returns the IStoreSystem object used to manage stores in the 
-		/// persistence system.
-		/// </summary>
-		protected IStoreSystem StoreSystem {
-			get { return store_system; }
 		}
 
 		/// <summary>
@@ -1093,16 +646,16 @@ namespace Deveel.Data {
 		/// change where it eventually migrates into the master index and schemes.
 		/// </remarks>
 		/// <returns></returns>
-		internal int AddRow(DataRow data) {
+		public int AddRow(DataRow data) {
 			int rowNumber;
 
 			lock (this) {
-				rowNumber = InternalAddRow(data);
+				rowNumber = OnAddRow(data);
 
 			} // lock
 
 			// Update stats
-			System.Stats.Increment(insert_hits_key);
+			System.Stats.Increment(insertHitsKey);
 
 			// Return the record index of the new data in the table
 			return rowNumber;
@@ -1123,10 +676,10 @@ namespace Deveel.Data {
 		private void DoHardRowRemove(int rowIndex) {
 			lock (this) {
 				// Internally delete the row,
-				InternalDeleteRow(rowIndex);
+				OnDeleteRow(rowIndex);
 
 				// Update stats
-				system.Stats.Increment(delete_hits_key);
+				system.Stats.Increment(deleteHitsKey);
 			}
 		}
 
@@ -1149,19 +702,16 @@ namespace Deveel.Data {
 		internal void HardRemoveRow(int record_index) {
 			lock (this) {
 				// ASSERTION: We are not under a root Lock.
-				if (!IsRootLocked) {
-					//      int type_key = data_store.ReadRecordType(record_index + 1);
-					int type_key = ReadRecordType(record_index);
-					// Check this record is marked as committed removed.
-					if ((type_key & 0x0F0) == 0x020) {
-						DoHardRowRemove(record_index);
-					} else {
-						throw new ApplicationException("Row isn't marked as committed removed: " + record_index);
-					}
-				} else {
+				if (IsRootLocked)
 					throw new ApplicationException("Assertion failed: " +
 					                               "Can't remove row, table is under a root Lock.");
-				}
+
+				int typeKey = ReadRecordType(record_index);
+				// Check this record is marked as committed removed.
+				if ((typeKey & 0x0F0) != 0x020)
+					throw new ApplicationException("Row isn't marked as committed removed: " + record_index);
+
+				DoHardRowRemove(record_index);
 			}
 		}
 
@@ -1177,40 +727,37 @@ namespace Deveel.Data {
 		internal bool HardCheckAndReclaimRow(int recordIndex) {
 			lock(this) {
 				// ASSERTION: We are not under a root Lock.
-				if (!IsRootLocked) {
-					// Row already deleted?
-					if (!RecordDeleted(recordIndex)) {
-						int typeKey = ReadRecordType(recordIndex);
-						// Check this record is marked as committed removed.
-						if ((typeKey & 0x0F0) == 0x020) {
-							//          Console.Out.WriteLine("[" + getName() + "] " +
-							//                             "Hard Removing: " + record_index);
-							DoHardRowRemove(recordIndex);
-							return true;
-						}
-					}
-					return false;
-				}
+				if (IsRootLocked)
+					throw new ApplicationException("Assertion failed: Can't remove row, table is under a root Lock.");
 
-				throw new ApplicationException("Assertion failed: Can't remove row, table is under a root Lock.");
+				// Row already deleted?
+				if (IsRecordDeleted(recordIndex)) 
+					return false;
+
+				int typeKey = ReadRecordType(recordIndex);
+				// Check this record is marked as committed removed.
+				if ((typeKey & 0x0F0) != 0x020)
+					return false;
+
+				DoHardRowRemove(recordIndex);
+				return true;
 			}
 		}
 
 		/// <summary>
 		/// Returns the record type of the given record index.
 		/// </summary>
-		/// <param name="record_index"></param>
+		/// <param name="recordIndex"></param>
 		/// <returns>
 		/// Returns a type that is compatible with RawDiagnosticTable record 
 		/// type.
 		/// </returns>
-		internal RecordState RecordTypeInfo(int record_index) {
+		internal RecordState RecordTypeInfo(int recordIndex) {
 			lock (this) {
-				//    ++record_index;
-				if (RecordDeleted(record_index)) {
+				if (IsRecordDeleted(recordIndex))
 					return RecordState.Deleted;
-				}
-				int typeKey = ReadRecordType(record_index) & 0x0F0;
+
+				int typeKey = ReadRecordType(recordIndex) & 0x0F0;
 				if (typeKey == 0)
 					return RecordState.Uncommitted;
 				if (typeKey == 0x010)
@@ -1220,116 +767,6 @@ namespace Deveel.Data {
 				return RecordState.Error;
 
 			}
-		}
-
-		/// <summary>
-		/// This is called by the 'open' method.
-		/// </summary>
-		/// <remarks>
-		/// It performs a scan of the records and marks any rows that are 
-		/// uncommitted as deleted. It also checks that the row is not within 
-		/// the master index.
-		/// </remarks>
-		protected void DoOpeningScan() {
-			lock (this) {
-				DateTime inTime = DateTime.Now;
-
-				// ASSERTION: No root locks and no pending transaction changes,
-				//   VERY important we assert there's no pending transactions.
-				if (IsRootLocked || HasTransactionChangesPending) {
-					// This shouldn't happen if we are calling from 'open'.
-					throw new Exception("Odd, we are root locked or have pending journal changes.");
-				}
-
-				// This is pointless if we are in Read only mode.
-				if (!IsReadOnly) {
-					// A journal of index changes during this scan...
-					MasterTableJournal journal = new MasterTableJournal();
-
-					// Get the master index of rows in this table
-					IIndexSet index_set = CreateIndexSet();
-					IIntegerList master_index = index_set.GetIndex(0);
-
-					// NOTE: We assume the index information is correct and that the
-					//   allocation information is potentially bad.
-
-					int row_count = RawRowCount;
-					for (int i = 0; i < row_count; ++i) {
-						// Is this record marked as deleted?
-						if (!RecordDeleted(i)) {
-							// Get the type flags for this record.
-							RecordState type = RecordTypeInfo(i);
-							// Check if this record is marked as committed removed, or is an
-							// uncommitted record.
-							if (type == RecordState.CommittedRemoved ||
-								type == RecordState.Uncommitted) {
-								// Check it's not in the master index...
-								if (!master_index.Contains(i)) {
-									// Delete it.
-									DoHardRowRemove(i);
-								} else {
-									Debug.Write(DebugLevel.Error, this,
-												  "Inconsistant: Row is indexed but marked as " +
-												  "removed or uncommitted.");
-									Debug.Write(DebugLevel.Error, this,
-												  "Row: " + i + " Type: " + type +
-												  " Table: " + TableName);
-									// Mark the row as committed added because it is in the index.
-									WriteRecordType(i, 0x010);
-
-								}
-							} else {
-								// Must be committed added.  Check it's indexed.
-								if (!master_index.Contains(i)) {
-									// Not indexed, so data is inconsistant.
-									Debug.Write(DebugLevel.Error, this,
-												  "Inconsistant: Row committed added but not in master index.");
-									Debug.Write(DebugLevel.Error, this,
-												  "Row: " + i + " Type: " + type +
-												  " Table: " + TableName);
-									// Mark the row as committed removed because it is not in the
-									// index.
-									WriteRecordType(i, 0x020);
-
-								}
-							}
-						} else {
-							// if deleted
-							// Check this record isn't in the master index.
-							if (master_index.Contains(i)) {
-								// It's in the master index which is wrong!  We should remake the
-								// indices.
-								Debug.Write(DebugLevel.Error, this, "Inconsistant: Row is removed but in index.");
-								Debug.Write(DebugLevel.Error, this, "Row: " + i + " Table: " + TableName);
-								// Mark the row as committed added because it is in the index.
-								WriteRecordType(i, 0x010);
-
-							}
-						}
-					} // for (int i = 0 ; i < row_count; ++i)
-
-					// Dispose the index set
-					index_set.Dispose();
-
-				}
-
-				TimeSpan bench_time = DateTime.Now - inTime;
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								  "Opening scan for " + ToString() + " (" + TableName + ") took " +
-								  bench_time + "ms.");
-				}
-
-			}
-		}
-
-		/// <summary>
-		/// Returns an implementation of <see cref="IRawDiagnosticTable"/> that 
-		/// we can use to diagnose problems with the data in this source.
-		/// </summary>
-		/// <returns></returns>
-		internal IRawDiagnosticTable GetRawDiagnosticTable() {
-			return new MRawDiagnosticTable(this);
 		}
 
 
@@ -1344,10 +781,11 @@ namespace Deveel.Data {
 		/// or was not returned by the <see cref="AddRow"/> method.
 		/// </remarks>
 		/// <returns></returns>
-		internal TObject GetCellContents(int column, int row) {
+		public TObject GetCellContents(int column, int row) {
 			if (row < 0)
 				throw new ApplicationException("'row' is < 0");
-			return InternalGetCellContents(column, row);
+
+			return OnGetCellContents(column, row);
 		}
 
 		/// <summary>
@@ -1359,10 +797,10 @@ namespace Deveel.Data {
 		/// lock means that data is still being pointed to in this file (even 
 		/// possibly committed deleted data).
 		/// </remarks>
-		internal void AddRootLock() {
+		public void AddRootLock() {
 			lock (this) {
-				system.Stats.Increment(root_lock_key);
-				++root_lock;
+				system.Stats.Increment(rootLockKey);
+				++rootLock;
 			}
 		}
 
@@ -1375,30 +813,18 @@ namespace Deveel.Data {
 		/// lock means that data is still being pointed to in this file (even 
 		/// possibly committed deleted data).
 		/// </remarks>
-		internal void RemoveRootLock() {
+		public void RemoveRootLock() {
 			lock (this) {
-				if (!is_closed) {
-					system.Stats.Decrement(root_lock_key);
-					if (root_lock == 0) {
+				if (!isClosed) {
+					system.Stats.Decrement(rootLockKey);
+					if (rootLock == 0)
 						throw new ApplicationException("Too many root locks removed!");
-					}
-					--root_lock;
-					// If the last Lock is removed, schedule a possible collection.
-					if (root_lock == 0) {
-						CheckForCleanup();
-					}
-				}
-			}
-		}
 
-		/// <summary>
-		/// Returns true if the table is currently under a root lock (has 1 
-		/// or more root locks on it).
-		/// </summary>
-		internal bool IsRootLocked {
-			get {
-				lock (this) {
-					return root_lock > 0;
+					--rootLock;
+
+					// If the last Lock is removed, schedule a possible collection.
+					if (rootLock == 0)
+						CheckForCleanup();
 				}
 			}
 		}
@@ -1412,443 +838,54 @@ namespace Deveel.Data {
 		/// </remarks>
 		protected void ClearAllRootLocks() {
 			lock (this) {
-				root_lock = 0;
+				rootLock = 0;
 			}
 		}
 
-		/// <summary>
-		/// Checks to determine if it is safe to clean up any resources in the
-		/// table, and if it is safe to do so, the space is reclaimed.
-		/// </summary>
-		internal abstract void CheckForCleanup();
-
-
-		internal string TransactionChangeString {
-			get {
-				lock (this) {
-					return TableIndices.TransactionChangeString;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Returns true if this table has any journal modifications that have 
-		/// not yet been incorporated into master index.
-		/// </summary>
-		internal bool HasTransactionChangesPending {
-			get {
-				lock (this) {
-					return TableIndices.HasTransactionChangesPending;
-				}
-			}
-		}
-
-
-		// ---------- Inner classes ----------
-
-		/// <summary>
-		/// A <see cref="IRawDiagnosticTable"/> implementation that provides 
-		/// direct access to the root data of this table source bypassing any 
-		/// indexing schemes.
-		/// </summary>
-		/// <remarks>
-		/// This interface allows for the inspection and repair of data files.
-		/// </remarks>
-		private sealed class MRawDiagnosticTable : IRawDiagnosticTable {
-			public MRawDiagnosticTable(MasterTableDataSource mtds) {
-				this.mtds = mtds;
-			}
-
+		private class MinimalTableDataSource : ITableDataSource {
 			private readonly MasterTableDataSource mtds;
+			private readonly IIntegerList masterIndex;
 
-			// ---------- Implemented from IRawDiagnosticTable -----------
-
-			public int PhysicalRecordCount {
-				get {
-					try {
-						return mtds.RawRowCount;
-					} catch (IOException e) {
-						throw new ApplicationException(e.Message);
-					}
-				}
-			}
-
-			public DataTableDef DataTableDef {
-				get { return mtds.DataTableDef; }
-			}
-
-			public RecordState GetRecordState(int record_index) {
-				try {
-					return mtds.RecordTypeInfo(record_index);
-				} catch (IOException e) {
-					throw new ApplicationException(e.Message);
-				}
-			}
-
-			public int GetRecordSize(int record_index) {
-				return -1;
-			}
-
-			public TObject GetCellContents(int column, int record_index) {
-				return mtds.GetCellContents(column, record_index);
-			}
-
-			public String GetRecordMiscInformation(int record_index) {
-				return null;
-			}
-
-		}
-
-		/// <summary>
-		/// A <see cref="IMutableTableDataSource"/> object as returned by the 
-		/// <see cref="MasterTableDataSource.CreateTableDataSourceAtCommit(SimpleTransaction,MasterTableJournal)"/> 
-		/// method.
-		/// </summary>
-		/// <remarks>
-		/// <b>Note</b> This object is <b>not</b> thread-safe and it is assumed
-		/// any use of this object will be thread exclusive. This is okay because 
-		/// multiple instances of this object can be created on the same 
-		/// <see cref="MasterTableDataSource"/> if multi-thread access to a 
-		/// <see cref="MasterTableDataSource"/> is desirable.
-		/// </remarks>
-		private sealed class MMutableTableDataSource : IMutableTableDataSource {
-			private readonly MasterTableDataSource mtds;
-
-			/// <summary>
-			///The Transaction object that this IMutableTableDataSource was
-			/// generated from.
-			/// </summary>
-			/// <remarks>
-			/// This reference should be used only to query database constraint 
-			/// information.
-			/// </remarks>
-			private SimpleTransaction transaction;
-
-			/// <summary>
-			/// True if the transaction is Read-only.
-			/// </summary>
-			private readonly bool tran_read_only;
-
-			/// <summary>
-			/// The name of this table.
-			/// </summary>
-			private TableName table_name;
-
-			/// <summary>
-			/// The 'recovery point' to which the row index in this table source 
-			/// has rebuilt to.
-			/// </summary>
-			private int row_list_rebuild;
-
-			/// <summary>
-			/// The index that represents the rows that are within this
-			/// table data source within this transaction.
-			/// </summary>
-			private IIntegerList row_list;
-
-			/// <summary>
-			/// The 'recovery point' to which the schemes in this table source have
-			/// rebuilt to.
-			/// </summary>
-			private int[] scheme_rebuilds;
-
-			/// <summary>
-			/// The IIndexSet for this mutable table source.
-			/// </summary>
-			private IIndexSet index_set;
-
-			/// <summary>
-			/// The SelectableScheme array that represents the schemes for the
-			/// columns within this transaction.
-			/// </summary>
-			private readonly SelectableScheme[] column_schemes;
-
-			/// <summary>
-			/// A journal of changes to this source since it was created.
-			/// </summary>
-			private MasterTableJournal table_journal;
-
-			/// <summary>
-			/// The last time any changes to the journal were check for referential
-			/// integrity violations.
-			/// </summary>
-			private int last_entry_ri_check;
-
-			public MMutableTableDataSource(MasterTableDataSource mtds, SimpleTransaction transaction,
-										   MasterTableJournal journal) {
+			public MinimalTableDataSource(MasterTableDataSource mtds, IIntegerList masterIndex) {
 				this.mtds = mtds;
-				this.transaction = transaction;
-				index_set = transaction.GetIndexSetForTable(mtds);
-				int col_count = DataTableDef.ColumnCount;
-				table_name = DataTableDef.TableName;
-				tran_read_only = transaction.IsReadOnly;
-				row_list_rebuild = 0;
-				scheme_rebuilds = new int[col_count];
-				column_schemes = new SelectableScheme[col_count];
-				table_journal = journal;
-				last_entry_ri_check = table_journal.EntriesCount;
+				this.masterIndex = masterIndex;
 			}
-
-			/// <summary>
-			/// Executes an update referential action.
-			/// </summary>
-			/// <param name="constraint"></param>
-			/// <param name="original_key"></param>
-			/// <param name="new_key"></param>
-			/// <param name="context"></param>
-			/// <exception cref="ApplicationException">
-			/// If the update action is "NO ACTION", and the constraint is 
-			/// <see cref="ConstraintDeferrability.InitiallyImmediate"/>, and 
-			/// the new key doesn't exist in the referral table.
-			/// </exception>
-			private void ExecuteUpdateReferentialAction(
-									  Transaction.ColumnGroupReference constraint,
-									  TObject[] original_key, TObject[] new_key,
-									  IQueryContext context) {
-
-				ConstraintAction update_rule = constraint.update_rule;
-				if (update_rule == ConstraintAction.NoAction &&
-					constraint.deferred != ConstraintDeferrability.InitiallyImmediate) {
-					// Constraint check is deferred
-					return;
-				}
-
-				// So either update rule is not NO ACTION, or if it is we are initially
-				// immediate.
-				IMutableTableDataSource key_table =
-										 transaction.GetTable(constraint.key_table_name);
-				DataTableDef table_def = key_table.DataTableDef;
-				int[] key_cols = TableDataConglomerate.FindColumnIndices(
-													  table_def, constraint.key_columns);
-				IntegerVector key_entries =
-					   TableDataConglomerate.FindKeys(key_table, key_cols, original_key);
-
-				// Are there keys effected?
-				if (key_entries.Count > 0) {
-					if (update_rule == ConstraintAction.NoAction) {
-						// Throw an exception;
-						throw new DatabaseConstraintViolationException(
-							DatabaseConstraintViolationException.ForeignKeyViolation,
-							TableDataConglomerate.DeferredString(constraint.deferred) +
-							" foreign key constraint violation on update (" +
-							constraint.name + ") Columns = " +
-							constraint.key_table_name.ToString() + "( " +
-							TableDataConglomerate.StringColumnList(constraint.key_columns) +
-							" ) -> " + constraint.ref_table_name.ToString() + "( " +
-							TableDataConglomerate.StringColumnList(constraint.ref_columns) +
-							" )");
-					} else {
-						// Perform a referential action on each updated key
-						int sz = key_entries.Count;
-						for (int i = 0; i < sz; ++i) {
-							int row_index = key_entries[i];
-							DataRow dataRow = new DataRow(key_table);
-							dataRow.SetFromRow(row_index);
-							if (update_rule == ConstraintAction.Cascade) {
-								// Update the keys
-								for (int n = 0; n < key_cols.Length; ++n) {
-									dataRow.SetValue(key_cols[n], new_key[n]);
-								}
-								key_table.UpdateRow(row_index, dataRow);
-							} else if (update_rule == ConstraintAction.SetNull) {
-								for (int n = 0; n < key_cols.Length; ++n) {
-									dataRow.SetToNull(key_cols[n]);
-								}
-								key_table.UpdateRow(row_index, dataRow);
-							} else if (update_rule == ConstraintAction.SetDefault) {
-								for (int n = 0; n < key_cols.Length; ++n) {
-									dataRow.SetToDefault(key_cols[n], context);
-								}
-								key_table.UpdateRow(row_index, dataRow);
-							} else {
-								throw new Exception("Do not understand referential action: " + update_rule);
-							}
-						}
-						// Check referential integrity of modified table,
-						key_table.ConstraintIntegrityCheck();
-					}
-				}
-			}
-
-			/// <summary>
-			/// Executes a delete referential action.
-			/// </summary>
-			/// <param name="constraint"></param>
-			/// <param name="original_key"></param>
-			/// <param name="context"></param>
-			/// <exception cref="ApplicationException">
-			/// If the delete action is "NO ACTION", and the constraint is 
-			/// <see cref="ConstraintDeferrability.InitiallyImmediate"/>, and 
-			/// the new key doesn't exist in the referral table.
-			/// </exception>
-			private void ExecuteDeleteReferentialAction(
-									  Transaction.ColumnGroupReference constraint,
-									  TObject[] original_key, IQueryContext context) {
-
-				ConstraintAction delete_rule = constraint.delete_rule;
-				if (delete_rule == ConstraintAction.NoAction &&
-					constraint.deferred != ConstraintDeferrability.InitiallyImmediate) {
-					// Constraint check is deferred
-					return;
-				}
-
-				// So either delete rule is not NO ACTION, or if it is we are initially
-				// immediate.
-				IMutableTableDataSource key_table =
-										 transaction.GetTable(constraint.key_table_name);
-				DataTableDef table_def = key_table.DataTableDef;
-				int[] key_cols = TableDataConglomerate.FindColumnIndices(
-													  table_def, constraint.key_columns);
-				IntegerVector key_entries =
-					   TableDataConglomerate.FindKeys(key_table, key_cols, original_key);
-
-				// Are there keys effected?
-				if (key_entries.Count > 0) {
-					if (delete_rule == ConstraintAction.NoAction) {
-						// Throw an exception;
-						throw new DatabaseConstraintViolationException(
-							DatabaseConstraintViolationException.ForeignKeyViolation,
-							TableDataConglomerate.DeferredString(constraint.deferred) +
-							" foreign key constraint violation on delete (" +
-							constraint.name + ") Columns = " +
-							constraint.key_table_name.ToString() + "( " +
-							TableDataConglomerate.StringColumnList(constraint.key_columns) +
-							" ) -> " + constraint.ref_table_name.ToString() + "( " +
-							TableDataConglomerate.StringColumnList(constraint.ref_columns) +
-							" )");
-					} else {
-						// Perform a referential action on each updated key
-						int sz = key_entries.Count;
-						for (int i = 0; i < sz; ++i) {
-							int row_index = key_entries[i];
-							DataRow dataRow = new DataRow(key_table);
-							dataRow.SetFromRow(row_index);
-							if (delete_rule == ConstraintAction.Cascade) {
-								// Cascade the removal of the referenced rows
-								key_table.RemoveRow(row_index);
-							} else if (delete_rule == ConstraintAction.SetNull) {
-								for (int n = 0; n < key_cols.Length; ++n) {
-									dataRow.SetToNull(key_cols[n]);
-								}
-								key_table.UpdateRow(row_index, dataRow);
-							} else if (delete_rule == ConstraintAction.SetDefault) {
-								for (int n = 0; n < key_cols.Length; ++n) {
-									dataRow.SetToDefault(key_cols[n], context);
-								}
-								key_table.UpdateRow(row_index, dataRow);
-							} else {
-								throw new Exception("Do not understand referential action: " + delete_rule);
-							}
-						}
-						// Check referential integrity of modified table,
-						key_table.ConstraintIntegrityCheck();
-					}
-				}
-			}
-
-			/// <summary>
-			/// Returns the entire row list for this table.
-			/// </summary>
-			/// <remarks>
-			/// This will request this information from the master source.
-			/// </remarks>
-			private IIntegerList RowIndexList {
-				get {
-					if (row_list == null) {
-						row_list = index_set.GetIndex(0);
-					}
-					return row_list;
-				}
-			}
-
-			/// <summary>
-			/// Ensures that the row list is as current as the latest journal change.
-			/// </summary>
-			/// <remarks>
-			/// We can be assured that when this is called, no journal changes 
-			/// will occur concurrently. However we still need to synchronize 
-			/// because multiple reads are valid.
-			/// </remarks>
-			private void EnsureRowIndexListCurrent() {
-				int rebuildIndex = row_list_rebuild;
-				int journalCount = table_journal.EntriesCount;
-				while (rebuildIndex < journalCount) {
-					JournalCommandType command = table_journal.GetCommand(rebuildIndex);
-					int rowIndex = table_journal.GetRowIndex(rebuildIndex);
-					if (command == JournalCommandType.AddRow) {
-						// Add to 'row_list'.
-						if (!RowIndexList.UniqueInsertSort(rowIndex))
-							throw new ApplicationException("Row index already used in this table (" + rowIndex + ")");
-					} else if (command == JournalCommandType.RemoveRow) {
-						// Remove from 'row_list'
-						if (!RowIndexList.RemoveSort(rowIndex))
-							throw new ApplicationException("Row index removed that wasn't in this table!");
-					} else {
-						throw new ApplicationException("Unrecognised journal command.");
-					}
-					++rebuildIndex;
-				}
-				// It's now current (row_list_rebuild == journal_count);
-				row_list_rebuild = rebuildIndex;
-			}
-
-			/// <summary>
-			/// Ensures that the scheme column index is as current as the latest
-			/// journal change.
-			/// </summary>
-			/// <param name="column"></param>
-			private void EnsureColumnSchemeCurrent(int column) {
-				SelectableScheme scheme = column_schemes[column];
-				// NOTE: We should be assured that no Write operations can occur over
-				//   this section of code because writes are exclusive operations
-				//   within a transaction.
-				// Are there journal entries pending on this scheme since?
-				int rebuildIndex = scheme_rebuilds[column];
-				int journalCount = table_journal.EntriesCount;
-				while (rebuildIndex < journalCount) {
-					JournalCommandType command = table_journal.GetCommand(rebuildIndex);
-					int row_index = table_journal.GetRowIndex(rebuildIndex);
-					if (command == JournalCommandType.AddRow) {
-						scheme.Insert(row_index);
-					} else if (command == JournalCommandType.RemoveRow) {
-						scheme.Remove(row_index);
-					} else {
-						throw new ApplicationException("Unrecognised journal command.");
-					}
-					++rebuildIndex;
-				}
-				scheme_rebuilds[column] = rebuildIndex;
-			}
-
-			// ---------- Implemented from IMutableTableDataSource ----------
 
 			public TransactionSystem System {
-				get { return mtds.System; }
+				get { return mtds.system; }
 			}
 
-			public DataTableDef DataTableDef {
-				get { return mtds.DataTableDef; }
+			public DataTableDef TableInfo {
+				get { return mtds.TableInfo; }
 			}
 
 			public int RowCount {
 				get {
-					// Ensure the row list is up to date.
-					EnsureRowIndexListCurrent();
-					return RowIndexList.Count;
+					// NOTE: Returns the number of rows in the master index before journal
+					//   entries have been made.
+					return masterIndex.Count;
 				}
 			}
 
 			public IRowEnumerator GetRowEnumerator() {
-				// Ensure the row list is up to date.
-				EnsureRowIndexListCurrent();
+				// NOTE: Returns iterator across master index before journal entry
+				//   changes.
 				// Get an iterator across the row list.
-				IIntegerIterator iterator = RowIndexList.GetIterator();
+				IIntegerIterator iterator = masterIndex.GetIterator();
 				// Wrap it around a IRowEnumerator object.
-				return new RowEnumerationImpl(iterator);
+				return new RowEnumerator(iterator);
 			}
 
-			private class RowEnumerationImpl : IRowEnumerator {
-				public RowEnumerationImpl(IIntegerIterator iterator) {
+			public SelectableScheme GetColumnScheme(int column) {
+				throw new NotImplementedException();
+			}
+
+			public TObject GetCellContents(int column, int row) {
+				return mtds.GetCellContents(column, row);
+			}
+
+			private class RowEnumerator : IRowEnumerator {
+				public RowEnumerator(IIntegerIterator iterator) {
 					this.iterator = iterator;
 				}
 
@@ -1869,287 +906,6 @@ namespace Deveel.Data {
 					get { return iterator.Next; }
 				}
 			}
-			public TObject GetCellContents(int column, int row) {
-				return mtds.GetCellContents(column, row);
-			}
-
-			// NOTE: Returns an immutable version of the scheme...
-			public SelectableScheme GetColumnScheme(int column) {
-				SelectableScheme scheme = column_schemes[column];
-				// Cache the scheme in this object.
-				if (scheme == null) {
-					scheme = mtds.CreateSelectableSchemeForColumn(index_set, this, column);
-					column_schemes[column] = scheme;
-				}
-
-				// Update the underlying scheme to the most current version.
-				EnsureColumnSchemeCurrent(column);
-
-				return scheme;
-			}
-
-			// ---------- Table Modification ----------
-
-			public int AddRow(DataRow dataRow) {
-
-				// Check the transaction isn't Read only.
-				if (tran_read_only) {
-					throw new Exception("Transaction is Read only.");
-				}
-
-				// Check this isn't a Read only source
-				if (mtds.IsReadOnly) {
-					throw new ApplicationException("Can not add row - table is Read only.");
-				}
-
-				// Add to the master.
-				int row_index;
-				try {
-					row_index = mtds.AddRow(dataRow);
-				} catch (IOException e) {
-					mtds.Debug.WriteException(e);
-					throw new ApplicationException("IO Error: " + e.Message);
-				}
-
-				// Note this doesn't need to be synchronized because we are exclusive on
-				// this table.
-				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommandType.AddRow, row_index);
-
-				return row_index;
-			}
-
-			public void RemoveRow(int row_index) {
-
-				// Check the transaction isn't Read only.
-				if (tran_read_only) {
-					throw new Exception("Transaction is Read only.");
-				}
-
-				// Check this isn't a Read only source
-				if (mtds.IsReadOnly) {
-					throw new ApplicationException("Can not remove row - table is Read only.");
-				}
-
-				// NOTE: This must <b>NOT</b> call 'RemoveRow' in MasterTableDataSource.
-				//   We do not want to delete a row permanently from the underlying
-				//   file because the transaction using this data source may yet decide
-				//   to roll back the change and not delete the row.
-
-				// Note this doesn't need to be synchronized because we are exclusive on
-				// this table.
-				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommandType.RemoveRow, row_index);
-
-			}
-
-			public int UpdateRow(int row_index, DataRow dataRow) {
-
-				// Check the transaction isn't Read only.
-				if (tran_read_only) {
-					throw new Exception("Transaction is Read only.");
-				}
-
-				// Check this isn't a Read only source
-				if (mtds.IsReadOnly) {
-					throw new ApplicationException("Can not update row - table is Read only.");
-				}
-
-				// Note this doesn't need to be synchronized because we are exclusive on
-				// this table.
-				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommandType.UpdateRemoveRow, row_index);
-
-				// Add to the master.
-				int new_row_index;
-				try {
-					new_row_index = mtds.AddRow(dataRow);
-				} catch (IOException e) {
-					mtds.Debug.WriteException(e);
-					throw new ApplicationException("IO Error: " + e.Message);
-				}
-
-				// Note this doesn't need to be synchronized because we are exclusive on
-				// this table.
-				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommandType.UpdateAddRow, new_row_index);
-
-				return new_row_index;
-			}
-
-
-			public void FlushIndexChanges() {
-				EnsureRowIndexListCurrent();
-				// This will flush all of the column schemes
-				for (int i = 0; i < column_schemes.Length; ++i) {
-					GetColumnScheme(i);
-				}
-			}
-
-			public void ConstraintIntegrityCheck() {
-				try {
-					// Early exit condition
-					if (last_entry_ri_check == table_journal.EntriesCount)
-						return;
-
-					// This table name
-					DataTableDef table_def = DataTableDef;
-					TableName table_name = table_def.TableName;
-					IQueryContext context = new SystemQueryContext(transaction, table_name.Schema);
-
-					// Are there any added, deleted or updated entries in the journal since
-					// we last checked?
-					IntegerVector rowsUpdated = new IntegerVector();
-					IntegerVector rowsDeleted = new IntegerVector();
-					IntegerVector rowsAdded = new IntegerVector();
-
-					int size = table_journal.EntriesCount;
-					for (int i = last_entry_ri_check; i < size; ++i) {
-						JournalCommandType tc = table_journal.GetCommand(i);
-						int row_index = table_journal.GetRowIndex(i);
-						if (tc == JournalCommandType.RemoveRow ||
-						    tc == JournalCommandType.UpdateRemoveRow) {
-							rowsDeleted.AddInt(row_index);
-							// If this is in the rows_added list, remove it from rows_added
-							int ra_i = rowsAdded.IndexOf(row_index);
-							if (ra_i != -1) {
-								rowsAdded.RemoveIntAt(ra_i);
-							}
-						} else if (tc == JournalCommandType.AddRow ||
-						           tc == JournalCommandType.UpdateAddRow) {
-							rowsAdded.AddInt(row_index);
-						}
-
-						if (tc == JournalCommandType.UpdateRemoveRow) {
-							rowsUpdated.AddInt(row_index);
-						} else if (tc == JournalCommandType.UpdateAddRow) {
-							rowsUpdated.AddInt(row_index);
-						}
-					}
-
-					// Were there any updates or deletes?
-					if (rowsDeleted.Count > 0) {
-						// Get all references on this table
-						Transaction.ColumnGroupReference[] foreignConstraints =
-							 Transaction.QueryTableImportedForeignKeyReferences(transaction, table_name);
-
-						// For each foreign constraint
-						for (int n = 0; n < foreignConstraints.Length; ++n) {
-							Transaction.ColumnGroupReference constraint = foreignConstraints[n];
-							// For each deleted/updated record in the table,
-							for (int i = 0; i < rowsDeleted.Count; ++i) {
-								int rowIndex = rowsDeleted[i];
-								// What was the key before it was updated/deleted
-								int[] cols = TableDataConglomerate.FindColumnIndices(table_def, constraint.ref_columns);
-								TObject[] originalKey = new TObject[cols.Length];
-								int nullCount = 0;
-								for (int p = 0; p < cols.Length; ++p) {
-									originalKey[p] = GetCellContents(cols[p], rowIndex);
-									if (originalKey[p].IsNull) {
-										++nullCount;
-									}
-								}
-								// Check the original key isn't null
-								if (nullCount != cols.Length) {
-									// Is is an update?
-									int updateIndex = rowsUpdated.IndexOf(rowIndex);
-									if (updateIndex != -1) {
-										// Yes, this is an update
-										int rowIndexAdd = rowsUpdated[updateIndex + 1];
-										// It must be an update, so first see if the change caused any
-										// of the keys to change.
-										bool keyChanged = false;
-										TObject[] keyUpdatedTo = new TObject[cols.Length];
-										for (int p = 0; p < cols.Length; ++p) {
-											keyUpdatedTo[p] = GetCellContents(cols[p], rowIndexAdd);
-											if (originalKey[p].CompareTo(keyUpdatedTo[p]) != 0) {
-												keyChanged = true;
-											}
-										}
-										if (keyChanged) {
-											// Allow the delete, and execute the action,
-											// What did the key update to?
-											ExecuteUpdateReferentialAction(constraint,
-																originalKey, keyUpdatedTo, context);
-										}
-										// If the key didn't change, we don't need to do anything.
-									} else {
-										// No, so it must be a delete,
-										// This will look at the referencee table and if it contains
-										// the key, work out what to do with it.
-										ExecuteDeleteReferentialAction(constraint, originalKey,
-																	   context);
-									}
-
-								}  // If the key isn't null
-
-							}  // for each deleted rows
-
-						}  // for each foreign key reference to this table
-
-					}
-
-					// Were there any rows added (that weren't deleted)?
-					if (rowsAdded.Count > 0) {
-						int[] rowIndices = rowsAdded.ToIntArray();
-
-						// Check for any field constraint violations in the added rows
-						TableDataConglomerate.CheckFieldConstraintViolations(transaction, this, rowIndices);
-						// Check this table, adding the given row_index, immediate
-						TableDataConglomerate.CheckAddConstraintViolations(transaction, this, rowIndices, ConstraintDeferrability.InitiallyImmediate);
-					}
-				} catch (DatabaseConstraintViolationException e) {
-
-					// If a constraint violation, roll back the changes since the last
-					// check.
-					int rollbackPoint = table_journal.EntriesCount - last_entry_ri_check;
-					if (row_list_rebuild <= rollbackPoint) {
-						table_journal.RollbackEntries(rollbackPoint);
-					} else {
-						Console.Out.WriteLine(
-						   "Warning: rebuild_pointer is after rollback point so we can't " +
-						   "rollback to the point before the constraint violation.");
-					}
-
-					throw;
-				} finally {
-					// Make sure we update the 'last_entry_ri_check' variable
-					last_entry_ri_check = table_journal.EntriesCount;
-				}
-
-			}
-
-			public MasterTableJournal Journal {
-				get { return table_journal; }
-			}
-
-			public void Dispose() {
-				// Dispose and invalidate the schemes
-				// This is really a safety measure to ensure the schemes can't be
-				// used outside the scope of the lifetime of this object.
-				for (int i = 0; i < column_schemes.Length; ++i) {
-					SelectableScheme scheme = column_schemes[i];
-					if (scheme != null) {
-						scheme.Dispose();
-						column_schemes[i] = null;
-					}
-				}
-				row_list = null;
-				table_journal = null;
-				scheme_rebuilds = null;
-				index_set = null;
-				transaction = null;
-			}
-
-			public void AddRootLock() {
-				mtds.AddRootLock();
-			}
-
-			public void RemoveRootLock() {
-				mtds.RemoveRootLock();
-			}
-
 		}
-
 	}
 }

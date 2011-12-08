@@ -33,14 +33,13 @@ namespace Deveel.Data.Caching {
 	/// cache a large document. This could be handled at a higher level?
 	/// </para>
 	/// </remarks>
-	internal sealed class DataCellCache {
+	public sealed class DataCellCache {
 		/// <summary>
 		/// A list of primes ordered from lowest to highest.
 		/// </summary>
 		private static readonly int[] PRIME_LIST = new int[]
 		                                           {
-		                                           	3001, 4799, 13999, 15377, 21803, 24247, 35083, 40531, 43669, 44263, 47387
-		                                           	,
+		                                           	3001, 4799, 13999, 15377, 21803, 24247, 35083, 40531, 43669, 44263, 47387,
 		                                           	50377, 57059, 57773, 59399, 59999, 75913, 96821, 140551, 149011, 175633,
 		                                           	176389, 183299, 205507, 209771, 223099, 240259, 258551, 263909, 270761,
 		                                           	274679, 286129, 290531, 296269, 298021, 300961, 306407, 327493, 338851,
@@ -75,8 +74,6 @@ namespace Deveel.Data.Caching {
 		                                           	2910251, 2928943, 2958341, 2975389
 		                                           };
 
-		private readonly ICache systemCache;
-
 		/// <summary>
 		/// The master cache.
 		/// </summary>
@@ -90,7 +87,7 @@ namespace Deveel.Data.Caching {
 		/// <summary>
 		/// The current size of the cache.
 		/// </summary>
-		private long current_cache_size;
+		private long currentCacheSize;
 
 		/// <summary>
 		/// The maximum size of a DataCell that is allowed to go in the cache.
@@ -101,6 +98,7 @@ namespace Deveel.Data.Caching {
 		/// Instantiate the <see cref="DataCellCache"/>.
 		/// </summary>
 		/// <param name="system"></param>
+		/// <param name="systemCache"></param>
 		/// <param name="maxCacheSize">The maximum size in bytes that the cache 
 		/// is allowed to grow to (eg. 4000000).</param>
 		/// <param name="maxCellSize">The maximum size of an object that can be 
@@ -114,9 +112,8 @@ namespace Deveel.Data.Caching {
 			cache = new DCCache(this, systemCache, hashSize, maxCacheSize);
 		}
 
-		internal DataCellCache(TransactionSystem system, ICache systemCache,
-		                       int max_cache_size, int max_cell_size)
-			: this(system, systemCache, max_cache_size, max_cell_size, 88547) {
+		internal DataCellCache(TransactionSystem system, ICache systemCache, int maxCacheSize, int maxCellSize)
+			: this(system, systemCache, maxCacheSize, maxCellSize, 88547) {
 			// Good prime number hash size
 		}
 
@@ -126,7 +123,7 @@ namespace Deveel.Data.Caching {
 		public long CurrentCacheSize {
 			get {
 				lock (this) {
-					return current_cache_size;
+					return currentCacheSize;
 				}
 			}
 		}
@@ -134,15 +131,15 @@ namespace Deveel.Data.Caching {
 		/// <summary>
 		/// Dynamically resizes the data cell cache so it can store more/less data.
 		/// </summary>
-		/// <param name="max_cache_size"></param>
-		/// <param name="max_cell_size"></param>
+		/// <param name="maxCacheSize"></param>
+		/// <param name="maxCellSize"></param>
 		/// <remarks>
 		/// This is used to change cache dynamics at runtime.
 		/// </remarks>
-		public void AlterCacheDynamics(int max_cache_size, int max_cell_size) {
+		public void AlterCacheDynamics(int maxCacheSize, int maxCellSize) {
 			lock (this) {
-				maxCellSize = max_cell_size;
-				cache.SetCacheSize(max_cache_size);
+				this.maxCellSize = maxCellSize;
+				cache.SetCacheSize(maxCacheSize);
 			}
 		}
 
@@ -160,32 +157,32 @@ namespace Deveel.Data.Caching {
 		/// Adds a <see cref="TObject"/> on the cache for the given row/column 
 		/// of the table.
 		/// </summary>
-		/// <param name="table_key"></param>
+		/// <param name="tableKey"></param>
 		/// <param name="row"></param>
 		/// <param name="column"></param>
 		/// <param name="cell"></param>
 		/// <remarks>
 		/// Ignores any cells that are larger than the maximum size.
 		/// </remarks>
-		public void Set(int table_key, int row, int column, TObject cell) {
+		public void Set(int tableKey, int row, int column, TObject cell) {
 			lock (this) {
-				int memory_use = AmountMemory(cell);
-				if (memory_use <= maxCellSize) {
+				int memoryUse = AmountMemory(cell);
+				if (memoryUse <= maxCellSize) {
 					// Generate the key
-					DCCacheKey key = new DCCacheKey(table_key, (short)column, row);
+					DCCacheKey key = new DCCacheKey(tableKey, (short)column, row);
 					// If there is an existing object here, remove it from the cache and
 					// update the current_cache_size.
-					TObject removed_cell = (TObject)cache.Remove(key);
-					if (removed_cell != null) {
-						current_cache_size -= AmountMemory(removed_cell);
+					TObject removedCell = (TObject)cache.Remove(key);
+					if (removedCell != null) {
+						currentCacheSize -= AmountMemory(removedCell);
 					}
 					// Put the new entry in the cache
 					cache.Set(key, cell);
-					current_cache_size += memory_use;
+					currentCacheSize += memoryUse;
 				} else {
 					// If the object is larger than the minimum object size that can be
 					// cached, remove any existing entry (possibly smaller) from the cache.
-					Remove(table_key, row, column);
+					Remove(tableKey, row, column);
 				}
 			}
 		}
@@ -193,23 +190,23 @@ namespace Deveel.Data.Caching {
 		/// <summary>
 		/// Gets a cell from the cache.
 		/// </summary>
-		/// <param name="table_key"></param>
+		/// <param name="tableKey"></param>
 		/// <param name="row"></param>
 		/// <param name="column"></param>
 		/// <returns>
 		/// Returns the value of the cell at the given coordinates, or <b>null</b> 
 		/// if the row/column is not in the cache.
 		/// </returns>
-		public TObject Get(int table_key, int row, int column) {
+		public TObject Get(int tableKey, int row, int column) {
 			lock (this) {
-				return (TObject) cache.Get(new DCCacheKey(table_key, (short) column, row));
+				return (TObject) cache.Get(new DCCacheKey(tableKey, (short) column, row));
 			}
 		}
 
 		/// <summary>
 		/// Removes a cell from the cache.
 		/// </summary>
-		/// <param name="table_key"></param>
+		/// <param name="tableKey"></param>
 		/// <param name="row"></param>
 		/// <param name="column"></param>
 		/// <remarks>
@@ -221,11 +218,11 @@ namespace Deveel.Data.Caching {
 		/// Returns the cell that was removed, or <b>null</b> if there was no 
 		/// cell at the given location.
 		/// </returns>
-		public TObject Remove(int table_key, int row, int column) {
+		public TObject Remove(int tableKey, int row, int column) {
 			lock (this) {
-				TObject cell = (TObject)cache.Remove(new DCCacheKey(table_key, (short) column, row));
+				TObject cell = (TObject)cache.Remove(new DCCacheKey(tableKey, (short) column, row));
 				if (cell != null)
-					current_cache_size -= AmountMemory(cell);
+					currentCacheSize -= AmountMemory(cell);
 				return cell;
 			}
 		}
@@ -235,14 +232,14 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		public void Clear() {
 			lock (this) {
-				if (cache.NodeCount == 0 && current_cache_size != 0) {
+				if (cache.NodeCount == 0 && currentCacheSize != 0) {
 					system.Debug.Write(DebugLevel.Error, this, "Assertion failed - if nodeCount = 0 then current_cache_size must also be 0.");
 				}
 				if (cache.NodeCount != 0) {
 					cache.Clear();
 					system.Stats.Increment("DataCellCache.total_cache_wipe");
 				}
-				current_cache_size = 0;
+				currentCacheSize = 0;
 			}
 		}
 
@@ -251,7 +248,7 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		/// <param name="val"></param>
 		private void ReduceCacheSize(long val) {
-			current_cache_size -= val;
+			currentCacheSize -= val;
 		}
 
 		// ---------- Primes ----------
@@ -272,9 +269,7 @@ namespace Deveel.Data.Caching {
 			return PRIME_LIST[PRIME_LIST.Length - 1];
 		}
 
-		// ---------- Inner classes ----------
-
-		#region Nested type: DCCache
+		#region DCCache
 
 		/// <summary>
 		/// An implementation of <see cref="Cache"/>.
@@ -331,8 +326,8 @@ namespace Deveel.Data.Caching {
 				cache.ReduceCacheSize(AmountMemory(cell));
 			}
 
-			protected override void OnGetWalks(long total_walks, long total_get_ops) {
-				int avg = (int) ((total_walks*1000000L)/total_get_ops);
+			protected override void OnGetWalks(long totalWalks, long totalGetOps) {
+				int avg = (int) ((totalWalks*1000000L)/totalGetOps);
 				cache.system.Stats.Set(avg, "DataCellCache.avg_hash_get_mul_1000000");
 				cache.system.Stats.Set((int) cache.CurrentCacheSize, "DataCellCache.current_cache_size");
 				cache.system.Stats.Set(NodeCount, "DataCellCache.current_node_count");
@@ -341,33 +336,33 @@ namespace Deveel.Data.Caching {
 
 		#endregion
 
-		#region Nested type: DCCacheKey
+		#region DCCacheKey
 
 		/// <summary>
-		/// Inner class that creates an object that hashes nicely over the 
-		/// cache source.
+		/// Struct that creates an object that hashes nicely 
+		/// over the cache source.
 		/// </summary>
-		private sealed class DCCacheKey {
+		private struct DCCacheKey {
 			private readonly short column;
 			private readonly int row;
-			private readonly int table_id;
+			private readonly int tableId;
 
-			internal DCCacheKey(int table_id, short column, int row) {
-				this.table_id = table_id;
+			internal DCCacheKey(int tableId, short column, int row) {
+				this.tableId = tableId;
 				this.column = column;
 				this.row = row;
 			}
 
 			public override bool Equals(Object ob) {
-				DCCacheKey dest_key = (DCCacheKey)ob;
-				return row == dest_key.row &&
-				       column == dest_key.column &&
-				       table_id == dest_key.table_id;
+				DCCacheKey destKey = (DCCacheKey)ob;
+				return row == destKey.row &&
+				       column == destKey.column &&
+				       tableId == destKey.tableId;
 			}
 
 			public override int GetHashCode() {
 				// Yicks - this one is the best by far!
-				return (((int) column + table_id + (row*189977))*50021) << 4;
+				return (((int) column + tableId + (row*189977))*50021) << 4;
 			}
 		}
 

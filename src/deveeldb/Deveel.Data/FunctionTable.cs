@@ -216,7 +216,7 @@ namespace Deveel.Data {
 			get { return cross_ref_table; }
 		}
 
-		public override DataTableDef DataTableDef {
+		public override DataTableDef TableInfo {
 			get { return fun_table_def; }
 		}
 
@@ -824,7 +824,7 @@ namespace Deveel.Data {
 						throw new ApplicationException("Can't find column: " + variable);
 					}
 
-					return tgr.table.ReferenceTable.DataTableDef[col_index].TType;
+					return tgr.table.ReferenceTable.TableInfo[col_index].TType;
 				}
 
 				#endregion

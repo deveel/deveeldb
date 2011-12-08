@@ -51,7 +51,7 @@ namespace Deveel.Data {
 
 		internal static readonly DataTableDef DEF_DATA_TABLE_DEF;
 
-		public override DataTableDef DataTableDef {
+		public override DataTableDef TableInfo {
 			get { return DEF_DATA_TABLE_DEF; }
 		}
 

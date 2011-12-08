@@ -82,7 +82,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		private static bool IsUniqueColumns(ITableDataSource table, int rindex, string[] cols, bool nullsAllowed) {
-			DataTableDef tableDef = table.DataTableDef;
+			DataTableDef tableDef = table.TableInfo;
 			// 'identical_rows' keeps a tally of the rows that match our added cell.
 			IntegerVector identicalRows = null;
 
@@ -237,8 +237,8 @@ namespace Deveel.Data {
 			ITableDataSource t1 = transaction.GetTableDataSource(table1);
 			ITableDataSource t2 = transaction.GetTableDataSource(table2);
 			// The table defs
-			DataTableDef dtd1 = t1.DataTableDef;
-			DataTableDef dtd2 = t2.DataTableDef;
+			DataTableDef dtd1 = t1.TableInfo;
+			DataTableDef dtd2 = t2.TableInfo;
 			// Resolve the list of column names to column indexes
 			int[] col1Indexes = FindColumnIndices(dtd1, cols1);
 			int[] col2Indexes = FindColumnIndices(dtd2, cols2);
@@ -292,7 +292,7 @@ namespace Deveel.Data {
 			// column declared as 'not null', or duplicated in a column declared as
 			// unique.
 
-			DataTableDef tableDef = table.DataTableDef;
+			DataTableDef tableDef = table.TableInfo;
 
 			// Check not-null columns are not null.  If they are null, throw an
 			// error.  Additionally check that OBJECT columns are correctly
@@ -364,14 +364,14 @@ namespace Deveel.Data {
 		/// If a violation is detected.
 		/// </exception>
 		internal static void CheckAddConstraintViolations(SimpleTransaction transaction, ITableDataSource table, int[] rowIndices, ConstraintDeferrability deferred) {
-			string curSchema = table.DataTableDef.Schema;
+			string curSchema = table.TableInfo.Schema;
 			IQueryContext context = new SystemQueryContext(transaction, curSchema);
 
 			// Quick exit case
 			if (rowIndices == null || rowIndices.Length == 0)
 				return;
 
-			DataTableDef tableDef = table.DataTableDef;
+			DataTableDef tableDef = table.TableInfo;
 			TableName tableName = tableDef.TableName;
 
 			// ---- Constraint checking ----
@@ -546,7 +546,7 @@ namespace Deveel.Data {
 			if (rowIndices == null || rowIndices.Length == 0)
 				return;
 
-			DataTableDef tableDef = table.DataTableDef;
+			DataTableDef tableDef = table.TableInfo;
 			TableName tableName = tableDef.TableName;
 
 			// Check any imported foreign key constraints.

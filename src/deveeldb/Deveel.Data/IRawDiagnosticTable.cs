@@ -44,9 +44,9 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets the state of the record at the given index in the table.
 		/// </summary>
-		/// <param name="record_index">The index of the record to get the state.</param>
+		/// <param name="recordIndex">The index of the record to get the state.</param>
 		/// <returns></returns>
-		RecordState GetRecordState(int record_index);
+		RecordState GetRecordState(int recordIndex);
 
 		/// <summary>
 		/// Gets the size of the record at the given index in the table

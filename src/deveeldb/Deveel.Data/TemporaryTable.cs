@@ -63,7 +63,7 @@ namespace Deveel.Data {
 		public TemporaryTable(String name, Table based_on)
 			: base(based_on.Database) {
 
-			table_def = new DataTableDef(based_on.DataTableDef);
+			table_def = new DataTableDef(based_on.TableInfo);
 			table_def.TableName = new TableName(null, name);
 			table_def.SetImmutable();
 		}
@@ -76,7 +76,7 @@ namespace Deveel.Data {
 		public TemporaryTable(Table based_on)
 			: base(based_on.Database) {
 
-			table_def = new DataTableDef(based_on.DataTableDef);
+			table_def = new DataTableDef(based_on.TableInfo);
 			table_def.SetImmutable();
 		}
 
@@ -231,7 +231,7 @@ namespace Deveel.Data {
 		/* ====== Methods that are implemented for Table interface ====== */
 
 		/// <inheritdoc/>
-		public override DataTableDef DataTableDef {
+		public override DataTableDef TableInfo {
 			get { return table_def; }
 		}
 

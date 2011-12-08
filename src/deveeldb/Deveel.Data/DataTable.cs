@@ -69,11 +69,11 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override DataTableDef DataTableDef {
+		public override DataTableDef TableInfo {
 			get {
 				CheckSafeOperation(); // safe op
 
-				return dataSource.DataTableDef;
+				return dataSource.TableInfo;
 			}
 		}
 
@@ -84,7 +84,7 @@ namespace Deveel.Data {
 			get {
 				CheckSafeOperation(); // safe op
 
-				return DataTableDef.Schema;
+				return TableInfo.Schema;
 			}
 		}
 

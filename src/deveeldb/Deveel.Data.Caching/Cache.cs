@@ -153,8 +153,8 @@ namespace Deveel.Data.Caching {
 		/// Notifies that some statistical information about the hash map has
 		/// updated.
 		/// </summary>
-		/// <param name="total_walks"></param>
-		/// <param name="total_get_ops"></param>
+		/// <param name="totalWalks"></param>
+		/// <param name="totalGetOps"></param>
 		/// <remarks>
 		/// This should be used to compile statistical information about
 		/// the number of walks a <i>get</i> operation takes to retreive an 
@@ -163,7 +163,7 @@ namespace Deveel.Data.Caching {
 		/// This method is called every 8192 gets.
 		/// </para>
 		/// </remarks>
-		protected virtual void OnGetWalks(long total_walks, long total_get_ops) {
+		protected virtual void OnGetWalks(long totalWalks, long totalGetOps) {
 		}
 
 

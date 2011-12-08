@@ -221,7 +221,7 @@ namespace Deveel.Data {
 						// For each journal, determine if there's any clashes.
 						foreach (MasterTableJournal tableJournal in journalsSince) {
 							// This will thrown an exception if a commit classes.
-							changeJournal.TestCommitClash(master.DataTableDef, tableJournal);
+							changeJournal.TestCommitClash(master.TableInfo, tableJournal);
 						}
 					}
 
@@ -415,7 +415,7 @@ namespace Deveel.Data {
 						int tableId = constraintAlteredTables[i];
 						for (int n = 0; n < normChangedTablesCount; ++n) {
 							CommitTableInfo tableInfo = normalizedChangedTables[n];
-							if (tableInfo.Master.TableID == tableId) {
+							if (tableInfo.Master.TableId == tableId) {
 								CheckAllAddConstraintViolations(checkTransaction, changedTableSource[n], ConstraintDeferrability.InitiallyDeferred);
 							}
 						}
@@ -666,7 +666,7 @@ namespace Deveel.Data {
 				// For all created tables, add to the visible list and remove from the
 				// delete list in the state store.
 				MasterTableDataSource t = GetMasterTable(createdTables[i]);
-				StateStore.StateResource resource = new StateStore.StateResource(t.TableID, CreateEncodedTableFile(t));
+				StateStore.StateResource resource = new StateStore.StateResource(t.TableId, CreateEncodedTableFile(t));
 				stateStore.AddVisibleResource(resource);
 				stateStore.RemoveDeleteResource(resource.name);
 			}
@@ -676,7 +676,7 @@ namespace Deveel.Data {
 				// For all dropped tables, add to the delete list and remove from the
 				// visible list in the state store.
 				MasterTableDataSource t = GetMasterTable(droppedTables[i]);
-				StateStore.StateResource resource = new StateStore.StateResource(t.TableID, CreateEncodedTableFile(t));
+				StateStore.StateResource resource = new StateStore.StateResource(t.TableId, CreateEncodedTableFile(t));
 				stateStore.AddDeleteResource(resource);
 				stateStore.RemoveVisibleResource(resource.name);
 			}

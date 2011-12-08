@@ -101,8 +101,8 @@ namespace Deveel.Data.Sql {
 												"table is different.");
 
 				for (int i = 0; i < colCount; i++) {
-					DataTableColumnDef srcColumnDef = table.DataTableDef[i];
-					DataTableColumnDef dstColumnDef = dest_table.DataTableDef[i];
+					DataTableColumnDef srcColumnDef = table.TableInfo[i];
+					DataTableColumnDef dstColumnDef = dest_table.TableInfo[i];
 
 					if (srcColumnDef.TType != dstColumnDef.TType)
 						throw new DatabaseException("The column " + dstColumnDef.Name + " in the destination table has a different " +
@@ -134,7 +134,7 @@ namespace Deveel.Data.Sql {
 					if (variable == null)
 						throw new DatabaseException("The destination variable " + varRef.Variable + " was not found.");
 
-					DataTableColumnDef columnDef = table.DataTableDef[i];
+					DataTableColumnDef columnDef = table.TableInfo[i];
 					TObject cell = table.GetCellContents(i, 0);
 
 					if (columnDef.TType.SQLType != variable.Type.SQLType) {

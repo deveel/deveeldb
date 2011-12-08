@@ -215,7 +215,7 @@ namespace Deveel.Data.Sql {
 				// SQL alter command using the alter table actions,
 
 				// Get the table definition for the table name,
-				DataTableDef table_def = Connection.GetTable(tname).DataTableDef;
+				DataTableDef table_def = Connection.GetTable(tname).TableInfo;
 				String table_name = table_def.Name;
 				DataTableDef new_table = table_def.NoColumnCopy();
 

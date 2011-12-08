@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Diagnostics;
 
@@ -36,14 +37,9 @@ namespace Deveel.Data {
 	/// </remarks>
 	sealed class MultiVersionTableIndices {
 		/// <summary>
-		/// The name of the table.
+		/// The table managed by this object.
 		/// </summary>
-		private readonly TableName table_name;
-
-		/// <summary>
-		/// The number of columns in the referenced table.
-		/// </summary>
-		private readonly int column_count;
+		private readonly MasterTableDataSource table;
 
 		/// <summary>
 		/// The system object.
@@ -59,7 +55,7 @@ namespace Deveel.Data {
 		/// This list can be used to build the indices and a table row enumerator for
 		/// snapshots of the table at various transaction check points.
 		/// </remarks>
-		private readonly ArrayList transaction_mod_list;
+		private readonly IList<MasterTableJournal> transactionModList;
 
 
 
@@ -67,23 +63,19 @@ namespace Deveel.Data {
 
 		// ---------- Stat keys ----------
 
-		private readonly String journal_count_stat_key;
+		private readonly string journalCountStatKey;
+		private long tsMergeCount;
+		private long tsMergeSize;
 
-		internal MultiVersionTableIndices(TransactionSystem system,
-								 TableName table_name, int column_count) {
+		internal MultiVersionTableIndices(TransactionSystem system, MasterTableDataSource table) {
 			this.system = system;
-			this.table_name = table_name;
-			this.column_count = column_count;
+			this.table = table;
 
-			transaction_mod_list = new ArrayList();
+			transactionModList = new List<MasterTableJournal>();
 
-			journal_count_stat_key = "MultiVersionTableIndices.journal_entries." +
-																			table_name;
+			journalCountStatKey = "MultiVersionTableIndices.JournalEntries." + table.TableName;
 
 		}
-
-		private long TS_merge_count;
-		private long TS_merge_size;
 
 		/// <summary>
 		/// Returns the <see cref="IDebugLogger"/> object used to log debug messages.
@@ -93,10 +85,18 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Gets <b>true</b> if this table has any journal modifications that have not
+		/// yet been incorporated into master index.
+		/// </summary>
+		public bool HasTransactionChangesPending {
+			get { return transactionModList.Count > 0; }
+		}
+
+		/// <summary>
 		/// Updates the master records from the journal logs up to the given
 		/// commit id.
 		/// </summary>
-		/// <param name="commit_id">The transaction commit id used as minimum
+		/// <param name="commitId">The transaction commit id used as minimum
 		/// commit id for the merge.</param>
 		/// <remarks>
 		/// This could be a fairly expensive operation if there are
@@ -113,14 +113,13 @@ namespace Deveel.Data {
 		/// Returns <b>true</b> if all the journals changes have been merged
 		/// successfully, otherwise <b>false</b>.
 		/// </returns>
-		internal bool MergeJournalChanges(long commit_id) {
-
+		public bool MergeJournalChanges(long commitId) {
 			// Average size of pending transactions when this method is called...
-			++TS_merge_count;
-			TS_merge_size += transaction_mod_list.Count;
-			if ((TS_merge_count % 32) == 0) {
+			++tsMergeCount;
+			tsMergeSize += transactionModList.Count;
+			if ((tsMergeCount%32) == 0) {
 				system.Stats.Set(
-					(int)((TS_merge_size * 1000000L) / TS_merge_count),
+					(int) ((tsMergeSize*1000000L)/tsMergeCount),
 					"MultiVersionTableIndices.average_journal_merge_mul_1000000");
 				//      DatabaseSystem.stats().set(
 				//          TS_merge_size / TS_merge_count,
@@ -134,38 +133,31 @@ namespace Deveel.Data {
 			}
 
 			int merge_count = 0;
-			int size = transaction_mod_list.Count;
-			while (transaction_mod_list.Count > 0) {
+			while (transactionModList.Count > 0) {
+				MasterTableJournal journal = transactionModList[0];
 
-				MasterTableJournal journal =
-									   (MasterTableJournal)transaction_mod_list[0];
-
-				if (commit_id > journal.CommitId) {
-
+				if (commitId > journal.CommitId) {
 					++merge_count;
-					if (Debug.IsInterestedIn(DebugLevel.Information)) {
-						Debug.Write(DebugLevel.Information, this,
-									"Merging '" + table_name + "' journal: " + journal);
-					}
+					if (Debug.IsInterestedIn(DebugLevel.Information))
+						Debug.Write(DebugLevel.Information, this, "Merging '" + table.TableName + "' journal: " + journal);
 
 					// Remove the top journal entry from the list.
-					transaction_mod_list.RemoveAt(0);
-					system.Stats.Decrement(journal_count_stat_key);
-
-				} else { // If (commit_id <= journal.getCommitID())
+					transactionModList.RemoveAt(0);
+					system.Stats.Decrement(journalCountStatKey);
+				} else {
+					// If (commit_id <= journal.CommitId)
 					return false;
 				}
 			}
 
 			return true;
-
 		}
 
 		/// <summary>
 		/// Gets all the journals successfully committed after the given
 		/// commit id.
 		/// </summary>
-		/// <param name="commit_id">The transaction commit id used as the minimum
+		/// <param name="commitId">The transaction commit id used as the minimum
 		/// commit id for the recovering.</param>
 		/// <remarks>
 		/// This is part of the conglomerate commit check phase and will be on a
@@ -175,24 +167,18 @@ namespace Deveel.Data {
 		/// Returns a list of all the <see cref="MasterTableJournal"/> that 
 		/// have been successfully committed against the underlying table 
 		/// having a <see cref="MasterTableJournal.CommitId"/> greater or 
-		/// equal to the given <paramref name="commit_id"/>.
+		/// equal to the given <paramref name="commitId"/>.
 		/// </returns>
-		internal MasterTableJournal[] FindAllJournalsSince(long commit_id) {
-
-			ArrayList all_since = new ArrayList();
-
-			int size = transaction_mod_list.Count;
-			for (int i = 0; i < size; ++i) {
-				MasterTableJournal journal =
-									   (MasterTableJournal)transaction_mod_list[i];
-				long journal_commit_id = journal.CommitId;
+		public MasterTableJournal[] FindAllJournalsSince(long commitId) {
+			List<MasterTableJournal> allSince = new List<MasterTableJournal>();
+			foreach (MasterTableJournal journal in transactionModList) {
+				long journalCommitId = journal.CommitId;
 				// All journals that are greater or equal to the given commit id
-				if (journal_commit_id >= commit_id) {
-					all_since.Add(journal);
-				}
+				if (journalCommitId >= commitId)
+					allSince.Add(journal);
 			}
 
-			return (MasterTableJournal[])all_since.ToArray(typeof(MasterTableJournal));
+			return allSince.ToArray();
 		}
 
 		/// <summary>
@@ -200,27 +186,9 @@ namespace Deveel.Data {
 		/// kept here.
 		/// </summary>
 		/// <param name="change"></param>
-		internal void AddTransactionJournal(MasterTableJournal change) {
-			transaction_mod_list.Add(change);
-			system.Stats.Increment(journal_count_stat_key);
-		}
-
-		/// <summary>
-		/// Gets <b>true</b> if this table has any journal modifications that have not
-		/// yet been incorporated into master index.
-		/// </summary>
-		internal bool HasTransactionChangesPending {
-			get {
-				//    Console.Out.WriteLine(transaction_mod_list);
-				return transaction_mod_list.Count > 0;
-			}
-		}
-
-		/// <summary>
-		/// Returns a string describing the transactions pending on this table.
-		/// </summary>
-		internal string TransactionChangeString {
-			get { return transaction_mod_list.ToString(); }
+		public void AddTransactionJournal(MasterTableJournal change) {
+			transactionModList.Add(change);
+			system.Stats.Increment(journalCountStatKey);
 		}
 	}
 }

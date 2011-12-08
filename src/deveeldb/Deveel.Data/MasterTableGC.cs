@@ -29,17 +29,17 @@ namespace Deveel.Data {
 	/// is notified. When the master table has no root locks on it, then the 
 	/// garbage collector can kick in and mark all deleted rows as reclaimable.
 	/// </remarks>
-	sealed class MasterTableGC {
+	public sealed class MasterTableGC {
 		/// <summary>
 		/// The MasterTableDataSource that this collector is managing.
 		/// </summary>
-		private readonly MasterTableDataSource data_source;
+		private readonly MasterTableDataSource dataSource;
 
 		/// <summary>
 		/// If this is true, then a full sweep of the table is due to reclaim all
 		/// deleted rows from the table.
 		/// </summary>
-		private bool full_sweep_due;
+		private bool fullSweepDue;
 
 		/// <summary>
 		/// The list of all rows from the master table that we have been notified
@@ -48,43 +48,41 @@ namespace Deveel.Data {
 		/// NOTE: This list shouldn't get too large.  If it does, we should clear it
 		///   and toggle the 'full_sweep_due' variable to true.
 		/// </summary>
-		private BlockIntegerList deleted_rows;
+		private BlockIntegerList deletedRows;
 
 		// The time when the last garbage collection event occurred.
-		private DateTime last_garbage_success_event;
-		private DateTime last_garbage_try_event;
+		private DateTime lastGarbageSuccessEvent;
+		private DateTime lastGarbageTryEvent;
 
-		internal MasterTableGC(MasterTableDataSource data_source) {
-			this.data_source = data_source;
-			full_sweep_due = false;
-			deleted_rows = new BlockIntegerList();
-			last_garbage_success_event = DateTime.Now;
-			last_garbage_try_event = DateTime.MinValue;
+		internal MasterTableGC(MasterTableDataSource dataSource) {
+			this.dataSource = dataSource;
+			fullSweepDue = false;
+			deletedRows = new BlockIntegerList();
+			lastGarbageSuccessEvent = DateTime.Now;
+			lastGarbageTryEvent = DateTime.MinValue;
 		}
 
 		/// <summary>
 		/// Returns the IDebugLogger object that we can use to log debug messages.
 		/// </summary>
 		public IDebugLogger Debug {
-			get { return data_source.Debug; }
+			get { return dataSource.InternalDebug; }
 		}
 
 		/// <summary>
 		/// Called by the <see cref="MasterTableDataSource"/> to notify the 
 		/// collector that a row has been marked as committed deleted.
 		/// </summary>
-		/// <param name="row_index"></param>
+		/// <param name="rowIndex"></param>
 		/// <remarks>
 		/// <b>Synchronization</b> We must be synchronized over the underlying
 		/// data source when this is called. (This is guarenteed if called from
 		/// <see cref="MasterTableDataSource"/>).
 		/// </remarks>
-		public void MarkRowAsDeleted(int row_index) {
-			if (full_sweep_due == false) {
-				bool b = deleted_rows.UniqueInsertSort(row_index);
-				if (b == false) {
+		internal void MarkRowAsDeleted(int rowIndex) {
+			if (fullSweepDue == false) {
+				if (!deletedRows.UniqueInsertSort(rowIndex))
 					throw new ApplicationException("Row marked twice for deletion.");
-				}
 			}
 		}
 
@@ -94,14 +92,14 @@ namespace Deveel.Data {
 		/// the next scheduled collection.
 		/// </summary>
 		/// <remarks>
-		/// <b>Synchronization</b> We must be synchronized over 'data_source' 
+		/// <b>Synchronization</b> We must be synchronized over 'dataSource' 
 		/// when this is called. (This is guarenteed if called from 
 		/// <see cref="MasterTableDataSource"/>).
 		/// </remarks>
 		public void MarkFullSweep() {
-			full_sweep_due = true;
-			if (deleted_rows.Count > 0) {
-				deleted_rows = new BlockIntegerList();
+			fullSweepDue = true;
+			if (deletedRows.Count > 0) {
+				deletedRows = new BlockIntegerList();
 			}
 		}
 
@@ -115,66 +113,60 @@ namespace Deveel.Data {
 		/// This is called by the CollectionEvent object. Note that it 
 		/// synchronizes over the master table data source object.
 		/// </remarks>
-		internal void Collect(bool force) {
-
+		public void Collect(bool force) {
 			try {
-				int check_count = 0;
-				int delete_count = 0;
+				int checkCount = 0;
+				int deleteCount = 0;
 
 				// Synchronize over the master data table source so no other threads
 				// can interfere when we collect this information.
-				lock (data_source) {
-
-					if (data_source.IsClosed) {
+				lock (dataSource) {
+					if (dataSource.IsClosed)
 						return;
-					}
 
 					// If root is locked, or has transaction changes pending, then we
 					// can't delete any rows marked as deleted because they could be
 					// referenced by transactions or result sets.
 					if (force ||
-						(!data_source.IsRootLocked &&
-						 !data_source.HasTransactionChangesPending)) {
+						(!dataSource.IsRootLocked &&
+						 !dataSource.HasTransactionChangesPending)) {
 
-						last_garbage_success_event = DateTime.Now;
-						last_garbage_try_event = DateTime.MinValue;
+						lastGarbageSuccessEvent = DateTime.Now;
+						lastGarbageTryEvent = DateTime.MinValue;
 
 						// Are we due a full sweep?
-						if (full_sweep_due) {
-							int raw_row_count = data_source.RawRowCount;
-							for (int i = 0; i < raw_row_count; ++i) {
-								// Synchronized in data_source.
-								bool b = data_source.HardCheckAndReclaimRow(i);
-								if (b) {
-									++delete_count;
-								}
-								++check_count;
+						if (fullSweepDue) {
+							int rawRowCount = dataSource.RawRowCount;
+							for (int i = 0; i < rawRowCount; ++i) {
+								// Synchronized in dataSource.
+								if (dataSource.HardCheckAndReclaimRow(i))
+									++deleteCount;
+								++checkCount;
 							}
-							full_sweep_due = false;
+							fullSweepDue = false;
 						} else {
 							// Are there any rows marked as deleted?
-							int size = deleted_rows.Count;
+							int size = deletedRows.Count;
 							if (size > 0) {
 								// Go remove all rows marked as deleted.
 								for (int i = 0; i < size; ++i) {
-									int row_index = deleted_rows[i];
-									// Synchronized in data_source.
-									data_source.HardRemoveRow(row_index);
-									++delete_count;
-									++check_count;
+									int rowIndex = deletedRows[i];
+									// Synchronized in dataSource.
+									dataSource.HardRemoveRow(rowIndex);
+									++deleteCount;
+									++checkCount;
 								}
 							}
-							deleted_rows = new BlockIntegerList();
+							deletedRows = new BlockIntegerList();
 						}
 
-						if (check_count > 0) {
+						if (checkCount > 0) {
 							if (Debug.IsInterestedIn(DebugLevel.Information)) {
 								Debug.Write(DebugLevel.Information, this,
-										  "Row GC: [" + data_source.Name +
-										  "] check_count=" + check_count +
-										  " delete count=" + delete_count);
-								Debug.Write(DebugLevel.Information, this,
-										  "GC row sweep deleted " + delete_count + " rows.");
+										  "Row GC: [" + dataSource.Name +
+										  "] check count=" + checkCount +
+										  " delete count=" + deleteCount);
+								Debug.Write(DebugLevel.Information, this,"GC row sweep deleted " + deleteCount + " rows.");
 							}
 						}
 
@@ -184,7 +176,6 @@ namespace Deveel.Data {
 			} catch (IOException e) {
 				Debug.WriteException(e);
 			}
-
 		}
 	}
 }

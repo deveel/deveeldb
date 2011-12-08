@@ -163,7 +163,7 @@ namespace Deveel.Data {
 			// Create the table for this transaction.
 			IMutableTableDataSource table = master.CreateTableDataSourceAtCommit(this);
 			// Log in the journal that this table was touched by the transaction.
-			journal.EntryAddTouchedTable(master.TableID);
+			journal.EntryAddTouchedTable(master.TableId);
 			touchedTables.Add(table);
 			return table;
 		}
@@ -191,7 +191,7 @@ namespace Deveel.Data {
 			MasterTableDataSource lastEntry = null;
 			for (int i = 0; i < sz; ++i) {
 				MasterTableDataSource masterTable = GetVisibleTable(i);
-				TableName tableName = masterTable.DataTableDef.TableName;
+				TableName tableName = masterTable.TableInfo.TableName;
 				if (tableName.Equals(TableDataConglomerate.SysSequenceInfo)) {
 					lastEntry = masterTable;
 				} else {
@@ -206,7 +206,7 @@ namespace Deveel.Data {
 				for (int i = 0; i < sz; ++i) {
 
 					MasterTableDataSource masterTable = copyList[i];
-					TableName tableName = masterTable.DataTableDef.TableName;
+					TableName tableName = masterTable.TableInfo.TableName;
 
 					// Create a destination transaction
 					Transaction destTransaction = destConglomerate.CreateTransaction();

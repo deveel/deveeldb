@@ -86,7 +86,7 @@ namespace Deveel.Data {
 		internal DataRow(ITableDataSource table) {
 			system = table.System;
 			this.table = table;
-			tableDef = table.DataTableDef;
+			tableDef = table.TableInfo;
 			colCount = tableDef.ColumnCount;
 			dataCellList = new TObject[colCount];
 		}

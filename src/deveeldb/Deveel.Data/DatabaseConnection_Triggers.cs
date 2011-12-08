@@ -341,7 +341,7 @@ namespace Deveel.Data {
 				this.content = dataRow;
 			}
 
-			public override DataTableDef DataTableDef {
+			public override DataTableDef TableInfo {
 				get { return table_def; }
 			}
 
@@ -358,24 +358,24 @@ namespace Deveel.Data {
 
 			public override int AddRow(DataRow dataRow) {
 				throw new Exception("Inserting into table '" +
-							  DataTableDef.TableName + "' is not permitted.");
+							  TableInfo.TableName + "' is not permitted.");
 			}
 
 			public override void RemoveRow(int row_index) {
 				throw new Exception("Deleting from table '" +
-							  DataTableDef.TableName + "' is not permitted.");
+							  TableInfo.TableName + "' is not permitted.");
 			}
 
 			public override int UpdateRow(int row_index, DataRow dataRow) {
 				if (immutable) {
 					throw new Exception("Updating table '" +
-								DataTableDef.TableName + "' is not permitted.");
+								TableInfo.TableName + "' is not permitted.");
 				}
 				if (row_index < 0 || row_index > 0) {
 					throw new Exception("Row index out of bounds.");
 				}
 
-				int sz = DataTableDef.ColumnCount;
+				int sz = TableInfo.ColumnCount;
 				for (int i = 0; i < sz; ++i) {
 					content.SetValue(i, dataRow.GetValue(i));
 				}

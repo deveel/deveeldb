@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.Collections;
@@ -378,7 +379,7 @@ namespace Deveel.Data {
 		/// that are used by this structure (as Long).
 		/// </summary>
 		/// <param name="list"></param>
-		public void AddAllAreasUsed(ArrayList list) {
+		public void AddAllAreasUsed(IList<long> list) {
 			list.Add(start_area.Id);
 			list.Add(index_header_p);
 			for (int i = 0; i < index_blocks.Length; ++i) {

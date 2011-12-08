@@ -77,7 +77,7 @@ namespace Deveel.Data {
 		// ---------- Implemented from GTDataSource ----------
 
 		/// <inheritdoc/>
-		public override DataTableDef DataTableDef {
+		public override DataTableDef TableInfo {
 			get { return DEF_DATA_TABLE_DEF; }
 		}
 

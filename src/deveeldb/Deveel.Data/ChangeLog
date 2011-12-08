@@ -1,3 +1,10 @@
+2011-12-07  Antonello Provenzano  <antonello@deveel.com>
+	* MasterTableDataSource.cs:
+		- Split up into multiple partial classes for better
+		manageability and readability
+		- Refactoring of the class to be implemented externally
+		from the kernel
+
 2011-12-04  Antonello Provenzano  <antonello@deveel.com>
 	* TObject.cs:
 		- Split in multiple partial classes for better manageability

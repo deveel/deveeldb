@@ -299,7 +299,7 @@ namespace Deveel.Data {
 		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, string constraintName) {
 			TableName tn = TableDataConglomerate.CheckInfoTable;
 			IMutableTableDataSource t = GetTable(tn);
-			int colCount = t.DataTableDef.ColumnCount;
+			int colCount = t.TableInfo.ColumnCount;
 
 			try {
 				// Insert check constraint data.
@@ -774,7 +774,7 @@ namespace Deveel.Data {
 					check.name = dt.Get(1, row_index).Object.ToString();
 					check.deferred = (ConstraintDeferrability)((BigNumber)dt.Get(5, row_index).Object).ToInt16();
 					// Is the deserialized version available?
-					if (t.DataTableDef.ColumnCount > 6) {
+					if (t.TableInfo.ColumnCount > 6) {
 						ByteLongObject sexp = (ByteLongObject)dt.Get(6, row_index).Object;
 						if (sexp != null) {
 							try {

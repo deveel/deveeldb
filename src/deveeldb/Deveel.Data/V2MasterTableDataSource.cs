@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -48,6 +49,7 @@ namespace Deveel.Data {
 	///    | LIST BLOCK HEADER pointer     |
 	///    +-------------------------------+
 	/// </code>
+	/// </para>
 	/// <para>
 	/// Each record is comprised of a header which contains offsets to the fields
 	/// input the record, and a serializable of the fields themselves.
@@ -57,7 +59,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The file name of this store input the conglomerate path.
 		/// </summary>
-		private String file_name;
+		private string fileName;
 		/// <summary>
 		/// The backing store object.
 		/// </summary>
@@ -66,63 +68,114 @@ namespace Deveel.Data {
 		/// <summary>
 		/// An IndexSetStore object that manages the indexes for this table.
 		/// </summary>
-		private IndexSetStore index_store;
+		private IndexSetStore indexStore;
 		/// <summary>
 		/// The current sequence id.
 		/// </summary>
-		private long sequence_id;
+		private long sequenceId;
+
+		/// <summary>
+		/// The number of columns in this table.  This is a cached optimization.
+		/// </summary>
+		private int columnCount;
 
 
 		// ---------- Pointers into the store ----------
 
-		//  /// <summary>
-		//  /// Points to the store header area.
-		//  /// </summary>
-		//  private long header_p;
 
 		/// <summary>
 		/// Points to the index header area.
 		/// </summary>
-		private long index_header_p;
+		private long indexHeaderPointer;
 
 		/// <summary>
 		/// Points to the block list header area.
 		/// </summary>
-		private long list_header_p;
+		private long listHeaderPointer;
 
 		/// <summary>
 		/// The header area itself.
 		/// </summary>
-		private IMutableArea header_area;
+		private IMutableArea headerArea;
 
 
 		/// <summary>
 		/// The structure that manages the pointers to the records.
 		/// </summary>
-		private FixedRecordList list_structure;
+		private FixedRecordList listStructure;
 
 		/// <summary>
 		/// The first delete chain element.
 		/// </summary>
-		private long first_delete_chain_record;
+		private long firstDeleteChainRecord;
 
 		/// <summary>
 		/// Set to true when the runtime has shutdown and writes should no 
 		/// longer be possible on the object.
 		/// </summary>
-		private bool has_shutdown;
+		private bool hasShutdown;
 
 
-		/**
-		 * The Constructor.
-		 */
-		public V2MasterTableDataSource(TransactionSystem system,
-									   IStoreSystem store_system,
-									   OpenTransactionList open_transactions,
-									   IBlobStore blob_store)
-			: base(system, store_system, open_transactions, blob_store) {
-			first_delete_chain_record = -1;
-			has_shutdown = false;
+		public V2MasterTableDataSource(TransactionSystem system, IStoreSystem storeSystem, IBlobStore blobStore)
+			: base(system, storeSystem, blobStore) {
+			firstDeleteChainRecord = -1;
+			hasShutdown = false;
+		}
+
+		public override string SourceIdentity {
+			get { return fileName; }
+			set { fileName = value; }
+		}
+
+		public override int RawRowCount {
+			get {
+				lock (listStructure) {
+					long total = listStructure.AddressableNodeCount;
+					// 32-bit row limitation here - we should return a long.
+					return (int) total;
+				}
+			}
+		}
+
+		public override long CurrentUniqueId {
+			get {
+				lock (listStructure) {
+					return sequenceId - 1;
+				}
+			}
+		}
+
+
+		public override long GetNextUniqueId() {
+			lock (listStructure) {
+				long v = sequenceId;
+				++sequenceId;
+				if (hasShutdown)
+					throw new Exception("IO operation while VM shutting down.");
+
+				try {
+					try {
+						store.LockForWrite();
+						headerArea.Position = 4 + 4;
+						headerArea.WriteInt8(sequenceId);
+						headerArea.CheckOut();
+					} finally {
+						store.UnlockForWrite();
+					}
+				} catch (IOException e) {
+					Debug.WriteException(e);
+					throw new ApplicationException("IO Error: " + e.Message);
+				}
+				return v;
+			}
+		}
+
+		public override bool Compact {
+			get {
+				// TODO: We should perform some analysis on the data to decide if a
+				//   compact is necessary or not.
+				return true;
+			}
 		}
 
 		/// <summary>
@@ -145,24 +198,24 @@ namespace Deveel.Data {
 
 		/// <summary>
 		/// Sets up an initial store (should only be called from 
-		/// the <see cref="Create"/> method).
+		/// the <see cref="CreateTable"/> method).
 		/// </summary>
 		private void SetupInitialStore() {
 			// Serialize the DataTableDef object
 			MemoryStream bout = new MemoryStream();
 			BinaryWriter dout = new BinaryWriter(bout, Encoding.Unicode);
 			dout.Write(1);
-			DataTableDef.Write(dout);
+			TableInfo.Write(dout);
 			// Convert to a byte array
-			byte[] data_table_def_buf = bout.ToArray();
+			byte[] dataTableDefBuf = bout.ToArray();
 
 			// Serialize the DataIndexSetDef object
 			bout = new MemoryStream();
 			dout = new BinaryWriter(bout, Encoding.Unicode);
 			dout.Write(1);
-			DataIndexSetDef.Write(dout);
+			IndexSetInfo.Write(dout);
 			// Convert to byte array
-			byte[] index_set_def_buf = bout.ToArray();
+			byte[] indexSetDefBuf = bout.ToArray();
 
 			bout = null;
 			dout = null;
@@ -171,52 +224,49 @@ namespace Deveel.Data {
 				store.LockForWrite();
 
 				// Allocate an 80 byte header
-				IAreaWriter header_writer = store.CreateArea(80);
-				long header_p = header_writer.Id;
+				IAreaWriter headerWriter = store.CreateArea(80);
+				long headerPointer = headerWriter.Id;
 				// Allocate space to store the DataTableDef serialization
-				IAreaWriter data_table_def_writer =
-										   store.CreateArea(data_table_def_buf.Length);
-				long data_table_def_p = data_table_def_writer.Id;
+				IAreaWriter dataTableDefWriter = store.CreateArea(dataTableDefBuf.Length);
+				long dataTableDefPointer = dataTableDefWriter.Id;
 				// Allocate space to store the DataIndexSetDef serialization
-				IAreaWriter data_index_set_writer =
-											store.CreateArea(index_set_def_buf.Length);
-				long data_index_set_def_p = data_index_set_writer.Id;
+				IAreaWriter dataIndexSetWriter = store.CreateArea(indexSetDefBuf.Length);
+				long dataIndexSetDefPointer = dataIndexSetWriter.Id;
 
 				// Allocate space for the list header
-				list_header_p = list_structure.Create();
-				list_structure.WriteReservedLong(-1);
-				first_delete_chain_record = -1;
+				listHeaderPointer = listStructure.Create();
+				listStructure.WriteReservedLong(-1);
+				firstDeleteChainRecord = -1;
 
 				// Create the index store
-				index_store = new IndexSetStore(store, System);
-				index_header_p = index_store.Create();
+				indexStore = new IndexSetStore(store, System);
+				indexHeaderPointer = indexStore.Create();
 
 				// Write the main header
-				header_writer.WriteInt4(1);                  // Version
-				header_writer.WriteInt4(table_id);           // table_id
-				header_writer.WriteInt8(sequence_id);       // initial sequence id
-				header_writer.WriteInt8(data_table_def_p);  // pointer to DataTableDef
-				header_writer.WriteInt8(data_index_set_def_p); // pointer to DataIndexSetDef
-				header_writer.WriteInt8(index_header_p);    // index header pointer
-				header_writer.WriteInt8(list_header_p);     // list header pointer
-				header_writer.Finish();
+				headerWriter.WriteInt4(1);                       // Version
+				headerWriter.WriteInt4(TableId);                 // table id
+				headerWriter.WriteInt8(sequenceId);              // initial sequence id
+				headerWriter.WriteInt8(dataTableDefPointer);     // pointer to DataTableDef
+				headerWriter.WriteInt8(dataIndexSetDefPointer);  // pointer to DataIndexSetDef
+				headerWriter.WriteInt8(indexHeaderPointer);      // index header pointer
+				headerWriter.WriteInt8(listHeaderPointer);       // list header pointer
+				headerWriter.Finish();
 
-				// Write the data_table_def
-				data_table_def_writer.Write(data_table_def_buf);
-				data_table_def_writer.Finish();
+				// Write the table info
+				dataTableDefWriter.Write(dataTableDefBuf);
+				dataTableDefWriter.Finish();
 
-				// Write the data_index_set_def
-				data_index_set_writer.Write(index_set_def_buf);
-				data_index_set_writer.Finish();
+				// Write the index set info
+				dataIndexSetWriter.Write(indexSetDefBuf);
+				dataIndexSetWriter.Finish();
 
 				// Set the pointer to the header input the reserved area.
-				IMutableArea fixed_area = store.GetMutableArea(-1);
-				fixed_area.WriteInt8(header_p);
-				fixed_area.CheckOut();
+				IMutableArea fixedArea = store.GetMutableArea(-1);
+				fixedArea.WriteInt8(headerPointer);
+				fixedArea.CheckOut();
 
 				// Set the header area
-				header_area = store.GetMutableArea(header_p);
-
+				headerArea = store.GetMutableArea(headerPointer);
 			} finally {
 				store.UnlockForWrite();
 			}
@@ -227,266 +277,102 @@ namespace Deveel.Data {
 		/// Read the store headers and initialize any internal object state.
 		/// </summary>
 		/// <remarks>
-		/// This is called by the <see cref="Open"/> method.
+		/// This is called by the <see cref="OpenTable"/> method.
 		/// </remarks>
 		private void ReadStoreHeaders() {
 			// Read the fixed header
-			IArea fixed_area = store.GetArea(-1);
+			IArea fixedArea = store.GetArea(-1);
+
 			// Set the header area
-			header_area = store.GetMutableArea(fixed_area.ReadInt8());
+			headerArea = store.GetMutableArea(fixedArea.ReadInt8());
 
 			// Open a stream to the header
-			int version = header_area.ReadInt4();              // version
-			if (version != 1) {
+			int version = headerArea.ReadInt4();              // version
+			if (version != 1)
 				throw new IOException("Incorrect version identifier.");
-			}
-			this.table_id = header_area.ReadInt4();         // table_id
-			this.sequence_id = header_area.ReadInt8();     // sequence id
-			long def_p = header_area.ReadInt8();           // pointer to DataTableDef
-			long index_def_p = header_area.ReadInt8();     // pointer to DataIndexSetDef
-			this.index_header_p = header_area.ReadInt8();  // pointer to index header
-			this.list_header_p = header_area.ReadInt8();   // pointer to list header
 
-			// Read the data table def
-			BinaryReader din = GetBReader(store.GetAreaInputStream(def_p));
+			TableId = headerArea.ReadInt4();                  // table_id
+			sequenceId = headerArea.ReadInt8();               // sequence id
+			long infoPointer = headerArea.ReadInt8();         // pointer to DataTableDef
+			long indexInfoPointer = headerArea.ReadInt8();    // pointer to DataIndexSetDef
+			indexHeaderPointer = headerArea.ReadInt8();       // pointer to index header
+			listHeaderPointer = headerArea.ReadInt8();        // pointer to list header
+
+			// Read the table info
+			BinaryReader din = GetBReader(store.GetAreaInputStream(infoPointer));
 			version = din.ReadInt32();
-			if (version != 1) {
+			if (version != 1)
 				throw new IOException("Incorrect DataTableDef version identifier.");
-			}
-			table_def = DataTableDef.Read(din);
+
+			TableInfo = DataTableDef.Read(din);
 			din.Close();
 
 			// Read the data index set def
-			din = GetBReader(store.GetAreaInputStream(index_def_p));
+			din = GetBReader(store.GetAreaInputStream(indexInfoPointer));
 			version = din.ReadInt32();
-			if (version != 1) {
+			if (version != 1)
 				throw new IOException("Incorrect DataIndexSetDef version identifier.");
-			}
-			index_def = DataIndexSetDef.Read(din);
+
+			IndexSetInfo = DataIndexSetDef.Read(din);
 			din.Close();
 
 			// Read the list header
-			list_structure.Init(list_header_p);
-			first_delete_chain_record = list_structure.ReadReservedLong();
+			listStructure.Init(listHeaderPointer);
+			firstDeleteChainRecord = listStructure.ReadReservedLong();
 
 			// Init the index store
-			index_store = new IndexSetStore(store, System);
+			indexStore = new IndexSetStore(store, System);
 			try {
-				index_store.Init(index_header_p);
+				indexStore.Init(indexHeaderPointer);
 			} catch (IOException) {
 				// If this failed try writing output a new empty index set.
 				// ISSUE: Should this occur here?  This is really an attempt at repairing
 				//   the index store.
-				index_store = new IndexSetStore(store, System);
-				index_header_p = index_store.Create();
-				index_store.AddIndexLists(table_def.ColumnCount + 1, (byte)1, 1024);
-				header_area.Position = 32;
-				header_area.WriteInt8(index_header_p);
-				header_area.Position = 0;
-				header_area.CheckOut();
+				indexStore = new IndexSetStore(store, System);
+				indexHeaderPointer = indexStore.Create();
+				indexStore.AddIndexLists(TableInfo.ColumnCount + 1, 1, 1024);
+				headerArea.Position = 32;
+				headerArea.WriteInt8(indexHeaderPointer);
+				headerArea.Position = 0;
+				headerArea.CheckOut();
 			}
 
 		}
 
 		/// <summary>
-		/// Create this master table input the file system at the given path.
+		/// Creates a unique table name to give a file.
 		/// </summary>
-		/// <param name="table_id"></param>
-		/// <param name="table_def"></param>
+		/// <param name="system"></param>
+		/// <param name="tableId">A guarenteed unique number between all tables.</param>
+		/// <param name="tableName"></param>
 		/// <remarks>
-		/// This will initialise the various file objects and result input a new empty 
-		/// master table to store data input.
+		/// This could be changed to suit a particular OS's style of filesystem 
+		/// namespace. Or it could return some arbitarily unique number. 
+		/// However, for debugging purposes it's often a good idea to return a 
+		/// name that a user can recognise.
 		/// </remarks>
-		public void Create(int table_id, DataTableDef table_def) {
-
-			// Set the data table def object
-			SetupDataTableDef(table_def);
-
-			// Initially set the table sequence_id to 1
-			this.sequence_id = 1;
-
-			// Generate the name of the store file name.
-			this.file_name = MakeTableFileName(System, table_id, TableName);
-
-			// Create and open the store.
-			store = StoreSystem.CreateStore(file_name);
-
-			try {
-				store.LockForWrite();
-
-				// Setup the list structure
-				list_structure = new FixedRecordList(store, 12);
-			} finally {
-				store.UnlockForWrite();
-			}
-
-			// Set up internal state of this object
-			this.table_id = table_id;
-
-			// Initialize the store to an empty state,
-			SetupInitialStore();
-			index_store.AddIndexLists(table_def.ColumnCount + 1, (byte)1, 1024);
-
-			// Load internal state
-			LoadInternal();
-
-			//    synchAll();
-
-		}
-
-		/// <summary>
-		/// Returns true if the master table data source with the given source
-		/// identity exists.
-		/// </summary>
-		/// <param name="identity"></param>
 		/// <returns></returns>
-		internal bool Exists(String identity) {
-			return StoreSystem.StoreExists(identity);
-		}
+		private static string MakeSourceIdentity(TransactionSystem system, int tableId, TableName tableName) {
+			string str = tableName.ToString().Replace('.', '_').ToLower();
 
-		/// <summary>
-		/// Opens an existing master table from the file system at the 
-		/// path of the conglomerate this belongs to.
-		/// </summary>
-		/// <param name="file_name"></param>
-		/// <remarks>
-		/// This will set up the internal state of this object with the 
-		/// data read input.
-		/// </remarks>
-		public void Open(String file_name) {
-
-			// Set Read only flag.
-			this.file_name = file_name;
-
-			// Open the store.
-			store = StoreSystem.OpenStore(file_name);
-			bool need_check = !store.LastCloseClean();
-
-			// Setup the list structure
-			list_structure = new FixedRecordList(store, 12);
-
-			// Read and setup the pointers
-			ReadStoreHeaders();
-
-			// Set the column count
-			column_count = table_def.ColumnCount;
-
-			// Open table indices
-			TableIndices = new MultiVersionTableIndices(System,
-								   table_def.TableName, table_def.ColumnCount);
-			// The column rid list cache
-			// column_rid_list = new RIDList[table_def.ColumnCount];
-
-			// Load internal state
-			LoadInternal();
-
-			if (need_check) {
-				// Do an opening scan of the table.  Any records that are uncommited
-				// must be marked as deleted.
-				DoOpeningScan();
-
-				// Scan for any leaks input the file,
-				Debug.Write(DebugLevel.Information, this,
-							  "Scanning File: " + file_name + " for leaks.");
-				ScanForLeaks();
-			}
-		}
-
-		/// <summary>
-		/// Closes this master table in the file system.
-		/// </summary>
-		/// <param name="pending_drop"></param>
-		/// <remarks>
-		/// This frees up all the resources associated with this master table.
-		/// <para>
-		/// This method is typically called when the database is shut down.
-		/// </para>
-		/// </remarks>
-		internal void Close(bool pending_drop) {
-			lock (this) {
-				// NOTE: This method MUST be synchronized over the table to prevent
-				//   establishing a root Lock on this table.  If a root Lock is established
-				//   then the collection event could fail.
-
-				lock (list_structure) {
-
-					// If we are root locked, we must become un root locked.
-					ClearAllRootLocks();
-
-					try {
-						try {
-							store.LockForWrite();
-
-							// Force a garbage collection event.
-							if (!IsReadOnly) {
-								gc.Collect(true);
-							}
-
-							// If we are closing pending a drop, we need to remove all blob
-							// references input the table.
-							// NOTE: This must only happen after the above collection event.
-							if (pending_drop) {
-								// Scan and remove all blob references for this dropped table.
-								DropAllBlobReferences();
-							}
-						} finally {
-							store.UnlockForWrite();
-						}
-					} catch (Exception e) {
-						Debug.Write(DebugLevel.Error, this, "Exception during table (" + ToString() + ") close: " + e.Message);
-						Debug.WriteException(e);
-					}
-
-					// Synchronize the store
-					index_store.Close();
-					//      store.flush();
-
-					// Close the store input the store system.
-					StoreSystem.CloseStore(store);
-
-					table_def = null;
-					TableIndices = null;
-					// column_rid_list = null;
-					is_closed = true;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Creates a new master table data source that is a copy of the 
-		/// given <see cref="MasterTableDataSource"/> object.
-		/// </summary>
-		/// <param name="table_id">The table id to given the new table.</param>
-		/// <param name="src_master_table">The table to copy.</param>
-		/// <param name="index_set">The view of the table to be copied.</param>
-		internal void Copy(int table_id, MasterTableDataSource src_master_table, IIndexSet index_set) {
-
-			// Basically we need to copy all the data and then set the new index view.
-			Create(table_id, src_master_table.DataTableDef);
-
-			// The record list.
-			IIntegerList master_index = index_set.GetIndex(0);
-
-			// For each row input the master table
-			int sz = src_master_table.RawRowCount;
-			for (int i = 0; i < sz; ++i) {
-				// Is this row input the set we are copying from?
-				if (master_index.Contains(i)) {
-					// Yes so copy the record into this table.
-					CopyRecordFrom(src_master_table, i);
+			// Go through each character and remove each non a-z,A-Z,0-9,_ character.
+			// This ensure there are no strange characters in the file name that the
+			// underlying OS may not like.
+			StringBuilder osifiedName = new StringBuilder();
+			int count = 0;
+			for (int i = 0; i < str.Length || count > 64; ++i) {
+				char c = str[i];
+				if ((c >= 'a' && c <= 'z') ||
+					(c >= 'A' && c <= 'Z') ||
+					(c >= '0' && c <= '9') ||
+					c == '_') {
+					osifiedName.Append(c);
+					++count;
 				}
 			}
 
-			// Copy the index set
-			index_store.CopyAllFrom(index_set);
-
-			// Finally set the unique id
-			long un_id = src_master_table.NextUniqueId;
-			SetUniqueID(un_id);
-
+			return osifiedName.ToString();
 		}
-
-		// ---------- Low level operations ----------
 
 		/// <summary>
 		/// Writes a record to the store and returns a pointer to the area 
@@ -505,80 +391,77 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		private long WriteRecordToStore(DataRow data) {
-
 			// Calculate how much space this record will use
-			int row_cells = data.ColumnCount;
+			int rowCells = data.ColumnCount;
 
-			int[] cell_sizes = new int[row_cells];
-			int[] cell_type = new int[row_cells];
+			int[] cellSizes = new int[rowCells];
+			int[] cellType = new int[rowCells];
 
 			try {
 				store.LockForWrite();
 
 				// Establish a reference to any blobs input the record
-				int all_records_size = 0;
-				for (int i = 0; i < row_cells; ++i) {
+				int allRecordsSize = 0;
+				for (int i = 0; i < rowCells; ++i) {
 					TObject cell = data.GetValue(i);
 					int sz;
 					int ctype;
 					if (cell.Object is IRef) {
-						IRef large_object_ref = (IRef)cell.Object;
+						IRef largeObjectRef = (IRef)cell.Object;
 						// TBinaryType that are IBlobRef objects have to be handled separately.
 						sz = 16;
 						ctype = 2;
-						if (large_object_ref != null) {
+						if (largeObjectRef != null) {
 							// Tell the blob store interface that we've made a static reference
 							// to this blob.
-							blob_store.EstablishReference(large_object_ref.Id);
+							BlobStore.EstablishReference(largeObjectRef.Id);
 						}
 					} else {
 						sz = ObjectTransfer.ExactSizeOf(cell.Object);
 						ctype = 1;
 					}
-					cell_sizes[i] = sz;
-					cell_type[i] = ctype;
-					all_records_size += sz;
+
+					cellSizes[i] = sz;
+					cellType[i] = ctype;
+					allRecordsSize += sz;
 				}
 
-				long record_p;
-
 				// Allocate space for the record,
-				IAreaWriter writer =
-							   store.CreateArea(all_records_size + (row_cells * 8) + 4);
-				record_p = writer.Id;
+				IAreaWriter writer = store.CreateArea(allRecordsSize + (rowCells * 8) + 4);
+				long recordPointer = writer.Id;
 
 				// The record output stream
-				BinaryWriter dout = GetBWriter(writer.GetOutputStream());
+				BinaryWriter binaryWriter = GetBWriter(writer.GetOutputStream());
 
 				// Write the record header first,
-				dout.Write(0);        // reserved for future use
-				int cell_skip = 0;
-				for (int i = 0; i < row_cells; ++i) {
-					dout.Write((int)cell_type[i]);
-					dout.Write(cell_skip);
-					cell_skip += cell_sizes[i];
+				binaryWriter.Write(0);        // reserved for future use
+				int cellSkip = 0;
+				for (int i = 0; i < rowCells; ++i) {
+					binaryWriter.Write(cellType[i]);
+					binaryWriter.Write(cellSkip);
+					cellSkip += cellSizes[i];
 				}
 
 				// Now Write a serialization of the cells themselves,
-				for (int i = 0; i < row_cells; ++i) {
-					TObject t_object = data.GetValue(i);
-					int ctype = cell_type[i];
+				for (int i = 0; i < rowCells; ++i) {
+					TObject tObject = data.GetValue(i);
+					int ctype = cellType[i];
 					if (ctype == 1) {
 						// Regular object
-						ObjectTransfer.WriteTo(dout, t_object.Object);
+						ObjectTransfer.WriteTo(binaryWriter, tObject.Object);
 					} else if (ctype == 2) {
 						// This is a binary large object and must be represented as a ref
 						// to a blob input the BlobStore.
-						IRef large_object_ref = (IRef)t_object.Object;
-						if (large_object_ref == null) {
+						IRef largeObjectRef = (IRef)tObject.Object;
+						if (largeObjectRef == null) {
 							// null value
-							dout.Write(1);
-							dout.Write(0);                  // Reserved for future use
-							dout.Write(-1L);
+							binaryWriter.Write(1);
+							binaryWriter.Write(0);                  // Reserved for future use
+							binaryWriter.Write(-1L);
 						} else {
-							dout.Write(0);
-							dout.Write(0);                  // Reserved for future use
-							dout.Write(large_object_ref.Id);
+							binaryWriter.Write(0);
+							binaryWriter.Write(0);                  // Reserved for future use
+							binaryWriter.Write(largeObjectRef.Id);
 						}
 					} else {
 						throw new IOException("Unrecognised cell type.");
@@ -586,18 +469,16 @@ namespace Deveel.Data {
 				}
 
 				// Flush the output
-				dout.Flush();
+				binaryWriter.Flush();
 
 				// Finish the record
 				writer.Finish();
 
 				// Return the record
-				return record_p;
-
+				return recordPointer;
 			} finally {
 				store.UnlockForWrite();
 			}
-
 		}
 
 		/// <summary>
@@ -605,19 +486,18 @@ namespace Deveel.Data {
 		/// same record index in this table.
 		/// </summary>
 		/// <param name="src_master_table"></param>
-		/// <param name="record_id"></param>
+		/// <param name="recordId"></param>
 		/// <remarks>
 		/// This may need to expand the fixed list record heap as necessary to 
 		/// copy the record into the given position. The record is <b>not</b> 
 		/// copied into the first free record position.
 		/// </remarks>
-		private void CopyRecordFrom(MasterTableDataSource src_master_table,int record_id) {
-
+		private void CopyRecordFrom(MasterTableDataSource src_master_table,int recordId) {
 			// Copy the record from the source table input a DataRow object,
-			int sz = src_master_table.DataTableDef.ColumnCount;
+			int sz = src_master_table.TableInfo.ColumnCount;
 			DataRow dataRow = new DataRow(System, sz);
 			for (int i = 0; i < sz; ++i) {
-				TObject tob = src_master_table.GetCellContents(i, record_id);
+				TObject tob = src_master_table.GetCellContents(i, recordId);
 				dataRow.SetValue(i, tob);
 			}
 
@@ -629,10 +509,10 @@ namespace Deveel.Data {
 				long record_p = WriteRecordToStore(dataRow);
 
 				// Add this record into the table structure at the given index
-				AddToRecordList(record_id, record_p);
+				AddToRecordList(recordId, record_p);
 
 				// Set the record type for this record (committed added).
-				WriteRecordType(record_id, 0x010);
+				WriteRecordType(recordId, 0x010);
 
 			} finally {
 				store.UnlockForWrite();
@@ -641,34 +521,34 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Removes all blob references in the record area pointed to by <paramref name="record_p"/>.
+		/// Removes all blob references in the record area pointed to by <paramref name="recordPointer"/>.
 		/// </summary>
-		/// <param name="record_p"></param>
+		/// <param name="recordPointer"></param>
 		/// <remarks>
 		/// This should only be used when the record is be reclaimed.
 		/// </remarks>
-		private void RemoveAllBlobReferencesForRecord(long record_p) {
+		private void RemoveAllBlobReferencesForRecord(long recordPointer) {
 			// NOTE: Does this need to be optimized?
-			IArea record_area = store.GetArea(record_p);
-			int reserved = record_area.ReadInt4();  // reserved
+			IArea recordArea = store.GetArea(recordPointer);
+			int reserved = recordArea.ReadInt4();  // reserved
 			// Look for any blob references input the row
-			for (int i = 0; i < column_count; ++i) {
-				int ctype = record_area.ReadInt4();
-				int cell_offset = record_area.ReadInt4();
+			for (int i = 0; i < columnCount; ++i) {
+				int ctype = recordArea.ReadInt4();
+				int cellOffset = recordArea.ReadInt4();
 				if (ctype == 1) {
 					// Type 1 is not a large object
 				} else if (ctype == 2) {
-					int cur_p = record_area.Position;
-					record_area.Position = cell_offset + 4 + (column_count * 8);
-					int btype = record_area.ReadInt4();
-					record_area.ReadInt4();    // (reserved)
+					int curP = recordArea.Position;
+					recordArea.Position = cellOffset + 4 + (columnCount * 8);
+					int btype = recordArea.ReadInt4();
+					recordArea.ReadInt4();    // (reserved)
 					if (btype == 0) {
-						long blob_ref_id = record_area.ReadInt8();
+						long blobRefId = recordArea.ReadInt8();
 						// Release this reference
-						blob_store.ReleaseReference(blob_ref_id);
+						BlobStore.ReleaseReference(blobRefId);
 					}
 					// Revert the area pointer
-					record_area.Position = cur_p;
+					recordArea.Position = curP;
 				} else {
 					throw new Exception("Unrecognised type.");
 				}
@@ -690,23 +570,385 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		private void DropAllBlobReferences() {
-			lock (list_structure) {
-				long elements = list_structure.AddressableNodeCount;
+			lock (listStructure) {
+				long elements = listStructure.AddressableNodeCount;
 				for (long i = 0; i < elements; ++i) {
-					IArea a = list_structure.PositionOnNode(i);
+					IArea a = listStructure.PositionOnNode(i);
 					int status = a.ReadInt4();
 					// Is the record not deleted?
 					if ((status & 0x020000) == 0) {
 						// Get the record pointer
-						long record_p = a.ReadInt8();
-						RemoveAllBlobReferencesForRecord(record_p);
+						long recordPointer = a.ReadInt8();
+						RemoveAllBlobReferencesForRecord(recordPointer);
 					}
 				}
 			}
+		}
 
+		/// <summary>
+		/// Checks and repairs a record if it requires repairing.
+		/// </summary>
+		/// <param name="rowIndex"></param>
+		/// <param name="allAreas"></param>
+		/// <param name="terminal"></param>
+		/// <remarks>
+		/// Returns true if the record is valid, or false otherwise (record is/was deleted).
+		/// </remarks>
+		/// <returns></returns>
+		private bool CheckAndRepairRecord(int rowIndex, ICollection allAreas, IUserTerminal terminal) {
+			lock (listStructure) {
+				// Position input the list structure
+				IMutableArea blockArea = listStructure.PositionOnNode(rowIndex);
+				int p = blockArea.Position;
+				int status = blockArea.ReadInt4();
+				// If it is not deleted,
+				if ((status & 0x020000) == 0) {
+					long recordPointer = blockArea.ReadInt8();
+
+					// Is this pointer valid?
+					//TODO: check this...
+					int i = new ArrayList(allAreas).BinarySearch(recordPointer);
+					if (i >= 0) {
+						// Pointer is valid input the store,
+						// Try reading from column 0
+						try {
+							OnGetCellContents(0, rowIndex);
+							// Return because the record is valid.
+							return true;
+						} catch (Exception e) {
+							// If an exception is generated when accessing the data, delete the
+							// record.
+							terminal.WriteLine("+ Error accessing record: " + e.Message);
+						}
+
+					}
+
+					// If we get here, the record needs to be deleted and added to the delete
+					// chain
+					terminal.WriteLine("+ Record area not valid: row = " + rowIndex +
+					                   " pointer = " + recordPointer);
+					terminal.WriteLine("+ Deleting record.");
+				}
+
+				// Put this record input the delete chain
+				blockArea.Position = p;
+				blockArea.WriteInt4(0x020000);
+				blockArea.WriteInt8(firstDeleteChainRecord);
+				blockArea.CheckOut();
+				firstDeleteChainRecord = rowIndex;
+
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Grows the list structure to accomodate more entries.
+		/// </summary>
+		/// <remarks>
+		/// The new entries are added to the free chain pool. Assumes we are 
+		/// synchronized over listStructure.
+		/// </remarks>
+		private void GrowListStructure() {
+			try {
+				store.LockForWrite();
+
+				// Increase the size of the list structure.
+				listStructure.IncreaseSize();
+
+				// The start record of the new size
+				int newBlockNumber = listStructure.ListBlockCount - 1;
+				long startIndex = listStructure.ListBlockFirstPosition(newBlockNumber);
+				long sizeOfBlock = listStructure.ListBlockNodeCount(newBlockNumber);
+
+				// The IArea object for the new position
+				IMutableArea a = listStructure.PositionOnNode(startIndex);
+
+				// Set the rest of the block as deleted records
+				for (long n = 0; n < sizeOfBlock - 1; ++n) {
+					a.WriteInt4(0x020000);
+					a.WriteInt8(startIndex + n + 1);
+				}
+
+				// The last block is end of delete chain.
+				a.WriteInt4(0x020000);
+				a.WriteInt8(firstDeleteChainRecord);
+				a.CheckOut();
+
+				// And set the new delete chain
+				firstDeleteChainRecord = startIndex;
+
+				// Set the reserved area
+				listStructure.WriteReservedLong(firstDeleteChainRecord);
+			} finally {
+				store.UnlockForWrite();
+			}
+		}
+
+		/// <summary>
+		/// Adds a record to the given position in the fixed structure.
+		/// </summary>
+		/// <param name="index"></param>
+		/// <param name="recordPointer"></param>
+		/// <remarks>
+		/// If the place is already used by a record then an exception is thrown, 
+		/// otherwise the record is set.
+		/// </remarks>
+		/// <returns></returns>
+		private long AddToRecordList(long index, long recordPointer) {
+			lock (listStructure) {
+				if (hasShutdown)
+					throw new IOException("IO operation while VM shutting down.");
+
+				long addrCount = listStructure.AddressableNodeCount;
+
+				// First make sure there are enough nodes to accomodate this entry,
+				while (index >= addrCount) {
+					GrowListStructure();
+					addrCount = listStructure.AddressableNodeCount;
+				}
+
+				// Remove this from the delete chain by searching for the index input the
+				// delete chain.
+				long prev = -1;
+				long chain = firstDeleteChainRecord;
+				while (chain != -1 && chain != index) {
+					IArea a1 = listStructure.PositionOnNode(chain);
+					if (a1.ReadInt4() != 0x020000)
+						throw new IOException("Not deleted record is input delete chain!");
+
+					prev = chain;
+					chain = a1.ReadInt8();
+				}
+
+				// Wasn't found
+				if (chain == -1)
+					throw new IOException("Unable to add record because index is not available.");
+
+				// Read the next entry input the delete chain.
+				IArea a = listStructure.PositionOnNode(chain);
+				if (a.ReadInt4() != 0x020000)
+					throw new IOException("Not deleted record is input delete chain!");
+
+				long nextPointer = a.ReadInt8();
+
+				try {
+					store.LockForWrite();
+
+					// If prev == -1 then first_delete_chain_record points to this record
+					if (prev == -1) {
+						firstDeleteChainRecord = nextPointer;
+						listStructure.WriteReservedLong(firstDeleteChainRecord);
+					} else {
+						// Otherwise we need to set the previous node to point to the next node
+						IMutableArea ma1 = listStructure.PositionOnNode(prev);
+						ma1.WriteInt4(0x020000);
+						ma1.WriteInt8(nextPointer);
+						ma1.CheckOut();
+					}
+
+					// Finally set the recordPointer
+					IMutableArea ma = listStructure.PositionOnNode(index);
+					ma.WriteInt4(0);
+					ma.WriteInt8(recordPointer);
+					ma.CheckOut();
+				} finally {
+					store.UnlockForWrite();
+				}
+			}
+
+			return index;
+		}
+
+		/// <summary>
+		/// Finds a free place to add a record and returns an index to the 
+		/// record here.
+		/// </summary>
+		/// <param name="recordPointer"></param>
+		/// <remarks>
+		/// This may expand the record space as necessary if there are no free 
+		/// record slots to use.
+		/// </remarks>
+		/// <returns></returns>
+		private long AddToRecordList(long recordPointer) {
+			lock (listStructure) {
+				if (hasShutdown)
+					throw new IOException("IO operation while VM shutting down.");
+
+				// If there are no free deleted records input the delete chain,
+				if (firstDeleteChainRecord == -1)
+					// Grow the fixed structure to allow more nodes,
+					GrowListStructure();
+
+				// Pull free block from the delete chain and recycle it.
+				long recycledRecord = firstDeleteChainRecord;
+				IMutableArea block = listStructure.PositionOnNode(recycledRecord);
+				int recPos = block.Position;
+				// Status of the recycled block
+				int status = block.ReadInt4();
+				if ((status & 0x020000) == 0)
+					throw new ApplicationException("Assertion failed: record is not deleted.  " +
+					                               "status = " + status + ", rec_pos = " + recPos);
+
+				// The pointer to the next input the chain.
+				long nextChain = block.ReadInt8();
+				firstDeleteChainRecord = nextChain;
+
+				try {
+					store.LockForWrite();
+
+					// Update the first_delete_chain_record field input the header
+					listStructure.WriteReservedLong(firstDeleteChainRecord);
+					// Update the block
+					block.Position = recPos;
+					block.WriteInt4(0);
+					block.WriteInt8(recordPointer);
+					block.CheckOut();
+				} finally {
+					store.UnlockForWrite();
+				}
+
+				return recycledRecord;
+			}
+		}
+
+		protected override void CreateTable() {
+			// Initially set the table sequence_id to 1
+			sequenceId = 1;
+
+			// Generate the name of the store file name.
+			fileName = MakeSourceIdentity(System, TableId, TableName);
+
+			// Create and open the store.
+			store = StoreSystem.CreateStore(fileName);
+
+			try {
+				store.LockForWrite();
+
+				// Setup the list structure
+				listStructure = new FixedRecordList(store, 12);
+			} finally {
+				store.UnlockForWrite();
+			}
+
+			// Initialize the store to an empty state,
+			SetupInitialStore();
+			indexStore.AddIndexLists(TableInfo.ColumnCount + 1, (byte)1, 1024);
+			columnCount = TableInfo.ColumnCount;
+		}
+
+		/// <summary>
+		/// Returns true if the master table data source with the given source
+		/// identity exists.
+		/// </summary>
+		/// <param name="identity"></param>
+		/// <returns></returns>
+		internal bool Exists(String identity) {
+			return StoreSystem.StoreExists(identity);
+		}
+
+		protected override bool OpenTable() {
+			// Open the store.
+			store = StoreSystem.OpenStore(SourceIdentity);
+			bool needCheck = !store.LastCloseClean();
+
+			// Setup the list structure
+			listStructure = new FixedRecordList(store, 12);
+
+			// Read and setup the pointers
+			ReadStoreHeaders();
+
+			// Set the column count
+			columnCount = TableInfo.ColumnCount;
+
+			return needCheck;
+		}
+
+		/// <summary>
+		/// Closes this master table in the file system.
+		/// </summary>
+		/// <param name="pendingDrop"></param>
+		/// <remarks>
+		/// This frees up all the resources associated with this master table.
+		/// <para>
+		/// This method is typically called when the database is shut down.
+		/// </para>
+		/// </remarks>
+		internal void Close(bool pendingDrop) {
+			lock (this) {
+				// NOTE: This method MUST be synchronized over the table to prevent
+				//   establishing a root Lock on this table.  If a root Lock is established
+				//   then the collection event could fail.
+
+				lock (listStructure) {
+					// If we are root locked, we must become un root locked.
+					ClearAllRootLocks();
+
+					try {
+						try {
+							store.LockForWrite();
+
+							// Force a garbage collection event.
+							if (!IsReadOnly)
+								TableGC.Collect(true);
+
+							// If we are closing pending a drop, we need to remove all blob
+							// references input the table.
+							// NOTE: This must only happen after the above collection event.
+							if (pendingDrop) {
+								// Scan and remove all blob references for this dropped table.
+								DropAllBlobReferences();
+							}
+						} finally {
+							store.UnlockForWrite();
+						}
+					} catch (Exception e) {
+						Debug.Write(DebugLevel.Error, this, "Exception during table (" + ToString() + ") close: " + e.Message);
+						Debug.WriteException(e);
+					}
+
+					// Synchronize the store
+					indexStore.Close();
+
+					// Close the store input the store system.
+					StoreSystem.CloseStore(store);
+
+					TableInfo = null;
+					IsClosed = true;
+				}
+			}
+		}
+
+		public override void CopyFrom(int tableId, MasterTableDataSource srcMasterTable, IIndexSet indexSet) {
+			// Basically we need to copy all the data and then set the new index view.
+			Create(tableId, srcMasterTable.TableInfo);
+
+			// The record list.
+			IIntegerList masterIndex = indexSet.GetIndex(0);
+
+			// For each row input the master table
+			int sz = srcMasterTable.RawRowCount;
+			for (int i = 0; i < sz; ++i) {
+				// Is this row input the set we are copying from?
+				if (masterIndex.Contains(i)) {
+					// Yes so copy the record into this table.
+					CopyRecordFrom(srcMasterTable, i);
+				}
+			}
+
+			// Copy the index set
+			indexStore.CopyAllFrom(indexSet);
+
+			// Finally set the unique id
+			SetUniqueID(srcMasterTable.GetNextUniqueId());
 		}
 
 		// ---------- Diagnostic and repair ----------
+
+		protected override void OnOpenScan() {
+			// Scan for any leaks input the file,
+			Debug.Write(DebugLevel.Information, this, "Scanning Table " + SourceIdentity + " for leaks.");
+			ScanForLeaks();
+		}
 
 		/// <summary>
 		/// Looks for any leaks in the file.
@@ -721,89 +963,82 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		public void ScanForLeaks() {
-			lock (list_structure) {
-
+			lock (listStructure) {
 				// The list of pointers to areas (as Long).
-				ArrayList used_areas = new ArrayList();
+				List<long> usedAreas = new List<long>();
 
 				// Add the header_p pointer
-				used_areas.Add(header_area.Id);
+				usedAreas.Add(headerArea.Id);
 
-				header_area.Position = 16;
+				headerArea.Position = 16;
 				// Add the DataTableDef and DataIndexSetDef objects
-				used_areas.Add(header_area.ReadInt8());
-				used_areas.Add(header_area.ReadInt8());
+				usedAreas.Add(headerArea.ReadInt8());
+				usedAreas.Add(headerArea.ReadInt8());
 
 				// Add all the used areas input the list_structure itself.
-				list_structure.AddAllAreasUsed(used_areas);
+				listStructure.AddAllAreasUsed(usedAreas);
 
 				// Adds all the user areas input the index store.
-				index_store.AddAllAreasUsed(used_areas);
+				indexStore.AddAllAreasUsed(usedAreas);
 
 				// Search the list structure for all areas
-				long elements = list_structure.AddressableNodeCount;
+				long elements = listStructure.AddressableNodeCount;
 				for (long i = 0; i < elements; ++i) {
-					IArea a = list_structure.PositionOnNode(i);
+					IArea a = listStructure.PositionOnNode(i);
 					int status = a.ReadInt4();
 					if ((status & 0x020000) == 0) {
 						long pointer = a.ReadInt8();
 						//          Console.Out.WriteLine("Not deleted = " + pointer);
 						// Record is not deleted,
-						used_areas.Add(pointer);
+						usedAreas.Add(pointer);
 					}
 				}
 
 				// Following depends on store implementation
 				if (store is AbstractStore) {
-					AbstractStore a_store = (AbstractStore)store;
-					ArrayList leaked_areas = a_store.FindAllocatedAreasNotIn(used_areas);
-					if (leaked_areas.Count == 0) {
+					AbstractStore aStore = (AbstractStore)store;
+					List<long> leakedAreas = aStore.FindAllocatedAreasNotIn(usedAreas);
+					if (leakedAreas.Count == 0) {
 						Debug.Write(DebugLevel.Information, this, "No leaked areas.");
 					} else {
-						Debug.Write(DebugLevel.Information, this, "There were " +
-									  leaked_areas.Count + " leaked areas found.");
-						for (int n = 0; n < leaked_areas.Count; ++n) {
-							long area_pointer = (long)leaked_areas[n];
-							store.DeleteArea(area_pointer);
+						Debug.Write(DebugLevel.Information, this, "There were " + leakedAreas.Count + " leaked areas found.");
+						foreach (long areaPointer in leakedAreas) {
+							store.DeleteArea(areaPointer);
 						}
-						Debug.Write(DebugLevel.Information, this,
-									  "Leaked areas successfully freed.");
+
+						Debug.Write(DebugLevel.Information, this, "Leaked areas successfully freed.");
 					}
 				}
-
 			}
-
 		}
 
 		/// <summary>
 		/// Performs a complete check and repair of the table.
 		/// </summary>
-		/// <param name="file_name"></param>
 		/// <param name="terminal">An implementation of the user interface 
-		/// <see cref="IUserTerminal"/ >that is used to ask any questions 
+		/// <see cref="IUserTerminal"/> that is used to ask any questions 
 		/// and output the results of the check.</param>
 		/// <remarks>
 		/// The table must not have been opened before this method is called.  
 		/// </remarks>
-		public void CheckAndRepair(String file_name, IUserTerminal terminal) {
-			this.file_name = file_name;
+		public override void Repair(IUserTerminal terminal) {
+			terminal.WriteLine("+ Repairing V2MasterTableDataSource " + fileName);
 
-			terminal.WriteLine("+ Repairing V2MasterTableDataSource " + file_name);
+			store = StoreSystem.OpenStore(fileName);
 
-			store = StoreSystem.OpenStore(file_name);
 			// If AbstractStore then fix
 			if (store is AbstractStore) {
 				((AbstractStore)store).OpenScanAndFix(terminal);
 			}
 
 			// Setup the list structure
-			list_structure = new FixedRecordList(store, 12);
+			listStructure = new FixedRecordList(store, 12);
 
 			try {
 				// Read and setup the pointers
 				ReadStoreHeaders();
 				// Set the column count
-				column_count = table_def.ColumnCount;
+				columnCount = TableInfo.ColumnCount;
 			} catch (IOException e) {
 				// If this fails, the table is not recoverable.
 				terminal.WriteLine("! Table is not repairable because the file headers are corrupt.");
@@ -817,478 +1052,189 @@ namespace Deveel.Data {
 			terminal.WriteLine("- Checking record integrity.");
 
 			// Get the sorted list of all areas input the file.
-			IList all_areas = store.GetAllAreas();
+			IList allAreas = store.GetAllAreas();
+
 			// The list of all records generated when we check each record
-			ArrayList all_records = new ArrayList();
+			List<int> allRecords = new List<int>();
 
 			// Look up each record and check it's intact,  Any records that are deleted
 			// are added to the delete chain.
-			first_delete_chain_record = -1;
+			firstDeleteChainRecord = -1;
 			int record_count = 0;
-			int free_count = 0;
+			int freeCount = 0;
 			int sz = RawRowCount;
 			for (int i = sz - 1; i >= 0; --i) {
-				bool record_valid = CheckAndRepairRecord(i, all_areas, terminal);
-				if (record_valid) {
-					all_records.Add(i);
+				bool recordValid = CheckAndRepairRecord(i, allAreas, terminal);
+				if (recordValid) {
+					allRecords.Add(i);
 					++record_count;
 				} else {
-					++free_count;
+					++freeCount;
 				}
 			}
+
 			// Set the reserved area
-			list_structure.WriteReservedLong(first_delete_chain_record);
+			listStructure.WriteReservedLong(firstDeleteChainRecord);
 
 			terminal.Write("* Record count = " + record_count);
-			terminal.WriteLine(" Free count = " + free_count);
+			terminal.WriteLine(" Free count = " + freeCount);
 
 			// Check indexes
 			terminal.WriteLine("- Rebuilding all table index information.");
 
-			int index_count = table_def.ColumnCount + 1;
-			for (int i = 0; i < index_count; ++i) {
-				index_store.CommitDropIndex(i);
+			int indexCount = TableInfo.ColumnCount + 1;
+			for (int i = 0; i < indexCount; ++i) {
+				indexStore.CommitDropIndex(i);
 			}
-			//    store.flush();
+			
 			BuildIndexes();
 
 			terminal.WriteLine("- Table check complete.");
-			//    // Flush any changes
-			//    store.flush();
-
-		}
-
-		/// <summary>
-		/// Checks and repairs a record if it requires repairing.
-		/// </summary>
-		/// <param name="row_index"></param>
-		/// <param name="all_areas"></param>
-		/// <param name="terminal"></param>
-		/// <remarks>
-		/// Returns true if the record is valid, or false otherwise (record is/was deleted).
-		/// </remarks>
-		/// <returns></returns>
-		private bool CheckAndRepairRecord(int row_index, ICollection all_areas, IUserTerminal terminal) {
-			lock (list_structure) {
-				// Position input the list structure
-				IMutableArea block_area = list_structure.PositionOnNode(row_index);
-				int p = block_area.Position;
-				int status = block_area.ReadInt4();
-				// If it is not deleted,
-				if ((status & 0x020000) == 0) {
-					long record_p = block_area.ReadInt8();
-					//        Console.Out.WriteLine("row_index = " + row_index + " record_p = " + record_p);
-					// Is this pointer valid?
-					//TODO: check this...
-					int i = new ArrayList(all_areas).BinarySearch(record_p);
-					if (i >= 0) {
-						// Pointer is valid input the store,
-						// Try reading from column 0
-						try {
-							InternalGetCellContents(0, row_index);
-							// Return because the record is valid.
-							return true;
-						} catch (Exception e) {
-							// If an exception is generated when accessing the data, delete the
-							// record.
-							terminal.WriteLine("+ Error accessing record: " + e.Message);
-						}
-
-					}
-
-					// If we get here, the record needs to be deleted and added to the delete
-					// chain
-					terminal.WriteLine("+ Record area not valid: row = " + row_index +
-									 " pointer = " + record_p);
-					terminal.WriteLine("+ Deleting record.");
-				}
-				// Put this record input the delete chain
-				block_area.Position = p;
-				block_area.WriteInt4(0x020000);
-				block_area.WriteInt8(first_delete_chain_record);
-				block_area.CheckOut();
-				first_delete_chain_record = row_index;
-
-				return false;
-
-			}
-
-		}
-
-
-
-		/// <summary>
-		/// Grows the list structure to accomodate more entries.
-		/// </summary>
-		/// <remarks>
-		/// The new entries are added to the free chain pool. Assumes we are 
-		/// synchronized over listStructure.
-		/// </remarks>
-		private void GrowListStructure() {
-			try {
-				store.LockForWrite();
-
-				// Increase the size of the list structure.
-				list_structure.IncreaseSize();
-				// The start record of the new size
-				int new_block_number = list_structure.ListBlockCount - 1;
-				long start_index =
-							   list_structure.ListBlockFirstPosition(new_block_number);
-				long size_of_block = list_structure.ListBlockNodeCount(new_block_number);
-
-				// The IArea object for the new position
-				IMutableArea a = list_structure.PositionOnNode(start_index);
-
-				// Set the rest of the block as deleted records
-				for (long n = 0; n < size_of_block - 1; ++n) {
-					a.WriteInt4(0x020000);
-					a.WriteInt8(start_index + n + 1);
-				}
-				// The last block is end of delete chain.
-				a.WriteInt4(0x020000);
-				a.WriteInt8(first_delete_chain_record);
-				a.CheckOut();
-				// And set the new delete chain
-				first_delete_chain_record = start_index;
-				// Set the reserved area
-				list_structure.WriteReservedLong(first_delete_chain_record);
-
-			} finally {
-				store.UnlockForWrite();
-			}
-
-		}
-
-		/// <summary>
-		/// Adds a record to the given position in the fixed structure.
-		/// </summary>
-		/// <param name="index"></param>
-		/// <param name="record_p"></param>
-		/// <remarks>
-		/// If the place is already used by a record then an exception is thrown, 
-		/// otherwise the record is set.
-		/// </remarks>
-		/// <returns></returns>
-		private long AddToRecordList(long index, long record_p) {
-			lock (list_structure) {
-				if (has_shutdown) {
-					throw new IOException("IO operation while VM shutting down.");
-				}
-
-				long addr_count = list_structure.AddressableNodeCount;
-				// First make sure there are enough nodes to accomodate this entry,
-				while (index >= addr_count) {
-					GrowListStructure();
-					addr_count = list_structure.AddressableNodeCount;
-				}
-
-				// Remove this from the delete chain by searching for the index input the
-				// delete chain.
-				long prev = -1;
-				long chain = first_delete_chain_record;
-				while (chain != -1 && chain != index) {
-					IArea a1 = list_structure.PositionOnNode(chain);
-					if (a1.ReadInt4() == 0x020000) {
-						prev = chain;
-						chain = a1.ReadInt8();
-					} else {
-						throw new IOException("Not deleted record is input delete chain!");
-					}
-				}
-				// Wasn't found
-				if (chain == -1) {
-					throw new IOException(
-								 "Unable to add record because index is not available.");
-				}
-				// Read the next entry input the delete chain.
-				IArea a = list_structure.PositionOnNode(chain);
-				if (a.ReadInt4() != 0x020000) {
-					throw new IOException("Not deleted record is input delete chain!");
-				}
-				long next_p = a.ReadInt8();
-
-				try {
-					store.LockForWrite();
-
-					// If prev == -1 then first_delete_chain_record points to this record
-					if (prev == -1) {
-						first_delete_chain_record = next_p;
-						list_structure.WriteReservedLong(first_delete_chain_record);
-					} else {
-						// Otherwise we need to set the previous node to point to the next node
-						IMutableArea ma1 = list_structure.PositionOnNode(prev);
-						ma1.WriteInt4(0x020000);
-						ma1.WriteInt8(next_p);
-						ma1.CheckOut();
-					}
-
-					// Finally set the record_p
-					IMutableArea ma = list_structure.PositionOnNode(index);
-					ma.WriteInt4(0);
-					ma.WriteInt8(record_p);
-					ma.CheckOut();
-
-				} finally {
-					store.UnlockForWrite();
-				}
-
-			}
-
-			return index;
-		}
-
-		/// <summary>
-		/// Finds a free place to add a record and returns an index to the 
-		/// record here.
-		/// </summary>
-		/// <param name="record_p"></param>
-		/// <remarks>
-		/// This may expand the record space as necessary if there are no free 
-		/// record slots to use.
-		/// </remarks>
-		/// <returns></returns>
-		private long AddToRecordList(long record_p) {
-			lock (list_structure) {
-				if (has_shutdown) {
-					throw new IOException("IO operation while VM shutting down.");
-				}
-
-				// If there are no free deleted records input the delete chain,
-				if (first_delete_chain_record == -1) {
-					// Grow the fixed structure to allow more nodes,
-					GrowListStructure();
-				}
-
-				// Pull free block from the delete chain and recycle it.
-				long recycled_record = first_delete_chain_record;
-				IMutableArea block = list_structure.PositionOnNode(recycled_record);
-				int rec_pos = block.Position;
-				// Status of the recycled block
-				int status = block.ReadInt4();
-				if ((status & 0x020000) == 0) {
-					throw new ApplicationException("Assertion failed: record is not deleted.  " +
-									"status = " + status + ", rec_pos = " + rec_pos);
-				}
-				// The pointer to the next input the chain.
-				long next_chain = block.ReadInt8();
-				first_delete_chain_record = next_chain;
-
-				try {
-
-					store.LockForWrite();
-
-					// Update the first_delete_chain_record field input the header
-					list_structure.WriteReservedLong(first_delete_chain_record);
-					// Update the block
-					block.Position = rec_pos;
-					block.WriteInt4(0);
-					block.WriteInt8(record_p);
-					block.CheckOut();
-
-				} finally {
-					store.UnlockForWrite();
-				}
-
-				return recycled_record;
-			}
 		}
 
 
 		// ---------- Implemented from AbstractMasterTableDataSource ----------
 
-		internal override string SourceIdentity {
-			get { return file_name; }
-		}
 
-
-		internal override int WriteRecordType(int row_index, int row_state) {
-			lock (list_structure) {
-				if (has_shutdown) {
-					throw new IOException("IO operation while VM shutting down.");
-				}
+		public override int WriteRecordType(int rowIndex, int rowState) {
+			lock (listStructure) {
+				if (hasShutdown)
+					throw new IOException("IO operation while shutting down.");
 
 				// Find the record entry input the block list.
-				IMutableArea block_area = list_structure.PositionOnNode(row_index);
-				int pos = block_area.Position;
+				IMutableArea blockArea = listStructure.PositionOnNode(rowIndex);
+				int pos = blockArea.Position;
 				// Get the status.
-				int old_status = block_area.ReadInt4();
-				int mod_status = (int)(old_status & 0x0FFFF0000) | (row_state & 0x0FFFF);
+				int oldStatus = blockArea.ReadInt4();
+				int modStatus = (int)(oldStatus & 0x0FFFF0000) | (rowState & 0x0FFFF);
 
 				// Write the new status
 				try {
-
 					store.LockForWrite();
 
-					block_area.Position = pos;
-					block_area.WriteInt4(mod_status);
-					block_area.CheckOut();
-
+					blockArea.Position = pos;
+					blockArea.WriteInt4(modStatus);
+					blockArea.CheckOut();
 				} finally {
 					store.UnlockForWrite();
 				}
 
-				return old_status & 0x0FFFF;
+				return oldStatus & 0x0FFFF;
 			}
 		}
 
 
-		internal override int ReadRecordType(int row_index) {
-			lock (list_structure) {
+		public override int ReadRecordType(int rowIndex) {
+			lock (listStructure) {
 				// Find the record entry input the block list.
-				IArea block_area = list_structure.PositionOnNode(row_index);
+				IArea blockArea = listStructure.PositionOnNode(rowIndex);
 				// Get the status.
-				return block_area.ReadInt4() & 0x0FFFF;
+				return blockArea.ReadInt4() & 0x0FFFF;
 			}
 		}
 
 
-		internal override bool RecordDeleted(int row_index) {
-			lock (list_structure) {
+		protected override bool IsRecordDeleted(int rowIndex) {
+			lock (listStructure) {
 				// Find the record entry input the block list.
-				IArea block_area = list_structure.PositionOnNode(row_index);
+				IArea blockArea = listStructure.PositionOnNode(rowIndex);
 				// If the deleted bit set for the record
-				return (block_area.ReadInt4() & 0x020000) != 0;
+				return (blockArea.ReadInt4() & 0x020000) != 0;
 			}
 		}
 
 
-		internal override int RawRowCount {
-			get {
-				lock (list_structure) {
-					long total = list_structure.AddressableNodeCount;
-					// 32-bit row limitation here - we should return a long.
-					return (int) total;
-				}
-			}
-		}
-
-
-		internal override void InternalDeleteRow(int row_index) {
-			long record_p;
-			lock (list_structure) {
-				if (has_shutdown) {
+		protected override void OnDeleteRow(int rowIndex) {
+			lock (listStructure) {
+				if (hasShutdown)
 					throw new IOException("IO operation while VM shutting down.");
-				}
 
 				// Find the record entry input the block list.
-				IMutableArea block_area = list_structure.PositionOnNode(row_index);
-				int p = block_area.Position;
-				int status = block_area.ReadInt4();
+				IMutableArea blockArea = listStructure.PositionOnNode(rowIndex);
+				int p = blockArea.Position;
+				int status = blockArea.ReadInt4();
+
 				// Check it is not already deleted
-				if ((status & 0x020000) != 0) {
+				if ((status & 0x020000) != 0)
 					throw new IOException("Record is already marked as deleted.");
-				}
-				record_p = block_area.ReadInt8();
+
+				long recordPointer = blockArea.ReadInt8();
 
 				// Update the status record.
 				try {
 					store.LockForWrite();
 
-					block_area.Position = p;
-					block_area.WriteInt4(0x020000);
-					block_area.WriteInt8(first_delete_chain_record);
-					block_area.CheckOut();
-					first_delete_chain_record = row_index;
+					blockArea.Position = p;
+					blockArea.WriteInt4(0x020000);
+					blockArea.WriteInt8(firstDeleteChainRecord);
+					blockArea.CheckOut();
+					firstDeleteChainRecord = rowIndex;
+
 					// Update the first_delete_chain_record field input the header
-					list_structure.WriteReservedLong(first_delete_chain_record);
+					listStructure.WriteReservedLong(firstDeleteChainRecord);
 
 					// If the record contains any references to blobs, remove the reference
 					// here.
-					RemoveAllBlobReferencesForRecord(record_p);
+					RemoveAllBlobReferencesForRecord(recordPointer);
 
 					// Free the record from the store
-					store.DeleteArea(record_p);
-
+					store.DeleteArea(recordPointer);
 				} finally {
 					store.UnlockForWrite();
 				}
-
 			}
-
 		}
 
 
-		internal override IIndexSet CreateIndexSet() {
-			return index_store.GetSnapshotIndexSet();
+		public override IIndexSet CreateIndexSet() {
+			return indexStore.GetSnapshotIndexSet();
 		}
 
 
-		internal override void CommitIndexSet(IIndexSet index_set) {
-			index_store.CommitIndexSet(index_set);
-			index_set.Dispose();
+		protected override void CommitIndexSet(IIndexSet indexSet) {
+			indexStore.CommitIndexSet(indexSet);
+			indexSet.Dispose();
 		}
 
-		internal override int InternalAddRow(DataRow data) {
-
-			long row_number;
-			int int_row_number;
+		protected override int OnAddRow(DataRow data) {
+			long rowNumber;
+			int intRowNumber;
 
 			// Write the record to the store.
-			lock (list_structure) {
-				long record_p = WriteRecordToStore(data);
+			lock (listStructure) {
+				long recordPointer = WriteRecordToStore(data);
 				// Now add this record into the record block list,
-				row_number = AddToRecordList(record_p);
-				int_row_number = (int)row_number;
+				rowNumber = AddToRecordList(recordPointer);
+				intRowNumber = (int)rowNumber;
 			}
 
 			// Update the cell cache as appropriate
-			if (DATA_CELL_CACHING) {
-				int row_cells = data.ColumnCount;
-				for (int i = 0; i < row_cells; ++i) {
+			if (CellCaching) {
+				int rowCells = data.ColumnCount;
+				for (int i = 0; i < rowCells; ++i) {
 					// Put the row/column/TObject into the cache.
-					cache.Set(table_id, int_row_number, i, data.GetValue(i));
+					Cache.Set(TableId, intRowNumber, i, data.GetValue(i));
 				}
 			}
 
 			// Return the record index of the new data input the table
 			// NOTE: We are casting this from a long to int which means we are limited
 			//   to ~2 billion record references.
-			return (int)row_number;
-
+			return (int)rowNumber;
 		}
 
 
-		internal override void CheckForCleanup() {
+		protected override void CheckForCleanup() {
 			lock (this) {
-				//    index_store.cleanUpEvent();
-				gc.Collect(false);
+				TableGC.Collect(false);
 			}
-		}
-
-
-
-		// ---- GetCellContents ----
-
-		private static void SkipStream(Stream input, long amount) {
-			/*
-			long count = amount;
-			long skipped = 0;
-
-			while (skipped < amount) {
-				long last_skipped = InputStream.Skip(input, count);
-				///*
-				//if (input is InputStream) {
-				//    InputStream inputStream = (InputStream) input;
-				//    last_skipped = inputStream.Skip(count);
-				//} else {
-				//*
-				//    long pos = input.Position;
-				//    last_skipped = (input.Seek(count, SeekOrigin.Current) - pos);
-				////}
-				skipped += last_skipped;
-				count -= last_skipped;
-			}
-			*/
-			input.Seek(amount, SeekOrigin.Current);
 		}
 
 
 		//  private short s_run_total_hits = 0;
-		private short s_run_file_hits = Int16.MaxValue;
+		private short sRunFileHits = Int16.MaxValue;
 
-		// ---- Optimization that saves some cycles -----
-
-		internal override TObject InternalGetCellContents(int column, int row) {
+		protected override TObject OnGetCellContents(int column, int row) {
 
 			// NOTES:
 			// This is called *A LOT*.  It's a key part of the 20% of the program
@@ -1318,73 +1264,71 @@ namespace Deveel.Data {
 
 			// First check if this is within the cache before we continue.
 			TObject cell;
-			if (DATA_CELL_CACHING) {
-				cell = cache.Get(table_id, row, column);
-				if (cell != null) {
+			if (CellCaching) {
+				cell = Cache.Get(TableId, row, column);
+				if (cell != null)
 					return cell;
-				}
 			}
 
 			// We maintain a cache of byte[] arrays that contain the rows Read input
 			// from the file.  If consequtive reads are made to the same row, then
 			// this will cause lots of fast cache hits.
 
-			long record_p = -1;
+			long recordPointer = -1;
 			try {
-				lock (list_structure) {
-
+				lock (listStructure) {
 					// Increment the file hits counter
-					++s_run_file_hits;
+					++sRunFileHits;
 
-					if (s_run_file_hits >= 100) {
-						System.Stats.Add(s_run_file_hits, file_hits_key);
-						s_run_file_hits = 0;
+					if (sRunFileHits >= 100) {
+						System.Stats.Add(sRunFileHits, FileHitsKey);
+						sRunFileHits = 0;
 					}
 
 					// Get the node for the record
-					IArea list_block = list_structure.PositionOnNode(row);
-					int status = list_block.ReadInt4();
+					IArea listBlock = listStructure.PositionOnNode(row);
+					int status = listBlock.ReadInt4();
 					// Check it's not deleted
-					if ((status & 0x020000) != 0) {
+					if ((status & 0x020000) != 0)
 						throw new ApplicationException("Unable to Read deleted record.");
-					}
-					// Get the pointer to the record we are reading
-					record_p = list_block.ReadInt8();
 
+					// Get the pointer to the record we are reading
+					recordPointer = listBlock.ReadInt8();
 				}
 
 				// Open a stream to the record
-				BinaryReader din = GetBReader(store.GetAreaInputStream(record_p));
+				BinaryReader reader = GetBReader(store.GetAreaInputStream(recordPointer));
 
 				// SkipStream(din.BaseStream, 4 + (column * 8));
-				din.BaseStream.Seek(4 + (column*8), SeekOrigin.Current);
-				int cell_type = din.ReadInt32();
-				int cell_offset = din.ReadInt32();
+				reader.BaseStream.Seek(4 + (column*8), SeekOrigin.Current);
+				int cellType = reader.ReadInt32();
+				int cellOffset = reader.ReadInt32();
 
-				int cur_at = 8 + 4 + (column * 8);
-				int be_at = 4 + (column_count * 8);
-				int skip_amount = (be_at - cur_at) + cell_offset;
+				int curAt = 8 + 4 + (column * 8);
+				int beAt = 4 + (columnCount * 8);
+				int skipAmount = (beAt - curAt) + cellOffset;
 
 				// SkipStream(din.BaseStream, skip_amount);
-				din.BaseStream.Seek(skip_amount, SeekOrigin.Current);
+				reader.BaseStream.Seek(skipAmount, SeekOrigin.Current);
 
 				// Get the TType for this column
 				// NOTE: It's possible this call may need optimizing?
-				TType ttype = DataTableDef[column].TType;
+				TType ttype = TableInfo[column].TType;
 
 				object ob;
-				if (cell_type == 1) {
+				if (cellType == 1) {
 					// If standard object type
-					ob = ObjectTransfer.ReadFrom(din);
-				} else if (cell_type == 2) {
+					ob = ObjectTransfer.ReadFrom(reader);
+				} else if (cellType == 2) {
 					// If reference to a blob input the BlobStore
-					int f_type = din.ReadInt32();
-					int f_reserved = din.ReadInt32();
-					long ref_id = din.ReadInt64();
-					if (f_type == 0) {
+					int fType = reader.ReadInt32();
+					int fReserved = reader.ReadInt32();
+					long refId = reader.ReadInt64();
+
+					if (fType == 0) {
 						// Resolve the reference
-						ob = blob_store.GetLargeObject(ref_id);
-					} else if (f_type == 1) {
+						ob = BlobStore.GetLargeObject(refId);
+					} else if (fType == 1) {
 						ob = null;
 					} else {
 						throw new Exception("Unknown blob type.");
@@ -1397,73 +1341,33 @@ namespace Deveel.Data {
 				cell = new TObject(ttype, ob);
 
 				// And close the reader.
-				din.Close();
-
+				reader.Close();
 			} catch (IOException e) {
 				Debug.WriteException(e);
-				//      Console.Out.WriteLine("Pointer = " + row_pointer);
-				throw new Exception("IOError getting cell at (" + column + ", " +
-										   row + ") pointer = " + record_p + ".");
+				throw new Exception("IOError getting cell at (" + column + ", " + row + ") pointer = " + recordPointer + ".");
 			}
 
 			// And WriteByte input the cache and return it.
-			if (DATA_CELL_CACHING) {
-				cache.Set(table_id, row, column, cell);
+			if (CellCaching) {
+				Cache.Set(TableId, row, column, cell);
 			}
 
 			return cell;
-
 		}
 
 
-		internal override long CurrentUniqueId {
-			get {
-				lock (list_structure) {
-					return sequence_id - 1;
-				}
-			}
-		}
-
-
-		internal override long NextUniqueId {
-			get {
-				lock (list_structure) {
-					long v = sequence_id;
-					++sequence_id;
-					if (has_shutdown) {
-						throw new Exception("IO operation while VM shutting down.");
-					}
-					try {
-						try {
-							store.LockForWrite();
-							header_area.Position = 4 + 4;
-							header_area.WriteInt8(sequence_id);
-							header_area.CheckOut();
-						} finally {
-							store.UnlockForWrite();
-						}
-					} catch (IOException e) {
-						Debug.WriteException(e);
-						throw new ApplicationException("IO Error: " + e.Message);
-					}
-					return v;
-				}
-			}
-		}
-
-
-		internal override void SetUniqueID(long value) {
-			lock (list_structure) {
-				sequence_id = value;
-				if (has_shutdown) {
+		public override void SetUniqueID(long value) {
+			lock (listStructure) {
+				sequenceId = value;
+				if (hasShutdown) {
 					throw new Exception("IO operation while VM shutting down.");
 				}
 				try {
 					try {
 						store.LockForWrite();
-						header_area.Position = 4 + 4;
-						header_area.WriteInt8(sequence_id);
-						header_area.CheckOut();
+						headerArea.Position = 4 + 4;
+						headerArea.WriteInt8(sequenceId);
+						headerArea.CheckOut();
 					} finally {
 						store.UnlockForWrite();
 					}
@@ -1474,61 +1378,37 @@ namespace Deveel.Data {
 			}
 		}
 
-		internal override void Dispose(bool pending_drop) {
+		public override void Dispose(bool pendingDrop) {
 			lock (this) {
-				lock (list_structure) {
-					if (!is_closed) {
-						Close(pending_drop);
+				lock (listStructure) {
+					if (!IsClosed) {
+						Close(pendingDrop);
 					}
 				}
 			}
 		}
 
-		internal override bool Drop() {
+		public override bool Drop() {
 			lock (this) {
-				lock (list_structure) {
-					if (!is_closed) {
+				lock (listStructure) {
+					if (!IsClosed)
 						Close(true);
-					}
 
-					bool b = StoreSystem.DeleteStore(store);
-					if (b) {
+					bool deleted = StoreSystem.DeleteStore(store);
+					if (deleted)
 						Debug.Write(DebugLevel.Message, this, "Dropped: " + SourceIdentity);
-					}
-					return b;
+
+					return deleted;
 
 				}
 			}
 		}
 
-		internal override void ShutdownHookCleanup() {
-			//    try {
-			lock (list_structure) {
-				index_store.Close();
-				//        store.synch();
-				has_shutdown = true;
+		public override void ShutdownHookCleanup() {
+			lock (listStructure) {
+				indexStore.Close();
+				hasShutdown = true;
 			}
-			//    }
-			//    catch (IOException e) {
-			//      Debug.Write(DebugLevel.Error, this, "IO Error during shutdown hook.");
-			//      Debug.WriteException(e);
-			//    }
-		}
-
-		internal override bool Compact {
-			get {
-				// PENDING: We should perform some analysis on the data to decide if a
-				//   compact is necessary or not.
-				return true;
-			}
-		}
-
-
-		/**
-		 * For diagnostic.
-		 */
-		public override String ToString() {
-			return "[V2MasterTableDataSource: " + file_name + "]";
 		}
 	}
 }

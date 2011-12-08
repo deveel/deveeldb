@@ -15,7 +15,6 @@
 
 using System;
 using System.IO;
-using System.Text;
 
 using Deveel.Data.Collections;
 using Deveel.Data.Store;
@@ -34,7 +33,7 @@ namespace Deveel.Data {
 			// Get the table
 			IMutableTableDataSource table = transaction.GetTable(tname);
 			// Find the index of the column name called 'id'
-			DataTableDef tableDef = table.DataTableDef;
+			DataTableDef tableDef = table.TableInfo;
 			int colIndex = tableDef.FindColumnName("id");
 			if (colIndex == -1)
 				throw new ApplicationException("Column name 'id' not found.");
@@ -93,7 +92,7 @@ namespace Deveel.Data {
 				string fileName = resource.name;
 
 				// Parse the file name string and determine the table type.
-				int table_type = 1;
+				int tableType = 1;
 				if (fileName.StartsWith(":")) {
 					if (fileName[1] == '1')
 						throw new NotSupportedException();
@@ -101,18 +100,19 @@ namespace Deveel.Data {
 					if (fileName[1] != '2')
 						throw new Exception("Table type is not known.");
 
-					table_type = 2;
+					tableType = 2;
 					fileName = fileName.Substring(2);
 				}
 
 				// Load the master table from the resource information
-				MasterTableDataSource master = LoadMasterTable(masterTableId, fileName, table_type);
+				MasterTableDataSource master = LoadMasterTable(masterTableId, fileName, tableType);
 
 				if (!(master is V2MasterTableDataSource))
 					throw new ApplicationException("Unknown master table type: " + master.GetType());
 
 				V2MasterTableDataSource v2Master = (V2MasterTableDataSource)master;
-				v2Master.CheckAndRepair(fileName, terminal);
+				v2Master.SourceIdentity = fileName;
+				v2Master.Repair(terminal);
 
 				// Add the table to the table list
 				tableList.Add(master);
@@ -126,11 +126,8 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Checks the conglomerate state file.
 		/// </summary>
-		/// <param name="name"></param>
 		/// <param name="terminal"></param>
-		public void Fix(String name, IUserTerminal terminal) {
-			this.name = name;
-
+		public void Fix(IUserTerminal terminal) {
 			try {
 				string stateFn = (name + StatePost);
 				bool stateExists = false;

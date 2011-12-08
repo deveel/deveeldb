@@ -219,10 +219,11 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the name given to this conglomerate.
+		/// Gets or sets the name given to this conglomerate.
 		/// </summary>
-		internal string Name {
+		public string Name {
 			get { return name; }
+			set { name = value; }
 		}
 
 		internal IDebugLogger Debug {
@@ -292,7 +293,8 @@ namespace Deveel.Data {
 						throw new ApplicationException("Unknown master table type: " + master.GetType());
 
 					V2MasterTableDataSource v2Master = (V2MasterTableDataSource) master;
-					v2Master.Open(fileName);
+					v2Master.SourceIdentity = fileName;
+					v2Master.Open();
 
 					// Add the table to the table list
 					tableList.Add(master);
@@ -329,18 +331,13 @@ namespace Deveel.Data {
 			if (tableType == 1)
 				throw new NotSupportedException();
 			if (tableType == 2) {
-				V2MasterTableDataSource master =
-					new V2MasterTableDataSource(System,
-						   StoreSystem, openTransactions, blobStore);
-				if (master.Exists(tableStr)) {
+				V2MasterTableDataSource master = new V2MasterTableDataSource(System, StoreSystem, blobStore);
+				if (master.Exists(tableStr))
 					return master;
-				}
 			}
 
 			// If not exists, then generate an error message
-			Debug.Write(DebugLevel.Error, this,
-						  "Couldn't find table source - resource name: " +
-						  tableStr + " table_id: " + tableId);
+			Debug.Write(DebugLevel.Error, this, "Couldn't find table source - resource name: " + tableStr + " table_id: " + tableId);
 
 			return null;
 		}
@@ -412,7 +409,8 @@ namespace Deveel.Data {
 					throw new ApplicationException("Unknown master table type: " + master.GetType());
 
 				V2MasterTableDataSource v2Master = (V2MasterTableDataSource) master;
-				v2Master.Open(fileName);
+				v2Master.SourceIdentity = fileName;
+				v2Master.Open();
 
 				// Add the table to the table list
 				tableList.Add(master);
@@ -454,9 +452,7 @@ namespace Deveel.Data {
 		/// <exception cref="IOException">
 		/// If the conglomerate does not exist.  
 		/// </exception>
-		public void Open(string name) {
-			this.name = name;
-
+		public void Open() {
 			if (!Exists(name))
 				throw new IOException("Conglomerate doesn't exists: " + name);
 
@@ -794,7 +790,7 @@ namespace Deveel.Data {
 			lock (CommitLock) {
 				// Find the table with this table id.
 				foreach (MasterTableDataSource t in tableList) {
-					if (t.TableID == tableId)
+					if (t.TableId == tableId)
 						return t;
 				}
 				throw new ApplicationException("Unable to find an open table with id: " + tableId);
@@ -805,7 +801,7 @@ namespace Deveel.Data {
 		/// Creates a table store in this conglomerate with the given name and 
 		/// returns a reference to the table.
 		/// </summary>
-		/// <param name="tableDef">The table meta definition.</param>
+		/// <param name="tableInfo">The table meta definition.</param>
 		/// <param name="dataSectorSize">The size of the data sectors 
 		/// (affects performance and size of the file).</param>
 		/// <param name="indexSectorSize">The size of the index sectors.</param>
@@ -819,7 +815,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal MasterTableDataSource CreateMasterTable(DataTableDef tableDef, int dataSectorSize, int indexSectorSize) {
+		internal MasterTableDataSource CreateMasterTable(DataTableDef tableInfo, int dataSectorSize, int indexSectorSize) {
 			lock (CommitLock) {
 				try {
 					// EFFICIENCY: Currently this writes to the conglomerate state file
@@ -830,8 +826,8 @@ namespace Deveel.Data {
 					int tableId = NextUniqueTableID();
 
 					// Create the object.
-					V2MasterTableDataSource masterTable = new V2MasterTableDataSource(System, StoreSystem, openTransactions, blobStore);
-					masterTable.Create(tableId, tableDef);
+					V2MasterTableDataSource masterTable = new V2MasterTableDataSource(System, StoreSystem, blobStore);
+					masterTable.Create(tableId, tableInfo);
 
 					// Add to the list of all tables.
 					tableList.Add(masterTable);
@@ -847,7 +843,7 @@ namespace Deveel.Data {
 					return masterTable;
 				} catch (IOException e) {
 					Debug.WriteException(e);
-					throw new ApplicationException("Unable to create master table '" + tableDef.Name + "' - " + e.Message);
+					throw new ApplicationException("Unable to create master table '" + tableInfo.Name + "' - " + e.Message);
 				}
 			}
 		}
@@ -858,7 +854,7 @@ namespace Deveel.Data {
 					// The unique id that identifies this table,
 					int tableId = NextUniqueTableID();
 
-					V2MasterTableDataSource temporary = new V2MasterTableDataSource(System, new V1HeapStoreSystem(), openTransactions, blobStore);
+					V2MasterTableDataSource temporary = new V2MasterTableDataSource(System, new V1HeapStoreSystem(), blobStore);
 
 					temporary.Create(tableId, tableDef);
 
@@ -903,9 +899,9 @@ namespace Deveel.Data {
 					int tableId = NextUniqueTableID();
 
 					// Create the object.
-					V2MasterTableDataSource masterTable = new V2MasterTableDataSource(System, StoreSystem, openTransactions, blobStore);
+					V2MasterTableDataSource masterTable = new V2MasterTableDataSource(System, StoreSystem, blobStore);
 
-					masterTable.Copy(tableId, srcMasterTable, indexSet);
+					masterTable.CopyFrom(tableId, srcMasterTable, indexSet);
 
 					// Add to the list of all tables.
 					tableList.Add(masterTable);
@@ -921,7 +917,7 @@ namespace Deveel.Data {
 					return masterTable;
 				} catch (IOException e) {
 					Debug.WriteException(e);
-					throw new Exception("Unable to copy master table '" + srcMasterTable.DataTableDef.Name + "' - " + e.Message);
+					throw new Exception("Unable to copy master table '" + srcMasterTable.TableInfo.Name + "' - " + e.Message);
 				}
 			}
 
@@ -946,7 +942,7 @@ namespace Deveel.Data {
 			}
 
 			private int FindColumnName(VariableName variable) {
-				int colIndex = table.DataTableDef.FindColumnName(variable.Name);
+				int colIndex = table.TableInfo.FindColumnName(variable.Name);
 				if (colIndex == -1)
 					throw new ApplicationException("Can't find column: " + variable);
 
@@ -966,7 +962,7 @@ namespace Deveel.Data {
 
 			public TType ReturnTType(VariableName variable) {
 				int colIndex = FindColumnName(variable);
-				return table.DataTableDef[colIndex].TType;
+				return table.TableInfo[colIndex].TType;
 			}
 		}
 
