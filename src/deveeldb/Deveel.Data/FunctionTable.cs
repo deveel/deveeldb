@@ -14,11 +14,10 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Caching;
-using Deveel.Data.Collections;
 using Deveel.Diagnostics;
-using Deveel.Math;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -98,12 +97,12 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// Iterate through this to find all the rows in a group until bit 31 set.
 		/// </remarks>
-		private IntegerVector group_links;
+		private IList<int> group_links;
 
 		/// <summary>
 		/// The lookup mapping for row->group_index used for grouping.
 		/// </summary>
-		private IntegerVector group_lookup;
+		private IList<int> group_lookup;
 
 		/// <summary>
 		/// The TableGroupResolver for the table.
@@ -121,7 +120,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This is obtained via <see cref="Table.SelectAll()"/> of the reference table.
 		/// </remarks>
-		private IntegerVector whole_table_group;
+		private IList<int> whole_table_group;
 
 		/// <summary>
 		/// The total size of the whole table group size.
@@ -264,9 +263,9 @@ namespace Deveel.Data {
 			IRowEnumerator en = ReferenceTable.GetRowEnumerator();
 			whole_table_is_simple_enum = en is SimpleRowEnumerator;
 			if (!whole_table_is_simple_enum) {
-				whole_table_group = new IntegerVector(ReferenceTable.RowCount);
+				whole_table_group = new List<int>(ReferenceTable.RowCount);
 				while (en.MoveNext()) {
-					whole_table_group.AddInt(en.RowIndex);
+					whole_table_group.Add(en.RowIndex);
 				}
 			}
 
@@ -296,7 +295,8 @@ namespace Deveel.Data {
 			for (int i = col_list.Length - 1; i >= 0; --i) {
 				col_lookup[i] = root_table.FindFieldName(col_list[i]);
 			}
-			IntegerVector row_list = root_table.OrderedRowList(col_lookup);
+
+			IList<int> rowList = root_table.OrderedRowList(col_lookup);
 
 			// 'row_list' now contains rows in this table sorted by the columns to
 			// group by.
@@ -307,12 +307,12 @@ namespace Deveel.Data {
 			// contains consequtive links to each row in the group until -1 is reached
 			// indicating the end of the group;
 
-			group_lookup = new IntegerVector(r_count);
-			group_links = new IntegerVector(r_count);
+			group_lookup = new List<int>(r_count);
+			group_links = new List<int>(r_count);
 			int current_group = 0;
 			int previous_row = -1;
 			for (int i = 0; i < r_count; ++i) {
-				int row_index = row_list[i];
+				int row_index = rowList[i];
 
 				if (previous_row != -1) {
 					bool equal = true;
@@ -321,24 +321,24 @@ namespace Deveel.Data {
 						TObject c1 = root_table.GetCellContents(col_lookup[n], row_index);
 						TObject c2 =
 							root_table.GetCellContents(col_lookup[n], previous_row);
-						equal = equal && (c1.CompareTo(c2) == 0);
+						equal = (c1.CompareTo(c2) == 0);
 					}
 
 					if (!equal) {
 						// If end of group, set bit 15
-						group_links.AddInt(previous_row | 0x040000000);
+						group_links.Add(previous_row | 0x040000000);
 						current_group = group_links.Count;
 					} else {
-						group_links.AddInt(previous_row);
+						group_links.Add(previous_row);
 					}
 				}
 
-				group_lookup.PlaceIntAt(current_group, row_index); // (val, pos)
+				group_lookup.Insert(row_index, current_group);
 
 				previous_row = row_index;
 			}
 			// Add the final row.
-			group_links.AddInt(previous_row | 0x040000000);
+			group_links.Add(previous_row | 0x040000000);
 
 			// Set up a group resolver for this method.
 			group_resolver = new TableGroupResolver(this);
@@ -378,15 +378,15 @@ namespace Deveel.Data {
 		///</summary>
 		///<param name="group_number"></param>
 		///<returns></returns>
-		public IntegerVector GetGroupRows(int group_number) {
-			IntegerVector ivec = new IntegerVector();
+		public IList<int> GetGroupRows(int group_number) {
+			List<int> ivec = new List<int>();
 			int i = group_links[group_number];
 			while ((i & 0x040000000) == 0) {
-				ivec.AddInt(i);
+				ivec.Add(i);
 				++group_number;
 				i = group_links[group_number];
 			}
-			ivec.AddInt(i & 0x03FFFFFFF);
+			ivec.Add(i & 0x03FFFFFFF);
 			return ivec;
 		}
 
@@ -408,24 +408,24 @@ namespace Deveel.Data {
 		public Table MergeWithReference(VariableName max_column) {
 			Table table = ReferenceTable;
 
-			IntegerVector row_list;
+			IList<int> row_list;
 
 			if (whole_table_as_group) {
 				// Whole table is group, so take top entry of table.
 
-				row_list = new IntegerVector(1);
+				row_list = new List<int>(1);
 				IRowEnumerator row_enum = table.GetRowEnumerator();
 				if (row_enum.MoveNext()) {
-					row_list.AddInt(row_enum.RowIndex);
+					row_list.Add(row_enum.RowIndex);
 				} else {
 					// MAJOR HACK: If the referencing table has no elements then we choose
 					//   an arbitary index from the reference table to merge so we have
 					//   at least one element in the table.
 					//   This is to fix the 'SELECT COUNT(*) FROM empty_table' bug.
-					row_list.AddInt(Int32.MaxValue - 1);
+					row_list.Add(Int32.MaxValue - 1);
 				}
 			} else if (table.RowCount == 0) {
-				row_list = new IntegerVector(0);
+				row_list = new List<int>(0);
 			} else if (group_links != null) {
 				// If we are grouping, reduce down to only include one row from each
 				// group.
@@ -442,10 +442,10 @@ namespace Deveel.Data {
 
 				// This means there is no grouping, so merge with entire table,
 				int r_count = table.RowCount;
-				row_list = new IntegerVector(r_count);
+				row_list = new List<int>(r_count);
 				IRowEnumerator en = table.GetRowEnumerator();
 				while (en.MoveNext()) {
-					row_list.AddInt(en.RowIndex);
+					row_list.Add(en.RowIndex);
 				}
 			}
 
@@ -453,7 +453,7 @@ namespace Deveel.Data {
 			// functions in this...
 
 			Table[] tabs = new Table[] { table, this };
-			IntegerVector[] row_sets = new IntegerVector[] { row_list, row_list };
+			IList<int>[] row_sets = new IList<int>[] { row_list, row_list };
 
 			VirtualTable out_table = new VirtualTable(tabs);
 			out_table.Set(tabs, row_sets);
@@ -482,14 +482,14 @@ namespace Deveel.Data {
 		/// each distinct group.
 		/// </remarks>
 		/// <returns></returns>
-		private IntegerVector GetTopFromEachGroup() {
-			IntegerVector extract_rows = new IntegerVector();
+		private IList<int> GetTopFromEachGroup() {
+			List<int> extract_rows = new List<int>();
 			int size = group_links.Count;
 			bool take = true;
 			for (int i = 0; i < size; ++i) {
 				int r = group_links[i];
 				if (take) {
-					extract_rows.AddInt(r & 0x03FFFFFFF);
+					extract_rows.Add(r & 0x03FFFFFFF);
 				}
 				take = (r & 0x040000000) != 0;
 			}
@@ -508,10 +508,10 @@ namespace Deveel.Data {
 		/// each distinct group.
 		/// </remarks>
 		/// <returns></returns>
-		private IntegerVector GetMaxFromEachGroup(int col_num) {
+		private IList<int> GetMaxFromEachGroup(int col_num) {
 			Table ref_tab = ReferenceTable;
 
-			IntegerVector extract_rows = new IntegerVector();
+			List<int> extract_rows = new List<int>();
 			int size = group_links.Count;
 
 			int to_take_in_group = -1;
@@ -528,7 +528,7 @@ namespace Deveel.Data {
 					to_take_in_group = act_r_index;
 				}
 				if ((r & 0x040000000) != 0) {
-					extract_rows.AddInt(to_take_in_group);
+					extract_rows.Add(to_take_in_group);
 					max = null;
 				}
 			}
@@ -674,15 +674,10 @@ namespace Deveel.Data {
 		private sealed class TableGroupResolver : IGroupResolver {
 			private readonly FunctionTable table;
 			/**
-			 * The IntegerVector that represents the group we are currently
+			 * The list that represents the group we are currently
 			 * processing.
 			 */
-			private IntegerVector group;
-
-			//    /**
-			//     * The group row index we are current set at.
-			//     */
-			//    private int group_row_index;
+			private IList<int> group;
 
 			/**
 			 * The current group number.

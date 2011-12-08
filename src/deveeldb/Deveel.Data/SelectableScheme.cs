@@ -14,12 +14,11 @@
 //    limitations under the License.
 
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Text;
 
 using Deveel.Data.Collections;
 using Deveel.Diagnostics;
-using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -45,15 +44,15 @@ namespace Deveel.Data {
 	/// </para>
 	/// </remarks>
 	public abstract class SelectableScheme {
-		private static readonly BlockIntegerList EMPTY_LIST;
-		private static readonly BlockIntegerList ONE_LIST;
+		private static readonly BlockIntegerList EmptyList;
+		private static readonly BlockIntegerList OneList;
 
 		static SelectableScheme() {
-			EMPTY_LIST = new BlockIntegerList();
-			EMPTY_LIST.SetImmutable();
-			ONE_LIST = new BlockIntegerList();
-			ONE_LIST.Add(0);
-			ONE_LIST.SetImmutable();
+			EmptyList = new BlockIntegerList();
+			EmptyList.SetImmutable();
+			OneList = new BlockIntegerList();
+			OneList.Add(0);
+			OneList.SetImmutable();
 		}
 
 		/// <summary>
@@ -182,12 +181,6 @@ namespace Deveel.Data {
 		public abstract void Dispose();
 
 
-		/**
-		 * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-		 * Abstract methods for selection of rows, and maintenance of rows
-		 * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-		 */
-
 		/// <summary>
 		/// Inserts the given element into the set.
 		/// </summary>
@@ -195,7 +188,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This is called just after a row has been initially added to a table.
 		/// </remarks>
-		internal abstract void Insert(int row);
+		public abstract void Insert(int row);
 
 		/// <summary>
 		/// Removes the given element from the set.
@@ -204,14 +197,14 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This is called just before the row is removed from the table.
 		/// </remarks>
-		internal abstract void Remove(int row);
+		public abstract void Remove(int row);
 
 		/// <summary>
 		/// Sorts the given row set in the order of the scheme.
 		/// </summary>
-		/// <param name="row_set"></param>
+		/// <param name="rowSet"></param>
 		/// <remarks>
-		/// The values in <paramref name="row_set"/> must be references to rows in 
+		/// The values in <paramref name="rowSet"/> must be references to rows in 
 		/// the domain of the table this scheme represents.
 		/// <para>
 		/// The returned set must be stable, meaning if values are equal they 
@@ -225,72 +218,71 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns>
 		/// Returns a <see cref="BlockIntegerList"/> that represents the given 
-		/// <paramref name="row_set"/> sorted in the order of this scheme.
+		/// <paramref name="rowSet"/> sorted in the order of this scheme.
 		/// </returns>
-		public IIntegerList InternalOrderIndexSet(IntegerVector row_set) {
+		public IIntegerList InternalOrderIndexSet(IList<int> rowSet) {
 			// The length of the set to order
-			int row_set_length = row_set.Count;
+			int rowSetLength = rowSet.Count;
 
 			// Trivial cases where sorting is not required:
 			// NOTE: We use immutable objects to save some memory.
-			if (row_set_length == 0) {
-				return EMPTY_LIST;
-			} else if (row_set_length == 1) {
-				return ONE_LIST;
-			}
+			if (rowSetLength == 0)
+				return EmptyList;
+			if (rowSetLength == 1)
+				return OneList;
 
-			// This will be 'row_set' sorted by its entry lookup.  This must only
-			// contain indices to row_set entries.
-			BlockIntegerList new_set = new BlockIntegerList();
+			// This will be 'row set' sorted by its entry lookup.  This must only
+			// contain indices to rowSet entries.
+			BlockIntegerList newSet = new BlockIntegerList();
 
-			if (row_set_length <= 250000) {
+			if (rowSetLength <= 250000) {
 				// If the subset is less than or equal to 250,000 elements, we generate
 				// an array in memory that contains all values in the set and we sort
 				// it.  This requires use of memory from the heap but is faster than
 				// the no heap use method.
-				TObject[] subset_list = new TObject[row_set_length];
-				for (int i = 0; i < row_set_length; ++i) {
-					subset_list[i] = GetCellContents(row_set[i]);
+				TObject[] subsetList = new TObject[rowSetLength];
+				for (int i = 0; i < rowSetLength; ++i) {
+					subsetList[i] = GetCellContents(rowSet[i]);
 				}
 
 				// The comparator we use to sort
-				IIndexComparer comparator = new IndexComparatorImpl1(subset_list);
+				IIndexComparer comparator = new IndexComparatorImpl1(subsetList);
 
 				// Fill new_set with the set { 0, 1, 2, .... , row_set_length }
-				for (int i = 0; i < row_set_length; ++i) {
-					TObject cell = subset_list[i];
-					new_set.InsertSort(cell, i, comparator);
+				for (int i = 0; i < rowSetLength; ++i) {
+					TObject cell = subsetList[i];
+					newSet.InsertSort(cell, i, comparator);
 				}
 
 			} else {
 				// This is the no additional heap use method to sorting the sub-set.
 
 				// The comparator we use to sort
-				IIndexComparer comparator = new IndexComparatorImpl2(this, row_set);
+				IIndexComparer comparator = new IndexComparatorImpl2(this, rowSet);
 
 				// Fill new_set with the set { 0, 1, 2, .... , row_set_length }
-				for (int i = 0; i < row_set_length; ++i) {
-					TObject cell = GetCellContents(row_set[i]);
-					new_set.InsertSort(cell, i, comparator);
+				for (int i = 0; i < rowSetLength; ++i) {
+					TObject cell = GetCellContents(rowSet[i]);
+					newSet.InsertSort(cell, i, comparator);
 				}
-
 			}
 
-			return new_set;
+			return newSet;
 
 		}
 
 		private class IndexComparatorImpl1 : IIndexComparer {
-			private readonly TObject[] subset_list;
+			private readonly TObject[] subsetList;
 
 			public IndexComparatorImpl1(TObject[] subsetList) {
-				subset_list = subsetList;
+				this.subsetList = subsetList;
 			}
 
 			public int Compare(int index, Object val) {
-				TObject cell = subset_list[index];
+				TObject cell = subsetList[index];
 				return cell.CompareTo((TObject)val);
 			}
+
 			public int Compare(int index1, int index2) {
 				throw new NotSupportedException("Shouldn't be called!");
 			}
@@ -306,28 +298,24 @@ namespace Deveel.Data {
 
 		private class IndexComparatorImpl2 : IIndexComparer {
 			private readonly SelectableScheme scheme;
-			private readonly IntegerVector row_set;
+			private readonly IList<int> rowSet;
 
-			public IndexComparatorImpl2(SelectableScheme scheme, IntegerVector row_set) {
+			public IndexComparatorImpl2(SelectableScheme scheme, IList<int> rowSet) {
 				this.scheme = scheme;
-				this.row_set = row_set;
+				this.rowSet = rowSet;
 			}
 
 			public int Compare(int index, Object val) {
-				TObject cell = scheme.GetCellContents(row_set[index]);
+				TObject cell = scheme.GetCellContents(rowSet[index]);
 				return cell.CompareTo((TObject)val);
 			}
 			public int Compare(int index1, int index2) {
 				throw new NotSupportedException("Shouldn't be called!");
 			}
 
-			#region Implementation of IComparer
-
 			public int Compare(object x, object y) {
 				return Compare((int) x, y);
 			}
-
-			#endregion
 		}
 
 		/// <summary>
@@ -335,8 +323,8 @@ namespace Deveel.Data {
 		/// <see cref="SelectableScheme"/> object that describes a 
 		/// sub-set of the set handled by this scheme.
 		/// </summary>
-		/// <param name="subset_table"></param>
-		/// <param name="subset_column"></param>
+		/// <param name="subsetTable"></param>
+		/// <param name="subsetColumn"></param>
 		/// <remarks>
 		/// Since a <see cref="Table">table</see> stores a subset of a given 
 		/// <see cref="DataTable"/>, we pass this as the argument.  It returns 
@@ -346,27 +334,28 @@ namespace Deveel.Data {
 		/// this column in the given table.
 		/// </remarks>
 		/// <returns></returns>
-		public SelectableScheme GetSubsetScheme(Table subset_table, int subset_column) {
+		public SelectableScheme GetSubsetScheme(Table subsetTable, int subsetColumn) {
 			// Resolve table rows in this table scheme domain.
-			IntegerVector row_set = new IntegerVector(subset_table.RowCount);
-			IRowEnumerator e = subset_table.GetRowEnumerator();
+			List<int> rowSet = new List<int>(subsetTable.RowCount);
+			IRowEnumerator e = subsetTable.GetRowEnumerator();
 			while (e.MoveNext()) {
-				row_set.AddInt(e.RowIndex);
+				rowSet.Add(e.RowIndex);
 			}
-			subset_table.SetToRowTableDomain(subset_column, row_set, Table);
 
-			// Generates an IntegerVector which contains indices into 'row_set' in
+			subsetTable.SetToRowTableDomain(subsetColumn, rowSet, Table);
+
+			// Generates an IntegerVector which contains indices into 'rowSet' in
 			// sorted order.
-			IIntegerList new_set = InternalOrderIndexSet(row_set);
+			IIntegerList new_set = InternalOrderIndexSet(rowSet);
 
-			// Our 'new_set' should be the same size as 'row_set'
-			if (new_set.Count != row_set.Count) {
+			// Our 'new_set' should be the same size as 'rowSet'
+			if (new_set.Count != rowSet.Count) {
 				throw new Exception("Internal sort error in finding sub-set.");
 			}
 
 			// Set up a new SelectableScheme with the sorted index set.
 			// Move the sorted index set into the new scheme.
-			InsertSearch scheme = new InsertSearch(subset_table, subset_column, new_set);
+			InsertSearch scheme = new InsertSearch(subsetTable, subsetColumn, new_set);
 			// Don't let subset schemes create uid caches.
 			scheme.RECORD_UID = false;
 			return scheme;
@@ -384,91 +373,91 @@ namespace Deveel.Data {
 		///<summary>
 		///</summary>
 		///<returns></returns>
-		public virtual IntegerVector SelectAll() {
+		public virtual IList<int> SelectAll() {
 			return SelectRange(new SelectableRange(
-					 SelectableRange.FIRST_VALUE, SelectableRange.FIRST_IN_SET,
-					 SelectableRange.LAST_VALUE, SelectableRange.LAST_IN_SET));
+					 RangePosition.FirstValue, SelectableRange.FirstInSet,
+					 RangePosition.LastValue, SelectableRange.LastInSet));
 		}
 
 		///<summary>
 		///</summary>
 		///<returns></returns>
-		public virtual IntegerVector SelectFirst() {
+		public virtual IList<int> SelectFirst() {
 			// NOTE: This will find NULL at start which is probably wrong.  The
 			//   first value should be the first non null value.
 			return SelectRange(new SelectableRange(
-					 SelectableRange.FIRST_VALUE, SelectableRange.FIRST_IN_SET,
-					 SelectableRange.LAST_VALUE, SelectableRange.FIRST_IN_SET));
+					 RangePosition.FirstValue, SelectableRange.FirstInSet,
+					 RangePosition.LastValue, SelectableRange.FirstInSet));
 		}
 
 		///<summary>
 		///</summary>
 		///<returns></returns>
-		public IntegerVector SelectNotFirst() {
+		public IList<int> SelectNotFirst() {
 			// NOTE: This will find NULL at start which is probably wrong.  The
 			//   first value should be the first non null value.
 			return SelectRange(new SelectableRange(
-					 SelectableRange.AFTER_LAST_VALUE, SelectableRange.FIRST_IN_SET,
-					 SelectableRange.LAST_VALUE, SelectableRange.LAST_IN_SET));
+					 RangePosition.AfterLastValue, SelectableRange.FirstInSet,
+					 RangePosition.LastValue, SelectableRange.LastInSet));
 		}
 
 		///<summary>
 		///</summary>
 		///<returns></returns>
-		public IntegerVector SelectLast() {
+		public IList<int> SelectLast() {
 			return SelectRange(new SelectableRange(
-					 SelectableRange.FIRST_VALUE, SelectableRange.LAST_IN_SET,
-					 SelectableRange.LAST_VALUE, SelectableRange.LAST_IN_SET));
+					 RangePosition.FirstValue, SelectableRange.LastInSet,
+					 RangePosition.LastValue, SelectableRange.LastInSet));
 		}
 
 		///<summary>
 		///</summary>
 		///<returns></returns>
-		public IntegerVector SelectNotLast() {
+		public IList<int> SelectNotLast() {
 			return SelectRange(new SelectableRange(
-					 SelectableRange.FIRST_VALUE, SelectableRange.FIRST_IN_SET,
-					 SelectableRange.BEFORE_FIRST_VALUE, SelectableRange.LAST_IN_SET));
+					 RangePosition.FirstValue, SelectableRange.FirstInSet,
+					 RangePosition.BeforeFirstValue, SelectableRange.LastInSet));
 		}
 
 		///<summary>
 		/// Selects all values in the column that are not null.
 		///</summary>
 		///<returns></returns>
-		public IntegerVector SelectAllNonNull() {
+		public IList<int> SelectAllNonNull() {
 			return SelectRange(new SelectableRange(
-						 SelectableRange.AFTER_LAST_VALUE, TObject.Null,
-						 SelectableRange.LAST_VALUE, SelectableRange.LAST_IN_SET));
+						 RangePosition.AfterLastValue, TObject.Null,
+						 RangePosition.LastValue, SelectableRange.LastInSet));
 		}
 
 		///<summary>
 		///</summary>
 		///<param name="ob"></param>
 		///<returns></returns>
-		public IntegerVector SelectEqual(TObject ob) {
-			if (ob.IsNull) {
-				return new IntegerVector(0);
-			}
+		public IList<int> SelectEqual(TObject ob) {
+			if (ob.IsNull)
+				return new List<int>(0);
+
 			return SelectRange(new SelectableRange(
-								 SelectableRange.FIRST_VALUE, ob,
-								 SelectableRange.LAST_VALUE, ob));
+								 RangePosition.FirstValue, ob,
+								 RangePosition.LastValue, ob));
 		}
 
 		///<summary>
 		///</summary>
 		///<param name="ob"></param>
 		///<returns></returns>
-		public IntegerVector SelectNotEqual(TObject ob) {
+		public IList<int> SelectNotEqual(TObject ob) {
 			if (ob.IsNull) {
-				return new IntegerVector(0);
+				return new List<int>(0);
 			}
 			return SelectRange(new SelectableRange[]
 			                   	{
 			                   		new SelectableRange(
-			                   			SelectableRange.AFTER_LAST_VALUE, TObject.Null,
-			                   			SelectableRange.BEFORE_FIRST_VALUE, ob)
+			                   			RangePosition.AfterLastValue, TObject.Null,
+			                   			RangePosition.BeforeFirstValue, ob)
 			                   		, new SelectableRange(
-			                   		  	SelectableRange.AFTER_LAST_VALUE, ob,
-			                   		  	SelectableRange.LAST_VALUE, SelectableRange.LAST_IN_SET)
+			                   		  	RangePosition.AfterLastValue, ob,
+			                   		  	RangePosition.LastValue, SelectableRange.LastInSet)
 			                   	});
 		}
 
@@ -476,52 +465,52 @@ namespace Deveel.Data {
 		///</summary>
 		///<param name="ob"></param>
 		///<returns></returns>
-		public IntegerVector SelectGreater(TObject ob) {
-			if (ob.IsNull) {
-				return new IntegerVector(0);
-			}
+		public IList<int> SelectGreater(TObject ob) {
+			if (ob.IsNull)
+				return new List<int>(0);
+
 			return SelectRange(new SelectableRange(
-					   SelectableRange.AFTER_LAST_VALUE, ob,
-					   SelectableRange.LAST_VALUE, SelectableRange.LAST_IN_SET));
+					   RangePosition.AfterLastValue, ob,
+					   RangePosition.LastValue, SelectableRange.LastInSet));
 		}
 
 		///<summary>
 		///</summary>
 		///<param name="ob"></param>
 		///<returns></returns>
-		public IntegerVector SelectLess(TObject ob) {
-			if (ob.IsNull) {
-				return new IntegerVector(0);
-			}
+		public IList<int> SelectLess(TObject ob) {
+			if (ob.IsNull)
+				return new List<int>(0);
+
 			return SelectRange(new SelectableRange(
-					   SelectableRange.AFTER_LAST_VALUE, TObject.Null,
-					   SelectableRange.BEFORE_FIRST_VALUE, ob));
+					   RangePosition.AfterLastValue, TObject.Null,
+					   RangePosition.BeforeFirstValue, ob));
 		}
 
 		///<summary>
 		///</summary>
 		///<param name="ob"></param>
 		///<returns></returns>
-		public IntegerVector SelectGreaterOrEqual(TObject ob) {
-			if (ob.IsNull) {
-				return new IntegerVector(0);
-			}
+		public IList<int> SelectGreaterOrEqual(TObject ob) {
+			if (ob.IsNull)
+				return new List<int>(0);
+
 			return SelectRange(new SelectableRange(
-					   SelectableRange.FIRST_VALUE, ob,
-					   SelectableRange.LAST_VALUE, SelectableRange.LAST_IN_SET));
+					   RangePosition.FirstValue, ob,
+					   RangePosition.LastValue, SelectableRange.LastInSet));
 		}
 
 		///<summary>
 		///</summary>
 		///<param name="ob"></param>
 		///<returns></returns>
-		public IntegerVector SelectLessOrEqual(TObject ob) {
-			if (ob.IsNull) {
-				return new IntegerVector(0);
-			}
+		public IList<int> SelectLessOrEqual(TObject ob) {
+			if (ob.IsNull)
+				return new List<int>(0);
+
 			return SelectRange(new SelectableRange(
-					   SelectableRange.AFTER_LAST_VALUE, TObject.Null,
-					   SelectableRange.LAST_VALUE, ob));
+					   RangePosition.AfterLastValue, TObject.Null,
+					   RangePosition.LastValue, ob));
 		}
 
 		// Inclusive of rows that are >= ob1 and < ob2
@@ -532,13 +521,13 @@ namespace Deveel.Data {
 		///<param name="ob1"></param>
 		///<param name="ob2"></param>
 		///<returns></returns>
-		public IntegerVector SelectBetween(TObject ob1, TObject ob2) {
-			if (ob1.IsNull || ob2.IsNull) {
-				return new IntegerVector(0);
-			}
+		public IList<int> SelectBetween(TObject ob1, TObject ob2) {
+			if (ob1.IsNull || ob2.IsNull)
+				return new List<int>(0);
+
 			return SelectRange(new SelectableRange(
-					   SelectableRange.FIRST_VALUE, ob1,
-					   SelectableRange.BEFORE_FIRST_VALUE, ob2));
+					   RangePosition.FirstValue, ob1,
+					   RangePosition.BeforeFirstValue, ob2));
 		}
 
 		/// <summary>
@@ -555,7 +544,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal abstract IntegerVector SelectRange(SelectableRange range);
+		internal abstract IList<int> SelectRange(SelectableRange range);
 
 		/// <summary>
 		/// Selects a set of ranges from this index.
@@ -576,7 +565,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal abstract IntegerVector SelectRange(SelectableRange[] ranges);
+		internal abstract IList<int> SelectRange(SelectableRange[] ranges);
 
 	}
 }

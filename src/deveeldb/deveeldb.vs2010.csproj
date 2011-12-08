@@ -75,6 +75,7 @@
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
+    <Compile Include="Deveel.Data.Collections\ListUtil.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseCallBack.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Protocol\ILocalBootable.cs" />
@@ -135,6 +136,7 @@
     <Compile Include="Deveel.Data.Protocol\ResultSet.cs" />
     <Compile Include="Deveel.Data.Client\RowCache.cs" />
     <Compile Include="Deveel.Data.QueryPlanning\SingleQueryPlanNode.cs" />
+    <Compile Include="Deveel.Data\RangePosition.cs" />
     <Compile Include="Deveel.Data\SqlQuery.cs" />
     <Compile Include="Deveel.Data.Protocol\StreamableObjectPart.cs" />
     <Compile Include="Deveel.Data.Client\StreamDatabaseInterface.cs" />
@@ -146,7 +148,6 @@
     <Compile Include="Deveel.Data.Collections\IIntegerIterator.cs" />
     <Compile Include="Deveel.Data.Collections\IIntegerList.cs" />
     <Compile Include="Deveel.Data.Collections\IntegerListBlockInterface.cs" />
-    <Compile Include="Deveel.Data.Collections\IntegerVector.cs" />
     <Compile Include="Deveel.Data.Control\ConfigKeys.cs" />
     <Compile Include="Deveel.Data.Control\DbConfig.cs" />
     <Compile Include="Deveel.Data.Control\DbController.cs" />
@@ -400,7 +401,7 @@
     <Compile Include="Deveel.Data\IRowEnumerator.cs" />
     <Compile Include="Deveel.Data\IStringAccessor.cs" />
     <Compile Include="Deveel.Data\ITableDataSource.cs" />
-    <Compile Include="Deveel.Data\ITableQueryDef.cs" />
+    <Compile Include="Deveel.Data\ITableQueryInfo.cs" />
     <Compile Include="Deveel.Data\ITriggerListener.cs" />
     <Compile Include="Deveel.Data\IVariableResolver.cs" />
     <Compile Include="Deveel.Data\JoinedTable.cs" />

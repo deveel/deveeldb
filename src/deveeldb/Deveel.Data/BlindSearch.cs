@@ -14,8 +14,7 @@
 //    limitations under the License.
 
 using System;
-
-using Deveel.Data.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -48,20 +47,18 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This scheme doesn't take any notice of insertions or removals.
 		/// </remarks>
-		internal override void Insert(int row) {
-			if (IsImmutable) {
+		public override void Insert(int row) {
+			if (IsImmutable)
 				throw new ApplicationException("Tried to change an immutable scheme.");
-			}
 		}
 
 		/// <inheritdoc/>
 		/// <remarks>
 		/// This scheme doesn't take any notice of insertions or removals.
 		/// </remarks>
-		internal override void Remove(int row) {
-			if (IsImmutable) {
+		public override void Remove(int row) {
+			if (IsImmutable)
 				throw new ApplicationException("Tried to change an immutable scheme.");
-			}
 		}
 
 		/// <inheritdoc/>
@@ -82,26 +79,21 @@ namespace Deveel.Data {
 		 * The algorithm assumes the given vector is already sorted.  We then just
 		 * subdivide the set until we can insert at the required position.
 		 */
-		private int Search(TObject ob, IntegerVector vec, int lower, int higher) {
+		private int Search(TObject ob, IList<int> vec, int lower, int higher) {
 			if (lower >= higher) {
-				if (ob.CompareTo(GetCellContents(vec[lower])) > 0) {
+				if (ob.CompareTo(GetCellContents(vec[lower])) > 0)
 					return lower + 1;
-				} else {
-					return lower;
-				}
+				return lower;
 			}
 
 			int mid = lower + ((higher - lower) / 2);
 			int comp_result = ob.CompareTo(GetCellContents(vec[mid]));
 
-			if (comp_result == 0) {
+			if (comp_result == 0)
 				return mid;
-			} else if (comp_result < 0) {
+			if (comp_result < 0)
 				return Search(ob, vec, lower, mid - 1);
-			} else {
-				return Search(ob, vec, mid + 1, higher);
-			}
-
+			return Search(ob, vec, mid + 1, higher);
 		}
 
 		/// <summary>
@@ -119,7 +111,7 @@ namespace Deveel.Data {
 		/// <returns>
 		/// This will return the highest row of the set of values that are equal to <paramref name="ob"/>.
 		/// </returns>
-		private int HighestSearch(TObject ob, IntegerVector vec, int lower, int higher) {
+		private int HighestSearch(TObject ob, IList<int> vec, int lower, int higher) {
 
 			if ((higher - lower) <= 5) {
 				// Start from the bottom up until we find the highest val
@@ -147,23 +139,23 @@ namespace Deveel.Data {
 		}
 
 
-		private void DoInsertSort(IntegerVector vec, int row) {
+		private void DoInsertSort(IList<int> vec, int row) {
 			int list_size = vec.Count;
 			if (list_size == 0) {
-				vec.AddInt(row);
+				vec.Add(row);
 			} else {
 				int point = HighestSearch(GetCellContents(row), vec, 0, list_size - 1);
 				if (point == list_size) {
-					vec.AddInt(row);
+					vec.Add(row);
 				} else {
-					vec.InsertIntAt(row, point);
+					vec.Insert(point, row);
 				}
 			}
 		}
 
 		/// <inheritdoc/>
-		public override IntegerVector SelectAll() {
-			IntegerVector row_list = new IntegerVector(Table.RowCount);
+		public override IList<int> SelectAll() {
+			List<int> row_list = new List<int>(Table.RowCount);
 			IRowEnumerator e = Table.GetRowEnumerator();
 			while (e.MoveNext()) {
 				DoInsertSort(row_list, e.RowIndex);
@@ -172,23 +164,21 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override IntegerVector SelectRange(SelectableRange range) {
+		internal override IList<int> SelectRange(SelectableRange range) {
 			int set_size = Table.RowCount;
 			// If no items in the set return an empty set
-			if (set_size == 0) {
-				return new IntegerVector(0);
-			}
+			if (set_size == 0)
+				return new List<int>(0);
 
 			return SelectRange(new SelectableRange[] { range });
 		}
 
 		/// <inheritdoc/>
-		internal override IntegerVector SelectRange(SelectableRange[] ranges) {
+		internal override IList<int> SelectRange(SelectableRange[] ranges) {
 			int set_size = Table.RowCount;
 			// If no items in the set return an empty set
-			if (set_size == 0) {
-				return new IntegerVector(0);
-			}
+			if (set_size == 0)
+				return new List<int>(0);
 
 			RangeChecker checker = new RangeChecker(this, ranges);
 			return checker.Resolve();
@@ -207,7 +197,7 @@ namespace Deveel.Data {
 			/// The sorted list of all items in the set created as a cache for finding
 			/// the first and last values.
 			/// </summary>
-			private IntegerVector sorted_set = null;
+			private IList<int> sorted_set = null;
 
 			// The list of flags for each check in the range.
 			// Either 0 for no check, 1 for < or >, 2 for <= or >=.
@@ -248,11 +238,11 @@ namespace Deveel.Data {
 			/// <param name="ob"></param>
 			/// <returns></returns>
 			private TObject ResolveCell(TObject ob) {
-				if (ob == SelectableRange.FIRST_IN_SET) {
+				if (ob == SelectableRange.FirstInSet) {
 					ResolveSortedSet();
 					return scheme.GetCellContents(sorted_set[0]);
 
-				} else if (ob == SelectableRange.LAST_IN_SET) {
+				} else if (ob == SelectableRange.LastInSet) {
 					ResolveSortedSet();
 					return scheme.GetCellContents(sorted_set[sorted_set.Count - 1]);
 				} else {
@@ -267,19 +257,19 @@ namespace Deveel.Data {
 			/// <param name="range"></param>
 			private void SetupRange(int i, SelectableRange range) {
 				TObject l = range.Start;
-				byte lf = range.StartFlag;
+				RangePosition lf = range.StartPosition;
 				TObject u = range.End;
-				byte uf = range.EndFlag;
+				RangePosition uf = range.EndPosition;
 
 				// Handle lower first
-				if (l == SelectableRange.FIRST_IN_SET &&
-					lf == SelectableRange.FIRST_VALUE) {
+				if (l == SelectableRange.FirstInSet &&
+					lf == RangePosition.FirstValue) {
 					// Special case no lower check
 					lower_flags[i] = 0;
 				} else {
-					if (lf == SelectableRange.FIRST_VALUE) {
+					if (lf == RangePosition.FirstValue) {
 						lower_flags[i] = 2;  // >=
-					} else if (lf == SelectableRange.AFTER_LAST_VALUE) {
+					} else if (lf == RangePosition.AfterLastValue) {
 						lower_flags[i] = 1;  // >
 					} else {
 						throw new ApplicationException("Incorrect lower flag.");
@@ -288,14 +278,14 @@ namespace Deveel.Data {
 				}
 
 				// Now handle upper
-				if (u == SelectableRange.LAST_IN_SET &&
-					uf == SelectableRange.LAST_VALUE) {
+				if (u == SelectableRange.LastInSet &&
+					uf == RangePosition.LastValue) {
 					// Special case no upper check
 					upper_flags[i] = 0;
 				} else {
-					if (uf == SelectableRange.LAST_VALUE) {
+					if (uf == RangePosition.LastValue) {
 						upper_flags[i] = 2;  // <=
-					} else if (uf == SelectableRange.BEFORE_FIRST_VALUE) {
+					} else if (uf == RangePosition.BeforeFirstValue) {
 						upper_flags[i] = 1;  // <
 					} else {
 						throw new ApplicationException("Incorrect upper flag.");
@@ -309,10 +299,10 @@ namespace Deveel.Data {
 			/// Resolves the ranges.
 			/// </summary>
 			/// <returns></returns>
-			public IntegerVector Resolve() {
+			public IList<int> Resolve() {
 				// The idea here is to only need to scan the column once to find all
 				// the cells that meet our criteria.
-				IntegerVector ivec = new IntegerVector();
+				List<int> ivec = new List<int>();
 				IRowEnumerator e = scheme.Table.GetRowEnumerator();
 
 				int compare_tally = 0;

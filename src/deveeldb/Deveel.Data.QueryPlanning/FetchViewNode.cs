@@ -23,8 +23,8 @@ namespace Deveel.Data.QueryPlanning {
 	/// </summary>
 	/// <remarks>
 	/// This is a tree node that has no children, however the child can 
-	/// be created by calling <see cref="createViewChildNode"/>. This node 
-	/// can be removed from a plan tree by calling <see cref="createViewChildNode"/>
+	/// be created by calling <see cref="CreateViewChildNode"/>. This node 
+	/// can be removed from a plan tree by calling <see cref="CreateViewChildNode"/>
 	/// and substituting this node with the returned child. 
 	/// For a planner that normalizes and optimizes plan trees, this is 
 	/// a useful feature.
@@ -53,7 +53,7 @@ namespace Deveel.Data.QueryPlanning {
 		/// <returns>
 		/// Returns the <see cref="IQueryPlanNode"/> that resolves to the view.
 		/// </returns>
-		public virtual IQueryPlanNode createViewChildNode(IQueryContext context) {
+		public virtual IQueryPlanNode CreateViewChildNode(IQueryContext context) {
 			DatabaseQueryContext db = (DatabaseQueryContext)context;
 			return db.CreateViewQueryPlanNode(tableName);
 		}
@@ -68,7 +68,7 @@ namespace Deveel.Data.QueryPlanning {
 		/// <inheritdoc/>
 		public virtual Table Evaluate(IQueryContext context) {
 			// Create the view child node
-			IQueryPlanNode node = createViewChildNode(context);
+			IQueryPlanNode node = CreateViewChildNode(context);
 			// Evaluate the plan
 			Table t = node.Evaluate(context);
 

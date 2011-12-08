@@ -165,9 +165,9 @@ namespace Deveel.Data.QueryPlanning {
 					if (alias != null)
 						givenName = new TableName(alias);
 
-					// Get the ITableQueryDef object for this table name (aliased).
-					ITableQueryDef tableQueryDef = db.GetTableQueryDef(tableName, givenName);
-					FromTableDirectSource source = new FromTableDirectSource(db.IsInCaseInsensitiveMode, tableQueryDef, uniqueKey,
+					// Get the ITableQueryInfo object for this table name (aliased).
+					ITableQueryInfo tableQueryInfo = db.GetTableQueryDef(tableName, givenName);
+					FromTableDirectSource source = new FromTableDirectSource(db.IsInCaseInsensitiveMode, tableQueryInfo, uniqueKey,
 					                                                         givenName, tableName);
 
 					fromSet.AddTable(source);

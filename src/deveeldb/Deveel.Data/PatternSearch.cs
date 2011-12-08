@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 using Deveel.Data.Collections;
@@ -43,11 +44,11 @@ namespace Deveel.Data {
 	/// contents of the column need to be accessed.
 	/// </para>
 	/// </remarks>
-	public sealed class PatternSearch {
+	public static class PatternSearch {
 
 		// Statics for the tokens.
-		private const char ZERO_OR_MORE_CHARS = '%';
-		private const char ONE_CHAR = '_';
+		private const char ZeroOrMoreChars = '%';
+		private const char OneChar = '_';
 
 		/// <summary>
 		/// Returns true if the given character is a wild card (unknown).
@@ -55,7 +56,7 @@ namespace Deveel.Data {
 		/// <param name="ch"></param>
 		/// <returns></returns>
 		private static bool IsWildCard(char ch) {
-			return (ch == ONE_CHAR || ch == ZERO_OR_MORE_CHARS);
+			return (ch == OneChar || ch == ZeroOrMoreChars);
 		}
 
 		/// <summary>
@@ -66,20 +67,19 @@ namespace Deveel.Data {
 		/// This matches patterns that do not necessarily start with a wild 
 		/// card unlike the <see cref="PatternMatch"/> method.
 		/// </remarks>
-		public static bool FullPatternMatch(String pattern, String str,
-											   char escape_char) {
+		public static bool FullPatternMatch(string pattern, string str, char escapeChar) {
 			StringBuilder start = new StringBuilder();
 			String rezt = null;
 			int len = pattern.Length;
 			int i = 0;
-			bool last_escape_char = false;
+			bool lastEscapeChar = false;
 			for (; i < len && rezt == null; ++i) {
 				char c = pattern[i];
-				if (last_escape_char) {
-					last_escape_char = false;
+				if (lastEscapeChar) {
+					lastEscapeChar = false;
 					start.Append(c);
-				} else if (c == escape_char) {
-					last_escape_char = true;
+				} else if (c == escapeChar) {
+					lastEscapeChar = true;
 				} else if (IsWildCard(c)) {
 					rezt = pattern.Substring(i);
 				} else {
@@ -87,23 +87,17 @@ namespace Deveel.Data {
 				}
 			}
 
-			if (rezt == null) {
+			if (rezt == null)
 				rezt = "";
-			}
 
-			String st = start.ToString();
-
-			//    Console.Out.WriteLine("--");
-			//    Console.Out.WriteLine(str);
-			//    Console.Out.WriteLine(st);
+			string st = start.ToString();
 
 			if (str.StartsWith(st)) {
-				String str_rezt = str.Substring(st.Length); // (i)
+				string strRezt = str.Substring(st.Length); // (i)
 
-				if (rezt.Length > 0)
-					return PatternMatch(rezt, str_rezt, escape_char);
-				return str_rezt.Length == 0;
+				return rezt.Length > 0 ? PatternMatch(rezt, strRezt, escapeChar) : strRezt.Length == 0;
 			}
+
 			return false;
 		}
 
@@ -135,11 +129,11 @@ namespace Deveel.Data {
 		/// of server side resources.
 		/// </para>
 		/// </remarks>
-		public static bool PatternMatch(String pattern, String expression, char escape_char) {
+		public static bool PatternMatch(string pattern, string expression, char escapeChar) {
 			// Look at first character in pattern, if it's a ONE_CHAR wildcard then
 			// check expression and pattern match until next wild card.
 
-			if (pattern[0] == ONE_CHAR) {
+			if (pattern[0] == OneChar) {
 
 				// Else step through each character in pattern and see if it matches up
 				// with the expression until a wild card is found or the end is reached.
@@ -147,18 +141,18 @@ namespace Deveel.Data {
 
 				int i = 1;
 				bool finished = (i >= pattern.Length || expression.Length < 1);
-				bool last_was_escape = false;
+				bool lastWasEscape = false;
 				int checkd = 0;
 				while (!finished) {
 					char c = pattern[i];
-					if (!last_was_escape && c == escape_char) {
-						last_was_escape = true;
+					if (!lastWasEscape && c == escapeChar) {
+						lastWasEscape = true;
 						if (i >= expression.Length) {
 							return false;
 						}
 						++i;
-					} else if (last_was_escape || !IsWildCard(c)) {
-						last_was_escape = false;
+					} else if (lastWasEscape || !IsWildCard(c)) {
+						lastWasEscape = false;
 						// If expression and pattern character doesn't match or end of
 						// expression reached, search has failed.
 						if (i >= expression.Length || c != expression[i]) {
@@ -168,19 +162,18 @@ namespace Deveel.Data {
 						++checkd;
 					} else {
 						// found a wildcard, so recurse on this wildcard
-						return PatternMatch(pattern.Substring(i), expression.Substring(i),
-											escape_char);
+						return PatternMatch(pattern.Substring(i), expression.Substring(i), escapeChar);
 					}
 
 					finished = (i >= pattern.Length);
 				}
 
 				// The pattern length minus any escaped characters
-				int real_pattern_length = 0;
+				int realPatternLength = 0;
 				int sz = pattern.Length;
 				for (int n = 0; n < sz; ++n) {
-					if (pattern[n] != escape_char) {
-						++real_pattern_length;
+					if (pattern[n] != escapeChar) {
+						++realPatternLength;
 					} else {
 						++n;
 					}
@@ -189,38 +182,36 @@ namespace Deveel.Data {
 				// If pattern and expression lengths match then we have walked through
 				// the expression and found a match, otherwise no match.
 
-				return real_pattern_length == expression.Length;
-
+				return realPatternLength == expression.Length;
 			}
 
 			// Therefore we are doing a ZERO_OR_MORE_CHARS wildcard check.
 
-			// If the pattern is '%' (ie. pattern.length() == 1 because it's only 1
+			// If the pattern is '%' (ie. pattern.Length == 1 because it's only 1
 			// character in length (the '%' character)) then it doesn't matter what the
 			// expression is, we have found a match.
 
-			if (pattern.Length == 1) {
+			if (pattern.Length == 1)
 				return true;
-			}
 
 			// Look at following character in pattern, and extract all the characters
 			// before the next wild card.
 
-			StringBuilder next_string = new StringBuilder();
+			StringBuilder nextString = new StringBuilder();
 			int i1 = 1;
 			bool finished1 = (i1 >= pattern.Length);
-			bool last_was_escape1 = false;
+			bool lastWasEscape1 = false;
 			while (!finished1) {
-				char next_char = pattern[i1];
-				if (!last_was_escape1 && next_char == escape_char) {
-					last_was_escape1 = true;
+				char nextChar = pattern[i1];
+				if (!lastWasEscape1 && nextChar == escapeChar) {
+					lastWasEscape1 = true;
 					++i1;
 					if (i1 >= pattern.Length) {
 						finished1 = true;
 					}
-				} else if (last_was_escape1 || !IsWildCard(next_char)) {
-					last_was_escape1 = false;
-					next_string.Append(next_char);
+				} else if (lastWasEscape1 || !IsWildCard(nextChar)) {
+					lastWasEscape1 = false;
+					nextString.Append(nextChar);
 					++i1;
 					if (i1 >= pattern.Length) {
 						finished1 = true;
@@ -230,40 +221,36 @@ namespace Deveel.Data {
 				}
 			}
 
-			String find_string = next_string.ToString();
+			string findString = nextString.ToString();
 
 			// Special case optimisation if we have found the end of the pattern, all
 			// we need to do is check if 'find_string' is on the end of the expression.
 			// eg. pattern = "%er", will have a 'find_string' of "er" and it is saying
 			// 'does the expression end with 'er''.
 
-			if (i1 >= pattern.Length) {
-				return (expression.EndsWith(find_string));
-			}
+			if (i1 >= pattern.Length)
+				return (expression.EndsWith(findString));
 
 			// Otherwise we must have finished with another wild card.
 			// Try and find 'next_string' in the expression.  If its found then
 			// recurse over the next pattern.
 
-			int find_str_length = find_string.Length;
-			int str_index = expression.IndexOf(find_string, 0);
+			int findStrLength = findString.Length;
+			int strIndex = expression.IndexOf(findString, 0);
 
-			while (str_index != -1) {
-
+			while (strIndex != -1) {
 				bool matched = PatternMatch(
-								pattern.Substring(1 + find_str_length),
-								expression.Substring(str_index + find_str_length),
-								escape_char);
+								pattern.Substring(1 + findStrLength),
+								expression.Substring(strIndex + findStrLength),
+								escapeChar);
 
-				if (matched) {
+				if (matched)
 					return true;
-				}
 
-				str_index = expression.IndexOf(find_string, str_index + 1);
+				strIndex = expression.IndexOf(findString, strIndex + 1);
 			}
 
 			return false;
-
 		}
 
 		/// <summary>
@@ -278,7 +265,7 @@ namespace Deveel.Data {
 		/// rows between <i>Anto</i> and <i>Anton</i>. This makes for better
 		/// efficiency.
 		/// </remarks>
-		internal static IntegerVector Search(Table table, int column, String pattern) {
+		internal static IList<int> Search(Table table, int column, string pattern) {
 			return Search(table, column, pattern, '\\');
 		}
 
@@ -294,7 +281,7 @@ namespace Deveel.Data {
 		/// search to all rows between "Anto" and "Anton".  This makes for better
 		/// efficiency.
 		/// </remarks>
-		internal static IntegerVector Search(Table table, int column, String pattern, char escape_char) {
+		internal static IList<int> Search(Table table, int column, String pattern, char escape_char) {
 			// Get the type for the column
 			TType col_type = table.TableInfo[column].TType;
 
@@ -341,7 +328,7 @@ namespace Deveel.Data {
 
 			// This is our initial search row set.  In the second stage, rows are
 			// eliminated from this vector.
-			IntegerVector search_case;
+			IList<int> search_case;
 
 			if (i >= pattern.Length) {
 				// If the pattern has no 'wildcards' then just perform an EQUALS
@@ -431,7 +418,7 @@ namespace Deveel.Data {
 
 			}
 
-			return new IntegerVector(i_list);
+			return ListUtil.ToList(i_list);
 
 		}
 
@@ -466,19 +453,17 @@ namespace Deveel.Data {
 		/// We use the regex library as specified in the DatabaseSystem
 		/// configuration.
 		/// </remarks>
-		internal static IntegerVector RegexSearch(Table table, int column, String pattern) {
+		internal static IList<int> RegexSearch(Table table, int column, String pattern) {
 			// If the first character is a '/' then we assume it's a Perl style regular
 			// expression (eg. "/.*[0-9]+\/$/i")
 			if (pattern.StartsWith("/")) {
 				int end = pattern.LastIndexOf('/');
 				String pat = pattern.Substring(1, end);
 				String ops = pattern.Substring(end + 1);
-				return table.Database.System.RegexLibrary.RegexSearch(
-														  table, column, pat, ops);
+				return table.Database.System.RegexLibrary.RegexSearch(table, column, pat, ops);
 			} else {
 				// Otherwise it's a regular expression with no operators
-				return table.Database.System.RegexLibrary.RegexSearch(
-														  table, column, pattern, "");
+				return table.Database.System.RegexLibrary.RegexSearch(table, column, pattern, "");
 			}
 		}
 	}

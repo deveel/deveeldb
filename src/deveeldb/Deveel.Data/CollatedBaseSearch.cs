@@ -15,10 +15,7 @@
 
 
 using System;
-using System.IO;
-
-using Deveel.Data.Collections;
-using Deveel.Data.Util;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -50,7 +47,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This oveeride method does nothing.
 		/// </remarks>
-		internal override void Insert(int row) {
+		public override void Insert(int row) {
 			// Ignore insert (no state to maintain)
 			if (IsImmutable)
 				throw new ApplicationException("Tried to change an immutable scheme.");
@@ -60,7 +57,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This oveeride method does nothing.
 		/// </remarks>
-		internal override void Remove(int row) {
+		public override void Remove(int row) {
 			// Ignore remove (no state to maintain)
 			if (IsImmutable) {
 				throw new ApplicationException("Tried to change an immutable scheme.");
@@ -139,19 +136,19 @@ namespace Deveel.Data {
 		/// Returns the given <paramref name="ivec"/> integrated with the given
 		/// range of integers.
 		/// </returns>
-		protected virtual IntegerVector AddRangeToSet(int start, int end, IntegerVector ivec) {
+		protected virtual IList<int> AddRangeToSet(int start, int end, IList<int> ivec) {
 			if (ivec == null) {
-				ivec = new IntegerVector((end - start) + 2);
+				ivec = new List<int>((end - start) + 2);
 			}
 			for (int i = start; i <= end; ++i) {
-				ivec.AddInt(i);
+				ivec.Add(i);
 			}
 			return ivec;
 		}
 
 		// ---------- Range search methods ----------
 
-		public override IntegerVector SelectAll() {
+		public override IList<int> SelectAll() {
 			return AddRangeToSet(0, SetSize - 1, null);
 		}
 
@@ -160,7 +157,7 @@ namespace Deveel.Data {
 		/// last in set) or a <see cref="TObject"/> object, this will determine 
 		/// the position in this set of the range point.
 		/// </summary>
-		/// <param name="flag"></param>
+		/// <param name="position"></param>
 		/// <param name="val"></param>
 		/// <remarks>
 		/// For example, we may want to know the index of the last instance of 
@@ -171,17 +168,17 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		private int PositionOfRangePoint(byte flag, TObject val) {
+		private int PositionOfRangePoint(RangePosition position, TObject val) {
 			int p;
 			TObject cell;
 
-			switch (flag) {
+			switch (position) {
 
-				case (SelectableRange.FIRST_VALUE):
-					if (val == SelectableRange.FIRST_IN_SET) {
+				case RangePosition.FirstValue:
+					if (val == SelectableRange.FirstInSet) {
 						return 0;
 					}
-					if (val == SelectableRange.LAST_IN_SET) {
+					if (val == SelectableRange.LastInSet) {
 						// Get the last value and search for the first instance of it.
 						cell = LastInCollationOrder;
 					} else {
@@ -194,11 +191,11 @@ namespace Deveel.Data {
 					}
 					return p;
 
-				case (SelectableRange.LAST_VALUE):
-					if (val == SelectableRange.LAST_IN_SET) {
+				case RangePosition.LastValue:
+					if (val == SelectableRange.LastInSet) {
 						return SetSize - 1;
 					}
-					if (val == SelectableRange.FIRST_IN_SET) {
+					if (val == SelectableRange.FirstInSet) {
 						// Get the first value.
 						cell = FirstInCollationOrder;
 					} else {
@@ -211,11 +208,11 @@ namespace Deveel.Data {
 					}
 					return p;
 
-				case (SelectableRange.BEFORE_FIRST_VALUE):
-					if (val == SelectableRange.FIRST_IN_SET) {
+				case RangePosition.BeforeFirstValue:
+					if (val == SelectableRange.FirstInSet) {
 						return -1;
 					}
-					if (val == SelectableRange.LAST_IN_SET) {
+					if (val == SelectableRange.LastInSet) {
 						// Get the last value and search for the first instance of it.
 						cell = LastInCollationOrder;
 					} else {
@@ -228,11 +225,11 @@ namespace Deveel.Data {
 					}
 					return p - 1;
 
-				case (SelectableRange.AFTER_LAST_VALUE):
-					if (val == SelectableRange.LAST_IN_SET) {
+				case RangePosition.AfterLastValue:
+					if (val == SelectableRange.LastInSet) {
 						return SetSize;
 					}
-					if (val == SelectableRange.FIRST_IN_SET) {
+					if (val == SelectableRange.FirstInSet) {
 						// Get the first value.
 						cell = FirstInCollationOrder;
 					} else {
@@ -246,7 +243,7 @@ namespace Deveel.Data {
 					return p + 1;
 
 				default:
-					throw new ApplicationException("Unrecognised flag.");
+					throw new ApplicationException("Unrecognised position.");
 			}
 
 		}
@@ -266,17 +263,17 @@ namespace Deveel.Data {
 		/// Returns the given <paramref name="ivec"/> integrated with the range
 		/// of values identified by the given <pramref name="range"/> selector.
 		/// </returns>
-		private IntegerVector AddRange(SelectableRange range, IntegerVector ivec) {
+		private IList<int> AddRange(SelectableRange range, IList<int> ivec) {
 			int r1, r2;
 
 			// Select the range specified.
-			byte start_flag = range.StartFlag;
+			RangePosition startFlag = range.StartPosition;
 			TObject start = range.Start;
-			byte end_flag = range.EndFlag;
+			RangePosition endFlag = range.EndPosition;
 			TObject end = range.End;
 
-			r1 = PositionOfRangePoint(start_flag, start);
-			r2 = PositionOfRangePoint(end_flag, end);
+			r1 = PositionOfRangePoint(startFlag, start);
+			r2 = PositionOfRangePoint(endFlag, end);
 
 			if (r2 < r1) {
 				return ivec;
@@ -288,35 +285,35 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override IntegerVector SelectRange(SelectableRange range) {
+		internal override IList<int> SelectRange(SelectableRange range) {
 			// If no items in the set return an empty set
 			if (SetSize == 0) {
-				return new IntegerVector(0);
+				return new List<int>(0);
 			}
 
-			IntegerVector ivec = AddRange(range, null);
+			IList<int> ivec = AddRange(range, null);
 			if (ivec == null) {
-				return new IntegerVector(0);
+				return new List<int>(0);
 			}
 
 			return ivec;
 		}
 
 		/// <inheritdoc/>
-		internal override IntegerVector SelectRange(SelectableRange[] ranges) {
+		internal override IList<int> SelectRange(SelectableRange[] ranges) {
 			// If no items in the set return an empty set
 			if (SetSize == 0) {
-				return new IntegerVector(0);
+				return new List<int>(0);
 			}
 
-			IntegerVector ivec = null;
+			IList<int> ivec = null;
 			for (int i = 0; i < ranges.Length; ++i) {
 				SelectableRange range = ranges[i];
 				ivec = AddRange(range, ivec);
 			}
 
 			if (ivec == null) {
-				return new IntegerVector(0);
+				return new List<int>(0);
 			}
 			return ivec;
 

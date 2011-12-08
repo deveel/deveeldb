@@ -14,8 +14,7 @@
 //    limitations under the License.
 
 using System;
-
-using Deveel.Data.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -144,15 +143,13 @@ namespace Deveel.Data {
 				mapped_original_column = column_map[original_column];
 			}
 
-			return base.GetSelectableSchemeFor(column_map[column],
-												mapped_original_column, table);
+			return base.GetSelectableSchemeFor(column_map[column], mapped_original_column, table);
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
-									   ITableDataSource ancestor) {
+		internal override void SetToRowTableDomain(int column, IList<int> rowSet, ITableDataSource ancestor) {
 
-			base.SetToRowTableDomain(column_map[column], row_set, ancestor);
+			base.SetToRowTableDomain(column_map[column], rowSet, ancestor);
 		}
 
 		/// <inheritdoc/>

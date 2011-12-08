@@ -14,10 +14,8 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Data.Collections;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {
@@ -434,7 +432,7 @@ namespace Deveel.Data {
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
 			try {
-				IntegerVector data;
+				IList<int> data;
 				if (constraintName != null) {
 					// Returns the list of indexes where column 1 = constraint name
 					//                               and column 2 = schema name
@@ -452,7 +450,7 @@ namespace Deveel.Data {
 					// The id
 					TObject id = dt.Get(0, rowIndex);
 					// All columns with this id
-					IntegerVector ivec = dtcols.SelectEqual(0, id);
+					IList<int> ivec = dtcols.SelectEqual(0, id);
 					// Delete from the table
 					dtcols.DeleteRows(ivec);
 					dt.DeleteRows(data);
@@ -494,7 +492,7 @@ namespace Deveel.Data {
 			try {
 				// Returns the list of indexes where column 1 = constraint name
 				//                               and column 2 = schema name
-				IntegerVector data = dt.SelectEqual(1, constraintName,
+				IList<int> data = dt.SelectEqual(1, constraintName,
 				                                    2, table.Schema);
 
 				if (data.Count > 1) {
@@ -504,7 +502,7 @@ namespace Deveel.Data {
 					// The id
 					TObject id = dt.Get(0, rowIndex);
 					// All columns with this id
-					IntegerVector ivec = dtcols.SelectEqual(0, id);
+					IList<int> ivec = dtcols.SelectEqual(0, id);
 					// Delete from the table
 					dtcols.DeleteRows(ivec);
 					dt.DeleteRows(data);
@@ -544,7 +542,7 @@ namespace Deveel.Data {
 			try {
 				// Returns the list of indexes where column 1 = constraint name
 				//                               and column 2 = schema name
-				IntegerVector data = dt.SelectEqual(1, constraintName,
+				IList<int> data = dt.SelectEqual(1, constraintName,
 				                                    2, table.Schema);
 
 				if (data.Count > 1) {
@@ -589,7 +587,7 @@ namespace Deveel.Data {
 			try {
 				// Returns the list of indexes where column 1 = constraint name
 				//                               and column 2 = schema name
-				IntegerVector data = dt.SelectEqual(1, constraintName,
+				IList<int> data = dt.SelectEqual(1, constraintName,
 				                                    2, table.Schema);
 
 				if (data.Count > 1) {
@@ -599,7 +597,7 @@ namespace Deveel.Data {
 					// The id
 					TObject id = dt.Get(0, rowIndex);
 					// All columns with this id
-					IntegerVector ivec = dtcols.SelectEqual(0, id);
+					IList<int> ivec = dtcols.SelectEqual(0, id);
 					// Delete from the table
 					dtcols.DeleteRows(ivec);
 					dt.DeleteRows(data);
@@ -673,7 +671,7 @@ namespace Deveel.Data {
 			try {
 				// Returns the list indexes where column 3 = table name
 				//                            and column 2 = schema name
-				IntegerVector data = dt.SelectEqual(3, tableName.Name,
+				IList<int> data = dt.SelectEqual(3, tableName.Name,
 				                                    2, tableName.Schema);
 				groups = new ColumnGroup[data.Count];
 
@@ -681,7 +679,7 @@ namespace Deveel.Data {
 					TObject id = dt.Get(0, data[i]);
 
 					// Select all records with equal id
-					IntegerVector cols = dtcols.SelectEqual(0, id);
+					IList<int> cols = dtcols.SelectEqual(0, id);
 
 					// Put into a group.
 					ColumnGroup group = new ColumnGroup();
@@ -718,7 +716,7 @@ namespace Deveel.Data {
 			try {
 				// Returns the list indexes where column 3 = table name
 				//                            and column 2 = schema name
-				IntegerVector data = dt.SelectEqual(3, tableName.Name,
+				IList<int> data = dt.SelectEqual(3, tableName.Name,
 				                                    2, tableName.Schema);
 
 				if (data.Count > 1) {
@@ -728,7 +726,7 @@ namespace Deveel.Data {
 					// The id
 					TObject id = dt.Get(0, rowIndex);
 					// All columns with this id
-					IntegerVector ivec = dtcols.SelectEqual(0, id);
+					IList<int> ivec = dtcols.SelectEqual(0, id);
 					// Make it in to a columns object
 					ColumnGroup group = new ColumnGroup();
 					group.name = dt.Get(1, rowIndex).Object.ToString();
@@ -763,7 +761,7 @@ namespace Deveel.Data {
 			try {
 				// Returns the list indexes where column 3 = table name
 				//                            and column 2 = schema name
-				IntegerVector data = dt.SelectEqual(3, tableName.Name,
+				IList<int> data = dt.SelectEqual(3, tableName.Name,
 				                                    2, tableName.Schema);
 				checks = new CheckExpression[data.Count];
 
@@ -839,7 +837,7 @@ namespace Deveel.Data {
 			try {
 				// Returns the list indexes where column 3 = table name
 				//                            and column 2 = schema name
-				IntegerVector data = dt.SelectEqual(3, tableName.Name,
+				IList<int> data = dt.SelectEqual(3, tableName.Name,
 				                                    2, tableName.Schema);
 				groups = new ColumnGroupReference[data.Count];
 
@@ -855,7 +853,7 @@ namespace Deveel.Data {
 							   dt.Get(5, rowIndex).Object.ToString());
 
 					// Select all records with equal id
-					IntegerVector cols = dtcols.SelectEqual(0, id);
+					IList<int> cols = dtcols.SelectEqual(0, id);
 
 					// Put into a group.
 					ColumnGroupReference group = new ColumnGroupReference();
@@ -931,7 +929,7 @@ namespace Deveel.Data {
 			try {
 				// Returns the list indexes where column 5 = ref table name
 				//                            and column 4 = ref schema name
-				IntegerVector data = dt.SelectEqual(5, refTableName.Name,
+				IList<int> data = dt.SelectEqual(5, refTableName.Name,
 				                                    4, refTableName.Schema);
 				groups = new ColumnGroupReference[data.Count];
 
@@ -947,7 +945,7 @@ namespace Deveel.Data {
 						  dt.Get(3, rowIndex).Object.ToString());
 
 					// Select all records with equal id
-					IntegerVector cols = dtcols.SelectEqual(0, id);
+					IList<int> cols = dtcols.SelectEqual(0, id);
 
 					// Put into a group.
 					ColumnGroupReference group = new ColumnGroupReference();

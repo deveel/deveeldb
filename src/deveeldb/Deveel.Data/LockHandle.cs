@@ -32,30 +32,31 @@ namespace Deveel.Data {
 		/// The array of <see cref="Lock"/> objects that are being used 
 		/// in this locking process.
 		/// </summary>
-		private readonly Lock[] lock_list;
+		private readonly Lock[] lockList;
 
 		/// <summary>
 		/// A temporary index used during initialisation of object to add locks.
 		/// </summary>
-		private int lock_index;
+		private int lockIndex;
 
 		/// <summary>
 		/// Set when the <see cref="UnlockAll"/> method is called for the first time.
 		/// </summary>
 		private bool unlocked;
 
-		private readonly IDebugLogger debug;
+		private readonly IDebugLogger logger;
 
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="lock_count">The number of locks that will be write into
+		/// <param name="lockCount">The number of locks that will be write into
 		/// this handle.</param>
-		internal LockHandle(int lock_count, IDebugLogger logger) {
-			lock_list = new Lock[lock_count];
-			lock_index = 0;
+		/// <param name="logger"></param>
+		internal LockHandle(int lockCount, IDebugLogger logger) {
+			lockList = new Lock[lockCount];
+			lockIndex = 0;
 			unlocked = false;
-			debug = logger;
+			this.logger = logger;
 		}
 
 		/// <summary>
@@ -67,8 +68,8 @@ namespace Deveel.Data {
 		/// is handled by the <see cref="LockingMechanism.LockTables"/> method.
 		/// </remarks>
 		internal void AddLock(Lock l) {
-			lock_list[lock_index] = l;
-			++lock_index;
+			lockList[lockIndex] = l;
+			++lockIndex;
 		}
 
 		/// <summary>
@@ -83,8 +84,8 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void UnlockAll() {
 			if (!unlocked) {
-				for (int i = lock_list.Length - 1; i >= 0; --i) {
-					lock_list[i].Release();
+				for (int i = lockList.Length - 1; i >= 0; --i) {
+					lockList[i].Release();
 				}
 				unlocked = true;
 			}
@@ -94,7 +95,7 @@ namespace Deveel.Data {
 		/// Blocks until access to the given DataTable object is safe.
 		/// </summary>
 		/// <param name="table"></param>
-		/// <param name="access_type"></param>
+		/// <param name="accessType"></param>
 		/// <remarks>
 		/// It blocks using either the Read or Read/Write privs that it has 
 		/// been given. Note that this method is public and is a method that 
@@ -107,11 +108,11 @@ namespace Deveel.Data {
 		/// be instantanious.
 		/// </para>
 		/// </remarks>
-		public void CheckAccess(DataTable table, AccessType access_type) {
-			for (int i = lock_list.Length - 1; i >= 0; --i) {
-				Lock l = lock_list[i];
+		public void CheckAccess(DataTable table, AccessType accessType) {
+			for (int i = lockList.Length - 1; i >= 0; --i) {
+				Lock l = lockList[i];
 				if (l.Table == table) {
-					l.CheckAccess(access_type);
+					l.CheckAccess(accessType);
 					return;
 				}
 			}
@@ -130,19 +131,11 @@ namespace Deveel.Data {
 		public void Dispose() {
 			if (!unlocked) {
 				UnlockAll();
-				debug.Write(DebugLevel.Error, this, "Finalize released a table Lock - " +
+				logger.Write(DebugLevel.Error, this, "Finalize released a table Lock - " +
 				  "This indicates that there is a serious error.  Locks should " +
 				  "only have a very short life span.  The 'UnlockAll' method should " +
 				  "have been called before finalization.  " + ToString());
 			}
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			StringBuilder str = new StringBuilder("LockHandle: ");
-			for (int i = 0; i < lock_list.Length; ++i)
-				str.Append(lock_list[i].ToString());
-			return str.ToString();
 		}
 	}
 }

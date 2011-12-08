@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Deveel.Data.Collections {
@@ -107,12 +108,11 @@ namespace Deveel.Data.Collections {
 		/// Constructs the list by copying the contents from an IntegerVector.
 		/// </summary>
 		/// <param name="ivec"></param>
-		protected AbstractBlockIntegerList(IntegerVector ivec)
+		protected AbstractBlockIntegerList(IEnumerable<int> ivec)
 			: this() {
 
-			int sz = ivec.Count;
-			for (int i = 0; i < sz; ++i) {
-				Add(ivec[i]);
+			foreach (int i in ivec) {
+				Add(i);
 			}
 		}
 

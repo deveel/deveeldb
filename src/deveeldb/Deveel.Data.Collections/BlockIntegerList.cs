@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Deveel.Data.Collections {
@@ -33,7 +34,7 @@ namespace Deveel.Data.Collections {
 			: base() {
 		}
 
-		public BlockIntegerList(IntegerVector ivec)
+		public BlockIntegerList(IEnumerable<int> ivec)
 			: base(ivec) {
 		}
 

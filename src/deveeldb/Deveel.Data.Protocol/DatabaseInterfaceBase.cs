@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 
@@ -758,10 +759,10 @@ namespace Deveel.Data.Protocol {
 			private ColumnDescription[] col_desc;
 
 			/// <summary>
-			/// The <see cref="IntegerVector"/> that contains the row index into the table 
+			/// The <see cref="IList{T}"/> that contains the row index into the table 
 			/// for each row of the result.
 			/// </summary>
-			private IntegerVector row_index_map;
+			private IList<int> row_index_map;
 
 			/// <summary>
 			/// Set to true if the result table has a <see cref="SimpleRowEnumerator"/>, therefore 
@@ -815,10 +816,10 @@ namespace Deveel.Data.Protocol {
 
 				// Build 'row_index_map' if not a simple enum
 				if (!result_is_simple_enum) {
-					row_index_map = new IntegerVector(table.RowCount);
+					row_index_map = new List<int>(table.RowCount);
 					IRowEnumerator en = table.GetRowEnumerator();
 					while (en.MoveNext()) {
-						row_index_map.AddInt(en.RowIndex);
+						row_index_map.Add(en.RowIndex);
 					}
 				}
 

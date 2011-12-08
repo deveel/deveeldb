@@ -14,8 +14,7 @@
 //    limitations under the License.
 
 using System;
-
-using Deveel.Data.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -60,13 +59,13 @@ namespace Deveel.Data {
 		/// The list of added rows to the table above when a change 
 		/// is committed.
 		/// </summary>
-		private readonly IntegerVector addedList;
+		private readonly IList<int> addedList;
 
 		/// <summary>
 		/// The list of removed rows from the table above when a change 
 		/// is committed.
 		/// </summary>
-		private readonly IntegerVector removedList;
+		private readonly IList<int> removedList;
 
 		/// <summary>
 		/// Set to true when the backing DatabaseConnection has a transaction open.
@@ -76,8 +75,8 @@ namespace Deveel.Data {
 		protected TableBackedCache(TableName table) {
 			backedByTable = table;
 
-			addedList = new IntegerVector();
-			removedList = new IntegerVector();
+			addedList = new List<int>();
+			removedList = new List<int>();
 		}
 
 		/// <summary>
@@ -85,10 +84,10 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="from"></param>
 		/// <param name="list"></param>
-		private static void AddRowsToList(int[] from, IntegerVector list) {
+		private static void AddRowsToList(int[] from, IList<int> list) {
 			if (from != null) {
-				for (int i = 0; i < from.Length; ++i) {
-					list.AddInt(from[i]);
+				foreach (int i in from) {
+					list.Add(i);
 				}
 			}
 		}
@@ -157,10 +156,10 @@ namespace Deveel.Data {
 		/// </summary>
 		private void InternalPurgeCache() {
 			// Make copies of the added_list and removed_list
-			IntegerVector add, remove;
+			IList<int> add, remove;
 			lock (removedList) {
-				add = new IntegerVector(addedList);
-				remove = new IntegerVector(removedList);
+				add = new List<int>(addedList);
+				remove = new List<int>(removedList);
 				// Clear the added and removed list
 				addedList.Clear();
 				removedList.Clear();
@@ -181,6 +180,6 @@ namespace Deveel.Data {
 		/// implementation of this might completely clear the cache of all data if
 		/// <paramref name="removedRows"/>.Count &gt; 0.
 		/// </remarks>
-		protected abstract void PurgeCache(IntegerVector addedRows, IntegerVector removedRows);
+		protected abstract void PurgeCache(IList<int> addedRows, IList<int> removedRows);
 	}
 }

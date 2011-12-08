@@ -14,10 +14,9 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Caching;
-using Deveel.Data.Collections;
-using Deveel.Math;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -82,7 +81,7 @@ namespace Deveel.Data {
 				this.manager = manager;
 			}
 
-			protected override void PurgeCache(IntegerVector addedRows, IntegerVector removedRows) {
+			protected override void PurgeCache(IList<int> addedRows, IList<int> removedRows) {
 				// If there were changed then invalidate the cache
 				if (manager.grant_table_changed) {
 					manager.InvalidateGrantCache();

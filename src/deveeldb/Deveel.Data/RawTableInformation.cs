@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
 
@@ -51,7 +52,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// We can not add <see cref="VirtualTable"/> objects into this object.
 		/// </remarks>
-		internal void Add(IRootTable table, IntegerVector row_set) {
+		internal void Add(IRootTable table, IList<int> row_set) {
 			RawTableElement elem = new RawTableElement();
 			elem.table = table;
 			elem.row_set = row_set;
@@ -75,9 +76,9 @@ namespace Deveel.Data {
 		/// Returns an array of <see cref="IntegerVector"/> of the rows in the 
 		/// table that have been added.
 		/// </summary>
-		internal IntegerVector[] GetRows() {
+		internal IList<int>[] GetRows() {
 			int size = raw_info.Count;
-			IntegerVector[] list = new IntegerVector[size];
+			IList<int>[] list = new IList<int>[size];
 			for (int i = 0; i < size; ++i) {
 				list[i] = ((RawTableElement)raw_info[i]).row_set;
 			}
@@ -226,7 +227,7 @@ namespace Deveel.Data {
 
 				if (previous == null || previous.CompareTo(current) != 0) {
 					for (int i = 0; i < col_count; ++i) {
-						merge1[i].row_set.AddInt(current.row_vals[i]);
+						merge1[i].row_set.Add(current.row_vals[i]);
 					}
 					previous = current;
 				}
@@ -312,7 +313,7 @@ namespace Deveel.Data {
 
 				if (previous == null || previous.CompareTo(current) != 0) {
 					for (int i = 0; i < width; ++i) {
-						table_elements[i].row_set.AddInt(current.row_vals[i]);
+						table_elements[i].row_set.Add(current.row_vals[i]);
 					}
 					previous = current;
 				}
@@ -333,7 +334,7 @@ namespace Deveel.Data {
 	sealed class RawTableElement : IComparable {
 
 		internal IRootTable table;
-		internal IntegerVector row_set;
+		internal IList<int> row_set;
 
 		public int CompareTo(Object o) {
 			RawTableElement rte = (RawTableElement)o;

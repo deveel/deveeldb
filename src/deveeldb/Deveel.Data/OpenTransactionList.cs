@@ -14,8 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
-using System.Text;
+using System.Collections.Generic;
 
 using Deveel.Diagnostics;
 
@@ -37,11 +36,6 @@ namespace Deveel.Data {
 	/// </remarks>
 	sealed class OpenTransactionList {
 		/// <summary>
-		/// True to enable transaction tracking.
-		/// </summary>
-		private const bool TRACKING = false;
-
-		/// <summary>
 		/// The system that this transaction list is part of.
 		/// </summary>
 		private readonly TransactionSystem system;
@@ -49,32 +43,32 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of open transactions.
 		/// </summary>
-		private readonly ArrayList open_transactions;
+		private readonly List<Transaction> openTransactions;
 
 		/// <summary>
 		/// A list of <see cref="Exception"/> objects created when the transaction 
 		/// is added to the open transactions list.
 		/// </summary>
-		private readonly ArrayList open_transaction_stacks;
+		private readonly List<Exception> openTransactionStacks;
 
 		/// <summary>
 		/// The minimum commit id of the current list.
 		/// </summary>
-		private long minimum_commit_id;
+		private long minimumCommitId;
 
 		/// <summary>
 		/// The maximum commit id of the current list.
 		/// </summary>
-		private long maximum_commit_id;
+		private long maximumCommitId;
 
 		internal OpenTransactionList(TransactionSystem system) {
 			this.system = system;
-			open_transactions = new ArrayList();
-			if (TRACKING) {
-				open_transaction_stacks = new ArrayList();
-			}
-			minimum_commit_id = Int64.MaxValue;
-			maximum_commit_id = 0;
+			openTransactions = new List<Transaction>();
+#if DEBUG
+			openTransactionStacks = new List<Exception>();
+#endif
+			minimumCommitId = Int64.MaxValue;
+			maximumCommitId = 0;
 		}
 
 		/// <summary>
@@ -86,17 +80,16 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void AddTransaction(Transaction transaction) {
 			lock (this) {
-				long current_commit_id = transaction.CommitID;
-				if (current_commit_id >= maximum_commit_id) {
-					open_transactions.Add(transaction);
-					if (TRACKING) {
-						open_transaction_stacks.Add(new Exception());
-					}
+				long currentCommitId = transaction.CommitID;
+				if (currentCommitId >= maximumCommitId) {
+					openTransactions.Add(transaction);
+#if DEBUG
+					openTransactionStacks.Add(new Exception());
+#endif
 					system.Stats.Increment("OpenTransactionList.count");
-					maximum_commit_id = current_commit_id;
+					maximumCommitId = currentCommitId;
 				} else {
-					throw new ApplicationException(
-						"Added a transaction with a lower than maximum commit_id");
+					throw new ApplicationException("Added a transaction with a lower than maximum commit_id");
 				}
 			}
 		}
@@ -107,48 +100,46 @@ namespace Deveel.Data {
 		/// <param name="transaction"></param>
 		internal void RemoveTransaction(Transaction transaction) {
 			lock (this) {
-				int size = open_transactions.Count;
-				int i = open_transactions.IndexOf(transaction);
+				int size = openTransactions.Count;
+				int i = openTransactions.IndexOf(transaction);
 				if (i == 0) {
 					// First in list.
 					if (i == size - 1) {
 						// And last.
-						minimum_commit_id = Int32.MaxValue;
-						maximum_commit_id = 0;
+						minimumCommitId = Int32.MaxValue;
+						maximumCommitId = 0;
 					} else {
-						minimum_commit_id =
-							((Transaction)open_transactions[i + 1]).CommitID;
+						minimumCommitId = openTransactions[i + 1].CommitID;
 					}
-				} else if (i == open_transactions.Count - 1) {
+				} else if (i == openTransactions.Count - 1) {
 					// Last in list.
-					maximum_commit_id =
-						((Transaction)open_transactions[i - 1]).CommitID;
+					maximumCommitId = openTransactions[i - 1].CommitID;
 				} else if (i == -1) {
 					throw new ApplicationException("Unable to find transaction in the list.");
 				}
-				open_transactions.RemoveAt(i);
-				if (TRACKING) {
-					open_transaction_stacks.RemoveAt(i);
-				}
+
+				openTransactions.RemoveAt(i);
+#if DEBUG
+				openTransactionStacks.RemoveAt(i);
+#endif
 				system.Stats.Decrement("OpenTransactionList.count");
 
-				if (TRACKING) {
-					system.Debug.Write(DebugLevel.Message, this, "Stacks:");
-					for (int n = 0; n < open_transaction_stacks.Count; ++n) {
-						system.Debug.WriteException(DebugLevel.Message, (Exception)open_transaction_stacks[n]);
-					}
+#if DEBUG
+				system.Debug.Write(DebugLevel.Message, this, "Stacks:");
+				for (int n = 0; n < openTransactionStacks.Count; ++n) {
+					system.Debug.WriteException(DebugLevel.Message, openTransactionStacks[n]);
 				}
-
+#endif
 			}
 		}
 
 		/// <summary>
 		/// Returns the number of transactions that are open on the conglomerate.
 		/// </summary>
-		internal int Count {
+		public int Count {
 			get {
 				lock (this) {
-					return open_transactions.Count;
+					return openTransactions.Count;
 				}
 			}
 		}
@@ -162,40 +153,24 @@ namespace Deveel.Data {
 		/// Returns <see cref="Int64.MaxValue"/> if there are no open transactions 
 		/// in the list(not including the given transaction).
 		/// </returns>
-		internal long MinimumCommitID(Transaction transaction) {
+		public long MinimumCommitID(Transaction transaction) {
 			lock (this) {
 				long minimum_commit_id = Int64.MaxValue;
-				if (open_transactions.Count > 0) {
+				if (openTransactions.Count > 0) {
 					// If the bottom transaction is this transaction, then go to the
 					// next up from the bottom (we don't count this transaction as the
 					// minimum commit_id).
-					Transaction test_transaction = (Transaction)open_transactions[0];
-					if (test_transaction != transaction) {
-						minimum_commit_id = test_transaction.CommitID;
-					} else if (open_transactions.Count > 1) {
-						minimum_commit_id =
-							((Transaction)open_transactions[1]).CommitID;
+					Transaction testTransaction = openTransactions[0];
+					if (testTransaction != transaction) {
+						minimum_commit_id = testTransaction.CommitID;
+					} else if (openTransactions.Count > 1) {
+						minimum_commit_id = openTransactions[1].CommitID;
 					}
 				}
 
 				return minimum_commit_id;
 
 			}
-		}
-
-		public override String ToString() {
-			lock (this) {
-				StringBuilder buf = new StringBuilder();
-				buf.Append("[ OpenTransactionList: ");
-				for (int i = 0; i < open_transactions.Count; ++i) {
-					Transaction t = (Transaction)open_transactions[i];
-					buf.Append(t.CommitID);
-					buf.Append(", ");
-				}
-				buf.Append(" ]");
-				return buf.ToString();
-			}
-
 		}
 	}
 }

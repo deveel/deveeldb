@@ -15,8 +15,7 @@
 
 
 using System;
-
-using Deveel.Data.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -41,7 +40,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of indexes of rows to include in each table.
 		/// </summary>
-		private IntegerVector[] table_indexes;
+		private IList<int>[] table_indexes;
 
 		/// <summary>
 		/// The schemes to describe the entity relation in the given column.
@@ -101,7 +100,7 @@ namespace Deveel.Data {
 		/// <param name="all">If <b>true</b>, duplicated rows are removed.</param>
 		public void SetupIndexesForCompositeFunction(CompositeFunction function, bool all) {
 			int size = composite_tables.Length;
-			table_indexes = new IntegerVector[size];
+			table_indexes = new IList<int>[size];
 
 			if (function == CompositeFunction.Union) {
 				// Include all row sets in all tables
@@ -176,20 +175,18 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
-								 ITableDataSource ancestor) {
-			if (ancestor != this) {
+		internal override void SetToRowTableDomain(int column, IList<int> rowSet, ITableDataSource ancestor) {
+			if (ancestor != this)
 				throw new Exception("Method routed to incorrect table ancestor.");
-			}
 		}
 
 		/// <inheritdoc/>
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
 			Console.Error.WriteLine("Efficiency Warning in DataTable.ResolveToRawTable.");
-			IntegerVector row_set = new IntegerVector();
+			List<int> row_set = new List<int>();
 			IRowEnumerator e = GetRowEnumerator();
 			while (e.MoveNext()) {
-				row_set.AddInt(e.RowIndex);
+				row_set.Add(e.RowIndex);
 			}
 			info.Add(this, row_set);
 			return info;
@@ -198,13 +195,11 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public override TObject GetCellContents(int column, int row) {
 			for (int i = 0; i < table_indexes.Length; ++i) {
-				IntegerVector ivec = table_indexes[i];
+				IList<int> ivec = table_indexes[i];
 				int sz = ivec.Count;
-				if (row < sz) {
+				if (row < sz)
 					return composite_tables[i].GetCellContents(column, ivec[row]);
-				} else {
-					row -= sz;
-				}
+				row -= sz;
 			}
 			throw new ApplicationException("Row '" + row + "' out of bounds.");
 		}

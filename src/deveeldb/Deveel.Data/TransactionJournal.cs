@@ -56,7 +56,7 @@ namespace Deveel.Data {
 		/// This object records the 'table_id' of the touched tables in a sorted list.
 		/// </para>
 		/// </remarks>
-		private readonly IntegerVector touchedTables;
+		private readonly List<int> touchedTables;
 
 		/// <summary>
 		/// A byte[] array that represents the set of commands a transaction
@@ -86,7 +86,7 @@ namespace Deveel.Data {
 			journalEntries = 0;
 			commandJournal = new byte[16];
 			commandParameters = new List<int>(32);
-			touchedTables = new IntegerVector(8);
+			touchedTables = new List<int>(8);
 
 			hasAddedTableRows = false;
 			hasRemovedTableRows = false;
@@ -127,19 +127,17 @@ namespace Deveel.Data {
 		/// <param name="table_id"></param>
 		internal void EntryAddTouchedTable(int table_id) {
 			lock (this) {
-				int pos = touchedTables.SortedIndexOf(table_id);
+				int pos = touchedTables.BinarySearch(table_id);
 				// If table_id already in the touched table list.
-				if (pos < touchedTables.Count &&
-				    touchedTables[pos] == table_id) {
+				if (pos > 0 && touchedTables[pos] == table_id) {
 					return;
 				}
-				// If position to insert >= size of the touched tables set then add to
-				// the end of the set.
-				if (pos >= touchedTables.Count) {
-					touchedTables.AddInt(table_id);
+				// If position to insert < 0 set then add to the end of the set.
+				if (pos < 0) {
+					touchedTables.Add(table_id);
 				} else {
 					// Otherwise, insert into sorted order.
-					touchedTables.InsertIntAt(table_id, pos);
+					touchedTables.Insert(pos, table_id);
 				}
 			}
 		}

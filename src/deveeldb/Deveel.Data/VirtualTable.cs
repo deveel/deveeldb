@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
 
@@ -41,7 +42,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Array of IntegerVectors that represent the rows taken from the given parents.
 		/// </summary>
-		protected IntegerVector[] row_list;
+		protected IList<int>[] row_list;
 
 		/// <summary>
 		/// The number of rows in the table.
@@ -53,9 +54,9 @@ namespace Deveel.Data {
 			base.Init(tables);
 
 			int table_count = tables.Length;
-			row_list = new IntegerVector[table_count];
+			row_list = new IList<int>[table_count];
 			for (int i = 0; i < table_count; ++i) {
-				row_list[i] = new IntegerVector();
+				row_list[i] = new List<int>();
 			}
 		}
 
@@ -80,7 +81,7 @@ namespace Deveel.Data {
 		/// Returns the list of <see cref="IntegerVector"/> that represents the rows 
 		/// that this <see cref="VirtualTable"/> references.
 		/// </summary>
-		protected IntegerVector[] ReferenceRows {
+		protected IList<int>[] ReferenceRows {
 			get { return row_list; }
 		}
 
@@ -99,8 +100,8 @@ namespace Deveel.Data {
 		/// We should search for the <paramref name="table"/> in the 
 		/// reference_list however we don't for efficiency.
 		/// </remarks>
-		internal void Set(Table table, IntegerVector rows) {
-			row_list[0] = new IntegerVector(rows);
+		internal void Set(Table table, IList<int> rows) {
+			row_list[0] = new List<int>(rows);
 			row_count = rows.Count;
 		}
 
@@ -115,40 +116,40 @@ namespace Deveel.Data {
 		/// rows to add for each respective table. The given <see cref="IntegerVector"/> 
 		/// objects should have identical lengths.
 		/// </remarks>
-		internal void Set(Table[] tables, IntegerVector[] rows) {
+		internal void Set(Table[] tables, IList<int>[] rows) {
 			for (int i = 0; i < tables.Length; ++i) {
-				row_list[i] = new IntegerVector(rows[i]);
+				row_list[i] = new List<int>(rows[i]);
 			}
 			if (rows.Length > 0) {
 				row_count = rows[0].Count;
 			}
 		}
 
-		/// <summary>
-		/// Sets the rows in this table as above, but uses a <see cref="BlockIntegerList"/> 
-		/// as an argument instead.
-		/// </summary>
-		/// <param name="table"></param>
-		/// <param name="rows"></param>
-		internal void Set(Table table, BlockIntegerList rows) {
-			row_list[0] = new IntegerVector(rows);
-			row_count = rows.Count;
-		}
+		///// <summary>
+		///// Sets the rows in this table as above, but uses a <see cref="BlockIntegerList"/> 
+		///// as an argument instead.
+		///// </summary>
+		///// <param name="table"></param>
+		///// <param name="rows"></param>
+		//internal void Set(Table table, BlockIntegerList rows) {
+		//    row_list[0] = new List<int>(rows);
+		//    row_count = rows.Count;
+		//}
 
-		/// <summary>
-		/// Sets the rows in this table as above, but uses a <see cref="BlockIntegerList"/> 
-		/// array as an argument instead.
-		/// </summary>
-		/// <param name="tables"></param>
-		/// <param name="rows"></param>
-		internal void Set(Table[] tables, BlockIntegerList[] rows) {
-			for (int i = 0; i < tables.Length; ++i) {
-				row_list[i] = new IntegerVector(rows[i]);
-			}
-			if (rows.Length > 0) {
-				row_count = rows[0].Count;
-			}
-		}
+		///// <summary>
+		///// Sets the rows in this table as above, but uses a <see cref="BlockIntegerList"/> 
+		///// array as an argument instead.
+		///// </summary>
+		///// <param name="tables"></param>
+		///// <param name="rows"></param>
+		//internal void Set(Table[] tables, BlockIntegerList[] rows) {
+		//    for (int i = 0; i < tables.Length; ++i) {
+		//        row_list[i] = new IntegerVector(rows[i]);
+		//    }
+		//    if (rows.Length > 0) {
+		//        row_count = rows[0].Count;
+		//    }
+		//}
 
 		// ---------- Implemented from JoinedTable ----------
 
@@ -156,12 +157,12 @@ namespace Deveel.Data {
 			return row_list[table_num][row_number];
 		}
 
-		protected override void ResolveAllRowsForTableAt(IntegerVector row_set, int table_num) {
-			IntegerVector cur_row_list = row_list[table_num];
+		protected override void ResolveAllRowsForTableAt(IList<int> row_set, int table_num) {
+			IList<int> cur_row_list = row_list[table_num];
 			for (int n = row_set.Count - 1; n >= 0; --n) {
 				int aa = row_set[n];
 				int bb = cur_row_list[aa];
-				row_set.SetIntAt(bb, n);
+				row_set[n] = bb;
 			}
 		}
 	}

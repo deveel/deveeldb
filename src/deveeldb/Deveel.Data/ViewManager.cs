@@ -15,9 +15,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
-using Deveel.Data.Client;
-using Deveel.Data.Collections;
 using Deveel.Data.QueryPlanning;
 
 namespace Deveel.Data {
@@ -72,7 +71,7 @@ namespace Deveel.Data {
 
 			private readonly ViewManager manager;
 
-			protected override void PurgeCache(IntegerVector addedRows, IntegerVector removedRows) {
+			protected override void PurgeCache(IList<int> addedRows, IList<int> removedRows) {
 				// If there were changed then invalidate the cache
 				if (manager.view_table_changed) {
 					manager.InvalidateViewCache();

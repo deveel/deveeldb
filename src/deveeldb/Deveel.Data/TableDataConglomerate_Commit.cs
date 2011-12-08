@@ -537,9 +537,9 @@ namespace Deveel.Data {
 							// For each change to each table,
 							foreach (MasterTableJournal changeJournal in changedTables) {
 								// The table the changes were made to.
-								int table_id = changeJournal.TableId;
+								int tableId = changeJournal.TableId;
 								// Get the master table with this table id.
-								MasterTableDataSource master = GetMasterTable(table_id);
+								MasterTableDataSource master = GetMasterTable(tableId);
 								// Commit the rollback on the table.
 								master.RollbackTransactionChange(changeJournal);
 							}

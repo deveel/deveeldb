@@ -16,10 +16,10 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-using Deveel.Data.Collections;
 using Deveel.Data.Procedures;
 
 namespace Deveel.Data {
@@ -177,21 +177,20 @@ namespace Deveel.Data {
 			// Find the trigger
 			Table t = FindTrigger(context, table, schema, name);
 
-			if (t.RowCount == 0) {
+			if (t.RowCount == 0)
 				throw new StatementException("Trigger '" + schema + "." + name +
-											 "' not found.");
-			} else if (t.RowCount > 1) {
+				                             "' not found.");
+			if (t.RowCount > 1)
 				throw new Exception("Assertion failed: multiple entries for the same trigger name.");
-			} else {
-				// Drop this trigger,
-				table.Delete(t);
 
-				// Notify that this database object has been successfully dropped.
-				connection.DatabaseObjectDropped(new TableName(schema, name));
+			// Drop this trigger,
+			table.Delete(t);
 
-				// Flag that this transaction modified the trigger table.
-				trigger_modified = true;
-			}
+			// Notify that this database object has been successfully dropped.
+			connection.DatabaseObjectDropped(new TableName(schema, name));
+
+			// Flag that this transaction modified the trigger table.
+			trigger_modified = true;
 		}
 
 		/// <summary>
@@ -213,15 +212,15 @@ namespace Deveel.Data {
 			// Find the trigger
 			Table t = FindTrigger(context, table, schema, name);
 
-			if (t.RowCount == 0) {
+			if (t.RowCount == 0)
 				// Trigger wasn't found
 				return false;
-			} else if (t.RowCount > 1) {
+
+			if (t.RowCount > 1)
 				throw new Exception("Assertion failed: multiple entries for the same trigger name.");
-			} else {
-				// Trigger found
-				return true;
-			}
+
+			// Trigger found
+			return true;
 		}
 
 		/// <summary>
@@ -292,7 +291,7 @@ namespace Deveel.Data {
 
 				// On object value to test for,
 				TableName table_name = evt.TableName;
-				String on_ob_test = "T:" + table_name.ToString();
+				String on_ob_test = "T:" + table_name;
 
 				// Search the triggers list for an event that matches this event
 				int sz = triggers_active.Count;
@@ -373,7 +372,7 @@ namespace Deveel.Data {
 				this.ctm = ctm;
 			}
 
-			protected override void PurgeCache(IntegerVector addedRows, IntegerVector removedRows) {
+			protected override void PurgeCache(IList<int> addedRows, IList<int> removedRows) {
 				// Note that this is called when a transaction is started or stopped.
 
 				// If the trigger table was modified, we need to invalidate the trigger

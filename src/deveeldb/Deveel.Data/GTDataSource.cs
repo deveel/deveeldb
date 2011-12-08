@@ -42,9 +42,12 @@ namespace Deveel.Data {
 
 		#region IMutableTableDataSource Members
 
-		void IDisposable.Dispose() {
-			GC.SuppressFinalize(this);
-			Dispose(true);
+		public void Dispose() {
+			if (!disposed) {
+				Dispose(true);
+				GC.SuppressFinalize(this);
+				disposed = true;
+			}
 		}
 
 		// ---------- Implemented from ITableDataSource ----------
@@ -86,7 +89,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public virtual int UpdateRow(int row_index, DataRow dataRow) {
+		public virtual int UpdateRow(int rowIndex, DataRow dataRow) {
 			throw new Exception("Functionality not available.");
 		}
 
@@ -122,14 +125,6 @@ namespace Deveel.Data {
 		}
 
 		protected virtual void Dispose(bool disposing) {
-			if (disposed)
-				return;
-
-			if (disposing) {
-				Dispose();
-			}
-
-			disposed = true;
 		}
 
 		/// <summary>
@@ -150,10 +145,6 @@ namespace Deveel.Data {
 		protected TObject GetColumnValue(int column, Object ob) {
 			TType type = TableInfo[column].TType;
 			return new TObject(type, ob);
-		}
-
-		/// <inheritdoc/>
-		protected virtual void Dispose() {
 		}
 
 		// Convenience methods for constructing a DataTableDef for the dynamically

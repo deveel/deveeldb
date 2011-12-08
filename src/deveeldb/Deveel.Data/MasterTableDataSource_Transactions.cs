@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.Collections;
@@ -362,8 +363,7 @@ namespace Deveel.Data {
 				DataTableDef table_def = key_table.TableInfo;
 				int[] key_cols = TableDataConglomerate.FindColumnIndices(
 													  table_def, constraint.key_columns);
-				IntegerVector key_entries =
-					   TableDataConglomerate.FindKeys(key_table, key_cols, original_key);
+				IList<int> key_entries = TableDataConglomerate.FindKeys(key_table, key_cols, original_key);
 
 				// Are there keys effected?
 				if (key_entries.Count > 0) {
@@ -441,8 +441,7 @@ namespace Deveel.Data {
 				DataTableDef table_def = key_table.TableInfo;
 				int[] key_cols = TableDataConglomerate.FindColumnIndices(
 													  table_def, constraint.key_columns);
-				IntegerVector key_entries =
-					   TableDataConglomerate.FindKeys(key_table, key_cols, original_key);
+				IList<int> key_entries = TableDataConglomerate.FindKeys(key_table, key_cols, original_key);
 
 				// Are there keys effected?
 				if (key_entries.Count > 0) {
@@ -685,7 +684,7 @@ namespace Deveel.Data {
 
 			}
 
-			public int UpdateRow(int row_index, DataRow dataRow) {
+			public int UpdateRow(int rowIndex, DataRow dataRow) {
 
 				// Check the transaction isn't Read only.
 				if (tran_read_only) {
@@ -700,7 +699,7 @@ namespace Deveel.Data {
 				// Note this doesn't need to be synchronized because we are exclusive on
 				// this table.
 				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommandType.UpdateRemoveRow, row_index);
+				table_journal.AddEntry(JournalCommandType.UpdateRemoveRow, rowIndex);
 
 				// Add to the master.
 				int new_row_index;
@@ -741,9 +740,9 @@ namespace Deveel.Data {
 
 					// Are there any added, deleted or updated entries in the journal since
 					// we last checked?
-					IntegerVector rowsUpdated = new IntegerVector();
-					IntegerVector rowsDeleted = new IntegerVector();
-					IntegerVector rowsAdded = new IntegerVector();
+					List<int> rowsUpdated = new List<int>();
+					List<int> rowsDeleted = new List<int>();
+					List<int> rowsAdded = new List<int>();
 
 					int size = table_journal.EntriesCount;
 					for (int i = last_entry_ri_check; i < size; ++i) {
@@ -751,21 +750,21 @@ namespace Deveel.Data {
 						int row_index = table_journal.GetRowIndex(i);
 						if (tc == JournalCommandType.RemoveRow ||
 							tc == JournalCommandType.UpdateRemoveRow) {
-							rowsDeleted.AddInt(row_index);
+							rowsDeleted.Add(row_index);
 							// If this is in the rows_added list, remove it from rows_added
 							int ra_i = rowsAdded.IndexOf(row_index);
 							if (ra_i != -1) {
-								rowsAdded.RemoveIntAt(ra_i);
+								rowsAdded.RemoveAt(ra_i);
 							}
 						} else if (tc == JournalCommandType.AddRow ||
 								   tc == JournalCommandType.UpdateAddRow) {
-							rowsAdded.AddInt(row_index);
+							rowsAdded.Add(row_index);
 						}
 
 						if (tc == JournalCommandType.UpdateRemoveRow) {
-							rowsUpdated.AddInt(row_index);
+							rowsUpdated.Add(row_index);
 						} else if (tc == JournalCommandType.UpdateAddRow) {
-							rowsUpdated.AddInt(row_index);
+							rowsUpdated.Add(row_index);
 						}
 					}
 
@@ -833,7 +832,7 @@ namespace Deveel.Data {
 
 					// Were there any rows added (that weren't deleted)?
 					if (rowsAdded.Count > 0) {
-						int[] rowIndices = rowsAdded.ToIntArray();
+						int[] rowIndices = rowsAdded.ToArray();
 
 						// Check for any field constraint violations in the added rows
 						TableDataConglomerate.CheckFieldConstraintViolations(transaction, this, rowIndices);

@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.Collections;
@@ -150,13 +151,13 @@ namespace Deveel.Data {
 		/// Returns an <see cref="IntegerVector"/> that represents a <i>reference</i> 
 		/// to the rows in our virtual table.
 		/// </returns>
-		private IntegerVector CalculateRowReferenceList() {
+		private IList<int> CalculateRowReferenceList() {
 			int size = RowCount;
-			IntegerVector all_list = new IntegerVector(size);
+			List<int> allList = new List<int>(size);
 			for (int i = 0; i < size; ++i) {
-				all_list.AddInt(i);
+				allList.Add(i);
 			}
-			return all_list;
+			return allList;
 		}
 
 		/// <inheritdoc/>
@@ -260,8 +261,7 @@ namespace Deveel.Data {
 			// is we don't try to generate an ordered set.
 			if (sorted_against_column != -1 &&
 				sorted_against_column == column) {
-				InsertSearch isop =
-							new InsertSearch(this, column, CalculateRowReferenceList());
+				InsertSearch isop = new InsertSearch(this, column, CalculateRowReferenceList());
 				isop.RECORD_UID = false;
 				ss = isop;
 				column_scheme[column] = ss;
@@ -284,7 +284,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set, ITableDataSource ancestor) {
+		internal override void SetToRowTableDomain(int column, IList<int> rowSet, ITableDataSource ancestor) {
 			if (ancestor == this)
 				return;
 
@@ -292,9 +292,9 @@ namespace Deveel.Data {
 			Table parent_table = reference_list[table_num];
 
 			// Resolve the rows into the parents indices.  (MANGLES row_set)
-			ResolveAllRowsForTableAt(row_set, table_num);
+			ResolveAllRowsForTableAt(rowSet, table_num);
 
-			parent_table.SetToRowTableDomain(column_filter[column], row_set, ancestor);
+			parent_table.SetToRowTableDomain(column_filter[column], rowSet, ancestor);
 		}
 
 		/// <summary>
@@ -308,22 +308,22 @@ namespace Deveel.Data {
 		/// need to supply an empty <see cref="RawTableInformation"/> object.
 		/// </remarks>
 		/// <returns></returns>
-		private RawTableInformation ResolveToRawTable(RawTableInformation info, IntegerVector row_set) {
+		private RawTableInformation ResolveToRawTable(RawTableInformation info, IList<int> row_set) {
 			if (this is IRootTable) {
 				info.Add((IRootTable)this, CalculateRowReferenceList());
 			} else {
 				for (int i = 0; i < reference_list.Length; ++i) {
 
-					IntegerVector new_row_set = new IntegerVector(row_set);
+					List<int> newRowSet = new List<int>(row_set);
 
 					// Resolve the rows into the parents indices.
-					ResolveAllRowsForTableAt(new_row_set, i);
+					ResolveAllRowsForTableAt(newRowSet, i);
 
 					Table table = reference_list[i];
 					if (table is IRootTable) {
-						info.Add((IRootTable)table, new_row_set);
+						info.Add((IRootTable)table, newRowSet);
 					} else {
-						((JoinedTable)table).ResolveToRawTable(info, new_row_set);
+						((JoinedTable)table).ResolveToRawTable(info, newRowSet);
 					}
 				}
 			}
@@ -333,10 +333,10 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
-			IntegerVector all_list = new IntegerVector();
+			List<int> all_list = new List<int>();
 			int size = RowCount;
 			for (int i = 0; i < size; ++i) {
-				all_list.AddInt(i);
+				all_list.Add(i);
 			}
 			return ResolveToRawTable(info, all_list);
 		}
@@ -443,6 +443,6 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This method changes the <paramref name="row_set"/> <see cref="IntegerVector"/> object.
 		/// </remarks>
-		protected abstract void ResolveAllRowsForTableAt(IntegerVector row_set, int table_num);
+		protected abstract void ResolveAllRowsForTableAt(IList<int> row_set, int table_num);
 	}
 }

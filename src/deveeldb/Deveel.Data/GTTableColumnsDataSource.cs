@@ -120,8 +120,7 @@ namespace Deveel.Data {
 
 		// ---------- Overwritten ----------
 
-		protected override void Dispose() {
-			base.Dispose();
+		protected override void Dispose(bool disposing) {
 			visible_tables = null;
 			transaction = null;
 		}

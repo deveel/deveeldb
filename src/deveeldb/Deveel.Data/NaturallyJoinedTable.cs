@@ -14,8 +14,7 @@
 //    limitations under the License.
 
 using System;
-
-using Deveel.Data.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -31,7 +30,7 @@ namespace Deveel.Data {
 
 		// The lookup row set for the left and right tables.  Basically, these point
 		// to each row in either the left or right tables.
-		private readonly IntegerVector left_set, right_set;
+		private readonly IList<int> left_set, right_set;
 		private readonly bool left_is_simple_enum, right_is_simple_enum;
 
 		///<summary>
@@ -71,12 +70,12 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="t"></param>
 		/// <returns></returns>
-		private static IntegerVector CreateLookupRowList(ITableDataSource t) {
-			IntegerVector ivec = new IntegerVector();
+		private static IList<int> CreateLookupRowList(ITableDataSource t) {
+			List<int> ivec = new List<int>();
 			IRowEnumerator en = t.GetRowEnumerator();
 			while (en.MoveNext()) {
 				int row_index = en.RowIndex;
-				ivec.AddInt(row_index);
+				ivec.Add(row_index);
 			}
 			return ivec;
 		}
@@ -126,7 +125,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		protected override void ResolveAllRowsForTableAt(IntegerVector row_set, int table_num) {
+		protected override void ResolveAllRowsForTableAt(IList<int> row_set, int table_num) {
 			bool pick_right_table = (table_num == 1);
 			for (int n = row_set.Count - 1; n >= 0; --n) {
 				int aa = row_set[n];
@@ -137,7 +136,7 @@ namespace Deveel.Data {
 				} else {
 					parent_row = GetLeftRowIndex(aa / right_row_count);
 				}
-				row_set.SetIntAt(parent_row, n);
+				row_set[n] = parent_row;
 			}
 		}
 	}

@@ -14,9 +14,9 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
-using Deveel.Data.Collections;
 using Deveel.Data.Store;
 using Deveel.Data.Util;
 
@@ -40,7 +40,7 @@ namespace Deveel.Data {
 
 			// Find the maximum 'id' value.
 			SelectableScheme scheme = table.GetColumnScheme(colIndex);
-			IntegerVector ivec = scheme.SelectLast();
+			IList<int> ivec = scheme.SelectLast();
 			if (ivec.Count > 0) {
 				TObject value = table.GetCellContents(colIndex, ivec[0]);
 				BigNumber bNum = value.ToBigNumber();

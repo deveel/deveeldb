@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
 using Deveel.Diagnostics;
@@ -88,7 +89,7 @@ namespace Deveel.Data {
 
 					StringObject schema_val = StringObject.FromString(name.Schema);
 					StringObject name_val = StringObject.FromString(name.Name);
-					IntegerVector ivec = query.SelectEqual(2, name_val, 1, schema_val);
+					IList<int> ivec = query.SelectEqual(2, name_val, 1, schema_val);
 
 					if (ivec.Count == 0) {
 						throw new StatementException("Sequence generator '" + name +
@@ -183,7 +184,7 @@ namespace Deveel.Data {
 												  TableDataConglomerate.SysSequence);
 				// Find the row with the id for this generator.
 				SimpleTableQuery query = new SimpleTableQuery(seq);
-				IntegerVector ivec = query.SelectEqual(0, (BigNumber)generator.id);
+				IList<int> ivec = query.SelectEqual(0, (BigNumber)generator.id);
 				// Checks
 				if (ivec.Count == 0) {
 					throw new StatementException("Sequence '" + generator.name + "' not found.");
@@ -297,7 +298,7 @@ namespace Deveel.Data {
 						transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
 
 			SimpleTableQuery query = new SimpleTableQuery(seqi);
-			IntegerVector ivec =
+			IList<int> ivec =
 				query.SelectEqual(2, TObject.CreateString(table_name.Name),
 										 1, TObject.CreateString(table_name.Schema));
 
@@ -307,7 +308,7 @@ namespace Deveel.Data {
 				TObject sid = seqi.GetCellContents(0, row_i);
 
 				SimpleTableQuery query2 = new SimpleTableQuery(seq);
-				IntegerVector ivec2 = query2.SelectEqual(0, sid);
+				IList<int> ivec2 = query2.SelectEqual(0, sid);
 				for (int n = 0; n < ivec2.Count; ++n) {
 					// Remove entry from the sequence table.
 					seq.RemoveRow(ivec2[n]);
@@ -340,8 +341,7 @@ namespace Deveel.Data {
 
 			// All rows in 'sequence_info' that match this table name.
 			SimpleTableQuery query = new SimpleTableQuery(seqi);
-			IntegerVector ivec =
-				query.SelectEqual(2, TObject.CreateString(table_name.Name),
+			IList<int> ivec = query.SelectEqual(2, TObject.CreateString(table_name.Name),
 										 1, TObject.CreateString(table_name.Schema));
 
 			query.Dispose();
@@ -383,7 +383,7 @@ namespace Deveel.Data {
 
 			// All rows in 'sequence_info' that match this table name.
 			using (SimpleTableQuery query = new SimpleTableQuery(seqi)) {
-				IntegerVector ivec =
+				IList<int> ivec =
 					query.SelectEqual(2, TObject.CreateString(table_name.Name),
 					                  1, TObject.CreateString(table_name.Schema));
 
@@ -803,7 +803,7 @@ namespace Deveel.Data {
 					IMutableTableDataSource seq_table =
 								  transaction.GetTable(TableDataConglomerate.SysSequence);
 					SelectableScheme scheme = seq_table.GetColumnScheme(0);
-					IntegerVector ivec = scheme.SelectEqual(seq_id);
+					IList<int> ivec = scheme.SelectEqual(seq_id);
 					if (ivec.Count > 0) {
 						int seq_row_i = ivec[0];
 

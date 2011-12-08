@@ -15,8 +15,7 @@
 
 using System;
 using System.Collections;
-
-using Deveel.Data.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -110,8 +109,8 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Add the from table direct source for this table
-			ITableQueryDef table_query_def = Connection.GetTableQueryDef(tname, null);
-			AddTable(new FromTableDirectSource(Connection.IsInCaseInsensitiveMode, table_query_def, "INSERT_TABLE", tname, tname));
+			ITableQueryInfo tableQueryInfo = Connection.GetTableQueryDef(tname, null);
+			AddTable(new FromTableDirectSource(Connection.IsInCaseInsensitiveMode, tableQueryInfo, "INSERT_TABLE", tname, tname));
 
 			// Get the table we are inserting to
 			insert_table = Connection.GetTable(tname);
@@ -247,10 +246,10 @@ namespace Deveel.Data.Sql {
 
 				// Copy row list into an intermediate IntegerVector list.
 				// (A IRowEnumerator for a table being modified is undefined).
-				IntegerVector row_list = new IntegerVector();
+				IList<int> row_list = new List<int>();
 				IRowEnumerator en = result.GetRowEnumerator();
 				while (en.MoveNext())
-					row_list.AddInt(en.RowIndex);
+					row_list.Add(en.RowIndex);
 
 				// For each row of the select table.
 				int sz = row_list.Count;
