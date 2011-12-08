@@ -15,8 +15,7 @@
 
 
 using System;
-
-using Deveel.Data.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -181,20 +180,20 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
-								 ITableDataSource ancestor) {
-			if (ancestor != this) {
+		internal override void SetToRowTableDomain(int column, IList<int> rowSet, ITableDataSource ancestor) {
+			if (ancestor != this)
 				throw new Exception("Method routed to incorrect table ancestor.");
-			}
 		}
 
 		/// <inheritdoc/>
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
+#if DEBUG
 			Console.Error.WriteLine("Efficiency Warning in DataTable.ResolveToRawTable.");
-			IntegerVector row_set = new IntegerVector();
+#endif
+			List<int> row_set = new List<int>();
 			IRowEnumerator e = GetRowEnumerator();
 			while (e.MoveNext()) {
-				row_set.AddInt(e.RowIndex);
+				row_set.Add(e.RowIndex);
 			}
 			info.Add(this, row_set);
 			return info;

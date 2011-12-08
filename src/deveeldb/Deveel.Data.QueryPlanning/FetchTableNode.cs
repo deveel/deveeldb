@@ -62,7 +62,7 @@ namespace Deveel.Data.QueryPlanning {
 		}
 
 		/// <inheritdoc/>
-		public virtual Object Clone() {
+		public virtual object Clone() {
 			return MemberwiseClone();
 		}
 

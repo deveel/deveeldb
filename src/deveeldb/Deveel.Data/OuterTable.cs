@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
 
@@ -30,7 +31,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The merged rows.
 		/// </summary>
-		public IntegerVector[] outer_rows;
+		public IList<int>[] outer_rows;
 
 		/// <summary>
 		/// The row count of the outer rows.
@@ -40,12 +41,11 @@ namespace Deveel.Data {
 		public OuterTable(Table input_table)
 			: base() {
 
-			RawTableInformation base_table =
-							  input_table.ResolveToRawTable(new RawTableInformation());
+			RawTableInformation base_table = input_table.ResolveToRawTable(new RawTableInformation());
 			Table[] tables = base_table.GetTables();
-			IntegerVector[] rows = base_table.GetRows();
+			IList<int>[] rows = base_table.GetRows();
 
-			outer_rows = new IntegerVector[rows.Length];
+			outer_rows = new IList<int>[rows.Length];
 
 			// Set up the VirtualTable with this base table information,
 			Init(tables);
@@ -63,11 +63,11 @@ namespace Deveel.Data {
 
 			// Get the base information,
 			Table[] base_tables = ReferenceTables;
-			IntegerVector[] base_rows = ReferenceRows;
+			IList<int>[] base_rows = ReferenceRows;
 
 			// The tables and rows being merged in.
 			Table[] tables = raw_table_info.GetTables();
-			IntegerVector[] rows = raw_table_info.GetRows();
+			IList<int>[] rows = raw_table_info.GetRows();
 			// The number of rows being merged in.
 			outer_row_count = rows[0].Count;
 
@@ -84,14 +84,14 @@ namespace Deveel.Data {
 				if (index == -1) {
 					outer_rows[i] = null;
 				} else {
-					IntegerVector list = new IntegerVector(outer_row_count);
+					List<int> list = new List<int>(outer_row_count);
 					outer_rows[i] = list;
 					// Merge in the rows from the input table,
-					IntegerVector to_merge = rows[index];
+					IList<int> to_merge = rows[index];
 					if (to_merge.Count != outer_row_count) {
 						throw new ApplicationException("Wrong size for rows being merged in.");
 					}
-					list.Append(to_merge);
+					list.AddRange(to_merge);
 				}
 
 			}

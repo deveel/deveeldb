@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.Collections;
@@ -119,13 +120,11 @@ namespace Deveel.Data {
 			return scheme;
 		}
 
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set,
-		                                           ITableDataSource ancestor) {
-			if (ancestor == this || ancestor == parent) {
+		internal override void SetToRowTableDomain(int column, IList<int> rowSet, ITableDataSource ancestor) {
+			if (ancestor == this || ancestor == parent)
 				return;
-			} else {
-				parent.SetToRowTableDomain(column, row_set, ancestor);
-			}
+
+			parent.SetToRowTableDomain(column, rowSet, ancestor);
 		}
 
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {

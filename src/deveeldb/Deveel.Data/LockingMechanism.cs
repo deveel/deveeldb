@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 
 using Deveel.Diagnostics;
@@ -47,6 +48,7 @@ namespace Deveel.Data {
 	/// <item>A Write request can go ahead if the Write request is at the front of
 	/// the access queue.</item>
 	/// </list>
+	/// </para>
 	/// <para>
 	/// This class requires some for-sight to which tables will be read/written
 	/// to.  We must pass all tables being read/written in a single stage.  This
@@ -77,28 +79,28 @@ namespace Deveel.Data {
 		/// <see cref="DataTable"/> to the <see cref="LockingQueue"/> 
 		/// object that is available for it.
 		/// </summary>
-		private readonly Hashtable queues_map = new Hashtable();
+		private readonly Dictionary<DataTable, LockingQueue> queuesMap = new Dictionary<DataTable, LockingQueue>();
 
 		/// <summary>
 		/// This boolean is set as soon as a <see cref="Thread"/> requests 
 		/// to go into 'exclusive mode'.
 		/// </summary>
-		private bool in_exclusive_mode = false;
+		private bool inExclusiveMode;
 
 		/// <summary>
 		/// This contains the number of threads that have requested to go into
 		/// 'shared mode'. It is incremented each time <see cref="SetMode">SetMode(Shared)</see> 
 		/// is called.
 		/// </summary>
-		private int shared_mode = 0;
+		private int sharedMode;
 
-		private readonly IDebugLogger debug;
+		private readonly IDebugLogger logger;
 
 		/// <summary>
 		/// 
 		/// </summary>
 		internal LockingMechanism(IDebugLogger logger) {
-			debug = logger;
+			this.logger = logger;
 		}
 
 		/// <summary>
@@ -116,12 +118,12 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		private LockingQueue GetQueueFor(DataTable table) {
-			LockingQueue queue = (LockingQueue)queues_map[table];
+			LockingQueue queue;
 
-			// If queue not in hashtable then create a new one and WriteByte it into mapping
-			if (queue == null) {
+			// If queue not in hashtable then create a new one and write it into mapping
+			if (!queuesMap.TryGetValue(table, out queue)) {
 				queue = new LockingQueue(table);
-				queues_map[table] = queue;
+				queuesMap[table] = queue;
 			}
 
 			return queue;
@@ -140,19 +142,19 @@ namespace Deveel.Data {
 				if (!IsInExclusiveMode) {
 					// This is currently just a warning but should be upgraded to a
 					// full error.
-					debug.WriteException(new Exception("Should not clear a " +
+					logger.WriteException(new Exception("Should not clear a " +
 									"LockingMechanism that's not in exclusive mode."));
 				}
-				queues_map.Clear();
-			}
 
+				queuesMap.Clear();
+			}
 		}
 
 		/// <summary>
 		/// This method locks the given tables for either reading or writing.
 		/// </summary>
-		/// <param name="t_write"></param>
-		/// <param name="t_read"></param>
+		/// <param name="tablesWrite"></param>
+		/// <param name="tablesRead"></param>
 		/// <remarks>
 		/// It puts the access locks in a queue for the given tables.  This <i>reserves</i>
 		/// the rights for this thread to access the table in that way.  This
@@ -176,44 +178,43 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public LockHandle LockTables(DataTable[] t_write, DataTable[] t_read) {
-
+		public LockHandle LockTables(DataTable[] tablesWrite, DataTable[] tablesRead) {
 			// Set up the local constants.
 
-			int lock_count = t_read.Length + t_write.Length;
-			LockHandle handle = new LockHandle(lock_count, debug);
+			int lockCount = tablesRead.Length + tablesWrite.Length;
+			LockHandle handle = new LockHandle(lockCount, logger);
 
 			lock (this) {
 
 				Lock l;
 				LockingQueue queue;
-				int queue_index;
 
 				// Add Read and Write locks to cache and to the handle.
+				for (int i = tablesWrite.Length - 1; i >= 0; --i) {
+					DataTable toWriteLock = tablesWrite[i];
+					queue = GetQueueFor(toWriteLock);
 
-				for (int i = t_write.Length - 1; i >= 0; --i) {
-					DataTable to_write_lock = t_write[i];
-					queue = GetQueueFor(to_write_lock);
 					// slightly confusing: this will add Lock to given table queue
-					l = new Lock(AccessType.Write, queue, debug);
+					l = new Lock(AccessType.Write, queue, logger);
 					handle.AddLock(l);
 
-					debug.Write(DebugLevel.Information, this, "[LockingMechanism] Locking for Write: " + to_write_lock.TableName);
+					logger.Write(DebugLevel.Information, this, "[LockingMechanism] Locking for Write: " + toWriteLock.TableName);
 				}
 
-				for (int i = t_read.Length - 1; i >= 0; --i) {
-					DataTable to_read_lock = t_read[i];
-					queue = GetQueueFor(to_read_lock);
+				for (int i = tablesRead.Length - 1; i >= 0; --i) {
+					DataTable toReadLock = tablesRead[i];
+					queue = GetQueueFor(toReadLock);
+
 					// slightly confusing: this will add Lock to given table queue
-					l = new Lock(AccessType.Read, queue, debug);
+					l = new Lock(AccessType.Read, queue, logger);
 					handle.AddLock(l);
 
-					debug.Write(DebugLevel.Information, this, "[LockingMechanism] Locking for READ: " + to_read_lock.TableName);
+					logger.Write(DebugLevel.Information, this, "[LockingMechanism] Locking for READ: " + toReadLock.TableName);
 				}
 
 			}
 
-			debug.Write(DebugLevel.Information, this, "Locked Tables");
+			logger.Write(DebugLevel.Information, this, "Locked Tables");
 
 			return handle;
 
@@ -237,7 +238,8 @@ namespace Deveel.Data {
 			lock (this) {
 				handle.UnlockAll();
 			}
-			debug.Write(DebugLevel.Information, this, "UnLocked Tables");
+
+			logger.Write(DebugLevel.Information, this, "UnLocked Tables");
 		}
 
 		/// <summary>
@@ -246,7 +248,7 @@ namespace Deveel.Data {
 		public bool IsInExclusiveMode {
 			get {
 				lock (this) {
-					return in_exclusive_mode;
+					return inExclusiveMode;
 				}
 			}
 		}
@@ -272,11 +274,9 @@ namespace Deveel.Data {
 			lock (this) {
 				// If currently in exclusive mode, block until not.
 
-				while (in_exclusive_mode == true) {
+				while (inExclusiveMode) {
 					try {
-						//        Console.Out.WriteLine("Waiting because in exclusive Lock.");
 						Monitor.Wait(this);
-						//        Console.Out.WriteLine("Finish: Waiting because in exclusive Lock.");
 					} catch (ThreadInterruptedException) {
 					}
 				}
@@ -286,26 +286,22 @@ namespace Deveel.Data {
 					// Set this thread to exclusive mode, and wait until all shared modes
 					// have completed.
 
-					in_exclusive_mode = true;
-					while (shared_mode > 0) {
+					inExclusiveMode = true;
+					while (sharedMode > 0) {
 						try {
-							//          Console.Out.WriteLine("Waiting on exclusive Lock: " + shared_mode);
 							Monitor.Wait(this);
-							//          Console.Out.WriteLine("Finish: Waiting on exclusive Lock: " + shared_mode);
 						} catch (ThreadInterruptedException) {
 						}
 					}
 
-					debug.Write(DebugLevel.Information, this, "Locked into ** EXCLUSIVE MODE **");
+					logger.Write(DebugLevel.Information, this, "Locked into ** EXCLUSIVE MODE **");
 
 				} else if (mode == LockingMode.Shared) {
-
 					// Increase the threads counter that are in shared mode.
 
-					++shared_mode;
+					++sharedMode;
 
-					debug.Write(DebugLevel.Information, this, "Locked into SHARED MODE");
-
+					logger.Write(DebugLevel.Information, this, "Locked into SHARED MODE");
 				} else {
 					throw new ApplicationException("Invalid mode");
 				}
@@ -328,23 +324,21 @@ namespace Deveel.Data {
 		public void FinishMode(LockingMode mode) {
 			lock (this) {
 				if (mode == LockingMode.Exclusive) {
-					in_exclusive_mode = false;
+					inExclusiveMode = false;
 					Monitor.PulseAll(this);
 
-					debug.Write(DebugLevel.Information, this, "UnLocked from ** EXCLUSIVE MODE **");
-
+					logger.Write(DebugLevel.Information, this, "UnLocked from ** EXCLUSIVE MODE **");
 				} else if (mode == LockingMode.Shared) {
-					--shared_mode;
-					if (shared_mode == 0 && in_exclusive_mode) {
+					--sharedMode;
+					if (sharedMode == 0 && inExclusiveMode) {
 						Monitor.PulseAll(this);
-					} else if (shared_mode < 0) {
-						shared_mode = 0;
+					} else if (sharedMode < 0) {
+						sharedMode = 0;
 						Monitor.PulseAll(this);
 						throw new Exception("Too many 'FinishMode(Shared)' calls");
 					}
 
-					debug.Write(DebugLevel.Information, this, "UnLocked from SHARED MODE");
-
+					logger.Write(DebugLevel.Information, this, "UnLocked from SHARED MODE");
 				} else {
 					throw new ApplicationException("Invalid mode");
 				}

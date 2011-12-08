@@ -14,8 +14,7 @@
 //    limitations under the License.
 
 using System;
-
-using Deveel.Data.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -87,7 +86,7 @@ namespace Deveel.Data {
 
 			// We now have all the information to solve this query.
 
-			IntegerVector select_vec;
+			IList<int> select_vec;
 
 			if (op.IsSubQueryForm(OperatorSubType.All)) {
 				// ----- ALL operation -----

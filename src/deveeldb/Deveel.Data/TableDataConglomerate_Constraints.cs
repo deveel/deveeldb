@@ -14,9 +14,9 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 
-using Deveel.Data.Collections;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {
@@ -84,7 +84,7 @@ namespace Deveel.Data {
 		private static bool IsUniqueColumns(ITableDataSource table, int rindex, string[] cols, bool nullsAllowed) {
 			DataTableDef tableDef = table.TableInfo;
 			// 'identical_rows' keeps a tally of the rows that match our added cell.
-			IntegerVector identicalRows = null;
+			IList<int> identicalRows = null;
 
 			// Resolve the list of column names to column indexes
 			int[] colIndexes = FindColumnIndices(tableDef, cols);
@@ -114,7 +114,7 @@ namespace Deveel.Data {
 					// already a cell identical to this in the table.
 
 					SelectableScheme ss = table.GetColumnScheme(colIndex);
-					IntegerVector ivec = ss.SelectEqual(cell);
+					List<int> ivec = new List<int>(ss.SelectEqual(cell));
 
 					// If 'identical_rows' hasn't been set up yet then set it to 'ivec'
 					// (the list of rows where there is a cell which is equal to the one
@@ -127,15 +127,15 @@ namespace Deveel.Data {
 					if (identicalRows == null) {
 						identicalRows = ivec;
 					} else {
-						ivec.QuickSort();
+						ivec.Sort();
 						int rowIndex = identicalRows.Count - 1;
 						while (rowIndex >= 0) {
 							int val = identicalRows[rowIndex];
-							int foundIndex = ivec.SortedIndexOf(val);
+							int foundIndex = ivec.BinarySearch(val);
 							// If we _didn't_ find the index in the array
-							if (foundIndex >= ivec.Count ||
+							if (foundIndex < 0 ||
 								ivec[foundIndex] != val) {
-								identicalRows.RemoveIntAt(rowIndex);
+								identicalRows.RemoveAt(rowIndex);
 							}
 							--rowIndex;
 						}
@@ -172,13 +172,13 @@ namespace Deveel.Data {
 		/// in a table for constraint violation checking.
 		/// </remarks>
 		/// <returns></returns>
-		internal static IntegerVector FindKeys(ITableDataSource t2, int[] col2Indexes, TObject[] keyValue) {
+		internal static IList<int> FindKeys(ITableDataSource t2, int[] col2Indexes, TObject[] keyValue) {
 			int keySize = keyValue.Length;
 
 			// Now command table 2 to determine if the key values are present.
 			// Use index scan on first key.
 			SelectableScheme ss = t2.GetColumnScheme(col2Indexes[0]);
-			IntegerVector list = ss.SelectEqual(keyValue[0]);
+			IList<int> list = ss.SelectEqual(keyValue[0]);
 			if (keySize > 1) {
 				// Full scan for the rest of the columns
 				int sz = list.Count;
@@ -192,7 +192,7 @@ namespace Deveel.Data {
 						if (cValue.CompareTo(t2.GetCellContents(colIndex, rIndex)) != 0) {
 							// If any values in the key are not equal set this flag to false
 							// and remove the index from the list.
-							list.RemoveIntAt(i);
+							list.RemoveAt(i);
 							// Break the for loop
 							break;
 						}
@@ -263,7 +263,7 @@ namespace Deveel.Data {
 			//   references and it's valid.  To the semantics of the method this is
 			//   incorrect.
 			if (checkSourceTableKey) {
-				IntegerVector keys = FindKeys(t1, col1Indexes, keyValue);
+				IList<int> keys = FindKeys(t1, col1Indexes, keyValue);
 				int keyCount = keys.Count;
 				if (keyCount > 0)
 					return 0;

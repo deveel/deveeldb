@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ namespace Deveel.Data {
 	/// start or end of the list.
 	/// <para>
 	/// Note that the the start value may not compare less than the end value.
-	/// For example, start can not be <see cref="LAST_VALUE"/> 
-	/// and end can not be  <see cref="FIRST_VALUE"/>.
+	/// For example, start can not be <see cref="RangePosition.LastValue"/> 
+	/// and end can not be  <see cref="RangePosition.FirstValue"/>.
 	/// </para>
 	/// </remarks>
 	/// <example>
@@ -53,23 +53,13 @@ namespace Deveel.Data {
 	/// </code>
 	/// </example>
 	public sealed class SelectableRange {
-		// ---------- Statics ----------
-
-		// Represents the various points in the set on the value to represent the
-		// set range.
-		public const byte AFTER_LAST_VALUE = 4;
-		public const byte BEFORE_FIRST_VALUE = 3;
-
-		public const byte FIRST_VALUE = 1,
-		                  LAST_VALUE = 2;
-
 		/// <summary>
 		/// An object that represents the first value in the set.
 		/// </summary>
 		/// <remarks>
 		/// Note that these objects have no (NULL) type.
 		/// </remarks>
-		public static readonly TObject FIRST_IN_SET = new TObject(TType.NullType, "[FIRST_IN_SET]");
+		public static readonly TObject FirstInSet = new TObject(TType.NullType, "[FIRST_IN_SET]");
 
 		/// <summary>
 		/// An object that represents the last value in the set.
@@ -77,19 +67,19 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// Note that these objects have no (NULL) type.
 		/// </remarks>
-		public static readonly TObject LAST_IN_SET = new TObject(TType.NullType, "[LAST_IN_SET]");
+		public static readonly TObject LastInSet = new TObject(TType.NullType, "[LAST_IN_SET]");
 
 		/// <summary>
 		/// The range that represents the entire range (including null).
 		/// </summary>
-		public static readonly SelectableRange FULL_RANGE =
-			new SelectableRange(FIRST_VALUE, FIRST_IN_SET, LAST_VALUE, LAST_IN_SET);
+		public static readonly SelectableRange FullRange = new SelectableRange(RangePosition.FirstValue, FirstInSet,
+		                                                                       RangePosition.LastValue, LastInSet);
 
 		/// <summary>
 		/// The range that represents the entire range (not including null).
 		/// </summary>
-		public static readonly SelectableRange FULL_RANGE_NO_NULLS = new SelectableRange(AFTER_LAST_VALUE, TObject.Null,
-		                                                                                 LAST_VALUE, LAST_IN_SET);
+		public static readonly SelectableRange FullRangeNoNulls = new SelectableRange(RangePosition.AfterLastValue, TObject.Null,
+		                                                                              RangePosition.LastValue, LastInSet);
 
 		/// <summary>
 		/// The end of the range to select from the set.
@@ -100,17 +90,19 @@ namespace Deveel.Data {
 		/// Denotes the place for the range to end with respect to the end value.
 		/// </summary>
 		/// <remarks>
-		/// Either <see cref="BEFORE_FIRST_VALUE"/> or <see cref="LAST_VALUE"/>.
+		/// Either <see cref="RangePosition.BeforeFirstValue"/> or 
+		/// <see cref="RangePosition.LastValue"/>.
 		/// </remarks>
-		private readonly byte set_end_flag;
+		private readonly RangePosition endPosition;
 
 		/// <summary>
 		/// Denotes the place for the range to start with respect to the start value.
 		/// </summary>
 		/// <remarks>
-		/// Either <see cref="FIRST_VALUE"/> or <see cref="AFTER_LAST_VALUE"/>.
+		/// Either <see cref="RangePosition.FirstValue"/> or 
+		/// <see cref="RangePosition.AfterLastValue"/>.
 		/// </remarks>
-		private readonly byte set_start_flag;
+		private readonly RangePosition startPosition;
 
 		/// <summary>
 		/// The start of the range to select from the set.
@@ -119,23 +111,23 @@ namespace Deveel.Data {
 
 		///<summary>
 		///</summary>
-		///<param name="set_start_flag"></param>
+		///<param name="startPosition"></param>
 		///<param name="start"></param>
-		///<param name="set_end_flag"></param>
+		///<param name="endPosition"></param>
 		///<param name="end"></param>
-		public SelectableRange(byte set_start_flag, TObject start,
-		                       byte set_end_flag, TObject end) {
+		public SelectableRange(RangePosition startPosition, TObject start,
+		                       RangePosition endPosition, TObject end) {
 			this.start = start;
 			this.end = end;
-			this.set_start_flag = set_start_flag;
-			this.set_end_flag = set_end_flag;
+			this.startPosition = startPosition;
+			this.endPosition = endPosition;
 		}
 
 		/// <summary>
 		/// Gets the start of the range.
 		/// </summary>
 		/// <remarks>
-		/// This may return <see cref="FIRST_IN_SET"/> or  <see cref="LAST_IN_SET"/>.
+		/// This may return <see cref="FirstInSet"/> or  <see cref="LastInSet"/>.
 		/// </remarks>
 		public TObject Start {
 			get { return start; }
@@ -145,7 +137,7 @@ namespace Deveel.Data {
 		/// Gets the end of the range.
 		/// </summary>
 		/// <remarks>
-		/// This may return <see cref="FIRST_IN_SET"/> or  <see cref="LAST_IN_SET"/>.
+		/// This may return <see cref="FirstInSet"/> or  <see cref="LastInSet"/>.
 		/// </remarks>
 		public TObject End {
 			get { return end; }
@@ -155,36 +147,37 @@ namespace Deveel.Data {
 		/// Gets the point for the range to start.
 		/// </summary>
 		/// <remarks>
-		/// This must be either <see cref="FIRST_VALUE"/> or <see cref="AFTER_LAST_VALUE"/>.
+		/// This must be either <see cref="RangePosition.FirstValue"/> or 
+		/// <see cref="RangePosition.AfterLastValue"/>.
 		/// </remarks>
-		public byte StartFlag {
-			get { return set_start_flag; }
+		public RangePosition StartPosition {
+			get { return startPosition; }
 		}
 
 		/// <summary>
 		/// Gets the point for the range to end.
 		/// </summary>
 		/// <remarks>
-		/// This must be either <see cref="BEFORE_FIRST_VALUE"/> or 
-		/// <see cref="LAST_VALUE"/>.
+		/// This must be either <see cref="RangePosition.BeforeFirstValue"/> or 
+		/// <see cref="RangePosition.LastValue"/>.
 		/// </remarks>
-		public byte EndFlag {
-			get { return set_end_flag; }
+		public RangePosition EndPosition {
+			get { return endPosition; }
 		}
 
 		/// <inheritdoc/>
 		public override String ToString() {
 			StringBuilder buf = new StringBuilder();
-			if (StartFlag == FIRST_VALUE) {
+			if (StartPosition == RangePosition.FirstValue) {
 				buf.Append("FIRST_VALUE ");
-			} else if (StartFlag == AFTER_LAST_VALUE) {
+			} else if (StartPosition == RangePosition.AfterLastValue) {
 				buf.Append("AFTER_LAST_VALUE ");
 			}
 			buf.Append(Start.ToString());
 			buf.Append(" -> ");
-			if (EndFlag == LAST_VALUE) {
+			if (EndPosition == RangePosition.LastValue) {
 				buf.Append("LAST_VALUE ");
-			} else if (EndFlag == BEFORE_FIRST_VALUE) {
+			} else if (EndPosition == RangePosition.BeforeFirstValue) {
 				buf.Append("BEFORE_FIRST_VALUE ");
 			}
 			buf.Append(End.ToString());
@@ -193,15 +186,11 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
-			if (base.Equals(ob)) {
-				return true;
-			}
-
-			SelectableRange dest_range = (SelectableRange)ob;
-			return (Start.ValuesEqual(dest_range.Start) &&
-			        End.ValuesEqual(dest_range.End) &&
-			        StartFlag == dest_range.StartFlag &&
-			        EndFlag == dest_range.EndFlag);
+			SelectableRange destRange = (SelectableRange)ob;
+			return (Start.ValuesEqual(destRange.Start) &&
+			        End.ValuesEqual(destRange.End) &&
+			        StartPosition == destRange.StartPosition &&
+			        EndPosition == destRange.EndPosition);
 		}
 
 		/// <inheritdoc/>

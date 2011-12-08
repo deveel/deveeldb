@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
 
@@ -52,6 +53,6 @@ namespace Deveel.Data.Text {
 		/// in the table that matched the expression, or an empty list if the 
 		/// expression matched no rows in the column.
 		/// </returns>
-		IntegerVector RegexSearch(Table table, int column, string regularExpression, string expressionOps);
+		IList<int> RegexSearch(Table table, int column, string regularExpression, string expressionOps);
 	}
 }

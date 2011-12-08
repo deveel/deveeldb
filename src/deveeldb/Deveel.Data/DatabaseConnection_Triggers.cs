@@ -366,12 +366,12 @@ namespace Deveel.Data {
 							  TableInfo.TableName + "' is not permitted.");
 			}
 
-			public override int UpdateRow(int row_index, DataRow dataRow) {
+			public override int UpdateRow(int rowIndex, DataRow dataRow) {
 				if (immutable) {
 					throw new Exception("Updating table '" +
 								TableInfo.TableName + "' is not permitted.");
 				}
-				if (row_index < 0 || row_index > 0) {
+				if (rowIndex < 0 || rowIndex > 0) {
 					throw new Exception("Row index out of bounds.");
 				}
 

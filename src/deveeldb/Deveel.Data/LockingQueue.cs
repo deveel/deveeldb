@@ -14,8 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
-using System.Text;
+using System.Collections.Generic;
 using System.Threading;
 
 using Deveel.Diagnostics;
@@ -44,30 +43,30 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The <see cref="DataTable"/> this queue is 'protecting'
 		/// </summary>
-		private readonly DataTable parent_table;
+		private readonly DataTable table;
 
 		/// <summary>
 		/// This is the queue that stores the table locks.
 		/// </summary>
-		private readonly ArrayList queue;
+		private readonly List<Lock> queue;
 
 
 		internal LockingQueue(DataTable table) {
-			parent_table = table;
-			queue = new ArrayList();
+			this.table = table;
+			queue = new List<Lock>();
 		}
 
 		/// <summary>
 		/// Returns the DataTable object the queue is 'attached' to.
 		/// </summary>
 		internal DataTable Table {
-			get { return parent_table; }
+			get { return table; }
 		}
 
 		/// <summary>
 		/// Adds a Lock to the queue.
 		/// </summary>
-		/// <param name="l"></param>
+		/// <param name="lock"></param>
 		/// <remarks>
 		/// <b>Note</b>: This method is thread safe since it is only called 
 		/// from the <see cref="LockingMechanism"/> synchronized methods.
@@ -76,16 +75,16 @@ namespace Deveel.Data {
 		/// want new locks being added while a <see cref="CheckAccess"/> is happening.
 		/// </para>
 		/// </remarks>
-		internal void AddLock(Lock l) {
+		public void AddLock(Lock @lock) {
 			lock (this) {
-				queue.Add(l);
+				queue.Add(@lock);
 			}
 		}
 
 		/// <summary>
 		/// Removes a Lock from the queue.
 		/// </summary>
-		/// <param name="l"></param>
+		/// <param name="lock"></param>
 		/// <remarks>
 		/// This also does a <see cref="Monitor.PulseAll"/> to kick any threads 
 		/// that might be blocking in the <see cref="CheckAccess"/> method.
@@ -94,12 +93,11 @@ namespace Deveel.Data {
 		/// locks to be removed while a <see cref="CheckAccess"/> is happening.
 		/// </para>
 		/// </remarks>
-		internal void RemoveLock(Lock l) {
+		public void RemoveLock(Lock @lock) {
 			lock (this) {
-				queue.Remove(l);
+				queue.Remove(@lock);
 				// Notify the table that we have released a Lock from it.
-				l.Table.OnReadWriteLockRelease(l.Type);
-				//    Console.Out.WriteLine("Removing Lock: " + Lock);
+				@lock.Table.OnReadWriteLockRelease(@lock.Type);
 				Monitor.PulseAll(this);
 			}
 		}
@@ -108,7 +106,7 @@ namespace Deveel.Data {
 		/// Looks at the queue and <i>blocks</i> if the access to the table by the 
 		/// means specified in the Lock is allowed or not.
 		/// </summary>
-		/// <param name="l"></param>
+		/// <param name="lock"></param>
 		/// <remarks>
 		/// The rules for determining this are as follows:
 		/// <list type="number">
@@ -119,41 +117,37 @@ namespace Deveel.Data {
 		/// <item>Retry when a Lock is released from the queue.</item>
 		/// </list>
 		/// </remarks>
-		internal void CheckAccess(Lock l) {
-			bool blocked;
-			int index, i;
-			Lock test_lock;
-
+		internal void CheckAccess(Lock @lock) {
 			lock (this) {
-
 				// Error checking.  The queue must contain the Lock.
-				if (!queue.Contains(l)) {
+				if (!queue.Contains(@lock))
 					throw new ApplicationException("Queue does not contain the given Lock");
-				}
 
 				// If 'READ'
-				if (l.Type == AccessType.Read) {
-
+				bool blocked;
+				int index;
+				if (@lock.Type == AccessType.Read) {
 					do {
 						blocked = false;
 
-						index = queue.IndexOf(l);
-						for (i = index - 1; i >= 0 && blocked == false; --i) {
-							test_lock = (Lock)queue[i];
-							if (test_lock.Type == AccessType.Write) {
+						index = queue.IndexOf(@lock);
+						int i;
+						for (i = index - 1; i >= 0 && !blocked; --i) {
+							Lock testLock = queue[i];
+							if (testLock.Type == AccessType.Write)
 								blocked = true;
+						}
+
+						if (blocked) {
+							Table.Debug.Write(DebugLevel.Information, this, "Blocking on Read.");
+
+							try {
+								Monitor.Wait(this);
+							} catch (ThreadInterruptedException) {
 							}
 						}
 
-						if (blocked == true) {
-							Table.Debug.Write(DebugLevel.Information, this, "Blocking on Read.");
-							//            Console.Out.WriteLine("READ BLOCK: " + queue);
-							try {
-								Monitor.Wait(this);
-							} catch (ThreadInterruptedException) { }
-						}
-
-					} while (blocked == true);
+					} while (blocked);
 
 				}
 
@@ -163,37 +157,26 @@ namespace Deveel.Data {
 					do {
 						blocked = false;
 
-						index = queue.IndexOf(l);
+						index = queue.IndexOf(@lock);
 						if (index != 0) {
 							blocked = true;
 							Table.Debug.Write(DebugLevel.Information, this, "Blocking on Write.");
-							//            Console.Out.WriteLine("Write BLOCK: " + queue);
+
 							try {
 								Monitor.Wait(this);
-							} catch (ThreadInterruptedException) { }
+							} catch (ThreadInterruptedException) {
+							}
 						}
 
-					} while (blocked == true);
+					} while (blocked);
 
 				}
 
 				// Notify the Lock table that we've got a Lock on it.
-				l.Table.OnReadWriteLockEstablish(l.Type);
+				@lock.Table.OnReadWriteLockEstablish(@lock.Type);
 
 			} /* lock (this) */
 
-		}
-
-		public override String ToString() {
-			lock (this) {
-				StringBuilder str = new StringBuilder("[LockingQueue]: (");
-				for (int i = 0; i < queue.Count; ++i) {
-					str.Append(queue[i]);
-					str.Append(", ");
-				}
-				str.Append(")");
-				return str.ToString();
-			}
 		}
 	}
 }

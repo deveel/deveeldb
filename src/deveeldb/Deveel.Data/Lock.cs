@@ -31,7 +31,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// This stores the type of Lock.
 		/// </summary>
-		private AccessType type;
+		private readonly AccessType type;
 
 		/// <summary>
 		/// The table queue this Lock is 'inside'.
@@ -42,7 +42,7 @@ namespace Deveel.Data {
 		/// This is set to true when the <see cref="CheckAccess"/> 
 		/// method is called on this Lock.
 		/// </summary>
-		private bool was_checked;
+		private bool wasChecked;
 
 		private readonly IDebugLogger debug;
 
@@ -62,14 +62,14 @@ namespace Deveel.Data {
 			this.type = type;
 			this.queue = queue;
 			debug = logger;
-			was_checked = false;
+			wasChecked = false;
 			queue.AddLock(this);
 		}
 
 		/// <summary>
 		/// Gets the <see cref="AccessType">access type</see> for the current Lock.
 		/// </summary>
-		internal AccessType Type {
+		public AccessType Type {
 			get { return type; }
 		}
 
@@ -93,17 +93,13 @@ namespace Deveel.Data {
 		internal void Release() {
 			queue.RemoveLock(this);
 
-			if (!was_checked) {
+			if (!wasChecked) {
 				// Prints out a warning if a Lock was released from the table queue but
 				// never had 'CheckAccess' called for it.
-				string table_name = queue.Table.TableName.ToString();
-				debug.Write(DebugLevel.Error, this, "Lock on table '" + table_name + "' was released but never checked.  " + ToString());
+				string tableName = queue.Table.TableName.ToString();
+				debug.Write(DebugLevel.Error, this, "Lock on table '" + tableName + "' was released but never checked.  " + ToString());
 				debug.WriteException(new Exception("Lock Error Dump"));
 			}
-			//    else {
-			//      // Notify table we released Read/Write Lock
-			//      Table.OnReadWriteLockRelease(type);
-			//    }
 		}
 
 		/// <summary>
@@ -128,17 +124,11 @@ namespace Deveel.Data {
 		internal void CheckAccess(AccessType access_type) {
 			if (access_type == AccessType.Write && type != AccessType.Write)
 				throw new ApplicationException("Access error on Lock: Tried to Write to a non Write Lock.");
-			if (was_checked == false) {
-				queue.CheckAccess(this);
-				was_checked = true;
-				//      // Notify table we are Read/Write locked
-				//      Table.OnReadWriteLockEstablish(type);
-			}
-		}
 
-		/// <inheritdoc/>
-		public override string ToString() {
-			return "[Lock] type: " + type + "  was_checked: " + was_checked;
+			if (!wasChecked) {
+				queue.CheckAccess(this);
+				wasChecked = true;
+			}
 		}
 	}
 }

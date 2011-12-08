@@ -27,9 +27,9 @@ namespace Deveel.Data.Sql {
 	/// </remarks>
 	public class FromTableDirectSource : IFromTableSource {
 		/// <summary>
-		/// The ITableQueryDef object that links to the underlying table.
+		/// The ITableQueryInfo object that links to the underlying table.
 		/// </summary>
-		private readonly ITableQueryDef table_query;
+		private readonly ITableQueryInfo table_query;
 
 		/// <summary>
 		/// The DataTableDef object that describes the table.
@@ -69,10 +69,10 @@ namespace Deveel.Data.Sql {
 		/// <param name="given_name"></param>
 		/// <param name="root_name"></param>
 		public FromTableDirectSource(bool case_insensitive,
-		                             ITableQueryDef table_query, String unique_name,
+		                             ITableQueryInfo table_query, String unique_name,
 		                             TableName given_name, TableName root_name) {
 			this.unique_name = unique_name;
-			this.data_table_def = table_query.DataTableDef;
+			this.data_table_def = table_query.TableInfo;
 			this.root_name = root_name;
 			if (given_name != null) {
 				this.table_name = given_name;

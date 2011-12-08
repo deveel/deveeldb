@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
 
@@ -39,7 +40,7 @@ namespace Deveel.Data {
 		/// <returns>
 		/// Returns the rows selected from <paramref name="table1"/>.
 		/// </returns>
-		internal static IntegerVector In(Table table1, Table table2, int column1, int column2) {
+		internal static IList<int> In(Table table1, Table table2, int column1, int column2) {
 
 			// First pick the the smallest and largest table.  We only want to iterate
 			// through the smallest table.
@@ -76,11 +77,9 @@ namespace Deveel.Data {
 			while (e.MoveNext()) {
 
 				int small_row_index = e.RowIndex;
-				TObject cell =
-						   small_table.GetCellContents(small_column, small_row_index);
+				TObject cell = small_table.GetCellContents(small_column, small_row_index);
 
-				IntegerVector selected_set =
-						   large_table.SelectRows(large_column, EQUALSOP, cell);
+				IList<int> selected_set = large_table.SelectRows(large_column, EQUALSOP, cell);
 
 				// We've found cells that are IN both columns,
 
@@ -106,7 +105,7 @@ namespace Deveel.Data {
 
 			}
 
-			return new IntegerVector(result_rows);
+			return ListUtil.ToList(result_rows);
 
 		}
 
@@ -118,7 +117,7 @@ namespace Deveel.Data {
 		/// <param name="t1_cols"></param>
 		/// <param name="t2_cols"></param>
 		/// <returns></returns>
-		internal static IntegerVector In(Table table1, Table table2, int[] t1_cols, int[] t2_cols) {
+		internal static IList<int> In(Table table1, Table table2, int[] t1_cols, int[] t2_cols) {
 			if (t1_cols.Length > 1) {
 				throw new ApplicationException("Multi-column 'in' not supported.");
 			}
@@ -137,7 +136,7 @@ namespace Deveel.Data {
 		/// if <paramref name="table1"/> has many rows and <paramref name="table2"/> has few rows.
 		/// </remarks>
 		/// <returns></returns>
-		internal static IntegerVector NotIn(Table table1, Table table2, int col1, int col2) {
+		internal static IList<int> NotIn(Table table1, Table table2, int col1, int col2) {
 
 			// Handle trivial cases
 			int t2_row_count = table2.RowCount;
@@ -154,7 +153,7 @@ namespace Deveel.Data {
 			// Iterate through table1's column.  If we can find identical cell in the
 			// tables's column, then we should not include the row in our final
 			// result.
-			IntegerVector result_rows = new IntegerVector();
+			List<int> result_rows = new List<int>();
 			IRowEnumerator e = table1.GetRowEnumerator();
 			Operator EQUALSOP = Operator.Get("=");
 
@@ -163,14 +162,13 @@ namespace Deveel.Data {
 				int row_index = e.RowIndex;
 				TObject cell = table1.GetCellContents(col1, row_index);
 
-				IntegerVector selected_set =
-									  table2.SelectRows(col2, Operator.Get("="), cell);
+				IList<int> selected_set = table2.SelectRows(col2, Operator.Get("="), cell);
 
 				// We've found a row in table1 that doesn't have an identical cell in
 				// table2, so we should include it in the result.
 
 				if (selected_set.Count <= 0) {
-					result_rows.AddInt(row_index);
+					result_rows.Add(row_index);
 				}
 
 			}
@@ -186,7 +184,7 @@ namespace Deveel.Data {
 		/// <param name="t1_cols"></param>
 		/// <param name="t2_cols"></param>
 		/// <returns></returns>
-		internal static IntegerVector NotIn(Table table1, Table table2, int[] t1_cols, int[] t2_cols) {
+		internal static IList<int> NotIn(Table table1, Table table2, int[] t1_cols, int[] t2_cols) {
 			if (t1_cols.Length > 1) {
 				throw new ApplicationException("Multi-column 'not in' not supported.");
 			}

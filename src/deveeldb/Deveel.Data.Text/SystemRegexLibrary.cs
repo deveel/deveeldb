@@ -14,9 +14,8 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
-
-using Deveel.Data.Collections;
 
 namespace Deveel.Data.Text {
 	/// <summary>
@@ -43,11 +42,11 @@ namespace Deveel.Data.Text {
 			return regex.IsMatch(value);
 		}
 
-		public IntegerVector RegexSearch(Table table, int column, string regularExpression, string expressionOps) {
+		public IList<int> RegexSearch(Table table, int column, string regularExpression, string expressionOps) {
 			// Get the ordered column,
-			IntegerVector row_list = table.SelectAll(column);
+			IList<int> row_list = table.SelectAll(column);
 			// The result matched rows,
-			IntegerVector result_list = new IntegerVector();
+			List<int> result_list = new List<int>();
 
 			// Make into a new list that matches the pattern,
 			Regex regex;
@@ -83,7 +82,7 @@ namespace Deveel.Data.Text {
 					String str = ob.ToString();
 					// If the column matches the regular expression then return it,
 					if (regex.IsMatch(str)) {
-						result_list.AddInt(row_index);
+						result_list.Add(row_index);
 					}
 				}
 			}

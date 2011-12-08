@@ -460,7 +460,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a <see cref="ITableQueryDef"/> that describes the 
+		/// Returns a <see cref="ITableQueryInfo"/> that describes the 
 		/// characteristics of a table including the name, the columns and the 
 		/// query plan to produce the table.
 		/// </summary>
@@ -472,12 +472,12 @@ namespace Deveel.Data {
 		/// particular table, and to evaluate the query plan to produce 
 		/// the table itself.
 		/// <para>
-		/// This produces <see cref="ITableQueryDef"/> objects for all table 
+		/// This produces <see cref="ITableQueryInfo"/> objects for all table 
 		/// objects in the database including data tables and views.
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public ITableQueryDef GetTableQueryDef(TableName tableName, TableName aliasedAs) {
+		public ITableQueryInfo GetTableQueryDef(TableName tableName, TableName aliasedAs) {
 			// Produce the data table def for this database object.
 			DataTableDef dtf = GetDataTableDef(tableName);
 			// If the table is aliased, set a new DataTableDef with the given name
@@ -487,7 +487,7 @@ namespace Deveel.Data {
 				dtf.SetImmutable();
 			}
 			DataTableDef data_table_def = dtf;
-			return new TableQueryDefImpl(this, data_table_def, tableName, aliasedAs);
+			return new TableQueryInfo(this, data_table_def, tableName, aliasedAs);
 
 		}
 
@@ -495,14 +495,14 @@ namespace Deveel.Data {
 		/// Creates a <see cref="IQueryPlanNode"/> to fetch the given table 
 		/// object from the session.
 		/// </summary>
-		/// <param name="table_name"></param>
-		/// <param name="aliased_name"></param>
+		/// <param name="tableName"></param>
+		/// <param name="aliasedName"></param>
 		/// <returns></returns>
-		public IQueryPlanNode CreateObjectFetchQueryPlan(TableName table_name, TableName aliased_name) {
-			string tableType = GetTableType(table_name);
+		public IQueryPlanNode CreateObjectFetchQueryPlan(TableName tableName, TableName aliasedName) {
+			string tableType = GetTableType(tableName);
 			if (tableType.Equals("VIEW"))
-				return new FetchViewNode(table_name, aliased_name);
-			return new FetchTableNode(table_name, aliased_name);
+				return new FetchViewNode(tableName, aliasedName);
+			return new FetchTableNode(tableName, aliasedName);
 		}
 
 		// ---------- Schema management and constraint methods ----------
@@ -698,21 +698,21 @@ namespace Deveel.Data {
 			InternalDefList[4] = GTPrivMapDataSource.DEF_DATA_TABLE_DEF;
 		}
 
-		private class TableQueryDefImpl : ITableQueryDef {
+		private class TableQueryInfo : ITableQueryInfo {
 			private readonly DatabaseConnection conn;
-			private readonly DataTableDef dataTableDef;
+			private readonly DataTableDef tableInfo;
 			private readonly TableName tableName;
 			private readonly TableName aliasedAs;
 
-			public TableQueryDefImpl(DatabaseConnection conn, DataTableDef dataTableDef, TableName tableName, TableName aliasedAs) {
+			public TableQueryInfo(DatabaseConnection conn, DataTableDef tableInfo, TableName tableName, TableName aliasedAs) {
 				this.conn = conn;
-				this.dataTableDef = dataTableDef;
+				this.tableInfo = tableInfo;
 				this.aliasedAs = aliasedAs;
 				this.tableName = tableName;
 			}
 
-			public DataTableDef DataTableDef {
-				get { return dataTableDef; }
+			public DataTableDef TableInfo {
+				get { return tableInfo; }
 			}
 
 			public IQueryPlanNode QueryPlanNode {

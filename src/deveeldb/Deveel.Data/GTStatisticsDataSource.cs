@@ -90,8 +90,7 @@ namespace Deveel.Data {
 
 		// ---------- Overwritten from GTDataSource ----------
 
-		protected override void Dispose() {
-			base.Dispose();
+		protected override void Dispose(bool disposing) {
 			statistics_info = null;
 			stats = null;
 		}

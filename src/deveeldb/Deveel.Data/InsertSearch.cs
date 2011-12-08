@@ -14,10 +14,9 @@
 //    limitations under the License.
 
 using System;
-using System.IO;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
-using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -93,10 +92,10 @@ namespace Deveel.Data {
 		/// <param name="column"></param>
 		/// <param name="vec">A sorted list, with a low to high direction order, that is used to
 		/// set the scheme. This should not be used again after it is passed to this constructor.</param>
-		public InsertSearch(ITableDataSource table, int column, IntegerVector vec)
+		public InsertSearch(ITableDataSource table, int column, IEnumerable<int> vec)
 			: this(table, column) {
-			for (int i = 0; i < vec.Count; ++i) {
-				set_list.Add(vec[i]);
+			foreach (int i in vec) {
+				set_list.Add(i);
 			}
 
 			// NOTE: This must be removed in final, this is a post condition check to
@@ -199,10 +198,9 @@ namespace Deveel.Data {
 		/// This will always be thread safe, table changes cause a Write Lock which 
 		/// prevents reads while we are writing to the table.
 		/// </remarks>
-		internal override void Insert(int row) {
-			if (IsImmutable) {
+		public override void Insert(int row) {
+			if (IsImmutable)
 				throw new ApplicationException("Tried to change an immutable scheme.");
-			}
 
 			TObject cell = GetCellContents(row);
 			set_list.InsertSort(cell, row, set_comparator);
@@ -217,10 +215,9 @@ namespace Deveel.Data {
 		/// This will always be thread safe, table changes cause a Write Lock which 
 		/// prevents reads while we are writing to the table.
 		/// </remarks>
-		internal override void Remove(int row) {
-			if (IsImmutable) {
+		public override void Remove(int row) {
+			if (IsImmutable)
 				throw new ApplicationException("Tried to change an immutable scheme.");
-			}
 
 			TObject cell = GetCellContents(row);
 			int removed = set_list.RemoveSort(cell, row, set_comparator);
@@ -289,21 +286,19 @@ namespace Deveel.Data {
 			get { return GetCellContents(set_list[SetSize - 1]); }
 		}
 
-		protected override IntegerVector AddRangeToSet(int start, int end,
-											  IntegerVector ivec) {
+		protected override IList<int> AddRangeToSet(int start, int end, IList<int> ivec) {
 			if (ivec == null) {
-				ivec = new IntegerVector((end - start) + 2);
+				ivec = new List<int>((end - start) + 2);
 			}
 			IIntegerIterator i = set_list.GetIterator(start, end);
 			while (i.MoveNext()) {
-				ivec.AddInt(i.Next);
+				ivec.Add(i.Next);
 			}
 			return ivec;
 		}
 
-		public override IntegerVector SelectAll() {
-			IntegerVector ivec = new IntegerVector(set_list);
-			return ivec;
+		public override IList<int> SelectAll() {
+			return ListUtil.ToList(set_list);
 		}
 
 	}

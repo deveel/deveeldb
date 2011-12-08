@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Deveel.Data {
@@ -41,15 +41,15 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of ranges.
 		/// </summary>
-		private readonly ArrayList range_set;
+		private readonly List<SelectableRange> rangeSet;
 
 		///<summary>
 		/// Constructs the <see cref="SelectableRangeSet"/> to a full range 
 		/// (a range that encompases all values).
 		///</summary>
 		public SelectableRangeSet() {
-			range_set = new ArrayList();
-			range_set.Add(SelectableRange.FULL_RANGE);
+			rangeSet = new List<SelectableRange>();
+			rangeSet.Add(SelectableRange.FullRange);
 		}
 
 		/// <summary>
@@ -60,125 +60,123 @@ namespace Deveel.Data {
 		/// <b>Note</b>: This does not work with the <c>&lt;&gt;</c> operator 
 		/// which must be handled another way.
 		/// </remarks>
-		private static SelectableRange IntersectRange(SelectableRange range, Operator op, TObject val, bool null_check) {
+		private static SelectableRange IntersectRange(SelectableRange range, Operator op, TObject val, bool nullCheck) {
 			TObject start = range.Start;
-			byte start_flag = range.StartFlag;
+			RangePosition startPosition = range.StartPosition;
 			TObject end = range.End;
-			byte end_flag = range.EndFlag;
+			RangePosition endPosition = range.EndPosition;
 
 			bool inclusive = op.IsEquivalent("is") || op.IsEquivalent("=") ||
 								op.IsEquivalent(">=") || op.IsEquivalent("<=");
 
 			if (op.IsEquivalent("is") || op.IsEquivalent("=") || op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 				// With this operator, NULL values must return null.
-				if (null_check && val.IsNull) {
+				if (nullCheck && val.IsNull) {
 					return null;
 				}
 
-				if (start == SelectableRange.FIRST_IN_SET) {
+				if (start == SelectableRange.FirstInSet) {
 					start = val;
-					start_flag = inclusive ? SelectableRange.FIRST_VALUE :
-											 SelectableRange.AFTER_LAST_VALUE;
+					startPosition = inclusive
+					                	? RangePosition.FirstValue
+					                	: RangePosition.AfterLastValue;
 				} else {
 					int c = val.CompareTo(start);
-					if ((c == 0 && start_flag == SelectableRange.FIRST_VALUE) || c > 0) {
+					if ((c == 0 && startPosition == RangePosition.FirstValue) || c > 0) {
 						start = val;
-						start_flag = inclusive ? SelectableRange.FIRST_VALUE :
-												 SelectableRange.AFTER_LAST_VALUE;
+						startPosition = inclusive
+						                	? RangePosition.FirstValue
+						                	: RangePosition.AfterLastValue;
 					}
 				}
 			}
 			if (op.IsEquivalent("is") || op.IsEquivalent("=") || op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 				// With this operator, NULL values must return null.
-				if (null_check && val.IsNull) {
+				if (nullCheck && val.IsNull) {
 					return null;
 				}
 
 				// If start is first in set, then we have to change it to after NULL
-				if (null_check && start == SelectableRange.FIRST_IN_SET) {
+				if (nullCheck && start == SelectableRange.FirstInSet) {
 					start = TObject.Null;
-					start_flag = SelectableRange.AFTER_LAST_VALUE;
+					startPosition = RangePosition.AfterLastValue;
 				}
 
-				if (end == SelectableRange.LAST_IN_SET) {
+				if (end == SelectableRange.LastInSet) {
 					end = val;
-					end_flag = inclusive ? SelectableRange.LAST_VALUE :
-										   SelectableRange.BEFORE_FIRST_VALUE;
+					endPosition = inclusive ? RangePosition.LastValue :
+										   RangePosition.BeforeFirstValue;
 				} else {
 					int c = val.CompareTo(end);
-					if ((c == 0 && end_flag == SelectableRange.LAST_VALUE) || c < 0) {
+					if ((c == 0 && endPosition == RangePosition.LastValue) || c < 0) {
 						end = val;
-						end_flag = inclusive ? SelectableRange.LAST_VALUE :
-											   SelectableRange.BEFORE_FIRST_VALUE;
+						endPosition = inclusive ? RangePosition.LastValue :
+											   RangePosition.BeforeFirstValue;
 					}
 				}
 			}
 
 			// If start and end are not null types (if either are, then it means it
 			// is a placeholder value meaning start or end of set).
-			if (start != SelectableRange.FIRST_IN_SET &&
-				end != SelectableRange.LAST_IN_SET) {
+			if (start != SelectableRange.FirstInSet &&
+				end != SelectableRange.LastInSet) {
 				// If start is higher than end, return null
 				int c = start.CompareTo(end);
-				if ((c == 0 && (start_flag == SelectableRange.AFTER_LAST_VALUE ||
-								end_flag == SelectableRange.BEFORE_FIRST_VALUE)) ||
+				if ((c == 0 && (startPosition == RangePosition.AfterLastValue ||
+								endPosition == RangePosition.BeforeFirstValue)) ||
 					c > 0) {
 					return null;
 				}
 			}
 
 			// The new intersected range
-			return new SelectableRange(start_flag, start, end_flag, end);
+			return new SelectableRange(startPosition, start, endPosition, end);
 		}
 
 		/// <summary>
 		/// Returns true if the two SelectableRange ranges intersect.
 		/// </summary>
-		private static bool RangeIntersectedBy(SelectableRange range1,
-												  SelectableRange range2) {
-			byte start_flag_1 = range1.StartFlag;
-			TObject start_1 = range1.Start;
-			byte end_flag_1 = range1.EndFlag;
-			TObject end_1 = range1.End;
+		private static bool RangeIntersectedBy(SelectableRange range1, SelectableRange range2) {
+			RangePosition startFlag1 = range1.StartPosition;
+			TObject start1 = range1.Start;
+			RangePosition endFlag1 = range1.EndPosition;
+			TObject end1 = range1.End;
 
-			byte start_flag_2 = range2.StartFlag;
-			TObject start_2 = range2.Start;
-			byte end_flag_2 = range2.EndFlag;
-			TObject end_2 = range2.End;
+			RangePosition startFlag2 = range2.StartPosition;
+			TObject start2 = range2.Start;
+			RangePosition endFlag2 = range2.EndPosition;
+			TObject end2 = range2.End;
 
-			TObject start_cell_1, end_cell_1;
-			TObject start_cell_2, end_cell_2;
+			TObject startCell1 = start1 == SelectableRange.FirstInSet ? null : start1;
+			TObject endCell1 = end1 == SelectableRange.LastInSet ? null : end1;
+			TObject startCell2 = start2 == SelectableRange.FirstInSet ? null : start2;
+			TObject endCell2 = end2 == SelectableRange.LastInSet ? null : end2;
 
-			start_cell_1 = start_1 == SelectableRange.FIRST_IN_SET ? null : start_1;
-			end_cell_1 = end_1 == SelectableRange.LAST_IN_SET ? null : end_1;
-			start_cell_2 = start_2 == SelectableRange.FIRST_IN_SET ? null : start_2;
-			end_cell_2 = end_2 == SelectableRange.LAST_IN_SET ? null : end_2;
-
-			bool intersect_1 = false;
-			if (start_cell_1 != null && end_cell_2 != null) {
-				int c = start_cell_1.CompareTo(end_cell_2);
+			bool intersect1 = false;
+			if (startCell1 != null && endCell2 != null) {
+				int c = startCell1.CompareTo(endCell2);
 				if (c < 0 ||
-					(c == 0 && (start_flag_1 == SelectableRange.FIRST_VALUE ||
-								end_flag_2 == SelectableRange.LAST_VALUE))) {
-					intersect_1 = true;
+					(c == 0 && (startFlag1 == RangePosition.FirstValue ||
+								endFlag2 == RangePosition.LastValue))) {
+					intersect1 = true;
 				}
 			} else {
-				intersect_1 = true;
+				intersect1 = true;
 			}
 
-			bool intersect_2 = false;
-			if (start_cell_2 != null && end_cell_1 != null) {
-				int c = start_cell_2.CompareTo(end_cell_1);
+			bool intersect2 = false;
+			if (startCell2 != null && endCell1 != null) {
+				int c = startCell2.CompareTo(endCell1);
 				if (c < 0 ||
-					(c == 0 && (start_flag_2 == SelectableRange.FIRST_VALUE ||
-								end_flag_1 == SelectableRange.LAST_VALUE))) {
-					intersect_2 = true;
+					(c == 0 && (startFlag2 == RangePosition.FirstValue ||
+								endFlag1 == RangePosition.LastValue))) {
+					intersect2 = true;
 				}
 			} else {
-				intersect_2 = true;
+				intersect2 = true;
 			}
 
-			return (intersect_1 && intersect_2);
+			return (intersect1 && intersect2);
 		}
 
 		/// <summary>
@@ -188,50 +186,49 @@ namespace Deveel.Data {
 		/// This assumes that range1 intersects range2.
 		/// </remarks>
 		private static SelectableRange ChangeRangeSizeToEncompass(SelectableRange range1, SelectableRange range2) {
+			RangePosition startPosition1 = range1.StartPosition;
+			TObject start1 = range1.Start;
+			RangePosition endPosition1 = range1.EndPosition;
+			TObject end1 = range1.End;
 
-			byte start_flag_1 = range1.StartFlag;
-			TObject start_1 = range1.Start;
-			byte end_flag_1 = range1.EndFlag;
-			TObject end_1 = range1.End;
+			RangePosition startPosition2 = range2.StartPosition;
+			TObject start2 = range2.Start;
+			RangePosition endPosition2 = range2.EndPosition;
+			TObject end2 = range2.End;
 
-			byte start_flag_2 = range2.StartFlag;
-			TObject start_2 = range2.Start;
-			byte end_flag_2 = range2.EndFlag;
-			TObject end_2 = range2.End;
-
-			if (start_1 != SelectableRange.FIRST_IN_SET) {
-				if (start_2 != SelectableRange.FIRST_IN_SET) {
-					TObject cell = start_1;
-					int c = cell.CompareTo(start_2);
+			if (start1 != SelectableRange.FirstInSet) {
+				if (start2 != SelectableRange.FirstInSet) {
+					TObject cell = start1;
+					int c = cell.CompareTo(start2);
 					if (c > 0 ||
-						c == 0 && start_flag_1 == SelectableRange.AFTER_LAST_VALUE &&
-								  start_flag_2 == SelectableRange.FIRST_VALUE) {
-						start_1 = start_2;
-						start_flag_1 = start_flag_2;
+						c == 0 && startPosition1 == RangePosition.AfterLastValue &&
+								  startPosition2 == RangePosition.FirstValue) {
+						start1 = start2;
+						startPosition1 = startPosition2;
 					}
 				} else {
-					start_1 = start_2;
-					start_flag_1 = start_flag_2;
+					start1 = start2;
+					startPosition1 = startPosition2;
 				}
 			}
 
-			if (end_1 != SelectableRange.LAST_IN_SET) {
-				if (end_2 != SelectableRange.LAST_IN_SET) {
-					TObject cell = (TObject)end_1;
-					int c = cell.CompareTo(end_2);
+			if (end1 != SelectableRange.LastInSet) {
+				if (end2 != SelectableRange.LastInSet) {
+					TObject cell = end1;
+					int c = cell.CompareTo(end2);
 					if (c < 0 ||
-						c == 0 && end_flag_1 == SelectableRange.BEFORE_FIRST_VALUE &&
-								  end_flag_2 == SelectableRange.LAST_VALUE) {
-						end_1 = end_2;
-						end_flag_1 = end_flag_2;
+						c == 0 && endPosition1 == RangePosition.BeforeFirstValue &&
+								  endPosition2 == RangePosition.LastValue) {
+						end1 = end2;
+						endPosition1 = endPosition2;
 					}
 				} else {
-					end_1 = end_2;
-					end_flag_1 = end_flag_2;
+					end1 = end2;
+					endPosition1 = endPosition2;
 				}
 			}
 
-			return new SelectableRange(start_flag_1, start_1, end_flag_1, end_1);
+			return new SelectableRange(startPosition1, start1, endPosition1, end1);
 		}
 
 		/// <summary>
@@ -242,16 +239,15 @@ namespace Deveel.Data {
 		/// operator is '&lt;=' and the value is 'z' the result range is 'a' -&gt; 'z'.
 		/// </example>
 		public void Intersect(Operator op, TObject val) {
-			int sz = range_set.Count;
-			ArrayList i = range_set.GetRange(0, sz);
-			Queue queue = new Queue(i);
+			int sz = rangeSet.Count;
+			List<SelectableRange> i = rangeSet.GetRange(0, sz);
+			Queue<SelectableRange> queue = new Queue<SelectableRange>(i);
 
 			if (op.IsEquivalent("<>") || op.IsEquivalent("is not")) {
 				bool nullCheck = op.IsEquivalent("<>");
 				int j = 0;
 				while (j < queue.Count) {
-					object obj = queue.Peek();
-					SelectableRange range = (SelectableRange)obj;
+					SelectableRange range = queue.Peek();
 					SelectableRange leftRange = IntersectRange(range, Operator.Get("<"), val, nullCheck);
 					SelectableRange rightRange = IntersectRange(range, Operator.Get(">"), val, nullCheck);
 					queue.Dequeue();
@@ -265,8 +261,7 @@ namespace Deveel.Data {
 				bool nullCheck = !op.IsEquivalent("is");
 				int j = 0;
 				while (j < sz) {
-					object obj = i[j];
-					SelectableRange range = (SelectableRange)obj;
+					SelectableRange range = i[j];
 					range = IntersectRange(range, op, val, nullCheck);
 					if (range == null) {
 						i.RemoveAt(j);
@@ -282,25 +277,24 @@ namespace Deveel.Data {
 		/// Unions this range with the given Operator and value constant.
 		/// </summary>
 		public void Union(Operator op, TObject val) {
-			throw new NotImplementedException("PENDING");
+			throw new NotImplementedException();
 		}
 
 		/// <summary>
 		/// Unions the current range set with the given range set.
 		/// </summary>
-		public void Union(SelectableRangeSet union_to) {
-			ArrayList inputSet = union_to.range_set;
+		public void Union(SelectableRangeSet unionTo) {
+			List<SelectableRange> inputSet = unionTo.rangeSet;
 
 			int inSz = inputSet.Count;
 			int n = 0;
 			while (n < inSz) {
 				SelectableRange inRange = (SelectableRange)inputSet[n];
-				int sz = range_set.Count;
-				ArrayList i = range_set.GetRange(0, range_set.Count);
+				int sz = rangeSet.Count;
+				List<SelectableRange> i = rangeSet.GetRange(0, rangeSet.Count);
 				int j = 0;
 				while (j < i.Count) {
-					object obj = i[j];
-					SelectableRange range = (SelectableRange)obj;
+					SelectableRange range = i[j];
 					if (RangeIntersectedBy(inRange, range)) {
 						i.RemoveAt(j);
 						inRange = ChangeRangeSizeToEncompass(inRange, range);
@@ -309,21 +303,21 @@ namespace Deveel.Data {
 				}
 
 				// Insert into sorted position
-				int startPoint = inRange.StartFlag;
+				RangePosition startPoint = inRange.StartPosition;
 				TObject start = inRange.Start;
-				int endPoint = inRange.EndFlag;
+				RangePosition endPoint = inRange.EndPosition;
 				TObject end = inRange.End;
 
-				if (start == SelectableRange.FIRST_IN_SET) {
-					range_set.Insert(0, inRange);
+				if (start == SelectableRange.FirstInSet) {
+					rangeSet.Insert(0, inRange);
 				} else {
 					TObject startCell = start;
-					i = range_set.GetRange(0, range_set.Count);
+					i = rangeSet.GetRange(0, rangeSet.Count);
 					j = 0;
 					while (j < i.Count) {
-						SelectableRange range = (SelectableRange)i[j];
+						SelectableRange range = i[j];
 						TObject curStart = range.Start;
-						if (curStart != SelectableRange.FIRST_IN_SET) {
+						if (curStart != SelectableRange.FirstInSet) {
 							if (curStart.CompareTo(startCell) > 0) {
 								i[j] = i[j - 1];
 								break;
@@ -344,26 +338,12 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <returns></returns>
 		public SelectableRange[] ToArray() {
-			int sz = range_set.Count;
+			int sz = rangeSet.Count;
 			SelectableRange[] ranges = new SelectableRange[sz];
 			for (int i = 0; i < sz; ++i) {
-				ranges[i] = (SelectableRange)range_set[i];
+				ranges[i] = rangeSet[i];
 			}
 			return ranges;
-		}
-
-
-		/// <inheritdoc/>
-		public override String ToString() {
-			StringBuilder buf = new StringBuilder();
-			if (range_set.Count == 0) {
-				return "(NO RANGE)";
-			}
-			for (int i = 0; i < range_set.Count; ++i) {
-				buf.Append(range_set[i]);
-				buf.Append(", ");
-			}
-			return buf.ToString();
 		}
 	}
 }

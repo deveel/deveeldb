@@ -101,8 +101,7 @@ namespace Deveel.Data {
 
 		// ---------- Overwritten from GTDataSource ----------
 
-		protected override void Dispose() {
-			base.Dispose();
+		protected override void Dispose(bool disposing) {
 			table_list = null;
 			transaction = null;
 		}

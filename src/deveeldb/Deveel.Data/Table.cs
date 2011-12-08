@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.Collections;
@@ -133,18 +134,18 @@ namespace Deveel.Data {
 
 		/// <summary>
 		/// Given a set, this trickles down through the <see cref="Table"/> 
-		/// hierarchy resolving the given row_set to a form that the given 
-		/// ancestor understands.
+		/// hierarchy resolving the given <paramref name="rowSet"/>to a form 
+		/// that the given ancestor understands.
 		/// </summary>
 		/// <param name="column"></param>
-		/// <param name="row_set"></param>
+		/// <param name="rowSet"></param>
 		/// <param name="ancestor"></param>
 		/// <remarks>
 		/// Say you give the set { 0, 1, 2, 3, 4, 5, 6 }, this function may check
 		/// down three levels and return a new 7 element set with the rows fully
 		/// resolved to the given ancestors domain.
 		/// </remarks>
-		internal abstract void SetToRowTableDomain(int column, IntegerVector row_set, ITableDataSource ancestor);
+		internal abstract void SetToRowTableDomain(int column, IList<int> rowSet, ITableDataSource ancestor);
 
 		/// <summary>
 		/// Return the list of <see cref="DataTable"/> and row sets that make up 
@@ -306,7 +307,7 @@ namespace Deveel.Data {
 				return this;
 
 			VirtualTable table = new VirtualTable(this);
-			table.Set(this, new IntegerVector(0));
+			table.Set(this, new List<int>(0));
 			return table;
 		}
 
@@ -317,8 +318,8 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public Table SingleRowSelect(int row_index) {
 			VirtualTable table = new VirtualTable(this);
-			IntegerVector ivec = new IntegerVector(1);
-			ivec.AddInt(row_index);
+			List<int> ivec = new List<int>(1);
+			ivec.Add(row_index);
 			table.Set(this, ivec);
 			return table;
 		}
@@ -340,14 +341,14 @@ namespace Deveel.Data {
 			}
 			// Create the new VirtualTable with the joined tables.
 
-			IntegerVector all_row_set = new IntegerVector();
+			List<int> all_row_set = new List<int>();
 			int rcount = RowCount;
 			for (int i = 0; i < rcount; ++i) {
-				all_row_set.AddInt(i);
+				all_row_set.Add(i);
 			}
 
 			Table[] tabs = new Table[] { this, table };
-			IntegerVector[] row_sets = new IntegerVector[] { all_row_set, all_row_set };
+			IList<int>[] row_sets = new IList<int>[] { all_row_set, all_row_set };
 
 			VirtualTable out_table = new VirtualTable(tabs);
 			out_table.Set(tabs, row_sets);
@@ -382,7 +383,7 @@ namespace Deveel.Data {
 			}
 			// Are we selecting the entire range?
 			if (ranges.Length == 1 &&
-				ranges[0].Equals(SelectableRange.FULL_RANGE)) {
+				ranges[0].Equals(SelectableRange.FullRange)) {
 				// Yes, so return this table.
 				return this;
 			}
@@ -399,8 +400,7 @@ namespace Deveel.Data {
 			}
 
 			// Select the range
-			IntegerVector rows;
-			rows = SelectRange(column, ranges);
+			IList<int> rows = SelectRange(column, ranges);
 
 			// Make a new table with the range selected
 			VirtualTable table = new VirtualTable(this);
@@ -447,7 +447,7 @@ namespace Deveel.Data {
 				   lhs_var.Name);
 			}
 
-			IntegerVector rows;
+			IList<int> rows;
 
 			bool ordered_by_select_column;
 
@@ -612,8 +612,8 @@ namespace Deveel.Data {
 			// The join algorithm.  It steps through the RHS expression, selecting the
 			// cells that match the relation from the LHS table (this table).
 
-			IntegerVector this_row_set = new IntegerVector();
-			IntegerVector table_row_set = new IntegerVector();
+			List<int> this_row_set = new List<int>();
+			List<int> table_row_set = new List<int>();
 
 			IRowEnumerator e = table.GetRowEnumerator();
 
@@ -625,21 +625,21 @@ namespace Deveel.Data {
 				TObject rhs_val = rhs.Evaluate(resolver, context);
 
 				// Select all the rows in this table that match the joining condition.
-				IntegerVector selected_set = SelectRows(lhs_column, op, rhs_val);
+				IList<int> selected_set = SelectRows(lhs_column, op, rhs_val);
 
 				// Include in the set.
 				int size = selected_set.Count;
 				for (int i = 0; i < size; ++i) {
-					table_row_set.AddInt(row_index);
+					table_row_set.Add(row_index);
 				}
-				this_row_set.Append(selected_set);
+				this_row_set.AddRange(selected_set);
 
 			}
 
 			// Create the new VirtualTable with the joined tables.
 
 			Table[] tabs = new Table[] { this, table };
-			IntegerVector[] row_sets = new IntegerVector[] { this_row_set, table_row_set };
+			IList<int>[] row_sets = new IList<int>[] { this_row_set, table_row_set };
 
 			VirtualTable out_table = new VirtualTable(tabs);
 			out_table.Set(tabs, row_sets);
@@ -683,7 +683,7 @@ namespace Deveel.Data {
 				TableVariableResolver resolver = GetVariableResolver();
 				IRowEnumerator e = GetRowEnumerator();
 
-				IntegerVector selected_set = new IntegerVector(row_count);
+				List<int> selected_set = new List<int>(row_count);
 
 				while (e.MoveNext()) {
 					int row_index = e.RowIndex;
@@ -695,7 +695,7 @@ namespace Deveel.Data {
 					// If resolved to true then include in the selected set.
 					if (!rhs_val.IsNull && rhs_val.TType is TBooleanType &&
 						rhs_val.Object.Equals(true)) {
-						selected_set.AddInt(row_index);
+						selected_set.Add(row_index);
 					}
 
 				}
@@ -767,7 +767,7 @@ namespace Deveel.Data {
 				// We know lhs is a constant so no point passing arguments,
 				TObject lhs_const = lhs.Evaluate(null, context);
 				// Select from the table.
-				IntegerVector ivec = table.SelectRows(0, op, lhs_const);
+				IList<int> ivec = table.SelectRows(0, op, lhs_const);
 				if (ivec.Count > 0) {
 					// There's some entries so return the whole table,
 					return this;
@@ -822,7 +822,7 @@ namespace Deveel.Data {
 			//   For <> type ANY we iterate through 'source' only including those
 			//   rows that a <> query on 'table' returns size() != 0.
 
-			IntegerVector select_vec;
+			IList<int> select_vec;
 			if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 				// Select the first from the set (the lowest value),
 				TObject lowest_cell = table.GetFirstCellContent(0);
@@ -992,7 +992,7 @@ namespace Deveel.Data {
 			//   empty table.
 			//   For <> type ALL we use the 'not in' algorithm.
 
-			IntegerVector select_vec;
+			IList<int> select_vec;
 			if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 				// Select the last from the set (the highest value),
 				TObject highest_cell = table.GetLastCellContent(0);
@@ -1045,6 +1045,7 @@ namespace Deveel.Data {
 		/// Performs a natural join of this table with the given table.
 		/// </summary>
 		/// <param name="table"></param>
+		/// <param name="quick"></param>
 		/// <remarks>
 		///  This is the same as calling the <see cref="SimpleJoin"/> with no 
 		/// conditional.
@@ -1061,27 +1062,27 @@ namespace Deveel.Data {
 				Table[] tabs = new Table[2];
 				tabs[0] = this;
 				tabs[1] = table;
-				IntegerVector[] row_sets = new IntegerVector[2];
+				IList<int>[] row_sets = new IList<int>[2];
 
 				// Optimized trivial case, if either table has zero rows then result of
 				// join will contain zero rows also.
 				if (RowCount == 0 || table.RowCount == 0) {
 
-					row_sets[0] = new IntegerVector(0);
-					row_sets[1] = new IntegerVector(0);
+					row_sets[0] = new List<int>(0);
+					row_sets[1] = new List<int>(0);
 
 				} else {
 
 					// The natural join algorithm.
-					IntegerVector this_row_set = new IntegerVector();
-					IntegerVector table_row_set = new IntegerVector();
+					List<int> this_row_set = new List<int>();
+					List<int> table_row_set = new List<int>();
 
 					// Get the set of all rows in the given table.
-					IntegerVector table_selected_set = new IntegerVector();
+					List<int> table_selected_set = new List<int>();
 					IRowEnumerator e = table.GetRowEnumerator();
 					while (e.MoveNext()) {
 						int row_index = e.RowIndex;
-						table_selected_set.AddInt(row_index);
+						table_selected_set.Add(row_index);
 					}
 					int table_selected_set_size = table_selected_set.Count;
 
@@ -1090,9 +1091,9 @@ namespace Deveel.Data {
 					while (e.MoveNext()) {
 						int row_index = e.RowIndex;
 						for (int i = 0; i < table_selected_set_size; ++i) {
-							this_row_set.AddInt(row_index);
+							this_row_set.Add(row_index);
 						}
-						table_row_set.Append(table_selected_set);
+						table_row_set.AddRange(table_selected_set);
 					}
 
 					// The row sets we are joining from each table.
@@ -1146,55 +1147,55 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public VirtualTable Outside(Table rtable) {
-
 			// Form the row list for right hand table,
-			IntegerVector row_list = new IntegerVector(rtable.RowCount);
+			List<int> rowList = new List<int>(rtable.RowCount);
 			IRowEnumerator e = rtable.GetRowEnumerator();
 			while (e.MoveNext()) {
-				row_list.AddInt(e.RowIndex);
+				rowList.Add(e.RowIndex);
 			}
-			int col_index = rtable.FindFieldName(GetResolvedVariable(0));
-			rtable.SetToRowTableDomain(col_index, row_list, this);
+
+			int colIndex = rtable.FindFieldName(GetResolvedVariable(0));
+			rtable.SetToRowTableDomain(colIndex, rowList, this);
 
 			// This row set
-			IntegerVector this_table_set = new IntegerVector(RowCount);
+			List<int> thisTableSet = new List<int>(RowCount);
 			e = GetRowEnumerator();
 			while (e.MoveNext()) {
-				this_table_set.AddInt(e.RowIndex);
+				thisTableSet.Add(e.RowIndex);
 			}
 
-			// 'row_list' is now the rows in this table that are in 'rtable'.
-			// Sort both 'this_table_set' and 'row_list'
-			this_table_set.QuickSort();
-			row_list.QuickSort();
+			// 'rowList' is now the rows in this table that are in 'rtable'.
+			// Sort both 'thisTableSet' and 'rowList'
+			thisTableSet.Sort();
+			rowList.Sort();
 
 			// Find all rows that are in 'this_table_set' and not in 'row_list'
-			IntegerVector result_list = new IntegerVector(96);
-			int size = this_table_set.Count;
-			int row_list_index = 0;
-			int row_list_size = row_list.Count;
+			List<int> resultList = new List<int>(96);
+			int size = thisTableSet.Count;
+			int rowListIndex = 0;
+			int rowListSize = rowList.Count;
 			for (int i = 0; i < size; ++i) {
-				int this_val = this_table_set[i];
-				if (row_list_index < row_list_size) {
-					int in_val = row_list[row_list_index];
-					if (this_val < in_val) {
-						result_list.AddInt(this_val);
-					} else if (this_val == in_val) {
-						while (row_list_index < row_list_size &&
-							   row_list[row_list_index] == in_val) {
-							++row_list_index;
+				int thisVal = thisTableSet[i];
+				if (rowListIndex < rowListSize) {
+					int inVal = rowList[rowListIndex];
+					if (thisVal < inVal) {
+						resultList.Add(thisVal);
+					} else if (thisVal == inVal) {
+						while (rowListIndex < rowListSize &&
+							   rowList[rowListIndex] == inVal) {
+							++rowListIndex;
 						}
 					} else {
 						throw new ApplicationException("'this_val' > 'in_val'");
 					}
 				} else {
-					result_list.AddInt(this_val);
+					resultList.Add(thisVal);
 				}
 			}
 
 			// Return the new VirtualTable
 			VirtualTable table = new VirtualTable(this);
-			table.Set(this, result_list);
+			table.Set(this, resultList);
 
 			return table;
 		}
@@ -1297,13 +1298,13 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public Table Distinct(int[] col_map) {
-			IntegerVector result_list = new IntegerVector();
-			IntegerVector row_list = OrderedRowList(col_map);
+			List<int> result_list = new List<int>();
+			IList<int> rowList = OrderedRowList(col_map);
 
-			int r_count = row_list.Count;
+			int r_count = rowList.Count;
 			int previous_row = -1;
 			for (int i = 0; i < r_count; ++i) {
-				int row_index = row_list[i];
+				int row_index = rowList[i];
 
 				if (previous_row != -1) {
 
@@ -1312,14 +1313,14 @@ namespace Deveel.Data {
 					for (int n = 0; n < col_map.Length && equal; ++n) {
 						TObject c1 = GetCellContents(col_map[n], row_index);
 						TObject c2 = GetCellContents(col_map[n], previous_row);
-						equal = equal && (c1.CompareTo(c2) == 0);
+						equal = (c1.CompareTo(c2) == 0);
 					}
 
 					if (!equal) {
-						result_list.AddInt(row_index);
+						result_list.Add(row_index);
 					}
 				} else {
-					result_list.AddInt(row_index);
+					result_list.Add(row_index);
 				}
 
 				previous_row = row_index;
@@ -1377,7 +1378,7 @@ namespace Deveel.Data {
 		/// <param name="ob"></param>
 		/// <returns></returns>
 		public bool ColumnMatchesValue(int column, Operator op, TObject ob) {
-			IntegerVector ivec = SelectRows(column, op, ob);
+			IList<int> ivec = SelectRows(column, op, ob);
 			return (ivec.Count > 0);
 		}
 
@@ -1390,7 +1391,7 @@ namespace Deveel.Data {
 		/// <param name="ob"></param>
 		/// <returns></returns>
 		public bool AllColumnMatchesValue(int column, Operator op, TObject ob) {
-			IntegerVector ivec = SelectRows(column, op, ob);
+			IList<int> ivec = SelectRows(column, op, ob);
 			return (ivec.Count == RowCount);
 		}
 
@@ -1431,19 +1432,19 @@ namespace Deveel.Data {
 		/// If the resultant table row count of the order differs from the 
 		/// current table row count.
 		/// </exception>
-		public IntegerVector OrderedRowList(int[] col_map) {
+		public IList<int> OrderedRowList(int[] col_map) {
 			Table work = OrderByColumns(col_map);
 			// 'work' is now sorted by the columns,
 			// Get the rows in this tables domain,
 			int r_count = RowCount;
-			IntegerVector row_list = new IntegerVector(r_count);
+			List<int> rowList = new List<int>(r_count);
 			IRowEnumerator e = work.GetRowEnumerator();
 			while (e.MoveNext()) {
-				row_list.AddInt(e.RowIndex);
+				rowList.Add(e.RowIndex);
 			}
 
-			work.SetToRowTableDomain(0, row_list, this);
-			return row_list;
+			work.SetToRowTableDomain(0, rowList, this);
+			return rowList;
 		}
 
 
@@ -1461,7 +1462,7 @@ namespace Deveel.Data {
 			// Check the field can be sorted
 			DataTableColumnDef col_def = GetColumnDef(col_index);
 
-			IntegerVector rows = SelectAll(col_index);
+			List<int> rows = new List<int>(SelectAll(col_index));
 
 			// Reverse the list if we are not ascending
 			if (ascending == false) {
@@ -1548,7 +1549,7 @@ namespace Deveel.Data {
 		/// Returns a set that respresents the list of multi-column row numbers
 		/// selected from the table given the condition.
 		/// </returns>
-		internal IntegerVector SelectRows(int[] cols, Operator op, TObject[] cells) {
+		internal IList<int> SelectRows(int[] cols, Operator op, TObject[] cells) {
 			// PENDING: Look for an multi-column index to make this a lot faster,
 			if (cols.Length > 1) {
 				throw new ApplicationException("Multi-column select not supported.");
@@ -1567,12 +1568,12 @@ namespace Deveel.Data {
 		/// Returns a set that respresents the list of row numbers
 		/// selected from the table given the condition.
 		/// </returns>
-		internal IntegerVector SelectRows(int column, Operator op, TObject cell) {
+		internal IList<int> SelectRows(int column, Operator op, TObject cell) {
 			// If the cell is of an incompatible type, return no results,
 			TType col_type = GetTTypeForColumn(column);
 			if (!cell.TType.IsComparableType(col_type)) {
 				// Types not comparable, so return 0
-				return new IntegerVector(0);
+				return new List<int>(0);
 			}
 
 			// Get the selectable scheme for this column
@@ -1617,13 +1618,13 @@ namespace Deveel.Data {
 		/// column greater or equal then <paramref name="min_cell"/> and smaller then
 		/// <paramref name="max_cell"/>.
 		/// </returns>
-		internal virtual IntegerVector SelectRows(int column, TObject min_cell, TObject max_cell) {
+		internal virtual IList<int> SelectRows(int column, TObject min_cell, TObject max_cell) {
 			// Check all the tables are comparable
 			TType col_type = GetTTypeForColumn(column);
 			if (!min_cell.TType.IsComparableType(col_type) ||
 				!max_cell.TType.IsComparableType(col_type)) {
 				// Types not comparable, so return 0
-				return new IntegerVector(0);
+				return new List<int>(0);
 			}
 
 			SelectableScheme ss = GetSelectableSchemeFor(column, column, this);
@@ -1646,9 +1647,9 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal IntegerVector SelectFromRegex(int column, Operator op, TObject ob) {
+		internal IList<int> SelectFromRegex(int column, Operator op, TObject ob) {
 			if (ob.IsNull) {
-				return new IntegerVector(0);
+				return new List<int>(0);
 			}
 
 			return PatternSearch.RegexSearch(this, column, ob.Object.ToString());
@@ -1667,10 +1668,9 @@ namespace Deveel.Data {
 		/// these operations.
 		/// </remarks>
 		/// <returns></returns>
-		internal virtual IntegerVector SelectFromPattern(int column, Operator op, TObject ob) {
-			if (ob.IsNull) {
-				return new IntegerVector();
-			}
+		internal virtual IList<int> SelectFromPattern(int column, Operator op, TObject ob) {
+			if (ob.IsNull)
+				return new List<int>();
 
 			if (op.IsEquivalent("not like")) {
 				// How this works:
@@ -1680,21 +1680,19 @@ namespace Deveel.Data {
 				//   For each row that is in the original set and not in the like set,
 				//     add to the result list.
 				//   Result is the set of not like rows ordered by the column.
-				IntegerVector like_set =
-									  PatternSearch.Search(this, column, ob.ToString());
+				List<int> like_set = (List<int>) PatternSearch.Search(this, column, ob.ToString());
 				// Don't include NULL values
 				TObject null_cell = new TObject(ob.TType, null);
-				IntegerVector original_set =
-								  SelectRows(column, Operator.Get("is not"), null_cell);
+				IList<int> original_set = SelectRows(column, Operator.Get("is not"), null_cell);
 				int vec_size = SysMath.Max(4, (original_set.Count - like_set.Count) + 4);
-				IntegerVector result_set = new IntegerVector(vec_size);
-				like_set.QuickSort();
+				List<int> result_set = new List<int>(vec_size);
+				like_set.Sort();
 				int size = original_set.Count;
 				for (int i = 0; i < size; ++i) {
 					int val = original_set[i];
 					// If val not in like set, add to result
-					if (like_set.SortedIntCount(val) == 0) {
-						result_set.AddInt(val);
+					if (like_set.BinarySearch(val) == 0) {
+						result_set.Add(val);
 					}
 				}
 				return result_set;
@@ -1710,9 +1708,8 @@ namespace Deveel.Data {
 		/// <param name="column"></param>
 		/// <param name="table"></param>
 		/// <returns></returns>
-		internal virtual IntegerVector AllRowsIn(int column, Table table) {
-			IntegerVector iv = INHelper.In(this, table, column, 0);
-			return iv;
+		internal virtual IList<int> AllRowsIn(int column, Table table) {
+			return INHelper.In(this, table, column, 0);
 		}
 
 		/// <summary>
@@ -1722,7 +1719,7 @@ namespace Deveel.Data {
 		/// <param name="column"></param>
 		/// <param name="table"></param>
 		/// <returns></returns>
-		internal virtual IntegerVector AllRowsNotIn(int column, Table table) {
+		internal virtual IList<int> AllRowsNotIn(int column, Table table) {
 			return INHelper.NotIn(this, table, column, 0);
 		}
 
@@ -1732,7 +1729,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		public IntegerVector SelectAll(int column) {
+		public IList<int> SelectAll(int column) {
 			SelectableScheme ss = GetSelectableSchemeFor(column, column, this);
 			return ss.SelectAll();
 		}
@@ -1762,7 +1759,7 @@ namespace Deveel.Data {
 		/// The range array must be normalized (no overlapping ranges).
 		/// </remarks>
 		/// <returns></returns>
-		public IntegerVector SelectRange(int column, SelectableRange[] ranges) {
+		public IList<int> SelectRange(int column, SelectableRange[] ranges) {
 			SelectableScheme ss = GetSelectableSchemeFor(column, column, this);
 			return ss.SelectRange(ranges);
 		}
@@ -1773,7 +1770,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		public IntegerVector SelectLast(int column) {
+		public IList<int> SelectLast(int column) {
 			SelectableScheme ss = GetSelectableSchemeFor(column, column, this);
 			return ss.SelectLast();
 		}
@@ -1784,7 +1781,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		public IntegerVector SelectFirst(int column) {
+		public IList<int> SelectFirst(int column) {
 			SelectableScheme ss = GetSelectableSchemeFor(column, column, this);
 			return ss.SelectFirst();
 		}
@@ -1795,7 +1792,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		public IntegerVector SelectRest(int column) {
+		public IList<int> SelectRest(int column) {
 			SelectableScheme ss = GetSelectableSchemeFor(column, column, this);
 			return ss.SelectNotFirst();
 		}
@@ -1819,7 +1816,7 @@ namespace Deveel.Data {
 		/// in the set or <b>null</b> if there are no items in the column set.
 		/// </returns>
 		public TObject GetFirstCellContent(int column) {
-			IntegerVector ivec = SelectFirst(column);
+			IList<int> ivec = SelectFirst(column);
 			if (ivec.Count > 0) {
 				return GetCellContents(column, ivec[0]);
 			}
@@ -1850,7 +1847,7 @@ namespace Deveel.Data {
 		/// null if there are no items in the column set.
 		/// </returns>
 		public TObject GetLastCellContent(int column) {
-			IntegerVector ivec = SelectLast(column);
+			IList<int> ivec = SelectLast(column);
 			if (ivec.Count > 0) {
 				return GetCellContents(column, ivec[0]);
 			}
@@ -1881,7 +1878,7 @@ namespace Deveel.Data {
 		/// same value, otherwise returns <b>null</b>.
 		/// </returns>
 		public TObject GetSingleCellContent(int column) {
-			IntegerVector ivec = SelectFirst(column);
+			IList<int> ivec = SelectFirst(column);
 			int sz = ivec.Count;
 			if (sz == RowCount && sz > 0) {
 				return GetCellContents(column, ivec[0]);
@@ -1916,7 +1913,7 @@ namespace Deveel.Data {
 		/// for the given column, otherwise <b>false</b>.
 		/// </returns>
 		public bool ColumnContainsCell(int column, TObject cell) {
-			IntegerVector ivec = SelectRows(column, Operator.Get("="), cell);
+			IList<int> ivec = SelectRows(column, Operator.Get("="), cell);
 			return ivec.Count > 0;
 		}
 

@@ -22,6 +22,18 @@ namespace Deveel.Data {
 	/// removal of rows.
 	/// </summary>
 	public interface IMutableTableDataSource : ITableDataSource, IDisposable {
+		/// <summary>
+		/// Returns a journal that details the changes to this data source 
+		/// since it was created.
+		/// </summary>
+		/// <remarks>
+		/// This method may return a <b>null</b> object to denote that no
+		/// logging is being done. If this returns a <see cref="MasterTableJournal"/>, 
+		/// then all <see cref="AddRow"/> and <see cref="RemoveRow"/> method calls and their relative
+		/// order will be described in this journal.
+		/// </remarks>
+		MasterTableJournal Journal { get; }
+
 
 		/// <summary>
 		/// Adds a row to the source.
@@ -61,7 +73,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Updates a row in the source.
 		/// </summary>
-		/// <param name="row_index">Index of the row to update.</param>
+		/// <param name="rowIndex">Index of the row to update.</param>
 		/// <param name="dataRow">Row data to update.</param>
 		/// <remarks>
 		/// This will make a permanent change to the underlying data structure.
@@ -77,7 +89,7 @@ namespace Deveel.Data {
 		/// If the row index not being a valid reference to a record in this 
 		/// data source.
 		/// </exception>
-		int UpdateRow(int row_index, DataRow dataRow);
+		int UpdateRow(int rowIndex, DataRow dataRow);
 
 		/// <summary>
 		/// Flushes all changes made on this table to the backing
@@ -122,19 +134,6 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		void ConstraintIntegrityCheck();
-
-		/// <summary>
-		/// Returns a journal that details the changes to this data source 
-		/// since it was created.
-		/// </summary>
-		/// <remarks>
-		/// This method may return a <b>null</b> object to denote that no
-		/// logging is being done. If this returns a <see cref="MasterTableJournal"/>, 
-		/// then all <see cref="AddRow"/> and <see cref="RemoveRow"/> method calls and their relative
-		/// order will be described in this journal.
-		/// </remarks>
-		MasterTableJournal Journal { get; }
-
 
 		/// <summary>
 		/// Puts this source under a 'root lock'.

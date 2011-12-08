@@ -14,9 +14,9 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
-using Deveel.Math;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -109,7 +109,7 @@ namespace Deveel.Data {
 		/// Returns a list of row indices (as <see cref="IntegerVector"/>)
 		/// from the underlying table which equal to the given <paramref name="cell"/>.
 		/// </returns>
-		public IntegerVector SelectEqual(int column, TObject cell) {
+		public IList<int> SelectEqual(int column, TObject cell) {
 			return table.GetColumnScheme(column).SelectEqual(cell);
 		}
 
@@ -128,7 +128,7 @@ namespace Deveel.Data {
 		/// Returns a list of row indices (as <see cref="IntegerVector"/>)
 		/// from the underlying table which equal to the given <paramref name="value"/>.
 		/// </returns>
-		public IntegerVector SelectEqual(int column, Object value) {
+		public IList<int> SelectEqual(int column, Object value) {
 			TType ttype = table_def[column].TType;
 			TObject cell = new TObject(ttype, value);
 			return SelectEqual(column, cell);
@@ -146,11 +146,10 @@ namespace Deveel.Data {
 		/// Returns a list of row indices (as <see cref="IntegerVector"/>)
 		/// from the underlying table which equal to the given caluse.
 		/// </returns>
-		public IntegerVector SelectEqual(int col1, TObject cell1,
-												int col2, TObject cell2) {
+		public IList<int> SelectEqual(int col1, TObject cell1, int col2, TObject cell2) {
 
 			// All the indexes that equal the first clause
-			IntegerVector ivec = table.GetColumnScheme(col1).SelectEqual(cell1);
+			IList<int> ivec = table.GetColumnScheme(col1).SelectEqual(cell1);
 
 			// From this, remove all the indexes that don't equals the second clause.
 			int index = ivec.Count - 1;
@@ -158,7 +157,7 @@ namespace Deveel.Data {
 				// If the value in column 2 at this index is not equal to value then
 				// remove it from the list and move to the next.
 				if (Get(col2, ivec[index]).CompareTo(cell2) != 0) {
-					ivec.RemoveIntAt(index);
+					ivec.RemoveAt(index);
 				}
 				--index;
 			}
@@ -183,8 +182,7 @@ namespace Deveel.Data {
 		/// Returns a list of row indices (as <see cref="IntegerVector"/>)
 		/// from the underlying table which equal to the given caluse.
 		/// </returns>
-		public IntegerVector SelectEqual(int col1, Object val1,
-												int col2, Object val2) {
+		public IList<int> SelectEqual(int col1, Object val1, int col2, Object val2) {
 			TType t1 = table_def[col1].TType;
 			TType t2 = table_def[col2].TType;
 
@@ -208,7 +206,7 @@ namespace Deveel.Data {
 		/// If multiple rows were found.
 		/// </exception>
 		public bool Exists(int col, Object val) {
-			IntegerVector ivec = SelectEqual(col, val);
+			IList<int> ivec = SelectEqual(col, val);
 			if (ivec.Count == 0) {
 				return false;
 			} else if (ivec.Count == 1) {
@@ -235,7 +233,7 @@ namespace Deveel.Data {
 		/// </exception>
 		public Object GetVariable(int value_column, int key_column, Object key_value) {
 			// All indexes in the table where the key value is found.
-			IntegerVector ivec = SelectEqual(key_column, key_value);
+			IList<int> ivec = SelectEqual(key_column, key_value);
 			if (ivec.Count > 1) {
 				throw new ApplicationException("Assertion failed: GetVariable found multiple key values.");
 			} else if (ivec.Count == 0) {
@@ -282,7 +280,7 @@ namespace Deveel.Data {
 			IMutableTableDataSource mtable = (IMutableTableDataSource)table;
 
 			// All indexes in the table where the key value is found.
-			IntegerVector ivec = SelectEqual(key_column, vals[key_column]);
+			IList<int> ivec = SelectEqual(key_column, vals[key_column]);
 			if (ivec.Count > 1) {
 				throw new ApplicationException("Assertion failed: SetVariable found multiple key values.");
 			} else if (ivec.Count == 1) {
@@ -316,7 +314,7 @@ namespace Deveel.Data {
 			// Cast to a IMutableTableDataSource
 			IMutableTableDataSource mtable = (IMutableTableDataSource)table;
 
-			IntegerVector ivec = SelectEqual(col, val);
+			IList<int> ivec = SelectEqual(col, val);
 			if (ivec.Count == 0) {
 				return false;
 			} else if (ivec.Count == 1) {
@@ -337,12 +335,12 @@ namespace Deveel.Data {
 		/// <exception cref="InvalidOperationException">
 		/// If the underlying table is not a <see cref="IMutableTableDataSource"/>.
 		/// </exception>
-		public void DeleteRows(IntegerVector list) {
+		public void DeleteRows(IEnumerable<int> list) {
 			// Cast to a IMutableTableDataSource
 			IMutableTableDataSource mtable = (IMutableTableDataSource)table;
 
-			for (int i = 0; i < list.Count; ++i) {
-				mtable.RemoveRow(list[i]);
+			foreach (int rowIndex in list) {
+				mtable.RemoveRow(rowIndex);
 			}
 		}
 

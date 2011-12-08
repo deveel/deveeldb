@@ -157,10 +157,11 @@ namespace Deveel.Data {
 
 		// ---------- Overwritten from GTDataSource ----------
 
-		protected override void Dispose() {
-			base.Dispose();
-			key_value_pairs = null;
-			database = null;
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				key_value_pairs = null;
+				database = null;
+			}
 		}
 
 		// ---------- Static ----------

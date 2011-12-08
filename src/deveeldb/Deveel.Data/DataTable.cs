@@ -15,8 +15,8 @@
 
 
 using System;
+using System.Collections.Generic;
 
-using Deveel.Data.Collections;
 using Deveel.Diagnostics;
 
 using SysMath = System.Math;
@@ -192,8 +192,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private void CheckInExclusiveMode() {
 			if (!IsInExclusiveMode) {
-				Debug.WriteException(new Exception(
-				                     	"Performed exclusive operation on table and not in exclusive mode!"));
+				Debug.WriteException(new Exception("Performed exclusive operation on table and not in exclusive mode!"));
 			}
 		}
 
@@ -272,12 +271,11 @@ namespace Deveel.Data {
 		// -------- Methods implemented for DefaultDataTable --------
 
 		/// <inheritdoc/>
-		internal override void SetToRowTableDomain(int column, IntegerVector row_set, ITableDataSource ancestor) {
+		internal override void SetToRowTableDomain(int column, IList<int> rowSet, ITableDataSource ancestor) {
 			CheckReadLock();  // Read op
 
-			if (ancestor != this && ancestor != dataSource) {
+			if (ancestor != this && ancestor != dataSource)
 				throw new Exception("Method routed to incorrect table ancestor.");
-			}
 		}
 
 		/// <summary>
@@ -478,10 +476,10 @@ namespace Deveel.Data {
 		public int Delete(Table table, int limit) {
 			CheckReadWriteLock();  // Write op
 
-			IntegerVector rowSet = new IntegerVector(table.RowCount);
+			List<int> rowSet = new List<int>(table.RowCount);
 			IRowEnumerator e = table.GetRowEnumerator();
 			while (e.MoveNext()) {
-				rowSet.AddInt(e.RowIndex);
+				rowSet.Add(e.RowIndex);
 			}
 
 			// HACKY: Find the first column of this table in the search table.  This
@@ -498,7 +496,7 @@ namespace Deveel.Data {
 
 			// row_set may contain duplicate row indices, therefore we must sort so
 			// any duplicates are grouped and therefore easier to find.
-			rowSet.QuickSort();
+			rowSet.Sort();
 
 			// If limit less than zero then limit is whole set.
 			if (limit < 0)
@@ -634,10 +632,10 @@ namespace Deveel.Data {
 			CheckReadWriteLock();  // Write op
 
 			// Get the rows from the input table.
-			IntegerVector rowSet = new IntegerVector();
+			List<int> rowSet = new List<int>();
 			IRowEnumerator e = table.GetRowEnumerator();
 			while (e.MoveNext()) {
-				rowSet.AddInt(e.RowIndex);
+				rowSet.Add(e.RowIndex);
 			}
 
 			// HACKY: Find the first column of this table in the search table.  This

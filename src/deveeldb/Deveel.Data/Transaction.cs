@@ -17,7 +17,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Data.Collections;
 using Deveel.Data.QueryPlanning;
 using Deveel.Diagnostics;
 
@@ -271,7 +270,7 @@ namespace Deveel.Data {
 		/// of the column.
 		/// </remarks>
 		/// <returns></returns>
-		private static String[] ToColumns(SimpleTableQuery dt, IntegerVector cols) {
+		private static String[] ToColumns(SimpleTableQuery dt, IList<int> cols) {
 			int size = cols.Count;
 			String[] list = new String[size];
 

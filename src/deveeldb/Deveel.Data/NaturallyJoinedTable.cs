@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Collections;
 
@@ -126,7 +127,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		protected override void ResolveAllRowsForTableAt(IntegerVector row_set, int table_num) {
+		protected override void ResolveAllRowsForTableAt(IList<int> row_set, int table_num) {
 			bool pick_right_table = (table_num == 1);
 			for (int n = row_set.Count - 1; n >= 0; --n) {
 				int aa = row_set[n];
@@ -137,7 +138,7 @@ namespace Deveel.Data {
 				} else {
 					parent_row = GetLeftRowIndex(aa / right_row_count);
 				}
-				row_set.SetIntAt(parent_row, n);
+				row_set[n] = parent_row;
 			}
 		}
 	}

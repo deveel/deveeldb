@@ -28,7 +28,7 @@ namespace Deveel.Data {
 	/// on disk, the column definitions, primary keys/foreign keys, and any 
 	/// check constraints.
 	/// </remarks>
-	public class DataTableDef {
+	public sealed class DataTableDef {
 		/// <summary>
 		///  A TableName object that represents this data table def.
 		/// </summary>

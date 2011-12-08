@@ -95,8 +95,7 @@ namespace Deveel.Data {
 		// ---------- Overwritten from GTDataSource ----------
 
 		/// <inheritdoc/>
-		protected override void Dispose() {
-			base.Dispose();
+		protected override void Dispose(bool disposing) {
 			key_value_pairs = null;
 			database = null;
 		}

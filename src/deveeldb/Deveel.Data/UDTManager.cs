@@ -15,8 +15,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
-using Deveel.Data.Collections;
 using Deveel.Data.Text;
 
 namespace Deveel.Data {
@@ -62,7 +62,7 @@ namespace Deveel.Data {
 			// let's check to see if another type with the same name 
 			// already exists within this schema...
 			using (SimpleTableQuery query = new SimpleTableQuery(udt)) {
-				IntegerVector ivec = query.SelectEqual(1, TObject.CreateString(typeName.Schema), 2, TObject.CreateString(typeName.Name));
+				IList<int> ivec = query.SelectEqual(1, TObject.CreateString(typeName.Schema), 2, TObject.CreateString(typeName.Name));
 				if (ivec.Count > 0)
 					throw new Exception("User-defined type with name '" + typeName + "' already exists.");
 			}
@@ -120,7 +120,7 @@ namespace Deveel.Data {
 			// first we must check if the type we're trying to delete a type
 			// referenced by other subtypes...
 			using(SimpleTableQuery query = new SimpleTableQuery(udt)) {
-				IntegerVector ivec = query.SelectEqual(4, id);
+				IList<int> ivec = query.SelectEqual(4, id);
 				if (ivec.Count > 0)
 					throw new Exception("Cannot drop a type that is the parent of other types.");
 			}
@@ -162,7 +162,7 @@ namespace Deveel.Data {
 
 			using(SimpleTableQuery query = new SimpleTableQuery(udt)) {
 				// get the row identified by the id returned earlier
-				IntegerVector ivec = query.SelectEqual(0, id);
+				IList<int> ivec = query.SelectEqual(0, id);
 				int row = ivec[0];
 
 				// whether the type is final
@@ -181,7 +181,7 @@ namespace Deveel.Data {
 			type = new UserType(parentType, typeName, attributes);
 
 			using(SimpleTableQuery query = new SimpleTableQuery(udtCols)) {
-				IntegerVector ivec = query.SelectEqual(0, parent_id);
+				IList<int> ivec = query.SelectEqual(0, parent_id);
 				for (int i = 0; i < ivec.Count; i++) {
 					string name = (string) query.Get(1, i);
 
@@ -212,7 +212,7 @@ namespace Deveel.Data {
 			IMutableTableDataSource udt = transaction.GetTable(TableDataConglomerate.UdtTable);
 
 			using (SimpleTableQuery query = new SimpleTableQuery(udt)) {
-				IntegerVector ivec = query.SelectEqual(0, id);
+				IList<int> ivec = query.SelectEqual(0, id);
 				if (ivec.Count == 0)
 					throw new Exception("The type with id '" + id + "' was not found.");
 
@@ -285,7 +285,7 @@ namespace Deveel.Data {
 			// already exists within this schema...
 			int id;
 			using (SimpleTableQuery query = new SimpleTableQuery(udt_table)) {
-				IntegerVector ivec = query.SelectEqual(1, TObject.CreateString(typeName.Schema), 2, TObject.CreateString(typeName.Name));
+				IList<int> ivec = query.SelectEqual(1, TObject.CreateString(typeName.Schema), 2, TObject.CreateString(typeName.Name));
 				if (ivec.Count == 0)
 					throw new Exception("User-defined type with name '" + typeName + "' not found.");
 
@@ -306,7 +306,7 @@ namespace Deveel.Data {
 			// let's check to see if another type with the same name 
 			// already exists within this schema...
 			using (SimpleTableQuery query = new SimpleTableQuery(udt)) {
-				IntegerVector ivec = query.SelectEqual(1, TObject.CreateString(typeName.Schema), 2, TObject.CreateString(typeName.Name));
+				IList<int> ivec = query.SelectEqual(1, TObject.CreateString(typeName.Schema), 2, TObject.CreateString(typeName.Name));
 				return ivec.Count > 0;
 			}
 		}
