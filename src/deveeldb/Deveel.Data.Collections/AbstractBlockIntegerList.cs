@@ -47,7 +47,7 @@ namespace Deveel.Data.Collections {
 	/// </para>
 	/// <para>
 	/// <b>Note:</b> The following methods are <b>not</b> optimal:
-	/// <see cref="this[int]"/>, <see cref="Add(int, int)"/>, 
+	/// <see cref="Item(int)"/>, <see cref="Add(int, int)"/>, 
 	/// <see cref="RemoveAt(int)"/>.<br/>
 	/// Specifically, they slow as the specified <i>index</i> nears the end of large lists.
 	/// </para>

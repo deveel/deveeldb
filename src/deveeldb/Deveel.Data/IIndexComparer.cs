@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 
-namespace Deveel.Data.Collections {
+using Deveel.Data.Collections;
+
+namespace Deveel.Data {
 	/// <summary>
 	/// A comparer that is used within <see cref="BlockIntegerList"/> that 
 	/// compares two integer values which are indices to data that is being 
@@ -27,7 +28,7 @@ namespace Deveel.Data.Collections {
 	/// indices to cells in the column of a table.  To make a sorted list, we use 
 	/// this comparator to lookup the index values in the list for sorting and searching.
 	/// </remarks>
-	public interface IIndexComparer : IComparer {
+	public interface IIndexComparer {
 		/// <summary>
 		/// 
 		/// </summary>
