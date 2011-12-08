@@ -16,7 +16,6 @@
 using System;
 
 using Deveel.Data.Caching;
-using Deveel.Data.Collections;
 using Deveel.Data.Store;
 
 using Deveel.Diagnostics;
@@ -582,7 +581,7 @@ namespace Deveel.Data {
 		/// <see cref="ITableDataSource.GetColumnScheme"/> method.
 		/// </remarks>
 		/// <returns></returns>
-		protected ITableDataSource GetMinimalTableDataSource(IIntegerList masterIndex) {
+		protected ITableDataSource GetMinimalTableDataSource(IIndex masterIndex) {
 			// Make a ITableDataSource that represents the master table over this
 			// index.
 			return new MinimalTableDataSource(this, masterIndex);
@@ -844,9 +843,9 @@ namespace Deveel.Data {
 
 		private class MinimalTableDataSource : ITableDataSource {
 			private readonly MasterTableDataSource mtds;
-			private readonly IIntegerList masterIndex;
+			private readonly IIndex masterIndex;
 
-			public MinimalTableDataSource(MasterTableDataSource mtds, IIntegerList masterIndex) {
+			public MinimalTableDataSource(MasterTableDataSource mtds, IIndex masterIndex) {
 				this.mtds = mtds;
 				this.masterIndex = masterIndex;
 			}
@@ -871,7 +870,7 @@ namespace Deveel.Data {
 				// NOTE: Returns iterator across master index before journal entry
 				//   changes.
 				// Get an iterator across the row list.
-				IIntegerIterator iterator = masterIndex.GetIterator();
+				IIndexEnumerator iterator = masterIndex.GetEnumerator();
 				// Wrap it around a IRowEnumerator object.
 				return new RowEnumerator(iterator);
 			}
@@ -885,11 +884,11 @@ namespace Deveel.Data {
 			}
 
 			private class RowEnumerator : IRowEnumerator {
-				public RowEnumerator(IIntegerIterator iterator) {
+				public RowEnumerator(IIndexEnumerator iterator) {
 					this.iterator = iterator;
 				}
 
-				private readonly IIntegerIterator iterator;
+				private readonly IIndexEnumerator iterator;
 
 				public bool MoveNext() {
 					return iterator.MoveNext();
@@ -903,7 +902,7 @@ namespace Deveel.Data {
 				}
 
 				public int RowIndex {
-					get { return iterator.Next; }
+					get { return iterator.Current; }
 				}
 			}
 		}

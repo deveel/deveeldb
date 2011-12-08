@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using Deveel.Data.Collections;
+using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -394,15 +394,15 @@ namespace Deveel.Data {
 			// EFFICIENCY: This is a brute force iterative search.  Perhaps there is
 			//   a faster way of handling this?
 
-			BlockIntegerList i_list = new BlockIntegerList(search_case);
-			IIntegerIterator iterator = i_list.GetIterator(0, i_list.Count - 1);
+			BlockIndex i_list = new BlockIndex(search_case);
+			IIndexEnumerator enumerator = i_list.GetEnumerator(0, i_list.Count - 1);
 
-			while (iterator.MoveNext()) {
+			while (enumerator.MoveNext()) {
 
 				// Get the expression (the contents of the cell at the given column, row)
 
 				bool pattern_matches = false;
-				TObject cell = table.GetCellContents(column, iterator.Next);
+				TObject cell = table.GetCellContents(column, enumerator.Current);
 				// Null values doesn't match with anything
 				if (!cell.IsNull) {
 					String expression = cell.Object.ToString();
@@ -413,7 +413,7 @@ namespace Deveel.Data {
 				}
 				if (!pattern_matches) {
 					// If pattern does not match then remove this row from the search.
-					iterator.Remove();
+					enumerator.Remove();
 				}
 
 			}

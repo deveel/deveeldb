@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Collections;
+using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -48,7 +48,7 @@ namespace Deveel.Data {
 		/// This is sorted from min to max (not sorted by row number - sorted 
 		/// by entity row value).
 		/// </remarks>
-		private IIntegerList set_list;
+		private IIndex set_list;
 
 		/// <summary>
 		/// If this is true, then this <see cref="SelectableScheme"/> records additional 
@@ -77,7 +77,7 @@ namespace Deveel.Data {
 
 		public InsertSearch(ITableDataSource table, int column)
 			: base(table, column) {
-			set_list = new BlockIntegerList();
+			set_list = new BlockIndex();
 
 			// The internal comparator that enables us to sort and lookup on the data
 			// in this column.
@@ -111,7 +111,7 @@ namespace Deveel.Data {
 		/// <param name="column"></param>
 		/// <param name="list">A sorted list, with a low to high direction order, that is used to
 		/// set the scheme. This should not be used again after it is passed to this constructor.</param>
-		internal InsertSearch(ITableDataSource table, int column, IIntegerList list)
+		internal InsertSearch(ITableDataSource table, int column, IIndex list)
 			: this(table, column) {
 			this.set_list = list;
 
@@ -139,7 +139,7 @@ namespace Deveel.Data {
 				set_list = from.set_list;
 				DEBUG_immutable_set_size = set_list.Count;
 			} else {
-				set_list = new BlockIntegerList(from.set_list);
+				set_list = new BlockIndex(from.set_list);
 			}
 
 			// Do we generate lookup caches?
@@ -290,9 +290,9 @@ namespace Deveel.Data {
 			if (ivec == null) {
 				ivec = new List<int>((end - start) + 2);
 			}
-			IIntegerIterator i = set_list.GetIterator(start, end);
+			IIndexEnumerator i = set_list.GetEnumerator(start, end);
 			while (i.MoveNext()) {
-				ivec.Add(i.Next);
+				ivec.Add(i.Current);
 			}
 			return ivec;
 		}

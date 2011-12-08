@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using Deveel.Data.Collections;
 using Deveel.Data.Store;
 using Deveel.Data.Util;
 using Deveel.Diagnostics;
@@ -923,7 +922,7 @@ namespace Deveel.Data {
 			Create(tableId, srcMasterTable.TableInfo);
 
 			// The record list.
-			IIntegerList masterIndex = indexSet.GetIndex(0);
+			IIndex masterIndex = indexSet.GetIndex(0);
 
 			// For each row input the master table
 			int sz = srcMasterTable.RawRowCount;

@@ -510,6 +510,24 @@ namespace Deveel.Data {
 			}
 		}
 
+		/// <summary>
+		/// Copies the data from each block into the given int[] array.
+		/// </summary>
+		/// <param name="array"></param>
+		/// <param name="offset"></param>
+		/// <param name="length"></param>
+		/// <remarks>
+		/// The int[] array must be big enough to fit all the data in this list.
+		/// </remarks>
+		internal void CopyToArray(int[] array, int offset, int length) {
+			if (array.Length < length || (offset + length) > Count)
+				throw new ApplicationException("Size mismatch.");
+
+			foreach (IBlockIndexBlock block in blocks) {
+				offset += block.CopyTo(array, offset);
+			}
+		}
+
 		public void Insert(int index, int value) {
 			CheckImmutable();
 

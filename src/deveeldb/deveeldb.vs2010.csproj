@@ -75,7 +75,7 @@
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
-    <Compile Include="Deveel.Data.Collections\ListUtil.cs" />
+    <Compile Include="Deveel.Data.Util\ListUtil.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseCallBack.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Protocol\ILocalBootable.cs" />
@@ -130,6 +130,9 @@
     <Compile Include="Deveel.Data\IIndex.cs" />
     <Compile Include="Deveel.Data\IBlockIndexBlock.cs" />
     <Compile Include="Deveel.Data\IIndexEnumerator.cs" />
+    <Compile Include="Deveel.Data\IndexSetStore_Index.cs" />
+    <Compile Include="Deveel.Data\IndexSetStore_IndexBlock.cs" />
+    <Compile Include="Deveel.Data\IndexSetStore_SnapshotIndexSet.cs" />
     <Compile Include="Deveel.Data\JournalCommandType.cs" />
     <Compile Include="Deveel.Data\MasterTableDataSource_Diagnostics.cs" />
     <Compile Include="Deveel.Data\MasterTableDataSource_Indexes.cs" />
@@ -147,12 +150,7 @@
     <Compile Include="Deveel.Data.Client\StreamDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Client\TCPStreamDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Client\TriggerEventArgs.cs" />
-    <Compile Include="Deveel.Data.Collections\AbstractBlockIntegerList.cs" />
-    <Compile Include="Deveel.Data.Collections\BlockIntegerList.cs" />
     <Compile Include="Deveel.Data\IIndexComparer.cs" />
-    <Compile Include="Deveel.Data.Collections\IIntegerIterator.cs" />
-    <Compile Include="Deveel.Data.Collections\IIntegerList.cs" />
-    <Compile Include="Deveel.Data.Collections\IntegerListBlockInterface.cs" />
     <Compile Include="Deveel.Data.Control\ConfigKeys.cs" />
     <Compile Include="Deveel.Data.Control\DbConfig.cs" />
     <Compile Include="Deveel.Data.Control\DbController.cs" />
@@ -542,7 +540,6 @@
   <ItemGroup>
     <None Include="Deveel.Data.Client\ChangeLog" />
     <None Include="Deveel.Data.Client\DeveelDbProcedureTrigger.cs.old" />
-    <None Include="Deveel.Data.Collections\ChangeLog" />
     <None Include="Deveel.Data.Control\ChangeLog" />
     <None Include="Deveel.Data.Functions\ChangeLog" />
     <None Include="Deveel.Data.Server\ChangeLog" />

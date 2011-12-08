@@ -16,7 +16,6 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Collections;
 using Deveel.Data.Util;
 using Deveel.Diagnostics;
 
@@ -57,7 +56,7 @@ namespace Deveel.Data {
 
 					// Get the master index of rows in this table
 					IIndexSet indexSet = CreateIndexSet();
-					IIntegerList masterIndex = indexSet.GetIndex(0);
+					IIndex masterIndex = indexSet.GetIndex(0);
 
 					// NOTE: We assume the index information is correct and that the
 					//   allocation information is potentially bad.

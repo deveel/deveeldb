@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 
-using Deveel.Data.Collections;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {

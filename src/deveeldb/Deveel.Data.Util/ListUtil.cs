@@ -15,23 +15,25 @@
 
 using System.Collections.Generic;
 
-namespace Deveel.Data.Collections {
+namespace Deveel.Data.Util {
 	static class ListUtil {
-		public static IList<int> ToList(IIntegerList i_list) {
-			if (i_list is AbstractBlockIntegerList) {
-				AbstractBlockIntegerList bilist = (AbstractBlockIntegerList)i_list;
+		public static IList<int> ToList(IIndex index) {
+			/*
+			if (index is BlockIndexBase) {
+				BlockIndexBase bilist = (BlockIndexBase)index;
 				int bill_size = bilist.Count;
 				int[] bill = new int[bill_size];
-				bilist.CopyToArray(bill, 0, bill_size);
+				bilist.CopyTo(bill, 0, bill_size);
 				return new List<int>(bill);
 			}
+			*/
 
-			List<int> list = new List<int>(i_list.Count);
-			IIntegerIterator i = i_list.GetIterator();
+			List<int> list = new List<int>(index.Count);
+			IIndexEnumerator i = index.GetEnumerator();
 			// NOTE: We are guarenteed the size of the 'list' array matches the size
 			//   of input list.
 			while (i.MoveNext()) {
-				list.Add(i.Next);
+				list.Add(i.Current);
 			}
 
 			return list;

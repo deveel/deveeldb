@@ -16,7 +16,6 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Collections;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {
@@ -48,7 +47,7 @@ namespace Deveel.Data {
 		/// NOTE: This list shouldn't get too large.  If it does, we should clear it
 		///   and toggle the 'full_sweep_due' variable to true.
 		/// </summary>
-		private BlockIntegerList deletedRows;
+		private BlockIndex deletedRows;
 
 		// The time when the last garbage collection event occurred.
 		private DateTime lastGarbageSuccessEvent;
@@ -57,7 +56,7 @@ namespace Deveel.Data {
 		internal MasterTableGC(MasterTableDataSource dataSource) {
 			this.dataSource = dataSource;
 			fullSweepDue = false;
-			deletedRows = new BlockIntegerList();
+			deletedRows = new BlockIndex();
 			lastGarbageSuccessEvent = DateTime.Now;
 			lastGarbageTryEvent = DateTime.MinValue;
 		}
@@ -99,7 +98,7 @@ namespace Deveel.Data {
 		public void MarkFullSweep() {
 			fullSweepDue = true;
 			if (deletedRows.Count > 0) {
-				deletedRows = new BlockIntegerList();
+				deletedRows = new BlockIndex();
 			}
 		}
 
@@ -149,15 +148,14 @@ namespace Deveel.Data {
 							int size = deletedRows.Count;
 							if (size > 0) {
 								// Go remove all rows marked as deleted.
-								for (int i = 0; i < size; ++i) {
-									int rowIndex = deletedRows[i];
+								foreach (int rowIndex in deletedRows) {
 									// Synchronized in dataSource.
 									dataSource.HardRemoveRow(rowIndex);
 									++deleteCount;
 									++checkCount;
 								}
 							}
-							deletedRows = new BlockIntegerList();
+							deletedRows = new BlockIndex();
 						}
 
 						if (checkCount > 0) {

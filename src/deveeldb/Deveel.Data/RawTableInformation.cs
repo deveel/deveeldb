@@ -17,8 +17,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Data.Collections;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// This object represents the lowest level <see cref="DataTable"/> information 

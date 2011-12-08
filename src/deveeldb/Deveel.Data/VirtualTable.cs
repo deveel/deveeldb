@@ -16,8 +16,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Collections;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// Representation of a table whose rows are actually physically 

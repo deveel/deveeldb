@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Data.Collections;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// A set of list of indexes.
@@ -32,6 +30,6 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="index"></param>
 		/// <returns></returns>
-		IIntegerList GetIndex(int index);
+		IIndex GetIndex(int index);
 	}
 }

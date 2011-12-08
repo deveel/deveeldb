@@ -17,8 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using Deveel.Data.Collections;
-
 namespace Deveel.Data {
 	public abstract partial class MasterTableDataSource {
 		/// <summary>
@@ -287,7 +285,7 @@ namespace Deveel.Data {
 			/// The index that represents the rows that are within this
 			/// table data source within this transaction.
 			/// </summary>
-			private IIntegerList row_list;
+			private IIndex row_list;
 
 			/// <summary>
 			/// The 'recovery point' to which the schemes in this table source have
@@ -493,7 +491,7 @@ namespace Deveel.Data {
 			/// <remarks>
 			/// This will request this information from the master source.
 			/// </remarks>
-			private IIntegerList RowIndexList {
+			private IIndex RowIndexList {
 				get {
 					if (row_list == null) {
 						row_list = index_set.GetIndex(0);
@@ -583,17 +581,17 @@ namespace Deveel.Data {
 				// Ensure the row list is up to date.
 				EnsureRowIndexListCurrent();
 				// Get an iterator across the row list.
-				IIntegerIterator iterator = RowIndexList.GetIterator();
+				IIndexEnumerator iterator = RowIndexList.GetEnumerator();
 				// Wrap it around a IRowEnumerator object.
 				return new RowEnumerationImpl(iterator);
 			}
 
 			private class RowEnumerationImpl : IRowEnumerator {
-				public RowEnumerationImpl(IIntegerIterator iterator) {
+				public RowEnumerationImpl(IIndexEnumerator iterator) {
 					this.iterator = iterator;
 				}
 
-				private readonly IIntegerIterator iterator;
+				private readonly IIndexEnumerator iterator;
 
 				public bool MoveNext() {
 					return iterator.MoveNext();
@@ -607,7 +605,7 @@ namespace Deveel.Data {
 				}
 
 				public int RowIndex {
-					get { return iterator.Next; }
+					get { return iterator.Current; }
 				}
 			}
 			public TObject GetCellContents(int column, int row) {

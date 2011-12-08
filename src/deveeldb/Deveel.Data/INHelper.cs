@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Collections;
+using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -70,7 +70,7 @@ namespace Deveel.Data {
 			// cells in the large table's column, then we should include the row in our
 			// final result.
 
-			BlockIntegerList result_rows = new BlockIntegerList();
+			BlockIndex result_rows = new BlockIndex();
 			IRowEnumerator e = small_table.GetRowEnumerator();
 			Operator EQUALSOP = Operator.Get("=");
 

@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Data.Collections;
-
 namespace Deveel.Data {
 	public abstract partial class MasterTableDataSource {
 		/// <summary>
@@ -112,7 +110,7 @@ namespace Deveel.Data {
 
 					// Get the index from the index set and set up the new InsertSearch
 					// scheme.
-					IIntegerList indexList = indexSet.GetIndex(dataIndexInfo.Pointer);
+					IIndex indexList = indexSet.GetIndex(dataIndexInfo.Pointer);
 					return new InsertSearch(table, colIndex, indexList);
 				}
 
@@ -144,7 +142,7 @@ namespace Deveel.Data {
 				int rowCount = RawRowCount;
 
 				// Master index is always on index position 0
-				IIntegerList masterIndex = indexSet.GetIndex(0);
+				IIndex masterIndex = indexSet.GetIndex(0);
 
 				// First, update the master index
 				for (int rowIndex = 0; rowIndex < rowCount; ++rowIndex) {
@@ -188,7 +186,7 @@ namespace Deveel.Data {
 				IIndexSet indexSet = CreateIndexSet();
 
 				// Master index is always on index position 0
-				IIntegerList masterIndex = indexSet.GetIndex(0);
+				IIndex masterIndex = indexSet.GetIndex(0);
 				// A minimal ITableDataSource for constructing the indexes
 				ITableDataSource minTableSource = GetMinimalTableDataSource(masterIndex);
 

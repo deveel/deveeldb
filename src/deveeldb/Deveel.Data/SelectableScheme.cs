@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using Deveel.Data.Collections;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {
@@ -44,15 +43,15 @@ namespace Deveel.Data {
 	/// </para>
 	/// </remarks>
 	public abstract class SelectableScheme {
-		private static readonly BlockIntegerList EmptyList;
-		private static readonly BlockIntegerList OneList;
+		private static readonly BlockIndex EmptyList;
+		private static readonly BlockIndex OneList;
 
 		static SelectableScheme() {
-			EmptyList = new BlockIntegerList();
-			EmptyList.SetImmutable();
-			OneList = new BlockIntegerList();
+			EmptyList = new BlockIndex();
+			EmptyList.IsReadOnly = true;
+			OneList = new BlockIndex();
 			OneList.Add(0);
-			OneList.SetImmutable();
+			OneList.IsReadOnly = true;
 		}
 
 		/// <summary>
@@ -220,7 +219,7 @@ namespace Deveel.Data {
 		/// Returns a <see cref="BlockIntegerList"/> that represents the given 
 		/// <paramref name="rowSet"/> sorted in the order of this scheme.
 		/// </returns>
-		public IIntegerList InternalOrderIndexSet(IList<int> rowSet) {
+		public IIndex InternalOrderIndexSet(IList<int> rowSet) {
 			// The length of the set to order
 			int rowSetLength = rowSet.Count;
 
@@ -233,7 +232,7 @@ namespace Deveel.Data {
 
 			// This will be 'row set' sorted by its entry lookup.  This must only
 			// contain indices to rowSet entries.
-			BlockIntegerList newSet = new BlockIntegerList();
+			BlockIndex newSet = new BlockIndex();
 
 			if (rowSetLength <= 250000) {
 				// If the subset is less than or equal to 250,000 elements, we generate
@@ -346,7 +345,7 @@ namespace Deveel.Data {
 
 			// Generates an IntegerVector which contains indices into 'rowSet' in
 			// sorted order.
-			IIntegerList new_set = InternalOrderIndexSet(rowSet);
+			IIndex new_set = InternalOrderIndexSet(rowSet);
 
 			// Our 'new_set' should be the same size as 'rowSet'
 			if (new_set.Count != rowSet.Count) {

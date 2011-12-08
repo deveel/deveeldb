@@ -17,8 +17,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Data.Collections;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// The list of all primitive operations to the database that a transaction

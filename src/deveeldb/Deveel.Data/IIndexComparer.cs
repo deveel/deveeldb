@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Data.Collections;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// A comparer that is used within <see cref="BlockIntegerList"/> that 
