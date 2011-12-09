@@ -29,7 +29,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The merged rows.
 		/// </summary>
-		public IList<int>[] outer_rows;
+		public readonly IList<int>[] outer_rows;
 
 		/// <summary>
 		/// The row count of the outer rows.
@@ -104,7 +104,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column,
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn,
 												Table table) {
 
 			if (column_scheme[column] == null) {
@@ -116,7 +116,7 @@ namespace Deveel.Data {
 			if (table == this) {
 				return column_scheme[column];
 			} else {
-				return column_scheme[column].GetSubsetScheme(table, original_column);
+				return column_scheme[column].GetSubsetScheme(table, originalColumn);
 			}
 
 		}

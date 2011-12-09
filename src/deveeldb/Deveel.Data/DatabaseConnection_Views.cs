@@ -33,8 +33,8 @@ namespace Deveel.Data {
 		/// the view to be visible to other transactions.
 		/// </remarks>
 		/// <exception cref="DatabaseException"/>
-		public void CreateView(SqlQuery query, ViewDef view) {
-			CheckAllowCreate(view.DataTableDef.TableName);
+		public void CreateView(SqlQuery query, View view) {
+			CheckAllowCreate(view.TableInfo.TableName);
 
 			try {
 				view_manager.DefineView(view, query, User);

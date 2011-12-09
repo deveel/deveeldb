@@ -28,37 +28,37 @@ namespace Deveel.Data {
 	/// </summary>
 	/// <remarks>
 	/// It is an object that can be easily serialized and deserialized to/from 
-	/// the system view table. It contains the <see cref="Data.DataTableDef"/>
+	/// the system view table. It contains the <see cref="DataTableInfo"/>
 	/// that describes the characteristics of the view result, and a
 	/// <see cref="IQueryPlanNode"/> that describes 
 	/// how the view can be constructed.
 	/// </remarks>
-	public class ViewDef {
-
+	public sealed class View {
 		/// <summary>
-		/// The <see cref="DataTableDef"/> object that describes the view column def.
+		/// The <see cref="DataTableInfo"/> object that describes the view.
 		/// </summary>
-		private readonly DataTableDef view_def;
+		private readonly DataTableInfo viewInfo;
 
 		/// <summary>
 		/// The <see cref="IQueryPlanNode"/> that is used to evaluate the view.
 		/// </summary>
-		private readonly IQueryPlanNode view_query_node;
+		private readonly IQueryPlanNode queryNode;
 
 		///<summary>
 		///</summary>
-		///<param name="view_def"></param>
-		///<param name="query_node"></param>
-		public ViewDef(DataTableDef view_def, IQueryPlanNode query_node) {
-			this.view_def = view_def;
-			this.view_query_node = query_node;
+		///<param name="viewInfo"></param>
+		///<param name="queryNode"></param>
+		public View(DataTableInfo viewInfo, IQueryPlanNode queryNode) {
+			this.viewInfo = viewInfo;
+			this.queryNode = queryNode;
 		}
 
 		///<summary>
-		/// Returns the DataTableDef for this view.
+		/// Returns the <see cref="DataTableInfo"/> object describing the 
+		/// structure of this view.
 		///</summary>
-		public DataTableDef DataTableDef {
-			get { return view_def; }
+		public DataTableInfo TableInfo {
+			get { return viewInfo; }
 		}
 
 		///<summary>
@@ -68,7 +68,7 @@ namespace Deveel.Data {
 		public IQueryPlanNode QueryPlanNode {
 			get {
 				try {
-					return (IQueryPlanNode) view_query_node.Clone();
+					return (IQueryPlanNode) queryNode.Clone();
 				} catch (Exception e) {
 					throw new Exception("Clone error: " + e.Message);
 				}
@@ -76,7 +76,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Forms this ViewDef object into a serialized ByteLongObject object 
+		/// Forms this View object into a serialized ByteLongObject object 
 		/// that can be stored in a table.
 		/// </summary>
 		/// <returns></returns>
@@ -86,8 +86,8 @@ namespace Deveel.Data {
 				BinaryWriter output = new BinaryWriter(byte_out, Encoding.Unicode);
 				// Write the version number
 				output.Write(1);
-				// Write the DataTableDef
-				DataTableDef.Write(output);
+				// Write the DataTableInfo
+				TableInfo.Write(output);
 				// Serialize the IQueryPlanNode
 				BinaryFormatter formatter = new BinaryFormatter();
 				MemoryStream obj_stream = new MemoryStream();
@@ -107,20 +107,20 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Creates an instance of ViewDef from the serialized information 
+		/// Creates an instance of View from the serialized information 
 		/// stored in the blob.
 		/// </summary>
 		/// <param name="blob"></param>
 		/// <returns></returns>
-		internal static ViewDef DeserializeFromBlob(IBlobAccessor blob) {
+		internal static View DeserializeFromBlob(IBlobAccessor blob) {
 			Stream blob_in = blob.GetInputStream();
 			try {
 				BinaryReader input = new BinaryReader(blob_in, Encoding.Unicode);
 				// Read the version
 				int version = input.ReadInt32();
 				if (version == 1) {
-					DataTableDef view_def = DataTableDef.Read(input);
-					view_def.SetImmutable();
+					DataTableInfo viewInfo = DataTableInfo.Read(input);
+					viewInfo.SetImmutable();
 					int length = input.ReadInt32();
 					byte[] buf = new byte[length];
 					input.Read(buf, 0, length);
@@ -130,9 +130,9 @@ namespace Deveel.Data {
 					formatter.Binder = new ViewBinder();
 					IQueryPlanNode view_plan = (IQueryPlanNode)formatter.Deserialize(obj_stream);
 					obj_stream.Close();
-					return new ViewDef(view_def, view_plan);
+					return new View(viewInfo, view_plan);
 				} else {
-					throw new IOException("Newer ViewDef version serialization: " + version);
+					throw new IOException("Newer View version serialization: " + version);
 				}
 
 			} catch (IOException e) {
@@ -144,7 +144,7 @@ namespace Deveel.Data {
 
 		private class ViewBinder : SerializationBinder {
 			public override Type BindToType(string assemblyName, string typeName) {
-				Assembly currAssembly = Assembly.GetAssembly(typeof (ViewDef));
+				Assembly currAssembly = Assembly.GetAssembly(typeof (View));
 				string name = currAssembly.GetName().Name;
 				if (assemblyName.StartsWith(name)) {
 					assemblyName = currAssembly.GetName().FullName;

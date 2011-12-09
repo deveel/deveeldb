@@ -15,10 +15,10 @@
 
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
-	public sealed class DataTableConstraintDef {
+	public sealed class DataTableConstraintInfo {
 		/// <summary>
 		/// The name of the constraint.
 		/// </summary>
@@ -27,24 +27,24 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The type of this constraint.
 		/// </summary>
-		private ConstraintType type;
+		private readonly ConstraintType type;
 
 		/// <summary>
 		/// In case of a <see cref="ConstraintType.Check"/> constraint,
 		/// this is the expression to check.
 		/// </summary>
-		private Expression check_expression;
+		private Expression checkExpression;
 		
 		/// <summary>
 		/// The serializable plain check expression as originally parsed
 		/// </summary>
-		internal Expression original_check_expression;
+		internal Expression OriginalCheckExpression;
 
 		// The first column list
-		private ArrayList columns;
+		private List<string> columns;
 
 		// The second column list
-		private ArrayList refColumns = new ArrayList();
+		private List<string> refColumns = new List<string>();
 
 		// The name of the table if referenced.
 		private string refTableName;
@@ -59,7 +59,7 @@ namespace Deveel.Data {
 		// ( By default we are 'initially immediate deferrable' )
 		private ConstraintDeferrability deferred = ConstraintDeferrability.InitiallyImmediate;
 
-		private DataTableConstraintDef(ConstraintType type) {
+		private DataTableConstraintInfo(ConstraintType type) {
 			this.type = type;
 		}
 
@@ -92,19 +92,11 @@ namespace Deveel.Data {
 		}
 
 		public string [] Columns {
-			get { return (string[]) columns.ToArray(typeof(string)); }
-		}
-
-		internal ArrayList ColumnsList {
-			get { return columns; }
+			get { return columns.ToArray(); }
 		}
 
 		public string [] ReferencedColumns {
-			get { return (string[]) refColumns.ToArray(typeof(string)); }
-		}
-
-		internal ArrayList ReferencedColumnsList {
-			get { return refColumns; }
+			get { return refColumns.ToArray(); }
 		}
 
 		/// <summary>
@@ -116,14 +108,14 @@ namespace Deveel.Data {
 		/// the user tries to set this property.
 		/// </exception>
 		public Expression CheckExpression {
-			get { return check_expression; }
+			get { return checkExpression; }
 			set {
 				if (type != ConstraintType.Check)
 					throw new ArgumentException("Cannot set the value of this constraint.");
 
-				check_expression = value;
+				checkExpression = value;
 				try {
-					original_check_expression = (Expression)value.Clone();
+					OriginalCheckExpression = (Expression)value.Clone();
 				} catch (Exception e) {
 					throw new ApplicationException(e.Message);
 				}
@@ -139,37 +131,37 @@ namespace Deveel.Data {
 			refTableName = tableName;
 		}
 
-		public static DataTableConstraintDef PrimaryKey(string name, string[] columnNames) {
-			DataTableConstraintDef constraint = new DataTableConstraintDef(ConstraintType.PrimaryKey);
+		public static DataTableConstraintInfo PrimaryKey(string name, string[] columnNames) {
+			DataTableConstraintInfo constraint = new DataTableConstraintInfo(ConstraintType.PrimaryKey);
 			constraint.name = name;
-			constraint.columns = new ArrayList(columnNames);
+			constraint.columns = new List<string>(columnNames);
 			return constraint;
 		}
 
-		public static DataTableConstraintDef Unique(string name, string[] columnNames) {
-			DataTableConstraintDef constraint = new DataTableConstraintDef(ConstraintType.Unique);
+		public static DataTableConstraintInfo Unique(string name, string[] columnNames) {
+			DataTableConstraintInfo constraint = new DataTableConstraintInfo(ConstraintType.Unique);
 			constraint.name = name;
-			constraint.columns = new ArrayList(columnNames);
+			constraint.columns = new List<string>(columnNames);
 			return constraint;
 		}
 
-		public static DataTableConstraintDef ForeignKey(string name, string[] columns, string refTableName, string[] refColumns, 
+		public static DataTableConstraintInfo ForeignKey(string name, string[] columns, string refTableName, string[] refColumns, 
 			ConstraintAction onDelete, ConstraintAction onUpdate) {
-			DataTableConstraintDef constraint = new DataTableConstraintDef(ConstraintType.ForeignKey);
+			DataTableConstraintInfo constraint = new DataTableConstraintInfo(ConstraintType.ForeignKey);
 			constraint.name = name;
-			constraint.columns = new ArrayList(columns);
+			constraint.columns = new List<string>(columns);
 			constraint.refTableName = refTableName;
-			constraint.refColumns = new ArrayList(refColumns);
+			constraint.refColumns = new List<string>(refColumns);
 			constraint.deleteRule = onDelete;
 			constraint.updateRule = onUpdate;
 			return constraint;
 		}
 
-		public static DataTableConstraintDef Check(string name, Expression expression) {
-			DataTableConstraintDef constraint = new DataTableConstraintDef(ConstraintType.Check);
+		public static DataTableConstraintInfo Check(string name, Expression expression) {
+			DataTableConstraintInfo constraint = new DataTableConstraintInfo(ConstraintType.Check);
 			constraint.name = name;
-			constraint.check_expression = expression;
-			constraint.original_check_expression = expression;
+			constraint.checkExpression = expression;
+			constraint.OriginalCheckExpression = expression;
 			return constraint;
 		}
 	}

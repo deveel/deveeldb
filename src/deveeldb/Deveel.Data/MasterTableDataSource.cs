@@ -97,15 +97,15 @@ namespace Deveel.Data {
 		// ---------- Persistant data ----------
 
 		/// <summary>
-		/// A DataTableDef object that describes the table topology.  This includes
+		/// A DataTableInfo object that describes the table topology.  This includes
 		/// the name and columns of the table.
 		/// </summary>
-		private DataTableDef tableInfo;
+		private DataTableInfo tableInfo;
 
 		/// <summary>
-		/// A DataIndexSetDef object that describes the indexes on the table.
+		/// A DataIndexSetInfo object that describes the indexes on the table.
 		/// </summary>
-		private DataIndexSetDef indexInfo;
+		private DataIndexSetInfo indexInfo;
 
 		/// <summary>
 		/// A cached TableName for this data source.
@@ -231,22 +231,22 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the DataTableDef object that represents the topology of this
+		/// Returns the DataTableInfo object that represents the topology of this
 		/// table data source (name, columns, etc).
 		/// </summary>
 		/// <remarks>
 		/// This information can't be changed during the lifetime of a data source.
 		/// </remarks>
-		public DataTableDef TableInfo {
+		public DataTableInfo TableInfo {
 			get { return tableInfo; }
 			protected set { tableInfo = value; }
 		}
 
 		/// <summary>
-		/// Returns the <see cref="DataIndexSetDef"/> object that represents 
+		/// Returns the <see cref="DataIndexSetInfo"/> object that represents 
 		/// the indexes on this table.
 		/// </summary>
-		public DataIndexSetDef IndexSetInfo {
+		public DataIndexSetInfo IndexSetInfo {
 			get { return indexInfo; }
 			protected set { indexInfo = value; }
 		}
@@ -428,8 +428,8 @@ namespace Deveel.Data {
 		/// This will initialise the various objects and result input a new empty 
 		/// master table to store data input.
 		/// </remarks>
-		public void Create(int id, DataTableDef info) {
-			// Set the data table def object
+		public void Create(int id, DataTableInfo info) {
+			// Set the data table info object
 			SetTableInfo(info);
 
 			// Load internal state
@@ -588,14 +588,14 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Sets up the DataTableDef.
+		/// Sets up the DataTableInfo.
 		/// </summary>
 		/// <param name="info"></param>
 		/// <remarks>
 		/// This would typically only ever be called from the <i>create</i>
 		/// method.
 		/// </remarks>
-		protected void SetTableInfo(DataTableDef info) {
+		protected void SetTableInfo(DataTableInfo info) {
 			lock (this) {
 				// Check table_id isn't too large.
 				if ((tableId & 0x0F0000000) != 0)
@@ -606,7 +606,7 @@ namespace Deveel.Data {
 				// Create table indices
 				tableIndices = new MultiVersionTableIndices(System, this);
 
-				// Setup the DataIndexSetDef
+				// Setup the DataIndexSetInfo
 				SetIndexSetInfo();
 			}
 		}
@@ -854,7 +854,7 @@ namespace Deveel.Data {
 				get { return mtds.system; }
 			}
 
-			public DataTableDef TableInfo {
+			public DataTableInfo TableInfo {
 				get { return mtds.TableInfo; }
 			}
 

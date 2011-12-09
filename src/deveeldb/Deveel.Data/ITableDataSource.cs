@@ -41,7 +41,7 @@ namespace Deveel.Data {
 		/// <value>
 		/// This may return 'null' if there is no table definition.
 		/// </value>
-		DataTableDef TableInfo { get; }
+		DataTableInfo TableInfo { get; }
 
 		///<summary>
 		/// Returns the number of rows in this data source.

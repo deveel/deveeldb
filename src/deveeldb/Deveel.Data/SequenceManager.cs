@@ -17,9 +17,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Diagnostics;
-using Deveel.Math;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// Manages the creation and removal of sequence keys, and offers access 
@@ -40,7 +37,7 @@ namespace Deveel.Data {
 		/// to the object that manages this sequence (SequenceGenerator).
 		/// (TableName) -> (SequenceGenerator)
 		/// </summary>
-		private readonly Hashtable sequence_key_map;
+		private readonly Dictionary<TableName, SequenceGenerator> sequenceKeyMap;
 
 		/// <summary>
 		/// A static TObject that represents numeric 1.
@@ -54,7 +51,7 @@ namespace Deveel.Data {
 
 		internal SequenceManager(TableDataConglomerate conglomerate) {
 			this.conglomerate = conglomerate;
-			sequence_key_map = new Hashtable();
+			sequenceKeyMap = new Dictionary<TableName, SequenceGenerator>();
 		}
 
 		/// <summary>
@@ -74,36 +71,34 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		private SequenceGenerator GetGenerator(TableName name) {
 			// Is the generator already in the cache?
-			SequenceGenerator generator =
-									 (SequenceGenerator)sequence_key_map[name];
+			SequenceGenerator generator;
 
-			if (generator == null) {
+			if (!sequenceKeyMap.TryGetValue(name, out generator)) {
 				// This sequence generator is not in the cache so we need to query the
 				// sequence table for this.
-				Transaction sequence_access_transaction = GetTransaction();
+				Transaction sequenceAccessTransaction = GetTransaction();
 				try {
-					IMutableTableDataSource seqi =
-						  sequence_access_transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+					IMutableTableDataSource seqi = sequenceAccessTransaction.GetTable(TableDataConglomerate.SysSequenceInfo);
 					SimpleTableQuery query = new SimpleTableQuery(seqi);
 
-					StringObject schema_val = StringObject.FromString(name.Schema);
-					StringObject name_val = StringObject.FromString(name.Name);
-					IList<int> ivec = query.SelectEqual(2, name_val, 1, schema_val);
+					StringObject schemaVal = StringObject.FromString(name.Schema);
+					StringObject nameVal = StringObject.FromString(name.Name);
+					IList<int> list = query.SelectEqual(2, nameVal, 1, schemaVal);
 
-					if (ivec.Count == 0) {
+					if (list.Count == 0) {
 						throw new StatementException("Sequence generator '" + name +
 													 "' not found.");
-					} else if (ivec.Count > 1) {
+					} else if (list.Count > 1) {
 						throw new Exception("Assert failed: multiple sequence keys with same name.");
 					}
 
-					int row_i = ivec[0];
-					TObject sid = seqi.GetCellContents(0, row_i);
-					TObject sschema = seqi.GetCellContents(1, row_i);
-					TObject sname = seqi.GetCellContents(2, row_i);
-					TObject stype = seqi.GetCellContents(3, row_i);
+					int rowIndex = list[0];
+					TObject sid = seqi.GetCellContents(0, rowIndex);
+					TObject sschema = seqi.GetCellContents(1, rowIndex);
+					TObject sname = seqi.GetCellContents(2, rowIndex);
+					TObject stype = seqi.GetCellContents(3, rowIndex);
 
-					long id_val = sid.ToBigNumber().ToInt64();
+					long idVal = sid.ToBigNumber().ToInt64();
 
 					query.Dispose();
 
@@ -111,55 +106,47 @@ namespace Deveel.Data {
 					// (stype == 1) == true
 					if (stype.IsEqual(OneVal).ValuesEqual(TrueVal)) {
 						// Native generator.
-						generator = new SequenceGenerator(id_val, name);
+						generator = new SequenceGenerator(idVal, name);
 					} else {
 						// Query the sequence table.
-						IMutableTableDataSource seq =
-							sequence_access_transaction.GetTable(TableDataConglomerate.SysSequence);
+						IMutableTableDataSource seq = sequenceAccessTransaction.GetTable(TableDataConglomerate.SysSequence);
 						query = new SimpleTableQuery(seq);
 
-						ivec = query.SelectEqual(0, sid);
+						list = query.SelectEqual(0, sid);
 
-						if (ivec.Count == 0) {
-							throw new Exception(
-									  "Sequence table does not contain sequence information.");
-						}
-						if (ivec.Count > 1) {
-							throw new Exception(
-										"Sequence table contains multiple generators for id.");
-						}
+						if (list.Count == 0)
+							throw new Exception("Sequence table does not contain sequence information.");
+						if (list.Count > 1)
+							throw new Exception("Sequence table contains multiple generators for id.");
 
-						row_i = ivec[0];
-						BigNumber last_value = seq.GetCellContents(1, row_i).ToBigNumber();
-						BigNumber increment = seq.GetCellContents(2, row_i).ToBigNumber();
-						BigNumber minvalue = seq.GetCellContents(3, row_i).ToBigNumber();
-						BigNumber maxvalue = seq.GetCellContents(4, row_i).ToBigNumber();
-						BigNumber start = seq.GetCellContents(5, row_i).ToBigNumber();
-						BigNumber cache = seq.GetCellContents(6, row_i).ToBigNumber();
-						bool cycle = seq.GetCellContents(7, row_i).ToBoolean();
+						rowIndex = list[0];
+						BigNumber lastValue = seq.GetCellContents(1, rowIndex).ToBigNumber();
+						BigNumber increment = seq.GetCellContents(2, rowIndex).ToBigNumber();
+						BigNumber minvalue = seq.GetCellContents(3, rowIndex).ToBigNumber();
+						BigNumber maxvalue = seq.GetCellContents(4, rowIndex).ToBigNumber();
+						BigNumber start = seq.GetCellContents(5, rowIndex).ToBigNumber();
+						BigNumber cache = seq.GetCellContents(6, rowIndex).ToBigNumber();
+						bool cycle = seq.GetCellContents(7, rowIndex).ToBoolean();
 
 						query.Dispose();
 
-						generator = new SequenceGenerator(id_val, name,
-							   last_value.ToInt64(), increment.ToInt64(),
+						generator = new SequenceGenerator(idVal, name,
+							   lastValue.ToInt64(), increment.ToInt64(),
 							   minvalue.ToInt64(), maxvalue.ToInt64(), start.ToInt64(),
 							   cache.ToInt64(), cycle);
 
 						// Put the generator in the cache
-						sequence_key_map[name] = generator;
-
+						sequenceKeyMap[name] = generator;
 					}
-
 				} finally {
 					// Make sure we always close and commit the transaction.
 					try {
-						sequence_access_transaction.Commit();
+						sequenceAccessTransaction.Commit();
 					} catch (TransactionException e) {
 						conglomerate.Debug.WriteException(e);
 						throw new Exception("Transaction Error: " + e.Message);
 					}
 				}
-
 			}
 
 			// Return the generator
@@ -176,39 +163,39 @@ namespace Deveel.Data {
 		/// </remarks>
 		private void UpdateGeneratorState(SequenceGenerator generator) {
 			// We need to update the sequence key state.
-			Transaction sequence_access_transaction = GetTransaction();
+			Transaction sequenceAccessTransaction = GetTransaction();
 			try {
 				// The sequence table
-				IMutableTableDataSource seq = sequence_access_transaction.GetTable(
+				IMutableTableDataSource seq = sequenceAccessTransaction.GetTable(
 												  TableDataConglomerate.SysSequence);
 				// Find the row with the id for this generator.
 				SimpleTableQuery query = new SimpleTableQuery(seq);
-				IList<int> ivec = query.SelectEqual(0, (BigNumber)generator.id);
+				IList<int> list = query.SelectEqual(0, (BigNumber)generator.Id);
 				// Checks
-				if (ivec.Count == 0) {
-					throw new StatementException("Sequence '" + generator.name + "' not found.");
-				} else if (ivec.Count > 1) {
+				if (list.Count == 0) {
+					throw new StatementException("Sequence '" + generator.Name + "' not found.");
+				} else if (list.Count > 1) {
 					throw new Exception("Assert failed: multiple id for sequence.");
 				}
 
 				// Get the row position
-				int row_i = ivec[0];
+				int rowIndex = list[0];
 
 				// Create the DataRow
 				DataRow dataRow = new DataRow(seq);
 
 				// Set the content of the row data
-				dataRow.SetValue(0, TObject.CreateInt8(generator.id));
-				dataRow.SetValue(1, TObject.CreateInt8(generator.last_value));
-				dataRow.SetValue(2, TObject.CreateInt8(generator.increment_by));
-				dataRow.SetValue(3, TObject.CreateInt8(generator.min_value));
-				dataRow.SetValue(4, TObject.CreateInt8(generator.max_value));
-				dataRow.SetValue(5, TObject.CreateInt8(generator.start));
-				dataRow.SetValue(6, TObject.CreateInt8(generator.cache));
-				dataRow.SetValue(7, TObject.CreateBoolean(generator.cycle));
+				dataRow.SetValue(0, TObject.CreateInt8(generator.Id));
+				dataRow.SetValue(1, TObject.CreateInt8(generator.LastValue));
+				dataRow.SetValue(2, TObject.CreateInt8(generator.IncrementBy));
+				dataRow.SetValue(3, TObject.CreateInt8(generator.MinValue));
+				dataRow.SetValue(4, TObject.CreateInt8(generator.MaxValue));
+				dataRow.SetValue(5, TObject.CreateInt8(generator.Start));
+				dataRow.SetValue(6, TObject.CreateInt8(generator.Cache));
+				dataRow.SetValue(7, TObject.CreateBoolean(generator.Cycle));
 
 				// Update the row
-				seq.UpdateRow(row_i, dataRow);
+				seq.UpdateRow(rowIndex, dataRow);
 
 				// Dispose the resources
 				query.Dispose();
@@ -216,7 +203,7 @@ namespace Deveel.Data {
 			} finally {
 				// Close and commit the transaction
 				try {
-					sequence_access_transaction.Commit();
+					sequenceAccessTransaction.Commit();
 				} catch (TransactionException e) {
 					conglomerate.Debug.WriteException(e);
 					throw new Exception("Transaction Error: " + e.Message);
@@ -235,7 +222,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void FlushGenerator(TableName name) {
 			lock (this) {
-				sequence_key_map.Remove(name);
+				sequenceKeyMap.Remove(name);
 			}
 		}
 
@@ -243,7 +230,7 @@ namespace Deveel.Data {
 		/// Adds an entry to the Sequence table for a native table in the database.
 		/// </summary>
 		/// <param name="transaction"></param>
-		/// <param name="table_name"></param>
+		/// <param name="tableName"></param>
 		/// <remarks>
 		/// This acts as a gateway between the native sequence table function and 
 		/// the custom sequence generator. 
@@ -251,25 +238,23 @@ namespace Deveel.Data {
 		/// have native sequence generators and thus not have an entry in the 
 		/// sequence table.
 		/// </remarks>
-		internal static void AddNativeTableGenerator(Transaction transaction, TableName table_name) {
+		internal static void AddNativeTableGenerator(Transaction transaction, TableName tableName) {
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// We can't add or remove native tables
-			if (table_name.Equals(TableDataConglomerate.SysSequence) ||
-				table_name.Equals(TableDataConglomerate.SysSequenceInfo) ||
+			if (tableName.Equals(TableDataConglomerate.SysSequence) ||
+				tableName.Equals(TableDataConglomerate.SysSequenceInfo) ||
 				!transaction.TableExists(TableDataConglomerate.SysSequence) ||
 				!transaction.TableExists(TableDataConglomerate.SysSequenceInfo)) {
 				return;
 			}
 
-			IMutableTableDataSource table =
-						transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
-			long unique_id =
-					transaction.NextUniqueID(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource table = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+			long uniqueId = transaction.NextUniqueID(TableDataConglomerate.SysSequenceInfo);
 
 			DataRow dataRow = new DataRow(table);
-			dataRow.SetValue(0, unique_id);
-			dataRow.SetValue(1, table_name.Schema);
-			dataRow.SetValue(2, table_name.Name);
+			dataRow.SetValue(0, uniqueId);
+			dataRow.SetValue(1, tableName.Schema);
+			dataRow.SetValue(2, tableName.Name);
 			dataRow.SetValue(3, 1);
 			table.AddRow(dataRow);
 
@@ -279,84 +264,75 @@ namespace Deveel.Data {
 		/// Removes an entry in the Sequence table for a native table in the database.
 		/// </summary>
 		/// <param name="transaction"></param>
-		/// <param name="table_name"></param>
-		internal static void RemoveNativeTableGenerator(Transaction transaction, TableName table_name) {
+		/// <param name="tableName"></param>
+		internal static void RemoveNativeTableGenerator(Transaction transaction, TableName tableName) {
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// We can't add or remove native tables
-			if (table_name.Equals(TableDataConglomerate.SysSequence) ||
-				table_name.Equals(TableDataConglomerate.SysSequenceInfo) ||
+			if (tableName.Equals(TableDataConglomerate.SysSequence) ||
+				tableName.Equals(TableDataConglomerate.SysSequenceInfo) ||
 				!transaction.TableExists(TableDataConglomerate.SysSequence) ||
 				!transaction.TableExists(TableDataConglomerate.SysSequenceInfo)) {
 				return;
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			IMutableTableDataSource seq =
-							 transaction.GetTable(TableDataConglomerate.SysSequence);
-			IMutableTableDataSource seqi =
-						transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource seq = transaction.GetTable(TableDataConglomerate.SysSequence);
+			IMutableTableDataSource seqi = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
 
 			SimpleTableQuery query = new SimpleTableQuery(seqi);
-			IList<int> ivec =
-				query.SelectEqual(2, TObject.CreateString(table_name.Name),
-										 1, TObject.CreateString(table_name.Schema));
+			IList<int> list = query.SelectEqual(2, TObject.CreateString(tableName.Name),
+			                                    1, TObject.CreateString(tableName.Schema));
 
 			// Remove the corresponding entry in the SEQUENCE table
-			for (int i = 0; i < ivec.Count; ++i) {
-				int row_i = ivec[i];
-				TObject sid = seqi.GetCellContents(0, row_i);
+			foreach (int rowIndex in list) {
+				TObject sid = seqi.GetCellContents(0, rowIndex);
 
 				SimpleTableQuery query2 = new SimpleTableQuery(seq);
-				IList<int> ivec2 = query2.SelectEqual(0, sid);
-				for (int n = 0; n < ivec2.Count; ++n) {
+				IList<int> list2 = query2.SelectEqual(0, sid);
+				foreach (int rowIndex2 in list2) {
 					// Remove entry from the sequence table.
-					seq.RemoveRow(ivec2[n]);
+					seq.RemoveRow(rowIndex2);
 				}
 
 				// Remove entry from the sequence info table
-				seqi.RemoveRow(row_i);
+				seqi.RemoveRow(rowIndex);
 
 				query2.Dispose();
-
 			}
 
 			query.Dispose();
 
 		}
 
-		internal static bool SequenceGeneratorExists(Transaction transaction, TableName table_name) {
+		internal static bool SequenceGeneratorExists(Transaction transaction, TableName tableName) {
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// we can't create the sequence generator
 			if (!transaction.TableExists(TableDataConglomerate.SysSequence) ||
-				!transaction.TableExists(TableDataConglomerate.SysSequenceInfo)) {
+			    !transaction.TableExists(TableDataConglomerate.SysSequenceInfo)) {
 				throw new Exception("System sequence tables do not exist.");
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			IMutableTableDataSource seq =
-							 transaction.GetTable(TableDataConglomerate.SysSequence);
-			IMutableTableDataSource seqi =
-						transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource seq = transaction.GetTable(TableDataConglomerate.SysSequence);
+			IMutableTableDataSource seqi = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
 
 			// All rows in 'sequence_info' that match this table name.
-			SimpleTableQuery query = new SimpleTableQuery(seqi);
-			IList<int> ivec = query.SelectEqual(2, TObject.CreateString(table_name.Name),
-										 1, TObject.CreateString(table_name.Schema));
-
-			query.Dispose();
-
-			return ivec.Count > 0;
+			using (SimpleTableQuery query = new SimpleTableQuery(seqi)) {
+				IList<int> list = query.SelectEqual(2, TObject.CreateString(tableName.Name),
+				                                    1, TObject.CreateString(tableName.Schema));
+				return list.Count > 0;
+			}
 		}
 
 		/// <summary>
 		/// Creates a new sequence generator with the given name and details.
 		/// </summary>
 		/// <param name="transaction"></param>
-		/// <param name="table_name"></param>
-		/// <param name="start_value"></param>
+		/// <param name="tableName"></param>
+		/// <param name="startValue"></param>
 		/// <param name="increment_by"></param>
-		/// <param name="min_value"></param>
-		/// <param name="max_value"></param>
+		/// <param name="minValue"></param>
+		/// <param name="maxValue"></param>
 		/// <param name="cache"></param>
 		/// <param name="cycle"></param>
 		/// <remarks>
@@ -364,8 +340,8 @@ namespace Deveel.Data {
 		/// with an existing database object.
 		/// </remarks>
 		internal static void CreateSequenceGenerator(Transaction transaction,
-					 TableName table_name, long start_value, long increment_by,
-					 long min_value, long max_value, long cache, bool cycle) {
+					 TableName tableName, long startValue, long increment_by,
+					 long minValue, long maxValue, long cache, bool cycle) {
 
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// we can't create the sequence generator
@@ -375,50 +351,48 @@ namespace Deveel.Data {
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			IMutableTableDataSource seq =
-							 transaction.GetTable(TableDataConglomerate.SysSequence);
-			IMutableTableDataSource seqi =
-						transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource seq = transaction.GetTable(TableDataConglomerate.SysSequence);
+			IMutableTableDataSource seqi = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
 
 			// All rows in 'sequence_info' that match this table name.
 			using (SimpleTableQuery query = new SimpleTableQuery(seqi)) {
 				IList<int> ivec =
-					query.SelectEqual(2, TObject.CreateString(table_name.Name),
-					                  1, TObject.CreateString(table_name.Schema));
+					query.SelectEqual(2, TObject.CreateString(tableName.Name),
+					                  1, TObject.CreateString(tableName.Schema));
 
 				if (ivec.Count > 0)
-					throw new Exception("Sequence generator with name '" + table_name + "' already exists.");
+					throw new Exception("Sequence generator with name '" + tableName + "' already exists.");
 
 				// Dispose the query object
 				// query.Dispose();
 			}
 
 			// Generate a unique id for the sequence info table
-			long unique_id = transaction.NextUniqueID(TableDataConglomerate.SysSequenceInfo);
+			long uniqueId = transaction.NextUniqueID(TableDataConglomerate.SysSequenceInfo);
 
 			// Insert the new row
 			DataRow dataRow = new DataRow(seqi);
-			dataRow.SetValue(0, unique_id);
-			dataRow.SetValue(1, table_name.Schema);
-			dataRow.SetValue(2, table_name.Name);
+			dataRow.SetValue(0, uniqueId);
+			dataRow.SetValue(1, tableName.Schema);
+			dataRow.SetValue(2, tableName.Name);
 			dataRow.SetValue(3, 2);
 			seqi.AddRow(dataRow);
 
 			// Insert into the SEQUENCE table.
 			dataRow = new DataRow(seq);
-			dataRow.SetValue(0, unique_id);
-			dataRow.SetValue(1, start_value);
+			dataRow.SetValue(0, uniqueId);
+			dataRow.SetValue(1, startValue);
 			dataRow.SetValue(2, increment_by);
-			dataRow.SetValue(3, min_value);
-			dataRow.SetValue(4, max_value);
-			dataRow.SetValue(5, start_value);
+			dataRow.SetValue(3, minValue);
+			dataRow.SetValue(4, maxValue);
+			dataRow.SetValue(5, startValue);
 			dataRow.SetValue(6, cache);
 			dataRow.SetValue(7, cycle);
 			seq.AddRow(dataRow);
 
 		}
 
-		 internal static void DropSequenceGenerator(Transaction transaction, TableName table_name) {
+		 internal static void DropSequenceGenerator(Transaction transaction, TableName tableName) {
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// we can't create the sequence generator
 			if (!transaction.TableExists(TableDataConglomerate.SysSequence) ||
@@ -427,7 +401,7 @@ namespace Deveel.Data {
 			}
 
 			// Remove the table generator (delete SEQUENCE_INFO and SEQUENCE entry)
-			RemoveNativeTableGenerator(transaction, table_name);
+			RemoveNativeTableGenerator(transaction, tableName);
 		}
 
 		 /// <summary>
@@ -443,31 +417,29 @@ namespace Deveel.Data {
 			lock (this) {
 				SequenceGenerator generator = GetGenerator(name);
 
-				if (generator.type == 1) {
+				if (generator.Type == 1)
 					// Native generator
-					return transaction.NextUniqueID(
-						new TableName(name.Schema, name.Name));
-				} else {
-					// Custom sequence generator
-					long current_val = generator.current_val;
+					return transaction.NextUniqueID(new TableName(name.Schema, name.Name));
 
-					// Increment the current value.
-					generator.IncrementCurrentValue();
+				// Custom sequence generator
+				long currentVal = generator.CurrentValue;
 
-					// Have we reached the current cached point?
-					if (current_val == generator.last_value) {
-						// Increment the generator
-						for (int i = 0; i < generator.cache; ++i) {
-							generator.IncrementLastValue();
-						}
+				// Increment the current value.
+				generator.IncrementCurrentValue();
 
-						// Update the state
-						UpdateGeneratorState(generator);
-
+				// Have we reached the current cached point?
+				if (currentVal == generator.LastValue) {
+					// Increment the generator
+					for (int i = 0; i < generator.Cache; ++i) {
+						generator.IncrementLastValue();
 					}
 
-					return generator.current_val;
+					// Update the state
+					UpdateGeneratorState(generator);
+
 				}
+
+				return generator.CurrentValue;
 			}
 		}
 
@@ -481,14 +453,12 @@ namespace Deveel.Data {
 			lock (this) {
 				SequenceGenerator generator = GetGenerator(name);
 
-				if (generator.type == 1) {
+				if (generator.Type == 1)
 					// Native generator
 					return transaction.NextUniqueID(new TableName(name.Schema, name.Name));
-				} else {
-					// Custom sequence generator
-					return generator.current_val;
-				}
 
+				// Custom sequence generator
+				return generator.CurrentValue;
 			}
 		}
 
@@ -502,20 +472,17 @@ namespace Deveel.Data {
 			lock (this) {
 				SequenceGenerator generator = GetGenerator(name);
 
-				if (generator.type == 1) {
+				if (generator.Type == 1) {
 					// Native generator
-					transaction.SetUniqueID(
-						new TableName(name.Schema, name.Name), value);
+					transaction.SetUniqueID(new TableName(name.Schema, name.Name), value);
 				} else {
 					// Custom sequence generator
-					generator.current_val = value;
-					generator.last_value = value;
+					generator.CurrentValue = value;
+					generator.LastValue = value;
 
 					// Update the state
 					UpdateGeneratorState(generator);
-
 				}
-
 			}
 		}
 
@@ -544,22 +511,22 @@ namespace Deveel.Data {
 			/// <summary>
 			/// The current value of this sequence generator.
 			/// </summary>
-			internal long current_val;
+			public long CurrentValue;
 
 			/// <summary>
 			/// The id value of this sequence key.
 			/// </summary>
-			internal long id;
+			public readonly long Id;
 
 			/// <summary>
 			/// The name of this sequence key.
 			/// </summary>
-			internal TableName name;
+			public readonly TableName Name;
 
 			/// <summary>
 			/// The type of this sequence key.
 			/// </summary>
-			internal int type;
+			public readonly int Type;
 
 			// The following values are only set if 'type' is not a native table
 			// sequence.
@@ -571,73 +538,73 @@ namespace Deveel.Data {
 			/// This value represents the value of the sequence key in 
 			/// the persistence medium.
 			/// </remarks>
-			internal long last_value;
+			public long LastValue;
 
 			/// <summary>
 			/// The number we increment the sequence key by.
 			/// </summary>
-			internal long increment_by;
+			public readonly long IncrementBy;
 
 			/// <summary>
 			/// The minimum value of the sequence key.
 			/// </summary>
-			internal long min_value;
+			public readonly long MinValue;
 
 			/// <summary>
 			/// The maximum value of the sequence key.
 			/// </summary>
-			internal long max_value;
+			public readonly long MaxValue;
 
 			/// <summary>
 			/// The start value of the sequence generator.
 			/// </summary>
-			internal long start;
+			public readonly long Start;
 
 			/// <summary>
 			/// How many values we cache.
 			/// </summary>
-			internal long cache;
+			public readonly long Cache;
 
 			/// <summary>
 			/// True if the sequence key is cycled.
 			/// </summary>
-			internal bool cycle;
+			public readonly bool Cycle;
 
-
-			internal SequenceGenerator(long id, TableName name) {
-				type = 1;
-				this.id = id;
-				this.name = name;
+			// native generators
+			public SequenceGenerator(long id, TableName name) {
+				Type = 1;
+				Id = id;
+				Name = name;
 			}
 
-			internal SequenceGenerator(long id, TableName name, long last_value,
-							  long increment_by, long min_value, long max_value,
+			internal SequenceGenerator(long id, TableName name, long lastValue,
+							  long incrementBy, long minValue, long maxValue,
 							  long start, long cache, bool cycle) {
-				type = 2;
-				this.id = id;
-				this.name = name;
-				this.last_value = last_value;
-				this.current_val = last_value;
-				this.increment_by = increment_by;
-				this.min_value = min_value;
-				this.max_value = max_value;
-				this.start = start;
-				this.cache = cache;
-				this.cycle = cycle;
+				Type = 2;
+				Id = id;
+				Name = name;
+				LastValue = lastValue;
+				CurrentValue = lastValue;
+				IncrementBy = incrementBy;
+				MinValue = minValue;
+				MaxValue = maxValue;
+				Start = start;
+				Cache = cache;
+				Cycle = cycle;
 			}
 
 			private long IncrementValue(long val) {
-				val += increment_by;
-				if (val > max_value) {
-					if (cycle) {
-						val = min_value;
+				val += IncrementBy;
+				if (val > MaxValue) {
+					if (Cycle) {
+						val = MinValue;
 					} else {
 						throw new StatementException("Sequence out of bounds.");
 					}
 				}
-				if (val < min_value) {
-					if (cycle) {
-						val = max_value;
+				if (val < MinValue) {
+					if (Cycle) {
+						val = MaxValue;
 					} else {
 						throw new StatementException("Sequence out of bounds.");
 					}
@@ -645,12 +612,12 @@ namespace Deveel.Data {
 				return val;
 			}
 
-			internal void IncrementCurrentValue() {
-				current_val = IncrementValue(current_val);
+			public void IncrementCurrentValue() {
+				CurrentValue = IncrementValue(CurrentValue);
 			}
 
-			internal void IncrementLastValue() {
-				last_value = IncrementValue(last_value);
+			public void IncrementLastValue() {
+				LastValue = IncrementValue(LastValue);
 			}
 		}
 
@@ -659,62 +626,59 @@ namespace Deveel.Data {
 		/// in a transaction.
 		/// </summary>
 		private sealed class SequenceInternalTableInfo : IInternalTableInfo {
-
-			Transaction transaction;
+			private readonly Transaction transaction;
 
 			internal SequenceInternalTableInfo(Transaction transaction) {
 				this.transaction = transaction;
 			}
 
-			private static DataTableDef createDataTableDef(String schema, String name) {
-				// Create the DataTableDef that describes this entry
-				DataTableDef def = new DataTableDef();
-				def.TableName = new TableName(schema, name);
+			private static DataTableInfo CreateTableInfo(string schema, string name) {
+				// Create the DataTableInfo that describes this entry
+				DataTableInfo info = new DataTableInfo();
+				info.TableName = new TableName(schema, name);
 
 				// Add column definitions
-				def.AddColumn(DataTableColumnDef.CreateNumericColumn("last_value"));
-				def.AddColumn(DataTableColumnDef.CreateNumericColumn("current_value"));
-				def.AddColumn(DataTableColumnDef.CreateNumericColumn("top_value"));
-				def.AddColumn(DataTableColumnDef.CreateNumericColumn("increment_by"));
-				def.AddColumn(DataTableColumnDef.CreateNumericColumn("min_value"));
-				def.AddColumn(DataTableColumnDef.CreateNumericColumn("max_value"));
-				def.AddColumn(DataTableColumnDef.CreateNumericColumn("start"));
-				def.AddColumn(DataTableColumnDef.CreateNumericColumn("cache"));
-				def.AddColumn(DataTableColumnDef.CreateBooleanColumn("cycle"));
+				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("last_value"));
+				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("current_value"));
+				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("top_value"));
+				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("increment_by"));
+				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("min_value"));
+				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("max_value"));
+				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("start"));
+				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("cache"));
+				info.AddColumn(DataTableColumnInfo.CreateBooleanColumn("cycle"));
 
 				// Set to immutable
-				def.SetImmutable();
+				info.SetImmutable();
 
-				// Return the data table def
-				return def;
+				// Return the data table info
+				return info;
 			}
 
 			public int TableCount {
 				get {
 					TableName SEQ = TableDataConglomerate.SysSequence;
-					if (transaction.TableExists(SEQ)) {
+					if (transaction.TableExists(SEQ))
 						return transaction.GetTable(SEQ).RowCount;
-					} else {
-						return 0;
-					}
+					return 0;
 				}
 			}
 
 			public int FindTableName(TableName name) {
-				TableName SEQ_INFO = TableDataConglomerate.SysSequenceInfo;
-				if (transaction.RealTableExists(SEQ_INFO)) {
+				TableName seqInfo = TableDataConglomerate.SysSequenceInfo;
+				if (transaction.RealTableExists(seqInfo)) {
 					// Search the table.
-					IMutableTableDataSource table = transaction.GetTable(SEQ_INFO);
+					IMutableTableDataSource table = transaction.GetTable(seqInfo);
 					IRowEnumerator row_e = table.GetRowEnumerator();
 					int p = 0;
 					while (row_e.MoveNext()) {
 						int row_index = row_e.RowIndex;
-						TObject seq_type = table.GetCellContents(3, row_index);
-						if (!seq_type.IsEqual(OneVal).ValuesEqual(TrueVal)) {
-							TObject ob_name = table.GetCellContents(2, row_index);
-							if (ob_name.Object.ToString().Equals(name.Name)) {
-								TObject ob_schema = table.GetCellContents(1, row_index);
-								if (ob_schema.Object.ToString().Equals(name.Schema)) {
+						TObject seqType = table.GetCellContents(3, row_index);
+						if (!seqType.IsEqual(OneVal).ValuesEqual(TrueVal)) {
+							TObject obName = table.GetCellContents(2, row_index);
+							if (obName.Object.ToString().Equals(name.Name)) {
+								TObject obSchema = table.GetCellContents(1, row_index);
+								if (obSchema.Object.ToString().Equals(name.Schema)) {
 									// Match so return this
 									return p;
 								}
@@ -727,21 +691,20 @@ namespace Deveel.Data {
 			}
 
 			public TableName GetTableName(int i) {
-				TableName SEQ_INFO = TableDataConglomerate.SysSequenceInfo;
-				if (transaction.RealTableExists(SEQ_INFO)) {
+				TableName seqInfo = TableDataConglomerate.SysSequenceInfo;
+				if (transaction.RealTableExists(seqInfo)) {
 					// Search the table.
-					IMutableTableDataSource table = transaction.GetTable(SEQ_INFO);
+					IMutableTableDataSource table = transaction.GetTable(seqInfo);
 					IRowEnumerator row_e = table.GetRowEnumerator();
 					int p = 0;
 					while (row_e.MoveNext()) {
-						int row_index = row_e.RowIndex;
-						TObject seq_type = table.GetCellContents(3, row_index);
-						if (!seq_type.IsEqual(OneVal).ValuesEqual(TrueVal)) {
+						int rowIndex = row_e.RowIndex;
+						TObject seqType = table.GetCellContents(3, rowIndex);
+						if (!seqType.IsEqual(OneVal).ValuesEqual(TrueVal)) {
 							if (i == p) {
-								TObject ob_schema = table.GetCellContents(1, row_index);
-								TObject ob_name = table.GetCellContents(2, row_index);
-								return new TableName(ob_schema.Object.ToString(),
-													 ob_name.Object.ToString());
+								TObject obSchema = table.GetCellContents(1, rowIndex);
+								TObject obName = table.GetCellContents(2, rowIndex);
+								return new TableName(obSchema.Object.ToString(), obName.Object.ToString());
 							}
 							++p;
 						}
@@ -751,113 +714,103 @@ namespace Deveel.Data {
 			}
 
 			public bool ContainsTableName(TableName name) {
-				TableName SEQ_INFO = TableDataConglomerate.SysSequenceInfo;
+				TableName seqInfo = TableDataConglomerate.SysSequenceInfo;
 				// This set can not contain the table that is backing it, so we always
 				// return false for that.  This check stops an annoying recursive
 				// situation for table name resolution.
-				if (name.Equals(SEQ_INFO)) {
+				if (name.Equals(seqInfo))
 					return false;
-				} else {
-					return FindTableName(name) != -1;
-				}
+
+				return FindTableName(name) != -1;
 			}
 
 			public String GetTableType(int i) {
 				return "SEQUENCE";
 			}
 
-			public DataTableDef GetDataTableDef(int i) {
-				TableName table_name = GetTableName(i);
-				return createDataTableDef(table_name.Schema, table_name.Name);
+			public DataTableInfo GetTableInfo(int i) {
+				TableName tableName = GetTableName(i);
+				return CreateTableInfo(tableName.Schema, tableName.Name);
 			}
 
 			public IMutableTableDataSource CreateInternalTable(int index) {
-				IMutableTableDataSource table =
-						   transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
-				IRowEnumerator row_e = table.GetRowEnumerator();
+				IMutableTableDataSource table = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+				IRowEnumerator rowEnum = table.GetRowEnumerator();
 				int p = 0;
 				int i;
-				int row_i = -1;
-				while (row_e.MoveNext() && row_i == -1) {
-					i = row_e.RowIndex;
+				int rowIndex = -1;
+				while (rowEnum.MoveNext() && rowIndex == -1) {
+					i = rowEnum.RowIndex;
 
 					// Is this is a type 1 sequence we ignore (native table sequence).
-					TObject seq_type = table.GetCellContents(3, i);
-					if (!seq_type.IsEqual(OneVal).ValuesEqual(TrueVal)) {
+					TObject seqType = table.GetCellContents(3, i);
+					if (!seqType.IsEqual(OneVal).ValuesEqual(TrueVal)) {
 						if (p == index) {
-							row_i = i;
+							rowIndex = i;
 						}
 						++p;
 					}
 
 				}
-				if (row_i != -1) {
-					TObject seq_id = table.GetCellContents(0, row_i);
-					String schema = table.GetCellContents(1, row_i).Object.ToString();
-					String name = table.GetCellContents(2, row_i).Object.ToString();
-
-					TableName table_name = new TableName(schema, name);
-
-					// Find this id in the 'sequence' table
-					IMutableTableDataSource seq_table =
-								  transaction.GetTable(TableDataConglomerate.SysSequence);
-					SelectableScheme scheme = seq_table.GetColumnScheme(0);
-					IList<int> ivec = scheme.SelectEqual(seq_id);
-					if (ivec.Count > 0) {
-						int seq_row_i = ivec[0];
-
-						// Generate the DataTableDef
-						DataTableDef table_def = createDataTableDef(schema, name);
-
-						// Last value for this sequence generated by the transaction
-						TObject lv;
-						try {
-							lv = TObject.CreateInt8(transaction.LastSequenceValue(table_name));
-						} catch (StatementException) {
-							lv = TObject.CreateInt8(-1);
-						}
-						TObject last_value = lv;
-						// The current value of the sequence generator
-						SequenceManager manager =
-										  transaction.Conglomerate.SequenceManager;
-						TObject current_value =
-								  TObject.CreateInt8(manager.CurrentValue(transaction, table_name));
-
-						// Read the rest of the values from the SEQUENCE table.
-						TObject top_value = seq_table.GetCellContents(1, seq_row_i);
-						TObject increment_by = seq_table.GetCellContents(2, seq_row_i);
-						TObject min_value = seq_table.GetCellContents(3, seq_row_i);
-						TObject max_value = seq_table.GetCellContents(4, seq_row_i);
-						TObject start = seq_table.GetCellContents(5, seq_row_i);
-						TObject cache = seq_table.GetCellContents(6, seq_row_i);
-						TObject cycle = seq_table.GetCellContents(7, seq_row_i);
-
-						// Implementation of IMutableTableDataSource that describes this
-						// sequence generator.
-						GTDataSourceImpl data_source = new GTDataSourceImpl(transaction.System, table_def);
-						data_source.top_value = top_value;
-						data_source.last_value = last_value;
-						data_source.current_value = current_value;
-						data_source.increment_by = increment_by;
-						data_source.min_value = min_value;
-						data_source.max_value = max_value;
-						data_source.start = start;
-						data_source.cache = cache;
-						data_source.cycle = cycle;
-						return data_source;
-
-					} else {
-						throw new Exception("No SEQUENCE table entry for generator.");
-					}
-
-				} else {
+				if (rowIndex == -1)
 					throw new Exception("Index out of bounds.");
+
+				TObject seqId = table.GetCellContents(0, rowIndex);
+				String schema = table.GetCellContents(1, rowIndex).Object.ToString();
+				String name = table.GetCellContents(2, rowIndex).Object.ToString();
+
+				TableName tableName = new TableName(schema, name);
+
+				// Find this id in the 'sequence' table
+				IMutableTableDataSource seqTable = transaction.GetTable(TableDataConglomerate.SysSequence);
+				SelectableScheme scheme = seqTable.GetColumnScheme(0);
+				IList<int> list = scheme.SelectEqual(seqId);
+				if (list.Count <= 0)
+					throw new Exception("No SEQUENCE table entry for generator.");
+
+				int seqRowI = list[0];
+
+				// Generate the DataTableInfo
+				DataTableInfo tableInfo = CreateTableInfo(schema, name);
+
+				// Last value for this sequence generated by the transaction
+				TObject lastValue;
+				try {
+					lastValue = TObject.CreateInt8(transaction.LastSequenceValue(tableName));
+				} catch (StatementException) {
+					lastValue = TObject.CreateInt8(-1);
 				}
 
+				// The current value of the sequence generator
+				SequenceManager manager = transaction.Conglomerate.SequenceManager;
+				TObject currentValue = TObject.CreateInt8(manager.CurrentValue(transaction, tableName));
+
+				// Read the rest of the values from the SEQUENCE table.
+				TObject topValue = seqTable.GetCellContents(1, seqRowI);
+				TObject incrementBy = seqTable.GetCellContents(2, seqRowI);
+				TObject minValue = seqTable.GetCellContents(3, seqRowI);
+				TObject maxValue = seqTable.GetCellContents(4, seqRowI);
+				TObject start = seqTable.GetCellContents(5, seqRowI);
+				TObject cache = seqTable.GetCellContents(6, seqRowI);
+				TObject cycle = seqTable.GetCellContents(7, seqRowI);
+
+				// Implementation of IMutableTableDataSource that describes this
+				// sequence generator.
+				GTDataSourceImpl dataSource = new GTDataSourceImpl(transaction.System, tableInfo);
+				dataSource.top_value = topValue;
+				dataSource.last_value = lastValue;
+				dataSource.current_value = currentValue;
+				dataSource.increment_by = incrementBy;
+				dataSource.min_value = minValue;
+				dataSource.max_value = maxValue;
+				dataSource.start = start;
+				dataSource.cache = cache;
+				dataSource.cycle = cycle;
+				return dataSource;
 			}
 
 			private class GTDataSourceImpl : GTDataSource {
-				private readonly DataTableDef table_def;
+				private readonly DataTableInfo tableInfo;
 				internal TObject last_value;
 				internal TObject current_value;
 				internal TObject top_value;
@@ -868,13 +821,13 @@ namespace Deveel.Data {
 				internal TObject cache;
 				internal TObject cycle;
 
-				public GTDataSourceImpl(TransactionSystem system, DataTableDef tableDef)
+				public GTDataSourceImpl(TransactionSystem system, DataTableInfo tableInfo)
 					: base(system) {
-					table_def = tableDef;
+					this.tableInfo = tableInfo;
 				}
 
-				public override DataTableDef TableInfo {
-					get { return table_def; }
+				public override DataTableInfo TableInfo {
+					get { return tableInfo; }
 				}
 
 				public override int RowCount {

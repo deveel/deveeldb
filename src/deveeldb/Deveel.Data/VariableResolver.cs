@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,15 +14,18 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
 	/// The default implementation of <see cref="IVariableResolver"/> that 
-	/// takes a set of key/value pair to be resolved withing an expression
+	/// takes a set of key/value pair to be resolved within an expression
 	/// context.
 	/// </summary>
 	public class VariableResolver : IVariableResolver {
+		private readonly int setId;
+		private readonly Dictionary<VariableName, TObject> variables;
+
 		/// <summary>
 		/// Constructs an empty <see cref="VariableResolver"/> having
 		/// the given identifier.
@@ -30,7 +33,7 @@ namespace Deveel.Data {
 		/// <param name="setId"></param>
 		public VariableResolver(int setId) {
 			this.setId = setId;
-			variables = new Hashtable();
+			variables = new Dictionary<VariableName, TObject>();
 		}
 
 		/// <summary>
@@ -39,9 +42,6 @@ namespace Deveel.Data {
 		public VariableResolver()
 			: this(0) {
 		}
-
-		private readonly int setId;
-		private readonly Hashtable variables;
 
 		public int SetId {
 			get { return setId; }
@@ -74,7 +74,7 @@ namespace Deveel.Data {
 		/// If the <paramref name="name"/> given is <c>null</c> or empty.
 		/// </exception>
 		public void AddVariable(string name, TObject value) {
-			if (name == null || name.Length == 0)
+			if (String.IsNullOrEmpty(name))
 				throw new ArgumentNullException("name");
 
 			if (value == null)
@@ -86,14 +86,20 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public TObject Resolve(VariableName variable) {
-			TObject value = variables[variable] as TObject;
-			return (value == null ? TObject.Null : value);
+			TObject value;
+			if (!variables.TryGetValue(variable, out value))
+				return TObject.Null;
+
+			return value;
 		}
 
 		/// <inheritdoc/>
 		public TType ReturnTType(VariableName variable) {
-			TObject var = variables[variable] as TObject;
-			return (var == null ? TType.NullType : var.TType);
+			TObject value;
+			if (!variables.TryGetValue(variable, out value))
+				return TType.NullType;
+
+			return value.TType;
 		}
 	}
 }

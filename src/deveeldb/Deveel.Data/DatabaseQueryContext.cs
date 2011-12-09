@@ -73,12 +73,12 @@ namespace Deveel.Data {
 		}
 
 		///<summary>
-		/// Returns a DataTableDef for the given table name.
+		/// Returns a DataTableInfo for the given table name.
 		///</summary>
 		///<param name="name"></param>
 		///<returns></returns>
-		public DataTableDef GetDataTableDef(TableName name) {
-			return database.GetDataTableDef(name);
+		public DataTableInfo GetTableInfo(TableName name) {
+			return database.GetTableInfo(name);
 		}
 
 		///<summary>

@@ -118,7 +118,7 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Don't allow select statements because they don't convert to a
-				// text string that we can encode into the DataTableDef file.
+				// text string that we can encode into the DataTableInfo file.
 				if (expression.HasSubQuery) {
 					throw new DatabaseException("Sub-queries not permitted in " +
 												"the check constraint expression.");
@@ -165,28 +165,28 @@ namespace Deveel.Data.Sql {
 		/// <param name="tname"></param>
 		/// <returns></returns>
 		internal static ColumnChecker GetStandardColumnChecker(DatabaseConnection database, TableName tname) {
-			DataTableDef table_def = database.GetTable(tname).TableInfo;
-			bool ignores_case = database.IsInCaseInsensitiveMode;
+			DataTableInfo tableInfo = database.GetTable(tname).TableInfo;
+			bool ignoresCase = database.IsInCaseInsensitiveMode;
 
 			// Implement the checker
-			return new StandardColumnChecker(table_def, ignores_case);
+			return new StandardColumnChecker(tableInfo, ignoresCase);
 		}
 
 		private class StandardColumnChecker : ColumnChecker {
-			public StandardColumnChecker(DataTableDef table_def, bool ignore_cases) {
-				this.table_def = table_def;
+			private readonly DataTableInfo tableInfo;
+			private readonly bool ignores_case;
+
+
+			public StandardColumnChecker(DataTableInfo tableInfo, bool ignore_cases) {
+				this.tableInfo = tableInfo;
 				this.ignores_case = ignore_cases;
 			}
-
-			private DataTableDef table_def;
-			private bool ignores_case;
 
 			internal override String ResolveColumnName(String col_name) {
 				// We need to do case sensitive and case insensitive resolution,
 				String found_col = null;
-				for (int n = 0; n < table_def.ColumnCount; ++n) {
-					DataTableColumnDef col =
-										  (DataTableColumnDef)table_def[n];
+				for (int n = 0; n < tableInfo.ColumnCount; ++n) {
+					DataTableColumnInfo col = tableInfo[n];
 					if (!ignores_case) {
 						if (col.Name.Equals(col_name)) {
 							return col_name;

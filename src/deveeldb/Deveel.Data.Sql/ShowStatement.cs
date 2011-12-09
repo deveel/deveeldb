@@ -145,8 +145,7 @@ namespace Deveel.Data.Sql {
 
 				} else if (show_type.Equals("connections")) {
 
-					SqlQuery query = new SqlQuery(
-					   "SELECT * FROM SYSTEM.sUSRCurrentConnections");
+					SqlQuery query = new SqlQuery("SELECT * FROM SYSTEM.current_connections");
 
 					return executor.Execute(Connection, query);
 
@@ -154,9 +153,9 @@ namespace Deveel.Data.Sql {
 
 					SqlQuery query = new SqlQuery(
 					   "SELECT \"name\", \"version\" FROM " +
-					   "  ( SELECT \"value\" AS \"name\" FROM SYSTEM.sUSRProductInfo " +
+					   "  ( SELECT \"value\" AS \"name\" FROM SYSTEM.product_info " +
 					   "     WHERE \"var\" = 'name' ), " +
-					   "  ( SELECT \"value\" AS \"version\" FROM SYSTEM.sUSRProductInfo " +
+					   "  ( SELECT \"value\" AS \"version\" FROM SYSTEM.product_info " +
 					   "     WHERE \"var\" = 'version' ) "
 					);
 
@@ -164,9 +163,7 @@ namespace Deveel.Data.Sql {
 
 				} else if (show_type.Equals("connection_info")) {
 
-					SqlQuery query = new SqlQuery(
-					   "SELECT * FROM SYSTEM.sUSRConnectionInfo"
-					);
+					SqlQuery query = new SqlQuery("SELECT * FROM SYSTEM.connection_info");
 
 					return executor.Execute(Connection, query);
 

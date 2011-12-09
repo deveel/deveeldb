@@ -162,8 +162,8 @@ namespace Deveel.Data.Functions {
 				ByteLongObject blob = (ByteLongObject)data.Object;
 
 				if (String.Compare(command_str, "referenced tables", true) == 0) {
-					ViewDef view_def = ViewDef.DeserializeFromBlob(blob);
-					IQueryPlanNode node = view_def.QueryPlanNode;
+					View view = View.DeserializeFromBlob(blob);
+					IQueryPlanNode node = view.QueryPlanNode;
 					IList<TableName> touched_tables = node.DiscoverTableNames(new List<TableName>());
 					StringBuilder buf = new StringBuilder();
 					int sz = touched_tables.Count;
@@ -175,8 +175,8 @@ namespace Deveel.Data.Functions {
 					}
 					return TObject.CreateString(buf.ToString());
 				} else if (String.Compare(command_str, "plan dump", true) == 0) {
-					ViewDef view_def = ViewDef.DeserializeFromBlob(blob);
-					IQueryPlanNode node = view_def.QueryPlanNode;
+					View view = View.DeserializeFromBlob(blob);
+					IQueryPlanNode node = view.QueryPlanNode;
 					StringBuilder buf = new StringBuilder();
 					node.DebugString(0, buf);
 					return TObject.CreateString(buf.ToString());

@@ -1,3 +1,14 @@
+2011-12-09  Antonello Provenzano  <antonello@deveel.com>
+	* TableDataConglomerate.cs:
+		- conglomerate name (states) is now set at constructor
+		(since there's a 1:1 relationship between a Database
+		and a TableDataConglomerate, we assign this one the
+		name of the database)
+		- Exists method now without the specification of the
+		name of the conglomerate
+	* ViewDef.cs: renamed to View
+	* DataTableDef.cs: renamed to DataTableInfo
+
 2011-12-07  Antonello Provenzano  <antonello@deveel.com>
 	* MasterTableDataSource.cs:
 		- Split up into multiple partial classes for better

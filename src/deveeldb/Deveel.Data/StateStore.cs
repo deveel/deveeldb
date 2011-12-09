@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -35,15 +35,17 @@ namespace Deveel.Data {
 	/// </list>
 	/// </remarks>
 	internal class StateStore {
-		private bool del_list_change;
+		private bool delListChange;
+
 		/// <summary>
 		/// Pointer to the delete table area in the store.
 		/// </summary>
-		private long del_p;
+		private long delAreaPointer;
+
 		/// <summary>
 		/// The list of deleted state resources.
 		/// </summary>
-		private ArrayList delete_list;
+		private List<StateResource> deleteList;
 
 		/// <summary>
 		/// The header area of the state store. The format of the header area is:
@@ -53,7 +55,8 @@ namespace Deveel.Data {
 		///   VISIBLE_TABLES_POINTER(8)
 		///   DELETED_TABLES_POINTER(8)
 		/// </summary>
-		private IMutableArea header_area;
+		private IMutableArea headerArea;
+
 		/// <summary>
 		/// The MAGIC value used for state header areas.
 		/// </summary>
@@ -67,27 +70,27 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The current table identifier.
 		/// </summary>
-		private int table_id;
+		private int currentTableId;
 		/// <summary>
 		/// Set to true if the visible list was changed.
 		/// </summary>
-		private bool vis_list_change;
+		private bool visListChange;
 
 		/// <summary>
 		/// Pointer to the visible table area in the store.
 		/// </summary>
-		private long vis_p;
+		private long visAreaPointer;
 
 		/// <summary>
 		/// The list of visible state resources.
 		/// </summary>
-		private ArrayList visible_list;
+		private List<StateResource> visibleList;
 
 
 		public StateStore(IStore store) {
 			this.store = store;
-			vis_list_change = false;
-			del_list_change = false;
+			visListChange = false;
+			delListChange = false;
 		}
 
 
@@ -96,11 +99,11 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="list"></param>
 		/// <param name="name"></param>
-		private static void RemoveResource(ArrayList list, String name) {
+		private static void RemoveResource(IList<StateResource> list, String name) {
 			int sz = list.Count;
 			for (int i = 0; i < sz; ++i) {
-				StateResource resource = (StateResource)list[i];
-				if (name.Equals(resource.name)) {
+				StateResource resource = list[i];
+				if (name.Equals(resource.Name)) {
 					list.RemoveAt(i);
 					return;
 				}
@@ -113,32 +116,31 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="list"></param>
 		/// <param name="pointer"></param>
-		private void ReadStateResourceList(IList list, long pointer) {
-			BinaryReader d_in = new BinaryReader(store.GetAreaInputStream(pointer), Encoding.Unicode);
-			int version = d_in.ReadInt32(); // version
-			int count = (int) d_in.ReadInt64();
+		private void ReadStateResourceList(IList<StateResource> list, long pointer) {
+			BinaryReader reader = new BinaryReader(store.GetAreaInputStream(pointer), Encoding.Unicode);
+			reader.ReadInt32(); // version
+			int count = (int) reader.ReadInt64();
 			for (int i = 0; i < count; ++i) {
-				long table_id = d_in.ReadInt64();
-				String name = d_in.ReadString();
-				StateResource resource = new StateResource(table_id, name);
-				list.Add(resource);
+				long tableId = reader.ReadInt64();
+				string name = reader.ReadString();
+				list.Add(new StateResource(tableId, name));
 			}
-			d_in.Close();
+			reader.Close();
 		}
 
 		/// <summary>
 		/// Writes the state resource list to the given area in the store.
 		/// </summary>
 		/// <param name="list"></param>
-		/// <param name="d_out"></param>
-		private static void WriteStateResourceList(IList list, BinaryWriter d_out) {
-			d_out.Write(1);
+		/// <param name="writer"></param>
+		private static void WriteStateResourceList(IList<StateResource> list, BinaryWriter writer) {
+			writer.Write(1);	// version
 			int sz = list.Count;
-			d_out.Write((long) sz);
+			writer.Write((long) sz);
 			for (int i = 0; i < sz; ++i) {
-				StateResource resource = (StateResource)list[i];
-				d_out.Write(resource.table_id);
-				d_out.Write(resource.name);
+				StateResource resource = list[i];
+				writer.Write(resource.TableId);
+				writer.Write(resource.Name);
 			}
 		}
 
@@ -148,21 +150,21 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="list"></param>
 		/// <returns></returns>
-		private long WriteListToStore(ArrayList list) {
-			MemoryStream bout = new MemoryStream();
-			BinaryWriter d_out = new BinaryWriter(bout, Encoding.Unicode);
-			WriteStateResourceList(list, d_out);
-			d_out.Flush();
-			d_out.Close();
+		private long WriteListToStore(List<StateResource> list) {
+			MemoryStream stream = new MemoryStream();
+			BinaryWriter writer = new BinaryWriter(stream, Encoding.Unicode);
+			WriteStateResourceList(list, writer);
+			writer.Flush();
+			writer.Close();
 
-			byte[] buf = bout.ToArray();
+			byte[] buf = stream.ToArray();
 
 			IAreaWriter a = store.CreateArea(buf.Length);
-			long list_p = a.Id;
+			long listP = a.Id;
 			a.Write(buf);
 			a.Finish();
 
-			return list_p;
+			return listP;
 		}
 
 		/// <summary>
@@ -173,39 +175,39 @@ namespace Deveel.Data {
 		public long Create() {
 			lock (this) {
 				// Allocate empty visible and deleted tables area
-				IAreaWriter vis_tables_area = store.CreateArea(12);
-				IAreaWriter del_tables_area = store.CreateArea(12);
-				vis_p = vis_tables_area.Id;
-				del_p = del_tables_area.Id;
+				IAreaWriter visTablesArea = store.CreateArea(12);
+				IAreaWriter delTablesArea = store.CreateArea(12);
+				visAreaPointer = visTablesArea.Id;
+				delAreaPointer = delTablesArea.Id;
 
 				// Write empty entries for both of these
-				vis_tables_area.WriteInt4(1);
-				vis_tables_area.WriteInt8(0);
-				vis_tables_area.Finish();
-				del_tables_area.WriteInt4(1);
-				del_tables_area.WriteInt8(0);
-				del_tables_area.Finish();
+				visTablesArea.WriteInt4(1);
+				visTablesArea.WriteInt8(0);
+				visTablesArea.Finish();
+				delTablesArea.WriteInt4(1);
+				delTablesArea.WriteInt8(0);
+				delTablesArea.Finish();
 
 				// Now allocate an empty state header
-				IAreaWriter header_writer = store.CreateArea(32);
-				long header_p = header_writer.Id;
-				header_writer.WriteInt4(MAGIC);
-				header_writer.WriteInt4(0);
-				header_writer.WriteInt8(0);
-				header_writer.WriteInt8(vis_p);
-				header_writer.WriteInt8(del_p);
-				header_writer.Finish();
+				IAreaWriter headerWriter = store.CreateArea(32);
+				long headerP = headerWriter.Id;
+				headerWriter.WriteInt4(MAGIC);
+				headerWriter.WriteInt4(0);
+				headerWriter.WriteInt8(0);
+				headerWriter.WriteInt8(visAreaPointer);
+				headerWriter.WriteInt8(delAreaPointer);
+				headerWriter.Finish();
 
-				header_area = store.GetMutableArea(header_p);
+				headerArea = store.GetMutableArea(headerP);
 
-				// Reset table_id
-				table_id = 0;
+				// Reset currentTableId
+				currentTableId = 0;
 
-				visible_list = new ArrayList();
-				delete_list = new ArrayList();
+				visibleList = new List<StateResource>();
+				deleteList = new List<StateResource>();
 
 				// Return pointer to the header area
-				return header_p;
+				return headerP;
 			}
 		}
 
@@ -213,53 +215,53 @@ namespace Deveel.Data {
 		/// Initializes the state store given a pointer to the header area in 
 		/// the store.
 		/// </summary>
-		/// <param name="header_p"></param>
-		public void init(long header_p) {
+		/// <param name="headerPointer"></param>
+		public void Init(long headerPointer) {
 			lock (this) {
-				header_area = store.GetMutableArea(header_p);
-				int mag_value = header_area.ReadInt4();
-				if (mag_value != MAGIC) {
+				headerArea = store.GetMutableArea(headerPointer);
+				int mag_value = headerArea.ReadInt4();
+				if (mag_value != MAGIC)
 					throw new IOException("Magic value for state header area is incorrect.");
-				}
-				if (header_area.ReadInt4() != 0) {
+
+				if (headerArea.ReadInt4() != 0)
 					throw new IOException("Unknown version for state header area.");
-				}
-				table_id = (int) header_area.ReadInt8();
-				vis_p = header_area.ReadInt8();
-				del_p = header_area.ReadInt8();
+
+				currentTableId = (int) headerArea.ReadInt8();
+				visAreaPointer = headerArea.ReadInt8();
+				delAreaPointer = headerArea.ReadInt8();
 
 				// Setup the visible and delete list
-				visible_list = new ArrayList();
-				delete_list = new ArrayList();
+				visibleList = new List<StateResource>();
+				deleteList = new List<StateResource>();
 
 				// Read the resource list for the visible and delete list.
-				ReadStateResourceList(visible_list, vis_p);
-				ReadStateResourceList(delete_list, del_p);
+				ReadStateResourceList(visibleList, visAreaPointer);
+				ReadStateResourceList(deleteList, delAreaPointer);
 			}
 		}
 
 		/// <summary>
-		/// Returns the next table id and increments the table_id counter.
+		/// Returns the next table id and increments the currentTableId counter.
 		/// </summary>
 		/// <returns></returns>
 		public int NextTableId() {
 			lock (this) {
-				int cur_counter = table_id;
-				++table_id;
+				int curCounter = currentTableId;
+				++currentTableId;
 
 				try {
 					store.LockForWrite();
 
 					// Update the state in the file
-					header_area.Position = 8;
-					header_area.WriteInt8(table_id);
+					headerArea.Position = 8;
+					headerArea.WriteInt8(currentTableId);
 					// Check out the change
-					header_area.CheckOut();
+					headerArea.CheckOut();
 				} finally {
 					store.UnlockForWrite();
 				}
 
-				return cur_counter;
+				return curCounter;
 			}
 		}
 
@@ -268,9 +270,9 @@ namespace Deveel.Data {
 		/// visible list.
 		/// </summary>
 		/// <returns></returns>
-		internal StateResource[] GetVisibleList() {
+		public IEnumerable<StateResource> GetVisibleList() {
 			lock (this) {
-				return (StateResource[]) visible_list.ToArray(typeof (StateResource));
+				return visibleList.AsReadOnly();
 			}
 		}
 
@@ -279,9 +281,9 @@ namespace Deveel.Data {
 		/// delete list.
 		/// </summary>
 		/// <returns></returns>
-		internal StateResource[] GetDeleteList() {
+		public StateResource[] GetDeleteList() {
 			lock (this) {
-				return (StateResource[]) delete_list.ToArray(typeof (StateResource));
+				return deleteList.ToArray();
 			}
 		}
 
@@ -289,15 +291,13 @@ namespace Deveel.Data {
 		/// Returns true if the visible list contains a state resource with the 
 		/// given table id value.
 		/// </summary>
-		/// <param name="table_id"></param>
+		/// <param name="tableId"></param>
 		/// <returns></returns>
-		public bool ContainsVisibleResource(int table_id) {
+		public bool ContainsVisibleResource(int tableId) {
 			lock (this) {
-				int sz = visible_list.Count;
-				for (int i = 0; i < sz; ++i) {
-					if (((StateResource) visible_list[i]).table_id == table_id) {
+				foreach (StateResource resource in visibleList) {
+					if (resource.TableId == tableId)
 						return true;
-					}
 				}
 				return false;
 			}
@@ -313,8 +313,8 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void AddVisibleResource(StateResource resource) {
 			lock (this) {
-				visible_list.Add(resource);
-				vis_list_change = true;
+				visibleList.Add(resource);
+				visListChange = true;
 			}
 		}
 
@@ -328,8 +328,8 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void AddDeleteResource(StateResource resource) {
 			lock (this) {
-				delete_list.Add(resource);
-				del_list_change = true;
+				deleteList.Add(resource);
+				delListChange = true;
 			}
 		}
 
@@ -341,10 +341,10 @@ namespace Deveel.Data {
 		/// This does not persist the state. To persist this change a call to 
 		/// <see cref="Commit"/> must be called.
 		/// </remarks>
-		public void RemoveVisibleResource(String name) {
+		public void RemoveVisibleResource(string name) {
 			lock (this) {
-				RemoveResource(visible_list, name);
-				vis_list_change = true;
+				RemoveResource(visibleList, name);
+				visListChange = true;
 			}
 		}
 
@@ -356,10 +356,10 @@ namespace Deveel.Data {
 		/// This does not persist the state. To persist this change a call to 
 		/// <see cref="Commit"/> must be called.
 		/// </remarks>
-		public void RemoveDeleteResource(String name) {
+		public void RemoveDeleteResource(string name) {
 			lock (this) {
-				RemoveResource(delete_list, name);
-				del_list_change = true;
+				RemoveResource(deleteList, name);
+				delListChange = true;
 			}
 		}
 
@@ -378,37 +378,37 @@ namespace Deveel.Data {
 		public bool Commit() {
 			lock (this) {
 				bool changes = false;
-				long new_vis_p = vis_p;
-				long new_del_p = del_p;
+				long newVisP = visAreaPointer;
+				long newDelP = delAreaPointer;
 
 				try {
 					store.LockForWrite();
 
 					// If the lists changed, then Write new state areas to the store.
-					if (vis_list_change) {
-						new_vis_p = WriteListToStore(visible_list);
-						vis_list_change = false;
+					if (visListChange) {
+						newVisP = WriteListToStore(visibleList);
+						visListChange = false;
 						changes = true;
 					}
-					if (del_list_change) {
-						new_del_p = WriteListToStore(delete_list);
-						del_list_change = false;
+					if (delListChange) {
+						newDelP = WriteListToStore(deleteList);
+						delListChange = false;
 						changes = true;
 					}
 					// Commit the changes,
 					if (changes) {
-						header_area.Position = 16;
-						header_area.WriteInt8(new_vis_p);
-						header_area.WriteInt8(new_del_p);
+						headerArea.Position = 16;
+						headerArea.WriteInt8(newVisP);
+						headerArea.WriteInt8(newDelP);
 						// Check out the change.
-						header_area.CheckOut();
-						if (vis_p != new_vis_p) {
-							store.DeleteArea(vis_p);
-							vis_p = new_vis_p;
+						headerArea.CheckOut();
+						if (visAreaPointer != newVisP) {
+							store.DeleteArea(visAreaPointer);
+							visAreaPointer = newVisP;
 						}
-						if (del_p != new_del_p) {
-							store.DeleteArea(del_p);
-							del_p = new_del_p;
+						if (delAreaPointer != newDelP) {
+							store.DeleteArea(delAreaPointer);
+							delAreaPointer = newDelP;
 						}
 					}
 				} finally {
@@ -421,7 +421,7 @@ namespace Deveel.Data {
 
 		// ---------- Inner classes ----------
 
-		#region Nested type: StateResource
+		#region StateResource
 
 		/// <summary>
 		/// Represents a single StateResource in either a visible or delete list in
@@ -432,16 +432,31 @@ namespace Deveel.Data {
 			/// The unique name given to the resource to distinguish it 
 			/// from all other resources.
 			/// </summary>
-			public String name;
+			private readonly string name;
 
 			/// <summary>
 			/// The unique identifier for the resource.
 			/// </summary>
-			public long table_id;
+			private readonly long tableId;
 
-			public StateResource(long table_id, String name) {
-				this.table_id = table_id;
+			public StateResource(long tableId, string name) {
+				this.tableId = tableId;
 				this.name = name;
+			}
+
+			/// <summary>
+			/// The unique name given to the resource to distinguish it 
+			/// from all other resources.
+			/// </summary>
+			public string Name {
+				get { return name; }
+			}
+
+			/// <summary>
+			/// The unique identifier for the resource.
+			/// </summary>
+			public long TableId {
+				get { return tableId; }
 			}
 		}
 

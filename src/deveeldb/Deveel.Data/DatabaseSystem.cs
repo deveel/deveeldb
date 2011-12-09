@@ -15,7 +15,6 @@
 
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -60,7 +59,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The StatementCache that maintains a cache of parsed queries.
 		/// </summary>
-		private StatementCache statementCache = null;
+		private StatementCache statementCache;
 
 		/// <summary>
 		/// The UserManager object that handles users connected to the database engine.
@@ -171,9 +170,8 @@ namespace Deveel.Data {
 		/// A <see cref="DatabaseSystem"/> resolves the variables (ignoring case if 
 		/// necessary) and the functions of the expression.
 		/// </remarks>
-		public override Transaction.CheckExpression PrepareTransactionCheckConstraint(DataTableDef table_def,
-		                                                                              Transaction.CheckExpression check) {
-			return base.PrepareTransactionCheckConstraint(table_def, check);
+		public override Transaction.CheckExpression PrepareTransactionCheckConstraint(DataTableInfo tableInfo, Transaction.CheckExpression check) {
+			return base.PrepareTransactionCheckConstraint(tableInfo, check);
 		}
 
 		/// <summary>

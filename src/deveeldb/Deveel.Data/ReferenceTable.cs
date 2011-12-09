@@ -40,19 +40,19 @@ namespace Deveel.Data {
 		private readonly TableName table_name;
 
 		/// <summary>
-		/// The modified DataTableDef object for this reference.
+		/// The modified DataTableInfo object for this reference.
 		/// </summary>
-		private readonly DataTableDef modified_table_def;
+		private readonly DataTableInfo modifiedTableInfo;
 
 
 		internal ReferenceTable(Table table, TableName tname)
 			: base(table) {
 			table_name = tname;
 
-			// Create a modified table def based on the parent def.
-			modified_table_def = new DataTableDef(table.TableInfo);
-			modified_table_def.TableName = tname;
-			modified_table_def.SetImmutable();
+			// Create a modified table info based on the parent info.
+			modifiedTableInfo = table.TableInfo.Clone();
+			modifiedTableInfo.TableName = tname;
+			modifiedTableInfo.SetImmutable();
 		}
 
 		/// <summary>
@@ -65,15 +65,15 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This is used if we want to redefine the column names.
 		/// <para>
-		/// Note that the given DataTableDef must contain the same number of 
+		/// Note that the given DataTableInfo must contain the same number of 
 		/// columns as the parent table, and the columns must be the same type.
 		/// </para>
 		/// </remarks>
-		internal ReferenceTable(Table table, DataTableDef info)
+		internal ReferenceTable(Table table, DataTableInfo info)
 			: base(table) {
 			table_name = info.TableName;
 
-			modified_table_def = info;
+			modifiedTableInfo = info;
 		}
 
 		/// <summary>
@@ -84,14 +84,14 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override DataTableDef TableInfo {
-			get { return modified_table_def; }
+		public override DataTableInfo TableInfo {
+			get { return modifiedTableInfo; }
 		}
 
 		/// <inheritdoc/>
 		public override int FindFieldName(VariableName v) {
-			TableName table_name = v.TableName;
-			if (table_name != null && table_name.Equals(TableName)) {
+			TableName tableName = v.TableName;
+			if (tableName != null && tableName.Equals(TableName)) {
 				return TableInfo.FastFindColumnName(v.Name);
 			}
 			return -1;

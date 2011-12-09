@@ -178,13 +178,13 @@ namespace Deveel.Data {
 			int size = visibleTables.Count;
 			for (int i = 0; i < size; ++i) {
 				MasterTableDataSource master = visibleTables[i];
-				DataTableDef table_def = master.TableInfo;
+				DataTableInfo tableInfo = master.TableInfo;
 				if (ignoreCase) {
-					if (table_def.TableName.EqualsIgnoreCase(tableName))
+					if (tableInfo.TableName.EqualsIgnoreCase(tableName))
 						return master;
 				} else {
 					// Not ignore case
-					if (table_def.TableName.Equals(tableName))
+					if (tableInfo.TableName.Equals(tableName))
 						return master;
 				}
 			}
@@ -262,7 +262,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="DataTableDef"/> for a dynamic table defined 
+		/// Returns the <see cref="DataTableInfo"/> for a dynamic table defined 
 		/// in this transaction.
 		/// </summary>
 		/// <param name="tableName"></param>
@@ -272,7 +272,7 @@ namespace Deveel.Data {
 		/// from an external data source)
 		/// </remarks>
 		/// <returns></returns>
-		protected virtual DataTableDef GetDynamicDataTableDef(TableName tableName) {
+		protected virtual DataTableInfo GetDynamicTableInfo(TableName tableName) {
 			// By default, dynamic tables are not implemented.
 			throw new StatementException("Table '" + tableName + "' not found.");
 		}
@@ -401,8 +401,8 @@ namespace Deveel.Data {
 		protected void DisposeAllIndices() {
 			// Dispose all the IIndexSet for each table
 			try {
-				for (int i = 0; i < tableIndices.Count; ++i) {
-					((IIndexSet)tableIndices[i]).Dispose();
+				foreach (IIndexSet tableIndex in tableIndices) {
+					tableIndex.Dispose();
 				}
 			} catch (Exception e) {
 				Debug.WriteException(e);
@@ -413,8 +413,8 @@ namespace Deveel.Data {
 				if (cleanupQueue != null) {
 					for (int i = 0; i < cleanupQueue.Count; i += 2) {
 						MasterTableDataSource master = (MasterTableDataSource)cleanupQueue[i];
-						IIndexSet index_set = (IIndexSet)cleanupQueue[i + 1];
-						index_set.Dispose();
+						IIndexSet indexSet = (IIndexSet)cleanupQueue[i + 1];
+						indexSet.Dispose();
 					}
 					cleanupQueue = null;
 				}
@@ -482,23 +482,23 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="DataTableDef"/> for the table with the given 
+		/// Returns the <see cref="DataTableInfo"/> for the table with the given 
 		/// name that is visible within this transaction.
 		/// </summary>
 		/// <param name="tableName"></param>
 		/// <returns>
 		/// Returns null if table name doesn't refer to a table that exists.
 		/// </returns>
-		public DataTableDef GetDataTableDef(TableName tableName) {
+		public DataTableInfo GetTableInfo(TableName tableName) {
 			// If this is a dynamic table then handle specially
 			if (IsDynamicTable(tableName))
-				return GetDynamicDataTableDef(tableName);
+				return GetDynamicTableInfo(tableName);
 
 			// Otherwise return from the pool of visible tables
 			foreach (MasterTableDataSource master in visibleTables) {
-				DataTableDef tableDef = master.TableInfo;
-				if (tableDef.TableName.Equals(tableName))
-					return tableDef;
+				DataTableInfo tableInfo = master.TableInfo;
+				if (tableInfo.TableName.Equals(tableName))
+					return tableInfo;
 			}
 			return null;
 		}
@@ -516,8 +516,8 @@ namespace Deveel.Data {
 			// Add the master tables
 			for (int i = 0; i < sz; ++i) {
 				MasterTableDataSource master = visibleTables[i];
-				DataTableDef tableDef = master.TableInfo;
-				tables[i] = new TableName(tableDef.Schema, tableDef.Name);
+				DataTableInfo tableInfo = master.TableInfo;
+				tables[i] = new TableName(tableInfo.Schema, tableInfo.Name);
 			}
 
 			// Add any internal system tables to the list

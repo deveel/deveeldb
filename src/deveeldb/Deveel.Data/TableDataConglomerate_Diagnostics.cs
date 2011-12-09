@@ -33,16 +33,16 @@ namespace Deveel.Data {
 			// Get the table
 			IMutableTableDataSource table = transaction.GetTable(tname);
 			// Find the index of the column name called 'id'
-			DataTableDef tableDef = table.TableInfo;
-			int colIndex = tableDef.FindColumnName("id");
+			DataTableInfo tableInfo = table.TableInfo;
+			int colIndex = tableInfo.FindColumnName("id");
 			if (colIndex == -1)
 				throw new ApplicationException("Column name 'id' not found.");
 
 			// Find the maximum 'id' value.
 			SelectableScheme scheme = table.GetColumnScheme(colIndex);
-			IList<int> ivec = scheme.SelectLast();
-			if (ivec.Count > 0) {
-				TObject value = table.GetCellContents(colIndex, ivec[0]);
+			IList<int> list = scheme.SelectLast();
+			if (list.Count > 0) {
+				TObject value = table.GetCellContents(colIndex, list[0]);
 				BigNumber bNum = value.ToBigNumber();
 				if (bNum != null) {
 					// Set the unique id to +1 the maximum id value in the column
@@ -83,13 +83,11 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void CheckVisibleTables(IUserTerminal terminal) {
 			// The list of all visible tables from the state file
-			StateStore.StateResource[] tables = stateStore.GetVisibleList();
+			IEnumerable<StateStore.StateResource> tables = stateStore.GetVisibleList();
 			// For each visible table
-			for (int i = 0; i < tables.Length; ++i) {
-				StateStore.StateResource resource = tables[i];
-
-				int masterTableId = (int)resource.table_id;
-				string fileName = resource.name;
+			foreach (StateStore.StateResource resource in tables) {
+				int masterTableId = (int)resource.TableId;
+				string fileName = resource.Name;
 
 				// Parse the file name string and determine the table type.
 				int tableType = 1;
@@ -132,7 +130,7 @@ namespace Deveel.Data {
 				string stateFn = (name + StatePost);
 				bool stateExists = false;
 				try {
-					stateExists = Exists(name);
+					stateExists = Exists();
 				} catch (IOException e) {
 					terminal.WriteLine("IO Error when checking if state store exists: " + e.Message);
 					Console.Error.WriteLine(e.StackTrace);
@@ -151,7 +149,7 @@ namespace Deveel.Data {
 					// Get the 64 byte fixed area
 					IArea fixed_area = actStateStore.GetArea(-1);
 					long head_p = fixed_area.ReadInt8();
-					stateStore.init(head_p);
+					stateStore.Init(head_p);
 					terminal.WriteLine("+ Initialized the state store: " + stateFn);
 				} catch (IOException e) {
 					// Couldn't initialize the state file.
@@ -179,13 +177,13 @@ namespace Deveel.Data {
 					ResetAllSystemTableID();
 
 					// Some diagnostic information
-					StateStore.StateResource[] committedTables = stateStore.GetVisibleList();
-					StateStore.StateResource[] committed_dropped = stateStore.GetDeleteList();
-					for (int i = 0; i < committedTables.Length; ++i) {
-						terminal.WriteLine("+ COMMITTED TABLE: " + committedTables[i].name);
+					IEnumerable<StateStore.StateResource> committedTables = stateStore.GetVisibleList();
+					IEnumerable<StateStore.StateResource> committedDropped = stateStore.GetDeleteList();
+					foreach (StateStore.StateResource resource in committedTables) {
+						terminal.WriteLine("+ COMMITTED TABLE: " + resource.Name);
 					}
-					for (int i = 0; i < committed_dropped.Length; ++i) {
-						terminal.WriteLine("+ COMMIT DROPPED TABLE: " + committed_dropped[i].name);
+					foreach (StateStore.StateResource resource in committedDropped) {
+						terminal.WriteLine("+ COMMIT DROPPED TABLE: " + resource.Name);
 					}
 
 					return;

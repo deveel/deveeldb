@@ -42,8 +42,8 @@ namespace Deveel.Data {
 	///    | version                       |
 	///    | table id                      |
 	///    | table sequence id             |
-	///    | pointer to DataTableDef       |
-	///    | pointer to DataIndexSetDef    |
+	///    | pointer to DataTableInfo       |
+	///    | pointer to DataIndexSetInfo    |
 	///    | pointer to index block        |
 	///    | LIST BLOCK HEADER pointer     |
 	///    +-------------------------------+
@@ -200,7 +200,7 @@ namespace Deveel.Data {
 		/// the <see cref="CreateTable"/> method).
 		/// </summary>
 		private void SetupInitialStore() {
-			// Serialize the DataTableDef object
+			// Serialize the DataTableInfo object
 			MemoryStream bout = new MemoryStream();
 			BinaryWriter dout = new BinaryWriter(bout, Encoding.Unicode);
 			dout.Write(1);
@@ -208,7 +208,7 @@ namespace Deveel.Data {
 			// Convert to a byte array
 			byte[] dataTableDefBuf = bout.ToArray();
 
-			// Serialize the DataIndexSetDef object
+			// Serialize the DataIndexSetInfo object
 			bout = new MemoryStream();
 			dout = new BinaryWriter(bout, Encoding.Unicode);
 			dout.Write(1);
@@ -225,10 +225,10 @@ namespace Deveel.Data {
 				// Allocate an 80 byte header
 				IAreaWriter headerWriter = store.CreateArea(80);
 				long headerPointer = headerWriter.Id;
-				// Allocate space to store the DataTableDef serialization
+				// Allocate space to store the DataTableInfo serialization
 				IAreaWriter dataTableDefWriter = store.CreateArea(dataTableDefBuf.Length);
 				long dataTableDefPointer = dataTableDefWriter.Id;
-				// Allocate space to store the DataIndexSetDef serialization
+				// Allocate space to store the DataIndexSetInfo serialization
 				IAreaWriter dataIndexSetWriter = store.CreateArea(indexSetDefBuf.Length);
 				long dataIndexSetDefPointer = dataIndexSetWriter.Id;
 
@@ -245,8 +245,8 @@ namespace Deveel.Data {
 				headerWriter.WriteInt4(1);                       // Version
 				headerWriter.WriteInt4(TableId);                 // table id
 				headerWriter.WriteInt8(sequenceId);              // initial sequence id
-				headerWriter.WriteInt8(dataTableDefPointer);     // pointer to DataTableDef
-				headerWriter.WriteInt8(dataIndexSetDefPointer);  // pointer to DataIndexSetDef
+				headerWriter.WriteInt8(dataTableDefPointer);     // pointer to DataTableInfo
+				headerWriter.WriteInt8(dataIndexSetDefPointer);  // pointer to DataIndexSetInfo
 				headerWriter.WriteInt8(indexHeaderPointer);      // index header pointer
 				headerWriter.WriteInt8(listHeaderPointer);       // list header pointer
 				headerWriter.Finish();
@@ -292,8 +292,8 @@ namespace Deveel.Data {
 
 			TableId = headerArea.ReadInt4();                  // table_id
 			sequenceId = headerArea.ReadInt8();               // sequence id
-			long infoPointer = headerArea.ReadInt8();         // pointer to DataTableDef
-			long indexInfoPointer = headerArea.ReadInt8();    // pointer to DataIndexSetDef
+			long infoPointer = headerArea.ReadInt8();         // pointer to DataTableInfo
+			long indexInfoPointer = headerArea.ReadInt8();    // pointer to DataIndexSetInfo
 			indexHeaderPointer = headerArea.ReadInt8();       // pointer to index header
 			listHeaderPointer = headerArea.ReadInt8();        // pointer to list header
 
@@ -301,18 +301,18 @@ namespace Deveel.Data {
 			BinaryReader din = GetBReader(store.GetAreaInputStream(infoPointer));
 			version = din.ReadInt32();
 			if (version != 1)
-				throw new IOException("Incorrect DataTableDef version identifier.");
+				throw new IOException("Incorrect DataTableInfo version identifier.");
 
-			TableInfo = DataTableDef.Read(din);
+			TableInfo = DataTableInfo.Read(din);
 			din.Close();
 
-			// Read the data index set def
+			// Read the data index set info
 			din = GetBReader(store.GetAreaInputStream(indexInfoPointer));
 			version = din.ReadInt32();
 			if (version != 1)
-				throw new IOException("Incorrect DataIndexSetDef version identifier.");
+				throw new IOException("Incorrect DataIndexSetInfo version identifier.");
 
-			IndexSetInfo = DataIndexSetDef.Read(din);
+			IndexSetInfo = DataIndexSetInfo.Read(din);
 			din.Close();
 
 			// Read the list header
@@ -970,7 +970,7 @@ namespace Deveel.Data {
 				usedAreas.Add(headerArea.Id);
 
 				headerArea.Position = 16;
-				// Add the DataTableDef and DataIndexSetDef objects
+				// Add the DataTableInfo and DataIndexSetInfo objects
 				usedAreas.Add(headerArea.ReadInt8());
 				usedAreas.Add(headerArea.ReadInt8());
 

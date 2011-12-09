@@ -35,7 +35,7 @@ namespace Deveel.Data.Text {
 		/// <exception cref="InvalidOperationException">
 		/// If an error occurred while creating the search index.
 		/// </exception>
-		void CreateIndex(TableName tableName, DataIndexDef indexInfo);
+		void CreateIndex(TableName tableName, DataIndexInfo indexInfo);
 
 		/// <summary>
 		/// Drops the index for the given table.

@@ -145,7 +145,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override DataTableDef TableInfo {
+		public override DataTableInfo TableInfo {
 			get { return master_table.TableInfo; }
 		}
 
@@ -155,7 +155,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 
 			SelectableScheme scheme = column_scheme[column];
 			if (scheme == null) {
@@ -170,7 +170,7 @@ namespace Deveel.Data {
 			}
 				// Otherwise, get the scheme to calculate a subset of the given scheme.
 			else {
-				return scheme.GetSubsetScheme(table, original_column);
+				return scheme.GetSubsetScheme(table, originalColumn);
 			}
 		}
 

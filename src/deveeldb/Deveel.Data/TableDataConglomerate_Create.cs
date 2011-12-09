@@ -42,9 +42,9 @@ namespace Deveel.Data {
 		///   <description>Primary columns information (refers to PKeyInfo)</description>
 		///   <item>unique_columns</item>
 		///   <description>Unique columns information (refers to UniqueInfo)</description>
-		///   <item>sUSRForeignColumns1</item>
+		///   <item>fkey_columns1</item>
 		///   <description>Foreign column information (refers to FKeyInfo)</description>
-		///   <item>sUSRForeignColumns2</item>
+		///   <item>fkey_columns2</item>
 		///   <description>Secondary Foreign column information (refers to FKeyInfo).</description>
 		/// </list>
 		/// These tables handle data for referential integrity. There are also
@@ -123,7 +123,7 @@ namespace Deveel.Data {
 		///		FOREIGN KEY un_id REFERENCES unique_info
 		///	);
 		///	
-		/// CREATE TABLE sUSRForeignColumns1 (
+		/// CREATE TABLE fkey_columns1 (
 		///		fk_id   NUMERIC NOT NULL, // The foreign key constraint id
 		///		fcolumn TEXT NOT NULL,    // The column in the foreign key
 		///		pcolumn TEXT NOT NULL,    // The column in the primary key
@@ -152,7 +152,7 @@ namespace Deveel.Data {
 		///		UNIQUE ( name )
 		///	);
 		///	
-		/// CREATE TABLE sUSRColumnColumns (
+		/// CREATE TABLE table_columns (
 		///		t_id    NUMERIC NOT NULL,  // Foreign key to table_info
 		///		column  TEXT NOT NULL,     // The column name
 		///		seq_no  INTEGER NOT NULL,  // The sequence in the table
@@ -173,127 +173,127 @@ namespace Deveel.Data {
 			// Create the transaction
 			Transaction transaction = CreateTransaction();
 
-			DataTableDef table;
+			DataTableInfo table;
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = SysSequenceInfo;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("type"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("type"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = SysSequence;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_id"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("last_value"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("increment"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("minvalue"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("maxvalue"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("start"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("cache"));
-			table.AddColumn(DataTableColumnDef.CreateBooleanColumn("cycle"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_id"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("last_value"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("increment"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("minvalue"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("maxvalue"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("start"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("cache"));
+			table.AddColumn(DataTableColumnInfo.CreateBooleanColumn("cycle"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = PrimaryInfoTable;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("deferred"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = ForeignInfoTable;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("ref_schema"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("ref_table"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("update_rule"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("delete_rule"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("deferred"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("ref_schema"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("ref_table"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("update_rule"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("delete_rule"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = UniqueInfoTable;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("deferred"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = CheckInfoTable;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("expression"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("deferred"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("expression"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
 			table.AddColumn(
-					DataTableColumnDef.CreateBinaryColumn("serialized_expression"));
+					DataTableColumnInfo.CreateBinaryColumn("serialized_expression"));
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = PrimaryColsTable;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("pk_id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("column"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_no"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("pk_id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("column"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_no"));
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = UniqueColsTable;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("un_id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("column"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_no"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("un_id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("column"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_no"));
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = ForeignColsTable;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("fk_id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("fcolumn"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("pcolumn"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("seq_no"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("fk_id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("fcolumn"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("pcolumn"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_no"));
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = SchemaInfoTable;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("other"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("other"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// Stores misc variables of the database,
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = PersistentVarTable;
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("variable"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("value"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("variable"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("value"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// the UDT tables...
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = UdtTable;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("attrs"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("parent"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("ext_parent"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("attrs"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("parent"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("ext_parent"));
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableDef();
+			table = new DataTableInfo();
 			table.TableName = UdtMembersTable;
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("type_id"));
-			table.AddColumn(DataTableColumnDef.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("col_type"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("size"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("scale"));
-			table.AddColumn(DataTableColumnDef.CreateNumericColumn("not_null"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("type_id"));
+			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("col_type"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("size"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("scale"));
+			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("not_null"));
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// Commit and close the transaction.
@@ -404,17 +404,16 @@ namespace Deveel.Data {
 		/// and if it does exist it will be initialized.
 		/// </remarks>
 		private void InitializeBlobStore() {
-
 			// Does the file already exist?
-			bool blob_store_exists = StoreSystem.StoreExists("BlobStore");
+			bool blobStoreExists = StoreSystem.StoreExists("BlobStore");
 			// If the blob store doesn't exist and we are read_only, we can't do
 			// anything further so simply return.
-			if (!blob_store_exists && IsReadOnly) {
+			if (!blobStoreExists && IsReadOnly) {
 				return;
 			}
 
 			// The blob store,
-			if (blob_store_exists) {
+			if (blobStoreExists) {
 				actBlobStore = StoreSystem.OpenStore("BlobStore");
 			} else {
 				actBlobStore = StoreSystem.CreateStore("BlobStore");
@@ -427,16 +426,16 @@ namespace Deveel.Data {
 				blobStore = new BlobStore(actBlobStore);
 
 				// Get the 64 byte fixed area
-				IMutableArea fixed_area = actBlobStore.GetMutableArea(-1);
+				IMutableArea fixedArea = actBlobStore.GetMutableArea(-1);
 				// If the blob store didn't exist then we need to create it here,
-				if (!blob_store_exists) {
-					long header_p = blobStore.Create();
-					fixed_area.WriteInt8(header_p);
-					fixed_area.CheckOut();
+				if (!blobStoreExists) {
+					long headerP = blobStore.Create();
+					fixedArea.WriteInt8(headerP);
+					fixedArea.CheckOut();
 				} else {
 					// Otherwise we need to initialize the blob store
-					long header_p = fixed_area.ReadInt8();
-					blobStore.Init(header_p);
+					long headerP = fixedArea.ReadInt8();
+					blobStore.Init(headerP);
 				}
 			} finally {
 				actBlobStore.UnlockForWrite();
@@ -448,7 +447,6 @@ namespace Deveel.Data {
 		/// Minimally creates a new conglomerate but does <b>not</b> initialize 
 		/// any of the system tables.
 		/// </summary>
-		/// <param name="name"></param>
 		/// <remarks>
 		/// This is a useful feature for a copy function that requires a 
 		/// <see cref="TableDataConglomerate"/> object to copy data into but 
@@ -456,7 +454,7 @@ namespace Deveel.Data {
 		/// is copied from the source conglomerate.
 		/// </remarks>
 		internal void MinimalCreate() {
-			if (Exists(name))
+			if (Exists())
 				throw new IOException("Conglomerate already exists: " + name);
 
 			// Lock the store system (generates an IOException if exclusive Lock
@@ -471,11 +469,11 @@ namespace Deveel.Data {
 				actStateStore.LockForWrite();
 
 				stateStore = new StateStore(actStateStore);
-				long head_p = stateStore.Create();
+				long headP = stateStore.Create();
 				// Get the fixed area
-				IMutableArea fixed_area = actStateStore.GetMutableArea(-1);
-				fixed_area.WriteInt8(head_p);
-				fixed_area.CheckOut();
+				IMutableArea fixedArea = actStateStore.GetMutableArea(-1);
+				fixedArea.WriteInt8(headP);
+				fixedArea.CheckOut();
 			} finally {
 				actStateStore.UnlockForWrite();
 			}

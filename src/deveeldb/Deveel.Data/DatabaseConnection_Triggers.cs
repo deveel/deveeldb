@@ -253,11 +253,7 @@ namespace Deveel.Data {
 					return 0;
 				}
 				if (HasNEWTable && name.Equals(Database.NewTriggerTable)) {
-					if (HasOLDTable) {
-						return 1;
-					} else {
-						return 0;
-					}
+					return HasOLDTable ? 1 : 0;
 				}
 				return -1;
 			}
@@ -279,33 +275,31 @@ namespace Deveel.Data {
 				return "SYSTEM TABLE";
 			}
 
-			public DataTableDef GetDataTableDef(int i) {
-				DataTableDef table_def = conn.GetDataTableDef(
-												  conn.currentOldNewState.trigger_source);
-				DataTableDef new_table_def = new DataTableDef(table_def);
-				new_table_def.TableName = GetTableName(i);
-				return new_table_def;
+			public DataTableInfo GetTableInfo(int i) {
+				DataTableInfo tableInfo = conn.GetTableInfo(conn.currentOldNewState.trigger_source);
+				DataTableInfo newTableInfo = tableInfo.Clone();
+				newTableInfo.TableName = GetTableName(i);
+				return newTableInfo;
 			}
 
 			public IMutableTableDataSource CreateInternalTable(int index) {
-				DataTableDef t_def = GetDataTableDef(index);
+				DataTableInfo tableInfo = GetTableInfo(index);
 
-				TriggeredOldNewDataSource table =
-									  new TriggeredOldNewDataSource(conn.System, t_def);
+				TriggeredOldNewDataSource table = new TriggeredOldNewDataSource(conn.System, tableInfo);
 
 				if (HasOLDTable) {
 					if (index == 0) {
 
 						// Copy data from the table to the new table
 						DataTable dtable = conn.GetTable(conn.currentOldNewState.trigger_source);
-						DataRow old_row = new DataRow(table);
-						int row_index = conn.currentOldNewState.OLD_row_index;
-						for (int i = 0; i < t_def.ColumnCount; ++i) {
-							old_row.SetValue(i, dtable.GetCellContents(i, row_index));
+						DataRow oldRow = new DataRow(table);
+						int rowIndex = conn.currentOldNewState.OLD_row_index;
+						for (int i = 0; i < tableInfo.ColumnCount; ++i) {
+							oldRow.SetValue(i, dtable.GetCellContents(i, rowIndex));
 						}
 						// All OLD tables are immutable
 						table.SetImmutable(true);
-						table.SetRowData(old_row);
+						table.SetRowData(oldRow);
 
 						return table;
 					}
@@ -324,25 +318,25 @@ namespace Deveel.Data {
 		/// to represent the data in the OLD and NEW tables.
 		/// </summary>
 		private sealed class TriggeredOldNewDataSource : GTDataSource {
-			private readonly DataTableDef table_def;
+			private readonly DataTableInfo tableInfo;
 			private DataRow content;
 			private bool immutable;
 
-			public TriggeredOldNewDataSource(TransactionSystem system, DataTableDef table_def)
+			public TriggeredOldNewDataSource(TransactionSystem system, DataTableInfo tableInfo)
 				: base(system) {
-				this.table_def = table_def;
+				this.tableInfo = tableInfo;
 			}
 
 			internal void SetImmutable(bool im) {
-				this.immutable = im;
+				immutable = im;
 			}
 
 			internal void SetRowData(DataRow dataRow) {
-				this.content = dataRow;
+				content = dataRow;
 			}
 
-			public override DataTableDef TableInfo {
-				get { return table_def; }
+			public override DataTableInfo TableInfo {
+				get { return tableInfo; }
 			}
 
 			public override int RowCount {
@@ -361,7 +355,7 @@ namespace Deveel.Data {
 							  TableInfo.TableName + "' is not permitted.");
 			}
 
-			public override void RemoveRow(int row_index) {
+			public override void RemoveRow(int rowIndex) {
 				throw new Exception("Deleting from table '" +
 							  TableInfo.TableName + "' is not permitted.");
 			}

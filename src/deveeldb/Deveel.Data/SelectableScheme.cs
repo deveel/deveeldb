@@ -43,17 +43,6 @@ namespace Deveel.Data {
 	/// </para>
 	/// </remarks>
 	public abstract class SelectableScheme {
-		private static readonly BlockIndex EmptyList;
-		private static readonly BlockIndex OneList;
-
-		static SelectableScheme() {
-			EmptyList = new BlockIndex();
-			EmptyList.IsReadOnly = true;
-			OneList = new BlockIndex();
-			OneList.Add(0);
-			OneList.IsReadOnly = true;
-		}
-
 		/// <summary>
 		/// The table data source with the column this scheme indexes.
 		/// </summary>
@@ -65,9 +54,20 @@ namespace Deveel.Data {
 		private readonly int column;
 
 		/// <summary>
-		/// Set to true if this scheme is immutable (can't be changed).
+		/// Set to true if this scheme is readOnly (can't be changed).
 		/// </summary>
-		private bool immutable;
+		private bool readOnly;
+
+		private static readonly BlockIndex EmptyList;
+		private static readonly BlockIndex OneList;
+
+		static SelectableScheme() {
+			EmptyList = new BlockIndex();
+			EmptyList.IsReadOnly = true;
+			OneList = new BlockIndex();
+			OneList.Add(0);
+			OneList.IsReadOnly = true;
+		}
 
 		protected SelectableScheme(ITableDataSource table, int column) {
 			this.table = table;
@@ -92,12 +92,9 @@ namespace Deveel.Data {
 		/// Returns the <see cref="IDebugLogger"/> object to log debug 
 		/// messages to.
 		/// </summary>
-		/*
-		TODO:
 		protected IDebugLogger Debug {
 			get { return System.Debug; }
 		}
-		*/
 
 		/// <summary>
 		/// Returns the column this scheme is indexing in the table.
@@ -107,26 +104,20 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Returns true if this scheme is readOnly.
+		/// </summary>
+		public bool IsReadOnly {
+			get { return readOnly; }
+			set { readOnly = value; }
+		}
+
+		/// <summary>
 		/// Obtains the given cell in the row from the table.
 		/// </summary>
 		/// <param name="row"></param>
 		/// <returns></returns>
 		protected TObject GetCellContents(int row) {
 			return table.GetCellContents(column, row);
-		}
-
-		/// <summary>
-		/// Sets this scheme to immutable.
-		/// </summary>
-		public void SetImmutable() {
-			immutable = true;
-		}
-
-		/// <summary>
-		/// Returns true if this scheme is immutable.
-		/// </summary>
-		public bool IsImmutable {
-			get { return immutable; }
 		}
 
 		/// <inheritdoc/>
@@ -161,8 +152,8 @@ namespace Deveel.Data {
 		/// effect on the original and vice versa.
 		/// <para>
 		/// The newly copied scheme can be given a new table source. If
-		/// 'immutable' is true, then the resultant scheme is an immutable 
-		/// version of the parent. An immutable version may share information 
+		/// 'readOnly' is true, then the resultant scheme is an readOnly 
+		/// version of the parent. An readOnly version may share information 
 		/// with the copied version so can not be changed.
 		/// </para>
 		/// <para>
@@ -224,7 +215,7 @@ namespace Deveel.Data {
 			int rowSetLength = rowSet.Count;
 
 			// Trivial cases where sorting is not required:
-			// NOTE: We use immutable objects to save some memory.
+			// NOTE: We use readOnly objects to save some memory.
 			if (rowSetLength == 0)
 				return EmptyList;
 			if (rowSetLength == 1)
@@ -245,7 +236,7 @@ namespace Deveel.Data {
 				}
 
 				// The comparator we use to sort
-				IIndexComparer comparator = new IndexComparatorImpl1(subsetList);
+				IIndexComparer comparator = new SubsetIndexComparer(subsetList);
 
 				// Fill new_set with the set { 0, 1, 2, .... , row_set_length }
 				for (int i = 0; i < rowSetLength; ++i) {
@@ -257,7 +248,7 @@ namespace Deveel.Data {
 				// This is the no additional heap use method to sorting the sub-set.
 
 				// The comparator we use to sort
-				IIndexComparer comparator = new IndexComparatorImpl2(this, rowSet);
+				IIndexComparer comparator = new SchemeIndexComparer(this, rowSet);
 
 				// Fill new_set with the set { 0, 1, 2, .... , row_set_length }
 				for (int i = 0; i < rowSetLength; ++i) {
@@ -268,53 +259,6 @@ namespace Deveel.Data {
 
 			return newSet;
 
-		}
-
-		private class IndexComparatorImpl1 : IIndexComparer {
-			private readonly TObject[] subsetList;
-
-			public IndexComparatorImpl1(TObject[] subsetList) {
-				this.subsetList = subsetList;
-			}
-
-			public int Compare(int index, Object val) {
-				TObject cell = subsetList[index];
-				return cell.CompareTo((TObject)val);
-			}
-
-			public int Compare(int index1, int index2) {
-				throw new NotSupportedException("Shouldn't be called!");
-			}
-
-			#region Implementation of IComparer
-
-			public int Compare(object x, object y) {
-				return Compare((int) x, y);
-			}
-
-			#endregion
-		}
-
-		private class IndexComparatorImpl2 : IIndexComparer {
-			private readonly SelectableScheme scheme;
-			private readonly IList<int> rowSet;
-
-			public IndexComparatorImpl2(SelectableScheme scheme, IList<int> rowSet) {
-				this.scheme = scheme;
-				this.rowSet = rowSet;
-			}
-
-			public int Compare(int index, Object val) {
-				TObject cell = scheme.GetCellContents(rowSet[index]);
-				return cell.CompareTo((TObject)val);
-			}
-			public int Compare(int index1, int index2) {
-				throw new NotSupportedException("Shouldn't be called!");
-			}
-
-			public int Compare(object x, object y) {
-				return Compare((int) x, y);
-			}
 		}
 
 		/// <summary>
@@ -356,7 +300,7 @@ namespace Deveel.Data {
 			// Move the sorted index set into the new scheme.
 			InsertSearch scheme = new InsertSearch(subsetTable, subsetColumn, new_set);
 			// Don't let subset schemes create uid caches.
-			scheme.RECORD_UID = false;
+			scheme.RecordUid = false;
 			return scheme;
 
 		}
@@ -543,7 +487,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal abstract IList<int> SelectRange(SelectableRange range);
+		public abstract IList<int> SelectRange(SelectableRange range);
 
 		/// <summary>
 		/// Selects a set of ranges from this index.
@@ -564,7 +508,42 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal abstract IList<int> SelectRange(SelectableRange[] ranges);
+		public abstract IList<int> SelectRange(SelectableRange[] ranges);
 
+		private class SubsetIndexComparer : IIndexComparer {
+			private readonly TObject[] subsetList;
+
+			public SubsetIndexComparer(TObject[] subsetList) {
+				this.subsetList = subsetList;
+			}
+
+			public int Compare(int index, object val) {
+				TObject cell = subsetList[index];
+				return cell.CompareTo((TObject)val);
+			}
+
+			public int Compare(int index1, int index2) {
+				throw new NotSupportedException("Shouldn't be called!");
+			}
+		}
+
+		private class SchemeIndexComparer : IIndexComparer {
+			private readonly SelectableScheme scheme;
+			private readonly IList<int> rowSet;
+
+			public SchemeIndexComparer(SelectableScheme scheme, IList<int> rowSet) {
+				this.scheme = scheme;
+				this.rowSet = rowSet;
+			}
+
+			public int Compare(int index, Object val) {
+				TObject cell = scheme.GetCellContents(rowSet[index]);
+				return cell.CompareTo((TObject)val);
+			}
+
+			public int Compare(int index1, int index2) {
+				throw new NotSupportedException("Shouldn't be called!");
+			}
+		}
 	}
 }

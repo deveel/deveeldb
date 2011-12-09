@@ -55,7 +55,7 @@ namespace Deveel.Data {
 		/// The <see cref="TableInfo"/> object that describes the subset column of 
 		/// this table.
 		/// </summary>
-		private DataTableDef subset_table_def;
+		private DataTableInfo subsetTableInfo;
 
 		/// <summary>
 		/// The resolved <see cref="VariableName"/> aliases for this subset.
@@ -90,20 +90,19 @@ namespace Deveel.Data {
 
 			this.aliases = aliases;
 
-			subset_table_def = new DataTableDef();
-			DataTableDef parent_def = parent.TableInfo;
-			subset_table_def.TableName = parent_def.TableName;
+			subsetTableInfo = new DataTableInfo();
+			DataTableInfo parentInfo = parent.TableInfo;
+			subsetTableInfo.TableName = parentInfo.TableName;
 
 			for (int i = 0; i < mapping.Length; ++i) {
 				int map_to = mapping[i];
-				DataTableColumnDef col_def =
-								  new DataTableColumnDef(parent.GetColumnDef(map_to));
-				col_def.Name = aliases[i].Name;
-				subset_table_def.AddVirtualColumn(col_def);
+				DataTableColumnInfo colInfo = parent.GetColumnDef(map_to).Clone();
+				colInfo.Name = aliases[i].Name;
+				subsetTableInfo.AddVirtualColumn(colInfo);
 				reverse_column_map[map_to] = i;
 			}
 
-			subset_table_def.SetImmutable();
+			subsetTableInfo.SetImmutable();
 		}
 
 		/// <inheritdoc/>
@@ -122,8 +121,8 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override DataTableDef TableInfo {
-			get { return subset_table_def; }
+		public override DataTableInfo TableInfo {
+			get { return subsetTableInfo; }
 		}
 
 		/// <inheritdoc/>
@@ -132,15 +131,15 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 
 			// We need to map the original_column if the original column is a reference
 			// in this subset column table.  Otherwise we leave as is.
 			// The reason is because FilterTable pretends the call came from its
 			// parent if a request is made on this table.
-			int mapped_original_column = original_column;
+			int mapped_original_column = originalColumn;
 			if (table == this) {
-				mapped_original_column = column_map[original_column];
+				mapped_original_column = column_map[originalColumn];
 			}
 
 			return base.GetSelectableSchemeFor(column_map[column], mapped_original_column, table);

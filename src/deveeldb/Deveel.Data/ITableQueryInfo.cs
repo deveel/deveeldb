@@ -42,7 +42,7 @@ namespace Deveel.Data {
 		/// Returns an immutable <see cref="TableInfo"/> that describes 
 		/// the columns in this table source, and the name of the table.
 		/// </summary>
-		DataTableDef TableInfo { get; }
+		DataTableInfo TableInfo { get; }
 
 		/// <summary>
 		/// Returns a <see cref="IQueryPlanNode"/> that can be put into a plan 

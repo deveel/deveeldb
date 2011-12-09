@@ -21,58 +21,46 @@ using System.IO;
 
 namespace Deveel.Data {
 	/// <summary>
-	/// Defines meta informations about a table.
+	/// Defines meta information about a table.
 	/// </summary>
 	/// <remarks>
 	/// Every table in the database has a definition that describes how it is stored 
 	/// on disk, the column definitions, primary keys/foreign keys, and any 
 	/// check constraints.
 	/// </remarks>
-	public sealed class DataTableDef {
+	public sealed class DataTableInfo : ICloneable {
 		/// <summary>
-		///  A TableName object that represents this data table def.
+		///  A TableName object that represents this data table info.
 		/// </summary>
-		private TableName table_name;
+		private TableName tableName;
 
 		/// <summary>
 		/// The type of table this is (this is the class name of the object that
 		/// maintains the underlying database files).
 		/// </summary>
-		private String table_type_class;
+		private string tableTypeName;
 
 		/// <summary>
-		/// The list of DataTableColumnDef objects that are the definitions of each
+		/// The list of DataTableColumnInfo objects that are the definitions of each
 		/// column input the table.
 		/// </summary>
-		private readonly ArrayList column_list;
+		private List<DataTableColumnInfo> columns;
 
 		/// <summary>
-		/// Set to true if this data table def is immutable.
+		/// Set to true if this data table info is immutable.
 		/// </summary>
 		private bool immutable;
 
 		///<summary>
 		///</summary>
-		public DataTableDef() {
-			column_list = new ArrayList();
-			table_type_class = "";
+		public DataTableInfo() {
+			columns = new List<DataTableColumnInfo>();
+			tableTypeName = "";
 			immutable = false;
 		}
 
 		///<summary>
-		///</summary>
-		///<param name="table_def"></param>
-		public DataTableDef(DataTableDef table_def) {
-			table_name = table_def.TableName;
-			table_type_class = table_def.table_type_class;
-			column_list = (ArrayList)table_def.column_list.Clone();
-
-			// Copy is not immutable
-			immutable = false;
-		}
-
-		///<summary>
-		/// Sets this DataTableDef to immutable which means nothing is 
+		/// Sets this DataTableInfo to immutable which means nothing is 
 		/// able to change it.
 		///</summary>
 		public void SetImmutable() {
@@ -90,7 +78,7 @@ namespace Deveel.Data {
 		/// Checks that this object is mutable.
 		/// </summary>
 		/// <exception cref="ApplicationException">
-		/// If the current <see cref="DataTableDef"/> is immutable.
+		/// If the current <see cref="DataTableInfo"/> is immutable.
 		/// </exception>
 		private void CheckMutable() {
 			if (IsImmutable) {
@@ -124,7 +112,7 @@ namespace Deveel.Data {
 			// For each variable, determine if the column correctly resolves to a
 			// column input this table.  If the database is input identifier case insensitive
 			// mode attempt to resolve the column name to a valid column input this
-			// def.
+			// info.
 			if (exp != null) {
 				IList<VariableName> list = exp.AllVariables;
 				for (int i = 0; i < list.Count; ++i) {
@@ -213,30 +201,30 @@ namespace Deveel.Data {
 
 		///<summary>
 		///</summary>
-		///<param name="col_def"></param>
+		///<param name="colInfo"></param>
 		///<exception cref="ApplicationException"></exception>
-		public void AddColumn(DataTableColumnDef col_def) {
+		public void AddColumn(DataTableColumnInfo colInfo) {
 			CheckMutable();
-			// Is there already a column with this name input the table def?
-			for (int i = 0; i < column_list.Count; ++i) {
-				DataTableColumnDef cd = (DataTableColumnDef)column_list[i];
-				if (cd.Name.Equals(col_def.Name)) {
+			// Is there already a column with this name input the table info?
+			for (int i = 0; i < columns.Count; ++i) {
+				DataTableColumnInfo cd = (DataTableColumnInfo)columns[i];
+				if (cd.Name.Equals(colInfo.Name)) {
 					throw new ApplicationException("Duplicated columns found.");
 				}
 			}
-			column_list.Add(col_def);
+			columns.Add(colInfo);
 		}
 
 		///<summary>
 		///</summary>
-		///<param name="col_def"></param>
+		///<param name="colInfo"></param>
 		/// <remarks>
 		/// Same as <see cref="AddColumn"/> only this does not perform a 
 		/// check to ensure no two columns are the same.
 		/// </remarks>
-		public void AddVirtualColumn(DataTableColumnDef col_def) {
+		public void AddVirtualColumn(DataTableColumnInfo colInfo) {
 			CheckMutable();
-			column_list.Add(col_def);
+			columns.Add(colInfo);
 		}
 
 		/// <summary>
@@ -245,7 +233,7 @@ namespace Deveel.Data {
 		/// </summary>
 		public string Schema {
 			get {
-				String schema_name = table_name.Schema;
+				String schema_name = tableName.Schema;
 				return schema_name == null ? "" : schema_name;
 			}
 		}
@@ -254,7 +242,7 @@ namespace Deveel.Data {
 		/// Gets the name of the table.
 		/// </summary>
 		public string Name {
-			get { return table_name.Name; }
+			get { return tableName.Name; }
 		}
 
 		/// <summary>
@@ -262,8 +250,8 @@ namespace Deveel.Data {
 		/// of the table.
 		/// </summary>
 		public TableName TableName {
-			get { return table_name; }
-			set { table_name = value; }
+			get { return tableName; }
+			set { tableName = value; }
 		}
 
 		/// <summary>
@@ -272,11 +260,11 @@ namespace Deveel.Data {
 		/// <exception cref="DatabaseException">
 		/// If the specified value is invalid.</exception>
 		public string TableType {
-			get { return table_type_class; }
+			get { return tableTypeName; }
 			set {
 				CheckMutable();
 				if (value.Equals("Deveel.Data.VariableSizeDataTableFile")) {
-					table_type_class = value;
+					tableTypeName = value;
 				} else {
 					throw new ApplicationException("Unrecognised table class: " + value);
 				}
@@ -287,23 +275,23 @@ namespace Deveel.Data {
 		/// Gets the number of columns in the table.
 		/// </summary>
 		public int ColumnCount {
-			get { return column_list.Count; }
+			get { return columns.Count; }
 		}
 
 		/// <summary>
-		/// Gets the <see cref="DataTableColumnDef"/> object representing the 
+		/// Gets the <see cref="DataTableColumnInfo"/> object representing the 
 		/// column at the given index.
 		/// </summary>
 		/// <param name="column">Index of the coulmn to get.</param>
 		/// <returns>
-		/// Returns a <see cref="DataTableColumnDef"/> at the given 
+		/// Returns a <see cref="DataTableColumnInfo"/> at the given 
 		/// <paramref name="column"/> within the table.
 		/// </returns>
 		/// <exception cref="System.IndexOutOfRangeException">
 		/// If <paramref name="column"/> is out of range of the column list.
 		/// </exception>
-		public DataTableColumnDef this[int column] {
-			get { return (DataTableColumnDef) column_list[column]; }
+		public DataTableColumnInfo this[int column] {
+			get { return (DataTableColumnInfo) columns[column]; }
 		}
 
 		///<summary>
@@ -354,22 +342,22 @@ namespace Deveel.Data {
 		/// contained in it.
 		/// </summary>
 		/// <returns></returns>
-		public DataTableDef NoColumnCopy() {
-			DataTableDef def = new DataTableDef();
-			def.TableName = TableName;
-			//    def.setSchema(schema);
-			//    def.setName(name);
+		public DataTableInfo NoColumnCopy() {
+			DataTableInfo info = new DataTableInfo();
+			info.TableName = TableName;
+			//    info.setSchema(schema);
+			//    info.setName(name);
 
-			def.table_type_class = table_type_class;
+			info.tableTypeName = tableTypeName;
 
-			return def;
+			return info;
 		}
 
 
 		// ---------- In/Out methods ----------
 
 		/// <summary>
-		/// Writes this DataTableDef file to the data output stream.
+		/// Writes this DataTableInfo file to the data output stream.
 		/// </summary>
 		/// <param name="output"></param>
 		internal void Write(BinaryWriter output) {
@@ -377,58 +365,57 @@ namespace Deveel.Data {
 
 			output.Write(Name);
 			output.Write(Schema);            // Added input version 2
-			output.Write(table_type_class);
-			output.Write(column_list.Count);
-			for (int i = 0; i < column_list.Count; ++i) {
-				((DataTableColumnDef)column_list[i]).Write(output);
+			output.Write(tableTypeName);
+			output.Write(columns.Count);
+			for (int i = 0; i < columns.Count; ++i) {
+				columns[i].Write(output);
 			}
-
-			//    // -- Added input version 2 --
-			//    // Write the constraint list.
-			//    output.writeInt(constraint_list.size());
-			//    for (int i = 0; i < constraint_list.size(); ++i) {
-			//      ((DataTableConstraintDef) constraint_list.get(i)).Write(output);
-			//    }
-
-			//    [ this is removed from version 1 ]
-			//    if (check_expression != null) {
-			//      output.writeBoolean(true);
-			//      // Write the text version of the expression to the stream.
-			//      output.writeUTF(new String(check_expression.text()));
-			//    }
-			//    else {
-			//      output.writeBoolean(false);
-			//    }
-
 		}
 
 		/// <summary>
-		/// Reads this DataTableDef file from the data input stream.
+		/// Reads this DataTableInfo file from the data input stream.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		internal static DataTableDef Read(BinaryReader input) {
-			DataTableDef dtf = new DataTableDef();
+		internal static DataTableInfo Read(BinaryReader input) {
+			DataTableInfo tableInfo = new DataTableInfo();
 			int ver = input.ReadInt32();
 			if (ver == 1)
-				throw new IOException("Version 1 DataTableDef no longer supported.");
+				throw new IOException("Version 1 DataTableInfo no longer supported.");
+
 			if (ver == 2) {
-				String rname = input.ReadString();
-				String rschema = input.ReadString();
-				dtf.TableName = new TableName(rschema, rname);
-				dtf.table_type_class = input.ReadString();
+				string rname = input.ReadString();
+				string rschema = input.ReadString();
+				tableInfo.TableName = new TableName(rschema, rname);
+				tableInfo.tableTypeName = input.ReadString();
 				int size = input.ReadInt32();
 				for (int i = 0; i < size; ++i) {
-					DataTableColumnDef col_def = DataTableColumnDef.Read(input);
-					dtf.column_list.Add(col_def);
+					DataTableColumnInfo colInfo = DataTableColumnInfo.Read(input);
+					tableInfo.columns.Add(colInfo);
 				}
 
 			} else {
-				throw new ApplicationException("Unrecognized DataTableDef version (" + ver + ")");
+				throw new ApplicationException("Unrecognized DataTableInfo version (" + ver + ")");
 			}
 
-			dtf.SetImmutable();
-			return dtf;
+			tableInfo.SetImmutable();
+			return tableInfo;
+		}
+
+		object ICloneable.Clone() {
+			return Clone();
+		}
+
+		public DataTableInfo Clone() {
+			DataTableInfo clone = new DataTableInfo();
+			clone.tableName = tableName;
+			clone.tableTypeName = (string) tableTypeName.Clone();
+			clone.columns = new List<DataTableColumnInfo>();
+			foreach (DataTableColumnInfo column in columns) {
+				clone.columns.Add(column.Clone());
+			}
+
+			return clone;
 		}
 	}
 }

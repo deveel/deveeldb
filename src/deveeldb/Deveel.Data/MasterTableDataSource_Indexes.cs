@@ -61,7 +61,7 @@ namespace Deveel.Data {
 		internal SelectableScheme CreateSelectableSchemeForColumn(IIndexSet indexSet, ITableDataSource table, int column) {
 			lock (this) {
 				// What's the type of scheme for this column?
-				DataTableColumnDef columnInfo = TableInfo[column];
+				DataTableColumnInfo columnInfo = TableInfo[column];
 
 				// If the column isn't indexable then return a BlindSearch object
 				if (!columnInfo.IsIndexableType)
@@ -70,7 +70,7 @@ namespace Deveel.Data {
 				string schemeType = columnInfo.IndexScheme;
 				if (schemeType.Equals("InsertSearch")) {
 					// Search the TableIndexDef for this column
-					DataIndexSetDef indexSetInfo = IndexSetInfo;
+					DataIndexSetInfo indexSetInfo = IndexSetInfo;
 					int indexI = indexSetInfo.FindIndexForColumns(new string[] { columnInfo.Name });
 					return CreateSelectableSchemeForIndex(indexSet, table, indexI);
 				}
@@ -84,7 +84,7 @@ namespace Deveel.Data {
 
 		/// <summary>
 		/// Creates a SelectableScheme object for the given index in the index 
-		/// set def in this table.
+		/// set info in this table.
 		/// </summary>
 		/// <param name="indexSet"></param>
 		/// <param name="table"></param>
@@ -97,11 +97,11 @@ namespace Deveel.Data {
 		internal SelectableScheme CreateSelectableSchemeForIndex(IIndexSet indexSet, ITableDataSource table, int indexI) {
 			lock (this) {
 				// Get the IndexDef object
-				DataIndexDef dataIndexInfo = IndexSetInfo[indexI];
+				DataIndexInfo dataIndexInfo = IndexSetInfo[indexI];
 
 				if (dataIndexInfo.Type.Equals("BLIST")) {
 					string[] cols = dataIndexInfo.ColumnNames;
-					DataTableDef dataTableInfo = TableInfo;
+					DataTableInfo dataTableInfo = TableInfo;
 					if (cols.Length != 1)
 						throw new Exception("Multi-column indexes not supported at this time.");
 
@@ -137,7 +137,7 @@ namespace Deveel.Data {
 			lock (this) {
 				IIndexSet indexSet = CreateIndexSet();
 
-				DataIndexSetDef indexSetInfo = IndexSetInfo;
+				DataIndexSetInfo indexSetInfo = IndexSetInfo;
 
 				int rowCount = RawRowCount;
 
@@ -216,13 +216,13 @@ namespace Deveel.Data {
 		/// </remarks>
 		private void SetIndexSetInfo() {
 			lock (this) {
-				// Create the initial DataIndexSetDef object.
-				indexInfo = new DataIndexSetDef(tableInfo.TableName);
+				// Create the initial DataIndexSetInfo object.
+				indexInfo = new DataIndexSetInfo(tableInfo.TableName);
 				for (int i = 0; i < tableInfo.ColumnCount; ++i) {
-					DataTableColumnDef colInfo = tableInfo[i];
+					DataTableColumnInfo colInfo = tableInfo[i];
 					if (colInfo.IsIndexableType &&
 						colInfo.IndexScheme.Equals("InsertSearch")) {
-						indexInfo.AddDataIndexDef(new DataIndexDef("ANON-COLUMN:" + i, new String[] { colInfo.Name }, i + 1, "BLIST", false));
+						indexInfo.AddIndex(new DataIndexInfo("ANON-COLUMN:" + i, new String[] { colInfo.Name }, i + 1, "BLIST", false));
 					}
 				}
 			}

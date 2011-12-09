@@ -166,7 +166,7 @@ namespace Deveel.Data.QueryPlanning {
 						givenName = new TableName(alias);
 
 					// Get the ITableQueryInfo object for this table name (aliased).
-					ITableQueryInfo tableQueryInfo = db.GetTableQueryDef(tableName, givenName);
+					ITableQueryInfo tableQueryInfo = db.GetTableQueryInfo(tableName, givenName);
 					FromTableDirectSource source = new FromTableDirectSource(db.IsInCaseInsensitiveMode, tableQueryInfo, uniqueKey,
 					                                                         givenName, tableName);
 

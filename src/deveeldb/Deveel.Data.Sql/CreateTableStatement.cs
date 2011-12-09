@@ -64,27 +64,27 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// Creates a DataTableDef that describes the table that was 
+		/// Creates a DataTableInfo that describes the table that was 
 		/// defined by this create statement.
 		/// </summary>
 		/// <remarks>
 		/// This is used by the <see cref="AlterTableStatement">alter statement</see>.
 		/// </remarks>
 		/// <returns></returns>
-		internal DataTableDef CreateDataTableDef() {
-			// Make all this information into a DataTableDef object...
-			DataTableDef table_def = new DataTableDef();
-			table_def.TableName = tname;
-			table_def.TableType = "Deveel.Data.VariableSizeDataTableFile";
+		internal DataTableInfo CreateTableInfo() {
+			// Make all this information into a DataTableInfo object...
+			DataTableInfo tableInfo = new DataTableInfo();
+			tableInfo.TableName = tname;
+			tableInfo.TableType = "Deveel.Data.VariableSizeDataTableFile";
 
 			// Add the columns.
 			// NOTE: Any duplicate column names will be found here...
 			for (int i = 0; i < columns.Count; ++i) {
-				DataTableColumnDef cd = (DataTableColumnDef)columns[i];
-				table_def.AddColumn(cd);
+				DataTableColumnInfo cd = (DataTableColumnInfo)columns[i];
+				tableInfo.AddColumn(cd);
 			}
 
-			return table_def;
+			return tableInfo;
 		}
 
 
@@ -128,14 +128,14 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// Returns a <see cref="SqlColumn"/> object a a <see cref="DataTableColumnDef"/> object.
+		/// Returns a <see cref="SqlColumn"/> object a a <see cref="DataTableColumnInfo"/> object.
 		/// </summary>
 		/// <param name="cdef"></param>
 		/// <returns></returns>
-		internal static DataTableColumnDef ConvertColumnDef(SqlColumn cdef) {
+		internal static DataTableColumnInfo ConvertColumnDef(SqlColumn cdef) {
 			TType type = cdef.Type;
 
-			DataTableColumnDef dtcdef = new DataTableColumnDef();
+			DataTableColumnInfo dtcdef = new DataTableColumnInfo();
 			dtcdef.Name = cdef.Name;
 			dtcdef.IsNotNull = cdef.IsNotNull;
 			dtcdef.SetFromTType(type);
@@ -177,7 +177,7 @@ namespace Deveel.Data.Sql {
 			IList column_list = GetList("column_list");
 			constraints = GetList("constraint_list");
 
-			// Convert column_list to list of com.mckoi.Connection.DataTableColumnDef
+			// Convert column_list to list of com.mckoi.Connection.DataTableColumnInfo
 			int size = column_list.Count;
 			int identityIndex = -1;
 			columns = new ArrayList(size);
@@ -212,7 +212,7 @@ namespace Deveel.Data.Sql {
 			// Check the expressions that represent the default values for the columns.
 			// Also check each column name
 			for (int i = 0; i < columns.Count; ++i) {
-				DataTableColumnDef cdef = (DataTableColumnDef)columns[i];
+				DataTableColumnInfo cdef = (DataTableColumnInfo)columns[i];
 				SqlColumn model_cdef = (SqlColumn)column_list[i];
 				checker.CheckExpression(cdef.GetDefaultExpression(Connection.System));
 				String col_name = cdef.Name;
@@ -257,20 +257,20 @@ namespace Deveel.Data.Sql {
 					}
 					constraint.ReferenceTable = ref_tname.ToString();
 
-					DataTableDef ref_table_def;
+					DataTableInfo refTableInfo;
 					if (Connection.TableExists(ref_tname)) {
-						// Get the DataTableDef for the table we are referencing
-						ref_table_def = Connection.GetDataTableDef(ref_tname);
+						// Get the DataTableInfo for the table we are referencing
+						refTableInfo = Connection.GetTableInfo(ref_tname);
 					} else if (ref_tname.Equals(tname)) {
 						// We are referencing the table we are creating
-						ref_table_def = CreateDataTableDef();
+						refTableInfo = CreateTableInfo();
 					} else {
 						throw new DatabaseException(
 							  "Referenced table '" + ref_tname + "' in constraint '" +
 							  constraint.Name + "' does not exist.");
 					}
-					// Resolve columns against the given table def
-					ref_table_def.ResolveColumnsInArray(Connection, constraint.column_list2);
+					// Resolve columns against the given table info
+					refTableInfo.ResolveColumnsInArray(Connection, constraint.column_list2);
 
 				}
 				checker.CheckExpression(constraint.CheckExpression);
@@ -291,7 +291,7 @@ namespace Deveel.Data.Sql {
 				// We need to do case sensitive and case insensitive resolution,
 				String found_col = null;
 				for (int n = 0; n < columns.Count; ++n) {
-					DataTableColumnDef col = (DataTableColumnDef)columns[n];
+					DataTableColumnInfo col = (DataTableColumnInfo)columns[n];
 					if (!ignores_case) {
 						if (col.Name.Equals(col_name)) {
 							return col_name;
@@ -338,8 +338,8 @@ namespace Deveel.Data.Sql {
 
 				// Create the data table definition and tell the database to create
 				// it.
-				DataTableDef table_def = CreateDataTableDef();
-				Connection.CreateTable(table_def);
+				DataTableInfo tableInfo = CreateTableInfo();
+				Connection.CreateTable(tableInfo);
 
 				// The initial grants for a table is to give the user who created it
 				// full access.

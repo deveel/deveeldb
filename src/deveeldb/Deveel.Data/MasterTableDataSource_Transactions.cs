@@ -268,85 +268,80 @@ namespace Deveel.Data {
 			/// <summary>
 			/// True if the transaction is Read-only.
 			/// </summary>
-			private readonly bool tran_read_only;
+			private readonly bool tranReadOnly;
 
 			/// <summary>
 			/// The name of this table.
 			/// </summary>
-			private TableName table_name;
+			private TableName tableName;
 
 			/// <summary>
 			/// The 'recovery point' to which the row index in this table source 
 			/// has rebuilt to.
 			/// </summary>
-			private int row_list_rebuild;
+			private int rowListRebuild;
 
 			/// <summary>
 			/// The index that represents the rows that are within this
 			/// table data source within this transaction.
 			/// </summary>
-			private IIndex row_list;
+			private IIndex rowList;
 
 			/// <summary>
 			/// The 'recovery point' to which the schemes in this table source have
 			/// rebuilt to.
 			/// </summary>
-			private int[] scheme_rebuilds;
+			private int[] schemeRebuilds;
 
 			/// <summary>
 			/// The IIndexSet for this mutable table source.
 			/// </summary>
-			private IIndexSet index_set;
+			private IIndexSet indexSet;
 
 			/// <summary>
 			/// The SelectableScheme array that represents the schemes for the
 			/// columns within this transaction.
 			/// </summary>
-			private readonly SelectableScheme[] column_schemes;
+			private readonly SelectableScheme[] columnSchemes;
 
 			/// <summary>
 			/// A journal of changes to this source since it was created.
 			/// </summary>
-			private MasterTableJournal table_journal;
+			private MasterTableJournal tableJournal;
 
 			/// <summary>
 			/// The last time any changes to the journal were check for referential
 			/// integrity violations.
 			/// </summary>
-			private int last_entry_ri_check;
+			private int lastEntryRICheck;
 
-			public MMutableTableDataSource(MasterTableDataSource mtds, SimpleTransaction transaction,
-										   MasterTableJournal journal) {
+			public MMutableTableDataSource(MasterTableDataSource mtds, SimpleTransaction transaction, MasterTableJournal journal) {
 				this.mtds = mtds;
 				this.transaction = transaction;
-				index_set = transaction.GetIndexSetForTable(mtds);
-				int col_count = TableInfo.ColumnCount;
-				table_name = TableInfo.TableName;
-				tran_read_only = transaction.IsReadOnly;
-				row_list_rebuild = 0;
-				scheme_rebuilds = new int[col_count];
-				column_schemes = new SelectableScheme[col_count];
-				table_journal = journal;
-				last_entry_ri_check = table_journal.EntriesCount;
+				indexSet = transaction.GetIndexSetForTable(mtds);
+				int colCount = TableInfo.ColumnCount;
+				tableName = TableInfo.TableName;
+				tranReadOnly = transaction.IsReadOnly;
+				rowListRebuild = 0;
+				schemeRebuilds = new int[colCount];
+				columnSchemes = new SelectableScheme[colCount];
+				tableJournal = journal;
+				lastEntryRICheck = tableJournal.EntriesCount;
 			}
 
 			/// <summary>
 			/// Executes an update referential action.
 			/// </summary>
 			/// <param name="constraint"></param>
-			/// <param name="original_key"></param>
-			/// <param name="new_key"></param>
+			/// <param name="originalKey"></param>
+			/// <param name="newKey"></param>
 			/// <param name="context"></param>
 			/// <exception cref="ApplicationException">
 			/// If the update action is "NO ACTION", and the constraint is 
 			/// <see cref="ConstraintDeferrability.InitiallyImmediate"/>, and 
 			/// the new key doesn't exist in the referral table.
 			/// </exception>
-			private void ExecuteUpdateReferentialAction(
-									  Transaction.ColumnGroupReference constraint,
-									  TObject[] original_key, TObject[] new_key,
-									  IQueryContext context) {
-
+			private void ExecuteUpdateReferentialAction(Transaction.ColumnGroupReference constraint, TObject[] originalKey, TObject[] newKey, IQueryContext context) {
 				ConstraintAction update_rule = constraint.update_rule;
 				if (update_rule == ConstraintAction.NoAction &&
 					constraint.deferred != ConstraintDeferrability.InitiallyImmediate) {
@@ -356,16 +351,14 @@ namespace Deveel.Data {
 
 				// So either update rule is not NO ACTION, or if it is we are initially
 				// immediate.
-				IMutableTableDataSource key_table =
-										 transaction.GetTable(constraint.key_table_name);
-				DataTableDef table_def = key_table.TableInfo;
-				int[] key_cols = TableDataConglomerate.FindColumnIndices(
-													  table_def, constraint.key_columns);
-				IList<int> key_entries = TableDataConglomerate.FindKeys(key_table, key_cols, original_key);
+				IMutableTableDataSource keyTable = transaction.GetTable(constraint.key_table_name);
+				DataTableInfo tableInfo = keyTable.TableInfo;
+				int[] keyCols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.key_columns);
+				IList<int> keyEntries = TableDataConglomerate.FindKeys(keyTable, keyCols, originalKey);
 
 				// Are there keys effected?
-				if (key_entries.Count > 0) {
-					if (update_rule == ConstraintAction.NoAction) {
+				if (keyEntries.Count > 0) {
+					if (update_rule == ConstraintAction.NoAction)
 						// Throw an exception;
 						throw new DatabaseConstraintViolationException(
 							DatabaseConstraintViolationException.ForeignKeyViolation,
@@ -377,36 +370,34 @@ namespace Deveel.Data {
 							" ) -> " + constraint.ref_table_name.ToString() + "( " +
 							TableDataConglomerate.StringColumnList(constraint.ref_columns) +
 							" )");
-					} else {
-						// Perform a referential action on each updated key
-						int sz = key_entries.Count;
-						for (int i = 0; i < sz; ++i) {
-							int row_index = key_entries[i];
-							DataRow dataRow = new DataRow(key_table);
-							dataRow.SetFromRow(row_index);
-							if (update_rule == ConstraintAction.Cascade) {
-								// Update the keys
-								for (int n = 0; n < key_cols.Length; ++n) {
-									dataRow.SetValue(key_cols[n], new_key[n]);
-								}
-								key_table.UpdateRow(row_index, dataRow);
-							} else if (update_rule == ConstraintAction.SetNull) {
-								for (int n = 0; n < key_cols.Length; ++n) {
-									dataRow.SetToNull(key_cols[n]);
-								}
-								key_table.UpdateRow(row_index, dataRow);
-							} else if (update_rule == ConstraintAction.SetDefault) {
-								for (int n = 0; n < key_cols.Length; ++n) {
-									dataRow.SetToDefault(key_cols[n], context);
-								}
-								key_table.UpdateRow(row_index, dataRow);
-							} else {
-								throw new Exception("Do not understand referential action: " + update_rule);
+
+					// Perform a referential action on each updated key
+					foreach (int rowIndex in keyEntries) {
+						DataRow dataRow = new DataRow(keyTable);
+						dataRow.SetFromRow(rowIndex);
+
+						if (update_rule == ConstraintAction.Cascade) {
+							// Update the keys
+							for (int n = 0; n < keyCols.Length; ++n) {
+								dataRow.SetValue(keyCols[n], newKey[n]);
 							}
+							keyTable.UpdateRow(rowIndex, dataRow);
+						} else if (update_rule == ConstraintAction.SetNull) {
+							for (int n = 0; n < keyCols.Length; ++n) {
+								dataRow.SetToNull(keyCols[n]);
+							}
+							keyTable.UpdateRow(rowIndex, dataRow);
+						} else if (update_rule == ConstraintAction.SetDefault) {
+							for (int n = 0; n < keyCols.Length; ++n) {
+								dataRow.SetToDefault(keyCols[n], context);
+							}
+							keyTable.UpdateRow(rowIndex, dataRow);
+						} else {
+							throw new Exception("Do not understand referential action: " + update_rule);
 						}
-						// Check referential integrity of modified table,
-						key_table.ConstraintIntegrityCheck();
 					}
+					// Check referential integrity of modified table,
+					keyTable.ConstraintIntegrityCheck();
 				}
 			}
 
@@ -414,17 +405,14 @@ namespace Deveel.Data {
 			/// Executes a delete referential action.
 			/// </summary>
 			/// <param name="constraint"></param>
-			/// <param name="original_key"></param>
+			/// <param name="originalKey"></param>
 			/// <param name="context"></param>
 			/// <exception cref="ApplicationException">
 			/// If the delete action is "NO ACTION", and the constraint is 
 			/// <see cref="ConstraintDeferrability.InitiallyImmediate"/>, and 
 			/// the new key doesn't exist in the referral table.
 			/// </exception>
-			private void ExecuteDeleteReferentialAction(
-									  Transaction.ColumnGroupReference constraint,
-									  TObject[] original_key, IQueryContext context) {
-
+			private void ExecuteDeleteReferentialAction(Transaction.ColumnGroupReference constraint, TObject[] originalKey, IQueryContext context) {
 				ConstraintAction delete_rule = constraint.delete_rule;
 				if (delete_rule == ConstraintAction.NoAction &&
 					constraint.deferred != ConstraintDeferrability.InitiallyImmediate) {
@@ -434,15 +422,13 @@ namespace Deveel.Data {
 
 				// So either delete rule is not NO ACTION, or if it is we are initially
 				// immediate.
-				IMutableTableDataSource key_table =
-										 transaction.GetTable(constraint.key_table_name);
-				DataTableDef table_def = key_table.TableInfo;
-				int[] key_cols = TableDataConglomerate.FindColumnIndices(
-													  table_def, constraint.key_columns);
-				IList<int> key_entries = TableDataConglomerate.FindKeys(key_table, key_cols, original_key);
+				IMutableTableDataSource keyTable = transaction.GetTable(constraint.key_table_name);
+				DataTableInfo tableInfo = keyTable.TableInfo;
+				int[] keyCols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.key_columns);
+				IList<int> keyEntries = TableDataConglomerate.FindKeys(keyTable, keyCols, originalKey);
 
 				// Are there keys effected?
-				if (key_entries.Count > 0) {
+				if (keyEntries.Count > 0) {
 					if (delete_rule == ConstraintAction.NoAction) {
 						// Throw an exception;
 						throw new DatabaseConstraintViolationException(
@@ -455,33 +441,31 @@ namespace Deveel.Data {
 							" ) -> " + constraint.ref_table_name.ToString() + "( " +
 							TableDataConglomerate.StringColumnList(constraint.ref_columns) +
 							" )");
-					} else {
-						// Perform a referential action on each updated key
-						int sz = key_entries.Count;
-						for (int i = 0; i < sz; ++i) {
-							int row_index = key_entries[i];
-							DataRow dataRow = new DataRow(key_table);
-							dataRow.SetFromRow(row_index);
-							if (delete_rule == ConstraintAction.Cascade) {
-								// Cascade the removal of the referenced rows
-								key_table.RemoveRow(row_index);
-							} else if (delete_rule == ConstraintAction.SetNull) {
-								for (int n = 0; n < key_cols.Length; ++n) {
-									dataRow.SetToNull(key_cols[n]);
-								}
-								key_table.UpdateRow(row_index, dataRow);
-							} else if (delete_rule == ConstraintAction.SetDefault) {
-								for (int n = 0; n < key_cols.Length; ++n) {
-									dataRow.SetToDefault(key_cols[n], context);
-								}
-								key_table.UpdateRow(row_index, dataRow);
-							} else {
-								throw new Exception("Do not understand referential action: " + delete_rule);
-							}
-						}
-						// Check referential integrity of modified table,
-						key_table.ConstraintIntegrityCheck();
 					}
+
+					// Perform a referential action on each updated key
+					foreach (int rowIndex in keyEntries) {
+						DataRow dataRow = new DataRow(keyTable);
+						dataRow.SetFromRow(rowIndex);
+						if (delete_rule == ConstraintAction.Cascade) {
+							// Cascade the removal of the referenced rows
+							keyTable.RemoveRow(rowIndex);
+						} else if (delete_rule == ConstraintAction.SetNull) {
+							for (int n = 0; n < keyCols.Length; ++n) {
+								dataRow.SetToNull(keyCols[n]);
+							}
+							keyTable.UpdateRow(rowIndex, dataRow);
+						} else if (delete_rule == ConstraintAction.SetDefault) {
+							for (int n = 0; n < keyCols.Length; ++n) {
+								dataRow.SetToDefault(keyCols[n], context);
+							}
+							keyTable.UpdateRow(rowIndex, dataRow);
+						} else {
+							throw new Exception("Do not understand referential action: " + delete_rule);
+						}
+					}
+					// Check referential integrity of modified table,
+					keyTable.ConstraintIntegrityCheck();
 				}
 			}
 
@@ -491,12 +475,12 @@ namespace Deveel.Data {
 			/// <remarks>
 			/// This will request this information from the master source.
 			/// </remarks>
-			private IIndex RowIndexList {
+			private IIndex RowIndex {
 				get {
-					if (row_list == null) {
-						row_list = index_set.GetIndex(0);
+					if (rowList == null) {
+						rowList = indexSet.GetIndex(0);
 					}
-					return row_list;
+					return rowList;
 				}
 			}
 
@@ -509,18 +493,18 @@ namespace Deveel.Data {
 			/// because multiple reads are valid.
 			/// </remarks>
 			private void EnsureRowIndexListCurrent() {
-				int rebuildIndex = row_list_rebuild;
-				int journalCount = table_journal.EntriesCount;
+				int rebuildIndex = rowListRebuild;
+				int journalCount = tableJournal.EntriesCount;
 				while (rebuildIndex < journalCount) {
-					JournalCommandType command = table_journal.GetCommand(rebuildIndex);
-					int rowIndex = table_journal.GetRowIndex(rebuildIndex);
+					JournalCommandType command = tableJournal.GetCommand(rebuildIndex);
+					int rowIndex = tableJournal.GetRowIndex(rebuildIndex);
 					if (command == JournalCommandType.AddRow) {
 						// Add to 'row_list'.
-						if (!RowIndexList.UniqueInsertSort(rowIndex))
+						if (!RowIndex.UniqueInsertSort(rowIndex))
 							throw new ApplicationException("Row index already used in this table (" + rowIndex + ")");
 					} else if (command == JournalCommandType.RemoveRow) {
 						// Remove from 'row_list'
-						if (!RowIndexList.RemoveSort(rowIndex))
+						if (!RowIndex.RemoveSort(rowIndex))
 							throw new ApplicationException("Row index removed that wasn't in this table!");
 					} else {
 						throw new ApplicationException("Unrecognised journal command.");
@@ -528,7 +512,7 @@ namespace Deveel.Data {
 					++rebuildIndex;
 				}
 				// It's now current (row_list_rebuild == journal_count);
-				row_list_rebuild = rebuildIndex;
+				rowListRebuild = rebuildIndex;
 			}
 
 			/// <summary>
@@ -537,16 +521,16 @@ namespace Deveel.Data {
 			/// </summary>
 			/// <param name="column"></param>
 			private void EnsureColumnSchemeCurrent(int column) {
-				SelectableScheme scheme = column_schemes[column];
+				SelectableScheme scheme = columnSchemes[column];
 				// NOTE: We should be assured that no Write operations can occur over
 				//   this section of code because writes are exclusive operations
 				//   within a transaction.
 				// Are there journal entries pending on this scheme since?
-				int rebuildIndex = scheme_rebuilds[column];
-				int journalCount = table_journal.EntriesCount;
+				int rebuildIndex = schemeRebuilds[column];
+				int journalCount = tableJournal.EntriesCount;
 				while (rebuildIndex < journalCount) {
-					JournalCommandType command = table_journal.GetCommand(rebuildIndex);
-					int row_index = table_journal.GetRowIndex(rebuildIndex);
+					JournalCommandType command = tableJournal.GetCommand(rebuildIndex);
+					int row_index = tableJournal.GetRowIndex(rebuildIndex);
 					if (command == JournalCommandType.AddRow) {
 						scheme.Insert(row_index);
 					} else if (command == JournalCommandType.RemoveRow) {
@@ -556,7 +540,7 @@ namespace Deveel.Data {
 					}
 					++rebuildIndex;
 				}
-				scheme_rebuilds[column] = rebuildIndex;
+				schemeRebuilds[column] = rebuildIndex;
 			}
 
 			// ---------- Implemented from IMutableTableDataSource ----------
@@ -565,7 +549,7 @@ namespace Deveel.Data {
 				get { return mtds.System; }
 			}
 
-			public DataTableDef TableInfo {
+			public DataTableInfo TableInfo {
 				get { return mtds.TableInfo; }
 			}
 
@@ -573,7 +557,7 @@ namespace Deveel.Data {
 				get {
 					// Ensure the row list is up to date.
 					EnsureRowIndexListCurrent();
-					return RowIndexList.Count;
+					return RowIndex.Count;
 				}
 			}
 
@@ -581,44 +565,22 @@ namespace Deveel.Data {
 				// Ensure the row list is up to date.
 				EnsureRowIndexListCurrent();
 				// Get an iterator across the row list.
-				IIndexEnumerator iterator = RowIndexList.GetEnumerator();
+				IIndexEnumerator iterator = RowIndex.GetEnumerator();
 				// Wrap it around a IRowEnumerator object.
-				return new RowEnumerationImpl(iterator);
+				return new RowEnumerator(iterator);
 			}
 
-			private class RowEnumerationImpl : IRowEnumerator {
-				public RowEnumerationImpl(IIndexEnumerator iterator) {
-					this.iterator = iterator;
-				}
-
-				private readonly IIndexEnumerator iterator;
-
-				public bool MoveNext() {
-					return iterator.MoveNext();
-				}
-
-				public void Reset() {
-				}
-
-				public object Current {
-					get { return RowIndex; }
-				}
-
-				public int RowIndex {
-					get { return iterator.Current; }
-				}
-			}
 			public TObject GetCellContents(int column, int row) {
 				return mtds.GetCellContents(column, row);
 			}
 
 			// NOTE: Returns an immutable version of the scheme...
 			public SelectableScheme GetColumnScheme(int column) {
-				SelectableScheme scheme = column_schemes[column];
+				SelectableScheme scheme = columnSchemes[column];
 				// Cache the scheme in this object.
 				if (scheme == null) {
-					scheme = mtds.CreateSelectableSchemeForColumn(index_set, this, column);
-					column_schemes[column] = scheme;
+					scheme = mtds.CreateSelectableSchemeForColumn(indexSet, this, column);
+					columnSchemes[column] = scheme;
 				}
 
 				// Update the underlying scheme to the most current version.
@@ -632,7 +594,7 @@ namespace Deveel.Data {
 			public int AddRow(DataRow dataRow) {
 
 				// Check the transaction isn't Read only.
-				if (tran_read_only) {
+				if (tranReadOnly) {
 					throw new Exception("Transaction is Read only.");
 				}
 
@@ -653,15 +615,15 @@ namespace Deveel.Data {
 				// Note this doesn't need to be synchronized because we are exclusive on
 				// this table.
 				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommandType.AddRow, row_index);
+				tableJournal.AddEntry(JournalCommandType.AddRow, row_index);
 
 				return row_index;
 			}
 
-			public void RemoveRow(int row_index) {
+			public void RemoveRow(int rowIndex) {
 
 				// Check the transaction isn't Read only.
-				if (tran_read_only) {
+				if (tranReadOnly) {
 					throw new Exception("Transaction is Read only.");
 				}
 
@@ -678,14 +640,14 @@ namespace Deveel.Data {
 				// Note this doesn't need to be synchronized because we are exclusive on
 				// this table.
 				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommandType.RemoveRow, row_index);
+				tableJournal.AddEntry(JournalCommandType.RemoveRow, rowIndex);
 
 			}
 
 			public int UpdateRow(int rowIndex, DataRow dataRow) {
 
 				// Check the transaction isn't Read only.
-				if (tran_read_only) {
+				if (tranReadOnly) {
 					throw new Exception("Transaction is Read only.");
 				}
 
@@ -697,7 +659,7 @@ namespace Deveel.Data {
 				// Note this doesn't need to be synchronized because we are exclusive on
 				// this table.
 				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommandType.UpdateRemoveRow, rowIndex);
+				tableJournal.AddEntry(JournalCommandType.UpdateRemoveRow, rowIndex);
 
 				// Add to the master.
 				int new_row_index;
@@ -711,7 +673,7 @@ namespace Deveel.Data {
 				// Note this doesn't need to be synchronized because we are exclusive on
 				// this table.
 				// Add this change to the table journal.
-				table_journal.AddEntry(JournalCommandType.UpdateAddRow, new_row_index);
+				tableJournal.AddEntry(JournalCommandType.UpdateAddRow, new_row_index);
 
 				return new_row_index;
 			}
@@ -720,7 +682,7 @@ namespace Deveel.Data {
 			public void FlushIndexChanges() {
 				EnsureRowIndexListCurrent();
 				// This will flush all of the column schemes
-				for (int i = 0; i < column_schemes.Length; ++i) {
+				for (int i = 0; i < columnSchemes.Length; ++i) {
 					GetColumnScheme(i);
 				}
 			}
@@ -728,13 +690,13 @@ namespace Deveel.Data {
 			public void ConstraintIntegrityCheck() {
 				try {
 					// Early exit condition
-					if (last_entry_ri_check == table_journal.EntriesCount)
+					if (lastEntryRICheck == tableJournal.EntriesCount)
 						return;
 
 					// This table name
-					DataTableDef table_def = TableInfo;
-					TableName table_name = table_def.TableName;
-					IQueryContext context = new SystemQueryContext(transaction, table_name.Schema);
+					DataTableInfo tableInfo = TableInfo;
+					TableName tName = tableInfo.TableName;
+					IQueryContext context = new SystemQueryContext(transaction, tName.Schema);
 
 					// Are there any added, deleted or updated entries in the journal since
 					// we last checked?
@@ -742,27 +704,26 @@ namespace Deveel.Data {
 					List<int> rowsDeleted = new List<int>();
 					List<int> rowsAdded = new List<int>();
 
-					int size = table_journal.EntriesCount;
-					for (int i = last_entry_ri_check; i < size; ++i) {
-						JournalCommandType tc = table_journal.GetCommand(i);
-						int row_index = table_journal.GetRowIndex(i);
+					int size = tableJournal.EntriesCount;
+					for (int i = lastEntryRICheck; i < size; ++i) {
+						JournalCommandType tc = tableJournal.GetCommand(i);
+						int rowIndex = tableJournal.GetRowIndex(i);
 						if (tc == JournalCommandType.RemoveRow ||
 							tc == JournalCommandType.UpdateRemoveRow) {
-							rowsDeleted.Add(row_index);
+							rowsDeleted.Add(rowIndex);
 							// If this is in the rows_added list, remove it from rows_added
-							int ra_i = rowsAdded.IndexOf(row_index);
-							if (ra_i != -1) {
-								rowsAdded.RemoveAt(ra_i);
-							}
+							int raI = rowsAdded.IndexOf(rowIndex);
+							if (raI != -1)
+								rowsAdded.RemoveAt(raI);
 						} else if (tc == JournalCommandType.AddRow ||
 								   tc == JournalCommandType.UpdateAddRow) {
-							rowsAdded.Add(row_index);
+							rowsAdded.Add(rowIndex);
 						}
 
 						if (tc == JournalCommandType.UpdateRemoveRow) {
-							rowsUpdated.Add(row_index);
+							rowsUpdated.Add(rowIndex);
 						} else if (tc == JournalCommandType.UpdateAddRow) {
-							rowsUpdated.Add(row_index);
+							rowsUpdated.Add(rowIndex);
 						}
 					}
 
@@ -770,16 +731,14 @@ namespace Deveel.Data {
 					if (rowsDeleted.Count > 0) {
 						// Get all references on this table
 						Transaction.ColumnGroupReference[] foreignConstraints =
-							 Transaction.QueryTableImportedForeignKeyReferences(transaction, table_name);
+							 Transaction.QueryTableImportedForeignKeyReferences(transaction, tName);
 
 						// For each foreign constraint
-						for (int n = 0; n < foreignConstraints.Length; ++n) {
-							Transaction.ColumnGroupReference constraint = foreignConstraints[n];
+						foreach (Transaction.ColumnGroupReference constraint in foreignConstraints) {
 							// For each deleted/updated record in the table,
-							for (int i = 0; i < rowsDeleted.Count; ++i) {
-								int rowIndex = rowsDeleted[i];
+							foreach (int rowIndex in rowsDeleted) {
 								// What was the key before it was updated/deleted
-								int[] cols = TableDataConglomerate.FindColumnIndices(table_def, constraint.ref_columns);
+								int[] cols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.ref_columns);
 								TObject[] originalKey = new TObject[cols.Length];
 								int nullCount = 0;
 								for (int p = 0; p < cols.Length; ++p) {
@@ -808,16 +767,14 @@ namespace Deveel.Data {
 										if (keyChanged) {
 											// Allow the delete, and execute the action,
 											// What did the key update to?
-											ExecuteUpdateReferentialAction(constraint,
-																originalKey, keyUpdatedTo, context);
+											ExecuteUpdateReferentialAction(constraint, originalKey, keyUpdatedTo, context);
 										}
 										// If the key didn't change, we don't need to do anything.
 									} else {
 										// No, so it must be a delete,
 										// This will look at the referencee table and if it contains
 										// the key, work out what to do with it.
-										ExecuteDeleteReferentialAction(constraint, originalKey,
-																	   context);
+										ExecuteDeleteReferentialAction(constraint, originalKey, context);
 									}
 
 								}  // If the key isn't null
@@ -837,13 +794,12 @@ namespace Deveel.Data {
 						// Check this table, adding the given row_index, immediate
 						TableDataConglomerate.CheckAddConstraintViolations(transaction, this, rowIndices, ConstraintDeferrability.InitiallyImmediate);
 					}
-				} catch (DatabaseConstraintViolationException e) {
-
+				} catch (DatabaseConstraintViolationException) {
 					// If a constraint violation, roll back the changes since the last
 					// check.
-					int rollbackPoint = table_journal.EntriesCount - last_entry_ri_check;
-					if (row_list_rebuild <= rollbackPoint) {
-						table_journal.RollbackEntries(rollbackPoint);
+					int rollbackPoint = tableJournal.EntriesCount - lastEntryRICheck;
+					if (rowListRebuild <= rollbackPoint) {
+						tableJournal.RollbackEntries(rollbackPoint);
 					} else {
 						Console.Out.WriteLine(
 						   "Warning: rebuild_pointer is after rollback point so we can't " +
@@ -853,30 +809,30 @@ namespace Deveel.Data {
 					throw;
 				} finally {
 					// Make sure we update the 'last_entry_ri_check' variable
-					last_entry_ri_check = table_journal.EntriesCount;
+					lastEntryRICheck = tableJournal.EntriesCount;
 				}
 
 			}
 
 			public MasterTableJournal Journal {
-				get { return table_journal; }
+				get { return tableJournal; }
 			}
 
 			public void Dispose() {
 				// Dispose and invalidate the schemes
 				// This is really a safety measure to ensure the schemes can't be
 				// used outside the scope of the lifetime of this object.
-				for (int i = 0; i < column_schemes.Length; ++i) {
-					SelectableScheme scheme = column_schemes[i];
+				for (int i = 0; i < columnSchemes.Length; ++i) {
+					SelectableScheme scheme = columnSchemes[i];
 					if (scheme != null) {
 						scheme.Dispose();
-						column_schemes[i] = null;
+						columnSchemes[i] = null;
 					}
 				}
-				row_list = null;
-				table_journal = null;
-				scheme_rebuilds = null;
-				index_set = null;
+				rowList = null;
+				tableJournal = null;
+				schemeRebuilds = null;
+				indexSet = null;
 				transaction = null;
 			}
 
@@ -888,6 +844,28 @@ namespace Deveel.Data {
 				mtds.RemoveRootLock();
 			}
 
+			private class RowEnumerator : IRowEnumerator {
+				public RowEnumerator(IIndexEnumerator baseEnumerator) {
+					this.baseEnumerator = baseEnumerator;
+				}
+
+				private readonly IIndexEnumerator baseEnumerator;
+
+				public bool MoveNext() {
+					return baseEnumerator.MoveNext();
+				}
+
+				public void Reset() {
+				}
+
+				public object Current {
+					get { return RowIndex; }
+				}
+
+				public int RowIndex {
+					get { return baseEnumerator.Current; }
+				}
+			}
 		}
 	}
 }

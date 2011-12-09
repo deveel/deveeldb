@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql {
 			this.type = type;
 		}
 
-		// The type of constraint (from types in DataTableConstraintDef)
+		// The type of constraint (from types in DataTableConstraintInfo)
 		private ConstraintType type;
 
 		// The name of the constraint or null if the constraint has no name (in

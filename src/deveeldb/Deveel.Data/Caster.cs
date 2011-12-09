@@ -18,13 +18,11 @@ using System;
 using System.Reflection;
 using System.Text;
 
-using Deveel.Math;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// Methods to choose and perform casts from database type to native types.
 	/// </summary>
-	internal class Caster {
+	internal static class Caster {
 
 		///<summary>
 		/// The cost to cast to the closest .NET primitive type.

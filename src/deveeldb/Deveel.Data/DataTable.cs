@@ -69,7 +69,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override DataTableDef TableInfo {
+		public override DataTableInfo TableInfo {
 			get {
 				CheckSafeOperation(); // safe op
 
@@ -201,7 +201,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private void CheckReadLock() {
 #if DEBUG
-			// All 'sUSR' tables are given Read access because they may only be
+			// All 'system' tables are given Read access because they may only be
 			// written under exclusive mode anyway.
 
 			bool isInternalTable = TableName.Schema.Equals(Database.SystemSchema);
@@ -322,10 +322,10 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 			CheckReadLock();  // Read op
 
-			return base.GetSelectableSchemeFor(column, original_column, table);
+			return base.GetSelectableSchemeFor(column, originalColumn, table);
 		}
 
 		/// <inheritdoc/>

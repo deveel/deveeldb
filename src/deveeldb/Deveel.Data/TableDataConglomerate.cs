@@ -104,7 +104,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The name given to this conglomerate.
 		/// </summary>
-		private string name;
+		private readonly string name;
 
 		/// <summary>
 		/// The actual store that backs the state store.
@@ -172,8 +172,9 @@ namespace Deveel.Data {
 
 
 
-		internal TableDataConglomerate(TransactionSystem system, IStoreSystem storeSystem) {
+		internal TableDataConglomerate(TransactionSystem system, string name, IStoreSystem storeSystem) {
 			this.system = system;
+			this.name = name;
 			this.storeSystem = storeSystem;
 			openTransactions = new OpenTransactionList(system);
 			modificationEvents = new EventHandlerList();
@@ -223,7 +224,6 @@ namespace Deveel.Data {
 		/// </summary>
 		public string Name {
 			get { return name; }
-			set { name = value; }
 		}
 
 		internal IDebugLogger Debug {
@@ -261,13 +261,11 @@ namespace Deveel.Data {
 		private void ReadDroppedTables() {
 
 			// The list of all dropped tables from the state file
-			StateStore.StateResource[] tables = stateStore.GetDeleteList();
+			IEnumerable<StateStore.StateResource> tables = stateStore.GetDeleteList();
 			// For each visible table
-			for (int i = 0; i < tables.Length; ++i) {
-				StateStore.StateResource resource = tables[i];
-
-				int masterTableId = (int)resource.table_id;
-				string fileName = resource.name;
+			foreach (StateStore.StateResource resource in tables) {
+				int masterTableId = (int)resource.TableId;
+				string fileName = resource.Name;
 
 				// Parse the file name string and determine the table type.
 				int tableType = 1;
@@ -287,7 +285,7 @@ namespace Deveel.Data {
 
 				// File wasn't found so remove from the delete resources
 				if (master == null) {
-					stateStore.RemoveDeleteResource(resource.name);
+					stateStore.RemoveDeleteResource(resource.Name);
 				} else {
 					if (!(master is V2MasterTableDataSource))
 						throw new ApplicationException("Unknown master table type: " + master.GetType());
@@ -380,13 +378,11 @@ namespace Deveel.Data {
 		private void ReadVisibleTables() {
 
 			// The list of all visible tables from the state file
-			StateStore.StateResource[] tables = stateStore.GetVisibleList();
+			IEnumerable<StateStore.StateResource> tables = stateStore.GetVisibleList();
 			// For each visible table
-			for (int i = 0; i < tables.Length; ++i) {
-				StateStore.StateResource resource = tables[i];
-
-				int masterTableId = (int)resource.table_id;
-				string fileName = resource.name;
+			foreach (StateStore.StateResource resource in tables) {
+				int masterTableId = (int)resource.TableId;
+				string fileName = resource.Name;
 
 				// Parse the file name string and determine the table type.
 				int table_type = 1;
@@ -444,7 +440,6 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Opens a conglomerate.
 		/// </summary>
-		/// <param name="name"></param>
 		/// <remarks>
 		/// Once a conglomerate is open, we may start opening transactions and 
 		/// altering the data within it.
@@ -453,7 +448,7 @@ namespace Deveel.Data {
 		/// If the conglomerate does not exist.  
 		/// </exception>
 		public void Open() {
-			if (!Exists(name))
+			if (!Exists())
 				throw new IOException("Conglomerate doesn't exists: " + name);
 
 			// Check the file Lock
@@ -468,7 +463,7 @@ namespace Deveel.Data {
 			// Get the fixed 64 byte area.
 			IArea fixedArea = actStateStore.GetArea(-1);
 			long headP = fixedArea.ReadInt8();
-			stateStore.init(headP);
+			stateStore.Init(headP);
 
 			SetupInternal();
 
@@ -563,9 +558,8 @@ namespace Deveel.Data {
 		/// Returns true if the conglomerate exists in the file system and can
 		/// be opened.
 		/// </summary>
-		/// <param name="name"></param>
 		/// <returns></returns>
-		public bool Exists(String name) {
+		public bool Exists() {
 			return StoreSystem.StoreExists(name + StatePost);
 		}
 
@@ -704,12 +698,12 @@ namespace Deveel.Data {
 						int dropCount = 0;
 
 						for (int i = deleteList.Length - 1; i >= 0; --i) {
-							String fn = deleteList[i].name;
+							String fn = deleteList[i].Name;
 							CloseTable(fn, true);
 						}
 
 						for (int i = deleteList.Length - 1; i >= 0; --i) {
-							string fn = deleteList[i].name;
+							string fn = deleteList[i].Name;
 							bool dropped = CloseAndDropTable(fn);
 							// If we managed to drop the table, remove from the list.
 							if (dropped) {
@@ -815,7 +809,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal MasterTableDataSource CreateMasterTable(DataTableDef tableInfo, int dataSectorSize, int indexSectorSize) {
+		internal MasterTableDataSource CreateMasterTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
 			lock (CommitLock) {
 				try {
 					// EFFICIENCY: Currently this writes to the conglomerate state file
@@ -848,7 +842,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		internal MasterTableDataSource CreateTemporaryDataSource(DataTableDef tableDef) {
+		internal MasterTableDataSource CreateTemporaryDataSource(DataTableInfo tableInfo) {
 			lock (CommitLock) {
 				try {
 					// The unique id that identifies this table,
@@ -856,14 +850,14 @@ namespace Deveel.Data {
 
 					V2MasterTableDataSource temporary = new V2MasterTableDataSource(System, new V1HeapStoreSystem(), blobStore);
 
-					temporary.Create(tableId, tableDef);
+					temporary.Create(tableId, tableInfo);
 
 					tableList.Add(temporary);
 
 					return temporary;
 				} catch(Exception e) {
 					Debug.WriteException(e);
-					throw new ApplicationException("Unable to create temporary table '" + tableDef.Name + "' - " + e.Message);
+					throw new ApplicationException("Unable to create temporary table '" + tableInfo.Name + "' - " + e.Message);
 				}
 			}
 		}

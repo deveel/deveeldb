@@ -48,36 +48,31 @@ namespace Deveel.Data {
 		/// This is sorted from min to max (not sorted by row number - sorted 
 		/// by entity row value).
 		/// </remarks>
-		private IIndex set_list;
+		private IIndex list;
 
 		/// <summary>
 		/// If this is true, then this <see cref="SelectableScheme"/> records additional 
 		/// rid information that can be used to very quickly identify whether a value is 
 		/// greater, equal or less.
 		/// </summary>
-		internal bool RECORD_UID;
+		private bool recordUid;
 
 		/// <summary>
 		/// The <see cref="IIndexComparer"/> that we use to refer elements in the set to 
 		/// actual data objects.
 		/// </summary>
-		private IIndexComparer set_comparator;
+		private IIndexComparer comparer;
 
-
-		// ----- DEBUGGING -----
 
 		/// <summary>
-		/// If this is immutable, this stores the number of entries in <see cref="set_list"/> 
+		/// If this is readOnly, this stores the number of entries in <see cref="list"/> 
 		/// when this object was made.
 		/// </summary>
-		private readonly int DEBUG_immutable_set_size;
-
-
-
+		private readonly int debugReadOnlySetSize;
 
 		public InsertSearch(ITableDataSource table, int column)
 			: base(table, column) {
-			set_list = new BlockIndex();
+			list = new BlockIndex();
 
 			// The internal comparator that enables us to sort and lookup on the data
 			// in this column.
@@ -90,18 +85,13 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="table"></param>
 		/// <param name="column"></param>
-		/// <param name="vec">A sorted list, with a low to high direction order, that is used to
+		/// <param name="list">A sorted list, with a low to high direction order, that is used to
 		/// set the scheme. This should not be used again after it is passed to this constructor.</param>
-		public InsertSearch(ITableDataSource table, int column, IEnumerable<int> vec)
+		public InsertSearch(ITableDataSource table, int column, IEnumerable<int> list)
 			: this(table, column) {
-			foreach (int i in vec) {
-				set_list.Add(i);
+			foreach (int i in list) {
+				this.list.Add(i);
 			}
-
-			// NOTE: This must be removed in final, this is a post condition check to
-			//   make sure 'vec' is infact sorted
-			//checkSchemeSorted();
-
 		}
 
 		/// <summary>
@@ -113,42 +103,33 @@ namespace Deveel.Data {
 		/// set the scheme. This should not be used again after it is passed to this constructor.</param>
 		internal InsertSearch(ITableDataSource table, int column, IIndex list)
 			: this(table, column) {
-			this.set_list = list;
-
-			// NOTE: This must be removed in final, this is a post condition check to
-			//   make sure 'vec' is infact sorted
-			//checkSchemeSorted();
-
+			this.list = list;
 		}
 
 		/// <summary>
-		/// Constructs this as a copy of the given, either mutable or immutable copy.
+		/// Constructs this as a copy of the given, either mutable or readOnly copy.
 		/// </summary>
 		/// <param name="table"></param>
 		/// <param name="from"></param>
-		/// <param name="immutable"></param>
-		private InsertSearch(ITableDataSource table, InsertSearch from, bool immutable)
+		/// <param name="readOnly"></param>
+		private InsertSearch(ITableDataSource table, InsertSearch from, bool readOnly)
 			: base(table, from.Column) {
+			IsReadOnly = readOnly;
 
-			if (immutable) {
-				SetImmutable();
-			}
-
-			if (immutable) {
+			if (readOnly) {
 				// Immutable is a shallow copy
-				set_list = from.set_list;
-				DEBUG_immutable_set_size = set_list.Count;
+				list = from.list;
+				debugReadOnlySetSize = list.Count;
 			} else {
-				set_list = new BlockIndex(from.set_list);
+				list = new BlockIndex(from.list);
 			}
 
 			// Do we generate lookup caches?
-			RECORD_UID = from.RECORD_UID;
+			recordUid = from.recordUid;
 
 			// The internal comparator that enables us to sort and lookup on the data
 			// in this column.
 			SetupComparer();
-
 		}
 
 		/// <summary>
@@ -156,39 +137,8 @@ namespace Deveel.Data {
 		/// data in this column.
 		/// </summary>
 		private void SetupComparer() {
-			set_comparator = new IndexComparatorImpl(this);
+			comparer = new IndexComparerImpl(this);
 		}
-
-
-		private class IndexComparatorImpl : IIndexComparer {
-			private readonly InsertSearch scheme;
-
-			public IndexComparatorImpl(InsertSearch scheme) {
-				this.scheme = scheme;
-			}
-
-			private int InternalCompare(int index, TObject cell2) {
-				TObject cell1 = scheme.GetCellContents(index);
-				return cell1.CompareTo(cell2);
-			}
-
-			public int Compare(int index, Object val) {
-				return InternalCompare(index, (TObject)val);
-			}
-			public int Compare(int index1, int index2) {
-				TObject cell = scheme.GetCellContents(index2);
-				return InternalCompare(index1, cell);
-			}
-
-			#region Implementation of IComparer
-
-			public int Compare(object x, object y) {
-				return y is int ? Compare((int) x, (int) y) : Compare((int) x, y);
-			}
-
-			#endregion
-		}
-
 
 		/// <summary>
 		/// Inserts a row into the list.
@@ -199,12 +149,11 @@ namespace Deveel.Data {
 		/// prevents reads while we are writing to the table.
 		/// </remarks>
 		public override void Insert(int row) {
-			if (IsImmutable)
-				throw new ApplicationException("Tried to change an immutable scheme.");
+			if (IsReadOnly)
+				throw new ApplicationException("Tried to change an readOnly scheme.");
 
 			TObject cell = GetCellContents(row);
-			set_list.InsertSort(cell, row, set_comparator);
-
+			list.InsertSort(cell, row, comparer);
 		}
 
 		/// <summary>
@@ -216,11 +165,11 @@ namespace Deveel.Data {
 		/// prevents reads while we are writing to the table.
 		/// </remarks>
 		public override void Remove(int row) {
-			if (IsImmutable)
-				throw new ApplicationException("Tried to change an immutable scheme.");
+			if (IsReadOnly)
+				throw new ApplicationException("Tried to change an readOnly scheme.");
 
 			TObject cell = GetCellContents(row);
-			int removed = set_list.RemoveSort(cell, row, set_comparator);
+			int removed = list.RemoveSort(cell, row, comparer);
 
 			if (removed != row) {
 				throw new ApplicationException("Removed value different than row asked to remove.  " +
@@ -241,10 +190,10 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public override SelectableScheme Copy(ITableDataSource table, bool immutable) {
-			// ASSERTION: If immutable, check the size of the current set is equal to
+			// ASSERTION: If readOnly, check the size of the current set is equal to
 			//   when the scheme was created.
-			if (IsImmutable) {
-				if (DEBUG_immutable_set_size != set_list.Count) {
+			if (IsReadOnly) {
+				if (debugReadOnlySetSize != list.Count) {
 					throw new ApplicationException("Assert failed: " +
 									"Immutable set size is different from when created.");
 				}
@@ -260,46 +209,77 @@ namespace Deveel.Data {
 		/// </summary>
 		public override void Dispose() {
 			// Close and invalidate.
-			set_list = null;
-			set_comparator = null;
+			list = null;
+			comparer = null;
 		}
 
 		// ---------- Implemented/Overwritten from CollatedBaseSearch ----------
 
 		protected override int SearchFirst(TObject val) {
-			return set_list.SearchFirst(val, set_comparator);
+			return list.SearchFirst(val, comparer);
 		}
 
 		protected override int SearchLast(TObject val) {
-			return set_list.SearchLast(val, set_comparator);
+			return list.SearchLast(val, comparer);
 		}
 
 		protected override int SetSize {
-			get { return set_list.Count; }
+			get { return list.Count; }
 		}
 
 		protected override TObject FirstInCollationOrder {
-			get { return GetCellContents(set_list[0]); }
+			get { return GetCellContents(list[0]); }
 		}
 
 		protected override TObject LastInCollationOrder {
-			get { return GetCellContents(set_list[SetSize - 1]); }
+			get { return GetCellContents(list[SetSize - 1]); }
 		}
 
-		protected override IList<int> AddRangeToSet(int start, int end, IList<int> ivec) {
-			if (ivec == null) {
-				ivec = new List<int>((end - start) + 2);
+		/// <summary>
+		/// If this is true, then this <see cref="SelectableScheme"/> records additional 
+		/// rid information that can be used to very quickly identify whether a value is 
+		/// greater, equal or less.
+		/// </summary>
+		internal bool RecordUid {
+			get { return recordUid; }
+			set { recordUid = value; }
+		}
+
+		protected override IList<int> AddRangeToSet(int start, int end, IList<int> list) {
+			if (list == null) {
+				list = new List<int>((end - start) + 2);
 			}
-			IIndexEnumerator i = set_list.GetEnumerator(start, end);
+			IIndexEnumerator i = this.list.GetEnumerator(start, end);
 			while (i.MoveNext()) {
-				ivec.Add(i.Current);
+				list.Add(i.Current);
 			}
-			return ivec;
+			return list;
 		}
 
 		public override IList<int> SelectAll() {
-			return ListUtil.ToList(set_list);
+			return ListUtil.ToList(list);
 		}
 
+		private class IndexComparerImpl : IIndexComparer {
+			private readonly InsertSearch scheme;
+
+			public IndexComparerImpl(InsertSearch scheme) {
+				this.scheme = scheme;
+			}
+
+			private int InternalCompare(int index, TObject value) {
+				TObject cell = scheme.GetCellContents(index);
+				return cell.CompareTo(value);
+			}
+
+			public int Compare(int index, object val) {
+				return InternalCompare(index, (TObject)val);
+			}
+
+			public int Compare(int index1, int index2) {
+				TObject cell = scheme.GetCellContents(index2);
+				return InternalCompare(index1, cell);
+			}
+		}
 	}
 }

@@ -69,7 +69,7 @@ namespace Deveel.Data {
 			get { return parent.RowCount; }
 		}
 
-		public override DataTableDef TableInfo {
+		public override DataTableInfo TableInfo {
 			get { return parent.TableInfo; }
 		}
 
@@ -85,7 +85,7 @@ namespace Deveel.Data {
 			return parent.GetResolvedVariable(column);
 		}
 
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 			if (column_scheme == null) {
 				column_scheme = new SelectableScheme[parent.ColumnCount];
 			}
@@ -101,7 +101,7 @@ namespace Deveel.Data {
 				}
 
 				// Scheme is not cached in this table so ask the parent.
-				scheme = parent.GetSelectableSchemeFor(column, original_column, t);
+				scheme = parent.GetSelectableSchemeFor(column, originalColumn, t);
 				if (table == this) {
 					column_scheme[column] = scheme;
 				}
@@ -112,7 +112,7 @@ namespace Deveel.Data {
 					return scheme;
 				} else {
 					// Otherwise we must calculate the subset of the scheme
-					return scheme.GetSubsetScheme(table, original_column);
+					return scheme.GetSubsetScheme(table, originalColumn);
 				}
 			}
 			return scheme;

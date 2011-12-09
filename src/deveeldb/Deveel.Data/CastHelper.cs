@@ -25,7 +25,7 @@ namespace Deveel.Data {
 	/// Various utility methods for helping to cast an object to a 
 	/// type that is conformant to an SQL type.
 	/// </summary>
-	public class CastHelper {
+	public static class CastHelper {
 		private static BigNumber BD_ZERO = 0L;
 		private static BigNumber BD_ONE = 1L;
 
@@ -100,7 +100,8 @@ namespace Deveel.Data {
 					buf.Append(' ');
 				}
 				return buf.ToString();
-			} else if (dif < 0) {
+			}
+			if (dif < 0) {
 				return str.Substring(0, size);
 			}
 			return str;
@@ -187,7 +188,7 @@ namespace Deveel.Data {
 
 		///<summary>
 		/// Casts an object to the SQL type specified by the 
-		/// given <see cref="DataTableColumnDef"/> object.
+		/// given <see cref="DataTableColumnInfo"/> object.
 		///</summary>
 		///<param name="ob">The <see cref="Object"/> to cast to the given type.</param>
 		///<param name="sql_type">The destination <see cref="SqlType">SQL type</see>.</param>

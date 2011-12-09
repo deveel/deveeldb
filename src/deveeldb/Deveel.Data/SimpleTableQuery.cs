@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -27,11 +27,10 @@ namespace Deveel.Data {
 	/// which doesn't need the overhead of the table hierarchy mechanism.
 	/// </remarks>
 	public sealed class SimpleTableQuery : IDisposable {
-
 		/// <summary>
-		/// The DataTableDef for this table.
+		/// The DataTableInfo for this table.
 		/// </summary>
-		private readonly DataTableDef table_def;
+		private readonly DataTableInfo tableInfo;
 
 		/// <summary>
 		/// The ITableDataSource we are wrapping.
@@ -42,14 +41,14 @@ namespace Deveel.Data {
 			Dispose(false);
 		}
 
-		void IDisposable.Dispose() {
+		public void Dispose() {
 			GC.SuppressFinalize(this);
 			Dispose(true);
 		}
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-				Dispose();
+				table = null;
 			}
 		}
 
@@ -57,11 +56,11 @@ namespace Deveel.Data {
 		/// Constructs the <see cref="SimpleTableQuery"/> with the given 
 		/// <see cref="IMutableTableDataSource"/> object.
 		/// </summary>
-		/// <param name="in_table"></param>
-		public SimpleTableQuery(ITableDataSource in_table) {
-			//    in_table.AddRootLock();
-			table = in_table;
-			table_def = table.TableInfo;
+		/// <param name="table"></param>
+		public SimpleTableQuery(ITableDataSource table) {
+			//    table.AddRootLock();
+			this.table = table;
+			tableInfo = this.table.TableInfo;
 		}
 
 		/// <summary>
@@ -104,7 +103,7 @@ namespace Deveel.Data {
 		/// <param name="column">Index of the column to select.</param>
 		/// <param name="cell">Value to compare for the selection.</param>
 		/// <returns>
-		/// Returns a list of row indices (as <see cref="IntegerVector"/>)
+		/// Returns a list of row indices (as <see cref="IList{T}"/>)
 		/// from the underlying table which equal to the given <paramref name="cell"/>.
 		/// </returns>
 		public IList<int> SelectEqual(int column, TObject cell) {
@@ -123,11 +122,11 @@ namespace Deveel.Data {
 		/// or a <see cref="ByteLongObject"/>.
 		/// </remarks>
 		/// <returns>
-		/// Returns a list of row indices (as <see cref="IntegerVector"/>)
+		/// Returns a list of row indices (as <see cref="IList{T}"/>)
 		/// from the underlying table which equal to the given <paramref name="value"/>.
 		/// </returns>
-		public IList<int> SelectEqual(int column, Object value) {
-			TType ttype = table_def[column].TType;
+		public IList<int> SelectEqual(int column, object value) {
+			TType ttype = tableInfo[column].TType;
 			TObject cell = new TObject(ttype, value);
 			return SelectEqual(column, cell);
 		}
@@ -136,66 +135,65 @@ namespace Deveel.Data {
 		/// Finds the index of all the rows in the table where the given column is
 		/// equal to the given object for both of the clauses.
 		/// </summary>
-		/// <param name="col1">First column index of the clause.</param>
+		/// <param name="column1">First column index of the clause.</param>
 		/// <param name="cell1">Value to compare to the first column  of the clause.</param>
-		/// <param name="col2">Second column index of the clause.</param>
+		/// <param name="column2">Second column index of the clause.</param>
 		/// <param name="cell2">Value to compare to the second column  of the clause.</param>
 		/// <returns>
-		/// Returns a list of row indices (as <see cref="IntegerVector"/>)
+		/// Returns a list of row indices (as <see cref="IList{T}"/>)
 		/// from the underlying table which equal to the given caluse.
 		/// </returns>
-		public IList<int> SelectEqual(int col1, TObject cell1, int col2, TObject cell2) {
-
+		public IList<int> SelectEqual(int column1, TObject cell1, int column2, TObject cell2) {
 			// All the indexes that equal the first clause
-			IList<int> ivec = table.GetColumnScheme(col1).SelectEqual(cell1);
+			IList<int> list = table.GetColumnScheme(column1).SelectEqual(cell1);
 
 			// From this, remove all the indexes that don't equals the second clause.
-			int index = ivec.Count - 1;
+			int index = list.Count - 1;
 			while (index >= 0) {
 				// If the value in column 2 at this index is not equal to value then
 				// remove it from the list and move to the next.
-				if (Get(col2, ivec[index]).CompareTo(cell2) != 0) {
-					ivec.RemoveAt(index);
+				if (Get(column2, list[index]).CompareTo(cell2) != 0) {
+					list.RemoveAt(index);
 				}
 				--index;
 			}
 
-			return ivec;
+			return list;
 		}
 
 		/// <summary>
 		/// Finds the index of all the rows in the table where the given column is
 		/// equal to the given object for both of the clauses.
 		/// </summary>
-		/// <param name="col1">First column index of the clause.</param>
-		/// <param name="val1">Value to compare to the first column  of the clause.</param>
-		/// <param name="col2">Second column index of the clause.</param>
-		/// <param name="val2">Value to compare to the second column  of the clause.</param>
+		/// <param name="column1">First column index of the clause.</param>
+		/// <param name="value1">Value to compare to the first column  of the clause.</param>
+		/// <param name="column2">Second column index of the clause.</param>
+		/// <param name="value2">Value to compare to the second column  of the clause.</param>
 		/// <remarks>
 		/// We assume value is not null, and it is either a <see cref="BigNumber"/> 
 		/// to represent a number, a <see cref="String"/>, a <see cref="DateTime"/> 
 		/// or a <see cref="ByteLongObject"/>.
 		/// </remarks>
 		/// <returns>
-		/// Returns a list of row indices (as <see cref="IntegerVector"/>)
+		/// Returns a list of row indices (as <see cref="IList{T}"/>)
 		/// from the underlying table which equal to the given caluse.
 		/// </returns>
-		public IList<int> SelectEqual(int col1, Object val1, int col2, Object val2) {
-			TType t1 = table_def[col1].TType;
-			TType t2 = table_def[col2].TType;
+		public IList<int> SelectEqual(int column1, object value1, int column2, object value2) {
+			TType t1 = tableInfo[column1].TType;
+			TType t2 = tableInfo[column2].TType;
 
-			TObject cell1 = new TObject(t1, val1);
-			TObject cell2 = new TObject(t2, val2);
+			TObject cell1 = new TObject(t1, value1);
+			TObject cell2 = new TObject(t2, value2);
 
-			return SelectEqual(col1, cell1, col2, cell2);
+			return SelectEqual(column1, cell1, column2, cell2);
 		}
 
 		/// <summary>
 		/// Check if there is a single row in the table where the given column
 		/// is equal to the given value.
 		/// </summary>
-		/// <param name="col">The index of the coulmn to check.</param>
-		/// <param name="val">The value to compare.</param>
+		/// <param name="column">The index of the coulmn to check.</param>
+		/// <param name="value">The value to compare.</param>
 		/// <returns>
 		/// Returns <b>true</b> if there is a single row in the table where the given column
 		/// is equal to the given value, otherwise returns <b>false</b>.
@@ -203,44 +201,43 @@ namespace Deveel.Data {
 		/// <exception cref="ApplicationException">
 		/// If multiple rows were found.
 		/// </exception>
-		public bool Exists(int col, Object val) {
-			IList<int> ivec = SelectEqual(col, val);
-			if (ivec.Count == 0) {
+		public bool Exists(int column, object value) {
+			IList<int> ivec = SelectEqual(column, value);
+			if (ivec.Count == 0)
 				return false;
-			} else if (ivec.Count == 1) {
+			if (ivec.Count == 1)
 				return true;
-			} else {
-				throw new ApplicationException("Assertion failed: Exists found multiple values.");
-			}
+
+			throw new ApplicationException("Assertion failed: Exists found multiple values.");
 		}
 
 		/// <summary>
 		/// Assuming the table stores a key/value mapping, this returns the contents
-		/// of <paramref name="value_column"/> for any rows where <paramref name="key_column"/>
-		/// is equal to the <paramref name="key_value"/>.
+		/// of <paramref name="valueColumn"/> for any rows where <paramref name="keyColumn"/>
+		/// is equal to the <paramref name="keyValue"/>.
 		/// </summary>
-		/// <param name="value_column"></param>
-		/// <param name="key_column"></param>
-		/// <param name="key_value"></param>
+		/// <param name="valueColumn"></param>
+		/// <param name="keyColumn"></param>
+		/// <param name="keyValue"></param>
 		/// <returns>
-		/// Returns the value of <paramref name="value_column"/> if found, otherwise
+		/// Returns the value of <paramref name="valueColumn"/> if found, otherwise
 		/// returns <b>null</b>.
 		/// </returns>
 		/// <exception cref="ApplicationException">
 		/// If there is more than one row that match the key.
 		/// </exception>
-		public Object GetVariable(int value_column, int key_column, Object key_value) {
+		public Object GetVariable(int valueColumn, int keyColumn, object keyValue) {
 			// All indexes in the table where the key value is found.
-			IList<int> ivec = SelectEqual(key_column, key_value);
-			if (ivec.Count > 1) {
+			IList<int> list = SelectEqual(keyColumn, keyValue);
+			if (list.Count > 1)
 				throw new ApplicationException("Assertion failed: GetVariable found multiple key values.");
-			} else if (ivec.Count == 0) {
+
+			if (list.Count == 0)
 				// Key found so return the value
-				return Get(value_column, ivec[0]);
-			} else {
-				// Key not found so return null
-				return null;
-			}
+				return Get(valueColumn, list[0]);
+
+			// Key not found so return null
+			return null;
 		}
 
 		// ---------- Table mutable methods ---------
@@ -248,12 +245,12 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Adds a new key/value mapping in the underlying table.
 		/// </summary>
-		/// <param name="key_column">Index of the column containing the key value.</param>
-		/// <param name="vals">Array of values to insert to the underlying table.</param>
+		/// <param name="keyColumn">Index of the column containing the key value.</param>
+		/// <param name="values">Array of values to insert to the underlying table.</param>
 		/// <remarks>
 		/// If the key already exists the old key/value row is deleted first.
 		/// <para>
-		/// The <paramref name="vals"/> array must be the size of the number 
+		/// The <paramref name="values"/> array must be the size of the number 
 		/// of columns in the underlying tbale.
 		/// </para>
 		/// <para>
@@ -271,25 +268,27 @@ namespace Deveel.Data {
 		/// If the underlying table is not a <see cref="IMutableTableDataSource"/>.
 		/// </exception>
 		/// <exception cref="ApplicationException">
-		/// If multiple values were found for <paramref name="key_column"/>.
+		/// If multiple values were found for <paramref name="keyColumn"/>.
 		/// </exception>
-		public void SetVariable(int key_column, Object[] vals) {
+		public void SetVariable(int keyColumn, object[] values) {
 			// Cast to a IMutableTableDataSource
 			IMutableTableDataSource mtable = (IMutableTableDataSource)table;
 
 			// All indexes in the table where the key value is found.
-			IList<int> ivec = SelectEqual(key_column, vals[key_column]);
-			if (ivec.Count > 1) {
+			IList<int> list = SelectEqual(keyColumn, values[keyColumn]);
+			if (list.Count > 1)
 				throw new ApplicationException("Assertion failed: SetVariable found multiple key values.");
-			} else if (ivec.Count == 1) {
+
+			if (list.Count == 1)
 				// Remove the current key
-				mtable.RemoveRow(ivec[0]);
-			}
+				mtable.RemoveRow(list[0]);
+
 			// Insert the new key
 			DataRow dataRow = new DataRow(table);
-			for (int i = 0; i < table_def.ColumnCount; ++i) {
-				dataRow.SetValue(i, vals[i]);
+			for (int i = 0; i < tableInfo.ColumnCount; ++i) {
+				dataRow.SetValue(i, values[i]);
 			}
+
 			mtable.AddRow(dataRow);
 		}
 
@@ -297,8 +296,8 @@ namespace Deveel.Data {
 		/// Deletes a single entry from the table where the given column equals the
 		/// given value.
 		/// </summary>
-		/// <param name="col"></param>
-		/// <param name="val"></param>
+		/// <param name="column"></param>
+		/// <param name="value"></param>
 		/// <returns>
 		/// Returns <b>true</b> if a single value was found and deleted, otherwise <b>false</b>.
 		/// </returns>
@@ -308,19 +307,18 @@ namespace Deveel.Data {
 		/// <exception cref="ApplicationException">
 		/// If multiple values were found.
 		/// </exception>
-		public bool Delete(int col, Object val) {
+		public bool Delete(int column, object value) {
 			// Cast to a IMutableTableDataSource
 			IMutableTableDataSource mtable = (IMutableTableDataSource)table;
 
-			IList<int> ivec = SelectEqual(col, val);
-			if (ivec.Count == 0) {
+			IList<int> list = SelectEqual(column, value);
+			if (list.Count == 0)
 				return false;
-			} else if (ivec.Count == 1) {
-				mtable.RemoveRow(ivec[0]);
-				return true;
-			} else {
+			if (list.Count > 1)
 				throw new ApplicationException("Assertion failed: Delete found multiple values.");
-			}
+
+			mtable.RemoveRow(list[0]);
+			return true;
 		}
 
 		/// <summary>
@@ -339,14 +337,6 @@ namespace Deveel.Data {
 
 			foreach (int rowIndex in list) {
 				mtable.RemoveRow(rowIndex);
-			}
-		}
-
-		/// <inheritdoc/>
-		public void Dispose() {
-			if (table != null) {
-				//      table.RemoveRootLock();
-				table = null;
 			}
 		}
 	}

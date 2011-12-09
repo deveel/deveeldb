@@ -45,7 +45,7 @@ namespace Deveel.Data {
 		private bool view_table_changed;
 
 		/// <summary>
-		/// A local cache of ViewDef objects mapped by row id in the system view
+		/// A local cache of View objects mapped by row id in the system view
 		/// table.  This cache is invalidated when changes are committed to the system
 		/// view table.
 		/// </summary>
@@ -87,7 +87,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the local cache of ViewDef objects.
+		/// Returns the local cache of View objects.
 		/// </summary>
 		/// <remarks>
 		/// This cache is mapped from row_id to view object. The cache 
@@ -170,16 +170,16 @@ namespace Deveel.Data {
 		/// <exception cref="StatementException">
 		/// If multiple views were found for the given view name.
 		/// </exception>
-		public void DefineView(ViewDef view, SqlQuery query, User user) {
-			DataTableDef data_table_def = view.DataTableDef;
+		public void DefineView(View view, SqlQuery query, User user) {
+			DataTableInfo dataTableInfo = view.TableInfo;
 			DataTable view_table = connection.GetTable(Database.SysView);
 
-			TableName view_name = data_table_def.TableName;
+			TableName view_name = dataTableInfo.TableName;
 
 			// Create the view record
 			DataRow rdat = new DataRow(view_table);
-			rdat.SetValue(0, data_table_def.Schema);
-			rdat.SetValue(1, data_table_def.Name);
+			rdat.SetValue(0, dataTableInfo.Schema);
+			rdat.SetValue(1, dataTableInfo.Name);
 			rdat.SetValue(2, query.SerializeToBlob());
 			rdat.SetValue(3, view.SerializeToBlob());
 			rdat.SetValue(4, user.UserName);
@@ -252,12 +252,12 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns>
-		/// Returns a <see cref="ViewDef"/> for the given <paramref name="view_name"/>.
+		/// Returns a <see cref="View"/> for the given <paramref name="view_name"/>.
 		/// </returns>
 		/// <exception cref="StatementException">
 		/// If none view was found for the given <paramref name="view_name"/>.
 		/// </exception>
-		private static ViewDef GetViewDef(IDictionary cache, ITableDataSource view_table, TableName view_name) {
+		private static View GetViewDef(IDictionary cache, ITableDataSource view_table, TableName view_name) {
 			IRowEnumerator e = view_table.GetRowEnumerator();
 			while (e.MoveNext()) {
 				int row = e.RowIndex;
@@ -271,19 +271,19 @@ namespace Deveel.Data {
 					view_name.Name.Equals(c_name)) {
 
 					Object cache_key = row;
-					ViewDef view_def = (ViewDef)cache[cache_key];
+					View view = (View)cache[cache_key];
 
-					if (view_def == null) {
+					if (view == null) {
 						// Not in the cache, so deserialize it and WriteByte it in the cache.
 						IBlobAccessor blob =
 							  (IBlobAccessor)view_table.GetCellContents(3, row).Object;
 						// Derserialize the blob
-						view_def = ViewDef.DeserializeFromBlob(blob);
+						view = View.DeserializeFromBlob(blob);
 						// Put this in the cache....
-						cache[cache_key] = view_def;
+						cache[cache_key] = view;
 
 					}
-					return view_def;
+					return view;
 				}
 
 			}
@@ -292,7 +292,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Creates a <see cref="ViewDef"/> object for the given index 
+		/// Creates a <see cref="View"/> object for the given index 
 		/// value in the table.
 		/// </summary>
 		/// <param name="cache"></param>
@@ -306,7 +306,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		private static ViewDef GetViewDef(IDictionary cache, ITableDataSource view_table, int index) {
+		private static View GetViewDef(IDictionary cache, ITableDataSource view_table, int index) {
 			IRowEnumerator e = view_table.GetRowEnumerator();
 			int i = 0;
 			while (e.MoveNext()) {
@@ -314,19 +314,19 @@ namespace Deveel.Data {
 
 				if (i == index) {
 					Object cache_key = row;
-					ViewDef view_def = (ViewDef)cache[cache_key];
+					View view = (View)cache[cache_key];
 
-					if (view_def == null) {
+					if (view == null) {
 						// Not in the cache, so deserialize it and write it in the cache.
 						IBlobAccessor blob =
 							  (IBlobAccessor)view_table.GetCellContents(3, row).Object;
 						// Derserialize the blob
-						view_def = ViewDef.DeserializeFromBlob(blob);
+						view = View.DeserializeFromBlob(blob);
 						// Put this in the cache....
-						cache[cache_key] = view_def;
+						cache[cache_key] = view;
 
 					}
-					return view_def;
+					return view;
 				}
 
 				++i;
@@ -387,9 +387,9 @@ namespace Deveel.Data {
 				return "VIEW";
 			}
 
-			public override DataTableDef GetDataTableDef(int i) {
+			public override DataTableInfo GetTableInfo(int i) {
 				return GetViewDef(view_cache,
-				                  transaction.GetTable(Database.SysView), i).DataTableDef;
+				                  transaction.GetTable(Database.SysView), i).TableInfo;
 			}
 
 			public override IMutableTableDataSource CreateInternalTable(int i) {

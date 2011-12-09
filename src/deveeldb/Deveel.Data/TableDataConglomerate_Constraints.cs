@@ -52,17 +52,17 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a list of column indices into the given <see cref="DataTableDef"/>
+		/// Returns a list of column indices into the given <see cref="DataTableInfo"/>
 		/// for the given column names.
 		/// </summary>
-		/// <param name="tableDef"></param>
+		/// <param name="tableInfo"></param>
 		/// <param name="cols"></param>
 		/// <returns></returns>
-		internal static int[] FindColumnIndices(DataTableDef tableDef, string[] cols) {
+		internal static int[] FindColumnIndices(DataTableInfo tableInfo, string[] cols) {
 			// Resolve the list of column names to column indexes
 			int[] colIndexes = new int[cols.Length];
 			for (int i = 0; i < cols.Length; ++i) {
-				colIndexes[i] = tableDef.FindColumnName(cols[i]);
+				colIndexes[i] = tableInfo.FindColumnName(cols[i]);
 			}
 			return colIndexes;
 		}
@@ -82,12 +82,12 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		private static bool IsUniqueColumns(ITableDataSource table, int rindex, string[] cols, bool nullsAllowed) {
-			DataTableDef tableDef = table.TableInfo;
+			DataTableInfo tableInfo = table.TableInfo;
 			// 'identical_rows' keeps a tally of the rows that match our added cell.
 			IList<int> identicalRows = null;
 
 			// Resolve the list of column names to column indexes
-			int[] colIndexes = FindColumnIndices(tableDef, cols);
+			int[] colIndexes = FindColumnIndices(tableInfo, cols);
 
 			// If the value being tested for uniqueness contains NULL, we return true
 			// if nulls are allowed.
@@ -237,11 +237,11 @@ namespace Deveel.Data {
 			ITableDataSource t1 = transaction.GetTableDataSource(table1);
 			ITableDataSource t2 = transaction.GetTableDataSource(table2);
 			// The table defs
-			DataTableDef dtd1 = t1.TableInfo;
-			DataTableDef dtd2 = t2.TableInfo;
+			DataTableInfo dti1 = t1.TableInfo;
+			DataTableInfo dti2 = t2.TableInfo;
 			// Resolve the list of column names to column indexes
-			int[] col1Indexes = FindColumnIndices(dtd1, cols1);
-			int[] col2Indexes = FindColumnIndices(dtd2, cols2);
+			int[] col1Indexes = FindColumnIndices(dti1, cols1);
+			int[] col2Indexes = FindColumnIndices(dti2, cols2);
 
 			int keySize = col1Indexes.Length;
 			// Get the data from table1
@@ -292,36 +292,36 @@ namespace Deveel.Data {
 			// column declared as 'not null', or duplicated in a column declared as
 			// unique.
 
-			DataTableDef tableDef = table.TableInfo;
+			DataTableInfo tableInfo = table.TableInfo;
 
 			// Check not-null columns are not null.  If they are null, throw an
 			// error.  Additionally check that OBJECT columns are correctly
 			// typed.
 
 			// Check each field of the added rows
-			int len = tableDef.ColumnCount;
+			int len = tableInfo.ColumnCount;
 			for (int i = 0; i < len; ++i) {
 				// Get the column definition and the cell being inserted,
-				DataTableColumnDef columnDef = tableDef[i];
+				DataTableColumnInfo columnInfo = tableInfo[i];
 				// For each row added to this column
 				for (int rn = 0; rn < rowIndices.Length; ++rn) {
 					TObject cell = table.GetCellContents(i, rowIndices[rn]);
 
 					// Check: Column defined as not null and cell being inserted is
 					// not null.
-					if (columnDef.IsNotNull && cell.IsNull) {
+					if (columnInfo.IsNotNull && cell.IsNull) {
 						throw new DatabaseConstraintViolationException(
 							DatabaseConstraintViolationException.NullableViolation,
 							"You tried to add 'null' cell to column '" +
-							tableDef[i].Name +
+							tableInfo[i].Name +
 							"' which is declared as 'not_null'");
 					}
 
 					// Check: If column is an object, then deserialize and check the
 					//        object is an instance of the class constraint,
 					if (!cell.IsNull &&
-						columnDef.SqlType == SqlType.Object) {
-						string classConstraint = columnDef.TypeConstraintString;
+						columnInfo.SqlType == SqlType.Object) {
+						string classConstraint = columnInfo.TypeConstraintString;
 						// Everything is derived from System.Object so this optimization
 						// will not cause an object deserialization.
 						if (!classConstraint.Equals("System.Object")) {
@@ -330,7 +330,7 @@ namespace Deveel.Data {
 							// Deserialize the object
 							object ob = ObjectTranslator.Deserialize(serializedJobject);
 							// Check it's assignable from the constraining class
-							if (!ob.GetType().IsAssignableFrom(columnDef.TypeConstraint)) {
+							if (!ob.GetType().IsAssignableFrom(columnInfo.TypeConstraint)) {
 								throw new DatabaseConstraintViolationException(
 								  DatabaseConstraintViolationException.ObjectTypeViolation,
 								  "The object being inserted is not derived from the " +
@@ -371,8 +371,8 @@ namespace Deveel.Data {
 			if (rowIndices == null || rowIndices.Length == 0)
 				return;
 
-			DataTableDef tableDef = table.TableInfo;
-			TableName tableName = tableDef.TableName;
+			DataTableInfo tableInfo = table.TableInfo;
+			TableName tableName = tableInfo.TableName;
 
 			// ---- Constraint checking ----
 
@@ -467,7 +467,7 @@ namespace Deveel.Data {
 				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
 					check.deferred == ConstraintDeferrability.InitiallyImmediate) {
 
-					check = system.PrepareTransactionCheckConstraint(tableDef, check);
+					check = system.PrepareTransactionCheckConstraint(tableInfo, check);
 					Expression exp = check.expression;
 
 					// For each row being added to this column
@@ -546,8 +546,8 @@ namespace Deveel.Data {
 			if (rowIndices == null || rowIndices.Length == 0)
 				return;
 
-			DataTableDef tableDef = table.TableInfo;
-			TableName tableName = tableDef.TableName;
+			DataTableInfo tableInfo = table.TableInfo;
+			TableName tableName = tableInfo.TableName;
 
 			// Check any imported foreign key constraints.
 			// This ensures that a referential reference can not be removed making

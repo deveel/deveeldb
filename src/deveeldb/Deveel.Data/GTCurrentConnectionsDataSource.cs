@@ -67,7 +67,7 @@ namespace Deveel.Data {
 		// ---------- Implemented from GTDataSource ----------
 
 		/// <inheritdoc/>
-		public override DataTableDef TableInfo {
+		public override DataTableInfo TableInfo {
 			get { return DEF_DATA_TABLE_DEF; }
 		}
 
@@ -103,25 +103,25 @@ namespace Deveel.Data {
 		// ---------- Static ----------
 
 		/// <summary>
-		/// The data table def that describes this table of data source.
+		/// The data table info that describes this table of data source.
 		/// </summary>
-		internal static readonly DataTableDef DEF_DATA_TABLE_DEF;
+		internal static readonly DataTableInfo DEF_DATA_TABLE_DEF;
 
 		static GTCurrentConnectionsDataSource() {
 
-			DataTableDef def = new DataTableDef();
-			def.TableName = new TableName(Database.SystemSchema, "sUSRCurrentConnections");
+			DataTableInfo info = new DataTableInfo();
+			info.TableName = new TableName(Database.SystemSchema, "current_connections");
 
 			// Add column definitions
-			def.AddColumn(GetStringColumn("username"));
-			def.AddColumn(GetStringColumn("host_string"));
-			def.AddColumn(GetDateColumn("last_command"));
-			def.AddColumn(GetDateColumn("time_connected"));
+			info.AddColumn(GetStringColumn("username"));
+			info.AddColumn(GetStringColumn("host_string"));
+			info.AddColumn(GetDateColumn("last_command"));
+			info.AddColumn(GetDateColumn("time_connected"));
 
 			// Set to immutable
-			def.SetImmutable();
+			info.SetImmutable();
 
-			DEF_DATA_TABLE_DEF = def;
+			DEF_DATA_TABLE_DEF = info;
 
 		}
 	}

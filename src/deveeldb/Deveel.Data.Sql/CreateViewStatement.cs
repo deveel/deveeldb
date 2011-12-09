@@ -140,17 +140,17 @@ namespace Deveel.Data.Sql {
 				throw new DatabaseException("Clone error: " + e.Message);
 			}
 
-			// We have to execute the plan to get the DataTableDef that represents the
+			// We have to execute the plan to get the DataTableInfo that represents the
 			// result of the view execution.
 			Table t = plan.Evaluate(context);
-			DataTableDef data_table_def = new DataTableDef(t.TableInfo);
-			data_table_def.TableName = vname;
+			DataTableInfo dataTableInfo = t.TableInfo.Clone();
+			dataTableInfo.TableName = vname;
 
-			// Create a ViewDef object,
-			ViewDef view_def = new ViewDef(data_table_def, plan_copy);
+			// Create a View object,
+			View view = new View(dataTableInfo, plan_copy);
 
 			// And create the view object,
-			Connection.CreateView(Query, view_def);
+			Connection.CreateView(Query, view);
 
 			// The initial grants for a view is to give the user who created it
 			// full access.

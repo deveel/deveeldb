@@ -38,56 +38,56 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Checks the existence of a table within the underlying transaction.
 		/// </summary>
-		/// <param name="table_name">Name of the table to check.</param>
+		/// <param name="tableName">Name of the table to check.</param>
 		/// <remarks>
 		/// This method checks if the table exists within the <see cref="CurrentSchema"/>
 		/// of the session.
 		/// </remarks>
 		/// <returns>
-		/// Returns <b>true</b> if a table with the given <paramref name="table_name"/>
+		/// Returns <b>true</b> if a table with the given <paramref name="tableName"/>
 		/// exists within the underlying transaction, otherwise <b>false</b>.
 		/// </returns>
-		public bool TableExists(String table_name) {
-			return TableExists(new TableName(current_schema, table_name));
+		public bool TableExists(string tableName) {
+			return TableExists(new TableName(current_schema, tableName));
 		}
 
 		/// <summary>
 		/// Checks the existence of a table within the underlying transaction.
 		/// </summary>
-		/// <param name="table_name">Name of the table to check.</param>
+		/// <param name="tableName">Name of the table to check.</param>
 		/// <returns>
-		/// Returns <b>true</b> if a table with the given <paramref name="table_name"/>
+		/// Returns <b>true</b> if a table with the given <paramref name="tableName"/>
 		/// exists within the underlying transaction, otherwise <b>false</b>.
 		/// </returns>
-		public bool TableExists(TableName table_name) {
-			table_name = SubstituteReservedTableName(table_name);
-			return Transaction.TableExists(table_name);
+		public bool TableExists(TableName tableName) {
+			tableName = SubstituteReservedTableName(tableName);
+			return Transaction.TableExists(tableName);
 		}
 
 		/// <summary>
 		/// Gets the type of he given table.
 		/// </summary>
-		/// <param name="table_name">Name of the table to get the type.</param>
+		/// <param name="tableName">Name of the table to get the type.</param>
 		/// <remarks>
 		/// Currently this is either <i>TABLE</i> or <i>VIEW</i>.
 		/// </remarks>
 		/// <returns>
 		/// Returns a string describing the type of the table identified by the
-		/// given <paramref name="table_name"/>.
+		/// given <paramref name="tableName"/>.
 		/// </returns>
 		/// <exception cref="StatementException">
-		/// If none table with the given <paramref name="table_name"/> was found 
+		/// If none table with the given <paramref name="tableName"/> was found 
 		/// in the underlying transaction.</exception>
-		public String GetTableType(TableName table_name) {
-			table_name = SubstituteReservedTableName(table_name);
-			return Transaction.GetTableType(table_name);
+		public string GetTableType(TableName tableName) {
+			tableName = SubstituteReservedTableName(tableName);
+			return Transaction.GetTableType(tableName);
 		}
 
 		/// <summary>
 		/// Attempts to resolve the given table name to its correct case assuming
 		/// the table name represents a case insensitive version of the name.
 		/// </summary>
-		/// <param name="table_name">Table name to resolve.</param>
+		/// <param name="tableName">Table name to resolve.</param>
 		/// <remarks>
 		/// For example, <c>aPP.CuSTOMer</c> may resolve to <c>default.Customer</c>.
 		/// If the table name can not resolve to a valid identifier it returns 
@@ -98,13 +98,13 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns>
 		/// Returns a properly formatted <see cref="TableName"/> if was able to
-		/// resolve the given <paramref name="table_name"/>, otherwise returns
+		/// resolve the given <paramref name="tableName"/>, otherwise returns
 		/// the input table name.
 		/// </returns>
-		public TableName TryResolveCase(TableName table_name) {
-			table_name = SubstituteReservedTableName(table_name);
-			table_name = Transaction.TryResolveCase(table_name);
-			return table_name;
+		public TableName TryResolveCase(TableName tableName) {
+			tableName = SubstituteReservedTableName(tableName);
+			tableName = Transaction.TryResolveCase(tableName);
+			return tableName;
 		}
 
 		/// <summary>
@@ -121,14 +121,14 @@ namespace Deveel.Data {
 		/// Returns a <see cref="TableName"/> representing the properly
 		/// formatted table name.
 		/// </returns>
-		public TableName ResolveTableName(String name) {
-			TableName table_name = TableName.Resolve(CurrentSchema, name);
-			table_name = SubstituteReservedTableName(table_name);
+		public TableName ResolveTableName(string name) {
+			TableName tableName = TableName.Resolve(CurrentSchema, name);
+			tableName = SubstituteReservedTableName(tableName);
 			if (IsInCaseInsensitiveMode) {
 				// Try and resolve the case of the table name,
-				table_name = TryResolveCase(table_name);
+				tableName = TryResolveCase(tableName);
 			}
-			return table_name;
+			return tableName;
 		}
 
 		/// <summary>
@@ -139,13 +139,12 @@ namespace Deveel.Data {
 		/// <exception cref="StatementException">
 		/// If the reference is ambigous or
 		/// </exception>
-		public TableName ResolveToTableName(String name) {
+		public TableName ResolveToTableName(string name) {
 			TableName table_name = TableName.Resolve(CurrentSchema, name);
-			if (String.Compare(table_name.Name, "OLD", true) == 0) {
+			if (String.Compare(table_name.Name, "OLD", true) == 0)
 				return Database.OldTriggerTable;
-			} else if (String.Compare(table_name.Name, "NEW", true) == 0) {
+			if (String.Compare(table_name.Name, "NEW", true) == 0)
 				return Database.NewTriggerTable;
-			}
 
 			return Transaction.ResolveToTableName(CurrentSchema, name, IsInCaseInsensitiveMode);
 
@@ -157,13 +156,13 @@ namespace Deveel.Data {
 		/// <param name="name">Name of the table to return the 
 		/// meta informations.</param>
 		/// <returns>
-		/// Returns the <see cref="DataTableDef"/> representing the meta 
+		/// Returns the <see cref="DataTableInfo"/> representing the meta 
 		/// informations for the tabl identified by <paramref name="name"/> 
 		/// if found, otherwise <b>null</b>.
 		/// </returns>
-		public DataTableDef GetDataTableDef(TableName name) {
+		public DataTableInfo GetTableInfo(TableName name) {
 			name = SubstituteReservedTableName(name);
-			return Transaction.GetDataTableDef(name);
+			return Transaction.GetTableInfo(name);
 		}
 
 		/// <summary>
@@ -185,16 +184,13 @@ namespace Deveel.Data {
 				// Special handling of NEW and OLD table, we cache the DataTable in the
 				// OldNewTableState object,
 				if (name.Equals(Database.OldTriggerTable)) {
-					if (currentOldNewState.OLD_data_table == null) {
-						currentOldNewState.OLD_data_table =
-										new DataTable(this, Transaction.GetTable(name));
-					}
+					if (currentOldNewState.OLD_data_table == null)
+						currentOldNewState.OLD_data_table = new DataTable(this, Transaction.GetTable(name));
 					return currentOldNewState.OLD_data_table;
-				} else if (name.Equals(Database.NewTriggerTable)) {
-					if (currentOldNewState.NEW_data_table == null) {
-						currentOldNewState.NEW_data_table =
-										new DataTable(this, Transaction.GetTable(name));
-					}
+				}
+				if (name.Equals(Database.NewTriggerTable)) {
+					if (currentOldNewState.NEW_data_table == null)
+						currentOldNewState.NEW_data_table = new DataTable(this, Transaction.GetTable(name));
 					return currentOldNewState.NEW_data_table;
 				}
 
@@ -208,6 +204,7 @@ namespace Deveel.Data {
 					dtable = new DataTable(this, table);
 					tablesCache[name] = dtable;
 				}
+
 				// Return the DataTable
 				return dtable;
 
@@ -221,176 +218,176 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets the table for the given name.
 		/// </summary>
-		/// <param name="table_name">Name of the table to return.</param>
+		/// <param name="tableName">Name of the table to return.</param>
 		/// <remarks>
 		/// This method uses the <see cref="CurrentSchema"/> to get the table.
 		/// </remarks>
 		/// <returns>
 		/// Returns a <see cref="DataTable"/> that represents the table 
-		/// identified by <paramref name="table_name"/>, otherwise returns <b>null</b>.
+		/// identified by <paramref name="tableName"/>, otherwise returns <b>null</b>.
 		/// </returns>
 		/// <exception cref="DatabaseException">
-		/// If none table was found for the given <paramref name="table_name"/>.
+		/// If none table was found for the given <paramref name="tableName"/>.
 		/// </exception>
-		public DataTable GetTable(String table_name) {
-			return GetTable(new TableName(current_schema, table_name));
+		public DataTable GetTable(string tableName) {
+			return GetTable(new TableName(current_schema, tableName));
 		}
 
 		/// <summary>
 		/// Creates a new table within the context of the transaction.
 		/// </summary>
-		/// <param name="table_def">Table meta informations for creating the table.</param>
+		/// <param name="tableInfo">Table meta informations for creating the table.</param>
 		/// <exception cref="StatementException">
 		/// If the name of the table is reserved and the creation of the table 
 		/// should be prevented.
 		/// </exception>
-		public void CreateTable(DataTableDef table_def) {
-			CheckAllowCreate(table_def.TableName);
-			Transaction.CreateTable(table_def);
+		public void CreateTable(DataTableInfo tableInfo) {
+			CheckAllowCreate(tableInfo.TableName);
+			Transaction.CreateTable(tableInfo);
 		}
 
 		/// <summary>
 		/// Creates a new table within this transaction with the given 
 		/// sector size.
 		/// </summary>
-		/// <param name="table_def">Meta informations used to create the table.</param>
-		/// <param name="data_sector_size">Size of data sectors of the table.</param>
-		/// <param name="index_sector_size">Size of the index sectors of the table.</param>
+		/// <param name="tableInfo">Meta informations used to create the table.</param>
+		/// <param name="dataSectorSize">Size of data sectors of the table.</param>
+		/// <param name="indexSectorSize">Size of the index sectors of the table.</param>
 		/// <remarks>
 		/// This should only be used as very fine grain optimization for 
 		/// creating tables. 
 		/// If in the future the underlying table model is changed so that the given
-		/// <paramref name="data_sector_size"/> value is unapplicable, then the value 
+		/// <paramref name="dataSectorSize"/> value is unapplicable, then the value 
 		/// will be ignored.
 		/// </remarks>
 		/// <exception cref="StatementException">
-		/// If a table with the same name (specified by <paramref name="table_def"/>) 
+		/// If a table with the same name (specified by <paramref name="tableInfo"/>) 
 		/// already exists.
 		/// </exception>
-		public void CreateTable(DataTableDef table_def, int data_sector_size, int index_sector_size) {
-			CheckAllowCreate(table_def.TableName);
-			Transaction.CreateTable(table_def, data_sector_size, index_sector_size);
+		public void CreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
+			CheckAllowCreate(tableInfo.TableName);
+			Transaction.CreateTable(tableInfo, dataSectorSize, indexSectorSize);
 		}
 
 		/// <summary>
 		/// Alters a table within the underlying transaction.
 		/// </summary>
-		/// <param name="table_def">Table metadata informations for aletring the table</param>
+		/// <param name="tableInfo">Table metadata informations for aletring the table</param>
 		/// <exception cref="StatementException">
 		/// If the name of the table is reserved and the creation of the table 
 		/// should be prevented.
 		/// </exception>
-		public void UpdateTable(DataTableDef table_def) {
-			CheckAllowCreate(table_def.TableName);
-			Transaction.AlterTable(table_def.TableName, table_def);
+		public void UpdateTable(DataTableInfo tableInfo) {
+			CheckAllowCreate(tableInfo.TableName);
+			Transaction.AlterTable(tableInfo.TableName, tableInfo);
 		}
 
 		/// <summary>
 		/// Alters a table within the underlying transaction.
 		/// </summary>
-		/// <param name="table_def">Table metadata informations for altering 
+		/// <param name="tableInfo">Table metadata informations for altering 
 		/// the table.</param>
-		/// <param name="data_sector_size"></param>
-		/// <param name="index_sector_size"></param>
+		/// <param name="dataSectorSize"></param>
+		/// <param name="indexSectorSize"></param>
 		/// <remarks>
 		/// This should only be used as very fine grain optimization
 		/// for creating tables. If in the future the underlying table model is
-		/// changed so that the given <paramref name="data_sector_size"/> value 
+		/// changed so that the given <paramref name="dataSectorSize"/> value 
 		/// is unapplicable, then the value will be ignored.
 		/// </remarks>
-		public void UpdateTable(DataTableDef table_def, int data_sector_size, int index_sector_size) {
-			CheckAllowCreate(table_def.TableName);
-			Transaction.AlterTable(table_def.TableName, table_def, data_sector_size, index_sector_size);
+		public void UpdateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
+			CheckAllowCreate(tableInfo.TableName);
+			Transaction.AlterTable(tableInfo.TableName, tableInfo, dataSectorSize, indexSectorSize);
 		}
 
 		/// <summary>
-		/// If a table exists with the given table name (defined by <paramref name="table_def"/>)
+		/// If a table exists with the given table name (defined by <paramref name="tableInfo"/>)
 		/// alters its the structure, otherwise creates a new table.
 		/// </summary>
-		/// <param name="table_def">Meta informations for altering or creating a table.</param>
-		/// <param name="data_sector_size">Size of data sectors of the table.</param>
-		/// <param name="index_sector_size">Size of the index sectors of the table.</param>
+		/// <param name="tableInfo">Meta informations for altering or creating a table.</param>
+		/// <param name="dataSectorSize">Size of data sectors of the table.</param>
+		/// <param name="indexSectorSize">Size of the index sectors of the table.</param>
 		/// <remarks>
 		/// This should only be used as very fine grain optimization for creating or
 		/// altering tables.
 		/// If in the future the underlying table model is changed so that the given 
-		/// <paramref name="data_sector_size"/> and <paramref name="index_sector_size"/> 
+		/// <paramref name="dataSectorSize"/> and <paramref name="indexSectorSize"/> 
 		/// values are unapplicable and will be ignored.
 		/// </remarks>
-		public void AlterCreateTable(DataTableDef table_def, int data_sector_size, int index_sector_size) {
-			if (!TableExists(table_def.TableName)) {
-				CreateTable(table_def, data_sector_size, index_sector_size);
+		public void AlterCreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
+			if (!TableExists(tableInfo.TableName)) {
+				CreateTable(tableInfo, dataSectorSize, indexSectorSize);
 			} else {
-				UpdateTable(table_def, data_sector_size, index_sector_size);
+				UpdateTable(tableInfo, dataSectorSize, indexSectorSize);
 			}
 		}
 
 		/// <summary>
-		/// If a table exists with the given table name (defined by <paramref name="table_def"/>)
+		/// If a table exists with the given table name (defined by <paramref name="tableInfo"/>)
 		/// alters its the structure, otherwise creates a new table.
 		/// </summary>
-		/// <param name="table_def">Meta informations for altering or creating a table.</param>
+		/// <param name="tableInfo">Meta informations for altering or creating a table.</param>
 		/// <exception cref="StatementException"></exception>
-		public void AlterCreateTable(DataTableDef table_def) {
-			if (!TableExists(table_def.TableName)) {
-				CreateTable(table_def);
+		public void AlterCreateTable(DataTableInfo tableInfo) {
+			if (!TableExists(tableInfo.TableName)) {
+				CreateTable(tableInfo);
 			} else {
-				UpdateTable(table_def);
+				UpdateTable(tableInfo);
 			}
 		}
 
 		/// <summary>
 		/// Drops a table within the transaction.
 		/// </summary>
-		/// <param name="table_name">Name of the table to drop.</param>
+		/// <param name="tableName">Name of the table to drop.</param>
 		/// <exception cref="TransactionException">
-		/// If none tables was found for the given <paramref name="table_name"/>.
+		/// If none tables was found for the given <paramref name="tableName"/>.
 		/// </exception>
-		public void DropTable(String table_name) {
-			DropTable(new TableName(current_schema, table_name));
+		public void DropTable(string tableName) {
+			DropTable(new TableName(current_schema, tableName));
 		}
 
 		/// <summary>
 		/// Drops a table within the transaction.
 		/// </summary>
-		/// <param name="table_name">Name of the table to drop.</param>
+		/// <param name="tableName">Name of the table to drop.</param>
 		/// <exception cref="TransactionException">
-		/// If none tables was found for the given <paramref name="table_name"/>.
+		/// If none tables was found for the given <paramref name="tableName"/>.
 		/// </exception>
-		public void DropTable(TableName table_name) {
-			Transaction.DropTable(table_name);
+		public void DropTable(TableName tableName) {
+			Transaction.DropTable(tableName);
 		}
 
 		/// <summary>
 		/// Compacts a table with the given name.
 		/// </summary>
-		/// <param name="table_name">The name of the table to compact.</param>
+		/// <param name="tableName">The name of the table to compact.</param>
 		/// <exception cref="StatementException">
-		/// If none table was found for the given <paramref name="table_name"/> 
+		/// If none table was found for the given <paramref name="tableName"/> 
 		/// in the <see cref="CurrentSchema"/>.
 		/// </exception>
-		public void CompactTable(String table_name) {
-			CompactTable(new TableName(current_schema, table_name));
+		public void CompactTable(string tableName) {
+			CompactTable(new TableName(current_schema, tableName));
 		}
 
 		/// <summary>
 		/// Compacts a table with the given name.
 		/// </summary>
-		/// <param name="table_name">The name of the table to compact.</param>
+		/// <param name="tableName">The name of the table to compact.</param>
 		/// <exception cref="StatementException">
-		/// If none table was found for the given <paramref name="table_name"/>.
+		/// If none table was found for the given <paramref name="tableName"/>.
 		/// </exception>
-		public void CompactTable(TableName table_name) {
-			Transaction.CompactTable(table_name);
+		public void CompactTable(TableName tableName) {
+			Transaction.CompactTable(tableName);
 		}
 
 		///<summary>
 		/// Adds the given table name to the list of tables that are selected from
 		/// within the transaction in this connection.
 		///</summary>
-		///<param name="table_name"></param>
-		public void AddSelectedFromTable(String table_name) {
-			AddSelectedFromTable(new TableName(current_schema, table_name));
+		///<param name="tableName"></param>
+		public void AddSelectedFromTable(string tableName) {
+			AddSelectedFromTable(new TableName(current_schema, tableName));
 		}
 
 		///<summary>

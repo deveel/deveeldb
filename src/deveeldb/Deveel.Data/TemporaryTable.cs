@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -27,31 +27,31 @@ namespace Deveel.Data {
 	/// </remarks>
 	public sealed class TemporaryTable : DefaultDataTable {
 		/// <summary>
-		/// The DataTableDef object that describes the columns in this table.
+		/// The DataTableInfo object that describes the columns in this table.
 		/// </summary>
-		private readonly DataTableDef table_def;
+		private readonly DataTableInfo tableInfo;
 
 		/// <summary>
 		/// A list that represents the storage of TObject[] arrays for each row of the table.
 		/// </summary>
-		private readonly ArrayList table_storage;
+		private readonly List<TObject[]> tableStorage;
 
 		///<summary>
 		///</summary>
 		///<param name="database"></param>
 		///<param name="name"></param>
 		///<param name="fields"></param>
-		public TemporaryTable(Database database, String name, DataTableColumnDef[] fields)
+		public TemporaryTable(Database database, String name, DataTableColumnInfo[] fields)
 			: base(database) {
 
-			table_storage = new ArrayList();
+			tableStorage = new List<TObject[]>();
 
-			table_def = new DataTableDef();
-			table_def.TableName = new TableName(null, name);
-			for (int i = 0; i < fields.Length; ++i) {
-				table_def.AddVirtualColumn(new DataTableColumnDef(fields[i]));
+			tableInfo = new DataTableInfo();
+			tableInfo.TableName = new TableName(null, name);
+			foreach (DataTableColumnInfo field in fields) {
+				tableInfo.AddVirtualColumn(field.Clone());
 			}
-			table_def.SetImmutable();
+			tableInfo.SetImmutable();
 		}
 
 		/// <summary>
@@ -63,9 +63,9 @@ namespace Deveel.Data {
 		public TemporaryTable(String name, Table based_on)
 			: base(based_on.Database) {
 
-			table_def = new DataTableDef(based_on.TableInfo);
-			table_def.TableName = new TableName(null, name);
-			table_def.SetImmutable();
+			tableInfo = based_on.TableInfo.Clone();
+			tableInfo.TableName = new TableName(null, name);
+			tableInfo.SetImmutable();
 		}
 
 		/// <summary>
@@ -76,8 +76,8 @@ namespace Deveel.Data {
 		public TemporaryTable(Table based_on)
 			: base(based_on.Database) {
 
-			table_def = new DataTableDef(based_on.TableInfo);
-			table_def.SetImmutable();
+			tableInfo = based_on.TableInfo.Clone();
+			tableInfo.SetImmutable();
 		}
 
 
@@ -100,7 +100,7 @@ namespace Deveel.Data {
 		/// Creates a new row where cells can be inserted into.
 		/// </summary>
 		public void NewRow() {
-			table_storage.Add(new TObject[ColumnCount]);
+			tableStorage.Add(new TObject[ColumnCount]);
 			++row_count;
 		}
 
@@ -111,7 +111,7 @@ namespace Deveel.Data {
 		///<param name="column"></param>
 		///<param name="row"></param>
 		public void SetRowCell(TObject cell, int column, int row) {
-			TObject[] cells = (TObject[])table_storage[row];
+			TObject[] cells = tableStorage[row];
 			cells[column] = cell;
 		}
 
@@ -231,17 +231,17 @@ namespace Deveel.Data {
 		/* ====== Methods that are implemented for Table interface ====== */
 
 		/// <inheritdoc/>
-		public override DataTableDef TableInfo {
-			get { return table_def; }
+		public override DataTableInfo TableInfo {
+			get { return tableInfo; }
 		}
 
 		/// <inheritdoc/>
 		public override TObject GetCellContents(int column, int row) {
-			TObject[] cells = (TObject[])table_storage[row];
+			TObject[] cells = tableStorage[row];
 			TObject cell = cells[column];
-			if (cell == null) {
+			if (cell == null)
 				throw new ApplicationException("NULL cell!  (" + column + ", " + row + ")");
-			}
+
 			return cell;
 		}
 
@@ -287,20 +287,19 @@ namespace Deveel.Data {
 		/// Creates a table with a single column with the given name and type.
 		/// </summary>
 		/// <param name="database"></param>
-		/// <param name="col_name"></param>
+		/// <param name="columnName"></param>
 		/// <param name="c"></param>
 		/// <returns></returns>
-		internal static TemporaryTable SingleColumnTable(Database database, String col_name, Type c) {
+		internal static TemporaryTable SingleColumnTable(Database database, String columnName, Type c) {
 			TType ttype = TType.FromType(c);
-			DataTableColumnDef col_def = new DataTableColumnDef();
-			col_def.Name = col_name;
-			col_def.SetFromTType(ttype);
-			TemporaryTable table = new TemporaryTable(database, "single",
-												new DataTableColumnDef[] { col_def });
+			DataTableColumnInfo colInfo = new DataTableColumnInfo();
+			colInfo.Name = columnName;
+			colInfo.SetFromTType(ttype);
+			TemporaryTable table = new TemporaryTable(database, "single", new DataTableColumnInfo[] { colInfo });
 
 			//      int type = TypeUtil.ToDbType(c);
 			//      TableField[] fields =
-			//                 { new TableField(col_name, type, Integer.MAX_VALUE, false) };
+			//                 { new TableField(columnName, type, Integer.MAX_VALUE, false) };
 			//      TemporaryTable table = new TemporaryTable(database, "single", fields);
 			return table;
 		}

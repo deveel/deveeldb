@@ -314,7 +314,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Tests a conflict over the journal during a transaction commit.
 		/// </summary>
-		/// <param name="tableDef"></param>
+		/// <param name="tableInfo"></param>
 		/// <param name="journal"></param>
 		/// <remarks>
 		/// It assumes that this journal is the journal that is attempting 
@@ -324,7 +324,7 @@ namespace Deveel.Data {
 		/// <exception cref="TransactionException">
 		/// If it detects a clash between journal entries.
 		/// </exception>
-		internal void TestCommitClash(DataTableDef tableDef, MasterTableJournal journal) {
+		internal void TestCommitClash(DataTableInfo tableInfo, MasterTableJournal journal) {
 			// Very nasty search here...
 			for (int i = 0; i < EntriesCount; ++i) {
 				JournalCommandType tc = GetCommand(i);
@@ -337,7 +337,7 @@ namespace Deveel.Data {
 							   TransactionException.RowRemoveClash,
 							   "Concurrent Serializable Transaction Conflict(1): " +
 							   "Current row remove clash ( row: " + rowIndex + ", table: " +
-							   tableDef.TableName + " )");
+							   tableInfo.TableName + " )");
 						}
 					}
 				}

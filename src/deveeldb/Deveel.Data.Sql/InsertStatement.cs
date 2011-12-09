@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Add the from table direct source for this table
-			ITableQueryInfo tableQueryInfo = Connection.GetTableQueryDef(tname, null);
+			ITableQueryInfo tableQueryInfo = Connection.GetTableQueryInfo(tname, null);
 			AddTable(new FromTableDirectSource(Connection.IsInCaseInsensitiveMode, tableQueryInfo, "INSERT_TABLE", tname, tname));
 
 			// Get the table we are inserting to

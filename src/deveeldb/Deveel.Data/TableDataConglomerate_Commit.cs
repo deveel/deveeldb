@@ -667,7 +667,7 @@ namespace Deveel.Data {
 				MasterTableDataSource t = GetMasterTable(createdTables[i]);
 				StateStore.StateResource resource = new StateStore.StateResource(t.TableId, CreateEncodedTableFile(t));
 				stateStore.AddVisibleResource(resource);
-				stateStore.RemoveDeleteResource(resource.name);
+				stateStore.RemoveDeleteResource(resource.Name);
 			}
 
 			// Remove dropped tables from the committed tables list.
@@ -677,7 +677,7 @@ namespace Deveel.Data {
 				MasterTableDataSource t = GetMasterTable(droppedTables[i]);
 				StateStore.StateResource resource = new StateStore.StateResource(t.TableId, CreateEncodedTableFile(t));
 				stateStore.AddDeleteResource(resource);
-				stateStore.RemoveVisibleResource(resource.name);
+				stateStore.RemoveVisibleResource(resource.Name);
 			}
 
 			try {

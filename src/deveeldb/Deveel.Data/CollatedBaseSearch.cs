@@ -49,7 +49,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public override void Insert(int row) {
 			// Ignore insert (no state to maintain)
-			if (IsImmutable)
+			if (IsReadOnly)
 				throw new ApplicationException("Tried to change an immutable scheme.");
 		}
 
@@ -59,9 +59,8 @@ namespace Deveel.Data {
 		/// </remarks>
 		public override void Remove(int row) {
 			// Ignore remove (no state to maintain)
-			if (IsImmutable) {
+			if (IsReadOnly)
 				throw new ApplicationException("Tried to change an immutable scheme.");
-			}
 		}
 
 		/// <inheritdoc/>
@@ -131,19 +130,20 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="start">The offset where to start adding the given range.</param>
 		/// <param name="end">The offset where to end adding the given range.</param>
-		/// <param name="ivec"></param>
+		/// <param name="list"></param>
 		/// <returns>
-		/// Returns the given <paramref name="ivec"/> integrated with the given
+		/// Returns the given <paramref name="list"/> integrated with the given
 		/// range of integers.
 		/// </returns>
-		protected virtual IList<int> AddRangeToSet(int start, int end, IList<int> ivec) {
-			if (ivec == null) {
-				ivec = new List<int>((end - start) + 2);
-			}
+		protected virtual IList<int> AddRangeToSet(int start, int end, IList<int> list) {
+			if (list == null)
+				list = new List<int>((end - start) + 2);
+
 			for (int i = start; i <= end; ++i) {
-				ivec.Add(i);
+				list.Add(i);
 			}
-			return ivec;
+
+			return list;
 		}
 
 		// ---------- Range search methods ----------
@@ -209,15 +209,16 @@ namespace Deveel.Data {
 					return p;
 
 				case RangePosition.BeforeFirstValue:
-					if (val == SelectableRange.FirstInSet) {
+					if (val == SelectableRange.FirstInSet)
 						return -1;
-					}
+
 					if (val == SelectableRange.LastInSet) {
 						// Get the last value and search for the first instance of it.
 						cell = LastInCollationOrder;
 					} else {
 						cell = val;
 					}
+
 					p = SearchFirst(cell);
 					// (If value not found)
 					if (p < 0) {
@@ -253,71 +254,62 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="range">The instance of <see cref="SelectableRange"/>
 		/// used to identify the indexes of nodes to add to the given list.</param>
-		/// <param name="ivec">The list of integers where to add the selected range
+		/// <param name="list">The list of integers where to add the selected range
 		/// of indexes.</param>
 		/// <remarks>
 		/// IntegerList may be null if a list has not yet been allocated for 
 		/// the range.
 		/// </remarks>
 		/// <returns>
-		/// Returns the given <paramref name="ivec"/> integrated with the range
+		/// Returns the given <paramref name="list"/> integrated with the range
 		/// of values identified by the given <pramref name="range"/> selector.
 		/// </returns>
-		private IList<int> AddRange(SelectableRange range, IList<int> ivec) {
-			int r1, r2;
-
+		private IList<int> AddRange(SelectableRange range, IList<int> list) {
 			// Select the range specified.
 			RangePosition startFlag = range.StartPosition;
 			TObject start = range.Start;
 			RangePosition endFlag = range.EndPosition;
 			TObject end = range.End;
 
-			r1 = PositionOfRangePoint(startFlag, start);
-			r2 = PositionOfRangePoint(endFlag, end);
+			int r1 = PositionOfRangePoint(startFlag, start);
+			int r2 = PositionOfRangePoint(endFlag, end);
 
-			if (r2 < r1) {
-				return ivec;
-			}
+			if (r2 < r1)
+				return list;
 
 			// Add the range to the set
-			return AddRangeToSet(r1, r2, ivec);
+			return AddRangeToSet(r1, r2, list);
 
 		}
 
 		/// <inheritdoc/>
-		internal override IList<int> SelectRange(SelectableRange range) {
+		public override IList<int> SelectRange(SelectableRange range) {
 			// If no items in the set return an empty set
-			if (SetSize == 0) {
+			if (SetSize == 0)
 				return new List<int>(0);
-			}
 
-			IList<int> ivec = AddRange(range, null);
-			if (ivec == null) {
+			IList<int> list = AddRange(range, null);
+			if (list == null)
 				return new List<int>(0);
-			}
 
-			return ivec;
+			return list;
 		}
 
 		/// <inheritdoc/>
-		internal override IList<int> SelectRange(SelectableRange[] ranges) {
+		public override IList<int> SelectRange(SelectableRange[] ranges) {
 			// If no items in the set return an empty set
-			if (SetSize == 0) {
+			if (SetSize == 0)
 				return new List<int>(0);
+
+			IList<int> list = null;
+			foreach (SelectableRange range in ranges) {
+				list = AddRange(range, list);
 			}
 
-			IList<int> ivec = null;
-			for (int i = 0; i < ranges.Length; ++i) {
-				SelectableRange range = ranges[i];
-				ivec = AddRange(range, ivec);
-			}
-
-			if (ivec == null) {
+			if (list == null)
 				return new List<int>(0);
-			}
-			return ivec;
 
+			return list;
 		}
-
 	}
 }

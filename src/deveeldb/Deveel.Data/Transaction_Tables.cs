@@ -124,12 +124,12 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		protected override DataTableDef GetDynamicDataTableDef(TableName tableName) {
+		protected override DataTableInfo GetDynamicTableInfo(TableName tableName) {
 			foreach (IInternalTableInfo info in internalTables) {
 				if (info != null) {
 					int index = info.FindTableName(tableName);
 					if (index != -1)
-						return info.GetDataTableDef(index);
+						return info.GetTableInfo(index);
 				}
 			}
 
@@ -167,7 +167,7 @@ namespace Deveel.Data {
 		/// Creates a new table within this transaction with the given sector 
 		/// size.
 		/// </summary>
-		/// <param name="tableDef"></param>
+		/// <param name="tableInfo"></param>
 		/// <param name="dataSectorSize"></param>
 		/// <param name="indexSectorSize"></param>
 		/// <remarks>
@@ -176,13 +176,13 @@ namespace Deveel.Data {
 		/// <exception cref="StatementException">
 		/// If the table already exists.
 		/// </exception>
-		public void CreateTable(DataTableDef tableDef, int dataSectorSize, int indexSectorSize) {
-			TableName table_name = tableDef.TableName;
+		public void CreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
+			TableName table_name = tableInfo.TableName;
 			MasterTableDataSource master = FindVisibleTable(table_name, false);
 			if (master != null)
 				throw new StatementException("Table '" + table_name + "' already exists.");
 
-			tableDef.SetImmutable();
+			tableInfo.SetImmutable();
 
 			if (dataSectorSize < 27) {
 				dataSectorSize = 27;
@@ -191,7 +191,7 @@ namespace Deveel.Data {
 			}
 
 			// Create the new master table and add to list of visible tables.
-			master = conglomerate.CreateMasterTable(tableDef, dataSectorSize, indexSectorSize);
+			master = conglomerate.CreateMasterTable(tableInfo, dataSectorSize, indexSectorSize);
 			// Add this table (and an index set) for this table.
 			AddVisibleTable(master, master.CreateIndexSet());
 
@@ -214,28 +214,28 @@ namespace Deveel.Data {
 		/// Creates a new table within this transaction with the given sector 
 		/// size.
 		/// </summary>
-		/// <param name="tableDef"></param>
+		/// <param name="tableInfo"></param>
 		/// <remarks>
 		/// This should only be called under an exclusive lock on the connection.
 		/// </remarks>
 		/// <exception cref="StatementException">
 		/// If the table already exists.
 		/// </exception>
-		public void CreateTable(DataTableDef tableDef) {
+		public void CreateTable(DataTableInfo tableInfo) {
 			// data sector size defaults to 251
 			// index sector size defaults to 1024
-			CreateTable(tableDef, 251, 1024);
+			CreateTable(tableInfo, 251, 1024);
 		}
 
-		public void CreateTemporaryTable(DataTableDef tableDef) {
-			TableName tableName = tableDef.TableName;
+		public void CreateTemporaryTable(DataTableInfo tableInfo) {
+			TableName tableName = tableInfo.TableName;
 			MasterTableDataSource master = FindVisibleTable(tableName, false);
 			if (master != null)
 				throw new StatementException("Table '" + tableName + "' already exists.");
 
-			tableDef.SetImmutable();
+			tableInfo.SetImmutable();
 
-			MasterTableDataSource temp = conglomerate.CreateTemporaryDataSource(tableDef);
+			MasterTableDataSource temp = conglomerate.CreateTemporaryDataSource(tableInfo);
 			AddVisibleTable(temp, temp.CreateIndexSet());
 
 			SequenceManager.AddNativeTableGenerator(this, tableName);
@@ -248,7 +248,7 @@ namespace Deveel.Data {
 		/// Given a DataTableInfo, if the table exists then it is updated otherwise
 		/// if it doesn't exist then it is created.
 		/// </summary>
-		/// <param name="tableDef"></param>
+		/// <param name="tableInfo"></param>
 		/// <param name="dataSectorSize"></param>
 		/// <param name="indexSectorSize"></param>
 		/// <remarks>
@@ -258,11 +258,11 @@ namespace Deveel.Data {
 		/// and <paramref name="indexSectorSize"/> values are unapplicable, 
 		/// then the value will be ignored.
 		/// </remarks>
-		public void AlterCreateTable(DataTableDef tableDef, int dataSectorSize, int indexSectorSize) {
-			if (!TableExists(tableDef.TableName)) {
-				CreateTable(tableDef, dataSectorSize, indexSectorSize);
+		public void AlterCreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
+			if (!TableExists(tableInfo.TableName)) {
+				CreateTable(tableInfo, dataSectorSize, indexSectorSize);
 			} else {
-				AlterTable(tableDef.TableName, tableDef, dataSectorSize, indexSectorSize);
+				AlterTable(tableInfo.TableName, tableInfo, dataSectorSize, indexSectorSize);
 			}
 		}
 
@@ -320,8 +320,8 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		internal void CopyTable(MasterTableDataSource srcMasterTable, IIndexSet indexSet) {
-			DataTableDef tableDef = srcMasterTable.TableInfo;
-			TableName tableName = tableDef.TableName;
+			DataTableInfo tableInfo = srcMasterTable.TableInfo;
+			TableName tableName = tableInfo.TableName;
 			MasterTableDataSource master = FindVisibleTable(tableName, false);
 			if (master != null)
 				throw new StatementException("Unable to copy.  Table '" + tableName + "' already exists.");
@@ -351,7 +351,7 @@ namespace Deveel.Data {
 		/// the copied table a new data sector size.
 		/// </summary>
 		/// <param name="tableName"></param>
-		/// <param name="tableDef"></param>
+		/// <param name="tableInfo"></param>
 		/// <param name="dataSectorSize"></param>
 		/// <param name="indexSectorSize"></param>
 		/// <remarks>
@@ -365,8 +365,8 @@ namespace Deveel.Data {
 		/// <exception cref="StatementException">
 		/// If the table does not exist.
 		/// </exception>
-		public void AlterTable(TableName tableName, DataTableDef tableDef, int dataSectorSize, int indexSectorSize) {
-			tableDef.SetImmutable();
+		public void AlterTable(TableName tableName, DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
+			tableInfo.SetImmutable();
 
 			// The current schema context is the schema of the table name
 			string currentSchema = tableName.Schema;
@@ -379,7 +379,7 @@ namespace Deveel.Data {
 			IMutableTableDataSource cTable = GetTable(tableName);
 			DropTable(tableName);
 			// And create the table table
-			CreateTable(tableDef);
+			CreateTable(tableInfo);
 			IMutableTableDataSource alteredTable = GetTable(tableName);
 
 			// Get the new MasterTableDataSource object
@@ -388,10 +388,10 @@ namespace Deveel.Data {
 			newMasterTable.SetUniqueID(nextId);
 
 			// Work out which columns we have to copy to where
-			int[] colMap = new int[tableDef.ColumnCount];
-			DataTableDef origTd = cTable.TableInfo;
+			int[] colMap = new int[tableInfo.ColumnCount];
+			DataTableInfo origTd = cTable.TableInfo;
 			for (int i = 0; i < colMap.Length; ++i) {
-				string colName = tableDef[i].Name;
+				string colName = tableInfo[i].Name;
 				colMap[i] = origTd.FindColumnName(colName);
 			}
 
@@ -453,36 +453,23 @@ namespace Deveel.Data {
 		/// specified table definition.
 		/// </summary>
 		/// <param name="tableName"></param>
-		/// <param name="tableDef"></param>
+		/// <param name="tableInfo"></param>
 		/// <remarks>
 		/// This should only be called under an exclusive lock on the connection.
 		/// </remarks>
 		/// <exception cref="StatementException">
 		/// If the table does not exist.
 		/// </exception>
-		public void AlterTable(TableName tableName, DataTableDef tableDef) {
-
+		public void AlterTable(TableName tableName, DataTableInfo tableInfo) {
 			// Make sure we remember the current sector size of the altered table so
 			// we can create the new table with the original size.
 			try {
-
-				int current_data_sector_size;
-				MasterTableDataSource master = FindVisibleTable(tableName, false);
-				/*
-				TODO:
-				if (master is V1MasterTableDataSource) {
-					current_data_sector_size = ((V1MasterTableDataSource)master).rawDataSectorSize();
-				} else {
-				*/
-				current_data_sector_size = -1;
-				//}
 				// HACK: We use index sector size of 2043 for all altered tables
-				AlterTable(tableName, tableDef, current_data_sector_size, 2043);
+				AlterTable(tableName, tableInfo, -1, 2043);
 
 			} catch (IOException e) {
 				throw new Exception("IO Error: " + e.Message);
 			}
-
 		}
 
 		/// <summary>

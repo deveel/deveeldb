@@ -162,10 +162,10 @@ namespace Deveel.Data {
 				// columns are not constrained as 'NOT NULL'
 				if (deleteRule == ConstraintAction.SetNull ||
 					updateRule == ConstraintAction.SetNull) {
-					DataTableDef tableDef = GetDataTableDef(table);
+					DataTableInfo tableInfo = GetTableInfo(table);
 					for (int i = 0; i < cols.Length; ++i) {
-						DataTableColumnDef column_def = tableDef[tableDef.FindColumnName(cols[i])];
-						if (column_def.IsNotNull) {
+						DataTableColumnInfo columnInfo = tableInfo[tableInfo.FindColumnName(cols[i])];
+						if (columnInfo.IsNotNull) {
 							throw new StatementException("Foreign key reference '" + table +
 								   "' -> '" + refTable + "' update or delete triggered " +
 								   "action is SET NULL for columns that are constrained as " +

@@ -178,10 +178,7 @@ namespace Deveel.Data {
 						transaction.AddInternalTableInfo(ConnectionTriggerManager.CreateInternalTableInfo(transaction));
 
 						// Notify any table backed caches that this transaction has started.
-						int sz = tableBackedCacheList.Count;
-						for (int i = 0; i < sz; ++i) {
-							TableBackedCache cache =
-								(TableBackedCache) tableBackedCacheList[i];
+						foreach (TableBackedCache cache in tableBackedCacheList) {
 							cache.OnTransactionStarted();
 						}
 					}
@@ -477,17 +474,17 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public ITableQueryInfo GetTableQueryDef(TableName tableName, TableName aliasedAs) {
-			// Produce the data table def for this database object.
-			DataTableDef dtf = GetDataTableDef(tableName);
-			// If the table is aliased, set a new DataTableDef with the given name
+		public ITableQueryInfo GetTableQueryInfo(TableName tableName, TableName aliasedAs) {
+			// Produce the data table info for this database object.
+			DataTableInfo tableInfo = GetTableInfo(tableName);
+			// If the table is aliased, set a new DataTableInfo with the given name
 			if (aliasedAs != null) {
-				dtf = new DataTableDef(dtf);
-				dtf.TableName = aliasedAs;
-				dtf.SetImmutable();
+				tableInfo = tableInfo.Clone();
+				tableInfo.TableName = aliasedAs;
+				tableInfo.SetImmutable();
 			}
-			DataTableDef data_table_def = dtf;
-			return new TableQueryInfo(this, data_table_def, tableName, aliasedAs);
+			
+			return new TableQueryInfo(this, tableInfo, tableName, aliasedAs);
 
 		}
 
@@ -552,10 +549,7 @@ namespace Deveel.Data {
 			triggerEventList.Clear();
 
 			// Notify any table backed caches that this transaction has finished.
-			int sz = tableBackedCacheList.Count;
-			for (int i = 0; i < sz; ++i) {
-				TableBackedCache cache =
-									 (TableBackedCache)tableBackedCacheList[i];
+			foreach (TableBackedCache cache in tableBackedCacheList) {
 				cache.OnTransactionFinished();
 			}
 		}
@@ -665,10 +659,7 @@ namespace Deveel.Data {
 			} finally {
 				if (tableBackedCacheList != null) {
 					try {
-						int sz = tableBackedCacheList.Count;
-						for (int i = 0; i < sz; ++i) {
-							TableBackedCache cache =
-										   (TableBackedCache)tableBackedCacheList[i];
+						foreach (TableBackedCache cache in tableBackedCacheList) {
 							cache.DetatchFrom(conglomerate);
 						}
 						tableBackedCacheList = null;
@@ -684,34 +675,34 @@ namespace Deveel.Data {
 
 
 		/// <summary>
-		/// A list of DataTableDef system table definitions for tables internal to
+		/// A list of DataTableInfo system table definitions for tables internal to
 		/// the database connection.
 		/// </summary>
-		private readonly static DataTableDef[] InternalDefList;
+		private readonly static DataTableInfo[] InternalInfoList;
 
 		static DatabaseConnection() {
-			InternalDefList = new DataTableDef[5];
-			InternalDefList[0] = GTStatisticsDataSource.DEF_DATA_TABLE_DEF;
-			InternalDefList[1] = GTConnectionInfoDataSource.DEF_DATA_TABLE_DEF;
-			InternalDefList[2] = GTCurrentConnectionsDataSource.DEF_DATA_TABLE_DEF;
-			InternalDefList[3] = GTSQLTypeInfoDataSource.DEF_DATA_TABLE_DEF;
-			InternalDefList[4] = GTPrivMapDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList = new DataTableInfo[5];
+			InternalInfoList[0] = GTStatisticsDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList[1] = GTConnectionInfoDataSource.DataTableInfo;
+			InternalInfoList[2] = GTCurrentConnectionsDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList[3] = GTSQLTypeInfoDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList[4] = GTPrivMapDataSource.DEF_DATA_TABLE_DEF;
 		}
 
 		private class TableQueryInfo : ITableQueryInfo {
 			private readonly DatabaseConnection conn;
-			private readonly DataTableDef tableInfo;
+			private readonly DataTableInfo tableInfo;
 			private readonly TableName tableName;
 			private readonly TableName aliasedAs;
 
-			public TableQueryInfo(DatabaseConnection conn, DataTableDef tableInfo, TableName tableName, TableName aliasedAs) {
+			public TableQueryInfo(DatabaseConnection conn, DataTableInfo tableInfo, TableName tableName, TableName aliasedAs) {
 				this.conn = conn;
 				this.tableInfo = tableInfo;
 				this.aliasedAs = aliasedAs;
 				this.tableName = tableName;
 			}
 
-			public DataTableDef TableInfo {
+			public DataTableInfo TableInfo {
 				get { return tableInfo; }
 			}
 
@@ -728,7 +719,7 @@ namespace Deveel.Data {
 			private readonly DatabaseConnection conn;
 
 			public ConnectionInternalTableInfo(DatabaseConnection conn)
-				: base("SYSTEM TABLE", InternalDefList) {
+				: base("SYSTEM TABLE", InternalInfoList) {
 				this.conn = conn;
 			}
 

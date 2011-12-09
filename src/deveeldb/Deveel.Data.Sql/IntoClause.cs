@@ -101,12 +101,12 @@ namespace Deveel.Data.Sql {
 												"table is different.");
 
 				for (int i = 0; i < colCount; i++) {
-					DataTableColumnDef srcColumnDef = table.TableInfo[i];
-					DataTableColumnDef dstColumnDef = dest_table.TableInfo[i];
+					DataTableColumnInfo srcColumnInfo = table.TableInfo[i];
+					DataTableColumnInfo dstColumnInfo = dest_table.TableInfo[i];
 
-					if (srcColumnDef.TType != dstColumnDef.TType)
-						throw new DatabaseException("The column " + dstColumnDef.Name + " in the destination table has a different " +
-													"type from the source column " + srcColumnDef.Name);
+					if (srcColumnInfo.TType != dstColumnInfo.TType)
+						throw new DatabaseException("The column " + dstColumnInfo.Name + " in the destination table has a different " +
+													"type from the source column " + srcColumnInfo.Name);
 				}
 
 				int rowCount = table.RowCount;
@@ -134,15 +134,15 @@ namespace Deveel.Data.Sql {
 					if (variable == null)
 						throw new DatabaseException("The destination variable " + varRef.Variable + " was not found.");
 
-					DataTableColumnDef columnDef = table.TableInfo[i];
+					DataTableColumnInfo columnInfo = table.TableInfo[i];
 					TObject cell = table.GetCellContents(i, 0);
 
-					if (columnDef.TType.SQLType != variable.Type.SQLType) {
+					if (columnInfo.TType.SQLType != variable.Type.SQLType) {
 						try {
 							cell = cell.CastTo(variable.Type);
 						} catch {
 							throw new DatabaseException("The destination variable " + variable.Name + " has a different type than " +
-							"the source column " + columnDef.Name + " and it's not possible to convert it.");
+							"the source column " + columnInfo.Name + " and it's not possible to convert it.");
 						}
 					}
 

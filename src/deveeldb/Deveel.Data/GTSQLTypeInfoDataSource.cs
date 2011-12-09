@@ -103,7 +103,7 @@ namespace Deveel.Data {
 
 		// ---------- Implemented from GTDataSource ----------
 
-		public override DataTableDef TableInfo {
+		public override DataTableInfo TableInfo {
 			get { return DEF_DATA_TABLE_DEF; }
 		}
 
@@ -167,39 +167,39 @@ namespace Deveel.Data {
 		// ---------- Static ----------
 
 		/// <summary>
-		/// The data table def that describes this table of data source.
+		/// The data table info that describes this table of data source.
 		/// </summary>
-		internal static readonly DataTableDef DEF_DATA_TABLE_DEF;
+		internal static readonly DataTableInfo DEF_DATA_TABLE_DEF;
 
 		static GTSQLTypeInfoDataSource() {
 
-			DataTableDef def = new DataTableDef();
-			def.TableName = new TableName(Database.SystemSchema, "sUSRSQLTypeInfo");
+			DataTableInfo info = new DataTableInfo();
+			info.TableName = new TableName(Database.SystemSchema, "sql_types");
 
 			// Add column definitions
-			def.AddColumn(GetStringColumn("TYPE_NAME"));
-			def.AddColumn(GetNumericColumn("DATA_TYPE"));
-			def.AddColumn(GetNumericColumn("PRECISION"));
-			def.AddColumn(GetStringColumn("LITERAL_PREFIX"));
-			def.AddColumn(GetStringColumn("LITERAL_SUFFIX"));
-			def.AddColumn(GetStringColumn("CREATE_PARAMS"));
-			def.AddColumn(GetNumericColumn("NULLABLE"));
-			def.AddColumn(GetBooleanColumn("CASE_SENSITIVE"));
-			def.AddColumn(GetNumericColumn("SEARCHABLE"));
-			def.AddColumn(GetBooleanColumn("UNSIGNED_ATTRIBUTE"));
-			def.AddColumn(GetBooleanColumn("FIXED_PREC_SCALE"));
-			def.AddColumn(GetBooleanColumn("AUTO_INCREMENT"));
-			def.AddColumn(GetStringColumn("LOCAL_TYPE_NAME"));
-			def.AddColumn(GetNumericColumn("MINIMUM_SCALE"));
-			def.AddColumn(GetNumericColumn("MAXIMUM_SCALE"));
-			def.AddColumn(GetStringColumn("SQL_DATA_TYPE"));
-			def.AddColumn(GetStringColumn("SQL_DATETIME_SUB"));
-			def.AddColumn(GetNumericColumn("NUM_PREC_RADIX"));
+			info.AddColumn(GetStringColumn("TYPE_NAME"));
+			info.AddColumn(GetNumericColumn("DATA_TYPE"));
+			info.AddColumn(GetNumericColumn("PRECISION"));
+			info.AddColumn(GetStringColumn("LITERAL_PREFIX"));
+			info.AddColumn(GetStringColumn("LITERAL_SUFFIX"));
+			info.AddColumn(GetStringColumn("CREATE_PARAMS"));
+			info.AddColumn(GetNumericColumn("NULLABLE"));
+			info.AddColumn(GetBooleanColumn("CASE_SENSITIVE"));
+			info.AddColumn(GetNumericColumn("SEARCHABLE"));
+			info.AddColumn(GetBooleanColumn("UNSIGNED_ATTRIBUTE"));
+			info.AddColumn(GetBooleanColumn("FIXED_PREC_SCALE"));
+			info.AddColumn(GetBooleanColumn("AUTO_INCREMENT"));
+			info.AddColumn(GetStringColumn("LOCAL_TYPE_NAME"));
+			info.AddColumn(GetNumericColumn("MINIMUM_SCALE"));
+			info.AddColumn(GetNumericColumn("MAXIMUM_SCALE"));
+			info.AddColumn(GetStringColumn("SQL_DATA_TYPE"));
+			info.AddColumn(GetStringColumn("SQL_DATETIME_SUB"));
+			info.AddColumn(GetNumericColumn("NUM_PREC_RADIX"));
 
 			// Set to immutable
-			def.SetImmutable();
+			info.SetImmutable();
 
-			DEF_DATA_TABLE_DEF = def;
+			DEF_DATA_TABLE_DEF = info;
 		}
 	}
 }

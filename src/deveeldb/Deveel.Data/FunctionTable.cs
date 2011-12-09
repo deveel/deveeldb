@@ -82,14 +82,14 @@ namespace Deveel.Data {
 		/// The DataTableInfo object that describes the columns in this function
 		/// table.
 		/// </summary>
-		private readonly DataTableDef fun_table_def;
+		private readonly DataTableInfo funTableInfo;
 
 		/// <summary>
 		/// A unique id given to this FunctionTable when it is created.  No two
 		/// FunctionTable objects may have the same number.  This number is between
 		/// 0 and 260 million.
 		/// </summary>
-		private readonly int unique_id;
+		private readonly int uniqueId;
 
 		/// <summary>
 		/// The group row links.
@@ -97,22 +97,22 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// Iterate through this to find all the rows in a group until bit 31 set.
 		/// </remarks>
-		private IList<int> group_links;
+		private IList<int> groupLinks;
 
 		/// <summary>
 		/// The lookup mapping for row->group_index used for grouping.
 		/// </summary>
-		private IList<int> group_lookup;
+		private IList<int> groupLookup;
 
 		/// <summary>
 		/// The TableGroupResolver for the table.
 		/// </summary>
-		private TableGroupResolver group_resolver;
+		private TableGroupResolver groupResolver;
 
 		/// <summary>
 		/// Whether the whole table is a group.
 		/// </summary>
-		private bool whole_table_as_group;
+		private bool wholeTableAsGroup;
 
 		/// <summary>
 		/// If the whole table is a group, this is the grouping rows.
@@ -120,18 +120,18 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This is obtained via <see cref="Table.SelectAll()"/> of the reference table.
 		/// </remarks>
-		private IList<int> whole_table_group;
+		private IList<int> wholeTableGroup;
 
 		/// <summary>
 		/// The total size of the whole table group size.
 		/// </summary>
-		private int whole_table_group_size;
+		private int wholeTableGroupSize;
 
 		/// <summary>
 		/// If the whole table is a simple enumeration (row index is 0 to 
 		/// <see cref="Table.RowCount"/>) then this is true.
 		/// </summary>
-		private bool whole_table_is_simple_enum;
+		private bool wholeTableIsSimpleEnum;
 
 
 		///<summary>
@@ -145,10 +145,10 @@ namespace Deveel.Data {
 			: base(context.Database) {
 			// Make sure we are synchronized over the class.
 			lock (typeof (FunctionTable)) {
-				unique_id = UniqueKeySeq;
+				uniqueId = UniqueKeySeq;
 				++UniqueKeySeq;
 			}
-			unique_id = (unique_id & 0x0FFFFFFF) | 0x010000000;
+			uniqueId = (uniqueId & 0x0FFFFFFF) | 0x010000000;
 
 			this.context = context;
 
@@ -156,14 +156,14 @@ namespace Deveel.Data {
 			cr_resolver = cross_ref_table.GetVariableResolver();
 			cr_resolver.SetId = 0;
 
-			// Create a DataTableDef object for this function table.
-			fun_table_def = new DataTableDef();
-			fun_table_def.TableName = FunctionTableName;
+			// Create a DataTableInfo object for this function table.
+			funTableInfo = new DataTableInfo();
+			funTableInfo.TableName = FunctionTableName;
 
 			exp_list = new Expression[in_exp_list.Length];
 			exp_info = new byte[in_exp_list.Length];
 
-			// Create a new DataTableColumnDef for each expression, and work out if the
+			// Create a new DataTableColumnInfo for each expression, and work out if the
 			// expression is simple or not.
 			for (int i = 0; i < in_exp_list.Length; ++i) {
 				Expression expr = in_exp_list[i];
@@ -179,15 +179,15 @@ namespace Deveel.Data {
 					exp_list[i] = expr;
 					exp_info[i] = 0;
 				}
-				// Make the column def
-				DataTableColumnDef column = new DataTableColumnDef();
+				// Make the column info
+				DataTableColumnInfo column = new DataTableColumnInfo();
 				column.Name = col_names[i];
 				column.SetFromTType(expr.ReturnTType(cr_resolver, context));
-				fun_table_def.AddVirtualColumn(column);
+				funTableInfo.AddVirtualColumn(column);
 			}
 
-			// Make sure the table def isn't changed from this point on.
-			fun_table_def.SetImmutable();
+			// Make sure the table info isn't changed from this point on.
+			funTableInfo.SetImmutable();
 
 			// Function tables are the size of the referring table.
 			row_count = cross_ref_table.RowCount;
@@ -215,8 +215,8 @@ namespace Deveel.Data {
 			get { return cross_ref_table; }
 		}
 
-		public override DataTableDef TableInfo {
-			get { return fun_table_def; }
+		public override DataTableInfo TableInfo {
+			get { return funTableInfo; }
 		}
 
 		public override bool HasRootsLocked {
@@ -237,13 +237,13 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		private TObject CalcValue(int column, int row, DataCellCache cache) {
 			cr_resolver.SetId = row;
-			if (group_resolver != null) {
-				group_resolver.SetUpGroupForRow(row);
+			if (groupResolver != null) {
+				groupResolver.SetUpGroupForRow(row);
 			}
 			Expression expr = exp_list[column];
-			TObject cell = expr.Evaluate(group_resolver, cr_resolver, context);
+			TObject cell = expr.Evaluate(groupResolver, cr_resolver, context);
 			if (cache != null) {
-				cache.Set(unique_id, row, column, cell);
+				cache.Set(uniqueId, row, column, cell);
 			}
 			return cell;
 		}
@@ -254,23 +254,23 @@ namespace Deveel.Data {
 		/// Sets the whole reference table as a single group.
 		///</summary>
 		public void SetWholeTableAsGroup() {
-			whole_table_as_group = true;
+			wholeTableAsGroup = true;
 
-			whole_table_group_size = ReferenceTable.RowCount;
+			wholeTableGroupSize = ReferenceTable.RowCount;
 
 			// Set up 'whole_table_group' to the list of all rows in the reference
 			// table.
 			IRowEnumerator en = ReferenceTable.GetRowEnumerator();
-			whole_table_is_simple_enum = en is SimpleRowEnumerator;
-			if (!whole_table_is_simple_enum) {
-				whole_table_group = new List<int>(ReferenceTable.RowCount);
+			wholeTableIsSimpleEnum = en is SimpleRowEnumerator;
+			if (!wholeTableIsSimpleEnum) {
+				wholeTableGroup = new List<int>(ReferenceTable.RowCount);
 				while (en.MoveNext()) {
-					whole_table_group.Add(en.RowIndex);
+					wholeTableGroup.Add(en.RowIndex);
 				}
 			}
 
 			// Set up a group resolver for this method.
-			group_resolver = new TableGroupResolver(this);
+			groupResolver = new TableGroupResolver(this);
 		}
 
 		/// <summary>
@@ -307,8 +307,8 @@ namespace Deveel.Data {
 			// contains consequtive links to each row in the group until -1 is reached
 			// indicating the end of the group;
 
-			group_lookup = new List<int>(r_count);
-			group_links = new List<int>(r_count);
+			groupLookup = new List<int>(r_count);
+			groupLinks = new List<int>(r_count);
 			int current_group = 0;
 			int previous_row = -1;
 			for (int i = 0; i < r_count; ++i) {
@@ -326,22 +326,22 @@ namespace Deveel.Data {
 
 					if (!equal) {
 						// If end of group, set bit 15
-						group_links.Add(previous_row | 0x040000000);
-						current_group = group_links.Count;
+						groupLinks.Add(previous_row | 0x040000000);
+						current_group = groupLinks.Count;
 					} else {
-						group_links.Add(previous_row);
+						groupLinks.Add(previous_row);
 					}
 				}
 
-				group_lookup.Insert(row_index, current_group);
+				groupLookup.Insert(row_index, current_group);
 
 				previous_row = row_index;
 			}
 			// Add the final row.
-			group_links.Add(previous_row | 0x040000000);
+			groupLinks.Add(previous_row | 0x040000000);
 
 			// Set up a group resolver for this method.
-			group_resolver = new TableGroupResolver(this);
+			groupResolver = new TableGroupResolver(this);
 		}
 
 
@@ -353,7 +353,7 @@ namespace Deveel.Data {
 		///<param name="row_index"></param>
 		///<returns></returns>
 		public int GetRowGroup(int row_index) {
-			return group_lookup[row_index];
+			return groupLookup[row_index];
 		}
 
 		///<summary>
@@ -363,11 +363,11 @@ namespace Deveel.Data {
 		///<returns></returns>
 		public int GetGroupSize(int group_number) {
 			int group_size = 1;
-			int i = group_links[group_number];
+			int i = groupLinks[group_number];
 			while ((i & 0x040000000) == 0) {
 				++group_size;
 				++group_number;
-				i = group_links[group_number];
+				i = groupLinks[group_number];
 			}
 			return group_size;
 		}
@@ -380,11 +380,11 @@ namespace Deveel.Data {
 		///<returns></returns>
 		public IList<int> GetGroupRows(int group_number) {
 			List<int> ivec = new List<int>();
-			int i = group_links[group_number];
+			int i = groupLinks[group_number];
 			while ((i & 0x040000000) == 0) {
 				ivec.Add(i);
 				++group_number;
-				i = group_links[group_number];
+				i = groupLinks[group_number];
 			}
 			ivec.Add(i & 0x03FFFFFFF);
 			return ivec;
@@ -410,7 +410,7 @@ namespace Deveel.Data {
 
 			IList<int> row_list;
 
-			if (whole_table_as_group) {
+			if (wholeTableAsGroup) {
 				// Whole table is group, so take top entry of table.
 
 				row_list = new List<int>(1);
@@ -426,7 +426,7 @@ namespace Deveel.Data {
 				}
 			} else if (table.RowCount == 0) {
 				row_list = new List<int>(0);
-			} else if (group_links != null) {
+			} else if (groupLinks != null) {
 				// If we are grouping, reduce down to only include one row from each
 				// group.
 				if (max_column == null) {
@@ -484,10 +484,10 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		private IList<int> GetTopFromEachGroup() {
 			List<int> extract_rows = new List<int>();
-			int size = group_links.Count;
+			int size = groupLinks.Count;
 			bool take = true;
 			for (int i = 0; i < size; ++i) {
-				int r = group_links[i];
+				int r = groupLinks[i];
 				if (take) {
 					extract_rows.Add(r & 0x03FFFFFFF);
 				}
@@ -512,14 +512,14 @@ namespace Deveel.Data {
 			Table ref_tab = ReferenceTable;
 
 			List<int> extract_rows = new List<int>();
-			int size = group_links.Count;
+			int size = groupLinks.Count;
 
 			int to_take_in_group = -1;
 			TObject max = null;
 
 			bool take = true;
 			for (int i = 0; i < size; ++i) {
-				int r = group_links[i];
+				int r = groupLinks[i];
 
 				int act_r_index = r & 0x03FFFFFFF;
 				TObject cell = ref_tab.GetCellContents(col_num, act_r_index);
@@ -544,7 +544,7 @@ namespace Deveel.Data {
 			DataCellCache cache = Database.DataCellCache;
 			// Is the column worth caching, and is caching enabled?
 			if (exp_info[column] == 0 && cache != null) {
-				TObject cell = cache.Get(unique_id, row, column);
+				TObject cell = cache.Get(uniqueId, row, column);
 				if (cell != null) {
 					// In the cache so return the cell.
 					return cell;
@@ -702,7 +702,7 @@ namespace Deveel.Data {
 			public int Count {
 				get {
 					if (group_number == -2) {
-						return table.whole_table_group_size;
+						return table.wholeTableGroupSize;
 						//        return whole_table_group.size();
 						//        // ISSUE: Unsafe call if reference table is a DataTable.
 						//        return getReferenceTable().getRowCount();
@@ -760,7 +760,7 @@ namespace Deveel.Data {
 			private void EnsureGroup() {
 				if (group == null) {
 					if (group_number == -2) {
-						group = table.whole_table_group;
+						group = table.wholeTableGroup;
 						//          // ISSUE: Unsafe calls if reference table is a DataTable.
 						//          group = new IntegerVector(getReferenceTable().getRowCount());
 						//          IRowEnumerator renum = getReferenceTable().GetRowEnumerator();
@@ -779,7 +779,7 @@ namespace Deveel.Data {
 			/// </summary>
 			/// <param name="row_index"></param>
 			public void SetUpGroupForRow(int row_index) {
-				if (table.whole_table_as_group) {
+				if (table.wholeTableAsGroup) {
 					if (group_number != -2) {
 						group_number = -2;
 						group = null;

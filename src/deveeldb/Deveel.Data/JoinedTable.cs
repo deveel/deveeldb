@@ -59,7 +59,7 @@ namespace Deveel.Data {
 		/// The <see cref="TableInfo"/> object that describes the columns and name 
 		/// of this table.
 		/// </summary>
-		private DataTableDef vt_table_def;
+		private DataTableInfo vtTableInfo;
 
 		/// <summary>
 		/// Incremented when the roots are locked.
@@ -105,7 +105,7 @@ namespace Deveel.Data {
 			int col_count = ColumnCount;
 			column_scheme = new SelectableScheme[col_count];
 
-			vt_table_def = new DataTableDef();
+			vtTableInfo = new DataTableInfo();
 
 			// Generate look up tables for column_table and column_filter information
 
@@ -115,7 +115,7 @@ namespace Deveel.Data {
 			for (int i = 0; i < reference_list.Length; ++i) {
 
 				Table cur_table = reference_list[i];
-				DataTableDef cur_table_def = cur_table.TableInfo;
+				DataTableInfo curTableInfo = cur_table.TableInfo;
 				int ref_col_count = cur_table.ColumnCount;
 
 				// For each column
@@ -124,18 +124,17 @@ namespace Deveel.Data {
 					column_table[index] = i;
 					++index;
 
-					// Add this column to the data table def of this table.
-					vt_table_def.AddVirtualColumn(
-									 new DataTableColumnDef(cur_table_def[n]));
+					// Add this column to the data table info of this table.
+					vtTableInfo.AddVirtualColumn(curTableInfo[n].Clone());
 				}
 
 			}
 
-			// Final setup the DataTableDef for this virtual table
+			// Final setup the DataTableInfo for this virtual table
 
-			vt_table_def.TableName = new TableName(null, "#VIRTUAL TABLE#");
+			vtTableInfo.TableName = new TableName(null, "#VIRTUAL TABLE#");
 
-			vt_table_def.SetImmutable();
+			vtTableInfo.SetImmutable();
 
 		}
 
@@ -232,7 +231,7 @@ namespace Deveel.Data {
 		/// <see cref="VirtualTable"/> row domain.
 		/// </summary>
 		/// <param name="column"></param>
-		/// <param name="original_column"></param>
+		/// <param name="originalColumn"></param>
 		/// <param name="table"></param>
 		/// <remarks>
 		/// This searches down through the tables ancestors until it comes across a table 
@@ -240,7 +239,7 @@ namespace Deveel.Data {
 		/// In most cases, this will be the root <see cref="DataTable"/>.
 		/// </remarks>
 		/// <returns></returns>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column, Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 
 			// First check if the given SelectableScheme is in the column_scheme array
 			SelectableScheme scheme = column_scheme[column];
@@ -248,7 +247,7 @@ namespace Deveel.Data {
 				if (table == this) {
 					return scheme;
 				} else {
-					return scheme.GetSubsetScheme(table, original_column);
+					return scheme.GetSubsetScheme(table, originalColumn);
 				}
 			}
 
@@ -260,11 +259,11 @@ namespace Deveel.Data {
 			if (sorted_against_column != -1 &&
 				sorted_against_column == column) {
 				InsertSearch isop = new InsertSearch(this, column, CalculateRowReferenceList());
-				isop.RECORD_UID = false;
+				isop.RecordUid = false;
 				ss = isop;
 				column_scheme[column] = ss;
 				if (table != this) {
-					ss = ss.GetSubsetScheme(table, original_column);
+					ss = ss.GetSubsetScheme(table, originalColumn);
 				}
 
 			} else {
@@ -272,7 +271,7 @@ namespace Deveel.Data {
 				// a parent index.
 				Table parent_table = reference_list[column_table[column]];
 				ss = parent_table.GetSelectableSchemeFor(
-										 column_filter[column], original_column, table);
+										 column_filter[column], originalColumn, table);
 				if (table == this) {
 					column_scheme[column] = ss;
 				}
@@ -348,8 +347,8 @@ namespace Deveel.Data {
 		/// the columns in the children in the order set. The name of a virtual table i
 		/// s the concat of all the parent table names. The schema is set to null.
 		/// </remarks>
-		public override DataTableDef TableInfo {
-			get { return vt_table_def; }
+		public override DataTableInfo TableInfo {
+			get { return vtTableInfo; }
 		}
 
 		/// <inheritdoc/>

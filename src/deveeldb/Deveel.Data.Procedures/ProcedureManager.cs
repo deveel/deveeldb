@@ -19,9 +19,6 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-using Deveel.Diagnostics;
-using Deveel.Math;
-
 namespace Deveel.Data.Procedures {
 	///<summary>
 	/// A DatabaseConnection procedure manager.
@@ -810,23 +807,23 @@ namespace Deveel.Data.Procedures {
 				: base(transaction, Database.SysFunction) {
 			}
 
-			private static DataTableDef createDataTableDef(String schema, String name) {
-				// Create the DataTableDef that describes this entry
-				DataTableDef def = new DataTableDef();
-				def.TableName = new TableName(schema, name);
+			private static DataTableInfo CreateTableInfo(String schema, String name) {
+				// Create the DataTableInfo that describes this entry
+				DataTableInfo info = new DataTableInfo();
+				info.TableName = new TableName(schema, name);
 
 				// Add column definitions
-				def.AddColumn(DataTableColumnDef.CreateStringColumn("type"));
-				def.AddColumn(DataTableColumnDef.CreateStringColumn("location"));
-				def.AddColumn(DataTableColumnDef.CreateStringColumn("return_type"));
-				def.AddColumn(DataTableColumnDef.CreateStringColumn("param_args"));
-				def.AddColumn(DataTableColumnDef.CreateStringColumn("owner"));
+				info.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
+				info.AddColumn(DataTableColumnInfo.CreateStringColumn("location"));
+				info.AddColumn(DataTableColumnInfo.CreateStringColumn("return_type"));
+				info.AddColumn(DataTableColumnInfo.CreateStringColumn("param_args"));
+				info.AddColumn(DataTableColumnInfo.CreateStringColumn("owner"));
 
 				// Set to immutable
-				def.SetImmutable();
+				info.SetImmutable();
 
-				// Return the data table def
-				return def;
+				// Return the data table info
+				return info;
 			}
 
 
@@ -834,14 +831,13 @@ namespace Deveel.Data.Procedures {
 				return "FUNCTION";
 			}
 
-			public override DataTableDef GetDataTableDef(int i) {
-				TableName table_name = GetTableName(i);
-				return createDataTableDef(table_name.Schema, table_name.Name);
+			public override DataTableInfo GetTableInfo(int i) {
+				TableName tableName = GetTableName(i);
+				return CreateTableInfo(tableName.Schema, tableName.Name);
 			}
 
 			public override IMutableTableDataSource CreateInternalTable(int index) {
-				IMutableTableDataSource table =
-					transaction.GetTable(Database.SysFunction);
+				IMutableTableDataSource table = transaction.GetTable(Database.SysFunction);
 				IRowEnumerator row_e = table.GetRowEnumerator();
 				int p = 0;
 				int i;
@@ -854,47 +850,46 @@ namespace Deveel.Data.Procedures {
 						++p;
 					}
 				}
-				if (p == index) {
-					String schema = table.GetCellContents(0, row_i).Object.ToString();
-					String name = table.GetCellContents(1, row_i).Object.ToString();
 
-					DataTableDef table_def = createDataTableDef(schema, name);
-					TObject type = table.GetCellContents(2, row_i);
-					TObject location = table.GetCellContents(3, row_i);
-					TObject return_type = table.GetCellContents(4, row_i);
-					TObject param_types = table.GetCellContents(5, row_i);
-					TObject owner = table.GetCellContents(6, row_i);
-
-					// Implementation of IMutableTableDataSource that describes this
-					// procedure.
-					GTDataSourceImpl data_source = new GTDataSourceImpl(transaction.System, table_def);
-					data_source.type = type;
-					data_source.location = location;
-					data_source.return_type = return_type;
-					data_source.param_types = param_types;
-					data_source.owner = owner;
-					return data_source;
-				} else {
+				if (p != index)
 					throw new Exception("Index out of bounds.");
-				}
 
+				string schema = table.GetCellContents(0, row_i).Object.ToString();
+				string name = table.GetCellContents(1, row_i).Object.ToString();
+
+				DataTableInfo tableInfo = CreateTableInfo(schema, name);
+				TObject type = table.GetCellContents(2, row_i);
+				TObject location = table.GetCellContents(3, row_i);
+				TObject returnType = table.GetCellContents(4, row_i);
+				TObject paramTypes = table.GetCellContents(5, row_i);
+				TObject owner = table.GetCellContents(6, row_i);
+
+				// Implementation of IMutableTableDataSource that describes this
+				// procedure.
+				GTDataSourceImpl dataSource = new GTDataSourceImpl(transaction.System, tableInfo);
+				dataSource.type = type;
+				dataSource.location = location;
+				dataSource.return_type = returnType;
+				dataSource.param_types = paramTypes;
+				dataSource.owner = owner;
+				return dataSource;
 			}
 
 			private class GTDataSourceImpl : GTDataSource {
-				private readonly DataTableDef table_def;
+				private readonly DataTableInfo tableInfo;
 				internal TObject type;
 				internal TObject location;
 				internal TObject return_type;
 				internal TObject param_types;
 				internal TObject owner;
 
-				public GTDataSourceImpl(TransactionSystem system, DataTableDef tableDef)
+				public GTDataSourceImpl(TransactionSystem system, DataTableInfo tableInfo)
 					: base(system) {
-					table_def = tableDef;
+					this.tableInfo = tableInfo;
 				}
 
-				public override DataTableDef TableInfo {
-					get { return table_def; }
+				public override DataTableInfo TableInfo {
+					get { return tableInfo; }
 				}
 
 				public override int RowCount {

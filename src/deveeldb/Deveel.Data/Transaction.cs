@@ -627,17 +627,17 @@ namespace Deveel.Data {
 		// ---------- Transaction inner classes ----------
 
 		/// <summary>
-		/// A list of DataTableDef system table definitions for tables internal 
+		/// A list of DataTableInfo system table definitions for tables internal 
 		/// to the transaction.
 		/// </summary>
-		private readonly static DataTableDef[] INTERNAL_DEF_LIST;
+		private readonly static DataTableInfo[] InternalInfoList;
 
 		static Transaction() {
-			INTERNAL_DEF_LIST = new DataTableDef[4];
-			INTERNAL_DEF_LIST[0] = GTTableColumnsDataSource.DEF_DATA_TABLE_DEF;
-			INTERNAL_DEF_LIST[1] = GTTableInfoDataSource.DEF_DATA_TABLE_DEF;
-			INTERNAL_DEF_LIST[2] = GTProductDataSource.DEF_DATA_TABLE_DEF;
-			INTERNAL_DEF_LIST[3] = GTVariablesDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList = new DataTableInfo[4];
+			InternalInfoList[0] = GTTableColumnsDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList[1] = GTTableInfoDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList[2] = GTProductDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList[3] = GTVariablesDataSource.DEF_DATA_TABLE_DEF;
 		}
 
 		/// <summary>
@@ -651,7 +651,7 @@ namespace Deveel.Data {
 			private readonly Transaction transaction;
 
 			public TransactionInternalTables(Transaction transaction)
-				: base("SYSTEM TABLE", INTERNAL_DEF_LIST) {
+				: base("SYSTEM TABLE", InternalInfoList) {
 				this.transaction = transaction;
 			}
 

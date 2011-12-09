@@ -143,15 +143,15 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public override int FindFieldName(VariableName v) {
 			// Check this is the correct table first...
-			TableName table_name = v.TableName;
-			DataTableDef table_def = TableInfo;
-			if (table_name != null && table_name.Equals(TableName)) {
+			TableName tableName = v.TableName;
+			DataTableInfo tableInfo = TableInfo;
+			if (tableName != null && tableName.Equals(TableName)) {
 				// Look for the column name
-				String col_name = v.Name;
+				string colName = v.Name;
 				int size = ColumnCount;
 				for (int i = 0; i < size; ++i) {
-					DataTableColumnDef col = table_def[i];
-					if (col.Name.Equals(col_name)) {
+					DataTableColumnInfo col = tableInfo[i];
+					if (col.Name.Equals(colName)) {
 						return i;
 					}
 				}
@@ -161,14 +161,8 @@ namespace Deveel.Data {
 
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int original_column,
-												Table table) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 			SelectableScheme scheme = GetRootColumnScheme(column);
-
-			//    Console.Out.WriteLine("DefaultDataTable.GetSelectableSchemaFor(" +
-			//                       column + ", " + original_column + ", " + table);
-
-			//    Console.Out.WriteLine(this);
 
 			// If we are getting a scheme for this table, simple return the information
 			// from the column_trees Vector.
@@ -176,7 +170,7 @@ namespace Deveel.Data {
 				return scheme;
 
 			// Otherwise, get the scheme to calculate a subset of the given scheme.
-			return scheme.GetSubsetScheme(table, original_column);
+			return scheme.GetSubsetScheme(table, originalColumn);
 		}
 
 		/// <inheritdoc/>
@@ -187,9 +181,6 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
-#if DEBUG
-			Console.Error.WriteLine("Efficiency Warning in DataTable.ResolveToRawTable.");
-#endif
 			List<int> row_set = new List<int>();
 			IRowEnumerator e = GetRowEnumerator();
 			while (e.MoveNext()) {
@@ -224,7 +215,7 @@ namespace Deveel.Data {
 		/// <param name="row_number"></param>
 		internal void AddRowToColumnSchemes(int row_number) {
 			int col_count = ColumnCount;
-			DataTableDef table_def = TableInfo;
+			DataTableInfo table_def = TableInfo;
 			for (int i = 0; i < col_count; ++i) {
 				if (table_def[i].IsIndexableType) {
 					SelectableScheme ss = GetRootColumnScheme(i);
@@ -244,7 +235,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void removeRowToColumnSchemes(int row_number) {
 			int col_count = ColumnCount;
-			DataTableDef table_def = TableInfo;
+			DataTableInfo table_def = TableInfo;
 			for (int i = 0; i < col_count; ++i) {
 				if (table_def[i].IsIndexableType) {
 					SelectableScheme ss = GetRootColumnScheme(i);

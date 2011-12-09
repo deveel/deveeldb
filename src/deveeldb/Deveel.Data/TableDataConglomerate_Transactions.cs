@@ -46,16 +46,15 @@ namespace Deveel.Data {
 			// Don't let a commit happen while we are looking at this.
 			lock (CommitLock) {
 				long thisCommitId = commitId;
-				StateStore.StateResource[] committedTableList = stateStore.GetVisibleList();
-				for (int i = 0; i < committedTableList.Length; ++i) {
-					thisCommittedTables.Add(GetMasterTable((int)committedTableList[i].table_id));
+				IEnumerable<StateStore.StateResource> committedTableList = stateStore.GetVisibleList();
+				foreach (StateStore.StateResource resource in committedTableList) {
+					thisCommittedTables.Add(GetMasterTable((int)resource.TableId));
 				}
 
 				// Create a set of IIndexSet for all the tables in this transaction.
 				int sz = thisCommittedTables.Count;
 				List<IIndexSet> indexInfo = new List<IIndexSet>(sz);
-				for (int i = 0; i < sz; ++i) {
-					MasterTableDataSource mtable = thisCommittedTables[i];
+				foreach (MasterTableDataSource mtable in thisCommittedTables) {
 					indexInfo.Add(mtable.CreateIndexSet());
 				}
 

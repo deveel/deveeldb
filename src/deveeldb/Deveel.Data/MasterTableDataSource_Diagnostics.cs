@@ -173,7 +173,7 @@ namespace Deveel.Data {
 				}
 			}
 
-			public DataTableDef DataTableDef {
+			public DataTableInfo TableInfo {
 				get { return mtds.TableInfo; }
 			}
 
