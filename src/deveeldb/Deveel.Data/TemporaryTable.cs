@@ -292,9 +292,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		internal static TemporaryTable SingleColumnTable(Database database, String columnName, Type c) {
 			TType ttype = TType.FromType(c);
-			DataTableColumnInfo colInfo = new DataTableColumnInfo();
-			colInfo.Name = columnName;
-			colInfo.SetFromTType(ttype);
+			DataTableColumnInfo colInfo = new DataTableColumnInfo(columnName, ttype);
 			TemporaryTable table = new TemporaryTable(database, "single", new DataTableColumnInfo[] { colInfo });
 
 			//      int type = TypeUtil.ToDbType(c);

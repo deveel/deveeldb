@@ -8,6 +8,13 @@
 		name of the conglomerate
 	* ViewDef.cs: renamed to View
 	* DataTableDef.cs: renamed to DataTableInfo
+	* DataTableColumnDef.cs: renamed to DataTableColumnInfo
+	* TType.cs: 
+		- introduced abstract property DbType
+		- added methods for fast binary serialization/deserialization
+	* DataTableColumnInfo.cs:
+		- removed specific components of the type (eg. size, scale,
+		locale, etc.): now the column type is set through TType
 
 2011-12-07  Antonello Provenzano  <antonello@deveel.com>
 	* MasterTableDataSource.cs:

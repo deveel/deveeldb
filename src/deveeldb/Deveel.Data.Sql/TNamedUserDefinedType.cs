@@ -29,10 +29,12 @@ namespace Deveel.Data.Sql {
 
 		private readonly string typeName;
 
-		#region Overrides of TType
-
 		public string TypeName {
 			get { return typeName; }
+		}
+
+		public override DbType DbType {
+			get { return DbType.String; }
 		}
 
 		public override int Compare(object x, object y) {
@@ -50,7 +52,5 @@ namespace Deveel.Data.Sql {
 		public override Type GetObjectType() {
 			return typeof(string);
 		}
-
-		#endregion
 	}
 }

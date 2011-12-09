@@ -87,9 +87,9 @@ namespace Deveel.Data {
 				if (type is TNumericType)
 					return (type as TNumericType).Size;
 				if (type is TStringType)
-					return (type as TStringType).MaximumSize;
+					return (type as TStringType).Size;
 				if (type is TBinaryType)
-					return (type as TBinaryType).MaximumSize;
+					return (type as TBinaryType).Size;
 				return -1;
 			}
 		}

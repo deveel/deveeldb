@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Math;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// An implementation of <see cref="IMutableTableDataSource"/> that 
@@ -94,7 +92,7 @@ namespace Deveel.Data {
 						case 3:  // sql_type
 							return GetColumnValue(column, (BigNumber)(int)colInfo.SqlType);
 						case 4:  // type_desc
-							return GetColumnValue(column, colInfo.SQLTypeString);
+							return GetColumnValue(column, colInfo.TType.ToSQLString());
 						case 5:  // size
 							return GetColumnValue(column, (BigNumber)colInfo.Size);
 						case 6:  // scale
@@ -102,8 +100,7 @@ namespace Deveel.Data {
 						case 7:  // not_null
 							return GetColumnValue(column, colInfo.IsNotNull);
 						case 8:  // default
-							return GetColumnValue(column,
-											   colInfo.GetDefaultExpressionString());
+							return GetColumnValue(column, colInfo.GetDefaultExpressionString());
 						case 9:  // index_str
 							return GetColumnValue(column, colInfo.IndexScheme);
 						case 10:  // seq_no

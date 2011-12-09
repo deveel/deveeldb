@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Math;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// An implementation of TType for a boolean value.
@@ -30,6 +28,10 @@ namespace Deveel.Data {
 			: base(sql_type) {
 		}
 
+		public override DbType DbType {
+			get { return DbType.Boolean; }
+		}
+
 		/// <inheritdoc/>
 		public override bool IsComparableType(TType type) {
 			return (type is TBooleanType ||
@@ -37,8 +39,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override int Compare(Object ob1, Object ob2) {
-
+		public override int Compare(object ob1, object ob2) {
 			if (ob2 is BigNumber) {
 				BigNumber n2 = (BigNumber)ob2;
 				BigNumber n1 = !(bool)ob1 ?
@@ -46,13 +47,11 @@ namespace Deveel.Data {
 				return n1.CompareTo(n2);
 			}
 
-			if (ob1 == ob2 || ob1.Equals(ob2)) {
+			if (ob1 == ob2 || ob1.Equals(ob2))
 				return 0;
-			} else if ((bool)ob1) {
+			if ((bool) ob1)
 				return 1;
-			} else {
-				return -1;
-			}
+			return -1;
 		}
 
 		/// <inheritdoc/>

@@ -24,11 +24,11 @@ namespace Deveel.Data {
 	/// An implementation of <see cref="TType"/> for a <see cref="String"/>.
 	/// </summary>
 	[Serializable]
-	public sealed class TStringType : TType {
+	public sealed class TStringType : TType, ISizeableType {
 		/// <summary>
 		/// The maximum allowed size for the string.
 		/// </summary>
-		private readonly int max_size;
+		private int maxSize;
 
 		/// <summary>
 		/// The locale of the string.
@@ -54,15 +54,15 @@ namespace Deveel.Data {
 		/// maximum size, and the <see cref="CultureInfo">locale</see> string of 
 		/// the type.
 		/// </summary>
-		/// <param name="sql_type">The string <see cref="SqlType"/> of the type.</param>
-		/// <param name="max_size">The maximum size of the string value.</param>
+		/// <param name="sqlType">The string <see cref="SqlType"/> of the type.</param>
+		/// <param name="maxSize">The maximum size of the string value.</param>
 		/// <param name="locale">The <see cref="CultureInfo">locale</see> of the string 
 		/// type used to collate the strings.</param>
 		/// <param name="strength"></param>
 		/// <param name="decomposition"></param>
-		public TStringType(SqlType sql_type, int max_size, CultureInfo locale, CollationStrength strength, CollationDecomposition decomposition)
-			: base(sql_type) {
-			this.max_size = max_size;
+		public TStringType(SqlType sqlType, int maxSize, CultureInfo locale, CollationStrength strength, CollationDecomposition decomposition)
+			: base(sqlType) {
+			this.maxSize = maxSize;
 			this.strength = strength;
 			this.decomposition = decomposition;
 			this.locale = locale;
@@ -72,8 +72,8 @@ namespace Deveel.Data {
 		/// Constructs a type with the given <see cref="SqlType"/> value, the 
 		/// maximum size, and the locale string of the type.
 		/// </summary>
-		/// <param name="sql_type">The string <see cref="SqlType"/> of the type.</param>
-		/// <param name="max_size">The maximum size of the string value.</param>
+		/// <param name="sqlType">The string <see cref="SqlType"/> of the type.</param>
+		/// <param name="maxSize">The maximum size of the string value.</param>
 		/// <param name="locale_str">The string representation of the string locale.</param>
 		/// <param name="strength"></param>
 		/// <param name="decomposition"></param>
@@ -82,11 +82,10 @@ namespace Deveel.Data {
 		/// string</paramref>
 		/// and call the right <see cref="CultureInfo"/>.
 		/// </remarks>
-		/// <seealso cref="TStringType(SqlType, Int32, CultureInfo, CollationStrength, CollationDecomposition"/>
-		public TStringType(SqlType sql_type, int max_size, String locale_str,
-						   CollationStrength strength, CollationDecomposition decomposition)
-			: base(sql_type) {
-			this.max_size = max_size;
+		/// <seealso cref="TStringType(SqlType, Int32, CultureInfo, CollationStrength, CollationDecomposition)"/>
+		public TStringType(SqlType sqlType, int maxSize, string locale_str, CollationStrength strength, CollationDecomposition decomposition)
+			: base(sqlType) {
+			this.maxSize = maxSize;
 			this.strength = strength;
 			this.decomposition = decomposition;
 
@@ -111,19 +110,20 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Constructor without strength and decomposition that sets to default levels.
 		/// </summary>
-		/// <param name="sql_type"></param>
-		/// <param name="max_size"></param>
+		/// <param name="sqlType"></param>
+		/// <param name="maxSize"></param>
 		/// <param name="locale_str"></param>
-		public TStringType(SqlType sql_type, int max_size, String locale_str)
-			: this(sql_type, max_size, locale_str, CollationStrength.Identical, CollationDecomposition.None) {
+		public TStringType(SqlType sqlType, int maxSize, String locale_str)
+			: this(sqlType, maxSize, locale_str, CollationStrength.Identical, CollationDecomposition.None) {
 		}
 
 
 		/// <summary>
 		/// Returns the maximum size of the string (-1 is don't care).
 		/// </summary>
-		public int MaximumSize {
-			get { return max_size; }
+		public int Size {
+			get { return maxSize; }
+			set { maxSize = value; }
 		}
 
 		/// <summary>
@@ -267,17 +267,19 @@ namespace Deveel.Data {
 			return false;
 		}
 
+		public override DbType DbType {
+			get { return DbType.String; }
+		}
+
 		public override int Compare(Object ob1, Object ob2) {
-			if (ob1 == ob2) {
+			if (ob1 == ob2)
 				return 0;
-			}
+
 			// If lexicographical ordering,
-			if (locale == null) {
-				return LexicographicalOrder((IStringAccessor)ob1, (IStringAccessor)ob2);
-				//      return ob1.toString().compareTo(ob2.toString());
-			} else {
-				return Collator.Compare(ob1.ToString(), ob2.ToString());
-			}
+			if (locale == null)
+				return LexicographicalOrder((IStringAccessor) ob1, (IStringAccessor) ob2);
+
+			return Collator.Compare(ob1.ToString(), ob2.ToString());
 		}
 
 		public override int CalculateApproximateMemoryUse(Object ob) {

@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
 
 using System;
 using System.Collections;
+using System.IO;
 using System.Text;
 
-using Deveel.Math;
+using Deveel.Data.Text;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -100,6 +101,11 @@ namespace Deveel.Data {
 			get { return sql_type; }
 		}
 
+		/// <summary>
+		/// Gets the <see cref="DbType"/> component of this <see cref="TType"/>.
+		/// </summary>
+		public abstract DbType DbType { get; }
+
 		#region IComparer Members
 
 		/// <summary>
@@ -167,6 +173,88 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public abstract Type GetObjectType();
 
+		public static byte[] ToByteArray(TType type) {
+			MemoryStream output = new MemoryStream();
+			BinaryWriter writer = new BinaryWriter(output, Encoding.Unicode);
+
+			writer.Write((int)type.SQLType);
+
+			if (type is TBooleanType) {
+				writer.Write((byte)1);
+			} else if (type is TStringType) {
+				TStringType stringType = (TStringType) type;
+				writer.Write((byte)24);
+				writer.Write(stringType.Size);
+				writer.Write(stringType.LocaleString);
+				writer.Write((byte)stringType.Strength);
+				writer.Write((byte)stringType.Decomposition);
+			} else if (type is TNumericType) {
+				TNumericType numericType = (TNumericType) type;
+				writer.Write((byte)11);
+				writer.Write(numericType.Size);
+				writer.Write((byte)numericType.Scale);
+			} else if (type is TBinaryType) {
+				TBinaryType binaryType = (TBinaryType) type;
+				writer.Write((byte)8);
+				writer.Write(binaryType.Size);
+			} else if (type is TDateType) {
+				writer.Write((byte)15);
+			} else if (type is TIntervalType) {
+				writer.Write((byte)18);
+			} else if (type is TNullType) {
+				writer.Write((byte)0);
+			} else if (type is TObjectType) {
+				TObjectType objectType = (TObjectType) type;
+				writer.Write((byte)200);
+				writer.Write(objectType.TypeString);
+			} else {
+				throw new NotSupportedException("Serialization not supported for type " + type);
+			}
+
+			writer.Flush();
+			return output.ToArray();
+		}
+
+		public static TType FromByteArray(byte[] bytes) {
+			MemoryStream input = new MemoryStream(bytes);
+			BinaryReader reader = new BinaryReader(input, Encoding.Unicode);
+
+			SqlType sqlType = (SqlType) reader.ReadInt32();
+			byte typeCode = reader.ReadByte();
+
+			TType type;
+
+			if (typeCode == 1) {
+				type = new TBooleanType(sqlType);
+			} else if (typeCode == 24) {
+				int size = reader.ReadInt32();
+				string locale = reader.ReadString();
+				CollationStrength strength = (CollationStrength) reader.ReadByte();
+				CollationDecomposition decomposition = (CollationDecomposition) reader.ReadByte();
+				type = new TStringType(sqlType, size, locale, strength, decomposition);
+			} else if (typeCode == 11) {
+				int size = reader.ReadInt32();
+				byte scale = reader.ReadByte();
+				type = new TNumericType(sqlType, size, scale);
+			} else if (typeCode == 8) {
+				int size = reader.ReadInt32();
+				type = new TBinaryType(sqlType, size);
+			} else if (typeCode == 15) {
+				type = new TDateType(sqlType);
+			} else if (typeCode == 18) {
+				type = new TIntervalType(sqlType);
+			} else if (typeCode == 0) {
+				type = new TNullType();
+			} else if (typeCode == 200) {
+				string typeString = reader.ReadString();
+				type = new TObjectType(typeString);
+			} else {
+				throw new FormatException("Unrecognized type code: " + typeCode);
+			}
+
+			return type;
+		}
+
 
 		// ----- Static methods for Encoding/Decoding TType to strings -----
 
@@ -204,7 +292,7 @@ namespace Deveel.Data {
 				buf.Append("STRING(");
 				buf.Append(type.SQLType);
 				buf.Append(',');
-				buf.Append(str_type.MaximumSize);
+				buf.Append(str_type.Size);
 				buf.Append(",'");
 				buf.Append(str_type.LocaleString);
 				buf.Append("',");
@@ -226,7 +314,7 @@ namespace Deveel.Data {
 				buf.Append("BINARY(");
 				buf.Append(type.SQLType);
 				buf.Append(',');
-				buf.Append(bin_type.MaximumSize);
+				buf.Append(bin_type.Size);
 				buf.Append(')');
 			} else if (type is TDateType) {
 				buf.Append("DATE(");
@@ -291,7 +379,7 @@ namespace Deveel.Data {
 		/// If the system was unable to parse the given string or if the encoded  
 		/// representation is invalid.
 		/// </exception>
-		public static TType DecodeString(String encoded_str) {
+		public static TType DecodeString(string encoded_str) {
 			int param_s = encoded_str.IndexOf('(');
 			int param_e = encoded_str.LastIndexOf(')');
 			String parameterss = encoded_str.Substring(param_s + 1, param_e - (param_s + 1));
@@ -453,13 +541,13 @@ namespace Deveel.Data {
 			SqlType sql_type = type.SQLType;
 
 			if (type is TStringType) {
-				size = ((TStringType) type).MaximumSize;
+				size = ((TStringType) type).Size;
 			} else if (type is TNumericType) {
 				TNumericType num_type = (TNumericType)type;
 				size = num_type.Size;
 				scale = num_type.Scale;
 			} else if (type is TBinaryType) {
-				size = ((TBinaryType) type).MaximumSize;
+				size = ((TBinaryType) type).Size;
 			}
 
 			ob = CastHelper.CastToSQLType(ob, type.SQLType, size, scale);

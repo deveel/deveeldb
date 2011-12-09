@@ -21,13 +21,17 @@ namespace Deveel.Data {
 	/// </summary>
 	[Serializable]
 	public class TDateType : TType {
-		public TDateType(SqlType sql_type)
-			: base(sql_type) {
+		public TDateType(SqlType sqlType)
+			: base(sqlType) {
 		}
 
 		/// <inheritdoc/>
 		public override bool IsComparableType(TType type) {
 			return (type is TDateType);
+		}
+
+		public override DbType DbType {
+			get { return DbType.Time; }
 		}
 
 		/// <inheritdoc/>

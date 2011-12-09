@@ -36,6 +36,10 @@ namespace Deveel.Data {
 			throw new NotSupportedException("Query Plan types should not be compared.");
 		}
 
+		public override DbType DbType {
+			get { return DbType.Object; }
+		}
+
 		/// <inheritdoc/>
 		/// <exception cref="NotSupportedException">
 		/// Query plan types cannot be compared.

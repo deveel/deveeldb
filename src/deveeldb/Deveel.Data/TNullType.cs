@@ -35,6 +35,10 @@ namespace Deveel.Data {
 			return (type is TNullType);
 		}
 
+		public override DbType DbType {
+			get { return DbType.Object; }
+		}
+
 		/// <inheritdoc/>
 		public override int Compare(Object ob1, Object ob2) {
 			// It's illegal to compare NULL types with this method so we throw an

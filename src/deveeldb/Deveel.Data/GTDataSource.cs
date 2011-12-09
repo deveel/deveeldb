@@ -150,51 +150,30 @@ namespace Deveel.Data {
 		// Convenience methods for constructing a DataTableInfo for the dynamically
 		// generated table.
 
-		protected static DataTableColumnInfo GetStringColumn(String name) {
-			DataTableColumnInfo column = new DataTableColumnInfo();
-			column.Name = name;
+		protected static DataTableColumnInfo GetStringColumn(string name) {
+			DataTableColumnInfo column = new DataTableColumnInfo(name, TType.StringType);
 			column.IsNotNull = true;
-			column.SqlType = SqlType.VarChar;
-			column.Size = Int32.MaxValue;
-			column.Scale = -1;
 			column.IndexScheme = "BlindSearch";
-			column.InitTTypeInfo();
 			return column;
 		}
 
-		protected static DataTableColumnInfo GetBooleanColumn(String name) {
-			DataTableColumnInfo column = new DataTableColumnInfo();
-			column.Name = name;
+		protected static DataTableColumnInfo GetBooleanColumn(string name) {
+			DataTableColumnInfo column = new DataTableColumnInfo(name, TType.BooleanType);
 			column.IsNotNull = true;
-			column.SqlType = SqlType.Bit;
-			column.Size = -1;
-			column.Scale = -1;
 			column.IndexScheme = "BlindSearch";
-			column.InitTTypeInfo();
 			return column;
 		}
 
-		protected static DataTableColumnInfo GetNumericColumn(String name) {
-			DataTableColumnInfo column = new DataTableColumnInfo();
-			column.Name = name;
+		protected static DataTableColumnInfo GetNumericColumn(string name) {
+			DataTableColumnInfo column = new DataTableColumnInfo(name, TType.NumericType);
 			column.IsNotNull = true;
-			column.SqlType = SqlType.Numeric;
-			column.Size = -1;
-			column.Scale = -1;
-			column.IndexScheme = "BlindSearch";
-			column.InitTTypeInfo();
 			return column;
 		}
 
-		protected static DataTableColumnInfo GetDateColumn(String name) {
-			DataTableColumnInfo column = new DataTableColumnInfo();
-			column.Name = name;
+		protected static DataTableColumnInfo GetDateColumn(string name) {
+			DataTableColumnInfo column = new DataTableColumnInfo(name, TType.DateType);
 			column.IsNotNull = true;
-			column.SqlType = SqlType.TimeStamp;
-			column.Size = -1;
-			column.Scale = -1;
 			column.IndexScheme = "BlindSearch";
-			column.InitTTypeInfo();
 			return column;
 		}
 	}

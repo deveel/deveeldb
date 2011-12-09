@@ -292,9 +292,8 @@ namespace Deveel.Data.Sql {
 						// Convert to a DataTableColumnInfo
 						DataTableColumnInfo col = CreateTableStatement.ConvertColumnDef(cdef);
 
-						checker.CheckExpression(
-							col.GetDefaultExpression(Connection.System));
-						String col_name = col.Name;
+						checker.CheckExpression(col.GetDefaultExpression(Connection.System));
+						string col_name = col.Name;
 						// If column name starts with [table_name]. then strip it off
 						col.Name = checker.StripTableName(table_name, col_name);
 						new_table.AddColumn(col);

@@ -47,6 +47,10 @@ namespace Deveel.Data {
 			return (type is TObjectType);
 		}
 
+		public override DbType DbType {
+			get { return DbType.Object; }
+		}
+
 		/// <inheritdoc/>
 		public override int Compare(Object ob1, Object ob2) {
 			throw new ApplicationException("Object types can not be compared.");
@@ -54,11 +58,9 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override int CalculateApproximateMemoryUse(Object ob) {
-			if (ob != null) {
-				return ((ByteLongObject)ob).Length + 4;
-			} else {
-				return 4 + 8;
-			}
+			if (ob != null)
+				return ((ByteLongObject) ob).Length + 4;
+			return 4 + 8;
 		}
 
 		/// <inheritdoc/>

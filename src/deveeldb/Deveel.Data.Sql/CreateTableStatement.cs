@@ -135,10 +135,8 @@ namespace Deveel.Data.Sql {
 		internal static DataTableColumnInfo ConvertColumnDef(SqlColumn cdef) {
 			TType type = cdef.Type;
 
-			DataTableColumnInfo dtcdef = new DataTableColumnInfo();
-			dtcdef.Name = cdef.Name;
+			DataTableColumnInfo dtcdef = new DataTableColumnInfo(cdef.Name, type);
 			dtcdef.IsNotNull = cdef.IsNotNull;
-			dtcdef.SetFromTType(type);
 
 			if (cdef.IndexScheme != null) {
 				dtcdef.IndexScheme = cdef.IndexScheme;
@@ -147,7 +145,6 @@ namespace Deveel.Data.Sql {
 				dtcdef.SetDefaultExpression(cdef.original_default_expression);
 			}
 
-			dtcdef.InitTTypeInfo();
 			return dtcdef;
 		}
 

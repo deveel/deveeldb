@@ -29,6 +29,10 @@ namespace Deveel.Data {
 			: base(SqlType.Array) {
 		}
 
+		public override DbType DbType {
+			get { return DbType.Object; }
+		}
+
 		/// <inheritdoc/>
 		/// <exception cref="NotSupportedException"/>
 		public override bool IsComparableType(TType type) {
@@ -50,6 +54,5 @@ namespace Deveel.Data {
 		public override Type GetObjectType() {
 			return typeof(Expression[]);
 		}
-
 	}
 }

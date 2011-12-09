@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,14 +15,12 @@
 
 using System;
 
-using Deveel.Math;
-
 namespace Deveel.Data {
 	///<summary>
 	/// An implementation of <see cref="TType"/> for a number.
 	///</summary>
 	[Serializable]
-	public sealed class TNumericType : TType {
+	public sealed class TNumericType : TType, ISizeableType {
 		/// <summary>
 		/// The size of the number.
 		/// </summary>
@@ -31,19 +29,19 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The scale of the number.
 		/// </summary>
-		private int scale;
+		private readonly int scale;
 
 
 		///<summary>
 		/// Constructs a type with the given sql_type value, the size,
 		/// and the scale of the number.
 		///</summary>
-		///<param name="sql_type">A valid <c>NUMERIC</c> SQL type.</param>
+		///<param name="sqlType">A valid <c>NUMERIC</c> SQL type.</param>
 		///<param name="size">The size of the type (if any, -1 otherwise).</param>
 		///<param name="scale">The scale of the numberic type (or -1 if not 
 		/// specified).</param>
-		public TNumericType(SqlType sql_type, int size, int scale)
-			: base(sql_type) {
+		public TNumericType(SqlType sqlType, int size, int scale)
+			: base(sqlType) {
 			this.size = size;
 			this.scale = scale;
 		}
@@ -54,6 +52,7 @@ namespace Deveel.Data {
 		/// </summary>
 		public int Size {
 			get { return size; }
+			set { size = value; }
 		}
 
 		/// <summary>
@@ -69,6 +68,10 @@ namespace Deveel.Data {
 		public override bool IsComparableType(TType type) {
 			return (type is TNumericType ||
 					type is TBooleanType);
+		}
+
+		public override DbType DbType {
+			get { return DbType.Numeric; }
 		}
 
 		/// <inheritdoc/>

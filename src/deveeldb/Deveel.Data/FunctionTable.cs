@@ -180,9 +180,7 @@ namespace Deveel.Data {
 					exp_info[i] = 0;
 				}
 				// Make the column info
-				DataTableColumnInfo column = new DataTableColumnInfo();
-				column.Name = col_names[i];
-				column.SetFromTType(expr.ReturnTType(cr_resolver, context));
+				DataTableColumnInfo column = new DataTableColumnInfo(col_names[i], expr.ReturnTType(cr_resolver, context));
 				funTableInfo.AddVirtualColumn(column);
 			}
 

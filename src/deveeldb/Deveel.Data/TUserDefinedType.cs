@@ -32,7 +32,9 @@ namespace Deveel.Data {
 			get { return userType; }
 		}
 
-		#region Overrides of TType
+		public override DbType DbType {
+			get { return DbType.Object; }
+		}
 
 		public override int Compare(object x, object y) {
 			throw new InvalidOperationException("Cannot compare two user-defined types.");
@@ -50,7 +52,5 @@ namespace Deveel.Data {
 		public override Type GetObjectType() {
 			return typeof(UserObject);
 		}
-
-		#endregion
 	}
 }

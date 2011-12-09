@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -21,22 +21,27 @@ namespace Deveel.Data {
 	/// An implementation of TType for a binary block of data.
 	/// </summary>
 	[Serializable]
-	public class TBinaryType : TType {
+	public class TBinaryType : TType, ISizeableType {
 		/// <summary>
 		/// This constrained size of the binary block of data or -1 if there is no size limit.
 		/// </summary>
-		private readonly int max_size;
+		private int maxSize;
 
-		public TBinaryType(SqlType sql_type, int max_size)
-			: base(sql_type) {
-			this.max_size = max_size;
+		public TBinaryType(SqlType sqlType, int maxSize)
+			: base(sqlType) {
+			this.maxSize = maxSize;
 		}
 
 		/// <summary>
 		/// Returns the maximum size of this binary type.
 		/// </summary>
-		public int MaximumSize {
-			get { return max_size; }
+		public int Size {
+			get { return maxSize; }
+			set { maxSize = value; }
+		}
+
+		public override DbType DbType {
+			get { return DbType.Blob; }
 		}
 
 		// ---------- Static utility method for comparing blobs ----------
@@ -54,33 +59,32 @@ namespace Deveel.Data {
 		static int CompareBlobs(IBlobAccessor blob1, IBlobAccessor blob2) {
 			// We compare smaller sized blobs before larger sized blobs
 			int c = blob1.Length - blob2.Length;
-			if (c != 0) {
+			if (c != 0)
 				return c;
-			} else {
-				// Size of the blobs are the same, so find the first non equal byte in
-				// the byte array and return the difference between the two.  eg.
-				// compareTo({ 0, 0, 0, 1 }, { 0, 0, 0, 3 }) == -3
 
-				int len = blob1.Length;
+			// Size of the blobs are the same, so find the first non equal byte in
+			// the byte array and return the difference between the two.  eg.
+			// compareTo({ 0, 0, 0, 1 }, { 0, 0, 0, 3 }) == -3
 
-				Stream b1 = blob1.GetInputStream();
-				Stream b2 = blob2.GetInputStream();
-				try {
-					BufferedStream bin1 = new BufferedStream(b1);
-					BufferedStream bin2 = new BufferedStream(b2);
-					while (len > 0) {
-						c = bin1.ReadByte() - bin2.ReadByte();
-						if (c != 0) {
-							return c;
-						}
-						--len;
+			int len = blob1.Length;
+
+			Stream b1 = blob1.GetInputStream();
+			Stream b2 = blob2.GetInputStream();
+			try {
+				BufferedStream bin1 = new BufferedStream(b1);
+				BufferedStream bin2 = new BufferedStream(b2);
+				while (len > 0) {
+					c = bin1.ReadByte() - bin2.ReadByte();
+					if (c != 0) {
+						return c;
 					}
-
-					return 0;
-				} catch (IOException e) {
-					throw new Exception("IO Error when comparing blobs: " +
-											   e.Message);
+					--len;
 				}
+
+				return 0;
+			} catch (IOException e) {
+				throw new Exception("IO Error when comparing blobs: " +
+				                    e.Message);
 			}
 		}
 

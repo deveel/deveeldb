@@ -206,12 +206,11 @@ namespace Deveel.Data {
 		public void AddColumn(DataTableColumnInfo colInfo) {
 			CheckMutable();
 			// Is there already a column with this name input the table info?
-			for (int i = 0; i < columns.Count; ++i) {
-				DataTableColumnInfo cd = (DataTableColumnInfo)columns[i];
-				if (cd.Name.Equals(colInfo.Name)) {
+			foreach (DataTableColumnInfo cd in columns) {
+				if (cd.Name.Equals(colInfo.Name))
 					throw new ApplicationException("Duplicated columns found.");
-				}
 			}
+
 			columns.Add(colInfo);
 		}
 
@@ -234,7 +233,7 @@ namespace Deveel.Data {
 		public string Schema {
 			get {
 				String schema_name = tableName.Schema;
-				return schema_name == null ? "" : schema_name;
+				return schema_name ?? "";
 			}
 		}
 

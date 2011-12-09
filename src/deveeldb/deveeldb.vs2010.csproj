@@ -133,6 +133,7 @@
     <Compile Include="Deveel.Data\IndexSetStore_Index.cs" />
     <Compile Include="Deveel.Data\IndexSetStore_IndexBlock.cs" />
     <Compile Include="Deveel.Data\IndexSetStore_SnapshotIndexSet.cs" />
+    <Compile Include="Deveel.Data\ISizeableType.cs" />
     <Compile Include="Deveel.Data\JournalCommandType.cs" />
     <Compile Include="Deveel.Data\MasterTableDataSource_Diagnostics.cs" />
     <Compile Include="Deveel.Data\MasterTableDataSource_Indexes.cs" />

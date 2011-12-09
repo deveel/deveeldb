@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010  Deveel
+﻿// 
+//  Copyright 2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -16,32 +16,7 @@
 using System;
 
 namespace Deveel.Data {
-	public sealed class TIntervalType : TType {
-		public TIntervalType(SqlType type)
-			: base(type) {
-		}
-
-		public override DbType DbType {
-			get { return DbType.Object; }
-		}
-
-		public override int Compare(object x, object y) {
-			Interval a = (Interval) x;
-			Interval b = (Interval) y;
-
-			return a.CompareTo(b);
-		}
-
-		public override bool IsComparableType(TType ttype) {
-			return (ttype is TIntervalType);
-		}
-
-		public override int CalculateApproximateMemoryUse(object ob) {
-			return 4 + (6 * 4);
-		}
-
-		public override Type GetObjectType() {
-			return typeof (Interval);
-		}
+	public interface ISizeableType {
+		int Size { get; set; }
 	}
 }

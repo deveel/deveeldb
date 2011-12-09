@@ -518,7 +518,7 @@ namespace Deveel.Data {
 				DataTableColumnInfo colInfo = GetColumnDef(column);
 				if (!colInfo.IsIndexableType) {
 					throw new StatementException("Can not search on field type " +
-												 colInfo.SQLTypeString +
+												 colInfo.TType.ToSQLString() +
 												 " in '" + colInfo.Name + "'");
 				}
 
@@ -804,8 +804,8 @@ namespace Deveel.Data {
 			DataTableColumnInfo dest_col = table.GetColumnDef(0);
 			if (!source_col.TType.IsComparableType(dest_col.TType)) {
 				throw new ApplicationException("The type of the sub-query expression " +
-								source_col.SQLTypeString + " is incompatible " +
-								"with the sub-query " + dest_col.SQLTypeString +
+								source_col.TType.ToSQLString() + " is incompatible " +
+								"with the sub-query " + dest_col.TType.ToSQLString() +
 								".");
 			}
 
@@ -973,8 +973,8 @@ namespace Deveel.Data {
 			DataTableColumnInfo dest_col = table.GetColumnDef(0);
 			if (!source_col.TType.IsComparableType(dest_col.TType)) {
 				throw new ApplicationException("The type of the sub-query expression " +
-								source_col.SQLTypeString + " is incompatible " +
-								"with the sub-query " + dest_col.SQLTypeString +
+								source_col.TType.ToSQLString() + " is incompatible " +
+								"with the sub-query " + dest_col.TType.ToSQLString() +
 								".");
 			}
 
