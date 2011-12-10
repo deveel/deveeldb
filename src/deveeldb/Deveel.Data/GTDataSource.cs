@@ -28,7 +28,7 @@ namespace Deveel.Data {
 	/// It is not suggested let a user to change this information unless he 
 	/// runs a DML command.
 	/// </remarks>
-	internal abstract class GTDataSource : IMutableTableDataSource {
+	public abstract class GTDataSource : ITableDataSource {
 		/// <summary>
 		/// The TransactionSystem object for this table.
 		/// </summary>
@@ -40,7 +40,10 @@ namespace Deveel.Data {
 			this.system = system;
 		}
 
-		#region IMutableTableDataSource Members
+
+		~GTDataSource() {
+			Dispose(false);
+		}
 
 		public void Dispose() {
 			if (!disposed) {
@@ -76,53 +79,6 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public abstract TObject GetCellContents(int column, int row);
 
-		// ---------- Implemented from IMutableTableDataSource ----------
-
-		/// <inheritdoc/>
-		public virtual int AddRow(DataRow dataRow) {
-			throw new Exception("Functionality not available.");
-		}
-
-		/// <inheritdoc/>
-		public virtual void RemoveRow(int rowIndex) {
-			throw new Exception("Functionality not available.");
-		}
-
-		/// <inheritdoc/>
-		public virtual int UpdateRow(int rowIndex, DataRow dataRow) {
-			throw new Exception("Functionality not available.");
-		}
-
-		/// <inheritdoc/>
-		public virtual MasterTableJournal Journal {
-			get { throw new Exception("Functionality not available."); }
-		}
-
-		/// <inheritdoc/>
-		public virtual void FlushIndexChanges() {
-			throw new Exception("Functionality not available.");
-		}
-
-		/// <inheritdoc/>
-		public virtual void ConstraintIntegrityCheck() {
-			throw new Exception("Functionality not available.");
-		}
-
-		/// <inheritdoc/>
-		public virtual void AddRootLock() {
-			// No need to Lock roots
-		}
-
-		/// <inheritdoc/>
-		public virtual void RemoveRootLock() {
-			// No need to Lock roots
-		}
-
-		#endregion
-
-		~GTDataSource() {
-			Dispose(false);
-		}
 
 		protected virtual void Dispose(bool disposing) {
 		}
@@ -142,7 +98,7 @@ namespace Deveel.Data {
 		/// compatible with the column <see cref="TType"/> of the column at 
 		/// the given <paramref name="column"/>.
 		/// </returns>
-		protected TObject GetColumnValue(int column, Object ob) {
+		protected TObject GetColumnValue(int column, object ob) {
 			TType type = TableInfo[column].TType;
 			return new TObject(type, ob);
 		}

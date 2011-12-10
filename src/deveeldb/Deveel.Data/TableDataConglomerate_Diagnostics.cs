@@ -31,7 +31,7 @@ namespace Deveel.Data {
 			// Create the transaction
 			Transaction transaction = CreateTransaction();
 			// Get the table
-			IMutableTableDataSource table = transaction.GetTable(tname);
+			ITableDataSource table = transaction.GetTable(tname);
 			// Find the index of the column name called 'id'
 			DataTableInfo tableInfo = table.TableInfo;
 			int colIndex = tableInfo.FindColumnName("id");

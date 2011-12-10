@@ -366,7 +366,7 @@ namespace Deveel.Data {
 							// transaction.
 
 							// Get the state of the changed tables from the Transaction
-							IMutableTableDataSource mtable = transaction.GetTable(master.TableName);
+							IMutableTableDataSource mtable = transaction.GetMutableTable(master.TableName);
 							// Get the current index set of the changed table
 							tableInfo.IndexSet = transaction.GetIndexSetForTable(master);
 							// Flush all index changes in the table

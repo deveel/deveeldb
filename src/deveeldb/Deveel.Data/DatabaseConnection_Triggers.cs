@@ -281,7 +281,7 @@ namespace Deveel.Data {
 				return newTableInfo;
 			}
 
-			public IMutableTableDataSource CreateInternalTable(int index) {
+			public ITableDataSource CreateInternalTable(int index) {
 				DataTableInfo tableInfo = GetTableInfo(index);
 
 				TriggeredOldNewDataSource table = new TriggeredOldNewDataSource(conn.System, tableInfo);
@@ -316,7 +316,7 @@ namespace Deveel.Data {
 		/// A IMutableTableDataSource implementation that is used for trigger actions
 		/// to represent the data in the OLD and NEW tables.
 		/// </summary>
-		private sealed class TriggeredOldNewDataSource : GTDataSource {
+		private sealed class TriggeredOldNewDataSource : GTDataSource, IMutableTableDataSource {
 			private readonly DataTableInfo tableInfo;
 			private DataRow content;
 			private bool immutable;
@@ -349,24 +349,19 @@ namespace Deveel.Data {
 				return content.GetValue(column);
 			}
 
-			public override int AddRow(DataRow dataRow) {
-				throw new Exception("Inserting into table '" +
-							  TableInfo.TableName + "' is not permitted.");
+			public int AddRow(DataRow dataRow) {
+				throw new Exception("Inserting into table '" + TableInfo.TableName + "' is not permitted.");
 			}
 
-			public override void RemoveRow(int rowIndex) {
-				throw new Exception("Deleting from table '" +
-							  TableInfo.TableName + "' is not permitted.");
+			public void RemoveRow(int rowIndex) {
+				throw new Exception("Deleting from table '" + TableInfo.TableName + "' is not permitted.");
 			}
 
-			public override int UpdateRow(int rowIndex, DataRow dataRow) {
-				if (immutable) {
-					throw new Exception("Updating table '" +
-								TableInfo.TableName + "' is not permitted.");
-				}
-				if (rowIndex < 0 || rowIndex > 0) {
+			public int UpdateRow(int rowIndex, DataRow dataRow) {
+				if (immutable)
+					throw new Exception("Updating table '" + TableInfo.TableName + "' is not permitted.");
+				if (rowIndex < 0 || rowIndex > 0)
 					throw new Exception("Row index out of bounds.");
-				}
 
 				int sz = TableInfo.ColumnCount;
 				for (int i = 0; i < sz; ++i) {
@@ -376,20 +371,26 @@ namespace Deveel.Data {
 				return 0;
 			}
 
-			public override MasterTableJournal Journal {
+			public MasterTableJournal Journal {
 				get {
 					// Shouldn't be used...
 					throw new Exception("Invalid method used.");
 				}
 			}
 
-			public override void FlushIndexChanges() {
+			public void FlushIndexChanges() {
 				// Shouldn't be used...
 				throw new Exception("Invalid method used.");
 			}
 
-			public override void ConstraintIntegrityCheck() {
+			public void ConstraintIntegrityCheck() {
 				// Should always pass (not integrity check needed for OLD/NEW table.
+			}
+
+			public void AddRootLock() {
+			}
+
+			public void RemoveRootLock() {
 			}
 		}
 

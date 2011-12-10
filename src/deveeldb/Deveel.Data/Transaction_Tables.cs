@@ -137,7 +137,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		protected override IMutableTableDataSource GetDynamicTable(TableName tableName) {
+		protected override ITableDataSource GetDynamicTable(TableName tableName) {
 			foreach (IInternalTableInfo info in internalTables) {
 				if (info != null) {
 					int index = info.FindTableName(tableName);
@@ -376,11 +376,11 @@ namespace Deveel.Data {
 			long nextId = NextUniqueID(tableName);
 
 			// Drop the current table
-			IMutableTableDataSource cTable = GetTable(tableName);
+			IMutableTableDataSource cTable = GetMutableTable(tableName);
 			DropTable(tableName);
 			// And create the table table
 			CreateTable(tableInfo);
-			IMutableTableDataSource alteredTable = GetTable(tableName);
+			IMutableTableDataSource alteredTable = GetMutableTable(tableName);
 
 			// Get the new MasterTableDataSource object
 			MasterTableDataSource newMasterTable = FindVisibleTable(tableName, false);

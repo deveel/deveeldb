@@ -56,8 +56,8 @@ namespace Deveel.Data {
 				parentTypeId = GetTypeId(transaction, parentType.Name);
 
 			// The UdtTable and UdtMembersTable table
-			IMutableTableDataSource udt = transaction.GetTable(TableDataConglomerate.UdtTable);
-			IMutableTableDataSource udtCols = transaction.GetTable(TableDataConglomerate.UdtMembersTable);
+			IMutableTableDataSource udt = transaction.GetMutableTable(TableDataConglomerate.UdtTable);
+			IMutableTableDataSource udtCols = transaction.GetMutableTable(TableDataConglomerate.UdtMembersTable);
 
 			// let's check to see if another type with the same name 
 			// already exists within this schema...
@@ -111,8 +111,8 @@ namespace Deveel.Data {
 			}
 
 			// The UdtTable and UdtMembersTable table
-			IMutableTableDataSource udt = transaction.GetTable(TableDataConglomerate.UdtTable);
-			IMutableTableDataSource udtCols = transaction.GetTable(TableDataConglomerate.UdtMembersTable);
+			IMutableTableDataSource udt = transaction.GetMutableTable(TableDataConglomerate.UdtTable);
+			IMutableTableDataSource udtCols = transaction.GetMutableTable(TableDataConglomerate.UdtMembersTable);
 
 			// get the id of the type
 			int id = GetTypeId(transaction, typeName);
@@ -153,8 +153,8 @@ namespace Deveel.Data {
 			int id = GetTypeId(transaction, typeName);
 
 			// The UdtTable and UdtMembersTable table
-			IMutableTableDataSource udt = transaction.GetTable(TableDataConglomerate.UdtTable);
-			IMutableTableDataSource udtCols = transaction.GetTable(TableDataConglomerate.UdtMembersTable);
+			IMutableTableDataSource udt = transaction.GetMutableTable(TableDataConglomerate.UdtTable);
+			IMutableTableDataSource udtCols = transaction.GetMutableTable(TableDataConglomerate.UdtMembersTable);
 
 			UserTypeAttributes attributes;
 			UserType parentType = null;
@@ -183,15 +183,15 @@ namespace Deveel.Data {
 			using(SimpleTableQuery query = new SimpleTableQuery(udtCols)) {
 				IList<int> ivec = query.SelectEqual(0, parent_id);
 				for (int i = 0; i < ivec.Count; i++) {
-					string name = (string) query.Get(1, i);
+					string name = query.Get(1, i);
 
 					// the information used to rebuild the TType
-					int type_id = (int) query.Get(2, i);
-					int size = (int) query.Get(3, i);
-					int scale = (int) query.Get(4, i);
+					int typeId = query.Get(2, i);
+					int size = query.Get(3, i);
+					int scale = query.Get(4, i);
 
 					// reconstruct the type (whether is primitive or a UDT)
-					TType ttype = GetTType(transaction, type_id, size, scale);
+					TType ttype = GetTType(transaction, typeId, size, scale);
 
 					// whether the member can accept nullable values
 					bool nullable = (int) query.Get(5, i) == 1;
@@ -209,7 +209,7 @@ namespace Deveel.Data {
 		private static UserType GetUserTypeDef(Transaction transaction, int id) {
 			TableName typeName;
 
-			IMutableTableDataSource udt = transaction.GetTable(TableDataConglomerate.UdtTable);
+			ITableDataSource udt = transaction.GetTable(TableDataConglomerate.UdtTable);
 
 			using (SimpleTableQuery query = new SimpleTableQuery(udt)) {
 				IList<int> ivec = query.SelectEqual(0, id);
@@ -218,10 +218,10 @@ namespace Deveel.Data {
 
 				int row = ivec[0];
 
-				string schema_name = (string) query.Get(1, row);
-				string type_name = (string) query.Get(2, row);
+				string schemaName = query.Get(1, row);
+				string type_name = query.Get(2, row);
 
-				typeName = new TableName(schema_name, type_name);
+				typeName = new TableName(schemaName, type_name);
 			}
 
 			return GetUserTypeDef(transaction, typeName);
@@ -279,7 +279,7 @@ namespace Deveel.Data {
 			if (typeName == UserType.IntervalTypeName) return -6;
 
 			// The UdtTable
-			IMutableTableDataSource udt_table = transaction.GetTable(TableDataConglomerate.UdtTable);
+			ITableDataSource udt_table = transaction.GetTable(TableDataConglomerate.UdtTable);
 
 			// let's check to see if another type with the same name 
 			// already exists within this schema...
@@ -301,7 +301,7 @@ namespace Deveel.Data {
 
 		public static bool TypeExists(Transaction transaction, TableName typeName) {
 			// The UdtTable and table
-			IMutableTableDataSource udt = transaction.GetTable(TableDataConglomerate.UdtTable);
+			ITableDataSource udt = transaction.GetTable(TableDataConglomerate.UdtTable);
 
 			// let's check to see if another type with the same name 
 			// already exists within this schema...

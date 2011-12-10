@@ -724,7 +724,7 @@ namespace Deveel.Data {
 
 			// ---------- Implemented ----------
 
-			public override IMutableTableDataSource CreateInternalTable(int index) {
+			public override ITableDataSource CreateInternalTable(int index) {
 				if (index == 0)
 					return new GTStatisticsDataSource(conn).Init();
 				if (index == 1)

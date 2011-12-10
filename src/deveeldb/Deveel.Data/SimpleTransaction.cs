@@ -244,7 +244,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// If this transaction implementation defines dynamic tables (tables 
 		/// whose content is determined by some function), this should return 
-		/// the table here as a <see cref="IMutableTableDataSource"/> object.
+		/// the table here as a <see cref="ITableDataSource"/> object.
 		/// </summary>
 		/// <param name="tableName"></param>
 		/// <remarks>
@@ -256,7 +256,7 @@ namespace Deveel.Data {
 		/// <exception cref="StatementException">
 		/// If the table is not defined an exception is generated.
 		/// </exception>
-		protected virtual IMutableTableDataSource GetDynamicTable(TableName tableName) {
+		protected virtual ITableDataSource GetDynamicTable(TableName tableName) {
 			// By default, dynamic tables are not implemented.
 			throw new StatementException("Table '" + tableName + "' not found.");
 		}
@@ -441,7 +441,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a <see cref="IMutableTableDataSource"/> object that represents 
+		/// Returns a <see cref="ITableDataSource"/> object that represents 
 		/// the table with the given name within this transaction.
 		/// </summary>
 		/// <param name="tableName"></param>
@@ -454,7 +454,7 @@ namespace Deveel.Data {
 		/// <exception cref="Exception">
 		/// If the table does not exist.
 		/// </exception>
-		public IMutableTableDataSource GetTable(TableName tableName) {
+		public ITableDataSource GetTable(TableName tableName) {
 			// If table is in the cache, return it
 			IMutableTableDataSource table;
 			if (tableCache.TryGetValue(tableName, out table))
@@ -478,7 +478,35 @@ namespace Deveel.Data {
 			}
 
 			return table;
+		}
 
+		/// <summary>
+		/// Returns a <see cref="ITableDataSource"/> object that represents 
+		/// the table with the given name within this transaction, as
+		/// a <see cref="IMutableTableDataSource"/>.
+		/// </summary>
+		/// <param name="tableName">The name of the table to return</param>
+		/// <remarks>
+		/// This method queries <see cref="GetTable"/> and enforces the inheritance
+		/// of the table returned from <see cref="IMutableTableDataSource"/>,
+		/// throwing an exception if this contact is not respected.
+		/// <para>
+		/// This method should be called only when mutations on the returned table
+		/// are needed.
+		/// </para>
+		/// </remarks>
+		/// <returns></returns>
+		/// <seealso cref="GetTable"/>
+		public IMutableTableDataSource GetMutableTable(TableName tableName) {
+			// first get the table e want to return
+			ITableDataSource table = GetTable(tableName);
+
+			// we enforce the contract of mutable table
+			if (!(table is IMutableTableDataSource))
+				throw new InvalidOperationException("Table  '" + tableName + "' is not mutable.");
+
+			// and we return it casting
+			return table as IMutableTableDataSource;
 		}
 
 		/// <summary>

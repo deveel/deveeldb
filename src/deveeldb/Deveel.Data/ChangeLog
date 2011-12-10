@@ -1,6 +1,12 @@
 2011-12-10  Antonello Provenzano  <antonello@deveel.com>
 	* DataTableInfo.cs: columns now cannot be added directly anymore:
 	the only way is to provide name and type.
+	* GTDataSource.cs: 
+		- made public (for future external plugins architecture)
+		- removed inheritance from IMutableTableDataSource
+		(now inherits from ITableDataSource)
+	* SimpleTransaction.cs: added method GetMutableTable to
+	enforce the contract from IMutableTableSource
 
 2011-12-09  Antonello Provenzano  <antonello@deveel.com>
 	* TableDataConglomerate.cs:

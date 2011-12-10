@@ -392,7 +392,7 @@ namespace Deveel.Data {
 				                  transaction.GetTable(Database.SysView), i).TableInfo;
 			}
 
-			public override IMutableTableDataSource CreateInternalTable(int i) {
+			public override ITableDataSource CreateInternalTable(int i) {
 				throw new Exception("Not supported for views.");
 			}
 

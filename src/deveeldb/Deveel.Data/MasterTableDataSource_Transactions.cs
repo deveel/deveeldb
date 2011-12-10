@@ -351,7 +351,7 @@ namespace Deveel.Data {
 
 				// So either update rule is not NO ACTION, or if it is we are initially
 				// immediate.
-				IMutableTableDataSource keyTable = transaction.GetTable(constraint.key_table_name);
+				IMutableTableDataSource keyTable = transaction.GetMutableTable(constraint.key_table_name);
 				DataTableInfo tableInfo = keyTable.TableInfo;
 				int[] keyCols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.key_columns);
 				IList<int> keyEntries = TableDataConglomerate.FindKeys(keyTable, keyCols, originalKey);
@@ -422,7 +422,7 @@ namespace Deveel.Data {
 
 				// So either delete rule is not NO ACTION, or if it is we are initially
 				// immediate.
-				IMutableTableDataSource keyTable = transaction.GetTable(constraint.key_table_name);
+				IMutableTableDataSource keyTable = transaction.GetMutableTable(constraint.key_table_name);
 				DataTableInfo tableInfo = keyTable.TableInfo;
 				int[] keyCols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.key_columns);
 				IList<int> keyEntries = TableDataConglomerate.FindKeys(keyTable, keyCols, originalKey);

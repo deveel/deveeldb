@@ -40,7 +40,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// A low level access to the underlying transactional data source.
 		/// </summary>
-		private readonly IMutableTableDataSource dataSource;
+		private readonly ITableDataSource dataSource;
 
 		/// <summary>
 		/// The number of read locks we have on this table.
@@ -54,10 +54,18 @@ namespace Deveel.Data {
 		private int debugWriteLockCount;
 
 
-		internal DataTable(DatabaseConnection connection, IMutableTableDataSource dataSource)
+		internal DataTable(DatabaseConnection connection, ITableDataSource dataSource)
 			: base(connection.Database) {
 			this.connection = connection;
 			this.dataSource = dataSource;
+		}
+
+		private IMutableTableDataSource MutableDataSource {
+			get {
+				if (!(dataSource is IMutableTableDataSource))
+					throw new InvalidOperationException("Table '" + dataSource.TableInfo.TableName + "' is not mutable.");
+				return (IMutableTableDataSource) dataSource;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -72,7 +80,6 @@ namespace Deveel.Data {
 		public override DataTableInfo TableInfo {
 			get {
 				CheckSafeOperation(); // safe op
-
 				return dataSource.TableInfo;
 			}
 		}
@@ -83,7 +90,6 @@ namespace Deveel.Data {
 		public string Schema {
 			get {
 				CheckSafeOperation(); // safe op
-
 				return TableInfo.Schema;
 			}
 		}
@@ -128,7 +134,7 @@ namespace Deveel.Data {
 			connection.FireTableEvent(new TableModificationEvent(connection, tableName, row, true));
 
 			// Add the row to the underlying file system
-			dataSource.AddRow(row);
+			MutableDataSource.AddRow(row);
 
 			// Fire the 'after' trigger for an insert on this table
 			connection.FireTableEvent(new TableModificationEvent(connection, tableName, row, false));
@@ -157,7 +163,7 @@ namespace Deveel.Data {
 			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, true));
 
 			// Delete the row from the underlying database
-			dataSource.RemoveRow(rowNumber);
+			MutableDataSource.RemoveRow(rowNumber);
 
 			// Fire the 'after' trigger for the delete on this table
 			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, false));
@@ -181,7 +187,7 @@ namespace Deveel.Data {
 			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, row, true));
 
 			// Update the row in the underlying database
-			dataSource.UpdateRow(rowNumber, row);
+			MutableDataSource.UpdateRow(rowNumber, row);
 
 			// Fire the 'after' trigger for the update on this table
 			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, row, false));
@@ -395,7 +401,7 @@ namespace Deveel.Data {
 			AddRow(dataRow);
 
 			// Perform a referential integrity check on any changes to the table.
-			dataSource.ConstraintIntegrityCheck();
+			MutableDataSource.ConstraintIntegrityCheck();
 		}
 
 		/// <summary>
@@ -442,7 +448,7 @@ namespace Deveel.Data {
 			}
 
 			// Perform a referential integrity check on any changes to the table.
-			dataSource.ConstraintIntegrityCheck();
+			MutableDataSource.ConstraintIntegrityCheck();
 		}
 
 		/// <summary>
@@ -522,7 +528,7 @@ namespace Deveel.Data {
 
 			if (removeCount > 0)
 				// Perform a referential integrity check on any changes to the table.
-				dataSource.ConstraintIntegrityCheck();
+				MutableDataSource.ConstraintIntegrityCheck();
 
 			return removeCount;
 		}
@@ -592,7 +598,7 @@ namespace Deveel.Data {
 			RemoveRow(rowIndex);
 
 			// Perform a referential integrity check on any changes to the table.
-			dataSource.ConstraintIntegrityCheck();
+			MutableDataSource.ConstraintIntegrityCheck();
 
 			return 1;
 		}
@@ -683,7 +689,7 @@ namespace Deveel.Data {
 
 			if (updateCount > 0)
 				// Perform a referential integrity check on any changes to the table.
-				dataSource.ConstraintIntegrityCheck();
+				MutableDataSource.ConstraintIntegrityCheck();
 
 			return updateCount;
 		}
@@ -724,7 +730,7 @@ namespace Deveel.Data {
 			UpdateRow(rowIndex, dataRow);
 
 			// Perform a referential integrity check on any changes to the table.
-			dataSource.ConstraintIntegrityCheck();
+			MutableDataSource.ConstraintIntegrityCheck();
 
 			return 1;
 		}
@@ -745,17 +751,19 @@ namespace Deveel.Data {
 
 
 		/// <inheritdoc/>
-		public override void LockRoot(int lock_key) {
+		public override void LockRoot(int lockKey) {
 			CheckSafeOperation();  // safe op
 
-			dataSource.AddRootLock();
+			if (dataSource is IMutableTableDataSource)
+				MutableDataSource.AddRootLock();
 		}
 
 		/// <inheritdoc/>
 		public override void UnlockRoot(int lock_key) {
 			CheckSafeOperation();  // safe op
 
-			dataSource.RemoveRootLock();
+			if (dataSource is IMutableTableDataSource)
+				MutableDataSource.RemoveRootLock();	
 		}
 
 

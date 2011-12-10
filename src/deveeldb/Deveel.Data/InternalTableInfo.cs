@@ -85,6 +85,6 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public abstract IMutableTableDataSource CreateInternalTable(int index);
+		public abstract ITableDataSource CreateInternalTable(int index);
 	}
 }

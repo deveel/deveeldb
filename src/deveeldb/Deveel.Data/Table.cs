@@ -231,7 +231,7 @@ namespace Deveel.Data {
 		/// Locks the root table(s) of this table so that it is impossible to
 		/// overwrite the underlying rows that may appear in this table.
 		/// </summary>
-		/// <param name="lock_key">A given key that will also unlock the root table(s).</param>
+		/// <param name="lockKey">A given key that will also unlock the root table(s).</param>
 		/// <remarks>
 		/// This is used when cells in the table need to be accessed 'outside' 
 		/// the Lock.  So we may have late access to cells in the table.
@@ -239,7 +239,7 @@ namespace Deveel.Data {
 		/// <b>Note</b>: This is nothing to do with the <see cref="LockingMechanism"/> object.
 		/// </para>
 		/// </remarks>
-		public abstract void LockRoot(int lock_key);
+		public abstract void LockRoot(int lockKey);
 
 		/// <summary>
 		/// Unlocks the root tables so that the underlying rows may

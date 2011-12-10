@@ -37,8 +37,8 @@ namespace Deveel.Data {
 		/// If a schema with the same <paramref name="name"/> already exists.
 		/// </exception>
 		public void CreateSchema(string name, string type) {
-			TableName table_name = TableDataConglomerate.SchemaInfoTable;
-			IMutableTableDataSource t = GetTable(table_name);
+			TableName tableName = TableDataConglomerate.SchemaInfoTable;
+			IMutableTableDataSource t = GetMutableTable(tableName);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 
 			try {
@@ -49,7 +49,7 @@ namespace Deveel.Data {
 
 				// Add the entry to the schema info table.
 				DataRow rd = new DataRow(t);
-				BigNumber uniqueId = NextUniqueID(table_name);
+				BigNumber uniqueId = NextUniqueID(tableName);
 				rd.SetValue(0, uniqueId);
 				rd.SetValue(1, name);
 				rd.SetValue(2, type);
@@ -76,9 +76,9 @@ namespace Deveel.Data {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void DropSchema(String name) {
+		public void DropSchema(string name) {
 			TableName tableName = TableDataConglomerate.SchemaInfoTable;
-			IMutableTableDataSource t = GetTable(tableName);
+			IMutableTableDataSource t = GetMutableTable(tableName);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 
 			// Drop a single entry from dt where column 1 = name
@@ -97,7 +97,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public bool SchemaExists(String name) {
 			TableName table_name = TableDataConglomerate.SchemaInfoTable;
-			IMutableTableDataSource t = GetTable(table_name);
+			ITableDataSource t = GetTable(table_name);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 
 			// Returns true if there's a single entry in dt where column 1 = name

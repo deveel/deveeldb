@@ -352,7 +352,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void SetPersistentVariable(string variable, string value) {
 			TableName tableName = TableDataConglomerate.PersistentVarTable;
-			IMutableTableDataSource t = GetTable(tableName);
+			ITableDataSource t = GetTable(tableName);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 			dt.SetVariable(0, new Object[] { variable, value });
 			dt.Dispose();
@@ -366,7 +366,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public String GetPersistantVariable(String variable) {
 			TableName tableName = TableDataConglomerate.PersistentVarTable;
-			IMutableTableDataSource t = GetTable(tableName);
+			ITableDataSource t = GetTable(tableName);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 			String val = dt.GetVariable(1, 0, variable).ToString();
 			dt.Dispose();
@@ -657,7 +657,7 @@ namespace Deveel.Data {
 
 			// ---------- Implemented ----------
 
-			public override IMutableTableDataSource CreateInternalTable(int index) {
+			public override ITableDataSource CreateInternalTable(int index) {
 				if (index == 0)
 					return new GTTableColumnsDataSource(transaction).Init();
 				if (index == 1)

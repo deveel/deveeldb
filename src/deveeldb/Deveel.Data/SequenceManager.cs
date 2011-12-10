@@ -77,7 +77,7 @@ namespace Deveel.Data {
 				// sequence table for this.
 				Transaction sequenceAccessTransaction = GetTransaction();
 				try {
-					IMutableTableDataSource seqi = sequenceAccessTransaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+					ITableDataSource seqi = sequenceAccessTransaction.GetTable(TableDataConglomerate.SysSequenceInfo);
 					SimpleTableQuery query = new SimpleTableQuery(seqi);
 
 					StringObject schemaVal = StringObject.FromString(name.Schema);
@@ -108,7 +108,7 @@ namespace Deveel.Data {
 						generator = new SequenceGenerator(idVal, name);
 					} else {
 						// Query the sequence table.
-						IMutableTableDataSource seq = sequenceAccessTransaction.GetTable(TableDataConglomerate.SysSequence);
+						ITableDataSource seq = sequenceAccessTransaction.GetTable(TableDataConglomerate.SysSequence);
 						query = new SimpleTableQuery(seq);
 
 						list = query.SelectEqual(0, sid);
@@ -165,8 +165,7 @@ namespace Deveel.Data {
 			Transaction sequenceAccessTransaction = GetTransaction();
 			try {
 				// The sequence table
-				IMutableTableDataSource seq = sequenceAccessTransaction.GetTable(
-												  TableDataConglomerate.SysSequence);
+				IMutableTableDataSource seq = sequenceAccessTransaction.GetMutableTable(TableDataConglomerate.SysSequence);
 				// Find the row with the id for this generator.
 				SimpleTableQuery query = new SimpleTableQuery(seq);
 				IList<int> list = query.SelectEqual(0, (BigNumber)generator.Id);
@@ -247,7 +246,7 @@ namespace Deveel.Data {
 				return;
 			}
 
-			IMutableTableDataSource table = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource table = transaction.GetMutableTable(TableDataConglomerate.SysSequenceInfo);
 			long uniqueId = transaction.NextUniqueID(TableDataConglomerate.SysSequenceInfo);
 
 			DataRow dataRow = new DataRow(table);
@@ -275,8 +274,8 @@ namespace Deveel.Data {
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			IMutableTableDataSource seq = transaction.GetTable(TableDataConglomerate.SysSequence);
-			IMutableTableDataSource seqi = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource seq = transaction.GetMutableTable(TableDataConglomerate.SysSequence);
+			IMutableTableDataSource seqi = transaction.GetMutableTable(TableDataConglomerate.SysSequenceInfo);
 
 			SimpleTableQuery query = new SimpleTableQuery(seqi);
 			IList<int> list = query.SelectEqual(2, TObject.CreateString(tableName.Name),
@@ -312,8 +311,8 @@ namespace Deveel.Data {
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			IMutableTableDataSource seq = transaction.GetTable(TableDataConglomerate.SysSequence);
-			IMutableTableDataSource seqi = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource seq = transaction.GetMutableTable(TableDataConglomerate.SysSequence);
+			IMutableTableDataSource seqi = transaction.GetMutableTable(TableDataConglomerate.SysSequenceInfo);
 
 			// All rows in 'sequence_info' that match this table name.
 			using (SimpleTableQuery query = new SimpleTableQuery(seqi)) {
@@ -350,8 +349,8 @@ namespace Deveel.Data {
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			IMutableTableDataSource seq = transaction.GetTable(TableDataConglomerate.SysSequence);
-			IMutableTableDataSource seqi = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource seq = transaction.GetMutableTable(TableDataConglomerate.SysSequence);
+			IMutableTableDataSource seqi = transaction.GetMutableTable(TableDataConglomerate.SysSequenceInfo);
 
 			// All rows in 'sequence_info' that match this table name.
 			using (SimpleTableQuery query = new SimpleTableQuery(seqi)) {
@@ -666,7 +665,7 @@ namespace Deveel.Data {
 				TableName seqInfo = TableDataConglomerate.SysSequenceInfo;
 				if (transaction.RealTableExists(seqInfo)) {
 					// Search the table.
-					IMutableTableDataSource table = transaction.GetTable(seqInfo);
+					ITableDataSource table = transaction.GetTable(seqInfo);
 					IRowEnumerator row_e = table.GetRowEnumerator();
 					int p = 0;
 					while (row_e.MoveNext()) {
@@ -692,7 +691,7 @@ namespace Deveel.Data {
 				TableName seqInfo = TableDataConglomerate.SysSequenceInfo;
 				if (transaction.RealTableExists(seqInfo)) {
 					// Search the table.
-					IMutableTableDataSource table = transaction.GetTable(seqInfo);
+					ITableDataSource table = transaction.GetTable(seqInfo);
 					IRowEnumerator row_e = table.GetRowEnumerator();
 					int p = 0;
 					while (row_e.MoveNext()) {
@@ -731,8 +730,8 @@ namespace Deveel.Data {
 				return CreateTableInfo(tableName.Schema, tableName.Name);
 			}
 
-			public IMutableTableDataSource CreateInternalTable(int index) {
-				IMutableTableDataSource table = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+			public ITableDataSource CreateInternalTable(int index) {
+				ITableDataSource table = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
 				IRowEnumerator rowEnum = table.GetRowEnumerator();
 				int p = 0;
 				int i;
@@ -760,7 +759,7 @@ namespace Deveel.Data {
 				TableName tableName = new TableName(schema, name);
 
 				// Find this id in the 'sequence' table
-				IMutableTableDataSource seqTable = transaction.GetTable(TableDataConglomerate.SysSequence);
+				ITableDataSource seqTable = transaction.GetTable(TableDataConglomerate.SysSequence);
 				SelectableScheme scheme = seqTable.GetColumnScheme(0);
 				IList<int> list = scheme.SelectEqual(seqId);
 				if (list.Count <= 0)

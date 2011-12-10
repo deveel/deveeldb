@@ -145,8 +145,8 @@ namespace Deveel.Data {
 			parent.RemoveDataTableListener(listener);
 		}
 
-		public override void LockRoot(int lock_key) {
-			parent.LockRoot(lock_key);
+		public override void LockRoot(int lockKey) {
+			parent.LockRoot(lockKey);
 		}
 
 		public override void UnlockRoot(int lock_key) {

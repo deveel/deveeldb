@@ -57,7 +57,7 @@ namespace Deveel.Data {
 			if (transaction.RealTableExists(table_name)) {
 				// Search the table.  We assume that the schema and name of the object
 				// are in columns 0 and 1 respectively.
-				IMutableTableDataSource table = transaction.GetTable(table_name);
+				ITableDataSource table = transaction.GetTable(table_name);
 				IRowEnumerator row_e = table.GetRowEnumerator();
 				int p = 0;
 				while (row_e.MoveNext()) {
@@ -81,7 +81,7 @@ namespace Deveel.Data {
 			if (transaction.RealTableExists(table_name)) {
 				// Search the table.  We assume that the schema and name of the object
 				// are in columns 0 and 1 respectively.
-				IMutableTableDataSource table = transaction.GetTable(table_name);
+				ITableDataSource table = transaction.GetTable(table_name);
 				IRowEnumerator row_e = table.GetRowEnumerator();
 				int p = 0;
 				while (row_e.MoveNext()) {
@@ -115,7 +115,7 @@ namespace Deveel.Data {
 		public abstract String GetTableType(int i);
 
 		/// <inheritdoc/>
-		public abstract IMutableTableDataSource CreateInternalTable(int index);
+		public abstract ITableDataSource CreateInternalTable(int index);
 
 	}
 }

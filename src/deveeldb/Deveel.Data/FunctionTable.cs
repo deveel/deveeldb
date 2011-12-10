@@ -575,13 +575,13 @@ namespace Deveel.Data {
 			ReferenceTable.RemoveDataTableListener(listener);
 		}
 
-		public override void LockRoot(int lock_key) {
+		public override void LockRoot(int lockKey) {
 			// We Lock the reference table.
 			// NOTE: This cause the reference table to Lock twice when we use the
 			//  'MergeWithReference' method.  While this isn't perfect behaviour, it
 			//  means if 'MergeWithReference' isn't used, we still maintain a safe
 			//  level of locking.
-			ReferenceTable.LockRoot(lock_key);
+			ReferenceTable.LockRoot(lockKey);
 		}
 
 		public override void UnlockRoot(int lock_key) {

@@ -90,7 +90,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		IMutableTableDataSource CreateInternalTable(int index);
+		ITableDataSource CreateInternalTable(int index);
 
 	}
 }

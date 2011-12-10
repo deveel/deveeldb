@@ -195,7 +195,7 @@ namespace Deveel.Data {
 				}
 
 				// Ask the transaction for the table
-				IMutableTableDataSource table = Transaction.GetTable(name);
+				ITableDataSource table = Transaction.GetTable(name);
 
 				// Is this table in the tables_cache?
 				DataTable dtable;

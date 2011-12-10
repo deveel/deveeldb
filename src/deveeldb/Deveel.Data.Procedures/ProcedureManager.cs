@@ -835,8 +835,8 @@ namespace Deveel.Data.Procedures {
 				return CreateTableInfo(tableName.Schema, tableName.Name);
 			}
 
-			public override IMutableTableDataSource CreateInternalTable(int index) {
-				IMutableTableDataSource table = transaction.GetTable(Database.SysFunction);
+			public override ITableDataSource CreateInternalTable(int index) {
+				ITableDataSource table = transaction.GetTable(Database.SysFunction);
 				IRowEnumerator row_e = table.GetRowEnumerator();
 				int p = 0;
 				int i;

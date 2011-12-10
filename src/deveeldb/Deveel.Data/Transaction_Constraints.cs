@@ -71,8 +71,8 @@ namespace Deveel.Data {
 		public void AddUniqueConstraint(TableName tableName, string[] cols, ConstraintDeferrability deferred, string constraintName) {
 			TableName tn1 = TableDataConglomerate.UniqueInfoTable;
 			TableName tn2 = TableDataConglomerate.UniqueColsTable;
-			IMutableTableDataSource t = GetTable(tn1);
-			IMutableTableDataSource tcols = GetTable(tn2);
+			IMutableTableDataSource t = GetMutableTable(tn1);
+			IMutableTableDataSource tcols = GetMutableTable(tn2);
 
 			try {
 
@@ -138,8 +138,8 @@ namespace Deveel.Data {
 			ConstraintAction deleteRule, ConstraintAction updateRule, ConstraintDeferrability deferred, String constraintName) {
 			TableName tn1 = TableDataConglomerate.ForeignInfoTable;
 			TableName tn2 = TableDataConglomerate.ForeignColsTable;
-			IMutableTableDataSource t = GetTable(tn1);
-			IMutableTableDataSource tcols = GetTable(tn2);
+			IMutableTableDataSource t = GetMutableTable(tn1);
+			IMutableTableDataSource tcols = GetMutableTable(tn2);
 
 			try {
 				// If 'ref_columns' empty then set to primary key for referenced table,
@@ -236,8 +236,8 @@ namespace Deveel.Data {
 		public void AddPrimaryKeyConstraint(TableName tableName, string[] cols, ConstraintDeferrability deferred, string constraintName) {
 			TableName tn1 = TableDataConglomerate.PrimaryInfoTable;
 			TableName tn2 = TableDataConglomerate.PrimaryColsTable;
-			IMutableTableDataSource t = GetTable(tn1);
-			IMutableTableDataSource tcols = GetTable(tn2);
+			IMutableTableDataSource t = GetMutableTable(tn1);
+			IMutableTableDataSource tcols = GetMutableTable(tn2);
 
 			try {
 				// Insert a value into PrimaryInfoTable
@@ -296,7 +296,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, string constraintName) {
 			TableName tn = TableDataConglomerate.CheckInfoTable;
-			IMutableTableDataSource t = GetTable(tn);
+			IMutableTableDataSource t = GetMutableTable(tn);
 			int colCount = t.TableInfo.ColumnCount;
 
 			try {
@@ -426,8 +426,8 @@ namespace Deveel.Data {
 		/// constraint existed), otherwise false.
 		/// </returns>
 		public bool DropPrimaryKeyConstraintForTable(TableName tableName, string constraintName) {
-			IMutableTableDataSource t = GetTable(TableDataConglomerate.PrimaryInfoTable);
-			IMutableTableDataSource t2 = GetTable(TableDataConglomerate.PrimaryColsTable);
+			IMutableTableDataSource t = GetMutableTable(TableDataConglomerate.PrimaryInfoTable);
+			IMutableTableDataSource t2 = GetMutableTable(TableDataConglomerate.PrimaryColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -484,8 +484,8 @@ namespace Deveel.Data {
 		/// existed), otherwise false.
 		/// </returns>
 		public bool DropUniqueConstraintForTable(TableName table, string constraintName) {
-			IMutableTableDataSource t = GetTable(TableDataConglomerate.UniqueInfoTable);
-			IMutableTableDataSource t2 = GetTable(TableDataConglomerate.UniqueColsTable);
+			IMutableTableDataSource t = GetMutableTable(TableDataConglomerate.UniqueInfoTable);
+			IMutableTableDataSource t2 = GetMutableTable(TableDataConglomerate.UniqueColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -536,7 +536,7 @@ namespace Deveel.Data {
 		/// existed), otherwise false.
 		/// </returns>
 		public bool DropCheckConstraintForTable(TableName table, string constraintName) {
-			IMutableTableDataSource t = GetTable(TableDataConglomerate.CheckInfoTable);
+			IMutableTableDataSource t = GetMutableTable(TableDataConglomerate.CheckInfoTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 
 			try {
@@ -579,8 +579,8 @@ namespace Deveel.Data {
 		/// (the constraint existed), otherwise false.
 		/// </returns>
 		public bool DropForeignKeyReferenceConstraintForTable(TableName table, string constraintName) {
-			IMutableTableDataSource t = GetTable(TableDataConglomerate.ForeignInfoTable);
-			IMutableTableDataSource t2 = GetTable(TableDataConglomerate.ForeignColsTable);
+			IMutableTableDataSource t = GetMutableTable(TableDataConglomerate.ForeignInfoTable);
+			IMutableTableDataSource t2 = GetMutableTable(TableDataConglomerate.ForeignColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 

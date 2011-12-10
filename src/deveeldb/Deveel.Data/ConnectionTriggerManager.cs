@@ -444,9 +444,8 @@ namespace Deveel.Data {
 				return CreateTableInfo(table_name.Schema, table_name.Name);
 			}
 
-			public override IMutableTableDataSource CreateInternalTable(int index) {
-				IMutableTableDataSource table =
-					transaction.GetTable(Database.SysDataTrigger);
+			public override ITableDataSource CreateInternalTable(int index) {
+				ITableDataSource table = transaction.GetTable(Database.SysDataTrigger);
 				IRowEnumerator row_e = table.GetRowEnumerator();
 				int p = 0;
 				int i;
