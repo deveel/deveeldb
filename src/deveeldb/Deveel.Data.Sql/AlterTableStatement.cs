@@ -217,7 +217,7 @@ namespace Deveel.Data.Sql {
 				// Get the table definition for the table name,
 				DataTableInfo tableInfo = Connection.GetTable(tname).TableInfo;
 				String table_name = tableInfo.Name;
-				DataTableInfo new_table = tableInfo.NoColumnCopy();
+				DataTableInfo new_table = tableInfo.NoColumnClone();
 
 				// Returns a ColumnChecker implementation for this table.
 				ColumnChecker checker =

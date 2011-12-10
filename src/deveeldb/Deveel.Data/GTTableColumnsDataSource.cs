@@ -131,24 +131,23 @@ namespace Deveel.Data {
 
 		static GTTableColumnsDataSource() {
 
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = new TableName(Database.SystemSchema, "table_columns");
+			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "table_columns"));
 
 			// Add column definitions
-			info.AddColumn(GetStringColumn("schema"));
-			info.AddColumn(GetStringColumn("table"));
-			info.AddColumn(GetStringColumn("column"));
-			info.AddColumn(GetNumericColumn("sql_type"));
-			info.AddColumn(GetStringColumn("type_desc"));
-			info.AddColumn(GetNumericColumn("size"));
-			info.AddColumn(GetNumericColumn("scale"));
-			info.AddColumn(GetBooleanColumn("not_null"));
-			info.AddColumn(GetStringColumn("default"));
-			info.AddColumn(GetStringColumn("index_str"));
-			info.AddColumn(GetNumericColumn("seq_no"));
+			info.AddColumn("schema", TType.StringType);
+			info.AddColumn("table", TType.StringType);
+			info.AddColumn("column", TType.StringType);
+			info.AddColumn("sql_type", TType.NumericType);
+			info.AddColumn("type_desc", TType.StringType);
+			info.AddColumn("size", TType.NumericType);
+			info.AddColumn("scale", TType.NumericType);
+			info.AddColumn("not_null", TType.BooleanType);
+			info.AddColumn("default", TType.StringType);
+			info.AddColumn("index_str", TType.StringType);
+			info.AddColumn("seq_no", TType.NumericType);
 
 			// Set to immutable
-			info.SetImmutable();
+			info.IsReadOnly = true;
 
 			DEF_DATA_TABLE_DEF = info;
 		}

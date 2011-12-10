@@ -685,77 +685,67 @@ namespace Deveel.Data {
 
 		private static void CreateSystemTables(DatabaseConnection connection) {
 			// --- The user management tables ---
-			DataTableInfo password = new DataTableInfo();
-			password.TableName = SysPassword;
-			password.AddColumn(DataTableColumnInfo.CreateStringColumn("UserName"));
-			password.AddColumn(DataTableColumnInfo.CreateStringColumn("Password"));
+			DataTableInfo password = new DataTableInfo(SysPassword);
+			password.AddColumn("UserName", TType.StringType);
+			password.AddColumn("Password", TType.StringType);
 
-			DataTableInfo userPriv = new DataTableInfo();
-			userPriv.TableName = SysUserPriv;
-			userPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("UserName"));
-			userPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("PrivGroupName"));
+			DataTableInfo userPriv = new DataTableInfo(SysUserPriv);
+			userPriv.AddColumn("UserName", TType.StringType);
+			userPriv.AddColumn("PrivGroupName", TType.StringType);
 
-			DataTableInfo userConnectPriv = new DataTableInfo();
-			userConnectPriv.TableName = SysUserConnect;
-			userConnectPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("UserName"));
-			userConnectPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("Protocol"));
-			userConnectPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("Host"));
-			userConnectPriv.AddColumn(DataTableColumnInfo.CreateStringColumn("Access"));
+			DataTableInfo userConnectPriv = new DataTableInfo(SysUserConnect);
+			userConnectPriv.AddColumn("UserName", TType.StringType);
+			userConnectPriv.AddColumn("Protocol", TType.StringType);
+			userConnectPriv.AddColumn("Host", TType.StringType);
+			userConnectPriv.AddColumn("Access", TType.StringType);
 
-			DataTableInfo grant = new DataTableInfo();
-			grant.TableName = SysGrants;
-			grant.AddColumn(DataTableColumnInfo.CreateNumericColumn("priv_bit"));
-			grant.AddColumn(DataTableColumnInfo.CreateNumericColumn("object"));
-			grant.AddColumn(DataTableColumnInfo.CreateStringColumn("param"));
-			grant.AddColumn(DataTableColumnInfo.CreateStringColumn("grantee"));
-			grant.AddColumn(DataTableColumnInfo.CreateStringColumn("grant_option"));
-			grant.AddColumn(DataTableColumnInfo.CreateStringColumn("granter"));
+			DataTableInfo grant = new DataTableInfo(SysGrants);
+			grant.AddColumn("priv_bit", TType.NumericType);
+			grant.AddColumn("object", TType.NumericType);
+			grant.AddColumn("param", TType.StringType);
+			grant.AddColumn("grantee", TType.StringType);
+			grant.AddColumn("grant_option", TType.StringType);
+			grant.AddColumn("granter", TType.StringType);
 
-			DataTableInfo service = new DataTableInfo();
-			service.TableName = SysService;
-			service.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			service.AddColumn(DataTableColumnInfo.CreateStringColumn("class"));
-			service.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
+			DataTableInfo service = new DataTableInfo(SysService);
+			service.AddColumn("name", TType.StringType);
+			service.AddColumn("class", TType.StringType);
+			service.AddColumn("type", TType.StringType);
 
-			DataTableInfo functionFactory = new DataTableInfo();
-			functionFactory.TableName = SysFunctionfactory;
-			functionFactory.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			functionFactory.AddColumn(DataTableColumnInfo.CreateStringColumn("class"));
-			functionFactory.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
+			DataTableInfo functionFactory = new DataTableInfo(SysFunctionfactory);
+			functionFactory.AddColumn("name", TType.StringType);
+			functionFactory.AddColumn("class", TType.StringType);
+			functionFactory.AddColumn("type", TType.StringType);
 
-			DataTableInfo function = new DataTableInfo();
-			function.TableName = SysFunction;
-			function.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			function.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			function.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
-			function.AddColumn(DataTableColumnInfo.CreateStringColumn("location"));
-			function.AddColumn(DataTableColumnInfo.CreateStringColumn("return_type"));
-			function.AddColumn(DataTableColumnInfo.CreateStringColumn("args_type"));
-			function.AddColumn(DataTableColumnInfo.CreateStringColumn("username"));
+			DataTableInfo function = new DataTableInfo(SysFunction);
+			function.AddColumn("schema", TType.StringType);
+			function.AddColumn("name", TType.StringType);
+			function.AddColumn("type", TType.StringType);
+			function.AddColumn("location", TType.StringType);
+			function.AddColumn("return_type", TType.StringType);
+			function.AddColumn("args_type", TType.StringType);
+			function.AddColumn("username", TType.StringType);
 
-			DataTableInfo view = new DataTableInfo();
-			view.TableName = SysView;
-			view.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			view.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			view.AddColumn(DataTableColumnInfo.CreateBinaryColumn("query"));
-			view.AddColumn(DataTableColumnInfo.CreateBinaryColumn("data"));
-			view.AddColumn(DataTableColumnInfo.CreateStringColumn("username"));
+			DataTableInfo view = new DataTableInfo(SysView);
+			view.AddColumn("schema", TType.StringType);
+			view.AddColumn("name", TType.StringType);
+			view.AddColumn("query", TType.BinaryType);
+			view.AddColumn("data", TType.BinaryType);
+			view.AddColumn("username", TType.StringType);
 
-			DataTableInfo label = new DataTableInfo();
-			label.TableName = SysLabel;
-			label.AddColumn(DataTableColumnInfo.CreateNumericColumn("object_type"));
-			label.AddColumn(DataTableColumnInfo.CreateStringColumn("object_name"));
-			label.AddColumn(DataTableColumnInfo.CreateStringColumn("label"));
+			DataTableInfo label = new DataTableInfo(SysLabel);
+			label.AddColumn("object_type", TType.NumericType);
+			label.AddColumn("object_name", TType.StringType);
+			label.AddColumn("label", TType.StringType);
 
-			DataTableInfo dataTrigger = new DataTableInfo();
-			dataTrigger.TableName = SysDataTrigger;
-			dataTrigger.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			dataTrigger.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			dataTrigger.AddColumn(DataTableColumnInfo.CreateNumericColumn("type"));
-			dataTrigger.AddColumn(DataTableColumnInfo.CreateStringColumn("on_object"));
-			dataTrigger.AddColumn(DataTableColumnInfo.CreateStringColumn("action"));
-			dataTrigger.AddColumn(DataTableColumnInfo.CreateBinaryColumn("misc"));
-			dataTrigger.AddColumn(DataTableColumnInfo.CreateStringColumn("username"));
+			DataTableInfo dataTrigger = new DataTableInfo(SysDataTrigger);
+			dataTrigger.AddColumn("schema", TType.StringType);
+			dataTrigger.AddColumn("name", TType.StringType);
+			dataTrigger.AddColumn("type", TType.NumericType);
+			dataTrigger.AddColumn("on_object", TType.StringType);
+			dataTrigger.AddColumn("action", TType.StringType);
+			dataTrigger.AddColumn("misc", TType.BinaryType);
+			dataTrigger.AddColumn("username", TType.StringType);
 
 			// Create the tables
 			connection.AlterCreateTable(password, 91, 128);

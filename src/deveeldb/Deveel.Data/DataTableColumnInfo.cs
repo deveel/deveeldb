@@ -25,6 +25,8 @@ namespace Deveel.Data {
 	/// (<see cref="DataTableInfo"/>).
 	/// </summary>
 	public sealed class DataTableColumnInfo : ICloneable {
+		private DataTableInfo tableInfo;
+
 		/// <summary>
 		/// A flag indicating if the column must allow only not-null values.
 		/// </summary>
@@ -62,14 +64,20 @@ namespace Deveel.Data {
 		/// </summary>
 		private readonly TType type;
 
-		public DataTableColumnInfo(string name, TType type) {
+		internal DataTableColumnInfo(DataTableInfo tableInfo, string name, TType type) {
 			if (name == null)
 				throw new ArgumentNullException("name");
 			if (type == null) 
 				throw new ArgumentNullException("type");
 
+			this.tableInfo = tableInfo;
 			this.name = name;
 			this.type = type;
+		}
+
+		public DataTableInfo TableInfo {
+			get { return tableInfo; }
+			internal set { tableInfo = value; }
 		}
 
 		///<summary>
@@ -242,45 +250,6 @@ namespace Deveel.Data {
 		}
 
 
-		///<summary>
-		/// Creates a DataTableColumnInfo that holds a numeric value.
-		///</summary>
-		///<param name="name"></param>
-		///<returns></returns>
-		public static DataTableColumnInfo CreateNumericColumn(string name) {
-			return new DataTableColumnInfo(name, TType.NumericType);
-		}
-
-		///<summary>
-		/// Creates a DataTableColumnInfo that holds a boolean value.
-		///</summary>
-		///<param name="name"></param>
-		///<returns></returns>
-		public static DataTableColumnInfo CreateBooleanColumn(string name) {
-			return new DataTableColumnInfo(name, TType.BooleanType);
-		}
-
-		///<summary>
-		/// Creates a DataTableColumnInfo that holds a string value.
-		///</summary>
-		///<param name="name"></param>
-		///<returns></returns>
-		public static DataTableColumnInfo CreateStringColumn(string name) {
-			return new DataTableColumnInfo(name, TType.StringType);
-		}
-
-		///<summary>
-		/// Creates a DataTableColumnInfo that holds a binary value.
-		///</summary>
-		///<param name="name"></param>
-		///<returns></returns>
-		public static DataTableColumnInfo CreateBinaryColumn(string name) {
-			DataTableColumnInfo column = new DataTableColumnInfo(name, TType.BinaryType);
-			column.IndexScheme = "BlindSearch";
-			return column;
-		}
-
-
 		// ---------- IO Methods ----------
 
 		/// <summary>
@@ -291,11 +260,7 @@ namespace Deveel.Data {
 			output.Write(3); // The version
 
 			output.Write(name);
-			byte[] typeBytes = TType.ToByteArray(type);
-			int sz = typeBytes.Length;
-			output.Write(sz);
-			output.Write(typeBytes, 0, sz);
-
+			TType.ToBinaryWriter(type, output);
 			output.Write(notNull);
 
 			if (defaultExpressionString != null) {
@@ -313,30 +278,27 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Reads this column from a <see cref="BinaryReader"/>.
 		/// </summary>
+		/// <param name="tableInfo"></param>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		internal static DataTableColumnInfo Read(BinaryReader input) {
+		internal static DataTableColumnInfo Read(DataTableInfo tableInfo, BinaryReader input) {
 			int ver = input.ReadInt32();
 
 			string name = input.ReadString();
-			int typeSz = input.ReadInt32();
-			byte[] typeBytes = new byte[typeSz];
-			input.Read(typeBytes, 0, typeSz);
-			TType type = TType.FromByteArray(typeBytes);
-
-			DataTableColumnInfo cd = new DataTableColumnInfo(name, type);
+			TType type = TType.ReadFrom(input);
+			DataTableColumnInfo cd = new DataTableColumnInfo(tableInfo, name, type);
 			
 			cd.notNull = input.ReadBoolean();
 
-			bool b = input.ReadBoolean();
-			if (b) {
+			bool hasExpression = input.ReadBoolean();
+			if (hasExpression) {
 				cd.defaultExpressionString = input.ReadString();
 				//      cd.default_exp = Expression.Parse(input.readUTF());
 			}
 
 			cd.indexType = input.ReadString();
 			if (ver > 1) {
-				String cc = input.ReadString();
+				string cc = input.ReadString();
 				if (!cc.Equals("")) {
 					cd.TypeConstraintString = cc;
 				}
@@ -352,7 +314,7 @@ namespace Deveel.Data {
 		}
 
 		public DataTableColumnInfo Clone() {
-			DataTableColumnInfo clone = new DataTableColumnInfo((string)name.Clone(), type);
+			DataTableColumnInfo clone = new DataTableColumnInfo(tableInfo, (string)name.Clone(), type);
 			clone.notNull = notNull;
 			if (!String.IsNullOrEmpty(defaultExpressionString)) {
 				clone.defaultExpressionString = (string) defaultExpressionString.Clone();

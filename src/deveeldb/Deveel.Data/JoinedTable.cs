@@ -99,13 +99,13 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="tables"></param>
 		protected virtual void Init(Table[] tables) {
-			int table_count = tables.Length;
+			int tableCount = tables.Length;
 			reference_list = tables;
 
 			int col_count = ColumnCount;
 			column_scheme = new SelectableScheme[col_count];
 
-			vtTableInfo = new DataTableInfo();
+			vtTableInfo = new DataTableInfo(new TableName(null, "#VIRTUAL TABLE#"));
 
 			// Generate look up tables for column_table and column_filter information
 
@@ -114,28 +114,23 @@ namespace Deveel.Data {
 			int index = 0;
 			for (int i = 0; i < reference_list.Length; ++i) {
 
-				Table cur_table = reference_list[i];
-				DataTableInfo curTableInfo = cur_table.TableInfo;
-				int ref_col_count = cur_table.ColumnCount;
+				Table curTable = reference_list[i];
+				DataTableInfo curTableInfo = curTable.TableInfo;
+				int refColCount = curTable.ColumnCount;
 
 				// For each column
-				for (int n = 0; n < ref_col_count; ++n) {
+				for (int n = 0; n < refColCount; ++n) {
 					column_filter[index] = n;
 					column_table[index] = i;
 					++index;
 
 					// Add this column to the data table info of this table.
-					vtTableInfo.AddVirtualColumn(curTableInfo[n].Clone());
+					vtTableInfo.AddColumn(curTableInfo[n].Clone());
 				}
 
 			}
 
-			// Final setup the DataTableInfo for this virtual table
-
-			vtTableInfo.TableName = new TableName(null, "#VIRTUAL TABLE#");
-
-			vtTableInfo.SetImmutable();
-
+			vtTableInfo.IsReadOnly = true;
 		}
 
 		/// <summary>

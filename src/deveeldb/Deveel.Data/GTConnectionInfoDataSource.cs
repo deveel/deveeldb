@@ -114,15 +114,14 @@ namespace Deveel.Data {
 		internal static readonly DataTableInfo DataTableInfo;
 
 		static GTConnectionInfoDataSource() {
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = new TableName(Database.SystemSchema, "connection_info");
+			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "connection_info"));
 
 			// Add column definitions
-			info.AddColumn(GetStringColumn("var"));
-			info.AddColumn(GetStringColumn("value"));
+			info.AddColumn("var", TType.StringType);
+			info.AddColumn("value", TType.StringType);
 
 			// Set to immutable
-			info.SetImmutable();
+			info.IsReadOnly = true;
 
 			DataTableInfo = info;
 		}

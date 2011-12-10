@@ -32,7 +32,7 @@ namespace Deveel.Data {
 		/// <summary>
 		///  A TableName object that represents this data table info.
 		/// </summary>
-		private TableName tableName;
+		private readonly TableName tableName;
 
 		/// <summary>
 		/// The type of table this is (this is the class name of the object that
@@ -49,29 +49,34 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Set to true if this data table info is immutable.
 		/// </summary>
-		private bool immutable;
+		private bool readOnly;
 
 		///<summary>
 		///</summary>
-		public DataTableInfo() {
+		public DataTableInfo(TableName tableName) {
+			if (tableName == null)
+				throw new ArgumentNullException("tableName");
+
+			this.tableName = tableName;
 			columns = new List<DataTableColumnInfo>();
 			tableTypeName = "";
-			immutable = false;
+			readOnly = false;
+		}
+
+		public DataTableInfo(string schema, string tableName)
+			: this(new TableName(schema, tableName)) {
+		}
+
+		public DataTableInfo(string tableName)
+			: this(TableName.Resolve(tableName)) {
 		}
 
 		///<summary>
-		/// Sets this DataTableInfo to immutable which means nothing is 
-		/// able to change it.
+		/// Gets or sets a value indicating whether this is immutable or not.
 		///</summary>
-		public void SetImmutable() {
-			immutable = true;
-		}
-
-		///<summary>
-		/// Returns true if this is immutable.
-		///</summary>
-		public bool IsImmutable {
-			get { return immutable; }
+		public bool IsReadOnly {
+			get { return readOnly; }
+			set { readOnly = value; }
 		}
 
 		/// <summary>
@@ -81,7 +86,7 @@ namespace Deveel.Data {
 		/// If the current <see cref="DataTableInfo"/> is immutable.
 		/// </exception>
 		private void CheckMutable() {
-			if (IsImmutable) {
+			if (IsReadOnly) {
 				throw new ApplicationException("Tried to mutate immutable object.");
 			}
 		}
@@ -172,11 +177,10 @@ namespace Deveel.Data {
 					found = n;
 				}
 			}
-			if (found != -1) {
+			if (found != -1)
 				return this[found].Name;
-			} else {
-				throw new DatabaseException("Column '" + col_name + "' not found");
-			}
+
+			throw new DatabaseException("Column '" + col_name + "' not found");
 		}
 
 		/// <summary>
@@ -192,38 +196,39 @@ namespace Deveel.Data {
 		public void ResolveColumnsInArray(DatabaseConnection connection, ArrayList list) {
 			bool ignore_case = connection.IsInCaseInsensitiveMode;
 			for (int i = 0; i < list.Count; ++i) {
-				String col_name = (String)list[i];
-				list[i] = ResolveColumnName((String)list[i], ignore_case);
+				string col_name = (string)list[i];
+				list[i] = ResolveColumnName(col_name, ignore_case);
 			}
 		}
 
-		// ---------- Set methods ----------
-
-		///<summary>
-		///</summary>
-		///<param name="colInfo"></param>
-		///<exception cref="ApplicationException"></exception>
-		public void AddColumn(DataTableColumnInfo colInfo) {
+		internal void AddColumn(DataTableColumnInfo column) {
 			CheckMutable();
-			// Is there already a column with this name input the table info?
-			foreach (DataTableColumnInfo cd in columns) {
-				if (cd.Name.Equals(colInfo.Name))
-					throw new ApplicationException("Duplicated columns found.");
-			}
-
-			columns.Add(colInfo);
+			column.TableInfo = this;
+			columns.Add(column);
 		}
 
-		///<summary>
-		///</summary>
-		///<param name="colInfo"></param>
-		/// <remarks>
-		/// Same as <see cref="AddColumn"/> only this does not perform a 
-		/// check to ensure no two columns are the same.
-		/// </remarks>
-		public void AddVirtualColumn(DataTableColumnInfo colInfo) {
+		public DataTableColumnInfo AddColumn(string name, TType type, bool notNull) {
+			DataTableColumnInfo column = AddColumn(name, type);
+			column.IsNotNull = notNull;
+			return column;
+		}
+
+		public DataTableColumnInfo AddColumn(string name, TType type) {
 			CheckMutable();
-			columns.Add(colInfo);
+
+			if (name == null)
+				throw new ArgumentNullException("name");
+			if (type == null)
+				throw new ArgumentNullException("type");
+
+			foreach (DataTableColumnInfo column in columns) {
+				if (column.Name.Equals(name))
+					throw new ArgumentException("Column '" + name + "' already exists in table '" + tableName + "'.");
+			}
+
+			DataTableColumnInfo newColumn = new DataTableColumnInfo(this, name, type);
+			columns.Add(newColumn);
+			return newColumn;
 		}
 
 		/// <summary>
@@ -250,7 +255,6 @@ namespace Deveel.Data {
 		/// </summary>
 		public TableName TableName {
 			get { return tableName; }
-			set { tableName = value; }
 		}
 
 		/// <summary>
@@ -290,7 +294,7 @@ namespace Deveel.Data {
 		/// If <paramref name="column"/> is out of range of the column list.
 		/// </exception>
 		public DataTableColumnInfo this[int column] {
-			get { return (DataTableColumnInfo) columns[column]; }
+			get { return columns[column]; }
 		}
 
 		///<summary>
@@ -329,9 +333,8 @@ namespace Deveel.Data {
 					int ci = FindColumnName(col);
 					col_name_lookup[col] =ci;
 					return ci;
-				} else {
-					return (int)ob;
 				}
+				return (int)ob;
 			}
 		}
 
@@ -341,14 +344,9 @@ namespace Deveel.Data {
 		/// contained in it.
 		/// </summary>
 		/// <returns></returns>
-		public DataTableInfo NoColumnCopy() {
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = TableName;
-			//    info.setSchema(schema);
-			//    info.setName(name);
-
+		public DataTableInfo NoColumnClone() {
+			DataTableInfo info = new DataTableInfo(tableName);
 			info.tableTypeName = tableTypeName;
-
 			return info;
 		}
 
@@ -377,27 +375,24 @@ namespace Deveel.Data {
 		/// <param name="input"></param>
 		/// <returns></returns>
 		internal static DataTableInfo Read(BinaryReader input) {
-			DataTableInfo tableInfo = new DataTableInfo();
 			int ver = input.ReadInt32();
 			if (ver == 1)
 				throw new IOException("Version 1 DataTableInfo no longer supported.");
 
-			if (ver == 2) {
-				string rname = input.ReadString();
-				string rschema = input.ReadString();
-				tableInfo.TableName = new TableName(rschema, rname);
-				tableInfo.tableTypeName = input.ReadString();
-				int size = input.ReadInt32();
-				for (int i = 0; i < size; ++i) {
-					DataTableColumnInfo colInfo = DataTableColumnInfo.Read(input);
-					tableInfo.columns.Add(colInfo);
-				}
-
-			} else {
+			if (ver != 2)
 				throw new ApplicationException("Unrecognized DataTableInfo version (" + ver + ")");
+
+			string rname = input.ReadString();
+			string rschema = input.ReadString();
+			DataTableInfo tableInfo = new DataTableInfo(new TableName(rschema, rname));
+			tableInfo.tableTypeName = input.ReadString();
+			int size = input.ReadInt32();
+			for (int i = 0; i < size; ++i) {
+				DataTableColumnInfo colInfo = DataTableColumnInfo.Read(tableInfo, input);
+				tableInfo.columns.Add(colInfo);
 			}
 
-			tableInfo.SetImmutable();
+			tableInfo.IsReadOnly = true;
 			return tableInfo;
 		}
 
@@ -406,9 +401,12 @@ namespace Deveel.Data {
 		}
 
 		public DataTableInfo Clone() {
-			DataTableInfo clone = new DataTableInfo();
-			clone.tableName = tableName;
-			clone.tableTypeName = (string) tableTypeName.Clone();
+			return Clone(tableName);
+		}
+
+		public DataTableInfo Clone(TableName newTableName) {
+			DataTableInfo clone = new DataTableInfo(newTableName);
+			clone.tableTypeName = (string)tableTypeName.Clone();
 			clone.columns = new List<DataTableColumnInfo>();
 			foreach (DataTableColumnInfo column in columns) {
 				clone.columns.Add(column.Clone());

@@ -97,15 +97,14 @@ namespace Deveel.Data {
 
 		static GTProductDataSource() {
 
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = new TableName(Database.SystemSchema, "product_info");
+			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "product_info"));
 
 			// Add column definitions
-			info.AddColumn(GetStringColumn("var"));
-			info.AddColumn(GetStringColumn("value"));
+			info.AddColumn("var", TType.StringType);
+			info.AddColumn("value", TType.StringType);
 
 			// Set to immutable
-			info.SetImmutable();
+			info.IsReadOnly = true;
 
 			DEF_DATA_TABLE_DEF = info;
 

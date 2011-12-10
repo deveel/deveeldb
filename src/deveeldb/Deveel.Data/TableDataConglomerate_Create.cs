@@ -175,125 +175,111 @@ namespace Deveel.Data {
 
 			DataTableInfo table;
 
-			table = new DataTableInfo();
-			table.TableName = SysSequenceInfo;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("type"));
+			table = new DataTableInfo(SysSequenceInfo);
+			table.AddColumn("id", TType.NumericType);
+			table.AddColumn("schema", TType.StringType);
+			table.AddColumn("name", TType.StringType);
+			table.AddColumn("type", TType.NumericType);
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
-			table.TableName = SysSequence;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_id"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("last_value"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("increment"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("minvalue"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("maxvalue"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("start"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("cache"));
-			table.AddColumn(DataTableColumnInfo.CreateBooleanColumn("cycle"));
+			table = new DataTableInfo(SysSequence);
+			table.AddColumn("seq_id", TType.NumericType);
+			table.AddColumn("last_value", TType.NumericType);
+			table.AddColumn("increment", TType.NumericType);
+			table.AddColumn("minvalue", TType.NumericType);
+			table.AddColumn("maxvalue", TType.NumericType);
+			table.AddColumn("start", TType.NumericType);
+			table.AddColumn("cache", TType.NumericType);
+			table.AddColumn("cycle", TType.BooleanType);
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
-			table.TableName = PrimaryInfoTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
+			table = new DataTableInfo(PrimaryInfoTable);
+			table.AddColumn("id", TType.NumericType);
+			table.AddColumn("name", TType.StringType);
+			table.AddColumn("schema", TType.StringType);
+			table.AddColumn("table", TType.StringType);
+			table.AddColumn("deferred", TType.NumericType);
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
-			table.TableName = ForeignInfoTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("ref_schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("ref_table"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("update_rule"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("delete_rule"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
+			table = new DataTableInfo(ForeignInfoTable);
+			table.AddColumn("id", TType.NumericType);
+			table.AddColumn("name", TType.StringType);
+			table.AddColumn("schema", TType.StringType);
+			table.AddColumn("table", TType.StringType);
+			table.AddColumn("ref_schema", TType.StringType);
+			table.AddColumn("ref_table", TType.StringType);
+			table.AddColumn("update_rule", TType.NumericType);
+			table.AddColumn("delete_rule", TType.NumericType);
+			table.AddColumn("deferred", TType.NumericType);
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
-			table.TableName = UniqueInfoTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
+			table = new DataTableInfo(UniqueInfoTable);
+			table.AddColumn("id", TType.NumericType);
+			table.AddColumn("name", TType.StringType);
+			table.AddColumn("schema", TType.StringType);
+			table.AddColumn("table", TType.StringType);
+			table.AddColumn("deferred", TType.NumericType);
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
-			table.TableName = CheckInfoTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("table"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("expression"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("deferred"));
-			table.AddColumn(
-					DataTableColumnInfo.CreateBinaryColumn("serialized_expression"));
+			table = new DataTableInfo(CheckInfoTable);
+			table.AddColumn("id", TType.NumericType);
+			table.AddColumn("name", TType.StringType);
+			table.AddColumn("schema", TType.StringType);
+			table.AddColumn("table", TType.StringType);
+			table.AddColumn("expression", TType.StringType);
+			table.AddColumn("deferred", TType.NumericType);
+			table.AddColumn("serialized_expression", TType.BinaryType);
 			transaction.AlterCreateTable(table, 187, 128);
 
-			table = new DataTableInfo();
-			table.TableName = PrimaryColsTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("pk_id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("column"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_no"));
+			table = new DataTableInfo(PrimaryColsTable);
+			table.AddColumn("pk_id", TType.NumericType);
+			table.AddColumn("column", TType.StringType);
+			table.AddColumn("seq_no", TType.NumericType);
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableInfo();
-			table.TableName = UniqueColsTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("un_id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("column"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_no"));
+			table = new DataTableInfo(UniqueColsTable);
+			table.AddColumn("un_id", TType.NumericType);
+			table.AddColumn("column", TType.StringType);
+			table.AddColumn("seq_no", TType.NumericType);
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableInfo();
-			table.TableName = ForeignColsTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("fk_id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("fcolumn"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("pcolumn"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("seq_no"));
+			table = new DataTableInfo(ForeignColsTable);
+			table.AddColumn("fk_id", TType.NumericType);
+			table.AddColumn("fcolumn", TType.StringType);
+			table.AddColumn("pcolumn", TType.StringType);
+			table.AddColumn("seq_no", TType.NumericType);
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableInfo();
-			table.TableName = SchemaInfoTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("other"));
+			table = new DataTableInfo(SchemaInfoTable);
+			table.AddColumn("id", TType.NumericType);
+			table.AddColumn("name", TType.StringType);
+			table.AddColumn("type", TType.StringType);
+			table.AddColumn("other", TType.StringType);
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// Stores misc variables of the database,
-			table = new DataTableInfo();
-			table.TableName = PersistentVarTable;
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("variable"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("value"));
+			table = new DataTableInfo(PersistentVarTable);
+			table.AddColumn("variable", TType.StringType);
+			table.AddColumn("value", TType.StringType);
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// the UDT tables...
-			table = new DataTableInfo();
-			table.TableName = UdtTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("schema"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("attrs"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("parent"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("ext_parent"));
+			table = new DataTableInfo(UdtTable);
+			table.AddColumn("id", TType.NumericType);
+			table.AddColumn("schema", TType.StringType);
+			table.AddColumn("name", TType.StringType);
+			table.AddColumn("attrs", TType.NumericType);
+			table.AddColumn("parent", TType.NumericType);
+			table.AddColumn("ext_parent", TType.StringType);
 			transaction.AlterCreateTable(table, 91, 128);
 
-			table = new DataTableInfo();
-			table.TableName = UdtMembersTable;
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("type_id"));
-			table.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("col_type"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("size"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("scale"));
-			table.AddColumn(DataTableColumnInfo.CreateNumericColumn("not_null"));
+			table = new DataTableInfo(UdtMembersTable);
+			table.AddColumn("type_id", TType.NumericType);
+			table.AddColumn("name", TType.StringType);
+			table.AddColumn("col_type", TType.NumericType);
+			table.AddColumn("size", TType.NumericType);
+			table.AddColumn("scale", TType.NumericType);
+			table.AddColumn("not_null", TType.BooleanType);
 			transaction.AlterCreateTable(table, 91, 128);
 
 			// Commit and close the transaction.

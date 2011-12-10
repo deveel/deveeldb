@@ -104,15 +104,14 @@ namespace Deveel.Data {
 
 		static GTStatisticsDataSource() {
 
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = new TableName(Database.SystemSchema, "database_stats");
+			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "database_stats"));
 
 			// Add column definitions
-			info.AddColumn(GetStringColumn("stat_name"));
-			info.AddColumn(GetStringColumn("value"));
+			info.AddColumn("stat_name", TType.StringType);
+			info.AddColumn("value", TType.StringType);
 
 			// Set to immutable
-			info.SetImmutable();
+			info.IsReadOnly = true;
 
 			DEF_DATA_TABLE_DEF = info;
 		}

@@ -46,12 +46,11 @@ namespace Deveel.Data {
 
 			tableStorage = new List<TObject[]>();
 
-			tableInfo = new DataTableInfo();
-			tableInfo.TableName = new TableName(null, name);
+			tableInfo = new DataTableInfo(new TableName(null, name));
 			foreach (DataTableColumnInfo field in fields) {
-				tableInfo.AddVirtualColumn(field.Clone());
+				tableInfo.AddColumn(field.Clone());
 			}
-			tableInfo.SetImmutable();
+			tableInfo.IsReadOnly = true;
 		}
 
 		/// <summary>
@@ -63,9 +62,8 @@ namespace Deveel.Data {
 		public TemporaryTable(String name, Table based_on)
 			: base(based_on.Database) {
 
-			tableInfo = based_on.TableInfo.Clone();
-			tableInfo.TableName = new TableName(null, name);
-			tableInfo.SetImmutable();
+			tableInfo = based_on.TableInfo.Clone(new TableName(null, name));
+			tableInfo.IsReadOnly = true;
 		}
 
 		/// <summary>
@@ -77,7 +75,7 @@ namespace Deveel.Data {
 			: base(based_on.Database) {
 
 			tableInfo = based_on.TableInfo.Clone();
-			tableInfo.SetImmutable();
+			tableInfo.IsReadOnly = true;
 		}
 
 
@@ -292,7 +290,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		internal static TemporaryTable SingleColumnTable(Database database, String columnName, Type c) {
 			TType ttype = TType.FromType(c);
-			DataTableColumnInfo colInfo = new DataTableColumnInfo(columnName, ttype);
+			DataTableColumnInfo colInfo = new DataTableColumnInfo(null, columnName, ttype);
 			TemporaryTable table = new TemporaryTable(database, "single", new DataTableColumnInfo[] { colInfo });
 
 			//      int type = TypeUtil.ToDbType(c);

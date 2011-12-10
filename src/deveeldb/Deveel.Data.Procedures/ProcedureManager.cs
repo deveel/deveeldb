@@ -809,18 +809,17 @@ namespace Deveel.Data.Procedures {
 
 			private static DataTableInfo CreateTableInfo(String schema, String name) {
 				// Create the DataTableInfo that describes this entry
-				DataTableInfo info = new DataTableInfo();
-				info.TableName = new TableName(schema, name);
+				DataTableInfo info = new DataTableInfo(new TableName(schema, name));
 
 				// Add column definitions
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("type"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("location"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("return_type"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("param_args"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("owner"));
+				info.AddColumn("type", TType.StringType);
+				info.AddColumn("location", TType.StringType);
+				info.AddColumn("return_type", TType.StringType);
+				info.AddColumn("param_args", TType.StringType);
+				info.AddColumn("owner", TType.StringType);
 
 				// Set to immutable
-				info.SetImmutable();
+				info.IsReadOnly = true;
 
 				// Return the data table info
 				return info;

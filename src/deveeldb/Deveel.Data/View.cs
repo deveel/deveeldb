@@ -113,28 +113,27 @@ namespace Deveel.Data {
 		/// <param name="blob"></param>
 		/// <returns></returns>
 		internal static View DeserializeFromBlob(IBlobAccessor blob) {
-			Stream blob_in = blob.GetInputStream();
+			Stream blobIn = blob.GetInputStream();
 			try {
-				BinaryReader input = new BinaryReader(blob_in, Encoding.Unicode);
+				BinaryReader input = new BinaryReader(blobIn, Encoding.Unicode);
 				// Read the version
 				int version = input.ReadInt32();
-				if (version == 1) {
-					DataTableInfo viewInfo = DataTableInfo.Read(input);
-					viewInfo.SetImmutable();
-					int length = input.ReadInt32();
-					byte[] buf = new byte[length];
-					input.Read(buf, 0, length);
-					MemoryStream obj_stream = new MemoryStream(buf);
-
-					BinaryFormatter formatter = new BinaryFormatter();
-					formatter.Binder = new ViewBinder();
-					IQueryPlanNode view_plan = (IQueryPlanNode)formatter.Deserialize(obj_stream);
-					obj_stream.Close();
-					return new View(viewInfo, view_plan);
-				} else {
+				if (version != 1)
 					throw new IOException("Newer View version serialization: " + version);
-				}
 
+				DataTableInfo viewInfo = DataTableInfo.Read(input);
+				viewInfo.IsReadOnly = true;
+
+				int length = input.ReadInt32();
+				byte[] buf = new byte[length];
+				input.Read(buf, 0, length);
+
+				MemoryStream objStream = new MemoryStream(buf);
+				BinaryFormatter formatter = new BinaryFormatter();
+				formatter.Binder = new ViewBinder();
+				IQueryPlanNode viewPlan = (IQueryPlanNode)formatter.Deserialize(objStream);
+				objStream.Close();
+				return new View(viewInfo, viewPlan);
 			} catch (IOException e) {
 				throw new ApplicationException("IO Error: " + e.Message);
 			} catch (TypeLoadException e) {

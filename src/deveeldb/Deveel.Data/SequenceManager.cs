@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Deveel.Data {
@@ -634,22 +633,21 @@ namespace Deveel.Data {
 
 			private static DataTableInfo CreateTableInfo(string schema, string name) {
 				// Create the DataTableInfo that describes this entry
-				DataTableInfo info = new DataTableInfo();
-				info.TableName = new TableName(schema, name);
+				DataTableInfo info = new DataTableInfo(new TableName(schema, name));
 
 				// Add column definitions
-				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("last_value"));
-				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("current_value"));
-				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("top_value"));
-				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("increment_by"));
-				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("min_value"));
-				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("max_value"));
-				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("start"));
-				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("cache"));
-				info.AddColumn(DataTableColumnInfo.CreateBooleanColumn("cycle"));
+				info.AddColumn("last_value", TType.NumericType);
+				info.AddColumn("current_value", TType.NumericType);
+				info.AddColumn("top_value", TType.NumericType);
+				info.AddColumn("increment_by", TType.NumericType);
+				info.AddColumn("min_value", TType.NumericType);
+				info.AddColumn("max_value", TType.NumericType);
+				info.AddColumn("start", TType.NumericType);
+				info.AddColumn("cache", TType.NumericType);
+				info.AddColumn("cycle", TType.BooleanType);
 
 				// Set to immutable
-				info.SetImmutable();
+				info.IsReadOnly = true;
 
 				// Return the data table info
 				return info;

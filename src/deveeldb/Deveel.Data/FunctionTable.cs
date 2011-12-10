@@ -157,8 +157,7 @@ namespace Deveel.Data {
 			cr_resolver.SetId = 0;
 
 			// Create a DataTableInfo object for this function table.
-			funTableInfo = new DataTableInfo();
-			funTableInfo.TableName = FunctionTableName;
+			funTableInfo = new DataTableInfo(FunctionTableName);
 
 			exp_list = new Expression[in_exp_list.Length];
 			exp_info = new byte[in_exp_list.Length];
@@ -180,12 +179,11 @@ namespace Deveel.Data {
 					exp_info[i] = 0;
 				}
 				// Make the column info
-				DataTableColumnInfo column = new DataTableColumnInfo(col_names[i], expr.ReturnTType(cr_resolver, context));
-				funTableInfo.AddVirtualColumn(column);
+				funTableInfo.AddColumn(col_names[i], expr.ReturnTType(cr_resolver, context));
 			}
 
 			// Make sure the table info isn't changed from this point on.
-			funTableInfo.SetImmutable();
+			funTableInfo.IsReadOnly = true;
 
 			// Function tables are the size of the referring table.
 			row_count = cross_ref_table.RowCount;

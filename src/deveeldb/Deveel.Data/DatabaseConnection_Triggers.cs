@@ -277,8 +277,7 @@ namespace Deveel.Data {
 
 			public DataTableInfo GetTableInfo(int i) {
 				DataTableInfo tableInfo = conn.GetTableInfo(conn.currentOldNewState.trigger_source);
-				DataTableInfo newTableInfo = tableInfo.Clone();
-				newTableInfo.TableName = GetTableName(i);
+				DataTableInfo newTableInfo = tableInfo.Clone(GetTableName(i));
 				return newTableInfo;
 			}
 

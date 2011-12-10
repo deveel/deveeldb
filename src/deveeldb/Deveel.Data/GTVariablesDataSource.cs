@@ -25,19 +25,18 @@ namespace Deveel.Data {
 		}
 
 		static GTVariablesDataSource() {
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = new TableName(Database.SystemSchema, "variables");
+			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "variables"));
 
 			// Add column definitions
-			info.AddColumn(GetStringColumn("var"));
-			info.AddColumn(GetStringColumn("type"));
-			info.AddColumn(GetStringColumn("value"));
-			info.AddColumn(GetBooleanColumn("constant"));
-			info.AddColumn(GetBooleanColumn("not_null"));
-			info.AddColumn(GetBooleanColumn("is_set"));
+			info.AddColumn("var", TType.StringType);
+			info.AddColumn("type", TType.StringType);
+			info.AddColumn("value", TType.StringType);
+			info.AddColumn("constant", TType.BooleanType);
+			info.AddColumn("not_null", TType.BooleanType);
+			info.AddColumn("is_set", TType.BooleanType);
 
 			// Set to immutable
-			info.SetImmutable();
+			info.IsReadOnly = true;
 
 			DEF_DATA_TABLE_DEF = info;
 		}

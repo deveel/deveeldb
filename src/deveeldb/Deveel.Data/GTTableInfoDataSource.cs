@@ -115,17 +115,16 @@ namespace Deveel.Data {
 
 		static GTTableInfoDataSource() {
 
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = Database.SysTableInfo;
+			DataTableInfo info = new DataTableInfo(Database.SysTableInfo);
 
 			// Add column definitions
-			info.AddColumn(GetStringColumn("schema"));
-			info.AddColumn(GetStringColumn("name"));
-			info.AddColumn(GetStringColumn("type"));
-			info.AddColumn(GetStringColumn("other"));
+			info.AddColumn("schema", TType.StringType);
+			info.AddColumn("name", TType.StringType);
+			info.AddColumn("type", TType.StringType);
+			info.AddColumn("other", TType.StringType);
 
 			// Set to immutable
-			info.SetImmutable();
+			info.IsReadOnly = true;
 
 			DEF_DATA_TABLE_DEF = info;
 

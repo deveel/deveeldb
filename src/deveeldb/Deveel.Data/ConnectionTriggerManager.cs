@@ -361,11 +361,7 @@ namespace Deveel.Data {
 		/// are currently active on this session.
 		/// </summary>
 		private class CTMBackedCache : TableBackedCache {
-			private ConnectionTriggerManager ctm;
-
-			/**
-			 * Constructor.
-			 */
+			private readonly ConnectionTriggerManager ctm;
 
 			public CTMBackedCache(ConnectionTriggerManager ctm)
 				: base(Database.SysDataTrigger) {
@@ -422,18 +418,17 @@ namespace Deveel.Data {
 
 			private static DataTableInfo CreateTableInfo(String schema, String name) {
 				// Create the DataTableInfo that describes this entry
-				DataTableInfo info = new DataTableInfo();
-				info.TableName = new TableName(schema, name);
+				DataTableInfo info = new DataTableInfo(new TableName(schema, name));
 
 				// Add column definitions
-				info.AddColumn(DataTableColumnInfo.CreateNumericColumn("type"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("on_object"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("procedure_name"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("param_args"));
-				info.AddColumn(DataTableColumnInfo.CreateStringColumn("owner"));
+				info.AddColumn("type", TType.NumericType);
+				info.AddColumn("on_object", TType.StringType);
+				info.AddColumn("procedure_name", TType.StringType);
+				info.AddColumn("param_args", TType.StringType);
+				info.AddColumn("owner", TType.StringType);
 
 				// Set to immutable
-				info.SetImmutable();
+				info.IsReadOnly = true;
 
 				// Return the data table info
 				return info;

@@ -182,7 +182,7 @@ namespace Deveel.Data {
 			if (master != null)
 				throw new StatementException("Table '" + table_name + "' already exists.");
 
-			tableInfo.SetImmutable();
+			tableInfo.IsReadOnly = true;
 
 			if (dataSectorSize < 27) {
 				dataSectorSize = 27;
@@ -233,7 +233,7 @@ namespace Deveel.Data {
 			if (master != null)
 				throw new StatementException("Table '" + tableName + "' already exists.");
 
-			tableInfo.SetImmutable();
+			tableInfo.IsReadOnly = true;
 
 			MasterTableDataSource temp = conglomerate.CreateTemporaryDataSource(tableInfo);
 			AddVisibleTable(temp, temp.CreateIndexSet());
@@ -366,7 +366,7 @@ namespace Deveel.Data {
 		/// If the table does not exist.
 		/// </exception>
 		public void AlterTable(TableName tableName, DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
-			tableInfo.SetImmutable();
+			tableInfo.IsReadOnly = true;
 
 			// The current schema context is the schema of the table name
 			string currentSchema = tableName.Schema;

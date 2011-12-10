@@ -156,8 +156,7 @@ namespace Deveel.Data.Sql {
 				// We have to execute the plan to get the DataTableInfo that represents the
 				// result of the view execution.
 				Table t = plan.Evaluate(context);
-				DataTableInfo dataTableInfo = t.TableInfo.Clone();
-				dataTableInfo.TableName = vname;
+				DataTableInfo dataTableInfo = t.TableInfo.Clone(vname);
 
 				// Create a View object,
 				View view = new View(dataTableInfo, plan_copy);

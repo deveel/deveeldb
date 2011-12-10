@@ -16,8 +16,6 @@
 using System;
 using System.Collections;
 
-using Deveel.Math;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// A <see cref="GTDataSource"/> that models all SQL types available.
@@ -173,31 +171,30 @@ namespace Deveel.Data {
 
 		static GTSQLTypeInfoDataSource() {
 
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = new TableName(Database.SystemSchema, "sql_types");
+			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "sql_types"));
 
 			// Add column definitions
-			info.AddColumn(GetStringColumn("TYPE_NAME"));
-			info.AddColumn(GetNumericColumn("DATA_TYPE"));
-			info.AddColumn(GetNumericColumn("PRECISION"));
-			info.AddColumn(GetStringColumn("LITERAL_PREFIX"));
-			info.AddColumn(GetStringColumn("LITERAL_SUFFIX"));
-			info.AddColumn(GetStringColumn("CREATE_PARAMS"));
-			info.AddColumn(GetNumericColumn("NULLABLE"));
-			info.AddColumn(GetBooleanColumn("CASE_SENSITIVE"));
-			info.AddColumn(GetNumericColumn("SEARCHABLE"));
-			info.AddColumn(GetBooleanColumn("UNSIGNED_ATTRIBUTE"));
-			info.AddColumn(GetBooleanColumn("FIXED_PREC_SCALE"));
-			info.AddColumn(GetBooleanColumn("AUTO_INCREMENT"));
-			info.AddColumn(GetStringColumn("LOCAL_TYPE_NAME"));
-			info.AddColumn(GetNumericColumn("MINIMUM_SCALE"));
-			info.AddColumn(GetNumericColumn("MAXIMUM_SCALE"));
-			info.AddColumn(GetStringColumn("SQL_DATA_TYPE"));
-			info.AddColumn(GetStringColumn("SQL_DATETIME_SUB"));
-			info.AddColumn(GetNumericColumn("NUM_PREC_RADIX"));
+			info.AddColumn("TYPE_NAME", TType.StringType);
+			info.AddColumn("DATA_TYPE", TType.NumericType);
+			info.AddColumn("PRECISION", TType.NumericType);
+			info.AddColumn("LITERAL_PREFIX", TType.StringType);
+			info.AddColumn("LITERAL_SUFFIX", TType.StringType);
+			info.AddColumn("CREATE_PARAMS", TType.StringType);
+			info.AddColumn("NULLABLE", TType.NumericType);
+			info.AddColumn("CASE_SENSITIVE", TType.BooleanType);
+			info.AddColumn("SEARCHABLE", TType.NumericType);
+			info.AddColumn("UNSIGNED_ATTRIBUTE", TType.BooleanType);
+			info.AddColumn("FIXED_PREC_SCALE", TType.BooleanType);
+			info.AddColumn("AUTO_INCREMENT", TType.BooleanType);
+			info.AddColumn("LOCAL_TYPE_NAME", TType.StringType);
+			info.AddColumn("MINIMUM_SCALE", TType.NumericType);
+			info.AddColumn("MAXIMUM_SCALE", TType.NumericType);
+			info.AddColumn("SQL_DATA_TYPE", TType.StringType);
+			info.AddColumn("SQL_DATETIME_SUB", TType.StringType);
+			info.AddColumn("NUM_PREC_RADIX", TType.NumericType);
 
 			// Set to immutable
-			info.SetImmutable();
+			info.IsReadOnly = true;
 
 			DEF_DATA_TABLE_DEF = info;
 		}

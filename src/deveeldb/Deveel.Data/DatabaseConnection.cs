@@ -479,9 +479,8 @@ namespace Deveel.Data {
 			DataTableInfo tableInfo = GetTableInfo(tableName);
 			// If the table is aliased, set a new DataTableInfo with the given name
 			if (aliasedAs != null) {
-				tableInfo = tableInfo.Clone();
-				tableInfo.TableName = aliasedAs;
-				tableInfo.SetImmutable();
+				tableInfo = tableInfo.Clone(aliasedAs);
+				tableInfo.IsReadOnly = true;
 			}
 			
 			return new TableQueryInfo(this, tableInfo, tableName, aliasedAs);

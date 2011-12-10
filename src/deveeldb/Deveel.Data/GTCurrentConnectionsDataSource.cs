@@ -109,17 +109,16 @@ namespace Deveel.Data {
 
 		static GTCurrentConnectionsDataSource() {
 
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = new TableName(Database.SystemSchema, "current_connections");
+			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "current_connections"));
 
 			// Add column definitions
-			info.AddColumn(GetStringColumn("username"));
-			info.AddColumn(GetStringColumn("host_string"));
-			info.AddColumn(GetDateColumn("last_command"));
-			info.AddColumn(GetDateColumn("time_connected"));
+			info.AddColumn("username", TType.StringType);
+			info.AddColumn("host_string", TType.StringType);
+			info.AddColumn("last_command", TType.DateType);
+			info.AddColumn("time_connected", TType.DateType);
 
 			// Set to immutable
-			info.SetImmutable();
+			info.IsReadOnly = true;
 
 			DEF_DATA_TABLE_DEF = info;
 

@@ -146,35 +146,5 @@ namespace Deveel.Data {
 			TType type = TableInfo[column].TType;
 			return new TObject(type, ob);
 		}
-
-		// Convenience methods for constructing a DataTableInfo for the dynamically
-		// generated table.
-
-		protected static DataTableColumnInfo GetStringColumn(string name) {
-			DataTableColumnInfo column = new DataTableColumnInfo(name, TType.StringType);
-			column.IsNotNull = true;
-			column.IndexScheme = "BlindSearch";
-			return column;
-		}
-
-		protected static DataTableColumnInfo GetBooleanColumn(string name) {
-			DataTableColumnInfo column = new DataTableColumnInfo(name, TType.BooleanType);
-			column.IsNotNull = true;
-			column.IndexScheme = "BlindSearch";
-			return column;
-		}
-
-		protected static DataTableColumnInfo GetNumericColumn(string name) {
-			DataTableColumnInfo column = new DataTableColumnInfo(name, TType.NumericType);
-			column.IsNotNull = true;
-			return column;
-		}
-
-		protected static DataTableColumnInfo GetDateColumn(string name) {
-			DataTableColumnInfo column = new DataTableColumnInfo(name, TType.DateType);
-			column.IsNotNull = true;
-			column.IndexScheme = "BlindSearch";
-			return column;
-		}
 	}
 }

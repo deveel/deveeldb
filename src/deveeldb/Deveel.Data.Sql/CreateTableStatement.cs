@@ -73,8 +73,7 @@ namespace Deveel.Data.Sql {
 		/// <returns></returns>
 		internal DataTableInfo CreateTableInfo() {
 			// Make all this information into a DataTableInfo object...
-			DataTableInfo tableInfo = new DataTableInfo();
-			tableInfo.TableName = tname;
+			DataTableInfo tableInfo = new DataTableInfo(tname);
 			tableInfo.TableType = "Deveel.Data.VariableSizeDataTableFile";
 
 			// Add the columns.
@@ -135,7 +134,7 @@ namespace Deveel.Data.Sql {
 		internal static DataTableColumnInfo ConvertColumnDef(SqlColumn cdef) {
 			TType type = cdef.Type;
 
-			DataTableColumnInfo dtcdef = new DataTableColumnInfo(cdef.Name, type);
+			DataTableColumnInfo dtcdef = new DataTableColumnInfo(null, cdef.Name, type);
 			dtcdef.IsNotNull = cdef.IsNotNull;
 
 			if (cdef.IndexScheme != null) {

@@ -50,9 +50,8 @@ namespace Deveel.Data {
 			table_name = tname;
 
 			// Create a modified table info based on the parent info.
-			modifiedTableInfo = table.TableInfo.Clone();
-			modifiedTableInfo.TableName = tname;
-			modifiedTableInfo.SetImmutable();
+			modifiedTableInfo = table.TableInfo.Clone(tname);
+			modifiedTableInfo.IsReadOnly = true;
 		}
 
 		/// <summary>

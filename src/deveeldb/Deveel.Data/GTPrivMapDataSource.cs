@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Math;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// A <see cref="GTDataSource"/> that maps a 11-bit <see cref="Privileges"/> 
@@ -52,26 +50,23 @@ namespace Deveel.Data {
 
 		public override TObject GetCellContents(int column, int row) {
 			int c1 = row / BIT_COUNT;
-			if (column == 0) {
-				return GetColumnValue(column, (BigNumber)c1);
-			} else {
-				int priv_bit = (1 << (row % BIT_COUNT));
-				String priv_string = null;
-				if ((c1 & priv_bit) != 0) {
-					priv_string = Privileges.FormatPriv(priv_bit);
-				}
-				return GetColumnValue(column, priv_string);
+			if (column == 0)
+				return GetColumnValue(column, (BigNumber) c1);
+
+			int priv_bit = (1 << (row % BIT_COUNT));
+			string priv_string = null;
+			if ((c1 & priv_bit) != 0) {
+				priv_string = Privileges.FormatPriv(priv_bit);
 			}
+			return GetColumnValue(column, priv_string);
 		}
 
 		// ---------- Overwritten from GTDataSource ----------
 
 		public override SelectableScheme GetColumnScheme(int column) {
-			if (column == 0) {
+			if (column == 0)
 				return new PrivMapSearch(this, column);
-			} else {
-				return new BlindSearch(this, column);
-			}
+			return new BlindSearch(this, column);
 		}
 
 		// ---------- Static ----------
@@ -83,15 +78,14 @@ namespace Deveel.Data {
 
 		static GTPrivMapDataSource() {
 
-			DataTableInfo info = new DataTableInfo();
-			info.TableName = new TableName(Database.SystemSchema, "priv_map");
+			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "priv_map"));
 
 			// Add column definitions
-			info.AddColumn(GetNumericColumn("priv_bit"));
-			info.AddColumn(GetStringColumn("description"));
+			info.AddColumn("priv_bit", TType.NumericType);
+			info.AddColumn("description", TType.StringType);
 
 			// Set to immutable
-			info.SetImmutable();
+			info.IsReadOnly = true;
 
 			DEF_DATA_TABLE_DEF = info;
 
@@ -122,22 +116,19 @@ namespace Deveel.Data {
 
 				int num = ((BigNumber)val.Object).ToInt32();
 
-				if (num < 0) {
+				if (num < 0)
 					return -1;
-				} else if (num > (1 << BIT_COUNT)) {
-					return -(((1 << BIT_COUNT) * BIT_COUNT) + 1);
-				}
+				if (num > (1 << BIT_COUNT))
+					return -(((1 << BIT_COUNT)*BIT_COUNT) + 1);
 
 				return (num * BIT_COUNT);
 			}
 
 			protected override int SearchLast(TObject val) {
 				int p = SearchFirst(val);
-				if (p >= 0) {
+				if (p >= 0)
 					return p + (BIT_COUNT - 1);
-				} else {
-					return p;
-				}
+				return p;
 			}
 		}
 	}

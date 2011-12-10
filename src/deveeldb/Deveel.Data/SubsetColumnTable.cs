@@ -90,19 +90,18 @@ namespace Deveel.Data {
 
 			this.aliases = aliases;
 
-			subsetTableInfo = new DataTableInfo();
 			DataTableInfo parentInfo = parent.TableInfo;
-			subsetTableInfo.TableName = parentInfo.TableName;
+			subsetTableInfo = new DataTableInfo(parentInfo.TableName);
 
 			for (int i = 0; i < mapping.Length; ++i) {
 				int map_to = mapping[i];
 				DataTableColumnInfo colInfo = parent.GetColumnDef(map_to).Clone();
 				colInfo.Name = aliases[i].Name;
-				subsetTableInfo.AddVirtualColumn(colInfo);
+				subsetTableInfo.AddColumn(colInfo);
 				reverse_column_map[map_to] = i;
 			}
 
-			subsetTableInfo.SetImmutable();
+			subsetTableInfo.IsReadOnly = true;
 		}
 
 		/// <inheritdoc/>

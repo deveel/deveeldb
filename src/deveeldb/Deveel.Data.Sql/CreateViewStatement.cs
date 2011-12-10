@@ -112,14 +112,10 @@ namespace Deveel.Data.Sql {
 
 			// Does the schema exist?
 			bool ignore_case = Connection.IsInCaseInsensitiveMode;
-			SchemaDef schema =
-					Connection.ResolveSchemaCase(vname.Schema, ignore_case);
-			if (schema == null) {
-				throw new DatabaseException("Schema '" + vname.Schema +
-											"' doesn't exist.");
-			} else {
-				vname = new TableName(schema.Name, vname.Name);
-			}
+			SchemaDef schema = Connection.ResolveSchemaCase(vname.Schema, ignore_case);
+			if (schema == null)
+				throw new DatabaseException("Schema '" + vname.Schema + "' doesn't exist.");
+			vname = new TableName(schema.Name, vname.Name);
 
 			// Check the permissions for this user to select from the tables in the
 			// given plan.
@@ -132,9 +128,9 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Before evaluation, make a clone of the plan,
-			IQueryPlanNode plan_copy;
+			IQueryPlanNode planCopy;
 			try {
-				plan_copy = (IQueryPlanNode)plan.Clone();
+				planCopy = (IQueryPlanNode)plan.Clone();
 			} catch (Exception e) {
 				Debug.WriteException(e);
 				throw new DatabaseException("Clone error: " + e.Message);
@@ -143,11 +139,10 @@ namespace Deveel.Data.Sql {
 			// We have to execute the plan to get the DataTableInfo that represents the
 			// result of the view execution.
 			Table t = plan.Evaluate(context);
-			DataTableInfo dataTableInfo = t.TableInfo.Clone();
-			dataTableInfo.TableName = vname;
+			DataTableInfo dataTableInfo = t.TableInfo.Clone(vname);
 
 			// Create a View object,
-			View view = new View(dataTableInfo, plan_copy);
+			View view = new View(dataTableInfo, planCopy);
 
 			// And create the view object,
 			Connection.CreateView(Query, view);

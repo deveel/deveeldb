@@ -173,53 +173,54 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public abstract Type GetObjectType();
 
-		public static byte[] ToByteArray(TType type) {
-			MemoryStream output = new MemoryStream();
-			BinaryWriter writer = new BinaryWriter(output, Encoding.Unicode);
-
-			writer.Write((int)type.SQLType);
+		internal static void ToBinaryWriter(TType type, BinaryWriter writer) {
+			writer.Write((int) type.SQLType);
 
 			if (type is TBooleanType) {
-				writer.Write((byte)1);
+				writer.Write((byte) 1);
 			} else if (type is TStringType) {
 				TStringType stringType = (TStringType) type;
-				writer.Write((byte)24);
+				writer.Write((byte) 24);
 				writer.Write(stringType.Size);
 				writer.Write(stringType.LocaleString);
-				writer.Write((byte)stringType.Strength);
-				writer.Write((byte)stringType.Decomposition);
+				writer.Write((byte) stringType.Strength);
+				writer.Write((byte) stringType.Decomposition);
 			} else if (type is TNumericType) {
 				TNumericType numericType = (TNumericType) type;
-				writer.Write((byte)11);
+				writer.Write((byte) 11);
 				writer.Write(numericType.Size);
-				writer.Write((byte)numericType.Scale);
+				writer.Write((byte) numericType.Scale);
 			} else if (type is TBinaryType) {
 				TBinaryType binaryType = (TBinaryType) type;
-				writer.Write((byte)8);
+				writer.Write((byte) 8);
 				writer.Write(binaryType.Size);
 			} else if (type is TDateType) {
-				writer.Write((byte)15);
+				writer.Write((byte) 15);
 			} else if (type is TIntervalType) {
-				writer.Write((byte)18);
+				writer.Write((byte) 18);
 			} else if (type is TNullType) {
-				writer.Write((byte)0);
+				writer.Write((byte) 0);
 			} else if (type is TObjectType) {
 				TObjectType objectType = (TObjectType) type;
-				writer.Write((byte)200);
+				writer.Write((byte) 200);
 				writer.Write(objectType.TypeString);
 			} else {
 				throw new NotSupportedException("Serialization not supported for type " + type);
 			}
+		}
+
+		public static byte[] ToByteArray(TType type) {
+			MemoryStream output = new MemoryStream();
+			BinaryWriter writer = new BinaryWriter(output, Encoding.Unicode);
+
+			ToBinaryWriter(type, writer);
 
 			writer.Flush();
 			return output.ToArray();
 		}
 
-		public static TType FromByteArray(byte[] bytes) {
-			MemoryStream input = new MemoryStream(bytes);
-			BinaryReader reader = new BinaryReader(input, Encoding.Unicode);
-
-			SqlType sqlType = (SqlType) reader.ReadInt32();
+		internal static TType ReadFrom(BinaryReader reader) {
+			SqlType sqlType = (SqlType)reader.ReadInt32();
 			byte typeCode = reader.ReadByte();
 
 			TType type;
@@ -229,8 +230,8 @@ namespace Deveel.Data {
 			} else if (typeCode == 24) {
 				int size = reader.ReadInt32();
 				string locale = reader.ReadString();
-				CollationStrength strength = (CollationStrength) reader.ReadByte();
-				CollationDecomposition decomposition = (CollationDecomposition) reader.ReadByte();
+				CollationStrength strength = (CollationStrength)reader.ReadByte();
+				CollationDecomposition decomposition = (CollationDecomposition)reader.ReadByte();
 				type = new TStringType(sqlType, size, locale, strength, decomposition);
 			} else if (typeCode == 11) {
 				int size = reader.ReadInt32();
@@ -253,6 +254,12 @@ namespace Deveel.Data {
 			}
 
 			return type;
+		}
+
+		public static TType FromByteArray(byte[] bytes) {
+			MemoryStream input = new MemoryStream(bytes);
+			BinaryReader reader = new BinaryReader(input, Encoding.Unicode);
+			return ReadFrom(reader);
 		}
 
 
