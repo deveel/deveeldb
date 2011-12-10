@@ -117,6 +117,10 @@ namespace Deveel.Data {
 			}
 		}
 
+		private void OnTableEvent(TriggerEventType eventType, int rowIndex, DataRow row) {
+			connection.FireTableEvent(new TriggerEventArgs(TableName, eventType, rowIndex, row));
+		}
+
 		/// <summary>
 		/// Adds a new row of data to the table.
 		/// </summary>
@@ -127,17 +131,15 @@ namespace Deveel.Data {
 		/// each SelectableScheme.
 		/// </remarks>
 		private void AddRow(DataRow row) {
-			// This table name (for event notification)
-			TableName tableName = TableName;
-
 			// Fire the 'before' trigger for an insert on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, tableName, row, true));
+			OnTableEvent(TriggerEventType.BeforeInsert, -1, row);
 
 			// Add the row to the underlying file system
 			MutableDataSource.AddRow(row);
 
 			// Fire the 'after' trigger for an insert on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, tableName, row, false));
+			//TODO: should we provide also the row-index returned by IMutableDataSource.Addrow?
+			OnTableEvent(TriggerEventType.AfterInsert, -1, row);
 
 			// NOTE: currently nothing being done with 'row_number' after it's added.
 			//   The underlying table data source manages the row index.
@@ -155,18 +157,14 @@ namespace Deveel.Data {
 		/// This is called from the <see cref="Delete(Deveel.Data.Table)"/>.
 		/// </remarks>
 		private void RemoveRow(int rowNumber) {
-
-			// This table name (for event notification)
-			TableName tableName = TableName;
-
 			// Fire the 'before' trigger for the delete on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, true));
+			OnTableEvent(TriggerEventType.BeforeDelete, rowNumber, null);
 
 			// Delete the row from the underlying database
 			MutableDataSource.RemoveRow(rowNumber);
 
 			// Fire the 'after' trigger for the delete on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, false));
+			OnTableEvent(TriggerEventType.AfterDelete, rowNumber, null);
 		}
 
 		/// <summary>
@@ -179,18 +177,15 @@ namespace Deveel.Data {
 		/// delete the old version of the row.
 		/// </remarks>
 		private void UpdateRow(int rowNumber, DataRow row) {
-
-			// This table name (for event notification)
-			TableName tableName = TableName;
-
 			// Fire the 'before' trigger for the update on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, row, true));
+			OnTableEvent(TriggerEventType.BefroeUpdate, rowNumber, row);
 
 			// Update the row in the underlying database
 			MutableDataSource.UpdateRow(rowNumber, row);
 
 			// Fire the 'after' trigger for the update on this table
-			connection.FireTableEvent(new TableModificationEvent(connection, tableName, rowNumber, row, false));
+			//TODO: should we provide also the index of the row updated?
+			OnTableEvent(TriggerEventType.AfterUpdate, -1, row);
 		}
 
 		/// <summary>

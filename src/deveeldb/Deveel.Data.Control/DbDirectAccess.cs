@@ -16,7 +16,6 @@
 using System;
 using System.Collections;
 
-using Deveel.Data.Client;
 using Deveel.Data.Sql;
 using Deveel.Diagnostics;
 
@@ -25,7 +24,7 @@ namespace Deveel.Data.Control {
 	/// Defines a commonly accessible method to interact with the underlying
 	/// database by executing commands through an authorized connection.
 	/// </summary>
-	public sealed class DbDirectAccess : IDisposable, DatabaseConnection.CallBack {
+	public sealed class DbDirectAccess : IDisposable {
 		internal DbDirectAccess(DbSystem system, User user, string defaultSchema) {
 			Connect(system, user, defaultSchema);
 
@@ -47,7 +46,7 @@ namespace Deveel.Data.Control {
 		/// The event raised when a trigger is fired within the current
 		/// underlying connection to the database.
 		/// </summary>
-		public event EventHandler TriggerEvent;
+		public event TriggerEventHandler TriggerEvent;
 
 		public event StatementEventHandler StatementExecuting;
 		public event StatementEventHandler StatementExecuted;
@@ -61,7 +60,7 @@ namespace Deveel.Data.Control {
 		}
 
 		private void Connect(DbSystem system, User user, string defaultSchema) {
-			connection = system.Database.CreateNewConnection(user, this);
+			connection = system.Database.CreateNewConnection(user, TriggerNotify);
 
 			// Put the connection in exclusive mode
 			LockingMechanism locker = connection.LockingMechanism;
@@ -231,14 +230,10 @@ namespace Deveel.Data.Control {
 
 		#endregion
 
-		#region Implementation of CallBack
-
-		void DatabaseConnection.CallBack.TriggerNotify(string trigger_name, TriggerEventType trigger_event, string trigger_source, int fire_count) {
-			TriggerEventArgs args = new TriggerEventArgs(trigger_source, trigger_name, trigger_event, fire_count);
+		private void TriggerNotify(string triggerName, string triggerSource, TriggerEventType triggerEvent, int fireCount) {
+			TriggerEventArgs args = new TriggerEventArgs(triggerName, TableName.Resolve(triggerSource), triggerEvent, fireCount);
 			if (TriggerEvent != null)
 				TriggerEvent(this, args);
 		}
-
-		#endregion
 	}
 }

@@ -74,107 +74,88 @@ namespace Deveel.Data.Protocol {
 			// If the 'user' variable is null, no one is currently logged in to this
 			// connection.
 
-			if (User == null) {
+			if (User != null)
+				throw new Exception("Attempt to authenticate user twice");
 
-				if (COMMAND_LOGGING && database.System.LogQueries) {
-					// Output the instruction to the _queries log.
-					StringBuilder log_str = new StringBuilder();
-					log_str.Append("[CLIENT] [");
-					log_str.Append(username);
-					log_str.Append("] ");
-					log_str.Append('[');
-					log_str.Append(host_name);
-					log_str.Append("] ");
-					log_str.Append("Log in.\n");
-					database.CommandsLog.Write(log_str.ToString());
-				}
+			if (COMMAND_LOGGING && database.System.LogQueries) {
+				// Output the instruction to the _queries log.
+				StringBuilder log_str = new StringBuilder();
+				log_str.Append("[CLIENT] [");
+				log_str.Append(username);
+				log_str.Append("] ");
+				log_str.Append('[');
+				log_str.Append(host_name);
+				log_str.Append("] ");
+				log_str.Append("Log in.\n");
+				database.CommandsLog.Write(log_str.ToString());
+			}
 
-				// Write debug message,
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this, "Authenticate User: " + username);
-				}
+			// Write debug message,
+			if (Debug.IsInterestedIn(DebugLevel.Information)) {
+				Debug.Write(DebugLevel.Information, this, "Authenticate User: " + username);
+			}
 
-				// Create a UserCallBack class.
-				DatabaseConnection.CallBack call_back = new CallBackImpl(database_call_back);
+			// Try to create a User object.
+			User this_user = database.AuthenticateUser(username, password, host_name);
+			DatabaseConnection database_connection = null;
 
-				// Try to create a User object.
-				User this_user = database.AuthenticateUser(username, password,
-														   host_name);
-				DatabaseConnection database_connection = null;
+			// If successful, ask the engine for a DatabaseConnection object.
+			if (this_user != null) {
+				database_connection = database.CreateNewConnection(this_user, delegate(string triggerName, string triggerSource, TriggerEventType eventType, int fireCount) {
+				                                                              	StringBuilder message = new StringBuilder();
+				                                                              	message.Append(Convert.ToInt32(eventType));
+				                                                              	message.Append(' ');
+				                                                              	message.Append(triggerName);
+				                                                              	message.Append(' ');
+				                                                              	message.Append(triggerSource);
+				                                                              	message.Append(' ');
+				                                                              	message.Append(fireCount);
 
-				// If successful, ask the engine for a DatabaseConnection object.
-				if (this_user != null) {
-					database_connection =
-									   database.CreateNewConnection(this_user, call_back);
+				                                                              	database_call_back.OnDatabaseEvent(99, message.ToString());
 
-					// Put the connection in exclusive mode
-					LockingMechanism locker = database_connection.LockingMechanism;
-					locker.SetMode(LockingMode.Exclusive);
-					try {
+				                                                              });
 
-						// By default, JDBC connections are auto-commit
-						database_connection.AutoCommit = true;
+				// Put the connection in exclusive mode
+				LockingMechanism locker = database_connection.LockingMechanism;
+				locker.SetMode(LockingMode.Exclusive);
+				try {
 
-						// Set the default schema for this connection if it exists
-						if (database_connection.SchemaExists(default_schema)) {
-							database_connection.SetDefaultSchema(default_schema);
-						} else {
-							Debug.Write(DebugLevel.Warning, this,
-									  "Couldn't change to '" + default_schema + "' schema.");
-							// If we can't change to the schema then change to the APP schema
-							database_connection.SetDefaultSchema("APP");
-						}
+					// By default, JDBC connections are auto-commit
+					database_connection.AutoCommit = true;
 
-					} finally {
-						try {
-							// Make sure we commit the connection.
-							database_connection.Commit();
-						} catch (TransactionException e) {
-							// Just issue a warning...
-							Debug.WriteException(DebugLevel.Warning, e);
-						} finally {
-							// Guarentee that we unluck from EXCLUSIVE
-							locker.FinishMode(LockingMode.Exclusive);
-						}
+					// Set the default schema for this connection if it exists
+					if (database_connection.SchemaExists(default_schema)) {
+						database_connection.SetDefaultSchema(default_schema);
+					} else {
+						Debug.Write(DebugLevel.Warning, this,
+						            "Couldn't change to '" + default_schema + "' schema.");
+						// If we can't change to the schema then change to the APP schema
+						database_connection.SetDefaultSchema("APP");
 					}
 
+				} finally {
+					try {
+						// Make sure we commit the connection.
+						database_connection.Commit();
+					} catch (TransactionException e) {
+						// Just issue a warning...
+						Debug.WriteException(DebugLevel.Warning, e);
+					} finally {
+						// Guarentee that we unluck from EXCLUSIVE
+						locker.FinishMode(LockingMode.Exclusive);
+					}
 				}
 
-				// If we have a user object, then init the object,
-				if (this_user != null) {
-					Init(this_user, database_connection);
-					return true;
-				} else {
-					// Otherwise, return false.
-					return false;
-				}
-
-			} else {
-				throw new Exception("Attempt to authenticate user twice");
 			}
 
-		}
-
-		private class CallBackImpl : DatabaseConnection.CallBack {
-			public CallBackImpl(IDatabaseCallBack callBack) {
-				database_call_back = callBack;
+			// If we have a user object, then init the object,
+			if (this_user != null) {
+				Init(this_user, database_connection);
+				return true;
 			}
 
-			private IDatabaseCallBack database_call_back;
-
-			public void TriggerNotify(String trigger_name, TriggerEventType trigger_event,
-									  String trigger_source, int fire_count) {
-				StringBuilder message = new StringBuilder();
-				message.Append(Convert.ToInt32(trigger_event));
-				message.Append(' ');
-				message.Append(trigger_name);
-				message.Append(' ');
-				message.Append(trigger_source);
-				message.Append(' ');
-				message.Append(fire_count);
-
-				database_call_back.OnDatabaseEvent(99, message.ToString());
-			}
+			// Otherwise, return false.
+			return false;
 		}
 
 		// ---------- Implemented from IDatabaseInterface ----------

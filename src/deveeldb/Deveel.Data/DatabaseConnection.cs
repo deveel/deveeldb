@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 
@@ -46,7 +45,7 @@ namespace Deveel.Data {
 		/// the session protocol.  This is notified of all connection events, such as
 		/// triggers.
 		/// </summary>
-		private readonly CallBack call_back;
+		private readonly TriggerCallback triggerCallback;
 
 		/// <summary>
 		/// The locking mechanism within this connection.
@@ -127,15 +126,15 @@ namespace Deveel.Data {
 		/// </summary>
 		private bool caseInsensitiveIdentifiers;
 
-		internal DatabaseConnection(Database database, User user, CallBack call_back) {
+		internal DatabaseConnection(Database database, User user, TriggerCallback triggerCallback) {
 			this.database = database;
 			this.user = user;
-			this.call_back = call_back;
+			this.triggerCallback = triggerCallback;
 			logger = database.Debug;
 			conglomerate = database.Conglomerate;
 			lockingMechanism = new LockingMechanism(logger);
-			triggerEventBuffer = new ArrayList();
-			triggerEventList = new ArrayList();
+			triggerEventBuffer = new List<TriggerEventArgs>();
+			triggerEventList = new List<TriggerEventArgs>();
 			autoCommit = true;
 
 			current_schema = Database.DefaultSchema;
@@ -291,7 +290,7 @@ namespace Deveel.Data {
 			// Create the procedure manager for this connection.
 			procedure_manager = new ProcedureManager(this);
 			// Create the connection trigger manager object
-			connectionTriggerManager = new ConnectionTriggerManager(this);
+			triggerManager = new ConnectionTriggerManager(this);
 			// Create the view manager
 			view_manager = new ViewManager(this);
 		}
@@ -587,7 +586,7 @@ namespace Deveel.Data {
 					transaction.Commit();
 
 					// Fire all SQL action level triggers that were generated on actions.
-					database.TriggerManager.FlushTriggerEvents(triggerEventList);
+					triggerManager.FlushTriggerEvents(triggerEventList);
 				} finally {
 					// Dispose the current transaction
 					DisposeTransaction();
@@ -668,7 +667,7 @@ namespace Deveel.Data {
 					}
 				}
 				// Remove any trigger listeners set for this connection,
-				database.TriggerManager.ClearAllDatabaseConnectionTriggers(this);
+				TriggerManager.ClearCallbackTriggers();
 			}
 		}
 
@@ -738,22 +737,6 @@ namespace Deveel.Data {
 				throw new Exception();
 			}
 
-		}
-
-		/// <summary>
-		/// Call back interface for events that occur within the connection instance.
-		/// </summary>
-		public interface CallBack {
-			/// <summary>
-			/// Notifies the callee that a trigger event was fired that this user
-			/// is listening for.
-			/// </summary>
-			/// <param name="trigger_name"></param>
-			/// <param name="trigger_event"></param>
-			/// <param name="trigger_source"></param>
-			/// <param name="fire_count"></param>
-			void TriggerNotify(String trigger_name, TriggerEventType trigger_event,
-							   String trigger_source, int fire_count);
 		}
 
 		/// <inheritdoc/>

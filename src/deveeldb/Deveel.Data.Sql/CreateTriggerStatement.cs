@@ -46,28 +46,22 @@ namespace Deveel.Data.Sql {
 			if (type.Equals("callback_trigger")) {
 				// Callback trigger - notifies the client when an event on a table
 				// occurs.
-				/*
-				if (types.Count > 1) {
-					throw new DatabaseException("Multiple triggered types not allowed for callback triggers.");
-				}
-				*/
 
-				TriggerEventType int_type = new TriggerEventType();
+				TriggerEventType eventType = new TriggerEventType();
 
-				for (int i = 0; i < types.Count; i++) {
-					String trig_type = ((String) types[i]).ToUpper();
-					if (trig_type.Equals("INSERT")) {
-						int_type |= TriggerEventType.Insert;
-					} else if (trig_type.Equals("DELETE")) {
-						int_type |= TriggerEventType.Delete;
-					} else if (trig_type.Equals("UPDATE")) {
-						int_type |= TriggerEventType.Update;
+				foreach (string trigType in types) {
+					if (trigType.Equals("INSERT", StringComparison.InvariantCultureIgnoreCase)) {
+						eventType |= TriggerEventType.Insert;
+					} else if (trigType.Equals("DELETE", StringComparison.InvariantCultureIgnoreCase)) {
+						eventType |= TriggerEventType.Delete;
+					} else if (trigType.Equals("UPDATE", StringComparison.InvariantCultureIgnoreCase)) {
+						eventType |= TriggerEventType.Update;
 					} else {
-						throw new DatabaseException("Unknown trigger type: " + trig_type);
+						throw new DatabaseException("Unknown trigger type: " + trigType);
 					}
 				}
 
-				Connection.CreateTrigger(trigger_name, tname.ToString(), int_type);
+				Connection.CreateCallbackTrigger(trigger_name, tname, eventType);
 
 			} else if (type.Equals("procedure_trigger")) {
 
@@ -128,7 +122,7 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Create the trigger,
-				ConnectionTriggerManager manager = Connection.ConnectionTriggerManager;
+				ConnectionTriggerManager manager = Connection.TriggerManager;
 				manager.CreateTableTrigger(t_name.Schema, t_name.Name, listen_type, tname, p_name.ToString(), vals);
 
 				// The initial grants for a trigger is to give the user who created it

@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			if (type.Equals("callback_trigger")) {
-				Connection.DeleteTrigger(trigger_name);
+				Connection.DeleteCallbackTrigger(trigger_name);
 			} else {
 
 				// Convert the trigger into a table name,
@@ -49,7 +49,7 @@ namespace Deveel.Data.Sql {
 				TableName t_name = TableName.Resolve(schema_name, trigger_name);
 				t_name = Connection.TryResolveCase(t_name);
 
-				ConnectionTriggerManager manager = Connection.ConnectionTriggerManager;
+				ConnectionTriggerManager manager = Connection.TriggerManager;
 				manager.DropTrigger(t_name.Schema, t_name.Name);
 
 				// Drop the grants for this object

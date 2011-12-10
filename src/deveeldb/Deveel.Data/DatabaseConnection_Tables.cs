@@ -184,14 +184,14 @@ namespace Deveel.Data {
 				// Special handling of NEW and OLD table, we cache the DataTable in the
 				// OldNewTableState object,
 				if (name.Equals(Database.OldTriggerTable)) {
-					if (currentOldNewState.OLD_data_table == null)
-						currentOldNewState.OLD_data_table = new DataTable(this, Transaction.GetTable(name));
-					return currentOldNewState.OLD_data_table;
+					if (currentOldNewState.OldDataTable == null)
+						currentOldNewState.OldDataTable = new DataTable(this, Transaction.GetTable(name));
+					return currentOldNewState.OldDataTable;
 				}
 				if (name.Equals(Database.NewTriggerTable)) {
-					if (currentOldNewState.NEW_data_table == null)
-						currentOldNewState.NEW_data_table = new DataTable(this, Transaction.GetTable(name));
-					return currentOldNewState.NEW_data_table;
+					if (currentOldNewState.NewDataTable == null)
+						currentOldNewState.NewDataTable = new DataTable(this, Transaction.GetTable(name));
+					return currentOldNewState.NewDataTable;
 				}
 
 				// Ask the transaction for the table

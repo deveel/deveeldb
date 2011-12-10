@@ -169,7 +169,7 @@ namespace Deveel.Data.Sql {
 
 			// Notify TriggerManager that we've just done an update.
 			if (delete_count > 0)
-				Connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Delete, tname.ToString(), delete_count));
+				Connection.OnTriggerEvent(new TriggerEventArgs(tname, TriggerEventType.Delete, delete_count));
 
 			// Return the number of columns we deleted.
 			return FunctionTable.ResultTable(context, delete_count);

@@ -215,12 +215,6 @@ namespace Deveel.Data {
 		private readonly DatabaseSystem system;
 
 		/// <summary>
-		/// The database wide TriggerManager object that dispatches trigger events
-		/// to the DatabaseConnection objects that are listening for the events.
-		/// </summary>
-		private readonly TriggerManager triggerManager;
-
-		/// <summary>
 		/// This log file records the SQL commands executed on the server.
 		/// </summary>
 		private Log commandsLog;
@@ -252,8 +246,6 @@ namespace Deveel.Data {
 			TemporaryTable t = new TemporaryTable(this,"SINGLE_ROW_TABLE", new DataTableColumnInfo[0]);
 			t.NewRow();
 			singleRowTable = t;
-
-			triggerManager = new TriggerManager(system);
 		}
 
 		/// <summary>
@@ -355,13 +347,6 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the system trigger manager.
-		/// </summary>
-		internal TriggerManager TriggerManager {
-			get { return triggerManager; }
-		}
-
-		/// <summary>
 		/// Returns the system user manager.
 		/// </summary>
 		public UserManager UserManager {
@@ -405,7 +390,7 @@ namespace Deveel.Data {
 		/// used against this database.
 		/// </summary>
 		/// <param name="user"></param>
-		/// <param name="call_back"></param>
+		/// <param name="triggerCallback"></param>
 		/// <remarks>
 		/// When a new connection is made on this database, this method is 
 		/// called to create a new <see cref="DatabaseConnection"/> instance 
@@ -413,11 +398,11 @@ namespace Deveel.Data {
 		/// queries and modifications to the database.
 		/// </remarks>
 		/// <returns></returns>
-		public DatabaseConnection CreateNewConnection(User user, DatabaseConnection.CallBack call_back) {
+		public DatabaseConnection CreateNewConnection(User user, TriggerCallback triggerCallback) {
 			if (user == null)
 				user = InternalSystemUser;
 
-			DatabaseConnection connection = new DatabaseConnection(this, user, call_back);
+			DatabaseConnection connection = new DatabaseConnection(this, user, triggerCallback);
 			// Initialize the connection
 			connection.Init();
 

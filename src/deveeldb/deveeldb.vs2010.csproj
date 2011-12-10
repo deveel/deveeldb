@@ -406,7 +406,6 @@
     <Compile Include="Deveel.Data\IStringAccessor.cs" />
     <Compile Include="Deveel.Data\ITableDataSource.cs" />
     <Compile Include="Deveel.Data\ITableQueryInfo.cs" />
-    <Compile Include="Deveel.Data\ITriggerListener.cs" />
     <Compile Include="Deveel.Data\IVariableResolver.cs" />
     <Compile Include="Deveel.Data\JoinedTable.cs" />
     <Compile Include="Deveel.Data\JoiningSet.cs" />
@@ -465,7 +464,6 @@
     <Compile Include="Deveel.Data\TableDataConglomerate_Diagnostics.cs" />
     <Compile Include="Deveel.Data\TableDataConglomerate_Transactions.cs" />
     <Compile Include="Deveel.Data\TableFunctions.cs" />
-    <Compile Include="Deveel.Data\TableModificationEvent.cs" />
     <Compile Include="Deveel.Data\TableName.cs" />
     <Compile Include="Deveel.Data\TArrayType.cs" />
     <Compile Include="Deveel.Data\TBinaryType.cs" />
@@ -487,9 +485,10 @@
     <Compile Include="Deveel.Data\Transaction_Constraints.cs" />
     <Compile Include="Deveel.Data\Transaction_Schemata.cs" />
     <Compile Include="Deveel.Data\Transaction_Tables.cs" />
-    <Compile Include="Deveel.Data\TriggerEvent.cs" />
+    <Compile Include="Deveel.Data\TriggerCallback.cs" />
+    <Compile Include="Deveel.Data\TriggerEventArgs.cs" />
     <Compile Include="Deveel.Data\TriggerEventType.cs" />
-    <Compile Include="Deveel.Data\TriggerManager.cs" />
+    <Compile Include="Deveel.Data\TriggerType.cs" />
     <Compile Include="Deveel.Data\TStringType.cs" />
     <Compile Include="Deveel.Data\TType.cs" />
     <Compile Include="Deveel.Data\TUserDefinedType.cs" />

@@ -29,9 +29,9 @@ namespace Deveel.Data.Sql {
 		private StatementTree select;
 		private IList column_sets;
 
-		private bool from_values = false;
-		private bool from_select = false;
-		private bool from_set = false;
+		private bool from_values;
+		private bool from_select;
+		private bool from_set;
 
 		// -----
 
@@ -276,7 +276,7 @@ namespace Deveel.Data.Sql {
 
 			// Notify TriggerManager that we've just done an update.
 			if (insert_count > 0)
-				Connection.OnTriggerEvent(new TriggerEvent(TriggerEventType.Insert, tname.ToString(), insert_count));
+				Connection.OnTriggerEvent(new TriggerEventArgs(tname, TriggerEventType.Insert, insert_count));
 
 			// Return the number of rows we inserted.
 			return FunctionTable.ResultTable(context, insert_count);
