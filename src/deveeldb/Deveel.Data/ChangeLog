@@ -1,6 +1,6 @@
 2011-12-11  Antonello Provenzano  <antonello@deveel.com>
-	* DataTableInfo.cs: added support for constraints defined
-	at table level
+	* TableDataConglomerate.cs: added in-memory store for
+	handling temporary tables
 
 2011-12-10  Antonello Provenzano  <antonello@deveel.com>
 	* DataTableInfo.cs: columns now cannot be added directly anymore:

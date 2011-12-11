@@ -40,14 +40,14 @@ namespace Deveel.Data {
 			Transaction.CheckAllConstraints(table_name);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.AddUniqueConstraint"/>
+		/// <inheritdoc cref="Data.Transaction.AddUniqueConstraint(Deveel.Data.DataConstraintInfo)"/>
 		public void AddUniqueConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			// Assert
 			CheckExclusive();
 			Transaction.AddUniqueConstraint(tableName, columns, deferred, constraintName);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.AddForeignKeyConstraint"/>
+		/// <inheritdoc cref="Data.Transaction.AddForeignKeyConstraint(Deveel.Data.DataConstraintInfo)"/>
 		public void AddForeignKeyConstraint(TableName table, string[] columns,
 			TableName ref_table, string[] refColumns,
 			ConstraintAction delete_rule, ConstraintAction update_rule,
@@ -59,14 +59,14 @@ namespace Deveel.Data {
 												deferred, constraint_name);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.AddPrimaryKeyConstraint"/>
+		/// <inheritdoc cref="Data.Transaction.AddPrimaryKeyConstraint(Deveel.Data.DataConstraintInfo)"/>
 		public void AddPrimaryKeyConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, String constraint_name) {
 			// Assert
 			CheckExclusive();
 			Transaction.AddPrimaryKeyConstraint(tableName, columns, deferred, constraint_name);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.AddCheckConstraint"/>
+		/// <inheritdoc cref="Data.Transaction.AddCheckConstraint(Deveel.Data.DataConstraintInfo)"/>
 		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, String constraint_name) {
 			// Assert
 			CheckExclusive();

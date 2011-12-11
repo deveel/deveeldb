@@ -120,6 +120,11 @@ namespace Deveel.Data {
 		private StateStore stateStore;
 
 		/// <summary>
+		/// The storage that backs temporary tables.
+		/// </summary>
+		private readonly IStoreSystem tempStoreSystem;
+
+		/// <summary>
 		/// The current commit id for committed transactions.
 		/// </summary>
 		/// <remarks>
@@ -176,6 +181,10 @@ namespace Deveel.Data {
 			this.system = system;
 			this.name = name;
 			this.storeSystem = storeSystem;
+
+			// temporary tables live in memory
+			tempStoreSystem = new V1HeapStoreSystem();
+
 			openTransactions = new OpenTransactionList(system);
 			modificationEvents = new EventHandlerList();
 			namespaceJournalList = new List<NameSpaceJournal>();
@@ -847,8 +856,7 @@ namespace Deveel.Data {
 					// The unique id that identifies this table,
 					int tableId = NextUniqueTableID();
 
-					V2MasterTableDataSource temporary = new V2MasterTableDataSource(System, new V1HeapStoreSystem(), blobStore);
-
+					V2MasterTableDataSource temporary = new V2MasterTableDataSource(System, tempStoreSystem, blobStore);
 					temporary.Create(tableId, tableInfo);
 
 					tableList.Add(temporary);

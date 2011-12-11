@@ -24,6 +24,7 @@ namespace Deveel.Data {
 	/// Used to managed all the informations about a column in a table
 	/// (<see cref="DataTableInfo"/>).
 	/// </summary>
+	[Serializable]
 	public sealed class DataTableColumnInfo : ICloneable {
 		private DataTableInfo tableInfo;
 

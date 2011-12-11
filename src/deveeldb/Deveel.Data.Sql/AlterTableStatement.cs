@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -27,12 +28,12 @@ namespace Deveel.Data.Sql {
 		/// <remarks>
 		/// This is only for compatibility reasons.
 		/// </remarks>
-		private StatementTree create_statement;
+		private StatementTree createStatement;
 
 		/// <summary>
 		/// The name of the table we are altering.
 		/// </summary>
-		private string table_name;
+		private string tableName;
 
 		/// <summary>
 		/// The list of actions to perform in this alter statement.
@@ -59,7 +60,7 @@ namespace Deveel.Data.Sql {
 			Actions.Add(action);
 		}
 
-		public AlterTableStatement(TableName tableName, ICollection actions) {
+		public AlterTableStatement(TableName tableName, ICollection<AlterTableAction> actions) {
 			TableName = tableName;
 			foreach(AlterTableAction action in actions)
 				Actions.Add(action);
@@ -151,28 +152,28 @@ namespace Deveel.Data.Sql {
 		protected override void Prepare() {
 
 			// Get variables from the model
-			table_name = GetString("table_name");
+			tableName = GetString("table_name");
 			actions = GetList("alter_actions", true);
 			AlterTableAction action = GetValue("alter_action") as AlterTableAction;
 			if (action != null) {
 				actions.Add(action);
 			}
 
-			create_statement = (StatementTree)GetValue("create_statement");
+			createStatement = (StatementTree)GetValue("create_statement");
 
 			// ---
 
-			if (create_statement != null) {
+			if (createStatement != null) {
 				create_stmt = new CreateTableStatement();
-				create_stmt.Context.Set(Context.Connection, create_statement, null);
-				table_name = create_stmt.TableName;
+				create_stmt.Context.Set(Context.Connection, createStatement, null);
+				tableName = create_stmt.TableName;
 			} else {
 				// If we don't have a create statement, then this is an SQL alter
 				// command.
 			}
 
 			//    tname = TableName.Resolve(db.CurrentSchema, table_name);
-			tname = ResolveTableName(table_name);
+			tname = ResolveTableName(tableName);
 			if (tname.Name.IndexOf('.') != -1) {
 				throw new DatabaseException("Table name can not contain '.' character.");
 			}
@@ -185,10 +186,10 @@ namespace Deveel.Data.Sql {
 
 			// Does the user have privs to alter this tables?
 			if (!Connection.Database.CanUserAlterTableObject(context, User, tname)) {
-				throw new UserAccessException("User not permitted to alter table: " + table_name);
+				throw new UserAccessException("User not permitted to alter table: " + tableName);
 			}
 
-			if (create_statement != null) {
+			if (createStatement != null) {
 				// Create the data table definition and tell the database to update it.
 				DataTableInfo tableInfo = create_stmt.CreateTableInfo();
 				TableName tname1 = tableInfo.TableName;

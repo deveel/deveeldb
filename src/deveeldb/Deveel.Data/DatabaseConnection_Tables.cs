@@ -234,6 +234,24 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
+		/// Creates a new temporary table within the context of the transaction.
+		/// </summary>
+		/// <param name="tableInfo">Table meta informations for creating the table.</param>
+		/// <remarks>
+		/// A temporary table is a fully functional table, which persists for all the lifetime
+		/// of a transaction and that is disposed (both structure and data) at the end of the
+		/// parent transaction.
+		/// </remarks>
+		/// <exception cref="StatementException">
+		/// If the name of the table is reserved and the creation of the table 
+		/// should be prevented.
+		/// </exception>
+		public void CreateTemporaryTable(DataTableInfo tableInfo) {
+			CheckAllowCreate(tableInfo.TableName);
+			Transaction.CreateTemporaryTable(tableInfo);
+		}
+
+		/// <summary>
 		/// Creates a new table within the context of the transaction.
 		/// </summary>
 		/// <param name="tableInfo">Table meta informations for creating the table.</param>

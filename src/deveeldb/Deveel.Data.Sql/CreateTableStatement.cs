@@ -25,12 +25,12 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Set to true if this create statement is for a temporary table.
 		/// </summary>
-		private bool temporary = false;
+		private bool temporary;
 
 		/// <summary>
 		/// Only create if table doesn't exist.
 		/// </summary>
-		private bool onlyIfNotExists = false;
+		private bool onlyIfNotExists;
 
 		/// <summary>
 		/// The name of the table to create.
@@ -312,41 +312,37 @@ namespace Deveel.Data.Sql {
 			if (!Connection.Database.CanUserCreateTableObject(context, User, tname))
 				throw new UserAccessException("User not permitted to create table: " + TableName);
 
-
-			// PENDING: Creation of temporary tables...
-
-
 			// Does the table already exist?
-			if (!Connection.TableExists(tname)) {
+			if (Connection.TableExists(tname)) {
+				if (!onlyIfNotExists)
+					throw new DatabaseException("Table '" + tname + "' already exists.");
 
-				// Create the data table definition and tell the database to create
-				// it.
-				DataTableInfo tableInfo = CreateTableInfo();
-				Connection.CreateTable(tableInfo);
-
-				// The initial grants for a table is to give the user who created it
-				// full access.
-				Connection.GrantManager.Grant(
-					 Privileges.TableAll, GrantObject.Table, tname.ToString(),
-					 User.UserName, true, Database.InternalSecureUsername);
-
-				// Set the constraints in the schema.
-				SetupAllConstraints();
-
-				// Return '0' if we created the table.  (0 rows affected)
+				// Return '0' (0 rows affected).  This happens when we don't create a
+				// table (because it exists) and the 'IF NOT EXISTS' clause is present.
 				return FunctionTable.ResultTable(context, 0);
 			}
 
 			// Report error unless 'if not exists' command is in the statement.
-			if (onlyIfNotExists == false) {
-				throw new DatabaseException("Table '" + tname + "' already exists.");
+			// Create the data table definition and tell the database to create it.
+			DataTableInfo tableInfo = CreateTableInfo();
+
+			if (temporary) {
+				Connection.CreateTemporaryTable(tableInfo);
+			} else {
+				Connection.CreateTable(tableInfo);
 			}
 
-			// Return '0' (0 rows affected).  This happens when we don't create a
-			// table (because it exists) and the 'IF NOT EXISTS' clause is present.
+			// The initial grants for a table is to give the user who created it
+			// full access.
+			Connection.GrantManager.Grant(
+				Privileges.TableAll, GrantObject.Table, tname.ToString(),
+				User.UserName, true, Database.InternalSecureUsername);
+
+			// Set the constraints in the schema.
+			SetupAllConstraints();
+
+			// Return '0' if we created the table.  (0 rows affected)
 			return FunctionTable.ResultTable(context, 0);
-
 		}
-
 	}
 }
