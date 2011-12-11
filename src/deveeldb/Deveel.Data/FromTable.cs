@@ -15,7 +15,9 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
+using Deveel.Data.Sql;
+
+namespace Deveel.Data {
 	/// <summary>
 	/// Describes a single table declaration in the from clause of a 
 	/// table expression (<c>SELECT</c>).
@@ -26,7 +28,7 @@ namespace Deveel.Data.Sql {
 		/// If this is true, then the table def represents a sub-query table.
 		/// </summary>
 		/// <remarks>
-		/// The <see cref="FromTable.TableSelectExpression"/> and <see cref="Alias"/> 
+		/// The <see cref="SubSelect"/> and <see cref="Alias"/> 
 		/// method can be used to get the table information.
 		/// </remarks>
 		/// <example>
@@ -34,58 +36,58 @@ namespace Deveel.Data.Sql {
 		/// FROM ( SELECT id, number FROM Part ) AS part_info, ....
 		/// </code>
 		/// </example>
-		private readonly bool subquery_table;
+		private readonly bool subqueryTable;
 
 		/// <summary>
 		/// The unique key name given to this table definition.
 		/// </summary>
-		private String unique_key;
+		private string uniqueKey;
 
 		/// <summary>
 		/// The name of the table this definition references.
 		/// </summary>
-		private readonly String table_name;
+		private readonly string tableName;
 
 		/// <summary>
 		/// The alias of the table or null if no alias was defined.
 		/// </summary>
-		private readonly String table_alias;
+		private readonly string tableAlias;
 
 		/// <summary>
 		/// The TableSelectExpression if this is a subquery table.
 		/// </summary>
-		private TableSelectExpression subselect_table;
+		private TableSelectExpression subselectTable;
 
 		/// <summary>
 		/// Constructs a table that is aliased under a different name.
 		/// </summary>
-		/// <param name="table_name"></param>
-		/// <param name="table_alias"></param>
-		public FromTable(string table_name, string table_alias) {
-			this.table_name = table_name;
-			this.table_alias = table_alias;
-			subselect_table = null;
-			subquery_table = false;
+		/// <param name="tableName"></param>
+		/// <param name="tableAlias"></param>
+		public FromTable(string tableName, string tableAlias) {
+			this.tableName = tableName;
+			this.tableAlias = tableAlias;
+			subselectTable = null;
+			subqueryTable = false;
 		}
 
 		/// <summary>
 		/// A simple table definition (not aliased).
 		/// </summary>
-		/// <param name="table_name"></param>
-		public FromTable(string table_name)
-			: this(table_name, null) {
+		/// <param name="tableName"></param>
+		public FromTable(string tableName)
+			: this(tableName, null) {
 		}
 
 		/// <summary>
 		/// A table that is a sub-query and given an aliased name.
 		/// </summary>
 		/// <param name="select"></param>
-		/// <param name="table_alias"></param>
-		public FromTable(TableSelectExpression select, string table_alias) {
-			subselect_table = select;
-			table_name = table_alias;
-			this.table_alias = table_alias;
-			subquery_table = true;
+		/// <param name="tableAlias"></param>
+		public FromTable(TableSelectExpression select, string tableAlias) {
+			subselectTable = select;
+			tableName = tableAlias;
+			this.tableAlias = tableAlias;
+			subqueryTable = true;
 		}
 
 		/// <summary>
@@ -93,10 +95,10 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="select"></param>
 		public FromTable(TableSelectExpression select) {
-			subselect_table = select;
-			table_name = null;
-			table_alias = null;
-			subquery_table = true;
+			subselectTable = select;
+			tableName = null;
+			tableAlias = null;
+			subqueryTable = true;
 		}
 
 
@@ -104,36 +106,36 @@ namespace Deveel.Data.Sql {
 		/// Gets the name of the table.
 		///</summary>
 		public string Name {
-			get { return table_name; }
+			get { return tableName; }
 		}
 
 		/// <summary>
 		/// Returns the alias for this table (or null if no alias given).
 		/// </summary>
 		public string Alias {
-			get { return table_alias; }
+			get { return tableAlias; }
 		}
 
 		/// <summary>
 		/// Gets or sets the unique key.
 		/// </summary>
 		internal string UniqueKey {
-			get { return unique_key; }
-			set { unique_key = value; }
+			get { return uniqueKey; }
+			set { uniqueKey = value; }
 		}
 
 		/// <summary>
 		/// Returns true if this item in the FROM clause is a subquery table.
 		/// </summary>
 		public bool IsSubQueryTable {
-			get { return subquery_table; }
+			get { return subqueryTable; }
 		}
 
 		/// <summary>
 		/// Returns the TableSelectExpression if this is a subquery table.
 		/// </summary>
-		public TableSelectExpression TableSelectExpression {
-			get { return subselect_table; }
+		public TableSelectExpression SubSelect {
+			get { return subselectTable; }
 		}
 
 		///<summary>
@@ -141,18 +143,17 @@ namespace Deveel.Data.Sql {
 		///</summary>
 		///<param name="preparer"></param>
 		internal void PrepareExpressions(IExpressionPreparer preparer) {
-			if (subselect_table != null)
-				((IStatementTreeObject) subselect_table).PrepareExpressions(preparer);
+			if (subselectTable != null)
+				((IStatementTreeObject) subselectTable).PrepareExpressions(preparer);
 		}
 
 		/// <inheritdoc/>
-		public Object Clone() {
+		public object Clone() {
 			FromTable v = (FromTable)MemberwiseClone();
-			if (subselect_table != null) {
-				v.subselect_table = (TableSelectExpression)subselect_table.Clone();
+			if (subselectTable != null) {
+				v.subselectTable = (TableSelectExpression)subselectTable.Clone();
 			}
 			return v;
 		}
-
 	}
 }

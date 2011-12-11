@@ -136,7 +136,7 @@ namespace Deveel.Data.Sql {
 
 			#region Overrides of ColumnChecker
 
-			internal override string ResolveColumnName(string col_name) {
+			public override string ResolveColumnName(string columnName) {
 				string found_memebr = null;
 
 				for (int i = 0; i < members.Count; i++) {
@@ -147,7 +147,7 @@ namespace Deveel.Data.Sql {
 					else
 						throw new NotSupportedException();
 
-					if (string.Compare(memberName, col_name, ignores_case) == 0) {
+					if (string.Compare(memberName, columnName, ignores_case) == 0) {
 						if (found_memebr != null)
 							throw new Exception("Ambigous member name '" + memberName + "'.");
 

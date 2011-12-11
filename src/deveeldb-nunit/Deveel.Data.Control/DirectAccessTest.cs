@@ -28,7 +28,7 @@ namespace Deveel.Data.Control {
 				tableDef.AddColumn(DataTableColumnInfo.CreateBooleanColumn("is_set"));
 				directAccess.CreateTable(tableDef, true);
 
-				directAccess.AddConstraint(tableName, DataTableConstraintInfo.PrimaryKey("DA_TestTable_PK", new string[] { "name" }));
+				directAccess.AddConstraint(tableName, DataConstraintInfo.PrimaryKey("DA_TestTable_PK", new string[] { "name" }));
 
 				directAccess.Commit();
 			} catch(Exception e) {

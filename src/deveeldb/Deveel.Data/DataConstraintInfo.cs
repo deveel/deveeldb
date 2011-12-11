@@ -18,7 +18,8 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data {
-	public sealed class DataTableConstraintInfo {
+	[Serializable]
+	public sealed class DataConstraintInfo {
 		/// <summary>
 		/// The name of the constraint.
 		/// </summary>
@@ -59,7 +60,7 @@ namespace Deveel.Data {
 		// ( By default we are 'initially immediate deferrable' )
 		private ConstraintDeferrability deferred = ConstraintDeferrability.InitiallyImmediate;
 
-		private DataTableConstraintInfo(ConstraintType type) {
+		private DataConstraintInfo(ConstraintType type) {
 			this.type = type;
 		}
 
@@ -131,23 +132,23 @@ namespace Deveel.Data {
 			refTableName = tableName;
 		}
 
-		public static DataTableConstraintInfo PrimaryKey(string name, string[] columnNames) {
-			DataTableConstraintInfo constraint = new DataTableConstraintInfo(ConstraintType.PrimaryKey);
+		public static DataConstraintInfo PrimaryKey(string name, IEnumerable<string> columnNames) {
+			DataConstraintInfo constraint = new DataConstraintInfo(ConstraintType.PrimaryKey);
 			constraint.name = name;
 			constraint.columns = new List<string>(columnNames);
 			return constraint;
 		}
 
-		public static DataTableConstraintInfo Unique(string name, string[] columnNames) {
-			DataTableConstraintInfo constraint = new DataTableConstraintInfo(ConstraintType.Unique);
+		public static DataConstraintInfo Unique(string name, IEnumerable<string> columnNames) {
+			DataConstraintInfo constraint = new DataConstraintInfo(ConstraintType.Unique);
 			constraint.name = name;
 			constraint.columns = new List<string>(columnNames);
 			return constraint;
 		}
 
-		public static DataTableConstraintInfo ForeignKey(string name, string[] columns, string refTableName, string[] refColumns, 
+		public static DataConstraintInfo ForeignKey(string name, IEnumerable<string> columns, string refTableName, IEnumerable<string> refColumns, 
 			ConstraintAction onDelete, ConstraintAction onUpdate) {
-			DataTableConstraintInfo constraint = new DataTableConstraintInfo(ConstraintType.ForeignKey);
+			DataConstraintInfo constraint = new DataConstraintInfo(ConstraintType.ForeignKey);
 			constraint.name = name;
 			constraint.columns = new List<string>(columns);
 			constraint.refTableName = refTableName;
@@ -157,8 +158,8 @@ namespace Deveel.Data {
 			return constraint;
 		}
 
-		public static DataTableConstraintInfo Check(string name, Expression expression) {
-			DataTableConstraintInfo constraint = new DataTableConstraintInfo(ConstraintType.Check);
+		public static DataConstraintInfo Check(string name, Expression expression) {
+			DataConstraintInfo constraint = new DataConstraintInfo(ConstraintType.Check);
 			constraint.name = name;
 			constraint.checkExpression = expression;
 			constraint.OriginalCheckExpression = expression;

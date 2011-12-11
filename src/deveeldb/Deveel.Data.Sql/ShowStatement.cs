@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The search expression for the show statement (where clause).
 		/// </summary>
-		private SearchExpression where_clause = new SearchExpression();
+		private SearchExpression where_clause;
 
 		// ---------- Implemented from Statement ----------
 

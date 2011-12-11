@@ -661,7 +661,7 @@ StatementTree Update() :
 { StatementTree cmd = new StatementTree(typeof(UpdateTableStatement));
   String table_name;
   ArrayList assignments = new ArrayList();
-  SearchExpression where_clause = new SearchExpression();
+  SearchExpression where_clause = null;
   int limit = -1;
   bool from_cursor = false;
   string cursor_name = null;
@@ -670,7 +670,7 @@ StatementTree Update() :
   ( <UPDATE> table_name = TableName() <SET> AssignmentList(assignments)
         [ <WHERE>
           ( <CURRENTOF> cursor_name = TableName() { from_cursor = true; } |
-            ConditionsExpression(where_clause) )
+            where_clause = ConditionsExpression() )
         ]
         [ <LIMIT> limit = PositiveIntegerConstant() ] 
   )
@@ -1148,7 +1148,7 @@ StatementTree Fetch() :
 StatementTree Delete() :
 { StatementTree cmd = new StatementTree(typeof(DeleteStatement));
   String table_name;
-  SearchExpression where_clause = new SearchExpression();
+  SearchExpression where_clause = null;
   int limit = -1;
   string cursor_name = null;
   bool from_cursor = false;
@@ -1158,7 +1158,7 @@ StatementTree Delete() :
   ( <DELETE> <FROM> table_name = TableName()
         [ <WHERE> 
           ( <CURRENTOF> cursor_name = TableName() { from_cursor = true; } | 
-            ConditionsExpression(where_clause) )
+            where_clause = ConditionsExpression() )
         ]
         [ <LIMIT> limit = PositiveIntegerConstant() ] 
   )
@@ -1215,7 +1215,7 @@ StatementTree Describe() :
   )
   
   { cmd.SetValue("table_name", table_name);
-    cmd.SetValue("where_clause", new SearchExpression());
+    cmd.SetValue("where_clause", null);
     return cmd; }
 
 }
@@ -1224,7 +1224,7 @@ StatementTree Describe() :
 StatementTree Show() :
 { StatementTree cmd = new StatementTree(typeof(ShowStatement));
   Expression[] args = null;
-  SearchExpression where_clause = new SearchExpression();
+  SearchExpression where_clause = null;
   Token t;
 }
 {
@@ -1233,7 +1233,7 @@ StatementTree Show() :
         | t=<SCHEMA>
       )
       [ "(" args=ExpressionList() ")" ]
-      [ <WHERE> ConditionsExpression(where_clause) ] )
+      [ <WHERE> where_clause = ConditionsExpression() ] )
   
   { cmd.SetValue("show", t.image);
     cmd.SetValue("args", args);
@@ -1497,17 +1497,17 @@ TableSelectExpression GetTableSelectExpression() :
 {
   ( <SELECT>
         ( 
-          LOOKAHEAD(2) <IDENTITY> { table_expr.Columns.Add(Sql.SelectColumn.Identity); } |
+          LOOKAHEAD(2) <IDENTITY> { table_expr.Columns.Add(Data.SelectColumn.Identity); } |
           [ table_expr.Distinct = SetQuantifier() ] 
           SelectColumnList(table_expr.Columns) 
         )
         [ <INTO> GetIntoClause(table_expr.Into) ]
         [ <FROM> SelectTableList(table_expr.From) ]
-        [ <WHERE> ConditionsExpression(table_expr.Where) ]
+        [ <WHERE> table_expr.Where = ConditionsExpression() ]
 
         [ <GROUPBY> SelectGroupByList(table_expr.GroupBy)
           [ <GROUPMAX> table_expr.GroupMax = GroupMaxColumn() ] 
-          [ <HAVING> ConditionsExpression(table_expr.Having) ] ]
+          [ <HAVING> table_expr.Having = ConditionsExpression() ] ]
 
         [ composite = GetComposite() [ <ALL> { is_all = true; } ]
           next_composite_expression = GetTableSelectExpression()
@@ -1566,7 +1566,7 @@ AlterTableAction GetAlterTableAction() :
 	return action; }
 }
 
-void GetIntoClause(IntoClause into) :
+void GetIntoClause(SelectIntoClause into) :
 { string table_name = null;  
   Token var_ref = null; }
 {
@@ -1628,18 +1628,17 @@ void SelectColumnList(IList list) :
 }
 
 SelectColumn SelectColumn() :
-{ SelectColumn col = new SelectColumn();
-  String aliased_name;
+{ String alias = null;
   Token t;
   Expression exp;
 }
 { 
-  (   exp = DoExpression() { col.SetExpression(exp); } [ <AS> ] [ aliased_name=TableAliasName() { col.SetAlias(aliased_name); } ]
-    | <STAR> { col = Sql.SelectColumn.Glob("*"); }
-    | t = <GLOBVARIABLE> { col = Sql.SelectColumn.Glob(CaseCheck(t.image)); }
-    | t = <QUOTEDGLOBVARIABLE> { col = Sql.SelectColumn.Glob(CaseCheck(Util.AsNonQuotedRef(t))); }
+  (   exp = DoExpression() [ <AS> ] [ alias=TableAliasName() ]
+    | <STAR> { return Data.SelectColumn.Glob("*"); }
+    | t = <GLOBVARIABLE> { return Data.SelectColumn.Glob(CaseCheck(t.image)); }
+    | t = <QUOTEDGLOBVARIABLE> { return Data.SelectColumn.Glob(CaseCheck(Util.AsNonQuotedRef(t))); }
   )
-  { return col; }
+  { return new SelectColumn(exp, alias); }
 }
 
 void SelectGroupByList(IList list) :
@@ -2074,12 +2073,12 @@ ArrayList UserNameList(ArrayList list) :
 
 
 
-void ConditionsExpression(SearchExpression se) :
+SearchExpression ConditionsExpression() :
 { Expression exp; }
 {
   exp = DoExpression()
 
-  { se.SetFromExpression(exp); }
+  { return new SearchExpression(exp); }
 }
 
 

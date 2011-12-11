@@ -44,6 +44,10 @@ namespace Deveel.Data.QueryPlanning {
 		/// converted to a <see cref="SelectStatement"/> object and prepared.
 		/// </remarks>
 		private static void PrepareSearchExpression(DatabaseConnection db, TableExpressionFromSet fromSet, SearchExpression expression) {
+			// first check the expression is not null
+			if (expression == null)
+				return;
+
 			// This is used to prepare sub-queries and qualify variables in a
 			// search expression such as WHERE or HAVING.
 
@@ -139,7 +143,7 @@ namespace Deveel.Data.QueryPlanning {
 				// If this is a sub-command table,
 				if (ftdef.IsSubQueryTable) {
 					// eg. FROM ( SELECT id FROM Part )
-					TableSelectExpression subQuery = ftdef.TableSelectExpression;
+					TableSelectExpression subQuery = ftdef.SubSelect;
 					TableExpressionFromSet subQueryFromSet = GenerateFromSet(subQuery, db);
 
 					// The aliased name of the table
@@ -179,13 +183,13 @@ namespace Deveel.Data.QueryPlanning {
 			// For each column being selected
 			foreach (SelectColumn col in selectExpression.Columns) {
 				// Is this a glob?  (eg. Part.* )
-				if (col.glob_name != null) {
+				if (col.GlobName != null) {
 					// Find the columns globbed and add to the 'selectedColumns' result.
-					if (col.glob_name.Equals("*")) {
+					if (col.GlobName.Equals("*")) {
 						fromSet.ExposeAllColumns();
 					} else {
 						// Otherwise the glob must be of the form '[table name].*'
-						string tname = col.glob_name.Substring(0, col.glob_name.IndexOf(".*"));
+						string tname = col.GlobName.Substring(0, col.GlobName.IndexOf(".*"));
 						TableName tn = TableName.Resolve(tname);
 						fromSet.ExposeAllColumnsFromSource(tn);
 					}
@@ -261,13 +265,13 @@ namespace Deveel.Data.QueryPlanning {
 			// For each column being selected
 			foreach (SelectColumn col in columns) {
 				// Is this a glob?  (eg. Part.* )
-				if (col.glob_name != null) {
+				if (col.GlobName != null) {
 					// Find the columns globbed and add to the 'selectedColumns' result.
-					if (col.glob_name.Equals("*")) {
+					if (col.GlobName.Equals("*")) {
 						columnSet.SelectAllColumnsFromAllSources();
 					} else {
 						// Otherwise the glob must be of the form '[table name].*'
-						string tname = col.glob_name.Substring(0, col.glob_name.IndexOf(".*"));
+						string tname = col.GlobName.Substring(0, col.GlobName.IndexOf(".*"));
 						TableName tn = TableName.Resolve(tname);
 						columnSet.SelectAllColumnsFromSource(tn);
 					}
@@ -400,9 +404,9 @@ namespace Deveel.Data.QueryPlanning {
 			// we need to add.  This is a list of a name followed by the expression
 			// that contains the aggregate function.
 			List<Expression> extraAggregateFunctions = new List<Expression>();
-			if (havingClause.FromExpression != null) {
+			if (havingClause != null && havingClause.FromExpression != null) {
 				Expression newHavingClause = FilterHavingClause(havingClause.FromExpression, extraAggregateFunctions, context);
-				havingClause.SetFromExpression(newHavingClause);
+				havingClause.FromExpression = newHavingClause;
 			}
 
 			// Any GROUP BY functions,
@@ -477,9 +481,9 @@ namespace Deveel.Data.QueryPlanning {
 				for (int i = 0; i < sz1; ++i) {
 					SelectColumn scol = selectedColumns[i];
 					expList[i] = scol.Expression;
-					colNames[i] = scol.internal_name.Name;
-					subsetVars[i] = new VariableName(scol.internal_name);
-					aliases1[i] = new VariableName(scol.resolved_name);
+					colNames[i] = scol.InternalName.Name;
+					subsetVars[i] = new VariableName(scol.InternalName);
+					aliases1[i] = new VariableName(scol.ResolvedName);
 				}
 
 				return new SubsetNode(
@@ -499,7 +503,7 @@ namespace Deveel.Data.QueryPlanning {
 			for (int i = 0; i < fsz; ++i) {
 				SelectColumn scol = functionsList[i];
 				completeFunList.Add(scol.Expression);
-				completeFunList.Add(scol.internal_name.Name);
+				completeFunList.Add(scol.InternalName.Name);
 			}
 			for (int i = 0; i < extraAggregateFunctions.Count; ++i) {
 				completeFunList.Add(extraAggregateFunctions[i]);
@@ -580,8 +584,8 @@ namespace Deveel.Data.QueryPlanning {
 				aliases = new VariableName[sz];
 				for (int i = 0; i < sz; ++i) {
 					SelectColumn scol = selectColumns[i];
-					subsetVars[i] = new VariableName(scol.internal_name);
-					aliases[i] = new VariableName(scol.resolved_name);
+					subsetVars[i] = new VariableName(scol.InternalName);
+					aliases[i] = new VariableName(scol.ResolvedName);
 				}
 
 				// If we are distinct then add the DistinctNode here
@@ -736,8 +740,8 @@ namespace Deveel.Data.QueryPlanning {
 		private static void SubstituteAliasedVariable(VariableName v, IList<SelectColumn> columns) {
 			if (columns != null) {
 				foreach (SelectColumn scol in columns) {
-					if (v.Equals(scol.resolved_name)) 
-						v.Set(scol.internal_name);
+					if (v.Equals(scol.ResolvedName)) 
+						v.Set(scol.InternalName);
 				}
 			}
 		}
@@ -825,13 +829,11 @@ namespace Deveel.Data.QueryPlanning {
 				VariableName[] vars = table.AllColumns;
 				foreach (VariableName v in vars) {
 					// Make up the SelectColumn
-					SelectColumn ncol = new SelectColumn();
 					Expression e = new Expression(v);
 					e.Text.Append(v.ToString());
-					ncol.SetAlias(null);
-					ncol.SetExpression(e);
-					ncol.resolved_name = v;
-					ncol.internal_name = v;
+					SelectColumn ncol = new SelectColumn(e);
+					ncol.ResolvedName = v;
+					ncol.InternalName = v;
 
 					// Add to the list of columns selected
 					SelectSingleColumn(ncol);
@@ -909,19 +911,19 @@ namespace Deveel.Data.QueryPlanning {
 					}
 					functionColumns.Add(col);
 
-					col.internal_name = new VariableName(FunctionTableName, aggStr);
+					col.InternalName = new VariableName(FunctionTableName, aggStr);
 					if (col.Alias == null) {
-						col.SetAlias(col.Expression.Text.ToString());
+						col.Alias = col.Expression.Text.ToString();
 					}
-					col.resolved_name = new VariableName(col.Alias);
+					col.ResolvedName = new VariableName(col.Alias);
 
 				} else {
 					// Not a complex expression
-					col.internal_name = v;
+					col.InternalName = v;
 					if (col.Alias == null) {
-						col.resolved_name = v;
+						col.ResolvedName = v;
 					} else {
-						col.resolved_name = new VariableName(col.Alias);
+						col.ResolvedName = new VariableName(col.Alias);
 					}
 				}
 			}

@@ -113,22 +113,6 @@ namespace Deveel.Data.Sql {
 			context.StatementTree.SetValue(key, value);
 		}
 
-		protected void SetValue(string key, int value) {
-			SetValue(key, (object)value);
-		}
-
-		protected void SetValue(string key, bool value) {
-			SetValue(key, (object)value);
-		}
-
-		protected void SetValue(string key, string value) {
-			SetValue(key, (object)value);
-		}
-
-		protected void SetValue(string key, Expression value) {
-			SetValue(key, (object)value);
-		}
-
 		/// <summary>
 		/// Resets this statement so it may be re-prepared and evaluated again.
 		/// </summary>

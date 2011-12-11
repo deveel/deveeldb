@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	public sealed class StatementTree : ICloneable {
+	sealed class StatementTree : ICloneable {
 		/// <summary>
 		/// The type of statement this is.
 		/// </summary>

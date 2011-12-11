@@ -378,36 +378,36 @@ namespace Deveel.Data {
 			return Fetch(FetchOrientation.Absolute, offset);
 		}
 
-		public Table FetchInto(FetchOrientation orientation, int offset, DatabaseQueryContext context, IntoClause into) {
+		public Table FetchInto(FetchOrientation orientation, int offset, DatabaseQueryContext context, SelectIntoClause into) {
 			Table table = Fetch(orientation, offset);
 			return into.SelectInto(context, table);
 		}
 
-		public Table FetchInto(FetchOrientation orientation, DatabaseQueryContext context, IntoClause into) {
+		public Table FetchInto(FetchOrientation orientation, DatabaseQueryContext context, SelectIntoClause into) {
 			return FetchInto(orientation, -1, context, into);
 		}
 
-		public Table FetchNextInto(DatabaseQueryContext context, IntoClause into) {
+		public Table FetchNextInto(DatabaseQueryContext context, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.Next, context, into);
 		}
 
-		public Table FetchPriorInto(DatabaseQueryContext context, IntoClause into) {
+		public Table FetchPriorInto(DatabaseQueryContext context, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.Prior, context, into);
 		}
 
-		public Table FetchFirstInto(DatabaseQueryContext context, IntoClause into) {
+		public Table FetchFirstInto(DatabaseQueryContext context, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.First, -1, context, into);
 		}
 
-		public Table FetchLastInto(DatabaseQueryContext context, IntoClause into) {
+		public Table FetchLastInto(DatabaseQueryContext context, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.Last, context, into);
 		}
 
-		public Table FetchRelativeInto(DatabaseQueryContext context, int offset, IntoClause into) {
+		public Table FetchRelativeInto(DatabaseQueryContext context, int offset, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.Relative, offset, context, into);
 		}
 
-		public Table FetchAbsoluteInto(DatabaseQueryContext context, int offset, IntoClause into) {
+		public Table FetchAbsoluteInto(DatabaseQueryContext context, int offset, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.Absolute, offset, context, into);
 		}
 

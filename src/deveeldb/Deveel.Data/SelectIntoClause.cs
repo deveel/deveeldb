@@ -16,9 +16,9 @@
 using System;
 using System.Collections;
 
-namespace Deveel.Data.Sql {
-	public sealed class IntoClause : ICloneable {
-		public IntoClause() {
+namespace Deveel.Data {
+	public sealed class SelectIntoClause : ICloneable {
+		public SelectIntoClause() {
 			elements = new ArrayList();
 		}
 
@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		internal void SetTableName(string value) {
-			if (tableName !=null && tableName.Length > 0)
+			if (!string.IsNullOrEmpty(tableName))
 				throw new ArgumentException("Cannot set more than one destination table.");
 
 			tableName = value;
@@ -156,7 +156,7 @@ namespace Deveel.Data.Sql {
 		#region Implementation of ICloneable
 
 		public object Clone() {
-			IntoClause clause = new IntoClause();
+			SelectIntoClause clause = new SelectIntoClause();
 			if (tableName != null)
 				clause.tableName = tableName;
 			if (resolvedTableName != null)

@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -26,32 +26,33 @@ namespace Deveel.Data.Sql {
 			this.type = type;
 		}
 
-		// The type of constraint (from types in DataTableConstraintInfo)
-		private ConstraintType type;
+		// The type of constraint (from types in DataConstraintInfo)
+		private readonly ConstraintType type;
 
 		// The name of the constraint or null if the constraint has no name (in
 		// which case it must be given an auto generated unique name at some point).
 		private String name;
 
 		// The Check Expression
-		private Expression check_expression;
+		private Expression checkExpression;
+
 		// The serializable plain check expression as originally parsed
 		internal Expression original_check_expression;
 
 		// The first column list
-		internal ArrayList column_list;
+		private List<string> column_list;
 
 		// The second column list
-		internal ArrayList column_list2;
+		internal List<string> column_list2;
 
 		// The name of the table if referenced.
 		private String reference_table_name;
 
 		// The foreign key update rule
-		private ConstraintAction update_rule;
+		private ConstraintAction updateRule;
 
 		// The foreign key delete rule
-		private ConstraintAction delete_rule;
+		private ConstraintAction deleteRule;
 
 		// Whether this constraint is deferred to when the transaction commits.
 		// ( By default we are 'initially immediate deferrable' )
@@ -74,12 +75,12 @@ namespace Deveel.Data.Sql {
 		}
 
 		public Expression CheckExpression {
-			get { return check_expression; }
+			get { return checkExpression; }
 			set {
 				if (type != ConstraintType.Check)
 					throw new ArgumentException("Cannot set the value of this constraint.");
 
-				check_expression = value;
+				checkExpression = value;
 				try {
 					original_check_expression = (Expression)value.Clone();
 				} catch (Exception e) {
@@ -91,20 +92,20 @@ namespace Deveel.Data.Sql {
 		///<summary>
 		/// Sets object up for a primary key constraint.
 		///</summary>
-		///<param name="list"></param>
-		public static SqlConstraint PrimaryKey(string[] columns) {
+		///<param name="columns"></param>
+		public static SqlConstraint PrimaryKey(IEnumerable<string> columns) {
 			SqlConstraint constraint = new SqlConstraint(ConstraintType.PrimaryKey);
-			constraint.column_list = new ArrayList(columns);
+			constraint.column_list = new List<string>(columns);
 			return constraint;
 		}
 
 		///<summary>
 		/// Sets object up for a unique constraint.
 		///</summary>
-		///<param name="list"></param>
-		public static SqlConstraint Unique(string[] columns) {
+		///<param name="columns"></param>
+		public static SqlConstraint Unique(IEnumerable<string> columns) {
 			SqlConstraint constraint = new SqlConstraint(ConstraintType.Unique);
-			constraint.column_list = new ArrayList(columns);
+			constraint.column_list = new List<string>(columns);
 			return constraint;
 		}
 
@@ -122,20 +123,19 @@ namespace Deveel.Data.Sql {
 		///<summary>
 		/// Sets object up for foreign key reference.
 		///</summary>
-		///<param name="ref_table"></param>
-		///<param name="col_list"></param>
-		///<param name="ref_col_list"></param>
-		///<param name="delete_rule"></param>
-		///<param name="update_rule"></param>
-		public static SqlConstraint ForeignKey(String ref_table, string [] col_list,
-								  string[] ref_col_list,
-								  ConstraintAction delete_rule, ConstraintAction update_rule) {
+		///<param name="refTable"></param>
+		///<param name="columns"></param>
+		///<param name="refColumns"></param>
+		///<param name="deleteRule"></param>
+		///<param name="updateRule"></param>
+		public static SqlConstraint ForeignKey(string refTable, IEnumerable<string> columns, IEnumerable<string> refColumns,
+								  ConstraintAction deleteRule, ConstraintAction updateRule) {
 			SqlConstraint constraint = new SqlConstraint(ConstraintType.ForeignKey);
-			constraint.reference_table_name = ref_table;
-			constraint.column_list = new ArrayList(col_list);
-			constraint.column_list2 = new ArrayList(ref_col_list);
-			constraint.delete_rule = delete_rule;
-			constraint.update_rule = update_rule;
+			constraint.reference_table_name = refTable;
+			constraint.column_list = new List<string>(columns);
+			constraint.column_list2 = new List<string>(refColumns);
+			constraint.deleteRule = deleteRule;
+			constraint.updateRule = updateRule;
 
 			return constraint;
 		}
@@ -158,31 +158,29 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Returns the first column list as a string array.
 		/// </summary>
-		public string[] ColumnList {
-			get { return (String[]) column_list.ToArray(typeof (string)); }
-			set { column_list = new ArrayList(value); }
+		public IList<string> ColumnList {
+			get { return column_list; }
 		}
 
 		/// <summary>
 		/// Returns the first column list as a string array.
 		/// </summary>
-		public string[] ColumnList2 {
-			get { return (String[]) column_list2.ToArray(typeof (string)); }
-			set { column_list2 = new ArrayList(value); }
+		public IList<string> ColumnList2 {
+			get { return column_list2; }
 		}
 
 		/// <summary>
 		/// Returns the delete rule if this is a foreign key reference.
 		/// </summary>
 		public ConstraintAction DeleteRule {
-			get { return delete_rule; }
+			get { return deleteRule; }
 		}
 
 		/// <summary>
 		/// Returns the update rule if this is a foreign key reference.
 		/// </summary>
 		public ConstraintAction UpdateRule {
-			get { return update_rule; }
+			get { return updateRule; }
 		}
 
 		public string ReferenceTable {
@@ -197,22 +195,22 @@ namespace Deveel.Data.Sql {
 
 		/// <inheritdoc/>
 		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
-			if (check_expression != null) {
-				check_expression.Prepare(preparer);
+			if (checkExpression != null) {
+				checkExpression.Prepare(preparer);
 			}
 		}
 
 		/// <inheritdoc/>
-		public Object Clone() {
+		public object Clone() {
 			SqlConstraint v = (SqlConstraint)MemberwiseClone();
-			if (check_expression != null) {
-				v.check_expression = (Expression)check_expression.Clone();
+			if (checkExpression != null) {
+				v.checkExpression = (Expression)checkExpression.Clone();
 			}
 			if (column_list != null) {
-				v.column_list = (ArrayList)column_list.Clone();
+				v.column_list = new List<string>(column_list);
 			}
 			if (column_list2 != null) {
-				v.column_list2 = (ArrayList)column_list2.Clone();
+				v.column_list2 = new List<string>(column_list2);
 			}
 			return v;
 		}

@@ -16,7 +16,9 @@
 using System;
 using System.Text;
 
-namespace Deveel.Data.Sql {
+using Deveel.Data.Sql;
+
+namespace Deveel.Data {
 	/// <summary>
 	/// Represents a column selected to be in the output of a select
 	/// statement.
@@ -52,22 +54,19 @@ namespace Deveel.Data.Sql {
 			: this(expression, null) {
 		}
 
-		/// <summary>
-		/// An internal empty constructor.
-		/// </summary>
-		internal SelectColumn() {
+		private SelectColumn() {
 		}
 
 		/// <summary>
 		/// If the column represents a glob of columns (eg. 'Part.*' or '*') then 
 		/// this is set to the glob string and 'expression' is left blank.
 		/// </summary>
-		internal string glob_name;
+		private string globName;
 
 		/// <summary>
 		/// The fully resolved name that this column is given in the resulting table.
 		/// </summary>
-		internal VariableName resolved_name;
+		private VariableName resolvedName;
 
 		/// <summary>
 		/// The alias of this column string.
@@ -85,7 +84,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The name of this column used internally to reference it.
 		/// </summary>
-		internal VariableName internal_name;
+		private VariableName internalName;
 
 		/// <summary>
 		/// Returns a new instance of a <see cref="SelectColumn"/> that is
@@ -94,7 +93,7 @@ namespace Deveel.Data.Sql {
 		public static SelectColumn Identity {
 			get {
 				SelectColumn column = new SelectColumn();
-				column.resolved_name = new VariableName("IDENTITY");
+				column.resolvedName = new VariableName("IDENTITY");
 				return column;
 			}
 		}
@@ -115,22 +114,40 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		public string Alias {
 			get { return alias; }
+			set { alias = value; }
 		}
 
-		internal void SetExpression(Expression exp) {
-			expression = exp;
+		/// <summary>
+		/// The name of this column used internally to reference it.
+		/// </summary>
+		internal VariableName InternalName {
+			get { return internalName; }
+			set { internalName = value; }
 		}
 
-		internal void SetAlias(string name) {
-			alias = name;
+		/// <summary>
+		/// The fully resolved name that this column is given in the resulting table.
+		/// </summary>
+		internal VariableName ResolvedName {
+			get { return resolvedName; }
+			set { resolvedName = value; }
+		}
+
+		/// <summary>
+		/// If the column represents a glob of columns (eg. 'Part.*' or '*') then 
+		/// this is set to the glob string and 'expression' is left blank.
+		/// </summary>
+		internal string GlobName {
+			get { return globName; }
+			set { globName = value; }
 		}
 
 		internal void DumpTo(StringBuilder sb) {
-			if (glob_name != null && glob_name.Length > 0) {
-				sb.Append(glob_name);
+			if (!string.IsNullOrEmpty(globName)) {
+				sb.Append(globName);
 			} else {
 				sb.Append(expression.Text.ToString());
-				if (alias != null && alias.Length > 0)
+				if (!string.IsNullOrEmpty(alias))
 					sb.Append(" AS ").Append(alias);
 			}
 		}
@@ -154,36 +171,20 @@ namespace Deveel.Data.Sql {
 		/// </returns>
 		public static SelectColumn Glob(string glob) {
 			SelectColumn column = new SelectColumn();
-			column.glob_name = glob;
+			column.globName = glob;
 			return column;
 		}
 
 		/// <inheritdoc/>
 		public object Clone() {
 			SelectColumn v = (SelectColumn)MemberwiseClone();
-			if (resolved_name != null)
-				v.resolved_name = (VariableName)resolved_name.Clone();
+			if (resolvedName != null)
+				v.resolvedName = (VariableName)resolvedName.Clone();
 			if (expression != null)
 				v.expression = (Expression)expression.Clone();
-			if (internal_name != null)
-				v.internal_name = (VariableName)internal_name.Clone();
+			if (internalName != null)
+				v.internalName = (VariableName)internalName.Clone();
 			return v;
-		}
-
-		/// <inheritdoc/>
-		public override String ToString() {
-			StringBuilder sb = new StringBuilder();
-			if (glob_name != null) 
-				sb.Append(" GLOB_NAME = " + glob_name);
-			if (resolved_name != null) 
-				sb.Append(" RESOLVED_NAME = " + resolved_name);
-			if (alias != null) 
-				sb.Append(" ALIAS = " + alias);
-			if (expression != null) 
-				sb.Append(" EXPRESSION = " + expression);
-			if (internal_name != null)
-				sb.Append(" INTERNAL_NAME = " + internal_name);
-			return sb.ToString();
 		}
 	}
 }

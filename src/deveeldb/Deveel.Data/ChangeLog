@@ -1,3 +1,7 @@
+2011-12-11  Antonello Provenzano  <antonello@deveel.com>
+	* DataTableInfo.cs: added support for constraints defined
+	at table level
+
 2011-12-10  Antonello Provenzano  <antonello@deveel.com>
 	* DataTableInfo.cs: columns now cannot be added directly anymore:
 	the only way is to provide name and type.

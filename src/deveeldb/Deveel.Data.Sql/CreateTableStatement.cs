@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql {
 	///<summary>
@@ -29,17 +30,17 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Only create if table doesn't exist.
 		/// </summary>
-		private bool only_if_not_exists = false;
+		private bool onlyIfNotExists = false;
 
 		/// <summary>
 		/// The name of the table to create.
 		/// </summary>
-		internal String table_name;
+		internal string TableName;
 
 		/// <summary>
-		/// List of column declarations (SqlColumn)
+		/// List of column declarations (DataTableColumnInfo)
 		/// </summary>
-		private IList columns;
+		private IList<DataTableColumnInfo> columns;
 
 		/// <summary>
 		/// List of table constraints (SqlConstraint)
@@ -78,9 +79,8 @@ namespace Deveel.Data.Sql {
 
 			// Add the columns.
 			// NOTE: Any duplicate column names will be found here...
-			for (int i = 0; i < columns.Count; ++i) {
-				DataTableColumnInfo cd = (DataTableColumnInfo)columns[i];
-				tableInfo.AddColumn(cd);
+			foreach (DataTableColumnInfo column in columns) {
+				tableInfo.AddColumn(column);
 			}
 
 			return tableInfo;
@@ -94,30 +94,32 @@ namespace Deveel.Data.Sql {
 		/// <param name="manager"></param>
 		/// <param name="table"></param>
 		/// <param name="constraint"></param>
-		internal static void AddSchemaConstraint(DatabaseConnection manager,
-										TableName table, SqlConstraint constraint) {
+		internal static void AddSchemaConstraint(DatabaseConnection manager, TableName table, SqlConstraint constraint) {
 			if (constraint.Type == ConstraintType.PrimaryKey) {
-				manager.AddPrimaryKeyConstraint(table,
-					constraint.ColumnList, constraint.Deferrability, constraint.Name);
+				string[] columns = new string[constraint.ColumnList.Count];
+				constraint.ColumnList.CopyTo(columns, 0);
+				manager.AddPrimaryKeyConstraint(table, columns, constraint.Deferrability, constraint.Name);
 			} else if (constraint.Type == ConstraintType.ForeignKey) {
 				// Currently we forbid referencing a table in another schema
-				TableName ref_table =
-									TableName.Resolve(constraint.ReferenceTable);
-				ConstraintAction update_rule = constraint.UpdateRule;
-				ConstraintAction delete_rule = constraint.DeleteRule;
-				if (table.Schema.Equals(ref_table.Schema)) {
-					manager.AddForeignKeyConstraint(
-						 table, constraint.ColumnList,
-						 ref_table, constraint.ColumnList2,
-						 delete_rule, update_rule, constraint.Deferrability, constraint.Name);
-				} else {
+				TableName refTable = Data.TableName.Resolve(constraint.ReferenceTable);
+				ConstraintAction updateRule = constraint.UpdateRule;
+				ConstraintAction deleteRule = constraint.DeleteRule;
+				if (!table.Schema.Equals(refTable.Schema))
 					throw new DatabaseException("Foreign key reference error: " +
-							"Not permitted to reference a table outside of the schema: " +
-							table + " -> " + ref_table);
-				}
+					                            "Not permitted to reference a table outside of the schema: " +
+					                            table + " -> " + refTable);
+				string[] columns = new string[constraint.ColumnList.Count];
+				constraint.ColumnList.CopyTo(columns, 0);
+				string[] refColumns = new string[constraint.ColumnList.Count];
+				constraint.ColumnList2.CopyTo(refColumns, 0);
+				manager.AddForeignKeyConstraint(
+					table, columns,
+					refTable, refColumns,
+					deleteRule, updateRule, constraint.Deferrability, constraint.Name);
 			} else if (constraint.Type == ConstraintType.Unique) {
-				manager.AddUniqueConstraint(table, constraint.ColumnList,
-											constraint.Deferrability, constraint.Name);
+				string[] columns = new string[constraint.ColumnList.Count];
+				constraint.ColumnList.CopyTo(columns, 0);
+				manager.AddUniqueConstraint(table, columns, constraint.Deferrability, constraint.Name);
 			} else if (constraint.Type == ConstraintType.Check) {
 				manager.AddCheckConstraint(table, constraint.original_check_expression,
 										   constraint.Deferrability, constraint.Name);
@@ -129,31 +131,27 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Returns a <see cref="SqlColumn"/> object a a <see cref="DataTableColumnInfo"/> object.
 		/// </summary>
-		/// <param name="cdef"></param>
+		/// <param name="sqlColumn"></param>
 		/// <returns></returns>
-		internal static DataTableColumnInfo ConvertColumnDef(SqlColumn cdef) {
-			TType type = cdef.Type;
+		internal static DataTableColumnInfo ConvertToColumnInfo(SqlColumn sqlColumn) {
+			TType type = sqlColumn.Type;
 
-			DataTableColumnInfo dtcdef = new DataTableColumnInfo(null, cdef.Name, type);
-			dtcdef.IsNotNull = cdef.IsNotNull;
+			DataTableColumnInfo columnInfo = new DataTableColumnInfo(null, sqlColumn.Name, type);
+			columnInfo.IsNotNull = sqlColumn.IsNotNull;
 
-			if (cdef.IndexScheme != null) {
-				dtcdef.IndexScheme = cdef.IndexScheme;
-			}
-			if (cdef.Default != null) {
-				dtcdef.SetDefaultExpression(cdef.original_default_expression);
-			}
+			if (sqlColumn.IndexScheme != null)
+				columnInfo.IndexScheme = sqlColumn.IndexScheme;
+			if (sqlColumn.Default != null)
+				columnInfo.SetDefaultExpression(sqlColumn.original_default_expression);
 
-			return dtcdef;
+			return columnInfo;
 		}
 
 		/// <summary>
 		/// Sets up all constraints specified in this create statement.
 		/// </summary>
 		internal void SetupAllConstraints() {
-			for (int i = 0; i < constraints.Count; ++i) {
-				SqlConstraint constraint = (SqlConstraint)constraints[i];
-
+			foreach (SqlConstraint constraint in constraints) {
 				// Add this to the schema manager tables
 				AddSchemaConstraint(Connection, tname, constraint);
 			}
@@ -165,143 +163,135 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		protected override void Prepare() {
-
 			// Get the state from the model
 			temporary = GetBoolean("temporary");
-			only_if_not_exists = GetBoolean("only_if_not_exists");
-			table_name = GetString("table_name");
-			IList column_list = GetList("column_list");
+			onlyIfNotExists = GetBoolean("only_if_not_exists");
+			TableName = GetString("table_name");
+			IList columnList = GetList("column_list");
 			constraints = GetList("constraint_list");
 
 			// Convert column_list to list of com.mckoi.Connection.DataTableColumnInfo
-			int size = column_list.Count;
+			int size = columnList.Count;
 			int identityIndex = -1;
-			columns = new ArrayList(size);
+			columns = new List<DataTableColumnInfo>(size);
 			for (int i = 0; i < size; ++i) {
-				SqlColumn cdef = (SqlColumn)column_list[i];
+				SqlColumn cdef = (SqlColumn)columnList[i];
 				if (cdef.Type.SQLType == SqlType.Identity) {
 					if (identityIndex != -1)
 						throw new DatabaseException("Cannot specify more than one IDENTITY column in a table.");
 					identityIndex = i;
 				}
-				columns.Add(ConvertColumnDef(cdef));
+
+				columns.Add(ConvertToColumnInfo(cdef));
 			}
 
 			// ----
 
-			String schema_name = Connection.CurrentSchema;
-			tname = TableName.Resolve(schema_name, table_name);
+			string schemaName = Connection.CurrentSchema;
+			tname = Data.TableName.Resolve(schemaName, TableName);
 
-			String name_strip = tname.Name;
+			string nameStrip = tname.Name;
 
-			if (name_strip.IndexOf('.') != -1)
+			if (nameStrip.IndexOf('.') != -1)
 				throw new DatabaseException("Table name can not contain '.' character.");
 
-			bool ignores_case = Connection.IsInCaseInsensitiveMode;
+			bool ignoresCase = Connection.IsInCaseInsensitiveMode;
 
 			// Implement the checker class for this statement.
-			ColumnChecker checker = new ColumnCheckerImpl(ignores_case, columns);
+			ColumnChecker checker = new ColumnCheckerImpl(ignoresCase, columns);
 
-			ArrayList unique_column_list = new ArrayList();
-			ArrayList primary_key_column_list = new ArrayList();
+			List<string> uniqueColumnList = new List<string>();
+			List<string> primaryKeyColumnList = new List<string>();
 
 			// Check the expressions that represent the default values for the columns.
 			// Also check each column name
 			for (int i = 0; i < columns.Count; ++i) {
-				DataTableColumnInfo cdef = (DataTableColumnInfo)columns[i];
-				SqlColumn model_cdef = (SqlColumn)column_list[i];
-				checker.CheckExpression(cdef.GetDefaultExpression(Connection.System));
-				String col_name = cdef.Name;
+				DataTableColumnInfo columnInfo = columns[i];
+				SqlColumn sqlColumn = (SqlColumn)columnList[i];
+				checker.CheckExpression(columnInfo.GetDefaultExpression(Connection.System));
+				string columnName = columnInfo.Name;
+
 				// If column name starts with [table_name]. then strip it off
-				cdef.Name = checker.StripTableName(name_strip, col_name);
+				columnInfo.Name = checker.StripTableName(nameStrip, columnName);
+
 				// If unique then add to unique columns
-				if (model_cdef.IsUnique) {
-					unique_column_list.Add(col_name);
-				}
+				if (sqlColumn.IsUnique)
+					uniqueColumnList.Add(columnName);
+
 				// If primary key then add to primary key columns
-				if (model_cdef.IsPrimaryKey ||
-					model_cdef.Type.SQLType == SqlType.Identity) {
-					primary_key_column_list.Add(col_name);
+				if (sqlColumn.IsPrimaryKey ||
+					sqlColumn.Type.SQLType == SqlType.Identity) {
+					primaryKeyColumnList.Add(columnName);
 				}
+
 				// if identity then set it the default expression
-				if (model_cdef.Type.SQLType == SqlType.Identity) {
+				if (sqlColumn.Type.SQLType == SqlType.Identity) {
 					// TableName seq_name = new TableName(tname.Schema, tname.Name + "_IDENTITY");
-					cdef.SetDefaultExpression(Expression.Parse("UNIQUEKEY('" + tname + "')"));
+					columnInfo.SetDefaultExpression(Expression.Parse("UNIQUEKEY('" + tname + "')"));
 				}
 			}
 
 			// Add the unique and primary key constraints.
-			if (unique_column_list.Count > 0) {
-				AddConstraintDef(SqlConstraint.Unique((string[])unique_column_list.ToArray(typeof(string))));
-			}
-			if (primary_key_column_list.Count > 0) {
-				AddConstraintDef(SqlConstraint.PrimaryKey((string[])primary_key_column_list.ToArray(typeof(string))));
-			}
+			if (uniqueColumnList.Count > 0)
+				AddConstraintDef(SqlConstraint.Unique(uniqueColumnList.ToArray()));
+			if (primaryKeyColumnList.Count > 0)
+				AddConstraintDef(SqlConstraint.PrimaryKey(primaryKeyColumnList.ToArray()));
 
 			// Strip the column names and set the expression in all the constraints.
-			for (int i = 0; i < constraints.Count; ++i) {
-				SqlConstraint constraint = (SqlConstraint)constraints[i];
-				checker.StripColumnList(name_strip, constraint.column_list);
+			foreach (SqlConstraint constraint in constraints) {
+				checker.StripColumnList(nameStrip, constraint.ColumnList);
+
 				// Check the referencing table for foreign keys
 				if (constraint.Type == ConstraintType.ForeignKey) {
-					checker.StripColumnList(constraint.ReferenceTable,
-											constraint.column_list2);
-					TableName ref_tname = ResolveTableName(constraint.ReferenceTable);
-					if (Connection.IsInCaseInsensitiveMode) {
-						ref_tname = Connection.TryResolveCase(ref_tname);
-					}
-					constraint.ReferenceTable = ref_tname.ToString();
+					checker.StripColumnList(constraint.ReferenceTable, constraint.column_list2);
+
+					TableName refTname = ResolveTableName(constraint.ReferenceTable);
+					if (Connection.IsInCaseInsensitiveMode)
+						refTname = Connection.TryResolveCase(refTname);
+
+					constraint.ReferenceTable = refTname.ToString();
 
 					DataTableInfo refTableInfo;
-					if (Connection.TableExists(ref_tname)) {
+					if (Connection.TableExists(refTname)) {
 						// Get the DataTableInfo for the table we are referencing
-						refTableInfo = Connection.GetTableInfo(ref_tname);
-					} else if (ref_tname.Equals(tname)) {
+						refTableInfo = Connection.GetTableInfo(refTname);
+					} else if (refTname.Equals(tname)) {
 						// We are referencing the table we are creating
 						refTableInfo = CreateTableInfo();
 					} else {
 						throw new DatabaseException(
-							  "Referenced table '" + ref_tname + "' in constraint '" +
+							  "Referenced table '" + refTname + "' in constraint '" +
 							  constraint.Name + "' does not exist.");
 					}
+
 					// Resolve columns against the given table info
 					refTableInfo.ResolveColumnsInArray(Connection, constraint.column_list2);
-
 				}
 				checker.CheckExpression(constraint.CheckExpression);
-				checker.CheckColumnList(constraint.column_list);
+				checker.CheckColumnList(constraint.ColumnList);
 			}
 		}
 
 		private class ColumnCheckerImpl : ColumnChecker {
-			private bool ignores_case;
-			private IList columns;
+			private readonly bool ignoresCase;
+			private readonly IList<DataTableColumnInfo> columns;
 
-			public ColumnCheckerImpl(bool ignoresCase, IList columns) {
-				ignores_case = ignoresCase;
+			public ColumnCheckerImpl(bool ignoresCase, IList<DataTableColumnInfo> columns) {
+				this.ignoresCase = ignoresCase;
 				this.columns = columns;
 			}
 
-			internal override String ResolveColumnName(String col_name) {
+			public override string ResolveColumnName(string columnName) {
 				// We need to do case sensitive and case insensitive resolution,
-				String found_col = null;
-				for (int n = 0; n < columns.Count; ++n) {
-					DataTableColumnInfo col = (DataTableColumnInfo)columns[n];
-					if (!ignores_case) {
-						if (col.Name.Equals(col_name)) {
-							return col_name;
-						}
-					} else {
-						if (String.Compare(col.Name, col_name, true) == 0) {
-							if (found_col != null) {
-								throw new DatabaseException("Ambiguous column name '" +
-															col_name + "'");
-							}
-							found_col = col.Name;
-						}
-					}
+				string foundColumn = null;
+				foreach (DataTableColumnInfo column in columns) {
+					if (String.Compare(column.Name, columnName, ignoresCase) == 0)
+						if (foundColumn != null)
+							throw new DatabaseException("Ambiguous column name '" + columnName + "'");
+					foundColumn = column.Name;
+
 				}
-				return found_col;
+				return foundColumn;
 			}
 		}
 
@@ -313,16 +303,14 @@ namespace Deveel.Data.Sql {
 			bool ignore_case = Connection.IsInCaseInsensitiveMode;
 			SchemaDef schema =
 					Connection.ResolveSchemaCase(tname.Schema, ignore_case);
-			if (schema == null) {
-				throw new DatabaseException("Schema '" + tname.Schema +
-											"' doesn't exist.");
-			} else {
-				tname = new TableName(schema.Name, tname.Name);
-			}
+			if (schema == null)
+				throw new DatabaseException("Schema '" + tname.Schema + "' doesn't exist.");
+
+			tname = new TableName(schema.Name, tname.Name);
 
 			// Does the user have privs to create this tables?
 			if (!Connection.Database.CanUserCreateTableObject(context, User, tname))
-				throw new UserAccessException("User not permitted to create table: " + table_name);
+				throw new UserAccessException("User not permitted to create table: " + TableName);
 
 
 			// PENDING: Creation of temporary tables...
@@ -350,7 +338,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Report error unless 'if not exists' command is in the statement.
-			if (only_if_not_exists == false) {
+			if (onlyIfNotExists == false) {
 				throw new DatabaseException("Table '" + tname + "' already exists.");
 			}
 

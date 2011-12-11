@@ -88,7 +88,7 @@ namespace Deveel.Data.Sql {
 				if (!IsEmpty("alter_action"))
 					throw new StatementException("Cannot set a CREATE statement if other actions were set.");
 				if (value == null) {
-					SetValue("create_statement", (StatementTree) null);
+					SetValue("create_statement", null);
 				} else {
 					SetValue("create_statement", value.Context.StatementTree);
 				}
@@ -165,7 +165,7 @@ namespace Deveel.Data.Sql {
 			if (create_statement != null) {
 				create_stmt = new CreateTableStatement();
 				create_stmt.Context.Set(Context.Connection, create_statement, null);
-				table_name = create_stmt.table_name;
+				table_name = create_stmt.TableName;
 			} else {
 				// If we don't have a create statement, then this is an SQL alter
 				// command.
@@ -289,7 +289,7 @@ namespace Deveel.Data.Sql {
 							                            "ADD CONSTRAINT instead.");
 						}
 						// Convert to a DataTableColumnInfo
-						DataTableColumnInfo col = CreateTableStatement.ConvertColumnDef(cdef);
+						DataTableColumnInfo col = CreateTableStatement.ConvertToColumnInfo(cdef);
 
 						checker.CheckExpression(col.GetDefaultExpression(Connection.System));
 						string col_name = col.Name;
@@ -334,11 +334,11 @@ namespace Deveel.Data.Sql {
 							constraint.ReferenceTable = ref_tname.ToString();
 						}
 
-						checker.StripColumnList(table_name, constraint.column_list);
+						checker.StripColumnList(table_name, constraint.ColumnList);
 						checker.StripColumnList(constraint.ReferenceTable,
 						                        constraint.column_list2);
 						checker.CheckExpression(constraint.CheckExpression);
-						checker.CheckColumnList(constraint.column_list);
+						checker.CheckColumnList(constraint.ColumnList2);
 						if (foreign_constraint && constraint.column_list2 != null) {
 							ColumnChecker referenced_checker =
 								ColumnChecker.GetStandardColumnChecker(Connection, ref_tname);

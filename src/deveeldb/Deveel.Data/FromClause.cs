@@ -18,7 +18,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Deveel.Data.Sql {
+using Deveel.Data.Sql;
+
+namespace Deveel.Data {
 	/// <summary>
 	/// A container for the <i>FROM</i> clause of a select statement.
 	/// </summary>
@@ -34,23 +36,23 @@ namespace Deveel.Data.Sql {
 		/// The JoiningSet object that we have created to represent the joins 
 		/// in this <c>FROM</c> clause.
 		/// </summary>
-		private JoiningSet join_set = new JoiningSet();
+		private JoiningSet joinSet = new JoiningSet();
 
 		/// <summary>
 		/// A list of all <see cref="FromTable"/> objects in this clause in 
 		/// order of when they were specified.
 		/// </summary>
-		private List<FromTable> def_list = new List<FromTable>();
+		private List<FromTable> fromTableList = new List<FromTable>();
 
 		/// <summary>
 		/// A list of all table names in this from clause.
 		/// </summary>
-		private ArrayList all_table_names = new ArrayList();
+		private List<string> allTableNames = new List<string>();
 
 		/// <summary>
 		/// An id used for making unique names for anonymous inner selects.
 		/// </summary>
-		private int table_key = 0;
+		private int tableKey;
 
 
 		/// <summary>
@@ -58,81 +60,81 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <returns></returns>
 		private String CreateNewKey() {
-			++table_key;
-			return table_key.ToString();
+			++tableKey;
+			return tableKey.ToString();
 		}
 
 
-		private void AddTableDef(String table_name, FromTable table) {
-			if (table_name != null) {
-				if (all_table_names.Contains(table_name)) {
-					throw new ApplicationException("Duplicate table name in FROM clause: " + table_name);
-				}
-				all_table_names.Add(table_name);
+		private void AddFromTable(string tableName, FromTable table) {
+			if (tableName != null) {
+				if (allTableNames.Contains(tableName))
+					throw new ApplicationException("Duplicate table name in FROM clause: " + tableName);
+
+				allTableNames.Add(tableName);
 			}
+
 			// Create a new unique key for this table
-			String key = CreateNewKey();
+			string key = CreateNewKey();
 			table.UniqueKey = key;
 			// Add the table key to the join set
-			join_set.AddTable(new TableName(key));
+			joinSet.AddTable(new TableName(key));
 			// Add to the alias def map
-			def_list.Add(table);
+			fromTableList.Add(table);
 		}
 
 		/// <summary>
 		/// Adds a table name to this FROM clause.
 		/// </summary>
-		/// <param name="table_name">The name of the table to add to the 
+		/// <param name="tableName">The name of the table to add to the 
 		/// clause.</param>
 		/// <remarks>
 		/// The given name may be a dot deliminated reference such 
 		/// as (schema.table_name).
 		/// </remarks>
-		public void AddTable(String table_name) {
-			AddTableDef(table_name, new FromTable(table_name));
+		public void AddTable(string tableName) {
+			AddFromTable(tableName, new FromTable(tableName));
 		}
 
 		/// <summary>
 		/// Adds a table name and its alias to the clause.
 		/// </summary>
-		/// <param name="table_name"></param>
-		/// <param name="table_alias"></param>
-		public void AddTable(String table_name, String table_alias) {
-			AddTableDef(table_alias, new FromTable(table_name, table_alias));
+		/// <param name="tableName"></param>
+		/// <param name="tableAlias"></param>
+		public void AddTable(string tableName, string tableAlias) {
+			AddFromTable(tableAlias, new FromTable(tableName, tableAlias));
 		}
 
 		/// <summary>
 		/// A generic form of a table declaration.
 		/// </summary>
-		/// <param name="table_name"></param>
+		/// <param name="tableName"></param>
 		/// <param name="select"></param>
-		/// <param name="table_alias"></param>
+		/// <param name="tableAlias"></param>
 		/// <remarks>
 		/// If any parameters are <b>null</b> it means the information is 
 		/// not available.
 		/// </remarks>
-		public void AddTableDeclaration(String table_name, TableSelectExpression select, String table_alias) {
+		public void AddTableDeclaration(string tableName, TableSelectExpression select, string tableAlias) {
 			// This is an inner select in the FROM clause
-			if (table_name == null && select != null) {
-				if (table_alias == null) {
-					AddTableDef(null, new FromTable(select));
+			if (tableName == null && select != null) {
+				if (tableAlias == null) {
+					AddFromTable(null, new FromTable(select));
 				} else {
-					AddTableDef(table_alias, new FromTable(select, table_alias));
+					AddFromTable(tableAlias, new FromTable(select, tableAlias));
 				}
 			}
 				// This is a standard table reference in the FROM clause
-			else if (table_name != null && select == null) {
-				if (table_alias == null) {
-					AddTable(table_name);
+			else if (tableName != null && select == null) {
+				if (tableAlias == null) {
+					AddTable(tableName);
 				} else {
-					AddTable(table_name, table_alias);
+					AddTable(tableName, tableAlias);
 				}
 			}
 				// Error
 			else {
 				throw new ApplicationException("Unvalid declaration parameters.");
 			}
-
 		}
 
 		/// <summary>
@@ -140,20 +142,19 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="type"></param>
 		public void AddJoin(JoinType type) {
-			//    Console.Out.WriteLine("Add Join: " + type);
-			join_set.AddJoin(type);
+			joinSet.AddJoin(type);
 		}
 
 		///<summary>
 		/// Add a joining type to the previous entry from the end.
 		///</summary>
 		///<param name="type"></param>
-		///<param name="on_expression"></param>
+		///<param name="onExpression"></param>
 		/// <remarks>
 		/// This is an artifact of how joins are parsed.
 		/// </remarks>
-		public void AddPreviousJoin(JoinType type, Expression on_expression) {
-			join_set.AddPreviousJoin(type, on_expression);
+		public void AddPreviousJoin(JoinType type, Expression onExpression) {
+			joinSet.AddPreviousJoin(type, onExpression);
 		}
 
 		///<summary>
@@ -163,14 +164,14 @@ namespace Deveel.Data.Sql {
 		///<param name="on_expression">The expression representing the <c>ON</c>
 		/// condition.</param>
 		public void AddJoin(JoinType type, Expression on_expression) {
-			join_set.AddJoin(type, on_expression);
+			joinSet.AddJoin(type, on_expression);
 		}
 
 		/// <summary>
 		/// Returns the JoiningSet object for the FROM clause.
 		/// </summary>
 		public JoiningSet JoinSet {
-			get { return join_set; }
+			get { return joinSet; }
 		}
 
 		/// <summary>
@@ -198,38 +199,38 @@ namespace Deveel.Data.Sql {
 		/// objects that represent all the tables that are in this from clause.
 		///</summary>
 		public ICollection<FromTable> AllTables {
-			get { return def_list.AsReadOnly(); }
+			get { return fromTableList.AsReadOnly(); }
 		}
 
 		/// <inheritdoc/>
 		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			// Prepare expressions in the JoiningSet first
-			int size = join_set.TableCount - 1;
+			int size = joinSet.TableCount - 1;
 			for (int i = 0; i < size; ++i) {
-				Expression exp = join_set.GetOnExpression(i);
+				Expression exp = joinSet.GetOnExpression(i);
 				if (exp != null) {
 					exp.Prepare(preparer);
 				}
 			}
 			// Prepare the StatementTree sub-queries in the from tables
-			for (int i = 0; i < def_list.Count; ++i) {
-				FromTable table = def_list[i];
+			foreach (FromTable table in fromTableList) {
 				table.PrepareExpressions(preparer);
 			}
-
 		}
 
 		/// <inheritdoc/>
 		public object Clone() {
 			FromClause v = (FromClause)MemberwiseClone();
-			v.join_set = (JoiningSet)join_set.Clone();
-			List<FromTable> cloned_def_list = new List<FromTable>(def_list.Count);
-			v.def_list = cloned_def_list;
-			v.all_table_names = (ArrayList)all_table_names.Clone();
+			v.joinSet = (JoiningSet)joinSet.Clone();
 
-			for (int i = 0; i < def_list.Count; ++i) {
-				FromTable table = def_list[i];
-				cloned_def_list.Add((FromTable)table.Clone());
+			v.allTableNames = new List<string>();
+			foreach (string tableName in allTableNames) {
+				v.allTableNames.Add((string)tableName.Clone());
+			}
+
+			v.fromTableList = new List<FromTable>(fromTableList.Count);
+			foreach (FromTable table in fromTableList) {
+				v.fromTableList.Add((FromTable)table.Clone());
 			}
 
 			return v;

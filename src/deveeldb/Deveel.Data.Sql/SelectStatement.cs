@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -49,10 +48,10 @@ namespace Deveel.Data.Sql {
 			if (expression.From.AllTables.Count != 1)
 				return false;
 
-			SelectColumn column = (SelectColumn) expression.Columns[0];
-			if (column.resolved_name == null)
+			SelectColumn column =  expression.Columns[0];
+			if (column.ResolvedName == null)
 				return false;
-			if (column.resolved_name.Name != "IDENTITY")
+			if (column.ResolvedName.Name != "IDENTITY")
 				return false;
 
 			return true;
@@ -93,12 +92,8 @@ namespace Deveel.Data.Sql {
 			// selecting the latest IDENTITY value from a table
 			if (IsIdentitySelect(select_expression)) {
 				select_expression.Columns.RemoveAt(0);
-				SelectColumn curValFunction = new SelectColumn();
-				
-				FromTable from_table = ((IList<FromTable>) select_expression.From.AllTables)[0];
-				curValFunction.SetExpression(Expression.Parse("IDENTITY('" + from_table.Name + "')"));
-				curValFunction.SetAlias("IDENTITY");
-				select_expression.Columns.Add(curValFunction);
+				FromTable fromTable = ((IList<FromTable>) select_expression.From.AllTables)[0];
+				select_expression.Columns.Add(new SelectColumn(Expression.Parse("IDENTITY('" + fromTable.Name + "')"), "IDENTITY"));
 			}
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
@@ -133,7 +128,7 @@ namespace Deveel.Data.Sql {
 					StringBuilder buf = new StringBuilder();
 					plan.DebugString(0, buf);
 
-					Debug.Write(DebugLevel.Warning, this, "Query Plan debug:\n" + buf.ToString());
+					Debug.Write(DebugLevel.Warning, this, "Query Plan debug:\n" + buf);
 				}
 			}
 		}

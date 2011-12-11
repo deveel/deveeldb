@@ -41,45 +41,43 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc cref="Data.Transaction.AddUniqueConstraint"/>
-		public void AddUniqueConstraint(TableName table_name, String[] cols,
-										ConstraintDeferrability deferred, String constraint_name) {
+		public void AddUniqueConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddUniqueConstraint(table_name, cols, deferred, constraint_name);
+			Transaction.AddUniqueConstraint(tableName, columns, deferred, constraintName);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.AddForeignKeyConstraint"/>
-		public void AddForeignKeyConstraint(TableName table, String[] cols,
-			TableName ref_table, String[] ref_cols,
+		public void AddForeignKeyConstraint(TableName table, string[] columns,
+			TableName ref_table, string[] refColumns,
 			ConstraintAction delete_rule, ConstraintAction update_rule,
 			ConstraintDeferrability deferred, String constraint_name) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddForeignKeyConstraint(table, cols, ref_table, ref_cols,
+			Transaction.AddForeignKeyConstraint(table, columns, ref_table, refColumns,
 												delete_rule, update_rule,
 												deferred, constraint_name);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.AddPrimaryKeyConstraint"/>
-		public void AddPrimaryKeyConstraint(TableName table_name, String[] cols,
-											ConstraintDeferrability deferred, String constraint_name) {
+		public void AddPrimaryKeyConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, String constraint_name) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddPrimaryKeyConstraint(table_name, cols, deferred, constraint_name);
+			Transaction.AddPrimaryKeyConstraint(tableName, columns, deferred, constraint_name);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.AddCheckConstraint"/>
-		public void AddCheckConstraint(TableName table_name, Expression expression, ConstraintDeferrability deferred, String constraint_name) {
+		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, String constraint_name) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddCheckConstraint(table_name, expression, deferred, constraint_name);
+			Transaction.AddCheckConstraint(tableName, expression, deferred, constraint_name);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.DropAllConstraintsForTable"/>
-		public void DropAllConstraintsForTable(TableName table_name) {
+		public void DropAllConstraintsForTable(TableName tableName) {
 			// Assert
 			CheckExclusive();
-			Transaction.DropAllConstraintsForTable(table_name);
+			Transaction.DropAllConstraintsForTable(tableName);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.DropNamedConstraint"/>

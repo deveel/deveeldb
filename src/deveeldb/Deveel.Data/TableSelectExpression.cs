@@ -16,9 +16,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Deveel.Data.Sql {
+using Deveel.Data.Sql;
+
+namespace Deveel.Data {
 	/// <summary>
 	/// A container object for the a table select expression
 	/// </summary>
@@ -52,12 +53,12 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The from clause.
 		/// </summary>
-		private FromClause from_clause = new FromClause();
+		private FromClause fromClause = new FromClause();
 
 		/// <summary>
 		/// The where clause.
 		/// </summary>
-		private SearchExpression where_clause = new SearchExpression();
+		private SearchExpression whereClause;
 
 		/// <summary>
 		/// A flag indicating if the WHERE clause was set.
@@ -67,49 +68,54 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The list of columns to group by.
 		/// </summary>
-		private List<ByColumn> group_by = new List<ByColumn>();
+		private List<ByColumn> groupBy = new List<ByColumn>();
 
 		/// <summary>
 		/// The group max variable or null if no group max.
 		/// </summary>
-		private VariableName group_max;
+		private VariableName groupMax;
 
 		/// <summary>
 		/// The having clause.
 		/// </summary>
-		private SearchExpression having_clause = new SearchExpression();
+		private SearchExpression havingClause;
 
-		private readonly IntoClause into = new IntoClause();
+		private readonly SelectIntoClause into = new SelectIntoClause();
 
 
 		/// <summary>
 		/// If there is a composite function this is set to the composite 
 		/// enumeration from CompositeTable.
 		/// </summary>
-		private CompositeFunction composite_function = CompositeFunction.None;  // (None)
+		private CompositeFunction compositeFunction = CompositeFunction.None;  // (None)
 
 		/// <summary>
 		/// If this is an ALL composite (no removal of duplicate rows) it is true.
 		/// </summary>
-		private bool is_composite_all;
+		private bool isCompositeAll;
 
 		/// <summary>
 		/// The composite table itself.
 		/// </summary>
-		private TableSelectExpression next_composite;
+		private TableSelectExpression nextComposite;
 
-		public FromClause From {
-			get { return from_clause; }
+		public TableSelectExpression() {
+			whereClause = new SearchExpression(null);
+			havingClause = new SearchExpression(null);
 		}
 
-		public IntoClause Into {
+		public FromClause From {
+			get { return fromClause; }
+		}
+
+		public SelectIntoClause Into {
 			get { return into; }
 		}
 
 		public SearchExpression Where {
-			get { return where_clause; }
+			get { return whereClause; }
 			set {
-				where_clause = value;
+				whereClause = value;
 				whereSet = true;
 			}
 		}
@@ -120,29 +126,29 @@ namespace Deveel.Data.Sql {
 		}
 
 		public List<ByColumn> GroupBy {
-			get { return group_by; }
+			get { return groupBy; }
 		}
 
 		public VariableName GroupMax {
-			get { return group_max; }
-			set { group_max = value; }
+			get { return groupMax; }
+			set { groupMax = value; }
 		}
 
 		public SearchExpression Having {
-			get { return having_clause; }
-			set { having_clause = value; }
+			get { return havingClause; }
+			set { havingClause = value; }
 		}
 
 		public bool IsCompositeAll {
-			get { return is_composite_all; }
+			get { return isCompositeAll; }
 		}
 
 		public CompositeFunction CompositeFunction {
-			get { return composite_function; }
+			get { return compositeFunction; }
 		}
 
 		public TableSelectExpression NextComposite {
-			get { return next_composite; }
+			get { return nextComposite; }
 		}
 
 		/// <summary>
@@ -157,16 +163,16 @@ namespace Deveel.Data.Sql {
 		///</summary>
 		///<param name="expression"></param>
 		///<param name="composite"></param>
-		///<param name="is_all"></param>
+		///<param name="isAll"></param>
 		/// <remarks>
 		/// For example, if this expression is a <c>Union ALL</c> with 
 		/// another expression it would be set through this method.
 		/// </remarks>
 		///<exception cref="ApplicationException"></exception>
-		public void ChainComposite(TableSelectExpression expression, CompositeFunction composite, bool is_all) {
-			next_composite = expression;
-			composite_function = composite;
-			is_composite_all = is_all;
+		public void ChainComposite(TableSelectExpression expression, CompositeFunction composite, bool isAll) {
+			nextComposite = expression;
+			compositeFunction = composite;
+			isCompositeAll = isAll;
 		}
 
 		// ---------- Implemented from IStatementTreeObject ----------
@@ -177,8 +183,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="list"></param>
 		/// <param name="preparer"></param>
 		private static void PrepareAllInList(IList list, IExpressionPreparer preparer) {
-			for (int n = 0; n < list.Count; ++n) {
-				IStatementTreeObject ob = (IStatementTreeObject)list[n];
+			foreach (IStatementTreeObject ob in list) {
 				ob.PrepareExpressions(preparer);
 			}
 		}
@@ -186,56 +191,40 @@ namespace Deveel.Data.Sql {
 
 		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			PrepareAllInList(columns, preparer);
-			((IStatementTreeObject)from_clause).PrepareExpressions(preparer);
-			((IStatementTreeObject) where_clause).PrepareExpressions(preparer);
-			PrepareAllInList(group_by, preparer);
-			((IStatementTreeObject)having_clause).PrepareExpressions(preparer);
+			if (fromClause != null)
+				((IStatementTreeObject)fromClause).PrepareExpressions(preparer);
+			if (whereClause != null)
+				((IStatementTreeObject) whereClause).PrepareExpressions(preparer);
+
+			PrepareAllInList(groupBy, preparer);
+
+			if (havingClause != null)
+				((IStatementTreeObject)havingClause).PrepareExpressions(preparer);
 
 			// Go to the next chain
-			if (next_composite != null) {
-				((IStatementTreeObject)next_composite).PrepareExpressions(preparer);
+			if (nextComposite != null) {
+				((IStatementTreeObject)nextComposite).PrepareExpressions(preparer);
 			}
 		}
 
 		/// <inheritdoc/>
-		public Object Clone() {
+		public object Clone() {
 			TableSelectExpression v = (TableSelectExpression)MemberwiseClone();
 			if (columns != null)
 				v.columns = (List<SelectColumn>)StatementTree.CloneSingleObject(columns);
-			if (from_clause != null)
-				v.from_clause = (FromClause)from_clause.Clone();
-			if (where_clause != null)
-				v.where_clause = (SearchExpression)where_clause.Clone();
-			if (group_by != null)
-				v.group_by = (List<ByColumn>)StatementTree.CloneSingleObject(group_by);
-			if (group_max != null)
-				v.group_max = (VariableName)group_max.Clone();
-			if (having_clause != null)
-				v.having_clause = (SearchExpression)having_clause.Clone();
-			if (next_composite != null)
-				v.next_composite = (TableSelectExpression)next_composite.Clone();
+			if (fromClause != null)
+				v.fromClause = (FromClause)fromClause.Clone();
+			if (whereClause != null)
+				v.whereClause = (SearchExpression)whereClause.Clone();
+			if (groupBy != null)
+				v.groupBy = (List<ByColumn>)StatementTree.CloneSingleObject(groupBy);
+			if (groupMax != null)
+				v.groupMax = (VariableName)groupMax.Clone();
+			if (havingClause != null)
+				v.havingClause = (SearchExpression)havingClause.Clone();
+			if (nextComposite != null)
+				v.nextComposite = (TableSelectExpression)nextComposite.Clone();
 			return v;
-		}
-
-		public override string ToString() {
-			StringBuilder sb = new StringBuilder("SELECT ");
-			for (int i = 0; i < columns.Count; i++) {
-				SelectColumn column = columns[i];
-				column.DumpTo(sb);
-
-				if (i < columns.Count - 1)
-					sb.Append(", ");
-			}
-
-			sb.Append(" FROM ");
-			from_clause.DumpTo(sb);
-
-			if (whereSet) {
-				sb.Append(" WHERE ");
-				where_clause.DumpTo(sb);
-			}
-
-			return sb.ToString();
 		}
 	}
 }

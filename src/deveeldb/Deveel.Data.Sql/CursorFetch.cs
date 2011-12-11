@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql {
 	/// </summary>
 	internal class CursorFetch : IStatementTreeObject {
 		private Expression offset;
-		private IntoClause into = new IntoClause();
+		private SelectIntoClause into = new SelectIntoClause();
 		private FetchOrientation orientation;
 
 		public Expression Offset {
@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql {
 			set { orientation = value; }
 		}
 
-		public IntoClause Into {
+		public SelectIntoClause Into {
 			get { return into; }
 		}
 
@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql {
 			CursorFetch fetch = new CursorFetch();
 			if (offset != null)
 				fetch.offset = (Expression) offset.Clone();
-			fetch.into = (IntoClause) into.Clone();
+			fetch.into = (SelectIntoClause) into.Clone();
 			return fetch;
 		}
 

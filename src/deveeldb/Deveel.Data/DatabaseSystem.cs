@@ -93,7 +93,7 @@ namespace Deveel.Data {
 		/// If this method returns 'null' then statement caching is disabled.
 		/// </para>
 		/// </remarks>
-		public StatementCache StatementCache {
+		internal StatementCache StatementCache {
 			get { return statementCache; }
 		}
 

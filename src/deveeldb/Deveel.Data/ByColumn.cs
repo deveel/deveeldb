@@ -15,7 +15,9 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
+using Deveel.Data.Sql;
+
+namespace Deveel.Data {
 	/// <summary>
 	/// Object used to represent a column in the <i>ORDER BY</i> and 
 	/// <i>GROUP BY</i> clauses of a select statement.
@@ -101,17 +103,11 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <inheritdoc/>
-		public Object Clone() {
+		public object Clone() {
 			ByColumn v = (ByColumn)MemberwiseClone();
 			if (exp != null)
 				v.exp = (Expression)exp.Clone();
 			return v;
 		}
-
-		/// <inheritdoc/>
-		public override String ToString() {
-			return "ByColumn(" + exp + ", " + ascending + ")";
-		}
-
 	}
 }

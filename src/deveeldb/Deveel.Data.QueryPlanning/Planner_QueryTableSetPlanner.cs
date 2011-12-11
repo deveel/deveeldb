@@ -1182,13 +1182,13 @@ namespace Deveel.Data.QueryPlanning {
 			/// <summary>
 			/// Evalutes the WHERE clause of the table expression.
 			/// </summary>
-			/// <param name="search_expression"></param>
+			/// <param name="searchExpression"></param>
 			/// <returns></returns>
-			public IQueryPlanNode PlanSearchExpression(SearchExpression search_expression) {
+			public IQueryPlanNode PlanSearchExpression(SearchExpression searchExpression) {
 				// First perform all outer tables.
 				PlanAllOuterJoins();
 
-				IQueryPlanNode node = LogicalEvaluate(search_expression.FromExpression);
+				IQueryPlanNode node = LogicalEvaluate(searchExpression.FromExpression);
 				return node;
 			}
 

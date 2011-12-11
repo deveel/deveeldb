@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql {
 	/// The purpose of this cache is to improve the performance of queries 
 	/// that are run repeatedly (for example, multiple INSERT statements).
 	/// </remarks>
-	public sealed class StatementCache {
+	sealed class StatementCache {
 		/// <summary>
 		/// The DatabaseSystem of this cache.
 		/// </summary>
@@ -41,12 +41,12 @@ namespace Deveel.Data.Sql {
 		///<summary>
 		///</summary>
 		///<param name="system"></param>
-		///<param name="hash_size"></param>
-		///<param name="max_size"></param>
-		///<param name="clean_percentage"></param>
-		public StatementCache(DatabaseSystem system, int hash_size, int max_size, int clean_percentage) {
+		///<param name="hashSize"></param>
+		///<param name="maxSize"></param>
+		///<param name="cleanPercentage"></param>
+		public StatementCache(DatabaseSystem system, int hashSize, int maxSize, int cleanPercentage) {
 			this.system = system;
-			cache = new MemoryCache(hash_size, max_size, clean_percentage);
+			cache = new MemoryCache(hashSize, maxSize, cleanPercentage);
 		}
 
 		private IDebugLogger Debug {
@@ -56,16 +56,16 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Puts a new command string/StatementTree into the cache.
 		/// </summary>
-		/// <param name="query_string"></param>
-		/// <param name="statement_tree"></param>
-		public void Set(String query_string, StatementTree statement_tree) {
+		/// <param name="queryString"></param>
+		/// <param name="statementTree"></param>
+		public void Set(string queryString, StatementTree statementTree) {
 			lock (this) {
-				query_string = query_string.Trim();
+				queryString = queryString.Trim();
 				// Is this command string already in the cache?
-				if (cache.Get(query_string) == null) {
+				if (cache.Get(queryString) == null) {
 					try {
-						Object cloned_tree = statement_tree.Clone();
-						cache.Set(query_string, cloned_tree);
+						object cloned_tree = statementTree.Clone();
+						cache.Set(queryString, cloned_tree);
 					} catch (Exception e) {
 						Debug.WriteException(e);
 						throw new ApplicationException("Unable to clone statement tree: " + e.Message);
@@ -77,20 +77,18 @@ namespace Deveel.Data.Sql {
 		///<summary>
 		/// Gets a StatementTree for the command string if it is stored in the cache.
 		///</summary>
-		///<param name="query_string"></param>
+		///<param name="queryString"></param>
 		///<returns></returns>
 		///<exception cref="ApplicationException"></exception>
-		public StatementTree Get(String query_string) {
+		public StatementTree Get(string queryString) {
 			lock (this) {
-				query_string = query_string.Trim();
-				Object ob = cache.Get(query_string);
+				queryString = queryString.Trim();
+				object ob = cache.Get(queryString);
 				if (ob != null) {
 					try {
-						//        Console.Out.WriteLine("CACHE HIT!");
-						// We found a cached version of this command so deserialize and return
-						// it.
-						StatementTree cloned_tree = (StatementTree)ob;
-						return (StatementTree)cloned_tree.Clone();
+						// We found a cached version of this command so deserialize and return it.
+						StatementTree clonedTree = (StatementTree)ob;
+						return (StatementTree)clonedTree.Clone();
 					} catch (Exception e) {
 						Debug.WriteException(e);
 						throw new ApplicationException("Unable to clone statement tree: " + e.Message);

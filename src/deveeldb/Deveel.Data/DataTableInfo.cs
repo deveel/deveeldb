@@ -28,6 +28,7 @@ namespace Deveel.Data {
 	/// on disk, the column definitions, primary keys/foreign keys, and any 
 	/// check constraints.
 	/// </remarks>
+	[Serializable]
 	public sealed class DataTableInfo : ICloneable {
 		/// <summary>
 		///  A TableName object that represents this data table info.
@@ -142,45 +143,40 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Resolves a single column name to its correct form.
 		/// </summary>
-		/// <param name="col_name">Column name to resolve</param>
-		/// <param name="ignore_case"><b>true</b> if must resolve in case insensitive 
+		/// <param name="columnName">Column name to resolve</param>
+		/// <param name="ignoreCase"><b>true</b> if must resolve in case insensitive 
 		/// mode, otherwise <b>false</b>.</param>
 		/// <remarks>
 		/// For example, if the database is in case insensitive mode it will 
 		/// resolve ID to 'id' if 'id' is in this table.
 		/// </remarks>
 		/// <returns>
-		/// Returns the properly resolved column name for <paramref name="col_name"/>.
+		/// Returns the properly resolved column name for <paramref name="columnName"/>.
 		/// </returns>
-		/// <exception cref="System.ArgumentNullException">If <paramref name="col_name"/> is <b>null</b>
+		/// <exception cref="System.ArgumentNullException">If <paramref name="columnName"/> is <b>null</b>
 		/// or zero-length.</exception>
 		/// <exception cref="DatabaseException">
-		/// If <paramref name="col_name"/> couldn't be resolved (ambiguous 
+		/// If <paramref name="columnName"/> couldn't be resolved (ambiguous 
 		/// or not found).
 		/// </exception>
-		public String ResolveColumnName(String col_name, bool ignore_case) {
+		public string ResolveColumnName(string columnName, bool ignoreCase) {
 			// Can we resolve this to a column input the table?
-			int size = ColumnCount;
-			int found = -1;
-			for (int n = 0; n < size; ++n) {
+			string found = null;
+			foreach (DataTableColumnInfo columnInfo in columns) {
 				// If this is a column name (case ignored) then set the column
 				// to the correct cased name.
-				String this_col_name = this[n].Name;
-				if (ignore_case && String.Compare(this_col_name, col_name, true) == 0) {
-					if (found == -1) {
-						found = n;
-					} else {
-						throw new DatabaseException(
-									"Ambiguous reference to column '" + col_name + "'");
-					}
-				} else if (!ignore_case && this_col_name.Equals(col_name)) {
-					found = n;
+				if (String.Compare(columnInfo.Name, columnName, ignoreCase) == 0) {
+					if (found != null)
+						throw new DatabaseException("Ambiguous reference to column '" + columnName + "'");
+
+					found = columnInfo.Name;
 				}
 			}
-			if (found != -1)
-				return this[found].Name;
 
-			throw new DatabaseException("Column '" + col_name + "' not found");
+			if (found != null)
+				return found;
+
+			throw new DatabaseException("Column '" + columnName + "' not found");
 		}
 
 		/// <summary>
@@ -193,11 +189,11 @@ namespace Deveel.Data {
 		/// is <b>null</b> or zero-length, or if <paramref name="connection"/> is <b>null</b></exception>
 		/// <exception cref="DatabaseException">If any column name of the list couldn't
 		/// be resolved (ambiguous or not found).</exception>
-		public void ResolveColumnsInArray(DatabaseConnection connection, ArrayList list) {
-			bool ignore_case = connection.IsInCaseInsensitiveMode;
+		internal void ResolveColumnsInArray(DatabaseConnection connection,IList<string> list) {
+			bool ignoreCase = connection.IsInCaseInsensitiveMode;
 			for (int i = 0; i < list.Count; ++i) {
-				string col_name = (string)list[i];
-				list[i] = ResolveColumnName(col_name, ignore_case);
+				string colName = list[i];
+				list[i] = ResolveColumnName(colName, ignoreCase);
 			}
 		}
 

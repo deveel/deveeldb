@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql {
@@ -25,12 +24,12 @@ namespace Deveel.Data.Sql {
 	/// This is abstracted because the behaviour is shared between 
 	/// <c>ALTER</c> and <c>CREATE</c> statement.
 	/// </remarks>
-	abstract class ColumnChecker {
+	internal abstract class ColumnChecker {
 		/// <summary>
 		/// Given a column name string, this will strip off the preceeding 
 		/// table name if there is one specified.
 		/// </summary>
-		/// <param name="table_domain"></param>
+		/// <param name="tableDomain"></param>
 		/// <param name="column"></param>
 		/// <remarks>
 		/// For example,<c>Customer.id</c> would become <c>id</c>.  
@@ -44,12 +43,12 @@ namespace Deveel.Data.Sql {
 		/// </code>
 		/// </example>
 		/// <returns></returns>
-		internal String StripTableName(String table_domain, String column) {
+		public string StripTableName(string tableDomain, string column) {
 			if (column.IndexOf('.') != -1) {
-				String st = table_domain + ".";
+				string st = tableDomain + ".";
 				if (!column.StartsWith(st)) {
 					throw new StatementException("Column '" + column +
-					  "' is not within the expected table domain '" + table_domain + "'");
+					                             "' is not within the expected table domain '" + tableDomain + "'");
 				}
 				column = column.Substring(st.Length);
 			}
@@ -60,24 +59,24 @@ namespace Deveel.Data.Sql {
 		/// Calls the <see cref="StripTableName"/> method on all elements 
 		/// in the given list.
 		/// </summary>
-		/// <param name="table_domain"></param>
-		/// <param name="column_list"></param>
+		/// <param name="tableDomain"></param>
+		/// <param name="columnList"></param>
 		/// <returns></returns>
-		internal ArrayList StripColumnList(String table_domain, ArrayList column_list) {
-			if (column_list != null) {
-				int size = column_list.Count;
+		public IList<string> StripColumnList(string tableDomain, IList<string> columnList) {
+			if (columnList != null) {
+				int size = columnList.Count;
 				for (int i = 0; i < size; ++i) {
-					String res = StripTableName(table_domain, (String)column_list[i]);
-					column_list[i] = res;
+					string res = StripTableName(tableDomain, columnList[i]);
+					columnList[i] = res;
 				}
 			}
-			return column_list;
+			return columnList;
 		}
 
 		/// <summary>
 		/// Resolves the given column name within the table.
 		/// </summary>
-		/// <param name="col_name"></param>
+		/// <param name="columnName"></param>
 		/// <returns>
 		/// Returns the resolved column name if the column exists within 
 		/// the table being checked under, or <b>null</b> if it doesn't.
@@ -85,7 +84,7 @@ namespace Deveel.Data.Sql {
 		/// <exception cref="StatementException">
 		/// If the column name is abiguous reference.
 		/// </exception>
-		internal abstract String ResolveColumnName(String col_name);
+		public abstract string ResolveColumnName(string columnName);
 
 		/// <summary>
 		/// Resolves all the variables in the given expression.
@@ -108,7 +107,7 @@ namespace Deveel.Data.Sql {
 					String resolved_column = ResolveColumnName(orig_col);
 					if (resolved_column == null) {
 						throw new DatabaseException("Column '" + orig_col +
-													"' not found in the table.");
+						                            "' not found in the table.");
 					}
 					// Resolve the column name
 					if (!orig_col.Equals(resolved_column)) {
@@ -121,7 +120,7 @@ namespace Deveel.Data.Sql {
 				// text string that we can encode into the DataTableInfo file.
 				if (expression.HasSubQuery) {
 					throw new DatabaseException("Sub-queries not permitted in " +
-												"the check constraint expression.");
+					                            "the check constraint expression.");
 				}
 			}
 
@@ -138,16 +137,15 @@ namespace Deveel.Data.Sql {
 		/// If any column names are not found in the columns in the 
 		/// statement.
 		/// </exception>
-		internal void CheckColumnList(ArrayList list) {
+		public void CheckColumnList(IList<string> list) {
 			if (list != null) {
 				for (int i = 0; i < list.Count; ++i) {
-					String col = (String)list[i];
-					String resolved_col = ResolveColumnName(col);
-					if (resolved_col == null) {
-						throw new DatabaseException(
-											 "Column '" + col + "' not found the table.");
-					}
-					list[i] = resolved_col;
+					string col = list[i];
+					string resolvedCol = ResolveColumnName(col);
+					if (resolvedCol == null)
+						throw new DatabaseException("Column '" + col + "' not found the table.");
+
+					list[i] = resolvedCol;
 				}
 			}
 		}
@@ -164,7 +162,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="database"></param>
 		/// <param name="tname"></param>
 		/// <returns></returns>
-		internal static ColumnChecker GetStandardColumnChecker(DatabaseConnection database, TableName tname) {
+		public static ColumnChecker GetStandardColumnChecker(DatabaseConnection database, TableName tname) {
 			DataTableInfo tableInfo = database.GetTable(tname).TableInfo;
 			bool ignoresCase = database.IsInCaseInsensitiveMode;
 
@@ -174,34 +172,27 @@ namespace Deveel.Data.Sql {
 
 		private class StandardColumnChecker : ColumnChecker {
 			private readonly DataTableInfo tableInfo;
-			private readonly bool ignores_case;
+			private readonly bool ignoreCase;
 
 
-			public StandardColumnChecker(DataTableInfo tableInfo, bool ignore_cases) {
+			public StandardColumnChecker(DataTableInfo tableInfo, bool ignoreCase) {
 				this.tableInfo = tableInfo;
-				this.ignores_case = ignore_cases;
+				this.ignoreCase = ignoreCase;
 			}
 
-			internal override String ResolveColumnName(String col_name) {
+			public override String ResolveColumnName(string columnName) {
 				// We need to do case sensitive and case insensitive resolution,
-				String found_col = null;
+				string foundCol = null;
 				for (int n = 0; n < tableInfo.ColumnCount; ++n) {
 					DataTableColumnInfo col = tableInfo[n];
-					if (!ignores_case) {
-						if (col.Name.Equals(col_name)) {
-							return col_name;
-						}
-					} else {
-						if (String.Compare(col.Name, col_name, true) == 0) {
-							if (found_col != null) {
-								throw new DatabaseException("Ambiguous column name '" +
-															col_name + "'");
-							}
-							found_col = col.Name;
-						}
+					if (String.Compare(col.Name, columnName, ignoreCase) == 0) {
+						if (foundCol != null)
+							throw new DatabaseException("Ambiguous column name '" + columnName + "'");
+
+						foundCol = col.Name;
 					}
 				}
-				return found_col;
+				return foundCol;
 			}
 		}
 	}
