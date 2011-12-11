@@ -25,6 +25,8 @@ namespace Deveel.Data {
 		/// </summary>
 		private string name;
 
+		private TableName tableName;
+
 		/// <summary>
 		/// The type of this constraint.
 		/// </summary>
@@ -48,7 +50,7 @@ namespace Deveel.Data {
 		private List<string> refColumns = new List<string>();
 
 		// The name of the table if referenced.
-		private string refTableName;
+		private TableName refTableName;
 
 		// The foreign key update rule
 		private ConstraintAction updateRule;
@@ -72,7 +74,7 @@ namespace Deveel.Data {
 			get { return updateRule; }
 		}
 
-		public string ReferencedTableName {
+		public TableName ReferencedTableName {
 			get { return refTableName; }
 		}
 
@@ -82,6 +84,11 @@ namespace Deveel.Data {
 		public string Name {
 			get { return name; }
 			set { name = value; }
+		}
+
+		public TableName TableName {
+			get { return tableName; }
+			set { tableName = value; }
 		}
 
 		/// <summary>
@@ -128,10 +135,6 @@ namespace Deveel.Data {
 			set { deferred = value; }
 		}
 
-		internal void SetReferencedTableName(string tableName) {
-			refTableName = tableName;
-		}
-
 		public static DataConstraintInfo PrimaryKey(string name, IEnumerable<string> columnNames) {
 			DataConstraintInfo constraint = new DataConstraintInfo(ConstraintType.PrimaryKey);
 			constraint.name = name;
@@ -146,7 +149,7 @@ namespace Deveel.Data {
 			return constraint;
 		}
 
-		public static DataConstraintInfo ForeignKey(string name, IEnumerable<string> columns, string refTableName, IEnumerable<string> refColumns, 
+		public static DataConstraintInfo ForeignKey(string name, IEnumerable<string> columns, TableName refTableName, IEnumerable<string> refColumns, 
 			ConstraintAction onDelete, ConstraintAction onUpdate) {
 			DataConstraintInfo constraint = new DataConstraintInfo(ConstraintType.ForeignKey);
 			constraint.name = name;

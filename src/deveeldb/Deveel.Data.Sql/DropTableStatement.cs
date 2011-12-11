@@ -78,16 +78,15 @@ namespace Deveel.Data.Sql {
 			for (int i = 0; i < list_size; ++i) {
 				TableName tname = (TableName)resolved_tables[i];
 				// Any tables that have a referential link to this table.
-				Transaction.ColumnGroupReference[] refs =
-								Connection.QueryTableImportedForeignKeyReferences(tname);
+				DataConstraintInfo[] refs = Connection.QueryTableImportedForeignKeyReferences(tname);
 				for (int n = 0; n < refs.Length; ++n) {
 					// If the key table isn't being dropped then error
-					if (!resolved_tables.Contains(refs[n].key_table_name)) {
+					if (!resolved_tables.Contains(refs[n].TableName)) {
 						throw new DatabaseConstraintViolationException(
 						  DatabaseConstraintViolationException.DropTableViolation,
-							"Constraint violation (" + refs[n].name + ") dropping table " +
+							"Constraint violation (" + refs[n].Name + ") dropping table " +
 							tname + " because of referential link from " +
-							refs[n].key_table_name);
+							refs[n].TableName);
 					}
 				}
 			}

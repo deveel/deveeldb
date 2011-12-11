@@ -81,18 +81,17 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc cref="Data.Transaction.DropNamedConstraint"/>
-		public int DropNamedConstraint(TableName table_name, String constraint_name) {
+		public int DropNamedConstraint(TableName tableName, string constraintName) {
 			// Assert
 			CheckExclusive();
-			return Transaction.DropNamedConstraint(table_name, constraint_name);
+			return Transaction.DropNamedConstraint(tableName, constraintName);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.DropPrimaryKeyConstraintForTable"/>
-		public bool DropPrimaryKeyConstraintForTable(TableName table_name, String constraint_name) {
+		public bool DropPrimaryKeyConstraintForTable(TableName tableName, string constraintName) {
 			// Assert
 			CheckExclusive();
-			return Transaction.DropPrimaryKeyConstraintForTable(table_name,
-																	 constraint_name);
+			return Transaction.DropPrimaryKeyConstraintForTable(tableName, constraintName);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.QueryTablesRelationallyLinkedTo"/>
@@ -100,29 +99,29 @@ namespace Deveel.Data {
 			return Transaction.QueryTablesRelationallyLinkedTo(Transaction, table);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.QueryTableUniqueGroups"/>
-		public Transaction.ColumnGroup[] QueryTableUniqueGroups(TableName table_name) {
-			return Transaction.QueryTableUniqueGroups(Transaction, table_name);
+		/// <inheritdoc cref="Data.Transaction.QueryTableUniques"/>
+		public DataConstraintInfo[] QueryTableUniqueGroups(TableName tableName) {
+			return Transaction.QueryTableUniques(Transaction, tableName);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.QueryTablePrimaryKeyGroup"/>
-		public Transaction.ColumnGroup QueryTablePrimaryKeyGroup(TableName table_name) {
-			return Transaction.QueryTablePrimaryKeyGroup(Transaction, table_name);
+		/// <inheritdoc cref="Data.Transaction.QueryTablePrimaryKey"/>
+		public DataConstraintInfo QueryTablePrimaryKeyGroup(TableName tableName) {
+			return Transaction.QueryTablePrimaryKey(Transaction, tableName);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.QueryTableCheckExpressions"/>
-		public Transaction.CheckExpression[] QueryTableCheckExpressions(TableName table_name) {
-			return Transaction.QueryTableCheckExpressions(Transaction, table_name);
+		public DataConstraintInfo[] QueryTableCheckExpressions(TableName tableName) {
+			return Transaction.QueryTableCheckExpressions(Transaction, tableName);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.QueryTableForeignKeyReferences"/>
-		public Transaction.ColumnGroupReference[] QueryTableForeignKeyReferences(TableName table_name) {
-			return Transaction.QueryTableForeignKeyReferences(Transaction, table_name);
+		/// <inheritdoc cref="Data.Transaction.QueryTableForeignKeys"/>
+		public DataConstraintInfo[] QueryTableForeignKeyReferences(TableName tableName) {
+			return Transaction.QueryTableForeignKeys(Transaction, tableName);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.QueryTableImportedForeignKeyReferences"/>
-		public Transaction.ColumnGroupReference[] QueryTableImportedForeignKeyReferences(TableName table_name) {
-			return Transaction.QueryTableImportedForeignKeyReferences(Transaction, table_name);
+		/// <inheritdoc cref="Data.Transaction.QueryTableImportedForeignKeys"/>
+		public DataConstraintInfo[] QueryTableImportedForeignKeyReferences(TableName tableName) {
+			return Transaction.QueryTableImportedForeignKeys(Transaction, tableName);
 		}
 	}
 }

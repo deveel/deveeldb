@@ -377,39 +377,38 @@ namespace Deveel.Data {
 			// ---- Constraint checking ----
 
 			// Check any primary key constraint.
-			Transaction.ColumnGroup primaryKey = Transaction.QueryTablePrimaryKeyGroup(transaction, tableName);
+			DataConstraintInfo primaryKey = Transaction.QueryTablePrimaryKey(transaction, tableName);
 			if (primaryKey != null &&
 				(deferred == ConstraintDeferrability.InitiallyDeferred ||
-				 primaryKey.deferred == ConstraintDeferrability.InitiallyImmediate)) {
+				 primaryKey.Deferred == ConstraintDeferrability.InitiallyImmediate)) {
 
 				// For each row added to this column
 				foreach (int rowIndex in rowIndices) {
-					if (!IsUniqueColumns(table, rowIndex, primaryKey.columns, false)) {
+					if (!IsUniqueColumns(table, rowIndex, primaryKey.Columns, false)) {
 						throw new DatabaseConstraintViolationException(
 						  DatabaseConstraintViolationException.PrimaryKeyViolation,
 						  DeferredString(deferred) + " primary Key constraint violation (" +
-						  primaryKey.name + ") Columns = ( " +
-						  StringColumnList(primaryKey.columns) +
+						  primaryKey.Name + ") Columns = ( " +
+						  StringColumnList(primaryKey.Columns) +
 						  " ) Table = ( " + tableName + " )");
 					}
 				} // For each row being added
 			}
 
 			// Check any unique constraints.
-			Transaction.ColumnGroup[] uniqueConstraints =
-						  Transaction.QueryTableUniqueGroups(transaction, tableName);
-			foreach (Transaction.ColumnGroup unique in uniqueConstraints) {
+			DataConstraintInfo[] uniqueConstraints = Transaction.QueryTableUniques(transaction, tableName);
+			foreach (DataConstraintInfo unique in uniqueConstraints) {
 				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
-					unique.deferred == ConstraintDeferrability.InitiallyImmediate) {
+					unique.Deferred == ConstraintDeferrability.InitiallyImmediate) {
 
 					// For each row added to this column
 					foreach (int rowIndex in rowIndices) {
-						if (!IsUniqueColumns(table, rowIndex, unique.columns, true)) {
+						if (!IsUniqueColumns(table, rowIndex, unique.Columns, true)) {
 							throw new DatabaseConstraintViolationException(
 							  DatabaseConstraintViolationException.UniqueViolation,
 							  DeferredString(deferred) + " unique constraint violation (" +
-							  unique.name + ") Columns = ( " +
-							  StringColumnList(unique.columns) + " ) Table = ( " +
+							  unique.Name + ") Columns = ( " +
+							  StringColumnList(unique.Columns) + " ) Table = ( " +
 							  tableName + " )");
 						}
 					} // For each row being added
@@ -419,12 +418,11 @@ namespace Deveel.Data {
 			// Check any foreign key constraints.
 			// This ensures all foreign references in the table are referenced
 			// to valid records.
-			Transaction.ColumnGroupReference[] foreignConstraints =
-				  Transaction.QueryTableForeignKeyReferences(transaction, tableName);
+			DataConstraintInfo[] foreignConstraints = Transaction.QueryTableForeignKeys(transaction, tableName);
 
-			foreach (Transaction.ColumnGroupReference reference in foreignConstraints) {
+			foreach (DataConstraintInfo reference in foreignConstraints) {
 				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
-					reference.deferred == ConstraintDeferrability.InitiallyImmediate) {
+					reference.Deferred == ConstraintDeferrability.InitiallyImmediate) {
 					// For each row added to this column
 					foreach (int rowIndex in rowIndices) {
 						// Make sure the referenced record exists
@@ -434,8 +432,8 @@ namespace Deveel.Data {
 						//                    ref_table_name(ref_columns, ...)
 						int rowCount = RowCountOfReferenceTable(transaction,
 												   rowIndex,
-												   reference.key_table_name, reference.key_columns,
-												   reference.ref_table_name, reference.ref_columns,
+												   reference.TableName, reference.Columns,
+												   reference.ReferencedTableName, reference.ReferencedColumns,
 												   false);
 						if (rowCount == -1) {
 							// foreign key is NULL
@@ -444,31 +442,30 @@ namespace Deveel.Data {
 							throw new DatabaseConstraintViolationException(
 							  DatabaseConstraintViolationException.ForeignKeyViolation,
 							  DeferredString(deferred) + " foreign key constraint violation (" +
-							  reference.name + ") Columns = " +
-							  reference.key_table_name + "( " +
-							  StringColumnList(reference.key_columns) + " ) -> " +
-							  reference.ref_table_name + "( " +
-							  StringColumnList(reference.ref_columns) + " )");
+							  reference.Name + ") Columns = " +
+							  reference.TableName + "( " +
+							  StringColumnList(reference.Columns) + " ) -> " +
+							  reference.ReferencedTableName + "( " +
+							  StringColumnList(reference.ReferencedColumns) + " )");
 						}
 					} // For each row being added.
 				}
 			}
 
 			// Any general checks of the inserted data
-			Transaction.CheckExpression[] checkConstraints =
-					   Transaction.QueryTableCheckExpressions(transaction, tableName);
+			DataConstraintInfo[] checkConstraints = Transaction.QueryTableCheckExpressions(transaction, tableName);
 
 			// The TransactionSystem object
 			TransactionSystem system = transaction.System;
 
 			// For each check constraint, check that it evaluates to true.
 			for (int i = 0; i < checkConstraints.Length; ++i) {
-				Transaction.CheckExpression check = checkConstraints[i];
+				DataConstraintInfo check = checkConstraints[i];
 				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
-					check.deferred == ConstraintDeferrability.InitiallyImmediate) {
+					check.Deferred == ConstraintDeferrability.InitiallyImmediate) {
 
 					check = system.PrepareTransactionCheckConstraint(tableInfo, check);
-					Expression exp = check.expression;
+					Expression exp = check.CheckExpression;
 
 					// For each row being added to this column
 					for (int rn = 0; rn < rowIndices.Length; ++rn) {
@@ -482,7 +479,7 @@ namespace Deveel.Data {
 								throw new DatabaseConstraintViolationException(
 								   DatabaseConstraintViolationException.CheckViolation,
 								   DeferredString(deferred) + " check constraint violation (" +
-								   check.name + ") - '" + exp.Text +
+								   check.Name + ") - '" + exp.Text +
 								   "' evaluated to false for inserted/updated row.");
 							}
 						} else {
@@ -490,7 +487,7 @@ namespace Deveel.Data {
 							transaction.Debug.Write(DebugLevel.Error,
 										typeof(TableDataConglomerate),
 										DeferredString(deferred) + " check constraint violation (" +
-										check.name + ") - '" + exp.Text +
+										check.Name + ") - '" + exp.Text +
 										"' returned a non boolean or NULL result.");
 						}
 					} // For each row being added
@@ -552,11 +549,10 @@ namespace Deveel.Data {
 			// Check any imported foreign key constraints.
 			// This ensures that a referential reference can not be removed making
 			// it invalid.
-			Transaction.ColumnGroupReference[] foreignConstraints =
-				Transaction.QueryTableImportedForeignKeyReferences(transaction, tableName);
-			foreach (Transaction.ColumnGroupReference reference in foreignConstraints) {
+			DataConstraintInfo[] foreignConstraints = Transaction.QueryTableImportedForeignKeys(transaction, tableName);
+			foreach (DataConstraintInfo reference in foreignConstraints) {
 				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
-					reference.deferred == ConstraintDeferrability.InitiallyImmediate) {
+					reference.Deferred == ConstraintDeferrability.InitiallyImmediate) {
 					// For each row removed from this column
 					foreach (int rowIndex in rowIndices) {
 						// Make sure the referenced record exists
@@ -566,8 +562,8 @@ namespace Deveel.Data {
 						//                    table_name(ref_columns, ...)
 						int rowCount = RowCountOfReferenceTable(transaction,
 												   rowIndex,
-												   reference.ref_table_name, reference.ref_columns,
-												   reference.key_table_name, reference.key_columns,
+												   reference.ReferencedTableName, reference.ReferencedColumns,
+												   reference.TableName, reference.Columns,
 												   true);
 						// There must be 0 references otherwise the delete isn't allowed to
 						// happen.
@@ -576,11 +572,11 @@ namespace Deveel.Data {
 							  DatabaseConstraintViolationException.ForeignKeyViolation,
 							  DeferredString(deferred) + " foreign key constraint violation " +
 							  "on delete (" +
-							  reference.name + ") Columns = " +
-							  reference.key_table_name + "( " +
-							  StringColumnList(reference.key_columns) + " ) -> " +
-							  reference.ref_table_name + "( " +
-							  StringColumnList(reference.ref_columns) + " )");
+							  reference.Name + ") Columns = " +
+							  reference.TableName + "( " +
+							  StringColumnList(reference.Columns) + " ) -> " +
+							  reference.ReferencedTableName + "( " +
+							  StringColumnList(reference.ReferencedColumns) + " )");
 						}
 					} // For each row being added.
 				}

@@ -140,10 +140,10 @@ namespace Deveel.Data {
 		/// If the reference is ambigous or
 		/// </exception>
 		public TableName ResolveToTableName(string name) {
-			TableName table_name = TableName.Resolve(CurrentSchema, name);
-			if (String.Compare(table_name.Name, "OLD", true) == 0)
+			TableName tableName = TableName.Resolve(CurrentSchema, name);
+			if (String.Compare(tableName.Name, "OLD", true) == 0)
 				return Database.OldTriggerTable;
-			if (String.Compare(table_name.Name, "NEW", true) == 0)
+			if (String.Compare(tableName.Name, "NEW", true) == 0)
 				return Database.NewTriggerTable;
 
 			return Transaction.ResolveToTableName(CurrentSchema, name, IsInCaseInsensitiveMode);

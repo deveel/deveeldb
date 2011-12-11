@@ -376,7 +376,6 @@ namespace Deveel.Data {
 		/// with the tables in this conglomerate.
 		/// </remarks>
 		private void ReadVisibleTables() {
-
 			// The list of all visible tables from the state file
 			IEnumerable<StateStore.StateResource> tables = stateStore.GetVisibleList();
 			// For each visible table

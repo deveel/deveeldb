@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql {
 				Actions.Add(action);
 		}
 
-		public AlterTableStatement() {
+		internal AlterTableStatement() {
 		}
 
 		/// <summary>
@@ -183,8 +183,6 @@ namespace Deveel.Data.Sql {
 		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
-			String schema_name = Connection.CurrentSchema;
-
 			// Does the user have privs to alter this tables?
 			if (!Connection.Database.CanUserAlterTableObject(context, User, tname)) {
 				throw new UserAccessException("User not permitted to alter table: " + table_name);
@@ -246,26 +244,24 @@ namespace Deveel.Data.Sql {
 						} else if (action.Action == AlterTableActionType.DropColumn &&
 						           CheckColumnNamesMatch(Connection, (String) action.Elements[0], col_name)) {
 							// Check there are no referential links to this column
-							Transaction.ColumnGroupReference[] refs = Connection.QueryTableImportedForeignKeyReferences(tname);
+							DataConstraintInfo[] refs = Connection.QueryTableImportedForeignKeyReferences(tname);
 							for (int p = 0; p < refs.Length; ++p) {
-								CheckColumnConstraint(col_name, refs[p].ref_columns, refs[p].ref_table_name, refs[p].name);
+								CheckColumnConstraint(col_name, refs[p].ReferencedColumns, refs[p].ReferencedTableName, refs[p].Name);
 							}
 							// Or from it
 							refs = Connection.QueryTableForeignKeyReferences(tname);
 							for (int p = 0; p < refs.Length; ++p) {
-								CheckColumnConstraint(col_name, refs[p].key_columns, refs[p].key_table_name, refs[p].name);
+								CheckColumnConstraint(col_name, refs[p].Columns, refs[p].TableName, refs[p].Name);
 							}
 							// Or that it's part of a primary key
-							Transaction.ColumnGroup primary_key =
-								Connection.QueryTablePrimaryKeyGroup(tname);
+							DataConstraintInfo primary_key = Connection.QueryTablePrimaryKeyGroup(tname);
 							if (primary_key != null) {
-								CheckColumnConstraint(col_name, primary_key.columns, tname, primary_key.name);
+								CheckColumnConstraint(col_name, primary_key.Columns, tname, primary_key.Name);
 							}
 							// Or that it's part of a unique set
-							Transaction.ColumnGroup[] uniques =
-								Connection.QueryTableUniqueGroups(tname);
+							DataConstraintInfo[] uniques = Connection.QueryTableUniqueGroups(tname);
 							for (int p = 0; p < uniques.Length; ++p) {
-								CheckColumnConstraint(col_name, uniques[p].columns, tname, uniques[p].name);
+								CheckColumnConstraint(col_name, uniques[p].Columns, tname, uniques[p].Name);
 							}
 
 							mark_dropped = true;

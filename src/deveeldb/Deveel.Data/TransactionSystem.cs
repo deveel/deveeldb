@@ -673,8 +673,8 @@ namespace Deveel.Data {
 		}
 
 		///<summary>
-		/// Given a <see cref="Transaction.CheckExpression"/>, this will prepare 
-		/// the expression and return a new prepared <see cref="Transaction.CheckExpression"/>.
+		/// Given a <see cref="DataConstraintInfo"/>, this will prepare 
+		/// the expression and return a new prepared <see cref="DataConstraintInfo"/>.
 		///</summary>
 		///<param name="tableInfo"></param>
 		///<param name="check"></param>
@@ -684,20 +684,11 @@ namespace Deveel.Data {
 		/// functions via the function lookup, and resolving the sub-queries, etc.
 		/// </remarks>
 		///<returns></returns>
-		public virtual Transaction.CheckExpression PrepareTransactionCheckConstraint(DataTableInfo tableInfo, Transaction.CheckExpression check) {
-			//    IExpressionPreparer expression_preparer = getFunctionExpressionPreparer();
+		public DataConstraintInfo PrepareTransactionCheckConstraint(DataTableInfo tableInfo, DataConstraintInfo check) {
 			// Resolve the expression to this table and row and evaluate the
 			// check constraint.
-			Expression exp = check.expression;
-			tableInfo.ResolveColumns(IgnoreIdentifierCase, exp);
-			//    try {
-			//      // Prepare the functions
-			//      exp.Prepare(expression_preparer);
-			//    }
-			//    catch (Exception e) {
-			//      Debug.WriteException(e);
-			//      throw new ApplicationException(e.Message);
-			//    }
+			
+			tableInfo.ResolveColumns(IgnoreIdentifierCase, check.CheckExpression);
 
 			return check;
 		}

@@ -341,19 +341,19 @@ namespace Deveel.Data {
 			/// <see cref="ConstraintDeferrability.InitiallyImmediate"/>, and 
 			/// the new key doesn't exist in the referral table.
 			/// </exception>
-			private void ExecuteUpdateReferentialAction(Transaction.ColumnGroupReference constraint, TObject[] originalKey, TObject[] newKey, IQueryContext context) {
-				ConstraintAction update_rule = constraint.update_rule;
+			private void ExecuteUpdateReferentialAction(DataConstraintInfo constraint, TObject[] originalKey, TObject[] newKey, IQueryContext context) {
+				ConstraintAction update_rule = constraint.UpdateRule;
 				if (update_rule == ConstraintAction.NoAction &&
-					constraint.deferred != ConstraintDeferrability.InitiallyImmediate) {
+					constraint.Deferred != ConstraintDeferrability.InitiallyImmediate) {
 					// Constraint check is deferred
 					return;
 				}
 
 				// So either update rule is not NO ACTION, or if it is we are initially
 				// immediate.
-				IMutableTableDataSource keyTable = transaction.GetMutableTable(constraint.key_table_name);
+				IMutableTableDataSource keyTable = transaction.GetMutableTable(constraint.TableName);
 				DataTableInfo tableInfo = keyTable.TableInfo;
-				int[] keyCols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.key_columns);
+				int[] keyCols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.Columns);
 				IList<int> keyEntries = TableDataConglomerate.FindKeys(keyTable, keyCols, originalKey);
 
 				// Are there keys effected?
@@ -362,13 +362,13 @@ namespace Deveel.Data {
 						// Throw an exception;
 						throw new DatabaseConstraintViolationException(
 							DatabaseConstraintViolationException.ForeignKeyViolation,
-							TableDataConglomerate.DeferredString(constraint.deferred) +
+							TableDataConglomerate.DeferredString(constraint.Deferred) +
 							" foreign key constraint violation on update (" +
-							constraint.name + ") Columns = " +
-							constraint.key_table_name.ToString() + "( " +
-							TableDataConglomerate.StringColumnList(constraint.key_columns) +
-							" ) -> " + constraint.ref_table_name.ToString() + "( " +
-							TableDataConglomerate.StringColumnList(constraint.ref_columns) +
+							constraint.Name + ") Columns = " +
+							constraint.TableName.ToString() + "( " +
+							TableDataConglomerate.StringColumnList(constraint.Columns) +
+							" ) -> " + constraint.ReferencedTableName + "( " +
+							TableDataConglomerate.StringColumnList(constraint.ReferencedColumns) +
 							" )");
 
 					// Perform a referential action on each updated key
@@ -412,19 +412,19 @@ namespace Deveel.Data {
 			/// <see cref="ConstraintDeferrability.InitiallyImmediate"/>, and 
 			/// the new key doesn't exist in the referral table.
 			/// </exception>
-			private void ExecuteDeleteReferentialAction(Transaction.ColumnGroupReference constraint, TObject[] originalKey, IQueryContext context) {
-				ConstraintAction delete_rule = constraint.delete_rule;
+			private void ExecuteDeleteReferentialAction(DataConstraintInfo constraint, TObject[] originalKey, IQueryContext context) {
+				ConstraintAction delete_rule = constraint.DeleteRule;
 				if (delete_rule == ConstraintAction.NoAction &&
-					constraint.deferred != ConstraintDeferrability.InitiallyImmediate) {
+					constraint.Deferred != ConstraintDeferrability.InitiallyImmediate) {
 					// Constraint check is deferred
 					return;
 				}
 
 				// So either delete rule is not NO ACTION, or if it is we are initially
 				// immediate.
-				IMutableTableDataSource keyTable = transaction.GetMutableTable(constraint.key_table_name);
+				IMutableTableDataSource keyTable = transaction.GetMutableTable(constraint.TableName);
 				DataTableInfo tableInfo = keyTable.TableInfo;
-				int[] keyCols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.key_columns);
+				int[] keyCols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.Columns);
 				IList<int> keyEntries = TableDataConglomerate.FindKeys(keyTable, keyCols, originalKey);
 
 				// Are there keys effected?
@@ -433,13 +433,13 @@ namespace Deveel.Data {
 						// Throw an exception;
 						throw new DatabaseConstraintViolationException(
 							DatabaseConstraintViolationException.ForeignKeyViolation,
-							TableDataConglomerate.DeferredString(constraint.deferred) +
+							TableDataConglomerate.DeferredString(constraint.Deferred) +
 							" foreign key constraint violation on delete (" +
-							constraint.name + ") Columns = " +
-							constraint.key_table_name.ToString() + "( " +
-							TableDataConglomerate.StringColumnList(constraint.key_columns) +
-							" ) -> " + constraint.ref_table_name.ToString() + "( " +
-							TableDataConglomerate.StringColumnList(constraint.ref_columns) +
+							constraint.Name + ") Columns = " +
+							constraint.TableName + "( " +
+							TableDataConglomerate.StringColumnList(constraint.Columns) +
+							" ) -> " + constraint.ReferencedTableName + "( " +
+							TableDataConglomerate.StringColumnList(constraint.ReferencedColumns) +
 							" )");
 					}
 
@@ -730,15 +730,14 @@ namespace Deveel.Data {
 					// Were there any updates or deletes?
 					if (rowsDeleted.Count > 0) {
 						// Get all references on this table
-						Transaction.ColumnGroupReference[] foreignConstraints =
-							 Transaction.QueryTableImportedForeignKeyReferences(transaction, tName);
+						DataConstraintInfo[] foreignConstraints = Transaction.QueryTableImportedForeignKeys(transaction, tName);
 
 						// For each foreign constraint
-						foreach (Transaction.ColumnGroupReference constraint in foreignConstraints) {
+						foreach (DataConstraintInfo constraint in foreignConstraints) {
 							// For each deleted/updated record in the table,
 							foreach (int rowIndex in rowsDeleted) {
 								// What was the key before it was updated/deleted
-								int[] cols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.ref_columns);
+								int[] cols = TableDataConglomerate.FindColumnIndices(tableInfo, constraint.ReferencedColumns);
 								TObject[] originalKey = new TObject[cols.Length];
 								int nullCount = 0;
 								for (int p = 0; p < cols.Length; ++p) {

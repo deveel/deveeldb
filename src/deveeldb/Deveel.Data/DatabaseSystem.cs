@@ -163,18 +163,6 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Given a <see cref="Transaction.CheckExpression">check expression</see>, this 
-		/// will prepare the expression and return a new prepared <see cref="Transaction.CheckExpression"/>.
-		/// </summary>
-		/// <remarks>
-		/// A <see cref="DatabaseSystem"/> resolves the variables (ignoring case if 
-		/// necessary) and the functions of the expression.
-		/// </remarks>
-		public override Transaction.CheckExpression PrepareTransactionCheckConstraint(DataTableInfo tableInfo, Transaction.CheckExpression check) {
-			return base.PrepareTransactionCheckConstraint(tableInfo, check);
-		}
-
-		/// <summary>
 		/// Waits until all executing commands have stopped.
 		/// </summary>
 		/// <remarks>

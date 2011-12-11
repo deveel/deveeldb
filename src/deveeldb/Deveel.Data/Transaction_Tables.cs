@@ -177,10 +177,10 @@ namespace Deveel.Data {
 		/// If the table already exists.
 		/// </exception>
 		public void CreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
-			TableName table_name = tableInfo.TableName;
-			MasterTableDataSource master = FindVisibleTable(table_name, false);
+			TableName tableName = tableInfo.TableName;
+			MasterTableDataSource master = FindVisibleTable(tableName, false);
 			if (master != null)
-				throw new StatementException("Table '" + table_name + "' already exists.");
+				throw new StatementException("Table '" + tableName + "' already exists.");
 
 			tableInfo.IsReadOnly = true;
 
@@ -204,10 +204,10 @@ namespace Deveel.Data {
 
 			// Add entry to the Sequences table for the native generator for this
 			// table.
-			SequenceManager.AddNativeTableGenerator(this, table_name);
+			SequenceManager.AddNativeTableGenerator(this, tableName);
 
 			// Notify that this database object has been successfully created.
-			OnDatabaseObjectCreated(table_name);
+			OnDatabaseObjectCreated(tableName);
 		}
 
 		/// <summary>

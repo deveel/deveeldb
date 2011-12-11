@@ -52,8 +52,32 @@ namespace Deveel.Data {
 		/// Adds a unique constraint to the database which becomes perminant 
 		/// when the transaction is committed.
 		/// </summary>
+		/// <param name="constraint">The unique constraint to add.</param>
+		/// <remarks>
+		/// Columns in a table that are defined as unique are prevented from 
+		/// being duplicated by the engine.
+		/// <para>
+		/// <b>Note</b> Security checks for adding constraints must be checked 
+		/// for at a higher layer.
+		/// </para>
+		/// <para>
+		/// <b>Note</b> We must guarentee that the transaction be in exclusive 
+		/// mode before this method is called.
+		/// </para>
+		/// </remarks>
+		public void AddUniqueConstraint(DataConstraintInfo constraint) {
+			if (constraint.Type != ConstraintType.Unique)
+				throw new ArgumentException("The constraint given is not a UNIQUE", "constraint");
+
+			AddUniqueConstraint(constraint.TableName, constraint.Columns, constraint.Deferred, constraint.Name);
+		}
+
+		/// <summary>
+		/// Adds a unique constraint to the database which becomes perminant 
+		/// when the transaction is committed.
+		/// </summary>
 		/// <param name="tableName"></param>
-		/// <param name="cols"></param>
+		/// <param name="columns"></param>
 		/// <param name="deferred"></param>
 		/// <param name="constraintName"></param>
 		/// <remarks>
@@ -68,7 +92,7 @@ namespace Deveel.Data {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddUniqueConstraint(TableName tableName, string[] cols, ConstraintDeferrability deferred, string constraintName) {
+		public void AddUniqueConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			TableName tn1 = TableDataConglomerate.UniqueInfoTable;
 			TableName tn2 = TableDataConglomerate.UniqueColsTable;
 			IMutableTableDataSource t = GetMutableTable(tn1);
@@ -88,10 +112,10 @@ namespace Deveel.Data {
 				t.AddRow(row);
 
 				// Insert the columns
-				for (int i = 0; i < cols.Length; ++i) {
+				for (int i = 0; i < columns.Length; ++i) {
 					row = new DataRow(tcols);
 					row.SetValue(0, uniqueId);            // unique id
-					row.SetValue(1, cols[i]);              // column name
+					row.SetValue(1, columns[i]);              // column name
 					row.SetValue(2, (BigNumber)i);         // sequence number
 					tcols.AddRow(row);
 				}
@@ -106,7 +130,32 @@ namespace Deveel.Data {
 
 				throw;
 			}
+		}
 
+		/// <summary>
+		/// Adds a foreign key constraint to the database which becomes perminent
+		/// when the transaction is committed.
+		/// </summary>
+		/// <param name="constraint">The foreign key constraint object to add.</param>
+		/// <remarks>
+		/// A foreign key represents a referential link from one table to 
+		/// another (may be the same table).
+		/// <para>
+		/// <b>Note</b> Security checks for adding constraints must be checked 
+		/// for at a higher layer.
+		/// </para>
+		/// <para>
+		/// <b>Note</b> We must guarentee that the transaction be in exclusive 
+		/// mode before this method is called.
+		/// </para>
+		/// </remarks>
+		public void AddForeignKeyConstraint(DataConstraintInfo constraint) {
+			if (constraint.Type != ConstraintType.ForeignKey)
+				throw new ArgumentException("Constraint given is not a FOREIGN KEY", "constraint");
+
+			AddForeignKeyConstraint(constraint.TableName, constraint.Columns, constraint.ReferencedTableName,
+			                        constraint.ReferencedColumns, constraint.DeleteRule, constraint.UpdateRule,
+			                        constraint.Deferred, constraint.Name);
 		}
 
 		/// <summary>
@@ -114,9 +163,9 @@ namespace Deveel.Data {
 		/// when the transaction is committed.
 		/// </summary>
 		/// <param name="table">The key table to link from.</param>
-		/// <param name="cols">The key columns to link from</param>
+		/// <param name="columns">The key columns to link from</param>
 		/// <param name="refTable">The referenced table to link to.</param>
-		/// <param name="refCols">The refenced columns to link to.</param>
+		/// <param name="refColumns">The refenced columns to link to.</param>
 		/// <param name="deleteRule">The rule called during cascade delete.</param>
 		/// <param name="updateRule">The rule called during cascade update.</param>
 		/// <param name="deferred"></param>
@@ -133,8 +182,8 @@ namespace Deveel.Data {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddForeignKeyConstraint(TableName table, string[] cols, 
-			TableName refTable, string[] refCols, 
+		public void AddForeignKeyConstraint(TableName table, string[] columns, 
+			TableName refTable, string[] refColumns, 
 			ConstraintAction deleteRule, ConstraintAction updateRule, ConstraintDeferrability deferred, String constraintName) {
 			TableName tn1 = TableDataConglomerate.ForeignInfoTable;
 			TableName tn2 = TableDataConglomerate.ForeignColsTable;
@@ -144,15 +193,15 @@ namespace Deveel.Data {
 			try {
 				// If 'ref_columns' empty then set to primary key for referenced table,
 				// ISSUE: What if primary key changes after the fact?
-				if (refCols.Length == 0) {
-					ColumnGroup set = QueryTablePrimaryKeyGroup(this, refTable);
+				if (refColumns.Length == 0) {
+					DataConstraintInfo set = QueryTablePrimaryKey(this, refTable);
 					if (set == null)
 						throw new StatementException("No primary key defined for referenced table '" + refTable + "'");
 
-					refCols = set.columns;
+					refColumns = set.Columns;
 				}
 
-				if (cols.Length != refCols.Length) {
+				if (columns.Length != refColumns.Length) {
 					throw new StatementException("Foreign key reference '" + table +
 					  "' -> '" + refTable + "' does not have an equal number of " +
 					  "column terms.");
@@ -163,8 +212,8 @@ namespace Deveel.Data {
 				if (deleteRule == ConstraintAction.SetNull ||
 					updateRule == ConstraintAction.SetNull) {
 					DataTableInfo tableInfo = GetTableInfo(table);
-					for (int i = 0; i < cols.Length; ++i) {
-						DataTableColumnInfo columnInfo = tableInfo[tableInfo.FindColumnName(cols[i])];
+					for (int i = 0; i < columns.Length; ++i) {
+						DataTableColumnInfo columnInfo = tableInfo[tableInfo.FindColumnName(columns[i])];
 						if (columnInfo.IsNotNull) {
 							throw new StatementException("Foreign key reference '" + table +
 								   "' -> '" + refTable + "' update or delete triggered " +
@@ -190,11 +239,11 @@ namespace Deveel.Data {
 				t.AddRow(row);
 
 				// Insert the columns
-				for (int i = 0; i < cols.Length; ++i) {
+				for (int i = 0; i < columns.Length; ++i) {
 					row = new DataRow(tcols);
 					row.SetValue(0, uniqueId);            // unique id
-					row.SetValue(1, cols[i]);              // column name
-					row.SetValue(2, refCols[i]);          // ref column name
+					row.SetValue(1, columns[i]);              // column name
+					row.SetValue(2, refColumns[i]);          // ref column name
 					row.SetValue(3, (BigNumber)i); // sequence number
 					tcols.AddRow(row);
 				}
@@ -215,8 +264,34 @@ namespace Deveel.Data {
 		/// Adds a primary key constraint that becomes perminent when the 
 		/// transaction is committed.
 		/// </summary>
+		/// <param name="constraint">The primary key constraint to add.</param>
+		/// <remarks>
+		/// A primary key represents a set of columns in a table that are 
+		/// constrained to be unique and can not be null. If the constraint 
+		/// name parameter is 'null' a primary key constraint is created with 
+		/// a unique constraint name.
+		/// <para>
+		/// <b>Note</b> Security checks for adding constraints must be checked 
+		/// for at a higher layer.
+		/// </para>
+		/// <para>
+		/// <b>Note</b> We must guarentee that the transaction be in exclusive 
+		/// mode before this method is called.
+		/// </para>
+		/// </remarks>
+		public void AddPrimaryKeyConstraint(DataConstraintInfo constraint) {
+			if (constraint.Type != ConstraintType.PrimaryKey)
+				throw new ArgumentException("The constraint given is not a PRIMARY KEY.", "constraint");
+
+			AddPrimaryKeyConstraint(constraint.TableName, constraint.Columns, constraint.Deferred, constraint.Name);
+		}
+
+		/// <summary>
+		/// Adds a primary key constraint that becomes perminent when the 
+		/// transaction is committed.
+		/// </summary>
 		/// <param name="tableName"></param>
-		/// <param name="cols"></param>
+		/// <param name="columns"></param>
 		/// <param name="deferred"></param>
 		/// <param name="constraintName"></param>
 		/// <remarks>
@@ -233,7 +308,7 @@ namespace Deveel.Data {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddPrimaryKeyConstraint(TableName tableName, string[] cols, ConstraintDeferrability deferred, string constraintName) {
+		public void AddPrimaryKeyConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			TableName tn1 = TableDataConglomerate.PrimaryInfoTable;
 			TableName tn2 = TableDataConglomerate.PrimaryColsTable;
 			IMutableTableDataSource t = GetMutableTable(tn1);
@@ -242,9 +317,9 @@ namespace Deveel.Data {
 			try {
 				// Insert a value into PrimaryInfoTable
 				DataRow row = new DataRow(t);
-				BigNumber unique_id = NextUniqueID(tn1);
-				constraintName = MakeUniqueConstraintName(constraintName, unique_id);
-				row.SetValue(0, unique_id);
+				BigNumber uniqueId = NextUniqueID(tn1);
+				constraintName = MakeUniqueConstraintName(constraintName, uniqueId);
+				row.SetValue(0, uniqueId);
 				row.SetValue(1, constraintName);
 				row.SetValue(2, tableName.Schema);
 				row.SetValue(3, tableName.Name);
@@ -252,10 +327,10 @@ namespace Deveel.Data {
 				t.AddRow(row);
 
 				// Insert the columns
-				for (int i = 0; i < cols.Length; ++i) {
+				for (int i = 0; i < columns.Length; ++i) {
 					row = new DataRow(tcols);
-					row.SetValue(0, unique_id);            // unique id
-					row.SetValue(1, cols[i]);              // column name
+					row.SetValue(0, uniqueId);            // unique id
+					row.SetValue(1, columns[i]);              // column name
 					row.SetValue(2, (BigNumber)i);         // Sequence number
 					tcols.AddRow(row);
 				}
@@ -272,6 +347,30 @@ namespace Deveel.Data {
 
 				throw;
 			}
+		}
+
+		/// <summary>
+		/// Adds a check expression that becomes perminent when the transaction
+		/// is committed.
+		/// </summary>
+		/// <param name="constraint">The check constraint to add.</param>
+		/// <remarks>
+		/// A check expression is an expression that must evaluate to true 
+		/// for all records added/updated in the database.
+		/// <para>
+		/// <b>Note</b> Security checks for adding constraints must be checked 
+		/// for at a higher layer.
+		/// </para>
+		/// <para>
+		/// <b>Note</b> We must guarentee that the transaction be in exclusive 
+		/// mode before this method is called.
+		/// </para>
+		/// </remarks>
+		public void AddCheckConstraint(DataConstraintInfo constraint) {
+			if (constraint.Type != ConstraintType.Check)
+				throw new ArgumentException("The constraint given is not a CHECK.", "constraint");
+
+			AddCheckConstraint(constraint.TableName, constraint.CheckExpression, constraint.Deferred, constraint.Name);
 		}
 
 		/// <summary>
@@ -322,8 +421,7 @@ namespace Deveel.Data {
 				// wrap around an appropriate error message.
 				if (e.ErrorCode == DatabaseConstraintViolationException.UniqueViolation) {
 					// This means we gave a constraint name that's already being used.
-					throw new StatementException("Check constraint name '" +
-										   constraintName + "' is already being used.");
+					throw new StatementException("Check constraint name '" + constraintName + "' is already being used.");
 				}
 				throw;
 			}
@@ -345,22 +443,21 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		public void DropAllConstraintsForTable(TableName tableName) {
-			ColumnGroup primary = QueryTablePrimaryKeyGroup(this, tableName);
-			ColumnGroup[] uniques = QueryTableUniqueGroups(this, tableName);
-			CheckExpression[] expressions = QueryTableCheckExpressions(this, tableName);
-			ColumnGroupReference[] refs = QueryTableForeignKeyReferences(this, tableName);
+			DataConstraintInfo primary = QueryTablePrimaryKey(this, tableName);
+			DataConstraintInfo[] uniques = QueryTableUniques(this, tableName);
+			DataConstraintInfo[] expressions = QueryTableCheckExpressions(this, tableName);
+			DataConstraintInfo[] refs = QueryTableForeignKeys(this, tableName);
 
-			if (primary != null) {
-				DropPrimaryKeyConstraintForTable(tableName, primary.name);
+			if (primary != null)
+				DropPrimaryKeyConstraintForTable(tableName, primary.Name);
+			foreach (DataConstraintInfo unique in uniques) {
+				DropUniqueConstraintForTable(tableName, unique.Name);
 			}
-			for (int i = 0; i < uniques.Length; ++i) {
-				DropUniqueConstraintForTable(tableName, uniques[i].name);
+			foreach (DataConstraintInfo expression in expressions) {
+				DropCheckConstraintForTable(tableName, expression.Name);
 			}
-			for (int i = 0; i < expressions.Length; ++i) {
-				DropCheckConstraintForTable(tableName, expressions[i].name);
-			}
-			for (int i = 0; i < refs.Length; ++i) {
-				DropForeignKeyReferenceConstraintForTable(tableName, refs[i].name);
+			foreach (DataConstraintInfo reference in refs) {
+				DropForeignKeyReferenceConstraintForTable(tableName, reference.Name);
 			}
 		}
 
@@ -617,7 +714,7 @@ namespace Deveel.Data {
 		/// on the data in the given table to maintain referential consistancy.
 		/// </summary>
 		/// <param name="transaction"></param>
-		/// <param name="table"></param>
+		/// <param name="tableName"></param>
 		/// <remarks>
 		/// The list includes the tables referenced as foreign keys, and the 
 		/// tables that reference the table as a foreign key.
@@ -629,21 +726,20 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public static TableName[] QueryTablesRelationallyLinkedTo(SimpleTransaction transaction, TableName table) {
+		public static TableName[] QueryTablesRelationallyLinkedTo(SimpleTransaction transaction, TableName tableName) {
 			List<TableName> list = new List<TableName>();
-			ColumnGroupReference[] refs = QueryTableForeignKeyReferences(transaction, table);
-			for (int i = 0; i < refs.Length; ++i) {
-				TableName tname = refs[i].ref_table_name;
-				if (!list.Contains(tname)) {
+			DataConstraintInfo[] refs = QueryTableForeignKeys(transaction, tableName);
+			foreach (DataConstraintInfo fkeyRef in refs) {
+				TableName tname = fkeyRef.ReferencedTableName;
+				if (!list.Contains(tname))
 					list.Add(tname);
-				}
 			}
-			refs = QueryTableImportedForeignKeyReferences(transaction, table);
-			for (int i = 0; i < refs.Length; ++i) {
-				TableName tname = refs[i].key_table_name;
-				if (!list.Contains(tname)) {
+
+			refs = QueryTableImportedForeignKeys(transaction, tableName);
+			foreach (DataConstraintInfo fkeyRef in refs) {
+				TableName tname = fkeyRef.TableName;
+				if (!list.Contains(tname))
 					list.Add(tname);
-				}
 			}
 
 			return list.ToArray();
@@ -661,19 +757,20 @@ namespace Deveel.Data {
 		/// that represent unique columns in the given table.
 		/// </remarks>
 		/// <returns></returns>
-		public static ColumnGroup[] QueryTableUniqueGroups(SimpleTransaction transaction, TableName tableName) {
+		public static DataConstraintInfo[] QueryTableUniques(SimpleTransaction transaction, TableName tableName) {
 			ITableDataSource t = transaction.GetTableDataSource(TableDataConglomerate.UniqueInfoTable);
 			ITableDataSource t2 = transaction.GetTableDataSource(TableDataConglomerate.UniqueColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
-			ColumnGroup[] groups;
+			DataConstraintInfo[] constraints;
 			try {
 				// Returns the list indexes where column 3 = table name
 				//                            and column 2 = schema name
 				IList<int> data = dt.SelectEqual(3, tableName.Name,
-				                                    2, tableName.Schema);
-				groups = new ColumnGroup[data.Count];
+				                                 2, tableName.Schema);
+
+				constraints = new DataConstraintInfo[data.Count];
 
 				for (int i = 0; i < data.Count; ++i) {
 					TObject id = dt.Get(0, data[i]);
@@ -681,20 +778,21 @@ namespace Deveel.Data {
 					// Select all records with equal id
 					IList<int> cols = dtcols.SelectEqual(0, id);
 
-					// Put into a group.
-					ColumnGroup group = new ColumnGroup();
-					// constraint name
-					group.name = dt.Get(1, data[i]).Object.ToString();
-					group.columns = ToColumns(dtcols, cols);   // the list of columns
-					group.deferred = (ConstraintDeferrability)((BigNumber)dt.Get(4, data[i]).Object).ToInt16();
-					groups[i] = group;
+					string name = dt.Get(1, data[i]).Object.ToString();
+					string[] columns = ToColumns(dtcols, cols);   // the list of columns
+					ConstraintDeferrability deferred = (ConstraintDeferrability)((BigNumber)dt.Get(4, data[i]).Object).ToInt16();
+
+					DataConstraintInfo constraint = DataConstraintInfo.Unique(name, columns);
+					constraint.TableName = tableName;
+					constraint.Deferred = deferred;
+					constraints[i] = constraint;
 				}
 			} finally {
 				dt.Dispose();
 				dtcols.Dispose();
 			}
 
-			return groups;
+			return constraints;
 		}
 
 		/// <summary>
@@ -707,35 +805,39 @@ namespace Deveel.Data {
 		/// <returns>
 		/// Returns null if there is no primary key defined for the table.
 		/// </returns>
-		public static ColumnGroup QueryTablePrimaryKeyGroup(SimpleTransaction transaction, TableName tableName) {
+		public static DataConstraintInfo QueryTablePrimaryKey(SimpleTransaction transaction, TableName tableName) {
 			ITableDataSource t = transaction.GetTableDataSource(TableDataConglomerate.PrimaryInfoTable);
 			ITableDataSource t2 = transaction.GetTableDataSource(TableDataConglomerate.PrimaryColsTable);
-			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
-			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
+			SimpleTableQuery dt = new SimpleTableQuery(t); // The info table
+			SimpleTableQuery dtcols = new SimpleTableQuery(t2); // The columns
 
 			try {
 				// Returns the list indexes where column 3 = table name
 				//                            and column 2 = schema name
 				IList<int> data = dt.SelectEqual(3, tableName.Name,
-				                                    2, tableName.Schema);
+				                                 2, tableName.Schema);
 
-				if (data.Count > 1) {
+				if (data.Count > 1)
 					throw new ApplicationException("Assertion failed: multiple primary key for: " + tableName);
-				} else if (data.Count == 1) {
-					int rowIndex = data[0];
-					// The id
-					TObject id = dt.Get(0, rowIndex);
-					// All columns with this id
-					IList<int> ivec = dtcols.SelectEqual(0, id);
-					// Make it in to a columns object
-					ColumnGroup group = new ColumnGroup();
-					group.name = dt.Get(1, rowIndex).Object.ToString();
-					group.columns = ToColumns(dtcols, ivec);
-					group.deferred = (ConstraintDeferrability)((BigNumber)dt.Get(4, rowIndex).Object).ToInt16();
-					return group;
-				} else {
+
+				if (data.Count == 0)
 					return null;
-				}
+
+				int rowIndex = data[0];
+				// The id
+				TObject id = dt.Get(0, rowIndex);
+				// All columns with this id
+				IList<int> list = dtcols.SelectEqual(0, id);
+				// Make it in to a columns object
+				string name = dt.Get(1, rowIndex).Object.ToString();
+				string[] columns = ToColumns(dtcols, list);
+				ConstraintDeferrability deferred = (ConstraintDeferrability) ((BigNumber) dt.Get(4, rowIndex).Object).ToInt16();
+
+				DataConstraintInfo constraint = DataConstraintInfo.PrimaryKey(name, columns);
+				constraint.TableName = tableName;
+				constraint.Deferred = deferred;
+				return constraint;
+
 			} finally {
 				dt.Dispose();
 				dtcols.Dispose();
@@ -753,31 +855,32 @@ namespace Deveel.Data {
 		/// constrained as CHECK serial_number LIKE '___-________-___'.
 		/// </remarks>
 		/// <returns></returns>
-		public static CheckExpression[] QueryTableCheckExpressions(SimpleTransaction transaction, TableName tableName) {
+		public static DataConstraintInfo[] QueryTableCheckExpressions(SimpleTransaction transaction, TableName tableName) {
 			ITableDataSource t = transaction.GetTableDataSource(TableDataConglomerate.CheckInfoTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 
-			CheckExpression[] checks;
+			DataConstraintInfo[] checks;
 			try {
 				// Returns the list indexes where column 3 = table name
 				//                            and column 2 = schema name
 				IList<int> data = dt.SelectEqual(3, tableName.Name,
 				                                    2, tableName.Schema);
-				checks = new CheckExpression[data.Count];
+				checks = new DataConstraintInfo[data.Count];
 
 				for (int i = 0; i < checks.Length; ++i) {
 					int row_index = data[i];
 
-					CheckExpression check = new CheckExpression();
-					check.name = dt.Get(1, row_index).Object.ToString();
-					check.deferred = (ConstraintDeferrability)((BigNumber)dt.Get(5, row_index).Object).ToInt16();
+					string name = dt.Get(1, row_index).Object.ToString();
+					ConstraintDeferrability deferred = (ConstraintDeferrability)((BigNumber)dt.Get(5, row_index).Object).ToInt16();
+					Expression expression = null;
+
 					// Is the deserialized version available?
 					if (t.TableInfo.ColumnCount > 6) {
 						ByteLongObject sexp = (ByteLongObject)dt.Get(6, row_index).Object;
 						if (sexp != null) {
 							try {
 								// Deserialize the expression
-								check.expression = (Expression)ObjectTranslator.Deserialize(sexp);
+								expression = (Expression)ObjectTranslator.Deserialize(sexp);
 							} catch (Exception e) {
 								// We weren't able to deserialize the expression so report the
 								// error to the log
@@ -786,17 +889,17 @@ namespace Deveel.Data {
 											"The error is: " + e.Message);
 								transaction.Debug.Write(DebugLevel.Warning, typeof(Transaction),
 											"Parsing the check expression instead.");
-
-								check.expression = null;
 							}
 						}
 					}
 					// Otherwise we need to parse it from the string
-					if (check.expression == null) {
-						Expression exp = Expression.Parse(
-											   dt.Get(4, row_index).Object.ToString());
-						check.expression = exp;
+					if (expression == null) {
+						expression = Expression.Parse(dt.Get(4, row_index).Object.ToString());
 					}
+
+					DataConstraintInfo check = DataConstraintInfo.Check(name, expression);
+					check.TableName = tableName;
+					check.Deferred = deferred;
 					checks[i] = check;
 				}
 
@@ -827,19 +930,20 @@ namespace Deveel.Data {
 		/// This method will return the column group reference
 		/// Order(customer_id) -> Customer(id).
 		/// </example>
-		public static ColumnGroupReference[] QueryTableForeignKeyReferences(SimpleTransaction transaction, TableName tableName) {
+		public static DataConstraintInfo[] QueryTableForeignKeys(SimpleTransaction transaction, TableName tableName) {
 			ITableDataSource t = transaction.GetTableDataSource(TableDataConglomerate.ForeignInfoTable);
 			ITableDataSource t2 = transaction.GetTableDataSource(TableDataConglomerate.ForeignColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
-			ColumnGroupReference[] groups;
+			DataConstraintInfo[] groups;
 			try {
 				// Returns the list indexes where column 3 = table name
 				//                            and column 2 = schema name
 				IList<int> data = dt.SelectEqual(3, tableName.Name,
-				                                    2, tableName.Schema);
-				groups = new ColumnGroupReference[data.Count];
+				                                 2, tableName.Schema);
+
+				groups = new DataConstraintInfo[data.Count];
 
 				for (int i = 0; i < data.Count; ++i) {
 					int rowIndex = data[i];
@@ -848,22 +952,17 @@ namespace Deveel.Data {
 					TObject id = dt.Get(0, rowIndex);
 
 					// The referenced table
-					TableName ref_table_name = new TableName(
+					TableName refTableName = new TableName(
 							   dt.Get(4, rowIndex).Object.ToString(),
 							   dt.Get(5, rowIndex).Object.ToString());
 
 					// Select all records with equal id
 					IList<int> cols = dtcols.SelectEqual(0, id);
 
-					// Put into a group.
-					ColumnGroupReference group = new ColumnGroupReference();
-					// constraint name
-					group.name = dt.Get(1, rowIndex).Object.ToString();
-					group.key_table_name = tableName;
-					group.ref_table_name = ref_table_name;
-					group.update_rule = (ConstraintAction)dt.Get(6, rowIndex).ToBigNumber().ToInt32();
-					group.delete_rule = (ConstraintAction)dt.Get(7, rowIndex).ToBigNumber().ToInt32();
-					group.deferred = (ConstraintDeferrability)((BigNumber)dt.Get(8, rowIndex).Object).ToInt16();
+					string name = dt.Get(1, rowIndex).Object.ToString();
+					ConstraintAction updateRule = (ConstraintAction)dt.Get(6, rowIndex).ToBigNumber().ToInt32();
+					ConstraintAction deleteRule = (ConstraintAction)dt.Get(7, rowIndex).ToBigNumber().ToInt32();
+					ConstraintDeferrability deferred = (ConstraintDeferrability)((BigNumber)dt.Get(8, rowIndex).Object).ToInt16();
 
 					int colsSize = cols.Count;
 					string[] keyCols = new string[colsSize];
@@ -878,10 +977,13 @@ namespace Deveel.Data {
 							}
 						}
 					}
-					group.key_columns = keyCols;
-					group.ref_columns = refCols;
 
-					groups[i] = group;
+					DataConstraintInfo constraint = DataConstraintInfo.ForeignKey(name, keyCols, refTableName, refCols,
+					                                                              deleteRule, updateRule);
+					constraint.TableName = tableName;
+					constraint.Deferred = deferred;
+
+					groups[i] = constraint;
 				}
 			} finally {
 				dt.Dispose();
@@ -898,7 +1000,7 @@ namespace Deveel.Data {
 		/// <param name="transaction"></param>
 		/// <param name="refTableName"></param>
 		/// <remarks>
-		/// This is a reverse mapping of the <see cref="QueryTableForeignKeyReferences"/>
+		/// This is a reverse mapping of the <see cref="QueryTableForeignKeys"/>
 		/// method.
 		///	<para>
 		///	This method is used to check that a reference isn't broken when we 
@@ -919,19 +1021,20 @@ namespace Deveel.Data {
 		///	</code>
 		/// </example>
 		/// <returns></returns>
-		public static ColumnGroupReference[] QueryTableImportedForeignKeyReferences(SimpleTransaction transaction, TableName refTableName) {
+		public static DataConstraintInfo[] QueryTableImportedForeignKeys(SimpleTransaction transaction, TableName refTableName) {
 			ITableDataSource t = transaction.GetTableDataSource(TableDataConglomerate.ForeignInfoTable);
 			ITableDataSource t2 = transaction.GetTableDataSource(TableDataConglomerate.ForeignColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
-			ColumnGroupReference[] groups;
+			DataConstraintInfo[] groups;
 			try {
 				// Returns the list indexes where column 5 = ref table name
 				//                            and column 4 = ref schema name
 				IList<int> data = dt.SelectEqual(5, refTableName.Name,
-				                                    4, refTableName.Schema);
-				groups = new ColumnGroupReference[data.Count];
+				                                 4, refTableName.Schema);
+
+				groups = new DataConstraintInfo[data.Count];
 
 				for (int i = 0; i < data.Count; ++i) {
 					int rowIndex = data[i];
@@ -940,22 +1043,17 @@ namespace Deveel.Data {
 					TObject id = dt.Get(0, rowIndex);
 
 					// The referencee table
-					TableName table_name = new TableName(
+					TableName tableName = new TableName(
 						  dt.Get(2, rowIndex).Object.ToString(),
 						  dt.Get(3, rowIndex).Object.ToString());
 
 					// Select all records with equal id
 					IList<int> cols = dtcols.SelectEqual(0, id);
 
-					// Put into a group.
-					ColumnGroupReference group = new ColumnGroupReference();
-					// constraint name
-					group.name = dt.Get(1, rowIndex).Object.ToString();
-					group.key_table_name = table_name;
-					group.ref_table_name = refTableName;
-					group.update_rule = (ConstraintAction)dt.Get(6, rowIndex).ToBigNumber().ToInt32();
-					group.delete_rule = (ConstraintAction)dt.Get(7, rowIndex).ToBigNumber().ToInt32();
-					group.deferred = (ConstraintDeferrability)((BigNumber)dt.Get(8, rowIndex).Object).ToInt16();
+					string name = dt.Get(1, rowIndex).Object.ToString();
+					ConstraintAction updateRule = (ConstraintAction)dt.Get(6, rowIndex).ToBigNumber().ToInt32();
+					ConstraintAction deleteRule = (ConstraintAction)dt.Get(7, rowIndex).ToBigNumber().ToInt32();
+					ConstraintDeferrability deferred = (ConstraintDeferrability)((BigNumber)dt.Get(8, rowIndex).Object).ToInt16();
 
 					int colsSize = cols.Count;
 					string[] keyCols = new string[colsSize];
@@ -970,10 +1068,13 @@ namespace Deveel.Data {
 							}
 						}
 					}
-					group.key_columns = keyCols;
-					group.ref_columns = refCols;
 
-					groups[i] = group;
+					DataConstraintInfo constraint = DataConstraintInfo.ForeignKey(name, keyCols, refTableName, refCols,
+					                                                              deleteRule, updateRule);
+					constraint.TableName = tableName;
+					constraint.Deferred = deferred;
+
+					groups[i] = constraint;
 				}
 			} finally {
 				dt.Dispose();
