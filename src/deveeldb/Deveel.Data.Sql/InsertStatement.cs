@@ -72,6 +72,116 @@ namespace Deveel.Data.Sql {
 		/// </remarks>
 		private ArrayList relationally_linked_tables;
 
+		/// <summary>
+		/// The list of all IFromTableSource objects of resources referenced 
+		/// in this query.
+		/// </summary>
+		private ArrayList table_list = new ArrayList();
+
+		/// <summary>
+		/// Add an <see cref="IFromTableSource"/> used within the query.
+		/// </summary>
+		/// <param name="table">The table to add to the query.</param>
+		/// <remarks>
+		/// These tables are used when we try to resolve a column name.
+		/// </remarks>
+		protected void AddTable(IFromTableSource table) {
+			table_list.Add(table);
+		}
+
+		protected override void OnReset() {
+			table_list.Clear();
+		}
+
+		/// <summary>
+		/// Given an <see cref="Expression"/>, this will run through the expression 
+		/// and resolve any variable names via the <see cref="ResolveVariableName"/> 
+		/// method here.
+		/// </summary>
+		/// <param name="exp"></param>
+		internal void ResolveExpression(Expression exp) {
+			// NOTE: This gets variables in all function parameters.
+			IList<VariableName> vars = exp.AllVariables;
+			for (int i = 0; i < vars.Count; ++i) {
+				VariableName v = (VariableName)vars[i];
+				VariableName to_set = ResolveVariableName(v);
+				v.Set(to_set);
+			}
+		}
+
+		///<summary>
+		/// Given a Variable object, this will resolve the name into a column name
+		/// the database understands (substitutes aliases, etc).
+		///</summary>
+		///<param name="v"></param>
+		///<returns></returns>
+		public VariableName ResolveVariableName(VariableName v) {
+			return ResolveColumn(v);
+		}
+
+		/// <summary>
+		/// Resolves the given alias name against the columns defined
+		///  by the statement (if it has aliasing capabilities).
+		/// </summary>
+		/// <param name="alias_name"></param>
+		/// <returns>
+		/// Returns a list of all fully qualified <see cref="VariableName"/> 
+		/// that match the alias name, or an empty array if no matches 
+		/// found.
+		/// </returns>
+		internal virtual ArrayList ResolveAgainstAliases(VariableName alias_name) {
+			return new ArrayList(0);
+		}
+
+		/// <summary>
+		/// Attempts to resolve an ambiguous column name (such as <i>id</i>)
+		/// into a <see cref="VariableName"/> from the tables in this statement.
+		/// </summary>
+		/// <param name="v">The column name to resolve.</param>
+		/// <returns></returns>
+		internal VariableName ResolveColumn(VariableName v) {
+			// Try and resolve against alias names first,
+			ArrayList list = new ArrayList();
+			list.AddRange(ResolveAgainstAliases(v));
+
+			TableName tname = v.TableName;
+			String sch_name = null;
+			String tab_name = null;
+			String col_name = v.Name;
+			if (tname != null) {
+				sch_name = tname.Schema;
+				tab_name = tname.Name;
+			}
+
+			int matches_found = 0;
+			// Find matches in our list of tables sources,
+			for (int i = 0; i < table_list.Count; ++i) {
+				IFromTableSource table = (IFromTableSource)table_list[i];
+				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
+				if (rcc == 1) {
+					VariableName matched = table.ResolveColumn(null, sch_name, tab_name, col_name);
+					list.Add(matched);
+				} else if (rcc > 1) {
+					throw new StatementException("Ambiguous column name (" + v + ")");
+				}
+			}
+
+			int total_matches = list.Count;
+			if (total_matches == 0) {
+				throw new StatementException("Can't find column: " + v);
+			} else if (total_matches == 1) {
+				return (VariableName)list[0];
+			} else if (total_matches > 1) {
+				// if there more than one match, check if they all match the identical
+				// resource,
+				throw new StatementException("Ambiguous column name (" + v + ")");
+			} else {
+				// Should never reach here but we include this exception to keep the
+				// compiler happy.
+				throw new ApplicationException("Negative total matches?");
+			}
+
+		}
 
 		// ---------- Implemented from Statement ----------
 
@@ -101,7 +211,7 @@ namespace Deveel.Data.Sql {
 				}
 			}
 
-			tname = ResolveTableName(table_name, Connection);
+			tname = ResolveTableName(table_name);
 
 			// Does the table exist?
 			if (!Connection.TableExists(tname)) {
@@ -176,8 +286,7 @@ namespace Deveel.Data.Sql {
 			} else if (from_select) {
 				// Prepare the select statement
 				prepared_select = new SelectStatement();
-				prepared_select.Init(Connection, select, null);
-				prepared_select.PrepareStatement();
+				prepared_select.Context.Set(Connection, select, null);
 			}
 
 			// If from a set, then resolve all values,

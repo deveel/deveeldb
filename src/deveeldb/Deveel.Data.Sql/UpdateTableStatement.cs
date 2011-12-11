@@ -96,14 +96,14 @@ namespace Deveel.Data.Sql {
 			table_name = GetString("table_name");
 			column_sets = GetList("assignments");
 			where_condition = (SearchExpression)GetValue("where_clause");
-			limit = GetInteger("limit");
+			limit = GetInt32("limit");
 			from_cursor = GetBoolean("from_cursor");
 			string c_name = GetString("cursor_name");
 
 			// ---
 
 			// Resolve the TableName object.
-			tname = ResolveTableName(table_name, Connection);
+			tname = ResolveTableName(table_name);
 			// Does the table exist?
 			if (!Connection.TableExists(tname)) {
 				throw new DatabaseException("Table '" + tname + "' does not exist.");

@@ -90,14 +90,14 @@ namespace Deveel.Data.Sql {
 			// Get variables from the model.
 			table_name = GetString("table_name");
 			where_condition = (SearchExpression)GetValue("where_clause");
-			limit = GetInteger("limit");
+			limit = GetInt32("limit");
 			from_cursor = GetBoolean("from_cursor");
 			string c_name = GetString("cursor_name");
 
 			// ---
 
 			// Resolve the TableName object.
-			tname = ResolveTableName(table_name, Connection);
+			tname = ResolveTableName(table_name);
 			// Does the table exist?
 			if (!Connection.TableExists(tname)) {
 				throw new DatabaseException("Table '" + tname + "' does not exist.");
@@ -144,7 +144,7 @@ namespace Deveel.Data.Sql {
 			if (!Connection.Database.CanUserDeleteFromTableObject(context, User, tname))
 				throw new UserAccessException("User not permitted to delete from table: " + table_name);
 
-			int delete_count = 0;
+			int delete_count;
 
 			if (from_cursor) {
 				// This statement deletes from the current row of a cursor

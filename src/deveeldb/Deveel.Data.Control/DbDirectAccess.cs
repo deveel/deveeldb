@@ -94,13 +94,7 @@ namespace Deveel.Data.Control {
 
 		private Table ExecuteStatementImpl(Statement statement) {
 			// Initialize the statement
-			statement.Init(connection, null, null);
-
-			// Automated statement tree preparation
-			statement.ResolveTree();
-
-			// Prepare the statement.
-			statement.PrepareStatement();
+			statement.Context.Set(connection, null, null);
 
 			// Evaluate the SQL statement.
 			return statement.EvaluateStatement();

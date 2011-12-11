@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Sql;
 
@@ -22,17 +23,15 @@ namespace Deveel.Data.Procedures {
 	public sealed class ProcedureBody {
 		internal ProcedureBody(StoredProcedure procedure) {
 			this.procedure = procedure;
-			statements = new ArrayList();
+			statements = new List<Statement>();
 		}
 
 		private readonly StoredProcedure procedure;
-		private readonly ArrayList statements;
+		private readonly List<Statement> statements;
 
 		public void AddStatement(int index, Statement statement) {
 			if (procedure.IsReadOnly)
 				throw new InvalidOperationException("The procedure '" + procedure.ProcedureName + "' is immutable.");
-
-			statement.ResolveTree();
 
 			statement.PrepareStatement();
 		}

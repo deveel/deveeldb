@@ -53,10 +53,9 @@ namespace Deveel.Data.Sql {
 			if (fetch_info.Offset != null) {
 				// we resolve any variable in the expression of the offset
 				Expression offsetExpr = (Expression) fetch_info.Offset.Clone();
-				ResolveExpression(offsetExpr);
 
 				// and finally the value of the offset
-				offset = (int) offsetExpr.Evaluate(null, context);
+				offset = offsetExpr.Evaluate(null, context);
 			}
 
 			// so we finally fetch from the cursor

@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Deveel.Data.Procedures {
@@ -25,21 +25,16 @@ namespace Deveel.Data.Procedures {
 	/// </summary>
 	[Serializable]
 	public class StoredProcedure {
-		public StoredProcedure(ProcedureName name, IList parameters, TType returnType) {
+		private readonly TType returnType;
+		private readonly ProcedureName name;
+		private readonly List<ProcedureParameter> parameters;
+		private readonly ProcedureBody body;
+		private bool readOnly;
+		private readonly StringBuilder text = new StringBuilder();
+
+		public StoredProcedure(ProcedureName name, IList<ProcedureParameter> parameters, TType returnType) {
 			this.name = name;
-
-			if (parameters != null) {
-				int sz = parameters.Count;
-				this.parameters = new ArrayList(sz);
-				for (int i = 0; i < sz; i++) {
-					object parameter = parameters[i];
-					if (!(parameter is ProcedureParameter))
-						throw new ArgumentException("The element " + i + " of the parameters list is not a parameter.");
-
-					parameters.Add(parameter);
-				}
-			}
-
+			this.parameters = new List<ProcedureParameter>(parameters);
 			body = new ProcedureBody(this);
 			this.returnType = returnType;
 		}
@@ -48,16 +43,9 @@ namespace Deveel.Data.Procedures {
 			: this(name, null, returnType) {
 		}
 
-		public StoredProcedure(ProcedureName name, IList parameters)
+		public StoredProcedure(ProcedureName name, IList<ProcedureParameter> parameters)
 			: this(name, parameters, null) {
 		}
-
-		private readonly TType returnType;
-		private readonly ProcedureName name;
-		private readonly ArrayList parameters;
-		private readonly ProcedureBody body;
-		private bool readOnly;
-		private readonly StringBuilder text = new StringBuilder();
 
 		public ProcedureName ProcedureName {
 			get { return name; }
@@ -91,13 +79,7 @@ namespace Deveel.Data.Procedures {
 			if (parameters == null || parameters.Count == 0)
 				return null;
 
-			for (int i = 0; i < parameters.Count; i++) {
-				ProcedureParameter parameter = (ProcedureParameter)parameters[i];
-				if (parameter.Name == parameterName)
-					return parameter;
-			}
-
-			return null;
+			return parameters.Find(delegate(ProcedureParameter parameter) { return parameter.Name == parameterName; });
 		}
 
 		public ProcedureResult Invoke(Expression[] args, IVariableResolver resolver, IQueryContext context) {
@@ -109,7 +91,7 @@ namespace Deveel.Data.Procedures {
 
 				for (int i = 0; i < parameters.Count; i++) {
 					Expression arg = args[i];
-					ProcedureParameter parameter = (ProcedureParameter)parameters[i];
+					ProcedureParameter parameter = parameters[i];
 
 					queryContext.DeclareVariable(parameter.Name, parameter.Type, false, !parameter.IsNullable);
 					queryContext.SetVariable(parameter.Name, arg);
@@ -126,8 +108,7 @@ namespace Deveel.Data.Procedures {
 
 			if (!result.IsErrorState) {
 				if (parameters != null && parameters.Count > 0) {
-					for (int i = 0; i < parameters.Count; i++) {
-						ProcedureParameter parameter = (ProcedureParameter)parameters[i];
+					foreach (ProcedureParameter parameter in parameters) {
 						if ((parameter.Direction & ParameterDirection.Output) != 0) {
 							Variable variable = queryContext.GetVariable(parameter.Name);
 							if (variable == null)

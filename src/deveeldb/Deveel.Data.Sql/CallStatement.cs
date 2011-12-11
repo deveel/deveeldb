@@ -136,8 +136,7 @@ namespace Deveel.Data.Sql {
 			name = new ProcedureName(p_name);
 
 			// Check the user has privs to use this stored procedure
-			if (!Connection.Database.CanUserExecuteStoredProcedure(context,
-															 User, name.ToString())) {
+			if (!Connection.Database.CanUserExecuteStoredProcedure(context, User, name.ToString())) {
 				throw new UserAccessException("User not permitted to call: " + proc_name);
 			}
 

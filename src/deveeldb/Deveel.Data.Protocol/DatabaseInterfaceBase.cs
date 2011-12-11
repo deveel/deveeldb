@@ -98,15 +98,6 @@ namespace Deveel.Data.Protocol {
 		private DatabaseConnection database_connection;
 
         /// <summary>
-        /// The SQL parser object for this interface.
-        /// </summary>
-        /// <remarks>
-        /// When a statement is being parsed, this object is sychronized.
-        /// </remarks>
-		private SqlQueryExecutor sql_executor;
-		//  private SQL sql_parser;
-
-        /// <summary>
         /// Mantains a mapping from streamable object id for a particular object 
         /// that is currently being uploaded to the server. 
         /// </summary>
@@ -161,9 +152,6 @@ namespace Deveel.Data.Protocol {
 
 			this.user = user;
 			this.database_connection = connection;
-			// Set up the sql parser.
-			sql_executor = new SqlQueryExecutor();
-			//    sql_parser = new SQL(new StringReader(""));
 		}
 
         /// <summary>
@@ -414,7 +402,6 @@ namespace Deveel.Data.Protocol {
 			ClearResultSetMap();
 			user = null;
 			database_connection = null;
-			sql_executor = null;
 		}
 
 		/// <summary>
@@ -508,7 +495,7 @@ namespace Deveel.Data.Protocol {
 			try {
 
 				// Evaluate the sql Query.
-				Table result = sql_executor.Execute(database_connection, query);
+				Table result = SqlQueryExecutor.Execute(database_connection, query);
 
 				// Put the result in the result cache...  This will Lock this object
 				// until it is removed from the result set cache.  Returns an id that

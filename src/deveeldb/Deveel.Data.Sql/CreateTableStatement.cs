@@ -246,8 +246,7 @@ namespace Deveel.Data.Sql {
 				if (constraint.Type == ConstraintType.ForeignKey) {
 					checker.StripColumnList(constraint.ReferenceTable,
 											constraint.column_list2);
-					TableName ref_tname =
-							 ResolveTableName(constraint.ReferenceTable, Connection);
+					TableName ref_tname = ResolveTableName(constraint.ReferenceTable);
 					if (Connection.IsInCaseInsensitiveMode) {
 						ref_tname = Connection.TryResolveCase(ref_tname);
 					}

@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql {
 			// Check the user has privs to delete these tables...
 			for (int i = 0; i < list_size; ++i) {
 				string type_name = drop_types[i].ToString();
-				TableName res_type_name = ResolveTableName(type_name, Connection);
+				TableName res_type_name = ResolveTableName(type_name);
 				// Does the table exist?
 				if (!Connection.UserTypeExists(res_type_name))
 					throw new DatabaseException("Type '" + res_type_name + "' does not exist.");

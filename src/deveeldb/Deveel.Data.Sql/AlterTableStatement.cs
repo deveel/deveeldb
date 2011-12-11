@@ -21,25 +21,6 @@ namespace Deveel.Data.Sql {
 	/// Logic for the <c>ALTER TABLE</c> SQL statement.
 	/// </summary>
 	public class AlterTableStatement : Statement {
-		public AlterTableStatement(TableName tableName, CreateTableStatement createStatement) {
-			TableName = tableName;
-			CreateStatement = createStatement;
-		}
-
-		public AlterTableStatement(TableName tableName, AlterTableAction action) {
-			TableName = tableName;
-			Actions.Add(action);
-		}
-
-		public AlterTableStatement(TableName tableName, ICollection actions) {
-			TableName = tableName;
-			foreach(AlterTableAction action in actions)
-				Actions.Add(action);
-		}
-
-		public AlterTableStatement() {
-		}
-
 		/// <summary>
 		/// The create statement that we use to alter the current table.
 		/// </summary>
@@ -68,6 +49,25 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private CreateTableStatement create_stmt;
 
+		public AlterTableStatement(TableName tableName, CreateTableStatement createStatement) {
+			TableName = tableName;
+			CreateStatement = createStatement;
+		}
+
+		public AlterTableStatement(TableName tableName, AlterTableAction action) {
+			TableName = tableName;
+			Actions.Add(action);
+		}
+
+		public AlterTableStatement(TableName tableName, ICollection actions) {
+			TableName = tableName;
+			foreach(AlterTableAction action in actions)
+				Actions.Add(action);
+		}
+
+		public AlterTableStatement() {
+		}
+
 		/// <summary>
 		/// Gets or sets the name (qualified or unqualified) of 
 		/// the table to alter.
@@ -90,7 +90,7 @@ namespace Deveel.Data.Sql {
 				if (value == null) {
 					SetValue("create_statement", (StatementTree) null);
 				} else {
-					SetValue("create_statement", value.Info);
+					SetValue("create_statement", value.Context.StatementTree);
 				}
 			}
 		}
@@ -104,7 +104,7 @@ namespace Deveel.Data.Sql {
 				if (!(value is AlterTableAction))
 					throw new ArgumentException("The value must be a " + typeof(AlterTableAction) + ".");
 
-				if (ContainsKey("create_statement"))
+				if (GetValue("create_statement") != null)
 					throw new StatementException("Cannot add an action if the CREATE statement was already set.");
 			}
 
@@ -153,8 +153,9 @@ namespace Deveel.Data.Sql {
 			// Get variables from the model
 			table_name = GetString("table_name");
 			actions = GetList("alter_actions", true);
-			if (ContainsKey("alter_action")) {
-				actions.Add(GetValue("alter_action"));
+			AlterTableAction action = GetValue("alter_action") as AlterTableAction;
+			if (action != null) {
+				actions.Add(action);
 			}
 
 			create_statement = (StatementTree)GetValue("create_statement");
@@ -163,17 +164,15 @@ namespace Deveel.Data.Sql {
 
 			if (create_statement != null) {
 				create_stmt = new CreateTableStatement();
-				create_stmt.Init(Connection, create_statement, null);
-				create_stmt.PrepareStatement();
+				create_stmt.Context.Set(Context.Connection, create_statement, null);
 				table_name = create_stmt.table_name;
-				//      create_statement.Prepare(db, User);
 			} else {
 				// If we don't have a create statement, then this is an SQL alter
 				// command.
 			}
 
 			//    tname = TableName.Resolve(db.CurrentSchema, table_name);
-			tname = ResolveTableName(table_name, Connection);
+			tname = ResolveTableName(table_name);
 			if (tname.Name.IndexOf('.') != -1) {
 				throw new DatabaseException("Table name can not contain '.' character.");
 			}
@@ -328,8 +327,7 @@ namespace Deveel.Data.Sql {
 						bool foreign_constraint = (constraint.Type == ConstraintType.ForeignKey);
 						TableName ref_tname = null;
 						if (foreign_constraint) {
-							ref_tname =
-								ResolveTableName(constraint.ReferenceTable, Connection);
+							ref_tname = ResolveTableName(constraint.ReferenceTable);
 							if (Connection.IsInCaseInsensitiveMode) {
 								ref_tname = Connection.TryResolveCase(ref_tname);
 							}

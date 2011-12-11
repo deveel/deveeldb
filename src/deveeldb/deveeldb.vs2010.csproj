@@ -75,6 +75,7 @@
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
+    <Compile Include="Deveel.Data.Sql\StatementContext.cs" />
     <Compile Include="Deveel.Data.Util\ListUtil.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseCallBack.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseInterface.cs" />

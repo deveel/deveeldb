@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql {
 
 			//    TableName tname =
 			//                TableName.Resolve(Connection.CurrentSchema, table_name);
-			TableName tname = ResolveTableName(table_name, Connection);
+			TableName tname = ResolveTableName(table_name);
 			// Does the table exist?
 			if (!Connection.TableExists(tname)) {
 				throw new DatabaseException("Table '" + tname + "' does not exist.");

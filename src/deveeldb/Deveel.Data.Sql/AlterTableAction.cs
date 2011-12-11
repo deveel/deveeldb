@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -25,40 +26,44 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Element parameters to do with the action.
 		/// </summary>
-		private ArrayList elements;
+		private List<object> elements;
 
 		/// <summary>
 		/// The action to perform.
 		/// </summary>
-		private AlterTableActionType action;
+		private readonly AlterTableActionType action;
 
 		///<summary>
 		///</summary>
-		public AlterTableAction() {
-			elements = new ArrayList();
+		public AlterTableAction(AlterTableActionType action) {
+			this.action = action;
+			elements = new List<object>();
 		}
 
 		/// <summary>
 		/// Gets or sets the action to perform.
 		/// </summary>
 		public AlterTableActionType Action {
-			set { action = value; }
 			get { return action; }
 		}
 
 		/// <summary>
-		/// Returns the ArrayList that represents the parameters of this action.
+		/// Returns the list of parameters of this action.
 		/// </summary>
-		public IList Elements {
+		public IList<object> Elements {
 			get { return elements; }
 		}
 
+		internal void AddElements(IEnumerable collection) {
+			foreach (object ob in collection) {
+				elements.Add(ob);
+			}
+		}
 
 		/// <inheritdoc/>
 		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			// This must search throw 'elements' for objects that we can prepare
-			for (int i = 0; i < elements.Count; ++i) {
-				Object ob = elements[i];
+			foreach (object ob in elements) {
 				if (ob is String) {
 					// Do not need to prepare this
 				} else if (ob is Expression) {
@@ -72,15 +77,15 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <inheritdoc/>
-		public Object Clone() {
+		public object Clone() {
 			// Shallow clone
 			AlterTableAction v = (AlterTableAction)MemberwiseClone();
-			ArrayList cloned_elements = new ArrayList();
-			v.elements = cloned_elements;
+			v.elements = new List<object>();
 
-			for (int i = 0; i < elements.Count; ++i) {
-				Object ob = elements[i];
-				if (ob is String) {
+			foreach (object element in elements) {
+				object ob = element;
+
+				if (ob is string) {
 					// Do not need to clone this
 				} else if (ob is Expression) {
 					ob = ((Expression)ob).Clone();
@@ -89,7 +94,8 @@ namespace Deveel.Data.Sql {
 				} else {
 					throw new ApplicationException(ob.GetType().ToString());
 				}
-				cloned_elements.Add(ob);
+
+				v.elements.Add(ob);
 			}
 
 			return v;

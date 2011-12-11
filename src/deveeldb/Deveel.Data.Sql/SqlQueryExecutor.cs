@@ -17,8 +17,6 @@ using System;
 using System.Data;
 using System.IO;
 
-using Deveel.Data.Client;
-
 namespace Deveel.Data.Sql {
 	///<summary>
 	/// An object used to execute SQL queries against a given 
@@ -31,15 +29,15 @@ namespace Deveel.Data.Sql {
 	/// This object is a convenient way to execute SQL _queries.
 	/// </para>
 	/// </remarks>
-	public class SqlQueryExecutor {
+	public static class SqlQueryExecutor {
 		/// <summary>
 		/// The SQL parser state.
 		/// </summary>
-		private readonly static SQL sql_parser;
+		private readonly static SQL SqlParser;
 
 		static SqlQueryExecutor() {
 			// Set up the sql parser.
-			sql_parser = new SQL(new StringReader(""));
+			SqlParser = new SQL(new StringReader(""));
 		}
 
 		///<summary>
@@ -60,75 +58,64 @@ namespace Deveel.Data.Sql {
 		/// Returns a <see cref="Table"/> object that contains the result of the execution.
 		/// </returns>
 		///<exception cref="DataException"></exception>
-		public Table Execute(DatabaseConnection connection, SqlQuery query) {
-
+		public static Table Execute(DatabaseConnection connection, SqlQuery query) {
 			// StatementTree caching
 
 			// Create a new parser and set the parameters...
-			String commandText = query.Text;
-			StatementTree statement_tree = null;
-			StatementCache statement_cache = connection.System.StatementCache;
+			string commandText = query.Text;
+			StatementTree statementTree = null;
+			StatementCache statementCache = connection.System.StatementCache;
 
-			if (statement_cache != null) {
+			if (statementCache != null)
 				// Is this Query cached?
-				statement_tree = statement_cache.Get(commandText);
-			}
-			if (statement_tree == null) {
+				statementTree = statementCache.Get(commandText);
+
+			if (statementTree == null) {
 				try {
-					lock (sql_parser) {
-						sql_parser.ReInit(new StringReader(commandText));
-						sql_parser.Reset();
+					lock (SqlParser) {
+						SqlParser.ReInit(new StringReader(commandText));
+						SqlParser.Reset();
 						// Parse the statement.
-						statement_tree = sql_parser.Statement();
+						statementTree = SqlParser.Statement();
 					}
 				} catch (ParseException e) {
 					throw new SqlParseException(e, commandText);
 				}
 
 				// Put the statement tree in the cache
-				if (statement_cache != null) {
-					statement_cache.Set(commandText, statement_tree);
-				}
+				if (statementCache != null)
+					statementCache.Set(commandText, statementTree);
 			}
 
 			// Substitute all parameter substitutions in the statement tree.
-			IExpressionPreparer preparer = new ExpressionPreparerImpl(query);
-			statement_tree.PrepareAllExpressions(preparer);
+			IExpressionPreparer preparer = new QueryPreparer(query);
+			statementTree.PrepareAllExpressions(preparer);
 
 			// Convert the StatementTree to a statement object
 			Statement statement;
-			Type statement_class = statement_tree.StatementType;
+			Type statementType = statementTree.StatementType;
 			try {
-				statement = (Statement)Activator.CreateInstance(statement_class);
+				statement = (Statement)Activator.CreateInstance(statementType);
 			} catch (TypeLoadException) {
-				throw new DataException("Could not find statement class: " + statement_class);
-			} catch (TypeInitializationException e) {
-				throw new DataException("Could not instantiate class: " + statement_class);
-			} catch (AccessViolationException e) {
-				throw new DataException("Could not access class: " + statement_class);
+				throw new DataException("Could not find statement type: " + statementType);
+			} catch (TypeInitializationException) {
+				throw new DataException("Could not instantiate type: " + statementType);
+			} catch (AccessViolationException) {
+				throw new DataException("Could not access type: " + statementType);
 			}
 
 
 			// Initialize the statement
-			statement.Init(connection, statement_tree, query);
-
-			// Automated statement tree preparation
-			statement.ResolveTree();
-
-			// Prepare the statement.
-			statement.PrepareStatement();
+			statement.Context.Set(connection, statementTree, query);
 
 			// Evaluate the SQL statement.
-			Table result = statement.EvaluateStatement();
-
-			return result;
-
+			return statement.EvaluateStatement();
 		}
 
-		private class ExpressionPreparerImpl : IExpressionPreparer {
-			private SqlQuery query;
+		private class QueryPreparer : IExpressionPreparer {
+			private readonly SqlQuery query;
 
-			public ExpressionPreparerImpl(SqlQuery query) {
+			public QueryPreparer(SqlQuery query) {
 				this.query = query;
 			}
 
@@ -136,15 +123,15 @@ namespace Deveel.Data.Sql {
 				return (element is ParameterSubstitution);
 			}
 
-			public Object Prepare(Object element) {
+			public object Prepare(object element) {
 				ParameterSubstitution ps = (ParameterSubstitution)element;
 				object value;
 				if (query.ParameterStyle == ParameterStyle.Named) {
-					string param_name = ps.Name;
-					value = query.GetNamedVariable(param_name);
+					string paramName = ps.Name;
+					value = query.GetNamedVariable(paramName);
 				} else {
-					int param_id = ps.Id;
-					value = query.Variables[param_id];
+					int paramId = ps.Id;
+					value = query.Variables[paramId];
 				}
 				return TObject.CreateObject(value);
 			}

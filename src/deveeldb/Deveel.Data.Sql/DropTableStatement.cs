@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql {
 			// Check the user has privs to delete these tables...
 			for (int i = 0; i < list_size; ++i) {
 				String table_name = drop_tables[i].ToString();
-				TableName tname = ResolveTableName(table_name, Connection);
+				TableName tname = ResolveTableName(table_name);
 				// Does the table exist?
 				if (!only_if_exists && !Connection.TableExists(tname)) {
 					throw new DatabaseException("Table '" + tname + "' does not exist.");

@@ -1,4 +1,7 @@
-﻿2010-05-03  Antonello Provenzano  <antonello@deveel.com>
+﻿2011-12-10  Antonello Provenzano  <antonello@deveel.com>
+	* AlterTableAction.cs: redesigned
+
+2010-05-03  Antonello Provenzano  <antonello@deveel.com>
 	* StatementTree.cs:
 		- added support for cloning generic lists
 	

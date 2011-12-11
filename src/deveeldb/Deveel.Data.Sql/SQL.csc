@@ -613,11 +613,11 @@ StatementTree DeclareVariable() :
   [ <NOT> <NULL_LITERAL> { not_null = true; } ]
   [ <ASSIGNMENT> default_value = DoExpression() ]
 
-  { ob.SetObject("name", name.image);
-    ob.SetObject("type", type);
-    ob.SetBoolean("constant", constant);
-    ob.SetBoolean("not_null", not_null);
-    ob.SetObject("default", default_value);
+  { ob.SetValue("name", name.image);
+    ob.SetValue("type", type);
+    ob.SetValue("constant", constant);
+    ob.SetValue("not_null", not_null);
+    ob.SetValue("default", default_value);
     return ob; 
   }
 }
@@ -651,8 +651,8 @@ StatementTree Select() :
     [ <ORDERBY> SelectOrderByList(order_by) ]
   )
 
-  { cmd.SetObject("table_expression", table_expr);
-    cmd.SetObject("order_by", order_by);
+  { cmd.SetValue("table_expression", table_expr);
+    cmd.SetValue("order_by", order_by);
     return cmd; }
 }
 
@@ -675,12 +675,12 @@ StatementTree Update() :
         [ <LIMIT> limit = PositiveIntegerConstant() ] 
   )
 
-  { cmd.SetObject("table_name", table_name);
-    cmd.SetObject("assignments", assignments);
-    cmd.SetObject("where_clause", where_clause);
-    cmd.SetObject("from_cursor", from_cursor);
-    cmd.SetObject("cursor_name", cursor_name);
-    cmd.SetInt("limit", limit);
+  { cmd.SetValue("table_name", table_name);
+    cmd.SetValue("assignments", assignments);
+    cmd.SetValue("where_clause", where_clause);
+    cmd.SetValue("from_cursor", from_cursor);
+    cmd.SetValue("cursor_name", cursor_name);
+    cmd.SetValue("limit", limit);
     return cmd; }
 }
 
@@ -706,12 +706,12 @@ StatementTree AlterTable() :
 }
 {
   (   <TABLE> table_name=TableName() action=GetAlterTableAction()
-      { cmd.SetObject("table_name", table_name);
-        cmd.SetObject("alter_action", action);
+      { cmd.SetValue("table_name", table_name);
+        cmd.SetValue("alter_action", action);
       }
 
     | <CREATE> create_statement = CreateTable()
-      { cmd.SetObject("create_statement", create_statement); }
+      { cmd.SetValue("create_statement", create_statement); }
         
   )
 
@@ -727,7 +727,7 @@ StatementTree Compact() :
   (    <COMPACT> <TABLE> table_name=TableName()
   )
   
-  { cmd.SetObject("table_name", table_name);
+  { cmd.SetValue("table_name", table_name);
     return cmd; }
 }
 
@@ -755,11 +755,11 @@ StatementTree CreateTable() :
 //     [ <AS> statement.select = Select() ]
   )
   
-  { cmd.SetBoolean("temporary", temporary);
-    cmd.SetBoolean("only_if_not_exists", only_if_not_exists);
-    cmd.SetObject("table_name", table_name);
-    cmd.SetObject("column_list", column_list);
-    cmd.SetObject("constraint_list", constraint_list);
+  { cmd.SetValue("temporary", temporary);
+    cmd.SetValue("only_if_not_exists", only_if_not_exists);
+    cmd.SetValue("table_name", table_name);
+    cmd.SetValue("column_list", column_list);
+    cmd.SetValue("constraint_list", constraint_list);
     return cmd; }
   
 }
@@ -781,7 +781,7 @@ StatementTree CreateTrigger() :
         TriggerTypes(trigger_types)
         <ON> table_name = TableName()
     )
-    { cmd.SetObject("type", "callback_trigger");
+    { cmd.SetValue("type", "callback_trigger");
     }
 
   | ( <TRIGGER> trigger_name = TriggerName()
@@ -791,17 +791,17 @@ StatementTree CreateTrigger() :
         <FOR> <EACH> <ROW> <EXECUTE> <PROCEDURE>
         procedure_name = FunctionName() "(" procedure_args = ExpressionList() ")"
     )
-    { cmd.SetObject("type", "procedure_trigger");
-      cmd.SetObject("before_after", before_after);
-      cmd.SetObject("procedure_name", procedure_name);
-      cmd.SetObject("procedure_args", procedure_args);
+    { cmd.SetValue("type", "procedure_trigger");
+      cmd.SetValue("before_after", before_after);
+      cmd.SetValue("procedure_name", procedure_name);
+      cmd.SetValue("procedure_args", procedure_args);
     }
     
   )
       
-  { cmd.SetObject("trigger_name", trigger_name);
-    cmd.SetObject("trigger_types", trigger_types);
-    cmd.SetObject("table_name", table_name);
+  { cmd.SetValue("trigger_name", trigger_name);
+    cmd.SetValue("trigger_types", trigger_types);
+    cmd.SetValue("table_name", table_name);
     return cmd; }
 
 }  
@@ -816,8 +816,8 @@ StatementTree DropTrigger() :
     (   <CALLBACK> <TRIGGER> trigger_name = TriggerName() { type = "callback_trigger"; } )
   | (   <TRIGGER> trigger_name = TriggerName() { type = "procedure_trigger"; } )
   
-  { cmd.SetObject("trigger_name", trigger_name);
-    cmd.SetObject("type", type);
+  { cmd.SetValue("trigger_name", trigger_name);
+    cmd.SetValue("type", type);
     return cmd; }
 }  
 
@@ -837,13 +837,13 @@ StatementTree CreateFunction() :
       <LANGUAGE> <CSHARP> <NAME> loc_name = <STRING_LITERAL>
   )
 
-  { cmd.SetObject("function_name", function_name);
-    cmd.SetObject("arg_names", arg_names);
-    cmd.SetObject("arg_types", arg_types);
+  { cmd.SetValue("function_name", function_name);
+    cmd.SetValue("arg_names", arg_names);
+    cmd.SetValue("arg_types", arg_types);
     // Note that 'location_name' will be a TObject
-    cmd.SetObject("location_name",
+    cmd.SetValue("location_name",
                   Util.ToParamObject(loc_name, case_insensitive_identifiers));
-    cmd.SetObject("return_type", return_type);
+    cmd.SetValue("return_type", return_type);
     return cmd;
   }
 }  
@@ -856,7 +856,7 @@ StatementTree DropFunction() :
 {
   (   <FUNCTION> function_name = FunctionName() )
 
-  { cmd.SetObject("function_name", function_name);
+  { cmd.SetValue("function_name", function_name);
     return cmd;
   }
 }  
@@ -864,26 +864,26 @@ StatementTree DropFunction() :
 
 StatementTree CreateSchema() :
 { StatementTree cmd = new StatementTree(typeof(CreateSchemaStatement));
-  cmd.SetObject("type", "create");
+  cmd.SetValue("type", "create");
   String schema_name;
 }
 {
   (   <SCHEMA> schema_name = SchemaName() )
   
-  { cmd.SetObject("schema_name", schema_name);
+  { cmd.SetValue("schema_name", schema_name);
     return cmd; }
 }
 
 
 StatementTree DropSchema() :
 { StatementTree cmd = new StatementTree(typeof(DropSchemaStatement));
-  cmd.SetObject("type", "drop");
+  cmd.SetValue("type", "drop");
   String schema_name;
 }
 {
   (   <SCHEMA> schema_name = SchemaName() )
   
-  { cmd.SetObject("schema_name", schema_name);
+  { cmd.SetValue("schema_name", schema_name);
     return cmd; }
 }
 
@@ -898,9 +898,9 @@ StatementTree CreateView() :
   (   <VIEW> view_name = TableName() [ "(" BasicColumnList(col_list) ")" ]
         <AS> select_cmd = GetTableSelectExpression() )
 
-  { cmd.SetObject("view_name", view_name);
-    cmd.SetObject("column_list", col_list);
-    cmd.SetObject("select_expression", select_cmd);
+  { cmd.SetValue("view_name", view_name);
+    cmd.SetValue("column_list", col_list);
+    cmd.SetValue("select_expression", select_cmd);
     return cmd; }
 }
 
@@ -911,7 +911,7 @@ StatementTree DropView() :
 {
   (   <VIEW> view_name = TableName() )
   
-  { cmd.SetObject("view_name", view_name);
+  { cmd.SetValue("view_name", view_name);
     return cmd;
   }
 }
@@ -942,8 +942,8 @@ StatementTree DropTable() :
            ( "," table_name = TableName() { table_list.Add(table_name); } )*
   )
   
-  { cmd.SetBoolean("only_if_exists", only_if_exists);
-    cmd.SetObject("table_list", table_list);
+  { cmd.SetValue("only_if_exists", only_if_exists);
+    cmd.SetValue("table_list", table_list);
     return cmd; }
   
 }
@@ -970,8 +970,8 @@ StatementTree Call() :
 }
 {
   <CALL> proc_name = ProcedureName() "(" args=ExpressionList() ")"
-  { cmd.SetObject("proc_name", proc_name);
-    cmd.SetObject("args", args);
+  { cmd.SetValue("proc_name", proc_name);
+    cmd.SetValue("args", args);
     return cmd;
   }
 }
@@ -980,18 +980,18 @@ StatementTree Call() :
 StatementTree CreateSequence() :
 {
   StatementTree cmd = new StatementTree(typeof(SequenceStatement));
-  cmd.SetObject("type", "create");
+  cmd.SetValue("type", "create");
   String seq_name;
   Expression v;
 }
 {
-  <SEQUENCE> seq_name=SequenceName() { cmd.SetObject("seq_name", seq_name); }
-  [ <INCREMENT> v = DoExpression() { cmd.SetObject("increment", v); } ]
-  [ <MINVALUE> v = DoExpression() { cmd.SetObject("min_value", v); } ]
-  [ <MAXVALUE> v = DoExpression() { cmd.SetObject("max_value", v); } ]
-  [ <START> v = DoExpression() { cmd.SetObject("start", v); } ]
-  [ <CACHE> v = DoExpression() { cmd.SetObject("cache", v); } ]
-  [ <CYCLE> { cmd.SetObject("cycle", "yes"); } ]
+  <SEQUENCE> seq_name=SequenceName() { cmd.SetValue("seq_name", seq_name); }
+  [ <INCREMENT> v = DoExpression() { cmd.SetValue("increment", v); } ]
+  [ <MINVALUE> v = DoExpression() { cmd.SetValue("min_value", v); } ]
+  [ <MAXVALUE> v = DoExpression() { cmd.SetValue("max_value", v); } ]
+  [ <START> v = DoExpression() { cmd.SetValue("start", v); } ]
+  [ <CACHE> v = DoExpression() { cmd.SetValue("cache", v); } ]
+  [ <CYCLE> { cmd.SetValue("cycle", "yes"); } ]
   
   { return cmd; }
 }
@@ -999,11 +999,11 @@ StatementTree CreateSequence() :
 StatementTree DropSequence() :
 {
   StatementTree cmd = new StatementTree(typeof(SequenceStatement));
-  cmd.SetObject("type", "drop");
+  cmd.SetValue("type", "drop");
   String seq_name;
 }
 {
-  <SEQUENCE> seq_name=SequenceName() { cmd.SetObject("seq_name", seq_name); }
+  <SEQUENCE> seq_name=SequenceName() { cmd.SetValue("seq_name", seq_name); }
   
   { return cmd; }
 }
@@ -1012,7 +1012,7 @@ StatementTree DropSequence() :
 StatementTree CreateUser() :
 {
   StatementTree cmd = new StatementTree(typeof(UserStatement));
-  cmd.SetObject("type", "CREATE USER");
+  cmd.SetValue("type", "CREATE USER");
 }
 {
   <USER> UserManagerCommand(cmd)
@@ -1023,7 +1023,7 @@ StatementTree CreateUser() :
 StatementTree AlterUser() :
 {
   StatementTree cmd = new StatementTree(typeof(UserStatement));
-  cmd.SetObject("type", "ALTER USER");
+  cmd.SetValue("type", "ALTER USER");
 }
 {
   <USER> UserManagerCommand(cmd)
@@ -1034,13 +1034,13 @@ StatementTree AlterUser() :
 StatementTree DropUser() :
 {
   StatementTree cmd = new StatementTree(typeof(UserStatement));
-  cmd.SetObject("type", "DROP USER");
+  cmd.SetValue("type", "DROP USER");
   String username;
 }
 { 
   <USER> username = UserName()
   
-  { cmd.SetObject("username", username);
+  { cmd.SetValue("username", username);
     return cmd; }
 }
 
@@ -1058,10 +1058,10 @@ void UserManagerCommand(StatementTree cmd) :
       [ <SET> <ACCOUNT> ( <LOCK> { lock_status="LOCK"; } | <UNLOCK> { lock_status="UNLOCK"; } ) ]
   )
   
-  { cmd.SetObject("username", username);
-    cmd.SetObject("password_expression", password_exp);
-    cmd.SetObject("groups_list", groups_list);
-    cmd.SetObject("lock_status", lock_status);
+  { cmd.SetValue("username", username);
+    cmd.SetValue("password_expression", password_exp);
+    cmd.SetValue("groups_list", groups_list);
+    cmd.SetValue("lock_status", lock_status);
   }
 }
 
@@ -1081,12 +1081,12 @@ StatementTree DeclareCursor() :
      [ <FOR> ( <READONLY> | <UPDATE> { update = true; } ) ]
 
   { StatementTree ob = new StatementTree(typeof(DeclareCursorStatement));
-    ob.SetObject("name", name.image);
-    ob.SetBoolean("scrollable", scrollable);
-    ob.SetBoolean("insensitive", insensitive);
-    ob.SetBoolean("update", update);
-    ob.SetObject("select_expression", select_expr);
-    ob.SetObject("order_by", order_by);
+    ob.SetValue("name", name.image);
+    ob.SetValue("scrollable", scrollable);
+    ob.SetValue("insensitive", insensitive);
+    ob.SetValue("update", update);
+    ob.SetValue("select_expression", select_expr);
+    ob.SetValue("order_by", order_by);
     return ob;
   }
 }
@@ -1097,7 +1097,7 @@ StatementTree OpenCursor() :
   name = SQLIdentifier()
 
   { StatementTree ob = new StatementTree(typeof(OpenCursorStatement));
-    ob.SetObject("name", name.image);
+    ob.SetValue("name", name.image);
     return ob;
   }
 }
@@ -1108,7 +1108,7 @@ StatementTree CloseCursor() :
   name = SQLIdentifier()
 
   { StatementTree ob = new StatementTree(typeof(CloseCursorStatement));
-    ob.SetObject("name", name.image);
+    ob.SetValue("name", name.image);
     return ob;
   }
 }
@@ -1138,8 +1138,8 @@ StatementTree Fetch() :
   [ <INTO> GetIntoClause(fetch.Into) ]
 
   { StatementTree ob = new StatementTree(typeof(FetchStatement));
-    ob.SetObject("name", cursor_name.image);
-    ob.SetObject("fetch", fetch);
+    ob.SetValue("name", cursor_name.image);
+    ob.SetValue("fetch", fetch);
     return ob;
   }
 }
@@ -1163,11 +1163,11 @@ StatementTree Delete() :
         [ <LIMIT> limit = PositiveIntegerConstant() ] 
   )
 
-  { cmd.SetObject("table_name", table_name);
-    cmd.SetObject("where_clause", where_clause);
-    cmd.SetInt("limit", limit);
-    cmd.SetObject("from_cursor", from_cursor);
-    cmd.SetObject("cursor_name", cursor_name);
+  { cmd.SetValue("table_name", table_name);
+    cmd.SetValue("where_clause", where_clause);
+    cmd.SetValue("limit", limit);
+    cmd.SetValue("from_cursor", from_cursor);
+    cmd.SetValue("cursor_name", cursor_name);
     return cmd; }
 
 }
@@ -1193,12 +1193,12 @@ StatementTree Insert() :
     )
   )
 
-  { cmd.SetObject("table_name", table_name);
-    cmd.SetObject("col_list", col_list);
-    cmd.SetObject("data_list", data_list);
-    cmd.SetObject("select", select);
-    cmd.SetObject("assignments", assignments);
-    cmd.SetObject("type", type);
+  { cmd.SetValue("table_name", table_name);
+    cmd.SetValue("col_list", col_list);
+    cmd.SetValue("data_list", data_list);
+    cmd.SetValue("select", select);
+    cmd.SetValue("assignments", assignments);
+    cmd.SetValue("type", type);
     return cmd; }
 
 }
@@ -1206,7 +1206,7 @@ StatementTree Insert() :
 
 StatementTree Describe() :
 { StatementTree cmd = new StatementTree(typeof(ShowStatement));
-  cmd.SetObject("show", "describe_table");
+  cmd.SetValue("show", "describe_table");
   String table_name;
 }
 {
@@ -1214,8 +1214,8 @@ StatementTree Describe() :
   ( <DESCRIBE> table_name = TableName()
   )
   
-  { cmd.SetObject("table_name", table_name);
-    cmd.SetObject("where_clause", new SearchExpression());
+  { cmd.SetValue("table_name", table_name);
+    cmd.SetValue("where_clause", new SearchExpression());
     return cmd; }
 
 }
@@ -1235,9 +1235,9 @@ StatementTree Show() :
       [ "(" args=ExpressionList() ")" ]
       [ <WHERE> ConditionsExpression(where_clause) ] )
   
-  { cmd.SetObject("show", t.image);
-    cmd.SetObject("args", args);
-    cmd.SetObject("where_clause", where_clause);
+  { cmd.SetValue("show", t.image);
+    cmd.SetValue("args", args);
+    cmd.SetValue("where_clause", where_clause);
     return cmd; }
 
 }
@@ -1256,10 +1256,10 @@ StatementTree Grant() :
     [ <WITH> <GRANT> <OPTION> { grant_option = true; } ]
   )
   
-  { cmd.SetObject("priv_list", priv_list);
-    cmd.SetObject("priv_object", priv_object);
-    cmd.SetObject("users", grant_to);
-    cmd.SetBoolean("grant_option", grant_option);
+  { cmd.SetValue("priv_list", priv_list);
+    cmd.SetValue("priv_object", priv_object);
+    cmd.SetValue("users", grant_to);
+    cmd.SetValue("grant_option", grant_option);
     return cmd;
   }
 }
@@ -1278,10 +1278,10 @@ StatementTree Revoke() :
     <FROM> revoke_from=UserNameList(new ArrayList())
   )
   
-  { cmd.SetObject("priv_list", priv_list);
-    cmd.SetObject("priv_object", priv_object);
-    cmd.SetObject("users", revoke_from);
-    cmd.SetBoolean("grant_option", revoke_grant_option);
+  { cmd.SetValue("priv_list", priv_list);
+    cmd.SetValue("priv_object", priv_object);
+    cmd.SetValue("users", revoke_from);
+    cmd.SetValue("grant_option", revoke_grant_option);
     return cmd;
   }
 }
@@ -1303,12 +1303,12 @@ StatementTree CreateType() :
      [ <NOT> <FINAL> | <FINAL> { final = true; } ]
    )
 
-  { cmd.SetObject("type_name", type_name);
-    if (external)cmd.SetObject("parent_type", parent_type);
-    else cmd.SetObject("parent_type", ext_parent_type.image);
-    cmd.SetBoolean("external", external);
-    cmd.SetBoolean("final", final);
-    cmd.SetObject("members", members);
+  { cmd.SetValue("type_name", type_name);
+    if (external)cmd.SetValue("parent_type", parent_type);
+    else cmd.SetValue("parent_type", ext_parent_type.image);
+    cmd.SetValue("external", external);
+    cmd.SetValue("final", final);
+    cmd.SetValue("members", members);
     return cmd; }
 }
 
@@ -1320,7 +1320,7 @@ StatementTree DropType() :
   ( <TYPE> type_name = TableName() { type_list.Add(type_name); }
         ( "," type_name = TableName() { type_list.Add(type_name); } )* )
 
-  { cmd.SetObject("type_list", type_list);
+  { cmd.SetValue("type_list", type_list);
     return cmd; }
 }
 
@@ -1388,19 +1388,19 @@ StatementTree Set() :
 {
   <SET>
   (   t1=<IDENTIFIER> <ASSIGNMENT> exp=DoExpression()
-        { cmd.SetObject("type", "VARSET");
-          cmd.SetObject("var_name", t1.image);
-          cmd.SetObject("exp", exp); }
+        { cmd.SetValue("type", "VARSET");
+          cmd.SetValue("var_name", t1.image);
+          cmd.SetValue("exp", exp); }
     | <TRANSACTIONISOLATIONLEVEL> (  t1=<SERIALIZABLE> )
-        { cmd.SetObject("type", "ISOLATIONSET");
-          cmd.SetObject("var_name", "TRANSACTION ISOLATION LEVEL");
-          cmd.SetObject("value", t1.image); }
+        { cmd.SetValue("type", "ISOLATIONSET");
+          cmd.SetValue("var_name", "TRANSACTION ISOLATION LEVEL");
+          cmd.SetValue("value", t1.image); }
     | <AUTOCOMMIT> ( t1=<ON> | t1=<IDENTIFIER> )
-        { cmd.SetObject("type", "AUTOCOMMIT");
-          cmd.SetObject("value", t1.image); }
+        { cmd.SetValue("type", "AUTOCOMMIT");
+          cmd.SetValue("value", t1.image); }
     | <SCHEMA> name=SchemaName()
-        { cmd.SetObject("type", "SCHEMA");
-          cmd.SetObject("value", name); }
+        { cmd.SetValue("type", "SCHEMA");
+          cmd.SetValue("value", name); }
   )
   
   { return cmd; }
@@ -1415,7 +1415,7 @@ StatementTree ShutDown() :
 
   <SHUTDOWN>
   
-  { cmd.SetObject("command", "shutdown");
+  { cmd.SetValue("command", "shutdown");
     return cmd; }
 }
 
@@ -1522,46 +1522,48 @@ AlterTableAction GetAlterTableAction() :
   SqlColumn column;
   SqlConstraint constraint_def;
   Expression default_exp;
-  AlterTableAction action = new AlterTableAction();
+  AlterTableActionType actionType = AlterTableActionType.AddColumn;
+  ArrayList elements = new ArrayList();
 }
 {
   (   <SQLADD>
       (   [ <SQLCOLUMN> ] column=ColumnDefinition()
-          { action.Action = AlterTableActionType.AddColumn;
-            action.Elements.Add(column);
+          { actionType = AlterTableActionType.AddColumn;
+            elements.Add(column);
           }
         | constraint_def=TableConstraintDefinition()
-          { action.Action = AlterTableActionType.AddConstraint;
-            action.Elements.Add(constraint_def);
+          { actionType = AlterTableActionType.AddConstraint;
+            elements.Add(constraint_def);
           }
       )
     | <ALTER> [ <SQLCOLUMN> ] col_name=ColumnName()
       (   <SET> default_exp=DoExpression()
-          { action.Action = AlterTableActionType.SetDefault;
-            action.Elements.Add(col_name);
-            action.Elements.Add(default_exp);
+          { actionType = AlterTableActionType.SetDefault;
+            elements.Add(col_name);
+            elements.Add(default_exp);
           }
         | <DROP> <SQLDEFAULT>
-          { action.Action = AlterTableActionType.DropDefault;
-            action.Elements.Add(col_name);
+          { actionType= AlterTableActionType.DropDefault;
+            elements.Add(col_name);
           }
       )
     | <DROP>
       (   [ <SQLCOLUMN> ] col_name=ColumnName()
-          { action.Action = AlterTableActionType.DropColumn;
-            action.Elements.Add(col_name);
+          { actionType = AlterTableActionType.DropColumn;
+            elements.Add(col_name);
           }
         | <CONSTRAINT> con_name=ConstraintName()
-          { action.Action = AlterTableActionType.DropConstraint;
-            action.Elements.Add(con_name);
+          { actionType = AlterTableActionType.DropConstraint;
+            elements.Add(con_name);
           }
         | <PRIMARY> <KEY>
-          { action.Action = AlterTableActionType.DropPrimaryKey;
-          }
+          { actionType = AlterTableActionType.DropPrimaryKey; }
       )
   )
   
-  { return action; }
+  { AlterTableAction action = new AlterTableAction(actionType);
+	action.AddElements(elements);
+	return action; }
 }
 
 void GetIntoClause(IntoClause into) :

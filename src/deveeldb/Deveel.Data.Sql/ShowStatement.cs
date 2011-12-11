@@ -16,9 +16,6 @@
 using System;
 using System.Data;
 
-using Deveel.Data.Client;
-using Deveel.Data.Sql;
-
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Statement that handles <c>SHOW</c> and <c>DESCRIBE</c> sql commands.
@@ -69,9 +66,6 @@ namespace Deveel.Data.Sql {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 			Database d = Connection.Database;
 
-			// Construct an executor for interpreting SQL queries inside here.
-			SqlQueryExecutor executor = new SqlQueryExecutor();
-
 			// The table we are showing,
 			// TemporaryTable show_table;
 
@@ -88,90 +82,93 @@ namespace Deveel.Data.Sql {
 					   "         \"other\" AS \"notes\" " +
 					   "    FROM INFORMATION_SCHEMA.ThisUserSchemaInfo " +
 					   "ORDER BY \"schema_name\"");
-					return executor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(Connection, query);
 
-				} else if (show_type.Equals("tables")) {
+				}
+				if (show_type.Equals("tables")) {
 
 					String current_schema = Connection.CurrentSchema;
 
 					SqlQuery query = new SqlQuery(
-					   "  SELECT \"Tables.TABLE_NAME\" AS \"table_name\", " +
-					   "         I_PRIVILEGE_STRING(\"agg_priv_bit\") AS \"user_privs\", " +
-					   "         \"Tables.TABLE_TYPE\" as \"table_type\" " +
-					   "    FROM INFORMATION_SCHEMA.Tables, " +
-					   "         ( SELECT AGGOR(\"priv_bit\") agg_priv_bit, " +
-					   "                  \"object\", \"param\" " +
-					   "             FROM INFORMATION_SCHEMA.ThisUserSimpleGrant " +
-					   "            WHERE \"object\" = 1 " +
-					   "         GROUP BY \"param\" )" +
-					   "   WHERE \"Tables.TABLE_SCHEMA\" = ? " +
-					   "     AND CONCAT(\"Tables.TABLE_SCHEMA\", '.', \"Tables.TABLE_NAME\") = \"param\" " +
-					   "ORDER BY \"Tables.TABLE_NAME\"");
+						"  SELECT \"Tables.TABLE_NAME\" AS \"table_name\", " +
+						"         I_PRIVILEGE_STRING(\"agg_priv_bit\") AS \"user_privs\", " +
+						"         \"Tables.TABLE_TYPE\" as \"table_type\" " +
+						"    FROM INFORMATION_SCHEMA.Tables, " +
+						"         ( SELECT AGGOR(\"priv_bit\") agg_priv_bit, " +
+						"                  \"object\", \"param\" " +
+						"             FROM INFORMATION_SCHEMA.ThisUserSimpleGrant " +
+						"            WHERE \"object\" = 1 " +
+						"         GROUP BY \"param\" )" +
+						"   WHERE \"Tables.TABLE_SCHEMA\" = ? " +
+						"     AND CONCAT(\"Tables.TABLE_SCHEMA\", '.', \"Tables.TABLE_NAME\") = \"param\" " +
+						"ORDER BY \"Tables.TABLE_NAME\"");
 					query.AddVariable(current_schema);
 
-					return executor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(Connection, query);
 
-				} else if (show_type.Equals("status")) {
+				}
+				if (show_type.Equals("status")) {
 
 					SqlQuery query = new SqlQuery(
-					   "  SELECT \"stat_name\" AS \"name\", " +
-					   "         \"value\" " +
-					   "    FROM SYSTEM.database_stats");
+						"  SELECT \"stat_name\" AS \"name\", " +
+						"         \"value\" " +
+						"    FROM SYSTEM.database_stats");
 
-					return executor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(Connection, query);
 
-				} else if (show_type.Equals("describe_table")) {
+				}
+				if (show_type.Equals("describe_table")) {
 
-					TableName tname = ResolveTableName(table_name, Connection);
+					TableName tname = ResolveTableName(table_name);
 					if (!Connection.TableExists(tname)) {
 						throw new StatementException(
-											"Unable to find table '" + table_name + "'");
+							"Unable to find table '" + table_name + "'");
 					}
 
 					SqlQuery query = new SqlQuery(
-					  "  SELECT \"column\" AS \"name\", " +
-					  "         i_sql_type(\"type_desc\", \"size\", \"scale\") AS \"type\", " +
-					  "         \"not_null\", " +
-					  "         \"index_str\" AS \"index\", " +
-					  "         \"default\" " +
-					  "    FROM INFORMATION_SCHEMA.ThisUserTableColumns " +
-					  "   WHERE \"schema\" = ? " +
-					  "     AND \"table\" = ? " +
-					  "ORDER BY \"seq_no\" ");
+						"  SELECT \"column\" AS \"name\", " +
+						"         i_sql_type(\"type_desc\", \"size\", \"scale\") AS \"type\", " +
+						"         \"not_null\", " +
+						"         \"index_str\" AS \"index\", " +
+						"         \"default\" " +
+						"    FROM INFORMATION_SCHEMA.ThisUserTableColumns " +
+						"   WHERE \"schema\" = ? " +
+						"     AND \"table\" = ? " +
+						"ORDER BY \"seq_no\" ");
 					query.AddVariable(tname.Schema);
 					query.AddVariable(tname.Name);
 
-					return executor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(Connection, query);
 
-				} else if (show_type.Equals("connections")) {
+				}
+				if (show_type.Equals("connections")) {
 
 					SqlQuery query = new SqlQuery("SELECT * FROM SYSTEM.current_connections");
 
-					return executor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(Connection, query);
 
-				} else if (show_type.Equals("product")) {
+				}
+				if (show_type.Equals("product")) {
 
 					SqlQuery query = new SqlQuery(
-					   "SELECT \"name\", \"version\" FROM " +
-					   "  ( SELECT \"value\" AS \"name\" FROM SYSTEM.product_info " +
-					   "     WHERE \"var\" = 'name' ), " +
-					   "  ( SELECT \"value\" AS \"version\" FROM SYSTEM.product_info " +
-					   "     WHERE \"var\" = 'version' ) "
-					);
+						"SELECT \"name\", \"version\" FROM " +
+						"  ( SELECT \"value\" AS \"name\" FROM SYSTEM.product_info " +
+						"     WHERE \"var\" = 'name' ), " +
+						"  ( SELECT \"value\" AS \"version\" FROM SYSTEM.product_info " +
+						"     WHERE \"var\" = 'version' ) "
+						);
 
-					return executor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(Connection, query);
 
-				} else if (show_type.Equals("connection_info")) {
+				}
+				if (show_type.Equals("connection_info")) {
 
 					SqlQuery query = new SqlQuery("SELECT * FROM SYSTEM.connection_info");
 
-					return executor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(Connection, query);
 
-				} 
-				 else {
-					throw new StatementException("Unknown SHOW identifier: " + show_type);
 				}
-
+				throw new StatementException("Unknown SHOW identifier: " + show_type);
 			} catch (DataException e) {
 				throw new DatabaseException("SQL Error: " + e.Message);
 			} catch (ParseException e) {
