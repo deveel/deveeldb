@@ -48,7 +48,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Drops a view with the given name.
 		/// </summary>
-		/// <param name="view_name">Name of the view to drop.</param>
+		/// <param name="viewName">Name of the view to drop.</param>
 		/// <remarks>
 		/// Note that this is a transactional operation. You need to commit 
 		/// for the change to be visible to other transactions.
@@ -57,9 +57,9 @@ namespace Deveel.Data {
 		/// Returns <b>true</b> if the drop succeeded, otherwise <b>false</b> if 
 		/// the view was not found.
 		/// </returns>
-		public bool DropView(TableName view_name) {
+		public bool DropView(TableName viewName) {
 			try {
-				return view_manager.DeleteView(view_name);
+				return view_manager.DeleteView(viewName);
 			} catch (DatabaseException e) {
 				Debug.WriteException(e);
 				throw new Exception("Database Exception: " + e.Message);

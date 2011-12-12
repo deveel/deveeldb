@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010  Deveel
+﻿// 
+//  Copyright 2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -16,20 +16,26 @@
 using System;
 
 namespace Deveel.Data.Sql {
-	/// <summary>
-	/// The statement that represents a <c>ROLLBACK</c> command.
-	/// </summary>
 	[Serializable]
-	public sealed class RollbackStatement : Statement {
+	public sealed class DropSequenceStatement : Statement {
 		protected override void Prepare() {
-			// nothing to prepare...
 		}
 
 		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-			// Rollback the current transaction on this connection.
-			Connection.Rollback();
-			return FunctionTable.ResultTable(context, 0);
+			string seqNameString = GetString("seq_name");
+			TableName seqName = ResolveTableName(seqNameString);
+
+			// Does the user have privs to create this sequence generator?
+			if (!Connection.Database.CanUserDropSequenceObject(QueryContext, User, seqName))
+				throw new UserAccessException("User not permitted to drop sequence: " + seqName);
+
+			Connection.DropSequenceGenerator(seqName);
+
+			// Drop the grants for this object
+			Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, seqName.ToString());
+
+			// Return an update result table.
+			return FunctionTable.ResultTable(QueryContext, 0);
 		}
 	}
 }

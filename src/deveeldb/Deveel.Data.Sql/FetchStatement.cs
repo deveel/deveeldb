@@ -16,50 +16,32 @@
 using System;
 
 namespace Deveel.Data.Sql {
+	[Serializable]
 	public sealed class FetchStatement : Statement {
-		/// <summary>
-		/// The name of the cursor from where to fetch.
-		/// </summary>
-		private TableName resolved_name;
-
-		private string name;
-
-		private CursorFetch fetch_info;
-
 		protected override void Prepare() {
-			DatabaseConnection db = Connection;
-
-			name = GetString("name");
-
-			string schema_name = db.CurrentSchema;
-			resolved_name = TableName.Resolve(schema_name, name);
-
-			string name_strip = resolved_name.Name;
-
-			if (name_strip.IndexOf('.') != -1)
-				throw new DatabaseException("Cursor name can not contain '.' character.");
-
-			fetch_info = (CursorFetch) GetValue("fetch");
 		}
 
 		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
+			string cursorNameString = GetString("name");
+			TableName cursorName = ResolveTableName(cursorNameString);
 
-			Cursor cursor = Connection.GetCursor(resolved_name);
+			CursorFetch fetchInfo = (CursorFetch)GetValue("fetch");
+
+			Cursor cursor = Connection.GetCursor(cursorName);
 			if (cursor == null)
-				throw new InvalidOperationException("The cursor '" + name + "' was not defined within this transaction.");
+				throw new InvalidOperationException("The cursor '" + cursorNameString + "' was not defined within this transaction.");
 
 			int offset = -1;
-			if (fetch_info.Offset != null) {
+			if (fetchInfo.Offset != null) {
 				// we resolve any variable in the expression of the offset
-				Expression offsetExpr = (Expression) fetch_info.Offset.Clone();
+				Expression offsetExpr = (Expression) fetchInfo.Offset.Clone();
 
 				// and finally the value of the offset
-				offset = offsetExpr.Evaluate(null, context);
+				offset = offsetExpr.Evaluate(null, QueryContext);
 			}
 
 			// so we finally fetch from the cursor
-			return cursor.Fetch(fetch_info.Orientation, offset);
+			return cursor.Fetch(fetchInfo.Orientation, offset);
 		}
 	}
 }

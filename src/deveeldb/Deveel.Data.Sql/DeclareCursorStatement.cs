@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -22,32 +21,33 @@ using Deveel.Data.QueryPlanning;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Sql {
+	[Serializable]
 	public sealed class DeclareCursorStatement : Statement {
 		private CursorAttributes attributes;
 
 		/// <summary>
 		/// The name of the cursor to declare.
 		/// </summary>
-		private TableName resolved_name;
+		private TableName resolvedName;
 
 		private string name;
 
 		/// <summary>
 		/// The TableSelectExpression representing the select command itself.
 		/// </summary>
-		private TableSelectExpression select_expression;
+		private TableSelectExpression selectExpression;
 
 		/// <summary>
 		/// The list of all columns to order by. (ByColumn)
 		/// </summary>
-		private IList<ByColumn> order_by;
+		private IList<ByColumn> orderBy;
 
 		/// <summary>
 		/// The plan for evaluating this select expression.
 		/// </summary>
 		private IQueryPlanNode plan;
 
-		private TableExpressionFromSet from_set;
+		private TableExpressionFromSet fromSet;
 
 		protected override void Prepare() {
 			DatabaseConnection db = Connection;
@@ -70,25 +70,24 @@ namespace Deveel.Data.Sql {
 			if (insensitive)
 				attributes |= CursorAttributes.Insensitive;
 
-			string schema_name = db.CurrentSchema;
-			resolved_name = TableName.Resolve(schema_name, name);
+			resolvedName = ResolveTableName(name);
 
-			string name_strip = resolved_name.Name;
+			string nameStrip = resolvedName.Name;
 
-			if (name_strip.IndexOf('.') != -1)
+			if (nameStrip.IndexOf('.') != -1)
 				throw new DatabaseException("Cursor name can not contain '.' character.");
 
 			// Prepare this object from the StatementTree,
 			// The select expression itself
-			select_expression = (TableSelectExpression)GetValue("select_expression");
+			selectExpression = (TableSelectExpression)GetValue("select_expression");
 			// The order by information
-			order_by = (IList<ByColumn>) GetList("order_by");
+			orderBy = (IList<ByColumn>) GetList("order_by");
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
-			from_set = Planner.GenerateFromSet(select_expression, db);
+			fromSet = Planner.GenerateFromSet(selectExpression, db);
 
 			// Form the plan
-			plan = Planner.FormQueryPlan(db, select_expression, from_set, order_by);
+			plan = Planner.FormQueryPlan(db, selectExpression, fromSet, orderBy);
 		}
 
 		protected override Table Evaluate() {
@@ -96,12 +95,12 @@ namespace Deveel.Data.Sql {
 
 			// Check the permissions for this user to select from the tables in the
 			// given plan.
-			SelectStatement.CheckUserSelectPermissions(context, User, plan);
+			CheckUserSelectPermissions(plan);
 
 			bool error = true;
 			try {
-				Cursor cursor = Connection.DeclareCursor(resolved_name, plan, attributes);
-				cursor.From = from_set;
+				Cursor cursor = Connection.DeclareCursor(resolvedName, plan, attributes);
+				cursor.From = fromSet;
 				error = false;
 				return FunctionTable.ResultTable(context, 0);
 			} finally {
@@ -112,7 +111,7 @@ namespace Deveel.Data.Sql {
 					StringBuilder buf = new StringBuilder();
 					plan.DebugString(0, buf);
 
-					Debug.Write(DebugLevel.Warning, this, "Query Plan debug:\n" + buf.ToString());
+					Debug.Write(DebugLevel.Warning, this, "Query Plan debug:\n" + buf);
 				}
 			}
 		}

@@ -66,8 +66,8 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc cref="Data.Transaction.ResolveSchemaCase"/>
-		public SchemaDef ResolveSchemaCase(String name, bool ignore_case) {
-			return Transaction.ResolveSchemaCase(name, ignore_case);
+		public SchemaDef ResolveSchemaCase(String name, bool ignoreCase) {
+			return Transaction.ResolveSchemaCase(name, ignoreCase);
 		}
 
 		/**

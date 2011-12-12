@@ -19,45 +19,36 @@ namespace Deveel.Data.Sql {
 	///<summary>
 	/// A parsed state container for the <c>DROP TRIGGER</c> statement.
 	///</summary>
+	[Serializable]
 	public class DropTriggerStatement : Statement {
-		/// <summary>
-		/// The name of this trigger.
-		/// </summary>
-		private String trigger_name;
-
-
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
 		protected override void Prepare() {
-			trigger_name = GetString("trigger_name");
+			
 		}
 
 		/// <inheritdoc/>
 		protected override Table Evaluate() {
+			string triggerNameString = GetString("trigger_name");
 
-			String type = GetString("type");
-
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
+			string type = GetString("type");
 
 			if (type.Equals("callback_trigger")) {
-				Connection.DeleteCallbackTrigger(trigger_name);
+				Connection.DeleteCallbackTrigger(triggerNameString);
 			} else {
-
 				// Convert the trigger into a table name,
-				String schema_name = Connection.CurrentSchema;
-				TableName t_name = TableName.Resolve(schema_name, trigger_name);
-				t_name = Connection.TryResolveCase(t_name);
+				TableName triggerName = ResolveTableName(triggerNameString);
 
 				ConnectionTriggerManager manager = Connection.TriggerManager;
-				manager.DropTrigger(t_name.Schema, t_name.Name);
+				manager.DropTrigger(triggerName.Schema, triggerName.Name);
 
 				// Drop the grants for this object
-				Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, t_name.ToString());
+				Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, triggerName.ToString());
 			}
 
 			// Return '0' if we created the trigger.
-			return FunctionTable.ResultTable(context, 0);
+			return FunctionTable.ResultTable(QueryContext, 0);
 		}
 	}
 }

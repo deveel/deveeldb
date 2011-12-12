@@ -26,15 +26,7 @@ namespace Deveel.Data.Sql {
 
 		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-			//      try {
-			// Commit the current transaction on this connection.
 			Connection.Commit();
-			//      }
-			//      catch (TransactionException e) {
-			//        // This needs to be handled better!
-			//        Debug.WriteException(e);
-			//        throw new DatabaseException(e.Message);
-			//      }
 			return FunctionTable.ResultTable(context, 0);
 		}
 	}

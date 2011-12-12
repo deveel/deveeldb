@@ -24,6 +24,7 @@ namespace Deveel.Data.Sql {
 	/// Sets properties within the current local database connection 
 	/// such as auto-commit mode.
 	/// </remarks>
+	[Serializable]
 	public class SetStatement : Statement {
 		/// <summary>
 		/// The type of set this is.
@@ -58,13 +59,10 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override Table Evaluate() {
-
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
 			String com = type.ToLower();
 
 			if (com.Equals("varset")) {
-				Connection.SetVariable(var_name, exp, context);
+				Connection.SetVariable(var_name, exp, QueryContext);
 			} else if (com.Equals("isolationset")) {
 				Connection.TransactionIsolation = (IsolationLevel) Enum.Parse(typeof(IsolationLevel), value, true);
 			} else if (com.Equals("autocommit")) {
@@ -90,7 +88,7 @@ namespace Deveel.Data.Sql {
 				throw new DatabaseException("Unrecognised set command.");
 			}
 
-			return FunctionTable.ResultTable(context, 0);
+			return FunctionTable.ResultTable(QueryContext, 0);
 
 		}
 	}

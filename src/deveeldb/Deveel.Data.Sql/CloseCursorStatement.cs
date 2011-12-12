@@ -19,6 +19,7 @@ namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Closes an open cursor within the current execution context.
 	/// </summary>
+	[Serializable]
 	public sealed class CloseCursorStatement : Statement {
 		public CloseCursorStatement(string cursorName) {
 			SetValue("name", cursorName);
@@ -28,7 +29,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		private string name;
-		private TableName resolved_name;
+		private TableName resolvedName;
 
 		/// <summary>
 		/// Gets or sets the qualified name of the curosr to close.
@@ -44,28 +45,24 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override void Prepare() {
-			DatabaseConnection db = Connection;
-
 			name = GetString("name");
 
-			string schema_name = db.CurrentSchema;
-			resolved_name = TableName.Resolve(schema_name, name);
+			resolvedName = ResolveTableName(name);
 
-			string name_strip = resolved_name.Name;
+			string nameStrip = resolvedName.Name;
 
-			if (name_strip.IndexOf('.') != -1)
+			if (nameStrip.IndexOf('.') != -1)
 				throw new DatabaseException("Cursor name can not contain '.' character.");
 
 		}
 
 		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-			Cursor cursor = Connection.GetCursor(resolved_name);
+			Cursor cursor = Connection.GetCursor(resolvedName);
 			if (cursor == null)
 				throw new InvalidOperationException("The cursor '" + name + "' was not defined within this transaction.");
 
 			cursor.Close();
-			return FunctionTable.ResultTable(context, 1);
+			return FunctionTable.ResultTable(QueryContext, 0);
 		}
 	}
 }

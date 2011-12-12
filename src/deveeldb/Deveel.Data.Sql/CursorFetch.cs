@@ -20,6 +20,7 @@ namespace Deveel.Data.Sql {
 	/// The intermediate object used to analyze and parse
 	/// a cursor FETCH statement.
 	/// </summary>
+	[Serializable]
 	internal class CursorFetch : IStatementTreeObject {
 		private Expression offset;
 		private SelectIntoClause into = new SelectIntoClause();
@@ -49,7 +50,7 @@ namespace Deveel.Data.Sql {
 			return fetch;
 		}
 
-		public void PrepareExpressions(IExpressionPreparer preparer) {
+		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 			if (offset != null)
 				offset.Prepare(preparer);
 		}

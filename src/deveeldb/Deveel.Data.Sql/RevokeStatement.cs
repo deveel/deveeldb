@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 
 namespace Deveel.Data.Sql {
+	[Serializable]
 	public sealed class RevokeStatement : PrivilegesStatement {
 		public RevokeStatement(Privileges privileges, GrantObject grantObject, string grantName, IList users, bool grantOption)
 			: base(privileges, grantObject, grantName, users, grantOption) {
@@ -37,8 +38,6 @@ namespace Deveel.Data.Sql {
 		public RevokeStatement() {
 		}
 
-		#region Overrides of PrivilegesStatement
-
 		internal override void ExecutePrivilegeAction(PrivilegeActionInfo actionInfo) {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
@@ -52,7 +51,5 @@ namespace Deveel.Data.Sql {
 			manager.Revoke(actionInfo.Privilege, actionInfo.Object, actionInfo.ObjectName, user, actionInfo.GrantOption,
 			               User.UserName);
 		}
-
-		#endregion
 	}
 }

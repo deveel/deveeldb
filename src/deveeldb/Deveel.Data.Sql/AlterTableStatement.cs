@@ -21,6 +21,7 @@ namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Logic for the <c>ALTER TABLE</c> SQL statement.
 	/// </summary>
+	[Serializable]
 	public class AlterTableStatement : Statement {
 		/// <summary>
 		/// The create statement that we use to alter the current table.
@@ -28,7 +29,7 @@ namespace Deveel.Data.Sql {
 		/// <remarks>
 		/// This is only for compatibility reasons.
 		/// </remarks>
-		private StatementTree createStatement;
+		private StatementTree createStatementTree;
 
 		/// <summary>
 		/// The name of the table we are altering.
@@ -48,7 +49,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The prepared create table statement.
 		/// </summary>
-		private CreateTableStatement create_stmt;
+		private CreateTableStatement createStatement;
 
 		public AlterTableStatement(TableName tableName, CreateTableStatement createStatement) {
 			TableName = tableName;
@@ -66,7 +67,7 @@ namespace Deveel.Data.Sql {
 				Actions.Add(action);
 		}
 
-		internal AlterTableStatement() {
+		public AlterTableStatement() {
 		}
 
 		/// <summary>
@@ -125,19 +126,18 @@ namespace Deveel.Data.Sql {
 		/// <returns>
 		/// </returns>
 		public bool CheckColumnNamesMatch(DatabaseConnection db, String col1, String col2) {
-			if (db.IsInCaseInsensitiveMode) {
+			if (db.IsInCaseInsensitiveMode)
 				return String.Compare(col1, col2, true) == 0;
-			}
 			return col1.Equals(col2);
 		}
 
-		private static void CheckColumnConstraint(String col_name, String[] cols, TableName table, String constraint_name) {
-			for (int i = 0; i < cols.Length; ++i) {
-				if (col_name.Equals(cols[i])) {
+		private static void CheckColumnConstraint(string columnName, string[] columns, TableName table, string constraintName) {
+			foreach (string column in columns) {
+				if (columnName.Equals(column)) {
 					throw new DatabaseConstraintViolationException(
 							DatabaseConstraintViolationException.DropColumnViolation,
-							  "Constraint violation (" + constraint_name +
-							  ") dropping column " + col_name + " because of " +
+							  "Constraint violation (" + constraintName +
+							  ") dropping column " + columnName + " because of " +
 							  "referential constraint in " + table);
 				}
 			}
@@ -150,34 +150,26 @@ namespace Deveel.Data.Sql {
 
 		/// <inheritdoc/>
 		protected override void Prepare() {
-
 			// Get variables from the model
 			tableName = GetString("table_name");
 			actions = GetList("alter_actions", true);
 			AlterTableAction action = GetValue("alter_action") as AlterTableAction;
-			if (action != null) {
+			if (action != null)
 				actions.Add(action);
-			}
 
-			createStatement = (StatementTree)GetValue("create_statement");
+			createStatementTree = (StatementTree)GetValue("create_statement");
 
 			// ---
 
-			if (createStatement != null) {
-				create_stmt = new CreateTableStatement();
-				create_stmt.Context.Set(Context.Connection, createStatement, null);
-				tableName = create_stmt.TableName;
-			} else {
-				// If we don't have a create statement, then this is an SQL alter
-				// command.
+			if (createStatementTree != null) {
+				createStatement = new CreateTableStatement();
+				createStatement.Context.Set(Context.Connection, createStatementTree, null);
+				tableName = createStatement.tableNameString;
 			}
 
-			//    tname = TableName.Resolve(db.CurrentSchema, table_name);
 			tname = ResolveTableName(tableName);
-			if (tname.Name.IndexOf('.') != -1) {
+			if (tname.Name.IndexOf('.') != -1)
 				throw new DatabaseException("Table name can not contain '.' character.");
-			}
-
 		}
 
 		/// <inheritdoc/>
@@ -189,9 +181,9 @@ namespace Deveel.Data.Sql {
 				throw new UserAccessException("User not permitted to alter table: " + tableName);
 			}
 
-			if (createStatement != null) {
+			if (createStatementTree != null) {
 				// Create the data table definition and tell the database to update it.
-				DataTableInfo tableInfo = create_stmt.CreateTableInfo();
+				DataTableInfo tableInfo = createStatement.CreateTableInfo();
 				TableName tname1 = tableInfo.TableName;
 				// Is the table in the database already?
 				if (Connection.TableExists(tname1)) {
@@ -205,7 +197,7 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Setup the constraints
-				create_stmt.SetupAllConstraints();
+				createStatement.SetupAllConstraints();
 
 				// Return '0' if we created the table.
 				return FunctionTable.ResultTable(context, 0);
@@ -214,8 +206,8 @@ namespace Deveel.Data.Sql {
 
 				// Get the table definition for the table name,
 				DataTableInfo tableInfo = Connection.GetTable(tname).TableInfo;
-				String table_name = tableInfo.Name;
-				DataTableInfo new_table = tableInfo.NoColumnClone();
+				string table_name = tableInfo.Name;
+				DataTableInfo newTable = tableInfo.NoColumnClone();
 
 				// Returns a ColumnChecker implementation for this table.
 				ColumnChecker checker =
@@ -223,112 +215,106 @@ namespace Deveel.Data.Sql {
 
 				// Set to true if the table topology is alter, or false if only
 				// the constraints are changed.
-				bool table_altered = false;
+				bool tableAltered = false;
 
 				for (int n = 0; n < tableInfo.ColumnCount; ++n) {
 					DataTableColumnInfo column = tableInfo[n].Clone();
-					String col_name = column.Name;
+
+					string columnName = column.Name;
+
 					// Apply any actions to this column
-					bool mark_dropped = false;
-					for (int i = 0; i < actions.Count; ++i) {
-						AlterTableAction action = (AlterTableAction) actions[i];
-						if (action.Action == AlterTableActionType.SetDefault &&
-						    CheckColumnNamesMatch(Connection, (String) action.Elements[0], col_name)) {
+					bool markDropped = false;
+					foreach (AlterTableAction action in actions) {
+						if (action.ActionType == AlterTableActionType.SetDefault &&
+						    CheckColumnNamesMatch(Connection, (string) action.Elements[0], columnName)) {
 							Expression exp = (Expression) action.Elements[1];
 							checker.CheckExpression(exp);
 							column.SetDefaultExpression(exp);
-							table_altered = true;
-						} else if (action.Action == AlterTableActionType.DropDefault &&
-						           CheckColumnNamesMatch(Connection, (String) action.Elements[0], col_name)) {
+							tableAltered = true;
+						} else if (action.ActionType == AlterTableActionType.DropDefault &&
+						           CheckColumnNamesMatch(Connection, (string) action.Elements[0], columnName)) {
 							column.SetDefaultExpression(null);
-							table_altered = true;
-						} else if (action.Action == AlterTableActionType.DropColumn &&
-						           CheckColumnNamesMatch(Connection, (String) action.Elements[0], col_name)) {
+							tableAltered = true;
+						} else if (action.ActionType == AlterTableActionType.DropColumn &&
+						           CheckColumnNamesMatch(Connection, (String) action.Elements[0], columnName)) {
 							// Check there are no referential links to this column
 							DataConstraintInfo[] refs = Connection.QueryTableImportedForeignKeyReferences(tname);
-							for (int p = 0; p < refs.Length; ++p) {
-								CheckColumnConstraint(col_name, refs[p].ReferencedColumns, refs[p].ReferencedTableName, refs[p].Name);
+							foreach (DataConstraintInfo reference in refs) {
+								CheckColumnConstraint(columnName, reference.ReferencedColumns, reference.ReferencedTableName, reference.Name);
 							}
 							// Or from it
 							refs = Connection.QueryTableForeignKeyReferences(tname);
-							for (int p = 0; p < refs.Length; ++p) {
-								CheckColumnConstraint(col_name, refs[p].Columns, refs[p].TableName, refs[p].Name);
-							}
-							// Or that it's part of a primary key
-							DataConstraintInfo primary_key = Connection.QueryTablePrimaryKeyGroup(tname);
-							if (primary_key != null) {
-								CheckColumnConstraint(col_name, primary_key.Columns, tname, primary_key.Name);
-							}
-							// Or that it's part of a unique set
-							DataConstraintInfo[] uniques = Connection.QueryTableUniqueGroups(tname);
-							for (int p = 0; p < uniques.Length; ++p) {
-								CheckColumnConstraint(col_name, uniques[p].Columns, tname, uniques[p].Name);
+							foreach (DataConstraintInfo reference in refs) {
+								CheckColumnConstraint(columnName, reference.Columns, reference.TableName, reference.Name);
 							}
 
-							mark_dropped = true;
-							table_altered = true;
+							// Or that it's part of a primary key
+							DataConstraintInfo primaryKey = Connection.QueryTablePrimaryKeyGroup(tname);
+							if (primaryKey != null)
+								CheckColumnConstraint(columnName, primaryKey.Columns, tname, primaryKey.Name);
+
+							// Or that it's part of a unique set
+							DataConstraintInfo[] uniques = Connection.QueryTableUniqueGroups(tname);
+							foreach (DataConstraintInfo unique in uniques) {
+								CheckColumnConstraint(columnName, unique.Columns, tname, unique.Name);
+							}
+
+							markDropped = true;
+							tableAltered = true;
 						}
 					}
 					// If not dropped then add to the new table definition.
-					if (!mark_dropped) {
-						new_table.AddColumn(column);
+					if (!markDropped) {
+						newTable.AddColumn(column);
 					}
 				}
 
 				// Add any new columns,
-				for (int i = 0; i < actions.Count; ++i) {
-					AlterTableAction action = (AlterTableAction) actions[i];
-					if (action.Action == AlterTableActionType.AddColumn) {
+				foreach (AlterTableAction action in actions) {
+					if (action.ActionType == AlterTableActionType.AddColumn) {
 						SqlColumn cdef = (SqlColumn) action.Elements[0];
 						if (cdef.IsUnique || cdef.IsPrimaryKey) {
 							throw new DatabaseException("Can not use UNIQUE or PRIMARY KEY " +
 							                            "column constraint when altering a column.  Use " +
 							                            "ADD CONSTRAINT instead.");
 						}
+
 						// Convert to a DataTableColumnInfo
 						DataTableColumnInfo col = CreateTableStatement.ConvertToColumnInfo(cdef);
 
 						checker.CheckExpression(col.GetDefaultExpression(Connection.System));
-						string col_name = col.Name;
+						string columnName = col.Name;
+
 						// If column name starts with [table_name]. then strip it off
-						col.Name = checker.StripTableName(table_name, col_name);
-						new_table.AddColumn(col);
-						table_altered = true;
+						col.Name = checker.StripTableName(table_name, columnName);
+						newTable.AddColumn(col);
+						tableAltered = true;
 					}
 				}
 
 				// Any constraints to drop...
-				for (int i = 0; i < actions.Count; ++i) {
-					AlterTableAction action = (AlterTableAction) actions[i];
-					if (action.Action == AlterTableActionType.DropConstraint) {
-						String constraint_name = (String) action.Elements[0];
-						int drop_count = Connection.DropNamedConstraint(tname, constraint_name);
-						if (drop_count == 0) {
-							throw new DatabaseException(
-								"Named constraint to drop on table " + tname +
-								" was not found: " + constraint_name);
-						}
-					} else if (action.Action == AlterTableActionType.DropPrimaryKey) {
-						bool constraint_dropped = Connection.DropPrimaryKeyConstraintForTable(tname, null);
-						if (!constraint_dropped) {
+				foreach (AlterTableAction action in actions) {
+					if (action.ActionType == AlterTableActionType.DropConstraint) {
+						string constraintName = (string) action.Elements[0];
+						int dropCount = Connection.DropNamedConstraint(tname, constraintName);
+						if (dropCount == 0)
+							throw new DatabaseException("Named constraint to drop on table " + tname + " was not found: " + constraintName);
+					} else if (action.ActionType == AlterTableActionType.DropPrimaryKey) {
+						if (!Connection.DropPrimaryKeyConstraintForTable(tname, null))
 							throw new DatabaseException("No primary key to delete on table " + tname);
-						}
 					}
 				}
 
 				// Any constraints to add...
-				for (int i = 0; i < actions.Count; ++i) {
-					AlterTableAction action = (AlterTableAction) actions[i];
-					if (action.Action == AlterTableActionType.AddConstraint) {
+				foreach (AlterTableAction action in actions) {
+					if (action.ActionType == AlterTableActionType.AddConstraint) {
 						SqlConstraint constraint = (SqlConstraint) action.Elements[0];
-						bool foreign_constraint = (constraint.Type == ConstraintType.ForeignKey);
-						TableName ref_tname = null;
-						if (foreign_constraint) {
-							ref_tname = ResolveTableName(constraint.ReferenceTable);
-							if (Connection.IsInCaseInsensitiveMode) {
-								ref_tname = Connection.TryResolveCase(ref_tname);
-							}
-							constraint.ReferenceTable = ref_tname.ToString();
+						bool foreignConstraint = (constraint.Type == ConstraintType.ForeignKey);
+
+						TableName refTname = null;
+						if (foreignConstraint) {
+							refTname = ResolveTableName(constraint.ReferenceTable);
+							constraint.ReferenceTable = refTname.ToString();
 						}
 
 						checker.StripColumnList(table_name, constraint.ColumnList);
@@ -336,9 +322,9 @@ namespace Deveel.Data.Sql {
 						                        constraint.column_list2);
 						checker.CheckExpression(constraint.CheckExpression);
 						checker.CheckColumnList(constraint.ColumnList2);
-						if (foreign_constraint && constraint.column_list2 != null) {
+						if (foreignConstraint && constraint.column_list2 != null) {
 							ColumnChecker referenced_checker =
-								ColumnChecker.GetStandardColumnChecker(Connection, ref_tname);
+								ColumnChecker.GetStandardColumnChecker(Connection, refTname);
 							referenced_checker.CheckColumnList(constraint.column_list2);
 						}
 
@@ -348,11 +334,11 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Alter the existing table to the new format...
-				if (table_altered) {
-					if (new_table.ColumnCount == 0) {
+				if (tableAltered) {
+					if (newTable.ColumnCount == 0)
 						throw new DatabaseException("Can not ALTER table to have 0 columns.");
-					}
-					Connection.UpdateTable(new_table);
+
+					Connection.UpdateTable(newTable);
 				} else {
 					// If the table wasn't physically altered, check the constraints.
 					// Calling this method will also make the transaction check all

@@ -20,6 +20,7 @@ namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Statement that handles <c>SHOW</c> and <c>DESCRIBE</c> sql commands.
 	/// </summary>
+	[Serializable]
 	public class ShowStatement : Statement {
 
 		// Various show statics,

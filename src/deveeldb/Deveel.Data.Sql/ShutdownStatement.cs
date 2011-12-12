@@ -19,6 +19,7 @@ namespace Deveel.Data.Sql {
 	/// <summary>
 	/// The <c>SHUTDOWN</c> command statement.
 	/// </summary>
+	[Serializable]
 	public class ShutdownStatement : Statement {
 
 		// ---------- Implemented from Statement ----------
@@ -28,20 +29,15 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override Table Evaluate() {
-
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
 			// Check the user has privs to shutdown...
-			if (!Connection.Database.CanUserShutDown(context, User)) {
-				throw new UserAccessException(
-						 "User not permitted to shut down the database.");
-			}
+			if (!Connection.Database.CanUserShutDown(QueryContext, User))
+				throw new UserAccessException("User not permitted to shut down the database.");
 
 			// Shut down the database system.
 			Connection.Database.StartShutDownThread();
 
 			// Return 0 to indicate we going to be closing shop!
-			return FunctionTable.ResultTable(context, 0);
+			return FunctionTable.ResultTable(QueryContext, 0);
 		}
 	}
 }

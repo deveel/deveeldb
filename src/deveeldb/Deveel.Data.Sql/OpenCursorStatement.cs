@@ -16,6 +16,7 @@
 using System;
 
 namespace Deveel.Data.Sql {
+	[Serializable]
 	public sealed class OpenCursorStatement : Statement {
 		public OpenCursorStatement(TableName cursorName) {
 			CursorName = cursorName;
@@ -23,9 +24,6 @@ namespace Deveel.Data.Sql {
 
 		public OpenCursorStatement() {
 		}
-
-		private string name;
-		private TableName resolved_name;
 
 		public TableName CursorName {
 			get { return TableName.Resolve(GetString("name")); }
@@ -38,24 +36,16 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override void Prepare() {
-			DatabaseConnection db = Connection;
-
-			name = GetString("name");
-
-			string schema_name = db.CurrentSchema;
-			resolved_name = TableName.Resolve(schema_name, name);
-
-			string name_strip = resolved_name.Name;
-
-			if (name_strip.IndexOf('.') != -1)
-				throw new DatabaseException("Cursor name can not contain '.' character.");
 		}
 
 		protected override Table Evaluate() {
+			string cursorNameString = GetString("name");
+			TableName cursorName = ResolveTableName(cursorNameString);
+
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-			Cursor cursor = Connection.GetCursor(resolved_name);
+			Cursor cursor = Connection.GetCursor(cursorName);
 			if (cursor == null)
-				throw new InvalidOperationException("The cursor '" + name + "' was not defined within this transaction.");
+				throw new InvalidOperationException("The cursor '" + cursorNameString + "' was not defined within this transaction.");
 
 			cursor.Open(context);
 			return FunctionTable.ResultTable(context, 1);

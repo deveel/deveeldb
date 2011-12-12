@@ -21,6 +21,7 @@ namespace Deveel.Data.Sql {
 	///<summary>
 	/// A parsed state container for the <c>CREATE</c> statement.
 	///</summary>
+	[Serializable]
 	public class CreateTableStatement : Statement {
 		/// <summary>
 		/// Set to true if this create statement is for a temporary table.
@@ -35,7 +36,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The name of the table to create.
 		/// </summary>
-		internal string TableName;
+		internal string tableNameString;
 
 		/// <summary>
 		/// List of column declarations (DataTableColumnInfo)
@@ -60,7 +61,7 @@ namespace Deveel.Data.Sql {
 		/// A <see cref="SqlConstraint"/> object describes any constraints for the 
 		/// new table we are creating.
 		/// </remarks>
-		internal void AddConstraintDef(SqlConstraint constraint) {
+		internal void AddConstraint(SqlConstraint constraint) {
 			constraints.Add(constraint);
 		}
 
@@ -166,7 +167,7 @@ namespace Deveel.Data.Sql {
 			// Get the state from the model
 			temporary = GetBoolean("temporary");
 			onlyIfNotExists = GetBoolean("only_if_not_exists");
-			TableName = GetString("table_name");
+			tableNameString = GetString("table_name");
 			IList columnList = GetList("column_list");
 			constraints = GetList("constraint_list");
 
@@ -188,7 +189,7 @@ namespace Deveel.Data.Sql {
 			// ----
 
 			string schemaName = Connection.CurrentSchema;
-			tname = Data.TableName.Resolve(schemaName, TableName);
+			tname = Data.TableName.Resolve(schemaName, tableNameString);
 
 			string nameStrip = tname.Name;
 
@@ -233,9 +234,9 @@ namespace Deveel.Data.Sql {
 
 			// Add the unique and primary key constraints.
 			if (uniqueColumnList.Count > 0)
-				AddConstraintDef(SqlConstraint.Unique(uniqueColumnList.ToArray()));
+				AddConstraint(SqlConstraint.Unique(uniqueColumnList.ToArray()));
 			if (primaryKeyColumnList.Count > 0)
-				AddConstraintDef(SqlConstraint.PrimaryKey(primaryKeyColumnList.ToArray()));
+				AddConstraint(SqlConstraint.PrimaryKey(primaryKeyColumnList.ToArray()));
 
 			// Strip the column names and set the expression in all the constraints.
 			foreach (SqlConstraint constraint in constraints) {
@@ -310,7 +311,7 @@ namespace Deveel.Data.Sql {
 
 			// Does the user have privs to create this tables?
 			if (!Connection.Database.CanUserCreateTableObject(context, User, tname))
-				throw new UserAccessException("User not permitted to create table: " + TableName);
+				throw new UserAccessException("User not permitted to create table: " + tableNameString);
 
 			// Does the table already exist?
 			if (Connection.TableExists(tname)) {

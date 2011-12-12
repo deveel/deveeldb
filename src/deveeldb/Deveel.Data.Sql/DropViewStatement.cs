@@ -16,44 +16,27 @@
 using System;
 
 namespace Deveel.Data.Sql {
+	[Serializable]
 	public sealed class DropViewStatement : Statement {
-		/// <summary>
-		/// The view name to create/drop.
-		/// </summary>
-		private String view_name;
-
-		/// <summary>
-		/// The view name as a TableName object.
-		/// </summary>
-		private TableName vname;
-
-
-		#region Overrides of Statement
-
 		protected override void Prepare() {
-			view_name = GetString("view_name");
-
-			String schema_name = Connection.CurrentSchema;
-			vname = TableName.Resolve(schema_name, view_name);
-			vname = Connection.TryResolveCase(vname);
 		}
 
 		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
+			string viewNameString = GetString("view_name");
+
+			TableName viewName = ResolveTableName(viewNameString);
 
 			// Does the user have privs to drop this tables?
-			if (!Connection.Database.CanUserDropTableObject(context, User, vname))
-				throw new UserAccessException("User not permitted to drop view: " + view_name);
+			if (!Connection.Database.CanUserDropTableObject(QueryContext, User, viewName))
+				throw new UserAccessException("User not permitted to drop view: " + viewNameString);
 
 			// Drop the view object
-			Connection.DropView(vname);
+			Connection.DropView(viewName);
 
 			// Drop the grants for this object
-			Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, vname.ToString());
+			Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, viewName.ToString());
 
-			return FunctionTable.ResultTable(context, 0);
+			return FunctionTable.ResultTable(QueryContext, 0);
 		}
-
-		#endregion
 	}
 }

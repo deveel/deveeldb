@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql {
 		/// The list of all IFromTableSource objects of resources referenced 
 		/// in this query.
 		/// </summary>
-		private ArrayList table_list = new ArrayList();
+		private List<IFromTableSource> table_list = new List<IFromTableSource>();
 
 		/// <summary>
 		/// Add an <see cref="IFromTableSource"/> used within the query.
@@ -102,10 +102,9 @@ namespace Deveel.Data.Sql {
 		internal void ResolveExpression(Expression exp) {
 			// NOTE: This gets variables in all function parameters.
 			IList<VariableName> vars = exp.AllVariables;
-			for (int i = 0; i < vars.Count; ++i) {
-				VariableName v = (VariableName)vars[i];
-				VariableName to_set = ResolveVariableName(v);
-				v.Set(to_set);
+			foreach (VariableName v in vars) {
+				VariableName toSet = ResolveVariableName(v);
+				v.Set(toSet);
 			}
 		}
 
@@ -115,7 +114,7 @@ namespace Deveel.Data.Sql {
 		///</summary>
 		///<param name="v"></param>
 		///<returns></returns>
-		public VariableName ResolveVariableName(VariableName v) {
+		private VariableName ResolveVariableName(VariableName v) {
 			return ResolveColumn(v);
 		}
 
@@ -123,13 +122,13 @@ namespace Deveel.Data.Sql {
 		/// Resolves the given alias name against the columns defined
 		///  by the statement (if it has aliasing capabilities).
 		/// </summary>
-		/// <param name="alias_name"></param>
+		/// <param name="aliasName"></param>
 		/// <returns>
 		/// Returns a list of all fully qualified <see cref="VariableName"/> 
 		/// that match the alias name, or an empty array if no matches 
 		/// found.
 		/// </returns>
-		internal virtual ArrayList ResolveAgainstAliases(VariableName alias_name) {
+		private ArrayList ResolveAgainstAliases(VariableName aliasName) {
 			return new ArrayList(0);
 		}
 
@@ -139,15 +138,15 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="v">The column name to resolve.</param>
 		/// <returns></returns>
-		internal VariableName ResolveColumn(VariableName v) {
+		private VariableName ResolveColumn(VariableName v) {
 			// Try and resolve against alias names first,
 			ArrayList list = new ArrayList();
 			list.AddRange(ResolveAgainstAliases(v));
 
 			TableName tname = v.TableName;
-			String sch_name = null;
-			String tab_name = null;
-			String col_name = v.Name;
+			string sch_name = null;
+			string tab_name = null;
+			string col_name = v.Name;
 			if (tname != null) {
 				sch_name = tname.Schema;
 				tab_name = tname.Name;
@@ -155,8 +154,7 @@ namespace Deveel.Data.Sql {
 
 			int matches_found = 0;
 			// Find matches in our list of tables sources,
-			for (int i = 0; i < table_list.Count; ++i) {
-				IFromTableSource table = (IFromTableSource)table_list[i];
+			foreach (IFromTableSource table in table_list) {
 				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
 				if (rcc == 1) {
 					VariableName matched = table.ResolveColumn(null, sch_name, tab_name, col_name);
@@ -166,34 +164,33 @@ namespace Deveel.Data.Sql {
 				}
 			}
 
-			int total_matches = list.Count;
-			if (total_matches == 0) {
+			int totalMatches = list.Count;
+			if (totalMatches == 0)
 				throw new StatementException("Can't find column: " + v);
-			} else if (total_matches == 1) {
-				return (VariableName)list[0];
-			} else if (total_matches > 1) {
+
+			if (totalMatches == 1)
+				return (VariableName) list[0];
+
+			if (totalMatches > 1)
 				// if there more than one match, check if they all match the identical
 				// resource,
 				throw new StatementException("Ambiguous column name (" + v + ")");
-			} else {
-				// Should never reach here but we include this exception to keep the
-				// compiler happy.
-				throw new ApplicationException("Negative total matches?");
-			}
 
+			// Should never reach here but we include this exception to keep the
+			// compiler happy.
+			throw new ApplicationException("Negative total matches?");
 		}
 
 		// ---------- Implemented from Statement ----------
 
 		protected override void Prepare() {
-
 			// Prepare this object from the StatementTree
 			table_name = GetString("table_name");
 			col_list = GetList("col_list");
 			values_list = GetList("data_list");
 			select = (StatementTree)GetValue("select");
 			column_sets = GetList("assignments");
-			String type = GetString("type");
+			string type = GetString("type");
 			from_values = type.Equals("from_values");
 			from_select = type.Equals("from_select");
 			from_set = type.Equals("from_set");
@@ -214,9 +211,8 @@ namespace Deveel.Data.Sql {
 			tname = ResolveTableName(table_name);
 
 			// Does the table exist?
-			if (!Connection.TableExists(tname)) {
+			if (!Connection.TableExists(tname))
 				throw new DatabaseException("Table '" + tname + "' does not exist.");
-			}
 
 			// Add the from table direct source for this table
 			ITableQueryInfo tableQueryInfo = Connection.GetTableQueryInfo(tname, null);
@@ -239,13 +235,12 @@ namespace Deveel.Data.Sql {
 				col_index_list = new int[col_list.Count];
 				col_var_list = new VariableName[col_list.Count];
 				for (int i = 0; i < col_list.Count; ++i) {
-					//        Variable col = Variable.resolve(tname, (String) col_list.get(i));
-					VariableName in_var = VariableName.Resolve((String)col_list[i]);
-					VariableName col = ResolveColumn(in_var);
+					VariableName inVar = VariableName.Resolve((String)col_list[i]);
+					VariableName col = ResolveColumn(inVar);
 					int index = insert_table.FastFindFieldName(col);
-					if (index == -1) {
+					if (index == -1)
 						throw new DatabaseException("Can't find column: " + col);
-					}
+
 					col_index_list[i] = index;
 					col_var_list[i] = col;
 				}
@@ -253,7 +248,6 @@ namespace Deveel.Data.Sql {
 
 			// Make the 'from_values' clause into a 'from_set'
 			if (from_values) {
-
 				// If values to insert is different from columns list,
 				if (col_list.Count != ((IList)values_list[0]).Count) {
 					throw new DatabaseException("Number of columns to insert is " +

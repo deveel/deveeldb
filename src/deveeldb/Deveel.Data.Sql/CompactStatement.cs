@@ -19,6 +19,7 @@ namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Statement that handles <c>COMPACT</c> SQL command.
 	/// </summary>
+	[Serializable]
 	public class CompactStatement : Statement {
 		public CompactStatement(TableName tableName) {
 			TableName = tableName;
@@ -30,7 +31,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The name the table that we are to update.
 		/// </summary>
-		private String table_name;
+		private string tableName;
 
 		public TableName TableName {
 			get { return TableName.Resolve(GetString("table_name")); }
@@ -45,27 +46,21 @@ namespace Deveel.Data.Sql {
 
 		/// <inheritdoc/>
 		protected override void Prepare() {
-			table_name = GetString("table_name");
+			tableName = GetString("table_name");
 		}
 
 		/// <inheritdoc/>
 		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
-			//    TableName tname =
-			//                TableName.Resolve(Connection.CurrentSchema, table_name);
-			TableName tname = ResolveTableName(table_name);
+			TableName tname = ResolveTableName(tableName);
 			// Does the table exist?
-			if (!Connection.TableExists(tname)) {
+			if (!Connection.TableExists(tname))
 				throw new DatabaseException("Table '" + tname + "' does not exist.");
-			}
 
 			// Does the user have privs to compact this tables?
-			if (!Connection.Database.CanUserCompactTableObject(context,
-																  User, tname)) {
-				throw new UserAccessException(
-				   "User not permitted to compact table: " + table_name);
-			}
+			if (!Connection.Database.CanUserCompactTableObject(context, User, tname))
+				throw new UserAccessException("User not permitted to compact table: " + tableName);
 
 			// Compact the table,
 			Connection.CompactTable(tname);

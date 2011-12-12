@@ -17,16 +17,11 @@ using System;
 
 namespace Deveel.Data.Sql {
 	public sealed class IfStatement : Statement {
-		#region Overrides of Statement
-
 		protected override void Prepare() {
-			throw new NotImplementedException();
 		}
 
 		protected override Table Evaluate() {
 			throw new NotImplementedException();
 		}
-
-		#endregion
 	}
 }

@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Deveel.Data.Functions;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data {
@@ -225,6 +226,13 @@ namespace Deveel.Data {
 			if (nextComposite != null)
 				v.nextComposite = (TableSelectExpression)nextComposite.Clone();
 			return v;
+		}
+
+		public static TableSelectExpression IdentitySelect(TableName tableName) {
+			TableSelectExpression selectExpression = new TableSelectExpression();
+			FunctionDef identityFunction = new FunctionDef("identity", new Expression[]{new Expression(tableName.ToString())});
+			selectExpression.Columns.Add(new SelectColumn(new Expression(new Expression(identityFunction))));
+			return selectExpression;
 		}
 	}
 }

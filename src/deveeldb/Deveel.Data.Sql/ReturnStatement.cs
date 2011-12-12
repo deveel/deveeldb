@@ -16,6 +16,7 @@
 using System;
 
 namespace Deveel.Data.Sql {
+	[Serializable]
 	public sealed class ReturnStatement : Statement {
 		public ReturnStatement(Expression expression) {
 			SetValue("return", expression);
@@ -24,8 +25,6 @@ namespace Deveel.Data.Sql {
 		public Expression ReturnExpression {
 			get { return GetExpression("return"); }
 		}
-
-		#region Overrides of Statement
 
 		protected override void Prepare() {
 		}
@@ -37,7 +36,5 @@ namespace Deveel.Data.Sql {
 			//TODO: set it to the parent execution block...
 			return FunctionTable.ResultTable(context, 0);
 		}
-
-		#endregion
 	}
 }

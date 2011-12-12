@@ -26,6 +26,7 @@ namespace Deveel.Data.Sql {
 	/// For example, "CALL SYSTEM_BACKUP('/my_backups/1')" makes a copy 
 	/// of the database in the given directory on the disk.
 	/// </remarks>
+	[Serializable]
 	public class CallStatement : Statement {
 		/// <summary>
 		/// Constructs the statement with the name of the 
@@ -85,73 +86,62 @@ namespace Deveel.Data.Sql {
 		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
-			String proc_name = GetString("proc_name");
+			string procNameString = GetString("proc_name");
 			Expression[] args = (Expression[])GetValue("args");
 
 			// Get the procedure manager
 			ProcedureManager manager = Connection.ProcedureManager;
-			ProcedureName name;
 
-			TableName p_name = null;
+			TableName procName = null;
 
 			// If no schema def given in the procedure name, first check for the
 			// function in the SYSTEM schema.
-			if (proc_name.IndexOf(".") == -1) {
+			if (procNameString.IndexOf(".") == -1) {
 				// Resolve the procedure name into a TableName object.    
-				String schema_name = Connection.CurrentSchema;
-				TableName tp_name = TableName.Resolve(Database.SystemSchema, proc_name);
-				tp_name = Connection.TryResolveCase(tp_name);
+				TableName tmpProcName = ResolveTableName(procNameString);
 
 				// If exists then use this
-				if (manager.ProcedureExists(tp_name)) {
-					p_name = tp_name;
+				if (manager.ProcedureExists(tmpProcName)) {
+					procName = tmpProcName;
 				}
 			}
 
-			if (p_name == null) {
+			if (procName == null) {
 				// Resolve the procedure name into a TableName object.    
-				String schema_name = Connection.CurrentSchema;
-				TableName tp_name = TableName.Resolve(schema_name, proc_name);
-				tp_name = Connection.TryResolveCase(tp_name);
+				TableName tmpProcName = ResolveTableName(procNameString);
 
 				// Does the schema exist?
-				bool ignore_case = Connection.IsInCaseInsensitiveMode;
-				SchemaDef schema =
-							Connection.ResolveSchemaCase(tp_name.Schema, ignore_case);
-				if (schema == null) {
-					throw new DatabaseException("Schema '" + tp_name.Schema + "' doesn't exist.");
-				} else {
-					tp_name = new TableName(schema.Name, tp_name.Name);
-				}
+				SchemaDef schema = ResolveSchemaName(tmpProcName.Schema);
+				if (schema == null)
+					throw new DatabaseException("Schema '" + tmpProcName.Schema + "' doesn't exist.");
+
+				tmpProcName = new TableName(schema.Name, tmpProcName.Name);
 
 				// If this doesn't exist then generate the error
-				if (!manager.ProcedureExists(tp_name)) {
-					throw new DatabaseException("Stored procedure '" + proc_name + "' was not found.");
-				}
+				if (!manager.ProcedureExists(tmpProcName))
+					throw new DatabaseException("Stored procedure '" + procNameString + "' was not found.");
 
-				p_name = tp_name;
+				procName = tmpProcName;
 			}
 
 			// Does the procedure exist in the system schema?
-			name = new ProcedureName(p_name);
+			ProcedureName name = new ProcedureName(procName);
 
 			// Check the user has privs to use this stored procedure
-			if (!Connection.Database.CanUserExecuteStoredProcedure(context, User, name.ToString())) {
-				throw new UserAccessException("User not permitted to call: " + proc_name);
-			}
+			if (!Connection.Database.CanUserExecuteStoredProcedure(context, User, name.ToString()))
+				throw new UserAccessException("User not permitted to call: " + procNameString);
 
 			// Evaluate the arguments
-			TObject[] vals = new TObject[args.Length];
+			TObject[] values = new TObject[args.Length];
 			for (int i = 0; i < args.Length; ++i) {
-				if (args[i].IsConstant) {
-					vals[i] = args[i].Evaluate(null, null, context);
-				} else {
+				if (!args[i].IsConstant)
 					throw new StatementException("CALL argument is not a constant: " + args[i].Text);
-				}
+
+				values[i] = args[i].Evaluate(null, null, context);
 			}
 
 			// Invoke the procedure
-			TObject result = manager.InvokeProcedure(name, vals);
+			TObject result = manager.InvokeProcedure(name, values);
 
 			// Return the result of the procedure,
 			return FunctionTable.ResultTable(context, result);

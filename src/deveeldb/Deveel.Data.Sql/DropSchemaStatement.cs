@@ -16,6 +16,7 @@
 using System;
 
 namespace Deveel.Data.Sql {
+	[Serializable]
 	public sealed class DropSchemaStatement : Statement {
 		public DropSchemaStatement(string schemaName) {
 			SchemaName = schemaName;
@@ -23,11 +24,6 @@ namespace Deveel.Data.Sql {
 
 		public DropSchemaStatement() {	
 		}
-
-		/// <summary>
-		/// The name of the schema.
-		/// </summary>
-		private String schema_name;
 
 		public string SchemaName {
 			get { return GetString("schema_name"); }
@@ -39,40 +35,37 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override void Prepare() {
-			schema_name = GetString("schema_name");
 		}
 
 		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
+			string schemaName = GetString("schema_name");
 
-			if (!Connection.Database.CanUserCreateAndDropSchema(context, User, schema_name))
+			if (!Connection.Database.CanUserCreateAndDropSchema(QueryContext, User, schemaName))
 				throw new UserAccessException("User not permitted to create or drop schema.");
 
-			bool ignore_case = Connection.IsInCaseInsensitiveMode;
-			SchemaDef schema =
-						Connection.ResolveSchemaCase(schema_name, ignore_case);
+			SchemaDef schema = ResolveSchemaName(schemaName);
 			// Only allow user to drop USER typed schemas
-			if (schema == null) {
-				throw new DatabaseException("Schema '" + schema_name + "' does not exist.");
-			} else if (schema.Type.Equals("USER")) {
-				// Check if the schema is empty.
-				TableName[] all_tables = Connection.Tables;
-				String resolved_schema_name = schema.Name;
-				for (int i = 0; i < all_tables.Length; ++i) {
-					if (all_tables[i].Schema.Equals(resolved_schema_name)) {
-						throw new DatabaseException("Schema '" + schema_name + "' is not empty.");
-					}
-				}
-				// Drop the schema
-				Connection.DropSchema(schema.Name);
-				// Revoke all the grants for the schema
-				Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Schema, schema.Name);
+			if (schema == null)
+				throw new DatabaseException("Schema '" + schemaName + "' does not exist.");
 
-			} else {
-				throw new DatabaseException("Can not drop schema '" + schema_name + "'");
+			if (!schema.Type.Equals("USER"))
+				throw new DatabaseException("Can not drop schema '" + schemaName + "'");
+
+			// Check if the schema is empty.
+			TableName[] allTables = Connection.Tables;
+			string resolvedSchemaName = schema.Name;
+			foreach (TableName tableName in allTables) {
+				if (tableName.Schema.Equals(resolvedSchemaName))
+					throw new DatabaseException("Schema '" + schemaName + "' is not empty.");
 			}
 
-			return FunctionTable.ResultTable(context, 0);
+			// Drop the schema
+			Connection.DropSchema(schema.Name);
+
+			// Revoke all the grants for the schema
+			Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Schema, schema.Name);
+
+			return FunctionTable.ResultTable(QueryContext, 0);
 		}
 	}
 }

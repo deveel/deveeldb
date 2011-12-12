@@ -22,37 +22,31 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The name of the function.
 		/// </summary>
-		private TableName fun_name;
+		private TableName functionName;
 
 		protected override void Prepare() {
-			String function_name = GetString("function_name");
+			string functionNameString = GetString("function_name");
 
 			// Resolve the function name into a TableName object.    
-			String schema_name = Connection.CurrentSchema;
-			fun_name = TableName.Resolve(schema_name, function_name);
-			fun_name = Connection.TryResolveCase(fun_name);
+			functionName = ResolveTableName(functionNameString);
 		}
 
 		protected override Table Evaluate() {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Does the schema exist?
-			bool ignore_case = Connection.IsInCaseInsensitiveMode;
-			SchemaDef schema =
-					Connection.ResolveSchemaCase(fun_name.Schema, ignore_case);
-			if (schema == null) {
-				throw new DatabaseException("Schema '" + fun_name.Schema + "' doesn't exist.");
-			} else {
-				fun_name = new TableName(schema.Name, fun_name.Name);
-			}
+			SchemaDef schema = ResolveSchemaName(functionName.Schema);
+			if (schema == null)
+				throw new DatabaseException("Schema '" + functionName.Schema + "' doesn't exist.");
+
+			functionName = new TableName(schema.Name, functionName.Name);
 
 			// Does the user have privs to create this function?
-			if (!Connection.Database.CanUserDropProcedureObject(context, User, fun_name)) {
-				throw new UserAccessException("User not permitted to drop function: " + fun_name);
-			}
+			if (!Connection.Database.CanUserDropProcedureObject(context, User, functionName))
+				throw new UserAccessException("User not permitted to drop function: " + functionName);
 
 			// Drop the function
-			ProcedureName proc_name = new ProcedureName(fun_name);
+			ProcedureName proc_name = new ProcedureName(functionName);
 			ProcedureManager manager = Connection.ProcedureManager;
 			manager.DeleteProcedure(proc_name);
 

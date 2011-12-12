@@ -31,26 +31,26 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The action to perform.
 		/// </summary>
-		private readonly AlterTableActionType action;
+		private readonly AlterTableActionType actionType;
 
 		///<summary>
 		///</summary>
-		public AlterTableAction(AlterTableActionType action) {
-			this.action = action;
+		public AlterTableAction(AlterTableActionType actionType) {
+			this.actionType = actionType;
 			elements = new List<object>();
 		}
 
 		/// <summary>
 		/// Gets or sets the action to perform.
 		/// </summary>
-		public AlterTableActionType Action {
-			get { return action; }
+		public AlterTableActionType ActionType {
+			get { return actionType; }
 		}
 
 		/// <summary>
 		/// Returns the list of parameters of this action.
 		/// </summary>
-		public IList<object> Elements {
+		internal IList<object> Elements {
 			get { return elements; }
 		}
 

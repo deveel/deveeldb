@@ -22,6 +22,7 @@ namespace Deveel.Data.Sql {
 	/// <summary>
 	/// A parsed state container for the <c>CREATE TRIGGER</c> statement.
 	/// </summary>
+	[Serializable]
 	public class CreateTriggerStatement : Statement {
 
 		// ---------- Implemented from Statement ----------
@@ -32,18 +33,14 @@ namespace Deveel.Data.Sql {
 
 		/// <inheritdoc/>
 		protected override Table Evaluate() {
-
-			String trigger_name = GetString("trigger_name");
-			String type = GetString("type");
-			String table_name = GetString("table_name");
+			string triggerNameString = GetString("trigger_name");
+			string typeString = GetString("type");
+			string tableNameString = GetString("table_name");
 			IList types = GetList("trigger_types");
 
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
+			TableName tname = ResolveTableName(tableNameString);
 
-			TableName tname = TableName.Resolve(Connection.CurrentSchema,
-												table_name);
-
-			if (type.Equals("callback_trigger")) {
+			if (typeString.Equals("callback_trigger")) {
 				// Callback trigger - notifies the client when an event on a table
 				// occurs.
 
@@ -61,75 +58,71 @@ namespace Deveel.Data.Sql {
 					}
 				}
 
-				Connection.CreateCallbackTrigger(trigger_name, tname, eventType);
+				Connection.CreateCallbackTrigger(triggerNameString, tname, eventType);
 
-			} else if (type.Equals("procedure_trigger")) {
+			} else if (typeString.Equals("procedure_trigger")) {
 
 				// Get the procedure manager
-				ProcedureManager proc_manager = Connection.ProcedureManager;
+				ProcedureManager procManager = Connection.ProcedureManager;
 
-				String before_after = GetString("before_after");
-				String procedure_name = GetString("procedure_name");
-				Expression[] procedure_args = (Expression[])GetValue("procedure_args");
+				string beforeAfter = GetString("before_after");
+				string procNameString = GetString("procedure_name");
+				Expression[] procedureArgs = (Expression[])GetValue("procedure_args");
 
 				// Convert the trigger into a table name,
-				String schema_name = Connection.CurrentSchema;
-				TableName t_name = TableName.Resolve(schema_name, trigger_name);
-				t_name = Connection.TryResolveCase(t_name);
+				TableName triggerName = ResolveTableName(triggerNameString);
 
 				// Resolve the procedure name into a TableName object.    
-				TableName t_p_name = TableName.Resolve(schema_name, procedure_name);
-				t_p_name = Connection.TryResolveCase(t_p_name);
+				TableName procTableName = ResolveTableName(procNameString);
 
 				// Does the procedure exist in the system schema?
-				ProcedureName p_name = new ProcedureName(t_p_name);
+				ProcedureName procName = new ProcedureName(procTableName);
 
 				// Check the trigger name doesn't clash with any existing database object.
-				if (Connection.TableExists(t_name)) {
-					throw new DatabaseException("A database object with name '" + t_name +
-												"' already exists.");
-				}
+				if (Connection.TableExists(triggerName))
+					throw new DatabaseException("A database object with name '" + triggerName +
+					                            "' already exists.");
 
 				// Check the procedure exists.
-				if (!proc_manager.ProcedureExists(p_name))
-					throw new DatabaseException("Procedure '" + p_name + "' could not be found.");
+				if (!procManager.ProcedureExists(procName))
+					throw new DatabaseException("Procedure '" + procName + "' could not be found.");
 
 				// Resolve the listening type
-				TriggerEventType listen_type = new TriggerEventType();
-				if (before_after.Equals("before")) {
-					listen_type |= TriggerEventType.Before;
-				} else if (before_after.Equals("after")) {
-					listen_type |= TriggerEventType.After;
+				TriggerEventType listenType = new TriggerEventType();
+				if (beforeAfter.Equals("before")) {
+					listenType |= TriggerEventType.Before;
+				} else if (beforeAfter.Equals("after")) {
+					listenType |= TriggerEventType.After;
 				} else {
 					throw new ApplicationException("Unknown before/after type.");
 				}
 
 				for (int i = 0; i < types.Count; ++i) {
-					String trig_type = (String)types[i];
-					if (trig_type.Equals("insert")) {
-						listen_type |= TriggerEventType.Insert;
-					} else if (trig_type.Equals("delete")) {
-						listen_type |= TriggerEventType.Delete;
-					} else if (trig_type.Equals("update")) {
-						listen_type |= TriggerEventType.Update;
+					string trigeventType = (String)types[i];
+					if (trigeventType.Equals("insert", StringComparison.InvariantCultureIgnoreCase)) {
+						listenType |= TriggerEventType.Insert;
+					} else if (trigeventType.Equals("delete", StringComparison.InvariantCultureIgnoreCase)) {
+						listenType |= TriggerEventType.Delete;
+					} else if (trigeventType.Equals("update", StringComparison.InvariantCultureIgnoreCase)) {
+						listenType |= TriggerEventType.Update;
 					}
 				}
 
 				// Resolve the procedure arguments,
-				TObject[] vals = new TObject[procedure_args.Length];
-				for (int i = 0; i < procedure_args.Length; ++i) {
-					vals[i] = procedure_args[i].Evaluate(null, null, context);
+				TObject[] vals = new TObject[procedureArgs.Length];
+				for (int i = 0; i < procedureArgs.Length; ++i) {
+					vals[i] = procedureArgs[i].Evaluate(null, null, QueryContext);
 				}
 
 				// Create the trigger,
 				ConnectionTriggerManager manager = Connection.TriggerManager;
-				manager.CreateTableTrigger(t_name.Schema, t_name.Name, listen_type, tname, p_name.ToString(), vals);
+				manager.CreateTableTrigger(triggerName.Schema, triggerName.Name, listenType, tname, procName.ToString(), vals);
 
 				// The initial grants for a trigger is to give the user who created it
 				// full access.
 				Connection.GrantManager.Grant(
 					 Privileges.ProcedureAll, GrantObject.Table,
-					 t_name.ToString(), User.UserName, true,
+					 triggerName.ToString(), User.UserName, true,
 					 Database.InternalSecureUsername);
 
 			} else {
@@ -137,7 +130,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Return success
-			return FunctionTable.ResultTable(context, 0);
+			return FunctionTable.ResultTable(QueryContext, 0);
 		}
 	}
 }

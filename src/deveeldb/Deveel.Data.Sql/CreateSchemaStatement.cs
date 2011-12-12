@@ -16,6 +16,7 @@
 using System;
 
 namespace Deveel.Data.Sql {
+	[Serializable]
 	public sealed class CreateSchemaStatement : Statement {
 		public CreateSchemaStatement(string schemaName) {
 			SchemaName = schemaName;
@@ -27,7 +28,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The name of the schema.
 		/// </summary>
-		private string schema_name;
+		private string schemaName;
 
 		public string SchemaName {
 			get { return GetString("schema_name"); }
@@ -39,29 +40,25 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override void Prepare() {
-			schema_name = GetString("schema_name");
+			schemaName = GetString("schema_name");
 		}
 
 		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
-			if (!Connection.Database.CanUserCreateAndDropSchema(context, User, schema_name))
+			if (!Connection.Database.CanUserCreateAndDropSchema(QueryContext, User, schemaName))
 				throw new UserAccessException("User not permitted to create or drop schema.");
 
-			bool ignore_case = Connection.IsInCaseInsensitiveMode;
-			SchemaDef schema = Connection.ResolveSchemaCase(schema_name, ignore_case);
-			if (schema == null) {
-				// Create the schema
-				Connection.CreateSchema(schema_name, "USER");
-				// Set the default grants for the schema
-				Connection.GrantManager.Grant(Privileges.SchemaAll,
-							GrantObject.Schema, schema_name, User.UserName,
-							true, Database.InternalSecureUsername);
-			} else {
-				throw new DatabaseException("Schema '" + schema_name + "' already exists.");
-			}
+			SchemaDef schema = ResolveSchemaName(schemaName);
+			if (schema != null)
+				throw new DatabaseException("Schema '" + schemaName + "' already exists.");
 
-			return FunctionTable.ResultTable(context, 0);
+			// Create the schema
+			Connection.CreateSchema(schemaName, "USER");
+			// Set the default grants for the schema
+			Connection.GrantManager.Grant(Privileges.SchemaAll,
+			                              GrantObject.Schema, schemaName, User.UserName,
+			                              true, Database.InternalSecureUsername);
+
+			return FunctionTable.ResultTable(QueryContext, 0);
 		}
 	}
 }

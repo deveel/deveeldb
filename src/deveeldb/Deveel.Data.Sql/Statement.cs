@@ -15,7 +15,10 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 
+using Deveel.Data.QueryPlanning;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Sql {
@@ -23,12 +26,24 @@ namespace Deveel.Data.Sql {
 	/// Provides a set of useful utility functions to use by all the
 	/// interpretted statements.
 	/// </summary>
-	public abstract class Statement {
+	[Serializable]
+	public abstract class Statement : ISerializable {
 		protected Statement() {
 			context = new StatementContext(this);
 		}
 
+		protected Statement(SerializationInfo info, StreamingContext context) {
+			this.context = new StatementContext(this);
+			prepared = info.GetBoolean("Prepared");
+
+			StatementTree statementTree = (StatementTree) info.GetValue("StatementTree", typeof (StatementTree));
+			SqlQuery query = (SqlQuery) info.GetValue("Query", typeof (SqlQuery));
+
+			this.context.Set(null, statementTree, query);
+		}
+
 		private readonly StatementContext context;
+		private DatabaseQueryContext queryContext;
 		private bool prepared;
 		private bool evaluated;
 
@@ -38,6 +53,10 @@ namespace Deveel.Data.Sql {
 
 		protected DatabaseConnection Connection {
 			get { return context.Connection; }
+		}
+
+		protected DatabaseQueryContext QueryContext {
+			get { return queryContext ?? (queryContext = new DatabaseQueryContext(Connection)); }
 		}
 
 		protected User User {
@@ -53,6 +72,27 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		protected IDebugLogger Debug {
 			get { return context.Connection.Debug; }
+		}
+
+		/// <summary>
+		/// Checks the permissions for the current user to determine if they are 
+		/// allowed to select (read) from tables in the given plan.
+		/// </summary>
+		/// <param name="plan"></param>
+		/// <exception cref="UserAccessException">
+		/// If the user is not allowed to select from a table in the 
+		/// given plan.
+		/// </exception>
+		protected void CheckUserSelectPermissions(IQueryPlanNode plan) {
+			// Discover the list of TableName objects this command touches,
+			IList<TableName> touchedTables = plan.DiscoverTableNames(new List<TableName>());
+			Database dbase = Connection.Database;
+
+			// Check that the user is allowed to select from these tables.
+			foreach (TableName table in touchedTables) {
+				if (!dbase.CanUserSelectFromTableObject(QueryContext, Context.User, table, null))
+					throw new UserAccessException("User not permitted to select from table: " + table);
+			}
 		}
 
 		protected string GetString(string key) {
@@ -96,13 +136,25 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected IList GetList(string key) {
-			return GetList(key, false);
+			return GetList(key, null);
+		}
+
+		protected IList GetList(string key, Type type) {
+			return GetList(key, type, false);
 		}
 
 		protected IList GetList(string key, bool safe) {
+			return GetList(key, null, safe);
+		}
+
+		protected IList GetList(string key, Type type, bool safe) {
 			IList list = (IList) GetValue(key);
 			if (list == null && safe) {
-				list = new BackedList(this, key);
+				if (type == null)
+					type = typeof (object);
+
+				Type listType = typeof (BackedList<>).MakeGenericType(type);
+				list = Activator.CreateInstance(listType, new object[] { this, key}) as IList;
 				SetValue(key, list);
 			}
 
@@ -122,6 +174,8 @@ namespace Deveel.Data.Sql {
 		internal void Reset() {
 			evaluated = false;
 			prepared = false;
+
+			queryContext = null;
 
 			OnReset();
 		}
@@ -144,15 +198,19 @@ namespace Deveel.Data.Sql {
 			return context.Connection.ResolveTableName(name);
 		}
 
+		protected SchemaDef ResolveSchemaName(string name) {
+			return context.Connection.ResolveSchemaCase(name, context.Connection.IsInCaseInsensitiveMode);
+		}
+
 		internal void PrepareStatement() {
-			if (prepared)
-				throw new StatementException("The statement has been already prepared.");
-			if (evaluated)
-				throw new StatementException("The statement has been already executed.");
+			if (!prepared) {
+				if (evaluated)
+					throw new StatementException("The statement has been already executed.");
 
-			Prepare();
+				Prepare();
 
-			prepared = true;
+				prepared = true;
+			}
 		}
 
 		/// <summary>
@@ -260,21 +318,25 @@ namespace Deveel.Data.Sql {
 
 		#region BackedList
 
-		private class BackedList : IList {
+		private class BackedList<T> : IList<T>, IList {
 			public BackedList(Statement statement, string key) {
 				this.statement = statement;
 				this.key = key;
-				list = new ArrayList();
+				list = new List<T>();
 			}
 
 			private readonly Statement statement;
 			private readonly string key;
-			private readonly ArrayList list;
+			private readonly List<T> list;
 
 			#region Implementation of IEnumerable
 
-			public IEnumerator GetEnumerator() {
+			public IEnumerator<T> GetEnumerator() {
 				return list.GetEnumerator();
+			}
+
+			IEnumerator IEnumerable.GetEnumerator() {
+				return GetEnumerator();
 			}
 
 			#endregion
@@ -282,7 +344,11 @@ namespace Deveel.Data.Sql {
 			#region Implementation of ICollection
 
 			public void CopyTo(Array array, int index) {
-				list.CopyTo(array, index);
+				list.CopyTo((T[])array, index);
+			}
+
+			public bool Remove(T item) {
+				return list.Remove(item);
 			}
 
 			public int Count {
@@ -290,11 +356,11 @@ namespace Deveel.Data.Sql {
 			}
 
 			public object SyncRoot {
-				get { return list.SyncRoot; }
+				get { return this; }
 			}
 
 			public bool IsSynchronized {
-				get { return list.IsSynchronized; }
+				get { return false; }
 			}
 
 			#endregion
@@ -305,7 +371,8 @@ namespace Deveel.Data.Sql {
 				int index = -1;
 				object newValue = value;
 				if (statement.OnListAdd(key, value, ref newValue)) {
-					index = list.Add(newValue);
+					index = list.Count;
+					list.Add((T)newValue);
 					statement.OnListAdded(key, newValue, index);
 				}
 
@@ -313,7 +380,15 @@ namespace Deveel.Data.Sql {
 			}
 
 			public bool Contains(object value) {
-				return list.Contains(value);
+				return list.Contains((T)value);
+			}
+
+			public void Add(T item) {
+				object newValue = item;
+				if (statement.OnListAdd(key, item, ref newValue)) {
+					list.Add((T)newValue);
+					statement.OnListAdded(key, newValue, -1);
+				}
 			}
 
 			public void Clear() {
@@ -321,22 +396,42 @@ namespace Deveel.Data.Sql {
 					list.Clear();
 			}
 
+			public bool Contains(T item) {
+				return list.Contains(item);
+			}
+
+			public void CopyTo(T[] array, int arrayIndex) {
+				list.CopyTo(array, arrayIndex);
+			}
+
 			public int IndexOf(object value) {
-				return list.IndexOf(value);
+				return list.IndexOf((T)value);
 			}
 
 			public void Insert(int index, object value) {
 				object newValue = value;
 				if (statement.OnListInsert(key, index, value, ref newValue)) {
-					list.Insert(index, newValue);
+					list.Insert(index, (T)newValue);
 					statement.OnListInserted(key, index, newValue);
 				}
 			}
 
 			public void Remove(object value) {
 				if (statement.OnListRemove(key, value)) {
-					list.Remove(value);
+					list.Remove((T)value);
 					statement.OnListRemoved(key, value);
+				}
+			}
+
+			public int IndexOf(T item) {
+				return list.IndexOf(item);
+			}
+
+			public void Insert(int index, T item) {
+				object newValue = item;
+				if (statement.OnListInsert(key, index, item, ref newValue)) {
+					list.Insert(index, (T)newValue);
+					statement.OnListInserted(key, index, newValue);
 				}
 			}
 
@@ -347,27 +442,45 @@ namespace Deveel.Data.Sql {
 				}
 			}
 
-			public object this[int index] {
+			public T this[int index] {
 				get { return list[index]; }
 				set {
 					object newValue = value;
 					if (statement.OnListSet(key, index, value, ref newValue)) {
-						list[index] = newValue;
+						list[index] = (T) newValue;
 					}
 				}
 			}
 
+			object IList.this[int index] {
+				get { return this[index]; }
+				set { this[index] = (T) value; }
+			}
+
 			public bool IsReadOnly {
-				get { return list.IsReadOnly; }
+				get { return false; }
 			}
 
 			public bool IsFixedSize {
-				get { return list.IsFixedSize; }
+				get { return false; }
 			}
 
 			#endregion
 		}
 
 		#endregion
+
+		protected virtual void GetObjectData(SerializationInfo info, StreamingContext streamingContext) {
+		}
+
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext streamingContext) {
+			// we don't let this part to be controlled by statement implementations
+			info.AddValue("StatementTree", context.StatementTree, typeof(StatementTree));
+			info.AddValue("Query", context.Query, typeof(SqlQuery));
+			info.AddValue("Prepared", prepared);
+
+			// but we provide a hook for them
+			GetObjectData(info, streamingContext);
+		}
 	}
 }

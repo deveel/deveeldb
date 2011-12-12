@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The TableSelectExpression representing the select command itself.
 		/// </summary>
-		private TableSelectExpression select_expression;
+		private TableSelectExpression selectExpression;
 
 		/// <summary>
 		/// The list of all columns to order by. (ByColumn)
 		/// </summary>
-		private IList<ByColumn> order_by;
+		private IList<ByColumn> orderBy;
 
 		/// <summary>
 		/// The plan for evaluating this select expression.
@@ -57,66 +57,40 @@ namespace Deveel.Data.Sql {
 			return true;
 		}
 
-		/// <summary>
-		/// Checks the permissions for this user to determine if they are 
-		/// allowed to select (read) from tables in the given plan.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="user"></param>
-		/// <param name="plan"></param>
-		/// <exception cref="UserAccessException">
-		/// If the user is not allowed to select from a table in the 
-		/// given plan.
-		/// </exception>
-		internal static void CheckUserSelectPermissions(DatabaseQueryContext context, User user, IQueryPlanNode plan) {
-			// Discover the list of TableName objects this command touches,
-			IList<TableName> touched_tables = plan.DiscoverTableNames(new List<TableName>());
-			Database dbase = context.Database;
-			// Check that the user is allowed to select from these tables.
-			foreach (TableName t in touched_tables) {
-				if (!dbase.CanUserSelectFromTableObject(context, user, t, null))
-					throw new UserAccessException("User not permitted to select from table: " + t);
-			}
-		}
-
 		protected override void Prepare() {
-			DatabaseConnection db = Connection;
-
 			// Prepare this object from the StatementTree,
 			// The select expression itself
-			select_expression = (TableSelectExpression)GetValue("table_expression");
+			selectExpression = (TableSelectExpression)GetValue("table_expression");
 			// The order by information
-			order_by = (IList<ByColumn>) GetList("order_by");
+			orderBy = (IList<ByColumn>) GetList("order_by");
 
 			// check to see if the construct is the special one for
 			// selecting the latest IDENTITY value from a table
-			if (IsIdentitySelect(select_expression)) {
-				select_expression.Columns.RemoveAt(0);
-				FromTable fromTable = ((IList<FromTable>) select_expression.From.AllTables)[0];
-				select_expression.Columns.Add(new SelectColumn(Expression.Parse("IDENTITY('" + fromTable.Name + "')"), "IDENTITY"));
+			if (IsIdentitySelect(selectExpression)) {
+				selectExpression.Columns.RemoveAt(0);
+				FromTable fromTable = ((IList<FromTable>) selectExpression.From.AllTables)[0];
+				selectExpression.Columns.Add(new SelectColumn(Expression.Parse("IDENTITY('" + fromTable.Name + "')"), "IDENTITY"));
 			}
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
-			TableExpressionFromSet from_set = Planner.GenerateFromSet(select_expression, db);
+			TableExpressionFromSet fromSet = Planner.GenerateFromSet(selectExpression, Connection);
 
 			// Form the plan
-			plan = Planner.FormQueryPlan(db, select_expression, from_set, order_by);
+			plan = Planner.FormQueryPlan(Connection, selectExpression, fromSet, orderBy);
 		}
 
 
 		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
 			// Check the permissions for this user to select from the tables in the
 			// given plan.
-			CheckUserSelectPermissions(context, User, plan);
+			CheckUserSelectPermissions(plan);
 
 			bool error = true;
 			try {
-				Table t = plan.Evaluate(context);
+				Table t = plan.Evaluate(QueryContext);
 
-				if (select_expression.Into.HasElements)
-					t = select_expression.Into.SelectInto(context, t);
+				if (selectExpression.Into.HasElements)
+					t = selectExpression.Into.SelectInto(QueryContext, t);
 
 				error = false;
 				return t;
@@ -132,17 +106,5 @@ namespace Deveel.Data.Sql {
 				}
 			}
 		}
-
-		/// <inheritdoc/>
-		public override String ToString() {
-			StringBuilder buf = new StringBuilder();
-			buf.Append("[ SELECT: expression=");
-			buf.Append(select_expression.ToString());
-			buf.Append(" ORDER_BY=");
-			buf.Append(order_by);
-			buf.Append(" ]");
-			return buf.ToString();
-		}
-
 	}
 }

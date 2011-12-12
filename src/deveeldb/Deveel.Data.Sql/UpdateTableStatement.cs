@@ -186,7 +186,7 @@ namespace Deveel.Data.Sql {
 
 			if (!from_cursor) {
 				// Check the user has select permissions on the tables in the plan.
-				SelectStatement.CheckUserSelectPermissions(context, User, plan);
+				CheckUserSelectPermissions(plan);
 
 				// Evaluate the plan to find the update set.
 				Table update_set = plan.Evaluate(context);

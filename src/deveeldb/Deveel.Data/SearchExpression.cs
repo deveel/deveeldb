@@ -16,7 +16,9 @@
 using System;
 using System.Text;
 
-namespace Deveel.Data.Sql {
+using Deveel.Data.Sql;
+
+namespace Deveel.Data {
 	/// <summary>
 	/// Search expression is a form of an <see cref="Expression"/> that is 
 	/// split up into component parts that can be easily formed into a 

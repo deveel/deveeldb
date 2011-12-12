@@ -75,6 +75,12 @@
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateSequenceStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DropSequenceStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\IfStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\PrivilegesStatement.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Sql\StatementContext.cs" />
     <Compile Include="Deveel.Data.Util\ListUtil.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseCallBack.cs" />
@@ -239,7 +245,6 @@
     <Compile Include="Deveel.Data.Sql\FunctionArgument.cs" />
     <Compile Include="Deveel.Data.Sql\GrantStatement.cs" />
     <Compile Include="Deveel.Data.Sql\IFromTableSource.cs" />
-    <Compile Include="Deveel.Data.Sql\IfStatement.cs" />
     <Compile Include="Deveel.Data.Sql\InsertStatement.cs" />
     <Compile Include="Deveel.Data\SelectIntoClause.cs" />
     <Compile Include="Deveel.Data.Sql\IStatementTreeObject.cs" />
@@ -247,12 +252,10 @@
     <Compile Include="Deveel.Data.Sql\NoOpStatement.cs" />
     <Compile Include="Deveel.Data.Sql\OpenCursorStatement.cs" />
     <Compile Include="Deveel.Data.QueryPlanning\Planner.cs" />
-    <Compile Include="Deveel.Data.Sql\PrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql\RevokeStatement.cs" />
     <Compile Include="Deveel.Data.Sql\RollbackStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\SchemaStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\SearchExpression.cs" />
+    <Compile Include="Deveel.Data\SearchExpression.cs" />
     <Compile Include="Deveel.Data\SelectColumn.cs" />
     <Compile Include="Deveel.Data.Sql\SelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql\SequenceStatement.cs" />
@@ -266,7 +269,6 @@
     <Compile Include="Deveel.Data.Sql\SqlTypeAttribute.cs" />
     <Compile Include="Deveel.Data.Sql\Statement.cs" />
     <Compile Include="Deveel.Data.Sql\StatementCache.cs" />
-    <Compile Include="Deveel.Data.Sql\StatementContainer.cs" />
     <Compile Include="Deveel.Data.Sql\StatementEventArgs.cs" />
     <Compile Include="Deveel.Data.Sql\StatementTree.cs" />
     <Compile Include="Deveel.Data.Sql\TableExpressionFromSet.cs" />
@@ -275,7 +277,6 @@
     <Compile Include="Deveel.Data.Sql\UpdateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\UserStatement.cs" />
     <Compile Include="Deveel.Data.Sql\Util.cs" />
-    <Compile Include="Deveel.Data.Sql\ViewStatement.cs" />
     <Compile Include="Deveel.Data.Store\AbstractStore.cs" />
     <Compile Include="Deveel.Data.Store\FixedRecordList.cs" />
     <Compile Include="Deveel.Data.Store\HeapStore.cs" />

@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The ITableQueryInfo object that links to the underlying table.
 		/// </summary>
-		private readonly ITableQueryInfo table_query;
+		private readonly ITableQueryInfo tableQuery;
 
 		/// <summary>
 		/// The DataTableInfo object that describes the table.
@@ -39,12 +39,12 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The unique name given to this source.
 		/// </summary>
-		private readonly String unique_name;
+		private readonly string uniqueName;
 
 		/// <summary>
 		/// The given TableName of this table.
 		/// </summary>
-		private readonly TableName table_name;
+		private readonly TableName tableName;
 
 		/// <summary>
 		/// The root name of the table.
@@ -53,35 +53,34 @@ namespace Deveel.Data.Sql {
 		/// For example, if this table is <i>Part P</i> the root name 
 		/// is <i>Part</i> and <i>P</i> is the aliased name.
 		/// </remarks>
-		private readonly TableName root_name;
+		private readonly TableName rootName;
 
 		/// <summary>
 		/// Set to true if this should do case insensitive resolutions.
 		/// </summary>
-		private bool case_insensitive = false;
+		private bool caseInsensitive;
 
 		/// <summary>
 		/// Constructs the source.
 		/// </summary>
-		/// <param name="case_insensitive"></param>
-		/// <param name="table_query"></param>
-		/// <param name="unique_name"></param>
-		/// <param name="given_name"></param>
-		/// <param name="root_name"></param>
-		public FromTableDirectSource(bool case_insensitive,
-		                             ITableQueryInfo table_query, String unique_name,
-		                             TableName given_name, TableName root_name) {
-			this.unique_name = unique_name;
-			this.dataTableInfo = table_query.TableInfo;
-			this.root_name = root_name;
-			if (given_name != null) {
-				this.table_name = given_name;
+		/// <param name="caseInsensitive"></param>
+		/// <param name="tableQuery"></param>
+		/// <param name="uniqueName"></param>
+		/// <param name="givenName"></param>
+		/// <param name="rootName"></param>
+		public FromTableDirectSource(bool caseInsensitive, ITableQueryInfo tableQuery, string uniqueName, TableName givenName, TableName rootName) {
+			this.uniqueName = uniqueName;
+			dataTableInfo = tableQuery.TableInfo;
+			this.rootName = rootName;
+			if (givenName != null) {
+				tableName = givenName;
 			} else {
-				this.table_name = root_name;
+				tableName = rootName;
 			}
+
 			// Is the database case insensitive?
-			this.case_insensitive = case_insensitive;
-			this.table_query = table_query;
+			this.caseInsensitive = caseInsensitive;
+			this.tableQuery = tableQuery;
 		}
 
 		/// <summary>
@@ -92,7 +91,7 @@ namespace Deveel.Data.Sql {
 		/// For example, if the Part table is aliased as P this returns P.
 		/// </remarks>
 		public TableName GivenTableName {
-			get { return table_name; }
+			get { return tableName; }
 		}
 
 		/// <summary>
@@ -103,7 +102,7 @@ namespace Deveel.Data.Sql {
 		/// table in the database.
 		/// </remarks>
 		public TableName RootTableName {
-			get { return root_name; }
+			get { return rootName; }
 		}
 
 		/// <summary>
@@ -112,7 +111,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <returns></returns>
 		public IQueryPlanNode CreateFetchQueryPlanNode() {
-			return table_query.QueryPlanNode;
+			return tableQuery.QueryPlanNode;
 		}
 
 		///<summary>
@@ -120,134 +119,117 @@ namespace Deveel.Data.Sql {
 		///</summary>
 		///<param name="status"></param>
 		public void SetCaseInsensitive(bool status) {
-			case_insensitive = status;
+			caseInsensitive = status;
 		}
 
-		private bool StringCompare(String str1, String str2) {
-			if (!case_insensitive) {
-				return str1.Equals(str2);
-			}
-			return String.Compare(str1, str2, true) == 0;
+		private bool StringCompare(string str1, string str2) {
+			return String.Compare(str1, str2, caseInsensitive) == 0;
 		}
 
 
 		// ---------- Implemented from IFromTableSource ----------
 
 		public string UniqueName {
-			get { return unique_name; }
+			get { return uniqueName; }
 		}
 
 		public bool MatchesReference(string catalog, string schema, string table) {
-			//    Console.Out.WriteLine("Matches reference: " + schema + " " + table);
-			//    Console.Out.WriteLine(table_name.getName());
-
 			// Does this table name represent the correct schema?
 			if (schema != null &&
-			    !StringCompare(schema, table_name.Schema)) {
+			    !StringCompare(schema, tableName.Schema)) {
 				// If schema is present and we can't resolve to this schema then false
 				return false;
 			}
 			if (table != null &&
-			    !StringCompare(table, table_name.Name)) {
+			    !StringCompare(table, tableName.Name)) {
 				// If table name is present and we can't resolve to this table name
 				// then return false
 				return false;
 			}
-			//    Console.Out.WriteLine("MATCHED!");
 			// Match was successful,
 			return true;
 		}
 
-		public int ResolveColumnCount(String catalog, String schema,
-		                              String table, String column) {
+		public int ResolveColumnCount(string catalog, string schema, string table, string column) {
 			// NOTE: With this type, we can only ever return either 1 or 0 because
 			//   it's impossible to have an ambiguous reference
 
 			// NOTE: Currently 'catalog' is ignored.
 
 			// Does this table name represent the correct schema?
-			if (schema != null &&
-			    !StringCompare(schema, table_name.Schema)) {
+			if (schema != null && !StringCompare(schema, tableName.Schema)) {
 				// If schema is present and we can't resolve to this schema then return 0
 				return 0;
 			}
-			if (table != null &&
-			    !StringCompare(table, table_name.Name)) {
+			if (table != null && !StringCompare(table, tableName.Name)) {
 				// If table name is present and we can't resolve to this table name then
 				// return 0
 				return 0;
 			}
 
 			if (column != null) {
-				if (!case_insensitive) {
+				if (!caseInsensitive) {
 					// Can we resolve the column in this table?
 					int i = dataTableInfo.FastFindColumnName(column);
 					// If i doesn't equal -1 then we've found our column
 					return i == -1 ? 0 : 1;
-				} else {
-					// Case insensitive search (this is slower than case sensitive).
-					int resolve_count = 0;
-					int col_count = dataTableInfo.ColumnCount;
-					for (int i = 0; i < col_count; ++i) {
-						if (String.Compare(dataTableInfo[i].Name, column, true) == 0) {
-							++resolve_count;
-						}
-					}
-					return resolve_count;
 				}
-			} else {  // if (column == null)
-				// Return the column count
-				return dataTableInfo.ColumnCount;
-			}
+
+				// Case insensitive search (this is slower than case sensitive).
+				int resolveCount = 0;
+				int colCount = dataTableInfo.ColumnCount;
+				for (int i = 0; i < colCount; ++i) {
+					if (String.Compare(dataTableInfo[i].Name, column, true) == 0)
+						++resolveCount;
+				}
+				return resolveCount;
+			} // if (column != null)
+
+			// Return the column count
+			return dataTableInfo.ColumnCount;
 		}
 
-		public VariableName ResolveColumn(String catalog, String schema,
-		                                  String table, String column) {
-
+		public VariableName ResolveColumn(string catalog, string schema, string table, string column) {
 			// Does this table name represent the correct schema?
-			if (schema != null &&
-			    !StringCompare(schema, table_name.Schema)) {
+			if (schema != null && !StringCompare(schema, tableName.Schema))
 				// If schema is present and we can't resolve to this schema
 				throw new ApplicationException("Incorrect schema.");
-			}
-			if (table != null &&
-			    !StringCompare(table, table_name.Name)) {
+
+			if (table != null && !StringCompare(table, tableName.Name))
 				// If table name is present and we can't resolve to this table name
 				throw new ApplicationException("Incorrect table.");
-			}
 
 			if (column != null) {
-				if (!case_insensitive) {
+				if (!caseInsensitive) {
 					// Can we resolve the column in this table?
 					int i = dataTableInfo.FastFindColumnName(column);
-					if (i == -1) {
+					if (i == -1)
 						throw new ApplicationException("Could not resolve '" + column + "'");
-					}
-					return new VariableName(table_name, column);
-				} else {
-					// Case insensitive search (this is slower than case sensitive).
-					int col_count = dataTableInfo.ColumnCount;
-					for (int i = 0; i < col_count; ++i) {
-						String col_name = dataTableInfo[i].Name;
-						if (String.Compare(col_name, column, true) == 0) {
-							return new VariableName(table_name, col_name);
-						}
-					}
-					throw new ApplicationException("Could not resolve '" + column + "'");
-				}
-			} else {  // if (column == null)
-				// Return the first column in the table
-				return new VariableName(table_name, dataTableInfo[0].Name);
-			}
 
+					return new VariableName(tableName, column);
+				}
+
+				// Case insensitive search (this is slower than case sensitive).
+				int colCount = dataTableInfo.ColumnCount;
+				for (int i = 0; i < colCount; ++i) {
+					string colName = dataTableInfo[i].Name;
+					if (String.Compare(colName, column, true) == 0) {
+						return new VariableName(tableName, colName);
+					}
+				}
+				throw new ApplicationException("Could not resolve '" + column + "'");
+			} // if (column != null)
+
+			// Return the first column in the table
+			return new VariableName(tableName, dataTableInfo[0].Name);
 		}
 
 		public VariableName[] AllColumns {
 			get {
-				int col_count = dataTableInfo.ColumnCount;
-				VariableName[] vars = new VariableName[col_count];
-				for (int i = 0; i < col_count; ++i) {
-					vars[i] = new VariableName(table_name, dataTableInfo[i].Name);
+				int colCount = dataTableInfo.ColumnCount;
+				VariableName[] vars = new VariableName[colCount];
+				for (int i = 0; i < colCount; ++i) {
+					vars[i] = new VariableName(tableName, dataTableInfo[i].Name);
 				}
 				return vars;
 			}

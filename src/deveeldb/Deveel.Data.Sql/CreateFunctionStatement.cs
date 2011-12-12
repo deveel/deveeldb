@@ -20,13 +20,14 @@ using System.Reflection;
 using Deveel.Data.Procedures;
 
 namespace Deveel.Data.Sql {
+	[Serializable]
 	public sealed class CreateFunctionStatement : Statement {
 		public CreateFunctionStatement(TableName functionName, IList args, TType returnType, string location) {
 			FunctionName = functionName;
 
 			if (args != null) {
-				for (int i = 0; i < args.Count; i++)
-					Arguments.Add(args[i]);
+				foreach (object arg in args)
+					Arguments.Add(arg);
 			}
 
 			ReturnType = returnType;
@@ -43,7 +44,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The name of the function.
 		/// </summary>
-		private TableName fun_name;
+		private TableName resolvedFunctionName;
 
 		public TableName FunctionName {
 			get { return TableName.Resolve(GetString("function_name")); }
@@ -149,80 +150,73 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override void Prepare() {
-			String function_name = GetString("function_name");
+			string functionName = GetString("function_name");
 
-			// Resolve the function name into a TableName object.    
-			String schema_name = Connection.CurrentSchema;
-			fun_name = TableName.Resolve(schema_name, function_name);
-			fun_name = Connection.TryResolveCase(fun_name);
+			// Resolve the function name into a TableName object.
+			resolvedFunctionName = ResolveTableName(functionName);
 		}
 
 		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
 			// Does the schema exist?
-			bool ignore_case = Connection.IsInCaseInsensitiveMode;
-			SchemaDef schema = Connection.ResolveSchemaCase(fun_name.Schema, ignore_case);
-			if (schema == null) {
-				throw new DatabaseException("Schema '" + fun_name.Schema + "' doesn't exist.");
-			} else {
-				fun_name = new TableName(schema.Name, fun_name.Name);
-			}
+			SchemaDef schema = ResolveSchemaName(resolvedFunctionName.Schema);
+			if (schema == null)
+				throw new DatabaseException("Schema '" + resolvedFunctionName.Schema + "' doesn't exist.");
+
+			resolvedFunctionName = new TableName(schema.Name, resolvedFunctionName.Name);
 
 			// Does the user have privs to create this function?
-			if (!Connection.Database.CanUserCreateProcedureObject(context, User, fun_name)) {
-				throw new UserAccessException("User not permitted to create function: " + fun_name);
-			}
+			if (!Connection.Database.CanUserCreateProcedureObject(QueryContext, User, resolvedFunctionName))
+				throw new UserAccessException("User not permitted to create function: " + resolvedFunctionName);
 
 			// Does a table already exist with this name?
-			if (Connection.TableExists(fun_name)) {
-				throw new DatabaseException("Database object with name '" + fun_name +
+			if (Connection.TableExists(resolvedFunctionName)) {
+				throw new DatabaseException("Database object with name '" + resolvedFunctionName +
 											"' already exists.");
 			}
 
 			// Get the information about the function we are creating
-			IList arg_names = GetList("arg_names");
-			IList arg_types = GetList("arg_types");
-			TObject loc_name = (TObject)GetValue("location_name");
+			IList argNames = GetList("arg_names");
+			IList argTypes = GetList("arg_types");
+			TObject locName = (TObject)GetValue("location_name");
 			TType return_type = (TType)GetValue("return_type");
 
 			// Note that we currently ignore the arg_names list.
 
 
 			// Convert arg types to an array
-			TType[] arg_type_array = new TType[arg_types.Count];
-			arg_types.CopyTo(arg_type_array, 0);
+			TType[] argTypeArray = new TType[argTypes.Count];
+			argTypes.CopyTo(argTypeArray, 0);
 
 			// We must parse the location name into a class name, and method name
-			String specification = loc_name.Object.ToString();
-			// Resolve the java_specification to an invokation method.
-			MethodInfo proc_method = ProcedureManager.GetProcedureMethod(specification, arg_type_array);
-			if (proc_method == null) {
+			string specification = locName.Object.ToString();
+			// Resolve the csharp_specification to an invokation method.
+			MethodInfo procMethod = ProcedureManager.GetProcedureMethod(specification, argTypeArray);
+			if (procMethod == null) {
 				throw new DatabaseException("Unable to find invokation method for " +
 				                            ".NET stored procedure name: " + specification);
 			}
 
 			// Convert the information into an easily digestible form.
-			ProcedureName proc_name = new ProcedureName(fun_name);
-			int sz = arg_types.Count;
-			TType[] arg_list = new TType[sz];
+			ProcedureName procName = new ProcedureName(resolvedFunctionName);
+			int sz = argTypes.Count;
+			TType[] argList = new TType[sz];
 			for (int i = 0; i < sz; ++i) {
-				arg_list[i] = (TType)arg_types[i];
+				argList[i] = (TType)argTypes[i];
 			}
 
 			// Create the .NET function,
 			ProcedureManager manager = Connection.ProcedureManager;
-			manager.DefineProcedure(proc_name, specification, return_type, arg_list, User.UserName);
+			manager.DefineProcedure(procName, specification, return_type, argList, User.UserName);
 
 			// The initial grants for a procedure is to give the user who created it
 			// full access.
 			Connection.GrantManager.Grant(
 				 Privileges.ProcedureAll, GrantObject.Table,
-				 proc_name.ToString(), User.UserName, true,
+				 procName.ToString(), User.UserName, true,
 				 Database.InternalSecureUsername);
 
 			// Return an update result table.
-			return FunctionTable.ResultTable(context, 0);
+			return FunctionTable.ResultTable(QueryContext, 0);
 		}
 	}
 }

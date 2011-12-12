@@ -119,7 +119,7 @@ namespace Deveel.Data.Sql {
 
 			// Check the permissions for this user to select from the tables in the
 			// given plan.
-			SelectStatement.CheckUserSelectPermissions(context, User, plan);
+			CheckUserSelectPermissions(plan);
 
 			// Does the table already exist?
 			if (Connection.TableExists(vname)) {

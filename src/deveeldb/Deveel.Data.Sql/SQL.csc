@@ -979,8 +979,7 @@ StatementTree Call() :
 
 StatementTree CreateSequence() :
 {
-  StatementTree cmd = new StatementTree(typeof(SequenceStatement));
-  cmd.SetValue("type", "create");
+  StatementTree cmd = new StatementTree(typeof(CreateSequenceStatement));
   String seq_name;
   Expression v;
 }
@@ -998,8 +997,7 @@ StatementTree CreateSequence() :
  
 StatementTree DropSequence() :
 {
-  StatementTree cmd = new StatementTree(typeof(SequenceStatement));
-  cmd.SetValue("type", "drop");
+  StatementTree cmd = new StatementTree(typeof(DropSequenceStatement));
   String seq_name;
 }
 {

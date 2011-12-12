@@ -19,8 +19,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-using Deveel.Data.Sql;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// Defines meta information about a table.
@@ -31,7 +29,7 @@ namespace Deveel.Data {
 	/// check constraints.
 	/// </remarks>
 	[Serializable]
-	public sealed class DataTableInfo : IStatementTreeObject {
+	public sealed class DataTableInfo : ICloneable {
 		/// <summary>
 		///  A TableName object that represents this data table info.
 		/// </summary>
@@ -396,9 +394,6 @@ namespace Deveel.Data {
 
 		object ICloneable.Clone() {
 			return Clone();
-		}
-
-		void IStatementTreeObject.PrepareExpressions(IExpressionPreparer preparer) {
 		}
 
 		public DataTableInfo Clone() {
