@@ -75,6 +75,7 @@
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
+    <Compile Include="Deveel.Data.Sql\CaseStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql\IfStatement.cs" />
@@ -325,8 +326,6 @@
     <Compile Include="Deveel.Data\BlindSearch.cs" />
     <Compile Include="Deveel.Data\BlobStore.cs" />
     <Compile Include="Deveel.Data\ByteLongObject.cs" />
-    <Compile Include="Deveel.Data\CaseCondition.cs" />
-    <Compile Include="Deveel.Data\CaseExpression.cs" />
     <Compile Include="Deveel.Data\Caster.cs" />
     <Compile Include="Deveel.Data\CastHelper.cs" />
     <Compile Include="Deveel.Data\CollatedBaseSearch.cs" />

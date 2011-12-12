@@ -951,11 +951,6 @@ namespace Deveel.Data {
 				return TObject.CreateQueryPlan(plan);
 			}
 
-			if (ob is CaseExpression) {
-				CaseExpression caseExpression = (CaseExpression) ob;
-				return caseExpression.Evaluate(group, resolver, context);
-			}
-
 			if (ob == null)
 				throw new NullReferenceException("Null element in expression");
 

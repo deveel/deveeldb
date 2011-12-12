@@ -286,11 +286,11 @@ namespace Deveel.Data.Sql {
 				// We need to do case sensitive and case insensitive resolution,
 				string foundColumn = null;
 				foreach (DataTableColumnInfo column in columns) {
-					if (String.Compare(column.Name, columnName, ignoresCase) == 0)
+					if (String.Compare(column.Name, columnName, ignoresCase) == 0) {
 						if (foundColumn != null)
 							throw new DatabaseException("Ambiguous column name '" + columnName + "'");
-					foundColumn = column.Name;
-
+						foundColumn = column.Name;
+					}
 				}
 				return foundColumn;
 			}

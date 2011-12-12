@@ -85,8 +85,7 @@ namespace Deveel.Data {
 					IList<int> list = query.SelectEqual(2, nameVal, 1, schemaVal);
 
 					if (list.Count == 0) {
-						throw new StatementException("Sequence generator '" + name +
-													 "' not found.");
+						throw new StatementException("Sequence generator '" + name + "' not found.");
 					} else if (list.Count > 1) {
 						throw new Exception("Assert failed: multiple sequence keys with same name.");
 					}
@@ -328,7 +327,7 @@ namespace Deveel.Data {
 		/// <param name="transaction"></param>
 		/// <param name="tableName"></param>
 		/// <param name="startValue"></param>
-		/// <param name="increment_by"></param>
+		/// <param name="incrementBy"></param>
 		/// <param name="minValue"></param>
 		/// <param name="maxValue"></param>
 		/// <param name="cache"></param>
@@ -337,9 +336,7 @@ namespace Deveel.Data {
 		/// Note that this method does not check if the generator name clashes 
 		/// with an existing database object.
 		/// </remarks>
-		internal static void CreateSequenceGenerator(Transaction transaction,
-					 TableName tableName, long startValue, long increment_by,
-					 long minValue, long maxValue, long cache, bool cycle) {
+		internal static void CreateSequenceGenerator(Transaction transaction, TableName tableName, long startValue, long incrementBy, long minValue, long maxValue, long cache, bool cycle) {
 
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// we can't create the sequence generator
@@ -380,7 +377,7 @@ namespace Deveel.Data {
 			dataRow = new DataRow(seq);
 			dataRow.SetValue(0, uniqueId);
 			dataRow.SetValue(1, startValue);
-			dataRow.SetValue(2, increment_by);
+			dataRow.SetValue(2, incrementBy);
 			dataRow.SetValue(3, minValue);
 			dataRow.SetValue(4, maxValue);
 			dataRow.SetValue(5, startValue);

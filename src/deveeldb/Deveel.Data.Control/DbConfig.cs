@@ -77,17 +77,6 @@ namespace Deveel.Data.Control {
 			set { SetValue(ConfigKeys.ReadOnly, value ? "true" : "false"); }
 		}
 
-		/// <summary>
-		/// Gets or sets the minimum debug level for output to the debug log file.
-		/// </summary>
-		public int DebugLevel {
-			get {
-				string value = GetValue(ConfigKeys.DebugLevel);
-				return (value == null ? -1 : Int32.Parse(value));
-			}
-			set { SetValue(ConfigKeys.DebugLevel, value.ToString()); }
-		}
-
 		public string DebugLogFile {
 			get { return GetStringValue(ConfigKeys.DebugLogFile, null); }
 			set { SetValue(ConfigKeys.DebugLogFile, value); }

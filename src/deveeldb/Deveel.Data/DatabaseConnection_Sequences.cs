@@ -112,23 +112,22 @@ namespace Deveel.Data {
 		/// it with the given details.
 		/// </summary>
 		/// <param name="name"></param>
-		/// <param name="start_value"></param>
-		/// <param name="increment_by"></param>
-		/// <param name="min_value"></param>
-		/// <param name="max_value"></param>
+		/// <param name="startValue"></param>
+		/// <param name="incrementBy"></param>
+		/// <param name="minValue"></param>
+		/// <param name="maxValue"></param>
 		/// <param name="cache"></param>
 		/// <param name="cycle"></param>
 		/// <remarks>
 		/// This does <b>not</b> check if the given name clashes with an 
 		/// existing database object.
 		/// </remarks>
-		public void CreateSequenceGenerator(TableName name, long start_value, long increment_by,
-			long min_value, long max_value, long cache, bool cycle) {
+		public void CreateSequenceGenerator(TableName name, long startValue, long incrementBy, long minValue, long maxValue, long cache, bool cycle) {
 
 			// Check the name of the database object isn't reserved (OLD/NEW)
 			CheckAllowCreate(name);
 
-			Transaction.CreateSequenceGenerator(name, start_value, increment_by, min_value, max_value, cache, cycle);
+			Transaction.CreateSequenceGenerator(name, startValue, incrementBy, minValue, maxValue, cache, cycle);
 		}
 
 		/// <summary>

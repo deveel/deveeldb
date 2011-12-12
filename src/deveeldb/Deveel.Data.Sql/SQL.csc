@@ -2303,18 +2303,6 @@ void Operand(Expression exp, Stack stack) :
     }
   )
 
-// CASE expression
-| (
-    <CASE> { CaseExpression case_exp = new CaseExpression(); Expression else_exp = null; }
-      CaseCondition(case_exp)
-     ( CaseCondition(case_exp) )*
-     [ <ELSE> else_exp = DoExpression() { case_exp.Else = else_exp; } ]
-   <END>
-
-     { exp.AddElement(case_exp); 
-       exp.Text.Append(case_exp.ToString()); }
-  )
-
 // Query expression
 | (
     select_expression = GetTableSelectExpression() {
@@ -2367,13 +2355,6 @@ void Operand(Expression exp, Stack stack) :
         }
   )
 
-}
-
-void CaseCondition(CaseExpression exp) :
-{ Expression test = null, result = null; }
-{
-  ( <WHEN> test = DoExpression() <THEN> result = DoExpression() )
-  { exp.AddCondition(new CaseCondition(test, result)); }
 }
 
 void SubQueryExpression(Expression exp, Stack stack) :

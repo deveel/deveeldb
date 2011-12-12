@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -135,6 +135,10 @@ namespace Deveel.Data.Control {
 		/// </returns>
 		/// <seealso cref="GetStorageType(string)"/>
 		private static StorageType GetStorageType(DbConfig config) {
+			// if we don't have any configuration given let's assume it's in-memory
+			if (config == null)
+				return StorageType.Memory;
+
 			string typeName = config.GetValue(ConfigKeys.StorageSystem);
 			if (typeName == null)
 				throw new InvalidOperationException("A storage system must be specified.");
@@ -223,12 +227,15 @@ namespace Deveel.Data.Control {
 		public static DbController Create(string path, DbConfig config) {
 			StorageType storageType = GetStorageType(config);
 
-			if (path == null)
-				path = Environment.CurrentDirectory;
+			if (config == null)
+				config = new DbConfig();
 
 			DbConfig mainConfig;
 
 			if (storageType == StorageType.File) {
+				if (path == null)
+					path = Environment.CurrentDirectory;
+				
 				string configFile = Path.GetFileName(path);
 				if (configFile == null) {
 					configFile = DefaultConfigFileName;
@@ -243,7 +250,7 @@ namespace Deveel.Data.Control {
 				}
 
 				// if the directory doesn't exist we will create one...
-				if (!Directory.Exists(path))
+				if (path != null && !Directory.Exists(path))
 					Directory.CreateDirectory(path);
 
 				mainConfig = GetConfig((DbConfig)config.Clone(), path, configFile);

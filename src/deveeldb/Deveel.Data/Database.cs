@@ -1116,7 +1116,7 @@ namespace Deveel.Data {
 			DbConfig config = DbConfig.Default;
 			config.DatabasePath = Path.GetFullPath(path);
 			config.LogPath = "";
-			config.DebugLevel = 50000;
+			config.SetValue(ConfigKeys.DebugLevel, 50000);
 			// Set data cache to 1MB
 			config.SetValue("data_cache_size", "1048576");
 			// Set io_safety_level to 1 for destination database

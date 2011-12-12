@@ -35,18 +35,18 @@ namespace Deveel.Diagnostics {
 		/// <summary>
 		/// The debug Lock object.
 		/// </summary>
-		private readonly Object debug_lock = new Object();
+		private readonly Object debugLock = new Object();
 
 		/// <summary>
 		/// This variable specifies the level of debugging information that is
 		/// output.  Any debugging output above this level is output.
 		/// </summary>
-		private int debugLevel = 0;
+		private int debugLevel;
 
 		/// <summary>
 		/// The string used to format the output message.
 		/// </summary>
-		private string messageFormat = "[{Thread}][{Time}] {Source} : {Level:Name} - {Message}";
+		private string messageFormat = "[{Thread}][{Time}] {Level:Name} - {Source} : {Message}";
 
 		/// <summary>
 		/// The text writer where the debugging information is output to.
@@ -54,7 +54,10 @@ namespace Deveel.Diagnostics {
 		private TextWriter output;
 
 		private void Write(LogEntry entry) {
-			lock (output) {
+			lock (debugLock) {
+				if (output == null)
+					return;
+
 				StringBuilder sb = new StringBuilder();
 
 				if (entry.Level < DebugLevel.Message) {
@@ -176,13 +179,13 @@ namespace Deveel.Diagnostics {
 
 			// If 'debug_logs=disabled', don't Write out any debug logs
 			if (!debugLogs) {
-				// Otherwise set it up so the output from the logs goes to a PrintWriter
+				// Otherwise set it up so the output from the logs goes to a TextWriter
 				// that doesn't do anything.  Basically - this means all log information
 				// will get sent into a black hole.
 				output = new EmptyTextWriter();
 			}
 
-			debugLevel = config.DebugLevel;
+			debugLevel = config.GetIntegerValue(ConfigKeys.DebugLevel, -1);
 			if (debugLevel == -1)
 				// stops all the output
 				debugLevel = 255;
