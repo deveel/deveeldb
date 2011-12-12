@@ -1,45 +1,51 @@
-﻿using System;
+﻿// 
+//  Copyright 2011 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 
-using Deveel.Data.Client;
+using System;
 
 using NUnit.Framework;
 
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class VariableTest : TestBase {
-		private DeveelDbConnection connection;
-
-		protected override void OnSetUp() {
-			connection = CreateConnection();
-			connection.AutoCommit = false;
-		}
-
-		protected override void OnTearDown() {
-			connection.Close();
+		public VariableTest()
+			: base(StorageType.Memory) {
 		}
 
 		[Test]
 		public void DeclareVariables() {
-			connection.CreateCommand("test_var STRING").ExecuteNonQuery();
-			connection.CreateCommand("test_var2 NUMERIC NOT NULL").ExecuteNonQuery();
-			connection.CreateCommand("test_var3 CONSTANT VARCHAR(100) = 'test'").ExecuteNonQuery();
+			Connection.CreateCommand("test_var STRING").ExecuteNonQuery();
+			Connection.CreateCommand("test_var2 NUMERIC NOT NULL").ExecuteNonQuery();
+			Connection.CreateCommand("test_var3 CONSTANT VARCHAR(100) = 'test'").ExecuteNonQuery();
 		}
 
 		[Test]
 		public void SetVariables() {
-			connection.CreateCommand("SET test_var = 'test1'").ExecuteNonQuery();
-			connection.CreateCommand("SET test_var2 = 245").ExecuteNonQuery();
+			Connection.CreateCommand("SET test_var = 'test1'").ExecuteNonQuery();
+			Connection.CreateCommand("SET test_var2 = 245").ExecuteNonQuery();
 		}
 
 		[Test]
 		public void ShowVariables() {
-			object value = connection.CreateCommand("SELECT :test_var").ExecuteScalar();
+			object value = Connection.CreateCommand("SELECT :test_var").ExecuteScalar();
 			Console.Out.WriteLine("test_var = {0}", value);
 
-			value = connection.CreateCommand("SELECT :test_var2").ExecuteScalar();
+			value = Connection.CreateCommand("SELECT :test_var2").ExecuteScalar();
 			Console.Out.WriteLine("test_var2 = {0}", value);
 
-			value = connection.CreateCommand("SELECT :test_var3").ExecuteScalar();
+			value = Connection.CreateCommand("SELECT :test_var3").ExecuteScalar();
 			Console.Out.WriteLine("test_var3 = {0}", value);
 		}
 	}

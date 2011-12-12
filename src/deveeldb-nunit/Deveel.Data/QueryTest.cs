@@ -32,14 +32,12 @@ namespace Deveel.Data {
 		public void CountPeople() {
 			Console.Out.WriteLine("Counting the number of rows in 'Person' table...");
 
-			IDbConnection connection = CreateConnection();
 			// Create a Statement object to execute the queries on,
-			IDbCommand statement = connection.CreateCommand();
-			IDataReader result;
+			IDbCommand statement = Connection.CreateCommand();
 
 			// How many rows are in the 'Person' table?
 			statement.CommandText = "SELECT COUNT(*) FROM Person";
-			result = statement.ExecuteReader();
+			IDataReader result = statement.ExecuteReader();
 			if (result.Read()) {
 				Console.Out.WriteLine("Rows in 'Person' table: " + result.GetInt32(0));
 			}
@@ -49,9 +47,7 @@ namespace Deveel.Data {
 		public void AvgAge() {
 			Console.Out.WriteLine("Computing the average ages of people in 'Person' table...");
 
-			IDbConnection connection = CreateConnection();
-
-			IDbCommand command = connection.CreateCommand();
+			IDbCommand command = Connection.CreateCommand();
 			command.CommandText = "SELECT AVG(age) FROM Person";
 			IDataReader reader = command.ExecuteReader();
 
@@ -65,9 +61,7 @@ namespace Deveel.Data {
 		public void PeopleInAfrica() {
 			Console.Out.WriteLine("Selecting all the people in 'Person' table who live in Africa...");
 
-			IDbConnection connection = CreateConnection();
-
-			IDbCommand command = connection.CreateCommand();
+			IDbCommand command = Connection.CreateCommand();
 			command.CommandText = "SELECT name FROM Person WHERE lives_in = 'Africa' ORDER BY name";
 
 			IDataReader reader = command.ExecuteReader();
@@ -82,8 +76,7 @@ namespace Deveel.Data {
 		public void OasisOrBeatles() {
 			// List the name and music group of all the people that listen to
 			// either 'Oasis' or 'Beatles'
-			IDbConnection connection = CreateConnection();
-			IDbCommand command = connection.CreateCommand();
+			IDbCommand command = Connection.CreateCommand();
 			command.CommandText = "   SELECT Person.name, MusicGroup.name " +
 								  "     FROM Person, ListensTo, MusicGroup " +
 								  "    WHERE MusicGroup.name IN ( 'Oasis', 'Beatles' ) " +
@@ -102,8 +95,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ListIdentities() {
-			IDbConnection connection = CreateConnection();
-			IDbCommand command = connection.CreateCommand();
+			IDbCommand command = Connection.CreateCommand();
 			command.CommandText = "SELECT IDENTITY FROM Person";
 
 			using (IDataReader reader = command.ExecuteReader()) {

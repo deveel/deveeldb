@@ -4,26 +4,28 @@ using System.IO;
 using NUnit.Framework;
 
 namespace Deveel.Data.Client {
-	[TestFixture]
+	[TestFixture(StorageType.Memory)]
+	[TestFixture(StorageType.File)]
 	public sealed class LobTest : TestBase {
+		public LobTest(StorageType storageType)
+			: base(storageType) {
+		}
+
 		protected override void OnSetUp() {
-			DeveelDbConnection connection = CreateConnection();
-			DeveelDbCommand command = connection.CreateCommand("CREATE TABLE IF NOT EXISTS LOB_TEST (Id INTEGER NOT NULL, Data BLOB)");
+			DeveelDbCommand command = Connection.CreateCommand("CREATE TABLE IF NOT EXISTS LOB_TEST (Id INTEGER NOT NULL, Data BLOB)");
 			command.ExecuteNonQuery();
-			connection.Close();
+			Connection.Close();
 		}
 
 		protected override void OnTearDown() {
-			DeveelDbConnection connection = CreateConnection();
-			DeveelDbCommand command = connection.CreateCommand("DROP TABLE IF EXISTS LOB_TEST");
+			DeveelDbCommand command = Connection.CreateCommand("DROP TABLE IF EXISTS LOB_TEST");
 			command.ExecuteNonQuery();
-			connection.Close();
+			Connection.Close();
 		}
 
 		[Test]
 		public void SmallBlobWrite() {
-			DeveelDbConnection connection = CreateConnection();
-			DeveelDbCommand command = connection.CreateCommand("INSERT INTO LOB_TEST (Id, Data) VALUES (1, ?)");
+			DeveelDbCommand command = Connection.CreateCommand("INSERT INTO LOB_TEST (Id, Data) VALUES (1, ?)");
 			DeveelDbLob lob = new DeveelDbLob(command, ReferenceType.Binary, 1024 * 4);
 
 			BinaryWriter writer = new BinaryWriter(lob);
@@ -43,17 +45,13 @@ namespace Deveel.Data.Client {
 			int count = command.ExecuteNonQuery();
 
 			Assert.AreEqual(1, count);
-
-			connection.Close();
 		}
 
 		[Test]
 		public void SmallBlobRead() {
 			SmallBlobWrite();
 
-			DeveelDbConnection connection = CreateConnection();
-
-			DeveelDbCommand command = connection.CreateCommand("SELECT Data FROM LOB_TEST WHERE Id = 1");
+			DeveelDbCommand command = Connection.CreateCommand("SELECT Data FROM LOB_TEST WHERE Id = 1");
 			DeveelDbDataReader reader = command.ExecuteReader();
 			if (reader.Read()) {
 				DeveelDbLob lob = reader.GetLob(0);
@@ -68,8 +66,6 @@ namespace Deveel.Data.Client {
 					offset += readCount;
 				}
 			}
-
-			connection.Close();
 		}
 	}
 }

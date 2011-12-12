@@ -53,14 +53,12 @@
     <Compile Include="Deveel.Data.Control\DirectAccessTest.cs" />
     <Compile Include="Deveel.Data.Functions\FunctionTest.cs" />
     <Compile Include="Deveel.Data.Sql\SelectTest.cs" />
-    <Compile Include="Deveel.Data\CaseTest.cs" />
     <Compile Include="Deveel.Data\CreateDatabaseTest.cs" />
     <Compile Include="Deveel.Data\CursorTest.cs" />
     <Compile Include="Deveel.Data\ExpressionTest.cs" />
     <Compile Include="Deveel.Data\OperatorTest.cs" />
     <Compile Include="Deveel.Data\PerformanceTest.cs" />
     <Compile Include="Deveel.Data\QueryTest.cs" />
-    <Compile Include="Deveel.Data\StorageBasedAttribute.cs" />
     <Compile Include="Deveel.Data\StorageType.cs" />
     <Compile Include="Deveel.Data\TestBase.cs" />
     <Compile Include="Deveel.Data\TObjectTests.cs" />

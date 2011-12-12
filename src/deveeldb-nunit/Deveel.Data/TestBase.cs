@@ -1,5 +1,19 @@
-﻿using System;
-using System.Reflection;
+﻿// 
+//  Copyright 2011 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
 
 using Deveel.Data.Client;
 using Deveel.Data.Control;
@@ -7,19 +21,25 @@ using Deveel.Data.Control;
 using NUnit.Framework;
 
 namespace Deveel.Data {
-	[TestFixture]
 	public abstract class TestBase {
+		private readonly StorageType storageType;
 		private DbSystem system;
 
 		protected const string DatabaseName = "testdb";
 		protected const string AdminUser = "SA";
 		protected const string AdminPassword = "pass";
 
-		private static int conn_counter = -1;
+		private static int _connCounter = -1;
 
 		private DeveelDbConnection connection;
-		private bool generated;
-		private bool generateOnce;
+
+		protected TestBase(StorageType storageType) {
+			this.storageType = storageType;
+		}
+
+		protected TestBase()
+			: this(StorageType.Memory) {
+		}
 
 		protected DbSystem System {
 			get { return system; }
@@ -29,18 +49,21 @@ namespace Deveel.Data {
 			get { return connection; }
 		}
 
-		protected virtual void OnCreateTables(DeveelDbConnection connection) {
+		protected virtual bool RequiresSchema {
+			get { return false; }
 		}
 
-		protected virtual void OnInsertData(DeveelDbConnection connection) {
+		protected virtual void OnCreateTables() {
+		}
+
+		protected virtual void OnInsertData() {
 		}
 
 		[TestFixtureSetUp]
 		public void SetUp() {
-			DbController controller = DbController.Create(Environment.CurrentDirectory);
-			DbConfig config = controller.Config;
-
+			DbConfig config = DbConfig.Default;
 			OnConfigure(config);
+			DbController controller = DbController.Create(Environment.CurrentDirectory, config);
 
 			system = !controller.DatabaseExists(DatabaseName)
 						? controller.CreateDatabase(config, DatabaseName, AdminUser, AdminPassword)
@@ -56,16 +79,9 @@ namespace Deveel.Data {
 		}
 
 		protected virtual void OnConfigure(DbConfig config) {
-			StorageBasedAttribute storageAttr = Attribute.GetCustomAttribute(GetType(), typeof(StorageBasedAttribute)) as StorageBasedAttribute;
-			if (storageAttr != null) {
-				if (storageAttr.Type == StorageType.File) {
-					config.SetValue("storage_system", "v1file");
-				} else if (storageAttr.Type == StorageType.Memory) {
-					config.SetValue("storage_system", "v1heap");
-				} else {
-					config.SetValue("storage_system", storageAttr.CustomType);
-				}
-			} else {
+			if (storageType == StorageType.File) {
+				config.SetValue("storage_system", "v1file");
+			} else if (storageType == StorageType.Memory) {
 				config.SetValue("storage_system", "v1heap");
 			}
 		}
@@ -78,75 +94,80 @@ namespace Deveel.Data {
 
 		[SetUp]
 		public virtual void TestSetUp() {
-			if (!generateOnce && !generated)
+			connection = (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
+			connection.AutoCommit = false;
+
+			if (RequiresSchema)
 				GenerateDatabase();
 		}
 
 		[TearDown]
 		public virtual void TestTearDown() {
-			if (generated && !generateOnce) {
-				if (connection != null)
-					connection.Dispose();
-			}
+			if (RequiresSchema)
+				DropTables();
+
+			if (connection != null)
+				connection.Close();
 		}
 
 		private void GenerateDatabase() {
-			if (!generated) {
-				try {
-					connection = CreateConnection();
-					GenerateTables(connection);
-					OnCreateTables(connection);
+			DeveelDbTransaction transaction = connection.BeginTransaction();
+			try {
+				GenerateTables();
+				OnCreateTables();
 
-					InsertDataPerson(connection);
-					InsertDataMusicGroup(connection);
-					InsertDataListensTo(connection);
-					OnInsertData(connection);
+				transaction.Commit();
+			} catch (Exception) {
+				transaction.Rollback();
+				throw;
+			}
 
-					generated = true;
-				} finally {
-					if (connection != null)
-						connection.Dispose();
-				}
+			transaction = connection.BeginTransaction();
+			try {
+				InsertDataPerson();
+				InsertDataMusicGroup();
+				InsertDataListensTo();
+				OnInsertData();
+				transaction.Commit();
+			} catch (Exception) {
+				transaction.Rollback();
+				throw;
 			}
 		}
 
-		protected bool TablesGenerated(DeveelDbConnection connection) {
-			DeveelDbCommand command = connection.CreateCommand("SHOW TABLES");
-			DeveelDbDataReader reader = command.ExecuteReader();
-
-			while (reader.Read()) {
-				string tableName = reader.GetString(0);
-				if (!tableName.Equals("Person") &&
-					!tableName.Equals("ListensTo") &&
-					!tableName.Equals("MusicGroup"))
-					return false;
-			}
-
-			return true;
-		}
-
-		internal void GenerateTables(DeveelDbConnection connection) {
-			DeveelDbCommand command = connection.CreateCommand("    CREATE TABLE Person ( " +
+		private void GenerateTables() {
+			DeveelDbCommand command = connection.CreateCommand("    CREATE TABLE IF NOT EXISTS Person ( " +
 			                                                   "       id        IDENTITY, " +
 			                                                   "       name      VARCHAR(100) NOT NULL, " +
 			                                                   "       age       INTEGER, " +
 			                                                   "       lives_in  VARCHAR(100) ) ");
 			command.ExecuteNonQuery();
 
-			command = connection.CreateCommand("    CREATE TABLE ListensTo ( " +
+			command = connection.CreateCommand("    CREATE TABLE IF NOT EXISTS ListensTo ( " +
 			                                   "       id               IDENTITY, " +
 			                                   "       person_name      VARCHAR(100) NOT NULL, " +
 			                                   "       music_group_name VARCHAR(250) NOT NULL ) ");
 			command.ExecuteNonQuery();
 
-			command = connection.CreateCommand("    CREATE TABLE MusicGroup ( " +
+			command = connection.CreateCommand("    CREATE TABLE IF NOT EXISTS MusicGroup ( " +
 											   "       id                IDENTITY, " +
 											   "       name              VARCHAR(250) NOT NULL, " +
 											   "       country_of_origin VARCHAR(100) ) ");
 			command.ExecuteNonQuery();
 		}
 
-		internal void InsertDataPerson(DeveelDbConnection connection) {
+		private void DropTables() {
+			DeveelDbCommand command = connection.CreateCommand("DROP TABLE IF EXISTS MusicGroup");
+			command.ExecuteNonQuery();
+
+			command = connection.CreateCommand("DROP TABLE IF EXISTS ListensTo");
+			command.ExecuteNonQuery();
+
+			command = connection.CreateCommand("DROP TABLE IF EXISTS Person");
+			command.ExecuteNonQuery();
+		}
+
+		private void InsertDataPerson() {
 			DeveelDbCommand command;
 
 			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
@@ -201,7 +222,7 @@ namespace Deveel.Data {
 			command.ExecuteNonQuery();
 		}
 
-		internal void InsertDataMusicGroup(DeveelDbConnection connection) {
+		private void InsertDataMusicGroup() {
 			DeveelDbCommand command = connection.CreateCommand("    INSERT INTO MusicGroup " +
 			                                                   "      ( name, country_of_origin ) VALUES " +
 			                                                   "      ( 'Oasis',       'England' ), " +
@@ -219,7 +240,7 @@ namespace Deveel.Data {
 			command.ExecuteNonQuery();
 		}
 
-		internal void InsertDataListensTo(DeveelDbConnection connection) {
+		private void InsertDataListensTo() {
 			DeveelDbCommand command = connection.CreateCommand("    INSERT INTO ListensTo " +
 			                                                   "      ( person_name, music_group_name ) VALUES " +
 			                                                   "      ( 'David Powell',             'Metallica' ), " +
@@ -250,12 +271,12 @@ namespace Deveel.Data {
 			command.ExecuteNonQuery();
 		}
 
-		protected DeveelDbConnection CreateConnection() {
+		private DeveelDbConnection CreateConnection() {
 			return (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
 		}
 
 		protected DatabaseConnection CreateDatabaseConnection() {
-			string host_string = "Internal/Test/" + conn_counter++;
+			string host_string = "Internal/Test/" + _connCounter++;
 			User user = system.Database.AuthenticateUser(AdminUser, AdminPassword, host_string);
 			return system.Database.CreateNewConnection(user, null);
 		}

@@ -7,44 +7,41 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class CursorTest : TestBase {
-		private DeveelDbConnection connection;
-
-		protected override void OnSetUp() {
-			connection = CreateConnection();
-			connection.AutoCommit = false;
-		}
-
-		protected override void OnTearDown() {
-			connection.Dispose();
+		protected override bool RequiresSchema {
+			get { return true; }
 		}
 
 		[Test]
 		public void TestCursor() {
-			DeveelDbCommand command = connection.CreateCommand("DECLARE c_person CURSOR FOR " +
+			DeveelDbCommand command = Connection.CreateCommand("DECLARE c_person CURSOR FOR " +
 			                                                   "SELECT * FROM Person WHERE age > 2 " +
 			                                                   "   ORDER BY name ASC");
 			command.ExecuteNonQuery();
 			Console.Out.WriteLine("Cursor 'c_person' declared.");
 
-			command = connection.CreateCommand("OPEN c_person");
+			command = Connection.CreateCommand("OPEN c_person");
 			command.ExecuteNonQuery();
 			Console.Out.WriteLine("Cursor 'c_person' opened");
 
-			command = connection.CreateCommand("FETCH NEXT FROM c_person");
+			command = Connection.CreateCommand("FETCH NEXT FROM c_person");
 			DeveelDbDataReader reader = command.ExecuteReader();
 
-			if (reader.Read())
-				Console.Out.WriteLine("c_person.Next.name = {0}", reader.GetString(1));
+			Assert.IsTrue(reader.Read());
+			
+
+			Console.Out.WriteLine("c_person.Next.name = {0}", reader.GetString(1));
 
 			reader.Close();
 
-			command = connection.CreateCommand("name VARCHAR");
+			command = Connection.CreateCommand("name VARCHAR");
 			command.ExecuteNonQuery();
 			Console.Out.WriteLine("Declared variable :name.");
 
-			command = connection.CreateCommand("FETCH NEXT FROM c_person INTO :name");
+			command = Connection.CreateCommand("FETCH NEXT FROM c_person INTO :name");
+			//TODO: assert the value
+			command.ExecuteScalar();
 
-			command = connection.CreateCommand("CLOSE c_person");
+			command = Connection.CreateCommand("CLOSE c_person");
 			command.ExecuteNonQuery();
 
 			Console.Out.WriteLine("Cursor c_person closed.");
@@ -56,19 +53,19 @@ namespace Deveel.Data {
 									   "SELECT * FROM Person WHERE age > 2 " +
 									   "   ORDER BY name ASC";
 
-			DeveelDbCommand command = connection.CreateCommand(commandText);
-			Assert.AreEqual(1, command.ExecuteNonQuery());
+			DeveelDbCommand command = Connection.CreateCommand(commandText);
+			Assert.AreEqual(0, command.ExecuteNonQuery());
 		}
 
 		[Test]
 		public void Open() {
-			DeveelDbCommand command = connection.CreateCommand("OPEN c_person");
-			Assert.AreEqual(1, command.ExecuteNonQuery());
+			DeveelDbCommand command = Connection.CreateCommand("OPEN c_person");
+			Assert.AreEqual(0, command.ExecuteNonQuery());
 		}
 
 		[Test]
 		public void FetchNext() {
-			DeveelDbCommand command = connection.CreateCommand("FETCH NEXT FROM c_person");
+			DeveelDbCommand command = Connection.CreateCommand("FETCH NEXT FROM c_person");
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
@@ -79,7 +76,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Close() {
-			DeveelDbCommand command = connection.CreateCommand("CLOSE c_person");
+			DeveelDbCommand command = Connection.CreateCommand("CLOSE c_person");
 			Assert.AreEqual(1, command.ExecuteNonQuery());
 		}
 	}

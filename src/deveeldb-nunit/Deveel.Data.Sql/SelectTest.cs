@@ -7,67 +7,69 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public sealed class SelectTest : TestBase {
+		public SelectTest()
+			: base(StorageType.Memory) {
+		}
+
 		[Test]
 		public void SelectIntoSingleVar() {
-			using(DeveelDbConnection connection = CreateConnection()) {
-				connection.AutoCommit = false;
+			DeveelDbConnection connection = Connection;
+			connection.AutoCommit = false;
 
-				DeveelDbCommand command = connection.CreateCommand("name VARCHAR(100) NOT NULL");
-				command.ExecuteNonQuery();
+			DeveelDbCommand command = connection.CreateCommand("name VARCHAR(100) NOT NULL");
+			command.ExecuteNonQuery();
 
-				command = connection.CreateCommand("SELECT :name");
-				object value = command.ExecuteScalar();
+			command = connection.CreateCommand("SELECT :name");
+			object value = command.ExecuteScalar();
 
-				Console.Out.WriteLine("name = {0}", value);
+			Console.Out.WriteLine("name = {0}", value);
 
-				command = connection.CreateCommand("SELECT name INTO :name FROM Person");
-				command.ExecuteNonQuery();
+			command = connection.CreateCommand("SELECT name INTO :name FROM Person");
+			command.ExecuteNonQuery();
 
-				Console.Out.WriteLine("SELECT name INTO :name FROM Person");
+			Console.Out.WriteLine("SELECT name INTO :name FROM Person");
 
-				command = connection.CreateCommand("SELECT :name");
-				value = command.ExecuteScalar();
+			command = connection.CreateCommand("SELECT :name");
+			value = command.ExecuteScalar();
 
-				Console.Out.WriteLine("name = {0}", value);
-			}
+			Console.Out.WriteLine("name = {0}", value);
 		}
 
 		[Test]
 		public void SelectIntoTwoVars() {
-			using (DeveelDbConnection connection = CreateConnection()) {
-				connection.AutoCommit = false;
+			DeveelDbConnection connection = Connection;
+			connection.AutoCommit = false;
 
-				DeveelDbCommand command = connection.CreateCommand("name VARCHAR(100) NOT NULL");
-				command.ExecuteNonQuery();
+			DeveelDbCommand command = connection.CreateCommand("name VARCHAR(100) NOT NULL");
+			command.ExecuteNonQuery();
 
-				command = connection.CreateCommand("age INTEGER");
-				command.ExecuteNonQuery();
+			command = connection.CreateCommand("age INTEGER");
+			command.ExecuteNonQuery();
 
-				command = connection.CreateCommand("SELECT :name");
-				object value = command.ExecuteScalar();
+			command = connection.CreateCommand("SELECT :name");
+			object value = command.ExecuteScalar();
 
-				Console.Out.WriteLine("name = {0}", value);
+			Console.Out.WriteLine("name = {0}", value);
 
-				command = connection.CreateCommand("SELECT :age");
-				value = command.ExecuteScalar();
+			command = connection.CreateCommand("SELECT :age");
+			value = command.ExecuteScalar();
 
-				Console.Out.WriteLine("age = {0}", value);
+			Console.Out.WriteLine("age = {0}", value);
 
-				command = connection.CreateCommand("SELECT name, age INTO :name, :age FROM Person");
-				command.ExecuteNonQuery();
+			command = connection.CreateCommand("SELECT name, age INTO :name, :age FROM Person");
+			command.ExecuteNonQuery();
 
-				Console.Out.WriteLine("SELECT name, age INTO :name, :age FROM Person");
+			Console.Out.WriteLine("SELECT name, age INTO :name, :age FROM Person");
 
-				command = connection.CreateCommand("SELECT :name");
-				value = command.ExecuteScalar();
+			command = connection.CreateCommand("SELECT :name");
+			value = command.ExecuteScalar();
 
-				Console.Out.WriteLine("name = {0}", value);
+			Console.Out.WriteLine("name = {0}", value);
 
-				command = connection.CreateCommand("SELECT :age");
-				value = command.ExecuteScalar();
+			command = connection.CreateCommand("SELECT :age");
+			value = command.ExecuteScalar();
 
-				Console.Out.WriteLine("age = {0}", value);
-			}
+			Console.Out.WriteLine("age = {0}", value);
 		}
 	}
 }

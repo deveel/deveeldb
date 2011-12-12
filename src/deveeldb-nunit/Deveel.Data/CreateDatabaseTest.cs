@@ -12,7 +12,6 @@ namespace Deveel.Data {
 		private readonly StorageType storageType;
 		private DbSystem system;
 		private DeveelDbConnection connection;
-		private bool tablesCreated;
 
 		private const string DatabaseName = "testdb";
 		private const string AdminUser = "SA";
@@ -42,7 +41,7 @@ namespace Deveel.Data {
 						: controller.StartDatabase(config, DatabaseName);
 
 			connection = (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
-			connection.AutoCommit = true;
+			// connection.AutoCommit = true;
 		}
 
 		[TestFixtureTearDown]
@@ -74,9 +73,6 @@ namespace Deveel.Data {
 			                                   "       name              VARCHAR(250) NOT NULL, " +
 			                                   "       country_of_origin VARCHAR(100) ) ");
 			command.ExecuteNonQuery();
-			tablesCreated = true;
-
-			Assert.Pass();
 		}
 
 		[Test]
@@ -203,6 +199,8 @@ namespace Deveel.Data {
 			InsertDataListensTo();
 
 			Console.Out.WriteLine("--- Complete ---");
+
+			Assert.Pass();
 		}
 
 		[Test]

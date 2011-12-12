@@ -301,9 +301,7 @@ namespace Deveel.Data.Sql {
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
 
 			// Does the schema exist?
-			bool ignore_case = Connection.IsInCaseInsensitiveMode;
-			SchemaDef schema =
-					Connection.ResolveSchemaCase(tname.Schema, ignore_case);
+			SchemaDef schema = ResolveSchemaName(tname.Schema);
 			if (schema == null)
 				throw new DatabaseException("Schema '" + tname.Schema + "' doesn't exist.");
 

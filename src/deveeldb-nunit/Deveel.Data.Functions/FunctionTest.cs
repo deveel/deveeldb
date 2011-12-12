@@ -8,6 +8,10 @@ namespace Deveel.Data.Functions {
 	public sealed class FunctionTest : TestBase {
 		#region Aritmetic Functions
 
+		public FunctionTest() 
+			: base(StorageType.Memory) {
+		}
+
 		[Test]
 		public void Abs() {
 			Expression exp = Expression.Parse("ABS(-45)");

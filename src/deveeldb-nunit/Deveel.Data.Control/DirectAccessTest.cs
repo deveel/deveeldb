@@ -4,16 +4,8 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Control {
 	[TestFixture]
-	public sealed class DirectAccessTest : TestBase {
+	public sealed class DirectAccessTest {
 		private DbDirectAccess directAccess;
-
-		protected override void OnSetUp() {
-			directAccess = System.GetDirectAccess(AdminUser, AdminPassword);
-		}
-
-		protected override void OnTearDown() {
-			directAccess.Dispose();
-		}
 
 		[Test(Description = "Creates a new table using the Direct-Access API")]
 		public void CreateTable() {
