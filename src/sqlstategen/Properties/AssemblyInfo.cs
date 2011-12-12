@@ -1,4 +1,14 @@
-ï»¿using System.Reflection;
+
+
+
+
+
+
+
+
+
+
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -10,16 +20,16 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Deveel")]
 [assembly: AssemblyProduct("sqlstategen")]
-[assembly: AssemblyCopyright("Copyright Â© Deveel 2011")]
+[assembly: AssemblyCopyright("Copyright © Deveel 2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // Se si imposta ComVisible su false, i tipi in questo assembly non saranno visibili 
-// ai componenti COM. Se Ã¨ necessario accedere a un tipo in questo assembly da 
+// ai componenti COM. Se è necessario accedere a un tipo in questo assembly da 
 // COM, impostare su true l'attributo ComVisible per tale tipo.
 [assembly: ComVisible(false)]
 
-// Se il progetto viene esposto a COM, il GUID che segue verrÃ  utilizzato per creare l'ID della libreria dei tipi
+// Se il progetto viene esposto a COM, il GUID che segue verrà utilizzato per creare l'ID della libreria dei tipi
 [assembly: Guid("0784526d-dc09-45a3-946b-d686368203d6")]
 
 // Le informazioni sulla versione di un assembly sono costituite dai seguenti quattro valori:
@@ -29,7 +39,7 @@ using System.Runtime.InteropServices;
 //      Numero build
 //      Revisione
 //
-// Ãˆ possibile specificare tutti i valori oppure impostare valori predefiniti per i numeri relativi alla revisione e alla build 
+// È possibile specificare tutti i valori oppure impostare valori predefiniti per i numeri relativi alla revisione e alla build 
 // utilizzando l'asterisco (*) come descritto di seguito:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
