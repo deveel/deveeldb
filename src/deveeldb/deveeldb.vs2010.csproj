@@ -82,6 +82,7 @@
     <Compile Include="Deveel.Data.Sql\PrivilegesStatement.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Sql\RaiseStatement.cs" />
     <Compile Include="Deveel.Data.Sql\StatementContext.cs" />
     <Compile Include="Deveel.Data.Util\ListUtil.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseCallBack.cs" />
@@ -272,6 +273,9 @@
     <Compile Include="Deveel.Data.Sql\StatementEventArgs.cs" />
     <Compile Include="Deveel.Data.Sql\StatementTree.cs" />
     <Compile Include="Deveel.Data.Sql\TableExpressionFromSet.cs" />
+    <Compile Include="Deveel.Data\SqlState.cs" />
+    <Compile Include="Deveel.Data\SqlStateException.cs" />
+    <Compile Include="Deveel.Data\SqlState_States.cs" />
     <Compile Include="Deveel.Data\TableSelectExpression.cs" />
     <Compile Include="Deveel.Data.Sql\TNamedUserDefinedType.cs" />
     <Compile Include="Deveel.Data.Sql\UpdateTableStatement.cs" />
@@ -557,7 +561,8 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>$(ProjectDir)..\..\lib\csharpcc\csharpcc.exe -OUTPUT_DIRECTORY="$(ProjectDir)Deveel.Data.Sql" "$(ProjectDir)Deveel.Data.Sql\SQL.csc"</PreBuildEvent>
+    <PreBuildEvent>$(ProjectDir)..\..\lib\csharpcc\csharpcc.exe -OUTPUT_DIRECTORY="$(ProjectDir)Deveel.Data.Sql" "$(ProjectDir)Deveel.Data.Sql\SQL.csc"
+$(ProjectDir)..\..\util\sqlstategen.exe -i $(ProjectDir)sqlstates.xml -o $(ProjectDir)Deveel.Data\SqlState_States.cs</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
