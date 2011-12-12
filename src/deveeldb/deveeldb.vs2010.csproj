@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Deveel.Data</RootNamespace>
-    <AssemblyName>ddb</AssemblyName>
+    <AssemblyName>deveeldb</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -258,7 +258,6 @@
     <Compile Include="Deveel.Data\SearchExpression.cs" />
     <Compile Include="Deveel.Data\SelectColumn.cs" />
     <Compile Include="Deveel.Data.Sql\SelectStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\SequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql\SetStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ShowStatement.cs" />
     <Compile Include="Deveel.Data.Sql\ShutdownStatement.cs" />

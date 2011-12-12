@@ -8,13 +8,13 @@
     <ProjectGuid>{14FF1F27-B78A-4A89-A1EA-3F926078543D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>deveeldb_shell.vs2010</RootNamespace>
-    <AssemblyName>deveeldb-shell.vs2010</AssemblyName>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <AssemblyName>deveeldb</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -47,14 +47,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Commands\ConnectCommand.cs" />
+    <Compile Include="Deveel.Data\DeveelDBShell.cs" />
+    <Compile Include="Deveel.Data\SqlCommandSeparator.cs" />
+    <Compile Include="Deveel.Data\StatementCanceller.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\deveeldb-client\deveeldb-client.vs2010.csproj">
-      <Project>{DAAD2156-3B47-4330-91C7-BEEDB196AEFB}</Project>
-      <Name>deveeldb-client.vs2010</Name>
+    <ProjectReference Include="..\deveeldb\deveeldb.vs2010.csproj">
+      <Project>{A14222AE-1B48-4863-A0CA-1D6C2AB2190B}</Project>
+      <Name>deveeldb.vs2010</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
