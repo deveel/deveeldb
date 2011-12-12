@@ -16,7 +16,6 @@
 using System;
 using System.Text;
 
-using Deveel.Data.Client;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Protocol {
@@ -34,11 +33,6 @@ namespace Deveel.Data.Protocol {
 	/// </para>
 	/// </remarks>
 	public class DatabaseInterface : DatabaseInterfaceBase {
-		/// <summary>
-		/// Set this to true if Query logging is enabled.
-		/// </summary>
-		private const bool COMMAND_LOGGING = true;
-
 		/// <summary>
 		/// The unique host name denoting the client that's connected.
 		/// </summary>
@@ -77,18 +71,20 @@ namespace Deveel.Data.Protocol {
 			if (User != null)
 				throw new Exception("Attempt to authenticate user twice");
 
-			if (COMMAND_LOGGING && database.System.LogQueries) {
+#if DEBUG
+			if (database.System.LogQueries) {
 				// Output the instruction to the _queries log.
-				StringBuilder log_str = new StringBuilder();
-				log_str.Append("[CLIENT] [");
-				log_str.Append(username);
-				log_str.Append("] ");
-				log_str.Append('[');
-				log_str.Append(host_name);
-				log_str.Append("] ");
-				log_str.Append("Log in.\n");
-				database.CommandsLog.Write(log_str.ToString());
+				StringBuilder logStr = new StringBuilder();
+				logStr.Append("[CLIENT] [");
+				logStr.Append(username);
+				logStr.Append("] ");
+				logStr.Append('[');
+				logStr.Append(host_name);
+				logStr.Append("] ");
+				logStr.Append("Log in.\n");
+				database.CommandsLog.Write(logStr.ToString());
 			}
+#endif
 
 			// Write debug message,
 			if (Debug.IsInterestedIn(DebugLevel.Information)) {
@@ -178,20 +174,22 @@ namespace Deveel.Data.Protocol {
 			DatabaseConnection database_connection = DatabaseConnection;
 
 			// Log this Query if Query logging is enabled
-			if (COMMAND_LOGGING && Database.System.LogQueries) {
+#if DEBUG
+			if (Database.System.LogQueries) {
 				// Output the instruction to the _queries log.
-				StringBuilder log_str = new StringBuilder();
-				log_str.Append("[CLIENT] [");
-				log_str.Append(user.UserName);
-				log_str.Append("] ");
-				log_str.Append('[');
-				log_str.Append(host_name);
-				log_str.Append("] ");
-				log_str.Append("Query: ");
-				log_str.Append(query.Text);
-				log_str.Append('\n');
-				user.Database.CommandsLog.Write(log_str.ToString());
+				StringBuilder logStr = new StringBuilder();
+				logStr.Append("[CLIENT] [");
+				logStr.Append(user.UserName);
+				logStr.Append("] ");
+				logStr.Append('[');
+				logStr.Append(host_name);
+				logStr.Append("] ");
+				logStr.Append("Query: ");
+				logStr.Append(query.Text);
+				logStr.Append('\n');
+				user.Database.CommandsLog.Write(logStr.ToString());
 			}
+#endif
 
 			// Write debug message (Information level)
 			if (Debug.IsInterestedIn(DebugLevel.Information)) {

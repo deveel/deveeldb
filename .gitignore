@@ -19,3 +19,6 @@
 *.user
 *.suo
 /src/deveeldb-client/bin
+/src/deveeldb/Deveel.Data/SqlState_States.cs
+/src/sqlstategen/obj
+/src/sqlstategen/bin
