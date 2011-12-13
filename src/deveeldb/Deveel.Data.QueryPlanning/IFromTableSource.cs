@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.QueryPlanning {
 	/// <summary>
 	/// A single table resource item in a query which handles the behaviour
 	/// of resolving references to columns as well as providing various base

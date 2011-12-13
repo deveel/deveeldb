@@ -243,11 +243,11 @@
     <Compile Include="Deveel.Data.Sql\FetchStatement.cs" />
     <Compile Include="Deveel.Data\FromClause.cs" />
     <Compile Include="Deveel.Data\FromTable.cs" />
-    <Compile Include="Deveel.Data.Sql\FromTableDirectSource.cs" />
-    <Compile Include="Deveel.Data.Sql\FromTableSubQuerySource.cs" />
+    <Compile Include="Deveel.Data.QueryPlanning\FromTableDirectSource.cs" />
+    <Compile Include="Deveel.Data.QueryPlanning\FromTableSubQuerySource.cs" />
     <Compile Include="Deveel.Data.Sql\FunctionArgument.cs" />
     <Compile Include="Deveel.Data.Sql\GrantStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\IFromTableSource.cs" />
+    <Compile Include="Deveel.Data.QueryPlanning\IFromTableSource.cs" />
     <Compile Include="Deveel.Data.Sql\InsertStatement.cs" />
     <Compile Include="Deveel.Data\SelectIntoClause.cs" />
     <Compile Include="Deveel.Data.Sql\IStatementTreeObject.cs" />
@@ -273,7 +273,7 @@
     <Compile Include="Deveel.Data.Sql\StatementCache.cs" />
     <Compile Include="Deveel.Data.Sql\StatementEventArgs.cs" />
     <Compile Include="Deveel.Data.Sql\StatementTree.cs" />
-    <Compile Include="Deveel.Data.Sql\TableExpressionFromSet.cs" />
+    <Compile Include="Deveel.Data.QueryPlanning\TableExpressionFromSet.cs" />
     <Compile Include="Deveel.Data\SqlState.cs" />
     <Compile Include="Deveel.Data\SqlStateException.cs" />
     <Compile Include="Deveel.Data\SqlState_States.cs" />

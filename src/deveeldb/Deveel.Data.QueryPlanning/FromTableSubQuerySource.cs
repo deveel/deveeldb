@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.QueryPlanning {
 	/// <summary>
 	/// An implementation of <see cref="IFromTableSource"/> that wraps around a 
 	/// <see cref="TableSelectExpression"/> as a sub-query source.
@@ -24,13 +24,13 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The wrapped object.
 		/// </summary>
-		private readonly TableSelectExpression table_expression;
+		private readonly TableSelectExpression tableExpression;
 
 		/// <summary>
 		/// The fully prepared <see cref="TableExpressionFromSet"/> object 
 		/// that is used to qualify variables in the table.
 		/// </summary>
-		private readonly TableExpressionFromSet from_set;
+		private readonly TableExpressionFromSet fromSet;
 
 		/// <summary>
 		/// The TableName that this source is generated to (aliased name).
@@ -38,12 +38,12 @@ namespace Deveel.Data.Sql {
 		/// <remarks>
 		/// If null, we inherit from the root set.
 		/// </remarks>
-		private readonly TableName end_table_name;
+		private readonly TableName endTableName;
 
 		/// <summary>
 		/// A unique name given to this source that is used to reference it in a table-set.
 		/// </summary>
-		private readonly String unique_key;
+		private readonly string uniqueKey;
 
 		/// <summary>
 		/// The list of all variable names in the resultant source.
@@ -53,27 +53,24 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Set to true if this should do case insensitive resolutions.
 		/// </summary>
-		private bool case_insensitive = false;
+		private bool caseInsensitive;
 
 		/// <summary>
 		/// Constructs the source.
 		/// </summary>
-		/// <param name="case_insensitive"></param>
-		/// <param name="unique_key"></param>
-		/// <param name="table_expression"></param>
-		/// <param name="from_set"></param>
-		/// <param name="aliased_table_name"></param>
-		internal FromTableSubQuerySource(bool case_insensitive,
-		                                 String unique_key,
-		                                 TableSelectExpression table_expression,
-		                                 TableExpressionFromSet from_set,
-		                                 TableName aliased_table_name) {
-			this.unique_key = unique_key;
-			this.table_expression = table_expression;
-			this.from_set = from_set;
-			this.end_table_name = aliased_table_name;
+		/// <param name="caseInsensitive"></param>
+		/// <param name="uniqueKey"></param>
+		/// <param name="tableExpression"></param>
+		/// <param name="fromSet"></param>
+		/// <param name="aliasedTableName"></param>
+		internal FromTableSubQuerySource(bool caseInsensitive, string uniqueKey, TableSelectExpression tableExpression, 
+			TableExpressionFromSet fromSet, TableName aliasedTableName) {
+			this.uniqueKey = uniqueKey;
+			this.tableExpression = tableExpression;
+			this.fromSet = fromSet;
+			endTableName = aliasedTableName;
 			// Is the database case insensitive?
-			this.case_insensitive = case_insensitive;
+			this.caseInsensitive = caseInsensitive;
 		}
 
 		/// <summary>
@@ -81,14 +78,14 @@ namespace Deveel.Data.Sql {
 		/// wrapping around.
 		/// </summary>
 		internal TableSelectExpression TableExpression {
-			get { return table_expression; }
+			get { return tableExpression; }
 		}
 
 		/// <summary>
 		/// Returns the <see cref="TableExpressionFromSet"/> for this sub-query.
 		/// </summary>
 		internal TableExpressionFromSet FromSet {
-			get { return from_set; }
+			get { return fromSet; }
 		}
 
 		/// <summary>
@@ -96,7 +93,7 @@ namespace Deveel.Data.Sql {
 		/// it is left as-is.
 		/// </summary>
 		internal TableName AliasedName {
-			get { return end_table_name; }
+			get { return endTableName; }
 		}
 
 
@@ -105,15 +102,11 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private void EnsureVarList() {
 			if (vars == null) {
-				vars = from_set.GenerateResolvedVariableList();
-				//      for (int i = 0; i < vars.length; ++i) {
-				//        Console.Out.WriteLine("+ " + vars[i]);
-				//      }
-				//      Console.Out.WriteLine("0000");
+				vars = fromSet.GenerateResolvedVariableList();
 				// Are the variables aliased to a table name?
-				if (end_table_name != null) {
+				if (endTableName != null) {
 					for (int i = 0; i < vars.Length; ++i) {
-						vars[i].TableName = end_table_name;
+						vars[i].TableName = endTableName;
 					}
 				}
 			}
@@ -123,7 +116,7 @@ namespace Deveel.Data.Sql {
 		/// Returns the unique name of this source.
 		/// </summary>
 		public string UniqueKey {
-			get { return unique_key; }
+			get { return uniqueKey; }
 		}
 
 		///<summary>
@@ -131,14 +124,11 @@ namespace Deveel.Data.Sql {
 		///</summary>
 		///<param name="status"></param>
 		public void SetCaseInsensitive(bool status) {
-			case_insensitive = status;
+			caseInsensitive = status;
 		}
 
-		private bool StringCompare(String str1, String str2) {
-			if (!case_insensitive) {
-				return str1.Equals(str2);
-			}
-			return String.Compare(str1, str2, true) == 0;
+		private bool StringCompare(string str1, string str2) {
+			return String.Compare(str1, str2, caseInsensitive) == 0;
 		}
 
 		/// <summary>
@@ -150,40 +140,33 @@ namespace Deveel.Data.Sql {
 		/// <param name="table"></param>
 		/// <param name="column"></param>
 		/// <returns></returns>
-		private bool MatchesVar(VariableName v, String catalog, String schema,
-		                        String table, String column) {
+		private bool MatchesVar(VariableName v, string catalog, string schema, string table, string column) {
 			TableName tn = v.TableName;
 			String cn = v.Name;
 
-			if (column == null) {
+			if (column == null)
 				return true;
-			}
-			if (!StringCompare(cn, column)) {
+			if (!StringCompare(cn, column))
 				return false;
-			}
 
-			if (table == null) {
+			if (table == null)
 				return true;
-			}
-			if (tn == null) {
+			if (tn == null)
 				return false;
-			}
-			String tname = tn.Name;
-			if (tname != null && !StringCompare(tname, table)) {
-				return false;
-			}
 
-			if (schema == null) {
-				return true;
-			}
-			String sname = tn.Schema;
-			if (sname != null && !StringCompare(sname, schema)) {
+			string tname = tn.Name;
+			if (tname != null && !StringCompare(tname, table))
 				return false;
-			}
+
+			if (schema == null)
+				return true;
+
+			string sname = tn.Schema;
+			if (sname != null && !StringCompare(sname, schema))
+				return false;
 
 			// Currently we ignore catalog
 			return true;
-
 		}
 
 		// ---------- Implemented from IFromTableSource ----------
@@ -192,30 +175,24 @@ namespace Deveel.Data.Sql {
 			get { return UniqueKey; }
 		}
 
-		public bool MatchesReference(String catalog,
-		                             String schema, String table) {
-			if (schema == null && table == null) {
+		public bool MatchesReference(string catalog, string schema, string table) {
+			if (schema == null && table == null)
 				return true;
+
+			if (endTableName != null) {
+				string ts = endTableName.Schema;
+				string tt = endTableName.Name;
+				if (schema == null)
+					return StringCompare(tt, table);
+				if (StringCompare(tt, table) && StringCompare(ts, schema))
+					return true;
 			}
-			if (end_table_name != null) {
-				String ts = end_table_name.Schema;
-				String tt = end_table_name.Name;
-				if (schema == null) {
-					if (StringCompare(tt, table)) {
-						return true;
-					}
-				} else {
-					if (StringCompare(tt, table) && StringCompare(ts, schema)) {
-						return true;
-					}
-				}
-			}
+
 			// No way to determine if there is a match
 			return false;
 		}
 
-		public int ResolveColumnCount(String catalog, String schema,
-		                              String table, String column) {
+		public int ResolveColumnCount(string catalog, string schema, string table, string column) {
 			EnsureVarList();
 
 			if (catalog == null && schema == null && table == null && column == null) {
@@ -223,29 +200,21 @@ namespace Deveel.Data.Sql {
 				return vars.Length;
 			}
 
-			int matched_count = 0;
-			for (int i = 0; i < vars.Length; ++i) {
-				VariableName v = vars[i];
-				if (MatchesVar(v, catalog, schema, table, column)) {
-					++matched_count;
-				}
+			int matchedCount = 0;
+			foreach (VariableName v in vars) {
+				if (MatchesVar(v, catalog, schema, table, column))
+					++matchedCount;
 			}
 
-			return matched_count;
+			return matchedCount;
 
 		}
 
-		public VariableName ResolveColumn(String catalog, String schema,
-		                                  String table, String column) {
+		public VariableName ResolveColumn(string catalog, string schema, string table, string column) {
 			EnsureVarList();
 
-			//    Console.Out.WriteLine("ResolveColumn: " + catalog + ", " + schema + ", " +
-			//                       table + ", " + column);
-
-			for (int i = 0; i < vars.Length; ++i) {
-				VariableName v = vars[i];
+			foreach (VariableName v in vars) {
 				if (MatchesVar(v, catalog, schema, table, column)) {
-					//        Console.Out.WriteLine("Result: " + v);
 					return v;
 				}
 			}

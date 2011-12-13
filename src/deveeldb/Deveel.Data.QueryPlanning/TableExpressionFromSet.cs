@@ -14,15 +14,15 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.QueryPlanning {
 	/// <summary>
 	/// A set of tables and function references that make up the resources 
 	/// made available by a table expression.
 	/// </summary>
 	/// <remarks>
-	/// When a <see cref="SelectStatement"/> is prepared this object is created 
+	/// When a <see cref="Sql.SelectStatement"/> is prepared this object is created 
 	/// and is used to dereference names to sources. It also has the ability to 
 	/// chain to another <see cref="TableExpressionFromSet"/> and resolve 
 	/// references over a complex sub-query hierarchy.
@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The list of table resources in this set. (IFromTableSource).
 		/// </summary>
-		private readonly ArrayList table_resources;
+		private readonly List<IFromTableSource> tableResources;
 
 		/// <summary>
 		/// The list of function expression resources.
@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql {
 		/// <c>SELECT (a + b) AS c, ....</c> in which case we have a 
 		/// virtual assignment of c = (a + b) in this set.
 		/// </example>
-		private readonly ArrayList function_resources;
+		private readonly List<object> functionResources;
 
 		/// <summary>
 		/// The list of Variable references in this set that are exposed 
@@ -51,12 +51,12 @@ namespace Deveel.Data.Sql {
 		/// For example, <c>SELECT a, b, c, (a + 1) d FROM ABCTable</c> 
 		/// would be exposing variables 'a', 'b', 'c' and 'd'.
 		/// </example>
-		private readonly ArrayList exposed_variables;
+		private readonly List<VariableName> exposedVariables;
 
 		/// <summary>
 		/// Set to true if this should do case insensitive resolutions.
 		/// </summary>
-		private bool case_insensitive = false;
+		private bool caseInsensitive;
 
 		/// <summary>
 		/// The parent TableExpressionFromSet if one exists.
@@ -74,11 +74,11 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="case_insensitive"></param>
 		public TableExpressionFromSet(bool case_insensitive) {
-			table_resources = new ArrayList();
-			function_resources = new ArrayList();
-			exposed_variables = new ArrayList();
+			tableResources = new List<IFromTableSource>();
+			functionResources = new List<object>();
+			exposedVariables = new List<VariableName>();
 			// Is the database case insensitive?
-			this.case_insensitive = case_insensitive;
+			this.caseInsensitive = case_insensitive;
 		}
 
 		/// <summary>
@@ -98,22 +98,19 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="status"></param>
 		public void SetCaseInsensitive(bool status) {
-			case_insensitive = status;
+			caseInsensitive = status;
 		}
 
-		internal bool StringCompare(String str1, String str2) {
-			if (!case_insensitive) {
-				return str1.Equals(str2);
-			}
-			return String.Compare(str1, str2, true) == 0;
+		internal bool StringCompare(string str1, string str2) {
+			return String.Compare(str1, str2, caseInsensitive) == 0;
 		}
 
 		/// <summary>
 		/// Adds a table resource to the set.
 		/// </summary>
-		/// <param name="table_resource"></param>
-		public void AddTable(IFromTableSource table_resource) {
-			table_resources.Add(table_resource);
+		/// <param name="tableResource"></param>
+		public void AddTable(IFromTableSource tableResource) {
+			tableResources.Add(tableResource);
 		}
 
 		/// <summary>
@@ -126,10 +123,9 @@ namespace Deveel.Data.Sql {
 		/// <paramref name="expression"/> that do not reference resources 
 		/// in this set (eg. a correlated reference).
 		/// </remarks>
-		public void AddFunctionRef(String name, Expression expression) {
-			//    Console.Out.WriteLine("AddFunctionRef: " + name + ", " + expression);
-			function_resources.Add(name);
-			function_resources.Add(expression);
+		public void AddFunctionRef(string name, Expression expression) {
+			functionResources.Add(name);
+			functionResources.Add(expression);
 		}
 
 		/// <summary>
@@ -142,9 +138,7 @@ namespace Deveel.Data.Sql {
 		/// variables a, b and d).
 		/// </remarks>
 		public void ExposeVariable(VariableName v) {
-			//    Console.Out.WriteLine("ExposeVariable: " + v);
-			//    Console.Out.WriteLine(new Exception().StackTrace);
-			exposed_variables.Add(v);
+			exposedVariables.Add(v);
 		}
 
 		/// <summary>
@@ -173,9 +167,9 @@ namespace Deveel.Data.Sql {
 		/// <param name="tn"></param>
 		public void ExposeAllColumnsFromSource(TableName tn) {
 			IFromTableSource table = FindTable(tn.Schema, tn.Name);
-			if (table == null) {
+			if (table == null)
 				throw new StatementException("Table name found: " + tn);
-			}
+
 			ExposeAllColumnsFromSource(table);
 		}
 
@@ -191,10 +185,10 @@ namespace Deveel.Data.Sql {
 		/// variables exposed in the set.
 		/// </returns>
 		public VariableName[] GenerateResolvedVariableList() {
-			int sz = exposed_variables.Count;
+			int sz = exposedVariables.Count;
 			VariableName[] list = new VariableName[sz];
 			for (int i = 0; i < sz; ++i) {
-				list[i] = new VariableName((VariableName)exposed_variables[i]);
+				list[i] = new VariableName(exposedVariables[i]);
 			}
 			return list;
 		}
@@ -210,7 +204,7 @@ namespace Deveel.Data.Sql {
 		/// or <b>null</b> if no objects with the given <paramref name="schema"/> 
 		/// and <paramref name="name"/> reference match.
 		/// </returns>
-		internal IFromTableSource FindTable(String schema, String name) {
+		internal IFromTableSource FindTable(string schema, string name) {
 			for (int p = 0; p < SetCount; ++p) {
 				IFromTableSource table = GetTable(p);
 				if (table.MatchesReference(null, schema, name)) {
@@ -224,7 +218,7 @@ namespace Deveel.Data.Sql {
 		/// Returns the number of IFromTableSource objects in this set.
 		/// </summary>
 		internal int SetCount {
-			get { return table_resources.Count; }
+			get { return tableResources.Count; }
 		}
 
 		/// <summary>
@@ -233,7 +227,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="i"></param>
 		/// <returns></returns>
 		internal IFromTableSource GetTable(int i) {
-			return (IFromTableSource)table_resources[i];
+			return tableResources[i];
 		}
 
 
@@ -253,28 +247,28 @@ namespace Deveel.Data.Sql {
 		/// </returns>
 		internal Expression DereferenceAssignment(VariableName v) {
 			TableName tname = v.TableName;
-			String var_name = v.Name;
+			string varName = v.Name;
+
 			// We are guarenteed not to match with a function if the table name part
 			// of a Variable is present.
-			if (tname != null) {
+			if (tname != null)
 				return null;
-			}
 
 			// Search for the function with this name
-			Expression last_found = null;
-			int matches_found = 0;
-			for (int i = 0; i < function_resources.Count; i += 2) {
-				String fun_name = (String)function_resources[i];
-				if (StringCompare(fun_name, var_name)) {
-					if (matches_found > 0) {
+			Expression lastFound = null;
+			int matchesFound = 0;
+			for (int i = 0; i < functionResources.Count; i += 2) {
+				string funName = (string)functionResources[i];
+				if (StringCompare(funName, varName)) {
+					if (matchesFound > 0)
 						throw new StatementException("Ambiguous reference '" + v + "'");
-					}
-					last_found = (Expression)function_resources[i + 1];
-					++matches_found;
+
+					lastFound = (Expression)functionResources[i + 1];
+					++matchesFound;
 				}
 			}
 
-			return last_found;
+			return lastFound;
 		}
 
 		/// <summary>
@@ -292,28 +286,27 @@ namespace Deveel.Data.Sql {
 		/// </exception>
 		private VariableName ResolveAssignmentReference(VariableName v) {
 			TableName tname = v.TableName;
-			String var_name = v.Name;
+			string varName = v.Name;
+
 			// We are guarenteed not to match with a function if the table name part
 			// of a Variable is present.
-			if (tname != null) {
+			if (tname != null)
 				return null;
-			}
 
 			// Search for the function with this name
-			VariableName last_found = null;
-			int matches_found = 0;
-			for (int i = 0; i < function_resources.Count; i += 2) {
-				String fun_name = (String)function_resources[i];
-				if (StringCompare(fun_name, var_name)) {
-					if (matches_found > 0) {
+			VariableName lastFound = null;
+			int matchesFound = 0;
+			foreach (string funName in functionResources) {
+				if (StringCompare(funName, varName)) {
+					if (matchesFound > 0)
 						throw new StatementException("Ambiguous reference '" + v + "'");
-					}
-					last_found = new VariableName(fun_name);
-					++matches_found;
+
+					lastFound = new VariableName(funName);
+					++matchesFound;
 				}
 			}
 
-			return last_found;
+			return lastFound;
 		}
 
 
@@ -335,34 +328,34 @@ namespace Deveel.Data.Sql {
 		/// </exception>
 		private VariableName ResolveTableColumnReference(VariableName v) {
 			TableName tname = v.TableName;
-			String sch_name = null;
-			String tab_name = null;
-			String col_name = v.Name;
+			string schemaName = null;
+			string tableName = null;
+			string columnName = v.Name;
 			if (tname != null) {
-				sch_name = tname.Schema;
-				tab_name = tname.Name;
+				schemaName = tname.Schema;
+				tableName = tname.Name;
 			}
 
 			// Find matches in our list of tables sources,
-			VariableName matched_var = null;
+			VariableName matchedVar = null;
 
-			for (int i = 0; i < table_resources.Count; ++i) {
-				IFromTableSource table = (IFromTableSource)table_resources[i];
-				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
+			foreach (IFromTableSource table in tableResources) {
+				int rcc = table.ResolveColumnCount(null, schemaName, tableName, columnName);
 				if (rcc == 0) {
 					// do nothing if no matches
-				} else if (rcc == 1 && matched_var == null) {
+				} else if (rcc == 1 && matchedVar == null) {
 					// If 1 match and matched_var = null
-					matched_var =
-								 table.ResolveColumn(null, sch_name, tab_name, col_name);
-				} else {  // if (rcc >= 1 and matched_var != null)
-					Console.Out.WriteLine(matched_var);
+					matchedVar = table.ResolveColumn(null, schemaName, tableName, columnName);
+				} else {
+#if DEBUG
+					Console.Out.WriteLine(matchedVar);
 					Console.Out.WriteLine(rcc);
+#endif
 					throw new StatementException("Ambiguous reference '" + v + "'");
 				}
 			}
 
-			return matched_var;
+			return matchedVar;
 		}
 
 		/// <summary>
@@ -389,72 +382,26 @@ namespace Deveel.Data.Sql {
 		/// </exception>
 		internal VariableName ResolveReference(VariableName v) {
 			// Try and resolve against alias names first,
-			ArrayList list = new ArrayList();
+			List<VariableName> list = new List<VariableName>();
 
-			//    Expression exp = DereferenceAssignment(v);
-			//    // If this is an alias like 'a AS b' then add 'a' to the list instead of
-			//    // adding 'b'.  This allows us to handle a number of ambiguous conditions.
-			//    if (exp != null) {
-			//      Variable v2 = exp.getVariable();
-			//      if (v2 != null) {
-			//        list.add(ResolveTableColumnReference(v2));
-			//      }
-			//      else {
-			//        list.add(ResolveAssignmentReference(v));
-			//      }
-			//    }
-
-			VariableName function_var = ResolveAssignmentReference(v);
-			if (function_var != null) {
-				list.Add(function_var);
+			VariableName functionVar = ResolveAssignmentReference(v);
+			if (functionVar != null) {
+				list.Add(functionVar);
 			}
 
-			VariableName tc_var = ResolveTableColumnReference(v);
-			if (tc_var != null) {
-				list.Add(tc_var);
+			VariableName tcVar = ResolveTableColumnReference(v);
+			if (tcVar != null) {
+				list.Add(tcVar);
 			}
-
-			//    TableName tname = v.GetTableName();
-			//    String sch_name = null;
-			//    String tab_name = null;
-			//    String col_name = v.getName();
-			//    if (tname != null) {
-			//      sch_name = tname.getSchema();
-			//      tab_name = tname.getName();
-			//    }
-			//
-			//    // Find matches in our list of tables sources,
-			//    for (int i = 0; i < table_resources.size(); ++i) {
-			//      IFromTableSource table = (IFromTableSource) table_resources.get(i);
-			//      int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
-			//      if (rcc == 1) {
-			//        Variable matched =
-			//                      table.ResolveColumn(null, sch_name, tab_name, col_name);
-			//        list.add(matched);
-			//      }
-			//      else if (rcc > 1) {
-			//        throw new StatementException("Ambiguous reference '" + v + "'");
-			//      }
-			//    }
 
 			// Return the variable if we found one unambiguously.
-			int list_size = list.Count;
-			if (list_size == 0) {
+			int listSize = list.Count;
+			if (listSize == 0)
 				return null;
-			} else if (list_size == 1) {
-				return (VariableName)list[0];
-			} else {
-				//      // Check if the variables are the same?
-				//      Variable cv = (Variable) list.get(0);
-				//      for (int i = 1; i < list.size(); ++i) {
-				//        if (!cv.equals(list.get(i))) {
-				throw new StatementException("Ambiguous reference '" + v + "'");
-				//        }
-				//      }
-				//      // If they are all the same return the variable.
-				//      return v;
-			}
+			if (listSize == 1)
+				return list[0];
 
+			throw new StatementException("Ambiguous reference '" + v + "'");
 		}
 
 		/// <summary>
@@ -476,12 +423,11 @@ namespace Deveel.Data.Sql {
 		/// </exception>
 		private CorrelatedVariable GlobalResolveReference(int level, VariableName v) {
 			VariableName nv = ResolveReference(v);
-			if (nv == null && Parent != null) {
+			if (nv == null && Parent != null)
 				// If we need to descend to the parent, increment the level.
 				return Parent.GlobalResolveReference(level + 1, v);
-			} else if (nv != null) {
+			if (nv != null)
 				return new CorrelatedVariable(nv, level);
-			}
 			return null;
 		}
 

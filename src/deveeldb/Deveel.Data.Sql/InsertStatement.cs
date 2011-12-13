@@ -17,6 +17,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Deveel.Data.QueryPlanning;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// The instance class that stores all the information about an 
@@ -38,7 +40,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The table we are inserting stuff to.
 		/// </summary>
-		private DataTable insert_table;
+		private DataTable insertTable;
 
 		/// <summary>
 		/// For 'from_values' and 'from_select', this is a list of indices into the
@@ -76,7 +78,7 @@ namespace Deveel.Data.Sql {
 		/// The list of all IFromTableSource objects of resources referenced 
 		/// in this query.
 		/// </summary>
-		private List<IFromTableSource> table_list = new List<IFromTableSource>();
+		private readonly List<IFromTableSource> tableList = new List<IFromTableSource>();
 
 		/// <summary>
 		/// Add an <see cref="IFromTableSource"/> used within the query.
@@ -85,12 +87,12 @@ namespace Deveel.Data.Sql {
 		/// <remarks>
 		/// These tables are used when we try to resolve a column name.
 		/// </remarks>
-		protected void AddTable(IFromTableSource table) {
-			table_list.Add(table);
+		private void AddTable(IFromTableSource table) {
+			tableList.Add(table);
 		}
 
 		protected override void OnReset() {
-			table_list.Clear();
+			tableList.Clear();
 		}
 
 		/// <summary>
@@ -154,7 +156,7 @@ namespace Deveel.Data.Sql {
 
 			int matches_found = 0;
 			// Find matches in our list of tables sources,
-			foreach (IFromTableSource table in table_list) {
+			foreach (IFromTableSource table in tableList) {
 				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);
 				if (rcc == 1) {
 					VariableName matched = table.ResolveColumn(null, sch_name, tab_name, col_name);
@@ -219,15 +221,15 @@ namespace Deveel.Data.Sql {
 			AddTable(new FromTableDirectSource(Connection.IsInCaseInsensitiveMode, tableQueryInfo, "INSERT_TABLE", tname, tname));
 
 			// Get the table we are inserting to
-			insert_table = Connection.GetTable(tname);
+			insertTable = Connection.GetTable(tname);
 
 			// If column list is empty, then fill it with all columns from table.
 			if (from_values || from_select) {
 				// If 'col_list' is empty we must pick every entry from the insert
 				// table.
 				if (col_list.Count == 0) {
-					for (int i = 0; i < insert_table.ColumnCount; ++i) {
-						col_list.Add(insert_table.GetColumnInfo(i).Name);
+					for (int i = 0; i < insertTable.ColumnCount; ++i) {
+						col_list.Add(insertTable.GetColumnInfo(i).Name);
 					}
 				}
 				// Resolve 'col_list' into a list of column indices into the insert
@@ -237,7 +239,7 @@ namespace Deveel.Data.Sql {
 				for (int i = 0; i < col_list.Count; ++i) {
 					VariableName inVar = VariableName.Resolve((String)col_list[i]);
 					VariableName col = ResolveColumn(inVar);
-					int index = insert_table.FastFindFieldName(col);
+					int index = insertTable.FastFindFieldName(col);
 					if (index == -1)
 						throw new DatabaseException("Can't find column: " + col);
 
@@ -334,9 +336,9 @@ namespace Deveel.Data.Sql {
 				// Set each row from the VALUES table,
 				for (int i = 0; i < values_list.Count; ++i) {
 					IList insert_elements = (IList)values_list[i];
-					DataRow dataRow = insert_table.NewRow();
+					DataRow dataRow = insertTable.NewRow();
 					dataRow.SetupEntire(col_index_list, insert_elements, context);
-					insert_table.Add(dataRow);
+					insertTable.Add(dataRow);
 					++insert_count;
 				}
 			} else if (from_select) {
@@ -358,22 +360,22 @@ namespace Deveel.Data.Sql {
 				int sz = row_list.Count;
 				for (int i = 0; i < sz; ++i) {
 					int rindex = row_list[i];
-					DataRow dataRow = insert_table.NewRow();
+					DataRow dataRow = insertTable.NewRow();
 					for (int n = 0; n < col_index_list.Length; ++n) {
 						TObject cell = result.GetCellContents(n, rindex);
 						dataRow.SetValue(col_index_list[n], cell);
 					}
 					dataRow.SetToDefault(context);
-					insert_table.Add(dataRow);
+					insertTable.Add(dataRow);
 					++insert_count;
 				}
 			} else if (from_set) {
 				// Insert rows from the set assignments.
-				DataRow dataRow = insert_table.NewRow();
+				DataRow dataRow = insertTable.NewRow();
 				Assignment[] assignments = new Assignment[column_sets.Count];
 				column_sets.CopyTo(assignments, 0);
 				dataRow.SetupEntire(assignments, context);
-				insert_table.Add(dataRow);
+				insertTable.Add(dataRow);
 				++insert_count;
 			}
 
