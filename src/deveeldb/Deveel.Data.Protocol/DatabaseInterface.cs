@@ -63,8 +63,7 @@ namespace Deveel.Data.Protocol {
 		/// <returns>
 		/// Returns <b>true</b> if we are successful.
 		/// </returns>
-		private bool Authenticate(Database database, String default_schema, String username, String password,
-									 IDatabaseCallBack database_call_back) {
+		private bool Authenticate(Database database, String default_schema, String username, String password, DatabaseEventCallback database_call_back) {
 			// If the 'user' variable is null, no one is currently logged in to this
 			// connection.
 
@@ -107,7 +106,7 @@ namespace Deveel.Data.Protocol {
 				                                                              	message.Append(' ');
 				                                                              	message.Append(fireCount);
 
-				                                                              	database_call_back.OnDatabaseEvent(99, message.ToString());
+				                                                              	database_call_back(99, message.ToString());
 
 				                                                              });
 
@@ -156,13 +155,11 @@ namespace Deveel.Data.Protocol {
 
 		// ---------- Implemented from IDatabaseInterface ----------
 
-		public override bool Login(String default_schema, String username, String password,
-							 IDatabaseCallBack database_call_back) {
+		public override bool Login(String defaultSchema, String username, String password, DatabaseEventCallback databaseCallback) {
 
 			Database database = Database;
 
-			return Authenticate(database, default_schema, username, password,
-			                    database_call_back);
+			return Authenticate(database, defaultSchema, username, password, databaseCallback);
 		}
 
 		public override IQueryResponse ExecuteQuery(SqlQuery query) {
@@ -277,25 +274,26 @@ namespace Deveel.Data.Protocol {
 
 		}
 
-
-		protected override void Dispose() {
-			if (User != null) {
-				DatabaseConnection database = DatabaseConnection;
-				LockingMechanism locker = database.LockingMechanism;
-				try {
-					// Lock into exclusive mode,
-					locker.SetMode(LockingMode.Exclusive);
-					// Roll back any open transaction.
-					database.Rollback();
-				} finally {
-					// Finish being in exclusive mode.
-					locker.FinishMode(LockingMode.Exclusive);
-					// Close the database connection object.
-					database.Close();
-					// Log out the user
-					User.Logout();
-					// Call the internal dispose method.
-					InternalDispose();
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if (User != null) {
+					DatabaseConnection database = DatabaseConnection;
+					LockingMechanism locker = database.LockingMechanism;
+					try {
+						// Lock into exclusive mode,
+						locker.SetMode(LockingMode.Exclusive);
+						// Roll back any open transaction.
+						database.Rollback();
+					} finally {
+						// Finish being in exclusive mode.
+						locker.FinishMode(LockingMode.Exclusive);
+						// Close the database connection object.
+						database.Close();
+						// Log out the user
+						User.Logout();
+						// Call the internal dispose method.
+						base.Dispose(true);
+					}
 				}
 			}
 		}

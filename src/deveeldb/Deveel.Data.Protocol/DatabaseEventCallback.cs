@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010  Deveel
+﻿// 
+//  Copyright 2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -13,22 +13,6 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace Deveel.Data.Protocol {
-	/// <summary>
-	/// A container class that holds a part of a result set.
-	/// </summary>
-	public class ResultPart : List<object> {
-
-		public ResultPart() {
-		}
-
-		public ResultPart(int capacity)
-			: base(capacity) {
-		}
-
-	}
+	public delegate void DatabaseEventCallback(int eventType, string eventMessage);
 }

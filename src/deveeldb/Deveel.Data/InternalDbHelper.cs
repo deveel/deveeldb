@@ -19,7 +19,6 @@ using System.Data;
 using Deveel.Data.Client;
 using Deveel.Data.Control;
 using Deveel.Data.Protocol;
-using Deveel.Data.Server;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data {
@@ -32,7 +31,7 @@ namespace Deveel.Data {
 	/// This class allows us to provide ADO.NET access to stored procedures 
 	/// from inside the engine.
 	/// </remarks>
-	class InternalDbHelper {
+	static class InternalDbHelper {
 		/// <summary>
 		/// Returns a <see cref="IDbConnection"/> object that is bound to 
 		/// the given <see cref="DatabaseConnection"/> object.
@@ -53,16 +52,16 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal static DeveelDbConnection CreateDbConnection(User user, DatabaseConnection connection) {
-			InternalDatabaseInterface db_interface = new InternalDatabaseInterface(user, connection);
-			return new InternalConnection(connection, db_interface, 11, 4092000);
+		public static DeveelDbConnection CreateDbConnection(User user, DatabaseConnection connection) {
+			InternalDatabaseInterface dbInterface = new InternalDatabaseInterface(user, connection);
+			return new InternalConnection(connection, dbInterface, 11, 4092000);
 		}
 
 		/// <summary>
 		/// Disposes the <see cref="IDbConnection">ADO.NET connection</see> 
 		/// object returned by the <see cref="CreateDbConnection"/> method.
 		/// </summary>
-		/// <param name="db_connection"></param>
+		/// <param name="dbConnection"></param>
 		/// <remarks>
 		/// This should be called to free resources associated with the connection object.
 		/// <para>
@@ -70,8 +69,8 @@ namespace Deveel.Data {
 		/// object in invalidated.
 		/// </para>
 		/// </remarks>
-		internal static void DisposeDbConnection(IDbConnection db_connection) {
-			InternalConnection connection = (InternalConnection)db_connection;
+		public static void DisposeDbConnection(IDbConnection dbConnection) {
+			InternalConnection connection = (InternalConnection)dbConnection;
 			// Dispose the connection.
 			connection.InternalClose();
 		}
@@ -95,8 +94,8 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		private sealed class InternalConnection : DeveelDbConnection {
-			public InternalConnection(DatabaseConnection db, IDatabaseInterface db_interface, int cache_size, int max_size)
-				: base(String.Empty, db_interface, cache_size, max_size) {
+			public InternalConnection(DatabaseConnection db, IDatabaseInterface dbInterface, int cacheSize, int maxSize)
+				: base(String.Empty, dbInterface, cacheSize, maxSize) {
 				IsCaseInsensitiveIdentifiers = db.IsInCaseInsensitiveMode;
 				// we open internal connections at construction...
 				Open();
@@ -111,9 +110,8 @@ namespace Deveel.Data {
 			public override bool AutoCommit {
 				get { return false; }
 				set {
-					if (value) {
+					if (value)
 						throw new DataException("Auto-commit can not be enabled for an internal connection.");
-					}
 				}
 			}
 
@@ -152,13 +150,9 @@ namespace Deveel.Data {
 
 			// ---------- Implemented from IDatabaseInterface ----------
 
-			public override bool Login(string default_schema, string username, string password, IDatabaseCallBack call_back) {
+			public override bool Login(string defaultSchema, string username, string password, DatabaseEventCallback callback) {
 				// This should never be used for an internal connection.
-				throw new DataException("'login' is not supported for InterfaceDatabaseInterface");
-			}
-
-			protected override void Dispose() {
-				InternalDispose();
+				throw new DataException("'login' is not supported for InternalDatabaseInterface");
 			}
 		}
 

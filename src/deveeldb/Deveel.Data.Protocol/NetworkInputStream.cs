@@ -23,8 +23,8 @@ using System;
 using System.IO;
 using System.Net.Sockets;
 
-namespace Deveel.Data.Util {
-	class NetworkInputStream : Stream, IInputStream {
+namespace Deveel.Data.Protocol {
+	public class NetworkInputStream : Stream, IInputStream {
 		public NetworkInputStream(Socket socket) {
 			stream = new NISNetworkStream(socket);
 		}

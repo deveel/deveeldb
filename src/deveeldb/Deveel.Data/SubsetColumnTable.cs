@@ -95,7 +95,7 @@ namespace Deveel.Data {
 
 			for (int i = 0; i < mapping.Length; ++i) {
 				int map_to = mapping[i];
-				DataTableColumnInfo colInfo = parent.GetColumnDef(map_to).Clone();
+				DataTableColumnInfo colInfo = parent.GetColumnInfo(map_to).Clone();
 				colInfo.Name = aliases[i].Name;
 				subsetTableInfo.AddColumn(colInfo);
 				reverse_column_map[map_to] = i;

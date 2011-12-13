@@ -15,46 +15,46 @@
 
 using System;
 
-namespace Deveel.Data.Client {
+namespace Deveel.Data.Protocol {
 	/// <summary>
 	/// Constants used in the database communication protocol.
 	/// </summary>
-	public sealed class ProtocolConstants {
+	public static class ProtocolConstants {
 		/// <summary>
 		/// Sent as an acknowledgement to a command.
 		/// </summary>
-		public const int ACKNOWLEDGEMENT = 5;
+		public const int Acknowledgement = 5;
 
 		/// <summary>
 		/// The specified database was not found.
 		/// </summary>
-		public const int DATABASE_NOT_FOUND = 7;
+		public const int DatabaseNotFound = 7;
 
 		/// <summary>
 		/// Sent if login passed.
 		/// </summary>
-		public const int USER_AUTHENTICATION_PASSED = 10;
+		public const int UserAuthenticationPassed = 10;
 
 		/// <summary>
 		/// Sent if login failed because username or password were invalid.
 		/// </summary>
-		public const int USER_AUTHENTICATION_FAILED = 15;
+		public const int UserAuthenticationFailed = 15;
 
 		/// <summary>
 		/// Operation was successful.
 		/// </summary>
-		public const int SUCCESS = 20;
+		public const int Success = 20;
 
 		/// <summary>
 		/// Operation failed (followed by a UTF String error message).
 		/// </summary>
-		public const int FAILED = 25;
+		public const int Failed = 25;
 
 
 		/// <summary>
 		/// Operation threw an exception.
 		/// </summary>
-		public const int EXCEPTION = 30;
+		public const int Exception = 30;
 
 		/// <summary>
 		/// There was an authentication error.
@@ -62,7 +62,7 @@ namespace Deveel.Data.Client {
 		/// <remarks>
 		/// A command couldn't be executed because the user does not have enough rights.
 		/// </remarks>
-		public const int AUTHENTICATION_ERROR = 35;
+		public const int AuthenticationError = 35;
 
 
 
@@ -73,54 +73,54 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// Changes the current database for the session.
 		/// </summary>
-		public const int CHANGE_DATABASE = 40;
+		public const int ChangeDatabase = 40;
 
 		/// <summary>
 		/// Query sent to the server for processing.
 		/// </summary>
-		public const int QUERY = 50;
+		public const int Query = 50;
 
 		/// <summary>
 		/// Disposes the server-side resources associated with a result.
 		/// </summary>
-		public const int DISPOSE_RESULT = 55;
+		public const int DisposeResult = 55;
 
 		/// <summary>
 		/// Requests a section of a result from the server.
 		/// </summary>
-		public const int RESULT_SECTION = 60;
+		public const int ResultSection = 60;
 
 		/// <summary>
 		/// Requests a section of a streamable object from the server.
 		/// </summary>
-		public const int STREAMABLE_OBJECT_SECTION = 61;
+		public const int StreamableObjectSection = 61;
 
 		/// <summary>
 		/// Disposes of the resources associated with a streamable object 
 		/// on the server.
 		/// </summary>
-		public const int DISPOSE_STREAMABLE_OBJECT = 62;
+		public const int DisposeStreamableObject = 62;
 
 		/// <summary>
 		/// For pushing a part of a streamable object onto the server from the client.
 		/// </summary>
-		public const int PUSH_STREAMABLE_OBJECT_PART = 63;
+		public const int PushStreamableObjectPart = 63;
 
 
 		/// <summary>
 		/// Ping command.
 		/// </summary>
-		public const int PING = 65;
+		public const int Ping = 65;
 
 		/// <summary>
 		/// Closes the protocol stream.
 		/// </summary>
-		public const int CLOSE = 70;
+		public const int Close = 70;
 
 		/// <summary>
 		/// Denotes an event from the database (trigger, etc).
 		/// </summary>
-		public const int DATABASE_EVENT = 75;
+		public const int DatabaseEvent = 75;
 
 		/// <summary>
 		/// Denotes a server side request for information.
@@ -128,6 +128,6 @@ namespace Deveel.Data.Client {
 		/// <remarks>
 		/// For example, a request for a part of a streamable object.
 		/// </remarks>
-		public const int SERVER_REQUEST = 80;
+		public const int ServerRequest = 80;
 	}
 }

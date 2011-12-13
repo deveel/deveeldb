@@ -3,7 +3,7 @@ using System.IO;
 using System.Net.Sockets;
 
 using Deveel.Data.Control;
-using Deveel.Data.Util;
+using Deveel.Data.Protocol;
 
 namespace Deveel.Data.Server {
 	/// <summary>
@@ -14,21 +14,22 @@ namespace Deveel.Data.Server {
 		/// <summary>
 		/// The socket connection with the client.
 		/// </summary>
-		private readonly Socket connection;
+		private readonly Socket socket;
 
 		/// <summary>
 		/// Is set to true when the connection to the client is closed.
 		/// </summary>
-		private bool is_closed = false;
+		private bool isClosed;
 
 		/// <summary>
 		/// Constructs the <see cref="IServerConnection"/> object.
 		/// </summary>
 		/// <param name="controller"></param>
+		/// <param name="hostString"></param>
 		/// <param name="socket"></param>
-		internal TcpServerConnection(TcpServerController controller, string host_string, Socket socket)
-			: base(controller, host_string, new NetworkInputStream(socket), new NetworkStream(socket, FileAccess.Write)) {
-			this.connection = socket;
+		internal TcpServerConnection(TcpServerController controller, string hostString, Socket socket)
+			: base(controller.Controller, hostString, new NetworkInputStream(socket), new NetworkStream(socket, FileAccess.Write)) {
+			this.socket = socket;
 		}
 
 		/// <summary>
@@ -42,13 +43,16 @@ namespace Deveel.Data.Server {
 				Console.Error.WriteLine(e.Message);
 				Console.Error.WriteLine(e.StackTrace);
 			}
-			// Close the socket
-			connection.Close();
-			is_closed = true;
+			try {
+				// Close the socket
+				socket.Close();
+			} finally {
+				isClosed = true;
+			}
 		}
 
 		public override bool IsClosed {
-			get { return is_closed; }
+			get { return isClosed; }
 		}
 	}
 }

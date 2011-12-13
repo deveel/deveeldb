@@ -68,9 +68,6 @@
     <Compile Include="Deveel.Data.Server\TcpServiceInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Deveel.Data.Util\IInputStream.cs" />
-    <Compile Include="Deveel.Data.Util\LengthMarkedBufferedInputStream.cs" />
-    <Compile Include="Deveel.Data.Util\NetworkInputStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
