@@ -276,10 +276,10 @@ namespace Deveel.Data {
 		/// Returns the <see cref="DataTableColumnInfo"/> object for the 
 		/// given column index.
 		/// </summary>
-		/// <param name="col_index"></param>
+		/// <param name="columnOffset"></param>
 		/// <returns></returns>
-		public DataTableColumnInfo GetColumnDef(int col_index) {
-			return TableInfo[col_index];
+		public DataTableColumnInfo GetColumnInfo(int columnOffset) {
+			return TableInfo[columnOffset];
 		}
 
 
@@ -466,7 +466,7 @@ namespace Deveel.Data {
 					// Construct a temporary table with a single column that we are
 					// comparing to.
 					TemporaryTable ttable;
-					DataTableColumnInfo col = GetColumnDef(FindFieldName(lhs_var));
+					DataTableColumnInfo col = GetColumnInfo(FindFieldName(lhs_var));
 					DatabaseQueryContext db_context = (DatabaseQueryContext)context;
 					ttable = new TemporaryTable(db_context.Database,
 											 "single", new DataTableColumnInfo[] { col });
@@ -515,7 +515,7 @@ namespace Deveel.Data {
 			else {
 
 				// Is the column we are searching on indexable?
-				DataTableColumnInfo colInfo = GetColumnDef(column);
+				DataTableColumnInfo colInfo = GetColumnInfo(column);
 				if (!colInfo.IsIndexableType) {
 					throw new StatementException("Can not search on field type " +
 												 colInfo.TType.ToSQLString() +
@@ -800,8 +800,8 @@ namespace Deveel.Data {
 			// Check that the first column of 'table' is of a compatible type with
 			// source table column (lhs_col_index).
 			// ISSUE: Should we convert to the correct type via a FunctionTable?
-			DataTableColumnInfo source_col = source_table.GetColumnDef(lhs_col_index);
-			DataTableColumnInfo dest_col = table.GetColumnDef(0);
+			DataTableColumnInfo source_col = source_table.GetColumnInfo(lhs_col_index);
+			DataTableColumnInfo dest_col = table.GetColumnInfo(0);
 			if (!source_col.TType.IsComparableType(dest_col.TType)) {
 				throw new ApplicationException("The type of the sub-query expression " +
 								source_col.TType.ToSQLString() + " is incompatible " +
@@ -969,8 +969,8 @@ namespace Deveel.Data {
 			// Check that the first column of 'table' is of a compatible type with
 			// source table column (lhs_col_index).
 			// ISSUE: Should we convert to the correct type via a FunctionTable?
-			DataTableColumnInfo source_col = source_table.GetColumnDef(lhs_col_index);
-			DataTableColumnInfo dest_col = table.GetColumnDef(0);
+			DataTableColumnInfo source_col = source_table.GetColumnInfo(lhs_col_index);
+			DataTableColumnInfo dest_col = table.GetColumnInfo(0);
 			if (!source_col.TType.IsComparableType(dest_col.TType)) {
 				throw new ApplicationException("The type of the sub-query expression " +
 								source_col.TType.ToSQLString() + " is incompatible " +
@@ -1459,7 +1459,7 @@ namespace Deveel.Data {
 		/// </returns>
 		public VirtualTable OrderByColumn(int col_index, bool ascending) {
 			// Check the field can be sorted
-			DataTableColumnInfo colInfo = GetColumnDef(col_index);
+			DataTableColumnInfo colInfo = GetColumnInfo(col_index);
 
 			List<int> rows = new List<int>(SelectAll(col_index));
 

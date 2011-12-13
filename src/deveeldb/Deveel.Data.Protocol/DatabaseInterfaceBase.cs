@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ using System.Data;
 using System.IO;
 
 using Deveel.Data.Client;
-using Deveel.Data.Control;
 using Deveel.Data.Sql;
 
 using Deveel.Diagnostics;
@@ -58,73 +57,73 @@ namespace Deveel.Data.Protocol {
 		/// A pointer to the object that handles database within the
 		/// underlying system.
 		/// </summary>
-		private readonly IDatabaseHandler database_handler;
+		private readonly IDatabaseHandler databaseHandler;
 
-        /// <summary>
-        /// The Database object that represents the context of this database interface.
-        /// </summary>
-		private Database database;
+		/// <summary>
+		/// The Database object that represents the context of this database interface.
+		/// </summary>
+		private Database currentDatabase;
 
-        /// <summary>
-        /// The mapping that maps from result id number to <see cref="Table"/> object 
-        /// that this ADO.NET connection is currently maintaining.
-        /// </summary>
-        /// <remarks>
-        /// <b>Note</b>: All <see cref="Table"/> objects are now valid over a database 
-        /// shutdown and init.
-        /// </remarks>
-		private readonly Hashtable result_set_map;
+		/// <summary>
+		/// The mapping that maps from result id number to <see cref="Table"/> object 
+		/// that this ADO.NET connection is currently maintaining.
+		/// </summary>
+		/// <remarks>
+		/// <b>Note</b>: All <see cref="Table"/> objects are now valid over a database 
+		/// shutdown and init.
+		/// </remarks>
+		private readonly Dictionary<int, ResultSetInfo> resultSetMap;
 
-        /// <summary>
-        /// This is incremented every time a result set is added to the map.
-        /// </summary>
-        /// <remarks>
-        /// This way, we always have a unique key on hand.
-        /// </remarks>
-		private int unique_result_id;
+		/// <summary>
+		/// This is incremented every time a result set is added to the map.
+		/// </summary>
+		/// <remarks>
+		/// This way, we always have a unique key on hand.
+		/// </remarks>
+		private int uniqueResultId;
 
-        /// <summary>
-        /// Access to information regarding the user logged in on this connection.
-        /// </summary>
-        /// <remarks>
-        /// If no user is logged in, this is left as 'null'.  We can also use this to
-        /// retreive the <see cref="Database"/> object the user is logged into.
-        /// </remarks>
+		/// <summary>
+		/// Access to information regarding the user logged in on this connection.
+		/// </summary>
+		/// <remarks>
+		/// If no user is logged in, this is left as 'null'.  We can also use this to
+		/// retreive the <see cref="Database"/> object the user is logged into.
+		/// </remarks>
 		private User user;
 
-        /// <summary>
-        /// The database connection transaction.
-        /// </summary>
-		private DatabaseConnection database_connection;
+		/// <summary>
+		/// The database connection transaction.
+		/// </summary>
+		private DatabaseConnection dbConnection;
 
-        /// <summary>
-        /// Mantains a mapping from streamable object id for a particular object 
-        /// that is currently being uploaded to the server. 
-        /// </summary>
-        /// <remarks>
-        /// This maps streamable_object_id to blob id reference.
-        /// </remarks>
-		private Hashtable blob_id_map;
+		/// <summary>
+		/// Mantains a mapping from streamable object id for a particular object 
+		/// that is currently being uploaded to the server. 
+		/// </summary>
+		/// <remarks>
+		/// This maps streamable_object_id to blob id reference.
+		/// </remarks>
+		private readonly Dictionary<long, IRef> blobIdMap;
 
-        /// <summary>
-        /// Set to true when this database interface is disposed.
-        /// </summary>
+		/// <summary>
+		/// Set to true when this database interface is disposed.
+		/// </summary>
 		private bool disposed;
 
 
 		///<summary>
-        /// Sets up the database interface.
+		/// Sets up the database interface.
 		///</summary>
 		/// <param name="handler"></param>
 		/// <param name="databaseName"></param>
 		protected DatabaseInterfaceBase(IDatabaseHandler handler, string databaseName) {
-			database_handler = handler;
-			if (databaseName != null && databaseName.Length > 0)
-				database = handler.GetDatabase(databaseName);
+			databaseHandler = handler;
+			if (!String.IsNullOrEmpty(databaseName))
+				currentDatabase = handler.GetDatabase(databaseName);
 
-			result_set_map = new Hashtable();
-			blob_id_map = new Hashtable();
-			unique_result_id = 1;
+			resultSetMap = new Dictionary<int, ResultSetInfo>();
+			blobIdMap = new Dictionary<long, IRef>();
+			uniqueResultId = 1;
 			disposed = false;
 		}
 
@@ -134,109 +133,112 @@ namespace Deveel.Data.Protocol {
 
 		// ---------- Utility methods ----------
 
-        /// <summary>
-        /// Initializes this database interface with a <see cref="User"/> and 
-        /// <see cref="DatabaseConnection"/> object.
-        /// </summary>
-        /// <param name="user"></param>
-        /// <param name="connection"></param>
-        /// <remarks>
-        /// This would typically be called from inside an authentication method, or 
-        /// from <see cref="Login"/>.  This must be set before the object can be used.
-        /// </remarks>
+		/// <summary>
+		/// Initializes this database interface with a <see cref="User"/> and 
+		/// <see cref="DatabaseConnection"/> object.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="connection"></param>
+		/// <remarks>
+		/// This would typically be called from inside an authentication method, or 
+		/// from <see cref="Login"/>.  This must be set before the object can be used.
+		/// </remarks>
 		protected void Init(User user, DatabaseConnection connection) {
-			if (database == null)
+			if (currentDatabase == null)
 				throw new InvalidOperationException("None database was selected.");
-			if (connection.Database != database)
+			if (connection.Database != currentDatabase)
 				throw new InvalidOperationException("The connection is established to a different database.");
 
 			this.user = user;
-			this.database_connection = connection;
+			this.dbConnection = connection;
 		}
 
-        /// <summary>
-        /// Returns the <see cref="Database"/> that is the context of this interface.
-        /// </summary>
-	    protected Database Database {
-	        get { return database; }
-	    }
+		/// <summary>
+		/// Returns the <see cref="Database"/> that is the context of this interface.
+		/// </summary>
+		protected Database Database {
+			get { return currentDatabase; }
+		}
 
-        /// <summary>
-        /// Returns the <see cref="User"/> object for this connection.
-        /// </summary>
-	    protected User User {
-	        get { return user; }
-	    }
+		/// <summary>
+		/// Returns the <see cref="User"/> object for this connection.
+		/// </summary>
+		protected User User {
+			get { return user; }
+		}
 
-        /// <summary>
-        /// Returns the <see cref="DatabaseConnection"/> objcet for this connection.
-        /// </summary>
-	    protected DatabaseConnection DatabaseConnection {
-	        get { return database_connection; }
-	    }
+		/// <summary>
+		/// Returns the <see cref="DatabaseConnection"/> objcet for this connection.
+		/// </summary>
+		protected DatabaseConnection DatabaseConnection {
+			get { return dbConnection; }
+		}
 
 		/// <summary>
 		/// Gets an object that can be used to log debug information.
 		/// </summary>
 		protected IDebugLogger Debug {
 			//TODO: return an empty debug logger if database is null...
-			get { return (database != null ? database.Debug : null); }
+			get { return (currentDatabase != null ? currentDatabase.Debug : null); }
 		}
 
-        /// <summary>
-        /// Adds this result set to the list of result sets being handled 
-        /// through this processor.
-        /// </summary>
-        /// <param name="result"></param>
-        /// <returns>
-        /// Returns a number that unique identifies the result set.
-        /// </returns>
+		/// <summary>
+		/// Adds this result set to the list of result sets being handled 
+		/// through this processor.
+		/// </summary>
+		/// <param name="result"></param>
+		/// <returns>
+		/// Returns a number that unique identifies the result set.
+		/// </returns>
 		private int AddResultSet(ResultSetInfo result) {
 			// Lock the roots of the result set.
-			result.LockRoot(-1);  // -1 because lock_key not implemented
+			result.LockRoot(-1); // -1 because lock_key not implemented
 
 			// Make a new result id
-			int result_id;
+			int resultId;
 			// This ensures this block can handle concurrent updates.
-			lock (result_set_map) {
-				result_id = ++unique_result_id;
+			lock (resultSetMap) {
+				resultId = ++uniqueResultId;
 				// Add the result to the map.
-				result_set_map[result_id] = result;
+				resultSetMap[resultId] = result;
 			}
 
-			return result_id;
+			return resultId;
 		}
 
-        /// <summary>
-        /// Gets the result set with the given result_id.
-        /// </summary>
-        /// <param name="result_id"></param>
-        /// <returns></returns>
-		private ResultSetInfo GetResultSet(int result_id) {
-			lock (result_set_map) {
-				return (ResultSetInfo)result_set_map[result_id];
+		/// <summary>
+		/// Gets the result set with the given resultId.
+		/// </summary>
+		/// <param name="resultId"></param>
+		/// <returns></returns>
+		private ResultSetInfo GetResultSet(int resultId) {
+			lock (resultSetMap) {
+				ResultSetInfo resultSetInfo;
+				if (resultSetMap.TryGetValue(resultId, out resultSetInfo))
+					return resultSetInfo;
+
+				return null;
 			}
 		}
 
-        /// <summary>
-        /// Disposes of the result set with the given result_id.
-        /// </summary>
-        /// <param name="result_id"></param>
-        /// <remarks>
-        /// After this has been called, the GC should garbage the table.
-        /// </remarks>
-		private void DisposeResultSet(int result_id) {
+		/// <summary>
+		/// Disposes of the result set with the given resultId.
+		/// </summary>
+		/// <param name="resultId"></param>
+		/// <remarks>
+		/// After this has been called, the GC should garbage the table.
+		/// </remarks>
+		private void DisposeResultSet(int resultId) {
 			// Remove this entry.
 			ResultSetInfo table;
-			lock (result_set_map) {
-				table = (ResultSetInfo) result_set_map[result_id];
-				result_set_map.Remove(result_id);
+			lock (resultSetMap) {
+				if (resultSetMap.TryGetValue(resultId, out table))
+					resultSetMap.Remove(resultId);
 			}
 			if (table != null) {
 				table.Dispose();
 			} else {
-				Debug.Write(DebugLevel.Error, this,
-							"Attempt to dispose invalid 'result_id'.");
+				Debug.Write(DebugLevel.Error, this, "Attempt to dispose invalid 'resultId'.");
 			}
 		}
 
@@ -244,24 +246,16 @@ namespace Deveel.Data.Protocol {
 		/// Clears the contents of the result set map.
 		/// </summary>
 		/// <remarks>
-		/// This removes all result_id ResultSetInfo maps.
+		/// This removes all resultId ResultSetInfo maps.
 		/// </remarks>
-		protected void ClearResultSetMap() {
-			IEnumerator keys;
-			ArrayList list;
-			lock (result_set_map) {
-				keys = result_set_map.Keys.GetEnumerator();
-
-				list = new ArrayList();
-				while (keys.MoveNext()) {
-					list.Add(keys.Current);
-				}
+		private void ClearResultSetMap() {
+			List<int> keys;
+			lock (resultSetMap) {
+				keys = new List<int>(resultSetMap.Keys);
 			}
-			keys = list.GetEnumerator();
 
-			while (keys.MoveNext()) {
-				int result_id = (int)keys.Current;
-				DisposeResultSet(result_id);
+			foreach (int resultId in keys) {
+				DisposeResultSet(resultId);
 			}
 		}
 
@@ -283,7 +277,7 @@ namespace Deveel.Data.Protocol {
 				return new DbDataException(msg, msg, 35, e);
 			}
 			if (e is TransactionException) {
-				TransactionException te = (TransactionException)e;
+				TransactionException te = (TransactionException) e;
 
 				// Output Query that was in error to debug log.
 				Debug.Write(DebugLevel.Information, this, "Transaction error on: " + query);
@@ -291,117 +285,66 @@ namespace Deveel.Data.Protocol {
 
 				// Denotes a transaction exception.
 				return new DbDataException(e.Message, e.Message, 200 + te.Type, e);
-			} else {
-
-				// Output Query that was in error to debug log.
-				Debug.Write(DebugLevel.Warning, this,
-							"Exception thrown during Query processing on: " + query);
-				Debug.WriteException(DebugLevel.Warning, e);
-
-				// Error, we need to return exception to client.
-				return new DbDataException(e.Message, e.Message, 1, e);
-
 			}
 
+			// Output Query that was in error to debug log.
+			Debug.Write(DebugLevel.Warning, this, "Exception thrown during Query processing on: " + query);
+			Debug.WriteException(DebugLevel.Warning, e);
+
+			// Error, we need to return exception to client.
+			return new DbDataException(e.Message, e.Message, 1, e);
 		}
 
 		/// <summary>
 		/// Returns a reference implementation object that handles an object that is
 		/// either currently being pushed onto the server from the client, or is being
-		/// used to reference a large object in an <see cref="SQLQuery"/>.
+		/// used to reference a large object in an <see cref="SqlQuery"/>.
 		/// </summary>
-		/// <param name="streamable_object_id"></param>
+		/// <param name="streamableObjectId"></param>
 		/// <param name="type"></param>
-		/// <param name="object_length"></param>
+		/// <param name="objectLength"></param>
 		/// <returns></returns>
-		private IRef GetLargeObjectRefFor(long streamable_object_id, ReferenceType type, long object_length) {
+		private IRef GetLargeObjectRefFor(long streamableObjectId, ReferenceType type, long objectLength) {
 			// Does this mapping already exist?
-			long s_ob_id = streamable_object_id;
-			Object ob = blob_id_map[s_ob_id];
-			if (ob == null) {
+			IRef reference;
+			if (!blobIdMap.TryGetValue(streamableObjectId, out reference)) {
 				// Doesn't exist so create a new blob handler.
-				IRef reference = database_connection.CreateNewLargeObject(type, object_length);
+				reference = dbConnection.CreateNewLargeObject(type, objectLength);
 				// Make the blob id mapping
-				blob_id_map[s_ob_id] = reference;
-				// And return it
-				return reference;
-			} else {
-				// Exists so use this blob reference.
-				return (IRef)ob;
+				blobIdMap[streamableObjectId] = reference;
 			}
-		}
 
-		/// <summary>
-		/// Returns a reference object that handles the given streamable object 
-		/// id in this database interface.
-		/// </summary>
-		/// <param name="streamable_object_id"></param>
-		/// <remarks>
-		/// Unlike the other <see cref="GetLargeObjectRefFor(long,byte,long)"/> method, 
-		/// this will not create a new handle if it has not already been formed before 
-		/// by this connection.  If the large object reference is not found an exception 
-		/// is generated.
-		/// </remarks>
-		/// <returns></returns>
-		private IRef GetLargeObjectRefFor(long streamable_object_id) {
-			long s_ob_id = streamable_object_id;
-			Object ob = blob_id_map[s_ob_id];
-			if (ob == null) {
-				// This basically means the streamable object hasn't been pushed onto the
-				// server.
-				throw new DataException("Invalid streamable object id in Query.");
-			} else {
-				return (IRef)ob;
-			}
+			return reference;
 		}
 
 		/// <summary>
 		/// Removes the large object reference from the <see cref="Hashtable"/> for 
 		/// the given streamable object id from the <see cref="Hashtable"/>.
 		/// </summary>
-		/// <param name="streamable_object_id"></param>
+		/// <param name="streamableObjectId"></param>
 		/// <remarks>
 		/// This allows the <see cref="IRef"/> to finalize if the runtime does not 
 		/// maintain any other pointers to it, and therefore clean up the resources 
 		/// in the store.
 		/// </remarks>
 		/// <returns></returns>
-		private IRef FlushLargeObjectRefFromCache(long streamable_object_id) {
+		private IRef FlushLargeObjectRefFromCache(long streamableObjectId) {
 			try {
-				long s_ob_id = streamable_object_id;
-				if (!blob_id_map.ContainsKey(s_ob_id)) {
+				IRef reference;
+				if (!blobIdMap.TryGetValue(streamableObjectId, out reference))
 					// This basically means the streamable object hasn't been pushed onto the
 					// server.
 					throw new DataException("Invalid streamable object id in Query.");
-				} else {
-					Object ob = blob_id_map[s_ob_id];
-					blob_id_map.Remove(s_ob_id);
-					IRef reference = (IRef)ob;
-					// Mark the blob as complete
-					reference.Complete();
-					// And return it.
-					return reference;
-				}
+
+				blobIdMap.Remove(streamableObjectId);
+				// Mark the blob as complete
+				reference.Complete();
+				// And return it.
+				return reference;
 			} catch (IOException e) {
 				Debug.WriteException(e);
 				throw new DataException("IO Error: " + e.Message);
 			}
-		}
-
-		/// <summary>
-		/// Disposes all resources associated with this object.
-		/// </summary>
-		/// <remarks>
-		/// This clears the <see cref="ResultSet"/> map, and nulls all references to 
-		/// help the garbage collector. This method would normally be called from 
-		/// implementations of the <see cref="Dispose()"/>.
-		/// </remarks>
-		protected void InternalDispose() {
-			disposed = true;
-			// Clear the result set mapping
-			ClearResultSetMap();
-			user = null;
-			database_connection = null;
 		}
 
 		/// <summary>
@@ -410,23 +353,24 @@ namespace Deveel.Data.Protocol {
 		/// </summary>
 		protected void CheckNotDisposed() {
 			if (disposed) {
-				throw new DataException("Database interface was disposed (was the connection closed?)");
+				throw new ObjectDisposedException("DatabaseInterface",
+				                                  "Database interface was disposed (was the connection closed?)");
 			}
 		}
 
 		// ---------- Implemented from IDatabaseInterface ----------
 
 		/// <inheritdoc/>
-		public abstract bool Login(string default_schema, string username, string password, IDatabaseCallBack call_back);
+		public abstract bool Login(string defaultSchema, string username, string password, DatabaseEventCallback callback);
 
 		/// <inheritdoc/>
-		public void PushStreamableObjectPart(ReferenceType type, long object_id, long object_length, byte[] buf, long offset, int length) {
+		public void PushStreamableObjectPart(ReferenceType type, long objectId, long objectLength, byte[] buf, long offset, int length) {
 			CheckNotDisposed();
 
 			try {
 				// Create or retrieve the object managing this binary object_id in this
 				// connection.
-				IRef reference = GetLargeObjectRefFor(object_id, type, object_length);
+				IRef reference = GetLargeObjectRefFor(objectId, type, objectLength);
 				// Push this part of the blob into the object.
 				reference.Write(offset, buf, length);
 			} catch (IOException e) {
@@ -440,14 +384,15 @@ namespace Deveel.Data.Protocol {
 			CheckNotDisposed();
 
 			try {
-				Database db = database_handler.GetDatabase(name);
-				if (db == null)
+				Database database = databaseHandler.GetDatabase(name);
+				if (database == null)
 					throw new InvalidOperationException("Unable to change the database.");
-				if (database_connection != null)
-					database_connection.Close();
 
-				database = db;
-			} catch(Exception e) {
+				if (dbConnection != null)
+					dbConnection.Close();
+
+				currentDatabase = database;
+			} catch (Exception e) {
 				Debug.WriteException(e);
 				throw new DataException("Unable to change the database: " + e.Message);
 			}
@@ -458,29 +403,33 @@ namespace Deveel.Data.Protocol {
 			CheckNotDisposed();
 
 			// Record the Query start time
-			DateTime start_time = DateTime.Now;
+			DateTime startTime = DateTime.Now;
+
 			// Where Query result eventually resides.
-			ResultSetInfo result_set_info;
-			int result_id = -1;
+			ResultSetInfo resultSetInfo;
+			int resultId = -1;
 
 			// For each StreamableObject in the SQLQuery object, translate it to a
 			// IRef object that presumably has been pre-pushed onto the server from
 			// the client.
-			bool blobs_were_flushed = false;
-			Object[] vars = query.Variables;
+			bool blobsWereFlushed = false;
+			object[] vars = query.Variables;
 			if (vars != null) {
 				for (int i = 0; i < vars.Length; ++i) {
-					Object ob = vars[i];
+					object ob = vars[i];
 					// This is a streamable object, so convert it to a *IRef
 					if (ob != null && ob is StreamableObject) {
-						StreamableObject s_object = (StreamableObject)ob;
+						StreamableObject sObject = (StreamableObject) ob;
+
 						// Flush the streamable object from the cache
 						// Note that this also marks the blob as complete in the blob store.
-						IRef reference = FlushLargeObjectRefFromCache(s_object.Identifier);
+						IRef reference = FlushLargeObjectRefFromCache(sObject.Identifier);
+
 						// Set the IRef object in the Query.
 						vars[i] = reference;
+
 						// There are blobs in this Query that were written to the blob store.
-						blobs_were_flushed = true;
+						blobsWereFlushed = true;
 					}
 				}
 			}
@@ -488,75 +437,69 @@ namespace Deveel.Data.Protocol {
 			// After the blobs have been flushed, we must tell the connection to
 			// flush and synchronize any blobs that have been written to disk.  This
 			// is an important (if subtle) step.
-			if (blobs_were_flushed) {
-				database_connection.FlushBlobStore();
-			}
+			if (blobsWereFlushed)
+				dbConnection.FlushBlobStore();
 
 			try {
-
 				// Evaluate the sql Query.
-				Table result = SqlQueryExecutor.Execute(database_connection, query);
+				Table result = SqlQueryExecutor.Execute(dbConnection, query);
 
 				// Put the result in the result cache...  This will Lock this object
 				// until it is removed from the result set cache.  Returns an id that
 				// uniquely identifies this result set in future communication.
 				// NOTE: This locks the roots of the table so that its contents
 				//   may not be altered.
-				result_set_info = new ResultSetInfo(query, result);
-				result_id = AddResultSet(result_set_info);
-
+				resultSetInfo = new ResultSetInfo(query, result);
+				resultId = AddResultSet(resultSetInfo);
 			} catch (Exception e) {
-				// If result_id set, then dispose the result set.
-				if (result_id != -1) {
-					DisposeResultSet(result_id);
-				}
+				// If resultId set, then dispose the result set.
+				if (resultId != -1)
+					DisposeResultSet(resultId);
 
 				// Handle the throwable during Query execution
 				throw HandleExecuteThrowable(e, query);
-
 			}
 
 			// The time it took the Query to execute.
-			TimeSpan taken = DateTime.Now - start_time;
+			TimeSpan taken = DateTime.Now - startTime;
 
 			// Return the Query response
-			return new QueryResponse(result_id, result_set_info, (int)taken.TotalMilliseconds, "");
-
+			return new QueryResponse(resultId, resultSetInfo, (int) taken.TotalMilliseconds, "");
 		}
 
 		/// <inheritdoc/>
-		public ResultPart GetResultPart(int result_id, int row_number, int row_count) {
+		public ResultPart GetResultPart(int resultId, int startRow, int countRows) {
 			CheckNotDisposed();
 
-			ResultSetInfo table = GetResultSet(result_id);
-			if (table == null) {
-				throw new DbDataException("'result_id' invalid.", null, 4,
-										(Exception)null);
-			}
+			ResultSetInfo table = GetResultSet(resultId);
+			if (table == null)
+				throw new DbDataException("'resultId' invalid.", null, 4, (Exception) null);
 
-			int row_end = row_number + row_count;
+			int rowEnd = startRow + countRows;
 
-			if (row_number < 0 || row_number >= table.RowCount ||
-				row_end > table.RowCount) {
+			if (startRow < 0 || startRow >= table.RowCount ||
+			    rowEnd > table.RowCount) {
 				throw new DbDataException("Result part out of range.", null, 4, (Exception) null);
 			}
 
 			try {
-				int col_count = table.ColumnCount;
-				ResultPart block = new ResultPart(row_count * col_count);
-				for (int r = row_number; r < row_end; ++r) {
-					for (int c = 0; c < col_count; ++c) {
-						TObject t_object = table.GetCellContents(c, r);
+				int colCount = table.ColumnCount;
+				ResultPart block = new ResultPart(countRows*colCount);
+				for (int r = startRow; r < rowEnd; ++r) {
+					for (int c = 0; c < colCount; ++c) {
+						TObject value = table.GetCellContents(c, r);
+
 						// If this is a IRef, we must assign it a streamable object
 						// id that the client can use to access the large object.
-						Object client_ob;
-						if (t_object.Object is IRef) {
-							IRef reference = (IRef)t_object.Object;
-							client_ob = new StreamableObject(reference.Type, reference.RawSize, reference.Id);
+						object clientOb;
+						if (value.Object is IRef) {
+							IRef reference = (IRef) value.Object;
+							clientOb = new StreamableObject(reference.Type, reference.RawSize, reference.Id);
 						} else {
-							client_ob = t_object.Object;
+							clientOb = value.Object;
 						}
-						block.Add(client_ob);
+
+						block.Add(clientOb);
 					}
 				}
 				return block;
@@ -564,27 +507,25 @@ namespace Deveel.Data.Protocol {
 				Debug.WriteException(DebugLevel.Warning, e);
 				// If an exception was generated while getting the cell contents, then
 				// throw an DataException.
-				throw new DbDataException(
-					"Exception while reading results: " + e.Message,
-					e.Message, 4, e);
+				throw new DbDataException("Exception while reading results: " + e.Message, e.Message, 4, e);
 			}
 
 		}
 
 		/// <inheritdoc/>
-		public void DisposeResult(int result_id) {
+		public void DisposeResult(int resultId) {
 			// Check the IDatabaseInterface is not dispoed
 			CheckNotDisposed();
 			// Dispose the result
-			DisposeResultSet(result_id);
+			DisposeResultSet(resultId);
 		}
 
 
 		/// <inheritdoc/>
-		public StreamableObjectPart GetStreamableObjectPart(int result_id, long streamable_object_id, long offset, int len) {
+		public byte[] GetStreamableObjectPart(int resultId, long streamableObjectId, long offset, int len) {
 			CheckNotDisposed();
 
-			// NOTE: It's important we handle the 'result_id' here and don't just
+			// NOTE: It's important we handle the 'resultId' here and don't just
 			//   treat the 'streamable_object_id' as a direct reference into the
 			//   blob store.  If we don't authenticate a streamable object against its
 			//   originating result, we can't guarantee the user has permission to
@@ -593,120 +534,105 @@ namespace Deveel.Data.Protocol {
 			//   This also protects us from clients that might send a bogus
 			//   streamable_object_id and cause unpredictible results.
 
-			ResultSetInfo table = GetResultSet(result_id);
-			if (table == null) {
-				throw new DbDataException("'result_id' invalid.", null, 4,
-										(Exception)null);
-			}
+			ResultSetInfo table = GetResultSet(resultId);
+			if (table == null)
+				throw new DbDataException("'resultId' invalid.", null, 4, (Exception) null);
 
 			// Get the large object reference that has been cached in the result set.
-			IRef reference = table.GetRef(streamable_object_id);
-			if (reference == null) {
-				throw new DbDataException("'streamable_object_id' invalid.", null, 4,
-										(Exception)null);
-			}
+			IRef reference = table.GetRef(streamableObjectId);
+			if (reference == null)
+				throw new DbDataException("'streamable_object_id' invalid.", null, 4, (Exception) null);
 
 			// Restrict the server so that a streamable object part can not exceed
 			// 512 KB.
-			if (len > 512 * 1024) {
-				throw new DbDataException("Request length exceeds 512 KB", null, 4,
-										(Exception)null);
-			}
+			//TODO: make this configurable...
+			if (len > 512*1024)
+				throw new DbDataException("Request length exceeds 512 KB", null, 4, (Exception) null);
 
 			try {
 				// Read the blob part into the byte array.
-				byte[] blob_part = new byte[len];
-				reference.Read(offset, blob_part, len);
+				byte[] blobPart = new byte[len];
+				reference.Read(offset, blobPart, len);
 
 				// And return as a StreamableObjectPart object.
-				return new StreamableObjectPart(blob_part);
-
+				return blobPart;
 			} catch (IOException e) {
-				throw new DbDataException(
-					"Exception while reading blob: " + e.Message,
-					e.Message, 4, e);
+				throw new DbDataException("Exception while reading blob: " + e.Message, e.Message, 4, e);
 			}
-
 		}
 
 		/// <inheritdoc/>
-		public void DisposeStreamableObject(int result_id, long streamable_object_id) {
+		public void DisposeStreamableObject(int resultId, long streamableObjectId) {
 			CheckNotDisposed();
 
 			// This actually isn't as an important step as I had originally designed
 			// for.  To dispose we simply remove the blob reference from the cache in the
 			// result.  If this doesn't happen, nothing seriously bad will happen.
 
-			ResultSetInfo table = GetResultSet(result_id);
-			if (table == null) {
-				throw new DbDataException("'result_id' invalid.", null, 4,
-										(Exception)null);
-			}
+			ResultSetInfo table = GetResultSet(resultId);
+			if (table == null)
+				throw new DbDataException("'resultId' invalid.", null, 4, (Exception) null);
 
 			// Remove this IRef from the table
-			table.RemoveRef(streamable_object_id);
-
+			table.RemoveRef(streamableObjectId);
 		}
 
 
 		// ---------- Clean up ----------
 
-		void IDisposable.Dispose() {
-			Dispose(true);
-		}
-
-		protected abstract void Dispose();
-
-		private void Dispose(bool disposing) {
-			if (disposing) {
-				try {
-					if (!disposed) {
-						GC.SuppressFinalize(this);
-						Dispose();
-					}
-				} catch(Exception) {
-					
-				}
+		public void Dispose() {
+			if (!disposed) {
+				Dispose(true);
+				GC.SuppressFinalize(this);
+				disposed = true;
 			}
 		}
 
-		// ---------- Inner classes ----------
+		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				// Clear the result set mapping
+				ClearResultSetMap();
+				user = null;
+				dbConnection = null;
+			}
+		}
+
+	// ---------- Inner classes ----------
 
 		/// <summary>
 		/// The response to a Query.
 		/// </summary>
 		private sealed class QueryResponse : IQueryResponse {
-			private readonly int result_id;
-			private readonly ResultSetInfo result_set_info;
-			private readonly int query_time;
-			private readonly String warnings;
+			private readonly int resultId;
+			private readonly ResultSetInfo resultSetInfo;
+			private readonly int queryTime;
+			private readonly string warnings;
 
-			internal QueryResponse(int result_id, ResultSetInfo result_set_info,
-							 int query_time, String warnings) {
-				this.result_id = result_id;
-				this.result_set_info = result_set_info;
-				this.query_time = query_time;
+			internal QueryResponse(int resultId, ResultSetInfo resultSetInfo, int queryTime, string warnings) {
+				this.resultId = resultId;
+				this.resultSetInfo = resultSetInfo;
+				this.queryTime = queryTime;
 				this.warnings = warnings;
 			}
 
 		    public int ResultId {
-		        get { return result_id; }
+		        get { return resultId; }
 		    }
 
 		    public int QueryTimeMillis {
-		        get { return query_time; }
+		        get { return queryTime; }
 		    }
 
 		    public int RowCount {
-		        get { return result_set_info.RowCount; }
+		        get { return resultSetInfo.RowCount; }
 		    }
 
 		    public int ColumnCount {
-		        get { return result_set_info.ColumnCount; }
+		        get { return resultSetInfo.ColumnCount; }
 		    }
 
 		    public ColumnDescription GetColumnDescription(int n) {
-				return result_set_info.Fields[n];
+				return resultSetInfo.Fields[n];
 			}
 
 		    public string Warnings {
@@ -742,24 +668,24 @@ namespace Deveel.Data.Protocol {
 			/// <summary>
 			/// A set of ColumnDescription that describes each column in the ResultSet.
 			/// </summary>
-			private ColumnDescription[] col_desc;
+			private ColumnDescription[] colDesc;
 
 			/// <summary>
 			/// The <see cref="IList{T}"/> that contains the row index into the table 
 			/// for each row of the result.
 			/// </summary>
-			private IList<int> row_index_map;
+			private IList<int> rowIndexMap;
 
 			/// <summary>
 			/// Set to true if the result table has a <see cref="SimpleRowEnumerator"/>, therefore 
 			/// guarenteeing we do not need to store a row lookup list.
 			/// </summary>
-			private readonly bool result_is_simple_enum;
+			private readonly bool resultIsSimpleEnum;
 
 			/// <summary>
 			/// The number of rows in the result.
 			/// </summary>
-			private readonly int result_row_count;
+			private readonly int resultRowCount;
 
 			/// <summary>
 			/// Incremented when we Lock roots.
@@ -770,42 +696,44 @@ namespace Deveel.Data.Protocol {
 			/// A <see cref="Hashtable"/> of blob_reference_id values to <see cref="IRef"/> 
 			/// objects used to handle and streamable objects in this result.
 			/// </summary>
-			private readonly Hashtable streamable_blob_map;
+			private readonly Dictionary<long, IRef> streamableBlobMap;
 
 
 			/// <summary>
 			/// Constructs the result set.
 			/// </summary>
 			/// <param name="query"></param>
-			/// <param name="table"></param>
-			internal ResultSetInfo(SqlQuery query, Table table) {
+			/// <param name="result"></param>
+			public ResultSetInfo(SqlQuery query, Table result) {
 				this.query = query;
-				this.result = table;
-				this.streamable_blob_map = new Hashtable();
+				this.result = result;
+				streamableBlobMap = new Dictionary<long, IRef>();
 
-				result_row_count = table.RowCount;
+				resultRowCount = result.RowCount;
 
 				// HACK: Read the contents of the first row so that we can pick up
 				//   any errors with reading, and also to fix the 'uniquekey' bug
 				//   that causes a new transaction to be started if 'uniquekey' is
 				//   a column and the value is resolved later.
-				IRowEnumerator row_enum = table.GetRowEnumerator();
-				if (row_enum.MoveNext()) {
-					int row_index = row_enum.RowIndex;
-					for (int c = 0; c < table.ColumnCount; ++c) {
-						table.GetCellContents(c, row_index);
+				IRowEnumerator rowEnum = result.GetRowEnumerator();
+				if (rowEnum.MoveNext()) {
+					int row_index = rowEnum.RowIndex;
+					for (int c = 0; c < result.ColumnCount; ++c) {
+						result.GetCellContents(c, row_index);
 					}
 				}
+
 				// If simple enum, note it here
-				result_is_simple_enum = (row_enum is SimpleRowEnumerator);
-				row_enum = null;
+				resultIsSimpleEnum = (rowEnum is SimpleRowEnumerator);
+				rowEnum = null;
 
 				// Build 'row_index_map' if not a simple enum
-				if (!result_is_simple_enum) {
-					row_index_map = new List<int>(table.RowCount);
-					IRowEnumerator en = table.GetRowEnumerator();
+				if (!resultIsSimpleEnum) {
+					rowIndexMap = new List<int>(result.RowCount);
+
+					IRowEnumerator en = result.GetRowEnumerator();
 					while (en.MoveNext()) {
-						row_index_map.Add(en.RowIndex);
+						rowIndexMap.Add(en.RowIndex);
 					}
 				}
 
@@ -813,20 +741,19 @@ namespace Deveel.Data.Protocol {
 				// Copy all the TableField columns from the table to our own
 				// ColumnDescription array, naming each column by what is returned from
 				// the 'GetResolvedVariable' method.
-				int col_count = table.ColumnCount;
-				col_desc = new ColumnDescription[col_count];
-				for (int i = 0; i < col_count; ++i) {
-					VariableName v = table.GetResolvedVariable(i);
-					String field_name;
+				int colCount = result.ColumnCount;
+				colDesc = new ColumnDescription[colCount];
+				for (int i = 0; i < colCount; ++i) {
+					VariableName v = result.GetResolvedVariable(i);
+					string fieldName;
 					if (v.TableName == null) {
 						// This means the column is an alias
-						field_name = "@a" + v.Name;
+						fieldName = "@a" + v.Name;
 					} else {
 						// This means the column is an schema/table/column reference
-						field_name = "@f" + v.ToString();
+						fieldName = "@f" + v;
 					}
-					col_desc[i] = table.GetColumnDef(i).ColumnDescriptionValue(field_name);
-					//        col_desc[i] = new ColumnDescription(field_name, table.getFieldAt(i));
+					colDesc[i] = new ColumnDescription(fieldName, result.GetColumnInfo(i));
 				}
 
 				locked = 0;
@@ -838,8 +765,12 @@ namespace Deveel.Data.Protocol {
 			/// </summary>
 			/// <param name="id"></param>
 			/// <returns></returns>
-			internal IRef GetRef(long id) {
-				return (IRef)streamable_blob_map[id];
+			public IRef GetRef(long id) {
+				IRef reference;
+				if (!streamableBlobMap.TryGetValue(id, out reference))
+					return null;
+
+				return reference;
 			}
 
 			/// <summary>
@@ -847,20 +778,20 @@ namespace Deveel.Data.Protocol {
 			/// by its identifier value.
 			/// </summary>
 			/// <param name="id"></param>
-			internal void RemoveRef(long id) {
-				streamable_blob_map.Remove(id);
+			public void RemoveRef(long id) {
+				streamableBlobMap.Remove(id);
 			}
 
 			/// <summary>
 			/// Disposes this object.
 			/// </summary>
-			internal void Dispose() {
+			public void Dispose() {
 				while (locked > 0) {
 					UnlockRoot(-1);
 				}
 				result = null;
-				row_index_map = null;
-				col_desc = null;
+				rowIndexMap = null;
+				colDesc = null;
 			}
 
 			/// <summary>
@@ -872,51 +803,49 @@ namespace Deveel.Data.Protocol {
 			/// Safe only if roots are locked.
 			/// </remarks>
 			/// <returns></returns>
-			internal TObject GetCellContents(int column, int row) {
-				if (locked > 0) {
-					int real_row;
-					real_row = result_is_simple_enum ? row : row_index_map[row];
-					TObject tob = result.GetCellContents(column, real_row);
-
-					// If this is a large object reference then cache it so a streamable
-					// object can reference it via this result.
-					if (tob.Object is IRef) {
-						IRef reference = (IRef)tob.Object;
-						streamable_blob_map[reference.Id] = reference;
-					}
-
-					return tob;
-				} else {
+			public TObject GetCellContents(int column, int row) {
+				if (locked <= 0)
 					throw new Exception("Table roots not locked!");
+
+				int realRow = resultIsSimpleEnum ? row : rowIndexMap[row];
+				TObject tob = result.GetCellContents(column, realRow);
+
+				// If this is a large object reference then cache it so a streamable
+				// object can reference it via this result.
+				if (tob.Object is IRef) {
+					IRef reference = (IRef)tob.Object;
+					streamableBlobMap[reference.Id] = reference;
 				}
+
+				return tob;
 			}
 
 			/// <summary>
 			/// Returns the column count.
 			/// </summary>
-			internal int ColumnCount {
+			public int ColumnCount {
 				get { return result.ColumnCount; }
 			}
 
 			/// <summary>
 			/// Returns the row count.
 			/// </summary>
-			internal int RowCount {
-				get { return result_row_count; }
+			public int RowCount {
+				get { return resultRowCount; }
 			}
 
 			/// <summary>
 			/// Returns the ColumnDescription array of all the columns in the result.
 			/// </summary>
-			internal ColumnDescription[] Fields {
-				get { return col_desc; }
+			public ColumnDescription[] Fields {
+				get { return colDesc; }
 			}
 
 			/// <summary>
 			/// Locks the root of the result set.
 			/// </summary>
 			/// <param name="key"></param>
-			internal void LockRoot(int key) {
+			public void LockRoot(int key) {
 				result.LockRoot(key);
 				++locked;
 			}
@@ -925,7 +854,7 @@ namespace Deveel.Data.Protocol {
 			/// Unlocks the root of the result set.
 			/// </summary>
 			/// <param name="key"></param>
-			void UnlockRoot(int key) {
+			private void UnlockRoot(int key) {
 				result.UnlockRoot(key);
 				--locked;
 			}

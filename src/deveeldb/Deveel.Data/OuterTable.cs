@@ -131,7 +131,7 @@ namespace Deveel.Data {
 			} else {
 				if (outer_rows[table_num] == null) {
 					// Special case, handling outer entries (NULL)
-					return new TObject(GetColumnDef(column).TType, null);
+					return new TObject(GetColumnInfo(column).TType, null);
 				} else {
 					row = outer_rows[table_num][row];
 					return parent_table.GetCellContents(column_filter[column], row);

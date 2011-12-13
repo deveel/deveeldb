@@ -1,8 +1,24 @@
-﻿using System;
-using System.IO;
-using System.Net.Sockets;
+﻿// 
+//  Copyright 2010-2011 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
 
-namespace Deveel.Data.Util {
+using System;
+using System.IO;
+
+using Deveel.Data.Util;
+
+namespace Deveel.Data.Protocol {
 	/// <summary>
 	/// Reads a command block on the underlying stream that is constrained by 
 	/// a length marker preceeding the command.
@@ -12,16 +28,16 @@ namespace Deveel.Data.Util {
 	/// know ahead of time how much data makes up the next block of information 
 	/// over the stream.
 	/// </remarks>
-	sealed class LengthMarkedBufferedInputStream : Stream {
+	public sealed class LengthMarkedBufferedInputStream : Stream {
 		/// <summary>
 		/// The initial buffer size of the internal input buffer.
 		/// </summary>
-		private const int INITIAL_BUFFER_SIZE = 512;
+		private const int InitialBufferSize = 512;
 
 		/// <summary>
 		/// The chained InputStream that is underneath this object.
 		/// </summary>
-		private IInputStream input;
+		private readonly IInputStream input;
 
 		/// <summary>
 		/// The buffer that is used to read in whatever is on the stream.
@@ -37,39 +53,38 @@ namespace Deveel.Data.Util {
 		/// The area of the buffer that is marked as being an available command.
 		/// If it's -1 then there is no area marked.
 		/// </summary>
-		private int marked_length;
+		private int markedLength;
 
 		/// <summary>
 		/// The current index of the marked area that is being read.
 		/// </summary>
-		private int marked_index;
+		private int markedIndex;
 
 		public LengthMarkedBufferedInputStream(IInputStream input) {
 			this.input = input;
-			buf = new byte[INITIAL_BUFFER_SIZE];
+			buf = new byte[InitialBufferSize];
 			count = 0;
-			marked_length = -1;
-			marked_index = -1;
+			markedLength = -1;
+			markedIndex = -1;
 		}
 
 		/// <summary>
 		/// Ensures that the buffer is large enough to store the given value.
 		/// </summary>
-		/// <param name="new_size"></param>
+		/// <param name="newSize"></param>
 		/// <remarks>
 		/// If the buffer is not large enough this method grows it so it is big enough.
 		/// </remarks>
-		private void EnsureCapacity(int new_size) {
+		private void EnsureCapacity(int newSize) {
 			int old_size = buf.Length;
-			if (new_size > old_size) {
+			if (newSize > old_size) {
 				int cap = (old_size * 3) / 2 + 1;
-				if (cap < new_size)
-					cap = new_size;
-				byte[] old_buf = buf;
+				if (cap < newSize)
+					cap = newSize;
+				byte[] oldBuf = buf;
 				buf = new byte[cap];
 				//      // Copy all the contents except the first 4 bytes (the size marker)
-				//      System.arraycopy(old_buf, 4, buf, 4, count - 4);
-				Array.Copy(old_buf, 0, buf, 0, count);
+				Array.Copy(oldBuf, 0, buf, 0, count);
 			}
 		}
 
@@ -84,35 +99,31 @@ namespace Deveel.Data.Util {
 		/// </para>
 		/// </remarks>
 		private void HandleEndReached() {
-			//    System.out.println();
-			//    System.out.println("Shifting Buffer: ");
-			//    System.out.println(" Index: " + marked_index +
-			//                         ", Length: " + (count - marked_length));
 			// Move anything from the end of the buffer to the start.
-			Array.Copy(buf, marked_index, buf, 0, count - marked_length);
-			count -= marked_length;
+			Array.Copy(buf, markedIndex, buf, 0, count - markedLength);
+			count -= markedLength;
 
 			// Reset the state
-			marked_length = -1;
-			marked_index = -1;
+			markedLength = -1;
+			markedIndex = -1;
 		}
 
 		// ---------- Overwritten from Stream ----------
 
 		public override int ReadByte() {
 			lock (this) {
-				if (marked_index == -1) {
+				if (markedIndex == -1)
 					throw new IOException("No mark has been read yet.");
+
+				if (markedIndex >= markedLength) {
+					string debugMsg = "Read over end of length marked buffer.  ";
+					debugMsg += "(marked_index=" + markedIndex;
+					debugMsg += ",marked_length=" + markedLength + ")";
+					debugMsg += ")";
+					throw new IOException(debugMsg);
 				}
-				if (marked_index >= marked_length) {
-					String debug_msg = "Read over end of length marked buffer.  ";
-					debug_msg += "(marked_index=" + marked_index;
-					debug_msg += ",marked_length=" + marked_length + ")";
-					debug_msg += ")";
-					throw new IOException(debug_msg);
-				}
-				int n = buf[marked_index++] & 0x0FF;
-				if (marked_index >= marked_length) {
+				int n = buf[markedIndex++] & 0x0FF;
+				if (markedIndex >= markedLength) {
 					HandleEndReached();
 				}
 				return n;
@@ -157,20 +168,20 @@ namespace Deveel.Data.Util {
 
 		public override int Read(byte[] b, int off, int len) {
 			lock (this) {
-				if (marked_index == -1) {
+				if (markedIndex == -1)
 					throw new IOException("No mark has been read yet.");
-				}
-				int read_upto = marked_index + len;
-				if (read_upto > marked_length) {
+
+				int readUpto = markedIndex + len;
+				if (readUpto > markedLength) {
 					String debug_msg = "Read over end of length marked buffer.  ";
-					debug_msg += "(marked_index=" + marked_index;
+					debug_msg += "(marked_index=" + markedIndex;
 					debug_msg += ",len=" + len;
-					debug_msg += ",marked_length=" + marked_length + ")";
+					debug_msg += ",marked_length=" + markedLength + ")";
 					throw new IOException(debug_msg);
 				}
-				Array.Copy(buf, marked_index, b, off, len);
-				marked_index = read_upto;
-				if (marked_index >= marked_length) {
+				Array.Copy(buf, markedIndex, b, off, len);
+				markedIndex = readUpto;
+				if (markedIndex >= markedLength) {
 					HandleEndReached();
 				}
 				return len;
@@ -182,8 +193,8 @@ namespace Deveel.Data.Util {
 				lock (this) {
 					// This method only returns a non 0 value if there is a complete command
 					// waiting on the stream.
-					if (marked_length >= 0) {
-						return (marked_length - marked_index);
+					if (markedLength >= 0) {
+						return (markedLength - markedIndex);
 					}
 					return 0;
 				}
@@ -195,7 +206,7 @@ namespace Deveel.Data.Util {
 		/// <summary>
 		/// Checks to see if there is a complete command waiting on the input stream.
 		/// </summary>
-		/// <param name="max_size">The maximum number of bytes we are allowing before an 
+		/// <param name="maxSize">The maximum number of bytes we are allowing before an 
 		/// <see cref="IOException"/> is thrown.</param>
 		/// <remarks>
 		/// If this method returns true then it is safe to go ahead and process a single 
@@ -205,37 +216,37 @@ namespace Deveel.Data.Util {
 		/// <returns>
 		/// Returns true if there is a complete command.
 		/// </returns>
-		public bool PollForCommand(int max_size) {
+		public bool PollForCommand(int maxSize) {
 			lock (this) {
-				if (marked_length == -1) {
+				if (markedLength == -1) {
 					int available = input.Available;
 					if (count > 0 || available > 0) {
-						if ((count + available) > max_size) {
+						if ((count + available) > maxSize) {
 							throw new IOException("Marked length is greater than max size ( " +
-												  (count + available) + " > " + max_size + " )");
+												  (count + available) + " > " + maxSize + " )");
 						}
 
 						EnsureCapacity(count + available);
-						int read_in = input.Read(buf, count, available);
+						int readIn = input.Read(buf, count, available);
 
-						if (read_in == 0) {
+						if (readIn == 0) {
 							//TODO: Check this format...
 							// throw new EndOfStreamException();
 
 							// zero bytes read means that the stream is finished...
 							return false;
 						}
-						count = count + read_in;
+						count = count + readIn;
 
 						// Check: Is a complete command available?
 						if (count >= 4) {
-							int length_marker = ByteBuffer.ReadInt4(buf, 0);
+							int lengthMarker = ByteBuffer.ReadInt4(buf, 0);
 
-							if (count >= length_marker + 4) {
+							if (count >= lengthMarker + 4) {
 								// Yes, complete command available.
 								// mark this area up.
-								marked_length = length_marker + 4;
-								marked_index = 4;
+								markedLength = lengthMarker + 4;
+								markedIndex = 4;
 								return true;
 							}
 						}
@@ -251,22 +262,21 @@ namespace Deveel.Data.Util {
 		public void BlockForCommand() {
 			lock (this) {
 				while (true) {
-
 					// Is there a command available?
 					if (count >= 4) {
-						int length_marker = ByteBuffer.ReadInt4(buf, 0);
-						if (count >= length_marker + 4) {
+						int lengthMarker = ByteBuffer.ReadInt4(buf, 0);
+						if (count >= lengthMarker + 4) {
 							// Yes, complete command available.
 							// mark this area up.
-							marked_length = length_marker + 4;
-							marked_index = 4;
+							markedLength = lengthMarker + 4;
+							markedIndex = 4;
 							return;
 						}
 					}
 
 					// If the buffer is full grow it larger.
 					if (count >= buf.Length) {
-						EnsureCapacity(count + INITIAL_BUFFER_SIZE);
+						EnsureCapacity(count + InitialBufferSize);
 					}
 					// Read in a block of data, block if nothing there
 					int read_in = input.Read(buf, count, buf.Length - count);

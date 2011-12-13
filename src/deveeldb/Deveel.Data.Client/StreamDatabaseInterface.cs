@@ -56,23 +56,23 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		internal override void WriteCommandToServer(byte[] command, int offset, int size) {
+		protected override void SendCommand(byte[] command, int offset, int size) {
 			output.Write(size);
 			output.Write(command, 0, size);
 			output.Flush();
 		}
 
 		/// <inheritdoc/>
-		internal override byte[] NextCommandFromServer(int timeout) {
+		protected override byte[] ReceiveCommand(int timeout) {
 			if (closed) {
 				throw new IOException("IDatabaseInterface is closed!");
 			}
 			try {
 				//      Console.Out.WriteLine("I'm waiting for a command: " + this);
 				//      new Error().printStackTrace();
-				int command_length = input.ReadInt32();
-				byte[] buf = new byte[command_length];
-				input.Read(buf, 0, command_length);
+				int commandLength = input.ReadInt32();
+				byte[] buf = new byte[commandLength];
+				input.Read(buf, 0, commandLength);
 				return buf;
 			} catch (NullReferenceException) {
 				Console.Out.WriteLine("Throwable generated at: " + this);
@@ -81,7 +81,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		internal override void CloseConnection() {
+		protected override void CloseConnection() {
 			//    Console.Out.WriteLine("Closed: " + this);
 			closed = true;
 			try {

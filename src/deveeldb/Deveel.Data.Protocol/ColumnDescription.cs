@@ -89,7 +89,7 @@ namespace Deveel.Data.Protocol {
 		/// <param name="type"></param>
 		/// <param name="size"></param>
 		/// <param name="not_null"></param>
-		public ColumnDescription(String name, DbType type, int size, bool not_null) {
+		private ColumnDescription(String name, DbType type, int size, bool not_null) {
 			this.name = name;
 			this.type = type;
 			this.size = size;
@@ -98,28 +98,9 @@ namespace Deveel.Data.Protocol {
 			unique_group = -1;
 		}
 
-		public ColumnDescription(String name, DbType type, bool not_null)
-			: this(name, type, -1, not_null) {
-		}
+		internal ColumnDescription(string name, DataTableColumnInfo columnInfo)
+			: this(name, columnInfo.TType.DbType, columnInfo.Size, columnInfo.IsNotNull) {
 
-		public ColumnDescription(ColumnDescription cd)
-			: this(cd.Name, cd.Type, cd.Size, cd.IsNotNull) {
-			if (cd.IsUnique) {
-				SetUnique();
-			}
-			UniqueGroup = cd.UniqueGroup;
-			Scale = cd.Scale;
-			SQLType = cd.SQLType;
-		}
-
-		public ColumnDescription(String name, ColumnDescription cd)
-			: this(name, cd.Type, cd.Size, cd.IsNotNull) {
-			if (cd.IsUnique) {
-				SetUnique();
-			}
-			UniqueGroup = cd.UniqueGroup;
-			Scale = cd.Scale;
-			SQLType = cd.SQLType;
 		}
 
 		/// <summary>

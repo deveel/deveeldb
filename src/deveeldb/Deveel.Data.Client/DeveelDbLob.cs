@@ -32,6 +32,7 @@ namespace Deveel.Data.Client {
 		/// <param name="connection">The connection used to retrieve the LOB.</param>
 		/// <param name="resultId">The identification number of the result-set
 		/// on the server to which this LOB belongs to.</param>
+		/// <param name="objectRef"></param>
 		internal DeveelDbLob(DeveelDbConnection connection, int resultId, StreamableObject objectRef) {
 			this.connection = connection;
 			this.resultId = resultId;
@@ -160,8 +161,7 @@ namespace Deveel.Data.Client {
 		private void ReadPageContent(long pos, int length) {
 			try {
 				// Request a part of the blob from the server
-				StreamableObjectPart part = connection.RequestStreamableObjectPart(resultId, objectRef.Identifier, pos, length);
-				byte[] buffer = part.Contents;
+				byte[] buffer = connection.RequestStreamableObjectPart(resultId, objectRef.Identifier, pos, length);
 				baseStream.SetLength(0);
 				baseStream.Write(buffer, 0, length);
 				baseStream.Seek(0, SeekOrigin.Begin);
@@ -204,6 +204,14 @@ namespace Deveel.Data.Client {
 
 		public override void Close() {
 			//TODO:
+		}
+
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				//TODO: dispose the object on the server...
+			}
+
+			base.Dispose(disposing);
 		}
 
 		public override void Write(byte[] buffer, int offset, int count) {

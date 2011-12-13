@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010  Deveel
+﻿// 
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,10 +15,19 @@
 
 using System;
 
-namespace Deveel.Data.Server {
-	public enum ClientConnectionState {
-		Closed = 0,
-		NotAuthenticated = 4,
-		Processing = 100
+using Deveel.Data.Util;
+
+namespace Deveel.Data.Protocol {
+	/// <summary>
+	/// Represents a stream that supports required functionalities
+	/// for a <see cref="LengthMarkedBufferedInputStream"/>
+	/// </summary>
+	public interface IInputStream {
+		/// <summary>
+		/// Gets ths available bytes to be read on the underlying stream.
+		/// </summary>
+		int Available { get; }
+
+		int Read(byte[] bytes, int offset, int length);
 	}
 }

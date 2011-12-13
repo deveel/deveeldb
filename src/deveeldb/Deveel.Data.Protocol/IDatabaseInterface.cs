@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Data.Protocol;
-
 namespace Deveel.Data.Protocol {
 	///<summary>
 	/// The interface with the <see cref="Database"/> whether it be remotely via 
@@ -28,10 +26,10 @@ namespace Deveel.Data.Protocol {
 		/// given password.
 		///</summary>
 		/// <param name="database"></param>
-		///<param name="default_schema"></param>
+		///<param name="defaultSchema"></param>
 		///<param name="username"></param>
 		///<param name="password"></param>
-        ///<param name="call_back">A <see cref="IDatabaseCallBack"/> implementationthat 
+        ///<param name="callback">A <see cref="IDatabaseCallBack"/> implementationthat 
         /// is notified of all events from the database. Events are only received if the 
         /// login was successful.</param>
 		/// <remarks>
@@ -43,7 +41,7 @@ namespace Deveel.Data.Protocol {
 		///<returns>
 		/// Returns <b>true</b> if the authentication succeeded, otherwise false.
 		/// </returns>
-		bool Login(string default_schema, string username, string password, IDatabaseCallBack call_back);
+		bool Login(string defaultSchema, string username, string password, DatabaseEventCallback callback);
 
 		/// <summary>
 		/// Changes the database of the current transaction to the interface.
@@ -56,9 +54,9 @@ namespace Deveel.Data.Protocol {
 	    /// Pushes a part of a streamable object from the client onto the server.
 	    ///</summary>
 	    ///<param name="type">The <see cref="ReferenceType">type</see> of the object.</param>
-	    ///<param name="object_id">The identifier of the <see cref="StreamableObject"/> 
+	    ///<param name="objectId">The identifier of the <see cref="StreamableObject"/> 
 	    /// for future queries.</param>
-	    ///<param name="object_length">The total length of the <see cref="StreamableObject"/>.</param>
+	    ///<param name="objectLength">The total length of the <see cref="StreamableObject"/>.</param>
 	    ///<param name="buf">The byte array representing the block of information being sent.</param>
 	    ///<param name="offset">The offset into of the object of this block.</param>
 	    ///<param name="length">The length of the block being pushed.</param>
@@ -77,7 +75,7 @@ namespace Deveel.Data.Protocol {
 	    /// pushed onto the server in blocks of 64K (in 1,600 separate blocks).
 	    /// </para>
 	    /// </remarks>
-	    void PushStreamableObjectPart(ReferenceType type, long object_id, long object_length,
+	    void PushStreamableObjectPart(ReferenceType type, long objectId, long objectLength,
 	                                  byte[] buf, long offset, int length);
 
 		///<summary>
@@ -96,9 +94,9 @@ namespace Deveel.Data.Protocol {
 		///<summary>
         /// Returns a part of a result set.
 		///</summary>
-		///<param name="result_id"></param>
-		///<param name="row_number"></param>
-		///<param name="row_count"></param>
+		///<param name="resultId"></param>
+		///<param name="startRow"></param>
+		///<param name="countRows"></param>
 		/// <remarks>
 		/// The result set part is referenced via the <see cref="IQueryResponse.ResultId">result id</see> 
 		/// found in the <see cref="IQueryResponse"/>. This is used to Read parts of the command 
@@ -111,25 +109,25 @@ namespace Deveel.Data.Protocol {
 		/// </para>
 		/// </remarks>
 		///<returns></returns>
-		ResultPart GetResultPart(int result_id, int row_number, int row_count);
+		ResultPart GetResultPart(int resultId, int startRow, int countRows);
 
 		///<summary>
         /// Disposes of a result of a command on the server.
 		///</summary>
-		///<param name="result_id"></param>
+		///<param name="resultId"></param>
 		/// <remarks>
 		/// This frees up server side resources allocated to a command. This should be 
 		/// called when the <see cref="ResultSet"/> of a command closes. We should try 
 		/// and use this method as soon as possible because it frees locks on tables 
 		/// and allows deleted rows to be reclaimed.
 		/// </remarks>
-		void DisposeResult(int result_id);
+		void DisposeResult(int resultId);
 
 	    ///<summary>
 	    /// Returns a section of a large binary or character stream in a result set.
 	    ///</summary>
-	    ///<param name="result_id"></param>
-	    ///<param name="streamable_object_id"></param>
+	    ///<param name="resultId"></param>
+	    ///<param name="streamableObjectId"></param>
 	    ///<param name="offset"></param>
 	    ///<param name="len"></param>
 	    /// <remarks>
@@ -140,18 +138,18 @@ namespace Deveel.Data.Protocol {
 	    /// object would not need to be downloaded to the client in its entirety.
 	    /// </remarks>
 	    ///<returns></returns>
-	    StreamableObjectPart GetStreamableObjectPart(int result_id, long streamable_object_id, long offset, int len);
+	    byte[] GetStreamableObjectPart(int resultId, long streamableObjectId, long offset, int len);
 
 		///<summary>
         /// Disposes a streamable object channel with the given identifier.
 		///</summary>
-		///<param name="result_id"></param>
-		///<param name="streamable_object_id"></param>
+		///<param name="resultId"></param>
+		///<param name="streamableObjectId"></param>
 		/// <remarks>
 		/// This should be called to free any resources on the server associated with the
 		/// object.  It should be called as soon as possible because it frees locks on the
 		/// tables and allows deleted rows to be reclaimed.
 		/// </remarks>
-		void DisposeStreamableObject(int result_id, long streamable_object_id);
+		void DisposeStreamableObject(int resultId, long streamableObjectId);
 	}
 }

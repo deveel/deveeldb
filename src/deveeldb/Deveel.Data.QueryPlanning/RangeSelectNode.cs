@@ -158,7 +158,7 @@ namespace Deveel.Data.QueryPlanning {
 			if (col == -1)
 				throw new ApplicationException("Couldn't find column reference in table: " + v);
 
-			DataTableColumnInfo field = t.GetColumnDef(col);
+			DataTableColumnInfo field = t.GetColumnInfo(col);
 			// Calculate the range
 			SelectableRangeSet range = new SelectableRangeSet();
 			CalcRange(context, field, range, exp);

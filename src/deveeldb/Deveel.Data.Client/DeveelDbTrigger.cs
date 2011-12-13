@@ -85,7 +85,7 @@ namespace Deveel.Data.Client {
 		public DeveelDbTrigger(DeveelDbConnection connection, string triggerName, string objectName) {
 			if (connection == null)
 				throw new ArgumentNullException("connection");
-			if (triggerName == null || triggerName.Length == 0)
+			if (string.IsNullOrEmpty(triggerName))
 				throw new ArgumentNullException("triggerName");
 			if (objectName == null)
 				throw new ArgumentNullException("objectName");
@@ -95,7 +95,11 @@ namespace Deveel.Data.Client {
 			this.objectName = objectName;
 
 			exists = CallInit();
-			listener = new TriggerListener(this);
+			handler = Fired;
+		}
+
+		~DeveelDbTrigger() {
+			Dispose(false);
 		}
 
 		/// <summary>
@@ -126,7 +130,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// A callback object which listens for triggers on the database.
 		/// </summary>
-		private readonly ITriggerListener listener;
+		private readonly TriggerEventHandler handler;
 
 		/// <summary>
 		/// A flag used to indicate whether this trigger was initialized.
@@ -137,7 +141,7 @@ namespace Deveel.Data.Client {
 		/// A flag indicating whether this trigger must be dropped when
 		/// all the events were unsubscribed.
 		/// </summary>
-		private bool drop_on_empty = true;
+		private bool dropOnEmpty = true;
 
 		/// <summary>
 		/// Gets the <see cref="DeveelDbConnection"/> which contains the
@@ -179,8 +183,8 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		/// <seealso cref="Unsubscribe"/>
 		public bool DropOnEmpty {
-			get { return drop_on_empty; }
-			set { drop_on_empty = value; }
+			get { return dropOnEmpty; }
+			set { dropOnEmpty = value; }
 		}
 
 		/// <summary>
@@ -196,6 +200,17 @@ namespace Deveel.Data.Client {
 				return exists;
 
 			return Init();
+		}
+
+		protected virtual  void Dispose(bool disposing) {
+			if (disposing) {
+				try {
+					if (TriggerFired != null)
+						Unsubscribe(TriggerFired);
+				} catch {
+					// we ignore this error on destruction...
+				}
+			}
 		}
 
 		internal virtual bool Init() {
@@ -325,12 +340,8 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public void Dispose() {
-			try {
-				if (TriggerFired != null)
-					Unsubscribe(TriggerFired);
-			} catch {
-				// we ignore this error on destruction...
-			}
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		/// <summary>
@@ -386,27 +397,17 @@ namespace Deveel.Data.Client {
 			if (TriggerFired == null && DropOnEmpty) {
 				DeveelDbCommand command = GetDropStatement();
 				command.ExecuteNonQuery();
-				connection.RemoveTriggerListener(triggerName, listener);
+				connection.RemoveTriggerListener(triggerName, handler);
 				exists = false;
 			}
 		}
 
-		private class TriggerListener : ITriggerListener {
-			public TriggerListener(DeveelDbTrigger trigger) {
-				this.trigger = trigger;
-				trigger.connection.AddTriggerListener(trigger.triggerName, this);
-			}
+		private void Fired(object sender, TriggerEventArgs args) {
+			if (args.TriggerName != Name)
+				return;
 
-			private readonly DeveelDbTrigger trigger;
-
-			public void OnTriggerFired(TriggerEventArgs e) {
-				// this should never happen, but it's better to prevent it...
-				if (e.TriggerName != trigger.Name)
-					return;
-
-				if (trigger.TriggerFired != null)
-					trigger.TriggerFired(trigger, e);
-			}
+			if (TriggerFired != null)
+				TriggerFired(this, args);
 		}
 	}
 }

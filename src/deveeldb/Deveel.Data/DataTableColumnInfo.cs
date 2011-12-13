@@ -17,8 +17,6 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Protocol;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// Used to managed all the informations about a column in a table
@@ -226,6 +224,7 @@ namespace Deveel.Data {
 			return defaultExpressionString;
 		}
 
+		/*
 		///<summary>
 		/// Returns this column as a <see cref="ColumnDescription"/> object 
 		/// and gives the column description the given name.
@@ -239,6 +238,7 @@ namespace Deveel.Data {
 
 			return field;
 		}
+		*/
 
 		/// <summary>
 		/// Dumps information about this object to the <see cref="TextWriter"/>.

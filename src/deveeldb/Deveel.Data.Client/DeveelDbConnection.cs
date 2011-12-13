@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.IO;
@@ -39,7 +40,7 @@ namespace Deveel.Data.Client {
 	/// This object is thread safe. It may be accessed safely from concurrent threads.
 	/// </para>
 	/// </remarks>
-	public class DeveelDbConnection : DbConnection, IDatabaseCallBack {
+	public class DeveelDbConnection : DbConnection {
 		/// <summary>
 		/// The <see cref="DbController"/> in a local connection.
 		/// </summary>
@@ -88,7 +89,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// The list of trigger listeners registered with the connection.
 		/// </summary>
-		private ArrayList trigger_list;
+		private EventHandlerList trigger_list;
 
 		/// <summary>
 		/// A Thread that handles all dispatching of trigger events to the client.
@@ -140,7 +141,7 @@ namespace Deveel.Data.Client {
 			this.db_interface = db_interface;
 			is_closed = true;
 			auto_commit = true;
-			trigger_list = new ArrayList();
+			trigger_list = new EventHandlerList();
 			case_insensitive_identifiers = false;
 			row_cache = new RowCache(cache_size, max_size);
 			s_object_hold = new Hashtable();
@@ -204,7 +205,7 @@ namespace Deveel.Data.Client {
 
 			is_closed = true;
 			auto_commit = true;
-			trigger_list = new ArrayList();
+			trigger_list = new EventHandlerList();
 			case_insensitive_identifiers = false;
 			row_cache = new RowCache(row_cache_size, max_row_cache_size);
 			s_object_hold = new Hashtable();
@@ -380,7 +381,7 @@ namespace Deveel.Data.Client {
 			}
 
 			// Login with the username/password
-			return db_interface.Login(default_schema, username, password, this);
+			return db_interface.Login(default_schema, username, password, OnDatabaseEvent);
 		}
 
 #if !MONO
@@ -562,25 +563,25 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// Requests a part of a streamable object from the server.
 		/// </summary>
-		/// <param name="result_id"></param>
-		/// <param name="streamable_object_id"></param>
+		/// <param name="resultId"></param>
+		/// <param name="streamableObjectId"></param>
 		/// <param name="offset"></param>
 		/// <param name="len"></param>
 		/// <returns></returns>
-		internal StreamableObjectPart RequestStreamableObjectPart(int result_id, long streamable_object_id, long offset, int len) {
-			return db_interface.GetStreamableObjectPart(result_id, streamable_object_id, offset, len);
+		internal byte[] RequestStreamableObjectPart(int resultId, long streamableObjectId, long offset, int len) {
+			return db_interface.GetStreamableObjectPart(resultId, streamableObjectId, offset, len);
 		}
 
 		/// <summary>
 		/// Disposes of the server-side resources associated with the result 
 		/// set with result_id.
 		/// </summary>
-		/// <param name="result_id"></param>
+		/// <param name="resultId"></param>
 		/// <remarks>
 		/// This should be called either before we start the download of a new result set, 
 		/// or when we have finished with the resources of a result set.
 		/// </remarks>
-		internal void DisposeResult(int result_id) {
+		internal void DisposeResult(int resultId) {
 			// Clear the row cache.
 			// It would be better if we only cleared row entries with this
 			// table_id.  We currently clear the entire cache which means there will
@@ -589,40 +590,33 @@ namespace Deveel.Data.Client {
 			//    row_cache.clear();
 			// Only dispose if the connection is open
 			if (!is_closed) {
-				db_interface.DisposeResult(result_id);
+				db_interface.DisposeResult(resultId);
 			}
 		}
 
 		/// <summary>
-		/// Adds a <see cref="ITriggerListener"/> that listens for all triggers events with 
+		/// Adds a <see cref="TriggerEventHandler"/> that listens for all triggers events with 
 		/// the name given.
 		/// </summary>
-		/// <param name="trigger_name"></param>
+		/// <param name="triggerName"></param>
 		/// <param name="listener"></param>
 		/// <remarks>
 		/// Triggers are created with the <c>CREATE TRIGGER</c> syntax.
 		/// </remarks>
-		internal void AddTriggerListener(String trigger_name, ITriggerListener listener) {
+		internal void AddTriggerListener(string triggerName, TriggerEventHandler listener) {
 			lock (trigger_list) {
-				trigger_list.Add(trigger_name);
-				trigger_list.Add(listener);
+				trigger_list.AddHandler(triggerName, listener);
 			}
 		}
 
 		/// <summary>
-		/// Removes the <see cref="ITriggerListener"/> for the given trigger name.
+		/// Removes the <see cref="TriggerEventHandler"/> for the given trigger name.
 		/// </summary>
-		/// <param name="trigger_name"></param>
+		/// <param name="triggerName"></param>
 		/// <param name="listener"></param>
-		internal void RemoveTriggerListener(String trigger_name, ITriggerListener listener) {
+		internal void RemoveTriggerListener(string triggerName, TriggerEventHandler listener) {
 			lock (trigger_list) {
-				for (int i = trigger_list.Count - 2; i >= 0; i -= 2) {
-					if (trigger_list[i].Equals(trigger_name) &&
-						trigger_list[i + 1].Equals(listener)) {
-						trigger_list.RemoveAt(i);
-						trigger_list.RemoveAt(i);
-					}
-				}
+				trigger_list.RemoveHandler(triggerName, listener);
 			}
 		}
 
@@ -665,15 +659,15 @@ namespace Deveel.Data.Client {
 		//   WorkerThread.
 		//   For client/server apps, the thread that calls this will by the
 		//   connection thread that listens for data from the server.
-		public void OnDatabaseEvent(int event_type, String event_message) {
-			if (event_type == 99) {
+		public void OnDatabaseEvent(int eventType, String eventMessage) {
+			if (eventType == 99) {
 				if (trigger_thread == null) {
 					trigger_thread = new TriggerDispatchThread(this);
 					trigger_thread.Start();
 				}
-				trigger_thread.DispatchTrigger(event_message);
+				trigger_thread.DispatchTrigger(eventMessage);
 			} else {
-				throw new ApplicationException("Unrecognised database event: " + event_type);
+				throw new ApplicationException("Unrecognised database event: " + eventType);
 			}
 		}
 
@@ -954,34 +948,17 @@ namespace Deveel.Data.Client {
 						//          Console.Out.WriteLine("TRIGGER EVENT: " + message);
 
 						string[] tok = message.Split(' ');
-						TriggerEventType event_type = (TriggerEventType) Convert.ToInt32(tok[0]);
-						String trigger_name = tok[1];
-						String trigger_source = tok[2];
-						int trigger_fire_count = Convert.ToInt32(tok[3]);
+						TriggerEventType eventType = (TriggerEventType) Convert.ToInt32(tok[0]);
+						string triggerName = tok[1];
+						string triggerSource = tok[2];
+						int triggerFireCount = Convert.ToInt32(tok[3]);
 
-						ArrayList fired_triggers = new ArrayList();
 						// Create a list of Listener's that are listening for this trigger.
 						lock (conn.trigger_list) {
-							for (int i = 0; i < conn.trigger_list.Count; i += 2) {
-								String to_listen_for = (String)conn.trigger_list[i];
-								if (to_listen_for.Equals(trigger_name)) {
-									ITriggerListener listener = (ITriggerListener)conn.trigger_list[i + 1];
-									// NOTE, we can't call 'listener.OnTriggerFired' here because
-									// it's not a good idea to call user code when we are
-									// synchronized over 'trigger_list' (deadlock concerns).
-									fired_triggers.Add(listener);
-									fired_triggers.Add(new TriggerEventArgs(trigger_source, trigger_name, event_type, trigger_fire_count));
-								}
-							}
+							TriggerEventHandler triggerHandler = conn.trigger_list[triggerName] as TriggerEventHandler;
+							if (triggerHandler != null)
+								triggerHandler(conn, new TriggerEventArgs(triggerName, TableName.Resolve(triggerSource), eventType, triggerFireCount));
 						}
-
-						// Fire them triggers.
-						for (int i = 0; i < fired_triggers.Count; i += 2) {
-							ITriggerListener listener = (ITriggerListener)fired_triggers[i];
-							TriggerEventArgs e = (TriggerEventArgs) fired_triggers[i + 1];
-							listener.OnTriggerFired(e);
-						}
-
 					} catch (Exception t) {
 						Console.Error.WriteLine(t.Message); 
 						Console.Error.WriteLine(t.StackTrace);
