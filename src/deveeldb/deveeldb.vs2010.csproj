@@ -81,9 +81,12 @@
     <Compile Include="Deveel.Data.Protocol\IInputStream.cs" />
     <Compile Include="Deveel.Data.Protocol\LengthMarkedBufferedInputStream.cs" />
     <Compile Include="Deveel.Data.Protocol\NetworkInputStream.cs" />
+    <Compile Include="Deveel.Data.Sql\AlterUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CaseStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateSequenceStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropSequenceStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\DropUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql\IfStatement.cs" />
     <Compile Include="Deveel.Data.Sql\PrivilegesStatement.cs">
       <SubType>Code</SubType>
@@ -280,7 +283,6 @@
     <Compile Include="Deveel.Data\TableSelectExpression.cs" />
     <Compile Include="Deveel.Data.Sql\TNamedUserDefinedType.cs" />
     <Compile Include="Deveel.Data.Sql\UpdateTableStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\UserStatement.cs" />
     <Compile Include="Deveel.Data.Sql\Util.cs" />
     <Compile Include="Deveel.Data.Store\AbstractStore.cs" />
     <Compile Include="Deveel.Data.Store\FixedRecordList.cs" />

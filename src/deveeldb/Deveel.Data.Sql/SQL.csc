@@ -1009,8 +1009,7 @@ StatementTree DropSequence() :
 
 StatementTree CreateUser() :
 {
-  StatementTree cmd = new StatementTree(typeof(UserStatement));
-  cmd.SetValue("type", "CREATE USER");
+  StatementTree cmd = new StatementTree(typeof(CreateUserStatement));
 }
 {
   <USER> UserManagerCommand(cmd)
@@ -1020,8 +1019,7 @@ StatementTree CreateUser() :
 
 StatementTree AlterUser() :
 {
-  StatementTree cmd = new StatementTree(typeof(UserStatement));
-  cmd.SetValue("type", "ALTER USER");
+  StatementTree cmd = new StatementTree(typeof(AlterUserStatement));
 }
 {
   <USER> UserManagerCommand(cmd)
@@ -1031,8 +1029,7 @@ StatementTree AlterUser() :
 
 StatementTree DropUser() :
 {
-  StatementTree cmd = new StatementTree(typeof(UserStatement));
-  cmd.SetValue("type", "DROP USER");
+  StatementTree cmd = new StatementTree(typeof(DropUserStatement));
   String username;
 }
 { 
