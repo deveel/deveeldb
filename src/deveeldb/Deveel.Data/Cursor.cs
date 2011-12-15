@@ -259,7 +259,7 @@ namespace Deveel.Data {
 
 				rowIndex = pos;
 			}
-
+			
 			return BuildRowTable();
 		}
 

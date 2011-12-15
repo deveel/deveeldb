@@ -533,9 +533,9 @@ namespace Deveel.Data.Client {
 					throw new InvalidOperationException();
 
 				if (result[0].RowCount > 1)
-					throw new DataException();
+					throw new DataException("The result of the query returned more than one row and cannot be a scalar.");
 				if (result[0].ColumnCount > 1)
-					throw new DataException();
+					throw new DataException("The result of the query has more than one column and cannot be a scalar.");
 
 				if (!result[0].First())
 					return null;

@@ -14,7 +14,7 @@ namespace Deveel.Data {
 		[Test]
 		public void TestCursor() {
 			DeveelDbCommand command = Connection.CreateCommand("DECLARE c_person CURSOR FOR " +
-			                                                   "SELECT * FROM Person WHERE age > 2 " +
+			                                                   "SELECT name FROM Person WHERE age > 2 " +
 			                                                   "   ORDER BY name ASC");
 			command.ExecuteNonQuery();
 			Console.Out.WriteLine("Cursor 'c_person' declared.");
@@ -29,7 +29,7 @@ namespace Deveel.Data {
 			Assert.IsTrue(reader.Read());
 			
 
-			Console.Out.WriteLine("c_person.Next.name = {0}", reader.GetString(1));
+			Console.Out.WriteLine("c_person.Next.name = {0}", reader.GetString(0));
 
 			reader.Close();
 
@@ -38,46 +38,18 @@ namespace Deveel.Data {
 			Console.Out.WriteLine("Declared variable :name.");
 
 			command = Connection.CreateCommand("FETCH NEXT FROM c_person INTO :name");
-			//TODO: assert the value
-			command.ExecuteScalar();
+			command.ExecuteNonQuery();
+
+			command = Connection.CreateCommand("SELECT :name");
+			object value = command.ExecuteScalar();
+			Assert.IsNotNull(value);
+			// since we haven't applied any ordering, the first out is the last in
+			Assert.IsTrue(value.Equals("David Powell"));
 
 			command = Connection.CreateCommand("CLOSE c_person");
 			command.ExecuteNonQuery();
 
 			Console.Out.WriteLine("Cursor c_person closed.");
-		}
-
-		[Test]
-		public void Declare() {
-			const string commandText = "DECLARE person_cursor CURSOR FOR " +
-									   "SELECT * FROM Person WHERE age > 2 " +
-									   "   ORDER BY name ASC";
-
-			DeveelDbCommand command = Connection.CreateCommand(commandText);
-			Assert.AreEqual(0, command.ExecuteNonQuery());
-		}
-
-		[Test]
-		public void Open() {
-			DeveelDbCommand command = Connection.CreateCommand("OPEN c_person");
-			Assert.AreEqual(0, command.ExecuteNonQuery());
-		}
-
-		[Test]
-		public void FetchNext() {
-			DeveelDbCommand command = Connection.CreateCommand("FETCH NEXT FROM c_person");
-
-			using (DeveelDbDataReader reader = command.ExecuteReader()) {
-				while (reader.Read()) {
-					Console.Out.WriteLine("Name: {0}", reader.GetString(1));
-				}
-			}
-		}
-
-		[Test]
-		public void Close() {
-			DeveelDbCommand command = Connection.CreateCommand("CLOSE c_person");
-			Assert.AreEqual(1, command.ExecuteNonQuery());
 		}
 	}
 }

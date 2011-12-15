@@ -1,3 +1,7 @@
+2011-12-15  Antonello Provenzano  <antonello@deveel.com>
+	* IQueryContext.cs: Added the method RemoveVariable to
+	explicitly remove a variable from the given context.
+
 2011-12-11  Antonello Provenzano  <antonello@deveel.com>
 	* TableDataConglomerate.cs: added in-memory store for
 	handling temporary tables

@@ -93,6 +93,10 @@ namespace Deveel.Data {
 			// nothing to do by default...
 		}
 
+		public virtual void RemoveVariable(string name) {
+			// nothing to do by default...
+		}
+
 		/// <inheritdoc/>
 		public virtual Cursor DeclareCursor(TableName name, IQueryPlanNode planNode, CursorAttributes attributes) {
 			return null;

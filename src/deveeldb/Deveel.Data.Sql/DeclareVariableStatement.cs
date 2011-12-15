@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override Table Evaluate() {
-			if (Connection.GetVariable(name) != null)
+			if (QueryContext.GetVariable(name) != null)
 				throw new InvalidOperationException("The variable '" + name + "' was already defined.");
 
 			try {
@@ -50,9 +50,9 @@ namespace Deveel.Data.Sql {
 
 			try {
 				if (defaultValue != null)
-					Connection.SetVariable(name, defaultValue, QueryContext);
+					QueryContext.SetVariable(name, defaultValue);
 			} catch(Exception e) {
-				Connection.RemoveVariable(name);
+				QueryContext.RemoveVariable(name);
 				Debug.WriteException(e);
 				throw;
 			}

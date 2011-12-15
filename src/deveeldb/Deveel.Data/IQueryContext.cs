@@ -149,6 +149,13 @@ namespace Deveel.Data {
 		/// <param name="value">The value to set for the variable.</param>
 		void SetVariable(string name, Expression value);
 
+		/// <summary>
+		/// Explicitly removes the given variable from the
+		/// current query context.
+		/// </summary>
+		/// <param name="name">The name of the variable to remove.</param>
+		void RemoveVariable(string name);
+
 		// -------------- Cursors ----------------
 
 		Cursor DeclareCursor(TableName name, IQueryPlanNode planNode, CursorAttributes attributes);

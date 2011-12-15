@@ -118,6 +118,10 @@ namespace Deveel.Data {
 			database.SetVariable(name, value, this);
 		}
 
+		public override void RemoveVariable(string name) {
+			database.RemoveVariable(name);
+		}
+
 		public override Cursor DeclareCursor(TableName name, IQueryPlanNode planNode, CursorAttributes attributes) {
 			return database.DeclareCursor(name, planNode, attributes);
 		}

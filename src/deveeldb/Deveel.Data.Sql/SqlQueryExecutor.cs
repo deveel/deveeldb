@@ -14,8 +14,10 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Text;
 
 namespace Deveel.Data.Sql {
 	///<summary>
@@ -73,10 +75,14 @@ namespace Deveel.Data.Sql {
 			if (statementTree == null) {
 				try {
 					lock (SqlParser) {
-						SqlParser.ReInit(new StringReader(commandText));
+						SqlParser.ReInit(new StreamReader(new MemoryStream(Encoding.Unicode.GetBytes(commandText)), Encoding.Unicode));
 						SqlParser.Reset();
 						// Parse the statement.
-						statementTree = SqlParser.Statement();
+						IList<StatementTree> list = SqlParser.StatementList();
+						if (list.Count > 1)
+							throw new NotSupportedException();
+
+						statementTree = list[0];
 					}
 				} catch (ParseException e) {
 					throw new SqlParseException(e, commandText);

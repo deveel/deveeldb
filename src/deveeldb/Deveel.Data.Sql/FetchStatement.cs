@@ -40,6 +40,9 @@ namespace Deveel.Data.Sql {
 				offset = offsetExpr.Evaluate(null, QueryContext);
 			}
 
+			if (fetchInfo.Into.HasElements)
+				return cursor.FetchInto(fetchInfo.Orientation, offset, QueryContext, fetchInfo.Into);
+
 			// so we finally fetch from the cursor
 			return cursor.Fetch(fetchInfo.Orientation, offset);
 		}

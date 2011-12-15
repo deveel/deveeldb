@@ -67,7 +67,7 @@ namespace Deveel.Data {
 			return Transaction.Variables.GetVariable(name);
 		}
 
-		internal void RemoveVariable(string name) {
+		public void RemoveVariable(string name) {
 			Transaction.Variables.RemoveVariable(name);
 		}
 

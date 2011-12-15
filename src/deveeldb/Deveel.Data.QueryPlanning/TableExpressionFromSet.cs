@@ -296,7 +296,8 @@ namespace Deveel.Data.QueryPlanning {
 			// Search for the function with this name
 			VariableName lastFound = null;
 			int matchesFound = 0;
-			foreach (string funName in functionResources) {
+			for (int i = 0; i < functionResources.Count; i+=2) {
+				string funName = (string) functionResources[i];
 				if (StringCompare(funName, varName)) {
 					if (matchesFound > 0)
 						throw new StatementException("Ambiguous reference '" + v + "'");

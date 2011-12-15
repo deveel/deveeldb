@@ -178,7 +178,10 @@ TOKEN: {
 | <SUBTRACT:   "-" >
 | <CONCAT:     "||" >
 | <MODULUS:    "%" >
+}
 
+TOKEN: {
+  <SEMICOLUMN: ";" >
 }
 
 TOKEN [IGNORE_CASE] : {
@@ -486,15 +489,6 @@ TOKEN : {  /* IDENTIFIERS */
 }
 
 
-void Test() :
-{  }
-{
-  ( ParseExpression() ";" )
-  
-  { }
-}
-
-
 // Parses a single expression.  Useed in 'com.mckoi.database.Expression.parse' method.
 Expression ParseExpression() :
 { Expression exp;
@@ -503,6 +497,17 @@ Expression ParseExpression() :
   exp = DoExpression() <EOF>
   
   { return exp; }
+}
+
+IList<StatementTree> StatementList() :
+{ List<StatementTree> list = new List<StatementTree>();
+  StatementTree ob;
+}
+{
+  ( ob = Statement() { list.Add(ob); }
+    ( ob = Statement() { list.Add(ob); } )* )
+
+  { return list.AsReadOnly(); }
 }
 
 // Statement that ends with a ';'
@@ -534,14 +539,13 @@ StatementTree Statement() :
       | ob=Commit()
       | ob=Rollback()
 
-      | ob=DeclareVariable()
       | ob=Set()
       
       | ob=ShutDown()
     )
-    ( ";" | <EOF> )
+	( <EOF> | <SEMICOLUMN> )
   )
-
+  
   { return ob; }
 }
   
@@ -591,9 +595,10 @@ StatementTree Drop() :
 StatementTree Declare() :
 { StatementTree ob; }
 {
-  (  <DECLARE>
+  (  [ <DECLARE> ]
      ( 
-       ob=DeclareCursor()
+       ob=DeclareCursor() |
+	   ob=DeclareVariable()
      )
   )
   
@@ -1069,7 +1074,7 @@ StatementTree DeclareCursor() :
   List<ByColumn> order_by = new List<ByColumn>();
 }
 {
-  name = SQLIdentifier() [ <INSENSITIVE> { insensitive = true;} ] 
+  <CURSOR> name = SQLIdentifier() [ <INSENSITIVE> { insensitive = true;} ] 
      [ <SCROLL> { scrollable=true; } ] <CURSOR> 
      <FOR> select_expr = GetTableSelectExpression()
      [ <ORDERBY> SelectOrderByList(order_by) ]
@@ -1492,7 +1497,7 @@ TableSelectExpression GetTableSelectExpression() :
 {
   ( <SELECT>
         ( 
-          LOOKAHEAD(2) <IDENTITY> { table_expr.Columns.Add(Data.SelectColumn.Identity); } |
+          LOOKAHEAD(<IDENTITY>) <IDENTITY> { table_expr.Columns.Add(Data.SelectColumn.Identity); } |
           [ table_expr.Distinct = SetQuantifier() ] 
           SelectColumnList(table_expr.Columns) 
         )
@@ -2076,15 +2081,6 @@ SearchExpression ConditionsExpression() :
   { return new SearchExpression(exp); }
 }
 
-
-
-Expression ExpressionTest() :
-{ Expression exp; }
-{
-  exp=DoExpression() ";"
-
-  { return exp; }
-}  
 
 Expression DoExpression() :
 { Stack stack = new Stack();

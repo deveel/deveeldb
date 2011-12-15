@@ -92,6 +92,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Sql\RaiseStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\SQL.cs" />
     <Compile Include="Deveel.Data.Sql\StatementContext.cs" />
     <Compile Include="Deveel.Data.Util\ListUtil.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseInterface.cs" />
@@ -125,7 +126,6 @@
     <Compile Include="Deveel.Data.QueryPlanning\SubsetNode.cs" />
     <Compile Include="Deveel.Data.Sql\ParseException.cs" />
     <Compile Include="Deveel.Data.Sql\SimpleCharStream.cs" />
-    <Compile Include="Deveel.Data.Sql\SQL.cs" />
     <Compile Include="Deveel.Data.Sql\SQLConstants.cs" />
     <Compile Include="Deveel.Data.Sql\SQLTokenManager.cs" />
     <Compile Include="Deveel.Data.Sql\Token.cs" />

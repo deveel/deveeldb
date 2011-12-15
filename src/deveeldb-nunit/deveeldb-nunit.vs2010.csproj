@@ -52,8 +52,14 @@
     <Compile Include="Deveel.Data.Control\DbConfigTest.cs" />
     <Compile Include="Deveel.Data.Control\DirectAccessTest.cs" />
     <Compile Include="Deveel.Data.Functions\FunctionTest.cs" />
+    <Compile Include="Deveel.Data.Sql\AlterTableTest.cs" />
+    <Compile Include="Deveel.Data.Sql\CallbackTriggerTest.cs" />
+    <Compile Include="Deveel.Data.Sql\DeleteTest.cs" />
+    <Compile Include="Deveel.Data.Sql\InsertTest.cs" />
     <Compile Include="Deveel.Data.Sql\SelectTest.cs" />
+    <Compile Include="Deveel.Data.Sql\UpdateTest.cs" />
     <Compile Include="Deveel.Data\CreateDatabaseTest.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateTableTest.cs" />
     <Compile Include="Deveel.Data\CursorTest.cs" />
     <Compile Include="Deveel.Data\ExpressionTest.cs" />
     <Compile Include="Deveel.Data\OperatorTest.cs" />
