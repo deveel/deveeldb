@@ -41,7 +41,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of ranges.
 		/// </summary>
-		private readonly List<SelectableRange> rangeSet;
+		private List<SelectableRange> rangeSet;
 
 		///<summary>
 		/// Constructs the <see cref="SelectableRangeSet"/> to a full range 
@@ -239,36 +239,43 @@ namespace Deveel.Data {
 		/// operator is '&lt;=' and the value is 'z' the result range is 'a' -&gt; 'z'.
 		/// </example>
 		public void Intersect(Operator op, TObject val) {
-			int sz = rangeSet.Count;
-			List<SelectableRange> i = rangeSet.GetRange(0, sz);
-			Queue<SelectableRange> queue = new Queue<SelectableRange>(i);
+			lock (this) {
+				int sz = rangeSet.Count;
+				List<SelectableRange> i = rangeSet.GetRange(0, sz);
 
-			if (op.IsEquivalent("<>") || op.IsEquivalent("is not")) {
-				bool nullCheck = op.IsEquivalent("<>");
-				int j = 0;
-				while (j < queue.Count) {
-					SelectableRange range = queue.Peek();
-					SelectableRange leftRange = IntersectRange(range, Operator.Get("<"), val, nullCheck);
-					SelectableRange rightRange = IntersectRange(range, Operator.Get(">"), val, nullCheck);
-					queue.Dequeue();
-					if (leftRange != null)
-						queue.Enqueue(leftRange);
-					if (rightRange != null)
-						queue.Enqueue(rightRange);
-					j++;
-				}
-			} else {
-				bool nullCheck = !op.IsEquivalent("is");
-				int j = 0;
-				while (j < sz) {
-					SelectableRange range = i[j];
-					range = IntersectRange(range, op, val, nullCheck);
-					if (range == null) {
+				if (op.IsEquivalent("<>") || op.IsEquivalent("is not")) {
+					bool nullCheck = op.IsEquivalent("<>");
+					int j = 0;
+					while (j < sz) {
+						SelectableRange range = i[j];
+						SelectableRange leftRange = IntersectRange(range, Operator.Get("<"), val, nullCheck);
+						SelectableRange rightRange = IntersectRange(range, Operator.Get(">"), val, nullCheck);
 						i.RemoveAt(j);
-					} else {
-						i[j] = range;
+						if (leftRange != null) {
+							i.Add(leftRange);
+						}
+						if (rightRange != null) {
+							i.Add(rightRange);
+						}
+						j++;
 					}
-					j++;
+
+					rangeSet = new List<SelectableRange>(i);
+				} else {
+					bool nullCheck = !op.IsEquivalent("is");
+					int j = 0;
+					while (j < sz) {
+						SelectableRange range = i[j];
+						range = IntersectRange(range, op, val, nullCheck);
+						if (range == null) {
+							i.RemoveAt(j);
+						} else {
+							i[j] = range;
+						}
+						j++;
+					}
+
+					rangeSet = new List<SelectableRange>(i);
 				}
 			}
 		}

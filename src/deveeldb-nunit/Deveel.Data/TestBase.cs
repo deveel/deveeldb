@@ -157,14 +157,23 @@ namespace Deveel.Data {
 		}
 
 		private void DropTables() {
-			DeveelDbCommand command = connection.CreateCommand("DROP TABLE IF EXISTS MusicGroup");
-			command.ExecuteNonQuery();
+			DeveelDbTransaction transaction = Connection.BeginTransaction();
 
-			command = connection.CreateCommand("DROP TABLE IF EXISTS ListensTo");
-			command.ExecuteNonQuery();
+			try {
+				DeveelDbCommand command = connection.CreateCommand("DROP TABLE IF EXISTS MusicGroup");
+				command.ExecuteNonQuery();
 
-			command = connection.CreateCommand("DROP TABLE IF EXISTS Person");
-			command.ExecuteNonQuery();
+				command = connection.CreateCommand("DROP TABLE IF EXISTS ListensTo");
+				command.ExecuteNonQuery();
+
+				command = connection.CreateCommand("DROP TABLE IF EXISTS Person");
+				command.ExecuteNonQuery();
+
+				transaction.Commit();
+			} catch (Exception) {
+				transaction.Rollback();
+				throw;
+			}
 		}
 
 		private void InsertDataPerson() {
@@ -271,8 +280,41 @@ namespace Deveel.Data {
 			command.ExecuteNonQuery();
 		}
 
-		private DeveelDbConnection CreateConnection() {
-			return (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
+		protected void PrintResult(DeveelDbDataReader reader) {
+			int rowCount;
+			PrintResult(reader, out rowCount);
+		}
+
+		protected void PrintResult(DeveelDbDataReader reader, out int rowCount) {
+			rowCount = 0;
+
+			while (reader.Read()) {
+				for (int i = 0; i < reader.FieldCount; i++) {
+					Console.Out.Write(reader.GetName(i));
+					Console.Out.Write(" = ");
+					Console.Out.Write(reader.GetValue(i));
+					if (i < reader.FieldCount - 1)
+						Console.Out.Write(", ");
+				}
+
+				rowCount++;
+				Console.Out.WriteLine();
+			}
+		}
+
+		protected DeveelDbDataReader ExecuteReader(string commandText) {
+			DeveelDbCommand command = Connection.CreateCommand(commandText);
+			return command.ExecuteReader();
+		}
+
+		protected void ExecuteNonQuery(string commandText) {
+			DeveelDbCommand command = Connection.CreateCommand(commandText);
+			command.ExecuteNonQuery();
+		}
+
+		protected object ExecuteScalar(string commandText) {
+			DeveelDbCommand command = Connection.CreateCommand(commandText);
+			return command.ExecuteScalar();
 		}
 
 		protected DatabaseConnection CreateDatabaseConnection() {

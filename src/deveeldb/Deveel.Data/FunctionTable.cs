@@ -315,8 +315,7 @@ namespace Deveel.Data {
 					// Compare cell in column in this row with previous row.
 					for (int n = 0; n < col_lookup.Length && equal; ++n) {
 						TObject c1 = root_table.GetCellContents(col_lookup[n], row_index);
-						TObject c2 =
-							root_table.GetCellContents(col_lookup[n], previous_row);
+						TObject c2 = root_table.GetCellContents(col_lookup[n], previous_row);
 						equal = (c1.CompareTo(c2) == 0);
 					}
 
@@ -329,7 +328,8 @@ namespace Deveel.Data {
 					}
 				}
 
-				groupLookup.Insert(row_index, current_group);
+				// groupLookup.Insert(row_index, current_group);
+				PlaceAt(groupLookup, row_index, current_group);
 
 				previous_row = row_index;
 			}
@@ -338,6 +338,14 @@ namespace Deveel.Data {
 
 			// Set up a group resolver for this method.
 			groupResolver = new TableGroupResolver(this);
+		}
+
+		private static void PlaceAt(IList<int> list, int index, int value) {
+			while (index > list.Count) {
+				list.Add(0);
+			}
+
+			list.Insert(index, value);
 		}
 
 

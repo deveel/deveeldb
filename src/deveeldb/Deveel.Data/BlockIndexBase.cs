@@ -904,8 +904,22 @@ namespace Deveel.Data {
 				get { return Current; }
 			}
 
+			private void WalkBack() {
+				--blockOffset;
+				--currentOffset;
+				if (blockOffset < 0) {
+					if (blockIndex > 0) {
+						--blockIndex;
+						currentBlock = index.blocks[blockIndex];
+						currentBlockSize = currentBlock.Count;
+						blockOffset = currentBlock.Count - 1;
+					}
+				}
+			}
+
 			public bool MoveBack() {
 				if (currentOffset > startOffset) {
+					/*
 					--currentOffset;
 
 					if (--blockOffset < 0) {
@@ -916,7 +930,9 @@ namespace Deveel.Data {
 							blockOffset = currentBlock.Count - 1;
 						}
 					}
+					*/
 
+					WalkBack();
 					return true;
 				}
 
@@ -936,7 +952,7 @@ namespace Deveel.Data {
 				if (origBlockCount == index.blocks.Count) {
 					// HACK: Reduce the current cached block size
 					--currentBlockSize;
-					MoveBack();
+					WalkBack();
 				} else {
 					--currentOffset;
 					SetupVars(currentOffset);

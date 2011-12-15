@@ -137,7 +137,6 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		internal static IList<int> NotIn(Table table1, Table table2, int col1, int col2) {
-
 			// Handle trivial cases
 			int t2_row_count = table2.RowCount;
 			if (t2_row_count == 0) {
@@ -146,6 +145,9 @@ namespace Deveel.Data {
 			} else if (t2_row_count == 1) {
 				// 1 row so select all from table1 that doesn't equal the value.
 				IRowEnumerator en = table2.GetRowEnumerator();
+				if (!en.MoveNext())
+					throw new InvalidOperationException("Cannot iterate through table rows.");
+
 				TObject cell = table2.GetCellContents(col2, en.RowIndex);
 				return table1.SelectRows(col1, Operator.Get("<>"), cell);
 			}

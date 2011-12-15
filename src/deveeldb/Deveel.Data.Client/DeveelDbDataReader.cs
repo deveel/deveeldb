@@ -49,7 +49,14 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override string GetName(int i) {
-			return command.ResultSet.GetColumn(i).Name;
+			string columnName = command.ResultSet.GetColumn(i).Name;
+			if (String.IsNullOrEmpty(columnName))
+				return String.Empty;
+			if (columnName.Length <= 2)
+				return columnName;
+			if (columnName[0] == '@')
+				columnName = columnName.Substring(2);
+			return columnName;
 		}
 
 		/// <inheritdoc/>
