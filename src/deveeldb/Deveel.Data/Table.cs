@@ -198,34 +198,6 @@ namespace Deveel.Data {
 		/// </remarks>
 		public abstract DataTableInfo TableInfo { get; }
 
-		/// <summary>
-		/// Adds a <see cref="IDataTableListener"/> to the <see cref="DataTable"/>
-		/// objects at the root of this table tree hierarchy.
-		/// </summary>
-		/// <param name="listener"></param>
-		/// <remarks>
-		/// If this table represents the join of a number of tables then the 
-		/// <see cref="IDataTableListener"/> is added to all the <see cref="DataTable"/>
-		/// objects at the root.
-		/// <para>
-		/// A <see cref="IDataTableListener"/> is notified of all modifications to the 
-		/// raw entries of the table.  This listener can be used for detecting changes 
-		/// in VIEWs, for triggers or for caching of common queries.
-		/// </para>
-		/// </remarks>
-		internal abstract void AddDataTableListener(IDataTableListener listener);
-
-		/// <summary>
-		/// Removes a <see cref="IDataTableListener"/> from the <see cref="DataTable"/> 
-		/// objects at the root of this table tree hierarchy.
-		/// </summary>
-		/// <param name="listener"></param>
-		/// <remarks>
-		/// If this table represents the join of a number of tables, then the 
-		/// <see cref="IDataTableListener"/> is removed from all the <see cref="DataTable"/> 
-		/// objects at the root.
-		/// </remarks>
-		internal abstract void RemoveDataTableListener(IDataTableListener listener);
 
 		/// <summary>
 		/// Locks the root table(s) of this table so that it is impossible to

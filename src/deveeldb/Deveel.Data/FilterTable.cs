@@ -137,14 +137,6 @@ namespace Deveel.Data {
 			return parent.GetRowEnumerator();
 		}
 
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			parent.AddDataTableListener(listener);
-		}
-
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			parent.RemoveDataTableListener(listener);
-		}
-
 		public override void LockRoot(int lockKey) {
 			parent.LockRoot(lockKey);
 		}

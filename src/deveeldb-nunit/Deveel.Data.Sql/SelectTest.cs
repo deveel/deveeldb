@@ -137,8 +137,21 @@ namespace Deveel.Data.Sql {
 		}
 
 		[Test]
-		public void SelectAll() {
+		public void SelectAllEqual() {
 			DeveelDbDataReader reader = ExecuteReader("SELECT name, age FROM Person WHERE age = ALL (24)");
+
+			Assert.IsTrue(reader.HasRows);
+			Assert.AreEqual(2, reader.FieldCount);
+
+			int rowCount;
+			PrintResult(reader, out rowCount);
+
+			Assert.AreEqual(4, rowCount);
+		}
+
+		[Test]
+		public void SelectAllGreater() {
+			DeveelDbDataReader reader = ExecuteReader("SELECT name, age FROM Person WHERE age > ALL (30)");
 
 			Assert.IsTrue(reader.HasRows);
 			Assert.AreEqual(2, reader.FieldCount);
@@ -155,18 +168,15 @@ namespace Deveel.Data.Sql {
 		}
 
 		[Test]
-		public void Union() {
-			Assert.Inconclusive();
-		}
+		public void UnionAll() {
+			DeveelDbDataReader reader = ExecuteReader("SELECT name FROM Person UNION ALL SELECT person_name FROM ListensTo");
 
-		[Test]
-		public void Insersect() {
-			Assert.Inconclusive();
-		}
+			Assert.IsTrue(reader.HasRows);
+			Assert.AreEqual(1, reader.FieldCount);
 
-		[Test]
-		public void Except() {
-			Assert.Inconclusive();
+			int rowCount;
+			PrintResult(reader, out rowCount);
+
 		}
 
 		[Test]

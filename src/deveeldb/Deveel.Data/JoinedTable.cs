@@ -360,21 +360,6 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].AddDataTableListener(listener);
-			}
-		}
-
-		/// <inheritdoc/>
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].RemoveDataTableListener(listener);
-			}
-		}
-
-
-		/// <inheritdoc/>
 		public override void LockRoot(int lockKey) {
 			// For each table, recurse.
 			roots_locked++;

@@ -255,18 +255,6 @@ namespace Deveel.Data {
 			return dataSource.GetColumnScheme(column);
 		}
 
-		/// <inheritdoc/>
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			// Currently we do nothing with this info.
-		}
-
-
-		/// <inheritdoc/>
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			// Currently we do nothing with this info.
-		}
-
-
 
 
 		// -------- Methods implemented for DefaultDataTable --------

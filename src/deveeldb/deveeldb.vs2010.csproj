@@ -386,7 +386,6 @@
     <Compile Include="Deveel.Data\ICursorContext.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\IDatabaseProcedure.cs" />
-    <Compile Include="Deveel.Data\IDataTableListener.cs" />
     <Compile Include="Deveel.Data\IExpressionPreparer.cs" />
     <Compile Include="Deveel.Data\IGroupResolver.cs" />
     <Compile Include="Deveel.Data\IIndexSet.cs" />

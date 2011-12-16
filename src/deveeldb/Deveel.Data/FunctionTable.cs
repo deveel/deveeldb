@@ -567,22 +567,6 @@ namespace Deveel.Data {
 			return new SimpleRowEnumerator(row_count);
 		}
 
-		internal override void AddDataTableListener(IDataTableListener listener) {
-			// Add a data table listener to the reference table.
-			// NOTE: This will cause the reference table to have the same listener
-			//   registered twice if the 'MergeWithReference' method is used.  While
-			//   this isn't perfect behaviour, it means if 'MergeWithReference' isn't
-			//   used, we still will be notified of changes in the reference table
-			//   which will alter the values in this table.
-			ReferenceTable.AddDataTableListener(listener);
-		}
-
-		internal override void RemoveDataTableListener(IDataTableListener listener) {
-			// Removes a data table listener to the reference table.
-			// ( see notes above... )
-			ReferenceTable.RemoveDataTableListener(listener);
-		}
-
 		public override void LockRoot(int lockKey) {
 			// We Lock the reference table.
 			// NOTE: This cause the reference table to Lock twice when we use the
