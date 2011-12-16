@@ -16,8 +16,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Util;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// Provides methods for performing the query table command <i>in</i> and 
@@ -40,73 +38,68 @@ namespace Deveel.Data {
 		/// <returns>
 		/// Returns the rows selected from <paramref name="table1"/>.
 		/// </returns>
-		internal static IList<int> In(Table table1, Table table2, int column1, int column2) {
-
+		public static IList<int> In(Table table1, Table table2, int column1, int column2) {
 			// First pick the the smallest and largest table.  We only want to iterate
 			// through the smallest table.
 			// NOTE: This optimisation can't be performed for the 'not_in' command.
 
-			Table small_table;
-			Table large_table;
-			int small_column;
-			int large_column;
+			Table smallTable;
+			Table largeTable;
+			int smallColumn;
+			int largeColumn;
 
 			if (table1.RowCount < table2.RowCount) {
-				small_table = table1;
-				large_table = table2;
+				smallTable = table1;
+				largeTable = table2;
 
-				small_column = column1;
-				large_column = column2;
+				smallColumn = column1;
+				largeColumn = column2;
 
 			} else {
-				small_table = table2;
-				large_table = table1;
+				smallTable = table2;
+				largeTable = table1;
 
-				small_column = column2;
-				large_column = column1;
+				smallColumn = column2;
+				largeColumn = column1;
 			}
 
 			// Iterate through the small table's column.  If we can find identical
 			// cells in the large table's column, then we should include the row in our
 			// final result.
 
-			BlockIndex result_rows = new BlockIndex();
-			IRowEnumerator e = small_table.GetRowEnumerator();
-			Operator EQUALSOP = Operator.Get("=");
+			BlockIndex resultRows = new BlockIndex();
+			IRowEnumerator e = smallTable.GetRowEnumerator();
+			Operator op = Operator.Get("=");
 
 			while (e.MoveNext()) {
+				int smallRowIndex = e.RowIndex;
+				TObject cell = smallTable.GetCellContents(smallColumn, smallRowIndex);
 
-				int small_row_index = e.RowIndex;
-				TObject cell = small_table.GetCellContents(small_column, small_row_index);
-
-				IList<int> selected_set = large_table.SelectRows(large_column, EQUALSOP, cell);
+				IList<int> selectedSet = largeTable.SelectRows(largeColumn, op, cell);
 
 				// We've found cells that are IN both columns,
 
-				if (selected_set.Count > 0) {
-
+				if (selectedSet.Count > 0) {
 					// If the large table is what our result table will be based on, append
 					// the rows selected to our result set.  Otherwise add the index of
 					// our small table.  This only works because we are performing an
 					// EQUALS operation.
 
-					if (large_table == table1) {
+					if (largeTable == table1) {
 						// Only allow unique rows into the table set.
-						int sz = selected_set.Count;
+						int sz = selectedSet.Count;
 						bool rs = true;
-						for (int i = 0; rs == true && i < sz; ++i) {
-							rs = result_rows.UniqueInsertSort(selected_set[i]);
+						for (int i = 0; rs && i < sz; ++i) {
+							rs = resultRows.UniqueInsertSort(selectedSet[i]);
 						}
 					} else {
 						// Don't bother adding in sorted order because it's not important.
-						result_rows.Add(small_row_index);
+						resultRows.Add(smallRowIndex);
 					}
 				}
-
 			}
 
-			return ListUtil.ToList(result_rows);
-
+			return new List<int>(resultRows);
 		}
 
 		/// <summary>
@@ -114,14 +107,14 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="table1"></param>
 		/// <param name="table2"></param>
-		/// <param name="t1_cols"></param>
-		/// <param name="t2_cols"></param>
+		/// <param name="t1Cols"></param>
+		/// <param name="t2Cols"></param>
 		/// <returns></returns>
-		internal static IList<int> In(Table table1, Table table2, int[] t1_cols, int[] t2_cols) {
-			if (t1_cols.Length > 1) {
-				throw new ApplicationException("Multi-column 'in' not supported.");
-			}
-			return In(table1, table2, t1_cols[0], t2_cols[0]);
+		public static IList<int> In(Table table1, Table table2, int[] t1Cols, int[] t2Cols) {
+			if (t1Cols.Length > 1)
+				throw new NotSupportedException("Multi-column 'in' not supported yet.");
+
+			return In(table1, table2, t1Cols[0], t2Cols[0]);
 		}
 
 		/// <summary>
@@ -136,13 +129,14 @@ namespace Deveel.Data {
 		/// if <paramref name="table1"/> has many rows and <paramref name="table2"/> has few rows.
 		/// </remarks>
 		/// <returns></returns>
-		internal static IList<int> NotIn(Table table1, Table table2, int col1, int col2) {
+		public static IList<int> NotIn(Table table1, Table table2, int col1, int col2) {
 			// Handle trivial cases
 			int t2_row_count = table2.RowCount;
-			if (t2_row_count == 0) {
+			if (t2_row_count == 0)
 				// No rows so include all rows.
 				return table1.SelectAll(col1);
-			} else if (t2_row_count == 1) {
+
+			if (t2_row_count == 1) {
 				// 1 row so select all from table1 that doesn't equal the value.
 				IRowEnumerator en = table2.GetRowEnumerator();
 				if (!en.MoveNext())
@@ -155,27 +149,23 @@ namespace Deveel.Data {
 			// Iterate through table1's column.  If we can find identical cell in the
 			// tables's column, then we should not include the row in our final
 			// result.
-			List<int> result_rows = new List<int>();
+			List<int> resultRows = new List<int>();
 			IRowEnumerator e = table1.GetRowEnumerator();
-			Operator EQUALSOP = Operator.Get("=");
 
 			while (e.MoveNext()) {
+				int rowIndex = e.RowIndex;
+				TObject cell = table1.GetCellContents(col1, rowIndex);
 
-				int row_index = e.RowIndex;
-				TObject cell = table1.GetCellContents(col1, row_index);
-
-				IList<int> selected_set = table2.SelectRows(col2, Operator.Get("="), cell);
+				IList<int> selectedSet = table2.SelectRows(col2, Operator.Equal, cell);
 
 				// We've found a row in table1 that doesn't have an identical cell in
 				// table2, so we should include it in the result.
 
-				if (selected_set.Count <= 0) {
-					result_rows.Add(row_index);
-				}
-
+				if (selectedSet.Count <= 0)
+					resultRows.Add(rowIndex);
 			}
 
-			return result_rows;
+			return resultRows;
 		}
 
 		/// <summary>
@@ -183,14 +173,14 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="table1"></param>
 		/// <param name="table2"></param>
-		/// <param name="t1_cols"></param>
-		/// <param name="t2_cols"></param>
+		/// <param name="t1Cols"></param>
+		/// <param name="t2Cols"></param>
 		/// <returns></returns>
-		internal static IList<int> NotIn(Table table1, Table table2, int[] t1_cols, int[] t2_cols) {
-			if (t1_cols.Length > 1) {
-				throw new ApplicationException("Multi-column 'not in' not supported.");
-			}
-			return NotIn(table1, table2, t1_cols[0], t2_cols[0]);
+		public static IList<int> NotIn(Table table1, Table table2, int[] t1Cols, int[] t2Cols) {
+			if (t1Cols.Length > 1)
+				throw new NotSupportedException("Multi-column 'not in' not supported yet.");
+
+			return NotIn(table1, table2, t1Cols[0], t2Cols[0]);
 		}
 	}
 }

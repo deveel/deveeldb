@@ -725,7 +725,7 @@ namespace Deveel.Data {
 		/// <param name="lhs">The left has side expression. The <see cref="VariableName"/>
 		/// objects in this expression must all reference columns in this table.</param>
 		/// <param name="op">The operator to use.</param>
-		/// <param name="right_table">The subquery table should only contain 
+		/// <param name="rightTable">The subquery table should only contain 
 		/// on column.</param>
 		/// <remarks>
 		/// ANY creates a new table that contains only the rows in this 
@@ -743,69 +743,66 @@ namespace Deveel.Data {
 		/// <returns>
 		/// Returns the result of the ANY function on the table.
 		/// </returns>
-		public virtual Table Any(IQueryContext context, Expression lhs, Operator op, Table right_table) {
-			Table table = right_table;
+		public virtual Table Any(IQueryContext context, Expression lhs, Operator op, Table rightTable) {
+			Table table = rightTable;
 
 			// Check the table only has 1 column
-			if (table.ColumnCount != 1) {
+			if (table.ColumnCount != 1)
 				throw new ApplicationException("Input table <> 1 columns.");
-			}
 
 			// Handle trivial case of no entries to select from
-			if (RowCount == 0) {
+			if (RowCount == 0)
 				return this;
-			}
+
 			// If 'table' is empty then we return an empty set.  ANY { empty set } is
 			// always false.
-			if (table.RowCount == 0) {
+			if (table.RowCount == 0)
 				return EmptySelect();
-			}
 
 			// Is the lhs expression a constant?
 			if (lhs.IsConstant) {
 				// We know lhs is a constant so no point passing arguments,
-				TObject lhs_const = lhs.Evaluate(null, context);
+				TObject lhsConst = lhs.Evaluate(null, context);
 				// Select from the table.
-				IList<int> ivec = table.SelectRows(0, op, lhs_const);
-				if (ivec.Count > 0) {
+				IList<int> list = table.SelectRows(0, op, lhsConst);
+				if (list.Count > 0)
 					// There's some entries so return the whole table,
 					return this;
-				}
+
 				// No entries matches so return an empty table.
 				return EmptySelect();
 			}
 
-			Table source_table;
-			int lhs_col_index;
+			Table sourceTable;
+			int lhsColIndex;
 			// Is the lhs expression a single variable?
-			VariableName lhs_var = lhs.VariableName;
+			VariableName lhsVar = lhs.VariableName;
 			// NOTE: It'll be less common for this part to be called.
-			if (lhs_var == null) {
+			if (lhsVar == null) {
 				// This is a complex expression so make a FunctionTable as our new
 				// source.
-				DatabaseQueryContext db_context = (DatabaseQueryContext)context;
-				FunctionTable fun_table = new FunctionTable(
-					  this, new Expression[] { lhs }, new String[] { "1" }, db_context);
-				source_table = fun_table;
-				lhs_col_index = 0;
+				DatabaseQueryContext dbContext = (DatabaseQueryContext)context;
+				FunctionTable funTable = new FunctionTable(this, new Expression[] {lhs}, new String[] {"1"}, dbContext);
+				sourceTable = funTable;
+				lhsColIndex = 0;
 			} else {
 				// The expression is an easy to resolve reference in this table.
-				source_table = this;
-				lhs_col_index = source_table.FindFieldName(lhs_var);
-				if (lhs_col_index == -1) {
-					throw new ApplicationException("Can't find column '" + lhs_var + "'.");
+				sourceTable = this;
+				lhsColIndex = sourceTable.FindFieldName(lhsVar);
+				if (lhsColIndex == -1) {
+					throw new ApplicationException("Can't find column '" + lhsVar + "'.");
 				}
 			}
 
 			// Check that the first column of 'table' is of a compatible type with
 			// source table column (lhs_col_index).
 			// ISSUE: Should we convert to the correct type via a FunctionTable?
-			DataTableColumnInfo source_col = source_table.GetColumnInfo(lhs_col_index);
-			DataTableColumnInfo dest_col = table.GetColumnInfo(0);
-			if (!source_col.TType.IsComparableType(dest_col.TType)) {
+			DataTableColumnInfo sourceCol = sourceTable.GetColumnInfo(lhsColIndex);
+			DataTableColumnInfo destCol = table.GetColumnInfo(0);
+			if (!sourceCol.TType.IsComparableType(destCol.TType)) {
 				throw new ApplicationException("The type of the sub-query expression " +
-								source_col.TType.ToSQLString() + " is incompatible " +
-								"with the sub-query " + dest_col.TType.ToSQLString() +
+								sourceCol.TType.ToSQLString() + " is incompatible " +
+								"with the sub-query " + destCol.TType.ToSQLString() +
 								".");
 			}
 
@@ -821,28 +818,28 @@ namespace Deveel.Data {
 			//   For <> type ANY we iterate through 'source' only including those
 			//   rows that a <> query on 'table' returns size() != 0.
 
-			IList<int> select_vec;
+			IList<int> selectRows;
 			if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 				// Select the first from the set (the lowest value),
-				TObject lowest_cell = table.GetFirstCellContent(0);
+				TObject lowestCell = table.GetFirstCellContent(0);
 				// Select from the source table all rows that are > or >= to the
 				// lowest cell,
-				select_vec = source_table.SelectRows(lhs_col_index, op, lowest_cell);
+				selectRows = sourceTable.SelectRows(lhsColIndex, op, lowestCell);
 			} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 				// Select the last from the set (the highest value),
-				TObject highest_cell = table.GetLastCellContent(0);
+				TObject highestCell = table.GetLastCellContent(0);
 				// Select from the source table all rows that are < or <= to the
 				// highest cell,
-				select_vec = source_table.SelectRows(lhs_col_index, op, highest_cell);
+				selectRows = sourceTable.SelectRows(lhsColIndex, op, highestCell);
 			} else if (op.IsEquivalent("=")) {
 				// Equiv. to IN
-				select_vec = INHelper.In(source_table, table, lhs_col_index, 0);
+				selectRows = INHelper.In(sourceTable, table, lhsColIndex, 0);
 			} else if (op.IsEquivalent("<>")) {
 				// Select the value that is the same of the entire column
 				TObject cell = table.GetSingleCellContent(0);
 				if (cell != null) {
 					// All values from 'source_table' that are <> than the given cell.
-					select_vec = source_table.SelectRows(lhs_col_index, op, cell);
+					selectRows = sourceTable.SelectRows(lhsColIndex, op, cell);
 				} else {
 					// No, this means there are different values in the given set so the
 					// query evaluates to the entire table.
@@ -854,13 +851,13 @@ namespace Deveel.Data {
 
 			// Make into a table to return.
 			VirtualTable rtable = new VirtualTable(this);
-			rtable.Set(this, select_vec);
+			rtable.Set(this, selectRows);
 
 			// Query logging information
 			if (Debug.IsInterestedIn(DebugLevel.Information)) {
 				Debug.Write(DebugLevel.Information, this,
 							rtable + " = " + this + ".any(" +
-							lhs + ", " + op + ", " + right_table + ")");
+							lhs + ", " + op + ", " + rightTable + ")");
 			}
 
 			return rtable;

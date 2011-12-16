@@ -919,19 +919,6 @@ namespace Deveel.Data {
 
 			public bool MoveBack() {
 				if (currentOffset > startOffset) {
-					/*
-					--currentOffset;
-
-					if (--blockOffset < 0) {
-						if (blockIndex > 0) {
-							--blockIndex;
-							currentBlock = index.blocks[blockIndex];
-							currentBlockSize = currentBlock.Count;
-							blockOffset = currentBlock.Count - 1;
-						}
-					}
-					*/
-
 					WalkBack();
 					return true;
 				}

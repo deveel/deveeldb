@@ -97,7 +97,12 @@ namespace Deveel.Data.Sql {
 
 		[Test(Description = "Stores a result of a selection with a single column into a simple variable")]
 		public void SelectIntoSimpleVariable() {
-			Assert.Inconclusive();
+			ExecuteNonQuery("DECLARE name VARCHAR(200)");
+			ExecuteNonQuery("SELECT name INTO :name FROM Person WHERE name = 'Elizabeth Kramer'");
+			object value = ExecuteScalar("SELECT :name");
+
+			Assert.IsNotNull(value);
+			Assert.IsTrue(value.Equals("Elizabeth Kramer"));
 		}
 
 		[Test(Description = "Stores a result of a complex selection into a variable with a complex type")]
@@ -111,7 +116,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		[Test(Description = "Selects all the values in a group that satisfy a given condition")]
-		public void SelectAllIn() {
+		public void SelectIn() {
 			DeveelDbDataReader reader = ExecuteReader("SELECT name FROM Person WHERE lives_in IN ('England', 'Australia')");
 
 			Assert.IsTrue(reader.HasRows);
@@ -124,11 +129,44 @@ namespace Deveel.Data.Sql {
 		}
 
 		[Test]
-		public void SelectAllNotIn() {
+		public void SelectNotIn() {
 			object value = ExecuteScalar("SELECT COUNT(*) FROM Person WHERE lives_in NOT IN ('Africa')");
 
 			Assert.IsNotNull(value);
 			Assert.IsTrue(value.Equals(9));
+		}
+
+		[Test]
+		public void SelectAll() {
+			DeveelDbDataReader reader = ExecuteReader("SELECT name, age FROM Person WHERE age = ALL (24)");
+
+			Assert.IsTrue(reader.HasRows);
+			Assert.AreEqual(2, reader.FieldCount);
+
+			int rowCount;
+			PrintResult(reader, out rowCount);
+
+			Assert.AreEqual(4, rowCount);
+		}
+
+		[Test]
+		public void SelectAny() {
+			Assert.Inconclusive();
+		}
+
+		[Test]
+		public void Union() {
+			Assert.Inconclusive();
+		}
+
+		[Test]
+		public void Insersect() {
+			Assert.Inconclusive();
+		}
+
+		[Test]
+		public void Except() {
+			Assert.Inconclusive();
 		}
 
 		[Test]

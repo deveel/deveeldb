@@ -193,6 +193,8 @@ namespace Deveel.Data {
 			/// <param name="scheme"></param>
 			/// <param name="ranges"></param>
 			public RangeChecker(BlindSearch scheme, SelectableRange[] ranges) {
+				this.scheme = scheme;
+
 				int size = ranges.Length;
 				lowerFlags = new byte[size];
 				upperFlags = new byte[size];
@@ -201,7 +203,6 @@ namespace Deveel.Data {
 				for (int i = 0; i < ranges.Length; ++i) {
 					SetupRange(i, ranges[i]);
 				}
-				this.scheme = scheme;
 			}
 
 			private void ResolveSortedSet() {
