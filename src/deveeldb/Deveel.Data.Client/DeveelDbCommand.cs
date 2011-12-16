@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.IO;
@@ -622,14 +623,22 @@ namespace Deveel.Data.Client {
 					//TODO: this is a nasty hack to support multiple results: should be
 					//      done on server side...
 					string[] parts = value.Split(';');
-					_queries = new SqlQuery[parts.Length];
-					for (int i = 0; i < parts.Length; i++) {
+					List<SqlQuery>  queries = new List<SqlQuery>();
+
+					foreach (string part in parts) {
+						string s = part.Trim();
+						if (String.IsNullOrEmpty(s))
+							continue;
+
 						ParameterStyle style = ParameterStyle.Marker;
 						if (connection != null)
 							style = connection.Settings.ParameterStyle;
-						_queries[i] = new SqlQuery(parts[i], style);
+
+						queries.Add(new SqlQuery(s, style));
 					}
+
 					commandText = value;
+					_queries = queries.ToArray();
 				} else {
 					_queries = null;
 					commandText = null;

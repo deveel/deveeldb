@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql {
 	public sealed class CreateTableTest : TestBase {
 		[Test(Description = "Creates a simple table without constraints nor identities")]
 		public void CreateSimpleTable() {
-			
+			ExecuteNonQuery("CREATE TABLE Test (field1 INT, field2 VARCHAR(200), field3 DATE);");
 		}
 
 		[Test]
