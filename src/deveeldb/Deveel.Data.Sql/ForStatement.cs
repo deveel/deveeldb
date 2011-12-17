@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010-2011 Deveel
+﻿// 
+//  Copyright 2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -17,20 +17,10 @@ using System;
 
 namespace Deveel.Data.Sql {
 	[Serializable]
-	public sealed class LabelStatement : Statement {
-		public string LabelName {
-			get { return GetString("label_name"); }
-			set {
-				if (String.IsNullOrEmpty(value))
-					throw new ArgumentNullException("value");
-
-				SetValue("label_name", value);
-			}
-		}
+	public sealed class ForStatement : Statement {
 
 		protected override Table Evaluate(IQueryContext context) {
-			Statement statement = GetPreparedStatement("statement");
-			return statement.EvaluateStatement(context);
+			throw new NotImplementedException();
 		}
 	}
 }

@@ -87,6 +87,8 @@
     <Compile Include="Deveel.Data.Sql\CreateUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropUserStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\ForStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\GotoStatement.cs" />
     <Compile Include="Deveel.Data.Sql\IfStatement.cs" />
     <Compile Include="Deveel.Data.Sql\PrivilegesStatement.cs">
       <SubType>Code</SubType>
@@ -277,6 +279,7 @@
     <Compile Include="Deveel.Data\SqlState.cs" />
     <Compile Include="Deveel.Data\SqlStateException.cs" />
     <Compile Include="Deveel.Data\SqlState_States.cs" />
+    <Compile Include="Deveel.Data\SubsetQueryContext.cs" />
     <Compile Include="Deveel.Data\TableSelectExpression.cs" />
     <Compile Include="Deveel.Data.Sql\TNamedUserDefinedType.cs" />
     <Compile Include="Deveel.Data.Sql\UpdateTableStatement.cs" />

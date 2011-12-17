@@ -112,6 +112,15 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
+		internal IList<Statement> GetAllPreparedStatements() {
+			List<Statement> statements = new List<Statement>();
+			foreach (KeyValuePair<string, List<Statement>> pair in preparedStatements) {
+				statements.AddRange(pair.Value);
+			}
+
+			return statements.AsReadOnly();
+		}
+
 		/// <summary>
 		/// Checks the permissions for the current user to determine if they are 
 		/// allowed to select (read) from tables in the given plan.

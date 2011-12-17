@@ -32,12 +32,13 @@ namespace Deveel.Data {
 			get { return variables.Count; }
 		}
 
-		public void SetVariable(string name, Expression exp, IQueryContext context) {
+		public bool SetVariable(string name, Expression exp, IQueryContext context) {
 			Variable variable = GetVariable(name);
 			if (variable == null)
-				throw new ArgumentException("Variable '" + name + "' was not declared in this session.");
+				return false;
 
 			variable.SetValue(exp, context);
+			return true;
 		}
 
 		public Variable DeclareVariable(string name, TType type, bool constant, bool notNull) {
