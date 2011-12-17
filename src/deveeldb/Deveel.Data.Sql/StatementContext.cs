@@ -80,12 +80,12 @@ namespace Deveel.Data.Sql {
 		/// In other words, all <see cref="StatementTree"/> are converted to 
 		/// <see cref="SelectStatement"/>.
 		/// </remarks>
-		private void ResolveTree() {
+		private void ResolveTree(DatabaseConnection c) {
 			// For every expression in this select we must go through and resolve
 			// any sub-queries we find to the correct Select object.
 			// This method will prepare the sub-query substitute the StatementTree
 			// object for a Select object in the expression.
-			tree.PrepareAllExpressions(new StatementTreePreparer(connection));
+			tree.PrepareAllExpressions(new StatementTreePreparer(c));
 		}
 
 		internal void Set(DatabaseConnection dbConnection, StatementTree statementTree, SqlQuery sqlQuery) {
@@ -99,8 +99,12 @@ namespace Deveel.Data.Sql {
 				tree = statementTree;
 			}
 
-			if (connection != null)
-				ResolveTree();
+			PrepareTree(connection);
+		}
+
+		internal void PrepareTree(DatabaseConnection c) {
+			if (c != null)
+				ResolveTree(c);
 
 			// Prepare the statement.
 			statement.PrepareStatement();
@@ -123,11 +127,11 @@ namespace Deveel.Data.Sql {
 				this.connection = connection;
 			}
 
-			public bool CanPrepare(Object element) {
+			public bool CanPrepare(object element) {
 				return element is StatementTree;
 			}
 
-			public object Prepare(Object element) {
+			public object Prepare(object element) {
 				StatementTree statementTree = (StatementTree)element;
 				SelectStatement statement = new SelectStatement();
 				statement.Context.Set(connection, statementTree, null);

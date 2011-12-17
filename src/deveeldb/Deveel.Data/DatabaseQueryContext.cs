@@ -16,7 +16,6 @@
 
 using System;
 
-using Deveel.Data.Functions;
 using Deveel.Data.QueryPlanning;
 
 namespace Deveel.Data {
@@ -42,15 +41,7 @@ namespace Deveel.Data {
 			get { return database.Database; }
 		}
 
-		public override TransactionSystem System {
-			get { return Database.System; }
-		}
-
-		public override IFunctionLookup FunctionLookup {
-			get { return System.FunctionLookup; }
-		}
-
-		internal DatabaseConnection Connection {
+		public override DatabaseConnection Connection {
 			get { return database; }
 		}
 
@@ -90,21 +81,6 @@ namespace Deveel.Data {
 			return database.CreateViewQueryPlanNode(name);
 		}
 
-		public override long NextSequenceValue(String name) {
-			return database.NextSequenceValue(name);
-		}
-
-		public override long CurrentSequenceValue(String name) {
-			return database.LastSequenceValue(name);
-		}
-
-		public override void SetSequenceValue(String name, long value) {
-			database.SetSequenceValue(name, value);
-		}
-
-		public override string UserName {
-			get { return database.User.UserName; }
-		}
 
 		public override Variable DeclareVariable(string name, TType type, bool constant, bool notNull) {
 			return database.DeclareVariable(name, type, constant, notNull);

@@ -16,7 +16,6 @@
 using System;
 using System.Collections;
 
-using Deveel.Data.Functions;
 using Deveel.Data.QueryPlanning;
 
 namespace Deveel.Data.Procedures {
@@ -60,18 +59,6 @@ namespace Deveel.Data.Procedures {
 
 		#region Overrides of QueryContext
 
-		public override TransactionSystem System {
-			get { return context.System; }
-		}
-
-		public override string UserName {
-			get { return context.UserName; }
-		}
-
-		public override IFunctionLookup FunctionLookup {
-			get { return context.FunctionLookup; }
-		}
-
 		/// <summary>
 		/// Gets a reference to the <see cref="StoredProcedure"/> that
 		/// represents the context of execution.
@@ -82,18 +69,6 @@ namespace Deveel.Data.Procedures {
 
 		private bool CursorExists(TableName name) {
 			return GetCursror(name) != null;
-		}
-
-		public override long NextSequenceValue(string generator_name) {
-			return context.NextSequenceValue(generator_name);
-		}
-
-		public override long CurrentSequenceValue(string generator_name) {
-			return context.CurrentSequenceValue(generator_name);
-		}
-
-		public override void SetSequenceValue(string generator_name, long value) {
-			context.SetSequenceValue(generator_name, value);
 		}
 
 		public override Cursor DeclareCursor(TableName name, IQueryPlanNode planNode, CursorAttributes attributes) {

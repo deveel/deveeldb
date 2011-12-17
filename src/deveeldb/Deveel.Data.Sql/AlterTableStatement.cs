@@ -24,14 +24,6 @@ namespace Deveel.Data.Sql {
 	[Serializable]
 	public class AlterTableStatement : Statement {
 		/// <summary>
-		/// The create statement that we use to alter the current table.
-		/// </summary>
-		/// <remarks>
-		/// This is only for compatibility reasons.
-		/// </remarks>
-		private StatementTree createStatementTree;
-
-		/// <summary>
 		/// The name of the table we are altering.
 		/// </summary>
 		private string tableName;
@@ -157,7 +149,7 @@ namespace Deveel.Data.Sql {
 			if (action != null)
 				actions.Add(action);
 
-			createStatementTree = (StatementTree)GetValue("create_statement");
+			StatementTree createStatementTree = (StatementTree)GetValue("create_statement");
 
 			// ---
 
@@ -181,7 +173,7 @@ namespace Deveel.Data.Sql {
 				throw new UserAccessException("User not permitted to alter table: " + tableName);
 			}
 
-			if (createStatementTree != null) {
+			if (createStatement != null) {
 				// Create the data table definition and tell the database to update it.
 				DataTableInfo tableInfo = createStatement.CreateTableInfo();
 				TableName tname1 = tableInfo.TableName;

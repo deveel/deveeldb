@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Functions;
 using Deveel.Data.QueryPlanning;
@@ -27,58 +27,75 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Any marked tables that are made during the evaluation of a query plan. (String) -> (Table)
 		/// </summary>
-		private Hashtable marked_tables;
+		private Dictionary<string, Table> markedTables;
 
 		/// <inheritdoc/>
-		public abstract TransactionSystem System { get; }
-
-		/// <inheritdoc/>
-		public abstract string UserName { get; }
-
-		/// <inheritdoc/>
-		public abstract IFunctionLookup FunctionLookup { get; }
-
-		/// <inheritdoc/>
-		public abstract long NextSequenceValue(string generator_name);
-
-		/// <inheritdoc/>
-		public abstract long CurrentSequenceValue(string generator_name);
-
-		/// <inheritdoc/>
-		public abstract void SetSequenceValue(string generator_name, long value);
-
-		/// <inheritdoc/>
-		public void AddMarkedTable(String mark_name, Table table) {
-			if (marked_tables == null)
-				marked_tables = new Hashtable();
-			marked_tables.Add(mark_name, table);
+		public virtual TransactionSystem System {
+			get { return (Connection == null ? null : Connection.System); }
 		}
 
 		/// <inheritdoc/>
-		public Table GetMarkedTable(String mark_name) {
-			if (marked_tables == null)
+		public virtual string UserName {
+			get { return (Connection == null ? null : Connection.User.UserName); }
+		}
+
+		public virtual DatabaseConnection Connection {
+			get { return null; }
+		}
+
+		/// <inheritdoc/>
+		public virtual IFunctionLookup FunctionLookup {
+			get { return Connection == null ? null : Connection.System.FunctionLookup; }
+		}
+
+		/// <inheritdoc/>
+		public virtual long NextSequenceValue(string generatorName) {
+			return Connection.NextSequenceValue(generatorName);
+		}
+
+		/// <inheritdoc/>
+		public virtual long CurrentSequenceValue(string generatorName) {
+			return Connection.LastSequenceValue(generatorName);
+		}
+
+		/// <inheritdoc/>
+		public virtual void SetSequenceValue(string generatorName, long value) {
+			Connection.SetSequenceValue(generatorName, value);
+		}
+
+		/// <inheritdoc/>
+		public void AddMarkedTable(string markName, Table table) {
+			if (markedTables == null)
+				markedTables = new Dictionary<string, Table>();
+
+			markedTables.Add(markName, table);
+		}
+
+		/// <inheritdoc/>
+		public Table GetMarkedTable(string markName) {
+			if (markedTables == null)
 				return null;
-			return (Table)marked_tables[mark_name];
+			Table table;
+			if (!markedTables.TryGetValue(markName, out table))
+				return null;
+
+			return table;
 		}
 
 		/// <inheritdoc/>
 		public void PutCachedNode(long id, Table table) {
-			if (marked_tables == null)
-				marked_tables = new Hashtable();
-			marked_tables.Add(id, table);
+			AddMarkedTable(id.ToString(), table);
 		}
 
 		/// <inheritdoc/>
 		public Table GetCachedNode(long id) {
-			if (marked_tables == null)
-				return null;
-			return (Table)marked_tables[id];
+			return GetMarkedTable(id.ToString());
 		}
 
 		/// <inheritdoc/>
 		public void ClearCache() {
-			if (marked_tables != null)
-				marked_tables.Clear();
+			if (markedTables != null)
+				markedTables.Clear();
 		}
 
 		public virtual Variable DeclareVariable(string name, TType type, bool constant, bool notNull) {

@@ -26,12 +26,12 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of tables that make up the join.
 		/// </summary>
-		protected Table[] reference_list;
+		private Table[] referenceList;
 
 		/// <summary>
 		/// The schemes to describe the entity relation in the given column.
 		/// </summary>
-		protected SelectableScheme[] column_scheme;
+		private SelectableScheme[] columnScheme;
 
 		// These two arrays are lookup tables created in the constructor.  They allow
 		// for quick resolution of where a given column should be 'routed' to in
@@ -40,12 +40,12 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Maps the column number in this table to the reference_list array to route to.
 		/// </summary>
-		protected int[] column_table;
+		private int[] columnTable;
 
 		/// <summary>
 		/// Gives a column filter to the given column to route correctly to the ancestor.
 		/// </summary>
-		protected int[] column_filter;
+		private int[] columnFilter;
 
 		/// <summary>
 		/// The column that we are sorted against.
@@ -53,7 +53,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This is an optimization set by the <see cref="OptimisedPostSet"/> method.
 		/// </remarks>
-		private int sorted_against_column = -1;
+		private int sortedAgainstColumn = -1;
 
 		/// <summary>
 		/// The <see cref="TableInfo"/> object that describes the columns and name 
@@ -69,13 +69,13 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <seealso cref="LockRoot"/>
 		/// <seealso cref="UnlockRoot"/>
-		private byte roots_locked;
+		private byte rootsLocked;
 
 		/// <summary>
 		/// Constructs the <see cref="JoinedTable"/> with the list of tables in the parent.
 		/// </summary>
 		/// <param name="tables"></param>
-		internal JoinedTable(Table[] tables) {
+		protected JoinedTable(Table[] tables) {
 			CallInit(tables);
 		}
 
@@ -100,28 +100,27 @@ namespace Deveel.Data {
 		/// <param name="tables"></param>
 		protected virtual void Init(Table[] tables) {
 			int tableCount = tables.Length;
-			reference_list = tables;
+			referenceList = tables;
 
-			int col_count = ColumnCount;
-			column_scheme = new SelectableScheme[col_count];
+			int colCount = ColumnCount;
+			columnScheme = new SelectableScheme[colCount];
 
 			vtTableInfo = new DataTableInfo(new TableName(null, "#VIRTUAL TABLE#"));
 
 			// Generate look up tables for column_table and column_filter information
 
-			column_table = new int[col_count];
-			column_filter = new int[col_count];
+			columnTable = new int[colCount];
+			columnFilter = new int[colCount];
 			int index = 0;
-			for (int i = 0; i < reference_list.Length; ++i) {
-
-				Table curTable = reference_list[i];
+			for (int i = 0; i < referenceList.Length; ++i) {
+				Table curTable = referenceList[i];
 				DataTableInfo curTableInfo = curTable.TableInfo;
 				int refColCount = curTable.ColumnCount;
 
 				// For each column
 				for (int n = 0; n < refColCount; ++n) {
-					column_filter[index] = n;
-					column_table[index] = i;
+					columnFilter[index] = n;
+					columnTable[index] = i;
 					++index;
 
 					// Add this column to the data table info of this table.
@@ -140,7 +139,7 @@ namespace Deveel.Data {
 		/// <b>Issue</b>: We should be able to optimise these types of things output.
 		/// </remarks>
 		/// <returns>
-		/// Returns an <see cref="IntegerVector"/> that represents a <i>reference</i> 
+		/// Returns an <see cref="IList{T}"/> that represents a <i>reference</i> 
 		/// to the rows in our virtual table.
 		/// </returns>
 		private IList<int> CalculateRowReferenceList() {
@@ -157,7 +156,7 @@ namespace Deveel.Data {
 		/// We simply pick the first table to resolve the Database object.
 		/// </remarks>
 		public override Database Database {
-			get { return reference_list[0].Database; }
+			get { return referenceList[0].Database; }
 		}
 
 		/// <inheritdoc/>
@@ -166,31 +165,31 @@ namespace Deveel.Data {
 		/// </remarks>
 		public override int ColumnCount {
 			get {
-				int column_count_sum = 0;
-				for (int i = 0; i < reference_list.Length; ++i) {
-					column_count_sum += reference_list[i].ColumnCount;
+				int columnCountSum = 0;
+				for (int i = 0; i < referenceList.Length; ++i) {
+					columnCountSum += referenceList[i].ColumnCount;
 				}
-				return column_count_sum;
+				return columnCountSum;
 			}
 		}
 
 		/// <inheritdoc/>
 		public override int FindFieldName(VariableName v) {
-			int col_index = 0;
-			for (int i = 0; i < reference_list.Length; ++i) {
-				int col = reference_list[i].FindFieldName(v);
-				if (col != -1) {
-					return col + col_index;
-				}
-				col_index += reference_list[i].ColumnCount;
+			int colIndex = 0;
+			for (int i = 0; i < referenceList.Length; ++i) {
+				int col = referenceList[i].FindFieldName(v);
+				if (col != -1)
+					return col + colIndex;
+
+				colIndex += referenceList[i].ColumnCount;
 			}
 			return -1;
 		}
 
 		/// <inheritdoc/>
 		public override VariableName GetResolvedVariable(int column) {
-			Table parent_table = reference_list[column_table[column]];
-			return parent_table.GetResolvedVariable(column_filter[column]);
+			Table parentTable = referenceList[columnTable[column]];
+			return parentTable.GetResolvedVariable(columnFilter[column]);
 		}
 
 		/// <summary>
@@ -198,7 +197,7 @@ namespace Deveel.Data {
 		/// <see cref="VirtualTable"/>.
 		/// </summary>
 		protected Table[] ReferenceTables {
-			get { return reference_list; }
+			get { return referenceList; }
 		}
 
 		/// <summary>
@@ -218,7 +217,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		internal void OptimisedPostSet(int column) {
-			sorted_against_column = column;
+			sortedAgainstColumn = column;
 		}
 
 		/// <summary>
@@ -237,13 +236,12 @@ namespace Deveel.Data {
 		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 
 			// First check if the given SelectableScheme is in the column_scheme array
-			SelectableScheme scheme = column_scheme[column];
+			SelectableScheme scheme = columnScheme[column];
 			if (scheme != null) {
-				if (table == this) {
+				if (table == this)
 					return scheme;
-				} else {
-					return scheme.GetSubsetScheme(table, originalColumn);
-				}
+
+				return scheme.GetSubsetScheme(table, originalColumn);
 			}
 
 			// If it isn't then we need to calculate it
@@ -251,12 +249,12 @@ namespace Deveel.Data {
 
 			// Optimization: The table may be naturally ordered by a column.  If it
 			// is we don't try to generate an ordered set.
-			if (sorted_against_column != -1 &&
-				sorted_against_column == column) {
+			if (sortedAgainstColumn != -1 &&
+				sortedAgainstColumn == column) {
 				InsertSearch isop = new InsertSearch(this, column, CalculateRowReferenceList());
 				isop.RecordUid = false;
 				ss = isop;
-				column_scheme[column] = ss;
+				columnScheme[column] = ss;
 				if (table != this) {
 					ss = ss.GetSubsetScheme(table, originalColumn);
 				}
@@ -264,11 +262,10 @@ namespace Deveel.Data {
 			} else {
 				// Otherwise we must generate the ordered set from the information in
 				// a parent index.
-				Table parent_table = reference_list[column_table[column]];
-				ss = parent_table.GetSelectableSchemeFor(
-										 column_filter[column], originalColumn, table);
+				Table parent_table = referenceList[columnTable[column]];
+				ss = parent_table.GetSelectableSchemeFor(columnFilter[column], originalColumn, table);
 				if (table == this) {
-					column_scheme[column] = ss;
+					columnScheme[column] = ss;
 				}
 			}
 
@@ -280,13 +277,13 @@ namespace Deveel.Data {
 			if (ancestor == this)
 				return;
 
-			int table_num = column_table[column];
-			Table parent_table = reference_list[table_num];
+			int tableNum = columnTable[column];
+			Table parentTable = referenceList[tableNum];
 
 			// Resolve the rows into the parents indices.  (MANGLES row_set)
-			ResolveAllRowsForTableAt(rowSet, table_num);
+			ResolveAllRowsForTableAt(rowSet, tableNum);
 
-			parent_table.SetToRowTableDomain(column_filter[column], rowSet, ancestor);
+			parentTable.SetToRowTableDomain(columnFilter[column], rowSet, ancestor);
 		}
 
 		/// <summary>
@@ -294,24 +291,24 @@ namespace Deveel.Data {
 		/// about the <see cref="DataTable"/> and the row indices of the data in this table.
 		/// </summary>
 		/// <param name="info"></param>
-		/// <param name="row_set"></param>
+		/// <param name="rowSet"></param>
 		/// <remarks>
 		/// This information can be used to construct a new <see cref="VirtualTable"/>. We 
 		/// need to supply an empty <see cref="RawTableInformation"/> object.
 		/// </remarks>
 		/// <returns></returns>
-		private RawTableInformation ResolveToRawTable(RawTableInformation info, IList<int> row_set) {
+		private RawTableInformation ResolveToRawTable(RawTableInformation info, IList<int> rowSet) {
 			if (this is IRootTable) {
 				info.Add((IRootTable)this, CalculateRowReferenceList());
 			} else {
-				for (int i = 0; i < reference_list.Length; ++i) {
+				for (int i = 0; i < referenceList.Length; ++i) {
 
-					List<int> newRowSet = new List<int>(row_set);
+					List<int> newRowSet = new List<int>(rowSet);
 
 					// Resolve the rows into the parents indices.
 					ResolveAllRowsForTableAt(newRowSet, i);
 
-					Table table = reference_list[i];
+					Table table = referenceList[i];
 					if (table is IRootTable) {
 						info.Add((IRootTable)table, newRowSet);
 					} else {
@@ -325,12 +322,12 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
-			List<int> all_list = new List<int>();
+			List<int> allList = new List<int>();
 			int size = RowCount;
 			for (int i = 0; i < size; ++i) {
-				all_list.Add(i);
+				allList.Add(i);
 			}
-			return ResolveToRawTable(info, all_list);
+			return ResolveToRawTable(info, allList);
 		}
 
 		/// <summary>
@@ -348,10 +345,10 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override TObject GetCellContents(int column, int row) {
-			int table_num = column_table[column];
-			Table parent_table = reference_list[table_num];
-			row = ResolveRowForTableAt(row, table_num);
-			return parent_table.GetCellContents(column_filter[column], row);
+			int tableNum = columnTable[column];
+			Table parentTable = referenceList[tableNum];
+			row = ResolveRowForTableAt(row, tableNum);
+			return parentTable.GetCellContents(columnFilter[column], row);
 		}
 
 		/// <inheritdoc/>
@@ -362,26 +359,46 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public override void LockRoot(int lockKey) {
 			// For each table, recurse.
-			roots_locked++;
-			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].LockRoot(lockKey);
+			rootsLocked++;
+			for (int i = 0; i < referenceList.Length; ++i) {
+				referenceList[i].LockRoot(lockKey);
 			}
 		}
 
 		/// <inheritdoc/>
 		public override void UnlockRoot(int lock_key) {
 			// For each table, recurse.
-			roots_locked--;
-			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].UnlockRoot(lock_key);
+			rootsLocked--;
+			for (int i = 0; i < referenceList.Length; ++i) {
+				referenceList[i].UnlockRoot(lock_key);
 			}
 		}
 
 		/// <inheritdoc/>
 		public override bool HasRootsLocked {
-			get { return roots_locked != 0; }
+			get { return rootsLocked != 0; }
 		}
 
+		/// <summary>
+		/// The schemes to describe the entity relation in the given column.
+		/// </summary>
+		protected SelectableScheme[] ColumnScheme {
+			get { return columnScheme; }
+		}
+
+		/// <summary>
+		/// Maps the column number in this table to the reference_list array to route to.
+		/// </summary>
+		protected int[] ColumnTable {
+			get { return columnTable; }
+		}
+
+		/// <summary>
+		/// Gives a column filter to the given column to route correctly to the ancestor.
+		/// </summary>
+		protected int[] ColumnFilter {
+			get { return columnFilter; }
+		}
 
 		/// <inheritdoc/>
 		public override void PrintGraph(TextWriter output, int indent) {
@@ -390,8 +407,8 @@ namespace Deveel.Data {
 			}
 			output.WriteLine("JT[" + GetType());
 
-			for (int i = 0; i < reference_list.Length; ++i) {
-				reference_list[i].PrintGraph(output, indent + 2);
+			for (int i = 0; i < referenceList.Length; ++i) {
+				referenceList[i].PrintGraph(output, indent + 2);
 			}
 
 			for (int i = 0; i < indent; ++i) {
@@ -406,20 +423,20 @@ namespace Deveel.Data {
 		/// Given a row and a table index (to a parent reference table), this will
 		/// return the row index in the given parent table for the given row.
 		/// </summary>
-		/// <param name="row_number"></param>
-		/// <param name="table_num"></param>
+		/// <param name="rowNumber"></param>
+		/// <param name="tableNum"></param>
 		/// <returns></returns>
-		protected abstract int ResolveRowForTableAt(int row_number, int table_num);
+		protected abstract int ResolveRowForTableAt(int rowNumber, int tableNum);
 
 		/// <summary>
-		/// Given an <see cref="IntegerVector"/> that represents a list of pointers to rows 
+		/// Given an <see cref="IList{T}"/> that represents a list of pointers to rows 
 		/// in this table, this resolves the rows to row indexes in the given parent table.
 		/// </summary>
-		/// <param name="row_set"></param>
-		/// <param name="table_num"></param>
+		/// <param name="rowSet"></param>
+		/// <param name="tableNum"></param>
 		/// <remarks>
-		/// This method changes the <paramref name="row_set"/> <see cref="IntegerVector"/> object.
+		/// This method changes the <paramref name="rowSet"/> <see cref="IList{T}"/> object.
 		/// </remarks>
-		protected abstract void ResolveAllRowsForTableAt(IList<int> row_set, int table_num);
+		protected abstract void ResolveAllRowsForTableAt(IList<int> rowSet, int tableNum);
 	}
 }

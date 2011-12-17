@@ -42,51 +42,57 @@ namespace Deveel.Data {
 		/// </summary>
 		IFunctionLookup FunctionLookup { get; }
 
+		/// <summary>
+		/// Optionally gets the connection to the database, if the context
+		/// is within a connection.
+		/// </summary>
+		DatabaseConnection Connection { get; }
+
 		// ---------- Sequences ----------
 
 		/// <summary>
 		/// Increments the sequence generator and returns the next unique key.
 		/// </summary>
-		/// <param name="generator_name"></param>
+		/// <param name="generatorName"></param>
 		/// <returns></returns>
-		long NextSequenceValue(String generator_name);
+		long NextSequenceValue(String generatorName);
 
 		/// <summary>
 		/// Returns the current sequence value returned for the given sequence
 		/// generator within the connection defined by this context.
 		/// </summary>
-		/// <param name="generator_name"></param>
+		/// <param name="generatorName"></param>
 		/// <returns></returns>
 		/// <exception cref="StatementException">
 		/// If a value was not returned for this connection.
 		/// </exception>
-		long CurrentSequenceValue(String generator_name);
+		long CurrentSequenceValue(String generatorName);
 
 		/// <summary>
 		/// Sets the current sequence value for the given sequence generator.
 		/// </summary>
-		/// <param name="generator_name"></param>
+		/// <param name="generatorName"></param>
 		/// <param name="value"></param>
-		void SetSequenceValue(String generator_name, long value);
+		void SetSequenceValue(String generatorName, long value);
 
 		// ---------- Caching ----------
 
 		/// <summary>
 		/// Marks a table in a query plan.
 		/// </summary>
-		/// <param name="mark_name"></param>
+		/// <param name="markName"></param>
 		/// <param name="table"></param>
 		/// <seealso cref="GetMarkedTable"/>
-		void AddMarkedTable(String mark_name, Table table);
+		void AddMarkedTable(String markName, Table table);
 
 		/// <summary>
 		/// Returns a table that was marked in a query plan or null if no 
 		/// mark was found.
 		/// </summary>
-		/// <param name="mark_name"></param>
+		/// <param name="markName"></param>
 		/// <returns></returns>
 		/// <seealso cref="AddMarkedTable"/>
-		Table GetMarkedTable(String mark_name);
+		Table GetMarkedTable(String markName);
 
 		/// <summary>
 		/// Put a <see cref="Table"/> into the cache.

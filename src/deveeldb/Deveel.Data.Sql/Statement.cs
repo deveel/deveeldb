@@ -39,13 +39,21 @@ namespace Deveel.Data.Sql {
 			StatementTree statementTree = (StatementTree) info.GetValue("StatementTree", typeof (StatementTree));
 			SqlQuery query = (SqlQuery) info.GetValue("Query", typeof (SqlQuery));
 
+			// at this point, setting the connection is useless for preparation:
+			// when we stored the statement tree from the context, it was already
+			// prepared
 			this.context.Set(null, statementTree, query);
+
+			preparedStatements =
+				(Dictionary<string, List<Statement>>)
+				info.GetValue("PreparedStatements", typeof (Dictionary<string, List<Statement>>));
 		}
 
 		private readonly StatementContext context;
 		private DatabaseQueryContext queryContext;
 		private bool prepared;
 		private bool evaluated;
+		private Dictionary<string, List<Statement> >preparedStatements;
 
 		public StatementContext Context {
 			get { return context; }
@@ -72,6 +80,37 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		protected IDebugLogger Debug {
 			get { return context.Connection.Debug; }
+		}
+
+		private void PrepareChildStatementTree(string key, StatementTree tree) {
+			// we assume the statement as a public constructor
+			Statement statement = Activator.CreateInstance(tree.StatementType, true) as Statement;
+			if (statement == null)
+				return;
+
+			statement.Context.Set(Connection, tree, Query);
+		}
+
+		/// <summary>
+		/// Scans the tree to find for child statements to prepare
+		/// </summary>
+		private  void PrepareStatements() {
+			StatementTree tree = Context.StatementTree;
+			if (tree == null)
+				return;
+
+			foreach (KeyValuePair<string, object> pair in tree) {
+				object value = pair.Value;
+				if (value is StatementTree) {
+					StatementTree childTree = (StatementTree) value;
+					PrepareChildStatementTree(pair.Key, childTree);
+				} else if (value is IList<StatementTree>) {
+					IList<StatementTree> list = (IList<StatementTree>) value;
+					foreach (StatementTree childTree in list) {
+						PrepareChildStatementTree(pair.Key, childTree);
+					}
+				}
+			}
 		}
 
 		/// <summary>
@@ -206,6 +245,9 @@ namespace Deveel.Data.Sql {
 			if (!prepared) {
 				if (evaluated)
 					throw new StatementException("The statement has been already executed.");
+
+
+				PrepareStatements();
 
 				Prepare();
 

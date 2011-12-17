@@ -1,4 +1,12 @@
-﻿2011-12-10  Antonello Provenzano  <antonello@deveel.com>
+﻿2011-12-17  Antonello Provenzano  <antonello@deveel.com>
+	* Statement.cs: preparation of child statements
+	* StatementTree.cs: added support for enumerating
+	objects in the tree
+	* StatementContext.cs: added method PrepareTree to
+	expose the procedure to prepare the tree in the
+	statement context
+
+2011-12-10  Antonello Provenzano  <antonello@deveel.com>
 	* AlterTableAction.cs: redesigned
 
 2010-05-03  Antonello Provenzano  <antonello@deveel.com>

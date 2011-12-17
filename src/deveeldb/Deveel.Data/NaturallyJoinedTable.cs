@@ -26,12 +26,12 @@ namespace Deveel.Data {
 	/// </remarks>
 	public sealed class NaturallyJoinedTable : JoinedTable {
 		// The row counts of the left and right tables.
-		private readonly int left_row_count, right_row_count;
+		private readonly int leftRowCount, rightRowCount;
 
 		// The lookup row set for the left and right tables.  Basically, these point
 		// to each row in either the left or right tables.
-		private readonly IList<int> left_set, right_set;
-		private readonly bool left_is_simple_enum, right_is_simple_enum;
+		private readonly IList<int> leftSet, rightSet;
+		private readonly bool leftIsSimpleEnum, rightIsSimpleEnum;
 
 		///<summary>
 		///</summary>
@@ -40,28 +40,19 @@ namespace Deveel.Data {
 		public NaturallyJoinedTable(Table left, Table right) {
 			base.Init(new Table[] { left, right });
 
-			left_row_count = left.RowCount;
-			right_row_count = right.RowCount;
+			leftRowCount = left.RowCount;
+			rightRowCount = right.RowCount;
 
 			// Build lookup tables for the rows in the parent tables if necessary
 			// (usually it's not necessary).
 
 			// If the left or right tables are simple enumerations, we can optimize
 			// our access procedure,
-			left_is_simple_enum =
-						(left.GetRowEnumerator() is SimpleRowEnumerator);
-			right_is_simple_enum =
-					   (right.GetRowEnumerator() is SimpleRowEnumerator);
-			if (!left_is_simple_enum) {
-				left_set = CreateLookupRowList(left);
-			} else {
-				left_set = null;
-			}
-			if (!right_is_simple_enum) {
-				right_set = CreateLookupRowList(right);
-			} else {
-				right_set = null;
-			}
+			leftIsSimpleEnum = (left.GetRowEnumerator() is SimpleRowEnumerator);
+			rightIsSimpleEnum = (right.GetRowEnumerator() is SimpleRowEnumerator);
+
+			leftSet = !leftIsSimpleEnum ? CreateLookupRowList(left) : null;
+			rightSet = !rightIsSimpleEnum ? CreateLookupRowList(right) : null;
 
 		}
 
@@ -74,8 +65,8 @@ namespace Deveel.Data {
 			List<int> ivec = new List<int>();
 			IRowEnumerator en = t.GetRowEnumerator();
 			while (en.MoveNext()) {
-				int row_index = en.RowIndex;
-				ivec.Add(row_index);
+				int rowIndex = en.RowIndex;
+				ivec.Add(rowIndex);
 			}
 			return ivec;
 		}
@@ -84,59 +75,53 @@ namespace Deveel.Data {
 		/// Given a row index between 0 and left table row count, this will return a
 		/// row index into the left table's row domain.
 		/// </summary>
-		/// <param name="row_index"></param>
+		/// <param name="rowIndex"></param>
 		/// <returns></returns>
-		private int GetLeftRowIndex(int row_index) {
-			if (left_is_simple_enum) {
-				return row_index;
-			}
-			return left_set[row_index];
+		private int GetLeftRowIndex(int rowIndex) {
+			if (leftIsSimpleEnum)
+				return rowIndex;
+
+			return leftSet[rowIndex];
 		}
 
 		/// <summary>
 		/// Given a row index between 0 and right table row count, this will return a
 		/// row index into the right table's row domain.
 		/// </summary>
-		/// <param name="row_index"></param>
+		/// <param name="rowIndex"></param>
 		/// <returns></returns>
-		private int GetRightRowIndex(int row_index) {
-			if (right_is_simple_enum) {
-				return row_index;
-			}
-			return right_set[row_index];
+		private int GetRightRowIndex(int rowIndex) {
+			if (rightIsSimpleEnum)
+				return rowIndex;
+
+			return rightSet[rowIndex];
 		}
-
-
-
-		// ---------- Implemented from JoinedTable ----------
 
 		public override int RowCount {
 			get {
 				// Natural join row count is (left table row count * right table row count)
-				return left_row_count*right_row_count;
+				return leftRowCount*rightRowCount;
 			}
 		}
 
-		protected override int ResolveRowForTableAt(int row_number, int table_num) {
-			if (table_num == 0) {
-				return GetLeftRowIndex(row_number / right_row_count);
-			} else {
-				return GetRightRowIndex(row_number % right_row_count);
-			}
+		protected override int ResolveRowForTableAt(int rowNumber, int tableNum) {
+			if (tableNum == 0)
+				return GetLeftRowIndex(rowNumber/rightRowCount);
+			return GetRightRowIndex(rowNumber % rightRowCount);
 		}
 
-		protected override void ResolveAllRowsForTableAt(IList<int> row_set, int table_num) {
-			bool pick_right_table = (table_num == 1);
-			for (int n = row_set.Count - 1; n >= 0; --n) {
-				int aa = row_set[n];
+		protected override void ResolveAllRowsForTableAt(IList<int> rowSet, int tableNum) {
+			bool pickRightTable = (tableNum == 1);
+			for (int n = rowSet.Count - 1; n >= 0; --n) {
+				int aa = rowSet[n];
 				// Reverse map row index to parent domain
 				int parent_row;
-				if (pick_right_table) {
-					parent_row = GetRightRowIndex(aa % right_row_count);
+				if (pickRightTable) {
+					parent_row = GetRightRowIndex(aa % rightRowCount);
 				} else {
-					parent_row = GetLeftRowIndex(aa / right_row_count);
+					parent_row = GetLeftRowIndex(aa / rightRowCount);
 				}
-				row_set[n] = parent_row;
+				rowSet[n] = parent_row;
 			}
 		}
 	}

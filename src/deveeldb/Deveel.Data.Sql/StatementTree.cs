@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	sealed class StatementTree : ICloneable {
+	sealed class StatementTree : ICloneable, IEnumerable<KeyValuePair<string, object>> {
 		/// <summary>
 		/// The type of statement this is.
 		/// </summary>
@@ -245,6 +245,14 @@ namespace Deveel.Data.Sql {
 			}
 
 			return v;
+		}
+
+		public IEnumerator<KeyValuePair<string, object>> GetEnumerator() {
+			return values.GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
 		}
 	}
 }

@@ -25,25 +25,24 @@ namespace Deveel.Data {
 	/// <b>null</b> fields) that is what the result is based on. It is 
 	/// then possible to merge in tables that are ancestors.
 	/// </remarks>
-	class OuterTable : VirtualTable, IRootTable {
+	public class OuterTable : VirtualTable, IRootTable {
 		/// <summary>
 		/// The merged rows.
 		/// </summary>
-		public readonly IList<int>[] outer_rows;
+		private readonly IList<int>[] outerRows;
 
 		/// <summary>
 		/// The row count of the outer rows.
 		/// </summary>
-		private int outer_row_count;
+		private int outerRowCount;
 
-		public OuterTable(Table input_table)
-			: base() {
+		public OuterTable(Table inputTable) {
 
-			RawTableInformation base_table = input_table.ResolveToRawTable(new RawTableInformation());
-			Table[] tables = base_table.GetTables();
-			IList<int>[] rows = base_table.GetRows();
+			RawTableInformation baseTable = inputTable.ResolveToRawTable(new RawTableInformation());
+			Table[] tables = baseTable.GetTables();
+			IList<int>[] rows = baseTable.GetRows();
 
-			outer_rows = new IList<int>[rows.Length];
+			outerRows = new IList<int>[rows.Length];
 
 			// Set up the VirtualTable with this base table information,
 			Init(tables);
@@ -54,23 +53,22 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Merges the given table in with this table.
 		/// </summary>
-		/// <param name="outside_table"></param>
-		public void MergeIn(Table outside_table) {
-			RawTableInformation raw_table_info =
-							outside_table.ResolveToRawTable(new RawTableInformation());
+		/// <param name="outsideTable"></param>
+		public void MergeIn(Table outsideTable) {
+			RawTableInformation rawTableInfo = outsideTable.ResolveToRawTable(new RawTableInformation());
 
 			// Get the base information,
-			Table[] base_tables = ReferenceTables;
-			IList<int>[] base_rows = ReferenceRows;
+			Table[] baseTables = ReferenceTables;
+			IList<int>[] baseRows = ReferenceRows;
 
 			// The tables and rows being merged in.
-			Table[] tables = raw_table_info.GetTables();
-			IList<int>[] rows = raw_table_info.GetRows();
+			Table[] tables = rawTableInfo.GetTables();
+			IList<int>[] rows = rawTableInfo.GetRows();
 			// The number of rows being merged in.
-			outer_row_count = rows[0].Count;
+			outerRowCount = rows[0].Count;
 
-			for (int i = 0; i < base_tables.Length; ++i) {
-				Table btable = base_tables[i];
+			for (int i = 0; i < baseTables.Length; ++i) {
+				Table btable = baseTables[i];
 				int index = -1;
 				for (int n = 0; n < tables.Length && index == -1; ++n) {
 					if (btable == tables[n]) {
@@ -80,69 +78,60 @@ namespace Deveel.Data {
 
 				// If the table wasn't found, then set 'NULL' to this base_table
 				if (index == -1) {
-					outer_rows[i] = null;
+					outerRows[i] = null;
 				} else {
-					List<int> list = new List<int>(outer_row_count);
-					outer_rows[i] = list;
+					List<int> list = new List<int>(outerRowCount);
+					outerRows[i] = list;
 					// Merge in the rows from the input table,
-					IList<int> to_merge = rows[index];
-					if (to_merge.Count != outer_row_count) {
+					IList<int> toMerge = rows[index];
+					if (toMerge.Count != outerRowCount)
 						throw new ApplicationException("Wrong size for rows being merged in.");
-					}
-					list.AddRange(to_merge);
+
+					list.AddRange(toMerge);
 				}
-
 			}
-
 		}
 
 		// ---------- Implemented from DefaultDataTable ----------
 
 		/// <inheritdoc/>
 		public override int RowCount {
-			get { return base.RowCount + outer_row_count; }
+			get { return base.RowCount + outerRowCount; }
 		}
 
 		/// <inheritdoc/>
-		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn,
-												Table table) {
-
-			if (column_scheme[column] == null) {
+		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
+			if (ColumnScheme[column] == null) {
 				// EFFICIENCY: We implement this with a blind search...
 				SelectableScheme scheme = new BlindSearch(this, column);
-				column_scheme[column] = scheme.GetSubsetScheme(this, column);
+				ColumnScheme[column] = scheme.GetSubsetScheme(this, column);
 			}
 
-			if (table == this) {
-				return column_scheme[column];
-			} else {
-				return column_scheme[column].GetSubsetScheme(table, originalColumn);
-			}
+			if (table == this)
+				return ColumnScheme[column];
 
+			return ColumnScheme[column].GetSubsetScheme(table, originalColumn);
 		}
 
 		/// <inheritdoc/>
 		public override TObject GetCellContents(int column, int row) {
-			int table_num = column_table[column];
-			Table parent_table = reference_list[table_num];
-			if (row >= outer_row_count) {
-				row = row_list[table_num][row - outer_row_count];
-				return parent_table.GetCellContents(column_filter[column], row);
-			} else {
-				if (outer_rows[table_num] == null) {
-					// Special case, handling outer entries (NULL)
-					return new TObject(GetColumnInfo(column).TType, null);
-				} else {
-					row = outer_rows[table_num][row];
-					return parent_table.GetCellContents(column_filter[column], row);
-				}
+			int tableNum = ColumnTable[column];
+			Table parent_table = ReferenceTables[tableNum];
+			if (row >= outerRowCount) {
+				row = ReferenceRows[tableNum][row - outerRowCount];
+				return parent_table.GetCellContents(ColumnFilter[column], row);
 			}
+
+			if (outerRows[tableNum] == null)
+				// Special case, handling outer entries (NULL)
+				return new TObject(GetColumnInfo(column).TType, null);
+
+			row = outerRows[tableNum][row];
+			return parent_table.GetCellContents(ColumnFilter[column], row);
 		}
 
-		// ---------- Implemented from IRootTable ----------
-
 		/// <inheritdoc/>
-		public bool TypeEquals(IRootTable table) {
+		bool IRootTable.TypeEquals(IRootTable table) {
 			return (this == table);
 		}
 	}

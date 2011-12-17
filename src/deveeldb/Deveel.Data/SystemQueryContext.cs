@@ -38,14 +38,14 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The context schema of this context.
 		/// </summary>
-		private readonly String current_schema;
+		private readonly String currentSchema;
 
 
 
-		internal SystemQueryContext(SimpleTransaction transaction, String current_schema) {
+		public SystemQueryContext(SimpleTransaction transaction, string currentSchema) {
 			this.transaction = transaction;
 			system = transaction.System;
-			this.current_schema = current_schema;
+			this.currentSchema = currentSchema;
 		}
 
 		/// <inheritdoc/>
@@ -59,33 +59,30 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override long NextSequenceValue(String name) {
-			TableName tn = transaction.ResolveToTableName(current_schema, name,
-														system.IgnoreIdentifierCase);
+		public override long NextSequenceValue(String generatorName) {
+			TableName tn = transaction.ResolveToTableName(currentSchema, generatorName, system.IgnoreIdentifierCase);
 			return transaction.NextSequenceValue(tn);
 		}
 
 		/// <inheritdoc/>
-		public override long CurrentSequenceValue(String name) {
-			TableName tn = transaction.ResolveToTableName(current_schema, name,
-														system.IgnoreIdentifierCase);
+		public override long CurrentSequenceValue(String generatorName) {
+			TableName tn = transaction.ResolveToTableName(currentSchema, generatorName, system.IgnoreIdentifierCase);
 			return transaction.LastSequenceValue(tn);
 		}
 
 		/// <inheritdoc/>
-		public override void SetSequenceValue(String name, long value) {
-			TableName tn = transaction.ResolveToTableName(current_schema, name,
-														system.IgnoreIdentifierCase);
+		public override void SetSequenceValue(string generatorName, long value) {
+			TableName tn = transaction.ResolveToTableName(currentSchema, generatorName, system.IgnoreIdentifierCase);
 			transaction.SetSequenceValue(tn, value);
 		}
 
 		/// <summary>
 		/// Returns a unique key for the given table source in the database.
 		/// </summary>
-		/// <param name="table_name"></param>
+		/// <param name="tableName"></param>
 		/// <returns></returns>
-		public long NextUniqueID(String table_name) {
-			TableName tname = TableName.Resolve(current_schema, table_name);
+		public long NextUniqueID(string tableName) {
+			TableName tname = TableName.Resolve(currentSchema, tableName);
 			return transaction.NextUniqueID(tname);
 		}
 
