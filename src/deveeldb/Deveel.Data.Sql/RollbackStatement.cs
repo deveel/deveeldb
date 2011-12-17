@@ -21,14 +21,9 @@ namespace Deveel.Data.Sql {
 	/// </summary>
 	[Serializable]
 	public sealed class RollbackStatement : Statement {
-		protected override void Prepare() {
-			// nothing to prepare...
-		}
-
-		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
+		protected override Table Evaluate(IQueryContext context) {
 			// Rollback the current transaction on this connection.
-			Connection.Rollback();
+			context.Connection.Rollback();
 			return FunctionTable.ResultTable(context, 0);
 		}
 	}

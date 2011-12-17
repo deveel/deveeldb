@@ -29,17 +29,6 @@ namespace Deveel.Data.Procedures {
 		private readonly StoredProcedure procedure;
 		private readonly List<Statement> statements;
 
-		public void AddStatement(int index, Statement statement) {
-			if (procedure.IsReadOnly)
-				throw new InvalidOperationException("The procedure '" + procedure.ProcedureName + "' is immutable.");
-
-			statement.PrepareStatement();
-		}
-
-		public void AddStatement(Statement statement) {
-			AddStatement(statements.Count, statement);
-		}
-
 		internal void Evaluate(IVariableResolver resolver, ProcedureQueryContext context) {
 			throw new NotImplementedException();
 		}

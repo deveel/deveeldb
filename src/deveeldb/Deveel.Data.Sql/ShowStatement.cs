@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			// Get the show variables from the command model
 			show_type = GetString("show");
 			show_type = show_type.ToLower();
@@ -62,13 +62,7 @@ namespace Deveel.Data.Sql {
 			where_clause = (SearchExpression)GetValue("where_clause");
 		}
 
-		protected override Table Evaluate() {
-
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-			Database d = Connection.Database;
-
-			// The table we are showing,
-			// TemporaryTable show_table;
+		protected override Table Evaluate(IQueryContext context) {
 
 			try {
 
@@ -83,12 +77,12 @@ namespace Deveel.Data.Sql {
 					   "         \"other\" AS \"notes\" " +
 					   "    FROM INFORMATION_SCHEMA.ThisUserSchemaInfo " +
 					   "ORDER BY \"schema_name\"");
-					return SqlQueryExecutor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query);
 
 				}
 				if (show_type.Equals("tables")) {
 
-					String current_schema = Connection.CurrentSchema;
+					String current_schema = context.Connection.CurrentSchema;
 
 					SqlQuery query = new SqlQuery(
 						"  SELECT \"Tables.TABLE_NAME\" AS \"table_name\", " +
@@ -105,7 +99,7 @@ namespace Deveel.Data.Sql {
 						"ORDER BY \"Tables.TABLE_NAME\"");
 					query.AddVariable(current_schema);
 
-					return SqlQueryExecutor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query);
 
 				}
 				if (show_type.Equals("status")) {
@@ -115,13 +109,13 @@ namespace Deveel.Data.Sql {
 						"         \"value\" " +
 						"    FROM SYSTEM.database_stats");
 
-					return SqlQueryExecutor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query);
 
 				}
 				if (show_type.Equals("describe_table")) {
 
-					TableName tname = ResolveTableName(table_name);
-					if (!Connection.TableExists(tname)) {
+					TableName tname = ResolveTableName(context, table_name);
+					if (!context.Connection.TableExists(tname)) {
 						throw new StatementException(
 							"Unable to find table '" + table_name + "'");
 					}
@@ -139,14 +133,14 @@ namespace Deveel.Data.Sql {
 					query.AddVariable(tname.Schema);
 					query.AddVariable(tname.Name);
 
-					return SqlQueryExecutor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query);
 
 				}
 				if (show_type.Equals("connections")) {
 
 					SqlQuery query = new SqlQuery("SELECT * FROM SYSTEM.current_connections");
 
-					return SqlQueryExecutor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query);
 
 				}
 				if (show_type.Equals("product")) {
@@ -159,14 +153,14 @@ namespace Deveel.Data.Sql {
 						"     WHERE \"var\" = 'version' ) "
 						);
 
-					return SqlQueryExecutor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query);
 
 				}
 				if (show_type.Equals("connection_info")) {
 
 					SqlQuery query = new SqlQuery("SELECT * FROM SYSTEM.connection_info");
 
-					return SqlQueryExecutor.Execute(Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query);
 
 				}
 				throw new StatementException("Unknown SHOW identifier: " + show_type);

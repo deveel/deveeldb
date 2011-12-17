@@ -38,9 +38,9 @@ namespace Deveel.Data.Sql {
 
 		private IList users;
 		private IList priv_list;
-		private bool grant_option;
-		private GrantObject grant_object;
-		private string grant_name;
+		private bool grantOption;
+		private GrantObject grantObject;
+		private string grantName;
 
 		public GrantObject GrantObject {
 			get { return (GrantObject) GetValue("grant_object"); }
@@ -97,44 +97,44 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		internal abstract void ExecutePrivilegeAction(PrivilegeActionInfo actionInfo);
+		internal abstract void ExecutePrivilegeAction(IQueryContext context, PrivilegeActionInfo actionInfo);
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			priv_list = GetList("priv_list");
 			users = GetList("users");
 			string priv_object = GetString("priv_object");
-			grant_option = GetBoolean("grant_option");
+			grantOption = GetBoolean("grant_option");
 
 			// Parse the priv object,
 			if (priv_object.StartsWith("T:")) {
 				// Granting to a table object
-				String table_name_str = priv_object.Substring(2);
-				TableName table_name = Connection.ResolveTableName(table_name_str);
+				string tableNameString = priv_object.Substring(2);
+				TableName tableName = ResolveTableName(context, tableNameString);
 				// Check the table exists
-				if (!Connection.TableExists(table_name))
-					throw new DatabaseException("Table '" + table_name + "' doesn't exist.");
+				if (!context.Connection.TableExists(tableName))
+					throw new DatabaseException("Table '" + tableName + "' doesn't exist.");
 
-				grant_object = GrantObject.Table;
-				grant_name = table_name.ToString();
+				grantObject = GrantObject.Table;
+				grantName = tableName.ToString();
 			} else if (priv_object.StartsWith("S:")) {
 				// Granting to a schema object
-				string schema_name_str = priv_object.Substring(2);
-				SchemaDef schema_name = Connection.ResolveSchemaName(schema_name_str);
+				string schemaNameString = priv_object.Substring(2);
+				SchemaDef schemaName = ResolveSchemaName(context, schemaNameString);
 				// Check the schema exists
-				if (schema_name == null ||
-					!Connection.SchemaExists(schema_name.ToString())) {
-					schema_name_str = schema_name == null ? schema_name_str :
-															schema_name.ToString();
-					throw new DatabaseException("Schema '" + schema_name_str + "' doesn't exist.");
+				if (schemaName == null ||
+					!context.Connection.SchemaExists(schemaName.ToString())) {
+					schemaNameString = schemaName == null ? schemaNameString :
+															schemaName.ToString();
+					throw new DatabaseException("Schema '" + schemaNameString + "' doesn't exist.");
 				}
-				grant_object = GrantObject.Schema;
-				grant_name = schema_name.ToString();
+				grantObject = GrantObject.Schema;
+				grantName = schemaName.ToString();
 			} else {
 				throw new ApplicationException("Priv object formatting error.");
 			}
 		}
 
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			/*
 			OLD:
 			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
@@ -288,41 +288,36 @@ namespace Deveel.Data.Sql {
 			return FunctionTable.ResultTable(context, 0);
 			*/
 
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
-			// Get the grant manager.
-			GrantManager manager = context.GrantManager;
-
 			// Get the grant options this user has on the given object.
-			Privileges options_privs = manager.GetUserGrantOptions(grant_object, grant_name, User.UserName);
+			Privileges optionsPrivs = context.GetUserGrants(grantObject, grantName);
 
 			// Is the user permitted to give out these privs?
-			Privileges grant_privs = Privileges.Empty;
+			Privileges grantPrivs = Privileges.Empty;
 			for (int i = 0; i < priv_list.Count; ++i) {
 				String priv = ((String)priv_list[i]).ToUpper();
-				int priv_bit;
+				int privBit;
 				if (priv.Equals("ALL")) {
-					if (grant_object == GrantObject.Table) {
-						priv_bit = Privileges.TableAll.ToInt32();
-					} else if (grant_object == GrantObject.Schema) {
-						priv_bit = Privileges.SchemaAll.ToInt32();
+					if (grantObject == GrantObject.Table) {
+						privBit = Privileges.TableAll.ToInt32();
+					} else if (grantObject == GrantObject.Schema) {
+						privBit = Privileges.SchemaAll.ToInt32();
 					} else {
 						throw new ApplicationException("Unrecognised grant object.");
 					}
 				} else {
-					priv_bit = Privileges.ParseString(priv);
+					privBit = Privileges.ParseString(priv);
 				}
-				if (!options_privs.Permits(priv_bit)) {
-					throw new UserAccessException("User is not permitted to grant '" + priv + "' access on object " + grant_name);
+				if (!optionsPrivs.Permits(privBit)) {
+					throw new UserAccessException("User is not permitted to grant '" + priv + "' access on object " + grantName);
 				}
-				grant_privs = grant_privs.Add(priv_bit);
+				grantPrivs = grantPrivs.Add(privBit);
 			}
 
 			// Do the users exist?
 			for (int i = 0; i < users.Count; ++i) {
 				string name = (string)users[i];
 				if (String.Compare(name, "public", true) != 0 &&
-					!Connection.Database.UserExists(context, name)) {
+					!context.Connection.Database.UserExists(context, name)) {
 					throw new DatabaseException("User '" + name + "' doesn't exist.");
 				}
 			}
@@ -330,7 +325,7 @@ namespace Deveel.Data.Sql {
 			// Everything checks out so add the grants to the users.
 			for (int i = 0; i < users.Count; ++i) {
 				string name = (String)users[i];
-				ExecutePrivilegeAction(new PrivilegeActionInfo(name, grant_object, grant_name, grant_privs, grant_option));
+				ExecutePrivilegeAction(context, new PrivilegeActionInfo(name, grantObject, grantName, grantPrivs, grantOption));
 			}
 
 			return FunctionTable.ResultTable(context, 0);

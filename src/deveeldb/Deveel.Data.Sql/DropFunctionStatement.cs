@@ -24,34 +24,32 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private TableName functionName;
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			string functionNameString = GetString("function_name");
 
 			// Resolve the function name into a TableName object.    
-			functionName = ResolveTableName(functionNameString);
+			functionName = ResolveTableName(context, functionNameString);
 		}
 
-		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
+		protected override Table Evaluate(IQueryContext context) {
 			// Does the schema exist?
-			SchemaDef schema = ResolveSchemaName(functionName.Schema);
+			SchemaDef schema = ResolveSchemaName(context, functionName.Schema);
 			if (schema == null)
 				throw new DatabaseException("Schema '" + functionName.Schema + "' doesn't exist.");
 
 			functionName = new TableName(schema.Name, functionName.Name);
 
 			// Does the user have privs to create this function?
-			if (!Connection.Database.CanUserDropProcedureObject(context, User, functionName))
+			if (!context.Connection.Database.CanUserDropProcedureObject(context, functionName))
 				throw new UserAccessException("User not permitted to drop function: " + functionName);
 
 			// Drop the function
 			ProcedureName proc_name = new ProcedureName(functionName);
-			ProcedureManager manager = Connection.ProcedureManager;
+			ProcedureManager manager = context.Connection.ProcedureManager;
 			manager.DeleteProcedure(proc_name);
 
 			// Drop the grants for this object
-			Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, proc_name.ToString());
+			context.Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, proc_name.ToString());
 			// Return an update result table.
 			return FunctionTable.ResultTable(context, 0);
 		}

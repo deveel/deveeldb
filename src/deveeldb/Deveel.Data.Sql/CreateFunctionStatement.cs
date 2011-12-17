@@ -149,36 +149,34 @@ namespace Deveel.Data.Sql {
 			return base.OnListSet(key, index, value, ref newValue);
 		}
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			string functionName = GetString("function_name");
 
 			// Resolve the function name into a TableName object.
-			resolvedFunctionName = ResolveTableName(functionName);
+			resolvedFunctionName = ResolveTableName(context, functionName);
 		}
 
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			// Does the schema exist?
-			SchemaDef schema = ResolveSchemaName(resolvedFunctionName.Schema);
+			SchemaDef schema = ResolveSchemaName(context, resolvedFunctionName.Schema);
 			if (schema == null)
 				throw new DatabaseException("Schema '" + resolvedFunctionName.Schema + "' doesn't exist.");
 
 			resolvedFunctionName = new TableName(schema.Name, resolvedFunctionName.Name);
 
 			// Does the user have privs to create this function?
-			if (!Connection.Database.CanUserCreateProcedureObject(QueryContext, User, resolvedFunctionName))
+			if (!context.Connection.Database.CanUserCreateProcedureObject(context, resolvedFunctionName))
 				throw new UserAccessException("User not permitted to create function: " + resolvedFunctionName);
 
 			// Does a table already exist with this name?
-			if (Connection.TableExists(resolvedFunctionName)) {
-				throw new DatabaseException("Database object with name '" + resolvedFunctionName +
-											"' already exists.");
-			}
+			if (context.Connection.TableExists(resolvedFunctionName))
+				throw new DatabaseException("Database object with name '" + resolvedFunctionName + "' already exists.");
 
 			// Get the information about the function we are creating
 			IList argNames = GetList("arg_names");
 			IList argTypes = GetList("arg_types");
 			TObject locName = (TObject)GetValue("location_name");
-			TType return_type = (TType)GetValue("return_type");
+			TType returnType = (TType)GetValue("return_type");
 
 			// Note that we currently ignore the arg_names list.
 
@@ -205,18 +203,18 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Create the .NET function,
-			ProcedureManager manager = Connection.ProcedureManager;
-			manager.DefineProcedure(procName, specification, return_type, argList, User.UserName);
+			ProcedureManager manager = context.Connection.ProcedureManager;
+			manager.DefineProcedure(procName, specification, returnType, argList, context.UserName);
 
 			// The initial grants for a procedure is to give the user who created it
 			// full access.
-			Connection.GrantManager.Grant(
+			context.Connection.GrantManager.Grant(
 				 Privileges.ProcedureAll, GrantObject.Table,
-				 procName.ToString(), User.UserName, true,
+				 procName.ToString(), context.UserName, true,
 				 Database.InternalSecureUsername);
 
 			// Return an update result table.
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

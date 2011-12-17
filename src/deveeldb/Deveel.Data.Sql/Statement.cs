@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 using Deveel.Data.QueryPlanning;
-using Deveel.Diagnostics;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -29,85 +28,85 @@ namespace Deveel.Data.Sql {
 	[Serializable]
 	public abstract class Statement : ISerializable {
 		protected Statement() {
-			context = new StatementContext(this);
 		}
 
 		protected Statement(SerializationInfo info, StreamingContext context) {
-			this.context = new StatementContext(this);
 			prepared = info.GetBoolean("Prepared");
 
-			StatementTree statementTree = (StatementTree) info.GetValue("StatementTree", typeof (StatementTree));
-			SqlQuery query = (SqlQuery) info.GetValue("Query", typeof (SqlQuery));
+			statementTree = (StatementTree) info.GetValue("StatementTree", typeof (StatementTree));
+			query = (SqlQuery) info.GetValue("Query", typeof (SqlQuery));
 
-			// at this point, setting the connection is useless for preparation:
-			// when we stored the statement tree from the context, it was already
-			// prepared
-			this.context.Set(null, statementTree, query);
-
+			parent = (Statement) info.GetValue("Parent", typeof (Statement));
 			preparedStatements =
 				(Dictionary<string, List<Statement>>)
 				info.GetValue("PreparedStatements", typeof (Dictionary<string, List<Statement>>));
 		}
 
-		private readonly StatementContext context;
-		private DatabaseQueryContext queryContext;
+		private StatementTree statementTree;
+		private Statement parent;
+		private SqlQuery query;
 		private bool prepared;
 		private bool evaluated;
 		private Dictionary<string, List<Statement> >preparedStatements;
 
-		public StatementContext Context {
-			get { return context; }
+		public SqlQuery Query {
+			get { return query; }
+			internal set { query = value; }
 		}
 
-		protected DatabaseConnection Connection {
-			get { return context.Connection; }
+		protected Statement Root {
+			get { 
+				Statement root = this;
+				Statement s;
+				while ((s = root.parent) != null) {
+					root = s;
+				}
+
+				return root;
+			}
 		}
 
-		protected DatabaseQueryContext QueryContext {
-			get { return queryContext ?? (queryContext = new DatabaseQueryContext(Connection)); }
+		internal StatementTree StatementTree {
+			get { return statementTree; }
+			set { statementTree = value; }
 		}
 
-		protected User User {
-			get { return context.User; }
-		}
-
-		protected SqlQuery Query {
-			get { return context.Query; }
-		}
-
-		/// <summary>
-		/// Gets an <see cref="IDebugLogger"/> used to log _queries.
-		/// </summary>
-		protected IDebugLogger Debug {
-			get { return context.Connection.Debug; }
-		}
-
-		private void PrepareChildStatementTree(string key, StatementTree tree) {
+		private void PrepareChildStatementTree(IQueryContext context, string key, StatementTree tree) {
 			// we assume the statement as a public constructor
 			Statement statement = Activator.CreateInstance(tree.StatementType, true) as Statement;
 			if (statement == null)
 				return;
 
-			statement.Context.Set(Connection, tree, Query);
+			statement.parent = this;
+			statement.Query = query;
+			statement.statementTree = tree;
+			statement.PrepareStatement(context);
+
+			if (preparedStatements == null)
+				preparedStatements = new Dictionary<string, List<Statement>>();
+
+			List<Statement> statements;
+			if (!preparedStatements.TryGetValue(key, out statements)) {
+				statements = new List<Statement>();
+				preparedStatements[key] = statements;
+			}
+
+			statements.Add(statement);
 		}
 
 		/// <summary>
 		/// Scans the tree to find for child statements to prepare
 		/// </summary>
-		private  void PrepareStatements() {
-			StatementTree tree = Context.StatementTree;
-			if (tree == null)
-				return;
-
-			foreach (KeyValuePair<string, object> pair in tree) {
+		private void PrepareStatements(IQueryContext context) {
+			foreach (KeyValuePair<string, object> pair in statementTree) {
 				object value = pair.Value;
 				if (value is StatementTree) {
 					StatementTree childTree = (StatementTree) value;
-					PrepareChildStatementTree(pair.Key, childTree);
+					PrepareChildStatementTree(context, pair.Key, childTree);
 				} else if (value is IList<StatementTree>) {
 					IList<StatementTree> list = (IList<StatementTree>) value;
 					foreach (StatementTree childTree in list) {
-						PrepareChildStatementTree(pair.Key, childTree);
+						PrepareChildStatementTree(context, pair.Key, childTree);
 					}
 				}
 			}
@@ -117,33 +116,55 @@ namespace Deveel.Data.Sql {
 		/// Checks the permissions for the current user to determine if they are 
 		/// allowed to select (read) from tables in the given plan.
 		/// </summary>
+		/// <param name="context"></param>
 		/// <param name="plan"></param>
 		/// <exception cref="UserAccessException">
 		/// If the user is not allowed to select from a table in the 
 		/// given plan.
 		/// </exception>
-		protected void CheckUserSelectPermissions(IQueryPlanNode plan) {
+		protected void CheckUserSelectPermissions(IQueryContext context, IQueryPlanNode plan) {
 			// Discover the list of TableName objects this command touches,
 			IList<TableName> touchedTables = plan.DiscoverTableNames(new List<TableName>());
-			Database dbase = Connection.Database;
+			Database dbase = context.Connection.Database;
 
 			// Check that the user is allowed to select from these tables.
 			foreach (TableName table in touchedTables) {
-				if (!dbase.CanUserSelectFromTableObject(QueryContext, Context.User, table, null))
+				if (!dbase.CanUserSelectFromTableObject(context, table, null))
 					throw new UserAccessException("User not permitted to select from table: " + table);
 			}
 		}
 
+		protected IList<Statement> GetPreparedStatements(string key) {
+			if (preparedStatements == null)
+				return null;
+
+			List<Statement> statements;
+			if (!preparedStatements.TryGetValue(key, out statements))
+				return null;
+
+			return statements.AsReadOnly();
+		}
+
+		protected Statement GetPreparedStatement(string key) {
+			IList<Statement> statements = GetPreparedStatements(key);
+			if (statements == null)
+				return null;
+			if (statements.Count > 0)
+				throw new InvalidOperationException("Ambigous reference for statements with key '" + key + "'.");
+
+			return statements[0];
+		}
+
 		protected string GetString(string key) {
-			return (string)context.StatementTree.GetValue(key);
+			return (string)statementTree.GetValue(key);
 		}
 
 		protected object GetValue(string key) {
-			return context.StatementTree.GetValue(key);
+			return statementTree.GetValue(key);
 		}
 
 		protected object GetValue(string key, Type type) {
-			object value = context.StatementTree.GetValue(key);
+			object value = statementTree.GetValue(key);
 			if (value == null)
 				return null;
 
@@ -201,7 +222,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected void SetValue(string key, object value) {
-			context.StatementTree.SetValue(key, value);
+			statementTree.SetValue(key, value);
 		}
 
 		/// <summary>
@@ -214,7 +235,10 @@ namespace Deveel.Data.Sql {
 			evaluated = false;
 			prepared = false;
 
-			queryContext = null;
+			if (preparedStatements != null)
+				preparedStatements.Clear();
+
+			preparedStatements = null;
 
 			OnReset();
 		}
@@ -225,6 +249,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Resolves table name over the current context.
 		/// </summary>
+		/// <param name="context"></param>
 		/// <param name="name"></param>
 		/// <remarks>
 		/// If the schema part of the table name is not present then it 
@@ -233,23 +258,23 @@ namespace Deveel.Data.Sql {
 		/// the table to the cased version of the table name.
 		/// </remarks>
 		/// <returns></returns>
-		protected TableName ResolveTableName(string name) {
+		protected static TableName ResolveTableName(IQueryContext context, string name) {
 			return context.Connection.ResolveTableName(name);
 		}
 
-		protected SchemaDef ResolveSchemaName(string name) {
+		protected static SchemaDef ResolveSchemaName(IQueryContext context, string name) {
 			return context.Connection.ResolveSchemaCase(name, context.Connection.IsInCaseInsensitiveMode);
 		}
 
-		internal void PrepareStatement() {
+		internal void PrepareStatement(IQueryContext context) {
 			if (!prepared) {
 				if (evaluated)
 					throw new StatementException("The statement has been already executed.");
 
 
-				PrepareStatements();
+				PrepareStatements(context);
 
-				Prepare();
+				Prepare(context);
 
 				prepared = true;
 			}
@@ -294,15 +319,16 @@ namespace Deveel.Data.Sql {
 		/// </para>
 		/// </remarks>
 		/// <exception cref="DatabaseException"/>
-		protected abstract void Prepare();
+		protected virtual void Prepare(IQueryContext context) {
+		}
 
-		internal Table EvaluateStatement() {
+		internal Table EvaluateStatement(IQueryContext context) {
 			if (!prepared)
 				throw new StatementException("The statement is in an invalid state: must be prepared.");
 			if (evaluated)
 				throw new StatementException("The statement has already been evaluated.");
 
-			Table result = Evaluate();
+			Table result = Evaluate(context);
 
 			evaluated = true;
 
@@ -320,7 +346,7 @@ namespace Deveel.Data.Sql {
 		/// </returns>
 		/// <exception cref="DatabaseException"/>
 		/// <exception cref="TransactionException"/>
-		protected abstract Table Evaluate();
+		protected abstract Table Evaluate(IQueryContext context);
 
 		protected virtual bool OnListAdd(string key, object value, ref object newValue) {
 			return true;
@@ -517,9 +543,10 @@ namespace Deveel.Data.Sql {
 
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext streamingContext) {
 			// we don't let this part to be controlled by statement implementations
-			info.AddValue("StatementTree", context.StatementTree, typeof(StatementTree));
-			info.AddValue("Query", context.Query, typeof(SqlQuery));
+			info.AddValue("StatementTree", statementTree, typeof(StatementTree));
+			info.AddValue("Query", query, typeof(SqlQuery));
 			info.AddValue("Prepared", prepared);
+			info.AddValue("PreparedStatements", preparedStatements);
 
 			// but we provide a hook for them
 			GetObjectData(info, streamingContext);

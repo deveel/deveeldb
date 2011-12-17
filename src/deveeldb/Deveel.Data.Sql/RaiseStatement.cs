@@ -37,12 +37,12 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			string stateName = GetString("state_name");
 			state = SqlState.GetState(stateName);
 		}
 
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			throw state.AsException();
 		}
 	}

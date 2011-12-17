@@ -1,3 +1,10 @@
+2011-12-17  Antonello Provenzano  <antonello@deveel.com>
+	* IQueryContext.cs: 
+		- Method GetTable to obtain a reference to a table 
+		in the database context.
+		- Method GetUserGrants to obtain user privileges
+		on a database object
+
 2011-12-15  Antonello Provenzano  <antonello@deveel.com>
 	* IQueryContext.cs: Added the method RemoveVariable to
 	explicitly remove a variable from the given context.

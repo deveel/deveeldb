@@ -45,7 +45,7 @@ namespace Deveel.Data {
 		/// Returns a <see cref="User"/> object if the given user was authenticated 
 		/// successfully, otherwise <b>null</b>.
 		/// </returns>
-		public User AuthenticateUser(String username, String password, String connection_string) {
+		public User AuthenticateUser(string username, string password, string connectionString) {
 			// Create a temporary connection for authentication only...
 			DatabaseConnection connection = CreateNewConnection(null, null);
 			DatabaseQueryContext context = new DatabaseQueryContext(connection);
@@ -73,10 +73,10 @@ namespace Deveel.Data {
 					// Now check if this user is permitted to connect from the given
 					// host.
 					if (UserAllowedAccessFromHost(context,
-												  username, connection_string)) {
+												  username, connectionString)) {
 						// Successfully authenticated...
 						User user = new User(username, this,
-											connection_string, DateTime.Now);
+											connectionString, DateTime.Now);
 						// Log the authenticated user in to the engine.
 						system.UserManager.OnUserLoggedIn(user);
 						return user;
@@ -113,67 +113,60 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="username">The name of the user to check the host for.</param>
-		/// <param name="connection_string">The full connection string.</param>
+		/// <param name="connectionString">The full connection string.</param>
 		/// <returns>
 		/// Returns <b>true</b> if the user identified by the given <paramref name="username"/>
-		/// is allowed to access for the host specified in the <paramref name="connection_string"/>,
+		/// is allowed to access for the host specified in the <paramref name="connectionString"/>,
 		/// otherwise <b>false</b>.
 		/// </returns>
-		private bool UserAllowedAccessFromHost(DatabaseQueryContext context, String username, String connection_string) {
+		private bool UserAllowedAccessFromHost(IQueryContext context, string username, string connectionString) {
 			// The system user is not allowed to login
-			if (username.Equals(InternalSecureUsername)) {
+			if (username.Equals(InternalSecureUsername))
 				return false;
-			}
 
 			// We always allow access from 'Internal/*' (connections from the
 			// 'GetConnection' method of a com.mckoi.database.control.DbSystem object)
 			// ISSUE: Should we add this as a rule?
-			if (connection_string.StartsWith("Internal/")) {
+			if (connectionString.StartsWith("Internal/"))
 				return true;
-			}
 
 			// What's the protocol?
-			int protocol_host_deliminator = connection_string.IndexOf("/");
-			String protocol =
-				connection_string.Substring(0, protocol_host_deliminator);
-			String host = connection_string.Substring(protocol_host_deliminator + 1);
+			int protocolHostDeliminator = connectionString.IndexOf("/");
+			string protocol = connectionString.Substring(0, protocolHostDeliminator);
+			string host = connectionString.Substring(protocolHostDeliminator + 1);
 
 			if (Debug.IsInterestedIn(DebugLevel.Information)) {
-				Debug.Write(DebugLevel.Information, this,
-							"Checking host: protocol = " + protocol +
-							", host = " + host);
+				Debug.Write(DebugLevel.Information, this, "Checking host: protocol = " + protocol + ", host = " + host);
 			}
 
 			// The table to check
-			DataTable connect_priv = context.GetTable(SysUserConnect);
+			DataTable connect_priv = (DataTable) context.GetTable(SysUserConnect);
 			VariableName un_col = connect_priv.GetResolvedVariable(0);
 			VariableName proto_col = connect_priv.GetResolvedVariable(1);
 			VariableName host_col = connect_priv.GetResolvedVariable(2);
 			VariableName access_col = connect_priv.GetResolvedVariable(3);
 			// Query: where UserName = %username%
-			Table t = connect_priv.SimpleSelect(context, un_col, Operator.Get("="),
+			Table t = connect_priv.SimpleSelect(context, un_col, Operator.Equal,
 												new Expression(TObject.CreateString(username)));
 			// Query: where %protocol% like Protocol
-			Expression exp = Expression.Simple(TObject.CreateString(protocol),
-											   Operator.Get("like"), proto_col);
+			Expression exp = Expression.Simple(TObject.CreateString(protocol), Operator.Like, proto_col);
 			t = t.ExhaustiveSelect(context, exp);
 			// Query: where %host% like Host
-			exp = Expression.Simple(TObject.CreateString(host),
-									Operator.Get("like"), host_col);
+			exp = Expression.Simple(TObject.CreateString(host), Operator.Like, host_col);
 			t = t.ExhaustiveSelect(context, exp);
 
 			// Those that are DENY
-			Table t2 = t.SimpleSelect(context, access_col, Operator.Get("="),
+			Table t2 = t.SimpleSelect(context, access_col, Operator.Equal,
 									  new Expression(TObject.CreateString("DENY")));
-			if (t2.RowCount > 0) {
+			if (t2.RowCount > 0)
 				return false;
-			}
+
 			// Those that are ALLOW
-			Table t3 = t.SimpleSelect(context, access_col, Operator.Get("="),
+			Table t3 = t.SimpleSelect(context, access_col, Operator.Equal,
 									  new Expression(TObject.CreateString("ALLOW")));
-			if (t3.RowCount > 0) {
+			if (t3.RowCount > 0)
 				return true;
-			}
+
 			// No DENY or ALLOW entries for this host so deny access.
 			return false;
 		}
@@ -190,11 +183,11 @@ namespace Deveel.Data {
 		/// Returns <b>true</b> if the user identified by the given 
 		/// <paramref name="username"/>, otherwise <b>false</b>.
 		/// </returns>
-		public bool UserExists(DatabaseQueryContext context, String username) {
-			DataTable table = context.GetTable(SysPassword);
+		public bool UserExists(IQueryContext context, String username) {
+			Table table = context.GetTable(SysPassword);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All password where UserName = %username%
-			Table t = table.SimpleSelect(context, c1, Operator.Get("="), new Expression(TObject.CreateString(username)));
+			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
 			return t.RowCount > 0;
 		}
 
@@ -210,31 +203,25 @@ namespace Deveel.Data {
 		/// <exception cref="DatabaseException">
 		/// If the user is already defined by the database
 		/// </exception>
-		public void CreateUser(DatabaseQueryContext context, String username, String password) {
-			if (username == null || password == null) {
+		public void CreateUser(IQueryContext context, string username, string password) {
+			if (username == null || password == null)
 				throw new DatabaseException("Username or password can not be NULL.");
-			}
 
 			// The username must be more than 1 character
-			if (username.Length <= 1) {
+			if (username.Length <= 1)
 				throw new DatabaseException("Username must be at least 2 characters.");
-			}
 
 			// The password must be more than 1 character
-			if (password.Length <= 1) {
+			if (password.Length <= 1)
 				throw new DatabaseException("Password must be at least 2 characters.");
-			}
 
 			// Check the user doesn't already exist
-			if (UserExists(context, username)) {
+			if (UserExists(context, username))
 				throw new DatabaseException("User '" + username + "' already exists.");
-			}
 
 			// Some usernames are reserved words
-			if (String.Compare(username, "public", true) == 0) {
-				throw new DatabaseException("User '" + username +
-											"' not allowed - reserved.");
-			}
+			if (String.Compare(username, "public", true) == 0)
+				throw new DatabaseException("User '" + username + "' not allowed - reserved.");
 
 			// Usernames starting with @, &, # and $ are reserved for system
 			// identifiers
@@ -245,7 +232,7 @@ namespace Deveel.Data {
 			}
 
 			// Add this user to the password table.
-			DataTable table = context.GetTable(SysPassword);
+			DataTable table = (DataTable)context.GetTable(SysPassword);
 			DataRow rdat = new DataRow(table);
 			rdat.SetValue(0, username);
 			rdat.SetValue(1, password);
@@ -264,14 +251,13 @@ namespace Deveel.Data {
 		/// <b>Note:</b> Assumes exclusive Lock on database session.
 		/// </para>
 		/// </remarks>
-		public void DeleteAllUserGroups(DatabaseQueryContext context, String username) {
-			Operator EQUALS_OP = Operator.Get("=");
-			Expression USER_EXPR = new Expression(TObject.CreateString(username));
+		public void DeleteAllUserGroups(IQueryContext context, string username) {
+			Expression userExpr = new Expression(TObject.CreateString(username));
 
-			DataTable table = context.GetTable(SysUserPriv);
+			DataTable table = (DataTable) context.GetTable(SysUserPriv);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All 'user_priv' where UserName = %username%
-			Table t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
+			Table t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
 			// Delete all the groups
 			table.Delete(t);
 		}
@@ -289,26 +275,24 @@ namespace Deveel.Data {
 		/// <b>Note:</b> Assumes exclusive Lock on database session.
 		/// </para>
 		/// </remarks>
-		public void DeleteUser(DatabaseQueryContext context, String username) {
-			// PENDING: This should check if there are any tables the user has setup
+		public void DeleteUser(IQueryContext context, string username) {
+			// TODO: This should check if there are any tables the user has setup
 			//  and not allow the delete if there are.
-
-			Operator EQUALS_OP = Operator.Get("=");
-			Expression USER_EXPR = new Expression(TObject.CreateString(username));
+			Expression userExpr = new Expression(TObject.CreateString(username));
 
 			// First delete all the groups from the user priv table
 			DeleteAllUserGroups(context, username);
 
 			// Now delete the username from the user_connect_priv table
-			DataTable table = context.GetTable(SysUserConnect);
+			DataTable table = (DataTable) context.GetTable(SysUserConnect);
 			VariableName c1 = table.GetResolvedVariable(0);
-			Table t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
+			Table t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
 			table.Delete(t);
 
 			// Finally delete the username from the 'password' table
-			table = context.GetTable(SysPassword);
+			table = (DataTable) context.GetTable(SysPassword);
 			c1 = table.GetResolvedVariable(0);
-			t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
+			t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
 			table.Delete(t);
 		}
 
@@ -321,26 +305,24 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// <b>Note:</b> Assumes exclusive Lock on database session.
 		/// </remarks>
-		public void AlterUserPassword(DatabaseQueryContext context, String username, String password) {
-			Operator EQUALS_OP = Operator.Get("=");
-			Expression USER_EXPR = new Expression(TObject.CreateString(username));
+		public void AlterUserPassword(IQueryContext context, string username, string password) {
+			Expression userExpr = new Expression(TObject.CreateString(username));
 
 			// Delete the current username from the 'password' table
-			DataTable table = context.GetTable(SysPassword);
+			DataTable table = (DataTable) context.GetTable(SysPassword);
 			VariableName c1 = table.GetResolvedVariable(0);
-			Table t = table.SimpleSelect(context, c1, EQUALS_OP, USER_EXPR);
-			if (t.RowCount == 1) {
-				table.Delete(t);
-
-				// Add the new username
-				table = context.GetTable(SysPassword);
-				DataRow rdat = new DataRow(table);
-				rdat.SetValue(0, username);
-				rdat.SetValue(1, password);
-				table.Add(rdat);
-			} else {
+			Table t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
+			if (t.RowCount != 1)
 				throw new DatabaseException("Username '" + username + "' was not found.");
-			}
+
+			table.Delete(t);
+
+			// Add the new username
+			table = (DataTable) context.GetTable(SysPassword);
+			DataRow rdat = new DataRow(table);
+			rdat.SetValue(0, username);
+			rdat.SetValue(1, password);
+			table.Add(rdat);
 		}
 
 		/// <summary>
@@ -349,18 +331,17 @@ namespace Deveel.Data {
 		/// <param name="context"></param>
 		/// <param name="username"></param>
 		/// <returns></returns>
-		public String[] GroupsUserBelongsTo(DatabaseQueryContext context, String username) {
-			DataTable table = context.GetTable(SysUserPriv);
+		public string[] GroupsUserBelongsTo(IQueryContext context, String username) {
+			Table table = context.GetTable(SysUserPriv);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All 'user_priv' where UserName = %username%
-			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
-										 new Expression(TObject.CreateString(username)));
+			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
 			int sz = t.RowCount;
 			string[] groups = new string[sz];
-			IRowEnumerator row_enum = t.GetRowEnumerator();
+			IRowEnumerator rowEnum = t.GetRowEnumerator();
 			int i = 0;
-			while (row_enum.MoveNext()) {
-				groups[i] = t.GetCellContents(1, row_enum.RowIndex).Object.ToString();
+			while (rowEnum.MoveNext()) {
+				groups[i] = t.GetCellContents(1, rowEnum.RowIndex).Object.ToString();
 				++i;
 			}
 
@@ -380,17 +361,14 @@ namespace Deveel.Data {
 		/// Returns <b>true</b> if the given user belongs to the given
 		/// <paramref name="group"/>, otherwise <b>false</b>.
 		/// </returns>
-		public bool UserBelongsToGroup(DatabaseQueryContext context,
-									   String username, String group) {
-			DataTable table = context.GetTable(SysUserPriv);
+		public bool UserBelongsToGroup(IQueryContext context, string username, string group) {
+			Table table = context.GetTable(SysUserPriv);
 			VariableName c1 = table.GetResolvedVariable(0);
 			VariableName c2 = table.GetResolvedVariable(1);
 			// All 'user_priv' where UserName = %username%
-			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
-										 new Expression(TObject.CreateString(username)));
+			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
 			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(context, c2, Operator.Get("="),
-							   new Expression(TObject.CreateString(group)));
+			t = t.SimpleSelect(context, c2, Operator.Equal, new Expression(TObject.CreateString(group)));
 			return t.RowCount > 0;
 		}
 
@@ -416,11 +394,9 @@ namespace Deveel.Data {
 		/// <exception cref="DatabaseException">
 		/// If the group name is not properly formatted.
 		/// </exception>
-		public void AddUserToGroup(DatabaseQueryContext context,
-								   String username, String group) {
-			if (group == null) {
+		public void AddUserToGroup(IQueryContext context, string username, string group) {
+			if (group == null)
 				throw new DatabaseException("Can add NULL group.");
-			}
 
 			// Groups starting with @, &, # and $ are reserved for system
 			// identifiers
@@ -433,7 +409,7 @@ namespace Deveel.Data {
 			// Check the user doesn't belong to the group
 			if (!UserBelongsToGroup(context, username, group)) {
 				// The user priv table
-				DataTable table = context.GetTable(SysUserPriv);
+				DataTable table = (DataTable) context.GetTable(SysUserPriv);
 				// Add this user to the group.
 				DataRow rdat = new DataRow(table);
 				rdat.SetValue(0, username);
@@ -449,7 +425,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="user">The user to set the Lock status.</param>
-		/// <param name="lock_status"></param>
+		/// <param name="lockStatus"></param>
 		/// <remarks>
 		/// If a user account if locked, it is rejected from logging in 
 		/// to the database.
@@ -462,29 +438,27 @@ namespace Deveel.Data {
 		/// <b>Note:</b> Assumes exclusive Lock on database session.
 		/// </para>
 		/// </remarks>
-		public void SetUserLock(DatabaseQueryContext context, User user, bool lock_status) {
-			String username = user.UserName;
+		public void SetUserLock(IQueryContext context, bool lockStatus) {
+			string username = context.UserName;
 
 			// Internally we implement this by adding the user to the #locked group.
-			DataTable table = context.GetTable(SysUserPriv);
+			DataTable table = (DataTable)context.GetTable(SysUserPriv);
 			VariableName c1 = table.GetResolvedVariable(0);
 			VariableName c2 = table.GetResolvedVariable(1);
 			// All 'user_priv' where UserName = %username%
-			Table t = table.SimpleSelect(context, c1, Operator.Get("="),
-										 new Expression(TObject.CreateString(username)));
+			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
 			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(context, c2, Operator.Get("="),
-							   new Expression(TObject.CreateString(LockGroup)));
+			t = t.SimpleSelect(context, c2, Operator.Equal, new Expression(TObject.CreateString(LockGroup)));
 
-			bool user_belongs_to_lock_group = t.RowCount > 0;
-			if (lock_status && !user_belongs_to_lock_group) {
+			bool userBelongsToLockGroup = t.RowCount > 0;
+			if (lockStatus && !userBelongsToLockGroup) {
 				// Lock the user by adding the user to the Lock group
 				// Add this user to the locked group.
 				DataRow rdat = new DataRow(table);
 				rdat.SetValue(0, username);
 				rdat.SetValue(1, LockGroup);
 				table.Add(rdat);
-			} else if (!lock_status && user_belongs_to_lock_group) {
+			} else if (!lockStatus && userBelongsToLockGroup) {
 				// Unlock the user by removing the user from the Lock group
 				// Remove this user from the locked group.
 				table.Delete(t);
@@ -506,10 +480,9 @@ namespace Deveel.Data {
 		/// If the given <paramref name="protocol"/> is not <i>TCP</i> or 
 		/// <i>Local</i>.
 		/// </exception>
-		public void GrantHostAccessToUser(DatabaseQueryContext context,
-										  String user, String protocol, String host) {
+		public void GrantHostAccessToUser(IQueryContext context, string user, string protocol, string host) {
 			// The user connect priv table
-			DataTable table = context.GetTable(SysUserConnect);
+			DataTable table = (DataTable) context.GetTable(SysUserConnect);
 			// Add the protocol and host to the table
 			DataRow rdat = new DataRow(table);
 			rdat.SetValue(0, user);
@@ -520,20 +493,19 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Checks if the given user belongs to secure group.
+		/// Checks if the user in the context given belongs to secure group.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user"></param>
 		/// <returns>
 		/// Returns <b>true</b> if the user belongs to the secure access
 		/// privileges group, otherwise <b>false</b>.
 		/// </returns>
-		private bool UserHasSecureAccess(DatabaseQueryContext context, User user) {
+		private bool UserHasSecureAccess(IQueryContext context) {
 			// The internal secure user has full privs on everything
-			if (user.UserName.Equals(InternalSecureUsername)) {
+			if (context.UserName.Equals(InternalSecureUsername))
 				return true;
-			}
-			return UserBelongsToGroup(context, user.UserName, SecureGroup);
+
+			return UserBelongsToGroup(context, context.UserName, SecureGroup);
 		}
 
 		/// <summary>
@@ -541,7 +513,6 @@ namespace Deveel.Data {
 		/// executing operations on the given schema.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user"></param>
 		/// <param name="schema"></param>
 		/// <param name="grant"></param>
 		/// <returns>
@@ -549,23 +520,18 @@ namespace Deveel.Data {
 		/// operation (eg, <i>CREATE</i>, <i>ALTER</i> and <i>DROP</i> 
 		/// table operations) for the given user, otherwise <b>false</b>.
 		/// </returns>
-		private static bool UserHasSchemaGrant(DatabaseQueryContext context,
-											   User user, String schema, int grant) {
+		private static bool UserHasSchemaGrant(IQueryContext context, string schema, int grant) {
 			// The internal secure user has full privs on everything
-			if (user.UserName.Equals(InternalSecureUsername)) {
+			if (context.UserName.Equals(InternalSecureUsername))
 				return true;
-			}
 
 			// No users have schema access to the system schema.
-			if (schema.Equals(SystemSchema)) {
+			if (schema.Equals(SystemSchema))
 				return false;
-			}
 
 			// Ask the grant manager if there are any privs setup for this user on the
 			// given schema.
-			GrantManager manager = context.GrantManager;
-			Privileges privs = manager.GetUserGrants(
-				GrantObject.Schema, schema, user.UserName);
+			Privileges privs = context.GetUserGrants(GrantObject.Schema, schema);
 
 			return privs.Permits(grant);
 		}
@@ -575,8 +541,7 @@ namespace Deveel.Data {
 		/// executing operations on the given table.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user"></param>
-		/// <param name="table_name"></param>
+		/// <param name="tableName"></param>
 		/// <param name="columns"></param>
 		/// <param name="grant"></param>
 		/// <returns>
@@ -584,21 +549,16 @@ namespace Deveel.Data {
 		/// operation (eg, <c>CREATE</c>, <c>ALTER</c> and <c>DROP</c> 
 		/// table operations) for the given user, otherwise <b>false</b>.
 		/// </returns>
-		private static bool UserHasTableObjectGrant(DatabaseQueryContext context,
-													User user, TableName table_name, VariableName[] columns,
-													int grant) {
+		private static bool UserHasTableObjectGrant(IQueryContext context, TableName tableName, VariableName[] columns, int grant) {
 			// The internal secure user has full privs on everything
-			if (user.UserName.Equals(InternalSecureUsername)) {
+			if (context.UserName.Equals(InternalSecureUsername))
 				return true;
-			}
 
-			// PENDING: Support column level privileges.
+			// TODO: Support column level privileges.
 
 			// Ask the grant manager if there are any privs setup for this user on the
 			// given schema.
-			GrantManager manager = context.GrantManager;
-			Privileges privs = manager.GetUserGrants(
-				GrantObject.Table, table_name.ToString(), user.UserName);
+			Privileges privs = context.GetUserGrants(GrantObject.Table, tableName.ToString());
 
 			return privs.Permits(grant);
 		}
@@ -607,7 +567,6 @@ namespace Deveel.Data {
 		/// Checks if the given user can create users on the database.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user"></param>
 		/// <remarks>
 		/// Only members of the <i>secure access</i> group, or the 
 		/// <i>user manager</i> group can do this.
@@ -617,11 +576,9 @@ namespace Deveel.Data {
 		/// alter and drop user information from the database, otherwise 
 		/// returns <b>false</b>.
 		/// </returns>
-		public bool CanUserCreateAndDropUsers(
-			DatabaseQueryContext context, User user) {
-			return (UserHasSecureAccess(context, user) ||
-					UserBelongsToGroup(context, user.UserName,
-									   UserManagerGroup));
+		public bool CanUserCreateAndDropUsers(IQueryContext context) {
+			return (UserHasSecureAccess(context) ||
+			        UserBelongsToGroup(context, context.UserName, UserManagerGroup));
 		}
 
 		/// <summary>
@@ -632,20 +589,17 @@ namespace Deveel.Data {
 		/// Only members of the 'secure access' group, or the 'schema manager' group 
 		/// can do this.
 		/// </remarks>
-		public bool CanUserCreateAndDropSchema(DatabaseQueryContext context, User user, String schema) {
+		public bool CanUserCreateAndDropSchema(IQueryContext context, string schema) {
 			// The internal secure user has full privs on everything
-			if (user.UserName.Equals(InternalSecureUsername)) {
+			if (context.UserName.Equals(InternalSecureUsername))
 				return true;
-			}
 
 			// No user can create or drop the system schema.
-			if (schema.Equals(SystemSchema)) {
+			if (schema.Equals(SystemSchema))
 				return false;
-			} else {
-				return (UserHasSecureAccess(context, user) ||
-						UserBelongsToGroup(context, user.UserName,
-										   SchemaManagerGroup));
-			}
+
+			return (UserHasSecureAccess(context) ||
+			        UserBelongsToGroup(context, context.UserName, SchemaManagerGroup));
 		}
 
 		/// <summary>
@@ -655,22 +609,20 @@ namespace Deveel.Data {
 		/// A user can shut down the database if they are a member of the 
 		/// 'secure acces' group.
 		/// </remarks>
-		public bool CanUserShutDown(DatabaseQueryContext context, User user) {
-			return UserHasSecureAccess(context, user);
+		public bool CanUserShutDown(IQueryContext context) {
+			return UserHasSecureAccess(context);
 		}
 
 		/// <summary>
 		/// Returns true if the user is allowed to execute the given stored procedure.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user"></param>
-		/// <param name="procedure_name"></param>
+		/// <param name="procedureName"></param>
 		/// <returns></returns>
-		public bool CanUserExecuteStoredProcedure(DatabaseQueryContext context,
-												  User user, String procedure_name) {
+		public bool CanUserExecuteStoredProcedure(IQueryContext context, string procedureName) {
 			// Currently you can only execute a procedure if you are a member of the
 			// secure access priv group.
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		// ---- General schema level privs ----
@@ -680,16 +632,14 @@ namespace Deveel.Data {
 		/// otherwise returns false.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user"></param>
 		/// <param name="table"></param>
 		/// <returns></returns>
-		public bool CanUserCreateTableObject(DatabaseQueryContext context, User user, TableName table) {
-			if (UserHasSchemaGrant(context, user, table.Schema, Privileges.Create)) {
+		public bool CanUserCreateTableObject(IQueryContext context, TableName table) {
+			if (UserHasSchemaGrant(context, table.Schema, Privileges.Create))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		/// <summary>
@@ -697,15 +647,14 @@ namespace Deveel.Data {
 		/// otherwise returns false.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user"></param>
 		/// <param name="table"></param>
 		/// <returns></returns>
-		public bool CanUserAlterTableObject(DatabaseQueryContext context, User user, TableName table) {
-			if (UserHasSchemaGrant(context, user, table.Schema, Privileges.Alter))
+		public bool CanUserAlterTableObject(IQueryContext context, TableName table) {
+			if (UserHasSchemaGrant(context, table.Schema, Privileges.Alter))
 				return true;
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		/// <summary>
@@ -713,16 +662,14 @@ namespace Deveel.Data {
 		/// otherwise returns false.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user"></param>
 		/// <param name="table"></param>
 		/// <returns></returns>
-		public bool CanUserDropTableObject(DatabaseQueryContext context, User user, TableName table) {
-			if (UserHasSchemaGrant(context, user, table.Schema, Privileges.Drop)) {
+		public bool CanUserDropTableObject(IQueryContext context, TableName table) {
+			if (UserHasSchemaGrant(context, table.Schema, Privileges.Drop))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		// ---- Check table object privs ----
@@ -732,20 +679,15 @@ namespace Deveel.Data {
 		/// name and given columns, otherwise returns false.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user"></param>
 		/// <param name="table"></param>
 		/// <param name="columns"></param>
 		/// <returns></returns>
-		public bool CanUserSelectFromTableObject(
-			DatabaseQueryContext context, User user, TableName table,
-			VariableName[] columns) {
-			if (UserHasTableObjectGrant(context, user, table, columns,
-										Privileges.Select)) {
+		public bool CanUserSelectFromTableObject(IQueryContext context, TableName table, VariableName[] columns) {
+			if (UserHasTableObjectGrant(context, table, columns, Privileges.Select))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		/// <summary>
@@ -753,36 +695,27 @@ namespace Deveel.Data {
 		/// name and given columns, otherwise returns false.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user"></param>
 		/// <param name="table"></param>
 		/// <param name="columns"></param>
 		/// <returns></returns>
-		public bool CanUserInsertIntoTableObject(
-			DatabaseQueryContext context, User user, TableName table,
-			VariableName[] columns) {
-			if (UserHasTableObjectGrant(context, user, table, columns,
-										Privileges.Insert)) {
+		public bool CanUserInsertIntoTableObject(IQueryContext context, TableName table, VariableName[] columns) {
+			if (UserHasTableObjectGrant(context, table, columns, Privileges.Insert))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		/// <summary>
 		/// Returns true if the user can update a table or view with the given
 		/// name and given columns, otherwise returns false.
 		/// </summary>
-		public bool CanUserUpdateTableObject(
-			DatabaseQueryContext context, User user, TableName table,
-			VariableName[] columns) {
-			if (UserHasTableObjectGrant(context, user, table, columns,
-										Privileges.Update)) {
+		public bool CanUserUpdateTableObject(IQueryContext context, TableName table, VariableName[] columns) {
+			if (UserHasTableObjectGrant(context, table, columns, Privileges.Update))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		///<summary>
@@ -790,18 +723,14 @@ namespace Deveel.Data {
 		/// name and given columns, otherwise returns false.
 		///</summary>
 		///<param name="context"></param>
-		///<param name="user"></param>
 		///<param name="table"></param>
 		///<returns></returns>
-		public bool CanUserDeleteFromTableObject(
-			DatabaseQueryContext context, User user, TableName table) {
-			if (UserHasTableObjectGrant(context, user, table, null,
-										Privileges.Delete)) {
+		public bool CanUserDeleteFromTableObject(IQueryContext context, TableName table) {
+			if (UserHasTableObjectGrant(context, table, null, Privileges.Delete))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		///<summary>
@@ -809,18 +738,14 @@ namespace Deveel.Data {
 		/// otherwise returns false.
 		///</summary>
 		///<param name="context"></param>
-		///<param name="user"></param>
 		///<param name="table"></param>
 		///<returns></returns>
-		public bool CanUserCompactTableObject(
-			DatabaseQueryContext context, User user, TableName table) {
-			if (UserHasTableObjectGrant(context, user, table, null,
-										Privileges.Compact)) {
+		public bool CanUserCompactTableObject(IQueryContext context, TableName table) {
+			if (UserHasTableObjectGrant(context, table, null, Privileges.Compact))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		///<summary>
@@ -828,18 +753,14 @@ namespace Deveel.Data {
 		/// otherwise returns false.
 		///</summary>
 		///<param name="context"></param>
-		///<param name="user"></param>
 		///<param name="table"></param>
 		///<returns></returns>
-		public bool CanUserCreateProcedureObject(
-			DatabaseQueryContext context, User user, TableName table) {
-			if (UserHasSchemaGrant(context, user,
-								   table.Schema, Privileges.Create)) {
+		public bool CanUserCreateProcedureObject(IQueryContext context, TableName table) {
+			if (UserHasSchemaGrant(context, table.Schema, Privileges.Create))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		///<summary>
@@ -847,18 +768,14 @@ namespace Deveel.Data {
 		/// otherwise returns false.
 		///</summary>
 		///<param name="context"></param>
-		///<param name="user"></param>
 		///<param name="table"></param>
 		///<returns></returns>
-		public bool CanUserDropProcedureObject(
-			DatabaseQueryContext context, User user, TableName table) {
-			if (UserHasSchemaGrant(context, user,
-								   table.Schema, Privileges.Drop)) {
+		public bool CanUserDropProcedureObject(IQueryContext context, TableName table) {
+			if (UserHasSchemaGrant(context, table.Schema, Privileges.Drop))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		///<summary>
@@ -866,18 +783,14 @@ namespace Deveel.Data {
 		/// otherwise returns false.
 		///</summary>
 		///<param name="context"></param>
-		///<param name="user"></param>
 		///<param name="table"></param>
 		///<returns></returns>
-		public bool CanUserCreateSequenceObject(
-			DatabaseQueryContext context, User user, TableName table) {
-			if (UserHasSchemaGrant(context, user,
-								   table.Schema, Privileges.Create)) {
+		public bool CanUserCreateSequenceObject(IQueryContext context, TableName table) {
+			if (UserHasSchemaGrant(context, table.Schema, Privileges.Create))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
 
 		///<summary>
@@ -885,18 +798,14 @@ namespace Deveel.Data {
 		/// otherwise returns false.
 		///</summary>
 		///<param name="context"></param>
-		///<param name="user"></param>
 		///<param name="table"></param>
 		///<returns></returns>
-		public bool CanUserDropSequenceObject(
-			DatabaseQueryContext context, User user, TableName table) {
-			if (UserHasSchemaGrant(context, user,
-								   table.Schema, Privileges.Drop)) {
+		public bool CanUserDropSequenceObject(IQueryContext context, TableName table) {
+			if (UserHasSchemaGrant(context, table.Schema, Privileges.Drop))
 				return true;
-			}
 
 			// If the user belongs to the secure access priv group, return true
-			return UserHasSecureAccess(context, user);
+			return UserHasSecureAccess(context);
 		}
  
 	}

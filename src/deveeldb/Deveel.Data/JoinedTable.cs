@@ -366,11 +366,11 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override void UnlockRoot(int lock_key) {
+		public override void UnlockRoot(int lockKey) {
 			// For each table, recurse.
 			rootsLocked--;
 			for (int i = 0; i < referenceList.Length; ++i) {
-				referenceList[i].UnlockRoot(lock_key);
+				referenceList[i].UnlockRoot(lockKey);
 			}
 		}
 

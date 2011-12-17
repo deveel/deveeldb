@@ -24,20 +24,16 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		protected override void Prepare() {
-			// nothing to prepare
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			// Check the user has privs to shutdown...
-			if (!Connection.Database.CanUserShutDown(QueryContext, User))
+			if (!context.Connection.Database.CanUserShutDown(context))
 				throw new UserAccessException("User not permitted to shut down the database.");
 
 			// Shut down the database system.
-			Connection.Database.StartShutDownThread();
+			context.Connection.Database.StartShutDownThread();
 
 			// Return 0 to indicate we going to be closing shop!
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

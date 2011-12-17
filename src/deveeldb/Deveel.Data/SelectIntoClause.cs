@@ -89,20 +89,20 @@ namespace Deveel.Data {
 			}
 		}
 
-		public Table SelectInto(DatabaseQueryContext context, Table table) {
+		public Table SelectInto(IQueryContext context, Table table) {
 			if (Table != null) {
-				DataTable dest_table = context.Connection.GetTable(Table);
-				if (dest_table == null)
+				DataTable destTable = (DataTable) context.GetTable(Table);
+				if (destTable == null)
 					throw new DatabaseException("The table '" + Table + "' target of the select statement was not found.");
 
 				int colCount = table.ColumnCount;
-				if (colCount != dest_table.ColumnCount)
+				if (colCount != destTable.ColumnCount)
 					throw new DatabaseException("The number of columns between source table and the destination " +
 												"table is different.");
 
 				for (int i = 0; i < colCount; i++) {
 					DataTableColumnInfo srcColumnInfo = table.TableInfo[i];
-					DataTableColumnInfo dstColumnInfo = dest_table.TableInfo[i];
+					DataTableColumnInfo dstColumnInfo = destTable.TableInfo[i];
 
 					if (srcColumnInfo.TType != dstColumnInfo.TType)
 						throw new DatabaseException("The column " + dstColumnInfo.Name + " in the destination table has a different " +
@@ -111,14 +111,14 @@ namespace Deveel.Data {
 
 				int rowCount = table.RowCount;
 				for (int i = 0; i < rowCount; i++) {
-					DataRow row = new DataRow(dest_table);
+					DataRow row = new DataRow(destTable);
 
 					for (int j = 0; j < colCount; j++) {
 						TObject cell = table.GetCellContents(j, i);
 						row.SetValue(j, cell);
 					}
 
-					dest_table.Add(row);
+					destTable.Add(row);
 				}
 
 				return FunctionTable.ResultTable(context, rowCount);

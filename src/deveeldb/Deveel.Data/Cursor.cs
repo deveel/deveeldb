@@ -18,7 +18,6 @@ using System;
 using System.Collections;
 
 using Deveel.Data.QueryPlanning;
-using Deveel.Data.Sql;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -31,8 +30,8 @@ namespace Deveel.Data {
 	/// and they cannot be accessed anymore.
 	/// </remarks>
 	public sealed class Cursor : IEnumerator, IDisposable {
-		internal Cursor(ICursorContext context, TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
-			this.context = context;
+		internal Cursor(ICursorContext cursorContext, TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
+			this.cursorContext = cursorContext;
 			this.name = name;
 			this.queryPlan = queryPlan;
 
@@ -47,7 +46,7 @@ namespace Deveel.Data {
 
 			this.attributes = attributes;
 
-			context.OnCursorCreated(this);
+			cursorContext.OnCursorCreated(this);
 		}
 
 		/// <summary>
@@ -97,7 +96,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// A reference to the context that manages the cursor.
 		/// </summary>
-		private readonly ICursorContext context;
+		private readonly ICursorContext cursorContext;
 
 		/// <summary>
 		/// Gets the current <see cref="CursorState"/> of the cursor.
@@ -378,36 +377,36 @@ namespace Deveel.Data {
 			return Fetch(FetchOrientation.Absolute, offset);
 		}
 
-		public Table FetchInto(FetchOrientation orientation, int offset, DatabaseQueryContext context, SelectIntoClause into) {
+		public Table FetchInto(FetchOrientation orientation, int offset, IQueryContext context, SelectIntoClause into) {
 			Table table = Fetch(orientation, offset);
 			return into.SelectInto(context, table);
 		}
 
-		public Table FetchInto(FetchOrientation orientation, DatabaseQueryContext context, SelectIntoClause into) {
+		public Table FetchInto(FetchOrientation orientation, IQueryContext context, SelectIntoClause into) {
 			return FetchInto(orientation, -1, context, into);
 		}
 
-		public Table FetchNextInto(DatabaseQueryContext context, SelectIntoClause into) {
+		public Table FetchNextInto(IQueryContext context, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.Next, context, into);
 		}
 
-		public Table FetchPriorInto(DatabaseQueryContext context, SelectIntoClause into) {
+		public Table FetchPriorInto(IQueryContext context, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.Prior, context, into);
 		}
 
-		public Table FetchFirstInto(DatabaseQueryContext context, SelectIntoClause into) {
+		public Table FetchFirstInto(IQueryContext context, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.First, -1, context, into);
 		}
 
-		public Table FetchLastInto(DatabaseQueryContext context, SelectIntoClause into) {
+		public Table FetchLastInto(IQueryContext context, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.Last, context, into);
 		}
 
-		public Table FetchRelativeInto(DatabaseQueryContext context, int offset, SelectIntoClause into) {
+		public Table FetchRelativeInto(IQueryContext context, int offset, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.Relative, offset, context, into);
 		}
 
-		public Table FetchAbsoluteInto(DatabaseQueryContext context, int offset, SelectIntoClause into) {
+		public Table FetchAbsoluteInto(IQueryContext context, int offset, SelectIntoClause into) {
 			return FetchInto(FetchOrientation.Absolute, offset, context, into);
 		}
 
@@ -416,7 +415,7 @@ namespace Deveel.Data {
 		/// context where it was declared.
 		/// </summary>
 		public void Dispose() {
-			context.OnCursorDisposing(this);
+			cursorContext.OnCursorDisposing(this);
 		}
 
 		#region CursorRowTable

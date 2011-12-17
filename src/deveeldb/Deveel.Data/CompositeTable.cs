@@ -215,11 +215,11 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override void UnlockRoot(int lock_key) {
+		public override void UnlockRoot(int lockKey) {
 			// For each table, recurse.
 			rootsLocked--;
 			for (int i = 0; i < compositeTables.Length; ++i) {
-				compositeTables[i].UnlockRoot(lock_key);
+				compositeTables[i].UnlockRoot(lockKey);
 			}
 		}
 

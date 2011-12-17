@@ -22,14 +22,9 @@ namespace Deveel.Data.Sql {
 	public class NoOpStatement : Statement {
 
 		// ---------- Implemented from Statement ----------
-
-		protected override void Prepare() {
-			// Nothing to prepare
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			// No-op returns a result value of '0'
-			return FunctionTable.ResultTable(new DatabaseQueryContext(Connection), 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 
 	}

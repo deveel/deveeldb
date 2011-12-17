@@ -217,11 +217,11 @@ namespace Deveel.Data {
 		/// Unlocks the root tables so that the underlying rows may
 		/// once again be used if they are not locked and have been removed.
 		/// </summary>
-		/// <param name="lock_key"></param>
+		/// <param name="lockKey"></param>
 		/// <remarks>
 		/// This should be called some time after the rows have been locked.
 		/// </remarks>
-		public abstract void UnlockRoot(int lock_key);
+		public abstract void UnlockRoot(int lockKey);
 
 		/// <summary>
 		/// Returns true if the table has its row roots locked 

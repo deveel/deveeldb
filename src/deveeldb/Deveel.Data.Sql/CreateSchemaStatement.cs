@@ -39,26 +39,26 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			schemaName = GetString("schema_name");
 		}
 
-		protected override Table Evaluate() {
-			if (!Connection.Database.CanUserCreateAndDropSchema(QueryContext, User, schemaName))
+		protected override Table Evaluate(IQueryContext context) {
+			if (!context.Connection.Database.CanUserCreateAndDropSchema(context, schemaName))
 				throw new UserAccessException("User not permitted to create or drop schema.");
 
-			SchemaDef schema = ResolveSchemaName(schemaName);
+			SchemaDef schema = ResolveSchemaName(context, schemaName);
 			if (schema != null)
 				throw new DatabaseException("Schema '" + schemaName + "' already exists.");
 
 			// Create the schema
-			Connection.CreateSchema(schemaName, "USER");
+			context.Connection.CreateSchema(schemaName, "USER");
 			// Set the default grants for the schema
-			Connection.GrantManager.Grant(Privileges.SchemaAll,
-			                              GrantObject.Schema, schemaName, User.UserName,
+			context.Connection.GrantManager.Grant(Privileges.SchemaAll,
+			                              GrantObject.Schema, schemaName, context.UserName,
 			                              true, Database.InternalSecureUsername);
 
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

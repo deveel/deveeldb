@@ -24,31 +24,26 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		protected override void Prepare() {
-			
-		}
-
-		/// <inheritdoc/>
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			string triggerNameString = GetString("trigger_name");
 
 			string type = GetString("type");
 
 			if (type.Equals("callback_trigger")) {
-				Connection.DeleteCallbackTrigger(triggerNameString);
+				context.Connection.DeleteCallbackTrigger(triggerNameString);
 			} else {
 				// Convert the trigger into a table name,
-				TableName triggerName = ResolveTableName(triggerNameString);
+				TableName triggerName = ResolveTableName(context, triggerNameString);
 
-				ConnectionTriggerManager manager = Connection.TriggerManager;
+				ConnectionTriggerManager manager = context.Connection.TriggerManager;
 				manager.DropTrigger(triggerName.Schema, triggerName.Name);
 
 				// Drop the grants for this object
-				Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, triggerName.ToString());
+				context.Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, triggerName.ToString());
 			}
 
 			// Return '0' if we created the trigger.
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

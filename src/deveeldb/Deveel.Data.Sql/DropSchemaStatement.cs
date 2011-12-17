@@ -34,16 +34,13 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		protected override void Prepare() {
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			string schemaName = GetString("schema_name");
 
-			if (!Connection.Database.CanUserCreateAndDropSchema(QueryContext, User, schemaName))
+			if (!context.Connection.Database.CanUserCreateAndDropSchema(context, schemaName))
 				throw new UserAccessException("User not permitted to create or drop schema.");
 
-			SchemaDef schema = ResolveSchemaName(schemaName);
+			SchemaDef schema = ResolveSchemaName(context, schemaName);
 			// Only allow user to drop USER typed schemas
 			if (schema == null)
 				throw new DatabaseException("Schema '" + schemaName + "' does not exist.");
@@ -52,7 +49,7 @@ namespace Deveel.Data.Sql {
 				throw new DatabaseException("Can not drop schema '" + schemaName + "'");
 
 			// Check if the schema is empty.
-			TableName[] allTables = Connection.Tables;
+			TableName[] allTables = context.Connection.Tables;
 			string resolvedSchemaName = schema.Name;
 			foreach (TableName tableName in allTables) {
 				if (tableName.Schema.Equals(resolvedSchemaName))
@@ -60,12 +57,12 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Drop the schema
-			Connection.DropSchema(schema.Name);
+			context.Connection.DropSchema(schema.Name);
 
 			// Revoke all the grants for the schema
-			Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Schema, schema.Name);
+			context.Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Schema, schema.Name);
 
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

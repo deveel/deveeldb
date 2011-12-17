@@ -38,18 +38,15 @@ namespace Deveel.Data.Sql {
 		public GrantStatement() {
 		}
 
-		internal override void ExecutePrivilegeAction(PrivilegeActionInfo actionInfo) {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
-			GrantManager manager = context.GrantManager;
+		internal override void ExecutePrivilegeAction(IQueryContext context, PrivilegeActionInfo actionInfo) {
+			GrantManager manager = context.Connection.GrantManager;
 
 			string user = actionInfo.User;
 			if (actionInfo.IsPublicUser)
 				user = GrantManager.PublicUsernameStr;
 
 			// Add a user grant.
-			manager.Grant(actionInfo.Privilege, actionInfo.Object, actionInfo.ObjectName, user, actionInfo.GrantOption,
-			              User.UserName);
+			manager.Grant(actionInfo.Privilege, actionInfo.Object, actionInfo.ObjectName, user, actionInfo.GrantOption, context.UserName);
 		}
 	}
 }

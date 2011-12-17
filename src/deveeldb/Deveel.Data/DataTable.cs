@@ -742,7 +742,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override void UnlockRoot(int lock_key) {
+		public override void UnlockRoot(int lockKey) {
 			CheckSafeOperation();  // safe op
 
 			if (dataSource is IMutableTableDataSource)

@@ -185,7 +185,7 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			// Prepare this object from the StatementTree
 			table_name = GetString("table_name");
 			col_list = GetList("col_list");
@@ -200,28 +200,28 @@ namespace Deveel.Data.Sql {
 			// ---
 
 			// Check 'values_list' contains all same size size insert element arrays.
-			int first_len = -1;
+			int firstLen = -1;
 			for (int n = 0; n < values_list.Count; ++n) {
 				IList exp_list = (IList)values_list[n];
-				if (first_len == -1 || first_len == exp_list.Count) {
-					first_len = exp_list.Count;
+				if (firstLen == -1 || firstLen == exp_list.Count) {
+					firstLen = exp_list.Count;
 				} else {
 					throw new DatabaseException("The insert data list varies in size.");
 				}
 			}
 
-			tname = ResolveTableName(table_name);
+			tname = ResolveTableName(context, table_name);
 
 			// Does the table exist?
-			if (!Connection.TableExists(tname))
+			if (!context.Connection.TableExists(tname))
 				throw new DatabaseException("Table '" + tname + "' does not exist.");
 
 			// Add the from table direct source for this table
-			ITableQueryInfo tableQueryInfo = Connection.GetTableQueryInfo(tname, null);
-			AddTable(new FromTableDirectSource(Connection.IsInCaseInsensitiveMode, tableQueryInfo, "INSERT_TABLE", tname, tname));
+			ITableQueryInfo tableQueryInfo = context. Connection.GetTableQueryInfo(tname, null);
+			AddTable(new FromTableDirectSource(context.Connection.IsInCaseInsensitiveMode, tableQueryInfo, "INSERT_TABLE", tname, tname));
 
 			// Get the table we are inserting to
-			insertTable = Connection.GetTable(tname);
+			insertTable = context.Connection.GetTable(tname);
 
 			// If column list is empty, then fill it with all columns from table.
 			if (from_values || from_select) {
@@ -282,7 +282,8 @@ namespace Deveel.Data.Sql {
 			} else if (from_select) {
 				// Prepare the select statement
 				prepared_select = new SelectStatement();
-				prepared_select.Context.Set(Connection, select, null);
+				prepared_select.StatementTree = select;
+				prepared_select.PrepareStatement(context);
 			}
 
 			// If from a set, then resolve all values,
@@ -311,21 +312,17 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Resolve all tables linked to this
-			TableName[] linked_tables =
-									 Connection.QueryTablesRelationallyLinkedTo(tname);
+			TableName[] linked_tables = context.Connection.QueryTablesRelationallyLinkedTo(tname);
 			relationally_linked_tables = new ArrayList(linked_tables.Length);
 			for (int i = 0; i < linked_tables.Length; ++i) {
-				relationally_linked_tables.Add(Connection.GetTable(linked_tables[i]));
+				relationally_linked_tables.Add(context.Connection.GetTable(linked_tables[i]));
 			}
 
 		}
 
-		protected override Table Evaluate() {
-
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
+		protected override Table Evaluate(IQueryContext context) {
 			// Check that this user has privs to insert into the table.
-			if (!Connection.Database.CanUserInsertIntoTableObject(context, User, tname, col_var_list))
+			if (!context.Connection.Database.CanUserInsertIntoTableObject(context, tname, col_var_list))
 				throw new UserAccessException("User not permitted to insert in to table: " + table_name);
 
 			// Are we inserting from a select statement or from a 'set' assignment
@@ -343,7 +340,7 @@ namespace Deveel.Data.Sql {
 				}
 			} else if (from_select) {
 				// Insert rows from the result select table.
-				Table result = prepared_select.EvaluateStatement();
+				Table result = prepared_select.EvaluateStatement(context);
 				if (result.ColumnCount != col_index_list.Length) {
 					throw new DatabaseException(
 							"Number of columns in result don't match columns to insert.");
@@ -381,7 +378,7 @@ namespace Deveel.Data.Sql {
 
 			// Notify TriggerManager that we've just done an update.
 			if (insert_count > 0)
-				Connection.OnTriggerEvent(new TriggerEventArgs(tname, TriggerEventType.Insert, insert_count));
+				context.Connection.OnTriggerEvent(new TriggerEventArgs(tname, TriggerEventType.Insert, insert_count));
 
 			// Return the number of rows we inserted.
 			return FunctionTable.ResultTable(context, insert_count);

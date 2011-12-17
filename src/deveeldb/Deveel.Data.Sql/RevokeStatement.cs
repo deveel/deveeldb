@@ -38,10 +38,8 @@ namespace Deveel.Data.Sql {
 		public RevokeStatement() {
 		}
 
-		internal override void ExecutePrivilegeAction(PrivilegeActionInfo actionInfo) {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
-			GrantManager manager = context.GrantManager;
+		internal override void ExecutePrivilegeAction(IQueryContext context, PrivilegeActionInfo actionInfo) {
+			GrantManager manager = context.Connection.GrantManager;
 
 			string user = actionInfo.User;
 			if (actionInfo.IsPublicUser)
@@ -49,7 +47,7 @@ namespace Deveel.Data.Sql {
 
 			// Revoke a user grant.
 			manager.Revoke(actionInfo.Privilege, actionInfo.Object, actionInfo.ObjectName, user, actionInfo.GrantOption,
-			               User.UserName);
+			               context.UserName);
 		}
 	}
 }

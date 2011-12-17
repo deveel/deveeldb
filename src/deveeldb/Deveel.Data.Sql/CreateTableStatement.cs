@@ -102,7 +102,7 @@ namespace Deveel.Data.Sql {
 				manager.AddPrimaryKeyConstraint(table, columns, constraint.Deferrability, constraint.Name);
 			} else if (constraint.Type == ConstraintType.ForeignKey) {
 				// Currently we forbid referencing a table in another schema
-				TableName refTable = Data.TableName.Resolve(constraint.ReferenceTable);
+				TableName refTable = TableName.Resolve(constraint.ReferenceTable);
 				ConstraintAction updateRule = constraint.UpdateRule;
 				ConstraintAction deleteRule = constraint.DeleteRule;
 				if (!table.Schema.Equals(refTable.Schema))
@@ -151,10 +151,10 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Sets up all constraints specified in this create statement.
 		/// </summary>
-		internal void SetupAllConstraints() {
+		internal void SetupAllConstraints(IQueryContext context) {
 			foreach (SqlConstraint constraint in constraints) {
 				// Add this to the schema manager tables
-				AddSchemaConstraint(Connection, tname, constraint);
+				AddSchemaConstraint(context.Connection, tname, constraint);
 			}
 		}
 
@@ -163,7 +163,7 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			// Get the state from the model
 			temporary = GetBoolean("temporary");
 			onlyIfNotExists = GetBoolean("only_if_not_exists");
@@ -188,15 +188,14 @@ namespace Deveel.Data.Sql {
 
 			// ----
 
-			string schemaName = Connection.CurrentSchema;
-			tname = Data.TableName.Resolve(schemaName, tableNameString);
+			tname = ResolveTableName(context, tableNameString);
 
 			string nameStrip = tname.Name;
 
 			if (nameStrip.IndexOf('.') != -1)
 				throw new DatabaseException("Table name can not contain '.' character.");
 
-			bool ignoresCase = Connection.IsInCaseInsensitiveMode;
+			bool ignoresCase = context.Connection.IsInCaseInsensitiveMode;
 
 			// Implement the checker class for this statement.
 			ColumnChecker checker = new ColumnCheckerImpl(ignoresCase, columns);
@@ -209,7 +208,7 @@ namespace Deveel.Data.Sql {
 			for (int i = 0; i < columns.Count; ++i) {
 				DataTableColumnInfo columnInfo = columns[i];
 				SqlColumn sqlColumn = (SqlColumn)columnList[i];
-				checker.CheckExpression(columnInfo.GetDefaultExpression(Connection.System));
+				checker.CheckExpression(columnInfo.GetDefaultExpression(context.System));
 				string columnName = columnInfo.Name;
 
 				// If column name starts with [table_name]. then strip it off
@@ -246,16 +245,14 @@ namespace Deveel.Data.Sql {
 				if (constraint.Type == ConstraintType.ForeignKey) {
 					checker.StripColumnList(constraint.ReferenceTable, constraint.column_list2);
 
-					TableName refTname = ResolveTableName(constraint.ReferenceTable);
-					if (Connection.IsInCaseInsensitiveMode)
-						refTname = Connection.TryResolveCase(refTname);
+					TableName refTname = ResolveTableName(context, constraint.ReferenceTable);
 
 					constraint.ReferenceTable = refTname.ToString();
 
 					DataTableInfo refTableInfo;
-					if (Connection.TableExists(refTname)) {
+					if (context.Connection.TableExists(refTname)) {
 						// Get the DataTableInfo for the table we are referencing
-						refTableInfo = Connection.GetTableInfo(refTname);
+						refTableInfo = context.Connection.GetTableInfo(refTname);
 					} else if (refTname.Equals(tname)) {
 						// We are referencing the table we are creating
 						refTableInfo = CreateTableInfo();
@@ -266,7 +263,7 @@ namespace Deveel.Data.Sql {
 					}
 
 					// Resolve columns against the given table info
-					refTableInfo.ResolveColumnsInArray(Connection, constraint.column_list2);
+					refTableInfo.ResolveColumnsInArray(context.Connection, constraint.column_list2);
 				}
 				checker.CheckExpression(constraint.CheckExpression);
 				checker.CheckColumnList(constraint.ColumnList);
@@ -296,23 +293,20 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		protected override Table Evaluate() {
-
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
+		protected override Table Evaluate(IQueryContext context) {
 			// Does the schema exist?
-			SchemaDef schema = ResolveSchemaName(tname.Schema);
+			SchemaDef schema = ResolveSchemaName(context, tname.Schema);
 			if (schema == null)
 				throw new DatabaseException("Schema '" + tname.Schema + "' doesn't exist.");
 
 			tname = new TableName(schema.Name, tname.Name);
 
 			// Does the user have privs to create this tables?
-			if (!Connection.Database.CanUserCreateTableObject(context, User, tname))
+			if (!context.Connection.Database.CanUserCreateTableObject(context, tname))
 				throw new UserAccessException("User not permitted to create table: " + tableNameString);
 
 			// Does the table already exist?
-			if (Connection.TableExists(tname)) {
+			if (context.Connection.TableExists(tname)) {
 				if (!onlyIfNotExists)
 					throw new DatabaseException("Table '" + tname + "' already exists.");
 
@@ -326,19 +320,19 @@ namespace Deveel.Data.Sql {
 			DataTableInfo tableInfo = CreateTableInfo();
 
 			if (temporary) {
-				Connection.CreateTemporaryTable(tableInfo);
+				context.Connection.CreateTemporaryTable(tableInfo);
 			} else {
-				Connection.CreateTable(tableInfo);
+				context.Connection.CreateTable(tableInfo);
 			}
 
 			// The initial grants for a table is to give the user who created it
 			// full access.
-			Connection.GrantManager.Grant(
+			context.Connection.GrantManager.Grant(
 				Privileges.TableAll, GrantObject.Table, tname.ToString(),
-				User.UserName, true, Database.InternalSecureUsername);
+				context.UserName, true, Database.InternalSecureUsername);
 
 			// Set the constraints in the schema.
-			SetupAllConstraints();
+			SetupAllConstraints(context);
 
 			// Return '0' if we created the table.  (0 rows affected)
 			return FunctionTable.ResultTable(context, 0);

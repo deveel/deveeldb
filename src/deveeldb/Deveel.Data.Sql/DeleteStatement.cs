@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Data.QueryPlanning;
@@ -25,19 +24,6 @@ namespace Deveel.Data.Sql {
 	/// </summary>
 	[Serializable]
 	public class DeleteStatement : Statement {
-		/// <summary>
-		/// The name the table that we are to delete from.
-		/// </summary>
-		private string tableNameString;
-
-		/// <summary>
-		/// If the delete statement has a 'where' clause, then this is set here.
-		/// </summary>
-		/// <remarks>
-		/// If it has no 'where' clause then we apply to the entire table.
-		/// </remarks>
-		private SearchExpression whereCondition;
-
 		/// <summary>
 		/// The limit of the number of rows that are updated by this statement.
 		/// </summary>
@@ -56,7 +42,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The TableName object of the table being created.
 		/// </summary>
-		private TableName tname;
+		private TableName tableName;
 
 		/// <summary>
 		/// Tables that are relationally linked to the table being inserted 
@@ -66,18 +52,12 @@ namespace Deveel.Data.Sql {
 		/// This is used to determine the tables we need to read lock because we 
 		/// need to validate relational constraints on the tables.
 		/// </remarks>
-		private List<DataTable> relationallyLinkedTables;
+		private List<Table> relationallyLinkedTables;
 
 		/// <summary>
 		/// The plan for the set of records we are deleting in this query.
 		/// </summary>
 		private IQueryPlanNode plan;
-
-		/// <summary>
-		/// Inidicates if the statement has to get the row
-		/// to delete from the cursor.
-		/// </summary>
-		private bool fromCursor;
 
 		/// <summary>
 		/// The name of the cursor from which to delete the current row.
@@ -87,30 +67,29 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 		/// <inheritdoc/>
-		protected override void Prepare() {
-
+		protected override void Prepare(IQueryContext context) {
 			// Get variables from the model.
-			tableNameString = GetString("table_name");
-			whereCondition = (SearchExpression)GetValue("where_clause");
+			string tableNameString = GetString("table_name");
+			SearchExpression whereCondition = (SearchExpression)GetValue("where_clause");
 			limit = GetInt32("limit");
-			fromCursor = GetBoolean("from_cursor");
+			bool fromCursor = GetBoolean("from_cursor");
 			string cursorNameString = GetString("cursor_name");
 
 			// ---
 
 			// Resolve the TableName object.
-			tname = ResolveTableName(tableNameString);
+			tableName = ResolveTableName(context, tableNameString);
 
 			// Does the table exist?
-			if (!Connection.TableExists(tname))
-				throw new DatabaseException("Table '" + tname + "' does not exist.");
+			if (!context.Connection.TableExists(tableName))
+				throw new DatabaseException("Table '" + tableName + "' does not exist.");
 
 			// if this is a statement from a cursor, check it exists.
 			if (fromCursor)
-				cursorName = ResolveTableName(cursorNameString);
+				cursorName = ResolveTableName(context, cursorNameString);
 
 			// Get the table we are updating
-			updateTable = Connection.GetTable(tname);
+			updateTable = (DataTable) context.GetTable(tableName);
 
 			if (!fromCursor) {
 				// Form a TableSelectExpression that represents the select on the table
@@ -121,45 +100,45 @@ namespace Deveel.Data.Sql {
 				selectExpression.Where = whereCondition;
 
 				// Generate the TableExpressionFromSet hierarchy for the expression,
-				TableExpressionFromSet fromSet = Planner.GenerateFromSet(selectExpression, Connection);
+				TableExpressionFromSet fromSet = Planner.GenerateFromSet(selectExpression, context.Connection);
 				// Form the plan
-				plan = Planner.FormQueryPlan(Connection, selectExpression, fromSet, null);
+				plan = Planner.FormQueryPlan(context.Connection, selectExpression, fromSet, null);
 			}
 
 			// Resolve all tables linked to this
-			TableName[] linkedTables = Connection.QueryTablesRelationallyLinkedTo(tname);
-			relationallyLinkedTables = new List<DataTable>(linkedTables.Length);
+			TableName[] linkedTables = context.Connection.QueryTablesRelationallyLinkedTo(tableName);
+			relationallyLinkedTables = new List<Table>(linkedTables.Length);
 			foreach (TableName linkedTable in linkedTables) {
-				relationallyLinkedTables.Add(Connection.GetTable(linkedTable));
+				relationallyLinkedTables.Add(context.Connection.GetTable(linkedTable));
 			}
 		}
 
 		/// <inheritdoc/>
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			// Check that this user has privs to delete from the table.
-			if (!Connection.Database.CanUserDeleteFromTableObject(QueryContext, User, tname))
-				throw new UserAccessException("User not permitted to delete from table: " + tableNameString);
+			if (!context.Connection.Database.CanUserDeleteFromTableObject(context, tableName))
+				throw new UserAccessException("User not permitted to delete from table: " + tableName);
 
 			int deleteCount;
 
-			if (fromCursor) {
+			if (cursorName != null) {
 				// This statement deletes from the current row of a cursor
-				if (QueryContext.GetCursror(cursorName) == null)
+				if (context.GetCursor(cursorName) == null)
 					throw new DatabaseException("The cursor '" + cursorName + "' does not exist.");
 
 				// get the cursor from which to delete the current row
-				Cursor cursor = Connection.GetCursor(cursorName);
+				Cursor cursor = context.GetCursor(cursorName);
 
 				// Delete the row from the table
 				deleteCount = updateTable.DeleteCurrent(cursor);
 			} else {
 				// Check the user has select permissions on the tables in the plan.
-				CheckUserSelectPermissions(plan);
+				CheckUserSelectPermissions(context, plan);
 
 				// Evaluates the delete statement...
 
 				// Evaluate the plan to find the update set.
-				Table deleteSet = plan.Evaluate(QueryContext);
+				Table deleteSet = plan.Evaluate(context);
 
 				// Delete from the data table.
 				deleteCount = updateTable.Delete(deleteSet, limit);
@@ -167,10 +146,10 @@ namespace Deveel.Data.Sql {
 
 			// Notify TriggerManager that we've just done an update.
 			if (deleteCount > 0)
-				Connection.OnTriggerEvent(new TriggerEventArgs(tname, TriggerEventType.Delete, deleteCount));
+				context.Connection.OnTriggerEvent(new TriggerEventArgs(tableName, TriggerEventType.Delete, deleteCount));
 
 			// Return the number of columns we deleted.
-			return FunctionTable.ResultTable(QueryContext, deleteCount);
+			return FunctionTable.ResultTable(context, deleteCount);
 		}
 	}
 }

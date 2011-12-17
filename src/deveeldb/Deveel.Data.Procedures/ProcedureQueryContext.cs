@@ -68,7 +68,7 @@ namespace Deveel.Data.Procedures {
 		}
 
 		private bool CursorExists(TableName name) {
-			return GetCursror(name) != null;
+			return GetCursor(name) != null;
 		}
 
 		public override Cursor DeclareCursor(TableName name, IQueryPlanNode planNode, CursorAttributes attributes) {
@@ -79,7 +79,7 @@ namespace Deveel.Data.Procedures {
 		}
 
 		public override void OpenCursor(TableName name) {
-			Cursor cursor = GetCursror(name);
+			Cursor cursor = GetCursor(name);
 			if (name == null)
 				throw new ProcedureException("The cursor '" + name + "' is not declared within the context of the procedure.");
 
@@ -87,14 +87,14 @@ namespace Deveel.Data.Procedures {
 		}
 
 		public override void CloseCursor(TableName name) {
-			Cursor cursor = GetCursror(name);
+			Cursor cursor = GetCursor(name);
 			if (name == null)
 				throw new ProcedureException("The cursor '" + name + "' is not declared within the context of the procedure.");
 
 			cursor.Close();
 		}
 
-		public override Cursor GetCursror(TableName name) {
+		public override Cursor GetCursor(TableName name) {
 			for (int i = 0; i < cursors.Count; i++) {
 				Cursor cursor = (Cursor)cursors[i];
 				if (cursor.Name == name)

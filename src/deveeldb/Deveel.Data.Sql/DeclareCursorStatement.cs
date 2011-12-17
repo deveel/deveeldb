@@ -28,19 +28,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The name of the cursor to declare.
 		/// </summary>
-		private TableName resolvedName;
-
-		private string name;
-
-		/// <summary>
-		/// The TableSelectExpression representing the select command itself.
-		/// </summary>
-		private TableSelectExpression selectExpression;
-
-		/// <summary>
-		/// The list of all columns to order by. (ByColumn)
-		/// </summary>
-		private IList<ByColumn> orderBy;
+		private TableName cursorName;
 
 		/// <summary>
 		/// The plan for evaluating this select expression.
@@ -49,10 +37,8 @@ namespace Deveel.Data.Sql {
 
 		private TableExpressionFromSet fromSet;
 
-		protected override void Prepare() {
-			DatabaseConnection db = Connection;
-
-			name = GetString("name");
+		protected override void Prepare(IQueryContext context) {
+			string cursorNameString = GetString("name");
 
 			attributes = new CursorAttributes();
 
@@ -70,48 +56,46 @@ namespace Deveel.Data.Sql {
 			if (insensitive)
 				attributes |= CursorAttributes.Insensitive;
 
-			resolvedName = ResolveTableName(name);
+			cursorName = ResolveTableName(context, cursorNameString);
 
-			string nameStrip = resolvedName.Name;
+			string nameStrip = cursorName.Name;
 
 			if (nameStrip.IndexOf('.') != -1)
 				throw new DatabaseException("Cursor name can not contain '.' character.");
 
 			// Prepare this object from the StatementTree,
 			// The select expression itself
-			selectExpression = (TableSelectExpression)GetValue("select_expression");
+			TableSelectExpression selectExpression = (TableSelectExpression)GetValue("select_expression");
 			// The order by information
-			orderBy = (IList<ByColumn>) GetList("order_by");
+			IList<ByColumn> orderBy = (IList<ByColumn>) GetList("order_by");
 
 			// Generate the TableExpressionFromSet hierarchy for the expression,
-			fromSet = Planner.GenerateFromSet(selectExpression, db);
+			fromSet = Planner.GenerateFromSet(selectExpression, context.Connection);
 
 			// Form the plan
-			plan = Planner.FormQueryPlan(db, selectExpression, fromSet, orderBy);
+			plan = Planner.FormQueryPlan(context.Connection, selectExpression, fromSet, orderBy);
 		}
 
-		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
+		protected override Table Evaluate(IQueryContext context) {
 			// Check the permissions for this user to select from the tables in the
 			// given plan.
-			CheckUserSelectPermissions(plan);
+			CheckUserSelectPermissions(context, plan);
 
 			bool error = true;
 			try {
-				Cursor cursor = Connection.DeclareCursor(resolvedName, plan, attributes);
+				Cursor cursor = context.Connection.DeclareCursor(cursorName, plan, attributes);
 				cursor.From = fromSet;
 				error = false;
 				return FunctionTable.ResultTable(context, 0);
 			} finally {
 				// If an error occured, dump the command plan to the debug log.
 				// Or just dump the command plan if debug level = Information
-				if (Debug.IsInterestedIn(DebugLevel.Information) ||
-					(error && Debug.IsInterestedIn(DebugLevel.Warning))) {
+				if (context.Debug.IsInterestedIn(DebugLevel.Information) ||
+					(error && context.Debug.IsInterestedIn(DebugLevel.Warning))) {
 					StringBuilder buf = new StringBuilder();
 					plan.DebugString(0, buf);
 
-					Debug.Write(DebugLevel.Warning, this, "Query Plan debug:\n" + buf);
+					context.Debug.Write(DebugLevel.Warning, this, "Query Plan debug:\n" + buf);
 				}
 			}
 		}

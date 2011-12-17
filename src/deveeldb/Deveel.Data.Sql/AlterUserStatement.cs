@@ -18,41 +18,38 @@ using System;
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class AlterUserStatement : Statement {
-		private void InternalSetUserGroupsAndLock(string username, Expression[] groups_list, string lockStatus) {
-			Database db = QueryContext.Database;
+		private void InternalSetUserGroupsAndLock(IQueryContext context, string username, Expression[] groupsList, string lockStatus) {
+			Database db = context.Connection.Database;
 
 			// Add the user to any groups
-			if (groups_list != null) {
+			if (groupsList != null) {
 				// Delete all the groups the user currently belongs to
-				db.DeleteAllUserGroups(QueryContext, username);
-				for (int i = 0; i < groups_list.Length; ++i) {
-					TObject group_tob = groups_list[i].Evaluate(null, null, QueryContext);
+				db.DeleteAllUserGroups(context, username);
+				for (int i = 0; i < groupsList.Length; ++i) {
+					TObject group_tob = groupsList[i].Evaluate(null, null, context);
 					String group_str = group_tob.Object.ToString();
-					db.AddUserToGroup(QueryContext, username, group_str);
+					db.AddUserToGroup(context, username, group_str);
 				}
 			}
 
 			// Do we lock this user?
 			if (lockStatus != null) {
 				if (lockStatus.Equals("LOCK")) {
-					db.SetUserLock(QueryContext, User, true);
+					db.SetUserLock(context, true);
 				} else {
-					db.SetUserLock(QueryContext, User, false);
+					db.SetUserLock(context, false);
 				}
 			}
 
 		}
 
-		protected override void Prepare() {
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			string username = GetString("username");
 
 			// True if current user is altering their own user record.
-			bool modifyOwnRecord = User.UserName.Equals(username);
+			bool modifyOwnRecord = context.UserName.Equals(username);
 			// True if current user is allowed to create and drop users.
-			bool secureAccessPrivs = QueryContext.Database.CanUserCreateAndDropUsers(QueryContext, User);
+			bool secureAccessPrivs = context.Connection.Database.CanUserCreateAndDropUsers(context);
 
 			// Does the user have permissions to do this?  They must be part of the
 			// 'secure access' priv group or they are modifying there own record.
@@ -68,7 +65,7 @@ namespace Deveel.Data.Sql {
 
 			string passwordStr = null;
 			if (password != null) {
-				TObject passwdTob = password.Evaluate(null, null, QueryContext);
+				TObject passwdTob = password.Evaluate(null, null, context);
 				passwordStr = passwdTob.Object.ToString();
 			}
 
@@ -85,17 +82,17 @@ namespace Deveel.Data.Sql {
 					throw new DatabaseException("User is not permitted to alter user lock status.");
 			}
 
-			Database db = QueryContext.Database;
-			if (db.UserExists(QueryContext, username)) {
+			Database db = context.Connection.Database;
+			if (db.UserExists(context, username)) {
 				if (passwordStr != null) {
-					db.AlterUserPassword(QueryContext, username, passwordStr);
+					db.AlterUserPassword(context, username, passwordStr);
 				}
-				InternalSetUserGroupsAndLock(username, groupsList, lockStatus);
+				InternalSetUserGroupsAndLock(context, username, groupsList, lockStatus);
 			} else {
 				throw new DatabaseException("User '" + username + "' doesn't exist.");
 			}
 
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

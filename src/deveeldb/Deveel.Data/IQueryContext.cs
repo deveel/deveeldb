@@ -17,6 +17,7 @@ using System;
 
 using Deveel.Data.Functions;
 using Deveel.Data.QueryPlanning;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -47,6 +48,28 @@ namespace Deveel.Data {
 		/// is within a connection.
 		/// </summary>
 		DatabaseConnection Connection { get; }
+
+		IDebugLogger Debug { get; }
+
+		/// <summary>
+		/// Gets a table with the given name from within the underlying
+		/// database context.
+		/// </summary>
+		/// <param name="tableName">The name of the table to return.</param>
+		/// <returns>
+		/// Returns a <see cref="Table"/> having the name specified or
+		/// <b>null</b> if no table with the given name was found in the
+		/// underlying database context.
+		/// </returns>
+		Table GetTable(TableName tableName);
+
+		/// <summary>
+		/// Gets the privileges of the current user on the given database object
+		/// </summary>
+		/// <param name="objType">The type of the object.</param>
+		/// <param name="objName">The name of the object.</param>
+		/// <returns></returns>
+		Privileges GetUserGrants(GrantObject objType, string objName);
 
 		// ---------- Sequences ----------
 
@@ -166,7 +189,7 @@ namespace Deveel.Data {
 
 		Cursor DeclareCursor(TableName name, IQueryPlanNode planNode, CursorAttributes attributes);
 
-		Cursor GetCursror(TableName name);
+		Cursor GetCursor(TableName name);
 
 		void OpenCursor(TableName name);
 

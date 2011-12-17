@@ -18,11 +18,7 @@ using System;
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class CaseStatement : Statement {
-		protected override void Prepare() {
-			throw new NotImplementedException();
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			throw new NotImplementedException();
 		}
 	}

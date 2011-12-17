@@ -63,20 +63,20 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The TableVariableResolver for the table we are cross referencing.
 		/// </summary>
-		private readonly TableVariableResolver cr_resolver;
+		private readonly TableVariableResolver crResolver;
 
-		private readonly Table cross_ref_table;
+		private readonly Table crossRefTable;
 
 		/// <summary>
 		/// Some information about the expression list.  If the value is 0 then the
 		/// column is simple to solve and shouldn't be cached.
 		/// </summary>
-		private readonly byte[] exp_info;
+		private readonly byte[] expInfo;
 
 		/// <summary>
 		/// The list of expressions that are evaluated to form each column.
 		/// </summary>
-		private readonly Expression[] exp_list;
+		private readonly Expression[] expList;
 
 		/// <summary>
 		/// The DataTableInfo object that describes the columns in this function
@@ -136,13 +136,12 @@ namespace Deveel.Data {
 
 		///<summary>
 		///</summary>
-		///<param name="cross_ref_table"></param>
-		///<param name="in_exp_list"></param>
-		///<param name="col_names"></param>
+		///<param name="crossRefTable"></param>
+		///<param name="inExpList"></param>
+		///<param name="columnNames"></param>
 		///<param name="context"></param>
-		public FunctionTable(Table cross_ref_table, Expression[] in_exp_list,
-		                     String[] col_names, DatabaseQueryContext context)
-			: base(context.Database) {
+		public FunctionTable(Table crossRefTable, Expression[] inExpList, string[] columnNames, IQueryContext context)
+			: base(context.Connection.Database) {
 			// Make sure we are synchronized over the class.
 			lock (typeof (FunctionTable)) {
 				uniqueId = UniqueKeySeq;
@@ -152,41 +151,41 @@ namespace Deveel.Data {
 
 			this.context = context;
 
-			this.cross_ref_table = cross_ref_table;
-			cr_resolver = cross_ref_table.GetVariableResolver();
-			cr_resolver.SetId = 0;
+			this.crossRefTable = crossRefTable;
+			crResolver = crossRefTable.GetVariableResolver();
+			crResolver.SetId = 0;
 
 			// Create a DataTableInfo object for this function table.
 			funTableInfo = new DataTableInfo(FunctionTableName);
 
-			exp_list = new Expression[in_exp_list.Length];
-			exp_info = new byte[in_exp_list.Length];
+			expList = new Expression[inExpList.Length];
+			expInfo = new byte[inExpList.Length];
 
 			// Create a new DataTableColumnInfo for each expression, and work out if the
 			// expression is simple or not.
-			for (int i = 0; i < in_exp_list.Length; ++i) {
-				Expression expr = in_exp_list[i];
+			for (int i = 0; i < inExpList.Length; ++i) {
+				Expression expr = inExpList[i];
 				// Examine the expression and determine if it is simple or not
 				if (expr.IsConstant && !expr.HasAggregateFunction(context)) {
 					// If expression is a constant, solve it
 					TObject result = expr.Evaluate(null, null, context);
 					expr = new Expression(result);
-					exp_list[i] = expr;
-					exp_info[i] = 1;
+					expList[i] = expr;
+					expInfo[i] = 1;
 				} else {
 					// Otherwise must be dynamic
-					exp_list[i] = expr;
-					exp_info[i] = 0;
+					expList[i] = expr;
+					expInfo[i] = 0;
 				}
 				// Make the column info
-				funTableInfo.AddColumn(col_names[i], expr.ReturnTType(cr_resolver, context));
+				funTableInfo.AddColumn(columnNames[i], expr.ReturnTType(crResolver, context));
 			}
 
 			// Make sure the table info isn't changed from this point on.
 			funTableInfo.IsReadOnly = true;
 
 			// Function tables are the size of the referring table.
-			row_count = cross_ref_table.RowCount;
+			row_count = crossRefTable.RowCount;
 
 			// Set schemes to 'blind search'.
 			BlankSelectableSchemes(1);
@@ -194,11 +193,11 @@ namespace Deveel.Data {
 
 		///<summary>
 		///</summary>
-		///<param name="exp_list"></param>
-		///<param name="col_names"></param>
+		///<param name="expList"></param>
+		///<param name="columnNames"></param>
 		///<param name="context"></param>
-		public FunctionTable(Expression[] exp_list, String[] col_names, DatabaseQueryContext context)
-			: this(context.Database.SingleRowTable, exp_list, col_names, context) {
+		public FunctionTable(Expression[] expList, String[] columnNames, IQueryContext context)
+			: this(context.Connection.Database.SingleRowTable, expList, columnNames, context) {
 		}
 
 		///<summary>
@@ -208,7 +207,7 @@ namespace Deveel.Data {
 		/// We need to provide this method for aggregate functions.
 		/// </remarks>
 		public Table ReferenceTable {
-			get { return cross_ref_table; }
+			get { return crossRefTable; }
 		}
 
 		public override DataTableInfo TableInfo {
@@ -232,12 +231,12 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		private TObject CalcValue(int column, int row, DataCellCache cache) {
-			cr_resolver.SetId = row;
+			crResolver.SetId = row;
 			if (groupResolver != null) {
 				groupResolver.SetUpGroupForRow(row);
 			}
-			Expression expr = exp_list[column];
-			TObject cell = expr.Evaluate(groupResolver, cr_resolver, context);
+			Expression expr = expList[column];
+			TObject cell = expr.Evaluate(groupResolver, crResolver, context);
 			if (cache != null) {
 				cache.Set(uniqueId, row, column, cell);
 			}
@@ -272,27 +271,26 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Creates a grouping matrix for the given columns.
 		/// </summary>
-		/// <param name="col_list"></param>
+		/// <param name="columns"></param>
 		/// <remarks>
 		/// The grouping matrix is arranged so that each row of the refering 
 		/// table that is in the group is given a number that refers to the top 
 		/// group entry in the group list. The group list is a linked integer 
 		/// list that chains through each row item in the list.
 		/// </remarks>
-		public void CreateGroupMatrix(VariableName[] col_list) {
+		public void CreateGroupMatrix(VariableName[] columns) {
 			// If we have zero rows, then don't bother creating the matrix.
-			if (RowCount <= 0 || col_list.Length <= 0) {
+			if (RowCount <= 0 || columns.Length <= 0)
 				return;
+
+			Table rootTable = ReferenceTable;
+			int rowCount = rootTable.RowCount;
+			int[] colLookup = new int[columns.Length];
+			for (int i = columns.Length - 1; i >= 0; --i) {
+				colLookup[i] = rootTable.FindFieldName(columns[i]);
 			}
 
-			Table root_table = ReferenceTable;
-			int r_count = root_table.RowCount;
-			int[] col_lookup = new int[col_list.Length];
-			for (int i = col_list.Length - 1; i >= 0; --i) {
-				col_lookup[i] = root_table.FindFieldName(col_list[i]);
-			}
-
-			IList<int> rowList = root_table.OrderedRowList(col_lookup);
+			IList<int> rowList = rootTable.OrderedRowList(colLookup);
 
 			// 'row_list' now contains rows in this table sorted by the columns to
 			// group by.
@@ -303,19 +301,19 @@ namespace Deveel.Data {
 			// contains consequtive links to each row in the group until -1 is reached
 			// indicating the end of the group;
 
-			groupLookup = new List<int>(r_count);
-			groupLinks = new List<int>(r_count);
+			groupLookup = new List<int>(rowCount);
+			groupLinks = new List<int>(rowCount);
 			int current_group = 0;
 			int previous_row = -1;
-			for (int i = 0; i < r_count; ++i) {
-				int row_index = rowList[i];
+			for (int i = 0; i < rowCount; ++i) {
+				int rowIndex = rowList[i];
 
 				if (previous_row != -1) {
 					bool equal = true;
 					// Compare cell in column in this row with previous row.
-					for (int n = 0; n < col_lookup.Length && equal; ++n) {
-						TObject c1 = root_table.GetCellContents(col_lookup[n], row_index);
-						TObject c2 = root_table.GetCellContents(col_lookup[n], previous_row);
+					for (int n = 0; n < colLookup.Length && equal; ++n) {
+						TObject c1 = rootTable.GetCellContents(colLookup[n], rowIndex);
+						TObject c2 = rootTable.GetCellContents(colLookup[n], previous_row);
 						equal = (c1.CompareTo(c2) == 0);
 					}
 
@@ -329,9 +327,9 @@ namespace Deveel.Data {
 				}
 
 				// groupLookup.Insert(row_index, current_group);
-				PlaceAt(groupLookup, row_index, current_group);
+				PlaceAt(groupLookup, rowIndex, current_group);
 
-				previous_row = row_index;
+				previous_row = rowIndex;
 			}
 			// Add the final row.
 			groupLinks.Add(previous_row | 0x040000000);
@@ -363,15 +361,15 @@ namespace Deveel.Data {
 		///<summary>
 		/// The size of the group with the given number.
 		///</summary>
-		///<param name="group_number"></param>
+		///<param name="groupNumber"></param>
 		///<returns></returns>
-		public int GetGroupSize(int group_number) {
+		public int GetGroupSize(int groupNumber) {
 			int group_size = 1;
-			int i = groupLinks[group_number];
+			int i = groupLinks[groupNumber];
 			while ((i & 0x040000000) == 0) {
 				++group_size;
-				++group_number;
-				i = groupLinks[group_number];
+				++groupNumber;
+				i = groupLinks[groupNumber];
 			}
 			return group_size;
 		}
@@ -380,15 +378,15 @@ namespace Deveel.Data {
 		/// Returns an IntegerVector that represents the list of all rows in 
 		/// the group the index is at.
 		///</summary>
-		///<param name="group_number"></param>
+		///<param name="groupNumber"></param>
 		///<returns></returns>
-		public IList<int> GetGroupRows(int group_number) {
+		public IList<int> GetGroupRows(int groupNumber) {
 			List<int> ivec = new List<int>();
-			int i = groupLinks[group_number];
+			int i = groupLinks[groupNumber];
 			while ((i & 0x040000000) == 0) {
 				ivec.Add(i);
-				++group_number;
-				i = groupLinks[group_number];
+				++groupNumber;
+				i = groupLinks[groupNumber];
 			}
 			ivec.Add(i & 0x03FFFFFFF);
 			return ivec;
@@ -398,7 +396,7 @@ namespace Deveel.Data {
 		/// Returns a Table that is this function table merged with the cross
 		/// reference table.
 		///</summary>
-		///<param name="max_column"></param>
+		///<param name="maxColumn"></param>
 		/// <remarks>
 		/// The result table includes only one row from each group.
 		/// <para>
@@ -409,35 +407,35 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		///<returns></returns>
-		public Table MergeWithReference(VariableName max_column) {
+		public Table MergeWithReference(VariableName maxColumn) {
 			Table table = ReferenceTable;
 
-			IList<int> row_list;
+			IList<int> rowList;
 
 			if (wholeTableAsGroup) {
 				// Whole table is group, so take top entry of table.
 
-				row_list = new List<int>(1);
+				rowList = new List<int>(1);
 				IRowEnumerator row_enum = table.GetRowEnumerator();
 				if (row_enum.MoveNext()) {
-					row_list.Add(row_enum.RowIndex);
+					rowList.Add(row_enum.RowIndex);
 				} else {
 					// MAJOR HACK: If the referencing table has no elements then we choose
 					//   an arbitary index from the reference table to merge so we have
 					//   at least one element in the table.
 					//   This is to fix the 'SELECT COUNT(*) FROM empty_table' bug.
-					row_list.Add(Int32.MaxValue - 1);
+					rowList.Add(Int32.MaxValue - 1);
 				}
 			} else if (table.RowCount == 0) {
-				row_list = new List<int>(0);
+				rowList = new List<int>(0);
 			} else if (groupLinks != null) {
 				// If we are grouping, reduce down to only include one row from each
 				// group.
-				if (max_column == null) {
-					row_list = GetTopFromEachGroup();
+				if (maxColumn == null) {
+					rowList = GetTopFromEachGroup();
 				} else {
-					int col_num = ReferenceTable.FindFieldName(max_column);
-					row_list = GetMaxFromEachGroup(col_num);
+					int col_num = ReferenceTable.FindFieldName(maxColumn);
+					rowList = GetMaxFromEachGroup(col_num);
 				}
 			} else {
 				// OPTIMIZATION: This should be optimized.  It should be fairly trivial
@@ -445,11 +443,11 @@ namespace Deveel.Data {
 				//   function table with the reference table.
 
 				// This means there is no grouping, so merge with entire table,
-				int r_count = table.RowCount;
-				row_list = new List<int>(r_count);
+				int rowCount = table.RowCount;
+				rowList = new List<int>(rowCount);
 				IRowEnumerator en = table.GetRowEnumerator();
 				while (en.MoveNext()) {
-					row_list.Add(en.RowIndex);
+					rowList.Add(en.RowIndex);
 				}
 			}
 
@@ -457,21 +455,21 @@ namespace Deveel.Data {
 			// functions in this...
 
 			Table[] tabs = new Table[] { table, this };
-			IList<int>[] row_sets = new IList<int>[] { row_list, row_list };
+			IList<int>[] rowSets = new IList<int>[] { rowList, rowList };
 
-			VirtualTable out_table = new VirtualTable(tabs);
-			out_table.Set(tabs, row_sets);
+			VirtualTable outTable = new VirtualTable(tabs);
+			outTable.Set(tabs, rowSets);
 
 			// Output this as debugging information
 			if (DEBUG_QUERY) {
 				if (Debug.IsInterestedIn(DebugLevel.Information)) {
 					Debug.Write(DebugLevel.Information, this,
-					            out_table + " = " + this + ".MergeWithReference(" +
-					            ReferenceTable + ", " + max_column + " )");
+					            outTable + " = " + this + ".MergeWithReference(" +
+					            ReferenceTable + ", " + maxColumn + " )");
 				}
 			}
 
-			table = out_table;
+			table = outTable;
 			return table;
 		}
 
@@ -487,18 +485,18 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		private IList<int> GetTopFromEachGroup() {
-			List<int> extract_rows = new List<int>();
+			List<int> extractRows = new List<int>();
 			int size = groupLinks.Count;
 			bool take = true;
 			for (int i = 0; i < size; ++i) {
 				int r = groupLinks[i];
 				if (take) {
-					extract_rows.Add(r & 0x03FFFFFFF);
+					extractRows.Add(r & 0x03FFFFFFF);
 				}
 				take = (r & 0x040000000) != 0;
 			}
 
-			return extract_rows;
+			return extractRows;
 		}
 
 
@@ -506,16 +504,16 @@ namespace Deveel.Data {
 		/// Returns a list of rows that represent the maximum row of the given column
 		/// from each distinct group in this table.
 		/// </summary>
-		/// <param name="col_num"></param>
+		/// <param name="colNum"></param>
 		/// <remarks>
 		/// This should be used to construct a virtual table of rows from 
 		/// each distinct group.
 		/// </remarks>
 		/// <returns></returns>
-		private IList<int> GetMaxFromEachGroup(int col_num) {
-			Table ref_tab = ReferenceTable;
+		private IList<int> GetMaxFromEachGroup(int colNum) {
+			Table refTab = ReferenceTable;
 
-			List<int> extract_rows = new List<int>();
+			List<int> extractRows = new List<int>();
 			int size = groupLinks.Count;
 
 			int to_take_in_group = -1;
@@ -526,18 +524,18 @@ namespace Deveel.Data {
 				int r = groupLinks[i];
 
 				int act_r_index = r & 0x03FFFFFFF;
-				TObject cell = ref_tab.GetCellContents(col_num, act_r_index);
+				TObject cell = refTab.GetCellContents(colNum, act_r_index);
 				if (max == null || cell.CompareTo(max) > 0) {
 					max = cell;
 					to_take_in_group = act_r_index;
 				}
 				if ((r & 0x040000000) != 0) {
-					extract_rows.Add(to_take_in_group);
+					extractRows.Add(to_take_in_group);
 					max = null;
 				}
 			}
 
-			return extract_rows;
+			return extractRows;
 		}
 
 		// ------ Methods that are implemented for Table interface ------
@@ -547,20 +545,19 @@ namespace Deveel.Data {
 			// Check if in the cache,
 			DataCellCache cache = Database.DataCellCache;
 			// Is the column worth caching, and is caching enabled?
-			if (exp_info[column] == 0 && cache != null) {
+			if (expInfo[column] == 0 && cache != null) {
 				TObject cell = cache.Get(uniqueId, row, column);
-				if (cell != null) {
+				if (cell != null)
 					// In the cache so return the cell.
 					return cell;
-				} else {
-					// Not in the cache so calculate the value and WriteByte it in the cache.
-					cell = CalcValue(column, row, cache);
-					return cell;
-				}
-			} else {
-				// Caching is not enabled
-				return CalcValue(column, row, null);
+
+				// Not in the cache so calculate the value and WriteByte it in the cache.
+				cell = CalcValue(column, row, cache);
+				return cell;
 			}
+
+			// Caching is not enabled
+			return CalcValue(column, row, null);
 		}
 
 		public override IRowEnumerator GetRowEnumerator() {
@@ -576,13 +573,13 @@ namespace Deveel.Data {
 			ReferenceTable.LockRoot(lockKey);
 		}
 
-		public override void UnlockRoot(int lock_key) {
+		public override void UnlockRoot(int lockKey) {
 			// We unlock the reference table.
 			// NOTE: This cause the reference table to unlock twice when we use the
 			//  'MergeWithReference' method.  While this isn't perfect behaviour, it
 			//  means if 'MergeWithReference' isn't used, we still maintain a safe
 			//  level of locking.
-			ReferenceTable.UnlockRoot(lock_key);
+			ReferenceTable.UnlockRoot(lockKey);
 		}
 
 		// ---------- Convenience statics ----------
@@ -596,7 +593,7 @@ namespace Deveel.Data {
 		/// The column name is 'result'.
 		/// </remarks>
 		///<returns></returns>
-		public static Table ResultTable(DatabaseQueryContext context, Expression expression) {
+		public static Table ResultTable(IQueryContext context, Expression expression) {
 			Expression[] exp = new Expression[] { expression };
 			string[] names = new String[] {"result"};
 			Table function_table = new FunctionTable(exp, names, context);
@@ -618,36 +615,36 @@ namespace Deveel.Data {
 		/// The column title is 'result'.
 		/// </remarks>
 		///<returns></returns>
-		public static Table ResultTable(DatabaseQueryContext context, TObject ob) {
-			Expression result_exp = new Expression();
-			result_exp.AddElement(ob);
-			return ResultTable(context, result_exp);
+		public static Table ResultTable(IQueryContext context, TObject ob) {
+			Expression resultExp = new Expression();
+			resultExp.AddElement(ob);
+			return ResultTable(context, resultExp);
 		}
 
 		///<summary>
 		/// Returns a FunctionTable that has a single Object in it.
 		///</summary>
 		///<param name="context"></param>
-		///<param name="ob"></param>
+		///<param name="obj"></param>
 		/// <remarks>
 		/// The column title is 'result'.
 		/// </remarks>
 		///<returns></returns>
-		public static Table ResultTable(DatabaseQueryContext context, Object ob) {
-			return ResultTable(context, TObject.CreateObject(ob));
+		public static Table ResultTable(IQueryContext context, object obj) {
+			return ResultTable(context, TObject.CreateObject(obj));
 		}
 
 		///<summary>
 		/// Returns a FunctionTable that has an int value made into a BigNumber.
 		///</summary>
 		///<param name="context"></param>
-		///<param name="result_val"></param>
+		///<param name="value"></param>
 		/// <remarks>
 		/// The column title is 'result'.
 		/// </remarks>
 		///<returns></returns>
-		public static Table ResultTable(DatabaseQueryContext context, int result_val) {
-			return ResultTable(context, (object)(BigNumber)result_val);
+		public static Table ResultTable(IQueryContext context, int value) {
+			return ResultTable(context, (object)(BigNumber)value);
 		}
 
 
@@ -670,12 +667,12 @@ namespace Deveel.Data {
 			/**
 			 * The current group number.
 			 */
-			private int group_number = -1;
+			private int groupNumber = -1;
 
 			/**
 			 * A IVariableResolver that can resolve variables within a set of a group.
 			 */
-			private TableGVResolver tgv_resolver;
+			private TableGVResolver tgvResolver;
 
 			public TableGroupResolver(FunctionTable table) {
 				this.table = table;
@@ -684,12 +681,12 @@ namespace Deveel.Data {
 			#region IGroupResolver Members
 
 			public int GroupId {
-				get { return group_number; }
+				get { return groupNumber; }
 			}
 
 			public int Count {
 				get {
-					if (group_number == -2) {
+					if (groupNumber == -2) {
 						return table.wholeTableGroupSize;
 						//        return whole_table_group.size();
 						//        // ISSUE: Unsafe call if reference table is a DataTable.
@@ -697,7 +694,7 @@ namespace Deveel.Data {
 					} else if (group != null) {
 						return group.Count;
 					} else {
-						return table.GetGroupSize(group_number);
+						return table.GetGroupSize(groupNumber);
 					}
 				}
 			}
@@ -734,11 +731,11 @@ namespace Deveel.Data {
 			/// </summary>
 			/// <returns></returns>
 			private TableGVResolver CreateVariableResolver() {
-				if (tgv_resolver != null) {
-					return tgv_resolver;
+				if (tgvResolver != null) {
+					return tgvResolver;
 				}
-				tgv_resolver = new TableGVResolver();
-				return tgv_resolver;
+				tgvResolver = new TableGVResolver();
+				return tgvResolver;
 			}
 
 
@@ -747,7 +744,7 @@ namespace Deveel.Data {
 			/// </summary>
 			private void EnsureGroup() {
 				if (group == null) {
-					if (group_number == -2) {
+					if (groupNumber == -2) {
 						group = table.wholeTableGroup;
 						//          // ISSUE: Unsafe calls if reference table is a DataTable.
 						//          group = new IntegerVector(getReferenceTable().getRowCount());
@@ -756,7 +753,7 @@ namespace Deveel.Data {
 						//            group.Add(renum.nextRowIndex());
 						//          }
 					} else {
-						group = table.GetGroupRows(group_number);
+						group = table.GetGroupRows(groupNumber);
 					}
 				}
 			}
@@ -768,14 +765,14 @@ namespace Deveel.Data {
 			/// <param name="row_index"></param>
 			public void SetUpGroupForRow(int row_index) {
 				if (table.wholeTableAsGroup) {
-					if (group_number != -2) {
-						group_number = -2;
+					if (groupNumber != -2) {
+						groupNumber = -2;
 						group = null;
 					}
 				} else {
 					int g = table.GetRowGroup(row_index);
-					if (g != group_number) {
-						group_number = g;
+					if (g != groupNumber) {
+						groupNumber = g;
 						group = null;
 					}
 				}

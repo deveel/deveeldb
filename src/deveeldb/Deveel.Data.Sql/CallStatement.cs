@@ -79,18 +79,12 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		protected override void Prepare() {
-		}
-
-		/// <inheritdoc/>
-		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
+		protected override Table Evaluate(IQueryContext context) {
 			string procNameString = GetString("proc_name");
 			Expression[] args = (Expression[])GetValue("args");
 
 			// Get the procedure manager
-			ProcedureManager manager = Connection.ProcedureManager;
+			ProcedureManager manager = context.Connection.ProcedureManager;
 
 			TableName procName = null;
 
@@ -98,20 +92,19 @@ namespace Deveel.Data.Sql {
 			// function in the SYSTEM schema.
 			if (procNameString.IndexOf(".") == -1) {
 				// Resolve the procedure name into a TableName object.    
-				TableName tmpProcName = ResolveTableName(procNameString);
+				TableName tmpProcName = ResolveTableName(context, procNameString);
 
 				// If exists then use this
-				if (manager.ProcedureExists(tmpProcName)) {
+				if (manager.ProcedureExists(tmpProcName))
 					procName = tmpProcName;
-				}
 			}
 
 			if (procName == null) {
 				// Resolve the procedure name into a TableName object.    
-				TableName tmpProcName = ResolveTableName(procNameString);
+				TableName tmpProcName = ResolveTableName(context, procNameString);
 
 				// Does the schema exist?
-				SchemaDef schema = ResolveSchemaName(tmpProcName.Schema);
+				SchemaDef schema = ResolveSchemaName(context, tmpProcName.Schema);
 				if (schema == null)
 					throw new DatabaseException("Schema '" + tmpProcName.Schema + "' doesn't exist.");
 
@@ -128,7 +121,7 @@ namespace Deveel.Data.Sql {
 			ProcedureName name = new ProcedureName(procName);
 
 			// Check the user has privs to use this stored procedure
-			if (!Connection.Database.CanUserExecuteStoredProcedure(context, User, name.ToString()))
+			if (!context.Connection.Database.CanUserExecuteStoredProcedure(context, name.ToString()))
 				throw new UserAccessException("User not permitted to call: " + procNameString);
 
 			// Evaluate the arguments

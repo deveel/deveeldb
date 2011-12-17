@@ -20,13 +20,8 @@ namespace Deveel.Data.Sql {
 	/// The statements that represents a <c>COMMIT</c> command.
 	/// </summary>
 	public sealed class CommitStatement : Statement {
-		protected override void Prepare() {
-			// nothing to prepare...
-		}
-
-		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-			Connection.Commit();
+		protected override Table Evaluate(IQueryContext context) {
+			context.Connection.Commit();
 			return FunctionTable.ResultTable(context, 0);
 		}
 	}

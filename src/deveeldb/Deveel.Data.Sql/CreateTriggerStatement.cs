@@ -28,17 +28,13 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		protected override void Prepare() {
-		}
-
-		/// <inheritdoc/>
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			string triggerNameString = GetString("trigger_name");
 			string typeString = GetString("type");
 			string tableNameString = GetString("table_name");
 			IList types = GetList("trigger_types");
 
-			TableName tname = ResolveTableName(tableNameString);
+			TableName tname = ResolveTableName(context, tableNameString);
 
 			if (typeString.Equals("callback_trigger")) {
 				// Callback trigger - notifies the client when an event on a table
@@ -58,28 +54,28 @@ namespace Deveel.Data.Sql {
 					}
 				}
 
-				Connection.CreateCallbackTrigger(triggerNameString, tname, eventType);
+				context.Connection.CreateCallbackTrigger(triggerNameString, tname, eventType);
 
 			} else if (typeString.Equals("procedure_trigger")) {
 
 				// Get the procedure manager
-				ProcedureManager procManager = Connection.ProcedureManager;
+				ProcedureManager procManager = context.Connection.ProcedureManager;
 
 				string beforeAfter = GetString("before_after");
 				string procNameString = GetString("procedure_name");
 				Expression[] procedureArgs = (Expression[])GetValue("procedure_args");
 
 				// Convert the trigger into a table name,
-				TableName triggerName = ResolveTableName(triggerNameString);
+				TableName triggerName = ResolveTableName(context, triggerNameString);
 
 				// Resolve the procedure name into a TableName object.    
-				TableName procTableName = ResolveTableName(procNameString);
+				TableName procTableName = ResolveTableName(context, procNameString);
 
 				// Does the procedure exist in the system schema?
 				ProcedureName procName = new ProcedureName(procTableName);
 
 				// Check the trigger name doesn't clash with any existing database object.
-				if (Connection.TableExists(triggerName))
+				if (context.Connection.TableExists(triggerName))
 					throw new DatabaseException("A database object with name '" + triggerName +
 					                            "' already exists.");
 
@@ -111,18 +107,18 @@ namespace Deveel.Data.Sql {
 				// Resolve the procedure arguments,
 				TObject[] vals = new TObject[procedureArgs.Length];
 				for (int i = 0; i < procedureArgs.Length; ++i) {
-					vals[i] = procedureArgs[i].Evaluate(null, null, QueryContext);
+					vals[i] = procedureArgs[i].Evaluate(null, null, context);
 				}
 
 				// Create the trigger,
-				ConnectionTriggerManager manager = Connection.TriggerManager;
+				ConnectionTriggerManager manager = context.Connection.TriggerManager;
 				manager.CreateTableTrigger(triggerName.Schema, triggerName.Name, listenType, tname, procName.ToString(), vals);
 
 				// The initial grants for a trigger is to give the user who created it
 				// full access.
-				Connection.GrantManager.Grant(
+				context.Connection.GrantManager.Grant(
 					 Privileges.ProcedureAll, GrantObject.Table,
-					 triggerName.ToString(), User.UserName, true,
+					 triggerName.ToString(), context.UserName, true,
 					 Database.InternalSecureUsername);
 
 			} else {
@@ -130,7 +126,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Return success
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

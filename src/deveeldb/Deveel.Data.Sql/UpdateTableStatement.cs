@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 using Deveel.Data.QueryPlanning;
 
@@ -23,12 +24,8 @@ namespace Deveel.Data.Sql {
 	/// The instance class that stores all the information about an 
 	/// update statement for processing.
 	/// </summary>
+	[Serializable]
 	public sealed class UpdateTableStatement : Statement {
-		/// <summary>
-		/// The name the table that we are to update.
-		/// </summary>
-		private string tableNameString;
-
 		/// <summary>
 		/// An array of Assignment objects which represent what we are changing.
 		/// </summary>
@@ -61,23 +58,12 @@ namespace Deveel.Data.Sql {
 		private List<Table> relationallyLinkedTables;
 
 		/// <summary>
-		/// Inidicates if the statement has to get the row
-		/// to delete from the cursor.
-		/// </summary>
-		private bool fromCursor;
-
-		/// <summary>
 		/// The name of the cursor from which to delete the current row.
 		/// </summary>
 		private TableName cursorName;
 
 
 		// -----
-
-		/// <summary>
-		/// The DataTable we are updating.
-		/// </summary>
-		private DataTable updateTable;
 
 		/// <summary>
 		/// The TableName object set during 'prepare'.
@@ -89,39 +75,60 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private IQueryPlanNode plan;
 
+		public UpdateTableStatement() {
+		}
+
+		private UpdateTableStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			tableName = (TableName) info.GetValue("TableName", typeof (TableName));
+			plan = (IQueryPlanNode) info.GetValue("Plan", typeof (IQueryPlanNode));
+			cursorName = (TableName) info.GetValue("CursorName", typeof (TableName));
+			whereCondition = (SearchExpression) info.GetValue("Where", typeof (SearchExpression));
+			limit = info.GetInt32("Limit");
+			columnSets = (List<Assignment>) info.GetValue("ColumnSets", typeof (List<Assignment>));
+		}
+
 		// ---------- Implemented from Statement ----------
 
-		protected override void Prepare() {
+		protected override void GetObjectData(SerializationInfo info, StreamingContext streamingContext) {
+			info.AddValue("TableName", tableName);
+			info.AddValue("Plan", plan);
+			info.AddValue("CursorName", cursorName);
+			info.AddValue("Where", whereCondition);
+			info.AddValue("Limit", limit);
+			info.AddValue("ColumnSets", columnSets);
+			base.GetObjectData(info, streamingContext);
+		}
 
-			tableNameString = GetString("tableNameString");
+		protected override void Prepare(IQueryContext context) {
+			string tableNameString = GetString("tableNameString");
 			columnSets = (IList<Assignment>) GetList("assignments", typeof(Assignment));
 			whereCondition = (SearchExpression)GetValue("where_clause");
 			limit = GetInt32("limit");
-			fromCursor = GetBoolean("fromCursor");
+			bool fromCursor = GetBoolean("fromCursor");
 			string cursorNameString = GetString("cursor_name");
 
 			// ---
 
 			// Resolve the TableName object.
-			tableName = ResolveTableName(tableNameString);
+			tableName = ResolveTableName(context, tableNameString);
 
 			// Does the table exist?
-			if (!Connection.TableExists(tableName))
+			Table updateTable = context.GetTable(tableName);
+			if (updateTable == null)
 				throw new DatabaseException("Table '" + tableName + "' does not exist.");
-
-			// if this is a statement from a cursor, check it exists.
-			if (fromCursor) {
-				cursorName = TableName.Resolve(Connection.CurrentSchema, cursorNameString);
-				if (!Connection.CursorExists(cursorName))
-					throw new DatabaseException("The cursor '" + cursorNameString + "' does not exist.");
-			}
-
-			// Get the table we are updating
-			updateTable = Connection.GetTable(tableName);
 
 			TableExpressionFromSet fromSet;
 
-			if (!fromCursor) {
+			// if this is a statement from a cursor, check it exists.
+			if (fromCursor) {
+				cursorName = ResolveTableName(context, cursorNameString);
+				Cursor cursor = context.GetCursor(cursorName);
+				if (cursor == null)
+					throw new DatabaseException("The cursor '" + cursorNameString + "' was not defined in the current context.");
+
+				fromSet = cursor.From;
+			} else {
 				// Form a TableSelectExpression that represents the select on the table
 				TableSelectExpression selectExpression = new TableSelectExpression();
 				// Create the FROM clause
@@ -130,15 +137,9 @@ namespace Deveel.Data.Sql {
 				selectExpression.Where = whereCondition;
 
 				// Generate the TableExpressionFromSet hierarchy for the expression,
-				fromSet = Planner.GenerateFromSet(selectExpression, Connection);
+				fromSet = Planner.GenerateFromSet(selectExpression, context.Connection);
 				// Form the plan
-				plan = Planner.FormQueryPlan(Connection, selectExpression, fromSet, null);
-			} else {
-				Cursor cursor = Connection.GetCursor(cursorName);
-				if (cursor == null)
-					throw new DatabaseException("The update statement cursor was not declared.");
-
-				fromSet = cursor.From;
+				plan = Planner.FormQueryPlan(context.Connection, selectExpression, fromSet, null);
 			}
 
 			// Resolve the variables in the assignments.
@@ -153,15 +154,15 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Resolve all tables linked to this
-			TableName[] linkedTables = Connection.QueryTablesRelationallyLinkedTo(tableName);
+			TableName[] linkedTables = context.Connection.QueryTablesRelationallyLinkedTo(tableName);
 			relationallyLinkedTables = new List<Table>(linkedTables.Length);
 			for (int i = 0; i < linkedTables.Length; ++i) {
-				relationallyLinkedTables.Add(Connection.GetTable(linkedTables[i]));
+				relationallyLinkedTables.Add(context.GetTable(linkedTables[i]));
 			}
 
 		}
 
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			// Generate a list of Variable objects that represent the list of columns
 			// being changed.
 			VariableName[] colVarList = new VariableName[columnSets.Count];
@@ -171,8 +172,10 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Check that this user has privs to update the table.
-			if (!Connection.Database.CanUserUpdateTableObject(QueryContext, User, tableName, colVarList))
-				throw new UserAccessException("User not permitted to update table: " + tableNameString);
+			if (!context.Connection.Database.CanUserUpdateTableObject(context, tableName, colVarList))
+				throw new UserAccessException("User not permitted to update table: " + tableName);
+
+			DataTable updateTable = (DataTable) context.GetTable(tableName);
 
 			int updateCount;
 
@@ -180,29 +183,29 @@ namespace Deveel.Data.Sql {
 			Assignment[] assignList = new Assignment[columnSets.Count];
 			columnSets.CopyTo(assignList, 0);
 
-			if (!fromCursor) {
+			if (cursorName == null) {
 				// Check the user has select permissions on the tables in the plan.
-				CheckUserSelectPermissions(plan);
+				CheckUserSelectPermissions(context, plan);
 
 				// Evaluate the plan to find the update set.
-				Table updateSet = plan.Evaluate(QueryContext);
+				Table updateSet = plan.Evaluate(context);
 
 				// Update the data table.
-				updateCount = updateTable.Update(QueryContext, updateSet, assignList, limit);
+				updateCount = updateTable.Update(context, updateSet, assignList, limit);
 			} else {
-				Cursor cursor = Connection.GetCursor(cursorName);
+				Cursor cursor = context.GetCursor(cursorName);
 				if (cursor == null)
 					throw new DatabaseException("The cursor '" + cursorName + "' was not declared.");
 
-				updateCount = updateTable.UpdateCurrent(QueryContext, cursor, assignList);
+				updateCount = updateTable.UpdateCurrent(context, cursor, assignList);
 			}
 
 			// Notify TriggerManager that we've just done an update.
 			if (updateCount > 0)
-				Connection.OnTriggerEvent(new TriggerEventArgs(tableName, TriggerEventType.Update, updateCount));
+				context.Connection.OnTriggerEvent(new TriggerEventArgs(tableName, TriggerEventType.Update, updateCount));
 
 			// Return the number of rows we updated.
-			return FunctionTable.ResultTable(QueryContext, updateCount);
+			return FunctionTable.ResultTable(context, updateCount);
 		}
 	}
 }

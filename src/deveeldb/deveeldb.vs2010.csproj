@@ -93,7 +93,6 @@
     </Compile>
     <Compile Include="Deveel.Data.Sql\RaiseStatement.cs" />
     <Compile Include="Deveel.Data.Sql\SQL.cs" />
-    <Compile Include="Deveel.Data.Sql\StatementContext.cs" />
     <Compile Include="Deveel.Data.Util\ListUtil.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Protocol\ILocalBootable.cs" />
@@ -231,7 +230,6 @@
     <Compile Include="Deveel.Data.Sql\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTriggerStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\CreateTypeStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CursorFetch.cs" />
     <Compile Include="Deveel.Data.Sql\DeclareCursorStatement.cs" />
@@ -241,7 +239,6 @@
     <Compile Include="Deveel.Data.Sql\DropSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropTriggerStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\DropTypeStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql\FetchStatement.cs" />
     <Compile Include="Deveel.Data\FromClause.cs" />

@@ -23,8 +23,6 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private IList drop_types = new ArrayList();
 
-		#region Overrides of Statement
-
 		protected override void Prepare() {
 			drop_types = GetList("type_list");
 
@@ -84,7 +82,5 @@ namespace Deveel.Data.Sql {
 
 			return FunctionTable.ResultTable(context, dropped_type_count);
 		}
-
-		#endregion
 	}
 }

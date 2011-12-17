@@ -18,14 +18,17 @@ using System.Collections.Generic;
 
 using Deveel.Data.Functions;
 using Deveel.Data.QueryPlanning;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data {
 	/// <summary>
 	/// An abstract implementation of <see cref="IQueryContext"/>
 	/// </summary>
 	public abstract class QueryContext : IQueryContext {
+		private readonly EmptyDebugLogger emptyLogger = new EmptyDebugLogger();
+
 		/// <summary>
-		/// Any marked tables that are made during the evaluation of a query plan. (String) -> (Table)
+		/// Any marked tables that are made during the evaluation of a query plan.
 		/// </summary>
 		private Dictionary<string, Table> markedTables;
 
@@ -46,6 +49,19 @@ namespace Deveel.Data {
 		/// <inheritdoc/>
 		public virtual IFunctionLookup FunctionLookup {
 			get { return Connection == null ? null : Connection.System.FunctionLookup; }
+		}
+
+		public virtual IDebugLogger Debug {
+			get { return Connection == null ? emptyLogger : Connection.Debug; }
+		}
+
+		public virtual Table GetTable(TableName tableName) {
+			Connection.AddSelectedFromTable(tableName);
+			return Connection.GetTable(tableName);
+		}
+
+		public virtual Privileges GetUserGrants(GrantObject objType, string objName) {
+			return Connection.GrantManager.GetUserGrantOptions(objType, objName, UserName);
 		}
 
 		/// <inheritdoc/>
@@ -120,7 +136,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public virtual Cursor GetCursror(TableName name) {
+		public virtual Cursor GetCursor(TableName name) {
 			return null;
 		}
 

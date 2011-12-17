@@ -18,24 +18,21 @@ using System;
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class DropSequenceStatement : Statement {
-		protected override void Prepare() {
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			string seqNameString = GetString("seq_name");
-			TableName seqName = ResolveTableName(seqNameString);
+			TableName seqName = ResolveTableName(context, seqNameString);
 
 			// Does the user have privs to create this sequence generator?
-			if (!Connection.Database.CanUserDropSequenceObject(QueryContext, User, seqName))
+			if (!context.Connection.Database.CanUserDropSequenceObject(context, seqName))
 				throw new UserAccessException("User not permitted to drop sequence: " + seqName);
 
-			Connection.DropSequenceGenerator(seqName);
+			context.Connection.DropSequenceGenerator(seqName);
 
 			// Drop the grants for this object
-			Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, seqName.ToString());
+			context.Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, seqName.ToString());
 
 			// Return an update result table.
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

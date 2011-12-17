@@ -18,12 +18,9 @@ using System;
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class CreateSequenceStatement : Statement {
-		protected override void Prepare() {
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			string seqNameString = GetString("seq_name");
-			TableName seqName = ResolveTableName(seqNameString);
+			TableName seqName = ResolveTableName(context, seqNameString);
 
 			Expression increment = GetExpression("increment");
 			Expression minValue = GetExpression("min_value");
@@ -33,7 +30,7 @@ namespace Deveel.Data.Sql {
 			bool cycle = GetValue("cycle") != null;
 
 			// Does the schema exist?
-			SchemaDef schema = ResolveSchemaName(seqName.Schema);
+			SchemaDef schema = ResolveSchemaName(context, seqName.Schema);
 
 			if (schema == null)
 				throw new DatabaseException("Schema '" + seqName.Schema + "' doesn't exist.");
@@ -41,33 +38,33 @@ namespace Deveel.Data.Sql {
 			seqName = new TableName(schema.Name, seqName.Name);
 
 			// Does the user have privs to create this sequence generator?
-			if (!Connection.Database.CanUserCreateSequenceObject(QueryContext, User, seqName))
+			if (!context.Connection.Database.CanUserCreateSequenceObject(context, seqName))
 				throw new UserAccessException("User not permitted to create sequence: " + seqName);
 
 			// Does a table already exist with this name?
-			if (Connection.TableExists(seqName))
+			if (context.Connection.TableExists(seqName))
 				throw new DatabaseException("Database object with name '" + seqName + "' already exists.");
 
 			// Resolve the expressions,
 			long vStartValue = 0;
 			if (startValue != null)
-				vStartValue = startValue.Evaluate(null, null, QueryContext).ToBigNumber().ToInt64();
+				vStartValue = startValue.Evaluate(null, null, context).ToBigNumber().ToInt64();
 
 			long vIncrementBy = 1;
 			if (increment != null)
-				vIncrementBy = increment.Evaluate(null, null, QueryContext).ToBigNumber().ToInt64();
+				vIncrementBy = increment.Evaluate(null, null, context).ToBigNumber().ToInt64();
 
 			long vMinValue = 0;
 			if (minValue != null)
-				vMinValue = minValue.Evaluate(null, null, QueryContext).ToBigNumber().ToInt64();
+				vMinValue = minValue.Evaluate(null, null, context).ToBigNumber().ToInt64();
 
 			long vMaxValue = Int64.MaxValue;
 			if (maxValue != null)
-				vMaxValue = maxValue.Evaluate(null, null, QueryContext).ToBigNumber().ToInt64();
+				vMaxValue = maxValue.Evaluate(null, null, context).ToBigNumber().ToInt64();
 
 			long vCache = 16;
 			if (cacheValue != null) {
-				vCache = cacheValue.Evaluate(null, null, QueryContext).ToBigNumber().ToInt64();
+				vCache = cacheValue.Evaluate(null, null, context).ToBigNumber().ToInt64();
 				if (vCache <= 0)
 					throw new DatabaseException("Cache size can not be <= 0");
 			}
@@ -79,17 +76,17 @@ namespace Deveel.Data.Sql {
 			    vStartValue >= vMaxValue)
 				throw new DatabaseException("Start value is outside the min/max sequence bounds.");
 
-			Connection.CreateSequenceGenerator(seqName, vStartValue, vIncrementBy, vMinValue, vMaxValue, vCache, cycle);
+			context.Connection.CreateSequenceGenerator(seqName, vStartValue, vIncrementBy, vMinValue, vMaxValue, vCache, cycle);
 
 			// The initial grants for a sequence is to give the user who created it
 			// full access.
-			Connection.GrantManager.Grant(
+			context. Connection.GrantManager.Grant(
 				Privileges.ProcedureAll, GrantObject.Table,
-				seqName.ToString(), User.UserName, true,
+				seqName.ToString(), context.UserName, true,
 				Database.InternalSecureUsername);
 
 			// Return an update result table.
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

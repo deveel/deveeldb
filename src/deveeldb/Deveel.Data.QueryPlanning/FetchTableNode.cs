@@ -50,10 +50,8 @@ namespace Deveel.Data.QueryPlanning {
 
 		/// <inheritdoc/>
 		public virtual Table Evaluate(IQueryContext context) {
-			// MILD HACK: Cast the context to a DatabaseQueryContext
-			DatabaseQueryContext dbContext = (DatabaseQueryContext)context;
-			DataTable t = dbContext.GetTable(tableName);
-			return aliasName != null ? (Table) new ReferenceTable(t, aliasName) : t;
+			Table t = context.GetTable(tableName);
+			return aliasName != null ? new ReferenceTable(t, aliasName) : t;
 		}
 
 		/// <inheritdoc/>

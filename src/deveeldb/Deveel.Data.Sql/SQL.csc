@@ -1313,7 +1313,7 @@ StatementTree CreateType() :
 }
 
 StatementTree DropType() :
-{ StatementTree cmd = new StatementTree(typeof(DropTypeStatement));
+{ StatementTree cmd = new StatementTree(typeof(NoOpStatement));
   string type_name;
   ArrayList type_list = new ArrayList(); }
 {

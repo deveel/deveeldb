@@ -125,13 +125,5 @@ namespace Deveel.Data {
 				user_manager.OnUserLoggedOut(this);
 			}
 		}
-
-		public bool CanAlterTableObject(DatabaseQueryContext context, TableName table) {
-			return database.CanUserAlterTableObject(context, this, table);
-		}
-
-		public bool CanCreateTableObject(DatabaseQueryContext context, TableName table) {
-			return database.CanUserCreateTableObject(context, this, table);
-		}
 	}
 }

@@ -26,12 +26,7 @@ namespace Deveel.Data.Sql {
 			get { return GetExpression("return"); }
 		}
 
-		protected override void Prepare() {
-		}
-
-		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
+		protected override Table Evaluate(IQueryContext context) {
 			Expression expression = ReturnExpression;
 			//TODO: set it to the parent execution block...
 			return FunctionTable.ResultTable(context, 0);

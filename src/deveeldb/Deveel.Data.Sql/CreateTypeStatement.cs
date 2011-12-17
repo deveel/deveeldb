@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql {
 
 		#region Overrides of Statement
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			type_name = GetString("type_name");
 
 			parent_type_name = GetString("parent_type");
@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql {
 
 			IList members = GetList("members");
 
-			string schema_name = Connection.CurrentSchema;
+			string schema_name = context.Connection.CurrentSchema;
 			resolved_type_name = TableName.Resolve(schema_name, type_name);
 
 			if (!String.IsNullOrEmpty(parent_type_name)) {
@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql {
 					throw new Exception("External types not supported yet.");
 
 				res_parent_type_name = TableName.Resolve(schema_name, parent_type_name);
-				parent = Connection.GetUserType(res_parent_type_name);
+				parent = context.Connection.GetUserType(res_parent_type_name);
 
 				if (parent == null)
 					throw new DatabaseException("Unable to find parent type '" + parent_type_name + "'.");
@@ -89,9 +89,7 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		protected override Table Evaluate() {
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-
+		protected override Table Evaluate(IQueryContext context) {
 			// Does the user have privs to create this type?
 			if (!Connection.Database.CanUserCreateTableObject(context, User, resolved_type_name))
 				throw new UserAccessException("User not permitted to create table: " + type_name);

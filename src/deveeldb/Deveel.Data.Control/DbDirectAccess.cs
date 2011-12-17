@@ -93,11 +93,11 @@ namespace Deveel.Data.Control {
 		#region Method Implementations
 
 		private Table ExecuteStatementImpl(Statement statement) {
-			// Initialize the statement
-			statement.Context.Set(connection, null, null);
+			// Prepare the statement
+			statement.PrepareStatement(context);
 
 			// Evaluate the SQL statement.
-			return statement.EvaluateStatement();
+			return statement.EvaluateStatement(context);
 		}
 
 		#endregion

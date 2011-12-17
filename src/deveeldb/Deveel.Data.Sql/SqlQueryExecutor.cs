@@ -110,12 +110,16 @@ namespace Deveel.Data.Sql {
 				throw new DataException("Could not access type: " + statementType);
 			}
 
+			statement.Query = query;
+			statement.StatementTree = statementTree;
 
-			// Initialize the statement
-			statement.Context.Set(connection, statementTree, query);
+			DatabaseQueryContext context = new DatabaseQueryContext(connection);
+
+			// Prepare the statement
+			statement.PrepareStatement(context);
 
 			// Evaluate the SQL statement.
-			return statement.EvaluateStatement();
+			return statement.EvaluateStatement(context);
 		}
 
 		private class QueryPreparer : IExpressionPreparer {

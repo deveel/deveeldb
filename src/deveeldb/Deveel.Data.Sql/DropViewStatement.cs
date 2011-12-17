@@ -18,25 +18,22 @@ using System;
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class DropViewStatement : Statement {
-		protected override void Prepare() {
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			string viewNameString = GetString("view_name");
 
-			TableName viewName = ResolveTableName(viewNameString);
+			TableName viewName = ResolveTableName(context, viewNameString);
 
 			// Does the user have privs to drop this tables?
-			if (!Connection.Database.CanUserDropTableObject(QueryContext, User, viewName))
+			if (!context.Connection.Database.CanUserDropTableObject(context, viewName))
 				throw new UserAccessException("User not permitted to drop view: " + viewNameString);
 
 			// Drop the view object
-			Connection.DropView(viewName);
+			context.Connection.DropView(viewName);
 
 			// Drop the grants for this object
-			Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, viewName.ToString());
+			context.Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, viewName.ToString());
 
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

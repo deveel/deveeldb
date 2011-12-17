@@ -53,6 +53,10 @@ namespace Deveel.Data {
 			get { return system; }
 		}
 
+		public override Diagnostics.IDebugLogger Debug {
+			get { return system.Debug; }
+		}
+
 		/// <inheritdoc/>
 		public override IFunctionLookup FunctionLookup {
 			get { return System.FunctionLookup; }
@@ -91,6 +95,14 @@ namespace Deveel.Data {
 			get { return "@SYSTEM"; }
 		}
 
+		public override Privileges GetUserGrants(GrantObject objType, string objName) {
+			return Privileges.TableAll;
+		}
+
+		public override Table GetTable(TableName tableName) {
+			throw new NotSupportedException();
+		}
+
 		public override Variable GetVariable(string name) {
 			return transaction.Variables.GetVariable(name);
 		}
@@ -103,7 +115,7 @@ namespace Deveel.Data {
 			throw new NotSupportedException();
 		}
 
-		public override Cursor GetCursror(TableName name) {
+		public override Cursor GetCursor(TableName name) {
 			throw new NotSupportedException();
 		}
 

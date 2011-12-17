@@ -17,10 +17,7 @@ using System;
 
 namespace Deveel.Data.Sql {
 	public sealed class IfStatement : Statement {
-		protected override void Prepare() {
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			throw new NotImplementedException();
 		}
 	}

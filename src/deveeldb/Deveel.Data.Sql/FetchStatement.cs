@@ -18,16 +18,13 @@ using System;
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class FetchStatement : Statement {
-		protected override void Prepare() {
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			string cursorNameString = GetString("name");
-			TableName cursorName = ResolveTableName(cursorNameString);
+			TableName cursorName = ResolveTableName(context, cursorNameString);
 
 			CursorFetch fetchInfo = (CursorFetch)GetValue("fetch");
 
-			Cursor cursor = Connection.GetCursor(cursorName);
+			Cursor cursor = context.GetCursor(cursorName);
 			if (cursor == null)
 				throw new InvalidOperationException("The cursor '" + cursorNameString + "' was not defined within this transaction.");
 
@@ -37,11 +34,11 @@ namespace Deveel.Data.Sql {
 				Expression offsetExpr = (Expression) fetchInfo.Offset.Clone();
 
 				// and finally the value of the offset
-				offset = offsetExpr.Evaluate(null, QueryContext);
+				offset = offsetExpr.Evaluate(null, context);
 			}
 
 			if (fetchInfo.Into.HasElements)
-				return cursor.FetchInto(fetchInfo.Orientation, offset, QueryContext, fetchInfo.Into);
+				return cursor.FetchInto(fetchInfo.Orientation, offset, context, fetchInfo.Into);
 
 			// so we finally fetch from the cursor
 			return cursor.Fetch(fetchInfo.Orientation, offset);

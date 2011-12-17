@@ -54,16 +54,6 @@ namespace Deveel.Data {
 		}
 
 		///<summary>
-		/// Returns a DataTable from the database with the given table name.
-		///</summary>
-		///<param name="name"></param>
-		///<returns></returns>
-		public DataTable GetTable(TableName name) {
-			database.AddSelectedFromTable(name);
-			return database.GetTable(name);
-		}
-
-		///<summary>
 		/// Returns a DataTableInfo for the given table name.
 		///</summary>
 		///<param name="name"></param>
@@ -102,19 +92,19 @@ namespace Deveel.Data {
 			return database.DeclareCursor(name, planNode, attributes);
 		}
 
-		public override Cursor GetCursror(TableName name) {
+		public override Cursor GetCursor(TableName name) {
 			return database.GetCursor(name);
 		}
 
 		public override void OpenCursor(TableName name) {
-			Cursor cursor = GetCursror(name);
+			Cursor cursor = GetCursor(name);
 			if (cursor == null)
 				throw new DatabaseException("The cursor '" + name + "' was not defined within the current context.");
 			cursor.Open(this);
 		}
 
 		public override void CloseCursor(TableName name) {
-			Cursor cursor = GetCursror(name);
+			Cursor cursor = GetCursor(name);
 			if (cursor == null)
 				throw new DatabaseException("The cursor '" + name + "' was not defined within the current context.");
 			cursor.Close();

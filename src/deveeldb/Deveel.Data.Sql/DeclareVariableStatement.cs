@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql {
 		private TType type;
 		private Expression defaultValue;
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			name = GetString("name");
 			type = (TType) GetValue("type");
 			constant = GetBoolean("constant");
@@ -37,27 +37,27 @@ namespace Deveel.Data.Sql {
 				throw new InvalidOperationException("A constant variable must specify a default value.");
 		}
 
-		protected override Table Evaluate() {
-			if (QueryContext.GetVariable(name) != null)
+		protected override Table Evaluate(IQueryContext context) {
+			if (context.GetVariable(name) != null)
 				throw new InvalidOperationException("The variable '" + name + "' was already defined.");
 
 			try {
-				QueryContext.DeclareVariable(name, type, constant, notNull);
+				context.DeclareVariable(name, type, constant, notNull);
 			} catch (Exception e) {
-				Debug.Write(DebugLevel.Error, this, "Error while declaring variable: " + e.Message);
+				context.Debug.Write(DebugLevel.Error, this, "Error while declaring variable: " + e.Message);
 				throw;
 			}
 
 			try {
 				if (defaultValue != null)
-					QueryContext.SetVariable(name, defaultValue);
+					context.SetVariable(name, defaultValue);
 			} catch(Exception e) {
-				QueryContext.RemoveVariable(name);
-				Debug.WriteException(e);
+				context.RemoveVariable(name);
+				context.Debug.WriteException(e);
 				throw;
 			}
 
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

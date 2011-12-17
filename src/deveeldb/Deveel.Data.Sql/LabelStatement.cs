@@ -17,16 +17,9 @@ using System;
 
 namespace Deveel.Data.Sql {
 	public sealed class LabelStatement : Statement {
-		#region Overrides of Statement
 
-		protected override void Prepare() {
+		protected override Table Evaluate(IQueryContext context) {
+			throw new NotImplementedException();
 		}
-
-		protected override Table Evaluate() {
-			//TODO: label an execution block...
-			return FunctionTable.ResultTable(new DatabaseQueryContext(Connection), 0);
-		}
-
-		#endregion
 	}
 }

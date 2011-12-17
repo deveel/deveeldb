@@ -35,15 +35,11 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		protected override void Prepare() {
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			string cursorNameString = GetString("name");
-			TableName cursorName = ResolveTableName(cursorNameString);
+			TableName cursorName = ResolveTableName(context, cursorNameString);
 
-			DatabaseQueryContext context = new DatabaseQueryContext(Connection);
-			Cursor cursor = Connection.GetCursor(cursorName);
+			Cursor cursor = context.GetCursor(cursorName);
 			if (cursor == null)
 				throw new InvalidOperationException("The cursor '" + cursorNameString + "' was not defined within this transaction.");
 

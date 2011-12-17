@@ -44,10 +44,10 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			name = GetString("name");
 
-			resolvedName = ResolveTableName(name);
+			resolvedName = ResolveTableName(context, name);
 
 			string nameStrip = resolvedName.Name;
 
@@ -56,13 +56,13 @@ namespace Deveel.Data.Sql {
 
 		}
 
-		protected override Table Evaluate() {
-			Cursor cursor = Connection.GetCursor(resolvedName);
+		protected override Table Evaluate(IQueryContext context) {
+			Cursor cursor = context.GetCursor(resolvedName);
 			if (cursor == null)
 				throw new InvalidOperationException("The cursor '" + name + "' was not defined within this transaction.");
 
 			cursor.Close();
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

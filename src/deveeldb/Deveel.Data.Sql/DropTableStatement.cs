@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql {
 		// ---------- Implemented from Statement ----------
 
 		/// <inheritdoc/>
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			onlyIfExists = GetBoolean("only_if_exists");
 			dropTables = GetList("table_list");
 
@@ -53,30 +53,30 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <inheritdoc/>
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			int listSize = dropTables.Count;
 			List<TableName> resolvedTables = new List<TableName>(listSize);
 
 			// Check the user has privs to delete these tables...
 			for (int i = 0; i < listSize; ++i) {
 				string tableNameString = dropTables[i].ToString();
-				TableName tname = ResolveTableName(tableNameString);
+				TableName tname = ResolveTableName(context, tableNameString);
 
 				// Does the table exist?
-				if (!onlyIfExists && !Connection.TableExists(tname))
+				if (!onlyIfExists && !context.Connection.TableExists(tname))
 					throw new DatabaseException("Table '" + tname + "' does not exist.");
 
 				resolvedTables.Add(tname);
 
 				// Does the user have privs to drop this tables?
-				if (!Connection.Database.CanUserDropTableObject(QueryContext, User, tname))
+				if (!context.Connection.Database.CanUserDropTableObject(context, tname))
 					throw new UserAccessException("User not permitted to drop table: " + tname);
 			}
 
 			// Check there are no referential links to any tables being dropped
 			foreach (TableName tname in resolvedTables) {
 				// Any tables that have a referential link to this table.
-				DataConstraintInfo[] refs = Connection.QueryTableImportedForeignKeyReferences(tname);
+				DataConstraintInfo[] refs = context.Connection.QueryTableImportedForeignKeyReferences(tname);
 				foreach (DataConstraintInfo reference in refs) {
 					// If the key table isn't being dropped then error
 					if (!resolvedTables.Contains(reference.TableName)) {
@@ -96,7 +96,7 @@ namespace Deveel.Data.Sql {
 				// For each table to drop.
 				foreach (TableName tname in resolvedTables) {
 					// If table doesn't exist, throw an error
-					if (!Connection.TableExists(tname)) {
+					if (!context.Connection.TableExists(tname)) {
 						throw new DatabaseException("Can not drop table '" + tname +
 													"'.  It does not exist.");
 					}
@@ -104,24 +104,24 @@ namespace Deveel.Data.Sql {
 			}
 
 			// For each table to drop.
-			int dropped_table_count = 0;
-			GrantManager grantManager = Connection.GrantManager;
+			int droppedTableCount = 0;
+			GrantManager grantManager = context.Connection.GrantManager;
 			foreach (TableName tname in resolvedTables) {
 				// Does the table already exist?
-				if (Connection.TableExists(tname)) {
+				if (context.Connection.TableExists(tname)) {
 					// Drop table in the transaction
-					Connection.DropTable(tname);
+					context.Connection.DropTable(tname);
 
 					// Drop the grants for this object
 					grantManager.RevokeAllGrantsOnObject(GrantObject.Table, tname.ToString());
 
 					// Drop all constraints from the schema
-					Connection.DropAllConstraintsForTable(tname);
-					++dropped_table_count;
+					context.Connection.DropAllConstraintsForTable(tname);
+					++droppedTableCount;
 				}
 			}
 
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

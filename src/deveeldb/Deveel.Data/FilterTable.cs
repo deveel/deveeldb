@@ -141,8 +141,8 @@ namespace Deveel.Data {
 			parent.LockRoot(lockKey);
 		}
 
-		public override void UnlockRoot(int lock_key) {
-			parent.UnlockRoot(lock_key);
+		public override void UnlockRoot(int lockKey) {
+			parent.UnlockRoot(lockKey);
 		}
 
 

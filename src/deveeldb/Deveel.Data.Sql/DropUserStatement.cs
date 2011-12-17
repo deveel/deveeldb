@@ -18,14 +18,11 @@ using System;
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class DropUserStatement : Statement {
-		protected override void Prepare() {
-		}
-
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			string username = GetString("username");
 
 			// True if current user is allowed to create and drop users.
-			bool secureAccessPrivs = QueryContext.Database.CanUserCreateAndDropUsers(QueryContext, User);
+			bool secureAccessPrivs = context.Connection.Database.CanUserCreateAndDropUsers(context);
 
 			// Does the user have permissions to do this?  They must be part of the
 			// 'secure access' priv group
@@ -35,14 +32,14 @@ namespace Deveel.Data.Sql {
 			if (String.Compare(username, "public", true) == 0)
 				throw new DatabaseException("Username 'public' is reserved.");
 
-			Database db = QueryContext.Database;
-			if (!db.UserExists(QueryContext, username))
+			Database db = context.Connection.Database;
+			if (!db.UserExists(context, username))
 				throw new DatabaseException("User '" + username + "' doesn't exist.");
 
 			// Delete the user
-			db.DeleteUser(QueryContext, username);
+			db.DeleteUser(context, username);
 
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

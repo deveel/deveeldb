@@ -51,28 +51,29 @@ namespace Deveel.Data.Sql {
 
 		// ---------- Implemented from Statement ----------
 
-		protected override void Prepare() {
+		protected override void Prepare(IQueryContext context) {
 			type = GetString("type");
 			var_name = GetString("var_name");
 			exp = GetExpression("exp");
 			value = GetString("value");
 		}
 
-		protected override Table Evaluate() {
+		protected override Table Evaluate(IQueryContext context) {
 			String com = type.ToLower();
 
 			if (com.Equals("varset")) {
-				Connection.SetVariable(var_name, exp, QueryContext);
+				//TODO: call SetVariable on context instead?
+				context.Connection.SetVariable(var_name, exp, context);
 			} else if (com.Equals("isolationset")) {
-				Connection.TransactionIsolation = (IsolationLevel) Enum.Parse(typeof(IsolationLevel), value, true);
+				context.Connection.TransactionIsolation = (IsolationLevel) Enum.Parse(typeof(IsolationLevel), value, true);
 			} else if (com.Equals("autocommit")) {
 				value = value.ToLower();
 				if (value.Equals("on") ||
 					value.Equals("1")) {
-					Connection.AutoCommit = true;
+					context.Connection.AutoCommit = true;
 				} else if (value.Equals("off") ||
 						 value.Equals("0")) {
-					Connection.AutoCommit = false;
+					context.Connection.AutoCommit = false;
 				} else {
 					throw new DatabaseException("Unrecognised value for SET AUTO COMMIT");
 				}
@@ -82,13 +83,13 @@ namespace Deveel.Data.Sql {
 				// mid-process.
 
 				// Change the connection to the schema
-				Connection.SetDefaultSchema(value);
+				context.Connection.SetDefaultSchema(value);
 
 			} else {
 				throw new DatabaseException("Unrecognised set command.");
 			}
 
-			return FunctionTable.ResultTable(QueryContext, 0);
+			return FunctionTable.ResultTable(context, 0);
 
 		}
 	}

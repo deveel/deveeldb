@@ -935,18 +935,13 @@ namespace Deveel.Data {
 			}
 
 			if (ob is TableSelectExpression) {
-				DatabaseQueryContext queryContext = context as DatabaseQueryContext;
-				if (queryContext == null)
-					throw new ApplicationException("Cannot evaluate a select expression outside a context or not in a " +
-					                               "database context.");
-
 				TableSelectExpression selectExpression = (TableSelectExpression) ob;
 
 				// Generate the TableExpressionFromSet hierarchy for the expression,
-				TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, queryContext.Connection);
+				TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, context.Connection);
 
 				// Form the plan
-				IQueryPlanNode plan = Planner.FormQueryPlan(queryContext.Connection, selectExpression, from_set, new List<ByColumn>());
+				IQueryPlanNode plan = Planner.FormQueryPlan(context.Connection, selectExpression, from_set, new List<ByColumn>());
 
 				return TObject.CreateQueryPlan(plan);
 			}
