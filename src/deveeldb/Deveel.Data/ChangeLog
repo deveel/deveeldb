@@ -4,6 +4,7 @@
 		in the database context.
 		- Method GetUserGrants to obtain user privileges
 		on a database object
+		- Added support for exception state of context
 
 2011-12-15  Antonello Provenzano  <antonello@deveel.com>
 	* IQueryContext.cs: Added the method RemoveVariable to

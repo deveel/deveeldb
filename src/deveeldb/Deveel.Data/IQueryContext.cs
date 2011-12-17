@@ -52,6 +52,13 @@ namespace Deveel.Data {
 		IDebugLogger Debug { get; }
 
 		/// <summary>
+		/// Gets a value that indicates if the current context is in
+		/// an exception state or not.
+		/// </summary>
+		/// <seealso cref="SetExceptionState"/>
+		bool IsExceptionState { get; }
+
+		/// <summary>
 		/// Gets a table with the given name from within the underlying
 		/// database context.
 		/// </summary>
@@ -70,6 +77,28 @@ namespace Deveel.Data {
 		/// <param name="objName">The name of the object.</param>
 		/// <returns></returns>
 		Privileges GetUserGrants(GrantObject objType, string objName);
+
+		/// <summary>
+		/// Marks the execution context as in an exception state.
+		/// </summary>
+		/// <param name="exception">The exception that causes the change of
+		/// state of the context.</param>
+		/// <seealso cref="IsExceptionState"/>
+		/// <seealso cref="GetException"/>
+		void SetExceptionState(Exception exception);
+
+		/// <summary>
+		/// If this context is in an exception state, this method
+		/// gets the exception that caused the change of state.
+		/// </summary>
+		/// <returns>
+		/// Returns an <see cref="Exception"/> that is the origin
+		/// of the context change state, or <b>null</b> if the context
+		/// is not in an exception state.
+		/// </returns>
+		/// <seealso cref="IsExceptionState"/>
+		/// <seealso cref="SetExceptionState"/>
+		Exception GetException();
 
 		// ---------- Sequences ----------
 

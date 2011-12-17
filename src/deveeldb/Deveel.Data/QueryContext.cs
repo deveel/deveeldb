@@ -32,6 +32,12 @@ namespace Deveel.Data {
 		/// </summary>
 		private Dictionary<string, Table> markedTables;
 
+		/// <summary>
+		/// The exception that caused the context to be marked as in an
+		/// exception state.
+		/// </summary>
+		private Exception exceptionState;
+
 		/// <inheritdoc/>
 		public virtual TransactionSystem System {
 			get { return (Connection == null ? null : Connection.System); }
@@ -55,6 +61,10 @@ namespace Deveel.Data {
 			get { return Connection == null ? emptyLogger : Connection.Debug; }
 		}
 
+		public bool IsExceptionState {
+			get { return exceptionState != null; }
+		}
+
 		public virtual Table GetTable(TableName tableName) {
 			Connection.AddSelectedFromTable(tableName);
 			return Connection.GetTable(tableName);
@@ -62,6 +72,17 @@ namespace Deveel.Data {
 
 		public virtual Privileges GetUserGrants(GrantObject objType, string objName) {
 			return Connection.GrantManager.GetUserGrantOptions(objType, objName, UserName);
+		}
+
+		public void SetExceptionState(Exception exception) {
+			if (exceptionState != null)
+				throw new InvalidOperationException("The context is already in exception state.");
+
+			exceptionState = exception;
+		}
+
+		public Exception GetException() {
+			return exceptionState;
 		}
 
 		/// <inheritdoc/>
