@@ -399,7 +399,7 @@ namespace Deveel.Data.Protocol {
 		}
 
 		/// <inheritdoc/>
-		public virtual IQueryResponse ExecuteQuery(SqlQuery query) {
+		public virtual IQueryResponse[] ExecuteQuery(SqlQuery query) {
 			CheckNotDisposed();
 
 			// Record the Query start time
@@ -440,31 +440,38 @@ namespace Deveel.Data.Protocol {
 			if (blobsWereFlushed)
 				dbConnection.FlushBlobStore();
 
-			try {
-				// Evaluate the sql Query.
-				Table result = SqlQueryExecutor.Execute(dbConnection, query);
+			// Evaluate the sql Query.
+			Table[] results = SqlQueryExecutor.Execute(dbConnection, query);
+			IQueryResponse[] responses = new IQueryResponse[results.Length];
+			int j = 0;
 
-				// Put the result in the result cache...  This will Lock this object
-				// until it is removed from the result set cache.  Returns an id that
-				// uniquely identifies this result set in future communication.
-				// NOTE: This locks the roots of the table so that its contents
-				//   may not be altered.
-				resultSetInfo = new ResultSetInfo(query, result);
-				resultId = AddResultSet(resultSetInfo);
-			} catch (Exception e) {
-				// If resultId set, then dispose the result set.
-				if (resultId != -1)
-					DisposeResultSet(resultId);
+			foreach (Table result in results) {
+				try {
+					// Put the result in the result cache...  This will Lock this object
+					// until it is removed from the result set cache.  Returns an id that
+					// uniquely identifies this result set in future communication.
+					// NOTE: This locks the roots of the table so that its contents
+					//   may not be altered.
+					resultSetInfo = new ResultSetInfo(query, result);
+					resultId = AddResultSet(resultSetInfo);
+				} catch (Exception e) {
+					// If resultId set, then dispose the result set.
+					if (resultId != -1)
+						DisposeResultSet(resultId);
 
-				// Handle the throwable during Query execution
-				throw HandleExecuteThrowable(e, query);
+					// Handle the throwable during Query execution
+					throw HandleExecuteThrowable(e, query);
+				}
+
+				// The time it took the Query to execute.
+				TimeSpan taken = DateTime.Now - startTime;
+
+				// Return the Query response
+				responses[j]  = new QueryResponse(resultId, resultSetInfo, (int) taken.TotalMilliseconds, "");
+				j++;
 			}
 
-			// The time it took the Query to execute.
-			TimeSpan taken = DateTime.Now - startTime;
-
-			// Return the Query response
-			return new QueryResponse(resultId, resultSetInfo, (int) taken.TotalMilliseconds, "");
+			return responses;
 		}
 
 		/// <inheritdoc/>

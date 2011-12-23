@@ -243,7 +243,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <inheritdoc/>
-		public IQueryResponse ExecuteQuery(SqlQuery sql) {
+		public IQueryResponse[] ExecuteQuery(SqlQuery sql) {
 			try {
 				// Execute the command
 				int dispatchId = connectionThread.ExecuteQuery(sql);
@@ -268,7 +268,7 @@ namespace Deveel.Data.Client {
 						col_list[i] = ColumnDescription.ReadFrom(input);
 					}
 
-					return new QueryResponseImpl(resultId, queryTime, colCount, rowCount, col_list);
+					return new IQueryResponse[] {new QueryResponseImpl(resultId, queryTime, colCount, rowCount, col_list)};
 				} 
 				if (status == ProtocolConstants.Exception) {
 					int dbCode = input.ReadInt32();

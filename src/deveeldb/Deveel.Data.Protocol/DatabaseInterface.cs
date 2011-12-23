@@ -162,7 +162,7 @@ namespace Deveel.Data.Protocol {
 			return Authenticate(database, defaultSchema, username, password, databaseCallback);
 		}
 
-		public override IQueryResponse ExecuteQuery(SqlQuery query) {
+		public override IQueryResponse[] ExecuteQuery(SqlQuery query) {
 
 			// Check the interface isn't disposed (connection was closed).
 			CheckNotDisposed();
@@ -197,7 +197,7 @@ namespace Deveel.Data.Protocol {
 			// Get the locking mechanism.
 			LockingMechanism locker = database_connection.LockingMechanism;
 			LockingMode lock_mode = LockingMode.None;
-			IQueryResponse response = null;
+			IQueryResponse[] response = null;
 			try {
 				try {
 
@@ -259,8 +259,10 @@ namespace Deveel.Data.Protocol {
 								// Otherwise commit.
 								database_connection.Commit();
 							} catch (Exception e) {
-								// Dispose this response if the commit failed.
-								DisposeResult(response.ResultId);
+								foreach (IQueryResponse queryResponse in response) {
+									// Dispose this response if the commit failed.
+									DisposeResult(queryResponse.ResultId);
+								}
 								// And throw the SQL Exception
 								throw HandleExecuteThrowable(e, query);
 							}

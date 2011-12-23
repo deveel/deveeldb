@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql {
 					   "         \"other\" AS \"notes\" " +
 					   "    FROM INFORMATION_SCHEMA.ThisUserSchemaInfo " +
 					   "ORDER BY \"schema_name\"");
-					return SqlQueryExecutor.Execute(context.Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query)[0];
 
 				}
 				if (show_type.Equals("tables")) {
@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql {
 						"ORDER BY \"Tables.TABLE_NAME\"");
 					query.AddVariable(current_schema);
 
-					return SqlQueryExecutor.Execute(context.Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query)[0];
 
 				}
 				if (show_type.Equals("status")) {
@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql {
 						"         \"value\" " +
 						"    FROM SYSTEM.database_stats");
 
-					return SqlQueryExecutor.Execute(context.Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query)[0];
 
 				}
 				if (show_type.Equals("describe_table")) {
@@ -133,14 +133,14 @@ namespace Deveel.Data.Sql {
 					query.AddVariable(tname.Schema);
 					query.AddVariable(tname.Name);
 
-					return SqlQueryExecutor.Execute(context.Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query)[0];
 
 				}
 				if (show_type.Equals("connections")) {
 
 					SqlQuery query = new SqlQuery("SELECT * FROM SYSTEM.current_connections");
 
-					return SqlQueryExecutor.Execute(context.Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query)[0];
 
 				}
 				if (show_type.Equals("product")) {
@@ -153,14 +153,14 @@ namespace Deveel.Data.Sql {
 						"     WHERE \"var\" = 'version' ) "
 						);
 
-					return SqlQueryExecutor.Execute(context.Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query)[0];
 
 				}
 				if (show_type.Equals("connection_info")) {
 
 					SqlQuery query = new SqlQuery("SELECT * FROM SYSTEM.connection_info");
 
-					return SqlQueryExecutor.Execute(context.Connection, query);
+					return SqlQueryExecutor.Execute(context.Connection, query)[0];
 
 				}
 				throw new StatementException("Unknown SHOW identifier: " + show_type);

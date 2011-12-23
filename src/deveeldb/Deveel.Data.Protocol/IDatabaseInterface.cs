@@ -89,7 +89,7 @@ namespace Deveel.Data.Protocol {
 		/// queries to the engine to retrieve the actual result of the command.
 		/// </remarks>
 		///<returns></returns>
-		IQueryResponse ExecuteQuery(SqlQuery sql);
+		IQueryResponse[] ExecuteQuery(SqlQuery sql);
 
 		///<summary>
         /// Returns a part of a result set.

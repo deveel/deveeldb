@@ -522,7 +522,7 @@ namespace Deveel.Data.Client {
 		/// Sends the SQL string to the database to be executed.
 		/// </summary>
 		/// <param name="sql"></param>
-		/// <param name="result_set">The consumer for the results from the database.</param>
+		/// <param name="resultSet">The consumer for the results from the database.</param>
 		/// <remarks>
 		/// We are guarenteed that if the Query succeeds that we know the size of the 
 		/// result set and at least first first row of the set.
@@ -530,10 +530,10 @@ namespace Deveel.Data.Client {
 		/// This method will block until we have received the result header information.
 		/// </para>
 		/// </remarks>
-		internal void ExecuteQuery(SqlQuery sql, ResultSet result_set) {
+		internal void ExecuteQuery(SqlQuery sql, ResultSet resultSet) {
 			UploadStreamableObjects(sql);
 			// Execute the Query,
-			IQueryResponse resp = db_interface.ExecuteQuery(sql);
+			IQueryResponse resp = db_interface.ExecuteQuery(sql)[0];
 
 			// The format of the result
 			ColumnDescription[] col_list = new ColumnDescription[resp.ColumnCount];
@@ -542,21 +542,21 @@ namespace Deveel.Data.Client {
 			}
 			// Set up the result set to the result format and update the time taken to
 			// execute the Query on the server.
-			result_set.ConnSetup(resp.ResultId, col_list, resp.RowCount);
-			result_set.SetQueryTime(resp.QueryTimeMillis);
+			resultSet.ConnSetup(resp.ResultId, col_list, resp.RowCount);
+			resultSet.SetQueryTime(resp.QueryTimeMillis);
 		}
 
 		/// <summary>
 		/// Called by ResultSet to Query a part of a result from the server.
 		/// </summary>
-		/// <param name="result_id"></param>
-		/// <param name="start_row"></param>
-		/// <param name="count_rows"></param>
+		/// <param name="resultId"></param>
+		/// <param name="startRow"></param>
+		/// <param name="countRows"></param>
 		/// <returns>
 		/// Returns a <see cref="IList"/> that represents the result from the server.
 		/// </returns>
-		internal ResultPart RequestResultPart(int result_id, int start_row, int count_rows) {
-			return db_interface.GetResultPart(result_id, start_row, count_rows);
+		internal ResultPart RequestResultPart(int resultId, int startRow, int countRows) {
+			return db_interface.GetResultPart(resultId, startRow, countRows);
 		}
 
 		/// <summary>

@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Caching;
 using Deveel.Diagnostics;
@@ -54,18 +55,22 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// Puts a new command string/StatementTree into the cache.
+		/// Puts a new command string/List{StatementTree} into the cache.
 		/// </summary>
 		/// <param name="queryString"></param>
-		/// <param name="statementTree"></param>
-		public void Set(string queryString, StatementTree statementTree) {
+		/// <param name="statementTreeList"></param>
+		public void Set(string queryString, IList<StatementTree> statementTreeList) {
 			lock (this) {
 				queryString = queryString.Trim();
 				// Is this command string already in the cache?
 				if (cache.Get(queryString) == null) {
 					try {
-						object cloned_tree = statementTree.Clone();
-						cache.Set(queryString, cloned_tree);
+						List<StatementTree> clonedList = new List<StatementTree>(statementTreeList.Count);
+						foreach (StatementTree statementTree in statementTreeList) {
+							StatementTree cloned_tree = (StatementTree) statementTree.Clone();
+							clonedList.Add(cloned_tree);
+						}
+						cache.Set(queryString, clonedList);
 					} catch (Exception e) {
 						Debug.WriteException(e);
 						throw new ApplicationException("Unable to clone statement tree: " + e.Message);
@@ -80,15 +85,19 @@ namespace Deveel.Data.Sql {
 		///<param name="queryString"></param>
 		///<returns></returns>
 		///<exception cref="ApplicationException"></exception>
-		public StatementTree Get(string queryString) {
+		public IList<StatementTree> Get(string queryString) {
 			lock (this) {
 				queryString = queryString.Trim();
 				object ob = cache.Get(queryString);
 				if (ob != null) {
 					try {
 						// We found a cached version of this command so deserialize and return it.
-						StatementTree clonedTree = (StatementTree)ob;
-						return (StatementTree)clonedTree.Clone();
+						List<StatementTree> clonedList = new List<StatementTree>();
+						IList<StatementTree> statementTreeList = (IList<StatementTree>)ob;
+						foreach (StatementTree statementTree in statementTreeList) {
+							clonedList.Add((StatementTree)statementTree.Clone());
+						}
+						return clonedList;
 					} catch (Exception e) {
 						Debug.WriteException(e);
 						throw new ApplicationException("Unable to clone statement tree: " + e.Message);

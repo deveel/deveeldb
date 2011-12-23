@@ -350,7 +350,7 @@ namespace Deveel.Data.Protocol {
 
 			try {
 				// Do the query
-				IQueryResponse response = dbInterface.ExecuteQuery(query);
+				IQueryResponse response = dbInterface.ExecuteQuery(query)[0];
 
 				// Prepare the stream to output the response to,
 				MemoryStream output = new MemoryStream();

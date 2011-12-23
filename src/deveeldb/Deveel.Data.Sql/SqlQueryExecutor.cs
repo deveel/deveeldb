@@ -60,29 +60,25 @@ namespace Deveel.Data.Sql {
 		/// Returns a <see cref="Table"/> object that contains the result of the execution.
 		/// </returns>
 		///<exception cref="DataException"></exception>
-		public static Table Execute(DatabaseConnection connection, SqlQuery query) {
+		public static Table[] Execute(DatabaseConnection connection, SqlQuery query) {
 			// StatementTree caching
 
 			// Create a new parser and set the parameters...
 			string commandText = query.Text;
-			StatementTree statementTree = null;
+			IList<StatementTree> statementTreeList = null;
 			StatementCache statementCache = connection.System.StatementCache;
 
 			if (statementCache != null)
 				// Is this Query cached?
-				statementTree = statementCache.Get(commandText);
+				statementTreeList = statementCache.Get(commandText);
 
-			if (statementTree == null) {
+			if (statementTreeList == null) {
 				try {
 					lock (SqlParser) {
 						SqlParser.ReInit(new StreamReader(new MemoryStream(Encoding.Unicode.GetBytes(commandText)), Encoding.Unicode));
 						SqlParser.Reset();
 						// Parse the statement.
-						IList<StatementTree> list = SqlParser.StatementList();
-						if (list.Count > 1)
-							throw new NotSupportedException();
-
-						statementTree = list[0];
+						statementTreeList = SqlParser.StatementList();
 					}
 				} catch (ParseException e) {
 					throw new SqlParseException(e, commandText);
@@ -90,36 +86,42 @@ namespace Deveel.Data.Sql {
 
 				// Put the statement tree in the cache
 				if (statementCache != null)
-					statementCache.Set(commandText, statementTree);
+					statementCache.Set(commandText, statementTreeList);
 			}
 
 			// Substitute all parameter substitutions in the statement tree.
 			IExpressionPreparer preparer = new QueryPreparer(query);
-			statementTree.PrepareAllExpressions(preparer);
 
-			// Convert the StatementTree to a statement object
-			Statement statement;
-			Type statementType = statementTree.StatementType;
-			try {
-				statement = (Statement)Activator.CreateInstance(statementType);
-			} catch (TypeLoadException) {
-				throw new DataException("Could not find statement type: " + statementType);
-			} catch (TypeInitializationException) {
-				throw new DataException("Could not instantiate type: " + statementType);
-			} catch (AccessViolationException) {
-				throw new DataException("Could not access type: " + statementType);
+			List<Table> results = new List<Table>(statementTreeList.Count);
+			foreach (StatementTree statementTree in statementTreeList) {
+				statementTree.PrepareAllExpressions(preparer);
+
+				// Convert the StatementTree to a statement object
+				Statement statement;
+				Type statementType = statementTree.StatementType;
+				try {
+					statement = (Statement) Activator.CreateInstance(statementType);
+				} catch (TypeLoadException) {
+					throw new DataException("Could not find statement type: " + statementType);
+				} catch (TypeInitializationException) {
+					throw new DataException("Could not instantiate type: " + statementType);
+				} catch (AccessViolationException) {
+					throw new DataException("Could not access type: " + statementType);
+				}
+
+				statement.Query = query;
+				statement.StatementTree = statementTree;
+
+				DatabaseQueryContext context = new DatabaseQueryContext(connection);
+
+				// Prepare the statement
+				statement.PrepareStatement(context);
+
+				// Evaluate the SQL statement.
+				results.Add(statement.EvaluateStatement(context));
 			}
 
-			statement.Query = query;
-			statement.StatementTree = statementTree;
-
-			DatabaseQueryContext context = new DatabaseQueryContext(connection);
-
-			// Prepare the statement
-			statement.PrepareStatement(context);
-
-			// Evaluate the SQL statement.
-			return statement.EvaluateStatement(context);
+			return results.ToArray();
 		}
 
 		private class QueryPreparer : IExpressionPreparer {

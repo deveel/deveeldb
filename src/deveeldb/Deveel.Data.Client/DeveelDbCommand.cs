@@ -22,7 +22,6 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Protocol;
-using Deveel.Math;
 
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbCommand : DbCommand, ICloneable {
@@ -620,25 +619,12 @@ namespace Deveel.Data.Client {
 			get { return commandText; }
 			set {
 				if (value != null) {
-					//TODO: this is a nasty hack to support multiple results: should be
-					//      done on server side...
-					string[] parts = value.Split(';');
-					List<SqlQuery>  queries = new List<SqlQuery>();
-
-					foreach (string part in parts) {
-						string s = part.Trim();
-						if (String.IsNullOrEmpty(s))
-							continue;
-
-						ParameterStyle style = ParameterStyle.Marker;
-						if (connection != null)
-							style = connection.Settings.ParameterStyle;
-
-						queries.Add(new SqlQuery(s, style));
-					}
+					ParameterStyle style = ParameterStyle.Marker;
+					if (connection != null)
+						style = connection.Settings.ParameterStyle;
 
 					commandText = value;
-					_queries = queries.ToArray();
+					_queries = new SqlQuery[] {new SqlQuery(value, style)};
 				} else {
 					_queries = null;
 					commandText = null;
