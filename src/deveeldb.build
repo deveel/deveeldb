@@ -6,8 +6,7 @@
 	</target>
 	<target name="kernel">
 		<echo message="Building the kernel library" />
-		<nant buildfile="./deveeldb/kernel.build" target="build" inheritall="false">
-		</nant>
+		<nant buildfile="./deveeldb/kernel.build" target="build" />
 	</target>
 	<target name="clean">
 		<echo message="Cleaning all"/>
