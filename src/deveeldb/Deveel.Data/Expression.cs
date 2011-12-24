@@ -197,35 +197,13 @@ namespace Deveel.Data {
 			return exp.Evaluate(resolver, null);
 		}
 
-		public static TObject Evaluate(string expression, params object[] args) {
-#if NET_2_0
-			System.Collections.Generic.IDictionary<string, object> argsDict =
-				new System.Collections.Generic.Dictionary<string, object>();
-#else
-			IDictionary argsDict = new Hashtable();
-#endif
-			if (args != null && args.Length > 0) {
-				for (int i = 0; i < args.Length; i++)
-					argsDict.Add("arg" + i, args[i]);
-			}
 
-			return Evaluate(expression, argsDict);
-		}
-
-#if NET_2_0
-		public static TObject Evaluate(string expression, System.Collections.Generic.IDictionary<string, object> args) {
-#else
-		public static TObject Evaluate(string expression, IDictionary args) {
-#endif
+		public static TObject Evaluate(string expression, IEnumerable<KeyValuePair<string, object>> args) {
 			VariableResolver resolver = new VariableResolver();
 			if (args != null) {
-#if NET_2_0
-				foreach(System.Collections.Generic.KeyValuePair<string, object> entry in args) {
-#else
-				foreach(DictionaryEntry entry in args) {
-#endif
-					string argName = (string) entry.Key;
-					if (argName == null || argName.Length == 0)
+				foreach(KeyValuePair<string, object> entry in args) {
+					string argName = entry.Key;
+					if (string.IsNullOrEmpty(argName))
 						throw new ArgumentException("Found an argument with a name not specified.");
 
 					if (!Char.IsLetterOrDigit(argName[0]))
@@ -456,9 +434,9 @@ namespace Deveel.Data {
 					} else if (ob is TObject) {
 						TObject tob = (TObject) ob;
 						if (tob.TType is TArrayType) {
-							Expression[] exp_list = (Expression[]) tob.Object;
-							for (int n = 0; n < exp_list.Length; ++n) {
-								vars.AddRange(exp_list[n].AllVariables);
+							Expression[] expList = (Expression[]) tob.Object;
+							for (int n = 0; n < expList.Length; ++n) {
+								vars.AddRange(expList[n].AllVariables);
 							}
 						}
 					}
@@ -617,7 +595,7 @@ namespace Deveel.Data {
 		/// Returns <b>true</b> if the expression contains the NOT operator, 
 		/// otherwise <b>false</b>.
 		/// </returns>
-		public bool ContainsNotOperator() {
+		internal bool ContainsNotOperator() {
 			for (int n = 0; n < elements.Count; ++n) {
 				Object ob = elements[n];
 				if (ob is Operator && ((Operator)ob).IsNegation)
@@ -637,7 +615,7 @@ namespace Deveel.Data {
 		/// <paramref name="level"/> variable for each sub-plan.
 		/// </remarks>
 		///<returns></returns>
-		public IList<CorrelatedVariable> DiscoverCorrelatedVariables(ref int level, IList<CorrelatedVariable> list) {
+		internal IList<CorrelatedVariable> DiscoverCorrelatedVariables(ref int level, IList<CorrelatedVariable> list) {
 			IList elems = AllElements;
 			int sz = elems.Count;
 			// For each element
@@ -667,7 +645,7 @@ namespace Deveel.Data {
 		/// This is used for determining all the tables that a query plan touches.
 		/// </remarks>
 		///<returns></returns>
-		public IList<TableName> DiscoverTableNames(IList<TableName> list) {
+		internal IList<TableName> DiscoverTableNames(IList<TableName> list) {
 			IList elems = AllElements;
 			int sz = elems.Count;
 			// For each element
@@ -688,16 +666,14 @@ namespace Deveel.Data {
 		/// Returns the <see cref="IQueryPlanNode"/> object in this expression, if it 
 		/// evaluates to a single <see cref="IQueryPlanNode"/>, otherwise returns <b>null</b>.
 		///</summary>
-		public IQueryPlanNode QueryPlanNode {
-			get {
-				Object ob = this[0];
-				if (Count == 1 && ob is TObject) {
-					TObject tob = (TObject) ob;
-					if (tob.TType is TQueryPlanType)
-						return (IQueryPlanNode) tob.Object;
-				}
-				return null;
+		internal IQueryPlanNode AsQueryPlanNode() {
+			Object ob = this[0];
+			if (Count == 1 && ob is TObject) {
+				TObject tob = (TObject) ob;
+				if (tob.TType is TQueryPlanType)
+					return (IQueryPlanNode) tob.Object;
 			}
+			return null;
 		}
 
 
@@ -708,11 +684,9 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// A correlated variable will not be returned.
 		/// </remarks>
-		public VariableName VariableName {
-			get {
-				object ob = this[0];
-				return Count == 1 && ob is VariableName ? (VariableName) ob : null;
-			}
+		public VariableName AsVariableName() {
+			object ob = this[0];
+			return Count == 1 && ob is VariableName ? (VariableName) ob : null;
 		}
 
 		/// <summary>
@@ -731,7 +705,7 @@ namespace Deveel.Data {
 		/// <c>id + 3 > part_id - 2</c> will return <c>( id + 3, part_id - 2 }</c>
 		/// </para>
 		/// </example>
-		public Expression[] Split() {
+		internal Expression[] Split() {
 			if (Count <= 1)
 				throw new ApplicationException("Can only split expressions with more than 1 element.");
 
@@ -780,7 +754,7 @@ namespace Deveel.Data {
 		/// always return the complete expression.
 		/// </para>
 		/// </remarks>
-		public Expression EndExpression {
+		internal Expression EndExpression {
 			get {
 				int stack_size = 1;
 				int end = Count - 1;
@@ -992,7 +966,7 @@ namespace Deveel.Data {
 		/// <see cref="Operator"/> or <see cref="VariableName"/> then it returns 
 		/// the type that these objects have set as their result type.
 		/// </remarks>
-		public TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+		internal TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
 			object ob = elements[elements.Count - 1];
 			if (ob is FunctionDef) {
 				IFunction fun = ((FunctionDef)ob).GetFunction(context);

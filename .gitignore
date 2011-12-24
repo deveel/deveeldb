@@ -22,3 +22,5 @@
 /src/deveeldb/Deveel.Data/SqlState_States.cs
 /src/sqlstategen/obj
 /src/sqlstategen/bin
+/src/sqlstate/obj
+/src/sqlstate/bin

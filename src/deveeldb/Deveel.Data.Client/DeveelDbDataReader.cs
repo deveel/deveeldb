@@ -36,9 +36,12 @@ namespace Deveel.Data.Client {
 
 		#region Implementation of IDisposable
 
-		/// <inheritdoc/>
-		public void Dispose() {
-            Close();
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				Close();
+			}
+
+			base.Dispose(disposing);
 		}
 
 		#endregion
@@ -87,23 +90,22 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public override object GetValue(int i) {
 			Object ob = command.ResultSet.GetRawColumn(i);
-			if (ob == null) {
-				return ob;
-			}
+			if (ob == null)
+				return null;
+
 			if (command.Connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
 				ColumnDescription col_desc = command.ResultSet.GetColumn(i);
 				SqlType sql_type = col_desc.SQLType;
 
 				return command.ObjectCast(ob, sql_type);
+			}
 
-			} else {
-				// For blobs, return an instance of IBlob.
-				if (ob is ByteLongObject ||
-					ob is StreamableObject) {
-					// return command.AsBlob(ob);
-					return command.GetLob(ob);
-				}
+			// For blobs, return an instance of IBlob.
+			if (ob is ByteLongObject ||
+			    ob is StreamableObject) {
+				// return command.AsBlob(ob);
+				return command.GetLob(ob);
 			}
 			return ob;
 		}
@@ -125,7 +127,7 @@ namespace Deveel.Data.Client {
 			if (ob != null) {
 				try {
 					return command.GetLob(ob);
-				} catch (InvalidCastException e) {
+				} catch (InvalidCastException) {
 					throw new DataException("Column " + i + " is not a binary column.");
 				}
 			}
@@ -134,30 +136,27 @@ namespace Deveel.Data.Client {
 
 		private BigNumber GetBigNumber(int columnIndex) {
 			Object ob = command.ResultSet.GetRawColumn(columnIndex);
-			if (ob == null) {
+			if (ob == null)
 				return null;
-			}
-			if (ob is BigNumber) {
-				return (BigNumber)ob;
-			} else {
-				return BigNumber.Parse(command.MakeString(ob));
-			}
+			if (ob is BigNumber)
+				return (BigNumber) ob;
+
+			return BigNumber.Parse(command.MakeString(ob));
 		}
 
 		/// <inheritdoc/>
 		public override bool GetBoolean(int i) {
 			Object ob = command.ResultSet.GetRawColumn(i);
-			if (ob == null) {
+			if (ob == null)
 				return false;
-			} else if (ob is Boolean) {
-				return (Boolean)ob;
-			} else if (ob is BigNumber) {
-				return ((BigNumber)ob).CompareTo(Zero) != 0;
-			} else if (CanMakeString(ob)) {
+			if (ob is Boolean)
+				return (Boolean) ob;
+			if (ob is BigNumber)
+				return ((BigNumber) ob).CompareTo(Zero) != 0;
+			if (CanMakeString(ob))
 				return String.Compare(command.MakeString(ob), "true", true) == 0;
-			} else {
-				throw new DataException("Unable to cast value in ResultSet to bool");
-			}
+
+			throw new DataException("Unable to cast value in ResultSet to bool");
 		}
 
 		/// <inheritdoc/>
@@ -181,15 +180,13 @@ namespace Deveel.Data.Client {
 		public byte[] GetBytes(int columnIndex) {
 			//IBlob b = GetBlob(columnIndex);
 			DeveelDbLob b = GetLob(columnIndex);
-			if (b == null) {
+			if (b == null)
 				return null;
-			} else {
-				if (b.Length <= Int32.MaxValue) {
-					return b.GetBytes(0, (int)b.Length);
-				} else {
-					throw new DataException("IBlob too large to return as byte[]");
-				}
-			}
+
+			if (b.Length <= Int32.MaxValue)
+				return b.GetBytes(0, (int) b.Length);
+
+			throw new DataException("IBlob too large to return as byte[]");
 		}
 
 		/// <inheritdoc/>
@@ -218,7 +215,7 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public override Guid GetGuid(int i) {
 			string s = GetString(i);
-			if (s == null || s.Length == 0)
+			if (string.IsNullOrEmpty(s))
 				return Guid.Empty;
 
 			return new Guid(s);
@@ -262,21 +259,18 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public override string GetString(int i) {
 			Object str = command.ResultSet.GetRawColumn(i);
-			if (str == null) {
+			if (str == null)
 				return null;
-			} else {
-				if (CanMakeString(str)) {
-					return command.MakeString(str);
-				} else {
-					// For date, time and timestamp we must format as per the JDBC
-					// specification.
-					if (str is DateTime) {
-						SqlType sql_type = command.ResultSet.GetColumn(i).SQLType;
-						return command.ObjectCast(str, sql_type).ToString();
-					}
-					return str.ToString();
-				}
+			if (CanMakeString(str))
+				return command.MakeString(str);
+
+			// For date, time and timestamp we must format as per the JDBC
+			// specification.
+			if (str is DateTime) {
+				SqlType sql_type = command.ResultSet.GetColumn(i).SQLType;
+				return command.ObjectCast(str, sql_type).ToString();
 			}
+			return str.ToString();
 		}
 
 		/// <inheritdoc/>
@@ -296,11 +290,10 @@ namespace Deveel.Data.Client {
 		/// <returns></returns>
 		public BigDecimal GetBigDecimal(int columnIndex) {
 			BigNumber bnum = GetBigNumber(columnIndex);
-			if (bnum != null) {
+			if (bnum != null)
 				return bnum.ToBigDecimal();
-			} else {
-				return null;
-			}
+
+			return null;
 		}
 
 		/// <inheritdoc/>

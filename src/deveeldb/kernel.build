@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<project name="kernel" default="build">
+	<include buildfile="../common.build"/>
+	<target name="build">
+		<echo message="Building the kernel library" />
+		<exec program="../util/csharpcc/csharpcc.exe">
+			<arg value="-OUTPUT_DIRECTORY=${path::get-full-path(sources)}/Deveel.Data.Sql" />
+			<arg value="${path::get-full-path(sources)}/Deveel.Data.Sql\SQL.csc" />
+		</exec>
+		<exec program="../util/sqlstategen/sqlstategen.exe">
+			<arg value="-i ${path::get-full-path('./sqlstates.xml')}"/>
+			<arg value="-o ${path::get-full-path('./Deveel.Data/SqlState_States.cs')}"/>
+		</exec>
+		<property name="define" value="DEBUG;TRACE" if="${debug}"/>
+		<property name="define" value="TRACE" unless="${debug}"/>
+		<property name="define" value="${define + ';PLSQL'}" if="${plsql}"/>
+		<echo message="Using PLSQL syntax extensions" if="${plsql}"/>
+		<csc debug="${debug}" 
+			 optimize="${not debug}" 
+			 output="${output}/deveeldb.dll" 
+			 target="library" 
+			 define="${define}" 
+			 keyfile="deveeldb.snk"
+			 platform="${platform}">
+			<references>
+				<include name="System.dll"/>
+				<include name="System.Data.dll"/>
+				<include name="System.Xml.dll"/>
+			</references>
+			<sources basedir="${sources}">
+				<include name="Properties/AssemblyInfo.cs"/>
+				<include name="Deveel.Data/*.cs"/>
+				<include name="Deveel.Data.Caching/*.cs"/>
+				<include name="Deveel.Data.Client/*.cs"/>
+				<include name="Deveel.Data.Control/*.cs"/>
+				<include name="Deveel.Data.Functions/*.cs"/>
+				<include name="Deveel.Data.Mapping/*.cs"/>
+				<include name="Deveel.Data.Procedures/*.cs"/>
+				<include name="Deveel.Data.Protocol/*.cs"/>
+				<include name="Deveel.Data.QueryPlanning/*.cs"/>
+				<include name="Deveel.Data.Sql/*.cs"/>
+				<include name="Deveel.Data.Store/*.cs"/>
+				<include name="Deveel.Data.Text/*.cs"/>
+				<include name="Deveel.Data.Util/*.cs"/>
+				<include name="Deveel.Diagnostics/*.cs"/>
+				<include name="Deveel.Math/*.cs"/>
+			</sources>
+			<nowarn>
+				<warning number="0162"/>
+				<warning number="0168"/>
+			</nowarn>
+		</csc>
+		<call target="-core-test" unless="${notest}"/>
+	</target>
+	<target name="clean">
+		<echo message="Deleting parser-generated SQL files"/>
+		<delete file="${sources}/Deveel.Data.Sql/ParseException.cs"/>
+		<delete file="${sources}/Deveel.Data.Sql/SQL.cs"/>
+		<delete file="${sources}/Deveel.Data.Sql/SimpleCharStream.cs"/>
+		<delete file="${sources}/Deveel.Data.Sql/SQLConstants.cs"/>
+		<delete file="${sources}/Deveel.Data.Sql/SQLTokenManager.cs"/>
+		<delete file="${sources}/Deveel.Data.Sql/Token.cs"/>
+		<delete file="${sources}/Deveel.Data.Sql/TokenMgrError.cs"/>
+		
+		<echo message="Deleting SQL states file"/>
+		<delete file="${sources}/Deveel.Data/SqlState_States.cs"/>
+		
+		<echo message="Deleting ouput binaries"/>
+		<delete file="${output}/deveeldb.dll" verbose="true"/>
+		<if test="${not notest}">
+			<delete file="${output}/deveeldb-nunit.dll"/>
+			<delete file="${output}/nunit.framework.dll"/>
+			<delete dir="${output}/test-results"/>
+		</if>
+	</target>
+	<target name="test" unless="${notest}" depends="build">
+		<call target="-core-test"/>
+	</target>
+	<target name="-core-test">
+		<echo message="compiling the nunit test library for the kernel component."/>
+		<echo message="nunit reference from ${path::get-full-path('../../nunit/')}"/>
+		<csc output="${output}\deveeldb-nunit.dll" target="library" define="${define}" platform="${platform}">
+			<references>
+				<include name="${path::get-full-path('../../nunit/net-2.0/framework/nunit.framework.dll')}"/>
+				<include name="${output}/deveeldb.dll"/>
+			</references>
+			<sources basedir="${sources}\..\deveeldb-nunit">
+				<include name="Deveel.Data\*.cs"/>
+				<include name="Deveel.Data.Client\*.cs"/>
+				<include name="Deveel.Data.Control\*.cs"/>
+				<include name="Deveel.Data.Functions\*.cs"/>
+				<include name="Deveel.Data.Sql\*.cs"/>
+			</sources>
+		</csc>
+		<copy file="../../nunit/net-2.0/framework/nunit.framework.dll" todir="${output}"/>
+		<exec program="../../nunit/net-2.0/nunit-console.exe">
+			<arg value="${output}/deveeldb-nunit.dll"/>
+			<arg value="/nologo"/>
+			<arg value="/noshadow"/>
+			<arg value="/exclude:KnownUnstable"/>
+			<arg value="/xml:${output}/${project::get-name()}-test-results.xml"/>
+			<arg value="/out:${output}/${project::get-name()}-test-results.txt"/>
+		</exec>
+	</target>
+</project>

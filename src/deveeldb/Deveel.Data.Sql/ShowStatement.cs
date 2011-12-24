@@ -41,16 +41,6 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		private String show_type;
 
-		/// <summary>
-		/// Arguments of the show statement.
-		/// </summary>
-		private Expression[] args;
-
-		/// <summary>
-		/// The search expression for the show statement (where clause).
-		/// </summary>
-		private SearchExpression where_clause;
-
 		// ---------- Implemented from Statement ----------
 
 		protected override void Prepare(IQueryContext context) {
@@ -58,17 +48,11 @@ namespace Deveel.Data.Sql {
 			show_type = GetString("show");
 			show_type = show_type.ToLower();
 			table_name = GetString("table_name");
-			args = (Expression[])GetValue("args");
-			where_clause = (SearchExpression)GetValue("where_clause");
 		}
 
 		protected override Table Evaluate(IQueryContext context) {
 
 			try {
-
-				// How we order the result set
-				int[] order_set = null;
-
 				if (show_type.Equals("schema")) {
 
 					SqlQuery query = new SqlQuery(

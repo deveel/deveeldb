@@ -42,6 +42,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private readonly ITableDataSource dataSource;
 
+#if DEBUG
 		/// <summary>
 		/// The number of read locks we have on this table.
 		/// </summary>
@@ -52,7 +53,7 @@ namespace Deveel.Data {
 		/// only ever be 0 or 1).
 		/// </summary>
 		private int debugWriteLockCount;
-
+#endif
 
 		internal DataTable(DatabaseConnection connection, ITableDataSource dataSource)
 			: base(connection.Database) {

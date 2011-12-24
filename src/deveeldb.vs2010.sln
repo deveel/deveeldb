@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-nunit.vs2010", "de
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sqlstategen", "sqlstategen\sqlstategen.csproj", "{73A135D6-4E49-496D-8612-F854C5514C27}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sqlstate", "sqlstate\sqlstate.csproj", "{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,8 +46,8 @@ Global
 		{AB455501-BEA5-4A0D-A773-C09B176A4C6A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{AB455501-BEA5-4A0D-A773-C09B176A4C6A}.Release|x86.ActiveCfg = Release|Any CPU
 		{14FF1F27-B78A-4A89-A1EA-3F926078543D}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{14FF1F27-B78A-4A89-A1EA-3F926078543D}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{14FF1F27-B78A-4A89-A1EA-3F926078543D}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{14FF1F27-B78A-4A89-A1EA-3F926078543D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{14FF1F27-B78A-4A89-A1EA-3F926078543D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{14FF1F27-B78A-4A89-A1EA-3F926078543D}.Debug|x86.ActiveCfg = Debug|x86
 		{14FF1F27-B78A-4A89-A1EA-3F926078543D}.Debug|x86.Build.0 = Debug|x86
 		{14FF1F27-B78A-4A89-A1EA-3F926078543D}.Release|Any CPU.ActiveCfg = Release|x86
@@ -74,8 +76,8 @@ Global
 		{F583D8C8-97A2-4460-9C03-40E48A9A2B3A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{F583D8C8-97A2-4460-9C03-40E48A9A2B3A}.Release|x86.ActiveCfg = Release|Any CPU
 		{73A135D6-4E49-496D-8612-F854C5514C27}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{73A135D6-4E49-496D-8612-F854C5514C27}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{73A135D6-4E49-496D-8612-F854C5514C27}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{73A135D6-4E49-496D-8612-F854C5514C27}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{73A135D6-4E49-496D-8612-F854C5514C27}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{73A135D6-4E49-496D-8612-F854C5514C27}.Debug|x86.ActiveCfg = Debug|x86
 		{73A135D6-4E49-496D-8612-F854C5514C27}.Debug|x86.Build.0 = Debug|x86
 		{73A135D6-4E49-496D-8612-F854C5514C27}.Release|Any CPU.ActiveCfg = Release|x86
@@ -83,6 +85,16 @@ Global
 		{73A135D6-4E49-496D-8612-F854C5514C27}.Release|Mixed Platforms.Build.0 = Release|x86
 		{73A135D6-4E49-496D-8612-F854C5514C27}.Release|x86.ActiveCfg = Release|x86
 		{73A135D6-4E49-496D-8612-F854C5514C27}.Release|x86.Build.0 = Release|x86
+		{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}.Debug|x86.ActiveCfg = Debug|x86
+		{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}.Debug|x86.Build.0 = Debug|x86
+		{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}.Release|Any CPU.ActiveCfg = Release|x86
+		{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}.Release|Mixed Platforms.Build.0 = Release|x86
+		{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}.Release|x86.ActiveCfg = Release|x86
+		{BC1EA55C-9787-4731-ABBE-03EDC0EDBC14}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

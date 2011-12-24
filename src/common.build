@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<project name="common" default="build">
+	<property name="version" value="1.0b" />
+	<property name="document" value="" />
+	<property name="sources" value="." />
+	<property name="define" value="TRACE" />
+	<property name="kernel" value="false" />
+	<property name="debug" value="false" />
+	<property name="platform" value="anycpu" />
+	<property name="system" value="windows" />
+	<property name="notest" value="false" />
+	<property name="standalone" value="false" />
+	<property name="output" value="${path::combine(path::get-directory-name(project::get-buildfile-path()), 'bin')}/${system}/${platform}" if="${standalone}" />
+	<property name="output" value="${path::combine(path::get-directory-name(project::get-buildfile-path()), '../bin')}/${system}/${platform}" unless="${standalone}" />
+	<property name="dist-path" value="dist" if="${standalone}" />
+	<property name="dist-path" value="../dist" unless="${standalone}" />
+	<property name="lib" value="${path::combine(path::get-directory-name(project::get-buildfile-path()), 'lib')}" />
+	<property name="doc.output" value="./output" />
+	<property name="doc" value="ndoc" />
+	<property name="sql" value="true"/>
+	<property name="plsql" value="false"/>
+	<target name="-build-kernel">
+		<if test="${not kernel}">
+			<echo message="the kernel library was not built or the assembly was not found: we will generate one" />
+			<nant buildfile="../deveeldb/kernel.build" target="build" inheritall="false" verbose="false">
+				<properties>
+					<property name="output" value="${path::get-full-path(output)}" readonly="True" />
+					<property name="platform" value="${platform}" readonly="True" />
+					<property name="notest" value="${notest}" readonly="True" />
+					<property name="package" value="${package}" readonly="True" />
+					<property name="doc.output" value="${doc.output}" readonly="true" />
+				</properties>
+			</nant>
+			<property name="kernel" value="true" />
+			<if test="${standalone}">
+				<echo message="standalone build: copying the kernel to the output path" />
+				<copy file="${output}/cloudb.dll" todir="${path::get-full-path(output)}" overwrite="true" />
+			</if>
+		</if>
+	</target>
+</project>

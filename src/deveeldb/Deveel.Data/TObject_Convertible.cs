@@ -121,7 +121,6 @@ namespace Deveel.Data {
 			return (String.IsNullOrEmpty(s) ? '\0' : s[0]);
 		}
 
-		[CLSCompliant(false)]
 		sbyte IConvertible.ToSByte(IFormatProvider provider) {
 			throw new NotSupportedException();
 		}
@@ -134,7 +133,6 @@ namespace Deveel.Data {
 			return ToBigNumber().ToInt16();
 		}
 
-		[CLSCompliant(false)]
 		ushort IConvertible.ToUInt16(IFormatProvider provider) {
 			throw new NotSupportedException();
 		}
@@ -143,7 +141,6 @@ namespace Deveel.Data {
 			return ToBigNumber().ToInt32();
 		}
 
-		[CLSCompliant(false)]
 		uint IConvertible.ToUInt32(IFormatProvider provider) {
 			throw new NotSupportedException();
 		}
@@ -152,7 +149,6 @@ namespace Deveel.Data {
 			return ToBigNumber().ToInt64();
 		}
 
-		[CLSCompliant(false)]
 		ulong IConvertible.ToUInt64(IFormatProvider provider) {
 			throw new NotSupportedException();
 		}

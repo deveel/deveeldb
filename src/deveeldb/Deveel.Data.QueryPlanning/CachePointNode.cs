@@ -33,7 +33,7 @@ namespace Deveel.Data.QueryPlanning {
 		public CachePointNode(IQueryPlanNode child)
 			: base(child) {
 			lock (GlobLock) {
-				id = (DateTime.Now.Ticks << 16) | (GlobId & 0x0FFFF);
+				id = ((int)DateTime.Now.Ticks << 16) | (GlobId & 0x0FFFF);
 				++GlobId;
 			}
 		}

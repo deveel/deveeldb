@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<project name="deveeldb" default="all">
+	<target name="all">
+		<echo message="Building all components" />
+		<call target="kernel" />
+	</target>
+	<target name="kernel">
+		<echo message="Building the kernel library" />
+		<nant buildfile="./deveeldb/kernel.build" target="build" inheritall="false">
+		</nant>
+	</target>
+	<target name="clean">
+		<echo message="Cleaning all"/>
+		<nant buildfile="./deveeldb/kernel.build" target="clean" inheritall="false" />
+	</target>
+</project>

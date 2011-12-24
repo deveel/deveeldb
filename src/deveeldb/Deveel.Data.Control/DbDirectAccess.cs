@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 
 using Deveel.Data.Sql;
 using Deveel.Diagnostics;
@@ -40,7 +39,6 @@ namespace Deveel.Data.Control {
 
 		private DatabaseConnection connection;
 		private readonly DatabaseQueryContext context;
-		private readonly ArrayList table_list;
 
 		/// <summary>
 		/// The event raised when a trigger is fired within the current

@@ -79,6 +79,10 @@ namespace Deveel.Data {
 			removedList = new List<int>();
 		}
 
+		public bool IsTransactionActive {
+			get { return transactionActive; }
+		}
+
 		/// <summary>
 		/// Adds new row ids to the given list.
 		/// </summary>

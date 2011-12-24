@@ -1,0 +1,2 @@
+#!/bin/sh
+exec mono ./libs/nant/NAnt.exe -buildfile:default.build "$@"

@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<project name="deveeldb" default="-package-all">
+	<include buildfile="deveeldb.build" />
+	<property name="package" value="all" />
+	<property name="package.name" value="" />
+	<target name="package">
+		<if test="${package == 'src'}">
+			<if test="${package.name == ''}">
+				<property name="package.name" value="${project::get-name()}-${version}-${system}-${platform}-src" />
+			</if>
+			<call target="-package-src" />
+		</if>
+		<if test="${package == 'bin'}">
+			<if test="${package.name == ''}">
+				<property name="package.name" value="${project::get-name()}-${version}-${system}-${platform}-bin" />
+			</if>
+			<call target="-package-bin" />
+		</if>
+		<if test="${package == 'doc'}">
+			<if test="${package.name == ''}">
+				<property name="package.name" value="${project::get-name()}-${version}-doc" />
+			</if>
+			<call target="-package-doc" />
+		</if>
+		<if test="${package == 'all'}">
+			<if test="${package.name == ''}">
+				<property name="package.name" value="${project::get-name()}-${version}-${system}-${platform}" />
+			</if>
+			<call target="-package-all" />
+		</if>
+	</target>
+	<target name="-package-src">
+		<echo message="packaging project sources"/>
+		<property name="temp-path1" value="${path::combine(path::get-full-path(dist-path), 'temp1')}" readonly="True" />
+		<property name="temp-path2" value="${path::combine(path::get-full-path(dist-path), 'temp2')}" readonly="True" />
+		<!-- Build File: 'deveeldb/kernel.build' -->
+		<nant buildfile="deveeldb/kernel.build" target="-package-src" inheritall="false">
+			<properties>
+				<property name="dist-path" value="${temp-path1}" readonly="true" />
+				<property name="package.name" value="cloudb-temp" readonly="true" />
+				<property name="standalone" value="false" readonly="true" />
+			</properties>
+		</nant>
+		<untar src="${temp-path1}/deveel-temp.tar.gz" dest="${temp-path2}/deveeldb" compression="gzip" />
+		<delete dir="${temp-path1}" />
+		<tar destfile="${dist-path}/${package.name}.tar.gz" compression="gzip">
+			<fileset basedir="${temp-path2}">
+				<include name="cloudb/**" />
+			</fileset>
+			<fileset basedir="../">
+				<include name="COPYING" />
+				<include name="COPYING.HEADER" />
+				<include name="README" />
+			</fileset>
+			<fileset basedir="../src">
+				<include name="deveeldb.build" />
+				<include name="common.build" />
+				<include name="build.bat" />
+				<include name="build"/>
+			</fileset>
+		</tar>
+		<delete dir="${temp-path2}" />
+			<target name="-package-bin" depends="all">
+		<echo message="packaging project binaries"/>
+		<tar destfile="${dist-path}/${package.name}.tar.gz" compression="gzip">
+			<fileset basedir="${output}">
+				<include name="*" />
+			</fileset>
+		</tar>
+	</target>
+		<target name="-package-all" depends="all">
+		<echo message="packaging project sources and binaries"/>
+		<property name="package.name.bak" value="${package.name}" />
+		<property name="package.name" value="src-temp" />
+		<call target="-package-src" />
+		<untar src="${dist-path}/${package.name}.tar.gz" dest="${dist-path}/src" compression="gzip" />
+		<delete file="${dist-path}/${package.name}.tar.gz" />
+		<property name="package.name" value="${package.name.bak}" />
+		<tar destfile="${dist-path}/${package.name}.tar.gz">
+			<fileset basedir="${output}" prefix="bin">
+				<include name="*" />
+			</fileset>
+			<fileset basedir="${dist-path}/src" prefix="src">
+				<include name="**" />
+				<exclude name="README" />
+				<exclude name="COPYING" />
+				<exclude name="COPYING.HEADER" />
+			</fileset>
+			<fileset basedir="${dist-path}/src">
+				<include name="README" />
+				<include name="COPYING" />
+				<include name="COPYING.HEADER" />
+			</fileset>
+		</tar>
+		<delete dir="${dist-path}/src" />
+	</target>
+</project>

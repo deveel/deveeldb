@@ -63,7 +63,7 @@ namespace Deveel.Data {
 		private byte[] commandJournal;
 
 		/// <summary>
-		/// An <see cref="IntegerVector"/> that is filled with parameters from the 
+		/// An <see cref="IList{T}"/> that is filled with parameters from the 
 		/// command journal.
 		/// </summary>
 		/// <remarks>
@@ -74,8 +74,8 @@ namespace Deveel.Data {
 
 		// Optimization, these flags are set to true when various types of journal
 		// entries are made to the transaction journal.
-		private bool hasAddedTableRows,
-		             hasRemovedTableRows,
+		private bool /* hasAddedTableRows,
+		             hasRemovedTableRows, */
 		             hasCreatedTables,
 		             hasDroppedTables,
 		             hasConstraintAlterations;
@@ -86,8 +86,8 @@ namespace Deveel.Data {
 			commandParameters = new List<int>(32);
 			touchedTables = new List<int>(8);
 
-			hasAddedTableRows = false;
-			hasRemovedTableRows = false;
+			// hasAddedTableRows = false;
+			// hasRemovedTableRows = false;
 			hasCreatedTables = false;
 			hasDroppedTables = false;
 			hasConstraintAlterations = false;
@@ -148,7 +148,7 @@ namespace Deveel.Data {
 		/// <param name="rowIndex"></param>
 		internal void EntryAddTableRow(int tableId, int rowIndex) {
 			lock (this) {
-				hasAddedTableRows = true;
+				// hasAddedTableRows = true;
 				AddCommand((byte) JournalCommandType.AddRow);
 				AddParameter(tableId);
 				AddParameter(rowIndex);
@@ -163,7 +163,7 @@ namespace Deveel.Data {
 		/// <param name="rowIndex"></param>
 		internal void EntryRemoveTableRow(int tableId, int rowIndex) {
 			lock (this) {
-				hasRemovedTableRows = true;
+				// hasRemovedTableRows = true;
 				AddCommand((byte) JournalCommandType.RemoveRow);
 				AddParameter(tableId);
 				AddParameter(rowIndex);
