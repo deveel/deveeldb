@@ -748,7 +748,7 @@ namespace Deveel.Data {
 			Table sourceTable;
 			int lhsColIndex;
 			// Is the lhs expression a single variable?
-			VariableName lhsVar = lhs.VariableName;
+			VariableName lhsVar = lhs.AsVariableName();
 			// NOTE: It'll be less common for this part to be called.
 			if (lhsVar == null) {
 				// This is a complex expression so make a FunctionTable as our new
@@ -916,7 +916,7 @@ namespace Deveel.Data {
 			Table source_table;
 			int lhs_col_index;
 			// Is the lhs expression a single variable?
-			VariableName lhs_var = lhs.VariableName;
+			VariableName lhs_var = lhs.AsVariableName();
 			// NOTE: It'll be less common for this part to be called.
 			if (lhs_var == null) {
 				// This is a complex expression so make a FunctionTable as our new

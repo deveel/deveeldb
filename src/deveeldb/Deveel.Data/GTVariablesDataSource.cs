@@ -20,7 +20,7 @@ namespace Deveel.Data {
 	internal class GTVariablesDataSource : GTDataSource {
 		public GTVariablesDataSource(SimpleTransaction transaction) 
 			: base(transaction.System) {
-			this.transaction = this.transaction;
+			this.transaction = transaction;
 			key_value_pairs = new ArrayList();
 		}
 

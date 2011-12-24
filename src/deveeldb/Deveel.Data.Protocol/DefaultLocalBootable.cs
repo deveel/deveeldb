@@ -41,11 +41,6 @@ namespace Deveel.Data.Protocol {
 		private bool booted;
 
         /// <summary>
-        /// Set to true when this interface is active.
-        /// </summary>
-		private bool active = false;
-
-        /// <summary>
         /// The local DbSystem database object.
         /// </summary>
 		private DbSystem dbsys;
@@ -63,11 +58,6 @@ namespace Deveel.Data.Protocol {
         /// The number of connections that are current open.
         /// </summary>
 		private int openConnections;
-
-        /// <summary>
-        /// The connection Lock object.
-        /// </summary>
-		private Object connectionLock = new Object();
 
         /// <inheritdoc/>
 		public IDatabaseInterface Create(string username, string password, DbConfig config) {
@@ -88,7 +78,6 @@ namespace Deveel.Data.Protocol {
 
         	booted = true;
         	++openConnections;
-        	active = true;
 
         	return dbInterface;
         }
@@ -117,7 +106,6 @@ namespace Deveel.Data.Protocol {
 
         	booted = true;
         	++openConnections;
-        	active = true;
 
         	return dbInterface;
         }
@@ -149,7 +137,6 @@ namespace Deveel.Data.Protocol {
 
         	++connectId;
         	++openConnections;
-        	active = true;
 
         	return dbInterface;
         }
@@ -184,7 +171,6 @@ namespace Deveel.Data.Protocol {
 							// When the local database interface is disposed, we must shut down
 							// the database system.
 							localBootable.dbsys.Close();
-							localBootable.active = false;
 							localBootable.booted = false;
 							localBootable.dbsys = null;
 						}

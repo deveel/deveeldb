@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -39,29 +38,24 @@ namespace Deveel.Data.Client {
 		private ResultSet[] result_set_list;
 
 
-		private int max_field_size;
-		private int max_row_count;
-		private int fetch_size = DefaultFetchSize;
+		// private int max_field_size;
+		private int maxRowCount;
+		private int fetchSize = DefaultFetchSize;
 		private bool designTimeVisible = true;
 		private bool timeoutWasSet;
 		private int commandTimeout;
 
 		/// <summary>
-		/// The list of _queries to execute in a batch.
-		/// </summary>
-		private ArrayList batch_list;
-
-		/// <summary>
 		/// The list of streamable objects created via the <see cref="CreateStreamableObject"/> method.
 		/// </summary>
-		private ArrayList streamable_object_list;
+		private List<StreamableObject> streamableObjectList;
 
 		/// <summary>
 		/// For multiple result sets, the index of the result set we are currently on.
 		/// </summary>
-		private int multi_result_set_index;
+		private int multiResultSetIndex;
 
-		private SqlQuery[] _queries;
+		private SqlQuery[] queries;
 		private string commandText;
 
 		private DeveelDbParameterCollection parameters;
@@ -95,7 +89,7 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		/// <param name="count"></param>
 		/// <remarks>
-		/// This is intended for multiple result _queries (such as batch statements).
+		/// This is intended for multiple result queries (such as batch statements).
 		/// </remarks>
 		/// <returns></returns>
 		internal ResultSet[] InternalResultSetList(int count) {
@@ -139,22 +133,22 @@ namespace Deveel.Data.Client {
 		/// <returns></returns>
 		internal StreamableObject CreateStreamableObject(Stream x, int length, ReferenceType type) {
 			StreamableObject s_ob = connection.CreateStreamableObject(x, length, type);
-			if (streamable_object_list == null) {
-				streamable_object_list = new ArrayList();
+			if (streamableObjectList == null) {
+				streamableObjectList = new List<StreamableObject>();
 			}
-			streamable_object_list.Add(s_ob);
+			streamableObjectList.Add(s_ob);
 			return s_ob;
 		}
 
 		internal bool NextResult() {
 			// If we are at the end then return false
 			if (result_set_list == null ||
-				multi_result_set_index >= result_set_list.Length) {
+				multiResultSetIndex >= result_set_list.Length) {
 				return false;
 			}
 
 			// Move to the next result set.
-			++multi_result_set_index;
+			++multiResultSetIndex;
 
 			// We successfully moved to the next result
 			return true;
@@ -163,8 +157,8 @@ namespace Deveel.Data.Client {
 		internal ResultSet ResultSet {
 			get {
 				if (result_set_list != null) {
-					if (multi_result_set_index < result_set_list.Length) {
-						return result_set_list[multi_result_set_index];
+					if (multiResultSetIndex < result_set_list.Length) {
+						return result_set_list[multiResultSetIndex];
 					}
 				}
 				return null;
@@ -174,8 +168,8 @@ namespace Deveel.Data.Client {
 		internal int UpdateCount {
 			get {
 				if (result_set_list != null) {
-					if (multi_result_set_index < result_set_list.Length) {
-						ResultSet rs = result_set_list[multi_result_set_index];
+					if (multiResultSetIndex < result_set_list.Length) {
+						ResultSet rs = result_set_list[multiResultSetIndex];
 						if (rs.IsUpdate) {
 							return rs.ToInteger();
 						}
@@ -206,7 +200,7 @@ namespace Deveel.Data.Client {
 
 		/// <summary>
 		/// Casts an internal object to the sql_type given for return by methods
-		/// such as <see cref="GetValue"/>.
+		/// such as GetValue
 		/// </summary>
 		/// <param name="ob"></param>
 		/// <param name="sql_type"></param>
@@ -299,11 +293,11 @@ namespace Deveel.Data.Client {
 					return clob.GetString(0, (int)clob_len);
 				}
 				throw new DataException("IClob too large to return as a string.");
-			} else if (ob is ByteLongObject) {
-				throw new InvalidCastException();
-			} else {
-				return ob.ToString();
 			}
+			if (ob is ByteLongObject)
+				throw new InvalidCastException();
+
+			return ob.ToString();
 		}
 
 		/// <summary>
@@ -317,14 +311,14 @@ namespace Deveel.Data.Client {
 			if (connection.State == ConnectionState.Closed)
 				throw new InvalidOperationException("The connection is closed.");
 
-			if (_queries == null)
+			if (queries == null)
 				throw new InvalidOperationException("The command text was not set.");
 
 			// Allocate the result set for this batch
-			ResultSet[] results = InternalResultSetList(_queries.Length);
+			ResultSet[] results = InternalResultSetList(queries.Length);
 
 			// Reset the result set index
-			multi_result_set_index = 0;
+			multiResultSetIndex = 0;
 
 			// For each query,
 			for (int i = 0; i < results.Length; ++i)
@@ -332,15 +326,15 @@ namespace Deveel.Data.Client {
 				results[i].CloseCurrentResult();
 
 			// Execute each query
-			connection.ExecuteQueries(_queries, results);
+			connection.ExecuteQueries(queries, results);
 
 			// Post processing on the ResultSet objects
-			for (int i = 0; i < _queries.Length; ++i) {
+			for (int i = 0; i < queries.Length; ++i) {
 				ResultSet result_set = results[i];
 				// Set the fetch size
-				result_set.SetFetchSize(fetch_size);
+				result_set.SetFetchSize(fetchSize);
 				// Set the max row count
-				result_set.SetMaxRowCount(max_row_count);
+				result_set.SetMaxRowCount(maxRowCount);
 				// Does the result set contain large objects?  We can't cache a
 				// result that contains binary data.
 				bool contains_large_objects = result_set.ContainsLargeObjects();
@@ -358,10 +352,10 @@ namespace Deveel.Data.Client {
 
 		//TODO: move to connection string...
 		public int MaxRowCount {
-			get { return max_row_count; }
+			get { return maxRowCount; }
 			set {
 				if (value >= 0) {
-					max_row_count = value;
+					maxRowCount = value;
 				} else {
 					throw new DataException("MaxRows negative.");
 				}
@@ -369,54 +363,49 @@ namespace Deveel.Data.Client {
 		}
 
 		public int FetchSize {
-			get { return fetch_size; }
+			get { return fetchSize; }
 			set {
 				if (value > MaximumFetchSize)
 					throw new ArgumentOutOfRangeException();
-				fetch_size = value;
+				fetchSize = value;
 			}
 		}
 
 
-		#region Implementation of IDisposable
-
-		public void Dispose() {
-			try {
-				// Behaviour of calls to Statement undefined after this method finishes.
-				if (result_set_list != null) {
-					for (int i = 0; i < result_set_list.Length; ++i) {
-						result_set_list[i].Dispose();
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				try {
+					// Behaviour of calls to Statement undefined after this method finishes.
+					if (result_set_list != null) {
+						foreach (ResultSet resultSet in result_set_list) {
+							resultSet.Dispose();
+						}
+						result_set_list = null;
 					}
-					result_set_list = null;
-				}
-				// Remove any streamable objects that have been created on the client
-				// side.
-				if (streamable_object_list != null) {
-					int sz = streamable_object_list.Count;
-					for (int i = 0; i < sz; ++i) {
-						StreamableObject s_object =
-									   (StreamableObject)streamable_object_list[i];
-						connection.RemoveStreamableObject(s_object);
+					// Remove any streamable objects that have been created on the client
+					// side.
+					if (streamableObjectList != null) {
+						foreach (StreamableObject streamableObject in streamableObjectList) {
+							connection.RemoveStreamableObject(streamableObject);
+						}
+						streamableObjectList = null;
 					}
-					streamable_object_list = null;
-				}
-			} catch (DataException) {
+				} catch (DataException) {
+				}		
 			}
 		}
-
-		#endregion
 
 		#region Implementation of IDbCommand
 
 		public override void Prepare() {
-			if (_queries == null || parameters.Count == 0)
+			if (queries == null || parameters.Count == 0)
 				return;
 
 			//TODO: we should handle this better: it's nasty that a set
-			//      of parameters are set for all the _queries...
+			//      of parameters are set for all the queries...
 
-			for (int i = 0; i < _queries.Length; i++) {
-				SqlQuery query = _queries[i];
+			for (int i = 0; i < queries.Length; i++) {
+				SqlQuery query = queries[i];
 				for (int j = 0; j < parameters.Count; j++) {
 					DeveelDbParameter parameter = parameters[j];
 					if (parameter.Value is DeveelDbLob) {
@@ -624,9 +613,9 @@ namespace Deveel.Data.Client {
 						style = connection.Settings.ParameterStyle;
 
 					commandText = value;
-					_queries = new SqlQuery[] {new SqlQuery(value, style)};
+					queries = new SqlQuery[] {new SqlQuery(value, style)};
 				} else {
-					_queries = null;
+					queries = null;
 					commandText = null;
 				}
 

@@ -202,7 +202,7 @@ namespace Deveel.Data.QueryPlanning {
 					// If this column is aliased, add it as a function reference to the
 					// TableExpressionFromSet.
 					string alias = col.Alias;
-					VariableName v = col.Expression.VariableName;
+					VariableName v = col.Expression.AsVariableName();
 					bool aliasMatchV = (v != null && alias != null && fromSet.StringCompare(v.Name, alias));
 					if (alias != null && !aliasMatchV) {
 						fromSet.AddFunctionRef(alias, col.Expression);
@@ -424,7 +424,7 @@ namespace Deveel.Data.QueryPlanning {
 				exp.Prepare(fromSet.ExpressionQualifier);
 
 				// Is the group by variable a complex expression?
-				VariableName v = exp.VariableName;
+				VariableName v = exp.AsVariableName();
 
 				Expression groupByExpression;
 				if (v == null) {
@@ -652,7 +652,7 @@ namespace Deveel.Data.QueryPlanning {
 					ByColumn column = orderBy[i];
 					Expression exp = column.Expression;
 					ascendingList[i] = column.Ascending;
-					VariableName v = exp.VariableName;
+					VariableName v = exp.AsVariableName();
 					if (v != null) {
 						VariableName new_v = fromSet.ResolveReference(v);
 						if (new_v == null)
@@ -888,7 +888,7 @@ namespace Deveel.Data.QueryPlanning {
 
 				// If the expression isn't a simple variable, then add to
 				// function list.
-				VariableName v = col.Expression.VariableName;
+				VariableName v = col.Expression.AsVariableName();
 				if (v == null) {
 					// This means we have a complex expression.
 

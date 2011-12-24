@@ -17,9 +17,6 @@ using System;
 using System.Data;
 using System.Data.Common;
 
-using Deveel.Data.Protocol;
-using Deveel.Math;
-
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbParameter : DbParameter, ICloneable {
 		public DeveelDbParameter() {
@@ -44,7 +41,7 @@ namespace Deveel.Data.Client {
 		}
 
 		private System.Data.DbType dbType = System.Data.DbType.Object;
-		private SqlType sqlType = Data.SqlType.Null;
+		private SqlType sqlType = SqlType.Null;
 		private object value = DBNull.Value;
 		// marker style is the default
 		internal ParameterStyle paramStyle = ParameterStyle.Marker;
@@ -134,7 +131,7 @@ namespace Deveel.Data.Client {
 
 		#region Implementation of IDbDataParameter
 
-		public new byte Precision {
+		public byte Precision {
 			get { return 0; }
 			set {
 				if (value != 0)

@@ -587,7 +587,7 @@ namespace Deveel.Data.QueryPlanning {
 					// If the operator is a sub-command we must be of the form,
 					// 'a in ( 1, 2, 3 )'
 					if (op.IsSubQuery) {
-						singleVar = exps[0].VariableName;
+						singleVar = exps[0].AsVariableName();
 						if (singleVar != null) {
 							ExpressionPlan expPlan = new SimpleSelectExpressionPlan(this, singleVar, op, exps[1]);
 							expPlan.OptimizableValue = 0.2f;
@@ -616,7 +616,7 @@ namespace Deveel.Data.QueryPlanning {
 						PlanTableSource tableSource = FindTableSource(singleVar);
 
 						// Simple LHS?
-						VariableName v = exps[0].VariableName;
+						VariableName v = exps[0].AsVariableName();
 						if (v != null) {
 							AddSingleVarPlanTo(simplePlanList, tableSource, v, singleVar, exps, op);
 						} else {
@@ -657,7 +657,7 @@ namespace Deveel.Data.QueryPlanning {
 					Expression[] exps = expr.Split();
 					// If the LHS is a single variable and the RHS is a constant then
 					// the conditions are right for a simple pattern search.
-					VariableName lhsVar = exps[0].VariableName;
+					VariableName lhsVar = exps[0].AsVariableName();
 					if (expr.IsConstant) {
 						ExpressionPlan exprPlan = new ConstantExpressionPlan(this, expr);
 						exprPlan.OptimizableValue = 0f;
@@ -702,10 +702,10 @@ namespace Deveel.Data.QueryPlanning {
 						// Split the expression.
 						Expression[] exps = andexp.Split();
 						// Check that the left is a simple enough variable reference
-						VariableName leftVar = exps[0].VariableName;
+						VariableName leftVar = exps[0].AsVariableName();
 						if (leftVar != null) {
 							// Check that the right is a sub-command plan.
-							IQueryPlanNode rightPlan = exps[1].QueryPlanNode;
+							IQueryPlanNode rightPlan = exps[1].AsQueryPlanNode();
 							if (rightPlan != null) {
 								// Finally, check if the plan is correlated or not
 								IList<CorrelatedVariable> cv = rightPlan.DiscoverCorrelatedVariables(1, new List<CorrelatedVariable>());
@@ -795,8 +795,8 @@ namespace Deveel.Data.QueryPlanning {
 					Expression[] exps = expr.Split();
 
 					// Get the list of variables in the left hand and right hand side
-					VariableName lhsVar = exps[0].VariableName;
-					VariableName rhsVar = exps[1].VariableName;
+					VariableName lhsVar = exps[0].AsVariableName();
+					VariableName rhsVar = exps[1].AsVariableName();
 
 					// Work out how optimizable the join is.
 					// The calculation is as follows;
@@ -1372,8 +1372,8 @@ namespace Deveel.Data.QueryPlanning {
 				public override void AddToPlanTree() {
 					Operator op = (Operator)expression.Last;
 					Expression[] exps = expression.Split();
-					VariableName leftVar = exps[0].VariableName;
-					IQueryPlanNode rightPlan = exps[1].QueryPlanNode;
+					VariableName leftVar = exps[0].AsVariableName();
+					IQueryPlanNode rightPlan = exps[1].AsQueryPlanNode();
 
 					// Find the table source for this variable
 					PlanTableSource tableSource = qtsp.FindTableSource(leftVar);
@@ -1417,8 +1417,8 @@ namespace Deveel.Data.QueryPlanning {
 					Expression[] exps = expression.Split();
 
 					// Get the list of variables in the left hand and right hand side
-					VariableName lhsVar = exps[0].VariableName;
-					VariableName rhsVar = exps[1].VariableName;
+					VariableName lhsVar = exps[0].AsVariableName();
+					VariableName rhsVar = exps[1].AsVariableName();
 					IList<VariableName> lhsVars = exps[0].AllVariables;
 					IList<VariableName> rhsVars = exps[1].AllVariables;
 

@@ -42,7 +42,7 @@ namespace Deveel.Data.QueryPlanning {
 
 			// If the rightExpression is a simple variable then we have the option
 			// of optimizing this join by putting the smallest table on the LHS.
-			VariableName rhsVar = rightExpression.VariableName;
+			VariableName rhsVar = rightExpression.AsVariableName();
 			VariableName lhsVar = leftVar;
 			Operator op = joinOp;
 			if (rhsVar != null) {

@@ -154,7 +154,7 @@ namespace Deveel.Data.Sql {
 				tab_name = tname.Name;
 			}
 
-			int matches_found = 0;
+			int matchesFound = 0;
 			// Find matches in our list of tables sources,
 			foreach (IFromTableSource table in tableList) {
 				int rcc = table.ResolveColumnCount(null, sch_name, tab_name, col_name);

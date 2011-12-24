@@ -45,7 +45,7 @@ namespace Deveel.Data.QueryPlanning {
 			// Perform the pattern search expression on the table.
 			// Split the expression,
 			Expression[] exps = expression.Split();
-			VariableName lhsVar = exps[0].VariableName;
+			VariableName lhsVar = exps[0].AsVariableName();
 			if (lhsVar != null) {
 				// LHS is a simple variable so do a simple select
 				Operator op = (Operator)expression.Last;
