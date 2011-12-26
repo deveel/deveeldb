@@ -45,6 +45,8 @@ namespace Deveel.Diagnostics {
 		private TextWriter output;
 		private FileStream outputStream;
 
+		private bool closed;
+
 		///<summary>
 		/// Constructs the log writer.
 		///</summary>
@@ -141,17 +143,25 @@ namespace Deveel.Diagnostics {
 		/// <inheritdoc/>
 		public override void Close() {
 			lock (this) {
-				Flush();
-				output.Close();
-				if (outputStream != null)
-					outputStream.Dispose();
-				outputStream = null;
+				try {
+					Flush();
+					output.Close();
+					if (outputStream != null)
+						outputStream.Dispose();
+					outputStream = null;
+				} finally {
+					closed = true;
+				}
 			}
 		}
 
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
-				Close();
+				if (!closed)
+					Close();
+				if (output != null)
+					output.Dispose();
+				output = null;
 			}
 			base.Dispose(disposing);
 		}

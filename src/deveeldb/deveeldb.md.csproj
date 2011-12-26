@@ -24,7 +24,8 @@
     <ConsolePause>false</ConsolePause>
     <CustomCommands>
       <CustomCommands>
-        <Command type="BeforeBuild" command="..\..\lib\csharpcc\csharpcc.exe -OUTPUT_DIRECTORY=&quot;${ProjectDir}\Deveel.Data.Sql&quot; ${ProjectDir}\Deveel.Data.Sql\SQL.csc" />
+        <Command type="BeforeBuild" command="..\..\util\csharpcc\csharpcc.exe -OUTPUT_DIRECTORY=&quot;${ProjectDir}\Deveel.Data.Sql&quot; ${ProjectDir}\Deveel.Data.Sql\SQL.csc" />
+        <Command type="BeforeBuild" command="..\..\util\sqlstategen\sqlstategen.exe -i ${ProjectDir}\sqlstates.xml -o ${ProjectDir}\Deveel.Data\SqlState_States.cs" />
       </CustomCommands>
     </CustomCommands>
   </PropertyGroup>
@@ -54,8 +55,6 @@
     <Compile Include="Deveel.Data\BlockIndexBase.cs" />
     <Compile Include="Deveel.Data\ByColumn.cs" />
     <Compile Include="Deveel.Data\ByteLongObject.cs" />
-    <Compile Include="Deveel.Data\CaseCondition.cs" />
-    <Compile Include="Deveel.Data\CaseExpression.cs" />
     <Compile Include="Deveel.Data\Caster.cs" />
     <Compile Include="Deveel.Data\CastHelper.cs" />
     <Compile Include="Deveel.Data\CollatedBaseSearch.cs" />
@@ -123,7 +122,6 @@
     <Compile Include="Deveel.Data\ICursorContext.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\IDatabaseProcedure.cs" />
-    <Compile Include="Deveel.Data\IDataTableListener.cs" />
     <Compile Include="Deveel.Data\IExpressionPreparer.cs" />
     <Compile Include="Deveel.Data\IGroupResolver.cs" />
     <Compile Include="Deveel.Data\IIndex.cs" />
@@ -414,7 +412,6 @@
     <Compile Include="Deveel.Data.Sql\CreateSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTriggerStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\CreateTypeStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CreateViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CursorFetch.cs" />
@@ -426,7 +423,6 @@
     <Compile Include="Deveel.Data.Sql\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropTriggerStatement.cs" />
-    <Compile Include="Deveel.Data.Sql\DropTypeStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql\DropViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql\FetchStatement.cs" />
@@ -459,7 +455,6 @@
     <Compile Include="Deveel.Data.Sql\SqlTypeAttribute.cs" />
     <Compile Include="Deveel.Data.Sql\Statement.cs" />
     <Compile Include="Deveel.Data.Sql\StatementCache.cs" />
-    <Compile Include="Deveel.Data.Sql\StatementContext.cs" />
     <Compile Include="Deveel.Data.Sql\StatementEventArgs.cs" />
     <Compile Include="Deveel.Data.Sql\StatementTree.cs" />
     <Compile Include="Deveel.Data.Sql\TNamedUserDefinedType.cs" />

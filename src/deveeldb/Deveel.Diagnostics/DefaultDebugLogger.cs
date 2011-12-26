@@ -53,6 +53,12 @@ namespace Deveel.Diagnostics {
 		/// </summary>
 		private TextWriter output;
 
+		private bool disposed;
+
+		~DefaultDebugLogger() {
+			Dispose(false);
+		}
+
 		private void Write(LogEntry entry) {
 			lock (debugLock) {
 				if (output == null)
@@ -252,8 +258,21 @@ namespace Deveel.Diagnostics {
 		}
 
 		public void Dispose() {
-			if (output != null)
-				output.Dispose();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (!disposed) {
+				if (disposing) {
+					if (output != null) {
+						output.Close();
+						output.Dispose();
+					}
+				}
+
+				disposed = true;
+			}
 		}
 
 		private class EmptyTextWriter : TextWriter {

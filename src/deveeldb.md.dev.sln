@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb.md", "deveeldb\deveeldb.md.csproj", "{342875E7-86AE-4AAA-8CBC-895B73B5D0EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-nunit.md", "deveeldb-nunit\deveeldb-nunit.md.csproj", "{DB44FDEC-04A8-4FD6-9914-2DEE72665044}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{342875E7-86AE-4AAA-8CBC-895B73B5D0EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{342875E7-86AE-4AAA-8CBC-895B73B5D0EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{342875E7-86AE-4AAA-8CBC-895B73B5D0EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{342875E7-86AE-4AAA-8CBC-895B73B5D0EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB44FDEC-04A8-4FD6-9914-2DEE72665044}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB44FDEC-04A8-4FD6-9914-2DEE72665044}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB44FDEC-04A8-4FD6-9914-2DEE72665044}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB44FDEC-04A8-4FD6-9914-2DEE72665044}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = deveeldb\deveeldb.md.csproj
+	EndGlobalSection
+EndGlobal

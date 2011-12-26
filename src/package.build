@@ -1,22 +1,24 @@
 <?xml version="1.0"?>
 <project name="deveeldb" default="-package-all">
-	<include buildfile="deveeldb.build" />
+	<include buildfile="common.build" />
+	<include buildfile="deveeldb.build"/>
+	<property name="compression" value="both"/>
 	<property name="package" value="all" />
 	<property name="package.name" value="" />
 	<target name="package">
-		<if test="${package == 'src'}">
+		<if test="${package == 'src' or package == 'sources'}">
 			<if test="${package.name == ''}">
 				<property name="package.name" value="${project::get-name()}-${version}-${system}-${platform}-src" />
 			</if>
 			<call target="-package-src" />
 		</if>
-		<if test="${package == 'bin'}">
+		<if test="${package == 'bin' or package == 'binaries'}">
 			<if test="${package.name == ''}">
 				<property name="package.name" value="${project::get-name()}-${version}-${system}-${platform}-bin" />
 			</if>
 			<call target="-package-bin" />
 		</if>
-		<if test="${package == 'doc'}">
+		<if test="${package == 'doc' or package == 'documents'}">
 			<if test="${package.name == ''}">
 				<property name="package.name" value="${project::get-name()}-${version}-doc" />
 			</if>
@@ -31,67 +33,156 @@
 	</target>
 	<target name="-package-src">
 		<echo message="packaging project sources"/>
-		<property name="temp-path1" value="${path::combine(path::get-full-path(dist-path), 'temp1')}" readonly="True" />
-		<property name="temp-path2" value="${path::combine(path::get-full-path(dist-path), 'temp2')}" readonly="True" />
-		<!-- Build File: 'deveeldb/kernel.build' -->
-		<nant buildfile="deveeldb/kernel.build" target="-package-src" inheritall="false">
-			<properties>
-				<property name="dist-path" value="${temp-path1}" readonly="true" />
-				<property name="package.name" value="cloudb-temp" readonly="true" />
-				<property name="standalone" value="false" readonly="true" />
-			</properties>
-		</nant>
-		<untar src="${temp-path1}/deveel-temp.tar.gz" dest="${temp-path2}/deveeldb" compression="gzip" />
-		<delete dir="${temp-path1}" />
-		<tar destfile="${dist-path}/${package.name}.tar.gz" compression="gzip">
-			<fileset basedir="${temp-path2}">
-				<include name="cloudb/**" />
-			</fileset>
-			<fileset basedir="../">
-				<include name="COPYING" />
-				<include name="COPYING.HEADER" />
-				<include name="README" />
-			</fileset>
-			<fileset basedir="../src">
-				<include name="deveeldb.build" />
-				<include name="common.build" />
-				<include name="build.bat" />
-				<include name="build"/>
-			</fileset>
-		</tar>
-		<delete dir="${temp-path2}" />
-			<target name="-package-bin" depends="all">
-		<echo message="packaging project binaries"/>
-		<tar destfile="${dist-path}/${package.name}.tar.gz" compression="gzip">
-			<fileset basedir="${output}">
-				<include name="*" />
-			</fileset>
-		</tar>
+		<if test="${compression == 'gunzip' or compression == 'both'}">
+			<tar destfile="${dist-path}/${package.name}.tar.gz" compression="GZip">
+				<fileset basedir="${deveeldb.root}">
+					<include name="nant/**"/>
+				</fileset>
+				<fileset basedir="${deveeldb.root}">
+					<include name="util/csharpcc/**"/>
+					<include name="util/sqlstategen/**"/>
+				</fileset>
+				<fileset basedir="${deveeldb.root}">
+					<include name="build.bat"/>
+					<include name="build"/>
+				</fileset>
+				<fileset basedir="${sources}" prefix="src">
+					<include name="build"/>
+					<include name="build.bat"/>
+				</fileset>
+				<fileset basedir="${sources}" prefix="src">
+					<include name="deveeldb.vs2010.sln"/>
+					<include name="deveeldb.md.sln"/>
+					<include name="deveeldb.build"/>
+					<include name="common.build"/>
+				</fileset>
+				<fileset basedir="${sources}/deveeldb" prefix="src/deveeldb">
+					<include name="Properties/AssemblyInfo.cs"/>
+					<include name="Deveel.Data/*.cs"/>
+					<include name="Deveel.Data.Caching/*.cs"/>
+					<include name="Deveel.Data.Client/*.cs"/>
+					<include name="Deveel.Data.Control/*.cs"/>
+					<include name="Deveel.Data.Functions/*.cs"/>
+					<include name="Deveel.Data.Mapping/*.cs"/>
+					<include name="Deveel.Data.Procedures/*.cs"/>
+					<include name="Deveel.Data.Protocol/*.cs"/>
+					<include name="Deveel.Data.QueryPlanning/*.cs"/>
+					<include name="Deveel.Data.Sql/*.cs"/>
+					<include name="Deveel.Data.Sql/SQL.csc"/>
+					<include name="Deveel.Data.Store/*.cs"/>
+					<include name="Deveel.Data.Text/*.cs"/>
+					<include name="Deveel.Data.Util/*.cs"/>
+					<include name="Deveel.Diagnostics/*.cs"/>
+					<include name="Deveel.Math/*.cs"/>
+					<include name="Deveel.Math/Messages.resx"/>
+					<include name="kernel.build"/>
+					<include name="deveeldb.vs2010.csproj"/>
+					<include name="deveeldb.md.csproj"/>
+					<include name="deveeldb.snk"/>
+					<include name="sqlstates.xml"/>
+				</fileset>
+				<fileset basedir="${sources}/deveeldb-nunit" prefix="src/deveeldb-nunit">
+					<include name="Properties/AssemblyInfo.cs"/>
+					<include name="Deveel.Data/*.cs"/>
+					<include name="Deveel.Data.Client/*.cs"/>
+					<include name="Deveel.Data.Control/*.cs"/>
+					<include name="Deveel.Data.Sql/*.cs"/>
+					<include name="test.build"/>
+					<include name="deveeldb-nunit.vs2010.csproj"/>
+					<include name="deveeldb-nunit.md.csproj"/>
+					<include name="deveeldb-nunit.snk"/>
+				</fileset>
+			</tar>
+		</if>
+		<if test="${compression == 'zip' or compression == 'both'}">
+		</if>
 	</target>
-		<target name="-package-all" depends="all">
+	<target name="-package-bin" depends="all">
+		<echo message="packaging project binaries"/>
+		<if test="${compression == 'gzip' or compression == 'both'}">
+			<tar destfile="${dist-path}/${package.name}.tar.gz">
+				<fileset basedir="${output}" prefix="deveeldb">
+					<include name="deveeldb.dll"/>
+				</fileset>
+				<fileset basedir="${output}" prefix="tests">
+					<include name="deveeldb.dll"/>
+					<include name="deveeldb-nunit.dll"/>
+					<include name="nunit.framework.dll"/>
+				</fileset>
+			</tar>
+		</if>
+	</target>
+	<target name="-package-all" depends="all">
 		<echo message="packaging project sources and binaries"/>
-		<property name="package.name.bak" value="${package.name}" />
-		<property name="package.name" value="src-temp" />
-		<call target="-package-src" />
-		<untar src="${dist-path}/${package.name}.tar.gz" dest="${dist-path}/src" compression="gzip" />
-		<delete file="${dist-path}/${package.name}.tar.gz" />
-		<property name="package.name" value="${package.name.bak}" />
-		<tar destfile="${dist-path}/${package.name}.tar.gz">
-			<fileset basedir="${output}" prefix="bin">
-				<include name="*" />
-			</fileset>
-			<fileset basedir="${dist-path}/src" prefix="src">
-				<include name="**" />
-				<exclude name="README" />
-				<exclude name="COPYING" />
-				<exclude name="COPYING.HEADER" />
-			</fileset>
-			<fileset basedir="${dist-path}/src">
-				<include name="README" />
-				<include name="COPYING" />
-				<include name="COPYING.HEADER" />
-			</fileset>
-		</tar>
-		<delete dir="${dist-path}/src" />
+		<if test="${compression == 'gzip' or compression == 'both'}">
+			<tar destfile="${dist-path}/${package.name}.tar.gz" compression="GZip">
+				<fileset basedir="${deveeldb.root}">
+					<include name="nant/**"/>
+				</fileset>
+				<fileset basedir="${deveeldb.root}">
+					<include name="util/csharpcc/**"/>
+					<include name="util/sqlstategen/**"/>
+				</fileset>
+				<fileset basedir="${deveeldb.root}">
+					<include name="build.bat"/>
+					<include name="build"/>
+				</fileset>
+				<fileset basedir="${sources}" prefix="src">
+					<include name="build"/>
+					<include name="build.bat"/>
+				</fileset>
+				<fileset basedir="${sources}" prefix="src">
+					<include name="deveeldb.vs2010.sln"/>
+					<include name="deveeldb.md.sln"/>
+					<include name="deveeldb.build"/>
+					<include name="common.build"/>
+				</fileset>
+				<fileset basedir="${sources}/deveeldb" prefix="src/deveeldb">
+					<include name="Properties/AssemblyInfo.cs"/>
+					<include name="Deveel.Data/*.cs"/>
+					<include name="Deveel.Data.Caching/*.cs"/>
+					<include name="Deveel.Data.Client/*.cs"/>
+					<include name="Deveel.Data.Control/*.cs"/>
+					<include name="Deveel.Data.Functions/*.cs"/>
+					<include name="Deveel.Data.Mapping/*.cs"/>
+					<include name="Deveel.Data.Procedures/*.cs"/>
+					<include name="Deveel.Data.Protocol/*.cs"/>
+					<include name="Deveel.Data.QueryPlanning/*.cs"/>
+					<include name="Deveel.Data.Sql/*.cs"/>
+					<include name="Deveel.Data.Sql/SQL.csc"/>
+					<include name="Deveel.Data.Store/*.cs"/>
+					<include name="Deveel.Data.Text/*.cs"/>
+					<include name="Deveel.Data.Util/*.cs"/>
+					<include name="Deveel.Diagnostics/*.cs"/>
+					<include name="Deveel.Math/*.cs"/>
+					<include name="Deveel.Math/Messages.resx"/>
+					<include name="kernel.build"/>
+					<include name="deveeldb.vs2010.csproj"/>
+					<include name="deveeldb.md.csproj"/>
+					<include name="deveeldb.snk"/>
+					<include name="sqlstates.xml"/>
+				</fileset>
+				<fileset basedir="${sources}/deveeldb-nunit" prefix="src/deveeldb-nunit">
+					<include name="Properties/AssemblyInfo.cs"/>
+					<include name="Deveel.Data/*.cs"/>
+					<include name="Deveel.Data.Client/*.cs"/>
+					<include name="Deveel.Data.Control/*.cs"/>
+					<include name="Deveel.Data.Sql/*.cs"/>
+					<include name="test.build"/>
+					<include name="deveeldb-nunit.vs2010.csproj"/>
+					<include name="deveeldb-nunit.md.csproj"/>
+					<include name="deveeldb-nunit.snk"/>
+				</fileset>
+				<!-- now the binaries -->
+				<fileset basedir="${output}" prefix="deveeldb">
+					<include name="deveeldb.dll"/>
+				</fileset>
+				<fileset basedir="${output}" prefix="tests">
+					<include name="deveeldb.dll"/>
+					<include name="deveeldb-nunit.dll"/>
+					<include name="nunit.framework.dll"/>
+				</fileset>
+			</tar>
+		</if>
 	</target>
 </project>

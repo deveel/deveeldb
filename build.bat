@@ -1,2 +1,2 @@
 @echo off
-"%~dp0src\build.bat" %* -D:libs="%~dp0libs"
+"%~dp0src\build.bat" %* -D:lib="%~dp0lib" -D:deveeldb.root=%~dp0
