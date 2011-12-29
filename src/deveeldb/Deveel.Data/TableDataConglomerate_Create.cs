@@ -289,8 +289,8 @@ namespace Deveel.Data {
 			try {
 				transaction.Commit();
 			} catch (TransactionException e) {
-				Debug.WriteException(e);
-				throw new ApplicationException("Transaction Exception creating conglomerate.");
+				Logger.Error(this, e);
+				throw new ApplicationException("Transaction Exception creating conglomerate.", e);
 			}
 		}
 
@@ -379,8 +379,8 @@ namespace Deveel.Data {
 			try {
 				transaction.Commit();
 			} catch (TransactionException e) {
-				Debug.WriteException(e);
-				throw new ApplicationException("Transaction Exception initializing conglomerate.");
+				Logger.Error(this, e);
+				throw new ApplicationException("Transaction Exception initializing conglomerate.", e);
 			}
 
 		}

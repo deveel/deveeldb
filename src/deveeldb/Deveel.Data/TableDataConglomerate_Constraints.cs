@@ -17,8 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data {
 	public sealed partial class TableDataConglomerate {
 		/// <summary>
@@ -484,8 +482,7 @@ namespace Deveel.Data {
 							}
 						} else {
 							// NOTE: This error will pass the row by default
-							transaction.Debug.Write(DebugLevel.Error,
-										typeof(TableDataConglomerate),
+							transaction.Logger.Error(typeof(TableDataConglomerate),
 										DeferredString(deferred) + " check constraint violation (" +
 										check.Name + ") - '" + exp.Text +
 										"' returned a non boolean or NULL result.");

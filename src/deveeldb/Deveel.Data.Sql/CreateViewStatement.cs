@@ -57,7 +57,7 @@ namespace Deveel.Data.Sql {
 			VariableName[] originalVars = fromSet.GenerateResolvedVariableList();
 			VariableName[] newColumnVars = new VariableName[originalVars.Length];
 
-			if (sz > 0) {
+			if (sz > 0 && col_list != null) {
 				if (sz != originalVars.Length)
 					throw new StatementException("Column list is not the same size as the columns selected.");
 
@@ -113,7 +113,7 @@ namespace Deveel.Data.Sql {
 			try {
 				planCopy = (IQueryPlanNode)plan.Clone();
 			} catch (Exception e) {
-				context.Debug.WriteException(e);
+				context.Logger.Error(this, e);
 				throw new DatabaseException("Clone error: " + e.Message);
 			}
 

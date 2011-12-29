@@ -144,8 +144,8 @@ namespace Deveel.Data {
 					}
 
 				} catch (IOException e) {
-					Debug.WriteException(e);
-					throw new ApplicationException("IO Error: " + e.Message);
+					Logger.Error(this, e);
+					throw new ApplicationException("IO Error: " + e.Message, e);
 				}
 
 			}
@@ -198,8 +198,8 @@ namespace Deveel.Data {
 					// The journal entry is discarded, the indices do not need to be updated
 					// to reflect this rollback.
 				} catch (IOException e) {
-					Debug.WriteException(e);
-					throw new ApplicationException("IO Error: " + e.Message);
+					Logger.Error(this, e);
+					throw new ApplicationException("IO Error: " + e.Message, e);
 				}
 			}
 		}
@@ -365,7 +365,7 @@ namespace Deveel.Data {
 							TableDataConglomerate.DeferredString(constraint.Deferred) +
 							" foreign key constraint violation on update (" +
 							constraint.Name + ") Columns = " +
-							constraint.TableName.ToString() + "( " +
+							constraint.TableName + "( " +
 							TableDataConglomerate.StringColumnList(constraint.Columns) +
 							" ) -> " + constraint.ReferencedTableName + "( " +
 							TableDataConglomerate.StringColumnList(constraint.ReferencedColumns) +
@@ -604,20 +604,20 @@ namespace Deveel.Data {
 				}
 
 				// Add to the master.
-				int row_index;
+				int rowIndex;
 				try {
-					row_index = mtds.AddRow(dataRow);
+					rowIndex = mtds.AddRow(dataRow);
 				} catch (IOException e) {
-					mtds.Debug.WriteException(e);
-					throw new ApplicationException("IO Error: " + e.Message);
+					mtds.Logger.Error(this, e);
+					throw new ApplicationException("IO Error: " + e.Message, e);
 				}
 
 				// Note this doesn't need to be synchronized because we are exclusive on
 				// this table.
 				// Add this change to the table journal.
-				tableJournal.AddEntry(JournalCommandType.AddRow, row_index);
+				tableJournal.AddEntry(JournalCommandType.AddRow, rowIndex);
 
-				return row_index;
+				return rowIndex;
 			}
 
 			public void RemoveRow(int rowIndex) {
@@ -666,8 +666,8 @@ namespace Deveel.Data {
 				try {
 					new_row_index = mtds.AddRow(dataRow);
 				} catch (IOException e) {
-					mtds.Debug.WriteException(e);
-					throw new ApplicationException("IO Error: " + e.Message);
+					mtds.Logger.Error(this, e);
+					throw new ApplicationException("IO Error: " + e.Message, e);
 				}
 
 				// Note this doesn't need to be synchronized because we are exclusive on

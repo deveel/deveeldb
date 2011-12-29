@@ -1,3 +1,9 @@
-﻿2009-10-31  Antonello Provenzano  <antonello@deveel.com>
+﻿2011-12-27  Antonello Provenzano  <antonello@deveel.com>
+	* DebugLevel.cs: renamed to LogLevel
+	* IDebugLogger.cs: renamed to ILogger
+	* ILogger.cs: refactoring to leave only one logging
+	method ("Log(LogErntry)")
+
+2009-10-31  Antonello Provenzano  <antonello@deveel.com>
 	* IDebugLogger.cs: added method Init to delegate
 	the initialization logic.

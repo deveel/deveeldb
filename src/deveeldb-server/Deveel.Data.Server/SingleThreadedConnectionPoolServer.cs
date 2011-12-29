@@ -190,13 +190,15 @@ namespace Deveel.Data.Server {
 						// the list.
 						try {
 							connection_state.Connection.Close();
-						} catch (IOException e2) { /* ignore */ }
+						} catch (IOException) {
+							 /* ignore */
+						}
+
 						server_connections_list.RemoveAt(i);
 
 						// This happens if the connection closes.
-						parent.controller.Debug.Write(DebugLevel.Information, this, "IOException generated while checking connections, " +
-						                                          "removing provider.");
-						parent.controller.Debug.WriteException(DebugLevel.Information, e);
+						parent.controller.Logger.Info(this, "IOException generated while checking connections, removing provider.");
+						parent.controller.Logger.Info(this, e);
 					}
 				}
 			}
@@ -215,7 +217,7 @@ namespace Deveel.Data.Server {
 						// Process the next request that's pending.
 						current_state.Connection.ProcessRequest();
 					} catch (IOException ex) {
-						farmer.parent.controller.Debug.WriteException(DebugLevel.Information, ex);
+						farmer.parent.controller.Logger.Info(this, ex);
 					} finally {
 						// Then clear the state
 						// This makes sure that this provider may accept new
@@ -272,8 +274,8 @@ namespace Deveel.Data.Server {
 					                          		} catch (IOException e2) {
 					                          			/* ignore */
 					                          		}
-					                          		parent.controller.Debug.Write(DebugLevel.Alert, this, "Closed because ping failed.");
-					                          		parent.controller.Debug.WriteException(DebugLevel.Alert, ex);
+					                          		parent.controller.Logger.Log(LogLevel.Alert, this, "Closed because ping failed.");
+					                          		parent.controller.Logger.Log(LogLevel.Alert, this, ex);
 					                          	} finally {
 					                          		connection_state.ClearProcessingRequest();
 					                          	}
@@ -302,8 +304,8 @@ namespace Deveel.Data.Server {
 			//            try {
 			//                connection_state.Connection.Close();
 			//            } catch (IOException e2) { /* ignore */ }
-			//            farmer.parent.controller.Debug.Write(DebugLevel.Alert, this, "Closed because ping failed.");
-			//            farmer.parent.controller.Debug.WriteException(DebugLevel.Alert, ex);
+			//            farmer.parent.controller.Logger.Write(DebugLevel.Alert, this, "Closed because ping failed.");
+			//            farmer.parent.controller.Logger.WriteException(DebugLevel.Alert, ex);
 			//        } finally {
 			//            connection_state.ClearProcessingRequest();
 			//        }
@@ -352,7 +354,7 @@ namespace Deveel.Data.Server {
 
 				int method_poll_wait_time = poll_wait_time;
 
-				parent.controller.Debug.Write(DebugLevel.Message, this, "Polling frequency: " + method_poll_wait_time + "ms.");
+				parent.controller.Logger.Message(this, "Polling frequency: " + method_poll_wait_time + "ms.");
 
 				while (true) {
 					try {
@@ -398,8 +400,8 @@ namespace Deveel.Data.Server {
 						DisplayStatistics();
 
 					} catch (Exception e) {
-						parent.controller.Debug.Write(DebugLevel.Error, this, "Connection Pool Farmer Error");
-						parent.controller.Debug.WriteException(e);
+						parent.controller.Logger.Error(this, "Connection Pool Farmer Error");
+						parent.controller.Logger.Error(this, e);
 
 						// Wait for two seconds (so debug log isn't spammed)
 						lock (this) {

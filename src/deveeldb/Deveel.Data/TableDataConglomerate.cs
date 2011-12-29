@@ -235,8 +235,8 @@ namespace Deveel.Data {
 			get { return name; }
 		}
 
-		internal IDebugLogger Debug {
-			get { return System.Debug; }
+		internal Logger Logger {
+			get { return System.Logger; }
 		}
 
 		// ---------- Conglomerate state methods ----------
@@ -344,7 +344,7 @@ namespace Deveel.Data {
 			}
 
 			// If not exists, then generate an error message
-			Debug.Write(DebugLevel.Error, this, "Couldn't find table source - resource name: " + tableStr + " table_id: " + tableId);
+			Logger.Error(this, "Couldn't find table source - resource name: " + tableStr + " table_id: " + tableId);
 
 			return null;
 		}
@@ -754,9 +754,8 @@ namespace Deveel.Data {
 				// Return the large object reference
 				return reference;
 			} catch (IOException e) {
-				Debug.WriteException(e);
-				throw new Exception("IO Error when creating blob: " +
-										   e.Message);
+				Logger.Error(this, e);
+				throw new Exception("IO Error when creating blob: " +e.Message, e);
 			}
 		}
 
@@ -844,7 +843,7 @@ namespace Deveel.Data {
 					// And return it.
 					return masterTable;
 				} catch (IOException e) {
-					Debug.WriteException(e);
+					Logger.Error(this, e);
 					throw new ApplicationException("Unable to create master table '" + tableInfo.Name + "' - " + e.Message);
 				}
 			}
@@ -863,7 +862,7 @@ namespace Deveel.Data {
 
 					return temporary;
 				} catch(Exception e) {
-					Debug.WriteException(e);
+					Logger.Error(this, e);
 					throw new ApplicationException("Unable to create temporary table '" + tableInfo.Name + "' - " + e.Message);
 				}
 			}
@@ -917,7 +916,7 @@ namespace Deveel.Data {
 					// And return it.
 					return masterTable;
 				} catch (IOException e) {
-					Debug.WriteException(e);
+					Logger.Error(this, e);
 					throw new Exception("Unable to copy master table '" + srcMasterTable.TableInfo.Name + "' - " + e.Message);
 				}
 			}

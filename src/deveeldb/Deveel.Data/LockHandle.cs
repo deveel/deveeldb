@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Text;
 
 using Deveel.Diagnostics;
 
@@ -44,7 +43,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private bool unlocked;
 
-		private readonly IDebugLogger logger;
+		private readonly Logger logger;
 
 		/// <summary>
 		/// 
@@ -52,7 +51,7 @@ namespace Deveel.Data {
 		/// <param name="lockCount">The number of locks that will be write into
 		/// this handle.</param>
 		/// <param name="logger"></param>
-		internal LockHandle(int lockCount, IDebugLogger logger) {
+		internal LockHandle(int lockCount, Logger logger) {
 			lockList = new Lock[lockCount];
 			lockIndex = 0;
 			unlocked = false;
@@ -131,7 +130,7 @@ namespace Deveel.Data {
 		public void Dispose() {
 			if (!unlocked) {
 				UnlockAll();
-				logger.Write(DebugLevel.Error, this, "Finalize released a table Lock - " +
+				logger.Error(this, "Finalize released a table Lock - " +
 				  "This indicates that there is a serious error.  Locks should " +
 				  "only have a very short life span.  The 'UnlockAll' method should " +
 				  "have been called before finalization.  " + ToString());

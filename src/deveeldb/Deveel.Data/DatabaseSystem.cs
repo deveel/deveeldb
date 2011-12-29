@@ -21,7 +21,6 @@ using System.Threading;
 using Deveel.Data.Caching;
 using Deveel.Data.Control;
 using Deveel.Data.Sql;
-using Deveel.Diagnostics;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -132,9 +131,9 @@ namespace Deveel.Data {
 				// Set up the statement cache.
 				if (config.GetBooleanValue("statement_cache", true)) {
 					statementCache = new StatementCache(this, 127, 140, 20);
-					Debug.Write(DebugLevel.Message, typeof(DatabaseSystem), "statement cache ENABLED");
+					Logger.Message(this, "statement cache ENABLED");
 				} else {
-					Debug.Write(DebugLevel.Message, typeof(DatabaseSystem), "statement cache DISABLED");
+					Logger.Message(this, "statement cache DISABLED");
 				}
 
 				// The maximum number of worker threads.
@@ -142,7 +141,7 @@ namespace Deveel.Data {
 				if (max_worker_threads <= 0)
 					max_worker_threads = 1;
 
-				Debug.Write(DebugLevel.Message, typeof (DatabaseSystem), "Max worker threads set to: " + max_worker_threads);
+				Logger.Message(this, "Max worker threads set to: " + max_worker_threads);
 				workerPool = new WorkerPool(this, max_worker_threads);
 
 				// Should we be logging commands?
@@ -271,7 +270,7 @@ namespace Deveel.Data {
 
 			internal ShutdownThread(DatabaseSystem ds) {
 				this.ds = ds;
-				thread = new Thread(new ThreadStart(Run));
+				thread = new Thread(Run);
 				thread.Name = "Shutdown Thread";
 			}
 
@@ -309,7 +308,7 @@ namespace Deveel.Data {
 
 				EventHandler callback = ds.shutdownCallback;
 				if (callback == null) {
-					ds.Debug.Write(DebugLevel.Warning, this, "No shut down callbacks registered!");
+					ds.Logger.Warning(this, "No shut down callbacks registered!");
 				} else {
 					callback(this, EventArgs.Empty);
 					ds.shutdownCallback = null;

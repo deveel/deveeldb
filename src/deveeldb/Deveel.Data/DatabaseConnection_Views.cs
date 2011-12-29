@@ -39,8 +39,8 @@ namespace Deveel.Data {
 			try {
 				view_manager.DefineView(view, query, User);
 			} catch (DatabaseException e) {
-				Debug.WriteException(e);
-				throw new Exception("Database Exception: " + e.Message);
+				Logger.Error(this, e);
+				throw new Exception("Database Exception: " + e.Message, e);
 			}
 
 		}
@@ -61,8 +61,8 @@ namespace Deveel.Data {
 			try {
 				return view_manager.DeleteView(viewName);
 			} catch (DatabaseException e) {
-				Debug.WriteException(e);
-				throw new Exception("Database Exception: " + e.Message);
+				Logger.Error(this, e);
+				throw new Exception("Database Exception: " + e.Message, e);
 			}
 
 		}

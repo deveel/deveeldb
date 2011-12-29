@@ -123,13 +123,12 @@ namespace Deveel.Data {
 					try {
 						InternalDbHelper.DisposeDbConnection(db_connection);
 					} catch (Exception e) {
-						conn.Debug.Write(DebugLevel.Error, this, "Error disposing internal connection.");
-						conn.Debug.WriteException(DebugLevel.Error, e);
+						conn.Logger.Error(this, "Error disposing internal connection.");
+						conn.Logger.Error(this, e);
 						// We don't wrap this exception
 					}
 				}
 			}
-
 		}
 	}
 }

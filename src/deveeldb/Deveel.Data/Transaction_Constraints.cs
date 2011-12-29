@@ -16,8 +16,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data {
 	public partial class Transaction {
 		// ----- Setting/Querying constraint information -----
@@ -884,11 +882,9 @@ namespace Deveel.Data {
 							} catch (Exception e) {
 								// We weren't able to deserialize the expression so report the
 								// error to the log
-								transaction.Debug.Write(DebugLevel.Warning, typeof(Transaction),
-											"Unable to deserialize the check expression.  " +
-											"The error is: " + e.Message);
-								transaction.Debug.Write(DebugLevel.Warning, typeof(Transaction),
-											"Parsing the check expression instead.");
+								transaction.Logger.Warning(typeof (Transaction),
+								                           "Unable to deserialize the check expression. The error is: " + e.Message);
+								transaction.Logger.Warning(typeof(Transaction), "Parsing the check expression instead.");
 							}
 						}
 					}

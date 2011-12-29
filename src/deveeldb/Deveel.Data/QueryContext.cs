@@ -25,7 +25,7 @@ namespace Deveel.Data {
 	/// An abstract implementation of <see cref="IQueryContext"/>
 	/// </summary>
 	public abstract class QueryContext : IQueryContext {
-		private readonly EmptyDebugLogger emptyLogger = new EmptyDebugLogger();
+		private readonly Logger emptyLogger = new Logger(new EmptyLogger());
 
 		/// <summary>
 		/// Any marked tables that are made during the evaluation of a query plan.
@@ -57,8 +57,8 @@ namespace Deveel.Data {
 			get { return Connection == null ? null : Connection.System.FunctionLookup; }
 		}
 
-		public virtual IDebugLogger Debug {
-			get { return Connection == null ? emptyLogger : Connection.Debug; }
+		public virtual Logger Logger {
+			get { return Connection == null ? emptyLogger : Connection.Logger; }
 		}
 
 		public bool IsExceptionState {

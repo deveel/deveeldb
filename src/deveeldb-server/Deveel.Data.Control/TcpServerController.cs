@@ -130,8 +130,8 @@ namespace Deveel.Data.Control {
 			RegisterShutdownDelegate();
 		}
 
-		public IDebugLogger Debug {
-			get { return controller.Debug; }
+		public Logger Logger {
+			get { return controller.Logger; }
 		}
 
 		internal DbController Controller {

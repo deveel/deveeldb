@@ -312,8 +312,8 @@ namespace Deveel.Data {
 						try {
 							store.store.GetArea(blockPointer).Read(buf, 0, areaSize);
 						} catch (IOException e) {
-							store.system.Debug.Write(DebugLevel.Error, this, "blockPointer = " + blockPointer);
-							store.system.Debug.WriteException(e);
+							store.system.Logger.Error(this, "blockPointer = " + blockPointer);
+							store.system.Logger.Error(this, e);
 							throw new ApplicationException("IO Error: " + e.Message);
 						}
 

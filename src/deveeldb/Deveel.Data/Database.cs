@@ -311,8 +311,8 @@ namespace Deveel.Data {
 					}
 					return false;
 				} catch (IOException e) {
-					Debug.WriteException(e);
-					throw new Exception("IO Error: " + e.Message);
+					Logger.Error(this, e);
+					throw new Exception("IO Error: " + e.Message, e);
 				}
 			}
 		}
@@ -378,11 +378,11 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Gets the <see cref="IDebugLogger"/> implementation from the parent 
+		/// Gets the <see cref="ILogger"/> implementation from the parent 
 		/// <see cref="DatabaseSystem"/> context.
 		/// </summary>
-		public IDebugLogger Debug {
-			get { return System.Debug; }
+		public Logger Logger {
+			get { return System.Logger; }
 		}
 
 		/// <summary>
@@ -657,9 +657,9 @@ namespace Deveel.Data {
 			} catch (DataException e) {
 				if (e is DbDataException) {
 					DbDataException dbDataException = (DbDataException) e;
-					Debug.Write(DebugLevel.Error, this, dbDataException.ServerErrorStackTrace);
+					Logger.Error(this, dbDataException.ServerErrorStackTrace);
 				}
-				Debug.WriteException(DebugLevel.Error, e);
+				Logger.Error(this, e);
 				throw new Exception("SQL Error: " + e.Message);
 			}
 		}
@@ -931,8 +931,8 @@ namespace Deveel.Data {
 					// Close and commit this transaction.
 					connection.Commit();
 				} catch (TransactionException e) {
-					Debug.WriteException(e);
-					throw new ApplicationException("Transaction Error: " + e.Message);
+					Logger.Error(this, e);
+					throw new ApplicationException("Transaction Error: " + e.Message, e);
 				}
 
 				connection.LockingMechanism.FinishMode(LockingMode.Exclusive);
@@ -941,11 +941,11 @@ namespace Deveel.Data {
 				// Close the conglomerate.
 				conglomerate.Close();
 			} catch (DatabaseException e) {
-				Debug.WriteException(e);
-				throw new ApplicationException("Database Exception: " + e.Message);
+				Logger.Error(this, e);
+				throw new ApplicationException("Database Exception: " + e.Message, e);
 			} catch (IOException e) {
-				Debug.WriteException(e);
-				throw new ApplicationException("IO Error: " + e.Message);
+				Logger.Error(this, e);
+				throw new ApplicationException("IO Error: " + e.Message, e);
 			}
 		}
 
@@ -1072,8 +1072,8 @@ namespace Deveel.Data {
 					conglomerate.Close();
 				}
 			} catch (IOException e) {
-				Debug.WriteException(e);
-				throw new ApplicationException("IO Error: " + e.Message);
+				Logger.Error(this, e);
+				throw new ApplicationException("IO Error: " + e.Message, e);
 			}
 
 			// Shut down the logs...
@@ -1158,7 +1158,7 @@ namespace Deveel.Data {
 		///<exception cref="DatabaseException">
 		/// If the procedure could not be resolved or there was an error retrieving it.
 		/// </exception>
-		public IDatabaseProcedure GetDbProcedure(String procedure_name, DatabaseConnection connection) {
+		public IDatabaseProcedure GetDbProcedure(string procedure_name, DatabaseConnection connection) {
 			// The procedure we are getting.
 			IDatabaseProcedure procedure_instance;
 
@@ -1168,16 +1168,16 @@ namespace Deveel.Data {
 				// Instantiate a new instance of the procedure
 				procedure_instance = (IDatabaseProcedure) Activator.CreateInstance(proc);
 
-				Debug.Write(DebugLevel.Information, this, "Getting raw class file: " + procedure_name);
+				Logger.Info(this, "Getting raw class file: " + procedure_name);
 			} catch (AccessViolationException e) {
-				Debug.WriteException(e);
+				Logger.Error(this, e);
 				throw new DatabaseException("Illegal Access: " + e.Message);
 			} catch (TypeInitializationException e) {
-				Debug.WriteException(e);
+				Logger.Error(this, e);
 				throw new DatabaseException("Instantiation Error: " + e.Message);
 			} catch (TypeLoadException e) {
-				Debug.WriteException(e);
-				throw new DatabaseException("Class Not Found: " + e.Message);
+				Logger.Error(this, e);
+				throw new DatabaseException("Type Not Found: " + e.Message);
 			}
 
 			// Return the procedure.

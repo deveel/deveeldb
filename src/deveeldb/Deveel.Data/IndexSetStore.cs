@@ -19,8 +19,6 @@ using System.IO;
 
 using Deveel.Data.Store;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// A class that manages the storage of a set of transactional index 
@@ -154,8 +152,8 @@ namespace Deveel.Data {
 						}
 
 					} catch (IOException e) {
-						system.Debug.Write(DebugLevel.Error, this, "Error when freeing old index block.");
-						system.Debug.WriteException(e);
+						system.Logger.Error(this, "Error when freeing old index block.");
+						system.Logger.Error(this, e);
 					} finally {
 						store.UnlockForWrite();
 					}
@@ -648,8 +646,8 @@ namespace Deveel.Data {
 					// Commit finished.
 
 				} catch (IOException e) {
-					system.Debug.WriteException(e);
-					throw new ApplicationException("IO Error: " + e.Message);
+					system.Logger.Error(this, e);
+					throw new ApplicationException("IO Error: " + e.Message, e);
 				}
 
 			} // lock

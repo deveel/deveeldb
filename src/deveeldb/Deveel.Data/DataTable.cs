@@ -105,8 +105,8 @@ namespace Deveel.Data {
 			}
 		}
 
-		protected internal override IDebugLogger Debug {
-			get { return connection.System.Debug; }
+		protected internal override Logger Logger {
+			get { return connection.System.Logger; }
 		}
 
 		/// <inheritdoc/>
@@ -194,7 +194,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private void CheckInExclusiveMode() {
 			if (!IsInExclusiveMode) {
-				Debug.WriteException(new Exception("Performed exclusive operation on table and not in exclusive mode!"));
+				Logger.Error(this, new Exception("Performed exclusive operation on table and not in exclusive mode!"));
 			}
 		}
 
@@ -219,7 +219,7 @@ namespace Deveel.Data {
 				Console.Error.Write(" debug_write_lock_count = " + debugWriteLockCount);
 				Console.Error.WriteLine(" isInExclusiveMode = " + IsInExclusiveMode);
 
-				Debug.WriteException(new ApplicationException("Invalid Read access on table '" + TableName + "'"));
+				Logger.Error(this, new ApplicationException("Invalid Read access on table '" + TableName + "'"));
 			}
 #endif
 		}
@@ -234,7 +234,7 @@ namespace Deveel.Data {
 #if DEBUG
 			// We have to own exactly one Write Lock, or be in exclusive mode.
 			if (!(debugWriteLockCount == 1 || IsInExclusiveMode))
-				Debug.WriteException(new ApplicationException("Invalid Read/Write access on table '" + TableName + "'"));
+				Logger.Error(this, new ApplicationException("Invalid Read/Write access on table '" + TableName + "'"));
 #endif
 		}
 
@@ -306,7 +306,7 @@ namespace Deveel.Data {
 			} else if (lockType == AccessType.Write) {
 				--debugWriteLockCount;
 			} else {
-				Debug.WriteException(new Exception("Unknown Lock type: " + lockType));
+				Logger.Error(this, new Exception("Unknown Lock type: " + lockType));
 			}
 #endif
 		}

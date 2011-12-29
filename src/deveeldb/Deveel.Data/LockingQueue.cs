@@ -17,8 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// This class is used in the <see cref="LockingMechanism"/> class.
@@ -139,7 +137,7 @@ namespace Deveel.Data {
 						}
 
 						if (blocked) {
-							Table.Debug.Write(DebugLevel.Information, this, "Blocking on Read.");
+							Table.Logger.Info(this, "Blocking on Read.");
 
 							try {
 								Monitor.Wait(this);
@@ -160,7 +158,7 @@ namespace Deveel.Data {
 						index = queue.IndexOf(@lock);
 						if (index != 0) {
 							blocked = true;
-							Table.Debug.Write(DebugLevel.Information, this, "Blocking on Write.");
+							Table.Logger.Info(this, "Blocking on Write.");
 
 							try {
 								Monitor.Wait(this);

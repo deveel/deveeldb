@@ -16,8 +16,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data {
 	public sealed partial class DatabaseConnection {
 		/// <summary>
@@ -122,7 +120,7 @@ namespace Deveel.Data {
 					}
 				}
 			} catch (Exception e) {
-				Debug.Write(DebugLevel.Error, this, "TRIGGER Exception: " + e.Message);
+				Logger.Error(this, "TRIGGER Exception: " + e.Message);
 			}
 
 		}

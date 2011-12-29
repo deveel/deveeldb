@@ -506,10 +506,6 @@
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
     <Compile Include="Deveel.Data.Util\Stats.cs" />
-    <Compile Include="Deveel.Diagnostics\DebugLevel.cs" />
-    <Compile Include="Deveel.Diagnostics\DefaultDebugLogger.cs" />
-    <Compile Include="Deveel.Diagnostics\EmptyDebugLogger.cs" />
-    <Compile Include="Deveel.Diagnostics\IDebugLogger.cs" />
     <Compile Include="Deveel.Diagnostics\Log.cs" />
     <Compile Include="Deveel.Diagnostics\LogEntry.cs" />
     <Compile Include="Deveel.Diagnostics\LogWriter.cs" />
@@ -529,6 +525,11 @@
     <Compile Include="Deveel.Math\RoundingMode.cs" />
     <Compile Include="Deveel.Math\SR.cs" />
     <Compile Include="Deveel.Math\Utils.cs" />
+    <Compile Include="Deveel.Diagnostics\DefaultLogger.cs" />
+    <Compile Include="Deveel.Diagnostics\EmptyLogger.cs" />
+    <Compile Include="Deveel.Diagnostics\ILogger.cs" />
+    <Compile Include="Deveel.Diagnostics\Logger.cs" />
+    <Compile Include="Deveel.Diagnostics\LogLevel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Deveel.Data\ChangeLog" />

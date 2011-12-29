@@ -17,8 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data {
 	sealed partial class IndexSetStore {
 		/// <summary>
@@ -98,8 +96,8 @@ namespace Deveel.Data {
 					indexes.Add(index);
 					return index;
 				} catch (IOException e) {
-					store.system.Debug.WriteException(e);
-					throw new Exception("IO Error: " + e.Message);
+					store.system.Logger.Error(this, e);
+					throw new Exception("IO Error: " + e.Message, e);
 				}
 
 			}
@@ -135,8 +133,8 @@ namespace Deveel.Data {
 							Dispose();
 						}
 					} catch (Exception e) {
-						store.system.Debug.Write(DebugLevel.Error, this, "Finalize error: " + e.Message);
-						store.system.Debug.WriteException(e);
+						store.system.Logger.Error(this, "Finalize error: " + e.Message);
+						store.system.Logger.Error(this, e);
 					}
 				}
 			}

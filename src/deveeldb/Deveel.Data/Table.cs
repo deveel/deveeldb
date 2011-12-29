@@ -38,11 +38,6 @@ namespace Deveel.Data {
 	/// </remarks>
 	public abstract class Table : ITableDataSource {
 
-		// Set to true to output query debugging information.  All table operation
-		// commands will be output.
-		protected static bool DEBUG_QUERY = true;
-
-
 		/// <summary>
 		/// Returns the <see cref="Database"/> object that this table is derived from.
 		/// </summary>
@@ -56,11 +51,11 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a <see cref="IDebugLogger"/> object that we can use to log 
+		/// Returns a <see cref="ILogger"/> object that we can use to log 
 		/// debug messages to.
 		/// </summary>
-		protected internal virtual IDebugLogger Debug {
-			get { return System.Debug; }
+		protected internal virtual Logger Logger {
+			get { return System.Logger; }
 		}
 
 		/// <summary>
@@ -380,13 +375,10 @@ namespace Deveel.Data {
 			// We know the new set is ordered by the column.
 			table.OptimisedPostSet(column);
 
-			if (DEBUG_QUERY) {
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								table + " = " + this + ".RangeSelect(" +
-								col_var + ", " + ranges + " )");
-				}
-			}
+#if DEBUG
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, table + " = " + this + ".RangeSelect(" + col_var + ", " + ranges + " )");
+#endif
 
 			return table;
 
@@ -407,7 +399,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public Table SimpleSelect(IQueryContext context, VariableName lhs_var, Operator op, Expression rhs) {
-			String DEBUG_SELECT_WITH = null;
+			string debugSelectWith = null;
 
 			// Find the row with the name given in the condition.
 			int column = FindFieldName(lhs_var);
@@ -420,17 +412,17 @@ namespace Deveel.Data {
 
 			IList<int> rows;
 
-			bool ordered_by_select_column;
+			bool orderedBySelectColumn;
 
 			// If we are doing a sub-query search
 			if (op.IsSubQuery) {
 
 				// We can only handle constant expressions in the RHS expression, and
 				// we must assume that the RHS is a Expression[] array.
-				Object ob = rhs.Last;
-				if (!(ob is TObject)) {
+				object ob = rhs.Last;
+				if (!(ob is TObject))
 					throw new Exception("Sub-query not a TObject");
-				}
+
 				TObject tob = (TObject)ob;
 				if (tob.TType is TArrayType) {
 					Expression[] list = (Expression[])tob.Object;
@@ -454,13 +446,11 @@ namespace Deveel.Data {
 					return TableFunctions.AnyAllNonCorrelated(
 						   this, new VariableName[] { lhs_var }, op, ttable);
 
-				} else {
-					throw new Exception("Error with format or RHS expression.");
 				}
-
+				throw new Exception("Error with format or RHS expression.");
 			}
 				// If we are doing a LIKE or REGEX pattern search
-			else if (op.IsEquivalent("like") || op.IsEquivalent("not like") || op.IsEquivalent("regex")) {
+			if (op.IsEquivalent("like") || op.IsEquivalent("not like") || op.IsEquivalent("regex")) {
 
 				// Evaluate the right hand side.  We know rhs is constant so don't
 				// bother passing a IVariableResolver object.
@@ -475,12 +465,12 @@ namespace Deveel.Data {
 					rows = SelectFromPattern(column, op, rhs_const);
 				}
 				// These searches guarentee result is ordered by the column
-				ordered_by_select_column = true;
+				orderedBySelectColumn = true;
 
 				// Describe the 'LIKE' select
-				if (DEBUG_QUERY) {
-					DEBUG_SELECT_WITH = op + " " + rhs_const;
-				}
+#if DEBUG
+				debugSelectWith = op + " " + rhs_const;
+#endif
 
 			}
 				// Otherwise, we doing an index based comparison.
@@ -500,12 +490,12 @@ namespace Deveel.Data {
 
 				// Get the rows of the selected set that match the given condition.
 				rows = SelectRows(column, op, rhs_const);
-				ordered_by_select_column = true;
+				orderedBySelectColumn = true;
 
 				// Describe the select
-				if (DEBUG_QUERY) {
-					DEBUG_SELECT_WITH = op + " " + rhs_const;
-				}
+#if DEBUG
+					debugSelectWith = op + " " + rhs_const;
+#endif
 
 			}
 
@@ -519,17 +509,14 @@ namespace Deveel.Data {
 			//   LHS column, we can easily generate a SelectableScheme for the given
 			//   column.  This doesn't work for the non-constant set.
 
-			if (ordered_by_select_column) {
+			if (orderedBySelectColumn) {
 				table.OptimisedPostSet(column);
 			}
 
-			if (DEBUG_QUERY) {
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								table + " = " + this + ".SimpleSelect(" +
-								lhs_var + " " + DEBUG_SELECT_WITH + " )");
-				}
-			}
+#if DEBUG
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, table + " = " + this + ".SimpleSelect(" + lhs_var + " " + debugSelectWith + " )");
+#endif
 
 			return table;
 
@@ -566,15 +553,11 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public Table SimpleJoin(IQueryContext context, Table table, VariableName lhs_var, Operator op, Expression rhs) {
-
 			// Find the row with the name given in the condition.
-			int lhs_column = FindFieldName(lhs_var);
+			int lhsColumn = FindFieldName(lhs_var);
 
-			if (lhs_column == -1) {
-				throw new Exception(
-				   "Unable to find the LHS column specified in the condition: " +
-				   lhs_var.ToString());
-			}
+			if (lhsColumn == -1)
+				throw new Exception("Unable to find the LHS column specified in the condition: " + lhs_var);
 
 			// Create a variable resolver that can resolve columns in the destination
 			// table.
@@ -583,48 +566,44 @@ namespace Deveel.Data {
 			// The join algorithm.  It steps through the RHS expression, selecting the
 			// cells that match the relation from the LHS table (this table).
 
-			List<int> this_row_set = new List<int>();
-			List<int> table_row_set = new List<int>();
+			List<int> thisRowSet = new List<int>();
+			List<int> tableRowSet = new List<int>();
 
 			IRowEnumerator e = table.GetRowEnumerator();
 
 			while (e.MoveNext()) {
-				int row_index = e.RowIndex;
-				resolver.SetId = row_index;
+				int rowIndex = e.RowIndex;
+				resolver.SetId = rowIndex;
 
 				// Resolve expression into a constant.
-				TObject rhs_val = rhs.Evaluate(resolver, context);
+				TObject rhsVal = rhs.Evaluate(resolver, context);
 
 				// Select all the rows in this table that match the joining condition.
-				IList<int> selected_set = SelectRows(lhs_column, op, rhs_val);
+				IList<int> selectedSet = SelectRows(lhsColumn, op, rhsVal);
 
 				// Include in the set.
-				int size = selected_set.Count;
+				int size = selectedSet.Count;
 				for (int i = 0; i < size; ++i) {
-					table_row_set.Add(row_index);
+					tableRowSet.Add(rowIndex);
 				}
-				this_row_set.AddRange(selected_set);
+				thisRowSet.AddRange(selectedSet);
 
 			}
 
 			// Create the new VirtualTable with the joined tables.
 
 			Table[] tabs = new Table[] { this, table };
-			IList<int>[] row_sets = new IList<int>[] { this_row_set, table_row_set };
+			IList<int>[] rowSets = new IList<int>[] { thisRowSet, tableRowSet };
 
-			VirtualTable out_table = new VirtualTable(tabs);
-			out_table.Set(tabs, row_sets);
+			VirtualTable outTable = new VirtualTable(tabs);
+			outTable.Set(tabs, rowSets);
 
-			if (DEBUG_QUERY) {
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								out_table + " = " + this + ".SimpleJoin(" + table +
-								", " + lhs_var + ", " + op + ", " + rhs + " )");
-				}
-			}
+#if DEBUG
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, outTable + " = " + this + ".SimpleJoin(" + table + ", " + lhs_var + ", " + op + ", " + rhs + " )");
+#endif
 
-			return out_table;
-
+			return outTable;
 		}
 
 		/// <summary>
@@ -644,21 +623,19 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public Table ExhaustiveSelect(IQueryContext context, Expression exp) {
-
 			Table result = this;
 
 			// Exit early if there's nothing in the table to select from
-			int row_count = RowCount;
-			if (row_count > 0) {
-
+			int rowCount = RowCount;
+			if (rowCount > 0) {
 				TableVariableResolver resolver = GetVariableResolver();
 				IRowEnumerator e = GetRowEnumerator();
 
-				List<int> selected_set = new List<int>(row_count);
+				List<int> selectedSet = new List<int>(rowCount);
 
 				while (e.MoveNext()) {
-					int row_index = e.RowIndex;
-					resolver.SetId = row_index;
+					int rowIndex = e.RowIndex;
+					resolver.SetId = rowIndex;
 
 					// Resolve expression into a constant.
 					TObject rhs_val = exp.Evaluate(resolver, context);
@@ -666,25 +643,21 @@ namespace Deveel.Data {
 					// If resolved to true then include in the selected set.
 					if (!rhs_val.IsNull && rhs_val.TType is TBooleanType &&
 						rhs_val.Object.Equals(true)) {
-						selected_set.Add(row_index);
+						selectedSet.Add(rowIndex);
 					}
-
 				}
 
 				// Make into a table to return.
 				VirtualTable table = new VirtualTable(this);
-				table.Set(this, selected_set);
+				table.Set(this, selectedSet);
 
 				result = table;
 			}
 
-			if (DEBUG_QUERY) {
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								result + " = " + this + ".ExhaustiveSelect(" +
-								exp + " )");
-				}
-			}
+#if DEBUG
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, result + " = " + this + ".ExhaustiveSelect(" + exp + " )");
+#endif
 
 			return result;
 		}
@@ -753,8 +726,7 @@ namespace Deveel.Data {
 			if (lhsVar == null) {
 				// This is a complex expression so make a FunctionTable as our new
 				// source.
-				DatabaseQueryContext dbContext = (DatabaseQueryContext)context;
-				FunctionTable funTable = new FunctionTable(this, new Expression[] {lhs}, new String[] {"1"}, dbContext);
+				FunctionTable funTable = new FunctionTable(this, new Expression[] {lhs}, new String[] {"1"}, context);
 				sourceTable = funTable;
 				lhsColIndex = 0;
 			} else {
@@ -825,12 +797,11 @@ namespace Deveel.Data {
 			VirtualTable rtable = new VirtualTable(this);
 			rtable.Set(this, selectRows);
 
+#if DEBUG
 			// Query logging information
-			if (Debug.IsInterestedIn(DebugLevel.Information)) {
-				Debug.Write(DebugLevel.Information, this,
-							rtable + " = " + this + ".any(" +
-							lhs + ", " + op + ", " + rightTable + ")");
-			}
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, rtable + " = " + this + ".Any(" + lhs + ", " + op + ", " + rightTable + ")");
+#endif
 
 			return rtable;
 		}
@@ -864,21 +835,18 @@ namespace Deveel.Data {
 		/// Returns the result of the ALL function on the table.
 		/// </returns>
 		public virtual Table All(IQueryContext context, Expression lhs, Operator op, Table table) {
-
 			// Check the table only has 1 column
-			if (table.ColumnCount != 1) {
+			if (table.ColumnCount != 1)
 				throw new ApplicationException("Input table <> 1 columns.");
-			}
 
 			// Handle trivial case of no entries to select from
-			if (RowCount == 0) {
+			if (RowCount == 0)
 				return this;
-			}
+
 			// If 'table' is empty then we return the complete set.  ALL { empty set }
 			// is always true.
-			if (table.RowCount == 0) {
+			if (table.RowCount == 0)
 				return this;
-			}
 
 			// Is the lhs expression a constant?
 			if (lhs.IsConstant) {
@@ -960,25 +928,25 @@ namespace Deveel.Data {
 			//   empty table.
 			//   For <> type ALL we use the 'not in' algorithm.
 
-			IList<int> select_vec;
+			IList<int> selectList;
 			if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 				// Select the last from the set (the highest value),
-				TObject highest_cell = table.GetLastCellContent(0);
+				TObject highestCell = table.GetLastCellContent(0);
 				// Select from the source table all rows that are > or >= to the
 				// highest cell,
-				select_vec = source_table.SelectRows(lhs_col_index, op, highest_cell);
+				selectList = source_table.SelectRows(lhs_col_index, op, highestCell);
 			} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 				// Select the first from the set (the lowest value),
-				TObject lowest_cell = table.GetFirstCellContent(0);
+				TObject lowestCell = table.GetFirstCellContent(0);
 				// Select from the source table all rows that are < or <= to the
 				// lowest cell,
-				select_vec = source_table.SelectRows(lhs_col_index, op, lowest_cell);
+				selectList = source_table.SelectRows(lhs_col_index, op, lowestCell);
 			} else if (op.IsEquivalent("=")) {
 				// Select the single value from the set (if there is one).
-				TObject single_cell = table.GetSingleCellContent(0);
-				if (single_cell != null) {
+				TObject singleCell = table.GetSingleCellContent(0);
+				if (singleCell != null) {
 					// Select all from source_table all values that = this cell
-					select_vec = source_table.SelectRows(lhs_col_index, op, single_cell);
+					selectList = source_table.SelectRows(lhs_col_index, op, singleCell);
 				} else {
 					// No single value so return empty set (no value in LHS will equal
 					// a value in RHS).
@@ -986,21 +954,20 @@ namespace Deveel.Data {
 				}
 			} else if (op.IsEquivalent("<>")) {
 				// Equiv. to NOT IN
-				select_vec = INHelper.NotIn(source_table, table, lhs_col_index, 0);
+				selectList = INHelper.NotIn(source_table, table, lhs_col_index, 0);
 			} else {
 				throw new ApplicationException("Don't understand operator '" + op + "' in ALL.");
 			}
 
 			// Make into a table to return.
 			VirtualTable rtable = new VirtualTable(this);
-			rtable.Set(this, select_vec);
+			rtable.Set(this, selectList);
 
+#if DEBUG
 			// Query logging information
-			if (Debug.IsInterestedIn(DebugLevel.Information)) {
-				Debug.Write(DebugLevel.Information, this,
-							rtable + " = " + this + ".all(" +
-							lhs + ", " + op + ", " + table + ")");
-			}
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, rtable + " = " + this + ".All(" + lhs + ", " + op + ", " + table + ")");
+#endif
 
 			return rtable;
 		}
@@ -1020,71 +987,70 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public Table Join(Table table, bool quick) {
-			Table out_table;
+			Table outTable;
 
 			if (quick) {
 				// This implementation doesn't materialize the join
-				out_table = new NaturallyJoinedTable(this, table);
+				outTable = new NaturallyJoinedTable(this, table);
 			} else {
 
 				Table[] tabs = new Table[2];
 				tabs[0] = this;
 				tabs[1] = table;
-				IList<int>[] row_sets = new IList<int>[2];
+				IList<int>[] rowSets = new IList<int>[2];
 
 				// Optimized trivial case, if either table has zero rows then result of
 				// join will contain zero rows also.
 				if (RowCount == 0 || table.RowCount == 0) {
 
-					row_sets[0] = new List<int>(0);
-					row_sets[1] = new List<int>(0);
+					rowSets[0] = new List<int>(0);
+					rowSets[1] = new List<int>(0);
 
 				} else {
 
 					// The natural join algorithm.
-					List<int> this_row_set = new List<int>();
-					List<int> table_row_set = new List<int>();
+					List<int> thisRowSet = new List<int>();
+					List<int> tableRowSet = new List<int>();
 
 					// Get the set of all rows in the given table.
-					List<int> table_selected_set = new List<int>();
+					List<int> tableSelectedSet = new List<int>();
 					IRowEnumerator e = table.GetRowEnumerator();
 					while (e.MoveNext()) {
-						int row_index = e.RowIndex;
-						table_selected_set.Add(row_index);
+						int rowIndex = e.RowIndex;
+						tableSelectedSet.Add(rowIndex);
 					}
-					int table_selected_set_size = table_selected_set.Count;
+
+					int tableSelectedSetSize = tableSelectedSet.Count;
 
 					// Join with the set of rows in this table.
 					e = GetRowEnumerator();
 					while (e.MoveNext()) {
-						int row_index = e.RowIndex;
-						for (int i = 0; i < table_selected_set_size; ++i) {
-							this_row_set.Add(row_index);
+						int rowIndex = e.RowIndex;
+						for (int i = 0; i < tableSelectedSetSize; ++i) {
+							thisRowSet.Add(rowIndex);
 						}
-						table_row_set.AddRange(table_selected_set);
+						tableRowSet.AddRange(tableSelectedSet);
 					}
 
 					// The row sets we are joining from each table.
-					row_sets[0] = this_row_set;
-					row_sets[1] = table_row_set;
+					rowSets[0] = thisRowSet;
+					rowSets[1] = tableRowSet;
 				}
 
 				// Create the new VirtualTable with the joined tables.
-				VirtualTable virt_table = new VirtualTable(tabs);
-				virt_table.Set(tabs, row_sets);
+				VirtualTable virtTable = new VirtualTable(tabs);
+				virtTable.Set(tabs, rowSets);
 
-				out_table = virt_table;
+				outTable = virtTable;
 
 			}
 
-			if (DEBUG_QUERY) {
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								out_table + " = " + this + ".naturalJoin(" + table + " )");
-				}
-			}
+#if DEBUG
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, outTable + " = " + this + ".NaturalJoin(" + table + " )");
+#endif
 
-			return out_table;
+			return outTable;
 		}
 
 		/// <summary>
@@ -1186,19 +1152,18 @@ namespace Deveel.Data {
 			if ((RowCount == 0 && table.RowCount == 0) ||
 				 table.RowCount == 0) {
 
-				if (DEBUG_QUERY) {
-					if (Debug.IsInterestedIn(DebugLevel.Information)) {
-						Debug.Write(DebugLevel.Information, this, this + " = " + this + ".Union(" + table + " )");
-					}
-				}
+#if DEBUG
+				if (Logger.IsInterestedIn(LogLevel.Information))
+					Logger.Info(this, this + " = " + this + ".Union(" + table + " )");
+#endif
 				return this;
 			} 
+
 			if (RowCount == 0) {
-				if (DEBUG_QUERY) {
-					if (Debug.IsInterestedIn(DebugLevel.Information)) {
-						Debug.Write(DebugLevel.Information, this, table + " = " + this + ".Union(" + table + " )");
-					}
-				}
+#if DEBUG
+				if (Logger.IsInterestedIn(LogLevel.Information))
+					Logger.Info(this, table + " = " + this + ".Union(" + table + " )");
+#endif
 				return table;
 			}
 
@@ -1218,12 +1183,10 @@ namespace Deveel.Data {
 			VirtualTable table_out = new VirtualTable(table_list);
 			table_out.Set(table_list, raw1.GetRows());
 
-			if (DEBUG_QUERY) {
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								table_out + " = " + this + ".Union(" + table + " )");
-				}
-			}
+#if DEBUG
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, table_out + " = " + this + ".Union(" + table + " )");
+#endif
 
 			return table_out;
 		}
@@ -1239,17 +1202,15 @@ namespace Deveel.Data {
 			raw.removeDuplicates();
 
 			Table[] table_list = raw.GetTables();
-			VirtualTable table_out = new VirtualTable(table_list);
-			table_out.Set(table_list, raw.GetRows());
+			VirtualTable tableOut = new VirtualTable(table_list);
+			tableOut.Set(table_list, raw.GetRows());
 
-			if (DEBUG_QUERY) {
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								table_out + " = " + this + ".distinct()");
-				}
-			}
+#if DEBUG
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, tableOut + " = " + this + ".Distinct()");
+#endif
 
-			return table_out;
+			return tableOut;
 		}
 
 		/// <summary>
@@ -1269,61 +1230,41 @@ namespace Deveel.Data {
 			List<int> result_list = new List<int>();
 			IList<int> rowList = OrderedRowList(col_map);
 
-			int r_count = rowList.Count;
-			int previous_row = -1;
-			for (int i = 0; i < r_count; ++i) {
-				int row_index = rowList[i];
+			int rowCount = rowList.Count;
+			int previousRow = -1;
+			for (int i = 0; i < rowCount; ++i) {
+				int rowIndex = rowList[i];
 
-				if (previous_row != -1) {
+				if (previousRow != -1) {
 
 					bool equal = true;
 					// Compare cell in column in this row with previous row.
 					for (int n = 0; n < col_map.Length && equal; ++n) {
-						TObject c1 = GetCellContents(col_map[n], row_index);
-						TObject c2 = GetCellContents(col_map[n], previous_row);
+						TObject c1 = GetCellContents(col_map[n], rowIndex);
+						TObject c2 = GetCellContents(col_map[n], previousRow);
 						equal = (c1.CompareTo(c2) == 0);
 					}
 
 					if (!equal) {
-						result_list.Add(row_index);
+						result_list.Add(rowIndex);
 					}
 				} else {
-					result_list.Add(row_index);
+					result_list.Add(rowIndex);
 				}
 
-				previous_row = row_index;
+				previousRow = rowIndex;
 			}
 
 			// Return the new table with distinct rows only.
 			VirtualTable vt = new VirtualTable(this);
 			vt.Set(this, result_list);
 
-			if (DEBUG_QUERY) {
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								vt + " = " + this + ".distinct(" + col_map + ")");
-				}
-			}
+#if DEBUG
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, vt + " = " + this + ".distinct(" + col_map + ")");
+#endif
 
 			return vt;
-
-		}
-
-
-		/// <summary>
-		/// Helper function.  Returns the index in the String array of the given
-		/// string value.
-		/// </summary>
-		/// <param name="val"></param>
-		/// <param name="array"></param>
-		/// <returns></returns>
-		private int IndexStringArray(String val, String[] array) {
-			for (int n = 0; n < array.Length; ++n) {
-				if (array[n].Equals(val)) {
-					return n;
-				}
-			}
-			return -1;
 		}
 
 
@@ -1393,7 +1334,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="col_map">Column indices to order by the rows.</param>
 		/// <returns>
-		/// Returns an <see cref="IntegerVector"/> that represents the list of 
+		/// Returns an <see cref="IList{T}"/> that represents the list of 
 		/// rows in this table in sorted order by the given <paramref name="col_map"/>.
 		/// </returns>
 		/// <exception cref="DatabaseException">
@@ -1404,8 +1345,8 @@ namespace Deveel.Data {
 			Table work = OrderByColumns(col_map);
 			// 'work' is now sorted by the columns,
 			// Get the rows in this tables domain,
-			int r_count = RowCount;
-			List<int> rowList = new List<int>(r_count);
+			int rowCount = RowCount;
+			List<int> rowList = new List<int>(rowCount);
 			IRowEnumerator e = work.GetRowEnumerator();
 			while (e.MoveNext()) {
 				rowList.Add(e.RowIndex);
@@ -1417,25 +1358,24 @@ namespace Deveel.Data {
 
 
 		/// <summary>
-		/// Gets a table ordered by the column identified by <paramref name="col_index"/>.
+		/// Gets a table ordered by the column identified by <paramref name="columnIndex"/>.
 		/// </summary>
-		/// <param name="col_index">Index of the column to sort by.</param>
+		/// <param name="columnIndex">Index of the column to sort by.</param>
 		/// <param name="ascending">Flag indicating the order direction (set <b>true</b> for
 		/// ascending direction, <b>false</b> for descending).</param>
 		/// <returns>
 		/// Returns a Table which is identical to this table, except it is sorted by
-		/// the column identified by <paramref name="col_index"/>.
+		/// the column identified by <paramref name="columnIndex"/>.
 		/// </returns>
-		public VirtualTable OrderByColumn(int col_index, bool ascending) {
+		public VirtualTable OrderByColumn(int columnIndex, bool ascending) {
 			// Check the field can be sorted
-			DataTableColumnInfo colInfo = GetColumnInfo(col_index);
+			DataTableColumnInfo colInfo = GetColumnInfo(columnIndex);
 
-			List<int> rows = new List<int>(SelectAll(col_index));
+			List<int> rows = new List<int>(SelectAll(columnIndex));
 
 			// Reverse the list if we are not ascending
-			if (ascending == false) {
+			if (ascending == false)
 				rows.Reverse();
-			}
 
 			// We now has an int[] array of rows from this table to make into a
 			// new table.
@@ -1443,13 +1383,10 @@ namespace Deveel.Data {
 			VirtualTable table = new VirtualTable(this);
 			table.Set(this, rows);
 
-			if (DEBUG_QUERY) {
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								table + " = " + this + ".OrderByColumn(" +
-								col_index + ", " + ascending + ")");
-				}
-			}
+#if DEBUG
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, table + " = " + this + ".OrderByColumn(" + columnIndex + ", " + ascending + ")");
+#endif
 
 			return table;
 		}

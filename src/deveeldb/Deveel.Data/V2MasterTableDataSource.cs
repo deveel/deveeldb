@@ -21,7 +21,6 @@ using System.Text;
 
 using Deveel.Data.Store;
 using Deveel.Data.Util;
-using Deveel.Diagnostics;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -162,7 +161,7 @@ namespace Deveel.Data {
 						store.UnlockForWrite();
 					}
 				} catch (IOException e) {
-					Debug.WriteException(e);
+					Logger.Error(this, e);
 					throw new ApplicationException("IO Error: " + e.Message);
 				}
 				return v;
@@ -901,8 +900,8 @@ namespace Deveel.Data {
 							store.UnlockForWrite();
 						}
 					} catch (Exception e) {
-						Debug.Write(DebugLevel.Error, this, "Exception during table (" + ToString() + ") close: " + e.Message);
-						Debug.WriteException(e);
+						Logger.Error(this, "Exception during table (" + ToString() + ") close: " + e.Message);
+						Logger.Error(this, e);
 					}
 
 					// Synchronize the store
@@ -945,7 +944,7 @@ namespace Deveel.Data {
 
 		protected override void OnOpenScan() {
 			// Scan for any leaks input the file,
-			Debug.Write(DebugLevel.Information, this, "Scanning Table " + SourceIdentity + " for leaks.");
+			Logger.Info(this, "Scanning Table " + SourceIdentity + " for leaks.");
 			ScanForLeaks();
 		}
 
@@ -998,14 +997,14 @@ namespace Deveel.Data {
 					AbstractStore aStore = (AbstractStore)store;
 					List<long> leakedAreas = aStore.FindAllocatedAreasNotIn(usedAreas);
 					if (leakedAreas.Count == 0) {
-						Debug.Write(DebugLevel.Information, this, "No leaked areas.");
+						Logger.Info(this, "No leaked areas.");
 					} else {
-						Debug.Write(DebugLevel.Information, this, "There were " + leakedAreas.Count + " leaked areas found.");
+						Logger.Info(this, "There were " + leakedAreas.Count + " leaked areas found.");
 						foreach (long areaPointer in leakedAreas) {
 							store.DeleteArea(areaPointer);
 						}
 
-						Debug.Write(DebugLevel.Information, this, "Leaked areas successfully freed.");
+						Logger.Info(this, "Leaked areas successfully freed.");
 					}
 				}
 			}
@@ -1342,7 +1341,7 @@ namespace Deveel.Data {
 				// And close the reader.
 				reader.Close();
 			} catch (IOException e) {
-				Debug.WriteException(e);
+				Logger.Error(this, e);
 				throw new Exception("IOError getting cell at (" + column + ", " + row + ") pointer = " + recordPointer + ".");
 			}
 
@@ -1371,8 +1370,8 @@ namespace Deveel.Data {
 						store.UnlockForWrite();
 					}
 				} catch (IOException e) {
-					Debug.WriteException(e);
-					throw new ApplicationException("IO Error: " + e.Message);
+					Logger.Error(this, e);
+					throw new ApplicationException("IO Error: " + e.Message, e);
 				}
 			}
 		}
@@ -1395,7 +1394,7 @@ namespace Deveel.Data {
 
 					bool deleted = StoreSystem.DeleteStore(store);
 					if (deleted)
-						Debug.Write(DebugLevel.Message, this, "Dropped: " + SourceIdentity);
+						Logger.Message(this, "Dropped: " + SourceIdentity);
 
 					return deleted;
 

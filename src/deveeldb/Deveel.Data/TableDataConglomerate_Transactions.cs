@@ -17,8 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data {
 	public sealed partial class TableDataConglomerate {
 		/// <summary>
@@ -94,8 +92,8 @@ namespace Deveel.Data {
 				try {
 					CleanUpConglomerate();
 				} catch (IOException e) {
-					Debug.Write(DebugLevel.Error, this, "Error cleaning up conglomerate");
-					Debug.WriteException(DebugLevel.Error, e);
+					Logger.Error(this, "Error cleaning up conglomerate");
+					Logger.Error(this, e);
 				}
 			}
 

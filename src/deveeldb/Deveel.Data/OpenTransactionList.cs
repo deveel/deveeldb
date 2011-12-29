@@ -15,8 +15,7 @@
 
 using System;
 using System.Collections.Generic;
-
-using Deveel.Diagnostics;
+using System.Diagnostics;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -45,11 +44,13 @@ namespace Deveel.Data {
 		/// </summary>
 		private readonly List<Transaction> openTransactions;
 
+#if DEBUG
 		/// <summary>
 		/// A list of <see cref="Exception"/> objects created when the transaction 
 		/// is added to the open transactions list.
 		/// </summary>
-		private readonly List<Exception> openTransactionStacks;
+		private readonly List<StackTrace> openTransactionStacks;
+#endif
 
 		/// <summary>
 		/// The minimum commit id of the current list.
@@ -65,7 +66,7 @@ namespace Deveel.Data {
 			this.system = system;
 			openTransactions = new List<Transaction>();
 #if DEBUG
-			openTransactionStacks = new List<Exception>();
+			openTransactionStacks = new List<StackTrace>();
 #endif
 			minimumCommitId = Int64.MaxValue;
 			maximumCommitId = 0;
@@ -84,7 +85,7 @@ namespace Deveel.Data {
 				if (currentCommitId >= maximumCommitId) {
 					openTransactions.Add(transaction);
 #if DEBUG
-					openTransactionStacks.Add(new Exception());
+					openTransactionStacks.Add(new StackTrace());
 #endif
 					system.Stats.Increment("OpenTransactionList.count");
 					maximumCommitId = currentCommitId;
@@ -125,9 +126,9 @@ namespace Deveel.Data {
 				system.Stats.Decrement("OpenTransactionList.count");
 
 #if DEBUG
-				system.Debug.Write(DebugLevel.Message, this, "Stacks:");
-				for (int n = 0; n < openTransactionStacks.Count; ++n) {
-					system.Debug.WriteException(DebugLevel.Message, openTransactionStacks[n]);
+				system.Logger.Message(this, "Stacks:");
+				foreach (StackTrace trace in openTransactionStacks) {
+					system.Logger.Message(this, trace.ToString());
 				}
 #endif
 			}

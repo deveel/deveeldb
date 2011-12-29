@@ -75,8 +75,8 @@ namespace Deveel.Data {
 
 		// ---------- Thread Pooling methods ----------
 
-		internal IDebugLogger Debug {
-			get { return system.Debug; }
+		internal Logger Logger {
+			get { return system.Logger; }
 		}
 
 		/// <summary>

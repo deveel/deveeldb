@@ -90,12 +90,12 @@ namespace Deveel.Data.Sql {
 			} finally {
 				// If an error occured, dump the command plan to the debug log.
 				// Or just dump the command plan if debug level = Information
-				if (context.Debug.IsInterestedIn(DebugLevel.Information) ||
-					(error && context.Debug.IsInterestedIn(DebugLevel.Warning))) {
+				if (context.Logger.IsInterestedIn(LogLevel.Information) ||
+					(error && context.Logger.IsInterestedIn(LogLevel.Warning))) {
 					StringBuilder buf = new StringBuilder();
 					plan.DebugString(0, buf);
 
-					context.Debug.Write(DebugLevel.Warning, this, "Query Plan debug:\n" + buf);
+					context.Logger.Warning(this, "Query Plan debug:\n" + buf);
 				}
 			}
 		}

@@ -94,11 +94,11 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		private JournalingThread journaling_thread;
 
-		private readonly IDebugLogger logger;
+		private readonly Logger logger;
 
 
 		internal JournalledSystem(string journal_path, bool read_only, int page_size,
-					   LoggingBufferManager.IStoreDataAccessorFactory sda_factory, IDebugLogger logger,
+					   LoggingBufferManager.IStoreDataAccessorFactory sda_factory, Logger logger,
 					   bool enable_logging) {
 			this.journal_path = journal_path;
 			this.read_only = read_only;
@@ -225,15 +225,13 @@ namespace Deveel.Data.Store {
 					JournalSummary summary = jf.OpenForRecovery();
 					// If the journal can be recovered from.
 					if (summary.can_be_recovered) {
-						if (Debug.IsInterestedIn(DebugLevel.Information)) {
-							Debug.Write(DebugLevel.Information, this, "Journal " + jf +
-															   " found - can be recovered.");
+						if (Logger.IsInterestedIn(LogLevel.Information)) {
+							Logger.Info(this, "Journal " + jf + " found - can be recovered.");
 						}
 						journal_files_list.Add(summary);
 					} else {
-						if (Debug.IsInterestedIn(DebugLevel.Information)) {
-							Debug.Write(DebugLevel.Information, this, "Journal " + jf +
-															   " deleting - nothing to recover.");
+						if (Logger.IsInterestedIn(LogLevel.Information)) {
+							Logger.Info(this, "Journal " + jf + " deleting - nothing to recover.");
 						}
 						// Otherwise close and delete it
 						jf.CloseAndDelete();
@@ -270,9 +268,8 @@ namespace Deveel.Data.Store {
 				}
 				last_journal_number = jf.journal_number;
 
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this, "Recovering: " + jf +
-													   " (8 .. " + summary.last_checkpoint + ")");
+				if (Logger.IsInterestedIn(LogLevel.Information)) {
+					Logger.Info(this, "Recovering: " + jf + " (8 .. " + summary.last_checkpoint + ")");
 				}
 
 				jf.Persist(8, summary.last_checkpoint);
@@ -345,7 +342,7 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		private IDebugLogger Debug {
+		private Logger Logger {
 			get { return logger; }
 		}
 
@@ -736,8 +733,8 @@ namespace Deveel.Data.Store {
 			/// </para>
 			/// </remarks>
 			internal void Persist(long start, long end) {
-				if (js.Debug.IsInterestedIn(DebugLevel.Information)) {
-					js.Debug.Write(DebugLevel.Information, this, "Persisting: " + file);
+				if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+					js.Logger.Info(this, "Persisting: " + file);
 				}
 
 				BinaryReader din = new BinaryReader(data.FileStream, Encoding.Unicode);
@@ -768,8 +765,8 @@ namespace Deveel.Data.Store {
 						// Put this input the map
 						id_name_map[id] = resource_name;
 
-						if (js.Debug.IsInterestedIn(DebugLevel.Information)) {
-							js.Debug.Write(DebugLevel.Information, this, "Journal Command: Tag: " + id + " = " + resource_name);
+						if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+							js.Logger.Info(this, "Journal Command: Tag: " + id + " = " + resource_name);
 						}
 
 						// Add this to the list of resources we updated.
@@ -780,9 +777,8 @@ namespace Deveel.Data.Store {
 						String resource_name = (String)id_name_map[id];
 						AbstractResource resource = js.GetResource(resource_name);
 
-						if (js.Debug.IsInterestedIn(DebugLevel.Information)) {
-							js.Debug.Write(DebugLevel.Information, this, "Journal Command: Delete: " +
-															   resource_name);
+						if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+							js.Logger.Info(this, "Journal Command: Delete: " + resource_name);
 						}
 
 						resource.PersistDelete();
@@ -793,9 +789,8 @@ namespace Deveel.Data.Store {
 						String resource_name = (String)id_name_map[id];
 						AbstractResource resource = js.GetResource(resource_name);
 
-						if (js.Debug.IsInterestedIn(DebugLevel.Information)) {
-							js.Debug.Write(DebugLevel.Information, this, "Journal Command: Set Size: " +
-										resource_name + " size = " + new_size);
+						if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+							js.Logger.Info(this, "Journal Command: Set Size: " + resource_name + " size = " + new_size);
 						}
 
 						resource.PersistSetSize(new_size);
@@ -806,22 +801,21 @@ namespace Deveel.Data.Store {
 						int off = din.ReadInt32();
 						int len = din.ReadInt32();
 
-						String resource_name = (String)id_name_map[id];
-						AbstractResource resource = js.GetResource(resource_name);
+						String resourceName = (String)id_name_map[id];
+						AbstractResource resource = js.GetResource(resourceName);
 
-						if (js.Debug.IsInterestedIn(DebugLevel.Information)) {
-							js.Debug.Write(DebugLevel.Information, this,
-									"Journal Command: Page Modify: " + resource_name +
-									" page = " + page + " off = " + off +
-									" len = " + len);
+						if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+							js.Logger.Info(this,
+							               "Journal Command: Page Modify: " + resourceName + " page = " + page + " off = " + off + " len = " +
+							               len);
 						}
 
 						resource.PersistPageChange(page, off, len, din);
 
 					} else if (type == 100) { // Checkpoint (end)
 
-						if (js.Debug.IsInterestedIn(DebugLevel.Information)) {
-							js.Debug.Write(DebugLevel.Information, this, "Journal Command: Check Point.");
+						if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+							js.Logger.Info(this, "Journal Command: Check Point.");
 						}
 
 						if (position == end) {
@@ -837,8 +831,8 @@ namespace Deveel.Data.Store {
 				int sz = resources_updated.Count;
 				for (int i = 0; i < sz; ++i) {
 					AbstractResource r = (AbstractResource)resources_updated[i];
-					if (js.Debug.IsInterestedIn(DebugLevel.Information)) {
-						js.Debug.Write(DebugLevel.Information, this, "Synch: " + r);
+					if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+						js.Logger.Info(this, "Synch: " + r);
 					}
 					r.Synch();
 				}
@@ -1806,8 +1800,8 @@ namespace Deveel.Data.Store {
 								// Close and then delete the journal file
 								jf.CloseAndDelete();
 							} catch (IOException e) {
-								js.Debug.Write(DebugLevel.Error, this, "Error persisting journal: " + jf);
-								js.Debug.WriteException(DebugLevel.Error, e);
+								js.Logger.Error(this, "Error persisting journal: " + jf);
+								js.Logger.Error(this, e);
 								// If there is an error persisting the best thing to do is
 								// finish
 								lock (this) {

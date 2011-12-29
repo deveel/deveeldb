@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data.Caching {
 	/// <summary>
 	/// Represents a cache for accesses to the the data cells within a 
@@ -233,7 +231,7 @@ namespace Deveel.Data.Caching {
 		public void Clear() {
 			lock (this) {
 				if (cache.NodeCount == 0 && currentCacheSize != 0) {
-					system.Debug.Write(DebugLevel.Error, this, "Assertion failed - if nodeCount = 0 then current_cache_size must also be 0.");
+					system.Logger.Error(this, "Assertion failed - if nodeCount = 0 then current_cache_size must also be 0.");
 				}
 				if (cache.NodeCount != 0) {
 					cache.Clear();

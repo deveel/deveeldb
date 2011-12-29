@@ -775,12 +775,12 @@ namespace Deveel.Data.Procedures {
 				try {
 					result = invoke_method.Invoke(null, values);
 				} catch (AccessViolationException e) {
-					connection.Debug.WriteException(e);
+					connection.Logger.Error(this, e);
 					throw new StatementException("Illegal access exception when invoking " +
 					                             "stored procedure: " + e.Message);
 				} catch (TargetInvocationException e) {
 					Exception real_e = e.InnerException;
-					connection.Debug.WriteException(real_e);
+					connection.Logger.Error(this, real_e);
 					throw new StatementException("Procedure Exception: " + real_e.Message);
 				}
 

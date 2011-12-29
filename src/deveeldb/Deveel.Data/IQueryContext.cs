@@ -49,7 +49,11 @@ namespace Deveel.Data {
 		/// </summary>
 		DatabaseConnection Connection { get; }
 
-		IDebugLogger Debug { get; }
+		/// <summary>
+		/// Gets an object used to log diagnostic information about
+		/// events occurred withing the context.
+		/// </summary>
+		Logger Logger { get; }
 
 		/// <summary>
 		/// Gets a value that indicates if the current context is in

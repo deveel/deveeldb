@@ -89,11 +89,11 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="IDebugLogger"/> object to log debug 
+		/// Returns the <see cref="ILogger"/> object to log debug 
 		/// messages to.
 		/// </summary>
-		protected IDebugLogger Debug {
-			get { return System.Debug; }
+		protected ILogger Debug {
+			get { return System.Logger; }
 		}
 
 		/// <summary>

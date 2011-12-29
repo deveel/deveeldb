@@ -28,16 +28,16 @@ namespace Deveel.Diagnostics {
 		/// <summary>
 		/// The output stream where log information is output to.
 		/// </summary>
-		private readonly LogWriter log_output;
+		private readonly LogWriter logOutput;
 
 
 		///<summary>
 		///</summary>
 		///<param name="file"></param>
 		///<param name="size"></param>
-		///<param name="max_count"></param>
-		public Log(string file, int size, int max_count) {
-			log_output = new LogWriter(file, size, max_count);
+		///<param name="maxCount"></param>
+		public Log(string file, int size, int maxCount) {
+			logOutput = new LogWriter(file, size, maxCount);
 		}
 
 		///<summary>
@@ -46,11 +46,14 @@ namespace Deveel.Diagnostics {
 		public Log(string file)
 			// Defaults to a maximum of 12 512k log files
 			: this(file, 512*1024, 12) {
-			//    this.log_output = new LogWriter(file, 512 * 1024, 12);
 		}
 
 		protected Log() {
-			log_output = null;
+			logOutput = null;
+		}
+
+		~Log() {
+			Dispose(false);
 		}
 
 		/// <summary>
@@ -60,8 +63,13 @@ namespace Deveel.Diagnostics {
 		/// This is useful for options where the user doesn't want anything 
 		/// logged.
 		/// </remarks>
-		public static Log Null {
-			get { return new NullLog(); }
+		public static readonly Log Null = new NullLog();
+
+		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				if (logOutput != null)
+					logOutput.Dispose();
+			}
 		}
 
 		/// <summary>
@@ -75,11 +83,11 @@ namespace Deveel.Diagnostics {
 		public virtual void Write(String text) {
 			lock (this) {
 				try {
-					log_output.Write("[");
-					log_output.Write(DateTime.Now.ToString());
-					log_output.Write("] ");
-					log_output.Write(text);
-					log_output.Flush();
+					logOutput.Write("[");
+					logOutput.Write(DateTime.Now.ToString());
+					logOutput.Write("] ");
+					logOutput.Write(text);
+					logOutput.Flush();
 				} catch (IOException) {
 				}
 			}
@@ -91,9 +99,9 @@ namespace Deveel.Diagnostics {
 		public virtual void WriteLine(String text) {
 			lock (this) {
 				try {
-					log_output.Write(text);
-					log_output.WriteLine();
-					log_output.Flush();
+					logOutput.Write(text);
+					logOutput.WriteLine();
+					logOutput.Flush();
 				} catch (IOException) {
 				}
 			}
@@ -105,7 +113,7 @@ namespace Deveel.Diagnostics {
 		public virtual void Close() {
 			lock (this) {
 				try {
-					log_output.Close();
+					logOutput.Close();
 				} catch (IOException) {
 				}
 			}
@@ -129,8 +137,8 @@ namespace Deveel.Diagnostics {
 		}
 
 		public void Dispose() {
-			if (log_output != null)
-				log_output.Dispose();
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 	}
 }

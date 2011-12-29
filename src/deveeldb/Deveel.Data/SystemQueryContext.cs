@@ -17,6 +17,7 @@ using System;
 
 using Deveel.Data.Functions;
 using Deveel.Data.QueryPlanning;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -53,8 +54,8 @@ namespace Deveel.Data {
 			get { return system; }
 		}
 
-		public override Diagnostics.IDebugLogger Debug {
-			get { return system.Debug; }
+		public override Logger Logger {
+			get { return system.Logger; }
 		}
 
 		/// <inheritdoc/>

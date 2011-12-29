@@ -16,8 +16,6 @@
 using System;
 using System.Threading;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// This is a worker thread.  This is given commands to execute by the
@@ -139,10 +137,8 @@ namespace Deveel.Data {
 						}
 
 					} catch (Exception e) {
-						worker_pool.Debug.Write(DebugLevel.Error, this,
-									  "Worker thread interrupted because of exception:\n" +
-									  e.Message);
-						worker_pool.Debug.WriteException(e);
+						worker_pool.Logger.Error(this, "Worker thread interrupted because of exception:\n" + e.Message);
+						worker_pool.Logger.Error(this, e);
 					}
 				}
 			}

@@ -177,9 +177,9 @@ namespace Deveel.Data.Protocol {
 		/// <summary>
 		/// Gets an object that can be used to log debug information.
 		/// </summary>
-		protected IDebugLogger Debug {
+		protected Logger Logger {
 			//TODO: return an empty debug logger if database is null...
-			get { return (currentDatabase != null ? currentDatabase.Debug : null); }
+			get { return (currentDatabase != null ? currentDatabase.Logger : null); }
 		}
 
 		/// <summary>
@@ -238,7 +238,7 @@ namespace Deveel.Data.Protocol {
 			if (table != null) {
 				table.Dispose();
 			} else {
-				Debug.Write(DebugLevel.Error, this, "Attempt to dispose invalid 'resultId'.");
+				Logger.Error(this, "Attempt to dispose invalid 'resultId'.");
 			}
 		}
 
@@ -269,7 +269,7 @@ namespace Deveel.Data.Protocol {
 		/// <returns></returns>
 		protected DataException HandleExecuteThrowable(Exception e, SqlQuery query) {
 			if (e is ParseException) {
-				Debug.WriteException(DebugLevel.Warning, e);
+				Logger.Warning(this, e);
 
 				// Parse exception when parsing the SQL.
 				String msg = e.Message;
@@ -280,16 +280,16 @@ namespace Deveel.Data.Protocol {
 				TransactionException te = (TransactionException) e;
 
 				// Output Query that was in error to debug log.
-				Debug.Write(DebugLevel.Information, this, "Transaction error on: " + query);
-				Debug.WriteException(DebugLevel.Information, e);
+				Logger.Info(this, "Transaction error on: " + query);
+				Logger.Info(this, e);
 
 				// Denotes a transaction exception.
 				return new DbDataException(e.Message, e.Message, 200 + te.Type, e);
 			}
 
 			// Output Query that was in error to debug log.
-			Debug.Write(DebugLevel.Warning, this, "Exception thrown during Query processing on: " + query);
-			Debug.WriteException(DebugLevel.Warning, e);
+			Logger.Warning(this, "Exception thrown during Query processing on: " + query);
+			Logger.Warning(this, e);
 
 			// Error, we need to return exception to client.
 			return new DbDataException(e.Message, e.Message, 1, e);
@@ -342,7 +342,7 @@ namespace Deveel.Data.Protocol {
 				// And return it.
 				return reference;
 			} catch (IOException e) {
-				Debug.WriteException(e);
+				Logger.Error(this, e);
 				throw new DataException("IO Error: " + e.Message);
 			}
 		}
@@ -374,7 +374,7 @@ namespace Deveel.Data.Protocol {
 				// Push this part of the blob into the object.
 				reference.Write(offset, buf, length);
 			} catch (IOException e) {
-				Debug.WriteException(e);
+				Logger.Error(this, e);
 				throw new DataException("IO Error: " + e.Message);
 			}
 
@@ -393,7 +393,7 @@ namespace Deveel.Data.Protocol {
 
 				currentDatabase = database;
 			} catch (Exception e) {
-				Debug.WriteException(e);
+				Logger.Error(this, e);
 				throw new DataException("Unable to change the database: " + e.Message);
 			}
 		}
@@ -511,7 +511,7 @@ namespace Deveel.Data.Protocol {
 				}
 				return block;
 			} catch (Exception e) {
-				Debug.WriteException(DebugLevel.Warning, e);
+				Logger.Warning(this, e);
 				// If an exception was generated while getting the cell contents, then
 				// throw an DataException.
 				throw new DbDataException("Exception while reading results: " + e.Message, e.Message, 4, e);

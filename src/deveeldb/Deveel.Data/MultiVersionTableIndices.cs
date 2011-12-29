@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Diagnostics;
@@ -78,10 +77,10 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="IDebugLogger"/> object used to log debug messages.
+		/// Returns the <see cref="ILogger"/> object used to log debug messages.
 		/// </summary>
-		public IDebugLogger Debug {
-			get { return system.Debug; }
+		public Logger Logger {
+			get { return system.Logger; }
 		}
 
 		/// <summary>
@@ -138,8 +137,8 @@ namespace Deveel.Data {
 
 				if (commitId > journal.CommitId) {
 					++merge_count;
-					if (Debug.IsInterestedIn(DebugLevel.Information))
-						Debug.Write(DebugLevel.Information, this, "Merging '" + table.TableName + "' journal: " + journal);
+					if (Logger.IsInterestedIn(LogLevel.Information))
+						Logger.Info(this, "Merging '" + table.TableName + "' journal: " + journal);
 
 					// Remove the top journal entry from the list.
 					transactionModList.RemoveAt(0);

@@ -18,7 +18,6 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Data.QueryPlanning;
-using Deveel.Diagnostics;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -227,8 +226,8 @@ namespace Deveel.Data {
 					indexSet.Dispose();
 				}
 			} catch (TransactionException e) {
-				Debug.WriteException(e);
-				throw new Exception("Transaction Error when copying table: " + e.Message);
+				Logger.Error(this, e);
+				throw new Exception("Transaction Error when copying table: " + e.Message, e);
 			}
 		}
 
@@ -496,7 +495,7 @@ namespace Deveel.Data {
 					source.Dispose();
 				}
 			} catch (Exception e) {
-				Debug.WriteException(e);
+				Logger.Error(this, e);
 			}
 
 			System.Stats.Increment("Transaction.Cleanup");
@@ -676,7 +675,7 @@ namespace Deveel.Data {
 
 		void IDisposable.Dispose() {
 			if (!closed) {
-				Debug.Write(DebugLevel.Error, this, "Transaction not closed!");
+				Logger.Error(this, "Transaction not closed!");
 				Rollback();
 			}
 		}

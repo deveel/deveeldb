@@ -62,10 +62,10 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the IDebugLogger object that we can use to log debug messages.
+		/// Returns the ILogger object that we can use to log debug messages.
 		/// </summary>
-		public IDebugLogger Debug {
-			get { return dataSource.InternalDebug; }
+		public Logger Logger {
+			get { return dataSource.InternalLogger; }
 		}
 
 		/// <summary>
@@ -159,12 +159,12 @@ namespace Deveel.Data {
 						}
 
 						if (checkCount > 0) {
-							if (Debug.IsInterestedIn(DebugLevel.Information)) {
-								Debug.Write(DebugLevel.Information, this,
+							if (Logger.IsInterestedIn(LogLevel.Information)) {
+								Logger.Info(this,
 										  "Row GC: [" + dataSource.Name +
 										  "] check count=" + checkCount +
 										  " delete count=" + deleteCount);
-								Debug.Write(DebugLevel.Information, this,"GC row sweep deleted " + deleteCount + " rows.");
+								Logger.Info(this,"GC row sweep deleted " + deleteCount + " rows.");
 							}
 						}
 
@@ -172,7 +172,7 @@ namespace Deveel.Data {
 
 				} // lock
 			} catch (IOException e) {
-				Debug.WriteException(e);
+				Logger.Error(this, e);
 			}
 		}
 	}

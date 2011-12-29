@@ -543,8 +543,8 @@ namespace Deveel.Data {
 								master.RollbackTransactionChange(changeJournal);
 							}
 
-							if (Debug.IsInterestedIn(DebugLevel.Information))
-								Debug.Write(DebugLevel.Information, this, "Rolled back transaction changes in a commit.");
+							if (Logger.IsInterestedIn(LogLevel.Information))
+								Logger.Info(this, "Rolled back transaction changes in a commit.");
 						}
 					} finally {
 						try {
@@ -557,7 +557,7 @@ namespace Deveel.Data {
 							// Notify the conglomerate that this transaction has closed.
 							CloseTransaction(transaction);
 						} catch (Exception e) {
-							Debug.WriteException(e);
+							Logger.Error(this, e);
 						}
 					}
 				}
@@ -683,8 +683,8 @@ namespace Deveel.Data {
 			try {
 				stateStore.Commit();
 			} catch (IOException e) {
-				Debug.WriteException(e);
-				throw new ApplicationException("IO Error: " + e.Message);
+				Logger.Error(this, e);
+				throw new ApplicationException("IO Error: " + e.Message, e);
 			}
 		}
 

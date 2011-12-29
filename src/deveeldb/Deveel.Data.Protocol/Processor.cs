@@ -23,7 +23,6 @@ using System.Text;
 using Deveel.Data.Client;
 using Deveel.Data.Control;
 using Deveel.Data.Util;
-using Deveel.Diagnostics;
 
 namespace Deveel.Data.Protocol {
 	/// <summary>
@@ -77,8 +76,8 @@ namespace Deveel.Data.Protocol {
 				dout.Write(eventMessage);
 				SendEvent(bout.ToArray());
 			} catch (IOException e) {
-				controller.Debug.Write(DebugLevel.Error, this, "IO Error: " + e.Message);
-				controller.Debug.WriteException(e);
+				controller.Logger.Error(this, "IO Error: " + e.Message);
+				controller.Logger.Error(this, e);
 			}
 		}
 
@@ -307,7 +306,7 @@ namespace Deveel.Data.Protocol {
 					}
 					dbInterfaces.Clear();
 				} catch (Exception e) {
-					controller.Debug.WriteException(DebugLevel.Error, e);
+					controller.Logger.Error(this, e);
 				}
 			}
 		}

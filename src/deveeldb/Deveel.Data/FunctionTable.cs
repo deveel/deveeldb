@@ -461,13 +461,10 @@ namespace Deveel.Data {
 			outTable.Set(tabs, rowSets);
 
 			// Output this as debugging information
-			if (DEBUG_QUERY) {
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-					            outTable + " = " + this + ".MergeWithReference(" +
-					            ReferenceTable + ", " + maxColumn + " )");
-				}
-			}
+#if DEBUG
+			if (Logger.IsInterestedIn(LogLevel.Information))
+				Logger.Info(this, outTable + " = " + this + ".MergeWithReference(" + ReferenceTable + ", " + maxColumn + " )");
+#endif
 
 			table = outTable;
 			return table;

@@ -209,8 +209,8 @@ namespace Deveel.Data {
 				return dtable;
 
 			} catch (DatabaseException e) {
-				Debug.WriteException(e);
-				throw new ApplicationException("Database Exception: " + e.Message);
+				Logger.Error(this, e);
+				throw new ApplicationException("Database Exception: " + e.Message, e);
 			}
 
 		}

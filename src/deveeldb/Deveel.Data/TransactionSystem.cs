@@ -132,7 +132,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// A logger to output any debugging messages.
 		/// </summary>
-		private IDebugLogger logger;
+		private Logger logger;
 
 		// ---------- Low level row listeners ----------
 
@@ -278,15 +278,15 @@ namespace Deveel.Data {
 			get { return store_system; }
 		}
 
-		// ---------- Debug logger methods ----------
+		// ---------- Logger logger methods ----------
 
 		///<summary>
-		/// Returns the IDebugLogger object that is used to log debug message. 
+		/// Returns the ILogger object that is used to log debug message. 
 		///</summary>
 		/// <remarks>
 		/// This property must always return a debug logger that we can log to.
 		/// </remarks>
-		public IDebugLogger Debug {
+		public Logger Logger {
 			get { return logger; }
 		}
 
@@ -368,7 +368,7 @@ namespace Deveel.Data {
 		//        Type type = Type.GetType(fsyncTypeString, false, true);
 		//        if (type == null) {
 		//            // there is no custom implementation of the fsync() operation.
-		//            Debug.Write(DebugLevel.Warning, this,
+		//            Logger.Write(LogLevel.Warning, this,
 		//                        "The value of 'fsync_type' is set but the type '" + fsyncTypeString + "' was not found.");
 		//            return;
 		//        }
@@ -379,7 +379,7 @@ namespace Deveel.Data {
 		//            try {
 		//                fsync = (IFSync) Activator.CreateInstance(type, true);
 		//            } catch (Exception e) {
-		//                Debug.Write(DebugLevel.Warning, this,
+		//                Logger.Write(LogLevel.Warning, this,
 		//                            "Error while initializing the fsynch handler class '" + fsyncTypeString + "': " + e.Message);
 		//            }
 		//        } else {
@@ -388,7 +388,7 @@ namespace Deveel.Data {
 		//            try {
 		//                fsync = FSync.Create(type);
 		//            } catch (Exception) {
-		//                Debug.Write(DebugLevel.Warning, this, "The provided type '" + type.FullName + "' does not implement the Sync(FileStream) method.");
+		//                Logger.Write(LogLevel.Warning, this, "The provided type '" + type.FullName + "' does not implement the Sync(FileStream) method.");
 		//            }
 		//        }
 
@@ -412,7 +412,7 @@ namespace Deveel.Data {
 			bool debugLogs = config.GetBooleanValue("debug_logs", true);
 
 			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
-				// First set up the debug information in this VM for the 'Debug' class.
+				// First set up the debug information in this VM for the 'Logger' class.
 				string logPath = config.ParseFileString(root_path_var, logPathString);
 				// If the path doesn't exist the make it.
 				if (!Directory.Exists(logPath))
@@ -426,19 +426,21 @@ namespace Deveel.Data {
 			Type loggerType = null;
 			if (loggerTypeString != null) {
 				loggerType = Type.GetType(loggerTypeString, false, true);
-				if (!typeof(IDebugLogger).IsAssignableFrom(loggerType))
+				if (!typeof(ILogger).IsAssignableFrom(loggerType))
 					loggerType = null;
 			}
 
 			// in case we don't log...
 			if (readOnly || !debugLogs)
-				loggerType = typeof (EmptyDebugLogger);
+				loggerType = typeof (EmptyLogger);
 
 			if (loggerType == null)
-				loggerType = typeof (DefaultDebugLogger);
+				loggerType = typeof (DefaultLogger);
 
-			logger = (IDebugLogger) Activator.CreateInstance(loggerType, true);
-			logger.Init(config);
+			ILogger wrappedLogger = (ILogger) Activator.CreateInstance(loggerType, true);
+			wrappedLogger.Init(config);
+
+			logger = new Logger(wrappedLogger);
 		}
 
 		/// <summary>
@@ -450,15 +452,13 @@ namespace Deveel.Data {
 		/// Returns null if the library name is invalid.
 		/// </returns>
 		private static String RegexStringToClass(String lib) {
-			if (lib.Equals("System.RegEx")) {
+			if (lib.Equals("System.RegEx"))
 				return "Deveel.Data.Text.SystemRegexLibrary";
-			} else if (lib.Equals("Apache.RegEx")) {
+			if (lib.Equals("Apache.RegEx"))
 				return "Deveel.Data.Text.ApacheRegexLibrary";
-			} else if (lib.Equals("Gnu.RegEx")) {
+			if (lib.Equals("Gnu.RegEx"))
 				return "Deveel.Data.Text.GNURegexLibrary";
-			} else {
-				return null;
-			}
+			return null;
 		}
 
 		/// <summary>
@@ -486,11 +486,11 @@ namespace Deveel.Data {
 				string storageSystem = config.GetStringValue(ConfigKeys.StorageSystem, "v1file");
 
 				// Construct the system store.
-				if (String.Compare(storageSystem, "v1file", true) == 0) {
-					Debug.Write(DebugLevel.Message, this, "Storage System: v1 file storage mode.");
+				if (String.Equals(storageSystem, "v1file", StringComparison.InvariantCultureIgnoreCase)) {
+					Logger.Message(this, "Storage System: v1 file storage mode.");
 					store_system = new V1FileStoreSystem();
-				} else if (String.Compare(storageSystem, "v1heap", true) == 0) {
-					Debug.Write(DebugLevel.Message, this, "Storage System: v1 heap storage mode.");
+				} else if (String.Equals(storageSystem, "v1heap", StringComparison.InvariantCultureIgnoreCase)) {
+					Logger.Message(this, "Storage System: v1 heap storage mode.");
 					store_system = new V1HeapStoreSystem();
 				} else {
 					string error_msg = "Unknown storage_system property: " + storageSystem;
@@ -498,7 +498,7 @@ namespace Deveel.Data {
 					Type storageSystemType = Type.GetType(storageSystem, false, true);
 					if (storageSystemType == null || 
 						!typeof(IStoreSystem).IsAssignableFrom(storageSystemType)) {
-						Debug.Write(DebugLevel.Error, this, error_msg);
+						Logger.Error(this, error_msg);
 						throw new Exception(error_msg);
 					}
 
@@ -506,7 +506,7 @@ namespace Deveel.Data {
 						store_system = (IStoreSystem) Activator.CreateInstance(storageSystemType, true);
 					} catch(Exception e) {
 						error_msg = "Error initializing '" + storageSystemType.FullName + "': " + e.Message;
-						Debug.Write(DebugLevel.Error, this, error_msg);
+						Logger.Error(this, error_msg);
 						throw new Exception(error_msg);
 					}
 				}
@@ -518,7 +518,7 @@ namespace Deveel.Data {
 				AddFunctionFactory(FunctionFactory.Default);
 
 				// Set up the DataCellCache from the values in the configuration
-				int maxCacheSize = 0, max_cache_entry_size = 0;
+				int maxCacheSize, max_cache_entry_size;
 
 				maxCacheSize = config.GetIntegerValue(ConfigKeys.DataCacheSize, 0);
 				max_cache_entry_size = config.GetIntegerValue(ConfigKeys.MaxCacheEntrySize, 0);
@@ -526,14 +526,14 @@ namespace Deveel.Data {
 				if (maxCacheSize >= 4096 &&
 				    max_cache_entry_size >= 16 &&
 				    max_cache_entry_size < (maxCacheSize/2)) {
-					Debug.Write(DebugLevel.Message, this,"Internal Data Cache size:          " + maxCacheSize);
-					Debug.Write(DebugLevel.Message, this,"Internal Data Cache max cell size: " + max_cache_entry_size);
+					Logger.Message(this,"Internal Data Cache size:          " + maxCacheSize);
+					Logger.Message(this,"Internal Data Cache max cell size: " + max_cache_entry_size);
 
 					// Find a prime hash size depending on the size of the cache.
 					int hash_size = DataCellCache.ClosestPrime(maxCacheSize/55);
 
 					string cacheTypeString = config.GetStringValue("cache_type", "heap");
-					Type cacheType = String.Compare(cacheTypeString, "heap", true) == 0
+					Type cacheType = String.Equals(cacheTypeString, "heap",StringComparison.InvariantCultureIgnoreCase)
 					            	? typeof(MemoryCache)
 					            	: Type.GetType(cacheTypeString, false, true);
 
@@ -550,33 +550,26 @@ namespace Deveel.Data {
 					// Set up the data_cell_cache
 					data_cell_cache = new DataCellCache(this, cache, maxCacheSize, max_cache_entry_size, hash_size);
 				} else {
-					Debug.Write(DebugLevel.Message, this, "Internal Data Cache disabled.");
+					Logger.Message(this, "Internal Data Cache disabled.");
 				}
 
 				// Are lookup comparison lists enabled?
 				//      lookup_comparison_list_enabled =
 				//                            GetConfigBoolean("lookup_comparison_list", false);
 				lookup_comparison_list_enabled = false;
-				Debug.Write(DebugLevel.Message, this, "lookup_comparison_list = " + lookup_comparison_list_enabled);
+				Logger.Message(this, "lookup_comparison_list = " + lookup_comparison_list_enabled);
 
 				// Should we open the database in Read only mode?
-				Debug.Write(DebugLevel.Message, this, "read_only = " + read_only_access);
+				Logger.Message(this, "read_only = " + read_only_access);
 				if (read_only_access) stats.Set(1, "DatabaseSystem.read_only");
-
-				//      // Hard Sync file system whenever we update index files?
-				//      if (is_file_store_mode) {
-				//        dont_synch_filesystem = GetConfigBoolean("dont_synch_filesystem", false);
-				//        Debug.Write(DebugLevel.Message, this,
-				//                      "dont_synch_filesystem = " + dont_synch_filesystem);
-				//      }
 
 				// Generate transaction error if dirty selects are detected?
 				transaction_error_on_dirty_select = config.GetBooleanValue(ConfigKeys.TransactionErrorOnDirtySelect, true);
-				Debug.Write(DebugLevel.Message, this, "transaction_error_on_dirty_select = " + transaction_error_on_dirty_select);
+				Logger.Message(this, "transaction_error_on_dirty_select = " + transaction_error_on_dirty_select);
 
 				// Case insensitive identifiers?
 				ignore_case_for_identifiers = config.GetBooleanValue(ConfigKeys.IgnoreIdentifiersCase, false);
-				Debug.Write(DebugLevel.Message, this, "ignore_case_for_identifiers = " + ignore_case_for_identifiers);
+				Logger.Message(this, "ignore_case_for_identifiers = " + ignore_case_for_identifiers);
 
 				// What regular expression library are we using?
 				// If we want the engine to support other regular expression libraries
@@ -602,15 +595,15 @@ namespace Deveel.Data {
 					try {
 						Type c = Type.GetType(regexBridge);
 						regex_library = (IRegexLibrary) Activator.CreateInstance(c);
-						Debug.Write(DebugLevel.Message, this, "Using regex bridge: " + libUsed);
+						Logger.Message(this, "Using regex bridge: " + libUsed);
 					} catch (Exception e) {
-						Debug.Write(DebugLevel.Error, this, "Unable to load regex bridge: " + regexBridge);
-						Debug.WriteException(DebugLevel.Warning, e);
+						Logger.Error(this, "Unable to load regex bridge: " + regexBridge);
+						Logger.Warning(this, e);
 					}
 				} else {
 					if (libUsed != null)
-						Debug.Write(DebugLevel.Error, this, "Regex library not known: " + libUsed);
-					Debug.Write(DebugLevel.Message, this, "Regex features disabled.");
+						Logger.Error(this, "Regex library not known: " + libUsed);
+					Logger.Message(this, "Regex features disabled.");
 				}
 
 				// ---------- Plug ins ---------
@@ -625,15 +618,15 @@ namespace Deveel.Data {
 							Type c = Type.GetType(factory_class);
 							FunctionFactory fun_factory = (FunctionFactory) Activator.CreateInstance(c);
 							AddFunctionFactory(fun_factory);
-							Debug.Write(DebugLevel.Message, this, "Successfully added function factory: " + factory_class);
+							Logger.Message(this, "Successfully added function factory: " + factory_class);
 						}
 					} else {
-						Debug.Write(DebugLevel.Message, this, "No 'function_factories' config property found.");
+						Logger.Message(this, "No 'function_factories' config property found.");
 						// If resource missing, do nothing...
 					}
 				} catch (Exception e) {
-					Debug.Write(DebugLevel.Error, this, "Error parsing 'function_factories' configuration property.");
-					Debug.WriteException(e);
+					Logger.Error(this, "Error parsing 'function_factories' configuration property.");
+					Logger.Error(this, e);
 				}
 
 				// Flush the contents of the function lookup object.
@@ -754,7 +747,7 @@ namespace Deveel.Data {
 			}
 			//    trigger_manager = null;
 			dispatcher = null;
-			Debug.Dispose();
+			Logger.Dispose();
 		}
 
 

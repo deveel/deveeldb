@@ -143,8 +143,8 @@ namespace Deveel.Data {
 			get { return visibleTables; }
 		}
 
-		internal IDebugLogger Debug {
-			get { return System.Debug; }
+		internal Logger Logger {
+			get { return System.Logger; }
 		}
 
 		/// <summary>
@@ -405,7 +405,7 @@ namespace Deveel.Data {
 					tableIndex.Dispose();
 				}
 			} catch (Exception e) {
-				Debug.WriteException(e);
+				Logger.Error(this, e);
 			}
 
 			// Dispose all tables we dropped (they will be in the cleanup_queue.
@@ -419,7 +419,7 @@ namespace Deveel.Data {
 					cleanupQueue = null;
 				}
 			} catch (Exception e) {
-				Debug.WriteException(e);
+				Logger.Error(this, e);
 			}
 
 		}

@@ -141,8 +141,8 @@ namespace Deveel.Data {
 					try {
 						sequenceAccessTransaction.Commit();
 					} catch (TransactionException e) {
-						conglomerate.Debug.WriteException(e);
-						throw new Exception("Transaction Error: " + e.Message);
+						conglomerate.Logger.Error(this, e);
+						throw new Exception("Transaction Error: " + e.Message, e);
 					}
 				}
 			}
@@ -202,8 +202,8 @@ namespace Deveel.Data {
 				try {
 					sequenceAccessTransaction.Commit();
 				} catch (TransactionException e) {
-					conglomerate.Debug.WriteException(e);
-					throw new Exception("Transaction Error: " + e.Message);
+					conglomerate.Logger.Error(this, e);
+					throw new Exception("Transaction Error: " + e.Message, e);
 				}
 			}
 

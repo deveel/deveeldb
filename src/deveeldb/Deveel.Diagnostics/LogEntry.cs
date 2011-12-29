@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2011 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,32 +14,32 @@
 //    limitations under the License.
 
 using System;
-using System.Text;
 
 namespace Deveel.Diagnostics {
 	/// <summary>
 	/// The class <see cref="LogEntry"/> represents a new entry in a log.
 	/// </summary>
 	/// <remarks>
-	/// This is only used in <see cref="DefaultDebugLogger"/> to maintain
+	/// This is only used in <see cref="DefaultLogger"/> to maintain
 	/// information concerning a log entry.
 	/// </remarks>
 	public sealed class LogEntry {
 		private readonly string thread;
 		private readonly string message;
 		private readonly string source;
-		private readonly DebugLevel level;
+		private readonly Exception error;
+		private readonly LogLevel level;
 		private readonly DateTime time;
 
 		/// <summary>
 		/// Internal constructor to avoid the use externally.
 		/// </summary>
 		/// <param name="thread"></param>
-		/// <param name="message"></param>
-		/// <param name="source"></param>
 		/// <param name="level"></param>
+		/// <param name="source"></param>
+		/// <param name="message"></param>
 		/// <param name="time"></param>
-		internal LogEntry(string thread, string message, string source, DebugLevel level, DateTime time) {
+		internal LogEntry(string thread, LogLevel level, string source, string message, DateTime time) {
 			this.thread = thread;
 			this.message = message;
 			this.time = time;
@@ -47,11 +47,31 @@ namespace Deveel.Diagnostics {
 			this.source = source;
 		}
 
+		internal LogEntry(string thread, LogLevel level, string source, Exception error, DateTime time)
+			: this(thread, level, source, error.Message, time) {
+			this.error = error;
+		}
+
 		/// <summary>
 		/// Gets ths identification of the current thread logging.
 		/// </summary>
 		public string Thread {
 			get { return thread; }
+		}
+
+		/// <summary>
+		/// Gets the error component of the entry, if any.
+		/// </summary>
+		public Exception Error {
+			get { return error; }
+		}
+
+		/// <summary>
+		/// Getrs a boolean flag indicating if the entry contains an error component.
+		/// </summary>
+		/// <seealso cref="Error"/>
+		public bool HasError {
+			get { return error != null; }
 		}
 
 		/// <summary>
@@ -64,7 +84,7 @@ namespace Deveel.Diagnostics {
 		/// <summary>
 		/// Gets the level of the logged entry.
 		/// </summary>
-		public DebugLevel Level {
+		public LogLevel Level {
 			get { return level; }
 		}
 
@@ -84,32 +104,6 @@ namespace Deveel.Diagnostics {
 		/// </summary>
 		public string Message {
 			get { return message; }
-		}
-
-		/// <inheritdoc/>
-		public override string ToString() {
-			StringBuilder sb = new StringBuilder();
-			sb.Append("Thread: ");
-			sb.Append(thread);
-			sb.Append(", ");
-			sb.Append("Time: ");
-			sb.Append(time);
-			sb.Append(", ");
-			sb.Append("Level: ");
-			sb.Append(level);
-			sb.Append(", ");
-			sb.Append("Source: ");
-			sb.Append(source);
-			sb.Append(", ");
-			sb.Append("Message: ");
-			if (message.Length > 60) {
-				sb.Append(message.Substring(0, 57));
-				sb.Append("...");
-			} else {
-				sb.Append(message);
-			}
-
-			return sb.ToString();
 		}
 	}
 }

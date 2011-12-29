@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Diagnostics;
-
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class DeclareVariableStatement : Statement {
@@ -44,7 +42,7 @@ namespace Deveel.Data.Sql {
 			try {
 				context.DeclareVariable(name, type, constant, notNull);
 			} catch (Exception e) {
-				context.Debug.Write(DebugLevel.Error, this, "Error while declaring variable: " + e.Message);
+				context.Logger.Error(this, "Error while declaring variable: " + e.Message);
 				throw;
 			}
 
@@ -53,7 +51,7 @@ namespace Deveel.Data.Sql {
 					context.SetVariable(name, defaultValue);
 			} catch(Exception e) {
 				context.RemoveVariable(name);
-				context.Debug.WriteException(e);
+				context.Logger.Error(this, e);
 				throw;
 			}
 

@@ -418,8 +418,8 @@ namespace Deveel.Data {
 						newMasterTable.WriteRecordType(newRowNumber, 0x010);
 					}
 				} catch (DatabaseException e) {
-					Debug.WriteException(e);
-					throw new Exception(e.Message);
+					Logger.Error(this, e);
+					throw new Exception(e.Message, e);
 				}
 
 				// PENDING: We need to copy any existing index definitions that might
@@ -443,8 +443,8 @@ namespace Deveel.Data {
 				OnDatabaseObjectDropped(tableName);
 				OnDatabaseObjectCreated(tableName);
 			} catch (IOException e) {
-				Debug.WriteException(e);
-				throw new Exception(e.Message);
+				Logger.Error(this, e);
+				throw new Exception(e.Message, e);
 			}
 		}
 

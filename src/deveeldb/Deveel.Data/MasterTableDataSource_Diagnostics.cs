@@ -76,12 +76,8 @@ namespace Deveel.Data {
 									// Delete it.
 									DoHardRowRemove(i);
 								} else {
-									Debug.Write(DebugLevel.Error, this,
-												  "Inconsistant: Row is indexed but marked as " +
-												  "removed or uncommitted.");
-									Debug.Write(DebugLevel.Error, this,
-												  "Row: " + i + " Type: " + type +
-												  " Table: " + TableName);
+									Logger.Error(this, "Inconsistant: Row is indexed but marked as removed or uncommitted.");
+									Logger.Error(this, "Row: " + i + " Type: " + type + " Table: " + TableName);
 									// Mark the row as committed added because it is in the index.
 									WriteRecordType(i, 0x010);
 
@@ -90,11 +86,8 @@ namespace Deveel.Data {
 								// Must be committed added.  Check it's indexed.
 								if (!masterIndex.Contains(i)) {
 									// Not indexed, so data is inconsistant.
-									Debug.Write(DebugLevel.Error, this,
-												  "Inconsistant: Row committed added but not in master index.");
-									Debug.Write(DebugLevel.Error, this,
-												  "Row: " + i + " Type: " + type +
-												  " Table: " + TableName);
+									Logger.Error(this, "Inconsistant: Row committed added but not in master index.");
+									Logger.Error(this, "Row: " + i + " Type: " + type + " Table: " + TableName);
 									// Mark the row as committed removed because it is not in the
 									// index.
 									WriteRecordType(i, 0x020);
@@ -107,8 +100,8 @@ namespace Deveel.Data {
 							if (masterIndex.Contains(i)) {
 								// It's in the master index which is wrong!  We should remake the
 								// indices.
-								Debug.Write(DebugLevel.Error, this, "Inconsistant: Row is removed but in index.");
-								Debug.Write(DebugLevel.Error, this, "Row: " + i + " Table: " + TableName);
+								Logger.Error(this, "Inconsistant: Row is removed but in index.");
+								Logger.Error(this, "Row: " + i + " Table: " + TableName);
 								// Mark the row as committed added because it is in the index.
 								WriteRecordType(i, 0x010);
 
@@ -121,10 +114,8 @@ namespace Deveel.Data {
 				}
 
 				TimeSpan benchTime = DateTime.Now - inTime;
-				if (Debug.IsInterestedIn(DebugLevel.Information)) {
-					Debug.Write(DebugLevel.Information, this,
-								  "Opening scan for " + ToString() + " (" + TableName + ") took " +
-								  benchTime + "ms.");
+				if (Logger.IsInterestedIn(LogLevel.Information)) {
+					Logger.Info(this, "Opening scan for " + ToString() + " (" + TableName + ") took " + benchTime.TotalMilliseconds + "ms.");
 				}
 
 				OnOpenScan();

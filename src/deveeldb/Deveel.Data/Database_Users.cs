@@ -86,9 +86,9 @@ namespace Deveel.Data {
 				} catch (DataException e) {
 					if (e is DbDataException) {
 						DbDataException dbDataException = (DbDataException)e;
-						Debug.Write(DebugLevel.Error, this, dbDataException.ServerErrorStackTrace);
+						Logger.Error(this, dbDataException.ServerErrorStackTrace);
 					}
-					Debug.WriteException(DebugLevel.Error, e);
+					Logger.Error(this, e);
 					throw new Exception("SQL Error: " + e.Message);
 				}
 			} finally {
@@ -97,7 +97,7 @@ namespace Deveel.Data {
 					connection.Commit();
 				} catch (TransactionException e) {
 					// Just issue a warning...
-					Debug.WriteException(DebugLevel.Warning, e);
+					Logger.Warning(this, e);
 				} finally {
 					// Guarentee that we unluck from EXCLUSIVE
 					locker.FinishMode(LockingMode.Exclusive);
@@ -135,8 +135,8 @@ namespace Deveel.Data {
 			string protocol = connectionString.Substring(0, protocolHostDeliminator);
 			string host = connectionString.Substring(protocolHostDeliminator + 1);
 
-			if (Debug.IsInterestedIn(DebugLevel.Information)) {
-				Debug.Write(DebugLevel.Information, this, "Checking host: protocol = " + protocol + ", host = " + host);
+			if (Logger.IsInterestedIn(LogLevel.Information)) {
+				Logger.Info(this, "Checking host: protocol = " + protocol + ", host = " + host);
 			}
 
 			// The table to check

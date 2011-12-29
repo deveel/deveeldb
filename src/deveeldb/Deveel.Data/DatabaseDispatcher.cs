@@ -15,11 +15,8 @@
 
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-
-using Deveel.Diagnostics;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -139,8 +136,8 @@ namespace Deveel.Data {
 					evt.Callback(this, EventArgs.Empty);
 
 				} catch (Exception e) {
-					system.Debug.Write(DebugLevel.Error, this, "SystemDispatchThread error");
-					system.Debug.WriteException(e);
+					system.Logger.Error(this, "SystemDispatchThread error");
+					system.Logger.Error(this, e);
 				}
 			}
 		}

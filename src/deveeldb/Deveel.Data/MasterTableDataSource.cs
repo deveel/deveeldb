@@ -180,14 +180,14 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns the IDebugLogger object that can be used to log debug messages.
+		/// Returns the ILogger object that can be used to log debug messages.
 		/// </summary>
-		protected IDebugLogger Debug {
-			get { return System.Debug; }
+		protected Logger Logger {
+			get { return System.Logger; }
 		}
 
-		internal IDebugLogger InternalDebug {
-			get { return Debug; }
+		internal Logger InternalLogger {
+			get { return Logger; }
 		}
 
 		/// <summary>

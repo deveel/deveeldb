@@ -86,8 +86,8 @@ namespace Deveel.Data.Protocol {
 #endif
 
 			// Write debug message,
-			if (Debug.IsInterestedIn(DebugLevel.Information)) {
-				Debug.Write(DebugLevel.Information, this, "Authenticate User: " + username);
+			if (Logger.IsInterestedIn(LogLevel.Information)) {
+				Logger.Info(this, "Authenticate User: " + username);
 			}
 
 			// Try to create a User object.
@@ -122,8 +122,7 @@ namespace Deveel.Data.Protocol {
 					if (database_connection.SchemaExists(default_schema)) {
 						database_connection.SetDefaultSchema(default_schema);
 					} else {
-						Debug.Write(DebugLevel.Warning, this,
-						            "Couldn't change to '" + default_schema + "' schema.");
+						Logger.Warning(this, "Couldn't change to '" + default_schema + "' schema.");
 						// If we can't change to the schema then change to the APP schema
 						database_connection.SetDefaultSchema("APP");
 					}
@@ -134,7 +133,7 @@ namespace Deveel.Data.Protocol {
 						database_connection.Commit();
 					} catch (TransactionException e) {
 						// Just issue a warning...
-						Debug.WriteException(DebugLevel.Warning, e);
+						Logger.Warning(this, e);
 					} finally {
 						// Guarentee that we unluck from EXCLUSIVE
 						locker.FinishMode(LockingMode.Exclusive);
@@ -189,14 +188,14 @@ namespace Deveel.Data.Protocol {
 #endif
 
 			// Write debug message (Information level)
-			if (Debug.IsInterestedIn(DebugLevel.Information)) {
-				Debug.Write(DebugLevel.Information, this, "Query From User: " + user.UserName + "@" + host_name);
-				Debug.Write(DebugLevel.Information, this, "Query: " + query.Text.Trim());
+			if (Logger.IsInterestedIn(LogLevel.Information)) {
+				Logger.Info(this, "Query From User: " + user.UserName + "@" + host_name);
+				Logger.Info(this, "Query: " + query.Text.Trim());
 			}
 
 			// Get the locking mechanism.
 			LockingMechanism locker = database_connection.LockingMechanism;
-			LockingMode lock_mode = LockingMode.None;
+			LockingMode lockMode = LockingMode.None;
 			IQueryResponse[] response = null;
 			try {
 				try {
@@ -211,8 +210,8 @@ namespace Deveel.Data.Protocol {
 					// because we could change the contract of this method so that
 					// it is not thread safe.  This would require that the callee ensures
 					// more than one thread can not execute queries on the connection.
-					lock_mode = LockingMode.Exclusive;
-					locker.SetMode(lock_mode);
+					lockMode = LockingMode.Exclusive;
+					locker.SetMode(lockMode);
 
 					// Execute the Query (behaviour for this comes from super).
 					response = base.ExecuteQuery(query);
@@ -224,16 +223,18 @@ namespace Deveel.Data.Protocol {
 					try {
 						// This is executed no matter what happens.  Very important we
 						// unlock the tables.
-						if (lock_mode != LockingMode.None) {
-							locker.FinishMode(lock_mode);
+						if (lockMode != LockingMode.None) {
+							locker.FinishMode(lockMode);
 						}
 					} catch (Exception e) {
 						// If this throws an exception, we should output it to the debug
 						// log and screen.
+#if DEBUG
 						Console.Error.WriteLine(e.Message);
 						Console.Error.WriteLine(e.StackTrace);
-						Debug.Write(DebugLevel.Error, this, "Exception finishing locks");
-						Debug.WriteException(e);
+#endif
+						Logger.Error(this, "Exception finishing locks");
+						Logger.Error(this, e);
 						// Note, we can't throw an error here because we may already be in
 						// an exception that happened in the above 'try' block.
 					}

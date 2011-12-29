@@ -200,11 +200,10 @@ namespace Deveel.Data {
 					}
 					SetRowCell(table.GetCellContents(tcol_index, row), i, row_count - 1);
 				} catch (Exception e) {
-					Debug.WriteException(e);
-					throw new ApplicationException(e.Message);
+					Logger.Error(this, e);
+					throw new ApplicationException(e.Message, e);
 				}
 			}
-
 		}
 
 

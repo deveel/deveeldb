@@ -94,12 +94,12 @@ namespace Deveel.Data {
 		/// </summary>
 		private int sharedMode;
 
-		private readonly IDebugLogger logger;
+		private readonly Logger logger;
 
 		/// <summary>
 		/// 
 		/// </summary>
-		internal LockingMechanism(IDebugLogger logger) {
+		internal LockingMechanism(Logger logger) {
 			this.logger = logger;
 		}
 
@@ -142,7 +142,7 @@ namespace Deveel.Data {
 				if (!IsInExclusiveMode) {
 					// This is currently just a warning but should be upgraded to a
 					// full error.
-					logger.WriteException(new Exception("Should not clear a " +
+					logger.Error(this, new Exception("Should not clear a " +
 									"LockingMechanism that's not in exclusive mode."));
 				}
 
@@ -198,7 +198,7 @@ namespace Deveel.Data {
 					l = new Lock(AccessType.Write, queue, logger);
 					handle.AddLock(l);
 
-					logger.Write(DebugLevel.Information, this, "[LockingMechanism] Locking for Write: " + toWriteLock.TableName);
+					logger.Info(this, "[LockingMechanism] Locking for Write: " + toWriteLock.TableName);
 				}
 
 				for (int i = tablesRead.Length - 1; i >= 0; --i) {
@@ -209,12 +209,12 @@ namespace Deveel.Data {
 					l = new Lock(AccessType.Read, queue, logger);
 					handle.AddLock(l);
 
-					logger.Write(DebugLevel.Information, this, "[LockingMechanism] Locking for READ: " + toReadLock.TableName);
+					logger.Info(this, "[LockingMechanism] Locking for READ: " + toReadLock.TableName);
 				}
 
 			}
 
-			logger.Write(DebugLevel.Information, this, "Locked Tables");
+			logger.Info(this, "Locked Tables");
 
 			return handle;
 
@@ -239,7 +239,7 @@ namespace Deveel.Data {
 				handle.UnlockAll();
 			}
 
-			logger.Write(DebugLevel.Information, this, "UnLocked Tables");
+			logger.Info(this, "UnLocked Tables");
 		}
 
 		/// <summary>
@@ -294,14 +294,14 @@ namespace Deveel.Data {
 						}
 					}
 
-					logger.Write(DebugLevel.Information, this, "Locked into ** EXCLUSIVE MODE **");
+					logger.Info(this, "Locked into ** EXCLUSIVE MODE **");
 
 				} else if (mode == LockingMode.Shared) {
 					// Increase the threads counter that are in shared mode.
 
 					++sharedMode;
 
-					logger.Write(DebugLevel.Information, this, "Locked into SHARED MODE");
+					logger.Info(this, "Locked into SHARED MODE");
 				} else {
 					throw new ApplicationException("Invalid mode");
 				}
@@ -327,7 +327,7 @@ namespace Deveel.Data {
 					inExclusiveMode = false;
 					Monitor.PulseAll(this);
 
-					logger.Write(DebugLevel.Information, this, "UnLocked from ** EXCLUSIVE MODE **");
+					logger.Info(this, "UnLocked from ** EXCLUSIVE MODE **");
 				} else if (mode == LockingMode.Shared) {
 					--sharedMode;
 					if (sharedMode == 0 && inExclusiveMode) {
@@ -338,7 +338,7 @@ namespace Deveel.Data {
 						throw new Exception("Too many 'FinishMode(Shared)' calls");
 					}
 
-					logger.Write(DebugLevel.Information, this, "UnLocked from SHARED MODE");
+					logger.Info(this, "UnLocked from SHARED MODE");
 				} else {
 					throw new ApplicationException("Invalid mode");
 				}

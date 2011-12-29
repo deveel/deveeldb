@@ -50,8 +50,8 @@ namespace Deveel.Data.Sql {
 			cache = new MemoryCache(hashSize, maxSize, cleanPercentage);
 		}
 
-		private IDebugLogger Debug {
-			get { return system.Debug; }
+		private Logger Logger {
+			get { return system.Logger; }
 		}
 
 		/// <summary>
@@ -72,7 +72,7 @@ namespace Deveel.Data.Sql {
 						}
 						cache.Set(queryString, clonedList);
 					} catch (Exception e) {
-						Debug.WriteException(e);
+						Logger.Error(this, e);
 						throw new ApplicationException("Unable to clone statement tree: " + e.Message);
 					}
 				}
@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql {
 						}
 						return clonedList;
 					} catch (Exception e) {
-						Debug.WriteException(e);
+						Logger.Error(this, e);
 						throw new ApplicationException("Unable to clone statement tree: " + e.Message);
 					}
 				}

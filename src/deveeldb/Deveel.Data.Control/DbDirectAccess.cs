@@ -16,7 +16,6 @@
 using System;
 
 using Deveel.Data.Sql;
-using Deveel.Diagnostics;
 
 namespace Deveel.Data.Control {
 	/// <summary>
@@ -70,7 +69,7 @@ namespace Deveel.Data.Control {
 				if (connection.SchemaExists(defaultSchema)) {
 					connection.SetDefaultSchema(defaultSchema);
 				} else {
-					connection.Debug.Write(DebugLevel.Warning, this, "Couldn't change to '" + defaultSchema + "' schema.");
+					connection.Logger.Warning(this, "Couldn't change to '" + defaultSchema + "' schema.");
 					// If we can't change to the schema then change to the APP schema
 					connection.SetDefaultSchema("APP");
 				}
@@ -80,7 +79,7 @@ namespace Deveel.Data.Control {
 					connection.Commit();
 				} catch (TransactionException e) {
 					// Just issue a warning...
-					connection.Debug.WriteException(DebugLevel.Warning, e);
+					connection.Logger.Warning(this, e);
 				} finally {
 					// Guarentee that we unluck from EXCLUSIVE
 					locker.FinishMode(LockingMode.Exclusive);
@@ -180,8 +179,8 @@ namespace Deveel.Data.Control {
 						// log and screen.
 						Console.Error.WriteLine(e.Message);
 						Console.Error.WriteLine(e.StackTrace);
-						connection.Debug.Write(DebugLevel.Error, this, "Exception finishing locks");
-						connection.Debug.WriteException(e);
+						connection.Logger.Error(this, "Exception finishing locks");
+						connection.Logger.Error(this, e);
 						// Note, we can't throw an error here because we may already be in
 						// an exception that happened in the above 'try' block.
 					}

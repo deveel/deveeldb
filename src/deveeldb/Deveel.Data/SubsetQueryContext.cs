@@ -40,8 +40,8 @@ namespace Deveel.Data {
 			get { return parent.Connection; }
 		}
 
-		public override IDebugLogger Debug {
-			get { return parent.Debug; }
+		public override Logger Logger {
+			get { return parent.Logger; }
 		}
 
 		public override IFunctionLookup FunctionLookup {
