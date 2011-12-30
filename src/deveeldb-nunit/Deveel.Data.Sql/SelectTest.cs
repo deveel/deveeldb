@@ -242,6 +242,11 @@ namespace Deveel.Data.Sql {
 		}
 
 		[Test]
+		public void SelectRegex() {
+			Assert.Inconclusive();
+		}
+
+		[Test]
 		public void SelectSmallerThan() {
 			DeveelDbDataReader reader = ExecuteReader("SELECT name, age FROM Person WHERE age < 30");
 

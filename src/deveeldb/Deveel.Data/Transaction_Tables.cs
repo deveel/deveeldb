@@ -378,6 +378,7 @@ namespace Deveel.Data {
 			// Drop the current table
 			IMutableTableDataSource cTable = GetMutableTable(tableName);
 			DropTable(tableName);
+
 			// And create the table table
 			CreateTable(tableInfo);
 			IMutableTableDataSource alteredTable = GetMutableTable(tableName);

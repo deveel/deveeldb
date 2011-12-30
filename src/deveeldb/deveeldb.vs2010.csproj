@@ -75,6 +75,57 @@
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\ColumnConstraintAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\ColumnConstraints.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\ForeignKeyAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\FunctionAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\INamedConstraint.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\MappingContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\MemberTypes.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\NotNullAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\PrimaryKeyAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\TableAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\TypeAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\TypeAttributeMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\TypeMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\TypeMemberMapping.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Mapping\UniqueAttribute.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Protocol\ColumnDescription.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -188,23 +239,6 @@
     <Compile Include="Deveel.Data.Functions\InternalFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\MiscFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\StringFunctionFactory.cs" />
-    <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\ColumnConstraintAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\ColumnConstraints.cs" />
-    <Compile Include="Deveel.Data.Mapping\ForeignKeyAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\FunctionAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\INamedConstraint.cs" />
-    <Compile Include="Deveel.Data.Mapping\MappingContext.cs" />
-    <Compile Include="Deveel.Data.Mapping\MemberTypes.cs" />
-    <Compile Include="Deveel.Data.Mapping\NotNullAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\PrimaryKeyAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\TableAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\TypeAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\TypeAttributeMapping.cs" />
-    <Compile Include="Deveel.Data.Mapping\TypeMapping.cs" />
-    <Compile Include="Deveel.Data.Mapping\TypeMemberMapping.cs" />
-    <Compile Include="Deveel.Data.Mapping\UniqueAttribute.cs" />
     <Compile Include="Deveel.Data.Procedures\ParameterDirection.cs" />
     <Compile Include="Deveel.Data.Procedures\ProcedureBody.cs" />
     <Compile Include="Deveel.Data.Procedures\ProcedureException.cs" />
@@ -504,7 +538,9 @@
     <Compile Include="Deveel.Data\UserAccessException.cs" />
     <Compile Include="Deveel.Data\UserManager.cs" />
     <Compile Include="Deveel.Data\UserObject.cs" />
-    <Compile Include="Deveel.Data\UserType.cs" />
+    <Compile Include="Deveel.Data\UserType.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Data\UserTypeAttribute.cs" />
     <Compile Include="Deveel.Data\UserTypeAttributes.cs" />
     <Compile Include="Deveel.Data\V2MasterTableDataSource.cs" />

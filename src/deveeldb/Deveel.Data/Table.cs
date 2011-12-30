@@ -1585,25 +1585,26 @@ namespace Deveel.Data {
 				//   For each row that is in the original set and not in the like set,
 				//     add to the result list.
 				//   Result is the set of not like rows ordered by the column.
-				List<int> like_set = (List<int>) PatternSearch.Search(this, column, ob.ToString());
+				List<int> likeSet = (List<int>) PatternSearch.Search(this, column, ob.ToString());
 				// Don't include NULL values
-				TObject null_cell = new TObject(ob.TType, null);
-				IList<int> original_set = SelectRows(column, Operator.Get("is not"), null_cell);
-				int vec_size = SysMath.Max(4, (original_set.Count - like_set.Count) + 4);
-				List<int> result_set = new List<int>(vec_size);
-				like_set.Sort();
-				int size = original_set.Count;
+				TObject nullCell = new TObject(ob.TType, null);
+				IList<int> originalSet = SelectRows(column, Operator.Get("is not"), nullCell);
+				int listSize = SysMath.Max(4, (originalSet.Count - likeSet.Count) + 4);
+				List<int> result_set = new List<int>(listSize);
+				likeSet.Sort();
+				int size = originalSet.Count;
 				for (int i = 0; i < size; ++i) {
-					int val = original_set[i];
+					int val = originalSet[i];
 					// If val not in like set, add to result
-					if (like_set.BinarySearch(val) == 0) {
+					if (likeSet.BinarySearch(val) == 0) {
 						result_set.Add(val);
 					}
 				}
 				return result_set;
-			} else { // if (op.is("like")) {
-				return PatternSearch.Search(this, column, ob.ToString());
-			}
+			} 
+			
+			// if (op.is("like")) {
+			return PatternSearch.Search(this, column, ob.ToString());
 		}
 
 		/// <summary>
@@ -1880,8 +1881,8 @@ namespace Deveel.Data {
 
 
 		// Stores col name -> col index lookups
-		private Hashtable col_name_lookup;
-		private Object COL_LOOKUP_LOCK = new Object();
+		private Dictionary<VariableName, int> colNameLookup;
+		private readonly object colLookupLock = new object();
 
 		/// <summary>
 		/// Provides faster way to find a column index given a column name.
@@ -1892,18 +1893,17 @@ namespace Deveel.Data {
 		/// if not found.
 		/// </returns>
 		public int FastFindFieldName(VariableName col) {
-			lock (COL_LOOKUP_LOCK) {
-				if (col_name_lookup == null) {
-					col_name_lookup = new Hashtable(30);
+			lock (colLookupLock) {
+				if (colNameLookup == null)
+					colNameLookup = new Dictionary<VariableName, int>(30);
+
+				int index;
+				if (!colNameLookup.TryGetValue(col, out index)) {
+					index = FindFieldName(col);
+					colNameLookup[col] = index;
 				}
-				Object ob = col_name_lookup[col];
-				if (ob == null) {
-					int ci = FindFieldName(col);
-					col_name_lookup[col] = ci;
-					return ci;
-				} else {
-					return (int)ob;
-				}
+
+				return index;
 			}
 		}
 

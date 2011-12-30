@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Globalization;
 using System.IO;
 
 namespace Deveel.Diagnostics {
@@ -84,7 +85,7 @@ namespace Deveel.Diagnostics {
 			lock (this) {
 				try {
 					logOutput.Write("[");
-					logOutput.Write(DateTime.Now.ToString());
+					logOutput.Write(DateTime.Now.ToString(CultureInfo.InvariantCulture));
 					logOutput.Write("] ");
 					logOutput.Write(text);
 					logOutput.Flush();

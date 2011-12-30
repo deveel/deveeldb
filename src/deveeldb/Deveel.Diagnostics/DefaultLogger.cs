@@ -206,6 +206,9 @@ namespace Deveel.Diagnostics {
 		}
 
 		public void Log(LogEntry entry) {
+			if (!IsInterestedIn(entry.Level))
+				return;
+
 			if (entry.HasError)
 				WriteException(entry.Level, entry.Error);
 			else
@@ -218,18 +221,6 @@ namespace Deveel.Diagnostics {
 				sb.AppendLine(e.Message);
 				sb.Append(e.StackTrace);
 				Write(new LogEntry(Thread.CurrentThread.Name, level, null, sb.ToString(), DateTime.Now));
-				/*
-				if (IsInterestedIn(level)) {
-					// we keep this way for exceptions, but we need to change it...
-					lock (output) {
-						WriteTime();
-						output.Write("% ");
-						output.WriteLine(e.Message);
-						output.WriteLine(e.StackTrace);
-						output.Flush();
-					}
-				}
-				*/
 			}
 		}
 

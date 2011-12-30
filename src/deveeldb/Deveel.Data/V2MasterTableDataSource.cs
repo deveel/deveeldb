@@ -369,7 +369,7 @@ namespace Deveel.Data {
 				}
 			}
 
-			return osifiedName.ToString();
+			return String.Format("{0}_{1}", tableId, osifiedName);
 		}
 
 		/// <summary>

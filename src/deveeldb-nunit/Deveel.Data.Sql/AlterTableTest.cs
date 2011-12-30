@@ -20,51 +20,42 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public sealed class AlterTableTest : TestBase {
-		[Test]
-		public void AddSingleColumn() {
+		protected override bool RequiresSchema {
+			get { return true; }
 		}
 
 		[Test]
-		public void DropSingleColumn() {
+		public void AddColumn() {
+			ExecuteNonQuery("ALTER TABLE Person ADD COLUMN description  VARCHAR(255);");
+		}
+		
+		[Test(Description = "Adds a column that already was defined in the table.")]
+		public void AddExistingColumn() {
+			ExecuteNonQuery("ALTER TABLE Person ADD COLUMN name VARCHAR(30);");
+		}
+
+		[Test]
+		public void DropColumn() {
+			ExecuteNonQuery("ALTER TABLE Person DROP COLUMN name;");
+		}
+
+		[Test]
+		public void DropNonExistingColumn() {
+			ExecuteNonQuery("ALTER TABLE Person DROP COLUMN desc;");
+		}
+
+		[Test]
+		public void AddConstraint() {
 			
 		}
 
 		[Test]
-		public void AddMultipleColumns() {	
-		}
-
-		[Test]
-		public void DropMultipleColumns() {
+		public void DropConstraint() {
 			
 		}
 
 		[Test]
-		public void AddSingleConstraint() {
-			
-		}
-
-		[Test]
-		public void DropSingleConstraint() {
-			
-		}
-
-		[Test]
-		public void AddMultipleConstraints() {
-			
-		}
-
-		[Test]
-		public void DropMultipleConstraints() {
-
-		}
-
-		[Test]
-		public void SetSingleColumnDefault() {
-			
-		}
-
-		[Test]
-		public void SetMultipleColumnsDefault() {
+		public void SetColumnDefault() {
 			
 		}
 
