@@ -144,7 +144,7 @@ namespace Deveel.Data.Client {
 			if (restrictions == null)
 				throw new ArgumentNullException("restrictions");
 			if (restrictions.Length < 4)
-				throw new ArgumentException();
+				throw new ArgumentException("COLUMNS collection requires at least 4 arguments.");
 
 			string catalog = restrictions[0];
 			string schema = restrictions[1];

@@ -271,6 +271,9 @@ namespace Deveel.Data.Sql {
 
 						// If column name starts with [table_name]. then strip it off
 						col.Name = checker.StripTableName(table_name, columnName);
+						if (tableInfo.FindColumnName(col.Name) != -1)
+							throw new DatabaseException("The column '" + col.Name + "' is already in the table '" + tableInfo.TableName + "'.");
+
 						newTable.AddColumn(col);
 						tableAltered = true;
 					}

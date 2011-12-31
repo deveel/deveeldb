@@ -14,8 +14,13 @@
 //    limitations under the License.
 
 using System;
+using System.Data;
+
+using Deveel.Data.Client;
 
 using NUnit.Framework;
+
+using SysDataTable = System.Data.DataTable;
 
 namespace Deveel.Data.Sql {
 	[TestFixture]
@@ -24,14 +29,25 @@ namespace Deveel.Data.Sql {
 			get { return true; }
 		}
 
+		private bool HasColumn(string schemaName, string tableName, string columnName) {
+			SysDataTable table = Connection.GetSchema(DeveelDbMetadataSchemaNames.Columns, new string[] { null, schemaName, tableName, null});
+			foreach (System.Data.DataRow dataRow in table.Rows) {
+				if (dataRow["COLUMN_NAME"].Equals(columnName))
+					return true;
+			}
+
+			return false;
+		}
+
 		[Test]
 		public void AddColumn() {
 			ExecuteNonQuery("ALTER TABLE Person ADD COLUMN description  VARCHAR(255);");
+			Assert.IsTrue(HasColumn("APP", "Person", "description"));
 		}
 		
 		[Test(Description = "Adds a column that already was defined in the table.")]
 		public void AddExistingColumn() {
-			ExecuteNonQuery("ALTER TABLE Person ADD COLUMN name VARCHAR(30);");
+			Assert.Throws<DatabaseException>(delegate { ExecuteNonQuery("ALTER TABLE Person ADD COLUMN name VARCHAR(30);"); });
 		}
 
 		[Test]
@@ -41,7 +57,7 @@ namespace Deveel.Data.Sql {
 
 		[Test]
 		public void DropNonExistingColumn() {
-			ExecuteNonQuery("ALTER TABLE Person DROP COLUMN desc;");
+			ExecuteNonQuery("ALTER TABLE Person DROP COLUMN description;");
 		}
 
 		[Test]
@@ -51,22 +67,22 @@ namespace Deveel.Data.Sql {
 
 		[Test]
 		public void DropConstraint() {
-			
+			Assert.Inconclusive();
 		}
 
 		[Test]
 		public void SetColumnDefault() {
-			
+			Assert.Inconclusive();
 		}
 
 		[Test]
 		public void DropColumnDefault() {
-			
+			Assert.Inconclusive();
 		}
 
 		[Test]
 		public void DropPrimaryKeyConstraint() {
-			
+			Assert.Inconclusive();
 		}
 	}
 }
