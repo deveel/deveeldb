@@ -170,9 +170,15 @@ namespace Deveel.Data {
 				command.ExecuteNonQuery();
 
 				transaction.Commit();
-			} catch (Exception) {
-				transaction.Rollback();
-				throw;
+			} catch (Exception e) {
+				try {
+					transaction.Rollback();
+				} catch (Exception e2) {
+					Console.Error.WriteLine("Was not able to rollback: {0}", e2.Message);
+					Console.Error.WriteLine(e2.StackTrace);
+				}
+
+				throw e;
 			}
 		}
 

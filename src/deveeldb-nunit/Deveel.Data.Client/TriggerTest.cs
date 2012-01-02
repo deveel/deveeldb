@@ -11,6 +11,10 @@ namespace Deveel.Data.Client {
 			: base(StorageType.Memory) {
 		}
 
+		protected override bool RequiresSchema {
+			get { return true; }
+		}
+
 		[Test]
 		public void CallbackTriggerOnAllEvents() {
 			Assert.IsTrue(Connection.State == ConnectionState.Open);
@@ -38,8 +42,6 @@ namespace Deveel.Data.Client {
 			count = command.ExecuteNonQuery();
 
 			Assert.AreEqual(1, count);
-
-			Connection.Close();
 		}
 
 		[Test]

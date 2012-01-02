@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Data;
 
 using Deveel.Data.Client;
 
@@ -53,16 +52,17 @@ namespace Deveel.Data.Sql {
 		[Test]
 		public void DropColumn() {
 			ExecuteNonQuery("ALTER TABLE Person DROP COLUMN name;");
+			Assert.IsFalse(HasColumn("APP", "Person", "name"));
 		}
 
 		[Test]
 		public void DropNonExistingColumn() {
-			ExecuteNonQuery("ALTER TABLE Person DROP COLUMN description;");
+			Assert.Throws<DatabaseException>(delegate { ExecuteNonQuery("ALTER TABLE Person DROP COLUMN description;"); });
 		}
 
 		[Test]
-		public void AddConstraint() {
-			
+		public void AddForeignKeyConstraint() {
+			ExecuteNonQuery("ALTER TABLE Person ADD FOREIGN KEY (name) REFERENCES ListensTo (person_name);");
 		}
 
 		[Test]

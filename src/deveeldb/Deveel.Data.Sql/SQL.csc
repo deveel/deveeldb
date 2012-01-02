@@ -665,7 +665,7 @@ StatementTree Select() :
 StatementTree Update() :
 { StatementTree cmd = new StatementTree(typeof(UpdateTableStatement));
   String table_name;
-  ArrayList assignments = new ArrayList();
+  List<Assignment> assignments = new List<Assignment>();
   SearchExpression where_clause = null;
   int limit = -1;
   bool from_cursor = false;
@@ -1179,7 +1179,7 @@ StatementTree Insert() :
   ArrayList col_list = new ArrayList();
   ArrayList data_list = new ArrayList(); // ( Array of Expression[] )
   StatementTree select = null;
-  ArrayList assignments = new ArrayList();
+  List<Assignment> assignments = new List<Assignment>();
   String type;
 }
 {
@@ -1759,7 +1759,7 @@ void ProcParameterList(ArrayList decl_names, ArrayList decl_types) :
 
 
 // The ' set a = (a * 9), b = concat(b, "aa") ' part of the 'update', 'insert' statement
-void AssignmentList(ArrayList assignment_list) :
+void AssignmentList(IList assignment_list) :
 { String column;
   Expression exp;
 }

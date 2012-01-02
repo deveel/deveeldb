@@ -101,11 +101,11 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override void Prepare(IQueryContext context) {
-			string tableNameString = GetString("tableNameString");
+			string tableNameString = GetString("table_name");
 			columnSets = (IList<Assignment>) GetList("assignments", typeof(Assignment));
 			whereCondition = (SearchExpression)GetValue("where_clause");
 			limit = GetInt32("limit");
-			bool fromCursor = GetBoolean("fromCursor");
+			bool fromCursor = GetBoolean("from_cursor");
 			string cursorNameString = GetString("cursor_name");
 
 			// ---

@@ -308,7 +308,7 @@ namespace Deveel.Data.Sql {
 						checker.StripColumnList(constraint.ReferenceTable,
 						                        constraint.column_list2);
 						checker.CheckExpression(constraint.CheckExpression);
-						checker.CheckColumnList(constraint.ColumnList2);
+						checker.CheckColumnList(constraint.ColumnList);
 						if (foreignConstraint && constraint.column_list2 != null) {
 							ColumnChecker referenced_checker =
 								ColumnChecker.GetStandardColumnChecker(context.Connection, refTname);

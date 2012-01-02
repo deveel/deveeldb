@@ -498,11 +498,13 @@ namespace Deveel.Data {
 				while (rebuildIndex < journalCount) {
 					JournalCommandType command = tableJournal.GetCommand(rebuildIndex);
 					int rowIndex = tableJournal.GetRowIndex(rebuildIndex);
-					if (command == JournalCommandType.AddRow) {
+					if (command == JournalCommandType.AddRow ||
+						command == JournalCommandType.UpdateAddRow) {
 						// Add to 'row_list'.
 						if (!RowIndex.UniqueInsertSort(rowIndex))
 							throw new ApplicationException("Row index already used in this table (" + rowIndex + ")");
-					} else if (command == JournalCommandType.RemoveRow) {
+					} else if (command == JournalCommandType.RemoveRow ||
+							   command == JournalCommandType.UpdateRemoveRow) {
 						// Remove from 'row_list'
 						if (!RowIndex.RemoveSort(rowIndex))
 							throw new ApplicationException("Row index removed that wasn't in this table!");
@@ -531,9 +533,11 @@ namespace Deveel.Data {
 				while (rebuildIndex < journalCount) {
 					JournalCommandType command = tableJournal.GetCommand(rebuildIndex);
 					int row_index = tableJournal.GetRowIndex(rebuildIndex);
-					if (command == JournalCommandType.AddRow) {
+					if (command == JournalCommandType.AddRow ||
+						command == JournalCommandType.UpdateAddRow) {
 						scheme.Insert(row_index);
-					} else if (command == JournalCommandType.RemoveRow) {
+					} else if (command == JournalCommandType.RemoveRow ||
+							   command == JournalCommandType.UpdateRemoveRow) {
 						scheme.Remove(row_index);
 					} else {
 						throw new ApplicationException("Unrecognised journal command.");

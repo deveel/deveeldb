@@ -184,7 +184,8 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected T GetValue<T>(string key) {
-			return (T) GetValue(key, typeof (T));
+			object value = GetValue(key, typeof (T));
+			return (value == null ? default(T) : (T) value);
 		}
 
 		protected int GetInt32(string key) {
