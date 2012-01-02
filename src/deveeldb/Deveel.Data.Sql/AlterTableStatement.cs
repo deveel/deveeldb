@@ -310,9 +310,9 @@ namespace Deveel.Data.Sql {
 						checker.CheckExpression(constraint.CheckExpression);
 						checker.CheckColumnList(constraint.ColumnList);
 						if (foreignConstraint && constraint.column_list2 != null) {
-							ColumnChecker referenced_checker =
+							ColumnChecker referencedChecker =
 								ColumnChecker.GetStandardColumnChecker(context.Connection, refTname);
-							referenced_checker.CheckColumnList(constraint.column_list2);
+							referencedChecker.CheckColumnList(constraint.column_list2);
 						}
 
 						CreateTableStatement.AddSchemaConstraint(context.Connection, tableName, constraint);

@@ -62,22 +62,28 @@ namespace Deveel.Data.Sql {
 
 		[Test]
 		public void AddForeignKeyConstraint() {
-			ExecuteNonQuery("ALTER TABLE Person ADD FOREIGN KEY (name) REFERENCES ListensTo (person_name);");
+			ExecuteNonQuery("CREATE TABLE test_table_1 (prop1 NUMERIC, prop2 VARCHAR);");
+			ExecuteNonQuery("CREATE TABLE test_table_2 (prop1 NUMERIC, prop2 VARCHAR);");
+			ExecuteNonQuery("ALTER TABLE test_table_1 ADD CONSTRAINT fk_test_table FOREIGN KEY (prop1) REFERENCES test_table_2 (prop1);");
 		}
 
 		[Test]
-		public void DropConstraint() {
-			Assert.Inconclusive();
+		public void DropForeignKeyConstraint() {
+			AddForeignKeyConstraint();
+
+			ExecuteNonQuery("ALTER TABLE Person DROP fk_test_table;");
 		}
 
 		[Test]
 		public void SetColumnDefault() {
-			Assert.Inconclusive();
+			ExecuteNonQuery("CREATE TABLE test_table_1 (prop1 NUMERIC, prop2 VARCHAR);");
+			ExecuteNonQuery("ALTER TABLE test_table_1 ALTER prop1 SET prop1 = -1;");
 		}
 
 		[Test]
 		public void DropColumnDefault() {
-			Assert.Inconclusive();
+			SetColumnDefault();
+			ExecuteNonQuery("ALTER TABLE test_table_1 ALTER prop1 DROP DEFAULT;");
 		}
 
 		[Test]

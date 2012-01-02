@@ -201,7 +201,11 @@ namespace Deveel.Data {
 		///</summary>
 		///<param name="expression"></param>
 		public void SetDefaultExpression(Expression expression) {
-			defaultExpressionString = expression.Text.ToString();
+			if (expression == null) {
+				defaultExpressionString = null;
+			} else {
+				defaultExpressionString = expression.Text.ToString();
+			}
 		}
 
 
@@ -213,8 +217,7 @@ namespace Deveel.Data {
 			if (defaultExpressionString == null)
 				return null;
 
-			Expression exp = Expression.Parse(defaultExpressionString);
-			return exp;
+			return Expression.Parse(defaultExpressionString);
 		}
 
 		///<summary>
@@ -223,22 +226,6 @@ namespace Deveel.Data {
 		public String GetDefaultExpressionString() {
 			return defaultExpressionString;
 		}
-
-		/*
-		///<summary>
-		/// Returns this column as a <see cref="ColumnDescription"/> object 
-		/// and gives the column description the given name.
-		///</summary>
-		///<param name="columnName"></param>
-		///<returns></returns>
-		internal ColumnDescription ColumnDescriptionValue(string columnName) {
-			ColumnDescription field = new ColumnDescription(columnName, type.DbType, Size, IsNotNull);
-			field.Scale = Scale;
-			field.SQLType = SqlType;
-
-			return field;
-		}
-		*/
 
 		/// <summary>
 		/// Dumps information about this object to the <see cref="TextWriter"/>.
