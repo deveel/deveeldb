@@ -4,23 +4,16 @@ using System.IO;
 using NUnit.Framework;
 
 namespace Deveel.Data.Client {
-	[TestFixture(StorageType.Memory)]
-	[TestFixture(StorageType.File)]
+	[TestFixture]
 	public sealed class LobTest : TestBase {
-		public LobTest(StorageType storageType)
-			: base(storageType) {
-		}
-
-		protected override void OnSetUp() {
+		protected override void OnTestSetUp() {
 			DeveelDbCommand command = Connection.CreateCommand("CREATE TABLE IF NOT EXISTS LOB_TEST (Id INTEGER NOT NULL, Data BLOB)");
 			command.ExecuteNonQuery();
-			Connection.Close();
 		}
 
-		protected override void OnTearDown() {
+		protected override void OnTestTearDown() {
 			DeveelDbCommand command = Connection.CreateCommand("DROP TABLE IF EXISTS LOB_TEST");
 			command.ExecuteNonQuery();
-			Connection.Close();
 		}
 
 		[Test]

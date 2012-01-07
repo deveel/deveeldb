@@ -20,8 +20,6 @@ using System.ComponentModel;
 using System.Data.Common;
 using System.Globalization;
 
-using Deveel.Data.Protocol;
-
 namespace Deveel.Data.Client {
 	[DefaultProperty("DataSource")]
 	public sealed class DeveelDbConnectionStringBuilder : DbConnectionStringBuilder {
@@ -51,7 +49,7 @@ namespace Deveel.Data.Client {
 			defaults.Add(RowCacheSizeKey, DefaultRowCacheSize);
 			defaults.Add(QueryTimeoutKey, DefaultQueryTimeout);
 
-			keymaps = new Dictionary<string, string>();
+			keymaps = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 			keymaps[HostKey.ToUpper()] = HostKey;
 			keymaps["ADDRESS"] = HostKey;
 			keymaps["SERVER"] = HostKey;
@@ -571,17 +569,36 @@ namespace Deveel.Data.Client {
 						StrictGetValue = ToBoolean(value);
 					}
 					break;
+				case "DataSource":
+					if (value == null) {
+						
+					} else {
+						string s = value.ToString();
+						int index = s.IndexOf(':');
+						if (index != -1) {
+							string sPort = s.Substring(index + 1);
+							Host = s.Substring(0, index);
+							Port = Int32.Parse(sPort);
+						} else {
+							Host = s;
+						}
+					}
+					break;
 				default:
 					//TODO: support additional parameters for Boot/Create process...
-					throw new ArgumentException();
+					throw new ArgumentException("Key '" + key + "' is not recognized.", "key");
 			}
 		}
 
 		private string MappKey(string key) {
-			key = key.ToUpper().Trim();
-			if (!keymaps.ContainsKey(key))
+			// this is a special case for DataSource key, that is atipical
+			if (String.Equals(key, "DataSource", StringComparison.InvariantCultureIgnoreCase))
+				return "DataSource";
+
+			string outKey;
+			if (!keymaps.TryGetValue(key, out outKey))
 				throw new ArgumentException("The connection string keyword is not supported: " + key);
-			return keymaps[key];
+			return outKey;
 		}
 
 		private static bool ToBoolean(object value) {

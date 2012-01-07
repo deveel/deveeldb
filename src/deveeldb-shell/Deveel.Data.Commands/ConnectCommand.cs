@@ -137,6 +137,16 @@ namespace Deveel.Data.Commands {
 		}
 
 		public override CommandResultCode Execute(IExecutionContext context, CommandArguments args) {
+			if (!args.MoveNext())
+				return CommandResultCode.SyntaxError;
+
+			string userName = args.Current;
+
+			if (!args.MoveNext())
+				return CommandResultCode.SyntaxError;
+			if (!String.Equals(args.Current, "to", StringComparison.CurrentCultureIgnoreCase))
+				return CommandResultCode.SyntaxError;
+			
 			throw new NotImplementedException();
 		}
 	}

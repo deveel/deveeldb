@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Client\ConnectionStringTest.cs" />
     <Compile Include="Deveel.Data.Client\LobTest.cs" />
     <Compile Include="Deveel.Data.Client\TriggerTest.cs" />
     <Compile Include="Deveel.Data.Control\DbConfigTest.cs" />
@@ -57,7 +58,6 @@
     <Compile Include="Deveel.Data.Sql\InsertTest.cs" />
     <Compile Include="Deveel.Data.Sql\SelectTest.cs" />
     <Compile Include="Deveel.Data.Sql\UpdateTest.cs" />
-    <Compile Include="Deveel.Data\CreateDatabaseTest.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTableTest.cs" />
     <Compile Include="Deveel.Data\CursorTest.cs" />
     <Compile Include="Deveel.Data\ExpressionTest.cs" />

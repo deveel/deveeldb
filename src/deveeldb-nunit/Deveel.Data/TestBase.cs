@@ -92,6 +92,12 @@ namespace Deveel.Data {
 		protected virtual void OnTearDown() {
 		}
 
+		protected virtual void OnTestSetUp() {
+		}
+
+		protected virtual void OnTestTearDown() {	
+		}
+
 		[SetUp]
 		public virtual void TestSetUp() {
 			connection = (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
@@ -99,10 +105,14 @@ namespace Deveel.Data {
 
 			if (RequiresSchema)
 				GenerateDatabase();
+
+			OnTestSetUp();
 		}
 
 		[TearDown]
 		public virtual void TestTearDown() {
+			OnTestTearDown();
+
 			if (RequiresSchema)
 				DropTables();
 
