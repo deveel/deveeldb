@@ -18,6 +18,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Configuration;
 using Deveel.Console;
@@ -53,7 +54,7 @@ namespace Deveel.Data.Commands {
 		public override string[] Synopsis {
 			get {
 				return new string[] {
-				                    	"connect <connection-string> [ <alias> ]",
+				                    	"connect <user> to <host> [ identified by <password> ] [ using <arg0> ... <argn> ] [ as <alias> ]",
 				                    	"connect <alias>"
 				                    };
 			}
@@ -147,7 +148,81 @@ namespace Deveel.Data.Commands {
 			if (!String.Equals(args.Current, "to", StringComparison.CurrentCultureIgnoreCase))
 				return CommandResultCode.SyntaxError;
 			
-			throw new NotImplementedException();
+			if (!args.MoveNext())
+				return CommandResultCode.SyntaxError;
+
+			string host = args.Current;
+			int port = -1;
+
+			if (String.IsNullOrEmpty(host))
+				return CommandResultCode.SyntaxError;
+
+			int index = host.IndexOf(':');
+			if (index != -1) {
+				string sPort = host.Substring(0, index);
+				if (!Int32.TryParse(sPort, out port))
+					return CommandResultCode.SyntaxError;
+			}
+
+			string password = null;
+			bool usingPassword = false;
+
+			Dictionary<string, string> connStringArgs = null;
+
+			if (args.MoveNext()) {
+				if (String.Equals(args.Current, "identified", StringComparison.InvariantCultureIgnoreCase)) {
+					if (!args.MoveNext())
+						return CommandResultCode.SyntaxError;
+					if (!args.MoveNext())
+						return CommandResultCode.SyntaxError;
+					if (!String.Equals(args.Current, "by", StringComparison.InvariantCultureIgnoreCase))
+						return CommandResultCode.SyntaxError;
+
+					password = args.Current;
+				} else if (String.Equals(args.Current, "using", StringComparison.InvariantCultureIgnoreCase)) {
+					connStringArgs = new Dictionary<string, string>();
+
+					while (args.MoveNext()) {
+						string arg = args.Current;
+						if (String.IsNullOrEmpty(arg))
+							return CommandResultCode.SyntaxError;
+
+						if (String.Equals(arg, "password", StringComparison.InvariantCultureIgnoreCase)) {
+							usingPassword = true;
+						} else if (String.Equals(arg, "as", StringComparison.InvariantCultureIgnoreCase)) {
+							if (!args.MoveNext())
+								return CommandResultCode.SyntaxError;
+
+							break;
+						} else {
+							index = arg.IndexOf(':');
+							if (index == -1)
+								return CommandResultCode.SyntaxError;
+
+							string key = arg.Substring(0, index);
+							string value = arg.Substring(index + 1);
+
+							connStringArgs.Add(key, value);
+						}
+					}
+				} else if (String.Equals(args.Current, "as", StringComparison.InvariantCultureIgnoreCase)) {
+				} else {
+					return CommandResultCode.SyntaxError;
+				}
+			}
+
+			if (String.IsNullOrEmpty(password) && usingPassword) {
+				Out.WriteLine();
+				password = Readline.ReadPassword("password: ");
+			}
+
+			DeveelDbConnectionStringBuilder connectionStringBuilder = new DeveelDbConnectionStringBuilder();
+			connectionStringBuilder.Add("UserName", userName);
+			connectionStringBuilder.Add("Host", host);
+			if (port != -1)
+				connectionStringBuilder.Add("Port", port);
+			if (!String.IsNullOrEmpty(password))
+				connectionStringBuilder.Add("Password", password);
 		}
 	}
 }

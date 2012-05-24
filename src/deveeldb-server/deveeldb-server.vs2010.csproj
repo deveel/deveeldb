@@ -40,8 +40,9 @@
     <AssemblyOriginatorKeyFile>deveeldb-server.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="deveel-cli">
-      <HintPath>..\..\lib\deveel-cli.dll</HintPath>
+    <Reference Include="deveel-cli, Version=1.0.4518.40754, Culture=neutral, PublicKeyToken=c897ff68d9dd9baa, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\deveel-cli.1.0.1\lib\net20\deveel-cli.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -79,6 +80,7 @@
   <ItemGroup>
     <None Include="Deveel.Data.Server\ChangeLog" />
     <None Include="deveeldb-server.snk" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -387,10 +387,14 @@ namespace Deveel.Data {
 		/// representation is invalid.
 		/// </exception>
 		public static TType DecodeString(string encoded_str) {
+			string[] param_list = new string[] { encoded_str };
 			int param_s = encoded_str.IndexOf('(');
-			int param_e = encoded_str.LastIndexOf(')');
-			String parameterss = encoded_str.Substring(param_s + 1, param_e - (param_s + 1));
-			string[] param_list = parameterss.Split(',');
+			if (param_s != -1) {
+				int param_e = encoded_str.LastIndexOf(')');
+				String parameterss = encoded_str.Substring(param_s + 1, param_e - (param_s + 1));
+				param_list = parameterss.Split(',');
+			}
+
 			SqlType sql_type = (SqlType)Enum.Parse(typeof(SqlType), param_list[0], true);
 
 			if (encoded_str.StartsWith("BOOLEAN("))
