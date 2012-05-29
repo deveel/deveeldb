@@ -20,19 +20,19 @@ namespace Deveel.Data.Control {
 			MemoryStream stream = new MemoryStream(Encoding.GetEncoding("ISO-8859-1").GetBytes(sb.ToString()));
 
 			DbConfig config = new DbConfig();
-			config.LoadFromStream(stream);
+			config.LoadFrom(stream);
 
-			string value = config.GetValue("key1");
+			string value = config.GetValue<string>("key1");
 			Assert.IsNotNull(value, "The 'key1' was not set into the config.");
 			Assert.IsNotEmpty(value, "The value of 'key1' is empty.");
 			Assert.AreEqual("value1", value, "The value for 'key1' is not correct.");
 
-			value = config.GetValue("key2");
+			value = config.GetValue<string>("key2");
 			Assert.IsNotNull(value, "The 'key2' was not set into the config.");
 			Assert.IsNotEmpty(value, "The value of 'key2' is empty.");
 			Assert.AreEqual("on", value, "The value for 'key2' is not correct.");
 
-			value = config.GetValue("key3");
+			value = config.GetValue<string>("key3");
 			Assert.IsNotNull(value, "The 'key3' was not set into the config.");
 			Assert.IsNotEmpty(value, "The value of 'key3' is empty.");
 			Assert.AreEqual("true", value, "The value for 'key1' is not correct.");
@@ -46,7 +46,7 @@ namespace Deveel.Data.Control {
 			config.SetValue("key3", "true");
 
 			MemoryStream stream = new MemoryStream();
-			config.SaveTo(stream);
+			config.SaveTo(stream, ConfigFormatterType.Properties);
 
 		}
 	}

@@ -61,9 +61,9 @@ namespace Deveel.Data {
 
 		[TestFixtureSetUp]
 		public void SetUp() {
-			DbConfig config = DbConfig.Default;
+			DbConfig config = new DbConfig();
 			OnConfigure(config);
-			DbController controller = DbController.Create(Environment.CurrentDirectory, config);
+			DbController controller = DbController.Create(config);
 
 			system = !controller.DatabaseExists(DatabaseName)
 						? controller.CreateDatabase(config, DatabaseName, AdminUser, AdminPassword)
@@ -80,9 +80,9 @@ namespace Deveel.Data {
 
 		protected virtual void OnConfigure(DbConfig config) {
 			if (storageType == StorageType.File) {
-				config.SetValue("storage_system", "v1file");
+				config.SetValue(ConfigKeys.StorageSystem, ConfigValues.FileStorageSystem);
 			} else if (storageType == StorageType.Memory) {
-				config.SetValue("storage_system", "v1heap");
+				config.SetValue(ConfigKeys.StorageSystem, ConfigValues.HeapStorageSystem);
 			}
 		}
 

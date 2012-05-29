@@ -304,11 +304,10 @@ namespace Deveel.Data {
 					if (conglomerate.Exists())
 						return true;
 
-					bool isFileSSystem = (system.StoreSystem is V1FileStoreSystem);
-					if (isFileSSystem &&
-					    File.Exists(Path.Combine(system.DatabasePath, Name + ".sf"))) {
+					if (system.StoreSystem.StorageType == StorageType.File &&
+					    File.Exists(Path.Combine(system.DatabasePath, Name + ".sf")))
 						return true;
-					}
+
 					return false;
 				} catch (IOException e) {
 					Logger.Error(this, e);
@@ -1113,19 +1112,19 @@ namespace Deveel.Data {
 			// Note that this sets up a typical destination conglomerate and changes
 			// the cache size and disables the debug log.
 			TransactionSystem copySystem = new TransactionSystem();
-			DbConfig config = DbConfig.Default;
+			DbConfig config = new DbConfig();
 			config.DatabasePath = Path.GetFullPath(path);
 			config.LogPath = "";
 			config.SetValue(ConfigKeys.DebugLevel, 50000);
 			// Set data cache to 1MB
-			config.SetValue("data_cache_size", "1048576");
+			config.SetValue(ConfigKeys.DataCacheSize, "1048576");
 			// Set io_safety_level to 1 for destination database
 			// ISSUE: Is this a good assumption to make - 
 			//     we don't care if changes are lost by a power failure when we are
 			//     backing up the database.  Even if journalling is enabled, a power
 			//     failure will lose changes in the backup copy anyway.
 			config.SetValue("io_safety_level", "1");
-			config.SetValue("debug_logs", "disabled");
+			config.SetValue(ConfigKeys.DebugLogs, "disabled");
 			copySystem.Init(config);
 
 			TableDataConglomerate destConglomerate = new TableDataConglomerate(copySystem, name, copySystem.StoreSystem);

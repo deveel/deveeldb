@@ -17,6 +17,8 @@ using System;
 using System.IO;
 using System.Threading;
 
+using Deveel.Data.Control;
+
 namespace Deveel.Data.Store {
 	/// <summary>
 	/// An implementation of <see cref="IStoreSystem"/> that manages persistant 
@@ -122,9 +124,9 @@ namespace Deveel.Data.Store {
 			system = transactionSystem;
 
 			// The path where the database data files are stored.
-			string databasePath = transactionSystem.Config.GetStringValue("database_path", "./data");
+			string databasePath = transactionSystem.Config.GetValue(ConfigKeys.DatabasePath, "./data");
 			// The root path variable
-			string rootPathVar = transactionSystem.Config.GetStringValue("root_path", null);
+			string rootPathVar = transactionSystem.Config.GetValue<string>("root_path", null);
 
 			// Set the absolute database path
 			path = transactionSystem.Config.ParseFileString(rootPathVar, databasePath);
@@ -140,7 +142,7 @@ namespace Deveel.Data.Store {
 
 			// Get the safety level of the file system where 10 is the most safe
 			// and 1 is the least safe.
-			int ioSafetyLevel = transactionSystem.Config.GetIntegerValue("io_safety_level", 10);
+			int ioSafetyLevel = transactionSystem.Config.GetValue("io_safety_level", 10);
 			if (ioSafetyLevel < 1 || ioSafetyLevel > 10) {
 				system.Logger.Message(this, "Invalid io_safety_level value.  Setting to the most safe level.");
 				ioSafetyLevel = 10;
@@ -156,8 +158,8 @@ namespace Deveel.Data.Store {
 			}
 
 			system.Logger.Message(this, "Using stardard IO API for heap buffered file access.");
-			int page_size = transactionSystem.Config.GetIntegerValue("buffered_io_page_size", 8192);
-			int max_pages = transactionSystem.Config.GetIntegerValue("buffered_io_max_pages", 256);
+			int page_size = transactionSystem.Config.GetValue("buffered_io_page_size", 8192);
+			int max_pages = transactionSystem.Config.GetValue("buffered_io_max_pages", 256);
 
 			// Output this information to the log
 			system.Logger.Message(this, "[Buffer Manager] Page Size: " + page_size);

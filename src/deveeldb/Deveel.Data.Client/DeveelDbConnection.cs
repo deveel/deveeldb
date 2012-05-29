@@ -232,7 +232,9 @@ namespace Deveel.Data.Client {
 				if (String.IsNullOrEmpty(rootPath))
 					rootPath = Environment.CurrentDirectory;
 
-				controller = DbController.Create(rootPath);
+				DbConfig controllerConfig = new DbConfig();
+				controllerConfig.SetValue(ConfigKeys.BasePath, rootPath);
+				controller = DbController.Create(controllerConfig);
 
 				// Is there already a local connection to this database?
 				String session_key = rootPath.ToLower();

@@ -129,7 +129,7 @@ namespace Deveel.Data {
 
 			if (config != null) {
 				// Set up the statement cache.
-				if (config.GetBooleanValue("statement_cache", true)) {
+				if (config.GetValue("statement_cache", true)) {
 					statementCache = new StatementCache(this, 127, 140, 20);
 					Logger.Message(this, "statement cache ENABLED");
 				} else {
@@ -137,7 +137,7 @@ namespace Deveel.Data {
 				}
 
 				// The maximum number of worker threads.
-				int max_worker_threads = config.GetIntegerValue("maximum_worker_threads", 4);
+				int max_worker_threads = config.GetValue("maximum_worker_threads", 4);
 				if (max_worker_threads <= 0)
 					max_worker_threads = 1;
 
@@ -145,7 +145,7 @@ namespace Deveel.Data {
 				workerPool = new WorkerPool(this, max_worker_threads);
 
 				// Should we be logging commands?
-				queryLogging = config.GetBooleanValue("query_logging", false);
+				queryLogging = config.GetValue("query_logging", false);
 			} else {
 				throw new ApplicationException("Config bundle already set.");
 			}

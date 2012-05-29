@@ -75,6 +75,12 @@
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
+    <Compile Include="Deveel.Data.Control\AppSettingsConfigFormatter.cs" />
+    <Compile Include="Deveel.Data.Control\ConfigFormatterType.cs" />
+    <Compile Include="Deveel.Data.Control\ConfigValues.cs" />
+    <Compile Include="Deveel.Data.Control\IConfigFormatter.cs" />
+    <Compile Include="Deveel.Data.Control\PropertiesConfigFormatter.cs" />
+    <Compile Include="Deveel.Data.Control\XmlConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs">
       <SubType>Code</SubType>
     </Compile>

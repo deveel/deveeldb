@@ -73,21 +73,29 @@ namespace SampleApp {
 
 			string storageString = commandLine.GetOptionValue("s", "file");
 
-			DbConfig config = DbConfig.Default;
+			DbConfig config = new DbConfig();
 			if (String.Equals(storageString, "file", StringComparison.InvariantCultureIgnoreCase)) {
 				Console.Out.WriteLine("Using file-system based storage");
-				config.SetValue(ConfigKeys.StorageSystem, "v1file");
+				config.SetValue(ConfigKeys.StorageSystem, ConfigValues.FileStorageSystem);
 
-				string dbPath = commandLine.GetOptionValue("o", Environment.CurrentDirectory);
+				string dbPath = commandLine.GetOptionValue("o");
 				config.SetValue(ConfigKeys.DatabasePath, dbPath);
 			} else if (String.Equals(storageString, "heap", StringComparison.InvariantCultureIgnoreCase)) {
 				Console.Out.WriteLine("Using heap based storage");
-				config.SetValue(ConfigKeys.StorageSystem, "v1heap");
+				config.SetValue(ConfigKeys.StorageSystem, ConfigValues.HeapStorageSystem);
 			} else {
 				Console.Out.WriteLine("Invalid storage type '{0}' set: falling back to 'file'", storageString);
 				
-				config.SetValue(ConfigKeys.StorageSystem, "v1file");
+				config.SetValue(ConfigKeys.StorageSystem, ConfigValues.FileStorageSystem);
 			}
+
+			config.SetValue(ConfigKeys.BasePath, "./db");
+
+			//let's log something up
+			config.SetValue(ConfigKeys.DebugLogs, true);
+			config.SetValue(ConfigKeys.LogPath, "./logs");
+			config.SetValue(ConfigKeys.DebugLogFile, String.Format("{0}.log", dbName));
+			config.SetValue(ConfigKeys.DebugLevel, 0);
 
 			DbController controller = DbController.Create(config);
 
@@ -158,6 +166,7 @@ namespace SampleApp {
 				return 1;
 			} finally {
 				connection.Dispose();
+				system.Dispose();
 			}
 		}
 	}

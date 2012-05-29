@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Reflection;
 using System.ServiceProcess;
 
 using Deveel.Data.Control;
@@ -25,11 +24,12 @@ namespace Deveel.Data.Server {
 		protected override void OnStart(string[] args) {
 			try {
 				// Connect a TcpServerController to it.
-				string dbPath = Environment.GetEnvironmentVariable(DEVEEL_DB_PATH, EnvironmentVariableTarget.Process);
-				if (dbPath == null)
-					dbPath = Environment.CurrentDirectory;
+				string dbPath = Environment.GetEnvironmentVariable(DEVEEL_DB_PATH, EnvironmentVariableTarget.Process) ??
+				                Environment.CurrentDirectory;
 
-				serverController = new TcpServerController(DbController.Create(dbPath));
+				DbConfig config = new DbConfig();
+				config.SetValue(ConfigKeys.BasePath, dbPath);
+				serverController = new TcpServerController(DbController.Create(config));
 				// And start the server
 				serverController.Start();
 			} catch(Exception e) {

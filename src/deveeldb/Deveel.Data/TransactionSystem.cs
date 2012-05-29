@@ -406,10 +406,10 @@ namespace Deveel.Data {
 			////  2. log_path is empty or not set
 
 			string logPathString = config.LogPath;
-			string root_path_var = config.GetValue("root_path");
+			string root_path_var = config.GetValue<string>("root_path");
 
 			bool readOnly = config.ReadOnly;
-			bool debugLogs = config.GetBooleanValue("debug_logs", true);
+			bool debugLogs = config.GetValue("debug_logs", true);
 
 			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
 				// First set up the debug information in this VM for the 'Logger' class.
@@ -421,7 +421,7 @@ namespace Deveel.Data {
 				LogDirectory = logPath;
 			}
 
-			string loggerTypeString = config.GetValue("logger_type");
+			string loggerTypeString = config.GetValue<string>("logger_type");
 
 			Type loggerType = null;
 			if (loggerTypeString != null) {
@@ -483,14 +483,14 @@ namespace Deveel.Data {
 				SetupLog();
 
 				// The storage encapsulation that has been configured.
-				string storageSystem = config.GetStringValue(ConfigKeys.StorageSystem, "v1file");
+				string storageSystem = config.GetValue(ConfigKeys.StorageSystem, ConfigValues.FileStorageSystem);
 
 				// Construct the system store.
-				if (String.Equals(storageSystem, "v1file", StringComparison.InvariantCultureIgnoreCase)) {
-					Logger.Message(this, "Storage System: v1 file storage mode.");
+				if (String.Equals(storageSystem, ConfigValues.FileStorageSystem, StringComparison.InvariantCultureIgnoreCase)) {
+					Logger.Message(this, "Storage System: file storage mode.");
 					store_system = new V1FileStoreSystem();
-				} else if (String.Equals(storageSystem, "v1heap", StringComparison.InvariantCultureIgnoreCase)) {
-					Logger.Message(this, "Storage System: v1 heap storage mode.");
+				} else if (String.Equals(storageSystem, ConfigValues.HeapStorageSystem, StringComparison.InvariantCultureIgnoreCase)) {
+					Logger.Message(this, "Storage System: heap storage mode.");
 					store_system = new V1HeapStoreSystem();
 				} else {
 					string error_msg = "Unknown storage_system property: " + storageSystem;
@@ -511,6 +511,13 @@ namespace Deveel.Data {
 					}
 				}
 
+				if (store_system.StorageType == StorageType.File) {
+					// we must be sure to have at least a database path
+					db_path = config.DatabasePath;
+					if (String.IsNullOrEmpty(db_path))
+						db_path = config.BasePath;
+				}
+
 				// init the storage system
 				store_system.Init(this);
 
@@ -520,8 +527,8 @@ namespace Deveel.Data {
 				// Set up the DataCellCache from the values in the configuration
 				int maxCacheSize, max_cache_entry_size;
 
-				maxCacheSize = config.GetIntegerValue(ConfigKeys.DataCacheSize, 0);
-				max_cache_entry_size = config.GetIntegerValue(ConfigKeys.MaxCacheEntrySize, 0);
+				maxCacheSize = config.GetValue(ConfigKeys.DataCacheSize, 0);
+				max_cache_entry_size = config.GetValue(ConfigKeys.MaxCacheEntrySize, 0);
 
 				if (maxCacheSize >= 4096 &&
 				    max_cache_entry_size >= 16 &&
@@ -532,7 +539,7 @@ namespace Deveel.Data {
 					// Find a prime hash size depending on the size of the cache.
 					int hash_size = DataCellCache.ClosestPrime(maxCacheSize/55);
 
-					string cacheTypeString = config.GetStringValue("cache_type", "heap");
+					string cacheTypeString = config.GetValue("cache_type", "heap");
 					Type cacheType = String.Equals(cacheTypeString, "heap",StringComparison.InvariantCultureIgnoreCase)
 					            	? typeof(MemoryCache)
 					            	: Type.GetType(cacheTypeString, false, true);
@@ -564,11 +571,11 @@ namespace Deveel.Data {
 				if (read_only_access) stats.Set(1, "DatabaseSystem.read_only");
 
 				// Generate transaction error if dirty selects are detected?
-				transaction_error_on_dirty_select = config.GetBooleanValue(ConfigKeys.TransactionErrorOnDirtySelect, true);
+				transaction_error_on_dirty_select = config.GetValue(ConfigKeys.TransactionErrorOnDirtySelect, true);
 				Logger.Message(this, "transaction_error_on_dirty_select = " + transaction_error_on_dirty_select);
 
 				// Case insensitive identifiers?
-				ignore_case_for_identifiers = config.GetBooleanValue(ConfigKeys.IgnoreIdentifiersCase, false);
+				ignore_case_for_identifiers = config.GetValue(ConfigKeys.IgnoreIdentifiersCase, false);
 				Logger.Message(this, "ignore_case_for_identifiers = " + ignore_case_for_identifiers);
 
 				// What regular expression library are we using?
@@ -577,7 +584,7 @@ namespace Deveel.Data {
 
 				string regexBridge;
 				string libUsed;
-				string forceLib = config.GetStringValue("force_regex_library", null);
+				string forceLib = config.GetValue<string>("force_regex_library", null);
 
 				// Are we forcing a particular regular expression library?
 				if (forceLib != null) {
@@ -585,7 +592,7 @@ namespace Deveel.Data {
 					// Convert the library string to a class name
 					regexBridge = RegexStringToClass(forceLib);
 				} else {
-					string lib = config.GetStringValue(ConfigKeys.RegexLibrary, "Deveel.Data.Text.SystemRegexLibrary");
+					string lib = config.GetValue(ConfigKeys.RegexLibrary, "Deveel.Data.Text.SystemRegexLibrary");
 					libUsed = lib;
 					// Convert the library string to a class name
 					regexBridge = lib != null ? RegexStringToClass(lib) : "Deveel.Data.Text.SystemRegexLibrary";
@@ -610,7 +617,7 @@ namespace Deveel.Data {
 
 				try {
 					// The 'function_factories' property.
-					string functionFactories = config.GetStringValue("function_factories", null);
+					string functionFactories = config.GetValue<string>("function_factories", null);
 					if (functionFactories != null) {
 						string[] factories = functionFactories.Split(';');
 						for (int i = 0; i < factories.Length; ++i) {

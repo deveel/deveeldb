@@ -152,9 +152,9 @@ namespace Deveel.Diagnostics {
 
 		public void Init(DbConfig config) {
 			string logPathString = config.LogPath;
-			string rootPathVar = config.GetValue("root_path");
-			bool readOnly = config.GetBooleanValue(ConfigKeys.ReadOnly, false);
-			bool debugLogs = config.GetBooleanValue(ConfigKeys.DebugLogs, true);
+			string rootPathVar = config.GetValue<string>("root_path");
+			bool readOnly = config.GetValue(ConfigKeys.ReadOnly, false);
+			bool debugLogs = config.GetValue(ConfigKeys.DebugLogs, true);
 
 			// Conditions for not initializing a log directory;
 			//  1. Read only access is enabled
@@ -191,12 +191,12 @@ namespace Deveel.Diagnostics {
 				output = new EmptyTextWriter();
 			}
 
-			debugLevel = config.GetIntegerValue(ConfigKeys.DebugLevel, -1);
+			debugLevel = config.GetValue(ConfigKeys.DebugLevel, -1);
 			if (debugLevel == -1)
 				// stops all the output
 				debugLevel = 255;
 
-			string format = config.GetValue("debug_format");
+			string format = config.GetValue<string>("debug_format");
 			if (format != null)
 				messageFormat = format;
 		}

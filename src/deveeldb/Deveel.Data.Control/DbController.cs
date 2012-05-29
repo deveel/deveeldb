@@ -139,7 +139,7 @@ namespace Deveel.Data.Control {
 			if (config == null)
 				return StorageType.Memory;
 
-			string typeName = config.GetValue(ConfigKeys.StorageSystem);
+			string typeName = config.GetValue<string>(ConfigKeys.StorageSystem);
 			if (typeName == null)
 				throw new InvalidOperationException("A storage system must be specified.");
 
@@ -153,9 +153,9 @@ namespace Deveel.Data.Control {
 			StorageType storageType;
 			if (!cache.TryGetValue(typeName, out storageType)) {
 				// in case we're using the internal storage system aliases
-				if (String.Compare(typeName, "v1file", true) == 0)
+				if (String.Compare(typeName, ConfigValues.FileStorageSystem, StringComparison.OrdinalIgnoreCase) == 0)
 					storageType = StorageType.File;
-				else if (String.Compare(typeName, "v1heap", true) == 0)
+				else if (String.Compare(typeName, ConfigValues.HeapStorageSystem, StringComparison.OrdinalIgnoreCase) == 0)
 					storageType = StorageType.Memory;
 				else {
 					Type type = Type.GetType(typeName, false, true);
@@ -184,6 +184,7 @@ namespace Deveel.Data.Control {
 		}
 
 
+		/*
 		public static DbController Create(DbConfig config) {
 			return Create(null, config);
 		}
@@ -202,6 +203,7 @@ namespace Deveel.Data.Control {
 		public static DbController Create(string path) {
 			return Create(path, null);
 		}
+		*/
 
 		/// <summary>
 		/// Creates a new instance of <see cref="DbController"/> to the
@@ -224,7 +226,7 @@ namespace Deveel.Data.Control {
 		/// <exception cref="ArgumentNullException">
 		/// If the <paramref name="path"/> provided is <b>null</b>.
 		/// </exception>
-		public static DbController Create(string path, DbConfig config) {
+		public static DbController Create(/*string path, */ DbConfig config) {
 			StorageType storageType = GetStorageType(config);
 
 			if (config == null)
@@ -233,16 +235,15 @@ namespace Deveel.Data.Control {
 			DbConfig mainConfig;
 
 			if (storageType == StorageType.File) {
-				if (path == null)
-					path = Environment.CurrentDirectory;
-				
+				string path = config.BasePath ?? Environment.CurrentDirectory;
+
 				string configFile = Path.GetFileName(path);
 				if (configFile == null) {
 					configFile = DefaultConfigFileName;
 				} else {
 					// we only allow the file extension .conf
 					string ext = Path.GetExtension(configFile);
-					if (String.Compare(ext, FileExtension, true) == 0) {
+					if (String.Compare(ext, FileExtension, StringComparison.OrdinalIgnoreCase) == 0) {
 						path = Path.GetDirectoryName(path);
 					} else {
 						configFile = DefaultConfigFileName;
@@ -262,15 +263,20 @@ namespace Deveel.Data.Control {
 
 			if (storageType == StorageType.File) {
 				// done with the main configuration... now look for the databases...
+				string path = config.BasePath;
 				string[] subDirs = Directory.GetDirectories(path);
 				foreach (string dir in subDirs) {
 					DbConfig dbConfig = GetConfig(mainConfig, dir, null);
 					if (dbConfig == null)
 						continue;
 
-					string name = dbConfig.GetValue("name");
+					string name = dbConfig.GetValue<string>("name");
 					if (name == null)
 						name = dir.Substring(dir.LastIndexOf(Path.DirectorySeparatorChar) + 1);
+
+					string dbPath = Path.Combine(path, name);
+					
+					dbConfig.SetValue(ConfigKeys.DatabasePath, dbPath);
 
 					if (controller.DatabaseExists(name))
 						throw new InvalidOperationException("The database '" + name + "' was already registered.");
@@ -306,16 +312,19 @@ namespace Deveel.Data.Control {
 			}
 
 			if (!fileExists)
-				return null;
+				return (DbConfig) parentConfig.Clone();
 
-			DbConfig config = new DbConfig();
-			config.CurrentPath = path;
+			DbConfig config = new DbConfig(parentConfig);
+			config.BasePath = path;
 
+			/*
 			if (parentConfig != null)
 				config.Merge(parentConfig);
+			*/
 
 			// if the config file exists, we load the settings from there...
-			config.LoadFromFile(configFile);
+			//TODO: support more formats
+			config.LoadFromFile(configFile, ConfigFormatterType.Properties);
 
 			return config;
 		}
@@ -393,31 +402,29 @@ namespace Deveel.Data.Control {
 			if (DatabaseExists(name))
 				throw new ArgumentException("A database '" + name + "' already exists.");
 
+			if (config == null)
+				config = new DbConfig();
+
+			config.Parent = Config;
+
 			StorageType storageType = GetStorageType(config);
 
-			string path = "";
-			DbConfig dbConfig = new DbConfig();
 			if (storageType == StorageType.File) {
-				// we ensure that the CurrentPath points to where we want it to point
-				path = Path.Combine(Config.CurrentPath, name);
+				// we ensure that the BasePath points to where we want it to point
+				string path = Path.Combine(config.BasePath, name);
 				if (Directory.Exists(path))
-					Directory.Delete(path);
+					throw new ApplicationException("Database path '" + name + "' already exists: try opening");
 
 				Directory.CreateDirectory(path);
 
-				dbConfig.CurrentPath = path;
-			}
+				config.SetValue(ConfigKeys.DatabasePath, "./" + name);
 
-			dbConfig.Merge(Config);
-			if (config != null)
-				dbConfig.Merge(config);
-
-			if (storageType == StorageType.File) {
 				string configFile = Path.Combine(path, DefaultConfigFileName);
-				dbConfig.SaveTo(configFile);
+				//TODO: support multiple formats?
+				config.SaveTo(configFile, ConfigFormatterType.Properties);
 			}
 
-			Database database = CreateDatabase(dbConfig, name);
+			Database database = CreateDatabase(config, name);
 
 			try {
 				database.Create(adminUser, adminPass);
@@ -455,13 +462,10 @@ namespace Deveel.Data.Control {
 			if (!DatabaseExists(name))
 				throw new ArgumentException("Database '" + name + "' not existing.", "name");
 
-			string path = Path.Combine(Config.CurrentPath, name);
+			if (config == null)
+				config = new DbConfig();
 
-			DbConfig dbConfig = new DbConfig();
-			dbConfig.CurrentPath = path;
-			dbConfig.Merge(Config);
-			if (config != null)
-				dbConfig.Merge(config);
+			config.Parent = Config;
 
 			Database database = GetDatabase(name);
 
@@ -478,7 +482,7 @@ namespace Deveel.Data.Control {
 			}
 
 			// Return the DbSystem object for the newly created database.
-			return new DbSystem(this, name, dbConfig, database);
+			return new DbSystem(this, name, config, database);
 		}
 
 		/// <summary>

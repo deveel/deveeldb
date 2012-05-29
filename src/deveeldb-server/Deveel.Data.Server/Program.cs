@@ -126,7 +126,7 @@ namespace Deveel.Data.Server {
 		 * Performs the create command.
 		 */
 		private static void doCreate(string database_name, string username, string password, DbConfig config) {
-			DbController controller = DbController.Create(Environment.CurrentDirectory, config);
+			DbController controller = DbController.Create(config);
 			// Create the database with the given configuration then Close it
 			if (!controller.DatabaseExists(database_name)) {
 				DbSystem database = controller.CreateDatabase(config, database_name, username, password);
@@ -207,7 +207,10 @@ namespace Deveel.Data.Server {
 		/// <param name="conf"></param>
 		private static void doBoot(string path, DbConfig config) {
 			// Connect a TcpServerController to it.
-			TcpServerController serverController = new TcpServerController(DbController.Create(path, config));
+			if (!String.IsNullOrEmpty(path))
+				config.SetValue(ConfigKeys.BasePath, path);
+
+			TcpServerController serverController = new TcpServerController(DbController.Create(config));
 			// And start the server
 			serverController.Start();
 
@@ -303,10 +306,11 @@ namespace Deveel.Data.Server {
 			string absolute_config_path = Path.GetFullPath(conf_file);
 			string root_path = Path.GetDirectoryName(absolute_config_path);
 			// Create a default DBConfig object
-			DbConfig config = DbConfig.CreateDefault();
+			DbConfig config = new DbConfig();
 			try {
+				//TODO: support multiple config formats
 				if (File.Exists(conf_file))
-					config.LoadFromFile(conf_file);
+					config.LoadFromFile(conf_file, ConfigFormatterType.Properties);
 			} catch (IOException e) {
 				Console.Out.WriteLine("Error loading configuration file '" + conf_file + "': " + e.Message);
 				Console.Out.WriteLine();

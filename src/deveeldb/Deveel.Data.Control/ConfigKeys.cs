@@ -32,6 +32,7 @@ namespace Deveel.Data.Control {
 	/// </para>
 	/// </remarks>
 	/// <seealso cref="DbConfig"/>
+	/// <seealso cref="ConfigValues"/>
 	public static class ConfigKeys {
 		/// <summary>
 		/// Defines the base for resolving the application
@@ -48,8 +49,11 @@ namespace Deveel.Data.Control {
 		public const string RegexLibrary = "regex_library";
 
 		/// <summary>
-		/// 
+		/// The key to configure the type of the system used to store
+		/// database data.
 		/// </summary>
+		/// <seealso cref="ConfigValues.FileStorageSystem"/>
+		/// <seealso cref="ConfigValues.HeapStorageSystem"/>
 		public const string StorageSystem = "storage_system";
 
 		public const string DataCacheSize = "data_cache_size";

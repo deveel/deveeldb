@@ -63,7 +63,9 @@ namespace Deveel.Data.Control {
 		/// method.
 		/// </remarks>
 		public TcpServerController(string path, IPAddress bind_address, int tcp_port) {
-			controller = DbController.Create(path);
+			DbConfig config = new DbConfig();
+			config.SetValue(ConfigKeys.BasePath, path);
+			controller = DbController.Create(config);
 			this.bind_address = bind_address;
 			this.tcp_port = tcp_port;
 			RegisterShutdownDelegate();
@@ -103,12 +105,12 @@ namespace Deveel.Data.Control {
 			IPAddress interface_address;
 
 			// Read the config properties.
-			String port_str = controller.Config.GetValue("server_port");
-			String interface_addr_str = controller.Config.GetValue("server_address");
+			string port_str = controller.Config.GetValue<string>("server_port");
+			string interface_addr_str = controller.Config.GetValue<string>("server_address");
 
 			if (port_str != null) {
 				try {
-					port = Int32.Parse(port_str);
+					port = controller.Config.GetValue<int>("server_port");
 				} catch (Exception e) {
 					throw new ApplicationException("Unable to parse 'server_port'");
 				}
