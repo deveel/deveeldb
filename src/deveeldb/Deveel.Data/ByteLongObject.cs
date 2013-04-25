@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2013  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 using System;
 using System.IO;
 using System.Text;
-
-using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -60,12 +58,13 @@ namespace Deveel.Data {
 		/// <param name="length"></param>
 		public ByteLongObject(Stream input, int length) {
 			data = new byte[length];
+
 			int i = 0;
 			while (i < length) {
 				int read = input.Read(data, i, length - i);
-				if (read == -1) {
-					throw new IOException("Premature end of stream.");
-				}
+				if (read == 0)
+					throw new EndOfStreamException();
+
 				i += read;
 			}
 		}
@@ -105,7 +104,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <returns></returns>
 		public Stream GetInputStream() {
-			return new BLOBInputStream(this);
+			return new BlobInputStream(this);
 		}
 
 		/// <inheritdoc/>
@@ -124,11 +123,11 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Inner class that encapsulates the byte long object in an input stream.
 		/// </summary>
-		private class BLOBInputStream : Stream {
+		private class BlobInputStream : Stream {
 			private readonly ByteLongObject blob;
 			private int index;
 
-			public BLOBInputStream(ByteLongObject blob) {
+			public BlobInputStream(ByteLongObject blob) {
 				index = 0;
 				this.blob = blob;
 			}
@@ -190,17 +189,16 @@ namespace Deveel.Data {
 					throw new ArgumentException();
 
 				int size = blob.Length;
-				int to_read = System.Math.Min(len, size - index);
+				int toRead = System.Math.Min(len, size - index);
 
-				if (to_read <= 0) {
+				if (toRead <= 0)
 					// Nothing can be Read
 					return 0;
-				}
 
-				Array.Copy(blob.data, index, buf, off, to_read);
-				index += to_read;
+				Array.Copy(blob.data, index, buf, off, toRead);
+				index += toRead;
 
-				return to_read;
+				return toRead;
 			}
 		}
 	}

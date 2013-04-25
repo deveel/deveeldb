@@ -34,11 +34,39 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of all DataTableInfo visible to the transaction.
 		/// </summary>
-		private DataTableInfo[] visible_tables;
+		private DataTableInfo[] visibleTables;
 		/// <summary>
 		/// The number of rows in this table.
 		/// </summary>
-		private int row_count;
+		private int rowCount;
+
+		/// <summary>
+		/// The data table info that describes this table of data source.
+		/// </summary>
+		internal static readonly DataTableInfo DataTableInfo;
+
+		static GTTableColumnsDataSource() {
+
+			DataTableInfo info = new DataTableInfo(SystemSchema.TableColumns);
+
+			// Add column definitions
+			info.AddColumn("schema", TType.StringType);
+			info.AddColumn("table", TType.StringType);
+			info.AddColumn("column", TType.StringType);
+			info.AddColumn("sql_type", TType.NumericType);
+			info.AddColumn("type_desc", TType.StringType);
+			info.AddColumn("size", TType.NumericType);
+			info.AddColumn("scale", TType.NumericType);
+			info.AddColumn("not_null", TType.BooleanType);
+			info.AddColumn("default", TType.StringType);
+			info.AddColumn("index_str", TType.StringType);
+			info.AddColumn("seq_no", TType.NumericType);
+
+			// Set to immutable
+			info.IsReadOnly = true;
+
+			DataTableInfo = info;
+		}
 
 		public GTTableColumnsDataSource(Transaction transaction)
 			: base(transaction.System) {
@@ -52,12 +80,12 @@ namespace Deveel.Data {
 		public GTTableColumnsDataSource Init() {
 			// All the tables
 			TableName[] list = transaction.GetTables();
-			visible_tables = new DataTableInfo[list.Length];
-			row_count = 0;
+			visibleTables = new DataTableInfo[list.Length];
+			rowCount = 0;
 			for (int i = 0; i < list.Length; ++i) {
 				DataTableInfo info = transaction.GetTableInfo(list[i]);
-				row_count += info.ColumnCount;
-				visible_tables[i] = info;
+				rowCount += info.ColumnCount;
+				visibleTables[i] = info;
 			}
 			return this;
 		}
@@ -65,25 +93,25 @@ namespace Deveel.Data {
 		// ---------- Implemented from GTDataSource ----------
 
 		public override DataTableInfo TableInfo {
-			get { return DEF_DATA_TABLE_DEF; }
+			get { return DataTableInfo; }
 		}
 
 		public override int RowCount {
-			get { return row_count; }
+			get { return rowCount; }
 		}
 
 		public override TObject GetCellContents(int column, int row) {
 
-			int sz = visible_tables.Length;
+			int sz = visibleTables.Length;
 			int rs = 0;
 			for (int n = 0; n < sz; ++n) {
-				DataTableInfo info = visible_tables[n];
+				DataTableInfo info = visibleTables[n];
 				int b = rs;
 				rs += info.ColumnCount;
 				if (row >= b && row < rs) {
 					// This is the column that was requested,
-					int seq_no = row - b;
-					DataTableColumnInfo colInfo = info[seq_no];
+					int seqNo = row - b;
+					DataTableColumnInfo colInfo = info[seqNo];
 					switch (column) {
 						case 0:  // schema
 							return GetColumnValue(column, info.Schema);
@@ -106,7 +134,7 @@ namespace Deveel.Data {
 						case 9:  // index_str
 							return GetColumnValue(column, colInfo.IndexScheme);
 						case 10:  // seq_no
-							return GetColumnValue(column, (BigNumber)seq_no);
+							return GetColumnValue(column, (BigNumber)seqNo);
 						default:
 							throw new ApplicationException("Column out of bounds.");
 					}
@@ -120,38 +148,8 @@ namespace Deveel.Data {
 		// ---------- Overwritten ----------
 
 		protected override void Dispose(bool disposing) {
-			visible_tables = null;
+			visibleTables = null;
 			transaction = null;
-		}
-
-		// ---------- Static ----------
-
-		/// <summary>
-		/// The data table info that describes this table of data source.
-		/// </summary>
-		internal static readonly DataTableInfo DEF_DATA_TABLE_DEF;
-
-		static GTTableColumnsDataSource() {
-
-			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "table_columns"));
-
-			// Add column definitions
-			info.AddColumn("schema", TType.StringType);
-			info.AddColumn("table", TType.StringType);
-			info.AddColumn("column", TType.StringType);
-			info.AddColumn("sql_type", TType.NumericType);
-			info.AddColumn("type_desc", TType.StringType);
-			info.AddColumn("size", TType.NumericType);
-			info.AddColumn("scale", TType.NumericType);
-			info.AddColumn("not_null", TType.BooleanType);
-			info.AddColumn("default", TType.StringType);
-			info.AddColumn("index_str", TType.StringType);
-			info.AddColumn("seq_no", TType.NumericType);
-
-			// Set to immutable
-			info.IsReadOnly = true;
-
-			DEF_DATA_TABLE_DEF = info;
 		}
 	}
 }

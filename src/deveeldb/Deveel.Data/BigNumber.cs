@@ -93,11 +93,11 @@ namespace Deveel.Data {
 			bigDecimal = value;
 			if (bigDecimal.Scale == 0) {
 				BigInteger bint = value.ToBigInteger();
-				int bit_count = bint.BitLength;
-				if (bit_count < 30) {
+				int bitCount = bint.BitLength;
+				if (bitCount < 30) {
 					longRepresentation = bint.ToInt64();
 					byteCount = 4;
-				} else if (bit_count < 60) {
+				} else if (bitCount < 60) {
 					longRepresentation = bint.ToInt64();
 					byteCount = 8;
 				}
@@ -262,9 +262,8 @@ namespace Deveel.Data {
 		/// is smaller than the given one
 		/// </returns>
 		public int CompareTo(BigNumber number) {
-			if (this == number) {
+			if (Equals(this, number))
 				return 0;
-			}
 
 			// If this is a non-infinity number
 			if (numberState == 0) {

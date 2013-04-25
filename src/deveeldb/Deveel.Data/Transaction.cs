@@ -633,10 +633,10 @@ namespace Deveel.Data {
 
 		static Transaction() {
 			InternalInfoList = new DataTableInfo[4];
-			InternalInfoList[0] = GTTableColumnsDataSource.DEF_DATA_TABLE_DEF;
-			InternalInfoList[1] = GTTableInfoDataSource.DEF_DATA_TABLE_DEF;
-			InternalInfoList[2] = GTProductDataSource.DEF_DATA_TABLE_DEF;
-			InternalInfoList[3] = GTVariablesDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList[0] = GTTableColumnsDataSource.DataTableInfo;
+			InternalInfoList[1] = GTTableInfoDataSource.DataTableInfo;
+			InternalInfoList[2] = GTProductDataSource.DataTableInfo;
+			InternalInfoList[3] = GTVariablesDataSource.DataTableInfo;
 		}
 
 		/// <summary>

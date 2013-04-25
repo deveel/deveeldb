@@ -34,7 +34,7 @@ namespace Deveel.Data {
 		/// This method also returns <b>null</b> if a user exists but was 
 		/// denied access from the given host string. The given <i>host name</i>
 		/// is formatted in the database host connection encoding. This 
-		/// method checks all the values from the <see cref="SystemSchema.Privileges"/> 
+		/// method checks all the values from the <see cref="SystemSchema.UserPrivileges"/> 
 		/// table for this user for the given protocol.
 		/// It first checks if the user is specifically <b>denied</b> access 
 		/// from the given host.It then checks if the user is <b>allowed</b> 
@@ -255,7 +255,7 @@ namespace Deveel.Data {
 		public void DeleteAllUserGroups(IQueryContext context, string username) {
 			Expression userExpr = new Expression(TObject.CreateString(username));
 
-			DataTable table = (DataTable) context.GetTable(SystemSchema.Privileges);
+			DataTable table = (DataTable) context.GetTable(SystemSchema.UserPrivileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
@@ -333,7 +333,7 @@ namespace Deveel.Data {
 		/// <param name="username"></param>
 		/// <returns></returns>
 		public string[] GroupsUserBelongsTo(IQueryContext context, String username) {
-			Table table = context.GetTable(SystemSchema.Privileges);
+			Table table = context.GetTable(SystemSchema.UserPrivileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
@@ -363,7 +363,7 @@ namespace Deveel.Data {
 		/// <paramref name="group"/>, otherwise <b>false</b>.
 		/// </returns>
 		public bool UserBelongsToGroup(IQueryContext context, string username, string group) {
-			Table table = context.GetTable(SystemSchema.Privileges);
+			Table table = context.GetTable(SystemSchema.UserPrivileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			VariableName c2 = table.GetResolvedVariable(1);
 			// All 'user_priv' where UserName = %username%
@@ -380,7 +380,7 @@ namespace Deveel.Data {
 		/// <param name="username">The name of the user to be added.</param>
 		/// <param name="group">The name of the group to add the user to.</param>
 		/// <remarks>
-		/// This makes an entry in the <see cref="SystemSchema.Privileges"/> for this user 
+		/// This makes an entry in the <see cref="SystemSchema.UserPrivileges"/> for this user 
 		/// and the given group.
 		/// If the user already belongs to the group then no changes are made.
 		/// <para>
@@ -410,7 +410,7 @@ namespace Deveel.Data {
 			// Check the user doesn't belong to the group
 			if (!UserBelongsToGroup(context, username, group)) {
 				// The user priv table
-				DataTable table = (DataTable) context.GetTable(SystemSchema.Privileges);
+				DataTable table = (DataTable) context.GetTable(SystemSchema.UserPrivileges);
 				// Add this user to the group.
 				DataRow rdat = new DataRow(table);
 				rdat.SetValue(0, username);
@@ -442,7 +442,7 @@ namespace Deveel.Data {
 			string username = context.UserName;
 
 			// Internally we implement this by adding the user to the #locked group.
-			DataTable table = (DataTable)context.GetTable(SystemSchema.Privileges);
+			DataTable table = (DataTable)context.GetTable(SystemSchema.UserPrivileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			VariableName c2 = table.GetResolvedVariable(1);
 			// All 'user_priv' where UserName = %username%

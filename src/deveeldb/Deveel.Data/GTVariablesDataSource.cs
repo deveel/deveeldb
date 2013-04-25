@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2013  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Deveel.Data;
 
@@ -23,11 +24,11 @@ namespace Deveel.Data {
 		public GTVariablesDataSource(SimpleTransaction transaction) 
 			: base(transaction.System) {
 			this.transaction = transaction;
-			key_value_pairs = new ArrayList();
+			variables = new List<VariableInfo>();
 		}
 
 		static GTVariablesDataSource() {
-			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "variables"));
+			DataTableInfo info = new DataTableInfo(SystemSchema.Variables);
 
 			// Add column definitions
 			info.AddColumn("var", TType.StringType);
@@ -40,7 +41,7 @@ namespace Deveel.Data {
 			// Set to immutable
 			info.IsReadOnly = true;
 
-			DEF_DATA_TABLE_DEF = info;
+			DataTableInfo = info;
 		}
 
 		private SimpleTransaction transaction;
@@ -48,48 +49,45 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of info keys/values in this object.
 		/// </summary>
-		private ArrayList key_value_pairs;
+		private List<VariableInfo> variables;
 
-		internal static readonly DataTableInfo DEF_DATA_TABLE_DEF;
+		internal static readonly DataTableInfo DataTableInfo;
 
 		public override DataTableInfo TableInfo {
-			get { return DEF_DATA_TABLE_DEF; }
+			get { return DataTableInfo; }
 		}
 
 		public override int RowCount {
-			get { return key_value_pairs.Count/4; }
+			get { return variables.Count/4; }
 		}
 
 		public override TObject GetCellContents(int column, int row) {
+			VariableInfo variable = variables[row];
+
 			switch (column) {
 				case 0:  // var
-					return GetColumnValue(column, key_value_pairs[row * 6]);
+					return GetColumnValue(column, variable.Name);
 				case 1:  // type
-					return GetColumnValue(column, key_value_pairs[(row * 6) + 1]);
+					return GetColumnValue(column, variable.SqlType);
 				case 2:  // value
-					return GetColumnValue(column, key_value_pairs[(row * 6) + 2]);
+					return GetColumnValue(column, variable.Value);
 				case 3:  // constant
-					return GetColumnValue(column, (bool)key_value_pairs[(row * 6) + 3]);
+					return GetColumnValue(column, variable.IsConstant);
 				case 4:  // not_null
-					return GetColumnValue(column, (bool) key_value_pairs[(row * 6) + 4]);
+					return GetColumnValue(column, variable.IsNotNull);
 				case 5:  // is_set
-					return GetColumnValue(column, (bool)key_value_pairs[(row * 6) + 5]);
+					return GetColumnValue(column, variable.IsSet);
 				default:
 					throw new ApplicationException("Column out of bounds.");
 			}
 		}
 
 		public GTVariablesDataSource Init() {
-			VariablesManager variables = transaction.Variables;
-			lock(variables) {
-				for (int i = 0; i < variables.Count; i++) {
-					Variable variable = variables[i];
-					key_value_pairs.Add(variable.Name);
-					key_value_pairs.Add(variable.Type.ToSQLString());
-					key_value_pairs.Add(variable.IsSet ? variable.original_expression.Text.ToString() : "NULL");
-					key_value_pairs.Add(variable.Constant);
-					key_value_pairs.Add(variable.NotNull);
-					key_value_pairs.Add(variable.IsSet);
+			VariablesManager variablesManager = transaction.Variables;
+			lock(variablesManager) {
+				for (int i = 0; i < variablesManager.Count; i++) {
+					Variable variable = variablesManager[i];
+					variables.Add(new VariableInfo(variable));
 				}
 
 				return this;
@@ -97,8 +95,30 @@ namespace Deveel.Data {
 		}
 
 		protected override void Dispose(bool disposing) {
-			key_value_pairs = null;
+			variables = null;
 			transaction = null;
 		}
+
+		#region DbVariable
+
+		class VariableInfo {
+			public VariableInfo(Variable variable) {
+				Name = variable.Name;
+				SqlType = variable.Type.ToSQLString();
+				Value = variable.IsSet ? variable.original_expression.Text.ToString() : "NULL";
+				IsConstant = variable.Constant;
+				IsNotNull = variable.NotNull;
+				IsSet = variable.IsSet;
+			} 
+
+			public readonly string Name;
+			public readonly string SqlType;
+			public readonly string Value;
+			public readonly bool IsConstant;
+			public readonly bool IsNotNull;
+			public readonly bool IsSet;
+		}
+
+		#endregion
 	}
 }

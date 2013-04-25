@@ -63,7 +63,7 @@ namespace Deveel.Data.Deveel.Data {
 
 		///<summary>
 		///</summary>
-		public static readonly TableName Privileges = new TableName(Name, "user_priv");
+		public static readonly TableName UserPrivileges = new TableName(Name, "user_priv");
 
 		/// <summary>
 		/// The view table.
@@ -82,13 +82,34 @@ namespace Deveel.Data.Deveel.Data {
 		/// </summary>
 		public static readonly TableName OldTriggerTable = new TableName(Name, "OLD");
 
+		/// <summary>
+		/// The table which provides information on the current connection
+		/// </summary>
+		public static readonly  TableName ConnectionInfo = new TableName(Name, "connection_info");
+
+		/// <summary>
+		/// The table which provides the list of all the active connections
+		/// </summary>
+		public static readonly TableName CurrentConnections = new TableName(Name, "current_connections");
+
+		/// <summary>
+		/// The table that provides information about the privileges assignable
+		/// </summary>
+		public static readonly TableName Privileges = new TableName(Name, "priv_map");
+
+		public static readonly  TableName ProductInfo = new TableName(Name, "product_info");
+
+		public static readonly TableName SqlTypes = new TableName(Name, "sql_types");
+
+		public static readonly  TableName Variables = new TableName(Name, "variables");
+
 		internal static void CreateTables(DatabaseConnection connection) {
 			// --- The user management tables ---
 			DataTableInfo password = new DataTableInfo(Password);
 			password.AddColumn("UserName", TType.StringType);
 			password.AddColumn("Password", TType.StringType);
 
-			DataTableInfo userPriv = new DataTableInfo(Privileges);
+			DataTableInfo userPriv = new DataTableInfo(UserPrivileges);
 			userPriv.AddColumn("UserName", TType.StringType);
 			userPriv.AddColumn("PrivGroupName", TType.StringType);
 

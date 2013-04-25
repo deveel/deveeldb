@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2013  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Deveel.Data;
 
@@ -37,81 +37,15 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of info keys/values in this object.
 		/// </summary>
-		private ArrayList key_value_pairs;
-
-		public GTCurrentConnectionsDataSource(DatabaseConnection connection)
-			: base(connection.System) {
-			database = connection;
-			key_value_pairs = new ArrayList();
-		}
-
-		/// <summary>
-		/// Initialize the data source.
-		/// </summary>
-		/// <returns></returns>
-		public GTCurrentConnectionsDataSource Init() {
-
-			UserManager user_manager = database.Database.UserManager;
-			// Synchronize over the user manager while we inspect the information,
-			lock (user_manager) {
-				for (int i = 0; i < user_manager.UserCount; ++i) {
-					User user = user_manager[i];
-					key_value_pairs.Add(user.UserName);
-					key_value_pairs.Add(user.ConnectionString);
-					key_value_pairs.Add(user.LastCommandTime);
-					key_value_pairs.Add(user.TimeConnected);
-				}
-			}
-
-			return this;
-		}
-
-		// ---------- Implemented from GTDataSource ----------
-
-		/// <inheritdoc/>
-		public override DataTableInfo TableInfo {
-			get { return DEF_DATA_TABLE_DEF; }
-		}
-
-		/// <inheritdoc/>
-		public override int RowCount {
-			get { return key_value_pairs.Count/4; }
-		}
-
-		/// <inheritdoc/>
-		public override TObject GetCellContents(int column, int row) {
-			switch (column) {
-				case 0:  // username
-					return GetColumnValue(column, key_value_pairs[row * 4]);
-				case 1:  // host_string
-					return GetColumnValue(column, key_value_pairs[(row * 4) + 1]);
-				case 2:  // last_command
-					return GetColumnValue(column, (DateTime)key_value_pairs[(row * 4) + 2]);
-				case 3:  // time_connected
-					return GetColumnValue(column, (DateTime)key_value_pairs[(row * 4) + 3]);
-				default:
-					throw new ApplicationException("Column out of bounds.");
-			}
-		}
-
-		// ---------- Overwritten from GTDataSource ----------
-
-		/// <inheritdoc/>
-		protected override void Dispose(bool disposing) {
-			key_value_pairs = null;
-			database = null;
-		}
-
-		// ---------- Static ----------
+		private List<CurrentConnection> connections;
 
 		/// <summary>
 		/// The data table info that describes this table of data source.
 		/// </summary>
-		internal static readonly DataTableInfo DEF_DATA_TABLE_DEF;
+		internal static readonly DataTableInfo DataTableInfo;
 
 		static GTCurrentConnectionsDataSource() {
-
-			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "current_connections"));
+			DataTableInfo info = new DataTableInfo(SystemSchema.CurrentConnections);
 
 			// Add column definitions
 			info.AddColumn("username", TType.StringType);
@@ -122,8 +56,89 @@ namespace Deveel.Data {
 			// Set to immutable
 			info.IsReadOnly = true;
 
-			DEF_DATA_TABLE_DEF = info;
+			DataTableInfo = info;
 
 		}
+
+		public GTCurrentConnectionsDataSource(DatabaseConnection connection)
+			: base(connection.System) {
+			database = connection;
+			connections = new List<CurrentConnection>();
+		}
+
+		/// <summary>
+		/// Initialize the data source.
+		/// </summary>
+		/// <returns></returns>
+		public GTCurrentConnectionsDataSource Init() {
+			UserManager userManager = database.Database.UserManager;
+
+			// Synchronize over the user manager while we inspect the information,
+			lock (userManager) {
+				for (int i = 0; i < userManager.UserCount; ++i) {
+					User user = userManager[i];
+					CurrentConnection currentConnection = new CurrentConnection();
+					currentConnection.UserName = user.UserName;
+					currentConnection.Host = user.ConnectionString;
+					currentConnection.LastCommand = user.LastCommandTime;
+					currentConnection.Connected = user.TimeConnected;
+
+					connections.Add(currentConnection);
+				}
+			}
+
+			return this;
+		}
+
+		// ---------- Implemented from GTDataSource ----------
+
+		/// <inheritdoc/>
+		public override DataTableInfo TableInfo {
+			get { return DataTableInfo; }
+		}
+
+		/// <inheritdoc/>
+		public override int RowCount {
+			get { return connections.Count/4; }
+		}
+
+		/// <inheritdoc/>
+		public override TObject GetCellContents(int column, int row) {
+			CurrentConnection currentConnection = connections[row];
+
+			switch (column) {
+				case 0:  // username
+					return GetColumnValue(column, currentConnection.UserName);
+				case 1:  // host_string
+					return GetColumnValue(column, currentConnection.Host);
+				case 2:  // last_command
+					return GetColumnValue(column, currentConnection.LastCommand);
+				case 3:  // time_connected
+					return GetColumnValue(column, currentConnection.Connected);
+				default:
+					throw new IndexOutOfRangeException();
+			}
+		}
+
+		// ---------- Overwritten from GTDataSource ----------
+
+		/// <inheritdoc/>
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				connections = null;
+				database = null;
+			}
+		}
+
+		#region CurrentConnection
+
+		class CurrentConnection {
+			public string UserName;
+			public string Host;
+			public DateTime LastCommand;
+			public DateTime Connected;
+		}
+
+		#endregion
 	}
 }

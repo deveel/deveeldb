@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Deveel.Data;
 
@@ -31,11 +31,31 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of info keys/values in this object.
 		/// </summary>
-		private ArrayList key_value_pairs;
+		private List<string> keyValuePairs;
+
+		/// <summary>
+		/// The data table info that describes this table of data source.
+		/// </summary>
+		internal static readonly DataTableInfo DataTableInfo;
+
+		static GTProductDataSource() {
+
+			DataTableInfo info = new DataTableInfo(SystemSchema.ProductInfo);
+
+			// Add column definitions
+			info.AddColumn("var", TType.StringType);
+			info.AddColumn("value", TType.StringType);
+
+			// Set to immutable
+			info.IsReadOnly = true;
+
+			DataTableInfo = info;
+
+		}
 
 		public GTProductDataSource(SimpleTransaction transaction)
 			: base(transaction.System) {
-			key_value_pairs = new ArrayList();
+			keyValuePairs = new List<string>();
 		}
 
 		/// <summary>
@@ -45,20 +65,20 @@ namespace Deveel.Data {
 		public GTProductDataSource Init() {
 			ProductInfo productInfo = ProductInfo.Current;
 			// Set up the product variables.
-			key_value_pairs.Add("title");
-			key_value_pairs.Add(productInfo.Title);
+			keyValuePairs.Add("title");
+			keyValuePairs.Add(productInfo.Title);
 
-			key_value_pairs.Add("version");
-			key_value_pairs.Add(productInfo.Version.ToString());
+			keyValuePairs.Add("version");
+			keyValuePairs.Add(productInfo.Version.ToString());
 
-			key_value_pairs.Add("copyright");
-			key_value_pairs.Add(productInfo.Copyright);
+			keyValuePairs.Add("copyright");
+			keyValuePairs.Add(productInfo.Copyright);
 
-			key_value_pairs.Add("description");
-			key_value_pairs.Add(productInfo.Description);
+			keyValuePairs.Add("description");
+			keyValuePairs.Add(productInfo.Description);
 
-			key_value_pairs.Add("company");
-			key_value_pairs.Add(productInfo.Company);
+			keyValuePairs.Add("company");
+			keyValuePairs.Add(productInfo.Company);
 
 			return this;
 		}
@@ -66,19 +86,19 @@ namespace Deveel.Data {
 		// ---------- Implemented from GTDataSource ----------
 
 		public override DataTableInfo TableInfo {
-			get { return DEF_DATA_TABLE_DEF; }
+			get { return DataTableInfo; }
 		}
 
 		public override int RowCount {
-			get { return key_value_pairs.Count/2; }
+			get { return keyValuePairs.Count/2; }
 		}
 
 		public override TObject GetCellContents(int column, int row) {
 			switch (column) {
 				case 0:  // var
-					return GetColumnValue(column, key_value_pairs[row * 2]);
+					return GetColumnValue(column, keyValuePairs[row * 2]);
 				case 1:  // value
-					return GetColumnValue(column, key_value_pairs[(row * 2) + 1]);
+					return GetColumnValue(column, keyValuePairs[(row * 2) + 1]);
 				default:
 					throw new ApplicationException("Column out of bounds.");
 			}
@@ -87,30 +107,7 @@ namespace Deveel.Data {
 		// ---------- Overwritten from GTDataSource ----------
 
 		protected override void Dispose(bool disposing) {
-			key_value_pairs = null;
+			keyValuePairs = null;
 		}
-
-		// ---------- Static ----------
-
-		/// <summary>
-		/// The data table info that describes this table of data source.
-		/// </summary>
-		internal static readonly DataTableInfo DEF_DATA_TABLE_DEF;
-
-		static GTProductDataSource() {
-
-			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "product_info"));
-
-			// Add column definitions
-			info.AddColumn("var", TType.StringType);
-			info.AddColumn("value", TType.StringType);
-
-			// Set to immutable
-			info.IsReadOnly = true;
-
-			DEF_DATA_TABLE_DEF = info;
-
-		}
-
 	}
 }

@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Deveel Database Management System")]
 [assembly: AssemblyCompany("Deveel")]
 [assembly: AssemblyProduct("deveeldb")]
-[assembly: AssemblyCopyright("Copyright ©  2009-2011 Deveel")]
+[assembly: AssemblyCopyright("Copyright ©  2009-2013 Deveel")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

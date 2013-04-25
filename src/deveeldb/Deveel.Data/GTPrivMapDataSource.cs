@@ -33,54 +33,15 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Number of bits.
 		/// </summary>
-		private const int BIT_COUNT = Privileges.BitCount;
-
-
-		public GTPrivMapDataSource(DatabaseConnection connection)
-			: base(connection.System) {
-		}
-
-		// ---------- Implemented from GTDataSource ----------
-
-		public override DataTableInfo TableInfo {
-			get { return DEF_DATA_TABLE_DEF; }
-		}
-
-		public override int RowCount {
-			get { return (1 << BIT_COUNT)*BIT_COUNT; }
-		}
-
-		public override TObject GetCellContents(int column, int row) {
-			int c1 = row / BIT_COUNT;
-			if (column == 0)
-				return GetColumnValue(column, (BigNumber) c1);
-
-			int priv_bit = (1 << (row % BIT_COUNT));
-			string priv_string = null;
-			if ((c1 & priv_bit) != 0) {
-				priv_string = Privileges.FormatPriv(priv_bit);
-			}
-			return GetColumnValue(column, priv_string);
-		}
-
-		// ---------- Overwritten from GTDataSource ----------
-
-		public override SelectableScheme GetColumnScheme(int column) {
-			if (column == 0)
-				return new PrivMapSearch(this, column);
-			return new BlindSearch(this, column);
-		}
-
-		// ---------- Static ----------
+		private const int BitCount = Privileges.BitCount;
 
 		/// <summary>
 		/// The data table info that describes this table of data source.
 		/// </summary>
-		internal static readonly DataTableInfo DEF_DATA_TABLE_DEF;
+		public static readonly DataTableInfo DataTableInfo;
 
 		static GTPrivMapDataSource() {
-
-			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "priv_map"));
+			DataTableInfo info = new DataTableInfo(SystemSchema.Privileges);
 
 			// Add column definitions
 			info.AddColumn("priv_bit", TType.NumericType);
@@ -89,8 +50,42 @@ namespace Deveel.Data {
 			// Set to immutable
 			info.IsReadOnly = true;
 
-			DEF_DATA_TABLE_DEF = info;
+			DataTableInfo = info;
 
+		}
+
+		public GTPrivMapDataSource(DatabaseConnection connection)
+			: base(connection.System) {
+		}
+
+		// ---------- Implemented from GTDataSource ----------
+
+		public override DataTableInfo TableInfo {
+			get { return DataTableInfo; }
+		}
+
+		public override int RowCount {
+			get { return (1 << BitCount)*BitCount; }
+		}
+
+		public override TObject GetCellContents(int column, int row) {
+			int c1 = row / BitCount;
+			if (column == 0)
+				return GetColumnValue(column, (BigNumber) c1);
+
+			int privBit = (1 << (row % BitCount));
+			string privString = null;
+			if ((c1 & privBit) != 0) {
+				privString = Privileges.FormatPriv(privBit);
+			}
+			return GetColumnValue(column, privString);
+		}
+
+
+		public override SelectableScheme GetColumnScheme(int column) {
+			if (column == 0)
+				return new PrivMapSearch(this, column);
+			return new BlindSearch(this, column);
 		}
 
 		// ---------- Inner classes ----------
@@ -120,16 +115,16 @@ namespace Deveel.Data {
 
 				if (num < 0)
 					return -1;
-				if (num > (1 << BIT_COUNT))
-					return -(((1 << BIT_COUNT)*BIT_COUNT) + 1);
+				if (num > (1 << BitCount))
+					return -(((1 << BitCount)*BitCount) + 1);
 
-				return (num * BIT_COUNT);
+				return (num * BitCount);
 			}
 
 			protected override int SearchLast(TObject val) {
 				int p = SearchFirst(val);
 				if (p >= 0)
-					return p + (BIT_COUNT - 1);
+					return p + (BitCount - 1);
 				return p;
 			}
 		}

@@ -680,11 +680,11 @@ namespace Deveel.Data {
 
 		static DatabaseConnection() {
 			InternalInfoList = new DataTableInfo[5];
-			InternalInfoList[0] = GTStatisticsDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList[0] = GTStatisticsDataSource.DataTableInfo;
 			InternalInfoList[1] = GTConnectionInfoDataSource.DataTableInfo;
-			InternalInfoList[2] = GTCurrentConnectionsDataSource.DEF_DATA_TABLE_DEF;
-			InternalInfoList[3] = GTSQLTypeInfoDataSource.DEF_DATA_TABLE_DEF;
-			InternalInfoList[4] = GTPrivMapDataSource.DEF_DATA_TABLE_DEF;
+			InternalInfoList[2] = GTCurrentConnectionsDataSource.DataTableInfo;
+			InternalInfoList[3] = GTSQLTypeInfoDataSource.DataTableInfo;
+			InternalInfoList[4] = GTPrivMapDataSource.DataTableInfo;
 		}
 
 		private class TableQueryInfo : ITableQueryInfo {

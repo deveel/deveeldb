@@ -28,7 +28,7 @@ namespace Deveel.Data {
 	/// It is not suggested let a user to change this information unless he 
 	/// runs a DML command.
 	/// </remarks>
-	public abstract class GTDataSource : ITableDataSource {
+	abstract class GTDataSource : ITableDataSource {
 		/// <summary>
 		/// The TransactionSystem object for this table.
 		/// </summary>

@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2013  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using Deveel.Data.Deveel.Data;
 
@@ -37,12 +37,30 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of info keys/values in this object.
 		/// </summary>
-		private ArrayList key_value_pairs;
+		private List<string> keyValuePairs;
+
+		/// <summary>
+		/// The data table info that describes this table of data source.
+		/// </summary>
+		public static readonly DataTableInfo DataTableInfo;
+
+		static GTConnectionInfoDataSource() {
+			DataTableInfo info = new DataTableInfo(SystemSchema.ConnectionInfo);
+
+			// Add column definitions
+			info.AddColumn("var", TType.StringType);
+			info.AddColumn("value", TType.StringType);
+
+			// Set to immutable
+			info.IsReadOnly = true;
+
+			DataTableInfo = info;
+		}
 
 		public GTConnectionInfoDataSource(DatabaseConnection connection)
 			: base(connection.System) {
 			database = connection;
-			key_value_pairs = new ArrayList();
+			keyValuePairs = new List<string>();
 		}
 
 		/// <summary>
@@ -50,28 +68,27 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <returns></returns>
 		public GTConnectionInfoDataSource Init() {
-
 			// Set up the connection info variables.
-			key_value_pairs.Add("auto_commit");
-			key_value_pairs.Add(database.AutoCommit ? "true" : "false");
+			keyValuePairs.Add("auto_commit");
+			keyValuePairs.Add(database.AutoCommit ? "true" : "false");
 
-			key_value_pairs.Add("isolation_level");
-			key_value_pairs.Add(database.TransactionIsolation.ToString());
+			keyValuePairs.Add("isolation_level");
+			keyValuePairs.Add(database.TransactionIsolation.ToString());
 
-			key_value_pairs.Add("user");
-			key_value_pairs.Add(database.User.UserName);
+			keyValuePairs.Add("user");
+			keyValuePairs.Add(database.User.UserName);
 
-			key_value_pairs.Add("time_connection");
-			key_value_pairs.Add(database.User.TimeConnected.ToString());
+			keyValuePairs.Add("time_connection");
+			keyValuePairs.Add(database.User.TimeConnected.ToString());
 
-			key_value_pairs.Add("connection_string");
-			key_value_pairs.Add(database.User.ConnectionString);
+			keyValuePairs.Add("connection_string");
+			keyValuePairs.Add(database.User.ConnectionString);
 
-			key_value_pairs.Add("current_schema");
-			key_value_pairs.Add(database.CurrentSchema);
+			keyValuePairs.Add("current_schema");
+			keyValuePairs.Add(database.CurrentSchema);
 
-			key_value_pairs.Add("case_insensitive_identifiers");
-			key_value_pairs.Add(database.IsInCaseInsensitiveMode ? "true" : "false");
+			keyValuePairs.Add("case_insensitive_identifiers");
+			keyValuePairs.Add(database.IsInCaseInsensitiveMode ? "true" : "false");
 
 			return this;
 		}
@@ -85,16 +102,16 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override int RowCount {
-			get { return key_value_pairs.Count/2; }
+			get { return keyValuePairs.Count/2; }
 		}
 
 		/// <inheritdoc/>
 		public override TObject GetCellContents(int column, int row) {
 			switch (column) {
 				case 0:  // var
-					return GetColumnValue(column, key_value_pairs[row * 2]);
+					return GetColumnValue(column, keyValuePairs[row * 2]);
 				case 1:  // value
-					return GetColumnValue(column, key_value_pairs[(row * 2) + 1]);
+					return GetColumnValue(column, keyValuePairs[(row * 2) + 1]);
 				default:
 					throw new ApplicationException("Column out of bounds.");
 			}
@@ -104,28 +121,10 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) {
-			key_value_pairs = null;
-			database = null;
-		}
-
-		// ---------- Static ----------
-
-		/// <summary>
-		/// The data table info that describes this table of data source.
-		/// </summary>
-		internal static readonly DataTableInfo DataTableInfo;
-
-		static GTConnectionInfoDataSource() {
-			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "connection_info"));
-
-			// Add column definitions
-			info.AddColumn("var", TType.StringType);
-			info.AddColumn("value", TType.StringType);
-
-			// Set to immutable
-			info.IsReadOnly = true;
-
-			DataTableInfo = info;
+			if (disposing) {
+				keyValuePairs = null;
+				database = null;
+			}
 		}
 	}
 }

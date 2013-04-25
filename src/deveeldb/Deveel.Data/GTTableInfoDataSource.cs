@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Deveel.Data;
 
@@ -31,89 +32,18 @@ namespace Deveel.Data {
 		/// The transaction that is the view of this information.
 		/// </summary>
 		private Transaction transaction;
-		/// <summary>
-		/// The list of all TableName visible to the transaction.
-		/// </summary>
-		private TableName[] table_list;
-		/// <summary>
-		/// The list of all table types that are visible.
-		/// </summary>
-		private String[] table_types;
+
+		private List<TTableInfo> tableInfos;
+
 		/// <summary>
 		/// The number of rows in this table.
 		/// </summary>
-		private int row_count;
-
-		public GTTableInfoDataSource(Transaction transaction)
-			: base(transaction.System) {
-			this.transaction = transaction;
-		}
-
-		/// <summary>
-		/// Initialize the data source.
-		/// </summary>
-		/// <returns></returns>
-		public GTTableInfoDataSource Init() {
-			// All the tables
-			table_list = transaction.GetTables();
-			Array.Sort(table_list);
-			table_types = new String[table_list.Length];
-			row_count = table_list.Length;
-
-			for (int i = 0; i < table_list.Length; ++i) {
-				String cur_type = transaction.GetTableType(table_list[i]);
-				// If the table is in the SYSTEM schema, the type is defined as a
-				// SYSTEM TABLE.
-				if (cur_type.Equals("TABLE") &&
-					table_list[i].Schema.Equals("SYSTEM")) {
-					cur_type = "SYSTEM TABLE";
-				}
-				table_types[i] = cur_type;
-			}
-
-			return this;
-		}
-
-		// ---------- Implemented from GTDataSource ----------
-
-		public override DataTableInfo TableInfo {
-			get { return DEF_DATA_TABLE_DEF; }
-		}
-
-		public override int RowCount {
-			get { return row_count; }
-		}
-
-		public override TObject GetCellContents(int column, int row) {
-			TableName tname = table_list[row];
-			switch (column) {
-				case 0:  // schema
-					return GetColumnValue(column, tname.Schema);
-				case 1:  // name
-					return GetColumnValue(column, tname.Name);
-				case 2:  // type
-					return GetColumnValue(column, table_types[row]);
-				case 3:  // other
-					// Table notes, etc.  (future enhancement)
-					return GetColumnValue(column, "");
-				default:
-					throw new ApplicationException("Column out of bounds.");
-			}
-		}
-
-		// ---------- Overwritten from GTDataSource ----------
-
-		protected override void Dispose(bool disposing) {
-			table_list = null;
-			transaction = null;
-		}
-
-		// ---------- Static ----------
+		private int rowCount;
 
 		/// <summary>
 		/// The data table info that describes this table of data source.
 		/// </summary>
-		internal static readonly DataTableInfo DEF_DATA_TABLE_DEF;
+		internal static readonly DataTableInfo DataTableInfo;
 
 		static GTTableInfoDataSource() {
 
@@ -128,8 +58,91 @@ namespace Deveel.Data {
 			// Set to immutable
 			info.IsReadOnly = true;
 
-			DEF_DATA_TABLE_DEF = info;
+			DataTableInfo = info;
 
 		}
+
+		public GTTableInfoDataSource(Transaction transaction)
+			: base(transaction.System) {
+			this.transaction = transaction;
+			tableInfos = new List<TTableInfo>();
+		}
+
+		/// <summary>
+		/// Initialize the data source.
+		/// </summary>
+		/// <returns></returns>
+		public GTTableInfoDataSource Init() {
+			// All the tables
+			TableName[] tableList = transaction.GetTables();
+			Array.Sort(tableList);
+			rowCount = tableList.Length;
+
+			foreach (TableName tableName in tableList) {
+				string curType = transaction.GetTableType(tableName);
+
+				// If the table is in the SYSTEM schema, the type is defined as a
+				// SYSTEM TABLE.
+				if (curType.Equals("TABLE") &&
+					tableName.Schema.Equals("SYSTEM")) {
+					curType = "SYSTEM TABLE";
+				}
+
+				TTableInfo tableInfo = new TTableInfo();
+				tableInfo.Name = tableName.Name;
+				tableInfo.Schema = tableName.Schema;
+				tableInfo.Type = curType;
+
+				tableInfos.Add(tableInfo);
+			}
+
+			return this;
+		}
+
+		// ---------- Implemented from GTDataSource ----------
+
+		public override DataTableInfo TableInfo {
+			get { return DataTableInfo; }
+		}
+
+		public override int RowCount {
+			get { return rowCount; }
+		}
+
+		public override TObject GetCellContents(int column, int row) {
+			TTableInfo info = tableInfos[row];
+			switch (column) {
+				case 0:  // schema
+					return GetColumnValue(column, info.Schema);
+				case 1:  // name
+					return GetColumnValue(column, info.Name);
+				case 2:  // type
+					return GetColumnValue(column, info.Type);
+				case 3:  // other
+					// Table notes, etc.  (future enhancement)
+					return GetColumnValue(column, info.Notes);
+				default:
+					throw new ApplicationException("Column out of bounds.");
+			}
+		}
+
+		// ---------- Overwritten from GTDataSource ----------
+
+		protected override void Dispose(bool disposing) {
+			tableInfos = null;
+			transaction = null;
+		}
+
+		#region TableInfo
+
+		class TTableInfo {
+			public string Name;
+			public string Schema;
+			public string Type;
+			public string Notes;
+
+		}
+
+		#endregion
 	}
 }
