@@ -22,25 +22,25 @@ namespace Deveel.Data {
 		/// schema is "" then this connection is in the default schema (effectively
 		/// no schema).
 		/// </summary>
-		private string current_schema;
+		private string currentSchema;
 
 		/// <summary>
 		/// Gets or sets the name of the schema that this connection is within.
 		/// </summary>
 		public string CurrentSchema {
-			get { return current_schema; }
-			set { current_schema = value; }
+			get { return currentSchema; }
+			set { currentSchema = value; }
 		}
 
 		/// <summary>
 		/// Changes the default schema to the given schema.
 		/// </summary>
-		/// <param name="schema_name"></param>
-		public void SetDefaultSchema(String schema_name) {
-			bool ignore_case = IsInCaseInsensitiveMode;
-			SchemaDef schema = ResolveSchemaCase(schema_name, ignore_case);
+		/// <param name="schemaName"></param>
+		public void SetDefaultSchema(string schemaName) {
+			bool ignoreCase = IsInCaseInsensitiveMode;
+			SchemaDef schema = ResolveSchemaCase(schemaName, ignoreCase);
 			if (schema == null)
-				throw new ApplicationException("Schema '" + schema_name + "' does not exist.");
+				throw new ApplicationException("Schema '" + schemaName + "' does not exist.");
 
 			// Set the default schema for this connection
 			CurrentSchema = schema.Name;
@@ -80,8 +80,8 @@ namespace Deveel.Data {
 		///<param name="name"></param>
 		///<returns></returns>
 		public SchemaDef ResolveSchemaName(String name) {
-			bool ignore_case = IsInCaseInsensitiveMode;
-			return ResolveSchemaCase(name, ignore_case);
+			bool ignoreCase = IsInCaseInsensitiveMode;
+			return ResolveSchemaCase(name, ignoreCase);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.GetSchemaList"/>

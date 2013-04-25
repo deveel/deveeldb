@@ -50,7 +50,7 @@ namespace Deveel.Data {
 		/// exists within the underlying transaction, otherwise <b>false</b>.
 		/// </returns>
 		public bool TableExists(string tableName) {
-			return TableExists(new TableName(current_schema, tableName));
+			return TableExists(new TableName(currentSchema, tableName));
 		}
 
 		/// <summary>
@@ -186,14 +186,12 @@ namespace Deveel.Data {
 				// Special handling of NEW and OLD table, we cache the DataTable in the
 				// OldNewTableState object,
 				if (name.Equals(SystemSchema.OldTriggerTable)) {
-					if (currentOldNewState.OldDataTable == null)
-						currentOldNewState.OldDataTable = new DataTable(this, Transaction.GetTable(name));
-					return currentOldNewState.OldDataTable;
+					return currentOldNewState.OldDataTable ??
+					       (currentOldNewState.OldDataTable = new DataTable(this, Transaction.GetTable(name)));
 				}
 				if (name.Equals(SystemSchema.NewTriggerTable)) {
-					if (currentOldNewState.NewDataTable == null)
-						currentOldNewState.NewDataTable = new DataTable(this, Transaction.GetTable(name));
-					return currentOldNewState.NewDataTable;
+					return currentOldNewState.NewDataTable ??
+					       (currentOldNewState.NewDataTable = new DataTable(this, Transaction.GetTable(name)));
 				}
 
 				// Ask the transaction for the table
@@ -232,7 +230,7 @@ namespace Deveel.Data {
 		/// If none table was found for the given <paramref name="tableName"/>.
 		/// </exception>
 		public DataTable GetTable(string tableName) {
-			return GetTable(new TableName(current_schema, tableName));
+			return GetTable(new TableName(currentSchema, tableName));
 		}
 
 		/// <summary>
@@ -364,7 +362,7 @@ namespace Deveel.Data {
 		/// If none tables was found for the given <paramref name="tableName"/>.
 		/// </exception>
 		public void DropTable(string tableName) {
-			DropTable(new TableName(current_schema, tableName));
+			DropTable(new TableName(currentSchema, tableName));
 		}
 
 		/// <summary>
@@ -387,7 +385,7 @@ namespace Deveel.Data {
 		/// in the <see cref="CurrentSchema"/>.
 		/// </exception>
 		public void CompactTable(string tableName) {
-			CompactTable(new TableName(current_schema, tableName));
+			CompactTable(new TableName(currentSchema, tableName));
 		}
 
 		/// <summary>
@@ -407,7 +405,7 @@ namespace Deveel.Data {
 		///</summary>
 		///<param name="tableName"></param>
 		public void AddSelectedFromTable(string tableName) {
-			AddSelectedFromTable(new TableName(current_schema, tableName));
+			AddSelectedFromTable(new TableName(currentSchema, tableName));
 		}
 
 		///<summary>

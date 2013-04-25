@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010-2011  Deveel
+//  Copyright 2010-2013  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -138,7 +138,7 @@ namespace Deveel.Data {
 			triggerEventList = new List<TriggerEventArgs>();
 			autoCommit = true;
 
-			current_schema = Database.DefaultSchema;
+			currentSchema = Database.DefaultSchema;
 			closeTransactionDisabled = false;
 
 			tableBackedCacheList = new List<TableBackedCache>();
@@ -365,18 +365,18 @@ namespace Deveel.Data {
 		/// Notifies this transaction that a database object with the given name 
 		/// has successfully been created.
 		/// </summary>
-		/// <param name="table_name"></param>
-		internal void DatabaseObjectCreated(TableName table_name) {
-			Transaction.OnDatabaseObjectCreated(table_name);
+		/// <param name="tableName"></param>
+		internal void DatabaseObjectCreated(TableName tableName) {
+			Transaction.OnDatabaseObjectCreated(tableName);
 		}
 
 		/// <summary>
 		/// Notifies this transaction that a database object with the given name 
 		/// has successfully been dropped.
 		/// </summary>
-		/// <param name="table_name"></param>
-		internal void DatabaseObjectDropped(TableName table_name) {
-			Transaction.OnDatabaseObjectDropped(table_name);
+		/// <param name="tableName"></param>
+		internal void DatabaseObjectDropped(TableName tableName) {
+			Transaction.OnDatabaseObjectDropped(tableName);
 		}
 
 		/// <summary>
@@ -388,9 +388,9 @@ namespace Deveel.Data {
 		static TableName SubstituteReservedTableName(TableName tableName) {
 			// We do not allow tables to be created with a reserved name
 			String name = tableName.Name;
-			if (String.Compare(name, "OLD", true) == 0)
+			if (String.Compare(name, "OLD", StringComparison.OrdinalIgnoreCase) == 0)
 				return SystemSchema.OldTriggerTable;
-			if (String.Compare(name, "NEW", true) == 0)
+			if (String.Compare(name, "NEW", StringComparison.OrdinalIgnoreCase) == 0)
 				return SystemSchema.NewTriggerTable;
 			return tableName;
 		}
@@ -407,10 +407,9 @@ namespace Deveel.Data {
 		internal static void CheckAllowCreate(TableName tableName) {
 			// We do not allow tables to be created with a reserved name
 			String name = tableName.Name;
-			if (String.Compare(name, "OLD", true) == 0 ||
-				String.Compare(name, "NEW", true) == 0) {
-				throw new StatementException("Table name '" + tableName +
-											 "' is reserved.");
+			if (String.Compare(name, "OLD", StringComparison.OrdinalIgnoreCase) == 0 ||
+				String.Compare(name, "NEW", StringComparison.OrdinalIgnoreCase) == 0) {
+				throw new StatementException("Table name '" + tableName + "' is reserved.");
 			}
 		}
 
@@ -419,7 +418,7 @@ namespace Deveel.Data {
 		/// for the given type and size.
 		/// </summary>
 		/// <param name="type"></param>
-		/// <param name="object_size"></param>
+		/// <param name="objectSize"></param>
 		/// <remarks>
 		/// The blob data must be written through the <see cref="IRef"/>
 		/// after the large object is created. Once the data has been written 
@@ -430,13 +429,13 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public IRef CreateNewLargeObject(ReferenceType type, long object_size) {
+		public IRef CreateNewLargeObject(ReferenceType type, long objectSize) {
 			// Enable compression for string types (but not binary types).
 			if (type == ReferenceType.AsciiText || 
 				type == ReferenceType.UnicodeText) {
 				type |= ReferenceType.Compressed;
 			}
-			return conglomerate.CreateNewLargeObject(type, object_size);
+			return conglomerate.CreateNewLargeObject(type, objectSize);
 		}
 
 		/// <summary>
@@ -720,8 +719,6 @@ namespace Deveel.Data {
 				: base("SYSTEM TABLE", InternalInfoList) {
 				this.conn = conn;
 			}
-
-			// ---------- Implemented ----------
 
 			public override ITableDataSource CreateInternalTable(int index) {
 				if (index == 0)

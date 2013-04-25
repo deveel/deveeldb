@@ -89,7 +89,7 @@ namespace Deveel.Data {
 		/// <param name="table_name"></param>
 		/// <returns></returns>
 		public long NextUniqueID(String table_name) {
-			TableName tname = TableName.Resolve(current_schema, table_name);
+			TableName tname = TableName.Resolve(currentSchema, table_name);
 			return NextUniqueID(tname);
 		}
 
@@ -104,7 +104,7 @@ namespace Deveel.Data {
 		}
 
 		public long CurrentUniqueID(string table_name) {
-			return CurrentUniqueID(TableName.Resolve(current_schema, table_name));
+			return CurrentUniqueID(TableName.Resolve(currentSchema, table_name));
 		}
 
 		/// <summary>
