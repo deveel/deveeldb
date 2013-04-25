@@ -226,7 +226,7 @@ namespace Deveel.Data {
 		/// <exception cref="ApplicationException">
 		/// If there is more than one row that match the key.
 		/// </exception>
-		public Object GetVariable(int valueColumn, int keyColumn, object keyValue) {
+		public object GetVariable(int valueColumn, int keyColumn, object keyValue) {
 			// All indexes in the table where the key value is found.
 			IList<int> list = SelectEqual(keyColumn, keyValue);
 			if (list.Count > 1)

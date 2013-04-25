@@ -37,7 +37,7 @@ namespace Deveel.Data {
 	/// This method (or derived classes) must only use safe methods in <see cref="DataTable"/>.
 	/// </para>
 	/// </remarks>
-	public class DataRow {
+	public sealed class DataRow {
 
 		/// <summary>
 		/// The TransactionSystem this DataRow is a context of.

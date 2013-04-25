@@ -370,7 +370,7 @@ namespace Deveel.Data {
 
 				// Select rows between these two points.
 
-				search_case = table.SelectRows(column, cell_lower, cell_upper);
+				search_case = table.SelectBetween(column, cell_lower, cell_upper);
 
 			}
 

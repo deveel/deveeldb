@@ -60,7 +60,7 @@ namespace Deveel.Data.QueryPlanning {
 
 			// The rows in 'complete_left' that are outside (not in) the rows in the
 			// left result.
-			Table outside = completeLeft.Outside(result);
+			Table outside = completeLeft.Outer(result);
 
 			// Create an OuterTable
 			OuterTable outerTable = new OuterTable(result);

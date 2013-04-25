@@ -516,6 +516,9 @@
     <Compile Include="Deveel.Data\TableDataConglomerate_Transactions.cs" />
     <Compile Include="Deveel.Data\TableFunctions.cs" />
     <Compile Include="Deveel.Data\TableName.cs" />
+    <Compile Include="Deveel.Data\Table_Join.cs" />
+    <Compile Include="Deveel.Data\Table_Order.cs" />
+    <Compile Include="Deveel.Data\Table_Select.cs" />
     <Compile Include="Deveel.Data\TArrayType.cs" />
     <Compile Include="Deveel.Data\TBinaryType.cs" />
     <Compile Include="Deveel.Data\TBooleanType.cs" />
