@@ -334,8 +334,8 @@ namespace Deveel.Data {
 		}
 
 		protected DatabaseConnection CreateDatabaseConnection() {
-			string host_string = "Internal/Test/" + _connCounter++;
-			User user = system.Database.AuthenticateUser(AdminUser, AdminPassword, host_string);
+			string hostString = "Internal/Test/" + _connCounter++;
+			User user = system.Database.AuthenticateUser(AdminUser, AdminPassword, hostString);
 			return system.Database.CreateNewConnection(user, null);
 		}
 	}

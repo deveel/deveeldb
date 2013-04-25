@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql {
 
 		[Test]
 		public void CreateTableWithIdentity() {
-			
+			ExecuteNonQuery("CREATE TABLE Test (id IDENTITY, name VARCHAR);");
 		}
 
 		[Test]

@@ -62,9 +62,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\deveeldb\deveeldb.vs2010.csproj">
+    <ProjectReference Include="..\deveeldb\deveeldb.csproj">
       <Project>{A14222AE-1B48-4863-A0CA-1D6C2AB2190B}</Project>
-      <Name>deveeldb.vs2010</Name>
+      <Name>deveeldb</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
