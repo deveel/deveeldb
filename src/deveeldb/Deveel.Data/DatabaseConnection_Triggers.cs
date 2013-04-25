@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Deveel.Data;
+
 namespace Deveel.Data {
 	public sealed partial class DatabaseConnection {
 		/// <summary>
@@ -208,10 +210,10 @@ namespace Deveel.Data {
 			}
 
 			public int FindTableName(TableName name) {
-				if (HasOLDTable && name.Equals(Database.OldTriggerTable)) {
+				if (HasOLDTable && name.Equals(SystemSchema.OldTriggerTable)) {
 					return 0;
 				}
-				if (HasNEWTable && name.Equals(Database.NewTriggerTable)) {
+				if (HasNEWTable && name.Equals(SystemSchema.NewTriggerTable)) {
 					return HasOLDTable ? 1 : 0;
 				}
 				return -1;
@@ -220,10 +222,10 @@ namespace Deveel.Data {
 			public TableName GetTableName(int i) {
 				if (HasOLDTable) {
 					if (i == 0) {
-						return Database.OldTriggerTable;
+						return SystemSchema.OldTriggerTable;
 					}
 				}
-				return Database.NewTriggerTable;
+				return SystemSchema.NewTriggerTable;
 			}
 
 			public bool ContainsTableName(TableName name) {

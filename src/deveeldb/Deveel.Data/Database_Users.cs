@@ -17,6 +17,7 @@ using System;
 using System.Data;
 
 using Deveel.Data.Client;
+using Deveel.Data.Deveel.Data;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {
@@ -33,7 +34,7 @@ namespace Deveel.Data {
 		/// This method also returns <b>null</b> if a user exists but was 
 		/// denied access from the given host string. The given <i>host name</i>
 		/// is formatted in the database host connection encoding. This 
-		/// method checks all the values from the <see cref="SysUserPriv"/> 
+		/// method checks all the values from the <see cref="SystemSchema.Privileges"/> 
 		/// table for this user for the given protocol.
 		/// It first checks if the user is specifically <b>denied</b> access 
 		/// from the given host.It then checks if the user is <b>allowed</b> 
@@ -49,7 +50,7 @@ namespace Deveel.Data {
 			// Create a temporary connection for authentication only...
 			DatabaseConnection connection = CreateNewConnection(null, null);
 			DatabaseQueryContext context = new DatabaseQueryContext(connection);
-			connection.CurrentSchema = SystemSchema;
+			connection.CurrentSchema = SystemSchema.Name;
 			LockingMechanism locker = connection.LockingMechanism;
 			locker.SetMode(LockingMode.Exclusive);
 			try {
@@ -140,29 +141,29 @@ namespace Deveel.Data {
 			}
 
 			// The table to check
-			DataTable connect_priv = (DataTable) context.GetTable(SysUserConnect);
-			VariableName un_col = connect_priv.GetResolvedVariable(0);
-			VariableName proto_col = connect_priv.GetResolvedVariable(1);
-			VariableName host_col = connect_priv.GetResolvedVariable(2);
-			VariableName access_col = connect_priv.GetResolvedVariable(3);
+			DataTable connectPriv = (DataTable) context.GetTable(SystemSchema.UserConnectPrivileges);
+			VariableName unCol = connectPriv.GetResolvedVariable(0);
+			VariableName protoCol = connectPriv.GetResolvedVariable(1);
+			VariableName hostCol = connectPriv.GetResolvedVariable(2);
+			VariableName accessCol = connectPriv.GetResolvedVariable(3);
 			// Query: where UserName = %username%
-			Table t = connect_priv.SimpleSelect(context, un_col, Operator.Equal,
+			Table t = connectPriv.SimpleSelect(context, unCol, Operator.Equal,
 												new Expression(TObject.CreateString(username)));
 			// Query: where %protocol% like Protocol
-			Expression exp = Expression.Simple(TObject.CreateString(protocol), Operator.Like, proto_col);
+			Expression exp = Expression.Simple(TObject.CreateString(protocol), Operator.Like, protoCol);
 			t = t.ExhaustiveSelect(context, exp);
 			// Query: where %host% like Host
-			exp = Expression.Simple(TObject.CreateString(host), Operator.Like, host_col);
+			exp = Expression.Simple(TObject.CreateString(host), Operator.Like, hostCol);
 			t = t.ExhaustiveSelect(context, exp);
 
 			// Those that are DENY
-			Table t2 = t.SimpleSelect(context, access_col, Operator.Equal,
+			Table t2 = t.SimpleSelect(context, accessCol, Operator.Equal,
 									  new Expression(TObject.CreateString("DENY")));
 			if (t2.RowCount > 0)
 				return false;
 
 			// Those that are ALLOW
-			Table t3 = t.SimpleSelect(context, access_col, Operator.Equal,
+			Table t3 = t.SimpleSelect(context, accessCol, Operator.Equal,
 									  new Expression(TObject.CreateString("ALLOW")));
 			if (t3.RowCount > 0)
 				return true;
@@ -184,7 +185,7 @@ namespace Deveel.Data {
 		/// <paramref name="username"/>, otherwise <b>false</b>.
 		/// </returns>
 		public bool UserExists(IQueryContext context, String username) {
-			Table table = context.GetTable(SysPassword);
+			Table table = context.GetTable(SystemSchema.Password);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All password where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
@@ -220,7 +221,7 @@ namespace Deveel.Data {
 				throw new DatabaseException("User '" + username + "' already exists.");
 
 			// Some usernames are reserved words
-			if (String.Compare(username, "public", true) == 0)
+			if (String.Compare(username, "public", StringComparison.OrdinalIgnoreCase) == 0)
 				throw new DatabaseException("User '" + username + "' not allowed - reserved.");
 
 			// Usernames starting with @, &, # and $ are reserved for system
@@ -232,7 +233,7 @@ namespace Deveel.Data {
 			}
 
 			// Add this user to the password table.
-			DataTable table = (DataTable)context.GetTable(SysPassword);
+			DataTable table = (DataTable)context.GetTable(Deveel.Data.SystemSchema.Password);
 			DataRow rdat = new DataRow(table);
 			rdat.SetValue(0, username);
 			rdat.SetValue(1, password);
@@ -254,7 +255,7 @@ namespace Deveel.Data {
 		public void DeleteAllUserGroups(IQueryContext context, string username) {
 			Expression userExpr = new Expression(TObject.CreateString(username));
 
-			DataTable table = (DataTable) context.GetTable(SysUserPriv);
+			DataTable table = (DataTable) context.GetTable(SystemSchema.Privileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
@@ -284,13 +285,13 @@ namespace Deveel.Data {
 			DeleteAllUserGroups(context, username);
 
 			// Now delete the username from the user_connect_priv table
-			DataTable table = (DataTable) context.GetTable(SysUserConnect);
+			DataTable table = (DataTable) context.GetTable(SystemSchema.UserConnectPrivileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			Table t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
 			table.Delete(t);
 
 			// Finally delete the username from the 'password' table
-			table = (DataTable) context.GetTable(SysPassword);
+			table = (DataTable) context.GetTable(SystemSchema.Password);
 			c1 = table.GetResolvedVariable(0);
 			t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
 			table.Delete(t);
@@ -309,7 +310,7 @@ namespace Deveel.Data {
 			Expression userExpr = new Expression(TObject.CreateString(username));
 
 			// Delete the current username from the 'password' table
-			DataTable table = (DataTable) context.GetTable(SysPassword);
+			DataTable table = (DataTable) context.GetTable(SystemSchema.Password);
 			VariableName c1 = table.GetResolvedVariable(0);
 			Table t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
 			if (t.RowCount != 1)
@@ -318,7 +319,7 @@ namespace Deveel.Data {
 			table.Delete(t);
 
 			// Add the new username
-			table = (DataTable) context.GetTable(SysPassword);
+			table = (DataTable) context.GetTable(SystemSchema.Password);
 			DataRow rdat = new DataRow(table);
 			rdat.SetValue(0, username);
 			rdat.SetValue(1, password);
@@ -332,7 +333,7 @@ namespace Deveel.Data {
 		/// <param name="username"></param>
 		/// <returns></returns>
 		public string[] GroupsUserBelongsTo(IQueryContext context, String username) {
-			Table table = context.GetTable(SysUserPriv);
+			Table table = context.GetTable(SystemSchema.Privileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
@@ -362,7 +363,7 @@ namespace Deveel.Data {
 		/// <paramref name="group"/>, otherwise <b>false</b>.
 		/// </returns>
 		public bool UserBelongsToGroup(IQueryContext context, string username, string group) {
-			Table table = context.GetTable(SysUserPriv);
+			Table table = context.GetTable(SystemSchema.Privileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			VariableName c2 = table.GetResolvedVariable(1);
 			// All 'user_priv' where UserName = %username%
@@ -379,7 +380,7 @@ namespace Deveel.Data {
 		/// <param name="username">The name of the user to be added.</param>
 		/// <param name="group">The name of the group to add the user to.</param>
 		/// <remarks>
-		/// This makes an entry in the <see cref="SysUserPriv"/> for this user 
+		/// This makes an entry in the <see cref="SystemSchema.Privileges"/> for this user 
 		/// and the given group.
 		/// If the user already belongs to the group then no changes are made.
 		/// <para>
@@ -409,7 +410,7 @@ namespace Deveel.Data {
 			// Check the user doesn't belong to the group
 			if (!UserBelongsToGroup(context, username, group)) {
 				// The user priv table
-				DataTable table = (DataTable) context.GetTable(SysUserPriv);
+				DataTable table = (DataTable) context.GetTable(SystemSchema.Privileges);
 				// Add this user to the group.
 				DataRow rdat = new DataRow(table);
 				rdat.SetValue(0, username);
@@ -424,7 +425,6 @@ namespace Deveel.Data {
 		/// Sets the Lock status for the given user.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="user">The user to set the Lock status.</param>
 		/// <param name="lockStatus"></param>
 		/// <remarks>
 		/// If a user account if locked, it is rejected from logging in 
@@ -442,13 +442,13 @@ namespace Deveel.Data {
 			string username = context.UserName;
 
 			// Internally we implement this by adding the user to the #locked group.
-			DataTable table = (DataTable)context.GetTable(SysUserPriv);
+			DataTable table = (DataTable)context.GetTable(SystemSchema.Privileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			VariableName c2 = table.GetResolvedVariable(1);
 			// All 'user_priv' where UserName = %username%
 			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
 			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(context, c2, Operator.Equal, new Expression(TObject.CreateString(LockGroup)));
+			t = t.SimpleSelect(context, c2, Operator.Equal, new Expression(TObject.CreateString(SystemGroupNames.LockGroup)));
 
 			bool userBelongsToLockGroup = t.RowCount > 0;
 			if (lockStatus && !userBelongsToLockGroup) {
@@ -456,7 +456,7 @@ namespace Deveel.Data {
 				// Add this user to the locked group.
 				DataRow rdat = new DataRow(table);
 				rdat.SetValue(0, username);
-				rdat.SetValue(1, LockGroup);
+				rdat.SetValue(1, SystemGroupNames.LockGroup);
 				table.Add(rdat);
 			} else if (!lockStatus && userBelongsToLockGroup) {
 				// Unlock the user by removing the user from the Lock group
@@ -482,7 +482,7 @@ namespace Deveel.Data {
 		/// </exception>
 		public void GrantHostAccessToUser(IQueryContext context, string user, string protocol, string host) {
 			// The user connect priv table
-			DataTable table = (DataTable) context.GetTable(SysUserConnect);
+			DataTable table = (DataTable) context.GetTable(SystemSchema.UserConnectPrivileges);
 			// Add the protocol and host to the table
 			DataRow rdat = new DataRow(table);
 			rdat.SetValue(0, user);
@@ -505,7 +505,7 @@ namespace Deveel.Data {
 			if (context.UserName.Equals(InternalSecureUsername))
 				return true;
 
-			return UserBelongsToGroup(context, context.UserName, SecureGroup);
+			return UserBelongsToGroup(context, context.UserName, SystemGroupNames.SecureGroup);
 		}
 
 		/// <summary>
@@ -526,7 +526,7 @@ namespace Deveel.Data {
 				return true;
 
 			// No users have schema access to the system schema.
-			if (schema.Equals(SystemSchema))
+			if (schema.Equals(SystemSchema.Name))
 				return false;
 
 			// Ask the grant manager if there are any privs setup for this user on the
@@ -578,7 +578,7 @@ namespace Deveel.Data {
 		/// </returns>
 		public bool CanUserCreateAndDropUsers(IQueryContext context) {
 			return (UserHasSecureAccess(context) ||
-			        UserBelongsToGroup(context, context.UserName, UserManagerGroup));
+			        UserBelongsToGroup(context, context.UserName, SystemGroupNames.UserManagerGroup));
 		}
 
 		/// <summary>
@@ -595,11 +595,11 @@ namespace Deveel.Data {
 				return true;
 
 			// No user can create or drop the system schema.
-			if (schema.Equals(SystemSchema))
+			if (schema.Equals(SystemSchema.Name))
 				return false;
 
 			return (UserHasSecureAccess(context) ||
-			        UserBelongsToGroup(context, context.UserName, SchemaManagerGroup));
+			        UserBelongsToGroup(context, context.UserName, SystemGroupNames.SchemaManagerGroup));
 		}
 
 		/// <summary>

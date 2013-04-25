@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Deveel.Data.Deveel.Data;
 using Deveel.Data.QueryPlanning;
 
 namespace Deveel.Data {
@@ -59,7 +60,7 @@ namespace Deveel.Data {
 
 			// Attach a cache backed on the VIEW table which will invalidate the
 			// connection cache whenever the view table is modified.
-			connection.AttachTableBackedCache(new TableBackedCacheImpl(this, Database.SysView));
+			connection.AttachTableBackedCache(new TableBackedCacheImpl(this, SystemSchema.View));
 
 		}
 
@@ -106,7 +107,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Gets a view for the given name within the given <see cref="Database.SysView"/> table.
+		/// Gets a view for the given name within the given <see cref="SystemSchema.View"/> table.
 		/// </summary>
 		/// <param name="table"></param>
 		/// <param name="view_name">The name of the view to return.</param>
@@ -151,7 +152,7 @@ namespace Deveel.Data {
 		/// If multiple views were found for the given <paramref name="view_name"/>.
 		/// </exception>
 		public bool ViewExists(TableName view_name) {
-			DataTable table = connection.GetTable(Database.SysView);
+			DataTable table = connection.GetTable(SystemSchema.View);
 			return FindViewEntry(table, view_name).RowCount == 1;
 
 		}
@@ -172,7 +173,7 @@ namespace Deveel.Data {
 		/// </exception>
 		public void DefineView(View view, SqlQuery query, User user) {
 			DataTableInfo dataTableInfo = view.TableInfo;
-			DataTable view_table = connection.GetTable(Database.SysView);
+			DataTable view_table = connection.GetTable(SystemSchema.View);
 
 			TableName view_name = dataTableInfo.TableName;
 
@@ -216,7 +217,7 @@ namespace Deveel.Data {
 		/// If multiple views were found for the given <paramref name="view_name"/>.
 		/// </exception>
 		public bool DeleteView(TableName view_name) {
-			DataTable table = connection.GetTable(Database.SysView);
+			DataTable table = connection.GetTable(SystemSchema.View);
 
 			// Find the entry from the view table that equal this name
 			Table t = FindViewEntry(table, view_name);
@@ -341,7 +342,7 @@ namespace Deveel.Data {
 		///<param name="view_name"></param>
 		///<returns></returns>
 		public IQueryPlanNode CreateViewQueryPlanNode(TableName view_name) {
-			DataTable table = connection.GetTable(Database.SysView);
+			DataTable table = connection.GetTable(SystemSchema.View);
 			return GetViewDef(local_cache, table, view_name).QueryPlanNode;
 		}
 
@@ -378,7 +379,7 @@ namespace Deveel.Data {
 			private readonly Hashtable view_cache;
 
 			internal ViewInternalTableInfo(ViewManager manager, Transaction transaction)
-				: base(transaction, Database.SysView) {
+				: base(transaction, SystemSchema.View) {
 				view_manager = manager;
 				view_cache = view_manager == null ? new Hashtable() : view_manager.ViewCache;
 			}
@@ -389,7 +390,7 @@ namespace Deveel.Data {
 
 			public override DataTableInfo GetTableInfo(int i) {
 				return GetViewDef(view_cache,
-				                  transaction.GetTable(Database.SysView), i).TableInfo;
+				                  transaction.GetTable(SystemSchema.View), i).TableInfo;
 			}
 
 			public override ITableDataSource CreateInternalTable(int i) {

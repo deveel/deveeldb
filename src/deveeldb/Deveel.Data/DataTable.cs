@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Deveel.Data;
 using Deveel.Diagnostics;
 
 using SysMath = System.Math;
@@ -206,7 +207,7 @@ namespace Deveel.Data {
 			// All 'system' tables are given Read access because they may only be
 			// written under exclusive mode anyway.
 
-			bool isInternalTable = TableName.Schema.Equals(Database.SystemSchema);
+			bool isInternalTable = TableName.Schema.Equals(SystemSchema.Name);
 
 			if (!(isInternalTable ||
 			      debugReadLockCount > 0 ||

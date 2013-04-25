@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Deveel.Data;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// An implementation of <see cref="IMutableTableDataSource"/> that 
@@ -109,7 +111,7 @@ namespace Deveel.Data {
 
 		static GTCurrentConnectionsDataSource() {
 
-			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "current_connections"));
+			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "current_connections"));
 
 			// Add column definitions
 			info.AddColumn("username", TType.StringType);

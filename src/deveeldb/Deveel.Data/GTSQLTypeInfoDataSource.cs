@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Deveel.Data;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// A <see cref="GTDataSource"/> that models all SQL types available.
@@ -171,7 +173,7 @@ namespace Deveel.Data {
 
 		static GTSQLTypeInfoDataSource() {
 
-			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "sql_types"));
+			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "sql_types"));
 
 			// Add column definitions
 			info.AddColumn("TYPE_NAME", TType.StringType);

@@ -12,6 +12,7 @@
     <AssemblyName>deveeldb</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,6 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoWarn>0162,0168</NoWarn>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -208,6 +210,7 @@
     <Compile Include="Deveel.Data\IndexSetStore_Index.cs" />
     <Compile Include="Deveel.Data\IndexSetStore_IndexBlock.cs" />
     <Compile Include="Deveel.Data\IndexSetStore_SnapshotIndexSet.cs" />
+    <Compile Include="Deveel.Data\InformationSchema.cs" />
     <Compile Include="Deveel.Data\ISizeableType.cs" />
     <Compile Include="Deveel.Data\JournalCommandType.cs" />
     <Compile Include="Deveel.Data\MasterTableDataSource_Diagnostics.cs" />
@@ -321,6 +324,8 @@
     <Compile Include="Deveel.Data\SqlStateException.cs" />
     <Compile Include="Deveel.Data\SqlState_States.cs" />
     <Compile Include="Deveel.Data\SubsetQueryContext.cs" />
+    <Compile Include="Deveel.Data\SystemGroupNames.cs" />
+    <Compile Include="Deveel.Data\SystemSchema.cs" />
     <Compile Include="Deveel.Data\TableSelectExpression.cs" />
     <Compile Include="Deveel.Data.Sql\TNamedUserDefinedType.cs" />
     <Compile Include="Deveel.Data.Sql\UpdateTableStatement.cs" />

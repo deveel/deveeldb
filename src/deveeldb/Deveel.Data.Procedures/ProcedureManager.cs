@@ -19,6 +19,8 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
+using Deveel.Data.Deveel.Data;
+
 namespace Deveel.Data.Procedures {
 	///<summary>
 	/// A DatabaseConnection procedure manager.
@@ -169,7 +171,7 @@ namespace Deveel.Data.Procedures {
 		///<param name="procedure_name"></param>
 		///<returns></returns>
 		public bool ProcedureExists(ProcedureName procedure_name) {
-			DataTable table = connection.GetTable(Database.SysFunction);
+			DataTable table = connection.GetTable(SystemSchema.Function);
 			return FindProcedureEntry(table, procedure_name).RowCount == 1;
 
 		}
@@ -211,7 +213,7 @@ namespace Deveel.Data.Procedures {
 			// Check this name is not reserved
 			DatabaseConnection.CheckAllowCreate(proc_table_name);
 
-			DataTable table = connection.GetTable(Database.SysFunction);
+			DataTable table = connection.GetTable(SystemSchema.Function);
 
 			// The new row to insert/update    
 			DataRow dataRow = new DataRow(table);
@@ -251,7 +253,7 @@ namespace Deveel.Data.Procedures {
 		/// </exception>
 		public void DeleteProcedure(ProcedureName procedure_name) {
 
-			DataTable table = connection.GetTable(Database.SysFunction);
+			DataTable table = connection.GetTable(SystemSchema.Function);
 
 			// Find the entry from the procedure table that equal this name
 			Table t = FindProcedureEntry(table, procedure_name);
@@ -299,7 +301,7 @@ namespace Deveel.Data.Procedures {
 		public TObject InvokeProcedure(ProcedureName procedure_name,
 		                               TObject[] parameters) {
 
-			DataTable table = connection.GetTable(Database.SysFunction);
+			DataTable table = connection.GetTable(SystemSchema.Function);
 
 			// Find the entry from the procedure table that equals this name
 			Table t = FindProcedureEntry(table, procedure_name);
@@ -804,7 +806,7 @@ namespace Deveel.Data.Procedures {
 		private sealed class ProcedureInternalTableInfo : InternalTableInfo2 {
 
 			internal ProcedureInternalTableInfo(Transaction transaction)
-				: base(transaction, Database.SysFunction) {
+				: base(transaction, SystemSchema.Function) {
 			}
 
 			private static DataTableInfo CreateTableInfo(String schema, String name) {
@@ -836,7 +838,7 @@ namespace Deveel.Data.Procedures {
 			}
 
 			public override ITableDataSource CreateInternalTable(int index) {
-				ITableDataSource table = transaction.GetTable(Database.SysFunction);
+				ITableDataSource table = transaction.GetTable(SystemSchema.Function);
 				IRowEnumerator row_e = table.GetRowEnumerator();
 				int p = 0;
 				int i;

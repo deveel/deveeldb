@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Deveel.Data;
+
 namespace Deveel.Data {
 	public sealed partial class DatabaseConnection {
 		/// <summary>
@@ -142,9 +144,9 @@ namespace Deveel.Data {
 		public TableName ResolveToTableName(string name) {
 			TableName tableName = TableName.Resolve(CurrentSchema, name);
 			if (String.Compare(tableName.Name, "OLD", true) == 0)
-				return Database.OldTriggerTable;
+				return SystemSchema.OldTriggerTable;
 			if (String.Compare(tableName.Name, "NEW", true) == 0)
-				return Database.NewTriggerTable;
+				return SystemSchema.NewTriggerTable;
 
 			return Transaction.ResolveToTableName(CurrentSchema, name, IsInCaseInsensitiveMode);
 
@@ -183,12 +185,12 @@ namespace Deveel.Data {
 			try {
 				// Special handling of NEW and OLD table, we cache the DataTable in the
 				// OldNewTableState object,
-				if (name.Equals(Database.OldTriggerTable)) {
+				if (name.Equals(SystemSchema.OldTriggerTable)) {
 					if (currentOldNewState.OldDataTable == null)
 						currentOldNewState.OldDataTable = new DataTable(this, Transaction.GetTable(name));
 					return currentOldNewState.OldDataTable;
 				}
-				if (name.Equals(Database.NewTriggerTable)) {
+				if (name.Equals(SystemSchema.NewTriggerTable)) {
 					if (currentOldNewState.NewDataTable == null)
 						currentOldNewState.NewDataTable = new DataTable(this, Transaction.GetTable(name));
 					return currentOldNewState.NewDataTable;

@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Deveel.Data;
+
 namespace Deveel.Data {
 	internal class GTVariablesDataSource : GTDataSource {
 		public GTVariablesDataSource(SimpleTransaction transaction) 
@@ -25,7 +27,7 @@ namespace Deveel.Data {
 		}
 
 		static GTVariablesDataSource() {
-			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "variables"));
+			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "variables"));
 
 			// Add column definitions
 			info.AddColumn("var", TType.StringType);

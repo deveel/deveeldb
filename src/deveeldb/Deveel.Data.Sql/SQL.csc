@@ -15,9 +15,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Data.Functions;
-using Deveel.Data.Text;
-using Deveel.Data.Util;
+using Functions;
+using Text;
 
 internal class SQL {
 

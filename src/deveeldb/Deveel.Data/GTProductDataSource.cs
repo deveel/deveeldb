@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Deveel.Data;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// An implementation of <see cref="IMutableTableDataSource"/> that models 
@@ -97,7 +99,7 @@ namespace Deveel.Data {
 
 		static GTProductDataSource() {
 
-			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "product_info"));
+			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "product_info"));
 
 			// Add column definitions
 			info.AddColumn("var", TType.StringType);

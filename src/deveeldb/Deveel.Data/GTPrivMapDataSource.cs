@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Deveel.Data;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// A <see cref="GTDataSource"/> that maps a 11-bit <see cref="Privileges"/> 
@@ -78,7 +80,7 @@ namespace Deveel.Data {
 
 		static GTPrivMapDataSource() {
 
-			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "priv_map"));
+			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "priv_map"));
 
 			// Add column definitions
 			info.AddColumn("priv_bit", TType.NumericType);

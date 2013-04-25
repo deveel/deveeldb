@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Deveel.Data;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// An implementation of <see cref="IMutableTableDataSource"/> that 
@@ -114,7 +116,7 @@ namespace Deveel.Data {
 		internal static readonly DataTableInfo DataTableInfo;
 
 		static GTConnectionInfoDataSource() {
-			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "connection_info"));
+			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "connection_info"));
 
 			// Add column definitions
 			info.AddColumn("var", TType.StringType);

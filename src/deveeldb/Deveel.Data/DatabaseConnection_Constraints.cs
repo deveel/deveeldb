@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2011  Deveel
+//  Copyright 2010-2013  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ namespace Deveel.Data {
 		/// and when the transaction is next committed check for all deferred
 		/// constraint violations.
 		/// </summary>
-		/// <param name="table_name">Name of the table to check the constraints.</param>
+		/// <param name="tableName">Name of the table to check the constraints.</param>
 		/// <remarks>
 		/// This method is used when the constraints on a table changes and we 
 		/// need to determine if any constraint violations occurred.
@@ -32,45 +32,45 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <exception cref="StatementException">
-		/// If none table with the given <paramref name="table_name"/> was found.
+		/// If none table with the given <paramref name="tableName"/> was found.
 		/// </exception>
-		public void CheckAllConstraints(TableName table_name) {
+		public void CheckAllConstraints(TableName tableName) {
 			// Assert
 			CheckExclusive();
-			Transaction.CheckAllConstraints(table_name);
+			Transaction.CheckAllConstraints(tableName);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.AddUniqueConstraint(Deveel.Data.DataConstraintInfo)"/>
+		/// <inheritdoc cref="Data.Transaction.AddUniqueConstraint(DataConstraintInfo)"/>
 		public void AddUniqueConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			// Assert
 			CheckExclusive();
 			Transaction.AddUniqueConstraint(tableName, columns, deferred, constraintName);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.AddForeignKeyConstraint(Deveel.Data.DataConstraintInfo)"/>
+		/// <inheritdoc cref="Data.Transaction.AddForeignKeyConstraint(DataConstraintInfo)"/>
 		public void AddForeignKeyConstraint(TableName table, string[] columns,
-			TableName ref_table, string[] refColumns,
-			ConstraintAction delete_rule, ConstraintAction update_rule,
-			ConstraintDeferrability deferred, String constraint_name) {
+			TableName refTable, string[] refColumns,
+			ConstraintAction deleteRule, ConstraintAction updateRule,
+			ConstraintDeferrability deferred, string constraintName) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddForeignKeyConstraint(table, columns, ref_table, refColumns,
-												delete_rule, update_rule,
-												deferred, constraint_name);
+			Transaction.AddForeignKeyConstraint(table, columns, refTable, refColumns,
+												deleteRule, updateRule,
+												deferred, constraintName);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.AddPrimaryKeyConstraint(Deveel.Data.DataConstraintInfo)"/>
-		public void AddPrimaryKeyConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, String constraint_name) {
+		/// <inheritdoc cref="Data.Transaction.AddPrimaryKeyConstraint(DataConstraintInfo)"/>
+		public void AddPrimaryKeyConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddPrimaryKeyConstraint(tableName, columns, deferred, constraint_name);
+			Transaction.AddPrimaryKeyConstraint(tableName, columns, deferred, constraintName);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.AddCheckConstraint(Deveel.Data.DataConstraintInfo)"/>
-		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, String constraint_name) {
+		/// <inheritdoc cref="Data.Transaction.AddCheckConstraint(DataConstraintInfo)"/>
+		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, String constraintName) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddCheckConstraint(tableName, expression, deferred, constraint_name);
+			Transaction.AddCheckConstraint(tableName, expression, deferred, constraintName);
 		}
 
 		/// <inheritdoc cref="Data.Transaction.DropAllConstraintsForTable"/>

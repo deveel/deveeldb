@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
+using Deveel.Data.Deveel.Data;
 using Deveel.Data.Procedures;
 
 namespace Deveel.Data {
@@ -205,7 +206,7 @@ namespace Deveel.Data {
 				byte[] encodedParams = output.ToArray();
 
 				// Insert the entry into the trigger table,
-				DataTable table = connection.GetTable(Database.SysDataTrigger);
+				DataTable table = connection.GetTable(SystemSchema.DataTrigger);
 				DataRow row = new DataRow(table);
 				row.SetValue(0, TObject.CreateString(schema));
 				row.SetValue(1, TObject.CreateString(name));
@@ -273,7 +274,7 @@ namespace Deveel.Data {
 		/// </exception>
 		public void DropTrigger(string schema, string name) {
 			IQueryContext context = new DatabaseQueryContext(connection);
-			DataTable table = connection.GetTable(Database.SysDataTrigger);
+			DataTable table = connection.GetTable(SystemSchema.DataTrigger);
 
 			// Find the trigger
 			Table t = FindTrigger(context, table, schema, name);
@@ -330,7 +331,7 @@ namespace Deveel.Data {
 		/// </exception>
 		public bool TriggerExists(string schema, string name) {
 			IQueryContext context = new DatabaseQueryContext(connection);
-			DataTable table = connection.GetTable(Database.SysDataTrigger);
+			DataTable table = connection.GetTable(SystemSchema.DataTrigger);
 
 			// Find the trigger
 			Table t = FindTrigger(context, table, schema, name);
@@ -365,7 +366,7 @@ namespace Deveel.Data {
 		private void BuildTriggerList() {
 			if (!listValidated) {
 				// Cache the trigger table
-				DataTable table = connection.GetTable(Database.SysDataTrigger);
+				DataTable table = connection.GetTable(SystemSchema.DataTrigger);
 				IRowEnumerator e = table.GetRowEnumerator();
 
 				// For each row
@@ -408,7 +409,7 @@ namespace Deveel.Data {
 			//   makes sure the transaction on the connection is established (it should
 			//   be anyway if a trigger is firing), and it also makes sure the trigger
 			//   table exists - which it may not be during database init.
-			if (connection.TableExists(Database.SysDataTrigger)) {
+			if (connection.TableExists(SystemSchema.DataTrigger)) {
 				// If the trigger list isn't built, then do so now
 				BuildTriggerList();
 
@@ -483,7 +484,7 @@ namespace Deveel.Data {
 			private readonly ConnectionTriggerManager ctm;
 
 			public CTMBackedCache(ConnectionTriggerManager ctm)
-				: base(Database.SysDataTrigger) {
+				: base(SystemSchema.DataTrigger) {
 				this.ctm = ctm;
 			}
 
@@ -557,7 +558,7 @@ namespace Deveel.Data {
 		private sealed class TriggerInternalTableInfo
 			: InternalTableInfo2 {
 			internal TriggerInternalTableInfo(Transaction transaction)
-				: base(transaction, Database.SysDataTrigger) {
+				: base(transaction, SystemSchema.DataTrigger) {
 			}
 
 			private static DataTableInfo CreateTableInfo(String schema, String name) {
@@ -589,7 +590,7 @@ namespace Deveel.Data {
 			}
 
 			public override ITableDataSource CreateInternalTable(int index) {
-				ITableDataSource table = transaction.GetTable(Database.SysDataTrigger);
+				ITableDataSource table = transaction.GetTable(SystemSchema.DataTrigger);
 				IRowEnumerator row_e = table.GetRowEnumerator();
 				int p = 0;
 				int i;

@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
+using Deveel.Data.Deveel.Data;
 using Deveel.Data.Procedures;
 using Deveel.Data.QueryPlanning;
 using Deveel.Diagnostics;
@@ -388,9 +389,9 @@ namespace Deveel.Data {
 			// We do not allow tables to be created with a reserved name
 			String name = tableName.Name;
 			if (String.Compare(name, "OLD", true) == 0)
-				return Database.OldTriggerTable;
+				return SystemSchema.OldTriggerTable;
 			if (String.Compare(name, "NEW", true) == 0)
-				return Database.NewTriggerTable;
+				return SystemSchema.NewTriggerTable;
 			return tableName;
 		}
 

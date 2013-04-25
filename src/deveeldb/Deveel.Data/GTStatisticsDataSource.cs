@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Deveel.Data;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// An implementation of <see cref="IMutableTableDataSource"/> that 
@@ -104,7 +106,7 @@ namespace Deveel.Data {
 
 		static GTStatisticsDataSource() {
 
-			DataTableInfo info = new DataTableInfo(new TableName(Database.SystemSchema, "database_stats"));
+			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "database_stats"));
 
 			// Add column definitions
 			info.AddColumn("stat_name", TType.StringType);

@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2013  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 using System;
 using System.Collections;
-using System.Data;
 using System.IO;
 
 using Deveel.Data.Caching;
-using Deveel.Data.Client;
 using Deveel.Data.Control;
+using Deveel.Data.Deveel.Data;
 using Deveel.Data.Procedures;
 using Deveel.Data.Store;
 using Deveel.Diagnostics;
@@ -61,130 +60,9 @@ namespace Deveel.Data {
 		public const String InternalSecureUsername = "@SYSTEM";
 
 		/// <summary>
-		/// The name of the lock group.
-		/// </summary>
-		/// <remarks>
-		/// If a user belongs to this group the user account is locked and they are not 
-		/// allowed to log into the database.
-		/// </remarks>
-		public const string LockGroup = "#locked";
-
-		/// <summary>
-		/// The name of the schema manager group.
-		/// </summary>
-		/// <remarks>
-		/// Users that belong in this group can create and drop schema from the system.
-		/// </remarks>
-		public const String SchemaManagerGroup = "schema manager";
-
-		/// <summary>
-		/// THe name of the secure access group.
-		/// </summary>
-		/// <remarks>
-		/// If a user belongs to this group they are permitted to perform a number of 
-		/// priviledged operations such as shutting down the database, and adding and 
-		/// removing users.
-		/// </remarks>
-		public const string SecureGroup = "secure access";
-
-		/// <summary>
-		/// The name of the user manager group.
-		/// </summary>
-		/// <remarks>
-		/// Users that belong in this group can create, alter and drop users from the 
-		/// system.
-		/// </remarks>
-		public const String UserManagerGroup = "user manager";
-
-		/// <summary>
 		/// The name of the default schema.
 		/// </summary>
 		public const String DefaultSchema = "APP";
-
-		/// <summary>
-		/// The name of the schema that contains helper tables.
-		/// </summary>
-		public const String InformationSchema = "INFORMATION_SCHEMA";
-
-		/// <summary>
-		/// The NEW table used inside a triggered procedure to represent a triggered
-		/// row after the operation occurs.
-		/// </summary>
-		public static readonly TableName NewTriggerTable = new TableName(SystemSchema, "NEW");
-
-		/// <summary>
-		/// The OLD table used inside a triggered procedure to represent a triggered
-		/// row before the operation occurs.
-		/// </summary>
-		public static readonly TableName OldTriggerTable = new TableName(SystemSchema, "OLD");
-
-		/// <summary>
-		/// The system internally generated 'data_trigger' table.
-		/// </summary>
-		public static readonly TableName SysDataTrigger = new TableName(SystemSchema, "data_trigger");
-
-		/// <summary>
-		/// The system internally generated 'database_stats' table.
-		/// </summary>
-		public static readonly TableName SysDbStatistics = new TableName(SystemSchema, "database_stats");
-
-		/// <summary>
-		/// The function table.
-		/// </summary>
-		public static readonly TableName SysFunction = new TableName(SystemSchema, "function");
-
-		/// <summary>
-		/// The function factory table.
-		/// </summary>
-		public static readonly TableName SysFunctionfactory = new TableName(SystemSchema, "function_factory");
-
-		///<summary>
-		///</summary>
-		public static readonly TableName SysGrants = new TableName(SystemSchema, "grant");
-
-		/// <summary>
-		/// The label table.
-		/// </summary>
-		public static readonly TableName SysLabel = new TableName(SystemSchema, "label");
-
-		/// <summary>
-		/// The password privs and grants table.
-		/// </summary>
-		public static readonly TableName SysPassword = new TableName(SystemSchema, "password");
-
-		/// <summary>
-		/// The services table.
-		/// </summary>
-		public static readonly TableName SysService = new TableName(SystemSchema, "service");
-
-		/// <summary>
-		/// The system internally generated 'table_columns' table.
-		/// </summary>
-		public static readonly TableName SysTableColumns = new TableName(SystemSchema, "table_columns");
-
-		/// <summary>
-		/// The system internally generated 'table_info' table.
-		/// </summary>
-		public static readonly TableName SysTableInfo = new TableName(SystemSchema, "table_info");
-
-		///<summary>
-		///</summary>
-		public static readonly TableName SysUserConnect = new TableName(SystemSchema, "user_connect_priv");
-
-		///<summary>
-		///</summary>
-		public static readonly TableName SysUserPriv = new TableName(SystemSchema, "user_priv");
-
-		/// <summary>
-		/// The view table.
-		/// </summary>
-		public static readonly TableName SysView = new TableName(SystemSchema, "view");
-
-		/// <summary>
-		/// The name of the system schema that contains tables refering to 
-		/// system information.
-		/// </summary>
-		public const String SystemSchema = TableDataConglomerate.SystemSchema;
 
 		/// <summary>
 		/// The TableDataConglomerate that contains the conglomerate of tables for
@@ -246,6 +124,10 @@ namespace Deveel.Data {
 			TemporaryTable t = new TemporaryTable(this,"SINGLE_ROW_TABLE", new DataTableColumnInfo[0]);
 			t.NewRow();
 			singleRowTable = t;
+		}
+
+		~Database() {
+			Dispose(false);
 		}
 
 		/// <summary>
@@ -413,359 +295,32 @@ namespace Deveel.Data {
 
 		private static void CreateSchemaInfoTables(DatabaseConnection connection) {
 			connection.CreateSchema(DefaultSchema, "DEFAULT");
-			connection.CreateSchema(InformationSchema, "SYSTEM");
+			connection.CreateSchema(InformationSchema.Name, "SYSTEM");
 		}
 
-		/// <summary>
-		///  Creates all the system views.
-		/// </summary>
-		/// <param name="connection"></param>
-		private void CreateSystemViews(DatabaseConnection connection) {
-			// Obtain the data interface.
-			try {
-				IDbConnection db_conn = connection.GetDbConnection();
-
-				// Is the username/password in the database?
-				IDbCommand stmt = db_conn.CreateCommand();
-
-				// This view shows the grants that the user has (no join, only priv_bit).
-				stmt.CommandText =
-					"CREATE VIEW INFORMATION_SCHEMA.ThisUserSimpleGrant AS " +
-					"  SELECT \"priv_bit\", \"object\", \"param\", \"grantee\", " +
-					"         \"grant_option\", \"granter\" " +
-					"    FROM SYSTEM.grant " +
-					"   WHERE ( grantee = user() OR grantee = '@PUBLIC' )";
-				stmt.ExecuteNonQuery();
-
-				// This view shows the grants that the user is allowed to see
-				stmt.CommandText =
-					"CREATE VIEW INFORMATION_SCHEMA.ThisUserGrant AS " +
-					"  SELECT \"description\", \"object\", \"param\", \"grantee\", " +
-					"         \"grant_option\", \"granter\" " +
-					"    FROM SYSTEM.grant, SYSTEM.priv_map " +
-					"   WHERE ( grantee = user() OR grantee = '@PUBLIC' )" +
-					"     AND grant.priv_bit = priv_map.priv_bit";
-				stmt.ExecuteNonQuery();
-
-				// A view that represents the list of schema this user is allowed to view
-				// the contents of.
-				stmt.CommandText =
-					"CREATE VIEW INFORMATION_SCHEMA.ThisUserSchemaInfo AS " +
-					"  SELECT * FROM SYSTEM.schema_info " +
-					"   WHERE \"name\" IN ( " +
-					"     SELECT \"param\" " +
-					"       FROM INFORMATION_SCHEMA.ThisUserGrant " +
-					"      WHERE \"object\" = 65 " +
-					"        AND \"description\" = 'LIST' )";
-				stmt.ExecuteNonQuery();
-
-				// A view that exposes the table_columns table but only for the tables
-				// this user has Read access to.
-				stmt.CommandText =
-					"CREATE VIEW INFORMATION_SCHEMA.ThisUserTableColumns AS " +
-					"  SELECT * FROM SYSTEM.table_columns " +
-					"   WHERE \"schema\" IN ( " +
-					"     SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )";
-				stmt.ExecuteNonQuery();
-
-				// A view that exposes the 'table_info' table but only for the tables
-				// this user has Read access to.
-				stmt.CommandText =
-					"CREATE VIEW INFORMATION_SCHEMA.ThisUserTableInfo AS " +
-					"  SELECT * FROM SYSTEM.table_info " +
-					"   WHERE \"schema\" IN ( " +
-					"     SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )";
-				stmt.ExecuteNonQuery();
-
-				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.TABLES AS " +
-					"  SELECT NULL AS \"TABLE_CATALOG\", \n" +
-					"         \"schema\" AS \"TABLE_SCHEMA\", \n" +
-					"         \"name\" AS \"TABLE_NAME\", \n" +
-					"         \"type\" AS \"TABLE_TYPE\", \n" +
-					"         \"other\" AS \"REMARKS\", \n" +
-					"         NULL AS \"TYPE_CATALOG\", \n" +
-					"         NULL AS \"TYPE_SCHEMA\", \n" +
-					"         NULL AS \"TYPE_NAME\", \n" +
-					"         NULL AS \"SELF_REFERENCING_COL_NAME\", \n" +
-					"         NULL AS \"REF_GENERATION\" \n" +
-					"    FROM INFORMATION_SCHEMA.ThisUserTableInfo \n";
-				stmt.ExecuteNonQuery();
-
-				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.SCHEMATA AS " +
-					"  SELECT \"name\" AS \"TABLE_SCHEMA\", \n" +
-					"         NULL AS \"TABLE_CATALOG\" \n" +
-					"    FROM INFORMATION_SCHEMA.ThisUserSchemaInfo\n";
-				stmt.ExecuteNonQuery();
-
-				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.CATALOGS AS " +
-					"  SELECT NULL AS \"TABLE_CATALOG\" \n" +
-					"    FROM SYSTEM.schema_info\n" + // Hacky, this will generate a 0 row
-					"   WHERE FALSE\n"; // table.
-				stmt.ExecuteNonQuery();
-
-				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.COLUMNS AS " +
-					"  SELECT NULL AS \"TABLE_CATALOG\",\n" +
-					"         \"schema\" AS \"TABLE_SCHEMA\",\n" +
-					"         \"table\" AS \"TABLE_NAME\",\n" +
-					"         \"column\" AS \"COLUMN_NAME\",\n" +
-					"         \"sql_type\" AS \"DATA_TYPE\",\n" +
-					"         \"type_desc\" AS \"TYPE_NAME\",\n" +
-					"         IF(\"size\" = -1, 1024, \"size\") AS \"COLUMN_SIZE\",\n" +
-					"         NULL AS \"BUFFER_LENGTH\",\n" +
-					"         \"scale\" AS \"DECIMAL_DIGITS\",\n" +
-					"         IF(\"sql_type\" = -7, 2, 10) AS \"NUM_PREC_RADIX\",\n" +
-					"         IF(\"not_null\", 0, 1) AS \"NULLABLE\",\n" +
-					"         '' AS \"REMARKS\",\n" +
-					"         \"default\" AS \"COLUMN_DEFAULT\",\n" +
-					"         NULL AS \"SQL_DATA_TYPE\",\n" +
-					"         NULL AS \"SQL_DATETIME_SUB\",\n" +
-					"         IF(\"size\" = -1, 1024, \"size\") AS \"CHAR_OCTET_LENGTH\",\n" +
-					"         \"seq_no\" + 1 AS \"ORDINAL_POSITION\",\n" +
-					"         IF(\"not_null\", 'NO', 'YES') AS \"IS_NULLABLE\"\n" +
-					"    FROM INFORMATION_SCHEMA.ThisUserTableColumns\n";
-				stmt.ExecuteNonQuery();
-
-				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.COLUMN_PRIVILEGES AS " +
-					"  SELECT \"TABLE_CATALOG\",\n" +
-					"         \"TABLE_SCHEMA\",\n" +
-					"         \"TABLE_NAME\",\n" +
-					"         \"COLUMN_NAME\",\n" +
-					"         IF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
-					"                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
-					"         IF(\"ThisUserGrant.grantee\" = '@PUBLIC', \n" +
-					"                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
-					"         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
-					"         IF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
-					"    FROM INFORMATION_SCHEMA.COLUMNS, INFORMATION_SCHEMA.ThisUserGrant \n" +
-					"   WHERE CONCAT(COLUMNS.TABLE_SCHEMA, '.', COLUMNS.TABLE_NAME) = \n" +
-					"         ThisUserGrant.param \n" +
-					"     AND INFORMATION_SCHEMA.ThisUserGrant.object = 1 \n" +
-					"     AND INFORMATION_SCHEMA.ThisUserGrant.description IS NOT NULL \n";
-				stmt.ExecuteNonQuery();
-
-				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.TABLE_PRIVILEGES AS " +
-					"  SELECT \"TABLE_CATALOG\",\n" +
-					"         \"TABLE_SCHEMA\",\n" +
-					"         \"TABLE_NAME\",\n" +
-					"         IF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
-					"                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
-					"         IF(\"ThisUserGrant.grantee\" = '@PUBLIC', \n" +
-					"                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
-					"         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
-					"         IF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
-					"    FROM INFORMATION_SCHEMA.TABLES, INFORMATION_SCHEMA.ThisUserGrant \n" +
-					"   WHERE CONCAT(TABLES.TABLE_SCHEMA, '.', TABLES.TABLE_NAME) = \n" +
-					"         ThisUserGrant.param \n" +
-					"     AND INFORMATION_SCHEMA.ThisUserGrant.object = 1 \n" +
-					"     AND INFORMATION_SCHEMA.ThisUserGrant.description IS NOT NULL \n";
-				stmt.ExecuteNonQuery();
-
-				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.PrimaryKeys AS " +
-					"  SELECT NULL \"TABLE_CATALOG\",\n" +
-					"         \"schema\" \"TABLE_SCHEMA\",\n" +
-					"         \"table\" \"TABLE_NAME\",\n" +
-					"         \"column\" \"COLUMN_NAME\",\n" +
-					"         \"SYSTEM.primary_columns.seq_no\" \"KEY_SEQ\",\n" +
-					"         \"name\" \"PK_NAME\"\n" +
-					"    FROM SYSTEM.pkey_info, SYSTEM.primary_columns\n" +
-					"   WHERE pkey_info.id = primary_columns.pk_id\n" +
-					"     AND \"schema\" IN\n" +
-					"            ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
-				stmt.ExecuteNonQuery();
-
-				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.ImportedKeys AS " +
-					"  SELECT NULL \"PKTABLE_CATALOG\",\n" +
-					"         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
-					"         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
-					"         \"foreign_columns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
-					"         NULL \"FKTABLE_CATALOG\",\n" +
-					"         \"fkey_info.schema\" \"FKTABLE_SCHEMA\",\n" +
-					"         \"fkey_info.table\" \"FKTABLE_NAME\",\n" +
-					"         \"foreign_columns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
-					"         \"foreign_columns.seq_no\" \"KEY_SEQ\",\n" +
-					"         I_FRULE_CONVERT(\"fkey_info.update_rule\") \"UPDATE_RULE\",\n" +
-					"         I_FRULE_CONVERT(\"fkey_info.delete_rule\") \"DELETE_RULE\",\n" +
-					"         \"fkey_info.name\" \"FK_NAME\",\n" +
-					"         NULL \"PK_NAME\",\n" +
-					"         \"fkey_info.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYSTEM.fkey_info, SYSTEM.foreign_columns\n" +
-					"   WHERE fkey_info.id = foreign_columns.fk_id\n" +
-					"     AND \"fkey_info.schema\" IN\n" +
-					"              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
-				stmt.ExecuteNonQuery();
-
-				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.ExportedKeys AS " +
-					"  SELECT NULL \"PKTABLE_CAT\",\n" +
-					"         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
-					"         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
-					"         \"foreign_columns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
-					"         NULL \"FKTABLE_CATALOG\",\n" +
-					"         \"fkey_info.schema\" \"FKTABLE_SCHEMA\",\n" +
-					"         \"fkey_info.table\" \"FKTABLE_NAME\",\n" +
-					"         \"foreign_columns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
-					"         \"foreign_columns.seq_no\" \"KEY_SEQ\",\n" +
-					"         I_FRULE_CONVERT(\"fkey_info.update_rule\") \"UPDATE_RULE\",\n" +
-					"         I_FRULE_CONVERT(\"fkey_info.delete_rule\") \"DELETE_RULE\",\n" +
-					"         \"fkey_info.name\" \"FK_NAME\",\n" +
-					"         NULL \"PK_NAME\",\n" +
-					"         \"fkey_info.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYSTEM.fkey_info, SYSTEM.foreign_columns\n" +
-					"   WHERE fkey_info.id = foreign_columns.fk_id\n" +
-					"     AND \"fkey_info.schema\" IN\n" +
-					"              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
-				stmt.ExecuteNonQuery();
-
-				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.CrossReference AS " +
-					"  SELECT NULL \"PKTABLE_CAT\",\n" +
-					"         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
-					"         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
-					"         \"foreign_columns.pcolumn\" \"PKCOLUMN_NAME\",\n" +
-					"         NULL \"FKTABLE_CAT\",\n" +
-					"         \"fkey_info.schema\" \"FKTABLE_SCHEMA\",\n" +
-					"         \"fkey_info.table\" \"FKTABLE_NAME\",\n" +
-					"         \"foreign_columns.fcolumn\" \"FKCOLUMN_NAME\",\n" +
-					"         \"foreign_columns.seq_no\" \"KEY_SEQ\",\n" +
-					"         I_FRULE_CONVERT(\"fkey_info.update_rule\") \"UPDATE_RULE\",\n" +
-					"         I_FRULE_CONVERT(\"fkey_info.delete_rule\") \"DELETE_RULE\",\n" +
-					"         \"fkey_info.name\" \"FK_NAME\",\n" +
-					"         NULL \"PK_NAME\",\n" +
-					"         \"fkey_info.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYSTEM.fkey_info, SYSTEM.foreign_columns\n" +
-					"   WHERE fkey_info.id = foreign_columns.fk_id\n" +
-					"     AND \"fkey_info.schema\" IN\n" +
-					"              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
-				stmt.ExecuteNonQuery();
-
-				// export all the built-in data types...
-				stmt.CommandText = 
-					"  CREATE VIEW INFORMATION_SCHEMA.DATA_TYPES AS " +
-					"  SELECT * FROM SYSTEM.sql_types\n";
-				stmt.ExecuteNonQuery();
-
-				//TODO: export the variables too...
-			} catch (DataException e) {
-				if (e is DbDataException) {
-					DbDataException dbDataException = (DbDataException) e;
-					Logger.Error(this, dbDataException.ServerErrorStackTrace);
-				}
-				Logger.Error(this, e);
-				throw new Exception("SQL Error: " + e.Message);
-			}
-		}
-
-		/**
-		 * Creates all the priv/password system tables.
-		 */
-
-		private static void CreateSystemTables(DatabaseConnection connection) {
-			// --- The user management tables ---
-			DataTableInfo password = new DataTableInfo(SysPassword);
-			password.AddColumn("UserName", TType.StringType);
-			password.AddColumn("Password", TType.StringType);
-
-			DataTableInfo userPriv = new DataTableInfo(SysUserPriv);
-			userPriv.AddColumn("UserName", TType.StringType);
-			userPriv.AddColumn("PrivGroupName", TType.StringType);
-
-			DataTableInfo userConnectPriv = new DataTableInfo(SysUserConnect);
-			userConnectPriv.AddColumn("UserName", TType.StringType);
-			userConnectPriv.AddColumn("Protocol", TType.StringType);
-			userConnectPriv.AddColumn("Host", TType.StringType);
-			userConnectPriv.AddColumn("Access", TType.StringType);
-
-			DataTableInfo grant = new DataTableInfo(SysGrants);
-			grant.AddColumn("priv_bit", TType.NumericType);
-			grant.AddColumn("object", TType.NumericType);
-			grant.AddColumn("param", TType.StringType);
-			grant.AddColumn("grantee", TType.StringType);
-			grant.AddColumn("grant_option", TType.StringType);
-			grant.AddColumn("granter", TType.StringType);
-
-			DataTableInfo service = new DataTableInfo(SysService);
-			service.AddColumn("name", TType.StringType);
-			service.AddColumn("class", TType.StringType);
-			service.AddColumn("type", TType.StringType);
-
-			DataTableInfo functionFactory = new DataTableInfo(SysFunctionfactory);
-			functionFactory.AddColumn("name", TType.StringType);
-			functionFactory.AddColumn("class", TType.StringType);
-			functionFactory.AddColumn("type", TType.StringType);
-
-			DataTableInfo function = new DataTableInfo(SysFunction);
-			function.AddColumn("schema", TType.StringType);
-			function.AddColumn("name", TType.StringType);
-			function.AddColumn("type", TType.StringType);
-			function.AddColumn("location", TType.StringType);
-			function.AddColumn("return_type", TType.StringType);
-			function.AddColumn("args_type", TType.StringType);
-			function.AddColumn("username", TType.StringType);
-
-			DataTableInfo view = new DataTableInfo(SysView);
-			view.AddColumn("schema", TType.StringType);
-			view.AddColumn("name", TType.StringType);
-			view.AddColumn("query", TType.BinaryType);
-			view.AddColumn("data", TType.BinaryType);
-			view.AddColumn("username", TType.StringType);
-
-			DataTableInfo label = new DataTableInfo(SysLabel);
-			label.AddColumn("object_type", TType.NumericType);
-			label.AddColumn("object_name", TType.StringType);
-			label.AddColumn("label", TType.StringType);
-
-			DataTableInfo dataTrigger = new DataTableInfo(SysDataTrigger);
-			dataTrigger.AddColumn("schema", TType.StringType);
-			dataTrigger.AddColumn("name", TType.StringType);
-			dataTrigger.AddColumn("type", TType.NumericType);
-			dataTrigger.AddColumn("on_object", TType.StringType);
-			dataTrigger.AddColumn("action", TType.StringType);
-			dataTrigger.AddColumn("misc", TType.BinaryType);
-			dataTrigger.AddColumn("username", TType.StringType);
-
-			// Create the tables
-			connection.AlterCreateTable(password, 91, 128);
-			connection.AlterCreateTable(userPriv, 91, 128);
-			connection.AlterCreateTable(userConnectPriv, 91, 128);
-			connection.AlterCreateTable(grant, 195, 128);
-			connection.AlterCreateTable(service, 91, 128);
-			connection.AlterCreateTable(functionFactory, 91, 128);
-			connection.AlterCreateTable(function, 91, 128);
-			connection.AlterCreateTable(view, 91, 128);
-			connection.AlterCreateTable(label, 91, 128);
-			connection.AlterCreateTable(dataTrigger, 91, 128);
-		}
 
 		///<summary>
 		/// Sets all the standard functions and procedures available to engine.
 		///</summary>
 		///<param name="connection"></param>
-		///<param name="admin_user"></param>
+		///<param name="adminUser"></param>
 		/// <remarks>
 		/// This creates an entry in the SysFunction table for all the dynamic
 		/// functions and procedures.  This may not include the functions exposed
 		/// though the FunctionFactory interface.
 		/// </remarks>
-		public void SetupSystemFunctions(DatabaseConnection connection, String admin_user) {
-			const String GRANTER = InternalSecureUsername;
+		public void SetupSystemFunctions(DatabaseConnection connection, string adminUser) {
+			const String granter = InternalSecureUsername;
 
 			// The manager handling the functions.
 			ProcedureManager manager = connection.ProcedureManager;
 
 			// Define the SYSTEM_MAKE_BACKUP procedure
 			manager.DefineProcedure(
-				new ProcedureName(SystemSchema, "SYSTEM_MAKE_BACKUP"),
+				new ProcedureName(SystemSchema.Name, "SYSTEM_MAKE_BACKUP"),
 				"Deveel.Data.Procedure.SystemBackup.Invoke(IProcedureConnection, String)",
 				TType.StringType, new TType[] {TType.StringType},
-				admin_user);
+				adminUser);
 
 			// -----
 
@@ -780,18 +335,7 @@ namespace Deveel.Data {
 			grants.Grant(Privileges.ProcedureExecute,
 			                GrantObject.Table,
 			                "SYSTEM.SYSTEM_MAKE_BACKUP",
-			                admin_user, true, GRANTER);
-		}
-
-		/**
-		 * Clears all the grant information in the grants table.  This should only
-		 * be used if we need to refresh the grant information for whatever reason
-		 * (such as when converting between different versions).
-		 */
-
-		private static void ClearAllGrants(DatabaseConnection connection) {
-			DataTable grant_table = connection.GetTable(SysGrants);
-			grant_table.Delete(grant_table);
+			                adminUser, true, granter);
 		}
 
 		/// <summary>
@@ -805,72 +349,26 @@ namespace Deveel.Data {
 		/// <i>function_factories</i>, and functions. All other system 
 		/// tables are granted <i>SELECT</i> only.
 		/// </remarks>
-		private static void SetSystemGrants(DatabaseConnection connection, String grantee) {
-			const string GRANTER = InternalSecureUsername;
+		private static void SetSystemGrants(DatabaseConnection connection, string grantee) {
+			const string granter = InternalSecureUsername;
 
 			// Add all priv grants to those that the system user is allowed to change
 			GrantManager manager = connection.GrantManager;
 
 			// Add schema grant for APP
-			manager.Grant(Privileges.SchemaAll, GrantObject.Schema, "APP", grantee, true, GRANTER);
+			manager.Grant(Privileges.SchemaAll, GrantObject.Schema, "APP", grantee, true, granter);
 			// Add public grant for SYSTEM
-			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, "SYSTEM", GrantManager.PublicUsernameStr, false, GRANTER);
+			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, SystemSchema.Name, GrantManager.PublicUsernameStr, false, granter);
 			// Add public grant for INFORMATION_SCHEMA
-			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, "INFORMATION_SCHEMA", GrantManager.PublicUsernameStr, false,
-			              GRANTER);
+			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, InformationSchema.Name, GrantManager.PublicUsernameStr, false, granter);
 
 			// For all tables in the SYSTEM schema, grant all privileges to the
 			// system user.
-			manager.GrantToAllTablesInSchema("SYSTEM", Privileges.TableAll, grantee, false, GRANTER);
+			manager.GrantToAllTablesInSchema("SYSTEM", Privileges.TableAll, grantee, false, granter);
 
-			// Set the public grants for the system tables,
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.connection_info", GrantManager.PublicUsernameStr,
-			              false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.current_connections",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.variables", GrantManager.PublicUsernameStr, false,
-			              GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.database_stats",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.database_vars", GrantManager.PublicUsernameStr,
-			              false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.product_info", GrantManager.PublicUsernameStr,
-			              false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "SYSTEM.sql_types", GrantManager.PublicUsernameStr,
-			              false, GRANTER);
 
-			// Set public grants for the system views.
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ThisUserGrant",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ThisUserSimpleGrant",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ThisUserSchemaInfo",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ThisUserTableColumns",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ThisUserTableInfo",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.TABLES", GrantManager.PublicUsernameStr,
-			              false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.SCHEMATA", GrantManager.PublicUsernameStr,
-			              false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.CATALOGS", GrantManager.PublicUsernameStr,
-			              false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.COLUMNS", GrantManager.PublicUsernameStr,
-			              false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.COLUMN_PRIVILEGES",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.TABLE_PRIVILEGES",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.PrimaryKeys",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ImportedKeys",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ExportedKeys",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.CrossReference",
-			              GrantManager.PublicUsernameStr, false, GRANTER);
+			SystemSchema.SetTableGrants(manager, granter);
+			InformationSchema.SetViewsGrants(manager, granter);
 		}
 
 		/// <summary>
@@ -899,21 +397,21 @@ namespace Deveel.Data {
 				DatabaseConnection connection = CreateNewConnection(null, null);
 				DatabaseQueryContext context = new DatabaseQueryContext(connection);
 				connection.LockingMechanism.SetMode(LockingMode.Exclusive);
-				connection.CurrentSchema = SystemSchema;
+				connection.CurrentSchema = SystemSchema.Name;
 
 				// Create the schema information tables introduced in version 0.90
 				// and 0.94
 				CreateSchemaInfoTables(connection);
 
 				// The system tables that are present in every conglomerate.
-				CreateSystemTables(connection);
+				SystemSchema.CreateTables(connection);
 				// Create the system views
-				CreateSystemViews(connection);
+				InformationSchema.CreateSystemViews(connection, Logger);
 
 				// Creates the administrator user.
 				CreateUser(context, username, password);
 				// This is the admin user so add to the 'secure access' table.
-				AddUserToGroup(context, username, SecureGroup);
+				AddUserToGroup(context, username, SystemGroupNames.SecureGroup);
 				// Allow all localhost TCP connections.
 				// NOTE: Permissive initial security!
 				GrantHostAccessToUser(context, username, "TCP", "%");
@@ -988,11 +486,11 @@ namespace Deveel.Data {
 							"The state store for this database doesn't exist.  This means " +
 							"the database version is pre version 1.0.  Please see the " +
 							"README for the details for converting this database.");
-					} else {
-						// If neither store or state file exist, assume database doesn't
-						// exist.
-						throw new DatabaseException("The database does not exist.");
 					}
+
+					// If neither store or state file exist, assume database doesn't
+					// exist.
+					throw new DatabaseException("The database does not exist.");
 				}
 
 				// Open the conglomerate
@@ -1011,14 +509,13 @@ namespace Deveel.Data {
 				}
 
 				// What version is the data?
-				DataTable database_vars =
-					connection.GetTable(TableDataConglomerate.PersistentVarTable);
-				IDictionary vars = database_vars.ToDictionary();
-				String db_version = vars["database.version"].ToString();
+				DataTable databaseVars = connection.GetTable(TableDataConglomerate.PersistentVarTable);
+				IDictionary vars = databaseVars.ToDictionary();
+				String dbVersion = vars["database.version"].ToString();
 				// If the version doesn't equal the current version, throw an error.
-				if (!db_version.Equals("1.4")) {
+				if (!dbVersion.Equals("1.4")) {
 					throw new DatabaseException(
-						"Incorrect data file version '" + db_version + "'.  Please see " +
+						"Incorrect data file version '" + dbVersion + "'.  Please see " +
 						"the README on how to convert the data files to the current " +
 						"version.");
 				}
@@ -1062,7 +559,7 @@ namespace Deveel.Data {
 			}
 
 			try {
-				if (deleteOnShutdown == true) {
+				if (deleteOnShutdown) {
 					// Delete the conglomerate if the database is set to delete on
 					// shutdown.
 					conglomerate.Delete();
@@ -1148,7 +645,7 @@ namespace Deveel.Data {
 		///<summary>
 		/// Resolves a procedure name into a <see cref="IDatabaseProcedure"/> object.
 		///</summary>
-		///<param name="procedure_name"></param>
+		///<param name="procedureName"></param>
 		///<param name="connection"></param>
 		/// <remarks>
 		/// This is used for finding a server side script.
@@ -1157,17 +654,17 @@ namespace Deveel.Data {
 		///<exception cref="DatabaseException">
 		/// If the procedure could not be resolved or there was an error retrieving it.
 		/// </exception>
-		public IDatabaseProcedure GetDbProcedure(string procedure_name, DatabaseConnection connection) {
+		public IDatabaseProcedure GetDbProcedure(string procedureName, DatabaseConnection connection) {
 			// The procedure we are getting.
-			IDatabaseProcedure procedure_instance;
+			IDatabaseProcedure procedureInstance;
 
 			try {
 				// Find the procedure
-				Type proc = Type.GetType("Deveel.Data.Procedure." + procedure_name);
+				Type proc = Type.GetType("Deveel.Data.Procedure." + procedureName);
 				// Instantiate a new instance of the procedure
-				procedure_instance = (IDatabaseProcedure) Activator.CreateInstance(proc);
+				procedureInstance = (IDatabaseProcedure) Activator.CreateInstance(proc);
 
-				Logger.Info(this, "Getting raw class file: " + procedure_name);
+				Logger.Info(this, "Getting raw class file: " + procedureName);
 			} catch (AccessViolationException e) {
 				Logger.Error(this, e);
 				throw new DatabaseException("Illegal Access: " + e.Message);
@@ -1180,7 +677,7 @@ namespace Deveel.Data {
 			}
 
 			// Return the procedure.
-			return procedure_instance;
+			return procedureInstance;
 		}
 
 		// ---------- System access ----------
@@ -1260,41 +757,19 @@ namespace Deveel.Data {
 			System.SetIsExecutingCommands(status);
 		}
 
-
-		// ---------- Static methods ----------
-
-		/// <summary>
-		/// Given the database_vars table, this will update the given key with
-		/// the given value in the table in the current transaction.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="database_vars"></param>
-		/// <param name="key"></param>
-		/// <param name="value"></param>
-		private static void UpdateDatabaseVars(IQueryContext context,
-		                                       DataTable database_vars, String key, String value) {
-			// The references to the first and second column (key/value)
-			VariableName c1 = database_vars.GetResolvedVariable(0); // First column
-			VariableName c2 = database_vars.GetResolvedVariable(1); // Second column
-
-			// Assignment: second column = value
-			Assignment assignment = new Assignment(c2, new Expression(TObject.CreateString(value)));
-			// All rows from database_vars where first column = the key
-			Table t1 = database_vars.SimpleSelect(context, c1, Operator.Get("="), new Expression(TObject.CreateString(key)));
-
-			// Update the variable
-			database_vars.Update(context, t1, new Assignment[] {assignment}, -1);
-		}
-
-
 		#region Implementation of IDisposable
 
-		public void Dispose() {
-			if (IsInitialized) {
-				Console.Error.WriteLine("Database object was finalized and is initialized!");
-			}
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (IsInitialized)
+					Console.Error.WriteLine("Database object was finalized and is initialized!");
 
-			GC.SuppressFinalize(this);
+				GC.SuppressFinalize(this);
+			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
 		}
 
 		#endregion

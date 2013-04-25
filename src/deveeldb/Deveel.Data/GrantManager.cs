@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Deveel.Data;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -70,7 +71,7 @@ namespace Deveel.Data {
 
 			// Attach a cache backed on the GRANTS table which will invalidate the
 			// connection cache whenever the grant table is modified.
-			connection.AttachTableBackedCache(new TableBackedCacheImpl(this, Database.SysGrants));
+			connection.AttachTableBackedCache(new TableBackedCacheImpl(this, SystemSchema.Grant));
 		}
 
 		private class TableBackedCacheImpl : TableBackedCache {
@@ -156,7 +157,7 @@ namespace Deveel.Data {
 				// Not in cache so we need to ask database for the information.
 
 				// The system grants table.
-				DataTable grant_table = connection.GetTable(Database.SysGrants);
+				DataTable grant_table = connection.GetTable(SystemSchema.Grant);
 
 				VariableName object_col = grant_table.GetResolvedVariable(1);
 				VariableName param_col = grant_table.GetResolvedVariable(2);
@@ -246,7 +247,7 @@ namespace Deveel.Data {
 			if (!new_privs.IsEmpty) {
 
 				// The system grants table.
-				DataTable grant_table = connection.GetTable(Database.SysGrants);
+				DataTable grant_table = connection.GetTable(SystemSchema.Grant);
 
 				// Add the grant to the grants table.
 				DataRow rdat = new DataRow(grant_table);
@@ -378,7 +379,7 @@ namespace Deveel.Data {
 		public void RevokeAllGrantsOnObject(GrantObject obj, String param,
 					String grantee, bool grant_option, String granter) {
 			// The system grants table.
-			DataTable grant_table = connection.GetTable(Database.SysGrants);
+			DataTable grant_table = connection.GetTable(SystemSchema.Grant);
 
 			VariableName object_col = grant_table.GetResolvedVariable(1);
 			VariableName param_col = grant_table.GetResolvedVariable(2);
@@ -444,7 +445,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void RevokeAllGrantsOnObject(GrantObject obj, String param) {
 			// The system grants table.
-			DataTable grant_table = connection.GetTable(Database.SysGrants);
+			DataTable grant_table = connection.GetTable(SystemSchema.Grant);
 
 			VariableName object_col = grant_table.GetResolvedVariable(1);
 			VariableName param_col = grant_table.GetResolvedVariable(2);
