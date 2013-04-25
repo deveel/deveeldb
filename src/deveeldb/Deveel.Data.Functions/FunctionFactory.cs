@@ -153,14 +153,14 @@ namespace Deveel.Data.Functions {
 		/// Creates a <see cref="IFunction"/> object for the function 
 		/// with the given name with the given arguments.
 		/// </summary>
-		/// <param name="function_def"></param>
+		/// <param name="functionDef"></param>
 		/// <remarks>
 		/// If this factory does not handle a function with the given name then it returns null.
 		/// </remarks>
 		/// <returns></returns>
-		public IFunction GenerateFunction(FunctionDef function_def) {
-			String func_name = function_def.Name;
-			Expression[] parameterss = function_def.Parameters;
+		public IFunction GenerateFunction(FunctionDef functionDef) {
+			String func_name = functionDef.Name;
+			Expression[] parameterss = functionDef.Parameters;
 
 			// This will lookup the function name (case insensitive) and if a
 			// function class was registered, instantiates and returns it.
@@ -184,13 +184,13 @@ namespace Deveel.Data.Functions {
 		/// <summary>
 		/// Checks if the given function is aggregate.
 		/// </summary>
-		/// <param name="function_def"></param>
+		/// <param name="functionDef"></param>
 		/// <returns>
 		/// Returns true if the function defined by <see cref="FunctionDef"/> is 
 		/// an aggregate function, or false otherwise.
 		/// </returns>
-		public bool IsAggregate(FunctionDef function_def) {
-			IFunctionInfo f_info = GetFunctionInfo(function_def.Name);
+		public bool IsAggregate(FunctionDef functionDef) {
+			IFunctionInfo f_info = GetFunctionInfo(functionDef.Name);
 			if (f_info == null)
 				// Function not handled by this factory so return false.
 				return false;

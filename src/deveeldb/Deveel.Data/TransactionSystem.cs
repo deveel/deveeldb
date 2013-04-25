@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2013  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -43,17 +43,17 @@ namespace Deveel.Data {
 		/// tables that weren't closed.  If false, the engine will only reindex the
 		/// tables that have unchecked in modifications.
 		/// </summary>
-		private bool always_reindex_dirty_tables = false;
+		private bool alwaysReindexDirtyTables = false;
 
 		/// <summary>
 		/// The configuration properties of the entire database system.
 		/// </summary>
-		private DbConfig config = null;
+		private DbConfig config;
 
 		/// <summary>
 		///  The DataCellCache that is a shared resource between on database's.
 		/// </summary>
-		private DataCellCache data_cell_cache = null;
+		private DataCellCache dataCellCache;
 
 		/// <summary>
 		/// The path in the file system for the database files. 
@@ -63,7 +63,7 @@ namespace Deveel.Data {
 		/// file system.  For this reason it's best not to write code that relies 
 		/// on the use of this value.
 		/// </remarks>
-		private string db_path;
+		private string dbPath;
 
 		/// <summary>
 		/// The dispatcher.
@@ -75,59 +75,59 @@ namespace Deveel.Data {
 		/// system file IO when the indices are written.  If this is true, then the
 		/// database is not as fail safe, however File IO performance is improved.
 		/// </summary>
-		private bool dont_synch_filesystem = false;
+		private bool dontSynchFilesystem = false;
 
 		/// <summary>
 		///  The list of FunctionFactory objects that handle different functions from SQL.
 		/// </summary>
-		private ArrayList function_factory_list;
+		private ArrayList functionFactoryList;
 
 		/// <summary>
 		/// The IFunctionLookup object that can resolve a FunctionDef object to a
 		/// IFunction object.
 		/// </summary>
-		private DSFunctionLookup function_lookup;
+		private DSFunctionLookup functionLookup;
 
 		/// <summary>
 		/// Set to true if the parser should ignore case when searching for a schema,
 		/// table or column using an identifier.
 		/// </summary>
-		private bool ignore_case_for_identifiers = false;
+		private bool ignoreCaseForIdentifiers;
 
 		/// <summary>
 		/// The log directory.
 		/// </summary>
-		private string log_directory;
+		private string logDirectory;
 
 		/// <summary>
 		/// Set to true if lookup comparison lists are enabled.
 		/// </summary>
-		private bool lookup_comparison_list_enabled = false;
+		private bool lookupComparisonListEnabled;
 
 		/// <summary>
 		/// Set to true if the database is in Read only mode.  This is set from the
 		/// configuration file.
 		/// </summary>
-		private bool read_only_access = false;
+		private bool readOnlyAccess;
 
 		/// <summary>
 		/// The regular expression library bridge for the library we are configured
 		/// to use.
 		/// </summary>
-		private IRegexLibrary regex_library;
+		private IRegexLibrary regexLibrary;
 
 		/// <summary>
 		/// Set to false if there is conservative index memory storage.  If true,
 		/// all root selectable schemes are stored behind a soft reference that will
 		/// be garbage collected.
 		/// </summary>
-		private bool soft_index_storage = false;
+		private bool softIndexStorage = false;
 
 		/// <summary>
 		/// The underlying IStoreSystem implementation that encapsulates the behaviour
 		/// for storing data persistantly.
 		/// </summary>
-		private IStoreSystem store_system;
+		private IStoreSystem storeSystem;
 
 		/// <summary>
 		/// A logger to output any debugging messages.
@@ -137,23 +137,17 @@ namespace Deveel.Data {
 		// ---------- Low level row listeners ----------
 
 		/// <summary>
-		/// A list of table names and listeners that are notified of add and remove
-		/// events in a table.
-		/// </summary>
-		private ArrayList table_listeners;
-
-		/// <summary>
 		/// Set to true if locking checks should be performed each time a table is 
 		/// accessed.
 		/// </summary>
-		private bool table_lock_check = false;
+		private bool tableLockCheck = false;
 
 		/// <summary>
 		/// Transaction option, if this is true then a transaction error is generated
 		/// during commit if a transaction selects data from a table that has
 		/// committed changes to it during commit time.
 		/// </summary>
-		private bool transaction_error_on_dirty_select = true;
+		private bool transactionErrorOnDirtySelect = true;
 
 
 		///<summary>
@@ -164,7 +158,6 @@ namespace Deveel.Data {
 			stats.Set(0, "OS.Version: " + Environment.OSVersion.VersionString);
 			stats.Set(0, "Runtime.Version: " + Environment.Version);
 			stats.Set(0, "Machine.ProcessorCount: " + Environment.ProcessorCount);
-			table_listeners = new ArrayList();
 		}
 
 		~TransactionSystem() {
@@ -178,7 +171,7 @@ namespace Deveel.Data {
 		/// In read only mode, any 'write' operations are not permitted.
 		/// </remarks>
 		public bool ReadOnlyAccess {
-			get { return read_only_access; }
+			get { return readOnlyAccess; }
 		}
 
 		/// <summary>
@@ -191,14 +184,14 @@ namespace Deveel.Data {
 		/// purposes.
 		/// </remarks>
 		public string DatabasePath {
-			get { return db_path; }
+			get { return dbPath; }
 		}
 
 		/// <summary>
 		/// Returns true if the database should perform checking of table locks.
 		/// </summary>
 		public bool TableLockingEnabled {
-			get { return table_lock_check; }
+			get { return tableLockCheck; }
 		}
 
 		/// <summary>
@@ -206,7 +199,7 @@ namespace Deveel.Data {
 		/// returns false.
 		/// </summary>
 		public bool LookupComparisonListEnabled {
-			get { return lookup_comparison_list_enabled; }
+			get { return lookupComparisonListEnabled; }
 		}
 
 		///<summary>
@@ -214,14 +207,14 @@ namespace Deveel.Data {
 		/// can be garbage collected.
 		///</summary>
 		public bool SoftIndexStorage {
-			get { return soft_index_storage; }
+			get { return softIndexStorage; }
 		}
 
 		///<summary>
 		/// Returns the status of the 'always_reindex_dirty_tables' property.
 		///</summary>
 		public bool AlwaysReindexDirtyTables {
-			get { return always_reindex_dirty_tables; }
+			get { return alwaysReindexDirtyTables; }
 		}
 
 		///<summary>
@@ -229,7 +222,7 @@ namespace Deveel.Data {
 		/// important indexing information is flushed to the disk.
 		///</summary>
 		public bool DontSynchFileSystem {
-			get { return dont_synch_filesystem; }
+			get { return dontSynchFilesystem; }
 		}
 
 		///<summary>
@@ -237,7 +230,7 @@ namespace Deveel.Data {
 		/// on a modified table and fail if they are detected.
 		///</summary>
 		public bool TransactionErrorOnDirtySelect {
-			get { return transaction_error_on_dirty_select; }
+			get { return transactionErrorOnDirtySelect; }
 		}
 
 		///<summary>
@@ -245,7 +238,7 @@ namespace Deveel.Data {
 		/// schema/table/column identifiers.
 		///</summary>
 		public bool IgnoreIdentifierCase {
-			get { return ignore_case_for_identifiers; }
+			get { return ignoreCaseForIdentifiers; }
 		}
 
 		///<summary>
@@ -254,8 +247,8 @@ namespace Deveel.Data {
 		///<exception cref="ApplicationException"></exception>
 		public IRegexLibrary RegexLibrary {
 			get {
-				if (regex_library != null) {
-					return regex_library;
+				if (regexLibrary != null) {
+					return regexLibrary;
 				}
 				throw new ApplicationException("No regular expression library found in classpath " +
 				                               "and/or in configuration file.");
@@ -275,7 +268,7 @@ namespace Deveel.Data {
 		/// Returns the IStoreSystem encapsulation being used in this database.
 		/// </summary>
 		internal IStoreSystem StoreSystem {
-			get { return store_system; }
+			get { return storeSystem; }
 		}
 
 		// ---------- Logger logger methods ----------
@@ -302,7 +295,7 @@ namespace Deveel.Data {
 		/// of parameters is incorrect or the name can not be found.
 		/// </remarks>
 		public IFunctionLookup FunctionLookup {
-			get { return function_lookup; }
+			get { return functionLookup; }
 		}
 
 		// ---------- System preparers ----------
@@ -327,8 +320,8 @@ namespace Deveel.Data {
 		/// Setting this should preferably be called during initialization.
 		/// </remarks>
 		public string LogDirectory {
-			get { return log_directory; }
-			set { log_directory = value; }
+			get { return logDirectory; }
+			set { logDirectory = value; }
 		}
 
 		// ---------- Cache Methods ----------
@@ -338,7 +331,7 @@ namespace Deveel.Data {
 		/// resource between all database's running on this runtime.
 		/// </summary>
 		internal DataCellCache DataCellCache {
-			get { return data_cell_cache; }
+			get { return dataCellCache; }
 		}
 
 		// ---------- Dispatch methods ----------
@@ -406,14 +399,14 @@ namespace Deveel.Data {
 			////  2. log_path is empty or not set
 
 			string logPathString = config.LogPath;
-			string root_path_var = config.GetValue<string>("root_path");
+			string rootPathVar = config.GetValue<string>("root_path");
 
 			bool readOnly = config.ReadOnly;
-			bool debugLogs = config.GetValue("debug_logs", true);
+			bool debugLogs = config.GetValue(ConfigKeys.DebugLogs, true);
 
 			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
 				// First set up the debug information in this VM for the 'Logger' class.
-				string logPath = config.ParseFileString(root_path_var, logPathString);
+				string logPath = config.ParseFileString(rootPathVar, logPathString);
 				// If the path doesn't exist the make it.
 				if (!Directory.Exists(logPath))
 					Directory.CreateDirectory(logPath);
@@ -421,7 +414,7 @@ namespace Deveel.Data {
 				LogDirectory = logPath;
 			}
 
-			string loggerTypeString = config.GetValue<string>("logger_type");
+			string loggerTypeString = config.GetValue<string>(ConfigKeys.LoggerType);
 
 			Type loggerType = null;
 			if (loggerTypeString != null) {
@@ -470,14 +463,14 @@ namespace Deveel.Data {
 		/// This can only be called once, and should be called at database boot time.
 		/// </remarks>
 		public virtual void Init(DbConfig config) {
-			function_factory_list = new ArrayList();
-			function_lookup = new DSFunctionLookup();
+			functionFactoryList = new ArrayList();
+			functionLookup = new DSFunctionLookup();
 
 			if (config != null) {
 				this.config = config;
 
 				// Set the read_only property
-				read_only_access = config.ReadOnly;
+				readOnlyAccess = config.ReadOnly;
 
 				// Setup the log
 				SetupLog();
@@ -488,59 +481,58 @@ namespace Deveel.Data {
 				// Construct the system store.
 				if (String.Equals(storageSystem, ConfigValues.FileStorageSystem, StringComparison.InvariantCultureIgnoreCase)) {
 					Logger.Message(this, "Storage System: file storage mode.");
-					store_system = new V1FileStoreSystem();
+					storeSystem = new V1FileStoreSystem();
 				} else if (String.Equals(storageSystem, ConfigValues.HeapStorageSystem, StringComparison.InvariantCultureIgnoreCase)) {
 					Logger.Message(this, "Storage System: heap storage mode.");
-					store_system = new V1HeapStoreSystem();
+					storeSystem = new V1HeapStoreSystem();
 				} else {
-					string error_msg = "Unknown storage_system property: " + storageSystem;
+					string errorMsg = "Unknown storage_system property: " + storageSystem;
 
 					Type storageSystemType = Type.GetType(storageSystem, false, true);
 					if (storageSystemType == null || 
 						!typeof(IStoreSystem).IsAssignableFrom(storageSystemType)) {
-						Logger.Error(this, error_msg);
-						throw new Exception(error_msg);
+						Logger.Error(this, errorMsg);
+						throw new Exception(errorMsg);
 					}
 
 					try {
-						store_system = (IStoreSystem) Activator.CreateInstance(storageSystemType, true);
+						storeSystem = (IStoreSystem) Activator.CreateInstance(storageSystemType, true);
 					} catch(Exception e) {
-						error_msg = "Error initializing '" + storageSystemType.FullName + "': " + e.Message;
-						Logger.Error(this, error_msg);
-						throw new Exception(error_msg);
+						errorMsg = "Error initializing '" + storageSystemType.FullName + "': " + e.Message;
+						Logger.Error(this, errorMsg);
+						throw new Exception(errorMsg);
 					}
 				}
 
-				if (store_system.StorageType == StorageType.File) {
+				if (storeSystem.StorageType == StorageType.File) {
 					// we must be sure to have at least a database path
-					db_path = config.DatabasePath;
-					if (String.IsNullOrEmpty(db_path))
-						db_path = config.BasePath;
+					dbPath = config.DatabasePath;
+					if (String.IsNullOrEmpty(dbPath))
+						dbPath = config.BasePath;
 				}
 
 				// init the storage system
-				store_system.Init(this);
+				storeSystem.Init(this);
 
 				// Register the default function factory,
 				AddFunctionFactory(FunctionFactory.Default);
 
 				// Set up the DataCellCache from the values in the configuration
-				int maxCacheSize, max_cache_entry_size;
 
-				maxCacheSize = config.GetValue(ConfigKeys.DataCacheSize, 0);
-				max_cache_entry_size = config.GetValue(ConfigKeys.MaxCacheEntrySize, 0);
+				int maxCacheSize = config.GetValue(ConfigKeys.DataCacheSize, 0);
+				int maxCacheEntrySize = config.GetValue(ConfigKeys.MaxCacheEntrySize, 0);
 
 				if (maxCacheSize >= 4096 &&
-				    max_cache_entry_size >= 16 &&
-				    max_cache_entry_size < (maxCacheSize/2)) {
+				    maxCacheEntrySize >= 16 &&
+				    maxCacheEntrySize < (maxCacheSize/2)) {
 					Logger.Message(this,"Internal Data Cache size:          " + maxCacheSize);
-					Logger.Message(this,"Internal Data Cache max cell size: " + max_cache_entry_size);
+					Logger.Message(this,"Internal Data Cache max cell size: " + maxCacheEntrySize);
 
 					// Find a prime hash size depending on the size of the cache.
-					int hash_size = DataCellCache.ClosestPrime(maxCacheSize/55);
+					int hashSize = DataCellCache.ClosestPrime(maxCacheSize/55);
 
-					string cacheTypeString = config.GetValue("cache_type", "heap");
-					Type cacheType = String.Equals(cacheTypeString, "heap",StringComparison.InvariantCultureIgnoreCase)
+					string cacheTypeString = config.GetValue(ConfigKeys.CacheType, ConfigValues.HeapCache);
+					Type cacheType = String.Equals(cacheTypeString, ConfigValues.HeapCache,StringComparison.InvariantCultureIgnoreCase)
 					            	? typeof(MemoryCache)
 					            	: Type.GetType(cacheTypeString, false, true);
 
@@ -549,13 +541,13 @@ namespace Deveel.Data {
 
 					ICache cache;
 					if (cacheType == typeof(MemoryCache)) {
-						cache = new MemoryCache(hash_size, maxCacheSize, 20);
+						cache = new MemoryCache(hashSize, maxCacheSize, 20);
 					} else {
 						cache = (ICache) Activator.CreateInstance(cacheType, true);
 					}
 
 					// Set up the data_cell_cache
-					data_cell_cache = new DataCellCache(this, cache, maxCacheSize, max_cache_entry_size, hash_size);
+					dataCellCache = new DataCellCache(this, cache, maxCacheSize, maxCacheEntrySize, hashSize);
 				} else {
 					Logger.Message(this, "Internal Data Cache disabled.");
 				}
@@ -563,20 +555,20 @@ namespace Deveel.Data {
 				// Are lookup comparison lists enabled?
 				//      lookup_comparison_list_enabled =
 				//                            GetConfigBoolean("lookup_comparison_list", false);
-				lookup_comparison_list_enabled = false;
-				Logger.Message(this, "lookup_comparison_list = " + lookup_comparison_list_enabled);
+				lookupComparisonListEnabled = false;
+				Logger.Message(this, "lookup_comparison_list = " + lookupComparisonListEnabled);
 
 				// Should we open the database in Read only mode?
-				Logger.Message(this, "read_only = " + read_only_access);
-				if (read_only_access) stats.Set(1, "DatabaseSystem.read_only");
+				Logger.Message(this, "read_only = " + readOnlyAccess);
+				if (readOnlyAccess) stats.Set(1, "DatabaseSystem.read_only");
 
 				// Generate transaction error if dirty selects are detected?
-				transaction_error_on_dirty_select = config.GetValue(ConfigKeys.TransactionErrorOnDirtySelect, true);
-				Logger.Message(this, "transaction_error_on_dirty_select = " + transaction_error_on_dirty_select);
+				transactionErrorOnDirtySelect = config.GetValue(ConfigKeys.TransactionErrorOnDirtySelect, true);
+				Logger.Message(this, "transaction_error_on_dirty_select = " + transactionErrorOnDirtySelect);
 
 				// Case insensitive identifiers?
-				ignore_case_for_identifiers = config.GetValue(ConfigKeys.IgnoreIdentifiersCase, false);
-				Logger.Message(this, "ignore_case_for_identifiers = " + ignore_case_for_identifiers);
+				ignoreCaseForIdentifiers = config.GetValue(ConfigKeys.IgnoreIdentifiersCase, false);
+				Logger.Message(this, "ignore_case_for_identifiers = " + ignoreCaseForIdentifiers);
 
 				// What regular expression library are we using?
 				// If we want the engine to support other regular expression libraries
@@ -584,7 +576,7 @@ namespace Deveel.Data {
 
 				string regexBridge;
 				string libUsed;
-				string forceLib = config.GetValue<string>("force_regex_library", null);
+				string forceLib = config.GetValue<string>(ConfigKeys.ForceRegexLibrary, null);
 
 				// Are we forcing a particular regular expression library?
 				if (forceLib != null) {
@@ -592,16 +584,16 @@ namespace Deveel.Data {
 					// Convert the library string to a class name
 					regexBridge = RegexStringToClass(forceLib);
 				} else {
-					string lib = config.GetValue(ConfigKeys.RegexLibrary, "Deveel.Data.Text.SystemRegexLibrary");
+					string lib = config.GetValue(ConfigKeys.RegexLibrary, ConfigValues.SystemRegexLibrary);
 					libUsed = lib;
 					// Convert the library string to a class name
-					regexBridge = lib != null ? RegexStringToClass(lib) : "Deveel.Data.Text.SystemRegexLibrary";
+					regexBridge = lib != null ? RegexStringToClass(lib) : ConfigValues.SystemRegexLibrary;
 				}
 
 				if (regexBridge != null) {
 					try {
-						Type c = Type.GetType(regexBridge);
-						regex_library = (IRegexLibrary) Activator.CreateInstance(c);
+						Type type = Type.GetType(regexBridge);
+						regexLibrary = (IRegexLibrary) Activator.CreateInstance(type);
 						Logger.Message(this, "Using regex bridge: " + libUsed);
 					} catch (Exception e) {
 						Logger.Error(this, "Unable to load regex bridge: " + regexBridge);
@@ -621,11 +613,11 @@ namespace Deveel.Data {
 					if (functionFactories != null) {
 						string[] factories = functionFactories.Split(';');
 						for (int i = 0; i < factories.Length; ++i) {
-							string factory_class = factories[i];
-							Type c = Type.GetType(factory_class);
-							FunctionFactory fun_factory = (FunctionFactory) Activator.CreateInstance(c);
-							AddFunctionFactory(fun_factory);
-							Logger.Message(this, "Successfully added function factory: " + factory_class);
+							string factoryTypeName = factories[i];
+							Type type = Type.GetType(factoryTypeName, true, true);
+							FunctionFactory functionFactory = (FunctionFactory) Activator.CreateInstance(type);
+							AddFunctionFactory(functionFactory);
+							Logger.Message(this, "Successfully added function factory: " + factoryTypeName);
 						}
 					} else {
 						Logger.Message(this, "No 'function_factories' config property found.");
@@ -650,8 +642,8 @@ namespace Deveel.Data {
 		/// Function factories are checked in the order they are added to the database system.
 		/// </remarks>
 		public void AddFunctionFactory(FunctionFactory factory) {
-			lock (function_factory_list) {
-				function_factory_list.Add(factory);
+			lock (functionFactoryList) {
+				functionFactoryList.Add(factory);
 			}
 			factory.Init();
 		}
@@ -666,10 +658,10 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void FlushCachedFunctionLookup() {
 			FunctionFactory[] factories;
-			lock (function_factory_list) {
-				factories = (FunctionFactory[]) function_factory_list.ToArray(typeof (FunctionFactory));
+			lock (functionFactoryList) {
+				factories = (FunctionFactory[]) functionFactoryList.ToArray(typeof (FunctionFactory));
 			}
-			function_lookup.flushContents(factories);
+			functionLookup.FlushContents(factories);
 		}
 
 		///<summary>
@@ -721,40 +713,40 @@ namespace Deveel.Data {
 			Dispatcher.PostEvent(timeToWait, e);
 		}
 
-		private void Dispose(bool disposing) {
+		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				GC.SuppressFinalize(this);
-				Dispose();
+				//if (buffer_manager != null) {
+				//    try {
+				//        // Set a check point
+				//        store_system.SetCheckPoint();
+				//        // Stop the buffer manager
+				//        buffer_manager.Stop();
+				//    } catch (IOException e) {
+				//        Console.Out.WriteLine("Error stopping buffer manager.");
+				//        Console.Out.Write(e.StackTrace);
+				//    }
+				//}
+				//buffer_manager = null;
+				if (storeSystem != null)
+					storeSystem.Dispose();
+				storeSystem = null;
+				regexLibrary = null;
+				dataCellCache = null;
+				config = null;
+				logDirectory = null;
+				functionFactoryList = null;
+				if (dispatcher != null) {
+					dispatcher.Finish();
+				}
+				//    trigger_manager = null;
+				dispatcher = null;
+				Logger.Dispose();
 			}
 		}
 
-		public virtual void Dispose() {
-			//if (buffer_manager != null) {
-			//    try {
-			//        // Set a check point
-			//        store_system.SetCheckPoint();
-			//        // Stop the buffer manager
-			//        buffer_manager.Stop();
-			//    } catch (IOException e) {
-			//        Console.Out.WriteLine("Error stopping buffer manager.");
-			//        Console.Out.Write(e.StackTrace);
-			//    }
-			//}
-			//buffer_manager = null;
-			if (store_system != null)
-				store_system.Dispose();
-			store_system = null;
-			regex_library = null;
-			data_cell_cache = null;
-			config = null;
-			log_directory = null;
-			function_factory_list = null;
-			if (dispatcher != null) {
-				dispatcher.Finish();
-			}
-			//    trigger_manager = null;
-			dispatcher = null;
-			Logger.Dispose();
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 
@@ -772,26 +764,23 @@ namespace Deveel.Data {
 
 			#region IFunctionLookup Members
 
-			public IFunction GenerateFunction(FunctionDef function_def) {
+			public IFunction GenerateFunction(FunctionDef functionDef) {
 				lock (this) {
-					for (int i = 0; i < factories.Length; ++i) {
-						IFunction f = factories[i].GenerateFunction(function_def);
-						if (f != null) {
+					foreach (FunctionFactory factory in factories) {
+						IFunction f = factory.GenerateFunction(functionDef);
+						if (f != null)
 							return f;
-						}
 					}
 					return null;
 				}
 			}
 
-			public bool IsAggregate(FunctionDef function_def) {
+			public bool IsAggregate(FunctionDef functionDef) {
 				lock (this) {
-					for (int i = 0; i < factories.Length; ++i) {
-						IFunctionInfo f_info =
-							factories[i].GetFunctionInfo(function_def.Name);
-						if (f_info != null) {
-							return f_info.Type == FunctionType.Aggregate;
-						}
+					foreach (FunctionFactory factory in factories) {
+						IFunctionInfo info = factory.GetFunctionInfo(functionDef.Name);
+						if (info != null)
+							return info.Type == FunctionType.Aggregate;
 					}
 					return false;
 				}
@@ -799,7 +788,7 @@ namespace Deveel.Data {
 
 			#endregion
 
-			public void flushContents(FunctionFactory[] factories) {
+			public void FlushContents(FunctionFactory[] factories) {
 				lock (this) {
 					this.factories = factories;
 				}

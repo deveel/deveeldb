@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2013  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -75,5 +75,15 @@ namespace Deveel.Data.Control {
 		public const string DebugLogs = "debug_logs";
 
 		public const string TableLockCheck = "table_lock_check";
+
+		public const string CacheStatements = "statements_cache";
+
+		public const string LogQueries = "query_logging";
+
+		public const string LoggerType = "logger_type";
+
+		public const string CacheType = "cache_type";
+
+		public const string ForceRegexLibrary = "force_regex_library";
 	}
 }

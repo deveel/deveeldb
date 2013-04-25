@@ -24,7 +24,7 @@ namespace Deveel.Data.Functions {
 		/// <summary>
 		/// Generate the <see cref="IFunction"/> given a <see cref="FunctionDef"/> object.
 		/// </summary>
-		/// <param name="function_def"></param>
+		/// <param name="functionDef"></param>
 		/// <returns></returns>
 		/// <remarks>
 		/// Returns null if the <see cref="FunctionDef"/> can not be resolved 
@@ -34,17 +34,17 @@ namespace Deveel.Data.Functions {
 		/// If the specification of the function is invalid for some reason (the number 
 		/// or type of the parameters is incorrect).
 		/// </exception>
-		IFunction GenerateFunction(FunctionDef function_def);
+		IFunction GenerateFunction(FunctionDef functionDef);
 
 		/// <summary>
 		/// Checks if the given function is aggregate.
 		/// </summary>
-		/// <param name="function_def"></param>
+		/// <param name="functionDef"></param>
 		/// <returns>
 		/// Returns true if the function defined by <see cref="FunctionDef"/> is 
 		/// an aggregate function, or false otherwise.
 		/// </returns>
-		bool IsAggregate(FunctionDef function_def);
+		bool IsAggregate(FunctionDef functionDef);
 
 	}
 }

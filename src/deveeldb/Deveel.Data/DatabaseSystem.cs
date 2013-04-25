@@ -37,7 +37,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The list of Database objects that this system is being managed by this environment.
 		/// </summary>
-		private List<Database> database_list;
+		private List<Database> databaseList;
 
 		/// <summary>
 		/// True if all queries on the database should be logged in the 'commands.log'
@@ -122,14 +122,14 @@ namespace Deveel.Data {
 		public override void Init(DbConfig config) {
 			base.Init(config);
 
-			database_list = new List<Database>();
+			databaseList = new List<Database>();
 
 			// Create the user manager.
 			userManager = new UserManager();
 
 			if (config != null) {
 				// Set up the statement cache.
-				if (config.GetValue("statement_cache", true)) {
+				if (config.GetValue(ConfigKeys.CacheStatements, true)) {
 					statementCache = new StatementCache(this, 127, 140, 20);
 					Logger.Message(this, "statement cache ENABLED");
 				} else {
@@ -137,15 +137,15 @@ namespace Deveel.Data {
 				}
 
 				// The maximum number of worker threads.
-				int max_worker_threads = config.GetValue("maximum_worker_threads", 4);
-				if (max_worker_threads <= 0)
-					max_worker_threads = 1;
+				int maxWorkerThreads = config.GetValue(ConfigKeys.MaxWorkerThreads, 4);
+				if (maxWorkerThreads <= 0)
+					maxWorkerThreads = 1;
 
-				Logger.Message(this, "Max worker threads set to: " + max_worker_threads);
-				workerPool = new WorkerPool(this, max_worker_threads);
+				Logger.Message(this, "Max worker threads set to: " + maxWorkerThreads);
+				workerPool = new WorkerPool(this, maxWorkerThreads);
 
 				// Should we be logging commands?
-				queryLogging = config.GetValue("query_logging", false);
+				queryLogging = config.GetValue(ConfigKeys.LogQueries, false);
 			} else {
 				throw new ApplicationException("Config bundle already set.");
 			}
@@ -154,11 +154,14 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override void Dispose() {
-			base.Dispose();
-			workerPool = null;
-			database_list = null;
-			userManager = null;
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				workerPool = null;
+				databaseList = null;
+				userManager = null;
+			}
+
+			base.Dispose(disposing);
 		}
 
 		/// <summary>
@@ -249,12 +252,12 @@ namespace Deveel.Data {
 
 		internal void RegisterDatabase(Database database) {
 			lock (this) {
-				if (database_list == null)
-					database_list = new List<Database>();
-				if (database_list.Contains(database))
+				if (databaseList == null)
+					databaseList = new List<Database>();
+				if (databaseList.Contains(database))
 					throw new DatabaseException("The database '" + database.Name + "' is already registered.");
 
-				database_list.Add(database);
+				databaseList.Add(database);
 			}
 		}
 
