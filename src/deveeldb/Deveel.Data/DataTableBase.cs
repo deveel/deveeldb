@@ -40,7 +40,7 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public override String ToString() {
-			return TableName + "[" + RowCount + "]";
+			return TableName.ToString();
 		}
 	}
 }

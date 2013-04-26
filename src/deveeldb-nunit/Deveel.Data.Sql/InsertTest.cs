@@ -20,8 +20,28 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public sealed class InsertTest : TestBase {
+		private void CreateTable() {
+			ExecuteNonQuery("CREATE TABLE Person (id IDENTITY, first_name VARCHAR(100), last_name VARCHAR(100))");
+		}
+
+		protected override void OnTestSetUp() {
+			Connection.AutoCommit = true;
+
+			CreateTable();
+
+			base.OnTestSetUp();
+		}
+
 		[Test]
-		public void SimpleInsert() {	
+		public void SimpleInsert() {
+			ExecuteNonQuery("INSERT INTO Person (first_name, last_name) VALUES ('Antonello', 'Provenzano')");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			Table table = connection.GetTable("Person");
+
+			Assert.AreEqual(1, table.RowCount);
+			Assert.AreEqual("Antonello", table.GetFirstCell("first_name").ToString());
+			Assert.AreEqual("Provenzano", table.GetFirstCell("last_name").ToString());
 		}
 
 		[Test]

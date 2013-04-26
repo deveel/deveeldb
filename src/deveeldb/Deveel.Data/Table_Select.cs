@@ -316,7 +316,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public Table SimpleSelect(IQueryContext context, VariableName columnName, Operator op, Expression rhs) {
-			string debugSelectWith = null;
+			string debugSelectWith;
 
 			// Find the row with the name given in the condition.
 			int column = FindFieldName(columnName);

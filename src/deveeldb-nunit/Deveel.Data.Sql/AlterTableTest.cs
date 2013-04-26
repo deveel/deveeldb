@@ -28,20 +28,25 @@ namespace Deveel.Data.Sql {
 			get { return true; }
 		}
 
-		private bool HasColumn(string schemaName, string tableName, string columnName) {
-			SysDataTable table = Connection.GetSchema(DeveelDbMetadataSchemaNames.Columns, new string[] { null, schemaName, tableName, null});
-			foreach (System.Data.DataRow dataRow in table.Rows) {
-				if (dataRow["COLUMN_NAME"].Equals(columnName))
-					return true;
-			}
-
-			return false;
+		protected override void OnTestSetUp() {
+			Connection.AutoCommit = true;
+			base.OnTestSetUp();
 		}
 
 		[Test]
 		public void AddColumn() {
-			ExecuteNonQuery("ALTER TABLE Person ADD COLUMN description  VARCHAR(255);");
-			Assert.IsTrue(HasColumn("APP", "Person", "description"));
+			ExecuteNonQuery("CREATE TABLE Test (id IDENTITY, name VARCHAR)");
+			ExecuteNonQuery("ALTER TABLE Test ADD COLUMN description  VARCHAR(255);");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			Table table = connection.GetTable("Test");
+			Assert.IsNotNull(table);
+
+			int index = table.TableInfo.FindColumnName("description");
+			Assert.AreNotEqual(-1, index);
+			Assert.AreEqual("description", table.TableInfo[index].Name);
+			Assert.AreEqual(SqlType.VarChar, table.TableInfo[index].SqlType);
+			Assert.AreEqual(255, table.TableInfo[index].Size);
 		}
 		
 		[Test(Description = "Adds a column that already was defined in the table.")]
@@ -51,8 +56,13 @@ namespace Deveel.Data.Sql {
 
 		[Test]
 		public void DropColumn() {
-			ExecuteNonQuery("ALTER TABLE Person DROP COLUMN name;");
-			Assert.IsFalse(HasColumn("APP", "Person", "name"));
+			ExecuteNonQuery("CREATE TABLE Test (id INT, name VARCHAR)");
+			ExecuteNonQuery("ALTER TABLE Test DROP COLUMN name;");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			Table table = connection.GetTable("Test");
+			Assert.IsNotNull(table);
+			Assert.IsTrue(table.TableInfo.FindColumnName("name") == -1);
 		}
 
 		[Test]
@@ -65,30 +75,70 @@ namespace Deveel.Data.Sql {
 			ExecuteNonQuery("CREATE TABLE test_table_1 (prop1 NUMERIC, prop2 VARCHAR);");
 			ExecuteNonQuery("CREATE TABLE test_table_2 (prop1 NUMERIC, prop2 VARCHAR);");
 			ExecuteNonQuery("ALTER TABLE test_table_1 ADD CONSTRAINT fk_test_table FOREIGN KEY (prop1) REFERENCES test_table_2 (prop1);");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			DataConstraintInfo[] fkeys = connection.QueryTableForeignKeyReferences(new TableName("APP", "test_table_1"));
+
+			Assert.IsNotNull(fkeys);
+			Assert.AreEqual(1, fkeys.Length);
+			Assert.AreEqual("fk_test_table", fkeys[0].Name);
+			Assert.AreEqual("prop1", fkeys[0].Columns[0]);
 		}
 
 		[Test]
 		public void DropForeignKeyConstraint() {
-			AddForeignKeyConstraint();
+			ExecuteNonQuery("CREATE TABLE test_table_1 (prop1 NUMERIC, prop2 VARCHAR);");
+			ExecuteNonQuery("CREATE TABLE test_table_2 (prop1 NUMERIC, prop2 VARCHAR);");
+			ExecuteNonQuery("ALTER TABLE test_table_1 ADD CONSTRAINT fk_test_table FOREIGN KEY (prop1) REFERENCES test_table_2 (prop1);");
 
-			ExecuteNonQuery("ALTER TABLE Person DROP fk_test_table;");
+			ExecuteNonQuery("ALTER TABLE test_table_1 DROP CONSTRAINT fk_test_table;");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			DataConstraintInfo[] fkeys = connection.QueryTableForeignKeyReferences(new TableName("APP", "test_table_1"));
+			Assert.IsEmpty(fkeys);
 		}
 
 		[Test]
 		public void SetColumnDefault() {
 			ExecuteNonQuery("CREATE TABLE test_table_1 (prop1 NUMERIC, prop2 VARCHAR);");
 			ExecuteNonQuery("ALTER TABLE test_table_1 ALTER prop1 SET prop1 = -1;");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			Table table = connection.GetTable("test_table_1");
+			Assert.IsNotNull(table);
+			Assert.AreEqual(2, table.TableInfo.ColumnCount);
+			Assert.AreEqual("prop1", table.TableInfo[0].Name);
+			Assert.AreEqual("prop1 = -1", table.TableInfo[0].GetDefaultExpressionString());
 		}
 
 		[Test]
 		public void DropColumnDefault() {
-			SetColumnDefault();
+			ExecuteNonQuery("CREATE TABLE test_table_1 (prop1 NUMERIC, prop2 VARCHAR);");
+			ExecuteNonQuery("ALTER TABLE test_table_1 ALTER prop1 SET prop1 = -1;");
+
 			ExecuteNonQuery("ALTER TABLE test_table_1 ALTER prop1 DROP DEFAULT;");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			Table table = connection.GetTable("test_table_1");
+			Assert.IsNotNull(table);
+			Assert.AreEqual(2, table.TableInfo.ColumnCount);
+			Assert.AreEqual("prop1", table.TableInfo[0].Name);
+			Assert.IsNullOrEmpty(table.TableInfo[0].GetDefaultExpressionString());
 		}
 
 		[Test]
 		public void DropPrimaryKeyConstraint() {
-			Assert.Inconclusive();
+			ExecuteNonQuery("CREATE TABLE test_table_1 (prop1 NUMERIC, prop2 VARCHAR, PRIMARY KEY(prop1));");
+			ExecuteNonQuery("ALTER TABLE test_table_1 DROP PRIMARY KEY");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			Table table = connection.GetTable("test_table_1");
+			Assert.IsNotNull(table);
+			Assert.AreEqual(2, table.TableInfo.ColumnCount);
+
+			DataConstraintInfo pkey = connection.QueryTablePrimaryKeyGroup(new TableName("APP", "test_table_1"));
+
+			Assert.IsNull(pkey);
 		}
 	}
 }

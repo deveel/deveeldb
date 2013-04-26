@@ -338,5 +338,10 @@ namespace Deveel.Data {
 			User user = system.Database.AuthenticateUser(AdminUser, AdminPassword, hostString);
 			return system.Database.CreateNewConnection(user, null);
 		}
+
+		protected Table GetTable(string tableName) {
+			DatabaseConnection dbConnection = CreateDatabaseConnection();
+			return dbConnection.GetTable(tableName);
+		}
 	}
 }

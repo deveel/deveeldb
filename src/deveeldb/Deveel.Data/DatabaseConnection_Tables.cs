@@ -197,6 +197,10 @@ namespace Deveel.Data {
 				// Ask the transaction for the table
 				ITableDataSource table = Transaction.GetTable(name);
 
+				// if not found in the transaction return null
+				if (table == null)
+					return null;
+
 				// Is this table in the tables_cache?
 				DataTable dtable;
 				if (!tablesCache.TryGetValue(name, out dtable)) {

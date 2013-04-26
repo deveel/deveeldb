@@ -616,7 +616,7 @@ namespace Deveel.Data {
 			if (this is DataTableBase) {
 				name = ((DataTableBase)this).TableName.ToString();
 			}
-			return name + "[" + RowCount + "]";
+			return name;
 		}
 
 		/// <summary>

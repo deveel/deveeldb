@@ -44,7 +44,7 @@ namespace Deveel.Data.Control {
 		private readonly string name;
 
 		/// <summary>
-		/// The <see cref="IDbConfig"/> object that describes the startup configuration 
+		/// The <see cref="DbConfig"/> object that describes the startup configuration 
 		/// of the database.
 		/// </summary>
 		private DbConfig config;
@@ -55,12 +55,12 @@ namespace Deveel.Data.Control {
 		/// <remarks>
 		/// This object gives low level access to the system.
 		/// </remarks>
-		private Database database;
+		private readonly Database database;
 
 		/// <summary>
 		/// An internal counter for internal connections created on this system.
 		/// </summary>
-		private int internal_counter;
+		private int internalCounter;
 
 		/// <summary>
 		/// A collection of all the connections opened by the system.
@@ -73,7 +73,7 @@ namespace Deveel.Data.Control {
 			this.controller = controller;
 			this.config = config;
 			this.database = database;
-			internal_counter = 0;
+			internalCounter = 0;
 
 			// Register the shut down delegate,
 			database.RegisterShutDownDelegate(new EventHandler(Shutdown));
@@ -143,20 +143,21 @@ namespace Deveel.Data.Control {
 		/// <exception cref="DataException">
 		/// Thrown if the login fails with the credentials given.
 		/// </exception>
-		public IDbConnection GetConnection(String schema, String username, String password) {
+		public IDbConnection GetConnection(string schema, string username, string password) {
 			// Create the host string, formatted as 'Internal/[hash number]/[counter]'
 			StringBuilder buf = new StringBuilder();
 			buf.Append("Internal/");
 			buf.Append(GetHashCode());
 			buf.Append('/');
 			lock (this) {
-				buf.Append(internal_counter);
-				++internal_counter;
+				buf.Append(internalCounter);
+				++internalCounter;
 			}
-			String host_string = buf.ToString();
+
+			string hostString = buf.ToString();
 
 			// Create the database interface for an internal database connection.
-			IDatabaseInterface db_interface = new DatabaseInterface(controller, name, host_string);
+			IDatabaseInterface dbInterface = new DatabaseInterface(controller, name, hostString);
 			// Create the DeveelDbConnection object (very minimal cache settings for an
 			// internal connection).
 			DeveelDbConnectionStringBuilder s = new DeveelDbConnectionStringBuilder();
@@ -164,7 +165,7 @@ namespace Deveel.Data.Control {
 			s.UserName = username;
 			s.Password = password;
 
-			DBSConnection connection = new DBSConnection(this, internal_counter, s.ToString(), db_interface, 8, 4092000);
+			DBSConnection connection = new DBSConnection(this, internalCounter, s.ToString(), dbInterface, 8, 4092000);
 			// Attempt to log in with the given username and password (default schema)
 			connection.Open();
 			if (connection.State != ConnectionState.Open)
@@ -211,8 +212,8 @@ namespace Deveel.Data.Control {
 			buf.Append(GetHashCode());
 			buf.Append('/');
 			lock (this) {
-				buf.Append(internal_counter);
-				++internal_counter;
+				buf.Append(internalCounter);
+				++internalCounter;
 			}
 			string connString = buf.ToString();
 

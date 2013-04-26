@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
@@ -52,7 +53,7 @@ namespace Deveel.Data.Client {
 		/// <remarks>
 		/// This mapping is only used if the driver makes local connections (eg. 'local://').
 		/// </remarks>
-		private readonly Hashtable local_session_map = new Hashtable();
+		private readonly Dictionary<string,ILocalBootable> localSessionMap = new Dictionary<string, ILocalBootable>();
 
 		/// <summary>
 		/// A cache of all rows retrieved from the server.
@@ -62,7 +63,7 @@ namespace Deveel.Data.Client {
 		/// are accessed frequently.  Note that cells are only cached within a ResultSet 
 		/// bounds. Two different ResultSet's will not share cells in the cache.
 		/// </remarks>
-		private RowCache row_cache;
+		private RowCache rowCache;
 
 		/// <summary>
 		/// The string used to make this connection.
@@ -72,28 +73,28 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// Set to true if the connection is closed.
 		/// </summary>
-		private bool is_closed;
+		private bool isClosed;
 
 		/// <summary>
 		/// Set to true if the connection is in auto-commit mode.
 		/// (By default, auto_commit is enabled).
 		/// </summary>
-		private bool auto_commit;
+		private bool autoCommit;
 
 		/// <summary>
 		/// The interface to the database.
 		/// </summary>
-		private IDatabaseInterface db_interface;
+		private IDatabaseInterface dbInterface;
 
 		/// <summary>
 		/// The list of trigger listeners registered with the connection.
 		/// </summary>
-		private EventHandlerList trigger_list;
+		private EventHandlerList triggerList;
 
 		/// <summary>
 		/// A Thread that handles all dispatching of trigger events to the client.
 		/// </summary>
-		private TriggerDispatchThread trigger_thread;
+		private TriggerDispatchThread triggerThread;
 
 		/// <summary>
 		/// This is set to true if the ResultSet column lookup methods are case
@@ -103,18 +104,18 @@ namespace Deveel.Data.Client {
 		/// This should be set to true for any database that has case insensitive 
 		/// identifiers.
 		/// </remarks>
-		private bool case_insensitive_identifiers;
+		private bool caseInsensitiveIdentifiers;
 
 		/// <summary>
 		/// A mapping from a streamable object id to <see cref="Stream"/> used to 
 		/// represent the object when being uploaded to the database engine.
 		/// </summary>
-		private Hashtable s_object_hold;
+		private Dictionary<object, Stream> sObjectHold;
 
 		/// <summary>
 		/// An unique id count given to streamable object being uploaded to the server.
 		/// </summary>
-		private long s_object_id;
+		private long sObjectId;
 
 		/// <summary>
 		/// The current state of the connection;
@@ -135,16 +136,16 @@ namespace Deveel.Data.Client {
 		// For synchronization in this object,
 		private readonly Object stateLock = new Object();
 
-		internal DeveelDbConnection(string connectionString, IDatabaseInterface db_interface, int cache_size, int max_size) {
+		internal DeveelDbConnection(string connectionString, IDatabaseInterface dbInterface, int cacheSize, int maxSize) {
 			this.connectionString = new DeveelDbConnectionStringBuilder(connectionString);
-			this.db_interface = db_interface;
-			is_closed = true;
-			auto_commit = true;
-			trigger_list = new EventHandlerList();
-			case_insensitive_identifiers = false;
-			row_cache = new RowCache(cache_size, max_size);
-			s_object_hold = new Hashtable();
-			s_object_id = 0;
+			this.dbInterface = dbInterface;
+			isClosed = true;
+			autoCommit = true;
+			triggerList = new EventHandlerList();
+			caseInsensitiveIdentifiers = false;
+			rowCache = new RowCache(cacheSize, maxSize);
+			sObjectHold = new Dictionary<object, Stream>();
+			sObjectId = 0;
 			state = ConnectionState.Closed;
 		}
 
@@ -175,8 +176,8 @@ namespace Deveel.Data.Client {
 		}
 
 		private void Init() {
-			int row_cache_size;
-			int max_row_cache_size;
+			int rowCacheSize;
+			int maxRowCacheSize;
 
 			// If we are to connect to a single user database running
 			// within this runtime.
@@ -184,31 +185,31 @@ namespace Deveel.Data.Client {
 				ConnectToLocal();
 
 				// Internal row cache setting are set small.
-				row_cache_size = 43;
-				max_row_cache_size = 4092000;
+				rowCacheSize = 43;
+				maxRowCacheSize = 4092000;
 			} else {
 				try {
 					Thread.Sleep(85);
 				} catch (ThreadInterruptedException) { /* ignore */ }
 
 				// Make the connection
-				db_interface = new TCPStreamDatabaseInterface(connectionString.Host,
+				dbInterface = new TCPStreamDatabaseInterface(connectionString.Host,
 				                                              connectionString.Port,
 				                                              connectionString.Database);
 
 				// For remote connection, row cache uses more memory.
-				row_cache_size = 4111;
-				max_row_cache_size = 8192000;
+				rowCacheSize = 4111;
+				maxRowCacheSize = 8192000;
 
 			}
 
-			is_closed = true;
-			auto_commit = true;
-			trigger_list = new EventHandlerList();
-			case_insensitive_identifiers = false;
-			row_cache = new RowCache(row_cache_size, max_row_cache_size);
-			s_object_hold = new Hashtable();
-			s_object_id = 0;
+			isClosed = true;
+			autoCommit = true;
+			triggerList = new EventHandlerList();
+			caseInsensitiveIdentifiers = false;
+			rowCache = new RowCache(rowCacheSize, maxRowCacheSize);
+			sObjectHold = new Dictionary<object, Stream>();
+			sObjectId = 0;
 			state = ConnectionState.Closed;
 		}
 
@@ -237,24 +238,24 @@ namespace Deveel.Data.Client {
 				controller = DbController.Create(controllerConfig);
 
 				// Is there already a local connection to this database?
-				String session_key = rootPath.ToLower();
-				ILocalBootable localBootable = (ILocalBootable)local_session_map[session_key];
+				string sessionKey = rootPath.ToLower();
+				ILocalBootable localBootable;
 
-				// No so create one and WriteByte it in the connection mapping
-				if (localBootable == null) {
+				// No so create one and write it in the connection mapping
+				if (!localSessionMap.TryGetValue(sessionKey, out localBootable)) {
 					localBootable = CreateDefaultLocalBootable(controller, connectionString.Database);
-					local_session_map[session_key] = localBootable;
+					localSessionMap[sessionKey] = localBootable;
 				}
 
 				// Is the connection booted already?
 				if (localBootable.IsBooted) {
 					// Yes, so simply login.
-					db_interface = localBootable.Connect();
+					dbInterface = localBootable.Connect();
 				} else {
 					// Otherwise we need to boot the local database.
 
-					bool create_db = connectionString.Create;
-					bool create_db_if_not_exist = connectionString.BootOrCreate;
+					bool createDb = connectionString.Create;
+					bool createDbIfNotExist = connectionString.BootOrCreate;
 
 					DbConfig config = controller.Config;
 
@@ -266,36 +267,35 @@ namespace Deveel.Data.Client {
 					*/
 
 					// Check if the database exists
-					bool database_exists = localBootable.CheckExists();
+					bool databaseExists = localBootable.CheckExists();
 
 					// If database doesn't exist and we've been told to create it if it
 					// doesn't exist, then set the 'create_db' flag.
-					if (create_db_if_not_exist && !database_exists) {
-						create_db = true;
+					if (createDbIfNotExist && !databaseExists) {
+						createDb = true;
 					}
 
 					// Error conditions;
 					// If we are creating but the database already exists.
-					if (create_db && database_exists) {
+					if (createDb && databaseExists)
 						throw new DataException("Can not create database because a database already exists.");
-					}
+
 					// If we are booting but the database doesn't exist.
-					if (!create_db && !database_exists) {
+					if (!createDb && !databaseExists)
 						throw new DataException("Can not find a database to start.  Either the database needs to " +
-												"be created or the 'database_path' property of the configuration " +
-												"must be set to the location of the data files.");
-					}
+						                        "be created or the 'database_path' property of the configuration " +
+						                        "must be set to the location of the data files.");
 
 					// Are we creating a new database?
-					if (create_db) {
-						String username = connectionString.UserName;
-						String password = connectionString.Password;
+					if (createDb) {
+						string username = connectionString.UserName;
+						string password = connectionString.Password;
 
-						db_interface = localBootable.Create(username, password, config);
+						dbInterface = localBootable.Create(username, password, config);
 					}
 						// Otherwise we must be logging onto a database,
 					else {
-						db_interface = localBootable.Boot(config);
+						dbInterface = localBootable.Boot(config);
 					}
 				}
 			}
@@ -325,7 +325,7 @@ namespace Deveel.Data.Client {
 		}
 
 		private static bool IsLocal(string host) {
-			return String.Compare(host, "{local}", true) == 0;
+			return String.Equals(host, "{local}", StringComparison.OrdinalIgnoreCase);
 		}
 
 		///<summary>
@@ -337,15 +337,15 @@ namespace Deveel.Data.Client {
 		/// will match against <c>APP.id</c>, etc.
 		/// </remarks>
 		internal bool IsCaseInsensitiveIdentifiers {
-			set { case_insensitive_identifiers = value; }
-			get { return case_insensitive_identifiers; }
+			set { caseInsensitiveIdentifiers = value; }
+			get { return caseInsensitiveIdentifiers; }
 		}
 
 		/// <summary>
 		/// Returns the row Cache object for this connection.
 		/// </summary>
 		internal RowCache RowCache {
-			get { return row_cache; }
+			get { return rowCache; }
 		}
 
 		public override string DataSource {
@@ -353,14 +353,14 @@ namespace Deveel.Data.Client {
 		}
 
 		public override string ServerVersion {
-			get { return IsLocal(Settings.Host) ? String.Empty : ((RemoteDatabaseInterface)db_interface).ServerVersion.ToString(2); }
+			get { return IsLocal(Settings.Host) ? String.Empty : ((RemoteDatabaseInterface)dbInterface).ServerVersion.ToString(2); }
 		}
 
 
 		internal virtual bool InternalOpen() {
 			string username = connectionString.UserName;
 			string password = connectionString.Password;
-			string default_schema = connectionString.Schema;
+			string defaultSchema = connectionString.Schema;
 
 			if (username == null || username.Equals("") ||
 				password == null || password.Equals("")) {
@@ -368,21 +368,21 @@ namespace Deveel.Data.Client {
 			}
 
 			// Set the default schema to username if it's null
-			if (default_schema == null) {
-				default_schema = username;
+			if (defaultSchema == null) {
+				defaultSchema = username;
 			}
 
 			try {
-				if (db_interface is TCPStreamDatabaseInterface)
+				if (dbInterface is TCPStreamDatabaseInterface)
 					// Attempt to open a socket to the database.
-					(db_interface as TCPStreamDatabaseInterface).ConnectToDatabase();
+					(dbInterface as TCPStreamDatabaseInterface).ConnectToDatabase();
 			} catch(Exception e) {
 				//TODO: log the exception...
 				return false;
 			}
 
 			// Login with the username/password
-			return db_interface.Login(default_schema, username, password, OnDatabaseEvent);
+			return dbInterface.Login(defaultSchema, username, password, OnDatabaseEvent);
 		}
 
 #if !MONO
@@ -422,7 +422,7 @@ namespace Deveel.Data.Client {
 						IsCaseInsensitiveIdentifiers = val.Equals("true");
 					} else if (key.Equals("auto_commit")) {
 						String val = rs.GetString(1);
-						auto_commit = val.Equals("true");
+						autoCommit = val.Equals("true");
 					}
 				}
 				rs.Close();
@@ -430,7 +430,7 @@ namespace Deveel.Data.Client {
 		}
 
 		internal void PushStreamableObjectPart(ReferenceType type, long objectId, long length, byte[] buffer, long offset, int count) {
-			db_interface.PushStreamableObjectPart(type, objectId, length, buffer, offset, count);
+			dbInterface.PushStreamableObjectPart(type, objectId, length, buffer, offset, count);
 		}
 
 		/// <summary>
@@ -446,46 +446,45 @@ namespace Deveel.Data.Client {
 					// For each streamable object.
 					if (vars[i] != null && vars[i] is StreamableObject) {
 						// Buffer size is fixed to 64 KB
-						const int BUF_SIZE = 64 * 1024;
+						const int bufSize = 64 * 1024;
 
-						StreamableObject s_object = (StreamableObject)vars[i];
+						StreamableObject sObject = (StreamableObject)vars[i];
 						long offset = 0;
-						ReferenceType type = s_object.Type;
-						long total_len = s_object.Size;
-						long id = s_object.Identifier;
-						byte[] buf = new byte[BUF_SIZE];
+						ReferenceType type = sObject.Type;
+						long totalLen = sObject.Size;
+						long id = sObject.Identifier;
+						byte[] buf = new byte[bufSize];
 
 						// Get the InputStream from the StreamableObject hold
-						Object sob_id = id;
-						Stream i_stream = (Stream)s_object_hold[sob_id];
-						if (i_stream == null) {
+						object sobId = id;
+						Stream iStream;
+						if (!sObjectHold.TryGetValue(sobId, out iStream))
 							throw new Exception("Assertion failed: Streamable object Stream is not available.");
-						}
 
-						i_stream.Seek(0, SeekOrigin.Begin);
+						iStream.Seek(0, SeekOrigin.Begin);
 
-						while (offset < total_len) {
+						while (offset < totalLen) {
 							// Fill the buffer
 							int index = 0;
-							int block_read = (int)System.Math.Min((long)BUF_SIZE, (total_len - offset));
-							int to_read = block_read;
-							while (to_read > 0) {
-								int count = i_stream.Read(buf, index, to_read);
-								if (count == -1) {
+							int blockRead = (int)System.Math.Min(bufSize, (totalLen - offset));
+							int toRead = blockRead;
+							while (toRead > 0) {
+								int count = iStream.Read(buf, index, toRead);
+								if (count == 0)
 									throw new IOException("Premature end of stream.");
-								}
+
 								index += count;
-								to_read -= count;
+								toRead -= count;
 							}
 
 							// Send the part of the streamable object to the database.
-							db_interface.PushStreamableObjectPart(type, id, total_len, buf, offset, block_read);
+							dbInterface.PushStreamableObjectPart(type, id, totalLen, buf, offset, blockRead);
 							// Increment the offset and upload the next part of the object.
-							offset += block_read;
+							offset += blockRead;
 						}
 
 						// Remove the streamable object once it has been written
-						s_object_hold.Remove(sob_id);
+						sObjectHold.Remove(sobId);
 
 						//        [ Don't close the input stream - we may only want to WriteByte a part of
 						//          the stream into the database and keep the file open. ]
@@ -505,7 +504,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// Sends the batch of SqlQuery objects to the database to be executed.
 		/// </summary>
-		/// <param name="_queries"></param>
+		/// <param name="queries"></param>
 		/// <param name="results">The consumer objects for the Query results.</param>
 		/// <remarks>
 		/// If a Query succeeds then we are guarenteed to know that size of the result set.
@@ -513,10 +512,10 @@ namespace Deveel.Data.Client {
 		/// This method blocks until all of the _commands have been processed by the database.
 		/// </para>
 		/// </remarks>
-		internal void ExecuteQueries(SqlQuery[] _queries, ResultSet[] results) {
+		internal void ExecuteQueries(SqlQuery[] queries, ResultSet[] results) {
 			// For each Query
-			for (int i = 0; i < _queries.Length; ++i) {
-				ExecuteQuery(_queries[i], results[i]);
+			for (int i = 0; i < queries.Length; ++i) {
+				ExecuteQuery(queries[i], results[i]);
 			}
 		}
 
@@ -535,16 +534,16 @@ namespace Deveel.Data.Client {
 		internal void ExecuteQuery(SqlQuery sql, ResultSet resultSet) {
 			UploadStreamableObjects(sql);
 			// Execute the Query,
-			IQueryResponse resp = db_interface.ExecuteQuery(sql)[0];
+			IQueryResponse resp = dbInterface.ExecuteQuery(sql)[0];
 
 			// The format of the result
-			ColumnDescription[] col_list = new ColumnDescription[resp.ColumnCount];
-			for (int i = 0; i < col_list.Length; ++i) {
-				col_list[i] = resp.GetColumnDescription(i);
+			ColumnDescription[] colList = new ColumnDescription[resp.ColumnCount];
+			for (int i = 0; i < colList.Length; ++i) {
+				colList[i] = resp.GetColumnDescription(i);
 			}
 			// Set up the result set to the result format and update the time taken to
 			// execute the Query on the server.
-			resultSet.ConnSetup(resp.ResultId, col_list, resp.RowCount);
+			resultSet.ConnSetup(resp.ResultId, colList, resp.RowCount);
 			resultSet.SetQueryTime(resp.QueryTimeMillis);
 		}
 
@@ -558,7 +557,7 @@ namespace Deveel.Data.Client {
 		/// Returns a <see cref="IList"/> that represents the result from the server.
 		/// </returns>
 		internal ResultPart RequestResultPart(int resultId, int startRow, int countRows) {
-			return db_interface.GetResultPart(resultId, startRow, countRows);
+			return dbInterface.GetResultPart(resultId, startRow, countRows);
 		}
 
 		/// <summary>
@@ -570,7 +569,7 @@ namespace Deveel.Data.Client {
 		/// <param name="len"></param>
 		/// <returns></returns>
 		internal byte[] RequestStreamableObjectPart(int resultId, long streamableObjectId, long offset, int len) {
-			return db_interface.GetStreamableObjectPart(resultId, streamableObjectId, offset, len);
+			return dbInterface.GetStreamableObjectPart(resultId, streamableObjectId, offset, len);
 		}
 
 		/// <summary>
@@ -590,8 +589,8 @@ namespace Deveel.Data.Client {
 			//    Console.Out.WriteLine(result_id);
 			//    row_cache.clear();
 			// Only dispose if the connection is open
-			if (!is_closed) {
-				db_interface.DisposeResult(resultId);
+			if (!isClosed) {
+				dbInterface.DisposeResult(resultId);
 			}
 		}
 
@@ -605,8 +604,8 @@ namespace Deveel.Data.Client {
 		/// Triggers are created with the <c>CREATE TRIGGER</c> syntax.
 		/// </remarks>
 		internal void AddTriggerListener(string triggerName, TriggerEventHandler listener) {
-			lock (trigger_list) {
-				trigger_list.AddHandler(triggerName, listener);
+			lock (triggerList) {
+				triggerList.AddHandler(triggerName, listener);
 			}
 		}
 
@@ -616,8 +615,8 @@ namespace Deveel.Data.Client {
 		/// <param name="triggerName"></param>
 		/// <param name="listener"></param>
 		internal void RemoveTriggerListener(string triggerName, TriggerEventHandler listener) {
-			lock (trigger_list) {
-				trigger_list.RemoveHandler(triggerName, listener);
+			lock (triggerList) {
+				triggerList.RemoveHandler(triggerName, listener);
 			}
 		}
 
@@ -634,26 +633,26 @@ namespace Deveel.Data.Client {
 		/// </remarks>
 		/// <returns></returns>
 		internal StreamableObject CreateStreamableObject(Stream x, int length, ReferenceType type) {
-			long ob_id;
-			lock (s_object_hold) {
-				ob_id = s_object_id;
-				++s_object_id;
+			long obId;
+			lock (sObjectHold) {
+				obId = sObjectId;
+				++sObjectId;
 				// Add the stream to the hold and get the unique id
-				s_object_hold[ob_id] = x;
+				sObjectHold[obId] = x;
 			}
 			// Create and return the StreamableObject
-			return new StreamableObject(type, length, ob_id);
+			return new StreamableObject(type, length, obId);
 		}
 
 		/// <summary>
 		/// Removes the <see cref="StreamableObject"/> from the hold on the client.
 		/// </summary>
-		/// <param name="s_object"></param>
+		/// <param name="sObject"></param>
 		/// <remarks>
 		/// This should be called when the <see cref="DeveelDbCommand"/> closes.
 		/// </remarks>
-		internal void RemoveStreamableObject(StreamableObject s_object) {
-			s_object_hold.Remove(s_object.Identifier);
+		internal void RemoveStreamableObject(StreamableObject sObject) {
+			sObjectHold.Remove(sObject.Identifier);
 		}
 
 		// NOTE: For standalone apps, the thread that calls this will be a
@@ -662,11 +661,11 @@ namespace Deveel.Data.Client {
 		//   connection thread that listens for data from the server.
 		public void OnDatabaseEvent(int eventType, String eventMessage) {
 			if (eventType == 99) {
-				if (trigger_thread == null) {
-					trigger_thread = new TriggerDispatchThread(this);
-					trigger_thread.Start();
+				if (triggerThread == null) {
+					triggerThread = new TriggerDispatchThread(this);
+					triggerThread.Start();
 				}
-				trigger_thread.DispatchTrigger(eventMessage);
+				triggerThread.DispatchTrigger(eventMessage);
 			} else {
 				throw new ApplicationException("Unrecognised database event: " + eventType);
 			}
@@ -747,7 +746,7 @@ namespace Deveel.Data.Client {
 					// ignore any exception...
 				}
 
-				db_interface.Dispose();
+				dbInterface.Dispose();
 				return true;
 			} catch {
 				return false;
@@ -757,7 +756,7 @@ namespace Deveel.Data.Client {
 		public override void ChangeDatabase(string databaseName) {
 			//TODO: check if any command is in Executing state before...
 			try {
-				db_interface.ChangeDatabase(databaseName);
+				dbInterface.ChangeDatabase(databaseName);
 				connectionString.Database = databaseName;
 			} catch(DataException) {
 				throw;
@@ -844,9 +843,9 @@ namespace Deveel.Data.Client {
 		/// Toggles the <c>AUTO COMMIT</c> flag.
 		/// </summary>
 		public virtual bool AutoCommit {
-			get { return auto_commit; }
+			get { return autoCommit; }
 			set {
-				if (auto_commit == value)
+				if (autoCommit == value)
 					return;
 
 				if (currentTransaction != null)
@@ -855,10 +854,10 @@ namespace Deveel.Data.Client {
 				// The SQL to write into auto-commit mode.
 				if (value) {
 					CreateCommand("SET AUTO COMMIT ON").ExecuteNonQuery();
-					auto_commit = true;
+					autoCommit = true;
 				} else {
 					CreateCommand("SET AUTO COMMIT OFF").ExecuteNonQuery();
-					auto_commit = false;
+					autoCommit = false;
 				}
 			}
 		}
@@ -905,12 +904,12 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		private class TriggerDispatchThread {
 			private readonly DeveelDbConnection conn;
-			private readonly ArrayList trigger_messages_queue = new ArrayList();
+			private readonly ArrayList triggerMessagesQueue = new ArrayList();
 			private readonly Thread thread;
 
 			internal TriggerDispatchThread(DeveelDbConnection conn) {
 				this.conn = conn;
-				thread = new Thread(new ThreadStart(run));
+				thread = new Thread(new ThreadStart(Run));
 				thread.IsBackground = true;
 				thread.Name = "Trigger Dispatcher";
 			}
@@ -918,29 +917,29 @@ namespace Deveel.Data.Client {
 			/// <summary>
 			/// Dispatches a trigger message to the listeners.
 			/// </summary>
-			/// <param name="event_message"></param>
-			internal void DispatchTrigger(String event_message) {
-				lock (trigger_messages_queue) {
-					trigger_messages_queue.Add(event_message);
-					Monitor.PulseAll(trigger_messages_queue);
+			/// <param name="eventMessage"></param>
+			internal void DispatchTrigger(String eventMessage) {
+				lock (triggerMessagesQueue) {
+					triggerMessagesQueue.Add(eventMessage);
+					Monitor.PulseAll(triggerMessagesQueue);
 				}
 			}
 
 			// Thread run method
-			private void run() {
+			private void Run() {
 				while (true) {
 					try {
 						String message;
-						lock (trigger_messages_queue) {
-							while (trigger_messages_queue.Count == 0) {
+						lock (triggerMessagesQueue) {
+							while (triggerMessagesQueue.Count == 0) {
 								try {
- 									Monitor.Wait(trigger_messages_queue);
+ 									Monitor.Wait(triggerMessagesQueue);
 								} catch (ThreadInterruptedException) {
 									/* ignore */
 								}
 							}
-							message = (String)trigger_messages_queue[0];
-							trigger_messages_queue.RemoveAt(0);
+							message = (String)triggerMessagesQueue[0];
+							triggerMessagesQueue.RemoveAt(0);
 						}
 
 						// 'message' is a message to process...
@@ -955,8 +954,8 @@ namespace Deveel.Data.Client {
 						int triggerFireCount = Convert.ToInt32(tok[3]);
 
 						// Create a list of Listener's that are listening for this trigger.
-						lock (conn.trigger_list) {
-							TriggerEventHandler triggerHandler = conn.trigger_list[triggerName] as TriggerEventHandler;
+						lock (conn.triggerList) {
+							TriggerEventHandler triggerHandler = conn.triggerList[triggerName] as TriggerEventHandler;
 							if (triggerHandler != null)
 								triggerHandler(conn, new TriggerEventArgs(triggerName, TableName.Resolve(triggerSource), eventType, triggerFireCount));
 						}
@@ -976,7 +975,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// The timeout for a query in seconds.
 		/// </summary>
-		internal static int QUERY_TIMEOUT = Int32.MaxValue;
+		internal const int QueryTimeout = Int32.MaxValue;
 
 		internal void SetState(ConnectionState connectionState) {
 			lock (stateLock) {
