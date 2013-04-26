@@ -114,7 +114,7 @@ namespace Deveel.Data {
 					DataRow row = new DataRow(destTable);
 
 					for (int j = 0; j < colCount; j++) {
-						TObject cell = table.GetCellContents(j, i);
+						TObject cell = table.GetCell(j, i);
 						row.SetValue(j, cell);
 					}
 
@@ -135,7 +135,7 @@ namespace Deveel.Data {
 						throw new DatabaseException("The destination variable " + varRef.Variable + " was not found.");
 
 					DataTableColumnInfo columnInfo = table.TableInfo[i];
-					TObject cell = table.GetCellContents(i, 0);
+					TObject cell = table.GetCell(i, 0);
 
 					if (columnInfo.TType.SQLType != variable.Type.SQLType) {
 						try {

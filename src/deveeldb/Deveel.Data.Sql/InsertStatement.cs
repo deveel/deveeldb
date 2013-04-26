@@ -359,7 +359,7 @@ namespace Deveel.Data.Sql {
 					int rindex = row_list[i];
 					DataRow dataRow = insertTable.NewRow();
 					for (int n = 0; n < col_index_list.Length; ++n) {
-						TObject cell = result.GetCellContents(n, rindex);
+						TObject cell = result.GetCell(n, rindex);
 						dataRow.SetValue(col_index_list[n], cell);
 					}
 					dataRow.SetToDefault(context);

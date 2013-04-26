@@ -91,10 +91,10 @@ namespace Deveel.Data {
 					}
 
 					int rowIndex = list[0];
-					TObject sid = seqi.GetCellContents(0, rowIndex);
-					TObject sschema = seqi.GetCellContents(1, rowIndex);
-					TObject sname = seqi.GetCellContents(2, rowIndex);
-					TObject stype = seqi.GetCellContents(3, rowIndex);
+					TObject sid = seqi.GetCell(0, rowIndex);
+					TObject sschema = seqi.GetCell(1, rowIndex);
+					TObject sname = seqi.GetCell(2, rowIndex);
+					TObject stype = seqi.GetCell(3, rowIndex);
 
 					long idVal = sid.ToBigNumber().ToInt64();
 
@@ -118,13 +118,13 @@ namespace Deveel.Data {
 							throw new Exception("Sequence table contains multiple generators for id.");
 
 						rowIndex = list[0];
-						BigNumber lastValue = seq.GetCellContents(1, rowIndex).ToBigNumber();
-						BigNumber increment = seq.GetCellContents(2, rowIndex).ToBigNumber();
-						BigNumber minvalue = seq.GetCellContents(3, rowIndex).ToBigNumber();
-						BigNumber maxvalue = seq.GetCellContents(4, rowIndex).ToBigNumber();
-						BigNumber start = seq.GetCellContents(5, rowIndex).ToBigNumber();
-						BigNumber cache = seq.GetCellContents(6, rowIndex).ToBigNumber();
-						bool cycle = seq.GetCellContents(7, rowIndex).ToBoolean();
+						BigNumber lastValue = seq.GetCell(1, rowIndex).ToBigNumber();
+						BigNumber increment = seq.GetCell(2, rowIndex).ToBigNumber();
+						BigNumber minvalue = seq.GetCell(3, rowIndex).ToBigNumber();
+						BigNumber maxvalue = seq.GetCell(4, rowIndex).ToBigNumber();
+						BigNumber start = seq.GetCell(5, rowIndex).ToBigNumber();
+						BigNumber cache = seq.GetCell(6, rowIndex).ToBigNumber();
+						bool cycle = seq.GetCell(7, rowIndex).ToBoolean();
 
 						query.Dispose();
 
@@ -282,7 +282,7 @@ namespace Deveel.Data {
 
 			// Remove the corresponding entry in the SEQUENCE table
 			foreach (int rowIndex in list) {
-				TObject sid = seqi.GetCellContents(0, rowIndex);
+				TObject sid = seqi.GetCell(0, rowIndex);
 
 				SimpleTableQuery query2 = new SimpleTableQuery(seq);
 				IList<int> list2 = query2.SelectEqual(0, sid);
@@ -667,11 +667,11 @@ namespace Deveel.Data {
 					int p = 0;
 					while (row_e.MoveNext()) {
 						int row_index = row_e.RowIndex;
-						TObject seqType = table.GetCellContents(3, row_index);
+						TObject seqType = table.GetCell(3, row_index);
 						if (!seqType.IsEqual(OneVal).ValuesEqual(TrueVal)) {
-							TObject obName = table.GetCellContents(2, row_index);
+							TObject obName = table.GetCell(2, row_index);
 							if (obName.Object.ToString().Equals(name.Name)) {
-								TObject obSchema = table.GetCellContents(1, row_index);
+								TObject obSchema = table.GetCell(1, row_index);
 								if (obSchema.Object.ToString().Equals(name.Schema)) {
 									// Match so return this
 									return p;
@@ -693,11 +693,11 @@ namespace Deveel.Data {
 					int p = 0;
 					while (row_e.MoveNext()) {
 						int rowIndex = row_e.RowIndex;
-						TObject seqType = table.GetCellContents(3, rowIndex);
+						TObject seqType = table.GetCell(3, rowIndex);
 						if (!seqType.IsEqual(OneVal).ValuesEqual(TrueVal)) {
 							if (i == p) {
-								TObject obSchema = table.GetCellContents(1, rowIndex);
-								TObject obName = table.GetCellContents(2, rowIndex);
+								TObject obSchema = table.GetCell(1, rowIndex);
+								TObject obName = table.GetCell(2, rowIndex);
 								return new TableName(obSchema.Object.ToString(), obName.Object.ToString());
 							}
 							++p;
@@ -737,7 +737,7 @@ namespace Deveel.Data {
 					i = rowEnum.RowIndex;
 
 					// Is this is a type 1 sequence we ignore (native table sequence).
-					TObject seqType = table.GetCellContents(3, i);
+					TObject seqType = table.GetCell(3, i);
 					if (!seqType.IsEqual(OneVal).ValuesEqual(TrueVal)) {
 						if (p == index) {
 							rowIndex = i;
@@ -749,9 +749,9 @@ namespace Deveel.Data {
 				if (rowIndex == -1)
 					throw new Exception("Index out of bounds.");
 
-				TObject seqId = table.GetCellContents(0, rowIndex);
-				String schema = table.GetCellContents(1, rowIndex).Object.ToString();
-				String name = table.GetCellContents(2, rowIndex).Object.ToString();
+				TObject seqId = table.GetCell(0, rowIndex);
+				String schema = table.GetCell(1, rowIndex).Object.ToString();
+				String name = table.GetCell(2, rowIndex).Object.ToString();
 
 				TableName tableName = new TableName(schema, name);
 
@@ -780,13 +780,13 @@ namespace Deveel.Data {
 				TObject currentValue = TObject.CreateInt8(manager.CurrentValue(transaction, tableName));
 
 				// Read the rest of the values from the SEQUENCE table.
-				TObject topValue = seqTable.GetCellContents(1, seqRowI);
-				TObject incrementBy = seqTable.GetCellContents(2, seqRowI);
-				TObject minValue = seqTable.GetCellContents(3, seqRowI);
-				TObject maxValue = seqTable.GetCellContents(4, seqRowI);
-				TObject start = seqTable.GetCellContents(5, seqRowI);
-				TObject cache = seqTable.GetCellContents(6, seqRowI);
-				TObject cycle = seqTable.GetCellContents(7, seqRowI);
+				TObject topValue = seqTable.GetCell(1, seqRowI);
+				TObject incrementBy = seqTable.GetCell(2, seqRowI);
+				TObject minValue = seqTable.GetCell(3, seqRowI);
+				TObject maxValue = seqTable.GetCell(4, seqRowI);
+				TObject start = seqTable.GetCell(5, seqRowI);
+				TObject cache = seqTable.GetCell(6, seqRowI);
+				TObject cycle = seqTable.GetCell(7, seqRowI);
 
 				// Implementation of IMutableTableDataSource that describes this
 				// sequence generator.
@@ -828,7 +828,7 @@ namespace Deveel.Data {
 					get { return 1; }
 				}
 
-				public override TObject GetCellContents(int col, int row) {
+				public override TObject GetCell(int col, int row) {
 					switch (col) {
 						case 0:
 							return last_value;

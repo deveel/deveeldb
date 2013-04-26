@@ -189,12 +189,12 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 			for (int i = 0; i < tableIndexes.Length; ++i) {
 				IList<int> ivec = tableIndexes[i];
 				int sz = ivec.Count;
 				if (row < sz)
-					return compositeTables[i].GetCellContents(column, ivec[row]);
+					return compositeTables[i].GetCell(column, ivec[row]);
 				row -= sz;
 			}
 			throw new ApplicationException("Row '" + row + "' out of bounds.");

@@ -957,7 +957,7 @@ namespace Deveel.Data {
 
 			public TObject Resolve(VariableName variable) {
 				int colIndex = FindColumnName(variable);
-				return table.GetCellContents(colIndex, rowIndex);
+				return table.GetCell(colIndex, rowIndex);
 			}
 
 			public TType ReturnTType(VariableName variable) {

@@ -726,7 +726,7 @@ namespace Deveel.Data.Protocol {
 				if (rowEnum.MoveNext()) {
 					int row_index = rowEnum.RowIndex;
 					for (int c = 0; c < result.ColumnCount; ++c) {
-						result.GetCellContents(c, row_index);
+						result.GetCell(c, row_index);
 					}
 				}
 
@@ -815,7 +815,7 @@ namespace Deveel.Data.Protocol {
 					throw new Exception("Table roots not locked!");
 
 				int realRow = resultIsSimpleEnum ? row : rowIndexMap[row];
-				TObject tob = result.GetCellContents(column, realRow);
+				TObject tob = result.GetCell(column, realRow);
 
 				// If this is a large object reference then cache it so a streamable
 				// object can reference it via this result.

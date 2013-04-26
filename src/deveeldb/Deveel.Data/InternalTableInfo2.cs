@@ -62,9 +62,9 @@ namespace Deveel.Data {
 				int p = 0;
 				while (row_e.MoveNext()) {
 					int row_index = row_e.RowIndex;
-					TObject ob_name = table.GetCellContents(1, row_index);
+					TObject ob_name = table.GetCell(1, row_index);
 					if (ob_name.Object.ToString().Equals(name.Name)) {
-						TObject ob_schema = table.GetCellContents(0, row_index);
+						TObject ob_schema = table.GetCell(0, row_index);
 						if (ob_schema.Object.ToString().Equals(name.Schema)) {
 							// Match so return this
 							return p;
@@ -87,8 +87,8 @@ namespace Deveel.Data {
 				while (row_e.MoveNext()) {
 					int row_index = row_e.RowIndex;
 					if (i == p) {
-						TObject ob_schema = table.GetCellContents(0, row_index);
-						TObject ob_name = table.GetCellContents(1, row_index);
+						TObject ob_schema = table.GetCell(0, row_index);
+						TObject ob_name = table.GetCell(1, row_index);
 						return new TableName(ob_schema.Object.ToString(),
 											 ob_name.Object.ToString());
 					}

@@ -574,7 +574,7 @@ namespace Deveel.Data {
 				return new RowEnumerator(iterator);
 			}
 
-			public TObject GetCellContents(int column, int row) {
+			public TObject GetCell(int column, int row) {
 				return mtds.GetCellContents(column, row);
 			}
 
@@ -745,7 +745,7 @@ namespace Deveel.Data {
 								TObject[] originalKey = new TObject[cols.Length];
 								int nullCount = 0;
 								for (int p = 0; p < cols.Length; ++p) {
-									originalKey[p] = GetCellContents(cols[p], rowIndex);
+									originalKey[p] = GetCell(cols[p], rowIndex);
 									if (originalKey[p].IsNull) {
 										++nullCount;
 									}
@@ -762,7 +762,7 @@ namespace Deveel.Data {
 										bool keyChanged = false;
 										TObject[] keyUpdatedTo = new TObject[cols.Length];
 										for (int p = 0; p < cols.Length; ++p) {
-											keyUpdatedTo[p] = GetCellContents(cols[p], rowIndexAdd);
+											keyUpdatedTo[p] = GetCell(cols[p], rowIndexAdd);
 											if (originalKey[p].CompareTo(keyUpdatedTo[p]) != 0) {
 												keyChanged = true;
 											}

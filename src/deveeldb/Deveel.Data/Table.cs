@@ -72,6 +72,18 @@ namespace Deveel.Data {
 			return VariableName.Resolve(TableInfo.TableName, columnName);
 		}
 
+		private VariableName[] ResolveColumnNames(string[] columnNames) {
+			if (columnNames == null)
+				return new VariableName[0];
+
+			VariableName[] variableNames = new VariableName[columnNames.Length];
+			for (int i = 0; i < columnNames.Length; i++) {
+				variableNames[i] = ResolveColumnName(columnNames[i]);
+			}
+
+			return variableNames;
+		}
+
 		/// <summary>
 		/// Returns a <see cref="TType"/> object that would represent 
 		/// values at the given column index.
@@ -166,14 +178,14 @@ namespace Deveel.Data {
 		/// of a set.
 		/// </remarks>
 		/// <returns></returns>
-		public abstract TObject GetCellContents(int column, int row);
+		public abstract TObject GetCell(int column, int row);
 
-		public TObject GetCellContents(VariableName columnName, int row) {
-			return GetCellContents(FastFindFieldName(columnName), row);
+		public TObject GetCell(VariableName columnName, int row) {
+			return GetCell(FastFindFieldName(columnName), row);
 		}
 
-		public TObject GetCellContents(string columnName, int row) {
-			return GetCellContents(ResolveColumnName(columnName), row);
+		public TObject GetCell(string columnName, int row) {
+			return GetCell(ResolveColumnName(columnName), row);
 		}
 
 		/// <summary>
@@ -384,9 +396,17 @@ namespace Deveel.Data {
 		/// Returns the <see cref="TObject"/> value that represents the first item 
 		/// in the set or <b>null</b> if there are no items in the column set.
 		/// </returns>
-		public TObject GetFirstCellContent(int column) {
+		public TObject GetFirstCell(int column) {
 			IList<int> rows = SelectFirst(column);
-			return rows.Count > 0 ? GetCellContents(column, rows[0]) : null;
+			return rows.Count > 0 ? GetCell(column, rows[0]) : null;
+		}
+
+		public TObject GetFirstCell(VariableName columnName) {
+			return GetFirstCell(FastFindFieldName(columnName));
+		}
+
+		public TObject GetFirstCell(string columnName) {
+			return GetFirstCell(ResolveColumnName(columnName));
 		}
 
 		/// <summary>
@@ -397,11 +417,15 @@ namespace Deveel.Data {
 		/// Returns the <see cref="TObject"/> values that represents the first items 
 		/// in the set or <b>null</b> if there are no items in the column set.
 		/// </returns>
-		public TObject[] GetFirstCellContent(int[] columns) {
+		public TObject[] GetFirstCell(int[] columns) {
 			if (columns.Length > 1)
-				throw new ApplicationException("Multi-column GetLastCellContent not supported.");
+				throw new ApplicationException("Multi-column GetLastCell not supported.");
 
-			return SingleArrayCellMap(GetFirstCellContent(columns[0]));
+			return SingleArrayCellMap(GetFirstCell(columns[0]));
+		}
+
+		public TObject[] GetFirstCell(params VariableName[] columnNames) {
+			return GetFirstCell(FastFindFieldNames(columnNames));
 		}
 
 		/// <summary>
@@ -412,9 +436,17 @@ namespace Deveel.Data {
 		/// Returns the TObject value that represents the last item in the set or
 		/// null if there are no items in the column set.
 		/// </returns>
-		public TObject GetLastCellContent(int column) {
+		public TObject GetLastCell(int column) {
 			IList<int> rows = SelectLast(column);
-			return rows.Count > 0 ? GetCellContents(column, rows[0]) : null;
+			return rows.Count > 0 ? GetCell(column, rows[0]) : null;
+		}
+
+		public TObject GetLastCell(VariableName columnName) {
+			return GetLastCell(FastFindFieldName(columnName));
+		}
+
+		public TObject GetLastCell(string columnName) {
+			return GetLastCell(ResolveColumnName(columnName));
 		}
 
 		///<summary>
@@ -424,11 +456,11 @@ namespace Deveel.Data {
 		///<param name="columns"></param>
 		///<returns></returns>
 		///<exception cref="ApplicationException"></exception>
-		public TObject[] GetLastCellContent(int[] columns) {
+		public TObject[] GetLastCell(int[] columns) {
 			if (columns.Length > 1)
 				throw new ApplicationException("Multi-column GetLastCellContent not supported.");
 
-			return SingleArrayCellMap(GetLastCellContent(columns[0]));
+			return SingleArrayCellMap(GetLastCell(columns[0]));
 		}
 
 		/// <summary>
@@ -440,10 +472,10 @@ namespace Deveel.Data {
 		/// Returns the value of the column if all its the cells contains the
 		/// same value, otherwise returns <b>null</b>.
 		/// </returns>
-		public TObject GetSingleCellContent(int column) {
+		public TObject GetSingleCell(int column) {
 			IList<int> rows = SelectFirst(column);
 			int sz = rows.Count;
-			return sz == RowCount && sz > 0 ? GetCellContents(column, rows[0]) : null;
+			return sz == RowCount && sz > 0 ? GetCell(column, rows[0]) : null;
 		}
 
 		///<summary>
@@ -456,15 +488,15 @@ namespace Deveel.Data {
 		/// If it doesn't, or the column set is empty it returns null.
 		/// </remarks>
 		///<exception cref="ApplicationException"></exception>
-		public TObject[] GetSingleCellContent(int[] columns) {
+		public TObject[] GetSingleCell(int[] columns) {
 			if (columns.Length > 1)
 				throw new ApplicationException("Multi-column GetSingleCellContent not supported.");
 
-			return SingleArrayCellMap(GetSingleCellContent(columns[0]));
+			return SingleArrayCellMap(GetSingleCell(columns[0]));
 		}
 
 		/// <summary>
-		/// Converts the table to a <see cref="IDictionary"/>.
+		/// Converts the table to a <see cref="IDictionary{TKey,TValue}"/>.
 		/// </summary>
 		/// <returns>
 		/// Returns the table as a <see cref="IDictionary"/>
@@ -482,8 +514,8 @@ namespace Deveel.Data {
 			IRowEnumerator en = GetRowEnumerator();
 			while (en.MoveNext()) {
 				int rowIndex = en.RowIndex;
-				TObject key = GetCellContents(0, rowIndex);
-				TObject value = GetCellContents(1, rowIndex);
+				TObject key = GetCell(0, rowIndex);
+				TObject value = GetCell(1, rowIndex);
 				map[key.Object.ToString()] = value.Object;
 			}
 
@@ -516,6 +548,18 @@ namespace Deveel.Data {
 
 				return index;
 			}
+		}
+
+		private int[] FastFindFieldNames(params VariableName[] columnNames) {
+			if (columnNames == null)
+				return new int[0];
+
+			int[] colIndex = new int[columnNames.Length];
+			for (int i = 0; i < columnNames.Length; i++) {
+				colIndex[i] = FastFindFieldName(columnNames[i]);
+			}
+
+			return colIndex;
 		}
 
 		/// <summary>
@@ -557,7 +601,7 @@ namespace Deveel.Data {
 			}
 
 			public TObject Resolve(VariableName variable) {
-				return table.GetCellContents(FindColumnName(variable), rowIndex);
+				return table.GetCell(FindColumnName(variable), rowIndex);
 			}
 
 			public TType ReturnTType(VariableName variable) {

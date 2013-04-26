@@ -879,7 +879,7 @@ namespace Deveel.Data {
 				throw new NotImplementedException();
 			}
 
-			public TObject GetCellContents(int column, int row) {
+			public TObject GetCell(int column, int row) {
 				return mtds.GetCellContents(column, row);
 			}
 

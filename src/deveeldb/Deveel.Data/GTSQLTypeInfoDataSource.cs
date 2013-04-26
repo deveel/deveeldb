@@ -145,7 +145,7 @@ namespace Deveel.Data {
 			get { return sqlTypes.Count/6; }
 		}
 
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 			int i = (row * 6);
 			SqlTypeInfo typeInfo = sqlTypes[row];
 

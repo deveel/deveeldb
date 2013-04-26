@@ -167,7 +167,7 @@ namespace Deveel.Data {
 		public void SetCellFrom(Table table, int src_col, int src_row,
 								String to_col) {
 			VariableName v = ResolveToVariable(to_col);
-			TObject cell = table.GetCellContents(src_col, src_row);
+			TObject cell = table.GetCell(src_col, src_row);
 			SetRowCell(cell, FindFieldName(v), row_count - 1);
 		}
 
@@ -198,7 +198,7 @@ namespace Deveel.Data {
 							tcol_index = n;
 						}
 					}
-					SetRowCell(table.GetCellContents(tcol_index, row), i, row_count - 1);
+					SetRowCell(table.GetCell(tcol_index, row), i, row_count - 1);
 				} catch (Exception e) {
 					Logger.Error(this, e);
 					throw new ApplicationException(e.Message, e);
@@ -233,7 +233,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 			TObject[] cells = tableStorage[row];
 			TObject cell = cells[column];
 			if (cell == null)

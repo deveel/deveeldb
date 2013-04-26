@@ -75,7 +75,7 @@ namespace Deveel.Data.Text {
 			int size = row_list.Count;
 			for (int i = 0; i < size; ++i) {
 				int row_index = row_list[i];
-				TObject cell = table.GetCellContents(column, row_index);
+				TObject cell = table.GetCell(column, row_index);
 				// Only try and match against non-null cells.
 				if (!cell.IsNull) {
 					Object ob = cell.Object;

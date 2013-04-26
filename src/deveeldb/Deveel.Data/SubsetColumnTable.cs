@@ -157,8 +157,8 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override TObject GetCellContents(int column, int row) {
-			return parent.GetCellContents(column_map[column], row);
+		public override TObject GetCell(int column, int row) {
+			return parent.GetCell(column_map[column], row);
 		}
 
 		// ---------- Implemented from IRootTable ----------

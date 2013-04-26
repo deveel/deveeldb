@@ -74,7 +74,7 @@ namespace Deveel.Data {
 				// Print each cell in the row
 				int row_index = r_enum.RowIndex;
 				for (int col_index = 0; col_index < col_count; ++col_index) {
-					TObject cell = table.GetCellContents(col_index, row_index);
+					TObject cell = table.GetCell(col_index, row_index);
 					output.Write(cell.ToString());
 					if (col_index < col_count - 1) {
 						output.Write(", ");

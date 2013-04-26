@@ -113,7 +113,7 @@ namespace Deveel.Data {
 		/// <param name="row"></param>
 		internal void SetFromRow(int row) {
 			for (int col = 0; col < colCount; ++col) {
-				SetValue(col, table.GetCellContents(col, row));
+				SetValue(col, table.GetCell(col, row));
 			}
 		}
 

@@ -68,7 +68,7 @@ namespace Deveel.Data {
 			get { return (1 << BitCount)*BitCount; }
 		}
 
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 			int c1 = row / BitCount;
 			if (column == 0)
 				return GetColumnValue(column, (BigNumber) c1);

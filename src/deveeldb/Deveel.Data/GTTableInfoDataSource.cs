@@ -109,7 +109,7 @@ namespace Deveel.Data {
 			get { return rowCount; }
 		}
 
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 			TTableInfo info = tableInfos[row];
 			switch (column) {
 				case 0:  // schema

@@ -255,7 +255,7 @@ namespace Deveel.Data {
 						DataRow oldRow = new DataRow(table);
 						int rowIndex = conn.currentOldNewState.OldRowIndex;
 						for (int i = 0; i < tableInfo.ColumnCount; ++i) {
-							oldRow.SetValue(i, dtable.GetCellContents(i, rowIndex));
+							oldRow.SetValue(i, dtable.GetCell(i, rowIndex));
 						}
 						// All OLD tables are immutable
 						table.SetImmutable(true);
@@ -303,7 +303,7 @@ namespace Deveel.Data {
 				get { return 1; }
 			}
 
-			public override TObject GetCellContents(int column, int row) {
+			public override TObject GetCell(int column, int row) {
 				if (row < 0 || row > 0) {
 					throw new Exception("Row index out of bounds.");
 				}

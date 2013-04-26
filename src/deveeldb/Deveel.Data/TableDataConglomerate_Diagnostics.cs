@@ -42,7 +42,7 @@ namespace Deveel.Data {
 			SelectableScheme scheme = table.GetColumnScheme(colIndex);
 			IList<int> list = scheme.SelectLast();
 			if (list.Count > 0) {
-				TObject value = table.GetCellContents(colIndex, list[0]);
+				TObject value = table.GetCell(colIndex, list[0]);
 				BigNumber bNum = value.ToBigNumber();
 				if (bNum != null) {
 					// Set the unique id to +1 the maximum id value in the column

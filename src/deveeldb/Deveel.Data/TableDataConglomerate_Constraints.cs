@@ -90,7 +90,7 @@ namespace Deveel.Data {
 			// If the value being tested for uniqueness contains NULL, we return true
 			// if nulls are allowed.
 			for (int i = 0; i < colIndexes.Length; ++i) {
-				TObject cell = table.GetCellContents(colIndexes[i], rindex);
+				TObject cell = table.GetCell(colIndexes[i], rindex);
 				if (cell.IsNull)
 					return nullsAllowed;
 			}
@@ -100,7 +100,7 @@ namespace Deveel.Data {
 				int colIndex = colIndexes[i];
 
 				// Get the cell being inserted,
-				TObject cell = table.GetCellContents(colIndex, rindex);
+				TObject cell = table.GetCell(colIndex, rindex);
 
 				// We are assured of uniqueness if 'identicalRows != null &&
 				// identicalRows.Count == 0'  This is because 'identicalRows' keeps
@@ -187,7 +187,7 @@ namespace Deveel.Data {
 					for (int c = 1; c < keySize; ++c) {
 						int colIndex = col2Indexes[c];
 						TObject cValue = keyValue[c];
-						if (cValue.CompareTo(t2.GetCellContents(colIndex, rIndex)) != 0) {
+						if (cValue.CompareTo(t2.GetCell(colIndex, rIndex)) != 0) {
 							// If any values in the key are not equal set this flag to false
 							// and remove the index from the list.
 							list.RemoveAt(i);
@@ -246,7 +246,7 @@ namespace Deveel.Data {
 			TObject[] keyValue = new TObject[keySize];
 			int nullCount = 0;
 			for (int n = 0; n < keySize; ++n) {
-				keyValue[n] = t1.GetCellContents(col1Indexes[n], rowIndex);
+				keyValue[n] = t1.GetCell(col1Indexes[n], rowIndex);
 				if (keyValue[n].IsNull) {
 					++nullCount;
 				}
@@ -303,7 +303,7 @@ namespace Deveel.Data {
 				DataTableColumnInfo columnInfo = tableInfo[i];
 				// For each row added to this column
 				for (int rn = 0; rn < rowIndices.Length; ++rn) {
-					TObject cell = table.GetCellContents(i, rowIndices[rn]);
+					TObject cell = table.GetCell(i, rowIndices[rn]);
 
 					// Check: Column defined as not null and cell being inserted is
 					// not null.

@@ -264,9 +264,9 @@ namespace Deveel.Data {
 				int row = e.RowIndex;
 
 				String c_schema =
-							  view_table.GetCellContents(0, row).Object.ToString();
+							  view_table.GetCell(0, row).Object.ToString();
 				String c_name =
-							  view_table.GetCellContents(1, row).Object.ToString();
+							  view_table.GetCell(1, row).Object.ToString();
 
 				if (view_name.Schema.Equals(c_schema) &&
 					view_name.Name.Equals(c_name)) {
@@ -277,7 +277,7 @@ namespace Deveel.Data {
 					if (view == null) {
 						// Not in the cache, so deserialize it and WriteByte it in the cache.
 						IBlobAccessor blob =
-							  (IBlobAccessor)view_table.GetCellContents(3, row).Object;
+							  (IBlobAccessor)view_table.GetCell(3, row).Object;
 						// Derserialize the blob
 						view = View.DeserializeFromBlob(blob);
 						// Put this in the cache....
@@ -320,7 +320,7 @@ namespace Deveel.Data {
 					if (view == null) {
 						// Not in the cache, so deserialize it and write it in the cache.
 						IBlobAccessor blob =
-							  (IBlobAccessor)view_table.GetCellContents(3, row).Object;
+							  (IBlobAccessor)view_table.GetCell(3, row).Object;
 						// Derserialize the blob
 						view = View.DeserializeFromBlob(blob);
 						// Put this in the cache....

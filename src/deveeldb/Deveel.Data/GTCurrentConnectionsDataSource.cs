@@ -103,7 +103,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 			CurrentConnection currentConnection = connections[row];
 
 			switch (column) {

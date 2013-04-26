@@ -22,7 +22,7 @@ namespace Deveel.Data {
 	/// </summary>
 	/// <remarks>
 	/// Each call to <see cref="RowIndex"/> returns an <see cref="Int32"/> that 
-	/// can be used in the <see cref="Table.GetCellContents(Int32, Int32)"/>.
+	/// can be used in the <see cref="Table.GetCell"/>.
 	/// </remarks>
 	public interface IRowEnumerator : IEnumerator {
 		/// <summary>

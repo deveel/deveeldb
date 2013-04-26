@@ -373,12 +373,12 @@ namespace Deveel.Data {
 				while (e.MoveNext()) {
 					int rowIndex = e.RowIndex;
 
-					TObject triggerSchema = table.GetCellContents(0, rowIndex);
-					TObject triggerName = table.GetCellContents(1, rowIndex);
-					TObject type = table.GetCellContents(2, rowIndex);
-					TObject onObject = table.GetCellContents(3, rowIndex);
-					TObject action = table.GetCellContents(4, rowIndex);
-					TObject misc = table.GetCellContents(5, rowIndex);
+					TObject triggerSchema = table.GetCell(0, rowIndex);
+					TObject triggerName = table.GetCell(1, rowIndex);
+					TObject type = table.GetCell(2, rowIndex);
+					TObject onObject = table.GetCell(3, rowIndex);
+					TObject action = table.GetCell(4, rowIndex);
+					TObject misc = table.GetCell(5, rowIndex);
 
 					ProcedureTriggerInfo triggerInfo = new ProcedureTriggerInfo();
 					triggerInfo.schema = triggerSchema.Object.ToString();
@@ -604,15 +604,15 @@ namespace Deveel.Data {
 					}
 				}
 				if (p == index) {
-					String schema = table.GetCellContents(0, row_i).Object.ToString();
-					String name = table.GetCellContents(1, row_i).Object.ToString();
+					String schema = table.GetCell(0, row_i).Object.ToString();
+					String name = table.GetCell(1, row_i).Object.ToString();
 
 					DataTableInfo tableInfo = CreateTableInfo(schema, name);
-					TObject type = table.GetCellContents(2, row_i);
-					TObject on_object = table.GetCellContents(3, row_i);
-					TObject procedure_name = table.GetCellContents(4, row_i);
-					TObject param_args = table.GetCellContents(5, row_i);
-					TObject owner = table.GetCellContents(6, row_i);
+					TObject type = table.GetCell(2, row_i);
+					TObject on_object = table.GetCell(3, row_i);
+					TObject procedure_name = table.GetCell(4, row_i);
+					TObject param_args = table.GetCell(5, row_i);
+					TObject owner = table.GetCell(6, row_i);
 
 					// Implementation of IMutableTableDataSource that describes this
 					// trigger.
@@ -651,7 +651,7 @@ namespace Deveel.Data {
 					get { return 1; }
 				}
 
-				public override TObject GetCellContents(int col, int row) {
+				public override TObject GetCell(int col, int row) {
 					switch (col) {
 						case 0:
 							return type;

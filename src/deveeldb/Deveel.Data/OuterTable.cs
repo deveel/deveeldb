@@ -114,12 +114,12 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 			int tableNum = ColumnTable[column];
 			Table parent_table = ReferenceTables[tableNum];
 			if (row >= outerRowCount) {
 				row = ReferenceRows[tableNum][row - outerRowCount];
-				return parent_table.GetCellContents(ColumnFilter[column], row);
+				return parent_table.GetCell(ColumnFilter[column], row);
 			}
 
 			if (outerRows[tableNum] == null)
@@ -127,7 +127,7 @@ namespace Deveel.Data {
 				return new TObject(GetColumnInfo(column).TType, null);
 
 			row = outerRows[tableNum][row];
-			return parent_table.GetCellContents(ColumnFilter[column], row);
+			return parent_table.GetCell(ColumnFilter[column], row);
 		}
 
 		/// <inheritdoc/>

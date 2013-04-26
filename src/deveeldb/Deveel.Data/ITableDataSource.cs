@@ -47,7 +47,7 @@ namespace Deveel.Data {
 		/// Returns the number of rows in this data source.
 		///</summary>
 		/// <remarks>
-		/// Returns 'n' - <see cref="GetCellContents"/> is not necessarily valid for 
+		/// Returns 'n' - <see cref="GetCell"/> is not necessarily valid for 
 		/// row = [0..n]. Use <see cref="GetRowEnumerator"/> to generate an iterator 
 		/// for valid row values over this data source.
 		/// </remarks>
@@ -59,7 +59,7 @@ namespace Deveel.Data {
 		///</summary>
 		/// <remarks>
 		/// The iterator is guarenteed to return exactly <see cref="RowCount"/> elements. 
-		/// The row elements returned by this iterator are used in <see cref="GetCellContents"/>
+		/// The row elements returned by this iterator are used in <see cref="GetCell"/>
 		/// in the <i>row</i> parameter.
 		/// <para>
 		/// This object is only defined if entries in the table are not added/remove during 
@@ -99,7 +99,7 @@ namespace Deveel.Data {
 		/// to create a row iterator.
 		/// </remarks>
 		///<returns></returns>
-		TObject GetCellContents(int column, int row);
+		TObject GetCell(int column, int row);
 
 	}
 }

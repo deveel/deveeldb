@@ -212,7 +212,7 @@ namespace Deveel.Data {
 				while (e.MoveNext()) {
 					int row_index = e.RowIndex;
 					BigNumber priv_bit =
-								  (BigNumber)t1.GetCellContents(0, row_index).Object;
+								  (BigNumber)t1.GetCell(0, row_index).Object;
 					privs = privs.Add(priv_bit.ToInt32());
 				}
 

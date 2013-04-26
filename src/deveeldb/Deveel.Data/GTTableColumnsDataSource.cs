@@ -100,7 +100,7 @@ namespace Deveel.Data {
 			get { return rowCount; }
 		}
 
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 
 			int sz = visibleTables.Length;
 			int rs = 0;

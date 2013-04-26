@@ -58,7 +58,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public TObject GetCellContents(int column, int row) {
-			return table.GetCellContents(column, row);
+			return table.GetCell(column, row);
 		}
 
 		/// <summary>

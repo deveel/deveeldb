@@ -147,7 +147,7 @@ namespace Deveel.Data {
 			try {
 				TObject[] columns = new TObject[columnCount];
 				for (int i = 0; i < columnCount; i++)
-					columns[i] = result.GetCellContents(i, rowIndex);
+					columns[i] = result.GetCell(i, rowIndex);
 
 				return new CursorRowTable(result, columns);
 			} catch(Exception e) {
@@ -432,7 +432,7 @@ namespace Deveel.Data {
 				get { return 1; }
 			}
 
-			public override TObject GetCellContents(int column, int row) {
+			public override TObject GetCell(int column, int row) {
 				return columns[column];
 			}
 		}

@@ -35,7 +35,7 @@ namespace Deveel.Data {
 	/// </para>
 	/// <para>
 	/// <b>Synchronization Issue:</b> Instances of this object are <b>not</b> 
-	/// thread safe. The reason it's not is because if <see cref="GetCellContents"/> 
+	/// thread safe. The reason it's not is because if <see cref="GetCell"/> 
 	/// is used concurrently it's possible for the same value to be added into 
 	/// the cache causing an error.
 	/// It is not expected that this object will be shared between threads.
@@ -312,8 +312,8 @@ namespace Deveel.Data {
 					bool equal = true;
 					// Compare cell in column in this row with previous row.
 					for (int n = 0; n < colLookup.Length && equal; ++n) {
-						TObject c1 = rootTable.GetCellContents(colLookup[n], rowIndex);
-						TObject c2 = rootTable.GetCellContents(colLookup[n], previous_row);
+						TObject c1 = rootTable.GetCell(colLookup[n], rowIndex);
+						TObject c2 = rootTable.GetCell(colLookup[n], previous_row);
 						equal = (c1.CompareTo(c2) == 0);
 					}
 
@@ -521,7 +521,7 @@ namespace Deveel.Data {
 				int r = groupLinks[i];
 
 				int act_r_index = r & 0x03FFFFFFF;
-				TObject cell = refTab.GetCellContents(colNum, act_r_index);
+				TObject cell = refTab.GetCell(colNum, act_r_index);
 				if (max == null || cell.CompareTo(max) > 0) {
 					max = cell;
 					to_take_in_group = act_r_index;
@@ -537,7 +537,7 @@ namespace Deveel.Data {
 
 		// ------ Methods that are implemented for Table interface ------
 
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 			// [ FUNCTION TABLE CACHING NOW USES THE GLOBAL CELL CACHING MECHANISM ]
 			// Check if in the cache,
 			DataCellCache cache = Database.DataCellCache;
@@ -710,7 +710,7 @@ namespace Deveel.Data {
 				if (group != null) {
 					row_index = group[set_index];
 				}
-				TObject cell = table.ReferenceTable.GetCellContents(col_index, row_index);
+				TObject cell = table.ReferenceTable.GetCell(col_index, row_index);
 
 				return cell;
 			}

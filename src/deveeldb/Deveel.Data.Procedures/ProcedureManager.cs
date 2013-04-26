@@ -312,11 +312,11 @@ namespace Deveel.Data.Procedures {
 
 			//TODO: check this...
 			int row_index = t.GetRowEnumerator().RowIndex;
-			TObject type_ob = t.GetCellContents(2, row_index);
-			TObject location_ob = t.GetCellContents(3, row_index);
-			TObject return_type_ob = t.GetCellContents(4, row_index);
-			TObject param_types_ob = t.GetCellContents(5, row_index);
-			TObject owner_ob = t.GetCellContents(6, row_index);
+			TObject type_ob = t.GetCell(2, row_index);
+			TObject location_ob = t.GetCell(3, row_index);
+			TObject return_type_ob = t.GetCell(4, row_index);
+			TObject param_types_ob = t.GetCell(5, row_index);
+			TObject owner_ob = t.GetCell(6, row_index);
 
 			String type = type_ob.Object.ToString();
 			String location = location_ob.Object.ToString();
@@ -855,15 +855,15 @@ namespace Deveel.Data.Procedures {
 				if (p != index)
 					throw new Exception("Index out of bounds.");
 
-				string schema = table.GetCellContents(0, row_i).Object.ToString();
-				string name = table.GetCellContents(1, row_i).Object.ToString();
+				string schema = table.GetCell(0, row_i).Object.ToString();
+				string name = table.GetCell(1, row_i).Object.ToString();
 
 				DataTableInfo tableInfo = CreateTableInfo(schema, name);
-				TObject type = table.GetCellContents(2, row_i);
-				TObject location = table.GetCellContents(3, row_i);
-				TObject returnType = table.GetCellContents(4, row_i);
-				TObject paramTypes = table.GetCellContents(5, row_i);
-				TObject owner = table.GetCellContents(6, row_i);
+				TObject type = table.GetCell(2, row_i);
+				TObject location = table.GetCell(3, row_i);
+				TObject returnType = table.GetCell(4, row_i);
+				TObject paramTypes = table.GetCell(5, row_i);
+				TObject owner = table.GetCell(6, row_i);
 
 				// Implementation of IMutableTableDataSource that describes this
 				// procedure.
@@ -897,7 +897,7 @@ namespace Deveel.Data.Procedures {
 					get { return 1; }
 				}
 
-				public override TObject GetCellContents(int col, int row) {
+				public override TObject GetCell(int col, int row) {
 					switch (col) {
 						case 0:
 							return type;

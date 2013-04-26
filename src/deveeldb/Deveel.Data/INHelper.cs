@@ -73,7 +73,7 @@ namespace Deveel.Data {
 
 			while (e.MoveNext()) {
 				int smallRowIndex = e.RowIndex;
-				TObject cell = smallTable.GetCellContents(smallColumn, smallRowIndex);
+				TObject cell = smallTable.GetCell(smallColumn, smallRowIndex);
 
 				IList<int> selectedSet = largeTable.SelectRows(largeColumn, op, cell);
 
@@ -142,7 +142,7 @@ namespace Deveel.Data {
 				if (!en.MoveNext())
 					throw new InvalidOperationException("Cannot iterate through table rows.");
 
-				TObject cell = table2.GetCellContents(col2, en.RowIndex);
+				TObject cell = table2.GetCell(col2, en.RowIndex);
 				return table1.SelectRows(col1, Operator.Get("<>"), cell);
 			}
 
@@ -154,7 +154,7 @@ namespace Deveel.Data {
 
 			while (e.MoveNext()) {
 				int rowIndex = e.RowIndex;
-				TObject cell = table1.GetCellContents(col1, rowIndex);
+				TObject cell = table1.GetCell(col1, rowIndex);
 
 				IList<int> selectedSet = table2.SelectRows(col2, Operator.Equal, cell);
 

@@ -342,7 +342,7 @@ namespace Deveel.Data {
 			IRowEnumerator rowEnum = t.GetRowEnumerator();
 			int i = 0;
 			while (rowEnum.MoveNext()) {
-				groups[i] = t.GetCellContents(1, rowEnum.RowIndex).Object.ToString();
+				groups[i] = t.GetCell(1, rowEnum.RowIndex).Object.ToString();
 				++i;
 			}
 

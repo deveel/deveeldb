@@ -105,21 +105,21 @@ namespace Deveel.Data {
 				if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 					// Select the last from the set (the highest value),
 					TObject[] highest_cells =
-											right_table.GetLastCellContent(right_col_map);
+											right_table.GetLastCell(right_col_map);
 					// Select from the source table all rows that are > or >= to the
 					// highest cell,
 					select_vec = left_table.SelectRows(left_col_map, op, highest_cells);
 				} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 					// Select the first from the set (the lowest value),
 					TObject[] lowest_cells =
-										   right_table.GetFirstCellContent(right_col_map);
+										   right_table.GetFirstCell(right_col_map);
 					// Select from the source table all rows that are < or <= to the
 					// lowest cell,
 					select_vec = left_table.SelectRows(left_col_map, op, lowest_cells);
 				} else if (op.IsEquivalent("=")) {
 					// Select the single value from the set (if there is one).
 					TObject[] single_cell =
-										 right_table.GetSingleCellContent(right_col_map);
+										 right_table.GetSingleCell(right_col_map);
 					if (single_cell != null) {
 						// Select all from source_table all values that = this cell
 						select_vec = left_table.SelectRows(left_col_map, op, single_cell);
@@ -152,14 +152,14 @@ namespace Deveel.Data {
 				if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 					// Select the first from the set (the lowest value),
 					TObject[] lowest_cells =
-										   right_table.GetFirstCellContent(right_col_map);
+										   right_table.GetFirstCell(right_col_map);
 					// Select from the source table all rows that are > or >= to the
 					// lowest cell,
 					select_vec = left_table.SelectRows(left_col_map, op, lowest_cells);
 				} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 					// Select the last from the set (the highest value),
 					TObject[] highest_cells =
-											right_table.GetLastCellContent(right_col_map);
+											right_table.GetLastCell(right_col_map);
 					// Select from the source table all rows that are < or <= to the
 					// highest cell,
 					select_vec = left_table.SelectRows(left_col_map, op, highest_cells);
@@ -169,7 +169,7 @@ namespace Deveel.Data {
 											 left_col_map, right_col_map);
 				} else if (op.IsEquivalent("<>")) {
 					// Select the value that is the same of the entire column
-					TObject[] cells = right_table.GetSingleCellContent(right_col_map);
+					TObject[] cells = right_table.GetSingleCell(right_col_map);
 					if (cells != null) {
 						// All values from 'source_table' that are <> than the given cell.
 						select_vec = left_table.SelectRows(left_col_map, op, cells);

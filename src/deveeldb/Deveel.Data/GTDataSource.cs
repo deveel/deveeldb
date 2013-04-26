@@ -77,7 +77,7 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public abstract TObject GetCellContents(int column, int row);
+		public abstract TObject GetCell(int column, int row);
 
 
 		protected virtual void Dispose(bool disposing) {

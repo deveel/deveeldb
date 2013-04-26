@@ -93,7 +93,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		///<returns></returns>
 		public TObject Get(int column, int row) {
-			return table.GetCellContents(column, row);
+			return table.GetCell(column, row);
 		}
 
 		/// <summary>

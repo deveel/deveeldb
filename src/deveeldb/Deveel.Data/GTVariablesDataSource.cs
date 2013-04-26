@@ -61,7 +61,7 @@ namespace Deveel.Data {
 			get { return variables.Count/4; }
 		}
 
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 			VariableInfo variable = variables[row];
 
 			switch (column) {

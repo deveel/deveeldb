@@ -402,7 +402,7 @@ namespace Deveel.Data {
 				// Get the expression (the contents of the cell at the given column, row)
 
 				bool pattern_matches = false;
-				TObject cell = table.GetCellContents(column, enumerator.Current);
+				TObject cell = table.GetCell(column, enumerator.Current);
 				// Null values doesn't match with anything
 				if (!cell.IsNull) {
 					String expression = cell.Object.ToString();

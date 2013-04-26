@@ -602,14 +602,14 @@ namespace Deveel.Data {
 			if (op.IsEquivalent(">") || 
 				op.IsEquivalent(">=")) {
 				// Select the first from the set (the lowest value),
-				TObject lowestCell = table.GetFirstCellContent(0);
+				TObject lowestCell = table.GetFirstCell(0);
 				// Select from the source table all rows that are > or >= to the
 				// lowest cell,
 				selectRows = sourceTable.SelectRows(lhsColIndex, op, lowestCell);
 			} else if (op.IsEquivalent("<") || 
 				op.IsEquivalent("<=")) {
 				// Select the last from the set (the highest value),
-				TObject highestCell = table.GetLastCellContent(0);
+				TObject highestCell = table.GetLastCell(0);
 				// Select from the source table all rows that are < or <= to the
 				// highest cell,
 				selectRows = sourceTable.SelectRows(lhsColIndex, op, highestCell);
@@ -618,7 +618,7 @@ namespace Deveel.Data {
 				selectRows = INHelper.In(sourceTable, table, lhsColIndex, 0);
 			} else if (op.IsEquivalent("<>")) {
 				// Select the value that is the same of the entire column
-				TObject cell = table.GetSingleCellContent(0);
+				TObject cell = table.GetSingleCell(0);
 				if (cell != null) {
 					// All values from 'source_table' that are <> than the given cell.
 					selectRows = sourceTable.SelectRows(lhsColIndex, op, cell);
@@ -717,15 +717,15 @@ namespace Deveel.Data {
 				// The various operators
 				if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 					// Find the maximum value in the table
-					TObject cell = table.GetLastCellContent(0);
+					TObject cell = table.GetLastCell(0);
 					comparedToTrue = CompareCells(value, cell, op);
 				} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 					// Find the minimum value in the table
-					TObject cell = table.GetFirstCellContent(0);
+					TObject cell = table.GetFirstCell(0);
 					comparedToTrue = CompareCells(value, cell, op);
 				} else if (op.IsEquivalent("=")) {
 					// Only true if rhs is a single value
-					TObject cell = table.GetSingleCellContent(0);
+					TObject cell = table.GetSingleCell(0);
 					comparedToTrue = (cell != null && CompareCells(value, cell, op));
 				} else if (op.IsEquivalent("<>")) {
 					// true only if lhs_cell is not found in column.
@@ -790,19 +790,19 @@ namespace Deveel.Data {
 			IList<int> selectList;
 			if (op.IsEquivalent(">") || op.IsEquivalent(">=")) {
 				// Select the last from the set (the highest value),
-				TObject highestCell = table.GetLastCellContent(0);
+				TObject highestCell = table.GetLastCell(0);
 				// Select from the source table all rows that are > or >= to the
 				// highest cell,
 				selectList = sourceTable.SelectRows(colIndex, op, highestCell);
 			} else if (op.IsEquivalent("<") || op.IsEquivalent("<=")) {
 				// Select the first from the set (the lowest value),
-				TObject lowestCell = table.GetFirstCellContent(0);
+				TObject lowestCell = table.GetFirstCell(0);
 				// Select from the source table all rows that are < or <= to the
 				// lowest cell,
 				selectList = sourceTable.SelectRows(colIndex, op, lowestCell);
 			} else if (op.IsEquivalent("=")) {
 				// Select the single value from the set (if there is one).
-				TObject singleCell = table.GetSingleCellContent(0);
+				TObject singleCell = table.GetSingleCell(0);
 				if (singleCell != null) {
 					// Select all from source_table all values that = this cell
 					selectList = sourceTable.SelectRows(colIndex, op, singleCell);
@@ -954,8 +954,8 @@ namespace Deveel.Data {
 					bool equal = true;
 					// Compare cell in column in this row with previous row.
 					for (int n = 0; n < columns.Length && equal; ++n) {
-						TObject c1 = GetCellContents(columns[n], rowIndex);
-						TObject c2 = GetCellContents(columns[n], previousRow);
+						TObject c1 = GetCell(columns[n], rowIndex);
+						TObject c2 = GetCell(columns[n], previousRow);
 						equal = (c1.CompareTo(c2) == 0);
 					}
 

@@ -407,7 +407,7 @@ namespace Deveel.Data {
 						for (int i = 0; i < colMap.Length; ++i) {
 							int col = colMap[i];
 							if (col != -1) {
-								dataRow.SetValue(i, cTable.GetCellContents(col, rowIndex));
+								dataRow.SetValue(i, cTable.GetCell(col, rowIndex));
 							}
 						}
 						dataRow.SetToDefault(context);

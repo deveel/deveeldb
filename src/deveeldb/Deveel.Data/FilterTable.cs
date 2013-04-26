@@ -129,8 +129,8 @@ namespace Deveel.Data {
 			return parent.ResolveToRawTable(info);
 		}
 
-		public override TObject GetCellContents(int column, int row) {
-			return parent.GetCellContents(column, row);
+		public override TObject GetCell(int column, int row) {
+			return parent.GetCell(column, row);
 		}
 
 		public override IRowEnumerator GetRowEnumerator() {

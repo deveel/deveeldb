@@ -98,7 +98,7 @@ namespace Deveel.Data {
 			get { return statsInfo.Length/2; }
 		}
 
-		public override TObject GetCellContents(int column, int row) {
+		public override TObject GetCell(int column, int row) {
 			switch (column) {
 				case 0:  // stat_name
 					return GetColumnValue(column, statsInfo[row * 2]);

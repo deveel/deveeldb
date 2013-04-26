@@ -33,7 +33,7 @@ namespace Deveel.Data {
 	/// Every scheme is given a table and column number that the set refers to.
 	/// While a given set element is refered to as a 'row', the integer is really
 	/// only a pointer into the set list which can be de-referenced with a call to
-	/// <see cref="ITableDataSource.GetCellContents"/>.  Better performance schemes 
+	/// <see cref="ITableDataSource.GetCell"/>.  Better performance schemes 
 	/// will keep such calls to a minimum.
 	/// </para>
 	/// <para>
@@ -117,7 +117,7 @@ namespace Deveel.Data {
 		/// <param name="row"></param>
 		/// <returns></returns>
 		protected TObject GetCellContents(int row) {
-			return table.GetCellContents(column, row);
+			return table.GetCell(column, row);
 		}
 
 		/// <inheritdoc/>
