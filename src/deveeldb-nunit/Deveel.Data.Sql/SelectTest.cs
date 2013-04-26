@@ -11,6 +11,12 @@ namespace Deveel.Data.Sql {
 			get { return true; }
 		}
 
+		protected override void OnTestSetUp() {
+			Connection.AutoCommit = true;
+
+			base.OnTestSetUp();
+		}
+
 		[Test(Description = "Declares and selects a gobal variable")]
 		public void VariableSelect() {
 			ExecuteNonQuery("DECLARE var NUMERIC(20) = 43");
@@ -112,7 +118,17 @@ namespace Deveel.Data.Sql {
 
 		[Test(Description = "Stores the result of a selection into a table")]
 		public void SelectIntoTable() {
-			Assert.Inconclusive();
+			ExecuteNonQuery("CREATE TABLE FirstNames (name VARCHAR(100) NOT NULL)");
+			ExecuteNonQuery("SELECT name INTO FirstNames FROM Person");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			Table table1 = connection.GetTable("Person");
+			Table table2 = connection.GetTable("FirstNames");
+
+			Assert.IsNotNull(table1);
+			Assert.IsNotNull(table2);
+
+			Assert.AreEqual(table1.RowCount, table2.RowCount);
 		}
 
 		[Test(Description = "Selects all the values in a group that satisfy a given condition")]

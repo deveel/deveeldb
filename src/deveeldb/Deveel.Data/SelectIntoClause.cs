@@ -41,7 +41,7 @@ namespace Deveel.Data {
 		}
 
 		internal bool HasTableName {
-			get { return elements[0] is string || elements[0] is TableName; }
+			get { return !String.IsNullOrEmpty(tableName); }
 		}
 
 		/// <summary>
@@ -90,7 +90,9 @@ namespace Deveel.Data {
 		}
 
 		public Table SelectInto(IQueryContext context, Table table) {
-			if (Table != null) {
+			if (HasTableName) {
+				ResolveTableName(context.Connection);
+
 				DataTable destTable = (DataTable) context.GetTable(Table);
 				if (destTable == null)
 					throw new DatabaseException("The table '" + Table + "' target of the select statement was not found.");
@@ -104,7 +106,7 @@ namespace Deveel.Data {
 					DataTableColumnInfo srcColumnInfo = table.TableInfo[i];
 					DataTableColumnInfo dstColumnInfo = destTable.TableInfo[i];
 
-					if (srcColumnInfo.TType != dstColumnInfo.TType)
+					if (!srcColumnInfo.TType.IsComparableType(dstColumnInfo.TType))
 						throw new DatabaseException("The column " + dstColumnInfo.Name + " in the destination table has a different " +
 													"type from the source column " + srcColumnInfo.Name);
 				}

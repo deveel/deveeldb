@@ -16,7 +16,7 @@
 using System;
 
 namespace Deveel.Data {
-	public partial class Transaction {
+	internal partial class Transaction {
 		/// <summary>
 		/// Create a new schema in this transaction.
 		/// </summary>

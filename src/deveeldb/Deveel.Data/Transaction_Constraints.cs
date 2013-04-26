@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data {
-	public partial class Transaction {
+	internal partial class Transaction {
 		// ----- Setting/Querying constraint information -----
 		// PENDING: Is it worth implementing a pluggable constraint architecture
 		//   as described in the idea below.  With the current implementation we

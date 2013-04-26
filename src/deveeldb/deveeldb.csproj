@@ -612,8 +612,8 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>$(ProjectDir)..\..\util\csharpcc\csharpcc.exe -OUTPUT_DIRECTORY="$(ProjectDir)Deveel.Data.Sql" "$(ProjectDir)Deveel.Data.Sql\SQL.csc"
-$(ProjectDir)..\..\util\sqlstategen\sqlstategen.exe -i $(ProjectDir)sqlstates.xml -o $(ProjectDir)Deveel.Data\SqlState_States.cs</PreBuildEvent>
+    <PreBuildEvent>REM $(ProjectDir)..\..\util\csharpcc\csharpcc.exe -OUTPUT_DIRECTORY="$(ProjectDir)Deveel.Data.Sql" "$(ProjectDir)Deveel.Data.Sql\SQL.csc"
+REM $(ProjectDir)..\..\util\sqlstategen\sqlstategen.exe -i $(ProjectDir)sqlstates.xml -o $(ProjectDir)Deveel.Data\SqlState_States.cs</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

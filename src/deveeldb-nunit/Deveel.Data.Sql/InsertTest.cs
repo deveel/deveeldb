@@ -32,6 +32,12 @@ namespace Deveel.Data.Sql {
 			base.OnTestSetUp();
 		}
 
+		protected override void OnTestTearDown() {
+			ExecuteNonQuery("DROP TABLE Person");
+
+			base.OnTestTearDown();
+		}
+
 		[Test]
 		public void SimpleInsert() {
 			ExecuteNonQuery("INSERT INTO Person (first_name, last_name) VALUES ('Antonello', 'Provenzano')");
@@ -42,25 +48,47 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual(1, table.RowCount);
 			Assert.AreEqual("Antonello", table.GetFirstCell("first_name").ToString());
 			Assert.AreEqual("Provenzano", table.GetFirstCell("last_name").ToString());
+			Assert.AreEqual(1, table.GetFirstCell("id").ToBigNumber().ToInt32());
 		}
 
 		[Test]
 		public void InsertWithoutColumns() {
-			
+			ExecuteNonQuery("INSERT INTO Person VALUES (22, 'Antonello','Provenzano')");
 		}
 
 		[Test]
 		public void InsertMultimpleValues() {
-			
+			ExecuteNonQuery("INSERT INTO Person (first_name, last_name) VALUES ('Antonello', 'Provenzano'), ('Sebastiano', 'Provenzano'), ('Mart', 'Roosmaa')");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			Table table = connection.GetTable("Person");
+
+			Assert.AreEqual(3, table.RowCount);
 		}
 
 		[Test]
 		public void InsertFromSelect() {
-			
+			ExecuteNonQuery("INSERT INTO Person (first_name, last_name) VALUES ('Antonello', 'Provenzano'), ('Sebastiano', 'Provenzano'), ('Mart', 'Roosmaa')");
+			ExecuteNonQuery("CREATE TABLE FirstNames (name VARCHAR(100))");
+			ExecuteNonQuery("INSERT INTO FirstNames (name) SELECT first_name FROM Person");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			Table table = connection.GetTable("FirstNames");
+
+			Assert.AreEqual(3, table.RowCount);
 		}
 
 		[Test]
 		public void InsertFromAssignment() {
+			ExecuteNonQuery("INSERT INTO Person SET first_name = 'Antonello', last_name = 'Provenzano'");
+
+			DatabaseConnection connection = CreateDatabaseConnection();
+			Table table = connection.GetTable("Person");
+
+			Assert.AreEqual(1, table.RowCount);
+			Assert.AreEqual("Antonello", table.GetFirstCell("first_name").ToString());
+			Assert.AreEqual("Provenzano", table.GetFirstCell("last_name").ToString());
+			Assert.AreEqual(1, table.GetFirstCell("id").ToBigNumber().ToInt32());
 		}
 	}
 }

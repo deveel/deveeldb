@@ -99,7 +99,7 @@ namespace Deveel.Data {
 		}
 
 		[SetUp]
-		public virtual void TestSetUp() {
+		public void TestSetUp() {
 			connection = (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
 			connection.AutoCommit = false;
 
@@ -110,7 +110,7 @@ namespace Deveel.Data {
 		}
 
 		[TearDown]
-		public virtual void TestTearDown() {
+		public void TestTearDown() {
 			OnTestTearDown();
 
 			if (RequiresSchema)

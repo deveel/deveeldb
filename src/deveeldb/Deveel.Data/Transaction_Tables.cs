@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace Deveel.Data {
-	public partial class Transaction {
+	internal partial class Transaction {
 		/// <summary>
 		///  All tables touched by this transaction.  (IMutableTableDataSource)
 		/// </summary>

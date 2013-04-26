@@ -36,7 +36,7 @@ namespace Deveel.Data {
 	/// master data.
 	/// </para>
 	/// </remarks>
-	public partial class Transaction : SimpleTransaction, IDisposable, ICursorContext {
+	internal partial class Transaction : SimpleTransaction, IDisposable, ICursorContext {
 
 		// ---------- Member variables ----------
 

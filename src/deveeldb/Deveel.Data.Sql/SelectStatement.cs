@@ -84,7 +84,8 @@ namespace Deveel.Data.Sql {
 			try {
 				Table t = plan.Evaluate(context);
 
-				if (intoClause != null && intoClause.HasElements)
+				if (intoClause != null &&
+				    (intoClause.HasElements || intoClause.HasTableName))
 					t = intoClause.SelectInto(context, t);
 
 				error = false;

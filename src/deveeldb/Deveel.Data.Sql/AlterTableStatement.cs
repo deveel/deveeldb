@@ -114,7 +114,7 @@ namespace Deveel.Data.Sql {
 		/// </returns>
 		public bool CheckColumnNamesMatch(DatabaseConnection db, String col1, String col2) {
 			if (db.IsInCaseInsensitiveMode)
-				return String.Compare(col1, col2, true) == 0;
+				return String.Compare(col1, col2, StringComparison.OrdinalIgnoreCase) == 0;
 			return col1.Equals(col2);
 		}
 

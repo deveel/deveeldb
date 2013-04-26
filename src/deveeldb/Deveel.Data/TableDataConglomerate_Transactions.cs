@@ -38,7 +38,7 @@ namespace Deveel.Data {
 		/// be made.
 		/// </remarks>
 		/// <returns></returns>
-		public Transaction CreateTransaction() {
+		internal Transaction CreateTransaction() {
 			List<MasterTableDataSource> thisCommittedTables = new List<MasterTableDataSource>();
 
 			// Don't let a commit happen while we are looking at this.
