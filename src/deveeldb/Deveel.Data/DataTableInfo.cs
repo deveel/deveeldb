@@ -15,7 +15,6 @@
 
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -108,13 +107,12 @@ namespace Deveel.Data {
 		/// Resolves variables input a column so that any unresolved column 
 		/// names point to this table.
 		/// </summary>
-		/// <param name="ignore_case"></param>
+		/// <param name="ignoreCase"></param>
 		/// <param name="exp"></param>
 		/// <remarks>
 		/// Used to resolve columns input the 'check_expression'.
 		/// </remarks>
-		internal void ResolveColumns(bool ignore_case, Expression exp) {
-
+		internal void ResolveColumns(bool ignoreCase, Expression exp) {
 			// For each variable, determine if the column correctly resolves to a
 			// column input this table.  If the database is input identifier case insensitive
 			// mode attempt to resolve the column name to a valid column input this
@@ -123,20 +121,20 @@ namespace Deveel.Data {
 				IList<VariableName> list = exp.AllVariables;
 				for (int i = 0; i < list.Count; ++i) {
 					VariableName v = list[i];
-					String col_name = v.Name;
+					string colName = v.Name;
+
 					// Can we resolve this to a variable input the table?
-					if (ignore_case) {
+					if (ignoreCase) {
 						int size = ColumnCount;
 						for (int n = 0; n < size; ++n) {
 							// If this is a column name (case ignored) then set the variable
 							// to the correct cased name.
-							if (String.Compare(this[n].Name, col_name, true) == 0) {
+							if (String.Compare(this[n].Name, colName, StringComparison.OrdinalIgnoreCase) == 0) {
 								v.Name = this[n].Name;
 							}
 						}
 					}
 				}
-
 			}
 		}
 
@@ -232,10 +230,7 @@ namespace Deveel.Data {
 		/// otherwise returns <see cref="String.Empty"/>.
 		/// </summary>
 		public string Schema {
-			get {
-				String schema_name = tableName.Schema;
-				return schema_name ?? "";
-			}
+			get { return tableName.Schema ?? ""; }
 		}
 
 		/// <summary>
@@ -265,7 +260,7 @@ namespace Deveel.Data {
 				if (value.Equals("Deveel.Data.VariableSizeDataTableFile")) {
 					tableTypeName = value;
 				} else {
-					throw new ApplicationException("Unrecognised table class: " + value);
+					throw new ApplicationException("Unrecognised table type: " + value);
 				}
 			}
 		}
@@ -295,42 +290,41 @@ namespace Deveel.Data {
 
 		///<summary>
 		///</summary>
-		///<param name="column_name"></param>
+		///<param name="columnName"></param>
 		///<returns></returns>
-		public int FindColumnName(String column_name) {
+		public int FindColumnName(string columnName) {
 			int size = ColumnCount;
 			for (int i = 0; i < size; ++i) {
-				if (this[i].Name.Equals(column_name)) {
+				if (this[i].Name.Equals(columnName)) {
 					return i;
 				}
 			}
 			return -1;
 		}
 
-		// Stores col name -> col index lookups
-		private Hashtable col_name_lookup;
-		private Object COL_LOOKUP_LOCK = new Object();
+		private Dictionary<string, int> colNameLookup;
+		private readonly object colLookupLock = new Object();
 
 		///<summary>
 		/// A faster way to find a column index given a string column name.
 		///</summary>
-		///<param name="col"></param>
+		///<param name="columnName"></param>
 		/// <remarks>
 		/// This caches column name -> column index input a hashtable.
 		/// </remarks>
 		///<returns></returns>
-		public int FastFindColumnName(String col) {
-			lock (COL_LOOKUP_LOCK) {
-				if (col_name_lookup == null) {
-					col_name_lookup = new Hashtable(30);
+		public int FastFindColumnName(string columnName) {
+			lock (colLookupLock) {
+				if (colNameLookup == null)
+					colNameLookup = new Dictionary<string, int>(30);
+
+				int index;
+				if (!colNameLookup.TryGetValue(columnName, out index)) {
+					index = FindColumnName(columnName);
+					colNameLookup[columnName] = index;
 				}
-				Object ob = col_name_lookup[col];
-				if (ob == null) {
-					int ci = FindColumnName(col);
-					col_name_lookup[col] =ci;
-					return ci;
-				}
-				return (int)ob;
+
+				return index;
 			}
 		}
 

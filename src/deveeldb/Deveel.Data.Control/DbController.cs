@@ -28,8 +28,8 @@ namespace Deveel.Data.Control {
 	/// </summary>
 	/// <remarks>
 	/// This object keeps an handle on all the databases handled by the system:
-	/// when a <see cref="DbSystem"/> returned by either <see cref="CreateDatabase"/>,
-	/// <see cref="StartDatabase"/> or <see cref="ConnectToDatabase"/> is disposed,
+	/// when a <see cref="DbSystem"/> returned by either <see cref="CreateDatabase(DbConfig,string)"/>,
+	/// <see cref="StartDatabase(DbConfig,string)"/> or <see cref="ConnectToDatabase"/> is disposed,
 	/// the database associated is still accessible by other threads until the
 	/// the <see cref="DbController"/> instance is disposed.
 	/// <para>
@@ -120,7 +120,7 @@ namespace Deveel.Data.Control {
 		/// A dictionary used to cache the pairs of the storage
 		/// systems names with their <see cref="StorageType"/>.
 		/// </summary>
-		private static readonly Dictionary<string, StorageType> cache = new Dictionary<string, StorageType>(30);
+		private static readonly Dictionary<string, StorageType> StorageTypeCache = new Dictionary<string, StorageType>(30);
 
 		/// <summary>
 		/// Gets the type of storage for the system defined in the
@@ -151,7 +151,7 @@ namespace Deveel.Data.Control {
 				throw new ArgumentNullException("typeName");
 
 			StorageType storageType;
-			if (!cache.TryGetValue(typeName, out storageType)) {
+			if (!StorageTypeCache.TryGetValue(typeName, out storageType)) {
 				// in case we're using the internal storage system aliases
 				if (String.Compare(typeName, ConfigValues.FileStorageSystem, StringComparison.OrdinalIgnoreCase) == 0)
 					storageType = StorageType.File;
@@ -177,40 +177,34 @@ namespace Deveel.Data.Control {
 					storageType = storeSystem.StorageType;
 				}
 
-				cache[typeName] = storageType;
+				StorageTypeCache[typeName] = storageType;
 			}
 
 			return storageType;
 		}
 
-
-		/*
-		public static DbController Create(DbConfig config) {
-			return Create(null, config);
-		}
-
 		/// <summary>
 		/// Creates a new instance of <see cref="DbController"/> to the
 		/// given path on the underlying filesystem.
 		/// </summary>
-		/// <param name="path">The root path where to instantiate the
-		/// <see cref="DbController"/>.</param>
+		/// <remarks>
+		/// If the given path doesn't point to any valid database context
+		/// this will generate it by creating a configuration file which
+		/// will encapsulate all the default configurations and those
+		/// provided in this method.
+		/// </remarks>
 		/// <returns>
 		/// Returns an instance of <see cref="DbController"/> which points
 		/// to the given path.
 		/// </returns>
-		/// <seealso cref="Create(string,Deveel.Data.Control.DbConfig)"/>
-		public static DbController Create(string path) {
-			return Create(path, null);
+		public static DbController Create() {
+			return Create(new DbConfig());
 		}
-		*/
 
 		/// <summary>
 		/// Creates a new instance of <see cref="DbController"/> to the
 		/// given path on the underlying filesystem.
 		/// </summary>
-		/// <param name="path">The root path where to instantiate the
-		/// <see cref="DbController"/>.</param>
 		/// <param name="config">The initial configurations that will
 		/// be applied to the subsequent databases within the context.</param>
 		/// <remarks>
@@ -223,10 +217,7 @@ namespace Deveel.Data.Control {
 		/// Returns an instance of <see cref="DbController"/> which points
 		/// to the given path.
 		/// </returns>
-		/// <exception cref="ArgumentNullException">
-		/// If the <paramref name="path"/> provided is <b>null</b>.
-		/// </exception>
-		public static DbController Create(/*string path, */ DbConfig config) {
+		public static DbController Create(DbConfig config) {
 			StorageType storageType = GetStorageType(config);
 
 			if (config == null)
@@ -360,8 +351,8 @@ namespace Deveel.Data.Control {
 
 		/// <summary>
 		/// Verifies if the database identified by the given name
-		/// was already initialized (by either <see cref="StartDatabase"/>
-		/// or <see cref="CreateDatabase"/>).
+		/// was already initialized (by either <see cref="StartDatabase(DbConfig, string)"/>
+		/// or <see cref="CreateDatabase(DbConfig, string)"/>).
 		/// </summary>
 		/// <param name="databaseName">The name of the database to test.</param>
 		/// <returns>
@@ -372,6 +363,29 @@ namespace Deveel.Data.Control {
 		public bool IsInitialized(string databaseName) {
 			Database database = GetDatabase(databaseName);
 			return (database != null && database.IsInitialized);
+		}
+
+		/// <summary>
+		/// Creates a new database with the given name and with initial
+		/// configurations.
+		/// </summary>
+		/// <param name="name">The name of the database to create.</param>
+		/// <param name="adminUser">The name of the administrator for the database,</param>
+		/// <param name="adminPass">The password used to identify the administrator.</param>
+		/// <returns>
+		/// Returns a <see cref="DbSystem"/> instance used to access the database created.
+		/// </returns>
+		/// <exception cref="ArgumentNullException">
+		/// If the <paramref name="name"/> of the database is <b>null</b>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// If a database with the given <paramref name="name"/> already exists.
+		/// </exception>
+		/// <exception cref="InvalidOperationException">
+		/// If an error occurred while initializing the database.
+		/// </exception>
+		public DbSystem CreateDatabase(string name, string adminUser, string adminPass) {
+			return CreateDatabase(null, name, adminUser, adminPass);
 		}
 
 		/// <summary>
@@ -439,6 +453,26 @@ namespace Deveel.Data.Control {
 			// Return the DbSystem object for the newly created database.
 			databases[name] = database;
 			return new DbSystem(this, name, config, database);
+		}
+
+		/// <summary>
+		/// Starts up the database identified with the given name.
+		/// </summary>
+		/// <param name="name">The name of the database to start.</param>
+		/// <returns>
+		/// Returns a <see cref="DbSystem"/> instance used to access the database created.
+		/// </returns>
+		/// <exception cref="ArgumentNullException">
+		/// If the <paramref name="name"/> of the database is <b>null</b>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// If a database with the given <paramref name="name"/> already exists.
+		/// </exception>
+		/// <exception cref="InvalidOperationException">
+		/// If an error occurred while initializing the database.
+		/// </exception>
+		public DbSystem StartDatabase(string name) {
+			return StartDatabase(null, name);
 		}
 
 		/// <summary>
@@ -515,7 +549,7 @@ namespace Deveel.Data.Control {
 		// ---------- Static methods ----------
 
 		/// <summary>
-		/// Creates a Database object for the given IDbConfig configuration.
+		/// Creates a Database object for the given DbConfig configuration.
 		/// </summary>
 		/// <param name="config"></param>
 		/// <param name="name"></param>

@@ -146,32 +146,31 @@ namespace Deveel.Data {
 				try {
 					// Denotes an array
 					if (value.EndsWith("[]")) {
-						String array_class =
-							value.Substring(0, value.Length - 2);
-						Type ac;
+						string arrayType = value.Substring(0, value.Length - 2);
+						Type elementType;
 						// Arrays of primitive types,
-						if (array_class.Equals("bool")) {
-							ac = typeof (bool);
-						} else if (array_class.Equals("byte")) {
-							ac = typeof (byte);
-						} else if (array_class.Equals("char")) {
-							ac = typeof (char);
-						} else if (array_class.Equals("short")) {
-							ac = typeof (short);
-						} else if (array_class.Equals("int")) {
-							ac = typeof (int);
-						} else if (array_class.Equals("long")) {
-							ac = typeof (long);
-						} else if (array_class.Equals("float")) {
-							ac = typeof (float);
-						} else if (array_class.Equals("double")) {
-							ac = typeof (double);
+						if (arrayType.Equals("bool")) {
+							elementType = typeof (bool);
+						} else if (arrayType.Equals("byte")) {
+							elementType = typeof (byte);
+						} else if (arrayType.Equals("char")) {
+							elementType = typeof (char);
+						} else if (arrayType.Equals("short")) {
+							elementType = typeof (short);
+						} else if (arrayType.Equals("int")) {
+							elementType = typeof (int);
+						} else if (arrayType.Equals("long")) {
+							elementType = typeof (long);
+						} else if (arrayType.Equals("float")) {
+							elementType = typeof (float);
+						} else if (arrayType.Equals("double")) {
+							elementType = typeof (double);
 						} else {
 							// Otherwise a standard array.
-							ac = Type.GetType(array_class, true, true);
+							elementType = Type.GetType(arrayType, true, true);
 						}
 						// Make it into an array
-						baseType = Array.CreateInstance(ac, 0).GetType();
+						baseType = Array.CreateInstance(elementType, 0).GetType();
 					} else {
 						// Not an array
 						baseType = Type.GetType(value, true, true);
