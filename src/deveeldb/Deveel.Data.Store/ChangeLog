@@ -1,3 +1,6 @@
+2014-03-17  Antonello Provenzano  <antonello@deveel.com>
+	* StorageType.cs: added enumeration item 'Network'
+
 2010-05-02  Antonello Provenzano  <antonello@deveel.com>
 	* StreamFile.cs: removed the use of FSync to adopt the
 	FileOptions.WriteThrough construction.

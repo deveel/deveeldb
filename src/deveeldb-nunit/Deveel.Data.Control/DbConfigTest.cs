@@ -8,6 +8,11 @@ namespace Deveel.Data.Control {
 	[TestFixture]
 	public sealed class DbConfigTest {
 		[Test]
+		public void CreateControllerWithoutConfig() {
+			Assert.DoesNotThrow(() => DbController.Create());
+		}
+
+		[Test]
 		public void LoadTest() {
 			StringBuilder sb = new StringBuilder();
 			StringWriter writer = new StringWriter(sb);

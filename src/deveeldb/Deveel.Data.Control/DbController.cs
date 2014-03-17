@@ -139,7 +139,7 @@ namespace Deveel.Data.Control {
 			if (config == null)
 				return StorageType.Memory;
 
-			string typeName = config.GetValue<string>(ConfigKeys.StorageSystem);
+			string typeName = config.StorageSystem;
 			if (typeName == null)
 				throw new InvalidOperationException("A storage system must be specified.");
 

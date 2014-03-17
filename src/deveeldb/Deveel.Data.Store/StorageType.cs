@@ -31,6 +31,11 @@ namespace Deveel.Data.Store {
 		/// Storage medium is the random-access memory
 		/// of the machine.
 		/// </summary>
-		Memory
+		Memory,
+
+		/// <summary>
+		/// A storage that spans through a network.
+		/// </summary>
+		Network
 	}
 }
