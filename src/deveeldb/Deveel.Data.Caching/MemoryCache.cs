@@ -16,41 +16,41 @@
 using System;
 
 namespace Deveel.Data.Caching {
-	internal class MemoryCache : Cache {
-		public MemoryCache(int hash_size, int max_size, int clean_percentage)
-			: base(max_size, clean_percentage) {
-			node_hash = new ListNode[hash_size];
+	public class MemoryCache : Cache {
+		public MemoryCache(int hashSize, int maxSize, int cleanPercentage)
+			: base(maxSize, cleanPercentage) {
+			nodeHash = new ListNode[hashSize];
 
-			list_start = null;
-			list_end = null;
+			listStart = null;
+			listEnd = null;
 		}
 
 		///<summary>
 		///</summary>
-		///<param name="max_size"></param>
-		///<param name="clean_percentage"></param>
-		public MemoryCache(int max_size, int clean_percentage)
-			: this((max_size * 2) + 1, max_size, clean_percentage) {
+		///<param name="maxSize"></param>
+		///<param name="cleanPercentage"></param>
+		public MemoryCache(int maxSize, int cleanPercentage)
+			: this((maxSize * 2) + 1, maxSize, cleanPercentage) {
 		}
 
 		/// <summary>
 		/// The array of ListNode objects arranged by hashing value.
 		/// </summary>
-		private readonly ListNode[] node_hash;
+		private readonly ListNode[] nodeHash;
 
 		/// <summary>
 		/// A pointer to the start of the list.
 		/// </summary>
-		private ListNode list_start;
+		private ListNode listStart;
 
 		/// <summary>
 		/// A pointer to the end of the list.
 		/// </summary>
-		private ListNode list_end;
+		private ListNode listEnd;
 
 		// Some statistics about the hashing algorithm.
-		private long total_gets = 0;
-		private long get_total = 0;
+		private long totalGets = 0;
+		private long getTotal = 0;
 
 		/// <summary>
 		/// Creates a new ListNode.
@@ -68,8 +68,8 @@ namespace Deveel.Data.Caching {
 		/// Clears the entire hashtable of all entries.
 		/// </summary>
 		private void ClearHash() {
-			for (int i = node_hash.Length - 1; i >= 0; --i) {
-				node_hash[i] = null;
+			for (int i = nodeHash.Length - 1; i >= 0; --i) {
+				nodeHash[i] = null;
 			}
 		}
 
@@ -84,15 +84,15 @@ namespace Deveel.Data.Caching {
 		private ListNode RemoveFromHash(Object key) {
 			// Makes sure the key is not already in the HashMap.
 			int hash = key.GetHashCode();
-			int index = (hash & 0x7FFFFFFF) % node_hash.Length;
+			int index = (hash & 0x7FFFFFFF) % nodeHash.Length;
 			ListNode prev = null;
-			for (ListNode e = node_hash[index]; e != null; e = e.next_hash_entry) {
-				if (key.Equals(e.key)) {
+			for (ListNode e = nodeHash[index]; e != null; e = e.NextHashEntry) {
+				if (key.Equals(e.Key)) {
 					// Found entry, so remove it baby!
 					if (prev == null) {
-						node_hash[index] = e.next_hash_entry;
+						nodeHash[index] = e.NextHashEntry;
 					} else {
-						prev.next_hash_entry = e.next_hash_entry;
+						prev.NextHashEntry = e.NextHashEntry;
 					}
 					return e;
 				}
@@ -112,18 +112,18 @@ namespace Deveel.Data.Caching {
 		/// </returns>
 		private ListNode PutIntoHash(ListNode node) {
 			// Makes sure the key is not already in the HashMap.
-			int hash = node.key.GetHashCode();
-			int index = (hash & 0x7FFFFFFF) % node_hash.Length;
-			Object key = node.key;
-			for (ListNode e = node_hash[index]; e != null; e = e.next_hash_entry) {
-				if (key.Equals(e.key)) {
+			int hash = node.Key.GetHashCode();
+			int index = (hash & 0x7FFFFFFF) % nodeHash.Length;
+			Object key = node.Key;
+			for (ListNode e = nodeHash[index]; e != null; e = e.NextHashEntry) {
+				if (key.Equals(e.Key)) {
 					throw new ApplicationException("ListNode with same key already in the hash - remove first.");
 				}
 			}
 
 			// Stick it in the hash list.
-			node.next_hash_entry = node_hash[index];
-			node_hash[index] = node;
+			node.NextHashEntry = nodeHash[index];
+			nodeHash[index] = node;
 
 			return node;
 		}
@@ -138,34 +138,34 @@ namespace Deveel.Data.Caching {
 		/// </returns>
 		private ListNode GetFromHash(Object key) {
 			int hash = key.GetHashCode();
-			int index = (hash & 0x7FFFFFFF) % node_hash.Length;
-			int get_count = 1;
+			int index = (hash & 0x7FFFFFFF) % nodeHash.Length;
+			int getCount = 1;
 
-			for (ListNode e = node_hash[index]; e != null; e = e.next_hash_entry) {
-				if (key.Equals(e.key)) {
-					++total_gets;
-					get_total += get_count;
+			for (ListNode e = nodeHash[index]; e != null; e = e.NextHashEntry) {
+				if (key.Equals(e.Key)) {
+					++totalGets;
+					getTotal += getCount;
 
 					// Every 8192 gets, call the 'OnGetWalks' method with the
 					// statistical info.
-					if ((total_gets & 0x01FFF) == 0) {
+					if ((totalGets & 0x01FFF) == 0) {
 						try {
-							OnGetWalks(get_total, total_gets);
+							OnGetWalks(getTotal, totalGets);
 							// Reset stats if we overflow on an int
-							if (get_total > unchecked(65536 * 65536)) {
-								get_total = 0;
-								total_gets = 0;
+							if (getTotal > unchecked(65536 * 65536)) {
+								getTotal = 0;
+								totalGets = 0;
 							}
 						} catch (Exception) { /* ignore */ }
 					}
 
 					// Bring to head if get_count > 1
-					if (get_count > 1) {
+					if (getCount > 1) {
 						BringToHead(e);
 					}
 					return e;
 				}
-				++get_count;
+				++getCount;
 			}
 			return null;
 		}
@@ -178,22 +178,22 @@ namespace Deveel.Data.Caching {
 		/// Only nodes at the end of the list are cleaned.
 		/// </remarks>
 		private void BringToHead(ListNode node) {
-			if (list_start != node) {
+			if (listStart != node) {
 
-				ListNode next_node = node.next;
-				ListNode previous_node = node.previous;
+				ListNode nextNode = node.Next;
+				ListNode previousNode = node.Previous;
 
-				node.next = list_start;
-				node.previous = null;
-				list_start = node;
-				node.next.previous = node;
+				node.Next = listStart;
+				node.Previous = null;
+				listStart = node;
+				node.Next.Previous = node;
 
-				if (next_node != null) {
-					next_node.previous = previous_node;
+				if (nextNode != null) {
+					nextNode.Previous = previousNode;
 				} else {
-					list_end = previous_node;
+					listEnd = previousNode;
 				}
-				previous_node.next = next_node;
+				previousNode.Next = nextNode;
 
 			}
 		}
@@ -205,17 +205,17 @@ namespace Deveel.Data.Caching {
 			if (node == null) {
 
 				node = CreateListNode();
-				node.key = key;
-				node.contents = value;
+				node.Key = key;
+				node.Contents = value;
 
 				// Add node to top.
-				node.next = list_start;
-				node.previous = null;
-				list_start = node;
-				if (node.next == null) {
-					list_end = node;
+				node.Next = listStart;
+				node.Previous = null;
+				listStart = node;
+				if (node.Next == null) {
+					listEnd = node;
 				} else {
-					node.next.previous = node;
+					node.Next.Previous = node;
 				}
 
 				// Add node to key mapping
@@ -223,15 +223,15 @@ namespace Deveel.Data.Caching {
 
 				// this was added to the cache
 				return true;
-			} else {
-				// If key already in Hashtable, all we need to do is set node with
-				// the new contents and bring the node to the start of the list.
-
-				node.contents = value;
-				BringToHead(node);
-
-				return false;
 			}
+
+			// If key already in Hashtable, all we need to do is set node with
+			// the new contents and bring the node to the start of the list.
+
+			node.Contents = value;
+			BringToHead(node);
+
+			return false;
 		}
 
 		protected override object GetObject(object key) {
@@ -241,7 +241,7 @@ namespace Deveel.Data.Caching {
 				// Bring node to start of list.
 				//      BringToHead(node);
 
-				return node.contents;
+				return node.Contents;
 			}
 
 			return null;
@@ -253,81 +253,81 @@ namespace Deveel.Data.Caching {
 
 			if (node != null) {
 				// If removed node at head.
-				if (list_start == node) {
-					list_start = node.next;
-					if (list_start != null) {
-						list_start.previous = null;
+				if (listStart == node) {
+					listStart = node.Next;
+					if (listStart != null) {
+						listStart.Previous = null;
 					} else {
-						list_end = null;
+						listEnd = null;
 					}
 				}
 					// If removed node at end.
-				else if (list_end == node) {
-					list_end = node.previous;
-					if (list_end != null) {
-						list_end.next = null;
+				else if (listEnd == node) {
+					listEnd = node.Previous;
+					if (listEnd != null) {
+						listEnd.Next = null;
 					} else {
-						list_start = null;
+						listStart = null;
 					}
 				} else {
-					node.previous.next = node.next;
-					node.next.previous = node.previous;
+					node.Previous.Next = node.Next;
+					node.Next.Previous = node.Previous;
 				}
 
-				value = node.contents;
+				value = node.Contents;
 
 				// Set internals to null to ensure objects get gc'd
-				node.contents = null;
-				node.key = null;
+				node.Contents = null;
+				node.Key = null;
 			}
 
 			return value;
 		}
 
 		protected override int Clean() {
-			ListNode node = list_end;
+			ListNode node = listEnd;
 			if (node == null) {
 				return 0;
 			}
 
-			int actual_count = 0;
+			int actualCount = 0;
 			while (node != null && WipeMoreNodes()) {
-				object nkey = node.key;
-				object ncontents = node.contents;
+				object nkey = node.Key;
+				object ncontents = node.Contents;
 
 				OnWipingNode(ncontents);
 
 				RemoveFromHash(nkey);
 				// Help garbage collector with old objects
-				node.contents = null;
-				node.key = null;
-				ListNode old_node = node;
+				node.Contents = null;
+				node.Key = null;
+				ListNode oldNode = node;
 				// Move to previous node
-				node = node.previous;
+				node = node.Previous;
 
 				// Help the GC by clearing away the linked list nodes
-				old_node.next = null;
-				old_node.previous = null;
+				oldNode.Next = null;
+				oldNode.Previous = null;
 
 				OnObjectRemoved(nkey, ncontents);
-				++actual_count;
+				++actualCount;
 			}
 
 			if (node != null) {
-				node.next = null;
-				list_end = node;
+				node.Next = null;
+				listEnd = node;
 			} else {
-				list_start = null;
-				list_end = null;
+				listStart = null;
+				listEnd = null;
 			}
 
-			return actual_count;
+			return actualCount;
 		}
 
 		public override void Clear() {
 			ClearHash();
-			list_start = null;
-			list_end = null;
+			listStart = null;
+			listEnd = null;
 			base.Clear();
 		}
 
@@ -336,16 +336,16 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		sealed class ListNode {
 			// Links to the next and previous nodes. The ends of the list are 'null'
-			internal ListNode next;
-			internal ListNode previous;
+			public ListNode Next;
+			public ListNode Previous;
 			// The next node in the hash link on this hash value, or 'null' if last
 			// hash entry.
-			internal ListNode next_hash_entry;
+			public ListNode NextHashEntry;
 
 			// The key in the Hashtable for this object.
-			internal Object key;
+			public object Key;
 			// The object contents for this element.
-			internal Object contents;
+			public object Contents;
 		}
 	}
 }

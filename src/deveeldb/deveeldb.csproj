@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Deveel.Data</RootNamespace>
     <AssemblyName>deveeldb</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -81,6 +81,7 @@
     <Compile Include="Deveel.Data.Control\ConfigFormatterType.cs" />
     <Compile Include="Deveel.Data.Control\ConfigValues.cs" />
     <Compile Include="Deveel.Data.Control\IConfigFormatter.cs" />
+    <Compile Include="Deveel.Data.Control\IDbConfig.cs" />
     <Compile Include="Deveel.Data.Control\PropertiesConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Control\XmlConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs">

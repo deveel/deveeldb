@@ -1,3 +1,6 @@
+2014-03-17  Antonello Provenzano  <antonello@deveel.com>
+	* DbConfig.cs: further configurations
+
 2011-12-03  Antonello Provenzano  <antonello@deveel.com>
 	* DbController.cs: 
 		- The check for existing databases in file mode 

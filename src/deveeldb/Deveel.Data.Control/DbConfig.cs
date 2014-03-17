@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 
+using Deveel.Data.Caching;
+
 namespace Deveel.Data.Control {
 	/// <summary>
 	///  Provides configurations for the whole database system.
 	/// </summary>
-	public sealed class DbConfig : IEnumerable<KeyValuePair<string, object>> {
+	public sealed class DbConfig : IEnumerable<KeyValuePair<string, object>>, IDbConfig {
 		/// <summary>
 		/// The Hashtable mapping from configuration key to value for the key.
 		/// </summary>
@@ -35,6 +37,8 @@ namespace Deveel.Data.Control {
 		private DbConfig parent;
 
 		//private static DbConfig defaultConfig;
+
+		public const int DefaultDataCacheSize = 256;
 
 		/// <summary>
 		/// Constructs the <see cref="DbConfig"/>.
@@ -125,6 +129,41 @@ namespace Deveel.Data.Control {
 			set { SetValue(ConfigKeys.BasePath, value); }
 		}
 
+		public string StorageSystem {
+			get { return GetValue(ConfigKeys.StorageSystem, ConfigValues.HeapStorageSystem); }
+			set { SetValue(ConfigKeys.StorageSystem, value); }
+		}
+
+		public Type CacheType {
+			get {
+				var typeString = GetValue<string>(ConfigKeys.CacheType, ConfigValues.HeapCache);
+				if (String.IsNullOrEmpty(typeString))
+					return null;
+
+				if (String.Equals(typeString, ConfigValues.HeapCache, StringComparison.OrdinalIgnoreCase))
+					return typeof (MemoryCache);
+
+				return Type.GetType(typeString, false, true);
+			}
+			set {
+				string typeString = null;
+				if (value != null)
+					typeString = value.AssemblyQualifiedName;
+				SetValue(ConfigKeys.CacheType, typeString);
+			}
+		}
+
+		public int DataCacheSize {
+			get { return GetValue<int>(ConfigKeys.DataCacheSize, DefaultDataCacheSize); }
+			set { SetValue(ConfigKeys.DataCacheSize, value); }
+		}
+
+		// TODO: make the default config
+		public int MaxCacheEntrySize {
+			get { return GetValue(ConfigKeys.MaxCacheEntrySize, 128); }
+			set { SetValue(ConfigKeys.MaxCacheEntrySize, value); }
+		}
+
 		private static IConfigFormatter GetConfigFormatter(ConfigFormatterType formatterType) {
 			if (formatterType == ConfigFormatterType.Properties)
 				return new PropertiesConfigFormatter();
@@ -141,7 +180,7 @@ namespace Deveel.Data.Control {
 		///</summary>
 		///<param name="key"></param>
 		///<param name="value"></param>
-		public void SetValue<T>(string key, T value) {
+		public void SetValue<T>(string key, T value) where T : IConvertible {
 			SetValue(key, (object)value);
 		}
 
@@ -162,7 +201,7 @@ namespace Deveel.Data.Control {
 			return property;
 		}
 
-		public T GetValue<T>(string propertyKey) {
+		public T GetValue<T>(string propertyKey) where T : IConvertible{
 			object value = GetValue(propertyKey);
 			if (value == null || Equals(default(T), value))
 				return default(T);
@@ -172,7 +211,7 @@ namespace Deveel.Data.Control {
 			return (T) value;
 		}
 
-		public T GetValue<T>(string propertyKey, T defaultValue) {
+		public T GetValue<T>(string propertyKey, T defaultValue) where T : IConvertible {
 			T value;
 
 			try {
@@ -310,8 +349,8 @@ namespace Deveel.Data.Control {
 		/// The file must be formatted in a standard properties format.
 		/// </remarks>
 		public void LoadFromFile(string configurationFile, IConfigFormatter formatter) {
-			using (FileStream file_in = new FileStream(configurationFile, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-				LoadFrom(file_in, formatter);
+			using (FileStream fileIn = new FileStream(configurationFile, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+				LoadFrom(fileIn, formatter);
 			}
 		}
 
@@ -330,12 +369,12 @@ namespace Deveel.Data.Control {
 		///<summary>
 		/// Loads all the configuration values from the given URL.
 		///</summary>
-		///<param name="configuration_url"></param>
+		///<param name="configurationUrl"></param>
 		/// <remarks>
 		/// The file must be formatted in a standard properties format.
 		/// </remarks>
-		public void LoadFromUrl(Uri configuration_url) {
-			WebRequest request = WebRequest.Create(configuration_url);
+		public void LoadFromUrl(Uri configurationUrl) {
+			WebRequest request = WebRequest.Create(configurationUrl);
 			WebResponse response = request.GetResponse();
 			LoadFrom(response.GetResponseStream());
 			response.Close();
