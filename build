@@ -1,2 +1,0 @@
-#!/bin/sh
-exec mono ./src/nant/NAnt.exe -buildfile:default.build "$@" -D:libs="${PWD##*/}libs" -D:conf="${PWD##*/}conf"
