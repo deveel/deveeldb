@@ -15,17 +15,19 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Deveel.Data {
 	public sealed class VariablesManager {
 		internal VariablesManager() {
-			variables = new ArrayList();
+			variables = new List<Variable>();
 		}
 
-		private readonly ArrayList variables;
+		private readonly List<Variable> variables;
 
 		internal Variable this[int index] {
-			get { return variables[index] as Variable; }
+			get { return variables[index]; }
 		}
 
 		internal int Count {
@@ -52,25 +54,16 @@ namespace Deveel.Data {
 		}
 
 		public Variable GetVariable(string name) {
-			for (int i = 0; i < variables.Count; i++) {
-				Variable variable = variables[i] as Variable;
-				if (variable == null)
-					continue;
-
-				if (String.Compare(name, variable.Name, false) == 0)
-					return variable;
-			}
-
-			return null;
+			return variables.FirstOrDefault(variable => String.CompareOrdinal(name, variable.Name) == 0);
 		}
 
 		internal void RemoveVariable(string name) {
 			for (int i = variables.Count - 1; i >= 0; i--) {
-				Variable variable = variables[i] as Variable;
+				var variable = variables[i] as Variable;
 				if (variable == null)
 					continue;
 
-				if (String.Compare(name, variable.Name, false) == 0)
+				if (String.CompareOrdinal(name, variable.Name) == 0)
 					variables.RemoveAt(i);
 			}
 		}

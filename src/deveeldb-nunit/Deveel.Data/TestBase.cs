@@ -32,6 +32,7 @@ namespace Deveel.Data {
 		private static int _connCounter = -1;
 
 		private DeveelDbConnection connection;
+		private DeveelDbTransaction transaction;
 
 		protected TestBase(StorageType storageType) {
 			this.storageType = storageType;
@@ -75,6 +76,10 @@ namespace Deveel.Data {
 		[TestFixtureTearDown]
 		public void TearDown() {
 			OnTearDown();
+
+			if (transaction != null)
+				transaction.Rollback();
+
 			system.Close();
 		}
 
@@ -96,6 +101,19 @@ namespace Deveel.Data {
 		}
 
 		protected virtual void OnTestTearDown() {	
+		}
+
+		protected void BeginTransaction() {
+			if (transaction == null) {
+				transaction = Connection.BeginTransaction();
+			}
+		}
+
+		protected void Commit() {
+			if (transaction != null) {
+				transaction.Commit();
+				transaction = null;
+			}
 		}
 
 		[SetUp]
@@ -121,27 +139,27 @@ namespace Deveel.Data {
 		}
 
 		private void GenerateDatabase() {
-			DeveelDbTransaction transaction = connection.BeginTransaction();
-			try {
-				GenerateTables();
-				OnCreateTables();
+			using (DeveelDbTransaction t = connection.BeginTransaction()) {
+				try {
+					GenerateTables();
+					OnCreateTables();
 
-				transaction.Commit();
-			} catch (Exception) {
-				transaction.Rollback();
-				throw;
+					t.Commit();
+				} catch (Exception) {
+					throw;
+				}
 			}
 
-			transaction = connection.BeginTransaction();
-			try {
-				InsertDataPerson();
-				InsertDataMusicGroup();
-				InsertDataListensTo();
-				OnInsertData();
-				transaction.Commit();
-			} catch (Exception) {
-				transaction.Rollback();
-				throw;
+			using (var t = connection.BeginTransaction()) {
+				try {
+					InsertDataPerson();
+					InsertDataMusicGroup();
+					InsertDataListensTo();
+					OnInsertData();
+					t.Commit();
+				} catch (Exception) {
+					throw;
+				}
 			}
 		}
 
@@ -167,7 +185,7 @@ namespace Deveel.Data {
 		}
 
 		private void DropTables() {
-			DeveelDbTransaction transaction = Connection.BeginTransaction();
+			BeginTransaction();
 
 			try {
 				DeveelDbCommand command = connection.CreateCommand("DROP TABLE IF EXISTS MusicGroup");
@@ -179,7 +197,7 @@ namespace Deveel.Data {
 				command = connection.CreateCommand("DROP TABLE IF EXISTS Person");
 				command.ExecuteNonQuery();
 
-				transaction.Commit();
+				Commit();
 			} catch (Exception e) {
 				try {
 					transaction.Rollback();

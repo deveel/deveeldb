@@ -19,6 +19,7 @@ namespace Deveel.Data.Sql {
 
 		[Test(Description = "Declares and selects a gobal variable")]
 		public void VariableSelect() {
+			BeginTransaction();
 			ExecuteNonQuery("DECLARE var NUMERIC(20) = 43");
 			object var = ExecuteScalar("SELECT :var");
 
@@ -335,7 +336,7 @@ namespace Deveel.Data.Sql {
 			command = connection.CreateCommand("SELECT :name");
 			object value = command.ExecuteScalar();
 
-			Console.Out.WriteLine("name = {0}", value);
+			Assert.IsNull(value);
 
 			command = connection.CreateCommand("SELECT name INTO :name FROM Person");
 			command.ExecuteNonQuery();
@@ -344,6 +345,8 @@ namespace Deveel.Data.Sql {
 
 			command = connection.CreateCommand("SELECT :name");
 			value = command.ExecuteScalar();
+
+			Assert.IsNotNull(value);
 
 			Console.Out.WriteLine("name = {0}", value);
 		}
