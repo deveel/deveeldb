@@ -42,8 +42,7 @@ namespace Deveel.Data.Client {
 		private int maxRowCount;
 		private int fetchSize = DefaultFetchSize;
 		private bool designTimeVisible = true;
-		private bool timeoutWasSet;
-		private int commandTimeout;
+		private int? commandTimeout;
 
 		/// <summary>
 		/// The list of streamable objects created via the <see cref="CreateStreamableObject"/> method.
@@ -132,12 +131,12 @@ namespace Deveel.Data.Client {
 		/// <param name="type"></param>
 		/// <returns></returns>
 		internal StreamableObject CreateStreamableObject(Stream x, int length, ReferenceType type) {
-			StreamableObject s_ob = connection.CreateStreamableObject(x, length, type);
+			StreamableObject sOb = connection.CreateStreamableObject(x, length, type);
 			if (streamableObjectList == null) {
 				streamableObjectList = new List<StreamableObject>();
 			}
-			streamableObjectList.Add(s_ob);
-			return s_ob;
+			streamableObjectList.Add(sOb);
+			return sOb;
 		}
 
 		internal bool NextResult() {
@@ -181,15 +180,14 @@ namespace Deveel.Data.Client {
 
 		internal DeveelDbLob GetLob(object obj) {
 			if (obj is StreamableObject) {
-				StreamableObject s_ob = (StreamableObject)obj;
-				if (s_ob.Type == ReferenceType.Binary) {
-					return new DeveelDbLob(connection, ResultSet.result_id, s_ob);
-				}
+				var sOb = (StreamableObject)obj;
+				if (sOb.Type == ReferenceType.Binary)
+					return new DeveelDbLob(connection, ResultSet.result_id, sOb);
 			} else if (obj is ByteLongObject) {
-				ByteLongObject blob = (ByteLongObject) obj;
+				var blob = (ByteLongObject) obj;
 				return new DeveelDbLob(this, blob.GetInputStream(), ReferenceType.Binary, blob.Length);
 			} else if (obj is StringObject) {
-				StringObject clob = (StringObject) obj;
+				var clob = (StringObject) obj;
 				byte[] bytes = Encoding.Unicode.GetBytes(clob.ToString());
 				return new DeveelDbLob(this, new MemoryStream(bytes), ReferenceType.UnicodeText, bytes.Length);
 			}
@@ -203,10 +201,10 @@ namespace Deveel.Data.Client {
 		/// such as GetValue
 		/// </summary>
 		/// <param name="ob"></param>
-		/// <param name="sql_type"></param>
+		/// <param name="sqlType"></param>
 		/// <returns></returns>
-		internal Object ObjectCast(Object ob, SqlType sql_type) {
-			switch (sql_type) {
+		internal Object ObjectCast(Object ob, SqlType sqlType) {
+			switch (sqlType) {
 				case (SqlType.Bit):
 					return ob;
 				case (SqlType.TinyInt):
@@ -288,9 +286,9 @@ namespace Deveel.Data.Client {
 		internal String MakeString(Object ob) {
 			if (ob is StreamableObject) {
 				DeveelDbLob clob = GetLob(ob);
-				long clob_len = clob.Length;
-				if (clob_len < 16384L * 65536L) {
-					return clob.GetString(0, (int)clob_len);
+				long clobLen = clob.Length;
+				if (clobLen < 16384L * 65536L) {
+					return clob.GetString(0, (int)clobLen);
 				}
 				throw new DataException("IClob too large to return as a string.");
 			}
@@ -321,9 +319,8 @@ namespace Deveel.Data.Client {
 			multiResultSetIndex = 0;
 
 			// For each query,
-			for (int i = 0; i < results.Length; ++i)
-				// Make sure the result set is closed
-				results[i].CloseCurrentResult();
+			foreach (ResultSet resultSet in results)
+				resultSet.CloseCurrentResult();
 
 			// Execute each query
 			connection.ExecuteQueries(queries, results);
@@ -371,6 +368,13 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		private void AssertConnectionOpen() {
+			if (connection == null)
+				throw new InvalidOperationException("No connection was not set.");
+			if (connection.State != ConnectionState.Open)
+				throw new InvalidOperationException("The underlying connection is not open.");
+		}
+
 
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
@@ -404,31 +408,30 @@ namespace Deveel.Data.Client {
 			//TODO: we should handle this better: it's nasty that a set
 			//      of parameters are set for all the queries...
 
-			for (int i = 0; i < queries.Length; i++) {
-				SqlQuery query = queries[i];
+			foreach (SqlQuery query in queries) {
 				for (int j = 0; j < parameters.Count; j++) {
 					DeveelDbParameter parameter = parameters[j];
 					if (parameter.Value is DeveelDbLob) {
 						query.SetVariable(j, ((DeveelDbLob)parameter.Value).ObjectRef);
 					} else if (parameter.Value is Stream) {
-						Stream stream = (Stream) parameter.Value;
-						if (parameter.LongSize > 8 * 1024) {
-							DeveelDbLob lob = new DeveelDbLob(this, stream, parameter.ReferenceType, parameter.LongSize, true);
+						var stream = (Stream) parameter.Value;
+						if (parameter.LongSize > 8*1024) {
+							var lob = new DeveelDbLob(this, stream, parameter.ReferenceType, parameter.LongSize, true);
 							query.SetVariable(j, lob.ObjectRef);
 						} else {
 							if (parameter.ReferenceType == ReferenceType.Binary) {
 								query.SetVariable(j, new ByteLongObject(stream, parameter.Size));
 							} else if (parameter.ReferenceType == ReferenceType.AsciiText) {
-								StringBuilder sb = new StringBuilder();
+								var sb = new StringBuilder();
 								for (int k = 0; k < parameter.Size; ++k) {
 									int v = stream.ReadByte();
 									if (v == -1)
 										throw new IOException("Premature EOF reached.");
-									sb.Append((char)v);
+									sb.Append((char) v);
 								}
 								query.SetVariable(j, StringObject.FromString(sb.ToString()));
 							} else {
-								StringBuilder sb = new StringBuilder();
+								var sb = new StringBuilder();
 								int halfLength = parameter.Size/2;
 								for (int k = 0; k < halfLength; ++k) {
 									int v1 = stream.ReadByte();
@@ -436,14 +439,15 @@ namespace Deveel.Data.Client {
 									if (v1 == -1 || v2 == -1)
 										throw new IOException("Premature EOF reached.");
 
-									sb.Append((char)((v1 << 8) + v2));
+									sb.Append((char) ((v1 << 8) + v2));
 								}
 
 								query.SetVariable(j, StringObject.FromString(sb.ToString()));
 							}
 						}
-					}else if (!(parameter.Value is DeveelDbLob))
+					} else {
 						query.SetVariable(j, CastHelper.CastToSQLType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
+					}
 				}
 			}
 		}
@@ -457,7 +461,7 @@ namespace Deveel.Data.Client {
 		}
 
 		public new DeveelDbParameter CreateParameter() {
-			DeveelDbParameter parameter = new DeveelDbParameter();
+			var parameter = new DeveelDbParameter();
 			parameter.paramStyle = connection.Settings.ParameterStyle;
 			return parameter;
 		}
@@ -467,6 +471,8 @@ namespace Deveel.Data.Client {
 		}
 
 		public override int ExecuteNonQuery() {
+			AssertConnectionOpen();
+
 			connection.SetState(ConnectionState.Executing);
 
 			try {
@@ -481,6 +487,8 @@ namespace Deveel.Data.Client {
 		}
 
 		public new DeveelDbDataReader ExecuteReader() {
+			AssertConnectionOpen();
+
 			if (reader != null)
 				throw new InvalidOperationException("A reader is already opened for this command.");
 
@@ -505,6 +513,7 @@ namespace Deveel.Data.Client {
 			//TODO: support behaviors...
 			if (behavior != CommandBehavior.Default)
 				throw new ArgumentException("Behavior '" + behavior + "' not supported (yet).");
+
 			return ExecuteReader();
 		}
 
@@ -514,6 +523,8 @@ namespace Deveel.Data.Client {
 		}
 
 		public override object ExecuteScalar() {
+			AssertConnectionOpen();
+
 			connection.SetState(ConnectionState.Executing);
 
 			try {
@@ -531,14 +542,14 @@ namespace Deveel.Data.Client {
 
 				Object ob = result[0].GetRawColumn(0);
 				if (ob == null)
-					return ob;
+					return DBNull.Value;
 
 				if (connection.Settings.StrictGetValue) {
 					// Convert depending on the column type,
-					ColumnDescription col_desc = result[0].GetColumn(0);
-					SqlType sql_type = col_desc.SQLType;
+					ColumnDescription colDesc = result[0].GetColumn(0);
+					SqlType sqlType = colDesc.SQLType;
 
-					return ObjectCast(ob, sql_type);
+					return ObjectCast(ob, sqlType);
 
 				}
 				// We don't support blobs in a scalar.
@@ -625,20 +636,17 @@ namespace Deveel.Data.Client {
 
 		public override int CommandTimeout {
 			get {
-				if (timeoutWasSet)
-					return commandTimeout;
+				if (commandTimeout != null)
+					return commandTimeout.Value;
 				if (connection != null)
 					return connection.Settings.QueryTimeout;
 				return -1;
 			}
 			set {
-				if (value < 0) {
-					timeoutWasSet = false;
-					commandTimeout = -1;
-				} else {
-					commandTimeout = value;
-					timeoutWasSet = true;
-				}
+				if (value < 0)
+					throw new ArgumentException("Cannot set a timeout value less than 0");
+
+				commandTimeout = value;
 			}
 		}
 
