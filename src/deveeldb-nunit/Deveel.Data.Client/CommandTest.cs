@@ -55,7 +55,25 @@ namespace Deveel.Data.Client {
 			Assert.IsNotNull(command);
 			command.CommandText = "SELECT * FROM Person WHERE Name = 'antonello'";
 			Assert.IsTrue(connection.State == ConnectionState.Closed);
-			Assert.Throws<Exception>(() => command.ExecuteNonQuery());
+			Assert.Throws<InvalidOperationException>(() => command.ExecuteNonQuery());
+		}
+
+		[Test]
+		public void ExecuteScalarOnsingleColumn() {
+			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb";
+			var connection = new DeveelDbConnection(connString);
+
+			// TODO: Open the connection, create a transaction, declare some variables
+
+			DeveelDbCommand command = null;
+			Assert.DoesNotThrow(() => command = connection.CreateCommand());
+			Assert.IsNotNull(command);
+			command.CommandText = "SELECT Age FROM Person WHERE Name = 'antonello'";
+		}
+
+		[Test]
+		public void ExecuteScalarOnMultipleColumns() {
+			
 		}
 	}
 }

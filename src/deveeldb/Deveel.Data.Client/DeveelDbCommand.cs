@@ -41,7 +41,6 @@ namespace Deveel.Data.Client {
 		// private int max_field_size;
 		private int maxRowCount;
 		private int fetchSize = DefaultFetchSize;
-		private bool designTimeVisible = true;
 		private int? commandTimeout;
 
 		/// <summary>
@@ -64,6 +63,7 @@ namespace Deveel.Data.Client {
 		public const int DefaultFetchSize = 32;
 
 		public DeveelDbCommand() {
+			DesignTimeVisible = true;
 			parameters = new DeveelDbParameterCollection(this);
 		}
 
@@ -529,19 +529,14 @@ namespace Deveel.Data.Client {
 
 			try {
 				ResultSet[] result = ExecuteQuery();
-				if (result.Length > 1)
-					throw new InvalidOperationException();
-
-				if (result[0].RowCount > 1)
-					throw new DataException("The result of the query returned more than one row and cannot be a scalar.");
-				if (result[0].ColumnCount > 1)
-					throw new DataException("The result of the query has more than one column and cannot be a scalar.");
+				if (result.Length != 1)
+					return null;
 
 				if (!result[0].First())
 					return null;
 
-				Object ob = result[0].GetRawColumn(0);
-				if (ob == null)
+				object value = result[0].GetRawColumn(0);
+				if (value == null)
 					return DBNull.Value;
 
 				if (connection.Settings.StrictGetValue) {
@@ -549,26 +544,22 @@ namespace Deveel.Data.Client {
 					ColumnDescription colDesc = result[0].GetColumn(0);
 					SqlType sqlType = colDesc.SQLType;
 
-					return ObjectCast(ob, sqlType);
-
+					return ObjectCast(value, sqlType);
 				}
+
 				// We don't support blobs in a scalar.
-				if (ob is ByteLongObject ||
-					ob is StreamableObject) {
+				if (value is ByteLongObject ||
+					value is StreamableObject) {
 					throw new DataException();
 				}
 
-				return ob;
+				return value;
 			} finally {
 				connection.EndState();
 			}
 		}
 
-		public override bool DesignTimeVisible {
-			get { return designTimeVisible; }
-			set { designTimeVisible = value;
-			}
-		}
+		public override bool DesignTimeVisible { get; set; }
 
 		public new DeveelDbConnection Connection {
 			get { return connection; }
@@ -578,6 +569,7 @@ namespace Deveel.Data.Client {
 
 				if (connection != value)
 					Transaction = null;
+
 				connection = value;
 				transaction = connection.currentTransaction;
 			}
@@ -587,7 +579,7 @@ namespace Deveel.Data.Client {
 			get { return Connection; }
 			set {
 				if (!(value is DeveelDbConnection))
-					throw new ArgumentException();
+					throw new ArgumentException("Trying to set a connection that is not a '" + typeof(DeveelDbConnection) + "'.");
 
 				Connection = (DeveelDbConnection) value;
 			}
@@ -598,6 +590,7 @@ namespace Deveel.Data.Client {
 			set {
 				if (!(value is DeveelDbTransaction))
 					throw new ArgumentException("Trying to set a transaction that is not a '" + typeof(DeveelDbTransaction) + "'.");
+
 				Transaction = (DeveelDbTransaction) value;
 			}
 		}
