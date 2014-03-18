@@ -456,8 +456,11 @@ namespace Deveel.Data.Client {
 
 		public override void Cancel() {
 			if (resultSetList != null) {
-				for (int i = 0; i < resultSetList.Length; ++i) {
-					connection.DisposeResult(resultSetList[i].ResultId);
+				try {
+					foreach (ResultSet resultSet in resultSetList) {
+						connection.DisposeResult(resultSet.ResultId);
+					}
+				} catch (Exception) {
 				}
 			}
 		}
