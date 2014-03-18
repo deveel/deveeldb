@@ -402,6 +402,8 @@ namespace Deveel.Data.Client {
 		#region Implementation of IDbCommand
 
 		public override void Prepare() {
+			AssertConnectionOpen();
+
 			if (queries == null || parameters.Count == 0)
 				return;
 
