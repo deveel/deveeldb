@@ -43,14 +43,12 @@ namespace Deveel.Data.Client {
 		private System.Data.DbType dbType = System.Data.DbType.Object;
 		private SqlType sqlType = SqlType.Null;
 		private object value = DBNull.Value;
-		// marker style is the default
-		internal ParameterStyle paramStyle = ParameterStyle.Marker;
 		private long size;
 		private byte scale;
 		private string sourceColumn;
 		private DataRowVersion sourceVersion;
 		private string name;
-		private ReferenceType ref_type = ReferenceType.Binary;
+		private ReferenceType refType = ReferenceType.Binary;
 
 		#region Implementation of IDataParameter
 
@@ -83,27 +81,13 @@ namespace Deveel.Data.Client {
 		}
 
 		public ReferenceType ReferenceType {
-			get { return ref_type; }
-			set { ref_type = value; }
+			get { return refType; }
+			set { refType = value; }
 		}
 
 		public override string ParameterName {
-			get { return paramStyle == ParameterStyle.Marker ? "?" : name; }
-			set {
-				if (paramStyle == ParameterStyle.Marker) {
-					if (value != null && value != "?")
-						throw new ArgumentException(String.Format("Parameter style is set to 'Marker' and the parameter name {0} is invalid in this context.", name));
-				} else {
-					if (value == null)
-						throw new ArgumentNullException("value");
-					if (value.Length < 1)
-						throw new ArgumentException("The name must be of at least 1 character.");
-					if (value[0] != '@')
-						value = String.Format("@{0}", value);
-
-					name = value;
-				}
-			}
+			get { return name; }
+			set { name = value; }
 		}
 
 		public override string SourceColumn {
@@ -228,7 +212,7 @@ namespace Deveel.Data.Client {
 			if (value is ByteLongObject)
 				return System.Data.DbType.Binary;
 			if (value is BigNumber) {
-				BigNumber num = (BigNumber)value;
+				var num = (BigNumber)value;
 				if (num.CanBeInt)
 					return System.Data.DbType.Int32;
 				if (num.CanBeLong)
@@ -328,17 +312,19 @@ namespace Deveel.Data.Client {
 			object paramValue = value;
 			if (paramValue is ICloneable)
 				paramValue = ((ICloneable) paramValue).Clone();
-			DeveelDbParameter parameter = new DeveelDbParameter();
-			parameter.value = paramValue;
-			parameter.sqlType = sqlType;
-			parameter.sourceColumn = sourceColumn;
-			parameter.dbType = dbType;
-			parameter.name = name;
-			parameter.sourceVersion = sourceVersion;
-			parameter.size = size;
-			parameter.scale = scale;
-			parameter.ref_type = ref_type;
-			parameter.paramStyle = paramStyle;
+
+			var parameter = new DeveelDbParameter {
+				value = paramValue,
+				sqlType = sqlType,
+				sourceColumn = sourceColumn,
+				dbType = dbType,
+				name = name,
+				sourceVersion = sourceVersion,
+				size = size,
+				scale = scale,
+				refType = refType
+			};
+
 			return parameter;
 		}
 	}

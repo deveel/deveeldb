@@ -375,6 +375,10 @@ namespace Deveel.Data.Client {
 				throw new InvalidOperationException("The underlying connection is not open.");
 		}
 
+		private void VerifyParameters() {
+			parameters.VerifyParameterNames(connection.Settings.ParameterStyle);
+		}
+
 
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
@@ -466,9 +470,7 @@ namespace Deveel.Data.Client {
 		}
 
 		public new DeveelDbParameter CreateParameter() {
-			var parameter = new DeveelDbParameter();
-			parameter.paramStyle = connection.Settings.ParameterStyle;
-			return parameter;
+			return new DeveelDbParameter();
 		}
 
 		protected override DbParameter CreateDbParameter() {
@@ -477,6 +479,7 @@ namespace Deveel.Data.Client {
 
 		public override int ExecuteNonQuery() {
 			AssertConnectionOpen();
+			VerifyParameters();
 
 			connection.SetState(ConnectionState.Executing);
 
@@ -493,6 +496,7 @@ namespace Deveel.Data.Client {
 
 		public new DeveelDbDataReader ExecuteReader() {
 			AssertConnectionOpen();
+			VerifyParameters();
 
 			if (reader != null)
 				throw new InvalidOperationException("A reader is already opened for this command.");
@@ -529,6 +533,7 @@ namespace Deveel.Data.Client {
 
 		public override object ExecuteScalar() {
 			AssertConnectionOpen();
+			VerifyParameters();
 
 			connection.SetState(ConnectionState.Executing);
 

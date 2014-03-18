@@ -13,6 +13,8 @@ namespace Deveel.Data.Client {
 			var command = connection.CreateCommand();
 			command.CommandText = "SELECT * FROM Person WHERE Name = ?";
 			Assert.DoesNotThrow(() => command.Parameters.Add("antonelllo"));
+			Assert.DoesNotThrow(connection.Open);
+			Assert.Throws<InvalidOperationException>(() => command.ExecuteScalar());
 		}
 
 		[TestCase("@Name", "antonello")]
@@ -23,6 +25,8 @@ namespace Deveel.Data.Client {
 			var command = connection.CreateCommand();
 			command.CommandText = String.Format("SELECT * FROM Person WHERE Name = {0}", paramName);
 			Assert.DoesNotThrow(() => command.Parameters.Add(paramName, paramValue));
+			Assert.DoesNotThrow(connection.Open);
+			Assert.DoesNotThrow(() => command.ExecuteReader());
 		}
 
 		[Test]
@@ -33,7 +37,9 @@ namespace Deveel.Data.Client {
 			var command = connection.CreateCommand();
 			command.CommandText = "SELECT * FROM Person WHERE Name = ?";
 			Assert.DoesNotThrow(() => command.Parameters.Add("antonelllo"));
-			Assert.Throws<NotSupportedException>(() => command.Parameters.Add("Name", "antonello"));
+			Assert.DoesNotThrow(() => command.Parameters.Add("Name", "antonello"));
+			Assert.DoesNotThrow(connection.Open);
+			Assert.Throws<InvalidOperationException>(() => command.ExecuteReader());
 		}
 
 		[Test]
