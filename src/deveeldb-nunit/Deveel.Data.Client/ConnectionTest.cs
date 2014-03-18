@@ -14,19 +14,12 @@ namespace Deveel.Data.Client {
 			// Usernmae and password have to be the administrator's credentials
 			// for both the operations..
 			const string connString = "Host=Local;User=SA;Password=123456;CreateOrBoot=true;Database=testdb";
-			DeveelDbConnection connection = null;
 
-			try {
-				connection = new DeveelDbConnection(connString);
-				connection.Open();
-
-				Assert.IsTrue(connection.State == ConnectionState.Open);
-			} finally {
-				if (connection != null) {
-					connection.Close();
-					Assert.IsTrue(connection.State == ConnectionState.Closed);
-				}
-			}
+			var connection = new DeveelDbConnection(connString);
+			Assert.DoesNotThrow(connection.Open);
+			Assert.IsTrue(connection.State == ConnectionState.Open);
+			Assert.DoesNotThrow(connection.Close);
+			Assert.IsTrue(connection.State == ConnectionState.Closed);
 		}
 
 		[Test]
@@ -38,19 +31,11 @@ namespace Deveel.Data.Client {
 
 			const string connString = "Host=127.0.0.1;User=SA;Password=123456;Database=testdb";
 
-			DeveelDbConnection connection = null;
-
-			try {
-				connection = new DeveelDbConnection(connString);
-				connection.Open();
-
-				Assert.IsTrue(connection.State == ConnectionState.Open);
-			} finally {
-				if (connection != null) {
-					connection.Close();
-					Assert.IsTrue(connection.State == ConnectionState.Closed);
-				}
-			}
+			var connection = new DeveelDbConnection(connString);
+			Assert.DoesNotThrow(connection.Open);
+			Assert.IsTrue(connection.State == ConnectionState.Open);
+			Assert.DoesNotThrow(connection.Close);
+			Assert.IsTrue(connection.State == ConnectionState.Closed);
 		}
 	}
 }

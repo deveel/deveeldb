@@ -48,7 +48,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Client\CommandTest.cs" />
     <Compile Include="Deveel.Data.Client\ConnectionStringTest.cs" />
+    <Compile Include="Deveel.Data.Client\ConnectionTest.cs" />
     <Compile Include="Deveel.Data.Client\LobTest.cs" />
     <Compile Include="Deveel.Data.Client\TriggerTest.cs" />
     <Compile Include="Deveel.Data.Control\DbConfigTest.cs" />

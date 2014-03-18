@@ -68,7 +68,7 @@ namespace Deveel.Data.Client {
 
 		public DeveelDbParameter Add(string name, object value) {
 			CheckNamedStyle();
-			DeveelDbParameter parameter = new DeveelDbParameter(value);
+			var parameter = new DeveelDbParameter(value);
 			parameter.paramStyle = command.Connection.Settings.ParameterStyle;
 			parameter.ParameterName = name;
 			return parameter;

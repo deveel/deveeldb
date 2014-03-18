@@ -92,14 +92,14 @@ namespace Deveel.Data.Client {
 			set {
 				if (paramStyle == ParameterStyle.Marker) {
 					if (value != null && value != "?")
-						throw new ArgumentException();
+						throw new ArgumentException(String.Format("Parameter style is set to 'Marker' and the parameter name {0} is invalid in this context.", name));
 				} else {
 					if (value == null)
 						throw new ArgumentNullException("value");
-					if (value.Length < 2)
-						throw new ArgumentException("The name must be of at least 2 characters and the first must be a @ prefix.");
+					if (value.Length < 1)
+						throw new ArgumentException("The name must be of at least 1 character.");
 					if (value[0] != '@')
-						throw new ArgumentException("The name of the parameter must idnicate a @ prefix.");
+						value = String.Format("@{0}", value);
 
 					name = value;
 				}

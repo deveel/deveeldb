@@ -517,8 +517,11 @@ namespace Deveel.Data.Client {
 					if (value == null) {
 						paramStyle = DefaultParameterStyle;
 						base.Remove(key);
-					} else {
-						ParameterStyle = (ParameterStyle)value;
+					} else if (value is string) {
+						ParameterStyle = (ParameterStyle) Enum.Parse(typeof(ParameterStyle), (string)value, true);
+					} else if (value is int ||
+					           value is ParameterStyle) {
+						ParameterStyle = (ParameterStyle) value;
 					}
 					break;
 				case RowCacheSizeKey:

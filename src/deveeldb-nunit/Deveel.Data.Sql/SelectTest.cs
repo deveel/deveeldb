@@ -365,12 +365,12 @@ namespace Deveel.Data.Sql {
 			command = connection.CreateCommand("SELECT :name");
 			object value = command.ExecuteScalar();
 
-			Console.Out.WriteLine("name = {0}", value);
+			Assert.IsNull(value);
 
 			command = connection.CreateCommand("SELECT :age");
 			value = command.ExecuteScalar();
 
-			Console.Out.WriteLine("age = {0}", value);
+			Assert.IsNull(value);
 
 			command = connection.CreateCommand("SELECT name, age INTO :name, :age FROM Person");
 			command.ExecuteNonQuery();
@@ -380,10 +380,14 @@ namespace Deveel.Data.Sql {
 			command = connection.CreateCommand("SELECT :name");
 			value = command.ExecuteScalar();
 
+			Assert.IsNotNull(value);
+
 			Console.Out.WriteLine("name = {0}", value);
 
 			command = connection.CreateCommand("SELECT :age");
 			value = command.ExecuteScalar();
+
+			Assert.IsNotNull(value);
 
 			Console.Out.WriteLine("age = {0}", value);
 		}

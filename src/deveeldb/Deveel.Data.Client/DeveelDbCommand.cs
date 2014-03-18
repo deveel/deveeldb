@@ -35,7 +35,7 @@ namespace Deveel.Data.Client {
 		/// The list of all <see cref="ResultSet"/> objects that represents the 
 		/// results of a query.
 		/// </summary>
-		private ResultSet[] result_set_list;
+		private ResultSet[] resultSetList;
 
 
 		// private int max_field_size;
@@ -96,20 +96,20 @@ namespace Deveel.Data.Client {
 			if (count <= 0)
 				throw new ArgumentException("'count' must be > 0");
 
-			if (result_set_list != null && result_set_list.Length != count) {
+			if (resultSetList != null && resultSetList.Length != count) {
 				// Dispose all the ResultSet objects currently open.
-				for (int i = 0; i < result_set_list.Length; ++i)
-					result_set_list[i].Dispose();
-				result_set_list = null;
+				for (int i = 0; i < resultSetList.Length; ++i)
+					resultSetList[i].Dispose();
+				resultSetList = null;
 			}
 
-			if (result_set_list == null) {
-				result_set_list = new ResultSet[count];
+			if (resultSetList == null) {
+				resultSetList = new ResultSet[count];
 				for (int i = 0; i < count; ++i)
-					result_set_list[i] = new ResultSet(connection);
+					resultSetList[i] = new ResultSet(connection);
 			}
 
-			return result_set_list;
+			return resultSetList;
 		}
 
 		/// <summary>
@@ -142,8 +142,8 @@ namespace Deveel.Data.Client {
 
 		internal bool NextResult() {
 			// If we are at the end then return false
-			if (result_set_list == null ||
-				multiResultSetIndex >= result_set_list.Length) {
+			if (resultSetList == null ||
+				multiResultSetIndex >= resultSetList.Length) {
 				return false;
 			}
 
@@ -156,9 +156,9 @@ namespace Deveel.Data.Client {
 
 		internal ResultSet ResultSet {
 			get {
-				if (result_set_list != null) {
-					if (multiResultSetIndex < result_set_list.Length) {
-						return result_set_list[multiResultSetIndex];
+				if (resultSetList != null) {
+					if (multiResultSetIndex < resultSetList.Length) {
+						return resultSetList[multiResultSetIndex];
 					}
 				}
 				return null;
@@ -167,9 +167,9 @@ namespace Deveel.Data.Client {
 
 		internal int UpdateCount {
 			get {
-				if (result_set_list != null) {
-					if (multiResultSetIndex < result_set_list.Length) {
-						ResultSet rs = result_set_list[multiResultSetIndex];
+				if (resultSetList != null) {
+					if (multiResultSetIndex < resultSetList.Length) {
+						ResultSet rs = resultSetList[multiResultSetIndex];
 						if (rs.IsUpdate) {
 							return rs.ToInteger();
 						}
@@ -330,20 +330,20 @@ namespace Deveel.Data.Client {
 
 			// Post processing on the ResultSet objects
 			for (int i = 0; i < queries.Length; ++i) {
-				ResultSet result_set = results[i];
+				ResultSet resultSet = results[i];
 				// Set the fetch size
-				result_set.SetFetchSize(fetchSize);
+				resultSet.SetFetchSize(fetchSize);
 				// Set the max row count
-				result_set.SetMaxRowCount(maxRowCount);
+				resultSet.SetMaxRowCount(maxRowCount);
 				// Does the result set contain large objects?  We can't cache a
 				// result that contains binary data.
-				bool contains_large_objects = result_set.ContainsLargeObjects();
+				bool containsLargeObjects = resultSet.ContainsLargeObjects();
 				// If the result row count < 40 then download and store locally in the
 				// result set and dispose the resources on the server.
-				if (!contains_large_objects && result_set.RowCount < 40) {
-					result_set.StoreResultLocally();
+				if (!containsLargeObjects && resultSet.RowCount < 40) {
+					resultSet.StoreResultLocally();
 				} else {
-					result_set.UpdateResultPart(0, System.Math.Min(10, result_set.RowCount));
+					resultSet.UpdateResultPart(0, System.Math.Min(10, resultSet.RowCount));
 				}
 			}
 
@@ -376,11 +376,11 @@ namespace Deveel.Data.Client {
 			if (disposing) {
 				try {
 					// Behaviour of calls to Statement undefined after this method finishes.
-					if (result_set_list != null) {
-						foreach (ResultSet resultSet in result_set_list) {
+					if (resultSetList != null) {
+						foreach (ResultSet resultSet in resultSetList) {
 							resultSet.Dispose();
 						}
-						result_set_list = null;
+						resultSetList = null;
 					}
 					// Remove any streamable objects that have been created on the client
 					// side.
@@ -449,9 +449,9 @@ namespace Deveel.Data.Client {
 		}
 
 		public override void Cancel() {
-			if (result_set_list != null) {
-				for (int i = 0; i < result_set_list.Length; ++i) {
-					connection.DisposeResult(result_set_list[i].ResultId);
+			if (resultSetList != null) {
+				for (int i = 0; i < resultSetList.Length; ++i) {
+					connection.DisposeResult(resultSetList[i].ResultId);
 				}
 			}
 		}
@@ -608,7 +608,7 @@ namespace Deveel.Data.Client {
 			get { return commandText; }
 			set {
 				if (value != null) {
-					ParameterStyle style = ParameterStyle.Marker;
+					var style = ParameterStyle.Marker;
 					if (connection != null)
 						style = connection.Settings.ParameterStyle;
 
