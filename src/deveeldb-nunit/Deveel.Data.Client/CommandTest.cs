@@ -79,7 +79,24 @@ namespace Deveel.Data.Client {
 
 		[Test]
 		public void ExecuteScalarOnMultipleColumns() {
-			
+			Assert.Inconclusive();
+		}
+
+
+		[Test]
+		public void ExecuteMultipleStatements() {
+			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;BootOrCreate=true";
+			var connection = new DeveelDbConnection(connString);
+			connection.Open();
+			Assert.IsTrue(connection.State == ConnectionState.Open);
+			DeveelDbCommand command = connection.CreateCommand();
+			command.CommandText = "DECLARE name STRING NOT NULL; SELECT :name = 'antonello'";
+			var reader = command.ExecuteReader();
+			Assert.IsTrue(reader.NextResult());
+			Assert.IsTrue(reader.Read());
+			Assert.IsFalse(reader.IsDBNull(0));
+			Assert.AreEqual("antonello", reader.GetString(0));
+			connection.Close();
 		}
 	}
 }

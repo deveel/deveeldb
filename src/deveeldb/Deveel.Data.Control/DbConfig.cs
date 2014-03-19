@@ -26,15 +26,13 @@ namespace Deveel.Data.Control {
 	/// <summary>
 	///  Provides configurations for the whole database system.
 	/// </summary>
-	public sealed class DbConfig : IEnumerable<KeyValuePair<string, object>>, IDbConfig {
+	public sealed class DbConfig : IDbConfig {
 		/// <summary>
 		/// The Hashtable mapping from configuration key to value for the key.
 		/// </summary>
 		private Dictionary<string, object> properties;
 
 		private IConfigFormatter defaultFormatter;
-
-		private DbConfig parent;
 
 		//private static DbConfig defaultConfig;
 
@@ -53,17 +51,14 @@ namespace Deveel.Data.Control {
 		/// <param name="parent">The parent <see cref="DbConfig"/> object that
 		/// will provide fallback configurations</param>
 		public DbConfig(DbConfig parent) {
-			this.parent = parent;
+			Parent = parent;
 			properties = new Dictionary<string, object>();
 		}
 
 		/// <summary>
 		/// Gets or sets the parent set of conigurations
 		/// </summary>
-		public DbConfig Parent {
-			get { return parent; }
-			set { parent = value; }
-		}
+		public DbConfig Parent { get; set; }
 
 		public IConfigFormatter DefaultFormatter {
 			get { return defaultFormatter; }
@@ -195,10 +190,12 @@ namespace Deveel.Data.Control {
 		public object GetValue(string propertyKey, object defaultValue) {
 			// If the key is in the map, return it here
 			object property;
-			if (!properties.TryGetValue(propertyKey, out property))
-				return parent != null ? parent.GetValue(propertyKey, defaultValue) : defaultValue;
+			if (properties.TryGetValue(propertyKey, out property))
+				return property;
+			if (Parent != null && Parent.properties.TryGetValue(propertyKey, out property))
+				return property;
 
-			return property;
+			return defaultValue;
 		}
 
 		public T GetValue<T>(string propertyKey) where T : IConvertible{
@@ -256,8 +253,8 @@ namespace Deveel.Data.Control {
 		/// <inheritdoc/>
 		public object Clone() {
 			DbConfig parentClone = null;
-			if (parent != null)
-				parentClone = (DbConfig) parent.Clone();
+			if (Parent != null)
+				parentClone = (DbConfig) Parent.Clone();
 
 			DbConfig config = new DbConfig(parentClone);
 			config.properties = new Dictionary<string, object>();

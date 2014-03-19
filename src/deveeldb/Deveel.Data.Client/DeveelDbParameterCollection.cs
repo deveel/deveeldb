@@ -289,11 +289,12 @@ namespace Deveel.Data.Client {
 		internal void VerifyParameterNames(ParameterStyle parameterStyle) {
 			foreach (DeveelDbParameter parameter in list) {
 				if (parameterStyle == ParameterStyle.Marker) {
-					if (parameter.ParameterName != "?")
+					if (!String.IsNullOrEmpty(parameter.ParameterName) && 
+						parameter.ParameterName != "?")
 						throw new InvalidOperationException("The connection is set to 'Marker' parameter style but one parameter is named.");
 				} else if (parameterStyle == ParameterStyle.Named) {
 					var parameterName = parameter.ParameterName;
-					if (parameterName == "?")
+					if (String.IsNullOrEmpty(parameterName) || parameterName == "?")
 						throw new InvalidOperationException("The connection is set to 'Named' parameter style but one parameter is a marker.");
 					if (parameterName.Length < 1)
 						throw new InvalidOperationException(String.Format("The parameter {0} has an invalid name.", parameterName));

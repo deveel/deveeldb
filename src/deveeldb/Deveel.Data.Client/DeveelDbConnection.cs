@@ -181,8 +181,9 @@ namespace Deveel.Data.Client {
 
 			// If we are to connect to a single user database running
 			// within this runtime.
-			if (IsLocal(connectionString.Host)) {
-				ConnectToLocal();
+			if (IsLocal(connectionString.Host) ||
+				IsInMemory(connectionString.Host)) {
+				ConnectToLocal(IsInMemory(connectionString.Host));
 
 				// Internal row cache setting are set small.
 				rowCacheSize = 43;
@@ -213,6 +214,20 @@ namespace Deveel.Data.Client {
 			state = ConnectionState.Closed;
 		}
 
+		private void ConnectToMemory() {
+			lock (this) {
+				var config = new DbConfig();
+				config.StorageSystem = ConfigValues.HeapStorageSystem;
+
+				controller = DbController.Create(config);
+			}
+		}
+
+		private bool IsInMemory(string host) {
+			return String.Equals("Heap", host, StringComparison.OrdinalIgnoreCase) ||
+			       String.Equals("memory", host, StringComparison.OrdinalIgnoreCase);
+		}
+
 		/// <summary>
 		/// Makes a connection to a local database.
 		/// </summary>
@@ -223,22 +238,35 @@ namespace Deveel.Data.Client {
 		/// Returns a list of two elements, (<see cref="IDatabaseInterface"/>) db_interface 
 		/// and (<see cref="String"/>) database_name.
 		/// </returns>
-		private void ConnectToLocal() {
+		private void ConnectToLocal(bool memory) {
 			lock (this) {
 				// If the ILocalBootable object hasn't been created yet, do so now via
 				// reflection.
 
-				// The path to the configuration
-				string rootPath = connectionString.Path;
-				if (String.IsNullOrEmpty(rootPath))
-					rootPath = Environment.CurrentDirectory;
+				string sessionKey;
 
-				DbConfig controllerConfig = new DbConfig();
-				controllerConfig.SetValue(ConfigKeys.BasePath, rootPath);
-				controller = DbController.Create(controllerConfig);
+				if (!memory) {
+					// The path to the configuration
+					string rootPath = connectionString.Path;
+					if (String.IsNullOrEmpty(rootPath))
+						rootPath = Environment.CurrentDirectory;
+
+					DbConfig controllerConfig = new DbConfig();
+					controllerConfig.StorageSystem = ConfigValues.FileStorageSystem;
+					controllerConfig.SetValue(ConfigKeys.BasePath, rootPath);
+					controller = DbController.Create(controllerConfig);
+
+					sessionKey = rootPath.ToLower();
+				} else {
+					DbConfig controllerConfig = new DbConfig();
+					controllerConfig.StorageSystem = ConfigValues.HeapStorageSystem;
+					controller = DbController.Create(controllerConfig);
+
+					// TODO: compute this?
+					sessionKey = "Memory";
+				}
 
 				// Is there already a local connection to this database?
-				string sessionKey = rootPath.ToLower();
 				ILocalBootable localBootable;
 
 				// No so create one and write it in the connection mapping
@@ -314,7 +342,7 @@ namespace Deveel.Data.Client {
 		/// </exception>
 		private static ILocalBootable CreateDefaultLocalBootable(DbController controller, string databaseName) {
 			try {
-				Type c = Type.GetType("Deveel.Data.Server.DefaultLocalBootable");
+				Type c = typeof(DefaultLocalBootable);
 				return (ILocalBootable)Activator.CreateInstance(c, new object[] { controller, databaseName });
 			} catch (Exception) {
 				// A lot of people ask us about this error so the message is verbose.
