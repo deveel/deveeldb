@@ -455,11 +455,9 @@ namespace Deveel.Data.QueryPlanning {
 					}
 					return cv;
 				}
+
 				//TODO: check this...
-				if (v == null) {
-					throw new StatementException("Reference '" +
-												 v_in + "' not found.");
-				}
+				throw new StatementException("Reference '" + v_in + "' not found.");
 			}
 			return v;
 		}

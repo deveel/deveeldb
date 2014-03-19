@@ -685,8 +685,14 @@ namespace Deveel.Data {
 		/// A correlated variable will not be returned.
 		/// </remarks>
 		public VariableName AsVariableName() {
+			if (Count != 1)
+				return null;
+
 			object ob = this[0];
-			return Count == 1 && ob is VariableName ? (VariableName) ob : null;
+			if (ob is VariableName)
+				return  (VariableName) ob;
+
+			return null;
 		}
 
 		/// <summary>

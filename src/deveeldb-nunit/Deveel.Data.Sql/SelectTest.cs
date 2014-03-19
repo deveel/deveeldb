@@ -365,12 +365,12 @@ namespace Deveel.Data.Sql {
 			command = connection.CreateCommand("SELECT :name");
 			object value = command.ExecuteScalar();
 
-			Assert.IsNull(value);
+			Assert.AreEqual(DBNull.Value, value);
 
 			command = connection.CreateCommand("SELECT :age");
 			value = command.ExecuteScalar();
 
-			Assert.IsNull(value);
+			Assert.AreEqual(DBNull.Value, value);
 
 			command = connection.CreateCommand("SELECT name, age INTO :name, :age FROM Person");
 			command.ExecuteNonQuery();
@@ -390,6 +390,11 @@ namespace Deveel.Data.Sql {
 			Assert.IsNotNull(value);
 
 			Console.Out.WriteLine("age = {0}", value);
+		}
+
+		[Test]
+		public void SelectSingleVariable() {
+			Assert.Inconclusive();
 		}
 	}
 }

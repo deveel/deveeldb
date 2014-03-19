@@ -55,6 +55,7 @@ namespace Deveel.Data {
 			locker.SetMode(LockingMode.Exclusive);
 			try {
 				try {
+					// TODO: convert this in a direct call...
 					IDbConnection conn = connection.GetDbConnection();
 
 					// Is the username/password in the database?

@@ -62,8 +62,7 @@ namespace Deveel.Data.Sql {
 			String com = type.ToLower();
 
 			if (com.Equals("varset")) {
-				//TODO: call SetVariable on context instead?
-				context.Connection.SetVariable(var_name, exp, context);
+				context.SetVariable(var_name, exp);
 			} else if (com.Equals("isolationset")) {
 				context.Connection.TransactionIsolation = (IsolationLevel) Enum.Parse(typeof(IsolationLevel), value, true);
 			} else if (com.Equals("autocommit")) {
