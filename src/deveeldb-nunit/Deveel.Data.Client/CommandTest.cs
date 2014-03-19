@@ -90,8 +90,9 @@ namespace Deveel.Data.Client {
 			connection.Open();
 			Assert.IsTrue(connection.State == ConnectionState.Open);
 			DeveelDbCommand command = connection.CreateCommand();
-			command.CommandText = "DECLARE name STRING NOT NULL; SELECT :name = 'antonello'";
+			command.CommandText = "DECLARE name1 STRING NOT NULL; SET name1 = 'antonello'; SELECT :name1;";
 			var reader = command.ExecuteReader();
+			Assert.IsTrue(reader.NextResult());
 			Assert.IsTrue(reader.NextResult());
 			Assert.IsTrue(reader.Read());
 			Assert.IsFalse(reader.IsDBNull(0));

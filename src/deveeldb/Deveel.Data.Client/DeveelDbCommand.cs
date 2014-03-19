@@ -142,7 +142,7 @@ namespace Deveel.Data.Client {
 		internal bool NextResult() {
 			// If we are at the end then return false
 			if (resultSetList == null ||
-				multiResultSetIndex >= resultSetList.Length) {
+				multiResultSetIndex+1 >= resultSetList.Length) {
 				return false;
 			}
 
@@ -627,7 +627,12 @@ namespace Deveel.Data.Client {
 						style = connection.Settings.ParameterStyle;
 
 					commandText = value;
-					queries = new SqlQuery[] {new SqlQuery(value, style)};
+
+					var queryTexts = commandText.Split(new char[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+					queries = new SqlQuery[queryTexts.Length];
+					for (int i = 0; i < queryTexts.Length; i++) {
+						queries[i] = new SqlQuery(queryTexts[i], style);
+					}
 				} else {
 					queries = null;
 					commandText = null;
