@@ -191,16 +191,16 @@ namespace Deveel.Data {
 			}
 
 			// Create the new master table and add to list of visible tables.
-			master = conglomerate.CreateMasterTable(tableInfo, dataSectorSize, indexSectorSize);
+			master = Conglomerate.CreateMasterTable(tableInfo, dataSectorSize, indexSectorSize);
 			// Add this table (and an index set) for this table.
 			AddVisibleTable(master, master.CreateIndexSet());
 
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = master.TableId;
-			journal.EntryAddTouchedTable(tableId);
+			Journal.EntryAddTouchedTable(tableId);
 
 			// Log in the journal that we created this table.
-			journal.EntryTableCreate(tableId);
+			Journal.EntryTableCreate(tableId);
 
 			// Add entry to the Sequences table for the native generator for this
 			// table.
@@ -235,7 +235,7 @@ namespace Deveel.Data {
 
 			tableInfo.IsReadOnly = true;
 
-			MasterTableDataSource temp = conglomerate.CreateTemporaryDataSource(tableInfo);
+			MasterTableDataSource temp = Conglomerate.CreateTemporaryDataSource(tableInfo);
 			AddVisibleTable(temp, temp.CreateIndexSet());
 
 			SequenceManager.AddNativeTableGenerator(this, tableName);
@@ -287,10 +287,10 @@ namespace Deveel.Data {
 
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = master.TableId;
-			journal.EntryAddTouchedTable(tableId);
+			Journal.EntryAddTouchedTable(tableId);
 
 			// Log in the journal that we dropped this table.
-			journal.EntryTableDrop(tableId);
+			Journal.EntryTableDrop(tableId);
 
 			// Remove the native sequence generator (in this transaction) for this
 			// table.
@@ -327,16 +327,16 @@ namespace Deveel.Data {
 				throw new StatementException("Unable to copy.  Table '" + tableName + "' already exists.");
 
 			// Copy the master table and add to the list of visible tables.
-			master = conglomerate.CopyMasterTable(srcMasterTable, indexSet);
+			master = Conglomerate.CopyMasterTable(srcMasterTable, indexSet);
 			// Add this visible table
 			AddVisibleTable(master, master.CreateIndexSet());
 
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = master.TableId;
-			journal.EntryAddTouchedTable(tableId);
+			Journal.EntryAddTouchedTable(tableId);
 
 			// Log in the journal that we created this table.
-			journal.EntryTableCreate(tableId);
+			Journal.EntryTableCreate(tableId);
 
 			// Add entry to the Sequences table for the native generator for this
 			// table.
@@ -507,9 +507,9 @@ namespace Deveel.Data {
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = master.TableId;
 
-			journal.EntryAddTouchedTable(tableId);
+			Journal.EntryAddTouchedTable(tableId);
 			// Log in the journal that we dropped this table.
-			journal.EntryTableConstraintAlter(tableId);
+			Journal.EntryTableConstraintAlter(tableId);
 
 		}
 

@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2011  Deveel
+//  Copyright 2010-2014  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -49,33 +49,28 @@ namespace Deveel.Data {
 		public User AuthenticateUser(string username, string password, string connectionString) {
 			// Create a temporary connection for authentication only...
 			DatabaseConnection connection = CreateNewConnection(null, null);
-			DatabaseQueryContext context = new DatabaseQueryContext(connection);
+			var context = new DatabaseQueryContext(connection);
 			connection.CurrentSchema = SystemSchema.Name;
 			LockingMechanism locker = connection.LockingMechanism;
 			locker.SetMode(LockingMode.Exclusive);
 			try {
 				try {
-					// TODO: convert this in a direct call...
-					IDbConnection conn = connection.GetDbConnection();
+					var table = context.GetTable(SystemSchema.Password);
+					VariableName unameColumn = table.GetResolvedVariable(0);
+					VariableName passwColumn = table.GetResolvedVariable(1);
 
-					// Is the username/password in the database?
-					IDbCommand command = conn.CreateCommand();
-					command.CommandText = " SELECT \"UserName\" FROM \"password\" " +
-										  "  WHERE \"password.UserName\" = ? " +
-										  "    AND \"password.Password\" = ? ";
-					command.Parameters.Add(username);
-					command.Parameters.Add(password);
-					command.Prepare();
-
-					IDataReader rs = command.ExecuteReader();
-					if (!rs.Read())
+					Table t = table.SimpleSelect(context, unameColumn, Operator.Equal, new Expression(TObject.CreateString(username)));
+					if (t.RowCount == 0)
 						return null;
-					rs.Close();
+
+					var pass = t.GetCell(passwColumn, 0);
+					if (pass == null ||
+						!pass.Object.Equals(password))
+						return null;
 
 					// Now check if this user is permitted to connect from the given
 					// host.
-					if (UserAllowedAccessFromHost(context,
-												  username, connectionString)) {
+					if (UserAllowedAccessFromHost(context, username, connectionString)) {
 						// Successfully authenticated...
 						User user = new User(username, this,
 											connectionString, DateTime.Now);

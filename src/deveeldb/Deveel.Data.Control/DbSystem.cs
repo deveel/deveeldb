@@ -160,12 +160,12 @@ namespace Deveel.Data.Control {
 			IDatabaseInterface dbInterface = new DatabaseInterface(controller, name, hostString);
 			// Create the DeveelDbConnection object (very minimal cache settings for an
 			// internal connection).
-			DeveelDbConnectionStringBuilder s = new DeveelDbConnectionStringBuilder();
+			var s = new DeveelDbConnectionStringBuilder();
 			s.Schema = schema;
 			s.UserName = username;
 			s.Password = password;
 
-			DBSConnection connection = new DBSConnection(this, internalCounter, s.ToString(), dbInterface, 8, 4092000);
+			var connection = new DBSConnection(this, internalCounter, s.ToString(), dbInterface, 8, 4092000);
 			// Attempt to log in with the given username and password (default schema)
 			connection.Open();
 			if (connection.State != ConnectionState.Open)

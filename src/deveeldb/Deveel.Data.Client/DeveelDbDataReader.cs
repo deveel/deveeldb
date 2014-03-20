@@ -154,7 +154,7 @@ namespace Deveel.Data.Client {
 			if (ob is BigNumber)
 				return ((BigNumber) ob).CompareTo(Zero) != 0;
 			if (CanMakeString(ob))
-				return String.Compare(command.MakeString(ob), "true", true) == 0;
+				return String.Compare(command.MakeString(ob), "true", StringComparison.OrdinalIgnoreCase) == 0;
 
 			throw new DataException("Unable to cast value in ResultSet to bool");
 		}

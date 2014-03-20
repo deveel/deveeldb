@@ -81,7 +81,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void AddTransaction(Transaction transaction) {
 			lock (this) {
-				long currentCommitId = transaction.CommitID;
+				long currentCommitId = transaction.CommitId;
 				if (currentCommitId >= maximumCommitId) {
 					openTransactions.Add(transaction);
 #if DEBUG
@@ -110,11 +110,11 @@ namespace Deveel.Data {
 						minimumCommitId = Int32.MaxValue;
 						maximumCommitId = 0;
 					} else {
-						minimumCommitId = openTransactions[i + 1].CommitID;
+						minimumCommitId = openTransactions[i + 1].CommitId;
 					}
 				} else if (i == openTransactions.Count - 1) {
 					// Last in list.
-					maximumCommitId = openTransactions[i - 1].CommitID;
+					maximumCommitId = openTransactions[i - 1].CommitId;
 				} else if (i == -1) {
 					throw new ApplicationException("Unable to find transaction in the list.");
 				}
@@ -163,9 +163,9 @@ namespace Deveel.Data {
 					// minimum commit_id).
 					Transaction testTransaction = openTransactions[0];
 					if (testTransaction != transaction) {
-						minimum_commit_id = testTransaction.CommitID;
+						minimum_commit_id = testTransaction.CommitId;
 					} else if (openTransactions.Count > 1) {
-						minimum_commit_id = openTransactions[1].CommitID;
+						minimum_commit_id = openTransactions[1].CommitId;
 					}
 				}
 

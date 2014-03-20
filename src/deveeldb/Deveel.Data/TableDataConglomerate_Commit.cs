@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 
 using Deveel.Diagnostics;
 
@@ -72,21 +73,13 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal void ProcessCommit(Transaction transaction, IList<MasterTableDataSource> visibleTables,
 						   IEnumerable<MasterTableDataSource> selectedFromTables,
-						   IList<IMutableTableDataSource> touchedTables, TransactionJournal journal) {
+						   IEnumerable<IMutableTableDataSource> touchedTables, TransactionJournal journal) {
 
 			// Get individual journals for updates made to tables in this
 			// transaction.
 			// The list MasterTableJournal
-			List<MasterTableJournal> journalList = new List<MasterTableJournal>();
-			for (int i = 0; i < touchedTables.Count; ++i) {
-				MasterTableJournal tableJournal = touchedTables[i].Journal;
-				if (tableJournal.EntriesCount > 0) {
-					// Check the journal has entries.
-					journalList.Add(tableJournal);
-				}
-			}
 
-			MasterTableJournal[] changedTables = journalList.ToArray();
+			MasterTableJournal[] changedTables = touchedTables.Select(t => t.Journal).Where(tableJournal => tableJournal.EntriesCount > 0).ToArray();
 
 			// The list of tables created by this journal.
 			IList<int> createdTables = journal.GetTablesCreated();
@@ -109,16 +102,16 @@ namespace Deveel.Data {
 			bool entriesCommitted = false;
 
 			// The tables that were actually changed (MasterTableDataSource)
-			List<MasterTableDataSource> changedTablesList = new List<MasterTableDataSource>();
+			var changedTablesList = new List<MasterTableDataSource>();
 
 			// Grab the commit Lock.
 			lock (CommitLock) {
 				// Get the list of all database objects that were created in the
 				// transaction.
-				IList<TableName> databaseObjectsCreated = transaction.AllNamesCreated;
+				var databaseObjectsCreated = transaction.AllNamesCreated;
 				// Get the list of all database objects that were dropped in the
 				// transaction.
-				IList<TableName> databaseObjectsDropped = transaction.AllNamesDropped;
+				var databaseObjectsDropped = transaction.AllNamesDropped;
 
 				// This is a transaction that will represent the view of the database
 				// at the end of the commit
@@ -127,7 +120,7 @@ namespace Deveel.Data {
 				try {
 					// ---- Commit check stage ----
 
-					long tranCommitId = transaction.CommitID;
+					long tranCommitId = transaction.CommitId;
 
 					// We only perform this check if transaction error on dirty selects
 					// are enabled.
@@ -153,8 +146,8 @@ namespace Deveel.Data {
 					// Check there isn't a namespace clash with database objects.
 					// We need to create a list of all create and drop activity in the
 					// conglomerate from when the transaction started.
-					List<TableName> allDroppedObs = new List<TableName>();
-					List<TableName> allCreatedObs = new List<TableName>();
+					var allDroppedObs = new List<TableName>();
+					var allCreatedObs = new List<TableName>();
 					foreach (NameSpaceJournal nsJournal in namespaceJournalList) {
 						if (nsJournal.CommitId >= tranCommitId) {
 							allDroppedObs.AddRange(nsJournal.DroppedNames);
@@ -165,13 +158,13 @@ namespace Deveel.Data {
 					// The list of all dropped objects since this transaction
 					// began.
 					bool conflict5 = false;
-					object conflict_name = null;
-					string conflict_desc = "";
+					object conflictName = null;
+					string conflictDesc = "";
 					foreach (TableName droppedOb in allDroppedObs) {
 						if (databaseObjectsDropped.Contains(droppedOb)) {
 							conflict5 = true;
-							conflict_name = droppedOb;
-							conflict_desc = "Drop Clash";
+							conflictName = droppedOb;
+							conflictDesc = "Drop Clash";
 						}
 					}
 					// The list of all created objects since this transaction
@@ -179,8 +172,8 @@ namespace Deveel.Data {
 					foreach (TableName createdOb in allCreatedObs) {
 						if (databaseObjectsCreated.Contains(createdOb)) {
 							conflict5 = true;
-							conflict_name = createdOb;
-							conflict_desc = "Create Clash";
+							conflictName = createdOb;
+							conflictDesc = "Create Clash";
 						}
 					}
 					if (conflict5) {
@@ -188,8 +181,8 @@ namespace Deveel.Data {
 						throw new TransactionException(
 							TransactionException.DuplicateTable,
 							"Concurrent Serializable Transaction Conflict(5): " +
-							"Namespace conflict: " + conflict_name + " " +
-							conflict_desc);
+							"Namespace conflict: " + conflictName + " " +
+							conflictDesc);
 					}
 
 					// For each journal,
@@ -227,8 +220,7 @@ namespace Deveel.Data {
 					// Look at the transaction journal, if a table is dropped that has
 					// journal entries since the last commit then we have an exception
 					// case.
-					for (int i = 0; i < droppedTables.Count; ++i) {
-						int tableId = droppedTables[i];
+					foreach (int tableId in droppedTables) {
 						// Get the master table with this table id.
 						MasterTableDataSource master = GetMasterTable(tableId);
 						// Any journal entries made to this dropped table?
@@ -250,29 +242,22 @@ namespace Deveel.Data {
 					// This list represents all tables that are either new or changed in
 					// this transaction.
 
-					List<CommitTableInfo> normalizedChangedTables = new List<CommitTableInfo>(8);
+					var normalizedChangedTables = new List<CommitTableInfo>(8);
+
 					// Add all tables that were changed and not dropped in this transaction.
-					foreach (MasterTableJournal tableJournal in changedTables) {
-						// The table the changes were made to.
-						int tableId = tableJournal.TableId;
-						// If this table is not dropped in this transaction and is not
-						// already in the normalized list then add it.
-						if (!droppedTables.Contains(tableId)) {
-							MasterTableDataSource masterTable = GetMasterTable(tableId);
 
-							CommitTableInfo tableInfo = new CommitTableInfo();
-							tableInfo.Master = masterTable;
-							tableInfo.Journal = tableJournal;
-							tableInfo.ChangesSinceCommit = masterTable.FindAllJournalsSince(tranCommitId);
+					normalizedChangedTables.AddRange(
+						changedTables.Select(tableJournal => new {tableJournal, tableId = tableJournal.TableId})
+							.Where(t => !droppedTables.Contains(t.tableId))
+							.Select(t => new {t, masterTable = GetMasterTable(t.tableId)})
+							.Select(t => new CommitTableInfo {
+								Master = t.masterTable,
+								Journal = t.t.tableJournal,
+								ChangesSinceCommit = t.masterTable.FindAllJournalsSince(tranCommitId)
+							}));
 
-							normalizedChangedTables.Add(tableInfo);
-						}
-					}
-
-					int createdTablesCount = createdTables.Count;
 					// Add all tables that were created and not dropped in this transaction.
-					for (int i = 0; i < createdTablesCount; ++i) {
-						int tableId = createdTables[i];
+					foreach (var tableId in createdTables) {
 						// If this table is not dropped in this transaction then this is a
 						// new table in this transaction.
 						if (!droppedTables.Contains(tableId)) {
@@ -280,8 +265,9 @@ namespace Deveel.Data {
 							if (!CommitTableListContains(normalizedChangedTables, masterTable)) {
 
 								// This is for entries that are created but modified (no journal).
-								CommitTableInfo tableInfo = new CommitTableInfo();
-								tableInfo.Master = masterTable;
+								var tableInfo = new CommitTableInfo {
+									Master = masterTable
+								};
 
 								normalizedChangedTables.Add(tableInfo);
 							}
@@ -296,11 +282,8 @@ namespace Deveel.Data {
 					// represents tables that will be dropped if the transaction
 					// successfully commits.
 
-					int droppedTablesCount = droppedTables.Count;
-					List<MasterTableDataSource> normalizedDroppedTables = new List<MasterTableDataSource>(8);
-					for (int i = 0; i < droppedTablesCount; ++i) {
-						// The dropped table
-						int tableId = droppedTables[i];
+					var normalizedDroppedTables = new List<MasterTableDataSource>(8);
+					foreach (var tableId in droppedTables) {
 						// Was this dropped table also created?  If it was created in this
 						// transaction then we don't care about it.
 						if (!createdTables.Contains(tableId)) {
@@ -350,7 +333,7 @@ namespace Deveel.Data {
 					// Now add any changed tables to the view.
 
 					// Represents view of the changed tables
-					ITableDataSource[] changedTableSource = new ITableDataSource[normChangedTablesCount];
+					var changedTableSource = new ITableDataSource[normChangedTablesCount];
 					// Set up the above arrays
 					for (int i = 0; i < normChangedTablesCount; ++i) {
 						// Get the information for this changed table
@@ -408,10 +391,9 @@ namespace Deveel.Data {
 
 					// Any tables that the constraints were altered for we need to check
 					// if any rows in the table violate the new constraints.
-					for (int i = 0; i < constraintAlteredTables.Count; ++i) {
+					foreach (var tableId in constraintAlteredTables) {
 						// We need to check there are no constraint violations for all the
 						// rows in the table.
-						int tableId = constraintAlteredTables[i];
 						for (int n = 0; n < normChangedTablesCount; ++n) {
 							CommitTableInfo tableInfo = normalizedChangedTables[n];
 							if (tableInfo.Master.TableId == tableId) {
@@ -474,8 +456,7 @@ namespace Deveel.Data {
 							}
 
 							// Generate the event
-							CommitModificationEventArgs args = new CommitModificationEventArgs(tableName, tableInfo.NormalizedAddedRows,
-							                                                                   tableInfo.NormalizedRemovedRows);
+							var args = new CommitModificationEventArgs(tableName, tableInfo.NormalizedAddedRows, tableInfo.NormalizedRemovedRows);
 							// Fire this event on the listeners
 							modificationHandler(checkTransaction, args);
 						} // if (changeJournal != null)
@@ -550,7 +531,7 @@ namespace Deveel.Data {
 						try {
 							// Dispose the 'checkTransaction'
 							if (checkTransaction != null) {
-								checkTransaction.dispose();
+								checkTransaction.DisposeAndCleanup();
 								CloseTransaction(checkTransaction);
 							}
 							// Always ensure a transaction close, even if we have an exception.

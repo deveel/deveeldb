@@ -41,17 +41,6 @@ namespace Deveel.Data {
 		// ---------- Member variables ----------
 
 		/// <summary>
-		/// The TableDataConglomerate that this transaction is within the context of.
-		/// </summary>
-		private TableDataConglomerate conglomerate;
-
-		/// <summary>
-		/// The commitId that represents the id of the last commit that occurred
-		/// when this transaction was created.
-		/// </summary>
-		private readonly long commitId;
-
-		/// <summary>
 		/// The name of all database objects that were created in this transaction.
 		/// This is used for a namespace collision test during commit.
 		/// </summary>
@@ -72,17 +61,6 @@ namespace Deveel.Data {
 		private Hashtable cursors;
 
 		/// <summary>
-		/// The journal for this transaction.  This journal describes all changes
-		/// made to the database by this transaction.
-		/// </summary>
-		private TransactionJournal journal;
-
-		/// <summary>
-		/// True if an error should be generated on a dirty select.
-		/// </summary>
-		private bool transactionErrorOnDirtySelect;
-
-		/// <summary>
 		/// True if this transaction is closed.
 		/// </summary>
 		private bool closed;
@@ -91,8 +69,8 @@ namespace Deveel.Data {
 		internal Transaction(TableDataConglomerate conglomerate, long commitId, IList<MasterTableDataSource> visibleTables, IList<IIndexSet> tableIndices)
 			: base(conglomerate.System, conglomerate.SequenceManager) {
 
-			this.conglomerate = conglomerate;
-			this.commitId = commitId;
+			this.Conglomerate = conglomerate;
+			this.CommitId = commitId;
 			closed = false;
 
 			createdDatabaseObjects = new List<TableName>();
@@ -101,7 +79,7 @@ namespace Deveel.Data {
 			touchedTables = new List<IMutableTableDataSource>();
 			selectedFromTables = new List<MasterTableDataSource>();
 			temporary_tables = new ArrayList();
-			journal = new TransactionJournal();
+			Journal = new TransactionJournal();
 
 			cursors = new Hashtable();
 
@@ -121,15 +99,17 @@ namespace Deveel.Data {
 
 			// Defaults to true (should be changed by called 'setErrorOnDirtySelect'
 			// method.
-			transactionErrorOnDirtySelect = true;
+			TransactionErrorOnDirtySelect = true;
+		}
+
+		~Transaction() {
+			Dispose(false);
 		}
 
 		/// <summary>
 		/// Returns the TableDataConglomerate of this transaction.
 		/// </summary>
-		internal TableDataConglomerate Conglomerate {
-			get { return conglomerate; }
-		}
+		internal TableDataConglomerate Conglomerate { get; private set; }
 
 		/// <summary>
 		/// Returns the 'commitId' which is the last commit that occured 
@@ -139,20 +119,12 @@ namespace Deveel.Data {
 		/// <b>Note</b> Don't make this synchronized over anything. This is 
 		/// accessed by <see cref="OpenTransactionList"/>.
 		/// </remarks>
-		internal long CommitID {
-			get {
-				// REINFORCED NOTE: This absolutely must never be synchronized because
-				//   it is accessed by OpenTransactionList synchronized.
-				return commitId;
-			}
-		}
+		internal long CommitId { get; private set; }
 
 		/// <summary>
 		/// Gets the journal of changes made during this transaction.
 		/// </summary>
-		public TransactionJournal Journal {
-			get { return journal; }
-		}
+		public TransactionJournal Journal { get; private set; }
 
 		// ----- Operations within the context of this transaction -----
 
@@ -161,7 +133,7 @@ namespace Deveel.Data {
 			// Create the table for this transaction.
 			IMutableTableDataSource table = master.CreateTableDataSourceAtCommit(this);
 			// Log in the journal that this table was touched by the transaction.
-			journal.EntryAddTouchedTable(master.TableId);
+			Journal.EntryAddTouchedTable(master.TableId);
 			touchedTables.Add(table);
 			return table;
 		}
@@ -184,7 +156,7 @@ namespace Deveel.Data {
 
 			// The list to copy (in the order to copy in).
 			// We WriteByte the 'SEQUENCE_INFO' at the very end of the table list to copy.
-			List<MasterTableDataSource> copyList = new List<MasterTableDataSource>(sz);
+			var copyList = new List<MasterTableDataSource>(sz);
 
 			MasterTableDataSource lastEntry = null;
 			for (int i = 0; i < sz; ++i) {
@@ -202,7 +174,6 @@ namespace Deveel.Data {
 			try {
 				// For each master table,
 				for (int i = 0; i < sz; ++i) {
-
 					MasterTableDataSource masterTable = copyList[i];
 					TableName tableName = masterTable.TableInfo.TableName;
 
@@ -250,11 +221,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal bool TransactionErrorOnDirtySelect {
-			get { return transactionErrorOnDirtySelect; }
-			set { transactionErrorOnDirtySelect = value; }
-		}
-
+		internal bool TransactionErrorOnDirtySelect { get; set; }
 
 		/// <summary>
 		/// Convenience, given a <see cref="SimpleTableQuery"/> object this 
@@ -277,10 +244,10 @@ namespace Deveel.Data {
 			for (int n = 0; n < size; ++n) {
 				// for each i of the input list
 				for (int i = 0; i < size; ++i) {
-					int row_index = cols[i];
-					int seq_no = ((BigNumber)dt.Get(2, row_index).Object).ToInt32();
-					if (seq_no == n) {
-						list[n] = dt.Get(1, row_index).Object.ToString();
+					int rowIndex = cols[i];
+					int seqNo = ((BigNumber)dt.Get(2, rowIndex).Object).ToInt32();
+					if (seqNo == n) {
+						list[n] = dt.Get(1, rowIndex).Object.ToString();
 						break;
 					}
 				}
@@ -352,7 +319,7 @@ namespace Deveel.Data {
 		public void SetPersistentVariable(string variable, string value) {
 			TableName tableName = TableDataConglomerate.PersistentVarTable;
 			ITableDataSource t = GetTable(tableName);
-			SimpleTableQuery dt = new SimpleTableQuery(t);
+			var dt = new SimpleTableQuery(t);
 			dt.SetVariable(0, new Object[] { variable, value });
 			dt.Dispose();
 		}
@@ -366,7 +333,7 @@ namespace Deveel.Data {
 		public String GetPersistantVariable(String variable) {
 			TableName tableName = TableDataConglomerate.PersistentVarTable;
 			ITableDataSource t = GetTable(tableName);
-			SimpleTableQuery dt = new SimpleTableQuery(t);
+			var dt = new SimpleTableQuery(t);
 			String val = dt.GetVariable(1, 0, variable).ToString();
 			dt.Dispose();
 			return val;
@@ -450,7 +417,7 @@ namespace Deveel.Data {
 				try {
 					closed = true;
 					// Get the conglomerate to do this commit.
-					conglomerate.ProcessCommit(this, VisibleTables, selectedFromTables, touchedTables, journal);
+					Conglomerate.ProcessCommit(this, VisibleTables, selectedFromTables, touchedTables, Journal);
 				} finally {
 					Cleanup();
 				}
@@ -473,7 +440,7 @@ namespace Deveel.Data {
 				try {
 					closed = true;
 					// Notify the conglomerate that this transaction has closed.
-					conglomerate.ProcessRollback(this, touchedTables, journal);
+					Conglomerate.ProcessRollback(this, touchedTables, Journal);
 				} finally {
 					Cleanup();
 				}
@@ -499,9 +466,9 @@ namespace Deveel.Data {
 			}
 
 			System.Stats.Increment("Transaction.Cleanup");
-			conglomerate = null;
+			Conglomerate = null;
 			touchedTables = null;
-			journal = null;
+			Journal = null;
 
 			// Dispose all the cursors in the transaction
 			ClearCursors();
@@ -509,13 +476,14 @@ namespace Deveel.Data {
 			Variables.Clear();
 		}
 
-		/**
-		 * Disposes this transaction without rolling back or committing the changes.
-		 * Care should be taken when using this - it must only be used for simple
-		 * transactions that are short lived and have not modified the database.
-		 */
-
-		internal void dispose() {
+		/// <summary>
+		/// Disposes this transaction without rolling back or committing the changes.
+		/// </summary>
+		/// <remarks>
+		/// Care should be taken when using this - it must only be used for simple
+		/// transactions that are short lived and have not modified the database.
+		/// </remarks>
+		internal void DisposeAndCleanup() {
 			if (!IsReadOnly)
 				throw new Exception("Assertion failed - tried to dispose a non Read-only transaction.");
 			if (!closed) {
@@ -673,11 +641,18 @@ namespace Deveel.Data {
 
 		#region Implementation of IDisposable
 
-		void IDisposable.Dispose() {
-			if (!closed) {
-				Logger.Error(this, "Transaction not closed!");
-				Rollback();
+		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				if (!closed) {
+					Logger.Error(this, "Transaction not closed!");
+					Rollback();
+				}				
 			}
+		}
+
+		void IDisposable.Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		#endregion

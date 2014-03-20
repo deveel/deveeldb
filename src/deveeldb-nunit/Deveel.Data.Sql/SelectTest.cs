@@ -39,6 +39,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			Assert.AreEqual(12, rowCount);
+			reader.Close();
 		}
 
 		[Test(Description = "Selects three columns of two joined tables")]
@@ -54,6 +55,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(24, rowCount);
+			reader.Close();
 		}
 
 		[Test(Description = "Forms a result that is an outer join of two tables")]
@@ -70,6 +72,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(11, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -85,6 +88,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(24, rowCount);
+			reader.Close();
 
 		}
 
@@ -100,13 +104,15 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(1, rowCount);
+			reader.Close();
 		}
 
 		[Test(Description = "Stores a result of a selection with a single column into a simple variable")]
 		public void SelectIntoSimpleVariable() {
-			ExecuteNonQuery("DECLARE name VARCHAR(200)");
-			ExecuteNonQuery("SELECT name INTO :name FROM Person WHERE name = 'Elizabeth Kramer'");
-			object value = ExecuteScalar("SELECT :name");
+			BeginTransaction();
+			ExecuteNonQuery("DECLARE firstName VARCHAR(200)");
+			ExecuteNonQuery("SELECT name INTO :firstName FROM Person WHERE name = 'Elizabeth Kramer'");
+			object value = ExecuteScalar("SELECT :firstName");
 
 			Assert.IsNotNull(value);
 			Assert.IsTrue(value.Equals("Elizabeth Kramer"));
@@ -143,6 +149,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(5, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -164,6 +171,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(4, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -177,6 +185,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(4, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -193,7 +202,7 @@ namespace Deveel.Data.Sql {
 
 			int rowCount;
 			PrintResult(reader, out rowCount);
-
+			reader.Close();
 		}
 
 		[Test]
@@ -207,6 +216,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(1, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -230,6 +240,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(4, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -243,6 +254,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(1, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -256,6 +268,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(1, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -274,6 +287,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(8, rowCount);
+			reader.Close();
 		}
 
 		[Test(Description = "Outputs the result of a function on a selection")]
@@ -299,6 +313,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(6, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -311,6 +326,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(4, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -323,6 +339,7 @@ namespace Deveel.Data.Sql {
 			PrintResult(reader, out rowCount);
 
 			Assert.AreEqual(3, rowCount);
+			reader.Close();
 		}
 
 		[Test]
@@ -336,7 +353,7 @@ namespace Deveel.Data.Sql {
 			command = connection.CreateCommand("SELECT :name");
 			object value = command.ExecuteScalar();
 
-			Assert.IsNull(value);
+			Assert.AreEqual(DBNull.Value, value);
 
 			command = connection.CreateCommand("SELECT name INTO :name FROM Person");
 			command.ExecuteNonQuery();
