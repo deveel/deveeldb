@@ -20,7 +20,7 @@ using System.Reflection;
 using System.Text;
 
 using Deveel.Data.Client;
-using Deveel.Data.QueryPlanning;
+using Deveel.Data.Query;
 using Deveel.Data.Security;
 using Deveel.Data.Types;
 using Deveel.Math;

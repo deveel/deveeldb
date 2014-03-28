@@ -15,7 +15,7 @@
 
 using System;
 
-using Deveel.Data.QueryPlanning;
+using Deveel.Data.Query;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {

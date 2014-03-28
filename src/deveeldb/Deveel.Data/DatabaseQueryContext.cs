@@ -16,7 +16,7 @@
 
 using System;
 
-using Deveel.Data.QueryPlanning;
+using Deveel.Data.Query;
 using Deveel.Data.Security;
 using Deveel.Data.Types;
 

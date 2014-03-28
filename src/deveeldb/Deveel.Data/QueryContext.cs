@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Functions;
-using Deveel.Data.QueryPlanning;
+using Deveel.Data.Query;
 using Deveel.Data.Security;
 using Deveel.Data.Types;
 using Deveel.Diagnostics;

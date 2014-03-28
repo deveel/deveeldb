@@ -20,7 +20,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
-using Deveel.Data.QueryPlanning;
+using Deveel.Data.Query;
 
 namespace Deveel.Data {
 	/// <summary>

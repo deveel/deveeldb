@@ -21,7 +21,7 @@ namespace Deveel.Data {
 	/// <summary>
 	/// Utility for converting to and from <see cref="DbType"/> objects.
 	/// </summary>
-	public class TypeUtil {
+	public static class TypeUtil {
 
 		/// <summary>
 		/// Converts from a <see cref="Type"/> object to a type as specified in <see cref="DbType"/>.

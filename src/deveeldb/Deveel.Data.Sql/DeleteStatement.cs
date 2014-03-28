@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.QueryPlanning;
+using Deveel.Data.Query;
 using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql {
