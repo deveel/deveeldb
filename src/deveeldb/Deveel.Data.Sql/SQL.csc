@@ -17,6 +17,7 @@ using System.Collections.Generic;
 
 using Functions;
 using Text;
+using Types;
 
 internal class SQL {
 
