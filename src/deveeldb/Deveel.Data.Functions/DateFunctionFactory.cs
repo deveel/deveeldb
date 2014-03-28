@@ -16,6 +16,8 @@
 using System;
 using System.Globalization;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Functions {
 	internal class DateFunctionFactory : FunctionFactory {
 		public override void Init() {

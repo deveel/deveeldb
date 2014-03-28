@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Transactions;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// Special type of a cache in a <see cref="TableDataConglomerate"/> that 

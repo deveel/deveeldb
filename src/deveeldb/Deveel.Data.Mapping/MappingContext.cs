@@ -19,6 +19,7 @@ using System.Reflection;
 
 using Deveel.Data.Mapping;
 using Deveel.Data.Text;
+using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	public sealed class MappingContext {

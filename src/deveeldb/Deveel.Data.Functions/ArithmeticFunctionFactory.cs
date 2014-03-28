@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Types;
 using Deveel.Math;
 
 namespace Deveel.Data.Functions {

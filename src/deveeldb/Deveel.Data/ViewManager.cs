@@ -17,8 +17,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Data.Deveel.Data;
 using Deveel.Data.QueryPlanning;
+using Deveel.Data.Security;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	/// <summary>

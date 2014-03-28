@@ -17,6 +17,7 @@ using System;
 using System.IO;
 
 using Deveel.Data.Text;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Mapping {
 	public abstract class TypeMemberMapping {

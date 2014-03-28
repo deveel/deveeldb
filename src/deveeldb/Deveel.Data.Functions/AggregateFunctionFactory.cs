@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Functions {
 	internal class AggregateFunctionFacvtory : FunctionFactory {
 		public override void Init() {

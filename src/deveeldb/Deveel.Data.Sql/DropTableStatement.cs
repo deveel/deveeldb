@@ -17,6 +17,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Deveel.Data.Security;
+
 namespace Deveel.Data.Sql {
 	///<summary>
 	/// The logic of the <c>DROP TABLE</c> SQL command.

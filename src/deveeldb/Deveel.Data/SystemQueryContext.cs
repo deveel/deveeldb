@@ -17,6 +17,8 @@ using System;
 
 using Deveel.Data.Functions;
 using Deveel.Data.QueryPlanning;
+using Deveel.Data.Security;
+using Deveel.Data.Transactions;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {

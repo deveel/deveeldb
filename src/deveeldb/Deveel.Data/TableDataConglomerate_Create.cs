@@ -17,6 +17,8 @@ using System;
 using System.IO;
 
 using Deveel.Data.Store;
+using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	public sealed partial class TableDataConglomerate {

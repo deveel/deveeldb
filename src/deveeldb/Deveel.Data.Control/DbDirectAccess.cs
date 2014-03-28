@@ -15,7 +15,10 @@
 
 using System;
 
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Threading;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Control {
 	/// <summary>

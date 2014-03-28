@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// An interface to resolve a variable name to a constant object.

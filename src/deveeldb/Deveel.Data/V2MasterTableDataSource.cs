@@ -19,7 +19,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Index;
 using Deveel.Data.Store;
+using Deveel.Data.Types;
 using Deveel.Data.Util;
 
 namespace Deveel.Data {

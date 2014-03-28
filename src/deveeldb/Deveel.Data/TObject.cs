@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.QueryPlanning;
+using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -38,10 +39,10 @@ namespace Deveel.Data {
 		private readonly object ob;
 
 		/// <summary>
-		/// Constructs a <see cref="TObject"/> for the given <see cref="Data.TType"/>
+		/// Constructs a <see cref="TObject"/> for the given <see cref="Types.TType"/>
 		/// and a wrapped value.
 		/// </summary>
-		/// <param name="type">The <see cref="Data.TType"/> of the object.</param>
+		/// <param name="type">The <see cref="Types.TType"/> of the object.</param>
 		/// <param name="ob">The wrapped value of the object.</param>
 		public TObject(TType type, object ob) {
 			this.type = type;

@@ -16,6 +16,8 @@
 using System;
 using System.Text;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// The class representing a variable within a transaction.

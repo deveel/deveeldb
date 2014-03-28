@@ -19,8 +19,10 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Index;
 using Deveel.Data.Store;
-
+using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {
@@ -159,7 +161,7 @@ namespace Deveel.Data {
 		private readonly SequenceManager sequenceManager;
 
 		/// <summary>
-		/// The <see cref="Data.UDTManager"/> object for this conglomerate.
+		/// The <see cref="Types.UDTManager"/> object for this conglomerate.
 		/// </summary>
 		private readonly UDTManager udtManager;
 

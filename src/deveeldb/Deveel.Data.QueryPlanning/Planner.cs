@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.QueryPlanning {
 	/// <summary>

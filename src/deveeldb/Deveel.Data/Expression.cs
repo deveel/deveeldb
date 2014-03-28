@@ -23,6 +23,7 @@ using System.Text;
 using Deveel.Data.Functions;
 using Deveel.Data.QueryPlanning;
 using Deveel.Data.Sql;
+using Deveel.Data.Types;
 using Deveel.Math;
 
 namespace Deveel.Data {

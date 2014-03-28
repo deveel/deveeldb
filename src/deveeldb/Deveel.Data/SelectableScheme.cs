@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.Index;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {

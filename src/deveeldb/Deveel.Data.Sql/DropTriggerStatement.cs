@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Security;
+
 namespace Deveel.Data.Sql {
 	///<summary>
 	/// A parsed state container for the <c>DROP TRIGGER</c> statement.

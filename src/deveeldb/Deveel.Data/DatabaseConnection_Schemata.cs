@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Transactions;
+
 namespace Deveel.Data {
 	public sealed partial class DatabaseConnection {
 		/// <summary>
@@ -46,26 +48,26 @@ namespace Deveel.Data {
 			CurrentSchema = schema.Name;
 		}
 
-		/// <inheritdoc cref="Data.Transaction.CreateSchema"/>
+		/// <inheritdoc cref="Transactions.Transaction.CreateSchema"/>
 		public void CreateSchema(String name, String type) {
 			// Assert
 			CheckExclusive();
 			Transaction.CreateSchema(name, type);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.DropSchema"/>
+		/// <inheritdoc cref="Transactions.Transaction.DropSchema"/>
 		public void DropSchema(String name) {
 			// Assert
 			CheckExclusive();
 			Transaction.DropSchema(name);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.SchemaExists"/>
+		/// <inheritdoc cref="Transactions.Transaction.SchemaExists"/>
 		public bool SchemaExists(String name) {
 			return Transaction.SchemaExists(name);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.ResolveSchemaCase"/>
+		/// <inheritdoc cref="Transactions.Transaction.ResolveSchemaCase"/>
 		public SchemaDef ResolveSchemaCase(String name, bool ignoreCase) {
 			return Transaction.ResolveSchemaCase(name, ignoreCase);
 		}
@@ -84,7 +86,7 @@ namespace Deveel.Data {
 			return ResolveSchemaCase(name, ignoreCase);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.GetSchemaList"/>
+		/// <inheritdoc cref="Transactions.Transaction.GetSchemaList"/>
 		public SchemaDef[] GetSchemaList() {
 			return Transaction.GetSchemaList();
 		}

@@ -19,6 +19,9 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 using Deveel.Data.QueryPlanning;
+using Deveel.Data.Security;
+using Deveel.Data.Threading;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql {
 	/// <summary>

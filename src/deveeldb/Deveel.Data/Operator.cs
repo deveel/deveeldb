@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using Deveel.Data.QueryPlanning;
+using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	/// <summary>

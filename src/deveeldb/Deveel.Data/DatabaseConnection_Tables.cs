@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Deveel.Data;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public sealed partial class DatabaseConnection {

@@ -16,6 +16,9 @@
 using System;
 using System.Text;
 
+using Deveel.Data.Security;
+using Deveel.Data.Threading;
+using Deveel.Data.Transactions;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Protocol {

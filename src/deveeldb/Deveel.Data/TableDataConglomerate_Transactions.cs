@@ -17,6 +17,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Index;
+using Deveel.Data.Transactions;
+
 namespace Deveel.Data {
 	public sealed partial class TableDataConglomerate {
 		/// <summary>

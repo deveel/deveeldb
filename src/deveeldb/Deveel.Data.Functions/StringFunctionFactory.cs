@@ -18,6 +18,7 @@ using System.Globalization;
 using System.Text;
 
 using Deveel.Data.Text;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Functions {
 	internal class StringFunctionFactory : FunctionFactory {

@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data {
 	public abstract partial class MasterTableDataSource {
 		/// <summary>

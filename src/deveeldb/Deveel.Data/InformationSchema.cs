@@ -2,9 +2,10 @@
 using System.Data;
 
 using Deveel.Data.Client;
+using Deveel.Data.Security;
 using Deveel.Diagnostics;
 
-namespace Deveel.Data.Deveel.Data {
+namespace Deveel.Data {
 	public static class InformationSchema {
 		/// <summary>
 		///  Creates all the system views.

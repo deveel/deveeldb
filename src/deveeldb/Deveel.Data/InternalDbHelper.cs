@@ -19,6 +19,7 @@ using System.Data;
 using Deveel.Data.Client;
 using Deveel.Data.Control;
 using Deveel.Data.Protocol;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data {

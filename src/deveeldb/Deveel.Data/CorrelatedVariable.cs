@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// A wrapper for a variable in a sub-query that references a 

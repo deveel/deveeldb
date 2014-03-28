@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.Store;
+using Deveel.Data.Transactions;
 using Deveel.Data.Util;
 
 namespace Deveel.Data {

@@ -18,6 +18,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Functions {
 	/// <summary>
 	/// An abstract implementation of <see cref="IFunction"/>.

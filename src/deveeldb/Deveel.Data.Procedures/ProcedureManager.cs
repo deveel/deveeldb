@@ -19,7 +19,9 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-using Deveel.Data.Deveel.Data;
+using Deveel.Data.Security;
+using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Procedures {
 	///<summary>

@@ -17,6 +17,7 @@ using System;
 
 using Deveel.Data.Client;
 using Deveel.Data.Control;
+using Deveel.Data.Security;
 
 using NUnit.Framework;
 

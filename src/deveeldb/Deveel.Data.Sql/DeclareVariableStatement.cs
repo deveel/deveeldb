@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class DeclareVariableStatement : Statement {

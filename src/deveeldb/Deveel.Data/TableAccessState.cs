@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Threading;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// Provides very limited access to a <see cref="Table"/> object.

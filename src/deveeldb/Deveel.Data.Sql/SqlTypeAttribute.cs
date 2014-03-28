@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Sql {
 	internal class SqlTypeAttribute : IStatementTreeObject {
 		private readonly string name;

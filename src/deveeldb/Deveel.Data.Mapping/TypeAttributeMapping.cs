@@ -16,6 +16,8 @@
 using System;
 using System.Reflection;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Mapping {
 	public sealed class TypeAttributeMapping : TypeMemberMapping {
 		internal TypeAttributeMapping(TypeMapping declaringType, string memberName, TType type, bool nullable)

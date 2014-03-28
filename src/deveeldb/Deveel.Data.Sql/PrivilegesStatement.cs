@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Security;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Handler for grant/revoke queries for setting up grant information 

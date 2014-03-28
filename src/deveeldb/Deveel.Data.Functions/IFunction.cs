@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Functions {
 	/// <summary>
 	/// Represents a function that is part of an expression to be evaluated.

@@ -16,6 +16,8 @@
 using System;
 using System.Data;
 
+using Deveel.Data.Transactions;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Statement that handles <c>SHOW</c> and <c>DESCRIBE</c> sql commands.
