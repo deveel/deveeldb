@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 
+using Deveel.Data.Types;
+
 using NUnit.Framework;
 
 namespace Deveel.Data.Functions {

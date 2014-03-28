@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Types;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {

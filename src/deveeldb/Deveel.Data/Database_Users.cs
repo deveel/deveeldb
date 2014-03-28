@@ -17,7 +17,9 @@ using System;
 using System.Data;
 
 using Deveel.Data.Client;
-using Deveel.Data.Deveel.Data;
+using Deveel.Data.Security;
+using Deveel.Data.Threading;
+using Deveel.Data.Transactions;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {
@@ -27,7 +29,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <remarks>
 		/// If a valid object is returned, the user will be logged into 
-		/// the engine via the <see cref="Data.UserManager"/>. The developer must 
+		/// the engine via the <see cref="Security.UserManager"/>. The developer must 
 		/// ensure that <see cref="Dispose()"/> is called before the object is 
 		/// disposed (logs out of the system).
 		/// <para>

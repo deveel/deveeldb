@@ -16,6 +16,8 @@
 using System;
 using System.Threading;
 
+using Deveel.Data.Security;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// This is a worker thread.  This is given commands to execute by the

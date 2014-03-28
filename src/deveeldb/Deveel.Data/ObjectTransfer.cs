@@ -19,6 +19,7 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Protocol;
+using Deveel.Data.Types;
 using Deveel.Math;
 
 namespace Deveel.Data {

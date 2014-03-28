@@ -17,6 +17,8 @@ using System;
 using System.Collections;
 using System.Reflection;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Mapping {
 	public sealed class TypeMapping : ICloneable {
 		public TypeMapping(Type type, UserTypeAttributes attributes)

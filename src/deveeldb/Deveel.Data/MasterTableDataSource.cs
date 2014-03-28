@@ -16,8 +16,9 @@
 using System;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Index;
 using Deveel.Data.Store;
-
+using Deveel.Data.Transactions;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {

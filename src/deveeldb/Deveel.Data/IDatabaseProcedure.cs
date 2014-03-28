@@ -15,6 +15,9 @@
 
 using System;
 
+using Deveel.Data.Security;
+using Deveel.Data.Threading;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// This interface represents a database procedure that is executed on 

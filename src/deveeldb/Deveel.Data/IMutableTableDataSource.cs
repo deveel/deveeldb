@@ -16,6 +16,9 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Index;
+using Deveel.Data.Transactions;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// A mutable data source that allows for the addition and 

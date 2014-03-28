@@ -17,6 +17,8 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// Used to managed all the informations about a column in a table

@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// Defines meta information about a table.

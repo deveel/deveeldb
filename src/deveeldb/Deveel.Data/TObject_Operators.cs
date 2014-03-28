@@ -16,6 +16,8 @@
 using System;
 using System.Globalization;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	public sealed partial class TObject {
 		/// <summary>

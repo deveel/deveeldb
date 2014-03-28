@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	public sealed partial class TObject : IConvertible {
 		/// <summary>

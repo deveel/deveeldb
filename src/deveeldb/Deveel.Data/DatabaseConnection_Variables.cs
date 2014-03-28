@@ -15,6 +15,9 @@
 
 using System;
 
+using Deveel.Data.Transactions;
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	public sealed partial class DatabaseConnection {
 		internal VariablesManager Variables {
@@ -71,14 +74,14 @@ namespace Deveel.Data {
 			Transaction.Variables.RemoveVariable(name);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.SetPersistentVariable"/>
+		/// <inheritdoc cref="Transactions.Transaction.SetPersistentVariable"/>
 		public void SetPersistentVariable(string variable, String value) {
 			// Assert
 			CheckExclusive();
 			Transaction.SetPersistentVariable(variable, value);
 		}
 
-		/// <inheritdoc cref="Data.Transaction.GetPersistantVariable"/>
+		/// <inheritdoc cref="Transactions.Transaction.GetPersistantVariable"/>
 		public String GetPersistentVariable(string variable) {
 			return Transaction.GetPersistantVariable(variable);
 		}

@@ -17,9 +17,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
-using Deveel.Data.Deveel.Data;
 using Deveel.Data.Procedures;
 using Deveel.Data.QueryPlanning;
+using Deveel.Data.Security;
+using Deveel.Data.Threading;
+using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {

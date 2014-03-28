@@ -16,6 +16,9 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Transactions;
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// Manages the creation and removal of sequence keys, and offers access 

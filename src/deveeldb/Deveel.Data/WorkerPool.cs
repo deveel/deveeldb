@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 using System.Threading;
 
+using Deveel.Data.Security;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {

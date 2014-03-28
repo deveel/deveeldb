@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Deveel.Data;
+using Deveel.Data.Threading;
 using Deveel.Diagnostics;
 
 using SysMath = System.Math;

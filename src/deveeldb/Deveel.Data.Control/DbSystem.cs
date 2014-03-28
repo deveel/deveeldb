@@ -20,6 +20,7 @@ using System.Text;
 
 using Deveel.Data.Client;
 using Deveel.Data.Protocol;
+using Deveel.Data.Security;
 
 namespace Deveel.Data.Control {
 	///<summary>

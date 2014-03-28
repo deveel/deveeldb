@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Types;
+
 using NUnit.Framework;
 
 namespace Deveel.Data {

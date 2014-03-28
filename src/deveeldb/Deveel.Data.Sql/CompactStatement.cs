@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Security;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Statement that handles <c>COMPACT</c> SQL command.

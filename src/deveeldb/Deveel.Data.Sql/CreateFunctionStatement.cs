@@ -18,6 +18,8 @@ using System.Collections;
 using System.Reflection;
 
 using Deveel.Data.Procedures;
+using Deveel.Data.Security;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
 	[Serializable]

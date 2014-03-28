@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Procedures {
 	/// <summary>
 	/// This class represents a special kind of function

@@ -20,8 +20,10 @@ using System.Data;
 using System.IO;
 
 using Deveel.Data.Client;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
-
+using Deveel.Data.Threading;
+using Deveel.Data.Transactions;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Protocol {

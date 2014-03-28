@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Transactions;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// An implementation of <see cref="IInternalTableInfo"/> that provides a 

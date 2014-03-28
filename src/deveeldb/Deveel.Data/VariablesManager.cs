@@ -18,6 +18,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	public sealed class VariablesManager {
 		internal VariablesManager() {

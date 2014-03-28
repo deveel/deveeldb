@@ -17,6 +17,7 @@ using System;
 using System.Data;
 
 using Deveel.Data.Procedures;
+using Deveel.Data.Security;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {

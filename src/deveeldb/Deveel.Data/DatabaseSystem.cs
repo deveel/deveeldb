@@ -20,6 +20,7 @@ using System.Threading;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Control;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data {

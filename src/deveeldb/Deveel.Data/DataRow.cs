@@ -18,6 +18,8 @@ using System;
 using System.Collections;
 using System.Text;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	///<summary>
 	/// Represents a row of data to be added into a table.

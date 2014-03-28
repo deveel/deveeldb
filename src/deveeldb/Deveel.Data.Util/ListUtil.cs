@@ -15,6 +15,8 @@
 
 using System.Collections.Generic;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data.Util {
 	static class ListUtil {
 		public static IList<int> ToList(IIndex index) {

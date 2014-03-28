@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Security;
+
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class DropSequenceStatement : Statement {

@@ -17,6 +17,8 @@
 using System;
 using System.Text;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// An object that represents a range of values to select from a list.

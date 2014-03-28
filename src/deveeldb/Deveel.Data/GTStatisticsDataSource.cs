@@ -15,7 +15,7 @@
 
 using System;
 
-using Deveel.Data.Deveel.Data;
+using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	/// <summary>

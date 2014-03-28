@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// Provides methods for performing the query table command <i>in</i> and 
