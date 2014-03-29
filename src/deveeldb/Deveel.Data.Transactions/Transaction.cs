@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
+using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
 using Deveel.Data.Types;
 
@@ -69,7 +70,7 @@ namespace Deveel.Data.Transactions {
 
 
 		internal Transaction(TableDataConglomerate conglomerate, long commitId, IList<MasterTableDataSource> visibleTables, IList<IIndexSet> tableIndices)
-			: base(conglomerate.System, conglomerate.SequenceManager) {
+			: base(conglomerate.Context, conglomerate.SequenceManager) {
 
 			this.Conglomerate = conglomerate;
 			this.CommitId = commitId;
@@ -97,7 +98,7 @@ namespace Deveel.Data.Transactions {
 			internalTablesIndex = 0;
 			AddInternalTableInfo(new TransactionInternalTables(this));
 
-			System.Stats.Increment("Transaction.count");
+			Context.Stats.Increment("Transaction.count");
 
 			// Defaults to true (should be changed by called 'setErrorOnDirtySelect'
 			// method.
@@ -215,7 +216,7 @@ namespace Deveel.Data.Transactions {
 		/// A dirty select is when a query reads information from a table 
 		/// that is effected by another table during a transaction. This in 
 		/// itself will not cause data consistancy problems but for strict 
-		/// conformance to <see cref="System.Data.IsolationLevel.Serializable"/>
+		/// conformance to <see cref="Deveel.Data.DbSystem.Data.IsolationLevel.Serializable"/>
 		/// isolation level this should return true.
 		/// <para>
 		/// <b>Note</b> We <b>must not</b> make this method serialized because 
@@ -405,7 +406,7 @@ namespace Deveel.Data.Transactions {
 		/// </list>
 		///	The first check is not too difficult to check for. The second is 
 		///	very difficult however we need it to ensure 
-		///	<see cref="System.Data.IsolationLevel.Serializable"/> isolation is 
+		///	<see cref="Deveel.Data.DbSystem.Data.IsolationLevel.Serializable"/> isolation is 
 		///	enforced. We may have to simplify this by throwing a transaction 
 		///	exception if the table has had any changes made to it during this 
 		///	transaction.
@@ -454,7 +455,7 @@ namespace Deveel.Data.Transactions {
 		/// Cleans up this transaction.
 		/// </summary>
 		private void Cleanup() {
-			System.Stats.Decrement("Transaction.count");
+			Context.Stats.Decrement("Transaction.count");
 			// Dispose of all the IIndexSet objects created by this transaction.
 			DisposeAllIndices();
 
@@ -467,7 +468,7 @@ namespace Deveel.Data.Transactions {
 				Logger.Error(this, e);
 			}
 
-			System.Stats.Increment("Transaction.Cleanup");
+			Context.Stats.Increment("Transaction.Cleanup");
 			Conglomerate = null;
 			touchedTables = null;
 			Journal = null;

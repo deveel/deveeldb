@@ -17,6 +17,8 @@
 using System;
 using System.IO;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Util {
 	/// <summary>
 	/// A helper class for the <see cref="Table.DumpTo"/> method.

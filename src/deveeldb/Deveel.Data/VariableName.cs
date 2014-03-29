@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// This represents a column name that may be qualified.

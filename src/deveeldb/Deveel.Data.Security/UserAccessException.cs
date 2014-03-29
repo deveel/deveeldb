@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Security {
 	public class UserAccessException : DatabaseException {
 		public UserAccessException(string message)

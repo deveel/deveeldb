@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Text {
 	/// <summary>
 	/// An interface that links with a Regex library. 

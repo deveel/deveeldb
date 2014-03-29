@@ -16,6 +16,7 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
 using Deveel.Data.Types;
 

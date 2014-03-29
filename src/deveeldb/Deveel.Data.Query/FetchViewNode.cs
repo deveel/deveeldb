@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Query {
 	/// <summary>
 	/// The node that fetches a view from the current session.

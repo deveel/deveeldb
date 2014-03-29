@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 using NUnit.Framework;
 
 namespace Deveel.Data.Sql {

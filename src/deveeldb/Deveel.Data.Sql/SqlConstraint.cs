@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Represents a constraint definition (description) for a table.

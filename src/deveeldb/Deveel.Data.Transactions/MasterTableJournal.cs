@@ -18,6 +18,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+
+using SysMath = System.Math;
+
 namespace Deveel.Data.Transactions {
 	/// <summary>
 	/// A journal of changes that occured to a table in a data conglomerate during
@@ -75,8 +79,8 @@ namespace Deveel.Data.Transactions {
 		private void AddCommand(JournalCommandType command) {
 			if (journalEntries >= commandJournal.Length) {
 				// Resize command array.
-				int growSize = System.Math.Min(4000, journalEntries);
-				growSize = System.Math.Max(4, growSize);
+				int growSize = SysMath.Min(4000, journalEntries);
+				growSize = SysMath.Max(4, growSize);
 				byte[] newCommandJournal = new byte[journalEntries + growSize];
 				Array.Copy(commandJournal, 0, newCommandJournal, 0, journalEntries);
 				commandJournal = newCommandJournal;

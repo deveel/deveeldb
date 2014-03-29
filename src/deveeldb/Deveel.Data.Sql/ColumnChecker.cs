@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// A class that abstracts the checking of information in a table.
@@ -184,7 +186,7 @@ namespace Deveel.Data.Sql {
 				// We need to do case sensitive and case insensitive resolution,
 				string foundCol = null;
 				for (int n = 0; n < tableInfo.ColumnCount; ++n) {
-					DataTableColumnInfo col = tableInfo[n];
+					DataColumnInfo col = tableInfo[n];
 					if (String.Compare(col.Name, columnName, ignoreCase) == 0) {
 						if (foundCol != null)
 							throw new DatabaseException("Ambiguous column name '" + columnName + "'");

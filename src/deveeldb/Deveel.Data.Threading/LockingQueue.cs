@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Threading {
 	/// <summary>
 	/// This class is used in the <see cref="LockingMechanism"/> class.

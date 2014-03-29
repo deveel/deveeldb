@@ -19,6 +19,9 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text;
 
+using SysDataTable = System.Data.DataTable;
+using SysDataRow = System.Data.DataRow;
+
 namespace Deveel.Data.Client {
 	internal class DatabaseMetadata {
 		public DatabaseMetadata(DeveelDbConnection connection) {
@@ -27,7 +30,7 @@ namespace Deveel.Data.Client {
 
 		private readonly DeveelDbConnection connection;
 
-		public System.Data.DataTable GetSchemata(string[] restrictions) {
+		public SysDataTable GetSchemata(string[] restrictions) {
 			if (restrictions == null)
 				throw new ArgumentException();
 
@@ -38,7 +41,7 @@ namespace Deveel.Data.Client {
 			if (schema == null)
 				schema = "%";
 
-			System.Data.DataTable dataTable = new System.Data.DataTable("Schemata");
+			SysDataTable dataTable = new SysDataTable("Schemata");
 
 			dataTable.Columns.Add("TABLE_SCHEMA");
 			dataTable.Columns.Add("TABLE_CATALOG");
@@ -52,7 +55,7 @@ namespace Deveel.Data.Client {
 			command.Prepare();
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
-				System.Data.DataRow row = dataTable.NewRow();
+				SysDataRow row = dataTable.NewRow();
 				row["TABLE_SCHEMA"] = reader.GetString(0);
 				row["TABLE_CATALOG"] = reader.GetString(1);
 				dataTable.Rows.Add(row);
@@ -61,7 +64,7 @@ namespace Deveel.Data.Client {
 			return dataTable;
 		}
 
-		public System.Data.DataTable GetTables(string[] restrictions) {
+		public SysDataTable GetTables(string[] restrictions) {
 			if (restrictions == null)
 				throw new ArgumentNullException("restrictions");
 			if (restrictions.Length < 3)
@@ -75,7 +78,7 @@ namespace Deveel.Data.Client {
 			string[] types = new string[restrictions.Length - 3];
 			Array.Copy(restrictions, 3, types, 0, types.Length);
 
-			System.Data.DataTable dataTable = new System.Data.DataTable("Tables");
+			SysDataTable dataTable = new SysDataTable("Tables");
 			dataTable.Columns.Add("TABLE_CATALOG");
 			dataTable.Columns.Add("TABLE_SCHEMA");
 			dataTable.Columns.Add("TABLE_NAME");
@@ -125,7 +128,7 @@ namespace Deveel.Data.Client {
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
-					System.Data.DataRow row = dataTable.NewRow();
+					SysDataRow row = dataTable.NewRow();
 					row["TABLE_CATALOG"] = reader.GetString(0);
 					row["TABLE_SCHEMA"] = reader.GetString(1);
 					row["TABLE_NAME"] = reader.GetString(2);
@@ -140,7 +143,7 @@ namespace Deveel.Data.Client {
 			return dataTable;
 		}
 
-		public System.Data.DataTable GetColumns(string[] restrictions) {
+		public SysDataTable GetColumns(string[] restrictions) {
 			if (restrictions == null)
 				throw new ArgumentNullException("restrictions");
 			if (restrictions.Length < 4)
@@ -158,7 +161,7 @@ namespace Deveel.Data.Client {
 			if (column == null)
 				column = "%";
 
-			System.Data.DataTable dataTable = new System.Data.DataTable("Columns");
+			SysDataTable dataTable = new SysDataTable("Columns");
 			dataTable.Columns.Add("TABLE_CATALOG");
 			dataTable.Columns.Add("TABLE_SCHEMA");
 			dataTable.Columns.Add("TABLE_NAME");
@@ -191,7 +194,7 @@ namespace Deveel.Data.Client {
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
-					System.Data.DataRow row = dataTable.NewRow();
+					SysDataRow row = dataTable.NewRow();
 					row["TABLE_CATALOG"] = reader.GetString(0);
 					row["TABLE_SCHEMA"] = reader.GetString(1);
 					row["TABLE_NAME"] = reader.GetString(2);
@@ -217,7 +220,7 @@ namespace Deveel.Data.Client {
 			return dataTable;
 		}
 
-		public System.Data.DataTable GetColumnPrivileges(string[] restrictions) {
+		public SysDataTable GetColumnPrivileges(string[] restrictions) {
 			if (restrictions == null)
 				throw new ArgumentNullException("restrictions");
 			if (restrictions.Length < 3)
@@ -234,7 +237,7 @@ namespace Deveel.Data.Client {
 			if (column == null)
 				column = "%";
 
-			System.Data.DataTable dataTable = new System.Data.DataTable("Column_Privileges");
+			SysDataTable dataTable = new SysDataTable("Column_Privileges");
 
 			dataTable.Columns.Add("TABLE_CATALOG");
 			dataTable.Columns.Add("TABLE_SCHEMA");
@@ -260,7 +263,7 @@ namespace Deveel.Data.Client {
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
-					System.Data.DataRow row = dataTable.NewRow();
+					SysDataRow row = dataTable.NewRow();
 					row["TABLE_CATALOG"] = reader.GetString(0);
 					row["TABLE_SCHEMA"] = reader.GetString(1);
 					row["TABLE_NAME"] = reader.GetString(2);
@@ -276,7 +279,7 @@ namespace Deveel.Data.Client {
 			return dataTable;
 		}
 
-		public System.Data.DataTable GetTablePrivileges(string[] restrictions) {
+		public SysDataTable GetTablePrivileges(string[] restrictions) {
 			if (restrictions == null)
 				throw new ArgumentNullException("restrictions");
 			if (restrictions.Length < 3)
@@ -291,7 +294,7 @@ namespace Deveel.Data.Client {
 			if (table == null)
 				table = "%";
 
-			System.Data.DataTable dataTable = new System.Data.DataTable("TablePrivileges");
+			SysDataTable dataTable = new SysDataTable("TablePrivileges");
 			dataTable.Columns.Add("TABLE_CATALOG");
 			dataTable.Columns.Add("TABLE_SCHEMA");
 			dataTable.Columns.Add("TABLE_NAME");
@@ -311,7 +314,7 @@ namespace Deveel.Data.Client {
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
-					System.Data.DataRow row = dataTable.NewRow();
+					SysDataRow row = dataTable.NewRow();
 					row["TABLE_CATALOG"] = reader.GetString(0);
 					row["TABLE_SCHEMA"] = reader.GetString(1);
 					row["TABLE_NAME"] = reader.GetString(2);
@@ -326,7 +329,7 @@ namespace Deveel.Data.Client {
 			return dataTable;
 		}
 
-		public System.Data.DataTable GetPrimaryKeys(string[] restrictions) {
+		public SysDataTable GetPrimaryKeys(string[] restrictions) {
 			if (restrictions == null)
 				throw new ArgumentNullException("restrictions");
 			if (restrictions.Length < 3)
@@ -336,7 +339,7 @@ namespace Deveel.Data.Client {
 			string schema = restrictions[1];
 			string table = restrictions[2];
 
-			System.Data.DataTable dataTable = new System.Data.DataTable("PrimaryKeys");
+			SysDataTable dataTable = new SysDataTable("PrimaryKeys");
 			dataTable.Columns.Add("TABLE_CATALOG");
 			dataTable.Columns.Add("TABLE_SCHEMA");
 			dataTable.Columns.Add("TABLE_NAME");
@@ -357,7 +360,7 @@ namespace Deveel.Data.Client {
 			command.Prepare();
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
-				System.Data.DataRow row = dataTable.NewRow();
+				SysDataRow row = dataTable.NewRow();
 				row["TABLE_CATALOG"] = reader.GetString(0);
 				row["TABLE_SCHEMA"] = reader.GetString(1);
 				row["TABLE_NAME"] = reader.GetString(2);
@@ -370,7 +373,7 @@ namespace Deveel.Data.Client {
 			return dataTable;
 		}
 
-		public System.Data.DataTable GetImportedKeys(string[] restrictions) {
+		public SysDataTable GetImportedKeys(string[] restrictions) {
 			if (restrictions == null)
 				throw new ArgumentNullException("restrictions");
 			if (restrictions.Length < 3)
@@ -380,7 +383,7 @@ namespace Deveel.Data.Client {
 			string schema = restrictions[1];
 			string table = restrictions[2];
 
-			System.Data.DataTable dataTable = new System.Data.DataTable("ImportedKey");
+			SysDataTable dataTable = new SysDataTable("ImportedKey");
 			dataTable.Columns.Add("PKTABLE_CATALOG");
 			dataTable.Columns.Add("PKTABLE_SCHEMA");
 			dataTable.Columns.Add("PKTABLE_NAME");
@@ -429,7 +432,7 @@ namespace Deveel.Data.Client {
 			return dataTable;
 		}
 
-		public System.Data.DataTable GetExportedKeys(string[] restrictions) {
+		public SysDataTable GetExportedKeys(string[] restrictions) {
 			if (restrictions == null)
 				throw new ArgumentNullException("restrictions");
 			if (restrictions.Length < 3)
@@ -439,7 +442,7 @@ namespace Deveel.Data.Client {
 			string schema = restrictions[1];
 			string table = restrictions[2];
 
-			System.Data.DataTable dataTable = new System.Data.DataTable("ExportedKey");
+			SysDataTable dataTable = new SysDataTable("ExportedKey");
 			dataTable.Columns.Add("PKTABLE_CATALOG");
 			dataTable.Columns.Add("PKTABLE_SCHEMA");
 			dataTable.Columns.Add("PKTABLE_NAME");
@@ -474,7 +477,7 @@ namespace Deveel.Data.Client {
 			return dataTable;
 		}
 
-		public System.Data.DataTable GetRestrictions() {
+		public SysDataTable GetRestrictions() {
 			object[][] restrictions = new object[][]
                 {
 					new object[] {"Schemata", "Schema", "", 0},
@@ -504,7 +507,7 @@ namespace Deveel.Data.Client {
 					new object[] {"TablePrivileges", "Table", "", 2}, 
                 };
 
-			System.Data.DataTable dt = new System.Data.DataTable("Restrictions");
+			SysDataTable dt = new SysDataTable("Restrictions");
 			dt.Columns.Add(new DataColumn("CollectionName", typeof(string)));
 			dt.Columns.Add(new DataColumn("RestrictionName", typeof(string)));
 			dt.Columns.Add(new DataColumn("RestrictionDefault", typeof(string)));
@@ -515,7 +518,7 @@ namespace Deveel.Data.Client {
 			return dt;
 		}
 
-		private System.Data.DataTable GetCollections() {
+		private SysDataTable GetCollections() {
 			object[][] collections = new object[][]
                 {
                     new object[] {"MetaDataCollections", 0, 0},
@@ -531,7 +534,7 @@ namespace Deveel.Data.Client {
 					new object[] {"ImportedKeys", 4, 3},
                 };
 
-			System.Data.DataTable dt = new System.Data.DataTable("MetaDataCollections");
+			SysDataTable dt = new SysDataTable("MetaDataCollections");
 			dt.Columns.Add("CollectionName", typeof(string));
 			dt.Columns.Add("NumberOfRestrictions", typeof(int));
 			dt.Columns.Add("NumberOfIdentifierParts", typeof(int));
@@ -541,8 +544,8 @@ namespace Deveel.Data.Client {
 			return dt;
 		}
 
-		private System.Data.DataTable GetDataSourceInformation() {
-			System.Data.DataTable dt = new System.Data.DataTable("DataSourceInformation");
+		private SysDataTable GetDataSourceInformation() {
+			SysDataTable dt = new SysDataTable("DataSourceInformation");
 			dt.Columns.Add("CompositeIdentifierSeparatorPattern", typeof(string));
 			dt.Columns.Add("DataSourceProductName", typeof(string));
 			dt.Columns.Add("DataSourceProductVersion", typeof(string));
@@ -561,7 +564,7 @@ namespace Deveel.Data.Client {
 			dt.Columns.Add("StringLiteralPattern", typeof(string));
 			dt.Columns.Add("SupportedJoinOperators", typeof(SupportedJoinOperators));
 
-			System.Data.DataRow row = dt.NewRow();
+			SysDataRow row = dt.NewRow();
 			row["CompositeIdentifierSeparatorPattern"] = "\\.";
 			row["DataSourceProductName"] = "DeveelDB";
 			row["DataSourceProductVersion"] = connection.ServerVersion;
@@ -585,8 +588,8 @@ namespace Deveel.Data.Client {
 			return dt;
 		}
 
-		public System.Data.DataTable GetDataTypes() {
-			System.Data.DataTable dataTable = new System.Data.DataTable("DataTypes");
+		public SysDataTable GetDataTypes() {
+			SysDataTable dataTable = new SysDataTable("DataTypes");
 
 			dataTable.Columns.Add("TYPE_NAME", typeof(string));
 			dataTable.Columns.Add("DATA_TYPE", typeof(int));
@@ -611,7 +614,7 @@ namespace Deveel.Data.Client {
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
 				while (reader.Read()) {
-					System.Data.DataRow row = dataTable.NewRow();
+					SysDataRow row = dataTable.NewRow();
 
 					row["TYPE_NAME"] = reader.GetString(0);
 					row["DATA_TYPE"] = reader.GetInt32(1);
@@ -639,13 +642,13 @@ namespace Deveel.Data.Client {
 			return dataTable;
 		}
 
-		public virtual System.Data.DataTable GetSchema(string collection, String[] restrictions) {
+		public virtual SysDataTable GetSchema(string collection, String[] restrictions) {
 			if (connection.State != ConnectionState.Open)
 				throw new DataException("GetSchema can only be called on an open connection.");
 
 			collection = collection.ToUpper(CultureInfo.InvariantCulture);
 
-			System.Data.DataTable dt = null;
+			SysDataTable dt = null;
 
 			switch (collection) {
 				// common collections
@@ -709,9 +712,9 @@ namespace Deveel.Data.Client {
 			return dt;
 		}
 
-		private static void FillTable(System.Data.DataTable dt, object[][] data) {
+		private static void FillTable(SysDataTable dt, object[][] data) {
 			foreach (object[] dataItem in data) {
-				System.Data.DataRow row = dt.NewRow();
+				SysDataRow row = dt.NewRow();
 				for (int i = 0; i < dataItem.Length; i++)
 					row[i] = dataItem[i];
 				dt.Rows.Add(row);

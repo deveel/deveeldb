@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Caching {
 	/// <summary>
 	/// Represents a cache for accesses to the the data cells within a 
@@ -80,7 +82,7 @@ namespace Deveel.Data.Caching {
 		/// <summary>
 		/// The TransactionSystem that this cache is from.
 		/// </summary>
-		private readonly TransactionSystem system;
+		private readonly SystemContext context;
 
 		/// <summary>
 		/// The current size of the cache.
@@ -95,7 +97,7 @@ namespace Deveel.Data.Caching {
 		/// <summary>
 		/// Instantiate the <see cref="DataCellCache"/>.
 		/// </summary>
-		/// <param name="system"></param>
+		/// <param name="context></param>
 		/// <param name="systemCache"></param>
 		/// <param name="maxCacheSize">The maximum size in bytes that the cache 
 		/// is allowed to grow to (eg. 4000000).</param>
@@ -103,15 +105,15 @@ namespace Deveel.Data.Caching {
 		/// stored in the cache.</param>
 		/// <param name="hashSize">The number of elements in the hash (should be 
 		/// a prime number).</param>
-		internal DataCellCache(TransactionSystem system, ICache systemCache, int maxCacheSize, int maxCellSize, int hashSize) {
-			this.system = system;
+		internal DataCellCache(SystemContext context, ICache systemCache, int maxCacheSize, int maxCellSize, int hashSize) {
+			this.context = context;
 			this.maxCellSize = maxCellSize;
 
 			cache = new DCCache(this, systemCache, hashSize, maxCacheSize);
 		}
 
-		internal DataCellCache(TransactionSystem system, ICache systemCache, int maxCacheSize, int maxCellSize)
-			: this(system, systemCache, maxCacheSize, maxCellSize, 88547) {
+		internal DataCellCache(SystemContext context, ICache systemCache, int maxCacheSize, int maxCellSize)
+			: this(context, systemCache, maxCacheSize, maxCellSize, 88547) {
 			// Good prime number hash size
 		}
 
@@ -231,11 +233,11 @@ namespace Deveel.Data.Caching {
 		public void Clear() {
 			lock (this) {
 				if (cache.NodeCount == 0 && currentCacheSize != 0) {
-					system.Logger.Error(this, "Assertion failed - if nodeCount = 0 then current_cache_size must also be 0.");
+					context.Logger.Error(this, "Assertion failed - if nodeCount = 0 then current_cache_size must also be 0.");
 				}
 				if (cache.NodeCount != 0) {
 					cache.Clear();
-					system.Stats.Increment("DataCellCache.total_cache_wipe");
+					context.Stats.Increment("DataCellCache.total_cache_wipe");
 				}
 				currentCacheSize = 0;
 			}
@@ -304,11 +306,11 @@ namespace Deveel.Data.Caching {
 			protected override void CheckClean() {
 				if (cache.CurrentCacheSize >= maxCacheSize) {
 					// Update the current cache size (before we wiped).
-					cache.system.Stats.Set((int) cache.CurrentCacheSize, "DataCellCache.current_cache_size");
+					cache.context.Stats.Set((int) cache.CurrentCacheSize, "DataCellCache.current_cache_size");
 					Clean();
 
 					// The number of times we've cleared away old data cell nodes.
-					cache.system.Stats.Increment("DataCellCache.cache_clean");
+					cache.context.Stats.Increment("DataCellCache.cache_clean");
 				}
 			}
 
@@ -326,9 +328,9 @@ namespace Deveel.Data.Caching {
 
 			protected override void OnGetWalks(long totalWalks, long totalGetOps) {
 				int avg = (int) ((totalWalks*1000000L)/totalGetOps);
-				cache.system.Stats.Set(avg, "DataCellCache.avg_hash_get_mul_1000000");
-				cache.system.Stats.Set((int) cache.CurrentCacheSize, "DataCellCache.current_cache_size");
-				cache.system.Stats.Set(NodeCount, "DataCellCache.current_node_count");
+				cache.context.Stats.Set(avg, "DataCellCache.avg_hash_get_mul_1000000");
+				cache.context.Stats.Set((int) cache.CurrentCacheSize, "DataCellCache.current_cache_size");
+				cache.context.Stats.Set(NodeCount, "DataCellCache.current_node_count");
 			}
 		}
 

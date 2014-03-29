@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Query {
 	/// <summary>
 	/// A node for creating a table with a single row.

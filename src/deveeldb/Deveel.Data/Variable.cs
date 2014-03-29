@@ -16,6 +16,7 @@
 using System;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {

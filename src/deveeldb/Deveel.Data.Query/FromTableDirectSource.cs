@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Query {
 	/// <summary>
 	/// An implementation of <see cref="IFromTableSource"/> that wraps around a 

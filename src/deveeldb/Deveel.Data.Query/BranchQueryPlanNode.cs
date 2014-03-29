@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Query {
 	/// <summary>
 	/// A <see cref="IQueryPlanNode"/> implementation that is a branch with 

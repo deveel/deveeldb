@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Store {
 	/// <summary>
 	/// A very restricted interface for accessing a blob store.

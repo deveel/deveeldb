@@ -16,6 +16,7 @@
 using System;
 using System.Globalization;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {

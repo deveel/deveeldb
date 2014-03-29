@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// The statement that represents a <c>ROLLBACK</c> command.

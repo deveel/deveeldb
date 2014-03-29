@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Types {
 	///<summary>
 	/// An implementation of <see cref="TType"/> that represents 

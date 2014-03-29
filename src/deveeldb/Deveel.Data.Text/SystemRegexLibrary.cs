@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Text {
 	/// <summary>
 	/// The default implementation of the system regular expression library.

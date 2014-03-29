@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Query {
 	/// <summary>
 	/// A branch node for performing a composite function on two child nodes.

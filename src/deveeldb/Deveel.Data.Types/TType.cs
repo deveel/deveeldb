@@ -18,6 +18,7 @@ using System.Collections;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Text;
 
 namespace Deveel.Data.Types {
@@ -532,7 +533,7 @@ namespace Deveel.Data.Types {
 		// -----
 
 		/// <summary>
-		/// Casts the given <see cref="System.Object"/> to the given type.
+		/// Casts the given <see cref="Deveel.Data.DbSystem.Object"/> to the given type.
 		/// </summary>
 		/// <param name="ob"></param>
 		/// <param name="type"></param>

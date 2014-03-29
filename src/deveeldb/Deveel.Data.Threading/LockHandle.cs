@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Threading {

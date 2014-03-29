@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Transactions {
 	/// <summary>
 	/// The list of all currently open transactions.
@@ -37,7 +39,7 @@ namespace Deveel.Data.Transactions {
 		/// <summary>
 		/// The system that this transaction list is part of.
 		/// </summary>
-		private readonly TransactionSystem system;
+		private readonly SystemContext context;
 
 		/// <summary>
 		/// The list of open transactions.
@@ -62,8 +64,8 @@ namespace Deveel.Data.Transactions {
 		/// </summary>
 		private long maximumCommitId;
 
-		internal OpenTransactionList(TransactionSystem system) {
-			this.system = system;
+		internal OpenTransactionList(SystemContext context) {
+			this.context = context;
 			openTransactions = new List<Transaction>();
 #if DEBUG
 			openTransactionStacks = new List<StackTrace>();
@@ -87,7 +89,7 @@ namespace Deveel.Data.Transactions {
 #if DEBUG
 					openTransactionStacks.Add(new StackTrace());
 #endif
-					system.Stats.Increment("OpenTransactionList.count");
+					context.Stats.Increment("OpenTransactionList.count");
 					maximumCommitId = currentCommitId;
 				} else {
 					throw new ApplicationException("Added a transaction with a lower than maximum commit_id");
@@ -123,12 +125,12 @@ namespace Deveel.Data.Transactions {
 #if DEBUG
 				openTransactionStacks.RemoveAt(i);
 #endif
-				system.Stats.Decrement("OpenTransactionList.count");
+				context.Stats.Decrement("OpenTransactionList.count");
 
 #if DEBUG
-				system.Logger.Message(this, "Stacks:");
+				context.Logger.Message(this, "Stacks:");
 				foreach (StackTrace trace in openTransactionStacks) {
-					system.Logger.Message(this, trace.ToString());
+					context.Logger.Message(this, trace.ToString());
 				}
 #endif
 			}

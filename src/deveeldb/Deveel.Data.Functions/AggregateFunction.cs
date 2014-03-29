@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Functions {
 	/// <summary>
 	/// Provides convenience methods for handling aggregate functions (functions

@@ -19,6 +19,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
@@ -347,7 +348,7 @@ namespace Deveel.Data.Procedures {
 		}
 
 		/// <summary>
-		/// Resolves a type specification string to a <see cref="System.Type"/>.
+		/// Resolves a type specification string to a <see cref="Deveel.Data.DbSystem.Type"/>.
 		/// </summary>
 		/// <param name="type_string"></param>
 		/// <returns></returns>
@@ -432,7 +433,7 @@ namespace Deveel.Data.Procedures {
 
 		/// <summary>
 		/// Given a location and a list of parameter types, returns an
-		/// immutable <see cref="System.Reflection.MethodInfo"/> that can 
+		/// immutable <see cref="Deveel.Data.DbSystem.Reflection.MethodInfo"/> that can 
 		/// be used to invoke a stored procedure.
 		/// </summary>
 		/// <param name="location_str"></param>
@@ -582,7 +583,7 @@ namespace Deveel.Data.Procedures {
 		/// If the Invoke method does not contain arguments that are compatible 
 		/// with the parameters given or 
 		/// </exception>
-		/// <exception cref="System.SystemException">
+		/// <exception cref="Deveel.Data.DbSystem.SystemException">
 		/// If the class contains more than a single public static <i>Invoke</i>
 		/// method.
 		/// </exception>
@@ -869,7 +870,7 @@ namespace Deveel.Data.Procedures {
 
 				// Implementation of IMutableTableDataSource that describes this
 				// procedure.
-				GTDataSourceImpl dataSource = new GTDataSourceImpl(transaction.System, tableInfo);
+				GTDataSourceImpl dataSource = new GTDataSourceImpl(transaction.Context, tableInfo);
 				dataSource.type = type;
 				dataSource.location = location;
 				dataSource.return_type = returnType;
@@ -886,8 +887,8 @@ namespace Deveel.Data.Procedures {
 				internal TObject param_types;
 				internal TObject owner;
 
-				public GTDataSourceImpl(TransactionSystem system, DataTableInfo tableInfo)
-					: base(system) {
+				public GTDataSourceImpl(SystemContext context, DataTableInfo tableInfo)
+					: base(context) {
 					this.tableInfo = tableInfo;
 				}
 

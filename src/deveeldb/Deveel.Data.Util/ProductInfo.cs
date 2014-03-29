@@ -16,6 +16,8 @@
 using System;
 using System.Reflection;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Util {
 	/// <summary>
 	/// Provides information about the current product.

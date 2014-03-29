@@ -20,6 +20,7 @@ using System.Data;
 using System.IO;
 
 using Deveel.Data.Client;
+using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Threading;

@@ -65,7 +65,7 @@ namespace Deveel.Data.Store {
 		/// <returns>
 		/// Returns an <see cref="IAreaWriter"/> object that allows the area to be setup.
 		/// </returns>
-		/// <exception cref="System.IO.IOException">
+		/// <exception cref="Deveel.Data.DbSystem.IO.IOException">
 		/// If not enough space available to create the area or the store is Read-only.
 		/// </exception>
 		IAreaWriter CreateArea(long size);
@@ -205,7 +205,7 @@ namespace Deveel.Data.Store {
 		/// method to do anything.
 		/// </para>
 		/// </remarks>
-		/// <exception cref="System.Threading.ThreadInterruptedException">
+		/// <exception cref="Deveel.Data.DbSystem.Threading.ThreadInterruptedException">
 		/// If check point interrupted (should only happen under exceptional circumstances).
 		/// </exception>
 		/// <exception cref="IOException">

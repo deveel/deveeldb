@@ -15,6 +15,9 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Protocol {
 	///<summary>
 	/// The interface with the <see cref="Database"/> whether it be remotely via 

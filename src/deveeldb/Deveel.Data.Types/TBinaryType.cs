@@ -16,6 +16,8 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Types {
 	/// <summary>
 	/// An implementation of TType for a binary block of data.

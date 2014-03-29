@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 using Deveel.Data.Types;
 
@@ -42,9 +43,9 @@ namespace Deveel.Data.Sql {
 		internal string tableNameString;
 
 		/// <summary>
-		/// List of column declarations (DataTableColumnInfo)
+		/// List of column declarations (DataColumnInfo)
 		/// </summary>
-		private IList<DataTableColumnInfo> columns;
+		private IList<DataColumnInfo> columns;
 
 		/// <summary>
 		/// List of table constraints (SqlConstraint)
@@ -83,7 +84,7 @@ namespace Deveel.Data.Sql {
 
 			// Add the columns.
 			// NOTE: Any duplicate column names will be found here...
-			foreach (DataTableColumnInfo column in columns) {
+			foreach (DataColumnInfo column in columns) {
 				tableInfo.AddColumn(column);
 			}
 
@@ -133,14 +134,14 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// Returns a <see cref="SqlColumn"/> object a a <see cref="DataTableColumnInfo"/> object.
+		/// Returns a <see cref="SqlColumn"/> object a a <see cref="DataColumnInfo"/> object.
 		/// </summary>
 		/// <param name="sqlColumn"></param>
 		/// <returns></returns>
-		internal static DataTableColumnInfo ConvertToColumnInfo(SqlColumn sqlColumn) {
+		internal static DataColumnInfo ConvertToColumnInfo(SqlColumn sqlColumn) {
 			TType type = sqlColumn.Type;
 
-			DataTableColumnInfo columnInfo = new DataTableColumnInfo(null, sqlColumn.Name, type);
+			DataColumnInfo columnInfo = new DataColumnInfo(null, sqlColumn.Name, type);
 			columnInfo.IsNotNull = sqlColumn.IsNotNull;
 
 			if (sqlColumn.IndexScheme != null)
@@ -174,10 +175,10 @@ namespace Deveel.Data.Sql {
 			IList columnList = GetList("column_list");
 			constraints = GetList("constraint_list");
 
-			// Convert column_list to list of com.mckoi.Connection.DataTableColumnInfo
+			// Convert column_list to list of com.mckoi.Connection.DataColumnInfo
 			int size = columnList.Count;
 			int identityIndex = -1;
-			columns = new List<DataTableColumnInfo>(size);
+			columns = new List<DataColumnInfo>(size);
 			for (int i = 0; i < size; ++i) {
 				SqlColumn cdef = (SqlColumn)columnList[i];
 				if (cdef.Type.SQLType == SqlType.Identity) {
@@ -209,9 +210,9 @@ namespace Deveel.Data.Sql {
 			// Check the expressions that represent the default values for the columns.
 			// Also check each column name
 			for (int i = 0; i < columns.Count; ++i) {
-				DataTableColumnInfo columnInfo = columns[i];
+				DataColumnInfo columnInfo = columns[i];
 				SqlColumn sqlColumn = (SqlColumn)columnList[i];
-				checker.CheckExpression(columnInfo.GetDefaultExpression(context.System));
+				checker.CheckExpression(columnInfo.GetDefaultExpression(context.Context));
 				string columnName = columnInfo.Name;
 
 				// If column name starts with [table_name]. then strip it off
@@ -275,9 +276,9 @@ namespace Deveel.Data.Sql {
 
 		private class ColumnCheckerImpl : ColumnChecker {
 			private readonly bool ignoresCase;
-			private readonly IList<DataTableColumnInfo> columns;
+			private readonly IList<DataColumnInfo> columns;
 
-			public ColumnCheckerImpl(bool ignoresCase, IList<DataTableColumnInfo> columns) {
+			public ColumnCheckerImpl(bool ignoresCase, IList<DataColumnInfo> columns) {
 				this.ignoresCase = ignoresCase;
 				this.columns = columns;
 			}
@@ -285,7 +286,7 @@ namespace Deveel.Data.Sql {
 			public override string ResolveColumnName(string columnName) {
 				// We need to do case sensitive and case insensitive resolution,
 				string foundColumn = null;
-				foreach (DataTableColumnInfo column in columns) {
+				foreach (DataColumnInfo column in columns) {
 					if (String.Compare(column.Name, columnName, ignoresCase) == 0) {
 						if (foundColumn != null)
 							throw new DatabaseException("Ambiguous column name '" + columnName + "'");

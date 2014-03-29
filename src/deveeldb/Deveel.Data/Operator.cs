@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
 using Deveel.Data.Types;
 
@@ -1049,7 +1050,7 @@ namespace Deveel.Data {
 
 				string val = ob1.CastTo(TType.StringType).ToStringValue();
 				string pattern = ob2.CastTo(TType.StringType).ToStringValue();
-				return TObject.CreateBoolean(PatternSearch.RegexMatch(context.System, pattern, val));
+				return TObject.CreateBoolean(PatternSearch.RegexMatch(context.Context, pattern, val));
 			}
 		}
 

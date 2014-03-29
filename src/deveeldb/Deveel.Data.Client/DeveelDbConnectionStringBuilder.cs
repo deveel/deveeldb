@@ -20,6 +20,8 @@ using System.ComponentModel;
 using System.Data.Common;
 using System.Globalization;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Client {
 	[DefaultProperty("DataSource")]
 	public sealed class DeveelDbConnectionStringBuilder : DbConnectionStringBuilder {

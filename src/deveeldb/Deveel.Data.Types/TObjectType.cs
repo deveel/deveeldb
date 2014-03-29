@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Types {
 	/// <summary>
 	/// An implementation of TType for a object of possibly defined type.

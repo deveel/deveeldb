@@ -20,6 +20,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Functions;
 using Deveel.Data.Query;
 using Deveel.Data.Sql;

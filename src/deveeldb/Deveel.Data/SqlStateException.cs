@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data {
 	[Serializable]
 	public sealed class SqlStateException : ApplicationException {

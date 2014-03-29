@@ -16,6 +16,8 @@
 using System;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Functions {
 	/// <summary>
 	/// A definition of a function including its name and parameters.

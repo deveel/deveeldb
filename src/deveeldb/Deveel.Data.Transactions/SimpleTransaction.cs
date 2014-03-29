@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
+using Deveel.Data.DbSystem;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Transactions {
@@ -40,7 +41,7 @@ namespace Deveel.Data.Transactions {
 		/// <summary>
 		/// The TransactionSystem context.
 		/// </summary>
-		private readonly TransactionSystem system;
+		private readonly SystemContext context;
 		/// <summary>
 		/// The list of tables that represent this transaction's view of the database.
 		/// (MasterTableDataSource).
@@ -86,10 +87,10 @@ namespace Deveel.Data.Transactions {
 		/// <summary>
 		/// Constructs a new <see cref="SimpleTransaction"/>.
 		/// </summary>
-		/// <param name="system"></param>
+		/// <param name="context></param>
 		/// <param name="sequenceManager"></param>
-		internal SimpleTransaction(TransactionSystem system, SequenceManager sequenceManager) {
-			this.system = system;
+		internal SimpleTransaction(SystemContext context, SequenceManager sequenceManager) {
+			this.context = context;
 
 			visibleTables = new List<MasterTableDataSource>();
 			tableIndices = new List<IIndexSet>();
@@ -130,11 +131,11 @@ namespace Deveel.Data.Transactions {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="TransactionSystem"/> that this <see cref="SimpleTransaction"/> 
+		/// Returns the <see cref="SystemContext"/> that this <see cref="SimpleTransaction"/> 
 		/// is part of.
 		/// </summary>
-		public TransactionSystem System {
-			get { return system; }
+		public SystemContext Context {
+			get { return context; }
 		}
 
 		/// <summary>
@@ -145,7 +146,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		internal Logger Logger {
-			get { return System.Logger; }
+			get { return Context.Logger; }
 		}
 
 		/// <summary>

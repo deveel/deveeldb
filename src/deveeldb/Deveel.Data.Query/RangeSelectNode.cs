@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Query {
@@ -86,7 +87,7 @@ namespace Deveel.Data.Query {
 		/// <param name="range"></param>
 		/// <param name="field"></param>
 		/// <param name="e"></param>
-		private static void UpdateRange(IQueryContext context, SelectableRangeSet range, DataTableColumnInfo field, Expression e) {
+		private static void UpdateRange(IQueryContext context, SelectableRangeSet range, DataColumnInfo field, Expression e) {
 			Operator op = (Operator)e.Last;
 			Expression[] exps = e.Split();
 			// Evaluate to an object
@@ -110,7 +111,7 @@ namespace Deveel.Data.Query {
 		/// <param name="field"></param>
 		/// <param name="range"></param>
 		/// <param name="exp"></param>
-		private static void CalcRange(IQueryContext context, DataTableColumnInfo field, SelectableRangeSet range, Expression exp) {
+		private static void CalcRange(IQueryContext context, DataColumnInfo field, SelectableRangeSet range, Expression exp) {
 			Operator op = (Operator)exp.Last;
 			if (op.IsLogical) {
 				if (op.IsEquivalent("and")) {
@@ -160,7 +161,7 @@ namespace Deveel.Data.Query {
 			if (col == -1)
 				throw new ApplicationException("Couldn't find column reference in table: " + v);
 
-			DataTableColumnInfo field = t.GetColumnInfo(col);
+			DataColumnInfo field = t.GetColumnInfo(col);
 			// Calculate the range
 			SelectableRangeSet range = new SelectableRangeSet();
 			CalcRange(context, field, range, exp);

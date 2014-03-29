@@ -41,7 +41,7 @@ namespace Deveel.Data.Store {
 		}
 
 		/// <inheritdoc/>
-		public void Init(TransactionSystem system) {
+		public void Init(SystemContext context) {
 		}
 
 		/// <inheritdoc/>

@@ -16,6 +16,8 @@
 using System;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Query {
 	/// <summary>
 	/// The node for performing a sort operation on the given columns of 

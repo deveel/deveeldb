@@ -38,7 +38,7 @@ namespace Deveel.Data.Store {
 		/// The TransactionSystem that contains the various configuration options 
 		/// for the database.
 		/// </summary>
-		private TransactionSystem system;
+		private SystemContext context;
 
 		/// <summary>
 		/// The path in the filesystem where the data files are located.
@@ -120,18 +120,18 @@ namespace Deveel.Data.Store {
 		// ---------- Implemented from IStoreSystem ----------
 
 		/// <inheritdoc/>
-		public void Init(TransactionSystem transactionSystem) {
-			system = transactionSystem;
+		public void Init(SystemContext systemContext) {
+			context = systemContext;
 
 			// The path where the database data files are stored.
-			string databasePath = transactionSystem.Config.GetValue(ConfigKeys.DatabasePath, "./data");
+			string databasePath = systemContext.Config.GetValue(ConfigKeys.DatabasePath, "./data");
 			// The root path variable
-			string rootPathVar = transactionSystem.Config.GetValue<string>("root_path", null);
+			string rootPathVar = systemContext.Config.GetValue<string>("root_path", null);
 
 			// Set the absolute database path
-			path = transactionSystem.Config.ParseFileString(rootPathVar, databasePath);
+			path = systemContext.Config.ParseFileString(rootPathVar, databasePath);
 
-			read_only = transactionSystem.ReadOnlyAccess;
+			read_only = systemContext.ReadOnlyAccess;
 
 			// If the database path doesn't exist, create it now,
 			if (!read_only && !Directory.Exists(path)) {
@@ -142,28 +142,28 @@ namespace Deveel.Data.Store {
 
 			// Get the safety level of the file system where 10 is the most safe
 			// and 1 is the least safe.
-			int ioSafetyLevel = transactionSystem.Config.GetValue("io_safety_level", 10);
+			int ioSafetyLevel = systemContext.Config.GetValue("io_safety_level", 10);
 			if (ioSafetyLevel < 1 || ioSafetyLevel > 10) {
-				system.Logger.Message(this, "Invalid io_safety_level value.  Setting to the most safe level.");
+				context.Logger.Message(this, "Invalid io_safety_level value.  Setting to the most safe level.");
 				ioSafetyLevel = 10;
 			}
 
-			system.Logger.Message(this, "io_safety_level = " + ioSafetyLevel);
+			context.Logger.Message(this, "io_safety_level = " + ioSafetyLevel);
 
 			// Logging is disabled when safety level is less or equal to 2
 			bool enable_logging = true;
 			if (ioSafetyLevel <= 2) {
-				system.Logger.Message(this, "Disabling journaling and file sync.");
+				context.Logger.Message(this, "Disabling journaling and file sync.");
 				enable_logging = false;
 			}
 
-			system.Logger.Message(this, "Using stardard IO API for heap buffered file access.");
-			int page_size = transactionSystem.Config.GetValue("buffered_io_page_size", 8192);
-			int max_pages = transactionSystem.Config.GetValue("buffered_io_max_pages", 256);
+			context.Logger.Message(this, "Using stardard IO API for heap buffered file access.");
+			int page_size = systemContext.Config.GetValue("buffered_io_page_size", 8192);
+			int max_pages = systemContext.Config.GetValue("buffered_io_max_pages", 256);
 
 			// Output this information to the log
-			system.Logger.Message(this, "[Buffer Manager] Page Size: " + page_size);
-			system.Logger.Message(this, "[Buffer Manager] Max pages: " + max_pages);
+			context.Logger.Message(this, "[Buffer Manager] Page Size: " + page_size);
+			context.Logger.Message(this, "[Buffer Manager] Max pages: " + max_pages);
 
 			// Journal path is currently always the same as database path.
 			string journal_path = path;
@@ -175,7 +175,7 @@ namespace Deveel.Data.Store {
 			// Set up the BufferManager
 			buffer_manager = new LoggingBufferManager(
 				path, journal_path, read_only, max_pages, page_size,
-				first_file_ext, max_slice_size, system.Logger, enable_logging);
+				first_file_ext, max_slice_size, context.Logger, enable_logging);
 			// ^ This is a big constructor.  It sets up the logging manager and
 			//   sets a resource store data accessor converter to a scattering
 			//   implementation with a max slice size of 1 GB
@@ -184,8 +184,8 @@ namespace Deveel.Data.Store {
 			try {
 				buffer_manager.Start();
 			} catch(IOException e) {
-				system.Logger.Error(this, "Error starting buffer manager");
-				system.Logger.Error(this, e);
+				context.Logger.Error(this, "Error starting buffer manager");
+				context.Logger.Error(this, e);
 				throw new ApplicationException("IO Error: " + e.Message, e);
 			}
 		}
@@ -196,7 +196,7 @@ namespace Deveel.Data.Store {
 				JournalledFileStore store = CreateFileStore(name);
 				return store.Exists;
 			} catch (IOException e) {
-				system.Logger.Error(this, e);
+				context.Logger.Error(this, e);
 				throw new Exception("IO Error: " + e.Message, e);
 			}
 		}
@@ -218,7 +218,7 @@ namespace Deveel.Data.Store {
 					                    " already exists.");
 				}
 			} catch (IOException e) {
-				system.Logger.Error(this, e);
+				context.Logger.Error(this, e);
 				throw new Exception("IO Error: " + e.Message, e);
 			} catch (ThreadInterruptedException e) {
 				throw new ApplicationException("Interrupted: " + e.Message, e);
@@ -242,7 +242,7 @@ namespace Deveel.Data.Store {
 					                    " does not exist.");
 				}
 			} catch (IOException e) {
-				system.Logger.Error(this, e);
+				context.Logger.Error(this, e);
 				throw new Exception("IO Error: " + e.Message, e);
 			} catch (ThreadInterruptedException e) {
 				throw new ApplicationException("Interrupted: " + e.Message, e);
@@ -260,7 +260,7 @@ namespace Deveel.Data.Store {
 				((JournalledFileStore)store).Close();
 				return true;
 			} catch (IOException e) {
-				system.Logger.Error(this, e);
+				context.Logger.Error(this, e);
 				throw new Exception("IO Error: " + e.Message, e);
 			} catch (ThreadInterruptedException e) {
 				throw new ApplicationException("Interrupted: " + e.Message, e);
@@ -277,7 +277,7 @@ namespace Deveel.Data.Store {
 
 				return ((JournalledFileStore)store).Delete();
 			} catch (IOException e) {
-				system.Logger.Error(this, e);
+				context.Logger.Error(this, e);
 				throw new Exception("IO Error: " + e.Message, e);
 			} catch (ThreadInterruptedException e) {
 				throw new ApplicationException("Interrupted: " + e.Message, e);
@@ -292,10 +292,10 @@ namespace Deveel.Data.Store {
 			try {
 				buffer_manager.SetCheckPoint(false);
 			} catch (IOException e) {
-				system.Logger.Error(this, e);
+				context.Logger.Error(this, e);
 				throw new Exception("IO Error: " + e.Message, e);
 			} catch (ThreadInterruptedException e) {
-				system.Logger.Error(this, e);
+				context.Logger.Error(this, e);
 				throw new Exception("Interrupted Error: " + e.Message, e);
 			}
 		}
@@ -307,7 +307,7 @@ namespace Deveel.Data.Store {
 				// Okay, the file Lock exists.  This means either an extremely bad
 				// crash or there is another database locked on the files.  If we can
 				// delete the Lock then we can go on.
-				system.Logger.Warning(this, "File Lock file exists: " + flock_fn);
+				context.Logger.Warning(this, "File Lock file exists: " + flock_fn);
 				File.Delete(flock_fn);
 				if (File.Exists(flock_fn)) {
 					// If we couldn't delete, then most likely database being used.

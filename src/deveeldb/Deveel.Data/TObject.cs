@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.Query;
+using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
@@ -72,7 +73,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a <see cref="System.Object"/> that is the data behind this object.
+		/// Returns a <see cref="Deveel.Data.DbSystem.Object"/> that is the data behind this object.
 		/// </summary>
 		public object Object {
 			get { return ob; }

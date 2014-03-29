@@ -16,6 +16,7 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Text;
 
 namespace Deveel.Data.Types {
@@ -162,7 +163,7 @@ namespace Deveel.Data.Types {
 
 		/// <summary>
 		/// Gets a boolean value whether this type was obtained
-		/// by reflecting an external <see cref="System.Type"/>.
+		/// by reflecting an external <see cref="Deveel.Data.DbSystem.Type"/>.
 		/// </summary>
 		public bool IsExternal {
 			get { return externalType != null; }
@@ -369,15 +370,15 @@ namespace Deveel.Data.Types {
 
 		/// <summary>
 		/// Constructs a <see cref="UserType"/> from an external
-		/// <see cref="System.Type"/> given, having the specified
+		/// <see cref="Deveel.Data.DbSystem.Type"/> given, having the specified
 		/// name.
 		/// </summary>
-		/// <param name="type">The external <see cref="System.Type"/> used to
+		/// <param name="type">The external <see cref="Deveel.Data.DbSystem.Type"/> used to
 		/// model the <see cref="UserType"/> to create.</param>
 		/// <param name="name">The fully qualified name of the type to build.</param>
 		/// <returns>
 		/// Returns an instance of <see cref="UserType"/> modeled on the
-		/// given external <see cref="System.Type"/>.
+		/// given external <see cref="Deveel.Data.DbSystem.Type"/>.
 		/// </returns>
 		public static UserType FromType(Type type, TableName name) {
 			UserType userType = MappingContext.CreateUserType(type, name);

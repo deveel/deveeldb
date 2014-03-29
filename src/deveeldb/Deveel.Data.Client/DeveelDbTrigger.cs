@@ -18,6 +18,9 @@ using System.Collections;
 using System.Data;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Client {
 	/// <summary>
 	/// Represents a trigger in a connection to a database.

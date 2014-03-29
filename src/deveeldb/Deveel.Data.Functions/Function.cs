@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Functions {

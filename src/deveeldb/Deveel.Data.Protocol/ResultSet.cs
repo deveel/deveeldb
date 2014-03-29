@@ -19,6 +19,7 @@ using System.Data;
 using System.IO;
 
 using Deveel.Data.Client;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Protocol {
     /// <summary>
@@ -346,7 +347,7 @@ namespace Deveel.Data.Protocol {
 	            // The row count is whatever is the least between max_row_count (the
 	            // maximum the user has set) and result_row_count (the actual number of
 	            // rows in the result.
-	            return System.Math.Min(result_row_count, max_row_count);
+	            return global::System.Math.Min(result_row_count, max_row_count);
 	        }
 	    }
 
@@ -454,7 +455,7 @@ namespace Deveel.Data.Protocol {
 				row_offset = real_index - block_top_row;
 				real_index_offset = row_offset * ColumnCount;
 			} else if (row_offset < 0) {
-				int fs_dif = System.Math.Min(fetch_size, 8);
+				int fs_dif = global::System.Math.Min(fetch_size, 8);
 				// Need to download the next block from the server.
 				UpdateResultPart(real_index - fetch_size + fs_dif, fetch_size);
 				// Set up the index into the downloaded block.
@@ -607,7 +608,7 @@ namespace Deveel.Data.Protocol {
 		}
 
 		public void SetFetchSize(int rows) {
-		    fetch_size = rows > 0 ? System.Math.Min(rows, MaximumFetchSize) : DefaultFetchSize;
+		    fetch_size = rows > 0 ? global::System.Math.Min(rows, MaximumFetchSize) : DefaultFetchSize;
 		}
 
     	public bool First() {

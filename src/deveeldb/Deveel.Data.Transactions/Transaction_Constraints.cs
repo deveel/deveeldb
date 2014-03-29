@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Transactions {
 	internal partial class Transaction {
 		// ----- Setting/Querying constraint information -----
@@ -211,7 +213,7 @@ namespace Deveel.Data.Transactions {
 					updateRule == ConstraintAction.SetNull) {
 					DataTableInfo tableInfo = GetTableInfo(table);
 					for (int i = 0; i < columns.Length; ++i) {
-						DataTableColumnInfo columnInfo = tableInfo[tableInfo.FindColumnName(columns[i])];
+						DataColumnInfo columnInfo = tableInfo[tableInfo.FindColumnName(columns[i])];
 						if (columnInfo.IsNotNull) {
 							throw new StatementException("Foreign key reference '" + table +
 								   "' -> '" + refTable + "' update or delete triggered " +

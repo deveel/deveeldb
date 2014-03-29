@@ -10,8 +10,8 @@ namespace Deveel.Data.Control {
 	/// already provided within the framework: it is possible to
 	/// format the configuration input/output by implementing the
 	/// interface <see cref="IConfigFormatter"/> and passing one
-	/// of its instance to <see cref="DbConfig.LoadFrom(System.IO.Stream,Deveel.Data.Control.IConfigFormatter)"/>
-	/// and <see cref="DbConfig.SaveTo(System.IO.Stream, IConfigFormatter)"/>
+	/// of its instance to <see cref="DbConfig.LoadFrom(Deveel.Data.DbSystem.IO.Stream,Deveel.Data.Control.IConfigFormatter)"/>
+	/// and <see cref="DbConfig.SaveTo(Deveel.Data.DbSystem.IO.Stream, IConfigFormatter)"/>
 	/// </remarks>
 	/// <seealso cref="IConfigFormatter"/>
 	public enum ConfigFormatterType {

@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql {
@@ -204,7 +205,7 @@ namespace Deveel.Data.Sql {
 				bool tableAltered = false;
 
 				for (int n = 0; n < tableInfo.ColumnCount; ++n) {
-					DataTableColumnInfo column = tableInfo[n].Clone();
+					DataColumnInfo column = tableInfo[n].Clone();
 
 					string columnName = column.Name;
 
@@ -265,10 +266,10 @@ namespace Deveel.Data.Sql {
 							                            "ADD CONSTRAINT instead.");
 						}
 
-						// Convert to a DataTableColumnInfo
-						DataTableColumnInfo col = CreateTableStatement.ConvertToColumnInfo(sqlColumn);
+						// Convert to a DataColumnInfo
+						DataColumnInfo col = CreateTableStatement.ConvertToColumnInfo(sqlColumn);
 
-						checker.CheckExpression(col.GetDefaultExpression(context.System));
+						checker.CheckExpression(col.GetDefaultExpression(context.Context));
 						string columnName = col.Name;
 
 						// If column name starts with [table_name]. then strip it off

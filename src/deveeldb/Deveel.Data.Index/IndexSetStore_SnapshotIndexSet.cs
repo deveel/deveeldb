@@ -96,7 +96,7 @@ namespace Deveel.Data.Index {
 					indexes.Add(index);
 					return index;
 				} catch (IOException e) {
-					store.system.Logger.Error(this, e);
+					store.context.Logger.Error(this, e);
 					throw new Exception("IO Error: " + e.Message, e);
 				}
 
@@ -133,8 +133,8 @@ namespace Deveel.Data.Index {
 							Dispose();
 						}
 					} catch (Exception e) {
-						store.system.Logger.Error(this, "Finalize error: " + e.Message);
-						store.system.Logger.Error(this, e);
+						store.context.Logger.Error(this, "Finalize error: " + e.Message);
+						store.context.Logger.Error(this, e);
 					}
 				}
 			}

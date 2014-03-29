@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
 using Deveel.Data.Security;
 using Deveel.Data.Threading;

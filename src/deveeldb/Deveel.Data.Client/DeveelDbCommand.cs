@@ -21,6 +21,7 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Protocol;
+using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Client {

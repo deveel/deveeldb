@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Store;
 using Deveel.Diagnostics;
 
@@ -543,7 +544,7 @@ namespace Deveel.Data.Control {
 			if (!database.IsInitialized)
 				throw new InvalidOperationException("The database is not initialized.");
 
-			return new DbSystem(this, name, database.System.Config, database);
+			return new DbSystem(this, name, database.Context.Config, database);
 		}
 
 		// ---------- Static methods ----------
@@ -555,19 +556,19 @@ namespace Deveel.Data.Control {
 		/// <param name="name"></param>
 		/// <returns></returns>
 		private static Database CreateDatabase(DbConfig config, string name) {
-			DatabaseSystem system = new DatabaseSystem();
+			DatabaseContext context = new DatabaseContext();
 
 			// Initialize the DatabaseSystem first,
 			// ------------------------------------
 
 			// This will throw an Error exception if the database system has already
 			// been initialized.
-			system.Init(config);
+			context.Init(config);
 
 			// Start the database class
 			// ------------------------
 
-			Database database = new Database(system, name);
+			Database database = new Database(context, name);
 
 			// Start up message
 			database.Logger.Message(typeof(DbController), "Starting Database Server");

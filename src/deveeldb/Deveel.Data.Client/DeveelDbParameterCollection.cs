@@ -18,6 +18,8 @@ using System.Collections;
 using System.Data;
 using System.Data.Common;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbParameterCollection : DbParameterCollection {
 		internal DeveelDbParameterCollection(DeveelDbCommand command) {

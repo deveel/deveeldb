@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Closes an open cursor within the current execution context.

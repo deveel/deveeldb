@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Types {
 	/// <exclude/>
 	public sealed class TUserDefinedType : TType {

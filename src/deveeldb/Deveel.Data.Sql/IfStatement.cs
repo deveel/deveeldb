@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	public sealed class IfStatement : Statement {
 		protected override Table Evaluate(IQueryContext context) {

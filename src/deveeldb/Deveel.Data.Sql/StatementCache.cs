@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Caching;
+using Deveel.Data.DbSystem;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Sql {
@@ -32,7 +33,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// The DatabaseSystem of this cache.
 		/// </summary>
-		private readonly DatabaseSystem system;
+		private readonly DatabaseContext context;
 
 		/// <summary>
 		/// The internal cache representation.
@@ -41,17 +42,17 @@ namespace Deveel.Data.Sql {
 
 		///<summary>
 		///</summary>
-		///<param name="system"></param>
+		///<param name="context"></param>
 		///<param name="hashSize"></param>
 		///<param name="maxSize"></param>
 		///<param name="cleanPercentage"></param>
-		public StatementCache(DatabaseSystem system, int hashSize, int maxSize, int cleanPercentage) {
-			this.system = system;
+		public StatementCache(DatabaseContext context, int hashSize, int maxSize, int cleanPercentage) {
+			this.context = context;
 			cache = new MemoryCache(hashSize, maxSize, cleanPercentage);
 		}
 
 		private Logger Logger {
-			get { return system.Logger; }
+			get { return context.Logger; }
 		}
 
 		/// <summary>

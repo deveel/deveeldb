@@ -20,6 +20,7 @@ using System.Security.Cryptography;
 using System.Text;
 
 //TODO: check ... using Deveel.Zip;
+using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Functions {

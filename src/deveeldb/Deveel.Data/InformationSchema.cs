@@ -2,6 +2,7 @@
 using System.Data;
 
 using Deveel.Data.Client;
+using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 using Deveel.Diagnostics;
 

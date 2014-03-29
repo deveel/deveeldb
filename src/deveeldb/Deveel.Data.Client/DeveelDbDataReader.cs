@@ -19,7 +19,11 @@ using System.Data;
 using System.Data.Common;
 
 using Deveel.Data.Protocol;
+using Deveel.Data.Sql;
 using Deveel.Math;
+
+using SysDataTable = System.Data.DataTable;
+using SysDataRow = System.Data.DataRow;
 
 namespace Deveel.Data.Client {
 	///<summary>
@@ -346,11 +350,11 @@ namespace Deveel.Data.Client {
 				Closed(this, EventArgs.Empty);
 		}
 
-		public override System.Data.DataTable GetSchemaTable() {
+		public override SysDataTable GetSchemaTable() {
 			if (FieldCount == 0)
 				return null;
 
-			System.Data.DataTable table = new System.Data.DataTable("ColumnsInfo");
+			SysDataTable table = new SysDataTable("ColumnsInfo");
 
 			table.Columns.Add("Schema", typeof (string));
 			table.Columns.Add("Table", typeof (string));
@@ -368,7 +372,7 @@ namespace Deveel.Data.Client {
 			table.Columns.Add("UniqueGroup", typeof (int));
 
 			for (int i = 0; i < FieldCount; i++) {
-				System.Data.DataRow row = table.NewRow();
+				SysDataRow row = table.NewRow();
 
 				ColumnDescription column = command.ResultSet.GetColumn(i);
 

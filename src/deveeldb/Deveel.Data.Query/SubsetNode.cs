@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Query {
 	/// <summary>
 	/// The node for finding a subset and renaming the columns of the 

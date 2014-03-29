@@ -2,6 +2,8 @@
 using System.Data;
 using System.Threading;
 
+using Deveel.Data.DbSystem;
+
 using NUnit.Framework;
 
 namespace Deveel.Data.Client {

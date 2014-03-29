@@ -16,6 +16,8 @@
 using System;
 using System.Data;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	///<summary>
 	/// The SQL <c>SET</c> statement.

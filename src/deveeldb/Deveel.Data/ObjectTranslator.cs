@@ -25,7 +25,7 @@ namespace Deveel.Data {
 	/// This object compliments <see cref="ObjectTransfer"/> and provides a 
 	/// method to translate any object into a type the database engine can process.
 	/// </summary>
-	public class ObjectTranslator {
+	public static class ObjectTranslator {
 		/// <summary>
 		/// Translates the given object to a type the database can process.
 		/// </summary>

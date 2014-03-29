@@ -75,7 +75,7 @@ namespace Deveel.Data.Mapping {
 			TypeMapping typeMapping = new TypeMapping(type, attributes);
 
 			MemberInfo[] memberInfos =
-				type.FindMembers(System.Reflection.MemberTypes.Field | System.Reflection.MemberTypes.Property,
+				type.FindMembers(global::System.Reflection.MemberTypes.Field | global::System.Reflection.MemberTypes.Property,
 				                 BindingFlags.Instance | BindingFlags.Public, new MemberFilter(FilterMember), null);
 
 			for (int i = 0; i < memberInfos.Length; i++) {

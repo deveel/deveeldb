@@ -16,7 +16,9 @@
 using System;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Threading;
 using Deveel.Data.Transactions;
 using Deveel.Diagnostics;
@@ -74,7 +76,7 @@ namespace Deveel.Data.Protocol {
 				throw new Exception("Attempt to authenticate user twice");
 
 #if DEBUG
-			if (database.System.LogQueries) {
+			if (database.Context.LogQueries) {
 				// Output the instruction to the _queries log.
 				StringBuilder logStr = new StringBuilder();
 				logStr.Append("[CLIENT] [");
@@ -174,7 +176,7 @@ namespace Deveel.Data.Protocol {
 
 			// Log this Query if Query logging is enabled
 #if DEBUG
-			if (Database.System.LogQueries) {
+			if (Database.Context.LogQueries) {
 				// Output the instruction to the _queries log.
 				StringBuilder logStr = new StringBuilder();
 				logStr.Append("[CLIENT] [");

@@ -90,7 +90,7 @@ namespace Deveel.Data.Index {
 		/// <returns>
 		/// Returns the value that was removed from the given <paramref name="index"/>.
 		/// </returns>
-		/// <exception cref="System.IndexOutOfRangeException">
+		/// <exception cref="Deveel.Data.DbSystem.IndexOutOfRangeException">
 		/// If the given <paramref name="index"/> is out of range.
 		/// </exception>
 		int RemoveAt(int index);

@@ -17,6 +17,7 @@ using System;
 
 using Deveel.Data.Client;
 using Deveel.Data.Control;
+using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 
 using NUnit.Framework;
@@ -24,7 +25,7 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	public abstract class TestBase {
 		private readonly StorageType storageType;
-		private DbSystem system;
+		private Control.DbSystem system;
 
 		protected const string DatabaseName = "testdb";
 		protected const string AdminUser = "SA";
@@ -43,7 +44,7 @@ namespace Deveel.Data {
 			: this(StorageType.Memory) {
 		}
 
-		protected DbSystem System {
+		protected Control.DbSystem System {
 			get { return system; }
 		}
 

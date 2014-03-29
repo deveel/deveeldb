@@ -17,6 +17,8 @@ using System;
 using System.Collections;
 using System.Reflection;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Functions {
 	/// <summary>
 	/// A factory that generates <see cref="IFunction"/> objects given 
@@ -24,7 +26,7 @@ namespace Deveel.Data.Functions {
 	/// </summary>
 	/// <remarks>
 	/// A developer may create their own instance of this class and register 
-	/// the factory with the <see cref="DatabaseSystem"/>. When the SQL grammer 
+	/// the factory with the <see cref="DatabaseContext"/>. When the SQL grammer 
 	/// comes across a function, it will try and resolve the function name against 
 	/// the registered function factories.
 	/// </remarks>

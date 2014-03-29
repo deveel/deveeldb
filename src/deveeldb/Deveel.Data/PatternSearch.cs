@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using Deveel.Data.Index;
+using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 using Deveel.Data.Util;
 
@@ -433,17 +434,17 @@ namespace Deveel.Data {
 		/// We use the regex library as specified in the DatabaseSystem 
 		/// configuration.
 		/// </remarks>
-		internal static bool RegexMatch(TransactionSystem system, String pattern, String value) {
+		internal static bool RegexMatch(SystemContext context, String pattern, String value) {
 			// If the first character is a '/' then we assume it's a Perl style regular
 			// expression (eg. "/.*[0-9]+\/$/i")
 			if (pattern.StartsWith("/")) {
 				int end = pattern.LastIndexOf('/');
 				String pat = pattern.Substring(1, end);
 				String ops = pattern.Substring(end + 1);
-				return system.RegexLibrary.RegexMatch(pat, ops, value);
+				return context.RegexLibrary.RegexMatch(pat, ops, value);
 			} else {
 				// Otherwise it's a regular expression with no operators
-				return system.RegexLibrary.RegexMatch(pattern, "", value);
+				return context.RegexLibrary.RegexMatch(pattern, "", value);
 			}
 		}
 
@@ -462,10 +463,10 @@ namespace Deveel.Data {
 				int end = pattern.LastIndexOf('/');
 				String pat = pattern.Substring(1, end);
 				String ops = pattern.Substring(end + 1);
-				return table.Database.System.RegexLibrary.RegexSearch(table, column, pat, ops);
+				return table.Database.Context.RegexLibrary.RegexSearch(table, column, pat, ops);
 			} else {
 				// Otherwise it's a regular expression with no operators
-				return table.Database.System.RegexLibrary.RegexSearch(table, column, pattern, "");
+				return table.Database.Context.RegexLibrary.RegexSearch(table, column, pattern, "");
 			}
 		}
 	}

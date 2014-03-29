@@ -20,6 +20,8 @@ using System.IO;
 using Deveel.Data.Store;
 using Deveel.Data.Util;
 
+using SysMath = System.Math;
+
 namespace Deveel.Data.Index {
 	sealed partial class IndexSetStore {
 		/// <summary>
@@ -228,7 +230,7 @@ namespace Deveel.Data.Index {
 					long largestVal = 0;
 					for (int i = 0; i < Count; ++i) {
 						long v = BaseArray[i];
-						if (System.Math.Abs(v) > System.Math.Abs(largestVal)) {
+						if (SysMath.Abs(v) > SysMath.Abs(largestVal)) {
 							largestVal = v;
 						}
 					}
@@ -311,8 +313,8 @@ namespace Deveel.Data.Index {
 						try {
 							store.store.GetArea(blockPointer).Read(buf, 0, areaSize);
 						} catch (IOException e) {
-							store.system.Logger.Error(this, "blockPointer = " + blockPointer);
-							store.system.Logger.Error(this, e);
+							store.context.Logger.Error(this, "blockPointer = " + blockPointer);
+							store.context.Logger.Error(this, e);
 							throw new ApplicationException("IO Error: " + e.Message);
 						}
 

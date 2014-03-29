@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Types {
 	/// <summary>
 	/// The class that defines a single member of a 
@@ -106,7 +108,7 @@ namespace Deveel.Data.Types {
 		}
 
 		/// <summary>
-		/// Gets the <see cref="Data.SqlType"/> handled.
+		/// Gets the <see cref="Sql.SqlType"/> handled.
 		/// </summary>
 		public SqlType SqlType {
 			get { return type.SQLType; }

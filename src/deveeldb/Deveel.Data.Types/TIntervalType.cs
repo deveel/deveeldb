@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Types {
 	public sealed class TIntervalType : TType {
 		public TIntervalType(SqlType type)

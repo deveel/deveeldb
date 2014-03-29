@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	public delegate void StatementEventHandler(object sender, StatementEventArgs args);
 

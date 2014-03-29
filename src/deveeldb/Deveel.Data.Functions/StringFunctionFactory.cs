@@ -17,8 +17,12 @@ using System;
 using System.Globalization;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 using Deveel.Data.Text;
 using Deveel.Data.Types;
+
+using SysMath = System.Math;
 
 namespace Deveel.Data.Functions {
 	internal class StringFunctionFactory : FunctionFactory {
@@ -215,7 +219,7 @@ namespace Deveel.Data.Functions {
 						   str.IndexOf(characters, scan) == scan) {
 						scan += skip;
 					}
-					str = str.Substring(System.Math.Min(scan, str.Length));
+					str = str.Substring(SysMath.Min(scan, str.Length));
 				}
 				if (ttype_str.Equals("trailing") || ttype_str.Equals("both")) {
 					// Trim from the end.
@@ -225,7 +229,7 @@ namespace Deveel.Data.Functions {
 						scan -= skip;
 						i = str.LastIndexOf(characters, scan);
 					}
-					str = str.Substring(0, System.Math.Max(0, scan + 1));
+					str = str.Substring(0, SysMath.Max(0, scan + 1));
 				}
 
 				return TObject.CreateString(str);
@@ -265,7 +269,7 @@ namespace Deveel.Data.Functions {
 					   str.IndexOf(' ', scan) == scan) {
 					scan += 1;
 				}
-				str = str.Substring(System.Math.Min(scan, str.Length));
+				str = str.Substring(SysMath.Min(scan, str.Length));
 
 				return TObject.CreateString(str);
 			}
@@ -307,7 +311,7 @@ namespace Deveel.Data.Functions {
 					scan -= 1;
 					i = str.LastIndexOf(" ", scan);
 				}
-				str = str.Substring(0, System.Math.Max(0, scan + 1));
+				str = str.Substring(0, SysMath.Max(0, scan + 1));
 
 				return TObject.CreateString(str);
 			}

@@ -69,7 +69,7 @@ namespace Deveel.Data.Index {
 		/// <summary>
 		/// The TransactionSystem for this index set.
 		/// </summary>
-		private readonly TransactionSystem system;
+		private readonly SystemContext context;
 
 		/// <summary>
 		/// The Store that contains all the data of the index store.
@@ -130,10 +130,10 @@ namespace Deveel.Data.Index {
 		/// Constructs the <see cref="IndexSetStore"/> over the given Store object.
 		/// </summary>
 		/// <param name="store"></param>
-		/// <param name="system"></param>
-		public IndexSetStore(IStore store, TransactionSystem system) {
+		/// <param name="context></param>
+		public IndexSetStore(IStore store, SystemContext context) {
 			this.store = store;
-			this.system = system;
+			this.context = context;
 		}
 
 		/// <summary>
@@ -152,8 +152,8 @@ namespace Deveel.Data.Index {
 						}
 
 					} catch (IOException e) {
-						system.Logger.Error(this, "Error when freeing old index block.");
-						system.Logger.Error(this, e);
+						context.Logger.Error(this, "Error when freeing old index block.");
+						context.Logger.Error(this, e);
 					} finally {
 						store.UnlockForWrite();
 					}
@@ -646,7 +646,7 @@ namespace Deveel.Data.Index {
 					// Commit finished.
 
 				} catch (IOException e) {
-					system.Logger.Error(this, e);
+					context.Logger.Error(this, e);
 					throw new ApplicationException("IO Error: " + e.Message, e);
 				}
 

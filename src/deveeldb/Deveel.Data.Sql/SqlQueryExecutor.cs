@@ -19,6 +19,8 @@ using System.Data;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	///<summary>
 	/// An object used to execute SQL queries against a given 
@@ -66,7 +68,7 @@ namespace Deveel.Data.Sql {
 			// Create a new parser and set the parameters...
 			string commandText = query.Text;
 			IList<StatementTree> statementTreeList = null;
-			StatementCache statementCache = connection.System.StatementCache;
+			StatementCache statementCache = connection.Context.StatementCache;
 
 			if (statementCache != null)
 				// Is this Query cached?

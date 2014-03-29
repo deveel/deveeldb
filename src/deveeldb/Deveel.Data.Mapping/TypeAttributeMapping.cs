@@ -16,6 +16,7 @@
 using System;
 using System.Reflection;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Mapping {

@@ -17,6 +17,9 @@
 using System;
 using System.IO;
 
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Protocol {
 	/// <summary>
 	/// This is a description of a column and the data it stores.
@@ -98,7 +101,7 @@ namespace Deveel.Data.Protocol {
 			unique_group = -1;
 		}
 
-		internal ColumnDescription(string name, DataTableColumnInfo columnInfo)
+		internal ColumnDescription(string name, DataColumnInfo columnInfo)
 			: this(name, columnInfo.TType.DbType, columnInfo.Size, columnInfo.IsNotNull) {
 
 		}
@@ -184,7 +187,7 @@ namespace Deveel.Data.Protocol {
 		}
 
 		/// <summary>
-		/// Returns the object <see cref="System.Type"/> for this field.
+		/// Returns the object <see cref="Deveel.Data.DbSystem.Type"/> for this field.
 		/// </summary>
 		public Type ObjectType {
 			get { return TypeUtil.ToType(type); }

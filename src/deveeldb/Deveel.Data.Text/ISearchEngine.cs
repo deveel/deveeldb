@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Text {
 	public interface ISearchEngine {
 		/// <summary>

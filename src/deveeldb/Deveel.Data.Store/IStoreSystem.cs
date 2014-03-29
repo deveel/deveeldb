@@ -48,11 +48,11 @@ namespace Deveel.Data.Store {
 
 		/// <summary>
 		/// Initializes the storage system within the given
-		/// <see cref="TransactionSystem"/> context.
+		/// <see cref="SystemContext"/> context.
 		/// </summary>
-		/// <param name="system">The reference to the <see cref="TransactionSystem"/> 
+		/// <param name="context>The reference to the <see cref="SystemContext"/> 
 		/// that represents of execution of the storage-system.</param>
-		void Init(TransactionSystem system);
+		void Init(SystemContext context);
 
 		/// <summary>
 		/// Returns true if the store with the given name exists within the 

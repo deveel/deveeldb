@@ -15,7 +15,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using DbSystem;
 using Functions;
+using Sql;
 using Text;
 using Types;
 
@@ -847,7 +849,7 @@ StatementTree CreateFunction() :
     cmd.SetValue("arg_types", arg_types);
     // Note that 'location_name' will be a TObject
     cmd.SetValue("location_name",
-                  Util.ToParamObject(loc_name, case_insensitive_identifiers));
+                  Parser.Util.ToParamObject(loc_name, case_insensitive_identifiers));
     cmd.SetValue("return_type", return_type);
     return cmd;
   }
@@ -1497,7 +1499,7 @@ TableSelectExpression GetTableSelectExpression() :
 {
   ( <SELECT>
         ( 
-          LOOKAHEAD(<IDENTITY>) <IDENTITY> { table_expr.Columns.Add(Data.SelectColumn.Identity); } |
+          LOOKAHEAD(<IDENTITY>) <IDENTITY> { table_expr.Columns.Add(Sql.SelectColumn.Identity); } |
           [ table_expr.Distinct = SetQuantifier() ] 
           SelectColumnList(table_expr.Columns) 
         )
@@ -1634,9 +1636,9 @@ SelectColumn SelectColumn() :
 }
 { 
   (   exp = DoExpression() [ <AS> ] [ alias=TableAliasName() ]
-    | <STAR> { return Data.SelectColumn.Glob("*"); }
-    | t = <GLOBVARIABLE> { return Data.SelectColumn.Glob(CaseCheck(t.image)); }
-    | t = <QUOTEDGLOBVARIABLE> { return Data.SelectColumn.Glob(CaseCheck(Util.AsNonQuotedRef(t))); }
+    | <STAR> { return Sql.SelectColumn.Glob("*"); }
+    | t = <GLOBVARIABLE> { return Sql.SelectColumn.Glob(CaseCheck(t.image)); }
+    | t = <QUOTEDGLOBVARIABLE> { return Sql.SelectColumn.Glob(CaseCheck(Parser.Util.AsNonQuotedRef(t))); }
   )
   { return new SelectColumn(exp, alias); }
 }
@@ -1935,7 +1937,7 @@ TType GetTType() :
 
     | LOOKAHEAD(GetStringSQLType())
       data_type = GetStringSQLType() [ "(" size = PositiveIntegerConstant() ")" ]
-      [ <COLLATE> t=<STRING_LITERAL> { loc = ((TObject) Util.ToParamObject(t, case_insensitive_identifiers)).ToString(); }
+      [ <COLLATE> t=<STRING_LITERAL> { loc = ((TObject) Parser.Util.ToParamObject(t, case_insensitive_identifiers)).ToString(); }
          [ strength=GetCollateStrength() ] [ decomposition = GetCollateDecomposition() ] ]
       { return TType.GetStringType(data_type, size, loc, strength, decomposition); }
 
@@ -2092,7 +2094,7 @@ Expression DoExpression() :
 
   { expEnd(exp, stack);
     // Normalize the expression (remove any NOT operators)
-    Expression normalized_exp = Util.Normalize(exp);
+    Expression normalized_exp = Parser.Util.Normalize(exp);
     normalized_exp.CopyTextFrom(exp);
     return normalized_exp;
   }
@@ -2158,7 +2160,7 @@ void OpPart(Expression exp, Stack stack) :
                     expOperator(exp, stack, Operator.Get("regex")); }
                   expression(exp, stack)
                 | t=<REGEX_LITERAL>
-                  { regex_ob = Util.ToParamObject(t, case_insensitive_identifiers);
+                  { regex_ob = Parser.Util.ToParamObject(t, case_insensitive_identifiers);
                     exp.Text.Append(" regex " + regex_ob);
                     expOperator(exp, stack, Operator.Get("regex"));
                     exp.AddElement(regex_ob); }
@@ -2224,9 +2226,9 @@ void Operand(Expression exp, Stack stack) :
       | tt=<TIMESTAMP> { time_fname="TIMESTAMPOB"; }
     )
     t=<STRING_LITERAL>
-    { Object param_ob1 = Util.ToParamObject(t, case_insensitive_identifiers);
+    { Object param_ob1 = Parser.Util.ToParamObject(t, case_insensitive_identifiers);
       exp_list = new Expression[] { new Expression(param_ob1) };
-      f = Util.ResolveFunctionName(time_fname, exp_list);
+      f = Parser.Util.ResolveFunctionName(time_fname, exp_list);
       exp.AddElement(f);
       exp.Text.Append(tt.image).Append(" ").Append(t.image);
     }
@@ -2238,7 +2240,7 @@ void Operand(Expression exp, Stack stack) :
       | tt=<CURRENT_DATE>      { time_fname="DATEOB"; }
     )
     { exp_list = new Expression[0];
-      f = Util.ResolveFunctionName(time_fname, exp_list);
+      f = Parser.Util.ResolveFunctionName(time_fname, exp_list);
       exp.AddElement(f);
       exp.Text.Append(tt.image);
     }
@@ -2248,7 +2250,7 @@ void Operand(Expression exp, Stack stack) :
 | (
      tt=<DBTIMEZONE> { time_fname="DBTIMEZONE"; }
      { exp_list = new Expression[0];
-       f = Util.ResolveFunctionName(time_fname, exp_list);
+       f = Parser.Util.ResolveFunctionName(time_fname, exp_list);
        exp.AddElement(f);
        exp.Text.Append(tt.image);
      }
@@ -2263,11 +2265,11 @@ void Operand(Expression exp, Stack stack) :
       <HOUR> { interval_form = "HOUR"; } | 
       <MINUTE> { interval_form = "MINUTE"; } | 
       <SECOND> { interval_form = "SECOND"; } ]
-    { object param_ob2 = Util.ToParamObject(t, case_insensitive_identifiers);
+    { object param_ob2 = Parser.Util.ToParamObject(t, case_insensitive_identifiers);
       exp_list = new Expression[2];
       exp_list[0] = new Expression(param_ob2);
       exp_list[1] = new Expression(TObject.CreateString(interval_form));
-      f =  Util.ResolveFunctionName("intervalob", exp_list);
+      f =  Parser.Util.ResolveFunctionName("intervalob", exp_list);
       exp.AddElement(f);
       exp.Text.Append("INTERVAL").Append(" ").Append(t.image).Append(" ").Append(interval_form);
     }
@@ -2278,7 +2280,7 @@ void Operand(Expression exp, Stack stack) :
     <EXISTS> "(" select_expression = GetTableSelectExpression() ")" {
       exp_list = new Expression[1];
       exp_list[0] = new Expression(select_expression);
-      f = Util.ResolveFunctionName("sql_exists", exp_list);
+      f = Parser.Util.ResolveFunctionName("sql_exists", exp_list);
       exp.AddElement(f);
       exp.Text.Append("EXISTS(").Append(select_expression.ToString()).Append(")");
     }
@@ -2290,7 +2292,7 @@ void Operand(Expression exp, Stack stack) :
     <UNIQUE> "(" select_expression = GetTableSelectExpression() ")" {
       exp_list = new Expression[1];
       exp_list[0] = new Expression(select_expression);
-      f = Util.ResolveFunctionName("sql_unique", exp_list);
+      f = Parser.Util.ResolveFunctionName("sql_unique", exp_list);
       exp.AddElement(f);
       exp.Text.Append("UNIQUE(").Append(select_expression.ToString()).Append(")");
     }
@@ -2312,7 +2314,7 @@ void Operand(Expression exp, Stack stack) :
     | (   t=<STRING_LITERAL>
         | t=<BOOLEAN_LITERAL>
         | t=<NULL_LITERAL>
-      ) { param_ob = Util.ToParamObject(t, case_insensitive_identifiers); 
+      ) { param_ob = Parser.Util.ToParamObject(t, case_insensitive_identifiers); 
           exp.AddElement(param_ob);
           exp.Text.Append(t.image);
         }
@@ -2326,13 +2328,13 @@ void Operand(Expression exp, Stack stack) :
           | t=SQLIdentifier()
         )
       ) { if (t.kind == SQLConstants.NUMBER_LITERAL) {
-            param_ob = Util.ParseNumberToken(t, negative);
+            param_ob = Parser.Util.ParseNumberToken(t, negative);
             exp.AddElement(param_ob);
           }
           else {
-            param_ob = Util.ToParamObject(t, case_insensitive_identifiers); 
+            param_ob = Parser.Util.ToParamObject(t, case_insensitive_identifiers); 
             if (negative) {
-              exp.AddElement(Util.Zero);
+              exp.AddElement(Parser.Util.Zero);
               exp.AddElement(param_ob);
               exp.AddElement(Operator.Get("-"));
             }
@@ -2361,8 +2363,8 @@ void SubQueryExpression(Expression exp, Stack stack) :
       { exp.AddElement(select);
         exp.Text.Append(" [SELECT]"); }
     | exp_arr=ExpressionList()
-      { exp.AddElement(Util.ToArrayParamObject(exp_arr));
-        exp.Text.Append(" (" + Util.ExpressionListToString(exp_arr) + ")");
+      { exp.AddElement(Parser.Util.ToArrayParamObject(exp_arr));
+        exp.Text.Append(" (" + Parser.Util.ExpressionListToString(exp_arr) + ")");
       }
   )
   ")"
@@ -2553,13 +2555,13 @@ FunctionDef Function() :
                         { exp_list = new Expression[3];
                           String ttype = t2 == null ? "both" : t2.image.ToLower();
                           Object str_char = t3 == null ? TObject.CreateString(" ") :
-                                                         Util.ToParamObject(t3, case_insensitive_identifiers);
+                                                         Parser.Util.ToParamObject(t3, case_insensitive_identifiers);
                           exp_list[0] = new Expression(TObject.CreateString(ttype));
                           exp_list[0].Text.Append("'" + ttype + "'");
                           exp_list[1] = new Expression(str_char);
                           exp_list[1].Text.Append("'" + str_char + "'");
                           exp_list[2] = exp1;
-                          return Util.ResolveFunctionName("sql_trim", exp_list);
+                          return Parser.Util.ResolveFunctionName("sql_trim", exp_list);
                         }
 
     | (t = <EXTRACT> "(" ( t2 = <YEAR> | t2=<MONTH> | t2=<DAY> | t2=<HOUR> | t2=<MINUTE> | t2=<SECOND> )
@@ -2568,7 +2570,7 @@ FunctionDef Function() :
                           exp_list[0] = new Expression(TObject.CreateString(t2.image.ToLower()));
                           exp_list[0].Text.Append("'" + t2.image + "'");
                           exp_list[1] = exp1;
-                          return Util.ResolveFunctionName("extract", exp_list);
+                          return Parser.Util.ResolveFunctionName("extract", exp_list);
                         }
     // CAST function
     | ( t = <CAST> "(" exp1=DoExpression() <AS> cast_type=GetTType() ")" )
@@ -2577,7 +2579,7 @@ FunctionDef Function() :
                           exp_list[0] = exp1;
                           exp_list[1] = new Expression(TObject.CreateString(enc_form));
                           exp_list[1].Text.Append("'" + enc_form + "'");
-                          return Util.ResolveFunctionName("sql_cast", exp_list);
+                          return Parser.Util.ResolveFunctionName("sql_cast", exp_list);
                         }
     // Parse a function identifier and function parameter list.
     | ( t = FunctionIdentifier() "(" exp_list = FunctionParams() ")" )
@@ -2587,7 +2589,7 @@ FunctionDef Function() :
 //    | ( t = <IDENTIFIER> "(" exp_list = FunctionParams() ")" )
   )
 
-  { return Util.ResolveFunctionName(t.image, exp_list); }  
+  { return Parser.Util.ResolveFunctionName(t.image, exp_list); }  
 }
 
 // An instantiation of an object.  For example, 'System.Drawing.Point(40, 30)'
@@ -2603,7 +2605,7 @@ FunctionDef Instantiation() :
     Array.Copy(args, 0, comp_args, 1, args.Length);
     comp_args[0] = new Expression(TObject.CreateString(t.image));
     comp_args[0].Text.Append("'" + t.image + "'");
-    return Util.ResolveFunctionName("_new_Object", comp_args); }
+    return Parser.Util.ResolveFunctionName("_new_Object", comp_args); }
 }
 
 // Parameters for a function
@@ -2655,7 +2657,7 @@ String TableName() :
     name = <OLD> | name = <NEW> |
     name = <DOT_DELIMINATED_REF> | name = <QUOTED_DELIMINATED_REF> )
 
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 
 }
 
@@ -2666,7 +2668,7 @@ String SequenceName() :
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() |
     name = <DOT_DELIMINATED_REF> | name = <QUOTED_DELIMINATED_REF> )
 
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 String TriggerName() :
@@ -2675,7 +2677,7 @@ String TriggerName() :
 {
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() )
 
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 String IndexName() :
@@ -2684,7 +2686,7 @@ String IndexName() :
 {
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() )
 
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 // A username
@@ -2693,7 +2695,7 @@ String UserName() :
 {
   ( name = <QUOTED_VARIABLE> | name = <IDENTIFIER> | name = <PUBLIC> )
   
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 // Name of a schema
@@ -2702,7 +2704,7 @@ String SchemaName() :
 {
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() )
   
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 // Name of a constraint name
@@ -2711,7 +2713,7 @@ String ConstraintName() :
 {
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() )
   
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 // Parses a column name  
@@ -2721,7 +2723,7 @@ String ColumnName() :
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() |
     name = <DOT_DELIMINATED_REF> | name = <QUOTED_DELIMINATED_REF> )
 
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 // Parses a column name as a VariableName object  
@@ -2731,7 +2733,7 @@ VariableName ColumnNameVariable() :
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() |
     name = <DOT_DELIMINATED_REF> | name = <QUOTED_DELIMINATED_REF> )
 
-  { return (VariableName) Util.ToParamObject(name, case_insensitive_identifiers); } 
+  { return (VariableName) Parser.Util.ToParamObject(name, case_insensitive_identifiers); } 
 }
 
 // Parses an aliased table name  
@@ -2740,7 +2742,7 @@ String TableAliasName() :
 {
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() )
 
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 // Parses a procedure name  
@@ -2750,7 +2752,7 @@ String ProcedureName() :
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() |
     name = <DOT_DELIMINATED_REF> | name = <QUOTED_DELIMINATED_REF> )
 
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 // Parses a function name
@@ -2760,7 +2762,7 @@ String FunctionName() :
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() |
     name = <DOT_DELIMINATED_REF> | name = <QUOTED_DELIMINATED_REF> )
 
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 // Parses the name of an argument in a procedure/function declaration
@@ -2769,7 +2771,7 @@ String ProcArgumentName() :
 {
   ( name = <QUOTED_VARIABLE> | name = SQLIdentifier() )
   
-  { return CaseCheck(Util.AsNonQuotedRef(name)); }
+  { return CaseCheck(Parser.Util.AsNonQuotedRef(name)); }
 }
 
 // Parses an SQL identifier

@@ -17,6 +17,7 @@ using System;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
 using Deveel.Data.Types;
 using Deveel.Data.Util;

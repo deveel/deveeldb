@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class OpenCursorStatement : Statement {

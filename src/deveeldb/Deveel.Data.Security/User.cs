@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Security {
 	/// <summary>
 	/// Encapsulates the information about a single user logged into the system.

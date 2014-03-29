@@ -18,6 +18,8 @@ using System;
 using System.Globalization;
 using System.Text;
 
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 using Deveel.Math;
 
 namespace Deveel.Data.Types {
@@ -188,7 +190,7 @@ namespace Deveel.Data.Types {
 
 		///<summary>
 		/// Casts an object to the SQL type specified by the 
-		/// given <see cref="DataTableColumnInfo"/> object.
+		/// given <see cref="DataColumnInfo"/> object.
 		///</summary>
 		///<param name="ob">The <see cref="Object"/> to cast to the given type.</param>
 		///<param name="sql_type">The destination <see cref="SqlType">SQL type</see>.</param>

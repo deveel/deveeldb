@@ -17,6 +17,10 @@ using System;
 using System.Data;
 using System.Data.Common;
 
+using Deveel.Data.Sql;
+
+using SysDbType = System.Data.DbType;
+
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbParameter : DbParameter, ICloneable {
 		public DeveelDbParameter() {
@@ -40,7 +44,7 @@ namespace Deveel.Data.Client {
 			this.sourceColumn = sourceColumn;
 		}
 
-		private System.Data.DbType dbType = System.Data.DbType.Object;
+		private SysDbType dbType = SysDbType.Object;
 		private SqlType sqlType = SqlType.Null;
 		private object value = DBNull.Value;
 		private long size;
@@ -52,7 +56,7 @@ namespace Deveel.Data.Client {
 
 		#region Implementation of IDataParameter
 
-		public override System.Data.DbType DbType {
+		public override SysDbType DbType {
 			get { return dbType; }
 			set { dbType = value; }
 		}
@@ -104,7 +108,7 @@ namespace Deveel.Data.Client {
 			get { return value; }
 			set {
 				this.value = value;
-				if (sqlType == Data.SqlType.Null) {
+				if (sqlType == SqlType.Null) {
 					dbType = GetDbType(this.value);
 					sqlType = GetSqlType(this.value);
 				}
@@ -151,116 +155,116 @@ namespace Deveel.Data.Client {
 		}
 		#endregion
 
-		private static bool IsNumeric(System.Data.DbType dbType) {
-			if (dbType == System.Data.DbType.Decimal ||
-				dbType == System.Data.DbType.Double ||
-				dbType == System.Data.DbType.Single ||
-				dbType == System.Data.DbType.VarNumeric)
+		private static bool IsNumeric(SysDbType dbType) {
+			if (dbType == SysDbType.Decimal ||
+				dbType == SysDbType.Double ||
+				dbType == SysDbType.Single ||
+				dbType == SysDbType.VarNumeric)
 				return true;
 			return false;
 		}
 
-		private static System.Data.DbType GetDbType(SqlType sqlType) {
+		private static SysDbType GetDbType(SqlType sqlType) {
 			switch (sqlType) {
 				case SqlType.Bit:
-					return System.Data.DbType.Boolean;
+					return SysDbType.Boolean;
 				case SqlType.TinyInt:
-					return System.Data.DbType.Byte;
+					return SysDbType.Byte;
 				case SqlType.SmallInt:
-					return System.Data.DbType.Int16;
+					return SysDbType.Int16;
 				case SqlType.Integer:
-					return System.Data.DbType.Int32;
+					return SysDbType.Int32;
 				case SqlType.BigInt:
-					return System.Data.DbType.Int64;
+					return SysDbType.Int64;
 				case SqlType.Float:
-					return System.Data.DbType.Single;
+					return SysDbType.Single;
 				case SqlType.Real:
 				case SqlType.Double:
-					return System.Data.DbType.Double;
+					return SysDbType.Double;
 
 				case SqlType.Time:
-					return System.Data.DbType.Time;
+					return SysDbType.Time;
 				case SqlType.TimeStamp:
-					return System.Data.DbType.DateTime;
+					return SysDbType.DateTime;
 				case SqlType.Date:
-					return System.Data.DbType.Date;
+					return SysDbType.Date;
 
 				case SqlType.Binary:
 				case SqlType.VarBinary:
 				case SqlType.LongVarBinary:
 				case SqlType.Blob:
-					return System.Data.DbType.Binary;
+					return SysDbType.Binary;
 
 				case SqlType.Char:
-					return System.Data.DbType.StringFixedLength;
+					return SysDbType.StringFixedLength;
 				case SqlType.VarChar:
 				case SqlType.LongVarChar:
 				case SqlType.Clob:
-					return System.Data.DbType.String;
+					return SysDbType.String;
 
 				case SqlType.Null:
 				case SqlType.Object:
-					return System.Data.DbType.Object;
+					return SysDbType.Object;
 				default:
-					return System.Data.DbType.Object;
+					return SysDbType.Object;
 			}
 		}
 
-		private static System.Data.DbType GetDbType(object value) {
+		private static SysDbType GetDbType(object value) {
 			if (value is StringObject)
-				return System.Data.DbType.String;
+				return SysDbType.String;
 			if (value is ByteLongObject)
-				return System.Data.DbType.Binary;
+				return SysDbType.Binary;
 			if (value is BigNumber) {
 				var num = (BigNumber)value;
 				if (num.CanBeInt)
-					return System.Data.DbType.Int32;
+					return SysDbType.Int32;
 				if (num.CanBeLong)
-					return System.Data.DbType.Int64;
-				return System.Data.DbType.VarNumeric;
+					return SysDbType.Int64;
+				return SysDbType.VarNumeric;
 			}
 			if (value is TimeSpan)
-				return System.Data.DbType.DateTime;
+				return SysDbType.DateTime;
 			if (value is Enum)
-				return System.Data.DbType.Int32;
+				return SysDbType.Int32;
 			if (value is Guid)
-				return System.Data.DbType.String;
+				return SysDbType.String;
 
 			switch (Type.GetTypeCode(value.GetType())) {
 				case TypeCode.Boolean:
-					return System.Data.DbType.Boolean;
+					return SysDbType.Boolean;
 				case TypeCode.Byte:
-					return System.Data.DbType.Byte;
+					return SysDbType.Byte;
 				case TypeCode.Char:
-					return System.Data.DbType.StringFixedLength;
+					return SysDbType.StringFixedLength;
 				case TypeCode.DateTime:
-					return System.Data.DbType.DateTime;
+					return SysDbType.DateTime;
 				case TypeCode.Decimal:
-					return System.Data.DbType.Decimal;
+					return SysDbType.Decimal;
 				case TypeCode.Double:
-					return System.Data.DbType.Double;
+					return SysDbType.Double;
 				case TypeCode.Int16:
-					return System.Data.DbType.Int16;
+					return SysDbType.Int16;
 				case TypeCode.Int32:
-					return System.Data.DbType.Int32;
+					return SysDbType.Int32;
 				case TypeCode.Int64:
-					return System.Data.DbType.Int64;
+					return SysDbType.Int64;
 				case TypeCode.Object:
-					return System.Data.DbType.Binary;
+					return SysDbType.Binary;
 				case TypeCode.SByte:
-					return System.Data.DbType.SByte;
+					return SysDbType.SByte;
 				case TypeCode.Single:
-					return System.Data.DbType.Single;
+					return SysDbType.Single;
 				case TypeCode.String:
-					return System.Data.DbType.String;
+					return SysDbType.String;
 				case TypeCode.UInt16:
-					return System.Data.DbType.UInt16;
+					return SysDbType.UInt16;
 				case TypeCode.UInt32:
-					return System.Data.DbType.UInt32;
+					return SysDbType.UInt32;
 				case TypeCode.UInt64:
-					return System.Data.DbType.UInt64;
+					return SysDbType.UInt64;
 			}
-			return System.Data.DbType.Object;
+			return SysDbType.Object;
 		}
 
 		private static SqlType GetSqlType(object value) {

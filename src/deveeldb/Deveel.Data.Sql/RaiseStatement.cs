@@ -16,6 +16,8 @@
 using System;
 using System.Runtime.Serialization;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class RaiseStatement : Statement {

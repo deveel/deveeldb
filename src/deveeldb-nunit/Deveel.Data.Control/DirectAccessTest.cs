@@ -15,9 +15,9 @@ namespace Deveel.Data.Control {
 				TableName tableName = new TableName("DA_TestTable");
 				DataTableInfo tableDef = new DataTableInfo();
 				tableDef.TableName = tableName;
-				tableDef.AddColumn(DataTableColumnInfo.CreateStringColumn("name"));
-				tableDef.AddColumn(DataTableColumnInfo.CreateNumericColumn("count"));
-				tableDef.AddColumn(DataTableColumnInfo.CreateBooleanColumn("is_set"));
+				tableDef.AddColumn(DataColumnInfo.CreateStringColumn("name"));
+				tableDef.AddColumn(DataColumnInfo.CreateNumericColumn("count"));
+				tableDef.AddColumn(DataColumnInfo.CreateBooleanColumn("is_set"));
 				directAccess.CreateTable(tableDef, true);
 
 				directAccess.AddConstraint(tableName, DataConstraintInfo.PrimaryKey("DA_TestTable_PK", new string[] { "name" }));

@@ -20,8 +20,10 @@ using System.Reflection;
 using System.Text;
 
 using Deveel.Data.Client;
+using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Types;
 using Deveel.Math;
 
@@ -32,7 +34,7 @@ namespace Deveel.Data.Functions {
 	/// </summary>
 	/// <remarks>
 	/// This <see cref="FunctionFactory"/> is registered with the 
-	/// <see cref="DatabaseSystem"/> during initialization.
+	/// <see cref="DatabaseContext"/> during initialization.
 	/// </remarks>
 	sealed class InternalFunctionFactory : FunctionFactory {
 		public override void Init() {

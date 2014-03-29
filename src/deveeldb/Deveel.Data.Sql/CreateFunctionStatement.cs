@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 using System.Reflection;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Procedures;
 using Deveel.Data.Security;
 using Deveel.Data.Types;

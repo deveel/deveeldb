@@ -20,14 +20,13 @@ using System.Text;
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Types;
-using Deveel.Math;
 
 namespace Deveel.Data {
 	/// <summary>
 	/// Provides static methods for transfering different types of 
 	/// objects over a Data input/output stream.
 	/// </summary>
-	public class ObjectTransfer {
+	public static class ObjectTransfer {
 		///<summary>
 		/// Makes an estimate of the size of the object.
 		///</summary>

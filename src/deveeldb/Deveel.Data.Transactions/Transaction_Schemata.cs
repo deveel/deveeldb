@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Transactions {
 	internal partial class Transaction {
 		/// <summary>

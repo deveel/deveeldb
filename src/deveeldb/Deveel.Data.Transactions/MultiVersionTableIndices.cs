@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Transactions {
@@ -43,7 +44,7 @@ namespace Deveel.Data.Transactions {
 		/// <summary>
 		/// The system object.
 		/// </summary>
-		private readonly TransactionSystem system;
+		private readonly SystemContext context;
 
 		/// <summary>
 		/// A list of MasterTableJournal objects that represent the changes
@@ -66,8 +67,8 @@ namespace Deveel.Data.Transactions {
 		private long tsMergeCount;
 		private long tsMergeSize;
 
-		internal MultiVersionTableIndices(TransactionSystem system, MasterTableDataSource table) {
-			this.system = system;
+		internal MultiVersionTableIndices(SystemContext context, MasterTableDataSource table) {
+			this.context = context;
 			this.table = table;
 
 			transactionModList = new List<MasterTableJournal>();
@@ -80,7 +81,7 @@ namespace Deveel.Data.Transactions {
 		/// Returns the <see cref="ILogger"/> object used to log debug messages.
 		/// </summary>
 		public Logger Logger {
-			get { return system.Logger; }
+			get { return context.Logger; }
 		}
 
 		/// <summary>
@@ -117,7 +118,7 @@ namespace Deveel.Data.Transactions {
 			++tsMergeCount;
 			tsMergeSize += transactionModList.Count;
 			if ((tsMergeCount%32) == 0) {
-				system.Stats.Set(
+				context.Stats.Set(
 					(int) ((tsMergeSize*1000000L)/tsMergeCount),
 					"MultiVersionTableIndices.average_journal_merge_mul_1000000");
 				//      DatabaseSystem.stats().set(
@@ -142,7 +143,7 @@ namespace Deveel.Data.Transactions {
 
 					// Remove the top journal entry from the list.
 					transactionModList.RemoveAt(0);
-					system.Stats.Decrement(journalCountStatKey);
+					context.Stats.Decrement(journalCountStatKey);
 				} else {
 					// If (commit_id <= journal.CommitId)
 					return false;
@@ -187,7 +188,7 @@ namespace Deveel.Data.Transactions {
 		/// <param name="change"></param>
 		public void AddTransactionJournal(MasterTableJournal change) {
 			transactionModList.Add(change);
-			system.Stats.Increment(journalCountStatKey);
+			context.Stats.Increment(journalCountStatKey);
 		}
 	}
 }

@@ -17,6 +17,7 @@ using System;
 using System.Data;
 
 using Deveel.Data.Control;
+using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Protocol {
 	///<summary>
@@ -43,7 +44,7 @@ namespace Deveel.Data.Protocol {
         /// <summary>
         /// The local DbSystem database object.
         /// </summary>
-		private DbSystem dbsys;
+		private Control.DbSystem dbsys;
 
         /// <summary>
         /// The connection id.
