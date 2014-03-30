@@ -17,5 +17,7 @@
         <tags>sql db database data embedded deveel sql-92 sql-99 select query mono x86</tags>
     </metadata>
     <files>
+        <file src="..\dist\x86\deveeldb.dll" target="lib\net35\deveeldb.dll" />
+        <file src="..\dist\x86\deveeldb.pdb" target="lib\net35\deveeldb.pdb" />
     </files>
 </package>
