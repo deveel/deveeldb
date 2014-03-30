@@ -64,10 +64,5 @@ namespace Deveel.Data.Types {
 				return ((ByteLongObject) ob).Length + 4;
 			return 4 + 8;
 		}
-
-		/// <inheritdoc/>
-		public override Type GetObjectType() {
-			return typeof(ByteLongObject);
-		}
 	}
 }

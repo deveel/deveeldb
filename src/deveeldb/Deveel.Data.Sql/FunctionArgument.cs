@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return name + " " + type.ToSQLString();
+			return name + " " + type.ToSqlString();
 		}
 	}
 }

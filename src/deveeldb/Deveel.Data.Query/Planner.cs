@@ -80,7 +80,7 @@ namespace Deveel.Data.Query {
 				sqlFromSet.Parent = fromSet;
 				IQueryPlanNode sqlPlan = FormQueryPlan(db, sqlExpr, sqlFromSet, null);
 				// Form this into a command plan type
-				return new TObject(TType.QueryPlanType, new CachePointNode(sqlPlan));
+				return new TObject(PrimitiveTypes.QueryPlan, new CachePointNode(sqlPlan));
 			}
 		}
 

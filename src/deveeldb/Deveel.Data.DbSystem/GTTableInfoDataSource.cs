@@ -51,10 +51,10 @@ namespace Deveel.Data.DbSystem {
 			DataTableInfo info = new DataTableInfo(SystemSchema.TableInfo);
 
 			// Add column definitions
-			info.AddColumn("schema", TType.StringType);
-			info.AddColumn("name", TType.StringType);
-			info.AddColumn("type", TType.StringType);
-			info.AddColumn("other", TType.StringType);
+			info.AddColumn("schema", PrimitiveTypes.VarString);
+			info.AddColumn("name", PrimitiveTypes.VarString);
+			info.AddColumn("type", PrimitiveTypes.VarString);
+			info.AddColumn("other", PrimitiveTypes.VarString);
 
 			// Set to immutable
 			info.IsReadOnly = true;

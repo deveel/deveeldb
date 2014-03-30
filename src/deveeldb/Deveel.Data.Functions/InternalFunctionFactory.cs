@@ -134,7 +134,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 
 		}
@@ -194,7 +194,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 
 		}
@@ -427,7 +427,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 		}
 

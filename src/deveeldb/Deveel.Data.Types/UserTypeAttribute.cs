@@ -111,7 +111,7 @@ namespace Deveel.Data.Types {
 		/// Gets the <see cref="Sql.SqlType"/> handled.
 		/// </summary>
 		public SqlType SqlType {
-			get { return type.SQLType; }
+			get { return type.SqlType; }
 		}
 
 		/// <summary>

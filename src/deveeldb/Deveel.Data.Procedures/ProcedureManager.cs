@@ -93,13 +93,13 @@ namespace Deveel.Data.Procedures {
 		                                          TType ret, TType[] parameters) {
 			StringBuilder buf = new StringBuilder();
 			if (ret != null) {
-				buf.Append(ret.ToSQLString());
+				buf.Append(ret.ToSqlString());
 				buf.Append(" ");
 			}
 			buf.Append(name.Name);
 			buf.Append("(");
 			for (int i = 0; i < parameters.Length; ++i) {
-				buf.Append(parameters[i].ToSQLString());
+				buf.Append(parameters[i].ToSqlString());
 				if (i < parameters.Length - 1) {
 					buf.Append(", ");
 				}
@@ -736,7 +736,7 @@ namespace Deveel.Data.Procedures {
 						// If the cast of the parameter was not possible, report the error.
 						if (error_cast) {
 							throw new StatementException("Unable to cast argument " + i +
-							                             " ... " + value_type.ToSQLString() + " to " + type_str +
+							                             " ... " + value_type.ToSqlString() + " to " + type_str +
 							                             " for procedure: " +
 							                             ProcedureInfoString(procedure_name, return_type, param_types));
 						}
@@ -748,7 +748,7 @@ namespace Deveel.Data.Procedures {
 					else {
 						// The parameter is not compatible -
 						throw new StatementException("Parameter (" + i + ") not compatible " +
-						                             value.TType.ToSQLString() + " -> " + proc_type.ToSQLString() +
+						                             value.TType.ToSqlString() + " -> " + proc_type.ToSqlString() +
 						                             " for procedure: " +
 						                             ProcedureInfoString(procedure_name, return_type, param_types));
 					}
@@ -817,11 +817,11 @@ namespace Deveel.Data.Procedures {
 				DataTableInfo info = new DataTableInfo(new TableName(schema, name));
 
 				// Add column definitions
-				info.AddColumn("type", TType.StringType);
-				info.AddColumn("location", TType.StringType);
-				info.AddColumn("return_type", TType.StringType);
-				info.AddColumn("param_args", TType.StringType);
-				info.AddColumn("owner", TType.StringType);
+				info.AddColumn("type", PrimitiveTypes.VarString);
+				info.AddColumn("location", PrimitiveTypes.VarString);
+				info.AddColumn("return_type", PrimitiveTypes.VarString);
+				info.AddColumn("param_args", PrimitiveTypes.VarString);
+				info.AddColumn("owner", PrimitiveTypes.VarString);
 
 				// Set to immutable
 				info.IsReadOnly = true;

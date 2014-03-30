@@ -15,7 +15,6 @@
 
 using System;
 
-using Deveel.Data.Query;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Types {
@@ -52,11 +51,6 @@ namespace Deveel.Data.Types {
 		/// <inheritdoc/>
 		public override int CalculateApproximateMemoryUse(Object ob) {
 			return 5000;
-		}
-
-		/// <inheritdoc/>
-		public override Type GetObjectType() {
-			return typeof(IQueryPlanNode);
 		}
 	}
 }

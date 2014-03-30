@@ -61,7 +61,7 @@ namespace Deveel.Data.DbSystem {
 		/// <remarks>
 		/// Note that these objects have no (NULL) type.
 		/// </remarks>
-		public static readonly TObject FirstInSet = new TObject(TType.NullType, "[FIRST_IN_SET]");
+		public static readonly TObject FirstInSet = new TObject(PrimitiveTypes.Null, "[FIRST_IN_SET]");
 
 		/// <summary>
 		/// An object that represents the last value in the set.
@@ -69,7 +69,7 @@ namespace Deveel.Data.DbSystem {
 		/// <remarks>
 		/// Note that these objects have no (NULL) type.
 		/// </remarks>
-		public static readonly TObject LastInSet = new TObject(TType.NullType, "[LAST_IN_SET]");
+		public static readonly TObject LastInSet = new TObject(PrimitiveTypes.Null, "[LAST_IN_SET]");
 
 		/// <summary>
 		/// The range that represents the entire range (including null).

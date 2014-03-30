@@ -99,7 +99,7 @@ namespace Deveel.Data {
 		public TType ReturnTType(VariableName variable) {
 			TObject value;
 			if (!variables.TryGetValue(variable, out value))
-				return TType.NullType;
+				return PrimitiveTypes.Null;
 
 			return value.TType;
 		}

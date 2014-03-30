@@ -521,7 +521,7 @@ namespace Deveel.Data.DbSystem {
 
 		// ---------- User-Defined Types management ----------
 
-		public UserType GetUserType(TableName name) {
+		public TUserDefinedType GetUserType(TableName name) {
 			return Transaction.GetUserType(name);
 		}
 

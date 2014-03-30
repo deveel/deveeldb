@@ -54,24 +54,24 @@ namespace Deveel.Data.DbSystem {
 			DataTableInfo info = new DataTableInfo(new TableName(SystemSchema.Name, "sql_types"));
 
 			// Add column definitions
-			info.AddColumn("TYPE_NAME", TType.StringType);
-			info.AddColumn("DATA_TYPE", TType.NumericType);
-			info.AddColumn("PRECISION", TType.NumericType);
-			info.AddColumn("LITERAL_PREFIX", TType.StringType);
-			info.AddColumn("LITERAL_SUFFIX", TType.StringType);
-			info.AddColumn("CREATE_PARAMS", TType.StringType);
-			info.AddColumn("NULLABLE", TType.NumericType);
-			info.AddColumn("CASE_SENSITIVE", TType.BooleanType);
-			info.AddColumn("SEARCHABLE", TType.NumericType);
-			info.AddColumn("UNSIGNED_ATTRIBUTE", TType.BooleanType);
-			info.AddColumn("FIXED_PREC_SCALE", TType.BooleanType);
-			info.AddColumn("AUTO_INCREMENT", TType.BooleanType);
-			info.AddColumn("LOCAL_TYPE_NAME", TType.StringType);
-			info.AddColumn("MINIMUM_SCALE", TType.NumericType);
-			info.AddColumn("MAXIMUM_SCALE", TType.NumericType);
-			info.AddColumn("SQL_DATA_TYPE", TType.StringType);
-			info.AddColumn("SQL_DATETIME_SUB", TType.StringType);
-			info.AddColumn("NUM_PREC_RADIX", TType.NumericType);
+			info.AddColumn("TYPE_NAME", PrimitiveTypes.VarString);
+			info.AddColumn("DATA_TYPE", PrimitiveTypes.Numeric);
+			info.AddColumn("PRECISION", PrimitiveTypes.Numeric);
+			info.AddColumn("LITERAL_PREFIX", PrimitiveTypes.VarString);
+			info.AddColumn("LITERAL_SUFFIX", PrimitiveTypes.VarString);
+			info.AddColumn("CREATE_PARAMS", PrimitiveTypes.VarString);
+			info.AddColumn("NULLABLE", PrimitiveTypes.Numeric);
+			info.AddColumn("CASE_SENSITIVE", PrimitiveTypes.Boolean);
+			info.AddColumn("SEARCHABLE", PrimitiveTypes.Numeric);
+			info.AddColumn("UNSIGNED_ATTRIBUTE", PrimitiveTypes.Boolean);
+			info.AddColumn("FIXED_PREC_SCALE", PrimitiveTypes.Boolean);
+			info.AddColumn("AUTO_INCREMENT", PrimitiveTypes.Boolean);
+			info.AddColumn("LOCAL_TYPE_NAME", PrimitiveTypes.VarString);
+			info.AddColumn("MINIMUM_SCALE", PrimitiveTypes.Numeric);
+			info.AddColumn("MAXIMUM_SCALE", PrimitiveTypes.Numeric);
+			info.AddColumn("SQL_DATA_TYPE", PrimitiveTypes.VarString);
+			info.AddColumn("SQL_DATETIME_SUB", PrimitiveTypes.VarString);
+			info.AddColumn("NUM_PREC_RADIX", PrimitiveTypes.Numeric);
 
 			// Set to immutable
 			info.IsReadOnly = true;

@@ -309,9 +309,11 @@ namespace Deveel.Data {
 						if (ttype == null)
 							throw new ArgumentNullException("ttype");
 
-					UserType userType = ((TUserDefinedType) ttype).UserType;
+					TUserDefinedType userType = (TUserDefinedType) ttype;
 					int fieldCount = userType.MemberCount;
 
+					/*
+					 * TODO: to be redone ...
 					UserObject ob = new UserObject(userType);
 					for (int i = 0; i < fieldCount; i++) {
 						UserTypeAttribute attribute = userType.GetAttribute(i);
@@ -324,6 +326,9 @@ namespace Deveel.Data {
 					}
 
 					return ob;
+					*/
+
+					throw new NotImplementedException();
 				}
 
 				default:

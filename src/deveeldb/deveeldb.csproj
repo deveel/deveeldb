@@ -165,6 +165,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Sql\RaiseStatement.cs" />
+    <Compile Include="Deveel.Data.Types\ITypeResolver.cs" />
+    <Compile Include="Deveel.Data.Types\PrimitiveTypes.cs" />
+    <Compile Include="Deveel.Data.Types\TTypeMember.cs" />
     <Compile Include="Deveel.Data.Util\ListUtil.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Protocol\ILocalBootable.cs" />
@@ -549,7 +552,7 @@
     <Compile Include="Deveel.Data.Types\TType.cs" />
     <Compile Include="Deveel.Data.Types\TUserDefinedType.cs" />
     <Compile Include="Deveel.Data\TypeUtil.cs" />
-    <Compile Include="Deveel.Data.Types\UDTManager.cs" />
+    <Compile Include="Deveel.Data.Types\TypesManager.cs" />
     <Compile Include="Deveel.Data.Security\User.cs" />
     <Compile Include="Deveel.Data.Security\UserAccessException.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />

@@ -32,12 +32,12 @@ namespace Deveel.Data.DbSystem {
 			DataTableInfo info = new DataTableInfo(SystemSchema.Variables);
 
 			// Add column definitions
-			info.AddColumn("var", TType.StringType);
-			info.AddColumn("type", TType.StringType);
-			info.AddColumn("value", TType.StringType);
-			info.AddColumn("constant", TType.BooleanType);
-			info.AddColumn("not_null", TType.BooleanType);
-			info.AddColumn("is_set", TType.BooleanType);
+			info.AddColumn("var", PrimitiveTypes.VarString);
+			info.AddColumn("type", PrimitiveTypes.VarString);
+			info.AddColumn("value", PrimitiveTypes.VarString);
+			info.AddColumn("constant", PrimitiveTypes.Boolean);
+			info.AddColumn("not_null", PrimitiveTypes.Boolean);
+			info.AddColumn("is_set", PrimitiveTypes.Boolean);
 
 			// Set to immutable
 			info.IsReadOnly = true;
@@ -105,7 +105,7 @@ namespace Deveel.Data.DbSystem {
 		class VariableInfo {
 			public VariableInfo(Variable variable) {
 				Name = variable.Name;
-				SqlType = variable.Type.ToSQLString();
+				SqlType = variable.Type.ToSqlString();
 				Value = variable.IsSet ? variable.original_expression.Text.ToString() : "NULL";
 				IsConstant = variable.Constant;
 				IsNotNull = variable.NotNull;

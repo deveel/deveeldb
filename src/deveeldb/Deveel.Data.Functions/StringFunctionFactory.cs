@@ -83,13 +83,13 @@ namespace Deveel.Data.Functions {
 				}
 
 				// We inherit the locale from the first string parameter with a locale,
-				// or use a default StringType if no locale found.
+				// or use a default VarString if no locale found.
 				TType type;
 				if (str_locale != null) {
 					type = new TStringType(SqlType.VarChar, -1,
 										   str_locale, str_strength, str_decomposition);
 				} else {
-					type = TType.StringType;
+					type = PrimitiveTypes.VarString;
 				}
 
 				return new TObject(type, cc.ToString());
@@ -114,7 +114,7 @@ namespace Deveel.Data.Functions {
 					return new TStringType(SqlType.VarChar, -1,
 										   str_locale, str_strength, str_decomposition);
 				} else {
-					return TType.StringType;
+					return PrimitiveTypes.VarString;
 				}
 			}
 
@@ -143,7 +143,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			protected override TType ReturnTType() {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 		}
 
@@ -169,7 +169,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			protected override TType ReturnTType() {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 
 		}
@@ -236,7 +236,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 
 		}
@@ -275,7 +275,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 
 		}
@@ -317,7 +317,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 
 		}
@@ -372,7 +372,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			protected override TType ReturnTType() {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 
 		}
@@ -448,13 +448,13 @@ namespace Deveel.Data.Functions {
 				TObject obj = this[0].Evaluate(group, resolver, context);
 
 				if (!(obj.TType is TStringType))
-					obj = obj.CastTo(TType.StringType);
+					obj = obj.CastTo(PrimitiveTypes.VarString);
 
 				return TObject.CreateString(Soundex.UsEnglish.Compute(obj.ToStringValue()));
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 		}
 
@@ -494,7 +494,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 		}
 
@@ -534,7 +534,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 		}
 
@@ -570,7 +570,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 		}
 

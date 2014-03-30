@@ -161,9 +161,9 @@ namespace Deveel.Data.DbSystem {
 		private readonly SequenceManager sequenceManager;
 
 		/// <summary>
-		/// The <see cref="Types.UDTManager"/> object for this conglomerate.
+		/// The <see cref="TypesManager"/> object for this conglomerate.
 		/// </summary>
-		private readonly UDTManager udtManager;
+		private readonly TypesManager typesManager;
 
 
 		// ---------- Locks ----------
@@ -192,7 +192,7 @@ namespace Deveel.Data.DbSystem {
 			namespaceJournalList = new List<NameSpaceJournal>();
 
 			sequenceManager = new SequenceManager(this);
-			udtManager = new UDTManager(this);
+			typesManager = new TypesManager(this);
 
 		}
 
@@ -218,8 +218,8 @@ namespace Deveel.Data.DbSystem {
 			get { return sequenceManager; }
 		}
 
-		internal UDTManager UDTManager {
-			get { return udtManager; }
+		internal TypesManager TypesManager {
+			get { return typesManager; }
 		}
 
 

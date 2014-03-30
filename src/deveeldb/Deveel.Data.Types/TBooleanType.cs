@@ -60,11 +60,5 @@ namespace Deveel.Data.Types {
 		public override int CalculateApproximateMemoryUse(Object ob) {
 			return 5;
 		}
-
-		/// <inheritdoc/>
-		public override Type GetObjectType() {
-			return typeof(Boolean);
-		}
-
 	}
 }

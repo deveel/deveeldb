@@ -567,11 +567,11 @@ namespace Deveel.Data.DbSystem {
 				DataTableInfo info = new DataTableInfo(new TableName(schema, name));
 
 				// Add column definitions
-				info.AddColumn("type", TType.NumericType);
-				info.AddColumn("on_object", TType.StringType);
-				info.AddColumn("procedure_name", TType.StringType);
-				info.AddColumn("param_args", TType.StringType);
-				info.AddColumn("owner", TType.StringType);
+				info.AddColumn("type", PrimitiveTypes.Numeric);
+				info.AddColumn("on_object", PrimitiveTypes.VarString);
+				info.AddColumn("procedure_name", PrimitiveTypes.VarString);
+				info.AddColumn("param_args", PrimitiveTypes.VarString);
+				info.AddColumn("owner", PrimitiveTypes.VarString);
 
 				// Set to immutable
 				info.IsReadOnly = true;

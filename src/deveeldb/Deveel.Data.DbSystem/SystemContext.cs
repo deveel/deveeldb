@@ -23,6 +23,7 @@ using Deveel.Data.Functions;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Store;
 using Deveel.Data.Text;
+using Deveel.Data.Types;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data {
@@ -134,6 +135,9 @@ namespace Deveel.Data {
 		/// A logger to output any debugging messages.
 		/// </summary>
 		private Logger logger;
+
+		private TypesManager typesManager;
+
 
 		// ---------- Low level row listeners ----------
 
@@ -305,6 +309,10 @@ namespace Deveel.Data {
 		/// </remarks>
 		public IFunctionLookup FunctionLookup {
 			get { return functionLookup; }
+		}
+
+		public TypesManager TypesManager {
+			get { return typesManager; }
 		}
 
 		// ---------- System preparers ----------

@@ -74,7 +74,7 @@ namespace Deveel.Data.Functions {
 					stream = new MemoryStream(blob.Length);
 					CopyStream(blob.GetInputStream(), stream);
 				} else {
-					ob = ob.CastTo(TType.StringType);
+					ob = ob.CastTo(PrimitiveTypes.VarString);
 					StringObject str = StringObject.FromString(ob.ToStringValue());
 					TextReader reader = str.GetTextReader();
 					stream = new MemoryStream(str.Length);
@@ -116,7 +116,7 @@ namespace Deveel.Data.Functions {
 					stream = new MemoryStream(blob.Length);
 					CopyStream(blob.GetInputStream(), stream);
 				} else {
-					ob = ob.CastTo(TType.StringType);
+					ob = ob.CastTo(PrimitiveTypes.VarString);
 					StringObject str = StringObject.FromString(ob.ToStringValue());
 					TextReader reader = str.GetTextReader();
 					stream = new MemoryStream(str.Length);
@@ -155,7 +155,7 @@ namespace Deveel.Data.Functions {
 					stream = new MemoryStream(blob.Length);
 					CopyStream(blob.GetInputStream(), stream);
 				} else {
-					ob = ob.CastTo(TType.StringType);
+					ob = ob.CastTo(PrimitiveTypes.VarString);
 					StringObject str = StringObject.FromString(ob.ToStringValue());
 					TextReader reader = str.GetTextReader();
 					stream = new MemoryStream(str.Length);
@@ -176,11 +176,11 @@ namespace Deveel.Data.Functions {
 				outputStream.Flush();
 
 				byte[] result = tempStream.ToArray();
-				return new TObject(TType.BinaryType, result);
+				return new TObject(PrimitiveTypes.BinaryType, result);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.BinaryType;
+				return PrimitiveTypes.BinaryType;
 			}
 		}
 
@@ -210,7 +210,7 @@ namespace Deveel.Data.Functions {
 					stream = new MemoryStream(blob.Length);
 					CopyStream(blob.GetInputStream(), stream);
 				} else {
-					ob = ob.CastTo(TType.StringType);
+					ob = ob.CastTo(PrimitiveTypes.VarString);
 					StringObject str = StringObject.FromString(ob.ToStringValue());
 					TextReader reader = str.GetTextReader();
 					stream = new MemoryStream(str.Length);
@@ -229,11 +229,11 @@ namespace Deveel.Data.Functions {
 				}
 
 				byte[] output = tmpStream.ToArray();
-				return new TObject(TType.BinaryType, output);
+				return new TObject(PrimitiveTypes.BinaryType, output);
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.BinaryType;
+				return PrimitiveTypes.BinaryType;
 			}
 		}
 

@@ -76,6 +76,8 @@ namespace Deveel.Data {
 		Blob = 6,
 
 		///<summary>
+		/// Represents a user-defined object that is not one of the
+		/// primary types.
 		///</summary>
 		Object = 7,
 

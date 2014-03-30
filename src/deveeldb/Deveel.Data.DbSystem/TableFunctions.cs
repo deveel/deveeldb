@@ -79,8 +79,8 @@ namespace Deveel.Data.DbSystem {
 				if (!left_type.TType.IsComparableType(right_type.TType)) {
 					throw new ApplicationException(
 						"The type of the sub-query expression " + left_vars[i] + "(" +
-						left_type.TType.ToSQLString() + ") is incompatible with " +
-						"the sub-query type " + right_type.TType.ToSQLString() + ".");
+						left_type.TType.ToSqlString() + ") is incompatible with " +
+						"the sub-query type " + right_type.TType.ToSqlString() + ".");
 				}
 			}
 

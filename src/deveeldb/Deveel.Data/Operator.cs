@@ -306,10 +306,10 @@ namespace Deveel.Data {
 		public TType ReturnTType {
 			get {
 				if (Equals(Concat))
-					return TType.StringType;
+					return PrimitiveTypes.VarString;
 				if (IsMathematical)
-					return TType.NumericType;
-				return TType.BooleanType;
+					return PrimitiveTypes.Numeric;
+				return PrimitiveTypes.Boolean;
 			}
 		}
 
@@ -995,8 +995,8 @@ namespace Deveel.Data {
 				if (ob2.IsNull) {
 					return ob2;
 				}
-				String val = ob1.CastTo(TType.StringType).ToStringValue();
-				String pattern = ob2.CastTo(TType.StringType).ToStringValue();
+				String val = ob1.CastTo(PrimitiveTypes.VarString).ToStringValue();
+				String pattern = ob2.CastTo(PrimitiveTypes.VarString).ToStringValue();
 				return TObject.CreateBoolean(
 					!PatternSearch.FullPatternMatch(pattern, val, '\\'));
 			}
@@ -1021,8 +1021,8 @@ namespace Deveel.Data {
 				if (ob2.IsNull) {
 					return ob2;
 				}
-				String val = ob1.CastTo(TType.StringType).ToStringValue();
-				String pattern = ob2.CastTo(TType.StringType).ToStringValue();
+				String val = ob1.CastTo(PrimitiveTypes.VarString).ToStringValue();
+				String pattern = ob2.CastTo(PrimitiveTypes.VarString).ToStringValue();
 
 				TObject result = TObject.CreateBoolean(
 					PatternSearch.FullPatternMatch(pattern, val, '\\'));
@@ -1048,8 +1048,8 @@ namespace Deveel.Data {
 				if (ob2.IsNull)
 					return ob2;
 
-				string val = ob1.CastTo(TType.StringType).ToStringValue();
-				string pattern = ob2.CastTo(TType.StringType).ToStringValue();
+				string val = ob1.CastTo(PrimitiveTypes.VarString).ToStringValue();
+				string pattern = ob2.CastTo(PrimitiveTypes.VarString).ToStringValue();
 				return TObject.CreateBoolean(PatternSearch.RegexMatch(context.Context, pattern, val));
 			}
 		}

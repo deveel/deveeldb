@@ -45,8 +45,8 @@ namespace Deveel.Data.DbSystem {
 			DataTableInfo info = new DataTableInfo(SystemSchema.ProductInfo);
 
 			// Add column definitions
-			info.AddColumn("var", TType.StringType);
-			info.AddColumn("value", TType.StringType);
+			info.AddColumn("var", PrimitiveTypes.VarString);
+			info.AddColumn("value", PrimitiveTypes.VarString);
 
 			// Set to immutable
 			info.IsReadOnly = true;

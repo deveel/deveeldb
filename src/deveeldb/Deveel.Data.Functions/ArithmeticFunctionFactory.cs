@@ -94,7 +94,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Acos(ob.ToBigNumber().ToDouble()));
 			}
@@ -116,7 +116,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Asin(ob.ToBigNumber().ToDouble()));
 			}
@@ -138,7 +138,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Atan(ob.ToBigNumber().ToDouble()));
 			}
@@ -208,7 +208,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Cos(ob.ToBigNumber().ToDouble()));
 			}
@@ -231,7 +231,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Cosh(ob.ToBigNumber().ToDouble()));
 			}
@@ -278,7 +278,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Sin(ob.ToBigNumber().ToDouble()));
 			}
@@ -300,7 +300,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Sinh(ob.ToBigNumber().ToDouble()));
 			}
@@ -346,7 +346,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Tan(ob.ToBigNumber().ToDouble()));
 			}
@@ -369,7 +369,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Tanh(ob.ToBigNumber().ToDouble()));
 			}
@@ -490,7 +490,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				double a = ob.ToBigNumber().ToDouble();
 				double newBase = double.NaN;
@@ -498,7 +498,7 @@ namespace Deveel.Data.Functions {
 					TObject ob1 = this[1].Evaluate(group, resolver, context);
 					if (!ob1.IsNull) {
 						if (ob1.TType is TNumericType)
-							ob1 = ob.CastTo(TType.NumericType);
+							ob1 = ob.CastTo(PrimitiveTypes.Numeric);
 
 						newBase = ob1.ToBigNumber().ToDouble();
 					}
@@ -525,7 +525,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (ob.TType is TNumericType)
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Log10(ob.ToBigNumber().ToDouble()));
 			}
@@ -577,7 +577,7 @@ namespace Deveel.Data.Functions {
 					return TObject.Null;
 
 				if (!(ob.TType is TNumericType))
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(ob.ToBigNumber().ToDouble());
 			}
@@ -599,7 +599,7 @@ namespace Deveel.Data.Functions {
 					return TObject.Null;
 
 				if (!(ob.TType is TNumericType))
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Floor(ob.ToBigNumber().ToDouble()));
 			}
@@ -683,7 +683,7 @@ namespace Deveel.Data.Functions {
 					return TObject.Null;
 
 				if (!(ob.TType is TNumericType))
-					ob = ob.CastTo(TType.NumericType);
+					ob = ob.CastTo(PrimitiveTypes.Numeric);
 
 				return TObject.CreateBigNumber(SysMath.Exp(ob.ToBigNumber().ToDouble()));
 			}

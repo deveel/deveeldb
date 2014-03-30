@@ -64,7 +64,7 @@ namespace Deveel.Data {
 						.AddDays(v2.Days)
 						.AddMinutes(v2.Minutes)
 						.AddSeconds(v2.Seconds);
-					return new TObject(TType.DateType, v1);
+					return new TObject(PrimitiveTypes.Date, v1);
 				}
 			} else if (TType is TIntervalType) {
 				Interval v1 = ToInterval();
@@ -84,7 +84,7 @@ namespace Deveel.Data {
 				return new TObject(result_type, v1.Add(v2));
 			} else if (TType is TStringType) {
 				if (!(val.TType is TStringType))
-					val = val.CastTo(TType.StringType);
+					val = val.CastTo(PrimitiveTypes.VarString);
 
 				return Concat(val);
 			}
@@ -111,11 +111,11 @@ namespace Deveel.Data {
 						.AddMinutes(-v2.Minutes)
 						.AddSeconds(-v2.Seconds);
 
-					return new TObject(TType.DateType, v1);
+					return new TObject(PrimitiveTypes.Date, v1);
 				}
 				if (val.TType is TDateType) {
 					DateTime v2 = val.ToDateTime();
-					return new TObject(TType.IntervalType, new Interval(v1, v2));
+					return new TObject(PrimitiveTypes.IntervalType, new Interval(v1, v2));
 				}
 			} else if (TType is TIntervalType) {
 				Interval v1 = ToInterval();
@@ -395,7 +395,7 @@ namespace Deveel.Data {
 		/// </returns>
 		public TObject SoundsLike(TObject val) {
 			if (!(val.TType is TStringType))
-				val = val.CastTo(TType.StringType);
+				val = val.CastTo(PrimitiveTypes.VarString);
 
 			//TODO: support more languages...
 			Text.Soundex soundex = Text.Soundex.UsEnglish;

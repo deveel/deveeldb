@@ -223,7 +223,7 @@ namespace Deveel.Data.Functions {
 		/// <param name="resolver"></param>
 		/// <param name="context"></param>
 		/// <remarks>
-		/// By default this method returns a <see cref="TType.NumericType"/>.
+		/// By default this method returns a <see cref="PrimitiveTypes.Numeric"/>.
 		/// </remarks>
 		/// <returns></returns>
 		/// <seealso cref="ReturnTType()"/>
@@ -235,12 +235,12 @@ namespace Deveel.Data.Functions {
 		/// The type of object this function returns. 
 		/// </summary>
 		/// <remarks>
-		/// By default this method returns a <see cref="TType.NumericType"/>.
+		/// By default this method returns a <see cref="PrimitiveTypes.Numeric"/>.
 		/// </remarks>
 		/// <returns></returns>
 		/// <seealso cref="ReturnTType(IVariableResolver,IQueryContext)"/>
 		protected virtual TType ReturnTType() {
-			return TType.NumericType;
+			return PrimitiveTypes.Numeric;
 		}
 
 		/// <inheritdoc/>

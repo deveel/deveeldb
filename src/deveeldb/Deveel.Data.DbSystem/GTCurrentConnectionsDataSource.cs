@@ -49,10 +49,10 @@ namespace Deveel.Data.DbSystem {
 			DataTableInfo info = new DataTableInfo(SystemSchema.CurrentConnections);
 
 			// Add column definitions
-			info.AddColumn("username", TType.StringType);
-			info.AddColumn("host_string", TType.StringType);
-			info.AddColumn("last_command", TType.DateType);
-			info.AddColumn("time_connected", TType.DateType);
+			info.AddColumn("username", PrimitiveTypes.VarString);
+			info.AddColumn("host_string", PrimitiveTypes.VarString);
+			info.AddColumn("last_command", PrimitiveTypes.Date);
+			info.AddColumn("time_connected", PrimitiveTypes.Date);
 
 			// Set to immutable
 			info.IsReadOnly = true;

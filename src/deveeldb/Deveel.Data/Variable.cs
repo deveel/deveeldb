@@ -179,7 +179,7 @@ namespace Deveel.Data {
 			StringBuilder sb = new StringBuilder(name);
 			if (constant)
 				sb.Append(" CONSTANT");
-			sb.Append(type.ToSQLString());
+			sb.Append(type.ToSqlString());
 			if (notNull)
 				sb.Append(" NOT NULL");
 			return sb.ToString();

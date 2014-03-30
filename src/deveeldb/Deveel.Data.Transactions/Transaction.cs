@@ -571,7 +571,7 @@ namespace Deveel.Data.Transactions {
 			if (UserTypeExists(typeName))
 				throw new InvalidOperationException("The type " + typeName + " already exists.");
 
-			UDTManager.CreateType(this, userType);
+			TypesManager.CreateType(this, userType);
 
 			OnDatabaseObjectCreated(typeName);
 		}
@@ -580,17 +580,17 @@ namespace Deveel.Data.Transactions {
 			if (!UserTypeExists(typeName))
 				throw new InvalidOperationException("The type '" + typeName + "' was not found.");
 
-			UDTManager.DropType(this, typeName);
+			TypesManager.DropType(this, typeName);
 
 			OnDatabaseObjectDropped(typeName);
 		}
 
-		public UserType GetUserType(TableName typeName) {
-			return UDTManager.GetUserTypeDef(this, typeName);
+		public TUserDefinedType GetUserType(TableName typeName) {
+			return TypesManager.GetUserTypeDef(this, typeName);
 		}
 
 		public bool UserTypeExists(TableName typeName) {
-			return UDTManager.TypeExists(this, typeName);
+			return TypesManager.TypeExists(this, typeName);
 		}
 
 

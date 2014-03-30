@@ -326,7 +326,7 @@ namespace Deveel.Data.DbSystem {
 			manager.DefineProcedure(
 				new ProcedureName(SystemSchema.Name, "SYSTEM_MAKE_BACKUP"),
 				"Deveel.Data.Procedure.SystemBackup.Invoke(IProcedureConnection, String)",
-				TType.StringType, new TType[] {TType.StringType},
+				PrimitiveTypes.VarString, new TType[] {PrimitiveTypes.VarString},
 				adminUser);
 
 			// -----

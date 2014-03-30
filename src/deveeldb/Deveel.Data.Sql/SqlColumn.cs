@@ -119,7 +119,7 @@ namespace Deveel.Data.Sql {
 		public Expression Default {
 			get { return default_expression; }
 			set {
-				if (type.SQLType == SqlType.Identity) {
+				if (type.SqlType == SqlType.Identity) {
 					const string message = "Cannot specify a DEFAULT expression for an IDENTITY column.";
 					if (fromParser)
 						throw new ParseException(message);
@@ -171,7 +171,7 @@ namespace Deveel.Data.Sql {
 		/// If the <see cref="Type"/> of this column is not <c>NUMERIC</c>.
 		/// </exception>
 		public bool Identity {
-			get { return type.SQLType == SqlType.Identity; }
+			get { return type.SqlType == SqlType.Identity; }
 			set {
 				if (value && !(Type is TNumericType)) {
 					const string message = "Cannot set a non-numeric column as IDENTITY.";

@@ -635,15 +635,15 @@ namespace Deveel.Data.DbSystem {
 				DataTableInfo info = new DataTableInfo(new TableName(schema, name));
 
 				// Add column definitions
-				info.AddColumn("last_value", TType.NumericType);
-				info.AddColumn("current_value", TType.NumericType);
-				info.AddColumn("top_value", TType.NumericType);
-				info.AddColumn("increment_by", TType.NumericType);
-				info.AddColumn("min_value", TType.NumericType);
-				info.AddColumn("max_value", TType.NumericType);
-				info.AddColumn("start", TType.NumericType);
-				info.AddColumn("cache", TType.NumericType);
-				info.AddColumn("cycle", TType.BooleanType);
+				info.AddColumn("last_value", PrimitiveTypes.Numeric);
+				info.AddColumn("current_value", PrimitiveTypes.Numeric);
+				info.AddColumn("top_value", PrimitiveTypes.Numeric);
+				info.AddColumn("increment_by", PrimitiveTypes.Numeric);
+				info.AddColumn("min_value", PrimitiveTypes.Numeric);
+				info.AddColumn("max_value", PrimitiveTypes.Numeric);
+				info.AddColumn("start", PrimitiveTypes.Numeric);
+				info.AddColumn("cache", PrimitiveTypes.Numeric);
+				info.AddColumn("cycle", PrimitiveTypes.Boolean);
 
 				// Set to immutable
 				info.IsReadOnly = true;

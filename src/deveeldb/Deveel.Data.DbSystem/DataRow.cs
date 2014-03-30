@@ -169,7 +169,7 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="value">The value to set for the column.</param>
 		public void SetValue(int column, TObject value) {
 			DataColumnInfo col = tableInfo[column];
-			if (table != null && col.SqlType != value.TType.SQLType) {
+			if (table != null && col.SqlType != value.TType.SqlType) {
 				// Cast the TObject
 				value = value.CastTo(col.TType);
 			}

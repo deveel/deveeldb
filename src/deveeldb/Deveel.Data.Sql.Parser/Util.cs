@@ -154,7 +154,7 @@ namespace Deveel.Data.Sql.Parser {
 		///<param name="arr"></param>
 		///<returns></returns>
 		public static TObject ToArrayParamObject(Expression[] arr) {
-			return new TObject(TType.ArrayType, arr);
+			return new TObject(PrimitiveTypes.ArrayType, arr);
 		}
 
 		///<summary>

@@ -73,7 +73,7 @@ namespace Deveel.Data.Functions {
 
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				// Casts the first parameter to a number
-				return this[0].Evaluate(group, resolver, context).CastTo(TType.NumericType);
+				return this[0].Evaluate(group, resolver, context).CastTo(PrimitiveTypes.Numeric);
 			}
 
 		}
@@ -157,7 +157,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.NumericType;
+				return PrimitiveTypes.Numeric;
 			}
 		}
 
@@ -183,7 +183,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			protected override TType ReturnTType() {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 		}
 
@@ -207,7 +207,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			protected override TType ReturnTType() {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 
 		}
@@ -267,7 +267,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 
 		}
@@ -291,7 +291,7 @@ namespace Deveel.Data.Functions {
 
 				int str_len = str.Length;
 				if (str_len == 0) {
-					return new TObject(TType.BinaryType, new ByteLongObject(new byte[0]));
+					return new TObject(PrimitiveTypes.BinaryType, new ByteLongObject(new byte[0]));
 				}
 				// We translate the string to a byte array,
 				byte[] buf = new byte[(str_len + 1) / 2];
@@ -308,11 +308,11 @@ namespace Deveel.Data.Functions {
 					++index;
 				}
 
-				return new TObject(TType.BinaryType, new ByteLongObject(buf));
+				return new TObject(PrimitiveTypes.BinaryType, new ByteLongObject(buf));
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.BinaryType;
+				return PrimitiveTypes.BinaryType;
 			}
 
 		}
@@ -425,7 +425,7 @@ namespace Deveel.Data.Functions {
 					}
 				}
 				// Can't work it out so return null type
-				return TType.NullType;
+				return PrimitiveTypes.Null;
 			}
 
 		}
@@ -453,7 +453,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.NumericType;
+				return PrimitiveTypes.Numeric;
 			}
 		}
 
@@ -479,7 +479,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.NumericType;
+				return PrimitiveTypes.Numeric;
 			}
 
 		}
@@ -509,7 +509,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.NumericType;
+				return PrimitiveTypes.Numeric;
 			}
 		}
 
@@ -536,7 +536,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.NumericType;
+				return PrimitiveTypes.Numeric;
 			}
 
 		}
@@ -581,7 +581,7 @@ namespace Deveel.Data.Functions {
 				TObject ob = this[0].Evaluate(group, resolver, context);
 				// If types are the same then no cast is necessary and we return this
 				// object.
-				if (ob.TType.SQLType == cast_to_type.SQLType) {
+				if (ob.TType.SqlType == cast_to_type.SqlType) {
 					return ob;
 				}
 				// Otherwise cast the object and return the new typed object.
@@ -612,7 +612,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 		}
 
@@ -711,7 +711,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.BooleanType;
+				return PrimitiveTypes.Boolean;
 			}
 
 			#endregion
@@ -748,7 +748,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.BooleanType;
+				return PrimitiveTypes.Boolean;
 			}
 
 			#endregion

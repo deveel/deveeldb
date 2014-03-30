@@ -14,29 +14,38 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Types {
 	/// <exclude/>
 	public sealed class TUserDefinedType : TType {
-		public TUserDefinedType(UserType userType) 
+		private readonly List<TTypeMember> members;
+ 
+		public TUserDefinedType(TableName typeName) 
 			: base(SqlType.Object) {
-			this.userType = userType;
+			Name = typeName;
+			members = new List<TTypeMember>();
 		}
 
-		private readonly UserType userType;
-
-		/// <summary>
-		/// Gets the definition of the type.
-		/// </summary>
-		public UserType UserType {
-			get { return userType; }
+		public TUserDefinedType(TUserDefinedType parentType, TableName typeName, UserTypeAttributes attributes) 
+			: this(typeName) {
 		}
 
 		public override DbType DbType {
 			get { return DbType.Object; }
 		}
+
+		public int MemberCount {
+			get { return members.Count; }
+		}
+
+		public ICollection<TTypeMember> Members {
+			get { return members; }
+		}
+
+		public TableName Name { get; private set; }
 
 		public override int Compare(object x, object y) {
 			throw new InvalidOperationException("Cannot compare two user-defined types.");
@@ -49,10 +58,6 @@ namespace Deveel.Data.Types {
 
 		public override int CalculateApproximateMemoryUse(object ob) {
 			return 1000;
-		}
-
-		public override Type GetObjectType() {
-			return typeof(UserObject);
 		}
 	}
 }

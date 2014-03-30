@@ -28,7 +28,7 @@ namespace Deveel.Data {
 			const string s = "NUMERIC";
 			TType type = TType.DecodeString(s);
 			Assert.AreEqual(DbType.Numeric, type.DbType);
-			Assert.AreEqual(SqlType.Integer, type.SQLType);
+			Assert.AreEqual(SqlType.Integer, type.SqlType);
 		}
 	}
 }

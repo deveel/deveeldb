@@ -13,8 +13,6 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using System;
-
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Types {
@@ -35,15 +33,11 @@ namespace Deveel.Data.Types {
 		}
 
 		public override bool IsComparableType(TType ttype) {
-			return (ttype is TIntervalType);
+			return (ttype is TIntervalType) && ttype.SqlType == SqlType;
 		}
 
 		public override int CalculateApproximateMemoryUse(object ob) {
 			return 4 + (6 * 4);
-		}
-
-		public override Type GetObjectType() {
-			return typeof (Interval);
 		}
 	}
 }

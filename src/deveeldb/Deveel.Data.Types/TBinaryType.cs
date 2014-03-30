@@ -116,11 +116,5 @@ namespace Deveel.Data.Types {
 			}
 			return 32;
 		}
-
-		/// <inheritdoc/>
-		public override Type GetObjectType() {
-			return typeof(IBlobAccessor);
-		}
-
 	}
 }

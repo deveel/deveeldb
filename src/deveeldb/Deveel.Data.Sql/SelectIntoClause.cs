@@ -141,7 +141,7 @@ namespace Deveel.Data.Sql {
 					DataColumnInfo columnInfo = table.TableInfo[i];
 					TObject cell = table.GetCell(i, 0);
 
-					if (columnInfo.TType.SQLType != variable.Type.SQLType) {
+					if (columnInfo.TType.SqlType != variable.Type.SqlType) {
 						try {
 							cell = cell.CastTo(variable.Type);
 						} catch {

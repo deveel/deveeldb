@@ -210,7 +210,7 @@ namespace Deveel.Data.Functions {
 
 				public TType ReturnTType(VariableName variable) {
 					TObject obj = values[variable] as TObject;
-					return obj == null ? TType.NullType : obj.TType;
+					return obj == null ? PrimitiveTypes.Null : obj.TType;
 				}
 			}
 		}

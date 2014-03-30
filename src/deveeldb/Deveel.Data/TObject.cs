@@ -73,7 +73,7 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Returns a <see cref="Deveel.Data.DbSystem.Object"/> that is the data behind this object.
+		/// Returns a <see cref="System.Object"/> that is the data behind this object.
 		/// </summary>
 		public object Object {
 			get { return ob; }
@@ -107,14 +107,14 @@ namespace Deveel.Data {
 			return TType.IsComparableType(obj.TType);
 		}
 
-		public static readonly TObject BooleanTrue = new TObject(TType.BooleanType, true);
-		public static readonly TObject BooleanFalse = new TObject(TType.BooleanType, false);
-		public static readonly TObject BooleanNull = new TObject(TType.BooleanType, null);
+		public static readonly TObject BooleanTrue = new TObject(PrimitiveTypes.Boolean, true);
+		public static readonly TObject BooleanFalse = new TObject(PrimitiveTypes.Boolean, false);
+		public static readonly TObject BooleanNull = new TObject(PrimitiveTypes.Boolean, null);
 
 		/// <summary>
 		/// A TObject of NULL type that represents a null value.
 		/// </summary>
-		public static readonly TObject Null = new TObject(TType.NullType, null);
+		public static readonly TObject Null = new TObject(PrimitiveTypes.Null, null);
 
 		/// <summary>
 		/// Returns a TObject of boolean type that is either true or false.
@@ -158,7 +158,7 @@ namespace Deveel.Data {
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static TObject CreateBigNumber(BigNumber value) {
-			return new TObject(TType.NumericType, value);
+			return new TObject(PrimitiveTypes.Numeric, value);
 		}
 
 		/// <summary>
@@ -168,7 +168,7 @@ namespace Deveel.Data {
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static TObject CreateString(StringObject value) {
-			return new TObject(TType.StringType, value);
+			return new TObject(PrimitiveTypes.VarString, value);
 		}
 
 		/// <summary>
@@ -178,7 +178,7 @@ namespace Deveel.Data {
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static TObject CreateString(string value) {
-			return new TObject(TType.StringType, StringObject.FromString(value));
+			return new TObject(PrimitiveTypes.VarString, StringObject.FromString(value));
 		}
 
 		/// <summary>
@@ -187,7 +187,7 @@ namespace Deveel.Data {
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static TObject CreateDateTime(DateTime value) {
-			return new TObject(TType.DateType, value);
+			return new TObject(PrimitiveTypes.Date, value);
 		}
 
 		/// <summary>
@@ -201,7 +201,7 @@ namespace Deveel.Data {
 		}
 
 		public static TObject CreateInterval(Interval value) {
-			return new TObject(TType.IntervalType, value);
+			return new TObject(PrimitiveTypes.IntervalType, value);
 		}
 
 		/// <summary>
@@ -210,7 +210,7 @@ namespace Deveel.Data {
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static TObject CreateQueryPlan(IQueryPlanNode value) {
-			return new TObject(TType.QueryPlanType, value);
+			return new TObject(PrimitiveTypes.QueryPlan, value);
 		}
 
 
@@ -243,13 +243,13 @@ namespace Deveel.Data {
 			if (value is DateTime)
 				return CreateDateTime((DateTime)value);
 			if (value is ByteLongObject)
-				return new TObject(TType.BinaryType, (ByteLongObject)value);
+				return new TObject(PrimitiveTypes.BinaryType, (ByteLongObject)value);
 			if (value is byte[])
-				return new TObject(TType.BinaryType, new ByteLongObject((byte[])value));
+				return new TObject(PrimitiveTypes.BinaryType, new ByteLongObject((byte[])value));
 			if (value is IBlobRef)
-				return new TObject(TType.BinaryType, value);
+				return new TObject(PrimitiveTypes.BinaryType, value);
 			if (value is IClobRef)
-				return new TObject(TType.StringType, value);
+				return new TObject(PrimitiveTypes.VarString, value);
 			
 			throw new ArgumentException("Don't know how to convert object type " + value.GetType());
 		}

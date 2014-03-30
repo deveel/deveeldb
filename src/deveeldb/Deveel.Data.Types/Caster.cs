@@ -99,7 +99,7 @@ namespace Deveel.Data.Types {
 		/// the deserialized object.</param>
 		public static void DeserializeObjects(TObject[] args) {
 			for (int i = 0; i < args.Length; i++) {
-				SqlType sqlType = args[i].TType.SQLType;
+				SqlType sqlType = args[i].TType.SqlType;
 				if (sqlType != SqlType.Object) {
 					continue;	// not a OBJECT
 				}
@@ -172,7 +172,7 @@ namespace Deveel.Data.Types {
 		/// Returns the SQL type of the arg.
 		/// </returns>
 		public static SqlType GetSqlType(TObject arg) {
-			SqlType sqlType = arg.TType.SQLType;
+			SqlType sqlType = arg.TType.SqlType;
 			Object argVal = arg.Object;
 			if (!(argVal is BigNumber)) {
 				return sqlType;	// We have special checks only for numeric values

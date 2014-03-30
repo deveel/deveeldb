@@ -51,17 +51,17 @@ namespace Deveel.Data.DbSystem {
 			DataTableInfo info = new DataTableInfo(SystemSchema.TableColumns);
 
 			// Add column definitions
-			info.AddColumn("schema", TType.StringType);
-			info.AddColumn("table", TType.StringType);
-			info.AddColumn("column", TType.StringType);
-			info.AddColumn("sql_type", TType.NumericType);
-			info.AddColumn("type_desc", TType.StringType);
-			info.AddColumn("size", TType.NumericType);
-			info.AddColumn("scale", TType.NumericType);
-			info.AddColumn("not_null", TType.BooleanType);
-			info.AddColumn("default", TType.StringType);
-			info.AddColumn("index_str", TType.StringType);
-			info.AddColumn("seq_no", TType.NumericType);
+			info.AddColumn("schema", PrimitiveTypes.VarString);
+			info.AddColumn("table", PrimitiveTypes.VarString);
+			info.AddColumn("column", PrimitiveTypes.VarString);
+			info.AddColumn("sql_type", PrimitiveTypes.Numeric);
+			info.AddColumn("type_desc", PrimitiveTypes.VarString);
+			info.AddColumn("size", PrimitiveTypes.Numeric);
+			info.AddColumn("scale", PrimitiveTypes.Numeric);
+			info.AddColumn("not_null", PrimitiveTypes.Boolean);
+			info.AddColumn("default", PrimitiveTypes.VarString);
+			info.AddColumn("index_str", PrimitiveTypes.VarString);
+			info.AddColumn("seq_no", PrimitiveTypes.Numeric);
 
 			// Set to immutable
 			info.IsReadOnly = true;
@@ -123,7 +123,7 @@ namespace Deveel.Data.DbSystem {
 						case 3:  // sql_type
 							return GetColumnValue(column, (BigNumber)(int)colInfo.SqlType);
 						case 4:  // type_desc
-							return GetColumnValue(column, colInfo.TType.ToSQLString());
+							return GetColumnValue(column, colInfo.TType.ToSqlString());
 						case 5:  // size
 							return GetColumnValue(column, (BigNumber)colInfo.Size);
 						case 6:  // scale

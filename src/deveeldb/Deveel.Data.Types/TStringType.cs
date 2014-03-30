@@ -286,10 +286,5 @@ namespace Deveel.Data.Types {
 		public override int CalculateApproximateMemoryUse(Object ob) {
 			return ob != null ? (((IStringAccessor) ob).Length*2) + 24 : 32;
 		}
-
-		public override Type GetObjectType() {
-			return typeof(IStringAccessor);
-		}
-
 	}
 }

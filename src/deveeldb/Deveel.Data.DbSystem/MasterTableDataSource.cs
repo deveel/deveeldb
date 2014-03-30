@@ -157,7 +157,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Constructs the <see cref="MasterTableDataSource"/>.
 		/// </summary>
-		/// <param name="context></param>
+		/// <param name="context"></param>
 		/// <param name="storeSystem"></param>
 		/// <param name="blobStore"></param>
 		protected MasterTableDataSource(SystemContext context, IStoreSystem storeSystem, IBlobStore blobStore) {

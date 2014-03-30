@@ -110,66 +110,66 @@ namespace Deveel.Data {
 		internal static void CreateTables(DatabaseConnection connection) {
 			// --- The user management tables ---
 			DataTableInfo password = new DataTableInfo(Password);
-			password.AddColumn("UserName", TType.StringType);
-			password.AddColumn("Password", TType.StringType);
+			password.AddColumn("UserName", PrimitiveTypes.VarString);
+			password.AddColumn("Password", PrimitiveTypes.VarString);
 
 			DataTableInfo userPriv = new DataTableInfo(UserPrivileges);
-			userPriv.AddColumn("UserName", TType.StringType);
-			userPriv.AddColumn("PrivGroupName", TType.StringType);
+			userPriv.AddColumn("UserName", PrimitiveTypes.VarString);
+			userPriv.AddColumn("PrivGroupName", PrimitiveTypes.VarString);
 
 			DataTableInfo userConnectPriv = new DataTableInfo(UserConnectPrivileges);
-			userConnectPriv.AddColumn("UserName", TType.StringType);
-			userConnectPriv.AddColumn("Protocol", TType.StringType);
-			userConnectPriv.AddColumn("Host", TType.StringType);
-			userConnectPriv.AddColumn("Access", TType.StringType);
+			userConnectPriv.AddColumn("UserName", PrimitiveTypes.VarString);
+			userConnectPriv.AddColumn("Protocol", PrimitiveTypes.VarString);
+			userConnectPriv.AddColumn("Host", PrimitiveTypes.VarString);
+			userConnectPriv.AddColumn("Access", PrimitiveTypes.VarString);
 
 			DataTableInfo grant = new DataTableInfo(Grant);
-			grant.AddColumn("priv_bit", TType.NumericType);
-			grant.AddColumn("object", TType.NumericType);
-			grant.AddColumn("param", TType.StringType);
-			grant.AddColumn("grantee", TType.StringType);
-			grant.AddColumn("grant_option", TType.StringType);
-			grant.AddColumn("granter", TType.StringType);
+			grant.AddColumn("priv_bit", PrimitiveTypes.Numeric);
+			grant.AddColumn("object", PrimitiveTypes.Numeric);
+			grant.AddColumn("param", PrimitiveTypes.VarString);
+			grant.AddColumn("grantee", PrimitiveTypes.VarString);
+			grant.AddColumn("grant_option", PrimitiveTypes.VarString);
+			grant.AddColumn("granter", PrimitiveTypes.VarString);
 
 			DataTableInfo service = new DataTableInfo(Service);
-			service.AddColumn("name", TType.StringType);
-			service.AddColumn("class", TType.StringType);
-			service.AddColumn("type", TType.StringType);
+			service.AddColumn("name", PrimitiveTypes.VarString);
+			service.AddColumn("class", PrimitiveTypes.VarString);
+			service.AddColumn("type", PrimitiveTypes.VarString);
 
 			DataTableInfo functionFactory = new DataTableInfo(Functionfactory);
-			functionFactory.AddColumn("name", TType.StringType);
-			functionFactory.AddColumn("class", TType.StringType);
-			functionFactory.AddColumn("type", TType.StringType);
+			functionFactory.AddColumn("name", PrimitiveTypes.VarString);
+			functionFactory.AddColumn("class", PrimitiveTypes.VarString);
+			functionFactory.AddColumn("type", PrimitiveTypes.VarString);
 
 			DataTableInfo function = new DataTableInfo(Function);
-			function.AddColumn("schema", TType.StringType);
-			function.AddColumn("name", TType.StringType);
-			function.AddColumn("type", TType.StringType);
-			function.AddColumn("location", TType.StringType);
-			function.AddColumn("return_type", TType.StringType);
-			function.AddColumn("args_type", TType.StringType);
-			function.AddColumn("username", TType.StringType);
+			function.AddColumn("schema", PrimitiveTypes.VarString);
+			function.AddColumn("name", PrimitiveTypes.VarString);
+			function.AddColumn("type", PrimitiveTypes.VarString);
+			function.AddColumn("location", PrimitiveTypes.VarString);
+			function.AddColumn("return_type", PrimitiveTypes.VarString);
+			function.AddColumn("args_type", PrimitiveTypes.VarString);
+			function.AddColumn("username", PrimitiveTypes.VarString);
 
 			DataTableInfo view = new DataTableInfo(View);
-			view.AddColumn("schema", TType.StringType);
-			view.AddColumn("name", TType.StringType);
-			view.AddColumn("query", TType.BinaryType);
-			view.AddColumn("data", TType.BinaryType);
-			view.AddColumn("username", TType.StringType);
+			view.AddColumn("schema", PrimitiveTypes.VarString);
+			view.AddColumn("name", PrimitiveTypes.VarString);
+			view.AddColumn("query", PrimitiveTypes.BinaryType);
+			view.AddColumn("data", PrimitiveTypes.BinaryType);
+			view.AddColumn("username", PrimitiveTypes.VarString);
 
 			DataTableInfo label = new DataTableInfo(Label);
-			label.AddColumn("object_type", TType.NumericType);
-			label.AddColumn("object_name", TType.StringType);
-			label.AddColumn("label", TType.StringType);
+			label.AddColumn("object_type", PrimitiveTypes.Numeric);
+			label.AddColumn("object_name", PrimitiveTypes.VarString);
+			label.AddColumn("label", PrimitiveTypes.VarString);
 
 			DataTableInfo dataTrigger = new DataTableInfo(DataTrigger);
-			dataTrigger.AddColumn("schema", TType.StringType);
-			dataTrigger.AddColumn("name", TType.StringType);
-			dataTrigger.AddColumn("type", TType.NumericType);
-			dataTrigger.AddColumn("on_object", TType.StringType);
-			dataTrigger.AddColumn("action", TType.StringType);
-			dataTrigger.AddColumn("misc", TType.BinaryType);
-			dataTrigger.AddColumn("username", TType.StringType);
+			dataTrigger.AddColumn("schema", PrimitiveTypes.VarString);
+			dataTrigger.AddColumn("name", PrimitiveTypes.VarString);
+			dataTrigger.AddColumn("type", PrimitiveTypes.Numeric);
+			dataTrigger.AddColumn("on_object", PrimitiveTypes.VarString);
+			dataTrigger.AddColumn("action", PrimitiveTypes.VarString);
+			dataTrigger.AddColumn("misc", PrimitiveTypes.BinaryType);
+			dataTrigger.AddColumn("username", PrimitiveTypes.VarString);
 
 			// Create the tables
 			connection.AlterCreateTable(password, 91, 128);

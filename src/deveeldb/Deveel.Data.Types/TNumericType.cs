@@ -96,10 +96,5 @@ namespace Deveel.Data.Types {
 			// for this.
 			return 25 + 16;
 		}
-
-		/// <inheritdoc/>
-		public override Type GetObjectType() {
-			return typeof(BigNumber);
-		}
 	}
 }

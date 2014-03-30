@@ -98,7 +98,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public SqlType SqlType {
-			get { return type.SQLType; }
+			get { return type.SqlType; }
 		}
 
 		///<summary>
@@ -236,7 +236,7 @@ namespace Deveel.Data.DbSystem {
 		public void Dump(TextWriter output) {
 			output.Write(Name);
 			output.Write(" ");
-			output.Write(type.ToSQLString());
+			output.Write(type.ToSqlString());
 		}
 
 

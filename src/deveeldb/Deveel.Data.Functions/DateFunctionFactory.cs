@@ -226,7 +226,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.StringType;
+				return PrimitiveTypes.VarString;
 			}
 		}
 
@@ -258,7 +258,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.DateType;
+				return PrimitiveTypes.Date;
 			}
 		}
 
@@ -399,7 +399,7 @@ namespace Deveel.Data.Functions {
 					timeSpan = obj.ToInterval();
 					fromTs = true;
 				} else {
-					obj = obj.CastTo(TType.DateType);
+					obj = obj.CastTo(PrimitiveTypes.Date);
 					dateTime = obj.ToDateTime();
 				}
 
@@ -576,7 +576,7 @@ namespace Deveel.Data.Functions {
 					return ob;
 
 				if (!(ob.TType is TStringType))
-					ob = ob.CastTo(TType.StringType);
+					ob = ob.CastTo(PrimitiveTypes.VarString);
 
 				string s = ob.ToStringValue();
 
@@ -628,7 +628,7 @@ namespace Deveel.Data.Functions {
 			}
 
 			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
-				return TType.IntervalType;
+				return PrimitiveTypes.IntervalType;
 			}
 		}
 

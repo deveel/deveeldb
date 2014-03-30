@@ -37,69 +37,27 @@ namespace Deveel.Data.Types {
 	[Serializable]
 	public abstract class TType : IComparer {
 		/// <summary>
-		/// A type that represents an array.
+		/// The type as an SQL identifier from <see cref="Sql.SqlType"/>.
 		/// </summary>
-		public static readonly TArrayType ArrayType = new TArrayType();
+		private readonly SqlType sqlType;
 
 		/// <summary>
-		/// A default binary (SQL BLOB) type of unlimited maximum size.
+		/// Instantiate the <see cref="TType"/> for a given <see cref="Sql.SqlType"/>.
 		/// </summary>
-		public static readonly TBinaryType BinaryType = new TBinaryType(SqlType.Blob, -1);
+		/// <param name="sqlType"></param>
+		protected TType(SqlType sqlType) {
+			this.sqlType = sqlType;
+		}
 
-		/// <summary>
-		/// A default boolean (SQL Bit) type.
-		/// </summary>
-		public static readonly TBooleanType BooleanType = new TBooleanType(SqlType.Bit);
-
-		/// <summary>
-		/// A default date (SQL TIMESTAMP) type.
-		/// </summary>
-		public static readonly TDateType DateType = new TDateType(SqlType.TimeStamp);
-
-		/// <summary>
-		/// A default time-span (SQL INTERVAL) type.
-		/// </summary>
-		public static readonly TIntervalType IntervalType = new TIntervalType(SqlType.Interval);
-
-		/// <summary>
-		/// A default NULL type.
-		/// </summary>
-		public static readonly TNullType NullType = new TNullType();
-
-		/// <summary>
-		/// A default numeric (SQL NUMERIC) type of unlimited size and scale.
-		/// </summary>
-		public static readonly TNumericType NumericType = new TNumericType(SqlType.Numeric, -1, -1);
-
-		/// <summary>
-		/// A type that represents a query plan (sub-select).
-		/// </summary>
-		public static readonly TQueryPlanType QueryPlanType = new TQueryPlanType();
-
-		/// <summary>
-		/// A default string (SQL VARCHAR) type of unlimited maximum size and
-		/// null locale.
-		/// </summary>
-		public static readonly TStringType StringType = new TStringType(SqlType.VarChar, -1, null);
-
-		/// <summary>
-		/// The type as an SQL identifier from <see cref="SqlType"/>.
-		/// </summary>
-		private readonly SqlType sql_type;
-
-		/// <summary>
-		/// Instantiate the <see cref="TType"/> for a given <see cref="SqlType"/>.
-		/// </summary>
-		/// <param name="sql_type"></param>
-		protected TType(SqlType sql_type) {
-			this.sql_type = sql_type;
+		protected TType(int typeCode) {
+			
 		}
 
 		/// <summary>
 		/// Returns the SQL type of this <see cref="TType"/>.
 		/// </summary>
-		public SqlType SQLType {
-			get { return sql_type; }
+		public SqlType SqlType {
+			get { return sqlType; }
 		}
 
 		/// <summary>
@@ -134,8 +92,8 @@ namespace Deveel.Data.Types {
 		/// This method is used for debugging and display purposes only and we 
 		/// would not expect to actually feed this back into an SQL parser.
 		/// </remarks>
-		public string ToSQLString() {
-			return SQLType.ToString().ToUpper();
+		public string ToSqlString() {
+			return SqlType.ToString().ToUpper();
 		}
 
 
@@ -167,15 +125,8 @@ namespace Deveel.Data.Types {
 		/// </returns>
 		public abstract int CalculateApproximateMemoryUse(Object ob);
 
-		/// <summary>
-		/// Returns the <see cref="Type"/> that is used to represent this type 
-		/// of object on the framework.
-		/// </summary>
-		/// <returns></returns>
-		public abstract Type GetObjectType();
-
 		internal static void ToBinaryWriter(TType type, BinaryWriter writer) {
-			writer.Write((int) type.SQLType);
+			writer.Write((int) type.SqlType);
 
 			if (type is TBooleanType) {
 				writer.Write((byte) 1);
@@ -293,12 +244,12 @@ namespace Deveel.Data.Types {
 			StringBuilder buf = new StringBuilder();
 			if (type is TBooleanType) {
 				buf.Append("BOOLEAN(");
-				buf.Append(type.SQLType);
+				buf.Append(type.SqlType);
 				buf.Append(')');
 			} else if (type is TStringType) {
 				TStringType str_type = (TStringType) type;
 				buf.Append("STRING(");
-				buf.Append(type.SQLType);
+				buf.Append(type.SqlType);
 				buf.Append(',');
 				buf.Append(str_type.Size);
 				buf.Append(",'");
@@ -311,7 +262,7 @@ namespace Deveel.Data.Types {
 			} else if (type is TNumericType) {
 				TNumericType num_type = (TNumericType) type;
 				buf.Append("NUMERIC(");
-				buf.Append(type.SQLType);
+				buf.Append(type.SqlType);
 				buf.Append(',');
 				buf.Append(num_type.Size);
 				buf.Append(',');
@@ -320,25 +271,25 @@ namespace Deveel.Data.Types {
 			} else if (type is TBinaryType) {
 				TBinaryType bin_type = (TBinaryType) type;
 				buf.Append("BINARY(");
-				buf.Append(type.SQLType);
+				buf.Append(type.SqlType);
 				buf.Append(',');
 				buf.Append(bin_type.Size);
 				buf.Append(')');
 			} else if (type is TDateType) {
 				buf.Append("DATE(");
-				buf.Append(type.SQLType);
+				buf.Append(type.SqlType);
 				buf.Append(')');
 			} else if (type is TIntervalType) {
 				buf.Append("INTERVAL(");
-				buf.Append(type.SQLType);
+				buf.Append(type.SqlType);
 				buf.Append(")");
 			} else if (type is TNullType) {
 				buf.Append("NULL(");
-				buf.Append(type.SQLType);
+				buf.Append(type.SqlType);
 				buf.Append(')');
 			} else if (type is TObjectType) {
 				buf.Append("OBJECT(");
-				buf.Append(type.SQLType);
+				buf.Append(type.SqlType);
 				buf.Append(",'");
 				buf.Append(((TObjectType) type).TypeString);
 				buf.Append("')");
@@ -550,7 +501,7 @@ namespace Deveel.Data.Types {
 
 			int size = -1;
 			int scale = -1;
-			SqlType sql_type = type.SQLType;
+			SqlType sql_type = type.SqlType;
 
 			if (type is TStringType) {
 				size = ((TStringType) type).Size;
@@ -562,7 +513,7 @@ namespace Deveel.Data.Types {
 				size = ((TBinaryType) type).Size;
 			}
 
-			ob = CastHelper.CastToSQLType(ob, type.SQLType, size, scale);
+			ob = CastHelper.CastToSQLType(ob, type.SqlType, size, scale);
 
 			return ob;
 		}
@@ -586,19 +537,19 @@ namespace Deveel.Data.Types {
 		/// <returns></returns>
 		public static TType FromType(Type c) {
 			if (c == typeof (String))
-				return StringType;
+				return PrimitiveTypes.VarString;
 			if (c == typeof (BigNumber))
-				return NumericType;
+				return PrimitiveTypes.Numeric;
 			if (c == typeof (DateTime))
-				return DateType;
+				return PrimitiveTypes.Date;
 			if (c == typeof (bool))
-				return BooleanType;
+				return PrimitiveTypes.Boolean;
 			if (c == typeof (ByteLongObject))
-				return BinaryType;
+				return PrimitiveTypes.BinaryType;
 			if (c == typeof(TimeSpan))
 				return new TIntervalType(SqlType.DayToSecond);
 			if (c == typeof(Interval))
-				return IntervalType;
+				return PrimitiveTypes.IntervalType;
 
 			throw new ArgumentException("Don't know how to convert " + c + " to a TType.");
 		}
@@ -616,8 +567,8 @@ namespace Deveel.Data.Types {
 		/// </example>
 		/// <returns></returns>
 		public static TType GetWidestType(TType t1, TType t2) {
-			SqlType t1SQLType = t1.SQLType;
-			SqlType t2SQLType = t2.SQLType;
+			SqlType t1SQLType = t1.SqlType;
+			SqlType t2SQLType = t2.SqlType;
 			if (t1SQLType == SqlType.Decimal) {
 				return t1;
 			}

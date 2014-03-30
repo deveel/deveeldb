@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010 -2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ namespace Deveel.Data.Types {
 	/// <summary>
 	/// Manages the creation, removal and retrieval of UDTs.
 	/// </summary>
-	internal class UDTManager {
-		public UDTManager(TableDataConglomerate conglomerate) {
+	public class TypesManager : ITypeResolver {
+		internal TypesManager(TableDataConglomerate conglomerate) {
 			this.conglomerate = conglomerate;
 		}
 
@@ -39,9 +39,9 @@ namespace Deveel.Data.Types {
 		/// A map from the names (TableName) of the UDTs to the
 		/// implementation (UserDefinedType).
 		/// </summary>
-		private static readonly Hashtable udt_map = new Hashtable();
+		private static readonly IDictionary<TableName, TType> udt_map = new Dictionary<TableName, TType>();
 
-		public static void CreateType(Transaction transaction, UserType type) {
+		internal static void CreateType(Transaction transaction, UserType type) {
 			// If the UdtTable or UdtMembersTable tables don't exist then 
 			// we can't create the sequence generator
 			if (!transaction.TableExists(TableDataConglomerate.UdtTable) ||
@@ -105,7 +105,7 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public static void DropType(Transaction transaction, TableName typeName) {
+		internal static void DropType(Transaction transaction, TableName typeName) {
 			// If the UdtTable or UdtMembersTable tables don't exist then 
 			// we can't drop the type
 			if (!transaction.TableExists(TableDataConglomerate.UdtTable) ||
@@ -140,7 +140,7 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public static UserType GetUserTypeDef(Transaction transaction, TableName typeName) {
+		internal static TUserDefinedType GetUserTypeDef(Transaction transaction, TableName typeName) {
 			// If the UdtTable or UdtMembersTable tables don't exist then 
 			// we can't drop the type
 			if (!transaction.TableExists(TableDataConglomerate.UdtTable) ||
@@ -148,7 +148,7 @@ namespace Deveel.Data.Types {
 				throw new Exception("System UDT tables do not exist.");
 			}
 
-			UserType type = udt_map[typeName] as UserType;
+			TUserDefinedType type = udt_map[typeName] as TUserDefinedType;
 			if (type != null)
 				return type;
 
@@ -160,7 +160,7 @@ namespace Deveel.Data.Types {
 			IMutableTableDataSource udtCols = transaction.GetMutableTable(TableDataConglomerate.UdtMembersTable);
 
 			UserTypeAttributes attributes;
-			UserType parentType = null;
+			TUserDefinedType parentType = null;
 			int parent_id = TypeNotFound;
 
 			using(SimpleTableQuery query = new SimpleTableQuery(udt)) {
@@ -181,7 +181,7 @@ namespace Deveel.Data.Types {
 				parentType = GetUserTypeDef(transaction, parent_id);
 
 			// finally we build the type...
-			type = new UserType(parentType, typeName, attributes);
+			type = new TUserDefinedType(parentType, typeName, attributes);
 
 			using(SimpleTableQuery query = new SimpleTableQuery(udtCols)) {
 				IList<int> ivec = query.SelectEqual(0, parent_id);
@@ -200,7 +200,7 @@ namespace Deveel.Data.Types {
 					bool nullable = (int) query.Get(5, i) == 1;
 
 					// so we finally add the member
-					type.AddAttribute(name, ttype, nullable);
+					type.Members.Add(new TTypeMember(name, ttype, nullable));
 				}
 			}
 
@@ -209,7 +209,7 @@ namespace Deveel.Data.Types {
 			return type;
 		}
 
-		private static UserType GetUserTypeDef(Transaction transaction, int id) {
+		private static TUserDefinedType GetUserTypeDef(Transaction transaction, int id) {
 			TableName typeName;
 
 			ITableDataSource udt = transaction.GetTable(TableDataConglomerate.UdtTable);
@@ -246,8 +246,7 @@ namespace Deveel.Data.Types {
 
 			// if it is not one of the primitive types, it must be one
 			// of those defined by users...
-			UserType type = GetUserTypeDef(transaction, typeId);
-			return new TUserDefinedType(type);
+			return GetUserTypeDef(transaction, typeId);
 		}
 
 		private static int GetTTypeId(Transaction transaction, TType type) {
@@ -269,17 +268,17 @@ namespace Deveel.Data.Types {
 			TUserDefinedType udt = (TUserDefinedType) type;
 
 			// the name of the type to check
-			TableName typeName = udt.UserType.Name;
+			TableName typeName = udt.Name;
 			return GetTypeId(transaction, typeName);
 		}
 
 		private static int GetTypeId(Transaction transaction, TableName typeName) {
-			if (typeName == UserType.NumericTypeName) return -1;
-			if (typeName == UserType.StringTypeName) return -2;
-			if (typeName == UserType.BooleanTypeName) return -3;
-			if (typeName == UserType.BinaryTypeName) return -4;
-			if (typeName == UserType.TimeTypeName) return -5;
-			if (typeName == UserType.IntervalTypeName) return -6;
+			if (Equals(typeName, UserType.NumericTypeName)) return -1;
+			if (Equals(typeName, UserType.StringTypeName)) return -2;
+			if (Equals(typeName, UserType.BooleanTypeName)) return -3;
+			if (Equals(typeName, UserType.BinaryTypeName)) return -4;
+			if (Equals(typeName, UserType.TimeTypeName)) return -5;
+			if (Equals(typeName, UserType.IntervalTypeName)) return -6;
 
 			// The UdtTable
 			ITableDataSource udt_table = transaction.GetTable(TableDataConglomerate.UdtTable);
@@ -302,7 +301,7 @@ namespace Deveel.Data.Types {
 			return id;
 		}
 
-		public static bool TypeExists(Transaction transaction, TableName typeName) {
+		internal static bool TypeExists(Transaction transaction, TableName typeName) {
 			// The UdtTable and table
 			ITableDataSource udt = transaction.GetTable(TableDataConglomerate.UdtTable);
 
@@ -312,6 +311,14 @@ namespace Deveel.Data.Types {
 				IList<int> ivec = query.SelectEqual(1, TObject.CreateString(typeName.Schema), 2, TObject.CreateString(typeName.Name));
 				return ivec.Count > 0;
 			}
+		}
+
+		public TType ResolveType(int typeCode) {
+			throw new NotImplementedException();
+		}
+
+		public TType ResolveType(string typeString) {
+			throw new NotImplementedException();
 		}
 	}
 }
