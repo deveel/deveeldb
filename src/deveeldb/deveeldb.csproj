@@ -590,22 +590,22 @@
     <Compile Include="Deveel.Diagnostics\Log.cs" />
     <Compile Include="Deveel.Diagnostics\LogEntry.cs" />
     <Compile Include="Deveel.Diagnostics\LogWriter.cs" />
-    <Compile Include="Deveel.Math\BigDecimal.cs" />
-    <Compile Include="Deveel.Math\BigInteger.cs" />
-    <Compile Include="Deveel.Math\BitLevel.cs" />
-    <Compile Include="Deveel.Math\CharHelper.cs" />
-    <Compile Include="Deveel.Math\Conversion.cs" />
-    <Compile Include="Deveel.Math\Division.cs" />
-    <Compile Include="Deveel.Math\Elementary.cs" />
-    <Compile Include="Deveel.Math\Logical.cs" />
-    <Compile Include="Deveel.Math\MathContext.cs" />
-    <Compile Include="Deveel.Math\Messages.Designer.cs" />
-    <Compile Include="Deveel.Math\Messages1.Designer.cs" />
-    <Compile Include="Deveel.Math\Multiplication.cs" />
-    <Compile Include="Deveel.Math\Primality.cs" />
-    <Compile Include="Deveel.Math\RoundingMode.cs" />
-    <Compile Include="Deveel.Math\SR.cs" />
-    <Compile Include="Deveel.Math\Utils.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\BigDecimal.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\BigInteger.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\BitLevel.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\CharHelper.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Conversion.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Division.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Elementary.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Logical.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\MathContext.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Messages.Designer.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Messages1.Designer.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Multiplication.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Primality.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\RoundingMode.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\SR.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -621,11 +621,8 @@
     <None Include="deveeldb.snk" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Deveel.Math\Messages.resx">
-      <CustomToolNamespace>Deveel.Math</CustomToolNamespace>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Messages.resx" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>$(ProjectDir)..\..\util\csharpcc\csharpcc.exe -OUTPUT_DIRECTORY="$(ProjectDir)Deveel.Data.Sql.Parser" "$(ProjectDir)Deveel.Data.Sql.Parser\SQL.csc"
