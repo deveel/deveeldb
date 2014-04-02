@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Client;
 using Deveel.Data.Control;
@@ -27,6 +28,8 @@ namespace Deveel.Data {
 		private readonly StorageType storageType;
 		private Control.DbSystem system;
 
+		private readonly List<Exception> errors;
+
 		protected const string DatabaseName = "testdb";
 		protected const string AdminUser = "SA";
 		protected const string AdminPassword = "pass";
@@ -38,6 +41,8 @@ namespace Deveel.Data {
 
 		protected TestBase(StorageType storageType) {
 			this.storageType = storageType;
+
+			errors = new List<Exception>();
 		}
 
 		protected TestBase()
@@ -50,6 +55,14 @@ namespace Deveel.Data {
 
 		protected DeveelDbConnection Connection {
 			get { return connection; }
+		}
+
+		protected int ErrorCount {
+			get { return errors.Count; }
+		}
+
+		protected bool HasErrors {
+			get { return ErrorCount > 0; }
 		}
 
 		protected virtual void OnCreateTables() {
@@ -163,6 +176,15 @@ namespace Deveel.Data {
 		protected DeveelDbDataReader ExecuteReader(string commandText) {
 			DeveelDbCommand command = Connection.CreateCommand(commandText);
 			return command.ExecuteReader();
+		}
+
+		protected int SafeExecuteNonQuery(string commandText) {
+			try {
+				return ExecuteNonQuery(commandText);
+			} catch (Exception e) {
+				errors.Add(e);
+				return 0;
+			}
 		}
 
 		protected int ExecuteNonQuery(string commandText) {
