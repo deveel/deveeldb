@@ -33,7 +33,7 @@ namespace Deveel.Data.Client {
 
 			var connection = new DeveelDbConnection(connString);
 			Assert.DoesNotThrow(connection.Open);
-			Assert.IsTrue(connection.State == ConnectionState.Open);
+			Assert.IsTrue(connection.State == ConnectionState.Broken);
 			Assert.DoesNotThrow(connection.Close);
 			Assert.IsTrue(connection.State == ConnectionState.Closed);
 		}

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.IO;
 
 using NUnit.Framework;
@@ -12,8 +13,10 @@ namespace Deveel.Data.Client {
 		}
 
 		protected override void OnTestTearDown() {
-			DeveelDbCommand command = Connection.CreateCommand("DROP TABLE IF EXISTS LOB_TEST");
-			command.ExecuteNonQuery();
+			if (Connection.State == ConnectionState.Open) {
+				DeveelDbCommand command = Connection.CreateCommand("DROP TABLE IF EXISTS LOB_TEST");
+				command.ExecuteNonQuery();
+			}
 		}
 
 		[Test]

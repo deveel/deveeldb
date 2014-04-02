@@ -355,7 +355,8 @@ namespace Deveel.Data.Client {
 		}
 
 		private static bool IsLocal(string host) {
-			return String.Equals(host, "{local}", StringComparison.OrdinalIgnoreCase);
+			return String.Equals(host, "{local}", StringComparison.OrdinalIgnoreCase) ||
+			       String.Equals(host, "local", StringComparison.OrdinalIgnoreCase);
 		}
 
 		///<summary>
