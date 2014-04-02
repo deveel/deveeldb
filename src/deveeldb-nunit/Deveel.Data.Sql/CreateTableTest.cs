@@ -38,6 +38,7 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual("field1", table.TableInfo[0].Name);
 			Assert.AreEqual(SqlType.Integer, table.TableInfo[0].SqlType);
 
+			ExecuteNonQuery("DROP TABLE Test");
 		}
 
 		[Test]
@@ -48,6 +49,8 @@ namespace Deveel.Data.Sql {
 			Assert.IsNotNull(table);
 			Assert.IsTrue(table.TableInfo.FindColumnName("id") == 0);
 			Assert.AreEqual(SqlType.Identity, table.TableInfo[0].SqlType);
+
+			ExecuteNonQuery("DROP TABLE Test");
 		}
 
 		[Test]
@@ -60,6 +63,8 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual(1, constraints.Length);
 			Assert.AreEqual(1, constraints[0].Columns.Length);
 			Assert.AreEqual("name", constraints[0].Columns[0]);
+
+			ExecuteNonQuery("DROP TABLE Test");
 		}
 
 		[Test]
@@ -70,7 +75,9 @@ namespace Deveel.Data.Sql {
 			DataConstraintInfo constraint = connection.QueryTablePrimaryKeyGroup(new TableName("APP", "Test"));
 			Assert.IsNotNull(constraint);
 			Assert.AreEqual(1, constraint.Columns.Length);
-			Assert.AreEqual("id", constraint.Columns[0]);			
+			Assert.AreEqual("id", constraint.Columns[0]);
+
+			ExecuteNonQuery("DROP TABLE Test");
 		}
 
 		[Test]
@@ -88,6 +95,8 @@ namespace Deveel.Data.Sql {
 			Assert.IsNotNull(unique);
 			Assert.AreEqual(1, unique.Length);
 			Assert.AreEqual("name", unique[0].Columns[0]);
+
+			ExecuteNonQuery("DROP TABLE Test");
 		}
 	}
 }

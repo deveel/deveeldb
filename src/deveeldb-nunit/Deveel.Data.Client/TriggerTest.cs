@@ -3,20 +3,13 @@ using System.Data;
 using System.Threading;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 
 using NUnit.Framework;
 
 namespace Deveel.Data.Client {
 	[TestFixture]
-	public sealed class TriggerTest : TestBase {
-		public TriggerTest() 
-			: base(StorageType.Memory) {
-		}
-
-		protected override bool RequiresSchema {
-			get { return true; }
-		}
-
+	public sealed class TriggerTest : SqlTestBase {
 		[Test]
 		public void CallbackTriggerOnAllEvents() {
 			Assert.IsTrue(Connection.State == ConnectionState.Open);
@@ -25,23 +18,20 @@ namespace Deveel.Data.Client {
 			trigger.Subscribe(new EventHandler(PersonTableModified));
 
 			Console.Out.WriteLine("Inserting a new entry in the table 'Person'.");
-			DeveelDbCommand command = Connection.CreateCommand("INSERT INTO Person (name, age, lives_in) VALUES ('Lorenzo Thione', 30, 'Texas')");
-			int count = command.ExecuteNonQuery();
-
+			int count = ExecuteNonQuery("INSERT INTO Person (name, age, lives_in) VALUES ('Lorenzo Thione', 30, 'Texas')");
+			
 			Assert.AreEqual(1, count);
 			
 			// wait few milliseconds to be sure the test will succeed...
 			Thread.Sleep(300);
 
-			command = Connection.CreateCommand("UPDATE Person SET lives_in = 'San Francisco' WHERE name = 'Lorenzo Thione'");
-			count = command.ExecuteNonQuery();
+			count = ExecuteNonQuery("UPDATE Person SET lives_in = 'San Francisco' WHERE name = 'Lorenzo Thione'");
 
 			Assert.AreEqual(1, count);
 
 			Thread.Sleep(300);
 
-			command = Connection.CreateCommand("DELETE FROM Person WHERE name = 'Lorenzo Thione'");
-			count = command.ExecuteNonQuery();
+			count = ExecuteNonQuery("DELETE FROM Person WHERE name = 'Lorenzo Thione'");
 
 			Assert.AreEqual(1, count);
 		}

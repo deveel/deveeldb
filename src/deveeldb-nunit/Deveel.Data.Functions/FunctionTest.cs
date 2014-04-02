@@ -55,7 +55,7 @@ namespace Deveel.Data.Functions {
 			groupResolver.AddToGroup(3, "b", (TObject) 564);
 			Expression exp = Expression.Parse("AVG(a)");
 			TObject result = exp.Evaluate(groupResolver, null, null);
-			Assert.IsTrue(result == (TObject) 47.5);
+			Assert.IsTrue(TObject.CreateDouble(47.5).Equals(result));
 
 			exp = Expression.Parse("AVG(b)");
 			result = exp.Evaluate(groupResolver, null, null);

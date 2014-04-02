@@ -70,9 +70,10 @@
     <Compile Include="Deveel.Data.Sql\DeleteTest.cs" />
     <Compile Include="Deveel.Data.Sql\InsertTest.cs" />
     <Compile Include="Deveel.Data.Sql\SelectTest.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlTestBase.cs" />
     <Compile Include="Deveel.Data.Sql\UpdateTest.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTableTest.cs" />
-    <Compile Include="Deveel.Data\CursorTest.cs" />
+    <Compile Include="Deveel.Data.Sql\CursorTest.cs" />
     <Compile Include="Deveel.Data\ExpressionTest.cs" />
     <Compile Include="Deveel.Data\OperatorTest.cs" />
     <Compile Include="Deveel.Data\StorageType.cs" />

@@ -7,11 +7,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql {
 	[TestFixture]
-	public sealed class SelectTest : TestBase {
-		protected override bool RequiresSchema {
-			get { return true; }
-		}
-
+	public sealed class SelectTest : SqlTestBase {
 		protected override void OnTestSetUp() {
 			Connection.AutoCommit = true;
 

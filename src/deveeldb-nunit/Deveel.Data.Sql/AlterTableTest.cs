@@ -15,7 +15,6 @@
 
 using System;
 
-using Deveel.Data.Client;
 using Deveel.Data.DbSystem;
 
 using NUnit.Framework;
@@ -24,13 +23,10 @@ using SysDataTable = System.Data.DataTable;
 
 namespace Deveel.Data.Sql {
 	[TestFixture]
-	public sealed class AlterTableTest : TestBase {
-		protected override bool RequiresSchema {
-			get { return true; }
-		}
-
+	public sealed class AlterTableTest : SqlTestBase {
 		protected override void OnTestSetUp() {
 			Connection.AutoCommit = true;
+
 			base.OnTestSetUp();
 		}
 
@@ -48,6 +44,8 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual("description", table.TableInfo[index].Name);
 			Assert.AreEqual(SqlType.VarChar, table.TableInfo[index].SqlType);
 			Assert.AreEqual(255, table.TableInfo[index].Size);
+
+			ExecuteNonQuery("DROP TABLE Test");
 		}
 		
 		[Test(Description = "Adds a column that already was defined in the table.")]
@@ -64,11 +62,19 @@ namespace Deveel.Data.Sql {
 			Table table = connection.GetTable("Test");
 			Assert.IsNotNull(table);
 			Assert.IsTrue(table.TableInfo.FindColumnName("name") == -1);
+
+			ExecuteNonQuery("DROP TABLE Test");
 		}
 
 		[Test]
 		public void DropNonExistingColumn() {
-			Assert.Throws<DatabaseException>(delegate { ExecuteNonQuery("ALTER TABLE Person DROP COLUMN description;"); });
+			ExecuteNonQuery("CREATE TABLE Test (id INT, name VARCHAR)");
+			ExecuteNonQuery("ALTER TABLE Test DROP COLUMN name;");
+
+			var count = ExecuteNonQuery("ALTER TABLE Test DROP COLUMN description;");
+			Assert.AreEqual(0, count);
+
+			ExecuteNonQuery("DROP TABLE Test");
 		}
 
 		[Test]
@@ -84,6 +90,9 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual(1, fkeys.Length);
 			Assert.AreEqual("fk_test_table", fkeys[0].Name);
 			Assert.AreEqual("prop1", fkeys[0].Columns[0]);
+
+			ExecuteNonQuery("DROP TABLE test_table_1");
+			ExecuteNonQuery("DROP TABLE test_table_2");
 		}
 
 		[Test]
@@ -97,6 +106,9 @@ namespace Deveel.Data.Sql {
 			DatabaseConnection connection = CreateDatabaseConnection();
 			DataConstraintInfo[] fkeys = connection.QueryTableForeignKeyReferences(new TableName("APP", "test_table_1"));
 			Assert.IsEmpty(fkeys);
+
+			ExecuteNonQuery("DROP TABLE test_table_1");
+			ExecuteNonQuery("DROP TABLE test_table_2");
 		}
 
 		[Test]
@@ -110,6 +122,8 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual(2, table.TableInfo.ColumnCount);
 			Assert.AreEqual("prop1", table.TableInfo[0].Name);
 			Assert.AreEqual("prop1 = -1", table.TableInfo[0].GetDefaultExpressionString());
+
+			ExecuteNonQuery("DROP TABLE test_table_1");
 		}
 
 		[Test]
@@ -125,6 +139,8 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual(2, table.TableInfo.ColumnCount);
 			Assert.AreEqual("prop1", table.TableInfo[0].Name);
 			Assert.IsNullOrEmpty(table.TableInfo[0].GetDefaultExpressionString());
+
+			ExecuteNonQuery("DROP TABLE test_table_1");
 		}
 
 		[Test]
@@ -140,6 +156,8 @@ namespace Deveel.Data.Sql {
 			DataConstraintInfo pkey = connection.QueryTablePrimaryKeyGroup(new TableName("APP", "test_table_1"));
 
 			Assert.IsNull(pkey);
+
+			ExecuteNonQuery("DROP TABLE test_table_1");
 		}
 	}
 }

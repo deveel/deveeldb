@@ -52,10 +52,6 @@ namespace Deveel.Data {
 			get { return connection; }
 		}
 
-		protected virtual bool RequiresSchema {
-			get { return false; }
-		}
-
 		protected virtual void OnCreateTables() {
 		}
 
@@ -63,7 +59,7 @@ namespace Deveel.Data {
 		}
 
 		[TestFixtureSetUp]
-		public void SetUp() {
+		public void FixtureSetUp() {
 			DbConfig config = new DbConfig();
 			OnConfigure(config);
 			DbController controller = DbController.Create(config);
@@ -76,7 +72,7 @@ namespace Deveel.Data {
 		}
 
 		[TestFixtureTearDown]
-		public void TearDown() {
+		public void FixtureTearDown() {
 			OnTearDown();
 
 			if (transaction != null)
@@ -84,6 +80,7 @@ namespace Deveel.Data {
 
 			system.Close();
 		}
+
 
 		protected virtual void OnConfigure(DbConfig config) {
 			if (storageType == StorageType.File) {
@@ -118,14 +115,17 @@ namespace Deveel.Data {
 			}
 		}
 
+		protected void Rollback() {
+			if (transaction != null) {
+				transaction.Rollback();
+				transaction = null;
+			}
+		}
+
 		[SetUp]
 		public void TestSetUp() {
 			connection = (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
 			connection.AutoCommit = false;
-
-			if (RequiresSchema)
-				GenerateDatabase();
-
 			OnTestSetUp();
 		}
 
@@ -133,188 +133,10 @@ namespace Deveel.Data {
 		public void TestTearDown() {
 			OnTestTearDown();
 
-			if (RequiresSchema)
-				DropTables();
-
 			if (connection != null)
 				connection.Close();
 		}
 
-		private void GenerateDatabase() {
-			using (DeveelDbTransaction t = connection.BeginTransaction()) {
-				try {
-					GenerateTables();
-					OnCreateTables();
-
-					t.Commit();
-				} catch (Exception) {
-					throw;
-				}
-			}
-
-			using (var t = connection.BeginTransaction()) {
-				try {
-					InsertDataPerson();
-					InsertDataMusicGroup();
-					InsertDataListensTo();
-					OnInsertData();
-					t.Commit();
-				} catch (Exception) {
-					throw;
-				}
-			}
-		}
-
-		private void GenerateTables() {
-			DeveelDbCommand command = connection.CreateCommand("    CREATE TABLE IF NOT EXISTS Person ( " +
-			                                                   "       id        IDENTITY, " +
-			                                                   "       name      VARCHAR(100) NOT NULL, " +
-			                                                   "       age       INTEGER, " +
-			                                                   "       lives_in  VARCHAR(100) ) ");
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    CREATE TABLE IF NOT EXISTS ListensTo ( " +
-			                                   "       id               IDENTITY, " +
-			                                   "       person_name      VARCHAR(100) NOT NULL, " +
-			                                   "       music_group_name VARCHAR(250) NOT NULL ) ");
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    CREATE TABLE IF NOT EXISTS MusicGroup ( " +
-											   "       id                IDENTITY, " +
-											   "       name              VARCHAR(250) NOT NULL, " +
-											   "       country_of_origin VARCHAR(100) ) ");
-			command.ExecuteNonQuery();
-		}
-
-		private void DropTables() {
-			BeginTransaction();
-
-			try {
-				DeveelDbCommand command = connection.CreateCommand("DROP TABLE IF EXISTS MusicGroup");
-				command.ExecuteNonQuery();
-
-				command = connection.CreateCommand("DROP TABLE IF EXISTS ListensTo");
-				command.ExecuteNonQuery();
-
-				command = connection.CreateCommand("DROP TABLE IF EXISTS Person");
-				command.ExecuteNonQuery();
-
-				Commit();
-			} catch (Exception e) {
-				try {
-					transaction.Rollback();
-				} catch (Exception e2) {
-					Console.Error.WriteLine("Was not able to rollback: {0}", e2.Message);
-					Console.Error.WriteLine(e2.StackTrace);
-				}
-
-				throw e;
-			}
-		}
-
-		private void InsertDataPerson() {
-			DeveelDbCommand command;
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-														 "      ( 'Robert Bellamy', 24, 'England' ) ");
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'Grayham Downer', 59, 'Africa' ) ");
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'Timothy French', 24, 'Africa' ) ");
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'Butch Fad', 53, 'USA' ) ");
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'Judith Brown', 34, 'Africa' ) ");
-
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'Elizabeth Kramer', 24, 'USA' ) ");
-
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'Yamnik Wordsworth', 14, 'Australia' ) ");
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'Domonic Smith', 25, 'England' ) ");
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'Ivan Wilson', 23, 'England' ) ");
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'Lisa Williams', 24, 'England' ) ");
-
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'Xenia, Warrior Princess', 32, 'Rome' ) ");
-			command.ExecuteNonQuery();
-
-			command = connection.CreateCommand("    INSERT INTO Person ( name, age, lives_in ) VALUES " +
-											   "      ( 'David Powell', 25, 'New Zealand' ) ");
-			command.ExecuteNonQuery();
-		}
-
-		private void InsertDataMusicGroup() {
-			DeveelDbCommand command = connection.CreateCommand("    INSERT INTO MusicGroup " +
-			                                                   "      ( name, country_of_origin ) VALUES " +
-			                                                   "      ( 'Oasis',       'England' ), " +
-			                                                   "      ( 'Fatboy Slim', 'England' ), " +
-			                                                   "      ( 'Metallica',   'USA' ), " +
-			                                                   "      ( 'Nirvana',     'USA' ), " +
-			                                                   "      ( 'Beatles',     'England' ), " +
-			                                                   "      ( 'Fela Kuti',   'Africa' ), " +
-			                                                   "      ( 'Blur',        'England' ), " +
-			                                                   "      ( 'Muddy Ibe',   'Africa' ), " +
-			                                                   "      ( 'Abba',        'Sweden' ), " +
-			                                                   "      ( 'Madonna',     'USA' ), " +
-			                                                   "      ( 'Cure',        'England' ) ");
-
-			command.ExecuteNonQuery();
-		}
-
-		private void InsertDataListensTo() {
-			DeveelDbCommand command = connection.CreateCommand("    INSERT INTO ListensTo " +
-			                                                   "      ( person_name, music_group_name ) VALUES " +
-			                                                   "      ( 'David Powell',             'Metallica' ), " +
-			                                                   "      ( 'David Powell',             'Cure' ), " +
-			                                                   "      ( 'Xenia, Warrior Princess',  'Madonna' ), " +
-			                                                   "      ( 'Lisa Williams',            'Blur' ), " +
-			                                                   "      ( 'Lisa Williams',            'Cure' ), " +
-			                                                   "      ( 'Lisa Williams',            'Beatles' ), " +
-			                                                   "      ( 'Ivan Wilson',              'Cure' ), " +
-			                                                   "      ( 'Ivan Wilson',              'Beatles' ), " +
-			                                                   "      ( 'Yamnik Wordsworth',        'Abba' ), " +
-			                                                   "      ( 'Yamnik Wordsworth',        'Fatboy Slim' ), " +
-			                                                   "      ( 'Yamnik Wordsworth',        'Fela Kuti' ), " +
-			                                                   "      ( 'Elizabeth Kramer',         'Nirvana' ), " +
-			                                                   "      ( 'Judith Brown',             'Fela Kuti' ), " +
-			                                                   "      ( 'Judith Brown',             'Muddy Ibe' ), " +
-			                                                   "      ( 'Butch Fad',                'Metallica' ), " +
-			                                                   "      ( 'Timothy French',           'Blur' ), " +
-			                                                   "      ( 'Timothy French',           'Oasis' ), " +
-			                                                   "      ( 'Timothy French',           'Nirvana' ), " +
-			                                                   "      ( 'Grayham Downer',           'Fela Kuti' ), " +
-			                                                   "      ( 'Grayham Downer',           'Beatles' ), " +
-			                                                   "      ( 'Robert Bellamy',           'Oasis' ), " +
-			                                                   "      ( 'Robert Bellamy',           'Beatles' ), " +
-			                                                   "      ( 'Robert Bellamy',           'Abba' ), " +
-			                                                   "      ( 'Robert Bellamy',           'Blur' ) ");
-
-			command.ExecuteNonQuery();
-		}
 
 		protected void PrintResult(DeveelDbDataReader reader) {
 			int rowCount;
@@ -343,9 +165,9 @@ namespace Deveel.Data {
 			return command.ExecuteReader();
 		}
 
-		protected void ExecuteNonQuery(string commandText) {
+		protected int ExecuteNonQuery(string commandText) {
 			DeveelDbCommand command = Connection.CreateCommand(commandText);
-			command.ExecuteNonQuery();
+			return command.ExecuteNonQuery();
 		}
 
 		protected object ExecuteScalar(string commandText) {

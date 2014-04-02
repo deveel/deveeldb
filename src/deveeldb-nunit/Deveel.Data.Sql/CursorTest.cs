@@ -4,13 +4,9 @@ using Deveel.Data.Client;
 
 using NUnit.Framework;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	[TestFixture]
-	public sealed class CursorTest : TestBase {
-		protected override bool RequiresSchema {
-			get { return true; }
-		}
-
+	public sealed class CursorTest : SqlTestBase {
 		[Test]
 		public void TestCursor() {
 			DeveelDbCommand command = Connection.CreateCommand("DECLARE CURSOR c_person FOR " +
