@@ -348,7 +348,7 @@ namespace Deveel.Data.Procedures {
 		}
 
 		/// <summary>
-		/// Resolves a type specification string to a <see cref="Deveel.Data.DbSystem.Type"/>.
+		/// Resolves a type specification string to a <see cref="Type"/>.
 		/// </summary>
 		/// <param name="type_string"></param>
 		/// <returns></returns>

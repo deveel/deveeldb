@@ -352,8 +352,8 @@ namespace Deveel.Data.Types {
 			if (encoded_str.StartsWith("BOOLEAN("))
 				return new TBooleanType(sql_type);
 			if (encoded_str.StartsWith("STRING(")) {
-				int size = Int32.Parse(param_list[1]);
-				String locale_str = ParseQuotedString(param_list[2]);
+				int size = param_list.Length > 1 ? Int32.Parse(param_list[1]) : -1;
+				String locale_str = param_list.Length > 2 ? ParseQuotedString(param_list[2]) : String.Empty;
 				if (locale_str.Length == 0) {
 					locale_str = null;
 				}
@@ -362,12 +362,12 @@ namespace Deveel.Data.Types {
 				return new TStringType(sql_type, size, locale_str, strength, decomposition);
 			}
 			if (encoded_str.StartsWith("NUMERIC(")) {
-				int size = Int32.Parse(param_list[1]);
-				int scale = Int32.Parse(param_list[2]);
+				int size = param_list.Length > 1 ? Int32.Parse(param_list[1]) : -1;
+				int scale = param_list.Length > 2 ? Int32.Parse(param_list[2]) : -1;
 				return new TNumericType(sql_type, size, scale);
 			}
 			if (encoded_str.StartsWith("BINARY(")) {
-				int size = Int32.Parse(param_list[1]);
+				int size = param_list.Length > 1 ? Int32.Parse(param_list[1]) : -1;
 				return new TBinaryType(sql_type, size);
 			}
 			if (encoded_str.StartsWith("DATE("))

@@ -25,7 +25,8 @@ namespace Deveel.Data {
 	public sealed class TTypeTest {
 		[Test]
 		public void DecodeNumeric() {
-			const string s = "NUMERIC";
+			// TODO: Maybe we should convert this form to INT or NUMERIC
+			const string s = "NUMERIC(INTEGER)";
 			TType type = TType.DecodeString(s);
 			Assert.AreEqual(DbType.Numeric, type.DbType);
 			Assert.AreEqual(SqlType.Integer, type.SqlType);
