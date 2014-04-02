@@ -13,7 +13,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void TestCursor() {
-			DeveelDbCommand command = Connection.CreateCommand("DECLARE c_person CURSOR FOR " +
+			DeveelDbCommand command = Connection.CreateCommand("DECLARE CURSOR c_person FOR " +
 			                                                   "SELECT name FROM Person WHERE age > 2 " +
 			                                                   "   ORDER BY name ASC");
 			command.ExecuteNonQuery();

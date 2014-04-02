@@ -27,3 +27,4 @@
 /src/_ReSharper.deveeldb.vs2010.dev
 /src/SampleApp/obj
 /src/SampleApp/bin
+/src/deveeldb/Deveel.Data.Sql.Parser/SQL.cs

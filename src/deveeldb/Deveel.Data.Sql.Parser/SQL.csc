@@ -1077,7 +1077,7 @@ StatementTree DeclareCursor() :
 }
 {
   <CURSOR> name = SQLIdentifier() [ <INSENSITIVE> { insensitive = true;} ] 
-     [ <SCROLL> { scrollable=true; } ] <CURSOR> 
+     [ <SCROLL> { scrollable=true; } ]
      <FOR> select_expr = GetTableSelectExpression()
      [ <ORDERBY> SelectOrderByList(order_by) ]
      [ <FOR> ( <READONLY> | <UPDATE> { update = true; } ) ]
