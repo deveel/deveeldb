@@ -8,7 +8,7 @@ namespace Deveel.Data.Client {
 	public class CommandTest {
 		[Test]
 		public void CreateCommandWithMarkerParameters() {
-			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;Parameter Style=Marker";
+			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;Parameter Style=Marker;BootOrCreate=true";
 			var connection = new DeveelDbConnection(connString);
 			var command = connection.CreateCommand();
 			command.CommandText = "SELECT * FROM Person WHERE Name = ?";
@@ -20,7 +20,7 @@ namespace Deveel.Data.Client {
 		[TestCase("@Name", "antonello")]
 		[TestCase("Name", "antonello")]
 		public void CreateCommandWithNamedParameters(string paramName, string paramValue) {
-			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;Parameter Style=Named";
+			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;Parameter Style=Named;BootOrCreate=true";
 			var connection = new DeveelDbConnection(connString);
 			var command = connection.CreateCommand();
 			command.CommandText = String.Format("SELECT * FROM Person WHERE Name = {0}", paramName);
@@ -44,7 +44,7 @@ namespace Deveel.Data.Client {
 
 		[Test]
 		public void CreateCommandOnClosedConnection() {
-			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb";
+			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;BootOrCreate=true";
 			var connection = new DeveelDbConnection(connString);
 			DeveelDbCommand command = null;
 			Assert.DoesNotThrow(() => command = connection.CreateCommand());
@@ -54,7 +54,7 @@ namespace Deveel.Data.Client {
 
 		[Test]
 		public void ExecuteCommandOnClosedConnection() {
-			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb";
+			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;BootOrCreate=true";
 			var connection = new DeveelDbConnection(connString);
 			DeveelDbCommand command = null;
 			Assert.DoesNotThrow(() => command = connection.CreateCommand());
@@ -66,7 +66,7 @@ namespace Deveel.Data.Client {
 
 		[Test]
 		public void ExecuteScalarOnsingleColumn() {
-			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb";
+			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;BootOrCreate=true";
 			var connection = new DeveelDbConnection(connString);
 
 			// TODO: Open the connection, create a transaction, declare some variables
