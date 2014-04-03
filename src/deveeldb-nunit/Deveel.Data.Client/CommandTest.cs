@@ -10,11 +10,21 @@ namespace Deveel.Data.Client {
 		public void CreateCommandWithMarkerParameters() {
 			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;Parameter Style=Marker;BootOrCreate=true";
 			var connection = new DeveelDbConnection(connString);
+			Assert.DoesNotThrow(connection.Open);
+
 			var command = connection.CreateCommand();
+
+			command.CommandText = "CREATE TABLE Person (Id Identity, Name VARCHAR NOT NULL, LastName VarChar)";
+			var result = command.ExecuteNonQuery();
+
+			Assert.AreEqual(0, result);
+
 			command.CommandText = "SELECT * FROM Person WHERE Name = ?";
 			Assert.DoesNotThrow(() => command.Parameters.Add("antonelllo"));
-			Assert.DoesNotThrow(connection.Open);
-			Assert.Throws<InvalidOperationException>(() => command.ExecuteScalar());
+			Assert.DoesNotThrow(() => command.ExecuteScalar());
+
+			command.CommandText = "DROP TABLE Person";
+			command.ExecuteNonQuery();
 		}
 
 		[TestCase("@Name", "antonello")]
@@ -22,23 +32,36 @@ namespace Deveel.Data.Client {
 		public void CreateCommandWithNamedParameters(string paramName, string paramValue) {
 			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;Parameter Style=Named;BootOrCreate=true";
 			var connection = new DeveelDbConnection(connString);
+			Assert.DoesNotThrow(connection.Open);
+
 			var command = connection.CreateCommand();
+
+			command.CommandText = "CREATE TABLE Person (Id Identity, Name VARCHAR NOT NULL, LastName VarChar)";
+			var result = command.ExecuteNonQuery();
+
 			command.CommandText = String.Format("SELECT * FROM Person WHERE Name = {0}", paramName);
 			Assert.DoesNotThrow(() => command.Parameters.Add(paramName, paramValue));
-			Assert.DoesNotThrow(connection.Open);
-			Assert.DoesNotThrow(() => command.ExecuteReader());
+
+			DeveelDbDataReader reader = null;
+			Assert.DoesNotThrow(() => reader = command.ExecuteReader());
+			Assert.IsNotNull(reader);
+			reader.Close();
+
+			command.CommandText = "DROP TABLE Person";
+			command.ExecuteNonQuery();
 		}
 
 		[Test]
 		public void CreateCommandWithMixedParameters() {
 			// by default "Parameter Style" configuration is set to "Marker" in connection strings
-			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb";
+			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;BootOrCreate=true";
 			var connection = new DeveelDbConnection(connString);
+			Assert.DoesNotThrow(connection.Open);
+
 			var command = connection.CreateCommand();
 			command.CommandText = "SELECT * FROM Person WHERE Name = ?";
 			Assert.DoesNotThrow(() => command.Parameters.Add("antonelllo"));
 			Assert.DoesNotThrow(() => command.Parameters.Add("Name", "antonello"));
-			Assert.DoesNotThrow(connection.Open);
 			Assert.Throws<InvalidOperationException>(() => command.ExecuteReader());
 		}
 
@@ -68,6 +91,7 @@ namespace Deveel.Data.Client {
 		public void ExecuteScalarOnsingleColumn() {
 			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;BootOrCreate=true";
 			var connection = new DeveelDbConnection(connString);
+			connection.Open();
 
 			// TODO: Open the connection, create a transaction, declare some variables
 

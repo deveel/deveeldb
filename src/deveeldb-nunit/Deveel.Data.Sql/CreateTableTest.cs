@@ -30,7 +30,9 @@ namespace Deveel.Data.Sql {
 
 		[Test(Description = "Creates a simple table without constraints nor identities")]
 		public void CreateSimpleTable() {
-			ExecuteNonQuery("CREATE TABLE Test (field1 INT, field2 VARCHAR(200), field3 DATE);");
+			SafeExecuteNonQuery("CREATE TABLE Test (field1 INT, field2 VARCHAR(200), field3 DATE);");
+
+			Assert.AreEqual(0, ErrorCount);
 
 			Table table = GetTable("Test");
 			Assert.IsNotNull(table);
@@ -38,24 +40,30 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual("field1", table.TableInfo[0].Name);
 			Assert.AreEqual(SqlType.Integer, table.TableInfo[0].SqlType);
 
-			ExecuteNonQuery("DROP TABLE Test");
+			SafeExecuteNonQuery("DROP TABLE Test");
+			Assert.AreEqual(0, ErrorCount);
 		}
 
 		[Test]
 		public void CreateTableWithIdentity() {
-			ExecuteNonQuery("CREATE TABLE Test (id IDENTITY, name VARCHAR)");
+			SafeExecuteNonQuery("CREATE TABLE Test (id IDENTITY, name VARCHAR)");
+
+			Assert.AreEqual(0, ErrorCount);
 
 			Table table = GetTable("Test");
 			Assert.IsNotNull(table);
 			Assert.IsTrue(table.TableInfo.FindColumnName("id") == 0);
 			Assert.AreEqual(SqlType.Identity, table.TableInfo[0].SqlType);
 
-			ExecuteNonQuery("DROP TABLE Test");
+			SafeExecuteNonQuery("DROP TABLE Test");
+			Assert.AreEqual(0, ErrorCount);
 		}
 
 		[Test]
 		public void CreateTableWithUniqueGroup() {
-			ExecuteNonQuery("CREATE TABLE Test (name VARCHAR(30), age INT, UNIQUE(name))");
+			SafeExecuteNonQuery("CREATE TABLE Test (name VARCHAR(30), age INT, UNIQUE(name))");
+
+			Assert.AreEqual(0, ErrorCount);
 
 			var connection = CreateDatabaseConnection();
 			DataConstraintInfo[] constraints = connection.QueryTableUniqueGroups(new TableName("APP", "Test"));
@@ -64,7 +72,7 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual(1, constraints[0].Columns.Length);
 			Assert.AreEqual("name", constraints[0].Columns[0]);
 
-			ExecuteNonQuery("DROP TABLE Test");
+			SafeExecuteNonQuery("DROP TABLE Test");
 		}
 
 		[Test]
