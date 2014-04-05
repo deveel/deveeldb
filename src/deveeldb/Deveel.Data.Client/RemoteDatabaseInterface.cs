@@ -429,10 +429,12 @@ namespace Deveel.Data.Client {
 		private void Dispose(bool disposing) {
 			if (disposing) {
 				try {
-					int dispatchId = connectionThread.SendCloseCommand();
-					//      // Get the response
-					//      ServerCommand command =
-					//            connection_thread.ReceiveCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatchId);
+					if (connectionThread != null) {
+						int dispatchId = connectionThread.SendCloseCommand();
+						//      // Get the response
+						//      ServerCommand command =
+						//            connection_thread.ReceiveCommand(DeveelDbConnection.QUERY_TIMEOUT, dispatchId);
+					}
 					CloseConnection();
 				} catch (IOException e) {
 					LogException(e);

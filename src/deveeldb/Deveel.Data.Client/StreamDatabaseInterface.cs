@@ -83,14 +83,15 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		protected override void CloseConnection() {
 			//    Console.Out.WriteLine("Closed: " + this);
-			closed = true;
 			try {
-				output.Close();
-			} catch (IOException) {
-				input.Close();
-				throw;
+				if (output != null)
+					output.Close();
+			} finally {
+				if (input != null)
+					input.Close();
+
+				closed = true;
 			}
-			input.Close();
 		}
 	}
 }
