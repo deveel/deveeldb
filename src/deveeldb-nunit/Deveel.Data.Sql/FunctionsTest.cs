@@ -6,9 +6,9 @@ namespace Deveel.Data.Sql {
 	public class FunctionsTest : SqlTestBase {
 		[Test]
 		public void CreateFunctionReturnsType() {
-			const string sql = "CREATE FUNCTION test (a INTEGER, b STRING) "+
+			string sql = "CREATE FUNCTION test (a INTEGER, b STRING) "+
 				"RETURNS INTEGER "+
-				"LANGUAGE CSHARP NAME 'Deveel.Data.Sql.TestFunctionClass'";
+				"LANGUAGE CSHARP NAME '" + typeof(FunctionsTestClass).AssemblyQualifiedName + "'";
 
 			Assert.DoesNotThrow(() => ExecuteNonQuery(sql));
 		}

@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -175,6 +175,25 @@ namespace Deveel.Data.Client {
 		/// the object, the <see cref="ConnectionString"/> property must be set.
 		/// </remarks>
 		public DeveelDbConnection() {
+		}
+
+		public event ConnectionStateEventHandler StateChange;
+
+		internal void ChangeState(ConnectionState newState) {
+			ChangeState(newState, null);
+		}
+
+		internal void ChangeState(ConnectionState newState, Exception error) {
+			lock (stateLock) {
+				if (StateChange != null)
+					StateChange(this, new ConnectionStateEventArgs(state, newState, error));
+
+				state = newState;
+			}
+		}
+
+		internal void EndState() {
+			ChangeState(ConnectionState.Open);
 		}
 
 		private void Init() {
@@ -427,18 +446,12 @@ namespace Deveel.Data.Client {
 #endif
 
 		public override void Open() {
-			lock (stateLock) {
-				if (state != ConnectionState.Closed)
-					throw new DataException("Unable to login to connection because it is open.");
+			if (state != ConnectionState.Closed)
+				throw new DataException("Unable to login to connection because it is open.");
 
-				state = ConnectionState.Connecting;
-			}
-
+			ChangeState(ConnectionState.Connecting);
 			bool success = InternalOpen();
-
-			lock (stateLock) {
-				state = (success ? ConnectionState.Open : ConnectionState.Broken);
-			}
+				ChangeState(success ? ConnectionState.Open : ConnectionState.Broken);
 
 			if (success) {
 				//TODO: separate from the Open procedure?
@@ -758,9 +771,7 @@ namespace Deveel.Data.Client {
 		public override void Close() {
 			if (state != ConnectionState.Closed) {
 				bool success = InternalClose();
-				lock (stateLock) {
-					state = (success ? ConnectionState.Closed : ConnectionState.Broken);
-				}
+				ChangeState((success ? ConnectionState.Closed : ConnectionState.Broken));
 			}
 		}
 
@@ -1007,18 +1018,6 @@ namespace Deveel.Data.Client {
 		/// The timeout for a query in seconds.
 		/// </summary>
 		internal const int QueryTimeout = Int32.MaxValue;
-
-		internal void SetState(ConnectionState connectionState) {
-			lock (stateLock) {
-				state = connectionState;
-			}
-		}
-
-		internal void EndState() {
-			lock (stateLock) {
-				state = ConnectionState.Open;
-			}
-		}
 
 #if !MONO
 		private class PromotableConnection : IPromotableSinglePhaseNotification {

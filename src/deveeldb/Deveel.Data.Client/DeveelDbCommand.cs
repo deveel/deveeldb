@@ -483,7 +483,7 @@ namespace Deveel.Data.Client {
 			AssertConnectionOpen();
 			VerifyParameters();
 
-			connection.SetState(ConnectionState.Executing);
+			connection.ChangeState(ConnectionState.Executing);
 
 			try {
 				ResultSet[] resultSet = ExecuteQuery();
@@ -506,7 +506,7 @@ namespace Deveel.Data.Client {
 			if (connection.State == ConnectionState.Fetching)
 				throw new InvalidOperationException("The connection is already busy fetching data.");
 
-			connection.SetState(ConnectionState.Fetching);
+			connection.ChangeState(ConnectionState.Fetching);
 
 			try {
 				ExecuteQuery();
@@ -537,7 +537,7 @@ namespace Deveel.Data.Client {
 			AssertConnectionOpen();
 			VerifyParameters();
 
-			connection.SetState(ConnectionState.Executing);
+			connection.ChangeState(ConnectionState.Executing);
 
 			try {
 				ResultSet[] result = ExecuteQuery();
