@@ -45,8 +45,6 @@ namespace Deveel.Data.Client {
 		/// <param name="rawin"></param>
 		/// <param name="rawout"></param>
 		internal void Setup(Stream rawin, Stream rawout) {
-			//    Console.Out.WriteLine("rawin: " + rawin);
-			//    Console.Out.WriteLine("rawout: " + rawout);
 			if (rawin == null || rawout == null) {
 				throw new IOException("rawin or rawin is null");
 			}
@@ -68,8 +66,6 @@ namespace Deveel.Data.Client {
 				throw new IOException("IDatabaseInterface is closed!");
 			}
 			try {
-				//      Console.Out.WriteLine("I'm waiting for a command: " + this);
-				//      new Error().printStackTrace();
 				int commandLength = input.ReadInt32();
 				byte[] buf = new byte[commandLength];
 				input.Read(buf, 0, commandLength);
@@ -82,7 +78,6 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		protected override void CloseConnection() {
-			//    Console.Out.WriteLine("Closed: " + this);
 			try {
 				if (output != null)
 					output.Close();

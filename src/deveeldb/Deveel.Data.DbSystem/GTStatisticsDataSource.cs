@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.IO;
 
 using Deveel.Data.Types;
 
@@ -66,13 +67,13 @@ namespace Deveel.Data.DbSystem {
 		public GTStatisticsDataSource Init() {
 
 			lock (stats) {
-				/*
-				TODO: check this...
-				stats.set((int)(Runtime.getRuntime().freeMemory() / 1024),
-															  "Runtime.memory.freeKB");
-				stats.set((int)(Runtime.getRuntime().totalMemory() / 1024),
-															  "Runtime.memory.totalKB");
-				*/
+				// TODO: get the value of the db_path drive
+				var driveInfo = DriveInfo.GetDrives()[0];
+
+				stats.Set((int)driveInfo.AvailableFreeSpace/1024, "Runtime.Memory.FreeSpaceKb");
+				stats.Set((int)driveInfo.TotalFreeSpace/1024, "Runtime.Memory.TotalFreeSpaceKb");
+				stats.Set((int)driveInfo.TotalSize / 1024, "Runtime.Memory.TotalKb");
+
 				string[] keySet = stats.Keys;
 				int globLength = keySet.Length * 2;
 				statsInfo = new string[globLength];
