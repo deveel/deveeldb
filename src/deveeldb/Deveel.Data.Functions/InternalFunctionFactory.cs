@@ -365,7 +365,7 @@ namespace Deveel.Data.Functions {
 					}
 					Object[] casted_args =
 						Caster.CastArgsToConstructor(args, bestConstructor);
-					// Call the constructor to create the java object
+					// Call the constructor to create the object
 					Object ob = bestConstructor.Invoke(casted_args);
 					ByteLongObject serialized_ob = ObjectTranslator.Serialize(ob);
 					return new TObject(new TObjectType(clazz), serialized_ob);
