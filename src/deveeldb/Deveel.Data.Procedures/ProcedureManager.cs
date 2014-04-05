@@ -436,8 +436,8 @@ namespace Deveel.Data.Procedures {
 		/// immutable <see cref="Deveel.Data.DbSystem.Reflection.MethodInfo"/> that can 
 		/// be used to invoke a stored procedure.
 		/// </summary>
-		/// <param name="location_str"></param>
-		/// <param name="param_types"></param>
+		/// <param name="typeString"></param>
+		/// <param name="paramTypes"></param>
 		/// <remarks>
 		/// The returned object can be cached if necessary. Note that 
 		/// this method will generate an error for the following situations:
@@ -448,113 +448,108 @@ namespace Deveel.Data.Procedures {
 		/// <returns>
 		/// Returns <b>null</b> if the invokation method could not be found.
 		/// </returns>
-		public static MethodInfo GetProcedureMethod(String location_str, TType[] param_types) {
+		public static MethodInfo GetProcedureMethod(String typeString, TType[] paramTypes) {
 			// Parse the location string
-			String[] loc_parts = ParseLocationString(location_str);
+			String[] locParts = ParseLocationString(typeString);
 
 			// The name of the class
-			String class_name;
+			String typeName;
 			// The name of the invokation method in the class.
-			String method_name;
+			String methodName;
 			// The object specification that must be matched.  If any entry is 'null'
 			// then the argument parameter is discovered.
-			Type[] object_specification;
+			Type[] objectSpecification;
 			bool firstProcedureConnectionIgnore;
 
-			if (loc_parts.Length == 1) {
-				// This means the location_str only specifies a class name, so we use
-				// 'invoke' as the static method to call, and discover the arguments.
-				class_name = loc_parts[0];
-				method_name = "Invoke";
+			if (locParts.Length == 1) {
+				// This means the typeString only specifies a class name, so we use
+				// 'Invoke' as the static method to call, and discover the arguments.
+				typeName = locParts[0];
+				methodName = "Invoke";
 				// All null which means we discover the arg types dynamically
-				object_specification = new Type[param_types.Length];
+				objectSpecification = new Type[paramTypes.Length];
 				// ignore IProcedureConnection is first argument
 				firstProcedureConnectionIgnore = true;
 			} else {
 				// This means we specify a class and method name and argument
 				// specification.
-				class_name = loc_parts[0];
-				method_name = loc_parts[1];
-				object_specification = new Type[loc_parts.Length - 2];
+				typeName = locParts[0];
+				methodName = locParts[1];
+				objectSpecification = new Type[locParts.Length - 2];
 
-				for (int i = 0; i < loc_parts.Length - 2; ++i) {
-					String java_spec = loc_parts[i + 2];
-					object_specification[i] = ResolveToType(java_spec);
+				for (int i = 0; i < locParts.Length - 2; ++i) {
+					String typeSpec = locParts[i + 2];
+					objectSpecification[i] = ResolveToType(typeSpec);
 				}
 
 				firstProcedureConnectionIgnore = false;
 			}
 
-			Type procedure_class;
-			try {
-				// Reference the procedure's class.
-				procedure_class = Type.GetType(class_name);
-			} catch (TypeLoadException) {
-				throw new Exception("Procedure class not found: " + class_name);
-			}
+			Type procedureType = Type.GetType(typeName, false, true);
+			if (procedureType == null)
+				throw new Exception("Procedure class not found: " + typeName);
 
 			// Get all the methods in this class
-			MethodInfo[] methods = procedure_class.GetMethods();
-			MethodInfo invoke_method = null;
+			MethodInfo[] methods = procedureType.GetMethods();
+			MethodInfo invokeMethod = null;
 			// Search for the invoke method
 			for (int i = 0; i < methods.Length; ++i) {
 				MethodInfo method = methods[i];
 
 				if (method.IsStatic && method.IsPublic &&
-				    method.Name.Equals(method_name)) {
+				    method.Name.Equals(methodName)) {
 
-					bool params_match;
+					bool paramsMatch;
 
 					// Get the parameters for this method
-					ParameterInfo[] method_args = method.GetParameters();
+					ParameterInfo[] methodArgs = method.GetParameters();
 
 					// If no methods, and object_specification has no args then this is a
 					// match.
-					if (method_args.Length == 0 && object_specification.Length == 0) {
-						params_match = true;
+					if (methodArgs.Length == 0 && objectSpecification.Length == 0) {
+						paramsMatch = true;
 					} else {
-						int search_start = 0;
+						int searchStart = 0;
 						// Is the first arugments a IProcedureConnection implementation?
 						if (firstProcedureConnectionIgnore &&
-						    typeof(IProcedureConnection).IsAssignableFrom(method_args[0].ParameterType)) {
-							search_start = 1;
+						    typeof(IProcedureConnection).IsAssignableFrom(methodArgs[0].ParameterType)) {
+							searchStart = 1;
 						}
 						// Do the number of arguments match
-						if (object_specification.Length ==
-						    method_args.Length - search_start) {
+						if (objectSpecification.Length ==
+						    methodArgs.Length - searchStart) {
 							// Do they match the specification?
-							bool match_spec = true;
+							bool matchSpec = true;
 							for (int n = 0;
-							     n < object_specification.Length && match_spec;
+							     n < objectSpecification.Length && matchSpec;
 							     ++n) {
-								Type ob_spec = object_specification[n];
-								if (ob_spec != null &&
-								    ob_spec != method_args[n + search_start].ParameterType) {
-									match_spec = false;
+								Type obSpec = objectSpecification[n];
+								if (obSpec != null &&
+								    obSpec != methodArgs[n + searchStart].ParameterType) {
+									matchSpec = false;
 								}
 							}
-							params_match = match_spec;
+							paramsMatch = matchSpec;
 						} else {
-							params_match = false;
+							paramsMatch = false;
 						}
 					}
 
-					if (params_match) {
-						if (invoke_method == null) {
-							invoke_method = method;
-						} else {
+					if (paramsMatch) {
+						if (invokeMethod != null) {
 							throw new Exception("Ambiguous public static " +
-							                    method_name + " methods in stored procedure class '" +
-							                    class_name + "'");
+							                    methodName + " methods in stored procedure class '" +
+							                    typeName + "'");
 						}
-					}
 
+						invokeMethod = method;
+					}
 				}
 
 			}
 
 			// Return the invoke method we found
-			return invoke_method;
+			return invokeMethod;
 
 		}
 
