@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010  Deveel
+﻿// 
+//  Copyright 2014  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,23 +14,25 @@
 //    limitations under the License.
 
 using System;
+using System.IO;
 
-using Deveel.Data.Configuration;
-using Deveel.Data.Control;
+namespace Deveel.Data.Configuration {
+	public sealed class FileConfigSource : IConfigSource {
+		public FileConfigSource(string filePath) {
+			if (filePath == null)
+				throw new ArgumentNullException("filePath");
 
-namespace Deveel.Diagnostics {
-	internal class EmptyLogger : ILogger {
-		public void Dispose() {
+			FilePath = filePath;
 		}
 
-		public void Init(DbConfig config) {
+		public string FilePath { get; private set; }
+
+		public Stream InputStream {
+			get { return new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024); }
 		}
 
-		public bool IsInterestedIn(LogLevel level) {
-			return false;
-		}
-
-		public void Log(LogEntry entry) {
+		public Stream OutputStream {
+			get {  return new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read, 1024);}
 		}
 	}
 }

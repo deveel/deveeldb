@@ -16,10 +16,17 @@
 using System;
 using System.Collections.Generic;
 
-namespace Deveel.Data.Control {
-	public interface IDbConfig : IEnumerable<KeyValuePair<string, object>> {
-		T GetValue<T>(string key, T defaultValue) where T : IConvertible;
+namespace Deveel.Data.Configuration {
+	public interface IDbConfig : IEnumerable<KeyValuePair<string, object>>, ICloneable {
+		IConfigSource Source { get; set; }
 
-		void SetValue<T>(string key, T value) where T : IConvertible;
+		IDbConfig Parent { get; set; }
+
+		IEnumerable<string> Keys { get; } 
+		
+		
+		object GetValue(string key, object defaultValue);
+
+		void SetValue(string key, object value);
 	}
 }

@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Control {
+namespace Deveel.Data.Configuration {
 	/// <summary>
 	/// This static class exposes the well-known configuration keys
 	/// available to setup the system.

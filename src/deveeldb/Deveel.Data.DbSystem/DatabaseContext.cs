@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Threading;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;

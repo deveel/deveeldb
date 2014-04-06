@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Store;
 using Deveel.Diagnostics;
@@ -246,9 +247,9 @@ namespace Deveel.Data.Control {
 				if (path != null && !Directory.Exists(path))
 					Directory.CreateDirectory(path);
 
-				mainConfig = GetConfig((DbConfig)config.Clone(), path, configFile);
+				mainConfig = GetConfig(config, path, configFile);
 			} else {
-				mainConfig = (DbConfig) config.Clone();
+				mainConfig = config;
 			}
 
 			DbController controller = new DbController(mainConfig);
@@ -304,19 +305,14 @@ namespace Deveel.Data.Control {
 			}
 
 			if (!fileExists)
-				return (DbConfig) parentConfig.Clone();
-
-			DbConfig config = new DbConfig(parentConfig);
-			config.BasePath = path;
-
-			/*
-			if (parentConfig != null)
-				config.Merge(parentConfig);
-			*/
+				return parentConfig;
 
 			// if the config file exists, we load the settings from there...
 			//TODO: support more formats
-			config.LoadFromFile(configFile, ConfigFormatterType.Properties);
+
+			DbConfig config = new DbConfig(parentConfig);
+			config.Load(configFile);
+			config.BasePath = path;
 
 			return config;
 		}
@@ -436,7 +432,7 @@ namespace Deveel.Data.Control {
 
 				string configFile = Path.Combine(path, DefaultConfigFileName);
 				//TODO: support multiple formats?
-				config.SaveTo(configFile, ConfigFormatterType.Properties);
+				config.Save(configFile);
 			}
 
 			Database database = CreateDatabase(config, name);

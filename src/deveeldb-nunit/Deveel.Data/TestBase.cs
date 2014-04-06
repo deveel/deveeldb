@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Client;
+using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
@@ -77,9 +78,10 @@ namespace Deveel.Data {
 			OnConfigure(config);
 			DbController controller = DbController.Create(config);
 
+
 			system = !controller.DatabaseExists(DatabaseName)
-						? controller.CreateDatabase(config, DatabaseName, AdminUser, AdminPassword)
-						: controller.StartDatabase(config, DatabaseName);
+						? controller.CreateDatabase(null, DatabaseName, AdminUser, AdminPassword)
+						: controller.StartDatabase(null, DatabaseName);
 
 			OnSetUp();
 		}

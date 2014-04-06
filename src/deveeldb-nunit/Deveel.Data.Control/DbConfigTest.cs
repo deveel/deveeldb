@@ -2,6 +2,8 @@
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Configuration;
+
 using NUnit.Framework;
 
 namespace Deveel.Data.Control {
@@ -25,7 +27,7 @@ namespace Deveel.Data.Control {
 			MemoryStream stream = new MemoryStream(Encoding.GetEncoding("ISO-8859-1").GetBytes(sb.ToString()));
 
 			DbConfig config = new DbConfig();
-			config.LoadFrom(stream);
+			config.Load(stream);
 
 			string value = config.GetValue<string>("key1");
 			Assert.IsNotNull(value, "The 'key1' was not set into the config.");
@@ -51,7 +53,7 @@ namespace Deveel.Data.Control {
 			config.SetValue("key3", "true");
 
 			MemoryStream stream = new MemoryStream();
-			config.SaveTo(stream, ConfigFormatterType.Properties);
+			config.Save(stream);
 
 		}
 	}

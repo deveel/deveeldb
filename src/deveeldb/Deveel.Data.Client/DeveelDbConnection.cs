@@ -23,6 +23,7 @@ using System.IO;
 using System.Threading;
 using System.Transactions;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Protocol;
@@ -306,7 +307,7 @@ namespace Deveel.Data.Client {
 					bool createDb = connectionString.Create;
 					bool createDbIfNotExist = connectionString.BootOrCreate;
 
-					DbConfig config = controller.Config;
+					DbConfig config = new DbConfig(controller.Config);
 
 					//TODO: set the additional configurations from the connection string
 					/*

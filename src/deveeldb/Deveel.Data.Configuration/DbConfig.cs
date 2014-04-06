@@ -22,17 +22,15 @@ using System.Net;
 
 using Deveel.Data.Caching;
 
-namespace Deveel.Data.Control {
+namespace Deveel.Data.Configuration {
 	/// <summary>
 	///  Provides configurations for the whole database system.
 	/// </summary>
-	public sealed class DbConfig : IDbConfig {
+	public class DbConfig : IDbConfig {
 		/// <summary>
 		/// The Hashtable mapping from configuration key to value for the key.
 		/// </summary>
 		private Dictionary<string, object> properties;
-
-		private IConfigFormatter defaultFormatter;
 
 		//private static DbConfig defaultConfig;
 
@@ -41,8 +39,8 @@ namespace Deveel.Data.Control {
 		/// <summary>
 		/// Constructs the <see cref="DbConfig"/>.
 		/// </summary>
-		public DbConfig()
-			: this(null) {
+		public DbConfig() {
+			properties = new Dictionary<string, object>();
 		}
 
 		/// <summary>
@@ -50,36 +48,33 @@ namespace Deveel.Data.Control {
 		/// </summary>
 		/// <param name="parent">The parent <see cref="DbConfig"/> object that
 		/// will provide fallback configurations</param>
-		public DbConfig(DbConfig parent) {
+		/// <param name="source"></param>
+		public DbConfig(IDbConfig parent, IConfigSource source)
+			: this() {
 			Parent = parent;
-			properties = new Dictionary<string, object>();
+			Source = source;
+
+			if (source != null)
+				this.Load(source);
+		}
+
+		public DbConfig(IConfigSource source)
+			: this(null, source) {
+		}
+
+		public DbConfig(IDbConfig parent)
+			: this(parent, null) {
 		}
 
 		/// <summary>
 		/// Gets or sets the parent set of conigurations
 		/// </summary>
-		public DbConfig Parent { get; set; }
+		public IDbConfig Parent { get; set; }
 
-		public IConfigFormatter DefaultFormatter {
-			get { return defaultFormatter; }
-			set { defaultFormatter = value; }
-		}
+		public IConfigSource Source { get; set; }
 
-		public ConfigFormatterType DefaultFormatterType {
-			get {
-				if (defaultFormatter == null)
-					return new ConfigFormatterType();
-
-				if (defaultFormatter is PropertiesConfigFormatter)
-					return ConfigFormatterType.Properties;
-				if (defaultFormatter is AppSettingsConfigFormatter)
-					return ConfigFormatterType.AppSettings;
-				if (defaultFormatter is XmlConfigFormatter)
-					return ConfigFormatterType.Xml;
-				
-				return new ConfigFormatterType();
-			}
-			set { defaultFormatter = GetConfigFormatter(value); }
+		public IEnumerable<string> Keys {
+			get { return properties.Keys; }
 		}
 
 		/// <summary>
@@ -159,23 +154,12 @@ namespace Deveel.Data.Control {
 			set { SetValue(ConfigKeys.MaxCacheEntrySize, value); }
 		}
 
-		private static IConfigFormatter GetConfigFormatter(ConfigFormatterType formatterType) {
-			if (formatterType == ConfigFormatterType.Properties)
-				return new PropertiesConfigFormatter();
-			if (formatterType == ConfigFormatterType.AppSettings)
-				return new AppSettingsConfigFormatter();
-			if (formatterType == ConfigFormatterType.Xml)
-				return new XmlConfigFormatter();
-
-			throw new ArgumentException();
-		}
-
 		///<summary>
 		/// Sets the configuration value for the key property key.
 		///</summary>
 		///<param name="key"></param>
 		///<param name="value"></param>
-		public void SetValue<T>(string key, T value) where T : IConvertible {
+		public void SetValue<T>(string key, T value) {
 			SetValue(key, (object)value);
 		}
 
@@ -192,13 +176,15 @@ namespace Deveel.Data.Control {
 			object property;
 			if (properties.TryGetValue(propertyKey, out property))
 				return property;
-			if (Parent != null && Parent.properties.TryGetValue(propertyKey, out property))
+			if (Parent == null)
+				return defaultValue;
+			if ((property = Parent.GetValue(propertyKey, null)) != null)
 				return property;
 
 			return defaultValue;
 		}
 
-		public T GetValue<T>(string propertyKey) where T : IConvertible{
+		public T GetValue<T>(string propertyKey) {
 			object value = GetValue(propertyKey);
 			if (value == null || Equals(default(T), value))
 				return default(T);
@@ -208,7 +194,7 @@ namespace Deveel.Data.Control {
 			return (T) value;
 		}
 
-		public T GetValue<T>(string propertyKey, T defaultValue) where T : IConvertible {
+		public T GetValue<T>(string propertyKey, T defaultValue) {
 			T value;
 
 			try {
@@ -285,133 +271,6 @@ namespace Deveel.Data.Control {
 			return properties.GetEnumerator();
 		}
 
-		public void LoadFrom(Stream input, IConfigFormatter formatter) {
-			if (formatter == null) 
-				throw new ArgumentNullException("formatter");
-
-			lock (this) {
-				formatter.LoadFrom(this, input);
-			}
-		}
-
-		///<summary>
-		/// Loads all the configuration values from the given <see cref="Stream"/>.
-		///</summary>
-		///<param name="input"></param>
-		///<param name="formatterType"> </param>
-		///<remarks>
-		/// The input stream must be formatted in a standard properties format.
-		/// </remarks>
-		public void LoadFrom(Stream input, Type formatterType) {
-			if (formatterType == null) 
-				throw new ArgumentNullException("formatterType");
-			if (!typeof(IConfigFormatter).IsAssignableFrom(formatterType))
-				throw new ArgumentException("The type '" + formatterType + "' is not a config formatter.");
-
-			if (!input.CanRead)
-				throw new ArgumentException();
-
-			IConfigFormatter formatter;
-			try {
-				formatter = Activator.CreateInstance(formatterType, true) as IConfigFormatter;
-			} catch (Exception e) {
-				throw new ApplicationException("Unable to initialize the formatter", e);
-			}
-
-			LoadFrom(input, formatter);
-		}
-
-		public void LoadFrom<T>(Stream input) where T : IConfigFormatter {
-			LoadFrom(input, typeof(T));
-		}
-
-		public void LoadFrom(Stream input) {
-			if (defaultFormatter == null)
-				throw new NotSupportedException("No default formatter specified");
-
-			LoadFrom(input, defaultFormatter);
-		}
-
-		public void LoadFrom(Stream input, ConfigFormatterType formatterType) {
-			
-		}
-
-		///<summary>
-		/// Loads all the configuration settings from a configuration file.
-		///</summary>
-		///<param name="configurationFile"></param>
-		///<param name="formatter"></param>
-		///<remarks>
-		/// Useful if you want to load a default configuration from a <i>db.conf</i> file. 
-		/// The file must be formatted in a standard properties format.
-		/// </remarks>
-		public void LoadFromFile(string configurationFile, IConfigFormatter formatter) {
-			using (FileStream fileIn = new FileStream(configurationFile, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-				LoadFrom(fileIn, formatter);
-			}
-		}
-
-		public void LoadFromFile(string configurationFile, ConfigFormatterType formatterType) {
-			LoadFromFile(configurationFile, GetConfigFormatter(formatterType));
-		}
-
-		public void LoadFromPropertiesFile(string configurationFile) {
-			LoadFromFile(configurationFile, new PropertiesConfigFormatter());
-		}
-
-		public void LoadFromXmlFile(string configurationFile) {
-			LoadFromFile(configurationFile, new XmlConfigFormatter());
-		}
-
-		///<summary>
-		/// Loads all the configuration values from the given URL.
-		///</summary>
-		///<param name="configurationUrl"></param>
-		/// <remarks>
-		/// The file must be formatted in a standard properties format.
-		/// </remarks>
-		public void LoadFromUrl(Uri configurationUrl) {
-			WebRequest request = WebRequest.Create(configurationUrl);
-			WebResponse response = request.GetResponse();
-			LoadFrom(response.GetResponseStream());
-			response.Close();
-		}
-
-		public void SaveTo(string fileName, IConfigFormatter formatter) {
-			FileStream fileStream = null;
-
-			using (fileStream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read)) {
-				fileStream.SetLength(0);
-				fileStream.Seek(0, SeekOrigin.Begin);
-
-				SaveTo(fileStream, formatter);
-				fileStream.Flush();
-			}
-		}
-
-		public void SaveTo(string fileName, ConfigFormatterType formatterType) {
-			SaveTo(fileName, GetConfigFormatter(formatterType));
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="stream"></param>
-		/// <param name="formatter"> </param>
-		public void SaveTo(Stream stream, IConfigFormatter formatter) {
-			if (stream == null)
-				throw new ArgumentNullException("stream");
-			if (formatter == null) 
-				throw new ArgumentNullException("formatter");
-			if (!stream.CanWrite)
-				throw new ArgumentException("The stream is not writeable.");
-
-			formatter.SaveTo(this, stream);
-		}
-
-		public void SaveTo(Stream stream, ConfigFormatterType formatterType) {
-			SaveTo(stream, GetConfigFormatter(formatterType));
-		}
 
 		#region Enumerator
 

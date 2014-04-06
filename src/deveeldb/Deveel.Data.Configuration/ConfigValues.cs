@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Control {
+namespace Deveel.Data.Configuration {
 	/// <summary>
 	/// This static class provides default configuration values
 	/// that can be set in a <see cref="DbConfig"/> instance,

@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010  Deveel
+﻿// 
+//  Copyright 2014  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,23 +14,12 @@
 //    limitations under the License.
 
 using System;
+using System.IO;
 
-using Deveel.Data.Configuration;
-using Deveel.Data.Control;
+namespace Deveel.Data.Configuration {
+	public interface IConfigSource {
+		Stream InputStream { get; }
 
-namespace Deveel.Diagnostics {
-	internal class EmptyLogger : ILogger {
-		public void Dispose() {
-		}
-
-		public void Init(DbConfig config) {
-		}
-
-		public bool IsInterestedIn(LogLevel level) {
-			return false;
-		}
-
-		public void Log(LogEntry entry) {
-		}
+		Stream OutputStream { get; }
 	}
 }

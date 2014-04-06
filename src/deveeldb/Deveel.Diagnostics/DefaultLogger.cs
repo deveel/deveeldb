@@ -19,6 +19,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 
 namespace Deveel.Diagnostics {

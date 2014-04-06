@@ -17,6 +17,7 @@ using System;
 using System.Data;
 
 using Deveel.Data.Client;
+using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Protocol;

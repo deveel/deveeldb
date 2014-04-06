@@ -17,6 +17,7 @@ using System;
 using System.IO;
 using System.Threading;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 
 namespace Deveel.Data.Store {

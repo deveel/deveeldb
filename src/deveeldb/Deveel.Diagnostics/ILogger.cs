@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 
 namespace Deveel.Diagnostics {
