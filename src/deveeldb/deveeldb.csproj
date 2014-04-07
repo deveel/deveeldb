@@ -157,6 +157,11 @@
     <Compile Include="Deveel.Data.Protocol\IInputStream.cs" />
     <Compile Include="Deveel.Data.Protocol\LengthMarkedBufferedInputStream.cs" />
     <Compile Include="Deveel.Data.Protocol\NetworkInputStream.cs" />
+    <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs" />
+    <Compile Include="Deveel.Data.Security\HashFunctions.cs" />
+    <Compile Include="Deveel.Data.Security\IHashFunction.cs" />
+    <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs" />
+    <Compile Include="Deveel.Data.Security\PasswordCrypto.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ParseException.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SimpleCharStream.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SQL.cs" />

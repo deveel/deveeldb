@@ -65,6 +65,7 @@
     <Compile Include="Deveel.Data.Control\DbConfigTest.cs" />
     <Compile Include="Deveel.Data.Control\DirectAccessTest.cs" />
     <Compile Include="Deveel.Data.Functions\FunctionTest.cs" />
+    <Compile Include="Deveel.Data.Security\HashTests.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableTest.cs" />
     <Compile Include="Deveel.Data.Sql\CallbackTriggerTest.cs" />
     <Compile Include="Deveel.Data.Sql\DeleteTest.cs" />
