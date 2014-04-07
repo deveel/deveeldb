@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Security;
 
 namespace Deveel.Data.Configuration {
 	public static class DbConfigExtensions {
@@ -249,6 +250,14 @@ namespace Deveel.Data.Configuration {
 
 		public static int MaxCacheEntrySize(this IDbConfig config) {
 			return config.GetInt32(ConfigKeys.MaxCacheEntrySize);
+		}
+
+		public static string PasswordHashFunction(this IDbConfig config) {
+			return config.GetString(ConfigKeys.PasswordHashFunction, ConfigDefaultValues.PasswordHashFunction);
+		}
+
+		public static void PasswordHashFunction(this IDbConfig config, string value) {
+			config.SetValue(ConfigKeys.PasswordHashFunction, value);
 		}
 
 		#endregion

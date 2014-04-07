@@ -17,6 +17,7 @@ using System;
 using System.Data;
 
 using Deveel.Data.Client;
+using Deveel.Data.Configuration;
 using Deveel.Data.Security;
 using Deveel.Data.Threading;
 using Deveel.Data.Transactions;
@@ -51,28 +52,36 @@ namespace Deveel.Data.DbSystem {
 		public User AuthenticateUser(string username, string password, string connectionString) {
 			// Create a temporary connection for authentication only...
 			DatabaseConnection connection = CreateNewConnection(null, null);
-			var context = new DatabaseQueryContext(connection);
+			var queryContext = new DatabaseQueryContext(connection);
 			connection.CurrentSchema = SystemSchema.Name;
 			LockingMechanism locker = connection.LockingMechanism;
 			locker.SetMode(LockingMode.Exclusive);
 			try {
 				try {
-					var table = context.GetTable(SystemSchema.Password);
+					var table = queryContext.GetTable(SystemSchema.Password);
 					VariableName unameColumn = table.GetResolvedVariable(0);
 					VariableName passwColumn = table.GetResolvedVariable(1);
+					VariableName saltColumn = table.GetResolvedVariable(2);
+					VariableName hashColumn = table.GetResolvedVariable(3);
 
-					Table t = table.SimpleSelect(context, unameColumn, Operator.Equal, new Expression(TObject.CreateString(username)));
+					Table t = table.SimpleSelect(queryContext, unameColumn, Operator.Equal, new Expression(TObject.CreateString(username)));
 					if (t.RowCount == 0)
 						return null;
 
 					var pass = t.GetCell(passwColumn, 0);
-					if (pass == null ||
-						!pass.Object.Equals(password))
+					var salt = t.GetCell(saltColumn, 0);
+					var hash = t.GetCell(hashColumn, 0);
+
+					if (pass == null || salt == null || hash == null)
+						return null;
+
+					var crypto = PasswordCrypto.Parse(hash);
+					if (!crypto.Verify(pass, password, salt))
 						return null;
 
 					// Now check if this user is permitted to connect from the given
 					// host.
-					if (UserAllowedAccessFromHost(context, username, connectionString)) {
+					if (UserAllowedAccessFromHost(queryContext, username, connectionString)) {
 						// Successfully authenticated...
 						User user = new User(username, this,
 											connectionString, DateTime.Now);
@@ -110,7 +119,7 @@ namespace Deveel.Data.DbSystem {
 		/// Performs check to determine if user is allowed access from the given
 		/// host.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <param name="username">The name of the user to check the host for.</param>
 		/// <param name="connectionString">The full connection string.</param>
 		/// <returns>
@@ -118,7 +127,7 @@ namespace Deveel.Data.DbSystem {
 		/// is allowed to access for the host specified in the <paramref name="connectionString"/>,
 		/// otherwise <b>false</b>.
 		/// </returns>
-		private bool UserAllowedAccessFromHost(IQueryContext context, string username, string connectionString) {
+		private bool UserAllowedAccessFromHost(IQueryContext queryContext, string username, string connectionString) {
 			// The system user is not allowed to login
 			if (username.Equals(InternalSecureUsername))
 				return false;
@@ -139,29 +148,29 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// The table to check
-			DataTable connectPriv = (DataTable) context.GetTable(SystemSchema.UserConnectPrivileges);
+			DataTable connectPriv = (DataTable) queryContext.GetTable(SystemSchema.UserConnectPrivileges);
 			VariableName unCol = connectPriv.GetResolvedVariable(0);
 			VariableName protoCol = connectPriv.GetResolvedVariable(1);
 			VariableName hostCol = connectPriv.GetResolvedVariable(2);
 			VariableName accessCol = connectPriv.GetResolvedVariable(3);
 			// Query: where UserName = %username%
-			Table t = connectPriv.SimpleSelect(context, unCol, Operator.Equal,
+			Table t = connectPriv.SimpleSelect(queryContext, unCol, Operator.Equal,
 												new Expression(TObject.CreateString(username)));
 			// Query: where %protocol% like Protocol
 			Expression exp = Expression.Simple(TObject.CreateString(protocol), Operator.Like, protoCol);
-			t = t.ExhaustiveSelect(context, exp);
+			t = t.ExhaustiveSelect(queryContext, exp);
 			// Query: where %host% like Host
 			exp = Expression.Simple(TObject.CreateString(host), Operator.Like, hostCol);
-			t = t.ExhaustiveSelect(context, exp);
+			t = t.ExhaustiveSelect(queryContext, exp);
 
 			// Those that are DENY
-			Table t2 = t.SimpleSelect(context, accessCol, Operator.Equal,
+			Table t2 = t.SimpleSelect(queryContext, accessCol, Operator.Equal,
 									  new Expression(TObject.CreateString("DENY")));
 			if (t2.RowCount > 0)
 				return false;
 
 			// Those that are ALLOW
-			Table t3 = t.SimpleSelect(context, accessCol, Operator.Equal,
+			Table t3 = t.SimpleSelect(queryContext, accessCol, Operator.Equal,
 									  new Expression(TObject.CreateString("ALLOW")));
 			if (t3.RowCount > 0)
 				return true;
@@ -173,7 +182,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Checks if a user exists within the database.
 		/// </summary>
-		/// <param name="context">The context of the session.</param>
+		/// <param name="queryContext">The queryContext of the session.</param>
 		/// <param name="username">The name of the user to check.</param>
 		/// <remarks>
 		/// <b>Note:</b> Assumes exclusive Lock on the session.
@@ -182,18 +191,18 @@ namespace Deveel.Data.DbSystem {
 		/// Returns <b>true</b> if the user identified by the given 
 		/// <paramref name="username"/>, otherwise <b>false</b>.
 		/// </returns>
-		public bool UserExists(IQueryContext context, String username) {
-			Table table = context.GetTable(SystemSchema.Password);
+		public bool UserExists(IQueryContext queryContext, String username) {
+			Table table = queryContext.GetTable(SystemSchema.Password);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All password where UserName = %username%
-			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
+			Table t = table.SimpleSelect(queryContext, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
 			return t.RowCount > 0;
 		}
 
 		/// <summary>
 		/// Creates a new user for the database.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <param name="username">The name of the user to create.</param>
 		/// <param name="password">The user password.</param>
 		/// <remarks>
@@ -202,7 +211,7 @@ namespace Deveel.Data.DbSystem {
 		/// <exception cref="DatabaseException">
 		/// If the user is already defined by the database
 		/// </exception>
-		public void CreateUser(IQueryContext context, string username, string password) {
+		public void CreateUser(IQueryContext queryContext, string username, string password) {
 			if (username == null || password == null)
 				throw new DatabaseException("Username or password can not be NULL.");
 
@@ -215,7 +224,7 @@ namespace Deveel.Data.DbSystem {
 				throw new DatabaseException("Password must be at least 2 characters.");
 
 			// Check the user doesn't already exist
-			if (UserExists(context, username))
+			if (UserExists(queryContext, username))
 				throw new DatabaseException("User '" + username + "' already exists.");
 
 			// Some usernames are reserved words
@@ -230,11 +239,19 @@ namespace Deveel.Data.DbSystem {
 											"' character.");
 			}
 
+			var hashFuncDef = context.Config.PasswordHashFunction();
+			var crypto = PasswordCrypto.Parse(hashFuncDef);
+
+			string salt;
+			password = crypto.Hash(password, out salt);
+
 			// Add this user to the password table.
-			DataTable table = (DataTable)context.GetTable(Deveel.Data.SystemSchema.Password);
+			DataTable table = (DataTable)queryContext.GetTable(SystemSchema.Password);
 			DataRow rdat = new DataRow(table);
 			rdat.SetValue(0, username);
 			rdat.SetValue(1, password);
+			rdat.SetValue(2, salt);
+			rdat.SetValue(3, crypto.ToString());
 			table.Add(rdat);
 		}
 
@@ -264,7 +281,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Drops a user from the database.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <param name="username">The name of the user to drop.</param>
 		/// <remarks>
 		/// This also deletes all information associated with a user such as 
@@ -274,67 +291,75 @@ namespace Deveel.Data.DbSystem {
 		/// <b>Note:</b> Assumes exclusive Lock on database session.
 		/// </para>
 		/// </remarks>
-		public void DeleteUser(IQueryContext context, string username) {
+		public void DeleteUser(IQueryContext queryContext, string username) {
 			// TODO: This should check if there are any tables the user has setup
 			//  and not allow the delete if there are.
 			Expression userExpr = new Expression(TObject.CreateString(username));
 
 			// First delete all the groups from the user priv table
-			DeleteAllUserGroups(context, username);
+			DeleteAllUserGroups(queryContext, username);
 
 			// Now delete the username from the user_connect_priv table
-			DataTable table = (DataTable) context.GetTable(SystemSchema.UserConnectPrivileges);
+			DataTable table = (DataTable) queryContext.GetTable(SystemSchema.UserConnectPrivileges);
 			VariableName c1 = table.GetResolvedVariable(0);
-			Table t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
+			Table t = table.SimpleSelect(queryContext, c1, Operator.Equal, userExpr);
 			table.Delete(t);
 
 			// Finally delete the username from the 'password' table
-			table = (DataTable) context.GetTable(SystemSchema.Password);
+			table = (DataTable) queryContext.GetTable(SystemSchema.Password);
 			c1 = table.GetResolvedVariable(0);
-			t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
+			t = table.SimpleSelect(queryContext, c1, Operator.Equal, userExpr);
 			table.Delete(t);
 		}
 
 		/// <summary>
 		/// Alters the password of the given user.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <param name="username">The name of the user to alter the password.</param>
 		/// <param name="password">The new password for the user.</param>
 		/// <remarks>
 		/// <b>Note:</b> Assumes exclusive Lock on database session.
 		/// </remarks>
-		public void AlterUserPassword(IQueryContext context, string username, string password) {
+		public void AlterUserPassword(IQueryContext queryContext, string username, string password) {
 			Expression userExpr = new Expression(TObject.CreateString(username));
 
 			// Delete the current username from the 'password' table
-			DataTable table = (DataTable) context.GetTable(SystemSchema.Password);
+			DataTable table = (DataTable) queryContext.GetTable(SystemSchema.Password);
 			VariableName c1 = table.GetResolvedVariable(0);
-			Table t = table.SimpleSelect(context, c1, Operator.Equal, userExpr);
+			Table t = table.SimpleSelect(queryContext, c1, Operator.Equal, userExpr);
 			if (t.RowCount != 1)
 				throw new DatabaseException("Username '" + username + "' was not found.");
 
 			table.Delete(t);
 
+			var hashFuncDef = context.Config.PasswordHashFunction();
+			var crypto = PasswordCrypto.Parse(hashFuncDef);
+
+			string salt;
+			password = crypto.Hash(password, out salt);
+
 			// Add the new username
-			table = (DataTable) context.GetTable(SystemSchema.Password);
+			table = (DataTable) queryContext.GetTable(SystemSchema.Password);
 			DataRow rdat = new DataRow(table);
 			rdat.SetValue(0, username);
 			rdat.SetValue(1, password);
+			rdat.SetValue(2, salt);
+			rdat.SetValue(3, crypto.ToString());
 			table.Add(rdat);
 		}
 
 		/// <summary>
 		/// Returns the list of all user groups the user belongs to.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <param name="username"></param>
 		/// <returns></returns>
-		public string[] GroupsUserBelongsTo(IQueryContext context, String username) {
-			Table table = context.GetTable(SystemSchema.UserPrivileges);
+		public string[] GroupsUserBelongsTo(IQueryContext queryContext, String username) {
+			Table table = queryContext.GetTable(SystemSchema.UserPrivileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			// All 'user_priv' where UserName = %username%
-			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
+			Table t = table.SimpleSelect(queryContext, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
 			int sz = t.RowCount;
 			string[] groups = new string[sz];
 			IRowEnumerator rowEnum = t.GetRowEnumerator();
@@ -350,7 +375,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Checks if a user belongs in a specified group.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <param name="username">The name of the user to check.</param>
 		/// <param name="group">The name of the group to check.</param>
 		/// <remarks>
@@ -360,21 +385,21 @@ namespace Deveel.Data.DbSystem {
 		/// Returns <b>true</b> if the given user belongs to the given
 		/// <paramref name="group"/>, otherwise <b>false</b>.
 		/// </returns>
-		public bool UserBelongsToGroup(IQueryContext context, string username, string group) {
-			Table table = context.GetTable(SystemSchema.UserPrivileges);
+		public bool UserBelongsToGroup(IQueryContext queryContext, string username, string group) {
+			Table table = queryContext.GetTable(SystemSchema.UserPrivileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			VariableName c2 = table.GetResolvedVariable(1);
 			// All 'user_priv' where UserName = %username%
-			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
+			Table t = table.SimpleSelect(queryContext, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
 			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(context, c2, Operator.Equal, new Expression(TObject.CreateString(group)));
+			t = t.SimpleSelect(queryContext, c2, Operator.Equal, new Expression(TObject.CreateString(group)));
 			return t.RowCount > 0;
 		}
 
 		/// <summary>
 		/// Adds a user to the given group.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <param name="username">The name of the user to be added.</param>
 		/// <param name="group">The name of the group to add the user to.</param>
 		/// <remarks>
@@ -393,7 +418,7 @@ namespace Deveel.Data.DbSystem {
 		/// <exception cref="DatabaseException">
 		/// If the group name is not properly formatted.
 		/// </exception>
-		public void AddUserToGroup(IQueryContext context, string username, string group) {
+		public void AddUserToGroup(IQueryContext queryContext, string username, string group) {
 			if (group == null)
 				throw new DatabaseException("Can add NULL group.");
 
@@ -406,9 +431,9 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Check the user doesn't belong to the group
-			if (!UserBelongsToGroup(context, username, group)) {
+			if (!UserBelongsToGroup(queryContext, username, group)) {
 				// The user priv table
-				DataTable table = (DataTable) context.GetTable(SystemSchema.UserPrivileges);
+				DataTable table = (DataTable) queryContext.GetTable(SystemSchema.UserPrivileges);
 				// Add this user to the group.
 				DataRow rdat = new DataRow(table);
 				rdat.SetValue(0, username);
@@ -422,7 +447,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Sets the Lock status for the given user.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <param name="lockStatus"></param>
 		/// <remarks>
 		/// If a user account if locked, it is rejected from logging in 
@@ -436,17 +461,17 @@ namespace Deveel.Data.DbSystem {
 		/// <b>Note:</b> Assumes exclusive Lock on database session.
 		/// </para>
 		/// </remarks>
-		public void SetUserLock(IQueryContext context, bool lockStatus) {
-			string username = context.UserName;
+		public void SetUserLock(IQueryContext queryContext, bool lockStatus) {
+			string username = queryContext.UserName;
 
 			// Internally we implement this by adding the user to the #locked group.
-			DataTable table = (DataTable)context.GetTable(SystemSchema.UserPrivileges);
+			DataTable table = (DataTable)queryContext.GetTable(SystemSchema.UserPrivileges);
 			VariableName c1 = table.GetResolvedVariable(0);
 			VariableName c2 = table.GetResolvedVariable(1);
 			// All 'user_priv' where UserName = %username%
-			Table t = table.SimpleSelect(context, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
+			Table t = table.SimpleSelect(queryContext, c1, Operator.Equal, new Expression(TObject.CreateString(username)));
 			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(context, c2, Operator.Equal, new Expression(TObject.CreateString(SystemGroupNames.LockGroup)));
+			t = t.SimpleSelect(queryContext, c2, Operator.Equal, new Expression(TObject.CreateString(SystemGroupNames.LockGroup)));
 
 			bool userBelongsToLockGroup = t.RowCount > 0;
 			if (lockStatus && !userBelongsToLockGroup) {
@@ -467,7 +492,7 @@ namespace Deveel.Data.DbSystem {
 		/// Grants the given user access to connect to the database from the
 		/// given host address.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <param name="user">The name of the user to grant the access to.</param>
 		/// <param name="protocol">The connection protocol (either <i>TCP</i> or <i>Local</i>).</param>
 		/// <param name="host">The connection host.</param>
@@ -478,9 +503,9 @@ namespace Deveel.Data.DbSystem {
 		/// If the given <paramref name="protocol"/> is not <i>TCP</i> or 
 		/// <i>Local</i>.
 		/// </exception>
-		public void GrantHostAccessToUser(IQueryContext context, string user, string protocol, string host) {
+		public void GrantHostAccessToUser(IQueryContext queryContext, string user, string protocol, string host) {
 			// The user connect priv table
-			DataTable table = (DataTable) context.GetTable(SystemSchema.UserConnectPrivileges);
+			DataTable table = (DataTable) queryContext.GetTable(SystemSchema.UserConnectPrivileges);
 			// Add the protocol and host to the table
 			DataRow rdat = new DataRow(table);
 			rdat.SetValue(0, user);
@@ -493,17 +518,17 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Checks if the user in the context given belongs to secure group.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <returns>
 		/// Returns <b>true</b> if the user belongs to the secure access
 		/// privileges group, otherwise <b>false</b>.
 		/// </returns>
-		private bool UserHasSecureAccess(IQueryContext context) {
+		private bool UserHasSecureAccess(IQueryContext queryContext) {
 			// The internal secure user has full privs on everything
-			if (context.UserName.Equals(InternalSecureUsername))
+			if (queryContext.UserName.Equals(InternalSecureUsername))
 				return true;
 
-			return UserBelongsToGroup(context, context.UserName, SystemGroupNames.SecureGroup);
+			return UserBelongsToGroup(queryContext, queryContext.UserName, SystemGroupNames.SecureGroup);
 		}
 
 		/// <summary>

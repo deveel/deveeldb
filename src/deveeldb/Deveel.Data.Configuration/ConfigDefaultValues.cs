@@ -45,5 +45,7 @@ namespace Deveel.Data.Configuration {
 		public const string HeapCache = "heap";
 
 		public const string SystemRegexLibrary = "Deveel.Data.Text.SystemRegexLibrary";
+
+		public const string PasswordHashFunction = "HMAC-SHA-256(32)";
 	}
 }

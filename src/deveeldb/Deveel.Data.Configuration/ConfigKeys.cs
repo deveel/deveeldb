@@ -85,5 +85,7 @@ namespace Deveel.Data.Configuration {
 		public const string CacheType = "cache_type";
 
 		public const string ForceRegexLibrary = "force_regex_library";
+
+		public const string PasswordHashFunction = "password_hash_function";
 	}
 }

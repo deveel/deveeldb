@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Text;
 
 namespace Deveel.Data.Security {
 	public sealed class PasswordCrypto {
@@ -45,6 +46,10 @@ namespace Deveel.Data.Security {
 			return HashFunction.VerifyPbkdf2String(hashedPassword, password, salt);
 		}
 
+		public override string ToString() {
+			return String.Format("{0}({1})", HashName, KeyLength);
+		}
+
 		public static PasswordCrypto Parse(string defString) {
 			if (String.IsNullOrEmpty(defString))
 				throw new ArgumentNullException("defString");
@@ -59,6 +64,11 @@ namespace Deveel.Data.Security {
 
 			var hashName = defString.Substring(0, sIndex);
 			var sKeyLength = defString.Substring(sIndex + 1, eIndex - (sIndex + 1));
+
+			hashName = hashName.Trim();
+
+			if (String.IsNullOrEmpty(hashName))
+				throw new FormatException();
 
 			int keyLength;
 			if (!Int32.TryParse(sKeyLength, out keyLength))

@@ -112,6 +112,8 @@ namespace Deveel.Data {
 			DataTableInfo password = new DataTableInfo(Password);
 			password.AddColumn("UserName", PrimitiveTypes.VarString);
 			password.AddColumn("Password", PrimitiveTypes.VarString);
+			password.AddColumn("Salt", PrimitiveTypes.VarString);
+			password.AddColumn("Hash", PrimitiveTypes.VarString);
 
 			DataTableInfo userPriv = new DataTableInfo(UserPrivileges);
 			userPriv.AddColumn("UserName", PrimitiveTypes.VarString);
@@ -186,19 +188,19 @@ namespace Deveel.Data {
 
 		internal static void SetTableGrants(GrantManager manager, string granter) {
 			// Set the public grants for the system tables,
-			manager.Grant(global::Deveel.Data.Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.connection_info", GrantManager.PublicUsernameStr,
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.connection_info", GrantManager.PublicUsernameStr,
 						  false, granter);
-			manager.Grant(global::Deveel.Data.Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.current_connections",
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.current_connections",
 						  GrantManager.PublicUsernameStr, false, granter);
-			manager.Grant(global::Deveel.Data.Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.variables", GrantManager.PublicUsernameStr, false,
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.variables", GrantManager.PublicUsernameStr, false,
 						  granter);
-			manager.Grant(global::Deveel.Data.Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.database_stats",
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.database_stats",
 						  GrantManager.PublicUsernameStr, false, granter);
-			manager.Grant(global::Deveel.Data.Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.database_vars", GrantManager.PublicUsernameStr,
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.database_vars", GrantManager.PublicUsernameStr,
 						  false, granter);
-			manager.Grant(global::Deveel.Data.Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.product_info", GrantManager.PublicUsernameStr,
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.product_info", GrantManager.PublicUsernameStr,
 						  false, granter);
-			manager.Grant(global::Deveel.Data.Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.sql_types", GrantManager.PublicUsernameStr,
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.sql_types", GrantManager.PublicUsernameStr,
 						  false, granter);
 		}
 	}
