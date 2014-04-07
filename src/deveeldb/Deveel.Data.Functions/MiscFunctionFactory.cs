@@ -19,6 +19,8 @@ using System.Text;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
+using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Types;
 using Deveel.Data.Util;
 using Deveel.Math;
@@ -56,6 +58,9 @@ namespace Deveel.Data.Functions {
 
 			AddFunction("sql_exists", typeof(ExistsFunction));
 			AddFunction("sql_unique", typeof(UniqueFunction));
+
+			// crypto
+			AddFunction("hash", typeof(HashFunction));
 		}
 
 		#region ToNumberFunction
@@ -752,6 +757,46 @@ namespace Deveel.Data.Functions {
 			}
 
 			#endregion
+		}
+
+		#endregion
+
+		#region HashFunction
+
+		class HashFunction : Function {
+			public HashFunction(Expression[] parameters) 
+				: base("hash", parameters) {
+			}
+
+			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
+				var functionName = this[0].Evaluate(group, resolver, context);
+
+				if (functionName.IsNull)
+					throw new InvalidOperationException("Hash function name required.");
+
+				var hash = HashFunctions.GetFunction((string)functionName.Object);
+				if (hash == null)
+					throw new NotSupportedException(String.Format("Hash function {0} is not supported by the system.", functionName));
+
+				var data = this[1].Evaluate(group, resolver, context);
+
+				if (data.TType is TBinaryType) {
+					var str = data.ToStringValue();
+					var result = hash.ComputeString(str);
+					return TObject.CreateString(result);
+				}
+				if (data.TType is TStringType) {
+					var blob = (ByteLongObject) data.Object;
+					var result = hash.Compute(blob.ToArray());
+					return new TObject(TType.GetBinaryType(SqlType.Binary, result.Length), result);
+				}
+
+				throw new InvalidOperationException("Data type argument not supported");
+			}
+
+			public override TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
+				return this[1].ReturnTType(resolver, context);
+			}
 		}
 
 		#endregion
