@@ -51,7 +51,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// The configuration properties of the entire database system.
 		/// </summary>
-		private DbConfig config;
+		private IDbConfig config;
 
 		/// <summary>
 		///  The DataCellCache that is a shared resource between on database's.
@@ -264,7 +264,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets an instance to the configurations set to the database system.
 		/// </summary>
-		internal DbConfig Config {
+		internal IDbConfig Config {
 			get { return config; }
 		}
 
@@ -416,11 +416,11 @@ namespace Deveel.Data {
 			////  1. Read only access is enabled
 			////  2. log_path is empty or not set
 
-			string logPathString = config.LogPath;
+			string logPathString = config.LogPath();
 			string rootPathVar = config.GetValue<string>("root_path");
 
-			bool readOnly = config.ReadOnly;
-			bool debugLogs = config.GetValue(ConfigKeys.DebugLogs, true);
+			bool readOnly = config.ReadOnly();
+			bool debugLogs = config.GetBoolean(ConfigKeys.DebugLogs, true);
 
 			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
 				// First set up the debug information in this VM for the 'Logger' class.
@@ -472,10 +472,6 @@ namespace Deveel.Data {
 			return null;
 		}
 
-		void ISystemContext.Init(IDbConfig config) {
-			Init((DbConfig) config);
-		}
-
 		/// <summary>
 		/// Inits the <see cref="SystemContext"/> with the configuration 
 		/// properties of the system.
@@ -484,7 +480,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This can only be called once, and should be called at database boot time.
 		/// </remarks>
-		public virtual void Init(DbConfig config) {
+		public virtual void Init(IDbConfig config) {
 			functionFactoryList = new ArrayList();
 			functionLookup = new DSFunctionLookup();
 
@@ -492,19 +488,19 @@ namespace Deveel.Data {
 				this.config = config;
 
 				// Set the read_only property
-				readOnlyAccess = config.ReadOnly;
+				readOnlyAccess = config.ReadOnly();
 
 				// Setup the log
 				SetupLog();
 
 				// The storage encapsulation that has been configured.
-				string storageSystem = config.GetValue(ConfigKeys.StorageSystem, ConfigValues.FileStorageSystem);
+				string storageSystem = config.GetString(ConfigKeys.StorageSystem, ConfigDefaultValues.FileStorageSystem);
 
 				// Construct the system store.
-				if (String.Equals(storageSystem, ConfigValues.FileStorageSystem, StringComparison.InvariantCultureIgnoreCase)) {
+				if (String.Equals(storageSystem, ConfigDefaultValues.FileStorageSystem, StringComparison.InvariantCultureIgnoreCase)) {
 					Logger.Message(this, "Storage System: file storage mode.");
 					storeSystem = new V1FileStoreSystem();
-				} else if (String.Equals(storageSystem, ConfigValues.HeapStorageSystem, StringComparison.InvariantCultureIgnoreCase)) {
+				} else if (String.Equals(storageSystem, ConfigDefaultValues.HeapStorageSystem, StringComparison.InvariantCultureIgnoreCase)) {
 					Logger.Message(this, "Storage System: heap storage mode.");
 					storeSystem = new V1HeapStoreSystem();
 				} else {
@@ -528,9 +524,9 @@ namespace Deveel.Data {
 
 				if (storeSystem.StorageType == StorageType.File) {
 					// we must be sure to have at least a database path
-					dbPath = config.DatabasePath;
+					dbPath = config.DatabasePath();
 					if (String.IsNullOrEmpty(dbPath))
-						dbPath = config.BasePath;
+						dbPath = config.BasePath();
 				}
 
 				// init the storage system
@@ -541,8 +537,8 @@ namespace Deveel.Data {
 
 				// Set up the DataCellCache from the values in the configuration
 
-				int maxCacheSize = config.GetValue(ConfigKeys.DataCacheSize, 0);
-				int maxCacheEntrySize = config.GetValue(ConfigKeys.MaxCacheEntrySize, 0);
+				int maxCacheSize = config.GetInt32(ConfigKeys.DataCacheSize, 0);
+				int maxCacheEntrySize = config.GetInt32(ConfigKeys.MaxCacheEntrySize, 0);
 
 				if (maxCacheSize >= 4096 &&
 				    maxCacheEntrySize >= 16 &&
@@ -553,8 +549,8 @@ namespace Deveel.Data {
 					// Find a prime hash size depending on the size of the cache.
 					int hashSize = DataCellCache.ClosestPrime(maxCacheSize/55);
 
-					string cacheTypeString = config.GetValue(ConfigKeys.CacheType, ConfigValues.HeapCache);
-					Type cacheType = String.Equals(cacheTypeString, ConfigValues.HeapCache,StringComparison.InvariantCultureIgnoreCase)
+					string cacheTypeString = config.GetString(ConfigKeys.CacheType, ConfigDefaultValues.HeapCache);
+					Type cacheType = String.Equals(cacheTypeString, ConfigDefaultValues.HeapCache,StringComparison.InvariantCultureIgnoreCase)
 					            	? typeof(MemoryCache)
 					            	: Type.GetType(cacheTypeString, false, true);
 
@@ -585,11 +581,11 @@ namespace Deveel.Data {
 				if (readOnlyAccess) stats.Set(1, "DatabaseSystem.read_only");
 
 				// Generate transaction error if dirty selects are detected?
-				transactionErrorOnDirtySelect = config.GetValue(ConfigKeys.TransactionErrorOnDirtySelect, true);
+				transactionErrorOnDirtySelect = config.GetBoolean(ConfigKeys.TransactionErrorOnDirtySelect, true);
 				Logger.Message(this, "transaction_error_on_dirty_select = " + transactionErrorOnDirtySelect);
 
 				// Case insensitive identifiers?
-				ignoreCaseForIdentifiers = config.GetValue(ConfigKeys.IgnoreIdentifiersCase, false);
+				ignoreCaseForIdentifiers = config.GetBoolean(ConfigKeys.IgnoreIdentifiersCase, false);
 				Logger.Message(this, "ignore_case_for_identifiers = " + ignoreCaseForIdentifiers);
 
 				// What regular expression library are we using?
@@ -606,10 +602,10 @@ namespace Deveel.Data {
 					// Convert the library string to a class name
 					regexBridge = RegexStringToClass(forceLib);
 				} else {
-					string lib = config.GetValue(ConfigKeys.RegexLibrary, ConfigValues.SystemRegexLibrary);
+					string lib = config.GetString(ConfigKeys.RegexLibrary, ConfigDefaultValues.SystemRegexLibrary);
 					libUsed = lib;
 					// Convert the library string to a class name
-					regexBridge = lib != null ? RegexStringToClass(lib) : ConfigValues.SystemRegexLibrary;
+					regexBridge = lib != null ? RegexStringToClass(lib) : ConfigDefaultValues.SystemRegexLibrary;
 				}
 
 				if (regexBridge != null) {

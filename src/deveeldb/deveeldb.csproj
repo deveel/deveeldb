@@ -91,7 +91,7 @@
     <Compile Include="Deveel.Data.Configuration\FileConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigSource.cs" />
-    <Compile Include="Deveel.Data.Configuration\ConfigValues.cs" />
+    <Compile Include="Deveel.Data.Configuration\ConfigDefaultValues.cs" />
     <Compile Include="Deveel.Data.Configuration\IDbConfig.cs" />
     <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />

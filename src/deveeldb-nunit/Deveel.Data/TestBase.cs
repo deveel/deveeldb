@@ -99,9 +99,9 @@ namespace Deveel.Data {
 
 		protected virtual void OnConfigure(DbConfig config) {
 			if (storageType == StorageType.File) {
-				config.SetValue(ConfigKeys.StorageSystem, ConfigValues.FileStorageSystem);
+				config.SetValue(ConfigKeys.StorageSystem, ConfigDefaultValues.FileStorageSystem);
 			} else if (storageType == StorageType.Memory) {
-				config.SetValue(ConfigKeys.StorageSystem, ConfigValues.HeapStorageSystem);
+				config.SetValue(ConfigKeys.StorageSystem, ConfigDefaultValues.HeapStorageSystem);
 			}
 		}
 

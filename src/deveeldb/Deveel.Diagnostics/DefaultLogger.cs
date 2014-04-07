@@ -151,11 +151,12 @@ namespace Deveel.Diagnostics {
 
 		// ---------- Implemented from ILogger ----------
 
-		public void Init(DbConfig config) {
-			string logPathString = config.LogPath;
+
+		public void Init(IDbConfig config) {
+			string logPathString = config.GetString(ConfigKeys.LogPath);
 			string rootPathVar = config.GetValue<string>("root_path");
-			bool readOnly = config.GetValue(ConfigKeys.ReadOnly, false);
-			bool debugLogs = config.GetValue(ConfigKeys.DebugLogs, true);
+			bool readOnly = config.GetBoolean(ConfigKeys.ReadOnly, false);
+			bool debugLogs = config.GetBoolean(ConfigKeys.DebugLogs, true);
 
 			// Conditions for not initializing a log directory;
 			//  1. Read only access is enabled
@@ -169,7 +170,7 @@ namespace Deveel.Diagnostics {
 					Directory.CreateDirectory(logPath);
 
 				LogWriter fileWriter;
-				string dlogFileName = config.DebugLogFile;
+				string dlogFileName = config.GetString(ConfigKeys.DebugLogFile);
 				string debugLogFile = Path.Combine(Path.GetFullPath(logPath), dlogFileName);
 
 				try {
@@ -192,7 +193,7 @@ namespace Deveel.Diagnostics {
 				output = new EmptyTextWriter();
 			}
 
-			debugLevel = config.GetValue(ConfigKeys.DebugLevel, -1);
+			debugLevel = config.GetInt32(ConfigKeys.DebugLevel, -1);
 			if (debugLevel == -1)
 				// stops all the output
 				debugLevel = 255;

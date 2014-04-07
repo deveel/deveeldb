@@ -27,7 +27,7 @@ namespace Deveel.Data.Configuration {
 	/// definition and they are not intended to be constraining
 	/// in the free configuration of database system.
 	/// </remarks>
-	public static class ConfigValues {
+	public static class ConfigDefaultValues {
 		/// <summary>
 		/// Associated to the key <see cref="ConfigKeys.StorageSystem"/>
 		/// tells the system the database storage will be backed by the 

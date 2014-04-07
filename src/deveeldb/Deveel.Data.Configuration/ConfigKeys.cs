@@ -32,7 +32,7 @@ namespace Deveel.Data.Configuration {
 	/// </para>
 	/// </remarks>
 	/// <seealso cref="DbConfig"/>
-	/// <seealso cref="ConfigValues"/>
+	/// <seealso cref="ConfigDefaultValues"/>
 	public static class ConfigKeys {
 		/// <summary>
 		/// Defines the base for resolving the application
@@ -52,8 +52,8 @@ namespace Deveel.Data.Configuration {
 		/// The key to configure the type of the system used to store
 		/// database data.
 		/// </summary>
-		/// <seealso cref="ConfigValues.FileStorageSystem"/>
-		/// <seealso cref="ConfigValues.HeapStorageSystem"/>
+		/// <seealso cref="ConfigDefaultValues.FileStorageSystem"/>
+		/// <seealso cref="ConfigDefaultValues.HeapStorageSystem"/>
 		public const string StorageSystem = "storage_system";
 
 		public const string DataCacheSize = "data_cache_size";

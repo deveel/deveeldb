@@ -23,7 +23,7 @@ namespace Deveel.Diagnostics {
 		public void Dispose() {
 		}
 
-		public void Init(DbConfig config) {
+		public void Init(IDbConfig config) {
 		}
 
 		public bool IsInterestedIn(LogLevel level) {

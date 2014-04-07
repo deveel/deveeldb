@@ -239,7 +239,7 @@ namespace Deveel.Data.Client {
 		private void ConnectToMemory() {
 			lock (this) {
 				var config = new DbConfig();
-				config.StorageSystem = ConfigValues.HeapStorageSystem;
+				config.StorageSystem(ConfigDefaultValues.HeapStorageSystem);
 
 				controller = DbController.Create(config);
 			}
@@ -274,14 +274,14 @@ namespace Deveel.Data.Client {
 						rootPath = Environment.CurrentDirectory;
 
 					DbConfig controllerConfig = new DbConfig();
-					controllerConfig.StorageSystem = ConfigValues.FileStorageSystem;
+					controllerConfig.StorageSystem(ConfigDefaultValues.FileStorageSystem);
 					controllerConfig.SetValue(ConfigKeys.BasePath, rootPath);
 					controller = DbController.Create(controllerConfig);
 
 					sessionKey = rootPath.ToLower();
 				} else {
 					DbConfig controllerConfig = new DbConfig();
-					controllerConfig.StorageSystem = ConfigValues.HeapStorageSystem;
+					controllerConfig.StorageSystem(ConfigDefaultValues.HeapStorageSystem);
 					controller = DbController.Create(controllerConfig);
 
 					// TODO: compute this?

@@ -21,8 +21,6 @@ namespace Deveel.Data.Configuration {
 		IConfigSource Source { get; set; }
 
 		IDbConfig Parent { get; set; }
-
-		IEnumerable<string> Keys { get; } 
 		
 		
 		object GetValue(string key, object defaultValue);

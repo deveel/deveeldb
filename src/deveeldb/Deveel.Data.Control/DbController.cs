@@ -30,8 +30,8 @@ namespace Deveel.Data.Control {
 	/// </summary>
 	/// <remarks>
 	/// This object keeps an handle on all the databases handled by the system:
-	/// when a <see cref="DbSystem"/> returned by either <see cref="CreateDatabase(DbConfig,string)"/>,
-	/// <see cref="StartDatabase(DbConfig,string)"/> or <see cref="ConnectToDatabase"/> is disposed,
+	/// when a <see cref="DbSystem"/> returned by either <see cref="CreateDatabase(IDbConfig,string)"/>,
+	/// <see cref="StartDatabase(IDbConfig,string)"/> or <see cref="ConnectToDatabase"/> is disposed,
 	/// the database associated is still accessible by other threads until the
 	/// the <see cref="DbController"/> instance is disposed.
 	/// <para>
@@ -44,7 +44,7 @@ namespace Deveel.Data.Control {
 		/// <summary>
 		/// This object can not be constructed publicaly.
 		/// </summary>
-		private DbController(DbConfig configContext) {
+		private DbController(IDbConfig configContext) {
 			this.configContext = configContext;
 			databases = new Hashtable();
 			SetupLog(configContext);
@@ -55,7 +55,7 @@ namespace Deveel.Data.Control {
 		}
 
 		private readonly Hashtable databases;
-		private readonly DbConfig configContext;
+		private readonly IDbConfig configContext;
 		private Logger logger;
 
 		/// <summary>
@@ -81,7 +81,7 @@ namespace Deveel.Data.Control {
 		/// The object returned by this property is a copy of the
 		/// original: every change to the values will be ignored.
 		/// </remarks>
-		public DbConfig Config {
+		public IDbConfig Config {
 			get { return configContext; }
 		}
 
@@ -101,7 +101,7 @@ namespace Deveel.Data.Control {
 			get { return logger; }
 		}
 
-		private void SetupLog(DbConfig config) {
+		private void SetupLog(IDbConfig config) {
 			//TODO:
 		}
 
@@ -136,12 +136,12 @@ namespace Deveel.Data.Control {
 		/// system configured.
 		/// </returns>
 		/// <seealso cref="GetStorageType(string)"/>
-		private static StorageType GetStorageType(DbConfig config) {
+		private static StorageType GetStorageType(IDbConfig config) {
 			// if we don't have any configuration given let's assume it's in-memory
 			if (config == null)
 				return StorageType.Memory;
 
-			string typeName = config.StorageSystem;
+			string typeName = config.StorageSystem();
 			if (typeName == null)
 				throw new InvalidOperationException("A storage system must be specified.");
 
@@ -155,9 +155,9 @@ namespace Deveel.Data.Control {
 			StorageType storageType;
 			if (!StorageTypeCache.TryGetValue(typeName, out storageType)) {
 				// in case we're using the internal storage system aliases
-				if (String.Compare(typeName, ConfigValues.FileStorageSystem, StringComparison.OrdinalIgnoreCase) == 0)
+				if (String.Compare(typeName, ConfigDefaultValues.FileStorageSystem, StringComparison.OrdinalIgnoreCase) == 0)
 					storageType = StorageType.File;
-				else if (String.Compare(typeName, ConfigValues.HeapStorageSystem, StringComparison.OrdinalIgnoreCase) == 0)
+				else if (String.Compare(typeName, ConfigDefaultValues.HeapStorageSystem, StringComparison.OrdinalIgnoreCase) == 0)
 					storageType = StorageType.Memory;
 				else {
 					Type type = Type.GetType(typeName, false, true);
@@ -219,28 +219,25 @@ namespace Deveel.Data.Control {
 		/// Returns an instance of <see cref="DbController"/> which points
 		/// to the given path.
 		/// </returns>
-		public static DbController Create(DbConfig config) {
+		public static DbController Create(IDbConfig config) {
 			StorageType storageType = GetStorageType(config);
 
 			if (config == null)
 				config = new DbConfig();
 
-			DbConfig mainConfig;
+			IDbConfig mainConfig;
 
 			if (storageType == StorageType.File) {
-				string path = config.BasePath ?? Environment.CurrentDirectory;
+				string path = config.BasePath() ?? Environment.CurrentDirectory;
 
 				string configFile = Path.GetFileName(path);
-				if (configFile == null) {
-					configFile = DefaultConfigFileName;
+
+				// we only allow the file extension .conf
+				string ext = Path.GetExtension(configFile);
+				if (String.Compare(ext, FileExtension, StringComparison.OrdinalIgnoreCase) == 0) {
+					path = Path.GetDirectoryName(path);
 				} else {
-					// we only allow the file extension .conf
-					string ext = Path.GetExtension(configFile);
-					if (String.Compare(ext, FileExtension, StringComparison.OrdinalIgnoreCase) == 0) {
-						path = Path.GetDirectoryName(path);
-					} else {
-						configFile = DefaultConfigFileName;
-					}
+					configFile = DefaultConfigFileName;
 				}
 
 				// if the directory doesn't exist we will create one...
@@ -256,10 +253,10 @@ namespace Deveel.Data.Control {
 
 			if (storageType == StorageType.File) {
 				// done with the main configuration... now look for the databases...
-				string path = config.BasePath;
+				string path = config.BasePath();
 				string[] subDirs = Directory.GetDirectories(path);
 				foreach (string dir in subDirs) {
-					DbConfig dbConfig = GetConfig(mainConfig, dir, null);
+					IDbConfig dbConfig = GetConfig(mainConfig, dir, null);
 					if (dbConfig == null)
 						continue;
 
@@ -286,7 +283,7 @@ namespace Deveel.Data.Control {
 			return controller;
 		}
 
-		private static DbConfig GetConfig(DbConfig parentConfig, string path, string configFile) {
+		private static IDbConfig GetConfig(IDbConfig parentConfig, string path, string configFile) {
 			if (configFile == null)
 				configFile = DefaultConfigFileName;
 
@@ -310,9 +307,9 @@ namespace Deveel.Data.Control {
 			// if the config file exists, we load the settings from there...
 			//TODO: support more formats
 
-			DbConfig config = new DbConfig(parentConfig);
+			var config = new DbConfig(parentConfig);
 			config.Load(configFile);
-			config.BasePath = path;
+			config.BasePath(path);
 
 			return config;
 		}
@@ -406,7 +403,7 @@ namespace Deveel.Data.Control {
 		/// <exception cref="InvalidOperationException">
 		/// If an error occurred while initializing the database.
 		/// </exception>
-		public DbSystem CreateDatabase(DbConfig config, string name, string adminUser, string adminPass) {
+		public DbSystem CreateDatabase(IDbConfig config, string name, string adminUser, string adminPass) {
 			if (name == null)
 				throw new ArgumentNullException("name");
 
@@ -422,7 +419,7 @@ namespace Deveel.Data.Control {
 
 			if (storageType == StorageType.File) {
 				// we ensure that the BasePath points to where we want it to point
-				string path = Path.Combine(config.BasePath, name);
+				string path = Path.Combine(config.BasePath(), name);
 				if (Directory.Exists(path))
 					throw new ApplicationException("Database path '" + name + "' already exists: try opening");
 
@@ -489,7 +486,7 @@ namespace Deveel.Data.Control {
 		/// <exception cref="InvalidOperationException">
 		/// If an error occurred while initializing the database.
 		/// </exception>
-		public DbSystem StartDatabase(DbConfig config, string name) {
+		public DbSystem StartDatabase(IDbConfig config, string name) {
 			if (!DatabaseExists(name))
 				throw new ArgumentException("Database '" + name + "' not existing.", "name");
 
@@ -551,7 +548,7 @@ namespace Deveel.Data.Control {
 		/// <param name="config"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		private static Database CreateDatabase(DbConfig config, string name) {
+		private static Database CreateDatabase(IDbConfig config, string name) {
 			DatabaseContext context = new DatabaseContext();
 
 			// Initialize the DatabaseSystem first,

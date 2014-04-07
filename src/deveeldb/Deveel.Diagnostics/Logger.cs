@@ -58,7 +58,7 @@ namespace Deveel.Diagnostics {
 			GC.SuppressFinalize(this);
 		}
 
-		void ILogger.Init(DbConfig config) {
+		void ILogger.Init(IDbConfig config) {
 			// this logger cannot be configured...
 		}
 

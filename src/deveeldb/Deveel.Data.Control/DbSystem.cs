@@ -50,7 +50,7 @@ namespace Deveel.Data.Control {
 		/// The <see cref="DbConfig"/> object that describes the startup configuration 
 		/// of the database.
 		/// </summary>
-		private DbConfig config;
+		private IDbConfig config;
 
 		/// <summary>
 		/// The underlying <see cref="Deveel.Data.DbSystem.Database"/> object of this system.
@@ -71,7 +71,7 @@ namespace Deveel.Data.Control {
 		private Hashtable connections;
 
 
-		internal DbSystem(DbController controller, string name, DbConfig config, Database database) {
+		internal DbSystem(DbController controller, string name, IDbConfig config, Database database) {
 			this.name = name;
 			this.controller = controller;
 			this.config = config;
@@ -100,7 +100,7 @@ namespace Deveel.Data.Control {
 		///<summary>
 		/// Returns an immutable version of the database system configuration.
 		///</summary>
-		public DbConfig Config {
+		public IDbConfig Config {
 			get { return config; }
 		}
 

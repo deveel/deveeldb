@@ -62,7 +62,7 @@ namespace Deveel.Data.Protocol {
 		private int openConnections;
 
         /// <inheritdoc/>
-		public IDatabaseInterface Create(string username, string password, DbConfig config) {
+		public IDatabaseInterface Create(string username, string password, IDbConfig config) {
 			if (String.IsNullOrEmpty(username) || 
 				String.IsNullOrEmpty(password))
 				throw new DataException("Username and Password must both be set.");
@@ -90,7 +90,7 @@ namespace Deveel.Data.Protocol {
 		}
 
         /// <inheritdoc/>
-		public IDatabaseInterface Boot(DbConfig config) {
+		public IDatabaseInterface Boot(IDbConfig config) {
         	if (booted)
         		throw new DataException("Database was booted more than once.");
 

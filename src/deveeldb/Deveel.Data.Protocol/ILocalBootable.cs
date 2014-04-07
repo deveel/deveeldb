@@ -41,7 +41,7 @@ namespace Deveel.Data.Protocol {
 		///<returns>
         /// Returns a <see cref="IDatabaseInterface"/> for talking to the database.
 		/// </returns>
-		IDatabaseInterface Create(String username, String password, DbConfig config);
+		IDatabaseInterface Create(String username, String password, IDbConfig config);
 
 		///<summary>
         /// Boots the database with the given configuration.
@@ -50,7 +50,7 @@ namespace Deveel.Data.Protocol {
 		///<returns>
         /// Returns a <see cref="IDatabaseInterface"/> for talking to the database.
 		/// </returns>
-		IDatabaseInterface Boot(DbConfig config);
+		IDatabaseInterface Boot(IDbConfig config);
 
 		///<summary>
         /// Attempts to test if the database exists or not.

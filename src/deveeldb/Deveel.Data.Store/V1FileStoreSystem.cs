@@ -125,9 +125,9 @@ namespace Deveel.Data.Store {
 			context = systemContext;
 
 			// The path where the database data files are stored.
-			string databasePath = systemContext.Config.GetValue(ConfigKeys.DatabasePath, "./data");
+			string databasePath = systemContext.Config.GetString(ConfigKeys.DatabasePath, "./data");
 			// The root path variable
-			string rootPathVar = systemContext.Config.GetValue<string>("root_path", null);
+			string rootPathVar = systemContext.Config.GetString("root_path", null);
 
 			// Set the absolute database path
 			path = systemContext.Config.ParseFileString(rootPathVar, databasePath);
@@ -143,7 +143,7 @@ namespace Deveel.Data.Store {
 
 			// Get the safety level of the file system where 10 is the most safe
 			// and 1 is the least safe.
-			int ioSafetyLevel = systemContext.Config.GetValue("io_safety_level", 10);
+			int ioSafetyLevel = systemContext.Config.GetInt32("io_safety_level", 10);
 			if (ioSafetyLevel < 1 || ioSafetyLevel > 10) {
 				context.Logger.Message(this, "Invalid io_safety_level value.  Setting to the most safe level.");
 				ioSafetyLevel = 10;
@@ -152,31 +152,31 @@ namespace Deveel.Data.Store {
 			context.Logger.Message(this, "io_safety_level = " + ioSafetyLevel);
 
 			// Logging is disabled when safety level is less or equal to 2
-			bool enable_logging = true;
+			bool enableLogging = true;
 			if (ioSafetyLevel <= 2) {
 				context.Logger.Message(this, "Disabling journaling and file sync.");
-				enable_logging = false;
+				enableLogging = false;
 			}
 
 			context.Logger.Message(this, "Using stardard IO API for heap buffered file access.");
-			int page_size = systemContext.Config.GetValue("buffered_io_page_size", 8192);
-			int max_pages = systemContext.Config.GetValue("buffered_io_max_pages", 256);
+			int pageSize = systemContext.Config.GetInt32("buffered_io_page_size", 8192);
+			int maxPages = systemContext.Config.GetInt32("buffered_io_max_pages", 256);
 
 			// Output this information to the log
-			context.Logger.Message(this, "[Buffer Manager] Page Size: " + page_size);
-			context.Logger.Message(this, "[Buffer Manager] Max pages: " + max_pages);
+			context.Logger.Message(this, "[Buffer Manager] Page Size: " + pageSize);
+			context.Logger.Message(this, "[Buffer Manager] Max pages: " + maxPages);
 
 			// Journal path is currently always the same as database path.
-			string journal_path = path;
+			string journalPath = path;
 			// Max slice size is 1 GB for file scattering class
-			const long max_slice_size = 16384*65536;
+			const long maxSliceSize = 16384*65536;
 			// First file extention is 'db'
-			const String first_file_ext = "db";
+			const String firstFileExt = "db";
 
 			// Set up the BufferManager
 			buffer_manager = new LoggingBufferManager(
-				path, journal_path, read_only, max_pages, page_size,
-				first_file_ext, max_slice_size, context.Logger, enable_logging);
+				path, journalPath, read_only, maxPages, pageSize,
+				firstFileExt, maxSliceSize, context.Logger, enableLogging);
 			// ^ This is a big constructor.  It sets up the logging manager and
 			//   sets a resource store data accessor converter to a scattering
 			//   implementation with a max slice size of 1 GB

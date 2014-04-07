@@ -34,7 +34,7 @@ namespace Deveel.Diagnostics {
 		/// </summary>
 		/// <param name="config">The configurations used to configure
 		/// the logger.</param>
-		void Init(DbConfig config);
+		void Init(IDbConfig config);
 
 		/// <summary>
 		/// Queries the current debug level.

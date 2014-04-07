@@ -73,102 +73,8 @@ namespace Deveel.Data.Configuration {
 
 		public IConfigSource Source { get; set; }
 
-		public IEnumerable<string> Keys {
-			get { return properties.Keys; }
-		}
-
-		/// <summary>
-		/// Gets or sets the path to the database.
-		/// </summary>
-		public string DatabasePath {
-			set { SetValue(ConfigKeys.DatabasePath, value); }
-			get { return GetValue<string>(ConfigKeys.DatabasePath); }
-		}
-
-		///<summary>
-		/// Gets or sets the path of the log.
-		///</summary>
-		public string LogPath {
-			get { return GetValue<string>(ConfigKeys.LogPath); }
-			set { SetValue(ConfigKeys.LogPath, value); }
-		}
-
-		/// <summary>
-		/// Gets or sets that the engine ignores case for identifiers.
-		/// </summary>
-		public bool IgnoreIdentifierCase {
-			get { return GetValue<bool>(ConfigKeys.IgnoreIdentifiersCase); }
-			set { SetValue(ConfigKeys.IgnoreIdentifiersCase, value); }
-		}
-
-		/// <summary>
-		/// Gets or sets that the database is read-only.
-		/// </summary>
-		public bool ReadOnly {
-			get { return GetValue<bool>(ConfigKeys.ReadOnly); }
-			set { SetValue(ConfigKeys.ReadOnly, value); }
-		}
-
-		public string DebugLogFile {
-			get { return GetValue<string>(ConfigKeys.DebugLogFile, null); }
-			set { SetValue(ConfigKeys.DebugLogFile, value); }
-		}
-
-		public string BasePath {
-			get { return GetValue(ConfigKeys.BasePath, "."); }
-			set { SetValue(ConfigKeys.BasePath, value); }
-		}
-
-		public string StorageSystem {
-			get { return GetValue(ConfigKeys.StorageSystem, ConfigValues.HeapStorageSystem); }
-			set { SetValue(ConfigKeys.StorageSystem, value); }
-		}
-
-		public Type CacheType {
-			get {
-				var typeString = GetValue<string>(ConfigKeys.CacheType, ConfigValues.HeapCache);
-				if (String.IsNullOrEmpty(typeString))
-					return null;
-
-				if (String.Equals(typeString, ConfigValues.HeapCache, StringComparison.OrdinalIgnoreCase))
-					return typeof (MemoryCache);
-
-				return Type.GetType(typeString, false, true);
-			}
-			set {
-				string typeString = null;
-				if (value != null)
-					typeString = value.AssemblyQualifiedName;
-				SetValue(ConfigKeys.CacheType, typeString);
-			}
-		}
-
-		public int DataCacheSize {
-			get { return GetValue<int>(ConfigKeys.DataCacheSize, DefaultDataCacheSize); }
-			set { SetValue(ConfigKeys.DataCacheSize, value); }
-		}
-
-		// TODO: make the default config
-		public int MaxCacheEntrySize {
-			get { return GetValue(ConfigKeys.MaxCacheEntrySize, 128); }
-			set { SetValue(ConfigKeys.MaxCacheEntrySize, value); }
-		}
-
-		///<summary>
-		/// Sets the configuration value for the key property key.
-		///</summary>
-		///<param name="key"></param>
-		///<param name="value"></param>
-		public void SetValue<T>(string key, T value) {
-			SetValue(key, (object)value);
-		}
-
 		public void SetValue(string key, object value) {
 			properties[key] = value;
-		}
-
-		public object GetValue(string propertyKey) {
-			return GetValue(propertyKey, null);
 		}
 
 		public object GetValue(string propertyKey, object defaultValue) {
@@ -176,64 +82,11 @@ namespace Deveel.Data.Configuration {
 			object property;
 			if (properties.TryGetValue(propertyKey, out property))
 				return property;
-			if (Parent == null)
-				return defaultValue;
-			if ((property = Parent.GetValue(propertyKey, null)) != null)
+			if (Parent != null && 
+				(property = Parent.GetValue(propertyKey, null)) != null)
 				return property;
 
 			return defaultValue;
-		}
-
-		public T GetValue<T>(string propertyKey) {
-			object value = GetValue(propertyKey);
-			if (value == null || Equals(default(T), value))
-				return default(T);
-			if (!(value is T))
-				value = Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
-
-			return (T) value;
-		}
-
-		public T GetValue<T>(string propertyKey, T defaultValue) {
-			T value;
-
-			try {
-				value = GetValue<T>(propertyKey);
-			} catch (Exception) {
-				return defaultValue;
-			}
-			
-			if (Equals(default(T), value))
-				return defaultValue;
-
-			return value;
-		}
-
-		/// <summary>
-		/// Parses a file string to an absolute position in the file system.
-		/// </summary>
-		/// <remarks>
-		/// We must provide the path to the root directory (eg. the directory 
-		/// where the config bundle is located).
-		/// </remarks>
-		public string ParseFileString(string rootInfo, string pathString) {
-			string path = Path.GetFullPath(pathString);
-			string res;
-			// If the path is absolute then return the absoluate reference
-			if (Path.IsPathRooted(pathString)) {
-				res = path;
-			} else {
-				// If the root path source is the environment then just return the path.
-				if (rootInfo != null && rootInfo.Equals("env"))
-					return path;
-
-				// If the root path source is the configuration file then
-				// concat the configuration path with the path string and return it.
-
-				res = Path.Combine(BasePath, pathString);
-			}
-
-			return res;
 		}
 
 		/// <inheritdoc/>
