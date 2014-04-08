@@ -496,7 +496,7 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public new DeveelDbDataReader ExecuteReader() {
+		public new DeveelDbDataReader ExecuteReader(CommandBehavior behavior) {
 			AssertConnectionOpen();
 			VerifyParameters();
 
@@ -510,14 +510,18 @@ namespace Deveel.Data.Client {
 
 			try {
 				ExecuteQuery();
-				reader = new DeveelDbDataReader(this);
+				reader = new DeveelDbDataReader(this, behavior);
 				reader.Closed += new EventHandler(ReaderClosed);
-			} catch(Exception) {
+			} catch (Exception) {
 				connection.EndState();
 				throw;
 			}
 
 			return reader;
+		}
+
+		public new DeveelDbDataReader ExecuteReader() {
+			return ExecuteReader(CommandBehavior.Default);
 		}
 
 		protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) {

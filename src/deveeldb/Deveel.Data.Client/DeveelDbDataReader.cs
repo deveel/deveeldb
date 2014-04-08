@@ -30,12 +30,17 @@ namespace Deveel.Data.Client {
 	///</summary>
 	public sealed class DeveelDbDataReader : DbDataReader {
 		private readonly DeveelDbCommand command;
+		private readonly CommandBehavior behavior;
+
+		private bool wasRead;
+
 		internal event EventHandler Closed;
 
 		private static readonly BigNumber Zero = 0;
 
-		internal DeveelDbDataReader(DeveelDbCommand command) {
+		internal DeveelDbDataReader(DeveelDbCommand command, CommandBehavior behavior) {
 			this.command = command;
+			this.behavior = behavior;
 		}
 
 		#region Implementation of IDisposable
@@ -91,18 +96,25 @@ namespace Deveel.Data.Client {
 			return new DbEnumerator(this);
 		}
 
+		private object GetRawValue(int i) {
+			if ((behavior & CommandBehavior.SchemaOnly) != 0)
+				return null;
+
+			return command.ResultSet.GetRawColumn(i);
+		}
+
 		/// <inheritdoc/>
 		public override object GetValue(int i) {
-			Object ob = command.ResultSet.GetRawColumn(i);
+			object ob = GetRawValue(i);
 			if (ob == null)
 				return null;
 
 			if (command.Connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
-				ColumnDescription col_desc = command.ResultSet.GetColumn(i);
-				SqlType sql_type = col_desc.SQLType;
+				ColumnDescription colDesc = command.ResultSet.GetColumn(i);
+				SqlType sqlType = colDesc.SQLType;
 
-				return command.ObjectCast(ob, sql_type);
+				return command.ObjectCast(ob, sqlType);
 			}
 
 			// For blobs, return an instance of IBlob.
@@ -127,7 +139,8 @@ namespace Deveel.Data.Client {
 
 		public DeveelDbLob GetLob(int i) {
 			// I'm assuming we must return 'null' for a null blob....
-			Object ob = command.ResultSet.GetRawColumn(i);
+			object ob = GetRawValue(i);
+
 			if (ob != null) {
 				try {
 					return command.GetLob(ob);
@@ -138,8 +151,9 @@ namespace Deveel.Data.Client {
 			return null;
 		}
 
-		private BigNumber GetBigNumber(int columnIndex) {
-			Object ob = command.ResultSet.GetRawColumn(columnIndex);
+		public BigNumber GetBigNumber(int columnIndex) {
+			object ob = GetRawValue(columnIndex);
+
 			if (ob == null)
 				return null;
 			if (ob is BigNumber)
@@ -150,7 +164,7 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override bool GetBoolean(int i) {
-			Object ob = command.ResultSet.GetRawColumn(i);
+			object ob = GetRawValue(i);
 			if (ob == null)
 				return false;
 			if (ob is Boolean)
@@ -262,7 +276,8 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override string GetString(int i) {
-			Object str = command.ResultSet.GetRawColumn(i);
+			object str = GetRawValue(i);
+
 			if (str == null)
 				return null;
 			if (CanMakeString(str))
@@ -271,9 +286,10 @@ namespace Deveel.Data.Client {
 			// For date, time and timestamp we must format as per the JDBC
 			// specification.
 			if (str is DateTime) {
-				SqlType sql_type = command.ResultSet.GetColumn(i).SQLType;
-				return command.ObjectCast(str, sql_type).ToString();
+				SqlType sqlType = command.ResultSet.GetColumn(i).SQLType;
+				return command.ObjectCast(str, sqlType).ToString();
 			}
+
 			return str.ToString();
 		}
 
@@ -302,7 +318,7 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override DateTime GetDateTime(int i) {
-			return (DateTime) command.ResultSet.GetRawColumn(i);
+			return (DateTime) GetRawValue(i);
 		}
 
 		public new IDataReader GetData(int i) {
@@ -311,15 +327,16 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override bool IsDBNull(int i) {
-			Object ob = command.ResultSet.GetRawColumn(i);
-			if (ob == null)
+			object ob = GetRawValue(i);
+			if (ob == null || ob == DBNull.Value)
 				return true;
+
 			if (command.Connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
-				ColumnDescription col_desc = command.ResultSet.GetColumn(i);
-				SqlType sql_type = col_desc.SQLType;
+				ColumnDescription colDesc = command.ResultSet.GetColumn(i);
+				SqlType sqlType = colDesc.SQLType;
 
-				ob = command.ObjectCast(ob, sql_type);
+				ob = command.ObjectCast(ob, sqlType);
 				if (ob == null || (ob is TObject && ((TObject)ob).IsNull))
 					return true;
 			}
@@ -346,8 +363,12 @@ namespace Deveel.Data.Client {
 		/// <inheritdoc/>
 		public override void Close() {
 			command.ResultSet.Close();
+
 			if (Closed != null)
 				Closed(this, EventArgs.Empty);
+
+			if ((behavior & CommandBehavior.CloseConnection) != 0)
+				command.Connection.Close();
 		}
 
 		public override SysDataTable GetSchemaTable() {
@@ -425,12 +446,23 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override bool NextResult() {
+			if ((behavior & CommandBehavior.SingleResult) != 0)
+				return false;
+
 			return command.NextResult();
 		}
 
 		/// <inheritdoc/>
 		public override bool Read() {
-			return command.ResultSet.Next();
+			if (wasRead && ((behavior & CommandBehavior.SingleRow)) != 0)
+				return false;
+
+			if (command.ResultSet.Next()) {
+				wasRead = true;
+				return true;
+			}
+
+			return false;
 		}
 
 		/// <inheritdoc/>
