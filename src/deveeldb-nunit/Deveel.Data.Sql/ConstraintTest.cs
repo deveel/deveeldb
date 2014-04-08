@@ -9,21 +9,75 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class ConstraintTest : SqlTestBase {
-		private bool HasImportedKey(string tableName, string constraintName) {
-			var schema = Connection.GetSchema(DeveelDbMetadataSchemaNames.ImportedKeys, new string[]{"", "APP", tableName});
-			return (schema.Rows.Cast<DataRow>().Select(row => row["FK_NAME"])).Any(name => name != null && name.ToString() == constraintName);
+		private FKeyInfo GetImportedKey(string tableName, string constraintName) {
+			return GetKeyInfo(tableName, DeveelDbMetadataSchemaNames.ImportedKeys, constraintName);
 		}
 
-		private bool HasExportedKey(string tableName, string constraintName) {
-			var schema = Connection.GetSchema(DeveelDbMetadataSchemaNames.ExportedKeys, new string[] { "", "APP", tableName });
-			return (schema.Rows.Cast<DataRow>().Select(row => row["FK_NAME"])).Any(name => name != null && name.ToString() == constraintName);			
+		private FKeyInfo GetExportedKey(string tableName, string constraintName) {
+			return GetKeyInfo(tableName, DeveelDbMetadataSchemaNames.ExportedKeys, constraintName);
+		}
+
+		private FKeyInfo GetKeyInfo(string tableName, string collationName, string constraintName) {
+			var schema = Connection.GetSchema(collationName, new string[] {"", "APP", tableName});
+			if (schema.Rows.Count == 0)
+				return null;
+
+			return (schema.Rows.Cast<DataRow>().Where(row => row["FK_NAME"].ToString() == constraintName)
+				.Select(FormFKeyInfo))
+				.FirstOrDefault();
+		}
+
+		private FKeyInfo FormFKeyInfo(DataRow row) {
+			return new FKeyInfo {
+				Name = row["FK_NAME"].ToString(),
+				PrimaryTable = row["PKTABLE_NAME"].ToString(),
+				PrimaryColumn = row["PKCOLUMN_NAME"].ToString(),
+				ReferenceTable = row["FKTABLE_NAME"].ToString(),
+				ReferenceColumn = row["FKCOLUMN_NAME"].ToString(),
+				DeleteRule = (FKeyRule) row["DELETE_RULE"],
+				UpdateRule = (FKeyRule) row["UPDATE_RULE"]
+			};
 		}
 
 		[Test]
 		public void AddForeignKey() {
-			ExecuteNonQuery("ALTER TABLE ListensTo ADD CONSTRAINT ListensTo_People_FK FOREIGN KEY (person_name) REFERENCES Person(name) ON DELETE CASCADE");
-			Assert.IsTrue(HasExportedKey("Person", "ListensTo_People_FK"));
-			Assert.IsTrue(HasImportedKey("ListensTo", "ListensTo_People_FK"));
+			ExecuteNonQuery(
+				"ALTER TABLE ListensTo ADD CONSTRAINT ListensTo_People_FK FOREIGN KEY (person_name) REFERENCES Person(name) ON DELETE CASCADE");
+
+			var exportedKey = GetExportedKey("Person", "ListensTo_People_FK");
+			Assert.IsNotNull(exportedKey);
+			Assert.AreEqual("Person", exportedKey.PrimaryTable);
+			Assert.AreEqual("name", exportedKey.PrimaryColumn);
+			Assert.AreEqual("ListensTo", exportedKey.ReferenceTable);
+			Assert.AreEqual("person_name", exportedKey.ReferenceColumn);
+			Assert.AreEqual(FKeyRule.Cascade, exportedKey.DeleteRule);
+
+			var importedKey = GetImportedKey("ListensTo", "ListensTo_People_FK");
+			Assert.IsNotNull(importedKey);
+		}
+
+		private class FKeyInfo {
+			public string Name { get; set; }
+
+			public string PrimaryTable { get; set; }
+
+			public string ReferenceTable { get; set; }
+
+			public string PrimaryColumn { get; set; }
+
+			public string ReferenceColumn { get; set; }
+
+			public FKeyRule DeleteRule { get; set; }
+
+			public FKeyRule UpdateRule { get; set; }
+		}
+
+		private enum FKeyRule {
+			Cascade = 0,
+			Restrict = 1,
+			SetNull = 2,
+			NoAction = 3,
+			SetDefault = 4
 		}
 	}
 }
