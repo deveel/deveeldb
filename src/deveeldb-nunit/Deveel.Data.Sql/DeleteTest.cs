@@ -19,7 +19,11 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql {
 	[TestFixture]
-	public sealed class DeleteTest : TestBase {
+	public sealed class DeleteTest : SqlTestBase {
+		protected override void OnCreateTables() {
+			base.OnCreateTables();
+		}
+
 		[Test]
 		public void DeleteAllRows() {
 		}

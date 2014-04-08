@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Security {
 	/// <summary>
@@ -29,10 +29,10 @@ namespace Deveel.Data.Security {
 		/// <summary>
 		/// The list of User objects that are currently connected to the database engine.
 		/// </summary>
-		private readonly ArrayList user_list;
+		private readonly List<User> user_list;
 
 		internal UserManager() {
-			user_list = new ArrayList();
+			user_list = new List<User>();
 		}
 
 		/// <summary>
@@ -41,11 +41,10 @@ namespace Deveel.Data.Security {
 		/// <param name="user"></param>
 		internal void OnUserLoggedIn(User user) {
 			lock (this) {
-				if (!user_list.Contains(user)) {
-					user_list.Add(user);
-				} else {
+				if (user_list.Contains(user))
 					throw new ApplicationException("UserManager already has this User instance logged in.");
-				}
+
+				user_list.Add(user);
 			}
 		}
 
@@ -78,7 +77,7 @@ namespace Deveel.Data.Security {
 		public User this[int n] {
 			get {
 				lock (this) {
-					return (User) user_list[n];
+					return user_list[n];
 				}
 			}
 		}

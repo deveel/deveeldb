@@ -383,7 +383,7 @@ namespace Deveel.Data.Client {
 			string schema = restrictions[1];
 			string table = restrictions[2];
 
-			SysDataTable dataTable = new SysDataTable("ImportedKey");
+			var dataTable = new SysDataTable("ImportedKey");
 			dataTable.Columns.Add("PKTABLE_CATALOG");
 			dataTable.Columns.Add("PKTABLE_SCHEMA");
 			dataTable.Columns.Add("PKTABLE_NAME");
@@ -410,23 +410,27 @@ namespace Deveel.Data.Client {
 
 			command.Prepare();
 
-			using(DeveelDbDataReader reader = command.ExecuteReader()) {
-				//TODO: check ...
-				dataTable.Load(reader);
-				/*
-				while (reader.Read()) {
-					DataRow row = dataTable.NewRow();
-					row["PKTABLE_CATALOG"] = reader.CreateString(0);
-					row["PKTABLE_SCHEMA"] = reader.CreateString(1);
-					row["PKTABLE_NAME"] = reader.CreateString(2);
-					row["PKCOLUMN_NAME"] = reader.CreateString(3);
-					row["FKTABLE_CATALOG"] = reader.CreateString(4);
-					row["FKTABLE_SCHEMA"] = reader.CreateString(5);
-					row["FKTABLE_NAME"] = reader.CreateString(6);
-					row["FKCOLUMN_NAME"] = reader.CreateString(7);
-					dataTable.Rows.Add(row);
+			using (DeveelDbDataReader reader = command.ExecuteReader()) {
+				if (reader.HasRows) {
+					while (reader.Read()) {
+						var row = dataTable.NewRow();
+						row["PKTABLE_CATALOG"] = reader.GetString(0);
+						row["PKTABLE_SCHEMA"] = reader.GetString(1);
+						row["PKTABLE_NAME"] = reader.GetString(2);
+						row["PKCOLUMN_NAME"] = reader.GetString(3);
+						row["FKTABLE_CATALOG"] = reader.GetString(4);
+						row["FKTABLE_SCHEMA"] = reader.GetString(5);
+						row["FKTABLE_NAME"] = reader.GetString(6);
+						row["FKCOLUMN_NAME"] = reader.GetString(7);
+						row["KEY_SEQ"] = reader.GetInt32(8);
+						row["UPDATE_RULE"] = reader.GetInt32(9);
+						row["DELETE_RULE"] = reader.GetInt32(10);
+						row["FK_NAME"] = reader.GetString(11);
+						row["PK_NAME"] = reader.GetString(12);
+						row["DEFERRABILITY"] = reader.GetInt32(13);
+						dataTable.Rows.Add(row);
+					}
 				}
-				*/
 			}
 
 			return dataTable;
@@ -470,8 +474,26 @@ namespace Deveel.Data.Client {
 			command.Prepare();
 
 			using (DeveelDbDataReader reader = command.ExecuteReader()) {
-				//TODO: check ...
-				dataTable.Load(reader);
+				if (reader.HasRows) {
+					while (reader.Read()) {
+						var row = dataTable.NewRow();
+						row["PKTABLE_CATALOG"] = reader.GetString(0);
+						row["PKTABLE_SCHEMA"] = reader.GetString(1);
+						row["PKTABLE_NAME"] = reader.GetString(2);
+						row["PKCOLUMN_NAME"] = reader.GetString(3);
+						row["FKTABLE_CATALOG"] = reader.GetString(4);
+						row["FKTABLE_SCHEMA"] = reader.GetString(5);
+						row["FKTABLE_NAME"] = reader.GetString(6);
+						row["FKCOLUMN_NAME"] = reader.GetString(7);
+						row["KEY_SEQ"] = reader.GetInt32(8);
+						row["UPDATE_RULE"] = reader.GetInt32(9);
+						row["DELETE_RULE"] = reader.GetInt32(10);
+						row["FK_NAME"] = reader.GetString(11);
+						row["PK_NAME"] = reader.GetString(12);
+						row["DEFERRABILITY"] = reader.GetInt32(13);
+						dataTable.Rows.Add(row);
+					}
+				}
 			}
 
 			return dataTable;

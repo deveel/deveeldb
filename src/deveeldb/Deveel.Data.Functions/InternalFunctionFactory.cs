@@ -64,26 +64,34 @@ namespace Deveel.Data.Functions {
 			public override TObject Evaluate(IGroupResolver group, IVariableResolver resolver, IQueryContext context) {
 				// The parameter should be a variable reference that is resolved
 				TObject ob = this[0].Evaluate(group, resolver, context);
-				String str = null;
-				if (!ob.IsNull) {
-					str = ob.Object.ToString();
+
+				if (ob.TType is TStringType) {
+					String str = null;
+					if (!ob.IsNull) {
+						str = ob.Object.ToString();
+					}
+					int v;
+					if (str == null || str.Equals("") || str.Equals("NO ACTION")) {
+						v = ImportedKey.NoAction;
+					} else if (str.Equals("CASCADE")) {
+						v = ImportedKey.Cascade;
+					} else if (str.Equals("SET NULL")) {
+						v = ImportedKey.SetNull;
+					} else if (str.Equals("SET DEFAULT")) {
+						v = ImportedKey.SetDefault;
+					} else if (str.Equals("RESTRICT")) {
+						v = ImportedKey.Restrict;
+					} else {
+						throw new ApplicationException("Unrecognised foreign key rule: " + str);
+					}
+
+									// Return the correct enumeration
+					return TObject.CreateInt4(v);
 				}
-				int v;
-				if (str == null || str.Equals("") || str.Equals("NO ACTION")) {
-					v = ImportedKey.NoAction;
-				} else if (str.Equals("CASCADE")) {
-					v = ImportedKey.Cascade;
-				} else if (str.Equals("SET NULL")) {
-					v = ImportedKey.SetNull;
-				} else if (str.Equals("SET DEFAULT")) {
-					v = ImportedKey.SetDefault;
-				} else if (str.Equals("RESTRICT")) {
-					v = ImportedKey.Restrict;
-				} else {
-					throw new ApplicationException("Unrecognised foreign key rule: " + str);
-				}
-				// Return the correct enumeration
-				return TObject.CreateInt4(v);
+				if (ob.TType is TNumericType)
+					return ob;
+
+				throw new ApplicationException("Unsupported type in function argument");
 			}
 
 		}
