@@ -99,57 +99,6 @@
     <Compile Include="Deveel.Data.DbSystem\IDatabase.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabaseContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
-    <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\ColumnConstraintAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\ColumnConstraints.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\ForeignKeyAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\FunctionAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\INamedConstraint.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\MappingContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\MemberTypes.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\NotNullAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\PrimaryKeyAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\TableAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\TypeAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\TypeAttributeMapping.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\TypeMapping.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\TypeMemberMapping.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Mapping\UniqueAttribute.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Deveel.Data.Protocol\ColumnDescription.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -567,18 +516,10 @@
     <Compile Include="Deveel.Data.DbSystem\TriggerType.cs" />
     <Compile Include="Deveel.Data.Types\TStringType.cs" />
     <Compile Include="Deveel.Data.Types\TType.cs" />
-    <Compile Include="Deveel.Data.Types\TUserDefinedType.cs" />
     <Compile Include="Deveel.Data\TypeUtil.cs" />
-    <Compile Include="Deveel.Data.Types\TypesManager.cs" />
     <Compile Include="Deveel.Data.Security\User.cs" />
     <Compile Include="Deveel.Data.Security\UserAccessException.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
-    <Compile Include="Deveel.Data.Types\UserObject.cs" />
-    <Compile Include="Deveel.Data.Types\UserType.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Deveel.Data.Types\UserTypeAttribute.cs" />
-    <Compile Include="Deveel.Data.Types\UserTypeAttributes.cs" />
     <Compile Include="Deveel.Data.DbSystem\V2MasterTableDataSource.cs" />
     <Compile Include="Deveel.Data\Variable.cs" />
     <Compile Include="Deveel.Data\VariableName.cs" />

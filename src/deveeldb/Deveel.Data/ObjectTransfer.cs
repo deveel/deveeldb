@@ -59,9 +59,11 @@ namespace Deveel.Data {
 				return ((ByteLongObject) ob).Length + 9;
 			if (ob is StreamableObject)
 				return 5 + 9;
+			/*
 			//TODO: be more accurate...
 			if (ob is UserObject)
 				return 1000 + 9;
+			*/
 
 			throw new IOException("Unrecognised type: " + ob.GetType());
 		}
@@ -102,6 +104,7 @@ namespace Deveel.Data {
 				return ((ByteLongObject)ob).Length + 1 + 8;
 			if (ob is StreamableObject)
 				return 1 + 1 + 4;
+			/*
 			if (ob is UserObject) {
 				UserObject udt = (UserObject) ob;
 				int size = 1 + 4;
@@ -112,7 +115,8 @@ namespace Deveel.Data {
 
 				return size;
 			}
-			
+			*/
+
 			throw new IOException("Unrecognised type: " + ob.GetType());
 		}
 
@@ -193,14 +197,17 @@ namespace Deveel.Data {
 				output.Write((byte)ob_head.Type);
 				output.Write(ob_head.Size);
 				output.Write(ob_head.Identifier);
-			} else if (ob is UserObject) {
+			} 
+			/* else if (ob is UserObject) {
 				UserObject ob_comp = (UserObject)ob;
 				output.Write((byte)32);
 
 				foreach (object value in ob_comp.Values) {
 					WriteTo(output, value);
 				}
-			} else {
+			} 
+			*/
+			else {
 				throw new IOException("Unrecognised type: " + ob.GetType());
 			}
 		}
@@ -303,6 +310,7 @@ namespace Deveel.Data {
 					long val = input.ReadInt32();
 					return (BigNumber) val;
 				}
+					/*
 				case (32): {
 					// a user-defined type structure is stored into the
 					// Type in the TType
@@ -326,10 +334,8 @@ namespace Deveel.Data {
 					}
 
 					return ob;
-					*/
-
-					throw new NotImplementedException();
 				}
+				*/
 
 				default:
 					throw new IOException("Unrecognised type: " + type);

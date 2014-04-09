@@ -48,7 +48,7 @@ namespace Deveel.Data.DbSystem {
 			if (name.ToUpper().Equals("ERROR_ON_DIRTY_SELECT")) {
 				errorOnDirtySelect = ToBooleanValue(exp);
 			} else if (name.ToUpper().Equals("CASE_INSENSITIVE_IDENTIFIERS")) {
-				caseInsensitiveIdentifiers = ToBooleanValue(exp);
+				IsInCaseInsensitiveMode = ToBooleanValue(exp);
 			} else {
 				Transaction.Variables.SetVariable(name, exp, context);
 			}

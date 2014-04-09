@@ -564,35 +564,6 @@ namespace Deveel.Data.Transactions {
 			cursors = null;
 		}
 
-		// ----------- UDT Management --------------------
-
-		public void CreateUserType(UserType userType) {
-			TableName typeName = userType.Name;
-			if (UserTypeExists(typeName))
-				throw new InvalidOperationException("The type " + typeName + " already exists.");
-
-			TypesManager.CreateType(this, userType);
-
-			OnDatabaseObjectCreated(typeName);
-		}
-
-		public void DropUserType(TableName typeName) {
-			if (!UserTypeExists(typeName))
-				throw new InvalidOperationException("The type '" + typeName + "' was not found.");
-
-			TypesManager.DropType(this, typeName);
-
-			OnDatabaseObjectDropped(typeName);
-		}
-
-		public TUserDefinedType GetUserType(TableName typeName) {
-			return TypesManager.GetUserTypeDef(this, typeName);
-		}
-
-		public bool UserTypeExists(TableName typeName) {
-			return TypesManager.TypeExists(this, typeName);
-		}
-
 
 		// ---------- Transaction inner classes ----------
 

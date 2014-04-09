@@ -163,7 +163,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// The <see cref="TypesManager"/> object for this conglomerate.
 		/// </summary>
-		private readonly TypesManager typesManager;
+		// private readonly TypesManager typesManager;
 
 
 		// ---------- Locks ----------
@@ -192,7 +192,7 @@ namespace Deveel.Data.DbSystem {
 			namespaceJournalList = new List<NameSpaceJournal>();
 
 			sequenceManager = new SequenceManager(this);
-			typesManager = new TypesManager(this);
+			// typesManager = new TypesManager(this);
 
 		}
 
@@ -218,10 +218,11 @@ namespace Deveel.Data.DbSystem {
 			get { return sequenceManager; }
 		}
 
+		/*
 		internal TypesManager TypesManager {
 			get { return typesManager; }
 		}
-
+		*/
 
 		/// <summary>
 		/// Returns the BlobStore for this conglomerate.

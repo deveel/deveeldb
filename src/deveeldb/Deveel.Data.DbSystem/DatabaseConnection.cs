@@ -35,26 +35,11 @@ namespace Deveel.Data.DbSystem {
 	/// </remarks>
 	public sealed partial class DatabaseConnection : IDisposable {
 		/// <summary>
-		/// The User that this connection has been made by.
-		/// </summary>
-		private User user;
-
-		/// <summary>
-		/// The Database object that this connection is on.
-		/// </summary>
-		private readonly Database database;
-
-		/// <summary>
 		///  A loop-back object that is managing this connection.  This typically is
 		/// the session protocol.  This is notified of all connection events, such as
 		/// triggers.
 		/// </summary>
 		private readonly TriggerCallback triggerCallback;
-
-		/// <summary>
-		/// The locking mechanism within this connection.
-		/// </summary>
-		private readonly LockingMechanism lockingMechanism;
 
 		/// <summary>
 		/// The <see cref="TableDataConglomerate"/> object that is used for 
@@ -72,13 +57,6 @@ namespace Deveel.Data.DbSystem {
 		/// to access the transaction internally.
 		/// </summary>
 		private IDbConnection dbConnection;
-
-		/// <summary>
-		/// If this is true then the database connection is in 'auto-commit' mode.
-		/// This implies a COMMIT instruction is executed after every complete
-		/// statement in the language grammar.  By default this is true.
-		/// </summary>
-		private bool autoCommit;
 
 		/// <summary>
 		/// The current transaction isolation level this connect is operating under.
@@ -112,11 +90,6 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		private readonly ConnectionInternalTableInfo connectionInternalTableInfo;
 
-		/// <summary>
-		/// The <see cref="ILogger"/> object that we can use to log messages to.
-		/// </summary>
-		private readonly Logger logger;
-
 		// ----- Local flags -----
 
 		/// <summary>
@@ -125,21 +98,16 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		private bool errorOnDirtySelect;
 
-		/// <summary>
-		/// True if this connection resolves identifiers case insensitive.
-		/// </summary>
-		private bool caseInsensitiveIdentifiers;
-
 		internal DatabaseConnection(Database database, User user, TriggerCallback triggerCallback) {
-			this.database = database;
-			this.user = user;
+			this.Database = database;
+			this.User = user;
 			this.triggerCallback = triggerCallback;
-			logger = database.Logger;
+			Logger = database.Logger;
 			conglomerate = database.Conglomerate;
-			lockingMechanism = new LockingMechanism(logger);
+			LockingMechanism = new LockingMechanism(Logger);
 			triggerEventBuffer = new List<TriggerEventArgs>();
 			triggerEventList = new List<TriggerEventArgs>();
-			autoCommit = true;
+			AutoCommit = true;
 
 			currentSchema = Database.DefaultSchema;
 			closeTransactionDisabled = false;
@@ -150,7 +118,7 @@ namespace Deveel.Data.DbSystem {
 			oldNewTableInfo = new OldAndNewInternalTableInfo(this);
 
 			errorOnDirtySelect = database.Context.TransactionErrorOnDirtySelect;
-			caseInsensitiveIdentifiers = database.Context.IgnoreIdentifierCase;
+			IsInCaseInsensitiveMode = database.Context.IgnoreIdentifierCase;
 
 		}
 
@@ -194,42 +162,23 @@ namespace Deveel.Data.DbSystem {
 		/// Gets the database system object for this session.
 		/// </summary>
 		public DatabaseContext Context {
-			get { return database.Context; }
+			get { return Database.Context; }
 		}
 
 		/// <summary>
 		/// Gets the database object for this session.
 		/// </summary>
-		public Database Database {
-			get { return database; }
-		}
-
-		/// <summary>
-		/// Gets the conglomerate of this connection.
-		/// </summary>
-		internal TableDataConglomerate Conglomerate {
-			get { return conglomerate; }
-		}
+		public Database Database { get; private set; }
 
 		/// <summary>
 		/// Gets an object that can be used to log debug messages to.
 		/// </summary>
-		public Logger Logger {
-			get { return logger; }
-		}
+		public Logger Logger { get; private set; }
 
 		/// <summary>
 		/// Returns the user for this session.
 		/// </summary>
-		public User User {
-			get { return user; }
-			internal set {
-				// This is necessary because we may want to temporarily change the 
-				// user on this session to allow top level queries in a different 
-				// privilege space.
-				user = value;
-			}
-		}
+		public User User { get; private set; }
 
 		/// <summary>
 		/// Returns the GrantManager object that manages grants for tables in the
@@ -259,10 +208,7 @@ namespace Deveel.Data.DbSystem {
 		/// If this is <b>true</b> then the language layer must execute 
 		/// a <c>COMMIT</c> after every statement.
 		/// </remarks>
-		public bool AutoCommit {
-			get { return autoCommit; }
-			set { autoCommit = value; }
-		}
+		public bool AutoCommit { get; set; }
 
 		/// <summary>
 		/// Gets or sets a flag indicating if the session must ignore the case
@@ -272,17 +218,13 @@ namespace Deveel.Data.DbSystem {
 		/// In case insensitive mode the case of identifier strings is 
 		/// not important.
 		/// </remarks>
-		public bool IsInCaseInsensitiveMode {
-			get { return caseInsensitiveIdentifiers; }
-		}
+		public bool IsInCaseInsensitiveMode { get; private set; }
 
 		/// <summary>
 		/// Returns the locking mechanism within the context of the
 		/// database session used to manages read/write locking.
 		/// </summary>
-		public LockingMechanism LockingMechanism {
-			get { return lockingMechanism; }
-		}
+		public LockingMechanism LockingMechanism { get; private set; }
 
 		/// <summary>
 		/// Initializes this <see cref="DatabaseConnection"/> (possibly by initializing 
@@ -519,25 +461,6 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		// ---------- User-Defined Types management ----------
-
-		public TUserDefinedType GetUserType(TableName name) {
-			return Transaction.GetUserType(name);
-		}
-
-		public void CreateUserType(UserType type) {
-			Transaction.CreateUserType(type);
-		}
-
-		public void DropUserType(TableName name) {
-			Transaction.DropUserType(name);
-		}
-
-		public bool UserTypeExists(TableName name) {
-			return Transaction.UserTypeExists(name);
-		}
-
-
 		/// <summary>
 		/// Private method that disposes the current transaction.
 		/// </summary>
@@ -576,8 +499,8 @@ namespace Deveel.Data.DbSystem {
 			if (closeTransactionDisabled)
 				throw new Exception("Commit is not allowed.");
 
-			if (user != null)
-				user.RefreshLastCommandTime();
+			if (User != null)
+				User.RefreshLastCommandTime();
 
 			// NOTE, always connection exclusive op.
 			LockingMechanism.Reset();
@@ -618,8 +541,8 @@ namespace Deveel.Data.DbSystem {
 				throw new Exception("Rollback is not allowed.");
 			}
 
-			if (user != null) {
-				user.RefreshLastCommandTime();
+			if (User != null) {
+				User.RefreshLastCommandTime();
 			}
 
 			// NOTE, always connection exclusive op.

@@ -137,7 +137,7 @@ namespace Deveel.Data {
 		/// </summary>
 		private Logger logger;
 
-		private TypesManager typesManager;
+		// private TypesManager typesManager;
 
 
 		// ---------- Low level row listeners ----------
@@ -312,9 +312,11 @@ namespace Deveel.Data {
 			get { return functionLookup; }
 		}
 
+		/*
 		public TypesManager TypesManager {
 			get { return typesManager; }
 		}
+		*/
 
 		// ---------- System preparers ----------
 

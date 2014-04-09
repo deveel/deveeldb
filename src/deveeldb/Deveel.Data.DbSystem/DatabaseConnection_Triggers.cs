@@ -139,7 +139,7 @@ namespace Deveel.Data.DbSystem {
 			if (sz > 0) {
 				// Post an event that fires the triggers for each listener.
 				// Post the event to go off approx 3ms from now.
-				database.PostEvent(3, database.CreateEvent(delegate {
+				Database.PostEvent(3, Database.CreateEvent(delegate {
 					lock (triggerEventBuffer) {
 						// Fire all pending trigger events in buffer
 						foreach (TriggerEventArgs args in triggerEventBuffer) {
