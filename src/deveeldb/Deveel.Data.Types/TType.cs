@@ -484,7 +484,7 @@ namespace Deveel.Data.Types {
 		// -----
 
 		/// <summary>
-		/// Casts the given <see cref="Deveel.Data.DbSystem.Object"/> to the given type.
+		/// Casts the given <see cref="object"/> to the given type.
 		/// </summary>
 		/// <param name="ob"></param>
 		/// <param name="type"></param>
@@ -495,25 +495,23 @@ namespace Deveel.Data.Types {
 		/// <returns></returns>
 		public static Object CastObjectToTType(Object ob, TType type) {
 			// Handle the null case
-			if (ob == null) {
+			if (ob == null)
 				return null;
-			}
 
 			int size = -1;
 			int scale = -1;
-			SqlType sql_type = type.SqlType;
 
 			if (type is TStringType) {
 				size = ((TStringType) type).Size;
 			} else if (type is TNumericType) {
-				TNumericType num_type = (TNumericType)type;
-				size = num_type.Size;
-				scale = num_type.Scale;
+				TNumericType numType = (TNumericType)type;
+				size = numType.Size;
+				scale = numType.Scale;
 			} else if (type is TBinaryType) {
 				size = ((TBinaryType) type).Size;
 			}
 
-			ob = CastHelper.CastToSQLType(ob, type.SqlType, size, scale);
+			ob = CastHelper.CastToSqlType(ob, type.SqlType, size, scale);
 
 			return ob;
 		}

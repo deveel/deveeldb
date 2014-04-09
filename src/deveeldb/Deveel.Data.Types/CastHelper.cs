@@ -28,30 +28,30 @@ namespace Deveel.Data.Types {
 	/// type that is conformant to an SQL type.
 	/// </summary>
 	public static class CastHelper {
-		private static BigNumber BD_ZERO = 0L;
-		private static BigNumber BD_ONE = 1L;
+		private static readonly BigNumber BdZero = 0L;
+		private static readonly BigNumber BdOne = 1L;
 
-		private static readonly string[] date_format_sql;
-		private static readonly string[] time_format_sql;
-		private static readonly string[] ts_format_sql;
+		private static readonly string[] DateFormatSql;
+		private static readonly string[] TimeFormatSql;
+		private static readonly string[] TsFormatSql;
 
 		static CastHelper() {
 			// The SQL time/date formatters
-			date_format_sql = new string[1];
-			date_format_sql[0] = "yyyy-MM-dd";
+			DateFormatSql = new string[1];
+			DateFormatSql[0] = "yyyy-MM-dd";
 
 			//TODO: check this format on .NET ...
-			time_format_sql = new string[4];
-			time_format_sql[0] = "HH:mm:ss.fff z";
-			time_format_sql[1] = "HH:mm:ss.fff";
-			time_format_sql[2] = "HH:mm:ss z";
-			time_format_sql[3] = "HH:mm:ss";
+			TimeFormatSql = new string[4];
+			TimeFormatSql[0] = "HH:mm:ss.fff z";
+			TimeFormatSql[1] = "HH:mm:ss.fff";
+			TimeFormatSql[2] = "HH:mm:ss z";
+			TimeFormatSql[3] = "HH:mm:ss";
 
-			ts_format_sql = new string[4];
-			ts_format_sql[0] = "yyyy-MM-dd HH:mm:ss.fff z";
-			ts_format_sql[1] = "yyyy-MM-dd HH:mm:ss.fff";
-			ts_format_sql[2] = "yyyy-MM-dd HH:mm:ss z";
-			ts_format_sql[3] = "yyyy-MM-dd HH:mm:ss";
+			TsFormatSql = new string[4];
+			TsFormatSql[0] = "yyyy-MM-dd HH:mm:ss.fff z";
+			TsFormatSql[1] = "yyyy-MM-dd HH:mm:ss.fff";
+			TsFormatSql[2] = "yyyy-MM-dd HH:mm:ss z";
+			TsFormatSql[3] = "yyyy-MM-dd HH:mm:ss";
 		}
 
 
@@ -75,10 +75,10 @@ namespace Deveel.Data.Types {
 		/// <param name="d"></param>
 		/// <returns></returns>
 		private static String FormatDateAsString(DateTime d) {
-			lock (ts_format_sql) {
+			lock (TsFormatSql) {
 				// ISSUE: We have to assume the date is a time stamp because we don't
 				//   know if the date object represents an SQL DATE, TIMESTAMP or TIME.
-				return d.ToString(ts_format_sql[1], CultureInfo.InvariantCulture);
+				return d.ToString(TsFormatSql[1], CultureInfo.InvariantCulture);
 			}
 		}
 
@@ -127,7 +127,7 @@ namespace Deveel.Data.Types {
 			try {
 				return BigNumber.Parse(str);
 			} catch (Exception) {
-				return BD_ZERO;
+				return BdZero;
 			}
 		}
 
@@ -147,13 +147,13 @@ namespace Deveel.Data.Types {
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		public static DateTime ToDate(String str) {
-			lock (date_format_sql) {
-				try {
-					return DateTime.ParseExact(str, date_format_sql, CultureInfo.InvariantCulture, DateTimeStyles.None);
-				} catch (FormatException) {
-					throw new Exception(DateErrorString("Unable to parse string as a date ", date_format_sql));
-				}
+		public static DateTime ToDate(string str) {
+			lock (DateFormatSql) {
+				DateTime result;
+				if (!DateTime.TryParseExact(str, DateFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+					throw new Exception(DateErrorString("Unable to parse string as a date ", DateFormatSql));
+
+				return result;
 			}
 		}
 
@@ -163,11 +163,11 @@ namespace Deveel.Data.Types {
 		/// <param name="str"></param>
 		/// <returns></returns>
 		public static DateTime ToTime(String str) {
-			lock (time_format_sql) {
+			lock (TimeFormatSql) {
 				try {
-					return DateTime.ParseExact(str, time_format_sql, CultureInfo.InvariantCulture, DateTimeStyles.None);
+					return DateTime.ParseExact(str, TimeFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None);
 				} catch(FormatException) {
-					throw new Exception(DateErrorString("Unable to parse string as a time ", time_format_sql));
+					throw new Exception(DateErrorString("Unable to parse string as a time ", TimeFormatSql));
 				}
 			}
 		}
@@ -178,11 +178,11 @@ namespace Deveel.Data.Types {
 		/// <param name="str"></param>
 		/// <returns></returns>
 		public static DateTime ToTimeStamp(String str) {
-			lock (ts_format_sql) {
+			lock (TsFormatSql) {
 				try {
-					return DateTime.ParseExact(str, ts_format_sql, CultureInfo.InvariantCulture, DateTimeStyles.None);
+					return DateTime.ParseExact(str, TsFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None);
 				} catch (FormatException) {
-					throw new Exception(DateErrorString("Unable to parse string as a timestamp ", ts_format_sql));
+					throw new Exception(DateErrorString("Unable to parse string as a timestamp ", TsFormatSql));
 				}
 			}
 		}
@@ -193,9 +193,9 @@ namespace Deveel.Data.Types {
 		/// given <see cref="DataColumnInfo"/> object.
 		///</summary>
 		///<param name="ob">The <see cref="Object"/> to cast to the given type.</param>
-		///<param name="sql_type">The destination <see cref="SqlType">SQL type</see>.</param>
-		///<param name="sql_size">The size of the destination type.</param>
-		///<param name="sql_scale">The scale of the destination type.</param>
+		///<param name="sqlType">The destination <see cref="SqlType">SQL type</see>.</param>
+		///<param name="sqlSize">The size of the destination type.</param>
+		///<param name="sqlScale">The scale of the destination type.</param>
 		/// <remarks>
 		/// This is used for the following engine functions:
 		/// <list type="bullet">
@@ -214,23 +214,22 @@ namespace Deveel.Data.Types {
 		///<returns></returns>
 		///<exception cref="ApplicationException"></exception>
 		///<exception cref="Exception"></exception>
-		public static object CastToSQLType(object ob, SqlType sql_type, int sql_size, int sql_scale) {
-
+		public static object CastToSqlType(object ob, SqlType sqlType, int sqlSize, int sqlScale) {
 			// If the input object is a ByteLongObject and the output type is not a
 			// binary SQL type then we need to attempt to deserialize the object.
 			if (ob is ByteLongObject) {
-				if (sql_type != SqlType.Object &&
-					 sql_type != SqlType.Blob &&
-					 sql_type != SqlType.Binary &&
-					 sql_type != SqlType.VarBinary &&
-					 sql_type != SqlType.LongVarBinary) {
+				if (sqlType != SqlType.Object &&
+					 sqlType != SqlType.Blob &&
+					 sqlType != SqlType.Binary &&
+					 sqlType != SqlType.VarBinary &&
+					 sqlType != SqlType.LongVarBinary) {
 					// Attempt to deserialize it
 					try {
 						ob = ObjectTranslator.Deserialize((ByteLongObject)ob);
 					} catch (Exception) {
 						// Couldn't deserialize so it must be a standard blob which means
 						// we are in error.
-						throw new ApplicationException("Can't cast a BLOB to " + sql_type.ToString().ToUpper());
+						throw new ApplicationException("Can't cast a BLOB to " + sqlType.ToString().ToUpper());
 					}
 				} else {
 					// This is a ByteLongObject that is being cast to a binary type so
@@ -241,27 +240,27 @@ namespace Deveel.Data.Types {
 
 			// IBlobRef can be BINARY, OBJECT, VARBINARY or LONGVARBINARY
 			if (ob is IBlobRef) {
-				if (sql_type == SqlType.Binary ||
-					sql_type == SqlType.Blob ||
-					sql_type == SqlType.Object ||
-					sql_type == SqlType.VarBinary ||
-					sql_type == SqlType.LongVarBinary) {
+				if (sqlType == SqlType.Binary ||
+					sqlType == SqlType.Blob ||
+					sqlType == SqlType.Object ||
+					sqlType == SqlType.VarBinary ||
+					sqlType == SqlType.LongVarBinary) {
 					return ob;
 				}
 			}
 
 			// IClobRef can be VARCHAR, LONGVARCHAR, or CLOB
 			if (ob is IClobRef) {
-				if (sql_type == SqlType.VarChar ||
-					sql_type == SqlType.LongVarChar ||
-					sql_type == SqlType.Clob) {
+				if (sqlType == SqlType.VarChar ||
+					sqlType == SqlType.LongVarChar ||
+					sqlType == SqlType.Clob) {
 					return ob;
 				}
 			}
 
 			// Cast from NULL
 			if (ob == null) {
-				switch (sql_type) {
+				switch (sqlType) {
 					case (SqlType.Bit):
 					// fall through
 					case (SqlType.TinyInt):
@@ -315,14 +314,71 @@ namespace Deveel.Data.Types {
 					case (SqlType.Boolean):
 						return null;
 					default:
-						throw new ApplicationException("Can't cast NULL to " + sql_type.ToString().ToUpper());
+						throw new ApplicationException("Can't cast NULL to " + sqlType.ToString().ToUpper());
 				}
 			}
+
+			// Cast from a string
+			if (ob is StringObject || ob is string) {
+				String str = ob.ToString();
+				switch (sqlType) {
+					case (SqlType.Bit):
+						return String.Compare(str, "true", System.StringComparison.OrdinalIgnoreCase) == 0;
+					case (SqlType.TinyInt):
+					// fall through
+					case (SqlType.SmallInt):
+					// fall through
+					case (SqlType.Integer):
+						return (BigNumber)ToBigNumber(str).ToInt32();
+					case (SqlType.BigInt):
+						return (BigNumber)ToBigNumber(str).ToInt64();
+					case (SqlType.Float):
+						return BigNumber.Parse(Convert.ToString(ToBigNumber(str).ToDouble()));
+					case (SqlType.Real):
+						return ToBigNumber(str);
+					case (SqlType.Double):
+						return BigNumber.Parse(Convert.ToString(ToBigNumber(str).ToDouble()));
+					case (SqlType.Numeric):
+					// fall through
+					case (SqlType.Decimal):
+						return ToBigNumber(str);
+					case (SqlType.Char):
+						return StringObject.FromString(PaddedString(str, sqlSize));
+					case (SqlType.VarChar):
+						return StringObject.FromString(str);
+					case (SqlType.LongVarChar):
+						return StringObject.FromString(str);
+					case (SqlType.Date):
+						return ToDate(str);
+					case (SqlType.Time):
+						return ToTime(str);
+					case (SqlType.TimeStamp):
+						return ToTimeStamp(str);
+					case (SqlType.Blob):
+					// fall through
+					case (SqlType.Binary):
+					// fall through
+					case (SqlType.VarBinary):
+					// fall through
+					case (SqlType.LongVarBinary):
+						return new ByteLongObject(Encoding.Unicode.GetBytes(str));
+					case (SqlType.Null):
+						return null;
+					case (SqlType.Object):
+						return ToObject(str);
+					case (SqlType.Boolean):
+						return String.Compare(str, "true", StringComparison.OrdinalIgnoreCase) == 0;
+					case (SqlType.Clob):
+						return StringObject.FromString(str);
+					default:
+						throw new ApplicationException("Can't cast string to " + sqlType.ToString().ToUpper());
+				}
+			}  // if (ob is String)
 
 			// Cast from a convertible type (generally numbers)
 			if (ob is IConvertible) {
 				IConvertible n = (IConvertible)ob;
-				switch (sql_type) {
+				switch (sqlType) {
 					case (SqlType.Bit):
 					case (SqlType.Boolean):
 						return n.ToBoolean(null);
@@ -350,7 +406,7 @@ namespace Deveel.Data.Types {
 					case (SqlType.Decimal):
 						return BigNumber.Parse(n.ToString());
 					case (SqlType.Char):
-						return StringObject.FromString(PaddedString(n.ToString(), sql_size));
+						return StringObject.FromString(PaddedString(n.ToString(), sqlSize));
 					case (SqlType.VarChar):
 						return StringObject.FromString(n.ToString());
 					case (SqlType.LongVarChar):
@@ -372,7 +428,7 @@ namespace Deveel.Data.Types {
 					case (SqlType.Object):
 						return ToObject(ob);
 					default:
-						throw new ApplicationException("Can't cast number to " + sql_type.ToString().ToUpper());
+						throw new ApplicationException("Can't cast number to " + sqlType.ToString().ToUpper());
 				}
 			}  // if (ob is Number)
 
@@ -436,71 +492,11 @@ namespace Deveel.Data.Types {
 			}  // if (ob is Number)
 			*/
 
-			// Cast from a string
-			if (ob is StringObject || ob is String) {
-				String str = ob.ToString();
-				switch (sql_type) {
-					case (SqlType.Bit):
-						return String.Compare(str, "true", true) == 0 ? true : false;
-					case (SqlType.TinyInt):
-					// fall through
-					case (SqlType.SmallInt):
-					// fall through
-					case (SqlType.Integer):
-						//          return new BigDecimal(toBigDecimal(str).intValue());
-						return (BigNumber)ToBigNumber(str).ToInt32();
-					case (SqlType.BigInt):
-						//          return new BigDecimal(toBigDecimal(str).longValue());
-						return (BigNumber)ToBigNumber(str).ToInt64();
-					case (SqlType.Float):
-						return BigNumber.Parse(
-									  Convert.ToString(ToBigNumber(str).ToDouble()));
-					case (SqlType.Real):
-						return ToBigNumber(str);
-					case (SqlType.Double):
-						return BigNumber.Parse(
-									  Convert.ToString(ToBigNumber(str).ToDouble()));
-					case (SqlType.Numeric):
-					// fall through
-					case (SqlType.Decimal):
-						return ToBigNumber(str);
-					case (SqlType.Char):
-						return StringObject.FromString(PaddedString(str, sql_size));
-					case (SqlType.VarChar):
-						return StringObject.FromString(str);
-					case (SqlType.LongVarChar):
-						return StringObject.FromString(str);
-					case (SqlType.Date):
-						return ToDate(str);
-					case (SqlType.Time):
-						return ToTime(str);
-					case (SqlType.TimeStamp):
-						return ToTimeStamp(str);
-					case (SqlType.Blob):
-					// fall through
-					case (SqlType.Binary):
-					// fall through
-					case (SqlType.VarBinary):
-					// fall through
-					case (SqlType.LongVarBinary):
-						return new ByteLongObject(Encoding.Unicode.GetBytes(str));
-					case (SqlType.Null):
-						return null;
-					case (SqlType.Object):
-						return ToObject(str);
-					case (SqlType.Boolean):
-						return String.Compare(str, "true", true) == 0 ? true : false;
-					case (SqlType.Clob):
-						return StringObject.FromString(str);
-					default:
-						throw new ApplicationException("Can't cast string to " + sql_type.ToString().ToUpper());
-				}
-			}  // if (ob is String)
 
 			// Cast from a boolean
 			if (ob is Boolean) {
 				Boolean b = (Boolean)ob;
-				switch (sql_type) {
+				switch (sqlType) {
 					case (SqlType.Bit):
 						return b;
 					case (SqlType.TinyInt):
@@ -520,9 +516,9 @@ namespace Deveel.Data.Types {
 					case (SqlType.Numeric):
 					// fall through
 					case (SqlType.Decimal):
-						return b ? BD_ONE : BD_ZERO;
+						return b ? BdOne : BdZero;
 					case (SqlType.Char):
-						return StringObject.FromString(PaddedString(b.ToString(), sql_size));
+						return StringObject.FromString(PaddedString(b.ToString(), sqlSize));
 					case (SqlType.VarChar):
 						return StringObject.FromString(b.ToString());
 					case (SqlType.LongVarChar):
@@ -534,14 +530,14 @@ namespace Deveel.Data.Types {
 					case (SqlType.Boolean):
 						return b;
 					default:
-						throw new ApplicationException("Can't cast boolean to " + sql_type.ToString().ToUpper());
+						throw new ApplicationException("Can't cast boolean to " + sqlType.ToString().ToUpper());
 				}
 			}  // if (ob is Boolean)
 
 			// Cast from a date
 			if (ob is DateTime) {
 				DateTime d = (DateTime)ob;
-				switch (sql_type) {
+				switch (sqlType) {
 					case (SqlType.TinyInt):
 					// fall through
 					case (SqlType.SmallInt):
@@ -561,7 +557,7 @@ namespace Deveel.Data.Types {
 					case (SqlType.Decimal):
 						return (BigNumber)d.Ticks;
 					case (SqlType.Char):
-						return StringObject.FromString(PaddedString(FormatDateAsString(d), sql_size));
+						return StringObject.FromString(PaddedString(FormatDateAsString(d), sqlSize));
 					case (SqlType.VarChar):
 						return StringObject.FromString(FormatDateAsString(d));
 					case (SqlType.LongVarChar):
@@ -577,13 +573,13 @@ namespace Deveel.Data.Types {
 					case (SqlType.Object):
 						return ToObject(ob);
 					default:
-						throw new ApplicationException("Can't cast date to " + sql_type.ToString().ToUpper());
+						throw new ApplicationException("Can't cast date to " + sqlType.ToString().ToUpper());
 				}
 			}  // if (ob is Date)
 
 			// Some obscure types
 			if (ob is byte[]) {
-				switch (sql_type) {
+				switch (sqlType) {
 					case (SqlType.Blob):
 					// fall through
 					case (SqlType.Binary):
@@ -593,17 +589,17 @@ namespace Deveel.Data.Types {
 					case (SqlType.LongVarBinary):
 						return new ByteLongObject((byte[])ob);
 					default:
-						throw new ApplicationException("Can't cast byte[] to " + sql_type.ToString().ToUpper());
+						throw new ApplicationException("Can't cast byte[] to " + sqlType.ToString().ToUpper());
 				}
 			}
 
 			// Finally, the object can only be something that we can cast to a
 			// OBJECT.
-			if (sql_type == SqlType.Object) {
+			if (sqlType == SqlType.Object) {
 				return ToObject(ob);
 			}
 
-			throw new Exception("Can't cast object " + ob.GetType() + " to " + sql_type.ToString().ToUpper());
+			throw new Exception("Can't cast object " + ob.GetType() + " to " + sqlType.ToString().ToUpper());
 
 		}
 

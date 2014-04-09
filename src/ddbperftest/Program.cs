@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 using Deveel.Data.Client;
@@ -30,12 +28,19 @@ namespace ddbperftest {
 				WarmUp(connection);
 
 				Console.Out.WriteLine("Running tests");
-				RunInsert(connection, 5000);
+				using (var tnx = connection.BeginTransaction()) {
+					RunInsert(connection, tnx, 5000);
+					tnx.Commit();
+				}
+
+				Console.Out.WriteLine();
+
 				RunQuery(connection, 500);
 			} catch (Exception e) {
 				Console.Error.WriteLine("An error occurred while executing tests: {0}", e.Message);
 				Console.Error.WriteLine(e.StackTrace);
 			} finally {
+				CleanUp(connection);
 				connection.Close();
 			}
 
@@ -56,7 +61,7 @@ namespace ddbperftest {
 		}
 
 		private static void WarmUp(DeveelDbConnection connection) {
-			var command = connection.CreateCommand("CREATE TABLE TestData (id INTEGER NOT NULL, data VARCHAR NOT NULL, d DATE)");
+			var command = connection.CreateCommand("CREATE TABLE TestData (id INTEGER NOT NULL, data VARCHAR NOT NULL, d TIMESTAMP)");
 			command.ExecuteNonQuery();
 		}
 
@@ -65,7 +70,7 @@ namespace ddbperftest {
 			command.ExecuteNonQuery();
 		}
 
-		private static void RunInsert(DeveelDbConnection connection, int total) {
+		private static void RunInsert(DeveelDbConnection connection, DeveelDbTransaction transaction, int total) {
 			Console.Out.WriteLine("Inserting {0} entries", total);
 
 			DateTime start = DateTime.Now;
@@ -76,11 +81,19 @@ namespace ddbperftest {
 				sb.Append(")");
 
 				var command = connection.CreateCommand(sb.ToString());
+				command.Transaction = transaction;
 				command.ExecuteNonQuery();
+
+				var perc = i == 0 ? 0.0 : ((double) i/total)*100;
+				Console.Out.Write("\r  {0} ({1}%)", i, perc);
 			}
 
+			Console.Out.Write("\r  {0} (100%)", total);
+			Console.Out.WriteLine();
+
 			TimeSpan elapsed = DateTime.Now.Subtract(start);
-			Console.Out.WriteLine("The test inserted {0} in {1:c}", total, elapsed);
+			TimeSpan avgPerOp = new TimeSpan(elapsed.Ticks / total);
+			Console.Out.WriteLine("The test inserted {0} in {1} ({2} per op)", total, elapsed, avgPerOp);
 		}
 
 		private static void RunQuery(DeveelDbConnection connection, int total) {
@@ -94,10 +107,17 @@ namespace ddbperftest {
 				using (var reader = command.ExecuteReader()) {
 					reader.Read();
 				}
+
+				var perc = i == 0 ? 0.0 : ((double)i / total) * 100;
+				Console.Out.Write("\r  {0} ({1}%)", i, perc);
 			}
 
+			Console.Out.Write("\r  {0} (100%)", total);
+			Console.Out.WriteLine();
+
 			TimeSpan elapsed = DateTime.Now.Subtract(start);
-			Console.Out.WriteLine("The test selected {0} in {1:c}", total, elapsed);
+			TimeSpan avgPerOp = new TimeSpan(elapsed.Ticks / total);
+			Console.Out.WriteLine("The test selected {0} in {1} ({2} per op)", total, elapsed, avgPerOp);
 		}
 	}
 }

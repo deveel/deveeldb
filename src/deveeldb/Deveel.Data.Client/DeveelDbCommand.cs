@@ -454,7 +454,7 @@ namespace Deveel.Data.Client {
 							}
 						}
 					} else {
-						query.SetVariable(j, CastHelper.CastToSQLType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
+						query.SetVariable(j, CastHelper.CastToSqlType(parameter.Value, parameter.SqlType, parameter.Size, parameter.Scale));
 					}
 				}
 			}

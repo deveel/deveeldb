@@ -38,5 +38,12 @@ namespace Deveel.Data {
 		public void BigNumberEqual() {
 			
 		}
+
+		[TestCase("1980-10-06")]
+		public void DateCast(string date) {
+			TObject obj = TObject.CreateAndCastFromObject(TType.GetDateType(SqlType.Date), date);
+			Assert.IsNotNull(obj);
+			Assert.AreEqual(obj.TType.SqlType, SqlType.Date);
+		}
 	}
 }
