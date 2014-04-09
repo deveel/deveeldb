@@ -83,7 +83,8 @@ namespace Deveel.Data.Sql {
 						statementTreeList = SqlParser.StatementList();
 					}
 				} catch (ParseException e) {
-					throw new SqlParseException(e, commandText);
+					var tokens = SqlParser.token_source.tokenHistory;
+					throw new SqlParseException(e, commandText, tokens);
 				}
 
 				// Put the statement tree in the cache

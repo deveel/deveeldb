@@ -11,6 +11,11 @@ using Text;
 using Types;
 
 internal  class SQLTokenManager : SQLConstants {
+        public List<Token> tokenHistory = new List<Token>();
+
+        void CommonTokenAction(Token token) {
+                tokenHistory.Add(token);
+        }
   public  System.IO.TextWriter debugStream = Console.Out;
   public  void SetDebugStream(System.IO.TextWriter ds) { debugStream = ds; }
 private int mccStopAtPos(int pos, int kind)
@@ -4409,6 +4414,7 @@ for (;;) {
    } catch(System.IO.IOException) {
       mccmatchedKind = 0;
       matchedToken = mccFillToken();
+      CommonTokenAction(matchedToken);
       return matchedToken;
    }
 
@@ -4420,6 +4426,7 @@ for (;;) {
          input_stream.Backup(curPos - mccmatchedPos - 1);
       if ((mcctoToken[mccmatchedKind >> 6] & (1L << (mccmatchedKind & 63))) != 0L) {
          matchedToken = mccFillToken();
+         CommonTokenAction(matchedToken);
          return matchedToken;
       }
       else

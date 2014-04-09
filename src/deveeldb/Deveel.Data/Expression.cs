@@ -179,7 +179,7 @@ namespace Deveel.Data {
 					exp.Text.Append(expression);
 					return exp;
 				} catch (ParseException e) {
-					throw new SqlParseException(e, expression);
+					throw new SqlParseException(e, expression, expression_parser.token_source.tokenHistory);
 				}
 			}
 		}

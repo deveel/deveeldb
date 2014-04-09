@@ -5,6 +5,7 @@ options {
 //  IGNORE_CASE = true;
   DEBUG_PARSER = false;
   VISIBILITY_INTERNAL = true;
+  COMMON_TOKEN_ACTION = true;
 }
 
 PARSER_BEGIN(SQL)
@@ -44,6 +45,7 @@ internal class SQL {
 	/// </remarks>
 	public void Reset() {
 		parameter_id = 0;
+		token_source.tokenHistory.Clear();
 	}
 		
 	/// <summary>
@@ -488,6 +490,14 @@ TOKEN : {  /* IDENTIFIERS */
 | <#LETTER: ["a"-"z", "A"-"Z", "_"] >
 | <#DIGIT: ["0"-"9"]>
 
+}
+
+TOKEN_MGR_DECLS: {
+	public List<Token> tokenHistory = new List<Token>();
+
+	void CommonTokenAction(Token token) {
+		tokenHistory.Add(token);
+	}
 }
 
 
