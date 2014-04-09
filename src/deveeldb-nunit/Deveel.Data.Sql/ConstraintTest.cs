@@ -73,11 +73,10 @@ namespace Deveel.Data.Sql {
 		}
 
 		private enum FKeyRule {
-			Cascade = 0,
-			Restrict = 1,
+			Cascade = 1,
 			SetNull = 2,
-			NoAction = 3,
-			SetDefault = 4
+			NoAction = 0,
+			SetDefault = 3
 		}
 	}
 }
