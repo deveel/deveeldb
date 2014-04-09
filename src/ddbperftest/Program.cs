@@ -33,9 +33,8 @@ namespace ddbperftest {
 					tnx.Commit();
 				}
 
-				Console.Out.WriteLine();
-
 				RunQuery(connection, 500);
+				RunRandomQuery(connection, 1500, 5000);
 			} catch (Exception e) {
 				Console.Error.WriteLine("An error occurred while executing tests: {0}", e.Message);
 				Console.Error.WriteLine(e.StackTrace);
@@ -94,6 +93,7 @@ namespace ddbperftest {
 			TimeSpan elapsed = DateTime.Now.Subtract(start);
 			TimeSpan avgPerOp = new TimeSpan(elapsed.Ticks / total);
 			Console.Out.WriteLine("The test inserted {0} in {1} ({2} per op)", total, elapsed, avgPerOp);
+			Console.Out.WriteLine();
 		}
 
 		private static void RunQuery(DeveelDbConnection connection, int total) {
@@ -118,6 +118,36 @@ namespace ddbperftest {
 			TimeSpan elapsed = DateTime.Now.Subtract(start);
 			TimeSpan avgPerOp = new TimeSpan(elapsed.Ticks / total);
 			Console.Out.WriteLine("The test selected {0} in {1} ({2} per op)", total, elapsed, avgPerOp);
+			Console.Out.WriteLine();
+		}
+
+		private static void RunRandomQuery(DeveelDbConnection connection, int total, int max) {
+			Console.Out.WriteLine("Random selecting {0} entries", max);
+
+			var random = new Random();
+
+			DateTime start = DateTime.Now;
+
+			for (int i = 0; i < total; i++) {
+				var id = random.Next(max);
+
+				var s = String.Format("SELECT * FROM TestData WHERE id = {0}", id);
+				var command = connection.CreateCommand(s);
+				using (var reader = command.ExecuteReader()) {
+					reader.Read();
+				}
+
+				var perc = i == 0 ? 0.0 : ((double)i / total) * 100;
+				Console.Out.Write("\r  {0} ({1}%)", i, perc);
+			}
+
+			Console.Out.Write("\r  {0} (100%)", total);
+			Console.Out.WriteLine();
+
+			TimeSpan elapsed = DateTime.Now.Subtract(start);
+			TimeSpan avgPerOp = new TimeSpan(elapsed.Ticks / total);
+			Console.Out.WriteLine("The test selected {0} in {1} ({2} per op)", total, elapsed, avgPerOp);
+			Console.Out.WriteLine();
 		}
 	}
 }

@@ -133,7 +133,6 @@
     <Compile Include="Deveel.Data.Sql\RaiseStatement.cs" />
     <Compile Include="Deveel.Data.Types\ITypeResolver.cs" />
     <Compile Include="Deveel.Data.Types\PrimitiveTypes.cs" />
-    <Compile Include="Deveel.Data.Types\TTypeMember.cs" />
     <Compile Include="Deveel.Data.Util\ListUtil.cs" />
     <Compile Include="Deveel.Data.Protocol\IDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Protocol\ILocalBootable.cs" />

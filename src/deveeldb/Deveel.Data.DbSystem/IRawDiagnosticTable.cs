@@ -16,9 +16,7 @@
 using System;
 using System.IO;
 
-using Deveel.Data.DbSystem;
-
-namespace Deveel.Data.Dbsystem {
+namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// An interface used for the inspection and repair of the raw data
 	/// in a file.

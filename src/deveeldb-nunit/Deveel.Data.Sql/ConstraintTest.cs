@@ -34,8 +34,8 @@ namespace Deveel.Data.Sql {
 				PrimaryColumn = row["PKCOLUMN_NAME"].ToString(),
 				ReferenceTable = row["FKTABLE_NAME"].ToString(),
 				ReferenceColumn = row["FKCOLUMN_NAME"].ToString(),
-				DeleteRule = (FKeyRule) row["DELETE_RULE"],
-				UpdateRule = (FKeyRule) row["UPDATE_RULE"]
+				DeleteRule = (FKeyRule)Int32.Parse(row["DELETE_RULE"].ToString()),
+				UpdateRule = (FKeyRule)Int32.Parse(row["UPDATE_RULE"].ToString())
 			};
 		}
 

@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using Deveel.Data.Dbsystem;
+using Deveel.Data.DbSystem;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 using Deveel.Data.Util;

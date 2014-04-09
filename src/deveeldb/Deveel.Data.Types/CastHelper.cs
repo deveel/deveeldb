@@ -37,21 +37,42 @@ namespace Deveel.Data.Types {
 
 		static CastHelper() {
 			// The SQL time/date formatters
-			DateFormatSql = new string[1];
-			DateFormatSql[0] = "yyyy-MM-dd";
+			DateFormatSql = new[] {
+				"yyyy-MM-dd",
+				"yyyy MM dd"
+			};
 
 			//TODO: check this format on .NET ...
-			TimeFormatSql = new string[4];
-			TimeFormatSql[0] = "HH:mm:ss.fff z";
-			TimeFormatSql[1] = "HH:mm:ss.fff";
-			TimeFormatSql[2] = "HH:mm:ss z";
-			TimeFormatSql[3] = "HH:mm:ss";
+			TimeFormatSql = new[] {
+				"HH:mm:ss.fff z",
+				"HH:mm:ss.fff zz",
+				"HH:mm:ss.fff zzz",
+				"HH:mm:ss.fff", 
+				"HH:mm:ss z", 
+				"HH:mm:ss zz",
+				"HH:mm:ss zzz", 
+				"HH:mm:ss"
+			};
 
-			TsFormatSql = new string[4];
-			TsFormatSql[0] = "yyyy-MM-dd HH:mm:ss.fff z";
-			TsFormatSql[1] = "yyyy-MM-dd HH:mm:ss.fff";
-			TsFormatSql[2] = "yyyy-MM-dd HH:mm:ss z";
-			TsFormatSql[3] = "yyyy-MM-dd HH:mm:ss";
+			TsFormatSql = new[] {
+				"yyyy-MM-dd HH:mm:ss.fff",
+				"yyyy-MM-dd HH:mm:ss.fff z",
+				"yyyy-MM-dd HH:mm:ss.fff zz",
+				"yyyy-MM-dd HH:mm:ss.fff zzz",
+				"yyyy-MM-dd HH:mm:ss",
+				"yyyy-MM-dd HH:mm:ss z",
+				"yyyy-MM-dd HH:mm:ss zz",
+				"yyyy-MM-dd HH:mm:ss zzz",
+
+				"yyyy-MM-ddTHH:mm:ss.fff",
+				"yyyy-MM-ddTHH:mm:ss.fff z",
+				"yyyy-MM-ddTHH:mm:ss.fff zz",
+				"yyyy-MM-ddTHH:mm:ss.fff zzz",
+				"yyyy-MM-ddTHH:mm:ss",
+				"yyyy-MM-ddTHH:mm:ss z",
+				"yyyy-MM-ddTHH:mm:ss zz",
+				"yyyy-MM-ddTHH:mm:ss zzz",
+			};
 		}
 
 
@@ -323,7 +344,9 @@ namespace Deveel.Data.Types {
 				String str = ob.ToString();
 				switch (sqlType) {
 					case (SqlType.Bit):
-						return String.Compare(str, "true", System.StringComparison.OrdinalIgnoreCase) == 0;
+					case (SqlType.Boolean):
+						return (String.Compare(str, "true", StringComparison.OrdinalIgnoreCase) == 0 ||
+						        String.Compare(str, "1", StringComparison.OrdinalIgnoreCase) == 0);
 					case (SqlType.TinyInt):
 					// fall through
 					case (SqlType.SmallInt):
@@ -366,8 +389,6 @@ namespace Deveel.Data.Types {
 						return null;
 					case (SqlType.Object):
 						return ToObject(str);
-					case (SqlType.Boolean):
-						return String.Compare(str, "true", StringComparison.OrdinalIgnoreCase) == 0;
 					case (SqlType.Clob):
 						return StringObject.FromString(str);
 					default:

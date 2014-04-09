@@ -35,15 +35,11 @@ namespace Deveel.Data {
 		}
 
 		[Test]
-		public void BigNumberEqual() {
-			
-		}
+		public void BigNumberNotEqual() {
+			TObject obj1 = TObject.CreateBigNumber(BigNumber.Parse("577784236E+14"));
+			TObject obj2 = TObject.CreateBigNumber(BigNumber.Parse("788742354444.25477787"));
 
-		[TestCase("1980-10-06")]
-		public void DateCast(string date) {
-			TObject obj = TObject.CreateAndCastFromObject(TType.GetDateType(SqlType.Date), date);
-			Assert.IsNotNull(obj);
-			Assert.AreEqual(obj.TType.SqlType, SqlType.Date);
+			Assert.IsTrue(obj1.CompareTo(obj2) != 0);
 		}
 	}
 }
