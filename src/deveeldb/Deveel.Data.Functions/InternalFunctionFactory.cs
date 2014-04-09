@@ -88,8 +88,23 @@ namespace Deveel.Data.Functions {
 									// Return the correct enumeration
 					return TObject.CreateInt4(v);
 				}
-				if (ob.TType is TNumericType)
-					return ob;
+				if (ob.TType is TNumericType) {
+					var code = ob.ToBigNumber().ToInt32();
+					string v;
+					if (code == (int) ConstraintAction.Cascade) {
+						v = "CASCADE";
+					} else if (code == (int) ConstraintAction.NoAction) {
+						v = "NO ACTION";
+					} else if (code == (int) ConstraintAction.SetDefault) {
+						v = "SET DEFAULT";
+					} else if (code  == (int)ConstraintAction.SetNull) {
+						v = "SET NULL";
+					} else {
+						throw new ApplicationException("Unrecognised foreign key rule: " + code);
+					}
+
+					return TObject.CreateString(v);
+				}
 
 				throw new ApplicationException("Unsupported type in function argument");
 			}

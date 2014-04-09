@@ -423,8 +423,8 @@ namespace Deveel.Data.Client {
 						row["FKTABLE_NAME"] = reader.GetString(6);
 						row["FKCOLUMN_NAME"] = reader.GetString(7);
 						row["KEY_SEQ"] = reader.GetInt32(8);
-						row["UPDATE_RULE"] = reader.GetInt32(9);
-						row["DELETE_RULE"] = reader.GetInt32(10);
+						row["UPDATE_RULE"] = reader.GetString(9);
+						row["DELETE_RULE"] = reader.GetString(10);
 						row["FK_NAME"] = reader.GetString(11);
 						row["PK_NAME"] = reader.GetString(12);
 						row["DEFERRABILITY"] = reader.GetInt32(13);
@@ -486,8 +486,8 @@ namespace Deveel.Data.Client {
 						row["FKTABLE_NAME"] = reader.GetString(6);
 						row["FKCOLUMN_NAME"] = reader.GetString(7);
 						row["KEY_SEQ"] = reader.GetInt32(8);
-						row["UPDATE_RULE"] = reader.GetInt32(9);
-						row["DELETE_RULE"] = reader.GetInt32(10);
+						row["UPDATE_RULE"] = reader.GetString(9);
+						row["DELETE_RULE"] = reader.GetString(10);
 						row["FK_NAME"] = reader.GetString(11);
 						row["PK_NAME"] = reader.GetString(12);
 						row["DEFERRABILITY"] = reader.GetInt32(13);
