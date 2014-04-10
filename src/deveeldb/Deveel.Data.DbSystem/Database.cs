@@ -55,52 +55,9 @@ namespace Deveel.Data.DbSystem {
 		// ---------- Statics ----------
 
 		/// <summary>
-		/// The username of the internal secure user.
-		/// </summary>
-		/// <remarks>
-		/// The internal secure user is only used for internal highly privileged 
-		/// operations. This user is given full privs to everything and is used to 
-		/// manage the system tables, for authentication, etc.
-		/// </remarks>
-		public const String InternalSecureUsername = "@SYSTEM";
-
-		/// <summary>
 		/// The name of the default schema.
 		/// </summary>
 		public const String DefaultSchema = "APP";
-
-		/// <summary>
-		/// The TableDataConglomerate that contains the conglomerate of tables for
-		/// this database.
-		/// </summary>
-		private readonly TableDataConglomerate conglomerate;
-
-		/// <summary>
-		/// An internal secure User that is given full grant access to the entire
-		/// database.  This user is used to execute system level queries such as
-		/// creating and updating system tables.
-		/// </summary>
-		private readonly User internalSystemUser;
-
-		/// <summary>
-		/// The name of this database.
-		/// </summary>
-		private readonly String name;
-
-		/// <summary>
-		/// A table that has a single row but no columns.
-		/// </summary>
-		private readonly Table singleRowTable;
-
-		/// <summary>
-		/// The DatabaseSystem that this database is part of.
-		/// </summary>
-		private readonly DatabaseContext context;
-
-		/// <summary>
-		/// This log file records the SQL commands executed on the server.
-		/// </summary>
-		private Log commandsLog;
 
 		/// <summary>
 		/// A flag which, when set to true, will cause the engine to delete the
@@ -108,27 +65,22 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		private bool deleteOnShutdown;
 
-		/// <summary>
-		/// This is set to true when the 'init()' method is first called.
-		/// </summary>
-		private bool initialised;
-
 		///<summary>
 		///</summary>
 		///<param name="context"></param>
 		///<param name="name"></param>
 		public Database(DatabaseContext context, string name) {
-			this.context = context;
+			this.Context = context;
 			deleteOnShutdown = false;
-			this.name = name;
+			this.Name = name;
 			context.RegisterDatabase(this);
-			conglomerate = new TableDataConglomerate(context, name, context.StoreSystem);
-			internalSystemUser = new User(InternalSecureUsername, this, "", DateTime.Now);
+			Conglomerate = new TableDataConglomerate(context, name, context.StoreSystem);
+			InternalSystemUser = new User(User.SystemName, this, "", DateTime.Now);
 
 			// Create the single row table
 			TemporaryTable t = new TemporaryTable(this,"SINGLE_ROW_TABLE", new DataColumnInfo[0]);
 			t.NewRow();
-			singleRowTable = t;
+			SingleRowTable = t;
 		}
 
 		~Database() {
@@ -138,9 +90,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the name of this database.
 		/// </summary>
-		public string Name {
-			get { return name; }
-		}
+		public string Name { get; private set; }
 
 		/// <summary>
 		/// Returns true if this database is in read-only mode.
@@ -152,25 +102,19 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the internal system user for this database.
 		/// </summary>
-		private User InternalSystemUser {
-			get { return internalSystemUser; }
-		}
+		private User InternalSystemUser { get; set; }
 
 		// ---------- Log accesses ----------
 
 		/// <summary>
 		/// Returns the log file where commands are recorded.
 		/// </summary>
-		public Log CommandsLog {
-			get { return commandsLog; }
-		}
+		public Log CommandsLog { get; private set; }
 
 		/// <summary>
 		/// Returns the conglomerate for this database.
 		/// </summary>
-		internal TableDataConglomerate Conglomerate {
-			get { return conglomerate; }
-		}
+		internal TableDataConglomerate Conglomerate { get; private set; }
 
 		/// <summary>
 		/// Gets <b>true</b> if the database exists.
@@ -181,18 +125,18 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		public bool Exists {
 			get {
-				if (initialised)
+				if (IsInitialized)
 					throw new Exception("The database is initialised, so no point testing it's existance.");
 
 				try {
 					// HACK: If the legacy style '.sf' state file exists then we must return
 					//   true here because technically the database exists but is not in the
 					//   correct version.
-					if (conglomerate.Exists())
+					if (Conglomerate.Exists())
 						return true;
 
-					if (context.StoreSystem.StorageType == StorageType.File &&
-					    File.Exists(Path.Combine(context.DatabasePath, Name + ".sf")))
+					if (Context.StoreSystem.StorageType == StorageType.File &&
+					    File.Exists(Path.Combine(Context.DatabasePath, Name + ".sf")))
 						return true;
 
 					return false;
@@ -206,16 +150,12 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns true if the database is initialised.
 		/// </summary>
-		public bool IsInitialized {
-			get { return initialised; }
-		}
+		public bool IsInitialized { get; private set; }
 
 		/// <summary>
 		/// Returns the <see cref="DatabaseContext"/> that this Database is from.
 		/// </summary>
-		public DatabaseContext Context {
-			get { return context; }
-		}
+		public DatabaseContext Context { get; private set; }
 
 		IDatabaseContext IDatabase.Context {
 			get { return Context; }
@@ -225,7 +165,7 @@ namespace Deveel.Data.DbSystem {
 		/// Returns the IStoreSystem for this Database.
 		/// </summary>
 		internal IStoreSystem StoreSystem {
-			get { return context.StoreSystem; }
+			get { return Context.StoreSystem; }
 		}
 
 		/// <summary>
@@ -263,9 +203,7 @@ namespace Deveel.Data.DbSystem {
 		/// <remarks>
 		/// This table is useful for certain database operations.
 		/// </remarks>
-		public Table SingleRowTable {
-			get { return singleRowTable; }
-		}
+		public Table SingleRowTable { get; private set; }
 
 		/// <summary>
 		/// Gets the <see cref="ILogger"/> implementation from the parent 
@@ -292,7 +230,7 @@ namespace Deveel.Data.DbSystem {
 			if (user == null)
 				user = InternalSystemUser;
 
-			DatabaseConnection connection = new DatabaseConnection(this, user, triggerCallback);
+			var connection = new DatabaseConnection(this, user, triggerCallback);
 			// Initialize the connection
 			connection.Init();
 
@@ -302,49 +240,9 @@ namespace Deveel.Data.DbSystem {
 
 		// ---------- Schema management ----------
 
-		private static void CreateSchemaInfoTables(DatabaseConnection connection) {
+		private static void CreateSchemata(DatabaseConnection connection) {
 			connection.CreateSchema(DefaultSchema, "DEFAULT");
 			connection.CreateSchema(InformationSchema.Name, "SYSTEM");
-		}
-
-
-		///<summary>
-		/// Sets all the standard functions and procedures available to engine.
-		///</summary>
-		///<param name="connection"></param>
-		///<param name="adminUser"></param>
-		/// <remarks>
-		/// This creates an entry in the SysFunction table for all the dynamic
-		/// functions and procedures.  This may not include the functions exposed
-		/// though the FunctionFactory interface.
-		/// </remarks>
-		public void SetupSystemFunctions(DatabaseConnection connection, string adminUser) {
-			const String granter = InternalSecureUsername;
-
-			// The manager handling the functions.
-			ProcedureManager manager = connection.ProcedureManager;
-
-			// Define the SYSTEM_MAKE_BACKUP procedure
-			manager.DefineProcedure(
-				new ProcedureName(SystemSchema.Name, "SYSTEM_MAKE_BACKUP"),
-				"Deveel.Data.Procedure.SystemBackup.Invoke(IProcedureConnection, String)",
-				PrimitiveTypes.VarString, new TType[] {PrimitiveTypes.VarString},
-				adminUser);
-
-			// -----
-
-			// Set the grants for the procedures.
-			GrantManager grants = connection.GrantManager;
-
-			// Revoke all existing grants on the internal stored procedures.
-			grants.RevokeAllGrantsOnObject(GrantObject.Table,
-			                               "SYSTEM.SYSTEM_MAKE_BACKUP");
-
-			// Grant execute priv with grant option to administrator
-			grants.Grant(Privileges.ProcedureExecute,
-			                GrantObject.Table,
-			                "SYSTEM.SYSTEM_MAKE_BACKUP",
-			                adminUser, true, granter);
 		}
 
 		/// <summary>
@@ -359,7 +257,7 @@ namespace Deveel.Data.DbSystem {
 		/// tables are granted <i>SELECT</i> only.
 		/// </remarks>
 		private static void SetSystemGrants(DatabaseConnection connection, string grantee) {
-			const string granter = InternalSecureUsername;
+			const string granter = User.SystemName;
 
 			// Add all priv grants to those that the system user is allowed to change
 			GrantManager manager = connection.GrantManager;
@@ -373,11 +271,58 @@ namespace Deveel.Data.DbSystem {
 
 			// For all tables in the SYSTEM schema, grant all privileges to the
 			// system user.
-			manager.GrantToAllTablesInSchema("SYSTEM", Privileges.TableAll, grantee, false, granter);
+			manager.GrantToAllTablesInSchema(SystemSchema.Name, Privileges.TableAll, grantee, false, granter);
 
 
 			SystemSchema.SetTableGrants(manager, granter);
 			InformationSchema.SetViewsGrants(manager, granter);
+		}
+
+		private const string DataVersionFileName = "Deveel.Data.DataVersion";
+
+		private Version ReadDataVersionFromFile() {
+			//TODO: Read the embedded file for the real version ...
+			return new Version(1, 1);
+		}
+
+		private void AssertDataVersion() {
+			var dataVersion = ReadDataVersionFromFile();
+
+			// Check the state of the conglomerate,
+			DatabaseConnection connection = CreateNewConnection(null, null);
+			var context = new DatabaseQueryContext(connection);
+			connection.LockingMechanism.SetMode(LockingMode.Exclusive);
+			if (!connection.TableExists(SystemSchema.PersistentVarTable)) {
+				throw new DatabaseException(
+					"The database_vars table doesn't exist.  This means the " +
+					"database is pre-schema version 1 or the table has been deleted." +
+					"If you are converting an old version of the database, please " +
+					"convert the database using an older release.");
+			}
+
+			// What version is the data?
+			DataTable databaseVars = connection.GetTable(SystemSchema.PersistentVarTable);
+			IDictionary vars = databaseVars.ToDictionary();
+			var dbVersion = new Version(vars["database.version"].ToString());
+			// If the version doesn't equal the current version, throw an error.
+			if (!dbVersion.Equals(dataVersion)) {
+				throw new DatabaseException(
+					"Incorrect data file version '" + dbVersion + "'.  Please see " +
+					"the README on how to convert the data files to the current " +
+					"version.");
+			}
+
+			// Commit and close the connection.
+			connection.Commit();
+			connection.LockingMechanism.FinishMode(LockingMode.Exclusive);
+			connection.Close();
+		}
+
+		private void SetCurrentDataVersion(DatabaseConnection transaction) {
+			var version = ReadDataVersionFromFile();
+
+			// Insert the version number of the database
+			transaction.SetPersistentVariable("database.version", version.ToString(2));
 		}
 
 		/// <summary>
@@ -401,7 +346,7 @@ namespace Deveel.Data.DbSystem {
 
 			try {
 				// Create the conglomerate
-				conglomerate.Create();
+				Conglomerate.Create();
 
 				DatabaseConnection connection = CreateNewConnection(null, null);
 				DatabaseQueryContext context = new DatabaseQueryContext(connection);
@@ -410,10 +355,11 @@ namespace Deveel.Data.DbSystem {
 
 				// Create the schema information tables introduced in version 0.90
 				// and 0.94
-				CreateSchemaInfoTables(connection);
+				CreateSchemata(connection);
 
 				// The system tables that are present in every conglomerate.
 				SystemSchema.CreateTables(connection);
+
 				// Create the system views
 				InformationSchema.CreateSystemViews(connection, Logger);
 
@@ -424,14 +370,16 @@ namespace Deveel.Data.DbSystem {
 				// Allow all localhost TCP connections.
 				// NOTE: Permissive initial security!
 				GrantHostAccessToUser(context, username, "TCP", "%");
-				// Allow all Local connections (from within JVM).
+				// Allow all Local connections.
 				GrantHostAccessToUser(context, username, "Local", "%");
 
 				// Sets the system grants for the administrator
 				SetSystemGrants(connection, username);
 
+				SetCurrentDataVersion(connection);
+
 				// Set all default system procedures.
-				SetupSystemFunctions(connection, username);
+				SystemSchema.SetupSystemFunctions(connection, username);
 
 				try {
 					// Close and commit this transaction.
@@ -445,7 +393,7 @@ namespace Deveel.Data.DbSystem {
 				connection.Close();
 
 				// Close the conglomerate.
-				conglomerate.Close();
+				Conglomerate.Close();
 			} catch (DatabaseException e) {
 				Logger.Error(this, e);
 				throw new ApplicationException("Database Exception: " + e.Message, e);
@@ -470,18 +418,18 @@ namespace Deveel.Data.DbSystem {
 		/// If any IO error occurred during the opening process.
 		/// </exception>
 		public void Init() {
-			if (initialised)
+			if (IsInitialized)
 				throw new Exception("Init() method can only be called once.");
 
 			// Reset all session statistics.
 			Stats.ResetSession();
 
 			try {
-				string logPath = this.context.LogDirectory;
-				if (logPath != null && this.context.LogQueries) {
-					commandsLog = new Log(Path.Combine(logPath, "commands.log"), 256*1024, 5);
+				string logPath = this.Context.LogDirectory;
+				if (logPath != null && this.Context.LogQueries) {
+					CommandsLog = new Log(Path.Combine(logPath, "commands.log"), 256*1024, 5);
 				} else {
-					commandsLog = Log.Null;
+					CommandsLog = Log.Null;
 				}
 
 				// Check if the state file exists.  If it doesn't, we need to report
@@ -489,8 +437,8 @@ namespace Deveel.Data.DbSystem {
 				if (!StoreSystem.StoreExists(Name + "_sf")) {
 					// If state store doesn't exist but the legacy style '.sf' state file
 					// exists,
-					if (this.context.DatabasePath != null &&
-					    File.Exists(Path.Combine(this.context.DatabasePath, Name + ".sf"))) {
+					if (this.Context.DatabasePath != null &&
+					    File.Exists(Path.Combine(this.Context.DatabasePath, Name + ".sf"))) {
 						throw new DatabaseException(
 							"The state store for this database doesn't exist.  This means " +
 							"the database version is pre version 1.0.  Please see the " +
@@ -503,36 +451,9 @@ namespace Deveel.Data.DbSystem {
 				}
 
 				// Open the conglomerate
-				conglomerate.Open();
+				Conglomerate.Open();
 
-				// Check the state of the conglomerate,
-				DatabaseConnection connection = CreateNewConnection(null, null);
-				DatabaseQueryContext context = new DatabaseQueryContext(connection);
-				connection.LockingMechanism.SetMode(LockingMode.Exclusive);
-				if (!connection.TableExists(SystemSchema.PersistentVarTable)) {
-					throw new DatabaseException(
-						"The database_vars table doesn't exist.  This means the " +
-						"database is pre-schema version 1 or the table has been deleted." +
-						"If you are converting an old version of the database, please " +
-						"convert the database using an older release.");
-				}
-
-				// What version is the data?
-				DataTable databaseVars = connection.GetTable(SystemSchema.PersistentVarTable);
-				IDictionary vars = databaseVars.ToDictionary();
-				String dbVersion = vars["database.version"].ToString();
-				// If the version doesn't equal the current version, throw an error.
-				if (!dbVersion.Equals("1.4")) {
-					throw new DatabaseException(
-						"Incorrect data file version '" + dbVersion + "'.  Please see " +
-						"the README on how to convert the data files to the current " +
-						"version.");
-				}
-
-				// Commit and close the connection.
-				connection.Commit();
-				connection.LockingMechanism.FinishMode(LockingMode.Exclusive);
-				connection.Close();
+				AssertDataVersion();
 			} catch (TransactionException e) {
 				// This would be very strange error to receive for in initializing
 				// database...
@@ -543,7 +464,7 @@ namespace Deveel.Data.DbSystem {
 				throw new ApplicationException("IO Error: " + e.Message);
 			}
 
-			initialised = true;
+			IsInitialized = true;
 		}
 
 		/// <summary>
@@ -563,7 +484,7 @@ namespace Deveel.Data.DbSystem {
 		/// </para>
 		/// </remarks>
 		public void Shutdown() {
-			if (initialised == false) {
+			if (IsInitialized == false) {
 				throw new ApplicationException("The database is not initialized.");
 			}
 
@@ -571,10 +492,10 @@ namespace Deveel.Data.DbSystem {
 				if (deleteOnShutdown) {
 					// Delete the conglomerate if the database is set to delete on
 					// shutdown.
-					conglomerate.Delete();
+					Conglomerate.Delete();
 				} else {
 					// Otherwise close the conglomerate.
-					conglomerate.Close();
+					Conglomerate.Close();
 				}
 			} catch (IOException e) {
 				Logger.Error(this, e);
@@ -582,11 +503,11 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Shut down the logs...
-			if (commandsLog != null) {
-				commandsLog.Close();
+			if (CommandsLog != null) {
+				CommandsLog.Close();
 			}
 
-			initialised = false;
+			IsInitialized = false;
 		}
 
 		///<summary>
@@ -611,7 +532,7 @@ namespace Deveel.Data.DbSystem {
 		///  This method can copy information while the database is <i>live</i>.
 		/// </remarks>
 		public void LiveCopyTo(string path) {
-			if (initialised == false)
+			if (IsInitialized == false)
 				throw new ApplicationException("The database is not initialized.");
 
 			// Set up the destination conglomerate to copy all the data to,
@@ -633,14 +554,14 @@ namespace Deveel.Data.DbSystem {
 			config.SetValue(ConfigKeys.DebugLogs, "disabled");
 			copyContext.Init(config);
 
-			TableDataConglomerate destConglomerate = new TableDataConglomerate(copyContext, name, copyContext.StoreSystem);
+			TableDataConglomerate destConglomerate = new TableDataConglomerate(copyContext, Name, copyContext.StoreSystem);
 
 			// Open the congloemrate
 			destConglomerate.MinimalCreate();
 
 			try {
 				// Make a copy of this conglomerate into the destination conglomerate,
-				conglomerate.LiveCopyTo(destConglomerate);
+				Conglomerate.LiveCopyTo(destConglomerate);
 			} finally {
 				// Close the congloemrate when finished.
 				destConglomerate.Close();

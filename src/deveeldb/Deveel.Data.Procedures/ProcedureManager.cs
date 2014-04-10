@@ -521,9 +521,7 @@ namespace Deveel.Data.Procedures {
 						    methodArgs.Length - searchStart) {
 							// Do they match the specification?
 							bool matchSpec = true;
-							for (int n = 0;
-							     n < objectSpecification.Length && matchSpec;
-							     ++n) {
+							for (int n = 0; n < objectSpecification.Length && matchSpec; ++n) {
 								Type obSpec = objectSpecification[n];
 								if (obSpec != null &&
 								    obSpec != methodArgs[n + searchStart].ParameterType) {
@@ -579,7 +577,7 @@ namespace Deveel.Data.Procedures {
 		/// If the Invoke method does not contain arguments that are compatible 
 		/// with the parameters given or 
 		/// </exception>
-		/// <exception cref="Deveel.Data.DbSystem.SystemException">
+		/// <exception cref="SystemException">
 		/// If the class contains more than a single public static <i>Invoke</i>
 		/// method.
 		/// </exception>

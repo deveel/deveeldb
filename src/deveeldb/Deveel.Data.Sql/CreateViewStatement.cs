@@ -134,7 +134,7 @@ namespace Deveel.Data.Sql {
 			// full access.
 			context.Connection.GrantManager.Grant(
 				 Privileges.TableAll, GrantObject.Table, vname.ToString(),
-				 context.UserName, true, Database.InternalSecureUsername);
+				 context.UserName, true, User.SystemName);
 
 			return FunctionTable.ResultTable(context, 0);
 		}

@@ -570,6 +570,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Messages.resx" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DataVersion" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>$(ProjectDir)..\..\util\csharpcc\csharpcc.exe -OUTPUT_DIRECTORY="$(ProjectDir)Deveel.Data.Sql.Parser" "$(ProjectDir)Deveel.Data.Sql.Parser\SQL.csc"

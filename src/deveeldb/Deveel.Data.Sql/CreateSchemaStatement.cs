@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql {
 			// Set the default grants for the schema
 			context.Connection.GrantManager.Grant(Privileges.SchemaAll,
 			                              GrantObject.Schema, schemaName, context.UserName,
-			                              true, Database.InternalSecureUsername);
+			                              true, User.SystemName);
 
 			return FunctionTable.ResultTable(context, 0);
 		}

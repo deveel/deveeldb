@@ -33,47 +33,18 @@ namespace Deveel.Data.Security {
 	/// </para>
 	/// </remarks>
 	public sealed class User {
-		/// <summary>
-		/// The name of the user.
-		/// </summary>
-		private readonly String user_name;
-
-		/// <summary>
-		/// The database object that this user is currently logged into.
-		/// </summary>
-		private readonly Database database;
-
-		/// <summary>
-		/// The connection string that identifies how this user is connected 
-		/// to the database.
-		/// </summary>
-		private readonly String connection_string;
-
-		/// <summary>
-		/// The time this user connected.
-		/// </summary>
-		private readonly DateTime time_connected;
-
-		/// <summary>
-		/// The last time this user executed a command on the connection.
-		/// </summary>
-		private DateTime last_command_time;
-
-		internal User(String user_name, Database database,
-			 String connection_string, DateTime time_connected) {
-			this.user_name = user_name;
-			this.database = database;
-			this.connection_string = connection_string;
-			this.time_connected = time_connected;
-			last_command_time = time_connected;
+		internal User(string userName, Database database, string connectionString, DateTime timeConnected) {
+			UserName = userName;
+			Database = database;
+			ConnectionString = connectionString;
+			TimeConnected = timeConnected;
+			LastCommandTime = timeConnected;
 		}
 
 		///<summary>
 		/// Returns the name of the user.
 		///</summary>
-		public string UserName {
-			get { return user_name; }
-		}
+		public string UserName { get; private set; }
 
 		///<summary>
 		/// Returns the string that describes how this user is connected
@@ -82,36 +53,28 @@ namespace Deveel.Data.Security {
 		/// <remarks>
 		/// This is set by the protocol layer.
 		/// </remarks>
-		public string ConnectionString {
-			get { return connection_string; }
-		}
+		public string ConnectionString { get; private set; }
 
 		///<summary>
 		/// Returns the time the user connected.
 		///</summary>
-		public DateTime TimeConnected {
-			get { return time_connected; }
-		}
+		public DateTime TimeConnected { get; private set; }
 
 		///<summary>
 		/// Returnst the last time a command was executed by this user.
 		///</summary>
-		public DateTime LastCommandTime {
-			get { return last_command_time; }
-		}
+		public DateTime LastCommandTime { get; private set; }
 
 		///<summary>
 		/// Returns the Database object that this user belongs to.
 		///</summary>
-		public Database Database {
-			get { return database; }
-		}
+		public Database Database { get; private set; }
 
 		///<summary>
 		/// Refreshes the last time a command was executed by this user.
 		///</summary>
-		public void RefreshLastCommandTime() {
-			last_command_time = DateTime.Now;
+		internal void RefreshLastCommandTime() {
+			LastCommandTime = DateTime.Now;
 		}
 
 		///<summary>
@@ -120,12 +83,22 @@ namespace Deveel.Data.Security {
 		/// <remarks>
 		/// This will log the user out of the user manager.
 		/// </remarks>
-		public void Logout() {
+		internal void Logout() {
 			// Clear all triggers for this user,
-			UserManager user_manager = database.UserManager;
-			if (user_manager != null) {
-				user_manager.OnUserLoggedOut(this);
+			UserManager userManager = Database.UserManager;
+			if (userManager != null) {
+				userManager.OnUserLoggedOut(this);
 			}
 		}
+
+		/// <summary>
+		/// The username of the internal secure user.
+		/// </summary>
+		/// <remarks>
+		/// The internal secure user is only used for internal highly privileged 
+		/// operations. This user is given full privs to everything and is used to 
+		/// manage the system tables, for authentication, etc.
+		/// </remarks>
+		public const String SystemName = "@SYSTEM";
 	}
 }

@@ -29,12 +29,12 @@ namespace Deveel.Data.Procedures {
 		/**
 		 * The stored procedure invokation method.
 		 */
-		public static String invoke(IProcedureConnection db_connection, string path) {
+		public static String Invoke(IProcedureConnection dbConnection, string path) {
 			if (!Directory.Exists(path))
 				throw new ProcedureException("Path '" + path + "' doesn't exist or is not a directory.");
 
 			try {
-				db_connection.Database.LiveCopyTo(path);
+				dbConnection.Database.LiveCopyTo(path);
 				return path;
 			} catch (IOException e) {
 				Console.Error.WriteLine(e.Message); 

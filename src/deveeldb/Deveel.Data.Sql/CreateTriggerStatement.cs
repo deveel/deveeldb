@@ -121,7 +121,7 @@ namespace Deveel.Data.Sql {
 				context.Connection.GrantManager.Grant(
 					 Privileges.ProcedureAll, GrantObject.Table,
 					 triggerName.ToString(), context.UserName, true,
-					 Database.InternalSecureUsername);
+					 User.SystemName);
 
 			} else {
 				throw new Exception("Unknown trigger type.");

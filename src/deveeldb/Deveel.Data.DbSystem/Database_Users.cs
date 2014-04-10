@@ -87,7 +87,7 @@ namespace Deveel.Data.DbSystem {
 						User user = new User(username, this,
 											connectionString, DateTime.Now);
 						// Log the authenticated user in to the engine.
-						this.context.UserManager.OnUserLoggedIn(user);
+						this.Context.UserManager.OnUserLoggedIn(user);
 						return user;
 					}
 
@@ -130,7 +130,7 @@ namespace Deveel.Data.DbSystem {
 		/// </returns>
 		private bool UserAllowedAccessFromHost(IQueryContext queryContext, string username, string connectionString) {
 			// The system user is not allowed to login
-			if (username.Equals(InternalSecureUsername))
+			if (username.Equals(User.SystemName))
 				return false;
 
 			// We always allow access from 'Internal/*' (connections from the
@@ -240,7 +240,7 @@ namespace Deveel.Data.DbSystem {
 											"' character.");
 			}
 
-			var hashFuncDef = context.Config.PasswordHashFunction();
+			var hashFuncDef = Context.Config.PasswordHashFunction();
 			var crypto = PasswordCrypto.Parse(hashFuncDef);
 
 			string salt;
@@ -334,7 +334,7 @@ namespace Deveel.Data.DbSystem {
 
 			table.Delete(t);
 
-			var hashFuncDef = context.Config.PasswordHashFunction();
+			var hashFuncDef = Context.Config.PasswordHashFunction();
 			var crypto = PasswordCrypto.Parse(hashFuncDef);
 
 			string salt;
@@ -526,7 +526,7 @@ namespace Deveel.Data.DbSystem {
 		/// </returns>
 		private bool UserHasSecureAccess(IQueryContext queryContext) {
 			// The internal secure user has full privs on everything
-			if (queryContext.UserName.Equals(InternalSecureUsername))
+			if (queryContext.UserName.Equals(User.SystemName))
 				return true;
 
 			return UserBelongsToGroup(queryContext, queryContext.UserName, SystemGroupNames.SecureGroup);
@@ -546,7 +546,7 @@ namespace Deveel.Data.DbSystem {
 		/// </returns>
 		private static bool UserHasSchemaGrant(IQueryContext context, string schema, int grant) {
 			// The internal secure user has full privs on everything
-			if (context.UserName.Equals(InternalSecureUsername))
+			if (context.UserName.Equals(User.SystemName))
 				return true;
 
 			// No users have schema access to the system schema.
@@ -575,7 +575,7 @@ namespace Deveel.Data.DbSystem {
 		/// </returns>
 		private static bool UserHasTableObjectGrant(IQueryContext context, TableName tableName, VariableName[] columns, int grant) {
 			// The internal secure user has full privs on everything
-			if (context.UserName.Equals(InternalSecureUsername))
+			if (context.UserName.Equals(User.SystemName))
 				return true;
 
 			// TODO: Support column level privileges.
@@ -615,7 +615,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		public bool CanUserCreateAndDropSchema(IQueryContext context, string schema) {
 			// The internal secure user has full privs on everything
-			if (context.UserName.Equals(InternalSecureUsername))
+			if (context.UserName.Equals(User.SystemName))
 				return true;
 
 			// No user can create or drop the system schema.

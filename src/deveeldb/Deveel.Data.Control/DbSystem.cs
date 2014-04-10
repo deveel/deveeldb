@@ -22,7 +22,6 @@ using Deveel.Data.Client;
 using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Protocol;
-using Deveel.Data.Security;
 
 namespace Deveel.Data.Control {
 	///<summary>
@@ -53,7 +52,7 @@ namespace Deveel.Data.Control {
 		private IDbConfig config;
 
 		/// <summary>
-		/// The underlying <see cref="Deveel.Data.DbSystem.Database"/> object of this system.
+		/// The underlying <see cref="Data.DbSystem.Database"/> object of this system.
 		/// </summary>
 		/// <remarks>
 		/// This object gives low level access to the system.

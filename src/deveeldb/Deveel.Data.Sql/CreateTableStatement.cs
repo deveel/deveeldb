@@ -333,7 +333,7 @@ namespace Deveel.Data.Sql {
 			// full access.
 			context.Connection.GrantManager.Grant(
 				Privileges.TableAll, GrantObject.Table, tname.ToString(),
-				context.UserName, true, Database.InternalSecureUsername);
+				context.UserName, true, User.SystemName);
 
 			// Set the constraints in the schema.
 			SetupAllConstraints(context);

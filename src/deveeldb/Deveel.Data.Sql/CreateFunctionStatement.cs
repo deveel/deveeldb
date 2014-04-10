@@ -214,7 +214,7 @@ namespace Deveel.Data.Sql {
 			context.Connection.GrantManager.Grant(
 				 Privileges.ProcedureAll, GrantObject.Table,
 				 procName.ToString(), context.UserName, true,
-				 Database.InternalSecureUsername);
+				 User.SystemName);
 
 			// Return an update result table.
 			return FunctionTable.ResultTable(context, 0);
