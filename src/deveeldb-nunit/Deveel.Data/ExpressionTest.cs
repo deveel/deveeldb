@@ -97,6 +97,8 @@ namespace Deveel.Data {
 			args["b"] = 45;
 			args["c"] = 23.65;
 			result = Expression.Evaluate("a * (b + c)", args);
+			Assert.IsNotNull(result);
+			Assert.IsTrue(((BigNumber)result).CompareTo((BigNumber)823.8) == 0);
 		}
 	}
 }

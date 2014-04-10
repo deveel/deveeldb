@@ -851,7 +851,7 @@ StatementTree CreateFunction() :
   (   <FUNCTION> function_name = FunctionName()
       "(" ProcParameterList(arg_names, arg_types) ")"
       [ <RETURNS> return_type = GetTType() ]
-      <LANGUAGE> <CSHARP> <NAME> loc_name = <STRING_LITERAL>
+      <AS> <EXTERNAL> loc_name = <STRING_LITERAL>
   )
 
   { cmd.SetValue("function_name", function_name);

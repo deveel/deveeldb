@@ -8,7 +8,7 @@ namespace Deveel.Data.Sql {
 		public void CreateFunctionReturnsType() {
 			string sql = "CREATE FUNCTION testAdd (a INTEGER, b STRING) "+
 				"RETURNS INTEGER "+
-				"LANGUAGE CSHARP NAME '" + typeof(FunctionsTestClass).AssemblyQualifiedName + "'";
+				"AS EXTERNAL '" + typeof(FunctionsTestClass).AssemblyQualifiedName + "'";
 
 			Assert.DoesNotThrow(() => ExecuteNonQuery(sql));
 		}
