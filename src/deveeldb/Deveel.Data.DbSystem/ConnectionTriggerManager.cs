@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
+using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Procedures;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;

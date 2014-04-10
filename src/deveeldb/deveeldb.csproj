@@ -98,7 +98,9 @@
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabase.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabaseContext.cs" />
+    <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
     <Compile Include="Deveel.Data.Protocol\ColumnDescription.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -182,7 +184,6 @@
     <Compile Include="Deveel.Data.Index\IndexSetStore_Index.cs" />
     <Compile Include="Deveel.Data.Index\IndexSetStore_IndexBlock.cs" />
     <Compile Include="Deveel.Data.Index\IndexSetStore_SnapshotIndexSet.cs" />
-    <Compile Include="Deveel.Data\InformationSchema.cs" />
     <Compile Include="Deveel.Data.Types\ISizeableType.cs" />
     <Compile Include="Deveel.Data.Transactions\JournalCommandType.cs" />
     <Compile Include="Deveel.Data.DbSystem\MasterTableDataSource_Diagnostics.cs" />
@@ -296,7 +297,6 @@
     <Compile Include="Deveel.Data\SqlStateException.cs" />
     <Compile Include="Deveel.Data.DbSystem\SubsetQueryContext.cs" />
     <Compile Include="Deveel.Data.Security\SystemGroupNames.cs" />
-    <Compile Include="Deveel.Data\SystemSchema.cs" />
     <Compile Include="Deveel.Data.Sql\TableSelectExpression.cs" />
     <Compile Include="Deveel.Data.Sql\UpdateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\Util.cs" />
