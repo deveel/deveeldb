@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
@@ -80,7 +81,7 @@ namespace Deveel.Data.DbSystem {
 				// sequence table for this.
 				Transaction sequenceAccessTransaction = GetTransaction();
 				try {
-					ITableDataSource seqi = sequenceAccessTransaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+					ITableDataSource seqi = sequenceAccessTransaction.GetTable(SystemSchema.SysSequenceInfo);
 					SimpleTableQuery query = new SimpleTableQuery(seqi);
 
 					StringObject schemaVal = StringObject.FromString(name.Schema);
@@ -110,7 +111,7 @@ namespace Deveel.Data.DbSystem {
 						generator = new SequenceGenerator(idVal, name);
 					} else {
 						// Query the sequence table.
-						ITableDataSource seq = sequenceAccessTransaction.GetTable(TableDataConglomerate.SysSequence);
+						ITableDataSource seq = sequenceAccessTransaction.GetTable(SystemSchema.SysSequence);
 						query = new SimpleTableQuery(seq);
 
 						list = query.SelectEqual(0, sid);
@@ -167,7 +168,7 @@ namespace Deveel.Data.DbSystem {
 			Transaction sequenceAccessTransaction = GetTransaction();
 			try {
 				// The sequence table
-				IMutableTableDataSource seq = sequenceAccessTransaction.GetMutableTable(TableDataConglomerate.SysSequence);
+				IMutableTableDataSource seq = sequenceAccessTransaction.GetMutableTable(SystemSchema.SysSequence);
 				// Find the row with the id for this generator.
 				SimpleTableQuery query = new SimpleTableQuery(seq);
 				IList<int> list = query.SelectEqual(0, (BigNumber)generator.Id);
@@ -241,15 +242,15 @@ namespace Deveel.Data.DbSystem {
 		internal static void AddNativeTableGenerator(Transaction transaction, TableName tableName) {
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// We can't add or remove native tables
-			if (tableName.Equals(TableDataConglomerate.SysSequence) ||
-				tableName.Equals(TableDataConglomerate.SysSequenceInfo) ||
-				!transaction.TableExists(TableDataConglomerate.SysSequence) ||
-				!transaction.TableExists(TableDataConglomerate.SysSequenceInfo)) {
+			if (tableName.Equals(SystemSchema.SysSequence) ||
+				tableName.Equals(SystemSchema.SysSequenceInfo) ||
+				!transaction.TableExists(SystemSchema.SysSequence) ||
+				!transaction.TableExists(SystemSchema.SysSequenceInfo)) {
 				return;
 			}
 
-			IMutableTableDataSource table = transaction.GetMutableTable(TableDataConglomerate.SysSequenceInfo);
-			long uniqueId = transaction.NextUniqueID(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource table = transaction.GetMutableTable(SystemSchema.SysSequenceInfo);
+			long uniqueId = transaction.NextUniqueID(SystemSchema.SysSequenceInfo);
 
 			DataRow dataRow = new DataRow(table);
 			dataRow.SetValue(0, uniqueId);
@@ -268,16 +269,16 @@ namespace Deveel.Data.DbSystem {
 		internal static void RemoveNativeTableGenerator(Transaction transaction, TableName tableName) {
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// We can't add or remove native tables
-			if (tableName.Equals(TableDataConglomerate.SysSequence) ||
-				tableName.Equals(TableDataConglomerate.SysSequenceInfo) ||
-				!transaction.TableExists(TableDataConglomerate.SysSequence) ||
-				!transaction.TableExists(TableDataConglomerate.SysSequenceInfo)) {
+			if (tableName.Equals(SystemSchema.SysSequence) ||
+				tableName.Equals(SystemSchema.SysSequenceInfo) ||
+				!transaction.TableExists(SystemSchema.SysSequence) ||
+				!transaction.TableExists(SystemSchema.SysSequenceInfo)) {
 				return;
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			IMutableTableDataSource seq = transaction.GetMutableTable(TableDataConglomerate.SysSequence);
-			IMutableTableDataSource seqi = transaction.GetMutableTable(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource seq = transaction.GetMutableTable(SystemSchema.SysSequence);
+			IMutableTableDataSource seqi = transaction.GetMutableTable(SystemSchema.SysSequenceInfo);
 
 			SimpleTableQuery query = new SimpleTableQuery(seqi);
 			IList<int> list = query.SelectEqual(2, TObject.CreateString(tableName.Name),
@@ -307,14 +308,14 @@ namespace Deveel.Data.DbSystem {
 		internal static bool SequenceGeneratorExists(Transaction transaction, TableName tableName) {
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// we can't create the sequence generator
-			if (!transaction.TableExists(TableDataConglomerate.SysSequence) ||
-			    !transaction.TableExists(TableDataConglomerate.SysSequenceInfo)) {
+			if (!transaction.TableExists(SystemSchema.SysSequence) ||
+			    !transaction.TableExists(SystemSchema.SysSequenceInfo)) {
 				throw new Exception("System sequence tables do not exist.");
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			IMutableTableDataSource seq = transaction.GetMutableTable(TableDataConglomerate.SysSequence);
-			IMutableTableDataSource seqi = transaction.GetMutableTable(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource seq = transaction.GetMutableTable(SystemSchema.SysSequence);
+			IMutableTableDataSource seqi = transaction.GetMutableTable(SystemSchema.SysSequenceInfo);
 
 			// All rows in 'sequence_info' that match this table name.
 			using (SimpleTableQuery query = new SimpleTableQuery(seqi)) {
@@ -343,14 +344,14 @@ namespace Deveel.Data.DbSystem {
 
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// we can't create the sequence generator
-			if (!transaction.TableExists(TableDataConglomerate.SysSequence) ||
-				!transaction.TableExists(TableDataConglomerate.SysSequenceInfo)) {
+			if (!transaction.TableExists(SystemSchema.SysSequence) ||
+				!transaction.TableExists(SystemSchema.SysSequenceInfo)) {
 				throw new Exception("System sequence tables do not exist.");
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			IMutableTableDataSource seq = transaction.GetMutableTable(TableDataConglomerate.SysSequence);
-			IMutableTableDataSource seqi = transaction.GetMutableTable(TableDataConglomerate.SysSequenceInfo);
+			IMutableTableDataSource seq = transaction.GetMutableTable(SystemSchema.SysSequence);
+			IMutableTableDataSource seqi = transaction.GetMutableTable(SystemSchema.SysSequenceInfo);
 
 			// All rows in 'sequence_info' that match this table name.
 			using (SimpleTableQuery query = new SimpleTableQuery(seqi)) {
@@ -366,7 +367,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Generate a unique id for the sequence info table
-			long uniqueId = transaction.NextUniqueID(TableDataConglomerate.SysSequenceInfo);
+			long uniqueId = transaction.NextUniqueID(SystemSchema.SysSequenceInfo);
 
 			// Insert the new row
 			DataRow dataRow = new DataRow(seqi);
@@ -393,8 +394,8 @@ namespace Deveel.Data.DbSystem {
 		 internal static void DropSequenceGenerator(Transaction transaction, TableName tableName) {
 			// If the SysSequence or SysSequenceInfo tables don't exist then 
 			// we can't create the sequence generator
-			if (!transaction.TableExists(TableDataConglomerate.SysSequence) ||
-				!transaction.TableExists(TableDataConglomerate.SysSequenceInfo)) {
+			if (!transaction.TableExists(SystemSchema.SysSequence) ||
+				!transaction.TableExists(SystemSchema.SysSequenceInfo)) {
 				throw new Exception("System sequence tables do not exist.");
 			}
 
@@ -654,7 +655,7 @@ namespace Deveel.Data.DbSystem {
 
 			public int TableCount {
 				get {
-					TableName SEQ = TableDataConglomerate.SysSequence;
+					TableName SEQ = SystemSchema.SysSequence;
 					if (transaction.TableExists(SEQ))
 						return transaction.GetTable(SEQ).RowCount;
 					return 0;
@@ -662,7 +663,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public int FindTableName(TableName name) {
-				TableName seqInfo = TableDataConglomerate.SysSequenceInfo;
+				TableName seqInfo = SystemSchema.SysSequenceInfo;
 				if (transaction.RealTableExists(seqInfo)) {
 					// Search the table.
 					ITableDataSource table = transaction.GetTable(seqInfo);
@@ -688,7 +689,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public TableName GetTableName(int i) {
-				TableName seqInfo = TableDataConglomerate.SysSequenceInfo;
+				TableName seqInfo = SystemSchema.SysSequenceInfo;
 				if (transaction.RealTableExists(seqInfo)) {
 					// Search the table.
 					ITableDataSource table = transaction.GetTable(seqInfo);
@@ -711,7 +712,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public bool ContainsTableName(TableName name) {
-				TableName seqInfo = TableDataConglomerate.SysSequenceInfo;
+				TableName seqInfo = SystemSchema.SysSequenceInfo;
 				// This set can not contain the table that is backing it, so we always
 				// return false for that.  This check stops an annoying recursive
 				// situation for table name resolution.
@@ -731,7 +732,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public ITableDataSource CreateInternalTable(int index) {
-				ITableDataSource table = transaction.GetTable(TableDataConglomerate.SysSequenceInfo);
+				ITableDataSource table = transaction.GetTable(SystemSchema.SysSequenceInfo);
 				IRowEnumerator rowEnum = table.GetRowEnumerator();
 				int p = 0;
 				int i;
@@ -759,7 +760,7 @@ namespace Deveel.Data.DbSystem {
 				TableName tableName = new TableName(schema, name);
 
 				// Find this id in the 'sequence' table
-				ITableDataSource seqTable = transaction.GetTable(TableDataConglomerate.SysSequence);
+				ITableDataSource seqTable = transaction.GetTable(SystemSchema.SysSequence);
 				SelectableScheme scheme = seqTable.GetColumnScheme(0);
 				IList<int> list = scheme.SelectEqual(seqId);
 				if (list.Count <= 0)

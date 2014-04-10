@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Transactions {
 	internal partial class Transaction {
@@ -93,8 +94,8 @@ namespace Deveel.Data.Transactions {
 		/// </para>
 		/// </remarks>
 		public void AddUniqueConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
-			TableName tn1 = TableDataConglomerate.UniqueInfoTable;
-			TableName tn2 = TableDataConglomerate.UniqueColsTable;
+			TableName tn1 = SystemSchema.UniqueInfoTable;
+			TableName tn2 = SystemSchema.UniqueColsTable;
 			IMutableTableDataSource t = GetMutableTable(tn1);
 			IMutableTableDataSource tcols = GetMutableTable(tn2);
 
@@ -185,8 +186,8 @@ namespace Deveel.Data.Transactions {
 		public void AddForeignKeyConstraint(TableName table, string[] columns, 
 			TableName refTable, string[] refColumns, 
 			ConstraintAction deleteRule, ConstraintAction updateRule, ConstraintDeferrability deferred, String constraintName) {
-			TableName tn1 = TableDataConglomerate.ForeignInfoTable;
-			TableName tn2 = TableDataConglomerate.ForeignColsTable;
+			TableName tn1 = SystemSchema.ForeignInfoTable;
+			TableName tn2 = SystemSchema.ForeignColsTable;
 			IMutableTableDataSource t = GetMutableTable(tn1);
 			IMutableTableDataSource tcols = GetMutableTable(tn2);
 
@@ -309,8 +310,8 @@ namespace Deveel.Data.Transactions {
 		/// </para>
 		/// </remarks>
 		public void AddPrimaryKeyConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
-			TableName tn1 = TableDataConglomerate.PrimaryInfoTable;
-			TableName tn2 = TableDataConglomerate.PrimaryColsTable;
+			TableName tn1 = SystemSchema.PrimaryInfoTable;
+			TableName tn2 = SystemSchema.PrimaryColsTable;
 			IMutableTableDataSource t = GetMutableTable(tn1);
 			IMutableTableDataSource tcols = GetMutableTable(tn2);
 
@@ -394,7 +395,7 @@ namespace Deveel.Data.Transactions {
 		/// </para>
 		/// </remarks>
 		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, string constraintName) {
-			TableName tn = TableDataConglomerate.CheckInfoTable;
+			TableName tn = SystemSchema.CheckInfoTable;
 			IMutableTableDataSource t = GetMutableTable(tn);
 			int colCount = t.TableInfo.ColumnCount;
 
@@ -523,8 +524,8 @@ namespace Deveel.Data.Transactions {
 		/// constraint existed), otherwise false.
 		/// </returns>
 		public bool DropPrimaryKeyConstraintForTable(TableName tableName, string constraintName) {
-			IMutableTableDataSource t = GetMutableTable(TableDataConglomerate.PrimaryInfoTable);
-			IMutableTableDataSource t2 = GetMutableTable(TableDataConglomerate.PrimaryColsTable);
+			IMutableTableDataSource t = GetMutableTable(SystemSchema.PrimaryInfoTable);
+			IMutableTableDataSource t2 = GetMutableTable(SystemSchema.PrimaryColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -581,8 +582,8 @@ namespace Deveel.Data.Transactions {
 		/// existed), otherwise false.
 		/// </returns>
 		public bool DropUniqueConstraintForTable(TableName table, string constraintName) {
-			IMutableTableDataSource t = GetMutableTable(TableDataConglomerate.UniqueInfoTable);
-			IMutableTableDataSource t2 = GetMutableTable(TableDataConglomerate.UniqueColsTable);
+			IMutableTableDataSource t = GetMutableTable(SystemSchema.UniqueInfoTable);
+			IMutableTableDataSource t2 = GetMutableTable(SystemSchema.UniqueColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -633,7 +634,7 @@ namespace Deveel.Data.Transactions {
 		/// existed), otherwise false.
 		/// </returns>
 		public bool DropCheckConstraintForTable(TableName table, string constraintName) {
-			IMutableTableDataSource t = GetMutableTable(TableDataConglomerate.CheckInfoTable);
+			IMutableTableDataSource t = GetMutableTable(SystemSchema.CheckInfoTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 
 			try {
@@ -676,8 +677,8 @@ namespace Deveel.Data.Transactions {
 		/// (the constraint existed), otherwise false.
 		/// </returns>
 		public bool DropForeignKeyReferenceConstraintForTable(TableName table, string constraintName) {
-			IMutableTableDataSource t = GetMutableTable(TableDataConglomerate.ForeignInfoTable);
-			IMutableTableDataSource t2 = GetMutableTable(TableDataConglomerate.ForeignColsTable);
+			IMutableTableDataSource t = GetMutableTable(SystemSchema.ForeignInfoTable);
+			IMutableTableDataSource t2 = GetMutableTable(SystemSchema.ForeignColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -758,8 +759,8 @@ namespace Deveel.Data.Transactions {
 		/// </remarks>
 		/// <returns></returns>
 		public static DataConstraintInfo[] QueryTableUniques(SimpleTransaction transaction, TableName tableName) {
-			ITableDataSource t = transaction.GetTableDataSource(TableDataConglomerate.UniqueInfoTable);
-			ITableDataSource t2 = transaction.GetTableDataSource(TableDataConglomerate.UniqueColsTable);
+			ITableDataSource t = transaction.GetTableDataSource(SystemSchema.UniqueInfoTable);
+			ITableDataSource t2 = transaction.GetTableDataSource(SystemSchema.UniqueColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -806,8 +807,8 @@ namespace Deveel.Data.Transactions {
 		/// Returns null if there is no primary key defined for the table.
 		/// </returns>
 		public static DataConstraintInfo QueryTablePrimaryKey(SimpleTransaction transaction, TableName tableName) {
-			ITableDataSource t = transaction.GetTableDataSource(TableDataConglomerate.PrimaryInfoTable);
-			ITableDataSource t2 = transaction.GetTableDataSource(TableDataConglomerate.PrimaryColsTable);
+			ITableDataSource t = transaction.GetTableDataSource(SystemSchema.PrimaryInfoTable);
+			ITableDataSource t2 = transaction.GetTableDataSource(SystemSchema.PrimaryColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t); // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2); // The columns
 
@@ -856,7 +857,7 @@ namespace Deveel.Data.Transactions {
 		/// </remarks>
 		/// <returns></returns>
 		public static DataConstraintInfo[] QueryTableCheckExpressions(SimpleTransaction transaction, TableName tableName) {
-			ITableDataSource t = transaction.GetTableDataSource(TableDataConglomerate.CheckInfoTable);
+			ITableDataSource t = transaction.GetTableDataSource(SystemSchema.CheckInfoTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 
 			DataConstraintInfo[] checks;
@@ -929,8 +930,8 @@ namespace Deveel.Data.Transactions {
 		/// Order(customer_id) -> Customer(id).
 		/// </example>
 		public static DataConstraintInfo[] QueryTableForeignKeys(SimpleTransaction transaction, TableName tableName) {
-			ITableDataSource t = transaction.GetTableDataSource(TableDataConglomerate.ForeignInfoTable);
-			ITableDataSource t2 = transaction.GetTableDataSource(TableDataConglomerate.ForeignColsTable);
+			ITableDataSource t = transaction.GetTableDataSource(SystemSchema.ForeignInfoTable);
+			ITableDataSource t2 = transaction.GetTableDataSource(SystemSchema.ForeignColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -1020,8 +1021,8 @@ namespace Deveel.Data.Transactions {
 		/// </example>
 		/// <returns></returns>
 		public static DataConstraintInfo[] QueryTableImportedForeignKeys(SimpleTransaction transaction, TableName refTableName) {
-			ITableDataSource t = transaction.GetTableDataSource(TableDataConglomerate.ForeignInfoTable);
-			ITableDataSource t2 = transaction.GetTableDataSource(TableDataConglomerate.ForeignColsTable);
+			ITableDataSource t = transaction.GetTableDataSource(SystemSchema.ForeignInfoTable);
+			ITableDataSource t2 = transaction.GetTableDataSource(SystemSchema.ForeignColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 

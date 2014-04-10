@@ -16,6 +16,7 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
@@ -171,121 +172,11 @@ namespace Deveel.Data.DbSystem {
 		///	</code>
 		/// </para>
 		/// </remarks>
-		internal void UpdateSystemTableSchema() {
+		private void UpdateSystemSchema() {
 			// Create the transaction
 			Transaction transaction = CreateTransaction();
 
-			DataTableInfo tableInfo;
-
-			// SYSTEM.SEQUENCE_INFO
-			tableInfo = new DataTableInfo(SysSequenceInfo);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("schema", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("name", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("type", PrimitiveTypes.Numeric);
-			transaction.AlterCreateTable(tableInfo, 187, 128);
-
-			// SYSTEM.SEQUENCE
-			tableInfo = new DataTableInfo(SysSequence);
-			tableInfo.AddColumn("seq_id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("last_value", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("increment", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("minvalue", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("maxvalue", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("start", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("cache", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("cycle", PrimitiveTypes.Boolean);
-			transaction.AlterCreateTable(tableInfo, 187, 128);
-
-			// SYSTEM.PRIMARY_INFO
-			tableInfo = new DataTableInfo(PrimaryInfoTable);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("name", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("schema", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("table", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric);
-			transaction.AlterCreateTable(tableInfo, 187, 128);
-
-			tableInfo = new DataTableInfo(ForeignInfoTable);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("name", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("schema", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("table", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("ref_schema", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("ref_table", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("update_rule", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("delete_rule", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric);
-			transaction.AlterCreateTable(tableInfo, 187, 128);
-
-			tableInfo = new DataTableInfo(UniqueInfoTable);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("name", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("schema", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("table", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric);
-			transaction.AlterCreateTable(tableInfo, 187, 128);
-
-			tableInfo = new DataTableInfo(CheckInfoTable);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("name", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("schema", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("table", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("expression", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("serialized_expression", PrimitiveTypes.BinaryType);
-			transaction.AlterCreateTable(tableInfo, 187, 128);
-
-			tableInfo = new DataTableInfo(PrimaryColsTable);
-			tableInfo.AddColumn("pk_id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("column", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric);
-			transaction.AlterCreateTable(tableInfo, 91, 128);
-
-			tableInfo = new DataTableInfo(UniqueColsTable);
-			tableInfo.AddColumn("un_id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("column", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric);
-			transaction.AlterCreateTable(tableInfo, 91, 128);
-
-			tableInfo = new DataTableInfo(ForeignColsTable);
-			tableInfo.AddColumn("fk_id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("fcolumn", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("pcolumn", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric);
-			transaction.AlterCreateTable(tableInfo, 91, 128);
-
-			tableInfo = new DataTableInfo(SchemaInfoTable);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("name", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("type", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("other", PrimitiveTypes.VarString);
-			transaction.AlterCreateTable(tableInfo, 91, 128);
-
-			// Stores misc variables of the database,
-			tableInfo = new DataTableInfo(PersistentVarTable);
-			tableInfo.AddColumn("variable", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("value", PrimitiveTypes.VarString);
-			transaction.AlterCreateTable(tableInfo, 91, 128);
-
-			// the UDT tables...
-			tableInfo = new DataTableInfo(UdtTable);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("schema", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("name", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("attrs", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("parent", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("ext_parent", PrimitiveTypes.VarString);
-			transaction.AlterCreateTable(tableInfo, 91, 128);
-
-			tableInfo = new DataTableInfo(UdtMembersTable);
-			tableInfo.AddColumn("type_id", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("name", PrimitiveTypes.VarString);
-			tableInfo.AddColumn("col_type", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("size", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("scale", PrimitiveTypes.Numeric);
-			tableInfo.AddColumn("not_null", PrimitiveTypes.Boolean);
-			transaction.AlterCreateTable(tableInfo, 91, 128);
+			UpdateSystemSchema(transaction);
 
 			// Commit and close the transaction.
 			try {
@@ -296,6 +187,10 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
+		private void UpdateSystemSchema(Transaction transaction) {
+			SystemSchema.AddSystemTables(transaction);
+		}
+
 
 		/// <summary>
 		/// Populates the system table schema with initial data for an empty
@@ -304,78 +199,14 @@ namespace Deveel.Data.DbSystem {
 		/// <remarks>
 		/// This sets up the standard variables and table constraint data.
 		/// </remarks>
-		private void InitializeSystemTableSchema() {
+		private void InitializeSystemSchema() {
 			// Create the transaction
 			Transaction transaction = CreateTransaction();
 
 			// Insert the two default schema names,
-			transaction.CreateSchema(SystemSchema, "SYSTEM");
+			transaction.CreateSchema(SystemSchema.Name, "SYSTEM");
 
-			// -- Primary Keys --
-			// The 'id' columns are primary keys on all the system tables,
-			String[] id_col = new String[] { "id" };
-			transaction.AddPrimaryKeyConstraint(PrimaryInfoTable,
-					  id_col, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_PK_PK");
-			transaction.AddPrimaryKeyConstraint(ForeignInfoTable,
-					  id_col, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_FK_PK");
-			transaction.AddPrimaryKeyConstraint(UniqueInfoTable,
-					  id_col, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_UNIQUE_PK");
-			transaction.AddPrimaryKeyConstraint(CheckInfoTable,
-					  id_col, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_CHECK_PK");
-			transaction.AddPrimaryKeyConstraint(SchemaInfoTable,
-					  id_col, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_SCHEMA_PK");
-
-			// -- Foreign Keys --
-			// Create the foreign key references,
-			String[] fk_col = new String[1];
-			String[] fk_ref_col = new String[] { "id" };
-			fk_col[0] = "pk_id";
-			transaction.AddForeignKeyConstraint(
-					  PrimaryColsTable, fk_col, PrimaryInfoTable, fk_ref_col,
-					  ConstraintAction.NoAction, ConstraintAction.NoAction,
-					  ConstraintDeferrability.InitiallyImmediate, "SYSTEM_PK_FK");
-			fk_col[0] = "fk_id";
-			transaction.AddForeignKeyConstraint(
-					  ForeignColsTable, fk_col, ForeignInfoTable, fk_ref_col,
-					  ConstraintAction.NoAction, ConstraintAction.NoAction,
-					  ConstraintDeferrability.InitiallyImmediate, "SYSTEM_FK_FK");
-			fk_col[0] = "un_id";
-			transaction.AddForeignKeyConstraint(
-					  UniqueColsTable, fk_col, UniqueInfoTable, fk_ref_col,
-					  ConstraintAction.NoAction, ConstraintAction.NoAction,
-					  ConstraintDeferrability.InitiallyImmediate, "SYSTEM_UNIQUE_FK");
-
-			// pkey_info 'schema', 'table' column is a unique set,
-			// (You are only allowed one primary key per table).
-			String[] columns = new String[] { "schema", "table" };
-			transaction.AddUniqueConstraint(PrimaryInfoTable,
-				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_PKEY_ST_UNIQUE");
-			// schema_info 'name' column is a unique column,
-			columns = new String[] { "name" };
-			transaction.AddUniqueConstraint(SchemaInfoTable,
-				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_SCHEMA_UNIQUE");
-			//    columns = new String[] { "name" };
-			columns = new String[] { "name", "schema" };
-			// pkey_info 'name' column is a unique column,
-			transaction.AddUniqueConstraint(PrimaryInfoTable,
-				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_PKEY_UNIQUE");
-			// fkey_info 'name' column is a unique column,
-			transaction.AddUniqueConstraint(ForeignInfoTable,
-				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_FKEY_UNIQUE");
-			// unique_info 'name' column is a unique column,
-			transaction.AddUniqueConstraint(UniqueInfoTable,
-				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_UNIQUE_UNIQUE");
-			// check_info 'name' column is a unique column,
-			transaction.AddUniqueConstraint(CheckInfoTable,
-				 columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_CHECK_UNIQUE");
-
-			// database_vars 'variable' is unique
-			columns = new String[] { "variable" };
-			transaction.AddUniqueConstraint(PersistentVarTable,
-			   columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_DATABASEVARS_UNIQUE");
-
-			// Insert the version number of the database
-			transaction.SetPersistentVariable("database.version", "1.4");
+			InitializeSystemSchema(transaction);
 
 			// Commit and close the transaction.
 			try {
@@ -384,7 +215,10 @@ namespace Deveel.Data.DbSystem {
 				Logger.Error(this, e);
 				throw new ApplicationException("Transaction Exception initializing conglomerate.", e);
 			}
+		}
 
+		private void InitializeSystemSchema(Transaction transaction) {
+			SystemSchema.Initialize(transaction);
 		}
 
 		/// <summary>
@@ -414,19 +248,19 @@ namespace Deveel.Data.DbSystem {
 				actBlobStore.LockForWrite();
 
 				// Create the BlobStore object
-				blobStore = new BlobStore(actBlobStore);
+				BlobStore = new BlobStore(actBlobStore);
 
 				// Get the 64 byte fixed area
 				IMutableArea fixedArea = actBlobStore.GetMutableArea(-1);
 				// If the blob store didn't exist then we need to create it here,
 				if (!blobStoreExists) {
-					long headerP = blobStore.Create();
+					long headerP = BlobStore.Create();
 					fixedArea.WriteInt8(headerP);
 					fixedArea.CheckOut();
 				} else {
 					// Otherwise we need to initialize the blob store
 					long headerP = fixedArea.ReadInt8();
-					blobStore.Init(headerP);
+					BlobStore.Init(headerP);
 				}
 			} finally {
 				actBlobStore.UnlockForWrite();
@@ -446,16 +280,16 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		internal void MinimalCreate() {
 			if (Exists())
-				throw new IOException("Conglomerate already exists: " + name);
+				throw new IOException("Conglomerate already exists: " + Name);
 
 			// Lock the store system (generates an IOException if exclusive Lock
 			// can not be made).
 			if (!IsReadOnly) {
-				StoreSystem.Lock(name);
+				StoreSystem.Lock(Name);
 			}
 
 			// Create/Open the state store
-			actStateStore = StoreSystem.CreateStore(name + StatePost);
+			actStateStore = StoreSystem.CreateStore(Name + StatePost);
 			try {
 				actStateStore.LockForWrite();
 
@@ -475,7 +309,7 @@ namespace Deveel.Data.DbSystem {
 			InitializeBlobStore();
 
 			// Create the system table (but don't initialize)
-			UpdateSystemTableSchema();
+			UpdateSystemSchema();
 
 		}
 
@@ -490,7 +324,7 @@ namespace Deveel.Data.DbSystem {
 			MinimalCreate();
 
 			// Initialize the conglomerate system tables.
-			InitializeSystemTableSchema();
+			InitializeSystemSchema();
 
 			// Commit the state
 			stateStore.Commit();

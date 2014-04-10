@@ -563,7 +563,7 @@ namespace Deveel.Data.DbSystem {
 
 				// Set a check point in the store system.  This means that the
 				// persistance state is now stable.
-				storeSystem.SetCheckPoint();
+				StoreSystem.SetCheckPoint();
 
 			} // lock (commit_lock)
 		}

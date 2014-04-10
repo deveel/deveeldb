@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 using Deveel.Data.Util;
@@ -67,11 +68,11 @@ namespace Deveel.Data.DbSystem {
 		/// the conglomerate.
 		/// </summary>
 		private void ResetAllSystemTableID() {
-			ResetTableID(PrimaryInfoTable);
-			ResetTableID(ForeignInfoTable);
-			ResetTableID(UniqueInfoTable);
-			ResetTableID(CheckInfoTable);
-			ResetTableID(SchemaInfoTable);
+			ResetTableID(SystemSchema.PrimaryInfoTable);
+			ResetTableID(SystemSchema.ForeignInfoTable);
+			ResetTableID(SystemSchema.UniqueInfoTable);
+			ResetTableID(SystemSchema.CheckInfoTable);
+			ResetTableID(SystemSchema.SchemaInfoTable);
 		}
 
 		/// <summary>
@@ -118,7 +119,7 @@ namespace Deveel.Data.DbSystem {
 				tableList.Add(master);
 
 				// Set a check point
-				storeSystem.SetCheckPoint();
+				StoreSystem.SetCheckPoint();
 			}
 		}
 
@@ -129,7 +130,7 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="terminal"></param>
 		public void Fix(IUserTerminal terminal) {
 			try {
-				string stateFn = (name + StatePost);
+				string stateFn = (Name + StatePost);
 				bool stateExists = false;
 				try {
 					stateExists = Exists();
@@ -146,7 +147,7 @@ namespace Deveel.Data.DbSystem {
 
 				// Open the state store
 				try {
-					actStateStore = StoreSystem.OpenStore(name + StatePost);
+					actStateStore = StoreSystem.OpenStore(Name + StatePost);
 					stateStore = new StateStore(actStateStore);
 					// Get the 64 byte fixed area
 					IArea fixed_area = actStateStore.GetArea(-1);

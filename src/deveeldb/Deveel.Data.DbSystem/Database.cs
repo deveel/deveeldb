@@ -365,7 +365,7 @@ namespace Deveel.Data.DbSystem {
 			GrantManager manager = connection.GrantManager;
 
 			// Add schema grant for APP
-			manager.Grant(Privileges.SchemaAll, GrantObject.Schema, "APP", grantee, true, granter);
+			manager.Grant(Privileges.SchemaAll, GrantObject.Schema, DefaultSchema, grantee, true, granter);
 			// Add public grant for SYSTEM
 			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, SystemSchema.Name, GrantManager.PublicUsernameStr, false, granter);
 			// Add public grant for INFORMATION_SCHEMA
@@ -509,7 +509,7 @@ namespace Deveel.Data.DbSystem {
 				DatabaseConnection connection = CreateNewConnection(null, null);
 				DatabaseQueryContext context = new DatabaseQueryContext(connection);
 				connection.LockingMechanism.SetMode(LockingMode.Exclusive);
-				if (!connection.TableExists(TableDataConglomerate.PersistentVarTable)) {
+				if (!connection.TableExists(SystemSchema.PersistentVarTable)) {
 					throw new DatabaseException(
 						"The database_vars table doesn't exist.  This means the " +
 						"database is pre-schema version 1 or the table has been deleted." +
@@ -518,7 +518,7 @@ namespace Deveel.Data.DbSystem {
 				}
 
 				// What version is the data?
-				DataTable databaseVars = connection.GetTable(TableDataConglomerate.PersistentVarTable);
+				DataTable databaseVars = connection.GetTable(SystemSchema.PersistentVarTable);
 				IDictionary vars = databaseVars.ToDictionary();
 				String dbVersion = vars["database.version"].ToString();
 				// If the version doesn't equal the current version, throw an error.

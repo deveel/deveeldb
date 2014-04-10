@@ -41,72 +41,9 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		public const String StatePost = "_sf";
 
-		// ---------- The standard constraint/schema tables ----------
-
-		/// <summary>
-		/// The name of the system schema where persistant conglomerate 
-		/// state is stored.
-		/// </summary>
-		public const String SystemSchema = "SYSTEM";
-
 		/**
 		 * The schema info table.
 		 */
-		///<summary>
-		///</summary>
-		public static readonly TableName SchemaInfoTable = new TableName(SystemSchema, "schema_info");
-		///<summary>
-		///</summary>
-		public static readonly TableName PersistentVarTable = new TableName(SystemSchema, "database_vars");
-		///<summary>
-		///</summary>
-		public static readonly TableName ForeignColsTable = new TableName(SystemSchema, "foreign_columns");
-		///<summary>
-		///</summary>
-		public static readonly TableName UniqueColsTable = new TableName(SystemSchema, "unique_columns");
-		///<summary>
-		///</summary>
-		public static readonly TableName PrimaryColsTable = new TableName(SystemSchema, "primary_columns");
-		///<summary>
-		///</summary>
-		public static readonly TableName CheckInfoTable = new TableName(SystemSchema, "check_info");
-		///<summary>
-		///</summary>
-		public static readonly TableName UniqueInfoTable = new TableName(SystemSchema, "unique_info");
-		///<summary>
-		///</summary>
-		public static readonly TableName ForeignInfoTable = new TableName(SystemSchema, "fkey_info");
-		///<summary>
-		///</summary>
-		public static readonly TableName PrimaryInfoTable = new TableName(SystemSchema, "pkey_info");
-		///<summary>
-		///</summary>
-		public static readonly TableName SysSequenceInfo = new TableName(SystemSchema, "sequence_info");
-		///<summary>
-		///</summary>
-		public static readonly TableName SysSequence = new TableName(SystemSchema, "sequence");
-		///<summary>
-		///</summary>
-		public static readonly TableName UdtTable = new TableName(SystemSchema, "udt_info");
-		///<summary>
-		///</summary>
-		public static readonly TableName UdtMembersTable = new TableName(SystemSchema, "udt_member");
-
-		/// <summary>
-		/// The TransactionSystem that this Conglomerate is a child of.
-		/// </summary>
-		private readonly SystemContext context;
-
-		/// <summary>
-		/// The <see cref="IStoreSystem"/> object used by this conglomerate to 
-		/// store the underlying representation.
-		/// </summary>
-		private readonly IStoreSystem storeSystem;
-
-		/// <summary>
-		/// The name given to this conglomerate.
-		/// </summary>
-		private readonly string name;
 
 		/// <summary>
 		/// The actual store that backs the state store.
@@ -151,16 +88,6 @@ namespace Deveel.Data.DbSystem {
 		private IStore actBlobStore;
 
 		/// <summary>
-		/// The <see cref="IBlobStore"/> object for this conglomerate.
-		/// </summary>
-		private BlobStore blobStore;
-
-		/// <summary>
-		/// The <see cref="DbSystem.SequenceManager"/> object for this conglomerate.
-		/// </summary>
-		private readonly SequenceManager sequenceManager;
-
-		/// <summary>
 		/// The <see cref="TypesManager"/> object for this conglomerate.
 		/// </summary>
 		// private readonly TypesManager typesManager;
@@ -180,9 +107,9 @@ namespace Deveel.Data.DbSystem {
 
 
 		internal TableDataConglomerate(SystemContext context, string name, IStoreSystem storeSystem) {
-			this.context = context;
-			this.name = name;
-			this.storeSystem = storeSystem;
+			Context = context;
+			Name = name;
+			StoreSystem = storeSystem;
 
 			// temporary tables live in memory
 			tempStoreSystem = new V1HeapStoreSystem();
@@ -191,7 +118,7 @@ namespace Deveel.Data.DbSystem {
 			modificationEvents = new EventHandlerList();
 			namespaceJournalList = new List<NameSpaceJournal>();
 
-			sequenceManager = new SequenceManager(this);
+			SequenceManager = new SequenceManager(this);
 			// typesManager = new TypesManager(this);
 
 		}
@@ -199,24 +126,18 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the <see cref="SystemContext"/> that this conglomerate is part of.
 		/// </summary>
-		public SystemContext Context {
-			get { return context; }
-		}
+		public SystemContext Context { get; private set; }
 
 		/// <summary>
 		/// Returns the IStoreSystem used by this conglomerate to manage the persistent 
 		/// state of the database.
 		/// </summary>
-		internal IStoreSystem StoreSystem {
-			get { return storeSystem; }
-		}
+		internal IStoreSystem StoreSystem { get; private set; }
 
 		/// <summary>
 		/// Returns the SequenceManager object for this conglomerate.
 		/// </summary>
-		internal SequenceManager SequenceManager {
-			get { return sequenceManager; }
-		}
+		internal SequenceManager SequenceManager { get; private set; }
 
 		/*
 		internal TypesManager TypesManager {
@@ -227,16 +148,12 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the BlobStore for this conglomerate.
 		/// </summary>
-		internal BlobStore BlobStore {
-			get { return blobStore; }
-		}
+		internal BlobStore BlobStore { get; private set; }
 
 		/// <summary>
 		/// Gets or sets the name given to this conglomerate.
 		/// </summary>
-		public string Name {
-			get { return name; }
-		}
+		public string Name { get; private set; }
 
 		internal Logger Logger {
 			get { return Context.Logger; }
@@ -248,7 +165,7 @@ namespace Deveel.Data.DbSystem {
 		/// Returns true if the system is in read-only mode.
 		/// </summary>
 		private bool IsReadOnly {
-			get { return context.ReadOnlyAccess; }
+			get { return Context.ReadOnlyAccess; }
 		}
 
 		/// <summary>
@@ -341,7 +258,7 @@ namespace Deveel.Data.DbSystem {
 			if (tableType == 1)
 				throw new NotSupportedException();
 			if (tableType == 2) {
-				V2MasterTableDataSource master = new V2MasterTableDataSource(Context, StoreSystem, blobStore);
+				var master = new V2MasterTableDataSource(Context, StoreSystem, BlobStore);
 				if (master.Exists(tableStr))
 					return master;
 			}
@@ -432,7 +349,7 @@ namespace Deveel.Data.DbSystem {
 		/// conglomerate state information as appropriate.
 		/// </summary>
 		/// <returns></returns>
-		private int NextUniqueTableID() {
+		private int NextUniqueTableId() {
 			return stateStore.NextTableId();
 		}
 
@@ -460,16 +377,16 @@ namespace Deveel.Data.DbSystem {
 		/// </exception>
 		public void Open() {
 			if (!Exists())
-				throw new IOException("Conglomerate doesn't exists: " + name);
+				throw new IOException("Conglomerate doesn't exists: " + Name);
 
 			// Check the file Lock
 			if (!IsReadOnly) {
 				// Obtain the Lock (generate error if this is not possible)
-				StoreSystem.Lock(name);
+				StoreSystem.Lock(Name);
 			}
 
 			// Open the state store
-			actStateStore = StoreSystem.OpenStore(name + StatePost);
+			actStateStore = StoreSystem.OpenStore(Name + StatePost);
 			stateStore = new StateStore(actStateStore);
 			// Get the fixed 64 byte area.
 			IArea fixedArea = actStateStore.GetArea(-1);
@@ -502,7 +419,7 @@ namespace Deveel.Data.DbSystem {
 				CleanUpConglomerate();
 
 				// Set a check point
-				storeSystem.SetCheckPoint();
+				StoreSystem.SetCheckPoint();
 
 				// Go through and close all the committed tables.
 				foreach (MasterTableDataSource master in tableList) {
@@ -516,9 +433,9 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Unlock the storage system
-			StoreSystem.Unlock(name);
+			StoreSystem.Unlock(Name);
 
-			if (blobStore != null)
+			if (BlobStore != null)
 				StoreSystem.CloseStore(actBlobStore);
 
 			//    removeShutdownHook();
@@ -550,7 +467,7 @@ namespace Deveel.Data.DbSystem {
 				StoreSystem.DeleteStore(actStateStore);
 
 				// Delete the blob store
-				if (blobStore != null) {
+				if (BlobStore != null) {
 					StoreSystem.CloseStore(actBlobStore);
 					StoreSystem.DeleteStore(actBlobStore);
 				}
@@ -561,7 +478,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Unlock the storage system.
-			StoreSystem.Unlock(name);
+			StoreSystem.Unlock(Name);
 		}
 
 
@@ -571,7 +488,7 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <returns></returns>
 		public bool Exists() {
-			return StoreSystem.StoreExists(name + StatePost);
+			return StoreSystem.StoreExists(Name + StatePost);
 		}
 
 		/// <summary>
@@ -596,7 +513,7 @@ namespace Deveel.Data.DbSystem {
 
 			// Copy all the blob data from the given blob store to the current blob
 			// store.
-			destConglomerate.blobStore.CopyFrom(destStoreSystem, blobStore);
+			destConglomerate.BlobStore.CopyFrom(destStoreSystem, BlobStore);
 
 			// Open new transaction - this is the current view we are going to copy.
 			Transaction transaction = CreateTransaction();
@@ -673,8 +590,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		private void CloseTable(string tableFileName, bool pendingDrop) {
 			// Find the table with this file name.
-			for (int i = 0; i < tableList.Count; ++i) {
-				MasterTableDataSource t = tableList[i];
+			foreach (MasterTableDataSource t in tableList) {
 				string encFn = tableFileName.Substring(2);
 				if (t.SourceIdentity.Equals(encFn)) {
 					// Close and remove from the list.
@@ -687,7 +603,6 @@ namespace Deveel.Data.DbSystem {
 					return;
 				}
 			}
-			return;
 		}
 
 		/// <summary>
@@ -753,7 +668,7 @@ namespace Deveel.Data.DbSystem {
 						"with a Read-only conglomerate");
 				}
 				// Allocate the large object from the store
-				IRef reference = blobStore.AllocateLargeObject(type, size);
+				IRef reference = BlobStore.AllocateLargeObject(type, size);
 				// Return the large object reference
 				return reference;
 			} catch (IOException e) {
@@ -827,10 +742,10 @@ namespace Deveel.Data.DbSystem {
 					//   'state_store.commit'.
 
 					// The unique id that identifies this table,
-					int tableId = NextUniqueTableID();
+					int tableId = NextUniqueTableId();
 
 					// Create the object.
-					V2MasterTableDataSource masterTable = new V2MasterTableDataSource(Context, StoreSystem, blobStore);
+					var masterTable = new V2MasterTableDataSource(Context, StoreSystem, BlobStore);
 					masterTable.Create(tableId, tableInfo);
 
 					// Add to the list of all tables.
@@ -856,9 +771,9 @@ namespace Deveel.Data.DbSystem {
 			lock (CommitLock) {
 				try {
 					// The unique id that identifies this table,
-					int tableId = NextUniqueTableID();
+					int tableId = NextUniqueTableId();
 
-					V2MasterTableDataSource temporary = new V2MasterTableDataSource(Context, tempStoreSystem, blobStore);
+					var temporary = new V2MasterTableDataSource(Context, tempStoreSystem, BlobStore);
 					temporary.Create(tableId, tableInfo);
 
 					tableList.Add(temporary);
@@ -899,10 +814,10 @@ namespace Deveel.Data.DbSystem {
 					//   'state_store.commit'.
 
 					// The unique id that identifies this table,
-					int tableId = NextUniqueTableID();
+					int tableId = NextUniqueTableId();
 
 					// Create the object.
-					V2MasterTableDataSource masterTable = new V2MasterTableDataSource(Context, StoreSystem, blobStore);
+					var masterTable = new V2MasterTableDataSource(Context, StoreSystem, BlobStore);
 
 					masterTable.CopyFrom(tableId, srcMasterTable, indexSet);
 

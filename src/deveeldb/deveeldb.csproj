@@ -204,7 +204,6 @@
     <Compile Include="Deveel.Data.Configuration\ConfigKeys.cs" />
     <Compile Include="Deveel.Data.Configuration\DbConfig.cs" />
     <Compile Include="Deveel.Data.Control\DbController.cs" />
-    <Compile Include="Deveel.Data.Control\DbDirectAccess.cs" />
     <Compile Include="Deveel.Data.Control\DbSystem.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunction.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />

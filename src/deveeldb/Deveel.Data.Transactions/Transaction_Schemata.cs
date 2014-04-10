@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Transactions {
 	internal partial class Transaction {
@@ -39,7 +40,7 @@ namespace Deveel.Data.Transactions {
 		/// If a schema with the same <paramref name="name"/> already exists.
 		/// </exception>
 		public void CreateSchema(string name, string type) {
-			TableName tableName = TableDataConglomerate.SchemaInfoTable;
+			TableName tableName = SystemSchema.SchemaInfoTable;
 			IMutableTableDataSource t = GetMutableTable(tableName);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 
@@ -79,7 +80,7 @@ namespace Deveel.Data.Transactions {
 		/// </para>
 		/// </remarks>
 		public void DropSchema(string name) {
-			TableName tableName = TableDataConglomerate.SchemaInfoTable;
+			TableName tableName = SystemSchema.SchemaInfoTable;
 			IMutableTableDataSource t = GetMutableTable(tableName);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 
@@ -98,7 +99,7 @@ namespace Deveel.Data.Transactions {
 		/// <param name="name"></param>
 		/// <returns></returns>
 		public bool SchemaExists(String name) {
-			TableName table_name = TableDataConglomerate.SchemaInfoTable;
+			TableName table_name = SystemSchema.SchemaInfoTable;
 			ITableDataSource t = GetTable(table_name);
 			SimpleTableQuery dt = new SimpleTableQuery(t);
 
@@ -122,7 +123,7 @@ namespace Deveel.Data.Transactions {
 		/// </returns>
 		public SchemaDef ResolveSchemaCase(String name, bool ignoreCase) {
 			// The list of schema
-			SimpleTableQuery dt = new SimpleTableQuery(GetTable(TableDataConglomerate.SchemaInfoTable));
+			SimpleTableQuery dt = new SimpleTableQuery(GetTable(SystemSchema.SchemaInfoTable));
 
 			try {
 				IRowEnumerator e = dt.GetRowEnumerator();
@@ -165,7 +166,7 @@ namespace Deveel.Data.Transactions {
 		/// <returns></returns>
 		public SchemaDef[] GetSchemaList() {
 			// The list of schema
-			SimpleTableQuery dt = new SimpleTableQuery(GetTable(TableDataConglomerate.SchemaInfoTable));
+			SimpleTableQuery dt = new SimpleTableQuery(GetTable(SystemSchema.SchemaInfoTable));
 			IRowEnumerator e = dt.GetRowEnumerator();
 			SchemaDef[] arr = new SchemaDef[dt.RowCount];
 			int i = 0;

@@ -17,6 +17,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Index;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
@@ -165,7 +166,7 @@ namespace Deveel.Data.Transactions {
 			for (int i = 0; i < sz; ++i) {
 				MasterTableDataSource masterTable = GetVisibleTable(i);
 				TableName tableName = masterTable.TableInfo.TableName;
-				if (tableName.Equals(TableDataConglomerate.SysSequenceInfo)) {
+				if (tableName.Equals(SystemSchema.SysSequenceInfo)) {
 					lastEntry = masterTable;
 				} else {
 					copyList.Add(masterTable);
@@ -320,7 +321,7 @@ namespace Deveel.Data.Transactions {
 		/// overwritten.
 		/// </remarks>
 		public void SetPersistentVariable(string variable, string value) {
-			TableName tableName = TableDataConglomerate.PersistentVarTable;
+			TableName tableName = SystemSchema.PersistentVarTable;
 			ITableDataSource t = GetTable(tableName);
 			var dt = new SimpleTableQuery(t);
 			dt.SetVariable(0, new Object[] { variable, value });
@@ -334,7 +335,7 @@ namespace Deveel.Data.Transactions {
 		/// <param name="variable"></param>
 		/// <returns></returns>
 		public String GetPersistantVariable(String variable) {
-			TableName tableName = TableDataConglomerate.PersistentVarTable;
+			TableName tableName = SystemSchema.PersistentVarTable;
 			ITableDataSource t = GetTable(tableName);
 			var dt = new SimpleTableQuery(t);
 			String val = dt.GetVariable(1, 0, variable).ToString();
