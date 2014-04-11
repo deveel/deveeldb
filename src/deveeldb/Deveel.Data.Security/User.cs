@@ -100,5 +100,10 @@ namespace Deveel.Data.Security {
 		/// manage the system tables, for authentication, etc.
 		/// </remarks>
 		public const String SystemName = "@SYSTEM";
+
+		/// <summary>
+		/// The string representing the public user (privs granted to all users).
+		/// </summary>
+		public const String PublicName = "@PUBLIC";
 	}
 }

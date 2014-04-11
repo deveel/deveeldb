@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql {
 
 			string user = actionInfo.User;
 			if (actionInfo.IsPublicUser)
-				user = GrantManager.PublicUsernameStr;
+				user = User.PublicName;
 
 			// Add a user grant.
 			manager.Grant(actionInfo.Privilege, actionInfo.Object, actionInfo.ObjectName, user, actionInfo.GrantOption, context.UserName);

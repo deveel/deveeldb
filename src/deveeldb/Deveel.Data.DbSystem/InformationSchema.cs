@@ -8,6 +8,28 @@ using Deveel.Diagnostics;
 
 namespace Deveel.Data.Deveel.Data.DbSystem {
 	public static class InformationSchema {
+		public static readonly TableName Catalogs = new TableName(Name, "catalogs");
+
+		public static readonly TableName Tables = new TableName(Name, "tables");
+
+		public static readonly TableName TablePrivileges = new TableName(Name, "table_privileges");
+
+		public static readonly TableName Schemata = new TableName(Name, "schemata");
+
+		public static readonly TableName Columns = new TableName(Name, "columns");
+
+		public static readonly TableName ColumnPrivileges = new TableName(Name, "column_privileges");
+
+		public static readonly TableName PrimaryKeys = new TableName(Name, "primary_keys");
+
+		public static readonly TableName ImportedKeys = new TableName(Name, "imported_keys");
+
+		public static readonly TableName ExportedKeys = new TableName(Name, "exported_keys");
+
+		public static readonly TableName DataTypes = new TableName(Name, "data_types");
+
+		public static readonly TableName CrossReference = new TableName(Name, "cross_reference");
+
 		/// <summary>
 		///  Creates all the system views.
 		/// </summary>
@@ -26,7 +48,7 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 					"CREATE VIEW INFORMATION_SCHEMA.ThisUserSimpleGrant AS " +
 					"  SELECT \"priv_bit\", \"object\", \"param\", \"grantee\", " +
 					"         \"grant_option\", \"granter\" " +
-					"    FROM SYSTEM.grant " +
+					"    FROM " + SystemSchema.Grant +
 					"   WHERE ( grantee = user() OR grantee = '@PUBLIC' )";
 				stmt.ExecuteNonQuery();
 
@@ -35,7 +57,7 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 					"CREATE VIEW INFORMATION_SCHEMA.ThisUserGrant AS " +
 					"  SELECT \"description\", \"object\", \"param\", \"grantee\", " +
 					"         \"grant_option\", \"granter\" " +
-					"    FROM SYSTEM.grant, SYSTEM.priv_map " +
+					"    FROM "+ SystemSchema.Grant+", " + SystemSchema.Privileges +
 					"   WHERE ( grantee = user() OR grantee = '@PUBLIC' )" +
 					"     AND grant.priv_bit = priv_map.priv_bit";
 				stmt.ExecuteNonQuery();
@@ -44,7 +66,7 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 				// the contents of.
 				stmt.CommandText =
 					"CREATE VIEW INFORMATION_SCHEMA.ThisUserSchemaInfo AS " +
-					"  SELECT * FROM SYSTEM.schema_info " +
+					"  SELECT * FROM  " + SystemSchema.SchemaInfoTable +
 					"   WHERE \"name\" IN ( " +
 					"     SELECT \"param\" " +
 					"       FROM INFORMATION_SCHEMA.ThisUserGrant " +
@@ -56,7 +78,7 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 				// this user has Read access to.
 				stmt.CommandText =
 					"CREATE VIEW INFORMATION_SCHEMA.ThisUserTableColumns AS " +
-					"  SELECT * FROM SYSTEM.table_columns " +
+					"  SELECT * FROM "+ SystemSchema.TableColumns +
 					"   WHERE \"schema\" IN ( " +
 					"     SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )";
 				stmt.ExecuteNonQuery();
@@ -65,13 +87,13 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 				// this user has Read access to.
 				stmt.CommandText =
 					"CREATE VIEW INFORMATION_SCHEMA.ThisUserTableInfo AS " +
-					"  SELECT * FROM SYSTEM.table_info " +
+					"  SELECT * FROM " + SystemSchema.TableInfo +
 					"   WHERE \"schema\" IN ( " +
 					"     SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )";
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.TABLES AS " +
+					"  CREATE VIEW "+ Tables +" AS " +
 					"  SELECT NULL AS \"TABLE_CATALOG\", \n" +
 					"         \"schema\" AS \"TABLE_SCHEMA\", \n" +
 					"         \"name\" AS \"TABLE_NAME\", \n" +
@@ -86,21 +108,21 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.SCHEMATA AS " +
+					"  CREATE VIEW "+ Schemata + " AS " +
 					"  SELECT \"name\" AS \"TABLE_SCHEMA\", \n" +
 					"         NULL AS \"TABLE_CATALOG\" \n" +
 					"    FROM INFORMATION_SCHEMA.ThisUserSchemaInfo\n";
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.CATALOGS AS " +
+					"  CREATE VIEW "+Catalogs+" AS " +
 					"  SELECT NULL AS \"TABLE_CATALOG\" \n" +
-					"    FROM SYSTEM.schema_info\n" + // Hacky, this will generate a 0 row
+					"    FROM "+ SystemSchema.SchemaInfoTable+"\n" + // Hacky, this will generate a 0 row
 					"   WHERE FALSE\n"; // table.
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.COLUMNS AS " +
+					"  CREATE VIEW "+ Columns +" AS " +
 					"  SELECT NULL AS \"TABLE_CATALOG\",\n" +
 					"         \"schema\" AS \"TABLE_SCHEMA\",\n" +
 					"         \"table\" AS \"TABLE_NAME\",\n" +
@@ -123,7 +145,7 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.COLUMN_PRIVILEGES AS " +
+					"  CREATE VIEW "+ ColumnPrivileges +" AS " +
 					"  SELECT \"TABLE_CATALOG\",\n" +
 					"         \"TABLE_SCHEMA\",\n" +
 					"         \"TABLE_NAME\",\n" +
@@ -134,15 +156,15 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 					"                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
 					"         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
 					"         IF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
-					"    FROM INFORMATION_SCHEMA.COLUMNS, INFORMATION_SCHEMA.ThisUserGrant \n" +
-					"   WHERE CONCAT(COLUMNS.TABLE_SCHEMA, '.', COLUMNS.TABLE_NAME) = \n" +
+					"    FROM "+Columns+", INFORMATION_SCHEMA.ThisUserGrant \n" +
+					"   WHERE CONCAT(columns.TABLE_SCHEMA, '.', columns.TABLE_NAME) = \n" +
 					"         ThisUserGrant.param \n" +
 					"     AND INFORMATION_SCHEMA.ThisUserGrant.object = 1 \n" +
 					"     AND INFORMATION_SCHEMA.ThisUserGrant.description IS NOT NULL \n";
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.TABLE_PRIVILEGES AS " +
+					"  CREATE VIEW "+ TablePrivileges+" AS " +
 					"  SELECT \"TABLE_CATALOG\",\n" +
 					"         \"TABLE_SCHEMA\",\n" +
 					"         \"TABLE_NAME\",\n" +
@@ -152,29 +174,29 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 					"                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
 					"         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
 					"         IF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
-					"    FROM INFORMATION_SCHEMA.TABLES, INFORMATION_SCHEMA.ThisUserGrant \n" +
-					"   WHERE CONCAT(TABLES.TABLE_SCHEMA, '.', TABLES.TABLE_NAME) = \n" +
+					"    FROM "+ Tables+", INFORMATION_SCHEMA.ThisUserGrant \n" +
+					"   WHERE CONCAT(tables.TABLE_SCHEMA, '.', tables.TABLE_NAME) = \n" +
 					"         ThisUserGrant.param \n" +
 					"     AND INFORMATION_SCHEMA.ThisUserGrant.object = 1 \n" +
 					"     AND INFORMATION_SCHEMA.ThisUserGrant.description IS NOT NULL \n";
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.PrimaryKeys AS " +
+					"  CREATE VIEW "+ PrimaryKeys+" AS " +
 					"  SELECT NULL \"TABLE_CATALOG\",\n" +
 					"         \"schema\" \"TABLE_SCHEMA\",\n" +
 					"         \"table\" \"TABLE_NAME\",\n" +
 					"         \"column\" \"COLUMN_NAME\",\n" +
 					"         \"SYSTEM.primary_columns.seq_no\" \"KEY_SEQ\",\n" +
 					"         \"name\" \"PK_NAME\"\n" +
-					"    FROM SYSTEM.pkey_info, SYSTEM.primary_columns\n" +
+					"    FROM "+ SystemSchema.PrimaryInfoTable+", "+ SystemSchema.PrimaryColsTable+"\n" +
 					"   WHERE pkey_info.id = primary_columns.pk_id\n" +
 					"     AND \"schema\" IN\n" +
 					"            ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.ImportedKeys AS " +
+					"  CREATE VIEW "+ ImportedKeys+" AS " +
 					"  SELECT NULL \"PKTABLE_CATALOG\",\n" +
 					"         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
 					"         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
@@ -189,14 +211,14 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 					"         \"fkey_info.name\" \"FK_NAME\",\n" +
 					"         NULL \"PK_NAME\",\n" +
 					"         \"fkey_info.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYSTEM.fkey_info, SYSTEM.foreign_columns\n" +
+					"    FROM "+ SystemSchema.ForeignInfoTable+", "+ SystemSchema.ForeignColsTable+"\n" +
 					"   WHERE fkey_info.id = foreign_columns.fk_id\n" +
 					"     AND \"fkey_info.schema\" IN\n" +
 					"              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.ExportedKeys AS " +
+					"  CREATE VIEW "+ ExportedKeys+" AS " +
 					"  SELECT NULL \"PKTABLE_CAT\",\n" +
 					"         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
 					"         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
@@ -211,14 +233,14 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 					"         \"fkey_info.name\" \"FK_NAME\",\n" +
 					"         NULL \"PK_NAME\",\n" +
 					"         \"fkey_info.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYSTEM.fkey_info, SYSTEM.foreign_columns\n" +
+					"    FROM "+ SystemSchema.ForeignInfoTable+", "+ SystemSchema.ForeignColsTable+"\n" +
 					"   WHERE fkey_info.id = foreign_columns.fk_id\n" +
 					"     AND \"fkey_info.schema\" IN\n" +
 					"              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
 				stmt.ExecuteNonQuery();
 
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.CrossReference AS " +
+					"  CREATE VIEW "+ CrossReference+" AS " +
 					"  SELECT NULL \"PKTABLE_CAT\",\n" +
 					"         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
 					"         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
@@ -233,7 +255,7 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 					"         \"fkey_info.name\" \"FK_NAME\",\n" +
 					"         NULL \"PK_NAME\",\n" +
 					"         \"fkey_info.deferred\" \"DEFERRABILITY\"\n" +
-					"    FROM SYSTEM.fkey_info, SYSTEM.foreign_columns\n" +
+					"    FROM "+ SystemSchema.ForeignInfoTable+", "+ SystemSchema.ForeignColsTable+"\n" +
 					"   WHERE fkey_info.id = foreign_columns.fk_id\n" +
 					"     AND \"fkey_info.schema\" IN\n" +
 					"              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n";
@@ -241,8 +263,8 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 
 				// export all the built-in data types...
 				stmt.CommandText =
-					"  CREATE VIEW INFORMATION_SCHEMA.DATA_TYPES AS " +
-					"  SELECT * FROM SYSTEM.sql_types\n";
+					"  CREATE VIEW " + DataTypes + " AS " +
+					"  SELECT * FROM "+SystemSchema.SqlTypes+"\n";
 				stmt.ExecuteNonQuery();
 
 				//TODO: export the variables too...
@@ -259,36 +281,26 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 		internal static void SetViewsGrants(GrantManager manager, string granter) {
 			// Set public grants for the system views.
 			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ThisUserGrant",
-						  GrantManager.PublicUsernameStr, false, granter);
+						  User.PublicName, false, granter);
 			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ThisUserSimpleGrant",
-						  GrantManager.PublicUsernameStr, false, granter);
+						  User.PublicName, false, granter);
 			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ThisUserSchemaInfo",
-						  GrantManager.PublicUsernameStr, false, granter);
+						  User.PublicName, false, granter);
 			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ThisUserTableColumns",
-						  GrantManager.PublicUsernameStr, false, granter);
+						  User.PublicName, false, granter);
 			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ThisUserTableInfo",
-						  GrantManager.PublicUsernameStr, false, granter);
+						  User.PublicName, false, granter);
 
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.TABLES", GrantManager.PublicUsernameStr,
-						  false, granter);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.SCHEMATA", GrantManager.PublicUsernameStr,
-						  false, granter);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.CATALOGS", GrantManager.PublicUsernameStr,
-						  false, granter);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.COLUMNS", GrantManager.PublicUsernameStr,
-						  false, granter);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.COLUMN_PRIVILEGES",
-						  GrantManager.PublicUsernameStr, false, granter);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.TABLE_PRIVILEGES",
-						  GrantManager.PublicUsernameStr, false, granter);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.PrimaryKeys",
-						  GrantManager.PublicUsernameStr, false, granter);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ImportedKeys",
-						  GrantManager.PublicUsernameStr, false, granter);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.ExportedKeys",
-						  GrantManager.PublicUsernameStr, false, granter);
-			manager.Grant(Privileges.TableRead, GrantObject.Table, "INFORMATION_SCHEMA.CrossReference",
-						  GrantManager.PublicUsernameStr, false, granter);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, Tables.ToString(), User.PublicName, false, granter);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, Schemata.ToString(), User.PublicName, false, granter);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, Catalogs.ToString(), User.PublicName, false, granter);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, Columns.ToString(), User.PublicName, false, granter);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, ColumnPrivileges.ToString(), User.PublicName, false, granter);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, TablePrivileges.ToString(), User.PublicName, false, granter);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, PrimaryKeys.ToString(), User.PublicName, false, granter);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, ImportedKeys.ToString(), User.PublicName, false, granter);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, ExportedKeys.ToString(), User.PublicName, false, granter);
+			manager.Grant(Privileges.TableRead, GrantObject.Table, CrossReference.ToString(), User.PublicName, false, granter);
 		}
 
 		/// <summary>

@@ -113,6 +113,7 @@
     <Compile Include="Deveel.Data.Security\IHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\PasswordCrypto.cs" />
+    <Compile Include="Deveel.Data.Security\Privileges.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ParseException.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SimpleCharStream.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SQL.cs" />
@@ -450,7 +451,6 @@
     <Compile Include="Deveel.Data.DbSystem\OuterTable.cs" />
     <Compile Include="Deveel.Data.Sql\ParameterSubstitution.cs" />
     <Compile Include="Deveel.Data\PatternSearch.cs" />
-    <Compile Include="Deveel.Data.Security\Privileges.cs" />
     <Compile Include="Deveel.Data.Procedures\ProcedureResult.cs" />
     <Compile Include="Deveel.Data.Util\ProductInfo.cs" />
     <Compile Include="Deveel.Data.DbSystem\QueryContext.cs" />

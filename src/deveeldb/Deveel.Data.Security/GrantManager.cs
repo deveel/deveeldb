@@ -26,19 +26,13 @@ namespace Deveel.Data.Security {
 	/// session and user.
 	/// </summary>
 	public class GrantManager {
-
-		/// <summary>
-		/// The string representing the public user (privs granted to all users).
-		/// </summary>
-		public const String PublicUsernameStr = "@PUBLIC";
-
 		/// <summary>
 		/// The name of the 'public' username.
 		/// </summary>
 		/// <remarks>
 		/// If a grant is made on 'public' then all users are given the grant.
 		/// </remarks>
-		public readonly static TObject PublicUsername = TObject.CreateString(PublicUsernameStr);
+		private readonly static TObject PublicUsername = TObject.CreateString(User.PublicName);
 
 		// ---------- Members ----------
 		/// <summary>
@@ -55,20 +49,20 @@ namespace Deveel.Data.Security {
 		/// A cache of privileges for the various tables in the database.  This cache
 		/// is populated as the user 'visits' a table.
 		/// </summary>
-		private readonly Cache priv_cache;
+		private readonly Cache privCache;
 
 		/// <summary>
 		/// Set to true if the grant table is modified in this manager.
 		/// </summary>
-		private bool grant_table_changed;
+		private bool grantTableChanged;
 
 
 		internal GrantManager(DatabaseConnection connection) {
 			this.connection = connection;
 			context = new DatabaseQueryContext(connection);
-			priv_cache = new MemoryCache(129, 129, 20);
+			privCache = new MemoryCache(129, 129, 20);
 
-			grant_table_changed = false;
+			grantTableChanged = false;
 
 			// Attach a cache backed on the GRANTS table which will invalidate the
 			// connection cache whenever the grant table is modified.
@@ -85,9 +79,9 @@ namespace Deveel.Data.Security {
 
 			protected override void PurgeCache(IList<int> addedRows, IList<int> removedRows) {
 				// If there were changed then invalidate the cache
-				if (manager.grant_table_changed) {
+				if (manager.grantTableChanged) {
 					manager.InvalidateGrantCache();
-					manager.grant_table_changed = false;
+					manager.grantTableChanged = false;
 				}
 					// Otherwise, if there were committed added or removed changes also
 					// invalidate the cache,
@@ -104,7 +98,7 @@ namespace Deveel.Data.Security {
 		/// Flushes any grant information that's being cached.
 		/// </summary>
 		private void InvalidateGrantCache() {
-			priv_cache.Clear();
+			privCache.Clear();
 		}
 
 		/// <summary>
@@ -119,8 +113,7 @@ namespace Deveel.Data.Security {
 			private readonly String username;
 			private readonly int flags;
 
-			internal GrantQuery(GrantObject obj, String param, String username,
-					   bool flag1, bool flag2) {
+			internal GrantQuery(GrantObject obj, string param, String username, bool flag1, bool flag2) {
 				this.obj = obj;
 				this.param = param;
 				this.username = username;
@@ -144,65 +137,61 @@ namespace Deveel.Data.Security {
 
 
 
-		private Privileges GetPrivs(GrantObject obj, String param, String username,
-					   bool only_grant_options,
-					   String granter, bool include_public_privs) {
-
+		private Privileges GetPrivs(GrantObject obj, String param, String username, bool onlyGrantOptions, String granter, bool includePublicPrivs) {
 			// Create the grant query key
-			GrantQuery key = new GrantQuery(obj, param, username,
-											only_grant_options, include_public_privs);
+			GrantQuery key = new GrantQuery(obj, param, username, onlyGrantOptions, includePublicPrivs);
 
 			// Is the Privileges object for this query already in the cache?
-			Privileges privs = (Privileges)priv_cache.Get(key);
+			Privileges privs = (Privileges)privCache.Get(key);
 			if (privs == null) {
 				// Not in cache so we need to ask database for the information.
 
 				// The system grants table.
-				DataTable grant_table = connection.GetTable(SystemSchema.Grant);
+				DataTable grantTable = connection.GetTable(SystemSchema.Grant);
 
-				VariableName object_col = grant_table.GetResolvedVariable(1);
-				VariableName param_col = grant_table.GetResolvedVariable(2);
-				VariableName grantee_col = grant_table.GetResolvedVariable(3);
-				VariableName grant_option_col = grant_table.GetResolvedVariable(4);
-				VariableName granter_col = grant_table.GetResolvedVariable(5);
-				Operator EQUALS = Operator.Get("=");
+				VariableName objectCol = grantTable.GetResolvedVariable(1);
+				VariableName paramCol = grantTable.GetResolvedVariable(2);
+				VariableName granteeCol = grantTable.GetResolvedVariable(3);
+				VariableName grantOptionCol = grantTable.GetResolvedVariable(4);
+				VariableName granterCol = grantTable.GetResolvedVariable(5);
+				Operator equals = Operator.Get("=");
 
-				Table t1 = grant_table;
+				Table t1 = grantTable;
 
 				// All that match the given object parameter
 				// It's most likely this will reduce the search by the most so we do
 				// it first.
-				t1 = t1.SimpleSelect(context, param_col, EQUALS, new Expression(TObject.CreateString(param)));
+				t1 = t1.SimpleSelect(context, paramCol, equals, new Expression(TObject.CreateString(param)));
 
 				// The next is a single exhaustive select through the remaining records.
 				// It finds all grants that match either public or the grantee is the
 				// username, and that match the object type.
 
 				// Expression: ("grantee_col" = username OR "grantee_col" = 'public')
-				Expression user_check =
-					Expression.Simple(grantee_col, EQUALS, TObject.CreateString(username));
-				if (include_public_privs) {
-					user_check = new Expression(user_check, Operator.Get("or"), Expression.Simple(grantee_col, EQUALS, PublicUsername));
+				Expression userCheck =
+					Expression.Simple(granteeCol, equals, TObject.CreateString(username));
+				if (includePublicPrivs) {
+					userCheck = new Expression(userCheck, Operator.Get("or"), Expression.Simple(granteeCol, equals, PublicUsername));
 				}
 				// Expression: ("object_col" = object AND
 				//              ("grantee_col" = username OR "grantee_col" = 'public'))
 				// All that match the given username or public and given object
-				Expression expr = new Expression(Expression.Simple(object_col, EQUALS, TObject.CreateInt4((int) obj)),
-				                                 Operator.Get("and"), user_check);
+				Expression expr = new Expression(Expression.Simple(objectCol, equals, TObject.CreateInt4((int) obj)),
+				                                 Operator.Get("and"), userCheck);
 
 				// Are we only searching for grant options?
-				if (only_grant_options) {
-					Expression grant_option_check =
-						Expression.Simple(grant_option_col, EQUALS,
+				if (onlyGrantOptions) {
+					Expression grantOptionCheck =
+						Expression.Simple(grantOptionCol, equals,
 										  TObject.CreateString("true"));
-					expr = new Expression(expr, Operator.Get("and"), grant_option_check);
+					expr = new Expression(expr, Operator.Get("and"), grantOptionCheck);
 				}
 
 				// Do we need to check for a granter when we looking for privs?
 				if (granter != null) {
-					Expression granter_check =
-						Expression.Simple(granter_col, EQUALS, TObject.CreateString(granter));
-					expr = new Expression(expr, Operator.Get("and"), granter_check);
+					Expression granterCheck =
+						Expression.Simple(granterCol, equals, TObject.CreateString(granter));
+					expr = new Expression(expr, Operator.Get("and"), granterCheck);
 				}
 
 				t1 = t1.ExhaustiveSelect(context, expr);
@@ -211,14 +200,14 @@ namespace Deveel.Data.Security {
 				privs = Privileges.Empty;
 				IRowEnumerator e = t1.GetRowEnumerator();
 				while (e.MoveNext()) {
-					int row_index = e.RowIndex;
-					BigNumber priv_bit =
-								  (BigNumber)t1.GetCell(0, row_index).Object;
-					privs = privs.Add(priv_bit.ToInt32());
+					int rowIndex = e.RowIndex;
+					BigNumber privBit =
+								  (BigNumber)t1.GetCell(0, rowIndex).Object;
+					privs = privs.Add(privBit.ToInt32());
 				}
 
 				// Put the privs object in the cache
-				priv_cache.Set(key, privs);
+				privCache.Set(key, privs);
 
 			}
 
@@ -264,7 +253,7 @@ namespace Deveel.Data.Security {
 				InvalidateGrantCache();
 
 				// Notify that the grant table has changed.
-				grant_table_changed = true;
+				grantTableChanged = true;
 
 			}
 
@@ -432,7 +421,7 @@ namespace Deveel.Data.Security {
 			InvalidateGrantCache();
 
 			// Notify that the grant table has changed.
-			grant_table_changed = true;
+			grantTableChanged = true;
 
 		}
 
@@ -465,7 +454,7 @@ namespace Deveel.Data.Security {
 			InvalidateGrantCache();
 
 			// Notify that the grant table has changed.
-			grant_table_changed = true;
+			grantTableChanged = true;
 
 		}
 

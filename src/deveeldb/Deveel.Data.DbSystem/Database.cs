@@ -265,9 +265,9 @@ namespace Deveel.Data.DbSystem {
 			// Add schema grant for APP
 			manager.Grant(Privileges.SchemaAll, GrantObject.Schema, DefaultSchema, grantee, true, granter);
 			// Add public grant for SYSTEM
-			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, SystemSchema.Name, GrantManager.PublicUsernameStr, false, granter);
+			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, SystemSchema.Name, User.PublicName, false, granter);
 			// Add public grant for INFORMATION_SCHEMA
-			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, InformationSchema.Name, GrantManager.PublicUsernameStr, false, granter);
+			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, InformationSchema.Name, User.PublicName, false, granter);
 
 			// For all tables in the SYSTEM schema, grant all privileges to the
 			// system user.

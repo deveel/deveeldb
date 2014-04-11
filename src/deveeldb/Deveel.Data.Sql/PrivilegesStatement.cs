@@ -230,7 +230,7 @@ namespace Deveel.Data.Sql {
 					if (String.Compare(name, "public", true) == 0) {
 						// Add a public grant,
 						manager.Grant(grant_privs, grant_object, grant_param,
-										 GrantManager.PublicUsernameStr,
+										 GrantManager.PublicName,
 										 grant_option, User.UserName);
 					} else {
 						// Add a user grant.
@@ -273,7 +273,7 @@ namespace Deveel.Data.Sql {
 					if (String.Compare(name, "public", true) == 0) {
 						// Revoke a public grant,
 						manager.Revoke(revoke_privs, grant_object, grant_param,
-											GrantManager.PublicUsernameStr,
+											GrantManager.PublicName,
 											revoke_grant_option, User.UserName);
 					} else {
 						// Revoke a user grant.

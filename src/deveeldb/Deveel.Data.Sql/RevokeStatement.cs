@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql {
 
 			string user = actionInfo.User;
 			if (actionInfo.IsPublicUser)
-				user = GrantManager.PublicUsernameStr;
+				user = User.PublicName;
 
 			// Revoke a user grant.
 			manager.Revoke(actionInfo.Privilege, actionInfo.Object, actionInfo.ObjectName, user, actionInfo.GrantOption,
