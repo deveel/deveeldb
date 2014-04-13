@@ -2,11 +2,10 @@
 using System.Data;
 
 using Deveel.Data.Client;
-using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 using Deveel.Diagnostics;
 
-namespace Deveel.Data.Deveel.Data.DbSystem {
+namespace Deveel.Data.DbSystem {
 	public static class InformationSchema {
 		public static readonly TableName Catalogs = new TableName(Name, "catalogs");
 

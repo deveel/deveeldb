@@ -547,7 +547,6 @@
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Logical.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\MathContext.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Messages.Designer.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Messages1.Designer.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Multiplication.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Primality.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\RoundingMode.cs" />

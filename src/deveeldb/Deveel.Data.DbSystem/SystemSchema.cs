@@ -1,12 +1,11 @@
 ﻿using System;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Procedures;
 using Deveel.Data.Security;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Deveel.Data.DbSystem {
+namespace Deveel.Data.DbSystem {
 	public static class SystemSchema {
 		/// <summary>
 		/// The name of the system schema that contains tables refering to 
