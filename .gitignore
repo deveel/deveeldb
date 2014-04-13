@@ -28,3 +28,10 @@
 /src/SampleApp/obj
 /src/SampleApp/bin
 /src/deveeldb/Deveel.Data.Sql.Parser/SQL.cs
+/src/deveeldb/Deveel.Data.Sql.Parser/TokenMgrError.cs
+/src/deveeldb/Deveel.Data.Sql.Parser/ParseException.cs
+/src/deveeldb/Deveel.Data.Sql.Parser/SimpleCharStream.cs
+/src/deveeldb/Deveel.Data.Sql.Parser/SQL.csc
+/src/deveeldb/Deveel.Data.Sql.Parser/SQLConstants.cs
+/src/deveeldb/Deveel.Data.Sql.Parser/SQLTokenManager.cs
+/src/deveeldb/Deveel.Data.Sql.Parser/Token.cs
