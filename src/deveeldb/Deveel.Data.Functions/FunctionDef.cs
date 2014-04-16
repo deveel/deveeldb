@@ -113,7 +113,7 @@ namespace Deveel.Data.Functions {
 				return cached_function;
 			IFunctionLookup lookup;
 			if (context == null) {
-				lookup = FunctionFactory.Default;
+				lookup = SystemFunctions.Factory;
 			} else {
 				lookup = context.FunctionLookup;
 			}

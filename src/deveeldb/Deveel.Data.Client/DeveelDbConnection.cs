@@ -168,17 +168,13 @@ namespace Deveel.Data.Client {
 		public DeveelDbConnection() {
 		}
 
-		public new event ConnectionStateEventHandler StateChange;
-
 		internal void ChangeState(ConnectionState newState) {
 			ChangeState(newState, null);
 		}
 
 		internal void ChangeState(ConnectionState newState, Exception error) {
 			lock (stateLock) {
-				if (StateChange != null)
-					StateChange(this, new ConnectionStateEventArgs(state, newState, error));
-
+				base.OnStateChange(new StateChangeEventArgs(State, newState));
 				state = newState;
 			}
 		}

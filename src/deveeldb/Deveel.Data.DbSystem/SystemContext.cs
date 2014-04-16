@@ -396,7 +396,7 @@ namespace Deveel.Data {
 				SetupStoreSystem();
 
 				// Register the default function factory,
-				AddFunctionFactory(FunctionFactory.Default);
+				AddFunctionFactory(SystemFunctions.Factory);
 				SetupExternalFunctions();
 
 				// Flush the contents of the function lookup object.

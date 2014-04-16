@@ -58,9 +58,6 @@ namespace Deveel.Data.Functions {
 		/// </summary>
 		private readonly Type[] construct_proto;
 
-		private static FunctionFactory def;
-
-
 		protected FunctionFactory() {
 			fun_class_mapping = new Hashtable(CaseInsensitiveHashCodeProvider.DefaultInvariant, CaseInsensitiveComparer.DefaultInvariant);
 			// The is the prototype for the constructor when creating a new function.
@@ -68,20 +65,6 @@ namespace Deveel.Data.Functions {
 			Object exp_arr_ob =
 				Array.CreateInstance(typeof(Expression), 0);
 			construct_proto[0] = exp_arr_ob.GetType();
-		}
-
-		/// <summary>
-		/// Gets an instance of <see cref="FunctionFactory"/> that contains all
-		/// the built-in functions defined in the assembly.
-		/// </summary>
-		public static FunctionFactory Default {
-			get {
-				if (def == null) {
-					def = new DefaultFunctionFactory();
-					def.Init();
-				}
-				return def;
-			}
 		}
 
 		/// <summary>

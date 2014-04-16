@@ -101,6 +101,7 @@
     <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
+    <Compile Include="Deveel.Data.Functions\SystemFunctions.cs" />
     <Compile Include="Deveel.Data.Protocol\ColumnDescription.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -207,10 +208,6 @@
     <Compile Include="Deveel.Data.Control\DbController.cs" />
     <Compile Include="Deveel.Data.Control\DbSystem.cs" />
     <Compile Include="Deveel.Data.Functions\AggregateFunction.cs" />
-    <Compile Include="Deveel.Data.Functions\AggregateFunctionFactory.cs" />
-    <Compile Include="Deveel.Data.Functions\ArithmeticFunctionFactory.cs" />
-    <Compile Include="Deveel.Data.Functions\CompressionFunctionFactory.cs" />
-    <Compile Include="Deveel.Data.Functions\DateFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Functions\Function.cs" />
     <Compile Include="Deveel.Data.Functions\FunctionDef.cs" />
     <Compile Include="Deveel.Data.Functions\FunctionFactory.cs" />
@@ -218,9 +215,6 @@
     <Compile Include="Deveel.Data.Functions\IFunction.cs" />
     <Compile Include="Deveel.Data.Functions\IFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Functions\IFunctionLookup.cs" />
-    <Compile Include="Deveel.Data.Functions\InternalFunctionFactory.cs" />
-    <Compile Include="Deveel.Data.Functions\MiscFunctionFactory.cs" />
-    <Compile Include="Deveel.Data.Functions\StringFunctionFactory.cs" />
     <Compile Include="Deveel.Data.Procedures\ParameterDirection.cs" />
     <Compile Include="Deveel.Data.Procedures\ProcedureBody.cs" />
     <Compile Include="Deveel.Data.Procedures\ProcedureException.cs" />
