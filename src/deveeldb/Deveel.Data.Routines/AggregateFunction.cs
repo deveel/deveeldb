@@ -17,7 +17,7 @@ using System;
 
 using Deveel.Data.DbSystem;
 
-namespace Deveel.Data.Functions {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// Provides convenience methods for handling aggregate functions (functions
 	/// that are evaluated over a grouping set).

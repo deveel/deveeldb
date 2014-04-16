@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Procedures {
+namespace Deveel.Data.Routines {
 	///<summary>
 	/// An exception that is generated from a stored procedure when some 
 	/// erronious condition occurs.

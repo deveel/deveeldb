@@ -16,6 +16,8 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Routines;
+
 namespace Deveel.Data.Procedures {
 	///<summary>
 	/// A stored procedure that backs up the entire database to the given 

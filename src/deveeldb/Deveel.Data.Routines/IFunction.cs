@@ -19,7 +19,7 @@ using System.Collections;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Functions {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// Represents a function that is part of an expression to be evaluated.
 	/// </summary>

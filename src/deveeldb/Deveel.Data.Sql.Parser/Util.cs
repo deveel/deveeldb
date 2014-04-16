@@ -16,7 +16,7 @@
 using System;
 using System.Text;
 
-using Deveel.Data.Functions;
+using Deveel.Data.Routines;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {

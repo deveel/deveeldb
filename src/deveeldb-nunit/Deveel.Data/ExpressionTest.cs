@@ -48,15 +48,15 @@ namespace Deveel.Data {
 		[Test]
 		public void FunctionExpression() {
 			Expression exp = Expression.Parse("LENGTH(a)");
-			Assert.IsTrue(exp[0] is Functions.FunctionDef);
-			Functions.FunctionDef fdef = (Functions.FunctionDef) exp[0];
+			Assert.IsTrue(exp[0] is Routines.FunctionDef);
+			Routines.FunctionDef fdef = (Routines.FunctionDef) exp[0];
 			Assert.AreEqual(fdef.Name, "LENGTH");
 			Assert.AreEqual(fdef.Parameters.Length, 1);
 			Assert.AreEqual(fdef.Parameters[0].AllVariables.Count, 1);
 			Assert.AreEqual(fdef.Parameters[0].AllVariables[0], VariableName.Resolve("a"));
 
 			exp = Expression.Parse("LENGTH('test')");
-			fdef = (Functions.FunctionDef)exp[0];
+			fdef = (Routines.FunctionDef)exp[0];
 			Assert.AreEqual(fdef.Name, "LENGTH");
 			Assert.AreEqual(fdef.Parameters.Length, 1);
 			Assert.AreEqual(fdef.Parameters[0].AllElements.Count, 1);
@@ -64,7 +64,7 @@ namespace Deveel.Data {
 			Assert.IsTrue(result == (TObject) 4);
 
 			exp = Expression.Parse("LENGTH(CAST(CURRENT_TIMESTAMP AS VARCHAR))");
-			fdef = (Functions.FunctionDef) exp[0];
+			fdef = (Routines.FunctionDef) exp[0];
 			result = fdef.GetFunction(null).Evaluate(null, null, null);
 		}
 

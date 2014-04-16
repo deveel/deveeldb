@@ -1,7 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Functions;
+using Deveel.Data.Routines;
 using Deveel.Data.Store;
 using Deveel.Diagnostics;
 

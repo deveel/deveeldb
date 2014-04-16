@@ -19,7 +19,7 @@ using System.Reflection;
 
 using Deveel.Data.DbSystem;
 
-namespace Deveel.Data.Functions {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// A factory that generates <see cref="IFunction"/> objects given 
 	/// a function name and a set of expression's that represent parameters.

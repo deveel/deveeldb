@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-using Deveel.Data.Procedures;
+using Deveel.Data.Routines;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 

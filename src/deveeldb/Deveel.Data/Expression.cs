@@ -21,7 +21,7 @@ using System.Runtime.Serialization;
 using System.Text;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Functions;
+using Deveel.Data.Routines;
 using Deveel.Data.Query;
 using Deveel.Data.Sql;
 using Deveel.Data.Types;

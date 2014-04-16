@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Functions {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// The different type of a function.
 	/// </summary>

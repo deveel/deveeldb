@@ -18,7 +18,7 @@ using System.Data;
 
 using Deveel.Data.DbSystem;
 
-namespace Deveel.Data.Procedures {
+namespace Deveel.Data.Routines {
 	///<summary>
 	/// An interface for accessing a database connection inside a stored procedure.
 	///</summary>

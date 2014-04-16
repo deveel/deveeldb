@@ -24,7 +24,7 @@ using System.Text;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Functions {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// An abstract implementation of <see cref="IFunction"/>.
 	/// </summary>

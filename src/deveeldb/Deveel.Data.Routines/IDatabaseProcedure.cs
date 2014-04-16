@@ -19,7 +19,7 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 using Deveel.Data.Threading;
 
-namespace Deveel.Data.Procedures {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// This interface represents a database procedure that is executed on 
 	/// the server side.

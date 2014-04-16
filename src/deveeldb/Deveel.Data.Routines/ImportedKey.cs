@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Functions {
+namespace Deveel.Data.Routines {
 	internal static class ImportedKey {
 		public const int Cascade = 0;
 		public const int InitiallyDeferred = 5;

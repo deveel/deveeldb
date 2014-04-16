@@ -6,7 +6,7 @@ using Deveel.Data.Types;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Functions {
+namespace Deveel.Data.Routines {
 	[TestFixture]
 	public sealed class FunctionTest : TestBase {
 		#region Aritmetic Functions

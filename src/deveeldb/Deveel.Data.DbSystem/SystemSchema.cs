@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Procedures;
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
@@ -438,7 +439,7 @@ namespace Deveel.Data.DbSystem {
 
 			// Define the SYSTEM_MAKE_BACKUP procedure
 			manager.DefineProcedure(new ProcedureName(Name, "SYSTEM_MAKE_BACKUP"),
-				Functions.Function.ExternalName(typeof(SystemBackup)),
+				Routines.Function.ExternalName(typeof(SystemBackup)),
 				PrimitiveTypes.VarString,
 				new TType[] {PrimitiveTypes.VarString},
 				adminUser);

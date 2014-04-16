@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Functions {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// An interface that resolves and generates a <see cref="IFunction"/> 
 	/// objects given a <see cref="FunctionDef"/> object.

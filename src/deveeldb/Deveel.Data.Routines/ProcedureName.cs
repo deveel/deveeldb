@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Procedures {
+namespace Deveel.Data.Routines {
 	///<summary>
 	/// The name of a procedure as understood by a ProcedureManager.
 	///</summary>

@@ -15,7 +15,7 @@
 
 using System;
 
-using Deveel.Data.Functions;
+using Deveel.Data.Routines;
 using Deveel.Data.Query;
 using Deveel.Data.Security;
 using Deveel.Data.Transactions;

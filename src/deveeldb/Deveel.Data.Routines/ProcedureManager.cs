@@ -24,7 +24,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Procedures {
+namespace Deveel.Data.Routines {
 	///<summary>
 	/// A DatabaseConnection procedure manager.
 	///</summary>

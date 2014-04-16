@@ -16,7 +16,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Procedures;
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql {

@@ -15,27 +15,35 @@
 
 using System;
 
-namespace Deveel.Data.Functions {
+namespace Deveel.Data.Routines {
 	/// <summary>
-	/// Meta information about a function, used to compile information 
-	/// about a particular function.
+	/// The possible directions of a procedure parameter.
 	/// </summary>
-	public interface IFunctionInfo {
+	/// <remarks>
+	/// By default a <see cref="ProcedureParameter"/> is
+	/// set as <see cref="Input"/>.
+	/// </remarks>
+	[Flags]
+	public enum ParameterDirection {
 		/// <summary>
-		/// The name of the function as used by the SQL grammar to reference it.
+		/// The parameter provides an input value to the 
+		/// procedure, but won't be able to output a
+		/// value eventually set.
 		/// </summary>
-		string Name { get; }
+		Input = 0x01,
 
 		/// <summary>
-		/// The type of function, either Static, Aggregate or StateBased (eg. result
-		/// is not dependant entirely from input but from another state for example
-		/// RANDOM and UNIQUEKEY functions).
+		/// The parameter will not provide any input value,
+		/// and will output a value set during the execution
+		/// of the procedure.
 		/// </summary>
-		FunctionType Type { get; }
+		Output = 0x02,
 
 		/// <summary>
-		/// The name of the function factory class that this function is handled by.
+		/// The parameter will provide an input value and will
+		/// return an output value set during the execution
+		/// of the procedure.
 		/// </summary>
-		string FunctionFactoryName { get; }
+		InputOutput = Input | Output
 	}
 }

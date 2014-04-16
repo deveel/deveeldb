@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
-using Deveel.Data.Procedures;
+using Deveel.Data.Routines;
 using Deveel.Data.Query;
 using Deveel.Data.Security;
 using Deveel.Data.Threading;

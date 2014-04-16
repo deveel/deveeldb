@@ -18,7 +18,7 @@ using System.Text;
 
 using Deveel.Data.DbSystem;
 
-namespace Deveel.Data.Functions {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// A definition of a function including its name and parameters.
 	/// </summary>
