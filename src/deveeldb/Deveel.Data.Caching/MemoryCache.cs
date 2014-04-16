@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Configuration;
+
 namespace Deveel.Data.Caching {
 	public class MemoryCache : Cache {
 		public MemoryCache(int hashSize, int maxSize, int cleanPercentage)
@@ -36,7 +38,7 @@ namespace Deveel.Data.Caching {
 		/// <summary>
 		/// The array of ListNode objects arranged by hashing value.
 		/// </summary>
-		private readonly ListNode[] nodeHash;
+		private ListNode[] nodeHash;
 
 		/// <summary>
 		/// A pointer to the start of the list.
@@ -196,6 +198,17 @@ namespace Deveel.Data.Caching {
 				previousNode.Next = nextNode;
 
 			}
+		}
+
+		public override void Init(IDbConfig config) {
+			base.Init(config);
+
+			// Find a prime hash size depending on the size of the cache.
+			int hashSize = DataCellCache.ClosestPrime(MaxCacheSize / 55);
+			nodeHash = new ListNode[hashSize];
+
+			listStart = null;
+			listEnd = null;
 		}
 
 		protected override bool SetObject(object key, object value) {

@@ -59,16 +59,6 @@ namespace Deveel.Data.Client {
 		private readonly Dictionary<string,ILocalBootable> localSessionMap = new Dictionary<string, ILocalBootable>();
 
 		/// <summary>
-		/// A cache of all rows retrieved from the server.
-		/// </summary>
-		/// <remarks>
-		/// This cuts down the number of requests to the server by caching rows that 
-		/// are accessed frequently.  Note that cells are only cached within a ResultSet 
-		/// bounds. Two different ResultSet's will not share cells in the cache.
-		/// </remarks>
-		private RowCache rowCache;
-
-		/// <summary>
 		/// The string used to make this connection.
 		/// </summary>
 		private DeveelDbConnectionStringBuilder connectionString;
@@ -131,7 +121,7 @@ namespace Deveel.Data.Client {
 		/// </summary>
 		internal DeveelDbTransaction currentTransaction;
 
-		private static int transactionCounter = 0;
+		private static int transactionCounter;
 
 		private DatabaseMetadata metadata;
 
@@ -146,7 +136,7 @@ namespace Deveel.Data.Client {
 			autoCommit = true;
 			triggerList = new EventHandlerList();
 			caseInsensitiveIdentifiers = false;
-			rowCache = new RowCache(cacheSize, maxSize);
+			RowCache = new RowCache(cacheSize, maxSize);
 			sObjectHold = new Dictionary<object, Stream>();
 			sObjectId = 0;
 			state = ConnectionState.Closed;
@@ -178,7 +168,7 @@ namespace Deveel.Data.Client {
 		public DeveelDbConnection() {
 		}
 
-		public event ConnectionStateEventHandler StateChange;
+		public new event ConnectionStateEventHandler StateChange;
 
 		internal void ChangeState(ConnectionState newState) {
 			ChangeState(newState, null);
@@ -230,7 +220,7 @@ namespace Deveel.Data.Client {
 			autoCommit = true;
 			triggerList = new EventHandlerList();
 			caseInsensitiveIdentifiers = false;
-			rowCache = new RowCache(rowCacheSize, maxRowCacheSize);
+			RowCache = new RowCache(rowCacheSize, maxRowCacheSize);
 			sObjectHold = new Dictionary<object, Stream>();
 			sObjectId = 0;
 			state = ConnectionState.Closed;
@@ -273,14 +263,14 @@ namespace Deveel.Data.Client {
 					if (String.IsNullOrEmpty(rootPath))
 						rootPath = Environment.CurrentDirectory;
 
-					DbConfig controllerConfig = new DbConfig();
+					var controllerConfig = new DbConfig();
 					controllerConfig.StorageSystem(ConfigDefaultValues.FileStorageSystem);
 					controllerConfig.SetValue(ConfigKeys.BasePath, rootPath);
 					controller = DbController.Create(controllerConfig);
 
 					sessionKey = rootPath.ToLower();
 				} else {
-					DbConfig controllerConfig = new DbConfig();
+					var controllerConfig = new DbConfig();
 					controllerConfig.StorageSystem(ConfigDefaultValues.HeapStorageSystem);
 					controller = DbController.Create(controllerConfig);
 
@@ -395,9 +385,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// Returns the row Cache object for this connection.
 		/// </summary>
-		internal RowCache RowCache {
-			get { return rowCache; }
-		}
+		internal RowCache RowCache { get; private set; }
 
 		public override string DataSource {
 			get { return IsLocal(Settings.Host) ? String.Empty : Settings.Host + ":" + Settings.Port; }

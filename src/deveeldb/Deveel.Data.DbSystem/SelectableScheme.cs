@@ -208,7 +208,7 @@ namespace Deveel.Data.DbSystem {
 		/// </para>
 		/// </remarks>
 		/// <returns>
-		/// Returns a <see cref="BlockIntegerList"/> that represents the given 
+		/// Returns a <see cref="BlockIndex"/> that represents the given 
 		/// <paramref name="rowSet"/> sorted in the order of this scheme.
 		/// </returns>
 		public IIndex InternalOrderIndexSet(IList<int> rowSet) {
@@ -288,7 +288,7 @@ namespace Deveel.Data.DbSystem {
 
 			subsetTable.SetToRowTableDomain(subsetColumn, rowSet, Table);
 
-			// Generates an IntegerVector which contains indices into 'rowSet' in
+			// Generates an IIndex which contains indices into 'rowSet' in
 			// sorted order.
 			IIndex new_set = InternalOrderIndexSet(rowSet);
 

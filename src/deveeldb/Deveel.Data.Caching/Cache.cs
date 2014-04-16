@@ -16,6 +16,8 @@
 using System;
 using System.Collections;
 
+using Deveel.Data.Configuration;
+
 namespace Deveel.Data.Caching {
 	///<summary>
 	/// Represents a cache of Objects.
@@ -36,42 +38,42 @@ namespace Deveel.Data.Caching {
 		/// The maximum number of DataCell objects that can be stored in 
 		/// the cache at any one time.
 		/// </summary>
-		private readonly int max_cache_size;
+		private int maxCacheSize;
 
 		/// <summary>
 		/// The current cache size.
 		/// </summary>
-		private int current_cache_size;
+		private int currentCacheSize;
 
 		/// <summary>
 		/// The number of nodes that should be left available when the cache becomes
 		/// too full and a clean up operation occurs.
 		/// </summary>
-		private readonly int wipe_to;
+		private readonly int wipeTo;
 
 		///<summary>
 		/// Constructs the <see cref="Cache"/> with a maximum size it can grow
 		/// and a percentage of the cache that is wiped when it becomes too full.
 		///</summary>
-		///<param name="max_size"></param>
-		///<param name="clean_percentage"></param>
+		///<param name="maxSize"></param>
+		///<param name="cleanPercentage"></param>
 		///<exception cref="ArgumentException">
-		/// If the given <paramref name="clean_percentage"/> is greater or equal to 85.
+		/// If the given <paramref name="cleanPercentage"/> is greater or equal to 85.
 		/// </exception>
-		protected Cache(int max_size, int clean_percentage) {
-			if (clean_percentage >= 85)
+		protected Cache(int maxSize, int cleanPercentage) {
+			if (cleanPercentage >= 85)
 				throw new ArgumentException("Can't set to wipe more than 85% of the cache during clean.");
 
-			max_cache_size = max_size;
-			current_cache_size = 0;
-			wipe_to = max_size - ((clean_percentage * max_size) / 100);
+			maxCacheSize = maxSize;
+			currentCacheSize = 0;
+			wipeTo = maxSize - ((cleanPercentage * maxSize) / 100);
 		}
 
 		///<summary>
 		///</summary>
-		///<param name="max_size"></param>
-		protected Cache(int max_size)
-			: this(max_size, 20) {
+		///<param name="maxSize"></param>
+		protected Cache(int maxSize)
+			: this(maxSize, 20) {
 		}
 
 		///<summary>
@@ -84,7 +86,7 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		[Obsolete("Deprecated", false)]
 		protected int HashSize {
-			get { return (int) (max_cache_size*2) + 1; }
+			get { return MaxCacheSize*2 + 1; }
 		}
 
 
@@ -98,7 +100,7 @@ namespace Deveel.Data.Caching {
 		protected virtual void CheckClean() {
 			// If we have reached maximum cache size, remove some elements from the
 			// end of the list
-			if (current_cache_size >= max_cache_size) {
+			if (currentCacheSize >= MaxCacheSize) {
 				Clean();
 			}
 		}
@@ -113,7 +115,7 @@ namespace Deveel.Data.Caching {
 		/// <b>false</b>.
 		/// </returns>
 		protected virtual bool WipeMoreNodes() {
-			return (current_cache_size >= wipe_to);
+			return (currentCacheSize >= wipeTo);
 		}
 
 		/// <summary>
@@ -129,8 +131,8 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		/// <param name="key"></param>
 		/// <param name="val"></param>
-		protected void OnObjectAdded(object key, object val) {
-			++current_cache_size;
+		protected virtual void OnObjectAdded(object key, object val) {
+			++currentCacheSize;
 		}
 
 		/// <summary>
@@ -138,15 +140,15 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		/// <param name="key"></param>
 		/// <param name="val"></param>
-		protected void OnObjectRemoved(Object key, Object val) {
-			--current_cache_size;
+		protected virtual void OnObjectRemoved(Object key, Object val) {
+			--currentCacheSize;
 		}
 
 		/// <summary>
 		/// Notifies that the cache has been entirely cleared of all elements.
 		/// </summary>
-		protected void OnAllCleared() {
-			current_cache_size = 0;
+		protected virtual void OnAllCleared() {
+			currentCacheSize = 0;
 		}
 
 		/// <summary>
@@ -174,7 +176,15 @@ namespace Deveel.Data.Caching {
 		/// cache.
 		/// </summary>
 		public virtual int NodeCount {
-			get { return current_cache_size; }
+			get { return currentCacheSize; }
+		}
+
+		/// <summary>
+		/// The maximum number of DataCell objects that can be stored in 
+		/// the cache at any one time.
+		/// </summary>
+		protected int MaxCacheSize {
+			get { return maxCacheSize; }
 		}
 
 		protected abstract bool SetObject(object key, object value);
@@ -240,6 +250,9 @@ namespace Deveel.Data.Caching {
 			OnAllCleared();
 		}
 
+		public virtual void Init(IDbConfig config) {
+			maxCacheSize = config.GetInt32(ConfigKeys.DataCacheSize, 0);
+		}
 
 		/// <summary>
 		/// Cleans away some old elements in the cache.
@@ -262,19 +275,19 @@ namespace Deveel.Data.Caching {
 		/// has to be close.</param>
 		///<returns></returns>
 		public static int ClosestPrime(int value) {
-			for (int i = 0; i < PRIME_LIST.Length; ++i) {
-				if (PRIME_LIST[i] >= value) {
-					return PRIME_LIST[i];
+			for (int i = 0; i < PrimeList.Length; ++i) {
+				if (PrimeList[i] >= value) {
+					return PrimeList[i];
 				}
 			}
 			// Return the last prime
-			return PRIME_LIST[PRIME_LIST.Length - 1];
+			return PrimeList[PrimeList.Length - 1];
 		}
 
 		/// <summary>
 		/// A list of primes ordered from lowest to highest.
 		/// </summary>
-		private static readonly int[] PRIME_LIST = new int[] {
+		private static readonly int[] PrimeList = new int[] {
 		                                                     	3001, 4799, 13999, 15377, 21803, 24247, 35083, 40531, 43669,
 		                                                     	44263, 47387, 50377, 57059, 57773, 59399, 59999, 75913, 96821,
 		                                                     	140551, 149011, 175633, 176389, 183299, 205507, 209771, 223099,
@@ -316,14 +329,9 @@ namespace Deveel.Data.Caching {
 		                                                     };
 
 
-		// ---------- Inner classes ----------
-
-		#region Implementation of IDisposable
 
 		public void Dispose() {
 			Clear();
 		}
-
-		#endregion
 	}
 }

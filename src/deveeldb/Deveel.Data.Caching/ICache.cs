@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Configuration;
+
 namespace Deveel.Data.Caching {
 	/// <summary>
 	/// Provides a contract to access a caching system.
@@ -57,5 +59,11 @@ namespace Deveel.Data.Caching {
 		/// Clears all the cached items within the underlying system.
 		/// </summary>
 		void Clear();
+
+		/// <summary>
+		/// Configures the cache with the 
+		/// </summary>
+		/// <param name="config"></param>
+		void Init(IDbConfig config);
 	}
 }

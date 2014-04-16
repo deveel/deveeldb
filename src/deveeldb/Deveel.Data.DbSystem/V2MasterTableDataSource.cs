@@ -1281,7 +1281,7 @@ namespace Deveel.Data.DbSystem {
 					++sRunFileHits;
 
 					if (sRunFileHits >= 100) {
-						Context.Stats.Add(sRunFileHits, FileHitsKey);
+						Context.Stats.Add(FileHitsKey, sRunFileHits);
 						sRunFileHits = 0;
 					}
 

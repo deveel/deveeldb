@@ -15,6 +15,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -30,14 +32,14 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Where the stat properties are held.
 		/// </summary>
-		private readonly Hashtable properties;
+		private readonly IDictionary<string, IntegerStat> properties;
 
 		///<summary>
 		///</summary>
 		public Stats() {
 			// We need lookup on this hash to be really quick, so load factor is
 			// low and initial capacity is high.
-			properties = new Hashtable(250, 0.50f);
+			properties = new Dictionary<string, IntegerStat>(250);
 		}
 
 		///<summary>
@@ -49,39 +51,32 @@ namespace Deveel.Data {
 		/// </remarks>
 		public void ResetSession() {
 			lock (this) {
-				ICollection key_set = properties.Keys;
-				String[] keys = new String[key_set.Count];
-				int index = 0;
-				IEnumerator it = key_set.GetEnumerator();
-				while (it.MoveNext()) {
-					keys[index] = (String)it.Current;
-					++index;
-				}
+				var keys = new string[properties.Count];
+				properties.Keys.CopyTo(keys, 0);
 
 				// If key starts with a "{session}" then reset it to 0.
 				for (int i = 0; i < keys.Length; ++i) {
 					if (keys[i].StartsWith("{session}")) {
-						IntegerStat stat = (IntegerStat)properties[keys[i]];
+						IntegerStat stat = properties[keys[i]];
 						stat.value = 0;
 					}
 				}
 			}
 		}
 
-		///<summary>
-		/// Adds the given value to a stat property.
-		///</summary>
-		///<param name="value"></param>
-		///<param name="stat_name"></param>
-		public void Add(int value, String stat_name) {
+		/// <summary>
+		///  Adds the given value to a stat property.
+		/// </summary>
+		/// <param name="statName"></param>
+		/// <param name="value"></param>
+		public void Add(string statName, int value) {
 			lock (this) {
-				IntegerStat stat = (IntegerStat)properties[stat_name];
-				if (stat != null) {
+				IntegerStat stat;
+				if (properties.TryGetValue(statName, out stat)) {
 					stat.value += value;
 				} else {
-					stat = new IntegerStat();
-					stat.value = value;
-					properties[stat_name] = stat;
+					stat = new IntegerStat {value = value};
+					properties[statName] = stat;
 				}
 			}
 		}
@@ -89,16 +84,15 @@ namespace Deveel.Data {
 		///<summary>
 		/// Increments a stat property.
 		///</summary>
-		///<param name="stat_name"></param>
-		public void Increment(String stat_name) {
+		///<param name="statName"></param>
+		public void Increment(String statName) {
 			lock (this) {
-				IntegerStat stat = (IntegerStat)properties[stat_name];
-				if (stat != null) {
+				IntegerStat stat;
+				if (properties.TryGetValue(statName, out stat)) {
 					++stat.value;
 				} else {
-					stat = new IntegerStat();
-					stat.value = 1;
-					properties[stat_name] = stat;
+					stat = new IntegerStat {value = 1};
+					properties[statName] = stat;
 				}
 			}
 		}
@@ -106,16 +100,15 @@ namespace Deveel.Data {
 		///<summary>
 		/// Decrements a stat property.
 		///</summary>
-		///<param name="stat_name"></param>
-		public void Decrement(String stat_name) {
+		///<param name="statName"></param>
+		public void Decrement(String statName) {
 			lock (this) {
-				IntegerStat stat = (IntegerStat)properties[stat_name];
-				if (stat != null) {
+				IntegerStat stat;
+				if (properties.TryGetValue(statName, out stat)) {
 					--stat.value;
 				} else {
-					stat = new IntegerStat();
-					stat.value = -1;
-					properties[stat_name] = stat;
+					stat = new IntegerStat {value = -1};
+					properties[statName] = stat;
 				}
 			}
 		}
@@ -124,32 +117,29 @@ namespace Deveel.Data {
 		/// Retrieves the current Object value of a stat property or null 
 		/// if the stat wasn't found.
 		///</summary>
-		///<param name="stat_name"></param>
+		///<param name="statName"></param>
 		///<returns></returns>
-		public Object Get(String stat_name) {
+		public object Get(String statName) {
 			lock (this) {
-				IntegerStat stat = (IntegerStat)properties[stat_name];
-				if (stat != null) {
-					return stat.value;
-				}
-				return null;
+				IntegerStat stat;
+				return properties.TryGetValue(statName, out stat) ? (object) stat.value : null;
 			}
 		}
 
-		///<summary>
-		/// Sets the given stat name with the given value.
-		///</summary>
-		///<param name="value"></param>
-		///<param name="stat_name"></param>
-		public void Set(int value, String stat_name) {
+		/// <summary>
+		///  Sets the given stat name with the given value.
+		/// </summary>
+		/// <param name="statName"></param>
+		/// <param name="value"></param>
+		public void Set(string statName, int value) {
 			lock (this) {
-				IntegerStat stat = (IntegerStat)properties[stat_name];
-				if (stat != null) {
+				IntegerStat stat;
+				if (properties.TryGetValue(statName, out stat)) {
 					stat.value = value;
 				} else {
 					stat = new IntegerStat();
 					stat.value = value;
-					properties[stat_name] = stat;
+					properties[statName] = stat;
 				}
 			}
 		}
@@ -160,35 +150,16 @@ namespace Deveel.Data {
 		public string[] Keys {
 			get {
 				lock (this) {
-					ICollection key_set = properties.Keys;
-
-					String[] keys = new String[key_set.Count];
-					int index = 0;
-					IEnumerator it = key_set.GetEnumerator();
-					while (it.MoveNext()) {
-						keys[index] = (String) it.Current;
-						++index;
-					}
+					var keys = new String[properties.Count];
+					properties.Keys.CopyTo(keys, 0);
 
 					// Sort the keys
-					Array.Sort(keys, StringComparator);
+					Array.Sort(keys, StringComparer.InvariantCulture);
 
 					return keys;
 				}
 			}
 		}
-
-		/// <summary>
-		/// Comparator for sorting the list of keys.
-		/// </summary>
-		private readonly static IComparer StringComparator = new StringComparatorImpl();
-
-		internal class StringComparatorImpl : IComparer {
-			public int Compare(Object ob1, Object ob2) {
-				return ((String)ob1).CompareTo((String)ob2);
-			}
-		}
-
 
 
 		///<summary>
@@ -198,19 +169,20 @@ namespace Deveel.Data {
 		///<returns></returns>
 		public String StatString(String key) {
 			lock (this) {
-				IntegerStat stat = (IntegerStat)properties[key];
-				return stat.value.ToString();
+				IntegerStat stat;
+				if (!properties.TryGetValue(key, out stat))
+					return String.Empty;
+
+				return stat.value.ToString(CultureInfo.InvariantCulture);
 			}
 		}
 
 		public override String ToString() {
 			lock (this) {
-				String[] keys = Keys;
-
-				StringBuilder buf = new StringBuilder();
-				for (int i = 0; i < keys.Length; ++i) {
-					IntegerStat stat = (IntegerStat)properties[keys[i]];
-					buf.Append(keys[i]);
+				var buf = new StringBuilder();
+				foreach (var property in properties) {
+					IntegerStat stat = property.Value;
+					buf.Append(property.Key);
 					buf.Append(": ");
 					buf.Append(stat.value);
 					buf.Append('\n');
@@ -226,13 +198,10 @@ namespace Deveel.Data {
 		///<param name="output"></param>
 		public void PrintTo(TextWriter output) {
 			lock (this) {
-				String[] keys = Keys;
-
-				for (int i = 0; i < keys.Length; ++i) {
-					IntegerStat stat = (IntegerStat)properties[keys[i]];
-					output.Write(keys[i]);
+				foreach (var property in properties) {
+					output.Write(property.Key);
 					output.Write(": ");
-					output.WriteLine(stat.value);
+					output.WriteLine(property.Value.value);
 				}
 			}
 		}

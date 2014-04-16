@@ -70,9 +70,9 @@ namespace Deveel.Data.DbSystem {
 				// TODO: get the value of the db_path drive
 				var driveInfo = DriveInfo.GetDrives()[0];
 
-				stats.Set((int)driveInfo.AvailableFreeSpace/1024, "Runtime.Memory.FreeSpaceKb");
-				stats.Set((int)driveInfo.TotalFreeSpace/1024, "Runtime.Memory.TotalFreeSpaceKb");
-				stats.Set((int)driveInfo.TotalSize / 1024, "Runtime.Memory.TotalKb");
+				stats.Set("Runtime.Memory.FreeSpaceKb", (int)driveInfo.AvailableFreeSpace/1024);
+				stats.Set("Runtime.Memory.TotalFreeSpaceKb", (int)driveInfo.TotalFreeSpace/1024);
+				stats.Set("Runtime.Memory.TotalKb", (int)driveInfo.TotalSize / 1024);
 
 				string[] keySet = stats.Keys;
 				int globLength = keySet.Length * 2;

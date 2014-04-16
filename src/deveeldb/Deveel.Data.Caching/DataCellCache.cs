@@ -306,7 +306,7 @@ namespace Deveel.Data.Caching {
 			protected override void CheckClean() {
 				if (cache.CurrentCacheSize >= maxCacheSize) {
 					// Update the current cache size (before we wiped).
-					cache.context.Stats.Set((int) cache.CurrentCacheSize, "DataCellCache.current_cache_size");
+					cache.context.Stats.Set("DataCellCache.current_cache_size", (int) cache.CurrentCacheSize);
 					Clean();
 
 					// The number of times we've cleared away old data cell nodes.
@@ -328,9 +328,9 @@ namespace Deveel.Data.Caching {
 
 			protected override void OnGetWalks(long totalWalks, long totalGetOps) {
 				int avg = (int) ((totalWalks*1000000L)/totalGetOps);
-				cache.context.Stats.Set(avg, "DataCellCache.avg_hash_get_mul_1000000");
-				cache.context.Stats.Set((int) cache.CurrentCacheSize, "DataCellCache.current_cache_size");
-				cache.context.Stats.Set(NodeCount, "DataCellCache.current_node_count");
+				cache.context.Stats.Set("DataCellCache.avg_hash_get_mul_1000000", avg);
+				cache.context.Stats.Set("DataCellCache.current_cache_size", (int) cache.CurrentCacheSize);
+				cache.context.Stats.Set("DataCellCache.current_node_count", NodeCount);
 			}
 		}
 

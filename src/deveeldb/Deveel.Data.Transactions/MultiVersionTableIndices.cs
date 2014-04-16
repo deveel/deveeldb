@@ -118,9 +118,7 @@ namespace Deveel.Data.Transactions {
 			++tsMergeCount;
 			tsMergeSize += transactionModList.Count;
 			if ((tsMergeCount%32) == 0) {
-				context.Stats.Set(
-					(int) ((tsMergeSize*1000000L)/tsMergeCount),
-					"MultiVersionTableIndices.average_journal_merge_mul_1000000");
+				context.Stats.Set("MultiVersionTableIndices.average_journal_merge_mul_1000000", (int) ((tsMergeSize*1000000L)/tsMergeCount));
 				//      DatabaseSystem.stats().set(
 				//          TS_merge_size / TS_merge_count,
 				//          "MultiVersionTableIndices.average_journal_merge");
