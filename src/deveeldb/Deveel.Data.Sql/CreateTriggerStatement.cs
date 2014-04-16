@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql {
 			} else if (typeString.Equals("procedure_trigger")) {
 
 				// Get the procedure manager
-				ProcedureManager procManager = context.Connection.ProcedureManager;
+				RoutinesManager procManager = context.Connection.RoutinesManager;
 
 				string beforeAfter = GetString("before_after");
 				string procNameString = GetString("procedure_name");
@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql {
 				TableName procTableName = ResolveTableName(context, procNameString);
 
 				// Does the procedure exist in the system schema?
-				ProcedureName procName = new ProcedureName(procTableName);
+				RoutineName procName = new RoutineName(procTableName);
 
 				// Check the trigger name doesn't clash with any existing database object.
 				if (context.Connection.TableExists(triggerName))
@@ -82,7 +82,7 @@ namespace Deveel.Data.Sql {
 					                            "' already exists.");
 
 				// Check the procedure exists.
-				if (!procManager.ProcedureExists(procName))
+				if (!procManager.RoutineExists(procName))
 					throw new DatabaseException("Procedure '" + procName + "' could not be found.");
 
 				// Resolve the listening type

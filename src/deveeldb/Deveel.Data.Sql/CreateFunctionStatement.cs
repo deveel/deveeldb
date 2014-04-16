@@ -191,14 +191,15 @@ namespace Deveel.Data.Sql {
 			// We must parse the location name into a class name, and method name
 			string specification = locName.Object.ToString();
 			// Resolve the csharp_specification to an invokation method.
-			MethodInfo procMethod = ProcedureManager.GetProcedureMethod(specification, argTypeArray);
+			var extRoutineInfo = ExternalRoutineInfo.Parse(specification);
+			MethodInfo procMethod = extRoutineInfo.ResolveMethod(argTypeArray);
 			if (procMethod == null) {
 				throw new DatabaseException("Unable to find invokation method for " +
 				                            ".NET stored procedure name: " + specification);
 			}
 
 			// Convert the information into an easily digestible form.
-			ProcedureName procName = new ProcedureName(resolvedFunctionName);
+			RoutineName procName = new RoutineName(resolvedFunctionName);
 			int sz = argTypes.Count;
 			TType[] argList = new TType[sz];
 			for (int i = 0; i < sz; ++i) {
@@ -206,8 +207,8 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Create the .NET function,
-			ProcedureManager manager = context.Connection.ProcedureManager;
-			manager.DefineProcedure(procName, specification, returnType, argList, context.UserName);
+			RoutinesManager manager = context.Connection.RoutinesManager;
+			manager.DefineExternalRoutine(procName, specification, returnType, argList, context.UserName);
 
 			// The initial grants for a procedure is to give the user who created it
 			// full access.

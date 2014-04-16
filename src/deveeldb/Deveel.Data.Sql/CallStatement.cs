@@ -86,7 +86,7 @@ namespace Deveel.Data.Sql {
 			Expression[] args = (Expression[])GetValue("args");
 
 			// Get the procedure manager
-			ProcedureManager manager = context.Connection.ProcedureManager;
+			RoutinesManager manager = context.Connection.RoutinesManager;
 
 			TableName procName = null;
 
@@ -97,7 +97,7 @@ namespace Deveel.Data.Sql {
 				TableName tmpProcName = ResolveTableName(context, procNameString);
 
 				// If exists then use this
-				if (manager.ProcedureExists(tmpProcName))
+				if (manager.RoutineExists(tmpProcName))
 					procName = tmpProcName;
 			}
 
@@ -113,14 +113,14 @@ namespace Deveel.Data.Sql {
 				tmpProcName = new TableName(schema.Name, tmpProcName.Name);
 
 				// If this doesn't exist then generate the error
-				if (!manager.ProcedureExists(tmpProcName))
+				if (!manager.RoutineExists(tmpProcName))
 					throw new DatabaseException("Stored procedure '" + procNameString + "' was not found.");
 
 				procName = tmpProcName;
 			}
 
 			// Does the procedure exist in the system schema?
-			ProcedureName name = new ProcedureName(procName);
+			RoutineName name = new RoutineName(procName);
 
 			// Check the user has privs to use this stored procedure
 			if (!context.Connection.Database.CanUserExecuteStoredProcedure(context, name.ToString()))
@@ -136,7 +136,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Invoke the procedure
-			TObject result = manager.InvokeProcedure(name, values);
+			TObject result = manager.InvokeRoutine(name, values);
 
 			// Return the result of the procedure,
 			return FunctionTable.ResultTable(context, result);

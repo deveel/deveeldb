@@ -101,6 +101,7 @@
     <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
+    <Compile Include="Deveel.Data.Routines\ExternalRoutineInfo.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctions.cs" />
     <Compile Include="Deveel.Data.Protocol\ColumnDescription.cs">
       <SubType>Code</SubType>
@@ -217,8 +218,8 @@
     <Compile Include="Deveel.Data.Routines\IFunctionLookup.cs" />
     <Compile Include="Deveel.Data.Routines\ParameterDirection.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureException.cs" />
-    <Compile Include="Deveel.Data.Routines\ProcedureManager.cs" />
-    <Compile Include="Deveel.Data.Routines\ProcedureName.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutinesManager.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineName.cs" />
     <Compile Include="Deveel.Data.Procedures\SystemBackup.cs" />
     <Compile Include="Deveel.Data.Protocol\ClientConnectionState.cs" />
     <Compile Include="Deveel.Data.Protocol\DatabaseInterface.cs" />
@@ -553,6 +554,7 @@
     <None Include="Deveel.Data.Util\ChangeLog" />
     <None Include="Deveel.Data\ChangeLog" />
     <None Include="Deveel.Diagnostics\ChangeLog" />
+    <None Include="deveeldb.licenseheader" />
     <None Include="deveeldb.snk" />
   </ItemGroup>
   <ItemGroup>

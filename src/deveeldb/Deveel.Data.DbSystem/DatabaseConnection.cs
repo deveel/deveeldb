@@ -142,7 +142,7 @@ namespace Deveel.Data.DbSystem {
 						// Model views as tables (obviously)
 						transaction.AddInternalTableInfo(ViewManager.CreateInternalTableInfo(view_manager, transaction));
 						// Model procedures as tables
-						transaction.AddInternalTableInfo(ProcedureManager.CreateInternalTableInfo(transaction));
+						transaction.AddInternalTableInfo(RoutinesManager.CreateInternalTableInfo(transaction));
 						// Model sequences as tables
 						transaction.AddInternalTableInfo(SequenceManager.CreateInternalTableInfo(transaction));
 						// Model triggers as tables
@@ -234,7 +234,7 @@ namespace Deveel.Data.DbSystem {
 			// Create the grant manager for this connection.
 			grantManager = new GrantManager(this);
 			// Create the procedure manager for this connection.
-			procedure_manager = new ProcedureManager(this);
+			routinesManager = new RoutinesManager(this);
 			// Create the connection trigger manager object
 			triggerManager = new ConnectionTriggerManager(this);
 			// Create the view manager

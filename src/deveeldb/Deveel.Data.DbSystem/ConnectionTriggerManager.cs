@@ -431,7 +431,7 @@ namespace Deveel.Data.DbSystem {
 
 							// Get the procedure name to fire (qualify it against the schema
 							// of the table being fired).
-							ProcedureName procedureName = ProcedureName.Qualify(tableName.Schema, action);
+							RoutineName routineName = RoutineName.Qualify(tableName.Schema, action);
 
 							// Set up OLD and NEW tables
 
@@ -448,7 +448,7 @@ namespace Deveel.Data.DbSystem {
 
 							try {
 								// Invoke the procedure (no arguments)
-								connection.ProcedureManager.InvokeProcedure(procedureName, new TObject[0]);
+								connection.RoutinesManager.InvokeRoutine(routineName, new TObject[0]);
 							} finally {
 								// Reset the OLD and NEW tables to previous values
 								connection.SetOldNewTableState(currentState);

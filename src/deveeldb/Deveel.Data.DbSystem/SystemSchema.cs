@@ -435,10 +435,10 @@ namespace Deveel.Data.DbSystem {
 			const String granter = User.SystemName;
 
 			// The manager handling the functions.
-			ProcedureManager manager = connection.ProcedureManager;
+			RoutinesManager manager = connection.RoutinesManager;
 
 			// Define the SYSTEM_MAKE_BACKUP procedure
-			manager.DefineProcedure(new ProcedureName(Name, "SYSTEM_MAKE_BACKUP"),
+			manager.DefineExternalRoutine(new RoutineName(Name, "SYSTEM_MAKE_BACKUP"),
 				Routines.Function.ExternalName(typeof(SystemBackup)),
 				PrimitiveTypes.VarString,
 				new TType[] {PrimitiveTypes.VarString},

@@ -46,9 +46,9 @@ namespace Deveel.Data.Sql {
 				throw new UserAccessException("User not permitted to drop function: " + functionName);
 
 			// Drop the function
-			ProcedureName proc_name = new ProcedureName(functionName);
-			ProcedureManager manager = context.Connection.ProcedureManager;
-			manager.DeleteProcedure(proc_name);
+			RoutineName proc_name = new RoutineName(functionName);
+			RoutinesManager manager = context.Connection.RoutinesManager;
+			manager.DeleteRoutine(proc_name);
 
 			// Drop the grants for this object
 			context.Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, proc_name.ToString());

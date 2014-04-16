@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ using System;
 
 namespace Deveel.Data.Routines {
 	///<summary>
-	/// The name of a procedure as understood by a ProcedureManager.
+	/// The name of a procedure as understood by a RoutinesManager.
 	///</summary>
-	public class ProcedureName {
+	public class RoutineName {
 		/// <summary>
 		/// The schema of this procedure.
 		/// </summary>
@@ -33,7 +33,7 @@ namespace Deveel.Data.Routines {
 		///</summary>
 		///<param name="schema"></param>
 		///<param name="name"></param>
-		public ProcedureName(String schema, String name) {
+		public RoutineName(String schema, String name) {
 			this.schema = schema;
 			this.name = name;
 		}
@@ -41,7 +41,7 @@ namespace Deveel.Data.Routines {
 		///<summary>
 		///</summary>
 		///<param name="table_name"></param>
-		public ProcedureName(TableName table_name)
+		public RoutineName(TableName table_name)
 			: this(table_name.Schema, table_name.Name) {
 		}
 
@@ -71,17 +71,17 @@ namespace Deveel.Data.Routines {
 		///<param name="current_schema"></param>
 		///<param name="proc_name"></param>
 		///<returns></returns>
-		public static ProcedureName Qualify(String current_schema, String proc_name) {
+		public static RoutineName Qualify(String current_schema, String proc_name) {
 			int delim = proc_name.IndexOf(".");
 			return delim == -1
-			       	? new ProcedureName(current_schema, proc_name)
-			       	: new ProcedureName(proc_name.Substring(0, delim),
+			       	? new RoutineName(current_schema, proc_name)
+			       	: new RoutineName(proc_name.Substring(0, delim),
 			       	                    proc_name.Substring(delim + 1, proc_name.Length));
 		}
 
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
-			ProcedureName src_ob = (ProcedureName)ob;
+			RoutineName src_ob = (RoutineName)ob;
 			return (schema.Equals(src_ob.schema) &&
 			        name.Equals(src_ob.name));
 		}

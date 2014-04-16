@@ -25,14 +25,14 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// The procedure manager object for this connection.
 		/// </summary>
-		private ProcedureManager procedure_manager;
+		private RoutinesManager routinesManager;
 
 		/// <summary>
-		/// Returns the ProcedureManager object that manages database functions and
+		/// Returns the RoutinesManager object that manages database functions and
 		/// procedures in the database for this connection/user.
 		/// </summary>
-		public ProcedureManager ProcedureManager {
-			get { return procedure_manager; }
+		public RoutinesManager RoutinesManager {
+			get { return routinesManager; }
 		}
 
 		/// <summary>
