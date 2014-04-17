@@ -40,48 +40,6 @@ namespace Deveel.Data.Routines {
 		/// </remarks>
 		string Name { get; }
 
-		/// <summary>
-		/// Returns the list of Variable objects that this function uses as its parameters.
-		/// </summary>
-		/// <remarks>
-		/// If this returns an empty list, then the function must only have constant 
-		/// parameters.  This information can be used to optimize evaluation because 
-		/// if all the parameters of a function are constant then we only need to evaluate 
-		/// the function once.
-		/// </remarks>
-		IList AllVariables { get; }
-
-		/// <summary>
-		/// Returns the list of all element objects that this function uses as its parameters.
-		/// </summary>
-		/// <remarks>
-		/// If this returns an empty list, then the function has no input elements at 
-		/// all. (something like: <c>upper(user())</c>)
-		/// </remarks>
-		IList AllElements { get; }
-
-
-		/// <summary>
-		/// Returns true if this function is an aggregate function.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <remarks>
-		/// An aggregate function requires that the IGroupResolver is not null when 
-		/// the evaluate method is called.
-		/// </remarks>
-		/// <returns></returns>
-		bool IsAggregate(IQueryContext context);
-
-		/// <summary>
-		/// Prepares the exressions that are the parameters of this function.
-		/// </summary>
-		/// <param name="preparer"></param>
-		/// <remarks>
-		/// This is intended to be used if we need to resolve aspects such as 
-		/// <see cref="VariableName"/> references. For example, a variable reference 
-		/// to <i>number</i> may become <i>APP.Table.NUMBER</i>.
-		/// </remarks>
-		void PrepareParameters(IExpressionPreparer preparer);
 
 		/// <summary>
 		/// Evaluates the function and returns a TObject that represents the result of the function.

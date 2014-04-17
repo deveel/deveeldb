@@ -353,8 +353,6 @@ namespace Deveel.Data.Routines {
 		class CountFunction : Function {
 			public CountFunction(Expression[] parameters)
 				: base("count", parameters) {
-				SetAggregate(true);
-
 				if (ParameterCount != 1)
 					throw new Exception("'count' function must have one argument.");
 			}
@@ -402,8 +400,6 @@ namespace Deveel.Data.Routines {
 		class DistinctCountFunction : Function {
 			public DistinctCountFunction(Expression[] parameters)
 				: base("distinct_count", parameters) {
-				SetAggregate(true);
-
 				if (ParameterCount <= 0) {
 					throw new Exception("'distinct_count' function must have at least one argument.");
 				}

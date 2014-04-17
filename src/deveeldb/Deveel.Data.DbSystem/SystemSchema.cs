@@ -439,8 +439,8 @@ namespace Deveel.Data.DbSystem {
 
 			// Define the SYSTEM_MAKE_BACKUP procedure
 			manager.DefineExternalRoutine(new RoutineName(Name, "SYSTEM_MAKE_BACKUP"),
-				Routines.Function.ExternalName(typeof(SystemBackup)),
-				PrimitiveTypes.VarString,
+				ExternalRoutineInfo.FormatString(typeof(SystemBackup)),
+				null,
 				new TType[] {PrimitiveTypes.VarString},
 				adminUser);
 

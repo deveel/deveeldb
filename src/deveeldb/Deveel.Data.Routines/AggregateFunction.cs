@@ -39,7 +39,6 @@ namespace Deveel.Data.Routines {
 	public abstract class AggregateFunction : Function {
 		protected AggregateFunction(String name, Expression[] parameters)
 			: base(name, parameters) {
-			SetAggregate(true);
 
 			// Aggregates must have only one argument
 			if (ParameterCount != 1)

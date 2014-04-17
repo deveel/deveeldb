@@ -23,6 +23,22 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
  	public sealed class ExternalRoutineInfo {
+ 		public ExternalRoutineInfo(Type type, Type[] argTypes)
+ 			: this(type, null, argTypes) {
+ 		}
+
+ 		public ExternalRoutineInfo(Type type)
+ 			: this(type, String.Empty) {
+ 		}
+
+ 		public ExternalRoutineInfo(Type type, string methodName)
+ 			: this(type, methodName, Type.EmptyTypes) {
+ 		}
+
+ 		public ExternalRoutineInfo(Type type, string methodName, Type[] argTypes)
+ 			: this(type.FullName, methodName, ToTypeNames(argTypes)) {
+ 		}
+
  		public ExternalRoutineInfo(string typeString, string methodName) 
 			: this(typeString, methodName, new string[0]) {
  		}
@@ -42,6 +58,18 @@ namespace Deveel.Data.Routines {
  		}
 
 		public string[] Arguments { get; private set; }
+
+		private static string[] ToTypeNames(Type[] argTypes) {
+			if (argTypes == null || argTypes.Length == 0)
+				return new string[0];
+
+			var argNames = new string[argTypes.Length];
+			for (var i = 0; i < argTypes.Length; i++) {
+				argNames[i] = argTypes[i].FullName;
+			}
+
+			return argNames;
+		}
 
 		/// <summary>
 		/// Resolves a type specification string to a <see cref="Type"/>.
@@ -238,13 +266,51 @@ namespace Deveel.Data.Routines {
 				string argListStr = s.Substring(parentheseDelim + 1, endParentheseDelim - (parentheseDelim + 1));
 
 				// Now parse the list of arguments
-				string[] args = argListStr.Split(new char[]{','}, StringSplitOptions.RemoveEmptyEntries);
+				string[] args = argListStr.Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries);
 
 				return new ExternalRoutineInfo(typeString, methodString, args);
 			}
 
 			// No parenthese so we assume this is a class
 			return new ExternalRoutineInfo(s, null);
+ 		}
+
+ 		public static string FormatString(Type type) {
+ 			return FormatString(type, Type.EmptyTypes);
+ 		}
+
+ 		public static string FormatString(Type type, Type[] argTypes) {
+ 			return FormatString(type, null, argTypes);
+ 		}
+
+ 		public static string FormatString(Type type, string methodName) {
+ 			return FormatString(type, methodName, Type.EmptyTypes);
+ 		}
+
+ 		public static string FormatString(Type type, string methodName, Type[] argTypes) {
+ 			var routineInfo = new ExternalRoutineInfo(type, methodName, argTypes);
+ 			return routineInfo.ToString();
+ 		}
+
+ 		public override string ToString() {
+ 			var sb = new StringBuilder(TypeName);
+ 			if (HasMethodName) {
+ 				sb.Append('.');
+ 				sb.Append(MethodName);
+ 			}
+
+ 			sb.Append('(');
+ 			if (Arguments != null && Arguments.Length > 0) {
+ 				for (int i = 0; i < Arguments.Length; i++) {
+ 					sb.Append(Arguments[i]);
+
+ 					if (i < Arguments.Length - 1)
+ 						sb.Append(", ");
+ 				}
+ 			}
+
+ 			sb.Append(')');
+ 			return sb.ToString();
  		}
  	}
 }
