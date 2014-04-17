@@ -51,7 +51,7 @@ namespace Deveel.Data.Routines {
 		#region SystemFunctionsFactory
 
 		class SystemFunctionsFactory : FunctionFactory {
-			public override void Init() {
+			protected override void OnInit() {
 				// Aggregate Functions
 				AddFunction("aggor", typeof(AggOrFunction), FunctionType.Aggregate);
 				AddFunction("avg", typeof(AvgFunction), FunctionType.Aggregate);

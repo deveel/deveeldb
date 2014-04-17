@@ -392,7 +392,6 @@
     <Compile Include="Deveel.Data\IClobRef.cs" />
     <Compile Include="Deveel.Data\ICursorContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabaseHandler.cs" />
-    <Compile Include="Deveel.Data.Routines\IDatabaseProcedure.cs" />
     <Compile Include="Deveel.Data\IExpressionPreparer.cs" />
     <Compile Include="Deveel.Data\IGroupResolver.cs" />
     <Compile Include="Deveel.Data.Index\IIndexSet.cs" />
@@ -547,7 +546,6 @@
   <ItemGroup>
     <None Include="Deveel.Data.Client\ChangeLog" />
     <None Include="Deveel.Data.Control\ChangeLog" />
-    <None Include="Deveel.Data.Functions\ChangeLog" />
     <None Include="Deveel.Data.Sql\ChangeLog" />
     <None Include="Deveel.Data.Sql.Parser\SQL.csc" />
     <None Include="Deveel.Data.Store\ChangeLog" />

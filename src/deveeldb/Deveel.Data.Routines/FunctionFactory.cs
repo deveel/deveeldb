@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ namespace Deveel.Data.Routines {
 	/// the registered function factories.
 	/// </remarks>
 	public abstract class FunctionFactory : IFunctionLookup {
-
+		private bool initd;
 		private static readonly Expression GlobExpression;
 
 		static FunctionFactory() {
@@ -132,7 +132,14 @@ namespace Deveel.Data.Routines {
 		/// need to do anything if a developer implements their own version 
 		/// of <see cref="GenerateFunction"/>).
 		/// </remarks>
-		public abstract void Init();
+		public void Init() {
+			if (!initd) {
+				OnInit();
+				initd = true;
+			}
+		}
+
+		protected abstract void OnInit();
 
 		/// <summary>
 		/// Creates a <see cref="IFunction"/> object for the function 
@@ -252,36 +259,5 @@ namespace Deveel.Data.Routines {
 				get { return factory.GetType().ToString(); }
 			}
 		}
-
-		#region DefaultFunctionFactory
-
-		/// <summary>
-		/// A <see cref="FunctionFactory"/> that encapsulates all the function factories
-		/// defined in the current assembly.
-		/// </summary>
-		private class DefaultFunctionFactory : FunctionFactory {
-			public override void Init() {
-				Assembly assembly = Assembly.GetCallingAssembly();
-				Type[] types = assembly.GetTypes();
-				int sz = types.Length;
-				for (int i = 0; i < sz; i++) {
-					Type type = types[i];
-					if (typeof(FunctionFactory).IsAssignableFrom(type)) {
-						if (type == typeof(FunctionFactory) ||
-							type == typeof(DefaultFunctionFactory))
-							continue;
-
-						FunctionFactory factory = (FunctionFactory) Activator.CreateInstance(type, true);
-						factory.Init();
-
-						foreach (DictionaryEntry entry in factory.fun_class_mapping) {
-							fun_class_mapping[entry.Key] = entry.Value;
-						}
-					}
-				}
-			}
-		}
-
-		#endregion
 	}
 }

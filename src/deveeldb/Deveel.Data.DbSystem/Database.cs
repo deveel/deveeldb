@@ -569,46 +569,6 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		// ---------- Server side procedures ----------
-
-		///<summary>
-		/// Resolves a procedure name into a <see cref="IDatabaseProcedure"/> object.
-		///</summary>
-		///<param name="procedureName"></param>
-		///<param name="connection"></param>
-		/// <remarks>
-		/// This is used for finding a server side script.
-		/// </remarks>
-		///<returns></returns>
-		///<exception cref="DatabaseException">
-		/// If the procedure could not be resolved or there was an error retrieving it.
-		/// </exception>
-		public IDatabaseProcedure GetDbProcedure(string procedureName, DatabaseConnection connection) {
-			// The procedure we are getting.
-			IDatabaseProcedure procedureInstance;
-
-			try {
-				// Find the procedure
-				Type proc = Type.GetType("Deveel.Data.Procedure." + procedureName);
-				// Instantiate a new instance of the procedure
-				procedureInstance = (IDatabaseProcedure) Activator.CreateInstance(proc);
-
-				Logger.Info(this, "Getting raw class file: " + procedureName);
-			} catch (AccessViolationException e) {
-				Logger.Error(this, e);
-				throw new DatabaseException("Illegal Access: " + e.Message);
-			} catch (TypeInitializationException e) {
-				Logger.Error(this, e);
-				throw new DatabaseException("Instantiation Error: " + e.Message);
-			} catch (TypeLoadException e) {
-				Logger.Error(this, e);
-				throw new DatabaseException("Type Not Found: " + e.Message);
-			}
-
-			// Return the procedure.
-			return procedureInstance;
-		}
-
 		// ---------- System access ----------
 
 		/// <summary>
