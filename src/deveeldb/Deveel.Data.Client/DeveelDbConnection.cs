@@ -294,7 +294,7 @@ namespace Deveel.Data.Client {
 					*/
 
 					// Check if the database exists
-					bool databaseExists = localBootable.CheckExists();
+					bool databaseExists = localBootable.CheckExists(config);
 
 					// If database doesn't exist and we've been told to create it if it
 					// doesn't exist, then set the 'create_db' flag.

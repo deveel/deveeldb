@@ -100,7 +100,7 @@ namespace Deveel.Data.Protocol {
 
         	// Start the DbSystem and bind it to a IDatabaseInterface.
         	if (controller.IsInitialized(databaseName))
-        		dbsys = controller.ConnectToDatabase(databaseName);
+        		dbsys = controller.ConnectToDatabase(config, databaseName);
         	else
         		dbsys = controller.StartDatabase(config, databaseName);
 
@@ -113,11 +113,11 @@ namespace Deveel.Data.Protocol {
         }
 
         /// <inheritdoc/>
-		public bool CheckExists() {
+		public bool CheckExists(IDbConfig config) {
         	if (booted)
         		throw new DataException("The database is already booted.");
 
-        	return controller.DatabaseExists(databaseName);
+        	return controller.DatabaseExists(config, databaseName);
         }
 
 		/// <inheritdoc/>

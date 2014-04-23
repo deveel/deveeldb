@@ -186,7 +186,7 @@ namespace Deveel.Data.Types {
 		public static DateTime ToTime(String str) {
 			lock (TimeFormatSql) {
 				try {
-					return DateTime.ParseExact(str, TimeFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None);
+					return DateTime.ParseExact(str, TimeFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault);
 				} catch(FormatException) {
 					throw new Exception(DateErrorString("Unable to parse string as a time ", TimeFormatSql));
 				}

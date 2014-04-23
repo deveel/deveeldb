@@ -222,7 +222,7 @@ namespace Deveel.Data.Client {
 
 			ParameterStyle paramStyle = connection.Settings.ParameterStyle;
 			string commandText = "   SELECT " +
-			                     "      IF(Triggers.schema IS NOT NULL, CONCAT(Triggers.schema,'.', Triggers.name), Triggers.name) AS NAME," + 
+			                     "      IIF(Triggers.schema IS NOT NULL, CONCAT(Triggers.schema,'.', Triggers.name), Triggers.name) AS NAME," + 
                                  "      Triggers.on_object as ON_OBJECT " +
 								 "   FROM SYSTEM.data_trigger AS Triggers " +
 								 "   WHERE Triggers.name = ";

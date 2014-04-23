@@ -79,7 +79,7 @@ namespace Deveel.Data {
 			DbController controller = DbController.Create(config);
 
 
-			system = !controller.DatabaseExists(DatabaseName)
+			system = !controller.DatabaseExists(config, DatabaseName)
 						? controller.CreateDatabase(null, DatabaseName, AdminUser, AdminPassword)
 						: controller.StartDatabase(null, DatabaseName);
 

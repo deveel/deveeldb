@@ -21,6 +21,7 @@ using System.Reflection;
 using System.Text;
 
 using Deveel.Data.Client;
+using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
@@ -89,8 +90,8 @@ namespace Deveel.Data.Protocol {
 		/// </summary>
 		private readonly DatabaseEventCallback dbCallback;
 
-		private bool ChangeDatabaseInterface(string databaseName) {
-			if (!controller.DatabaseExists(databaseName))
+		private bool ChangeDatabaseInterface(IDbConfig config, string databaseName) {
+			if (!controller.DatabaseExists(config, databaseName))
 				return false;
 
 			DatabaseInterface dbi;
@@ -128,7 +129,7 @@ namespace Deveel.Data.Protocol {
 
 				string databaseName = reader.ReadString();
 
-				if (!ChangeDatabaseInterface(databaseName))
+				if (!ChangeDatabaseInterface(controller.Config, databaseName))
 					return Single(ProtocolConstants.DatabaseNotFound);
 
 				Version version = Assembly.GetExecutingAssembly().GetName().Version;

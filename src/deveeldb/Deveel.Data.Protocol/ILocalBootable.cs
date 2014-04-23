@@ -58,7 +58,7 @@ namespace Deveel.Data.Protocol {
 		///<returns>
 		/// Returns true if the database exists, otherwise false.
 		/// </returns>
-		bool CheckExists();
+		bool CheckExists(IDbConfig config);
 
 	    ///<summary>
 	    /// Returns true if there is a database currently booted in the current 
