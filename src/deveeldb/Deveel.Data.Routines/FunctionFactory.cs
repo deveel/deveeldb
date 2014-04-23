@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,27 +14,25 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Reflection;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
-	/// <summary>
-	/// A factory that generates <see cref="IFunction"/> objects given 
-	/// a function name and a set of expression's that represent parameters.
-	/// </summary>
-	/// <remarks>
-	/// A developer may create their own instance of this class and register 
-	/// the factory with the <see cref="DatabaseContext"/>. When the SQL grammer 
-	/// comes across a function, it will try and resolve the function name against 
-	/// the registered function factories.
-	/// </remarks>
-	public abstract class FunctionFactory : IFunctionLookup {
+	public abstract class FunctionFactory : IRoutineResolver {
+		private readonly Dictionary<FunctionInfo, object> functionTypeMapping;
+		private readonly Dictionary<string, string> aliases;
+ 
 		private bool initd;
-		private static readonly Expression GlobExpression;
 
-		static FunctionFactory() {
+		protected FunctionFactory() {
+			functionTypeMapping = new Dictionary<FunctionInfo, object>();
+			aliases = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+
 			GlobExpression = new Expression();
 			GlobExpression.AddElement(TObject.CreateString("*"));
 			GlobExpression.Text.Append("*");
@@ -42,96 +40,169 @@ namespace Deveel.Data.Routines {
 			GlobList = new Expression[] { GlobExpression };
 		}
 
-		///<summary>
-		/// Represents a function argument * for glob's such as <c>count(*)</c>
-		///</summary>
-		public static readonly Expression[] GlobList;
+		private static readonly char[] Alpha = "abcdefghkjilmnopqrstuvwxyz".ToCharArray();
 
-		/// <summary>
-		/// The mapping of 'fun_name' to 'fun_type' for each function that's 
-		/// registered with this factory.
-		/// </summary>
-		private readonly Hashtable fun_class_mapping;
+		public static Expression GlobExpression { get; private set; }
 
-		/// <summary>
-		/// Constructor arguments types for the function.
-		/// </summary>
-		private readonly Type[] construct_proto;
+		public static Expression[] GlobList { get; private set; }
 
-		protected FunctionFactory() {
-			fun_class_mapping = new Hashtable(CaseInsensitiveHashCodeProvider.DefaultInvariant, CaseInsensitiveComparer.DefaultInvariant);
-			// The is the prototype for the constructor when creating a new function.
-			construct_proto = new Type[1];
-			Object exp_arr_ob =
-				Array.CreateInstance(typeof(Expression), 0);
-			construct_proto[0] = exp_arr_ob.GetType();
+		protected void Alias(string functionName, string alias) {
+			if (!functionTypeMapping.Any(x => String.Equals(x.Key.Name.Name, functionName, StringComparison.OrdinalIgnoreCase)))
+				throw new ArgumentException(String.Format("Function {0} was not defined by this factory.", functionName));
+
+			if (functionTypeMapping.Any(x => String.Equals(x.Key.Name.Name, alias, StringComparison.OrdinalIgnoreCase)))
+				throw new InvalidOperationException(String.Format("A function named '{0}' is already defined in this factory."));
+
+			aliases[alias] = functionName;
 		}
 
-		/// <summary>
-		/// Adds a new function to this factory.
-		/// </summary>
-		/// <param name="fun_name">The name of the function (eg. 'sum', 'concat').</param>
-		/// <param name="fun_class">The <see cref="IFunction"/> type that we instantiate 
-		/// for this function.</param>
-		/// <param name="fun_type">That type of function.</param>
-		/// <remarks>
-		/// Takes a function name and a class that is the <see cref="IFunction"/>
-		/// implementation. When the <see cref="GenerateFunction"/> method is called, 
-		/// it looks up the class with the function name and returns a new instance 
-		/// of the function.
-		/// </remarks>
-		protected void AddFunction(String fun_name, Type fun_class, FunctionType fun_type) {
+		protected RoutineParameter Parameter(int i, TType type) {
+			return new RoutineParameter(Alpha[i].ToString(CultureInfo.InvariantCulture), type);
+		}
+
+		protected RoutineParameter Dynamic(int i) {
+			return Parameter(i, Function.DynamicType);
+		}
+
+		protected RoutineParameter Unbounded(int i, TType type) {
+			return new RoutineParameter(Alpha[i].ToString(CultureInfo.InvariantCulture), type, ParameterAttributes.Unbounded);
+		}
+
+		protected RoutineParameter DynamicUnbounded(int i) {
+			return Unbounded(i, Function.DynamicType);
+		}
+
+		protected void AddFunction(String name, Type type) {
+			AddFunction(name, type, FunctionType.Static);
+		}
+
+		protected void AddFunction(String name, Type type, FunctionType functionType) {
+			AddFunction(name, new RoutineParameter[0], type, functionType);
+		}
+
+		protected void AddFunction(String name, RoutineParameter[] parameters, Type type, FunctionType functionType) {
 			try {
-				String lf_name = fun_name.ToLower();
-				if (fun_class_mapping[lf_name] == null) {
-					FF_FunctionInfo ff_info = new FF_FunctionInfo(this, fun_name, fun_type,
-					                                              fun_class.GetConstructor(construct_proto));
-					fun_class_mapping[lf_name] = ff_info;
-				} else {
-					throw new ApplicationException("Function '" + fun_name +
-					                               "' already defined in factory.");
-				}
+				if (IsFunctionDefined(name, parameters))
+					throw new ApplicationException("Function '" + name + "' already defined in factory.");
+
+				// We add these functions to the SYSTEM schema by default...
+				var info = new FunctionInfo(new RoutineName(SystemSchema.Name, name), parameters) { FunctionType = functionType };
+				functionTypeMapping[info] = type;
 			} catch (Exception e) {
 				throw new Exception(e.Message);
 			}
 		}
 
-		protected void AddFunction(String fun_name, Type fun_class) {
-			AddFunction(fun_name, fun_class, FunctionType.Static);
+		protected void AddFunction(String name, RoutineParameter[] parameters, Type type) {
+			AddFunction(name, parameters, type, FunctionType.Static);
+		}
+
+		protected void AddFunction(String name, RoutineParameter parameter, Type type) {
+			AddFunction(name, parameter, type, FunctionType.Static);
+		}
+
+		protected void AddFunction(String name, RoutineParameter parameter, Type type, FunctionType functionType) {
+			AddFunction(name, new[] { parameter }, type, functionType);
+		}
+
+		protected void Build(string name, RoutineParameter[] parameters, Func<RoutineInfo, IFunction> builder) {
+			Build(name, parameters, builder, FunctionType.Static);
+		}
+
+		protected void Build(string name, Func<RoutineInfo, IFunction> builder) {
+			Build(name, new RoutineParameter[0], builder);
+		}
+
+		protected void Build(string name, RoutineParameter parameter, Func<RoutineInfo, IFunction> builder) {
+			Build(name, parameter, builder, FunctionType.Static);
+		}
+
+		protected void Build(string name, RoutineParameter parameter, Func<RoutineInfo, IFunction> builder, FunctionType functionType) {
+			Build(name, new RoutineParameter[]{parameter}, builder, functionType);
+		}
+
+		protected void Build(string name, RoutineParameter[] parameters, Func<RoutineInfo, IFunction> builder, FunctionType functionType) {
+			try {
+				if (IsFunctionDefined(name, parameters))
+					throw new ApplicationException("Function '" + name + "' already defined in factory.");
+
+				// We add these functions to the SYSTEM schema by default...
+				var info = new FunctionInfo(new RoutineName(SystemSchema.Name, name), parameters) { FunctionType = functionType };
+				functionTypeMapping[info] = builder;
+			} catch (Exception e) {
+				throw new Exception(e.Message);
+			}			
+		}
+
+		protected void Build(string name, RoutineParameter[] parameters, Action<FunctionBuilder> config) {
+			Build(name, parameters, config, FunctionType.Static);
+		}
+
+		protected void Build(string name, Action<FunctionBuilder> config) {
+			Build(name, new RoutineParameter[0], config);
+		}
+
+		protected void Build(string name, RoutineParameter parameter, Action<FunctionBuilder> config) {
+			Build(name, parameter, config, FunctionType.Static);
+		}
+
+		protected void Build(string name, RoutineParameter parameter, Action<FunctionBuilder> config, FunctionType functionType) {
+			Build(name, new RoutineParameter[] {parameter}, config, functionType);
+		}
+
+		protected void Build(string name, RoutineParameter[] parameters, Action<FunctionBuilder> config, FunctionType functionType) {
+			try {
+				if (IsFunctionDefined(name, parameters))
+					throw new ApplicationException("Function '" + name + "' already defined in factory.");
+
+				// We add these functions to the SYSTEM schema by default...
+				var info = new FunctionInfo(new RoutineName(SystemSchema.Name, name), parameters) { FunctionType = functionType };
+				functionTypeMapping[info] = config;
+			} catch (Exception e) {
+				throw new Exception(e.Message);
+			}						
 		}
 
 		/// <summary>
 		/// Removes a static function from this factory.
 		/// </summary>
-		/// <param name="fun_name"></param>
-		protected void RemoveFunction(String fun_name) {
-			String lf_name = fun_name.ToLower();
-			if (fun_class_mapping[lf_name] != null) {
-				fun_class_mapping.Remove(fun_name.ToLower());
-			} else {
-				throw new ApplicationException("Function '" + lf_name +
-				                               "' is not defined in this factory.");
-			}
+		/// <param name="name"></param>
+		protected void RemoveFunction(String name) {
+			var key = functionTypeMapping.Keys.FirstOrDefault(x => String.Equals(name, x.Name.Name, StringComparison.OrdinalIgnoreCase));
+			if (key == null)
+				throw new ApplicationException("Function '" + name + "' is not defined in this factory.");
+
+			if (!functionTypeMapping.Remove(key))
+				throw new ApplicationException("An error occurred while removing function '" + name + "' from the factory.");
 		}
 
 		/// <summary>
 		/// Returns true if the function name is defined in this factory.
 		/// </summary>
-		/// <param name="fun_name"></param>
+		/// <param name="name"></param>
 		/// <returns></returns>
-		protected bool IsFunctionDefined(String fun_name) {
-			String lf_name = fun_name.ToLower();
-			return fun_class_mapping[lf_name] != null;
+		protected bool IsFunctionDefined(String name) {
+			return IsFunctionDefined(name, new RoutineParameter[0]);
 		}
 
-		/// <summary>
-		/// Initializes this <see cref="FunctionFactory"/>.
-		/// </summary>
-		/// <remarks>
-		/// This is an abstract method that needs to be implemented. (It doesn't 
-		/// need to do anything if a developer implements their own version 
-		/// of <see cref="GenerateFunction"/>).
-		/// </remarks>
+		protected bool IsFunctionDefined(string name, RoutineParameter[] parameters) {
+			name = UnAlias(name);
+
+			var info = functionTypeMapping.Where(x => x.Key.Name.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
+			if (info.Length == 0)
+				return false;
+
+			foreach (var mapping in info) {
+				if (mapping.Key.Parameters.Length != parameters.Length)
+					continue;
+
+				if (mapping.Key.Parameters.Where((t, i) => t.Type.IsComparableType(parameters[i].Type)).Any())
+					return true;
+			}
+
+			return false;
+		}
+
 		public void Init() {
 			if (!initd) {
 				OnInit();
@@ -141,123 +212,84 @@ namespace Deveel.Data.Routines {
 
 		protected abstract void OnInit();
 
-		/// <summary>
-		/// Creates a <see cref="IFunction"/> object for the function 
-		/// with the given name with the given arguments.
-		/// </summary>
-		/// <param name="functionDef"></param>
-		/// <remarks>
-		/// If this factory does not handle a function with the given name then it returns null.
-		/// </remarks>
-		/// <returns></returns>
-		public IFunction GenerateFunction(FunctionDef functionDef) {
-			String func_name = functionDef.Name;
-			Expression[] parameterss = functionDef.Parameters;
+		protected virtual IFunction OnFunctionCreate(RoutineInfo info, Type functionType) {
+			const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+			var paramTypes = new Type[] {typeof (RoutineName), typeof (RoutineParameter[])};
 
-			// This will lookup the function name (case insensitive) and if a
-			// function class was registered, instantiates and returns it.
+			var ctor = functionType.GetConstructor(flags, null, paramTypes, null);
+			if (ctor != null)
+				return (IFunction) ctor.Invoke(null, new object[] {info.Name, info.Parameters});
 
-			FF_FunctionInfo ff_info = (FF_FunctionInfo)fun_class_mapping[func_name.ToLower()];
-			if (ff_info == null)
-				// Function not handled by this factory so return null.
+			paramTypes = new Type[]{typeof(RoutineInfo)};
+			ctor = functionType.GetConstructor(flags, null, paramTypes, null);
+			if (ctor != null)
+				return (IFunction) ctor.Invoke(null, new object[] {info});
+
+			return null;
+		}
+
+		private string UnAlias(string name) {
+			string alias;
+			if (!aliases.TryGetValue(name, out alias))
+				return name;
+
+			return alias;
+		}
+
+		public IRoutine ResolveRoutine(RoutineInvoke invoke, IQueryContext context) {
+			invoke.Name = UnAlias(invoke.Name);
+
+			object arg = null;
+			FunctionInfo info = null;
+			foreach (var mapping in functionTypeMapping) {
+				if (mapping.Key.MatchesInvoke(invoke, context)) {
+					if (arg != null)
+						throw new AmbiguousMatchException("More than one overload of '" + invoke.Name + "' matches the given call.");
+
+					info = mapping.Key;
+					arg = mapping.Value;
+				}
+			}
+
+			if (arg == null)
 				return null;
 
-			ConstructorInfo fun_constructor = ff_info.Constructor;
-			object[] args = new Object[] {parameterss};
-			try {
-				return (IFunction) fun_constructor.Invoke(args);
-			} catch (TargetInvocationException e) {
-				throw new Exception(e.InnerException.Message);
-			} catch (Exception e) {
-				throw new Exception(e.Message);
+			if (arg is Type) {
+				try {
+					return OnFunctionCreate(info, (Type) arg);
+				} catch (TargetInvocationException e) {
+					throw new Exception(e.InnerException.Message);
+				} catch (Exception e) {
+					throw new Exception(e.Message);
+				}
 			}
+
+			if (arg is Func<RoutineInfo, IFunction>) {
+				return ((Func<RoutineInfo, IFunction>)arg)(info);
+			}
+			
+			if (arg is Action<FunctionBuilder>) {
+				var functionBuilder = FunctionBuilder.New(info.Name);
+				functionBuilder = info.Parameters
+					.Aggregate(functionBuilder,
+						(current, param) => current.WithParameter(param.Name, param.Type, param.Direction, param.Attributes));
+
+				functionBuilder = functionBuilder.OfType(info.FunctionType);
+
+				((Action<FunctionBuilder>) arg)(functionBuilder);
+
+				return functionBuilder;
+			}
+
+			return null;
 		}
 
-		/// <summary>
-		/// Checks if the given function is aggregate.
-		/// </summary>
-		/// <param name="functionDef"></param>
-		/// <returns>
-		/// Returns true if the function defined by <see cref="FunctionDef"/> is 
-		/// an aggregate function, or false otherwise.
-		/// </returns>
-		public bool IsAggregate(FunctionDef functionDef) {
-			IFunctionInfo f_info = GetFunctionInfo(functionDef.Name);
-			if (f_info == null)
-				// Function not handled by this factory so return false.
+		public bool IsAggregateFunction(RoutineInvoke invoke, IQueryContext context) {
+			var function = ResolveRoutine(invoke, context);
+			if (function == null)
 				return false;
-			return (f_info.Type == FunctionType.Aggregate);
-		}
 
-		///<summary>
-		/// Returns a <see cref="IFunctionInfo"/> instance of the function with the given 
-		/// name that this <see cref="FunctionFactory"/> manages.
-		///</summary>
-		///<param name="fun_name"></param>
-		/// <remarks>
-		/// If <see cref="GenerateFunction"/> is reimplemented then this method should be 
-		/// rewritten also.
-		/// </remarks>
-		///<returns></returns>
-		public IFunctionInfo GetFunctionInfo(String fun_name) {
-			FF_FunctionInfo ff_info = (FF_FunctionInfo)fun_class_mapping[fun_name.ToLower()];
-			return ff_info;
-		}
-
-		///<summary>
-		/// Returns the list of all function names that this FunctionFactory manages.
-		///</summary>
-		/// <remarks>
-		/// This is used to compile information about the function factories.  If
-		/// <see cref="GenerateFunction"/> is reimplemented then this method should 
-		/// be rewritten also.
-		/// </remarks>
-		///<returns></returns>
-		public IFunctionInfo[] GetAllFunctionInfo() {
-			ICollection keys = fun_class_mapping.Keys;
-			int list_size = keys.Count;
-			IFunctionInfo[] list = new IFunctionInfo[list_size];
-			IEnumerator i = keys.GetEnumerator();
-			int n = 0;
-			while (i.MoveNext()) {
-				String fun_name = (String)i.Current;
-				list[n] = GetFunctionInfo(fun_name);
-				++n;
-			}
-			return list;
-		}
-
-		/// <summary>
-		/// An implementation of IFunctionInfo.
-		/// </summary>
-		protected class FF_FunctionInfo : IFunctionInfo {
-			private readonly FunctionFactory factory;
-			private readonly String name;
-			private readonly FunctionType type;
-			private readonly ConstructorInfo constructor;
-
-			public FF_FunctionInfo(FunctionFactory factory, String name, FunctionType type, ConstructorInfo constructor) {
-				this.factory = factory;
-				this.name = name;
-				this.type = type;
-				this.constructor = constructor;
-			}
-
-			public string Name {
-				get { return name; }
-			}
-
-			public FunctionType Type {
-				get { return type; }
-			}
-
-			public ConstructorInfo Constructor {
-				get { return constructor; }
-			}
-
-			public string FunctionFactoryName {
-				get { return factory.GetType().ToString(); }
-			}
+			return ((IFunction) function).FunctionType == FunctionType.Aggregate;
 		}
 	}
 }

@@ -298,7 +298,7 @@ namespace Deveel.Data {
 		///	    reference to a column in a table.</description>
 		///	  </item>
 		///	  <item>
-		///	    <term><see cref="FunctionDef"/></term>
+		///	    <term><see cref="RoutineInvoke"/></term>
 		///	    <description>A descriptor that represents the information
 		///	    to call a function.</description>
 		///	  </item>
@@ -324,7 +324,7 @@ namespace Deveel.Data {
 			           ob is VariableRef ||
 			           ob is CorrelatedVariable ||
 			           ob is VariableName ||
-			           ob is FunctionDef ||
+			           ob is RoutineInvoke ||
 			           ob is Operator ||
 			           ob is IStatementTreeObject) {
 				elements.Add(ob);
@@ -428,8 +428,8 @@ namespace Deveel.Data {
 					object ob = elements[i];
 					if (ob is VariableName) {
 						vars.Add((VariableName)ob);
-					} else if (ob is FunctionDef) {
-						Expression[] parameterss = ((FunctionDef) ob).Parameters;
+					} else if (ob is RoutineInvoke) {
+						Expression[] parameterss = ((RoutineInvoke) ob).Arguments;
 						for (int n = 0; n < parameterss.Length; ++n) {
 							vars.AddRange(parameterss[n].AllVariables);
 						}
@@ -458,8 +458,8 @@ namespace Deveel.Data {
 					Object ob = elements[i];
 					if (ob is Operator) {
 						// don't add operators...
-					} else if (ob is FunctionDef) {
-						Expression[] parameterss = ((FunctionDef) ob).Parameters;
+					} else if (ob is RoutineInvoke) {
+						Expression[] parameterss = ((RoutineInvoke) ob).Arguments;
 						for (int n = 0; n < parameterss.Length; ++n) {
 							elems.AddRange(parameterss[n].AllElements);
 						}
@@ -489,7 +489,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// <b>Note:</b> This will not cascade through to the parameters of 
 		/// <see cref="IFunction"/> objects however it will cascade through 
-		/// <see cref="FunctionDef"/> parameters. For this reason you <b>must</b>
+		/// <see cref="RoutineInvoke"/> parameters. For this reason you <b>must</b>
 		/// call <i>PrepareFunctions</i> after this method.
 		/// </remarks>
 		public void Prepare(IExpressionPreparer preparer) {
@@ -503,9 +503,9 @@ namespace Deveel.Data {
 				}
 
 				Expression[] exp_list = null;
-				if (ob is FunctionDef) {
-					FunctionDef func = (FunctionDef)ob;
-					exp_list = func.Parameters;
+				if (ob is RoutineInvoke) {
+					RoutineInvoke func = (RoutineInvoke)ob;
+					exp_list = func.Arguments;
 				} else if (ob is TObject) {
 					TObject tob = (TObject)ob;
 					if (tob.TType is TArrayType) {
@@ -555,8 +555,8 @@ namespace Deveel.Data {
 						}
 					} else if (ob is VariableName) {
 						return false;
-					} else if (ob is FunctionDef) {
-						Expression[] parameterss = ((FunctionDef) ob).Parameters;
+					} else if (ob is RoutineInvoke) {
+						Expression[] parameterss = ((RoutineInvoke) ob).Arguments;
 						for (int p = 0; p < parameterss.Length; ++p) {
 							if (!parameterss[p].IsConstant) {
 								return false;
@@ -906,9 +906,9 @@ namespace Deveel.Data {
 				return resolver.Resolve((VariableName) ob);
 			if (ob is CorrelatedVariable)
 				return ((CorrelatedVariable) ob).EvalResult;
-			if (ob is FunctionDef) {
-				IFunction fun = ((FunctionDef) ob).GetFunction(context);
-				return fun.Evaluate(group, resolver, context);
+			if (ob is RoutineInvoke) {
+				IFunction fun = (IFunction) ((RoutineInvoke) ob).GetFunction(context);
+				return fun.Execute(((RoutineInvoke)ob), group, resolver, context);
 			} 
 			if (ob is VariableRef) {
 				VariableRef variableRef = (VariableRef) ob;
@@ -945,8 +945,8 @@ namespace Deveel.Data {
 		public bool HasAggregateFunction(IQueryContext context) {
 			for (int n = 0; n < elements.Count; ++n) {
 				Object ob = elements[n];
-				if (ob is FunctionDef) {
-					if (((FunctionDef)ob).IsAggregate(context)) {
+				if (ob is RoutineInvoke) {
+					if (((RoutineInvoke)ob).IsAggregate(context)) {
 						return true;
 					}
 				} else if (ob is TObject) {
@@ -976,9 +976,9 @@ namespace Deveel.Data {
 		/// </remarks>
 		internal TType ReturnTType(IVariableResolver resolver, IQueryContext context) {
 			object ob = elements[elements.Count - 1];
-			if (ob is FunctionDef) {
-				IFunction fun = ((FunctionDef)ob).GetFunction(context);
-				return fun.ReturnTType(resolver, context);
+			if (ob is RoutineInvoke) {
+				IFunction fun = (IFunction) ((RoutineInvoke)ob).GetFunction(context);
+				return fun.ReturnTType((RoutineInvoke)ob, resolver, context);
 			}
 			if (ob is TObject)
 				return ((TObject)ob).TType;
@@ -1051,8 +1051,8 @@ namespace Deveel.Data {
 					element = ((CorrelatedVariable) element).Clone();
 				} else if (element is VariableName) {
 					element = ((VariableName) element).Clone();
-				} else if (element is FunctionDef) {
-					element = ((FunctionDef) element).Clone();
+				} else if (element is RoutineInvoke) {
+					element = ((RoutineInvoke) element).Clone();
 				} else if (element is IStatementTreeObject) {
 					element = ((IStatementTreeObject) element).Clone();
 				} else {

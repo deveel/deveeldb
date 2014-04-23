@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010  Deveel
+﻿// 
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,13 +15,21 @@
 
 using System;
 
-using Deveel.Data.Types;
-
 namespace Deveel.Data.Routines {
-	public interface IFunction : IRoutine {
-		FunctionType FunctionType { get; }
+	[Serializable]
+	public abstract class Routine {
+		protected Routine(RoutineName name, RoutineParameter[] parameters, RoutineType type) {
+			Name = name;
+			Parameters = parameters;
+			Type = type;
+		}
 
+		public RoutineName Name { get; private set; }
 
-		TType ReturnTType(ExecuteContext context);
+		public RoutineParameter[] Parameters { get; private set; }
+
+		public RoutineType Type { get; private set; }
+
+		public abstract ExecuteResult Execute(ExecuteContext context);
 	}
 }

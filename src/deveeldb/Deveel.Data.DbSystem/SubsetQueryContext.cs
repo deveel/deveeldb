@@ -46,8 +46,8 @@ namespace Deveel.Data.DbSystem {
 			get { return parent.Logger; }
 		}
 
-		public override IFunctionLookup FunctionLookup {
-			get { return parent.FunctionLookup; }
+		public override IRoutineResolver RoutineResolver {
+			get { return parent.RoutineResolver; }
 		}
 
 		public override SystemContext Context {

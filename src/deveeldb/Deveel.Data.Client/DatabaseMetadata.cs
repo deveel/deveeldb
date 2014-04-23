@@ -96,8 +96,8 @@ namespace Deveel.Data.Client {
 				schema = "%";
 
 			// The 'types' argument
-			String type_part = "";
-			int type_size = 0;
+			String typePart = "";
+			int typeSize = 0;
 			if (types.Length > 0) {
 				StringBuilder buf = new StringBuilder();
 				buf.Append("      AND \"TABLE_TYPE\" IN ( ");
@@ -105,8 +105,8 @@ namespace Deveel.Data.Client {
 					buf.Append("?, ");
 				}
 				buf.Append("? ) \n");
-				type_size = types.Length;
-				type_part = buf.ToString();
+				typeSize = types.Length;
+				typePart = buf.ToString();
 			}
 
 			// Create the statement
@@ -115,12 +115,12 @@ namespace Deveel.Data.Client {
 			                                                   "     FROM \"INFORMATION_SCHEMA.TABLES\" \n" +
 			                                                   "    WHERE \"TABLE_SCHEMA\" LIKE ? \n" +
 			                                                   "      AND \"TABLE_NAME\" LIKE ? \n" +
-			                                                   type_part +
+			                                                   typePart +
 			                                                   " ORDER BY \"TABLE_TYPE\", \"TABLE_SCHEMA\", \"TABLE_NAME\" \n");
 			command.Parameters.Add(schema);
 			command.Parameters.Add(table);
-			if (type_size > 0) {
-				for (int i = 0; i < type_size; ++i)
+			if (typeSize > 0) {
+				for (int i = 0; i < typeSize; ++i)
 					command.Parameters.Add(types[i]);
 			}
 
@@ -399,7 +399,7 @@ namespace Deveel.Data.Client {
 			dataTable.Columns.Add("PK_NAME");
 			dataTable.Columns.Add("DEFERRABILITY");
 
-			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.ImportedKeys \n" +
+			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.imported_keys \n" +
 			                                                   "    WHERE ( ? IS NULL OR \"FKTABLE_SCHEMA\" = ? )\n" +
 			                                                   "      AND \"FKTABLE_NAME\" = ? \n" +
 			                                                   " ORDER BY \"FKTABLE_SCHEMA\", \"FKTABLE_NAME\", \"KEY_SEQ\"");
@@ -462,7 +462,7 @@ namespace Deveel.Data.Client {
 			dataTable.Columns.Add("PK_NAME");
 			dataTable.Columns.Add("DEFERRABILITY");
 
-			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.ImportedKeys \n" +
+			DeveelDbCommand command = connection.CreateCommand("   SELECT * FROM INFORMATION_SCHEMA.imported_keys \n" +
 			                                                   "    WHERE ( ? IS NULL OR \"PKTABLE_SCHEMA\" = ? ) \n" +
 			                                                   "      AND \"PKTABLE_NAME\" = ? \n" +
 			                                                   "ORDER BY \"FKTABLE_SCHEMA\", \"FKTABLE_NAME\", \"KEY_SEQ\"");

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
@@ -14,12 +15,12 @@ namespace Deveel.Data {
 			Expression exp = Expression.Parse("a = b");
 			Assert.IsTrue(exp[0].Equals(VariableName.Resolve("a")));
 			Assert.IsTrue(exp[1].Equals(VariableName.Resolve("b")));
-			Assert.IsTrue(exp[2] == Operator.Get("="));
+			Assert.IsTrue(Equals(exp[2], Operator.Get("=")));
 
 			exp = Expression.Parse("a=Table.Column");
 			Assert.AreEqual(exp[0], VariableName.Resolve("a"));
 			Assert.AreEqual(exp[1], VariableName.Resolve(TableName.Resolve("Table"), "Column"));
-			Assert.IsTrue(exp[2] == Operator.Get("="));
+			Assert.IsTrue(Equals(exp[2], Operator.Get("=")));
 
 			exp = Expression.Parse("b > 35");
 			Assert.AreEqual(exp[0], VariableName.Resolve("b"));
@@ -47,25 +48,25 @@ namespace Deveel.Data {
 
 		[Test]
 		public void FunctionExpression() {
-			Expression exp = Expression.Parse("LENGTH(a)");
-			Assert.IsTrue(exp[0] is Routines.FunctionDef);
-			Routines.FunctionDef fdef = (Routines.FunctionDef) exp[0];
-			Assert.AreEqual(fdef.Name, "LENGTH");
-			Assert.AreEqual(fdef.Parameters.Length, 1);
-			Assert.AreEqual(fdef.Parameters[0].AllVariables.Count, 1);
-			Assert.AreEqual(fdef.Parameters[0].AllVariables[0], VariableName.Resolve("a"));
+			Expression exp = Expression.Parse("CHAR_LENGTH(a)");
+			Assert.IsTrue(exp[0] is RoutineInvoke);
+			RoutineInvoke fdef = (RoutineInvoke) exp[0];
+			Assert.AreEqual(fdef.Name, "CHAR_LENGTH");
+			Assert.AreEqual(fdef.Arguments.Length, 1);
+			Assert.AreEqual(fdef.Arguments[0].AllVariables.Count, 1);
+			Assert.AreEqual(fdef.Arguments[0].AllVariables[0], VariableName.Resolve("a"));
 
-			exp = Expression.Parse("LENGTH('test')");
-			fdef = (Routines.FunctionDef)exp[0];
-			Assert.AreEqual(fdef.Name, "LENGTH");
-			Assert.AreEqual(fdef.Parameters.Length, 1);
-			Assert.AreEqual(fdef.Parameters[0].AllElements.Count, 1);
-			TObject result = fdef.GetFunction(null).Evaluate(null, null, null);
+			exp = Expression.Parse("CHAR_LENGTH('test')");
+			fdef = (RoutineInvoke)exp[0];
+			Assert.AreEqual(fdef.Name, "CHAR_LENGTH");
+			Assert.AreEqual(fdef.Arguments.Length, 1);
+			Assert.AreEqual(fdef.Arguments[0].AllElements.Count, 1);
+			TObject result = ((IFunction)fdef.GetFunction(null)).Execute(fdef, null, null, null);
 			Assert.IsTrue(result == (TObject) 4);
 
-			exp = Expression.Parse("LENGTH(CAST(CURRENT_TIMESTAMP AS VARCHAR))");
-			fdef = (Routines.FunctionDef) exp[0];
-			result = fdef.GetFunction(null).Evaluate(null, null, null);
+			exp = Expression.Parse("CHAR_LENGTH(CAST(CURRENT_TIMESTAMP AS VARCHAR))");
+			fdef = (RoutineInvoke) exp[0];
+			result = ((IFunction) fdef.GetFunction(null)).Execute(fdef, null, null, null);
 		}
 
 		[Test]
@@ -87,10 +88,10 @@ namespace Deveel.Data {
 
 			IDictionary<string, object> args = new Dictionary<string, object>();
 			args["arg0"] = "test_string";
-			result = Expression.Evaluate("LENGTH(:arg0)", args);
+			result = Expression.Evaluate("CHAR_LENGTH(:arg0)", args);
 			Assert.IsTrue(result.TType is TNumericType);
 			Assert.AreEqual(11, result);
-			Console.Out.WriteLine("LENGTH(:arg0 = 'test_string') = {0}", result);
+			Console.Out.WriteLine("CHAR_LENGTH(:arg0 = 'test_string') = {0}", result);
 
 			args = new Dictionary<string, object>();
 			args["a"] = 12;

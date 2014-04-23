@@ -18,33 +18,33 @@ using System;
 namespace Deveel.Data.Routines {
 	/// <summary>
 	/// An interface that resolves and generates a <see cref="IFunction"/> 
-	/// objects given a <see cref="FunctionDef"/> object.
+	/// objects given a <see cref="RoutineInvoke"/> object.
 	/// </summary>
 	public interface IFunctionLookup {
 		/// <summary>
-		/// Generate the <see cref="IFunction"/> given a <see cref="FunctionDef"/> object.
+		/// Generate the <see cref="IFunction"/> given a <see cref="RoutineInvoke"/> object.
 		/// </summary>
-		/// <param name="functionDef"></param>
+		/// <param name="routineInvoke"></param>
 		/// <returns></returns>
 		/// <remarks>
-		/// Returns null if the <see cref="FunctionDef"/> can not be resolved 
+		/// Returns null if the <see cref="RoutineInvoke"/> can not be resolved 
 		/// to a valid function object.
 		/// </remarks>
 		/// <exception cref="StatementException">
 		/// If the specification of the function is invalid for some reason (the number 
 		/// or type of the parameters is incorrect).
 		/// </exception>
-		IFunction GenerateFunction(FunctionDef functionDef);
+		IFunction GenerateFunction(RoutineInvoke routineInvoke);
 
 		/// <summary>
 		/// Checks if the given function is aggregate.
 		/// </summary>
-		/// <param name="functionDef"></param>
+		/// <param name="routineInvoke"></param>
 		/// <returns>
-		/// Returns true if the function defined by <see cref="FunctionDef"/> is 
+		/// Returns true if the function defined by <see cref="RoutineInvoke"/> is 
 		/// an aggregate function, or false otherwise.
 		/// </returns>
-		bool IsAggregate(FunctionDef functionDef);
+		bool IsAggregate(RoutineInvoke routineInvoke);
 
 	}
 }

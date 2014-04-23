@@ -162,16 +162,7 @@ namespace Deveel.Data {
 
 		// ---------- Function factories ----------
 
-		///<summary>
-		/// Returns a <see cref="IFunctionLookup"/> object that will search through the 
-		/// function factories in this database system and find and resolve a function.
-		///</summary>
-		/// <remarks>
-		/// The returned object may throw an exception from the <see cref="FunctionDef.GetFunction"/> 
-		/// method if the <see cref="FunctionDef"/> is invalid. For example, if the number 
-		/// of parameters is incorrect or the name can not be found.
-		/// </remarks>
-		public IFunctionLookup FunctionLookup { get; private set; }
+		public IRoutineResolver RoutineResolver { get; private set; }
 
 		/*
 		public TypesManager TypesManager {
@@ -382,7 +373,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		public virtual void Init(IDbConfig config) {
 			functionFactoryList = new ArrayList();
-			FunctionLookup = new DSFunctionLookup();
+			RoutineResolver = new SystemRoutineResolver();
 
 			if (config != null) {
 				this.Config = config;
@@ -504,7 +495,7 @@ namespace Deveel.Data {
 			lock (functionFactoryList) {
 				factories = (FunctionFactory[]) functionFactoryList.ToArray(typeof (FunctionFactory));
 			}
-			((DSFunctionLookup)FunctionLookup).FlushContents(factories);
+			((SystemRoutineResolver)RoutineResolver).FlushContents(factories);
 		}
 
 		///<summary>
@@ -595,22 +586,17 @@ namespace Deveel.Data {
 
 		// ---------- Inner classes ----------
 
-		#region Nested type: DSFunctionLookup
+		#region SystemRoutineResolver
 
-		/// <summary>
-		/// A <see cref="IFunctionLookup"/> implementation that will look up a 
-		/// function from a list of <see cref="FunctionFactory"/> objects 
-		/// provided with.
-		/// </summary>
-		private sealed class DSFunctionLookup : IFunctionLookup {
+		private sealed class SystemRoutineResolver : IRoutineResolver {
 			private FunctionFactory[] factories;
 
 			#region IFunctionLookup Members
 
-			public IFunction GenerateFunction(FunctionDef functionDef) {
+			public IRoutine ResolveRoutine(RoutineInvoke routineInvoke, IQueryContext context) {
 				lock (this) {
 					foreach (FunctionFactory factory in factories) {
-						IFunction f = factory.GenerateFunction(functionDef);
+						var f = factory.ResolveRoutine(routineInvoke, context);
 						if (f != null)
 							return f;
 					}
@@ -618,13 +604,14 @@ namespace Deveel.Data {
 				}
 			}
 
-			public bool IsAggregate(FunctionDef functionDef) {
+			public bool IsAggregateFunction(RoutineInvoke routineInvoke, IQueryContext context) {
 				lock (this) {
 					foreach (FunctionFactory factory in factories) {
-						IFunctionInfo info = factory.GetFunctionInfo(functionDef.Name);
+						var info = factory.ResolveRoutine(routineInvoke, context) as IFunction;
 						if (info != null)
-							return info.Type == FunctionType.Aggregate;
+							return info.FunctionType == FunctionType.Aggregate;
 					}
+
 					return false;
 				}
 			}

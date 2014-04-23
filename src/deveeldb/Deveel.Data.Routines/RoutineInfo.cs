@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010  Deveel
+﻿// 
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,13 +15,30 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
-	public interface IFunction : IRoutine {
-		FunctionType FunctionType { get; }
+	public abstract class RoutineInfo {
+		protected RoutineInfo(RoutineName name) 
+			: this(name, new RoutineParameter[] {}) {
+		}
 
+		protected RoutineInfo(RoutineName name, RoutineParameter[] parameters) {
+			if (name == null)
+				throw new ArgumentNullException("name");
 
-		TType ReturnTType(ExecuteContext context);
+			if (parameters == null)
+				parameters = new RoutineParameter[0];
+
+			Name = name;
+			Parameters = parameters;
+		}
+
+		public RoutineName Name { get; private set; }
+
+		public RoutineParameter[] Parameters { get; private set; }
+
+		internal abstract bool MatchesInvoke(RoutineInvoke invoke, IQueryContext queryContext);
 	}
 }

@@ -172,7 +172,7 @@ namespace Deveel.Data.Types {
 			lock (DateFormatSql) {
 				DateTime result;
 				if (!DateTime.TryParseExact(str, DateFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
-					throw new Exception(DateErrorString("Unable to parse string as a date ", DateFormatSql));
+					throw new FormatException(DateErrorString("Unable to parse string as a date ", DateFormatSql));
 
 				return result;
 			}

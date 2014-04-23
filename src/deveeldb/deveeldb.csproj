@@ -101,8 +101,25 @@
     <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
+    <Compile Include="Deveel.Data.Routines\ExecuteContext.cs" />
+    <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalRoutineInfo.cs" />
-    <Compile Include="Deveel.Data.Routines\SystemFunctions.cs" />
+    <Compile Include="Deveel.Data.Routines\Function.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionBuilder.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionExtensions.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionInfo.cs" />
+    <Compile Include="Deveel.Data.Routines\IProcedure.cs" />
+    <Compile Include="Deveel.Data.Routines\IRoutine.cs" />
+    <Compile Include="Deveel.Data.Routines\IRoutineResolver.cs" />
+    <Compile Include="Deveel.Data.Routines\ParameterAttributes.cs" />
+    <Compile Include="Deveel.Data.Routines\ProcedureInfo.cs" />
+    <Compile Include="Deveel.Data.Routines\Routine.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineException.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineInfo.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineParameter.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineType.cs" />
     <Compile Include="Deveel.Data.Protocol\ColumnDescription.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -110,6 +127,7 @@
     <Compile Include="Deveel.Data.Protocol\IInputStream.cs" />
     <Compile Include="Deveel.Data.Protocol\LengthMarkedBufferedInputStream.cs" />
     <Compile Include="Deveel.Data.Protocol\NetworkInputStream.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemFunctions.cs" />
     <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs" />
     <Compile Include="Deveel.Data.Security\HashFunctions.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs" />
@@ -208,14 +226,9 @@
     <Compile Include="Deveel.Data.Configuration\DbConfig.cs" />
     <Compile Include="Deveel.Data.Control\DbController.cs" />
     <Compile Include="Deveel.Data.Control\DbSystem.cs" />
-    <Compile Include="Deveel.Data.Routines\AggregateFunction.cs" />
-    <Compile Include="Deveel.Data.Routines\Function.cs" />
-    <Compile Include="Deveel.Data.Routines\FunctionDef.cs" />
-    <Compile Include="Deveel.Data.Routines\FunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineInvoke.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionType.cs" />
     <Compile Include="Deveel.Data.Routines\IFunction.cs" />
-    <Compile Include="Deveel.Data.Routines\IFunctionInfo.cs" />
-    <Compile Include="Deveel.Data.Routines\IFunctionLookup.cs" />
     <Compile Include="Deveel.Data.Routines\ParameterDirection.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureException.cs" />
     <Compile Include="Deveel.Data.Routines\RoutinesManager.cs" />

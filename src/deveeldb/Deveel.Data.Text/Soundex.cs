@@ -31,7 +31,7 @@ namespace Deveel.Data.Text {
 		#region Fields
 		private readonly char[] mapping;
 
-		private static readonly string UsEnglishMapping = "01230120022455012623010202";
+		private const string UsEnglishMapping = "01230120022455012623010202";
 
 		public static readonly Soundex UsEnglish = new Soundex(UsEnglishMapping.ToCharArray());
 		#endregion

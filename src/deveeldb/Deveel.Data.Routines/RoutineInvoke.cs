@@ -23,50 +23,40 @@ namespace Deveel.Data.Routines {
 	/// A definition of a function including its name and parameters.
 	/// </summary>
 	/// <remarks>
-	/// A <see cref="FunctionDef"/> can easily be transformed into a 
-	/// <see cref="IFunction"/> object via a set of <see cref="FunctionFactory"/> instances.
+	/// A <see cref="RoutineInvoke"/> can easily be transformed into a 
+	/// <see cref="IFunction"/> object via a set of <see cref="LegacyFunctionFactory"/> instances.
 	/// <para>
 	/// <b>Note</b>: This object is <b>not</b> immutable or thread-safe. 
-	/// A <see cref="FunctionDef"/> should not  be shared among different threads.
+	/// A <see cref="RoutineInvoke"/> should not  be shared among different threads.
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	public sealed class FunctionDef : ICloneable {
-		/// <summary>
-		/// The name of the function.
-		/// </summary>
-		private readonly String name;
-
-		/// <summary>
-		/// The list of parameters for the function.
-		/// </summary>
-		private Expression[] parameterss;
-
+	public sealed class RoutineInvoke : ICloneable {
 		/// <summary>
 		/// A cached <see cref="IFunction"/> object that was generated when this 
-		/// <see cref="FunctionDef"/> was looked up. The <see cref="IFunction"/> 
+		/// <see cref="RoutineInvoke"/> was looked up. The <see cref="IFunction"/> 
 		/// object is transient.
 		/// </summary>
-		private IFunction cached_function;
+		private IRoutine cachedFunction;
 
 
-		public FunctionDef(String name, Expression[] parameterss) {
-			this.name = name;
-			this.parameterss = parameterss;
+		public RoutineInvoke(String name, Expression[] parameterss) {
+			Name = name;
+			Arguments = parameterss;
 		}
 
 		/// <summary>
 		/// Gets the name of the function.
 		/// </summary>
-		public string Name {
-			get { return name; }
-		}
+		public string Name { get; internal set; }
 
 		/// <summary>
 		/// The list of parameters that are passed to the function.
 		/// </summary>
-		public Expression[] Parameters {
-			get { return parameterss; }
+		public Expression[] Arguments { get; private set; }
+
+		public bool IsGlobArguments {
+			get { return Arguments.Length == 1 && Arguments[0].Text.ToString().Equals("*"); }
 		}
 
 		/// <summary>
@@ -80,16 +70,16 @@ namespace Deveel.Data.Routines {
 		/// </remarks>
 		/// <returns></returns>
 		public bool IsAggregate(IQueryContext context) {
-			IFunctionLookup fun_lookup = context.FunctionLookup;
-			bool is_aggregate = fun_lookup.IsAggregate(this);
-			if (is_aggregate) {
+			IRoutineResolver resolver = context.RoutineResolver;
+			bool isAggregate = resolver.IsAggregateFunction(this, context);
+			if (isAggregate) {
 				return true;
 			}
 			// Look at parameterss
-			Expression[] parameters = Parameters;
+			Expression[] parameters = Arguments;
 			for (int i = 0; i < parameters.Length; ++i) {
-				is_aggregate = parameters[i].HasAggregateFunction(context);
-				if (is_aggregate) {
+				isAggregate = parameters[i].HasAggregateFunction(context);
+				if (isAggregate) {
 					return true;
 				}
 			}
@@ -98,53 +88,55 @@ namespace Deveel.Data.Routines {
 		}
 
 		/// <summary>
-		/// Returns a <see cref="IFunction"/> object from this <see cref="FunctionDef"/>.
+		/// Returns a <see cref="IFunction"/> object from this <see cref="RoutineInvoke"/>.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <remarks>
 		/// Note that two calls to this method will produce the same <see cref="IFunction"/> 
 		/// object, however the same <see cref="IFunction"/> object will not be produced 
-		/// over multiple instances of <see cref="FunctionDef"/> even when they represent 
+		/// over multiple instances of <see cref="RoutineInvoke"/> even when they represent 
 		/// the same thing.
 		/// </remarks>
 		/// <returns></returns>
-		public IFunction GetFunction(IQueryContext context) {
-			if (cached_function != null)
-				return cached_function;
-			IFunctionLookup lookup;
+		public IRoutine GetFunction(IQueryContext context) {
+			if (cachedFunction != null)
+				return cachedFunction;
+
+			IRoutineResolver lookup;
 			if (context == null) {
 				lookup = SystemFunctions.Factory;
 			} else {
-				lookup = context.FunctionLookup;
+				lookup = context.RoutineResolver;
 			}
 			
-			cached_function = lookup.GenerateFunction(this);
-			if (cached_function == null)
+			cachedFunction = lookup.ResolveRoutine(this, context);
+			if (cachedFunction == null)
 				throw new StatementException("IFunction '" + Name + "' doesn't exist.");
-			return cached_function;
+
+			return cachedFunction;
 		}
 
 		/// <inheritdoc/>
 		public object Clone() {
-			FunctionDef v = (FunctionDef)MemberwiseClone();
+			RoutineInvoke v = (RoutineInvoke)MemberwiseClone();
 			// Deep clone the parameters
-			Expression[] exps = (Expression[])v.parameterss.Clone();
+			Expression[] exps = (Expression[])v.Arguments.Clone();
 			// Clone each element of the array
 			for (int n = 0; n < exps.Length; ++n)
 				exps[n] = (Expression)exps[n].Clone();
-			v.parameterss = exps;
-			v.cached_function = null;
+			v.Arguments = exps;
+			v.cachedFunction = null;
 			return v;
 		}
 
 		/// <inheritdoc/>
 		public override String ToString() {
 			StringBuilder buf = new StringBuilder();
-			buf.Append(name);
+			buf.Append(Name);
 			buf.Append('(');
-			for (int i = 0; i < parameterss.Length; ++i) {
-				buf.Append(parameterss[i].Text.ToString());
-				if (i < parameterss.Length - 1) {
+			for (int i = 0; i < Arguments.Length; ++i) {
+				buf.Append(Arguments[i].Text.ToString());
+				if (i < Arguments.Length - 1) {
 					buf.Append(',');
 				}
 			}

@@ -7,6 +7,11 @@ using Deveel.Diagnostics;
 
 namespace Deveel.Data.DbSystem {
 	public static class InformationSchema {
+		/// <summary>
+		/// The name of the schema that contains helper tables.
+		/// </summary>
+		public const string Name = "INFORMATION_SCHEMA";
+
 		public static readonly TableName Catalogs = new TableName(Name, "catalogs");
 
 		public static readonly TableName Tables = new TableName(Name, "tables");
@@ -128,18 +133,18 @@ namespace Deveel.Data.DbSystem {
 					"         \"column\" AS \"COLUMN_NAME\",\n" +
 					"         \"sql_type\" AS \"DATA_TYPE\",\n" +
 					"         \"type_desc\" AS \"TYPE_NAME\",\n" +
-					"         IF(\"size\" = -1, 1024, \"size\") AS \"COLUMN_SIZE\",\n" +
+					"         IIF(\"size\" = -1, 1024, \"size\") AS \"COLUMN_SIZE\",\n" +
 					"         NULL AS \"BUFFER_LENGTH\",\n" +
 					"         \"scale\" AS \"DECIMAL_DIGITS\",\n" +
-					"         IF(\"sql_type\" = -7, 2, 10) AS \"NUM_PREC_RADIX\",\n" +
-					"         IF(\"not_null\", 0, 1) AS \"NULLABLE\",\n" +
+					"         IIF(\"sql_type\" = -7, 2, 10) AS \"NUM_PREC_RADIX\",\n" +
+					"         IIF(\"not_null\", 0, 1) AS \"NULLABLE\",\n" +
 					"         '' AS \"REMARKS\",\n" +
 					"         \"default\" AS \"COLUMN_DEFAULT\",\n" +
 					"         NULL AS \"SQL_DATA_TYPE\",\n" +
 					"         NULL AS \"SQL_DATETIME_SUB\",\n" +
-					"         IF(\"size\" = -1, 1024, \"size\") AS \"CHAR_OCTET_LENGTH\",\n" +
+					"         IIF(\"size\" = -1, 1024, \"size\") AS \"CHAR_OCTET_LENGTH\",\n" +
 					"         \"seq_no\" + 1 AS \"ORDINAL_POSITION\",\n" +
-					"         IF(\"not_null\", 'NO', 'YES') AS \"IS_NULLABLE\"\n" +
+					"         IIF(\"not_null\", 'NO', 'YES') AS \"IS_NULLABLE\"\n" +
 					"    FROM INFORMATION_SCHEMA.ThisUserTableColumns\n";
 				stmt.ExecuteNonQuery();
 
@@ -149,12 +154,12 @@ namespace Deveel.Data.DbSystem {
 					"         \"TABLE_SCHEMA\",\n" +
 					"         \"TABLE_NAME\",\n" +
 					"         \"COLUMN_NAME\",\n" +
-					"         IF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
+					"         IIF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
 					"                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
-					"         IF(\"ThisUserGrant.grantee\" = '@PUBLIC', \n" +
+					"         IIF(\"ThisUserGrant.grantee\" = '@PUBLIC', \n" +
 					"                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
 					"         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
-					"         IF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
+					"         IIF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
 					"    FROM "+Columns+", INFORMATION_SCHEMA.ThisUserGrant \n" +
 					"   WHERE CONCAT(columns.TABLE_SCHEMA, '.', columns.TABLE_NAME) = \n" +
 					"         ThisUserGrant.param \n" +
@@ -167,12 +172,12 @@ namespace Deveel.Data.DbSystem {
 					"  SELECT \"TABLE_CATALOG\",\n" +
 					"         \"TABLE_SCHEMA\",\n" +
 					"         \"TABLE_NAME\",\n" +
-					"         IF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
+					"         IIF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
 					"                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
-					"         IF(\"ThisUserGrant.grantee\" = '@PUBLIC', \n" +
+					"         IIF(\"ThisUserGrant.grantee\" = '@PUBLIC', \n" +
 					"                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
 					"         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
-					"         IF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
+					"         IIF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
 					"    FROM "+ Tables+", INFORMATION_SCHEMA.ThisUserGrant \n" +
 					"   WHERE CONCAT(tables.TABLE_SCHEMA, '.', tables.TABLE_NAME) = \n" +
 					"         ThisUserGrant.param \n" +
@@ -301,10 +306,5 @@ namespace Deveel.Data.DbSystem {
 			manager.Grant(Privileges.TableRead, GrantObject.Table, ExportedKeys.ToString(), User.PublicName, false, granter);
 			manager.Grant(Privileges.TableRead, GrantObject.Table, CrossReference.ToString(), User.PublicName, false, granter);
 		}
-
-		/// <summary>
-		/// The name of the schema that contains helper tables.
-		/// </summary>
-		public const string Name = "INFORMATION_SCHEMA";
 	}
 }

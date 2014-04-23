@@ -61,8 +61,8 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		/// <inheritdoc/>
-		public override IFunctionLookup FunctionLookup {
-			get { return Context.FunctionLookup; }
+		public override IRoutineResolver RoutineResolver {
+			get { return Context.RoutineResolver; }
 		}
 
 		/// <inheritdoc/>

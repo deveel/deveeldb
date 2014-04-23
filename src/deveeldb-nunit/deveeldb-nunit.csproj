@@ -64,6 +64,7 @@
     <Compile Include="Deveel.Data.Client\TriggerTest.cs" />
     <Compile Include="Deveel.Data.Control\DbConfigTest.cs" />
     <Compile Include="Deveel.Data.Functions\FunctionTest.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemFunctionsTests.cs" />
     <Compile Include="Deveel.Data.Security\HashTests.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableTest.cs" />
     <Compile Include="Deveel.Data.Sql\CallbackTriggerTest.cs" />
@@ -93,6 +94,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="deveeldb-nunit.licenseheader" />
     <None Include="deveeldb-nunit.snk" />
     <None Include="packages.config" />
   </ItemGroup>

@@ -28,18 +28,6 @@ namespace Deveel.Data.Routines {
 
 		#endregion
 
-		#region String Functions
-
-		[Test]
-		public void Concat() {
-			Expression exp = Expression.Parse("CONCAT('str1', '|', 'str2')");
-			TObject result = exp.Evaluate(null, null, null);
-			string result_str = result.ToStringValue();
-			Assert.IsTrue(result_str == "str1|str2");
-		}
-
-		#endregion
-
 		#region Aggregate Functions
 
 		[Test]
@@ -127,18 +115,6 @@ namespace Deveel.Data.Routines {
 
 			result = Expression.Evaluate("NULLIF(3, 5)");
 			Assert.AreEqual(3, result);
-		}
-
-		[Test]
-		public void ExistsFunction() {
-			const string sql = "EXISTS(SELECT * FROM Person)";
-
-			DatabaseConnection connection = CreateDatabaseConnection();
-			DatabaseQueryContext queryContext = new DatabaseQueryContext(connection);
-			Expression exp = Expression.Parse(sql);
-			TObject result = exp.Evaluate(null, queryContext);
-			
-			Console.Out.WriteLine("{0} = {1}", sql, result);
 		}
 
 		#endregion

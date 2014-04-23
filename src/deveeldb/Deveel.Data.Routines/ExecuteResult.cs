@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010  Deveel
+﻿// 
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,14 +14,24 @@
 //    limitations under the License.
 
 using System;
-
-using Deveel.Data.Types;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Routines {
-	public interface IFunction : IRoutine {
-		FunctionType FunctionType { get; }
+	public sealed class ExecuteResult {
+		private readonly Dictionary<string, TObject> outputValues;
 
+		internal ExecuteResult(ExecuteContext context) {
+			Context = context;
+		}
 
-		TType ReturnTType(ExecuteContext context);
+		public ExecuteContext Context { get; private set; }
+
+		public TObject ReturnValue { get; set; }
+
+		internal void SetOutputParameter(string name, TObject value) {
+			if (Context.RoutineType != RoutineType.Procedure)
+				throw new Exception("Cannot set an output parameter value for a function.");
+
+		}
 	}
 }

@@ -27,7 +27,7 @@ namespace Deveel.Data.Routines {
 	/// These are aggregates with no more or no less than one parameter, and that 
 	/// return NULL if the group set has a length of 0.  If an aggregate function 
 	/// doesn't fit this design, then the developer must roll their own 
-	/// <see cref="Function"/> to handle it.
+	/// <see cref="InvokedFunction"/> to handle it.
 	/// <para>
 	/// This object handles full expressions being passed as parameters to the
 	/// aggregate function.  The expression is evaluated for each set in the group.
@@ -36,8 +36,8 @@ namespace Deveel.Data.Routines {
 	/// sum of the price * quantity of each set in the group.
 	/// </para>
 	/// </remarks>
-	public abstract class AggregateFunction : Function {
-		protected AggregateFunction(String name, Expression[] parameters)
+	public abstract class AggregateInvokedFunction : InvokedFunction {
+		protected AggregateInvokedFunction(String name, Expression[] parameters)
 			: base(name, parameters) {
 
 			// Aggregates must have only one argument

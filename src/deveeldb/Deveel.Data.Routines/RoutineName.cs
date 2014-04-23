@@ -20,75 +20,62 @@ namespace Deveel.Data.Routines {
 	/// The name of a procedure as understood by a RoutinesManager.
 	///</summary>
 	public class RoutineName {
-		/// <summary>
-		/// The schema of this procedure.
-		/// </summary>
-		private readonly String schema;
-		/// <summary>
-		/// The name of this procedure.
-		/// </summary>
-		private readonly String name;
-
 		///<summary>
 		///</summary>
 		///<param name="schema"></param>
 		///<param name="name"></param>
 		public RoutineName(String schema, String name) {
-			this.schema = schema;
-			this.name = name;
+			Schema = schema;
+			Name = name;
 		}
 
 		///<summary>
 		///</summary>
-		///<param name="table_name"></param>
-		public RoutineName(TableName table_name)
-			: this(table_name.Schema, table_name.Name) {
+		///<param name="tableName"></param>
+		public RoutineName(TableName tableName)
+			: this(tableName.Schema, tableName.Name) {
 		}
 
 		///<summary>
 		/// Returns the schema of this procedure.
 		///</summary>
-		public string Schema {
-			get { return schema; }
-		}
+		public string Schema { get; private set; }
 
 		/// <summary>
 		/// Returns the name of this procedure.
 		/// </summary>
-		public string Name {
-			get { return name; }
-		}
+		public string Name { get; private set; }
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return schema + "." + name;
+			return Schema + "." + Name;
 		}
 
 		///<summary>
 		/// Returns a version of this procedure qualified to the given schema 
 		/// (unless the schema is present).
 		///</summary>
-		///<param name="current_schema"></param>
-		///<param name="proc_name"></param>
+		///<param name="currentSchema"></param>
+		///<param name="procName"></param>
 		///<returns></returns>
-		public static RoutineName Qualify(String current_schema, String proc_name) {
-			int delim = proc_name.IndexOf(".");
+		public static RoutineName Qualify(String currentSchema, String procName) {
+			int delim = procName.IndexOf(".");
 			return delim == -1
-			       	? new RoutineName(current_schema, proc_name)
-			       	: new RoutineName(proc_name.Substring(0, delim),
-			       	                    proc_name.Substring(delim + 1, proc_name.Length));
+			       	? new RoutineName(currentSchema, procName)
+			       	: new RoutineName(procName.Substring(0, delim),
+			       	                    procName.Substring(delim + 1, procName.Length));
 		}
 
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
 			RoutineName src_ob = (RoutineName)ob;
-			return (schema.Equals(src_ob.schema) &&
-			        name.Equals(src_ob.name));
+			return (Schema.Equals(src_ob.Schema) &&
+			        Name.Equals(src_ob.Name));
 		}
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			return schema.GetHashCode() + name.GetHashCode();
+			return Schema.GetHashCode() + Name.GetHashCode();
 		}
 	}
 }

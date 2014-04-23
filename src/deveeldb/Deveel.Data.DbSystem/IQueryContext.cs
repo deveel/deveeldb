@@ -38,12 +38,7 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		string UserName { get; }
 
-		/// <summary>
-		/// Returns a <see cref="FunctionLookup"/> object used to convert 
-		/// <see cref="FunctionDef"/> objects to <see cref="IFunction"/> objects 
-		/// when evaluating an expression.
-		/// </summary>
-		IFunctionLookup FunctionLookup { get; }
+		IRoutineResolver RoutineResolver { get; }
 
 		/// <summary>
 		/// Optionally gets the connection to the database, if the context

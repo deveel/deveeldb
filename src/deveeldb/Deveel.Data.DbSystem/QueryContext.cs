@@ -55,8 +55,8 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		/// <inheritdoc/>
-		public virtual IFunctionLookup FunctionLookup {
-			get { return Connection == null ? null : Connection.Context.FunctionLookup; }
+		public virtual IRoutineResolver RoutineResolver {
+			get { return Connection == null ? null : Connection.Context.RoutineResolver; }
 		}
 
 		public virtual Logger Logger {

@@ -13,7 +13,7 @@ namespace Deveel.Data.DbSystem {
 
 		ILogger Logger { get; }
 
-		IFunctionLookup FunctionLookup { get; }
+		IRoutineResolver RoutineResolver { get; }
 
 		// TypesManager TypesManager { get; }
 

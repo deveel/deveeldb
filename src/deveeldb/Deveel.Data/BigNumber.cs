@@ -688,5 +688,16 @@ namespace Deveel.Data {
 		}
 
 		#endregion
+
+		public BigNumber Pow(int exp) {
+			if (State == NumberState.NegativeInfinity)
+				return NegativeInfinity;
+			if (State == NumberState.PositiveInfinity)
+				return PositiveInfinity;
+			if (State == NumberState.NotANumber)
+				return NaN;
+
+			return new BigNumber(State, bigDecimal.Pow(exp));
+		}
 	}
 }

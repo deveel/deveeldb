@@ -2187,7 +2187,7 @@ void OpPart(Expression exp, Stack stack) :
 
 void Operand(Expression exp, Stack stack) :
 { Token t, tt = null;
-  FunctionDef f;
+  RoutineInvoke f;
   Expression[] exp_list;
   String time_fname;
   bool negative = false;
@@ -2549,9 +2549,9 @@ Token FunctionIdentifier() :
   { return t; }
 }
 
-FunctionDef Function() :
+RoutineInvoke Function() :
 { Token t, t2 = null, t3 = null;
-  FunctionDef f;
+  RoutineInvoke f;
   Expression exp1, exp2;
   Expression[] exp_list;
   TType cast_type;
@@ -2603,7 +2603,7 @@ FunctionDef Function() :
 }
 
 // An instantiation of an object.  For example, 'System.Drawing.Point(40, 30)'
-FunctionDef Instantiation() :
+RoutineInvoke Instantiation() :
 { Token t;
   Expression[] args;
 }

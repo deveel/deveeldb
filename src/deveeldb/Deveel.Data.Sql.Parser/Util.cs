@@ -274,7 +274,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		///<summary>
-		/// Returns a <see cref="FunctionDef"/> object that represents the name and expression 
+		/// Returns a <see cref="RoutineInvoke"/> object that represents the name and expression 
 		/// list (of parameters) of a function.
 		///</summary>
 		///<param name="name"></param>
@@ -283,8 +283,8 @@ namespace Deveel.Data.Sql.Parser {
 		/// <exception cref="Exception">
 		/// Thrown if the function doesn't exist.
 		/// </exception>
-		public static FunctionDef ResolveFunctionName(String name, Expression[] exp_list) {
-			return new FunctionDef(name, exp_list);
+		public static RoutineInvoke ResolveFunctionName(String name, Expression[] exp_list) {
+			return new RoutineInvoke(name, exp_list);
 		}
 
 		/**
