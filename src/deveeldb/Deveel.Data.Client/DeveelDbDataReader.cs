@@ -56,12 +56,12 @@ namespace Deveel.Data.Client {
 		#endregion
 
 		public override bool HasRows {
-			get { return command.ResultSet.RowCount > 0; }
+			get { return command.CurrentResult.RowCount > 0; }
 		}
 
 		/// <inheritdoc/>
 		public override string GetName(int i) {
-			string columnName = command.ResultSet.GetColumn(i).Name;
+			string columnName = command.CurrentResult.GetColumn(i).Name;
 			if (String.IsNullOrEmpty(columnName))
 				return String.Empty;
 			if (columnName.Length <= 2)
@@ -73,12 +73,12 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override string GetDataTypeName(int i) {
-			return command.ResultSet.GetColumn(i).SQLType.ToString().ToUpper();
+			return command.CurrentResult.GetColumn(i).SQLType.ToString().ToUpper();
 		}
 
 		/// <inheritdoc/>
 		public override Type GetFieldType(int i) {
-			return command.ResultSet.GetColumn(i).ObjectType;
+			return command.CurrentResult.GetColumn(i).ObjectType;
 		}
 
 		/// <summary>
@@ -100,7 +100,7 @@ namespace Deveel.Data.Client {
 			if ((behavior & CommandBehavior.SchemaOnly) != 0)
 				return null;
 
-			return command.ResultSet.GetRawColumn(i);
+			return command.CurrentResult.GetRawColumn(i);
 		}
 
 		/// <inheritdoc/>
@@ -111,7 +111,7 @@ namespace Deveel.Data.Client {
 
 			if (command.Connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
-				ColumnDescription colDesc = command.ResultSet.GetColumn(i);
+				ColumnDescription colDesc = command.CurrentResult.GetColumn(i);
 				SqlType sqlType = colDesc.SQLType;
 
 				return command.ObjectCast(ob, sqlType);
@@ -134,7 +134,7 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override int GetOrdinal(string name) {
-			return command.ResultSet.FindColumnIndex(name);
+			return command.CurrentResult.FindColumnIndex(name);
 		}
 
 		public DeveelDbLob GetLob(int i) {
@@ -286,7 +286,7 @@ namespace Deveel.Data.Client {
 			// For date, time and timestamp we must format as per the JDBC
 			// specification.
 			if (str is DateTime) {
-				SqlType sqlType = command.ResultSet.GetColumn(i).SQLType;
+				SqlType sqlType = command.CurrentResult.GetColumn(i).SQLType;
 				return command.ObjectCast(str, sqlType).ToString();
 			}
 
@@ -333,7 +333,7 @@ namespace Deveel.Data.Client {
 
 			if (command.Connection.Settings.StrictGetValue) {
 				// Convert depending on the column type,
-				ColumnDescription colDesc = command.ResultSet.GetColumn(i);
+				ColumnDescription colDesc = command.CurrentResult.GetColumn(i);
 				SqlType sqlType = colDesc.SQLType;
 
 				ob = command.ObjectCast(ob, sqlType);
@@ -347,7 +347,7 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override int FieldCount {
-			get { return command.ResultSet.ColumnCount; }
+			get { return command.CurrentResult.ColumnCount; }
 		}
 
 		/// <inheritdoc/>
@@ -362,7 +362,7 @@ namespace Deveel.Data.Client {
 
 		/// <inheritdoc/>
 		public override void Close() {
-			command.ResultSet.Close();
+			command.CurrentResult.Close();
 
 			if (Closed != null)
 				Closed(this, EventArgs.Empty);
@@ -395,7 +395,7 @@ namespace Deveel.Data.Client {
 			for (int i = 0; i < FieldCount; i++) {
 				SysDataRow row = table.NewRow();
 
-				ColumnDescription column = command.ResultSet.GetColumn(i);
+				ColumnDescription column = command.CurrentResult.GetColumn(i);
 
 				string fullColumnName = column.Name;
 
@@ -457,7 +457,7 @@ namespace Deveel.Data.Client {
 			if (wasRead && ((behavior & CommandBehavior.SingleRow)) != 0)
 				return false;
 
-			if (command.ResultSet.Next()) {
+			if (command.CurrentResult.Next()) {
 				wasRead = true;
 				return true;
 			}
@@ -473,7 +473,7 @@ namespace Deveel.Data.Client {
 		//TODO: check this...
 		/// <inheritdoc/>
 		public override bool IsClosed {
-			get { return command.ResultSet.closed_on_server; }
+			get { return command.CurrentResult.ClosedOnServer; }
 		}
 
 		/// <inheritdoc/>

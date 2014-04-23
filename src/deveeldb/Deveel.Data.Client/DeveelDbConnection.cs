@@ -90,16 +90,6 @@ namespace Deveel.Data.Client {
 		private TriggerDispatchThread triggerThread;
 
 		/// <summary>
-		/// This is set to true if the ResultSet column lookup methods are case
-		/// insensitive.
-		/// </summary>
-		/// <remarks>
-		/// This should be set to true for any database that has case insensitive 
-		/// identifiers.
-		/// </remarks>
-		private bool caseInsensitiveIdentifiers;
-
-		/// <summary>
 		/// A mapping from a streamable object id to <see cref="Stream"/> used to 
 		/// represent the object when being uploaded to the database engine.
 		/// </summary>
@@ -135,7 +125,6 @@ namespace Deveel.Data.Client {
 			isClosed = true;
 			autoCommit = true;
 			triggerList = new EventHandlerList();
-			caseInsensitiveIdentifiers = false;
 			RowCache = new RowCache(cacheSize, maxSize);
 			sObjectHold = new Dictionary<object, Stream>();
 			sObjectId = 0;
@@ -215,7 +204,6 @@ namespace Deveel.Data.Client {
 			isClosed = true;
 			autoCommit = true;
 			triggerList = new EventHandlerList();
-			caseInsensitiveIdentifiers = false;
 			RowCache = new RowCache(rowCacheSize, maxRowCacheSize);
 			sObjectHold = new Dictionary<object, Stream>();
 			sObjectId = 0;

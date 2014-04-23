@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -34,15 +34,12 @@ namespace Deveel.Data.Client {
 		private DeveelDbTransaction transaction;
 
 		/// <summary>
-		/// The list of all <see cref="ResultSet"/> objects that represents the 
+		/// The list of all <see cref="CurrentResult"/> objects that represents the 
 		/// results of a query.
 		/// </summary>
 		private ResultSet[] resultSetList;
 
 
-		// private int max_field_size;
-		private int maxRowCount;
-		private int fetchSize = DefaultFetchSize;
 		private int? commandTimeout;
 
 		/// <summary>
@@ -60,9 +57,6 @@ namespace Deveel.Data.Client {
 
 		private DeveelDbParameterCollection parameters;
 		private DeveelDbDataReader reader;
-
-		public const int MaximumFetchSize = 512;
-		public const int DefaultFetchSize = 32;
 
 		public DeveelDbCommand() {
 			DesignTimeVisible = true;
@@ -85,7 +79,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Returns an array of <see cref="ResultSet"/> objects of the give 
+		/// Returns an array of <see cref="CurrentResult"/> objects of the give 
 		/// length for this statement.
 		/// </summary>
 		/// <param name="count"></param>
@@ -114,7 +108,7 @@ namespace Deveel.Data.Client {
 		}
 
 		/// <summary>
-		/// Returns the single <see cref="ResultSet"/> object for this statement.
+		/// Returns the single <see cref="CurrentResult"/> object for this statement.
 		/// </summary>
 		/// <remarks>
 		/// This should only be used for single result commands.
@@ -155,7 +149,7 @@ namespace Deveel.Data.Client {
 			return true;
 		}
 
-		internal ResultSet ResultSet {
+		internal ResultSet CurrentResult {
 			get {
 				if (resultSetList != null) {
 					if (multiResultSetIndex < resultSetList.Length) {
@@ -168,13 +162,11 @@ namespace Deveel.Data.Client {
 
 		internal int UpdateCount {
 			get {
-				if (resultSetList != null) {
-					if (multiResultSetIndex < resultSetList.Length) {
-						ResultSet rs = resultSetList[multiResultSetIndex];
-						if (rs.IsUpdate) {
-							return rs.ToInteger();
-						}
-					}
+				if (resultSetList != null && 
+					multiResultSetIndex < resultSetList.Length) {
+					ResultSet rs = resultSetList[multiResultSetIndex];
+					if (rs.IsUpdate)
+						return rs.ToInteger();
 				}
 				return -1;
 			}
@@ -184,7 +176,7 @@ namespace Deveel.Data.Client {
 			if (obj is StreamableObject) {
 				var sOb = (StreamableObject)obj;
 				if (sOb.Type == ReferenceType.Binary)
-					return new DeveelDbLob(connection, ResultSet.result_id, sOb);
+					return new DeveelDbLob(connection, CurrentResult.ResultId, sOb);
 			} else if (obj is ByteLongObject) {
 				var blob = (ByteLongObject) obj;
 				return new DeveelDbLob(this, blob.GetInputStream(), ReferenceType.Binary, blob.Length);
@@ -331,9 +323,9 @@ namespace Deveel.Data.Client {
 			for (int i = 0; i < queries.Length; ++i) {
 				ResultSet resultSet = results[i];
 				// Set the fetch size
-				resultSet.SetFetchSize(fetchSize);
+				resultSet.SetFetchSize(connection.Settings.FetchSize);
 				// Set the max row count
-				resultSet.SetMaxRowCount(maxRowCount);
+				resultSet.SetMaxRowCount(connection.Settings.MaxFetchSize);
 				// Does the result set contain large objects?  We can't cache a
 				// result that contains binary data.
 				bool containsLargeObjects = resultSet.ContainsLargeObjects();
@@ -347,27 +339,6 @@ namespace Deveel.Data.Client {
 			}
 
 			return results;
-		}
-
-		//TODO: move to connection string...
-		public int MaxRowCount {
-			get { return maxRowCount; }
-			set {
-				if (value >= 0) {
-					maxRowCount = value;
-				} else {
-					throw new DataException("MaxRows negative.");
-				}
-			}
-		}
-
-		public int FetchSize {
-			get { return fetchSize; }
-			set {
-				if (value > MaximumFetchSize)
-					throw new ArgumentOutOfRangeException();
-				fetchSize = value;
-			}
 		}
 
 		private void AssertConnectionOpen() {

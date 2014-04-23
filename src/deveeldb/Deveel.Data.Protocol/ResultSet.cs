@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 
@@ -29,7 +30,7 @@ namespace Deveel.Data.Protocol {
     /// This class is not designed to be multi-thread safe. A result-set should 
     /// not be accessed by concurrent threads.
     /// </remarks>
-	sealed class ResultSet {
+	sealed class ResultSet : IDisposable {
         /// <summary>
         /// The default fetch size.
         /// </summary>
@@ -43,62 +44,57 @@ namespace Deveel.Data.Protocol {
         /// <summary>
         /// The current unique id key.
         /// </summary>
-		private static int unique_id_key = 1;
+		private static int uniqueIdKey = 1;
 
 
         /// <summary>
         /// A unique int that refers to this result set.
         /// </summary>
-		private int unique_id;
+		private int uniqueId;
 
         /// <summary>
         /// The <see cref="DeveelDbConnection"/> that this result set is in.
         /// </summary>
 		internal DeveelDbConnection connection;
 
-        /// <summary>
-        /// The current result_id for the information in the current result set.
-        /// </summary>
-		internal int result_id;
-
-        /// <summary>
+	    /// <summary>
         /// The array of <see cref="ColumnDescription"/> that describes each column 
         /// in the result set.
         /// </summary>
-		private ColumnDescription[] col_list;
+		private ColumnDescription[] colList;
 
         /// <summary>
         /// The length of time it took to execute this command in ms.
         /// </summary>
-		private int query_time_ms;
+		private int queryTimeMs;
 
         /// <summary>
         /// The number of rows in the result set.
         /// </summary>
-		private int result_row_count;
+		private int resultRowCount;
 
         /// <summary>
         /// The maximum row count as set in the <see cref="DeveelDbCommand"/> by the 
         /// <see cref="SetMaxRowCount"/> method or 0 if the max row count is 
         /// not important.
         /// </summary>
-		private int max_row_count = Int32.MaxValue;
+		private int maxRowCount = Int32.MaxValue;
 
         /// <summary>
         /// The row number of the first row of the 'result_block'
         /// </summary>
-		private int block_top_row;
+		private int blockTopRow;
 
         /// <summary>
         /// The number of rows in 'result_block'
         /// </summary>
-		private int block_row_count;
+		private int blockRowCount;
 
         /// <summary>
         /// The number of rows to fetch each time we need to get rows from 
         /// the database.
         /// </summary>
-		private int fetch_size;
+		private int fetchSize;
 
         /// <summary>
         /// The <see cref="ArrayList"/> that contains the objects downloaded into 
@@ -107,12 +103,12 @@ namespace Deveel.Data.Protocol {
         /// <remarks>
         /// It only contains the objects from the last block of rows downloaded.
         /// </remarks>
-		private ArrayList result_block;
+		private List<object> resultBlock;
 
         /// <summary>
         /// The real index of the result set we are currently at.
         /// </summary>
-		private int real_index = Int32.MaxValue;
+		private int realIndex = Int32.MaxValue;
 
         /// <summary>
         /// The offset into 'result_block' where 'real_index' is.
@@ -120,25 +116,25 @@ namespace Deveel.Data.Protocol {
         /// <remarks>
         /// This is set up by <see cref="EnsureIndexLoaded"/>.
         /// </remarks>
-		private int real_index_offset = -1;
+		private int realIndexOffset = -1;
 
         /// <summary>
         /// A <see cref="Hashtable"/> that acts as a cache for column 
         /// name/column number look ups.
         /// </summary>
-		private Hashtable column_hash;
+		private Dictionary<string, int> columnHash;
 
         /// <summary>
         /// Set to true if the result set is closed on the server.
         /// </summary>
-		internal bool closed_on_server;
+		internal bool ClosedOnServer;
 
 
 		internal ResultSet(DeveelDbConnection connection) {
 			this.connection = connection;
-			unique_id = unique_id_key++;
-			result_id = -1;
-			result_block = new ArrayList();
+			uniqueId = uniqueIdKey++;
+			ResultId = -1;
+			resultBlock = new List<object>();
 		}
 
         /// <summary>
@@ -156,33 +152,32 @@ namespace Deveel.Data.Protocol {
 		// connection.  These methods require some synchronization thought.
 
         /// <summary>
-        /// Called by the <see cref="ConnectionThread"/> when we have received the 
-        /// initial bag of the result set.
+        /// Called when we have received the initial bag of the result set.
         /// </summary>
-        /// <param name="result_id"></param>
-        /// <param name="col_list"></param>
-        /// <param name="total_row_count"></param>
+        /// <param name="id"></param>
+        /// <param name="columns"></param>
+        /// <param name="totalRowCount"></param>
         /// <remarks>
         /// This contains information about the columns in the result, the number of rows 
         /// in the entire set, etc.  This sets up the result set to handle the result.
         /// </remarks>
-		internal void ConnSetup(int result_id, ColumnDescription[] col_list, int total_row_count) {
-			this.result_id = result_id;
-			this.col_list = col_list;
-			this.result_row_count = total_row_count;
-			block_top_row = -1;
-			result_block.Clear();
+		internal void ConnSetup(int id, ColumnDescription[] columns, int totalRowCount) {
+			ResultId = id;
+			colList = columns;
+			resultRowCount = totalRowCount;
+			blockTopRow = -1;
+			resultBlock.Clear();
 
-			real_index = -1;
-			fetch_size = DefaultFetchSize;
-			closed_on_server = false;
+			realIndex = -1;
+			fetchSize = DefaultFetchSize;
+			ClosedOnServer = false;
 		}
 
         /// <summary>
         /// Sets the length of time in milliseconds (server-side) it took to execute 
         /// this command.
         /// </summary>
-        /// <param name="time_ms"></param>
+        /// <param name="value"></param>
         /// <remarks>
         /// Useful as feedback for the server-side optimisation systems.
         /// <para>
@@ -190,8 +185,8 @@ namespace Deveel.Data.Protocol {
         /// takes longer than that this number will overflow.
         /// </para>
         /// </remarks>
-		internal void SetQueryTime(int time_ms) {
-			query_time_ms = time_ms;
+		internal void SetQueryTime(int value) {
+			queryTimeMs = value;
 		}
 
         /// <summary>
@@ -202,7 +197,7 @@ namespace Deveel.Data.Protocol {
         /// This is set by <see cref="DeveelDbCommand"/> when a command is evaluated.
         /// </remarks>
 		internal void SetMaxRowCount(int rowCount) {
-		    max_row_count = rowCount == 0 ? Int32.MaxValue : rowCount;
+		    maxRowCount = rowCount == 0 ? Int32.MaxValue : rowCount;
 		}
 
 	    /// <summary>
@@ -215,17 +210,17 @@ namespace Deveel.Data.Protocol {
         /// Returns <b>true</b> if this result-set contains large objects.
         /// </returns>
 		internal bool ContainsLargeObjects() {
-			for (int i = 0; i < col_list.Length; ++i) {
-				ColumnDescription col = col_list[i];
-				SqlType sql_type = col.SQLType;
-				if (sql_type == SqlType.Binary ||
-					sql_type == SqlType.VarBinary ||
-					sql_type == SqlType.LongVarBinary ||
-					sql_type == SqlType.Blob ||
-					sql_type == SqlType.Char ||
-					sql_type == SqlType.VarChar ||
-					sql_type == SqlType.LongVarChar ||
-					sql_type == SqlType.Clob) {
+			for (int i = 0; i < colList.Length; ++i) {
+				ColumnDescription col = colList[i];
+				SqlType sqlType = col.SQLType;
+				if (sqlType == SqlType.Binary ||
+					sqlType == SqlType.VarBinary ||
+					sqlType == SqlType.LongVarBinary ||
+					sqlType == SqlType.Blob ||
+					sqlType == SqlType.Char ||
+					sqlType == SqlType.VarChar ||
+					sqlType == SqlType.LongVarChar ||
+					sqlType == SqlType.Clob) {
 					return true;
 				}
 			}
@@ -243,55 +238,53 @@ namespace Deveel.Data.Protocol {
 			// After this call, 'result_block' will contain the whole result set.
 			UpdateResultPart(0, RowCount);
 			// Request to close the current result set on the server.
-			connection.DisposeResult(result_id);
-			closed_on_server = true;
+			connection.DisposeResult(ResultId);
+			ClosedOnServer = true;
 		}
 
         /// <summary>
         /// Asks the server for more information about this result set to write 
         /// into the 'result_block'.
         /// </summary>
-        /// <param name="row_index">The top row index from the block of the result 
+        /// <param name="rowIndex">The top row index from the block of the result 
         /// set to download.</param>
-        /// <param name="row_count">The maximum number of rows to download (may be 
+        /// <param name="rowCount">The maximum number of rows to download (may be 
         /// less if no more are available).</param>
         /// <remarks>
         /// This should be called when we need to request more information from 
         /// the server.
         /// </remarks>
-		internal void UpdateResultPart(int row_index, int row_count) {
+		internal void UpdateResultPart(int rowIndex, int rowCount) {
 			// If row_count is 0 then we don't need to do anything.
-			if (row_count == 0)
+			if (rowCount == 0)
 				return;
 
-			if (row_index + row_count < 0)
+			if (rowIndex + rowCount < 0)
 				throw new DataException("ResultSet row index is before the start of the set.");
 
-			if (row_index < 0) {
-				row_index = 0;
-				row_count = row_count + row_index;
+			if (rowIndex < 0) {
+				rowIndex = 0;
+				rowCount = rowCount + rowIndex;
 			}
 
-			if (row_index >= RowCount)
+			if (rowIndex >= RowCount)
 				throw new DataException("ResultSet row index is after the end of the set.");
-			if (row_index + row_count > RowCount)
-				row_count = RowCount - row_index;
+			if (rowIndex + rowCount > RowCount)
+				rowCount = RowCount - rowIndex;
 
-			if (result_id == -1)
+			if (ResultId == -1)
 				throw new DataException("result_id == -1.  No result to get from.");
 
 			try {
 
 				// Request the result via the RowCache.  If the information is not found
 				// in the row cache then the request is forwarded onto the database.
-				result_block = connection.RowCache.GetResultPart(result_block,
-							connection, result_id, row_index, row_count,
-							ColumnCount, RowCount);
+				resultBlock = connection.RowCache.GetResultPart(resultBlock, connection, ResultId, rowIndex, rowCount, ColumnCount, RowCount);
 
 				// Set the row that's at the top
-				block_top_row = row_index;
+				blockTopRow = rowIndex;
 				// Set the number of rows in the block.
-				block_row_count = row_count;
+				blockRowCount = rowCount;
 			} catch (IOException e) {
 				throw new DataException("IO Error: " + e.Message);
 			}
@@ -313,49 +306,49 @@ namespace Deveel.Data.Protocol {
         /// </remarks>
 		internal void CloseCurrentResult() {
 			if (ResultId != -1) {
-				if (!closed_on_server) {
+				if (!ClosedOnServer) {
 					// Request to close the current result set
-					connection.DisposeResult(result_id);
-					closed_on_server = true;
+					connection.DisposeResult(ResultId);
+					ClosedOnServer = true;
 				}
-				result_id = -1;
-				real_index = Int32.MaxValue;
+
+				ResultId = -1;
+				realIndex = Int32.MaxValue;
+
 				// Clear the column name -> index mapping,
-				if (column_hash != null) {
-					column_hash.Clear();
+				if (columnHash != null) {
+					columnHash.Clear();
 				}
 			}
 		}
 
-        /// <summary>
-        /// Returns the identificator that is used as a key to refer to the result set 
-        /// on the server that is the result of the command.
-        /// </summary>
-        /// <remarks>
-        /// An identificator of -1 means there is no server side result set associated 
-        /// with this object.
-        /// </remarks>
-	    internal int ResultId {
-	        get { return result_id; }
-	    }
+	    /// <summary>
+	    /// Returns the identificator that is used as a key to refer to the result set 
+	    /// on the server that is the result of the command.
+	    /// </summary>
+	    /// <remarks>
+	    /// An identificator of -1 means there is no server side result set associated 
+	    /// with this object.
+	    /// </remarks>
+	    internal int ResultId { get; set; }
 
 	    /// <summary>
         /// The total number of rows in the result set.
         /// </summary>
-	    internal int RowCount {
+	    public int RowCount {
 	        get {
 	            // The row count is whatever is the least between max_row_count (the
 	            // maximum the user has set) and result_row_count (the actual number of
 	            // rows in the result.
-	            return global::System.Math.Min(result_row_count, max_row_count);
+	            return System.Math.Min(resultRowCount, maxRowCount);
 	        }
 	    }
 
 	    /// <summary>
         /// The column count of columns in the result set.
         /// </summary>
-	    internal int ColumnCount {
-	        get { return col_list.Length; }
+	    public int ColumnCount {
+	        get { return colList.Length; }
 	    }
 
 	    /// <summary>
@@ -364,7 +357,7 @@ namespace Deveel.Data.Protocol {
         /// <param name="column"></param>
         /// <returns></returns>
 		internal ColumnDescription GetColumn(int column) {
-			return col_list[column];
+			return colList[column];
 		}
 
         /// <summary>
@@ -401,16 +394,15 @@ namespace Deveel.Data.Protocol {
         /// Returns the integer value of the result.
         /// </returns>
 		internal int ToInteger() {
-			if (IsUpdate) {
-				Object ob = result_block[0];
-				if (ob is BigNumber) {
-					return ((BigNumber)ob).ToInt32();
-				} else {
-					return 0;
-				}
-			}
-			throw new DataException("Unable to format command result as an update value.");
-		}
+	        if (!IsUpdate)
+		        throw new DataException("Unable to format command result as an update value.");
+
+	        object ob = resultBlock[0];
+	        if (ob is BigNumber)
+		        return ((BigNumber) ob).ToInt32();
+
+	        return 0;
+        }
 
 
         /// <summary>
@@ -420,7 +412,7 @@ namespace Deveel.Data.Protocol {
         /// This could either be called from the <see cref="DeveelDbCommand.Dispose"/> method. Calls 
         /// to this object are undefined after this method has finished.
         /// </remarks>
-		internal void Dispose() {
+		public void Dispose() {
 			try {
 				Close();
 			} catch (DataException) {
@@ -430,8 +422,8 @@ namespace Deveel.Data.Protocol {
 			}
 
 			connection = null;
-			col_list = null;
-			result_block = null;
+			colList = null;
+			resultBlock = null;
 		}
 
         /// <summary>
@@ -442,25 +434,25 @@ namespace Deveel.Data.Protocol {
         /// If not, we send a request to the database to get it.
         /// </remarks>
 		void EnsureIndexLoaded() {
-			if (real_index == -1) {
+			if (realIndex == -1) {
 				throw new DataException("Row index out of bounds.");
 			}
 
 			// Offset into our block
-			int rowOffset = real_index - block_top_row;
-			if (rowOffset >= block_row_count) {
+			int rowOffset = realIndex - blockTopRow;
+			if (rowOffset >= blockRowCount) {
 				// Need to download the next block from the server.
-				UpdateResultPart(real_index, fetch_size);
+				UpdateResultPart(realIndex, fetchSize);
 				// Set up the index into the downloaded block.
-				rowOffset = real_index - block_top_row;
-				real_index_offset = rowOffset * ColumnCount;
+				rowOffset = realIndex - blockTopRow;
+				realIndexOffset = rowOffset * ColumnCount;
 			} else if (rowOffset < 0) {
-				int fs_dif = global::System.Math.Min(fetch_size, 8);
+				int fsDif = System.Math.Min(fetchSize, 8);
 				// Need to download the next block from the server.
-				UpdateResultPart(real_index - fetch_size + fs_dif, fetch_size);
+				UpdateResultPart(realIndex - fetchSize + fsDif, fetchSize);
 				// Set up the index into the downloaded block.
-				rowOffset = real_index - block_top_row;
-				real_index_offset = rowOffset * ColumnCount;
+				rowOffset = realIndex - blockTopRow;
+				realIndexOffset = rowOffset * ColumnCount;
 			}
 		}
 
@@ -478,21 +470,18 @@ namespace Deveel.Data.Protocol {
 		internal int FindColumnIndex(string name) {
 			// For speed, we keep column name -> column index mapping in the hashtable.
 			// This makes column reference by string faster.
-			if (column_hash == null) {
-				column_hash = new Hashtable();
+			if (columnHash == null) {
+				var comparer = connection.IsCaseInsensitiveIdentifiers ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+				columnHash = new Dictionary<string, int>(comparer);
 			}
 
-			bool caseInsensitive = connection.IsCaseInsensitiveIdentifiers;
-			if (caseInsensitive) {
-				name = name.ToUpper();
-			}
-
-			if (!column_hash.ContainsKey(name)) {
+	        int index;
+			if (!columnHash.TryGetValue(name, out index)) {
 				int colCount = ColumnCount;
 				// First construct an unquoted list of all column names
 				String[] cols = new String[colCount];
 				for (int i = 0; i < colCount; ++i) {
-					String colName = col_list[i].Name;
+					String colName = colList[i].Name;
 					if (colName.StartsWith("\"")) {
 						colName = colName.Substring(1, colName.Length - 2);
 					}
@@ -500,16 +489,14 @@ namespace Deveel.Data.Protocol {
 					if (colName.StartsWith("@")) {
 						colName = colName.Substring(2);
 					}
-					if (caseInsensitive) {
-						colName = colName.ToUpper();
-					}
+
 					cols[i] = colName;
 				}
 
 				for (int i = 0; i < colCount; ++i) {
 					String colName = cols[i];
 					if (colName.Equals(name)) {
-						column_hash[name] = i ;
+						columnHash[name] = i ;
 						return i;
 					}
 				}
@@ -519,7 +506,7 @@ namespace Deveel.Data.Protocol {
 				for (int i = 0; i < colCount; ++i) {
 					String colName = cols[i];
 					if (colName.EndsWith(pointName)) {
-						column_hash[name] = i;
+						columnHash[name] = i;
 						return i;
 					}
 				}
@@ -527,7 +514,7 @@ namespace Deveel.Data.Protocol {
 				throw new DataException("Couldn't find column with name: " + name);
 			}
 			
-			return (int)column_hash[name];
+			return index;
 		}
 
         /// <summary>
@@ -535,16 +522,18 @@ namespace Deveel.Data.Protocol {
         /// </summary>
         /// <param name="column"></param>
         /// <returns></returns>
-		internal Object GetRawColumn(int column) {
+		internal object GetRawColumn(int column) {
 			// ASSERTION -
 			// Is the given column in bounds?
-			if (column < 0 || column >= ColumnCount) {
-				throw new IndexOutOfRangeException("Column index out of bounds: 1 > " + column + " > " + ColumnCount);
-			}
-			// Ensure the current indexed row is fetched from the server.
+	        if (column < 0 || column >= ColumnCount)
+		        throw new IndexOutOfRangeException("Column index out of bounds: 1 > " + column + " > " + ColumnCount);
+
+	        // Ensure the current indexed row is fetched from the server.
 			EnsureIndexLoaded();
+
 			// Return the raw cell object.
-			Object ob = result_block[real_index_offset + column];
+			object ob = resultBlock[realIndexOffset + column];
+
 			// Null check of the returned object,
 			if (ob != null) {
 				// If this is an object then deserialize it,
@@ -574,8 +563,8 @@ namespace Deveel.Data.Protocol {
         /// </remarks>
 		private void RealIndexUpdate() {
 			// Set up the index into the downloaded block.
-			int row_offset = real_index - block_top_row;
-			real_index_offset = row_offset * ColumnCount;
+			int rowOffset = realIndex - blockTopRow;
+			realIndexOffset = rowOffset * ColumnCount;
 			// Clear any warnings as in the spec.
 			// clearWarnings();
 		}
@@ -589,18 +578,18 @@ namespace Deveel.Data.Protocol {
         /// as soon as the header information is received from the server.
         /// </remarks>
         public int QueryTimeMillis {
-            get { return query_time_ms; }
+            get { return queryTimeMs; }
         }
 
         public bool Next() {
-			int row_count = RowCount;
-			if (real_index < row_count) {
-				++real_index;
-				if (real_index < row_count) {
+			int rowCount = RowCount;
+			if (realIndex < rowCount) {
+				++realIndex;
+				if (realIndex < rowCount) {
 					RealIndexUpdate();
 				}
 			}
-			return (real_index < row_count);
+			return (realIndex < rowCount);
 		}
 
 		public void Close() {
@@ -608,13 +597,13 @@ namespace Deveel.Data.Protocol {
 		}
 
 		public void SetFetchSize(int rows) {
-		    fetch_size = rows > 0 ? global::System.Math.Min(rows, MaximumFetchSize) : DefaultFetchSize;
+		    fetchSize = rows > 0 ? global::System.Math.Min(rows, MaximumFetchSize) : DefaultFetchSize;
 		}
 
     	public bool First() {
-			real_index = 0;
+			realIndex = 0;
 			RealIndexUpdate();
-			return real_index < RowCount;
+			return realIndex < RowCount;
 		}
 
     	~ResultSet() {

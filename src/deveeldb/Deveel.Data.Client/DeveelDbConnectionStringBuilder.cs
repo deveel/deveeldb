@@ -109,6 +109,16 @@ namespace Deveel.Data.Client {
 			keymaps["STRICT GETVALUE"] = StrictGetValueKey;
 			keymaps["STRICT VALUE"] = StrictGetValueKey;
 			keymaps["STRICTVALUE"] = StrictGetValueKey;
+			keymaps[FetchSizeKey.ToUpper()] = FetchSizeKey;
+			keymaps["FETCH SIZE"] = FetchSizeKey;
+			keymaps["ROW COUNT"] = FetchSizeKey;
+			keymaps["ROWCOUNT"] = FetchSizeKey;
+			keymaps[MaxFetchSizeKey.ToUpper()] = MaxFetchSizeKey;
+			keymaps["MAX FETCH SIZE"] = MaxFetchSizeKey;
+			keymaps["MAXFETCHSIZE"] = MaxFetchSizeKey;
+			keymaps["MAX ROW COUNT"] = MaxFetchSizeKey;
+			keymaps["MAX ROWCOUNT"] = MaxFetchSizeKey;
+			keymaps["MAXROWCOUNT"] = MaxFetchSizeKey;
 		}
 
 		private const string HostKey = "Host";
@@ -127,6 +137,8 @@ namespace Deveel.Data.Client {
 		private const string QueryTimeoutKey = "QueryTimeout";
 		private const string IgnoreIdentifiersCaseKey = "IgnoreIdentifiersCase";
 		private const string StrictGetValueKey = "StrictGetValue";
+		private const string FetchSizeKey = "FetchSize";
+		private const string MaxFetchSizeKey = "MaxFetchSize";
 
 		private const string DefaultHost = "localhost";
 		private const int DefaultPort = 9157;
@@ -144,6 +156,9 @@ namespace Deveel.Data.Client {
 		private const int DefaultQueryTimeout = Int32.MaxValue;
 		private const bool DefaultIgnoreIdentifiersCase = true;
 		private const bool DefaultStrictGetValue = false;
+		public const int DefaultMaxFetchSize = 512;
+		public const int DefaultFetchSize = 32;
+
 
 		private static readonly Dictionary<string, object> defaults;
 		private static readonly Dictionary<string, string> keymaps;
@@ -164,8 +179,8 @@ namespace Deveel.Data.Client {
 		private bool create;
 		private bool bootOrCreate;
 		private bool strictGetValue;
-
-		private ArrayList keys;
+		private int fetchSize;
+		private int maxFetchSize;
 
 		public override bool IsFixedSize {
 			get { return true; }
@@ -183,50 +198,53 @@ namespace Deveel.Data.Client {
 
 		public override ICollection Keys {
 			get {
-				if (keys == null) {
-					keys = new ArrayList();
-					keys.Add(HostKey);
-					keys.Add(PortKey);
-					keys.Add(DatabaseKey);
-					keys.Add(SchemaKey);
-					keys.Add(PathKey);
-					keys.Add(UserNameKey);
-					keys.Add(PasswordKey);
-					keys.Add(PersistSecurityInfoKey);
-					keys.Add(VerboseColumnNamesKey);
-					keys.Add(ParameterStyleKey);
-					keys.Add(RowCacheSizeKey);
-					keys.Add(QueryTimeoutKey);
-					keys.Add(IgnoreIdentifiersCaseKey);
-					keys.Add(CreateKey);
-					keys.Add(BootOrCreateKey);
-					keys.Add(StrictGetValueKey);
-					keys = ArrayList.ReadOnly(keys);
-				}
-				return keys;
+				var keys = new List<string> {
+					HostKey,
+					PortKey,
+					DatabaseKey,
+					SchemaKey,
+					PathKey,
+					UserNameKey,
+					PasswordKey,
+					PersistSecurityInfoKey,
+					VerboseColumnNamesKey,
+					ParameterStyleKey,
+					RowCacheSizeKey,
+					QueryTimeoutKey,
+					IgnoreIdentifiersCaseKey,
+					CreateKey,
+					BootOrCreateKey,
+					StrictGetValueKey,
+					FetchSizeKey,
+					MaxFetchSizeKey
+				};
+				return keys.AsReadOnly();
 			}
 		}
 
 		public override ICollection Values {
 			get {
-				ArrayList list = new ArrayList();
-				list.Add(host);
-				list.Add(port);
-				list.Add(database);
-				list.Add(schema);
-				list.Add(path);
-				list.Add(userName);
-				list.Add(password);
-				list.Add(persistSecurityInfo);
-				list.Add(verboseColumnNames);
-				list.Add(paramStyle);
-				list.Add(rowCacheSize);
-				list.Add(queryTimeout);
-				list.Add(ignoreCase);
-				list.Add(create);
-				list.Add(bootOrCreate);
-				list.Add(strictGetValue);
-				return list;
+				var list = new List<object> {
+					host,
+					port,
+					database,
+					schema,
+					path,
+					userName,
+					password,
+					persistSecurityInfo,
+					verboseColumnNames,
+					paramStyle,
+					rowCacheSize,
+					queryTimeout,
+					ignoreCase,
+					create,
+					bootOrCreate,
+					strictGetValue,
+					fetchSize,
+					maxFetchSize
+				};
+				return list.AsReadOnly();
 			}
 		}
 
@@ -416,6 +434,26 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		[DisplayName("Fetch Size")]
+		[RefreshProperties(RefreshProperties.All)]
+		public int FetchSize {
+			get { return fetchSize; }
+			set {
+				base[FetchSizeKey] = value;
+				fetchSize = value;
+			}
+		}
+
+		[DisplayName("Max Fetch Size")]
+		[RefreshProperties(RefreshProperties.All)]
+		public int MaxFetchSize {
+			get { return maxFetchSize; }
+			set {
+				base[MaxFetchSizeKey] = value;
+				maxFetchSize = value;
+			}
+		}
+
 		private void InitToDefault() {
 			host = DefaultHost;
 			port = DefaultPort;
@@ -433,6 +471,8 @@ namespace Deveel.Data.Client {
 			create = DefaultCreate;
 			bootOrCreate = DefaultBootOrCreate;
 			strictGetValue = DefaultStrictGetValue;
+			fetchSize = DefaultFetchSize;
+			maxFetchSize = DefaultMaxFetchSize;
 		}
 
 		private void SetValue(string key, object value) {
@@ -589,6 +629,22 @@ namespace Deveel.Data.Client {
 						}
 					}
 					break;
+				case FetchSizeKey:
+					if (value == null) {
+						fetchSize = DefaultFetchSize;
+						base.Remove(FetchSizeKey);
+					} else {
+						FetchSize = ToInt32(value);
+					}
+					break;
+				case MaxFetchSizeKey:
+					if (value == null) {
+						maxFetchSize = DefaultMaxFetchSize;
+						base.Remove(MaxFetchSizeKey);
+					} else {
+						MaxFetchSize = ToInt32(value);
+					}
+					break;
 				default:
 					//TODO: support additional parameters for Boot/Create process...
 					throw new ArgumentException("Key '" + key + "' is not recognized.", "key");
@@ -624,7 +680,7 @@ namespace Deveel.Data.Client {
 			}
 
 			if (value is IConvertible)
-				(value as IConvertible).ToBoolean(null);
+				return (value as IConvertible).ToBoolean(CultureInfo.InvariantCulture);
 
 			throw new ArgumentException();
 		}
@@ -642,7 +698,7 @@ namespace Deveel.Data.Client {
 			}
 
 			if (value is IConvertible)
-				return (value as IConvertible).ToInt32(null);
+				return (value as IConvertible).ToInt32(CultureInfo.InvariantCulture);
 
 			throw new ArgumentException();
 		}
