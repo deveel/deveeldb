@@ -295,6 +295,9 @@ namespace Deveel.Data.Client {
 
 					DbConfig config = new DbConfig(controller.Config);
 
+					// Set the connection string variables
+					config.SetValue(ConfigKeys.IgnoreIdentifiersCase, Settings.IgnoreIdentifiersCase);
+
 					//TODO: set the additional configurations from the connection string
 					/*
 					string database_path = connectionString.AdditionalProperties["DatabasePath"] as string;
@@ -373,9 +376,8 @@ namespace Deveel.Data.Client {
 		/// If this is true then <see cref="DeveelDbDataReader.GetString">CreateString("app.id")</see> 
 		/// will match against <c>APP.id</c>, etc.
 		/// </remarks>
-		internal bool IsCaseInsensitiveIdentifiers {
-			set { caseInsensitiveIdentifiers = value; }
-			get { return caseInsensitiveIdentifiers; }
+		internal virtual bool IsCaseInsensitiveIdentifiers {
+			get { return Settings.IgnoreIdentifiersCase; }
 		}
 
 		/// <summary>
@@ -441,15 +443,11 @@ namespace Deveel.Data.Client {
 			if (success) {
 				//TODO: separate from the Open procedure?
 				// Determine if this connection is case insensitive or not,
-				IsCaseInsensitiveIdentifiers = false;
 				IDbCommand stmt = CreateCommand("SHOW CONNECTION_INFO");
 				IDataReader rs = stmt.ExecuteReader();
 				while (rs.Read()) {
 					String key = rs.GetString(0);
-					if (key.Equals("case_insensitive_identifiers")) {
-						String val = rs.GetString(1);
-						IsCaseInsensitiveIdentifiers = val.Equals("true");
-					} else if (key.Equals("auto_commit")) {
+					if (key.Equals("auto_commit")) {
 						String val = rs.GetString(1);
 						autoCommit = val.Equals("true");
 					}

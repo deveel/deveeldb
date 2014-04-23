@@ -447,20 +447,20 @@ namespace Deveel.Data.Protocol {
 			}
 
 			// Offset into our block
-			int row_offset = real_index - block_top_row;
-			if (row_offset >= block_row_count) {
+			int rowOffset = real_index - block_top_row;
+			if (rowOffset >= block_row_count) {
 				// Need to download the next block from the server.
 				UpdateResultPart(real_index, fetch_size);
 				// Set up the index into the downloaded block.
-				row_offset = real_index - block_top_row;
-				real_index_offset = row_offset * ColumnCount;
-			} else if (row_offset < 0) {
+				rowOffset = real_index - block_top_row;
+				real_index_offset = rowOffset * ColumnCount;
+			} else if (rowOffset < 0) {
 				int fs_dif = global::System.Math.Min(fetch_size, 8);
 				// Need to download the next block from the server.
 				UpdateResultPart(real_index - fetch_size + fs_dif, fetch_size);
 				// Set up the index into the downloaded block.
-				row_offset = real_index - block_top_row;
-				real_index_offset = row_offset * ColumnCount;
+				rowOffset = real_index - block_top_row;
+				real_index_offset = rowOffset * ColumnCount;
 			}
 		}
 
@@ -475,50 +475,50 @@ namespace Deveel.Data.Protocol {
         /// <exception cref="DataException">
         /// If no column with the given name was found within the result.
         /// </exception>
-		internal int FindColumnIndex(String name) {
+		internal int FindColumnIndex(string name) {
 			// For speed, we keep column name -> column index mapping in the hashtable.
 			// This makes column reference by string faster.
 			if (column_hash == null) {
 				column_hash = new Hashtable();
 			}
 
-			bool case_insensitive = connection.IsCaseInsensitiveIdentifiers;
-			if (case_insensitive) {
+			bool caseInsensitive = connection.IsCaseInsensitiveIdentifiers;
+			if (caseInsensitive) {
 				name = name.ToUpper();
 			}
 
 			if (!column_hash.ContainsKey(name)) {
-				int col_count = ColumnCount;
+				int colCount = ColumnCount;
 				// First construct an unquoted list of all column names
-				String[] cols = new String[col_count];
-				for (int i = 0; i < col_count; ++i) {
-					String col_name = col_list[i].Name;
-					if (col_name.StartsWith("\"")) {
-						col_name = col_name.Substring(1, col_name.Length - 2);
+				String[] cols = new String[colCount];
+				for (int i = 0; i < colCount; ++i) {
+					String colName = col_list[i].Name;
+					if (colName.StartsWith("\"")) {
+						colName = colName.Substring(1, colName.Length - 2);
 					}
 					// Strip any codes from the name
-					if (col_name.StartsWith("@")) {
-						col_name = col_name.Substring(2);
+					if (colName.StartsWith("@")) {
+						colName = colName.Substring(2);
 					}
-					if (case_insensitive) {
-						col_name = col_name.ToUpper();
+					if (caseInsensitive) {
+						colName = colName.ToUpper();
 					}
-					cols[i] = col_name;
+					cols[i] = colName;
 				}
 
-				for (int i = 0; i < col_count; ++i) {
-					String col_name = cols[i];
-					if (col_name.Equals(name)) {
+				for (int i = 0; i < colCount; ++i) {
+					String colName = cols[i];
+					if (colName.Equals(name)) {
 						column_hash[name] = i ;
 						return i;
 					}
 				}
 
 				// If not found then search for column name ending,
-				string point_name = "." + name;
-				for (int i = 0; i < col_count; ++i) {
-					String col_name = cols[i];
-					if (col_name.EndsWith(point_name)) {
+				string pointName = "." + name;
+				for (int i = 0; i < colCount; ++i) {
+					String colName = cols[i];
+					if (colName.EndsWith(pointName)) {
 						column_hash[name] = i;
 						return i;
 					}

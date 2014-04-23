@@ -97,13 +97,19 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		private sealed class InternalConnection : DeveelDbConnection {
+			private readonly bool ignoreCase;
+
 			public InternalConnection(DatabaseConnection db, IDatabaseInterface dbInterface, int cacheSize, int maxSize)
 				: base(String.Empty, dbInterface, cacheSize, maxSize) {
-				IsCaseInsensitiveIdentifiers = db.IsInCaseInsensitiveMode;
+				ignoreCase = db.IsInCaseInsensitiveMode;
 				// we open internal connections at construction...
 				Open();
 
 				base.AutoCommit = false;
+			}
+
+			internal override bool IsCaseInsensitiveIdentifiers {
+				get { return ignoreCase; }
 			}
 
 			/// <inheritdoc/>

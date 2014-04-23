@@ -71,15 +71,6 @@ namespace Deveel.Data.Routines {
 		#region Time Functions
 
 		[Test]
-		public void TimeStamp() {
-			Expression exp = Expression.Parse("TIMESTAMP '2000-12-31 23:59:59'");
-			TObject result = exp.Evaluate(null, null, null);
-			Assert.IsTrue(result.TType is TDateType);
-			DateTime dateTime = result.ToDateTime();
-			Assert.AreEqual(new DateTime(2000, 12, 31, 23, 59, 59), dateTime);
-		}
-
-		[Test]
 		public void Extract() {
 			Expression exp = Expression.Parse("EXTRACT(YEAR FROM TIMESTAMP '2000-12-31 23:59:59')");
 			TObject result = exp.Evaluate(null, null, null);
