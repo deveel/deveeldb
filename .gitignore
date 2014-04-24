@@ -35,3 +35,6 @@
 /src/deveeldb/Deveel.Data.Sql.Parser/SQLConstants.cs
 /src/deveeldb/Deveel.Data.Sql.Parser/SQLTokenManager.cs
 /src/deveeldb/Deveel.Data.Sql.Parser/Token.cs
+src/ddbperftest/obj/Debug/ddbperftest.csproj.FileListAbsolute.txt
+/src/ddbperftest/obj
+/src/packages
