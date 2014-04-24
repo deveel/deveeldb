@@ -46,9 +46,9 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		public void SetVariable(string name, Expression exp, IQueryContext context) {
 			if (name.ToUpper().Equals("ERROR_ON_DIRTY_SELECT")) {
-				errorOnDirtySelect = ToBooleanValue(exp);
+				errorOnDirtySelect = ToBooleanValue(exp, context);
 			} else if (name.ToUpper().Equals("CASE_INSENSITIVE_IDENTIFIERS")) {
-				IsInCaseInsensitiveMode = ToBooleanValue(exp);
+				IsInCaseInsensitiveMode = ToBooleanValue(exp, context);
 			} else {
 				Transaction.Variables.SetVariable(name, exp, context);
 			}

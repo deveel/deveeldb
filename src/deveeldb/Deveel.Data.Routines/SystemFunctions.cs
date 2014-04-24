@@ -21,6 +21,7 @@ using System.Text;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Text;
 using Deveel.Data.Types;
@@ -98,6 +99,13 @@ namespace Deveel.Data.Routines {
 
 		private static TObject FRuleConvert(TObject[] arg) {
 			return FRuleConvert(arg[0]);
+		}
+
+		public static TObject PrivilegeString(TObject ob) {
+			int privBit = ((BigNumber)ob.Object).ToInt32();
+			Privileges privs = new Privileges();
+			privs = privs.Add(privBit);
+			return TObject.CreateString(privs.ToString());
 		}
 
 		public static TObject FRuleConvert(TObject obj) {
@@ -1044,6 +1052,7 @@ namespace Deveel.Data.Routines {
 						Parameter(0, PrimitiveTypes.VarString),
 						Parameter(1, PrimitiveTypes.BinaryType)
 					}, BuildViewData);
+				Build("i_privilege_string", Parameter(0, PrimitiveTypes.Numeric), BuildPrivilegeString);
 
 				// Aithmetic Functions
 
@@ -1430,6 +1439,11 @@ namespace Deveel.Data.Routines {
 
 			private static void BuildViewData(FunctionBuilder builder) {
 				builder.OnExecute(args => ViewData(args[0], args[1]))
+					.ReturnsType(PrimitiveTypes.VarString);
+			}
+
+			private static void BuildPrivilegeString(FunctionBuilder builder) {
+				builder.OnExecute(args => PrivilegeString(args[0]))
 					.ReturnsType(PrimitiveTypes.VarString);
 			}
 

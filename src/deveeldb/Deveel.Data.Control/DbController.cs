@@ -463,7 +463,7 @@ namespace Deveel.Data.Control {
 			} catch (Exception e) {
 				database.Logger.Error(this, "Database create failed");
 				database.Logger.Error(this, e);
-				throw new InvalidOperationException(e.Message);
+				throw new InvalidOperationException(e.Message, e);
 			}
 			// Return the DbSystem object for the newly created database.
 			databases[name] = database;

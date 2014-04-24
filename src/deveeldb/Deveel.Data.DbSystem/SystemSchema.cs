@@ -402,21 +402,14 @@ namespace Deveel.Data.DbSystem {
 
 		internal static void SetTableGrants(GrantManager manager, string granter) {
 			// Set the public grants for the system tables,
-			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.connection_info", User.PublicName,
-						  false, granter);
-			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.current_connections",
-						  User.PublicName, false, granter);
-			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.variables", User.PublicName, false,
-						  granter);
-			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.database_stats",
-						  User.PublicName, false, granter);
-			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.database_vars", User.PublicName,
-						  false, granter);
-			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.product_info", User.PublicName,
-						  false, granter);
-			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.sql_types", User.PublicName,
-						  false, granter);
-			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, "SYSTEM.function", User.PublicName, false, granter);
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, ConnectionInfo.ToString(), User.PublicName, false, granter);
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, CurrentConnections.ToString(), User.PublicName, false, granter);
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, Variables.ToString(), User.PublicName, false, granter);
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, DatabaseStatistics.ToString(), User.PublicName, false, granter);
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, Variables.ToString(), User.PublicName, false, granter);
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, ProductInfo.ToString(), User.PublicName, false, granter);
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, SqlTypes.ToString(), User.PublicName, false, granter);
+			manager.Grant(Security.Privileges.TableRead, GrantObject.Table, Function.ToString(), User.PublicName, false, granter);
 		}
 
 		///<summary>

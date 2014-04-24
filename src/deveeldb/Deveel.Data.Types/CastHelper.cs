@@ -396,8 +396,49 @@ namespace Deveel.Data.Types {
 				}
 			}  // if (ob is String)
 
+			// Cast from a boolean
+			if (ob is Boolean) {
+				Boolean b = (Boolean)ob;
+				switch (sqlType) {
+					case (SqlType.Bit):
+						return b;
+					case (SqlType.TinyInt):
+					// fall through
+					case (SqlType.SmallInt):
+					// fall through
+					case (SqlType.Integer):
+					// fall through
+					case (SqlType.BigInt):
+					// fall through
+					case (SqlType.Float):
+					// fall through
+					case (SqlType.Real):
+					// fall through
+					case (SqlType.Double):
+					// fall through
+					case (SqlType.Numeric):
+					// fall through
+					case (SqlType.Decimal):
+						return b ? BdOne : BdZero;
+					case (SqlType.Char):
+						return StringObject.FromString(PaddedString(b.ToString(), sqlSize));
+					case (SqlType.VarChar):
+						return StringObject.FromString(b.ToString());
+					case (SqlType.LongVarChar):
+						return StringObject.FromString(b.ToString());
+					case (SqlType.Null):
+						return null;
+					case (SqlType.Object):
+						return ToObject(ob);
+					case (SqlType.Boolean):
+						return b;
+					default:
+						throw new ApplicationException("Can't cast boolean to " + sqlType.ToString().ToUpper());
+				}
+			}  // if (ob is Boolean)
+
 			// Cast from a convertible type (generally numbers)
-			if (ob is IConvertible) {
+			if (IsNumber(ob)) {
 				IConvertible n = (IConvertible)ob;
 				switch (sqlType) {
 					case (SqlType.Bit):
@@ -513,48 +554,6 @@ namespace Deveel.Data.Types {
 			}  // if (ob is Number)
 			*/
 
-
-			// Cast from a boolean
-			if (ob is Boolean) {
-				Boolean b = (Boolean)ob;
-				switch (sqlType) {
-					case (SqlType.Bit):
-						return b;
-					case (SqlType.TinyInt):
-					// fall through
-					case (SqlType.SmallInt):
-					// fall through
-					case (SqlType.Integer):
-					// fall through
-					case (SqlType.BigInt):
-					// fall through
-					case (SqlType.Float):
-					// fall through
-					case (SqlType.Real):
-					// fall through
-					case (SqlType.Double):
-					// fall through
-					case (SqlType.Numeric):
-					// fall through
-					case (SqlType.Decimal):
-						return b ? BdOne : BdZero;
-					case (SqlType.Char):
-						return StringObject.FromString(PaddedString(b.ToString(), sqlSize));
-					case (SqlType.VarChar):
-						return StringObject.FromString(b.ToString());
-					case (SqlType.LongVarChar):
-						return StringObject.FromString(b.ToString());
-					case (SqlType.Null):
-						return null;
-					case (SqlType.Object):
-						return ToObject(ob);
-					case (SqlType.Boolean):
-						return b;
-					default:
-						throw new ApplicationException("Can't cast boolean to " + sqlType.ToString().ToUpper());
-				}
-			}  // if (ob is Boolean)
-
 			// Cast from a date
 			if (ob is DateTime) {
 				DateTime d = (DateTime)ob;
@@ -636,6 +635,8 @@ namespace Deveel.Data.Types {
 			if (value is float) return true;
 			if (value is double) return true;
 			if (value is decimal) return true;
+			if (value is BigNumber)
+				return true;
 			return false;
 		}
 

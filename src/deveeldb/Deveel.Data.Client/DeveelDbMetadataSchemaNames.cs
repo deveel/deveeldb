@@ -31,6 +31,7 @@ namespace Deveel.Data.Client {
 		public static readonly string TablePrivileges = "TablePrivileges";
 		public static readonly string ColumnPrivileges = "ColumnPrivileges";
 		public static readonly string MetadataCollections = System.Data.Common.DbMetaDataCollectionNames.MetaDataCollections;
+		public static readonly string UserPrivileges = "UserPrivileges";
 
 		public static readonly string DataSourceInformation =
 			System.Data.Common.DbMetaDataCollectionNames.DataSourceInformation;

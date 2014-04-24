@@ -287,12 +287,25 @@ namespace Deveel.Data.DbSystem {
 		/// Evaluates the expression to a bool value (true or false).
 		/// </summary>
 		/// <param name="exp"></param>
+		/// <param name="context"></param>
 		/// <returns></returns>
-		private static bool ToBooleanValue(Expression exp) {
-			bool? b = exp.Evaluate(null, null, null).ToNullableBoolean();
-			if (!b.HasValue)
+		private static bool ToBooleanValue(Expression exp, IQueryContext context) {
+			var value = exp.Evaluate(null, null, context);
+			if (value.IsNull)
 				throw new StatementException("Expression does not evaluate to a bool (true or false).");
-			return b.Value;
+
+			if (value.TType is TBooleanType)
+				return value.ToBoolean();
+
+			if (value.TType is TNumericType) {
+				var iValue = value.ToBigNumber().ToInt32();
+				if (iValue == 0)
+					return false;
+				if (iValue == 1)
+					return true;
+			}
+
+			throw new StatementException("Expression does not evaluate to a bool (true or false).");
 		}
 
 		/// <summary>

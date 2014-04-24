@@ -34,6 +34,8 @@ namespace Deveel.Data.DbSystem {
 
 		public static readonly TableName CrossReference = new TableName(Name, "cross_reference");
 
+		public static readonly TableName UserPrivileges = new TableName(Name, "user_privileges");
+
 		/// <summary>
 		///  Creates all the system views.
 		/// </summary>
@@ -272,6 +274,20 @@ namespace Deveel.Data.DbSystem {
 				stmt.ExecuteNonQuery();
 
 				//TODO: export the variables too...
+
+				// TODO: Add functions to list
+				stmt.CommandText =
+					"  CREATE VIEW " + UserPrivileges + " AS \n" +
+					"  SELECT NULL \"TABLE_CAT\", \n" +
+					"         \"grant.grantee\",\n" +
+					"         \"grant.object\" \"OBJECT_TYPE\"," +
+					"         \"grant.param\" \"OBJECT_NAME\"," +
+					"         I_PRIVILEGE_STRING(\"grant.priv_bit\") \"PRIVS\"," +
+					"         \"grant.grant_option\" \"IS_GRANTABLE\",\n" +
+					"         \"grant.granter\"\n" +
+					"  FROM " + SystemSchema.Grant + "\n";
+				stmt.ExecuteNonQuery();
+
 			} catch (DataException e) {
 				if (e is DbDataException) {
 					DbDataException dbDataException = (DbDataException)e;

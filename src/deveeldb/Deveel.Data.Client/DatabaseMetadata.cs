@@ -526,7 +526,8 @@ namespace Deveel.Data.Client {
 					new object[] {"ColumnPrivileges", "Column", "", 3},
 					new object[] {"TablePrivileges", "Catalog", "", 0},
 					new object[] {"TablePrivileges", "Schema", "", 1}, 
-					new object[] {"TablePrivileges", "Table", "", 2}, 
+					new object[] {"TablePrivileges", "Table", "", 2},
+					new object[] {"UserPrivileges", "UserName", "", 0}
                 };
 
 			SysDataTable dt = new SysDataTable("Restrictions");
@@ -554,6 +555,7 @@ namespace Deveel.Data.Client {
                     new object[] {"PrimaryKeys", 4, 3},
 					new object[] {"ExportedKeys", 4, 3},
 					new object[] {"ImportedKeys", 4, 3},
+					new object[] { "UserPrivileges", 1, 0}
                 };
 
 			SysDataTable dt = new SysDataTable("MetaDataCollections");
@@ -664,6 +666,45 @@ namespace Deveel.Data.Client {
 			return dataTable;
 		}
 
+		public virtual SysDataTable GetUserPrivileges(string[] restrictions) {
+			if (restrictions == null)
+				throw new ArgumentNullException("restrictions");
+			if (restrictions.Length < 1)
+				throw new ArgumentException();
+
+			var userName = restrictions[0];
+
+			var dataTable = new SysDataTable("UserPrivileges");
+			dataTable.Columns.Add("TABLE_CATALOG");
+			dataTable.Columns.Add("GRANTEE");
+			dataTable.Columns.Add("OBJECT_TYPE");
+			dataTable.Columns.Add("OBJECT_NAME");
+			dataTable.Columns.Add("PRIVS");
+			dataTable.Columns.Add("IS_GRANTABLE");
+			dataTable.Columns.Add("GRANTER");
+
+			DeveelDbCommand command = connection.CreateCommand("SELECT * FROM INFORMATION_SCHEMA.USER_PRIVILEGES WHERE (? IS NULL OR \"GRANTEE\" = ?)");
+			command.Parameters.Add(userName);
+			command.Parameters.Add(userName);
+
+			command.Prepare();
+
+			using (var reader = command.ExecuteReader()) {
+				while (reader.Read()) {
+					var row = dataTable.NewRow();
+					row["TABLE_CATALOG"] = reader.GetString(0);
+					row["GRANTEE"] = reader.GetString(1);
+					row["OBJECT_TYPE"] = reader.GetString(2);
+					row["OBJECT_NAME"] = reader.GetString(3);
+					row["PRIVS"] = reader.GetString(4);
+					row["IS_GRANTABLE"] = reader.GetBoolean(5);
+					dataTable.Rows.Add(row);
+				}
+			}
+
+			return dataTable;
+		}
+
 		public virtual SysDataTable GetSchema(string collection, String[] restrictions) {
 			if (connection.State != ConnectionState.Open)
 				throw new DataException("GetSchema can only be called on an open connection.");
@@ -724,6 +765,9 @@ namespace Deveel.Data.Client {
 					break;
 				case "IMPORTEDKEYS":
 					dt = GetImportedKeys(restrictions);
+					break;
+				case "USERPRIVILEGES":
+					dt = GetUserPrivileges(restrictions);
 					break;
 			}
 

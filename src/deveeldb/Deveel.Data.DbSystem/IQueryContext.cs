@@ -80,6 +80,16 @@ namespace Deveel.Data.DbSystem {
 		Privileges GetUserGrants(GrantObject objType, string objName);
 
 		/// <summary>
+		/// Gets only the <c>GRANT</c> options on the given database object for the
+		/// current user in the session
+		/// </summary>
+		/// <param name="objType"></param>
+		/// <param name="objName"></param>
+		/// <returns></returns>
+		/// <seealso cref="GrantManager.GetUserGrantOptions"/>
+		Privileges GetUserGrantOptions(GrantObject objType, string objName);
+
+		/// <summary>
 		/// Marks the execution context as in an exception state.
 		/// </summary>
 		/// <param name="exception">The exception that causes the change of

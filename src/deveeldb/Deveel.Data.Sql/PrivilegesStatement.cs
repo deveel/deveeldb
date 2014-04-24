@@ -292,7 +292,7 @@ namespace Deveel.Data.Sql {
 			*/
 
 			// Get the grant options this user has on the given object.
-			Privileges optionsPrivs = context.GetUserGrants(grantObject, grantName);
+			Privileges optionsPrivs = context.GetUserGrantOptions(grantObject, grantName);
 
 			// Is the user permitted to give out these privs?
 			Privileges grantPrivs = Privileges.Empty;

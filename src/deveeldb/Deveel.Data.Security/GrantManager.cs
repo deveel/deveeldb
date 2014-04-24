@@ -136,9 +136,9 @@ namespace Deveel.Data.Security {
 
 
 
-		private Privileges GetPrivs(GrantObject obj, String param, String username, bool onlyGrantOptions, String granter, bool includePublicPrivs) {
+		private Privileges GetPrivs(GrantObject obj, string param, string username, bool onlyGrantOptions, string granter, bool includePublicPrivs) {
 			// Create the grant query key
-			GrantQuery key = new GrantQuery(obj, param, username, onlyGrantOptions, includePublicPrivs);
+			var key = new GrantQuery(obj, param, username, onlyGrantOptions, includePublicPrivs);
 
 			// Is the Privileges object for this query already in the cache?
 			Privileges privs = (Privileges)privCache.Get(key);
@@ -167,29 +167,25 @@ namespace Deveel.Data.Security {
 				// username, and that match the object type.
 
 				// Expression: ("grantee_col" = username OR "grantee_col" = 'public')
-				Expression userCheck =
-					Expression.Simple(granteeCol, equals, TObject.CreateString(username));
+				var userCheck = Expression.Simple(granteeCol, equals, TObject.CreateString(username));
 				if (includePublicPrivs) {
 					userCheck = new Expression(userCheck, Operator.Get("or"), Expression.Simple(granteeCol, equals, PublicUsername));
 				}
+
 				// Expression: ("object_col" = object AND
 				//              ("grantee_col" = username OR "grantee_col" = 'public'))
 				// All that match the given username or public and given object
-				Expression expr = new Expression(Expression.Simple(objectCol, equals, TObject.CreateInt4((int) obj)),
-				                                 Operator.Get("and"), userCheck);
+				var expr = new Expression(Expression.Simple(objectCol, equals, TObject.CreateInt4((int) obj)), Operator.Get("and"), userCheck);
 
 				// Are we only searching for grant options?
 				if (onlyGrantOptions) {
-					Expression grantOptionCheck =
-						Expression.Simple(grantOptionCol, equals,
-										  TObject.CreateString("true"));
+					var grantOptionCheck = Expression.Simple(grantOptionCol, equals, TObject.CreateString("true"));
 					expr = new Expression(expr, Operator.Get("and"), grantOptionCheck);
 				}
 
 				// Do we need to check for a granter when we looking for privs?
 				if (granter != null) {
-					Expression granterCheck =
-						Expression.Simple(granterCol, equals, TObject.CreateString(granter));
+					var granterCheck = Expression.Simple(granterCol, equals, TObject.CreateString(granter));
 					expr = new Expression(expr, Operator.Get("and"), granterCheck);
 				}
 
@@ -200,8 +196,7 @@ namespace Deveel.Data.Security {
 				IRowEnumerator e = t1.GetRowEnumerator();
 				while (e.MoveNext()) {
 					int rowIndex = e.RowIndex;
-					BigNumber privBit =
-								  (BigNumber)t1.GetCell(0, rowIndex).Object;
+					var privBit = (BigNumber)t1.GetCell(0, rowIndex).Object;
 					privs = privs.Add(privBit.ToInt32());
 				}
 
@@ -217,36 +212,35 @@ namespace Deveel.Data.Security {
 		/// Internal method that sets the privs for the given target, param, grantee,
 		/// grant option and granter.
 		/// </summary>
-		/// <param name="new_privs"></param>
+		/// <param name="newPrivs"></param>
 		/// <param name="obj"></param>
 		/// <param name="param"></param>
 		/// <param name="grantee"></param>
-		/// <param name="grant_option"></param>
+		/// <param name="grantOption"></param>
 		/// <param name="granter"></param>
 		/// <remarks>
 		/// This first revokes any grants that have been setup for the object, 
 		/// and adds a new record with the new grants.
 		/// </remarks>
-		private void InternalSetPrivs(Privileges new_privs, GrantObject obj, String param,
-						  String grantee, bool grant_option, String granter) {
+		private void InternalSetPrivs(Privileges newPrivs, GrantObject obj, string param, string grantee, bool grantOption, string granter) {
 
 			// Revoke existing privs on this object for this grantee
-			RevokeAllGrantsOnObject(obj, param, grantee, grant_option, granter);
+			RevokeAllGrantsOnObject(obj, param, grantee, grantOption, granter);
 
-			if (!new_privs.IsEmpty) {
+			if (!newPrivs.IsEmpty) {
 
 				// The system grants table.
-				DataTable grant_table = connection.GetTable(SystemSchema.Grant);
+				DataTable grantTable = connection.GetTable(SystemSchema.Grant);
 
 				// Add the grant to the grants table.
-				DataRow rdat = new DataRow(grant_table);
-				rdat.SetValue(0, (BigNumber)new_privs.ToInt32());
+				DataRow rdat = new DataRow(grantTable);
+				rdat.SetValue(0, (BigNumber)newPrivs.ToInt32());
 				rdat.SetValue(1, (BigNumber)(int)obj);
 				rdat.SetValue(2, param);
 				rdat.SetValue(3, grantee);
-				rdat.SetValue(4, grant_option ? "true" : "false");
+				rdat.SetValue(4, grantOption ? "true" : "false");
 				rdat.SetValue(5, granter);
-				grant_table.Add(rdat);
+				grantTable.Add(rdat);
 
 				// Invalidate the privilege cache
 				InvalidateGrantCache();

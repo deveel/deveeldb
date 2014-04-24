@@ -441,6 +441,13 @@ namespace Deveel.Data.Client {
 					}
 				}
 				rs.Close();
+
+				// TODO: Pass it in another way ...
+				stmt.CommandText = "SET CASE_INSENSITIVE_IDENTIFIERS = ?";
+				stmt.Parameters.Add(IsCaseInsensitiveIdentifiers);
+				stmt.Prepare();
+
+				stmt.ExecuteNonQuery();
 			}
 		}
 

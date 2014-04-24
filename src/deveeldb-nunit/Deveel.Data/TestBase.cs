@@ -205,6 +205,10 @@ namespace Deveel.Data {
 			return system.Database.CreateNewConnection(user, null);
 		}
 
+		protected DeveelDbConnection CreateDbConnection(string userName, string password) {
+			return (DeveelDbConnection)system.GetConnection(userName, password);
+		}
+
 		protected Table GetTable(string tableName) {
 			DatabaseConnection dbConnection = CreateDatabaseConnection();
 			return dbConnection.GetTable(tableName);

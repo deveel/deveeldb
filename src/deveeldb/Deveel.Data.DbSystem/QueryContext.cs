@@ -73,6 +73,10 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public virtual Privileges GetUserGrants(GrantObject objType, string objName) {
+			return Connection.GrantManager.GetUserGrants(objType, objName, UserName);
+		}
+
+		public Privileges GetUserGrantOptions(GrantObject objType, string objName) {
 			return Connection.GrantManager.GetUserGrantOptions(objType, objName, UserName);
 		}
 
