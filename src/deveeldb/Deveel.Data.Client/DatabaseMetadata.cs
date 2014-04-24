@@ -680,7 +680,7 @@ namespace Deveel.Data.Client {
 			dataTable.Columns.Add("OBJECT_TYPE");
 			dataTable.Columns.Add("OBJECT_NAME");
 			dataTable.Columns.Add("PRIVS");
-			dataTable.Columns.Add("IS_GRANTABLE");
+			dataTable.Columns.Add("IS_GRANTABLE", typeof(bool));
 			dataTable.Columns.Add("GRANTER");
 
 			DeveelDbCommand command = connection.CreateCommand("SELECT * FROM INFORMATION_SCHEMA.USER_PRIVILEGES WHERE (? IS NULL OR \"GRANTEE\" = ?)");
