@@ -42,7 +42,7 @@ namespace Deveel.Data.DbSystem {
 			get { return parent.Connection; }
 		}
 
-		public override Logger Logger {
+		public override ILogger Logger {
 			get { return parent.Logger; }
 		}
 

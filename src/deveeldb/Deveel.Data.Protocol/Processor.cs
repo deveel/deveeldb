@@ -26,6 +26,7 @@ using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
 using Deveel.Data.Util;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Protocol {
 	/// <summary>

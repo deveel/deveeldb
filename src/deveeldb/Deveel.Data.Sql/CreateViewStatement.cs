@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
 using Deveel.Data.Security;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Sql {
 	public sealed class CreateViewStatement : Statement {

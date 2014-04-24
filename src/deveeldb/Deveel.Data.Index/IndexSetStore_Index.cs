@@ -19,6 +19,7 @@ using System.IO;
 
 using Deveel.Data.Store;
 using Deveel.Data.Util;
+using Deveel.Diagnostics;
 
 using SysMath = System.Math;
 

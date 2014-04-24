@@ -20,13 +20,10 @@ using System.IO;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
-using Deveel.Data.Control;
-using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Store;
 using Deveel.Data.Threading;
 using Deveel.Data.Transactions;
-using Deveel.Data.Types;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.DbSystem {
@@ -69,12 +66,14 @@ namespace Deveel.Data.DbSystem {
 		///<param name="context"></param>
 		///<param name="name"></param>
 		public Database(DatabaseContext context, string name) {
-			this.Context = context;
+			Context = context;
 			deleteOnShutdown = false;
-			this.Name = name;
+			Name = name;
 			context.RegisterDatabase(this);
 			Conglomerate = new TableDataConglomerate(context, name, context.StoreSystem);
 			InternalSystemUser = new User(User.SystemName, this, "", DateTime.Now);
+
+			UserManager = new UserManager(this);
 
 			// Create the single row table
 			TemporaryTable t = new TemporaryTable(this,"SINGLE_ROW_TABLE", new DataColumnInfo[0]);
@@ -102,6 +101,8 @@ namespace Deveel.Data.DbSystem {
 		/// Returns the internal system user for this database.
 		/// </summary>
 		private User InternalSystemUser { get; set; }
+
+		public UserManager UserManager { get; private set; }
 
 		// ---------- Log accesses ----------
 
@@ -178,8 +179,8 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the system user manager.
 		/// </summary>
-		public UserManager UserManager {
-			get { return Context.UserManager; }
+		public LoggedUsers LoggedUsers {
+			get { return Context.LoggedUsers; }
 		}
 
 		/// <summary>
@@ -208,7 +209,7 @@ namespace Deveel.Data.DbSystem {
 		/// Gets the <see cref="ILogger"/> implementation from the parent 
 		/// <see cref="DatabaseContext"/> context.
 		/// </summary>
-		public Logger Logger {
+		public ILogger Logger {
 			get { return Context.Logger; }
 		}
 
@@ -324,6 +325,21 @@ namespace Deveel.Data.DbSystem {
 			transaction.SetPersistentVariable("database.version", version.ToString(2));
 		}
 
+		private void CreateAdminUser(DatabaseQueryContext context, string username, string password) {
+			// Creates the administrator user.
+			UserManager.CreateUser(context, username, password);
+			// This is the admin user so add to the 'secure access' table.
+			UserManager.AddUserToGroup(context, username, SystemGroupNames.SecureGroup);
+			// Allow all localhost TCP connections.
+			// NOTE: Permissive initial security!
+			UserManager.GrantHostAccessToUser(context, username, "TCP", "%");
+			// Allow all Local connections.
+			UserManager.GrantHostAccessToUser(context, username, "Local", "%");
+
+			// Sets the system grants for the administrator
+			SetSystemGrants(context.Connection, username);
+		}
+
 		/// <summary>
 		/// Creates and sets up a new database to an initial empty state. 
 		/// </summary>
@@ -360,20 +376,9 @@ namespace Deveel.Data.DbSystem {
 				SystemSchema.CreateTables(connection);
 
 				// Create the system views
-				InformationSchema.CreateSystemViews(connection, Logger);
+				InformationSchema.CreateSystemViews(connection);
 
-				// Creates the administrator user.
-				CreateUser(context, username, password);
-				// This is the admin user so add to the 'secure access' table.
-				AddUserToGroup(context, username, SystemGroupNames.SecureGroup);
-				// Allow all localhost TCP connections.
-				// NOTE: Permissive initial security!
-				GrantHostAccessToUser(context, username, "TCP", "%");
-				// Allow all Local connections.
-				GrantHostAccessToUser(context, username, "Local", "%");
-
-				// Sets the system grants for the administrator
-				SetSystemGrants(connection, username);
+				CreateAdminUser(context, username, password);
 
 				SetCurrentDataVersion(connection);
 

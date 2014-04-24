@@ -45,7 +45,7 @@ namespace Deveel.Data.Threading {
 		/// </summary>
 		private bool wasChecked;
 
-		private readonly Logger logger;
+		private readonly ILogger logger;
 
 
 		/// <summary>
@@ -59,7 +59,7 @@ namespace Deveel.Data.Threading {
 		/// The construction of this object adds the Lock into the <see cref="LockingQueue"/>
 		/// provided as parameter.
 		/// </remarks>
-		internal Lock(AccessType type, LockingQueue queue, Logger logger) {
+		internal Lock(AccessType type, LockingQueue queue, ILogger logger) {
 			this.type = type;
 			this.queue = queue;
 			this.logger = logger;

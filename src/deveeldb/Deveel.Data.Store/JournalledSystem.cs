@@ -94,11 +94,11 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		private JournalingThread journaling_thread;
 
-		private readonly Logger logger;
+		private readonly ILogger logger;
 
 
 		internal JournalledSystem(string journal_path, bool read_only, int page_size,
-					   LoggingBufferManager.IStoreDataAccessorFactory sda_factory, Logger logger,
+					   LoggingBufferManager.IStoreDataAccessorFactory sda_factory, ILogger logger,
 					   bool enable_logging) {
 			this.journal_path = journal_path;
 			this.read_only = read_only;
@@ -342,7 +342,7 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		private Logger Logger {
+		private ILogger Logger {
 			get { return logger; }
 		}
 

@@ -173,7 +173,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Gets an object that can be used to log debug messages to.
 		/// </summary>
-		public Logger Logger { get; private set; }
+		public ILogger Logger { get; private set; }
 
 		/// <summary>
 		/// Returns the user for this session.

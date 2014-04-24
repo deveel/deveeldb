@@ -145,7 +145,7 @@ namespace Deveel.Data.Transactions {
 			get { return visibleTables; }
 		}
 
-		internal Logger Logger {
+		internal ILogger Logger {
 			get { return Context.Logger; }
 		}
 

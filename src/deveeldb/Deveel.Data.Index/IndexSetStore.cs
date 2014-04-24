@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.Store;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Index {
 	/// <summary>

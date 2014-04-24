@@ -18,6 +18,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.DbSystem {
 	/// <summary>

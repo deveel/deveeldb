@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Transactions {
 	internal partial class Transaction {

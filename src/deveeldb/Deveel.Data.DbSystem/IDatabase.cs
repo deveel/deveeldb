@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Deveel.Data.Security;
+
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// Describes the functionalities of a database within the system
@@ -18,5 +20,7 @@ namespace Deveel.Data.DbSystem {
 		bool Exists { get; }
 
 		IDatabaseContext Context { get; }
+
+		UserManager UserManager { get; }
 	}
 }

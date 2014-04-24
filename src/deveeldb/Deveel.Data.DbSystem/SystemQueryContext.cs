@@ -56,7 +56,7 @@ namespace Deveel.Data.DbSystem {
 			get { return context; }
 		}
 
-		public override Logger Logger {
+		public override ILogger Logger {
 			get { return context.Logger; }
 		}
 

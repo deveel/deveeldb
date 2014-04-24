@@ -107,7 +107,7 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		protected internal override Logger Logger {
+		protected internal override ILogger Logger {
 			get { return connection.Context.Logger; }
 		}
 

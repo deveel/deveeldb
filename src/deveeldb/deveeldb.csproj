@@ -96,6 +96,7 @@
     <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
+    <Compile Include="Deveel.Data.DbSystem\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabase.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabaseContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\PasswordCrypto.cs" />
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
+    <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ParseException.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SimpleCharStream.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SQL.cs" />
@@ -519,7 +521,7 @@
     <Compile Include="Deveel.Data\TypeUtil.cs" />
     <Compile Include="Deveel.Data.Security\User.cs" />
     <Compile Include="Deveel.Data.Security\UserAccessException.cs" />
-    <Compile Include="Deveel.Data.Security\UserManager.cs" />
+    <Compile Include="Deveel.Data.Security\LoggedUsers.cs" />
     <Compile Include="Deveel.Data.DbSystem\V2MasterTableDataSource.cs" />
     <Compile Include="Deveel.Data\Variable.cs" />
     <Compile Include="Deveel.Data\VariableName.cs" />
@@ -531,7 +533,7 @@
     <Compile Include="Deveel.Data.DbSystem\VirtualTable.cs" />
     <Compile Include="Deveel.Data.Threading\WorkerPool.cs" />
     <Compile Include="Deveel.Data.Threading\WorkerThread.cs" />
-    <Compile Include="Deveel.Diagnostics\Logger.cs" />
+    <Compile Include="Deveel.Diagnostics\LoggerExtensions.cs" />
     <Compile Include="Deveel.Diagnostics\LogLevel.cs" />
     <Compile Include="Deveel.Diagnostics\DefaultLogger.cs" />
     <Compile Include="Deveel.Diagnostics\EmptyLogger.cs" />

@@ -85,9 +85,9 @@ namespace Deveel.Data.Security {
 		/// </remarks>
 		internal void Logout() {
 			// Clear all triggers for this user,
-			UserManager userManager = Database.UserManager;
-			if (userManager != null) {
-				userManager.OnUserLoggedOut(this);
+			LoggedUsers loggedUsers = Database.LoggedUsers;
+			if (loggedUsers != null) {
+				loggedUsers.OnUserLoggedOut(this);
 			}
 		}
 

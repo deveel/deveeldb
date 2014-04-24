@@ -17,6 +17,7 @@ using System;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Sql {
 	[Serializable]

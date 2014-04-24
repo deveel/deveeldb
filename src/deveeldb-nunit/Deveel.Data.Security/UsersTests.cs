@@ -61,7 +61,7 @@ namespace Deveel.Data.Security {
 					continue;
 
 				var privs = grant.Privileges.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-				if (privs.All(x => userPrivs.Any(y => String.Equals(x, y, StringComparison.OrdinalIgnoreCase))))
+				if (userPrivs.All(x => privs.Any(y => String.Equals(x, y, StringComparison.OrdinalIgnoreCase))))
 					return true;
 			}
 

@@ -50,7 +50,7 @@ namespace Deveel.Data.DbSystem {
 		/// Gets an object used to log diagnostic information about
 		/// events occurred withing the context.
 		/// </summary>
-		Logger Logger { get; }
+		ILogger Logger { get; }
 
 		/// <summary>
 		/// Gets a value that indicates if the current context is in

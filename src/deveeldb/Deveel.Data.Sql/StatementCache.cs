@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql {
 			cache = new MemoryCache(hashSize, maxSize, cleanPercentage);
 		}
 
-		private Logger Logger {
+		private ILogger Logger {
 			get { return context.Logger; }
 		}
 

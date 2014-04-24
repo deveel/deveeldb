@@ -183,11 +183,11 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the ILogger object that can be used to log debug messages.
 		/// </summary>
-		protected Logger Logger {
+		protected ILogger Logger {
 			get { return Context.Logger; }
 		}
 
-		internal Logger InternalLogger {
+		internal ILogger InternalLogger {
 			get { return Logger; }
 		}
 

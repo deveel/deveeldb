@@ -180,7 +180,7 @@ namespace Deveel.Data.Protocol {
 		/// <summary>
 		/// Gets an object that can be used to log debug information.
 		/// </summary>
-		protected Logger Logger {
+		protected ILogger Logger {
 			//TODO: return an empty debug logger if database is null...
 			get { return (currentDatabase != null ? currentDatabase.Logger : null); }
 		}

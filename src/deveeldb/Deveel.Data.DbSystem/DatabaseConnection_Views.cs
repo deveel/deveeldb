@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.Sql;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.DbSystem {
 	public sealed partial class DatabaseConnection {

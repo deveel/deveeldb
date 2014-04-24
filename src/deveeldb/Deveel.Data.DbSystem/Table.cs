@@ -56,7 +56,7 @@ namespace Deveel.Data.DbSystem {
 		/// Returns a <see cref="ILogger"/> object that we can use to log 
 		/// debug messages to.
 		/// </summary>
-		protected internal virtual Logger Logger {
+		protected internal virtual ILogger Logger {
 			get { return Context.Logger; }
 		}
 

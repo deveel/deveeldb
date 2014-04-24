@@ -80,7 +80,7 @@ namespace Deveel.Data.Transactions {
 		/// <summary>
 		/// Returns the <see cref="ILogger"/> object used to log debug messages.
 		/// </summary>
-		public Logger Logger {
+		public ILogger Logger {
 			get { return context.Logger; }
 		}
 

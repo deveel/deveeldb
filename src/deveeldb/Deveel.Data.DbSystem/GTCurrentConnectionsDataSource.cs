@@ -72,12 +72,12 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <returns></returns>
 		public GTCurrentConnectionsDataSource Init() {
-			UserManager userManager = database.Database.UserManager;
+			LoggedUsers loggedUsers = database.Database.LoggedUsers;
 
 			// Synchronize over the user manager while we inspect the information,
-			lock (userManager) {
-				for (int i = 0; i < userManager.UserCount; ++i) {
-					User user = userManager[i];
+			lock (loggedUsers) {
+				for (int i = 0; i < loggedUsers.UserCount; ++i) {
+					User user = loggedUsers[i];
 					CurrentConnection currentConnection = new CurrentConnection();
 					currentConnection.UserName = user.UserName;
 					currentConnection.Host = user.ConnectionString;

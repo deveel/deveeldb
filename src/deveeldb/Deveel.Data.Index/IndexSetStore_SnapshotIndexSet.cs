@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Diagnostics;
+
 namespace Deveel.Data.Index {
 	sealed partial class IndexSetStore {
 		/// <summary>

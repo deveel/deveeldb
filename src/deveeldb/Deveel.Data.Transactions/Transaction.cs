@@ -21,6 +21,7 @@ using Deveel.Data.Index;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
 using Deveel.Data.Types;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Transactions {
 	/// <summary>

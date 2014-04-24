@@ -23,6 +23,7 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Routines {
 	///<summary>

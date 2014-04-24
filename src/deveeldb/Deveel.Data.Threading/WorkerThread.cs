@@ -18,6 +18,7 @@ using System.Threading;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Threading {
 	/// <summary>

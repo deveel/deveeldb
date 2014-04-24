@@ -24,6 +24,7 @@ using Deveel.Data.Control;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Threading;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.DbSystem {
 	/// <summary>
@@ -64,9 +65,9 @@ namespace Deveel.Data.DbSystem {
 		private StatementCache statementCache;
 
 		/// <summary>
-		/// The UserManager object that handles users connected to the database engine.
+		/// The LoggedUsers object that handles users connected to the database engine.
 		/// </summary>
-		private UserManager userManager;
+		private LoggedUsers loggedUsers;
 
 		/// <summary>
 		/// The WorkerPool object that manages access to the database(s) in the system.
@@ -101,7 +102,7 @@ namespace Deveel.Data.DbSystem {
 
 
 		/// <summary>
-		/// Returns the <see cref="UserManager"/> object that handles 
+		/// Returns the <see cref="LoggedUsers"/> object that handles 
 		/// users that are connected to the database.
 		/// </summary>
 		/// <remarks>
@@ -109,8 +110,8 @@ namespace Deveel.Data.DbSystem {
 		/// by the engine.  It allows us to perform queries to see who's
 		/// connected, and any inter-user communication (triggers).
 		/// </remarks>
-		public UserManager UserManager {
-			get { return userManager; }
+		public LoggedUsers LoggedUsers {
+			get { return loggedUsers; }
 		}
 
 		/// <summary>
@@ -128,7 +129,7 @@ namespace Deveel.Data.DbSystem {
 			databaseList = new List<Database>();
 
 			// Create the user manager.
-			userManager = new UserManager();
+			loggedUsers = new LoggedUsers();
 
 			if (config != null) {
 				// Set up the statement cache.
@@ -161,7 +162,7 @@ namespace Deveel.Data.DbSystem {
 			if (disposing) {
 				workerPool = null;
 				databaseList = null;
-				userManager = null;
+				loggedUsers = null;
 			}
 
 			base.Dispose(disposing);

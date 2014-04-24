@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
+using Deveel.Diagnostics;
+
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// This is the database system dispatcher thread.

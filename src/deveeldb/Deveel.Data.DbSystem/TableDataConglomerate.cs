@@ -155,7 +155,7 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		public string Name { get; private set; }
 
-		internal Logger Logger {
+		internal ILogger Logger {
 			get { return Context.Logger; }
 		}
 

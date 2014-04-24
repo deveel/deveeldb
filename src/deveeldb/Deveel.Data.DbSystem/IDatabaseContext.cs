@@ -4,7 +4,7 @@ using Deveel.Data.Security;
 
 namespace Deveel.Data.DbSystem {
 	public interface IDatabaseContext : ISystemContext {
-		UserManager UserManager { get; }
+		LoggedUsers LoggedUsers { get; }
 
 
 		IDatabase GetDatabase(string name);

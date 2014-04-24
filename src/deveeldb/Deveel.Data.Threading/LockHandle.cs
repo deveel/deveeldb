@@ -44,7 +44,7 @@ namespace Deveel.Data.Threading {
 		/// </summary>
 		private bool unlocked;
 
-		private readonly Logger logger;
+		private readonly ILogger logger;
 
 		/// <summary>
 		/// 
@@ -52,7 +52,7 @@ namespace Deveel.Data.Threading {
 		/// <param name="lockCount">The number of locks that will be write into
 		/// this handle.</param>
 		/// <param name="logger"></param>
-		internal LockHandle(int lockCount, Logger logger) {
+		internal LockHandle(int lockCount, ILogger logger) {
 			lockList = new Lock[lockCount];
 			lockIndex = 0;
 			unlocked = false;

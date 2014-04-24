@@ -40,8 +40,7 @@ namespace Deveel.Data.DbSystem {
 		///  Creates all the system views.
 		/// </summary>
 		/// <param name="connection"></param>
-		/// <param name="logger"></param>
-		internal static void CreateSystemViews(DatabaseConnection connection, Logger logger) {
+		internal static void CreateSystemViews(DatabaseConnection connection) {
 			// Obtain the data interface.
 			try {
 				IDbConnection dbConn = connection.GetDbConnection();
@@ -291,9 +290,9 @@ namespace Deveel.Data.DbSystem {
 			} catch (DataException e) {
 				if (e is DbDataException) {
 					DbDataException dbDataException = (DbDataException)e;
-					logger.Error(connection, dbDataException.ServerErrorStackTrace);
+					connection.Logger.Error(connection, dbDataException.ServerErrorStackTrace);
 				}
-				logger.Error(connection, e);
+				connection.Logger.Error(connection, e);
 				throw new Exception("SQL Error: " + e.Message);
 			}
 		}

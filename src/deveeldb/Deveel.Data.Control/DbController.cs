@@ -56,7 +56,7 @@ namespace Deveel.Data.Control {
 
 		private readonly Hashtable databases;
 		private readonly IDbConfig configContext;
-		private Logger logger;
+		private ILogger logger;
 
 		/// <summary>
 		/// The default name of a database configuration file.
@@ -97,7 +97,7 @@ namespace Deveel.Data.Control {
 			}
 		}
 
-		public Logger Logger {
+		public ILogger Logger {
 			get { return logger; }
 		}
 

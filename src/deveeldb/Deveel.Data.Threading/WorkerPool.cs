@@ -77,7 +77,7 @@ namespace Deveel.Data.Threading {
 
 		// ---------- Thread Pooling methods ----------
 
-		internal Logger Logger {
+		internal ILogger Logger {
 			get { return context.Logger; }
 		}
 

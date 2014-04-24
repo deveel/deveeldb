@@ -95,12 +95,12 @@ namespace Deveel.Data.Threading {
 		/// </summary>
 		private int sharedMode;
 
-		private readonly Logger logger;
+		private readonly ILogger logger;
 
 		/// <summary>
 		/// 
 		/// </summary>
-		internal LockingMechanism(Logger logger) {
+		internal LockingMechanism(ILogger logger) {
 			this.logger = logger;
 		}
 

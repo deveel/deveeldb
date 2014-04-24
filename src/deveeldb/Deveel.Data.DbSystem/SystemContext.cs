@@ -154,7 +154,7 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// This property must always return a debug logger that we can log to.
 		/// </remarks>
-		public Logger Logger { get; private set; }
+		public ILogger Logger { get; private set; }
 
 		ILogger ISystemContext.Logger {
 			get { return Logger; }
@@ -255,10 +255,8 @@ namespace Deveel.Data {
 			if (loggerType == null)
 				loggerType = typeof (DefaultLogger);
 
-			var wrappedLogger = (ILogger) Activator.CreateInstance(loggerType, true);
-			wrappedLogger.Init(Config);
-
-			Logger = new Logger(wrappedLogger);
+			Logger = (ILogger) Activator.CreateInstance(loggerType, true);
+			Logger.Init(Config);
 		}
 
 		/// <summary>
