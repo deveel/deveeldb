@@ -50,7 +50,7 @@ namespace Deveel.Data.DbSystem {
 			get { return parent.RoutineResolver; }
 		}
 
-		public override SystemContext Context {
+		public override ISystemContext Context {
 			get { return parent.Context; }
 		}
 

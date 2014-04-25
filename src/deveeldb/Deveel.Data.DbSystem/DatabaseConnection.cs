@@ -129,7 +129,7 @@ namespace Deveel.Data.DbSystem {
 		/// If none transaction was already open, it opens a new one
 		/// with the underlying conglomerate.
 		/// </remarks>
-		private Transaction Transaction {
+		private ITransaction Transaction {
 			get {
 				lock (this) {
 					if (transaction == null) {
@@ -155,6 +155,16 @@ namespace Deveel.Data.DbSystem {
 					}
 				}
 				return transaction;
+			}
+		}
+
+		private ICommitableTransaction CommittableTransaction {
+			get {
+				var committable = Transaction as ICommitableTransaction;
+				if (committable == null)
+					throw new InvalidOperationException("A transaction was not open or it's not commitable.");
+
+				return committable;
 			}
 		}
 
@@ -325,7 +335,7 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <param name="tableName"></param>
 		internal void DatabaseObjectCreated(TableName tableName) {
-			Transaction.OnDatabaseObjectCreated(tableName);
+			CommittableTransaction.OnDatabaseObjectCreated(tableName);
 		}
 
 		/// <summary>
@@ -334,7 +344,7 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <param name="tableName"></param>
 		internal void DatabaseObjectDropped(TableName tableName) {
-			Transaction.OnDatabaseObjectDropped(tableName);
+			CommittableTransaction.OnDatabaseObjectDropped(tableName);
 		}
 
 		/// <summary>
@@ -618,11 +628,11 @@ namespace Deveel.Data.DbSystem {
 
 		static DatabaseConnection() {
 			InternalInfoList = new DataTableInfo[5];
-			InternalInfoList[0] = GTStatisticsDataSource.DataTableInfo;
-			InternalInfoList[1] = GTConnectionInfoDataSource.DataTableInfo;
-			InternalInfoList[2] = GTCurrentConnectionsDataSource.DataTableInfo;
-			InternalInfoList[3] = GTSQLTypeInfoDataSource.DataTableInfo;
-			InternalInfoList[4] = GTPrivMapDataSource.DataTableInfo;
+			InternalInfoList[0] = SystemSchema.StatisticsTableInfo;
+			InternalInfoList[1] = SystemSchema.ConnectionInfoTableInfo;
+			InternalInfoList[2] = SystemSchema.CurrentConnectionsTableInfo;
+			InternalInfoList[3] = SystemSchema.SqlTypesTableInfo;
+			InternalInfoList[4] = SystemSchema.PrivilegesTableInfo;
 		}
 
 		private class TableQueryInfo : ITableQueryInfo {
@@ -661,15 +671,15 @@ namespace Deveel.Data.DbSystem {
 
 			public override ITableDataSource CreateInternalTable(int index) {
 				if (index == 0)
-					return new GTStatisticsDataSource(conn).Init();
+					return SystemSchema.GetStatisticsTable(conn);
 				if (index == 1)
-					return new GTConnectionInfoDataSource(conn).Init();
+					return SystemSchema.GetConnectionInfoTable(conn);
 				if (index == 2)
-					return new GTCurrentConnectionsDataSource(conn).Init();
+					return SystemSchema.GetCurrentConnectionsTable(conn);
 				if (index == 3)
-					return new GTSQLTypeInfoDataSource(conn).Init();
+					return SystemSchema.GetSqlTypesTable(conn);
 				if (index == 4)
-					return new GTPrivMapDataSource(conn);
+					return SystemSchema.GetPrivilegesTable(conn);
 				throw new Exception();
 			}
 

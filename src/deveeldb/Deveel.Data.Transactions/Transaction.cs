@@ -40,7 +40,7 @@ namespace Deveel.Data.Transactions {
 	/// master data.
 	/// </para>
 	/// </remarks>
-	internal partial class Transaction : SimpleTransaction, IDisposable, ICursorContext {
+	internal partial class Transaction : SimpleTransaction, ICommitableTransaction, ICursorContext {
 
 		// ---------- Member variables ----------
 
@@ -61,8 +61,6 @@ namespace Deveel.Data.Transactions {
 		/// transaction: when committed or rolledback they will be disposed.
 		/// </summary>
 		private readonly ArrayList temporary_tables;
-
-		private Hashtable cursors;
 
 		/// <summary>
 		/// True if this transaction is closed.
@@ -85,8 +83,6 @@ namespace Deveel.Data.Transactions {
 			temporary_tables = new ArrayList();
 			Journal = new TransactionJournal();
 
-			cursors = new Hashtable();
-
 			// Set up all the visible tables
 			int sz = visibleTables.Count;
 			for (int i = 0; i < sz; ++i) {
@@ -104,10 +100,6 @@ namespace Deveel.Data.Transactions {
 			// Defaults to true (should be changed by called 'setErrorOnDirtySelect'
 			// method.
 			TransactionErrorOnDirtySelect = true;
-		}
-
-		~Transaction() {
-			Dispose(false);
 		}
 
 		/// <summary>
@@ -228,44 +220,11 @@ namespace Deveel.Data.Transactions {
 		internal bool TransactionErrorOnDirtySelect { get; set; }
 
 		/// <summary>
-		/// Convenience, given a <see cref="SimpleTableQuery"/> object this 
-		/// will return a list of column names in sequence that represent the 
-		/// columns in a group constraint.
-		/// </summary>
-		/// <param name="dt"></param>
-		/// <param name="cols">The unsorted list of indexes in the table that 
-		/// represent the group.</param>
-		/// <remarks>
-		/// Assumes column 2 of dt is the sequence number and column 1 is the name
-		/// of the column.
-		/// </remarks>
-		/// <returns></returns>
-		private static String[] ToColumns(SimpleTableQuery dt, IList<int> cols) {
-			int size = cols.Count;
-			String[] list = new String[size];
-
-			// for each n of the output list
-			for (int n = 0; n < size; ++n) {
-				// for each i of the input list
-				for (int i = 0; i < size; ++i) {
-					int rowIndex = cols[i];
-					int seqNo = ((BigNumber)dt.Get(2, rowIndex).Object).ToInt32();
-					if (seqNo == n) {
-						list[n] = dt.Get(1, rowIndex).Object.ToString();
-						break;
-					}
-				}
-			}
-
-			return list;
-		}
-
-		/// <summary>
 		/// Notifies this transaction that a database object with the given 
 		/// name has successfully been created.
 		/// </summary>
 		/// <param name="tableName"></param>
-		internal void OnDatabaseObjectCreated(TableName tableName) {
+		public void OnDatabaseObjectCreated(TableName tableName) {
 			// If this table name was dropped, then remove from the drop list
 			bool dropped = droppedDatabaseObjects.Contains(tableName);
 			droppedDatabaseObjects.Remove(tableName);
@@ -281,7 +240,7 @@ namespace Deveel.Data.Transactions {
 		/// name has successfully been dropped.
 		/// </summary>
 		/// <param name="tableName"></param>
-		internal void OnDatabaseObjectDropped(TableName tableName) {
+		public void OnDatabaseObjectDropped(TableName tableName) {
 			// If this table name was created, then remove from the create list
 			bool created = createdDatabaseObjects.Contains(tableName);
 			createdDatabaseObjects.Remove(tableName);
@@ -309,38 +268,13 @@ namespace Deveel.Data.Transactions {
 		}
 
 		/// <summary>
-		/// Sets a persistent variable of the database that becomes a committed
-		/// change once this transaction is committed.
+		/// Verifies whether a sequence generator for the given
+		/// name exists.
 		/// </summary>
-		/// <param name="variable"></param>
-		/// <param name="value"></param>
-		/// <remarks>
-		/// The variable can later be retrieved with a call to the 
-		/// <see cref="GetPersistantVariable"/> method.  A persistant var is created 
-		/// if it doesn't exist in the DatabaseVars table otherwise it is 
-		/// overwritten.
-		/// </remarks>
-		public void SetPersistentVariable(string variable, string value) {
-			TableName tableName = SystemSchema.PersistentVarTable;
-			ITableDataSource t = GetTable(tableName);
-			var dt = new SimpleTableQuery(t);
-			dt.SetVariable(0, new Object[] { variable, value });
-			dt.Dispose();
-		}
-
-		/// <summary>
-		/// Returns the value of the persistent variable with the given name 
-		/// or null if it doesn't exist.
-		/// </summary>
-		/// <param name="variable"></param>
+		/// <param name="name"></param>
 		/// <returns></returns>
-		public String GetPersistantVariable(String variable) {
-			TableName tableName = SystemSchema.PersistentVarTable;
-			ITableDataSource t = GetTable(tableName);
-			var dt = new SimpleTableQuery(t);
-			String val = dt.GetVariable(1, 0, variable).ToString();
-			dt.Dispose();
-			return val;
+		public bool  SequenceGeneratorExists(TableName name) {
+			return SequenceManager.SequenceGeneratorExists(this, name);
 		}
 
 		/// <summary>
@@ -366,16 +300,6 @@ namespace Deveel.Data.Transactions {
 		}
 
 		/// <summary>
-		/// Verifies whether a sequence generator for the given
-		/// name exists.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public bool  SequenceGeneratorExists(TableName name) {
-			return SequenceManager.SequenceGeneratorExists(this, name);
-		}
-
-		/// <summary>
 		/// Drops an existing sequence generator with the given name.
 		/// </summary>
 		/// <param name="name"></param>
@@ -386,6 +310,43 @@ namespace Deveel.Data.Transactions {
 
 			// Notify that this database object has been dropped
 			OnDatabaseObjectDropped(name);
+		}
+
+		// ---------- Cursor management ----------
+
+		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
+			if (cursors.ContainsKey(name))
+				throw new ArgumentException("The cursor '" + name + "' was already defined within this transaction.");
+
+			return new Cursor(this, name, queryPlan, attributes);
+		}
+
+		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {
+			return DeclareCursor(name, queryPlan, CursorAttributes.ReadOnly);
+		}
+
+		public void DropCursor(TableName name) {
+			if (name == null)
+				throw new ArgumentNullException("name");
+
+			Cursor cursor = cursors[name] as Cursor;
+			if (cursor == null)
+				throw new ArgumentException("Cursor '" + name + "' was not declared.");
+
+			cursor.InternalDispose();
+			cursors.Remove(name);
+
+			OnDatabaseObjectDropped(name);
+		}
+
+		void ICursorContext.OnCursorCreated(Cursor cursor) {
+			cursors[cursor.Name] = cursor;
+
+			OnDatabaseObjectCreated(cursor.Name);
+		}
+
+		void ICursorContext.OnCursorDisposing(Cursor cursor) {
+			DropCursor(cursor.Name);
 		}
 
 		// ----- Transaction close operations -----
@@ -496,76 +457,6 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		// ---------- Cursor management ----------
-
-		void ICursorContext.OnCursorCreated(Cursor cursor) {
-			cursors[cursor.Name] = cursor;
-
-			OnDatabaseObjectCreated(cursor.Name);
-		}
-
-		void ICursorContext.OnCursorDisposing(Cursor cursor) {
-			RemoveCursor(cursor.Name);
-		}
-
-		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
-			if (cursors.ContainsKey(name))
-				throw new ArgumentException("The cursor '" + name + "' was already defined within this transaction.");
-
-			return new Cursor(this, name, queryPlan, attributes);
-		}
-
-		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {
-			return DeclareCursor(name, queryPlan, CursorAttributes.ReadOnly);
-		}
-
-		public Cursor GetCursor(TableName name) {
-			if (name == null)
-				throw new ArgumentNullException("name");
-
-			Cursor cursor = cursors[name] as Cursor;
-			if (cursor == null)
-				throw new ArgumentException("Cursor '" + name + "' was not declared.");
-
-			if (cursor.State == CursorState.Broken)
-				throw new InvalidOperationException("The state of the cursor is invalid.");
-
-			return cursor;
-		}
-
-		public void RemoveCursor(TableName name) {
-			if (name == null)
-				throw new ArgumentNullException("name");
-
-			Cursor cursor = cursors[name] as Cursor;
-			if (cursor == null)
-				throw new ArgumentException("Cursor '" + name + "' was not declared.");
-
-			cursor.InternalDispose();
-			cursors.Remove(name);
-
-			OnDatabaseObjectDropped(name);
-		}
-
-		public bool CursorExists(TableName name) {
-			return cursors.ContainsKey(name);
-		}
-
-		protected void ClearCursors() {
-			ArrayList cursorsList = new ArrayList(cursors.Values);
-			for (int i = cursorsList.Count - 1; i >= 0; i--) {
-				Cursor cursor = cursorsList[i] as Cursor;
-				if (cursor == null)
-					continue;
-
-				cursor.Dispose();
-			}
-
-			cursors.Clear();
-			cursors = null;
-		}
-
-
 		// ---------- Transaction inner classes ----------
 
 		/// <summary>
@@ -576,10 +467,10 @@ namespace Deveel.Data.Transactions {
 
 		static Transaction() {
 			InternalInfoList = new DataTableInfo[4];
-			InternalInfoList[0] = GTTableColumnsDataSource.DataTableInfo;
-			InternalInfoList[1] = GTTableInfoDataSource.DataTableInfo;
-			InternalInfoList[2] = GTProductDataSource.DataTableInfo;
-			InternalInfoList[3] = GTVariablesDataSource.DataTableInfo;
+			InternalInfoList[0] = SystemSchema.TableColumnsTableInfo;
+			InternalInfoList[1] = SystemSchema.TableInfoTableInfo;
+			InternalInfoList[2] = SystemSchema.ProductInfoTableInfo;
+			InternalInfoList[3] = SystemSchema.VariablesTableInfo;
 		}
 
 		/// <summary>
@@ -601,35 +492,28 @@ namespace Deveel.Data.Transactions {
 
 			public override ITableDataSource CreateInternalTable(int index) {
 				if (index == 0)
-					return new GTTableColumnsDataSource(transaction).Init();
+					return SystemSchema.GetTableColumnsTable(transaction);
 				if (index == 1)
-					return new GTTableInfoDataSource(transaction).Init();
+					return SystemSchema.GetTableInfoTable(transaction);
 				if (index == 2)
-					return new GTProductDataSource(transaction).Init();
+					return SystemSchema.GetProductInfoTable(transaction);
 				if (index == 3)
-					return new GTVariablesDataSource(transaction).Init();
+					return SystemSchema.GetVariablesTable(transaction);
 				
 				throw new Exception();
 			}
 
 		}
 
-		#region Implementation of IDisposable
-
-		protected virtual void Dispose(bool disposing) {
+		protected override void Dispose(bool disposing) {
 			if (disposing) {
 				if (!closed) {
 					Logger.Error(this, "Transaction not closed!");
 					Rollback();
 				}				
 			}
-		}
 
-		void IDisposable.Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
+			base.Dispose(disposing);
 		}
-
-		#endregion
 	}
 }

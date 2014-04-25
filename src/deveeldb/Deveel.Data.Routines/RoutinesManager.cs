@@ -591,7 +591,7 @@ namespace Deveel.Data.Routines {
 				internal TObject ParamTypes;
 				internal TObject Owner;
 
-				public RoutineDataSource(SystemContext context, DataTableInfo tableInfo)
+				public RoutineDataSource(ISystemContext context, DataTableInfo tableInfo)
 					: base(context) {
 					this.tableInfo = tableInfo;
 				}

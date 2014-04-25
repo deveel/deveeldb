@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,13 +15,128 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 using Deveel.Data.DbSystem;
-using Deveel.Diagnostics;
 
 namespace Deveel.Data.Transactions {
-	internal partial class Transaction {
-		// ----- Setting/Querying constraint information -----
+	public static class CommittableTransactionExtensions {
+		/// <summary>
+		/// Create a new schema in this transaction.
+		/// </summary>
+		/// <param name="name">The name of the schema to create.</param>
+		/// <param name="type">The type to assign to the schema.</param>
+		/// <remarks>
+		/// When the transaction is committed the schema will become globally 
+		/// accessable.
+		/// <para>
+		/// Any security checks must be performed before this method is called.
+		/// </para>
+		/// <para>
+		/// <b>Note</b>: We must guarentee that the transaction be in exclusive 
+		/// mode before this method is called.
+		/// </para>
+		/// </remarks>
+		/// <exception cref="StatementException">
+		/// If a schema with the same <paramref name="name"/> already exists.
+		/// </exception>
+		public static void CreateSchema(this ICommitableTransaction transaction, string name, string type) {
+			TableName tableName = SystemSchema.SchemaInfoTable;
+			IMutableTableDataSource t = transaction.GetMutableTable(tableName);
+			SimpleTableQuery dt = new SimpleTableQuery(t);
+
+			try {
+				// Select entries where;
+				//     schema_info.name = name
+				if (dt.Exists(1, name))
+					throw new StatementException("Schema already exists: " + name);
+
+				// Add the entry to the schema info table.
+				DataRow rd = new DataRow(t);
+				BigNumber uniqueId = transaction.NextUniqueId(tableName);
+				rd.SetValue(0, uniqueId);
+				rd.SetValue(1, name);
+				rd.SetValue(2, type);
+				// Third (other) column is left as null
+				t.AddRow(rd);
+			} finally {
+				dt.Dispose();
+			}
+		}
+
+		/// <summary>
+		/// Drops a new schema in this transaction.
+		/// </summary>
+		/// <param name="name">The name of the schema to drop.</param>
+		/// <remarks>
+		/// When the transaction is committed the schema will become globally 
+		/// accessable.
+		/// <para>
+		/// Note that any security checks must be performed before this method 
+		/// is called.
+		/// </para>
+		/// <para>
+		/// <b>Note</b> We must guarentee that the transaction be in exclusive 
+		/// mode before this method is called.
+		/// </para>
+		/// </remarks>
+		public static void DropSchema(this ICommitableTransaction transaction, string name) {
+			TableName tableName = SystemSchema.SchemaInfoTable;
+			IMutableTableDataSource t = transaction.GetMutableTable(tableName);
+			SimpleTableQuery dt = new SimpleTableQuery(t);
+
+			// Drop a single entry from dt where column 1 = name
+			try {
+				if (!dt.Delete(1, name))
+					throw new StatementException("Schema doesn't exists: " + name);
+			} finally {
+				dt.Dispose();
+			}
+		}
+
+		/// <summary>
+		/// Creates a new table within this transaction with the given sector 
+		/// size.
+		/// </summary>
+		/// <param name="tableInfo"></param>
+		/// <remarks>
+		/// This should only be called under an exclusive lock on the connection.
+		/// </remarks>
+		/// <exception cref="StatementException">
+		/// If the table already exists.
+		/// </exception>
+		public static void CreateTable(this ICommitableTransaction transaction, DataTableInfo tableInfo) {
+			// data sector size defaults to 251
+			// index sector size defaults to 1024
+			transaction.CreateTable(tableInfo, 251, 1024);
+		}
+
+		/// <summary>
+		/// Alters the table with the given name within this transaction to the
+		/// specified table definition.
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <param name="tableName"></param>
+		/// <param name="tableInfo"></param>
+		/// <remarks>
+		/// This should only be called under an exclusive lock on the connection.
+		/// </remarks>
+		/// <exception cref="StatementException">
+		/// If the table does not exist.
+		/// </exception>
+		public static void AlterTable(this ICommitableTransaction transaction, TableName tableName, DataTableInfo tableInfo) {
+			// Make sure we remember the current sector size of the altered table so
+			// we can create the new table with the original size.
+			try {
+				// HACK: We use index sector size of 2043 for all altered tables
+				transaction.AlterTable(tableName, tableInfo, -1, 2043);
+
+			} catch (IOException e) {
+				throw new Exception("IO Error: " + e.Message);
+			}
+		}
+
+				// ----- Setting/Querying constraint information -----
 		// PENDING: Is it worth implementing a pluggable constraint architecture
 		//   as described in the idea below.  With the current implementation we
 		//   have tied a DataTableConglomerate to a specific constraint
@@ -49,6 +164,20 @@ namespace Deveel.Data.Transactions {
 			return name ?? ("_ANONYMOUS_CONSTRAINT_" + uniqueId);
 		}
 
+		public static void AddConstraint(this ICommitableTransaction transaction, DataConstraintInfo constraint) {
+			if (constraint.Type == ConstraintType.Check) {
+				transaction.AddCheckConstraint(constraint);
+			} else if (constraint.Type == ConstraintType.ForeignKey) {
+				transaction.AddForeignKeyConstraint(constraint);
+			} else if (constraint.Type == ConstraintType.PrimaryKey) {
+				transaction.AddPrimaryKeyConstraint(constraint);
+			} else if (constraint.Type == ConstraintType.Unique) {
+				transaction.AddPrimaryKeyConstraint(constraint);
+			} else {
+				throw new ArgumentException("Constraint type not supported.");
+			}
+		}
+
 		/// <summary>
 		/// Adds a unique constraint to the database which becomes perminant 
 		/// when the transaction is committed.
@@ -66,17 +195,18 @@ namespace Deveel.Data.Transactions {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddUniqueConstraint(DataConstraintInfo constraint) {
+		public static void AddUniqueConstraint(this ICommitableTransaction transaction, DataConstraintInfo constraint) {
 			if (constraint.Type != ConstraintType.Unique)
 				throw new ArgumentException("The constraint given is not a UNIQUE", "constraint");
 
-			AddUniqueConstraint(constraint.TableName, constraint.Columns, constraint.Deferred, constraint.Name);
+			transaction.AddUniqueConstraint(constraint.TableName, constraint.Columns, constraint.Deferred, constraint.Name);
 		}
 
 		/// <summary>
 		/// Adds a unique constraint to the database which becomes perminant 
 		/// when the transaction is committed.
 		/// </summary>
+		/// <param name="transaction"></param>
 		/// <param name="tableName"></param>
 		/// <param name="columns"></param>
 		/// <param name="deferred"></param>
@@ -93,17 +223,17 @@ namespace Deveel.Data.Transactions {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddUniqueConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
+		public static void AddUniqueConstraint(this ICommitableTransaction transaction, TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			TableName tn1 = SystemSchema.UniqueInfoTable;
 			TableName tn2 = SystemSchema.UniqueColsTable;
-			IMutableTableDataSource t = GetMutableTable(tn1);
-			IMutableTableDataSource tcols = GetMutableTable(tn2);
+			IMutableTableDataSource t = transaction.GetMutableTable(tn1);
+			IMutableTableDataSource tcols = transaction.GetMutableTable(tn2);
 
 			try {
 
 				// Insert a value into UniqueInfoTable
 				DataRow row = new DataRow(t);
-				BigNumber uniqueId = NextUniqueID(tn1);
+				BigNumber uniqueId = transaction.NextUniqueId(tn1);
 				constraintName = MakeUniqueConstraintName(constraintName, uniqueId);
 				row.SetValue(0, uniqueId);
 				row.SetValue(1, constraintName);
@@ -150,11 +280,11 @@ namespace Deveel.Data.Transactions {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddForeignKeyConstraint(DataConstraintInfo constraint) {
+		public static void AddForeignKeyConstraint(this ICommitableTransaction transaction, DataConstraintInfo constraint) {
 			if (constraint.Type != ConstraintType.ForeignKey)
 				throw new ArgumentException("Constraint given is not a FOREIGN KEY", "constraint");
 
-			AddForeignKeyConstraint(constraint.TableName, constraint.Columns, constraint.ReferencedTableName,
+			transaction.AddForeignKeyConstraint(constraint.TableName, constraint.Columns, constraint.ReferencedTableName,
 			                        constraint.ReferencedColumns, constraint.DeleteRule, constraint.UpdateRule,
 			                        constraint.Deferred, constraint.Name);
 		}
@@ -163,6 +293,7 @@ namespace Deveel.Data.Transactions {
 		/// Adds a foreign key constraint to the database which becomes perminent
 		/// when the transaction is committed.
 		/// </summary>
+		/// <param name="transaction"></param>
 		/// <param name="table">The key table to link from.</param>
 		/// <param name="columns">The key columns to link from</param>
 		/// <param name="refTable">The referenced table to link to.</param>
@@ -183,19 +314,19 @@ namespace Deveel.Data.Transactions {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddForeignKeyConstraint(TableName table, string[] columns, 
+		public static void AddForeignKeyConstraint(this ICommitableTransaction transaction, TableName table, string[] columns, 
 			TableName refTable, string[] refColumns, 
 			ConstraintAction deleteRule, ConstraintAction updateRule, ConstraintDeferrability deferred, String constraintName) {
 			TableName tn1 = SystemSchema.ForeignInfoTable;
 			TableName tn2 = SystemSchema.ForeignColsTable;
-			IMutableTableDataSource t = GetMutableTable(tn1);
-			IMutableTableDataSource tcols = GetMutableTable(tn2);
+			IMutableTableDataSource t = transaction.GetMutableTable(tn1);
+			IMutableTableDataSource tcols = transaction.GetMutableTable(tn2);
 
 			try {
 				// If 'ref_columns' empty then set to primary key for referenced table,
 				// ISSUE: What if primary key changes after the fact?
 				if (refColumns.Length == 0) {
-					DataConstraintInfo set = QueryTablePrimaryKey(this, refTable);
+					DataConstraintInfo set = transaction.QueryTablePrimaryKey(refTable);
 					if (set == null)
 						throw new StatementException("No primary key defined for referenced table '" + refTable + "'");
 
@@ -212,7 +343,7 @@ namespace Deveel.Data.Transactions {
 				// columns are not constrained as 'NOT NULL'
 				if (deleteRule == ConstraintAction.SetNull ||
 					updateRule == ConstraintAction.SetNull) {
-					DataTableInfo tableInfo = GetTableInfo(table);
+					DataTableInfo tableInfo = transaction.GetTableInfo(table);
 					for (int i = 0; i < columns.Length; ++i) {
 						DataColumnInfo columnInfo = tableInfo[tableInfo.FindColumnName(columns[i])];
 						if (columnInfo.IsNotNull) {
@@ -226,7 +357,7 @@ namespace Deveel.Data.Transactions {
 
 				// Insert a value into ForeignInfoTable
 				DataRow row = new DataRow(t);
-				BigNumber uniqueId = NextUniqueID(tn1);
+				BigNumber uniqueId = transaction.NextUniqueId(tn1);
 				constraintName = MakeUniqueConstraintName(constraintName, uniqueId);
 				row.SetValue(0, uniqueId);
 				row.SetValue(1, constraintName);
@@ -265,6 +396,7 @@ namespace Deveel.Data.Transactions {
 		/// Adds a primary key constraint that becomes perminent when the 
 		/// transaction is committed.
 		/// </summary>
+		/// <param name="transaction"></param>
 		/// <param name="constraint">The primary key constraint to add.</param>
 		/// <remarks>
 		/// A primary key represents a set of columns in a table that are 
@@ -280,11 +412,11 @@ namespace Deveel.Data.Transactions {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddPrimaryKeyConstraint(DataConstraintInfo constraint) {
+		public static void AddPrimaryKeyConstraint(this ICommitableTransaction transaction, DataConstraintInfo constraint) {
 			if (constraint.Type != ConstraintType.PrimaryKey)
 				throw new ArgumentException("The constraint given is not a PRIMARY KEY.", "constraint");
 
-			AddPrimaryKeyConstraint(constraint.TableName, constraint.Columns, constraint.Deferred, constraint.Name);
+			transaction.AddPrimaryKeyConstraint(constraint.TableName, constraint.Columns, constraint.Deferred, constraint.Name);
 		}
 
 		/// <summary>
@@ -309,16 +441,16 @@ namespace Deveel.Data.Transactions {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddPrimaryKeyConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
+		public static void AddPrimaryKeyConstraint(this ICommitableTransaction transaction, TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			TableName tn1 = SystemSchema.PrimaryInfoTable;
 			TableName tn2 = SystemSchema.PrimaryColsTable;
-			IMutableTableDataSource t = GetMutableTable(tn1);
-			IMutableTableDataSource tcols = GetMutableTable(tn2);
+			IMutableTableDataSource t = transaction.GetMutableTable(tn1);
+			IMutableTableDataSource tcols = transaction.GetMutableTable(tn2);
 
 			try {
 				// Insert a value into PrimaryInfoTable
 				DataRow row = new DataRow(t);
-				BigNumber uniqueId = NextUniqueID(tn1);
+				BigNumber uniqueId = transaction.NextUniqueId(tn1);
 				constraintName = MakeUniqueConstraintName(constraintName, uniqueId);
 				row.SetValue(0, uniqueId);
 				row.SetValue(1, constraintName);
@@ -354,6 +486,7 @@ namespace Deveel.Data.Transactions {
 		/// Adds a check expression that becomes perminent when the transaction
 		/// is committed.
 		/// </summary>
+		/// <param name="transaction"></param>
 		/// <param name="constraint">The check constraint to add.</param>
 		/// <remarks>
 		/// A check expression is an expression that must evaluate to true 
@@ -367,17 +500,18 @@ namespace Deveel.Data.Transactions {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddCheckConstraint(DataConstraintInfo constraint) {
+		public static void AddCheckConstraint(this ICommitableTransaction transaction, DataConstraintInfo constraint) {
 			if (constraint.Type != ConstraintType.Check)
 				throw new ArgumentException("The constraint given is not a CHECK.", "constraint");
 
-			AddCheckConstraint(constraint.TableName, constraint.CheckExpression, constraint.Deferred, constraint.Name);
+			transaction.AddCheckConstraint(constraint.TableName, constraint.CheckExpression, constraint.Deferred, constraint.Name);
 		}
 
 		/// <summary>
 		/// Adds a check expression that becomes perminent when the transaction
 		/// is committed.
 		/// </summary>
+		/// <param name="transaction"></param>
 		/// <param name="tableName"></param>
 		/// <param name="expression"></param>
 		/// <param name="deferred"></param>
@@ -394,14 +528,14 @@ namespace Deveel.Data.Transactions {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, string constraintName) {
+		public static void AddCheckConstraint(this ICommitableTransaction transaction, TableName tableName, Expression expression, ConstraintDeferrability deferred, string constraintName) {
 			TableName tn = SystemSchema.CheckInfoTable;
-			IMutableTableDataSource t = GetMutableTable(tn);
+			IMutableTableDataSource t = transaction.GetMutableTable(tn);
 			int colCount = t.TableInfo.ColumnCount;
 
 			try {
 				// Insert check constraint data.
-				BigNumber uniqueId = NextUniqueID(tn);
+				BigNumber uniqueId = transaction.NextUniqueId(tn);
 				constraintName = MakeUniqueConstraintName(constraintName, uniqueId);
 				DataRow rd = new DataRow(t);
 				rd.SetValue(0, uniqueId);
@@ -443,28 +577,29 @@ namespace Deveel.Data.Transactions {
 		/// mode before this method is called.
 		/// </para>
 		/// </remarks>
-		public void DropAllConstraintsForTable(TableName tableName) {
-			DataConstraintInfo primary = QueryTablePrimaryKey(this, tableName);
-			DataConstraintInfo[] uniques = QueryTableUniques(this, tableName);
-			DataConstraintInfo[] expressions = QueryTableCheckExpressions(this, tableName);
-			DataConstraintInfo[] refs = QueryTableForeignKeys(this, tableName);
+		public static void DropAllConstraintsForTable(this ICommitableTransaction transaction, TableName tableName) {
+			DataConstraintInfo primary = transaction.QueryTablePrimaryKey(tableName);
+			DataConstraintInfo[] uniques = transaction.QueryTableUniques(tableName);
+			DataConstraintInfo[] expressions = transaction.QueryTableCheckExpressions(tableName);
+			DataConstraintInfo[] refs = transaction.QueryTableForeignKeys(tableName);
 
 			if (primary != null)
-				DropPrimaryKeyConstraintForTable(tableName, primary.Name);
+				transaction.DropPrimaryKeyConstraintForTable(tableName, primary.Name);
 			foreach (DataConstraintInfo unique in uniques) {
-				DropUniqueConstraintForTable(tableName, unique.Name);
+				transaction.DropUniqueConstraintForTable(tableName, unique.Name);
 			}
 			foreach (DataConstraintInfo expression in expressions) {
-				DropCheckConstraintForTable(tableName, expression.Name);
+				transaction.DropCheckConstraintForTable(tableName, expression.Name);
 			}
 			foreach (DataConstraintInfo reference in refs) {
-				DropForeignKeyReferenceConstraintForTable(tableName, reference.Name);
+				transaction.DropForeignKeyReferenceConstraintForTable(tableName, reference.Name);
 			}
 		}
 
 		/// <summary>
 		/// Drops the named constraint from the transaction.
 		/// </summary>
+		/// <param name="transaction"></param>
 		/// <param name="tableName"></param>
 		/// <param name="constraintName"></param>
 		/// <remarks>
@@ -484,19 +619,18 @@ namespace Deveel.Data.Transactions {
 		/// <returns>
 		/// Returns the actual count of dropped constraints.
 		/// </returns>
-		public int DropNamedConstraint(TableName tableName, string constraintName) {
+		public static int DropNamedConstraint(this ICommitableTransaction transaction, TableName tableName, string constraintName) {
 			int dropCount = 0;
-			if (DropPrimaryKeyConstraintForTable(tableName, constraintName)) {
+			if (transaction.DropPrimaryKeyConstraintForTable(tableName, constraintName)) {
 				++dropCount;
 			}
-			if (DropUniqueConstraintForTable(tableName, constraintName)) {
+			if (transaction.DropUniqueConstraintForTable(tableName, constraintName)) {
 				++dropCount;
 			}
-			if (DropCheckConstraintForTable(tableName, constraintName)) {
+			if (transaction.DropCheckConstraintForTable(tableName, constraintName)) {
 				++dropCount;
 			}
-			if (DropForeignKeyReferenceConstraintForTable(tableName,
-														  constraintName)) {
+			if (transaction.DropForeignKeyReferenceConstraintForTable(tableName, constraintName)) {
 				++dropCount;
 			}
 			return dropCount;
@@ -523,9 +657,9 @@ namespace Deveel.Data.Transactions {
 		/// Returns true if the primary key constraint was dropped (the 
 		/// constraint existed), otherwise false.
 		/// </returns>
-		public bool DropPrimaryKeyConstraintForTable(TableName tableName, string constraintName) {
-			IMutableTableDataSource t = GetMutableTable(SystemSchema.PrimaryInfoTable);
-			IMutableTableDataSource t2 = GetMutableTable(SystemSchema.PrimaryColsTable);
+		public static bool DropPrimaryKeyConstraintForTable(this ICommitableTransaction transaction, TableName tableName, string constraintName) {
+			IMutableTableDataSource t = transaction.GetMutableTable(SystemSchema.PrimaryInfoTable);
+			IMutableTableDataSource t2 = transaction.GetMutableTable(SystemSchema.PrimaryColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -581,9 +715,9 @@ namespace Deveel.Data.Transactions {
 		/// Returns true if the unique constraint was dropped (the constraint 
 		/// existed), otherwise false.
 		/// </returns>
-		public bool DropUniqueConstraintForTable(TableName table, string constraintName) {
-			IMutableTableDataSource t = GetMutableTable(SystemSchema.UniqueInfoTable);
-			IMutableTableDataSource t2 = GetMutableTable(SystemSchema.UniqueColsTable);
+		public static bool DropUniqueConstraintForTable(this ICommitableTransaction transaction, TableName table, string constraintName) {
+			IMutableTableDataSource t = transaction.GetMutableTable(SystemSchema.UniqueInfoTable);
+			IMutableTableDataSource t2 = transaction.GetMutableTable(SystemSchema.UniqueColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -617,6 +751,7 @@ namespace Deveel.Data.Transactions {
 		/// <summary>
 		/// Drops a single named check constraint from the given table.
 		/// </summary>
+		/// <param name="transaction"></param>
 		/// <param name="table"></param>
 		/// <param name="constraintName"></param>
 		/// <remarks>
@@ -633,8 +768,8 @@ namespace Deveel.Data.Transactions {
 		/// Returns true if the check constraint was dropped (the constraint 
 		/// existed), otherwise false.
 		/// </returns>
-		public bool DropCheckConstraintForTable(TableName table, string constraintName) {
-			IMutableTableDataSource t = GetMutableTable(SystemSchema.CheckInfoTable);
+		public static bool DropCheckConstraintForTable(this ICommitableTransaction transaction, TableName table, string constraintName) {
+			IMutableTableDataSource t = transaction.GetMutableTable(SystemSchema.CheckInfoTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 
 			try {
@@ -660,6 +795,7 @@ namespace Deveel.Data.Transactions {
 		/// <summary>
 		/// Drops a single named foreign key reference from the given table.
 		/// </summary>
+		/// <param name="transaction"></param>
 		/// <param name="table"></param>
 		/// <param name="constraintName"></param>
 		/// <remarks>
@@ -676,9 +812,9 @@ namespace Deveel.Data.Transactions {
 		/// Returns true if the foreign key reference constraint was dropped 
 		/// (the constraint existed), otherwise false.
 		/// </returns>
-		public bool DropForeignKeyReferenceConstraintForTable(TableName table, string constraintName) {
-			IMutableTableDataSource t = GetMutableTable(SystemSchema.ForeignInfoTable);
-			IMutableTableDataSource t2 = GetMutableTable(SystemSchema.ForeignColsTable);
+		public static bool DropForeignKeyReferenceConstraintForTable(this ICommitableTransaction transaction, TableName table, string constraintName) {
+			IMutableTableDataSource t = transaction.GetMutableTable(SystemSchema.ForeignInfoTable);
+			IMutableTableDataSource t2 = transaction.GetMutableTable(SystemSchema.ForeignColsTable);
 			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
 			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
 
@@ -711,377 +847,23 @@ namespace Deveel.Data.Transactions {
 		}
 
 		/// <summary>
-		/// Returns the list of tables (as a TableName array) that are dependant
-		/// on the data in the given table to maintain referential consistancy.
+		/// Sets a persistent variable of the database that becomes a committed
+		/// change once this transaction is committed.
 		/// </summary>
-		/// <param name="transaction"></param>
-		/// <param name="tableName"></param>
+		/// <param name="variable"></param>
+		/// <param name="value"></param>
 		/// <remarks>
-		/// The list includes the tables referenced as foreign keys, and the 
-		/// tables that reference the table as a foreign key.
-		/// <para>
-		/// This is a useful query for determining ahead of time the tables 
-		/// that require a read lock when inserting/updating a table. A table
-		/// will require a read lock if the operation needs to query it for 
-		/// potential referential integrity violations.
-		/// </para>
+		/// The variable can later be retrieved with a call to the 
+		/// <see cref="GetPersistantVariable"/> method.  A persistant var is created 
+		/// if it doesn't exist in the DatabaseVars table otherwise it is 
+		/// overwritten.
 		/// </remarks>
-		/// <returns></returns>
-		public static TableName[] QueryTablesRelationallyLinkedTo(SimpleTransaction transaction, TableName tableName) {
-			List<TableName> list = new List<TableName>();
-			DataConstraintInfo[] refs = QueryTableForeignKeys(transaction, tableName);
-			foreach (DataConstraintInfo fkeyRef in refs) {
-				TableName tname = fkeyRef.ReferencedTableName;
-				if (!list.Contains(tname))
-					list.Add(tname);
-			}
-
-			refs = QueryTableImportedForeignKeys(transaction, tableName);
-			foreach (DataConstraintInfo fkeyRef in refs) {
-				TableName tname = fkeyRef.TableName;
-				if (!list.Contains(tname))
-					list.Add(tname);
-			}
-
-			return list.ToArray();
+		public static void SetPersistentVariable(this ICommitableTransaction transaction, string variable, string value) {
+			TableName tableName = SystemSchema.PersistentVarTable;
+			ITableDataSource t = transaction.GetMutableTable(tableName);
+			var dt = new SimpleTableQuery(t);
+			dt.SetVariable(0, new Object[] { variable, value });
+			dt.Dispose();
 		}
-
-		/// <summary>
-		/// Returns a set of unique groups that are constrained to be unique 
-		/// for the given table in this transaction.
-		/// </summary>
-		/// <param name="transaction"></param>
-		/// <param name="tableName"></param>
-		/// <remarks>
-		/// For example, if columns ('name') and ('number', 'document_rev') 
-		/// are defined as unique, this will return an array of two groups 
-		/// that represent unique columns in the given table.
-		/// </remarks>
-		/// <returns></returns>
-		public static DataConstraintInfo[] QueryTableUniques(SimpleTransaction transaction, TableName tableName) {
-			ITableDataSource t = transaction.GetTableDataSource(SystemSchema.UniqueInfoTable);
-			ITableDataSource t2 = transaction.GetTableDataSource(SystemSchema.UniqueColsTable);
-			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
-			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
-
-			DataConstraintInfo[] constraints;
-			try {
-				// Returns the list indexes where column 3 = table name
-				//                            and column 2 = schema name
-				IList<int> data = dt.SelectEqual(3, tableName.Name,
-				                                 2, tableName.Schema);
-
-				constraints = new DataConstraintInfo[data.Count];
-
-				for (int i = 0; i < data.Count; ++i) {
-					TObject id = dt.Get(0, data[i]);
-
-					// Select all records with equal id
-					IList<int> cols = dtcols.SelectEqual(0, id);
-
-					string name = dt.Get(1, data[i]).Object.ToString();
-					string[] columns = ToColumns(dtcols, cols);   // the list of columns
-					ConstraintDeferrability deferred = (ConstraintDeferrability)((BigNumber)dt.Get(4, data[i]).Object).ToInt16();
-
-					DataConstraintInfo constraint = DataConstraintInfo.Unique(name, columns);
-					constraint.TableName = tableName;
-					constraint.Deferred = deferred;
-					constraints[i] = constraint;
-				}
-			} finally {
-				dt.Dispose();
-				dtcols.Dispose();
-			}
-
-			return constraints;
-		}
-
-		/// <summary>
-		/// Returns a set of primary key groups that are constrained to be unique
-		/// for the given table in this transaction (there can be only 1 primary
-		/// key defined for a table).
-		/// </summary>
-		/// <param name="transaction"></param>
-		/// <param name="tableName"></param>
-		/// <returns>
-		/// Returns null if there is no primary key defined for the table.
-		/// </returns>
-		public static DataConstraintInfo QueryTablePrimaryKey(SimpleTransaction transaction, TableName tableName) {
-			ITableDataSource t = transaction.GetTableDataSource(SystemSchema.PrimaryInfoTable);
-			ITableDataSource t2 = transaction.GetTableDataSource(SystemSchema.PrimaryColsTable);
-			SimpleTableQuery dt = new SimpleTableQuery(t); // The info table
-			SimpleTableQuery dtcols = new SimpleTableQuery(t2); // The columns
-
-			try {
-				// Returns the list indexes where column 3 = table name
-				//                            and column 2 = schema name
-				IList<int> data = dt.SelectEqual(3, tableName.Name,
-				                                 2, tableName.Schema);
-
-				if (data.Count > 1)
-					throw new ApplicationException("Assertion failed: multiple primary key for: " + tableName);
-
-				if (data.Count == 0)
-					return null;
-
-				int rowIndex = data[0];
-				// The id
-				TObject id = dt.Get(0, rowIndex);
-				// All columns with this id
-				IList<int> list = dtcols.SelectEqual(0, id);
-				// Make it in to a columns object
-				string name = dt.Get(1, rowIndex).Object.ToString();
-				string[] columns = ToColumns(dtcols, list);
-				ConstraintDeferrability deferred = (ConstraintDeferrability) ((BigNumber) dt.Get(4, rowIndex).Object).ToInt16();
-
-				DataConstraintInfo constraint = DataConstraintInfo.PrimaryKey(name, columns);
-				constraint.TableName = tableName;
-				constraint.Deferred = deferred;
-				return constraint;
-
-			} finally {
-				dt.Dispose();
-				dtcols.Dispose();
-			}
-		}
-
-		/// <summary>
-		/// Returns a set of check expressions that are constrained over all 
-		/// new columns added to the given table in this transaction.
-		/// </summary>
-		/// <param name="transaction"></param>
-		/// <param name="tableName"></param>
-		/// <remarks>
-		/// For example, we may want a column called 'serial_number' to be 
-		/// constrained as CHECK serial_number LIKE '___-________-___'.
-		/// </remarks>
-		/// <returns></returns>
-		public static DataConstraintInfo[] QueryTableCheckExpressions(SimpleTransaction transaction, TableName tableName) {
-			ITableDataSource t = transaction.GetTableDataSource(SystemSchema.CheckInfoTable);
-			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
-
-			DataConstraintInfo[] checks;
-			try {
-				// Returns the list indexes where column 3 = table name
-				//                            and column 2 = schema name
-				IList<int> data = dt.SelectEqual(3, tableName.Name,
-				                                    2, tableName.Schema);
-				checks = new DataConstraintInfo[data.Count];
-
-				for (int i = 0; i < checks.Length; ++i) {
-					int row_index = data[i];
-
-					string name = dt.Get(1, row_index).Object.ToString();
-					ConstraintDeferrability deferred = (ConstraintDeferrability)((BigNumber)dt.Get(5, row_index).Object).ToInt16();
-					Expression expression = null;
-
-					// Is the deserialized version available?
-					if (t.TableInfo.ColumnCount > 6) {
-						ByteLongObject sexp = (ByteLongObject)dt.Get(6, row_index).Object;
-						if (sexp != null) {
-							try {
-								// Deserialize the expression
-								expression = (Expression)ObjectTranslator.Deserialize(sexp);
-							} catch (Exception e) {
-								// We weren't able to deserialize the expression so report the
-								// error to the log
-								transaction.Logger.Warning(typeof (Transaction),
-								                           "Unable to deserialize the check expression. The error is: " + e.Message);
-								transaction.Logger.Warning(typeof(Transaction), "Parsing the check expression instead.");
-							}
-						}
-					}
-					// Otherwise we need to parse it from the string
-					if (expression == null) {
-						expression = Expression.Parse(dt.Get(4, row_index).Object.ToString());
-					}
-
-					DataConstraintInfo check = DataConstraintInfo.Check(name, expression);
-					check.TableName = tableName;
-					check.Deferred = deferred;
-					checks[i] = check;
-				}
-
-			} finally {
-				dt.Dispose();
-			}
-
-			return checks;
-		}
-
-		/// <summary>
-		/// Returns an array of column references in the given table that 
-		/// represent foreign key references.
-		/// </summary>
-		/// <param name="transaction"></param>
-		/// <param name="tableName"></param>
-		/// <remarks>
-		/// This method is used to check that a foreign key reference actually 
-		/// points to a valid record in the referenced table as expected.
-		/// </remarks>
-		/// <returns></returns>
-		/// <example>
-		/// For example, say a foreign reference has been set up in the given 
-		/// table as follows:
-		/// <code>
-		/// FOREIGN KEY (customer_id) REFERENCES Customer (id)
-		/// </code>
-		/// This method will return the column group reference
-		/// Order(customer_id) -> Customer(id).
-		/// </example>
-		public static DataConstraintInfo[] QueryTableForeignKeys(SimpleTransaction transaction, TableName tableName) {
-			ITableDataSource t = transaction.GetTableDataSource(SystemSchema.ForeignInfoTable);
-			ITableDataSource t2 = transaction.GetTableDataSource(SystemSchema.ForeignColsTable);
-			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
-			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
-
-			DataConstraintInfo[] groups;
-			try {
-				// Returns the list indexes where column 3 = table name
-				//                            and column 2 = schema name
-				IList<int> data = dt.SelectEqual(3, tableName.Name,
-				                                 2, tableName.Schema);
-
-				groups = new DataConstraintInfo[data.Count];
-
-				for (int i = 0; i < data.Count; ++i) {
-					int rowIndex = data[i];
-
-					// The foreign key id
-					TObject id = dt.Get(0, rowIndex);
-
-					// The referenced table
-					TableName refTableName = new TableName(
-							   dt.Get(4, rowIndex).Object.ToString(),
-							   dt.Get(5, rowIndex).Object.ToString());
-
-					// Select all records with equal id
-					IList<int> cols = dtcols.SelectEqual(0, id);
-
-					string name = dt.Get(1, rowIndex).Object.ToString();
-					ConstraintAction updateRule = (ConstraintAction)dt.Get(6, rowIndex).ToBigNumber().ToInt32();
-					ConstraintAction deleteRule = (ConstraintAction)dt.Get(7, rowIndex).ToBigNumber().ToInt32();
-					ConstraintDeferrability deferred = (ConstraintDeferrability)((BigNumber)dt.Get(8, rowIndex).Object).ToInt16();
-
-					int colsSize = cols.Count;
-					string[] keyCols = new string[colsSize];
-					string[] refCols = new string[colsSize];
-					for (int n = 0; n < colsSize; ++n) {
-						for (int p = 0; p < colsSize; ++p) {
-							int cols_index = cols[p];
-							if (((BigNumber)dtcols.Get(3, cols_index).Object).ToInt32() == n) {
-								keyCols[n] = dtcols.Get(1, cols_index).Object.ToString();
-								refCols[n] = dtcols.Get(2, cols_index).Object.ToString();
-								break;
-							}
-						}
-					}
-
-					DataConstraintInfo constraint = DataConstraintInfo.ForeignKey(name, keyCols, refTableName, refCols,
-					                                                              deleteRule, updateRule);
-					constraint.TableName = tableName;
-					constraint.Deferred = deferred;
-
-					groups[i] = constraint;
-				}
-			} finally {
-				dt.Dispose();
-				dtcols.Dispose();
-			}
-
-			return groups;
-		}
-
-		/// <summary>
-		/// Returns an array of column references in the given table that represent
-		/// foreign key references that reference columns in the given table.
-		/// </summary>
-		/// <param name="transaction"></param>
-		/// <param name="refTableName"></param>
-		/// <remarks>
-		/// This is a reverse mapping of the <see cref="QueryTableForeignKeys"/>
-		/// method.
-		///	<para>
-		///	This method is used to check that a reference isn't broken when we 
-		///	remove a record (for example, removing a Customer that has references 
-		///	to it will break integrity).
-		///	</para>
-		/// </remarks>
-		/// <example>
-		/// Say a foreign reference has been set up in any table as follows:
-		/// <code>
-		/// [ In table Order ]
-		///		FOREIGN KEY (customer_id) REFERENCE Customer (id)
-		/// </code>
-		/// And the table name we are querying is <i>Customer</i> then this 
-		/// method will return the column group reference
-		/// <code>
-		///		Order(customer_id) -> Customer(id).
-		///	</code>
-		/// </example>
-		/// <returns></returns>
-		public static DataConstraintInfo[] QueryTableImportedForeignKeys(SimpleTransaction transaction, TableName refTableName) {
-			ITableDataSource t = transaction.GetTableDataSource(SystemSchema.ForeignInfoTable);
-			ITableDataSource t2 = transaction.GetTableDataSource(SystemSchema.ForeignColsTable);
-			SimpleTableQuery dt = new SimpleTableQuery(t);        // The info table
-			SimpleTableQuery dtcols = new SimpleTableQuery(t2);   // The columns
-
-			DataConstraintInfo[] groups;
-			try {
-				// Returns the list indexes where column 5 = ref table name
-				//                            and column 4 = ref schema name
-				IList<int> data = dt.SelectEqual(5, refTableName.Name,
-				                                 4, refTableName.Schema);
-
-				groups = new DataConstraintInfo[data.Count];
-
-				for (int i = 0; i < data.Count; ++i) {
-					int rowIndex = data[i];
-
-					// The foreign key id
-					TObject id = dt.Get(0, rowIndex);
-
-					// The referencee table
-					TableName tableName = new TableName(
-						  dt.Get(2, rowIndex).Object.ToString(),
-						  dt.Get(3, rowIndex).Object.ToString());
-
-					// Select all records with equal id
-					IList<int> cols = dtcols.SelectEqual(0, id);
-
-					string name = dt.Get(1, rowIndex).Object.ToString();
-					ConstraintAction updateRule = (ConstraintAction)dt.Get(6, rowIndex).ToBigNumber().ToInt32();
-					ConstraintAction deleteRule = (ConstraintAction)dt.Get(7, rowIndex).ToBigNumber().ToInt32();
-					ConstraintDeferrability deferred = (ConstraintDeferrability)((BigNumber)dt.Get(8, rowIndex).Object).ToInt16();
-
-					int colsSize = cols.Count;
-					string[] keyCols = new string[colsSize];
-					string[] refCols = new string[colsSize];
-					for (int n = 0; n < colsSize; ++n) {
-						for (int p = 0; p < colsSize; ++p) {
-							int cols_index = cols[p];
-							if (((BigNumber)dtcols.Get(3, cols_index).Object).ToInt32() == n) {
-								keyCols[n] = dtcols.Get(1, cols_index).Object.ToString();
-								refCols[n] = dtcols.Get(2, cols_index).Object.ToString();
-								break;
-							}
-						}
-					}
-
-					DataConstraintInfo constraint = DataConstraintInfo.ForeignKey(name, keyCols, refTableName, refCols,
-					                                                              deleteRule, updateRule);
-					constraint.TableName = tableName;
-					constraint.Deferred = deferred;
-
-					groups[i] = constraint;
-				}
-			} finally {
-				dt.Dispose();
-				dtcols.Dispose();
-			}
-
-			return groups;
-		}
-
 	}
 }

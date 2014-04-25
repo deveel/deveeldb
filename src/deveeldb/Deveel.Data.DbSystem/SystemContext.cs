@@ -496,27 +496,6 @@ namespace Deveel.Data {
 			((SystemRoutineResolver)RoutineResolver).FlushContents(factories);
 		}
 
-		///<summary>
-		/// Given a <see cref="DataConstraintInfo"/>, this will prepare 
-		/// the expression and return a new prepared <see cref="DataConstraintInfo"/>.
-		///</summary>
-		///<param name="tableInfo"></param>
-		///<param name="check"></param>
-		/// <remarks>
-		/// The default implementation of this is to do nothing.  However, a sub-class 
-		/// of the system choose to prepare the expression, such as resolving the 
-		/// functions via the function lookup, and resolving the sub-queries, etc.
-		/// </remarks>
-		///<returns></returns>
-		public DataConstraintInfo PrepareTransactionCheckConstraint(DataTableInfo tableInfo, DataConstraintInfo check) {
-			// Resolve the expression to this table and row and evaluate the
-			// check constraint.
-			
-			tableInfo.ResolveColumns(IgnoreIdentifierCase, check.CheckExpression);
-
-			return check;
-		}
-
 
 		/// <summary>
 		///  Creates an event object that is passed into <see cref="PostEvent"/> 

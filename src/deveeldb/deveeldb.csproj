@@ -156,6 +156,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Sql\RaiseStatement.cs" />
+    <Compile Include="Deveel.Data.Transactions\CommittableTransactionExtensions.cs" />
+    <Compile Include="Deveel.Data.Transactions\ICommittableTransaction.cs" />
+    <Compile Include="Deveel.Data.Transactions\ITransaction.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionExtensions.cs" />
     <Compile Include="Deveel.Data.Types\ITypeResolver.cs" />
     <Compile Include="Deveel.Data.Types\PrimitiveTypes.cs" />
     <Compile Include="Deveel.Data.Util\ListUtil.cs" />
@@ -200,7 +204,6 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Triggers.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Variables.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Views.cs" />
-    <Compile Include="Deveel.Data.DbSystem\Database_Users.cs" />
     <Compile Include="Deveel.Data.Index\IIndex.cs" />
     <Compile Include="Deveel.Data.Index\IBlockIndexBlock.cs" />
     <Compile Include="Deveel.Data.Index\IIndexEnumerator.cs" />
@@ -392,16 +395,7 @@
     <Compile Include="Deveel.Data.DbSystem\FunctionTable.cs" />
     <Compile Include="Deveel.Data.Security\GrantManager.cs" />
     <Compile Include="Deveel.Data.Security\GrantObject.cs" />
-    <Compile Include="Deveel.Data.DbSystem\GTConnectionInfoDataSource.cs" />
-    <Compile Include="Deveel.Data.DbSystem\GTCurrentConnectionsDataSource.cs" />
     <Compile Include="Deveel.Data.DbSystem\GTDataSource.cs" />
-    <Compile Include="Deveel.Data.DbSystem\GTPrivMapDataSource.cs" />
-    <Compile Include="Deveel.Data.DbSystem\GTProductDataSource.cs" />
-    <Compile Include="Deveel.Data.DbSystem\GTSQLTypeInfoDataSource.cs" />
-    <Compile Include="Deveel.Data.DbSystem\GTStatisticsDataSource.cs" />
-    <Compile Include="Deveel.Data.DbSystem\GTTableColumnsDataSource.cs" />
-    <Compile Include="Deveel.Data.DbSystem\GTTableInfoDataSource.cs" />
-    <Compile Include="Deveel.Data.DbSystem\GTVariablesDataSource.cs" />
     <Compile Include="Deveel.Data\IBlobAccessor.cs" />
     <Compile Include="Deveel.Data\IBlobRef.cs" />
     <Compile Include="Deveel.Data\IClobRef.cs" />
@@ -509,7 +503,6 @@
     <Compile Include="Deveel.Data.Transactions\TransactionException.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionJournal.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemContext.cs" />
-    <Compile Include="Deveel.Data.Transactions\Transaction_Constraints.cs" />
     <Compile Include="Deveel.Data.Transactions\Transaction_Schemata.cs" />
     <Compile Include="Deveel.Data.Transactions\Transaction_Tables.cs" />
     <Compile Include="Deveel.Data.DbSystem\TriggerCallback.cs" />

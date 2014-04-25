@@ -213,9 +213,9 @@ namespace Deveel.Data.DbSystem {
 
 		///<summary>
 		///</summary>
-		///<param name="context></param>
+		///<param name="context"></param>
 		///<returns></returns>
-		public Expression GetDefaultExpression(SystemContext context) {
+		public Expression GetDefaultExpression(ISystemContext context) {
 			if (defaultExpressionString == null)
 				return null;
 

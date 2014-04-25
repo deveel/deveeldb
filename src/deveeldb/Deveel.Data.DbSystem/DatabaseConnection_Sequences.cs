@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Transactions;
+
 namespace Deveel.Data.DbSystem {
 	public sealed partial class DatabaseConnection {
 		/// <summary>
@@ -79,7 +81,7 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="name"></param>
 		/// <returns></returns>
 		public long NextUniqueID(TableName name) {
-			return Transaction.NextUniqueID(name);
+			return Transaction.NextUniqueId(name);
 		}
 
 		/// <summary>
@@ -100,7 +102,7 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="table_name"></param>
 		/// <returns></returns>
 		public long CurrentUniqueID(TableName table_name) {
-			return Transaction.CurrentUniqueID(table_name);
+			return Transaction.CurrentUniqueId(table_name);
 		}
 
 		public long CurrentUniqueID(string table_name) {
@@ -127,7 +129,7 @@ namespace Deveel.Data.DbSystem {
 			// Check the name of the database object isn't reserved (OLD/NEW)
 			CheckAllowCreate(name);
 
-			Transaction.CreateSequenceGenerator(name, startValue, incrementBy, minValue, maxValue, cache, cycle);
+			CommittableTransaction.CreateSequenceGenerator(name, startValue, incrementBy, minValue, maxValue, cache, cycle);
 		}
 
 		/// <summary>
@@ -135,7 +137,7 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <param name="name"></param>
 		public void DropSequenceGenerator(TableName name) {
-			Transaction.DropSequenceGenerator(name);
+			CommittableTransaction.DropSequenceGenerator(name);
 		}
 	}
 }

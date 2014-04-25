@@ -37,14 +37,14 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// The transaction we are connected to.
 		/// </summary>
-		protected readonly Transaction transaction;
+		protected readonly ITransaction transaction;
 		/// <summary>
 		/// The table in the transaction that contains the list of items we 
 		/// are modelling.
 		/// </summary>
 		protected readonly TableName table_name;
 
-		protected InternalTableInfo2(Transaction transaction, TableName table_name) {
+		protected InternalTableInfo2(ITransaction transaction, TableName table_name) {
 			this.transaction = transaction;
 			this.table_name = table_name;
 		}
@@ -63,11 +63,11 @@ namespace Deveel.Data.DbSystem {
 				IRowEnumerator row_e = table.GetRowEnumerator();
 				int p = 0;
 				while (row_e.MoveNext()) {
-					int row_index = row_e.RowIndex;
-					TObject ob_name = table.GetCell(1, row_index);
-					if (ob_name.Object.ToString().Equals(name.Name)) {
-						TObject ob_schema = table.GetCell(0, row_index);
-						if (ob_schema.Object.ToString().Equals(name.Schema)) {
+					int rowIndex = row_e.RowIndex;
+					TObject obName = table.GetCell(1, rowIndex);
+					if (obName.Object.ToString().Equals(name.Name)) {
+						TObject obSchema = table.GetCell(0, rowIndex);
+						if (obSchema.Object.ToString().Equals(name.Schema)) {
 							// Match so return this
 							return p;
 						}

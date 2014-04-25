@@ -52,14 +52,14 @@ namespace Deveel.Data.DbSystem {
 		public void CreateSchema(String name, String type) {
 			// Assert
 			CheckExclusive();
-			Transaction.CreateSchema(name, type);
+			CommittableTransaction.CreateSchema(name, type);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.DropSchema"/>
 		public void DropSchema(String name) {
 			// Assert
 			CheckExclusive();
-			Transaction.DropSchema(name);
+			CommittableTransaction.DropSchema(name);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.SchemaExists"/>

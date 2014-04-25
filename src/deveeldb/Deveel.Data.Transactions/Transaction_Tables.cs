@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2011  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -91,9 +91,9 @@ namespace Deveel.Data.Transactions {
 		}
 
 		/// <inheritdoc/>
-		protected override bool IsDynamicTable(TableName table_name) {
+		protected override bool IsDynamicTable(TableName tableName) {
 			foreach (IInternalTableInfo info in internalTables) {
-				if (info != null && info.ContainsTableName(table_name))
+				if (info != null && info.ContainsTableName(tableName))
 					return true;
 			}
 
@@ -212,23 +212,6 @@ namespace Deveel.Data.Transactions {
 
 			// Notify that this database object has been successfully created.
 			OnDatabaseObjectCreated(tableName);
-		}
-
-		/// <summary>
-		/// Creates a new table within this transaction with the given sector 
-		/// size.
-		/// </summary>
-		/// <param name="tableInfo"></param>
-		/// <remarks>
-		/// This should only be called under an exclusive lock on the connection.
-		/// </remarks>
-		/// <exception cref="StatementException">
-		/// If the table already exists.
-		/// </exception>
-		public void CreateTable(DataTableInfo tableInfo) {
-			// data sector size defaults to 251
-			// index sector size defaults to 1024
-			CreateTable(tableInfo, 251, 1024);
 		}
 
 		public void CreateTemporaryTable(DataTableInfo tableInfo) {
@@ -377,14 +360,14 @@ namespace Deveel.Data.Transactions {
 			SystemQueryContext context = new SystemQueryContext(this, currentSchema);
 
 			// Get the next unique id of the unaltered table.
-			long nextId = NextUniqueID(tableName);
+			long nextId = NextUniqueId(tableName);
 
 			// Drop the current table
 			IMutableTableDataSource cTable = GetMutableTable(tableName);
 			DropTable(tableName);
 
 			// And create the table table
-			CreateTable(tableInfo);
+			CreateTable(tableInfo, dataSectorSize, indexSectorSize);
 			IMutableTableDataSource alteredTable = GetMutableTable(tableName);
 
 			// Get the new MasterTableDataSource object
@@ -450,30 +433,6 @@ namespace Deveel.Data.Transactions {
 			} catch (IOException e) {
 				Logger.Error(this, e);
 				throw new Exception(e.Message, e);
-			}
-		}
-
-		/// <summary>
-		/// Alters the table with the given name within this transaction to the
-		/// specified table definition.
-		/// </summary>
-		/// <param name="tableName"></param>
-		/// <param name="tableInfo"></param>
-		/// <remarks>
-		/// This should only be called under an exclusive lock on the connection.
-		/// </remarks>
-		/// <exception cref="StatementException">
-		/// If the table does not exist.
-		/// </exception>
-		public void AlterTable(TableName tableName, DataTableInfo tableInfo) {
-			// Make sure we remember the current sector size of the altered table so
-			// we can create the new table with the original size.
-			try {
-				// HACK: We use index sector size of 2043 for all altered tables
-				AlterTable(tableName, tableInfo, -1, 2043);
-
-			} catch (IOException e) {
-				throw new Exception("IO Error: " + e.Message);
 			}
 		}
 

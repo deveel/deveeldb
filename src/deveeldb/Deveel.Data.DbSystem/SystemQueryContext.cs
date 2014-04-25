@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Query;
 using Deveel.Data.Security;
@@ -31,7 +32,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// The wrapped TransactionSystem object.
 		/// </summary>
-		private readonly SystemContext context;
+		private readonly ISystemContext context;
 
 		/// <summary>
 		/// The Transaction this is a part of.
@@ -52,7 +53,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		/// <inheritdoc/>
-		public override SystemContext Context {
+		public override ISystemContext Context {
 			get { return context; }
 		}
 
@@ -67,19 +68,19 @@ namespace Deveel.Data.DbSystem {
 
 		/// <inheritdoc/>
 		public override long NextSequenceValue(String generatorName) {
-			TableName tn = transaction.ResolveToTableName(currentSchema, generatorName, context.IgnoreIdentifierCase);
+			TableName tn = transaction.ResolveToTableName(currentSchema, generatorName, context.Config.IgnoreIdentifierCase());
 			return transaction.NextSequenceValue(tn);
 		}
 
 		/// <inheritdoc/>
 		public override long CurrentSequenceValue(String generatorName) {
-			TableName tn = transaction.ResolveToTableName(currentSchema, generatorName, context.IgnoreIdentifierCase);
+			TableName tn = transaction.ResolveToTableName(currentSchema, generatorName, context.Config.IgnoreIdentifierCase());
 			return transaction.LastSequenceValue(tn);
 		}
 
 		/// <inheritdoc/>
 		public override void SetSequenceValue(string generatorName, long value) {
-			TableName tn = transaction.ResolveToTableName(currentSchema, generatorName, context.IgnoreIdentifierCase);
+			TableName tn = transaction.ResolveToTableName(currentSchema, generatorName, context.Config.IgnoreIdentifierCase());
 			transaction.SetSequenceValue(tn, value);
 		}
 
@@ -88,9 +89,9 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <param name="tableName"></param>
 		/// <returns></returns>
-		public long NextUniqueID(string tableName) {
+		public long NextUniqueId(string tableName) {
 			TableName tname = TableName.Resolve(currentSchema, tableName);
-			return transaction.NextUniqueID(tname);
+			return transaction.NextUniqueId(tname);
 		}
 
 		/// <inheritdoc/>

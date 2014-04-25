@@ -48,7 +48,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the <see cref="SystemContext"/> object that this table is part of.
 		/// </summary>
-		public SystemContext Context {
+		public ISystemContext Context {
 			get { return Database.Context; }
 		}
 

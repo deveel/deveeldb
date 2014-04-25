@@ -78,7 +78,7 @@ namespace Deveel.Data.DbSystem {
 		public void SetPersistentVariable(string variable, String value) {
 			// Assert
 			CheckExclusive();
-			Transaction.SetPersistentVariable(variable, value);
+			CommittableTransaction.SetPersistentVariable(variable, value);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.GetPersistantVariable"/>

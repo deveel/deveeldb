@@ -434,7 +434,7 @@ namespace Deveel.Data {
 		/// We use the regex library as specified in the DatabaseSystem 
 		/// configuration.
 		/// </remarks>
-		internal static bool RegexMatch(SystemContext context, String pattern, String value) {
+		internal static bool RegexMatch(ISystemContext context, String pattern, String value) {
 			// If the first character is a '/' then we assume it's a Perl style regular
 			// expression (eg. "/.*[0-9]+\/$/i")
 			if (pattern.StartsWith("/")) {

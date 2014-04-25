@@ -253,7 +253,7 @@ namespace Deveel.Data.DbSystem {
 		/// </exception>
 		public void CreateTemporaryTable(DataTableInfo tableInfo) {
 			CheckAllowCreate(tableInfo.TableName);
-			Transaction.CreateTemporaryTable(tableInfo);
+			CommittableTransaction.CreateTemporaryTable(tableInfo);
 		}
 
 		/// <summary>
@@ -266,7 +266,7 @@ namespace Deveel.Data.DbSystem {
 		/// </exception>
 		public void CreateTable(DataTableInfo tableInfo) {
 			CheckAllowCreate(tableInfo.TableName);
-			Transaction.CreateTable(tableInfo);
+			CommittableTransaction.CreateTable(tableInfo);
 		}
 
 		/// <summary>
@@ -289,7 +289,7 @@ namespace Deveel.Data.DbSystem {
 		/// </exception>
 		public void CreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
 			CheckAllowCreate(tableInfo.TableName);
-			Transaction.CreateTable(tableInfo, dataSectorSize, indexSectorSize);
+			CommittableTransaction.CreateTable(tableInfo, dataSectorSize, indexSectorSize);
 		}
 
 		/// <summary>
@@ -302,7 +302,7 @@ namespace Deveel.Data.DbSystem {
 		/// </exception>
 		public void UpdateTable(DataTableInfo tableInfo) {
 			CheckAllowCreate(tableInfo.TableName);
-			Transaction.AlterTable(tableInfo.TableName, tableInfo);
+			CommittableTransaction.AlterTable(tableInfo.TableName, tableInfo);
 		}
 
 		/// <summary>
@@ -320,7 +320,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		public void UpdateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
 			CheckAllowCreate(tableInfo.TableName);
-			Transaction.AlterTable(tableInfo.TableName, tableInfo, dataSectorSize, indexSectorSize);
+			CommittableTransaction.AlterTable(tableInfo.TableName, tableInfo, dataSectorSize, indexSectorSize);
 		}
 
 		/// <summary>
@@ -378,7 +378,7 @@ namespace Deveel.Data.DbSystem {
 		/// If none tables was found for the given <paramref name="tableName"/>.
 		/// </exception>
 		public void DropTable(TableName tableName) {
-			Transaction.DropTable(tableName);
+			CommittableTransaction.DropTable(tableName);
 		}
 
 		/// <summary>
@@ -401,7 +401,7 @@ namespace Deveel.Data.DbSystem {
 		/// If none table was found for the given <paramref name="tableName"/>.
 		/// </exception>
 		public void CompactTable(TableName tableName) {
-			Transaction.CompactTable(tableName);
+			CommittableTransaction.CompactTable(tableName);
 		}
 
 		///<summary>
@@ -419,7 +419,7 @@ namespace Deveel.Data.DbSystem {
 		///</summary>
 		///<param name="name"></param>
 		public void AddSelectedFromTable(TableName name) {
-			Transaction.AddSelectedFromTable(name);
+			CommittableTransaction.AddSelectedFromTable(name);
 		}
 	}
 }

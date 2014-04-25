@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ namespace Deveel.Data {
 	/// <summary>
 	/// The context where cursors are declared and disposed.
 	/// </summary>
-	internal interface ICursorContext {
+	interface ICursorContext {
 		/// <summary>
 		/// Callback method invoked when a cursor has been 
 		/// instanttiated.

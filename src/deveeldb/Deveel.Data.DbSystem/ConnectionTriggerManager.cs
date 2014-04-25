@@ -469,7 +469,7 @@ namespace Deveel.Data.DbSystem {
 		/// This is used to model all triggers that have been defined as tables.
 		/// </remarks>
 		/// <returns></returns>
-		internal static IInternalTableInfo CreateInternalTableInfo(Transaction transaction) {
+		internal static IInternalTableInfo CreateInternalTableInfo(ITransaction transaction) {
 			return new TriggerInternalTableInfo(transaction);
 		}
 
@@ -556,10 +556,8 @@ namespace Deveel.Data.DbSystem {
 		/// An object that models the list of triggers as table objects in a
 		/// transaction.
 		/// </summary>
-		private sealed class TriggerInternalTableInfo
-			: InternalTableInfo2 {
-			internal TriggerInternalTableInfo(Transaction transaction)
-				: base(transaction, SystemSchema.DataTrigger) {
+		private sealed class TriggerInternalTableInfo : InternalTableInfo2 {
+			internal TriggerInternalTableInfo(ITransaction transaction) : base(transaction, SystemSchema.DataTrigger) {
 			}
 
 			private static DataTableInfo CreateTableInfo(String schema, String name) {
@@ -639,7 +637,7 @@ namespace Deveel.Data.DbSystem {
 				private readonly DataTableInfo tableInfo;
 				internal TObject type;
 
-				public GTDataSourceImpl(SystemContext context, DataTableInfo tableInfo)
+				public GTDataSourceImpl(ISystemContext context, DataTableInfo tableInfo)
 					: base(context) {
 					this.tableInfo = tableInfo;
 				}

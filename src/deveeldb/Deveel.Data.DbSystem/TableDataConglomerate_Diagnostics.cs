@@ -49,7 +49,7 @@ namespace Deveel.Data.DbSystem {
 				BigNumber bNum = value.ToBigNumber();
 				if (bNum != null) {
 					// Set the unique id to +1 the maximum id value in the column
-					transaction.SetUniqueID(tname, bNum.ToInt64() + 1L);
+					transaction.SetUniqueId(tname, bNum.ToInt64() + 1L);
 				}
 			}
 

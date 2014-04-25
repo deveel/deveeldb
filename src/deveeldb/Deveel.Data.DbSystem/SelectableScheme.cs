@@ -85,7 +85,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the global transaction system.
 		/// </summary>
-		protected SystemContext Context {
+		protected ISystemContext Context {
 			get { return table.Context; }
 		}
 

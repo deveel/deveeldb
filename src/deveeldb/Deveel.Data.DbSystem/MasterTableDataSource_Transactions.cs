@@ -553,7 +553,7 @@ namespace Deveel.Data.DbSystem {
 
 			// ---------- Implemented from IMutableTableDataSource ----------
 
-			public SystemContext Context {
+			public ISystemContext Context {
 				get { return mtds.Context; }
 			}
 
@@ -738,7 +738,7 @@ namespace Deveel.Data.DbSystem {
 					// Were there any updates or deletes?
 					if (rowsDeleted.Count > 0) {
 						// Get all references on this table
-						DataConstraintInfo[] foreignConstraints = Transaction.QueryTableImportedForeignKeys(transaction, tName);
+						DataConstraintInfo[] foreignConstraints = transaction.QueryTableImportedForeignKeys(tName);
 
 						// For each foreign constraint
 						foreach (DataConstraintInfo constraint in foreignConstraints) {

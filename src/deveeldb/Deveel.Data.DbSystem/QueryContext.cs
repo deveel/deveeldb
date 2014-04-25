@@ -41,7 +41,7 @@ namespace Deveel.Data.DbSystem {
 		private Exception exceptionState;
 
 		/// <inheritdoc/>
-		public virtual SystemContext Context {
+		public virtual ISystemContext Context {
 			get { return (Connection == null ? null : Connection.Context); }
 		}
 

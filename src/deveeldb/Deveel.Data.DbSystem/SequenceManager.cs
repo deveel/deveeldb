@@ -250,7 +250,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			IMutableTableDataSource table = transaction.GetMutableTable(SystemSchema.SysSequenceInfo);
-			long uniqueId = transaction.NextUniqueID(SystemSchema.SysSequenceInfo);
+			long uniqueId = transaction.NextUniqueId(SystemSchema.SysSequenceInfo);
 
 			DataRow dataRow = new DataRow(table);
 			dataRow.SetValue(0, uniqueId);
@@ -367,7 +367,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Generate a unique id for the sequence info table
-			long uniqueId = transaction.NextUniqueID(SystemSchema.SysSequenceInfo);
+			long uniqueId = transaction.NextUniqueId(SystemSchema.SysSequenceInfo);
 
 			// Insert the new row
 			DataRow dataRow = new DataRow(seqi);
@@ -418,7 +418,7 @@ namespace Deveel.Data.DbSystem {
 
 				if (generator.Type == 1)
 					// Native generator
-					return transaction.NextUniqueID(new TableName(name.Schema, name.Name));
+					return transaction.NextUniqueId(new TableName(name.Schema, name.Name));
 
 				// Custom sequence generator
 				long currentVal = generator.CurrentValue;
@@ -454,7 +454,7 @@ namespace Deveel.Data.DbSystem {
 
 				if (generator.Type == 1)
 					// Native generator
-					return transaction.NextUniqueID(new TableName(name.Schema, name.Name));
+					return transaction.NextUniqueId(new TableName(name.Schema, name.Name));
 
 				// Custom sequence generator
 				return generator.CurrentValue;
@@ -473,7 +473,7 @@ namespace Deveel.Data.DbSystem {
 
 				if (generator.Type == 1) {
 					// Native generator
-					transaction.SetUniqueID(new TableName(name.Schema, name.Name), value);
+					transaction.SetUniqueId(new TableName(name.Schema, name.Name), value);
 				} else {
 					// Custom sequence generator
 					generator.CurrentValue = value;
@@ -819,7 +819,7 @@ namespace Deveel.Data.DbSystem {
 				internal TObject cache;
 				internal TObject cycle;
 
-				public GTDataSourceImpl(SystemContext context, DataTableInfo tableInfo)
+				public GTDataSourceImpl(ISystemContext context, DataTableInfo tableInfo)
 					: base(context) {
 					this.tableInfo = tableInfo;
 				}

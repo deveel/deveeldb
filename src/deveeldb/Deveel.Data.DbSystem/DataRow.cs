@@ -18,6 +18,7 @@ using System;
 using System.Collections;
 using System.Text;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
@@ -45,7 +46,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// The TransactionSystem this DataRow is a context of.
 		/// </summary>
-		private readonly SystemContext context;
+		private readonly ISystemContext context;
 
 		/// <summary>
 		/// The <see cref="ITableDataSource"/> object that this <see cref="DataRow"/> 
@@ -71,7 +72,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Creates a <see cref="DataRow"/> object without an underlying table.
 		/// </summary>
-		/// <param name="context></param>
+		/// <param name="context"></param>
 		/// <param name="colCount"></param>
 		/// <remarks>
 		/// This is used for copying from one table to a different one.
@@ -266,15 +267,15 @@ namespace Deveel.Data.DbSystem {
 		/// the expression.
 		/// </summary>
 		/// <param name="expression"></param>
-		/// <param name="context"></param>
+		/// <param name="queryContext"></param>
 		/// <returns></returns>
-		private TObject Evaluate(Expression expression, IQueryContext context) {
-			bool ignoreCase = this.context.IgnoreIdentifierCase;
+		private TObject Evaluate(Expression expression, IQueryContext queryContext) {
+			bool ignoreCase = this.context.Config.IgnoreIdentifierCase();
 			// Resolve any variables to the table_def for this expression.
 			tableInfo.ResolveColumns(ignoreCase, expression);
 			// Get the variable resolver and evaluate over this data.
 			IVariableResolver vresolver = VariableResolver;
-			return expression.Evaluate(null, vresolver, context);
+			return expression.Evaluate(null, vresolver, queryContext);
 		}
 
 		/// <summary>

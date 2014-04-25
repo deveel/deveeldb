@@ -39,14 +39,14 @@ namespace Deveel.Data.DbSystem {
 		public void CheckAllConstraints(TableName tableName) {
 			// Assert
 			CheckExclusive();
-			Transaction.CheckAllConstraints(tableName);
+			CommittableTransaction.CheckAllConstraints(tableName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.AddUniqueConstraint(DataConstraintInfo)"/>
 		public void AddUniqueConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddUniqueConstraint(tableName, columns, deferred, constraintName);
+			CommittableTransaction.AddUniqueConstraint(tableName, columns, deferred, constraintName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.AddForeignKeyConstraint(DataConstraintInfo)"/>
@@ -56,74 +56,72 @@ namespace Deveel.Data.DbSystem {
 			ConstraintDeferrability deferred, string constraintName) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddForeignKeyConstraint(table, columns, refTable, refColumns,
-												deleteRule, updateRule,
-												deferred, constraintName);
+			CommittableTransaction.AddForeignKeyConstraint(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.AddPrimaryKeyConstraint(DataConstraintInfo)"/>
 		public void AddPrimaryKeyConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddPrimaryKeyConstraint(tableName, columns, deferred, constraintName);
+			CommittableTransaction.AddPrimaryKeyConstraint(tableName, columns, deferred, constraintName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.AddCheckConstraint(DataConstraintInfo)"/>
 		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, String constraintName) {
 			// Assert
 			CheckExclusive();
-			Transaction.AddCheckConstraint(tableName, expression, deferred, constraintName);
+			CommittableTransaction.AddCheckConstraint(tableName, expression, deferred, constraintName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.DropAllConstraintsForTable"/>
 		public void DropAllConstraintsForTable(TableName tableName) {
 			// Assert
 			CheckExclusive();
-			Transaction.DropAllConstraintsForTable(tableName);
+			CommittableTransaction.DropAllConstraintsForTable(tableName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.DropNamedConstraint"/>
 		public int DropNamedConstraint(TableName tableName, string constraintName) {
 			// Assert
 			CheckExclusive();
-			return Transaction.DropNamedConstraint(tableName, constraintName);
+			return CommittableTransaction.DropNamedConstraint(tableName, constraintName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.DropPrimaryKeyConstraintForTable"/>
 		public bool DropPrimaryKeyConstraintForTable(TableName tableName, string constraintName) {
 			// Assert
 			CheckExclusive();
-			return Transaction.DropPrimaryKeyConstraintForTable(tableName, constraintName);
+			return CommittableTransaction.DropPrimaryKeyConstraintForTable(tableName, constraintName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.QueryTablesRelationallyLinkedTo"/>
 		public TableName[] QueryTablesRelationallyLinkedTo(TableName table) {
-			return Transaction.QueryTablesRelationallyLinkedTo(Transaction, table);
+			return Transaction.QueryTablesRelationallyLinkedTo(table);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.QueryTableUniques"/>
 		public DataConstraintInfo[] QueryTableUniqueGroups(TableName tableName) {
-			return Transaction.QueryTableUniques(Transaction, tableName);
+			return Transaction.QueryTableUniques(tableName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.QueryTablePrimaryKey"/>
 		public DataConstraintInfo QueryTablePrimaryKeyGroup(TableName tableName) {
-			return Transaction.QueryTablePrimaryKey(Transaction, tableName);
+			return Transaction.QueryTablePrimaryKey(tableName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.QueryTableCheckExpressions"/>
 		public DataConstraintInfo[] QueryTableCheckExpressions(TableName tableName) {
-			return Transaction.QueryTableCheckExpressions(Transaction, tableName);
+			return Transaction.QueryTableCheckExpressions(tableName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.QueryTableForeignKeys"/>
 		public DataConstraintInfo[] QueryTableForeignKeyReferences(TableName tableName) {
-			return Transaction.QueryTableForeignKeys(Transaction, tableName);
+			return Transaction.QueryTableForeignKeys(tableName);
 		}
 
 		/// <inheritdoc cref="Transactions.Transaction.QueryTableImportedForeignKeys"/>
 		public DataConstraintInfo[] QueryTableImportedForeignKeyReferences(TableName tableName) {
-			return Transaction.QueryTableImportedForeignKeys(Transaction, tableName);
+			return Transaction.QueryTableImportedForeignKeys(tableName);
 		}
 	}
 }

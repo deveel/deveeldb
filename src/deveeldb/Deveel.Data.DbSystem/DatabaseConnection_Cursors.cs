@@ -31,7 +31,7 @@ namespace Deveel.Data.DbSystem {
 		/// Returns the newly created <see cref="Cursor"/> instance.
 		/// </returns>
 		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
-			return Transaction.DeclareCursor(name, queryPlan, attributes);
+			return CommittableTransaction.DeclareCursor(name, queryPlan, attributes);
 		}
 
 		/// <summary>

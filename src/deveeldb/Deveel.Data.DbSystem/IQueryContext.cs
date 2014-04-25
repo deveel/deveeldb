@@ -31,7 +31,7 @@ namespace Deveel.Data.DbSystem {
 		/// Returns a TransactionSystem object that is used to determine information
 		/// about the transactional system.
 		/// </summary>
-		SystemContext Context { get; }
+		ISystemContext Context { get; }
 
 		/// <summary>
 		/// Returns the user name of the connection.

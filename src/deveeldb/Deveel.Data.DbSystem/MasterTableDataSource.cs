@@ -851,7 +851,7 @@ namespace Deveel.Data.DbSystem {
 				this.masterIndex = masterIndex;
 			}
 
-			public SystemContext Context {
+			public ISystemContext Context {
 				get { return mtds.context; }
 			}
 

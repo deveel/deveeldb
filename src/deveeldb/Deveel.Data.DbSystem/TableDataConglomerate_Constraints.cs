@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 using Deveel.Diagnostics;
@@ -236,8 +237,8 @@ namespace Deveel.Data.DbSystem {
 									  bool checkSourceTableKey) {
 
 			// Get the tables
-			ITableDataSource t1 = transaction.GetTableDataSource(table1);
-			ITableDataSource t2 = transaction.GetTableDataSource(table2);
+			ITableDataSource t1 = transaction.GetTable(table1);
+			ITableDataSource t2 = transaction.GetTable(table2);
 			// The table defs
 			DataTableInfo dti1 = t1.TableInfo;
 			DataTableInfo dti2 = t2.TableInfo;
@@ -379,7 +380,7 @@ namespace Deveel.Data.DbSystem {
 			// ---- Constraint checking ----
 
 			// Check any primary key constraint.
-			DataConstraintInfo primaryKey = Transaction.QueryTablePrimaryKey(transaction, tableName);
+			DataConstraintInfo primaryKey = transaction.QueryTablePrimaryKey(tableName);
 			if (primaryKey != null &&
 				(deferred == ConstraintDeferrability.InitiallyDeferred ||
 				 primaryKey.Deferred == ConstraintDeferrability.InitiallyImmediate)) {
@@ -398,7 +399,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Check any unique constraints.
-			DataConstraintInfo[] uniqueConstraints = Transaction.QueryTableUniques(transaction, tableName);
+			DataConstraintInfo[] uniqueConstraints = transaction.QueryTableUniques(tableName);
 			foreach (DataConstraintInfo unique in uniqueConstraints) {
 				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
 					unique.Deferred == ConstraintDeferrability.InitiallyImmediate) {
@@ -420,7 +421,7 @@ namespace Deveel.Data.DbSystem {
 			// Check any foreign key constraints.
 			// This ensures all foreign references in the table are referenced
 			// to valid records.
-			DataConstraintInfo[] foreignConstraints = Transaction.QueryTableForeignKeys(transaction, tableName);
+			DataConstraintInfo[] foreignConstraints = transaction.QueryTableForeignKeys(tableName);
 
 			foreach (DataConstraintInfo reference in foreignConstraints) {
 				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
@@ -455,10 +456,10 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Any general checks of the inserted data
-			DataConstraintInfo[] checkConstraints = Transaction.QueryTableCheckExpressions(transaction, tableName);
+			DataConstraintInfo[] checkConstraints = transaction.QueryTableCheckExpressions(tableName);
 
 			// The TransactionSystem object
-			SystemContext context = transaction.Context;
+			ISystemContext context = transaction.Context;
 
 			// For each check constraint, check that it evaluates to true.
 			for (int i = 0; i < checkConstraints.Length; ++i) {
@@ -466,7 +467,7 @@ namespace Deveel.Data.DbSystem {
 				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
 					check.Deferred == ConstraintDeferrability.InitiallyImmediate) {
 
-					check = context.PrepareTransactionCheckConstraint(tableInfo, check);
+					tableInfo.ResolveColumns(context.Config.IgnoreIdentifierCase(), check.CheckExpression);
 					Expression exp = check.CheckExpression;
 
 					// For each row being added to this column
@@ -550,7 +551,7 @@ namespace Deveel.Data.DbSystem {
 			// Check any imported foreign key constraints.
 			// This ensures that a referential reference can not be removed making
 			// it invalid.
-			DataConstraintInfo[] foreignConstraints = Transaction.QueryTableImportedForeignKeys(transaction, tableName);
+			DataConstraintInfo[] foreignConstraints = transaction.QueryTableImportedForeignKeys(tableName);
 			foreach (DataConstraintInfo reference in foreignConstraints) {
 				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
 					reference.Deferred == ConstraintDeferrability.InitiallyImmediate) {

@@ -443,10 +443,10 @@ namespace Deveel.Data.Client {
 				rs.Close();
 
 				// TODO: Pass it in another way ...
-				stmt.CommandText = "SET CASE_INSENSITIVE_IDENTIFIERS = ?";
-				stmt.Parameters.Add(IsCaseInsensitiveIdentifiers);
-				stmt.Prepare();
-
+				if (IsCaseInsensitiveIdentifiers)
+					stmt.CommandText = "SET CASE_INSENSITIVE_IDENTIFIERS = true";
+				else
+					stmt.CommandText = "SET CASE_INSENSITIVE_IDENTIFIERS = false";
 				stmt.ExecuteNonQuery();
 			}
 		}

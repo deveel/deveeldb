@@ -32,7 +32,7 @@ namespace Deveel.Data.DbSystem {
 		/// describes global properties about the data source that 
 		/// generated this object.
 		/// </summary>
-		SystemContext Context { get; }
+		ISystemContext Context { get; }
 
 		/// <summary>
 		/// Returns a <see cref="TableInfo"/> object that defines 

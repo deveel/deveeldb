@@ -363,13 +363,12 @@ namespace Deveel.Data.DbSystem {
 				// Create the conglomerate
 				Conglomerate.Create();
 
-				DatabaseConnection connection = CreateNewConnection(null, null);
-				DatabaseQueryContext context = new DatabaseQueryContext(connection);
+				var connection = CreateNewConnection(null, null);
+				var context = new DatabaseQueryContext(connection);
 				connection.LockingMechanism.SetMode(LockingMode.Exclusive);
 				connection.CurrentSchema = SystemSchema.Name;
 
-				// Create the schema information tables introduced in version 0.90
-				// and 0.94
+				// Create the schema information tables
 				CreateSchemata(connection);
 
 				// The system tables that are present in every conglomerate.
@@ -429,8 +428,8 @@ namespace Deveel.Data.DbSystem {
 			Stats.ResetSession();
 
 			try {
-				string logPath = this.Context.LogDirectory;
-				if (logPath != null && this.Context.LogQueries) {
+				string logPath = Context.LogDirectory;
+				if (logPath != null && Context.LogQueries) {
 					CommandsLog = new Log(Path.Combine(logPath, "commands.log"), 256*1024, 5);
 				} else {
 					CommandsLog = Log.Null;

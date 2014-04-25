@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010-2011  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
@@ -37,11 +38,11 @@ namespace Deveel.Data.Transactions {
 	/// some data in the database given on some view.
 	/// </para>
 	/// </remarks>
-	public abstract class SimpleTransaction {
+	public abstract class SimpleTransaction : ITransaction {
 		/// <summary>
 		/// The TransactionSystem context.
 		/// </summary>
-		private readonly SystemContext context;
+		private readonly ISystemContext context;
 		/// <summary>
 		/// The list of tables that represent this transaction's view of the database.
 		/// (MasterTableDataSource).
@@ -52,7 +53,7 @@ namespace Deveel.Data.Transactions {
 		/// are used to represent index information for all tables. 
 		/// (IIndexSet)
 		/// </summary>
-		private readonly IList<IIndexSet> tableIndices;
+		private IList<IIndexSet> tableIndices;
 
 		/// <summary>
 		/// A queue of MasterTableDataSource and IIndexSet objects that are pending to
@@ -64,7 +65,7 @@ namespace Deveel.Data.Transactions {
 		/// A cache of tables that have been accessed via this transaction.  This is
 		/// a map of table_name -> IMutableTableDataSource.
 		/// </summary>
-		private readonly Dictionary<TableName, IMutableTableDataSource> tableCache;
+		private Dictionary<TableName, IMutableTableDataSource> tableCache;
 
 		/// <summary>
 		/// A local cache for sequence values.
@@ -84,12 +85,14 @@ namespace Deveel.Data.Transactions {
 
 		private readonly VariablesManager variables;
 
+		protected Hashtable cursors;
+
 		/// <summary>
 		/// Constructs a new <see cref="SimpleTransaction"/>.
 		/// </summary>
-		/// <param name="context></param>
+		/// <param name="context"></param>
 		/// <param name="sequenceManager"></param>
-		internal SimpleTransaction(SystemContext context, SequenceManager sequenceManager) {
+		internal SimpleTransaction(ISystemContext context, SequenceManager sequenceManager) {
 			this.context = context;
 
 			visibleTables = new List<MasterTableDataSource>();
@@ -101,7 +104,13 @@ namespace Deveel.Data.Transactions {
 
 			variables = new VariablesManager();
 
+			cursors = new Hashtable();
+
 			readOnly = false;
+		}
+
+		~SimpleTransaction() {
+			Dispose(false);
 		}
 
 		///<summary>
@@ -126,7 +135,7 @@ namespace Deveel.Data.Transactions {
 			get { return readOnly; }
 		}
 
-		internal VariablesManager Variables {
+		public VariablesManager Variables {
 			get { return variables; }
 		}
 
@@ -134,7 +143,7 @@ namespace Deveel.Data.Transactions {
 		/// Returns the <see cref="SystemContext"/> that this <see cref="SimpleTransaction"/> 
 		/// is part of.
 		/// </summary>
-		public SystemContext Context {
+		public ISystemContext Context {
 			get { return context; }
 		}
 
@@ -154,6 +163,25 @@ namespace Deveel.Data.Transactions {
 		/// </summary>
 		protected virtual int VisibleTableCount {
 			get { return visibleTables.Count; }
+		}
+
+		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				if (tableCache != null) {
+					tableCache.Clear();
+					tableCache = null;
+				}
+
+				if (tableIndices != null) {
+					tableIndices.Clear();
+					tableIndices = null;
+				}
+			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		/// <summary>
@@ -231,14 +259,14 @@ namespace Deveel.Data.Transactions {
 		/// table and is not a table that is found in the table list defined 
 		/// in this transaction object.
 		/// </summary>
-		/// <param name="table_name"></param>
+		/// <param name="tableName"></param>
 		/// <remarks>
 		/// It is intended this is implemented by derived classes to handle 
 		/// dynamically generated tables (tables based on some function or from 
 		/// an external data source)
 		/// </remarks>
 		/// <returns></returns>
-		protected virtual bool IsDynamicTable(TableName table_name) {
+		protected virtual bool IsDynamicTable(TableName tableName) {
 			// By default, dynamic tables are not implemented.
 			return false;
 		}
@@ -430,19 +458,6 @@ namespace Deveel.Data.Transactions {
 		// -----
 
 		/// <summary>
-		/// Returns a <see cref="ITableDataSource"/> object that represents the 
-		/// table with the given name within this transaction.
-		/// </summary>
-		/// <param name="tableName"></param>
-		/// <remarks>
-		/// This table is represented by an immutable interface.
-		/// </remarks>
-		/// <returns></returns>
-		public ITableDataSource GetTableDataSource(TableName tableName) {
-			return GetTable(tableName);
-		}
-
-		/// <summary>
 		/// Returns a <see cref="ITableDataSource"/> object that represents 
 		/// the table with the given name within this transaction.
 		/// </summary>
@@ -562,11 +577,11 @@ namespace Deveel.Data.Transactions {
 		/// Returns true if the database table object with the given name exists
 		/// within this transaction.
 		/// </summary>
-		/// <param name="table_name"></param>
+		/// <param name="tableName"></param>
 		/// <returns></returns>
-		public virtual bool TableExists(TableName table_name) {
-			return IsDynamicTable(table_name) ||
-				   RealTableExists(table_name);
+		public virtual bool TableExists(TableName tableName) {
+			return IsDynamicTable(tableName) ||
+				   RealTableExists(tableName);
 		}
 
 		/// <summary>
@@ -580,7 +595,7 @@ namespace Deveel.Data.Transactions {
 		/// checking if a system table exists or not.
 		/// </remarks>
 		/// <returns></returns>
-		internal bool RealTableExists(TableName tableName) {
+		public bool RealTableExists(TableName tableName) {
 			return FindVisibleTable(tableName, false) != null;
 		}
 
@@ -771,7 +786,7 @@ namespace Deveel.Data.Transactions {
 		/// value at this time regardless of transaction.
 		/// </remarks>
 		/// <returns></returns>
-		public long CurrentUniqueID(TableName table_name) {
+		public long CurrentUniqueId(TableName table_name) {
 			MasterTableDataSource master = FindVisibleTable(table_name, false);
 			if (master == null)
 				throw new StatementException("Table with name '" + table_name + "' could not be found to retrieve unique id.");
@@ -792,7 +807,7 @@ namespace Deveel.Data.Transactions {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public long NextUniqueID(TableName tableName) {
+		public long NextUniqueId(TableName tableName) {
 			if (IsReadOnly)
 				throw new Exception("Sequence operation not permitted for read only transaction.");
 
@@ -812,7 +827,7 @@ namespace Deveel.Data.Transactions {
 		/// This must only be called under very controlled situations, such as 
 		/// when altering a table or when we need to fix sequence corruption.
 		/// </remarks>
-		public void SetUniqueID(TableName tableName, long uniqueId) {
+		public void SetUniqueId(TableName tableName, long uniqueId) {
 			if (IsReadOnly)
 				throw new Exception("Sequence operation not permitted for read only transaction.");
 
@@ -821,6 +836,38 @@ namespace Deveel.Data.Transactions {
 				throw new StatementException("Table with name '" + tableName + "' could not be found to set unique id.");
 
 			master.SetUniqueID(uniqueId);
+		}
+
+		public Cursor GetCursor(TableName name) {
+			if (name == null)
+				throw new ArgumentNullException("name");
+
+			Cursor cursor = cursors[name] as Cursor;
+			if (cursor == null)
+				throw new ArgumentException("Cursor '" + name + "' was not declared.");
+
+			if (cursor.State == CursorState.Broken)
+				throw new InvalidOperationException("The state of the cursor is invalid.");
+
+			return cursor;
+		}
+
+		public bool CursorExists(TableName name) {
+			return cursors.ContainsKey(name);
+		}
+
+		protected void ClearCursors() {
+			ArrayList cursorsList = new ArrayList(cursors.Values);
+			for (int i = cursorsList.Count - 1; i >= 0; i--) {
+				Cursor cursor = cursorsList[i] as Cursor;
+				if (cursor == null)
+					continue;
+
+				cursor.Dispose();
+			}
+
+			cursors.Clear();
+			cursors = null;
 		}
 	}
 }

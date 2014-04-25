@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 
 using Deveel.Data.Procedures;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
+using Deveel.Data.Util;
 
 namespace Deveel.Data.DbSystem {
 	public static class SystemSchema {
@@ -153,11 +157,124 @@ namespace Deveel.Data.DbSystem {
 		///</summary>
 		public static readonly TableName SysSequence = new TableName(Name, "sequence");
 
-		internal static void AddSystemTables(Transaction transaction) {
-			DataTableInfo tableInfo;
+		#region GT Tables DataTableInfo
 
+		internal static readonly DataTableInfo TableColumnsTableInfo;
+
+		internal static readonly DataTableInfo TableInfoTableInfo;
+
+		internal static readonly DataTableInfo VariablesTableInfo;
+
+		internal static readonly DataTableInfo ProductInfoTableInfo;
+
+		internal static readonly DataTableInfo StatisticsTableInfo;
+
+		internal static readonly DataTableInfo ConnectionInfoTableInfo;
+
+		internal static readonly DataTableInfo CurrentConnectionsTableInfo;
+
+		internal static readonly DataTableInfo PrivilegesTableInfo;
+
+		internal static readonly DataTableInfo SqlTypesTableInfo;
+
+		#endregion
+
+		#region ..ctor
+
+		static SystemSchema() {
+			// TABLE_COLUMNS
+			TableColumnsTableInfo = new DataTableInfo(TableColumns);
+			TableColumnsTableInfo.AddColumn("schema", PrimitiveTypes.VarString);
+			TableColumnsTableInfo.AddColumn("table", PrimitiveTypes.VarString);
+			TableColumnsTableInfo.AddColumn("column", PrimitiveTypes.VarString);
+			TableColumnsTableInfo.AddColumn("sql_type", PrimitiveTypes.Numeric);
+			TableColumnsTableInfo.AddColumn("type_desc", PrimitiveTypes.VarString);
+			TableColumnsTableInfo.AddColumn("size", PrimitiveTypes.Numeric);
+			TableColumnsTableInfo.AddColumn("scale", PrimitiveTypes.Numeric);
+			TableColumnsTableInfo.AddColumn("not_null", PrimitiveTypes.Boolean);
+			TableColumnsTableInfo.AddColumn("default", PrimitiveTypes.VarString);
+			TableColumnsTableInfo.AddColumn("index_str", PrimitiveTypes.VarString);
+			TableColumnsTableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric);
+			TableColumnsTableInfo.IsReadOnly = true;
+
+			// TABLE_INFO
+			TableInfoTableInfo = new DataTableInfo(TableInfo);
+			TableInfoTableInfo.AddColumn("schema", PrimitiveTypes.VarString);
+			TableInfoTableInfo.AddColumn("name", PrimitiveTypes.VarString);
+			TableInfoTableInfo.AddColumn("type", PrimitiveTypes.VarString);
+			TableInfoTableInfo.AddColumn("other", PrimitiveTypes.VarString);
+			TableInfoTableInfo.IsReadOnly = true;
+
+			// VARIABLES
+			VariablesTableInfo = new DataTableInfo(Variables);
+			VariablesTableInfo.AddColumn("var", PrimitiveTypes.VarString);
+			VariablesTableInfo.AddColumn("type", PrimitiveTypes.VarString);
+			VariablesTableInfo.AddColumn("value", PrimitiveTypes.VarString);
+			VariablesTableInfo.AddColumn("constant", PrimitiveTypes.Boolean);
+			VariablesTableInfo.AddColumn("not_null", PrimitiveTypes.Boolean);
+			VariablesTableInfo.AddColumn("is_set", PrimitiveTypes.Boolean);
+			VariablesTableInfo.IsReadOnly = true;
+
+			// PRODUCT_INFO
+			ProductInfoTableInfo = new DataTableInfo(ProductInfo);
+			ProductInfoTableInfo.AddColumn("var", PrimitiveTypes.VarString);
+			ProductInfoTableInfo.AddColumn("value", PrimitiveTypes.VarString);
+			ProductInfoTableInfo.IsReadOnly = true;
+
+			// DATABASE_STATS
+			StatisticsTableInfo = new DataTableInfo(DatabaseStatistics);
+			StatisticsTableInfo.AddColumn("stat_name", PrimitiveTypes.VarString);
+			StatisticsTableInfo.AddColumn("value", PrimitiveTypes.VarString);
+			StatisticsTableInfo.IsReadOnly = true;
+
+			// CONNECTION_INFO
+			ConnectionInfoTableInfo = new DataTableInfo(ConnectionInfo);
+			ConnectionInfoTableInfo.AddColumn("var", PrimitiveTypes.VarString);
+			ConnectionInfoTableInfo.AddColumn("value", PrimitiveTypes.VarString);
+			ConnectionInfoTableInfo.IsReadOnly = true;
+
+			// CURRENT_CONNECTIONS
+			CurrentConnectionsTableInfo = new DataTableInfo(CurrentConnections);
+			CurrentConnectionsTableInfo.AddColumn("username", PrimitiveTypes.VarString);
+			CurrentConnectionsTableInfo.AddColumn("host_string", PrimitiveTypes.VarString);
+			CurrentConnectionsTableInfo.AddColumn("last_command", PrimitiveTypes.Date);
+			CurrentConnectionsTableInfo.AddColumn("time_connected", PrimitiveTypes.Date);
+			CurrentConnectionsTableInfo.IsReadOnly = true;
+
+			// PRIVILEGES
+			PrivilegesTableInfo = new DataTableInfo(SystemSchema.Privileges);
+			PrivilegesTableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric);
+			PrivilegesTableInfo.AddColumn("description", PrimitiveTypes.VarString);
+			PrivilegesTableInfo.IsReadOnly = true;
+
+			// SQL_TYPES
+			SqlTypesTableInfo = new DataTableInfo(SqlTypes);
+			SqlTypesTableInfo.AddColumn("TYPE_NAME", PrimitiveTypes.VarString);
+			SqlTypesTableInfo.AddColumn("DATA_TYPE", PrimitiveTypes.Numeric);
+			SqlTypesTableInfo.AddColumn("PRECISION", PrimitiveTypes.Numeric);
+			SqlTypesTableInfo.AddColumn("LITERAL_PREFIX", PrimitiveTypes.VarString);
+			SqlTypesTableInfo.AddColumn("LITERAL_SUFFIX", PrimitiveTypes.VarString);
+			SqlTypesTableInfo.AddColumn("CREATE_PARAMS", PrimitiveTypes.VarString);
+			SqlTypesTableInfo.AddColumn("NULLABLE", PrimitiveTypes.Numeric);
+			SqlTypesTableInfo.AddColumn("CASE_SENSITIVE", PrimitiveTypes.Boolean);
+			SqlTypesTableInfo.AddColumn("SEARCHABLE", PrimitiveTypes.Numeric);
+			SqlTypesTableInfo.AddColumn("UNSIGNED_ATTRIBUTE", PrimitiveTypes.Boolean);
+			SqlTypesTableInfo.AddColumn("FIXED_PREC_SCALE", PrimitiveTypes.Boolean);
+			SqlTypesTableInfo.AddColumn("AUTO_INCREMENT", PrimitiveTypes.Boolean);
+			SqlTypesTableInfo.AddColumn("LOCAL_TYPE_NAME", PrimitiveTypes.VarString);
+			SqlTypesTableInfo.AddColumn("MINIMUM_SCALE", PrimitiveTypes.Numeric);
+			SqlTypesTableInfo.AddColumn("MAXIMUM_SCALE", PrimitiveTypes.Numeric);
+			SqlTypesTableInfo.AddColumn("SQL_DATA_TYPE", PrimitiveTypes.VarString);
+			SqlTypesTableInfo.AddColumn("SQL_DATETIME_SUB", PrimitiveTypes.VarString);
+			SqlTypesTableInfo.AddColumn("NUM_PREC_RADIX", PrimitiveTypes.Numeric);
+			SqlTypesTableInfo.IsReadOnly = true;
+		}
+
+		#endregion
+
+		internal static void AddSystemTables(Transaction transaction) {
 			// SYSTEM.SEQUENCE_INFO
-			tableInfo = new DataTableInfo(SysSequenceInfo);
+			DataTableInfo tableInfo = new DataTableInfo(SysSequenceInfo);
 			tableInfo.AddColumn("id", PrimitiveTypes.Numeric);
 			tableInfo.AddColumn("schema", PrimitiveTypes.VarString);
 			tableInfo.AddColumn("name", PrimitiveTypes.VarString);
@@ -448,5 +565,966 @@ namespace Deveel.Data.DbSystem {
 			// Grant execute priv with grant option to administrator
 			grants.Grant(Security.Privileges.ProcedureExecute, GrantObject.Table, "SYSTEM.SYSTEM_MAKE_BACKUP", adminUser, true, granter);
 		}
+
+		public static ITableDataSource GetTableColumnsTable(SimpleTransaction transaction) {
+			return new GTTableColumnsDataSource(transaction);
+		}
+
+		internal static ITableDataSource GetTableInfoTable(Transaction transaction) {
+			return new GTTableInfoDataSource(transaction);
+		}
+
+		internal static ITableDataSource GetVariablesTable(Transaction transaction) {
+			return new GTVariablesDataSource(transaction);
+		}
+
+		internal static ITableDataSource GetProductInfoTable(Transaction transaction) {
+			return new GTProductDataSource(transaction);
+		}
+
+		internal static ITableDataSource GetStatisticsTable(DatabaseConnection connection) {
+			return new GTStatisticsDataSource(connection);
+		}
+
+		internal static ITableDataSource GetConnectionInfoTable(DatabaseConnection connection) {
+			return new GTConnectionInfoDataSource(connection);
+		}
+
+		internal static ITableDataSource GetCurrentConnectionsTable(DatabaseConnection connection) {
+			return new GTCurrentConnectionsDataSource(connection);
+		}
+
+		internal static ITableDataSource GetPrivilegesTable(DatabaseConnection connection) {
+			return new GTPrivMapDataSource(connection);
+		}
+
+		internal static ITableDataSource GetSqlTypesTable(DatabaseConnection connection) {
+			return new GTSQLTypeInfoDataSource(connection);
+		}
+
+		#region GTTableColumnsDataSource
+
+		/// <summary>
+		/// An implementation of <see cref="ITableDataSource"/> that 
+		/// presents information about the columns of all tables in all schema.
+		/// </summary>
+		/// <remarks>
+		/// <b>Note</b> This is not designed to be a long kept object. It must not last
+		/// beyond the lifetime of a transaction.
+		/// </remarks>
+		sealed class GTTableColumnsDataSource : GTDataSource {
+			/// <summary>
+			/// The transaction that is the view of this information.
+			/// </summary>
+			private SimpleTransaction transaction;
+			/// <summary>
+			/// The list of all DataTableInfo visible to the transaction.
+			/// </summary>
+			private DataTableInfo[] visibleTables;
+			/// <summary>
+			/// The number of rows in this table.
+			/// </summary>
+			private int rowCount;
+
+			public GTTableColumnsDataSource(SimpleTransaction transaction)
+				: base(transaction.Context) {
+				this.transaction = transaction;
+				Init();
+			}
+
+			/// <summary>
+			/// Initialize the data source.
+			/// </summary>
+			/// <returns></returns>
+			private void Init() {
+				// All the tables
+				TableName[] list = transaction.GetTables();
+				visibleTables = new DataTableInfo[list.Length];
+				rowCount = 0;
+				for (int i = 0; i < list.Length; ++i) {
+					DataTableInfo info = transaction.GetTableInfo(list[i]);
+					rowCount += info.ColumnCount;
+					visibleTables[i] = info;
+				}
+			}
+
+			// ---------- Implemented from GTDataSource ----------
+
+			public override DataTableInfo TableInfo {
+				get { return TableColumnsTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return rowCount; }
+			}
+
+			public override TObject GetCell(int column, int row) {
+
+				int sz = visibleTables.Length;
+				int rs = 0;
+				for (int n = 0; n < sz; ++n) {
+					DataTableInfo info = visibleTables[n];
+					int b = rs;
+					rs += info.ColumnCount;
+					if (row >= b && row < rs) {
+						// This is the column that was requested,
+						int seqNo = row - b;
+						DataColumnInfo colInfo = info[seqNo];
+						switch (column) {
+							case 0:  // schema
+								return GetColumnValue(column, info.Schema);
+							case 1:  // table
+								return GetColumnValue(column, info.Name);
+							case 2:  // column
+								return GetColumnValue(column, colInfo.Name);
+							case 3:  // sql_type
+								return GetColumnValue(column, (BigNumber)(int)colInfo.SqlType);
+							case 4:  // type_desc
+								return GetColumnValue(column, colInfo.TType.ToSqlString());
+							case 5:  // size
+								return GetColumnValue(column, (BigNumber)colInfo.Size);
+							case 6:  // scale
+								return GetColumnValue(column, (BigNumber)colInfo.Scale);
+							case 7:  // not_null
+								return GetColumnValue(column, colInfo.IsNotNull);
+							case 8:  // default
+								return GetColumnValue(column, colInfo.GetDefaultExpressionString());
+							case 9:  // index_str
+								return GetColumnValue(column, colInfo.IndexScheme);
+							case 10:  // seq_no
+								return GetColumnValue(column, (BigNumber)seqNo);
+							default:
+								throw new ApplicationException("Column out of bounds.");
+						}
+					}
+
+				}  // for each visible table
+
+				throw new ApplicationException("Row out of bounds.");
+			}
+
+			// ---------- Overwritten ----------
+
+			protected override void Dispose(bool disposing) {
+				visibleTables = null;
+				transaction = null;
+			}
+		}
+
+		#endregion
+
+		#region GTTableInfoDataSource
+
+		/// <summary>
+		/// An implementation of <see cref="IMutableTableDataSource"/> that 
+		/// presents information about the tables in all schema.
+		/// </summary>
+		/// <remarks>
+		/// <b>Note</b> This is not designed to be a long kept object. It must not 
+		/// last beyond the lifetime of a transaction.
+		/// </remarks>
+		sealed class GTTableInfoDataSource : GTDataSource {
+			/// <summary>
+			/// The transaction that is the view of this information.
+			/// </summary>
+			private Transaction transaction;
+
+			private List<TTableInfo> tableInfos;
+
+			/// <summary>
+			/// The number of rows in this table.
+			/// </summary>
+			private int rowCount;
+
+			public GTTableInfoDataSource(Transaction transaction)
+				: base(transaction.Context) {
+				this.transaction = transaction;
+				tableInfos = new List<TTableInfo>();
+				Init();
+			}
+
+			/// <summary>
+			/// Initialize the data source.
+			/// </summary>
+			/// <returns></returns>
+			private void Init() {
+				// All the tables
+				TableName[] tableList = transaction.GetTables();
+				Array.Sort(tableList);
+				rowCount = tableList.Length;
+
+				foreach (TableName tableName in tableList) {
+					string curType = transaction.GetTableType(tableName);
+
+					// If the table is in the SYSTEM schema, the type is defined as a
+					// SYSTEM TABLE.
+					if (curType.Equals("TABLE") &&
+						tableName.Schema.Equals("SYSTEM")) {
+						curType = "SYSTEM TABLE";
+					}
+
+					TTableInfo tableInfo = new TTableInfo();
+					tableInfo.Name = tableName.Name;
+					tableInfo.Schema = tableName.Schema;
+					tableInfo.Type = curType;
+
+					tableInfos.Add(tableInfo);
+				}
+			}
+
+			// ---------- Implemented from GTDataSource ----------
+
+			public override DataTableInfo TableInfo {
+				get { return TableInfoTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return rowCount; }
+			}
+
+			public override TObject GetCell(int column, int row) {
+				TTableInfo info = tableInfos[row];
+				switch (column) {
+					case 0:  // schema
+						return GetColumnValue(column, info.Schema);
+					case 1:  // name
+						return GetColumnValue(column, info.Name);
+					case 2:  // type
+						return GetColumnValue(column, info.Type);
+					case 3:  // other
+						// Table notes, etc.  (future enhancement)
+						return GetColumnValue(column, info.Notes);
+					default:
+						throw new ApplicationException("Column out of bounds.");
+				}
+			}
+
+			// ---------- Overwritten from GTDataSource ----------
+
+			protected override void Dispose(bool disposing) {
+				tableInfos = null;
+				transaction = null;
+			}
+
+			#region TableInfo
+
+			class TTableInfo {
+				public string Name;
+				public string Schema;
+				public string Type;
+				public string Notes;
+
+			}
+
+			#endregion
+		}
+
+		#endregion
+
+		#region GTVariablesDataSource
+
+		class GTVariablesDataSource : GTDataSource {
+			public GTVariablesDataSource(SimpleTransaction transaction)
+				: base(transaction.Context) {
+				this.transaction = transaction;
+				variables = new List<VariableInfo>();
+				Init();
+			}
+
+			private SimpleTransaction transaction;
+
+			/// <summary>
+			/// The list of info keys/values in this object.
+			/// </summary>
+			private List<VariableInfo> variables;
+
+			public override DataTableInfo TableInfo {
+				get { return VariablesTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return variables.Count / 4; }
+			}
+
+			public override TObject GetCell(int column, int row) {
+				VariableInfo variable = variables[row];
+
+				switch (column) {
+					case 0:  // var
+						return GetColumnValue(column, variable.Name);
+					case 1:  // type
+						return GetColumnValue(column, variable.SqlType);
+					case 2:  // value
+						return GetColumnValue(column, variable.Value);
+					case 3:  // constant
+						return GetColumnValue(column, variable.IsConstant);
+					case 4:  // not_null
+						return GetColumnValue(column, variable.IsNotNull);
+					case 5:  // is_set
+						return GetColumnValue(column, variable.IsSet);
+					default:
+						throw new ApplicationException("Column out of bounds.");
+				}
+			}
+
+			public void Init() {
+				VariablesManager variablesManager = transaction.Variables;
+				lock (variablesManager) {
+					for (int i = 0; i < variablesManager.Count; i++) {
+						Variable variable = variablesManager[i];
+						variables.Add(new VariableInfo(variable));
+					}
+				}
+			}
+
+			protected override void Dispose(bool disposing) {
+				variables = null;
+				transaction = null;
+			}
+
+			#region DbVariable
+
+			class VariableInfo {
+				public VariableInfo(Variable variable) {
+					Name = variable.Name;
+					SqlType = variable.Type.ToSqlString();
+					Value = variable.IsSet ? variable.original_expression.Text.ToString() : "NULL";
+					IsConstant = variable.Constant;
+					IsNotNull = variable.NotNull;
+					IsSet = variable.IsSet;
+				}
+
+				public readonly string Name;
+				public readonly string SqlType;
+				public readonly string Value;
+				public readonly bool IsConstant;
+				public readonly bool IsNotNull;
+				public readonly bool IsSet;
+			}
+
+			#endregion
+		}
+
+		#endregion
+
+		#region GTProductDataSource
+
+		/// <summary>
+		/// An implementation of <see cref="IMutableTableDataSource"/> that models 
+		/// information about the software.
+		/// </summary>
+		/// <remarks>
+		/// <b>Note:</b> This is not designed to be a long kept object. It must not last
+		/// beyond the lifetime of a transaction.
+		/// </remarks>
+		sealed class GTProductDataSource : GTDataSource {
+			/// <summary>
+			/// The list of info keys/values in this object.
+			/// </summary>
+			private List<string> keyValuePairs;
+
+			public GTProductDataSource(SimpleTransaction transaction)
+				: base(transaction.Context) {
+				keyValuePairs = new List<string>();
+				Init();
+			}
+
+			/// <summary>
+			/// Initialize the data source.
+			/// </summary>
+			/// <returns></returns>
+			private void Init() {
+				ProductInfo productInfo = Util.ProductInfo.Current;
+				// Set up the product variables.
+				keyValuePairs.Add("title");
+				keyValuePairs.Add(productInfo.Title);
+
+				keyValuePairs.Add("version");
+				keyValuePairs.Add(productInfo.Version.ToString());
+
+				keyValuePairs.Add("copyright");
+				keyValuePairs.Add(productInfo.Copyright);
+
+				keyValuePairs.Add("description");
+				keyValuePairs.Add(productInfo.Description);
+
+				keyValuePairs.Add("company");
+				keyValuePairs.Add(productInfo.Company);
+			}
+
+			// ---------- Implemented from GTDataSource ----------
+
+			public override DataTableInfo TableInfo {
+				get { return ProductInfoTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return keyValuePairs.Count / 2; }
+			}
+
+			public override TObject GetCell(int column, int row) {
+				switch (column) {
+					case 0:  // var
+						return GetColumnValue(column, keyValuePairs[row * 2]);
+					case 1:  // value
+						return GetColumnValue(column, keyValuePairs[(row * 2) + 1]);
+					default:
+						throw new ApplicationException("Column out of bounds.");
+				}
+			}
+
+			// ---------- Overwritten from GTDataSource ----------
+
+			protected override void Dispose(bool disposing) {
+				keyValuePairs = null;
+			}
+		}
+
+		#endregion
+
+		#region GTStatisticsDataSource
+
+		/// <summary>
+		/// An implementation of <see cref="IMutableTableDataSource"/> that 
+		/// presents database statistical information.
+		/// </summary>
+		/// <remarks>
+		/// <b>Note:</b> This is not designed to be a long kept object. It must not last
+		/// beyond the lifetime of a transaction.
+		/// </remarks>
+		sealed class GTStatisticsDataSource : GTDataSource {
+			/// <summary>
+			/// Contains all the statistics information for this session.
+			/// </summary>
+			private string[] statsInfo;
+			/// <summary>
+			/// The system database stats.
+			/// </summary>
+			private Stats stats;
+
+			public GTStatisticsDataSource(DatabaseConnection connection)
+				: base(connection.Context) {
+				stats = connection.Database.Stats;
+				Init();
+			}
+
+			/// <summary>
+			/// Initialize the data source.
+			/// </summary>
+			/// <returns></returns>
+			private void Init() {
+				lock (stats) {
+					// TODO: get the value of the db_path drive
+					var driveInfo = DriveInfo.GetDrives()[0];
+
+					stats.Set("Runtime.Memory.FreeSpaceKb", (int)driveInfo.AvailableFreeSpace / 1024);
+					stats.Set("Runtime.Memory.TotalFreeSpaceKb", (int)driveInfo.TotalFreeSpace / 1024);
+					stats.Set("Runtime.Memory.TotalKb", (int)driveInfo.TotalSize / 1024);
+
+					string[] keySet = stats.Keys;
+					int globLength = keySet.Length * 2;
+					statsInfo = new string[globLength];
+
+					for (int i = 0; i < globLength; i += 2) {
+						string keyName = keySet[i / 2];
+						statsInfo[i] = keyName;
+						statsInfo[i + 1] = stats.StatString(keyName);
+					}
+
+				}
+			}
+
+			// ---------- Implemented from GTDataSource ----------
+
+			public override DataTableInfo TableInfo {
+				get { return StatisticsTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return statsInfo.Length / 2; }
+			}
+
+			public override TObject GetCell(int column, int row) {
+				switch (column) {
+					case 0:  // stat_name
+						return GetColumnValue(column, statsInfo[row * 2]);
+					case 1:  // value
+						return GetColumnValue(column, statsInfo[(row * 2) + 1]);
+					default:
+						throw new ApplicationException("Column out of bounds.");
+				}
+			}
+
+			// ---------- Overwritten from GTDataSource ----------
+
+			protected override void Dispose(bool disposing) {
+				statsInfo = null;
+				stats = null;
+			}
+		}
+
+		#endregion
+
+		#region GTConnectionInfoDataSource
+
+		/// <summary>
+		/// An implementation of <see cref="IMutableTableDataSource"/> that 
+		/// presents the current session information.
+		/// </summary>
+		/// <remarks>
+		/// <b>Note:</b> This is not designed to be a long kept object. 
+		/// It must not last beyond the lifetime of a transaction.
+		/// </remarks>
+		sealed class GTConnectionInfoDataSource : GTDataSource {
+			/// <summary>
+			/// The DatabaseConnection object that this is table is modelling the
+			/// information within.
+			/// </summary>
+			private DatabaseConnection database;
+
+			/// <summary>
+			/// The list of info keys/values in this object.
+			/// </summary>
+			private List<string> keyValuePairs;
+
+			public GTConnectionInfoDataSource(DatabaseConnection connection)
+				: base(connection.Context) {
+				database = connection;
+				keyValuePairs = new List<string>();
+			}
+
+			/// <summary>
+			/// Initialize the data source.
+			/// </summary>
+			/// <returns></returns>
+			private void Init() {
+				// Set up the connection info variables.
+				keyValuePairs.Add("auto_commit");
+				keyValuePairs.Add(database.AutoCommit ? "true" : "false");
+
+				keyValuePairs.Add("isolation_level");
+				keyValuePairs.Add(database.TransactionIsolation.ToString());
+
+				keyValuePairs.Add("user");
+				keyValuePairs.Add(database.User.UserName);
+
+				keyValuePairs.Add("time_connection");
+				keyValuePairs.Add(database.User.TimeConnected.ToString());
+
+				keyValuePairs.Add("connection_string");
+				keyValuePairs.Add(database.User.ConnectionString);
+
+				keyValuePairs.Add("current_schema");
+				keyValuePairs.Add(database.CurrentSchema);
+
+				keyValuePairs.Add("case_insensitive_identifiers");
+				keyValuePairs.Add(database.IsInCaseInsensitiveMode ? "true" : "false");
+			}
+
+			// ---------- Implemented from GTDataSource ----------
+
+			/// <inheritdoc/>
+			public override DataTableInfo TableInfo {
+				get { return ConnectionInfoTableInfo; }
+			}
+
+			/// <inheritdoc/>
+			public override int RowCount {
+				get { return keyValuePairs.Count / 2; }
+			}
+
+			/// <inheritdoc/>
+			public override TObject GetCell(int column, int row) {
+				switch (column) {
+					case 0:  // var
+						return GetColumnValue(column, keyValuePairs[row * 2]);
+					case 1:  // value
+						return GetColumnValue(column, keyValuePairs[(row * 2) + 1]);
+					default:
+						throw new ApplicationException("Column out of bounds.");
+				}
+			}
+
+			// ---------- Overwritten from GTDataSource ----------
+
+			/// <inheritdoc/>
+			protected override void Dispose(bool disposing) {
+				if (disposing) {
+					keyValuePairs = null;
+					database = null;
+				}
+			}
+		}
+
+		#endregion
+
+		#region GTCurrentConnectionsDataSource
+
+		/// <summary>
+		/// An implementation of <see cref="IMutableTableDataSource"/> that 
+		/// presents the current list of sessions on the database.
+		/// </summary>
+		/// <remarks>
+		/// <b>Note:</b> This is not designed to be a long kept object. 
+		/// It must not last beyond the lifetime of a transaction.
+		/// </remarks>
+		sealed class GTCurrentConnectionsDataSource : GTDataSource {
+			/// <summary>
+			/// The DatabaseConnection object that this is table is modelling the
+			/// information within.
+			/// </summary>
+			private DatabaseConnection database;
+
+			/// <summary>
+			/// The list of info keys/values in this object.
+			/// </summary>
+			private List<CurrentConnection> connections;
+
+			public GTCurrentConnectionsDataSource(DatabaseConnection connection)
+				: base(connection.Context) {
+				database = connection;
+				connections = new List<CurrentConnection>();
+				Init();
+			}
+
+			/// <summary>
+			/// Initialize the data source.
+			/// </summary>
+			/// <returns></returns>
+			public void Init() {
+				LoggedUsers loggedUsers = database.Database.LoggedUsers;
+
+				// Synchronize over the user manager while we inspect the information,
+				lock (loggedUsers) {
+					for (int i = 0; i < loggedUsers.UserCount; ++i) {
+						User user = loggedUsers[i];
+						CurrentConnection currentConnection = new CurrentConnection();
+						currentConnection.UserName = user.UserName;
+						currentConnection.Host = user.ConnectionString;
+						currentConnection.LastCommand = user.LastCommandTime;
+						currentConnection.Connected = user.TimeConnected;
+
+						connections.Add(currentConnection);
+					}
+				}
+			}
+
+			// ---------- Implemented from GTDataSource ----------
+
+			/// <inheritdoc/>
+			public override DataTableInfo TableInfo {
+				get { return CurrentConnectionsTableInfo; }
+			}
+
+			/// <inheritdoc/>
+			public override int RowCount {
+				get { return connections.Count / 4; }
+			}
+
+			/// <inheritdoc/>
+			public override TObject GetCell(int column, int row) {
+				CurrentConnection currentConnection = connections[row];
+
+				switch (column) {
+					case 0:  // username
+						return GetColumnValue(column, currentConnection.UserName);
+					case 1:  // host_string
+						return GetColumnValue(column, currentConnection.Host);
+					case 2:  // last_command
+						return GetColumnValue(column, currentConnection.LastCommand);
+					case 3:  // time_connected
+						return GetColumnValue(column, currentConnection.Connected);
+					default:
+						throw new IndexOutOfRangeException();
+				}
+			}
+
+			// ---------- Overwritten from GTDataSource ----------
+
+			/// <inheritdoc/>
+			protected override void Dispose(bool disposing) {
+				if (disposing) {
+					connections = null;
+					database = null;
+				}
+			}
+
+			#region CurrentConnection
+
+			class CurrentConnection {
+				public string UserName;
+				public string Host;
+				public DateTime LastCommand;
+				public DateTime Connected;
+			}
+
+			#endregion
+		}
+
+
+		#endregion
+
+		#region GTPrivMapDataSource
+
+		/// <summary>
+		/// A <see cref="GTDataSource"/> that maps a 11-bit <see cref="Privileges"/> 
+		/// to strings that represent the privilege in human readable string.
+		/// </summary>
+		/// <remarks>
+		/// Each 11-bit priv set contains 12 entries for each bit that was set.
+		/// <para>
+		/// This table provides a convenient way to join the system grant table and
+		/// <i>expand</i> the privileges that are allowed though it.
+		/// </para>
+		/// </remarks>
+		class GTPrivMapDataSource : GTDataSource {
+			/// <summary>
+			/// Number of bits.
+			/// </summary>
+			private const int BitCount = Security.Privileges.BitCount;
+
+			public GTPrivMapDataSource(DatabaseConnection connection)
+				: base(connection.Context) {
+			}
+
+			// ---------- Implemented from GTDataSource ----------
+
+			public override DataTableInfo TableInfo {
+				get { return PrivilegesTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return (1 << BitCount) * BitCount; }
+			}
+
+			public override TObject GetCell(int column, int row) {
+				int c1 = row / BitCount;
+				if (column == 0)
+					return GetColumnValue(column, (BigNumber)c1);
+
+				int privBit = (1 << (row % BitCount));
+				string privString = null;
+				if ((c1 & privBit) != 0) {
+					privString = Security.Privileges.FormatPriv(privBit);
+				}
+				return GetColumnValue(column, privString);
+			}
+
+
+			public override SelectableScheme GetColumnScheme(int column) {
+				if (column == 0)
+					return new PrivMapSearch(this, column);
+				return new BlindSearch(this, column);
+			}
+
+			// ---------- Inner classes ----------
+
+			/// <summary>
+			/// A SelectableScheme that makes searching on the 'priv_bit' column 
+			/// a lot less painless!
+			/// </summary>
+			private sealed class PrivMapSearch : CollatedBaseSearch {
+
+				internal PrivMapSearch(ITableDataSource table, int column)
+					: base(table, column) {
+				}
+
+				public override SelectableScheme Copy(ITableDataSource table, bool immutable) {
+					// Return a fresh object.  This implementation has no state so we can
+					// ignore the 'immutable' flag.
+					return new BlindSearch(table, Column);
+				}
+
+				protected override int SearchFirst(TObject val) {
+					if (val.IsNull) {
+						return -1;
+					}
+
+					int num = ((BigNumber)val.Object).ToInt32();
+
+					if (num < 0)
+						return -1;
+					if (num > (1 << BitCount))
+						return -(((1 << BitCount) * BitCount) + 1);
+
+					return (num * BitCount);
+				}
+
+				protected override int SearchLast(TObject val) {
+					int p = SearchFirst(val);
+					if (p >= 0)
+						return p + (BitCount - 1);
+					return p;
+				}
+			}
+		}
+
+		#endregion
+
+		#region GTSQLTypeInfoDataSource
+
+		/// <summary>
+		/// A <see cref="GTDataSource"/> that models all SQL types available.
+		/// </summary>
+		/// <remarks>
+		/// <b>Note:</b> This is not designed to be a long kept object. It must 
+		/// not last beyond the lifetime of a transaction.
+		/// </remarks>
+		class GTSQLTypeInfoDataSource : GTDataSource {
+			/// <summary>
+			/// The DatabaseConnection object.  Currently this is not used, but it may
+			/// be needed in the future if user-defined SQL types are supported.
+			/// </summary>
+			private DatabaseConnection database;
+
+			/// <summary>
+			/// The list of info keys/values in this object.
+			/// </summary>
+			private List<SqlTypeInfo> sqlTypes;
+
+			/// <summary>
+			/// Constant for type_nullable types.
+			/// </summary>
+			private static readonly BigNumber TypeNullable = 1;
+
+			public GTSQLTypeInfoDataSource(DatabaseConnection connection)
+				: base(connection.Context) {
+				database = connection;
+				sqlTypes = new List<SqlTypeInfo>();
+				Init();
+			}
+
+			/// <summary>
+			/// Adds a type description.
+			/// </summary>
+			/// <param name="name"></param>
+			/// <param name="type"></param>
+			/// <param name="precision"></param>
+			/// <param name="prefix"></param>
+			/// <param name="suffix"></param>
+			/// <param name="searchable"></param>
+			private void AddType(string name, SqlType type, byte precision, string prefix, string suffix, bool searchable) {
+				SqlTypeInfo typeInfo = new SqlTypeInfo();
+				typeInfo.Name = name;
+				typeInfo.Type = type;
+				typeInfo.Precision = precision;
+				typeInfo.LiteralPrefix = prefix;
+				typeInfo.LiteralSuffix = suffix;
+				typeInfo.Searchable = (byte)(searchable ? 3 : 0);
+				sqlTypes.Add(typeInfo);
+			}
+
+			/// <summary>
+			/// Initialize the data source.
+			/// </summary>
+			/// <returns></returns>
+			public GTSQLTypeInfoDataSource Init() {
+				AddType("BIT", SqlType.Bit, 1, null, null, true);
+				AddType("BOOLEAN", SqlType.Bit, 1, null, null, true);
+				AddType("TINYINT", SqlType.TinyInt, 9, null, null, true);
+				AddType("SMALLINT", SqlType.SmallInt, 9, null, null, true);
+				AddType("INTEGER", SqlType.Integer, 9, null, null, true);
+				AddType("BIGINT", SqlType.BigInt, 9, null, null, true);
+				AddType("FLOAT", SqlType.Float, 9, null, null, true);
+				AddType("REAL", SqlType.Real, 9, null, null, true);
+				AddType("DOUBLE", SqlType.Double, 9, null, null, true);
+				AddType("NUMERIC", SqlType.Numeric, 9, null, null, true);
+				AddType("DECIMAL", SqlType.Decimal, 9, null, null, true);
+				AddType("IDENTITY", SqlType.Identity, 9, null, null, true);
+				AddType("CHAR", SqlType.Char, 9, "'", "'", true);
+				AddType("VARCHAR", SqlType.VarChar, 9, "'", "'", true);
+				AddType("LONGVARCHAR", SqlType.LongVarChar, 9, "'", "'", true);
+				AddType("DATE", SqlType.Date, 9, null, null, true);
+				AddType("TIME", SqlType.Time, 9, null, null, true);
+				AddType("TIMESTAMP", SqlType.TimeStamp, 9, null, null, true);
+				AddType("BINARY", SqlType.Binary, 9, null, null, false);
+				AddType("VARBINARY", SqlType.VarBinary, 9, null, null, false);
+				AddType("LONGVARBINARY", SqlType.LongVarBinary, 9, null, null, false);
+				AddType("OBJECT", SqlType.Object, 9, null, null, false);
+
+				return this;
+			}
+
+			// ---------- Implemented from GTDataSource ----------
+
+			public override DataTableInfo TableInfo {
+				get { return SqlTypesTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return sqlTypes.Count / 6; }
+			}
+
+			public override TObject GetCell(int column, int row) {
+				int i = (row * 6);
+				SqlTypeInfo typeInfo = sqlTypes[row];
+
+				switch (column) {
+					case 0:  // type_name
+						return GetColumnValue(column, typeInfo.Name);
+					case 1:  // data_type
+						return GetColumnValue(column, (int)typeInfo.Type);
+					case 2:  // precision
+						return GetColumnValue(column, typeInfo.Precision);
+					case 3:  // literal_prefix
+						return GetColumnValue(column, typeInfo.LiteralPrefix);
+					case 4:  // literal_suffix
+						return GetColumnValue(column, typeInfo.LiteralSuffix);
+					case 5:  // create_params
+						return GetColumnValue(column, null);
+					case 6:  // nullable
+						return GetColumnValue(column, TypeNullable);
+					case 7:  // case_sensitive
+						return GetColumnValue(column, true);
+					case 8:  // searchable
+						return GetColumnValue(column, typeInfo.Searchable);
+					case 9:  // unsigned_attribute
+						return GetColumnValue(column, false);
+					case 10:  // fixed_prec_scale
+						return GetColumnValue(column, false);
+					case 11:  // auto_increment
+						return GetColumnValue(column, typeInfo.Type == SqlType.Identity);
+					case 12:  // local_type_name
+						return GetColumnValue(column, null);
+					case 13:  // minimum_scale
+						return GetColumnValue(column, (BigNumber)0);
+					case 14:  // maximum_scale
+						return GetColumnValue(column, (BigNumber)10000000);
+					case 15:  // sql_data_type
+						return GetColumnValue(column, null);
+					case 16:  // sql_datetype_sub
+						return GetColumnValue(column, null);
+					case 17:  // num_prec_radix
+						return GetColumnValue(column, (BigNumber)10);
+					default:
+						throw new ApplicationException("Column out of bounds.");
+				}
+			}
+
+			// ---------- Overwritten from GTDataSource ----------
+
+			protected override void Dispose(bool disposing) {
+				if (disposing) {
+					sqlTypes = null;
+					database = null;
+				}
+			}
+
+			#region SqlTypeInfo
+
+			class SqlTypeInfo {
+				public string Name;
+				public SqlType Type;
+				public byte Precision;
+				public string LiteralPrefix;
+				public string LiteralSuffix;
+				public byte Searchable;
+
+			}
+
+			#endregion
+		}
+
+		#endregion
 	}
 }

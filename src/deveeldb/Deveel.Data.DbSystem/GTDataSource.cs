@@ -22,11 +22,6 @@ namespace Deveel.Data.DbSystem {
 	/// A base class for a dynamically generated data source (GT == Generated Table).
 	/// </summary>
 	/// <remarks>
-	/// While this inherits <see cref="IMutableTableDataSource"/> 
-	/// (so we can make a <see cref="DataTable"/> out of it) a derived class 
-	/// may not be mutable.
-	/// For example, an implementation of this class may produce a list of a 
-	/// columns in all tables. 
 	/// It is not suggested let a user to change this information unless he 
 	/// runs a DML command.
 	/// </remarks>
@@ -34,11 +29,11 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// The TransactionSystem object for this table.
 		/// </summary>
-		private readonly SystemContext context;
+		private readonly ISystemContext context;
 
 		private bool disposed;
 
-		protected GTDataSource(SystemContext context) {
+		protected GTDataSource(ISystemContext context) {
 			this.context = context;
 		}
 
@@ -58,7 +53,7 @@ namespace Deveel.Data.DbSystem {
 		// ---------- Implemented from ITableDataSource ----------
 
 		/// <inheritdoc/>
-		public SystemContext Context {
+		public ISystemContext Context {
 			get { return context; }
 		}
 
