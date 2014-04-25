@@ -631,8 +631,7 @@ namespace Deveel.Data.DbSystem {
 
 		/// <summary>
 		/// Sets the <see cref="MasterTableDataSource"/> objects pointed by the
-		/// given <see cref="IntegerVector"/> to the currently committed list of 
-		/// tables in this conglomerate.
+		/// given list to the currently committed list of tables in this conglomerate.
 		/// </summary>
 		/// <param name="createdTables"></param>
 		/// <param name="droppedTables"></param>

@@ -195,15 +195,6 @@
     <Compile Include="Deveel.Data.Index\BlockIndex.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndexBase.cs" />
     <Compile Include="Deveel.Data.Transactions\CommitModificationEventArgs.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Constraints.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Cursors.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Procedures.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Schemata.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Sequences.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Tables.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Triggers.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Variables.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseConnection_Views.cs" />
     <Compile Include="Deveel.Data.Index\IIndex.cs" />
     <Compile Include="Deveel.Data.Index\IBlockIndexBlock.cs" />
     <Compile Include="Deveel.Data.Index\IIndexEnumerator.cs" />
@@ -503,7 +494,6 @@
     <Compile Include="Deveel.Data.Transactions\TransactionException.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionJournal.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemContext.cs" />
-    <Compile Include="Deveel.Data.Transactions\Transaction_Schemata.cs" />
     <Compile Include="Deveel.Data.Transactions\Transaction_Tables.cs" />
     <Compile Include="Deveel.Data.DbSystem\TriggerCallback.cs" />
     <Compile Include="Deveel.Data.DbSystem\TriggerEventArgs.cs" />
