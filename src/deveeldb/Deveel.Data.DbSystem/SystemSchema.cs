@@ -587,19 +587,19 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		internal static ITableDataSource GetConnectionInfoTable(DatabaseConnection connection) {
-			return new GTConnectionInfoDataSource(connection);
+			return new ConnectionInfoDataSource(connection);
 		}
 
 		internal static ITableDataSource GetCurrentConnectionsTable(DatabaseConnection connection) {
-			return new GTCurrentConnectionsDataSource(connection);
+			return new CurrentConnectionsDataSource(connection);
 		}
 
 		internal static ITableDataSource GetPrivilegesTable(DatabaseConnection connection) {
-			return new GTPrivMapDataSource(connection);
+			return new PrivilegesDataSource(connection);
 		}
 
 		internal static ITableDataSource GetSqlTypesTable(DatabaseConnection connection) {
-			return new GTSQLTypeInfoDataSource(connection);
+			return new SqlTypesDataSource(connection);
 		}
 
 		#region GTTableColumnsDataSource
@@ -1065,7 +1065,7 @@ namespace Deveel.Data.DbSystem {
 
 		#endregion
 
-		#region GTConnectionInfoDataSource
+		#region ConnectionInfoDataSource
 
 		/// <summary>
 		/// An implementation of <see cref="IMutableTableDataSource"/> that 
@@ -1075,7 +1075,7 @@ namespace Deveel.Data.DbSystem {
 		/// <b>Note:</b> This is not designed to be a long kept object. 
 		/// It must not last beyond the lifetime of a transaction.
 		/// </remarks>
-		sealed class GTConnectionInfoDataSource : GTDataSource {
+		sealed class ConnectionInfoDataSource : GTDataSource {
 			/// <summary>
 			/// The DatabaseConnection object that this is table is modelling the
 			/// information within.
@@ -1087,10 +1087,11 @@ namespace Deveel.Data.DbSystem {
 			/// </summary>
 			private List<string> keyValuePairs;
 
-			public GTConnectionInfoDataSource(DatabaseConnection connection)
+			public ConnectionInfoDataSource(DatabaseConnection connection)
 				: base(connection.Context) {
 				database = connection;
 				keyValuePairs = new List<string>();
+				Init();
 			}
 
 			/// <summary>
@@ -1158,7 +1159,7 @@ namespace Deveel.Data.DbSystem {
 
 		#endregion
 
-		#region GTCurrentConnectionsDataSource
+		#region CurrentConnectionsDataSource
 
 		/// <summary>
 		/// An implementation of <see cref="IMutableTableDataSource"/> that 
@@ -1168,7 +1169,7 @@ namespace Deveel.Data.DbSystem {
 		/// <b>Note:</b> This is not designed to be a long kept object. 
 		/// It must not last beyond the lifetime of a transaction.
 		/// </remarks>
-		sealed class GTCurrentConnectionsDataSource : GTDataSource {
+		sealed class CurrentConnectionsDataSource : GTDataSource {
 			/// <summary>
 			/// The DatabaseConnection object that this is table is modelling the
 			/// information within.
@@ -1180,7 +1181,7 @@ namespace Deveel.Data.DbSystem {
 			/// </summary>
 			private List<CurrentConnection> connections;
 
-			public GTCurrentConnectionsDataSource(DatabaseConnection connection)
+			public CurrentConnectionsDataSource(DatabaseConnection connection)
 				: base(connection.Context) {
 				database = connection;
 				connections = new List<CurrentConnection>();
@@ -1191,7 +1192,7 @@ namespace Deveel.Data.DbSystem {
 			/// Initialize the data source.
 			/// </summary>
 			/// <returns></returns>
-			public void Init() {
+			private void Init() {
 				LoggedUsers loggedUsers = database.Database.LoggedUsers;
 
 				// Synchronize over the user manager while we inspect the information,
@@ -1264,7 +1265,7 @@ namespace Deveel.Data.DbSystem {
 
 		#endregion
 
-		#region GTPrivMapDataSource
+		#region PrivilegesDataSource
 
 		/// <summary>
 		/// A <see cref="GTDataSource"/> that maps a 11-bit <see cref="Privileges"/> 
@@ -1277,13 +1278,13 @@ namespace Deveel.Data.DbSystem {
 		/// <i>expand</i> the privileges that are allowed though it.
 		/// </para>
 		/// </remarks>
-		class GTPrivMapDataSource : GTDataSource {
+		class PrivilegesDataSource : GTDataSource {
 			/// <summary>
 			/// Number of bits.
 			/// </summary>
 			private const int BitCount = Security.Privileges.BitCount;
 
-			public GTPrivMapDataSource(DatabaseConnection connection)
+			public PrivilegesDataSource(DatabaseConnection connection)
 				: base(connection.Context) {
 			}
 
@@ -1361,7 +1362,7 @@ namespace Deveel.Data.DbSystem {
 
 		#endregion
 
-		#region GTSQLTypeInfoDataSource
+		#region SqlTypesDataSource
 
 		/// <summary>
 		/// A <see cref="GTDataSource"/> that models all SQL types available.
@@ -1370,7 +1371,7 @@ namespace Deveel.Data.DbSystem {
 		/// <b>Note:</b> This is not designed to be a long kept object. It must 
 		/// not last beyond the lifetime of a transaction.
 		/// </remarks>
-		class GTSQLTypeInfoDataSource : GTDataSource {
+		class SqlTypesDataSource : GTDataSource {
 			/// <summary>
 			/// The DatabaseConnection object.  Currently this is not used, but it may
 			/// be needed in the future if user-defined SQL types are supported.
@@ -1387,7 +1388,7 @@ namespace Deveel.Data.DbSystem {
 			/// </summary>
 			private static readonly BigNumber TypeNullable = 1;
 
-			public GTSQLTypeInfoDataSource(DatabaseConnection connection)
+			public SqlTypesDataSource(DatabaseConnection connection)
 				: base(connection.Context) {
 				database = connection;
 				sqlTypes = new List<SqlTypeInfo>();
@@ -1418,7 +1419,7 @@ namespace Deveel.Data.DbSystem {
 			/// Initialize the data source.
 			/// </summary>
 			/// <returns></returns>
-			public GTSQLTypeInfoDataSource Init() {
+			private void Init() {
 				AddType("BIT", SqlType.Bit, 1, null, null, true);
 				AddType("BOOLEAN", SqlType.Bit, 1, null, null, true);
 				AddType("TINYINT", SqlType.TinyInt, 9, null, null, true);
@@ -1441,8 +1442,6 @@ namespace Deveel.Data.DbSystem {
 				AddType("VARBINARY", SqlType.VarBinary, 9, null, null, false);
 				AddType("LONGVARBINARY", SqlType.LongVarBinary, 9, null, null, false);
 				AddType("OBJECT", SqlType.Object, 9, null, null, false);
-
-				return this;
 			}
 
 			// ---------- Implemented from GTDataSource ----------
