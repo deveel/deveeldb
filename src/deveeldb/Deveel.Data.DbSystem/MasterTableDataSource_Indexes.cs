@@ -219,12 +219,12 @@ namespace Deveel.Data.DbSystem {
 		private void SetIndexSetInfo() {
 			lock (this) {
 				// Create the initial DataIndexSetInfo object.
-				indexInfo = new DataIndexSetInfo(tableInfo.TableName);
-				for (int i = 0; i < tableInfo.ColumnCount; ++i) {
-					DataColumnInfo colInfo = tableInfo[i];
+				IndexSetInfo = new DataIndexSetInfo(TableInfo.TableName);
+				for (int i = 0; i < TableInfo.ColumnCount; ++i) {
+					DataColumnInfo colInfo = TableInfo[i];
 					if (colInfo.IsIndexableType &&
 						colInfo.IndexScheme.Equals("InsertSearch")) {
-						indexInfo.AddIndex(new DataIndexInfo("ANON-COLUMN:" + i, new String[] { colInfo.Name }, i + 1, "BLIST", false));
+						IndexSetInfo.AddIndex(new DataIndexInfo("ANON-COLUMN:" + i, new String[] { colInfo.Name }, i + 1, "BLIST", false));
 					}
 				}
 			}

@@ -210,11 +210,11 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		/// <param name="transaction"></param>
 		/// <returns>
-		/// Returns an <see cref="IInternalTableInfo"/> used to model the list 
+		/// Returns an <see cref="IInternalTableContainer"/> used to model the list 
 		/// of procedures that are accessible within the given transaction.
 		/// </returns>
-		internal static IInternalTableInfo CreateInternalTableInfo(Transaction transaction) {
-			return new RoutineInternalTableInfo(transaction);
+		internal static IInternalTableContainer CreateInternalTableInfo(Transaction transaction) {
+			return new RoutineInternalTableContainer(transaction);
 		}
 
 		/// <summary>
@@ -509,8 +509,8 @@ namespace Deveel.Data.Routines {
 		/// An object that models the list of procedures as table objects 
 		/// in a transaction.
 		/// </summary>
-		private sealed class RoutineInternalTableInfo : InternalTableInfo2 {
-			internal RoutineInternalTableInfo(Transaction transaction)
+		private sealed class RoutineInternalTableContainer : TransactionInternalTableContainer {
+			internal RoutineInternalTableContainer(Transaction transaction)
 				: base(transaction, SystemSchema.Function) {
 			}
 
@@ -543,7 +543,7 @@ namespace Deveel.Data.Routines {
 			}
 
 			public override ITableDataSource CreateInternalTable(int index) {
-				ITableDataSource table = transaction.GetTable(SystemSchema.Function);
+				ITableDataSource table = Transaction.GetTable(SystemSchema.Function);
 				IRowEnumerator rowE = table.GetRowEnumerator();
 				int p = 0;
 				int i;
@@ -572,7 +572,7 @@ namespace Deveel.Data.Routines {
 
 				// Implementation of IMutableTableDataSource that describes this
 				// procedure.
-				return new RoutineDataSource(transaction.Context, tableInfo) {
+				return new RoutineDataSource(Transaction.Context.SystemContext, tableInfo) {
 					Type = type,
 					Location = location,
 					ReturnType = returnType,

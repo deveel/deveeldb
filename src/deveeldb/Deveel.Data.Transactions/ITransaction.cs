@@ -20,7 +20,7 @@ using Deveel.Data.Query;
 
 namespace Deveel.Data.Transactions {
 	public interface ITransaction : IDisposable {
-		ISystemContext Context { get; }
+		ITransactionContext Context { get; }
 
 		VariablesManager Variables { get; }
 

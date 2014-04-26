@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 using Deveel.Data.Index;
@@ -36,15 +37,11 @@ namespace Deveel.Data.DbSystem {
 	/// removal) issues. It is a transactional manager for both data and indices 
 	/// in the database.
 	/// </remarks>
-	public sealed partial class TableDataConglomerate : IDisposable {
+	public sealed partial class TableDataConglomerate : ITransactionContext, IDisposable {
 		/// <summary>
 		/// The postfix on the name of the state file for the database store name.
 		/// </summary>
-		public const String StatePost = "_sf";
-
-		/**
-		 * The schema info table.
-		 */
+		private const String StatePost = "_sf";
 
 		/// <summary>
 		/// The actual store that backs the state store.
@@ -57,7 +54,7 @@ namespace Deveel.Data.DbSystem {
 		/// <remarks>
 		/// This file stores information persistantly about the state of this object.
 		/// </remarks>
-		private StateStore stateStore;
+		private StateStore StateStore { get; set; }
 
 		/// <summary>
 		/// The storage that backs temporary tables.
@@ -71,8 +68,7 @@ namespace Deveel.Data.DbSystem {
 		/// Whenever transactional changes are committed to the conglomerate, this id 
 		/// is incremented.
 		/// </remarks>
-		private long commitId;
-
+		internal long CommitId { get; private set; }
 
 		/// <summary>
 		/// The list of all tables that are currently open in this conglomerate.
@@ -103,12 +99,12 @@ namespace Deveel.Data.DbSystem {
 		/// Grabbing this lock ensures that no other commits can occur at the same
 		/// time on this conglomerate.
 		/// </remarks>
-		private readonly Object CommitLock = new Object();
+		private readonly Object commitLock = new Object();
 
 
 
 		internal TableDataConglomerate(SystemContext context, string name, IStoreSystem storeSystem) {
-			Context = context;
+			SystemContext = context;
 			Name = name;
 			StoreSystem = storeSystem;
 
@@ -125,15 +121,19 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		/// <summary>
-		/// Returns the <see cref="SystemContext"/> that this conglomerate is part of.
+		/// Returns the <see cref="Data.SystemContext"/> that this conglomerate is part of.
 		/// </summary>
-		public SystemContext Context { get; private set; }
+		public SystemContext SystemContext { get; private set; }
+
+		ISystemContext ITransactionContext.SystemContext {
+			get { return SystemContext; }
+		}
 
 		/// <summary>
 		/// Returns the IStoreSystem used by this conglomerate to manage the persistent 
 		/// state of the database.
 		/// </summary>
-		internal IStoreSystem StoreSystem { get; private set; }
+		private IStoreSystem StoreSystem { get; set; }
 
 		/// <summary>
 		/// Returns the SequenceManager object for this conglomerate.
@@ -149,7 +149,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the BlobStore for this conglomerate.
 		/// </summary>
-		internal BlobStore BlobStore { get; private set; }
+		private BlobStore BlobStore { get; set; }
 
 		/// <summary>
 		/// Gets or sets the name given to this conglomerate.
@@ -157,7 +157,7 @@ namespace Deveel.Data.DbSystem {
 		public string Name { get; private set; }
 
 		internal ILogger Logger {
-			get { return Context.Logger; }
+			get { return SystemContext.Logger; }
 		}
 
 		// ---------- Conglomerate state methods ----------
@@ -166,7 +166,7 @@ namespace Deveel.Data.DbSystem {
 		/// Returns true if the system is in read-only mode.
 		/// </summary>
 		private bool IsReadOnly {
-			get { return Context.ReadOnlyAccess; }
+			get { return SystemContext.ReadOnlyAccess; }
 		}
 
 		/// <summary>
@@ -174,10 +174,14 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		public bool IsClosed {
 			get {
-				lock (CommitLock) {
+				lock (commitLock) {
 					return tableList == null;
 				}
 			}
+		}
+
+		internal bool ContainsVisibleResource(int resourceId) {
+			return StateStore.ContainsVisibleResource(resourceId);
 		}
 
 		/// <summary>
@@ -191,7 +195,7 @@ namespace Deveel.Data.DbSystem {
 		private void ReadDroppedTables() {
 
 			// The list of all dropped tables from the state file
-			IEnumerable<StateStore.StateResource> tables = stateStore.GetDeleteList();
+			IEnumerable<StateStore.StateResource> tables = StateStore.GetDeleteList();
 			// For each visible table
 			foreach (StateStore.StateResource resource in tables) {
 				int masterTableId = (int)resource.TableId;
@@ -215,12 +219,12 @@ namespace Deveel.Data.DbSystem {
 
 				// File wasn't found so remove from the delete resources
 				if (master == null) {
-					stateStore.RemoveDeleteResource(resource.Name);
+					StateStore.RemoveDeleteResource(resource.Name);
 				} else {
 					if (!(master is V2MasterTableDataSource))
 						throw new ApplicationException("Unknown master table type: " + master.GetType());
 
-					V2MasterTableDataSource v2Master = (V2MasterTableDataSource) master;
+					var v2Master = (V2MasterTableDataSource) master;
 					v2Master.SourceIdentity = fileName;
 					v2Master.Open();
 
@@ -230,16 +234,16 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Commit any changes to the state store
-			stateStore.Commit();
+			StateStore.Commit();
 		}
 
 		/// <summary>
 		/// Marks the given table id as committed dropped.
 		/// </summary>
 		/// <param name="tableId"></param>
-		private void MarkAsCommittedDropped(int tableId) {
+		private void MarkUnommitted(int tableId) {
 			MasterTableDataSource masterTable = GetMasterTable(tableId);
-			stateStore.AddDeleteResource(new StateStore.StateResource(tableId, CreateEncodedTableFile(masterTable)));
+			StateStore.AddDeleteResource(new StateStore.StateResource(tableId, CreateEncodedTableName(masterTable)));
 		}
 
 		/// <summary>
@@ -259,7 +263,7 @@ namespace Deveel.Data.DbSystem {
 			if (tableType == 1)
 				throw new NotSupportedException();
 			if (tableType == 2) {
-				var master = new V2MasterTableDataSource(Context, StoreSystem, BlobStore);
+				var master = new V2MasterTableDataSource(SystemContext, StoreSystem, BlobStore);
 				if (master.Exists(tableStr))
 					return master;
 			}
@@ -271,11 +275,11 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		/// <summary>
-		/// Returns a string that is an encoded table file name.
+		/// Returns a string that is an encoded table name.
 		/// </summary>
 		/// <param name="table"></param>
 		/// <remarks>
-		/// An encoded table file name includes information about the table 
+		/// An encoded table name includes information about the table 
 		/// type with the name of the table.
 		/// </remarks>
 		/// <example>
@@ -283,14 +287,15 @@ namespace Deveel.Data.DbSystem {
 		/// table with file name <c>ThisTable</c>.
 		/// </example>
 		/// <returns></returns>
-		private static String CreateEncodedTableFile(MasterTableDataSource table) {
+		private static String CreateEncodedTableName(MasterTableDataSource table) {
 			char type;
 			if (table is V2MasterTableDataSource) {
 				type = '2';
 			} else {
 				throw new Exception("Unrecognised MasterTableDataSource class.");
 			}
-			StringBuilder buf = new StringBuilder();
+
+			var buf = new StringBuilder();
 			buf.Append(':');
 			buf.Append(type);
 			buf.Append(table.SourceIdentity);
@@ -307,25 +312,25 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		private void ReadVisibleTables() {
 			// The list of all visible tables from the state file
-			IEnumerable<StateStore.StateResource> tables = stateStore.GetVisibleList();
+			IEnumerable<StateStore.StateResource> tables = StateStore.GetVisibleList();
 			// For each visible table
 			foreach (StateStore.StateResource resource in tables) {
 				int masterTableId = (int)resource.TableId;
 				string fileName = resource.Name;
 
 				// Parse the file name string and determine the table type.
-				int table_type = 1;
+				int tableType = 1;
 				if (fileName.StartsWith(":")) {
 					if (fileName[1] == '1')
 						throw new NotSupportedException();
 					if (fileName[1] != '2')
 						throw new Exception("Table type is not known.");
-					table_type = 2;
+					tableType = 2;
 					fileName = fileName.Substring(2);
 				}
 
 				// Load the master table from the resource information
-				MasterTableDataSource master = LoadMasterTable(masterTableId, fileName, table_type);
+				MasterTableDataSource master = LoadMasterTable(masterTableId, fileName, tableType);
 
 				if (master == null)
 					throw new ApplicationException("Table file for " + fileName + " was not found.");
@@ -333,13 +338,12 @@ namespace Deveel.Data.DbSystem {
 				if (!(master is V2MasterTableDataSource))
 					throw new ApplicationException("Unknown master table type: " + master.GetType());
 
-				V2MasterTableDataSource v2Master = (V2MasterTableDataSource) master;
+				var v2Master = (V2MasterTableDataSource) master;
 				v2Master.SourceIdentity = fileName;
 				v2Master.Open();
 
 				// Add the table to the table list
 				tableList.Add(master);
-
 			}
 		}
 
@@ -351,7 +355,7 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <returns></returns>
 		private int NextUniqueTableId() {
-			return stateStore.NextTableId();
+			return StateStore.NextTableId();
 		}
 
 
@@ -359,7 +363,7 @@ namespace Deveel.Data.DbSystem {
 		/// Sets up the internal state of this object.
 		/// </summary>
 		private void SetupInternal() {
-			commitId = 0;
+			CommitId = 0;
 			tableList = new List<MasterTableDataSource>();
 		}
 
@@ -388,11 +392,11 @@ namespace Deveel.Data.DbSystem {
 
 			// Open the state store
 			actStateStore = StoreSystem.OpenStore(Name + StatePost);
-			stateStore = new StateStore(actStateStore);
+			StateStore = new StateStore(actStateStore);
 			// Get the fixed 64 byte area.
 			IArea fixedArea = actStateStore.GetArea(-1);
 			long headP = fixedArea.ReadInt8();
-			stateStore.Init(headP);
+			StateStore.Init(headP);
 
 			SetupInternal();
 
@@ -414,7 +418,7 @@ namespace Deveel.Data.DbSystem {
 		/// any use of this object is undefined.
 		/// </remarks>
 		public void Close() {
-			lock (CommitLock) {
+			lock (commitLock) {
 
 				// We possibly have things to clean up.
 				CleanUpConglomerate();
@@ -427,7 +431,7 @@ namespace Deveel.Data.DbSystem {
 					master.Dispose(false);
 				}
 
-				stateStore.Commit();
+				StateStore.Commit();
 				StoreSystem.CloseStore(actStateStore);
 
 				tableList = null;
@@ -454,7 +458,7 @@ namespace Deveel.Data.DbSystem {
 		/// </para>
 		/// </remarks>
 		public void Delete() {
-			lock (CommitLock) {
+			lock (commitLock) {
 				// We possibly have things to clean up.
 				CleanUpConglomerate();
 
@@ -463,7 +467,7 @@ namespace Deveel.Data.DbSystem {
 					master.Drop();
 
 				// Delete the state file
-				stateStore.Commit();
+				StateStore.Commit();
 				StoreSystem.CloseStore(actStateStore);
 				StoreSystem.DeleteStore(actStateStore);
 
@@ -532,7 +536,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Finished - increment the live copies counter.
-			Context.Stats.Increment("TableDataConglomerate.liveCopies");
+			SystemContext.Stats.Increment("TableDataConglomerate.liveCopies");
 		}
 
 		// ---------- Transactional management ----------
@@ -614,13 +618,13 @@ namespace Deveel.Data.DbSystem {
 		/// when there are no transactions open.
 		/// </remarks>
 		private void CleanUpConglomerate() {
-			lock (CommitLock) {
+			lock (commitLock) {
 				if (IsClosed)
 					return;
 
 				// If no open transactions on the database, then clean up.
 				if (openTransactions.Count == 0) {
-					StateStore.StateResource[] deleteList = stateStore.GetDeleteList();
+					StateStore.StateResource[] deleteList = StateStore.GetDeleteList();
 					if (deleteList.Length > 0) {
 						int dropCount = 0;
 
@@ -634,14 +638,14 @@ namespace Deveel.Data.DbSystem {
 							bool dropped = CloseAndDropTable(fn);
 							// If we managed to drop the table, remove from the list.
 							if (dropped) {
-								stateStore.RemoveDeleteResource(fn);
+								StateStore.RemoveDeleteResource(fn);
 								++dropCount;
 							}
 						}
 
 						// If we dropped a table, commit an update to the conglomerate state.
 						if (dropCount > 0)
-							stateStore.Commit();
+							StateStore.Commit();
 					}
 				}
 			}
@@ -706,8 +710,8 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <param name="tableId"></param>
 		/// <returns></returns>
-		private MasterTableDataSource GetMasterTable(int tableId) {
-			lock (CommitLock) {
+		internal MasterTableDataSource GetMasterTable(int tableId) {
+			lock (commitLock) {
 				// Find the table with this table id.
 				foreach (MasterTableDataSource t in tableList) {
 					if (t.TableId == tableId)
@@ -736,7 +740,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		/// <returns></returns>
 		internal MasterTableDataSource CreateMasterTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
-			lock (CommitLock) {
+			lock (commitLock) {
 				try {
 					// EFFICIENCY: Currently this writes to the conglomerate state file
 					//   twice.  Once in 'NextUniqueTableID' and once in
@@ -746,18 +750,17 @@ namespace Deveel.Data.DbSystem {
 					int tableId = NextUniqueTableId();
 
 					// Create the object.
-					var masterTable = new V2MasterTableDataSource(Context, StoreSystem, BlobStore);
+					var masterTable = new V2MasterTableDataSource(SystemContext, StoreSystem, BlobStore);
 					masterTable.Create(tableId, tableInfo);
 
 					// Add to the list of all tables.
 					tableList.Add(masterTable);
 
 					// Add this to the list of deleted tables,
-					// (This should really be renamed to uncommitted tables).
-					MarkAsCommittedDropped(tableId);
+					MarkUnommitted(tableId);
 
 					// Commit this
-					stateStore.Commit();
+					StateStore.Commit();
 
 					// And return it.
 					return masterTable;
@@ -769,12 +772,12 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		internal MasterTableDataSource CreateTemporaryDataSource(DataTableInfo tableInfo) {
-			lock (CommitLock) {
+			lock (commitLock) {
 				try {
 					// The unique id that identifies this table,
 					int tableId = NextUniqueTableId();
 
-					var temporary = new V2MasterTableDataSource(Context, tempStoreSystem, BlobStore);
+					var temporary = new V2MasterTableDataSource(SystemContext, tempStoreSystem, BlobStore);
 					temporary.Create(tableId, tableInfo);
 
 					tableList.Add(temporary);
@@ -807,7 +810,7 @@ namespace Deveel.Data.DbSystem {
 		/// information.
 		/// </returns>
 		internal MasterTableDataSource CopyMasterTable(MasterTableDataSource srcMasterTable, IIndexSet indexSet) {
-			lock (CommitLock) {
+			lock (commitLock) {
 				try {
 
 					// EFFICIENCY: Currently this writes to the conglomerate state file
@@ -818,7 +821,7 @@ namespace Deveel.Data.DbSystem {
 					int tableId = NextUniqueTableId();
 
 					// Create the object.
-					var masterTable = new V2MasterTableDataSource(Context, StoreSystem, BlobStore);
+					var masterTable = new V2MasterTableDataSource(SystemContext, StoreSystem, BlobStore);
 
 					masterTable.CopyFrom(tableId, srcMasterTable, indexSet);
 
@@ -826,11 +829,10 @@ namespace Deveel.Data.DbSystem {
 					tableList.Add(masterTable);
 
 					// Add this to the list of deleted tables,
-					// (This should really be renamed to uncommitted tables).
-					MarkAsCommittedDropped(tableId);
+					MarkUnommitted(tableId);
 
 					// Commit this
-					stateStore.Commit();
+					StateStore.Commit();
 
 					// And return it.
 					return masterTable;
@@ -885,45 +887,9 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		/// <summary>
-		/// A journal for handling namespace clashes between transactions.
-		/// </summary>
-		/// <remarks>
-		/// For example, we would need to generate a conflict if two concurrent
-		/// transactions were to drop the same table, or if a procedure and a
-		/// table with the same name were generated in concurrent transactions.
-		/// </remarks>
-		private sealed class NameSpaceJournal {
-			/// <summary>
-			/// The commit_id of this journal entry.
-			/// </summary>
-			public readonly long CommitId;
-
-			/// <summary>
-			/// The list of names created in this journal.
-			/// </summary>
-			public readonly IList<TableName> CreatedNames;
-
-			/// <summary>
-			/// The list of names dropped in this journal.
-			/// </summary>
-			public readonly IList<TableName> DroppedNames;
-
-			public NameSpaceJournal(long commitId, IList<TableName> createdNames, IList<TableName> droppedNames) {
-				CommitId = commitId;
-				CreatedNames = createdNames;
-				DroppedNames = droppedNames;
-			}
-		}
-
-
-		#region Implementation of IDisposable
-
 		public void Dispose() {
 			//    removeShutdownHook();
 		}
-
-		#endregion
 
 		#region Diagnostics
 
@@ -988,7 +954,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		public void CheckVisibleTables(IUserTerminal terminal) {
 			// The list of all visible tables from the state file
-			IEnumerable<StateStore.StateResource> tables = stateStore.GetVisibleList();
+			IEnumerable<StateStore.StateResource> tables = StateStore.GetVisibleList();
 			// For each visible table
 			foreach (StateStore.StateResource resource in tables) {
 				int masterTableId = (int)resource.TableId;
@@ -1050,11 +1016,11 @@ namespace Deveel.Data.DbSystem {
 				// Open the state store
 				try {
 					actStateStore = StoreSystem.OpenStore(Name + StatePost);
-					stateStore = new StateStore(actStateStore);
+					StateStore = new StateStore(actStateStore);
 					// Get the 64 byte fixed area
 					IArea fixed_area = actStateStore.GetArea(-1);
 					long head_p = fixed_area.ReadInt8();
-					stateStore.Init(head_p);
+					StateStore.Init(head_p);
 					terminal.WriteLine("+ Initialized the state store: " + stateFn);
 				} catch (IOException e) {
 					// Couldn't initialize the state file.
@@ -1082,8 +1048,8 @@ namespace Deveel.Data.DbSystem {
 					ResetAllSystemTableId();
 
 					// Some diagnostic information
-					IEnumerable<StateStore.StateResource> committedTables = stateStore.GetVisibleList();
-					IEnumerable<StateStore.StateResource> committedDropped = stateStore.GetDeleteList();
+					IEnumerable<StateStore.StateResource> committedTables = StateStore.GetVisibleList();
+					IEnumerable<StateStore.StateResource> committedDropped = StateStore.GetDeleteList();
 					foreach (StateStore.StateResource resource in committedTables) {
 						terminal.WriteLine("+ COMMITTED TABLE: " + resource.Name);
 					}
@@ -1114,7 +1080,7 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="tableFileName"></param>
 		/// <returns></returns>
 		public IRawDiagnosticTable GetDiagnosticTable(string tableFileName) {
-			lock (CommitLock) {
+			lock (commitLock) {
 				foreach (MasterTableDataSource master in tableList) {
 					if (master.SourceIdentity.Equals(tableFileName)) {
 						return master.GetRawDiagnosticTable();
@@ -1129,8 +1095,8 @@ namespace Deveel.Data.DbSystem {
 		///</summary>
 		///<returns></returns>
 		public String[] GetAllTableFileNames() {
-			lock (CommitLock) {
-				String[] list = new String[tableList.Count];
+			lock (commitLock) {
+				var list = new String[tableList.Count];
 				for (int i = 0; i < tableList.Count; ++i) {
 					MasterTableDataSource master = tableList[i];
 					list[i] = master.SourceIdentity;
@@ -1163,28 +1129,27 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		/// <returns></returns>
 		internal Transaction CreateTransaction() {
-			List<MasterTableDataSource> thisCommittedTables = new List<MasterTableDataSource>();
+			var thisCommittedTables = new List<MasterTableDataSource>();
 
 			// Don't let a commit happen while we are looking at this.
-			lock (CommitLock) {
-				long thisCommitId = commitId;
-				IEnumerable<StateStore.StateResource> committedTableList = stateStore.GetVisibleList();
-				foreach (StateStore.StateResource resource in committedTableList) {
-					thisCommittedTables.Add(GetMasterTable((int)resource.TableId));
-				}
+			lock (commitLock) {
+				long thisCommitId = CommitId;
+				IEnumerable<StateStore.StateResource> committedTableList = StateStore.GetVisibleList();
+				thisCommittedTables.AddRange(committedTableList.Select(resource => GetMasterTable((int) resource.TableId)));
 
 				// Create a set of IIndexSet for all the tables in this transaction.
-				int sz = thisCommittedTables.Count;
-				List<IIndexSet> indexInfo = new List<IIndexSet>(sz);
-				foreach (MasterTableDataSource mtable in thisCommittedTables) {
-					indexInfo.Add(mtable.CreateIndexSet());
-				}
+				var indexInfo = (thisCommittedTables.Select(mtable => mtable.CreateIndexSet())).ToList();
 
 				// Create the transaction and record it in the open transactions list.
-				Transaction t = new Transaction(this, thisCommitId, thisCommittedTables, indexInfo);
+				var t = new Transaction(this, thisCommitId, thisCommittedTables, indexInfo);
 				openTransactions.AddTransaction(t);
 				return t;
 			}
+		}
+
+		ITransaction ITransactionContext.BeginTransaction(bool committable) {
+			// TODO: Support of non-committable transactions
+			return CreateTransaction();
 		}
 
 		/// <summary>
@@ -1200,13 +1165,13 @@ namespace Deveel.Data.DbSystem {
 		/// conglomerate is commit locked.
 		/// </para>
 		/// </remarks>
-		private void CloseTransaction(Transaction transaction) {
+		internal void CloseTransaction(Transaction transaction) {
 			bool lastTransaction;
 			// Closing must happen under a commit Lock.
-			lock (CommitLock) {
+			lock (commitLock) {
 				openTransactions.RemoveTransaction(transaction);
 				// Increment the commit id.
-				++commitId;
+				++CommitId;
 				// Was that the last transaction?
 				lastTransaction = openTransactions.Count == 0;
 			}
@@ -1221,6 +1186,244 @@ namespace Deveel.Data.DbSystem {
 				}
 			}
 
+		}
+
+		/// <summary>
+		/// The list of all name space journals for the history of committed 
+		/// transactions.
+		/// </summary>
+		private readonly List<NameSpaceJournal> namespaceJournalList;
+
+		// ---------- Table event listener ----------
+
+		/// <summary>
+		/// All listeners for modification events on tables in this conglomerate.
+		/// </summary>
+		private readonly EventHandlerList modificationEvents;
+
+		/// <summary>
+		/// Tries to commit a transaction to the conglomerate.
+		/// </summary>
+		/// <param name="transaction">The transaction to commit from.</param>
+		/// <param name="visibleTables">The list of visible tables at the end 
+		/// of the commit (<see cref="MasterTableDataSource"/>)</param>
+		/// <param name="selectedFromTables">The list of tables that this 
+		/// transaction performed <i>select</i> like queries on (<see cref="MasterTableDataSource"/>)</param>
+		/// <param name="touchedTables">The list of tables touched by the 
+		/// transaction (<see cref="IMutableTableDataSource"/>)</param>
+		/// <param name="journal">The journal that describes all the changes 
+		/// within the transaction.</param>
+		/// <remarks>
+		/// This is called by the <see cref="Transaction.Commit"/> 
+		/// method in <see cref="Transaction"/>. An overview of how this works 
+		/// follows:
+		/// <list type="bullet">
+		///   <item>Determine if any transactions have been committed since 
+		///   this transaction was created.</item>
+		///   <item>If no transactions committed then commit this transaction 
+		///   and exit.</item>
+		///   <item>Otherwise, determine the tables that have been changed by 
+		///   the committed transactions since this was created.</item>
+		///   <item>If no tables changed in the tables changed by this transaction 
+		///   then commit this transaction and exit.</item>
+		///   <item>Determine if there are any rows that have been deleted that 
+		///   this transaction read/deleted.</item>
+		///   <item>If there are then rollback this transaction and throw an error.</item>
+		///   <item>Determine if any rows have been added to the tables this 
+		///   transaction read/changed.</item>
+		///   <item>If there are then rollback this transaction and throw an error.</item>
+		///   <item>Otherwise commit the transaction.</item>
+		/// </list>
+		/// </remarks>
+		internal void ProcessCommit(Transaction transaction, IList<MasterTableDataSource> visibleTables,
+						   IEnumerable<MasterTableDataSource> selectedFromTables,
+						   IEnumerable<IMutableTableDataSource> touchedTables, TransactionJournal journal) {
+
+			var work = new TransactionWork(this, transaction, selectedFromTables, touchedTables, journal);
+
+			// Get individual journals for updates made to tables in this
+			// transaction.
+			// The list MasterTableJournal
+
+			// Exit early if nothing changed (this is a Read-only transaction)
+			if (!work.HasChanges) {
+				CloseTransaction(transaction);
+				return;
+			}
+
+			// This flag is set to true when entries from the changes tables are
+			// at a point of no return.  If this is false it is safe to rollback
+			// changes if necessary.
+			bool entriesCommitted = false;
+
+			// The tables that were actually changed (MasterTableDataSource)
+			var changedTablesList = new List<MasterTableDataSource>();
+
+			// Grab the commit Lock.
+			lock (commitLock) {
+				work.Commit(namespaceJournalList, modificationEvents);
+
+				// Flush the journals up to the minimum commit id for all the tables
+				// that this transaction changed.
+				long minCommitId = openTransactions.MinimumCommitID(null);
+				foreach (MasterTableDataSource master in changedTablesList) {
+					master.MergeJournalChanges(minCommitId);
+				}
+				int nsjsz = namespaceJournalList.Count;
+				for (int i = nsjsz - 1; i >= 0; --i) {
+					NameSpaceJournal namespaceJournal = namespaceJournalList[i];
+					// Remove if the commit id for the journal is less than the minimum
+					// commit id
+					if (namespaceJournal.CommitId < minCommitId) {
+						namespaceJournalList.RemoveAt(i);
+					}
+				}
+
+				// Set a check point in the store system.  This means that the
+				// persistance state is now stable.
+				StoreSystem.SetCheckPoint();
+
+			} // lock (commit_lock)
+		}
+
+		/// <summary>
+		/// Rollbacks a transaction and invalidates any changes that the 
+		/// transaction made to the database.
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <param name="touchedTables"></param>
+		/// <param name="journal"></param>
+		/// <remarks>
+		/// The rows that this transaction changed are given up as freely 
+		/// available rows. This is called by the <see cref="Transaction.Rollback"/> 
+		/// method in <see cref="Transaction"/>.
+		/// </remarks>
+		internal void ProcessRollback(Transaction transaction, IList<IMutableTableDataSource> touchedTables, TransactionJournal journal) {
+			// Go through the journal.  Any rows added should be marked as deleted
+			// in the respective master table.
+
+			// Get individual journals for updates made to tables in this
+			// transaction.
+			// The list MasterTableJournal
+			var journalList = new List<MasterTableJournal>();
+			for (int i = 0; i < touchedTables.Count; ++i) {
+				MasterTableJournal tableJournal = touchedTables[i].Journal;
+				if (tableJournal.EntriesCount > 0) // Check the journal has entries.
+					journalList.Add(tableJournal);
+			}
+
+			MasterTableJournal[] changedTables = journalList.ToArray();
+
+			lock (commitLock) {
+				try {
+					// For each change to each table,
+					foreach (MasterTableJournal changeJournal in changedTables) {
+						// The table the changes were made to.
+						int tableId = changeJournal.TableId;
+						// Get the master table with this table id.
+						MasterTableDataSource master = GetMasterTable(tableId);
+						// Commit the rollback on the table.
+						master.RollbackTransactionChange(changeJournal);
+					}
+				} finally {
+					// Notify the conglomerate that this transaction has closed.
+					CloseTransaction(transaction);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Sets the <see cref="MasterTableDataSource"/> objects pointed by the
+		/// given list to the currently committed list of tables in this conglomerate.
+		/// </summary>
+		/// <param name="createdTables"></param>
+		/// <param name="droppedTables"></param>
+		/// <remarks>
+		/// This will make the change permanent by updating the state file also.
+		/// <para>
+		/// This should be called as part of a transaction commit.
+		/// </para>
+		/// </remarks>
+		internal void CommitToTables(IEnumerable<int> createdTables, IEnumerable<int> droppedTables) {
+			// Add created tables to the committed tables list.
+			foreach (int createdTable in createdTables) {
+				// For all created tables, add to the visible list and remove from the
+				// delete list in the state store.
+				MasterTableDataSource t = GetMasterTable(createdTable);
+				var resource = new StateStore.StateResource(t.TableId, CreateEncodedTableName(t));
+				StateStore.AddVisibleResource(resource);
+				StateStore.RemoveDeleteResource(resource.Name);
+			}
+
+			// Remove dropped tables from the committed tables list.
+			foreach (int droppedTable in droppedTables) {
+				// For all dropped tables, add to the delete list and remove from the
+				// visible list in the state store.
+				MasterTableDataSource t = GetMasterTable(droppedTable);
+				var resource = new StateStore.StateResource(t.TableId, CreateEncodedTableName(t));
+				StateStore.AddDeleteResource(resource);
+				StateStore.RemoveVisibleResource(resource.Name);
+			}
+
+			try {
+				StateStore.Commit();
+			} catch (IOException e) {
+				Logger.Error(this, e);
+				throw new ApplicationException("IO Error: " + e.Message, e);
+			}
+		}
+
+		///<summary>
+		/// Adds a listener for transactional modification events that occur on 
+		/// the given table in this conglomerate.
+		///</summary>
+		///<param name="tableName">The name of the table in the conglomerate to 
+		/// listen for events from.</param>
+		///<param name="listener">The listener to be notified of events.</param>
+		/// <remarks>
+		/// A transactional modification event is an event fired immediately upon the 
+		/// modification of a table by a transaction, either immediately before the 
+		/// modification or immediately after.  Also an event is fired when a modification to 
+		/// a table is successfully committed.
+		/// <para>
+		/// The BEFORE_* type triggers are given the opportunity to modify the contents 
+		/// of the DataRow before the update or insert occurs.  All triggers may generate 
+		/// an exception which will cause the transaction to rollback.
+		/// </para>
+		/// <para>
+		/// The event carries with it the event type, the transaction that the event
+		/// occurred in, and any information regarding the modification itself.
+		/// </para>
+		/// <para>
+		/// This event/listener mechanism is intended to be used to implement higher
+		/// layer database triggering systems.  Note that care must be taken with
+		/// the commit level events because they occur inside a commit Lock on this
+		/// conglomerate and so synchronization and deadlock issues need to be
+		/// carefully considered.
+		/// </para>
+		/// <para>
+		/// <b>Note</b>: A listener on the given table will be notified of ALL table
+		/// modification events by all transactions at the time they happen.
+		/// </para>
+		/// </remarks>
+		public void AddCommitModificationEventHandler(TableName tableName, CommitModificationEventHandler listener) {
+			lock (modificationEvents) {
+				modificationEvents.AddHandler(tableName, listener);
+			}
+		}
+
+		/// <summary>
+		/// Removes a listener for transaction modification events on the given table in 
+		/// this conglomerate as previously set by the <see cref="AddCommitModificationEventHandler"/> 
+		/// method.
+		/// </summary>
+		/// <param name="tableName">The name of the table in the conglomerate to remove 
+		/// from the listener list.</param>
+		/// <param name="listener">The listener to be removed.</param>
+		public void RemoveCommitModificationEventHandler(TableName tableName, CommitModificationEventHandler listener) {
+			lock (modificationEvents) {
+				modificationEvents.RemoveHandler(tableName, listener);
+			}
 		}
 
 		#endregion

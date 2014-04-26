@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Deveel.Data.Index;
 using Deveel.Data.DbSystem;
@@ -37,7 +38,7 @@ namespace Deveel.Data.Transactions {
 		/// The list of IInternalTableInfo objects that are containers for generating
 		/// internal tables (GTDataSource).
 		/// </summary>
-		private readonly IInternalTableInfo[] internalTables;
+		private readonly IInternalTableContainer[] internalTables;
 
 		/// <summary>
 		/// A pointer in the internal_tables list.
@@ -48,18 +49,18 @@ namespace Deveel.Data.Transactions {
 		/// Adds an internal table container (InternalTableInfo) used to
 		/// resolve internal tables.
 		/// </summary>
-		/// <param name="info"></param>
+		/// <param name="container"></param>
 		/// <remarks>
 		/// This is intended as a way for the <see cref="DatabaseConnection"/> 
 		/// layer to plug in <i>virtual</i> tables, such as those showing 
 		/// connection statistics, etc. It also allows modelling database objects 
 		/// as tables, such as sequences, triggers, procedures, etc.
 		/// </remarks>
-		internal void AddInternalTableInfo(IInternalTableInfo info) {
+		internal void AddInternalTableInfo(IInternalTableContainer container) {
 			if (internalTablesIndex >= internalTables.Length)
 				throw new Exception("Internal table list bounds reached.");
 
-			internalTables[internalTablesIndex] = info;
+			internalTables[internalTablesIndex] = container;
 			++internalTablesIndex;
 		}
 
@@ -92,34 +93,21 @@ namespace Deveel.Data.Transactions {
 
 		/// <inheritdoc/>
 		protected override bool IsDynamicTable(TableName tableName) {
-			foreach (IInternalTableInfo info in internalTables) {
-				if (info != null && info.ContainsTableName(tableName))
-					return true;
-			}
-
-			return false;
+			return internalTables.Any(info => info != null && info.ContainsTable(tableName));
 		}
 
 		/// <inheritdoc/>
 		protected override TableName[] GetDynamicTables() {
-			int sz = 0;
-			for (int i = 0; i < internalTables.Length; ++i) {
-				IInternalTableInfo info = internalTables[i];
-				if (info != null) {
-					sz += info.TableCount;
-				}
-			}
+			int sz = internalTables.Where(container => container != null).Sum(container => container.TableCount);
 
-			TableName[] list = new TableName[sz];
-			int index = 0;
+			var list = new TableName[sz];
+			int index = -1;
 
-			for (int i = 0; i < internalTables.Length; ++i) {
-				IInternalTableInfo info = internalTables[i];
-				if (info != null) {
-					sz = info.TableCount;
-					for (int n = 0; n < sz; ++n) {
-						list[index] = info.GetTableName(n);
-						++index;
+			foreach (IInternalTableContainer container in internalTables) {
+				if (container != null) {
+					int tableCount = container.TableCount;
+					for (int i = 0; i < tableCount; ++i) {
+						list[++index] = container.GetTableName(i);
 					}
 				}
 			}
@@ -129,7 +117,7 @@ namespace Deveel.Data.Transactions {
 
 		/// <inheritdoc/>
 		protected override DataTableInfo GetDynamicTableInfo(TableName tableName) {
-			foreach (IInternalTableInfo info in internalTables) {
+			foreach (IInternalTableContainer info in internalTables) {
 				if (info != null) {
 					int index = info.FindTableName(tableName);
 					if (index != -1)
@@ -142,7 +130,7 @@ namespace Deveel.Data.Transactions {
 
 		/// <inheritdoc/>
 		protected override ITableDataSource GetDynamicTable(TableName tableName) {
-			foreach (IInternalTableInfo info in internalTables) {
+			foreach (IInternalTableContainer info in internalTables) {
 				if (info != null) {
 					int index = info.FindTableName(tableName);
 					if (index != -1)
@@ -156,7 +144,7 @@ namespace Deveel.Data.Transactions {
 		/// <inheritdoc/>
 		protected override string GetDynamicTableType(TableName tableName) {
 			// Otherwise we need to look up the table in the internal table list,
-			foreach (IInternalTableInfo info in internalTables) {
+			foreach (IInternalTableContainer info in internalTables) {
 				if (info != null) {
 					int index = info.FindTableName(tableName);
 					if (index != -1)
@@ -201,10 +189,10 @@ namespace Deveel.Data.Transactions {
 
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = master.TableId;
-			Journal.EntryAddTouchedTable(tableId);
+			Journal.TouchedTable(tableId);
 
 			// Log in the journal that we created this table.
-			Journal.EntryTableCreate(tableId);
+			Journal.TableCreate(tableId);
 
 			// Add entry to the Sequences table for the native generator for this
 			// table.
@@ -232,28 +220,6 @@ namespace Deveel.Data.Transactions {
 		}
 
 		/// <summary>
-		/// Given a DataTableInfo, if the table exists then it is updated otherwise
-		/// if it doesn't exist then it is created.
-		/// </summary>
-		/// <param name="tableInfo"></param>
-		/// <param name="dataSectorSize"></param>
-		/// <param name="indexSectorSize"></param>
-		/// <remarks>
-		/// This should only be used as very fine grain optimization for 
-		/// creating/altering tables. If in the future the underlying table 
-		/// model is changed so that the given <paramref name="dataSectorSize"/>
-		/// and <paramref name="indexSectorSize"/> values are unapplicable, 
-		/// then the value will be ignored.
-		/// </remarks>
-		public void AlterCreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
-			if (!TableExists(tableInfo.TableName)) {
-				CreateTable(tableInfo, dataSectorSize, indexSectorSize);
-			} else {
-				AlterTable(tableInfo.TableName, tableInfo, dataSectorSize, indexSectorSize);
-			}
-		}
-
-		/// <summary>
 		/// Drops a table within this transaction.
 		/// </summary>
 		/// <param name="tableName"></param>
@@ -274,10 +240,10 @@ namespace Deveel.Data.Transactions {
 
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = master.TableId;
-			Journal.EntryAddTouchedTable(tableId);
+			Journal.TouchedTable(tableId);
 
 			// Log in the journal that we dropped this table.
-			Journal.EntryTableDrop(tableId);
+			Journal.TableDrop(tableId);
 
 			// Remove the native sequence generator (in this transaction) for this
 			// table.
@@ -320,10 +286,10 @@ namespace Deveel.Data.Transactions {
 
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = master.TableId;
-			Journal.EntryAddTouchedTable(tableId);
+			Journal.TouchedTable(tableId);
 
 			// Log in the journal that we created this table.
-			Journal.EntryTableCreate(tableId);
+			Journal.TableCreate(tableId);
 
 			// Add entry to the Sequences table for the native generator for this
 			// table.
@@ -373,7 +339,7 @@ namespace Deveel.Data.Transactions {
 			// Get the new MasterTableDataSource object
 			MasterTableDataSource newMasterTable = FindVisibleTable(tableName, false);
 			// Set the sequence id of the table
-			newMasterTable.SetUniqueID(nextId);
+			newMasterTable.SetUniqueId(nextId);
 
 			// Work out which columns we have to copy to where
 			int[] colMap = new int[tableInfo.ColumnCount];
@@ -470,9 +436,9 @@ namespace Deveel.Data.Transactions {
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = master.TableId;
 
-			Journal.EntryAddTouchedTable(tableId);
+			Journal.TouchedTable(tableId);
 			// Log in the journal that we dropped this table.
-			Journal.EntryTableConstraintAlter(tableId);
+			Journal.TableConstraintAlter(tableId);
 
 		}
 

@@ -32,7 +32,7 @@ namespace Deveel.Data.DbSystem {
 	/// immutable so we can create static global implementations.
 	/// </para>
 	/// </remarks>
-	interface IInternalTableInfo {
+	interface IInternalTableContainer {
 		/// <summary>
 		/// Returns the number of internal table sources that this 
 		/// object is maintaining.
@@ -67,14 +67,14 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		bool ContainsTableName(TableName name);
+		bool ContainsTable(TableName name);
 
 		/// <summary>
 		/// Returns a String that describes the type of the table at the given index.
 		/// </summary>
 		/// <param name="i"></param>
 		/// <returns></returns>
-		String GetTableType(int i);
+		string GetTableType(int i);
 
 		/// <summary>
 		/// This is the factory method for generating the internal table for the 

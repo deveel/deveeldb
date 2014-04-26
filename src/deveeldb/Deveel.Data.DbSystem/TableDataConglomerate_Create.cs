@@ -293,8 +293,8 @@ namespace Deveel.Data.DbSystem {
 			try {
 				actStateStore.LockForWrite();
 
-				stateStore = new StateStore(actStateStore);
-				long headP = stateStore.Create();
+				StateStore = new StateStore(actStateStore);
+				long headP = StateStore.Create();
 				// Get the fixed area
 				IMutableArea fixedArea = actStateStore.GetMutableArea(-1);
 				fixedArea.WriteInt8(headP);
@@ -327,7 +327,7 @@ namespace Deveel.Data.DbSystem {
 			InitializeSystemSchema();
 
 			// Commit the state
-			stateStore.Commit();
+			StateStore.Commit();
 		} 
 	}
 }

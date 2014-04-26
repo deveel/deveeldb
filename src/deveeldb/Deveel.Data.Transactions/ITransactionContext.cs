@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2011  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
 
-using Deveel.Data.Index;
-using Deveel.Data.Transactions;
-using Deveel.Diagnostics;
+using Deveel.Data.DbSystem;
 
-namespace Deveel.Data.DbSystem {
-	public sealed partial class TableDataConglomerate {
+namespace Deveel.Data.Transactions {
+	public interface ITransactionContext {
+		ISystemContext SystemContext { get; }
+
+		ITransaction BeginTransaction(bool committable);
 	}
 }

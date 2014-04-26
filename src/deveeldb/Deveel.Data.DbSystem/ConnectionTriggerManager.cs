@@ -460,7 +460,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		/// <summary>
-		/// Returns an <see cref="IInternalTableInfo"/> object used to model the 
+		/// Returns an <see cref="IInternalTableContainer"/> object used to model the 
 		/// list of triggers that are accessible within the given <see cref="Transaction"/> 
 		/// object.
 		/// </summary>
@@ -469,8 +469,8 @@ namespace Deveel.Data.DbSystem {
 		/// This is used to model all triggers that have been defined as tables.
 		/// </remarks>
 		/// <returns></returns>
-		internal static IInternalTableInfo CreateInternalTableInfo(ITransaction transaction) {
-			return new TriggerInternalTableInfo(transaction);
+		internal static IInternalTableContainer CreateInternalTableInfo(ITransaction transaction) {
+			return new TriggerInternalTableContainer(transaction);
 		}
 
 		// ---------- Inner classes ----------
@@ -550,14 +550,14 @@ namespace Deveel.Data.DbSystem {
 		#endregion
 
 
-		#region Nested type: TriggerInternalTableInfo
+		#region Nested type: TriggerInternalTableContainer
 
 		/// <summary>
 		/// An object that models the list of triggers as table objects in a
 		/// transaction.
 		/// </summary>
-		private sealed class TriggerInternalTableInfo : InternalTableInfo2 {
-			internal TriggerInternalTableInfo(ITransaction transaction) : base(transaction, SystemSchema.DataTrigger) {
+		private sealed class TriggerInternalTableContainer : TransactionInternalTableContainer {
+			internal TriggerInternalTableContainer(ITransaction transaction) : base(transaction, SystemSchema.DataTrigger) {
 			}
 
 			private static DataTableInfo CreateTableInfo(String schema, String name) {
@@ -589,7 +589,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public override ITableDataSource CreateInternalTable(int index) {
-				ITableDataSource table = transaction.GetTable(SystemSchema.DataTrigger);
+				ITableDataSource table = Transaction.GetTable(SystemSchema.DataTrigger);
 				IRowEnumerator row_e = table.GetRowEnumerator();
 				int p = 0;
 				int i;
@@ -615,7 +615,7 @@ namespace Deveel.Data.DbSystem {
 
 					// Implementation of IMutableTableDataSource that describes this
 					// trigger.
-					GTDataSourceImpl int_table = new GTDataSourceImpl(transaction.Context, tableInfo);
+					GTDataSourceImpl int_table = new GTDataSourceImpl(Transaction.Context.SystemContext, tableInfo);
 					int_table.type = type;
 					int_table.on_object = on_object;
 					int_table.procedure_name = procedure_name;

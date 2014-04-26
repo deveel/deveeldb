@@ -17,19 +17,19 @@ using System;
 
 namespace Deveel.Data.DbSystem {
 	/// <summary>
-	/// An implementation of <see cref="IInternalTableInfo"/> that provides a 
-	/// number of methods to aid in the productions of the <see cref="IInternalTableInfo"/>
+	/// An implementation of <see cref="IInternalTableContainer"/> that provides a 
+	/// number of methods to aid in the productions of the <see cref="IInternalTableContainer"/>
 	/// interface.
 	/// </summary>
 	/// <remarks>
 	/// This leaves the <see cref="CreateInternalTable"/> method implementation 
 	/// to the derived class.
 	/// </remarks>
-	abstract class InternalTableInfo : IInternalTableInfo {
+	abstract class InternalTableContainer : IInternalTableContainer {
 		/// <summary>
 		/// The list of table names (as TableName) that this object maintains.
 		/// </summary>
-		private readonly TableName[] table_list;
+		private readonly TableName[] tableList;
 		/// <summary>
 		/// The list of DataTableInfo objects that descibe each table in the 
 		/// above list.
@@ -38,26 +38,26 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// The table type of table objects returned by this method.
 		/// </summary>
-		private readonly String table_type;
+		private readonly string tableType;
 
-		internal InternalTableInfo(String type, DataTableInfo[] tableInfoList) {
+		internal InternalTableContainer(string type, DataTableInfo[] tableInfoList) {
 			this.tableInfoList = tableInfoList;
-			table_type = type;
-			table_list = new TableName[tableInfoList.Length];
-			for (int i = 0; i < table_list.Length; ++i) {
-				table_list[i] = tableInfoList[i].TableName;
+			tableType = type;
+			tableList = new TableName[tableInfoList.Length];
+			for (int i = 0; i < tableList.Length; ++i) {
+				tableList[i] = tableInfoList[i].TableName;
 			}
 		}
 
 		/// <inheritdoc/>
 		public int TableCount {
-			get { return table_list.Length; }
+			get { return tableList.Length; }
 		}
 
 		/// <inheritdoc/>
 		public int FindTableName(TableName name) {
-			for (int i = 0; i < table_list.Length; ++i) {
-				if (table_list[i].Equals(name)) {
+			for (int i = 0; i < tableList.Length; ++i) {
+				if (tableList[i].Equals(name)) {
 					return i;
 				}
 			}
@@ -66,7 +66,7 @@ namespace Deveel.Data.DbSystem {
 
 		/// <inheritdoc/>
 		public TableName GetTableName(int i) {
-			return table_list[i];
+			return tableList[i];
 		}
 
 		/// <inheritdoc/>
@@ -75,13 +75,13 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		/// <inheritdoc/>
-		public bool ContainsTableName(TableName name) {
+		public bool ContainsTable(TableName name) {
 			return FindTableName(name) != -1;
 		}
 
 		/// <inheritdoc/>
 		public String GetTableType(int i) {
-			return table_type;
+			return tableType;
 		}
 
 		/// <inheritdoc/>

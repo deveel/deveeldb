@@ -157,6 +157,9 @@
     </Compile>
     <Compile Include="Deveel.Data.Sql\RaiseStatement.cs" />
     <Compile Include="Deveel.Data.Transactions\CommittableTransactionExtensions.cs" />
+    <Compile Include="Deveel.Data.Transactions\ITransactionContext.cs" />
+    <Compile Include="Deveel.Data.Transactions\NameSpaceJournal.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionWork.cs" />
     <Compile Include="Deveel.Data.Transactions\ICommittableTransaction.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransaction.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionExtensions.cs" />
@@ -395,15 +398,15 @@
     <Compile Include="Deveel.Data\IExpressionPreparer.cs" />
     <Compile Include="Deveel.Data\IGroupResolver.cs" />
     <Compile Include="Deveel.Data.Index\IIndexSet.cs" />
-    <Compile Include="Deveel.Data.DbSystem\IInternalTableInfo.cs" />
+    <Compile Include="Deveel.Data.DbSystem\IInternalTableContainer.cs" />
     <Compile Include="Deveel.Data.Routines\ImportedKey.cs" />
     <Compile Include="Deveel.Data.DbSystem\IMutableTableDataSource.cs" />
     <Compile Include="Deveel.Data.Index\IndexSetStore.cs" />
     <Compile Include="Deveel.Data.DbSystem\INHelper.cs" />
     <Compile Include="Deveel.Data.DbSystem\InsertSearch.cs" />
     <Compile Include="Deveel.Data\InternalDbHelper.cs" />
-    <Compile Include="Deveel.Data.DbSystem\InternalTableInfo.cs" />
-    <Compile Include="Deveel.Data.DbSystem\InternalTableInfo2.cs" />
+    <Compile Include="Deveel.Data.DbSystem\InternalTableContainer.cs" />
+    <Compile Include="Deveel.Data.DbSystem\TransactionInternalTableContainer.cs" />
     <Compile Include="Deveel.Data\Interval.cs" />
     <Compile Include="Deveel.Data\IntervalField.cs" />
     <Compile Include="Deveel.Data\IntervalForm.cs" />
@@ -467,10 +470,8 @@
     <Compile Include="Deveel.Data.DbSystem\TableAccessState.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableBackedCache.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableDataConglomerate.cs" />
-    <Compile Include="Deveel.Data.DbSystem\TableDataConglomerate_Commit.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableDataConglomerate_Constraints.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableDataConglomerate_Create.cs" />
-    <Compile Include="Deveel.Data.DbSystem\TableDataConglomerate_Transactions.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableFunctions.cs" />
     <Compile Include="Deveel.Data\TableName.cs" />
     <Compile Include="Deveel.Data.DbSystem\Table_Join.cs" />

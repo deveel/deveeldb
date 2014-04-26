@@ -24,8 +24,6 @@ namespace Deveel.Data.Transactions {
 
 		void CreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize);
 
-		void AlterCreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize);
-
 		void CreateTemporaryTable(DataTableInfo tableInfo);
 
 		void AlterTable(TableName tableName, DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize);

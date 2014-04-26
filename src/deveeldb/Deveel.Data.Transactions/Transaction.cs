@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -13,15 +13,13 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 
 using Deveel.Data.Index;
 using Deveel.Data.DbSystem;
-using Deveel.Data.Query;
-using Deveel.Data.Types;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Transactions {
@@ -64,10 +62,10 @@ namespace Deveel.Data.Transactions {
 
 
 		internal Transaction(TableDataConglomerate conglomerate, long commitId, IList<MasterTableDataSource> visibleTables, IList<IIndexSet> tableIndices)
-			: base(conglomerate.Context, conglomerate.SequenceManager) {
+			: base(conglomerate, conglomerate.SequenceManager) {
 
-			this.Conglomerate = conglomerate;
-			this.CommitId = commitId;
+			Conglomerate = conglomerate;
+			CommitId = commitId;
 			closed = false;
 
 			createdDatabaseObjects = new List<TableName>();
@@ -85,11 +83,11 @@ namespace Deveel.Data.Transactions {
 
 			// NOTE: We currently only support 8 - internal tables to the transaction
 			//  layer, and internal tables to the database connection layer.
-			internalTables = new IInternalTableInfo[8];
+			internalTables = new IInternalTableContainer[8];
 			internalTablesIndex = 0;
 			AddInternalTableInfo(new TransactionInternalTables(this));
 
-			Context.Stats.Increment("Transaction.count");
+			Context.SystemContext.Stats.Increment("Transaction.count");
 
 			// Defaults to true (should be changed by called 'setErrorOnDirtySelect'
 			// method.
@@ -123,7 +121,7 @@ namespace Deveel.Data.Transactions {
 			// Create the table for this transaction.
 			IMutableTableDataSource table = master.CreateTableDataSourceAtCommit(this);
 			// Log in the journal that this table was touched by the transaction.
-			Journal.EntryAddTouchedTable(master.TableId);
+			Journal.TouchedTable(master.TableId);
 			touchedTables.Add(table);
 			return table;
 		}
@@ -325,7 +323,7 @@ namespace Deveel.Data.Transactions {
 		/// </list>
 		///	The first check is not too difficult to check for. The second is 
 		///	very difficult however we need it to ensure 
-		///	<see cref="Deveel.Data.DbSystem.Data.IsolationLevel.Serializable"/> isolation is 
+		///	<see cref="System.Data.IsolationLevel.Serializable"/> isolation is 
 		///	enforced. We may have to simplify this by throwing a transaction 
 		///	exception if the table has had any changes made to it during this 
 		///	transaction.
@@ -374,7 +372,7 @@ namespace Deveel.Data.Transactions {
 		/// Cleans up this transaction.
 		/// </summary>
 		private void Cleanup() {
-			Context.Stats.Decrement("Transaction.count");
+			Context.SystemContext.Stats.Decrement("Transaction.count");
 			// Dispose of all the IIndexSet objects created by this transaction.
 			DisposeAllIndices();
 
@@ -387,7 +385,7 @@ namespace Deveel.Data.Transactions {
 				Logger.Error(this, e);
 			}
 
-			Context.Stats.Increment("Transaction.Cleanup");
+			Context.SystemContext.Stats.Increment("Transaction.Cleanup");
 			Conglomerate = null;
 			touchedTables = null;
 			Journal = null;
@@ -399,15 +397,16 @@ namespace Deveel.Data.Transactions {
 		}
 
 		/// <summary>
-		/// Disposes this transaction without rolling back or committing the changes.
+		/// Closes this transaction without rolling back or committing the changes.
 		/// </summary>
 		/// <remarks>
 		/// Care should be taken when using this - it must only be used for simple
 		/// transactions that are short lived and have not modified the database.
 		/// </remarks>
-		internal void DisposeAndCleanup() {
+		internal void CloseAndCleanup() {
 			if (!IsReadOnly)
 				throw new Exception("Assertion failed - tried to dispose a non Read-only transaction.");
+
 			if (!closed) {
 				closed = true;
 				Cleanup();
@@ -437,7 +436,7 @@ namespace Deveel.Data.Transactions {
 		/// This implementation includes all the dynamically generated system tables
 		/// that are tied to information in a transaction.
 		/// </remarks>
-		private class TransactionInternalTables : InternalTableInfo {
+		private class TransactionInternalTables : InternalTableContainer {
 			private readonly Transaction transaction;
 
 			public TransactionInternalTables(Transaction transaction)

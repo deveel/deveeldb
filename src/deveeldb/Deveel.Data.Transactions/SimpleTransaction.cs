@@ -41,10 +41,6 @@ namespace Deveel.Data.Transactions {
 	/// </remarks>
 	public abstract class SimpleTransaction : ITransaction, ICursorContext {
 		/// <summary>
-		/// The TransactionSystem context.
-		/// </summary>
-		private readonly ISystemContext context;
-		/// <summary>
 		/// The list of tables that represent this transaction's view of the database.
 		/// (MasterTableDataSource).
 		/// </summary>
@@ -86,15 +82,15 @@ namespace Deveel.Data.Transactions {
 
 		private readonly VariablesManager variables;
 
-		protected Hashtable cursors;
+		private Hashtable cursors;
 
 		/// <summary>
 		/// Constructs a new <see cref="SimpleTransaction"/>.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="sequenceManager"></param>
-		internal SimpleTransaction(ISystemContext context, SequenceManager sequenceManager) {
-			this.context = context;
+		internal SimpleTransaction(ITransactionContext context, SequenceManager sequenceManager) {
+			Context = context;
 
 			visibleTables = new List<MasterTableDataSource>();
 			tableIndices = new List<IIndexSet>();
@@ -144,9 +140,7 @@ namespace Deveel.Data.Transactions {
 		/// Returns the <see cref="SystemContext"/> that this <see cref="SimpleTransaction"/> 
 		/// is part of.
 		/// </summary>
-		public ISystemContext Context {
-			get { return context; }
-		}
+		public ITransactionContext Context { get; private set; }
 
 		/// <summary>
 		/// Returns a list of all visible tables.
@@ -156,7 +150,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		internal ILogger Logger {
-			get { return Context.Logger; }
+			get { return Context.SystemContext.Logger; }
 		}
 
 		/// <summary>
@@ -836,7 +830,7 @@ namespace Deveel.Data.Transactions {
 			if (master == null)
 				throw new StatementException("Table with name '" + tableName + "' could not be found to set unique id.");
 
-			master.SetUniqueID(uniqueId);
+			master.SetUniqueId(uniqueId);
 		}
 
 		void ICursorContext.OnCursorCreated(Cursor cursor) {

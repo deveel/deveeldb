@@ -19,9 +19,9 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	/// <summary>
-	/// An implementation of <see cref="IInternalTableInfo"/> that provides a 
+	/// An implementation of <see cref="IInternalTableContainer"/> that provides a 
 	/// number of methods to aid in the productions of the 
-	/// <see cref="IInternalTableInfo"/> interface for a transaction specific 
+	/// <see cref="IInternalTableContainer"/> interface for a transaction specific 
 	/// model of a set of tables that is based on a single system table.
 	/// </summary>
 	/// <remarks>
@@ -33,37 +33,38 @@ namespace Deveel.Data.DbSystem {
 	/// and 1 of the backed system table.
 	/// </para>
 	/// </remarks>
-	abstract class InternalTableInfo2 : IInternalTableInfo {
+	abstract class TransactionInternalTableContainer : IInternalTableContainer {
 		/// <summary>
 		/// The transaction we are connected to.
 		/// </summary>
-		protected readonly ITransaction transaction;
+		protected ITransaction Transaction { get; private set; }
+
 		/// <summary>
 		/// The table in the transaction that contains the list of items we 
 		/// are modelling.
 		/// </summary>
-		protected readonly TableName table_name;
+		protected TableName TableName { get; private set; }
 
-		protected InternalTableInfo2(ITransaction transaction, TableName table_name) {
-			this.transaction = transaction;
-			this.table_name = table_name;
+		protected TransactionInternalTableContainer(ITransaction transaction, TableName tableName) {
+			Transaction = transaction;
+			TableName = tableName;
 		}
 
 		/// <inheritdoc/>
 		public int TableCount {
-			get { return transaction.TableExists(table_name) ? transaction.GetTable(table_name).RowCount : 0; }
+			get { return Transaction.TableExists(TableName) ? Transaction.GetTable(TableName).RowCount : 0; }
 		}
 
 		/// <inheritdoc/>
 		public int FindTableName(TableName name) {
-			if (transaction.RealTableExists(table_name)) {
+			if (Transaction.RealTableExists(TableName)) {
 				// Search the table.  We assume that the schema and name of the object
 				// are in columns 0 and 1 respectively.
-				ITableDataSource table = transaction.GetTable(table_name);
-				IRowEnumerator row_e = table.GetRowEnumerator();
+				ITableDataSource table = Transaction.GetTable(TableName);
+				IRowEnumerator rowE = table.GetRowEnumerator();
 				int p = 0;
-				while (row_e.MoveNext()) {
-					int rowIndex = row_e.RowIndex;
+				while (rowE.MoveNext()) {
+					int rowIndex = rowE.RowIndex;
 					TObject obName = table.GetCell(1, rowIndex);
 					if (obName.Object.ToString().Equals(name.Name)) {
 						TObject obSchema = table.GetCell(0, rowIndex);
@@ -80,19 +81,19 @@ namespace Deveel.Data.DbSystem {
 
 		/// <inheritdoc/>
 		public TableName GetTableName(int i) {
-			if (transaction.RealTableExists(table_name)) {
+			if (Transaction.RealTableExists(TableName)) {
 				// Search the table.  We assume that the schema and name of the object
 				// are in columns 0 and 1 respectively.
-				ITableDataSource table = transaction.GetTable(table_name);
-				IRowEnumerator row_e = table.GetRowEnumerator();
+				ITableDataSource table = Transaction.GetTable(TableName);
+				IRowEnumerator rowE = table.GetRowEnumerator();
 				int p = 0;
-				while (row_e.MoveNext()) {
-					int row_index = row_e.RowIndex;
+				while (rowE.MoveNext()) {
+					int rowIndex = rowE.RowIndex;
 					if (i == p) {
-						TObject ob_schema = table.GetCell(0, row_index);
-						TObject ob_name = table.GetCell(1, row_index);
-						return new TableName(ob_schema.Object.ToString(),
-											 ob_name.Object.ToString());
+						TObject obSchema = table.GetCell(0, rowIndex);
+						TObject obName = table.GetCell(1, rowIndex);
+						return new TableName(obSchema.Object.ToString(),
+											 obName.Object.ToString());
 					}
 					++p;
 				}
@@ -101,11 +102,11 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		/// <inheritdoc/>
-		public bool ContainsTableName(TableName name) {
+		public bool ContainsTable(TableName name) {
 			// This set can not contain the table that is backing it, so we always
 			// return false for that.  This check stops an annoying recursive
 			// situation for table name resolution.
-			if (name.Equals(table_name))
+			if (name.Equals(TableName))
 				return false;
 			return FindTableName(name) != -1;
 		}

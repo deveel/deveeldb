@@ -363,11 +363,11 @@ namespace Deveel.Data.DbSystem {
 		/// </para>
 		/// </remarks>
 		/// <returns>
-		/// Returns an <see cref="IInternalTableInfo"/> used to model the list 
+		/// Returns an <see cref="IInternalTableContainer"/> used to model the list 
 		/// of views that are accessible within the underlying transaction.
 		/// </returns>
-		internal static IInternalTableInfo CreateInternalTableInfo(ViewManager manager, Transaction transaction) {
-			return new ViewInternalTableInfo(manager, transaction);
+		internal static IInternalTableContainer CreateInternalTableInfo(ViewManager manager, Transaction transaction) {
+			return new ViewInternalTableContainer(manager, transaction);
 		}
 
 		// ---------- Inner classes ----------
@@ -376,11 +376,11 @@ namespace Deveel.Data.DbSystem {
 		/// An object that models the list of views as table objects 
 		/// in a transaction.
 		/// </summary>
-		private sealed class ViewInternalTableInfo : InternalTableInfo2 {
+		private sealed class ViewInternalTableContainer : TransactionInternalTableContainer {
 			private readonly ViewManager view_manager;
 			private readonly Hashtable view_cache;
 
-			internal ViewInternalTableInfo(ViewManager manager, Transaction transaction)
+			internal ViewInternalTableContainer(ViewManager manager, Transaction transaction)
 				: base(transaction, SystemSchema.View) {
 				view_manager = manager;
 				view_cache = view_manager == null ? new Hashtable() : view_manager.ViewCache;
@@ -392,7 +392,7 @@ namespace Deveel.Data.DbSystem {
 
 			public override DataTableInfo GetTableInfo(int i) {
 				return GetViewDef(view_cache,
-				                  transaction.GetTable(SystemSchema.View), i).TableInfo;
+				                  Transaction.GetTable(SystemSchema.View), i).TableInfo;
 			}
 
 			public override ITableDataSource CreateInternalTable(int i) {

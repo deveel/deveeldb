@@ -185,8 +185,8 @@ namespace Deveel.Data.Transactions {
 							} catch (Exception e) {
 								// We weren't able to deserialize the expression so report the
 								// error to the log
-								transaction.Context.Logger.Warning(transaction, "Unable to deserialize the check expression. The error is: " + e.Message);
-								transaction.Context.Logger.Warning(transaction, "Parsing the check expression instead.");
+								transaction.Context.SystemContext.Logger.Warning(transaction, "Unable to deserialize the check expression. The error is: " + e.Message);
+								transaction.Context.SystemContext.Logger.Warning(transaction, "Parsing the check expression instead.");
 							}
 						}
 					}

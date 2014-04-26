@@ -48,7 +48,7 @@ namespace Deveel.Data.DbSystem {
 
 		public SystemQueryContext(SimpleTransaction transaction, string currentSchema) {
 			this.transaction = transaction;
-			context = transaction.Context;
+			context = transaction.Context.SystemContext;
 			this.currentSchema = currentSchema;
 		}
 

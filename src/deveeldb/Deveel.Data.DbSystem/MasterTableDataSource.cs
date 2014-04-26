@@ -60,22 +60,11 @@ namespace Deveel.Data.DbSystem {
 		// ---------- System information ----------
 
 		/// <summary>
-		/// The global TransactionSystem object that points to the global system
-		/// that this table source belongs to.
-		/// </summary>
-		private readonly SystemContext context;
-
-		/// <summary>
 		/// The IStoreSystem implementation that represents the data persistence layer.
 		/// </summary>
 		private readonly IStoreSystem storeSystem;
 
 		// ---------- State information ----------
-
-		/// <summary>
-		/// An integer that uniquely identifies this data source within the conglomerate.
-		/// </summary>
-		private int tableId;
 
 		/// <summary>
 		/// True if this table source is closed.
@@ -98,17 +87,6 @@ namespace Deveel.Data.DbSystem {
 		// ---------- Persistant data ----------
 
 		/// <summary>
-		/// A DataTableInfo object that describes the table topology.  This includes
-		/// the name and columns of the table.
-		/// </summary>
-		private DataTableInfo tableInfo;
-
-		/// <summary>
-		/// A DataIndexSetInfo object that describes the indexes on the table.
-		/// </summary>
-		private DataIndexSetInfo indexInfo;
-
-		/// <summary>
 		/// A cached TableName for this data source.
 		/// </summary>
 		private TableName cachedTableName;
@@ -122,37 +100,9 @@ namespace Deveel.Data.DbSystem {
 
 		// ---------- Cached information ----------
 
-		/// <summary>
-		/// Set to false to disable cell caching.
-		/// </summary>
-		private readonly bool dataCellCaching = true;
-
-		/// <summary>
-		/// A reference to the DataCellCache object.
-		/// </summary>
-		private readonly DataCellCache cache;
-
-
-		/// <summary>
-		/// Manages scanning and deleting of rows marked as deleted within this
-		/// data source.
-		/// </summary>
-		private readonly MasterTableGC gc;
-
-		/// <summary>
-		/// An abstracted reference to a BlobStore for managing blob 
-		/// references and blob data.
-		/// </summary>
-		private readonly IBlobStore blobStore;
-
 		// ---------- Stat keys ----------
 
 		// The keys we use for Database.Stats for information for this table.
-		private string rootLockKey;
-		private string totalHitsKey;
-		private string fileHitsKey;
-		private string deleteHitsKey;
-		private string insertHitsKey;
 
 		/// <summary>
 		/// Constructs the <see cref="MasterTableDataSource"/>.
@@ -161,24 +111,23 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="storeSystem"></param>
 		/// <param name="blobStore"></param>
 		protected MasterTableDataSource(SystemContext context, IStoreSystem storeSystem, IBlobStore blobStore) {
-			this.context = context;
+			CellCaching = true;
+			this.Context = context;
 			this.storeSystem = storeSystem;
-			this.blobStore = blobStore;
-			gc = new MasterTableGC(this);
-			cache = context.DataCellCache;
+			this.BlobStore = blobStore;
+			TableGC = new MasterTableGC(this);
+			Cache = context.DataCellCache;
 			isClosed = true;
 
-			if (dataCellCaching) {
-				dataCellCaching = (cache != null);
+			if (CellCaching) {
+				CellCaching = (Cache != null);
 			}
 		}
 
 		/// <summary>
 		/// Returns the TransactionSystem for this table.
 		/// </summary>
-		public SystemContext Context {
-			get { return context; }
-		}
+		protected SystemContext Context { get; private set; }
 
 		/// <summary>
 		/// Returns the ILogger object that can be used to log debug messages.
@@ -226,10 +175,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns table_id - the unique identifier for this data source.
 		/// </summary>
-		public int TableId {
-			get { return tableId; }
-			protected set { tableId = value; }
-		}
+		public int TableId { get; protected set; }
 
 		/// <summary>
 		/// Returns the DataTableInfo object that represents the topology of this
@@ -238,19 +184,13 @@ namespace Deveel.Data.DbSystem {
 		/// <remarks>
 		/// This information can't be changed during the lifetime of a data source.
 		/// </remarks>
-		public DataTableInfo TableInfo {
-			get { return tableInfo; }
-			protected set { tableInfo = value; }
-		}
+		public DataTableInfo TableInfo { get; protected set; }
 
 		/// <summary>
 		/// Returns the <see cref="DataIndexSetInfo"/> object that represents 
 		/// the indexes on this table.
 		/// </summary>
-		public DataIndexSetInfo IndexSetInfo {
-			get { return indexInfo; }
-			protected set { indexInfo = value; }
-		}
+		public DataIndexSetInfo IndexSetInfo { get; protected set; }
 
 		/// <summary>
 		/// Returns a string that uniquely identifies this table within the
@@ -311,8 +251,8 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns true if the source is read only.
 		/// </summary>
-		public bool IsReadOnly {
-			get { return context.ReadOnlyAccess; }
+		protected bool IsReadOnly {
+			get { return Context.ReadOnlyAccess; }
 		}
 
 		/// <summary>
@@ -351,51 +291,33 @@ namespace Deveel.Data.DbSystem {
 		/// Manages scanning and deleting of rows marked as deleted within this
 		/// data source.
 		/// </summary>
-		protected MasterTableGC TableGC {
-			get { return gc; }
-		}
+		protected MasterTableGC TableGC { get; private set; }
 
 		/// <summary>
 		/// An abstracted reference to a BlobStore for managing blob 
 		/// references and blob data.
 		/// </summary>
-		protected IBlobStore BlobStore {
-			get { return blobStore; }
-		}
+		protected IBlobStore BlobStore { get; private set; }
 
-		protected string RootLockKey {
-			get { return rootLockKey; }
-		}
+		protected string RootLockKey { get; private set; }
 
-		protected string FileHitsKey {
-			get { return fileHitsKey; }
-		}
+		protected string FileHitsKey { get; private set; }
 
-		protected string DeleteHitsKey {
-			get { return deleteHitsKey; }
-		}
+		protected string DeleteHitsKey { get; private set; }
 
-		protected string TotalHitsKey {
-			get { return totalHitsKey; }
-		}
+		protected string TotalHitsKey { get; private set; }
 
-		protected string InsertHitsKey {
-			get { return insertHitsKey; }
-		}
+		protected string InsertHitsKey { get; private set; }
 
 		/// <summary>
 		/// A reference to the DataCellCache object.
 		/// </summary>
-		protected DataCellCache Cache {
-			get { return cache; }
-		}
+		protected DataCellCache Cache { get; private set; }
 
 		/// <summary>
 		/// Gets whether the cell value caching is enabled.
 		/// </summary>
-		protected bool CellCaching {
-			get { return dataCellCaching; }
-		}
+		protected bool CellCaching { get; private set; }
 
 		/// <summary>
 		/// Opens an existing master table.
@@ -475,7 +397,7 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <param name="rowIndex"></param>
 		/// <returns></returns>
-		public abstract int ReadRecordType(int rowIndex);
+		protected abstract int ReadRecordType(int rowIndex);
 
 		/// <summary>
 		/// Returns true if the record with the given index is deleted from the 
@@ -530,7 +452,7 @@ namespace Deveel.Data.DbSystem {
 		/// This must only be used under extraordinary circumstances, such as 
 		/// restoring from a backup, or converting from one file to another.
 		/// </remarks>
-		public abstract void SetUniqueID(long value);
+		public abstract void SetUniqueId(long value);
 
 		/// <summary>
 		/// Disposes of all in-memory resources associated with this table and
@@ -582,7 +504,7 @@ namespace Deveel.Data.DbSystem {
 		/// <see cref="ITableDataSource.GetColumnScheme"/> method.
 		/// </remarks>
 		/// <returns></returns>
-		protected ITableDataSource GetMinimalTableDataSource(IIndex masterIndex) {
+		protected virtual ITableDataSource GetMinimalTableDataSource(IIndex masterIndex) {
 			// Make a ITableDataSource that represents the master table over this
 			// index.
 			return new MinimalTableDataSource(this, masterIndex);
@@ -596,13 +518,13 @@ namespace Deveel.Data.DbSystem {
 		/// This would typically only ever be called from the <i>create</i>
 		/// method.
 		/// </remarks>
-		protected void SetTableInfo(DataTableInfo info) {
+		protected virtual void SetTableInfo(DataTableInfo info) {
 			lock (this) {
 				// Check table_id isn't too large.
-				if ((tableId & 0x0F0000000) != 0)
+				if ((TableId & 0x0F0000000) != 0)
 					throw new ApplicationException("'table_id' exceeds maximum possible keys.");
 
-				tableInfo = info;
+				TableInfo = info;
 
 				// Create table indices
 				tableIndices = new MultiVersionTableIndices(Context, this);
@@ -618,17 +540,17 @@ namespace Deveel.Data.DbSystem {
 		private void LoadInternal() {
 			lock (this) {
 				// Set up the stat keys.
-				string tableName = tableInfo.Name;
-				string schemaName = tableInfo.Schema;
+				string tableName = TableInfo.Name;
+				string schemaName = TableInfo.Schema;
 				string n = tableName;
 				if (schemaName.Length > 0) {
 					n = schemaName + "." + tableName;
 				}
-				rootLockKey = "MasterTableDataSource.RootLocks." + n;
-				totalHitsKey = "MasterTableDataSource.Hits.Total." + n;
-				fileHitsKey = "MasterTableDataSource.Hits.File." + n;
-				deleteHitsKey = "MasterTableDataSource.Hits.Delete." + n;
-				insertHitsKey = "MasterTableDataSource.Hits.Insert." + n;
+				RootLockKey = "MasterTableDataSource.RootLocks." + n;
+				TotalHitsKey = "MasterTableDataSource.Hits.Total." + n;
+				FileHitsKey = "MasterTableDataSource.Hits.File." + n;
+				DeleteHitsKey = "MasterTableDataSource.Hits.Delete." + n;
+				InsertHitsKey = "MasterTableDataSource.Hits.Insert." + n;
 
 				isClosed = false;
 			}
@@ -655,7 +577,7 @@ namespace Deveel.Data.DbSystem {
 			} // lock
 
 			// Update stats
-			Context.Stats.Increment(insertHitsKey);
+			Context.Stats.Increment(InsertHitsKey);
 
 			// Return the record index of the new data in the table
 			return rowNumber;
@@ -679,14 +601,14 @@ namespace Deveel.Data.DbSystem {
 				OnDeleteRow(rowIndex);
 
 				// Update stats
-				context.Stats.Increment(deleteHitsKey);
+				Context.Stats.Increment(DeleteHitsKey);
 			}
 		}
 
 		/// <summary>
 		/// Permanently removes a row from this table.
 		/// </summary>
-		/// <param name="record_index"></param>
+		/// <param name="recordIndex"></param>
 		/// <remarks>
 		/// This must only be used when it is determined that a transaction 
 		/// does not reference this row, and that an open result set does not 
@@ -699,19 +621,19 @@ namespace Deveel.Data.DbSystem {
 		/// the transaction modification list.
 		/// </para>
 		/// </remarks>
-		internal void HardRemoveRow(int record_index) {
+		internal void HardRemoveRow(int recordIndex) {
 			lock (this) {
 				// ASSERTION: We are not under a root Lock.
 				if (IsRootLocked)
 					throw new ApplicationException("Assertion failed: " +
 					                               "Can't remove row, table is under a root Lock.");
 
-				int typeKey = ReadRecordType(record_index);
+				int typeKey = ReadRecordType(recordIndex);
 				// Check this record is marked as committed removed.
 				if ((typeKey & 0x0F0) != 0x020)
-					throw new ApplicationException("Row isn't marked as committed removed: " + record_index);
+					throw new ApplicationException("Row isn't marked as committed removed: " + recordIndex);
 
-				DoHardRowRemove(record_index);
+				DoHardRowRemove(recordIndex);
 			}
 		}
 
@@ -752,7 +674,7 @@ namespace Deveel.Data.DbSystem {
 		/// Returns a type that is compatible with RawDiagnosticTable record 
 		/// type.
 		/// </returns>
-		internal RecordState RecordTypeInfo(int recordIndex) {
+		private RecordState RecordTypeInfo(int recordIndex) {
 			lock (this) {
 				if (IsRecordDeleted(recordIndex))
 					return RecordState.Deleted;
@@ -799,7 +721,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		public void AddRootLock() {
 			lock (this) {
-				context.Stats.Increment(rootLockKey);
+				Context.Stats.Increment(RootLockKey);
 				++rootLock;
 			}
 		}
@@ -816,7 +738,7 @@ namespace Deveel.Data.DbSystem {
 		public void RemoveRootLock() {
 			lock (this) {
 				if (!isClosed) {
-					context.Stats.Decrement(rootLockKey);
+					Context.Stats.Decrement(RootLockKey);
 					if (rootLock == 0)
 						throw new ApplicationException("Too many root locks removed!");
 
@@ -852,7 +774,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public ISystemContext Context {
-				get { return mtds.context; }
+				get { return mtds.Context; }
 			}
 
 			public DataTableInfo TableInfo {

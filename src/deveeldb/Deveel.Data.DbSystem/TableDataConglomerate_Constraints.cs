@@ -459,7 +459,7 @@ namespace Deveel.Data.DbSystem {
 			DataConstraintInfo[] checkConstraints = transaction.QueryTableCheckExpressions(tableName);
 
 			// The TransactionSystem object
-			ISystemContext context = transaction.Context;
+			ISystemContext context = transaction.Context.SystemContext;
 
 			// For each check constraint, check that it evaluates to true.
 			for (int i = 0; i < checkConstraints.Length; ++i) {
@@ -495,29 +495,6 @@ namespace Deveel.Data.DbSystem {
 					} // For each row being added
 				}
 			}
-		}
-
-		/// <summary>
-		/// Performs constraint violation checks on an addition of the given 
-		/// set of row indices into the <see cref="ITableDataSource"/> in the 
-		/// given transaction.
-		/// </summary>
-		/// <param name="transaction">The <see cref="Transaction"/> instance 
-		/// used to determine table  constraints.</param>
-		/// <param name="table">The table to test.</param>
-		/// <param name="rowIndex">The row that was added to the table.</param>
-		/// <param name="deferred"></param>
-		/// <remarks>
-		/// If deferred is <see cref="ConstraintDeferrability.InitiallyImmediate"/>
-		/// only immediate constraints are tested. If deferred  is
-		/// <see cref="ConstraintDeferrability.InitiallyDeferred"/> all constraints 
-		/// are tested.
-		/// </remarks>
-		/// <exception cref="DatabaseConstraintViolationException">
-		/// If a violation is detected.
-		/// </exception>
-		internal static void CheckAddConstraintViolations(SimpleTransaction transaction, ITableDataSource table, int rowIndex, ConstraintDeferrability deferred) {
-			CheckAddConstraintViolations(transaction, table, new int[] { rowIndex }, deferred);
 		}
 
 		/// <summary>
@@ -606,13 +583,13 @@ namespace Deveel.Data.DbSystem {
 		/// <exception cref="DatabaseConstraintViolationException">
 		/// If a violation is detected.
 		/// </exception>
-		static void CheckAllAddConstraintViolations(SimpleTransaction transaction, ITableDataSource table, ConstraintDeferrability deferred) {
+		internal static void CheckAllAddConstraintViolations(SimpleTransaction transaction, ITableDataSource table, ConstraintDeferrability deferred) {
 			// Get all the rows in the table
 			int[] rows = new int[table.RowCount];
-			IRowEnumerator row_enum = table.GetRowEnumerator();
+			IRowEnumerator rowEnum = table.GetRowEnumerator();
 			int p = 0;
-			while (row_enum.MoveNext()) {
-				rows[p] = row_enum.RowIndex;
+			while (rowEnum.MoveNext()) {
+				rows[p] = rowEnum.RowIndex;
 				++p;
 			}
 			// Check the constraints of all the rows in the table.

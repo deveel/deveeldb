@@ -495,8 +495,8 @@ namespace Deveel.Data.DbSystem {
 		/// This is used to model all sequence generators that have been defined as tables.
 		/// </remarks>
 		/// <returns></returns>
-		internal static IInternalTableInfo CreateInternalTableInfo(Transaction transaction) {
-			return new SequenceInternalTableInfo(transaction);
+		internal static IInternalTableContainer CreateInternalTableInfo(Transaction transaction) {
+			return new SequenceInternalTableContainer(transaction);
 		}
 
 
@@ -624,10 +624,10 @@ namespace Deveel.Data.DbSystem {
 		/// An object that models the list of sequences as table objects 
 		/// in a transaction.
 		/// </summary>
-		private sealed class SequenceInternalTableInfo : IInternalTableInfo {
+		private sealed class SequenceInternalTableContainer : IInternalTableContainer {
 			private readonly Transaction transaction;
 
-			internal SequenceInternalTableInfo(Transaction transaction) {
+			internal SequenceInternalTableContainer(Transaction transaction) {
 				this.transaction = transaction;
 			}
 
@@ -711,7 +711,7 @@ namespace Deveel.Data.DbSystem {
 				throw new Exception("Out of bounds.");
 			}
 
-			public bool ContainsTableName(TableName name) {
+			public bool ContainsTable(TableName name) {
 				TableName seqInfo = SystemSchema.SysSequenceInfo;
 				// This set can not contain the table that is backing it, so we always
 				// return false for that.  This check stops an annoying recursive
@@ -794,7 +794,7 @@ namespace Deveel.Data.DbSystem {
 
 				// Implementation of IMutableTableDataSource that describes this
 				// sequence generator.
-				GTDataSourceImpl dataSource = new GTDataSourceImpl(transaction.Context, tableInfo);
+				GTDataSourceImpl dataSource = new GTDataSourceImpl(transaction.Context.SystemContext, tableInfo);
 				dataSource.top_value = topValue;
 				dataSource.last_value = lastValue;
 				dataSource.current_value = currentValue;

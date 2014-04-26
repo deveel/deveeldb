@@ -143,7 +143,7 @@ namespace Deveel.Data.DbSystem {
 															   " was not in an added state!");
 							}
 							// Notify collector that this row has been marked as deleted.
-							gc.MarkRowAsDeleted(rowIndex);
+							TableGC.MarkRowAsDeleted(rowIndex);
 						}
 					}
 
@@ -192,7 +192,7 @@ namespace Deveel.Data.DbSystem {
 															   "uncommitted state!");
 							}
 							// Notify collector that this row has been marked as deleted.
-							gc.MarkRowAsDeleted(rowIndex);
+							TableGC.MarkRowAsDeleted(rowIndex);
 						} else if (b == JournalCommandType.RemoveRow) {
 							// Any journal entries marked as TABLE_REMOVE are ignored because
 							// we are rolling back.  This means the row is not logically changed.

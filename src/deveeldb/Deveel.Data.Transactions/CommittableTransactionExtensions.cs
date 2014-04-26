@@ -98,6 +98,7 @@ namespace Deveel.Data.Transactions {
 		/// Creates a new table within this transaction with the given sector 
 		/// size.
 		/// </summary>
+		/// <param name="transaction"></param>
 		/// <param name="tableInfo"></param>
 		/// <remarks>
 		/// This should only be called under an exclusive lock on the connection.
@@ -136,6 +137,28 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
+		/// <summary>
+		/// Given a DataTableInfo, if the table exists then it is updated otherwise
+		/// if it doesn't exist then it is created.
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <param name="tableInfo"></param>
+		/// <param name="dataSectorSize"></param>
+		/// <param name="indexSectorSize"></param>
+		/// <remarks>
+		/// This should only be used as very fine grain optimization for 
+		/// creating/altering tables. If in the future the underlying table 
+		/// model is changed so that the given <paramref name="dataSectorSize"/>
+		/// and <paramref name="indexSectorSize"/> values are unapplicable, 
+		/// then the value will be ignored.
+		/// </remarks>
+		public static void AlterCreateTable(this ICommitableTransaction transaction, DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
+			if (!transaction.TableExists(tableInfo.TableName)) {
+				transaction.CreateTable(tableInfo, dataSectorSize, indexSectorSize);
+			} else {
+				transaction.AlterTable(tableInfo.TableName, tableInfo, dataSectorSize, indexSectorSize);
+			}
+		}
 				// ----- Setting/Querying constraint information -----
 		// PENDING: Is it worth implementing a pluggable constraint architecture
 		//   as described in the idea below.  With the current implementation we

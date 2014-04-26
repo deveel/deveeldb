@@ -940,7 +940,7 @@ namespace Deveel.Data.DbSystem {
 			indexStore.CopyAllFrom(indexSet);
 
 			// Finally set the unique id
-			SetUniqueID(srcMasterTable.GetNextUniqueId());
+			SetUniqueId(srcMasterTable.GetNextUniqueId());
 		}
 
 		// ---------- Diagnostic and repair ----------
@@ -1124,8 +1124,7 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-
-		public override int ReadRecordType(int rowIndex) {
+		protected override int ReadRecordType(int rowIndex) {
 			lock (listStructure) {
 				// Find the record entry input the block list.
 				IArea blockArea = listStructure.PositionOnNode(rowIndex);
@@ -1357,7 +1356,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 
-		public override void SetUniqueID(long value) {
+		public override void SetUniqueId(long value) {
 			lock (listStructure) {
 				sequenceId = value;
 				if (hasShutdown) {

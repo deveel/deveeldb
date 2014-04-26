@@ -89,7 +89,7 @@ namespace Deveel.Data.DbSystem {
 		/// that represent connection specific properties such as username,
 		/// connection, statistics, etc.
 		/// </summary>
-		private readonly ConnectionInternalTableInfo connectionInternalTableInfo;
+		private readonly ConnectionInternalTableContainer connIntTableContainer;
 
 		// ----- Local flags -----
 
@@ -115,8 +115,8 @@ namespace Deveel.Data.DbSystem {
 
 			tableBackedCacheList = new List<TableBackedCache>();
 
-			connectionInternalTableInfo = new ConnectionInternalTableInfo(this);
-			oldNewTableInfo = new OldAndNewInternalTableInfo(this);
+			connIntTableContainer = new ConnectionInternalTableContainer(this);
+			oldNewContainer = new OldAndNewTableContainer(this);
 
 			errorOnDirtySelect = database.Context.TransactionErrorOnDirtySelect;
 			IsInCaseInsensitiveMode = database.Context.IgnoreIdentifierCase;
@@ -137,9 +137,9 @@ namespace Deveel.Data.DbSystem {
 						transaction = conglomerate.CreateTransaction();
 						transaction.TransactionErrorOnDirtySelect = errorOnDirtySelect;
 						// Internal tables (connection statistics, etc)
-						transaction.AddInternalTableInfo(connectionInternalTableInfo);
+						transaction.AddInternalTableInfo(connIntTableContainer);
 						// OLD and NEW system tables (if applicable)
-						transaction.AddInternalTableInfo(oldNewTableInfo);
+						transaction.AddInternalTableInfo(oldNewContainer);
 						// Model views as tables (obviously)
 						transaction.AddInternalTableInfo(ViewManager.CreateInternalTableInfo(viewManager, transaction));
 						// Model procedures as tables
@@ -1627,7 +1627,7 @@ namespace Deveel.Data.DbSystem {
 		/// A local member that represents the OLD and NEW system tables that
 		/// represent the OLD and NEW data in a triggered action.
 		/// </summary>
-		private readonly OldAndNewInternalTableInfo oldNewTableInfo;
+		private readonly OldAndNewTableContainer oldNewContainer;
 
 		/// <summary>
 		/// The current state of the OLD and NEW system tables including any cached
@@ -1763,10 +1763,10 @@ namespace Deveel.Data.DbSystem {
 		/// An internal table info object that handles OLD and NEW tables for
 		/// triggered actions.
 		/// </summary>
-		private class OldAndNewInternalTableInfo : IInternalTableInfo {
+		private class OldAndNewTableContainer : IInternalTableContainer {
 			private readonly DatabaseConnection conn;
 
-			public OldAndNewInternalTableInfo(DatabaseConnection conn) {
+			public OldAndNewTableContainer(DatabaseConnection conn) {
 				this.conn = conn;
 			}
 
@@ -1810,7 +1810,7 @@ namespace Deveel.Data.DbSystem {
 				return SystemSchema.NewTriggerTable;
 			}
 
-			public bool ContainsTableName(TableName name) {
+			public bool ContainsTable(TableName name) {
 				return FindTableName(name) != -1;
 			}
 
@@ -2085,10 +2085,10 @@ namespace Deveel.Data.DbSystem {
 		/// An internal table info object that handles tables internal to a
 		/// DatabaseConnection object.
 		/// </summary>
-		private class ConnectionInternalTableInfo : InternalTableInfo {
+		private class ConnectionInternalTableContainer : InternalTableContainer {
 			private readonly DatabaseConnection conn;
 
-			public ConnectionInternalTableInfo(DatabaseConnection conn)
+			public ConnectionInternalTableContainer(DatabaseConnection conn)
 				: base("SYSTEM TABLE", InternalInfoList) {
 				this.conn = conn;
 			}

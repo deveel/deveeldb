@@ -627,7 +627,7 @@ namespace Deveel.Data.DbSystem {
 			private int rowCount;
 
 			public GTTableColumnsDataSource(SimpleTransaction transaction)
-				: base(transaction.Context) {
+				: base(transaction.Context.SystemContext) {
 				this.transaction = transaction;
 				Init();
 			}
@@ -737,7 +737,7 @@ namespace Deveel.Data.DbSystem {
 			private int rowCount;
 
 			public GTTableInfoDataSource(Transaction transaction)
-				: base(transaction.Context) {
+				: base(transaction.Context.SystemContext) {
 				this.transaction = transaction;
 				tableInfos = new List<TTableInfo>();
 				Init();
@@ -825,7 +825,7 @@ namespace Deveel.Data.DbSystem {
 
 		class GTVariablesDataSource : GTDataSource {
 			public GTVariablesDataSource(SimpleTransaction transaction)
-				: base(transaction.Context) {
+				: base(transaction.Context.SystemContext) {
 				this.transaction = transaction;
 				variables = new List<VariableInfo>();
 				Init();
@@ -924,7 +924,7 @@ namespace Deveel.Data.DbSystem {
 			private List<string> keyValuePairs;
 
 			public GTProductDataSource(SimpleTransaction transaction)
-				: base(transaction.Context) {
+				: base(transaction.Context.SystemContext) {
 				keyValuePairs = new List<string>();
 				Init();
 			}
