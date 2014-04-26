@@ -106,7 +106,7 @@ namespace Deveel.Data.Threading {
 		/// <summary>
 		/// Checks the access for this <see cref="Lock"/>.
 		/// </summary>
-		/// <param name="access_type">The type of access that is currently being 
+		/// <param name="accessType">The type of access that is currently being 
 		/// done to the table. If set to <see cref="AccessType.Write"/> then 
 		/// <see cref="Type"/> must be <see cref="AccessType.Write"/>. If set to
 		/// <see cref="AccessType.Read"/> then <see cref="Type"/> may be either 
@@ -122,8 +122,8 @@ namespace Deveel.Data.Threading {
 		/// will not block.
 		/// </para>
 		/// </remarks>
-		internal void CheckAccess(AccessType access_type) {
-			if (access_type == AccessType.Write && type != AccessType.Write)
+		internal void CheckAccess(AccessType accessType) {
+			if (accessType == AccessType.Write && type != AccessType.Write)
 				throw new ApplicationException("Access error on Lock: Tried to Write to a non Write Lock.");
 
 			if (!wasChecked) {

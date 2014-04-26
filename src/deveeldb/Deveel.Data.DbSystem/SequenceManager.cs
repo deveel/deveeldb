@@ -60,7 +60,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns a new Transaction object for manipulating and querying the system state.
 		/// </summary>
-		private Transaction GetTransaction() {
+		private ICommitableTransaction GetTransaction() {
 			// Should this transaction be optimized for the access patterns we generate
 			// here?
 			return conglomerate.CreateTransaction();
@@ -79,7 +79,7 @@ namespace Deveel.Data.DbSystem {
 			if (!sequenceKeyMap.TryGetValue(name, out generator)) {
 				// This sequence generator is not in the cache so we need to query the
 				// sequence table for this.
-				Transaction sequenceAccessTransaction = GetTransaction();
+				ICommitableTransaction sequenceAccessTransaction = GetTransaction();
 				try {
 					ITableDataSource seqi = sequenceAccessTransaction.GetTable(SystemSchema.SysSequenceInfo);
 					SimpleTableQuery query = new SimpleTableQuery(seqi);
@@ -165,7 +165,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		private void UpdateGeneratorState(SequenceGenerator generator) {
 			// We need to update the sequence key state.
-			Transaction sequenceAccessTransaction = GetTransaction();
+			ICommitableTransaction sequenceAccessTransaction = GetTransaction();
 			try {
 				// The sequence table
 				IMutableTableDataSource seq = sequenceAccessTransaction.GetMutableTable(SystemSchema.SysSequence);

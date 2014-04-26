@@ -51,12 +51,6 @@ namespace Deveel.Data.Transactions {
 
 		void DropSequenceGenerator(TableName name);
 
-		// Cursors
-
-		Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes);
-
-		void DropCursor(TableName name);
-
 		void Commit();
 
 		void Rollback();

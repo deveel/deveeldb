@@ -272,7 +272,7 @@ namespace Deveel.Data.DbSystem {
 
 		#endregion
 
-		internal static void AddSystemTables(Transaction transaction) {
+		internal static void AddSystemTables(ICommitableTransaction transaction) {
 			// SYSTEM.SEQUENCE_INFO
 			DataTableInfo tableInfo = new DataTableInfo(SysSequenceInfo);
 			tableInfo.AddColumn("id", PrimitiveTypes.Numeric);
@@ -365,7 +365,7 @@ namespace Deveel.Data.DbSystem {
 			transaction.AlterCreateTable(tableInfo, 91, 128);
 		}
 
-		internal static void Initialize(Transaction transaction) {
+		internal static void Initialize(ICommitableTransaction transaction) {
 			// -- Primary Keys --
 			// The 'id' columns are primary keys on all the system tables,
 			var idCol = new String[] { "id" };

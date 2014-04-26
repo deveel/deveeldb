@@ -16,6 +16,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 
 using Deveel.Data.Index;
 using Deveel.Data.DbSystem;
@@ -40,7 +41,7 @@ namespace Deveel.Data.Transactions {
 	/// master data.
 	/// </para>
 	/// </remarks>
-	internal partial class Transaction : SimpleTransaction, ICommitableTransaction, ICursorContext {
+	internal partial class Transaction : SimpleTransaction, ICommitableTransaction {
 
 		// ---------- Member variables ----------
 
@@ -55,12 +56,6 @@ namespace Deveel.Data.Transactions {
 		/// This is used for a namespace collision test during commit.
 		/// </summary>
 		private readonly IList<TableName> droppedDatabaseObjects;
-
-		/// <summary>
-		/// The list of temporary tables, which survive for the time of the
-		/// transaction: when committed or rolledback they will be disposed.
-		/// </summary>
-		private readonly ArrayList temporary_tables;
 
 		/// <summary>
 		/// True if this transaction is closed.
@@ -80,7 +75,6 @@ namespace Deveel.Data.Transactions {
 
 			touchedTables = new List<IMutableTableDataSource>();
 			selectedFromTables = new List<MasterTableDataSource>();
-			temporary_tables = new ArrayList();
 			Journal = new TransactionJournal();
 
 			// Set up all the visible tables
@@ -209,7 +203,7 @@ namespace Deveel.Data.Transactions {
 		/// A dirty select is when a query reads information from a table 
 		/// that is effected by another table during a transaction. This in 
 		/// itself will not cause data consistancy problems but for strict 
-		/// conformance to <see cref="Deveel.Data.DbSystem.Data.IsolationLevel.Serializable"/>
+		/// conformance to <see cref="IsolationLevel.Serializable"/>
 		/// isolation level this should return true.
 		/// <para>
 		/// <b>Note</b> We <b>must not</b> make this method serialized because 
@@ -310,43 +304,6 @@ namespace Deveel.Data.Transactions {
 
 			// Notify that this database object has been dropped
 			OnDatabaseObjectDropped(name);
-		}
-
-		// ---------- Cursor management ----------
-
-		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
-			if (cursors.ContainsKey(name))
-				throw new ArgumentException("The cursor '" + name + "' was already defined within this transaction.");
-
-			return new Cursor(this, name, queryPlan, attributes);
-		}
-
-		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {
-			return DeclareCursor(name, queryPlan, CursorAttributes.ReadOnly);
-		}
-
-		public void DropCursor(TableName name) {
-			if (name == null)
-				throw new ArgumentNullException("name");
-
-			Cursor cursor = cursors[name] as Cursor;
-			if (cursor == null)
-				throw new ArgumentException("Cursor '" + name + "' was not declared.");
-
-			cursor.InternalDispose();
-			cursors.Remove(name);
-
-			OnDatabaseObjectDropped(name);
-		}
-
-		void ICursorContext.OnCursorCreated(Cursor cursor) {
-			cursors[cursor.Name] = cursor;
-
-			OnDatabaseObjectCreated(cursor.Name);
-		}
-
-		void ICursorContext.OnCursorDisposing(Cursor cursor) {
-			DropCursor(cursor.Name);
 		}
 
 		// ----- Transaction close operations -----

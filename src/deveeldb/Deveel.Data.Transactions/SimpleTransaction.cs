@@ -19,6 +19,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.Index;
 using Deveel.Data.DbSystem;
+using Deveel.Data.Query;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Transactions {
@@ -38,7 +39,7 @@ namespace Deveel.Data.Transactions {
 	/// some data in the database given on some view.
 	/// </para>
 	/// </remarks>
-	public abstract class SimpleTransaction : ITransaction {
+	public abstract class SimpleTransaction : ITransaction, ICursorContext {
 		/// <summary>
 		/// The TransactionSystem context.
 		/// </summary>
@@ -836,6 +837,37 @@ namespace Deveel.Data.Transactions {
 				throw new StatementException("Table with name '" + tableName + "' could not be found to set unique id.");
 
 			master.SetUniqueID(uniqueId);
+		}
+
+		void ICursorContext.OnCursorCreated(Cursor cursor) {
+			cursors[cursor.Name] = cursor;
+		}
+
+		void ICursorContext.OnCursorDisposing(Cursor cursor) {
+			DropCursor(cursor.Name);
+		}
+
+		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
+			if (cursors.ContainsKey(name))
+				throw new ArgumentException("The cursor '" + name + "' was already defined within this transaction.");
+
+			return new Cursor(this, name, queryPlan, attributes);
+		}
+
+		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {
+			return DeclareCursor(name, queryPlan, CursorAttributes.ReadOnly);
+		}
+
+		public void DropCursor(TableName name) {
+			if (name == null)
+				throw new ArgumentNullException("name");
+
+			Cursor cursor = cursors[name] as Cursor;
+			if (cursor == null)
+				throw new ArgumentException("Cursor '" + name + "' was not declared.");
+
+			cursor.InternalDispose();
+			cursors.Remove(name);
 		}
 
 		public Cursor GetCursor(TableName name) {

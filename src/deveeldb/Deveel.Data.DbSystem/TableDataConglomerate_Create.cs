@@ -174,7 +174,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		private void UpdateSystemSchema() {
 			// Create the transaction
-			Transaction transaction = CreateTransaction();
+			ICommitableTransaction transaction = CreateTransaction();
 
 			UpdateSystemSchema(transaction);
 
@@ -187,7 +187,7 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		private void UpdateSystemSchema(Transaction transaction) {
+		private void UpdateSystemSchema(ICommitableTransaction transaction) {
 			SystemSchema.AddSystemTables(transaction);
 		}
 
@@ -201,7 +201,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		private void InitializeSystemSchema() {
 			// Create the transaction
-			Transaction transaction = CreateTransaction();
+			ICommitableTransaction transaction = CreateTransaction();
 
 			// Insert the two default schema names,
 			transaction.CreateSchema(SystemSchema.Name, "SYSTEM");
@@ -217,7 +217,7 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		private void InitializeSystemSchema(Transaction transaction) {
+		private void InitializeSystemSchema(ICommitableTransaction transaction) {
 			SystemSchema.Initialize(transaction);
 		}
 

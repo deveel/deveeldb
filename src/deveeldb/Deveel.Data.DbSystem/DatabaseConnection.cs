@@ -533,7 +533,7 @@ namespace Deveel.Data.DbSystem {
 			if (transaction != null) {
 				try {
 					// Close and commit the transaction
-					transaction.Commit();
+					CommittableTransaction.Commit();
 
 					// Fire all SQL action level triggers that were generated on actions.
 					triggerManager.FlushTriggerEvents(triggerEventList);
@@ -575,7 +575,7 @@ namespace Deveel.Data.DbSystem {
 			if (transaction != null) {
 				LockingMechanism.Reset();
 				try {
-					transaction.Rollback();
+					CommittableTransaction.Rollback();
 				} finally {
 					// Dispose the current transaction
 					DisposeTransaction();

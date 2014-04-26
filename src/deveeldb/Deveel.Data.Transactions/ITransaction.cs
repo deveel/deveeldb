@@ -59,6 +59,10 @@ namespace Deveel.Data.Transactions {
 
 		// Cursors
 
+		Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes);
+
+		void DropCursor(TableName name);
+
 		Cursor GetCursor(TableName name);
 
 		bool CursorExists(TableName name);

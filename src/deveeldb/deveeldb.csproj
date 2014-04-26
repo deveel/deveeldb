@@ -470,7 +470,6 @@
     <Compile Include="Deveel.Data.DbSystem\TableDataConglomerate_Commit.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableDataConglomerate_Constraints.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableDataConglomerate_Create.cs" />
-    <Compile Include="Deveel.Data.DbSystem\TableDataConglomerate_Diagnostics.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableDataConglomerate_Transactions.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableFunctions.cs" />
     <Compile Include="Deveel.Data\TableName.cs" />
