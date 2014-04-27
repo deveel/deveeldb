@@ -103,7 +103,7 @@ namespace Deveel.Data.DbSystem {
 			this.Database = database;
 			this.User = user;
 			this.triggerCallback = triggerCallback;
-			Logger = database.Logger;
+			Logger = database.Context.Logger;
 			conglomerate = database.Conglomerate;
 			LockingMechanism = new LockingMechanism(Logger);
 			triggerEventBuffer = new List<TriggerEventArgs>();
@@ -1721,7 +1721,7 @@ namespace Deveel.Data.DbSystem {
 			if (sz > 0) {
 				// Post an event that fires the triggers for each listener.
 				// Post the event to go off approx 3ms from now.
-				Database.PostEvent(3, Database.CreateEvent(delegate {
+				Database.Context.PostEvent(3, Database.Context.CreateEvent(delegate {
 					lock (triggerEventBuffer) {
 						// Fire all pending trigger events in buffer
 						foreach (TriggerEventArgs args in triggerEventBuffer) {

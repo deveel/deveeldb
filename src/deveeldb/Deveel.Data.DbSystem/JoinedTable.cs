@@ -155,7 +155,7 @@ namespace Deveel.Data.DbSystem {
 		/// <remarks>
 		/// We simply pick the first table to resolve the Database object.
 		/// </remarks>
-		public override Database Database {
+		public override IDatabase Database {
 			get { return referenceList[0].Database; }
 		}
 

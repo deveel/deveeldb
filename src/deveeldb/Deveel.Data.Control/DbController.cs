@@ -274,7 +274,7 @@ namespace Deveel.Data.Control {
 					Database database = CreateDatabase(dbConfig, name);
 					if (database.Exists) {
 						DatabaseShutdownCallback callback = new DatabaseShutdownCallback(controller, database);
-						database.RegisterShutDownDelegate(new EventHandler(callback.Execute));
+						database.Context.OnShutdown += new EventHandler(callback.Execute);
 						controller.databases[name] = database;
 					}
 				}
@@ -459,10 +459,10 @@ namespace Deveel.Data.Control {
 				database.Create(adminUser, adminPass);
 				database.Init();
 				DatabaseShutdownCallback callback = new DatabaseShutdownCallback(this, database);
-				database.RegisterShutDownDelegate(callback.Execute);
+				database.Context.OnShutdown += (callback.Execute);
 			} catch (Exception e) {
-				database.Logger.Error(this, "Database create failed");
-				database.Logger.Error(this, e);
+				database.Context.Logger.Error(this, "Database create failed");
+				database.Context.Logger.Error(this, e);
 				throw new InvalidOperationException(e.Message, e);
 			}
 			// Return the DbSystem object for the newly created database.
@@ -525,8 +525,8 @@ namespace Deveel.Data.Control {
 			try {
 				database.Init();
 			} catch (DatabaseException e) {
-				database.Logger.Error(this, "Database init failed");
-				database.Logger.Error(this, e);
+				database.Context.Logger.Error(this, "Database init failed");
+				database.Context.Logger.Error(this, e);
 				throw new InvalidOperationException(e.Message);
 			}
 
@@ -586,7 +586,7 @@ namespace Deveel.Data.Control {
 			Database database = new Database(context, name);
 
 			// Start up message
-			database.Logger.Message(typeof(DbController), "Starting Database Server");
+			database.Context.Logger.Message(typeof(DbController), "Starting Database Server");
 
 			return database;
 		}

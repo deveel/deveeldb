@@ -1004,7 +1004,7 @@ namespace Deveel.Data.DbSystem {
 
 			public GTStatisticsDataSource(DatabaseConnection connection)
 				: base(connection.Context) {
-				stats = connection.Database.Stats;
+				stats = connection.Database.Context.Stats;
 				Init();
 			}
 
@@ -1193,7 +1193,7 @@ namespace Deveel.Data.DbSystem {
 			/// </summary>
 			/// <returns></returns>
 			private void Init() {
-				LoggedUsers loggedUsers = database.Database.LoggedUsers;
+				LoggedUsers loggedUsers = database.Database.Context.LoggedUsers;
 
 				// Synchronize over the user manager while we inspect the information,
 				lock (loggedUsers) {

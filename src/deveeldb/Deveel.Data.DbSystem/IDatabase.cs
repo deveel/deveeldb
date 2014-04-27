@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Security;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.DbSystem {
 	/// <summary>
@@ -12,15 +13,25 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		string Name { get; }
 
-		/// <summary>
-		/// Returns true if this database is in read-only mode.
-		/// </summary>
-		bool IsReadOnly { get; }
-
 		bool Exists { get; }
+
+		bool IsInitialized { get; }
 
 		IDatabaseContext Context { get; }
 
 		UserManager UserManager { get; }
+
+		bool DeleteOnShutdown { get; }
+
+		Table SingleRowTable { get; }
+
+		Log CommandsLog { get; }
+
+
+		void Init();
+
+		DatabaseConnection CreateNewConnection(User user, TriggerCallback triggerCallback);
+
+		void Shutdown();
 	}
 }

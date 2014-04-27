@@ -169,24 +169,26 @@ namespace Deveel.Data.Threading {
 		/// <summary>
 		/// Controls whether the database is allowed to execute commands or not.
 		/// </summary>
-		/// <param name="status"></param>
+		/// <value></value>
 		/// <remarks>
 		/// If this is set to true, then calls to <see cref="Execute"/> will make 
 		/// commands execute.
 		/// </remarks>
-		public void SetIsExecutingCommands(bool status) {
-			lock (available_worker_threads) {
-				if (status == true) {
-					is_executing_commands = true;
+		public bool IsExecutingCommands {
+			get { return is_executing_commands; }
+			set {
+				lock (available_worker_threads) {
+					if (value == true) {
+						is_executing_commands = true;
 
-					// Execute everything on the queue
-					for (int i = run_queue.Count - 1; i >= 0; --i) {
-						RunCommand command = (RunCommand)run_queue[i];
-						run_queue.RemoveAt(i);
-						Execute(command.user, command.database, command.runnable);
-					}
-				} else {
-					is_executing_commands = false;
+						// Execute everything on the queue
+						for (int i = run_queue.Count - 1; i >= 0; --i) {
+							RunCommand command = (RunCommand) run_queue[i];
+							run_queue.RemoveAt(i);
+							Execute(command.user, command.database, command.runnable);
+						}
+					} else
+						is_executing_commands = false;
 				}
 			}
 		}

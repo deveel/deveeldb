@@ -417,9 +417,9 @@ namespace Deveel.Data.DbSystem {
 				// Whole table is group, so take top entry of table.
 
 				rowList = new List<int>(1);
-				IRowEnumerator row_enum = table.GetRowEnumerator();
-				if (row_enum.MoveNext()) {
-					rowList.Add(row_enum.RowIndex);
+				IRowEnumerator rowEnum = table.GetRowEnumerator();
+				if (rowEnum.MoveNext()) {
+					rowList.Add(rowEnum.RowIndex);
 				} else {
 					// MAJOR HACK: If the referencing table has no elements then we choose
 					//   an arbitary index from the reference table to merge so we have
@@ -514,21 +514,21 @@ namespace Deveel.Data.DbSystem {
 			List<int> extractRows = new List<int>();
 			int size = groupLinks.Count;
 
-			int to_take_in_group = -1;
+			int toTakeInGroup = -1;
 			TObject max = null;
 
 			bool take = true;
 			for (int i = 0; i < size; ++i) {
 				int r = groupLinks[i];
 
-				int act_r_index = r & 0x03FFFFFFF;
-				TObject cell = refTab.GetCell(colNum, act_r_index);
+				int actRIndex = r & 0x03FFFFFFF;
+				TObject cell = refTab.GetCell(colNum, actRIndex);
 				if (max == null || cell.CompareTo(max) > 0) {
 					max = cell;
-					to_take_in_group = act_r_index;
+					toTakeInGroup = actRIndex;
 				}
 				if ((r & 0x040000000) != 0) {
-					extractRows.Add(to_take_in_group);
+					extractRows.Add(toTakeInGroup);
 					max = null;
 				}
 			}
@@ -541,7 +541,7 @@ namespace Deveel.Data.DbSystem {
 		public override TObject GetCell(int column, int row) {
 			// [ FUNCTION TABLE CACHING NOW USES THE GLOBAL CELL CACHING MECHANISM ]
 			// Check if in the cache,
-			DataCellCache cache = Database.DataCellCache;
+			DataCellCache cache = Database.Context.DataCellCache;
 			// Is the column worth caching, and is caching enabled?
 			if (expInfo[column] == 0 && cache != null) {
 				TObject cell = cache.Get(uniqueId, row, column);

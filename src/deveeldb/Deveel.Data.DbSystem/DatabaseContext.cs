@@ -36,23 +36,10 @@ namespace Deveel.Data.DbSystem {
 	/// plug-ins, user management, etc.
 	/// </remarks>
 	public sealed class DatabaseContext : SystemContext, IDatabaseContext {
-		private EventHandler shutdownCallback;
-
 		/// <summary>
 		/// The list of Database objects that this system is being managed by this environment.
 		/// </summary>
 		private List<Database> databaseList;
-
-		/// <summary>
-		/// True if all queries on the database should be logged in the 'commands.log'
-		/// file in the log directory.
-		/// </summary>
-		private bool queryLogging;
-
-		/// <summary>
-		/// Set to true when the database is shut down.
-		/// </summary>
-		private bool shutdown;
 
 		/// <summary>
 		/// The thread to run to shut down the database system.
@@ -74,6 +61,8 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		private WorkerPool workerPool;
 
+		public event EventHandler OnShutdown;
+
 
 		// ---------- Queries ----------
 
@@ -81,10 +70,7 @@ namespace Deveel.Data.DbSystem {
 		/// If query logging is enabled (all queries are output to 'commands.log' in
 		/// the log directory), this returns true.  Otherwise it returns false.
 		/// </summary>
-		public bool LogQueries {
-			get { return queryLogging; }
-		}
-
+		public bool LogQueries { get; private set; }
 
 		/// <summary>
 		/// Returns the StatementCache that is used to cache StatementTree objects
@@ -115,12 +101,10 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		/// <summary>
-		/// Returns true if <see cref="StartShutDownThread"/> method has been 
+		/// Returns true if <see cref="Shutdown"/> method has been 
 		/// called.
 		/// </summary>
-		internal bool HasShutDown {
-			get { return shutdown; }
-		}
+		public bool HasShutdown { get; private set; }
 
 		/// <inheritdoc/>
 		public override void Init(IDbConfig config) {
@@ -149,12 +133,12 @@ namespace Deveel.Data.DbSystem {
 				workerPool = new WorkerPool(this, maxWorkerThreads);
 
 				// Should we be logging commands?
-				queryLogging = config.GetBoolean(ConfigKeys.LogQueries, false);
+				LogQueries = config.GetBoolean(ConfigKeys.LogQueries, false);
 			} else {
 				throw new ApplicationException("Config bundle already set.");
 			}
 
-			shutdown = false;
+			HasShutdown = false;
 		}
 
 		/// <inheritdoc/>
@@ -193,8 +177,9 @@ namespace Deveel.Data.DbSystem {
 		/// be executed as soon as there is a free worker thread available.
 		/// Otherwise no commands are executed until this is enabled.
 		/// </remarks>
-		internal void SetIsExecutingCommands(bool status) {
-			workerPool.SetIsExecutingCommands(status);
+		public bool IsExecutingCommands {
+			get { return workerPool.IsExecutingCommands; }
+			set { workerPool.IsExecutingCommands = value; }
 		}
 
 		/// <summary>
@@ -216,42 +201,15 @@ namespace Deveel.Data.DbSystem {
 
 		// ---------- Shut down methods ----------
 
-		/// <summary>
-		/// Registers the delegate that is executed when the shutdown thread
-		/// is activated.
-		/// </summary>
-		/// <remarks>
-		/// Only one delegate may be registered with the database
-		/// system.  This is only called once and shuts down the relevant
-		/// database services.
-		/// </remarks>
-		internal void RegisterShutDownDelegate(EventHandler callback) {
-			shutdownCallback = (EventHandler) Delegate.Combine(shutdownCallback, callback);
-		}
-
-		/// <summary>
-		/// This starts the shut-down thread that is used to shut down the 
-		/// database server.
-		/// </summary>
-		/// <remarks>
-		/// Since the actual shutdown method is dependent on the type of
-		/// database we are running (server or stand-alone) we delegate the
-		/// shutdown method to the registered shutdown delegate.
-		/// </remarks>
-		internal void StartShutDownThread() {
-			if (!shutdown) {
-				shutdown = true;
+		public void Shutdown(bool block) {
+			if (!HasShutdown) {
+				HasShutdown = true;
 				shutdownThread = new ShutdownThread(this);
 				shutdownThread.Start();
-			}
-		}
 
-		/// <summary>
-		/// Wait until the shutdown thread has completed. (Shutdown process
-		/// has finished).
-		/// </summary>
-		internal void WaitUntilShutdown() {
-			shutdownThread.WaitTillFinished();
+				if (block)
+					shutdownThread.WaitTillFinished();
+			}			
 		}
 
 		void IDatabaseContext.RegisterDatabase(IDatabase database) {
@@ -313,20 +271,21 @@ namespace Deveel.Data.DbSystem {
 					Thread.Sleep(1500);
 				} catch (ThreadInterruptedException) {
 				}
+
 				// Stops commands from being executed by the system...
-				ds.SetIsExecutingCommands(false);
+				ds.IsExecutingCommands = false;
 				// Wait until the worker threads are all quiet...
 				ds.WaitUntilAllWorkersQuiet();
 
 				// Close the worker pool
 				ds.workerPool.Shutdown();
 
-				EventHandler callback = ds.shutdownCallback;
+				EventHandler callback = ds.OnShutdown;
 				if (callback == null) {
 					ds.Logger.Warning(this, "No shut down callbacks registered!");
 				} else {
 					callback(this, EventArgs.Empty);
-					ds.shutdownCallback = null;
+					ds.OnShutdown = null;
 				}
 
 				lock (this) {

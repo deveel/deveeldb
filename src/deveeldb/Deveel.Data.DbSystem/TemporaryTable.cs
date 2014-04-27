@@ -44,7 +44,7 @@ namespace Deveel.Data.DbSystem {
 		///<param name="database"></param>
 		///<param name="name"></param>
 		///<param name="fields"></param>
-		public TemporaryTable(Database database, String name, DataColumnInfo[] fields)
+		public TemporaryTable(IDatabase database, String name, DataColumnInfo[] fields)
 			: base(database) {
 
 			tableStorage = new List<TObject[]>();

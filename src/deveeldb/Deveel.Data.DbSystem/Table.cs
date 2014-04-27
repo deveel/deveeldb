@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ using System.Text;
 using Deveel.Data.Index;
 using Deveel.Data.Threading;
 using Deveel.Data.Types;
-using Deveel.Data.Util;
 using Deveel.Diagnostics;
 
 using SysMath = System.Math;
@@ -42,12 +41,12 @@ namespace Deveel.Data.DbSystem {
 	/// add, remove or access row data in the table.
 	/// </para>
 	/// </remarks>
-	public abstract partial class Table : ITableDataSource {
+	public abstract class Table : ITableDataSource {
 
 		/// <summary>
 		/// Returns the <see cref="Database"/> object that this table is derived from.
 		/// </summary>
-		public abstract Database Database { get; }
+		public abstract IDatabase Database { get; }
 
 		/// <summary>
 		/// Returns the <see cref="SystemContext"/> object that this table is part of.

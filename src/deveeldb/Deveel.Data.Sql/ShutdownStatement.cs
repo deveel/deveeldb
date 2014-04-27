@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql {
 				throw new UserAccessException("User not permitted to shut down the database.");
 
 			// Shut down the database system.
-			context.Connection.Database.StartShutDownThread();
+			context.Connection.Database.Context.Shutdown(false);
 
 			// Return 0 to indicate we going to be closing shop!
 			return FunctionTable.ResultTable(context, 0);

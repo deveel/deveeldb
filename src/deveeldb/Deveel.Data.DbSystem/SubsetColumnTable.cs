@@ -82,7 +82,7 @@ namespace Deveel.Data.DbSystem {
 		/// the parent table that we want the column number to reference.</param>
 		/// <param name="aliases"></param>
 		public void SetColumnMap(int[] mapping, VariableName[] aliases) {
-			reverse_column_map = new int[parent.ColumnCount];
+			reverse_column_map = new int[Parent.ColumnCount];
 			for (int i = 0; i < reverse_column_map.Length; ++i) {
 				reverse_column_map[i] = -1;
 			}
@@ -90,12 +90,12 @@ namespace Deveel.Data.DbSystem {
 
 			this.aliases = aliases;
 
-			DataTableInfo parentInfo = parent.TableInfo;
+			DataTableInfo parentInfo = Parent.TableInfo;
 			subsetTableInfo = new DataTableInfo(parentInfo.TableName);
 
 			for (int i = 0; i < mapping.Length; ++i) {
 				int map_to = mapping[i];
-				DataColumnInfo colInfo = parent.GetColumnInfo(map_to).Clone();
+				DataColumnInfo colInfo = Parent.GetColumnInfo(map_to).Clone();
 				colInfo.Name = aliases[i].Name;
 				subsetTableInfo.AddColumn(colInfo);
 				reverse_column_map[map_to] = i;
@@ -158,7 +158,7 @@ namespace Deveel.Data.DbSystem {
 
 		/// <inheritdoc/>
 		public override TObject GetCell(int column, int row) {
-			return parent.GetCell(column_map[column], row);
+			return Parent.GetCell(column_map[column], row);
 		}
 
 		// ---------- Implemented from IRootTable ----------

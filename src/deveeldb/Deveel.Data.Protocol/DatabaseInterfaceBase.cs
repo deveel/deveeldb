@@ -182,7 +182,7 @@ namespace Deveel.Data.Protocol {
 		/// </summary>
 		protected ILogger Logger {
 			//TODO: return an empty debug logger if database is null...
-			get { return (currentDatabase != null ? currentDatabase.Logger : null); }
+			get { return (currentDatabase != null ? currentDatabase.Context.Logger : null); }
 		}
 
 		/// <summary>

@@ -118,7 +118,7 @@ namespace Deveel.Data.DbSystem {
 		// ---------- Implemented from Table ----------
 
 		/// <inheritdoc/>
-		public override Database Database {
+		public override IDatabase Database {
 			get { return masterTable.Database; }
 		}
 
@@ -179,12 +179,12 @@ namespace Deveel.Data.DbSystem {
 		/// <inheritdoc/>
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
 			Console.Error.WriteLine("Efficiency Warning in DataTable.ResolveToRawTable.");
-			List<int> row_set = new List<int>();
+			List<int> rowSet = new List<int>();
 			IRowEnumerator e = GetRowEnumerator();
 			while (e.MoveNext()) {
-				row_set.Add(e.RowIndex);
+				rowSet.Add(e.RowIndex);
 			}
-			info.Add(this, row_set);
+			info.Add(this, rowSet);
 			return info;
 		}
 

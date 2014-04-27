@@ -78,10 +78,10 @@ namespace Deveel.Data.Control {
 			internalCounter = 0;
 
 			// Register the shut down delegate,
-			database.RegisterShutDownDelegate(new EventHandler(Shutdown));
+			database.Context.OnShutdown += new EventHandler(Shutdown);
 
 			// Enable commands to the database system...
-			database.SetIsExecutingCommands(true);
+			database.Context.IsExecutingCommands = true;
 		}
 
 		/// <summary>
@@ -223,7 +223,7 @@ namespace Deveel.Data.Control {
 		/// </para>
 		/// </remarks>
 		public void SetDeleteOnClose(bool status) {
-			database.SetDeleteOnShutdown(status);
+			database.DeleteOnShutdown = status;
 		}
 
 		///<summary>
@@ -247,8 +247,7 @@ namespace Deveel.Data.Control {
 		/// </remarks>
 		public void Close() {
 			if (database != null) {
-				database.StartShutDownThread();
-				database.WaitUntilShutdown();
+				database.Context.Shutdown(true);
 			}
 		}
 

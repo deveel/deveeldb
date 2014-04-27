@@ -197,7 +197,7 @@ namespace Deveel.Data {
 		/// Returns a <see cref="DataCellCache"/> object that is a shared 
 		/// resource between all database's running on this runtime.
 		/// </summary>
-		internal DataCellCache DataCellCache { get; private set; }
+		public DataCellCache DataCellCache { get; private set; }
 
 		// ---------- Dispatch methods ----------
 
@@ -510,7 +510,7 @@ namespace Deveel.Data {
 		/// it run!
 		/// </remarks>
 		/// <returns></returns>
-		internal object CreateEvent(EventHandler callback) {
+		public object CreateEvent(EventHandler callback) {
 			return Dispatcher.CreateEvent(callback);
 		}
 
@@ -520,24 +520,12 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="timeToWait"></param>
 		/// <param name="e">An event object returned by <see cref="CreateEvent"/>.</param>
-		internal void PostEvent(int timeToWait, object e) {
+		public void PostEvent(int timeToWait, object e) {
 			Dispatcher.PostEvent(timeToWait, e);
 		}
 
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				//if (buffer_manager != null) {
-				//    try {
-				//        // Set a check point
-				//        store_system.SetCheckPoint();
-				//        // Stop the buffer manager
-				//        buffer_manager.Stop();
-				//    } catch (IOException e) {
-				//        Console.Out.WriteLine("Error stopping buffer manager.");
-				//        Console.Out.Write(e.StackTrace);
-				//    }
-				//}
-				//buffer_manager = null;
 				if (StoreSystem != null)
 					StoreSystem.Dispose();
 				StoreSystem = null;

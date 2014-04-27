@@ -42,7 +42,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// The Database object that this table is a child of.
 		/// </summary>
-		private readonly Database database;
+		private readonly IDatabase database;
 
 		/// <summary>
 		/// The number of rows in the table.
@@ -52,9 +52,9 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// A list of schemes for managing the data relations of each column.
 		/// </summary>
-		private SelectableScheme[] column_scheme;
+		private SelectableScheme[] columnScheme;
 
-		internal DefaultDataTable(Database database) {
+		internal DefaultDataTable(IDatabase database) {
 			this.database = database;
 			row_count = 0;
 		}
@@ -62,7 +62,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the Database object this table is part of.
 		/// </summary>
-		public override Database Database {
+		public override IDatabase Database {
 			get { return database; }
 		}
 
@@ -78,7 +78,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		/// <returns></returns>
 		protected virtual SelectableScheme GetRootColumnScheme(int column) {
-			return column_scheme[column];
+			return columnScheme[column];
 		}
 
 		/// <summary>
@@ -87,7 +87,7 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <param name="column">Index of the clumn to clear the scheme.</param>
 		protected void ClearColumnScheme(int column) {
-			column_scheme[column] = null;
+			columnScheme[column] = null;
 		}
 
 		/// <summary>
@@ -114,12 +114,12 @@ namespace Deveel.Data.DbSystem {
 		/// If 1 then <see cref="BlindSearch"/> (slower but uses no memory 
 		/// and doesn't require insert and delete to be logged).</param>
 		protected virtual void BlankSelectableSchemes(int type) {
-			column_scheme = new SelectableScheme[ColumnCount];
-			for (int i = 0; i < column_scheme.Length; ++i) {
+			columnScheme = new SelectableScheme[ColumnCount];
+			for (int i = 0; i < columnScheme.Length; ++i) {
 				if (type == 0) {
-					column_scheme[i] = new InsertSearch(this, i);
+					columnScheme[i] = new InsertSearch(this, i);
 				} else if (type == 1) {
-					column_scheme[i] = new BlindSearch(this, i);
+					columnScheme[i] = new BlindSearch(this, i);
 				}
 			}
 		}
@@ -196,14 +196,13 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Adds a single column of a row to the selectable scheme indexing.
 		/// </summary>
-		/// <param name="row_number"></param>
-		/// <param name="column_number"></param>
-		internal void AddCellToColumnSchemes(int row_number, int column_number) {
-			bool indexable_type =
-						 TableInfo[column_number].IsIndexableType;
-			if (indexable_type) {
-				SelectableScheme ss = GetRootColumnScheme(column_number);
-				ss.Insert(row_number);
+		/// <param name="rowNumber"></param>
+		/// <param name="columnNumber"></param>
+		internal void AddCellToColumnSchemes(int rowNumber, int columnNumber) {
+			bool indexableType = TableInfo[columnNumber].IsIndexableType;
+			if (indexableType) {
+				SelectableScheme ss = GetRootColumnScheme(columnNumber);
+				ss.Insert(rowNumber);
 			}
 		}
 
@@ -212,14 +211,14 @@ namespace Deveel.Data.DbSystem {
 		/// objects for each column need to be notified of the rows existance,
 		/// therefore build up the relational model for the columns.
 		/// </summary>
-		/// <param name="row_number"></param>
-		internal void AddRowToColumnSchemes(int row_number) {
-			int col_count = ColumnCount;
-			DataTableInfo table_def = TableInfo;
-			for (int i = 0; i < col_count; ++i) {
-				if (table_def[i].IsIndexableType) {
+		/// <param name="rowNumber"></param>
+		internal void AddRowToColumnSchemes(int rowNumber) {
+			int colCount = ColumnCount;
+			DataTableInfo tableInfo = TableInfo;
+			for (int i = 0; i < colCount; ++i) {
+				if (tableInfo[i].IsIndexableType) {
 					SelectableScheme ss = GetRootColumnScheme(i);
-					ss.Insert(row_number);
+					ss.Insert(rowNumber);
 				}
 			}
 		}
@@ -228,18 +227,18 @@ namespace Deveel.Data.DbSystem {
 		/// This is called when an index to a row needs to be removed from the
 		/// SelectableScheme objects.
 		/// </summary>
-		/// <param name="row_number"></param>
+		/// <param name="rowNumber"></param>
 		/// <remarks>
 		/// This occurs when we have a modification log of row removals that haven't 
 		/// actually happened to old backed up scheme.
 		/// </remarks>
-		internal void removeRowToColumnSchemes(int row_number) {
+		internal void RemoveRowToColumnSchemes(int rowNumber) {
 			int col_count = ColumnCount;
-			DataTableInfo table_def = TableInfo;
+			DataTableInfo tableInfo = TableInfo;
 			for (int i = 0; i < col_count; ++i) {
-				if (table_def[i].IsIndexableType) {
+				if (tableInfo[i].IsIndexableType) {
 					SelectableScheme ss = GetRootColumnScheme(i);
-					ss.Remove(row_number);
+					ss.Remove(rowNumber);
 				}
 			}
 		}

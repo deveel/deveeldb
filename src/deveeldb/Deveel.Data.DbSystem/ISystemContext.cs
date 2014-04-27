@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Store;
@@ -22,7 +23,13 @@ namespace Deveel.Data.DbSystem {
 
 		// TypesManager TypesManager { get; }
 
+		DataCellCache DataCellCache { get; }
+
 
 		void Init(IDbConfig config);
+
+		object CreateEvent(EventHandler handler);
+
+		void PostEvent(int waitTime, object e);
 	}
 }

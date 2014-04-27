@@ -47,7 +47,7 @@ namespace Deveel.Data.DbSystem {
 	/// users, triggers, functions and services.
 	/// </para>
 	/// </remarks>
-	public sealed partial class Database : IDatabase {
+	public sealed class Database : IDatabase {
 		// ---------- Statics ----------
 
 		/// <summary>
@@ -55,19 +55,13 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		public const String DefaultSchema = "APP";
 
-		/// <summary>
-		/// A flag which, when set to true, will cause the engine to delete the
-		/// database from the file system when it is shut down.
-		/// </summary>
-		private bool deleteOnShutdown;
-
 		///<summary>
 		///</summary>
 		///<param name="context"></param>
 		///<param name="name"></param>
 		public Database(DatabaseContext context, string name) {
 			Context = context;
-			deleteOnShutdown = false;
+			DeleteOnShutdown = false;
 			Name = name;
 			context.RegisterDatabase(this);
 			Conglomerate = new TableDataConglomerate(context, name, context.StoreSystem);
@@ -89,13 +83,6 @@ namespace Deveel.Data.DbSystem {
 		/// Returns the name of this database.
 		/// </summary>
 		public string Name { get; private set; }
-
-		/// <summary>
-		/// Returns true if this database is in read-only mode.
-		/// </summary>
-		public bool IsReadOnly {
-			get { return Context.ReadOnlyAccess; }
-		}
 
 		/// <summary>
 		/// Returns the internal system user for this database.
@@ -141,7 +128,7 @@ namespace Deveel.Data.DbSystem {
 
 					return false;
 				} catch (IOException e) {
-					Logger.Error(this, e);
+					Context.Logger.Error(this, e);
 					throw new Exception("IO Error: " + e.Message, e);
 				}
 			}
@@ -162,56 +149,12 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		/// <summary>
-		/// Returns the IStoreSystem for this Database.
-		/// </summary>
-		internal IStoreSystem StoreSystem {
-			get { return Context.StoreSystem; }
-		}
-
-		/// <summary>
-		/// Convenience static for accessing the global Stats object.
-		/// </summary>
-		// Perhaps this should be deprecated?
-		public Stats Stats {
-			get { return Context.Stats; }
-		}
-
-		/// <summary>
-		/// Returns the system user manager.
-		/// </summary>
-		public LoggedUsers LoggedUsers {
-			get { return Context.LoggedUsers; }
-		}
-
-		/// <summary>
-		/// Returns the system DataCellCache.
-		/// </summary>
-		internal DataCellCache DataCellCache {
-			get { return Context.DataCellCache; }
-		}
-
-		/// <summary>
-		/// Returns true if the database has shut down.
-		/// </summary>
-		public bool HasShutDown {
-			get { return Context.HasShutDown; }
-		}
-
-		/// <summary>
 		/// Returns a static table that has a single row but no columns.
 		/// </summary>
 		/// <remarks>
 		/// This table is useful for certain database operations.
 		/// </remarks>
 		public Table SingleRowTable { get; private set; }
-
-		/// <summary>
-		/// Gets the <see cref="ILogger"/> implementation from the parent 
-		/// <see cref="DatabaseContext"/> context.
-		/// </summary>
-		public ILogger Logger {
-			get { return Context.Logger; }
-		}
 
 		/// <summary>
 		/// Returns a new <see cref="DatabaseConnection"/> instance that is 
@@ -351,7 +294,7 @@ namespace Deveel.Data.DbSystem {
 		/// setting up the initial grant information for the administrator user.
 		/// </remarks>
 		public void Create(String username, String password) {
-			if (IsReadOnly) {
+			if (Context.ReadOnlyAccess) {
 				throw new Exception("Can not create database in Read only mode.");
 			}
 
@@ -388,7 +331,7 @@ namespace Deveel.Data.DbSystem {
 					// Close and commit this transaction.
 					connection.Commit();
 				} catch (TransactionException e) {
-					Logger.Error(this, e);
+					Context.Logger.Error(this, e);
 					throw new ApplicationException("Transaction Error: " + e.Message, e);
 				}
 
@@ -398,10 +341,10 @@ namespace Deveel.Data.DbSystem {
 				// Close the conglomerate.
 				Conglomerate.Close();
 			} catch (DatabaseException e) {
-				Logger.Error(this, e);
+				Context.Logger.Error(this, e);
 				throw new ApplicationException("Database Exception: " + e.Message, e);
 			} catch (IOException e) {
-				Logger.Error(this, e);
+				Context.Logger.Error(this, e);
 				throw new ApplicationException("IO Error: " + e.Message, e);
 			}
 		}
@@ -425,7 +368,7 @@ namespace Deveel.Data.DbSystem {
 				throw new Exception("Init() method can only be called once.");
 
 			// Reset all session statistics.
-			Stats.ResetSession();
+			Context.Stats.ResetSession();
 
 			try {
 				string logPath = Context.LogDirectory;
@@ -437,7 +380,7 @@ namespace Deveel.Data.DbSystem {
 
 				// Check if the state file exists.  If it doesn't, we need to report
 				// incorrect version.
-				if (!StoreSystem.StoreExists(Name + "_sf")) {
+				if (!Context.StoreSystem.StoreExists(Name + "_sf")) {
 					// If state store doesn't exist but the legacy style '.sf' state file
 					// exists,
 					if (this.Context.DatabasePath != null &&
@@ -482,7 +425,7 @@ namespace Deveel.Data.DbSystem {
 		/// the file system.
 		/// </para>
 		/// <para>
-		/// If <see cref="deleteOnShutdown"/> is true, the database will delete itself from the file 
+		/// If <see cref="DeleteOnShutdown"/> is true, the database will delete itself from the file 
 		/// system when it shuts down.
 		/// </para>
 		/// </remarks>
@@ -492,7 +435,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			try {
-				if (deleteOnShutdown) {
+				if (DeleteOnShutdown) {
 					// Delete the conglomerate if the database is set to delete on
 					// shutdown.
 					Conglomerate.Delete();
@@ -501,7 +444,7 @@ namespace Deveel.Data.DbSystem {
 					Conglomerate.Close();
 				}
 			} catch (IOException e) {
-				Logger.Error(this, e);
+				Context.Logger.Error(this, e);
 				throw new ApplicationException("IO Error: " + e.Message, e);
 			}
 
@@ -513,18 +456,16 @@ namespace Deveel.Data.DbSystem {
 			IsInitialized = false;
 		}
 
-		///<summary>
-		/// If the 'delete_on_shutdown' flag is set, the database will delete 
-		/// the database from the file system when it is shutdown.
-		///</summary>
-		///<param name="status"></param>
+		/// <summary>
+		///  If the 'delete_on_shutdown' flag is set, the database will delete 
+		///  the database from the file system when it is shutdown.
+		/// </summary>
+		/// <value></value>
 		/// <remarks>
-		/// <b>Note</b>: Use with care - if this is set to true and the database is 
-		/// shutdown it will result in total loss of data.
-		/// </remarks>
-		public void SetDeleteOnShutdown(bool status) {
-			deleteOnShutdown = status;
-		}
+		///  <b>Note</b>: Use with care - if this is set to true and the database is 
+		///  shutdown it will result in total loss of data.
+		///  </remarks>
+		public bool DeleteOnShutdown { get; set; }
 
 		/// <summary>
 		/// Copies all the persistent data in this database (the conglomerate) to 
@@ -575,42 +516,6 @@ namespace Deveel.Data.DbSystem {
 
 		// ---------- System access ----------
 
-		/// <summary>
-		/// Creates an event for the database dispatcher.
-		/// </summary>
-		/// <param name="runner"></param>
-		/// <returns></returns>
-		public object CreateEvent(EventHandler runner) {
-			return Context.CreateEvent(runner);
-		}
-
-		/// <summary>
-		/// Posts an event on the database dispatcher.
-		/// </summary>
-		/// <param name="time"></param>
-		/// <param name="e"></param>
-		public void PostEvent(int time, Object e) {
-			Context.PostEvent(time, e);
-		}
-
-
-		/// <summary>
-		/// Starts the shutdown thread which should contain delegates that shut the
-		/// database and all its resources down.
-		/// </summary>
-		/// <remarks>
-		/// This method returns immediately.
-		/// </remarks>
-		public void StartShutDownThread() {
-			Context.StartShutDownThread();
-		}
-
-		/// <summary>
-		/// Blocks until the database has shut down.
-		/// </summary>
-		public void WaitUntilShutdown() {
-			Context.WaitUntilShutdown();
-		}
 
 		/// <summary>
 		/// Executes database functions from the given 
@@ -627,27 +532,6 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		public void Execute(User user, DatabaseConnection database, EventHandler runner) {
 			Context.Execute(user, database, runner);
-		}
-
-		/// <summary>
-		/// Registers the delegate that is executed when the shutdown 
-		/// thread is activated.
-		/// </summary>
-		/// <param name="e"></param>
-		public void RegisterShutDownDelegate(EventHandler e) {
-			Context.RegisterShutDownDelegate(e);
-		}
-
-		/// <summary>
-		/// Controls whether the database is allowed to execute commands or not.
-		/// </summary>
-		/// <remarks>
-		/// If this is set to true, then calls to 'execute' will be executed
-		/// as soon as there is a free worker thread available.  Otherwise no
-		/// commands are executed until this is enabled.
-		/// </remarks>
-		public void SetIsExecutingCommands(bool status) {
-			Context.SetIsExecutingCommands(status);
 		}
 
 		#region Implementation of IDisposable

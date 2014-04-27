@@ -33,7 +33,7 @@ namespace Deveel.Data.Security {
 	/// </para>
 	/// </remarks>
 	public sealed class User {
-		internal User(string userName, Database database, string connectionString, DateTime timeConnected) {
+		internal User(string userName, IDatabase database, string connectionString, DateTime timeConnected) {
 			UserName = userName;
 			Database = database;
 			ConnectionString = connectionString;
@@ -68,7 +68,7 @@ namespace Deveel.Data.Security {
 		///<summary>
 		/// Returns the Database object that this user belongs to.
 		///</summary>
-		public Database Database { get; private set; }
+		public IDatabase Database { get; private set; }
 
 		///<summary>
 		/// Refreshes the last time a command was executed by this user.
@@ -85,7 +85,7 @@ namespace Deveel.Data.Security {
 		/// </remarks>
 		internal void Logout() {
 			// Clear all triggers for this user,
-			LoggedUsers loggedUsers = Database.LoggedUsers;
+			LoggedUsers loggedUsers = Database.Context.LoggedUsers;
 			if (loggedUsers != null) {
 				loggedUsers.OnUserLoggedOut(this);
 			}

@@ -28,14 +28,14 @@ using DataTable = Deveel.Data.DbSystem.DataTable;
 
 namespace Deveel.Data.Security {
 	public sealed class UserManager {
-		internal UserManager(Database database) {
+		public UserManager(IDatabase database) {
 			Database = database;
 		}
 
-		public Database Database { get; private set; }
+		public IDatabase Database { get; private set; }
 
 		private ILogger Logger {
-			get { return Database.Logger; }
+			get { return Database.Context.Logger; }
 		}
 
 		/// <summary>

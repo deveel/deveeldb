@@ -38,56 +38,49 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		private SelectableScheme[] column_scheme;
 
-		/// <summary>
-		/// The Table we are filtering the columns from.
-		/// </summary>
-		protected Table parent;
-
 		///<summary>
 		///</summary>
 		///<param name="parent"></param>
 		protected FilterTable(Table parent) {
-			this.parent = parent;
+			Parent = parent;
 		}
 
 		/// <summary>
 		/// Returns the parent table.
 		/// </summary>
-		protected Table Parent {
-			get { return parent; }
-		}
+		protected Table Parent { get; private set; }
 
-		public override Database Database {
-			get { return parent.Database; }
+		public override IDatabase Database {
+			get { return Parent.Database; }
 		}
 
 		public override int ColumnCount {
-			get { return parent.ColumnCount; }
+			get { return Parent.ColumnCount; }
 		}
 
 		public override int RowCount {
-			get { return parent.RowCount; }
+			get { return Parent.RowCount; }
 		}
 
 		public override DataTableInfo TableInfo {
-			get { return parent.TableInfo; }
+			get { return Parent.TableInfo; }
 		}
 
 		public override bool HasRootsLocked {
-			get { return parent.HasRootsLocked; }
+			get { return Parent.HasRootsLocked; }
 		}
 
 		public override int FindFieldName(VariableName v) {
-			return parent.FindFieldName(v);
+			return Parent.FindFieldName(v);
 		}
 
 		public override VariableName GetResolvedVariable(int column) {
-			return parent.GetResolvedVariable(column);
+			return Parent.GetResolvedVariable(column);
 		}
 
 		internal override SelectableScheme GetSelectableSchemeFor(int column, int originalColumn, Table table) {
 			if (column_scheme == null) {
-				column_scheme = new SelectableScheme[parent.ColumnCount];
+				column_scheme = new SelectableScheme[Parent.ColumnCount];
 			}
 
 			// Is there a local scheme available?
@@ -97,11 +90,11 @@ namespace Deveel.Data.DbSystem {
 				// tell the parent we are looking for its selectable scheme.
 				Table t = table;
 				if (table == this) {
-					t = parent;
+					t = Parent;
 				}
 
 				// Scheme is not cached in this table so ask the parent.
-				scheme = parent.GetSelectableSchemeFor(column, originalColumn, t);
+				scheme = Parent.GetSelectableSchemeFor(column, originalColumn, t);
 				if (table == this) {
 					column_scheme[column] = scheme;
 				}
@@ -119,30 +112,30 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		internal override void SetToRowTableDomain(int column, IList<int> rowSet, ITableDataSource ancestor) {
-			if (ancestor == this || ancestor == parent)
+			if (ancestor == this || ancestor == Parent)
 				return;
 
-			parent.SetToRowTableDomain(column, rowSet, ancestor);
+			Parent.SetToRowTableDomain(column, rowSet, ancestor);
 		}
 
 		internal override RawTableInformation ResolveToRawTable(RawTableInformation info) {
-			return parent.ResolveToRawTable(info);
+			return Parent.ResolveToRawTable(info);
 		}
 
 		public override TObject GetCell(int column, int row) {
-			return parent.GetCell(column, row);
+			return Parent.GetCell(column, row);
 		}
 
 		public override IRowEnumerator GetRowEnumerator() {
-			return parent.GetRowEnumerator();
+			return Parent.GetRowEnumerator();
 		}
 
 		public override void LockRoot(int lockKey) {
-			parent.LockRoot(lockKey);
+			Parent.LockRoot(lockKey);
 		}
 
 		public override void UnlockRoot(int lockKey) {
-			parent.UnlockRoot(lockKey);
+			Parent.UnlockRoot(lockKey);
 		}
 
 
@@ -152,7 +145,7 @@ namespace Deveel.Data.DbSystem {
 			}
 			output.WriteLine("F[" + GetType());
 
-			parent.PrintGraph(output, indent + 2);
+			Parent.PrintGraph(output, indent + 2);
 
 			for (int i = 0; i < indent; ++i) {
 				output.Write(' ');
