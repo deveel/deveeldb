@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010-2011  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-
 using System;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Index {
 	/// <summary>
 	/// An object that represents a range of values to select from a list.
 	/// </summary>

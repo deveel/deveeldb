@@ -28,16 +28,16 @@ namespace Deveel.Data.Index {
 	/// the next and previous block in the hash.
 	/// </para>
 	/// </remarks>
-	public interface IBlockIndexBlock : IEnumerable<int> {
+	public interface IIndexBlock : IEnumerable<int> {
 		/// <summary>
 		/// Gets or sets the next block in the hash.
 		/// </summary>
-		IBlockIndexBlock Next { get; set; }
+		IIndexBlock Next { get; set; }
 
 		/// <summary>
 		/// Gets or sets the previous block in the hash.
 		/// </summary>
-		IBlockIndexBlock Previous { get; set; }
+		IIndexBlock Previous { get; set; }
 
 		///<summary>
 		/// Gets a value indicating if this store has been modified.
@@ -149,7 +149,7 @@ namespace Deveel.Data.Index {
 		/// Assumes the destination block has enough room to store the set. Assumes 
 		/// <paramref name="destBlock"/> is the same type as this.
 		/// </remarks>
-		void MoveTo(IBlockIndexBlock destBlock, int destIndex, int count);
+		void MoveTo(IIndexBlock destBlock, int destIndex, int count);
 
 		///<summary>
 		/// Copies all the data from this block into the given destination block.
@@ -158,7 +158,7 @@ namespace Deveel.Data.Index {
 		/// <remarks>
 		/// Assumes <paramref name="destBlock"/> is the same class as this.
 		/// </remarks>
-		void CopyTo(IBlockIndexBlock destBlock);
+		void CopyTo(IIndexBlock destBlock);
 
 		///<summary>
 		/// Copies all the data from this block into the given array.

@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// This interface represents the source of data in a table.

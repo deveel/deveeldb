@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// A Table that represents the result of one or more other tables 

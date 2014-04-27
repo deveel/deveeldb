@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2011  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -60,30 +60,17 @@ namespace Deveel.Data.Index {
 	/// </para>
 	/// </remarks>
 	public abstract class BlockIndexBase : IIndex {
-		private readonly List<IBlockIndexBlock> blocks;
-
-		/// <summary>
-		/// The total number of ints in the list.
-		/// </summary>
-		private int count;
-
-		/// <summary>
-		/// If this is set to true, then the index is immutable (we are not permitted
-		/// to insert or remove integers from the list).
-		/// </summary>
-		private bool readOnly;
-
 		protected BlockIndexBase() {
-			count = 0;
-			readOnly = false;
-			blocks = new List<IBlockIndexBlock>(10);
+			Count = 0;
+			IsReadOnly = false;
+			Blocks = new List<IIndexBlock>(10);
 		}
 
-		protected BlockIndexBase(IEnumerable<IBlockIndexBlock> blocks)
+		protected BlockIndexBase(IEnumerable<IIndexBlock> blocks)
 			: this() {
-			foreach (IBlockIndexBlock block in blocks) {
-				this.blocks.Add(block);
-				count += block.Count;
+			foreach (IIndexBlock block in blocks) {
+				this.Blocks.Add(block);
+				Count += block.Count;
 			}
 		}
 
@@ -100,20 +87,20 @@ namespace Deveel.Data.Index {
 				// Optimization for when the input list is a BlockIntegerList
 				BlockIndexBase blockIndex = (BlockIndexBase) index;
 
-				List<IBlockIndexBlock> inBlocks = blockIndex.blocks;
+				List<IIndexBlock> inBlocks = blockIndex.Blocks;
 				int inBlocksCount = inBlocks.Count;
 				// For each block in 'blockIndex'
 				for (int i = 0; i < inBlocksCount; ++i) {
 					// get the block.
-					IBlockIndexBlock block = inBlocks[i];
+					IIndexBlock block = inBlocks[i];
 					// Insert a new block in this object.
-					IBlockIndexBlock destBlock = InsertBlock(i, NewBlock());
+					IIndexBlock destBlock = InsertBlock(i, NewBlock());
 					// Copy the contents of the source block to the new destination block.
 					block.CopyTo(destBlock);
 				}
 
 				// Set the size of the list
-				count = blockIndex.Count; //count;
+				Count = blockIndex.Count; //count;
 			} else {
 				// The case when IIntegerList type is not known
 				IIndexEnumerator i = index.GetEnumerator();
@@ -124,28 +111,21 @@ namespace Deveel.Data.Index {
 
 			// If the given list is immutable then set this list to immutable
 			if (index.IsReadOnly)
-				readOnly = true;
+				IsReadOnly = true;
 		}
 
-		protected IList<IBlockIndexBlock> Blocks {
-			get { return blocks; }
-		}
+		protected List<IIndexBlock> Blocks { get; private set; }
 
-		public bool IsReadOnly {
-			get { return readOnly; }
-			set { readOnly = value; }
-		}
+		public bool IsReadOnly { get; set; }
 
-		public int Count {
-			get { return count; }
-		}
+		public int Count { get; private set; }
 
 		public int this[int index] {
 			get {
-				int size = blocks.Count;
+				int size = Blocks.Count;
 				int start = 0;
 				for (int i = 0; i < size; ++i) {
-					IBlockIndexBlock block = blocks[i];
+					IIndexBlock block = Blocks[i];
 					int bsize = block.Count;
 					if (index >= start && index < start + bsize)
 						return block[index - start];
@@ -158,20 +138,20 @@ namespace Deveel.Data.Index {
 		}
 
 		/// <summary>
-		/// Creates a new <see cref="IBlockIndexBlock"/> for the given implementation.
+		/// Creates a new <see cref="IIndexBlock"/> for the given implementation.
 		/// </summary>
 		/// <returns></returns>
-		protected abstract IBlockIndexBlock NewBlock();
+		protected abstract IIndexBlock NewBlock();
 
 		/// <summary>
-		/// Called when the class decides the given <see cref="IBlockIndexBlock"/> 
+		/// Called when the class decides the given <see cref="IIndexBlock"/> 
 		/// is no longer needed.
 		/// </summary>
 		/// <param name="block"></param>
 		/// <remarks>
 		/// Provided as an event for derived classes to intercept.
 		/// </remarks>
-		protected virtual void OnDeleteBlock(IBlockIndexBlock block) {
+		protected virtual void OnDeleteBlock(IIndexBlock block) {
 		}
 
 
@@ -181,12 +161,12 @@ namespace Deveel.Data.Index {
 		/// <param name="index"></param>
 		/// <param name="block"></param>
 		/// <returns></returns>
-		private IBlockIndexBlock InsertBlock(int index, IBlockIndexBlock block) {
-			blocks.Insert(index, block);
+		private IIndexBlock InsertBlock(int index, IIndexBlock block) {
+			Blocks.Insert(index, block);
 
 			// Point to next in the list.
-			if (index + 1 < blocks.Count) {
-				IBlockIndexBlock nextBlock = blocks[index + 1];
+			if (index + 1 < Blocks.Count) {
+				IIndexBlock nextBlock = Blocks[index + 1];
 				block.Next = nextBlock;
 				nextBlock.Previous = block;
 			} else {
@@ -195,7 +175,7 @@ namespace Deveel.Data.Index {
 
 			// Point to previous in the list.
 			if (index > 0) {
-				IBlockIndexBlock prevBlock = blocks[index - 1];
+				IIndexBlock prevBlock = Blocks[index - 1];
 				block.Previous = prevBlock;
 				prevBlock.Next = block;
 			} else {
@@ -211,13 +191,13 @@ namespace Deveel.Data.Index {
 		/// <param name="index"></param>
 		private void RemoveBlock(int index) {
 			// Alter linked list pointers.
-			IBlockIndexBlock newPrev = null;
-			IBlockIndexBlock newNext = null;
-			if (index + 1 < blocks.Count) {
-				newNext = blocks[index + 1];
+			IIndexBlock newPrev = null;
+			IIndexBlock newNext = null;
+			if (index + 1 < Blocks.Count) {
+				newNext = Blocks[index + 1];
 			}
 			if (index > 0) {
-				newPrev = blocks[index - 1];
+				newPrev = Blocks[index - 1];
 			}
 
 			if (newPrev != null) {
@@ -227,8 +207,8 @@ namespace Deveel.Data.Index {
 				newNext.Previous = newPrev;
 			}
 
-			IBlockIndexBlock beenRemoved = blocks[index];
-			blocks.RemoveAt(index);
+			IIndexBlock beenRemoved = Blocks[index];
+			Blocks.RemoveAt(index);
 			OnDeleteBlock(beenRemoved);
 		}
 
@@ -239,9 +219,9 @@ namespace Deveel.Data.Index {
 		/// <param name="blockIndex"></param>
 		/// <param name="block"></param>
 		/// <param name="position"></param>
-		private void InsertIntoBlock(int value, int blockIndex, IBlockIndexBlock block, int position) {
+		private void InsertIntoBlock(int value, int blockIndex, IIndexBlock block, int position) {
 			block.Insert(position, value);
-			++count;
+			++Count;
 			// Is the block full?
 			if (block.IsFull) {
 				// We need to move half of the data out of this block into either the
@@ -251,11 +231,11 @@ namespace Deveel.Data.Index {
 				int moveSize = (block.Count/7) - 1;
 
 				// The block to move half the data from this block.
-				IBlockIndexBlock moveTo;
+				IIndexBlock moveTo;
 
 				// Is there a next block?
-				if (blockIndex < blocks.Count - 1) {
-					IBlockIndexBlock nextBlock = blocks[blockIndex + 1];
+				if (blockIndex < Blocks.Count - 1) {
+					IIndexBlock nextBlock = Blocks[blockIndex + 1];
 					// Yes, can this block contain half the values from this block?
 					if (nextBlock.CanContain(moveSize)) {
 						moveTo = nextBlock;
@@ -285,12 +265,12 @@ namespace Deveel.Data.Index {
 		/// It returns the value that used to be at that position.
 		/// </remarks>
 		/// <returns></returns>
-		private int RemoveFromBlock(int blockIndex, IBlockIndexBlock block, int position) {
+		private int RemoveFromBlock(int blockIndex, IIndexBlock block, int position) {
 			int old_value = block.RemoveAt(position);
-			--count;
+			--Count;
 			// If we have emptied out this block, then we should remove it from the
 			// list.
-			if (block.IsEmpty && blocks.Count > 1)
+			if (block.IsEmpty && Blocks.Count > 1)
 				RemoveBlock(blockIndex);
 
 			return old_value;
@@ -298,7 +278,7 @@ namespace Deveel.Data.Index {
 
 		/// <summary>
 		/// Uses a binary search algorithm to quickly determine the index of the 
-		/// <see cref="IBlockIndexBlock"/> within 'blocks' of the block 
+		/// <see cref="IIndexBlock"/> within 'blocks' of the block 
 		/// that contains the given key value using the <see cref="IIndexComparer"/> 
 		/// as a lookup comparator.
 		/// </summary>
@@ -306,22 +286,22 @@ namespace Deveel.Data.Index {
 		/// <param name="comparer"></param>
 		/// <returns></returns>
 		private int FindBlockContaining(object key, IIndexComparer comparer) {
-			if (count == 0)
+			if (Count == 0)
 				return -1;
 
 			int low = 0;
-			int high = blocks.Count - 1;
+			int high = Blocks.Count - 1;
 
 			while (low <= high) {
 				int mid = (low + high)/2;
-				IBlockIndexBlock block = blocks[mid];
+				IIndexBlock block = Blocks[mid];
 
 				// Is what we are searching for lower than the bottom value?
-				if (comparer.Compare(block.Bottom, key) > 0) {
+				if (comparer.CompareValue(block.Bottom, (TObject) key) > 0) {
 					high = mid - 1;
 				}
 					// No, then is it greater than the highest value?
-				else if (comparer.Compare(block.Top, key) < 0) {
+				else if (comparer.CompareValue(block.Top, (TObject) key) < 0) {
 					low = mid + 1;
 				}
 					// Must be inside this block then!
@@ -335,7 +315,7 @@ namespace Deveel.Data.Index {
 
 		/// <summary>
 		/// Uses a binary search algorithm to quickly determine the index of 
-		/// the <see cref="IBlockIndexBlock"/> within 'blocks' of the block 
+		/// the <see cref="IIndexBlock"/> within 'blocks' of the block 
 		/// that contains the given key value using the <see cref="IIndexComparer"/> 
 		/// as a lookup comparator.
 		/// </summary>
@@ -343,18 +323,18 @@ namespace Deveel.Data.Index {
 		/// <param name="comparer"></param>
 		/// <returns></returns>
 		private int FindLastBlock(object key, IIndexComparer comparer) {
-			if (count == 0)
+			if (Count == 0)
 				return -1;
 
 			int low = 0;
-			int high = blocks.Count - 1;
+			int high = Blocks.Count - 1;
 
 			while (low <= high) {
 				if (high - low <= 2) {
 					for (int i = high; i >= low; --i) {
-						IBlockIndexBlock block1 = blocks[i];
-						if (comparer.Compare(block1.Bottom, key) <= 0) {
-							if (comparer.Compare(block1.Top, key) >= 0)
+						IIndexBlock block1 = Blocks[i];
+						if (comparer.CompareValue(block1.Bottom, (TObject) key) <= 0) {
+							if (comparer.CompareValue(block1.Top, (TObject) key) >= 0)
 								return i;
 							return -(i + 1) - 1;
 						}
@@ -363,14 +343,14 @@ namespace Deveel.Data.Index {
 				}
 
 				int mid = (low + high)/2;
-				IBlockIndexBlock block = blocks[mid];
+				IIndexBlock block = Blocks[mid];
 
 				// Is what we are searching for lower than the bottom value?
-				if (comparer.Compare(block.Bottom, key) > 0) {
+				if (comparer.CompareValue(block.Bottom, (TObject) key) > 0) {
 					high = mid - 1;
 				}
 					// No, then is it greater than the highest value?
-				else if (comparer.Compare(block.Top, key) < 0) {
+				else if (comparer.CompareValue(block.Top, (TObject) key) < 0) {
 					low = mid + 1;
 				}
 					// Equal, so highest must be someplace between mid and high.
@@ -387,7 +367,7 @@ namespace Deveel.Data.Index {
 
 		/// <summary>
 		/// Uses a binary search algorithm to quickly determine the index of the 
-		/// <see cref="IBlockIndexBlock"/> within 'blocks' of the block 
+		/// <see cref="IIndexBlock"/> within 'blocks' of the block 
 		/// that contains the given key value using the <see cref="IIndexComparer"/> 
 		/// as a lookup comparator.
 		/// </summary>
@@ -395,20 +375,20 @@ namespace Deveel.Data.Index {
 		/// <param name="c"></param>
 		/// <returns></returns>
 		private int FindFirstBlock(object key, IIndexComparer c) {
-			if (count == 0) {
+			if (Count == 0) {
 				return -1;
 			}
 
 			int low = 0;
-			int high = blocks.Count - 1;
+			int high = Blocks.Count - 1;
 
 			while (low <= high) {
 
 				if (high - low <= 2) {
 					for (int i = low; i <= high; ++i) {
-						IBlockIndexBlock block1 = blocks[i];
-						if (c.Compare(block1.Top, key) >= 0) {
-							if (c.Compare(block1.Bottom, key) <= 0)
+						IIndexBlock block1 = Blocks[i];
+						if (c.CompareValue(block1.Top, (TObject) key) >= 0) {
+							if (c.CompareValue(block1.Bottom, (TObject) key) <= 0)
 								return i;
 							return -(i + 1);
 						}
@@ -417,14 +397,14 @@ namespace Deveel.Data.Index {
 				}
 
 				int mid = (low + high)/2;
-				IBlockIndexBlock block = blocks[mid];
+				IIndexBlock block = Blocks[mid];
 
 				// Is what we are searching for lower than the bottom value?
-				if (c.Compare(block.Bottom, key) > 0) {
+				if (c.CompareValue(block.Bottom, (TObject) key) > 0) {
 					high = mid - 1;
 				}
 					// No, then is it greater than the highest value?
-				else if (c.Compare(block.Top, key) < 0) {
+				else if (c.CompareValue(block.Top, (TObject) key) < 0) {
 					low = mid + 1;
 				}
 					// Equal, so highest must be someplace between mid and high.
@@ -438,24 +418,24 @@ namespace Deveel.Data.Index {
 
 		/// <summary>
 		/// Uses a binary search algorithm to quickly determine the index of the 
-		/// <see cref="IBlockIndexBlock"/> within 'blocks' of the 
+		/// <see cref="IIndexBlock"/> within 'blocks' of the 
 		/// block that contains the given value.
 		/// </summary>
 		/// <param name="val"></param>
 		/// <returns></returns>
 		private int FindLastBlock(int val) {
-			if (count == 0) {
+			if (Count == 0) {
 				return -1;
 			}
 
 			int low = 0;
-			int high = blocks.Count - 1;
+			int high = Blocks.Count - 1;
 
 			while (low <= high) {
 
 				if (high - low <= 2) {
 					for (int i = high; i >= low; --i) {
-						IBlockIndexBlock block1 = blocks[i];
+						IIndexBlock block1 = Blocks[i];
 						if (block1.Bottom <= val) {
 							if (block1.Top >= val)
 								return i;
@@ -466,7 +446,7 @@ namespace Deveel.Data.Index {
 				}
 
 				int mid = (low + high)/2;
-				IBlockIndexBlock block = blocks[mid];
+				IIndexBlock block = Blocks[mid];
 
 				// Is what we are searching for lower than the bottom value?
 				if (block.Bottom > val) {
@@ -499,13 +479,13 @@ namespace Deveel.Data.Index {
 		/// Thrown if the index is read-only.
 		/// </exception>
 		private void CheckImmutable() {
-			if (readOnly)
+			if (IsReadOnly)
 				throw new ApplicationException("Index is read-only.");
 
 			// HACK: We have a side effect of checking whether the list is immutable.
 			//   If the block list doesn't contain any entries we add one here.  This
 			//   hack reduces the memory requirements.
-			if (blocks.Count == 0) {
+			if (Blocks.Count == 0) {
 				InsertBlock(0, NewBlock());
 			}
 		}
@@ -523,7 +503,7 @@ namespace Deveel.Data.Index {
 			if (array.Length < length || (offset + length) > Count)
 				throw new ApplicationException("Size mismatch.");
 
-			foreach (IBlockIndexBlock block in blocks) {
+			foreach (IIndexBlock block in Blocks) {
 				offset += block.CopyTo(array, offset);
 			}
 		}
@@ -531,10 +511,10 @@ namespace Deveel.Data.Index {
 		public void Insert(int index, int value) {
 			CheckImmutable();
 
-			int size = blocks.Count;
+			int size = Blocks.Count;
 			int start = 0;
 			for (int i = 0; i < size; ++i) {
-				IBlockIndexBlock block = blocks[i];
+				IIndexBlock block = Blocks[i];
 				int bsize = block.Count;
 				if (index >= start && index <= start + bsize) {
 					InsertIntoBlock(value, i, block, index - start);
@@ -549,18 +529,18 @@ namespace Deveel.Data.Index {
 		public void Add(int value) {
 			CheckImmutable();
 
-			int size = blocks.Count;
-			IBlockIndexBlock block = blocks[size - 1];
+			int size = Blocks.Count;
+			IIndexBlock block = Blocks[size - 1];
 			InsertIntoBlock(value, size - 1, block, block.Count);
 		}
 
 		public int RemoveAt(int index) {
 			CheckImmutable();
 
-			int size = blocks.Count;
+			int size = Blocks.Count;
 			int start = 0;
 			for (int i = 0; i < size; ++i) {
-				IBlockIndexBlock block = blocks[i];
+				IIndexBlock block = Blocks[i];
 				int bsize = block.Count;
 				if (index >= start && index <= start + bsize) {
 					return RemoveFromBlock(i, block, index - start);
@@ -578,7 +558,7 @@ namespace Deveel.Data.Index {
 				return false;
 
 			// We got a block, so find out if it's in the block or not.
-			IBlockIndexBlock block = blocks[blockIndex];
+			IIndexBlock block = Blocks[blockIndex];
 
 			// Find, if not there then return false.
 			return block.SearchLast(value) >= 0;
@@ -599,7 +579,7 @@ namespace Deveel.Data.Index {
 			}
 
 			// We got a block, so find out if it's in the block or not.
-			IBlockIndexBlock block = blocks[blockIndex];
+			IIndexBlock block = Blocks[blockIndex];
 
 			// The point to insert in the block,
 			int i = block.SearchLast(value);
@@ -630,7 +610,7 @@ namespace Deveel.Data.Index {
 			}
 
 			// We got a block, so find out if it's in the block or not.
-			IBlockIndexBlock block = blocks[blockIndex];
+			IIndexBlock block = Blocks[blockIndex];
 
 			// The point to insert in the block,
 			int i = block.SearchLast(value);
@@ -663,7 +643,7 @@ namespace Deveel.Data.Index {
 			}
 
 			// We got a block, so find out if it's in the block or not.
-			IBlockIndexBlock block = blocks[blockIndex];
+			IIndexBlock block = Blocks[blockIndex];
 
 			// The point to remove the block,
 			int i = block.SearchLast(value);
@@ -690,7 +670,7 @@ namespace Deveel.Data.Index {
 				return false;
 
 			// We got a block, so find out if it's in the block or not.
-			IBlockIndexBlock block = blocks[blockIndex];
+			IIndexBlock block = Blocks[blockIndex];
 
 			// Find, if not there then return false.
 			return block.BinarySearch(key, comparer) >= 0;
@@ -711,7 +691,7 @@ namespace Deveel.Data.Index {
 			}
 
 			// We got a block, so find out if it's in the block or not.
-			IBlockIndexBlock block = blocks[blockIndex];
+			IIndexBlock block = Blocks[blockIndex];
 
 			// The point to insert in the block,
 			int i = block.SearchLast(key, comparer);
@@ -733,13 +713,13 @@ namespace Deveel.Data.Index {
 			// Find the range of blocks that the value is in.
 			int origBlockIndex = FindFirstBlock(key, comparer);
 			int blockIndex = origBlockIndex;
-			int lastBlockIndex = blocks.Count - 1;
+			int lastBlockIndex = Blocks.Count - 1;
 
 			if (blockIndex < 0)
 				// Not found in a block,
 				throw new ApplicationException("Value (" + key + ") was not found in the list.");
 
-			IBlockIndexBlock block = blocks[blockIndex];
+			IIndexBlock block = Blocks[blockIndex];
 			int i = block.IndexOf(value);
 			while (i == -1) {
 				// If not found, go to next block
@@ -747,7 +727,7 @@ namespace Deveel.Data.Index {
 				if (blockIndex > lastBlockIndex)
 					throw new ApplicationException("Value (" + key + ") was not found in the list.");
 
-				block = blocks[blockIndex];
+				block = Blocks[blockIndex];
 				// Try and find the value within this block
 				i = block.IndexOf(value);
 			}
@@ -766,7 +746,7 @@ namespace Deveel.Data.Index {
 				sr = -1;
 			} else {
 				// We got a block, so find out if it's in the block or not.
-				IBlockIndexBlock block = blocks[blockIndex];
+				IIndexBlock block = Blocks[blockIndex];
 
 				// Try and find it in the block,
 				sr = block.SearchLast(key, comparer);
@@ -774,7 +754,7 @@ namespace Deveel.Data.Index {
 
 			int offset = 0;
 			for (int i = 0; i < blockIndex; ++i) {
-				IBlockIndexBlock block = blocks[i];
+				IIndexBlock block = Blocks[i];
 				offset += block.Count;
 			}
 
@@ -791,7 +771,7 @@ namespace Deveel.Data.Index {
 				sr = -1;
 			} else {
 				// We got a block, so find out if it's in the block or not.
-				IBlockIndexBlock block = blocks[block_num];
+				IIndexBlock block = Blocks[block_num];
 
 				// Try and find it in the block,
 				sr = block.SearchFirst(key, comparer);
@@ -799,7 +779,7 @@ namespace Deveel.Data.Index {
 
 			int offset = 0;
 			for (int i = 0; i < block_num; ++i) {
-				IBlockIndexBlock block = blocks[i];
+				IIndexBlock block = Blocks[i];
 				offset += block.Count;
 			}
 
@@ -829,7 +809,7 @@ namespace Deveel.Data.Index {
 			private readonly int startOffset;
 			private int endOffset;
 
-			private IBlockIndexBlock currentBlock;
+			private IIndexBlock currentBlock;
 			private int currentBlockSize;
 			private int blockIndex;
 			private int blockOffset;
@@ -845,10 +825,10 @@ namespace Deveel.Data.Index {
 			}
 
 			private void SetupVars(int offset) {
-				int size = index.blocks.Count;
+				int size = index.Blocks.Count;
 				int start = 0;
 				for (blockIndex = 0; blockIndex < size; ++blockIndex) {
-					IBlockIndexBlock block = index.blocks[blockIndex];
+					IIndexBlock block = index.Blocks[blockIndex];
 					int bsize = block.Count;
 					if (offset < start + bsize) {
 						blockOffset = offset - start;
@@ -876,7 +856,7 @@ namespace Deveel.Data.Index {
 
 					if (++blockOffset >= currentBlockSize) {
 						++blockIndex;
-						currentBlock = index.blocks[blockIndex];
+						currentBlock = index.Blocks[blockIndex];
 						currentBlockSize = currentBlock.Count;
 						blockOffset = 0;
 					}
@@ -910,7 +890,7 @@ namespace Deveel.Data.Index {
 				if (blockOffset < 0) {
 					if (blockIndex > 0) {
 						--blockIndex;
-						currentBlock = index.blocks[blockIndex];
+						currentBlock = index.Blocks[blockIndex];
 						currentBlockSize = currentBlock.Count;
 						blockOffset = currentBlock.Count - 1;
 					}
@@ -932,11 +912,11 @@ namespace Deveel.Data.Index {
 				// NOT ELEGANT: We check 'blocks' size to determine if the value
 				//   deletion caused blocks to be removed.  If it did, we set up the
 				//   internal variables afresh with a call to 'setupVars'.
-				int origBlockCount = index.blocks.Count;
+				int origBlockCount = index.Blocks.Count;
 				index.RemoveFromBlock(blockIndex, currentBlock, blockOffset);
 
 				// Did the number of blocks in the list change?
-				if (origBlockCount == index.blocks.Count) {
+				if (origBlockCount == index.Blocks.Count) {
 					// HACK: Reduce the current cached block size
 					--currentBlockSize;
 					WalkBack();

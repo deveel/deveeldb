@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using Deveel.Data.Index;
+using Deveel.Data.DbSystem;
 using Deveel.Diagnostics;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Index {
 	/// <summary>
 	/// Represents a base class for a mechanism to select ranges from a 
 	/// given set.
@@ -44,21 +44,6 @@ namespace Deveel.Data.DbSystem {
 	/// </para>
 	/// </remarks>
 	public abstract class SelectableScheme {
-		/// <summary>
-		/// The table data source with the column this scheme indexes.
-		/// </summary>
-		private readonly ITableDataSource table;
-
-		/// <summary>
-		/// The column number in the tree this tree helps.
-		/// </summary>
-		private readonly int column;
-
-		/// <summary>
-		/// Set to true if this scheme is readOnly (can't be changed).
-		/// </summary>
-		private bool readOnly;
-
 		private static readonly BlockIndex EmptyList;
 		private static readonly BlockIndex OneList;
 
@@ -71,22 +56,20 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		protected SelectableScheme(ITableDataSource table, int column) {
-			this.table = table;
-			this.column = column;
+			Table = table;
+			Column = column;
 		}
 
 		/// <summary>
 		/// Returns the Table.
 		/// </summary>
-		protected ITableDataSource Table {
-			get { return table; }
-		}
+		protected ITableDataSource Table { get; private set; }
 
 		/// <summary>
 		/// Returns the global transaction system.
 		/// </summary>
 		protected ISystemContext Context {
-			get { return table.Context; }
+			get { return Table.Context; }
 		}
 
 		/// <summary>
@@ -100,17 +83,12 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the column this scheme is indexing in the table.
 		/// </summary>
-		protected int Column {
-			get { return column; }
-		}
+		protected int Column { get; private set; }
 
 		/// <summary>
 		/// Returns true if this scheme is readOnly.
 		/// </summary>
-		public bool IsReadOnly {
-			get { return readOnly; }
-			set { readOnly = value; }
-		}
+		public bool IsReadOnly { get; set; }
 
 		/// <summary>
 		/// Obtains the given cell in the row from the table.
@@ -118,24 +96,24 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="row"></param>
 		/// <returns></returns>
 		protected TObject GetCellContents(int row) {
-			return table.GetCell(column, row);
+			return Table.GetCell(Column, row);
 		}
 
 		/// <inheritdoc/>
 		public override string ToString() {
 			// Name of the table
-			String table_name;
-			if (table is DefaultDataTable) {
-				table_name = ((DefaultDataTable)table).TableName.ToString();
+			String tableName;
+			if (Table is DefaultDataTable) {
+				tableName = ((DefaultDataTable)Table).TableName.ToString();
 			} else {
-				table_name = "VirtualTable";
+				tableName = "VirtualTable";
 			}
 
 			StringBuilder buf = new StringBuilder();
 			buf.Append("[ SelectableScheme ");
 			buf.Append(base.ToString());
 			buf.Append(" for table: ");
-			buf.Append(table_name);
+			buf.Append(tableName);
 			buf.Append("]");
 
 			return buf.ToString();
@@ -211,7 +189,7 @@ namespace Deveel.Data.DbSystem {
 		/// Returns a <see cref="BlockIndex"/> that represents the given 
 		/// <paramref name="rowSet"/> sorted in the order of this scheme.
 		/// </returns>
-		public IIndex InternalOrderIndexSet(IList<int> rowSet) {
+		public IIndex GetOrderedIndex(IList<int> rowSet) {
 			// The length of the set to order
 			int rowSetLength = rowSet.Count;
 
@@ -274,7 +252,7 @@ namespace Deveel.Data.DbSystem {
 		/// <see cref="DataTable"/>, we pass this as the argument.  It returns 
 		/// a new <see cref="SelectableScheme"/> that orders the rows in the 
 		/// given columns order.
-		/// The  <see cref="column"/> variable specifies the column index of 
+		/// The  <see cref="Column"/> variable specifies the column index of 
 		/// this column in the given table.
 		/// </remarks>
 		/// <returns></returns>
@@ -290,16 +268,16 @@ namespace Deveel.Data.DbSystem {
 
 			// Generates an IIndex which contains indices into 'rowSet' in
 			// sorted order.
-			IIndex new_set = InternalOrderIndexSet(rowSet);
+			IIndex newSet = GetOrderedIndex(rowSet);
 
 			// Our 'new_set' should be the same size as 'rowSet'
-			if (new_set.Count != rowSet.Count) {
+			if (newSet.Count != rowSet.Count) {
 				throw new Exception("Internal sort error in finding sub-set.");
 			}
 
 			// Set up a new SelectableScheme with the sorted index set.
 			// Move the sorted index set into the new scheme.
-			InsertSearch scheme = new InsertSearch(subsetTable, subsetColumn, new_set);
+			InsertSearch scheme = new InsertSearch(subsetTable, subsetColumn, newSet);
 			// Don't let subset schemes create uid caches.
 			scheme.RecordUid = false;
 			return scheme;
@@ -518,9 +496,9 @@ namespace Deveel.Data.DbSystem {
 				this.subsetList = subsetList;
 			}
 
-			public int Compare(int index, object val) {
+			public int CompareValue(int index, TObject val) {
 				TObject cell = subsetList[index];
-				return cell.CompareTo((TObject)val);
+				return cell.CompareTo(val);
 			}
 
 			public int Compare(int index1, int index2) {
@@ -537,9 +515,9 @@ namespace Deveel.Data.DbSystem {
 				this.rowSet = rowSet;
 			}
 
-			public int Compare(int index, Object val) {
+			public int CompareValue(int index, TObject val) {
 				TObject cell = scheme.GetCellContents(rowSet[index]);
-				return cell.CompareTo((TObject)val);
+				return cell.CompareTo(val);
 			}
 
 			public int Compare(int index1, int index2) {

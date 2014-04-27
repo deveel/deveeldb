@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace Deveel.Data.DbSystem {
+using Deveel.Data.DbSystem;
+
+namespace Deveel.Data.Index {
 	/// <summary>
 	/// This is a scheme that performs a blind search of a given set.
 	/// </summary>

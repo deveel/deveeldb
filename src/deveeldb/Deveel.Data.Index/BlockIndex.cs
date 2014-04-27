@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2011  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -38,17 +38,17 @@ namespace Deveel.Data.Index {
 			: base(index) {
 		}
 
-		protected BlockIndex(IEnumerable<IBlockIndexBlock> blocks)
+		protected BlockIndex(IEnumerable<IIndexBlock> blocks)
 			: base(blocks) {
 		}
 
-		protected override IBlockIndexBlock NewBlock() {
+		protected override IIndexBlock NewBlock() {
 			return new Block(512);
 		}
 
 		#region Block
 
-		protected class Block : IBlockIndexBlock {
+		protected class Block : IIndexBlock {
 			private Block next;
 			private Block prev;
 			private int[] array;
@@ -81,7 +81,7 @@ namespace Deveel.Data.Index {
 				return GetEnumerator();
 			}
 
-			IBlockIndexBlock IBlockIndexBlock.Next {
+			IIndexBlock IIndexBlock.Next {
 				get { return Next; }
 				set { Next = (Block) value; }
 			}
@@ -91,7 +91,7 @@ namespace Deveel.Data.Index {
 				set { next = value; }
 			}
 
-			IBlockIndexBlock IBlockIndexBlock.Previous {
+			IIndexBlock IIndexBlock.Previous {
 				get { return Previous; }
 				set { Previous = (Block) value; }
 			}
@@ -189,7 +189,7 @@ namespace Deveel.Data.Index {
 				arr[index] = value;
 			}
 
-			public void MoveTo(IBlockIndexBlock destBlock, int destIndex, int length) {
+			public void MoveTo(IIndexBlock destBlock, int destIndex, int length) {
 				Block block = (Block)destBlock;
 
 				int[] arr = GetArray(false);
@@ -210,7 +210,7 @@ namespace Deveel.Data.Index {
 				block.changed = true;
 			}
 
-			public void CopyTo(IBlockIndexBlock destBlock) {
+			public void CopyTo(IIndexBlock destBlock) {
 				Block block = (Block)destBlock;
 				int[] destArr = block.GetArray(false);
 				Array.Copy(GetArray(true), 0, destArr, 0, count);
@@ -235,7 +235,7 @@ namespace Deveel.Data.Index {
 
 				while (low <= high) {
 					int mid = (low + high) / 2;
-					int cmp = comparer.Compare(arr[mid], key);
+					int cmp = comparer.CompareValue(arr[mid], (TObject) key);
 
 					if (cmp < 0)
 						low = mid + 1;
@@ -255,7 +255,7 @@ namespace Deveel.Data.Index {
 				while (low <= high) {
 					if (high - low <= 2) {
 						for (int i = low; i <= high; ++i) {
-							int cmp1 = comparer.Compare(arr[i], key);
+							int cmp1 = comparer.CompareValue(arr[i], (TObject) key);
 							if (cmp1 == 0)
 								return i;
 							if (cmp1 > 0)
@@ -265,7 +265,7 @@ namespace Deveel.Data.Index {
 					}
 
 					int mid = (low + high) / 2;
-					int cmp = comparer.Compare(arr[mid], key);
+					int cmp = comparer.CompareValue(arr[mid], (TObject) key);
 
 					if (cmp < 0) {
 						low = mid + 1;
@@ -288,7 +288,7 @@ namespace Deveel.Data.Index {
 
 					if (high - low <= 2) {
 						for (int i = high; i >= low; --i) {
-							int cmp1 = comparer.Compare(arr[i], key);
+							int cmp1 = comparer.CompareValue(arr[i], (TObject) key);
 							if (cmp1 == 0)
 								return i;
 							if (cmp1 < 0)
@@ -298,7 +298,7 @@ namespace Deveel.Data.Index {
 					}
 
 					int mid = (low + high) / 2;
-					int cmp = comparer.Compare(arr[mid], key);
+					int cmp = comparer.CompareValue(arr[mid], (TObject) key);
 
 					if (cmp < 0) {
 						low = mid + 1;

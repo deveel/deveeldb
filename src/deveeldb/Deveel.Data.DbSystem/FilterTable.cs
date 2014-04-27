@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// A table that is a filter for another table.

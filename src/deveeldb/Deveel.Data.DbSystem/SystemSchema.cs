@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Index;
 using Deveel.Data.Procedures;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;

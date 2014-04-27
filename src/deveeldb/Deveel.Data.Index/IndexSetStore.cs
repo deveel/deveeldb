@@ -573,7 +573,7 @@ namespace Deveel.Data.Index {
 							IndexBlock curIndexBlock = indexBlocks[indexNum];
 
 							// Get all the blocks in the list
-							IList<IBlockIndexBlock> blocks = index.AllBlocks;
+							IList<IIndexBlock> blocks = index.AllBlocks;
 
 							// Make up a new block list for this index set.
 							IAreaWriter a = store.CreateArea(16 + (blocks.Count * 28));

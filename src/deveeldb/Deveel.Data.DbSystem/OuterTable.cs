@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// A <see cref="Table"/> class for forming <c>OUTER</c> type results.

@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// Filter table placed at the top of a <see cref="Table"/>.

@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// Represents a default implementation of a <see cref="DataTable"/>.

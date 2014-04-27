@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 using Deveel.Diagnostics;

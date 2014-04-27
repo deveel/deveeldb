@@ -61,21 +61,21 @@ namespace Deveel.Data.Index {
 			/// <param name="indexNum"></param>
 			/// <param name="maxBlockSize"></param>
 			/// <param name="blocks"></param>
-			internal Index(IndexSetStore store, int indexNum, int maxBlockSize, IBlockIndexBlock[] blocks)
+			internal Index(IndexSetStore store, int indexNum, int maxBlockSize, IIndexBlock[] blocks)
 				: base(blocks) {
 				this.store = store;
 				this.indexNum = indexNum;
 				this.maxBlockSize = maxBlockSize;
 			}
 
-			protected override IBlockIndexBlock NewBlock() {
+			protected override IIndexBlock NewBlock() {
 				if (disposed)
 					throw new ObjectDisposedException("IndexSetStore.Index");
 
 				return new MappedBlock(store, maxBlockSize);
 			}
 
-			protected override void OnDeleteBlock(IBlockIndexBlock block) {
+			protected override void OnDeleteBlock(IIndexBlock block) {
 				deletedBlocks.Add((IMappedBlock)block);
 			}
 
@@ -90,7 +90,7 @@ namespace Deveel.Data.Index {
 			/// <summary>
 			/// Returns the array of all <see cref="MappedBlock"/> that are in this list.
 			/// </summary>
-			public IList<IBlockIndexBlock> AllBlocks {
+			public IList<IIndexBlock> AllBlocks {
 				get { return Blocks; }
 			}
 
@@ -108,7 +108,7 @@ namespace Deveel.Data.Index {
 			}
 
 			/// <summary>
-			/// An <see cref="IBlockIndexBlock"/> implementation that maps a block 
+			/// An <see cref="IIndexBlock"/> implementation that maps a block 
 			/// of a list to an underlying file system representation.
 			/// </summary>
 			class MappedBlock : Block, IMappedBlock {
@@ -395,7 +395,7 @@ namespace Deveel.Data.Index {
 		/// </summary>
 		private static readonly Index[] EmptyIndex = new Index[0];
 
-		interface IMappedBlock : IBlockIndexBlock {
+		interface IMappedBlock : IIndexBlock {
 			long FirstEntry { get; }
 
 			long LastEntry { get; }

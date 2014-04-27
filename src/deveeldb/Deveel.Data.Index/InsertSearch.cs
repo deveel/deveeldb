@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Index;
 using Deveel.Data.Util;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Index {
 	/// <summary>
 	/// This is a <see cref="SelectableScheme"/> similar in some ways 
 	/// to the binary tree.
@@ -274,8 +273,8 @@ namespace Deveel.Data {
 				return cell.CompareTo(value);
 			}
 
-			public int Compare(int index, object val) {
-				return InternalCompare(index, (TObject)val);
+			public int CompareValue(int index, TObject val) {
+				return InternalCompare(index, val);
 			}
 
 			public int Compare(int index1, int index2) {

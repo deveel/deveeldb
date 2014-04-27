@@ -105,6 +105,7 @@
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\OldNewTableState.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
+    <Compile Include="Deveel.Data.Index\IIndex_T.cs" />
     <Compile Include="Deveel.Data.Routines\ConnectionRoutines.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteContext.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
@@ -204,7 +205,7 @@
     <Compile Include="Deveel.Data.Index\BlockIndexBase.cs" />
     <Compile Include="Deveel.Data.Transactions\CommitModificationEventArgs.cs" />
     <Compile Include="Deveel.Data.Index\IIndex.cs" />
-    <Compile Include="Deveel.Data.Index\IBlockIndexBlock.cs" />
+    <Compile Include="Deveel.Data.Index\IIndexBlock.cs" />
     <Compile Include="Deveel.Data.Index\IIndexEnumerator.cs" />
     <Compile Include="Deveel.Data.Index\IndexSetStore_Index.cs" />
     <Compile Include="Deveel.Data.Index\IndexSetStore_IndexBlock.cs" />
@@ -221,7 +222,7 @@
     <Compile Include="Deveel.Data.Protocol\ResultSet.cs" />
     <Compile Include="Deveel.Data.Client\RowCache.cs" />
     <Compile Include="Deveel.Data.Query\SingleQueryPlanNode.cs" />
-    <Compile Include="Deveel.Data.DbSystem\RangePosition.cs" />
+    <Compile Include="Deveel.Data.Index\RangePosition.cs" />
     <Compile Include="Deveel.Data.Sql\SqlQuery.cs" />
     <Compile Include="Deveel.Data.Client\StreamDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Client\TCPStreamDatabaseInterface.cs" />
@@ -353,12 +354,12 @@
     <Compile Include="Deveel.Data.Threading\AccessType.cs" />
     <Compile Include="Deveel.Data.Sql\Assignment.cs" />
     <Compile Include="Deveel.Data\BigNumber.cs" />
-    <Compile Include="Deveel.Data.DbSystem\BlindSearch.cs" />
+    <Compile Include="Deveel.Data.Index\BlindSearch.cs" />
     <Compile Include="Deveel.Data.Store\BlobStore.cs" />
     <Compile Include="Deveel.Data\ByteLongObject.cs" />
     <Compile Include="Deveel.Data.Types\Caster.cs" />
     <Compile Include="Deveel.Data.Types\CastHelper.cs" />
-    <Compile Include="Deveel.Data.DbSystem\CollatedBaseSearch.cs" />
+    <Compile Include="Deveel.Data.Index\CollatedBaseSearch.cs" />
     <Compile Include="Deveel.Data.DbSystem\CompositeFunction.cs" />
     <Compile Include="Deveel.Data.DbSystem\CompositeTable.cs" />
     <Compile Include="Deveel.Data.DbSystem\ConnectionTriggerManager.cs" />
@@ -406,7 +407,7 @@
     <Compile Include="Deveel.Data.Routines\ImportedKey.cs" />
     <Compile Include="Deveel.Data.DbSystem\IMutableTableDataSource.cs" />
     <Compile Include="Deveel.Data.Index\IndexSetStore.cs" />
-    <Compile Include="Deveel.Data.DbSystem\InsertSearch.cs" />
+    <Compile Include="Deveel.Data.Index\InsertSearch.cs" />
     <Compile Include="Deveel.Data\InternalDbHelper.cs" />
     <Compile Include="Deveel.Data.DbSystem\InternalTableContainer.cs" />
     <Compile Include="Deveel.Data.DbSystem\TransactionInternalTableContainer.cs" />
@@ -455,9 +456,9 @@
     <Compile Include="Deveel.Data.DbSystem\ReferenceTable.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Deveel.Data\SchemaDef.cs" />
-    <Compile Include="Deveel.Data.DbSystem\SelectableRange.cs" />
-    <Compile Include="Deveel.Data.DbSystem\SelectableRangeSet.cs" />
-    <Compile Include="Deveel.Data.DbSystem\SelectableScheme.cs" />
+    <Compile Include="Deveel.Data.Index\SelectableRange.cs" />
+    <Compile Include="Deveel.Data.Index\SelectableRangeSet.cs" />
+    <Compile Include="Deveel.Data.Index\SelectableScheme.cs" />
     <Compile Include="Deveel.Data.DbSystem\SequenceManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\SimpleRowEnumerator.cs" />
     <Compile Include="Deveel.Data.DbSystem\SimpleTableQuery.cs" />

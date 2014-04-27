@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// A composite of two or more datasets used to implement <see cref="CompositeFunction.Union"/>, 

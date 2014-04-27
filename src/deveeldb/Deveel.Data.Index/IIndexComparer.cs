@@ -17,14 +17,13 @@ using System;
 
 namespace Deveel.Data.Index {
 	/// <summary>
-	/// A comparer that is used within <see cref="BlockIntegerList"/> that 
-	/// compares two integer values which are indices to data that is being 
-	/// compared.
+	/// A comparer that is used within <see cref="IIndex{T}"/> that 
+	/// compares two values which are indices to data that is being compared.
 	/// </summary>
 	/// <remarks>
-	/// For example, we may have an <see cref="BlockIntegerList"/> that contains 
-	/// indices to cells in the column of a table.  To make a sorted list, we use 
-	/// this comparator to lookup the index values in the list for sorting and searching.
+	/// For example, we may have an <see cref="IIndex{T}"/> that contains 
+	/// indices to cells in the column of a table. To make a sorted list, we use 
+	/// this comparer to lookup the index values in the list for sorting and searching.
 	/// </remarks>
 	public interface IIndexComparer {
 		/// <summary>
@@ -37,7 +36,7 @@ namespace Deveel.Data.Index {
 		/// or &lt; 0 if the value pointed to by index 1 is less than 'val'.  If the
 		/// indexed value is equal to 'val', it returns 0.
 		/// </returns>
-		int Compare(int index1, object val);
+		int CompareValue(int index1, TObject val);
 
 		/// <summary>
 		/// Comnpares two values referenced by the indices given.

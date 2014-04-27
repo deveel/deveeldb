@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Index;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {

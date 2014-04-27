@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Index {
 	/// <summary>
 	/// Represents a complex normalized range of a list.
 	/// </summary>
