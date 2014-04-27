@@ -58,7 +58,7 @@ namespace Deveel.Data.Query {
 
 			// Solve the sub query on the left columns with the right plan and the
 			// given operator.
-			return TableFunctions.AnyAllNonCorrelated(leftResult, leftColumns, subQueryOperator, rightResult);
+			return leftResult.AnyAllNonCorrelated(leftColumns, subQueryOperator, rightResult);
 		}
 
 		public override Object Clone() {

@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,13 +14,9 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.Text;
 
-using Deveel.Data.Index;
 using Deveel.Data.DbSystem;
-using Deveel.Data.Types;
-using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -58,7 +54,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="ch"></param>
 		/// <returns></returns>
-		private static bool IsWildCard(char ch) {
+		public static bool IsWildCard(char ch) {
 			return (ch == OneChar || ch == ZeroOrMoreChars);
 		}
 
@@ -256,175 +252,6 @@ namespace Deveel.Data {
 			return false;
 		}
 
-		/// <summary>
-		/// This is the search method.</summary>
-		/// <remarks>
-		/// It requires a table to search, a column of the table, and a pattern.
-		/// It returns the rows in the table that match the pattern if any. 
-		/// Pattern searching only works successfully on columns that are of 
-		/// type <see cref="DbType.String"/>. This works by first reducing the 
-		/// search to all cells that contain the first section of text. ie. 
-		/// <c>pattern = "Anto% ___ano"</c> will first reduce search to all 
-		/// rows between <i>Anto</i> and <i>Anton</i>. This makes for better
-		/// efficiency.
-		/// </remarks>
-		internal static IList<int> Search(Table table, int column, string pattern) {
-			return Search(table, column, pattern, '\\');
-		}
-
-		/// <summary>
-		/// This is the search method.
-		/// </summary>
-		/// <remarks>
-		/// It requires a table to search, a column of the table, and a pattern.
-		/// It returns the rows in the table that match the pattern if any. Pattern searching 
-		/// only works successfully on columns that are of type DbType.String.
-		/// This works by first reducing the search to all cells that contain the
-		/// first section of text. ie. pattern = "Anto% ___ano" will first reduce
-		/// search to all rows between "Anto" and "Anton".  This makes for better
-		/// efficiency.
-		/// </remarks>
-		internal static IList<int> Search(Table table, int column, String pattern, char escape_char) {
-			// Get the type for the column
-			TType col_type = table.TableInfo[column].TType;
-
-			// If the column type is not a string type then report an error.
-			if (!(col_type is TStringType)) {
-				throw new ApplicationException("Unable to perform a pattern search " +
-								"on a non-String type column.");
-			}
-			TStringType col_string_type = (TStringType)col_type;
-
-			// ---------- Pre Search ----------
-
-			// First perform a 'pre-search' on the head of the pattern.  Note that
-			// there may be no head in which case the entire column is searched which
-			// has more potential to be expensive than if there is a head.
-
-			StringBuilder pre_pattern = new StringBuilder();
-			int i = 0;
-			bool finished = i >= pattern.Length;
-			bool last_is_escape = false;
-
-			while (!finished) {
-				char c = pattern[i];
-				if (last_is_escape) {
-					last_is_escape = true;
-					pre_pattern.Append(c);
-				} else if (c == escape_char) {
-					last_is_escape = true;
-				} else if (!IsWildCard(c)) {
-					pre_pattern.Append(c);
-
-					++i;
-					if (i >= pattern.Length) {
-						finished = true;
-					}
-
-				} else {
-					finished = true;
-				}
-			}
-
-			// This is set with the remaining search.
-			String post_pattern;
-
-			// This is our initial search row set.  In the second stage, rows are
-			// eliminated from this vector.
-			IList<int> search_case;
-
-			if (i >= pattern.Length) {
-				// If the pattern has no 'wildcards' then just perform an EQUALS
-				// operation on the column and return the results.
-
-				TObject cell = new TObject(col_type, pattern);
-				return table.SelectRows(column, Operator.Get("="), cell);
-
-				// RETURN
-			} else if (pre_pattern.Length == 0 ||
-					 col_string_type.Locale != null) {
-
-				// No pre-pattern easy search :-(.  This is either because there is no
-				// pre pattern (it starts with a wild-card) or the locale of the string
-				// is non-lexicographical.  In either case, we need to select all from
-				// the column and brute force the search space.
-
-				search_case = table.SelectAll(column);
-				post_pattern = pattern;
-
-			} else {
-
-				// Criteria met: There is a pre_pattern, and the column locale is
-				// lexicographical.
-
-				// Great, we can do an upper and lower bound search on our pre-search
-				// set.  eg. search between 'Geoff' and 'Geofg' or 'Geoff ' and
-				// 'Geoff\33'
-
-				String lower_bounds = pre_pattern.ToString();
-				int next_char = pre_pattern[i - 1] + 1;
-				pre_pattern[i - 1] = (char)next_char;
-				String upper_bounds = pre_pattern.ToString();
-
-				post_pattern = pattern.Substring(i);
-
-				TObject cell_lower = new TObject(col_type, lower_bounds);
-				TObject cell_upper = new TObject(col_type, upper_bounds);
-
-				// Select rows between these two points.
-
-				search_case = table.SelectBetween(column, cell_lower, cell_upper);
-
-			}
-
-			// ---------- Post search ----------
-
-			//  [This optimization assumes that (NULL like '%' = true) which is incorrect]
-			//    // EFFICIENCY: This is a special case efficiency case.
-			//    // If 'post_pattern' is '%' then we have already found all the records in
-			//    // our pattern.
-			//
-			//    if (post_pattern.Equals("%")) {
-			//      return search_case;
-			//    }
-
-			int pre_index = i;
-
-			// Now eliminate from our 'search_case' any cells that don't match our
-			// search pattern.
-			// Note that by this point 'post_pattern' will start with a wild card.
-			// This follows the specification for the 'PatternMatch' method.
-			// EFFICIENCY: This is a brute force iterative search.  Perhaps there is
-			//   a faster way of handling this?
-
-			BlockIndex i_list = new BlockIndex(search_case);
-			IIndexEnumerator enumerator = i_list.GetEnumerator(0, i_list.Count - 1);
-
-			while (enumerator.MoveNext()) {
-
-				// Get the expression (the contents of the cell at the given column, row)
-
-				bool pattern_matches = false;
-				TObject cell = table.GetCell(column, enumerator.Current);
-				// Null values doesn't match with anything
-				if (!cell.IsNull) {
-					String expression = cell.Object.ToString();
-					// We must remove the head of the string, which has already been
-					// found from the pre-search section.
-					expression = expression.Substring(pre_index);
-					pattern_matches = PatternMatch(post_pattern, expression, escape_char);
-				}
-				if (!pattern_matches) {
-					// If pattern does not match then remove this row from the search.
-					enumerator.Remove();
-				}
-
-			}
-
-			return ListUtil.ToList(i_list);
-
-		}
-
 		// ---------- Matching against a regular expression ----------
 
 		/// <summary>
@@ -445,28 +272,6 @@ namespace Deveel.Data {
 			} else {
 				// Otherwise it's a regular expression with no operators
 				return context.RegexLibrary.RegexMatch(pattern, "", value);
-			}
-		}
-
-		/// <summary>
-		/// Matches a column of a table against a constant regular expression
-		/// pattern.
-		/// </summary>
-		/// <remarks>
-		/// We use the regex library as specified in the DatabaseSystem
-		/// configuration.
-		/// </remarks>
-		internal static IList<int> RegexSearch(Table table, int column, String pattern) {
-			// If the first character is a '/' then we assume it's a Perl style regular
-			// expression (eg. "/.*[0-9]+\/$/i")
-			if (pattern.StartsWith("/")) {
-				int end = pattern.LastIndexOf('/');
-				String pat = pattern.Substring(1, end);
-				String ops = pattern.Substring(end + 1);
-				return table.Database.Context.RegexLibrary.RegexSearch(table, column, pat, ops);
-			} else {
-				// Otherwise it's a regular expression with no operators
-				return table.Database.Context.RegexLibrary.RegexSearch(table, column, pattern, "");
 			}
 		}
 	}
