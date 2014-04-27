@@ -199,7 +199,7 @@ namespace Deveel.Data.Security {
 		/// </returns>
 		public User AuthenticateUser(string username, string password, string connectionString) {
 			// Create a temporary connection for authentication only...
-			DatabaseConnection connection = Database.CreateNewConnection(null, null);
+			IDatabaseConnection connection = Database.CreateNewConnection(null, null);
 			var queryContext = new DatabaseQueryContext(connection);
 			connection.CurrentSchema = SystemSchema.Name;
 			LockingMechanism locker = connection.LockingMechanism;

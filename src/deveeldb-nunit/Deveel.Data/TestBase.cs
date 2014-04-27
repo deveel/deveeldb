@@ -199,7 +199,7 @@ namespace Deveel.Data {
 			return command.ExecuteScalar();
 		}
 
-		protected DatabaseConnection CreateDatabaseConnection() {
+		protected IDatabaseConnection CreateDatabaseConnection() {
 			string hostString = "Internal/Test/" + _connCounter++;
 			User user = system.Database.AuthenticateUser(AdminUser, AdminPassword, hostString);
 			return system.Database.CreateNewConnection(user, null);
@@ -210,7 +210,7 @@ namespace Deveel.Data {
 		}
 
 		protected Table GetTable(string tableName) {
-			DatabaseConnection dbConnection = CreateDatabaseConnection();
+			IDatabaseConnection dbConnection = CreateDatabaseConnection();
 			return dbConnection.GetTable(tableName);
 		}
 	}

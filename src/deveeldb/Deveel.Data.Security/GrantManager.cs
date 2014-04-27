@@ -37,7 +37,7 @@ namespace Deveel.Data.Security {
 		/// <summary>
 		/// The DatabaseConnection instance.
 		/// </summary>
-		private readonly DatabaseConnection connection;
+		private readonly IDatabaseConnection connection;
 
 		/// <summary>
 		/// The IQueryContext instance.
@@ -312,7 +312,7 @@ namespace Deveel.Data.Security {
 											 String grantee, bool grant_option,
 										   String granter) {
 			// The list of all tables
-			TableName[] list = connection.Tables;
+			TableName[] list = connection.GetTables();
 			for (int i = 0; i < list.Length; ++i) {
 				TableName tname = list[i];
 				// If the table is in the given schema,

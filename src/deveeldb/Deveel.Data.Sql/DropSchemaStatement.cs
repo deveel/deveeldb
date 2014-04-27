@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql {
 				throw new DatabaseException("Can not drop schema '" + schemaName + "'");
 
 			// Check if the schema is empty.
-			TableName[] allTables = context.Connection.Tables;
+			TableName[] allTables = context.Connection.GetTables();
 			string resolvedSchemaName = schema.Name;
 			foreach (TableName tableName in allTables) {
 				if (tableName.Schema.Equals(resolvedSchemaName))

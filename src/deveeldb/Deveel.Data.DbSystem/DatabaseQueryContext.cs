@@ -26,13 +26,13 @@ namespace Deveel.Data.DbSystem {
 	/// <see cref="DatabaseConnection"/> object.
 	///</summary>
 	public class DatabaseQueryContext : QueryContext {
-		private readonly DatabaseConnection database;
+		private readonly IDatabaseConnection database;
 
 		///<summary>
 		/// Constructs the IQueryContext on the <see cref="DatabaseConnection"/> given.
 		///</summary>
 		///<param name="database"></param>
-		public DatabaseQueryContext(DatabaseConnection database) {
+		public DatabaseQueryContext(IDatabaseConnection database) {
 			this.database = database;
 		}
 
@@ -43,7 +43,7 @@ namespace Deveel.Data.DbSystem {
 			get { return database.Database; }
 		}
 
-		public override DatabaseConnection Connection {
+		public override IDatabaseConnection Connection {
 			get { return database; }
 		}
 

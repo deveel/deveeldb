@@ -85,7 +85,7 @@ namespace Deveel.Data.Transactions {
 			//  layer, and internal tables to the database connection layer.
 			internalTables = new IInternalTableContainer[8];
 			internalTablesIndex = 0;
-			AddInternalTableInfo(new TransactionInternalTables(this));
+			AddInternalTableContainer(new TransactionInternalTables(this));
 
 			Context.SystemContext.Stats.Increment("Transaction.count");
 

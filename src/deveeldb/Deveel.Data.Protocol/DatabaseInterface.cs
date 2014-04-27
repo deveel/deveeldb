@@ -98,7 +98,7 @@ namespace Deveel.Data.Protocol {
 
 			// Try to create a User object.
 			User this_user = database.AuthenticateUser(username, password, host_name);
-			DatabaseConnection database_connection = null;
+			IDatabaseConnection database_connection = null;
 
 			// If successful, ask the engine for a DatabaseConnection object.
 			if (this_user != null) {
@@ -173,7 +173,7 @@ namespace Deveel.Data.Protocol {
 			CheckNotDisposed();
 
 			User user = User;
-			DatabaseConnection database_connection = DatabaseConnection;
+			IDatabaseConnection database_connection = DatabaseConnection;
 
 			// Log this Query if Query logging is enabled
 #if DEBUG
@@ -286,7 +286,7 @@ namespace Deveel.Data.Protocol {
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
 				if (User != null) {
-					DatabaseConnection database = DatabaseConnection;
+					IDatabaseConnection database = DatabaseConnection;
 					LockingMechanism locker = database.LockingMechanism;
 					try {
 						// Lock into exclusive mode,

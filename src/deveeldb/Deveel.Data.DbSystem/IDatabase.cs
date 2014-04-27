@@ -34,7 +34,7 @@ namespace Deveel.Data.DbSystem {
 
 		void Init();
 
-		DatabaseConnection CreateNewConnection(User user, TriggerCallback triggerCallback);
+		IDatabaseConnection CreateNewConnection(User user, TriggerCallback triggerCallback);
 
 		void Shutdown();
 	}

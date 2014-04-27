@@ -242,7 +242,7 @@ namespace Deveel.Data.DbSystem {
 			CurrentConnectionsTableInfo.IsReadOnly = true;
 
 			// PRIVILEGES
-			PrivilegesTableInfo = new DataTableInfo(SystemSchema.Privileges);
+			PrivilegesTableInfo = new DataTableInfo(Privileges);
 			PrivilegesTableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric);
 			PrivilegesTableInfo.AddColumn("description", PrimitiveTypes.VarString);
 			PrivilegesTableInfo.IsReadOnly = true;
@@ -438,7 +438,7 @@ namespace Deveel.Data.DbSystem {
 			transaction.AddUniqueConstraint(PersistentVarTable, columns, ConstraintDeferrability.InitiallyImmediate, "SYSTEM_DATABASEVARS_UNIQUE");
 		}
 
-		internal static void CreateTables(DatabaseConnection connection) {
+		internal static void CreateTables(IDatabaseConnection connection) {
 			// --- The user management tables ---
 			var password = new DataTableInfo(Password);
 			password.AddColumn("UserName", PrimitiveTypes.VarString);
@@ -539,16 +539,13 @@ namespace Deveel.Data.DbSystem {
 		/// functions and procedures.  This may not include the functions exposed
 		/// though the FunctionFactory interface.
 		/// </remarks>
-		internal static void SetupSystemFunctions(DatabaseConnection connection, string adminUser) {
+		internal static void SetupSystemFunctions(IDatabaseConnection connection, string adminUser) {
 			// TODO: here we should load all the system functions
 			
 			const String granter = User.SystemName;
 
-			// The manager handling the functions.
-			RoutinesManager manager = connection.RoutinesManager;
-
 			// Define the SYSTEM_MAKE_BACKUP procedure
-			manager.DefineExternalRoutine(new RoutineName(Name, "SYSTEM_MAKE_BACKUP"),
+			connection.DefineExternalRoutine(new RoutineName(Name, "SYSTEM_MAKE_BACKUP"),
 				ExternalRoutineInfo.FormatString(typeof(SystemBackup)),
 				null,
 				new TType[] {PrimitiveTypes.VarString},
@@ -582,23 +579,23 @@ namespace Deveel.Data.DbSystem {
 			return new GTProductDataSource(transaction);
 		}
 
-		internal static ITableDataSource GetStatisticsTable(DatabaseConnection connection) {
+		internal static ITableDataSource GetStatisticsTable(IDatabaseConnection connection) {
 			return new GTStatisticsDataSource(connection);
 		}
 
-		internal static ITableDataSource GetConnectionInfoTable(DatabaseConnection connection) {
+		internal static ITableDataSource GetConnectionInfoTable(IDatabaseConnection connection) {
 			return new ConnectionInfoDataSource(connection);
 		}
 
-		internal static ITableDataSource GetCurrentConnectionsTable(DatabaseConnection connection) {
+		internal static ITableDataSource GetCurrentConnectionsTable(IDatabaseConnection connection) {
 			return new CurrentConnectionsDataSource(connection);
 		}
 
-		internal static ITableDataSource GetPrivilegesTable(DatabaseConnection connection) {
+		internal static ITableDataSource GetPrivilegesTable(IDatabaseConnection connection) {
 			return new PrivilegesDataSource(connection);
 		}
 
-		internal static ITableDataSource GetSqlTypesTable(DatabaseConnection connection) {
+		internal static ITableDataSource GetSqlTypesTable(IDatabaseConnection connection) {
 			return new SqlTypesDataSource(connection);
 		}
 
@@ -1002,8 +999,8 @@ namespace Deveel.Data.DbSystem {
 			/// </summary>
 			private Stats stats;
 
-			public GTStatisticsDataSource(DatabaseConnection connection)
-				: base(connection.Context) {
+			public GTStatisticsDataSource(IDatabaseConnection connection)
+				: base(connection.Database.Context) {
 				stats = connection.Database.Context.Stats;
 				Init();
 			}
@@ -1080,15 +1077,15 @@ namespace Deveel.Data.DbSystem {
 			/// The DatabaseConnection object that this is table is modelling the
 			/// information within.
 			/// </summary>
-			private DatabaseConnection database;
+			private IDatabaseConnection database;
 
 			/// <summary>
 			/// The list of info keys/values in this object.
 			/// </summary>
 			private List<string> keyValuePairs;
 
-			public ConnectionInfoDataSource(DatabaseConnection connection)
-				: base(connection.Context) {
+			public ConnectionInfoDataSource(IDatabaseConnection connection)
+				: base(connection.Database.Context) {
 				database = connection;
 				keyValuePairs = new List<string>();
 				Init();
@@ -1174,15 +1171,15 @@ namespace Deveel.Data.DbSystem {
 			/// The DatabaseConnection object that this is table is modelling the
 			/// information within.
 			/// </summary>
-			private DatabaseConnection database;
+			private IDatabaseConnection database;
 
 			/// <summary>
 			/// The list of info keys/values in this object.
 			/// </summary>
 			private List<CurrentConnection> connections;
 
-			public CurrentConnectionsDataSource(DatabaseConnection connection)
-				: base(connection.Context) {
+			public CurrentConnectionsDataSource(IDatabaseConnection connection)
+				: base(connection.Database.Context) {
 				database = connection;
 				connections = new List<CurrentConnection>();
 				Init();
@@ -1284,8 +1281,8 @@ namespace Deveel.Data.DbSystem {
 			/// </summary>
 			private const int BitCount = Security.Privileges.BitCount;
 
-			public PrivilegesDataSource(DatabaseConnection connection)
-				: base(connection.Context) {
+			public PrivilegesDataSource(IDatabaseConnection connection)
+				: base(connection.Database.Context) {
 			}
 
 			// ---------- Implemented from GTDataSource ----------
@@ -1376,7 +1373,7 @@ namespace Deveel.Data.DbSystem {
 			/// The DatabaseConnection object.  Currently this is not used, but it may
 			/// be needed in the future if user-defined SQL types are supported.
 			/// </summary>
-			private DatabaseConnection database;
+			private IDatabaseConnection database;
 
 			/// <summary>
 			/// The list of info keys/values in this object.
@@ -1388,8 +1385,8 @@ namespace Deveel.Data.DbSystem {
 			/// </summary>
 			private static readonly BigNumber TypeNullable = 1;
 
-			public SqlTypesDataSource(DatabaseConnection connection)
-				: base(connection.Context) {
+			public SqlTypesDataSource(IDatabaseConnection connection)
+				: base(connection.Database.Context) {
 				database = connection;
 				sqlTypes = new List<SqlTypeInfo>();
 				Init();
@@ -1519,6 +1516,143 @@ namespace Deveel.Data.DbSystem {
 				public string LiteralSuffix;
 				public byte Searchable;
 
+			}
+
+			#endregion
+		}
+
+		#endregion
+
+		/// <summary>
+		/// Generates an internal table that models informations about the
+		/// procedures within the given transaction.
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <returns>
+		/// Returns an <see cref="IInternalTableContainer"/> used to model the list 
+		/// of procedures that are accessible within the given transaction.
+		/// </returns>
+		internal static IInternalTableContainer CreateRoutineTableContainer(ITransaction transaction) {
+			return new RoutinesTableContainer(transaction);
+		}
+
+		#region RoutinesContainer
+
+		/// <summary>
+		/// An object that models the list of procedures as table objects 
+		/// in a transaction.
+		/// </summary>
+		private sealed class RoutinesTableContainer : TransactionInternalTableContainer {
+			internal RoutinesTableContainer(ITransaction transaction)
+				: base(transaction, Function) {
+			}
+
+			private static DataTableInfo CreateTableInfo(String schema, String name) {
+				// Create the DataTableInfo that describes this entry
+				var info = new DataTableInfo(new TableName(schema, name));
+
+				// Add column definitions
+				info.AddColumn("type", PrimitiveTypes.VarString);
+				info.AddColumn("location", PrimitiveTypes.VarString);
+				info.AddColumn("return_type", PrimitiveTypes.VarString);
+				info.AddColumn("param_args", PrimitiveTypes.VarString);
+				info.AddColumn("owner", PrimitiveTypes.VarString);
+
+				// Set to immutable
+				info.IsReadOnly = true;
+
+				// Return the data table info
+				return info;
+			}
+
+
+			public override String GetTableType(int i) {
+				return "FUNCTION";
+			}
+
+			public override DataTableInfo GetTableInfo(int i) {
+				TableName tableName = GetTableName(i);
+				return CreateTableInfo(tableName.Schema, tableName.Name);
+			}
+
+			public override ITableDataSource CreateInternalTable(int index) {
+				ITableDataSource table = Transaction.GetTable(SystemSchema.Function);
+				IRowEnumerator rowE = table.GetRowEnumerator();
+				int p = 0;
+				int i;
+				int rowI = -1;
+				while (rowE.MoveNext()) {
+					i = rowE.RowIndex;
+					if (p == index) {
+						rowI = i;
+					} else {
+						++p;
+					}
+				}
+
+				if (p != index)
+					throw new Exception("Index out of bounds.");
+
+				string schema = table.GetCell(0, rowI).Object.ToString();
+				string name = table.GetCell(1, rowI).Object.ToString();
+
+				DataTableInfo tableInfo = CreateTableInfo(schema, name);
+				TObject type = table.GetCell(2, rowI);
+				TObject location = table.GetCell(3, rowI);
+				TObject returnType = table.GetCell(4, rowI);
+				TObject paramTypes = table.GetCell(5, rowI);
+				TObject owner = table.GetCell(6, rowI);
+
+				// Implementation of IMutableTableDataSource that describes this
+				// procedure.
+				return new RoutineDataSource(Transaction.Context.SystemContext, tableInfo) {
+					Type = type,
+					Location = location,
+					ReturnType = returnType,
+					ParamTypes = paramTypes,
+					Owner = owner
+				};
+			}
+
+			#region RoutineDataSource
+
+			private class RoutineDataSource : GTDataSource {
+				private readonly DataTableInfo tableInfo;
+				internal TObject Type;
+				internal TObject Location;
+				internal TObject ReturnType;
+				internal TObject ParamTypes;
+				internal TObject Owner;
+
+				public RoutineDataSource(ISystemContext context, DataTableInfo tableInfo)
+					: base(context) {
+					this.tableInfo = tableInfo;
+				}
+
+				public override DataTableInfo TableInfo {
+					get { return tableInfo; }
+				}
+
+				public override int RowCount {
+					get { return 1; }
+				}
+
+				public override TObject GetCell(int col, int row) {
+					switch (col) {
+						case 0:
+							return Type;
+						case 1:
+							return Location;
+						case 2:
+							return ReturnType;
+						case 3:
+							return ParamTypes;
+						case 4:
+							return Owner;
+						default:
+							throw new Exception("Column out of bounds.");
+					}
+				}
 			}
 
 			#endregion

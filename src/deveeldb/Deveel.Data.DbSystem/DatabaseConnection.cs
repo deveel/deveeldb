@@ -35,7 +35,7 @@ namespace Deveel.Data.DbSystem {
 	/// This object handles all transactional queries and modifications to 
 	/// the database.
 	/// </remarks>
-	public sealed class DatabaseConnection : IDatabaseConnection, IDisposable {
+	public sealed class DatabaseConnection : IDatabaseConnection {
 		/// <summary>
 		///  A loop-back object that is managing this connection.  This typically is
 		/// the session protocol.  This is notified of all connection events, such as
@@ -90,7 +90,7 @@ namespace Deveel.Data.DbSystem {
 		/// that represent connection specific properties such as username,
 		/// connection, statistics, etc.
 		/// </summary>
-		private readonly ConnectionInternalTableContainer connIntTableContainer;
+		private readonly ConnectionTableContainer connIntTableContainer;
 
 		internal DatabaseConnection(IDatabase database, User user, TriggerCallback triggerCallback) {
 			OldNewState = new OldNewTableState();
@@ -107,7 +107,7 @@ namespace Deveel.Data.DbSystem {
 
 			tableBackedCacheList = new List<TableBackedCache>();
 
-			connIntTableContainer = new ConnectionInternalTableContainer(this);
+			connIntTableContainer = new ConnectionTableContainer(this);
 			oldNewContainer = new OldAndNewTableContainer(this);
 
 			AutoCommit = true;
@@ -130,17 +130,17 @@ namespace Deveel.Data.DbSystem {
 						transaction = conglomerate.CreateTransaction();
 						transaction.TransactionErrorOnDirtySelect = ErrorOnDirtySelect;
 						// Internal tables (connection statistics, etc)
-						transaction.AddInternalTableInfo(connIntTableContainer);
+						transaction.AddInternalTableContainer(connIntTableContainer);
 						// OLD and NEW system tables (if applicable)
-						transaction.AddInternalTableInfo(oldNewContainer);
+						transaction.AddInternalTableContainer(oldNewContainer);
 						// Model views as tables (obviously)
-						transaction.AddInternalTableInfo(ViewManager.CreateInternalTableInfo(ViewManager, transaction));
+						transaction.AddInternalTableContainer(ViewManager.CreateInternalTableInfo(ViewManager, transaction));
 						// Model procedures as tables
-						transaction.AddInternalTableInfo(RoutinesManager.CreateInternalTableInfo(transaction));
+						transaction.AddInternalTableContainer(SystemSchema.CreateRoutineTableContainer(transaction));
 						// Model sequences as tables
-						transaction.AddInternalTableInfo(SequenceManager.CreateInternalTableInfo(transaction));
+						transaction.AddInternalTableContainer(SequenceManager.CreateInternalTableInfo(transaction));
 						// Model triggers as tables
-						transaction.AddInternalTableInfo(ConnectionTriggerManager.CreateInternalTableInfo(transaction));
+						transaction.AddInternalTableContainer(ConnectionTriggerManager.CreateInternalTableInfo(transaction));
 
 						// Notify any table backed caches that this transaction has started.
 						foreach (TableBackedCache cache in tableBackedCacheList) {
@@ -239,8 +239,6 @@ namespace Deveel.Data.DbSystem {
 		internal void Init() {
 			// Create the grant manager for this connection.
 			grantManager = new GrantManager(this);
-			// Create the procedure manager for this connection.
-			routinesManager = new RoutinesManager(this);
 			// Create the connection trigger manager object
 			triggerManager = new ConnectionTriggerManager(this);
 			// Create the view manager
@@ -674,7 +672,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// A Hashtable of DataTable objects that have been created within this connection.
 		/// </summary>
-		private readonly Dictionary<TableName, DataTable> tablesCache = new Dictionary<TableName, DataTable>();
+		private readonly Dictionary<TableName, ITableDataSource> tablesCache = new Dictionary<TableName, ITableDataSource>();
 
 		/// <summary>
 		/// Gets an array of <see cref="TableName"/> that contains the 
@@ -819,363 +817,15 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public void CacheTable(TableName tableName, ITableDataSource table) {
-			
+			tablesCache[tableName] = table;
 		}
 
 		public ITableDataSource GetCachedTable(TableName tableName) {
-			return null;
+			ITableDataSource table;
+			if (!tablesCache.TryGetValue(tableName, out table))
+				return null;
+			return table;
 		}
-
-		/// <summary>
-		/// Gets the table for the given name.
-		/// </summary>
-		/// <param name="name">Name of the table to return.</param>
-		/// <returns>
-		/// Returns a <see cref="DataTable"/> that represents the table 
-		/// identified by <paramref name="name"/>, otherwise returns 
-		/// <b>null</b>.
-		/// </returns>
-		/// <exception cref="DatabaseException">
-		/// If none table was found for the given <paramref name="name"/>.
-		/// </exception>
-		public DataTable GetTable(TableName name) {
-			name = SubstituteReservedTableName(name);
-
-			try {
-				// Special handling of NEW and OLD table, we cache the DataTable in the
-				// OldNewTableState object,
-				if (name.Equals(SystemSchema.OldTriggerTable)) {
-					return OldNewState.OldDataTable ??
-						   (OldNewState.OldDataTable = new DataTable(this, Transaction.GetTable(name)));
-				}
-				if (name.Equals(SystemSchema.NewTriggerTable)) {
-					return OldNewState.NewDataTable ??
-						   (OldNewState.NewDataTable = new DataTable(this, Transaction.GetTable(name)));
-				}
-
-				// Ask the transaction for the table
-				ITableDataSource table = Transaction.GetTable(name);
-
-				// if not found in the transaction return null
-				if (table == null)
-					return null;
-
-				// Is this table in the tables_cache?
-				DataTable dtable;
-				if (!tablesCache.TryGetValue(name, out dtable)) {
-					// No, so wrap it around a Datatable and WriteByte it in the cache
-					dtable = new DataTable(this, table);
-					tablesCache[name] = dtable;
-				}
-
-				// Return the DataTable
-				return dtable;
-
-			} catch (DatabaseException e) {
-				Logger.Error(this, e);
-				throw new ApplicationException("Database Exception: " + e.Message, e);
-			}
-
-		}
-
-		/// <summary>
-		/// Gets the table for the given name.
-		/// </summary>
-		/// <param name="tableName">Name of the table to return.</param>
-		/// <remarks>
-		/// This method uses the <see cref="CurrentSchema"/> to get the table.
-		/// </remarks>
-		/// <returns>
-		/// Returns a <see cref="DataTable"/> that represents the table 
-		/// identified by <paramref name="tableName"/>, otherwise returns <b>null</b>.
-		/// </returns>
-		/// <exception cref="DatabaseException">
-		/// If none table was found for the given <paramref name="tableName"/>.
-		/// </exception>
-		public DataTable GetTable(string tableName) {
-			return GetTable(new TableName(currentSchema, tableName));
-		}
-
-		/// <summary>
-		/// Creates a new temporary table within the context of the transaction.
-		/// </summary>
-		/// <param name="tableInfo">Table meta informations for creating the table.</param>
-		/// <remarks>
-		/// A temporary table is a fully functional table, which persists for all the lifetime
-		/// of a transaction and that is disposed (both structure and data) at the end of the
-		/// parent transaction.
-		/// </remarks>
-		/// <exception cref="StatementException">
-		/// If the name of the table is reserved and the creation of the table 
-		/// should be prevented.
-		/// </exception>
-		public void CreateTemporaryTable(DataTableInfo tableInfo) {
-			CheckAllowCreate(tableInfo.TableName);
-			CommittableTransaction.CreateTemporaryTable(tableInfo);
-		}
-
-		/// <summary>
-		/// Creates a new table within the context of the transaction.
-		/// </summary>
-		/// <param name="tableInfo">Table meta informations for creating the table.</param>
-		/// <exception cref="StatementException">
-		/// If the name of the table is reserved and the creation of the table 
-		/// should be prevented.
-		/// </exception>
-		public void CreateTable(DataTableInfo tableInfo) {
-			CheckAllowCreate(tableInfo.TableName);
-			CommittableTransaction.CreateTable(tableInfo);
-		}
-
-		/// <summary>
-		/// Creates a new table within this transaction with the given 
-		/// sector size.
-		/// </summary>
-		/// <param name="tableInfo">Meta informations used to create the table.</param>
-		/// <param name="dataSectorSize">Size of data sectors of the table.</param>
-		/// <param name="indexSectorSize">Size of the index sectors of the table.</param>
-		/// <remarks>
-		/// This should only be used as very fine grain optimization for 
-		/// creating tables. 
-		/// If in the future the underlying table model is changed so that the given
-		/// <paramref name="dataSectorSize"/> value is unapplicable, then the value 
-		/// will be ignored.
-		/// </remarks>
-		/// <exception cref="StatementException">
-		/// If a table with the same name (specified by <paramref name="tableInfo"/>) 
-		/// already exists.
-		/// </exception>
-		public void CreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
-			CheckAllowCreate(tableInfo.TableName);
-			CommittableTransaction.CreateTable(tableInfo, dataSectorSize, indexSectorSize);
-		}
-
-		/// <summary>
-		/// Alters a table within the underlying transaction.
-		/// </summary>
-		/// <param name="tableInfo">Table metadata informations for aletring the table</param>
-		/// <exception cref="StatementException">
-		/// If the name of the table is reserved and the creation of the table 
-		/// should be prevented.
-		/// </exception>
-		public void UpdateTable(DataTableInfo tableInfo) {
-			CheckAllowCreate(tableInfo.TableName);
-			CommittableTransaction.AlterTable(tableInfo.TableName, tableInfo);
-		}
-
-		/// <summary>
-		/// Alters a table within the underlying transaction.
-		/// </summary>
-		/// <param name="tableInfo">Table metadata informations for altering 
-		/// the table.</param>
-		/// <param name="dataSectorSize"></param>
-		/// <param name="indexSectorSize"></param>
-		/// <remarks>
-		/// This should only be used as very fine grain optimization
-		/// for creating tables. If in the future the underlying table model is
-		/// changed so that the given <paramref name="dataSectorSize"/> value 
-		/// is unapplicable, then the value will be ignored.
-		/// </remarks>
-		public void UpdateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
-			CheckAllowCreate(tableInfo.TableName);
-			CommittableTransaction.AlterTable(tableInfo.TableName, tableInfo, dataSectorSize, indexSectorSize);
-		}
-
-		/// <summary>
-		/// If a table exists with the given table name (defined by <paramref name="tableInfo"/>)
-		/// alters its the structure, otherwise creates a new table.
-		/// </summary>
-		/// <param name="tableInfo">Meta informations for altering or creating a table.</param>
-		/// <param name="dataSectorSize">Size of data sectors of the table.</param>
-		/// <param name="indexSectorSize">Size of the index sectors of the table.</param>
-		/// <remarks>
-		/// This should only be used as very fine grain optimization for creating or
-		/// altering tables.
-		/// If in the future the underlying table model is changed so that the given 
-		/// <paramref name="dataSectorSize"/> and <paramref name="indexSectorSize"/> 
-		/// values are unapplicable and will be ignored.
-		/// </remarks>
-		public void AlterCreateTable(DataTableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
-			if (!TableExists(tableInfo.TableName)) {
-				CreateTable(tableInfo, dataSectorSize, indexSectorSize);
-			} else {
-				UpdateTable(tableInfo, dataSectorSize, indexSectorSize);
-			}
-		}
-
-		/// <summary>
-		/// If a table exists with the given table name (defined by <paramref name="tableInfo"/>)
-		/// alters its the structure, otherwise creates a new table.
-		/// </summary>
-		/// <param name="tableInfo">Meta informations for altering or creating a table.</param>
-		/// <exception cref="StatementException"></exception>
-		public void AlterCreateTable(DataTableInfo tableInfo) {
-			if (!TableExists(tableInfo.TableName)) {
-				CreateTable(tableInfo);
-			} else {
-				UpdateTable(tableInfo);
-			}
-		}
-
-		/// <summary>
-		/// Drops a table within the transaction.
-		/// </summary>
-		/// <param name="tableName">Name of the table to drop.</param>
-		/// <exception cref="TransactionException">
-		/// If none tables was found for the given <paramref name="tableName"/>.
-		/// </exception>
-		public void DropTable(string tableName) {
-			DropTable(new TableName(currentSchema, tableName));
-		}
-
-		/// <summary>
-		/// Drops a table within the transaction.
-		/// </summary>
-		/// <param name="tableName">Name of the table to drop.</param>
-		/// <exception cref="TransactionException">
-		/// If none tables was found for the given <paramref name="tableName"/>.
-		/// </exception>
-		public void DropTable(TableName tableName) {
-			CommittableTransaction.DropTable(tableName);
-		}
-
-		/// <summary>
-		/// Compacts a table with the given name.
-		/// </summary>
-		/// <param name="tableName">The name of the table to compact.</param>
-		/// <exception cref="StatementException">
-		/// If none table was found for the given <paramref name="tableName"/> 
-		/// in the <see cref="CurrentSchema"/>.
-		/// </exception>
-		public void CompactTable(string tableName) {
-			CompactTable(new TableName(currentSchema, tableName));
-		}
-
-		/// <summary>
-		/// Compacts a table with the given name.
-		/// </summary>
-		/// <param name="tableName">The name of the table to compact.</param>
-		/// <exception cref="StatementException">
-		/// If none table was found for the given <paramref name="tableName"/>.
-		/// </exception>
-		public void CompactTable(TableName tableName) {
-			CommittableTransaction.CompactTable(tableName);
-		}
-
-		///<summary>
-		/// Adds the given table name to the list of tables that are selected from
-		/// within the transaction in this connection.
-		///</summary>
-		///<param name="tableName"></param>
-		public void AddSelectedFromTable(string tableName) {
-			AddSelectedFromTable(new TableName(currentSchema, tableName));
-		}
-
-		///<summary>
-		/// Adds the given table name to the list of tables that are selected from
-		/// within the transaction in this connection.
-		///</summary>
-		///<param name="name"></param>
-		public void AddSelectedFromTable(TableName name) {
-			CommittableTransaction.AddSelectedFromTable(name);
-		}
-
-		#endregion
-
-		#region Constraints
-
-		/// <summary>
-		/// Checks all the rows in the table for immediate constraint violations
-		/// and when the transaction is next committed check for all deferred
-		/// constraint violations.
-		/// </summary>
-		/// <param name="tableName">Name of the table to check the constraints.</param>
-		/// <remarks>
-		/// This method is used when the constraints on a table changes and we 
-		/// need to determine if any constraint violations occurred.
-		/// <para>
-		/// To the constraint checking system, this is like adding all the 
-		/// rows to the given table.
-		/// </para>
-		/// </remarks>
-		/// <exception cref="StatementException">
-		/// If none table with the given <paramref name="tableName"/> was found.
-		/// </exception>
-		public void CheckAllConstraints(TableName tableName) {
-			// Assert
-			CheckExclusive();
-			CommittableTransaction.CheckAllConstraints(tableName);
-		}
-
-		public void AddUniqueConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
-			// Assert
-			CheckExclusive();
-			CommittableTransaction.AddUniqueConstraint(tableName, columns, deferred, constraintName);
-		}
-
-		public void AddForeignKeyConstraint(TableName table, string[] columns,
-			TableName refTable, string[] refColumns,
-			ConstraintAction deleteRule, ConstraintAction updateRule,
-			ConstraintDeferrability deferred, string constraintName) {
-			// Assert
-			CheckExclusive();
-			CommittableTransaction.AddForeignKeyConstraint(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
-		}
-
-		public void AddPrimaryKeyConstraint(TableName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
-			// Assert
-			CheckExclusive();
-			CommittableTransaction.AddPrimaryKeyConstraint(tableName, columns, deferred, constraintName);
-		}
-
-		public void AddCheckConstraint(TableName tableName, Expression expression, ConstraintDeferrability deferred, String constraintName) {
-			// Assert
-			CheckExclusive();
-			CommittableTransaction.AddCheckConstraint(tableName, expression, deferred, constraintName);
-		}
-
-		public void DropAllConstraintsForTable(TableName tableName) {
-			// Assert
-			CheckExclusive();
-			CommittableTransaction.DropAllConstraintsForTable(tableName);
-		}
-
-		public int DropNamedConstraint(TableName tableName, string constraintName) {
-			// Assert
-			CheckExclusive();
-			return CommittableTransaction.DropNamedConstraint(tableName, constraintName);
-		}
-
-		public bool DropPrimaryKeyConstraintForTable(TableName tableName, string constraintName) {
-			// Assert
-			CheckExclusive();
-			return CommittableTransaction.DropPrimaryKeyConstraintForTable(tableName, constraintName);
-		}
-
-		public TableName[] QueryTablesRelationallyLinkedTo(TableName table) {
-			return Transaction.QueryTablesRelationallyLinkedTo(table);
-		}
-
-		public DataConstraintInfo[] QueryTableUniqueGroups(TableName tableName) {
-			return Transaction.QueryTableUniques(tableName);
-		}
-
-		public DataConstraintInfo QueryTablePrimaryKeyGroup(TableName tableName) {
-			return Transaction.QueryTablePrimaryKey(tableName);
-		}
-
-		public DataConstraintInfo[] QueryTableCheckExpressions(TableName tableName) {
-			return Transaction.QueryTableCheckExpressions(tableName);
-		}
-
-		public DataConstraintInfo[] QueryTableForeignKeyReferences(TableName tableName) {
-			return Transaction.QueryTableForeignKeys(tableName);
-		}
-
-		public DataConstraintInfo[] QueryTableImportedForeignKeyReferences(TableName tableName) {
-			return Transaction.QueryTableImportedForeignKeys(tableName);
-		}
-
 		#endregion
 
 		#region Views
@@ -1186,306 +836,9 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		public ViewManager ViewManager { get; private set; }
 
-		/// <summary>
-		/// Creates a new view.
-		/// </summary>
-		/// <param name="query"></param>
-		/// <param name="view">View meta informations used to create the view.</param>
-		/// <remarks>
-		/// Note that this is a transactional operation. You need to commit for 
-		/// the view to be visible to other transactions.
-		/// </remarks>
-		/// <exception cref="DatabaseException"/>
-		public void CreateView(SqlQuery query, View view) {
-			CheckAllowCreate(view.TableInfo.TableName);
-
-			try {
-				ViewManager.DefineView(view, query, User);
-			} catch (DatabaseException e) {
-				Logger.Error(this, e);
-				throw new Exception("Database Exception: " + e.Message, e);
-			}
-
-		}
-
-		/// <summary>
-		/// Drops a view with the given name.
-		/// </summary>
-		/// <param name="viewName">Name of the view to drop.</param>
-		/// <remarks>
-		/// Note that this is a transactional operation. You need to commit 
-		/// for the change to be visible to other transactions.
-		/// </remarks>
-		/// <returns>
-		/// Returns <b>true</b> if the drop succeeded, otherwise <b>false</b> if 
-		/// the view was not found.
-		/// </returns>
-		public bool DropView(TableName viewName) {
-			try {
-				return ViewManager.DeleteView(viewName);
-			} catch (DatabaseException e) {
-				Logger.Error(this, e);
-				throw new Exception("Database Exception: " + e.Message, e);
-			}
-
-		}
-
-		#endregion
-
-		#region Sequences
-
-		/// <summary>
-		/// Requests the sequence generator for the next value.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <remarks>
-		/// <b>Note:</b> This does <b>note</b> check that the user owning 
-		/// the session has the correct privileges to perform the operation.
-		/// </remarks>
-		/// <returns></returns>
-		public long NextSequenceValue(String name) {
-			// Resolve and ambiguity test
-			TableName seq_name = ResolveToTableName(name);
-			return Transaction.NextSequenceValue(seq_name);
-		}
-
-		/// <summary>
-		/// Returns the current sequence value for the given sequence generator.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <remarks>
-		/// The value returned is the same value returned by <see cref="NextSequenceValue"/>.
-		/// <para>
-		/// <b>Note:</b> This does <b>note</b> check that the user owning 
-		/// the session has the correct privileges to perform the operation.
-		/// </para>
-		/// </remarks>
-		/// <returns></returns>
-		/// <exception cref="StatementException">
-		/// If no value was returned by <see cref="NextSequenceValue"/>.
-		/// </exception>
-		public long LastSequenceValue(String name) {
-			// Resolve and ambiguity test
-			TableName seq_name = ResolveToTableName(name);
-			return Transaction.LastSequenceValue(seq_name);
-		}
-
-		/// <summary>
-		/// Sets the sequence value for the given sequence generator.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="value"></param>
-		/// <remarks>
-		/// <b>Note:</b> This does <b>note</b> check that the user owning 
-		/// the session has the correct privileges to perform the operation.
-		/// </remarks>
-		/// <exception cref="StatementException">
-		/// If the generator does not exist or it is not possible to set the 
-		/// value for the generator.
-		/// </exception>
-		public void SetSequenceValue(String name, long value) {
-			// Resolve and ambiguity test
-			TableName seqName = ResolveToTableName(name);
-			Transaction.SetSequenceValue(seqName, value);
-		}
-
-		/// <summary>
-		/// Returns the next unique identifier for the given table from 
-		/// the schema.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public long NextUniqueId(TableName name) {
-			return Transaction.NextUniqueId(name);
-		}
-
-		/// <summary>
-		/// Returns the next unique identifier for the given table from 
-		/// the current schema.
-		/// </summary>
-		/// <param name="tableName"></param>
-		/// <returns></returns>
-		public long NextUniqueId(String tableName) {
-			TableName tname = TableName.Resolve(currentSchema, tableName);
-			return NextUniqueId(tname);
-		}
-
-		/// <summary>
-		/// Returns the current unique identifier for the given table from
-		/// the current schema.
-		/// </summary>
-		/// <param name="tableName"></param>
-		/// <returns></returns>
-		public long CurrentUniqueId(TableName tableName) {
-			return Transaction.CurrentUniqueId(tableName);
-		}
-
-		public long CurrentUniqueId(string tableName) {
-			return CurrentUniqueId(TableName.Resolve(currentSchema, tableName));
-		}
-
-		/// <summary>
-		/// Creates a new sequence generator with the given name and initializes 
-		/// it with the given details.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="startValue"></param>
-		/// <param name="incrementBy"></param>
-		/// <param name="minValue"></param>
-		/// <param name="maxValue"></param>
-		/// <param name="cache"></param>
-		/// <param name="cycle"></param>
-		/// <remarks>
-		/// This does <b>not</b> check if the given name clashes with an 
-		/// existing database object.
-		/// </remarks>
-		public void CreateSequenceGenerator(TableName name, long startValue, long incrementBy, long minValue, long maxValue, long cache, bool cycle) {
-
-			// Check the name of the database object isn't reserved (OLD/NEW)
-			CheckAllowCreate(name);
-
-			CommittableTransaction.CreateSequenceGenerator(name, startValue, incrementBy, minValue, maxValue, cache, cycle);
-		}
-
-		/// <summary>
-		/// Drops an existing sequence generator with the given name.
-		/// </summary>
-		/// <param name="name"></param>
-		public void DropSequenceGenerator(TableName name) {
-			CommittableTransaction.DropSequenceGenerator(name);
-		}
-
-		#endregion
-
-		#region Variables
-
-		/// <summary>
-		/// Assigns a variable to the expression for the session.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="exp"></param>
-		/// <param name="context">A context used to evaluate the expression
-		/// forming the value of the variable.</param>
-		/// <remarks>
-		/// This is a generic way of setting properties of the session.
-		/// <para>
-		/// Special variables, that are recalled by the system, are:
-		/// <list type="bullet">
-		/// <item><c>ERROR_ON_DIRTY_SELECT</c>: set to <b>true</b> for turning 
-		/// the transaction conflict off on the session.</item>
-		/// <item><c>CASE_INSENSITIVE_IDENTIFIERS</c>: <b>true</b> means the grammar 
-		/// becomes case insensitive for identifiers resolved by the 
-		/// grammar.</item>
-		/// </list>
-		/// </para>
-		/// </remarks>
-		public void SetVariable(string name, Expression exp, IQueryContext context) {
-			if (name.ToUpper().Equals("ERROR_ON_DIRTY_SELECT")) {
-				ErrorOnDirtySelect = ToBooleanValue(exp, context);
-			} else if (name.ToUpper().Equals("CASE_INSENSITIVE_IDENTIFIERS")) {
-				IsInCaseInsensitiveMode = ToBooleanValue(exp, context);
-			} else {
-				Transaction.Variables.SetVariable(name, exp, context);
-			}
-		}
-
-		public Variable DeclareVariable(string name, TType type, bool constant, bool notNull) {
-			return Transaction.Variables.DeclareVariable(name, type, constant, notNull);
-		}
-
-		public Variable DeclareVariable(string name, TType type, bool notNull) {
-			return DeclareVariable(name, type, false, notNull);
-		}
-
-		public Variable DeclareVariable(string name, TType type) {
-			return DeclareVariable(name, type, false);
-		}
-
-		public Variable GetVariable(string name) {
-			return Transaction.Variables.GetVariable(name);
-		}
-
-		public void RemoveVariable(string name) {
-			Transaction.Variables.RemoveVariable(name);
-		}
-
-		/// <inheritdoc cref="Transactions.Transaction.SetPersistentVariable"/>
-		public void SetPersistentVariable(string variable, String value) {
-			// Assert
-			CheckExclusive();
-			CommittableTransaction.SetPersistentVariable(variable, value);
-		}
-
-		/// <inheritdoc cref="Transactions.Transaction.GetPersistantVariable"/>
-		public String GetPersistentVariable(string variable) {
-			return Transaction.GetPersistantVariable(variable);
-		}
-
-		 #endregion
-
-		#region Cursors
-
-		/// <summary>
-		/// Declares a cursor identified by the given name and on
-		/// the specified query.
-		/// </summary>
-		/// <param name="name">The name of the cursor to create.</param>
-		/// <param name="queryPlan">The query used by the cursor to iterate
-		/// through the results.</param>
-		/// <param name="attributes">The attributes to define a cursor.</param>
-		/// <returns>
-		/// Returns the newly created <see cref="Cursor"/> instance.
-		/// </returns>
-		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes) {
-			return CommittableTransaction.DeclareCursor(name, queryPlan, attributes);
-		}
-
-		/// <summary>
-		/// Declares a scrollable cursor identified by the given name and on
-		/// the specified query.
-		/// </summary>
-		/// <param name="name">The name of the cursor to create.</param>
-		/// <param name="queryPlan">The query used by the cursor to iterate
-		/// through the results.</param>
-		/// <returns>
-		/// Returns the newly created <see cref="Cursor"/> instance.
-		/// </returns>
-		public Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan) {
-			return DeclareCursor(name, queryPlan, CursorAttributes.ReadOnly);
-		}
-
-		/// <summary>
-		/// Gets the instance of a cursor name.
-		/// </summary>
-		/// <param name="name">The name of the cursor to get.</param>
-		/// <returns>
-		/// Returns the instance of the <see cref="Cursor"/> identified by
-		/// the given name, or <c>null</c> if it was not found.
-		/// </returns>
-		public Cursor GetCursor(TableName name) {
-			return Transaction.GetCursor(name);
-		}
-
-		public bool CursorExists(TableName name) {
-			return Transaction.CursorExists(name);
-		} 
-
 		#endregion
 
 		#region Routines
-
-		/// <summary>
-		/// The procedure manager object for this connection.
-		/// </summary>
-		private RoutinesManager routinesManager;
-
-		/// <summary>
-		/// Returns the RoutinesManager object that manages database functions and
-		/// procedures in the database for this connection/user.
-		/// </summary>
-		public RoutinesManager RoutinesManager {
-			get { return routinesManager; }
-		}
 
 		/// <summary>
 		/// Creates an object that implements <see cref="IProcedureConnection"/> 
@@ -1657,7 +1010,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public void DropTrigger(string schema, string name) {
-			throw new NotImplementedException();
+			TriggerManager.DropTrigger(schema, name);
 		}
 
 		/// <summary>
@@ -1926,12 +1279,12 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private class TableQueryInfo : ITableQueryInfo {
-			private readonly DatabaseConnection conn;
+			private readonly IDatabaseConnection conn;
 			private readonly DataTableInfo tableInfo;
 			private readonly TableName tableName;
 			private readonly TableName aliasedAs;
 
-			public TableQueryInfo(DatabaseConnection conn, DataTableInfo tableInfo, TableName tableName, TableName aliasedAs) {
+			public TableQueryInfo(IDatabaseConnection conn, DataTableInfo tableInfo, TableName tableName, TableName aliasedAs) {
 				this.conn = conn;
 				this.tableInfo = tableInfo;
 				this.aliasedAs = aliasedAs;
@@ -1951,10 +1304,10 @@ namespace Deveel.Data.DbSystem {
 		/// An internal table info object that handles tables internal to a
 		/// DatabaseConnection object.
 		/// </summary>
-		private class ConnectionInternalTableContainer : InternalTableContainer {
+		private class ConnectionTableContainer : InternalTableContainer {
 			private readonly DatabaseConnection conn;
 
-			public ConnectionInternalTableContainer(DatabaseConnection conn)
+			public ConnectionTableContainer(DatabaseConnection conn)
 				: base("SYSTEM TABLE", InternalInfoList) {
 				this.conn = conn;
 			}

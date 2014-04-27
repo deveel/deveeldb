@@ -56,7 +56,7 @@ namespace Deveel.Data.Transactions {
 		/// connection statistics, etc. It also allows modelling database objects 
 		/// as tables, such as sequences, triggers, procedures, etc.
 		/// </remarks>
-		internal void AddInternalTableInfo(IInternalTableContainer container) {
+		internal void AddInternalTableContainer(IInternalTableContainer container) {
 			if (internalTablesIndex >= internalTables.Length)
 				throw new Exception("Internal table list bounds reached.");
 

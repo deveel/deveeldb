@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="manager"></param>
 		/// <param name="table"></param>
 		/// <param name="constraint"></param>
-		internal static void AddSchemaConstraint(DatabaseConnection manager, TableName table, SqlConstraint constraint) {
+		internal static void AddSchemaConstraint(IDatabaseConnection manager, TableName table, SqlConstraint constraint) {
 			if (constraint.Type == ConstraintType.PrimaryKey) {
 				string[] columns = new string[constraint.ColumnList.Count];
 				constraint.ColumnList.CopyTo(columns, 0);

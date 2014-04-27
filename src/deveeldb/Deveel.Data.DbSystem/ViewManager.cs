@@ -34,7 +34,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// The DatabaseConnection.
 		/// </summary>
-		private readonly DatabaseConnection connection;
+		private readonly IDatabaseConnection connection;
 
 		/// <summary>
 		/// The context.
@@ -199,7 +199,7 @@ namespace Deveel.Data.DbSystem {
 			view_table.Add(rdat);
 
 			// Notify that this database object has been successfully created.
-			connection.DatabaseObjectCreated(view_name);
+			connection.OnDatabaseObjectCreated(view_name);
 
 			// Change to the view table
 			view_table_changed = true;
@@ -232,7 +232,7 @@ namespace Deveel.Data.DbSystem {
 			table.Delete(t);
 
 			// Notify that this database object has been successfully dropped.
-			connection.DatabaseObjectDropped(view_name);
+			connection.OnDatabaseObjectDropped(view_name);
 
 			// Change to the view table
 			view_table_changed = true;

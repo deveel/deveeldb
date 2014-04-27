@@ -38,7 +38,7 @@ namespace Deveel.Data.DbSystem {
 			get { return parent; }
 		}
 
-		public override DatabaseConnection Connection {
+		public override IDatabaseConnection Connection {
 			get { return parent.Connection; }
 		}
 

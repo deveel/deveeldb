@@ -47,8 +47,7 @@ namespace Deveel.Data.Sql {
 
 			// Drop the function
 			RoutineName proc_name = new RoutineName(functionName);
-			RoutinesManager manager = context.Connection.RoutinesManager;
-			manager.DeleteRoutine(proc_name);
+			context.Connection.DeleteRoutine(proc_name);
 
 			// Drop the grants for this object
 			context.Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, proc_name.ToString());

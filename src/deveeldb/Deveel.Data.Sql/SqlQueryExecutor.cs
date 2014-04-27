@@ -62,13 +62,13 @@ namespace Deveel.Data.Sql {
 		/// Returns a <see cref="Table"/> object that contains the result of the execution.
 		/// </returns>
 		///<exception cref="DataException"></exception>
-		public static Table[] Execute(DatabaseConnection connection, SqlQuery query) {
+		public static Table[] Execute(IDatabaseConnection connection, SqlQuery query) {
 			// StatementTree caching
 
 			// Create a new parser and set the parameters...
 			string commandText = query.Text;
 			IList<StatementTree> statementTreeList = null;
-			StatementCache statementCache = connection.Context.StatementCache;
+			StatementCache statementCache = connection.Database.Context.StatementCache;
 
 			if (statementCache != null)
 				// Is this Query cached?

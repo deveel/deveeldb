@@ -96,6 +96,7 @@
     <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
+    <Compile Include="Deveel.Data.DbSystem\DatabaseConnectionExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabase.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabaseConnection.cs" />
@@ -104,6 +105,7 @@
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\OldNewTableState.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
+    <Compile Include="Deveel.Data.Routines\ConnectionRoutines.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteContext.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalRoutineInfo.cs" />
@@ -137,6 +139,7 @@
     <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\PasswordCrypto.cs" />
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
+    <Compile Include="Deveel.Data.Security\SecurityException.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ParseException.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SimpleCharStream.cs" />
@@ -232,7 +235,6 @@
     <Compile Include="Deveel.Data.Routines\IFunction.cs" />
     <Compile Include="Deveel.Data.Routines\ParameterDirection.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureException.cs" />
-    <Compile Include="Deveel.Data.Routines\RoutinesManager.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineName.cs" />
     <Compile Include="Deveel.Data.Procedures\SystemBackup.cs" />
     <Compile Include="Deveel.Data.Protocol\ClientConnectionState.cs" />

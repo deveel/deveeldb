@@ -97,7 +97,7 @@ namespace Deveel.Data.Protocol {
 		/// <summary>
 		/// The database connection transaction.
 		/// </summary>
-		private DatabaseConnection dbConnection;
+		private IDatabaseConnection dbConnection;
 
 		/// <summary>
 		/// Mantains a mapping from streamable object id for a particular object 
@@ -146,7 +146,7 @@ namespace Deveel.Data.Protocol {
 		/// This would typically be called from inside an authentication method, or 
 		/// from <see cref="Login"/>.  This must be set before the object can be used.
 		/// </remarks>
-		protected void Init(User user, DatabaseConnection connection) {
+		protected void Init(User user, IDatabaseConnection connection) {
 			if (currentDatabase == null)
 				throw new InvalidOperationException("None database was selected.");
 			if (connection.Database != currentDatabase)
@@ -173,7 +173,7 @@ namespace Deveel.Data.Protocol {
 		/// <summary>
 		/// Returns the <see cref="DatabaseConnection"/> objcet for this connection.
 		/// </summary>
-		protected DatabaseConnection DatabaseConnection {
+		protected IDatabaseConnection DatabaseConnection {
 			get { return dbConnection; }
 		}
 

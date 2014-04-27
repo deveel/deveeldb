@@ -45,7 +45,7 @@ namespace Deveel.Data.Query {
 		/// If the element is a <see cref="TableSelectExpression"/> it's 
 		/// converted to a <see cref="SelectStatement"/> object and prepared.
 		/// </remarks>
-		private static void PrepareSearchExpression(DatabaseConnection db, TableExpressionFromSet fromSet, SearchExpression expression) {
+		private static void PrepareSearchExpression(IDatabaseConnection db, TableExpressionFromSet fromSet, SearchExpression expression) {
 			// first check the expression is not null
 			if (expression == null)
 				return;
@@ -63,9 +63,9 @@ namespace Deveel.Data.Query {
 
 		private class ExpressionPreparerImpl : IExpressionPreparer {
 			private readonly TableExpressionFromSet fromSet;
-			private readonly DatabaseConnection db;
+			private readonly IDatabaseConnection db;
 
-			public ExpressionPreparerImpl(DatabaseConnection db, TableExpressionFromSet fromSet) {
+			public ExpressionPreparerImpl(IDatabaseConnection db, TableExpressionFromSet fromSet) {
 				this.db = db;
 				this.fromSet = fromSet;
 			}
@@ -127,7 +127,7 @@ namespace Deveel.Data.Query {
 		/// This object is used to help qualify variable references.
 		/// </remarks>
 		/// <returns></returns>
-		internal static TableExpressionFromSet GenerateFromSet(TableSelectExpression selectExpression, DatabaseConnection db) {
+		internal static TableExpressionFromSet GenerateFromSet(TableSelectExpression selectExpression, IDatabaseConnection db) {
 			// Get the 'from_clause' from the table expression
 			FromClause fromClause = selectExpression.From;
 
@@ -233,7 +233,7 @@ namespace Deveel.Data.Query {
 		/// (or sub-command).</param>
 		/// <param name="fromSet">Used to resolve expression references.</param>
 		/// <returns></returns>
-		public static IQueryPlanNode FormQueryPlan(DatabaseConnection db, TableSelectExpression expression, TableExpressionFromSet fromSet) {
+		public static IQueryPlanNode FormQueryPlan(IDatabaseConnection db, TableSelectExpression expression, TableExpressionFromSet fromSet) {
 			return FormQueryPlan(db, expression, fromSet, new List<ByColumn>());
 		}
 
@@ -249,7 +249,7 @@ namespace Deveel.Data.Query {
 		/// that represent an optional <i>ORDER BY</i> clause. If this is null 
 		/// or the list is empty, no ordering is done.</param>
 		/// <returns></returns>
-		public static IQueryPlanNode FormQueryPlan(DatabaseConnection db, TableSelectExpression expression, TableExpressionFromSet fromSet, IList<ByColumn> orderBy) {
+		public static IQueryPlanNode FormQueryPlan(IDatabaseConnection db, TableSelectExpression expression, TableExpressionFromSet fromSet, IList<ByColumn> orderBy) {
 			IQueryContext context = new DatabaseQueryContext(db);
 
 			// ----- Resolve the SELECT list

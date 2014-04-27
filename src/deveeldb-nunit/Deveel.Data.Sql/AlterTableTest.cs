@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql {
 			ExecuteNonQuery("CREATE TABLE Test (id IDENTITY, name VARCHAR)");
 			ExecuteNonQuery("ALTER TABLE Test ADD COLUMN description  VARCHAR(255);");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			Table table = connection.GetTable("Test");
 			Assert.IsNotNull(table);
 
@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql {
 			ExecuteNonQuery("CREATE TABLE Test (id INT, name VARCHAR)");
 			ExecuteNonQuery("ALTER TABLE Test DROP COLUMN name;");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			Table table = connection.GetTable("Test");
 			Assert.IsNotNull(table);
 			Assert.IsTrue(table.TableInfo.FindColumnName("name") == -1);
@@ -83,7 +83,7 @@ namespace Deveel.Data.Sql {
 			ExecuteNonQuery("CREATE TABLE test_table_2 (prop1 NUMERIC, prop2 VARCHAR);");
 			ExecuteNonQuery("ALTER TABLE test_table_1 ADD CONSTRAINT fk_test_table FOREIGN KEY (prop1) REFERENCES test_table_2 (prop1);");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			DataConstraintInfo[] fkeys = connection.QueryTableForeignKeyReferences(new TableName("APP", "test_table_1"));
 
 			Assert.IsNotNull(fkeys);
@@ -103,7 +103,7 @@ namespace Deveel.Data.Sql {
 
 			ExecuteNonQuery("ALTER TABLE test_table_1 DROP CONSTRAINT fk_test_table;");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			DataConstraintInfo[] fkeys = connection.QueryTableForeignKeyReferences(new TableName("APP", "test_table_1"));
 			Assert.IsEmpty(fkeys);
 
@@ -116,7 +116,7 @@ namespace Deveel.Data.Sql {
 			ExecuteNonQuery("CREATE TABLE test_table_1 (prop1 NUMERIC, prop2 VARCHAR);");
 			ExecuteNonQuery("ALTER TABLE test_table_1 ALTER prop1 SET prop1 = -1;");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			Table table = connection.GetTable("test_table_1");
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.TableInfo.ColumnCount);
@@ -133,7 +133,7 @@ namespace Deveel.Data.Sql {
 
 			ExecuteNonQuery("ALTER TABLE test_table_1 ALTER prop1 DROP DEFAULT;");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			Table table = connection.GetTable("test_table_1");
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.TableInfo.ColumnCount);
@@ -148,7 +148,7 @@ namespace Deveel.Data.Sql {
 			ExecuteNonQuery("CREATE TABLE test_table_1 (prop1 NUMERIC, prop2 VARCHAR, PRIMARY KEY(prop1));");
 			ExecuteNonQuery("ALTER TABLE test_table_1 DROP PRIMARY KEY");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			Table table = connection.GetTable("test_table_1");
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.TableInfo.ColumnCount);

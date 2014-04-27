@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql {
 		/// resolve it against the given <paramref name="connection"/>. 
 		/// This would typically be called in the preparation of a statement.
 		/// </remarks>
-		public void Prepare(DatabaseConnection connection) {
+		public void Prepare(IDatabaseConnection connection) {
 		}
 
 		/// <summary>

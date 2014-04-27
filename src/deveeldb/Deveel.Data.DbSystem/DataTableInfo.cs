@@ -189,7 +189,7 @@ namespace Deveel.Data.DbSystem {
 		/// is <b>null</b> or zero-length, or if <paramref name="connection"/> is <b>null</b></exception>
 		/// <exception cref="DatabaseException">If any column name of the list couldn't
 		/// be resolved (ambiguous or not found).</exception>
-		internal void ResolveColumnsInArray(DatabaseConnection connection,IList<string> list) {
+		internal void ResolveColumnsInArray(IDatabaseConnection connection,IList<string> list) {
 			bool ignoreCase = connection.IsInCaseInsensitiveMode;
 			for (int i = 0; i < list.Count; ++i) {
 				string colName = list[i];

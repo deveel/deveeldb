@@ -162,7 +162,7 @@ namespace Deveel.Data.DbSystem {
 		/// queries and modifications to the database.
 		/// </remarks>
 		/// <returns></returns>
-		public DatabaseConnection CreateNewConnection(User user, TriggerCallback triggerCallback) {
+		public IDatabaseConnection CreateNewConnection(User user, TriggerCallback triggerCallback) {
 			if (user == null)
 				user = InternalSystemUser;
 
@@ -176,7 +176,7 @@ namespace Deveel.Data.DbSystem {
 
 		// ---------- Schema management ----------
 
-		private void CreateSchemata(DatabaseConnection connection) {
+		private void CreateSchemata(IDatabaseConnection connection) {
 			connection.CreateSchema(Context.Config.DefaultSchema(), "DEFAULT");
 			connection.CreateSchema(InformationSchema.Name, "SYSTEM");
 		}
@@ -192,7 +192,7 @@ namespace Deveel.Data.DbSystem {
 		/// <i>function_factories</i>, and functions. All other system 
 		/// tables are granted <i>SELECT</i> only.
 		/// </remarks>
-		private void SetSystemGrants(DatabaseConnection connection, string grantee) {
+		private void SetSystemGrants(IDatabaseConnection connection, string grantee) {
 			const string granter = User.SystemName;
 
 			// Add all priv grants to those that the system user is allowed to change
@@ -225,7 +225,7 @@ namespace Deveel.Data.DbSystem {
 			var dataVersion = ReadDataVersionFromFile();
 
 			// Check the state of the conglomerate,
-			DatabaseConnection connection = CreateNewConnection(null, null);
+			IDatabaseConnection connection = CreateNewConnection(null, null);
 			var context = new DatabaseQueryContext(connection);
 			connection.LockingMechanism.SetMode(LockingMode.Exclusive);
 			if (!connection.TableExists(SystemSchema.PersistentVarTable)) {
@@ -254,7 +254,7 @@ namespace Deveel.Data.DbSystem {
 			connection.Close();
 		}
 
-		private void SetCurrentDataVersion(DatabaseConnection transaction) {
+		private void SetCurrentDataVersion(IDatabaseConnection transaction) {
 			var version = ReadDataVersionFromFile();
 
 			// Insert the version number of the database

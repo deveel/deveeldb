@@ -38,8 +38,7 @@ namespace Deveel.Data.Sql {
 				// Convert the trigger into a table name,
 				TableName triggerName = ResolveTableName(context, triggerNameString);
 
-				ConnectionTriggerManager manager = context.Connection.TriggerManager;
-				manager.DropTrigger(triggerName.Schema, triggerName.Name);
+				context.Connection.DropTrigger(triggerName.Schema, triggerName.Name);
 
 				// Drop the grants for this object
 				context.Connection.GrantManager.RevokeAllGrantsOnObject(GrantObject.Table, triggerName.ToString());

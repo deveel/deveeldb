@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql {
 		public void SimpleInsert() {
 			ExecuteNonQuery("INSERT INTO Person (first_name, last_name) VALUES ('Antonello', 'Provenzano')");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			Table table = connection.GetTable("Person");
 
 			Assert.AreEqual(1, table.RowCount);
@@ -62,7 +62,7 @@ namespace Deveel.Data.Sql {
 		public void InsertMultimpleValues() {
 			ExecuteNonQuery("INSERT INTO Person (first_name, last_name) VALUES ('Antonello', 'Provenzano'), ('Sebastiano', 'Provenzano'), ('Mart', 'Roosmaa')");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			Table table = connection.GetTable("Person");
 
 			Assert.AreEqual(3, table.RowCount);
@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql {
 			ExecuteNonQuery("CREATE TABLE FirstNames (name VARCHAR(100))");
 			ExecuteNonQuery("INSERT INTO FirstNames (name) SELECT first_name FROM Person");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			Table table = connection.GetTable("FirstNames");
 
 			Assert.AreEqual(3, table.RowCount);
@@ -84,7 +84,7 @@ namespace Deveel.Data.Sql {
 		public void InsertFromAssignment() {
 			ExecuteNonQuery("INSERT INTO Person SET first_name = 'Antonello', last_name = 'Provenzano'");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			Table table = connection.GetTable("Person");
 
 			Assert.AreEqual(1, table.RowCount);

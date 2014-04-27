@@ -44,7 +44,7 @@ namespace Deveel.Data.DbSystem {
 		/// Optionally gets the connection to the database, if the context
 		/// is within a connection.
 		/// </summary>
-		DatabaseConnection Connection { get; }
+		IDatabaseConnection Connection { get; }
 
 		/// <summary>
 		/// Gets an object used to log diagnostic information about

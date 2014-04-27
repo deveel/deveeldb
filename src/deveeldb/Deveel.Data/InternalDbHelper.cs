@@ -55,7 +55,7 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public static DeveelDbConnection CreateDbConnection(User user, DatabaseConnection connection) {
+		public static DeveelDbConnection CreateDbConnection(User user, IDatabaseConnection connection) {
 			InternalDatabaseInterface dbInterface = new InternalDatabaseInterface(user, connection);
 			return new InternalConnection(connection, dbInterface, 11, 4092000);
 		}
@@ -99,7 +99,7 @@ namespace Deveel.Data {
 		private sealed class InternalConnection : DeveelDbConnection {
 			private readonly bool ignoreCase;
 
-			public InternalConnection(DatabaseConnection db, IDatabaseInterface dbInterface, int cacheSize, int maxSize)
+			public InternalConnection(IDatabaseConnection db, IDatabaseInterface dbInterface, int cacheSize, int maxSize)
 				: base(String.Empty, dbInterface, cacheSize, maxSize) {
 				ignoreCase = db.IsInCaseInsensitiveMode;
 				// we open internal connections at construction...
@@ -152,7 +152,7 @@ namespace Deveel.Data {
 		/// on the <see cref="DatabaseConnection"/> and return results to the ADO.NET client.
 		/// </summary>
 		private sealed class InternalDatabaseInterface : DatabaseInterfaceBase {
-			public InternalDatabaseInterface(User user, DatabaseConnection db)
+			public InternalDatabaseInterface(User user, IDatabaseConnection db)
 				: base(new SingleDatabaseHandler(db.Database), db.Database.Name) {
 				Init(user, db);
 			}

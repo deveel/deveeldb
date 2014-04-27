@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql {
 			get { return resolvedTableName; }
 		}
 
-		internal void ResolveTableName(DatabaseConnection connection) {
+		internal void ResolveTableName(IDatabaseConnection connection) {
 			resolvedTableName = TableName.Resolve(connection.CurrentSchema, tableName);
 		}
 

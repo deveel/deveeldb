@@ -59,10 +59,6 @@ namespace Deveel.Data.Sql {
 				context.Connection.CreateCallbackTrigger(triggerNameString, tname, eventType);
 
 			} else if (typeString.Equals("procedure_trigger")) {
-
-				// Get the procedure manager
-				RoutinesManager procManager = context.Connection.RoutinesManager;
-
 				string beforeAfter = GetString("before_after");
 				string procNameString = GetString("procedure_name");
 				Expression[] procedureArgs = (Expression[])GetValue("procedure_args");
@@ -82,7 +78,7 @@ namespace Deveel.Data.Sql {
 					                            "' already exists.");
 
 				// Check the procedure exists.
-				if (!procManager.RoutineExists(procName))
+				if (!context.Connection.RoutineExists(procName))
 					throw new DatabaseException("Procedure '" + procName + "' could not be found.");
 
 				// Resolve the listening type
@@ -113,8 +109,7 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Create the trigger,
-				ConnectionTriggerManager manager = context.Connection.TriggerManager;
-				manager.CreateTableTrigger(triggerName.Schema, triggerName.Name, listenType, tname, procName.ToString(), vals);
+				context.Connection.CreateTableTrigger(triggerName.Schema, triggerName.Name, listenType, tname, procName.ToString(), vals);
 
 				// The initial grants for a trigger is to give the user who created it
 				// full access.

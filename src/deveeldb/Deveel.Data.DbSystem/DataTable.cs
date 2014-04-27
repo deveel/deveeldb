@@ -37,7 +37,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// The DatabaseConnection object that is the parent of this DataTable.
 		/// </summary>
-		private readonly DatabaseConnection connection;
+		private readonly IDatabaseConnection connection;
 
 		/// <summary>
 		/// A low level access to the underlying transactional data source.
@@ -57,7 +57,7 @@ namespace Deveel.Data.DbSystem {
 		private int debugWriteLockCount;
 #endif
 
-		internal DataTable(DatabaseConnection connection, ITableDataSource dataSource)
+		internal DataTable(IDatabaseConnection connection, ITableDataSource dataSource)
 			: base(connection.Database) {
 			this.connection = connection;
 			this.dataSource = dataSource;
@@ -108,7 +108,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		protected internal override ILogger Logger {
-			get { return connection.Context.Logger; }
+			get { return connection.Database.Context.Logger; }
 		}
 
 		/// <inheritdoc/>

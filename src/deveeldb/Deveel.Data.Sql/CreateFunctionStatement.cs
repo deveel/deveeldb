@@ -207,15 +207,11 @@ namespace Deveel.Data.Sql {
 			}
 
 			// Create the .NET function,
-			RoutinesManager manager = context.Connection.RoutinesManager;
-			manager.DefineExternalRoutine(procName, specification, returnType, argList, context.UserName);
+			context.Connection.DefineExternalRoutine(procName, specification, returnType, argList, context.UserName);
 
 			// The initial grants for a procedure is to give the user who created it
 			// full access.
-			context.Connection.GrantManager.Grant(
-				 Privileges.ProcedureAll, GrantObject.Table,
-				 procName.ToString(), context.UserName, true,
-				 User.SystemName);
+			context.Connection.GrantManager.Grant(Privileges.ProcedureAll, GrantObject.Table, procName.ToString(), context.UserName, true, User.SystemName);
 
 			// Return an update result table.
 			return FunctionTable.ResultTable(context, 0);

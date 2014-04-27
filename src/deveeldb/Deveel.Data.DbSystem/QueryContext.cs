@@ -42,7 +42,7 @@ namespace Deveel.Data.DbSystem {
 
 		/// <inheritdoc/>
 		public virtual ISystemContext Context {
-			get { return (Connection == null ? null : Connection.Context); }
+			get { return (Connection == null ? null : Connection.Database.Context); }
 		}
 
 		/// <inheritdoc/>
@@ -50,17 +50,17 @@ namespace Deveel.Data.DbSystem {
 			get { return (Connection == null ? null : Connection.User.UserName); }
 		}
 
-		public virtual DatabaseConnection Connection {
+		public virtual IDatabaseConnection Connection {
 			get { return null; }
 		}
 
 		/// <inheritdoc/>
 		public virtual IRoutineResolver RoutineResolver {
-			get { return Connection == null ? null : Connection.Context.RoutineResolver; }
+			get { return Connection == null ? null : Connection.Database.Context.RoutineResolver; }
 		}
 
 		public virtual ILogger Logger {
-			get { return Connection == null ? emptyLogger : Connection.Logger; }
+			get { return Connection == null ? emptyLogger : Connection.Database.Context.Logger; }
 		}
 
 		public bool IsExceptionState {

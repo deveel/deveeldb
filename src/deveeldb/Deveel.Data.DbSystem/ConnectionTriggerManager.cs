@@ -111,7 +111,7 @@ namespace Deveel.Data.DbSystem {
 
 				trigList = new List<TriggerAction>();
 				foreach (TriggerAction action in list) {
-					if (action.TriggerSource == args.Source)
+					if (Equals(action.TriggerSource, args.Source))
 						trigList.Add(action);
 				}
 			}
@@ -447,7 +447,7 @@ namespace Deveel.Data.DbSystem {
 
 							try {
 								// Invoke the procedure (no arguments)
-								connection.RoutinesManager.InvokeRoutine(routineName, new TObject[0]);
+								connection.InvokeRoutine(routineName, new TObject[0]);
 							} finally {
 								// Reset the OLD and NEW tables to previous values
 								connection.OldNewState = currentState;

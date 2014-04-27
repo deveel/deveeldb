@@ -125,7 +125,7 @@ namespace Deveel.Data.Sql {
 			ExecuteNonQuery("CREATE TABLE FirstNames (name VARCHAR(100) NOT NULL)");
 			ExecuteNonQuery("SELECT name INTO FirstNames FROM Person");
 
-			DatabaseConnection connection = CreateDatabaseConnection();
+			IDatabaseConnection connection = CreateDatabaseConnection();
 			Table table1 = connection.GetTable("Person");
 			Table table2 = connection.GetTable("FirstNames");
 
