@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Query;
 using Deveel.Data.Security;
@@ -34,7 +35,7 @@ namespace Deveel.Data.DbSystem {
 	/// This object handles all transactional queries and modifications to 
 	/// the database.
 	/// </remarks>
-	public sealed class DatabaseConnection : IDisposable {
+	public sealed class DatabaseConnection : IDatabaseConnection, IDisposable {
 		/// <summary>
 		///  A loop-back object that is managing this connection.  This typically is
 		/// the session protocol.  This is notified of all connection events, such as
@@ -91,26 +92,17 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		private readonly ConnectionInternalTableContainer connIntTableContainer;
 
-		// ----- Local flags -----
-
-		/// <summary>
-		/// True if transactions through this connection generate an error when
-		/// there is a dirty select on a table.
-		/// </summary>
-		private bool errorOnDirtySelect;
-
-		internal DatabaseConnection(Database database, User user, TriggerCallback triggerCallback) {
-			this.Database = database;
-			this.User = user;
+		internal DatabaseConnection(IDatabase database, User user, TriggerCallback triggerCallback) {
+			OldNewState = new OldNewTableState();
+			Database = database;
+			User = user;
 			this.triggerCallback = triggerCallback;
 			Logger = database.Context.Logger;
 			conglomerate = database.Conglomerate;
 			LockingMechanism = new LockingMechanism(Logger);
 			triggerEventBuffer = new List<TriggerEventArgs>();
 			triggerEventList = new List<TriggerEventArgs>();
-			AutoCommit = true;
 
-			currentSchema = Database.DefaultSchema;
 			closeTransactionDisabled = false;
 
 			tableBackedCacheList = new List<TableBackedCache>();
@@ -118,9 +110,10 @@ namespace Deveel.Data.DbSystem {
 			connIntTableContainer = new ConnectionInternalTableContainer(this);
 			oldNewContainer = new OldAndNewTableContainer(this);
 
-			errorOnDirtySelect = database.Context.TransactionErrorOnDirtySelect;
-			IsInCaseInsensitiveMode = database.Context.IgnoreIdentifierCase;
-
+			AutoCommit = true;
+			ErrorOnDirtySelect = database.Context.Config.TransactionErrorOnDirtySelect();
+			IsInCaseInsensitiveMode = database.Context.Config.IgnoreIdentifierCase();
+			currentSchema = Database.Context.Config.DefaultSchema();
 		}
 
 		/// <summary>
@@ -130,18 +123,18 @@ namespace Deveel.Data.DbSystem {
 		/// If none transaction was already open, it opens a new one
 		/// with the underlying conglomerate.
 		/// </remarks>
-		private ITransaction Transaction {
+		public ITransaction Transaction {
 			get {
 				lock (this) {
 					if (transaction == null) {
 						transaction = conglomerate.CreateTransaction();
-						transaction.TransactionErrorOnDirtySelect = errorOnDirtySelect;
+						transaction.TransactionErrorOnDirtySelect = ErrorOnDirtySelect;
 						// Internal tables (connection statistics, etc)
 						transaction.AddInternalTableInfo(connIntTableContainer);
 						// OLD and NEW system tables (if applicable)
 						transaction.AddInternalTableInfo(oldNewContainer);
 						// Model views as tables (obviously)
-						transaction.AddInternalTableInfo(ViewManager.CreateInternalTableInfo(viewManager, transaction));
+						transaction.AddInternalTableInfo(ViewManager.CreateInternalTableInfo(ViewManager, transaction));
 						// Model procedures as tables
 						transaction.AddInternalTableInfo(RoutinesManager.CreateInternalTableInfo(transaction));
 						// Model sequences as tables
@@ -172,14 +165,14 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Gets the database system object for this session.
 		/// </summary>
-		public DatabaseContext Context {
+		public IDatabaseContext Context {
 			get { return Database.Context; }
 		}
 
 		/// <summary>
 		/// Gets the database object for this session.
 		/// </summary>
-		public Database Database { get; private set; }
+		public IDatabase Database { get; private set; }
 
 		/// <summary>
 		/// Gets an object that can be used to log debug messages to.
@@ -229,7 +222,9 @@ namespace Deveel.Data.DbSystem {
 		/// In case insensitive mode the case of identifier strings is 
 		/// not important.
 		/// </remarks>
-		public bool IsInCaseInsensitiveMode { get; private set; }
+		public bool IsInCaseInsensitiveMode { get; set; }
+
+		public bool ErrorOnDirtySelect { get; set; }
 
 		/// <summary>
 		/// Returns the locking mechanism within the context of the
@@ -249,7 +244,7 @@ namespace Deveel.Data.DbSystem {
 			// Create the connection trigger manager object
 			triggerManager = new ConnectionTriggerManager(this);
 			// Create the view manager
-			viewManager = new ViewManager(this);
+			ViewManager = new ViewManager(this);
 		}
 
 		/// <summary>
@@ -259,7 +254,7 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="tableName">Name of the view to return the query plan node.</param>
 		/// <returns></returns>
 		internal IQueryPlanNode CreateViewQueryPlanNode(TableName tableName) {
-			return viewManager.CreateViewQueryPlanNode(tableName);
+			return ViewManager.CreateViewQueryPlanNode(tableName);
 		}
 
 		/// <summary>
@@ -398,30 +393,13 @@ namespace Deveel.Data.DbSystem {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		public IRef CreateNewLargeObject(ReferenceType type, long objectSize) {
+		public IRef CreateLargeObject(ReferenceType type, long objectSize) {
 			// Enable compression for string types (but not binary types).
 			if (type == ReferenceType.AsciiText || 
 				type == ReferenceType.UnicodeText) {
 				type |= ReferenceType.Compressed;
 			}
 			return conglomerate.CreateNewLargeObject(type, objectSize);
-		}
-
-		/// <summary>
-		/// Tells the underlying conglomerate to flush the blob store.
-		/// </summary>
-		/// <remarks>
-		/// This should be called after one or more blobs have been created and 
-		/// the data for the blob(s) are set. It is an important step to perform 
-		/// <b>after</b> blobs have been written.
-		/// <para>
-		/// If this is not called and the database closes (or crashes) before a flush
-		/// occurs then the blob may not be recoverable.
-		/// </para>
-		/// </remarks>
-		[Obsolete("Deprecated: no longer necessary", false)]
-		public void FlushBlobStore() {
-			conglomerate.FlushBlobStore();
 		}
 
 		/// <summary>
@@ -840,6 +818,14 @@ namespace Deveel.Data.DbSystem {
 			return Transaction.GetTableInfo(name);
 		}
 
+		public void CacheTable(TableName tableName, ITableDataSource table) {
+			
+		}
+
+		public ITableDataSource GetCachedTable(TableName tableName) {
+			return null;
+		}
+
 		/// <summary>
 		/// Gets the table for the given name.
 		/// </summary>
@@ -859,12 +845,12 @@ namespace Deveel.Data.DbSystem {
 				// Special handling of NEW and OLD table, we cache the DataTable in the
 				// OldNewTableState object,
 				if (name.Equals(SystemSchema.OldTriggerTable)) {
-					return currentOldNewState.OldDataTable ??
-						   (currentOldNewState.OldDataTable = new DataTable(this, Transaction.GetTable(name)));
+					return OldNewState.OldDataTable ??
+						   (OldNewState.OldDataTable = new DataTable(this, Transaction.GetTable(name)));
 				}
 				if (name.Equals(SystemSchema.NewTriggerTable)) {
-					return currentOldNewState.NewDataTable ??
-						   (currentOldNewState.NewDataTable = new DataTable(this, Transaction.GetTable(name)));
+					return OldNewState.NewDataTable ??
+						   (OldNewState.NewDataTable = new DataTable(this, Transaction.GetTable(name)));
 				}
 
 				// Ask the transaction for the table
@@ -1198,7 +1184,7 @@ namespace Deveel.Data.DbSystem {
 		/// The connection view manager that handles view information through this
 		/// connection.
 		/// </summary>
-		private ViewManager viewManager;
+		public ViewManager ViewManager { get; private set; }
 
 		/// <summary>
 		/// Creates a new view.
@@ -1214,7 +1200,7 @@ namespace Deveel.Data.DbSystem {
 			CheckAllowCreate(view.TableInfo.TableName);
 
 			try {
-				viewManager.DefineView(view, query, User);
+				ViewManager.DefineView(view, query, User);
 			} catch (DatabaseException e) {
 				Logger.Error(this, e);
 				throw new Exception("Database Exception: " + e.Message, e);
@@ -1236,7 +1222,7 @@ namespace Deveel.Data.DbSystem {
 		/// </returns>
 		public bool DropView(TableName viewName) {
 			try {
-				return viewManager.DeleteView(viewName);
+				return ViewManager.DeleteView(viewName);
 			} catch (DatabaseException e) {
 				Logger.Error(this, e);
 				throw new Exception("Database Exception: " + e.Message, e);
@@ -1395,7 +1381,7 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		public void SetVariable(string name, Expression exp, IQueryContext context) {
 			if (name.ToUpper().Equals("ERROR_ON_DIRTY_SELECT")) {
-				errorOnDirtySelect = ToBooleanValue(exp, context);
+				ErrorOnDirtySelect = ToBooleanValue(exp, context);
 			} else if (name.ToUpper().Equals("CASE_INSENSITIVE_IDENTIFIERS")) {
 				IsInCaseInsensitiveMode = ToBooleanValue(exp, context);
 			} else {
@@ -1516,7 +1502,7 @@ namespace Deveel.Data.DbSystem {
 		/// </para>
 		/// </remarks>
 		/// <returns></returns>
-		internal IProcedureConnection CreateProcedureConnection(User user) {
+		public IProcedureConnection CreateProcedureConnection(User user) {
 			// Create the IProcedureConnection object,
 			DCProcedureConnection c = new DCProcedureConnection(this);
 			// Record the current user
@@ -1536,7 +1522,7 @@ namespace Deveel.Data.DbSystem {
 		/// by <see cref="CreateProcedureConnection"/>.
 		/// </summary>
 		/// <param name="connection"></param>
-		internal void DisposeProcedureConnection(IProcedureConnection connection) {
+		public void DisposeProcedureConnection(IProcedureConnection connection) {
 			DCProcedureConnection c = (DCProcedureConnection)connection;
 			// Revert back to the previous user.
 			User = c.previous_user;
@@ -1579,7 +1565,7 @@ namespace Deveel.Data.DbSystem {
 				return db_connection;
 			}
 
-			public Database Database {
+			public IDatabase Database {
 				get { return conn.Database; }
 			}
 
@@ -1630,17 +1616,17 @@ namespace Deveel.Data.DbSystem {
 		private readonly OldAndNewTableContainer oldNewContainer;
 
 		/// <summary>
-		/// The current state of the OLD and NEW system tables including any cached
-		/// information about the tables.
-		/// </summary>
-		private OldNewTableState currentOldNewState = new OldNewTableState();
-
-		/// <summary>
 		/// Returns the connection trigger manager for this connection.
 		/// </summary>
 		public ConnectionTriggerManager TriggerManager {
 			get { return triggerManager; }
 		}
+
+		/// <summary>
+		/// The current state of the OLD and NEW system tables including any cached
+		/// information about the tables.
+		/// </summary>
+		public OldNewTableState OldNewState { get; set; }
 
 		///<summary>
 		/// Adds a type of trigger for the given trigger source (usually the
@@ -1657,6 +1643,10 @@ namespace Deveel.Data.DbSystem {
 			TriggerManager.CreateCallbackTrigger(triggerName, type, triggerSource, FireCallbackTrigger);
 		}
 
+		public void CreateTableTrigger(string schema, string name, TriggerEventType type, TableName onTable, string procedureName, TObject[] parameters) {
+			TriggerManager.CreateTableTrigger(schema, name, type, onTable, procedureName, parameters);
+		}
+
 		/// <summary>
 		/// Removes a type of trigger for the given trigger source (usually the
 		/// name of the table).
@@ -1664,6 +1654,10 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="triggerName"></param>
 		public void DeleteCallbackTrigger(string triggerName) {
 			TriggerManager.DropCallbackTrigger(triggerName);
+		}
+
+		public void DropTrigger(string schema, string name) {
+			throw new NotImplementedException();
 		}
 
 		/// <summary>
@@ -1684,7 +1678,7 @@ namespace Deveel.Data.DbSystem {
 		/// This should notify the trigger connection manager of this event so that it 
 		/// may perform any action that may have been set up to occur on this event.
 		/// </remarks>
-		internal void FireTableEvent(TriggerEventArgs args) {
+		public void FireTableEvent(TriggerEventArgs args) {
 			triggerManager.PerformTriggerAction(args);
 		}
 
@@ -1736,29 +1730,6 @@ namespace Deveel.Data.DbSystem {
 
 		}
 
-		// ---------- Triggered OLD/NEW table handling ----------
-		// These methods are used by the triggerManager object to
-		// temporarily create OLD and NEW tables in this connection from inside a
-		// triggered action.  In some cases (before the operation) the OLD table
-		// is mutable.
-
-		/// <summary>
-		/// Returns the current state of the old/new tables.
-		/// </summary>
-		/// <returns></returns>
-		internal OldNewTableState GetOldNewTableState() {
-			return currentOldNewState;
-		}
-
-		/**
-		 * Sets the current state of the old/new tables.  When nesting OLD/NEW
-		 * tables for nested stored procedures, the current state should be first
-		 * recorded and reverted back when the nested procedure finishes.
-		 */
-		internal void SetOldNewTableState(OldNewTableState state) {
-			currentOldNewState = state;
-		}
-
 		/// <summary>
 		/// An internal table info object that handles OLD and NEW tables for
 		/// triggered actions.
@@ -1771,11 +1742,11 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			private bool HasOLDTable {
-				get { return conn.currentOldNewState.OldRowIndex != -1; }
+				get { return conn.OldNewState.OldRowIndex != -1; }
 			}
 
 			private bool HasNEWTable {
-				get { return conn.currentOldNewState.NewDataRow != null; }
+				get { return conn.OldNewState.NewDataRow != null; }
 			}
 
 			public int TableCount {
@@ -1819,7 +1790,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public DataTableInfo GetTableInfo(int i) {
-				DataTableInfo tableInfo = conn.GetTableInfo(conn.currentOldNewState.TableSource);
+				DataTableInfo tableInfo = conn.GetTableInfo(conn.OldNewState.TableSource);
 				DataTableInfo newTableInfo = tableInfo.Clone(GetTableName(i));
 				return newTableInfo;
 			}
@@ -1833,9 +1804,9 @@ namespace Deveel.Data.DbSystem {
 					if (index == 0) {
 
 						// Copy data from the table to the new table
-						DataTable dtable = conn.GetTable(conn.currentOldNewState.TableSource);
+						DataTable dtable = conn.GetTable(conn.OldNewState.TableSource);
 						DataRow oldRow = new DataRow(table);
-						int rowIndex = conn.currentOldNewState.OldRowIndex;
+						int rowIndex = conn.OldNewState.OldRowIndex;
 						for (int i = 0; i < tableInfo.ColumnCount; ++i) {
 							oldRow.SetValue(i, dtable.GetCell(i, rowIndex));
 						}
@@ -1847,8 +1818,8 @@ namespace Deveel.Data.DbSystem {
 					}
 				}
 
-				table.SetImmutable(!conn.currentOldNewState.IsNewMutable);
-				table.SetRowData(conn.currentOldNewState.NewDataRow);
+				table.SetImmutable(!conn.OldNewState.IsNewMutable);
+				table.SetRowData(conn.OldNewState.NewDataRow);
 
 				return table;
 			}
@@ -1864,7 +1835,7 @@ namespace Deveel.Data.DbSystem {
 			private DataRow content;
 			private bool immutable;
 
-			public TriggeredOldNewDataSource(SystemContext context, DataTableInfo tableInfo)
+			public TriggeredOldNewDataSource(ISystemContext context, DataTableInfo tableInfo)
 				: base(context) {
 				this.tableInfo = tableInfo;
 			}
@@ -1934,111 +1905,6 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public void RemoveRootLock() {
-			}
-		}
-
-		/// <summary>
-		/// An internal table info object that handles OLD and NEW tables for
-		/// triggered actions.
-		/// </summary>
-		internal sealed class OldNewTableState {
-
-			/// <summary>
-			///  The name of the table that is the trigger source.
-			/// </summary>
-			private readonly TableName tableSource;
-
-			/// <summary>
-			/// The row index of the OLD data that is being updated or deleted in the
-			/// trigger source table.
-			/// </summary>
-			private readonly int oldRowIndex = -1;
-
-			/// <summary>
-			/// The DataRow of the new data that is being inserted/updated in the trigger
-			/// source table.
-			/// </summary>
-			private readonly DataRow newDataRow;
-
-			/// <summary>
-			/// If true then the 'new_data' information is mutable which would be true for
-			/// a BEFORE trigger.
-			/// </summary>
-			/// <remarks>
-			/// For example, we would want to change the data in the row that caused the 
-			/// trigger to fire.
-			/// </remarks>
-			private readonly bool newMutable;
-
-			/// <summary>
-			/// The DataTable object that represents the OLD table, if set.
-			/// </summary>
-			private DataTable oldDataTable;
-
-			/// <summary>
-			/// The DataTable object that represents the NEW table, if set.
-			/// </summary>
-			private DataTable newDataTable;
-
-			public OldNewTableState(TableName tableSource, int oldRowIndex, DataRow newDataRow, bool newMutable) {
-				this.tableSource = tableSource;
-				this.oldRowIndex = oldRowIndex;
-				this.newDataRow = newDataRow;
-				this.newMutable = newMutable;
-			}
-
-			internal OldNewTableState() {
-			}
-
-			/// <summary>
-			///  The name of the table that is the trigger source.
-			/// </summary>
-			public TableName TableSource {
-				get { return tableSource; }
-			}
-
-			/// <summary>
-			/// The row index of the OLD data that is being updated or deleted in the
-			/// trigger source table.
-			/// </summary>
-			public int OldRowIndex {
-				get { return oldRowIndex; }
-			}
-
-			/// <summary>
-			/// The DataRow of the new data that is being inserted/updated in the trigger
-			/// source table.
-			/// </summary>
-			public DataRow NewDataRow {
-				get { return newDataRow; }
-			}
-
-			/// <summary>
-			/// If true then the 'new_data' information is mutable which would be true for
-			/// a BEFORE trigger.
-			/// </summary>
-			/// <remarks>
-			/// For example, we would want to change the data in the row that caused the 
-			/// trigger to fire.
-			/// </remarks>
-			public bool IsNewMutable {
-				get { return newMutable; }
-			}
-
-			/// <summary>
-			/// The DataTable object that represents the OLD table, if set.
-			/// </summary>
-			public DataTable OldDataTable {
-				get { return oldDataTable; }
-				set { oldDataTable = value; }
-			}
-
-			/// <summary>
-			/// The DataTable object that represents the NEW table, if set.
-			/// </summary>
-			public DataTable NewDataTable {
-				get { return newDataTable; }
-				set { newDataTable = value; }
 			}
 		}
 

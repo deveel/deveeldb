@@ -436,22 +436,21 @@ namespace Deveel.Data.DbSystem {
 							// Set up OLD and NEW tables
 
 							// Record the old table state
-							DatabaseConnection.OldNewTableState currentState = connection.GetOldNewTableState();
+							OldNewTableState currentState = connection.OldNewState;
 
 							// Set the new table state
 							// If an INSERT event then we setup NEW to be the row being inserted
 							// If an DELETE event then we setup OLD to be the row being deleted
 							// If an UPDATE event then we setup NEW to be the row after the
 							// update, and OLD to be the row before the update.
-							connection.SetOldNewTableState(new DatabaseConnection.OldNewTableState(tableName, args.OldRowIndex, args.NewDataRow,
-							                                                                       args.IsBefore));
+							connection.OldNewState = new OldNewTableState(tableName, args.OldRowIndex, args.NewDataRow, args.IsBefore);
 
 							try {
 								// Invoke the procedure (no arguments)
 								connection.RoutinesManager.InvokeRoutine(routineName, new TObject[0]);
 							} finally {
 								// Reset the OLD and NEW tables to previous values
-								connection.SetOldNewTableState(currentState);
+								connection.OldNewState = currentState;
 							}
 						}
 					}

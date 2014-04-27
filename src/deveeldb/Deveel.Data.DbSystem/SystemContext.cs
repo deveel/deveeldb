@@ -398,11 +398,11 @@ namespace Deveel.Data {
 				if (ReadOnlyAccess) Stats.Set("SystemContext.read_only", 1);
 
 				// Generate transaction error if dirty selects are detected?
-				TransactionErrorOnDirtySelect = config.GetBoolean(ConfigKeys.TransactionErrorOnDirtySelect, true);
+				TransactionErrorOnDirtySelect = config.TransactionErrorOnDirtySelect();
 				Logger.Message(this, "transaction_error_on_dirty_select = " + TransactionErrorOnDirtySelect);
 
 				// Case insensitive identifiers?
-				IgnoreIdentifierCase = config.GetBoolean(ConfigKeys.IgnoreIdentifiersCase, false);
+				IgnoreIdentifierCase = config.IgnoreIdentifierCase();
 				Logger.Message(this, "ignore_case_for_identifiers = " + IgnoreIdentifierCase);
 
 				// What regular expression library are we using?

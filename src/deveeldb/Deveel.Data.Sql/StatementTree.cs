@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	sealed class StatementTree : ICloneable, IEnumerable<KeyValuePair<string, object>> {
+	public sealed class StatementTree : ICloneable, IEnumerable<KeyValuePair<string, object>> {
 		/// <summary>
 		/// The type of statement this is.
 		/// </summary>

@@ -16,6 +16,7 @@
 using System;
 using System.IO;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Routines;
 
 namespace Deveel.Data.Procedures {
@@ -36,7 +37,7 @@ namespace Deveel.Data.Procedures {
 				throw new ProcedureException("Path '" + path + "' doesn't exist or is not a directory.");
 
 			try {
-				dbConnection.Database.LiveCopyTo(path);
+				((Database) dbConnection.Database).LiveCopyTo(path);
 				return path;
 			} catch (IOException e) {
 				Console.Error.WriteLine(e.Message); 

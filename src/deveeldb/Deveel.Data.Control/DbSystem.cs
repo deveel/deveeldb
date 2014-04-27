@@ -52,14 +52,6 @@ namespace Deveel.Data.Control {
 		private IDbConfig config;
 
 		/// <summary>
-		/// The underlying <see cref="Data.DbSystem.Database"/> object of this system.
-		/// </summary>
-		/// <remarks>
-		/// This object gives low level access to the system.
-		/// </remarks>
-		private readonly Database database;
-
-		/// <summary>
 		/// An internal counter for internal connections created on this system.
 		/// </summary>
 		private int internalCounter;
@@ -70,11 +62,11 @@ namespace Deveel.Data.Control {
 		private Hashtable connections;
 
 
-		internal DbSystem(DbController controller, string name, IDbConfig config, Database database) {
+		internal DbSystem(DbController controller, string name, IDbConfig config, IDatabase database) {
 			this.name = name;
 			this.controller = controller;
 			this.config = config;
-			this.database = database;
+			this.Database = database;
 			internalCounter = 0;
 
 			// Register the shut down delegate,
@@ -118,9 +110,7 @@ namespace Deveel.Data.Control {
 		/// the SQL layer and talk directly with the internals of the database.
 		/// </para>
 		/// </remarks>
-		public Database Database {
-			get { return database; }
-		}
+		public IDatabase Database { get; private set; }
 
 		///<summary>
 		/// Makes a connection to the database and returns a <see cref="IDbConnection"/> 
@@ -223,7 +213,7 @@ namespace Deveel.Data.Control {
 		/// </para>
 		/// </remarks>
 		public void SetDeleteOnClose(bool status) {
-			database.DeleteOnShutdown = status;
+			Database.DeleteOnShutdown = status;
 		}
 
 		///<summary>
@@ -246,8 +236,8 @@ namespace Deveel.Data.Control {
 		/// </para>
 		/// </remarks>
 		public void Close() {
-			if (database != null) {
-				database.Context.Shutdown(true);
+			if (Database != null) {
+				Database.Context.Shutdown(true);
 			}
 		}
 

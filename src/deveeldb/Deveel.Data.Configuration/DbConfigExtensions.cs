@@ -260,6 +260,30 @@ namespace Deveel.Data.Configuration {
 			config.SetValue(ConfigKeys.PasswordHashFunction, value);
 		}
 
+		public static bool TransactionErrorOnDirtySelect(this IDbConfig config) {
+			return config.GetBoolean(ConfigKeys.TransactionErrorOnDirtySelect, ConfigDefaultValues.TransactionErrorOnDirtySelect);
+		}
+
+		public static void TransactionErrorOnDirtySelect(this IDbConfig config, bool value) {
+			config.SetValue(ConfigKeys.TransactionErrorOnDirtySelect, value);
+		}
+
+		public static string DefaultSchema(this IDbConfig config) {
+			return config.GetString(ConfigKeys.DefaultSchema, ConfigDefaultValues.DefaultSchema);
+		}
+
+		public static void DefaultSchema(this IDbConfig config, string value) {
+			config.SetValue(ConfigKeys.DefaultSchema, value);
+		}
+
+		public static bool LogQueries(this IDbConfig config) {
+			return config.GetBoolean(ConfigKeys.LogQueries, ConfigDefaultValues.LogQueries);
+		}
+
+		public static void LogQueries(this IDbConfig config, bool value) {
+			config.SetValue(ConfigKeys.LogQueries, value);
+		}
+
 		#endregion
 
 		#region Load / Save

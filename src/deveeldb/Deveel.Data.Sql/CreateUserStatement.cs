@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class CreateUserStatement : Statement {
 		private void InternalSetUserGroupsAndLock(IQueryContext context, string username, Expression[] groups_list, string lockStatus) {
-			Database db = context.Connection.Database;
+			IDatabase db = context.Connection.Database;
 
 			// Add the user to any groups
 			if (groups_list != null) {
@@ -69,7 +69,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			// First try and create the new user,
-			Database db = context.Connection.Database;
+			IDatabase db = context.Connection.Database;
 			if (db.UserExists(context, username))
 				throw new DatabaseException("User '" + username + "' already exists.");
 

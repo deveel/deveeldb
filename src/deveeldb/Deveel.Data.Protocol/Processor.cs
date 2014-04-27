@@ -60,8 +60,6 @@ namespace Deveel.Data.Protocol {
 		private readonly Dictionary<string, DatabaseInterface> dbInterfaces;
 		private DatabaseInterface dbInterface;
 
-		private Database database;
-
 		protected Processor(DbController controller, string hostString) {
 			this.hostString = hostString;
 			dbInterfaces = new Dictionary<string, DatabaseInterface>();
@@ -101,7 +99,7 @@ namespace Deveel.Data.Protocol {
 				dbInterfaces[databaseName] = dbi;
 			}
 
-			database = controller.GetDatabase(databaseName);
+			Database = controller.GetDatabase(databaseName);
 			dbInterface = dbi;
 			return true;
 		}
@@ -550,9 +548,7 @@ namespace Deveel.Data.Protocol {
 		/// </summary>
 		public abstract bool IsClosed { get; }
 
-		public Database Database {
-			get { return database; }
-		}
+		public IDatabase Database { get; private set; }
 
 		// ---------- Finalize ----------
 		~Processor() {

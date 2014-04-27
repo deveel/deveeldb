@@ -33,6 +33,6 @@ namespace Deveel.Data.DbSystem {
 		/// <exception cref="ArgumentNullException">
 		/// Thrown if <paramref name="name"/> is <b>null</b> or an empty string.
 		/// </exception>
-		Database GetDatabase(string name);
+		IDatabase GetDatabase(string name);
 	}
 }

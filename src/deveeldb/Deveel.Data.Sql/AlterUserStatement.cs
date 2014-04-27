@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class AlterUserStatement : Statement {
 		private void InternalSetUserGroupsAndLock(IQueryContext context, string username, Expression[] groupsList, string lockStatus) {
-			Database db = context.Connection.Database;
+			IDatabase db = context.Connection.Database;
 
 			// Add the user to any groups
 			if (groupsList != null) {
@@ -84,7 +84,7 @@ namespace Deveel.Data.Sql {
 					throw new DatabaseException("User is not permitted to alter user lock status.");
 			}
 
-			Database db = context.Connection.Database;
+			IDatabase db = context.Connection.Database;
 			if (db.UserExists(context, username)) {
 				if (passwordStr != null) {
 					db.AlterUserPassword(context, username, passwordStr);

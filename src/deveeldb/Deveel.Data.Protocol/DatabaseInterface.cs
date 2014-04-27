@@ -16,6 +16,7 @@
 using System;
 using System.Text;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
@@ -68,7 +69,7 @@ namespace Deveel.Data.Protocol {
 		/// <returns>
 		/// Returns <b>true</b> if we are successful.
 		/// </returns>
-		private bool Authenticate(Database database, String default_schema, String username, String password, DatabaseEventCallback database_call_back) {
+		private bool Authenticate(IDatabase database, String default_schema, String username, String password, DatabaseEventCallback database_call_back) {
 			// If the 'user' variable is null, no one is currently logged in to this
 			// connection.
 
@@ -76,7 +77,7 @@ namespace Deveel.Data.Protocol {
 				throw new Exception("Attempt to authenticate user twice");
 
 #if DEBUG
-			if (database.Context.LogQueries) {
+			if (database.Context.Config.LogQueries()) {
 				// Output the instruction to the _queries log.
 				StringBuilder logStr = new StringBuilder();
 				logStr.Append("[CLIENT] [");
@@ -161,7 +162,7 @@ namespace Deveel.Data.Protocol {
 
 		public override bool Login(String defaultSchema, String username, String password, DatabaseEventCallback databaseCallback) {
 
-			Database database = Database;
+			IDatabase database = Database;
 
 			return Authenticate(database, defaultSchema, username, password, databaseCallback);
 		}
@@ -176,7 +177,7 @@ namespace Deveel.Data.Protocol {
 
 			// Log this Query if Query logging is enabled
 #if DEBUG
-			if (Database.Context.LogQueries) {
+			if (Database.Context.Config.LogQueries()) {
 				// Output the instruction to the _queries log.
 				StringBuilder logStr = new StringBuilder();
 				logStr.Append("[CLIENT] [");

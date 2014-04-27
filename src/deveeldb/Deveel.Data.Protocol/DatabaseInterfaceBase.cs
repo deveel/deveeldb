@@ -65,7 +65,7 @@ namespace Deveel.Data.Protocol {
 		/// <summary>
 		/// The Database object that represents the context of this database interface.
 		/// </summary>
-		private Database currentDatabase;
+		private IDatabase currentDatabase;
 
 		/// <summary>
 		/// The mapping that maps from result id number to <see cref="Table"/> object 
@@ -159,7 +159,7 @@ namespace Deveel.Data.Protocol {
 		/// <summary>
 		/// Returns the <see cref="Database"/> that is the context of this interface.
 		/// </summary>
-		protected Database Database {
+		protected IDatabase Database {
 			get { return currentDatabase; }
 		}
 
@@ -312,7 +312,7 @@ namespace Deveel.Data.Protocol {
 			IRef reference;
 			if (!blobIdMap.TryGetValue(streamableObjectId, out reference)) {
 				// Doesn't exist so create a new blob handler.
-				reference = dbConnection.CreateNewLargeObject(type, objectLength);
+				reference = dbConnection.CreateLargeObject(type, objectLength);
 				// Make the blob id mapping
 				blobIdMap[streamableObjectId] = reference;
 			}
@@ -387,7 +387,7 @@ namespace Deveel.Data.Protocol {
 			CheckNotDisposed();
 
 			try {
-				Database database = databaseHandler.GetDatabase(name);
+				IDatabase database = databaseHandler.GetDatabase(name);
 				if (database == null)
 					throw new InvalidOperationException("Unable to change the database.");
 
@@ -436,12 +436,6 @@ namespace Deveel.Data.Protocol {
 					}
 				}
 			}
-
-			// After the blobs have been flushed, we must tell the connection to
-			// flush and synchronize any blobs that have been written to disk.  This
-			// is an important (if subtle) step.
-			if (blobsWereFlushed)
-				dbConnection.FlushBlobStore();
 
 			// Evaluate the sql Query.
 			Table[] results = SqlQueryExecutor.Execute(dbConnection, query);

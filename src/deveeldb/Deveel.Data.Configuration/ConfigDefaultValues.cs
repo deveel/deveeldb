@@ -28,6 +28,8 @@ namespace Deveel.Data.Configuration {
 	/// in the free configuration of database system.
 	/// </remarks>
 	public static class ConfigDefaultValues {
+		public const bool TransactionErrorOnDirtySelect = false;
+
 		/// <summary>
 		/// Associated to the key <see cref="ConfigKeys.StorageSystem"/>
 		/// tells the system the database storage will be backed by the 
@@ -47,5 +49,9 @@ namespace Deveel.Data.Configuration {
 		public const string SystemRegexLibrary = "Deveel.Data.Text.SystemRegexLibrary";
 
 		public const string PasswordHashFunction = "HMAC-SHA-256(32)";
+
+		public const string DefaultSchema = "APP";
+
+		public const bool LogQueries = false;
 	}
 }

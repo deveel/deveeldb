@@ -21,12 +21,16 @@ namespace Deveel.Data.DbSystem {
 
 		UserManager UserManager { get; }
 
-		bool DeleteOnShutdown { get; }
+		bool DeleteOnShutdown { get; set; }
 
 		Table SingleRowTable { get; }
 
 		Log CommandsLog { get; }
 
+		TableDataConglomerate Conglomerate { get; }
+
+
+		void Create(string adminUser, string adminPass);
 
 		void Init();
 

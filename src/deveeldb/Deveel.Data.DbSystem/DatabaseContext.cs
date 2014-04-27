@@ -47,11 +47,6 @@ namespace Deveel.Data.DbSystem {
 		private ShutdownThread shutdownThread;
 
 		/// <summary>
-		/// The StatementCache that maintains a cache of parsed queries.
-		/// </summary>
-		private StatementCache statementCache;
-
-		/// <summary>
 		/// The LoggedUsers object that handles users connected to the database engine.
 		/// </summary>
 		private LoggedUsers loggedUsers;
@@ -82,10 +77,7 @@ namespace Deveel.Data.DbSystem {
 		/// If this method returns 'null' then statement caching is disabled.
 		/// </para>
 		/// </remarks>
-		internal StatementCache StatementCache {
-			get { return statementCache; }
-		}
-
+		public StatementCache StatementCache { get; private set; }
 
 		/// <summary>
 		/// Returns the <see cref="LoggedUsers"/> object that handles 
@@ -118,7 +110,7 @@ namespace Deveel.Data.DbSystem {
 			if (config != null) {
 				// Set up the statement cache.
 				if (config.GetBoolean(ConfigKeys.CacheStatements, true)) {
-					statementCache = new StatementCache(this, 127, 140, 20);
+					StatementCache = new StatementCache(this, 127, 140, 20);
 					Logger.Message(this, "statement cache ENABLED");
 				} else {
 					Logger.Message(this, "statement cache DISABLED");

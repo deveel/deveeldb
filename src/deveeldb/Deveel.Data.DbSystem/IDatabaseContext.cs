@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.DbSystem {
 	public interface IDatabaseContext : ISystemContext {
@@ -10,7 +11,9 @@ namespace Deveel.Data.DbSystem {
 
 		bool HasShutdown { get; }
 
-		bool IsExecutingCommands { get; }
+		bool IsExecutingCommands { get; set; }
+
+		StatementCache StatementCache { get; }
 
 
 		IDatabase GetDatabase(string name);

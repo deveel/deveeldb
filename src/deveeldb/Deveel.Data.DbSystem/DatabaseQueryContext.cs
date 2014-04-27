@@ -39,7 +39,7 @@ namespace Deveel.Data.DbSystem {
 		///<summary>
 		/// Returns the Database object that this context is a child of.
 		///</summary>
-		public Database Database {
+		public IDatabase Database {
 			get { return database.Database; }
 		}
 

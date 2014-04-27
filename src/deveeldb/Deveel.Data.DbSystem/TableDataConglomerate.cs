@@ -682,20 +682,6 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		/// <summary>
-		/// Called when one or more blobs has been completed.
-		/// </summary>
-		/// <remarks>
-		/// This flushes the blob to the blob store and completes the blob 
-		/// write procedure. It's important this is called otherwise the 
-		/// <see cref="BlobStore"/> may not be correctly flushed to disk with 
-		/// the changes and the data will not be recoverable if a crash occurs.
-		/// </remarks>
-		[Obsolete("Deprecated: no longer necessary", false)]
-		internal void FlushBlobStore() {
-		}
-
-
 
 		// ---------- low level File IO level operations on a conglomerate ----------
 		// These operations are low level IO operations on the contents of the

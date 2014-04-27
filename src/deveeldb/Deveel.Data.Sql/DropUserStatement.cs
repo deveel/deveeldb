@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql {
 			if (String.Compare(username, "public", true) == 0)
 				throw new DatabaseException("Username 'public' is reserved.");
 
-			Database db = context.Connection.Database;
+			IDatabase db = context.Connection.Database;
 			if (!db.UserExists(context, username))
 				throw new DatabaseException("User '" + username + "' doesn't exist.");
 

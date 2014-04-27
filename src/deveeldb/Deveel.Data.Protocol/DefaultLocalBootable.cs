@@ -85,7 +85,7 @@ namespace Deveel.Data.Protocol {
         }
 
 
-		Database IDatabaseHandler.GetDatabase(string name) {
+		IDatabase IDatabaseHandler.GetDatabase(string name) {
 			return (dbsys == null ? null : dbsys.Database);
 		}
 

@@ -62,6 +62,6 @@ namespace Deveel.Data.Routines {
 		/// Some procedures may not be allowed access to this object in which case a 
 		/// ProcedureException is thrown notifying of the security violation.
 		/// </remarks>
-		Database Database { get; }
+		IDatabase Database { get; }
 	}
 }

@@ -166,13 +166,13 @@ namespace Deveel.Data {
 		}
 
 		private sealed class SingleDatabaseHandler : IDatabaseHandler {
-			public SingleDatabaseHandler(Database database) {
+			public SingleDatabaseHandler(IDatabase database) {
 				this.database = database;
 			}
 
-			private readonly Database database;
+			private readonly IDatabase database;
 
-			public Database GetDatabase(string name) {
+			public IDatabase GetDatabase(string name) {
 				if (name != database.Name)
 					throw new ArgumentException();
 

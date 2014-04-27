@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql {
 	/// The purpose of this cache is to improve the performance of queries 
 	/// that are run repeatedly (for example, multiple INSERT statements).
 	/// </remarks>
-	sealed class StatementCache {
+	public sealed class StatementCache {
 		/// <summary>
 		/// The DatabaseSystem of this cache.
 		/// </summary>

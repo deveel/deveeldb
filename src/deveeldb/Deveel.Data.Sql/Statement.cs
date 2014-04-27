@@ -138,7 +138,7 @@ namespace Deveel.Data.Sql {
 		protected void CheckUserSelectPermissions(IQueryContext context, IQueryPlanNode plan) {
 			// Discover the list of TableName objects this command touches,
 			IList<TableName> touchedTables = plan.DiscoverTableNames(new List<TableName>());
-			Database dbase = context.Connection.Database;
+			IDatabase dbase = context.Connection.Database;
 
 			// Check that the user is allowed to select from these tables.
 			foreach (TableName table in touchedTables) {

@@ -271,7 +271,7 @@ namespace Deveel.Data.Control {
 					if (controller.DatabaseExists(config, name))
 						throw new InvalidOperationException("The database '" + name + "' was already registered.");
 
-					Database database = CreateDatabase(dbConfig, name);
+					IDatabase database = CreateDatabase(dbConfig, name);
 					if (database.Exists) {
 						DatabaseShutdownCallback callback = new DatabaseShutdownCallback(controller, database);
 						database.Context.OnShutdown += new EventHandler(callback.Execute);
@@ -360,7 +360,7 @@ namespace Deveel.Data.Control {
 		}
 
 		/// <inheritdoc/>
-		public Database GetDatabase(string name) {
+		public IDatabase GetDatabase(string name) {
 			return databases[name] as Database;
 		}
 
@@ -376,7 +376,7 @@ namespace Deveel.Data.Control {
 		/// not initialized.
 		/// </returns>
 		public bool IsInitialized(string databaseName) {
-			Database database = GetDatabase(databaseName);
+			IDatabase database = GetDatabase(databaseName);
 			return (database != null && database.IsInitialized);
 		}
 
@@ -453,7 +453,7 @@ namespace Deveel.Data.Control {
 				config.Save(configFile);
 			}
 
-			Database database = CreateDatabase(config, name);
+			IDatabase database = CreateDatabase(config, name);
 
 			try {
 				database.Create(adminUser, adminPass);
@@ -516,7 +516,7 @@ namespace Deveel.Data.Control {
 
 			config.Parent = Config;
 
-			Database database = GetDatabase(name);
+			IDatabase database = GetDatabase(name);
 
 			if (database.IsInitialized)
 				throw new ArgumentException("The database is already initialized.");
@@ -555,7 +555,7 @@ namespace Deveel.Data.Control {
 			if (!DatabaseExists(config, name))
 				throw new ArgumentException("Database '" + name + "' not existing.", "name");
 
-			Database database = GetDatabase(name);
+			IDatabase database = GetDatabase(name);
 			if (!database.IsInitialized)
 				throw new InvalidOperationException("The database is not initialized.");
 
@@ -570,7 +570,7 @@ namespace Deveel.Data.Control {
 		/// <param name="config"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		private static Database CreateDatabase(IDbConfig config, string name) {
+		private static IDatabase CreateDatabase(IDbConfig config, string name) {
 			DatabaseContext context = new DatabaseContext();
 
 			// Initialize the DatabaseSystem first,
@@ -591,7 +591,7 @@ namespace Deveel.Data.Control {
 			return database;
 		}
 
-		private void OnDatabaseShutdown(Database database) {
+		private void OnDatabaseShutdown(IDatabase database) {
 			databases.Remove(database.Name);
 
 			if (DatabaseShutdown != null)
@@ -599,12 +599,12 @@ namespace Deveel.Data.Control {
 		}
 
 		private class DatabaseShutdownCallback {
-			public DatabaseShutdownCallback(DbController controller, Database database) {
+			public DatabaseShutdownCallback(DbController controller, IDatabase database) {
 				this.controller = controller;
 				this.database = database;
 			}
 
-			private readonly Database database;
+			private readonly IDatabase database;
 			private readonly DbController controller;
 
 			public void Execute(object sender, EventArgs args) {

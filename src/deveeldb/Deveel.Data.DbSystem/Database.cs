@@ -48,13 +48,6 @@ namespace Deveel.Data.DbSystem {
 	/// </para>
 	/// </remarks>
 	public sealed class Database : IDatabase {
-		// ---------- Statics ----------
-
-		/// <summary>
-		/// The name of the default schema.
-		/// </summary>
-		public const String DefaultSchema = "APP";
-
 		///<summary>
 		///</summary>
 		///<param name="context"></param>
@@ -101,7 +94,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Returns the conglomerate for this database.
 		/// </summary>
-		internal TableDataConglomerate Conglomerate { get; private set; }
+		public TableDataConglomerate Conglomerate { get; private set; }
 
 		/// <summary>
 		/// Gets <b>true</b> if the database exists.
@@ -183,8 +176,8 @@ namespace Deveel.Data.DbSystem {
 
 		// ---------- Schema management ----------
 
-		private static void CreateSchemata(DatabaseConnection connection) {
-			connection.CreateSchema(DefaultSchema, "DEFAULT");
+		private void CreateSchemata(DatabaseConnection connection) {
+			connection.CreateSchema(Context.Config.DefaultSchema(), "DEFAULT");
 			connection.CreateSchema(InformationSchema.Name, "SYSTEM");
 		}
 
@@ -199,14 +192,14 @@ namespace Deveel.Data.DbSystem {
 		/// <i>function_factories</i>, and functions. All other system 
 		/// tables are granted <i>SELECT</i> only.
 		/// </remarks>
-		private static void SetSystemGrants(DatabaseConnection connection, string grantee) {
+		private void SetSystemGrants(DatabaseConnection connection, string grantee) {
 			const string granter = User.SystemName;
 
 			// Add all priv grants to those that the system user is allowed to change
 			GrantManager manager = connection.GrantManager;
 
 			// Add schema grant for APP
-			manager.Grant(Privileges.SchemaAll, GrantObject.Schema, DefaultSchema, grantee, true, granter);
+			manager.Grant(Privileges.SchemaAll, GrantObject.Schema, Context.Config.DefaultSchema(), grantee, true, granter);
 			// Add public grant for SYSTEM
 			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, SystemSchema.Name, User.PublicName, false, granter);
 			// Add public grant for INFORMATION_SCHEMA
