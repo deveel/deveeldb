@@ -25,7 +25,7 @@ namespace Deveel.Data.Query {
 	/// <summary>
 	/// Various methods for forming command plans on SQL queries.
 	/// </summary>
-	public static partial class Planner {
+	public static class Planner {
 
 		/// <summary>
 		/// The name of the GROUP BY function table.
@@ -135,17 +135,17 @@ namespace Deveel.Data.Query {
 			fromClause.JoinSet.Prepare(db);
 
 			// Create a TableExpressionFromSet for this table expression
-			TableExpressionFromSet fromSet = new TableExpressionFromSet(db.IsInCaseInsensitiveMode);
+			var fromSet = new TableExpressionFromSet(db.IsInCaseInsensitiveMode);
 
 			// Add all tables from the 'fromClause'
-			foreach (FromTable ftdef in fromClause.AllTables) {
-				string uniqueKey = ftdef.UniqueKey;
-				string alias = ftdef.Alias;
+			foreach (FromTable fromTable in fromClause.AllTables) {
+				string uniqueKey = fromTable.UniqueKey;
+				string alias = fromTable.Alias;
 
 				// If this is a sub-command table,
-				if (ftdef.IsSubQueryTable) {
+				if (fromTable.IsSubQueryTable) {
 					// eg. FROM ( SELECT id FROM Part )
-					TableSelectExpression subQuery = ftdef.SubSelect;
+					TableSelectExpression subQuery = fromTable.SubSelect;
 					TableExpressionFromSet subQueryFromSet = GenerateFromSet(subQuery, db);
 
 					// The aliased name of the table
@@ -153,13 +153,12 @@ namespace Deveel.Data.Query {
 					if (alias != null)
 						aliasTableName = new TableName(alias);
 
-					FromTableSubQuerySource source = new FromTableSubQuerySource(db.IsInCaseInsensitiveMode, uniqueKey, subQuery,
-					                                                             subQueryFromSet, aliasTableName);
+					var source = new FromTableSubQuerySource(db.IsInCaseInsensitiveMode, uniqueKey, subQuery, subQueryFromSet, aliasTableName);
 					// Add to list of subquery tables to add to command,
 					fromSet.AddTable(source);
 				} else {
 					// Else must be a standard command table,
-					string name = ftdef.Name;
+					string name = fromTable.Name;
 
 					// Resolve to full table name
 					TableName tableName = db.ResolveTableName(name);
@@ -173,8 +172,7 @@ namespace Deveel.Data.Query {
 
 					// Get the ITableQueryInfo object for this table name (aliased).
 					ITableQueryInfo tableQueryInfo = db.GetTableQueryInfo(tableName, givenName);
-					FromTableDirectSource source = new FromTableDirectSource(db.IsInCaseInsensitiveMode, tableQueryInfo, uniqueKey,
-					                                                         givenName, tableName);
+					var source = new FromTableDirectSource(db.IsInCaseInsensitiveMode, tableQueryInfo, uniqueKey, givenName, tableName);
 
 					fromSet.AddTable(source);
 				}
@@ -191,7 +189,7 @@ namespace Deveel.Data.Query {
 						fromSet.ExposeAllColumns();
 					} else {
 						// Otherwise the glob must be of the form '[table name].*'
-						string tname = col.GlobName.Substring(0, col.GlobName.IndexOf(".*"));
+						string tname = col.GlobName.Substring(0, col.GlobName.IndexOf(".*", StringComparison.Ordinal));
 						TableName tn = TableName.Resolve(tname);
 						fromSet.ExposeAllColumnsFromSource(tn);
 					}
@@ -237,32 +235,41 @@ namespace Deveel.Data.Query {
 			return FormQueryPlan(db, expression, fromSet, new List<ByColumn>());
 		}
 
-		/// <summary>
-		/// Forms a command plan <see cref="IQueryPlanNode"/> from the given 
-		/// <see cref="TableSelectExpression"/> and <see cref="TableExpressionFromSet"/>.
-		/// </summary>
-		/// <param name="db"></param>
-		/// <param name="expression">Describes the <i>SELECT</i> command 
-		/// (or sub-command).</param>
-		/// <param name="fromSet">Used to resolve expression references.</param>
-		/// <param name="orderBy">A list of <see cref="ByColumn"/> objects 
-		/// that represent an optional <i>ORDER BY</i> clause. If this is null 
-		/// or the list is empty, no ordering is done.</param>
-		/// <returns></returns>
-		public static IQueryPlanNode FormQueryPlan(IDatabaseConnection db, TableSelectExpression expression, TableExpressionFromSet fromSet, IList<ByColumn> orderBy) {
-			IQueryContext context = new DatabaseQueryContext(db);
+		private static void ResolveOrderByRefs(QuerySelectColumnSet columnSet, IEnumerable<ByColumn> orderBy) {
+			// Resolve any numerical references in the ORDER BY list (eg.
+			// '1' will be a reference to column 1.
 
-			// ----- Resolve the SELECT list
+			if (orderBy != null) {
+				List<SelectColumn> preparedColSet = columnSet.SelectedColumns;
+				foreach (ByColumn col in orderBy) {
+					Expression exp = col.Expression;
+					if (exp.Count != 1)
+						continue;
 
+					object lastElem = exp.Last;
+					if (!(lastElem is TObject))
+						continue;
+
+					BigNumber bnum = ((TObject)lastElem).ToBigNumber();
+					if (bnum.Scale != 0)
+						continue;
+
+					int colRef = bnum.ToInt32() - 1;
+					if (colRef < 0 || colRef >= preparedColSet.Count)
+						continue;
+
+					SelectColumn scol = preparedColSet[colRef];
+					col.SetExpression(new Expression(scol.Expression));
+				}
+			}
+		}
+
+		private static QuerySelectColumnSet BuildColumnSet(TableSelectExpression expression, TableExpressionFromSet fromSet) {
 			// What we are selecting
-			QuerySelectColumnSet columnSet = new QuerySelectColumnSet(fromSet);
+			var columnSet = new QuerySelectColumnSet(fromSet);
 
 			// The list of columns being selected.
 			List<SelectColumn> columns = expression.Columns;
-
-			// If there are 0 columns selected, then we assume the result should
-			// show all of the columns in the result.
-			bool doSubsetColumn = (columns.Count != 0);
 
 			// For each column being selected
 			foreach (SelectColumn col in columns) {
@@ -283,47 +290,21 @@ namespace Deveel.Data.Query {
 				}
 			}  // for each column selected
 
-			// Prepare the column_set,
-			columnSet.Prepare(context);
+			return columnSet;
+		}
 
-			// -----
-
-			// Resolve any numerical references in the ORDER BY list (eg.
-			// '1' will be a reference to column 1.
-
-			if (orderBy != null) {
-				List<SelectColumn> preparedColSet = columnSet.SelectedColumns;
-				foreach (ByColumn col in orderBy) {
-					Expression exp = col.Expression;
-					if (exp.Count == 1) {
-						object lastElem = exp.Last;
-						if (lastElem is TObject) {
-							BigNumber bnum = ((TObject)lastElem).ToBigNumber();
-							if (bnum.Scale == 0) {
-								int col_ref = bnum.ToInt32() - 1;
-								if (col_ref >= 0 && col_ref < preparedColSet.Count) {
-									SelectColumn scol = preparedColSet[col_ref];
-									col.SetExpression(new Expression(scol.Expression));
-								}
-							}
-						}
-					}
-				}
-			}
-
-			// -----
-
+		private static QueryTableSetPlanner SetupPlanners(IDatabaseConnection db, TableExpressionFromSet fromSet) {
 			// Set up plans for each table in the from clause of the command.  For
 			// sub-queries, we recurse.
 
-			QueryTableSetPlanner tablePlanner = new QueryTableSetPlanner();
+			var tablePlanner = new QueryTableSetPlanner();
 
 			for (int i = 0; i < fromSet.SetCount; ++i) {
 				IFromTableSource table = fromSet.GetTable(i);
 				if (table is FromTableSubQuerySource) {
 					// This represents a sub-command in the FROM clause
 
-					FromTableSubQuerySource sqlTable = (FromTableSubQuerySource)table;
+					var sqlTable = (FromTableSubQuerySource)table;
 					TableSelectExpression sqlExpr = sqlTable.TableExpression;
 					TableExpressionFromSet sqlFromSet = sqlTable.FromSet;
 
@@ -332,7 +313,7 @@ namespace Deveel.Data.Query {
 
 					// The top should always be a SubsetNode,
 					if (sqlPlan is SubsetNode) {
-						SubsetNode subsetNode = (SubsetNode)sqlPlan;
+						var subsetNode = (SubsetNode)sqlPlan;
 						subsetNode.SetGivenName(sqlTable.AliasedName);
 					} else {
 						throw new Exception("Top plan is not a SubsetNode!");
@@ -341,8 +322,7 @@ namespace Deveel.Data.Query {
 					tablePlanner.AddTableSource(sqlPlan, sqlTable);
 				} else if (table is FromTableDirectSource) {
 					// This represents a direct referencable table in the FROM clause
-
-					FromTableDirectSource dsTable = (FromTableDirectSource)table;
+					var dsTable = (FromTableDirectSource)table;
 					IQueryPlanNode dsPlan = dsTable.CreateFetchQueryPlanNode();
 					tablePlanner.AddTableSource(dsPlan, dsTable);
 				} else {
@@ -350,12 +330,10 @@ namespace Deveel.Data.Query {
 				}
 			}
 
-			// -----
+			return tablePlanner;
+		}
 
-			// The WHERE and HAVING clauses
-			SearchExpression whereClause = expression.Where;
-			SearchExpression havingClause = expression.Having;
-
+		private static void PrepareJoins(QueryTableSetPlanner tablePlanner, TableSelectExpression expression, TableExpressionFromSet fromSet, SearchExpression whereClause) {
 			// Look at the join set and resolve the ON Expression to this statement
 			JoiningSet joinSet = expression.From.JoinSet;
 
@@ -396,28 +374,16 @@ namespace Deveel.Data.Query {
 					}
 				}
 			}
+		}
 
-			// Prepare the WHERE and HAVING clause, qualifies all variables and
-			// prepares sub-queries.
-			PrepareSearchExpression(db, fromSet, whereClause);
-			PrepareSearchExpression(db, fromSet, havingClause);
-
-			// Any extra Aggregate functions that are part of the HAVING clause that
-			// we need to add.  This is a list of a name followed by the expression
-			// that contains the aggregate function.
-			List<Expression> extraAggregateFunctions = new List<Expression>();
-			if (havingClause != null && havingClause.FromExpression != null) {
-				Expression newHavingClause = FilterHavingClause(havingClause.FromExpression, extraAggregateFunctions, context);
-				havingClause.FromExpression = newHavingClause;
-			}
-
+		private static int ResolveGroupBy(TableSelectExpression expression, TableExpressionFromSet fromSet, IQueryContext context, out VariableName[] groupByList, out IList<Expression> groupByFunctions) {
 			// Any GROUP BY functions,
-			List<Expression> groupByFunctions = new List<Expression>();
+			groupByFunctions = new List<Expression>();
 
 			// Resolve the GROUP BY variable list references in this from set
 			IList<ByColumn> groupListIn = expression.GroupBy;
 			int gsz = groupListIn.Count;
-			VariableName[] groupByList = new VariableName[gsz];
+			groupByList = new VariableName[gsz];
 			for (int i = 0; i < gsz; ++i) {
 				ByColumn byColumn = groupListIn[i];
 				Expression exp = byColumn.Expression;
@@ -452,6 +418,10 @@ namespace Deveel.Data.Query {
 				groupByList[i] = v;
 			}
 
+			return gsz;
+		}
+
+		private static VariableName ResolveGroupMax(TableSelectExpression expression, TableExpressionFromSet fromSet) {
 			// Resolve GROUP MAX variable to a reference in this from set
 			VariableName groupmaxColumn = expression.GroupMax;
 			if (groupmaxColumn != null) {
@@ -462,42 +432,33 @@ namespace Deveel.Data.Query {
 				groupmaxColumn = v;
 			}
 
-			// -----
+			return groupmaxColumn;
+		}
 
-			// Now all the variables should be resolved and correlated variables set
-			// up as appropriate.
+		private static IQueryPlanNode EvaluateSingle(QuerySelectColumnSet columnSet) {
+			if (columnSet.AggregateCount > 0)
+				throw new StatementException("Invalid use of aggregate function in select with no FROM clause");
 
-			// If nothing in the FROM clause then simply evaluate the result of the
-			// select
-			if (fromSet.SetCount == 0) {
-				if (columnSet.AggregateCount > 0)
-					throw new StatementException("Invalid use of aggregate function in select with no FROM clause");
-
-				// Make up the lists
-				List<SelectColumn> selectedColumns = columnSet.SelectedColumns;
-				int sz1 = selectedColumns.Count;
-				string[] colNames = new string[sz1];
-				Expression[] expList = new Expression[sz1];
-				VariableName[] subsetVars = new VariableName[sz1];
-				VariableName[] aliases1 = new VariableName[sz1];
-				for (int i = 0; i < sz1; ++i) {
-					SelectColumn scol = selectedColumns[i];
-					expList[i] = scol.Expression;
-					colNames[i] = scol.InternalName.Name;
-					subsetVars[i] = new VariableName(scol.InternalName);
-					aliases1[i] = new VariableName(scol.ResolvedName);
-				}
-
-				return new SubsetNode(
-						 new CreateFunctionsNode(
-						   new SingleRowTableNode(), expList, colNames),
-						 subsetVars, aliases1);
+			// Make up the lists
+			List<SelectColumn> selectedColumns = columnSet.SelectedColumns;
+			int colCount = selectedColumns.Count;
+			var colNames = new string[colCount];
+			var expList = new Expression[colCount];
+			var subsetVars = new VariableName[colCount];
+			var aliases1 = new VariableName[colCount];
+			for (int i = 0; i < colCount; ++i) {
+				SelectColumn scol = selectedColumns[i];
+				expList[i] = scol.Expression;
+				colNames[i] = scol.InternalName.Name;
+				subsetVars[i] = new VariableName(scol.InternalName);
+				aliases1[i] = new VariableName(scol.ResolvedName);
 			}
 
-			// Plan the where clause.  The returned node is the plan to evaluate the
-			// WHERE clause.
-			IQueryPlanNode node = tablePlanner.PlanSearchExpression(expression.Where);
+			return new SubsetNode(new CreateFunctionsNode(new SingleRowTableNode(), expList, colNames), subsetVars, aliases1);
+		}
 
+
+		private static int MakeupFunctions(QuerySelectColumnSet columnSet, IList<Expression> extraAggregateFunctions, out Expression[] defFunList, out string[] defFunNames) {
 			// Make up the functions list,
 			List<SelectColumn> functionsList = columnSet.FunctionColumns;
 			int fsz = functionsList.Count;
@@ -513,13 +474,25 @@ namespace Deveel.Data.Query {
 			}
 
 			int fsz2 = completeFunList.Count / 2;
-			Expression[] defFunList = new Expression[fsz2];
-			string[] defFunNames = new string[fsz2];
+			defFunList = new Expression[fsz2];
+			defFunNames = new string[fsz2];
 			for (int i = 0; i < fsz2; ++i) {
 				defFunList[i] = (Expression)completeFunList[i * 2];
 				defFunNames[i] = (string)completeFunList[(i * 2) + 1];
 			}
 
+			return fsz;
+		}
+
+		private static IQueryPlanNode PlanGroup(IQueryPlanNode node,
+			QuerySelectColumnSet columnSet,
+			VariableName groupmaxColumn,
+			int gsz,
+			VariableName[] groupByList,
+			IList<Expression> groupByFunctions,
+			int fsz,
+			string[] defFunNames,
+			Expression[] defFunList) {
 			// If there is more than 1 aggregate function or there is a group by
 			// clause, then we must add a grouping plan.
 			if (columnSet.AggregateCount > 0 || gsz > 0) {
@@ -531,13 +504,13 @@ namespace Deveel.Data.Query {
 					// Do we have any group by functions that need to be planned first?
 					int gfsz = groupByFunctions.Count;
 					if (gfsz > 0) {
-						Expression[] group_fun_list = new Expression[gfsz];
-						String[] group_fun_name = new String[gfsz];
+						var groupFunList = new Expression[gfsz];
+						var groupFunName = new String[gfsz];
 						for (int i = 0; i < gfsz; ++i) {
-							group_fun_list[i] = groupByFunctions[i];
-							group_fun_name[i] = "#GROUPBY-" + i;
+							groupFunList[i] = groupByFunctions[i];
+							groupFunName[i] = "#GROUPBY-" + i;
 						}
-						node = new CreateFunctionsNode(node, group_fun_list, group_fun_name);
+						node = new CreateFunctionsNode(node, groupFunList, groupFunName);
 					}
 
 					// Otherwise we provide the 'group_by_list' argument
@@ -550,6 +523,94 @@ namespace Deveel.Data.Query {
 				if (fsz > 0)
 					node = new CreateFunctionsNode(node, defFunList, defFunNames);
 			}
+
+			return node;
+		}
+
+		/// <summary>
+		/// Forms a command plan <see cref="IQueryPlanNode"/> from the given 
+		/// <see cref="TableSelectExpression"/> and <see cref="TableExpressionFromSet"/>.
+		/// </summary>
+		/// <param name="db"></param>
+		/// <param name="expression">Describes the <i>SELECT</i> command 
+		/// (or sub-command).</param>
+		/// <param name="fromSet">Used to resolve expression references.</param>
+		/// <param name="orderBy">A list of <see cref="ByColumn"/> objects 
+		/// that represent an optional <i>ORDER BY</i> clause. If this is null 
+		/// or the list is empty, no ordering is done.</param>
+		/// <returns></returns>
+		public static IQueryPlanNode FormQueryPlan(IDatabaseConnection db, TableSelectExpression expression, TableExpressionFromSet fromSet, IList<ByColumn> orderBy) {
+			IQueryContext context = new DatabaseQueryContext(db);
+
+			// ----- Resolve the SELECT list
+			// If there are 0 columns selected, then we assume the result should
+			// show all of the columns in the result.
+			bool doSubsetColumn = (expression.Columns.Count != 0);
+
+			// What we are selecting
+			var columnSet = BuildColumnSet(expression, fromSet);
+
+			// Prepare the column_set,
+			columnSet.Prepare(context);
+
+			ResolveOrderByRefs(columnSet, orderBy);
+
+			// -----
+
+			// Set up plans for each table in the from clause of the command.  For
+			// sub-queries, we recurse.
+
+			var tablePlanner = SetupPlanners(db, fromSet);
+
+			// -----
+
+			// The WHERE and HAVING clauses
+			SearchExpression whereClause = expression.Where;
+			SearchExpression havingClause = expression.Having;
+
+			PrepareJoins(tablePlanner, expression, fromSet, whereClause);
+
+			// Prepare the WHERE and HAVING clause, qualifies all variables and
+			// prepares sub-queries.
+			PrepareSearchExpression(db, fromSet, whereClause);
+			PrepareSearchExpression(db, fromSet, havingClause);
+
+			// Any extra Aggregate functions that are part of the HAVING clause that
+			// we need to add.  This is a list of a name followed by the expression
+			// that contains the aggregate function.
+			var extraAggregateFunctions = new List<Expression>();
+			if (havingClause != null && havingClause.FromExpression != null) {
+				Expression newHavingClause = FilterHavingClause(havingClause.FromExpression, extraAggregateFunctions, context);
+				havingClause.FromExpression = newHavingClause;
+			}
+
+			// Any GROUP BY functions,
+			VariableName[] groupByList;
+			IList<Expression> groupByFunctions;
+			var gsz = ResolveGroupBy(expression, fromSet, context, out groupByList, out groupByFunctions);
+
+			// Resolve GROUP MAX variable to a reference in this from set
+			VariableName groupmaxColumn = ResolveGroupMax(expression, fromSet);
+
+			// -----
+
+			// Now all the variables should be resolved and correlated variables set
+			// up as appropriate.
+
+			// If nothing in the FROM clause then simply evaluate the result of the
+			// select
+			if (fromSet.SetCount == 0)
+				return EvaluateSingle(columnSet);
+
+			// Plan the where clause.  The returned node is the plan to evaluate the
+			// WHERE clause.
+			IQueryPlanNode node = tablePlanner.PlanSearchExpression(expression.Where);
+
+			Expression[] defFunList;
+			string[] defFunNames;
+			var fsz = MakeupFunctions(columnSet, extraAggregateFunctions, out defFunList, out defFunNames);
+
+			node = PlanGroup(node, columnSet, groupmaxColumn, gsz, groupByList, groupByFunctions, fsz, defFunNames, defFunList);
 
 			// The result column list
 			List<SelectColumn> selectColumns = columnSet.SelectedColumns;
@@ -640,15 +701,15 @@ namespace Deveel.Data.Query {
 		/// </remarks>
 		/// <returns></returns>
 		private static IQueryPlanNode PlanForOrderBy(IQueryPlanNode plan, IList<ByColumn> orderBy, TableExpressionFromSet fromSet, IList<SelectColumn> selectedColumns) {
-			TableName functionTable = new TableName("FUNCTIONTABLE");
+			var functionTable = new TableName("FUNCTIONTABLE");
 
 			// Sort on the ORDER BY clause
 			if (orderBy.Count > 0) {
 				int sz = orderBy.Count;
-				VariableName[] orderList = new VariableName[sz];
-				bool[] ascendingList = new bool[sz];
+				var orderList = new VariableName[sz];
+				var ascendingList = new bool[sz];
 
-				List<Expression> functionOrders = new List<Expression>();
+				var functionOrders = new List<Expression>();
 
 				for (int i = 0; i < sz; ++i) {
 					ByColumn column = orderBy[i];
@@ -656,12 +717,12 @@ namespace Deveel.Data.Query {
 					ascendingList[i] = column.Ascending;
 					VariableName v = exp.AsVariableName();
 					if (v != null) {
-						VariableName new_v = fromSet.ResolveReference(v);
-						if (new_v == null)
+						VariableName newV = fromSet.ResolveReference(v);
+						if (newV == null)
 							throw new StatementException("Can not resolve ORDER BY variable: " + v);
 
-						SubstituteAliasedVariable(new_v, selectedColumns);
-						orderList[i] = new_v;
+						SubstituteAliasedVariable(newV, selectedColumns);
+						orderList[i] = newV;
 					} else {
 						// Otherwise we must be ordering by an expression such as
 						// '0 - a'.
@@ -686,8 +747,8 @@ namespace Deveel.Data.Query {
 				// command node.
 				int fsz = functionOrders.Count;
 				if (fsz > 0) {
-					Expression[] funs = new Expression[fsz];
-					string[] fnames = new String[fsz];
+					var funs = new Expression[fsz];
+					var fnames = new String[fsz];
 					for (int n = 0; n < fsz; ++n) {
 						funs[n] = functionOrders[n];
 						fnames[n] = "#ORDER-" + n;
@@ -697,7 +758,7 @@ namespace Deveel.Data.Query {
 						// If the top plan is a QueryPlan.SubsetNode then we use the
 						//   information from it to create a new SubsetNode that
 						//   doesn't include the functional orders we have attached here.
-						SubsetNode topSubsetNode = (SubsetNode)plan;
+						var topSubsetNode = (SubsetNode)plan;
 						VariableName[] mappedNames = topSubsetNode.NewColumnNames;
 
 						// Defines the sort functions
@@ -739,7 +800,7 @@ namespace Deveel.Data.Query {
 				SubstituteAliasedVariable(v, columns);
 		}
 
-		private static void SubstituteAliasedVariable(VariableName v, IList<SelectColumn> columns) {
+		private static void SubstituteAliasedVariable(VariableName v, IEnumerable<SelectColumn> columns) {
 			if (columns != null) {
 				foreach (SelectColumn scol in columns) {
 					if (v.Equals(scol.ResolvedName)) 
@@ -766,9 +827,6 @@ namespace Deveel.Data.Query {
 			/// </summary>
 			private readonly TableExpressionFromSet fromSet;
 
-			private readonly List<SelectColumn> selectedColumns;
-			private readonly List<SelectColumn> functionColumns;
-
 			/// <summary>
 			/// The current number of 'FUNCTIONTABLE.' columns in the table.  This is
 			/// incremented for each custom column.
@@ -778,36 +836,26 @@ namespace Deveel.Data.Query {
 			// The count of aggregate and constant columns included in the result set.
 			// Aggregate columns are, (count(*), avg(cost_of) * 0.75, etc).  Constant
 			// columns are, (9 * 4, 2, (9 * 7 / 4) + 4, etc).
-			private int aggregateCount;
-			private int constantCount;
 
 			public QuerySelectColumnSet(TableExpressionFromSet fromSet) {
 				this.fromSet = fromSet;
-				selectedColumns = new List<SelectColumn>();
-				functionColumns = new List<SelectColumn>();
+				SelectedColumns = new List<SelectColumn>();
+				FunctionColumns = new List<SelectColumn>();
 			}
 
 			/// <summary>
 			/// The list of SelectColumn.
 			/// </summary>
-			public List<SelectColumn> SelectedColumns {
-				get { return selectedColumns; }
-			}
+			public List<SelectColumn> SelectedColumns { get; private set; }
 
 			/// <summary>
 			/// The list of functions in this column set.
 			/// </summary>
-			public List<SelectColumn> FunctionColumns {
-				get { return functionColumns; }
-			}
+			public List<SelectColumn> FunctionColumns { get; private set; }
 
-			public int AggregateCount {
-				get { return aggregateCount; }
-			}
+			public int AggregateCount { get; private set; }
 
-			public int ConstantCount {
-				get { return constantCount; }
-			}
+			public int ConstantCount { get; private set; }
 
 			/// <summary>
 			/// Adds a single SelectColumn to the list of output columns 
@@ -819,7 +867,7 @@ namespace Deveel.Data.Query {
 			/// SelectColumn may not be completely qualified.
 			/// </remarks>
 			public void SelectSingleColumn(SelectColumn col) {
-				selectedColumns.Add(col);
+				SelectedColumns.Add(col);
 			}
 
 			/// <summary>
@@ -899,19 +947,19 @@ namespace Deveel.Data.Query {
 
 					// If this is an aggregate column then add to aggregate count.
 					if (col.Expression.HasAggregateFunction(context)) {
-						++aggregateCount;
+						++AggregateCount;
 						// Add '_A' code to end of internal name of column to signify this is
 						// an aggregate column
 						aggStr += "_A";
 					}
 						// If this is a constant column then add to constant cound.
 					else if (col.Expression.IsConstant) {
-						constantCount = ConstantCount + 1;
+						ConstantCount = ConstantCount + 1;
 					} else {
 						// Must be an expression with variable's embedded ( eg.
 						//   (part_id + 3) * 4, (id * value_of_part), etc )
 					}
-					functionColumns.Add(col);
+					FunctionColumns.Add(col);
 
 					col.InternalName = new VariableName(FunctionTableName, aggStr);
 					if (col.Alias == null) {
@@ -939,274 +987,9 @@ namespace Deveel.Data.Query {
 				// NOTE: A side-effect of this is that it qualifies all the Expressions
 				//   that are functions in TableExpressionFromSet.  After this section,
 				//   we can dereference variables for their function Expression.
-				foreach (SelectColumn column in selectedColumns) {
+				foreach (SelectColumn column in SelectedColumns) {
 					PrepareSelectColumn(column, context);
 				}
-			}
-		}
-
-		/// <summary>
-		/// Represents a single table source being planned.
-		/// </summary>
-		private sealed class PlanTableSource {
-			/// <summary>
-			/// The Plan for this table source.
-			/// </summary>
-			private IQueryPlanNode plan;
-
-			/// <summary>
-			/// The list of fully qualified Variable objects that are accessable 
-			/// within this plan.
-			/// </summary>
-			private readonly VariableName[] variables;
-
-			/// <summary>
-			/// The list of unique key names of the tables in this plan.
-			/// </summary>
-			private readonly string[] uniqueNames;
-
-			/// <summary>
-			/// Set to true when this source has been updated from when it was
-			/// constructed or copied.
-			/// </summary>
-			private bool isUpdated;
-
-			// How this plan is naturally joined to other plans in the source.  A
-			// plan either has no dependance, a left or a right dependance, or a left
-			// and right dependance.
-			private PlanTableSource leftPlan;
-			private PlanTableSource rightPlan;
-			private JoinType leftJoinType;
-			private JoinType rightJoinType;
-			private Expression leftOnExpr;
-			private Expression rightOnExpr;
-
-
-			public PlanTableSource(IQueryPlanNode plan, VariableName[] variables, string[] uniqueNames) {
-				this.plan = plan;
-				this.variables = variables;
-				this.uniqueNames = uniqueNames;
-				leftJoinType = JoinType.None;
-				rightJoinType = JoinType.None;
-				isUpdated = false;
-			}
-
-			/// <summary>
-			/// Sets the left join information for this plan.
-			/// </summary>
-			/// <param name="left"></param>
-			/// <param name="joinType"></param>
-			/// <param name="onExpression"></param>
-			public void SetLeftJoinInfo(PlanTableSource left, JoinType joinType, Expression onExpression) {
-				leftPlan = left;
-				leftJoinType = joinType;
-				leftOnExpr = onExpression;
-			}
-
-			/// <summary>
-			/// Sets the right join information for this plan.
-			/// </summary>
-			/// <param name="right"></param>
-			/// <param name="joinType"></param>
-			/// <param name="onExpression"></param>
-			public void SetRightJoinInfo(PlanTableSource right, JoinType joinType, Expression onExpression) {
-				rightPlan = right;
-				rightJoinType = joinType;
-				rightOnExpr = onExpression;
-			}
-
-			/// <summary>
-			/// This is called when two plans are merged together to set 
-			/// up the left and right join information for the new plan.
-			/// </summary>
-			/// <param name="left"></param>
-			/// <param name="right"></param>
-			/// <remarks>
-			/// This sets the left join info from the left plan and the 
-			/// right join info from the right plan.
-			/// </remarks>
-			public void SetJoinInfoMergedBetween(PlanTableSource left, PlanTableSource right) {
-				if (left.rightPlan != right) {
-					if (left.rightPlan != null) {
-						SetRightJoinInfo(left.rightPlan, left.rightJoinType, left.rightOnExpr);
-						rightPlan.leftPlan = this;
-					}
-					if (right.leftPlan != null) {
-						SetLeftJoinInfo(right.leftPlan, right.leftJoinType, right.leftOnExpr);
-						leftPlan.rightPlan = this;
-					}
-				}
-				if (left.leftPlan != right) {
-					if (leftPlan == null && left.leftPlan != null) {
-						SetLeftJoinInfo(left.leftPlan, left.leftJoinType, left.leftOnExpr);
-						leftPlan.rightPlan = this;
-					}
-					if (rightPlan == null && right.rightPlan != null) {
-						SetRightJoinInfo(right.rightPlan, right.rightJoinType, right.rightOnExpr);
-						rightPlan.leftPlan = this;
-					}
-				}
-
-			}
-
-			/// <summary>
-			/// Returns true if this table source contains the variable reference.
-			/// </summary>
-			/// <param name="v"></param>
-			/// <returns></returns>
-			public bool ContainsVariable(VariableName v) {
-				foreach (VariableName variable in variables) {
-					if (variable.Equals(v))
-						return true;
-				}
-
-				return false;
-			}
-
-			/// <summary>
-			/// Checks if the plan contains the given unique table name.
-			/// </summary>
-			/// <param name="name"></param>
-			/// <returns>
-			/// Returns <b>true</b> if this table source contains the 
-			/// unique table name reference, otherwise <b>false</b>.
-			/// </returns>
-			public bool ContainsUniqueKey(string name) {
-				foreach (string uniqueName in uniqueNames) {
-					if (uniqueName.Equals(name))
-						return true;
-				}
-				return false;
-			}
-
-			/// <summary>
-			/// Sets the updated flag.
-			/// </summary>
-			public void SetUpdated() {
-				isUpdated = true;
-			}
-
-			/// <summary>
-			/// Updates the plan.
-			/// </summary>
-			/// <param name="node"></param>
-			public void UpdatePlan(IQueryPlanNode node) {
-				plan = node;
-				SetUpdated();
-			}
-
-			/// <summary>
-			/// Returns the plan for this table source.
-			/// </summary>
-			public IQueryPlanNode Plan {
-				get { return plan; }
-				set { plan = value; }
-			}
-
-			/// <summary>
-			/// Returns true if the planner was updated.
-			/// </summary>
-			public bool IsUpdated {
-				get { return isUpdated; }
-			}
-
-			/// <summary>
-			/// The list of fully qualified Variable objects that are accessable 
-			/// within this plan.
-			/// </summary>
-			public VariableName[] VariableNames {
-				get { return variables; }
-			}
-
-			/// <summary>
-			/// The list of unique key names of the tables in this plan.
-			/// </summary>
-			public string[] UniqueNames {
-				get { return uniqueNames; }
-			}
-
-			public PlanTableSource LeftPlan {
-				get { return leftPlan; }
-				set { leftPlan = value; }
-			}
-
-			public PlanTableSource RightPlan {
-				get { return rightPlan; }
-				set { rightPlan = value; }
-			}
-
-			public JoinType LeftJoinType {
-				get { return leftJoinType; }
-				set { leftJoinType = value; }
-			}
-
-			public JoinType RightJoinType {
-				get { return rightJoinType; }
-				set { rightJoinType = value; }
-			}
-
-			public Expression LeftOnExpression {
-				get { return leftOnExpr; }
-				set { leftOnExpr = value; }
-			}
-
-			public Expression RightOnExpression {
-				get { return rightOnExpr; }
-				set { rightOnExpr = value; }
-			}
-
-			/// <summary>
-			/// Makes a copy of this table source.
-			/// </summary>
-			/// <returns></returns>
-			public PlanTableSource Copy() {
-				return new PlanTableSource(plan, variables, uniqueNames);
-			}
-		}
-
-		/// <summary>
-		/// An abstract class that represents an expression to be added 
-		/// into a plan.
-		/// </summary>
-		/// <remarks>
-		/// Many sets of expressions can be added into the plan tree in 
-		/// any order, however it is often desirable to add some more 
-		/// intensive expressions higher up the branches. This object 
-		/// allows us to order expressions by optimization value. More 
-		/// optimizable expressions are put near the leafs of the plan 
-		/// tree and least optimizable and put near the top.
-		/// </remarks>
-		abstract class ExpressionPlan : IComparable {
-			/// <summary>
-			/// How optimizable an expression is.
-			/// </summary>
-			/// <remarks>
-			/// A value of 0 indicates most optimizable and 1 
-			/// indicates least optimizable.
-			/// </remarks>
-			private float optimizableValue;
-
-			/// <summary>
-			/// Gets or sets the optimizable value for the plan.
-			/// </summary>
-			public float OptimizableValue {
-				get { return optimizableValue; }
-				set { optimizableValue = value; }
-			}
-
-			/// <summary>
-			/// Adds this expression into the plan tree.
-			/// </summary>
-			public abstract void AddToPlanTree();
-
-			public int CompareTo(Object ob) {
-				ExpressionPlan other = (ExpressionPlan)ob;
-				float otherValue = other.OptimizableValue;
-				if (optimizableValue > otherValue)
-					return 1;
-				if (optimizableValue < otherValue)
-					return -1;
-				return 0;
 			}
 		}
 	}

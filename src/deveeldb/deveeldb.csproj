@@ -106,6 +106,9 @@
     <Compile Include="Deveel.Data.DbSystem\OldNewTableState.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
     <Compile Include="Deveel.Data.Index\IIndex_T.cs" />
+    <Compile Include="Deveel.Data.Query\ExpressionPlan.cs" />
+    <Compile Include="Deveel.Data.Query\PlanTableSource.cs" />
+    <Compile Include="Deveel.Data.Query\QueryTableSetPlanner.cs" />
     <Compile Include="Deveel.Data.Routines\ConnectionRoutines.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteContext.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
@@ -194,7 +197,6 @@
     <Compile Include="Deveel.Data.Query\MultiColumnEquiSelectNode.cs" />
     <Compile Include="Deveel.Data.Query\NaturalJoinNode.cs" />
     <Compile Include="Deveel.Data.Query\NonCorrelatedAnyAllNode.cs" />
-    <Compile Include="Deveel.Data.Query\Planner_QueryTableSetPlanner.cs" />
     <Compile Include="Deveel.Data.Query\RangeSelectNode.cs" />
     <Compile Include="Deveel.Data.Query\SimplePatternSelectNode.cs" />
     <Compile Include="Deveel.Data.Query\SimpleSelectNode.cs" />
@@ -362,7 +364,7 @@
     <Compile Include="Deveel.Data.Index\CollatedBaseSearch.cs" />
     <Compile Include="Deveel.Data.DbSystem\CompositeFunction.cs" />
     <Compile Include="Deveel.Data.DbSystem\CompositeTable.cs" />
-    <Compile Include="Deveel.Data.DbSystem\ConnectionTriggerManager.cs" />
+    <Compile Include="Deveel.Data.Routines\ConnectionTriggerManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\ConstraintAction.cs" />
     <Compile Include="Deveel.Data.DbSystem\ConstraintDeferrability.cs" />
     <Compile Include="Deveel.Data.DbSystem\ConstraintType.cs" />
@@ -495,10 +497,10 @@
     <Compile Include="Deveel.Data.Transactions\TransactionJournal.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemContext.cs" />
     <Compile Include="Deveel.Data.Transactions\Transaction_Tables.cs" />
-    <Compile Include="Deveel.Data.DbSystem\TriggerCallback.cs" />
-    <Compile Include="Deveel.Data.DbSystem\TriggerEventArgs.cs" />
-    <Compile Include="Deveel.Data.DbSystem\TriggerEventType.cs" />
-    <Compile Include="Deveel.Data.DbSystem\TriggerType.cs" />
+    <Compile Include="Deveel.Data.Routines\TriggerCallback.cs" />
+    <Compile Include="Deveel.Data.Routines\TriggerEventArgs.cs" />
+    <Compile Include="Deveel.Data.Routines\TriggerEventType.cs" />
+    <Compile Include="Deveel.Data.Routines\TriggerType.cs" />
     <Compile Include="Deveel.Data.Types\TStringType.cs" />
     <Compile Include="Deveel.Data.Types\TType.cs" />
     <Compile Include="Deveel.Data\TypeUtil.cs" />
