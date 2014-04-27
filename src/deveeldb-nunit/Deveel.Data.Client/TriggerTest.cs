@@ -3,6 +3,7 @@ using System.Data;
 using System.Threading;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 
 using NUnit.Framework;

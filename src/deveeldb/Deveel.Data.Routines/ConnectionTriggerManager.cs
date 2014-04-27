@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -13,17 +13,16 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-using Deveel.Data.Routines;
+using Deveel.Data.DbSystem;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// A trigger manager on a <see cref="DatabaseConnection"/> that maintains 
 	/// a list of all triggers set in the database, and the types of triggers 

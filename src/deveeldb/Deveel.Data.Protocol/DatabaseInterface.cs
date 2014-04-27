@@ -18,6 +18,7 @@ using System.Text;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Threading;

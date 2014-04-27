@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// The different types of high layer trigger events.
 	/// </summary>

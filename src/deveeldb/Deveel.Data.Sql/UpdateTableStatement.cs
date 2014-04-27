@@ -19,6 +19,7 @@ using System.Runtime.Serialization;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Query;
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql {

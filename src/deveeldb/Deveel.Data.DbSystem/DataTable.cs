@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Threading;
 using Deveel.Diagnostics;

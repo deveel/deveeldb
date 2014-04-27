@@ -13,7 +13,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Routines {
 	public enum TriggerType {
 		Callback = 1,
 		Procedure = 2
