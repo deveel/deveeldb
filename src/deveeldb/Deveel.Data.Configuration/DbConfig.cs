@@ -32,8 +32,6 @@ namespace Deveel.Data.Configuration {
 		/// </summary>
 		private Dictionary<string, object> properties;
 
-		//private static DbConfig defaultConfig;
-
 		public const int DefaultDataCacheSize = 256;
 
 		/// <summary>
@@ -66,12 +64,26 @@ namespace Deveel.Data.Configuration {
 			: this(parent, null) {
 		}
 
+		static DbConfig() {
+			Default = new DbConfig {
+				properties = new Dictionary<string, object> {
+					{ConfigKeys.BasePath, ConfigDefaultValues.BasePath},
+					{ConfigKeys.CacheType, ConfigDefaultValues.HeapCache},
+					{ConfigKeys.StorageSystem, ConfigDefaultValues.HeapStorageSystem},
+					{ConfigKeys.DefaultSchema, ConfigDefaultValues.DefaultSchema},
+					{ConfigKeys.IgnoreIdentifiersCase, ConfigDefaultValues.IgnoreIdentifiersCase}
+				}
+			};
+		}
+
 		/// <summary>
 		/// Gets or sets the parent set of conigurations
 		/// </summary>
 		public IDbConfig Parent { get; set; }
 
 		public IConfigSource Source { get; set; }
+
+		public static DbConfig Default { get; private set; }
 
 		public void SetValue(string key, object value) {
 			properties[key] = value;

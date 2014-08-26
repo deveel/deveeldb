@@ -107,7 +107,8 @@ namespace Deveel.Data.DbSystem {
 		public bool Exists {
 			get {
 				if (IsInitialized)
-					throw new Exception("The database is initialised, so no point testing it's existance.");
+					//throw new Exception("The database is initialised, so no point testing it's existance.");
+					return true;
 
 				try {
 					// HACK: If the legacy style '.sf' state file exists then we must return
@@ -535,12 +536,14 @@ namespace Deveel.Data.DbSystem {
 				if (IsInitialized)
 					Console.Error.WriteLine("Database object was finalized and is initialized!");
 
-				GC.SuppressFinalize(this);
+				Conglomerate.Dispose();
+				Context.Dispose();
 			}
 		}
 
 		public void Dispose() {
 			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		#endregion

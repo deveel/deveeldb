@@ -56,7 +56,6 @@ namespace Deveel.Data.Control {
 
 		private readonly Hashtable databases;
 		private readonly IDbConfig configContext;
-		private ILogger logger;
 
 		/// <summary>
 		/// The default name of a database configuration file.
@@ -97,12 +96,11 @@ namespace Deveel.Data.Control {
 			}
 		}
 
-		public ILogger Logger {
-			get { return logger; }
-		}
+		public ILogger Logger { get; private set; }
 
 		private void SetupLog(IDbConfig config) {
 			//TODO:
+			Logger = new EmptyLogger();
 		}
 
 		private void Dispose(bool disposing) {
@@ -110,7 +108,9 @@ namespace Deveel.Data.Control {
 				// if we are still managing databases, call a Shutdown on each one...
 				if (databases.Count > 0) {
 					foreach (Database database in databases.Values) {
-						database.Shutdown();
+						if (database.IsInitialized)
+							database.Shutdown();
+						database.Dispose();
 					}
 
 					databases.Clear();
@@ -249,7 +249,7 @@ namespace Deveel.Data.Control {
 				mainConfig = config;
 			}
 
-			DbController controller = new DbController(mainConfig);
+			var controller = new DbController(mainConfig);
 
 			if (storageType == StorageType.File) {
 				// done with the main configuration... now look for the databases...
@@ -263,19 +263,18 @@ namespace Deveel.Data.Control {
 					string name = dbConfig.GetValue<string>("name");
 					if (name == null)
 						name = dir.Substring(dir.LastIndexOf(Path.DirectorySeparatorChar) + 1);
-
-					string dbPath = Path.Combine(path, name);
 					
-					dbConfig.SetValue(ConfigKeys.DatabasePath, dbPath);
+					dbConfig.SetValue(ConfigKeys.DatabasePath, dir);
 
-					if (controller.DatabaseExists(config, name))
+					if (controller.IsDatabaseRegistered(name))
 						throw new InvalidOperationException("The database '" + name + "' was already registered.");
 
 					IDatabase database = CreateDatabase(dbConfig, name);
+					controller.databases[name] = database;
+
 					if (database.Exists) {
-						DatabaseShutdownCallback callback = new DatabaseShutdownCallback(controller, database);
-						database.Context.OnShutdown += new EventHandler(callback.Execute);
-						controller.databases[name] = database;
+						var callback = new DatabaseShutdownCallback(controller, database);
+						database.Context.OnShutdown += (callback.Execute);
 					}
 				}
 			}
@@ -317,6 +316,23 @@ namespace Deveel.Data.Control {
 		/// <summary>
 		///  Checks if a database exists within the current context.
 		/// </summary>
+		/// <param name="name">The name of the database.</param>
+		///  <remarks>
+		///  Databases are stored in a file-system hieratical way: the
+		///  existance of a database within the current context is verified
+		///  by combining the name of the database with the path of the
+		///  current context.
+		///  </remarks>
+		/// <returns>
+		///  Returns true if a database exists at the given path, false otherwise.
+		///  </returns>
+		public bool DatabaseExists(string name) {
+			return DatabaseExists(null, name);
+		}
+
+		/// <summary>
+		///  Checks if a database exists within the current context.
+		/// </summary>
 		/// <param name="config"></param>
 		/// <param name="name">The name of the database.</param>
 		///  <remarks>
@@ -330,33 +346,42 @@ namespace Deveel.Data.Control {
 		///  </returns>
 		public bool DatabaseExists(IDbConfig config, string name) {
 			// a fast fail...
-			Database database = databases[name] as Database;
-			if (database == null) {
-				IDbConfig testConfig;
+			var database = databases[name] as Database;
+			if (database != null) {
+				if (database.IsInitialized)
+					return true;
 
-				if (config == null) {
-					testConfig = new DbConfig();
-				} else {
-					testConfig = (IDbConfig) config.Clone();
-				}
-
-				testConfig.Parent = Config;
-
-				StorageType storageType = GetStorageType(testConfig);
-
-				if (storageType == StorageType.File) {
-					// we ensure that the BasePath points to where we want it to point
-					string path = Path.Combine(config.BasePath(), name);
-					return Directory.Exists(path);
-				}
-
-				return false;
+				if (database.Exists)
+					return true;
 			}
-				
-			if (database.IsInitialized)
-				return true;
 
-			return database.Exists;
+			IDbConfig testConfig;
+
+			if (config == null) {
+				testConfig = new DbConfig();
+			} else {
+				testConfig = (IDbConfig) config.Clone();
+			}
+
+			testConfig.Parent = Config;
+
+			StorageType storageType = GetStorageType(testConfig);
+
+			if (storageType == StorageType.File) {
+				var basePath = testConfig.BasePath();
+				if (String.IsNullOrEmpty(basePath))
+					basePath = ConfigDefaultValues.BasePath;
+
+				// we ensure that the BasePath points to where we want it to point
+				string path = Path.Combine(basePath, name);
+				return Directory.Exists(path);
+			}
+
+			return false;
+		}
+
+		private bool IsDatabaseRegistered(string name) {
+			return databases.ContainsKey(name);
 		}
 
 		/// <inheritdoc/>
@@ -428,11 +453,11 @@ namespace Deveel.Data.Control {
 			if (name == null)
 				throw new ArgumentNullException("name");
 
-			if (DatabaseExists(config, name))
-				throw new ArgumentException("A database '" + name + "' already exists.");
-
 			if (config == null)
 				config = new DbConfig();
+
+			if (DatabaseExists(config, name))
+				throw new ArgumentException("A database '" + name + "' already exists.");
 
 			config.Parent = Config;
 
@@ -446,7 +471,7 @@ namespace Deveel.Data.Control {
 
 				Directory.CreateDirectory(path);
 
-				config.SetValue(ConfigKeys.DatabasePath, "./" + name);
+				config.SetValue(ConfigKeys.DatabasePath, path);
 
 				string configFile = Path.Combine(path, DefaultConfigFileName);
 				//TODO: support multiple formats?
@@ -468,6 +493,58 @@ namespace Deveel.Data.Control {
 			// Return the DbSystem object for the newly created database.
 			databases[name] = database;
 			return new DbSystem(this, name, config, database);
+		}
+
+		public bool DeleteDatabase(string name, string adminName, string adminPass) {
+			return DeleteDatabase(null, name, adminName, adminPass);
+		}
+
+		public bool DeleteDatabase(IDbConfig config, string name, string adminName, string adminPass) {
+			if (String.IsNullOrEmpty(name))
+				throw new ArgumentNullException("name");
+
+			if (config == null)
+				config = new DbConfig();
+
+			if (!DatabaseExists(config, name))
+				return false;
+
+			config.Parent = Config;
+
+			IDatabase database = GetDatabase(name);
+			if (database == null)
+				return false;
+			
+			// TODO: query the db to see if the user is the admin
+
+			try {
+				//TODO: close all connections to the database
+
+				try {
+					if (database.IsInitialized)
+					database.Shutdown();
+				} finally {
+					database.Dispose();
+
+					if (databases.ContainsKey(name))
+						databases.Remove(name);
+				}			
+			} catch (Exception ex) {
+				Logger.Error(ex);
+			}
+
+			StorageType storageType = GetStorageType(config);
+
+			if (storageType == StorageType.File) {
+				// we ensure that the BasePath points to where we want it to point
+				string path = Path.Combine(config.BasePath(), name);
+				if (!Directory.Exists(path))
+					return false;
+
+				Directory.Delete(path, true);
+			}
+
+			return true;
 		}
 
 		/// <summary>
@@ -551,7 +628,31 @@ namespace Deveel.Data.Control {
 		/// <exception cref="InvalidOperationException">
 		/// If the database was not initialized.
 		/// </exception>
+		public DbSystem ConnectToDatabase(string name) {
+			return ConnectToDatabase(null, name);
+		}
+
+		/// <summary>
+		/// Connects to the database identified by the name given.
+		/// </summary>
+		/// <param name="config"></param>
+		/// <param name="name">The name of the database to connect to.</param>
+		/// <returns>
+		/// Returns a <see cref="DbSystem"/> instance used to access the database.
+		/// </returns>
+		/// <exception cref="ArgumentException">
+		/// If a database with the given <paramref name="name"/> does not exist.
+		/// </exception>
+		/// <exception cref="ArgumentNullException">
+		/// If the <paramref name="name"/> provided is <b>null</b>.
+		/// </exception>
+		/// <exception cref="InvalidOperationException">
+		/// If the database was not initialized.
+		/// </exception>
 		public DbSystem ConnectToDatabase(IDbConfig config, string name) {
+			if (config == null)
+				config = new DbConfig();
+
 			if (!DatabaseExists(config, name))
 				throw new ArgumentException("Database '" + name + "' not existing.", "name");
 
@@ -571,7 +672,7 @@ namespace Deveel.Data.Control {
 		/// <param name="name"></param>
 		/// <returns></returns>
 		private static IDatabase CreateDatabase(IDbConfig config, string name) {
-			DatabaseContext context = new DatabaseContext();
+			var context = new DatabaseContext();
 
 			// Initialize the DatabaseSystem first,
 			// ------------------------------------
@@ -583,7 +684,7 @@ namespace Deveel.Data.Control {
 			// Start the database class
 			// ------------------------
 
-			Database database = new Database(context, name);
+			var database = new Database(context, name);
 
 			// Start up message
 			database.Context.Logger.Message(typeof(DbController), "Starting Database Server");

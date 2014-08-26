@@ -53,5 +53,9 @@ namespace Deveel.Data.Configuration {
 		public const string DefaultSchema = "APP";
 
 		public const bool LogQueries = false;
+
+		public const string BasePath = ".";
+
+		public const bool IgnoreIdentifiersCase = true;
 	}
 }

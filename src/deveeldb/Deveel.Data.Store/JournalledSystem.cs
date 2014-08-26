@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -35,80 +36,80 @@ namespace Deveel.Data.Store {
 		/// <summary>
 		/// Set to true for logging behaviour.
 		/// </summary>
-		private readonly bool ENABLE_LOGGING;
+		private readonly bool enableLogging;
 
 		/// <summary>
 		/// The path to the journal files.
 		/// </summary>
-		private readonly string journal_path;
+		private readonly string journalPath;
 
 		/// <summary>
 		/// If the journal system is input Read only mode.
 		/// </summary>
-		private readonly bool read_only;
+		private readonly bool readOnly;
 
 		/// <summary>
 		/// The page size.
 		/// </summary>
-		private readonly int page_size;
+		private readonly int pageSize;
 
 		/// <summary>
 		/// The map of all resources that are available.  (resource_name -> Resource)
 		/// </summary>
-		private readonly Hashtable all_resources;
+		private readonly Dictionary<string, AbstractResource> allResources;
 
 		/// <summary>
 		/// The unique sequence id counter for this session.
 		/// </summary>
-		private long seq_id;
+		private long seqId;
 
 		/// <summary>
 		/// The archive of journal files currently pending (JournalFile).
 		/// </summary>
-		private readonly ArrayList journal_archives;
+		private readonly List<JournalFile> journalArchives;
 
 		/// <summary>
 		/// The current top journal file.
 		/// </summary>
-		private JournalFile top_journal_file;
+		private JournalFile topJournalFile;
 
 		/// <summary>
 		/// The current journal file number.
 		/// </summary>
-		private long journal_number;
+		private long journalNumber;
 
 		/// <summary>
 		/// A factory that creates <see cref="IStoreDataAccessor"/> objects used 
 		/// to access the resource with the given name.
 		/// </summary>
-		private readonly LoggingBufferManager.IStoreDataAccessorFactory sda_factory;
+		private readonly LoggingBufferManager.IStoreDataAccessorFactory sdaFactory;
 
 		/// <summary>
 		/// Mutex when accessing the top journal file.
 		/// </summary>
-		private readonly Object top_journal_lock = new Object();
+		private readonly Object topJournalLock = new Object();
 
 		/// <summary>
 		/// A thread that runs input the background and persists information that is 
 		/// input the journal.
 		/// </summary>
-		private JournalingThread journaling_thread;
+		private JournalingThread journalingThread;
 
 		private readonly ILogger logger;
 
 
-		internal JournalledSystem(string journal_path, bool read_only, int page_size,
-					   LoggingBufferManager.IStoreDataAccessorFactory sda_factory, ILogger logger,
-					   bool enable_logging) {
-			this.journal_path = journal_path;
-			this.read_only = read_only;
-			this.page_size = page_size;
-			this.sda_factory = sda_factory;
+		internal JournalledSystem(string journalPath, bool readOnly, int pageSize,
+					   LoggingBufferManager.IStoreDataAccessorFactory sdaFactory, ILogger logger,
+					   bool enableLogging) {
+			this.journalPath = journalPath;
+			this.readOnly = readOnly;
+			this.pageSize = pageSize;
+			this.sdaFactory = sdaFactory;
 			this.logger = logger;
-			all_resources = new Hashtable();
-			journal_number = 0;
-			journal_archives = new ArrayList();
-			this.ENABLE_LOGGING = enable_logging;
+			allResources = new Dictionary<string, AbstractResource>();
+			journalNumber = 0;
+			journalArchives = new List<JournalFile>();
+			this.enableLogging = enableLogging;
 		}
 
 		/// <summary>
@@ -127,21 +128,21 @@ namespace Deveel.Data.Store {
 		}
 
 		// Lock used during initialization
-		private readonly Object init_lock = new Object();
+		private readonly Object initLock = new Object();
 
 		/// <summary>
 		/// Starts the journal system.
 		/// </summary>
 		internal void Start() {
-			if (ENABLE_LOGGING) {
-				lock (init_lock) {
-					if (journaling_thread == null) {
+			if (enableLogging) {
+				lock (initLock) {
+					if (journalingThread == null) {
 						// Start the background journaling thread,
-						journaling_thread = new JournalingThread(this);
-						journaling_thread.Start();
+						journalingThread = new JournalingThread(this);
+						journalingThread.Start();
 						// Scan for any changes and make the changes.
 						RollForwardRecover();
-						if (!read_only) {
+						if (!readOnly) {
 							// Create a new top journal file
 							NewTopJournalFile();
 						}
@@ -160,27 +161,27 @@ namespace Deveel.Data.Store {
 		/// and then finish.
 		/// </remarks>
 		internal void Stop() {
-			if (ENABLE_LOGGING) {
-				lock (init_lock) {
-					if (journaling_thread != null) {
+			if (enableLogging) {
+				lock (initLock) {
+					if (journalingThread != null) {
 						// Stop the journal thread
-						journaling_thread.PersistArchives(0);
-						journaling_thread.Finish();
-						journaling_thread.WaitUntilFinished();
-						journaling_thread = null;
+						journalingThread.PersistArchives(0);
+						journalingThread.Finish();
+						journalingThread.WaitUntilFinished();
+						journalingThread = null;
 					} else {
 						throw new ApplicationException("Assertion failed - already stopped.");
 					}
 				}
 
-				if (!read_only) {
+				if (!readOnly) {
 					// Close any remaining journals and roll forward recover (shouldn't
 					// actually be necessary but just incase...)
-					lock (top_journal_lock) {
+					lock (topJournalLock) {
 						// Close all the journals
-						int sz = journal_archives.Count;
+						int sz = journalArchives.Count;
 						for (int i = 0; i < sz; ++i) {
-							JournalFile jf = (JournalFile)journal_archives[i];
+							var jf = journalArchives[i];
 							jf.Close();
 						}
 						// Close the top journal
@@ -204,21 +205,22 @@ namespace Deveel.Data.Store {
 			//    Console.Out.WriteLine("RollForwardRecover()");
 
 			// The list of all journal files,
-			ArrayList journal_files_list = new ArrayList();
+			var journalFilesList = new List<JournalSummary>();
 
 			// Scan the journal path for any journal files.
 			for (int i = 10; i < 74; ++i) {
-				String journal_fn = GetJournalFileName(i);
-				string f = Path.Combine(journal_path, journal_fn);
+				string journalFn = GetJournalFileName(i);
+				string f = Path.Combine(journalPath, journalFn);
 				// If the journal exists, create a summary of the journal
 				if (File.Exists(f)) {
-					if (read_only) {
+					if (readOnly) {
 						throw new IOException(
 							"Journal file " + f + " exists for a Read-only session.  " +
 							"There may not be any pending journals for a Read-only session.");
 					}
 
-					JournalFile jf = new JournalFile(this, f, read_only);
+					var jf = new JournalFile(this, f, readOnly);
+
 					// Open the journal file for recovery.  This will set various
 					// information about the journal such as the last check point and the
 					// id of the journal file.
@@ -228,7 +230,7 @@ namespace Deveel.Data.Store {
 						if (Logger.IsInterestedIn(LogLevel.Information)) {
 							Logger.Info(this, "Journal " + jf + " found - can be recovered.");
 						}
-						journal_files_list.Add(summary);
+						journalFilesList.Add(summary);
 					} else {
 						if (Logger.IsInterestedIn(LogLevel.Information)) {
 							Logger.Info(this, "Journal " + jf + " deleting - nothing to recover.");
@@ -239,34 +241,30 @@ namespace Deveel.Data.Store {
 				}
 			}
 
-			//    if (journal_files_list.size() == 0) {
-			//      Console.Out.WriteLine("Nothing to recover.");
-			//    }
-
 			// Sort the journal file list from oldest to newest.  The oldest journals
 			// are recovered first.
-			journal_files_list.Sort(journal_list_comparator);
+			journalFilesList.Sort(journal_list_comparator);
 
-			long last_journal_number = -1;
+			long lastJournalNumber = -1;
 
 			// Persist the journals
-			for (int i = 0; i < journal_files_list.Count; ++i) {
-				JournalSummary summary = (JournalSummary)journal_files_list[i];
+			for (int i = 0; i < journalFilesList.Count; ++i) {
+				var summary = journalFilesList[i];
 
 				// Check the resources for this summary
-				ArrayList res_list = summary.resource_list;
-				for (int n = 0; n < res_list.Count; ++n) {
-					String resource_name = (String)res_list[n];
+				ArrayList resList = summary.resource_list;
+				foreach (object t in resList) {
+					String resourceName = (String)t;
 					// This puts the resource into the hash map.
-					IJournalledResource resource = CreateResource(resource_name);
+					IJournalledResource resource = CreateResource(resourceName);
 				}
 
 				// Assert that we are recovering the journals input the correct order
 				JournalFile jf = summary.journal_file;
-				if (jf.journal_number < last_journal_number) {
+				if (jf.journal_number < lastJournalNumber) {
 					throw new ApplicationException("Assertion failed, sort failed.");
 				}
-				last_journal_number = jf.journal_number;
+				lastJournalNumber = jf.journal_number;
 
 				if (Logger.IsInterestedIn(LogLevel.Information)) {
 					Logger.Info(this, "Recovering: " + jf + " (8 .. " + summary.last_checkpoint + ")");
@@ -277,8 +275,8 @@ namespace Deveel.Data.Store {
 				jf.CloseAndDelete();
 
 				// Check the resources for this summary and close them
-				for (int n = 0; n < res_list.Count; ++n) {
-					String resource_name = (String)res_list[n];
+				for (int n = 0; n < resList.Count; ++n) {
+					String resource_name = (String)resList[n];
 					AbstractResource resource =
 						(AbstractResource)CreateResource(resource_name);
 					// When we finished, make sure the resource is closed again
@@ -290,21 +288,30 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		private IComparer journal_list_comparator = new JournalSummaryComparer();
+		private IComparer<JournalSummary> journal_list_comparator = new JournalSummaryComparer();
 
-		private class JournalSummaryComparer : IComparer {
+		private class JournalSummaryComparer : IComparer, IComparer<JournalSummary> {
 			public int Compare(Object ob1, Object ob2) {
 				JournalSummary js1 = (JournalSummary)ob1;
 				JournalSummary js2 = (JournalSummary)ob2;
 
-				long jn1 = js1.journal_file.JournalNumber;
-				long jn2 = js2.journal_file.JournalNumber;
+				return Compare(js1, js2);
+			}
 
-				if (jn1 > jn2) {
+			public int Compare(JournalSummary x, JournalSummary y) {
+				long jn1 = x.journal_file.JournalNumber;
+				long jn2 = y.journal_file.JournalNumber;
+
+				if (jn1 > jn2)
+				{
 					return 1;
-				} else if (jn1 < jn2) {
+				}
+				else if (jn1 < jn2)
+				{
 					return -1;
-				} else {
+				}
+				else
+				{
 					return 0;
 				}
 			}
@@ -319,16 +326,16 @@ namespace Deveel.Data.Store {
 			//      journal_archives.add(top_journal_file);
 			//    }
 
-			String journal_fn = GetJournalFileName((int)((journal_number & 63) + 10));
-			++journal_number;
+			String journal_fn = GetJournalFileName((int)((journalNumber & 63) + 10));
+			++journalNumber;
 
-			string f = Path.Combine(journal_path, journal_fn);
+			string f = Path.Combine(journalPath, journal_fn);
 			if (File.Exists(f)) {
 				throw new IOException("Journal file already exists.");
 			}
 
-			top_journal_file = new JournalFile(this, f, read_only);
-			top_journal_file.Open(journal_number - 1);
+			topJournalFile = new JournalFile(this, f, readOnly);
+			topJournalFile.Open(journalNumber - 1);
 		}
 
 		/// <summary>
@@ -336,8 +343,8 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		private JournalFile TopJournal {
 			get {
-				lock (top_journal_lock) {
-					return top_journal_file;
+				lock (topJournalLock) {
+					return topJournalFile;
 				}
 			}
 		}
@@ -353,24 +360,23 @@ namespace Deveel.Data.Store {
 		/// <returns></returns>
 		public IJournalledResource CreateResource(String resource_name) {
 			AbstractResource resource;
-			lock (all_resources) {
+			lock (allResources) {
 				// Has this resource previously been open?
-				resource = (AbstractResource)all_resources[resource_name];
-				if (resource == null) {
+				if (!allResources.TryGetValue(resource_name, out resource)) {
 					// No...
 					// Create a unique id for this
-					long id = seq_id;
-					++seq_id;
+					long id = seqId;
+					++seqId;
 					// Create the IStoreDataAccessor for this resource.
 					IStoreDataAccessor accessor =
-										sda_factory.CreateStoreDataAccessor(resource_name);
-					if (ENABLE_LOGGING) {
+										sdaFactory.CreateStoreDataAccessor(resource_name);
+					if (enableLogging) {
 						resource = new Resource(this, resource_name, id, accessor);
 					} else {
 						resource = new NonLoggingResource(this, resource_name, id, accessor);
 					}
 					// Put this input the map.
-					all_resources[resource_name] = resource;
+					allResources[resource_name] = resource;
 				}
 			}
 
@@ -386,17 +392,17 @@ namespace Deveel.Data.Store {
 		/// can't assume the journals will be empty when the method returns.</param>
 		internal void SetCheckPoint(bool flush_journals) {
 			// No Logging
-			if (!ENABLE_LOGGING) {
+			if (!enableLogging) {
 				return;
 			}
 			// Return if Read-only
-			if (read_only) {
+			if (readOnly) {
 				return;
 			}
 
 			bool something_to_persist;
 
-			lock (top_journal_lock) {
+			lock (topJournalLock) {
 				JournalFile top_j = TopJournal;
 
 				// When the journal exceeds a threshold then we cycle the top journal
@@ -404,16 +410,16 @@ namespace Deveel.Data.Store {
 					// Cycle to the next journal file
 					NewTopJournalFile();
 					// Add this to the archives
-					journal_archives.Add(top_j);
+					journalArchives.Add(top_j);
 				}
-				something_to_persist = journal_archives.Count > 0;
+				something_to_persist = journalArchives.Count > 0;
 				top_j.SetCheckPoint();
 			}
 
 			if (something_to_persist) {
 				// Notifies the background thread that there is something to persist.
 				// This will block until there are at most 10 journal files open.
-				journaling_thread.PersistArchives(10);
+				journalingThread.PersistArchives(10);
 			}
 
 		}
@@ -424,8 +430,8 @@ namespace Deveel.Data.Store {
 		/// <param name="resource_name"></param>
 		/// <returns></returns>
 		private AbstractResource GetResource(String resource_name) {
-			lock (all_resources) {
-				return (AbstractResource)all_resources[resource_name];
+			lock (allResources) {
+				return (AbstractResource)allResources[resource_name];
 			}
 		}
 
@@ -947,7 +953,7 @@ namespace Deveel.Data.Store {
 					long v = WriteResourceName(resource_name, data_out);
 
 					// The absolute position of the page,
-					long absolute_position = page_number * js.page_size;
+					long absolute_position = page_number * js.pageSize;
 
 					// Write the header
 					long resource_id = v;
@@ -1124,7 +1130,7 @@ namespace Deveel.Data.Store {
 			protected readonly IStoreDataAccessor data;
 
 			/// <summary>
-			/// True if this resource is read_only.
+			/// True if this resource is readOnly.
 			/// </summary>
 			protected bool read_only;
 
@@ -1163,7 +1169,7 @@ namespace Deveel.Data.Store {
 
 			/// <inheritdoc/>
 			public int PageSize {
-				get { return js.page_size; }
+				get { return js.pageSize; }
 			}
 
 			/// <inheritdoc/>
@@ -1247,13 +1253,13 @@ namespace Deveel.Data.Store {
 			/// <inheritdoc/>
 			public override void Read(long page_number, byte[] buf, int off) {
 				// Read the data.
-				long page_position = page_number * js.page_size;
-				data.Read(page_position + off, buf, off, js.page_size);
+				long page_position = page_number * js.pageSize;
+				data.Read(page_position + off, buf, off, js.pageSize);
 			}
 
 			/// <inheritdoc/>
 			public override void Write(long page_number, byte[] buf, int off, int len) {
-				long page_position = page_number * js.page_size;
+				long page_position = page_number * js.pageSize;
 				data.Write(page_position + off, buf, off, len);
 			}
 
@@ -1353,7 +1359,7 @@ namespace Deveel.Data.Store {
 					}
 				}
 				really_open = false;
-				page_buffer = new byte[js.page_size];
+				page_buffer = new byte[js.pageSize];
 			}
 
 
@@ -1422,7 +1428,7 @@ namespace Deveel.Data.Store {
 				// Read the change from the input stream
 				din.Read(buf, 0, len);
 				// Write the change output to the underlying resource container
-				long pos = page * 8192; //page_size;
+				long pos = page * 8192; //pageSize;
 				data.Write(pos + off, buf, 0, len);
 			}
 
@@ -1530,12 +1536,12 @@ namespace Deveel.Data.Store {
 
 					// Read any data from the underlying file
 					if (there_is_backing_data) {
-						long page_position = page_number * js.page_size;
+						long page_position = page_number * js.pageSize;
 						// First Read the page from the underlying store.
-						data.Read(page_position, buf, off, js.page_size);
+						data.Read(page_position, buf, off, js.pageSize);
 					} else {
 						// Clear the buffer
-						for (int i = off; i < (js.page_size + off); ++i) {
+						for (int i = off; i < (js.pageSize + off); ++i) {
 							buf[i] = 0;
 						}
 					}
@@ -1584,7 +1590,7 @@ namespace Deveel.Data.Store {
 
 					// Make this modification input the log
 					JournalEntry journal;
-					lock (js.top_journal_lock) {
+					lock (js.topJournalLock) {
 						journal = js.TopJournal.LogPageModification(name, page_number,
 																   buf, off, len);
 					}
@@ -1662,7 +1668,7 @@ namespace Deveel.Data.Store {
 				lock (journal_map) {
 					this.size = size;
 				}
-				lock (js.top_journal_lock) {
+				lock (js.topJournalLock) {
 					js.TopJournal.LogResourceSizeChange(name, size);
 				}
 			}
@@ -1698,7 +1704,7 @@ namespace Deveel.Data.Store {
 			/// </remarks>
 			public override void Delete() {
 				// Log that this resource was deleted.
-				lock (js.top_journal_lock) {
+				lock (js.topJournalLock) {
 					js.TopJournal.LogResourceDelete(name);
 				}
 				lock (journal_map) {
@@ -1770,10 +1776,10 @@ namespace Deveel.Data.Store {
 				while (!local_finished) {
 
 					ArrayList to_process = null;
-					lock (js.top_journal_lock) {
-						if (js.journal_archives.Count > 0) {
+					lock (js.topJournalLock) {
+						if (js.journalArchives.Count > 0) {
 							to_process = new ArrayList();
-							to_process.AddRange(js.journal_archives);
+							to_process.AddRange(js.journalArchives);
 						}
 					}
 
@@ -1815,10 +1821,10 @@ namespace Deveel.Data.Store {
 						local_finished = finished;
 						// Remove the journals that we have just persisted.
 						if (to_process != null) {
-							lock (js.top_journal_lock) {
+							lock (js.topJournalLock) {
 								int sz = to_process.Count;
 								for (int i = 0; i < sz; ++i) {
-									js.journal_archives.RemoveAt(0);
+									js.journalArchives.RemoveAt(0);
 								}
 							}
 						}
@@ -1860,8 +1866,8 @@ namespace Deveel.Data.Store {
 			public void PersistArchives(int until_size) {
 				Monitor.PulseAll(this);
 				int sz;
-				lock (js.top_journal_lock) {
-					sz = js.journal_archives.Count;
+				lock (js.topJournalLock) {
+					sz = js.journalArchives.Count;
 				}
 				// Wait until the sz is smaller than 'until_size'
 				while (sz > until_size) {
@@ -1870,8 +1876,8 @@ namespace Deveel.Data.Store {
 					} catch (ThreadInterruptedException e) {
 						/* ignore */
 					}
-					lock (js.top_journal_lock) {
-						sz = js.journal_archives.Count;
+					lock (js.topJournalLock) {
+						sz = js.journalArchives.Count;
 					}
 				}
 			}
