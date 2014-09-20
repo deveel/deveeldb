@@ -224,14 +224,13 @@ namespace Deveel.Data {
 			////  2. log_path is empty or not set
 
 			string logPathString = Config.LogPath();
-			string rootPathVar = Config.GetValue<string>("root_path");
 
 			bool readOnly = Config.ReadOnly();
 			bool debugLogs = Config.GetBoolean(ConfigKeys.DebugLogs, true);
 
 			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
 				// First set up the debug information in this VM for the 'Logger' class.
-				string logPath = Config.ParseFileString(rootPathVar, logPathString);
+				string logPath = Config.ResolvePath(logPathString);
 				// If the path doesn't exist the make it.
 				if (!Directory.Exists(logPath))
 					Directory.CreateDirectory(logPath);

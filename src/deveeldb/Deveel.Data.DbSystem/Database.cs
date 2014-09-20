@@ -478,7 +478,7 @@ namespace Deveel.Data.DbSystem {
 			// Note that this sets up a typical destination conglomerate and changes
 			// the cache size and disables the debug log.
 			SystemContext copyContext = new SystemContext();
-			var config = new DbConfig();
+			var config = DbConfig.Default;
 			config.DatabasePath(Path.GetFullPath(path));
 			config.LogPath("");
 			config.SetValue(ConfigKeys.DebugLevel, 50000);

@@ -154,7 +154,6 @@ namespace Deveel.Diagnostics {
 
 		public void Init(IDbConfig config) {
 			string logPathString = config.GetString(ConfigKeys.LogPath);
-			string rootPathVar = config.GetValue<string>("root_path");
 			bool readOnly = config.GetBoolean(ConfigKeys.ReadOnly, false);
 			bool debugLogs = config.GetBoolean(ConfigKeys.DebugLogs, true);
 
@@ -164,7 +163,7 @@ namespace Deveel.Diagnostics {
 
 			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
 				// First set up the debug information in this VM for the 'Debug' class.
-				string logPath = config.ParseFileString(rootPathVar, logPathString);
+				string logPath = config.ResolvePath(logPathString);
 				// If the path doesn't exist the make it.
 				if (!Directory.Exists(logPath))
 					Directory.CreateDirectory(logPath);

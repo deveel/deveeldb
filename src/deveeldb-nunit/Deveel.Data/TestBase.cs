@@ -74,7 +74,7 @@ namespace Deveel.Data {
 
 		[TestFixtureSetUp]
 		public void FixtureSetUp() {
-			DbConfig config = new DbConfig();
+			DbConfig config = DbConfig.Default;
 			OnConfigure(config);
 			DbController controller = DbController.Create(config);
 

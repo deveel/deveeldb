@@ -126,12 +126,10 @@ namespace Deveel.Data.Store {
 			context = systemContext;
 
 			// The path where the database data files are stored.
-			string databasePath = systemContext.Config.GetString(ConfigKeys.DatabasePath, "./data");
-			// The root path variable
-			string rootPathVar = systemContext.Config.GetString("root_path", null);
+			string databasePath = systemContext.Config.DatabasePath();
 
 			// Set the absolute database path
-			path = systemContext.Config.ParseFileString(rootPathVar, databasePath);
+			path = systemContext.Config.ResolvePath(databasePath);
 
 			read_only = systemContext.ReadOnlyAccess;
 

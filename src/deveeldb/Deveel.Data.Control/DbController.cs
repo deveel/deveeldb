@@ -200,7 +200,7 @@ namespace Deveel.Data.Control {
 		/// to the given path.
 		/// </returns>
 		public static DbController Create() {
-			return Create(new DbConfig());
+			return Create(DbConfig.Default);
 		}
 
 		/// <summary>
@@ -223,7 +223,7 @@ namespace Deveel.Data.Control {
 			StorageType storageType = GetStorageType(config);
 
 			if (config == null)
-				config = new DbConfig();
+				config = DbConfig.Default;
 
 			IDbConfig mainConfig;
 
@@ -245,6 +245,7 @@ namespace Deveel.Data.Control {
 					Directory.CreateDirectory(path);
 
 				mainConfig = GetConfig(config, path, configFile);
+				mainConfig.BasePath(path);
 			} else {
 				mainConfig = config;
 			}
@@ -260,11 +261,12 @@ namespace Deveel.Data.Control {
 					if (dbConfig == null)
 						continue;
 
-					string name = dbConfig.GetValue<string>("name");
+					var dbPath = dir.Substring(dir.LastIndexOf(Path.DirectorySeparatorChar) + 1);
+					string name = dbConfig.DatabaseName();
 					if (name == null)
-						name = dir.Substring(dir.LastIndexOf(Path.DirectorySeparatorChar) + 1);
-					
-					dbConfig.SetValue(ConfigKeys.DatabasePath, dir);
+						name = dbPath;
+
+					dbConfig.DatabasePath(dbPath);
 
 					if (controller.IsDatabaseRegistered(name))
 						throw new InvalidOperationException("The database '" + name + "' was already registered.");
@@ -308,8 +310,6 @@ namespace Deveel.Data.Control {
 
 			var config = new DbConfig(parentConfig);
 			config.Load(configFile);
-			config.BasePath(path);
-
 			return config;
 		}
 
@@ -358,7 +358,7 @@ namespace Deveel.Data.Control {
 			IDbConfig testConfig;
 
 			if (config == null) {
-				testConfig = new DbConfig();
+				testConfig = DbConfig.Default;
 			} else {
 				testConfig = (IDbConfig) config.Clone();
 			}
@@ -454,7 +454,7 @@ namespace Deveel.Data.Control {
 				throw new ArgumentNullException("name");
 
 			if (config == null)
-				config = new DbConfig();
+				config = DbConfig.Default;
 
 			if (DatabaseExists(config, name))
 				throw new ArgumentException("A database '" + name + "' already exists.");
@@ -471,7 +471,7 @@ namespace Deveel.Data.Control {
 
 				Directory.CreateDirectory(path);
 
-				config.SetValue(ConfigKeys.DatabasePath, path);
+				config.SetValue(ConfigKeys.DatabasePath, name);
 
 				string configFile = Path.Combine(path, DefaultConfigFileName);
 				//TODO: support multiple formats?
@@ -483,7 +483,8 @@ namespace Deveel.Data.Control {
 			try {
 				database.Create(adminUser, adminPass);
 				database.Init();
-				DatabaseShutdownCallback callback = new DatabaseShutdownCallback(this, database);
+
+				var callback = new DatabaseShutdownCallback(this, database);
 				database.Context.OnShutdown += (callback.Execute);
 			} catch (Exception e) {
 				database.Context.Logger.Error(this, "Database create failed");
@@ -504,7 +505,7 @@ namespace Deveel.Data.Control {
 				throw new ArgumentNullException("name");
 
 			if (config == null)
-				config = new DbConfig();
+				config = DbConfig.Default;
 
 			if (!DatabaseExists(config, name))
 				return false;
@@ -589,7 +590,7 @@ namespace Deveel.Data.Control {
 				throw new ArgumentException("Database '" + name + "' not existing.", "name");
 
 			if (config == null)
-				config = new DbConfig();
+				config = DbConfig.Default;
 
 			config.Parent = Config;
 
@@ -651,7 +652,7 @@ namespace Deveel.Data.Control {
 		/// </exception>
 		public DbSystem ConnectToDatabase(IDbConfig config, string name) {
 			if (config == null)
-				config = new DbConfig();
+				config = DbConfig.Default;
 
 			if (!DatabaseExists(config, name))
 				throw new ArgumentException("Database '" + name + "' not existing.", "name");

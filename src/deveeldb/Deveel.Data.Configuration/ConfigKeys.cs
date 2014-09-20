@@ -42,6 +42,8 @@ namespace Deveel.Data.Configuration {
 		
 		public const string DatabasePath = "database_path";
 
+		public const string DatabaseName = "database_name";
+
 		public const string LogPath = "log_path";
 
 		public const string IgnoreIdentifiersCase = "ignore_case_for_identifiers";

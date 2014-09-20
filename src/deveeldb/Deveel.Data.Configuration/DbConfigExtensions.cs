@@ -159,6 +159,14 @@ namespace Deveel.Data.Configuration {
 			config.SetValue(ConfigKeys.DatabasePath, value);
 		}
 
+		public static string DatabaseName(this IDbConfig config) {
+			return config.GetString(ConfigKeys.DatabaseName, null);
+		}
+
+		public static void DatabaseName(this IDbConfig config, string value) {
+			config.SetValue(ConfigKeys.DatabaseName, value);
+		}
+
 		public static string StorageSystem(this IDbConfig config) {
 			return config.GetString(ConfigKeys.StorageSystem, ConfigDefaultValues.HeapStorageSystem);
 		}
@@ -217,6 +225,14 @@ namespace Deveel.Data.Configuration {
 			config.SetValue(ConfigKeys.CacheType, typeString);
 		}
 
+		public static string DatabaseFullPath(this IDbConfig config) {
+			var dbPath = config.DatabasePath();
+			if (String.IsNullOrEmpty(dbPath))
+				return null;
+
+			return config.ResolvePath(dbPath);
+		}
+
 		/// <summary>
 		/// Parses a file string to an absolute position in the file system.
 		/// </summary>
@@ -224,24 +240,21 @@ namespace Deveel.Data.Configuration {
 		/// We must provide the path to the root directory (eg. the directory 
 		/// where the config bundle is located).
 		/// </remarks>
-		public static string ParseFileString(this IDbConfig config, string rootInfo, string pathString) {
-			string path = Path.GetFullPath(pathString);
-			string res;
+		public static string ResolvePath(this IDbConfig config, string pathString) {
 			// If the path is absolute then return the absoluate reference
-			if (Path.IsPathRooted(pathString)) {
-				res = path;
-			} else {
-				// If the root path source is the environment then just return the path.
-				if (rootInfo != null && rootInfo.Equals("env"))
-					return path;
+			if (Path.IsPathRooted(pathString))
+				return Path.GetFullPath(pathString);
 
-				// If the root path source is the configuration file then
-				// concat the configuration path with the path string and return it.
+			var rootInfo = config.BasePath();
 
-				res = Path.Combine(config.BasePath(), pathString);
-			}
+			// If the root path source is the environment then just return the path.
+			if ((!String.IsNullOrEmpty(rootInfo) && rootInfo.Equals("env")) ||
+				String.IsNullOrEmpty(rootInfo))
+				rootInfo = Environment.CurrentDirectory;
 
-			return res;
+			// If the root path source is the configuration file then
+			// concat the configuration path with the path string and return it
+			return Path.Combine(rootInfo, pathString);
 		}
 
 		public static int DataCacheSize(this IDbConfig config) {

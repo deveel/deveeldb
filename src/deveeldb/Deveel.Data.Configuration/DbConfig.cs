@@ -16,11 +16,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Net;
-
-using Deveel.Data.Caching;
 
 namespace Deveel.Data.Configuration {
 	/// <summary>
@@ -34,10 +29,14 @@ namespace Deveel.Data.Configuration {
 
 		public const int DefaultDataCacheSize = 256;
 
+		private readonly bool isRoot;
+
 		/// <summary>
 		/// Constructs the <see cref="DbConfig"/>.
 		/// </summary>
-		public DbConfig() {
+		private DbConfig(bool isRoot) {
+			Parent = null;
+			this.isRoot = isRoot;
 			properties = new Dictionary<string, object>();
 		}
 
@@ -48,8 +47,8 @@ namespace Deveel.Data.Configuration {
 		/// will provide fallback configurations</param>
 		/// <param name="source"></param>
 		public DbConfig(IDbConfig parent, IConfigSource source)
-			: this() {
-			Parent = parent;
+			: this(false) {
+			this.parent = parent;
 			Source = source;
 
 			if (source != null)
@@ -65,7 +64,7 @@ namespace Deveel.Data.Configuration {
 		}
 
 		static DbConfig() {
-			Default = new DbConfig {
+			Default = new DbConfig(true) {
 				properties = new Dictionary<string, object> {
 					{ConfigKeys.BasePath, ConfigDefaultValues.BasePath},
 					{ConfigKeys.CacheType, ConfigDefaultValues.HeapCache},
@@ -74,16 +73,25 @@ namespace Deveel.Data.Configuration {
 					{ConfigKeys.IgnoreIdentifiersCase, ConfigDefaultValues.IgnoreIdentifiersCase}
 				}
 			};
+
+			Empty = new DbConfig(true);
 		}
+
+		private IDbConfig parent;
 
 		/// <summary>
 		/// Gets or sets the parent set of conigurations
 		/// </summary>
-		public IDbConfig Parent { get; set; }
+		public IDbConfig Parent {
+			get { return parent; }
+			set { parent = value; }
+		}
 
 		public IConfigSource Source { get; set; }
 
 		public static DbConfig Default { get; private set; }
+
+		public static DbConfig Empty { get; private set; }
 
 		public void SetValue(string key, object value) {
 			properties[key] = value;
@@ -94,8 +102,9 @@ namespace Deveel.Data.Configuration {
 			object property;
 			if (properties.TryGetValue(propertyKey, out property))
 				return property;
-			if (Parent != null && 
-				(property = Parent.GetValue(propertyKey, null)) != null)
+
+			if (!isRoot && parent != null && 
+				(property = parent.GetValue(propertyKey, null)) != null)
 				return property;
 
 			return defaultValue;
@@ -103,19 +112,26 @@ namespace Deveel.Data.Configuration {
 
 		/// <inheritdoc/>
 		public object Clone() {
-			DbConfig parentClone = null;
-			if (Parent != null)
-				parentClone = (DbConfig) Parent.Clone();
+			//DbConfig parentClone = null;
+			//if (parent != null)
+			//	parentClone = (DbConfig) parent.Clone();
+			if (isRoot)
+				return this;
 
-			DbConfig config = new DbConfig(parentClone);
-			config.properties = new Dictionary<string, object>();
+			var config = new DbConfig(false) {
+				properties = new Dictionary<string, object>()
+			};
 			foreach (KeyValuePair<string, object> pair in properties) {
 				object value = pair.Value;
-				if (value != null && value is ICloneable)
+				if (value is ICloneable)
 					value = ((ICloneable) value).Clone();
 
 				config.properties[pair.Key] = value;
 			}
+
+			if (parent != null)
+				config.parent = (IDbConfig) parent.Clone();
+
 			return config;
 		}
 
