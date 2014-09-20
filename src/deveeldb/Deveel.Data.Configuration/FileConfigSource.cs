@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2014  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Deveel.Data.Configuration;
+
 namespace Deveel.Data.Configuration {
 	public sealed class FileConfigSource : IConfigSource {
 		public FileConfigSource(string filePath) {
@@ -28,11 +30,23 @@ namespace Deveel.Data.Configuration {
 		public string FilePath { get; private set; }
 
 		public Stream InputStream {
-			get { return new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024); }
+			get {
+				try {
+					return new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024);
+				} catch (Exception ex) {
+					throw new DatabaseConfigurationException(String.Format("Cannot open a read stream from file '{0}'", FilePath), ex);
+				}
+			}
 		}
 
 		public Stream OutputStream {
-			get {  return new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read, 1024);}
+			get {
+				try {
+					return new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read, 1024);
+				} catch (Exception ex) {
+					throw new DatabaseConfigurationException(String.Format("Cannot open a write stream to file '{0}'", FilePath));
+				}
+			}
 		}
 	}
 }

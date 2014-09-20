@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010-2014  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ namespace Deveel.Data.Configuration {
 		/// <param name="source"></param>
 		public DbConfig(IDbConfig parent, IConfigSource source)
 			: this(false) {
-			this.parent = parent;
+			this.Parent = parent;
 			Source = source;
 
 			if (source != null)
@@ -70,22 +70,21 @@ namespace Deveel.Data.Configuration {
 					{ConfigKeys.CacheType, ConfigDefaultValues.HeapCache},
 					{ConfigKeys.StorageSystem, ConfigDefaultValues.HeapStorageSystem},
 					{ConfigKeys.DefaultSchema, ConfigDefaultValues.DefaultSchema},
-					{ConfigKeys.IgnoreIdentifiersCase, ConfigDefaultValues.IgnoreIdentifiersCase}
+					{ConfigKeys.IgnoreIdentifiersCase, ConfigDefaultValues.IgnoreIdentifiersCase},
+					{ConfigKeys.CacheStatements, ConfigDefaultValues.CacheStatements},
+					{ConfigKeys.MaxWorkerThreads, ConfigDefaultValues.MaxWorkerThreads},
+					{ConfigKeys.PasswordHashFunction, ConfigDefaultValues.PasswordHashFunction},
+					{ConfigKeys.ReadOnly, ConfigDefaultValues.ReadOnly}
 				}
 			};
 
 			Empty = new DbConfig(true);
 		}
 
-		private IDbConfig parent;
-
 		/// <summary>
 		/// Gets or sets the parent set of conigurations
 		/// </summary>
-		public IDbConfig Parent {
-			get { return parent; }
-			set { parent = value; }
-		}
+		public IDbConfig Parent { get; set; }
 
 		public IConfigSource Source { get; set; }
 
@@ -103,8 +102,8 @@ namespace Deveel.Data.Configuration {
 			if (properties.TryGetValue(propertyKey, out property))
 				return property;
 
-			if (!isRoot && parent != null && 
-				(property = parent.GetValue(propertyKey, null)) != null)
+			if (!isRoot && Parent != null && 
+				(property = Parent.GetValue(propertyKey, null)) != null)
 				return property;
 
 			return defaultValue;
@@ -129,8 +128,8 @@ namespace Deveel.Data.Configuration {
 				config.properties[pair.Key] = value;
 			}
 
-			if (parent != null)
-				config.parent = (IDbConfig) parent.Clone();
+			if (Parent != null)
+				config.Parent = (IDbConfig) Parent.Clone();
 
 			return config;
 		}

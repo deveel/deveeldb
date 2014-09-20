@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2013  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -57,5 +57,11 @@ namespace Deveel.Data.Configuration {
 		public const string BasePath = ".";
 
 		public const bool IgnoreIdentifiersCase = true;
+
+		public const bool CacheStatements = true;
+
+		public const int MaxWorkerThreads = 5;
+
+		public const bool ReadOnly = false;
 	}
 }

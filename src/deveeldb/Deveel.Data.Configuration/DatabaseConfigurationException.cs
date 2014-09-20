@@ -12,19 +12,25 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-
 using System;
-using System.Collections.Generic;
+using System.Runtime.Serialization;
 
-namespace Deveel.Data.Configuration {
-	public interface IDbConfig : IEnumerable<KeyValuePair<string, object>>, ICloneable {
-		IConfigSource Source { get; set; }
+namespace Deveel.Data.Deveel.Data.Configuration {
+	[Serializable]
+	public class DatabaseConfigurationException : ApplicationException {
+		public DatabaseConfigurationException(string message, Exception innerException)
+			: base(message, innerException) {
+		}
 
-		IDbConfig Parent { get; set; }
-		
-		
-		object GetValue(string key, object defaultValue);
+		public DatabaseConfigurationException(string message)
+			: base(message) {
+		}
 
-		void SetValue(string key, object value);
+		public DatabaseConfigurationException() {
+		}
+
+		protected DatabaseConfigurationException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+		}
 	}
 }

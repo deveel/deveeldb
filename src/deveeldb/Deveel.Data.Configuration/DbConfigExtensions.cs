@@ -1,10 +1,24 @@
-﻿using System;
+﻿// 
+//  Copyright 2010-2014 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
 using Deveel.Data.Caching;
-using Deveel.Data.Security;
+using Deveel.Data.Deveel.Data.Configuration;
 
 namespace Deveel.Data.Configuration {
 	public static class DbConfigExtensions {
@@ -23,10 +37,14 @@ namespace Deveel.Data.Configuration {
 			if (value == null)
 				return defaultValue;
 
-			if (!(value is T) && value is IConvertible)
-				value = Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
+			try {
+				if (!(value is T) && value is IConvertible)
+					value = Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
 
-			return (T) value;
+				return (T) value;
+			} catch (Exception ex) {
+				throw new DatabaseConfigurationException(String.Format("Cannot convert value {0} to the type {1}", value, typeof (T)));
+			}
 		}
 
 		public static string GetString(this IDbConfig config, string propertyKey) {
@@ -115,20 +133,25 @@ namespace Deveel.Data.Configuration {
 
 			if (value is bool)
 				return (bool) value;
-			if (value is string) {
-				if (String.Equals((string) value, "true", StringComparison.OrdinalIgnoreCase) ||
-				    String.Equals((string) value, "enabled", StringComparison.OrdinalIgnoreCase) ||
-				    String.Equals((string) value, "1"))
-					return true;
-				if (String.Equals((string) value, "false", StringComparison.OrdinalIgnoreCase) ||
-				    String.Equals((string) value, "disabled", StringComparison.OrdinalIgnoreCase) ||
-				    String.Equals((string) value, "0"))
-					return false;
-			}
-			if (value is IConvertible)
-				value = Convert.ChangeType(value, typeof (bool), CultureInfo.InvariantCulture);
 
-			return (value == null ? defaultValue : (bool) value);
+			try {
+				if (value is string) {
+					if (String.Equals((string) value, "true", StringComparison.OrdinalIgnoreCase) ||
+					    String.Equals((string) value, "enabled", StringComparison.OrdinalIgnoreCase) ||
+					    String.Equals((string) value, "1"))
+						return true;
+					if (String.Equals((string) value, "false", StringComparison.OrdinalIgnoreCase) ||
+					    String.Equals((string) value, "disabled", StringComparison.OrdinalIgnoreCase) ||
+					    String.Equals((string) value, "0"))
+						return false;
+				}
+				if (value is IConvertible)
+					value = Convert.ChangeType(value, typeof (bool), CultureInfo.InvariantCulture);
+
+				return (value == null ? defaultValue : (bool) value);
+			} catch (Exception e) {
+				throw new DatabaseConfigurationException(String.Format("Cannot convert {0} to a valid boolean", value), e);
+			}
 		}
 
 		public static float GetSingle(this IDbConfig config, string propertyKey) {
@@ -241,20 +264,24 @@ namespace Deveel.Data.Configuration {
 		/// where the config bundle is located).
 		/// </remarks>
 		public static string ResolvePath(this IDbConfig config, string pathString) {
-			// If the path is absolute then return the absoluate reference
-			if (Path.IsPathRooted(pathString))
-				return Path.GetFullPath(pathString);
+			try {
+				// If the path is absolute then return the absoluate reference
+				if (Path.IsPathRooted(pathString))
+					return Path.GetFullPath(pathString);
 
-			var rootInfo = config.BasePath();
+				var rootInfo = config.BasePath();
 
-			// If the root path source is the environment then just return the path.
-			if ((!String.IsNullOrEmpty(rootInfo) && rootInfo.Equals("env")) ||
-				String.IsNullOrEmpty(rootInfo))
-				rootInfo = Environment.CurrentDirectory;
+				// If the root path source is the environment then just return the path.
+				if ((!String.IsNullOrEmpty(rootInfo) && rootInfo.Equals("env")) ||
+				    String.IsNullOrEmpty(rootInfo))
+					rootInfo = Environment.CurrentDirectory;
 
-			// If the root path source is the configuration file then
-			// concat the configuration path with the path string and return it
-			return Path.Combine(rootInfo, pathString);
+				// If the root path source is the configuration file then
+				// concat the configuration path with the path string and return it
+				return Path.Combine(rootInfo, pathString);
+			} catch (Exception e) {
+				throw new DatabaseConfigurationException(String.Format("Cannot resolve '{0}' to a valid path within the system.", pathString), e);
+			}
 		}
 
 		public static int DataCacheSize(this IDbConfig config) {
@@ -313,14 +340,18 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static void Load(this IDbConfig config, IConfigSource source, IConfigFormatter formatter) {
-			if (source != null) {
-				using (var sourceStream = source.InputStream) {
-					if (!sourceStream.CanRead)
-						throw new ArgumentException("The input stream cannot be read.");
+			try {
+				if (source != null) {
+					using (var sourceStream = source.InputStream) {
+						if (!sourceStream.CanRead)
+							throw new ArgumentException("The input stream cannot be read.");
 
-					sourceStream.Seek(0, SeekOrigin.Begin);
-					formatter.LoadInto(config, sourceStream);
+						sourceStream.Seek(0, SeekOrigin.Begin);
+						formatter.LoadInto(config, sourceStream);
+					}
 				}
+			} catch (Exception ex) {
+				throw new DatabaseConfigurationException(String.Format("Cannot load data from source"), ex);
 			}
 		}
 
@@ -341,19 +372,23 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static void Save(this IDbConfig config, IConfigSource source, IConfigFormatter formatter) {
-			using (var outputStream = source.OutputStream) {
-				if (!outputStream.CanWrite)
-					throw new InvalidOperationException("The destination source cannot be written.");
+			try {
+				using (var outputStream = source.OutputStream) {
+					if (!outputStream.CanWrite)
+						throw new InvalidOperationException("The destination source cannot be written.");
 
-				outputStream.Seek(0, SeekOrigin.Begin);
-				formatter.SaveFrom(config, outputStream);
-				outputStream.Flush();
+					outputStream.Seek(0, SeekOrigin.Begin);
+					formatter.SaveFrom(config, outputStream);
+					outputStream.Flush();
+				}
+			} catch (Exception ex) {
+				throw new DatabaseConfigurationException("Cannot save the configuration.", ex);
 			}
 		}
 
 		public static void Save(this IDbConfig config, IConfigFormatter formatter) {
 			if (config.Source == null)
-				throw new InvalidOperationException("Source was not configured.");
+				throw new DatabaseConfigurationException("The source was not configured in the configuration.");
 
 			config.Save(config.Source, formatter);
 		}
