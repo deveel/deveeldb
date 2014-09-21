@@ -19,6 +19,6 @@ namespace Deveel.Data.Configuration {
 	public interface IConfigFormatter {
 		void LoadInto(IDbConfig config, Stream inputStream);
 
-		void SaveFrom(IDbConfig config, Stream outputStream);
+		void SaveFrom(IDbConfig config, ConfigurationLevel level, Stream outputStream);
 	}
 }

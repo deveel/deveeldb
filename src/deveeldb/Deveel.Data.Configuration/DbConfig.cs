@@ -16,6 +16,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Deveel.Data.Configuration {
 	/// <summary>
@@ -94,6 +95,22 @@ namespace Deveel.Data.Configuration {
 
 		public void SetValue(string key, object value) {
 			properties[key] = value;
+		}
+
+		public IEnumerable<KeyValuePair<string, object>> GetLevel(ConfigurationLevel level) {
+			var props = new Dictionary<string, object>();
+			if (!isRoot && Parent != null && level == ConfigurationLevel.Deep) {
+				var parentLevel = Parent.GetLevel(level);
+				foreach (var pair in parentLevel) {
+					props[pair.Key] = pair.Value;
+				}
+			}
+
+			foreach (var property in properties) {
+				props[property.Key] = property.Value;
+			}
+
+			return props.AsEnumerable();
 		}
 
 		public object GetValue(string propertyKey, object defaultValue) {

@@ -14,18 +14,20 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
 
 namespace Deveel.Data.Configuration {
-	public interface IDbConfig : IEnumerable<KeyValuePair<string, object>>, ICloneable {
-		IConfigSource Source { get; set; }
+	/// <summary>
+	/// Defines the level of configuration settings to save or read
+	/// </summary>
+	public enum ConfigurationLevel {
+		/// <summary>
+		/// Gets or stores only the current level of configuration.
+		/// </summary>
+		Current = 1,
 
-		IDbConfig Parent { get; set; }
-
-		IEnumerable<KeyValuePair<string, object>> GetLevel(ConfigurationLevel level);
-		
-		object GetValue(string key, object defaultValue);
-
-		void SetValue(string key, object value);
+		/// <summary>
+		/// Includes all the configuration tree.
+		/// </summary>
+		Deep = 2
 	}
 }

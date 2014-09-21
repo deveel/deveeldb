@@ -41,11 +41,12 @@ namespace Deveel.Data.Configuration {
 			}
 		}
 
-		public void SaveFrom(IDbConfig config, Stream outputStream) {
+		public void SaveFrom(IDbConfig config, ConfigurationLevel level, Stream outputStream) {
 			try {
+				var configLevel = config.GetLevel(level);
 				var properties = new Properties();
 
-				foreach (KeyValuePair<string, object> pair in config) {
+				foreach (KeyValuePair<string, object> pair in configLevel) {
 					var stringValue = Convert.ToString(pair.Value, CultureInfo.InvariantCulture);
 					properties.SetProperty(pair.Key, stringValue);
 				}

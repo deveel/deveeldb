@@ -87,6 +87,7 @@
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
+    <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
     <Compile Include="Deveel.Data.Configuration\DatabaseConfigurationException.cs" />
     <Compile Include="Deveel.Data.Configuration\DbConfigExtensions.cs" />
     <Compile Include="Deveel.Data.Configuration\FileConfigSource.cs" />

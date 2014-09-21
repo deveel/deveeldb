@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Runtime.Remoting;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Store;
@@ -438,13 +437,17 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static void Save(this IDbConfig config, IConfigSource source, IConfigFormatter formatter) {
+			Save(config, source, ConfigurationLevel.Current, formatter);
+		}
+
+		public static void Save(this IDbConfig config, IConfigSource source, ConfigurationLevel level, IConfigFormatter formatter) {
 			try {
 				using (var outputStream = source.OutputStream) {
 					if (!outputStream.CanWrite)
 						throw new InvalidOperationException("The destination source cannot be written.");
 
 					outputStream.Seek(0, SeekOrigin.Begin);
-					formatter.SaveFrom(config, outputStream);
+					formatter.SaveFrom(config, level, outputStream);
 					outputStream.Flush();
 				}
 			} catch (Exception ex) {
@@ -453,30 +456,54 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static void Save(this IDbConfig config, IConfigFormatter formatter) {
+			Save(config, ConfigurationLevel.Current, formatter);
+		}
+
+		public static void Save(this IDbConfig config, ConfigurationLevel level, IConfigFormatter formatter) {
 			if (config.Source == null)
 				throw new DatabaseConfigurationException("The source was not configured in the configuration.");
 
-			config.Save(config.Source, formatter);
+			config.Save(config.Source, level, formatter);
 		}
 
 		public static void Save(this IDbConfig config) {
-			Save(config, new PropertiesConfigFormatter());
+			Save(config, ConfigurationLevel.Current);
+		}
+
+		public static void Save(this IDbConfig config, ConfigurationLevel level) {
+			Save(config, level, new PropertiesConfigFormatter());
 		}
 
 		public static void Save(this IDbConfig config, string fileName) {
-			Save(config, fileName, new PropertiesConfigFormatter());
+			Save(config, ConfigurationLevel.Current, fileName);
+		}
+
+		public static void Save(this IDbConfig config, ConfigurationLevel level, string fileName) {
+			Save(config, level, fileName, new PropertiesConfigFormatter());
 		}
 
 		public static void Save(this IDbConfig config, string fileName, IConfigFormatter formatter) {
-			config.Save(new FileConfigSource(fileName), formatter);
+			Save(config, ConfigurationLevel.Current, fileName, formatter);
+		}
+
+		public static void Save(this IDbConfig config, ConfigurationLevel level, string fileName, IConfigFormatter formatter) {
+			config.Save(new FileConfigSource(fileName), level, formatter);
 		}
 
 		public static void Save(this IDbConfig config, Stream outputStream) {
-			Save(config, outputStream, new PropertiesConfigFormatter());
+			Save(config, ConfigurationLevel.Current, outputStream);
+		}
+
+		public static void Save(this IDbConfig config, ConfigurationLevel level, Stream outputStream) {
+			Save(config, level, outputStream, new PropertiesConfigFormatter());
 		}
 
 		public static void Save(this IDbConfig config, Stream outputStream, IConfigFormatter formatter) {
-			config.Save(new StreamConfigSource(outputStream), formatter);
+			Save(config, ConfigurationLevel.Current, outputStream, formatter);
+		}
+
+		public static void Save(this IDbConfig config, ConfigurationLevel level, Stream outputStream, IConfigFormatter formatter) {
+			config.Save(new StreamConfigSource(outputStream), level, formatter);
 		}
 
 		#endregion
