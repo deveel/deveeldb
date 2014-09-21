@@ -19,6 +19,7 @@ using System.IO;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
+using Deveel.Data.Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Store;
@@ -180,17 +181,6 @@ namespace Deveel.Data {
 		/// </summary>
 		public Stats Stats { get; private set; }
 
-		// ---------- Log directory management ----------
-
-		/// <summary>
-		/// Gets or sets the current log directory or null if no logging 
-		/// should occur.
-		/// </summary>
-		/// <remarks>
-		/// Setting this should preferably be called during initialization.
-		/// </remarks>
-		public string LogDirectory { get; set; }
-
 		// ---------- Cache Methods ----------
 
 		/// <summary>
@@ -223,39 +213,26 @@ namespace Deveel.Data {
 			////  1. Read only access is enabled
 			////  2. log_path is empty or not set
 
-			string logPathString = Config.LogPath();
+			try {
+				var loggerType = Config.LoggerType();
 
-			bool readOnly = Config.ReadOnly();
-			bool debugLogs = Config.GetBoolean(ConfigKeys.DebugLogs, true);
+				bool readOnly = Config.ReadOnly();
 
-			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
-				// First set up the debug information in this VM for the 'Logger' class.
-				string logPath = Config.ResolvePath(logPathString);
-				// If the path doesn't exist the make it.
-				if (!Directory.Exists(logPath))
-					Directory.CreateDirectory(logPath);
-				
-				LogDirectory = logPath;
+				// in case we don't log...
+				if (readOnly)
+					loggerType = typeof (EmptyLogger);
+
+				if (loggerType == null)
+					loggerType = typeof (DefaultLogger);
+
+
+				Logger = (ILogger) Activator.CreateInstance(loggerType, true);
+				Logger.Init(Config);
+			} catch (DatabaseConfigurationException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseConfigurationException("Unable to initialize system logs.", ex);
 			}
-
-			string loggerTypeString = Config.GetValue<string>(ConfigKeys.LoggerType);
-
-			Type loggerType = null;
-			if (loggerTypeString != null) {
-				loggerType = Type.GetType(loggerTypeString, false, true);
-				if (!typeof(ILogger).IsAssignableFrom(loggerType))
-					loggerType = null;
-			}
-
-			// in case we don't log...
-			if (readOnly || !debugLogs)
-				loggerType = typeof (EmptyLogger);
-
-			if (loggerType == null)
-				loggerType = typeof (DefaultLogger);
-
-			Logger = (ILogger) Activator.CreateInstance(loggerType, true);
-			Logger.Init(Config);
 		}
 
 		/// <summary>
@@ -373,7 +350,7 @@ namespace Deveel.Data {
 			RoutineResolver = new SystemRoutineResolver();
 
 			if (config != null) {
-				this.Config = config;
+				Config = config;
 
 				// Set the read_only property
 				ReadOnlyAccess = config.ReadOnly();
@@ -531,7 +508,6 @@ namespace Deveel.Data {
 				regexLibrary = null;
 				DataCellCache = null;
 				Config = null;
-				LogDirectory = null;
 				functionFactoryList = null;
 				if (dispatcher != null) {
 					dispatcher.Finish();

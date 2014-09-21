@@ -136,7 +136,7 @@ namespace Deveel.Data.Transactions {
 
 				if (commitId > journal.CommitId) {
 					++merge_count;
-					if (Logger.IsInterestedIn(LogLevel.Information))
+					if (Logger.IsInterestedIn(LogLevel.Info))
 						Logger.Info(this, "Merging '" + table.TableName + "' journal: " + journal);
 
 					// Remove the top journal entry from the list.

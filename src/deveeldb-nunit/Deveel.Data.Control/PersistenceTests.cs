@@ -2,6 +2,7 @@
 using System.Data;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Deveel.Diagnostics;
 
 using NUnit.Framework;
 
@@ -18,6 +19,7 @@ namespace Deveel.Data.Control {
 	    public void SetUp() {
 			Config = DbConfig.Default;
 			Config.StorageSystem(ConfigDefaultValues.FileStorageSystem);
+			Config.LoggerType(typeof (ConsoleLogger));
 
 			var controller = DbController.Create(Config);
 			if (controller.DatabaseExists(testDbName))

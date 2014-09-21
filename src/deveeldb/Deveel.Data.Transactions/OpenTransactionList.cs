@@ -47,14 +47,6 @@ namespace Deveel.Data.Transactions {
 		/// </summary>
 		private readonly List<Transaction> openTransactions;
 
-#if DEBUG
-		/// <summary>
-		/// A list of <see cref="Exception"/> objects created when the transaction 
-		/// is added to the open transactions list.
-		/// </summary>
-		private readonly List<StackTrace> openTransactionStacks;
-#endif
-
 		/// <summary>
 		/// The minimum commit id of the current list.
 		/// </summary>
@@ -68,9 +60,6 @@ namespace Deveel.Data.Transactions {
 		internal OpenTransactionList(SystemContext context) {
 			this.context = context;
 			openTransactions = new List<Transaction>();
-#if DEBUG
-			openTransactionStacks = new List<StackTrace>();
-#endif
 			minimumCommitId = Int64.MaxValue;
 			maximumCommitId = 0;
 		}
@@ -87,9 +76,6 @@ namespace Deveel.Data.Transactions {
 				long currentCommitId = transaction.CommitId;
 				if (currentCommitId >= maximumCommitId) {
 					openTransactions.Add(transaction);
-#if DEBUG
-					openTransactionStacks.Add(new StackTrace());
-#endif
 					context.Stats.Increment("OpenTransactionList.count");
 					maximumCommitId = currentCommitId;
 				} else {
@@ -123,17 +109,7 @@ namespace Deveel.Data.Transactions {
 				}
 
 				openTransactions.RemoveAt(i);
-#if DEBUG
-				openTransactionStacks.RemoveAt(i);
-#endif
 				context.Stats.Decrement("OpenTransactionList.count");
-
-#if DEBUG
-				context.Logger.Message(this, "Stacks:");
-				foreach (StackTrace trace in openTransactionStacks) {
-					context.Logger.Message(this, trace.ToString());
-				}
-#endif
 			}
 		}
 

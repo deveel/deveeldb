@@ -66,7 +66,7 @@ namespace Deveel.Data.Security {
 			string protocol = connectionString.Substring(0, protocolHostDeliminator);
 			string host = connectionString.Substring(protocolHostDeliminator + 1);
 
-			if (Logger.IsInterestedIn(LogLevel.Information)) {
+			if (Logger.IsInterestedIn(LogLevel.Info)) {
 				Logger.Info(this, "Checking host: protocol = " + protocol + ", host = " + host);
 			}
 

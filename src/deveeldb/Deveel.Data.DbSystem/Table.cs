@@ -705,7 +705,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 #if DEBUG
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, outTable + " = " + this + ".NaturalJoin(" + table + " )");
 #endif
 
@@ -811,7 +811,7 @@ namespace Deveel.Data.DbSystem {
 				 table.RowCount == 0) {
 
 #if DEBUG
-				if (Logger.IsInterestedIn(LogLevel.Information))
+				if (Logger.IsInterestedIn(LogLevel.Info))
 					Logger.Info(this, this + " = " + this + ".Union(" + table + " )");
 #endif
 				return this;
@@ -819,7 +819,7 @@ namespace Deveel.Data.DbSystem {
 
 			if (RowCount == 0) {
 #if DEBUG
-				if (Logger.IsInterestedIn(LogLevel.Information))
+				if (Logger.IsInterestedIn(LogLevel.Info))
 					Logger.Info(this, table + " = " + this + ".Union(" + table + " )");
 #endif
 				return table;
@@ -842,7 +842,7 @@ namespace Deveel.Data.DbSystem {
 			tableOut.Set(tableList, raw1.GetRows());
 
 #if DEBUG
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, tableOut + " = " + this + ".Union(" + table + " )");
 #endif
 
@@ -926,7 +926,7 @@ namespace Deveel.Data.DbSystem {
 			outTable.Set(tabs, rowSets);
 
 #if DEBUG
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, outTable + " = " + this + ".SimpleJoin(" + table + ", " + columnName + ", " + op + ", " + expression + " )");
 #endif
 
@@ -1017,7 +1017,7 @@ namespace Deveel.Data.DbSystem {
 			table.Set(this, rows);
 
 #if DEBUG
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, table + " = " + this + ".OrderByColumn(" + columnIndex + ", " + ascending + ")");
 #endif
 
@@ -1506,7 +1506,7 @@ namespace Deveel.Data.DbSystem {
 			table.OptimisedPostSet(column);
 
 #if DEBUG
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, table + " = " + this + ".RangeSelect(" + columnName + ", " + ranges + " )");
 #endif
 
@@ -1647,7 +1647,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 #if DEBUG
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, table + " = " + this + ".SimpleSelect(" + columnName + " " + debugSelectWith + " )");
 #endif
 
@@ -1704,7 +1704,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 #if DEBUG
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, result + " = " + this + ".ExhaustiveSelect(" + expression + " )");
 #endif
 
@@ -1850,7 +1850,7 @@ namespace Deveel.Data.DbSystem {
 
 #if DEBUG
 			// Query logging information
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, rtable + " = " + this + ".Any(" + expression + ", " + op + ", " + rightTable + ")");
 #endif
 
@@ -2037,7 +2037,7 @@ namespace Deveel.Data.DbSystem {
 
 #if DEBUG
 			// Query logging information
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, rtable + " = " + this + ".All(" + expression + ", " + op + ", " + table + ")");
 #endif
 
@@ -2133,7 +2133,7 @@ namespace Deveel.Data.DbSystem {
 			tableOut.Set(tableList, raw.GetRows());
 
 #if DEBUG
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, tableOut + " = " + this + ".Distinct()");
 #endif
 
@@ -2187,7 +2187,7 @@ namespace Deveel.Data.DbSystem {
 			vt.Set(this, resultList);
 
 #if DEBUG
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, vt + " = " + this + ".distinct(" + columns + ")");
 #endif
 

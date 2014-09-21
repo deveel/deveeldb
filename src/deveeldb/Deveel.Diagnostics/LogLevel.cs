@@ -21,22 +21,19 @@ namespace Deveel.Diagnostics {
 	///</summary>
 	public sealed class LogLevel {
 		private LogLevel(string name, int value) {
-			this.name = name;
-			this.value = value;
+			Name = name;
+			Value = value;
 		}
-
-		private readonly int value;
-		private readonly string name;
 
 		///<summary>
 		/// General processing 'noise'
 		///</summary>
-		public static readonly LogLevel Information = new LogLevel("INFO", 100);
+		public static readonly LogLevel Info = new LogLevel("INFO", 100);
 
 		///<summary>
 		/// Query information 'noise'
 		///</summary>
-		public static readonly LogLevel QueryInformation = new LogLevel("QUERY_INFO", 101);
+		public static readonly LogLevel Query = new LogLevel("QUERY_INFO", 101);
 
 		///<summary>
 		/// A message of some importance
@@ -58,25 +55,21 @@ namespace Deveel.Diagnostics {
 		///</summary>
 		public static readonly LogLevel Message = new LogLevel("MESSAGE", 10000);
 
-		public string Name {
-			get { return name; }
-		}
+		public string Name { get; private set; }
 
-		public int Value {
-			get { return value; }
-		}
+		public int Value { get; private set; }
 
 		public override bool Equals(object obj) {
 			LogLevel level = obj as LogLevel;
-			return level != null && value == level.value;
+			return level != null && Value == level.Value;
 		}
 
 		public override int GetHashCode() {
-			return value.GetHashCode();
+			return Value.GetHashCode();
 		}
 
 		public override string ToString() {
-			return name;
+			return Name;
 		}
 
 		internal static LogLevel Create(string name, int value) {
@@ -84,35 +77,35 @@ namespace Deveel.Diagnostics {
 		}
 
 		public static bool operator >(LogLevel a, LogLevel b) {
-			return a.value > b.value;
+			return a.Value > b.Value;
 		}
 
 		public static bool operator >(LogLevel a, int value) {
-			return a.value > value;
+			return a.Value > value;
 		}
 
 		public static bool operator <(LogLevel a, LogLevel b) {
-			return a.value < b.value;
+			return a.Value < b.Value;
 		}
 
 		public static bool operator <(LogLevel a, int value) {
-			return a.value < value;
+			return a.Value < value;
 		}
 
 		public static bool operator >=(LogLevel a, LogLevel b) {
-			return a.value >= b.value;
+			return a.Value >= b.Value;
 		}
 
 		public static bool operator >=(LogLevel a, int value) {
-			return a.value >= value;
+			return a.Value >= value;
 		}
 
 		public static bool operator <=(LogLevel a, LogLevel b) {
-			return a.value <= b.value;
+			return a.Value <= b.Value;
 		}
 
 		public static bool operator <=(LogLevel a, int value) {
-			return a.value <= value;
+			return a.Value <= value;
 		}
 
 		public static bool operator ==(LogLevel a, LogLevel b) {
@@ -128,7 +121,7 @@ namespace Deveel.Diagnostics {
 			if ((object)a == null)
 				return false;
 
-			return a.value == value;
+			return a.Value == value;
 		}
 
 		public static bool operator !=(LogLevel a, LogLevel b) {

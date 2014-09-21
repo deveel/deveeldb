@@ -117,7 +117,7 @@ namespace Deveel.Data.DbSystem {
 				}
 
 				TimeSpan benchTime = DateTime.Now - inTime;
-				if (Logger.IsInterestedIn(LogLevel.Information)) {
+				if (Logger.IsInterestedIn(LogLevel.Info)) {
 					Logger.Info(this, "Opening scan for " + ToString() + " (" + TableName + ") took " + benchTime.TotalMilliseconds + "ms.");
 				}
 

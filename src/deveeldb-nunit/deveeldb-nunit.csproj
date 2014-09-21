@@ -86,6 +86,7 @@
     <Compile Include="Deveel.Data\TObjectTests.cs" />
     <Compile Include="Deveel.Data\TTypeTest.cs" />
     <Compile Include="Deveel.Data\VariableTest.cs" />
+    <Compile Include="Deveel.Diagnostics\ConsoleLogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

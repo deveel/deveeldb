@@ -87,11 +87,6 @@ namespace Deveel.Data.DbSystem {
 		// ---------- Log accesses ----------
 
 		/// <summary>
-		/// Returns the log file where commands are recorded.
-		/// </summary>
-		public Log CommandsLog { get; private set; }
-
-		/// <summary>
 		/// Returns the conglomerate for this database.
 		/// </summary>
 		public TableDataConglomerate Conglomerate { get; private set; }
@@ -365,13 +360,6 @@ namespace Deveel.Data.DbSystem {
 			Context.Stats.ResetSession();
 
 			try {
-				string logPath = Context.LogDirectory;
-				if (logPath != null && Context.LogQueries) {
-					CommandsLog = new Log(Path.Combine(logPath, "commands.log"), 256*1024, 5);
-				} else {
-					CommandsLog = Log.Null;
-				}
-
 				// Check if the state file exists.  If it doesn't, we need to report
 				// incorrect version.
 				if (!Context.StoreSystem.StoreExists(Name + "_sf")) {
@@ -442,10 +430,6 @@ namespace Deveel.Data.DbSystem {
 				throw new ApplicationException("IO Error: " + e.Message, e);
 			}
 
-			// Shut down the logs...
-			if (CommandsLog != null) {
-				CommandsLog.Close();
-			}
 
 			IsInitialized = false;
 		}

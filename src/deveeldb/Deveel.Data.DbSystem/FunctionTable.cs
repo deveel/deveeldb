@@ -463,7 +463,7 @@ namespace Deveel.Data.DbSystem {
 
 			// Output this as debugging information
 #if DEBUG
-			if (Logger.IsInterestedIn(LogLevel.Information))
+			if (Logger.IsInterestedIn(LogLevel.Info))
 				Logger.Info(this, outTable + " = " + this + ".MergeWithReference(" + ReferenceTable + ", " + maxColumn + " )");
 #endif
 

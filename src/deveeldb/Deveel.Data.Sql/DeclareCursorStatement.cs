@@ -90,8 +90,8 @@ namespace Deveel.Data.Sql {
 				return FunctionTable.ResultTable(context, 0);
 			} finally {
 				// If an error occured, dump the command plan to the debug log.
-				// Or just dump the command plan if debug level = Information
-				if (context.Logger.IsInterestedIn(LogLevel.Information) ||
+				// Or just dump the command plan if debug level = Info
+				if (context.Logger.IsInterestedIn(LogLevel.Info) ||
 					(error && context.Logger.IsInterestedIn(LogLevel.Warning))) {
 					StringBuilder buf = new StringBuilder();
 					plan.DebugString(0, buf);

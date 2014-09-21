@@ -160,7 +160,7 @@ namespace Deveel.Data.DbSystem {
 						}
 
 						if (checkCount > 0) {
-							if (Logger.IsInterestedIn(LogLevel.Information)) {
+							if (Logger.IsInterestedIn(LogLevel.Info)) {
 								Logger.Info(this,
 										  "Row GC: [" + dataSource.Name +
 										  "] check count=" + checkCount +

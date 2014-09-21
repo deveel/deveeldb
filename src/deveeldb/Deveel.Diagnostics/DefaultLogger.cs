@@ -65,7 +65,7 @@ namespace Deveel.Diagnostics {
 				if (output == null)
 					return;
 
-				StringBuilder sb = new StringBuilder();
+				var sb = new StringBuilder();
 
 				if (entry.Level < LogLevel.Message) {
 					sb.Append("> ");

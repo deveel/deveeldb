@@ -227,12 +227,12 @@ namespace Deveel.Data.Store {
 					JournalSummary summary = jf.OpenForRecovery();
 					// If the journal can be recovered from.
 					if (summary.can_be_recovered) {
-						if (Logger.IsInterestedIn(LogLevel.Information)) {
+						if (Logger.IsInterestedIn(LogLevel.Info)) {
 							Logger.Info(this, "Journal " + jf + " found - can be recovered.");
 						}
 						journalFilesList.Add(summary);
 					} else {
-						if (Logger.IsInterestedIn(LogLevel.Information)) {
+						if (Logger.IsInterestedIn(LogLevel.Info)) {
 							Logger.Info(this, "Journal " + jf + " deleting - nothing to recover.");
 						}
 						// Otherwise close and delete it
@@ -266,7 +266,7 @@ namespace Deveel.Data.Store {
 				}
 				lastJournalNumber = jf.journal_number;
 
-				if (Logger.IsInterestedIn(LogLevel.Information)) {
+				if (Logger.IsInterestedIn(LogLevel.Info)) {
 					Logger.Info(this, "Recovering: " + jf + " (8 .. " + summary.last_checkpoint + ")");
 				}
 
@@ -739,7 +739,7 @@ namespace Deveel.Data.Store {
 			/// </para>
 			/// </remarks>
 			internal void Persist(long start, long end) {
-				if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+				if (js.Logger.IsInterestedIn(LogLevel.Info)) {
 					js.Logger.Info(this, "Persisting: " + file);
 				}
 
@@ -771,7 +771,7 @@ namespace Deveel.Data.Store {
 						// Put this input the map
 						id_name_map[id] = resource_name;
 
-						if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+						if (js.Logger.IsInterestedIn(LogLevel.Info)) {
 							js.Logger.Info(this, "Journal Command: Tag: " + id + " = " + resource_name);
 						}
 
@@ -783,7 +783,7 @@ namespace Deveel.Data.Store {
 						String resource_name = (String)id_name_map[id];
 						AbstractResource resource = js.GetResource(resource_name);
 
-						if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+						if (js.Logger.IsInterestedIn(LogLevel.Info)) {
 							js.Logger.Info(this, "Journal Command: Delete: " + resource_name);
 						}
 
@@ -795,7 +795,7 @@ namespace Deveel.Data.Store {
 						String resource_name = (String)id_name_map[id];
 						AbstractResource resource = js.GetResource(resource_name);
 
-						if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+						if (js.Logger.IsInterestedIn(LogLevel.Info)) {
 							js.Logger.Info(this, "Journal Command: Set Size: " + resource_name + " size = " + new_size);
 						}
 
@@ -810,7 +810,7 @@ namespace Deveel.Data.Store {
 						String resourceName = (String)id_name_map[id];
 						AbstractResource resource = js.GetResource(resourceName);
 
-						if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+						if (js.Logger.IsInterestedIn(LogLevel.Info)) {
 							js.Logger.Info(this,
 							               "Journal Command: Page Modify: " + resourceName + " page = " + page + " off = " + off + " len = " +
 							               len);
@@ -820,7 +820,7 @@ namespace Deveel.Data.Store {
 
 					} else if (type == 100) { // Checkpoint (end)
 
-						if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+						if (js.Logger.IsInterestedIn(LogLevel.Info)) {
 							js.Logger.Info(this, "Journal Command: Check Point.");
 						}
 
@@ -837,7 +837,7 @@ namespace Deveel.Data.Store {
 				int sz = resources_updated.Count;
 				for (int i = 0; i < sz; ++i) {
 					AbstractResource r = (AbstractResource)resources_updated[i];
-					if (js.Logger.IsInterestedIn(LogLevel.Information)) {
+					if (js.Logger.IsInterestedIn(LogLevel.Info)) {
 						js.Logger.Info(this, "Synch: " + r);
 					}
 					r.Synch();

@@ -40,8 +40,6 @@ namespace Deveel.Data.DbSystem {
 
 		Table SingleRowTable { get; }
 
-		Log CommandsLog { get; }
-
 		TableDataConglomerate Conglomerate { get; }
 
 

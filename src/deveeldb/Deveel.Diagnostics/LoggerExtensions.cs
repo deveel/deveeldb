@@ -74,19 +74,19 @@ namespace Deveel.Diagnostics {
 		}
 
 		public static void Info(this ILogger logger, string source, string message) {
-			logger.Log(LogLevel.Information, source, message);
+			logger.Log(LogLevel.Info, source, message);
 		}
 
 		public static void Info(this ILogger logger, object source, string message) {
-			logger.Log(LogLevel.Information, source, message);
+			logger.Log(LogLevel.Info, source, message);
 		}
 
 		public static void Info(this ILogger logger, string source, Exception error) {
-			logger.Log(LogLevel.Information, source, error);
+			logger.Log(LogLevel.Info, source, error);
 		}
 
 		public static void Info(this ILogger logger, object source, Exception error) {
-			logger.Log(LogLevel.Information, source, error);
+			logger.Log(LogLevel.Info, source, error);
 		}
 
 		public static void Warning(this ILogger logger, object source, string message) {
@@ -121,5 +121,12 @@ namespace Deveel.Diagnostics {
 			logger.Log(LogLevel.Message, source, error);
 		}
 
+		public static void Query(this ILogger logger, string source, string message) {
+			logger.Log(LogLevel.Query, source, message);
+		}
+
+		public static void Query(this ILogger logger, object source, string message) {
+			logger.Log(LogLevel.Query, source, message);
+		}
 	}
 }

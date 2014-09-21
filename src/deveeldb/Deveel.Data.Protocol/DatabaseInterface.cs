@@ -80,20 +80,12 @@ namespace Deveel.Data.Protocol {
 #if DEBUG
 			if (database.Context.Config.LogQueries()) {
 				// Output the instruction to the _queries log.
-				StringBuilder logStr = new StringBuilder();
-				logStr.Append("[CLIENT] [");
-				logStr.Append(username);
-				logStr.Append("] ");
-				logStr.Append('[');
-				logStr.Append(host_name);
-				logStr.Append("] ");
-				logStr.Append("Log in.\n");
-				database.CommandsLog.Write(logStr.ToString());
+				database.Context.Logger.Query(this, String.Format("[CLIENT] [{0}][{1}] - Log in", username, host_name));
 			}
 #endif
 
 			// Write debug message,
-			if (Logger.IsInterestedIn(LogLevel.Information)) {
+			if (Logger.IsInterestedIn(LogLevel.Info)) {
 				Logger.Info(this, "Authenticate User: " + username);
 			}
 
@@ -180,22 +172,13 @@ namespace Deveel.Data.Protocol {
 #if DEBUG
 			if (Database.Context.Config.LogQueries()) {
 				// Output the instruction to the _queries log.
-				StringBuilder logStr = new StringBuilder();
-				logStr.Append("[CLIENT] [");
-				logStr.Append(user.UserName);
-				logStr.Append("] ");
-				logStr.Append('[');
-				logStr.Append(host_name);
-				logStr.Append("] ");
-				logStr.Append("Query: ");
-				logStr.Append(query.Text);
-				logStr.Append('\n');
-				user.Database.CommandsLog.Write(logStr.ToString());
+				user.Database.Context.Logger.Query(this,
+					String.Format("[CLIENT] [{0}] [{1}] - Query: {2}", user.UserName, host_name, query.Text));
 			}
 #endif
 
-			// Write debug message (Information level)
-			if (Logger.IsInterestedIn(LogLevel.Information)) {
+			// Write debug message (Info level)
+			if (Logger.IsInterestedIn(LogLevel.Info)) {
 				Logger.Info(this, "Query From User: " + user.UserName + "@" + host_name);
 				Logger.Info(this, "Query: " + query.Text.Trim());
 			}

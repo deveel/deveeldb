@@ -46,6 +46,10 @@ namespace Deveel.Data.Configuration {
 
 		public const string HeapCache = "heap";
 
+		public const string DefaultLoggerType = "default";
+
+		public const string EmptyLoggerType = "empty";
+
 		public const string SystemRegexLibrary = "Deveel.Data.Text.SystemRegexLibrary";
 
 		public const string PasswordHashFunction = "HMAC-SHA-256(32)";
@@ -63,5 +67,7 @@ namespace Deveel.Data.Configuration {
 		public const int MaxWorkerThreads = 5;
 
 		public const bool ReadOnly = false;
+
+		public const string LoggerType = DefaultLoggerType;
 	}
 }

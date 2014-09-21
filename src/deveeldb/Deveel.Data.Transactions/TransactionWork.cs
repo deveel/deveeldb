@@ -532,7 +532,7 @@ namespace Deveel.Data.Transactions {
 							master.RollbackTransactionChange(changeJournal);
 						}
 
-						if (Conglomerate.Logger.IsInterestedIn(LogLevel.Information))
+						if (Conglomerate.Logger.IsInterestedIn(LogLevel.Info))
 							Conglomerate.Logger.Info(this, "Rolled back transaction changes in a commit.");
 					}
 				} finally {

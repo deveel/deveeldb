@@ -16,9 +16,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Runtime.Remoting;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Deveel.Data.Configuration;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.Configuration {
 	public static class DbConfigExtensions {
@@ -220,6 +222,54 @@ namespace Deveel.Data.Configuration {
 
 		public static void IgnoreIdentifierCase(this IDbConfig config, bool value) {
 			config.SetValue(ConfigKeys.IgnoreIdentifiersCase, value);
+		}
+
+		public static string LoggerTypeString(this IDbConfig config) {
+			return config.GetString(ConfigKeys.LoggerType, ConfigDefaultValues.LoggerType);
+		}
+
+		public static void LoggerTypeString(this IDbConfig config, string value) {
+			Type type;
+			if (String.Equals(value, ConfigDefaultValues.DefaultLoggerType, StringComparison.OrdinalIgnoreCase)) {
+				type = typeof (DefaultLogger);
+			} else if (String.Equals(value, ConfigDefaultValues.EmptyLoggerType, StringComparison.OrdinalIgnoreCase)) {
+				type = typeof (EmptyLogger);
+			} else {
+				type = Type.GetType(value, false, true);
+			}
+
+			if (type == null)
+				throw new DatabaseConfigurationException(String.Format("Could not find type '{0}'.", value));
+
+			config.LoggerType(type);
+		}
+
+		public static Type LoggerType(this IDbConfig config) {
+			var typeString = config.GetString(ConfigKeys.LoggerType);
+			if (String.IsNullOrEmpty(typeString) ||
+				String.Equals(typeString, ConfigDefaultValues.EmptyLoggerType, StringComparison.OrdinalIgnoreCase))
+				return typeof(EmptyLogger);
+
+			try {
+				return Type.GetType(typeString, true, true);
+			} catch (Exception ex) {
+				throw new DatabaseConfigurationException(String.Format("Could not load the type '{0}'", typeString), ex);
+			}
+		}
+
+		public static void LoggerType(this IDbConfig config, Type loggerType) {
+			if (loggerType == null || loggerType == typeof(EmptyLogger)) {
+				config.SetValue(ConfigKeys.LoggerType, ConfigDefaultValues.EmptyLoggerType);
+			} else {
+				if (!typeof(ILogger).IsAssignableFrom(loggerType))
+					throw new DatabaseConfigurationException(String.Format("The type {0} is not assignable from {1}", loggerType, typeof(ILogger)));
+
+				if (loggerType == typeof (DefaultLogger)) {
+					config.SetValue(ConfigKeys.LoggerType, ConfigDefaultValues.DefaultLoggerType);
+				} else {
+					config.SetValue(ConfigKeys.LoggerType, loggerType.AssemblyQualifiedName);
+				}
+			}
 		}
 
 		public static string LogPath(this IDbConfig config) {
