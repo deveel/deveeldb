@@ -353,7 +353,6 @@
     <Compile Include="Deveel.Data.Util\PagedInputStream.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\ShellUserTerminal.cs" />
-    <Compile Include="Deveel.Data.Util\Stats.cs" />
     <Compile Include="Deveel.Data.Threading\AccessType.cs" />
     <Compile Include="Deveel.Data.Sql\Assignment.cs" />
     <Compile Include="Deveel.Data\BigNumber.cs" />
@@ -524,9 +523,10 @@
     <Compile Include="Deveel.Diagnostics\DefaultLogger.cs" />
     <Compile Include="Deveel.Diagnostics\EmptyLogger.cs" />
     <Compile Include="Deveel.Diagnostics\ILogger.cs" />
-    <Compile Include="Deveel.Diagnostics\Log.cs" />
     <Compile Include="Deveel.Diagnostics\LogEntry.cs" />
     <Compile Include="Deveel.Diagnostics\LogWriter.cs" />
+    <Compile Include="Deveel.Diagnostics\Stats.cs" />
+    <Compile Include="Deveel.Diagnostics\StatsDefaultKeys.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\BigDecimal.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\BigInteger.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\BitLevel.cs" />

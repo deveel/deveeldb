@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Deveel.Diagnostics;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Transactions {
@@ -76,7 +77,7 @@ namespace Deveel.Data.Transactions {
 				long currentCommitId = transaction.CommitId;
 				if (currentCommitId >= maximumCommitId) {
 					openTransactions.Add(transaction);
-					context.Stats.Increment("OpenTransactionList.count");
+					context.Stats.Increment(StatsDefaultKeys.OpenTransactionsCount);
 					maximumCommitId = currentCommitId;
 				} else {
 					throw new ApplicationException("Added a transaction with a lower than maximum commit_id");
@@ -109,7 +110,7 @@ namespace Deveel.Data.Transactions {
 				}
 
 				openTransactions.RemoveAt(i);
-				context.Stats.Decrement("OpenTransactionList.count");
+				context.Stats.Decrement(StatsDefaultKeys.OpenTransactionsCount);
 			}
 		}
 
@@ -133,23 +134,22 @@ namespace Deveel.Data.Transactions {
 		/// Returns <see cref="Int64.MaxValue"/> if there are no open transactions 
 		/// in the list(not including the given transaction).
 		/// </returns>
-		public long MinimumCommitID(Transaction transaction) {
+		public long MinimumCommitId(Transaction transaction) {
 			lock (this) {
-				long minimum_commit_id = Int64.MaxValue;
+				long commitId = Int64.MaxValue;
 				if (openTransactions.Count > 0) {
 					// If the bottom transaction is this transaction, then go to the
 					// next up from the bottom (we don't count this transaction as the
 					// minimum commit_id).
 					Transaction testTransaction = openTransactions[0];
 					if (testTransaction != transaction) {
-						minimum_commit_id = testTransaction.CommitId;
+						commitId = testTransaction.CommitId;
 					} else if (openTransactions.Count > 1) {
-						minimum_commit_id = openTransactions[1].CommitId;
+						commitId = openTransactions[1].CommitId;
 					}
 				}
 
-				return minimum_commit_id;
-
+				return commitId;
 			}
 		}
 	}

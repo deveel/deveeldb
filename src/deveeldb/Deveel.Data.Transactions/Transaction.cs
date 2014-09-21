@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
+using Deveel.Data.Deveel.Diagnostics;
 using Deveel.Data.Index;
 using Deveel.Data.DbSystem;
 using Deveel.Diagnostics;
@@ -371,7 +372,8 @@ namespace Deveel.Data.Transactions {
 		/// Cleans up this transaction.
 		/// </summary>
 		private void Cleanup() {
-			Context.SystemContext.Stats.Decrement("Transaction.count");
+			Context.SystemContext.Stats.Decrement(StatsDefaultKeys.TransactionsCount);
+
 			// Dispose of all the IIndexSet objects created by this transaction.
 			DisposeAllIndices();
 

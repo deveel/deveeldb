@@ -20,14 +20,16 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace Deveel.Data {
+using Deveel.Data.Deveel.Diagnostics;
+
+namespace Deveel.Diagnostics {
 	///<summary>
 	/// An object that is used to store and update various stats.
 	///</summary>
 	/// <remarks>
 	/// <b>Note</b>: This object is thread safe.
 	/// </remarks>
-	public sealed class Stats {
+	public sealed class Stats : IEnumerable<KeyValuePair<string, long>> {
 
 		/// <summary>
 		/// Where the stat properties are held.
@@ -56,7 +58,7 @@ namespace Deveel.Data {
 
 				// If key starts with a "{session}" then reset it to 0.
 				for (int i = 0; i < keys.Length; ++i) {
-					if (keys[i].StartsWith("{session}")) {
+					if (keys[i].StartsWith(StatsDefaultKeys.SessionPrefix)) {
 						IntegerStat stat = properties[keys[i]];
 						stat.value = 0;
 					}
@@ -85,7 +87,7 @@ namespace Deveel.Data {
 		/// Increments a stat property.
 		///</summary>
 		///<param name="statName"></param>
-		public void Increment(String statName) {
+		public void Increment(string statName) {
 			lock (this) {
 				IntegerStat stat;
 				if (properties.TryGetValue(statName, out stat)) {
@@ -177,6 +179,12 @@ namespace Deveel.Data {
 			}
 		}
 
+		public IEnumerator<KeyValuePair<string, long>> GetEnumerator() {
+			foreach (var stat in properties) {
+				yield return new KeyValuePair<string, long>(stat.Key, stat.Value.value);
+			}
+		}
+
 		public override String ToString() {
 			lock (this) {
 				var buf = new StringBuilder();
@@ -190,6 +198,10 @@ namespace Deveel.Data {
 
 				return buf.ToString();
 			}
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
 		}
 
 		///<summary>

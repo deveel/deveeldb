@@ -1251,7 +1251,7 @@ namespace Deveel.Data.DbSystem {
 
 				// Flush the journals up to the minimum commit id for all the tables
 				// that this transaction changed.
-				long minCommitId = openTransactions.MinimumCommitID(null);
+				long minCommitId = openTransactions.MinimumCommitId(null);
 				foreach (MasterTableDataSource master in changedTablesList) {
 					master.MergeJournalChanges(minCommitId);
 				}

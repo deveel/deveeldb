@@ -2,7 +2,7 @@
 using System.Data;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Deveel.Diagnostics;
+using Deveel.Diagnostics;
 
 using NUnit.Framework;
 

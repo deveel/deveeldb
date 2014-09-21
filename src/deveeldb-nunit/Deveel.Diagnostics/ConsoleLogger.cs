@@ -3,7 +3,7 @@
 using Deveel.Data.Configuration;
 using Deveel.Diagnostics;
 
-namespace Deveel.Data.Deveel.Diagnostics {
+namespace Deveel.Diagnostics {
 	public class ConsoleLogger : ILogger {
 		public void Dispose() {
 		}

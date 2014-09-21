@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Diagnostics;
 using Deveel.Data.Index;
 using Deveel.Data.Procedures;
 using Deveel.Data.Routines;

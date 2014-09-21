@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Deveel.Diagnostics;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Caching {
@@ -238,7 +239,7 @@ namespace Deveel.Data.Caching {
 				}
 				if (cache.NodeCount != 0) {
 					cache.Clear();
-					context.Stats.Increment("DataCellCache.total_cache_wipe");
+					context.Stats.Increment(StatsDefaultKeys.DataCellCacheTotalWipes);
 				}
 				currentCacheSize = 0;
 			}
@@ -307,11 +308,11 @@ namespace Deveel.Data.Caching {
 			protected override void CheckClean() {
 				if (cache.CurrentCacheSize >= maxCacheSize) {
 					// Update the current cache size (before we wiped).
-					cache.context.Stats.Set("DataCellCache.current_cache_size", (int) cache.CurrentCacheSize);
+					cache.context.Stats.Set(StatsDefaultKeys.DataCellCacheCurrentSize, (int) cache.CurrentCacheSize);
 					Clean();
 
 					// The number of times we've cleared away old data cell nodes.
-					cache.context.Stats.Increment("DataCellCache.cache_clean");
+					cache.context.Stats.Increment(StatsDefaultKeys.DataCellCacheClean);
 				}
 			}
 
