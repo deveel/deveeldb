@@ -20,6 +20,7 @@ using System.Runtime.Remoting;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Deveel.Data.Configuration;
+using Deveel.Data.Store;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Configuration {
@@ -198,6 +199,22 @@ namespace Deveel.Data.Configuration {
 
 		public static void StorageSystem(this IDbConfig config, string value) {
 			config.SetValue(ConfigKeys.StorageSystem, value);
+		}
+
+		public static Type StorageSystemType(this IDbConfig config) {
+			var typeString = config.GetString(ConfigKeys.StorageSystem);
+			if (String.Equals(typeString, ConfigDefaultValues.HeapStorageSystem, StringComparison.OrdinalIgnoreCase))
+				return typeof (V1HeapStoreSystem);
+			if (String.Equals(typeString, ConfigDefaultValues.FileStorageSystem, StringComparison.OrdinalIgnoreCase))
+				return typeof (V1FileStoreSystem);
+
+			var type = Type.GetType(typeString, false, true);
+			if (type == null)
+				throw new DatabaseConfigurationException(String.Format("Unable to fnd the type '{0}' for the store system", typeString));
+			if (!typeof(IStoreSystem).IsAssignableFrom(type))
+				throw new DatabaseConfigurationException(String.Format("The type '{0}' is not assignable from '{1}'.", type, typeof(IStoreSystem)));
+
+			return type;
 		}
 
 		public static string BasePath(this IDbConfig config) {

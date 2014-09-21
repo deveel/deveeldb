@@ -105,17 +105,7 @@ namespace Deveel.Data.DbSystem {
 					return true;
 
 				try {
-					// HACK: If the legacy style '.sf' state file exists then we must return
-					//   true here because technically the database exists but is not in the
-					//   correct version.
-					if (Conglomerate.Exists())
-						return true;
-
-					if (Context.StoreSystem.StorageType == StorageType.File &&
-					    File.Exists(Path.Combine(Context.DatabasePath, Name + ".sf")))
-						return true;
-
-					return false;
+					return Conglomerate.Exists();
 				} catch (IOException e) {
 					Context.Logger.Error(this, e);
 					throw new Exception("IO Error: " + e.Message, e);
@@ -362,21 +352,10 @@ namespace Deveel.Data.DbSystem {
 			try {
 				// Check if the state file exists.  If it doesn't, we need to report
 				// incorrect version.
-				if (!Context.StoreSystem.StoreExists(Name + "_sf")) {
-					// If state store doesn't exist but the legacy style '.sf' state file
-					// exists,
-					if (this.Context.DatabasePath != null &&
-					    File.Exists(Path.Combine(this.Context.DatabasePath, Name + ".sf"))) {
-						throw new DatabaseException(
-							"The state store for this database doesn't exist.  This means " +
-							"the database version is pre version 1.0.  Please see the " +
-							"README for the details for converting this database.");
-					}
-
+				if (!Context.StoreSystem.StoreExists(Name + "_sf"))
 					// If neither store or state file exist, assume database doesn't
 					// exist.
 					throw new DatabaseException("The database does not exist.");
-				}
 
 				// Open the conglomerate
 				Conglomerate.Open();
@@ -385,11 +364,9 @@ namespace Deveel.Data.DbSystem {
 			} catch (TransactionException e) {
 				// This would be very strange error to receive for in initializing
 				// database...
-				throw new ApplicationException("Transaction Error: " + e.Message);
+				throw new ApplicationException("Transaction Error: " + e.Message, e);
 			} catch (IOException e) {
-				Console.Error.WriteLine(e.Message);
-				Console.Error.WriteLine(e.StackTrace);
-				throw new ApplicationException("IO Error: " + e.Message);
+				throw new ApplicationException("IO Error: " + e.Message, e);
 			}
 
 			IsInitialized = true;

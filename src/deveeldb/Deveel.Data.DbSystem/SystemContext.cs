@@ -88,17 +88,6 @@ namespace Deveel.Data {
 		public bool ReadOnlyAccess { get; private set; }
 
 		/// <summary>
-		/// Returns the path of the database in the local file system if the database
-		/// exists within the local file system.
-		/// </summary>
-		/// <remarks>
-		/// If the database is not within the local file system then null is returned. 
-		/// It is recommended this method is not used unless for legacy or compatability 
-		/// purposes.
-		/// </remarks>
-		public string DatabasePath { get; private set; }
-
-		/// <summary>
 		/// Returns true if the database should perform checking of table locks.
 		/// </summary>
 		public bool TableLockingEnabled {
@@ -254,44 +243,37 @@ namespace Deveel.Data {
 		}
 
 		private void SetupStoreSystem() {
-			// The storage encapsulation that has been configured.
-			string storageSystem = Config.GetString(ConfigKeys.StorageSystem, ConfigDefaultValues.FileStorageSystem);
+			try {
+				var storageSystemType = Config.StorageSystemType();
 
-			// Construct the system store.
-			if (String.Equals(storageSystem, ConfigDefaultValues.FileStorageSystem, StringComparison.InvariantCultureIgnoreCase)) {
-				Logger.Message(this, "Storage System: file storage mode.");
-				StoreSystem = new V1FileStoreSystem();
-			} else if (String.Equals(storageSystem, ConfigDefaultValues.HeapStorageSystem, StringComparison.InvariantCultureIgnoreCase)) {
-				Logger.Message(this, "Storage System: heap storage mode.");
-				StoreSystem = new V1HeapStoreSystem();
-			} else {
-				string errorMsg = "Unknown storage_system property: " + storageSystem;
+				// Construct the system store.
+				if (storageSystemType == typeof(V1FileStoreSystem)) {
+					Logger.Message(this, "Storage System: file storage mode.");
+					StoreSystem = new V1FileStoreSystem();
+				} else if (storageSystemType == typeof(V1HeapStoreSystem)) {
+					Logger.Message(this, "Storage System: heap storage mode.");
+					StoreSystem = new V1HeapStoreSystem();
+				} else {
+					if (storageSystemType == null) {
+						throw new DatabaseConfigurationException("Storage system not configured.");
+					}
 
-				Type storageSystemType = Type.GetType(storageSystem, false, true);
-				if (storageSystemType == null ||
-					!typeof(IStoreSystem).IsAssignableFrom(storageSystemType)) {
-					Logger.Error(this, errorMsg);
-					throw new Exception(errorMsg);
+					try {
+						StoreSystem = (IStoreSystem) Activator.CreateInstance(storageSystemType, true);
+					} catch (Exception e) {
+						throw new DatabaseConfigurationException(String.Format("Unable to initialize the storage system type '{0}'.", storageSystemType), e);
+					}
 				}
 
-				try {
-					StoreSystem = (IStoreSystem)Activator.CreateInstance(storageSystemType, true);
-				} catch (Exception e) {
-					errorMsg = "Error initializing '" + storageSystemType.FullName + "': " + e.Message;
-					Logger.Error(this, errorMsg);
-					throw new Exception(errorMsg);
-				}
+				// init the storage system
+				StoreSystem.Init(this);
+			} catch(DatabaseConfigurationException ex) {
+				Logger.Error(this, ex);
+				throw;
+			} catch (Exception ex) {
+				Logger.Error(this, ex);
+				throw new DatabaseConfigurationException("Unable to initialize the data store.", ex);
 			}
-
-			if (StoreSystem.StorageType == StorageType.File) {
-				// we must be sure to have at least a database path
-				DatabasePath = Config.DatabasePath();
-				if (String.IsNullOrEmpty(DatabasePath))
-					DatabasePath = Config.BasePath();
-			}
-
-			// init the storage system
-			StoreSystem.Init(this);
 		}
 
 		private void SetupCache() {
