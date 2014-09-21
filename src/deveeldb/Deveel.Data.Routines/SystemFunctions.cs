@@ -862,34 +862,34 @@ namespace Deveel.Data.Routines {
 				return ob;
 
 			String str = ob.Object.ToString();
-			int strLength = str.Length;
+			int strLength = str.Length - (startOffset.ToBigNumber().ToInt32()-1);
 
 			return Substring(ob, startOffset, TObject.CreateInt4(strLength));
 		}
 
-		public static TObject Substring(TObject ob, TObject startOffset, TObject endOffset) {
+		public static TObject Substring(TObject ob, TObject startOffset, TObject length) {
 			if (ob.IsNull)
 				return ob;
 
 			string str = ob.Object.ToString();
 			int strLength = str.Length;
-			int start = startOffset.ToBigNumber().ToInt32();
-			int end = endOffset.ToBigNumber().ToInt32();
+			int start = startOffset.ToBigNumber().ToInt32()- 1;
+			int len = length.ToBigNumber().ToInt32();
 
 			// Make sure this call is safe for all lengths of string.
-			if (start < 1)
-				start = 1;
+			if (start < 0)
+				start = 0;
 
 			if (start > strLength)
 				return TObject.CreateString("");
 
-			if (end + start > strLength)
-				end = (strLength - start);
+			if (len + start > strLength)
+				len = (strLength - start);
 
-			if (end < 1)
+			if (len < 1)
 				return TObject.CreateString("");
 
-			return TObject.CreateString(str.Substring(start - 1, (end - start) - 1));
+			return TObject.CreateString(str.Substring(start, len));
 		}
 
 		public static TObject InString(TObject ob, TObject search) {
@@ -903,11 +903,46 @@ namespace Deveel.Data.Routines {
 			string str = ob.Object.ToString();
 			int strLength = str.Length;
 
-			return InString(ob, search, startOffset, TObject.CreateInt4(strLength));
+			return InString(ob, search, startOffset, TObject.CreateBigNumber(1));
 		}
 
-		public static TObject InString(TObject ob, TObject search, TObject startOffset, TObject endOffset) {
-			return TObject.Null;
+		public static TObject InString(TObject ob, TObject search, TObject startOffset, TObject occurrence) {
+			if (ob.IsNull)
+				return TObject.CreateBigNumber(-1);
+
+			var s = ob.ToStringValue();
+			var sub = search.ToStringValue();
+
+			if (String.IsNullOrEmpty(sub))
+				return TObject.CreateBigNumber(-1);
+
+			var start = 0;
+			var occ = 1;
+
+			if (!startOffset.IsNull)
+				start = startOffset.ToBigNumber().ToInt32() - 1;
+			if (!occurrence.IsNull)
+				occ = occurrence.ToBigNumber().ToInt32();
+
+			if (occ < 1)
+				occ = 1;
+
+			if (start < 0)
+				start = 0;
+
+			if (String.IsNullOrEmpty(s))
+				return TObject.CreateBigNumber(-1);
+
+			int count = -1;
+			int lastIndex = -1;
+			while (++count < occ) {
+				lastIndex = s.IndexOf(sub, start + (lastIndex+1));
+			}
+
+			if (lastIndex >= 0)
+				lastIndex = lastIndex + 1;
+
+			return TObject.CreateBigNumber(lastIndex);
 		}
 
 		public static TObject LPad(TObject ob, TObject totalWidth) {

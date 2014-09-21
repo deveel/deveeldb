@@ -199,6 +199,20 @@ namespace Deveel.Data {
 			return command.ExecuteScalar();
 		}
 
+		protected long ExecuteScalarToInt64(string commandText) {
+			var result = ExecuteScalar(commandText);
+			if (result is BigNumber)
+				return ((BigNumber) result).ToInt64();
+			return (long) result;
+		}
+
+		protected double ExecuteScalarToDouble(string commandText) {
+			var result = ExecuteScalar(commandText);
+			if (result is BigNumber)
+				return ((BigNumber) result).ToDouble();
+			return (double) result;			
+		}
+
 		protected IDatabaseConnection CreateDatabaseConnection() {
 			string hostString = "Internal/Test/" + _connCounter++;
 			User user = system.Database.AuthenticateUser(AdminUser, AdminPassword, hostString);
