@@ -15,6 +15,7 @@
 
 using System;
 using System.Linq;
+using System.Text;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
@@ -81,7 +82,6 @@ namespace Deveel.Data.Routines {
 				return false;
 
 			return true;
-
 		}
 	}
 }

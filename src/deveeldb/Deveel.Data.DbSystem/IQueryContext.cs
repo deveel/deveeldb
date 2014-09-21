@@ -234,5 +234,9 @@ namespace Deveel.Data.DbSystem {
 		void OpenCursor(TableName name);
 
 		void CloseCursor(TableName name);
+
+		// ------------- Random ------------------
+
+		double NextRandom();
 	}
 }

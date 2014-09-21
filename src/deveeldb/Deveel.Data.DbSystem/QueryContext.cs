@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 using Deveel.Data.Routines;
 using Deveel.Data.Query;
@@ -28,6 +29,8 @@ namespace Deveel.Data.DbSystem {
 	/// </summary>
 	public abstract class QueryContext : IQueryContext {
 		private readonly ILogger emptyLogger = new EmptyLogger();
+
+		private RNGCryptoServiceProvider secureRandom = new RNGCryptoServiceProvider();
 
 		/// <summary>
 		/// Any marked tables that are made during the evaluation of a query plan.
@@ -173,6 +176,12 @@ namespace Deveel.Data.DbSystem {
 
 		/// <inheritdoc/>
 		public virtual void CloseCursor(TableName name) {
+		}
+
+		public double NextRandom() {
+			var bytes = new byte[16];
+			secureRandom.GetNonZeroBytes(bytes);
+			return BitConverter.ToDouble(bytes, 0);
 		}
 	}
 }

@@ -12,13 +12,13 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
-using Deveel.Data.Deveel.Data.Configuration;
 using Deveel.Data.Util;
 
 namespace Deveel.Data.Configuration {

@@ -19,7 +19,6 @@ using System.IO;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
-using Deveel.Data.Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Store;

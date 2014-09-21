@@ -15,7 +15,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Deveel.Data.Deveel.Data.Configuration {
+namespace Deveel.Data.Configuration {
 	[Serializable]
 	public class DatabaseConfigurationException : ApplicationException {
 		public DatabaseConfigurationException(string message, Exception innerException)

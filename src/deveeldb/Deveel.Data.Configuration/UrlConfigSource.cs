@@ -17,8 +17,6 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 
-using Deveel.Data.Deveel.Data.Configuration;
-
 namespace Deveel.Data.Configuration {
 	public sealed class UrlConfigSource : IConfigSource {
 		public UrlConfigSource(Uri url) {

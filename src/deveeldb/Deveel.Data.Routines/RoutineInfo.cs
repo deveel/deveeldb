@@ -14,9 +14,9 @@
 //    limitations under the License.
 
 using System;
+using System.Text;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	public abstract class RoutineInfo {
@@ -40,5 +40,21 @@ namespace Deveel.Data.Routines {
 		public RoutineParameter[] Parameters { get; private set; }
 
 		internal abstract bool MatchesInvoke(RoutineInvoke invoke, IQueryContext queryContext);
+
+		public override string ToString() {
+			var sb = new StringBuilder();
+			sb.Append(Name);
+			if (Parameters != null && Parameters.Length > 0) {
+				sb.Append('(');
+				for (int i = 0; i < Parameters.Length; i++) {
+					sb.Append(Parameters[i]);
+
+					if (i < Parameters.Length - 1)
+						sb.Append(", ");
+				}
+				sb.Append(')');
+			}
+			return sb.ToString();
+		}
 	}
 }

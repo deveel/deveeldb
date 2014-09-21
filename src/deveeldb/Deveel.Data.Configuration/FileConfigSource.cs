@@ -16,8 +16,6 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Deveel.Data.Configuration;
-
 namespace Deveel.Data.Configuration {
 	public sealed class FileConfigSource : IConfigSource {
 		public FileConfigSource(string filePath) {

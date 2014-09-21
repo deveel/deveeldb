@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Text;
 
 using Deveel.Data.Types;
 
@@ -61,6 +62,26 @@ namespace Deveel.Data.Routines {
 
 		public bool IsInput {
 			get { return (Direction & ParameterDirection.Input) != 0; }
+		}
+
+		public override string ToString() {
+			var sb = new StringBuilder();
+			if (IsInput && !IsOutput) {
+				sb.Append("IN");
+			} else if (IsOutput && !IsInput) {
+				sb.Append("OUT");
+			} else if (IsOutput && IsInput) {
+				sb.Append("IN OUT");
+			}
+
+			sb.Append(Name);
+			sb.Append(" ");
+			sb.Append(Type);
+
+			if (!IsNullable)
+				sb.Append("NOT NULL");
+
+			return sb.ToString();
 		}
 	}
 }

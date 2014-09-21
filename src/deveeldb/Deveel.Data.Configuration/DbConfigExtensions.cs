@@ -19,7 +19,6 @@ using System.IO;
 using System.Runtime.Remoting;
 
 using Deveel.Data.Caching;
-using Deveel.Data.Deveel.Data.Configuration;
 using Deveel.Data.Store;
 using Deveel.Diagnostics;
 

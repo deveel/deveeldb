@@ -19,8 +19,8 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
-using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	public abstract class FunctionFactory : IRoutineResolver {
@@ -56,111 +56,67 @@ namespace Deveel.Data.Routines {
 			aliases[alias] = functionName;
 		}
 
-		protected RoutineParameter Parameter(int i, TType type) {
-			return new RoutineParameter(Alpha[i].ToString(CultureInfo.InvariantCulture), type);
-		}
+		protected void AddFunction(IFunction function) {
+			if (function == null)
+				throw new ArgumentNullException("function");
 
-		protected RoutineParameter Dynamic(int i) {
-			return Parameter(i, Function.DynamicType);
-		}
-
-		protected RoutineParameter Unbounded(int i, TType type) {
-			return new RoutineParameter(Alpha[i].ToString(CultureInfo.InvariantCulture), type, ParameterAttributes.Unbounded);
-		}
-
-		protected RoutineParameter DynamicUnbounded(int i) {
-			return Unbounded(i, Function.DynamicType);
-		}
-
-		protected void AddFunction(String name, Type type) {
-			AddFunction(name, type, FunctionType.Static);
-		}
-
-		protected void AddFunction(String name, Type type, FunctionType functionType) {
-			AddFunction(name, new RoutineParameter[0], type, functionType);
-		}
-
-		protected void AddFunction(String name, RoutineParameter[] parameters, Type type, FunctionType functionType) {
 			try {
-				if (IsFunctionDefined(name, parameters))
-					throw new ApplicationException("Function '" + name + "' already defined in factory.");
+				if (IsFunctionDefined(function.Name.ToString(), function.Parameters))
+					throw new DatabaseConfigurationException(String.Format("Function '{0}' is already defined in factory.",
+						function.Name));
 
-				// We add these functions to the SYSTEM schema by default...
-				var info = new FunctionInfo(new RoutineName(SystemSchema.Name, name), parameters) { FunctionType = functionType };
-				functionTypeMapping[info] = type;
-			} catch (Exception e) {
-				throw new Exception(e.Message);
+				var info = new FunctionInfo(function.Name, function.Parameters) {FunctionType = function.FunctionType};
+				functionTypeMapping[info] = function;
+			} catch (DatabaseConfigurationException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseConfigurationException("Unable to add the function to the factory", ex);
 			}
 		}
 
-		protected void AddFunction(String name, RoutineParameter[] parameters, Type type) {
+		protected void AddFunction(FunctionInfo info, Type type) {
+			if (info == null)
+				throw new ArgumentNullException("info");
+			if (type == null)
+				throw new ArgumentNullException("type");
+
+			try {
+				if (IsFunctionDefined(info.Name.ToString(), info.Parameters))
+					throw new DatabaseConfigurationException(String.Format("Function '{0}' is already defined in factory.", info));
+				if (!typeof(IFunction).IsAssignableFrom(type))
+					throw new ArgumentException(String.Format("The type '{0}' is not a valid function.", type));
+
+				functionTypeMapping[info] = type;
+			} catch(DatabaseConfigurationException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseConfigurationException("An error occurred while adding a function to the facory", ex);
+			}
+		}
+
+		protected void AddFunction(string name, Type type) {
+			AddFunction(name, type, FunctionType.Static);
+		}
+
+		protected void AddFunction(string name, Type type, FunctionType functionType) {
+			AddFunction(name, new RoutineParameter[0], type, functionType);
+		}
+
+		protected void AddFunction(string name, RoutineParameter[] parameters, Type type, FunctionType functionType) {
+				// We add these functions to the SYSTEM schema by default...
+			AddFunction(new FunctionInfo(new RoutineName(SystemSchema.Name, name), parameters) { FunctionType = functionType }, type);
+		}
+
+		protected void AddFunction(string name, RoutineParameter[] parameters, Type type) {
 			AddFunction(name, parameters, type, FunctionType.Static);
 		}
 
-		protected void AddFunction(String name, RoutineParameter parameter, Type type) {
+		protected void AddFunction(string name, RoutineParameter parameter, Type type) {
 			AddFunction(name, parameter, type, FunctionType.Static);
 		}
 
-		protected void AddFunction(String name, RoutineParameter parameter, Type type, FunctionType functionType) {
+		protected void AddFunction(string name, RoutineParameter parameter, Type type, FunctionType functionType) {
 			AddFunction(name, new[] { parameter }, type, functionType);
-		}
-
-		protected void Build(string name, RoutineParameter[] parameters, Func<RoutineInfo, IFunction> builder) {
-			Build(name, parameters, builder, FunctionType.Static);
-		}
-
-		protected void Build(string name, Func<RoutineInfo, IFunction> builder) {
-			Build(name, new RoutineParameter[0], builder);
-		}
-
-		protected void Build(string name, RoutineParameter parameter, Func<RoutineInfo, IFunction> builder) {
-			Build(name, parameter, builder, FunctionType.Static);
-		}
-
-		protected void Build(string name, RoutineParameter parameter, Func<RoutineInfo, IFunction> builder, FunctionType functionType) {
-			Build(name, new RoutineParameter[]{parameter}, builder, functionType);
-		}
-
-		protected void Build(string name, RoutineParameter[] parameters, Func<RoutineInfo, IFunction> builder, FunctionType functionType) {
-			try {
-				if (IsFunctionDefined(name, parameters))
-					throw new ApplicationException("Function '" + name + "' already defined in factory.");
-
-				// We add these functions to the SYSTEM schema by default...
-				var info = new FunctionInfo(new RoutineName(SystemSchema.Name, name), parameters) { FunctionType = functionType };
-				functionTypeMapping[info] = builder;
-			} catch (Exception e) {
-				throw new Exception(e.Message);
-			}			
-		}
-
-		protected void Build(string name, RoutineParameter[] parameters, Action<FunctionBuilder> config) {
-			Build(name, parameters, config, FunctionType.Static);
-		}
-
-		protected void Build(string name, Action<FunctionBuilder> config) {
-			Build(name, new RoutineParameter[0], config);
-		}
-
-		protected void Build(string name, RoutineParameter parameter, Action<FunctionBuilder> config) {
-			Build(name, parameter, config, FunctionType.Static);
-		}
-
-		protected void Build(string name, RoutineParameter parameter, Action<FunctionBuilder> config, FunctionType functionType) {
-			Build(name, new RoutineParameter[] {parameter}, config, functionType);
-		}
-
-		protected void Build(string name, RoutineParameter[] parameters, Action<FunctionBuilder> config, FunctionType functionType) {
-			try {
-				if (IsFunctionDefined(name, parameters))
-					throw new ApplicationException("Function '" + name + "' already defined in factory.");
-
-				// We add these functions to the SYSTEM schema by default...
-				var info = new FunctionInfo(new RoutineName(SystemSchema.Name, name), parameters) { FunctionType = functionType };
-				functionTypeMapping[info] = config;
-			} catch (Exception e) {
-				throw new Exception(e.Message);
-			}						
 		}
 
 		/// <summary>
@@ -253,6 +209,9 @@ namespace Deveel.Data.Routines {
 
 			if (arg == null)
 				return null;
+
+			if (arg is IFunction)
+				return (IFunction) arg;
 
 			if (arg is Type) {
 				try {

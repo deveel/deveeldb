@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Deveel.Data.Configuration;
-using Deveel.Diagnostics;
 
 namespace Deveel.Diagnostics {
 	public class ConsoleLogger : ILogger {

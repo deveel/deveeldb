@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
@@ -114,6 +115,10 @@ namespace Deveel.Data.Routines {
 			return context.Arguments[0].ReturnTType(context.VariableResolver, context.QueryContext);
 		}
 
+		public FunctionBuilder Named(string name) {
+			return Named(SystemSchema.Name, name);
+		}
+
 		public FunctionBuilder Named(string schema, string name) {
 			return Named(RoutineName.Qualify(schema, name));
 		}
@@ -192,9 +197,17 @@ namespace Deveel.Data.Routines {
 			return WithDynamicParameter(name, ParameterAttributes.None);
 		}
 
+		public FunctionBuilder WithDynamicParameter() {
+			return WithDynamicParameter(ParameterAttributes.None);
+		}
+
 		public FunctionBuilder WithDynamicParameter(ParameterAttributes attributes) {
 			var name = Alpha[parameters.Count].ToString(CultureInfo.InvariantCulture);
 			return WithDynamicParameter(name, attributes);
+		}
+
+		public FunctionBuilder WithDynamicUnboundedParameter() {
+			return WithDynamicParameter(ParameterAttributes.Unbounded);
 		}
 
 		public FunctionBuilder WithDynamicParameter(string name, ParameterAttributes attributes) {
@@ -238,6 +251,10 @@ namespace Deveel.Data.Routines {
 		public FunctionBuilder OnAfterAggregate(Func<IGroupResolver, IVariableResolver, TObject, TObject> func) {
 			afterAggregateFunc = func;
 			return this;
+		}
+
+		public static FunctionBuilder New(string name) {
+			return New(SystemSchema.Name, name);
 		}
 
 		public static FunctionBuilder New(string schema, string name) {

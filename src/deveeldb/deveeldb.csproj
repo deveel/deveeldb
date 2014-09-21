@@ -125,6 +125,7 @@
     <Compile Include="Deveel.Data.Routines\ParameterAttributes.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureInfo.cs" />
     <Compile Include="Deveel.Data.Routines\Routine.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineBuilder.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineException.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineInfo.cs" />
@@ -137,7 +138,9 @@
     <Compile Include="Deveel.Data.Protocol\IInputStream.cs" />
     <Compile Include="Deveel.Data.Protocol\LengthMarkedBufferedInputStream.cs" />
     <Compile Include="Deveel.Data.Protocol\NetworkInputStream.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemFunctionNames.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctions.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemFunctionsFactory.cs" />
     <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs" />
     <Compile Include="Deveel.Data.Security\HashFunctions.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs" />
