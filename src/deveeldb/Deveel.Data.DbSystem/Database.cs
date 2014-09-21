@@ -17,11 +17,9 @@ using System;
 using System.Collections;
 using System.IO;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
-using Deveel.Data.Store;
 using Deveel.Data.Threading;
 using Deveel.Data.Transactions;
 using Deveel.Diagnostics;
@@ -63,7 +61,7 @@ namespace Deveel.Data.DbSystem {
 			UserManager = new UserManager(this);
 
 			// Create the single row table
-			TemporaryTable t = new TemporaryTable(this,"SINGLE_ROW_TABLE", new DataColumnInfo[0]);
+			var t = new TemporaryTable(this,"SINGLE_ROW_TABLE", new DataColumnInfo[0]);
 			t.NewRow();
 			SingleRowTable = t;
 		}
@@ -84,7 +82,6 @@ namespace Deveel.Data.DbSystem {
 
 		public UserManager UserManager { get; private set; }
 
-		// ---------- Log accesses ----------
 
 		/// <summary>
 		/// Returns the conglomerate for this database.

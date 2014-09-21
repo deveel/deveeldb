@@ -164,6 +164,7 @@ namespace Deveel.Diagnostics {
 			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
 				// First set up the debug information in this VM for the 'Debug' class.
 				string logPath = config.ResolvePath(logPathString);
+
 				// If the path doesn't exist the make it.
 				if (!Directory.Exists(logPath))
 					Directory.CreateDirectory(logPath);

@@ -14,38 +14,62 @@
 //    limitations under the License.
 
 using System;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// Exception thrown where various problems occur within the database.
 	/// </summary>
-	public class DatabaseException : Exception {
-
-		private readonly int error_code;
+	[Serializable]
+	public class DatabaseException : ApplicationException {
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="errorCode"></param>
+		public DatabaseException(string message, int errorCode)
+			: base(message) {
+			ErrorCode = errorCode;
+		}
 
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="error_code"></param>
-		/// <param name="message"></param>
-		public DatabaseException(int error_code, String message)
-			: base(message) {
-			this.error_code = error_code;
+		public DatabaseException()
+			: this(null) {
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="message"></param>
-		public DatabaseException(String message)
-			: this(-1, message) {
+		public DatabaseException(string message)
+			: this(message, null) {
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="innerException"></param>
+		public DatabaseException(string message, Exception innerException)
+			: base(message, innerException) {
+			ErrorCode = -1;
+		}
+
+		protected DatabaseException(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ErrorCode = info.GetInt32("ErrorCode");
 		}
 
 		/// <summary>
 		/// Returns the error code, or -1 if no error code was given.
 		/// </summary>
-		public int ErrorCode {
-			get { return error_code; }
+		public int ErrorCode { get; private set; }
+
+		public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("ErrorCode", ErrorCode);
+			base.GetObjectData(info, context);
 		}
 	}
 }
