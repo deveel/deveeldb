@@ -36,7 +36,7 @@ namespace Deveel.Data.DbSystem {
 
 		public static void AssertExclusive(this IDatabaseConnection connection) {
 			if (!connection.LockingMechanism.IsInExclusiveMode)
-				throw new SecurityException("Assertion failed: Expected to be in exclusive mode.");
+				throw new DatabaseSecurityException("Assertion failed: Expected to be in exclusive mode.");
 		}
 
 		/// <summary>
@@ -53,7 +53,7 @@ namespace Deveel.Data.DbSystem {
 			String name = tableName.Name;
 			if (String.Compare(name, "OLD", StringComparison.OrdinalIgnoreCase) == 0 ||
 				String.Compare(name, "NEW", StringComparison.OrdinalIgnoreCase) == 0) {
-				throw new SecurityException("Table name '" + tableName + "' is reserved.");
+				throw new DatabaseSecurityException("Table name '" + tableName + "' is reserved.");
 			}
 		}
 

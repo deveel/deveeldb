@@ -852,9 +852,9 @@ namespace Deveel.Data {
 			if (element_count == 1)
 				return (TObject)ElementToObject(0, group, resolver, context);
 			if (element_count == 3) {
-				TObject o1 = (TObject)ElementToObject(0, group, resolver, context);
-				TObject o2 = (TObject)ElementToObject(1, group, resolver, context);
-				Operator op = (Operator)elements[2];
+				var o1 = (TObject)ElementToObject(0, group, resolver, context);
+				var o2 = (TObject)ElementToObject(1, group, resolver, context);
+				var op = (Operator)elements[2];
 				return op.Evaluate(o1, o2, group, resolver, context);
 			}
 
@@ -907,8 +907,15 @@ namespace Deveel.Data {
 			if (ob is CorrelatedVariable)
 				return ((CorrelatedVariable) ob).EvalResult;
 			if (ob is RoutineInvoke) {
-				IFunction fun = (IFunction) ((RoutineInvoke) ob).GetFunction(context);
-				return fun.Execute(((RoutineInvoke)ob), group, resolver, context);
+				var invoke = (RoutineInvoke) ob;
+				try {
+					var fun = (IFunction)invoke.GetFunction(context);
+					return fun.Execute(((RoutineInvoke) ob), group, resolver, context);
+				} catch (RoutineException) {
+					throw;
+				} catch (Exception ex) {
+					throw new RoutineException(String.Format("An error occurred while executing {0}.", invoke), ex);
+				}
 			} 
 			if (ob is VariableRef) {
 				VariableRef variableRef = (VariableRef) ob;
@@ -920,10 +927,10 @@ namespace Deveel.Data {
 				TableSelectExpression selectExpression = (TableSelectExpression) ob;
 
 				// Generate the TableExpressionFromSet hierarchy for the expression,
-				TableExpressionFromSet from_set = Planner.GenerateFromSet(selectExpression, context.Connection);
+				TableExpressionFromSet fromSet = Planner.GenerateFromSet(selectExpression, context.Connection);
 
 				// Form the plan
-				IQueryPlanNode plan = Planner.FormQueryPlan(context.Connection, selectExpression, from_set, new List<ByColumn>());
+				IQueryPlanNode plan = Planner.FormQueryPlan(context.Connection, selectExpression, fromSet, new List<ByColumn>());
 
 				return TObject.CreateQueryPlan(plan);
 			}

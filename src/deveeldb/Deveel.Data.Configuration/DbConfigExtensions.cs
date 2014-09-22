@@ -12,6 +12,7 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -295,6 +296,46 @@ namespace Deveel.Data.Configuration {
 			config.SetValue(ConfigKeys.LogPath, value);
 		}
 
+		public static string LogFormat(this IDbConfig config) {
+			return config.GetString(ConfigKeys.LogFormat, ConfigDefaultValues.LogFormat);
+		}
+
+		public static void LogFormat(this IDbConfig config, string value) {
+			config.SetValue(ConfigKeys.LogFormat, value);
+		}
+
+		public static int LogMaxFileSize(this IDbConfig config) {
+			return config.GetInt32(ConfigKeys.LogMaxFileSize, ConfigDefaultValues.LogMaxFileSize);
+		}
+
+		public static void LogMaxFileSize(this IDbConfig config, int value) {
+			config.SetValue(ConfigKeys.LogMaxFileSize, value);
+		}
+
+		public static int LogMaxFileCount(this IDbConfig config) {
+			return config.GetInt32(ConfigKeys.LogMaxFileCount, ConfigDefaultValues.LogMaxFileCount);
+		}
+
+		public static int LogLevel(this IDbConfig config) {
+			return config.GetInt32(ConfigKeys.LogLevel, ConfigDefaultValues.LogLevel);
+		}
+
+		public static void LogLevel(this IDbConfig config, int value) {
+			config.SetValue(ConfigKeys.LogLevel, value);
+		}
+
+		public static void LogLevel(this IDbConfig config, LogLevel level) {
+			config.LogLevel(level.Value);
+		}
+
+		public static string LogFileName(this IDbConfig config) {
+			return config.GetString(ConfigKeys.LogFileName, ConfigDefaultValues.LogFileName);
+		}
+
+		public static void LogFileName(this IDbConfig config, string value) {
+			config.SetValue(ConfigKeys.LogFileName, value);
+		}
+
 		public static Type CacheType(this IDbConfig config) {
 			var typeString = config.GetString(ConfigKeys.CacheType, ConfigDefaultValues.HeapCache);
 			if (String.IsNullOrEmpty(typeString))
@@ -311,6 +352,14 @@ namespace Deveel.Data.Configuration {
 			if (type != null)
 				typeString = type.AssemblyQualifiedName;
 			config.SetValue(ConfigKeys.CacheType, typeString);
+		}
+
+		public static void CacheStatements(this IDbConfig config, bool value) {
+			config.SetValue(ConfigKeys.CacheStatements,value);
+		}
+
+		public static bool CacheStatements(this IDbConfig config) {
+			return config.GetBoolean(ConfigKeys.CacheStatements, ConfigDefaultValues.CacheStatements);
 		}
 
 		public static string DatabaseFullPath(this IDbConfig config) {
@@ -350,7 +399,11 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static int DataCacheSize(this IDbConfig config) {
-			return config.GetInt32(ConfigKeys.DataCacheSize);
+			return config.GetInt32(ConfigKeys.DataCacheSize, ConfigDefaultValues.DataCacheSize);
+		}
+
+		public static void DataCacheSize(this IDbConfig config, int value) {
+			config.SetValue(ConfigKeys.DataCacheSize, value);
 		}
 
 		public static int MaxCacheEntrySize(this IDbConfig config) {
@@ -381,12 +434,20 @@ namespace Deveel.Data.Configuration {
 			config.SetValue(ConfigKeys.DefaultSchema, value);
 		}
 
-		public static bool LogQueries(this IDbConfig config) {
-			return config.GetBoolean(ConfigKeys.LogQueries, ConfigDefaultValues.LogQueries);
+		public static int MaxWorkerThreads(this IDbConfig config) {
+			return config.GetInt32(ConfigKeys.MaxWorkerThreads, ConfigDefaultValues.MaxWorkerThreads);
 		}
 
-		public static void LogQueries(this IDbConfig config, bool value) {
-			config.SetValue(ConfigKeys.LogQueries, value);
+		public static void MaxWorkerThreads(this IDbConfig config, int value) {
+			config.SetValue(ConfigKeys.MaxWorkerThreads, value);
+		}
+
+		public static bool TableLockCheck(this IDbConfig config) {
+			return config.GetBoolean(ConfigKeys.TableLockCheck);
+		}
+
+		public static void TableLockCheck(this IDbConfig config, bool value) {
+			config.SetValue(ConfigKeys.TableLockCheck, value);
 		}
 
 		#endregion

@@ -67,7 +67,7 @@ namespace Deveel.Diagnostics {
 
 				var sb = new StringBuilder();
 
-				if (entry.Level < LogLevel.Message) {
+				if (entry.Level < LogLevel.Trace) {
 					sb.Append("> ");
 				} else {
 					sb.Append("% ");
@@ -153,15 +153,14 @@ namespace Deveel.Diagnostics {
 
 
 		public void Init(IDbConfig config) {
-			string logPathString = config.GetString(ConfigKeys.LogPath);
-			bool readOnly = config.GetBoolean(ConfigKeys.ReadOnly, false);
-			bool debugLogs = config.GetBoolean(ConfigKeys.DebugLogs, true);
+			string logPathString = config.LogPath();
+			bool readOnly = config.ReadOnly();
 
 			// Conditions for not initializing a log directory;
 			//  1. Read only access is enabled
 			//  2. log_path is empty or not set
 
-			if (debugLogs && !readOnly && !String.IsNullOrEmpty(logPathString)) {
+			if (!readOnly && !String.IsNullOrEmpty(logPathString)) {
 				// First set up the debug information in this VM for the 'Debug' class.
 				string logPath = config.ResolvePath(logPathString);
 
@@ -170,35 +169,34 @@ namespace Deveel.Diagnostics {
 					Directory.CreateDirectory(logPath);
 
 				LogWriter fileWriter;
-				string dlogFileName = config.GetString(ConfigKeys.DebugLogFile);
-				string debugLogFile = Path.Combine(Path.GetFullPath(logPath), dlogFileName);
+				string logFileName = config.LogFileName();
+				string logFile = Path.Combine(Path.GetFullPath(logPath), logFileName);
+				var logFileSize = config.LogMaxFileSize();
+				var logFileCount = config.LogMaxFileCount();
 
 				try {
 					// Allow log size to grow to 512k and allow 12 archives of the log
 					//TODO: make it configurable...
-					fileWriter = new LogWriter(debugLogFile, 512 * 1024, 12);
-					fileWriter.WriteLine("**** Debug log started: {0} ****", DateTime.Now);
+					fileWriter = new LogWriter(logFile, logFileSize, logFileCount);
+					fileWriter.WriteLine("**** Log started: {0} ****", DateTime.Now);
 					fileWriter.Flush();
 				} catch (IOException) {
-					throw new Exception("Unable to open debug file '" + debugLogFile + "' in path '" + logPath + "'");
+					throw new Exception("Unable to open file '" + logFile + "' in path '" + logPath + "'");
 				}
 				output = fileWriter;
-			}
-
-			// If 'debug_logs=disabled', don't Write out any debug logs
-			if (!debugLogs) {
+			} else {
 				// Otherwise set it up so the output from the logs goes to a TextWriter
 				// that doesn't do anything.  Basically - this means all log information
 				// will get sent into a black hole.
 				output = new EmptyTextWriter();
 			}
 
-			debugLevel = config.GetInt32(ConfigKeys.DebugLevel, -1);
+			debugLevel = config.LogLevel();
 			if (debugLevel == -1)
 				// stops all the output
 				debugLevel = 255;
 
-			string format = config.GetValue<string>("debug_format");
+			string format = config.LogFormat();
 			if (format != null)
 				messageFormat = format;
 		}
@@ -222,7 +220,7 @@ namespace Deveel.Diagnostics {
 				StringBuilder sb = new StringBuilder();
 				sb.AppendLine(e.Message);
 				sb.Append(e.StackTrace);
-				Write(new LogEntry(Thread.CurrentThread.Name, level, null, sb.ToString(), DateTime.Now));
+				Write(new LogEntry(Thread.CurrentThread.Name, level, null, sb.ToString(), e, DateTime.Now));
 			}
 		}
 

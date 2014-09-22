@@ -20,6 +20,12 @@ namespace Deveel.Diagnostics {
 	/// Debug level static values.
 	///</summary>
 	public sealed class LogLevel {
+		private const int TraceLevelValue = 10000;
+		private const int DebugLevelValue = 8000;
+		private const int InfoLevelValue = 600;
+		private const int ErrorLevelValue = 100;
+		private const int WarningLevelValue = 20;
+
 		private LogLevel(string name, int value) {
 			Name = name;
 			Value = value;
@@ -28,32 +34,24 @@ namespace Deveel.Diagnostics {
 		///<summary>
 		/// General processing 'noise'
 		///</summary>
-		public static readonly LogLevel Info = new LogLevel("INFO", 100);
+		public static readonly LogLevel Info = new LogLevel("INFO", InfoLevelValue);
 
-		///<summary>
-		/// Query information 'noise'
-		///</summary>
-		public static readonly LogLevel Query = new LogLevel("QUERY_INFO", 101);
+		public static readonly LogLevel Debug = new LogLevel("DEBUG", DebugLevelValue);
 
 		///<summary>
 		/// A message of some importance
 		///</summary>
-		public static readonly LogLevel Warning = new LogLevel("WARN", 20);
-
-		///<summary>
-		/// Crackers, etc
-		///</summary>
-		public static readonly LogLevel Alert = new LogLevel("ALERT", 30);
+		public static readonly LogLevel Warning = new LogLevel("WARN", WarningLevelValue);
 
 		///<summary>
 		/// Errors, exceptions
 		///</summary>
-		public static readonly LogLevel Error = new LogLevel("ERROR", 100);
+		public static readonly LogLevel Error = new LogLevel("ERROR", ErrorLevelValue);
 
 		///<summary>
 		/// Always printed messages (not error's however)
 		///</summary>
-		public static readonly LogLevel Message = new LogLevel("MESSAGE", 10000);
+		public static readonly LogLevel Trace = new LogLevel("TRACE", TraceLevelValue);
 
 		public string Name { get; private set; }
 
@@ -70,10 +68,6 @@ namespace Deveel.Diagnostics {
 
 		public override string ToString() {
 			return Name;
-		}
-
-		internal static LogLevel Create(string name, int value) {
-			return new LogLevel(name, value);
 		}
 
 		public static bool operator >(LogLevel a, LogLevel b) {

@@ -15,9 +15,11 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Routines {
 	[Serializable]
-	public class RoutineException : ApplicationException {
+	public class RoutineException : DatabaseException {
 		public RoutineException(string message, Exception innerException)
 			: base(message, innerException) {
 		}

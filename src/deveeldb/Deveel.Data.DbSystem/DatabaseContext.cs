@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 using Deveel.Data.Caching;
@@ -46,25 +47,11 @@ namespace Deveel.Data.DbSystem {
 		private ShutdownThread shutdownThread;
 
 		/// <summary>
-		/// The LoggedUsers object that handles users connected to the database engine.
-		/// </summary>
-		private LoggedUsers loggedUsers;
-
-		/// <summary>
 		/// The WorkerPool object that manages access to the database(s) in the system.
 		/// </summary>
 		private WorkerPool workerPool;
 
 		public event EventHandler OnShutdown;
-
-
-		// ---------- Queries ----------
-
-		/// <summary>
-		/// If query logging is enabled (all queries are output to 'commands.log' in
-		/// the log directory), this returns true.  Otherwise it returns false.
-		/// </summary>
-		public bool LogQueries { get; private set; }
 
 		/// <summary>
 		/// Returns the StatementCache that is used to cache StatementTree objects
@@ -87,9 +74,7 @@ namespace Deveel.Data.DbSystem {
 		/// by the engine.  It allows us to perform queries to see who's
 		/// connected, and any inter-user communication (triggers).
 		/// </remarks>
-		public LoggedUsers LoggedUsers {
-			get { return loggedUsers; }
-		}
+		public LoggedUsers LoggedUsers { get; private set; }
 
 		/// <summary>
 		/// Returns true if <see cref="Shutdown"/> method has been 
@@ -104,29 +89,34 @@ namespace Deveel.Data.DbSystem {
 			databaseList = new List<Database>();
 
 			// Create the user manager.
-			loggedUsers = new LoggedUsers();
+			LoggedUsers = new LoggedUsers();
 
 			if (config != null) {
-				// Set up the statement cache.
-				if (config.GetBoolean(ConfigKeys.CacheStatements, true)) {
-					StatementCache = new StatementCache(this, 127, 140, 20);
-					Logger.Message(this, "statement cache ENABLED");
-				} else {
-					Logger.Message(this, "statement cache DISABLED");
+				try {
+					// Set up the statement cache.
+					if (config.CacheStatements()) {
+						// TODO: make the statement cache configurable ...
+
+						StatementCache = new StatementCache(this, 127, 140, 20);
+						Logger.Trace(this, "statement cache ENABLED");
+					} else {
+						Logger.Trace(this, "statement cache DISABLED");
+					}
+
+					// The maximum number of worker threads.
+					int maxWorkerThreads = config.MaxWorkerThreads();
+					if (maxWorkerThreads <= 0)
+						maxWorkerThreads = 1;
+
+					Logger.Trace(this, "Max worker threads set to: " + maxWorkerThreads);
+					workerPool = new WorkerPool(this, maxWorkerThreads);
+				} catch (DatabaseConfigurationException) {
+					throw;
+				} catch (Exception ex) {
+					throw new DatabaseConfigurationException("Error while configuring the databae context", ex);
 				}
-
-				// The maximum number of worker threads.
-				int maxWorkerThreads = config.GetInt32(ConfigKeys.MaxWorkerThreads, 4);
-				if (maxWorkerThreads <= 0)
-					maxWorkerThreads = 1;
-
-				Logger.Message(this, "Max worker threads set to: " + maxWorkerThreads);
-				workerPool = new WorkerPool(this, maxWorkerThreads);
-
-				// Should we be logging commands?
-				LogQueries = config.GetBoolean(ConfigKeys.LogQueries, false);
 			} else {
-				throw new ApplicationException("Config bundle already set.");
+				throw new DatabaseConfigurationException("Config bundle already set.");
 			}
 
 			HasShutdown = false;
@@ -137,7 +127,7 @@ namespace Deveel.Data.DbSystem {
 			if (disposing) {
 				workerPool = null;
 				databaseList = null;
-				loggedUsers = null;
+				LoggedUsers = null;
 			}
 
 			base.Dispose(disposing);
@@ -155,7 +145,7 @@ namespace Deveel.Data.DbSystem {
 		/// will result if we were allowed to do this.
 		/// </para>
 		/// </remarks>
-		internal void WaitUntilAllWorkersQuiet() {
+		private void WaitUntilAllWorkersQuiet() {
 			workerPool.WaitUntilAllWorkersQuiet();
 		}
 
@@ -196,7 +186,6 @@ namespace Deveel.Data.DbSystem {
 			if (!HasShutdown) {
 				HasShutdown = true;
 				shutdownThread = new ShutdownThread(this);
-				shutdownThread.Start();
 
 				if (block)
 					shutdownThread.WaitTillFinished();
@@ -211,6 +200,7 @@ namespace Deveel.Data.DbSystem {
 			lock (this) {
 				if (databaseList == null)
 					databaseList = new List<Database>();
+
 				if (databaseList.Contains(database))
 					throw new DatabaseException("The database '" + database.Name + "' is already registered.");
 
@@ -219,10 +209,15 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		IDatabase IDatabaseContext.GetDatabase(string name) {
-			throw new NotImplementedException();
+			lock (this) {
+				if (databaseList == null)
+					return null;
+
+				return databaseList.FirstOrDefault(database => database.Name == name);
+			}
 		}
 
-		#region Nested type: ShutdownThread
+		#region ShutdownThread
 
 		/// <summary>
 		/// The shut down thread.  Started when 'shutDown' is called.
@@ -236,6 +231,7 @@ namespace Deveel.Data.DbSystem {
 				this.ds = ds;
 				thread = new Thread(Run);
 				thread.Name = "Shutdown Thread";
+				thread.Start();
 			}
 
 			internal void WaitTillFinished() {
@@ -287,11 +283,7 @@ namespace Deveel.Data.DbSystem {
 					Monitor.PulseAll(this);
 				}
 			}
-
-			public void Start() {
-				thread.Start();
-			}
-		} ;
+		}
 
 		#endregion
 	}

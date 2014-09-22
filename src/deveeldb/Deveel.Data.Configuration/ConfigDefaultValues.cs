@@ -50,13 +50,23 @@ namespace Deveel.Data.Configuration {
 
 		public const string EmptyLoggerType = "empty";
 
+		public const string LogFormat = "[{Thread}][{Time}] {Level:Name} - {Source} : {Message}";
+
+		public const int LogMaxFileSize = 1024*1000;
+
+		public const int LogMaxFileCount = 12;
+
+		public const int LogLevel = 1000;
+
+		public const string LogLevelName = "TRACE";
+
+		public const string LogFileName = "db.log";
+
 		public const string SystemRegexLibrary = "Deveel.Data.Text.SystemRegexLibrary";
 
 		public const string PasswordHashFunction = "HMAC-SHA-256(32)";
 
 		public const string DefaultSchema = "APP";
-
-		public const bool LogQueries = false;
 
 		public const string BasePath = ".";
 
@@ -69,5 +79,9 @@ namespace Deveel.Data.Configuration {
 		public const bool ReadOnly = false;
 
 		public const string LoggerType = DefaultLoggerType;
+
+		public const bool TableLocking = false;
+
+		public const int DataCacheSize = 1024;
 	}
 }

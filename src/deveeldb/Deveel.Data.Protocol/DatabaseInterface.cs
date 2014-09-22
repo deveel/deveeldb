@@ -77,12 +77,10 @@ namespace Deveel.Data.Protocol {
 			if (User != null)
 				throw new Exception("Attempt to authenticate user twice");
 
-#if DEBUG
-			if (database.Context.Config.LogQueries()) {
+			if (database.Context.Logger.IsInterestedIn(LogLevel.Debug)) {
 				// Output the instruction to the _queries log.
-				database.Context.Logger.Query(this, String.Format("[CLIENT] [{0}][{1}] - Log in", username, host_name));
+				database.Context.Logger.Debug(this, String.Format("[CLIENT] [{0}][{1}] - Log in", username, host_name));
 			}
-#endif
 
 			// Write debug message,
 			if (Logger.IsInterestedIn(LogLevel.Info)) {
@@ -169,18 +167,15 @@ namespace Deveel.Data.Protocol {
 			IDatabaseConnection database_connection = DatabaseConnection;
 
 			// Log this Query if Query logging is enabled
-#if DEBUG
-			if (Database.Context.Config.LogQueries()) {
+			if (Database.Context.Logger.IsInterestedIn(LogLevel.Debug)) {
 				// Output the instruction to the _queries log.
-				user.Database.Context.Logger.Query(this,
-					String.Format("[CLIENT] [{0}] [{1}] - Query: {2}", user.UserName, host_name, query.Text));
+				user.Database.Context.Logger.Debug(this, String.Format("[CLIENT] [{0}] [{1}] - Query: {2}", user.UserName, host_name, query.Text));
 			}
-#endif
 
 			// Write debug message (Info level)
-			if (Logger.IsInterestedIn(LogLevel.Info)) {
-				Logger.Info(this, "Query From User: " + user.UserName + "@" + host_name);
-				Logger.Info(this, "Query: " + query.Text.Trim());
+			if (Logger.IsInterestedIn(LogLevel.Debug)) {
+				Logger.Debug(this, "Query From User: " + user.UserName + "@" + host_name);
+				Logger.Debug(this, "Query: " + query.Text.Trim());
 			}
 
 			// Get the locking mechanism.

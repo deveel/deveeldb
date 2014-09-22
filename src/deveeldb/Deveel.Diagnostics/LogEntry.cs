@@ -24,13 +24,6 @@ namespace Deveel.Diagnostics {
 	/// information concerning a log entry.
 	/// </remarks>
 	public sealed class LogEntry {
-		private readonly string thread;
-		private readonly string message;
-		private readonly string source;
-		private readonly Exception error;
-		private readonly LogLevel level;
-		private readonly DateTime time;
-
 		/// <summary>
 		/// Internal constructor to avoid the use externally.
 		/// </summary>
@@ -38,55 +31,44 @@ namespace Deveel.Diagnostics {
 		/// <param name="level"></param>
 		/// <param name="source"></param>
 		/// <param name="message"></param>
+		/// <param name="error"></param>
 		/// <param name="time"></param>
-		internal LogEntry(string thread, LogLevel level, string source, string message, DateTime time) {
-			this.thread = thread;
-			this.message = message;
-			this.time = time;
-			this.level = level;
-			this.source = source;
-		}
-
-		internal LogEntry(string thread, LogLevel level, string source, Exception error, DateTime time)
-			: this(thread, level, source, error.Message, time) {
-			this.error = error;
+		public LogEntry(string thread, LogLevel level, string source, string message, Exception error, DateTime time) {
+			Thread = thread;
+			Message = message;
+			Time = time;
+			Level = level;
+			Source = source;
+			Error = error;
 		}
 
 		/// <summary>
 		/// Gets ths identification of the current thread logging.
 		/// </summary>
-		public string Thread {
-			get { return thread; }
-		}
+		public string Thread { get; private set; }
 
 		/// <summary>
 		/// Gets the error component of the entry, if any.
 		/// </summary>
-		public Exception Error {
-			get { return error; }
-		}
+		public Exception Error { get; private set; }
 
 		/// <summary>
 		/// Getrs a boolean flag indicating if the entry contains an error component.
 		/// </summary>
 		/// <seealso cref="Error"/>
 		public bool HasError {
-			get { return error != null; }
+			get { return Error != null; }
 		}
 
 		/// <summary>
 		/// Gets the time of the event logged.
 		/// </summary>
-		public DateTime Time {
-			get { return time; }
-		}
+		public DateTime Time { get; private set; }
 
 		/// <summary>
 		/// Gets the level of the logged entry.
 		/// </summary>
-		public LogLevel Level {
-			get { return level; }
-		}
+		public LogLevel Level { get; private set; }
 
 		/// <summary>
 		/// Gets the source of the logging.
@@ -95,15 +77,11 @@ namespace Deveel.Diagnostics {
 		/// Generally this is the name of the type executing a function
 		/// and the method name.
 		/// </remarks>
-		public string Source {
-			get { return source; }
-		}
+		public string Source { get; private set; }
 
 		/// <summary>
 		/// Gets the message part of the log.
 		/// </summary>
-		public string Message {
-			get { return message; }
-		}
+		public string Message { get; private set; }
 	}
 }

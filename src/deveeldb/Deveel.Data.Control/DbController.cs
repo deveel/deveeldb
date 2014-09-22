@@ -688,7 +688,7 @@ namespace Deveel.Data.Control {
 			var database = new Database(context, name);
 
 			// Start up message
-			database.Context.Logger.Message(typeof(DbController), "Starting Database Server");
+			database.Context.Logger.Trace(typeof(DbController), "Starting Database Server");
 
 			return database;
 		}

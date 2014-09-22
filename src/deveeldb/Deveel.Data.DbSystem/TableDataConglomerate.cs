@@ -166,7 +166,7 @@ namespace Deveel.Data.DbSystem {
 		/// Returns true if the system is in read-only mode.
 		/// </summary>
 		private bool IsReadOnly {
-			get { return SystemContext.ReadOnlyAccess; }
+			get { return SystemContext.IsReadOnly; }
 		}
 
 		/// <summary>

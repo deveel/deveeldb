@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +15,18 @@
 
 using System;
 
-namespace Deveel.Data.Security {
+namespace Deveel.Data.Routines {
 	[Serializable]
-	public class UserAccessException : DatabaseSecurityException {
-		public UserAccessException(string message)
+	public class RoutineNotFouncException : RoutineException {
+		public RoutineNotFouncException(string message)
 			: base(message) {
 		}
 
-		public UserAccessException() {
+		public RoutineNotFouncException(RoutineName name)
+			: this(String.Format("The routine {0} was not found.", name)) {
+		}
+
+		public RoutineNotFouncException() {
 		}
 	}
 }

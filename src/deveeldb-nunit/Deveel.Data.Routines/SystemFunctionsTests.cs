@@ -321,5 +321,50 @@ namespace Deveel.Data.Routines {
 			var result = ExecuteScalar("SELECT ABS(-7.4723342916989754E+45)");
 			Assert.AreEqual(BigNumber.Parse("-7.4723342916989754E+45").Abs(), result);
 		}
+
+		[Test]
+		[Category("Math")]
+		public void Pow10_Small() {
+			var result = ExecuteScalar("SELECT POW(9998.0092, 10)");
+
+			var num = BigNumber.Parse("9998.0092").Pow(10);
+			Assert.IsNotNull(result);
+			Assert.AreEqual(num, result);
+		}
+
+		[Test]
+		[Category("Math")]
+		public void Pow10_Big() {
+			var result = ExecuteScalar("SELECT POW(8004424019039195734129783677098845174704975003788210729597" +
+			                           "4875206425711159855030832837132149513512555214958035390490" +
+			                           "798520842025826.594316163502809818340013610490541783276343" +
+			                           "6514490899700151256484355936102754469438371850240000000000, 10)");
+			Assert.IsNotNull(result);
+
+			var bigNum = BigNumber.Parse("8004424019039195734129783677098845174704975003788210729597" +
+			                             "4875206425711159855030832837132149513512555214958035390490" +
+			                             "798520842025826.594316163502809818340013610490541783276343" +
+			                             "6514490899700151256484355936102754469438371850240000000000").Pow(10);
+
+			Assert.AreEqual(bigNum, result);
+		}
+
+		[Test]
+		[Category("Aggregates")]
+		public void NumericMin() {
+			Assert.Ignore("Needs a context");
+		}
+
+		[Test]
+		[Category("Aggregates")]
+		public void NumericMax() {
+			Assert.Ignore("Needs a context");
+		}
+
+		[Test]
+		[Category("Branch")]
+		public void NumericGreatest() {
+			Assert.Ignore("Not implemented");
+		}
 	}
 }

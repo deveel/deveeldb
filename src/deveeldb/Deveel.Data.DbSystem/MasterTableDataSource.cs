@@ -252,7 +252,7 @@ namespace Deveel.Data.DbSystem {
 		/// Returns true if the source is read only.
 		/// </summary>
 		protected bool IsReadOnly {
-			get { return Context.ReadOnlyAccess; }
+			get { return Context.IsReadOnly; }
 		}
 
 		/// <summary>

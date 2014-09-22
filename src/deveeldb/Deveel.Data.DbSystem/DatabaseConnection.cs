@@ -21,7 +21,6 @@ using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Query;
 using Deveel.Data.Security;
-using Deveel.Data.Sql;
 using Deveel.Data.Threading;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
@@ -97,7 +96,6 @@ namespace Deveel.Data.DbSystem {
 			Database = database;
 			User = user;
 			this.triggerCallback = triggerCallback;
-			Logger = database.Context.Logger;
 			conglomerate = database.Conglomerate;
 			LockingMechanism = new LockingMechanism(Logger);
 			triggerEventBuffer = new List<TriggerEventArgs>();
@@ -127,28 +125,36 @@ namespace Deveel.Data.DbSystem {
 			get {
 				lock (this) {
 					if (transaction == null) {
-						transaction = conglomerate.CreateTransaction();
-						transaction.TransactionErrorOnDirtySelect = ErrorOnDirtySelect;
-						// Internal tables (connection statistics, etc)
-						transaction.AddInternalTableContainer(connIntTableContainer);
-						// OLD and NEW system tables (if applicable)
-						transaction.AddInternalTableContainer(oldNewContainer);
-						// Model views as tables (obviously)
-						transaction.AddInternalTableContainer(ViewManager.CreateInternalTableInfo(ViewManager, transaction));
-						// Model procedures as tables
-						transaction.AddInternalTableContainer(SystemSchema.CreateRoutineTableContainer(transaction));
-						// Model sequences as tables
-						transaction.AddInternalTableContainer(SequenceManager.CreateInternalTableInfo(transaction));
-						// Model triggers as tables
-						transaction.AddInternalTableContainer(ConnectionTriggerManager.CreateInternalTableInfo(transaction));
+						try {
+							transaction = conglomerate.CreateTransaction();
+							transaction.TransactionErrorOnDirtySelect = ErrorOnDirtySelect;
+							// Internal tables (connection statistics, etc)
+							transaction.AddInternalTableContainer(connIntTableContainer);
+							// OLD and NEW system tables (if applicable)
+							transaction.AddInternalTableContainer(oldNewContainer);
+							// Model views as tables (obviously)
+							transaction.AddInternalTableContainer(ViewManager.CreateInternalTableInfo(ViewManager, transaction));
+							// Model procedures as tables
+							transaction.AddInternalTableContainer(SystemSchema.CreateRoutineTableContainer(transaction));
+							// Model sequences as tables
+							transaction.AddInternalTableContainer(SequenceManager.CreateInternalTableInfo(transaction));
+							// Model triggers as tables
+							transaction.AddInternalTableContainer(ConnectionTriggerManager.CreateInternalTableInfo(transaction));
 
-						// Notify any table backed caches that this transaction has started.
-						foreach (TableBackedCache cache in tableBackedCacheList) {
-							cache.OnTransactionStarted();
+							// Notify any table backed caches that this transaction has started.
+							foreach (TableBackedCache cache in tableBackedCacheList) {
+								cache.OnTransactionStarted();
+							}
+
+						} catch (DatabaseException) {
+							throw;
+						} catch (Exception ex) {
+							throw new DatabaseException("Unable to create an underlying transaction for the connection", ex);
 						}
 					}
+
+					return transaction;
 				}
-				return transaction;
 			}
 		}
 
@@ -177,7 +183,9 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Gets an object that can be used to log debug messages to.
 		/// </summary>
-		public ILogger Logger { get; private set; }
+		public ILogger Logger {
+			get { return Context.Logger; }
+		}
 
 		/// <summary>
 		/// Returns the user for this session.
@@ -857,11 +865,11 @@ namespace Deveel.Data.DbSystem {
 		/// <returns></returns>
 		public IProcedureConnection CreateProcedureConnection(User user) {
 			// Create the IProcedureConnection object,
-			DCProcedureConnection c = new DCProcedureConnection(this);
-			// Record the current user
-			c.previous_user = User;
-			// Record the current 'close_transaction_disabled' flag
-			c.transaction_disabled_flag = closeTransactionDisabled;
+			var c = new DcProcedureConnection(this) {
+				PreviousUser = User, 
+				TransactionDisabledFlag = closeTransactionDisabled
+			};
+
 			// Set the new user
 			User = user;
 			// Disable the ability to close a transaction
@@ -876,46 +884,55 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <param name="connection"></param>
 		public void DisposeProcedureConnection(IProcedureConnection connection) {
-			DCProcedureConnection c = (DCProcedureConnection)connection;
-			// Revert back to the previous user.
-			User = c.previous_user;
-			// Revert back to the previous transaction disable status.
-			closeTransactionDisabled = c.transaction_disabled_flag;
-			// Dispose of the connection
-			c.dispose();
+			if (connection == null)
+				throw new ArgumentNullException("connection");
+
+			if (!(connection is DcProcedureConnection))
+				throw new DatabaseException("The connection was not created by this context.");
+
+			var dcProcConn = (DcProcedureConnection) connection;
+			User = dcProcConn.PreviousUser;
+			closeTransactionDisabled = dcProcConn.TransactionDisabledFlag;
+
+			try {
+				connection.Dispose();
+			} catch (Exception ex) {
+				Logger.Error(this, "Error occurred while disposing procedure connection");
+				Logger.Error(this, ex);
+			}
 		}
 
 		/// <summary>
 		/// An implementation of <see cref="IProcedureConnection"/> generated from 
 		/// this object.
 		/// </summary>
-		private class DCProcedureConnection : IProcedureConnection {
+		private class DcProcedureConnection : IProcedureConnection {
 			private readonly DatabaseConnection conn;
 			/// <summary>
 			/// The User of this connection before this procedure was started.
 			/// </summary>
-			internal User previous_user;
+			internal User PreviousUser;
 
 			/// <summary>
 			/// The 'close_transaction_disabled' flag when this connection was created.
 			/// </summary>
-			internal bool transaction_disabled_flag;
+			internal bool TransactionDisabledFlag;
 
 			/// <summary>
 			/// The ADO.NET connection created by this object.
 			/// </summary>
-			private IDbConnection db_connection;
+			private IDbConnection dbConnection;
 
-			public DCProcedureConnection(DatabaseConnection conn) {
+			public DcProcedureConnection(DatabaseConnection conn) {
 				this.conn = conn;
 			}
 
 
 			public IDbConnection GetDbConnection() {
-				if (db_connection == null) {
-					db_connection = InternalDbHelper.CreateDbConnection(conn.User, conn);
-				}
-				return db_connection;
+				if (dbConnection == null)
+					dbConnection = InternalDbHelper.CreateDbConnection(conn.User, conn);
+
+				return dbConnection;
 			}
 
 			public IDatabase Database {
@@ -923,11 +940,12 @@ namespace Deveel.Data.DbSystem {
 			}
 
 
-			internal void dispose() {
-				previous_user = null;
-				if (db_connection != null) {
+			public void Dispose() {
+				PreviousUser = null;
+
+				if (dbConnection != null) {
 					try {
-						InternalDbHelper.DisposeDbConnection(db_connection);
+						InternalDbHelper.DisposeDbConnection(dbConnection);
 					} catch (Exception e) {
 						conn.Logger.Error(this, "Error disposing internal connection.");
 						conn.Logger.Error(this, e);

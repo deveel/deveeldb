@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +15,10 @@
 
 using System;
 
-namespace Deveel.Data.Security {
-	[Serializable]
-	public class UserAccessException : DatabaseSecurityException {
-		public UserAccessException(string message)
-			: base(message) {
-		}
-
-		public UserAccessException() {
-		}
+namespace Deveel.Data.DbSystem {
+	public static class SchemaTypes {
+		public const string Default = "DEFAULT";
+		public const string System = "SYSTEM";
+		public const string User = "USER";
 	}
 }

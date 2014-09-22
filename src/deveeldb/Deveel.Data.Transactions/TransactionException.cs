@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Transactions {
 	///<summary>
 	/// Thrown when a transaction error happens.
@@ -22,7 +24,7 @@ namespace Deveel.Data.Transactions {
 	/// <remarks>
 	/// This can only be thrown during the commit process of a transaction.
 	/// </remarks>
-	public class TransactionException : Exception {
+	public class TransactionException : DatabaseException {
 
 		// The types of transaction exceptions.
 

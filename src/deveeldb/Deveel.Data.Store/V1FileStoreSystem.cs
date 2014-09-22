@@ -131,7 +131,7 @@ namespace Deveel.Data.Store {
 			// Set the absolute database path
 			path = systemContext.Config.ResolvePath(databasePath);
 
-			read_only = systemContext.ReadOnlyAccess;
+			read_only = systemContext.IsReadOnly;
 
 			// If the database path doesn't exist, create it now,
 			if (!read_only && !Directory.Exists(path)) {
@@ -144,26 +144,26 @@ namespace Deveel.Data.Store {
 			// and 1 is the least safe.
 			int ioSafetyLevel = systemContext.Config.GetInt32("io_safety_level", 10);
 			if (ioSafetyLevel < 1 || ioSafetyLevel > 10) {
-				context.Logger.Message(this, "Invalid io_safety_level value.  Setting to the most safe level.");
+				context.Logger.Trace(this, "Invalid io_safety_level value.  Setting to the most safe level.");
 				ioSafetyLevel = 10;
 			}
 
-			context.Logger.Message(this, "io_safety_level = " + ioSafetyLevel);
+			context.Logger.Trace(this, "io_safety_level = " + ioSafetyLevel);
 
 			// Logging is disabled when safety level is less or equal to 2
 			bool enableLogging = true;
 			if (ioSafetyLevel <= 2) {
-				context.Logger.Message(this, "Disabling journaling and file sync.");
+				context.Logger.Trace(this, "Disabling journaling and file sync.");
 				enableLogging = false;
 			}
 
-			context.Logger.Message(this, "Using stardard IO API for heap buffered file access.");
+			context.Logger.Trace(this, "Using stardard IO API for heap buffered file access.");
 			int pageSize = systemContext.Config.GetInt32("buffered_io_page_size", 8192);
 			int maxPages = systemContext.Config.GetInt32("buffered_io_max_pages", 256);
 
 			// Output this information to the log
-			context.Logger.Message(this, "[Buffer Manager] Page Size: " + pageSize);
-			context.Logger.Message(this, "[Buffer Manager] Max pages: " + maxPages);
+			context.Logger.Trace(this, "[Buffer Manager] Page Size: " + pageSize);
+			context.Logger.Trace(this, "[Buffer Manager] Max pages: " + maxPages);
 
 			// Journal path is currently always the same as database path.
 			string journalPath = path;

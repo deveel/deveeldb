@@ -55,7 +55,8 @@ namespace Deveel.Data.Sql {
 				throw new DatabaseException("Schema '" + schemaName + "' already exists.");
 
 			// Create the schema
-			context.Connection.CreateSchema(schemaName, "USER");
+			context.Connection.CreateSchema(schemaName, SchemaTypes.User);
+
 			// Set the default grants for the schema
 			context.Connection.GrantManager.Grant(Privileges.SchemaAll,
 			                              GrantObject.Schema, schemaName, context.UserName,

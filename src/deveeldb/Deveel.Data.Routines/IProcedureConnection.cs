@@ -22,7 +22,7 @@ namespace Deveel.Data.Routines {
 	///<summary>
 	/// An interface for accessing a database connection inside a stored procedure.
 	///</summary>
-	public interface IProcedureConnection {
+	public interface IProcedureConnection : IDisposable {
 		///<summary>
 		/// Returns an ADO.NET IDbConnection implementation for executing queries 
 		/// on this connection.

@@ -15,9 +15,11 @@
 
 using System;
 using System.Collections;
+using System.Data;
 using System.IO;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Protocol;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Threading;
@@ -75,6 +77,10 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		public string Name { get; private set; }
 
+		public string DefaultSchema {
+			get { return Context.Config.DefaultSchema(); }
+		}
+
 		/// <summary>
 		/// Returns the internal system user for this database.
 		/// </summary>
@@ -104,8 +110,9 @@ namespace Deveel.Data.DbSystem {
 				try {
 					return Conglomerate.Exists();
 				} catch (IOException e) {
+					Context.Logger.Error(this, String.Format("Could not assess the existence of the database {0}", Name));
 					Context.Logger.Error(this, e);
-					throw new Exception("IO Error: " + e.Message, e);
+					throw new DatabaseException("An error occurred while testing database existance.", e);
 				}
 			}
 		}
@@ -119,6 +126,10 @@ namespace Deveel.Data.DbSystem {
 		/// Returns the <see cref="DatabaseContext"/> that this Database is from.
 		/// </summary>
 		public DatabaseContext Context { get; private set; }
+
+		public string StateResourceName {
+			get { return String.Format("{0}_sf", Name); }
+		}
 
 		IDatabaseContext IDatabase.Context {
 			get { return Context; }
@@ -160,8 +171,14 @@ namespace Deveel.Data.DbSystem {
 		// ---------- Schema management ----------
 
 		private void CreateSchemata(IDatabaseConnection connection) {
-			connection.CreateSchema(Context.Config.DefaultSchema(), "DEFAULT");
-			connection.CreateSchema(InformationSchema.Name, "SYSTEM");
+			try {
+				connection.CreateSchema(Context.Config.DefaultSchema(), SchemaTypes.Default);
+				connection.CreateSchema(InformationSchema.Name, SchemaTypes.System);
+			} catch (DatabaseException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseException("Unble to create system schemata.", ex);
+			}
 		}
 
 		/// <summary>
@@ -176,25 +193,31 @@ namespace Deveel.Data.DbSystem {
 		/// tables are granted <i>SELECT</i> only.
 		/// </remarks>
 		private void SetSystemGrants(IDatabaseConnection connection, string grantee) {
-			const string granter = User.SystemName;
+			try {
+				const string granter = User.SystemName;
 
-			// Add all priv grants to those that the system user is allowed to change
-			GrantManager manager = connection.GrantManager;
+				// Add all priv grants to those that the system user is allowed to change
+				GrantManager manager = connection.GrantManager;
 
-			// Add schema grant for APP
-			manager.Grant(Privileges.SchemaAll, GrantObject.Schema, Context.Config.DefaultSchema(), grantee, true, granter);
-			// Add public grant for SYSTEM
-			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, SystemSchema.Name, User.PublicName, false, granter);
-			// Add public grant for INFORMATION_SCHEMA
-			manager.Grant(Privileges.SchemaRead, GrantObject.Schema, InformationSchema.Name, User.PublicName, false, granter);
+				// Add schema grant for APP
+				manager.Grant(Privileges.SchemaAll, GrantObject.Schema, DefaultSchema, grantee, true, granter);
+				// Add public grant for SYSTEM
+				manager.Grant(Privileges.SchemaRead, GrantObject.Schema, SystemSchema.Name, User.PublicName, false, granter);
+				// Add public grant for INFORMATION_SCHEMA
+				manager.Grant(Privileges.SchemaRead, GrantObject.Schema, InformationSchema.Name, User.PublicName, false, granter);
 
-			// For all tables in the SYSTEM schema, grant all privileges to the
-			// system user.
-			manager.GrantToAllTablesInSchema(SystemSchema.Name, Privileges.TableAll, grantee, false, granter);
+				// For all tables in the SYSTEM schema, grant all privileges to the
+				// system user.
+				manager.GrantToAllTablesInSchema(SystemSchema.Name, Privileges.TableAll, grantee, false, granter);
 
 
-			SystemSchema.SetTableGrants(manager, granter);
-			InformationSchema.SetViewsGrants(manager, granter);
+				SystemSchema.SetTableGrants(manager, granter);
+				InformationSchema.SetViewsGrants(manager, granter);
+			} catch (DatabaseSecurityException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseSecurityException(String.Format("An error occurred while assigning system grants to {0}", grantee), ex);
+			}
 		}
 
 		private const string DataVersionFileName = "Deveel.Data.DataVersion";
@@ -205,58 +228,76 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private void AssertDataVersion() {
-			var dataVersion = ReadDataVersionFromFile();
+			try {
+				var dataVersion = ReadDataVersionFromFile();
 
-			// Check the state of the conglomerate,
-			IDatabaseConnection connection = CreateNewConnection(null, null);
-			var context = new DatabaseQueryContext(connection);
-			connection.LockingMechanism.SetMode(LockingMode.Exclusive);
-			if (!connection.TableExists(SystemSchema.PersistentVarTable)) {
-				throw new DatabaseException(
-					"The database_vars table doesn't exist.  This means the " +
-					"database is pre-schema version 1 or the table has been deleted." +
-					"If you are converting an old version of the database, please " +
-					"convert the database using an older release.");
+				// Check the state of the conglomerate,
+				IDatabaseConnection connection = CreateNewConnection(null, null);
+				var context = new DatabaseQueryContext(connection);
+				connection.LockingMechanism.SetMode(LockingMode.Exclusive);
+				if (!connection.TableExists(SystemSchema.PersistentVarTable)) {
+					throw new DatabaseConfigurationException(
+						"The database_vars table doesn't exist.  This means the " +
+						"database is pre-schema version 1 or the table has been deleted." +
+						"If you are converting an old version of the database, please " +
+						"convert the database using an older release.");
+				}
+
+				// What version is the data?
+				DataTable databaseVars = connection.GetTable(SystemSchema.PersistentVarTable);
+				IDictionary vars = databaseVars.ToDictionary();
+				var dbVersion = new Version(vars["database.version"].ToString());
+				// If the version doesn't equal the current version, throw an error.
+				if (!dbVersion.Equals(dataVersion)) {
+					throw new DatabaseException(
+						"Incorrect data file version '" + dbVersion + "'.  Please see " +
+						"the README on how to convert the data files to the current " +
+						"version.");
+				}
+
+				// Commit and close the connection.
+				connection.Commit();
+				connection.LockingMechanism.FinishMode(LockingMode.Exclusive);
+				connection.Close();
+			} catch (DatabaseException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseConfigurationException("An error occurred while assessing the database version.", ex);
 			}
-
-			// What version is the data?
-			DataTable databaseVars = connection.GetTable(SystemSchema.PersistentVarTable);
-			IDictionary vars = databaseVars.ToDictionary();
-			var dbVersion = new Version(vars["database.version"].ToString());
-			// If the version doesn't equal the current version, throw an error.
-			if (!dbVersion.Equals(dataVersion)) {
-				throw new DatabaseException(
-					"Incorrect data file version '" + dbVersion + "'.  Please see " +
-					"the README on how to convert the data files to the current " +
-					"version.");
-			}
-
-			// Commit and close the connection.
-			connection.Commit();
-			connection.LockingMechanism.FinishMode(LockingMode.Exclusive);
-			connection.Close();
 		}
 
 		private void SetCurrentDataVersion(IDatabaseConnection transaction) {
-			var version = ReadDataVersionFromFile();
+			try {
+				var version = ReadDataVersionFromFile();
 
-			// Insert the version number of the database
-			transaction.SetPersistentVariable("database.version", version.ToString(2));
+				// Insert the version number of the database
+				transaction.SetPersistentVariable("database.version", version.ToString(2));
+			} catch (DatabaseConfigurationException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseConfigurationException("An error occurred while setting the database version into the system.", ex);
+			}
 		}
 
 		private void CreateAdminUser(DatabaseQueryContext context, string username, string password) {
-			// Creates the administrator user.
-			UserManager.CreateUser(context, username, password);
-			// This is the admin user so add to the 'secure access' table.
-			UserManager.AddUserToGroup(context, username, SystemGroupNames.SecureGroup);
-			// Allow all localhost TCP connections.
-			// NOTE: Permissive initial security!
-			UserManager.GrantHostAccessToUser(context, username, "TCP", "%");
-			// Allow all Local connections.
-			UserManager.GrantHostAccessToUser(context, username, "Local", "%");
+			try {
+				// Creates the administrator user.
+				UserManager.CreateUser(context, username, password);
+				// This is the admin user so add to the 'secure access' table.
+				UserManager.AddUserToGroup(context, username, SystemGroupNames.SecureGroup);
+				// Allow all localhost TCP connections.
+				// NOTE: Permissive initial security!
+				UserManager.GrantHostAccessToUser(context, username, KnownConnectionProtocols.TcpIp, "%");
+				// Allow all Local connections.
+				UserManager.GrantHostAccessToUser(context, username, KnownConnectionProtocols.Local, "%");
 
-			// Sets the system grants for the administrator
-			SetSystemGrants(context.Connection, username);
+				// Sets the system grants for the administrator
+				SetSystemGrants(context.Connection, username);
+			} catch (DatabaseSecurityException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseSecurityException("Could not create the administrator user for the database.", ex);
+			}
 		}
 
 		/// <summary>
@@ -270,13 +311,13 @@ namespace Deveel.Data.DbSystem {
 		/// setting up the initial grant information for the administrator user.
 		/// </remarks>
 		public void Create(String username, String password) {
-			if (Context.ReadOnlyAccess) {
-				throw new Exception("Can not create database in Read only mode.");
-			}
+			if (Context.IsReadOnly)
+				throw new DatabaseException("Can not create database in Read only mode.");
 
-			if (String.IsNullOrEmpty(username) ||
-			    String.IsNullOrEmpty(password))
-				throw new Exception("Must have valid username and password String");
+			if (String.IsNullOrEmpty(username))
+				throw new ArgumentNullException("username");
+			if (String.IsNullOrEmpty(password))
+				throw new ArgumentNullException("password");
 
 			try {
 				// Create the conglomerate
@@ -308,7 +349,7 @@ namespace Deveel.Data.DbSystem {
 					connection.Commit();
 				} catch (TransactionException e) {
 					Context.Logger.Error(this, e);
-					throw new ApplicationException("Transaction Error: " + e.Message, e);
+					throw new DatabaseException("Could not commit the initial information", e);
 				}
 
 				connection.LockingMechanism.FinishMode(LockingMode.Exclusive);
@@ -318,10 +359,10 @@ namespace Deveel.Data.DbSystem {
 				Conglomerate.Close();
 			} catch (DatabaseException e) {
 				Context.Logger.Error(this, e);
-				throw new ApplicationException("Database Exception: " + e.Message, e);
-			} catch (IOException e) {
+				throw;
+			} catch (Exception e) {
 				Context.Logger.Error(this, e);
-				throw new ApplicationException("IO Error: " + e.Message, e);
+				throw new DatabaseException("An error occurred while creating the database.", e);
 			}
 		}
 
@@ -341,7 +382,7 @@ namespace Deveel.Data.DbSystem {
 		/// </exception>
 		public void Init() {
 			if (IsInitialized)
-				throw new Exception("Init() method can only be called once.");
+				throw new DatabaseException("The database was already initialized.");
 
 			// Reset all session statistics.
 			Context.Stats.ResetSession();
@@ -349,21 +390,19 @@ namespace Deveel.Data.DbSystem {
 			try {
 				// Check if the state file exists.  If it doesn't, we need to report
 				// incorrect version.
-				if (!Context.StoreSystem.StoreExists(Name + "_sf"))
+				if (!Context.StoreSystem.StoreExists(StateResourceName))
 					// If neither store or state file exist, assume database doesn't
 					// exist.
-					throw new DatabaseException("The database does not exist.");
+					throw new DatabaseException(String.Format("The database {0} does not exist.", Name));
 
 				// Open the conglomerate
 				Conglomerate.Open();
 
 				AssertDataVersion();
-			} catch (TransactionException e) {
-				// This would be very strange error to receive for in initializing
-				// database...
-				throw new ApplicationException("Transaction Error: " + e.Message, e);
-			} catch (IOException e) {
-				throw new ApplicationException("IO Error: " + e.Message, e);
+			} catch (DatabaseException e) {
+				throw;
+			} catch (Exception e) {
+				throw new DatabaseException("An error occurred when initializing the database.", e);
 			}
 
 			IsInitialized = true;
@@ -386,9 +425,8 @@ namespace Deveel.Data.DbSystem {
 		/// </para>
 		/// </remarks>
 		public void Shutdown() {
-			if (IsInitialized == false) {
-				throw new ApplicationException("The database is not initialized.");
-			}
+			if (IsInitialized == false)
+				throw new DataException("The database is not initialized.");
 
 			try {
 				if (DeleteOnShutdown) {
@@ -399,13 +437,17 @@ namespace Deveel.Data.DbSystem {
 					// Otherwise close the conglomerate.
 					Conglomerate.Close();
 				}
-			} catch (IOException e) {
+			} catch (DatabaseException e) {
+				Context.Logger.Error(this, "Error while executing the database shutdown");
 				Context.Logger.Error(this, e);
-				throw new ApplicationException("IO Error: " + e.Message, e);
+				throw;
+			} catch (Exception e) {
+				Context.Logger.Error(this, "Error while executing the database shutdown");
+				Context.Logger.Error(this, e);
+				throw new DatabaseException("An error occurred during database shutdown.", e);
+			} finally {
+				IsInitialized = false;
 			}
-
-
-			IsInitialized = false;
 		}
 
 		/// <summary>
@@ -429,25 +471,18 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		public void LiveCopyTo(string path) {
 			if (IsInitialized == false)
-				throw new ApplicationException("The database is not initialized.");
+				throw new DataException("The database is not initialized.");
 
 			// Set up the destination conglomerate to copy all the data to,
 			// Note that this sets up a typical destination conglomerate and changes
 			// the cache size and disables the debug log.
-			SystemContext copyContext = new SystemContext();
+			var copyContext = new SystemContext();
 			var config = DbConfig.Default;
 			config.DatabasePath(Path.GetFullPath(path));
 			config.LogPath("");
-			config.SetValue(ConfigKeys.DebugLevel, 50000);
+			config.LogLevel(LogLevel.Error);
 			// Set data cache to 1MB
-			config.SetValue(ConfigKeys.DataCacheSize, "1048576");
-			// Set io_safety_level to 1 for destination database
-			// ISSUE: Is this a good assumption to make - 
-			//     we don't care if changes are lost by a power failure when we are
-			//     backing up the database.  Even if journalling is enabled, a power
-			//     failure will lose changes in the backup copy anyway.
-			config.SetValue("io_safety_level", "1");
-			config.SetValue(ConfigKeys.DebugLogs, "disabled");
+			config.DataCacheSize(1024 * 1000);
 			copyContext.Init(config);
 
 			TableDataConglomerate destConglomerate = new TableDataConglomerate(copyContext, Name, copyContext.StoreSystem);

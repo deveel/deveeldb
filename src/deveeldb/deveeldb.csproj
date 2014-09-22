@@ -106,8 +106,10 @@
     <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\OldNewTableState.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
     <Compile Include="Deveel.Data.Index\IIndex_T.cs" />
+    <Compile Include="Deveel.Data.Protocol\KnownConnectionProtocols.cs" />
     <Compile Include="Deveel.Data.Query\ExpressionPlan.cs" />
     <Compile Include="Deveel.Data.Query\PlanTableSource.cs" />
     <Compile Include="Deveel.Data.Query\QueryTableSetPlanner.cs" />
@@ -130,6 +132,7 @@
     <Compile Include="Deveel.Data.Routines\RoutineException.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineInfo.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineParameter.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineType.cs" />
     <Compile Include="Deveel.Data.Protocol\ColumnDescription.cs">
@@ -148,7 +151,7 @@
     <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\PasswordCrypto.cs" />
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
-    <Compile Include="Deveel.Data.Security\SecurityException.cs" />
+    <Compile Include="Deveel.Data.Security\DatabaseSecurityException.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ParseException.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SimpleCharStream.cs" />

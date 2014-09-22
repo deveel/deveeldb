@@ -56,12 +56,6 @@ namespace Deveel.Data {
 
 		// ---------- Low level row listeners ----------
 
-		/// <summary>
-		/// Set to true if locking checks should be performed each time a table is 
-		/// accessed.
-		/// </summary>
-		private bool tableLockCheck = false;
-
 		///<summary>
 		///</summary>
 		public SystemContext() {
@@ -84,13 +78,15 @@ namespace Deveel.Data {
 		/// <remarks>
 		/// In read only mode, any 'write' operations are not permitted.
 		/// </remarks>
-		public bool ReadOnlyAccess { get; private set; }
+		public bool IsReadOnly {
+			get { return Config.ReadOnly(); }
+		}
 
 		/// <summary>
 		/// Returns true if the database should perform checking of table locks.
 		/// </summary>
-		public bool TableLockingEnabled {
-			get { return tableLockCheck; }
+		public bool TableLockCheck {
+			get { return Config.TableLockCheck(); }
 		}
 
 		///<summary>
@@ -149,7 +145,6 @@ namespace Deveel.Data {
 			get { return Logger; }
 		}
 
-		// ---------- Function factories ----------
 
 		public IRoutineResolver RoutineResolver { get; private set; }
 
@@ -159,25 +154,17 @@ namespace Deveel.Data {
 		}
 		*/
 
-		// ---------- System preparers ----------
-
-		// ---------- Database System Statistics Methods ----------
-
 		/// <summary>
 		/// Returns a <see cref="Stats"/> object that can be used to keep 
 		/// track of database statistics for this environment.
 		/// </summary>
 		public Stats Stats { get; private set; }
 
-		// ---------- Cache Methods ----------
-
 		/// <summary>
 		/// Returns a <see cref="DataCellCache"/> object that is a shared 
 		/// resource between all database's running on this runtime.
 		/// </summary>
 		public DataCellCache DataCellCache { get; private set; }
-
-		// ---------- Dispatch methods ----------
 
 		/// <summary>
 		/// Returns the <see cref="DatabaseDispatcher"/> object.
@@ -204,15 +191,12 @@ namespace Deveel.Data {
 			try {
 				var loggerType = Config.LoggerType();
 
-				bool readOnly = Config.ReadOnly();
-
 				// in case we don't log...
-				if (readOnly)
+				if (IsReadOnly)
 					loggerType = typeof (EmptyLogger);
 
 				if (loggerType == null)
 					loggerType = typeof (DefaultLogger);
-
 
 				Logger = (ILogger) Activator.CreateInstance(loggerType, true);
 				Logger.Init(Config);
@@ -238,6 +222,7 @@ namespace Deveel.Data {
 				return "Deveel.Data.Text.ApacheRegexLibrary";
 			if (lib.Equals("Gnu.RegEx"))
 				return "Deveel.Data.Text.GNURegexLibrary";
+
 			return null;
 		}
 
@@ -247,15 +232,14 @@ namespace Deveel.Data {
 
 				// Construct the system store.
 				if (storageSystemType == typeof(V1FileStoreSystem)) {
-					Logger.Message(this, "Storage System: file storage mode.");
+					Logger.Trace(this, "Storage System: file storage mode.");
 					StoreSystem = new V1FileStoreSystem();
 				} else if (storageSystemType == typeof(V1HeapStoreSystem)) {
-					Logger.Message(this, "Storage System: heap storage mode.");
+					Logger.Trace(this, "Storage System: heap storage mode.");
 					StoreSystem = new V1HeapStoreSystem();
 				} else {
-					if (storageSystemType == null) {
+					if (storageSystemType == null)
 						throw new DatabaseConfigurationException("Storage system not configured.");
-					}
 
 					try {
 						StoreSystem = (IStoreSystem) Activator.CreateInstance(storageSystemType, true);
@@ -290,8 +274,8 @@ namespace Deveel.Data {
 				int maxCacheSize = Config.GetInt32(ConfigKeys.DataCacheSize, 0);
 				int maxCacheEntrySize = Config.GetInt32(ConfigKeys.MaxCacheEntrySize, 0);
 
-				Logger.Message(this, "Internal Data Cache size:          " + maxCacheSize);
-				Logger.Message(this, "Internal Data Cache max cell size: " + maxCacheEntrySize);
+				Logger.Trace(this, "Internal Data Cache size:          " + maxCacheSize);
+				Logger.Trace(this, "Internal Data Cache max cell size: " + maxCacheEntrySize);
 
 				// Find a prime hash size depending on the size of the cache.
 				int hashSize = DataCellCache.ClosestPrime(maxCacheSize / 55);
@@ -306,7 +290,7 @@ namespace Deveel.Data {
 				}
 
 				if (cache == null) {
-					Logger.Message(this, "Internal Data Cache disabled.");
+					Logger.Trace(this, "Internal Data Cache disabled.");
 				} else {
 					cache.Init(Config);
 
@@ -314,7 +298,7 @@ namespace Deveel.Data {
 					DataCellCache = new DataCellCache(this, cache, maxCacheSize, maxCacheEntrySize, hashSize);
 				}
 			} else {
-				Logger.Message(this, "Internal Data Cache disabled.");
+				Logger.Trace(this, "Internal Data Cache disabled.");
 			}
 		}
 
@@ -333,9 +317,6 @@ namespace Deveel.Data {
 			if (config != null) {
 				Config = config;
 
-				// Set the read_only property
-				ReadOnlyAccess = config.ReadOnly();
-
 				// Setup the log
 				SetupLog();
 
@@ -351,16 +332,16 @@ namespace Deveel.Data {
 				SetupCache();
 
 				// Should we open the database in Read only mode?
-				Logger.Message(this, "read_only = " + ReadOnlyAccess);
-				if (ReadOnlyAccess) Stats.Set("SystemContext.read_only", 1);
+				Logger.Trace(this, "read_only = " + IsReadOnly);
+				if (IsReadOnly) Stats.Set("SystemContext.read_only", 1);
 
 				// Generate transaction error if dirty selects are detected?
 				TransactionErrorOnDirtySelect = config.TransactionErrorOnDirtySelect();
-				Logger.Message(this, "transaction_error_on_dirty_select = " + TransactionErrorOnDirtySelect);
+				Logger.Trace(this, "transaction_error_on_dirty_select = " + TransactionErrorOnDirtySelect);
 
 				// Case insensitive identifiers?
 				IgnoreIdentifierCase = config.IgnoreIdentifierCase();
-				Logger.Message(this, "ignore_case_for_identifiers = " + IgnoreIdentifierCase);
+				Logger.Trace(this, "ignore_case_for_identifiers = " + IgnoreIdentifierCase);
 
 				// What regular expression library are we using?
 				// If we want the engine to support other regular expression libraries
@@ -386,7 +367,7 @@ namespace Deveel.Data {
 					try {
 						Type type = Type.GetType(regexBridge);
 						regexLibrary = (IRegexLibrary) Activator.CreateInstance(type);
-						Logger.Message(this, "Using regex bridge: " + libUsed);
+						Logger.Trace(this, "Using regex bridge: " + libUsed);
 					} catch (Exception e) {
 						Logger.Error(this, "Unable to load regex bridge: " + regexBridge);
 						Logger.Warning(this, e);
@@ -394,7 +375,7 @@ namespace Deveel.Data {
 				} else {
 					if (libUsed != null)
 						Logger.Error(this, "Regex library not known: " + libUsed);
-					Logger.Message(this, "Regex features disabled.");
+					Logger.Trace(this, "Regex features disabled.");
 				}
 			}
 		}
@@ -410,10 +391,10 @@ namespace Deveel.Data {
 						Type type = Type.GetType(factoryTypeName, true, true);
 						FunctionFactory functionFactory = (FunctionFactory)Activator.CreateInstance(type);
 						AddFunctionFactory(functionFactory);
-						Logger.Message(this, "Successfully added function factory: " + factoryTypeName);
+						Logger.Trace(this, "Successfully added function factory: " + factoryTypeName);
 					}
 				} else {
-					Logger.Message(this, "No 'function_factories' config property found.");
+					Logger.Trace(this, "No 'function_factories' config property found.");
 					// If resource missing, do nothing...
 				}
 			} catch (Exception e) {

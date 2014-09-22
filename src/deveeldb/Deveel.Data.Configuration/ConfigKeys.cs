@@ -70,19 +70,23 @@ namespace Deveel.Data.Configuration {
 
 		public const string ReadOnly = "read_only";
 
-		public const string DebugLogFile = "debug_log_file";
-
-		public const string DebugLevel = "debug_level";
-
-		public const string DebugLogs = "debug_logs";
-
 		public const string TableLockCheck = "table_lock_check";
 
 		public const string CacheStatements = "statements_cache";
 
-		public const string LogQueries = "query_logging";
+		// Default Logger Keys
 
 		public const string LoggerType = "logger_type";
+
+		public const string LogLevel = "log_level";
+
+		public const string LogFormat = "log_format";
+
+		public const string LogMaxFileSize = "log_max_file_size";
+
+		public const string LogMaxFileCount = "log_max_file_count";
+
+		public const string LogFileName = "log_file_name";
 
 		public const string CacheType = "cache_type";
 

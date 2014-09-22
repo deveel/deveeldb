@@ -1396,7 +1396,7 @@ namespace Deveel.Data.DbSystem {
 
 					bool deleted = StoreSystem.DeleteStore(store);
 					if (deleted)
-						Logger.Message(this, "Dropped: " + SourceIdentity);
+						Logger.Trace(this, "Dropped: " + SourceIdentity);
 
 					return deleted;
 

@@ -111,16 +111,16 @@ namespace Deveel.Data.Routines {
 			
 			cachedFunction = lookup.ResolveRoutine(this, context);
 			if (cachedFunction == null)
-				throw new StatementException("IFunction '" + Name + "' doesn't exist.");
+				throw new RoutineNotFouncException(String.Format("Unable to resolve the call {0} to a function", this));
 
 			return cachedFunction;
 		}
 
 		/// <inheritdoc/>
 		public object Clone() {
-			RoutineInvoke v = (RoutineInvoke)MemberwiseClone();
+			var v = (RoutineInvoke)MemberwiseClone();
 			// Deep clone the parameters
-			Expression[] exps = (Expression[])v.Arguments.Clone();
+			var exps = (Expression[])v.Arguments.Clone();
 			// Clone each element of the array
 			for (int n = 0; n < exps.Length; ++n)
 				exps[n] = (Expression)exps[n].Clone();
@@ -131,11 +131,11 @@ namespace Deveel.Data.Routines {
 
 		/// <inheritdoc/>
 		public override String ToString() {
-			StringBuilder buf = new StringBuilder();
+			var buf = new StringBuilder();
 			buf.Append(Name);
 			buf.Append('(');
 			for (int i = 0; i < Arguments.Length; ++i) {
-				buf.Append(Arguments[i].Text.ToString());
+				buf.Append(Arguments[i].Text);
 				if (i < Arguments.Length - 1) {
 					buf.Append(',');
 				}

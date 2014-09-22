@@ -15,20 +15,20 @@
 
 using System;
 
-namespace Deveel.Data.Security {
-	// TODO: Inherit this from a database exception or the System's SecurityException?
+using Deveel.Data.DbSystem;
 
+namespace Deveel.Data.Security {
 	[Serializable]
-	public class SecurityException : ApplicationException {
-		public SecurityException(string message, Exception innerException)
+	public class DatabaseSecurityException : DatabaseException {
+		public DatabaseSecurityException(string message, Exception innerException)
 			: base(message, innerException) {
 		}
 
-		public SecurityException(string message)
+		public DatabaseSecurityException(string message)
 			: base(message) {
 		}
 
-		public SecurityException() {
+		public DatabaseSecurityException() {
 		}
 	}
 }

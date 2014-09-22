@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +15,9 @@
 
 using System;
 
-namespace Deveel.Data.Security {
-	[Serializable]
-	public class UserAccessException : DatabaseSecurityException {
-		public UserAccessException(string message)
-			: base(message) {
-		}
-
-		public UserAccessException() {
-		}
+namespace Deveel.Data.Protocol {
+	public static class KnownConnectionProtocols {
+		public const string TcpIp = "tcp";
+		public const string Local = "local";
 	}
 }
