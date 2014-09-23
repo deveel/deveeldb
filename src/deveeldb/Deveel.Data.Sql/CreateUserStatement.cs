@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Protocol;
 
 namespace Deveel.Data.Sql {
 	[Serializable]
@@ -80,9 +81,9 @@ namespace Deveel.Data.Sql {
 
 			// Allow all localhost TCP connections.
 			// NOTE: Permissive initial security!
-			db.GrantHostAccessToUser(context, username, "TCP", "%");
+			db.GrantHostAccessToUser(context, username, KnownConnectionProtocols.TcpIp, "%");
 			// Allow all Local connections .
-			db.GrantHostAccessToUser(context, username, "Local", "%");
+			db.GrantHostAccessToUser(context, username, KnownConnectionProtocols.Local, "%");
 
 
 			return FunctionTable.ResultTable(context, 0);

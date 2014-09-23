@@ -72,7 +72,7 @@ namespace Deveel.Data.Protocol {
 
         	// Local connections are formatted as;
         	// 'Local/[type]/[connect_id]'
-        	const string hostString = "Local/Create/";
+        	string hostString = String.Format("{0}/Create/", KnownConnectionProtocols.Local);
 
         	// Create the DbSystem and bind it to a IDatabaseInterface.
         	dbsys = controller.CreateDatabase(config, databaseName, username, password);
@@ -96,7 +96,7 @@ namespace Deveel.Data.Protocol {
 
         	// Local connections are formatted as;
         	// 'Local/[type]/[connect_id]'
-        	const string hostString = "Local/Boot/";
+        	string hostString = String.Format("{0}/Boot/", KnownConnectionProtocols.Local);
 
         	// Start the DbSystem and bind it to a IDatabaseInterface.
         	if (controller.IsInitialized(databaseName))
@@ -132,7 +132,7 @@ namespace Deveel.Data.Protocol {
 
         	// Local connections are formatted as;
         	// 'Local/[type]/[connect_id]'
-        	string hostString = "Local/Connection/" + connectId;
+        	string hostString = String.Format("{0}/Connection/{1}", KnownConnectionProtocols.Local, connectId);
 
         	// Create a IDatabaseInterface,
         	IDatabaseInterface dbInterface = new LocalDatabaseInterface(this, hostString);
