@@ -14,98 +14,85 @@
 //    limitations under the License.
 
 using System;
+using System.Globalization;
+using System.Text;
 
 namespace Deveel.Data.Text {
-	public sealed class Soundex {
-		#region ctor
-		public Soundex(char[] mapping) {
-			this.mapping = mapping;
+	public abstract class Soundex {
+		public static Soundex Default = new DefaultSoundex();
+
+		public virtual int Difference(string s1, string s2) {
+			throw new NotSupportedException();
 		}
 
-		public Soundex()
-			: this(UsEnglishMapping.ToCharArray()) {
+		public abstract string Compute(string s);
+
+		protected virtual string EncodeChar(char c) {
+			switch (Char.ToUpperInvariant(c)) {
+				case 'B':
+				case 'F':
+				case 'P':
+				case 'V':
+					return "1";
+				case 'C':
+				case 'G':
+				case 'J':
+				case 'K':
+				case 'Q':
+				case 'S':
+				case 'X':
+				case 'Z':
+					return "2";
+				case 'D':
+				case 'T':
+					return "3";
+				case 'L':
+					return "4";
+				case 'M':
+				case 'N':
+					return "5";
+				case 'R':
+					return "6";
+				default:
+					return string.Empty;
+			}
 		}
 
-		#endregion
+		#region DefaultSoundex
 
-		#region Fields
-		private readonly char[] mapping;
+		private class DefaultSoundex : Soundex {
+			public override string Compute(string s) {
+				if (String.IsNullOrEmpty(s)) 
+					return String.Empty;
 
-		private const string UsEnglishMapping = "01230120022455012623010202";
-
-		public static readonly Soundex UsEnglish = new Soundex(UsEnglishMapping.ToCharArray());
-		#endregion
-
-		#region Private Methods
-		private char GetCode(string s, int index) {
-			char c = Map(s[index]);
-			if (index > 1 && c != '0') {
-				char hwc = s[index - 1];
-				if (hwc != 'H' || hwc != 'W') {
-					char pHwc = s[index - 2];
-					char fCode = Map(pHwc);
-					if (fCode == c || pHwc == 'H' || pHwc == 'W')
-						return Char.MinValue;
+				int startIndex;
+				for (startIndex = 0; startIndex < s.Length && !char.IsLetter(s[startIndex]); startIndex++) {
 				}
-			}
-			return c;
-		}
 
-		private char Map(char c) {
-			int index = c - 'A';
-			if (index < 0 || index > mapping.Length)
-				throw new ArgumentException("The character '"+c+"' is not mapped.");
-			return mapping[index];
-		}
-		#endregion
+				if (startIndex >= s.Length) 
+					return String.Empty;
 
-		#region Internal Static Methods
-		internal static string Clean(string s) {
-			if (s == null || s.Length == 0)
-				return s;
+				var output = new StringBuilder();
 
-			int length = s.Length;
-			char[] chars = new char[length];
-			int count = 0;
+				output.Append(Char.ToUpperInvariant(s[startIndex]));
 
-			int i = 0;
-			while(i < length) {
-				if (Char.IsLetter(s[i]))
-					chars[count++] = s[i];
-				i++;
-			}
+				// Stop at a maximum of 4 characters.
+				for (int i = startIndex + 1; i < s.Length && output.Length < 4; i++) {
+					string c = EncodeChar(s[i]);
 
-			if (count == length)
-				return s.ToUpper();
-
-			return new string(chars, 0, count).ToUpper();
-		}
-		#endregion
-
-		#region Public Methods
-		public string Compute(string s) {
-			if (s == null)
-				return null;
-
-			s = Clean(s);
-			if (s.Length == 0)
-				return s;
-
-			char[] output = new char[] { '0', '0', '0', '0' };
-			char last, mapped;
-			int inCount = 1, count = 1;
-			output[0] = s[0];
-			last = GetCode(s, 0);
-			while((inCount < s.Length) && count < output.Length) {
-				mapped = GetCode(s, inCount++);
-				if (mapped != Char.MinValue) {
-					if (mapped != '0' && mapped != last)
-						output[count++] = mapped;
-					last = mapped;
+					// Ignore duplicated chars.
+					if (c != EncodeChar(s[i - 1])) {
+						output.Append(c);
+					}
 				}
+
+				// Pad with zeros.
+				output.Append(new String('0', 4 - output.Length));
+
+				return output.ToString();
 			}
-			return new string(output);
 		}
+
 		#endregion
 	}
 }

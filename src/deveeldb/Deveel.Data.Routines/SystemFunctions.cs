@@ -1004,7 +1004,7 @@ namespace Deveel.Data.Routines {
 			if (ob.IsNull)
 				return ob;
 
-			return TObject.CreateString(Text.Soundex.UsEnglish.Compute(ob.ToStringValue()));
+			return TObject.CreateString(Text.Soundex.Default.Compute(ob.ToStringValue()));
 		}
 
 		public static TObject Lower(TObject ob) {

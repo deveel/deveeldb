@@ -173,6 +173,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Sql\RaiseStatement.cs" />
+    <Compile Include="Deveel.Data.Text\Soundex.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Transactions\CommittableTransactionExtensions.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionContext.cs" />
     <Compile Include="Deveel.Data.Transactions\NameSpaceJournal.cs" />
@@ -348,10 +351,8 @@
     <Compile Include="Deveel.Data.Text\IRegexLibrary.cs" />
     <Compile Include="Deveel.Data.Text\ISearchEngine.cs" />
     <Compile Include="Deveel.Data.Text\Metaphone.cs" />
-    <Compile Include="Deveel.Data.Text\RefinedSoundex.cs" />
     <Compile Include="Deveel.Data.Text\SearchResult.cs" />
     <Compile Include="Deveel.Data.Text\SearchTextRow.cs" />
-    <Compile Include="Deveel.Data.Text\Soundex.cs" />
     <Compile Include="Deveel.Data.Text\SystemCollatorFactory.cs" />
     <Compile Include="Deveel.Data.Text\SystemRegexLibrary.cs" />
     <Compile Include="Deveel.Data.Util\ByteBuffer.cs" />

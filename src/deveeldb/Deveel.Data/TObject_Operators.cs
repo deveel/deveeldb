@@ -398,7 +398,7 @@ namespace Deveel.Data {
 				val = val.CastTo(PrimitiveTypes.VarString);
 
 			//TODO: support more languages...
-			Text.Soundex soundex = Text.Soundex.UsEnglish;
+			Text.Soundex soundex = Text.Soundex.Default;
 
 			string v1 = ToStringValue();
 			string v2 = val.ToStringValue();
