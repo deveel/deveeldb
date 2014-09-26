@@ -562,12 +562,11 @@
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Elementary.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Logical.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\MathContext.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Messages.Designer.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Multiplication.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Primality.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\RoundingMode.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\SR.cs" />
     <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Utils.cs" />
+    <Compile Include="Deveel.Math\src\Deveel.Math\Messages.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -583,10 +582,8 @@
     <None Include="deveeldb.snk" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Messages.resx" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="DataVersion" />
+    <EmbeddedResource Include="Deveel.Math\src\Deveel.Math\Messages.resx" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

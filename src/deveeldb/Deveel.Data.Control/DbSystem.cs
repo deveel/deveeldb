@@ -149,7 +149,9 @@ namespace Deveel.Data.Control {
 			string hostString = buf.ToString();
 
 			// Create the database interface for an internal database connection.
-			IDatabaseInterface dbInterface = new DatabaseInterface(controller, name, hostString);
+			var localSystem = new EmbeddedLocalSystem(controller);
+			var localDatabase = localSystem.ControlDatabase(name);
+
 			// Create the DeveelDbConnection object (very minimal cache settings for an
 			// internal connection).
 			var s = new DeveelDbConnectionStringBuilder();
@@ -157,7 +159,7 @@ namespace Deveel.Data.Control {
 			s.UserName = username;
 			s.Password = password;
 
-			var connection = new DBSConnection(this, internalCounter, s.ToString(), dbInterface, 8, 4092000);
+			var connection = new DBSConnection(this, internalCounter, s.ToString(), connector, 8, 4092000);
 			// Attempt to log in with the given username and password (default schema)
 			connection.Open();
 			if (connection.State != ConnectionState.Open)
@@ -272,8 +274,8 @@ namespace Deveel.Data.Control {
 		}
 
 		private class DBSConnection : DeveelDbConnection {
-			internal DBSConnection(DbSystem system, int id, string connectionString, IDatabaseInterface db_interface, int cache_size, int max_size)
-				: base(connectionString, db_interface, cache_size, max_size) {
+			internal DBSConnection(DbSystem system, int id, string connectionString, ILocalDatabase localDatabase, int cacheSize, int maxSize)
+				: base(connectionString, localDatabase, cacheSize, maxSize) {
 				this.system = system;
 				this.id = id;
 			}

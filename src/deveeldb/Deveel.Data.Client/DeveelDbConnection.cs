@@ -120,13 +120,13 @@ namespace Deveel.Data.Client {
 		// For synchronization in this object,
 		private readonly Object stateLock = new Object();
 
-		internal DeveelDbConnection(string connectionString, IDatabaseInterface connector, int cacheSize, int maxSize) {
+		internal DeveelDbConnection(string connectionString, ILocalDatabase connector) {
 			this.connectionString = new DeveelDbConnectionStringBuilder(connectionString);
 			this.connector = connector;
 			isClosed = true;
 			autoCommit = true;
 			triggerList = new EventHandlerList();
-			RowCache = new RowCache(cacheSize, maxSize);
+			RowCache = new RowCache(this.connectionString.RowCacheSize, this.connectionString.CacheMaxSize);
 			sObjectHold = new Dictionary<object, Stream>();
 			sObjectId = 0;
 			state = ConnectionState.Closed;

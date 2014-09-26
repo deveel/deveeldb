@@ -20,7 +20,6 @@ using System.IO;
 using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
-using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Threading;
 using Deveel.Data.Transactions;
@@ -28,14 +27,13 @@ using Deveel.Diagnostics;
 
 namespace Deveel.Data.Protocol {
 	public abstract class ServerConnector : IConnector {
-		private readonly IDatabase database;
 		private readonly Dictionary<long, IRef> blobIdMap;
 
-		public ServerConnector(IDatabase database) {
+		protected ServerConnector(IDatabase database) {
 			if (database == null) 
 				throw new ArgumentNullException("database");
 
-			this.database = database;
+			Database = database;
 			resultMap = new Dictionary<int, QueryResult>();
 			blobIdMap = new Dictionary<long, IRef>();
 			uniqueResultId = 1;
@@ -44,6 +42,12 @@ namespace Deveel.Data.Protocol {
 		public AuthenticatedSession Session { get; protected set; }
 
 		public ConnectorState CurrentState { get; private set; }
+
+		protected ILogger Logger {
+			get { return Database.Context.Logger; }
+		}
+
+		protected IDatabase Database { get; private set; }
 
 		private void AssertNotDisposed() {
 			if (CurrentState == ConnectorState.Disposed)
@@ -60,8 +64,8 @@ namespace Deveel.Data.Protocol {
 				OnConnectorOpen();
 				ChangeState(ConnectorState.Processing);
 			} catch (Exception ex) {
-				database.Context.Logger.Error(this, "Error when opening the connector.");
-				database.Context.Logger.Error(this, ex);
+				Logger.Error(this, "Error when opening the connector.");
+				Logger.Error(this, ex);
 			}
 		}
 
@@ -73,8 +77,8 @@ namespace Deveel.Data.Protocol {
 				OnCloseConnector();
 				ChangeState(ConnectorState.Closed);
 			} catch (Exception ex) {
-				database.Context.Logger.Error(this, "Error when closing the connector.");
-				database.Context.Logger.Error(this, ex);				
+				Logger.Error(this, "Error when closing the connector.");
+				Logger.Error(this, ex);				
 			}
 		}
 
@@ -91,21 +95,21 @@ namespace Deveel.Data.Protocol {
 			    Session != null)
 				throw new InvalidOperationException("Already authenticated.");
 
-			if (database.Context.Logger.IsInterestedIn(Diagnostics.LogLevel.Debug)) {
+			if (Logger.IsInterestedIn(Diagnostics.LogLevel.Debug)) {
 				// Output the instruction to the _queries log.
-				database.Context.Logger.DebugFormat(this, "[CLIENT] [{0}] - Log in", username);
+				Logger.DebugFormat(this, "[CLIENT] [{0}] - Log in", username);
 			}
 
-			if (database.Context.Logger.IsInterestedIn(LogLevel.Info)) {
-				database.Context.Logger.InfoFormat(this, "Authenticate User: {0}", username);
+			if (Logger.IsInterestedIn(LogLevel.Info)) {
+				Logger.InfoFormat(this, "Authenticate User: {0}", username);
 			}
 
-			var user = database.AuthenticateUser(username, password, null);
+			var user = Database.AuthenticateUser(username, password, null);
 
 			if (user == null) 
 				return false;
 
-			IDatabaseConnection connection = database.CreateNewConnection(user, null);
+			IDatabaseConnection connection = Database.CreateNewConnection(user, null);
 
 			// Put the connection in exclusive mode
 			LockingMechanism locker = connection.LockingMechanism;
@@ -119,7 +123,7 @@ namespace Deveel.Data.Protocol {
 				if (connection.SchemaExists(defaultSchema)) {
 					connection.SetDefaultSchema(defaultSchema);
 				} else {
-					database.Context.Logger.WarningFormat(this, "Couldn't change to '{0}' schema.", defaultSchema);
+					Logger.WarningFormat(this, "Couldn't change to '{0}' schema.", defaultSchema);
 
 					// If we can't change to the schema then change to the APP schema
 					connection.SetDefaultSchema(ConfigDefaultValues.DefaultSchema);
@@ -129,7 +133,7 @@ namespace Deveel.Data.Protocol {
 					connection.Commit();
 				} catch (TransactionException e) {
 					// Just issue a warning...
-					database.Context.Logger.Warning(this, e);
+					Logger.Warning(this, e);
 				} finally {
 					// Guarentee that we unluck from EXCLUSIVE
 					locker.FinishMode(LockingMode.Exclusive);
@@ -156,7 +160,7 @@ namespace Deveel.Data.Protocol {
 				// And return it.
 				return reference;
 			} catch (IOException e) {
-				database.Context.Logger.Error(this, e);
+				Logger.Error(this, e);
 				throw new DatabaseException("IO Error: " + e.Message, e);
 			}
 		}
@@ -168,9 +172,8 @@ namespace Deveel.Data.Protocol {
 					blobIdMap[obj.Id] = obj;
 					return obj.Id;
 				} catch (Exception ex) {
-					database.Context.Logger.ErrorFormat(this,
-						"A request to create an object of type {0} with length {1} caused and error.", referenceType, length);
-					database.Context.Logger.Error(this, ex);
+					Logger.ErrorFormat(this, "A request to create an object of type {0} with length {1} caused and error.", referenceType, length);
+					Logger.Error(this, ex);
 					throw;
 				}
 			}
@@ -334,7 +337,7 @@ namespace Deveel.Data.Protocol {
 				}
 				return block;
 			} catch (Exception e) {
-				database.Context.Logger.Warning(this, e);
+				Logger.Warning(this, e);
 				// If an exception was generated while getting the cell contents, then
 				// throw an DataException.
 				throw new DatabaseException("Exception while reading results: " + e.Message, e);
@@ -351,21 +354,21 @@ namespace Deveel.Data.Protocol {
 			if (result != null) {
 				result.Dispose();
 			} else {
-				database.Context.Logger.Error(this, "Attempt to dispose invalid 'resultId'.");
+				Logger.Error(this, "Attempt to dispose invalid 'resultId'.");
 			}
 		}
 
 		protected IQueryResponse[] ExecuteQuery(string text, IEnumerable<object> parameters) {
 			// Log this Query if Query logging is enabled
-			if (database.Context.Logger.IsInterestedIn(LogLevel.Debug)) {
+			if (Logger.IsInterestedIn(LogLevel.Debug)) {
 				// Output the instruction to the _queries log.
-				database.Context.Logger.DebugFormat(this, "[CLIENT] [{0}] - Query: {1}", Session.User.UserName, text);
+				Logger.DebugFormat(this, "[CLIENT] [{0}] - Query: {1}", Session.User.UserName, text);
 			}
 
 			// Write debug message (Info level)
-			if (database.Context.Logger.IsInterestedIn(LogLevel.Debug)) {
-				database.Context.Logger.DebugFormat(this, "Query From User: {0}", Session.User.UserName);
-				database.Context.Logger.DebugFormat(this, "Query: {0}", text.Trim());
+			if (Logger.IsInterestedIn(LogLevel.Debug)) {
+				Logger.DebugFormat(this, "Query From User: {0}", Session.User.UserName);
+				Logger.DebugFormat(this, "Query: {0}", text.Trim());
 			}
 
 			// Get the locking mechanism.
@@ -403,8 +406,8 @@ namespace Deveel.Data.Protocol {
 					} catch (Exception e) {
 						// If this throws an exception, we should output it to the debug
 						// log and screen.
-						database.Context.Logger.Error(this, "Exception finishing locks");
-						database.Context.Logger.Error(this, e);
+						Logger.Error(this, "Exception finishing locks");
+						Logger.Error(this, e);
 						// Note, we can't throw an error here because we may already be in
 						// an exception that happened in the above 'try' block.
 					}

@@ -1,3 +1,3 @@
 [submodule "src/deveeldb/Deveel.Math"]
 	path = src/deveeldb/Deveel.Math
-	url = https://github.com/deveel/deveel-math.git
+	url = git@github.com:deveel/deveel-math.git
