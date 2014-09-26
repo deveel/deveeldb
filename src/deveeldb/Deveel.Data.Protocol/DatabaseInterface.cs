@@ -88,12 +88,12 @@ namespace Deveel.Data.Protocol {
 			}
 
 			// Try to create a User object.
-			User this_user = database.AuthenticateUser(username, password, host_name);
+			User thisUser = database.AuthenticateUser(username, password, host_name);
 			IDatabaseConnection database_connection = null;
 
 			// If successful, ask the engine for a DatabaseConnection object.
-			if (this_user != null) {
-				database_connection = database.CreateNewConnection(this_user, delegate(string triggerName, string triggerSource, TriggerEventType eventType, int fireCount) {
+			if (thisUser != null) {
+				database_connection = database.CreateNewConnection(thisUser, delegate(string triggerName, string triggerSource, TriggerEventType eventType, int fireCount) {
 				                                                              	StringBuilder message = new StringBuilder();
 				                                                              	message.Append(Convert.ToInt32(eventType));
 				                                                              	message.Append(' ');
@@ -140,8 +140,8 @@ namespace Deveel.Data.Protocol {
 			}
 
 			// If we have a user object, then init the object,
-			if (this_user != null) {
-				Init(this_user, database_connection);
+			if (thisUser != null) {
+				Init(thisUser, database_connection);
 				return true;
 			}
 

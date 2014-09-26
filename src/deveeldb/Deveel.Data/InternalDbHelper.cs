@@ -56,7 +56,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public static DeveelDbConnection CreateDbConnection(User user, IDatabaseConnection connection) {
-			InternalDatabaseInterface dbInterface = new InternalDatabaseInterface(user, connection);
+			var connector = new InternalConnector(user, connection);
 			return new InternalConnection(connection, dbInterface, 11, 4092000);
 		}
 
@@ -99,8 +99,8 @@ namespace Deveel.Data {
 		private sealed class InternalConnection : DeveelDbConnection {
 			private readonly bool ignoreCase;
 
-			public InternalConnection(IDatabaseConnection db, IDatabaseInterface dbInterface, int cacheSize, int maxSize)
-				: base(String.Empty, dbInterface, cacheSize, maxSize) {
+			public InternalConnection(IDatabaseConnection db, IConnector connector, int cacheSize, int maxSize)
+				: base(String.Empty, connector, cacheSize, maxSize) {
 				ignoreCase = db.IsInCaseInsensitiveMode;
 				// we open internal connections at construction...
 				Open();
@@ -147,40 +147,22 @@ namespace Deveel.Data {
 			}
 		}
 
-		/// <summary>
-		/// An implementation of <see cref="IDatabaseInterface"/> used to execute queries 
-		/// on the <see cref="DatabaseConnection"/> and return results to the ADO.NET client.
-		/// </summary>
-		private sealed class InternalDatabaseInterface : DatabaseInterfaceBase {
-			public InternalDatabaseInterface(User user, IDatabaseConnection db)
-				: base(new SingleDatabaseHandler(db.Database), db.Database.Name) {
-				Init(user, db);
+		class InternalConnector : EmbeddedServerConnector {
+			private readonly User user;
+			private readonly IDatabaseConnection connection;
+
+			public InternalConnector(User user, IDatabaseConnection connection) 
+				: base(connection.Database) {
+				this.user = user;
+				this.connection = connection;
 			}
 
-			// ---------- Implemented from IDatabaseInterface ----------
+			protected override bool Authenticate(string defaultSchema, string username, string password) {
+				if (user.UserName != username)
+					return false;
 
-			public override bool Login(string defaultSchema, string username, string password, DatabaseEventCallback callback) {
-				// This should never be used for an internal connection.
-				throw new DataException("'login' is not supported for InternalDatabaseInterface");
-			}
-		}
-
-		private sealed class SingleDatabaseHandler : IDatabaseHandler {
-			public SingleDatabaseHandler(IDatabase database) {
-				this.database = database;
-			}
-
-			private readonly IDatabase database;
-
-			public IDatabase GetDatabase(string name) {
-				if (name != database.Name)
-					throw new ArgumentException();
-
-				return database;
-			}
-
-			public Database CreateDatabase(DbConfig config, string name, string adminUser, string adminPass) {
-				throw new NotSupportedException();
+				Session = new AuthenticatedSession(user, connection);
+				return true;
 			}
 		}
 	}

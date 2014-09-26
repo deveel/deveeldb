@@ -28,7 +28,6 @@ namespace Deveel.Data.Protocol {
 		/// Attempts to log in to the database as the given username with the 
 		/// given password.
 		///</summary>
-		/// <param name="database"></param>
 		///<param name="defaultSchema"></param>
 		///<param name="username"></param>
 		///<param name="password"></param>

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Deveel.Diagnostics {
+namespace Deveel.Diagnostics {
 	public static class StatsDefaultKeys {
 		public const string SessionPrefix = "{Session}";
 

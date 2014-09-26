@@ -39,7 +39,7 @@ namespace Deveel.Data.Client {
 	///</summary>
 	/// <remarks>
 	/// The implementation specifics for how the connection talks with the database
-	/// is left up to the implementation of <see cref="IDatabaseInterface"/>.
+	/// is left up to the implementation of <see cref="IConnector"/>.
 	/// <para>
 	/// This object is thread safe. It may be accessed safely from concurrent threads.
 	/// </para>
@@ -78,7 +78,7 @@ namespace Deveel.Data.Client {
 		/// <summary>
 		/// The interface to the database.
 		/// </summary>
-		private IDatabaseInterface dbInterface;
+		private IConnector connector;
 
 		/// <summary>
 		/// The list of trigger listeners registered with the connection.
@@ -120,9 +120,9 @@ namespace Deveel.Data.Client {
 		// For synchronization in this object,
 		private readonly Object stateLock = new Object();
 
-		internal DeveelDbConnection(string connectionString, IDatabaseInterface dbInterface, int cacheSize, int maxSize) {
+		internal DeveelDbConnection(string connectionString, IDatabaseInterface connector, int cacheSize, int maxSize) {
 			this.connectionString = new DeveelDbConnectionStringBuilder(connectionString);
-			this.dbInterface = dbInterface;
+			this.connector = connector;
 			isClosed = true;
 			autoCommit = true;
 			triggerList = new EventHandlerList();
@@ -192,7 +192,7 @@ namespace Deveel.Data.Client {
 				} catch (ThreadInterruptedException) { /* ignore */ }
 
 				// Make the connection
-				dbInterface = new TCPStreamDatabaseInterface(connectionString.Host,
+				connector = new TCPStreamDatabaseInterface(connectionString.Host,
 				                                              connectionString.Port,
 				                                              connectionString.Database);
 
@@ -275,7 +275,7 @@ namespace Deveel.Data.Client {
 				// Is the connection booted already?
 				if (localBootable.IsBooted) {
 					// Yes, so simply login.
-					dbInterface = localBootable.Connect();
+					connector = localBootable.Connect();
 				} else {
 					// Otherwise we need to boot the local database.
 
@@ -319,11 +319,11 @@ namespace Deveel.Data.Client {
 						string username = connectionString.UserName;
 						string password = connectionString.Password;
 
-						dbInterface = localBootable.Create(username, password, config);
+						connector = localBootable.Create(username, password, config);
 					}
 						// Otherwise we must be logging onto a database,
 					else {
-						dbInterface = localBootable.Boot(config);
+						connector = localBootable.Boot(config);
 					}
 				}
 			}
@@ -379,7 +379,7 @@ namespace Deveel.Data.Client {
 		}
 
 		public override string ServerVersion {
-			get { return IsLocal(Settings.Host) ? String.Empty : ((RemoteDatabaseInterface)dbInterface).ServerVersion.ToString(2); }
+			get { return IsLocal(Settings.Host) ? String.Empty : ((RemoteDatabaseInterface)connector).ServerVersion.ToString(2); }
 		}
 
 
@@ -399,16 +399,16 @@ namespace Deveel.Data.Client {
 			}
 
 			try {
-				if (dbInterface is TCPStreamDatabaseInterface)
+				if (connector is TCPStreamDatabaseInterface)
 					// Attempt to open a socket to the database.
-					(dbInterface as TCPStreamDatabaseInterface).ConnectToDatabase();
+					(connector as TCPStreamDatabaseInterface).ConnectToDatabase();
 			} catch(Exception e) {
 				//TODO: log the exception...
 				return false;
 			}
 
 			// Login with the username/password
-			return dbInterface.Login(defaultSchema, username, password, OnDatabaseEvent);
+			return connector.Login(defaultSchema, username, password, OnDatabaseEvent);
 		}
 
 #if !MONO
@@ -453,7 +453,7 @@ namespace Deveel.Data.Client {
 		}
 
 		internal void PushStreamableObjectPart(ReferenceType type, long objectId, long length, byte[] buffer, long offset, int count) {
-			dbInterface.PushStreamableObjectPart(type, objectId, length, buffer, offset, count);
+			connector.PushStreamableObjectPart(type, objectId, length, buffer, offset, count);
 		}
 
 		/// <summary>
@@ -501,7 +501,7 @@ namespace Deveel.Data.Client {
 							}
 
 							// Send the part of the streamable object to the database.
-							dbInterface.PushStreamableObjectPart(type, id, totalLen, buf, offset, blockRead);
+							connector.PushStreamableObjectPart(type, id, totalLen, buf, offset, blockRead);
 							// Increment the offset and upload the next part of the object.
 							offset += blockRead;
 						}
@@ -557,7 +557,7 @@ namespace Deveel.Data.Client {
 		internal void ExecuteQuery(SqlQuery sql, ResultSet resultSet) {
 			UploadStreamableObjects(sql);
 			// Execute the Query,
-			IQueryResponse resp = dbInterface.ExecuteQuery(sql)[0];
+			IQueryResponse resp = connector.ExecuteQuery(sql)[0];
 
 			// The format of the result
 			ColumnDescription[] colList = new ColumnDescription[resp.ColumnCount];
@@ -580,7 +580,7 @@ namespace Deveel.Data.Client {
 		/// Returns a <see cref="IList"/> that represents the result from the server.
 		/// </returns>
 		internal ResultPart RequestResultPart(int resultId, int startRow, int countRows) {
-			return dbInterface.GetResultPart(resultId, startRow, countRows);
+			return connector.GetResultPart(resultId, startRow, countRows);
 		}
 
 		/// <summary>
@@ -592,7 +592,7 @@ namespace Deveel.Data.Client {
 		/// <param name="len"></param>
 		/// <returns></returns>
 		internal byte[] RequestStreamableObjectPart(int resultId, long streamableObjectId, long offset, int len) {
-			return dbInterface.GetStreamableObjectPart(resultId, streamableObjectId, offset, len);
+			return connector.GetStreamableObjectPart(resultId, streamableObjectId, offset, len);
 		}
 
 		/// <summary>
@@ -613,7 +613,7 @@ namespace Deveel.Data.Client {
 			//    row_cache.clear();
 			// Only dispose if the connection is open
 			if (!isClosed) {
-				dbInterface.DisposeResult(resultId);
+				connector.DisposeResult(resultId);
 			}
 		}
 
@@ -767,7 +767,7 @@ namespace Deveel.Data.Client {
 					// ignore any exception...
 				}
 
-				dbInterface.Dispose();
+				connector.Dispose();
 				return true;
 			} catch {
 				return false;
@@ -777,7 +777,7 @@ namespace Deveel.Data.Client {
 		public override void ChangeDatabase(string databaseName) {
 			//TODO: check if any command is in Executing state before...
 			try {
-				dbInterface.ChangeDatabase(databaseName);
+				connector.ChangeDatabase(databaseName);
 				connectionString.Database = databaseName;
 			} catch(DataException) {
 				throw;

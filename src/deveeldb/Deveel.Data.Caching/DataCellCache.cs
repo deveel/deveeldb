@@ -16,7 +16,6 @@
 using System;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Deveel.Diagnostics;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Caching {
