@@ -120,9 +120,8 @@ namespace Deveel.Data.Client {
 		// For synchronization in this object,
 		private readonly Object stateLock = new Object();
 
-		internal DeveelDbConnection(string connectionString, ILocalDatabase connector) {
+		internal DeveelDbConnection(string connectionString, ILocalDatabase localDatabase) {
 			this.connectionString = new DeveelDbConnectionStringBuilder(connectionString);
-			this.connector = connector;
 			isClosed = true;
 			autoCommit = true;
 			triggerList = new EventHandlerList();

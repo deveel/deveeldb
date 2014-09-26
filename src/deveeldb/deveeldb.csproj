@@ -99,6 +99,10 @@
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
     <Compile Include="Deveel.Data.Control\AuthenticatedSession.cs" />
+    <Compile Include="Deveel.Data.Control\EmbeddedLocalDatabase.cs" />
+    <Compile Include="Deveel.Data.Control\EmbeddedLocalSystem.cs" />
+    <Compile Include="Deveel.Data.Control\ILocalDatabase.cs" />
+    <Compile Include="Deveel.Data.Control\ILocalSystem.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseConnectionExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabase.cs" />
