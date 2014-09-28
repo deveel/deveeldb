@@ -282,8 +282,8 @@ namespace Deveel.Data.Client {
 					var queryParameter = new SqlQueryParameter(name, parameter.Value);
 					queryParameter.Size = parameter.Size;
 					queryParameter.Direction = parameter.Direction == SysParameterDirection.Input
-						? Deveel.Data.ParameterDirection.Input
-						: Deveel.Data.ParameterDirection.Output;
+						? ParameterDirection.Input
+						: ParameterDirection.Output;
 					queryParameter.SqlType = parameter.SqlType;
 					queryParameters[i] = queryParameter;
 				}
@@ -353,7 +353,7 @@ namespace Deveel.Data.Client {
 
 			for (int i = 0; i < response.Length; i++) {
 				var r = response[i];
-				var columns = new ColumnDescription[r.ColumnCount];
+				var columns = new QueryResultColumn[r.ColumnCount];
 				for (int j = 0; j < columns.Length; j++) {
 					columns[j] = r.GetColumnDescription(j);
 				}

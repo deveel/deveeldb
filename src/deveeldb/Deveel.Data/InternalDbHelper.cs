@@ -73,12 +73,28 @@ namespace Deveel.Data {
 			return dbConn;
 		}
 
+		class SessionDatabaseHandler : IDatabaseHandler {
+			private readonly IDatabaseConnection connection;
+
+			public SessionDatabaseHandler(IDatabaseConnection connection) {
+				this.connection = connection;
+			}
+
+			public IDatabase GetDatabase(string name) {
+				if (!String.IsNullOrEmpty(name) && 
+					!String.Equals(name, connection.Database.Name))
+					return null;
+
+				return connection.Database;
+			}
+		}
+
 		class InternalConnector : EmbeddedServerConnectorBase {
 			private readonly User user;
 			private readonly IDatabaseConnection connection;
 
 			public InternalConnector(User user, IDatabaseConnection connection) 
-				: base(connection.Database) {
+				: base(new SessionDatabaseHandler(connection)) {
 				this.user = user;
 				this.connection = connection;
 			}

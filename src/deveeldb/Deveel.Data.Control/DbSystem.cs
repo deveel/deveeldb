@@ -140,18 +140,25 @@ namespace Deveel.Data.Control {
 			// Create the database interface for an internal database connection.
 			var localSystem = new LocalSystem(controller);
 			var localDatabase = localSystem.ControlDatabase(name);
-			localDatabase.Boot(config);
 
 			// Create the DeveelDbConnection object (very minimal cache settings for an
 			// internal connection).
 			var s = new DeveelDbConnectionStringBuilder {
-				Host = "Heap",
+				Database = name,
 				Schema = schema,
 				UserName = username,
 				Password = password,
 				RowCacheSize = 8,
-				MaxCacheSize = 4092000
+				MaxCacheSize = 4092000,
+				BootOrCreate = true
 			};
+
+			if (Config.IsHeapStorageSystem()) {
+				s.Host = "Heap";
+			} else {
+				s.Host = "Local";
+				s.Path = Config.DatabaseFullPath();
+			}
 
 			int id = ++internalCounter;
 

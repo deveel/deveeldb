@@ -14,32 +14,31 @@
 //    limitations under the License.
 
 using System;
-using System.Data;
-using System.IO;
+using System.Data.Common;
 using System.Runtime.Serialization;
 
 namespace Deveel.Data.Client {
 	[Serializable]
-	public class ServerException : DataException {
-		public ServerException(string message, int errorClass, int errorCode)
-			: base(message) {
+	public class DeveelDbException : DbException {
+		public DeveelDbException(string message, int errorClass, int errorCode)
+			: base(message, errorClass | errorCode) {
 			ErrorClass = errorClass;
-			ErrorCode = errorCode;
+			Code = errorCode;
 		}
 
-		protected ServerException(SerializationInfo info, StreamingContext context)
+		protected DeveelDbException(SerializationInfo info, StreamingContext context)
 			: base(info, context) {
 			ErrorClass = info.GetInt32("ErrorClass");
-			ErrorCode = info.GetInt32("ErrorCode");
+			Code = info.GetInt32("ErrorCode");
 		}
 
 		public int ErrorClass { get; private set; }
 
-		public int ErrorCode { get; private set; }
+		public int Code { get; private set; }
 
 		public override void GetObjectData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("ErrorClass", ErrorClass);
-			info.AddValue("ErrorCode", ErrorCode);
+			info.AddValue("Code", ErrorCode);
 			base.GetObjectData(info, context);
 		}
 	}

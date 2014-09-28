@@ -30,17 +30,7 @@ namespace Deveel.Data.Protocol {
 	/// contain unique elements, and whether a cell may be added that is null.
 	/// </remarks>
 	[Serializable]
-	public class ColumnDescription {
-		/// <summary>
-		/// The name of the field.
-		/// </summary>
-		private readonly String name;
-
-		/// <summary>
-		/// The type of the field, from the <see cref="DbType"/> object.
-		/// </summary>
-		private readonly DbType type;
-
+	public class QueryResultColumn {
 		/// <summary>
 		/// The size of the type.  The meaning of this field changes depending on the
 		/// type.  For example, the size of an SQL NUMERIC represents the number of
@@ -49,40 +39,11 @@ namespace Deveel.Data.Protocol {
 		private readonly int size;
 
 		/// <summary>
-		/// The scale of a numerical value.  This represents the number of digits to
-		/// the right of the decimal point.  The number is rounded to this scale
-		/// input arithmatic operations.  By default, the scale is '10'
-		/// </summary>
-		private int scale = -1;
-
-		/// <summary>
 		/// The SQL standard type as defined input. This is required to emulate
 		/// the various SQL types. The value is initialised to -9332 to indicate
 		/// the sql type has not be defined.
 		/// </summary>
-		private SqlType sql_type = SqlType.Unknown;
-
-		/// <summary>
-		/// If true, the field may not be null.  If false, the column may contain
-		/// no information.  This is enforced at the parse stage when adding or
-		/// altering a table.
-		/// </summary>
-		private readonly bool not_null;
-
-		/// <summary>
-		/// If true, the field may only contain unique values.  This is enforced at
-		/// the parse stage when adding or altering a table.
-		/// </summary>
-		private bool unique;
-
-		/// <summary>
-		/// This represents the 'unique_group' that this column is input.  If two
-		/// columns input a table belong to the same unique_group, then the specific
-		/// combination of the groups columns can not exist more than once input the
-		/// table.
-		/// A value of -1 means the column does not belong to any unique group.
-		/// </summary>
-		private int unique_group;
+		private SqlType sqlType = SqlType.Unknown;
 
 		/// <summary>
 		/// The Constructors if the type does require a size.
@@ -90,17 +51,18 @@ namespace Deveel.Data.Protocol {
 		/// <param name="name"></param>
 		/// <param name="type"></param>
 		/// <param name="size"></param>
-		/// <param name="not_null"></param>
-		private ColumnDescription(String name, DbType type, int size, bool not_null) {
-			this.name = name;
-			this.type = type;
+		/// <param name="notNull"></param>
+		private QueryResultColumn(String name, DbType type, int size, bool notNull) {
+			Scale = -1;
+			this.Name = name;
+			this.Type = type;
 			this.size = size;
-			this.not_null = not_null;
-			unique = false;
-			unique_group = -1;
+			this.IsNotNull = notNull;
+			IsUnique = false;
+			UniqueGroup = -1;
 		}
 
-		internal ColumnDescription(string name, DataColumnInfo columnInfo)
+		internal QueryResultColumn(string name, DataColumnInfo columnInfo)
 			: this(name, columnInfo.TType.DbType, columnInfo.Size, columnInfo.IsNotNull) {
 
 		}
@@ -113,7 +75,7 @@ namespace Deveel.Data.Protocol {
 		/// the object. Unpredictable results will occur otherwise.
 		/// </remarks>
 		public void SetUnique() {
-			unique = true;
+			IsUnique = true;
 		}
 
 		/// <summary>
@@ -124,9 +86,7 @@ namespace Deveel.Data.Protocol {
 		/// To resolve to the tables type, we must append an additional 
 		/// <i>Company.</i> or <i>Customer.</i> string to the front.
 		/// </remarks>
-		public string Name {
-			get { return name; }
-		}
+		public string Name { get; private set; }
 
 		/// <summary>
 		/// Returns an integer representing the type of the field.
@@ -134,15 +94,13 @@ namespace Deveel.Data.Protocol {
 		/// <remarks>
 		/// The types are outlined input <see cref="DbType"/>.
 		/// </remarks>
-		public DbType Type {
-			get { return type; }
-		}
+		public DbType Type { get; private set; }
 
 		/// <summary>
 		/// Returns true if this column is a numeric type.
 		/// </summary>
 		public bool IsNumericType {
-			get { return (type == DbType.Numeric); }
+			get { return (Type == DbType.Numeric); }
 		}
 
 
@@ -162,38 +120,38 @@ namespace Deveel.Data.Protocol {
 		///     OBJECT := OBJECT
 		/// </code>
 		/// </remarks>
-		public SqlType SQLType {
+		public SqlType SqlType {
 			get {
-				if (sql_type == SqlType.Unknown) {
+				if (sqlType == SqlType.Unknown) {
 					// If sql type is unknown find from internal type
-					if (type == DbType.Numeric)
+					if (Type == DbType.Numeric)
 						return SqlType.Numeric;
-					if (type == DbType.String)
+					if (Type == DbType.String)
 						return SqlType.VarChar;
-					if (type == DbType.Boolean)
+					if (Type == DbType.Boolean)
 						return SqlType.Bit;
-					if (type == DbType.Time)
+					if (Type == DbType.Time)
 						return SqlType.TimeStamp;
-					if (type == DbType.Blob)
+					if (Type == DbType.Blob)
 						return SqlType.LongVarBinary;
-					if (type == DbType.Object)
+					if (Type == DbType.Object)
 						return SqlType.Object;
 					throw new ApplicationException("Unrecognised internal type.");
 				}
-				return sql_type;
+				return sqlType;
 			}
-			set { sql_type = value; }
+			set { sqlType = value; }
 		}
 
 		/// <summary>
 		/// Returns the object <see cref="System.Type"/> for this field.
 		/// </summary>
 		public Type ObjectType {
-			get { return TypeUtil.ToType(type); }
+			get { return TypeUtil.ToType(Type); }
 		}
 
 		public Type RuntimeType {
-			get { return TypeUtil.ToRuntimeType(SQLType); }
+			get { return TypeUtil.ToRuntimeType(SqlType); }
 		}
 
 		/// <summary>
@@ -208,10 +166,7 @@ namespace Deveel.Data.Protocol {
 		/// If this is a number, gets or sets the scale of the field.
 		/// </summary>
 		/// <returns></returns>
-		public int Scale {
-			get { return scale; }
-			set { scale = value; }
-		}
+		public int Scale { get; set; }
 
 		/// <summary>
 		/// Determines whether the field can contain a null value or not.
@@ -219,9 +174,7 @@ namespace Deveel.Data.Protocol {
 		/// <value>
 		/// Returns true if it is required for the column to contain data.
 		/// </value>
-		public bool IsNotNull {
-			get { return not_null; }
-		}
+		public bool IsNotNull { get; private set; }
 
 		/// <summary>
 		/// Determines whether the field can contain two items that are identical.
@@ -229,9 +182,7 @@ namespace Deveel.Data.Protocol {
 		/// <remarks>
 		/// Returns true if each element must be unique.
 		/// </remarks>
-		public bool IsUnique {
-			get { return unique; }
-		}
+		public bool IsUnique { get; private set; }
 
 		/// <summary>
 		/// Gets or sets the unique group this column is input or -1 if it does
@@ -241,10 +192,7 @@ namespace Deveel.Data.Protocol {
 		/// <b>Note</b>: This can only happen during the setup of the object. 
 		/// Unpredictable results will occur otherwise.
 		/// </remarks>
-		public int UniqueGroup {
-			get { return unique_group; }
-			set { unique_group = value; }
-		}
+		public int UniqueGroup { get; set; }
 
 		/// <summary>
 		/// Returns true if the type of the field is searchable.
@@ -256,23 +204,27 @@ namespace Deveel.Data.Protocol {
 		/// </remarks>
 		public bool IsQuantifiable {
 			get {
-				if (type == DbType.Blob ||
-				    type == DbType.Object) {
+				if (Type == DbType.Blob ||
+				    Type == DbType.Object) {
 					return false;
 				}
 				return true;
 			}
 		}
 
+		public bool IsAliased {
+			get { return Name.StartsWith("@a"); }
+		}
+
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
-			ColumnDescription cd = (ColumnDescription)ob;
-			return (name.Equals(cd.name) &&
-					type == cd.type &&
+			var cd = (QueryResultColumn)ob;
+			return (Name.Equals(cd.Name) &&
+					Type == cd.Type &&
 					size == cd.size &&
-					not_null == cd.not_null &&
-					unique == cd.unique &&
-					unique_group == cd.unique_group);
+					IsNotNull == cd.IsNotNull &&
+					IsUnique == cd.IsUnique &&
+					UniqueGroup == cd.UniqueGroup);
 		}
 
 		/// <inheritdoc/>
@@ -281,42 +233,42 @@ namespace Deveel.Data.Protocol {
 		}
 
 		/// <summary>
-		/// Writes this <see cref="ColumnDescription"/> to the given <see cref="BinaryWriter"/>.
+		/// Writes this <see cref="QueryResultColumn"/> to the given <see cref="BinaryWriter"/>.
 		/// </summary>
 		/// <param name="output"></param>
 		public void WriteTo(BinaryWriter output) {
-			output.Write(name);
-			output.Write((int)type);
+			output.Write(Name);
+			output.Write((int)Type);
 			output.Write(size);
-			output.Write(not_null);
-			output.Write(unique);
-			output.Write(unique_group);
-			output.Write((int)sql_type);
-			output.Write(scale);
+			output.Write(IsNotNull);
+			output.Write(IsUnique);
+			output.Write(UniqueGroup);
+			output.Write((int)sqlType);
+			output.Write(Scale);
 		}
 
 
 		/// <summary>
-		/// Reads a <see cref="ColumnDescription"/> from the given 
+		/// Reads a <see cref="QueryResultColumn"/> from the given 
 		/// <see cref="BinaryReader"/> and returns a new instance of it.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static ColumnDescription ReadFrom(BinaryReader input) {
+		public static QueryResultColumn ReadFrom(BinaryReader input) {
 			String name = input.ReadString();
 			DbType type = (DbType) input.ReadInt32();
 			int size = input.ReadInt32();
-			bool not_null = input.ReadBoolean();
+			bool notNull = input.ReadBoolean();
 			bool unique = input.ReadBoolean();
-			int unique_group = input.ReadInt32();
+			int uniqueGroup = input.ReadInt32();
 
-			ColumnDescription col_desc = new ColumnDescription(name, type, size, not_null);
-			if (unique) col_desc.SetUnique();
-			col_desc.UniqueGroup = unique_group;
-			col_desc.SQLType = (SqlType) input.ReadInt32();
-			col_desc.Scale = input.ReadInt32();
+			var colDesc = new QueryResultColumn(name, type, size, notNull);
+			if (unique) colDesc.SetUnique();
+			colDesc.UniqueGroup = uniqueGroup;
+			colDesc.SqlType = (SqlType) input.ReadInt32();
+			colDesc.Scale = input.ReadInt32();
 
-			return col_desc;
+			return colDesc;
 		}
 	}
 }

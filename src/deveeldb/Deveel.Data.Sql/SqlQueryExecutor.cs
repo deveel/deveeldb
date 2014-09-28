@@ -21,6 +21,8 @@ using System.Linq;
 using System.Text;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Text;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
 	///<summary>
@@ -152,9 +154,50 @@ namespace Deveel.Data.Sql {
 				if (param == null)
 					throw new InvalidOperationException("Could not find the parameter in the query.");
 
-				// TODO: Handle Type of Parameter
+				var type = CreateTType(param);
 				var value = param.Value;
-				return TObject.CreateObject(value);
+
+				return new TObject(type, value);
+			}
+
+			private static TType CreateTType(SqlQueryParameter parameter) {
+				if (parameter.SqlType == SqlType.Bit)
+					return PrimitiveTypes.Boolean;
+				if (parameter.SqlType == SqlType.TinyInt ||
+				    parameter.SqlType == SqlType.SmallInt ||
+				    parameter.SqlType == SqlType.Integer ||
+				    parameter.SqlType == SqlType.BigInt ||
+				    parameter.SqlType == SqlType.Float ||
+				    parameter.SqlType == SqlType.Real ||
+				    parameter.SqlType == SqlType.Double ||
+				    parameter.SqlType == SqlType.Numeric)
+					// TODO: support the scale in parameter ...
+					return TType.GetNumericType(parameter.SqlType, parameter.Size, 0);
+				if (parameter.SqlType == SqlType.Char ||
+				    parameter.SqlType == SqlType.VarChar)
+					// TODO: Support the locale at least ...
+					return TType.GetStringType(parameter.SqlType, parameter.Size, null, CollationStrength.None,
+						CollationDecomposition.None);
+
+				if (parameter.SqlType == SqlType.Binary ||
+				    parameter.SqlType == SqlType.VarBinary)
+					return TType.GetBinaryType(parameter.SqlType, parameter.Size);
+
+				if (parameter.SqlType == SqlType.Date ||
+				    parameter.SqlType == SqlType.Time ||
+				    parameter.SqlType == SqlType.TimeStamp)
+					return TType.GetDateType(parameter.SqlType);
+
+				if (parameter.SqlType == SqlType.Null)
+					return PrimitiveTypes.Null;
+
+				if (parameter.SqlType == SqlType.LongVarBinary ||
+					parameter.SqlType == SqlType.LongVarChar ||
+					parameter.SqlType == SqlType.Blob ||
+					parameter.SqlType == SqlType.Clob)
+					throw new NotImplementedException("Support for LOBs in parameters not implemented yet.");
+
+				throw new NotSupportedException(String.Format("Parameter of type {0} is not supported", parameter.SqlType));
 			}
 		}
 	}

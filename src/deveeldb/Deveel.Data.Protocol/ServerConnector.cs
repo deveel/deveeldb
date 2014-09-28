@@ -34,11 +34,11 @@ namespace Deveel.Data.Protocol {
 		private bool ignoreIdentifiersCase;
 		private ParameterStyle parameterStyle;
 
-		protected ServerConnector(IDatabase database) {
-			if (database == null) 
-				throw new ArgumentNullException("database");
+		protected ServerConnector(IDatabaseHandler handler) {
+			if (handler == null)
+				throw new ArgumentNullException("handler");
 
-			Database = database;
+			DatabaseHandler = handler;
 			resultMap = new Dictionary<int, QueryResult>();
 			blobIdMap = new Dictionary<long, IRef>();
 			uniqueResultId = 1;
@@ -52,8 +52,15 @@ namespace Deveel.Data.Protocol {
 
 		public ConnectorState CurrentState { get; private set; }
 
+		protected IDatabaseHandler DatabaseHandler { get; private set; }
+
 		protected ILogger Logger {
-			get { return Database.Context.Logger; }
+			get {
+				if (Database == null)
+					return new EmptyLogger();
+
+				return Database.Context.Logger;
+			}
 		}
 
 		protected IDatabase Database { get; private set; }
@@ -68,9 +75,13 @@ namespace Deveel.Data.Protocol {
 			CurrentState = newState;
 		}
 
-		protected void OpenConnector(ConnectionEndPoint remoteEndPoint) {
+		protected void OpenConnector(ConnectionEndPoint remoteEndPoint, string databaseName) {
 			try {
 				RemoteEndPoint = remoteEndPoint;
+				Database = DatabaseHandler.GetDatabase(databaseName);
+				if (Database == null)
+					throw new DatabaseException();
+
 				OnConnectorOpen();
 				ChangeState(ConnectorState.Open);
 			} catch (Exception ex) {
@@ -444,6 +455,8 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
+		public abstract ConnectionEndPoint MakeEndPoint(IDictionary<string, object> properties);
+
 		public abstract IMessageProcessor CreateProcessor();
 
 		public abstract IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);
@@ -491,7 +504,7 @@ namespace Deveel.Data.Protocol {
 		        get { return result.ColumnCount; }
 		    }
 
-		    public ColumnDescription GetColumnDescription(int n) {
+		    public QueryResultColumn GetColumnDescription(int n) {
 				return result.Fields[n];
 			}
 

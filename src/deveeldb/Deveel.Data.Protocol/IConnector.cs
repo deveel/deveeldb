@@ -25,6 +25,8 @@ namespace Deveel.Data.Protocol {
 		ConnectionEndPoint LocalEndPoint { get; }
 
 
+		ConnectionEndPoint MakeEndPoint(IDictionary<string, object> properties);
+
 		IMessageProcessor CreateProcessor();
 
 		IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);

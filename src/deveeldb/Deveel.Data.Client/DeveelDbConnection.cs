@@ -14,10 +14,12 @@
 //    limitations under the License.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.IO;
+using System.Linq;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Control;
@@ -31,6 +33,7 @@ namespace Deveel.Data.Client {
 	public sealed class DeveelDbConnection : DbConnection {
 		private ConnectionProcessor processor;
 		private IControlDatabase controlDatabase;
+		private IControlSystem controlSystem;
 		private IConnector connector;
 		private DeveelDbConnectionStringBuilder connectionString;
 
@@ -67,8 +70,13 @@ namespace Deveel.Data.Client {
 			this.connector = connector;
 		}
 
-		internal DeveelDbConnection(string connectionString, IControlDatabase controlDatabase)
+		internal DeveelDbConnection(string connectionString, IControlSystem controlSystem)
 			: this(connectionString) {
+			this.controlSystem = controlSystem;
+		}
+
+		internal DeveelDbConnection(string connectionString, IControlDatabase controlDatabase)
+			: this(connectionString, controlDatabase.System) {
 			this.controlDatabase = controlDatabase;
 		}
 
@@ -78,18 +86,7 @@ namespace Deveel.Data.Client {
 			ChangeState(ConnectionState.Closed);
 		}
 
-		private IDbConfig CreateDbConfig(IControlSystem controlSystem) {
-			var dbConfig = new DbConfig(controlSystem.Config);
-			dbConfig.DatabaseName(Settings.Database);
-			dbConfig.IgnoreIdentifierCase(Settings.IgnoreIdentifiersCase);
-
-			// TODO: More mappings?
-
-			return dbConfig;
-		}
-
-		private IConnector CreateLocalDatabaseConnector() {
-			var dbConfig = CreateDbConfig(controlDatabase.System);
+		private IConnector CreateLocalDatabaseConnector(IDbConfig dbConfig) {
 			if (controlDatabase.CheckExists(dbConfig)) {
 				if (controlDatabase.IsBooted) {
 					return controlDatabase.Connect(dbConfig);
@@ -104,58 +101,93 @@ namespace Deveel.Data.Client {
 			throw new InvalidOperationException();
 		}
 
+		private IControlSystem CreateEmbeddedControlSystem() {
+			var dbConfig = DbConfig.Default;
+
+			if (IsInFileSystem(Settings)) {
+				var basePath = Settings.Path;
+				if (String.IsNullOrEmpty(basePath))
+					basePath = DataSource;
+				if (String.IsNullOrEmpty(basePath))
+					basePath = Environment.CurrentDirectory;
+
+				dbConfig.BasePath(basePath);
+				dbConfig.StorageSystem(ConfigDefaultValues.FileStorageSystem);
+			} else if (IsInMemory(Settings.DataSource)) {
+				dbConfig.StorageSystem(ConfigDefaultValues.HeapStorageSystem);
+			}
+
+			var controller = DbController.Create(dbConfig);
+			return new LocalSystem(controller);
+		}
+
 		private IConnector CreateConnector() {
 			if (connector != null)
 				return connector;
 
+			IDbConfig dbConfig = null;
+
 			if (IsInMemory(Settings.DataSource) &&
 				controlDatabase == null) {
+				if (controlSystem == null)
+					controlSystem = CreateEmbeddedControlSystem();
+
 				// TODO: handle the case the connection string does not specify a database name
 				var databaseName = Settings.Database;
 				if (String.IsNullOrEmpty(databaseName))
 					throw new InvalidOperationException();
 
-				var config = DbConfig.Default;
-				config.StorageSystem(ConfigDefaultValues.HeapStorageSystem);
-				var controller = DbController.Create(config);
+				dbConfig = new DbConfig(controlSystem.Config);
+				dbConfig.DatabaseName(databaseName);
 
-				var localSystem = new LocalSystem(controller);
-				controlDatabase = localSystem.ControlDatabase(databaseName);
+				var defaultSchema = Settings.Schema;
+				if (!String.IsNullOrEmpty(defaultSchema))
+					dbConfig.DefaultSchema(defaultSchema);
+
+				controlDatabase = controlSystem.ControlDatabase(databaseName);
 			} else if (IsInFileSystem(Settings) &&
-			           controlDatabase == null) {
+			          controlDatabase == null) {
+				if (controlSystem == null)
+					controlSystem = CreateEmbeddedControlSystem();
+
 				// TODO: handle the case the connection string does not specify a database name
 				var databaseName = Settings.Database;
 				if (String.IsNullOrEmpty(databaseName))
 					throw new InvalidOperationException();
 
-				var config = DbConfig.Default;
-				config.StorageSystem(ConfigDefaultValues.FileStorageSystem);
+				dbConfig = new DbConfig(controlSystem.Config);
+				dbConfig.StorageSystem(ConfigDefaultValues.FileStorageSystem);
 
-				var basePath = Settings.DataSource;
-				if (String.Equals(basePath, "local", StringComparison.OrdinalIgnoreCase))
-					basePath = Settings.Path;
-				if (String.IsNullOrEmpty(basePath))
-					basePath = Environment.CurrentDirectory;
+				var dbPath = Settings.DataSource;
+				if (String.Equals(dbPath, "local", StringComparison.OrdinalIgnoreCase))
+					dbPath = Settings.Path;
+				if (String.IsNullOrEmpty(dbPath))
+					dbPath = databaseName;
 
-				config.BasePath(basePath);
+				dbConfig.DatabasePath(dbPath);
 
-				// This finds the datbase in the file-system if exists, otherwise it will create
-				var controller = DbController.Create(config);
+				var defaultSchema = Settings.Schema;
+				if (!String.IsNullOrEmpty(defaultSchema))
+					dbConfig.DefaultSchema(defaultSchema);
 
-				var localSystem = new LocalSystem(controller);
-				controlDatabase = localSystem.ControlDatabase(databaseName);
+
+				controlDatabase = controlSystem.ControlDatabase(databaseName);
 			} else if (controlDatabase == null) {
 				return CreateNetworkConnector();
 			}
 
 			if (controlDatabase != null)
-				return CreateLocalDatabaseConnector();
+				return CreateLocalDatabaseConnector(dbConfig);
 
 			throw new InvalidOperationException("Unable to create a connector to the database");
 		}
 
 		private IConnector CreateNetworkConnector() {
-			throw new NotImplementedException();
+			var host = Settings.Host;
+			
+			// TODO: discover the protocol from the host ...
+
+			return new TcpClientConnector();
 		}
 
 		private static bool IsInMemory(string dataSource) {
@@ -245,7 +277,32 @@ namespace Deveel.Data.Client {
 
 		public override void Close() {
 			lock (this) {
-				
+				try {
+					if (State == ConnectionState.Closed)
+						return;
+
+					if (openReaders != null) {
+						foreach (var reader in openReaders.Values) {
+							reader.Close();
+						}
+
+						openReaders.Clear();
+						openReaders = null;
+					}
+
+
+					if (CurrentTransaction != null) {
+						CurrentTransaction.Rollback();
+						CurrentTransaction = null;
+					}
+
+					processor.Disconnect();
+				} catch (Exception) {
+
+					throw;
+				} finally {
+					ChangeState(ConnectionState.Closed);
+				}
 			}
 		}
 
@@ -257,19 +314,29 @@ namespace Deveel.Data.Client {
 
 		public override void ChangeDatabase(string databaseName) {
 			lock (this) {
-				if (openReaders != null) {
-					foreach (var reader in openReaders.Values) {
-						reader.Close();
-					}
+				if (String.IsNullOrEmpty(databaseName))
+					throw new ArgumentNullException("databaseName");
 
-					openReaders.Clear();
-					openReaders = null;
-				}
+				if (String.Equals(Settings.Database, databaseName))
+					return;
 
-				// TODO: Close the connection, change the database and reconnect ...
+				Close();
 
-				throw new NotImplementedException();
+				Settings.Database = databaseName;
+
+				Open();
 			}
+		}
+
+		private static ConnectionEndPoint MakeRemoteEndPoint(IConnector connector, DeveelDbConnectionStringBuilder settings) {
+			var properties = new Dictionary<string, object>();
+			var en = ((IDictionary) settings).GetEnumerator();
+			while (en.MoveNext()) {
+				var current = en.Entry;
+				properties.Add((string)current.Key, current.Value);
+			}
+
+			return connector.MakeEndPoint(properties);
 		}
 
 		public override void Open() {
@@ -280,8 +347,10 @@ namespace Deveel.Data.Client {
 				if (connector == null)
 					connector = CreateConnector();
 
-				if (processor == null)
-					processor = new ConnectionProcessor(Settings, connector);
+				if (processor == null) {
+					var remoteEndPoint = MakeRemoteEndPoint(connector, Settings);
+					processor = new ConnectionProcessor(Settings, connector, remoteEndPoint);
+				}
 
 				string dbVersion;
 
@@ -430,10 +499,13 @@ namespace Deveel.Data.Client {
 			private readonly DeveelDbConnectionStringBuilder settings;
 			private readonly IConnector connector;
 			private readonly IMessageProcessor processor;
+			private readonly ConnectionEndPoint remoteEndPoint;
 
-			public ConnectionProcessor(DeveelDbConnectionStringBuilder settings, IConnector connector) {
+			public ConnectionProcessor(DeveelDbConnectionStringBuilder settings, IConnector connector, ConnectionEndPoint remoteEndPoint) {
 				this.settings = settings;
 				this.connector = connector;
+				this.remoteEndPoint = remoteEndPoint;
+
 				processor = connector.CreateProcessor();
 			}
 
@@ -446,7 +518,7 @@ namespace Deveel.Data.Client {
 				var response = processor.ProcessMessage(envelope);
 
 				if (response.Error != null)
-					throw new ServerException(response.Error.ErrorMessage, response.Error.ErrorClass, response.Error.ErrorCode);
+					throw new DeveelDbException(response.Error.ErrorMessage, response.Error.ErrorClass, response.Error.ErrorCode);
 
 				return response.Message;
 			}
@@ -459,10 +531,12 @@ namespace Deveel.Data.Client {
 			}
 
 			public void Connect(out string databaseVesion) {
-				var request = new ConnectRequest(connector.LocalEndPoint) {
+				var request = new ConnectRequest(connector.LocalEndPoint, remoteEndPoint) {
+					DatabaseName = settings.Database,
 					AutoCommit = settings.AutoCommit,
 					IgnoreIdentifiersCase = settings.IgnoreIdentifiersCase,
-					ParameterStyle = settings.ParameterStyle
+					ParameterStyle = settings.ParameterStyle,
+					Timeout = settings.QueryTimeout
 				};
 
 				var response = (ConnectResponse) Process(request);

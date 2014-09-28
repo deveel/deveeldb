@@ -68,6 +68,9 @@
     <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbCommandBuilder.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -89,7 +92,7 @@
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbUncodeLargeString.cs" />
-    <Compile Include="Deveel.Data.Client\ServerException.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
     <Compile Include="Deveel.Data.Client\TriggerInvoke.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
     <Compile Include="Deveel.Data.Configuration\DatabaseConfigurationException.cs" />
@@ -133,6 +136,10 @@
     <Compile Include="Deveel.Data.Protocol\LocalQueryResult.cs" />
     <Compile Include="Deveel.Data.Protocol\ConnectRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\ConnectResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\NetworkClientConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\NetworkEnvelope.cs" />
+    <Compile Include="Deveel.Data.Protocol\NetworkEnvelopeMetadataKeys.cs" />
+    <Compile Include="Deveel.Data.Protocol\EncryptionAlgorithms.cs" />
     <Compile Include="Deveel.Data.Protocol\RollbackRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\ServerConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\EmbeddedServerConnector.cs" />
@@ -156,6 +163,7 @@
     <Compile Include="Deveel.Data.Protocol\QueryExecuteResponse.cs" />
     <Compile Include="Deveel.Data.Protocol\SchemaChangeRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\StreamableObjectCreateResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\TcpClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\TriggerCreateRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\TriggerEventNotification.cs" />
     <Compile Include="Deveel.Data.Query\ExpressionPlan.cs" />
@@ -183,7 +191,7 @@
     <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineParameter.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineType.cs" />
-    <Compile Include="Deveel.Data.Protocol\ColumnDescription.cs">
+    <Compile Include="Deveel.Data.Protocol\QueryResultColumn.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Protocol\DatabaseEventCallback.cs" />

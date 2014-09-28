@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,10 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace Deveel.Data.Protocol {
-	/// <summary>
-	/// A container class that holds a part of a result set.
-	/// </summary>
-	public class ResultPart : List<object> {
-
-		public ResultPart() {
-		}
-
-		public ResultPart(int capacity)
-			: base(capacity) {
-		}
-
+	public static class NetworkEnvelopeMetadataKeys {
+		public const string DispatchId = "Dispatch ID";
+		public const string IssueDate = "Issue Date";
 	}
 }

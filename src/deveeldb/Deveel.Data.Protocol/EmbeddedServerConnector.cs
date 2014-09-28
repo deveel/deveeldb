@@ -24,8 +24,8 @@ using Deveel.Diagnostics;
 
 namespace Deveel.Data.Protocol {
 	public class EmbeddedServerConnector : EmbeddedServerConnectorBase {
-		public EmbeddedServerConnector(IDatabase database)
-			: base(database) {
+		public EmbeddedServerConnector(IDatabaseHandler handler)
+			: base(handler) {
 		}
 
 		protected override IQueryResponse[] ExecuteQuery(string text, IEnumerable<SqlQueryParameter> parameters) {

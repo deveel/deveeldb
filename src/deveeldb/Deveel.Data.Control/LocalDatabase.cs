@@ -98,13 +98,33 @@ namespace Deveel.Data.Control {
 			return System.Controller.DatabaseExists(config, databaseName);
 		}
 
+		#region SingleDatabaseHandler
+
+		class SingleDatabaseHandler : IDatabaseHandler {
+			private readonly IDatabase database;
+
+			public SingleDatabaseHandler(IDatabase database) {
+				this.database = database;
+			}
+
+			public IDatabase GetDatabase(string name) {
+				if (!String.IsNullOrEmpty(name) && 
+					!String.Equals(database.Name, name))
+					return null;
+
+				return database;
+			}
+		}
+
+		#endregion
+
 		#region LocalConnector
 
 		class LocalEmbeddedServerConnector : EmbeddedServerConnector {
 			private readonly LocalDatabase controlDatabase;
 
 			public LocalEmbeddedServerConnector(LocalDatabase database) 
-				: base(database.dbsys.Database) {
+				: base(new SingleDatabaseHandler(database.dbsys.Database)) {
 				controlDatabase = database;
 			}
 

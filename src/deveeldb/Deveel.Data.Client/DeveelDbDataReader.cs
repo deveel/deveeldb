@@ -41,7 +41,7 @@ namespace Deveel.Data.Client {
 			get { return (behavior & CommandBehavior.CloseConnection) != 0; }
 		}
 
-		private ColumnDescription GetColumn(int offset) {
+		private QueryResultColumn GetColumn(int offset) {
 			return command.CurrentResult.GetColumn(offset);
 		}
 
@@ -75,7 +75,7 @@ namespace Deveel.Data.Client {
 			if (FieldCount == 0)
 				return null;
 
-			SysDataTable table = new SysDataTable("ColumnsInfo");
+			var table = new SysDataTable("ColumnsInfo");
 
 			table.Columns.Add("Schema", typeof (string));
 			table.Columns.Add("Table", typeof (string));
@@ -95,7 +95,7 @@ namespace Deveel.Data.Client {
 			for (int i = 0; i < FieldCount; i++) {
 				SysDataRow row = table.NewRow();
 
-				ColumnDescription column = command.CurrentResult.GetColumn(i);
+				QueryResultColumn column = command.CurrentResult.GetColumn(i);
 
 				string fullColumnName = column.Name;
 
@@ -124,7 +124,7 @@ namespace Deveel.Data.Client {
 				row["Table"] = tableName;
 				row["Name"] = columnName;
 				row["FullName"] = fullColumnName;
-				row["SqlType"] = (int)column.SQLType;
+				row["SqlType"] = (int)column.SqlType;
 				row["DbType"] = (int)column.Type;
 				if (column.Type != DbType.Unknown)
 					row["Type"] = (column.ObjectType.IsPrimitive ? column.ObjectType.FullName : column.ObjectType.AssemblyQualifiedName);
@@ -186,28 +186,56 @@ namespace Deveel.Data.Client {
 			return GetFinalValue<bool>(ordinal);
 		}
 
+		public bool GetBoolean(string columnName) {
+			return GetBoolean(GetOrdinal(columnName));
+		}
+
 		public override byte GetByte(int ordinal) {
 			return GetFinalValue<byte>(ordinal);
+		}
+
+		public byte GetByte(string columnName) {
+			return GetByte(GetOrdinal(columnName));
 		}
 
 		public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length) {
 			throw new NotImplementedException();
 		}
 
+		public long GetBytes(string columnName, long dataOffset, byte[] buffer, int bufferoffset, int length) {
+			return GetBytes(GetOrdinal(columnName), dataOffset, buffer, bufferoffset, length);
+		}
+
 		public DeveelDbLargeObject GetLargeObject(int ordinal) {
 			throw new NotImplementedException();
+		}
+
+		public DeveelDbLargeObject GetLargeObject(string columnName) {
+			return GetLargeObject(GetOrdinal(columnName));
 		}
 
 		public override char GetChar(int ordinal) {
 			throw new NotImplementedException();
 		}
 
+		public char GetChar(string columnName) {
+			return GetChar(GetOrdinal(columnName));
+		}
+
 		public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length) {
 			throw new NotImplementedException();
 		}
 
+		public long GetChars(string columnName, long dataOffset, char[] buffer, int bufferOffset, int length) {
+			return GetChars(GetOrdinal(columnName), dataOffset, buffer, bufferOffset, length);
+		}
+
 		public DeveelDbLargeString GetLargeString(int ordinal) {
 			throw new NotImplementedException();
+		}
+
+		public DeveelDbLargeString GetLargeString(string columnName) {
+			return GetLargeString(GetOrdinal(columnName));
 		}
 
 		public override Guid GetGuid(int ordinal) {
@@ -218,28 +246,56 @@ namespace Deveel.Data.Client {
 			return new Guid(s);
 		}
 
+		public Guid GetGuid(string columnName) {
+			return GetGuid(GetOrdinal(columnName));
+		}
+
 		public override short GetInt16(int ordinal) {
 			return GetFinalValue<short>(ordinal);
+		}
+
+		public short GetInt16(string columnName) {
+			return GetInt16(GetOrdinal(columnName));
 		}
 
 		public override int GetInt32(int ordinal) {
 			return GetFinalValue<int>(ordinal);
 		}
 
+		public int GetInt32(string columnName) {
+			return GetInt32(GetOrdinal(columnName));
+		}
+
 		public override long GetInt64(int ordinal) {
 			return GetFinalValue<long>(ordinal);
+		}
+
+		public long GetInt64(string columnName) {
+			return GetInt64(GetOrdinal(columnName));
 		}
 
 		public override DateTime GetDateTime(int ordinal) {
 			return GetFinalValue<DateTime>(ordinal);
 		}
 
+		public DateTime GetDateTime(string columnName) {
+			return GetDateTime(GetOrdinal(columnName));
+		}
+
 		public override string GetString(int ordinal) {
 			return GetFinalValue<string>(ordinal);
 		}
 
+		public string GetString(string columnName) {
+			return GetString(GetOrdinal(columnName));
+		}
+
 		public override object GetValue(int ordinal) {
 			return command.CurrentResult.GetRuntimeValue(ordinal);
+		}
+
+		public object GetValue(string columnName) {
+			return GetValue(GetOrdinal(columnName));
 		}
 
 		public override int GetValues(object[] values) {
@@ -254,6 +310,10 @@ namespace Deveel.Data.Client {
 		public override bool IsDBNull(int ordinal) {
 			var value = command.CurrentResult.GetRawColumn(ordinal);
 			return value == null || value == DBNull.Value;
+		}
+
+		public bool IsDBNull(string columnName) {
+			return IsDBNull(GetOrdinal(columnName));
 		}
 
 		public override int FieldCount {
@@ -276,12 +336,24 @@ namespace Deveel.Data.Client {
 			throw new NotSupportedException("Conversion from BigNumber to Decimal not yet supported.");
 		}
 
+		public decimal GetDecimal(string columnName) {
+			return GetDecimal(GetOrdinal(columnName));
+		}
+
 		public override double GetDouble(int ordinal) {
 			return GetFinalValue<double>(ordinal);
 		}
 
+		public double GetDouble(string columnName) {
+			return GetDouble(GetOrdinal(columnName));
+		}
+
 		public override float GetFloat(int ordinal) {
 			return GetFinalValue<float>(ordinal);
+		}
+
+		public float GetFloat(string columnName) {
+			return GetFloat(GetOrdinal(columnName));
 		}
 
 		public override string GetName(int ordinal) {
@@ -310,7 +382,7 @@ namespace Deveel.Data.Client {
 			if (column == null)
 				return String.Empty;
 
-			return column.SQLType.ToString().ToUpperInvariant();
+			return column.SqlType.ToString().ToUpperInvariant();
 		}
 
 		public override Type GetFieldType(int ordinal) {

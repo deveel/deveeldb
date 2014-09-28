@@ -16,22 +16,11 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
-	public sealed class QueryParameter {
-		public QueryParameter(object value) 
-			: this(MarkerName, value) {
-		}
-
-		public QueryParameter(string name, object value) {
-			Value = value;
-			Name = name;
-		}
-
-		public const string MarkerName = "?";
-		public const char NamePrefix = '@';
-
-		public string Name { get; private set; }
-
-		public object Value { get; private set; }
+	public static class EncryptionAlgorithms {
+		public const string HmacSha256 = "HMAC-SHA256";
+		public const string HmacSha512 = "HMAC-SHA512";
+		public const string HmacMd5 = "HMAC-MD5";
+		public const string TripleDes = "Triple DES";
+		public const string Des = "DES";
 	}
 }

@@ -28,7 +28,7 @@ namespace Deveel.Data.Protocol {
 		private static int uniqueIdKey = 1;
 
 		private int uniqueId;
-		private ColumnDescription[] columns;
+		private QueryResultColumn[] columns;
 		private int queryTimeMs;
 		private int resultRowCount;
 
@@ -272,7 +272,7 @@ namespace Deveel.Data.Protocol {
 			if (ob != null) {
 				// If this is an object then deserialize it,
 				// ISSUE: Cache deserialized objects?
-				if (GetColumn(column).SQLType == SqlType.Object) {
+				if (GetColumn(column).SqlType == SqlType.Object) {
 					ob = ObjectTranslator.Deserialize((ByteLongObject)ob);
 				}
 				return ob;
@@ -304,7 +304,7 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		public void Setup(int id, ColumnDescription[] columnList, int totalRowCount) {
+		public void Setup(int id, QueryResultColumn[] columnList, int totalRowCount) {
 			ResultId = id;
 			columns = columnList;
 			resultRowCount = totalRowCount;
@@ -366,7 +366,7 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		public ColumnDescription GetColumn(int offset) {
+		public QueryResultColumn GetColumn(int offset) {
 			return columns[offset];
 		}
 

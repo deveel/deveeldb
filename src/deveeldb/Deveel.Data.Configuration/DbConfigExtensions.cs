@@ -216,6 +216,25 @@ namespace Deveel.Data.Configuration {
 			return type;
 		}
 
+		public static bool IsHeapStorageSystem(this IDbConfig config) {
+			var typeString = config.GetString(ConfigKeys.StorageSystem);
+			if (String.Equals(typeString, ConfigDefaultValues.HeapStorageSystem, StringComparison.OrdinalIgnoreCase))
+				return true;
+
+			var type = Type.GetType(typeString, false, true);
+			if (type == null)
+				return false;
+
+			// TODO: Provide an interface to mark it instead of initializing and see ...
+
+			try {
+				var storageSystem = (IStoreSystem) Activator.CreateInstance(type, true);
+				return storageSystem.StorageType == StorageType.File;
+			} catch (Exception) {
+				return false;
+			}
+		}
+
 		public static string BasePath(this IDbConfig config) {
 			return config.GetString(ConfigKeys.BasePath);
 		}

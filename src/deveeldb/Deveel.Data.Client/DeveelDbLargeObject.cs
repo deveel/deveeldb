@@ -70,6 +70,9 @@ namespace Deveel.Data.Client {
 		}
 
 		private IStreamableObjectChannel CreateChannel() {
+			if (connection == null)
+				throw new InvalidOperationException("The object is outside the context.");
+
 			if (ObjectRef != null) {
 				channel = connection.OpenObjectChannel(ObjectRef.Identifier, ObjectPersistenceType.Volatile);
 			} else {

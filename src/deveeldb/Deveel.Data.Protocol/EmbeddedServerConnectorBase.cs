@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Configuration;
+using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Routines;
 using Deveel.Diagnostics;
@@ -25,8 +27,8 @@ namespace Deveel.Data.Protocol {
 	public abstract class EmbeddedServerConnectorBase : ServerConnector {
 		private int triggerId;
 
-		protected EmbeddedServerConnectorBase(IDatabase database) 
-			: base(database) {
+		protected EmbeddedServerConnectorBase(IDatabaseHandler handler)
+			: base(handler) {
 		}
 
 		private void AssertNotDisposed() {
@@ -53,6 +55,9 @@ namespace Deveel.Data.Protocol {
 			get { return ConnectionEndPoint.Embedded; }
 		}
 
+		public override ConnectionEndPoint MakeEndPoint(IDictionary<string, object> properties) {
+			return ConnectionEndPoint.Embedded;
+		}
 
 		public override IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message) {
 			AssertNotDisposed();
@@ -198,7 +203,12 @@ namespace Deveel.Data.Protocol {
 			}
 
 			private IMessageEnvelope ProcessAuthenticate(AuthenticateRequest request) {
-				if (!connector.Authenticate(request.DefaultSchema, request.UserName, request.Password)) {
+				var schema = request.DefaultSchema;
+				if (String.IsNullOrEmpty(schema))
+					// TODO: Load this dynamically ...
+					schema = ConfigDefaultValues.DefaultSchema;
+
+				if (!connector.Authenticate(schema, request.UserName, request.Password)) {
 					// TODO: trap an exception from upper level and return it
 					return ErrorResponse(-1, new AuthenticateResponse(false, -1), new Exception("Could not authenticate"));
 				}
@@ -226,7 +236,7 @@ namespace Deveel.Data.Protocol {
 
 			private IMessageEnvelope ProcessConnect(ConnectRequest command) {
 				try {
-					connector.OpenConnector(command.RemoteEndPoint);
+					connector.OpenConnector(command.RemoteEndPoint, command.DatabaseName);
 					if (command.AutoCommit)
 						connector.SetAutoCommit(command.AutoCommit);
 

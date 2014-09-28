@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Sql;
 
 namespace Deveel.Data.Protocol {
 	public sealed class QueryResult : IDisposable {
@@ -32,9 +31,9 @@ namespace Deveel.Data.Protocol {
 		private Table result;
 
 		/// <summary>
-		/// A set of ColumnDescription that describes each column in the ResultSet.
+		/// A set of QueryResultColumn that describes each column in the ResultSet.
 		/// </summary>
-		private ColumnDescription[] colDesc;
+		private QueryResultColumn[] colDesc;
 
 		/// <summary>
 		/// The <see cref="IList{T}"/> that contains the row index into the table 
@@ -105,10 +104,10 @@ namespace Deveel.Data.Protocol {
 
 			// This is a safe operation provides we are shared.
 			// Copy all the TableField columns from the table to our own
-			// ColumnDescription array, naming each column by what is returned from
+			// QueryResultColumn array, naming each column by what is returned from
 			// the 'GetResolvedVariable' method.
 			int colCount = result.ColumnCount;
-			colDesc = new ColumnDescription[colCount];
+			colDesc = new QueryResultColumn[colCount];
 			for (int i = 0; i < colCount; ++i) {
 				VariableName v = result.GetResolvedVariable(i);
 				string fieldName;
@@ -120,7 +119,7 @@ namespace Deveel.Data.Protocol {
 					fieldName = String.Format("@f{0}", v);
 				}
 
-				colDesc[i] = new ColumnDescription(fieldName, result.GetColumnInfo(i));
+				colDesc[i] = new QueryResultColumn(fieldName, result.GetColumnInfo(i));
 			}
 
 			locked = 0;
@@ -203,9 +202,9 @@ namespace Deveel.Data.Protocol {
 		}
 
 		/// <summary>
-		/// Returns the ColumnDescription array of all the columns in the result.
+		/// Returns the QueryResultColumn array of all the columns in the result.
 		/// </summary>
-		public ColumnDescription[] Fields {
+		public QueryResultColumn[] Fields {
 			get { return colDesc; }
 		}
 

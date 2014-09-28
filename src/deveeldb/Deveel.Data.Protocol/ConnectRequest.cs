@@ -20,16 +20,28 @@ using Deveel.Data.Sql;
 namespace Deveel.Data.Protocol {
 	[Serializable]
 	public sealed class ConnectRequest : IMessage {
-		public ConnectRequest(ConnectionEndPoint remoteEndPoint) {
+		public ConnectRequest(ConnectionEndPoint localEndPoint, ConnectionEndPoint remoteEndPoint) {
+			if (localEndPoint == null) 
+				throw new ArgumentNullException("localEndPoint");
+			if (remoteEndPoint == null)
+				throw new ArgumentNullException("remoteEndPoint");
+
+			LocalEndPoint = localEndPoint;
 			RemoteEndPoint = remoteEndPoint;
 		}
 
+		public ConnectionEndPoint LocalEndPoint { get; private set; }
+
 		public ConnectionEndPoint RemoteEndPoint { get; private set; }
+
+		public string DatabaseName { get; set; }
 
 		public bool AutoCommit { get; set; }
 
 		public bool IgnoreIdentifiersCase { get; set; }
 
 		public ParameterStyle ParameterStyle { get; set; }
+
+		public int Timeout { get; set; }
 	}
 }

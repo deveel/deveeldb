@@ -14,6 +14,7 @@
 //    limitations under the License.
 using System;
 using System.Data;
+using System.Data.Common;
 
 using Deveel.Data.Client;
 using Deveel.Data.Security;
@@ -301,13 +302,13 @@ namespace Deveel.Data.DbSystem {
 					"  FROM " + SystemSchema.Grant + "\n";
 				stmt.ExecuteNonQuery();
 
-			} catch (DataException e) {
-				if (e is ServerException) {
-					var serverException = (ServerException)e;
-					connection.Database.Context.Logger.ErrorFormat(connection, "[{0}:{1}] {2}", serverException.ErrorClass, serverException.ErrorCode, serverException.Message);
+			} catch (DbException e) {
+				if (e is DeveelDbException) {
+					var serverException = (DeveelDbException)e;
+					connection.Database.Context.Logger.ErrorFormat(connection, "[{0}:{1}] {2}", serverException.ErrorClass, serverException.Code, serverException.Message);
 				}
 				connection.Database.Context.Logger.Error(connection, e);
-				throw new Exception("SQL Error: " + e.Message);
+				throw new DatabaseException("A data exception occurred while generating the system views.", e);
 			}
 		}
 

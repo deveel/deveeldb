@@ -179,7 +179,7 @@ namespace Deveel.Data.DbSystem {
 
 		private void CreateSchemata(IDatabaseConnection connection) {
 			try {
-				connection.CreateSchema(Context.Config.DefaultSchema(), SchemaTypes.Default);
+				connection.CreateSchema(ConfigDefaultValues.DefaultSchema, SchemaTypes.Default);
 				connection.CreateSchema(InformationSchema.Name, SchemaTypes.System);
 			} catch (DatabaseException) {
 				throw;
@@ -334,6 +334,8 @@ namespace Deveel.Data.DbSystem {
 				Conglomerate.Create();
 
 				var connection = CreateNewConnection(null, null);
+				connection.AutoCommit = false;
+
 				var context = new DatabaseQueryContext(connection);
 				connection.LockingMechanism.SetMode(LockingMode.Exclusive);
 				connection.CurrentSchema = SystemSchema.Name;

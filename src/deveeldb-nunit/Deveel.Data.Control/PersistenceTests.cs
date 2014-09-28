@@ -21,9 +21,10 @@ namespace Deveel.Data.Control {
 			Config.StorageSystem(ConfigDefaultValues.FileStorageSystem);
 			Config.LoggerType(typeof (ConsoleLogger));
 
-			var controller = DbController.Create(Config);
-			if (controller.DatabaseExists(testDbName))
-				controller.DeleteDatabase(testDbName, testDbAdmin, testDbPass);
+			using (var controller = DbController.Create(Config)) {
+				if (controller.DatabaseExists(testDbName))
+					controller.DeleteDatabase(testDbName, testDbAdmin, testDbPass);
+			}
 		}
 
 		[Test]
