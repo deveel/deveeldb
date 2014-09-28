@@ -24,12 +24,6 @@ using SysDataTable = System.Data.DataTable;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public sealed class AlterTableTest : SqlTestBase {
-		protected override void OnTestSetUp() {
-			Connection.AutoCommit = true;
-
-			base.OnTestSetUp();
-		}
-
 		[Test]
 		public void AddColumn() {
 			ExecuteNonQuery("CREATE TABLE Test (id IDENTITY, name VARCHAR)");

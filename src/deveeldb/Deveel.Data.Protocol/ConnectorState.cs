@@ -17,9 +17,9 @@ using System;
 
 namespace Deveel.Data.Protocol {
 	public enum ConnectorState : byte {
-		Closed = 1,
+		Closed = 0,
+		Open = 1,
 		Authenticated = 2,
-		Processing = 3,
-		Disposed = 4
+		Disposed = 3
 	}
 }

@@ -3,6 +3,7 @@ using System.Data;
 using System.Threading;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Protocol;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 
@@ -15,8 +16,8 @@ namespace Deveel.Data.Client {
 		public void CallbackTriggerOnAllEvents() {
 			Assert.IsTrue(Connection.State == ConnectionState.Open);
 			
-			DeveelDbTrigger trigger = new DeveelDbTrigger(Connection, "PersonCreated", "Person");
-			trigger.Subscribe(new EventHandler(PersonTableModified));
+			DeveelDbTrigger trigger = new DeveelDbTrigger(Connection, "PersonCreated");
+			trigger.Subscribe(PersonTableModified);
 
 			Console.Out.WriteLine("Inserting a new entry in the table 'Person'.");
 			int count = ExecuteNonQuery("INSERT INTO Person (name, age, lives_in) VALUES ('Lorenzo Thione', 30, 'Texas')");
@@ -42,8 +43,8 @@ namespace Deveel.Data.Client {
 			DeveelDbConnection connection = Connection;
 			Assert.IsTrue(connection.State == ConnectionState.Open);
 
-			DeveelDbTrigger trigger = new DeveelDbTrigger(connection, "PersonCreated", "Person");
-			trigger.Subscribe(new EventHandler(PersonTableModified));
+			DeveelDbTrigger trigger = new DeveelDbTrigger(connection, "PersonCreated");
+			trigger.Subscribe(PersonTableModified);
 
 			Console.Out.WriteLine("Inserting a new entry in the table 'Person'.");
 			DeveelDbCommand command = connection.CreateCommand("INSERT INTO Person (name, age, lives_in) VALUES ('Lorenzo Thione', 30, 'Texas')");
@@ -54,14 +55,12 @@ namespace Deveel.Data.Client {
 			trigger.Dispose();
 		}
 
-		private static void PersonTableModified(object sender, EventArgs e) {
-			TriggerEventArgs ea = (TriggerEventArgs) e;
+		private static void PersonTableModified(TriggerInvoke invoke) {
+			Console.Out.WriteLine("Trigger {0} was fired on {1} (fired {2} times)", invoke.TriggerName, invoke.ObjectName, invoke.Count);
 
-			Console.Out.WriteLine("Trigger {0} was fired on {1} (fired {2} times)", ea.TriggerName, ea.Source, ea.FireCount);
-
-			if (ea.IsBefore && ea.IsInsert) {
+			if (invoke.IsBefore && invoke.IsInsert) {
 				Console.Out.WriteLine("Adding an entry to the table 'Person'.");
-			} else if (ea.IsAfter && ea.IsInsert) {
+			} else if (invoke.IsAfter && invoke.IsInsert) {
 				Console.Out.WriteLine("Added an entry to the table 'Person'.");
 			}
 		}

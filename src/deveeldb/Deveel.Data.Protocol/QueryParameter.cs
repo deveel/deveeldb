@@ -15,22 +15,23 @@
 
 using System;
 
-using Deveel.Data.Configuration;
-using Deveel.Data.Protocol;
+namespace Deveel.Data.Protocol {
+	[Serializable]
+	public sealed class QueryParameter {
+		public QueryParameter(object value) 
+			: this(MarkerName, value) {
+		}
 
-namespace Deveel.Data.Control {
-	public interface ILocalDatabase : IDisposable {
-		bool IsBooted { get; }
+		public QueryParameter(string name, object value) {
+			Value = value;
+			Name = name;
+		}
 
-		ILocalSystem System { get; }
+		public const string MarkerName = "?";
+		public const char NamePrefix = '@';
 
+		public string Name { get; private set; }
 
-		IConnector Create(IDbConfig config, string userName, string password);
-
-		IConnector Boot(IDbConfig config);
-
-		IConnector Connect(IDbConfig config);
-
-		bool CheckExists(IDbConfig config);
+		public object Value { get; private set; }
 	}
 }

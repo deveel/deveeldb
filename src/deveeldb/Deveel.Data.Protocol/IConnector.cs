@@ -16,15 +16,21 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Routines;
+
 namespace Deveel.Data.Protocol {
 	public interface IConnector : IDisposable {
 		ConnectorState CurrentState { get; }
+
+		ConnectionEndPoint LocalEndPoint { get; }
 
 
 		IMessageProcessor CreateProcessor();
 
 		IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);
 
-		IStreamableObjectChannel CreateChannel(long objectId);
+		IStreamableObjectChannel CreateObjectChannel(long objectId, ObjectPersistenceType persistence);
+
+		ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType);
 	}
 }

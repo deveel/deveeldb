@@ -1408,7 +1408,7 @@ namespace Deveel.Data.Routines {
 				return TObject.CreateString(buf.ToString());
 			}
 			if (String.Compare(commandStr, "query string", StringComparison.OrdinalIgnoreCase) == 0) {
-				SqlQuery query = SqlQuery.DeserializeFromBlob(blob);
+				SqlQuery query = SqlQuery.FromBinary(blob);
 				return TObject.CreateString(query.ToString());
 			}
 

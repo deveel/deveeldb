@@ -84,7 +84,7 @@ namespace Deveel.Data.Sql {
 						"   WHERE \"Tables.TABLE_SCHEMA\" = ? " +
 						"     AND CONCAT(\"Tables.TABLE_SCHEMA\", '.', \"Tables.TABLE_NAME\") = \"param\" " +
 						"ORDER BY \"Tables.TABLE_NAME\"");
-					query.AddVariable(current_schema);
+					query.Parameters.Add(current_schema);
 
 					return SqlQueryExecutor.Execute(context.Connection, query)[0];
 
@@ -117,8 +117,8 @@ namespace Deveel.Data.Sql {
 						"   WHERE \"schema\" = ? " +
 						"     AND \"table\" = ? " +
 						"ORDER BY \"seq_no\" ");
-					query.AddVariable(tname.Schema);
-					query.AddVariable(tname.Name);
+					query.Parameters.Add(tname.Schema);
+					query.Parameters.Add(tname.Name);
 
 					return SqlQueryExecutor.Execute(context.Connection, query)[0];
 

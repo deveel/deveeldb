@@ -169,7 +169,7 @@ namespace Deveel.Data.Protocol {
 					if (type == DbType.Numeric)
 						return SqlType.Numeric;
 					if (type == DbType.String)
-						return SqlType.LongVarChar;
+						return SqlType.VarChar;
 					if (type == DbType.Boolean)
 						return SqlType.Bit;
 					if (type == DbType.Time)
@@ -186,10 +186,14 @@ namespace Deveel.Data.Protocol {
 		}
 
 		/// <summary>
-		/// Returns the object <see cref="Deveel.Data.DbSystem.Type"/> for this field.
+		/// Returns the object <see cref="System.Type"/> for this field.
 		/// </summary>
 		public Type ObjectType {
 			get { return TypeUtil.ToType(type); }
+		}
+
+		public Type RuntimeType {
+			get { return TypeUtil.ToRuntimeType(SQLType); }
 		}
 
 		/// <summary>

@@ -18,6 +18,12 @@ using System;
 namespace Deveel.Data.Protocol {
 	[Serializable]
 	public sealed class EncryptionData {
-		// TODO:
+		public EncryptionData(string hashAlgorithm) {
+			HashAlgorithm = hashAlgorithm;
+		}
+
+		public string HashAlgorithm { get; private set; }
+
+		//TODO: 
 	}
 }

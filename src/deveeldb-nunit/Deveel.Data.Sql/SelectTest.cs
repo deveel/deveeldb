@@ -8,12 +8,6 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public sealed class SelectTest : SqlTestBase {
-		protected override void OnTestSetUp() {
-			Connection.AutoCommit = true;
-
-			base.OnTestSetUp();
-		}
-
 		[Test(Description = "Declares and selects a gobal variable")]
 		public void VariableSelect() {
 			BeginTransaction();
@@ -342,68 +336,70 @@ namespace Deveel.Data.Sql {
 		[Test]
 		public void SelectIntoSingleVar() {
 			DeveelDbConnection connection = Connection;
-			connection.AutoCommit = false;
+			using (var transaction = connection.BeginTransaction()) {
 
-			DeveelDbCommand command = connection.CreateCommand("name VARCHAR(100) NOT NULL");
-			command.ExecuteNonQuery();
+				DeveelDbCommand command = connection.CreateCommand("name VARCHAR(100) NOT NULL");
+				command.ExecuteNonQuery();
 
-			command = connection.CreateCommand("SELECT :name");
-			object value = command.ExecuteScalar();
+				command = connection.CreateCommand("SELECT :name");
+				object value = command.ExecuteScalar();
 
-			Assert.AreEqual(DBNull.Value, value);
+				Assert.AreEqual(DBNull.Value, value);
 
-			command = connection.CreateCommand("SELECT name INTO :name FROM Person");
-			command.ExecuteNonQuery();
+				command = connection.CreateCommand("SELECT name INTO :name FROM Person");
+				command.ExecuteNonQuery();
 
-			Console.Out.WriteLine("SELECT name INTO :name FROM Person");
+				Console.Out.WriteLine("SELECT name INTO :name FROM Person");
 
-			command = connection.CreateCommand("SELECT :name");
-			value = command.ExecuteScalar();
+				command = connection.CreateCommand("SELECT :name");
+				value = command.ExecuteScalar();
 
-			Assert.IsNotNull(value);
+				Assert.IsNotNull(value);
 
-			Console.Out.WriteLine("name = {0}", value);
+				Console.Out.WriteLine("name = {0}", value);
+			}
 		}
 
 		[Test]
 		public void SelectIntoTwoVars() {
 			DeveelDbConnection connection = Connection;
-			connection.AutoCommit = false;
 
-			DeveelDbCommand command = connection.CreateCommand("name VARCHAR(100) NOT NULL");
-			command.ExecuteNonQuery();
+			using (var transaction = connection.BeginTransaction()) {
+				DeveelDbCommand command = connection.CreateCommand("name VARCHAR(100) NOT NULL");
+				command.ExecuteNonQuery();
 
-			command = connection.CreateCommand("age INTEGER");
-			command.ExecuteNonQuery();
+				command = connection.CreateCommand("age INTEGER");
+				command.ExecuteNonQuery();
 
-			command = connection.CreateCommand("SELECT :name");
-			object value = command.ExecuteScalar();
+				command = connection.CreateCommand("SELECT :name");
+				object value = command.ExecuteScalar();
 
-			Assert.AreEqual(DBNull.Value, value);
+				Assert.AreEqual(DBNull.Value, value);
 
-			command = connection.CreateCommand("SELECT :age");
-			value = command.ExecuteScalar();
+				command = connection.CreateCommand("SELECT :age");
+				value = command.ExecuteScalar();
 
-			Assert.AreEqual(DBNull.Value, value);
+				Assert.AreEqual(DBNull.Value, value);
 
-			command = connection.CreateCommand("SELECT name, age INTO :name, :age FROM Person");
-			command.ExecuteNonQuery();
+				command = connection.CreateCommand("SELECT name, age INTO :name, :age FROM Person");
+				command.ExecuteNonQuery();
 
-			Console.Out.WriteLine("SELECT name, age INTO :name, :age FROM Person");
+				Console.Out.WriteLine("SELECT name, age INTO :name, :age FROM Person");
 
-			command = connection.CreateCommand("SELECT :name");
-			value = command.ExecuteScalar();
+				command = connection.CreateCommand("SELECT :name");
+				value = command.ExecuteScalar();
 
-			Assert.IsNotNull(value);
+				Assert.IsNotNull(value);
 
-			Console.Out.WriteLine("name = {0}", value);
+				Console.Out.WriteLine("name = {0}", value);
 
-			command = connection.CreateCommand("SELECT :age");
-			value = command.ExecuteScalar();
+				command = connection.CreateCommand("SELECT :age");
+				value = command.ExecuteScalar();
 
-			Assert.IsNotNull(value);
+				Assert.IsNotNull(value);
 
-			Console.Out.WriteLine("age = {0}", value);
+				Console.Out.WriteLine("age = {0}", value);
+			}
 		}
 
 		[Test]

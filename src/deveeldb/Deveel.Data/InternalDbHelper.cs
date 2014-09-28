@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 
 using Deveel.Data.Client;
@@ -56,98 +57,23 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <returns></returns>
 		public static DeveelDbConnection CreateDbConnection(User user, IDatabaseConnection connection) {
+			var connString = new DeveelDbConnectionStringBuilder {
+				Host = "Heap", 
+				UserName = user.UserName,
+				IgnoreIdentifiersCase = connection.IsInCaseInsensitiveMode,
+				Database = connection.Database.Name,
+				Schema = connection.CurrentSchema,
+				RowCacheSize = 1024,
+				MaxCacheSize = 2048 * 1000
+			};
+
 			var connector = new InternalConnector(user, connection);
-			return new InternalConnection(connection, dbInterface, 11, 4092000);
+			var dbConn = new DeveelDbConnection(connString.ToString(), connector);
+			dbConn.Open();
+			return dbConn;
 		}
 
-		/// <summary>
-		/// Disposes the <see cref="IDbConnection">ADO.NET connection</see> 
-		/// object returned by the <see cref="CreateDbConnection"/> method.
-		/// </summary>
-		/// <param name="dbConnection"></param>
-		/// <remarks>
-		/// This should be called to free resources associated with the connection object.
-		/// <para>
-		/// After this has completed the given <see cref="IDbConnection">connection</see> 
-		/// object in invalidated.
-		/// </para>
-		/// </remarks>
-		public static void DisposeDbConnection(IDbConnection dbConnection) {
-			InternalConnection connection = (InternalConnection)dbConnection;
-			// Dispose the connection.
-			connection.InternalClose();
-		}
-
-
-
-		// ---------- Inner classes ----------
-
-		/// <summary>
-		/// A derived <see cref="IDbConnection"/> class from <see cref="DeveelDbConnection"/>.
-		/// </summary>
-		/// <remarks>
-		/// This class disables auto commit, and inherits case insensitivity 
-		/// from the parent <see cref="DatabaseConnection"/>.
-		/// <para>
-		/// The decision to disable auto-commit was because this connection will
-		/// typically be used as a sub-process for executing a complete command.
-		/// Disabling auto-commit makes handling an internal connection more user
-		/// friendly.  Also, toggling this flag in the DatabaseConnection in mid-
-		/// command is probably a very bad idea.
-		/// </para>
-		/// </remarks>
-		private sealed class InternalConnection : DeveelDbConnection {
-			private readonly bool ignoreCase;
-
-			public InternalConnection(IDatabaseConnection db, IConnector connector, int cacheSize, int maxSize)
-				: base(String.Empty, connector, cacheSize, maxSize) {
-				ignoreCase = db.IsInCaseInsensitiveMode;
-				// we open internal connections at construction...
-				Open();
-
-				base.AutoCommit = false;
-			}
-
-			internal override bool IsCaseInsensitiveIdentifiers {
-				get { return ignoreCase; }
-			}
-
-			/// <inheritdoc/>
-			/// <remarks>
-			/// Auto-commit is disabled.
-			/// </remarks>
-			public override bool AutoCommit {
-				get { return false; }
-				set {
-					if (value)
-						throw new DataException("Auto-commit can not be enabled for an internal connection.");
-				}
-			}
-
-			internal override bool InternalOpen() {
-				// In this implementation the connection is already opened at 
-				// the construction time...
-				return true;
-			}
-
-			/// <inheritdoc/>
-			/// <remarks>
-			/// closing an internal connection is a no-op. An 
-			/// InternalConnection should only close when the underlying
-			/// transaction closes.
-			/// <para>
-			/// To dispose an <see cref="InternalConnection"/>, use the static 
-			/// <see cref="InternalDbHelper.DisposeDbConnection"/> method.
-			/// </para>
-			/// </remarks>
-			internal override bool InternalClose() {
-				// IDEA: Perhaps we should use this as a hint to clear some caches
-				//   and free up some memory.
-				return true;
-			}
-		}
-
-		class InternalConnector : EmbeddedServerConnector {
+		class InternalConnector : EmbeddedServerConnectorBase {
 			private readonly User user;
 			private readonly IDatabaseConnection connection;
 

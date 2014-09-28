@@ -41,15 +41,15 @@ namespace Deveel.Data.Client {
 			if (schema == null)
 				schema = "%";
 
-			SysDataTable dataTable = new SysDataTable("Schemata");
+			var dataTable = new SysDataTable("Schemata");
 
 			dataTable.Columns.Add("TABLE_SCHEMA");
 			dataTable.Columns.Add("TABLE_CATALOG");
 
-			DeveelDbCommand command = connection.CreateCommand("   SELECT * \n" +
-															   "     FROM \"INFORMATION_SCHEMA.TABLES\" \n" +
-															   "    WHERE \"TABLE_SCHEMA\" LIKE ? \n" +
-															   " ORDER BY \"TABLE_SCHEMA\" \n");
+			var command = connection.CreateCommand("   SELECT * \n" +
+			                                       "     FROM \"INFORMATION_SCHEMA.TABLES\" \n" +
+			                                       "    WHERE \"TABLE_SCHEMA\" LIKE ? \n" +
+			                                       " ORDER BY \"TABLE_SCHEMA\" \n");
 
 			command.Parameters.Add(schema);
 			command.Prepare();

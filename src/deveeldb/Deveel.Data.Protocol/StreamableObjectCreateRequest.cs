@@ -18,13 +18,16 @@ using System;
 namespace Deveel.Data.Protocol{
 	[Serializable]
 	public sealed class StreamableObjectCreateRequest : IMessage {
-		public StreamableObjectCreateRequest(ReferenceType referenceType, long objectLength) {
+		public StreamableObjectCreateRequest(ReferenceType referenceType, long objectLength, ObjectPersistenceType persistenceType) {
 			if (objectLength <= 0)
 				throw new ArgumentException("Invalid object length specified.", "objectLength");
 
+			PersistenceType = persistenceType;
 			ObjectLength = objectLength;
 			ReferenceType = referenceType;
 		}
+
+		public ObjectPersistenceType PersistenceType { get; private set; }
 
 		public ReferenceType ReferenceType { get; private set; }
 

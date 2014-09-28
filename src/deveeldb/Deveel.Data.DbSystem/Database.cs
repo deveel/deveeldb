@@ -66,6 +66,9 @@ namespace Deveel.Data.DbSystem {
 			var t = new TemporaryTable(this,"SINGLE_ROW_TABLE", new DataColumnInfo[0]);
 			t.NewRow();
 			SingleRowTable = t;
+
+			Version = GetDatabaseVersion();
+			DataVersion = GetDataVersion();
 		}
 
 		~Database() {
@@ -76,6 +79,10 @@ namespace Deveel.Data.DbSystem {
 		/// Returns the name of this database.
 		/// </summary>
 		public string Name { get; private set; }
+
+		public Version Version { get; private set; }
+
+		private Version DataVersion { get; set; }
 
 		public string DefaultSchema {
 			get { return Context.Config.DefaultSchema(); }
@@ -222,18 +229,21 @@ namespace Deveel.Data.DbSystem {
 
 		private const string DataVersionFileName = "Deveel.Data.DataVersion";
 
-		private Version ReadDataVersionFromFile() {
+		private Version GetDatabaseVersion() {
+			return typeof (Database).Assembly.GetName().Version;
+		}
+
+		private Version GetDataVersion() {
 			//TODO: Read the embedded file for the real version ...
-			return new Version(1, 1);
+			return new Version(1,1);
 		}
 
 		private void AssertDataVersion() {
 			try {
-				var dataVersion = ReadDataVersionFromFile();
+				var dataVersion = DataVersion;
 
 				// Check the state of the conglomerate,
 				IDatabaseConnection connection = CreateNewConnection(null, null);
-				var context = new DatabaseQueryContext(connection);
 				connection.LockingMechanism.SetMode(LockingMode.Exclusive);
 				if (!connection.TableExists(SystemSchema.PersistentVarTable)) {
 					throw new DatabaseConfigurationException(
@@ -268,10 +278,10 @@ namespace Deveel.Data.DbSystem {
 
 		private void SetCurrentDataVersion(IDatabaseConnection transaction) {
 			try {
-				var version = ReadDataVersionFromFile();
+				var dataVersion = DataVersion;
 
 				// Insert the version number of the database
-				transaction.SetPersistentVariable("database.version", version.ToString(2));
+				transaction.SetPersistentVariable("database.version", dataVersion.ToString(2));
 			} catch (DatabaseConfigurationException) {
 				throw;
 			} catch (Exception ex) {

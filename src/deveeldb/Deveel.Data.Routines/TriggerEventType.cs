@@ -43,6 +43,9 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		After = 0x020,
 
+		/// <summary>
+		/// An event that occurs <c>AFTER</c> an <c>INSERT</c> on a table.
+		/// </summary>
 		BeforeInsert = Before | Insert,
 
 		BeforeDelete = Before | Delete,
@@ -53,6 +56,10 @@ namespace Deveel.Data.Routines {
 
 		AfterUpdate = After | Update,
 
-		AfterDelete = After | Delete
+		AfterDelete = After | Delete,
+
+		AllBefore = BeforeInsert | BeforeDelete | BefroeUpdate,
+		AllAfter = AfterInsert | AfterDelete | AfterUpdate,
+		All = AllBefore | AllAfter
 	}
 }

@@ -302,9 +302,9 @@ namespace Deveel.Data.DbSystem {
 				stmt.ExecuteNonQuery();
 
 			} catch (DataException e) {
-				if (e is DbDataException) {
-					DbDataException dbDataException = (DbDataException)e;
-					connection.Database.Context.Logger.Error(connection, dbDataException.ServerErrorStackTrace);
+				if (e is ServerException) {
+					var serverException = (ServerException)e;
+					connection.Database.Context.Logger.ErrorFormat(connection, "[{0}:{1}] {2}", serverException.ErrorClass, serverException.ErrorCode, serverException.Message);
 				}
 				connection.Database.Context.Logger.Error(connection, e);
 				throw new Exception("SQL Error: " + e.Message);

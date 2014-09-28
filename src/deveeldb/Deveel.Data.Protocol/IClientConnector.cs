@@ -16,7 +16,7 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
-	public sealed class OpenCommand : IMessage {
+	public interface IClientConnector : IConnector {
+		void SetEncrypton(EncryptionData encryptionData);
 	}
 }

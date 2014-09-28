@@ -26,7 +26,5 @@ namespace Deveel.Data.Protocol {
 		public bool Authenticated { get; private set;}
 
 		public long TimeStamp { get; private set; }
-
-		public EncryptionData EncryptionData { get; set; }
 	}
 }

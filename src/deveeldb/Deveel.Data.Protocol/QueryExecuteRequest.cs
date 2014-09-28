@@ -19,17 +19,17 @@ using System.Collections.Generic;
 namespace Deveel.Data.Protocol {
 	[Serializable]
 	public sealed class QueryExecuteRequest : IMessage {
-		public QueryExecuteRequest(string text) 
-			: this(text, null) {
+		public QueryExecuteRequest(SqlQuery query) {
+			if (query == null)
+				throw new ArgumentNullException("query");
+
+			Query = query;
 		}
 
-		public QueryExecuteRequest(string text, IEnumerable<object> parameters) {
-			Parameters = parameters;
-			Text = text;
-		}
+		public SqlQuery Query { get; private set; }
 
-		public string Text { get; private set; }
+		public int Timeout { get; set; }
 
-		public IEnumerable<object> Parameters { get; private set; }
+		public bool Procedure { get; set; }
 	}
 }

@@ -16,20 +16,23 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Configuration;
+
 namespace Deveel.Data.Control {
-	public sealed class EmbeddedLocalSystem : ILocalSystem {
-		private readonly DbController controller;
-		private Dictionary<string, EmbeddedLocalDatabase> databases;
+	public sealed class LocalSystem : IControlSystem {
+		private Dictionary<string, LocalDatabase> databases;
 
 		private bool disposed;
 
-		public EmbeddedLocalSystem(DbController controller) {
-			this.controller = controller;
+		public LocalSystem(DbController controller) {
+			Controller = controller;
 		}
 
-		~EmbeddedLocalSystem() {
+		~LocalSystem() {
 			Dispose(false);
 		}
+
+		public DbController Controller { get; private set; }
 
 		public void Dispose() {
 			Dispose(true);
@@ -50,22 +53,26 @@ namespace Deveel.Data.Control {
 			disposed = true;
 		}
 
-		ILocalDatabase ILocalSystem.ControlDatabase(string database) {
+		public IDbConfig Config {
+			get { return Controller.Config; }
+		}
+
+		IControlDatabase IControlSystem.ControlDatabase(string database) {
 			return ControlDatabase(database);
 		}
 
-		public EmbeddedLocalDatabase ControlDatabase(string database) {
+		public LocalDatabase ControlDatabase(string database) {
 			lock (this) {
 				if (databases == null)
-					databases = new Dictionary<string, EmbeddedLocalDatabase>();
+					databases = new Dictionary<string, LocalDatabase>();
 
-				EmbeddedLocalDatabase localDatabase;
-				if (!databases.TryGetValue(database, out localDatabase)) {
-					localDatabase = new EmbeddedLocalDatabase(controller, database);
-					databases[database] = localDatabase;
+				LocalDatabase controlDatabase;
+				if (!databases.TryGetValue(database, out controlDatabase)) {
+					controlDatabase = new LocalDatabase(this, database);
+					databases[database] = controlDatabase;
 				}
 
-				return localDatabase;
+				return controlDatabase;
 			}
 		}
 	}

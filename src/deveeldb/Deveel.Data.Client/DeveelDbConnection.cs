@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,875 +14,295 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.IO;
-using System.Threading;
-using System.Transactions;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Protocol;
 using Deveel.Data.Routines;
-using Deveel.Data.Sql;
 
-using IsolationLevel=System.Data.IsolationLevel;
+using DataTable = System.Data.DataTable;
 
 namespace Deveel.Data.Client {
-	///<summary>
-	/// Implementation of the <see cref="IDbConnection">connection</see> object 
-	/// to a database.
-	///</summary>
-	/// <remarks>
-	/// The implementation specifics for how the connection talks with the database
-	/// is left up to the implementation of <see cref="IConnector"/>.
-	/// <para>
-	/// This object is thread safe. It may be accessed safely from concurrent threads.
-	/// </para>
-	/// </remarks>
-	public class DeveelDbConnection : DbConnection {
-		/// <summary>
-		/// The <see cref="DbController"/> in a local connection.
-		/// </summary>
-		private DbController controller;
-
-		/// <summary>
-		/// The mapping of the database configuration URL string to the 
-		/// <see cref="ILocalBootable"/> object that manages the connection.
-		/// </summary>
-		/// <remarks>
-		/// This mapping is only used if the driver makes local connections (eg. 'local://').
-		/// </remarks>
-		private readonly Dictionary<string,ILocalBootable> localSessionMap = new Dictionary<string, ILocalBootable>();
-
-		/// <summary>
-		/// The string used to make this connection.
-		/// </summary>
+	public sealed class DeveelDbConnection : DbConnection {
+		private ConnectionProcessor processor;
+		private IControlDatabase controlDatabase;
+		private IConnector connector;
 		private DeveelDbConnectionStringBuilder connectionString;
 
-		/// <summary>
-		/// Set to true if the connection is closed.
-		/// </summary>
-		private bool isClosed;
-
-		/// <summary>
-		/// Set to true if the connection is in auto-commit mode.
-		/// (By default, auto_commit is enabled).
-		/// </summary>
-		private bool autoCommit;
-
-		/// <summary>
-		/// The interface to the database.
-		/// </summary>
-		private IConnector connector;
-
-		/// <summary>
-		/// The list of trigger listeners registered with the connection.
-		/// </summary>
-		private EventHandlerList triggerList;
-
-		/// <summary>
-		/// A Thread that handles all dispatching of trigger events to the client.
-		/// </summary>
-		private TriggerDispatchThread triggerThread;
-
-		/// <summary>
-		/// A mapping from a streamable object id to <see cref="Stream"/> used to 
-		/// represent the object when being uploaded to the database engine.
-		/// </summary>
-		private Dictionary<object, Stream> sObjectHold;
-
-		/// <summary>
-		/// An unique id count given to streamable object being uploaded to the server.
-		/// </summary>
-		private long sObjectId;
-
-		/// <summary>
-		/// The current state of the connection;
-		/// </summary>
 		private ConnectionState state;
+		private ConnectionState oldState;
+		private readonly object stateLock = new object();
 
-		/// <summary>
-		/// If the user calls the method <see cref="BeginTransaction"/> this field
-		/// is set and other calls to the method will trow an exception.
-		/// </summary>
-		internal DeveelDbTransaction currentTransaction;
+		private string serverVersion;
+		private string dataSource;
 
-		private static int transactionCounter;
+		private IDictionary<string, DeveelDbDataReader> openReaders;
+
+		private int transactionId = -1;
 
 		private DatabaseMetadata metadata;
 
-
-		// For synchronization in this object,
-		private readonly Object stateLock = new Object();
-
-		internal DeveelDbConnection(string connectionString, ILocalDatabase localDatabase) {
-			this.connectionString = new DeveelDbConnectionStringBuilder(connectionString);
-			isClosed = true;
-			autoCommit = true;
-			triggerList = new EventHandlerList();
-			RowCache = new RowCache(this.connectionString.RowCacheSize, this.connectionString.CacheMaxSize);
-			sObjectHold = new Dictionary<object, Stream>();
-			sObjectId = 0;
-			state = ConnectionState.Closed;
+		public DeveelDbConnection() 
+			: this((DeveelDbConnectionStringBuilder)null) {
 		}
 
-		/// <summary>
-		/// Constructs a <see cref="DeveelDbConnection"/> with a given connection string.
-		/// </summary>
-		/// <param name="connectionString">The string containing the configuration
-		/// to establish a connection with a local or remote database.</param>
-		/// <seealso cref="DeveelDbConnection(DeveelDbConnectionStringBuilder)"/>
+		public DeveelDbConnection(DeveelDbConnectionStringBuilder connectionString) {
+			if (connectionString != null)
+				Settings = connectionString;
+
+			Init();
+		}
+
 		public DeveelDbConnection(string connectionString)
 			: this(new DeveelDbConnectionStringBuilder(connectionString)) {
 		}
 
-		private DeveelDbConnection(DeveelDbConnectionStringBuilder connectionString) {
-			this.connectionString = connectionString;
-			Init();
+		internal DeveelDbConnection(string connectionString, IConnector connector)
+			: this(connectionString) {
+			this.connector = connector;
 		}
 
-		/// <summary>
-		/// Constructs an empty <see cref="DeveelDbConnection"/>.
-		/// </summary>
-		/// <remarks>
-		/// This construction of the <see cref="DeveelDbConnection"/> does not
-		/// contain any configuration to establish a connection: once created
-		/// the object, the <see cref="ConnectionString"/> property must be set.
-		/// </remarks>
-		public DeveelDbConnection() {
-		}
-
-		internal void ChangeState(ConnectionState newState) {
-			ChangeState(newState, null);
-		}
-
-		internal void ChangeState(ConnectionState newState, Exception error) {
-			lock (stateLock) {
-				base.OnStateChange(new StateChangeEventArgs(State, newState));
-				state = newState;
-			}
-		}
-
-		internal void EndState() {
-			ChangeState(ConnectionState.Open);
+		internal DeveelDbConnection(string connectionString, IControlDatabase controlDatabase)
+			: this(connectionString) {
+			this.controlDatabase = controlDatabase;
 		}
 
 		private void Init() {
-			int rowCacheSize;
-			int maxRowCacheSize;
-
-			// If we are to connect to a single user database running
-			// within this runtime.
-			if (IsLocal(connectionString.Host) ||
-				IsInMemory(connectionString.Host)) {
-				ConnectToLocal(IsInMemory(connectionString.Host));
-
-				// Internal row cache setting are set small.
-				rowCacheSize = 43;
-				maxRowCacheSize = 4092000;
-			} else {
-				try {
-					Thread.Sleep(85);
-				} catch (ThreadInterruptedException) { /* ignore */ }
-
-				// Make the connection
-				connector = new TCPStreamDatabaseInterface(connectionString.Host,
-				                                              connectionString.Port,
-				                                              connectionString.Database);
-
-				// For remote connection, row cache uses more memory.
-				rowCacheSize = 4111;
-				maxRowCacheSize = 8192000;
-
-			}
-
-			isClosed = true;
-			autoCommit = true;
-			triggerList = new EventHandlerList();
-			RowCache = new RowCache(rowCacheSize, maxRowCacheSize);
-			sObjectHold = new Dictionary<object, Stream>();
-			sObjectId = 0;
-			state = ConnectionState.Closed;
+			RowCache = new RowCache(this);
+			metadata = new DatabaseMetadata(this);
+			ChangeState(ConnectionState.Closed);
 		}
 
-		private void ConnectToMemory() {
-			lock (this) {
+		private IDbConfig CreateDbConfig(IControlSystem controlSystem) {
+			var dbConfig = new DbConfig(controlSystem.Config);
+			dbConfig.DatabaseName(Settings.Database);
+			dbConfig.IgnoreIdentifierCase(Settings.IgnoreIdentifiersCase);
+
+			// TODO: More mappings?
+
+			return dbConfig;
+		}
+
+		private IConnector CreateLocalDatabaseConnector() {
+			var dbConfig = CreateDbConfig(controlDatabase.System);
+			if (controlDatabase.CheckExists(dbConfig)) {
+				if (controlDatabase.IsBooted) {
+					return controlDatabase.Connect(dbConfig);
+				}
+				if (Settings.BootOrCreate) {
+					return controlDatabase.Boot(dbConfig);
+				}
+			} else if (Settings.BootOrCreate) {
+				return controlDatabase.Create(dbConfig, Settings.UserName, Settings.Password);
+			}
+
+			throw new InvalidOperationException();
+		}
+
+		private IConnector CreateConnector() {
+			if (connector != null)
+				return connector;
+
+			if (IsInMemory(Settings.DataSource) &&
+				controlDatabase == null) {
+				// TODO: handle the case the connection string does not specify a database name
+				var databaseName = Settings.Database;
+				if (String.IsNullOrEmpty(databaseName))
+					throw new InvalidOperationException();
+
 				var config = DbConfig.Default;
 				config.StorageSystem(ConfigDefaultValues.HeapStorageSystem);
+				var controller = DbController.Create(config);
 
-				controller = DbController.Create(config);
-			}
-		}
+				var localSystem = new LocalSystem(controller);
+				controlDatabase = localSystem.ControlDatabase(databaseName);
+			} else if (IsInFileSystem(Settings) &&
+			           controlDatabase == null) {
+				// TODO: handle the case the connection string does not specify a database name
+				var databaseName = Settings.Database;
+				if (String.IsNullOrEmpty(databaseName))
+					throw new InvalidOperationException();
 
-		private bool IsInMemory(string host) {
-			return String.Equals("Heap", host, StringComparison.OrdinalIgnoreCase) ||
-			       String.Equals("memory", host, StringComparison.OrdinalIgnoreCase);
-		}
+				var config = DbConfig.Default;
+				config.StorageSystem(ConfigDefaultValues.FileStorageSystem);
 
-		/// <summary>
-		/// Makes a connection to a local database.
-		/// </summary>
-		/// <remarks>
-		/// If a local database connection has not been made then it is created here.
-		/// </remarks>
-		/// <returns>
-		/// Returns a list of two elements, (<see cref="IDatabaseInterface"/>) db_interface 
-		/// and (<see cref="String"/>) database_name.
-		/// </returns>
-		private void ConnectToLocal(bool memory) {
-			lock (this) {
-				// If the ILocalBootable object hasn't been created yet, do so now via
-				// reflection.
+				var basePath = Settings.DataSource;
+				if (String.Equals(basePath, "local", StringComparison.OrdinalIgnoreCase))
+					basePath = Settings.Path;
+				if (String.IsNullOrEmpty(basePath))
+					basePath = Environment.CurrentDirectory;
 
-				string sessionKey;
+				config.BasePath(basePath);
 
-				if (!memory) {
-					// The path to the configuration
-					string rootPath = connectionString.Path;
-					if (String.IsNullOrEmpty(rootPath))
-						rootPath = Environment.CurrentDirectory;
+				// This finds the datbase in the file-system if exists, otherwise it will create
+				var controller = DbController.Create(config);
 
-					var controllerConfig = DbConfig.Default;
-					controllerConfig.StorageSystem(ConfigDefaultValues.FileStorageSystem);
-					controllerConfig.SetValue(ConfigKeys.BasePath, rootPath);
-					controller = DbController.Create(controllerConfig);
-
-					sessionKey = rootPath.ToLower();
-				} else {
-					var controllerConfig = DbConfig.Default;
-					controllerConfig.StorageSystem(ConfigDefaultValues.HeapStorageSystem);
-					controller = DbController.Create(controllerConfig);
-
-					// TODO: compute this?
-					sessionKey = "Memory";
-				}
-
-				// Is there already a local connection to this database?
-				ILocalBootable localBootable;
-
-				// No so create one and write it in the connection mapping
-				if (!localSessionMap.TryGetValue(sessionKey, out localBootable)) {
-					localBootable = CreateDefaultLocalBootable(controller, connectionString.Database);
-					localSessionMap[sessionKey] = localBootable;
-				}
-
-				// Is the connection booted already?
-				if (localBootable.IsBooted) {
-					// Yes, so simply login.
-					connector = localBootable.Connect();
-				} else {
-					// Otherwise we need to boot the local database.
-
-					bool createDb = connectionString.Create;
-					bool createDbIfNotExist = connectionString.BootOrCreate;
-
-					DbConfig config = new DbConfig(controller.Config);
-
-					// Set the connection string variables
-					config.SetValue(ConfigKeys.IgnoreIdentifiersCase, Settings.IgnoreIdentifiersCase);
-
-					//TODO: set the additional configurations from the connection string
-					/*
-					string database_path = connectionString.AdditionalProperties["DatabasePath"] as string;
-					if (database_path == null)
-						database_path = Path.Combine(root_path, connectionString.Database);
-					*/
-
-					// Check if the database exists
-					bool databaseExists = localBootable.CheckExists(config);
-
-					// If database doesn't exist and we've been told to create it if it
-					// doesn't exist, then set the 'create_db' flag.
-					if (createDbIfNotExist && !databaseExists) {
-						createDb = true;
-					}
-
-					// Error conditions;
-					// If we are creating but the database already exists.
-					if (createDb && databaseExists)
-						throw new DataException("Can not create database because a database already exists.");
-
-					// If we are booting but the database doesn't exist.
-					if (!createDb && !databaseExists)
-						throw new DataException("Can not find a database to start.  Either the database needs to " +
-						                        "be created or the 'database_path' property of the configuration " +
-						                        "must be set to the location of the data files.");
-
-					// Are we creating a new database?
-					if (createDb) {
-						string username = connectionString.UserName;
-						string password = connectionString.Password;
-
-						connector = localBootable.Create(username, password, config);
-					}
-						// Otherwise we must be logging onto a database,
-					else {
-						connector = localBootable.Boot(config);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// Creates a new <see cref="ILocalBootable"/> object that is used to manage 
-		/// the connections to a database running locally.
-		/// </summary>
-		/// <remarks>
-		/// This uses reflection to create a new <see cref="DefaultLocalBootable"/> object. We use 
-		/// reflection here because we don't want to make a source level dependency link to the class.
-		/// </remarks>
-		/// <exception cref="DataException">
-		/// If the class <c>DefaultLocalBootable</c> was not found.
-		/// </exception>
-		private static ILocalBootable CreateDefaultLocalBootable(DbController controller, string databaseName) {
-			try {
-				Type c = typeof(DefaultLocalBootable);
-				return (ILocalBootable)Activator.CreateInstance(c, new object[] { controller, databaseName });
-			} catch (Exception) {
-				// A lot of people ask us about this error so the message is verbose.
-				throw new DataException("I was unable to find the class that manages local database " +
-				                        "connections.  This means you may not have included the correct " +
-				                        "library in your references.");
-			}
-		}
-
-		private static bool IsLocal(string host) {
-			return String.Equals(host, "{local}", StringComparison.OrdinalIgnoreCase) ||
-			       String.Equals(host, "local", StringComparison.OrdinalIgnoreCase);
-		}
-
-		///<summary>
-		/// Toggles whether this connection is handling identifiers as case
-		/// insensitive or not. 
-		///</summary>
-		/// <remarks>
-		/// If this is true then <see cref="DeveelDbDataReader.GetString">CreateString("app.id")</see> 
-		/// will match against <c>APP.id</c>, etc.
-		/// </remarks>
-		internal virtual bool IsCaseInsensitiveIdentifiers {
-			get { return Settings.IgnoreIdentifiersCase; }
-		}
-
-		/// <summary>
-		/// Returns the row Cache object for this connection.
-		/// </summary>
-		internal RowCache RowCache { get; private set; }
-
-		public override string DataSource {
-			get { return IsLocal(Settings.Host) ? String.Empty : Settings.Host + ":" + Settings.Port; }
-		}
-
-		public override string ServerVersion {
-			get { return IsLocal(Settings.Host) ? String.Empty : ((RemoteDatabaseInterface)connector).ServerVersion.ToString(2); }
-		}
-
-
-		internal virtual bool InternalOpen() {
-			string username = connectionString.UserName;
-			string password = connectionString.Password;
-			string defaultSchema = connectionString.Schema;
-
-			if (username == null || username.Equals("") ||
-				password == null || password.Equals("")) {
-				throw new DataException("username or password have not been set.");
+				var localSystem = new LocalSystem(controller);
+				controlDatabase = localSystem.ControlDatabase(databaseName);
+			} else if (controlDatabase == null) {
+				return CreateNetworkConnector();
 			}
 
-			// Set the default schema to username if it's null
-			if (defaultSchema == null) {
-				defaultSchema = username;
-			}
+			if (controlDatabase != null)
+				return CreateLocalDatabaseConnector();
 
-			try {
-				if (connector is TCPStreamDatabaseInterface)
-					// Attempt to open a socket to the database.
-					(connector as TCPStreamDatabaseInterface).ConnectToDatabase();
-			} catch(Exception e) {
-				//TODO: log the exception...
-				return false;
-			}
-
-			// Login with the username/password
-			return connector.Login(defaultSchema, username, password, OnDatabaseEvent);
+			throw new InvalidOperationException("Unable to create a connector to the database");
 		}
 
-#if !MONO
-		public override void EnlistTransaction (System.Transactions.Transaction transaction) {
-			if (currentTransaction != null)
-				throw new InvalidOperationException ();
-	
-			if (!transaction.EnlistPromotableSinglePhase (new PromotableConnection (this)))
-				throw new InvalidOperationException ();
-		}
-#endif
-
-		public override void Open() {
-			if (state != ConnectionState.Closed)
-				throw new DataException("Unable to login to connection because it is open.");
-
-			ChangeState(ConnectionState.Connecting);
-			bool success = InternalOpen();
-				ChangeState(success ? ConnectionState.Open : ConnectionState.Broken);
-
-			if (success) {
-				//TODO: separate from the Open procedure?
-				// Determine if this connection is case insensitive or not,
-				IDbCommand stmt = CreateCommand("SHOW CONNECTION_INFO");
-				IDataReader rs = stmt.ExecuteReader();
-				while (rs.Read()) {
-					String key = rs.GetString(0);
-					if (key.Equals("auto_commit")) {
-						String val = rs.GetString(1);
-						autoCommit = val.Equals("true");
-					}
-				}
-				rs.Close();
-
-				// TODO: Pass it in another way ...
-				if (IsCaseInsensitiveIdentifiers)
-					stmt.CommandText = "SET CASE_INSENSITIVE_IDENTIFIERS = true";
-				else
-					stmt.CommandText = "SET CASE_INSENSITIVE_IDENTIFIERS = false";
-				stmt.ExecuteNonQuery();
-			}
+		private IConnector CreateNetworkConnector() {
+			throw new NotImplementedException();
 		}
 
-		internal void PushStreamableObjectPart(ReferenceType type, long objectId, long length, byte[] buffer, long offset, int count) {
-			connector.PushStreamableObjectPart(type, objectId, length, buffer, offset, count);
+		private static bool IsInMemory(string dataSource) {
+			return String.Equals(dataSource, "HEAP", StringComparison.OrdinalIgnoreCase) ||
+			       String.Equals(dataSource, "MEMORY", StringComparison.OrdinalIgnoreCase);
 		}
 
-		/// <summary>
-		/// Uploads any streamable objects found in an SqlQuery into the database.
-		/// </summary>
-		/// <param name="sql"></param>
-		private void UploadStreamableObjects(SqlQuery sql) {
-			// Push any streamable objects that are present in the Query onto the
-			// server.
-			Object[] vars = sql.Variables;
-			try {
-				for (int i = 0; i < vars.Length; ++i) {
-					// For each streamable object.
-					if (vars[i] != null && vars[i] is StreamableObject) {
-						// Buffer size is fixed to 64 KB
-						const int bufSize = 64 * 1024;
+		private static bool IsInFileSystem(DeveelDbConnectionStringBuilder settings) {
+			if (Path.IsPathRooted(settings.DataSource))
+				return true;
 
-						StreamableObject sObject = (StreamableObject)vars[i];
-						long offset = 0;
-						ReferenceType type = sObject.Type;
-						long totalLen = sObject.Size;
-						long id = sObject.Identifier;
-						byte[] buf = new byte[bufSize];
+			if (String.Equals(settings.Host, "local", StringComparison.OrdinalIgnoreCase) &&
+			    !String.IsNullOrEmpty(settings.Path))
+				return true;
 
-						// Get the InputStream from the StreamableObject hold
-						object sobId = id;
-						Stream iStream;
-						if (!sObjectHold.TryGetValue(sobId, out iStream))
-							throw new Exception("Assertion failed: Streamable object Stream is not available.");
+			// TODO: handle more cases to identify is we're dealing with a file-based local database
 
-						iStream.Seek(0, SeekOrigin.Begin);
-
-						while (offset < totalLen) {
-							// Fill the buffer
-							int index = 0;
-							int blockRead = (int)System.Math.Min(bufSize, (totalLen - offset));
-							int toRead = blockRead;
-							while (toRead > 0) {
-								int count = iStream.Read(buf, index, toRead);
-								if (count == 0)
-									throw new IOException("Premature end of stream.");
-
-								index += count;
-								toRead -= count;
-							}
-
-							// Send the part of the streamable object to the database.
-							connector.PushStreamableObjectPart(type, id, totalLen, buf, offset, blockRead);
-							// Increment the offset and upload the next part of the object.
-							offset += blockRead;
-						}
-
-						// Remove the streamable object once it has been written
-						sObjectHold.Remove(sobId);
-
-						//        [ Don't close the input stream - we may only want to WriteByte a part of
-						//          the stream into the database and keep the file open. ]
-						//          // Close the input stream
-						//          i_stream.close();
-
-					}
-				}
-			} catch (IOException e) {
-				Console.Error.WriteLine(e.Message);
-				Console.Error.WriteLine(e.StackTrace);
-				throw new DataException("IO Error pushing large object to server: " +
-										e.Message);
-			}
+			return false;
 		}
 
-		/// <summary>
-		/// Sends the batch of SqlQuery objects to the database to be executed.
-		/// </summary>
-		/// <param name="queries"></param>
-		/// <param name="results">The consumer objects for the Query results.</param>
-		/// <remarks>
-		/// If a Query succeeds then we are guarenteed to know that size of the result set.
-		/// <para>
-		/// This method blocks until all of the _commands have been processed by the database.
-		/// </para>
-		/// </remarks>
-		internal void ExecuteQueries(SqlQuery[] queries, ResultSet[] results) {
-			// For each Query
-			for (int i = 0; i < queries.Length; ++i) {
-				ExecuteQuery(queries[i], results[i]);
-			}
+		internal DeveelDbTransaction CurrentTransaction { get; private set; }
+
+		public override DataTable GetSchema(string collectionName) {
+			return metadata.GetSchema(collectionName, new[]{Settings.Schema});
 		}
 
-		/// <summary>
-		/// Sends the SQL string to the database to be executed.
-		/// </summary>
-		/// <param name="sql"></param>
-		/// <param name="resultSet">The consumer for the results from the database.</param>
-		/// <remarks>
-		/// We are guarenteed that if the Query succeeds that we know the size of the 
-		/// result set and at least first first row of the set.
-		/// <para>
-		/// This method will block until we have received the result header information.
-		/// </para>
-		/// </remarks>
-		internal void ExecuteQuery(SqlQuery sql, ResultSet resultSet) {
-			UploadStreamableObjects(sql);
-			// Execute the Query,
-			IQueryResponse resp = connector.ExecuteQuery(sql)[0];
-
-			// The format of the result
-			ColumnDescription[] colList = new ColumnDescription[resp.ColumnCount];
-			for (int i = 0; i < colList.Length; ++i) {
-				colList[i] = resp.GetColumnDescription(i);
-			}
-			// Set up the result set to the result format and update the time taken to
-			// execute the Query on the server.
-			resultSet.ConnSetup(resp.ResultId, colList, resp.RowCount);
-			resultSet.SetQueryTime(resp.QueryTimeMillis);
+		public override DataTable GetSchema() {
+			return metadata.GetSchemata(new [] {Settings.Schema});
 		}
 
-		/// <summary>
-		/// Called by ResultSet to Query a part of a result from the server.
-		/// </summary>
-		/// <param name="resultId"></param>
-		/// <param name="startRow"></param>
-		/// <param name="countRows"></param>
-		/// <returns>
-		/// Returns a <see cref="IList"/> that represents the result from the server.
-		/// </returns>
-		internal ResultPart RequestResultPart(int resultId, int startRow, int countRows) {
-			return connector.GetResultPart(resultId, startRow, countRows);
-		}
-
-		/// <summary>
-		/// Requests a part of a streamable object from the server.
-		/// </summary>
-		/// <param name="resultId"></param>
-		/// <param name="streamableObjectId"></param>
-		/// <param name="offset"></param>
-		/// <param name="len"></param>
-		/// <returns></returns>
-		internal byte[] RequestStreamableObjectPart(int resultId, long streamableObjectId, long offset, int len) {
-			return connector.GetStreamableObjectPart(resultId, streamableObjectId, offset, len);
-		}
-
-		/// <summary>
-		/// Disposes of the server-side resources associated with the result 
-		/// set with result_id.
-		/// </summary>
-		/// <param name="resultId"></param>
-		/// <remarks>
-		/// This should be called either before we start the download of a new result set, 
-		/// or when we have finished with the resources of a result set.
-		/// </remarks>
-		internal void DisposeResult(int resultId) {
-			// Clear the row cache.
-			// It would be better if we only cleared row entries with this
-			// table_id.  We currently clear the entire cache which means there will
-			// be traffic created for other open result sets.
-			//    Console.Out.WriteLine(result_id);
-			//    row_cache.clear();
-			// Only dispose if the connection is open
-			if (!isClosed) {
-				connector.DisposeResult(resultId);
-			}
-		}
-
-		/// <summary>
-		/// Adds a <see cref="TriggerEventHandler"/> that listens for all triggers events with 
-		/// the name given.
-		/// </summary>
-		/// <param name="triggerName"></param>
-		/// <param name="listener"></param>
-		/// <remarks>
-		/// Triggers are created with the <c>CREATE TRIGGER</c> syntax.
-		/// </remarks>
-		internal void AddTriggerListener(string triggerName, TriggerEventHandler listener) {
-			lock (triggerList) {
-				triggerList.AddHandler(triggerName, listener);
-			}
-		}
-
-		/// <summary>
-		/// Removes the <see cref="TriggerEventHandler"/> for the given trigger name.
-		/// </summary>
-		/// <param name="triggerName"></param>
-		/// <param name="listener"></param>
-		internal void RemoveTriggerListener(string triggerName, TriggerEventHandler listener) {
-			lock (triggerList) {
-				triggerList.RemoveHandler(triggerName, listener);
-			}
-		}
-
-		/// <summary>
-		/// Creates a <see cref="StreamableObject"/> on the client side 
-		/// given a <see cref="Stream"/>, and length and a type.
-		/// </summary>
-		/// <param name="x"></param>
-		/// <param name="length"></param>
-		/// <param name="type"></param>
-		/// <remarks>
-		/// When this method returns, a <see cref="StreamableObject"/> entry will be 
-		/// added to the hold.
-		/// </remarks>
-		/// <returns></returns>
-		internal StreamableObject CreateStreamableObject(Stream x, int length, ReferenceType type) {
-			long obId;
-			lock (sObjectHold) {
-				obId = sObjectId;
-				++sObjectId;
-				// Add the stream to the hold and get the unique id
-				sObjectHold[obId] = x;
-			}
-			// Create and return the StreamableObject
-			return new StreamableObject(type, length, obId);
-		}
-
-		/// <summary>
-		/// Removes the <see cref="StreamableObject"/> from the hold on the client.
-		/// </summary>
-		/// <param name="sObject"></param>
-		/// <remarks>
-		/// This should be called when the <see cref="DeveelDbCommand"/> closes.
-		/// </remarks>
-		internal void RemoveStreamableObject(StreamableObject sObject) {
-			sObjectHold.Remove(sObject.Identifier);
-		}
-
-		// NOTE: For standalone apps, the thread that calls this will be a
-		//   WorkerThread.
-		//   For client/server apps, the thread that calls this will by the
-		//   connection thread that listens for data from the server.
-		public void OnDatabaseEvent(int eventType, String eventMessage) {
-			if (eventType == 99) {
-				if (triggerThread == null) {
-					triggerThread = new TriggerDispatchThread(this);
-					triggerThread.Start();
-				}
-				triggerThread.DispatchTrigger(eventMessage);
-			} else {
-				throw new ApplicationException("Unrecognised database event: " + eventType);
-			}
-		}
-
-		/// <inheritdoc/>
-		public new DeveelDbTransaction BeginTransaction() {
-			//TODO: support multiple transactions...
-			if (currentTransaction != null)
-				throw new InvalidOperationException("A transaction was already opened on this connection.");
-
-			bool autoCommit = false;
-			if (AutoCommit) {
-				AutoCommit = false;
-				autoCommit = true;
-			}
-
-			int id;
-			lock (typeof(DeveelDbConnection)) {
-				id = transactionCounter++;
-			}
-
-			currentTransaction = new DeveelDbTransaction(this, id, autoCommit);
-			return currentTransaction;
-		}
-
-		protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) {
-			if (isolationLevel != IsolationLevel.Serializable)
-				throw new ArgumentException("Only SERIALIZABLE transactions are supported.");
-			return BeginTransaction();
-		}
-
-		protected override void Dispose(bool disposing) {
-			if (disposing)
-				Close();
-
-			base.Dispose(disposing);
-		}
-
-		public override System.Data.DataTable GetSchema() {
-			return GetSchema(null);
-		}
-
-		public override System.Data.DataTable GetSchema(string collectionName) {
-			if (collectionName == null)
-				collectionName = DbMetaDataCollectionNames.MetaDataCollections;
-			return GetSchema(collectionName, new string[0]);
-		}
-
-		public override System.Data.DataTable GetSchema(string collectionName, string[] restrictionValues) {
-			if (metadata == null)
-				metadata = new DatabaseMetadata(this);
+		public override DataTable GetSchema(string collectionName, string[] restrictionValues) {
 			return metadata.GetSchema(collectionName, restrictionValues);
 		}
 
-		#region Implementation of IDbConnection
+		protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) {
+			return BeginTransaction(isolationLevel);
+		}
 
-		/// <inheritdoc/>
-		public override void Close() {
-			if (state != ConnectionState.Closed) {
-				bool success = InternalClose();
-				ChangeState((success ? ConnectionState.Closed : ConnectionState.Broken));
+		public new DeveelDbTransaction BeginTransaction(IsolationLevel isolationLevel) {
+			if (CurrentTransaction != null)
+				throw new InvalidOperationException("A transaction is already open");
+
+			if (isolationLevel != IsolationLevel.Serializable &&
+				isolationLevel != IsolationLevel.Unspecified)
+				throw new NotSupportedException();
+
+			lock (this) {
+				processor.Begin();
+				CurrentTransaction = new DeveelDbTransaction(this, transactionId++);
+				return CurrentTransaction;
 			}
 		}
 
-		///<summary>
-		/// Closes this connection by calling the <see cref="IDisposable.Dispose"/> method 
-		/// in the database interface.
-		///</summary>
-		internal virtual bool InternalClose() {
-			try {
-				try {
-					if (currentTransaction != null)
-						currentTransaction.Rollback();
-				} catch(Exception) {
-					// ignore any exception...
-				}
+		public new DeveelDbTransaction BeginTransaction() {
+			return BeginTransaction(IsolationLevel.Serializable);
+		}
 
-				connector.Dispose();
-				return true;
-			} catch {
-				return false;
+		internal void CommitTransaction(int id) {
+			lock (this) {
+				try {
+					processor.Commit();
+				} catch (Exception) {
+
+					throw;
+				} finally {
+					if (CurrentTransaction != null &&
+						CurrentTransaction.Id == id)
+					CurrentTransaction = null;
+				}
+			}
+		}
+
+		internal void RollbackTransaction(int id) {
+			lock (this) {
+				try {
+					processor.Rollback();
+				} catch (Exception) {
+
+					throw;
+				} finally {
+					if (CurrentTransaction != null &&
+						CurrentTransaction.Id == id)
+					CurrentTransaction = null;
+				}
+			}
+		}
+
+		public override void Close() {
+			lock (this) {
+				
+			}
+		}
+
+		internal void DisposeResult(int resultId) {
+			lock (this) {
+				processor.DisposeResult(resultId);
 			}
 		}
 
 		public override void ChangeDatabase(string databaseName) {
-			//TODO: check if any command is in Executing state before...
-			try {
-				connector.ChangeDatabase(databaseName);
-				connectionString.Database = databaseName;
-			} catch(DataException) {
-				throw;
-			} catch(Exception e) {
-				throw new DataException("An error occurred while changing the database: " + e.Message);
+			lock (this) {
+				if (openReaders != null) {
+					foreach (var reader in openReaders.Values) {
+						reader.Close();
+					}
+
+					openReaders.Clear();
+					openReaders = null;
+				}
+
+				// TODO: Close the connection, change the database and reconnect ...
+
+				throw new NotImplementedException();
 			}
 		}
 
-		protected override DbCommand CreateDbCommand() {
-			return CreateCommand();
-		}
-
-		/// <inheritdoc/>
-		public new DeveelDbCommand CreateCommand() {
-			return new DeveelDbCommand(null, this);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="commandText"></param>
-		/// <returns></returns>
-		public DeveelDbCommand CreateCommand(string commandText) {
-			return new DeveelDbCommand(commandText, this);
-		}
-
-		/// <summary>
-		/// Creates a new <c>CALLBACK</c> trigger for the connection, having
-		/// the given name and listening to event on the given database object 
-		/// (eg. table, view, etc.), which listens to every event.
-		/// </summary>
-		/// <param name="name">The name of the trigger to create.</param>
-		/// <param name="objectName">The name of the object for which to listen for events
-		/// of data modifications (either <c>INSERT</c>, <c>DELETE</c> or <c>UPDATE</c>).</param>
-		/// <remarks>
-		/// Triggers are listeners to events of data modification happening on a
-		/// database object they are attached to: every time a DML command modifies
-		/// the contents of a database object, a callback trigger is fired to notify
-		/// the client of the event.
-		/// <para>
-		/// Calling this method will not register a trigger on the database: this will
-		/// be done when the method <see cref="DeveelDbTrigger.Subscribe"/> is called for
-		/// the first time.
-		/// </para>
-		/// <para>
-		/// Callback triggers are destroyed at the end of a connection to the database.
-		/// </para>
-		/// <para>
-		/// To control on which event the trigger must be fired, the property 
-		/// <see cref="DeveelDbTrigger.EventType"/> must be set.
-		/// </para>
-		/// </remarks>
-		/// <returns>
-		/// Returns an instance of <see cref="DeveelDbTrigger"/> that represents a
-		/// <c>CALLBACK TRIGGER</c> on the connection.
-		/// </returns>
-		/// <seealso cref="DeveelDbTrigger"/>
-		public DeveelDbTrigger CreateCallbackTrigger(string name, string objectName) {
-			return new DeveelDbTrigger(this, name, objectName);
-		}
-
-		/// <summary>
-		/// Creates a new <c>CALLBACK</c> trigger for the connection, having
-		/// the given name and listening to event on the given database object 
-		/// (eg. table, view, etc.), which listens to the events given.
-		/// </summary>
-		/// <param name="name">The name of the trigger to create.</param>
-		/// <param name="objectName">The name of the object for which to listen for events
-		/// of data modifications (either <c>INSERT</c>, <c>DELETE</c> or <c>UPDATE</c>).</param>
-		/// <param name="listenTo">The <see cref="TriggerEventType">event types</see> to listen
-		/// for on the database object.</param>
-		/// <returns>
-		/// Returns an instance of <see cref="DeveelDbTrigger"/> that represents a
-		/// <c>CALLBACK TRIGGER</c> on the connection.
-		/// </returns>
-		/// <seealso cref="DeveelDbTrigger"/>
-		public DeveelDbTrigger CreateCallbackTrigger(string name, string objectName, TriggerEventType listenTo) {
-			DeveelDbTrigger trigger = CreateCallbackTrigger(name, objectName);
-			trigger.EventType = listenTo;
-			return trigger;
-		}
-
-		/// <summary>
-		/// Toggles the <c>AUTO COMMIT</c> flag.
-		/// </summary>
-		public virtual bool AutoCommit {
-			get { return autoCommit; }
-			set {
-				if (autoCommit == value)
+		public override void Open() {
+			lock (this) {
+				if (State != ConnectionState.Closed)
 					return;
 
-				if (currentTransaction != null)
-					throw new InvalidOperationException("A transaction is already opened.");
+				if (connector == null)
+					connector = CreateConnector();
 
-				// The SQL to write into auto-commit mode.
-				if (value) {
-					CreateCommand("SET AUTO COMMIT ON").ExecuteNonQuery();
-					autoCommit = true;
-				} else {
-					CreateCommand("SET AUTO COMMIT OFF").ExecuteNonQuery();
-					autoCommit = false;
+				if (processor == null)
+					processor = new ConnectionProcessor(Settings, connector);
+
+				string dbVersion;
+
+				try {
+					ChangeState(ConnectionState.Connecting);
+
+					processor.Connect(out dbVersion);
+					processor.Authenticate(Settings.Schema, Settings.UserName, Settings.Password);
+				} catch (Exception ex) {
+					ChangeState(ConnectionState.Broken);
+
+					// TODO: throw a specialized exception
+					throw;
 				}
+
+				serverVersion = dbVersion;
+
+				ChangeState(ConnectionState.Open);
 			}
 		}
 
-		/// <inheritdoc/>
 		public override string ConnectionString {
 			get { return Settings.ToString(); }
 			set { Settings = new DeveelDbConnectionStringBuilder(value); }
@@ -891,24 +311,22 @@ namespace Deveel.Data.Client {
 		internal DeveelDbConnectionStringBuilder Settings {
 			get { return connectionString; }
 			set {
-				if (state != ConnectionState.Closed)
-					throw new InvalidOperationException("The connection is not closed");
+				AssertClosed();
 				connectionString = value;
 				Init();
 			}
 		}
 
-		/// <inheritdoc/>
+		internal RowCache RowCache { get; private set; }
+
 		public override int ConnectionTimeout {
-			get { return 0; }
+			get { return Settings.QueryTimeout; }
 		}
 
-		/// <inheritdoc/>
 		public override string Database {
 			get { return Settings.Database; }
 		}
 
-		/// <inheritdoc/>
 		public override ConnectionState State {
 			get {
 				lock (stateLock) {
@@ -917,120 +335,205 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		#endregion
+		private void AssertClosed() {
+			if (state != ConnectionState.Closed)
+				throw new InvalidOperationException("The connection is not closed.");
+		}
 
-		/// <summary>
-		/// The thread that handles all dispatching of trigger events.
-		/// </summary>
-		private class TriggerDispatchThread {
-			private readonly DeveelDbConnection conn;
-			private readonly ArrayList triggerMessagesQueue = new ArrayList();
-			private readonly Thread thread;
+		private void AssertFetching() {
+			if (state != ConnectionState.Fetching)
+				throw new InvalidOperationException("The connection is not fetching data.");
+		}
 
-			internal TriggerDispatchThread(DeveelDbConnection conn) {
-				this.conn = conn;
-				thread = new Thread(new ThreadStart(Run));
-				thread.IsBackground = true;
-				thread.Name = "Trigger Dispatcher";
-			}
+		internal void ChangeState(ConnectionState newState) {
+			lock (stateLock) {
+				if (state != newState)
+					OnStateChange(new StateChangeEventArgs(state, newState));
 
-			/// <summary>
-			/// Dispatches a trigger message to the listeners.
-			/// </summary>
-			/// <param name="eventMessage"></param>
-			internal void DispatchTrigger(String eventMessage) {
-				lock (triggerMessagesQueue) {
-					triggerMessagesQueue.Add(eventMessage);
-					Monitor.PulseAll(triggerMessagesQueue);
-				}
-			}
-
-			// Thread run method
-			private void Run() {
-				while (true) {
-					try {
-						String message;
-						lock (triggerMessagesQueue) {
-							while (triggerMessagesQueue.Count == 0) {
-								try {
- 									Monitor.Wait(triggerMessagesQueue);
-								} catch (ThreadInterruptedException) {
-									/* ignore */
-								}
-							}
-							message = (String)triggerMessagesQueue[0];
-							triggerMessagesQueue.RemoveAt(0);
-						}
-
-						// 'message' is a message to process...
-						// The format of a trigger message is:
-						// "[trigger_name] [trigger_source] [trigger_fire_count]"
-						//          Console.Out.WriteLine("TRIGGER EVENT: " + message);
-
-						string[] tok = message.Split(' ');
-						TriggerEventType eventType = (TriggerEventType) Convert.ToInt32(tok[0]);
-						string triggerName = tok[1];
-						string triggerSource = tok[2];
-						int triggerFireCount = Convert.ToInt32(tok[3]);
-
-						// Create a list of Listener's that are listening for this trigger.
-						lock (conn.triggerList) {
-							TriggerEventHandler triggerHandler = conn.triggerList[triggerName] as TriggerEventHandler;
-							if (triggerHandler != null)
-								triggerHandler(conn, new TriggerEventArgs(triggerName, TableName.Resolve(triggerSource), eventType, triggerFireCount));
-						}
-					} catch (Exception t) {
-						Console.Error.WriteLine(t.Message); 
-						Console.Error.WriteLine(t.StackTrace);
-					}
-
-				}
-			}
-
-			public void Start() {
-				thread.Start();
+				oldState = state;
+				state = newState;
 			}
 		}
 
-		/// <summary>
-		/// The timeout for a query in seconds.
-		/// </summary>
-		internal const int QueryTimeout = Int32.MaxValue;
+		internal void EndState() {
+			ChangeState(oldState);
+		}
 
-#if !MONO
-		private class PromotableConnection : IPromotableSinglePhaseNotification {
-			public PromotableConnection(DeveelDbConnection conn) {
-				this.conn = conn;
+		public override string DataSource {
+			get {
+				if (String.IsNullOrEmpty(dataSource)) {
+					if (String.IsNullOrEmpty(connectionString.DataSource) &&
+					    !String.IsNullOrEmpty(connectionString.Host)) {
+						dataSource = String.Format("{0}:{1}", connectionString.Host, connectionString.Port);
+					} else {
+						dataSource = connectionString.DataSource;
+					}
+				}
+
+				return dataSource;
+			}
+		}
+
+		public override string ServerVersion {
+			get { return serverVersion; }
+		}
+
+		protected override DbCommand CreateDbCommand() {
+			return CreateCommand();
+		}
+
+		public new DeveelDbCommand CreateCommand() {
+			return new DeveelDbCommand(this);
+		}
+
+		public DeveelDbCommand CreateCommand(string commandText) {
+			return new DeveelDbCommand(this, commandText);
+		}
+
+		internal IQueryResponse[] ExecuteQuery(SqlQuery query) {
+			if (processor == null)
+				throw new InvalidOperationException();
+
+			return processor.ExecuteQuery(query);
+		}
+
+		internal QueryResultPart RequestResultPart(int resultId, int rowIndex, int rowCount) {
+			if (processor == null)
+				throw new InvalidOperationException();
+
+			return processor.RequestResultPart(resultId, rowIndex, rowCount);
+		}
+
+		internal StreamableObject CreateStreamableObject(ReferenceType referenceType, long length, ObjectPersistenceType persistence) {
+			var objId = processor.CreateObject(referenceType, length, persistence);
+			return new StreamableObject(referenceType, length, objId);
+		}
+
+		internal IStreamableObjectChannel OpenObjectChannel(long objId, ObjectPersistenceType persistence) {
+			if (connector == null)
+				throw new InvalidOperationException();
+
+			return connector.CreateObjectChannel(objId, persistence);
+		}
+
+		internal void DisposeObject(long objId) {
+			processor.DisposeObject(objId);
+		}
+
+		internal ITriggerChannel OpenTriggerChannel(string triggerName, string objectName, TriggerEventType eventType) {
+			return connector.CreateTriggerChannel(triggerName, objectName, eventType);
+		}
+
+		#region ConnectionProcessor
+
+		class ConnectionProcessor {
+			private readonly DeveelDbConnectionStringBuilder settings;
+			private readonly IConnector connector;
+			private readonly IMessageProcessor processor;
+
+			public ConnectionProcessor(DeveelDbConnectionStringBuilder settings, IConnector connector) {
+				this.settings = settings;
+				this.connector = connector;
+				processor = connector.CreateProcessor();
 			}
 
-			private readonly DeveelDbConnection conn;
+			private IMessageEnvelope CreateEnvelope(IMessage message) {
+				return connector.CreateEnvelope(null, message);
+			}
 
-			public byte[] Promote() {
+			private IMessage Process(IMessage message) {
+				var envelope = CreateEnvelope(message);
+				var response = processor.ProcessMessage(envelope);
+
+				if (response.Error != null)
+					throw new ServerException(response.Error.ErrorMessage, response.Error.ErrorClass, response.Error.ErrorCode);
+
+				return response.Message;
+			}
+
+			public void Authenticate(string defaultSchema, string username, string password) {
+				var request = new AuthenticateRequest(defaultSchema, username, password);
+				var response = (AuthenticateResponse) Process(request);
+				if (!response.Authenticated)
+					throw new DatabaseException("Unable to authenticate.");
+			}
+
+			public void Connect(out string databaseVesion) {
+				var request = new ConnectRequest(connector.LocalEndPoint) {
+					AutoCommit = settings.AutoCommit,
+					IgnoreIdentifiersCase = settings.IgnoreIdentifiersCase,
+					ParameterStyle = settings.ParameterStyle
+				};
+
+				var response = (ConnectResponse) Process(request);
+				if (!response.Opened)
+					throw new DatabaseException("Unable to open the connection");
+
+				if (response.IsEncryted) {
+					if (response.EncryptionData == null)
+						throw new DatabaseException("The connection wis encrypted, but no encryption data were received.");
+
+					if (connector is IClientConnector)
+						((IClientConnector)connector).SetEncrypton(response.EncryptionData);
+				}
+
+				 databaseVesion = response.Version;
+			}
+
+			public void Disconnect() {
+				var request = new CloseCommand();
+				var response = (AcknowledgeResponse) Process(request);
+				if (!response.State)
+					throw new DatabaseException("Could not close the connection successfully");
+			}
+
+			public IQueryResponse[] ExecuteQuery(SqlQuery query) {
+				var response = (QueryExecuteResponse) Process(new QueryExecuteRequest(query));
+				return response.QueryResponse;
+			}
+
+			public QueryResultPart RequestResultPart(int resultId, int rowIndex, int rowCount) {
+				var request = new QueryResultPartRequest(resultId, rowIndex, rowCount);
+				var response = (QueryResultPartResponse) Process(request);
+				return response.Part;
+			}
+
+			public void DisposeResult(int id) {
+				var request = new DisposeResultRequest(id);
+				var response = (AcknowledgeResponse) Process(request);
+				if (!response.State)
+					throw new InvalidOperationException("Could not dispose the result on the server.");
+			}
+
+			public long CreateObject(ReferenceType referenceType, long length, ObjectPersistenceType persistence) {
+				var request = new StreamableObjectCreateRequest(referenceType, length, persistence);
+				var response = (StreamableObjectCreateResponse) Process(request);
+				return response.ObjectId;
+			}
+
+			public void DisposeObject(long id) {
 				throw new NotImplementedException();
 			}
 
-			public void Initialize() {
-				conn.currentTransaction = conn.BeginTransaction();
+			public void Begin() {
+				var response = (AcknowledgeResponse) Process(new BeginRequest());
+				if (!response.State)
+					throw new InvalidOperationException("Unable to begin the transaction.");
 			}
 
-			public void SinglePhaseCommit(SinglePhaseEnlistment singlePhaseEnlistment) {
-				if (conn.currentTransaction == null)
-					throw new InvalidOperationException();
-
-				conn.currentTransaction.Commit();
-				singlePhaseEnlistment.Committed();
-				conn.currentTransaction = null;
+			public void Commit() {
+				var response = (AcknowledgeResponse) Process(new CommitRequest());
+				if (!response.State)
+					throw new InvalidOperationException("Was not able to commit changes to the server.");
 			}
 
-			public void Rollback(SinglePhaseEnlistment singlePhaseEnlistment) {
-				if (conn.currentTransaction == null)
-					throw new InvalidOperationException();
-
-				conn.currentTransaction.Rollback();
-				singlePhaseEnlistment.Aborted();
-				conn.currentTransaction = null;
+			public void Rollback() {
+				var response = (AcknowledgeResponse) Process(new RollbackRequest());
+				if (!response.State)
+					throw new InvalidOperationException("Could not rollback on the server.");
 			}
 		}
-#endif
+
+		#endregion
 	}
 }

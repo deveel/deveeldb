@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,149 +20,206 @@ using System.Data.Common;
 using Deveel.Data.Sql;
 
 using SysDbType = System.Data.DbType;
+using SysParameterDirection = System.Data.ParameterDirection;
 
 namespace Deveel.Data.Client {
-	public sealed class DeveelDbParameter : DbParameter, ICloneable {
-		public DeveelDbParameter() {
+	public sealed class DeveelDbParameter : DbParameter {
+		private object value;
+
+		public DeveelDbParameter(string name) 
+			: this(name, SqlType.Unknown) {
 		}
 
-		public DeveelDbParameter(SqlType sqlType) {
+		public DeveelDbParameter(string name, SqlType sqlType) 
+			: this(name, sqlType, null) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, object value) 
+			: this(name, sqlType, 0, value) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size, object value) 
+			: this(name, sqlType, size, 0, value) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size, byte precision, object value) 
+			: this(name, sqlType, size, precision, 0, value) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size, byte precision, byte scale, object value) 
+			: this(name, sqlType, size, precision, scale, null, value) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size, byte precision, byte scale, string sourceColumn, object value) 
+			: this(name, sqlType, size, precision, scale, sourceColumn, DataRowVersion.Default, value) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size, byte precision, byte scale,
+			DataRowVersion rowVersion, object value) : this(name, sqlType, size, precision, scale, null, rowVersion, value) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size) 
+			: this(name, sqlType, size, 0) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size, byte precision) 
+			: this(name, sqlType, size, precision, 0) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size, byte precision, byte scale) 
+			: this(name, sqlType, size, precision, scale, null) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size, byte precision, byte scale, string sourceColumn) 
+			: this(name, sqlType, size, precision, scale, sourceColumn, DataRowVersion.Default) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size, byte precision, byte scale, string sourceColumn,
+			DataRowVersion rowVersion) 
+			: this(name, sqlType, size, precision, scale, sourceColumn, rowVersion, null) {
+		}
+
+		public DeveelDbParameter() 
+			: this(SqlType.Unknown) {
+		}
+
+		public DeveelDbParameter(SqlType sqlType) 
+			: this(sqlType, 0) {
+		}
+
+		public DeveelDbParameter(SqlType sqlType, int size) 
+			: this(sqlType, size, null) {
+		}
+
+		public DeveelDbParameter(object value) 
+			: this(SqlType.Unknown, value) {
+		}
+
+		public DeveelDbParameter(SqlType sqlType, object value) 
+			: this(sqlType, 0, value) {
+		}
+
+		public DeveelDbParameter(SqlType sqlType, int size, object value) 
+			: this(sqlType, size, 0, value) {
+		}
+
+		public DeveelDbParameter(SqlType sqlType, int size, byte precision, object value) 
+			: this(sqlType, size, precision, 0, value) {
+		}
+
+		public DeveelDbParameter(SqlType sqlType, int size, byte precision, byte scale, object value) 
+			: this(sqlType, size, precision, scale, null, value) {
+		}
+
+		public DeveelDbParameter(SqlType sqlType, int size, byte precision, byte scale, string sourceColumn, object value) 
+			: this(sqlType, size, precision, scale, sourceColumn, DataRowVersion.Default, value) {
+		}
+
+		public DeveelDbParameter(SqlType sqlType, int size, byte precision, byte scale, string sourceColumn,
+			DataRowVersion rowVersion, object value) 
+			: this(null, sqlType, size, precision, scale, sourceColumn, rowVersion, value) {
+		}
+
+		public DeveelDbParameter(int size, object value) 
+			: this(null, size, value) {
+		}
+
+		public DeveelDbParameter(string name, object value) 
+			: this(name, 0, value) {
+		}
+
+		public DeveelDbParameter(string name, int size, object value) 
+			: this(name, size, 0, value) {
+		}
+
+		public DeveelDbParameter(int size, byte precision, object value) 
+			: this(null, size, precision, value) {
+		}
+
+		public DeveelDbParameter(string name, int size, byte precision, object value) 
+			: this(name, size, precision, 0, value) {
+		}
+
+		public DeveelDbParameter(int size, byte precision, byte scale, object value) 
+			: this(null, size, precision, scale, value) {
+		}
+
+		public DeveelDbParameter(string name, int size, byte precision, byte scale, object value) 
+			: this(name, size, precision, scale, null, value) {
+		}
+
+		public DeveelDbParameter(int size, byte precision, byte scale, string sourceColumn, object value) 
+			: this(null, size, precision, scale, sourceColumn, value) {
+		}
+
+		public DeveelDbParameter(string name, int size, byte precision, byte scale, string sourceColumn, object value) 
+			: this(name, size, precision, scale, sourceColumn, DataRowVersion.Default, value) {
+		}
+
+		public DeveelDbParameter(int size, byte precision, byte scale, string sourceColumn,
+			DataRowVersion rowVersion, object value) 
+			: this(null, size, precision, scale, sourceColumn, rowVersion, value) {
+		}
+
+		public DeveelDbParameter(string name, int size, byte precision, byte scale, string sourceColumn,
+			DataRowVersion rowVersion, object value) 
+			: this(name, SqlType.Unknown, size, precision, scale, sourceColumn, rowVersion, value) {
+		}
+
+		public DeveelDbParameter(string name, SqlType sqlType, int size, byte precision, byte scale, string sourceColumn,
+			DataRowVersion rowVersion, object value) {
+			ParameterName = name;
 			SqlType = sqlType;
-		}
-
-		public DeveelDbParameter(object value) {
+			Size = size;
+			Precision = precision;
+			Scale = scale;
+			SourceColumn = sourceColumn;
+			SourceVersion = rowVersion;
 			Value = value;
 		}
 
-		public DeveelDbParameter(SqlType sqlType, int size)
-			: this(sqlType) {
-			this.size = size;
+		public override void ResetDbType() {
+			DbType = GetDbType(SqlType);
 		}
 
-		public DeveelDbParameter(SqlType sqlType, int size, string sourceColumn)
-			: this(sqlType, size) {
-			this.sourceColumn = sourceColumn;
-		}
+		public SqlType SqlType { get; set; }
 
-		private SysDbType dbType = SysDbType.Object;
-		private SqlType sqlType = SqlType.Null;
-		private object value = DBNull.Value;
-		private long size;
-		private byte scale;
-		private string sourceColumn;
-		private DataRowVersion sourceVersion;
-		private string name;
-		private ReferenceType refType = ReferenceType.Binary;
+		public override System.Data.DbType DbType { get; set; }
 
-		#region Implementation of IDataParameter
-
-		public override SysDbType DbType {
-			get { return dbType; }
-			set { dbType = value; }
-		}
-
-		public override ParameterDirection Direction {
-			get { return ParameterDirection.Input; }
+		public override SysParameterDirection Direction {
+			get { return SysParameterDirection.Input; }
 			set {
-				if (value != ParameterDirection.Input)
+				if (value != SysParameterDirection.Input)
 					throw new NotSupportedException();
 			}
 		}
 
-		public override void ResetDbType() {
-			dbType = GetDbType(value);
-		}
+		public override bool IsNullable { get; set; }
 
-		public override bool SourceColumnNullMapping {
-			get { return true; }
-			set { }
-		}
+		public override string ParameterName { get; set; }
 
-		//TODO: check...
-		public override bool IsNullable {
-			get { return true;}
-			set { }
-		}
+		public override string SourceColumn { get; set; }
 
-		public ReferenceType ReferenceType {
-			get { return refType; }
-			set { refType = value; }
-		}
-
-		public override string ParameterName {
-			get { return name; }
-			set { name = value; }
-		}
-
-		public override string SourceColumn {
-			get { return sourceColumn; }
-			set { sourceColumn = value; }
-		}
-
-		public override DataRowVersion SourceVersion {
-			get { return sourceVersion; }
-			set { sourceVersion = value; }
-		}
+		public override DataRowVersion SourceVersion { get; set; }
 
 		public override object Value {
 			get { return value; }
 			set {
 				this.value = value;
-				if (sqlType == SqlType.Null) {
-					dbType = GetDbType(this.value);
-					sqlType = GetSqlType(this.value);
+				if (SqlType == SqlType.Null) {
+					DbType = GetDbType(this.value);
+					SqlType = GetSqlType(this.value);
 				}
 			}
 		}
 
-		#endregion
+		public override bool SourceColumnNullMapping { get; set; }
 
-		#region Implementation of IDbDataParameter
+		public override int Size { get; set; }
 
-		public byte Precision {
-			get { return 0; }
-			set {
-				if (value != 0)
-					throw new ArgumentException();
-			}
-		}
+		public byte Precision { get; set; }
 
-		public byte Scale {
-			get { return scale; }
-			set {
-				if (!IsNumeric(dbType))
-					throw new ArgumentException("Cannot set the scale of a non-numeric paramter.");
-				scale = value;
-			}
-		}
-
-		public override int Size {
-			get { return (int)size; }
-			set { size = value; }
-		}
-
-		public long LongSize {
-			get { return size; }
-			set { size = value; }
-		}
-
-		public SqlType SqlType {
-			get { return sqlType; }
-			set {
-				sqlType = value;
-				dbType = GetDbType(sqlType);
-			}
-		}
-		#endregion
-
-		private static bool IsNumeric(SysDbType dbType) {
-			if (dbType == SysDbType.Decimal ||
-				dbType == SysDbType.Double ||
-				dbType == SysDbType.Single ||
-				dbType == SysDbType.VarNumeric)
-				return true;
-			return false;
-		}
+		public byte Scale { get; set; }
 
 		private static SysDbType GetDbType(SqlType sqlType) {
 			switch (sqlType) {
@@ -310,26 +367,6 @@ namespace Deveel.Data.Client {
 				default:
 					throw new SystemException("Value is of unknown data type");
 			}
-		}
-
-		public object Clone() {
-			object paramValue = value;
-			if (paramValue is ICloneable)
-				paramValue = ((ICloneable) paramValue).Clone();
-
-			var parameter = new DeveelDbParameter {
-				value = paramValue,
-				sqlType = sqlType,
-				sourceColumn = sourceColumn,
-				dbType = dbType,
-				name = name,
-				sourceVersion = sourceVersion,
-				size = size,
-				scale = scale,
-				refType = refType
-			};
-
-			return parameter;
 		}
 	}
 }

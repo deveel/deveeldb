@@ -17,11 +17,11 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Protocol {
-	public interface IMessageEnvelope : IMessage {
+	public interface IMessageEnvelope {
 		IDictionary<string, object> Metadata { get; }
 			
 		IMessage Message { get; }
 
-		Exception Error { get; }
+		ServerError Error { get; }
 	}
 }

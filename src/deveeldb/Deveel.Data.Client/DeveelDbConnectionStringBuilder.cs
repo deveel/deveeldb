@@ -98,6 +98,10 @@ namespace Deveel.Data.Client {
 			keymaps["PERSIST SECURITY INFO"] = PersistSecurityInfoKey;
 			keymaps[RowCacheSizeKey.ToUpper()] = RowCacheSizeKey;
 			keymaps["ROW CACHE SIZE"] = RowCacheSizeKey;
+			keymaps["CACHE SIZE"] = RowCacheSizeKey;
+			keymaps[MaxCacheSizeKey.ToUpper()] = MaxCacheSizeKey;
+			keymaps["MAX CACHE SIZE"] = MaxCacheSizeKey;
+			keymaps["MAX CACHE"] = MaxCacheSizeKey;
 			keymaps[QueryTimeoutKey.ToUpper()] = QueryTimeoutKey;
 			keymaps["QUERY TIMEOUT"] = QueryTimeoutKey;
 			keymaps[IgnoreIdentifiersCaseKey.ToUpper()] = IgnoreIdentifiersCaseKey;
@@ -119,6 +123,16 @@ namespace Deveel.Data.Client {
 			keymaps["MAX ROW COUNT"] = MaxFetchSizeKey;
 			keymaps["MAX ROWCOUNT"] = MaxFetchSizeKey;
 			keymaps["MAXROWCOUNT"] = MaxFetchSizeKey;
+			keymaps[AutoCommitKey.ToUpper()] = AutoCommitKey;
+			keymaps["AUTOCOMMIT"] = AutoCommitKey;
+			keymaps["AUTO-COMMIT"] = AutoCommitKey;
+			keymaps["AUTO_COMMIT"] = AutoCommitKey;
+			keymaps["AUTO COMMIT"] = AutoCommitKey;
+			keymaps["COMMIT AUTO"] = AutoCommitKey;
+			keymaps["COMMIT_AUTO"] = AutoCommitKey;
+			keymaps["COMMITAUTO"] = AutoCommitKey;
+			keymaps["COMMIT-AUTO"] = AutoCommitKey;
+			keymaps["COMMIT"] = AutoCommitKey;
 		}
 
 		private const string HostKey = "Host";
@@ -134,11 +148,13 @@ namespace Deveel.Data.Client {
 		private const string VerboseColumnNamesKey = "VerboseColumnNames";
 		private const string PersistSecurityInfoKey = "PersistSecurityInfo";
 		private const string RowCacheSizeKey = "RowCacheSize";
+		private const string MaxCacheSizeKey = "MaxCacheSize";
 		private const string QueryTimeoutKey = "QueryTimeout";
 		private const string IgnoreIdentifiersCaseKey = "IgnoreIdentifiersCase";
 		private const string StrictGetValueKey = "StrictGetValue";
 		private const string FetchSizeKey = "FetchSize";
 		private const string MaxFetchSizeKey = "MaxFetchSize";
+		private const string AutoCommitKey = "AutoCommit";
 
 		private const string DefaultHost = "localhost";
 		private const int DefaultPort = 9157;
@@ -153,12 +169,13 @@ namespace Deveel.Data.Client {
 		private const bool DefaultVerboseColumnName = false;
 		private const bool DefaultPersistSecurityInfo = false;
 		private const int DefaultRowCacheSize = 1024;
+		private const int DefaultMaxCacheSize = 1024*40;
 		private const int DefaultQueryTimeout = Int32.MaxValue;
 		private const bool DefaultIgnoreIdentifiersCase = true;
 		private const bool DefaultStrictGetValue = false;
-		public const int DefaultMaxFetchSize = 512;
-		public const int DefaultFetchSize = 32;
-
+		private const int DefaultMaxFetchSize = 512;
+		private const int DefaultFetchSize = 32;
+		private const bool DefaultAutoCommit = false;
 
 		private static readonly Dictionary<string, object> defaults;
 		private static readonly Dictionary<string, string> keymaps;
@@ -174,6 +191,7 @@ namespace Deveel.Data.Client {
 		private ParameterStyle paramStyle;
 		private bool persistSecurityInfo;
 		private int rowCacheSize;
+		private int maxCacheSize;
 		private int queryTimeout;
 		private bool ignoreCase;
 		private bool create;
@@ -181,6 +199,7 @@ namespace Deveel.Data.Client {
 		private bool strictGetValue;
 		private int fetchSize;
 		private int maxFetchSize;
+		private bool autoCommit;
 
 		public override bool IsFixedSize {
 			get { return true; }
@@ -210,13 +229,15 @@ namespace Deveel.Data.Client {
 					VerboseColumnNamesKey,
 					ParameterStyleKey,
 					RowCacheSizeKey,
+					MaxCacheSizeKey,
 					QueryTimeoutKey,
 					IgnoreIdentifiersCaseKey,
 					CreateKey,
 					BootOrCreateKey,
 					StrictGetValueKey,
 					FetchSizeKey,
-					MaxFetchSizeKey
+					MaxFetchSizeKey,
+					AutoCommitKey
 				};
 				return keys.AsReadOnly();
 			}
@@ -236,13 +257,15 @@ namespace Deveel.Data.Client {
 					verboseColumnNames,
 					paramStyle,
 					rowCacheSize,
+					maxCacheSize,
 					queryTimeout,
 					ignoreCase,
 					create,
 					bootOrCreate,
 					strictGetValue,
 					fetchSize,
-					maxFetchSize
+					maxFetchSize,
+					autoCommit
 				};
 				return list.AsReadOnly();
 			}
@@ -252,9 +275,10 @@ namespace Deveel.Data.Client {
 		[RefreshProperties(RefreshProperties.All)]
 		public string DataSource {
 			get {
-				string dataSource = host;
-				if (port > 0)
-					dataSource += ":" + port;
+				string dataSource = Host;
+				if (Port > 0 && Port != DefaultPort)
+					dataSource += ":" + Port;
+
 				return dataSource;
 			}
 			set {
@@ -384,6 +408,16 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		[DisplayName("Max Cache Size")]
+		[RefreshProperties(RefreshProperties.All)]
+		public int MaxCacheSize {
+			get { return maxCacheSize; }
+			set {
+				base[MaxCacheSizeKey] = value;
+				maxCacheSize = value;
+			}
+		}
+
 		[DisplayName("Query Timeout")]
 		[RefreshProperties(RefreshProperties.All)]
 		public int QueryTimeout {
@@ -454,6 +488,16 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		[DisplayName("Auto-Commit")]
+		[RefreshProperties(RefreshProperties.All)]
+		public bool AutoCommit {
+			get { return autoCommit; }
+			set {
+				base[AutoCommitKey] = value;
+				autoCommit = value;
+			}
+		}
+
 		private void InitToDefault() {
 			host = DefaultHost;
 			port = DefaultPort;
@@ -466,6 +510,7 @@ namespace Deveel.Data.Client {
 			verboseColumnNames = DefaultVerboseColumnName;
 			persistSecurityInfo = DefaultPersistSecurityInfo;
 			rowCacheSize = DefaultRowCacheSize;
+			maxCacheSize = DefaultMaxCacheSize;
 			queryTimeout = DefaultQueryTimeout;
 			ignoreCase = DefaultIgnoreIdentifiersCase;
 			create = DefaultCreate;
@@ -473,6 +518,7 @@ namespace Deveel.Data.Client {
 			strictGetValue = DefaultStrictGetValue;
 			fetchSize = DefaultFetchSize;
 			maxFetchSize = DefaultMaxFetchSize;
+			autoCommit = DefaultAutoCommit;
 		}
 
 		private void SetValue(string key, object value) {
@@ -574,6 +620,14 @@ namespace Deveel.Data.Client {
 						RowCacheSize = ToInt32(value);
 					}
 					break;
+				case MaxCacheSizeKey:
+					if (value == null) {
+						maxCacheSize = DefaultMaxCacheSize;
+						base.Remove(key);
+					} else {
+						MaxCacheSize = ToInt32(value);
+					}
+					break;
 				case QueryTimeoutKey:
 					if (value == null) {
 						queryTimeout = DefaultQueryTimeout;
@@ -643,6 +697,14 @@ namespace Deveel.Data.Client {
 						base.Remove(MaxFetchSizeKey);
 					} else {
 						MaxFetchSize = ToInt32(value);
+					}
+					break;
+				case AutoCommitKey:
+					if (value == null) {
+						autoCommit = DefaultAutoCommit;
+						base.Remove(AutoCommitKey);
+					} else {
+						AutoCommit = ToBoolean(value);
 					}
 					break;
 				default:

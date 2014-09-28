@@ -31,11 +31,6 @@ namespace Deveel.Data.Protocol {
 		}
 
 		public AuthenticateRequest(string defaultSchema, string userName, string password, bool ecrypt) {
-			if (String.IsNullOrEmpty(userName))
-				throw new ArgumentNullException("userName");
-			if (String.IsNullOrEmpty(password))
-				throw new ArgumentNullException("password");
-
 			DefaultSchema = defaultSchema;
 			UserName = userName;
 			Password = password;

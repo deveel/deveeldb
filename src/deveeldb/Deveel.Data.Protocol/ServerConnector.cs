@@ -20,6 +20,7 @@ using System.IO;
 using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Threading;
 using Deveel.Data.Transactions;
@@ -28,6 +29,10 @@ using Deveel.Diagnostics;
 namespace Deveel.Data.Protocol {
 	public abstract class ServerConnector : IConnector {
 		private readonly Dictionary<long, IRef> blobIdMap;
+
+		private bool autoCommit;
+		private bool ignoreIdentifiersCase;
+		private ParameterStyle parameterStyle;
 
 		protected ServerConnector(IDatabase database) {
 			if (database == null) 
@@ -40,6 +45,10 @@ namespace Deveel.Data.Protocol {
 		}
 
 		public AuthenticatedSession Session { get; protected set; }
+
+		public abstract ConnectionEndPoint LocalEndPoint { get; }
+
+		public ConnectionEndPoint RemoteEndPoint { get; private set; }
 
 		public ConnectorState CurrentState { get; private set; }
 
@@ -59,17 +68,34 @@ namespace Deveel.Data.Protocol {
 			CurrentState = newState;
 		}
 
-		protected void OpenConnector() {
+		protected void OpenConnector(ConnectionEndPoint remoteEndPoint) {
 			try {
+				RemoteEndPoint = remoteEndPoint;
 				OnConnectorOpen();
-				ChangeState(ConnectorState.Processing);
+				ChangeState(ConnectorState.Open);
 			} catch (Exception ex) {
 				Logger.Error(this, "Error when opening the connector.");
 				Logger.Error(this, ex);
+				throw;
 			}
 		}
 
 		protected virtual void OnConnectorOpen() {
+		}
+
+		protected void SetAutoCommit(bool state) {
+			AssertNotDisposed();
+			autoCommit = state;
+		}
+
+		protected void SetIgnoreIdentifiersCase(bool state) {
+			AssertNotDisposed();
+			ignoreIdentifiersCase = state;
+		}
+
+		protected void SetParameterStyle(ParameterStyle style) {
+			AssertNotDisposed();
+			parameterStyle = style;
 		}
 
 		protected void CloseConnector() {
@@ -90,26 +116,13 @@ namespace Deveel.Data.Protocol {
 			return null;
 		}
 
-		protected virtual bool Authenticate(string defaultSchema, string username, string password) {
-			if (CurrentState == ConnectorState.Authenticated &&
-			    Session != null)
-				throw new InvalidOperationException("Already authenticated.");
-
-			if (Logger.IsInterestedIn(Diagnostics.LogLevel.Debug)) {
-				// Output the instruction to the _queries log.
-				Logger.DebugFormat(this, "[CLIENT] [{0}] - Log in", username);
-			}
-
-			if (Logger.IsInterestedIn(LogLevel.Info)) {
-				Logger.InfoFormat(this, "Authenticate User: {0}", username);
-			}
-
-			var user = Database.AuthenticateUser(username, password, null);
+		protected virtual AuthenticatedSession OnAuthenticate(string defaultSchema, string username, string password) {
+			var user = Database.AuthenticateUser(username, password, RemoteEndPoint);
 
 			if (user == null) 
-				return false;
+				return null;
 
-			IDatabaseConnection connection = Database.CreateNewConnection(user, null);
+			IDatabaseConnection connection = Database.CreateNewConnection(user, OnTriggerFired);
 
 			// Put the connection in exclusive mode
 			LockingMechanism locker = connection.LockingMechanism;
@@ -140,8 +153,48 @@ namespace Deveel.Data.Protocol {
 				}
 			}
 
-			Session = new AuthenticatedSession(user, connection);
-			return true;
+			return new AuthenticatedSession(user, connection);
+		}
+
+		protected virtual void OnTriggerFired(string triggerName, string triggerSource, TriggerEventType eventType, int count) {
+		}
+
+		protected void BeginTransaction() {
+			AssertNotDisposed();
+
+			Session.Connection.AutoCommit = false;
+		}
+
+		protected virtual bool Authenticate(string defaultSchema, string username, string password) {
+			if (CurrentState == ConnectorState.Authenticated &&
+			    Session != null)
+				throw new InvalidOperationException("Already authenticated.");
+
+			if (Logger.IsInterestedIn(LogLevel.Debug)) {
+				// Output the instruction to the _queries log.
+				Logger.DebugFormat(this, "[CLIENT] [{0}] - Log in", username);
+			}
+
+			if (Logger.IsInterestedIn(LogLevel.Info)) {
+				Logger.InfoFormat(this, "Authenticate User: {0}", username);
+			}
+
+			try {
+				Session = OnAuthenticate(defaultSchema, username, password);
+				if (Session == null)
+					return false;
+
+				Session.Connection.AutoCommit = autoCommit;
+				Session.Connection.IsInCaseInsensitiveMode = ignoreIdentifiersCase;
+				Session.Connection.ParameterStyle = parameterStyle;
+
+				ChangeState(ConnectorState.Authenticated);
+
+				return true;
+			} catch (Exception e) {
+				// TODO: throw server error
+				throw;
+			}
 		}
 
 		private IRef FlushLargeObjectRefFromCache(long objectId) {
@@ -179,7 +232,7 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		protected IRef GetStreamableObject(long objectId) {
+		protected IRef GetObjectRef(long objectId) {
 			// TODO: Access the blob store directly if cannot find it in cache ...
 			lock (blobIdMap) {
 				IRef obj;
@@ -203,7 +256,7 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		private IQueryResponse[] DoExecuteQuery(string text, IEnumerable<object> parameters) {
+		protected virtual IQueryResponse[] ExecuteQuery(string text, IEnumerable<SqlQueryParameter> parameters) {
 			// Record the Query start time
 			DateTime startTime = DateTime.Now;
 
@@ -213,10 +266,12 @@ namespace Deveel.Data.Protocol {
 			// For each StreamableObject in the query object, translate it to a
 			// IRef object that presumably has been pre-pushed onto the server from
 			// the client.
-			var vars = new List<object>();
+
+			// Evaluate the sql Query.
+			var query = new SqlQuery(text);
 			if (parameters != null) {
 				foreach (var parameter in parameters) {
-					var preparedParam = parameter;
+					var preparedParam = parameter.Value;
 					if (preparedParam is StreamableObject) {
 						var obj = (StreamableObject) preparedParam;
 
@@ -228,14 +283,8 @@ namespace Deveel.Data.Protocol {
 						preparedParam = reference;
 					}
 
-					vars.Add(preparedParam);
+					query.Parameters.Add(new SqlQueryParameter(parameter.Name, preparedParam));
 				}
-			}
-
-			// Evaluate the sql Query.
-			var query = new SqlQuery(text);
-			foreach (var param in vars) {
-				query.AddVariable(param);
 			}
 
 			Table[] results = SqlQueryExecutor.Execute(Session.Connection, query);
@@ -358,96 +407,6 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		protected IQueryResponse[] ExecuteQuery(string text, IEnumerable<object> parameters) {
-			// Log this Query if Query logging is enabled
-			if (Logger.IsInterestedIn(LogLevel.Debug)) {
-				// Output the instruction to the _queries log.
-				Logger.DebugFormat(this, "[CLIENT] [{0}] - Query: {1}", Session.User.UserName, text);
-			}
-
-			// Write debug message (Info level)
-			if (Logger.IsInterestedIn(LogLevel.Debug)) {
-				Logger.DebugFormat(this, "Query From User: {0}", Session.User.UserName);
-				Logger.DebugFormat(this, "Query: {0}", text.Trim());
-			}
-
-			// Get the locking mechanism.
-			LockingMechanism locker = Session.Connection.LockingMechanism;
-			LockingMode lockMode = LockingMode.None;
-			IQueryResponse[] response = null;
-			try {
-				try {
-					// For simplicity - all database locking is now exclusive inside
-					// a transaction.  This means it is not possible to execute
-					// queries concurrently inside a transaction.  However, we are
-					// still able to execute queries concurrently from different
-					// connections.
-					//
-					// It's debatable whether we even need to perform this Lock anymore
-					// because we could change the contract of this method so that
-					// it is not thread safe.  This would require that the callee ensures
-					// more than one thread can not execute queries on the connection.
-					lockMode = LockingMode.Exclusive;
-					locker.SetMode(lockMode);
-
-					// Execute the Query (behaviour for this comes from super).
-					response = DoExecuteQuery(text, parameters);
-
-					// Return the result.
-					return response;
-
-				} finally {
-					try {
-						// This is executed no matter what happens.  Very important we
-						// unlock the tables.
-						if (lockMode != LockingMode.None) {
-							locker.FinishMode(lockMode);
-						}
-					} catch (Exception e) {
-						// If this throws an exception, we should output it to the debug
-						// log and screen.
-						Logger.Error(this, "Exception finishing locks");
-						Logger.Error(this, e);
-						// Note, we can't throw an error here because we may already be in
-						// an exception that happened in the above 'try' block.
-					}
-				}
-			} finally {
-				// This always happens after tables are unlocked.
-				// Also guarenteed to happen even if something fails.
-
-				// If we are in auto-commit mode then commit the Query here.
-				// Do we auto-commit?
-				if (Session.Connection.AutoCommit) {
-					// Yes, so grab an exclusive Lock and auto-commit.
-					try {
-						// Lock into exclusive mode.
-						locker.SetMode(LockingMode.Exclusive);
-						// If an error occured then roll-back
-						if (response == null) {
-							// Rollback.
-							Session.Connection.Rollback();
-						} else {
-							try {
-								// Otherwise commit.
-								Session.Connection.Commit();
-							} catch (Exception e) {
-								foreach (IQueryResponse queryResponse in response) {
-									// Dispose this response if the commit failed.
-									DisposeResult(queryResponse.ResultId);
-								}
-
-								// And throw the SQL Exception
-								throw;
-							}
-						}
-					} finally {
-						locker.FinishMode(LockingMode.Exclusive);
-					}
-				}
-			}
-		}
-
 		private void ClearResults() {
 			List<int> keys;
 			lock (resultMap) {
@@ -459,11 +418,39 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
+		protected void CommitTransaction() {
+			AssertNotDisposed();
+
+			try {
+				Session.Connection.Commit();
+			} catch (Exception) {
+
+				throw;
+			} finally {
+				Session.Connection.AutoCommit = autoCommit;
+			}
+		}
+
+		protected void RollbackTransaction() {
+			AssertNotDisposed();
+
+			try {
+				Session.Connection.Rollback();
+			} catch (Exception) {
+
+				throw;
+			} finally {
+				Session.Connection.AutoCommit = autoCommit;
+			}
+		}
+
 		public abstract IMessageProcessor CreateProcessor();
 
 		public abstract IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);
 
-		public abstract IStreamableObjectChannel CreateChannel(long objectId);
+		public abstract IStreamableObjectChannel CreateObjectChannel(long objectId, ObjectPersistenceType persistence);
+
+		public abstract ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType);
 
 		public void Dispose() {
 			Dispose(true);

@@ -15,8 +15,21 @@
 
 using System;
 
-namespace Deveel.Data.Control {
-	public interface ILocalSystem : IDisposable {
-		ILocalDatabase ControlDatabase(string database);
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Protocol {
+	[Serializable]
+	public sealed class ConnectRequest : IMessage {
+		public ConnectRequest(ConnectionEndPoint remoteEndPoint) {
+			RemoteEndPoint = remoteEndPoint;
+		}
+
+		public ConnectionEndPoint RemoteEndPoint { get; private set; }
+
+		public bool AutoCommit { get; set; }
+
+		public bool IgnoreIdentifiersCase { get; set; }
+
+		public ParameterStyle ParameterStyle { get; set; }
 	}
 }

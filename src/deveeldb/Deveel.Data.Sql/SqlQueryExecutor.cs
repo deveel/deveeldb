@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 using Deveel.Data.DbSystem;
@@ -139,15 +140,20 @@ namespace Deveel.Data.Sql {
 			}
 
 			public object Prepare(object element) {
-				ParameterSubstitution ps = (ParameterSubstitution)element;
-				object value;
-				if (query.ParameterStyle == ParameterStyle.Named) {
-					string paramName = ps.Name;
-					value = query.GetNamedVariable(paramName);
+				var ps = (ParameterSubstitution)element;
+				SqlQueryParameter param = null;
+
+				if (!String.IsNullOrEmpty(ps.Name)) {
+					param = query.Parameters.GetNamedParameter(ps.Name);
 				} else {
-					int paramId = ps.Id;
-					value = query.Variables[paramId];
+					param = query.Parameters.ElementAt(ps.Id);
 				}
+
+				if (param == null)
+					throw new InvalidOperationException("Could not find the parameter in the query.");
+
+				// TODO: Handle Type of Parameter
+				var value = param.Value;
 				return TObject.CreateObject(value);
 			}
 		}

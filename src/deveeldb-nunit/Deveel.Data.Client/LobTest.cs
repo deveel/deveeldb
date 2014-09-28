@@ -22,7 +22,7 @@ namespace Deveel.Data.Client {
 		[Test]
 		public void SmallBlobWrite() {
 			DeveelDbCommand command = Connection.CreateCommand("INSERT INTO LOB_TEST (Id, Data) VALUES (1, ?)");
-			DeveelDbLob lob = new DeveelDbLob(command, ReferenceType.Binary, 1024 * 4);
+			DeveelDbLargeObject lob = new DeveelDbLargeObject(ReferenceType.Binary, 1024 * 4);
 
 			BinaryWriter writer = new BinaryWriter(lob);
 			Random rnd = new Random();
@@ -50,7 +50,7 @@ namespace Deveel.Data.Client {
 			DeveelDbCommand command = Connection.CreateCommand("SELECT Data FROM LOB_TEST WHERE Id = 1");
 			DeveelDbDataReader reader = command.ExecuteReader();
 			if (reader.Read()) {
-				DeveelDbLob lob = reader.GetLob(0);
+				DeveelDbLargeObject lob = reader.GetLargeObject(0);
 				byte[] buffer = new byte[1024];
 				int offset = 0;
 				long length = lob.Length;

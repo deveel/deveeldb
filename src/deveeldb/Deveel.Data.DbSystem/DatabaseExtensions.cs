@@ -15,12 +15,13 @@
 
 using System;
 
+using Deveel.Data.Protocol;
 using Deveel.Data.Security;
 
 namespace Deveel.Data.DbSystem {
 	public static class DatabaseExtensions {
-		public static User AuthenticateUser(this IDatabase database, string userName, string password, string connectionString) {
-			return database.UserManager.AuthenticateUser(userName, password, connectionString);
+		public static User AuthenticateUser(this IDatabase database, string userName, string password, ConnectionEndPoint endPoint) {
+			return database.UserManager.AuthenticateUser(userName, password, endPoint);
 		}
 
 		public static bool UserExists(this IDatabase database, IQueryContext context, string userName) {

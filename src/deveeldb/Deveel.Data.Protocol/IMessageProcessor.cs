@@ -17,6 +17,6 @@ using System;
 
 namespace Deveel.Data.Protocol {
 	public interface IMessageProcessor {
-		IMessage ProcessMessage(IMessage message);
+		IMessageEnvelope ProcessMessage(IMessageEnvelope message);
 	}
 }
