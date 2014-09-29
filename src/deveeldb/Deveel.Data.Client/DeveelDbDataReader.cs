@@ -207,7 +207,15 @@ namespace Deveel.Data.Client {
 		}
 
 		public DeveelDbLargeObject GetLargeObject(int ordinal) {
-			throw new NotImplementedException();
+			var value = GetRawValue(ordinal);
+			if (value == null || DBNull.Value == value)
+				return null;
+
+			var obj = value as StreamableObject;
+			if (obj == null)
+				throw new InvalidOperationException("The column does not handle a BLOB");
+
+			return new DeveelDbLargeObject(obj, command.Connection);
 		}
 
 		public DeveelDbLargeObject GetLargeObject(string columnName) {

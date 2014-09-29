@@ -208,27 +208,6 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		private IRef FlushLargeObjectRefFromCache(long objectId) {
-			try {
-				IRef reference;
-				if (!blobIdMap.TryGetValue(objectId, out reference))
-					// This basically means the streamable object hasn't been pushed onto the
-					// server.
-					throw new DatabaseException("Invalid streamable object id in Query.");
-
-				blobIdMap.Remove(objectId);
-
-				// Mark the blob as complete
-				reference.Complete();
-
-				// And return it.
-				return reference;
-			} catch (IOException e) {
-				Logger.Error(this, e);
-				throw new DatabaseException("IO Error: " + e.Message, e);
-			}
-		}
-
 		protected long CreateStreamableObject(ReferenceType referenceType, long length) {
 			lock (blobIdMap) {
 				try {
@@ -243,27 +222,15 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		protected IRef GetObjectRef(long objectId) {
-			// TODO: Access the blob store directly if cannot find it in cache ...
+		private IRef GetObjectRef(long objectId) {
 			lock (blobIdMap) {
 				IRef obj;
-				if (!blobIdMap.TryGetValue(objectId, out obj))
-					return null;
+				if (!blobIdMap.TryGetValue(objectId, out obj)) {
+					obj = Session.Connection.GetLargeObject(objectId);
+					blobIdMap[objectId] = obj;
+				}
 
 				return obj;
-			}
-		}
-
-		protected bool DisposeStreamableObject(long objectId) {
-			lock (blobIdMap) {
-				IRef obj;
-				if (!blobIdMap.TryGetValue(objectId, out obj))
-					return false;
-
-				if (obj is IDisposable)
-					(obj as IDisposable).Dispose();
-
-				return blobIdMap.Remove(objectId);
 			}
 		}
 
@@ -285,15 +252,9 @@ namespace Deveel.Data.Protocol {
 					var preparedParam = parameter.Value;
 					if (preparedParam is StreamableObject) {
 						var obj = (StreamableObject) preparedParam;
-
-						// Flush the streamable object from the cache
-						// Note that this also marks the blob as complete in the blob store.
-						IRef reference = FlushLargeObjectRefFromCache(obj.Identifier);
-
-						// Set the IRef object in the Query.
-						preparedParam = reference;
+						IRef objRef = CompleteStream(obj.Identifier);
+						preparedParam = objRef;
 					}
-
 					query.Parameters.Add(new SqlQueryParameter(parameter.Name, preparedParam));
 				}
 			}
@@ -466,9 +427,26 @@ namespace Deveel.Data.Protocol {
 			if (obj == null)
 				throw new InvalidOperationException("The object was not created or was not found.");
 
-			return new DirectStreamableObjectChannel(obj);
+			return new DirectStreamableObjectChannel(this, obj);
 		}
 
+		private void DisposeChannel(long objId) {
+			lock (blobIdMap) {
+				blobIdMap.Remove(objId);
+			}
+		}
+
+		private IRef CompleteStream(long objId) {
+			lock (blobIdMap) {
+				var objRef = GetObjectRef(objId);
+				if (objRef == null)
+					throw new InvalidOperationException();
+
+				blobIdMap.Remove(objId);
+				objRef.Complete();
+				return objRef;
+			}
+		}
 
 		public abstract ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType);
 
@@ -522,24 +500,15 @@ namespace Deveel.Data.Protocol {
 
 		private class DirectStreamableObjectChannel : IStreamableObjectChannel {
 			private readonly IRef obj;
+			private readonly ServerConnector connector;
 
-			public DirectStreamableObjectChannel(IRef obj) {
+			public DirectStreamableObjectChannel(ServerConnector connector, IRef obj) {
 				this.obj = obj;
+				this.connector = connector;
 			}
 
 			public void Dispose() {
-			}
-
-			public long ObjectId {
-				get { return obj.Id; }
-			}
-
-			public ReferenceType ReferenceType {
-				get { return obj.Type; }
-			}
-
-			public long Length {
-				get { return obj.RawSize; }
+				connector.DisposeChannel(obj.Id);
 			}
 
 			public void PushData(long offset, byte[] buffer, int length) {
@@ -560,10 +529,6 @@ namespace Deveel.Data.Protocol {
 				} catch (IOException e) {
 					throw new DatabaseException("Exception while reading blob: " + e.Message, e);
 				}
-			}
-
-			public void Flush() {
-				obj.Complete();
 			}
 		}
 

@@ -411,6 +411,10 @@ namespace Deveel.Data.DbSystem {
 			return conglomerate.CreateNewLargeObject(type, objectSize);
 		}
 
+		public IRef GetLargeObject(long objectId) {
+			return conglomerate.GetLargeObject(objectId);
+		}
+
 		/// <summary>
 		/// Returns a <see cref="ITableQueryInfo"/> that describes the 
 		/// characteristics of a table including the name, the columns and the 

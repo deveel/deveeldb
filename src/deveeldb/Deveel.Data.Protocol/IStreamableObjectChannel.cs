@@ -17,16 +17,8 @@ using System;
 
 namespace Deveel.Data.Protocol {
 	public interface IStreamableObjectChannel : IDisposable {
-		long ObjectId { get; }
-
-		ReferenceType ReferenceType { get; }
-
-		long Length { get; }
-
 		void PushData(long offset, byte[] buffer, int length);
 
 		byte[] ReadData(long offset, int length);
-
-		void Flush();
 	}
 }

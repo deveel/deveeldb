@@ -58,7 +58,11 @@ namespace Deveel.Data.Client {
 		}
 
 		public override void Prepare() {
-			throw new NotImplementedException();
+			foreach (DeveelDbParameter parameter in parameters) {
+				var value = parameter.Value;
+
+				// TODO: process this...
+			}
 		}
 
 		public override string CommandText { get; set; }

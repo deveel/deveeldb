@@ -49,6 +49,10 @@ namespace Deveel.Data.Client {
 			defaults.Add(VerboseColumnNamesKey, DefaultVerboseColumnName);
 			defaults.Add(PersistSecurityInfoKey, DefaultPersistSecurityInfo);
 			defaults.Add(RowCacheSizeKey, DefaultRowCacheSize);
+			defaults.Add(MaxCacheSizeKey, DefaultMaxCacheSize);
+			defaults.Add(FetchSizeKey, DefaultFetchSize);
+			defaults.Add(MaxFetchSizeKey, DefaultMaxFetchSize);
+			defaults.Add(AutoCommitKey, DefaultAutoCommit);
 			defaults.Add(QueryTimeoutKey, DefaultQueryTimeout);
 
 			keymaps = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);

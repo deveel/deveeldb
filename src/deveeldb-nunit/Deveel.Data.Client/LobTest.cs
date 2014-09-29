@@ -22,13 +22,16 @@ namespace Deveel.Data.Client {
 		[Test]
 		public void SmallBlobWrite() {
 			DeveelDbCommand command = Connection.CreateCommand("INSERT INTO LOB_TEST (Id, Data) VALUES (1, ?)");
-			DeveelDbLargeObject lob = new DeveelDbLargeObject(ReferenceType.Binary, 1024 * 4);
+			var lob = new DeveelDbLargeObject(ReferenceType.Binary, (1024 * 4)*64);
 			lob.Connection = Connection;
 
-			BinaryWriter writer = new BinaryWriter(lob);
-			Random rnd = new Random();
-			for (int i = 1; i <= 1024; i++) {
+			const int iterations = 1024*64;
+			var writer = new BinaryWriter(lob);
+			var rnd = new Random();
+			for (int i = 1; i <= iterations; i++) {
 				int value = rnd.Next();
+
+				// writes 4 bytes
 				writer.Write(value);
 			}
 
@@ -45,9 +48,8 @@ namespace Deveel.Data.Client {
 		}
 
 		[Test]
-		public void SmallBlobRead() {
-			/*
-			TODO: The behavior of LOBs and Binaries has changed ...
+		public void SmallBlobWriteAndRead() {
+			//TODO: We should perform this before the test
 			SmallBlobWrite();
 
 			DeveelDbCommand command = Connection.CreateCommand("SELECT Data FROM LOB_TEST WHERE Id = 1");
@@ -65,9 +67,6 @@ namespace Deveel.Data.Client {
 					offset += readCount;
 				}
 			}
-			*/
-
-			Assert.Ignore("Changed behavior in binary data handling: waiting for better integration.");
 		}
 	}
 }

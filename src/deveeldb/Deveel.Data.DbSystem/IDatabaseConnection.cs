@@ -76,6 +76,8 @@ namespace Deveel.Data.DbSystem {
 
 		IRef CreateLargeObject(ReferenceType referenceType, long size);
 
+		IRef GetLargeObject(long objectId);
+
 		void Commit();
 
 		void Rollback();

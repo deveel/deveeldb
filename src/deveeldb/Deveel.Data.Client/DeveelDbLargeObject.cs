@@ -18,6 +18,7 @@ using System.Data;
 using System.IO;
 
 using Deveel.Data.Protocol;
+using Deveel.Data.Util;
 
 namespace Deveel.Data.Client {
 	public class DeveelDbLargeObject : Stream {
@@ -26,11 +27,14 @@ namespace Deveel.Data.Client {
 		private readonly FileAccess access;
 
 		private long position;
-		private long length;
-		private ReferenceType referenceType;
+		private long writePos;
 
-		private byte[] tempBuffer;
-		private long bufferOffset;
+		private readonly BlobInputStream inputStream;
+
+		private readonly long length;
+		private readonly ReferenceType referenceType;
+
+		private readonly Stream tempStream;
 
 		private const int BufferSize = 64 * 1024;
 
@@ -38,14 +42,24 @@ namespace Deveel.Data.Client {
 			: this(referenceType, length, FileAccess.ReadWrite) {
 		}
 
-		public DeveelDbLargeObject(ReferenceType referenceType, long length, FileAccess access) {
+		protected DeveelDbLargeObject(ReferenceType referenceType, long length, FileAccess access) {
 			this.access = access;
 			this.length = length;
 			this.referenceType = referenceType;
+
+			tempStream = new MemoryStream(BufferSize);
 		}
 
+		internal DeveelDbLargeObject(StreamableObject obj, DeveelDbConnection connection)
+		: this(obj.Type, obj.Size) {
+			ObjectRef = obj;
+			this.connection = connection;
 
-		internal StreamableObject ObjectRef { get; set; }
+			channel = connection.OpenObjectChannel(obj.Identifier);
+			inputStream = new BlobInputStream(channel, 1024, obj.Size);
+		}
+
+		internal StreamableObject ObjectRef { get; private set; }
 
 		public override long Length {
 			get { return length; }
@@ -64,7 +78,7 @@ namespace Deveel.Data.Client {
 			set {
 				connection = value;
 				if (channel == null && connection != null) {
-					CreateChannel();
+					channel = CreateChannel();
 				}
 			}
 		}
@@ -88,105 +102,81 @@ namespace Deveel.Data.Client {
 		}
 
 		public override bool CanSeek {
-			get { return true; }
-		}
-
-		private void FillBuffer(long pos) {
-			long readPos = (pos / BufferSize) * BufferSize;
-			var toRead = (int)System.Math.Min(BufferSize, (length - readPos));
-			if (toRead > 0) {
-				ReadPageContent(readPos, toRead);
-				bufferOffset = readPos;
-			}
-		}
-
-		private void ReadPageContent(long pos, int readLength) {
-			try {
-				if (channel == null)
-					throw new InvalidOperationException();
-
-				tempBuffer = new byte[readLength];
-
-				// Request a part of the blob from the server
-				byte[] buffer = channel.ReadData(pos, readLength);
-				Array.Copy(buffer, 0, tempBuffer, 0, buffer.Length);
-			} catch (DataException e) {
-				throw new IOException("SQL Error: " + e.Message);
-			}
+			get { return false; }
 		}
 
 		public override long Seek(long offset, SeekOrigin origin) {
-			if (offset < 0)
-				throw new NotSupportedException("Backward seeking not supported.");
-
-			if (origin == SeekOrigin.End)
-				throw new NotSupportedException("Seeking from end of the stream is not yet supported.");
-
-			if (origin == SeekOrigin.Begin && offset <= position)
-				position = offset;
-			if (origin == SeekOrigin.Current && offset + position <= length)
-				position += offset;
-
-			if (bufferOffset == -1 || (position - bufferOffset) > BufferSize) {
-				FillBuffer((position/BufferSize)*BufferSize);
-			}
-
-			return position;
+			throw new NotSupportedException();
 		}
 
 		public override void Write(byte[] buffer, int offset, int count) {
 			if (!CanWrite)
 				throw new InvalidOperationException("This stream is not writeable.");
 
-			if (count + position > length)
-				throw new ArgumentOutOfRangeException("count");
+			lock (tempStream) {
+				if (count + position > length)
+					throw new ArgumentOutOfRangeException("count");
 
-			if (channel == null)
-				channel = CreateChannel();
-
-			channel.PushData(position, buffer, count);
-			position += count;
+				tempStream.Write(buffer, offset, count);
+				position += count;
+			}
 		}
 
 		public override int Read(byte[] buffer, int offset, int count) {
 			if (!CanRead)
 				throw new InvalidOperationException("This stream is not readable.");
 
-			if (count <= 0)
-				throw new ArgumentException();
-
-			if (bufferOffset == -1) {
-				FillBuffer(position);
-			}
-
-			var p = (int)(position - bufferOffset);
-			long bufferEnd = System.Math.Min(bufferOffset + BufferSize, length);
-			var toRead = (int)System.Math.Min(count, bufferEnd - position);
-			if (toRead <= 0)
-				return 0;
-
-			int hasRead = 0;
-			while (toRead > 0) {
-				Array.Copy(tempBuffer, p, buffer, offset, toRead);
-				hasRead += toRead;
-				p += toRead;
-				offset += toRead;
-				count -= toRead;
-				position += toRead;
-				if (p >= BufferSize) {
-					FillBuffer(bufferOffset + BufferSize);
-					p -= BufferSize;
-				}
-				bufferEnd = System.Math.Min(bufferOffset + BufferSize, length);
-				toRead = (int)System.Math.Min(count, bufferEnd - position);
-			}
-
-			return hasRead;
+			return inputStream.Read(buffer, offset, count);
 		}
 
+		#region BlobInputStream
+
+		class BlobInputStream : PagedInputStream {
+			private readonly IStreamableObjectChannel channel;
+
+			public BlobInputStream(IStreamableObjectChannel channel, int pageSize, long totalSize) 
+				: base(pageSize, totalSize) {
+				this.channel = channel;
+			}
+
+			protected override void ReadPageContent(byte[] buf, long pos, int length) {
+				var data = channel.ReadData(pos, length);
+				Array.Copy(data, 0, buf, 0, data.Length);
+			}
+		}
+
+		#endregion
+
 		public override void Flush() {
-			if (channel != null)
-				channel.Flush();
+			lock (tempStream) {
+				if (channel == null)
+					channel = CreateChannel();
+
+				var buf = new byte[BufferSize];
+				var totalLen = ObjectRef.Size;
+
+				tempStream.Seek(0, SeekOrigin.Begin);
+
+				// Fill the buffer
+				int offset = 0;
+				int blockRead = (int) System.Math.Min(BufferSize, totalLen);
+				int toRead = blockRead;
+				while (toRead > 0) {
+					int count = tempStream.Read(buf, offset, toRead);
+					if (count == 0)
+						throw new IOException("Premature end of stream.");
+
+					offset += count;
+					toRead -= count;
+				}
+
+				tempStream.SetLength(0);
+
+				// Send the part of the streamable object to the database.
+				channel.PushData(writePos, buf, blockRead);
+
+				writePos += blockRead;
+			}
 		}
 
 		public override void SetLength(long value) {

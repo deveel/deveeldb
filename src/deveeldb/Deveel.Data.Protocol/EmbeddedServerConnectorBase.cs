@@ -282,8 +282,6 @@ namespace Deveel.Data.Protocol {
 
 				if (message is StreamableObjectCreateRequest)
 					return ProcessCreateStreamableObject(dispatchId, (StreamableObjectCreateRequest) message);
-				if (message is StreamableObjectDisposeRequest)
-					return ProcessDisposeStreamableObject(dispatchId, (StreamableObjectDisposeRequest) message);
 
 				if (message is BeginRequest)
 					return ProcessBegin(dispatchId);
@@ -293,11 +291,6 @@ namespace Deveel.Data.Protocol {
 					return ProcessRollback(dispatchId);
 
 				return ErrorResponse(dispatchId, "Unable to process the message.");
-			}
-
-			private IMessageEnvelope ProcessDisposeStreamableObject(int dispatchId, StreamableObjectDisposeRequest request) {
-				bool result = connector.DisposeStreamableObject(request.ObjectId);
-				return CreateEnvelope(dispatchId, new AcknowledgeResponse(result));
 			}
 
 			private IMessageEnvelope ProcessCreateStreamableObject(int dispatchId, StreamableObjectCreateRequest request) {
