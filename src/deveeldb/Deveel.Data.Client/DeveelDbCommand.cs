@@ -325,23 +325,63 @@ namespace Deveel.Data.Client {
 			CreateResults(response);
 		}
 
-		private StreamableObject UploadStream(Stream stream) {
-			var obj = connection.CreateStreamableObject(ReferenceType.Binary, stream.Length, ObjectPersistenceType.Volatile);
-			var channel = connection.OpenObjectChannel(obj.Identifier, ObjectPersistenceType.Volatile);
-			
-			//TODO: copy the data from the stream to the channel ...
+		private byte[] CopyStreamToBytes(Stream stream) {
+			if (!stream.CanRead)
+				throw new InvalidOperationException();
+
+			const int bufferSize = 1024;
+			using (var copyStream = new MemoryStream((int)stream.Length)) {
+				var copyBuffer = new byte[bufferSize];
+				int readCount;
+				int copyOffset = 0;
+				while ((readCount = stream.Read(copyBuffer, 0, bufferSize)) > 0) {
+					copyStream.Write(copyBuffer, copyOffset, readCount);
+					copyOffset += readCount;
+				}
+
+				copyStream.Flush();
+				return copyStream.ToArray();
+			}
+		}
+
+		private StreamableObject CopyStreamToChannel(Stream stream) {
+			var obj = connection.CreateStreamableObject(ReferenceType.Binary, stream.Length);
+			using (var copyChannel = connection.OpenObjectChannel(obj.Identifier)) {
+				const int bufferSize = 2048;
+				var copyBuffer = new byte[bufferSize];
+				int readCount;
+				long copyOffset = 0;
+				while ((readCount = stream.Read(copyBuffer, 0, bufferSize)) > 0) {
+					copyChannel.PushData(copyOffset, copyBuffer, readCount);
+					copyOffset += readCount;
+				}
+			}
 
 			return obj;
 		}
 
 		private void UploadLargeObjects(SqlQuery query) {
 			foreach (var parameter in query.Parameters) {
-				//TODO: support for blob ...
-
-				if (parameter.Value is Stream) {
+				if (parameter.Value is DeveelDbLargeObject) {
+					var lob = (DeveelDbLargeObject) parameter.Value;
+					parameter.Value = lob.ObjectRef;
+					if (lob.ObjectRef.Type == ReferenceType.Binary)
+						parameter.SqlType = SqlType.Blob;
+					else if (lob.ObjectRef.Type == ReferenceType.UnicodeText ||
+					         lob.ObjectRef.Type == ReferenceType.AsciiText)
+						parameter.SqlType = SqlType.Clob;
+				} else if (parameter.Value is Stream) {
 					var stream = (Stream) parameter.Value;
-					var obj = UploadStream(stream);
-					parameter.Value = new SqlQueryParameter(parameter.Name, obj);
+					if (stream.Length <= Int32.MaxValue) {
+						var bytes = CopyStreamToBytes(stream);
+						parameter.Value = bytes;
+						parameter.SqlType = SqlType.Binary;
+						parameter.Size = bytes.Length;
+					} else {
+						var obj = CopyStreamToChannel(stream);
+						parameter.Value = obj;
+						parameter.SqlType = SqlType.Blob;
+					}
 				}
 
 				// TODO: convert the value to a serializable

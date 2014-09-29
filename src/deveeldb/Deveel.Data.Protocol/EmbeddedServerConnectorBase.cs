@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Routines;
 using Deveel.Diagnostics;
@@ -78,18 +77,6 @@ namespace Deveel.Data.Protocol {
 
 		private EmbeddedMessageEnvelope CreateEnvelope(int dispatchId, IMessage message) {
 			return (EmbeddedMessageEnvelope) CreateEnvelope(new Dictionary<string, object> {{"DispatchID", dispatchId}}, message);
-		}
-
-		public override IStreamableObjectChannel CreateObjectChannel(long objectId, ObjectPersistenceType persistence) {
-			if (persistence == ObjectPersistenceType.Persistent) {
-				var obj = GetObjectRef(objectId);
-				if (obj == null)
-					throw new InvalidOperationException();
-
-				return new DirectStreamableObjectChannel(obj);
-			}
-
-			throw new NotImplementedException();
 		}
 
 		public override ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType) {
@@ -337,105 +324,6 @@ namespace Deveel.Data.Protocol {
 					throw new InvalidOperationException("The envelope was created in another context.");
 
 				return ProcessMessage(envelope.DispatchId, envelope.Message);
-			}
-		}
-
-		#endregion
-
-		#region VolatileStreamableObjectChannel
-
-		class VolatileStreamableObjectChannel : IStreamableObjectChannel {
-			private readonly Stream tempStream;
-
-			public VolatileStreamableObjectChannel(long objectId, ReferenceType referenceType, long length, Stream tempStream) {
-				Length = length;
-				ReferenceType = referenceType;
-				ObjectId = objectId;
-				this.tempStream = tempStream;
-			}
-
-			public void Dispose() {
-			}
-
-			public long ObjectId { get; private set; }
-
-			public ReferenceType ReferenceType { get; private set; }
-
-			public ObjectPersistenceType PersistenceType {
-				get { return ObjectPersistenceType.Volatile; }
-			}
-
-			public long Length { get; private set; }
-
-			public void PushData(long offset, byte[] buffer, int length) {
-				tempStream.Seek(offset, SeekOrigin.Begin);
-				tempStream.Write(buffer, 0, length);
-			}
-
-			public byte[] ReadData(long offset, int length) {
-				var buffer = new byte[length];
-				tempStream.Seek(offset, SeekOrigin.Begin);
-				tempStream.Read(buffer, 0, length);
-
-				return buffer;
-			}
-
-			public void Flush() {
-			}
-		}
-
-		#endregion
-
-		#region DirectStreamableObjectChannel
-
-		private class DirectStreamableObjectChannel : IStreamableObjectChannel {
-			private readonly IRef obj;
-
-			public DirectStreamableObjectChannel(IRef obj) {
-				this.obj = obj;
-			}
-
-			public void Dispose() {
-			}
-
-			public long ObjectId {
-				get { return obj.Id; }
-			}
-
-			public ReferenceType ReferenceType {
-				get { return obj.Type; }
-			}
-
-			public ObjectPersistenceType PersistenceType {
-				get { return ObjectPersistenceType.Persistent; }
-			}
-
-			public long Length {
-				get { return obj.RawSize; }
-			}
-
-			public void PushData(long offset, byte[] buffer, int length) {
-				obj.Write(offset, buffer, length);
-			}
-
-			public byte[] ReadData(long offset, int length) {
-				if (length > 512*1024)
-					throw new DatabaseException("Request length exceeds 512 KB");
-
-				try {
-					// Read the blob part into the byte array.
-					var blobPart = new byte[length];
-					obj.Read(offset, blobPart, length);
-
-					// And return as a StreamableObjectPart object.
-					return blobPart;
-				} catch (IOException e) {
-					throw new DatabaseException("Exception while reading blob: " + e.Message, e);
-				}
-			}
-
-			public void Flush() {
-				obj.Complete();
 			}
 		}
 

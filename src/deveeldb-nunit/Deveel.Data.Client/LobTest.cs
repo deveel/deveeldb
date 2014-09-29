@@ -21,10 +21,9 @@ namespace Deveel.Data.Client {
 
 		[Test]
 		public void SmallBlobWrite() {
-			/*
-			TODO: The behavior of LOBs and Binaries has changed ...
 			DeveelDbCommand command = Connection.CreateCommand("INSERT INTO LOB_TEST (Id, Data) VALUES (1, ?)");
 			DeveelDbLargeObject lob = new DeveelDbLargeObject(ReferenceType.Binary, 1024 * 4);
+			lob.Connection = Connection;
 
 			BinaryWriter writer = new BinaryWriter(lob);
 			Random rnd = new Random();
@@ -43,9 +42,6 @@ namespace Deveel.Data.Client {
 			int count = command.ExecuteNonQuery();
 
 			Assert.AreEqual(1, count);
-			*/
-
-			Assert.Ignore("Changed behavior in binary data handling: waiting for better integration.");
 		}
 
 		[Test]

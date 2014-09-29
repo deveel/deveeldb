@@ -125,7 +125,6 @@
     <Compile Include="Deveel.Data.Protocol\AuthenticateRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\AuthenticateResponse.cs" />
     <Compile Include="Deveel.Data.Protocol\BeginRequest.cs" />
-    <Compile Include="Deveel.Data.Protocol\ChannelType.cs" />
     <Compile Include="Deveel.Data.Protocol\CloseCommand.cs" />
     <Compile Include="Deveel.Data.Protocol\CommitRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\ConnectionEndPoint.cs" />

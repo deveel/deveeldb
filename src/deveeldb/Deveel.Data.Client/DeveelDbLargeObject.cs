@@ -73,14 +73,10 @@ namespace Deveel.Data.Client {
 			if (connection == null)
 				throw new InvalidOperationException("The object is outside the context.");
 
-			if (ObjectRef != null) {
-				channel = connection.OpenObjectChannel(ObjectRef.Identifier, ObjectPersistenceType.Volatile);
-			} else {
-				ObjectRef = connection.CreateStreamableObject(referenceType, length, ObjectPersistenceType.Volatile);
-				channel = connection.OpenObjectChannel(ObjectRef.Identifier, ObjectPersistenceType.Volatile);
-			}
+			if (ObjectRef == null)
+				ObjectRef = connection.CreateStreamableObject(referenceType, length);
 
-			return channel;
+			return connection.OpenObjectChannel(ObjectRef.Identifier);
 		}
 
 		public override bool CanRead {
@@ -148,13 +144,8 @@ namespace Deveel.Data.Client {
 			if (channel == null)
 				channel = CreateChannel();
 
-			var buf = new byte[BufferSize];
-			// Fill the buffer
-			var blockWrite = (int) System.Math.Min(BufferSize, (length - position));
-			Array.Copy(buffer, offset, buf, 0, blockWrite);
-
 			channel.PushData(position, buffer, count);
-			position += blockWrite;
+			position += count;
 		}
 
 		public override int Read(byte[] buffer, int offset, int count) {

@@ -473,16 +473,16 @@ namespace Deveel.Data.Client {
 			return processor.RequestResultPart(resultId, rowIndex, rowCount);
 		}
 
-		internal StreamableObject CreateStreamableObject(ReferenceType referenceType, long length, ObjectPersistenceType persistence) {
-			var objId = processor.CreateObject(referenceType, length, persistence);
+		internal StreamableObject CreateStreamableObject(ReferenceType referenceType, long length) {
+			var objId = processor.CreateObject(referenceType, length);
 			return new StreamableObject(referenceType, length, objId);
 		}
 
-		internal IStreamableObjectChannel OpenObjectChannel(long objId, ObjectPersistenceType persistence) {
+		internal IStreamableObjectChannel OpenObjectChannel(long objId) {
 			if (connector == null)
 				throw new InvalidOperationException();
 
-			return connector.CreateObjectChannel(objId, persistence);
+			return connector.CreateObjectChannel(objId);
 		}
 
 		internal void DisposeObject(long objId) {
@@ -579,8 +579,8 @@ namespace Deveel.Data.Client {
 					throw new InvalidOperationException("Could not dispose the result on the server.");
 			}
 
-			public long CreateObject(ReferenceType referenceType, long length, ObjectPersistenceType persistence) {
-				var request = new StreamableObjectCreateRequest(referenceType, length, persistence);
+			public long CreateObject(ReferenceType referenceType, long length) {
+				var request = new StreamableObjectCreateRequest(referenceType, length);
 				var response = (StreamableObjectCreateResponse) Process(request);
 				return response.ObjectId;
 			}

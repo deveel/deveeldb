@@ -461,7 +461,14 @@ namespace Deveel.Data.Protocol {
 
 		public abstract IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);
 
-		public abstract IStreamableObjectChannel CreateObjectChannel(long objectId, ObjectPersistenceType persistence);
+		public IStreamableObjectChannel CreateObjectChannel(long objectId) {
+			var obj = GetObjectRef(objectId);
+			if (obj == null)
+				throw new InvalidOperationException("The object was not created or was not found.");
+
+			return new DirectStreamableObjectChannel(obj);
+		}
+
 
 		public abstract ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType);
 
@@ -510,5 +517,56 @@ namespace Deveel.Data.Protocol {
 
 			public string Warnings { get; private set; }
 		}
+
+		#region DirectStreamableObjectChannel
+
+		private class DirectStreamableObjectChannel : IStreamableObjectChannel {
+			private readonly IRef obj;
+
+			public DirectStreamableObjectChannel(IRef obj) {
+				this.obj = obj;
+			}
+
+			public void Dispose() {
+			}
+
+			public long ObjectId {
+				get { return obj.Id; }
+			}
+
+			public ReferenceType ReferenceType {
+				get { return obj.Type; }
+			}
+
+			public long Length {
+				get { return obj.RawSize; }
+			}
+
+			public void PushData(long offset, byte[] buffer, int length) {
+				obj.Write(offset, buffer, length);
+			}
+
+			public byte[] ReadData(long offset, int length) {
+				if (length > 512 * 1024)
+					throw new DatabaseException("Request length exceeds 512 KB");
+
+				try {
+					// Read the blob part into the byte array.
+					var blobPart = new byte[length];
+					obj.Read(offset, blobPart, length);
+
+					// And return as a StreamableObjectPart object.
+					return blobPart;
+				} catch (IOException e) {
+					throw new DatabaseException("Exception while reading blob: " + e.Message, e);
+				}
+			}
+
+			public void Flush() {
+				obj.Complete();
+			}
+		}
+
+		#endregion
 	}
 }

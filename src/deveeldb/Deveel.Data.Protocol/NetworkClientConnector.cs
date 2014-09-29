@@ -187,7 +187,7 @@ namespace Deveel.Data.Protocol {
 			return envelope.Message;
 		}
 
-		public IStreamableObjectChannel CreateObjectChannel(long objectId, ObjectPersistenceType persistence) {
+		public IStreamableObjectChannel CreateObjectChannel(long objectId) {
 			throw new NotImplementedException();
 		}
 

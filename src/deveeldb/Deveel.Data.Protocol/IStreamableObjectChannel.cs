@@ -21,8 +21,6 @@ namespace Deveel.Data.Protocol {
 
 		ReferenceType ReferenceType { get; }
 
-		ObjectPersistenceType PersistenceType { get; }
-
 		long Length { get; }
 
 		void PushData(long offset, byte[] buffer, int length);

@@ -31,7 +31,7 @@ namespace Deveel.Data.Protocol {
 
 		IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);
 
-		IStreamableObjectChannel CreateObjectChannel(long objectId, ObjectPersistenceType persistence);
+		IStreamableObjectChannel CreateObjectChannel(long objectId);
 
 		ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType);
 	}
