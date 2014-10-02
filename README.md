@@ -15,6 +15,30 @@ DeveelDB is a complete embeddable SQL-99 RDBMS for .NET/Mono frameworks. The sys
 
 Although the core project is thought to be embedded in applications, the modular architecture allows extensions to other uses, such as providing databases through networks: an application is already included in the solution.
 
+Where to Download
+============
+
+The kernel library (_deveeldb.dll_)  is present on [NuGet](http://nuget.org), and can be installed by executing the following command on the Package Manager Console
+
+```
+PM> Install-Package deveeldb
+
+OR
+
+PM> Install-Package deveeldb.x86
+```
+
+Another version optimized for x64 architecture can be installed using the command
+
+```
+PM> Install-Package deveeldb.x64
+```
+
+Alternatively, use the NuGet package explorer and search for _deveeldb_ (or _deveeldb.x64_ for x64 optimized version) and install it..
+
+The kernel library has no external dependencies and requires .NET v3.5 (or higher)
+
+
 How to Use it
 ============
 
