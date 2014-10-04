@@ -131,8 +131,7 @@ namespace Deveel.Data.Protocol {
 			}
 
 			public bool ShouldNotify(string triggerName, string objectName, TriggerEventType eventType) {
-				if (!String.Equals(triggerName, TriggerName, StringComparison.OrdinalIgnoreCase) ||
-				    !String.Equals(objectName, ObjectName, StringComparison.OrdinalIgnoreCase))
+				if (!String.Equals(triggerName, TriggerName, StringComparison.OrdinalIgnoreCase))
 					return false;
 
 				return (eventType & EventType) != 0;

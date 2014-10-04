@@ -795,10 +795,12 @@ StatementTree CreateTrigger() :
 {
   (
     ( <CALLBACK> <TRIGGER> trigger_name = TriggerName()
+	    before_after = BeforeOrAfter()
         TriggerTypes(trigger_types)
         <ON> table_name = TableName()
     )
     { cmd.SetValue("type", "callback_trigger");
+	  cmd.SetValue("before_after", before_after);
     }
 
   | ( <TRIGGER> trigger_name = TriggerName()

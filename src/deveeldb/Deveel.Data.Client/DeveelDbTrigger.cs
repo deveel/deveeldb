@@ -24,20 +24,21 @@ namespace Deveel.Data.Client {
 	public sealed class DeveelDbTrigger : IDisposable {
 		private ITriggerChannel channel;
 
-		public DeveelDbTrigger(string triggerName) 
-			: this((DeveelDbConnection) null, triggerName) {
+		public DeveelDbTrigger(string triggerName, TriggerEventType eventType) 
+			: this((DeveelDbConnection) null, triggerName, eventType) {
 		}
 
-		public DeveelDbTrigger(DeveelDbConnection connection, string triggerName) {
+		public DeveelDbTrigger(DeveelDbConnection connection, string triggerName, TriggerEventType eventType) {
 			if (String.IsNullOrEmpty(triggerName))
 				throw new ArgumentNullException("triggerName");
 
 			Connection = connection;
 			TriggerName = triggerName;
+			EventType = eventType;
 		}
 
-		public DeveelDbTrigger(string connectionString, string triggerName)
-			: this(new DeveelDbConnection(connectionString), triggerName) {
+		public DeveelDbTrigger(string connectionString, string triggerName, TriggerEventType eventType)
+			: this(new DeveelDbConnection(connectionString), triggerName, eventType) {
 			OwnsConnection = true;
 		}
 
@@ -83,6 +84,9 @@ namespace Deveel.Data.Client {
 			if ((types & TriggerEventType.After) != 0)
 				after = true;
 
+			if (!before && !after)
+				throw new InvalidOperationException("The event type for the trigger must be either BEFORE or AFTER.");
+
 			if ((types & TriggerEventType.Insert) != 0)
 				list.Add(TriggerEventType.Insert);
 			if ((types & TriggerEventType.Update) != 0)
@@ -92,41 +96,27 @@ namespace Deveel.Data.Client {
 
 			var sb = new StringBuilder();
 
-			if (before | after) {
-				if (before) {
-					for (int i = 0; i < list.Count; i++) {
-						sb.Append("BEFORE");
-						sb.Append(' ');
-						sb.Append(list[i].ToString().ToUpper());
-						if (i < list.Count - 1)
-							sb.Append(" OR ");
-					}
-				}
-
-				if (before && after)
-					sb.Append(" OR ");
-
-				if (after) {
-					for (int i = 0; i < list.Count; i++) {
-						sb.Append("AFTER");
-						sb.Append(' ');
-						sb.Append(list[i].ToString().ToUpper());
-						if (i < list.Count - 1)
-							sb.Append(" OR ");
-					}
-				}
+			if (before) {
+				sb.Append("BEFORE");
 			} else {
-				for (int i = 0; i < list.Count; i++) {
-					sb.Append(list[i].ToString().ToUpper());
-					if (i < list.Count - 1)
-						sb.Append(" OR ");
-				}
+				sb.Append("AFTER");
+			}
+
+			sb.Append(" ");
+
+			for (int i = 0; i < list.Count; i++) {
+				sb.Append(list[i].ToString().ToUpper());
+				if (i < list.Count - 1)
+					sb.Append(" OR ");
 			}
 
 			return sb.ToString();
 		}
 
 		public void Create() {
+			if (EventType == 0)
+				throw new InvalidOperationException("The trigger is not set to any event.");
+
 			if (channel != null)
 				throw new InvalidOperationException("There is a channel open for the trigger: it already exists");
 
@@ -138,7 +128,7 @@ namespace Deveel.Data.Client {
 
 			var command = GetCreateStatement();
 			var result = command.ExecuteNonQuery();
-			if (result != 1)
+			if (result != 0)
 				throw new InvalidOperationException("Was not able to create the trigger on the server.");
 		}
 
@@ -206,8 +196,8 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public static DeveelDbTrigger Subscribe(string connectionString, string triggerName, Action<TriggerInvoke> callback) {
-			var trigger = new DeveelDbTrigger(connectionString, triggerName);
+		public static DeveelDbTrigger Subscribe(string connectionString, string triggerName, TriggerEventType eventType, Action<TriggerInvoke> callback) {
+			var trigger = new DeveelDbTrigger(connectionString, triggerName, eventType);
 			trigger.Subscribe(callback);
 			return trigger;
 		}
@@ -219,9 +209,8 @@ namespace Deveel.Data.Client {
 
 		public static DeveelDbTrigger Create(string connectionString, string triggerName, string objectName,
 			TriggerEventType eventType, Action<TriggerInvoke> callback) {
-			var trigger = new DeveelDbTrigger(connectionString, triggerName);
+			var trigger = new DeveelDbTrigger(connectionString, triggerName, eventType);
 			trigger.ObjectName = objectName;
-			trigger.EventType = eventType;
 			trigger.Create();
 
 			if (callback != null)

@@ -45,6 +45,14 @@ namespace Deveel.Data.Client {
 		public bool IsInsert {
 			get { return (EventType & TriggerEventType.Insert) != 0; }
 		}
+
+		public bool IsUpdate {
+			get { return (EventType & TriggerEventType.Update) != 0; }
+		}
+
+		public bool IsDelete {
+			get { return (EventType & TriggerEventType.Delete) != 0; }
+		}
 	}
 
 }

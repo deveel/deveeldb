@@ -60,6 +60,5 @@ namespace Deveel.Data.Routines {
 
 		AllBefore = BeforeInsert | BeforeDelete | BefroeUpdate,
 		AllAfter = AfterInsert | AfterDelete | AfterUpdate,
-		All = AllBefore | AllAfter
 	}
 }
