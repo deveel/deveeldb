@@ -43,7 +43,7 @@ namespace Deveel.Data.Control {
 
 		public LocalSystem System { get; private set; }
 
-		public IConnector Create(IDbConfig config, string userName, string password) {
+		public IServerConnector Create(IDbConfig config, string userName, string password) {
 			if (String.IsNullOrEmpty(userName))
 				throw new ArgumentNullException("userName");
 			if (String.IsNullOrEmpty(password))
@@ -62,7 +62,7 @@ namespace Deveel.Data.Control {
 			return connector;
 		}
 
-		public IConnector Boot(IDbConfig config) {
+		public IServerConnector Boot(IDbConfig config) {
 			if (IsBooted)
 				throw new DatabaseException("Database was booted more than once.");
 
@@ -80,7 +80,7 @@ namespace Deveel.Data.Control {
 			return connector;
 		}
 
-		public IConnector Connect(IDbConfig config) {
+		public IServerConnector Connect(IDbConfig config) {
 			if (!IsBooted)
 				throw new DatabaseException("The database is not started.");
 

@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Server;
 using Deveel.Diagnostics;
 

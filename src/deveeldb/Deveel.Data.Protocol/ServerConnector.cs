@@ -27,12 +27,16 @@ using Deveel.Data.Transactions;
 using Deveel.Diagnostics;
 
 namespace Deveel.Data.Protocol {
-	public abstract class ServerConnector : IConnector {
+	public abstract class ServerConnector : IServerConnector {
 		private readonly Dictionary<long, IRef> blobIdMap;
 
 		private bool autoCommit;
 		private bool ignoreIdentifiersCase;
 		private ParameterStyle parameterStyle;
+
+		private int triggerId;
+		private Dictionary<int, TriggerChannel> triggerChannels;
+		private readonly object triggerLock = new object();
 
 		protected ServerConnector(IDatabaseHandler handler) {
 			if (handler == null)
@@ -68,6 +72,11 @@ namespace Deveel.Data.Protocol {
 		private void AssertNotDisposed() {
 			if (CurrentState == ConnectorState.Disposed)
 				throw new ObjectDisposedException(GetType().AssemblyQualifiedName);
+		}
+
+		private void AssertAuthenticated() {
+			if (CurrentState != ConnectorState.Authenticated)
+				throw new InvalidOperationException("The connector is not authenticated.");
 		}
 
 		protected void ChangeState(ConnectorState newState) {
@@ -112,10 +121,11 @@ namespace Deveel.Data.Protocol {
 		protected void CloseConnector() {
 			try {
 				OnCloseConnector();
-				ChangeState(ConnectorState.Closed);
 			} catch (Exception ex) {
 				Logger.Error(this, "Error when closing the connector.");
-				Logger.Error(this, ex);				
+				Logger.Error(this, ex);
+			} finally {
+				ChangeState(ConnectorState.Closed);
 			}
 		}
 
@@ -168,12 +178,22 @@ namespace Deveel.Data.Protocol {
 		}
 
 		protected virtual void OnTriggerFired(string triggerName, string triggerSource, TriggerEventType eventType, int count) {
+			lock (triggerChannels) {
+				foreach (var channel in triggerChannels.Values) {
+					if (channel.ShouldNotify(triggerName, triggerSource, eventType))
+						channel.Notify(triggerName, triggerSource, eventType, count);
+				}
+			}
 		}
 
-		protected void BeginTransaction() {
+		protected int BeginTransaction() {
 			AssertNotDisposed();
 
+			// TODO: In a future version, we will provide multiple transactions.
+			//       for the moment we only set the current connection not to auto-commit
+			//       that will require an explicit commit.
 			Session.Connection.AutoCommit = false;
+			return -1;
 		}
 
 		protected virtual bool Authenticate(string defaultSchema, string username, string password) {
@@ -234,7 +254,7 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		protected virtual IQueryResponse[] ExecuteQuery(string text, IEnumerable<SqlQueryParameter> parameters) {
+		protected IQueryResponse[] CoreExecuteQuery(string text, IEnumerable<SqlQueryParameter> parameters) {
 			// Record the Query start time
 			DateTime startTime = DateTime.Now;
 
@@ -289,7 +309,98 @@ namespace Deveel.Data.Protocol {
 				j++;
 			}
 
-			return responses;
+			return responses;			
+		}
+
+		protected virtual IQueryResponse[] ExecuteQuery(string text, IEnumerable<SqlQueryParameter> parameters) {
+			// Log this Query if Query logging is enabled
+			if (Logger.IsInterestedIn(LogLevel.Debug)) {
+				// Output the instruction to the _queries log.
+				Logger.DebugFormat(this, "[CLIENT] [{0}] - Query: {1}", Session.User.UserName, text);
+			}
+
+			// Write debug message (Info level)
+			if (Logger.IsInterestedIn(LogLevel.Debug)) {
+				Logger.DebugFormat(this, "Query From User: {0}", Session.User.UserName);
+				Logger.DebugFormat(this, "Query: {0}", text.Trim());
+			}
+
+			// Get the locking mechanism.
+			LockingMechanism locker = Session.Connection.LockingMechanism;
+			LockingMode lockMode = LockingMode.None;
+			IQueryResponse[] response = null;
+
+			try {
+				try {
+					// For simplicity - all database locking is now exclusive inside
+					// a transaction.  This means it is not possible to execute
+					// queries concurrently inside a transaction.  However, we are
+					// still able to execute queries concurrently from different
+					// connections.
+					//
+					// It's debatable whether we even need to perform this Lock anymore
+					// because we could change the contract of this method so that
+					// it is not thread safe.  This would require that the callee ensures
+					// more than one thread can not execute queries on the connection.
+					lockMode = LockingMode.Exclusive;
+					locker.SetMode(lockMode);
+
+					// Execute the Query (behaviour for this comes from super).
+					response = CoreExecuteQuery(text, parameters);
+
+					// Return the result.
+					return response;
+
+				} finally {
+					try {
+						// This is executed no matter what happens.  Very important we
+						// unlock the tables.
+						if (lockMode != LockingMode.None) {
+							locker.FinishMode(lockMode);
+						}
+					} catch (Exception e) {
+						// If this throws an exception, we should output it to the debug
+						// log and screen.
+						Logger.Error(this, "Exception finishing locks");
+						Logger.Error(this, e);
+						// Note, we can't throw an error here because we may already be in
+						// an exception that happened in the above 'try' block.
+					}
+				}
+			} finally {
+				// This always happens after tables are unlocked.
+				// Also guarenteed to happen even if something fails.
+
+				// If we are in auto-commit mode then commit the Query here.
+				// Do we auto-commit?
+				if (Session.Connection.AutoCommit) {
+					// Yes, so grab an exclusive Lock and auto-commit.
+					try {
+						// Lock into exclusive mode.
+						locker.SetMode(LockingMode.Exclusive);
+						// If an error occured then roll-back
+						if (response == null) {
+							// Rollback.
+							Session.Connection.Rollback();
+						} else {
+							try {
+								// Otherwise commit.
+								Session.Connection.Commit();
+							} catch (Exception e) {
+								foreach (IQueryResponse queryResponse in response) {
+									// Dispose this response if the commit failed.
+									DisposeResult(queryResponse.ResultId);
+								}
+
+								// And throw the SQL Exception
+								throw;
+							}
+						}
+					} finally {
+						locker.FinishMode(LockingMode.Exclusive);
+					}
+				}
+			}
 		}
 
 		private readonly Dictionary<int, QueryResult> resultMap;
@@ -390,27 +501,21 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		protected void CommitTransaction() {
+		protected void CommitTransaction(int transactionId) {
 			AssertNotDisposed();
 
 			try {
 				Session.Connection.Commit();
-			} catch (Exception) {
-
-				throw;
 			} finally {
 				Session.Connection.AutoCommit = autoCommit;
 			}
 		}
 
-		protected void RollbackTransaction() {
+		protected void RollbackTransaction(int transactionId) {
 			AssertNotDisposed();
 
 			try {
 				Session.Connection.Rollback();
-			} catch (Exception) {
-
-				throw;
 			} finally {
 				Session.Connection.AutoCommit = autoCommit;
 			}
@@ -418,11 +523,30 @@ namespace Deveel.Data.Protocol {
 
 		public abstract ConnectionEndPoint MakeEndPoint(IDictionary<string, object> properties);
 
-		public abstract IMessageProcessor CreateProcessor();
+		IMessageProcessor IConnector.CreateProcessor() {
+			return new ServerMessageProcessor(this);
+		}
 
-		public abstract IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);
+		protected abstract IServerMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);
 
-		public IStreamableObjectChannel CreateObjectChannel(long objectId) {
+		IMessageEnvelope IConnector.CreateEnvelope(IDictionary<string, object> metadata, IMessage message) {
+			return CreateEnvelope(metadata, message);
+		}
+
+		protected virtual IMessage GetMessage(IMessageEnvelope envelope) {
+			if (envelope == null)
+				return null;
+
+			// TODO: handle errors? it's not supposed the client to send errors to the server ...
+
+			return envelope.Message;
+		}
+
+		IStreamableObjectChannel IConnector.CreateObjectChannel(long objectId) {
+			return CreateObjectChannel(objectId);
+		}
+
+		protected virtual IStreamableObjectChannel CreateObjectChannel(long objectId) {
 			var obj = GetObjectRef(objectId);
 			if (obj == null)
 				throw new InvalidOperationException("The object was not created or was not found.");
@@ -448,7 +572,29 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		public abstract ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType);
+		ITriggerChannel IConnector.CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType) {
+			return CreateTriggerChannel(triggerName, objectName, eventType);
+		}
+
+		protected virtual ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType) {
+			AssertAuthenticated();
+
+			lock (triggerLock) {
+				if (triggerChannels == null)
+					triggerChannels = new Dictionary<int, TriggerChannel>();
+
+				foreach (TriggerChannel channel in triggerChannels.Values) {
+					// If there's an open channel for the trigger return it
+					if (channel.ShouldNotify(triggerName, objectName, eventType))
+						return channel;
+				}
+
+				int id = ++triggerId;
+				var newChannel = new TriggerChannel(this, id, triggerName, objectName, eventType);
+				triggerChannels[id] = newChannel;
+				return newChannel;
+			}
+		}
 
 		public void Dispose() {
 			Dispose(true);
@@ -466,6 +612,8 @@ namespace Deveel.Data.Protocol {
 
 			ChangeState(ConnectorState.Disposed);
 		}
+
+		#region QueryResponse
 
 		private sealed class QueryResponse : IQueryResponse {
 			private readonly QueryResult result;
@@ -495,6 +643,8 @@ namespace Deveel.Data.Protocol {
 
 			public string Warnings { get; private set; }
 		}
+
+		#endregion
 
 		#region DirectStreamableObjectChannel
 
@@ -530,6 +680,291 @@ namespace Deveel.Data.Protocol {
 					throw new DatabaseException("Exception while reading blob: " + e.Message, e);
 				}
 			}
+		}
+
+		#endregion
+
+		#region ServerMessageProcessor
+
+		private class ServerMessageProcessor : IMessageProcessor {
+			private readonly ServerConnector connector;
+
+			public ServerMessageProcessor(ServerConnector connector) {
+				this.connector = connector;
+			}
+
+			private IMessageEnvelope CreateErrorResponse(IMessageEnvelope sourceMessage, string message) {
+				return CreateErrorResponse(sourceMessage, new ProtocolException(message));
+			}
+
+			private IMessageEnvelope CreateErrorResponse(IMessageEnvelope sourceMessage, Exception error) {
+				IDictionary<string, object> metadata = null;
+				if (sourceMessage != null)
+					metadata = sourceMessage.Metadata;
+
+				return CreateErrorResponse(metadata, error);
+			}
+
+			private IMessageEnvelope CreateErrorResponse(IDictionary<string, object> metadata, Exception error) {
+				var envelope = connector.CreateEnvelope(metadata, new AcknowledgeResponse(false));
+				envelope.SetError(error);
+				return envelope;
+			}
+
+			private IMessageEnvelope ProcessAuthenticate(IDictionary<string, object> metadata, AuthenticateRequest request) {
+				try {
+					if (!connector.Authenticate(request.DefaultSchema, request.UserName, request.Password)) {
+						var response = connector.CreateEnvelope(metadata, new AuthenticateResponse(false, -1));
+						// TODO: make the specialized exception ...
+						response.SetError(new Exception("Unable to authenticate."));
+						return response;
+					}
+
+					connector.ChangeState(ConnectorState.Authenticated);
+
+					// TODO: Get the UNIX epoch here?
+					return connector.CreateEnvelope(metadata, new AuthenticateResponse(true, DateTime.UtcNow.Ticks));
+				} catch (Exception ex) {
+					return CreateErrorResponse(metadata, ex);
+				}
+			}
+
+			public IMessageEnvelope ProcessMessage(IMessageEnvelope envelope) {
+				var metadata = envelope.Metadata;
+				var message = connector.GetMessage(envelope);
+				if (message == null)
+					return CreateErrorResponse(metadata, new Exception("No message found in the envelope."));
+
+				if (message is ConnectRequest)
+					return ProcessConnect(metadata, (ConnectRequest) message);
+
+				if (message is AuthenticateRequest)
+					return ProcessAuthenticate(metadata, (AuthenticateRequest) message);
+
+				if (message is QueryExecuteRequest)
+					return ProcessQuery(metadata, (QueryExecuteRequest) message);
+				if (message is QueryResultPartRequest)
+					return ProcessQueryPart(metadata, (QueryResultPartRequest) message);
+				if (message is DisposeResultRequest)
+					return ProcessDisposeResult(metadata, (DisposeResultRequest) message);
+
+				if (message is LargeObjectCreateRequest)
+					return ProcessCreateLargeObject(metadata, (LargeObjectCreateRequest) message);
+
+				if (message is BeginRequest)
+					return ProcessBegin(metadata);
+				if (message is CommitRequest)
+					return ProcessCommit(metadata, (CommitRequest)message);
+				if (message is RollbackRequest)
+					return ProcessRollback(metadata, (RollbackRequest)message);
+
+				if (message is CloseRequest)
+					return ProcessClose(metadata);
+
+				return CreateErrorResponse(envelope, "Message not supported");
+			}
+
+			private IMessageEnvelope ProcessConnect(IDictionary<string, object> metadata, ConnectRequest request) {
+				Exception error = null;
+				ConnectResponse response;
+
+				try {
+					connector.OpenConnector(request.RemoteEndPoint, request.DatabaseName);
+					if (request.AutoCommit)
+						connector.SetAutoCommit(request.AutoCommit);
+
+					connector.SetIgnoreIdentifiersCase(request.IgnoreIdentifiersCase);
+					connector.SetParameterStyle(request.ParameterStyle);
+
+					var encryptionData = connector.GetEncryptionData();
+
+					var serverVersion = connector.Database.Version.ToString(2);
+					response = new ConnectResponse(true, serverVersion, encryptionData != null, encryptionData);
+				} catch (Exception ex) {
+					connector.Logger.Error(connector, "Error while opening a connection.");
+					connector.Logger.Error(connector, ex);
+
+					error = ex;
+					response = new ConnectResponse(false, null);
+				}
+
+				var envelope = connector.CreateEnvelope(metadata, response);
+				if (error != null)
+					envelope.SetError(error);
+
+				return connector.CreateEnvelope(metadata, response);
+			}
+
+			private IMessageEnvelope ProcessClose(IDictionary<string, object> metadata) {
+				try {
+					connector.AssertNotDisposed();
+					connector.AssertAuthenticated();
+
+					connector.CloseConnector();
+					return connector.CreateEnvelope(metadata, new AcknowledgeResponse(true));
+				} catch (Exception ex) {
+					connector.Logger.Error(connector, "Error while closing a connection.");
+					connector.Logger.Error(connector, ex);
+					return CreateErrorResponse(metadata, ex);
+				}
+			}
+
+			private IMessageEnvelope ProcessQuery(IDictionary<string, object> metadata, QueryExecuteRequest request) {
+				try {
+					connector.AssertNotDisposed();
+					connector.AssertAuthenticated();
+
+					// TODO: use the timeout ...
+					var queryResonse = connector.ExecuteQuery(request.Query.Text, request.Query.Parameters);
+					return connector.CreateEnvelope(metadata, new QueryExecuteResponse(queryResonse));
+				} catch (Exception ex) {
+					connector.Logger.Error(connector, "Error while processing a query request.");
+					connector.Logger.Error(connector, ex);
+					return CreateErrorResponse(metadata, ex);
+				}
+			}
+
+			private IMessageEnvelope ProcessQueryPart(IDictionary<string, object> metadata, QueryResultPartRequest request) {
+				try {
+					connector.AssertNotDisposed();
+					connector.AssertAuthenticated();
+
+					var part = connector.GetResultPart(request.ResultId, request.RowIndex, request.Count);
+					return connector.CreateEnvelope(metadata, new QueryResultPartResponse(request.ResultId, part));
+				} catch (Exception ex) {
+					connector.Logger.Error(connector, "Error while requesting part of a query result.");
+					connector.Logger.Error(connector, ex);
+					throw;
+				}
+			}
+
+			private IMessageEnvelope ProcessDisposeResult(IDictionary<string, object> metadata, DisposeResultRequest request) {
+				try {
+					connector.AssertNotDisposed();
+					connector.AssertAuthenticated();
+
+					connector.DisposeResult(request.ResultId);
+					return connector.CreateEnvelope(metadata, new AcknowledgeResponse(true));
+				} catch (Exception ex) {
+					connector.Logger.Error(connector, "Error occurred while disposing a query result.");
+					connector.Logger.Error(connector, ex);
+					return CreateErrorResponse(metadata, ex);
+				}
+			}
+
+			private IMessageEnvelope ProcessCreateLargeObject(IDictionary<string, object> metadata,
+				LargeObjectCreateRequest request) {
+				try {
+					connector.AssertNotDisposed();
+					connector.AssertAuthenticated();
+
+					var objRef = connector.CreateStreamableObject(request.ReferenceType, request.ObjectLength);
+					return connector.CreateEnvelope(metadata,
+						new LargeObjectCreateResponse(request.ReferenceType, request.ObjectLength, objRef));
+				} catch (Exception ex) {
+					connector.Logger.Error(connector, "Error while creating a large object.");
+					connector.Logger.Error(connector, ex);
+					return CreateErrorResponse(metadata, ex);
+				}
+			}
+
+			private IMessageEnvelope ProcessBegin(IDictionary<string, object> metadata) {
+				try {
+					connector.AssertNotDisposed();
+					connector.AssertAuthenticated();
+
+					var id = connector.BeginTransaction();
+					return connector.CreateEnvelope(metadata, new BeginResponse(id));
+				} catch (Exception ex) {
+					connector.Logger.Error(connector, "Error while beginning a transaction.");
+					connector.Logger.Error(connector, ex);
+					return CreateErrorResponse(metadata, ex);
+				}
+			}
+
+			private IMessageEnvelope ProcessCommit(IDictionary<string, object> metadata, CommitRequest request) {
+				try {
+					connector.AssertNotDisposed();
+					connector.AssertAuthenticated();
+
+					connector.CommitTransaction(request.TransactionId);
+					return connector.CreateEnvelope(metadata, new AcknowledgeResponse(true));
+				} catch (Exception ex) {
+					connector.Logger.Error(connector, "Error while committing the transaction.");
+					connector.Logger.Error(connector, ex);
+					return CreateErrorResponse(metadata, ex);
+				}
+			}
+
+			private IMessageEnvelope ProcessRollback(IDictionary<string, object> metadata, RollbackRequest request) {
+				try {
+					connector.AssertNotDisposed();
+					connector.AssertAuthenticated();
+
+					connector.RollbackTransaction(request.TransactionId);
+					return connector.CreateEnvelope(metadata, new AcknowledgeResponse(true));
+				} catch (Exception ex) {
+					connector.Logger.Error(connector, "Error while rolling-back the transaction.");
+					connector.Logger.Error(connector, ex);
+					return CreateErrorResponse(metadata, ex);
+				}				
+			}
+		}
+
+		#endregion
+
+		#region TriggerChannel
+
+		class TriggerChannel : ITriggerChannel {
+			private readonly ServerConnector connector;
+			private readonly long id;
+
+			private string TriggerName { get; set; }
+
+			private string ObjectName { get; set; }
+
+			private TriggerEventType EventType { get; set; }
+
+			private Action<TriggerEventNotification> callback; 
+
+			public TriggerChannel(ServerConnector connector, long id, string triggerName, string objectName, TriggerEventType eventType) {
+				this.connector = connector;
+				this.id = id;
+				TriggerName = triggerName;
+				ObjectName = objectName;
+				EventType = eventType;
+			}
+
+			public bool ShouldNotify(string triggerName, string objectName, TriggerEventType eventType) {
+				if (!String.Equals(triggerName, TriggerName, StringComparison.OrdinalIgnoreCase))
+					return false;
+
+				return (eventType & EventType) != 0;
+			}
+
+			public void Dispose() {
+				Dispose(true);
+				GC.SuppressFinalize(this);
+			}
+
+			private void Dispose(bool disposing) {
+				if (disposing) {
+					connector.DisposeTriggerChannel(id);
+				}
+			}
+
+			public void OnTriggeInvoked(Action<TriggerEventNotification> notification) {
+				callback = notification;
+			}
+
+			public void Notify(string triggerName, string triggerSource, TriggerEventType eventType, int count) {
+				if (callback != null)
+					callback(new TriggerEventNotification(triggerName, triggerSource, TriggerType.Callback, eventType, count));
+			}
+		}
+
+		private void DisposeTriggerChannel(long id) {
+			throw new NotImplementedException();
 		}
 
 		#endregion

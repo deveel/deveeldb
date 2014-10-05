@@ -14,19 +14,20 @@
 //    limitations under the License.
 
 using System;
-using System.Data;
 
-namespace Deveel.Data.Protocol {
+namespace Deveel.Data.Protocol{
 	[Serializable]
-	public sealed class BeginRequest : IMessage {
-		public BeginRequest() 
-			: this(IsolationLevel.Serializable) {
+	public sealed class LargeObjectCreateRequest : IMessage {
+		public LargeObjectCreateRequest(ReferenceType referenceType, long objectLength) {
+			if (objectLength <= 0)
+				throw new ArgumentException("Invalid object length specified.", "objectLength");
+
+			ObjectLength = objectLength;
+			ReferenceType = referenceType;
 		}
 
-		public BeginRequest(IsolationLevel isolationLevel) {
-			IsolationLevel = isolationLevel;
-		}
+		public ReferenceType ReferenceType { get; private set; }
 
-		public IsolationLevel IsolationLevel { get; private set; }
+		public long ObjectLength { get; private set; }
 	}
 }

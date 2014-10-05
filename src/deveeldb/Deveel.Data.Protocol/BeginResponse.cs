@@ -17,11 +17,11 @@ using System;
 
 namespace Deveel.Data.Protocol {
 	[Serializable]
-	public sealed class StreamableObjectDisposeRequest : IMessage {
-		public StreamableObjectDisposeRequest(long objectId) {
-			ObjectId = objectId;
+	public sealed class BeginResponse : IMessage {
+		public BeginResponse(int id) {
+			Id = id;
 		}
 
-		public long ObjectId { get; private set; }
+		public int Id { get; private set; }
 	}
 }

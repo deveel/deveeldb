@@ -67,7 +67,7 @@ namespace Deveel.Data {
 				MaxCacheSize = 2048 * 1000
 			};
 
-			var connector = new InternalConnector(user, connection);
+			var connector = new InternalClientConnector(user, connection);
 			var dbConn = new DeveelDbConnection(connString.ToString(), connector);
 			dbConn.Open();
 			return dbConn;
@@ -89,14 +89,20 @@ namespace Deveel.Data {
 			}
 		}
 
-		class InternalConnector : EmbeddedServerConnectorBase {
+		#region InternalServerConnector
+
+		class InternalServerConnector : EmbeddedServerConnector {
 			private readonly User user;
 			private readonly IDatabaseConnection connection;
 
-			public InternalConnector(User user, IDatabaseConnection connection) 
+			public InternalServerConnector(User user, IDatabaseConnection connection) 
 				: base(new SessionDatabaseHandler(connection)) {
 				this.user = user;
 				this.connection = connection;
+			}
+
+			protected override IQueryResponse[] ExecuteQuery(string text, IEnumerable<SqlQueryParameter> parameters) {
+				return CoreExecuteQuery(text, parameters);
 			}
 
 			protected override bool Authenticate(string defaultSchema, string username, string password) {
@@ -107,5 +113,17 @@ namespace Deveel.Data {
 				return true;
 			}
 		}
+
+		#endregion
+
+		#region InternalClientConnector
+
+		class InternalClientConnector : EmbeddedClientConnector {
+			internal InternalClientConnector(User user, IDatabaseConnection connection) 
+				: base(new InternalServerConnector(user, connection)) {
+			}
+		}
+
+		#endregion
 	}
 }

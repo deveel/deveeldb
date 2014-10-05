@@ -15,19 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Protocol{
-	[Serializable]
-	public sealed class StreamableObjectCreateRequest : IMessage {
-		public StreamableObjectCreateRequest(ReferenceType referenceType, long objectLength) {
-			if (objectLength <= 0)
-				throw new ArgumentException("Invalid object length specified.", "objectLength");
-
-			ObjectLength = objectLength;
-			ReferenceType = referenceType;
-		}
-
-		public ReferenceType ReferenceType { get; private set; }
-
-		public long ObjectLength { get; private set; }
+namespace Deveel.Data.Protocol {
+	public interface IServerConnector : IConnector {
 	}
 }

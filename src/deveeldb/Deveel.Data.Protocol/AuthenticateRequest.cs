@@ -19,22 +19,13 @@ namespace Deveel.Data.Protocol {
 	[Serializable]
 	public sealed class AuthenticateRequest : IMessage {
 		public AuthenticateRequest(string userName, string password) 
-			: this(userName, password, false) {
+			: this(null, userName, password) {
 		}
 
-		public AuthenticateRequest(string userName, string password, bool ecrypt) 
-			: this(null, userName, password, ecrypt) {
-		}
-
-		public AuthenticateRequest(string defaultSchema, string userName, string password) 
-			: this(defaultSchema, userName, password, false) {
-		}
-
-		public AuthenticateRequest(string defaultSchema, string userName, string password, bool ecrypt) {
+		public AuthenticateRequest(string defaultSchema, string userName, string password) {
 			DefaultSchema = defaultSchema;
 			UserName = userName;
 			Password = password;
-			Ecrypt = ecrypt;
 		}
 
 		public string DefaultSchema { get; private set; }
@@ -42,7 +33,5 @@ namespace Deveel.Data.Protocol {
 		public string UserName { get; private set; }
 
 		public string Password { get; private set; }
-
-		public bool Ecrypt { get; private set; }
 	}
 }

@@ -15,18 +15,18 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Protocol {
-	public sealed class StreamableObjectCreateResponse : IMessage {
-		public StreamableObjectCreateResponse(ReferenceType referenceType, long objectLength, long objectId) {
-			ObjectId = objectId;
-			ObjectLength = objectLength;
-			ReferenceType = referenceType;
+	[Serializable]
+	public class ProtocolException : DatabaseException {
+		// TODO: Change the code ...
+		public ProtocolException(string message)
+			: base(message, 100300) {
 		}
 
-		public ReferenceType ReferenceType { get; private set; }
-
-		public long ObjectId { get; private set; }
-
-		public long ObjectLength { get; private set; }
+		public ProtocolException()
+			: this(null) {
+		}
 	}
 }

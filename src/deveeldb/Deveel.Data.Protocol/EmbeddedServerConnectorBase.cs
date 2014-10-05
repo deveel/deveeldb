@@ -24,8 +24,6 @@ using Deveel.Diagnostics;
 
 namespace Deveel.Data.Protocol {
 	public abstract class EmbeddedServerConnectorBase : ServerConnector {
-		private int triggerId;
-
 		protected EmbeddedServerConnectorBase(IDatabaseHandler handler)
 			: base(handler) {
 		}
@@ -45,9 +43,6 @@ namespace Deveel.Data.Protocol {
 			return new EmbeddedMessageProcessor(this);
 		}
 
-		private Dictionary<int, TriggerChannel> triggerChannels;
-		private readonly object triggerLock = new object();
-
 		private int currentDispatchId;
 
 		public override ConnectionEndPoint LocalEndPoint {
@@ -58,7 +53,7 @@ namespace Deveel.Data.Protocol {
 			return ConnectionEndPoint.Embedded;
 		}
 
-		public override IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message) {
+		protected override IServerMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message) {
 			AssertNotDisposed();
 
 			if (message == null)
@@ -79,271 +74,164 @@ namespace Deveel.Data.Protocol {
 			return (EmbeddedMessageEnvelope) CreateEnvelope(new Dictionary<string, object> {{"DispatchID", dispatchId}}, message);
 		}
 
-		public override ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType) {
-			AssertAuthenticated();
-
-			lock (triggerLock) {
-				if (triggerChannels == null)
-					triggerChannels = new Dictionary<int, TriggerChannel>();
-
-				foreach (TriggerChannel channel in triggerChannels.Values) {
-					// If there's an open channel for the trigger return it
-					if (channel.ShouldNotify(triggerName, objectName, eventType))
-						return channel;
-				}
-
-				int id = ++triggerId;
-				var newChannel =new TriggerChannel(this, id, triggerName, objectName, eventType);
-				triggerChannels[id] = newChannel;
-				return newChannel;
-			}
-		}
-
 		protected override void OnTriggerFired(string triggerName, string triggerSource, TriggerEventType eventType, int count) {
-			lock (triggerChannels) {
-				foreach (var channel in triggerChannels.Values) {
-					if (channel.ShouldNotify(triggerName, triggerSource, eventType))
-						channel.Notify(triggerName, triggerSource, eventType, count);
-				}
-			}
 		}
 
-		#region TriggerChannel
+		//#region EmbeddedMessageProcessor
 
-		class TriggerChannel : ITriggerChannel {
-			private readonly EmbeddedServerConnectorBase connector;
-			private readonly long id;
+		//class EmbeddedMessageProcessor : IMessageProcessor {
+		//	private readonly EmbeddedServerConnectorBase connector;
 
-			private string TriggerName { get; set; }
+		//	public EmbeddedMessageProcessor(EmbeddedServerConnectorBase connector) {
+		//		this.connector = connector;
+		//	}
 
-			private string ObjectName { get; set; }
+		//	private EmbeddedMessageEnvelope CreateEnvelope(int dispatchId, IMessage message) {
+		//		return connector.CreateEnvelope(dispatchId, message);
+		//	}
 
-			private TriggerEventType EventType { get; set; }
+		//	private IMessageEnvelope ErrorResponse(int dispatchId, string errorMessagge) {
+		//		return ErrorResponse(dispatchId, new AcknowledgeResponse(false), new Exception(errorMessagge));
+		//	}
 
-			private Action<TriggerEventNotification> callback; 
+		//	private IMessageEnvelope ErrorResponse(int dispatchId, IMessage message, Exception error) {
+		//		var envelope = CreateEnvelope(dispatchId, message);
+		//		// TODO: catch DatabaseException with error class and code
+		//		envelope.SetError(error);
+		//		return envelope;
+		//	}
 
-			public TriggerChannel(EmbeddedServerConnectorBase connector, long id, string triggerName, string objectName, TriggerEventType eventType) {
-				this.connector = connector;
-				this.id = id;
-				TriggerName = triggerName;
-				ObjectName = objectName;
-				EventType = eventType;
-			}
+		//	private IMessageEnvelope ProcessAuthenticate(AuthenticateRequest request) {
+		//		var schema = request.DefaultSchema;
+		//		if (String.IsNullOrEmpty(schema))
+		//			// TODO: Load this dynamically ...
+		//			schema = ConfigDefaultValues.DefaultSchema;
 
-			public bool ShouldNotify(string triggerName, string objectName, TriggerEventType eventType) {
-				if (!String.Equals(triggerName, TriggerName, StringComparison.OrdinalIgnoreCase))
-					return false;
+		//		if (!connector.Authenticate(schema, request.UserName, request.Password)) {
+		//			// TODO: trap an exception from upper level and return it
+		//			return ErrorResponse(-1, new AuthenticateResponse(false, -1), new Exception("Could not authenticate"));
+		//		}
 
-				return (eventType & EventType) != 0;
-			}
+		//		connector.ChangeState(ConnectorState.Authenticated);
 
-			public void Dispose() {
-				Dispose(true);
-				GC.SuppressFinalize(this);
-			}
+		//		// TODO: output UNIX time?
+		//		return connector.CreateEnvelope(null, new AuthenticateResponse(true, DateTimeOffset.UtcNow.Ticks));
+		//	}
 
-			private void Dispose(bool disposing) {
-				if (disposing) {
-					connector.DisposeTriggerChannel(id);
-				}
-			}
+		//	private IMessageEnvelope ProcessQuery(int dispatchId, QueryExecuteRequest request) {
+		//		try {
+		//			var response = connector.ExecuteQuery(request.Query.Text, request.Query.Parameters);
+		//			return CreateEnvelope(dispatchId, new QueryExecuteResponse(response));
+		//		} catch (Exception ex) {
+		//			// TODO: Return an error message
+		//			throw;
+		//		}
+		//	}
 
-			public void OnTriggeInvoked(Action<TriggerEventNotification> notification) {
-				callback = notification;
-			}
+		//	private IMessageEnvelope ProcessDisposeResult(int dispatchId, DisposeResultRequest request) {
+		//		connector.DisposeResult(request.ResultId);
+		//		return CreateEnvelope(dispatchId, new AcknowledgeResponse(true));
+		//	}
 
-			public void Notify(string triggerName, string triggerSource, TriggerEventType eventType, int count) {
-				if (callback != null)
-					callback(new TriggerEventNotification(triggerName, triggerSource, TriggerType.Callback, eventType, count));
-			}
-		}
+		//	private IMessageEnvelope ProcessConnect(ConnectRequest command) {
+		//		try {
+		//			connector.OpenConnector(command.RemoteEndPoint, command.DatabaseName);
+		//			if (command.AutoCommit)
+		//				connector.SetAutoCommit(command.AutoCommit);
 
-		private void DisposeTriggerChannel(long id) {
-			throw new NotImplementedException();
-		}
+		//			connector.SetIgnoreIdentifiersCase(command.IgnoreIdentifiersCase);
+		//			connector.SetParameterStyle(command.ParameterStyle);
 
-		#endregion
+		//			return CreateEnvelope(-1, new ConnectResponse(true, connector.Database.Version.ToString(2)));
+		//		} catch (Exception ex) {
+		//			connector.Logger.Error(connector, "Error while opening a connection.");
+		//			connector.Logger.Error(connector, ex);
 
-		#region EmbeddedMessageProcessor
+		//			return ErrorResponse(-1, new ConnectResponse(false, connector.Database.Version.ToString(2)), ex);
+		//		}
+		//	}
 
-		class EmbeddedMessageProcessor : IMessageProcessor {
-			private readonly EmbeddedServerConnectorBase connector;
+		//	private IMessageEnvelope ProcessClose(int dispatchId) {
+		//		connector.AssertAuthenticated();
+		//		connector.CloseConnector();
+		//		return CreateEnvelope(dispatchId, new AcknowledgeResponse(true));
+		//	}
 
-			public EmbeddedMessageProcessor(EmbeddedServerConnectorBase connector) {
-				this.connector = connector;
-			}
+		//	private IMessageEnvelope ProcessBegin(int dispatchId) {
+		//		connector.AssertAuthenticated();
+		//		connector.BeginTransaction();
+		//		return CreateEnvelope(dispatchId, new AcknowledgeResponse(true));
+		//	}
 
-			private EmbeddedMessageEnvelope CreateEnvelope(int dispatchId, IMessage message) {
-				return connector.CreateEnvelope(dispatchId, message);
-			}
+		//	private IMessageEnvelope ProcessCommit(int dispatchId) {
+		//		connector.AssertAuthenticated();
+		//		connector.CommitTransaction();
+		//		return CreateEnvelope(dispatchId, new AcknowledgeResponse(true));
+		//	}
 
-			private IMessageEnvelope ErrorResponse(int dispatchId, string errorMessagge) {
-				return ErrorResponse(dispatchId, new AcknowledgeResponse(false), new Exception(errorMessagge));
-			}
+		//	private IMessageEnvelope ProcessRollback(int dispatchId) {
+		//		connector.AssertAuthenticated();
+		//		connector.RollbackTransaction();
+		//		return CreateEnvelope(dispatchId, new AcknowledgeResponse(true));
+		//	}
 
-			private IMessageEnvelope ErrorResponse(int dispatchId, IMessage message, Exception error) {
-				var envelope = CreateEnvelope(dispatchId, message);
-				// TODO: catch DatabaseException with error class and code
-				envelope.Error = new ServerError(-1, -1, error.Message);
-				return envelope;
-			}
+		//	private IMessageEnvelope ProcessMessage(int dispatchId, IMessage message) {
+		//		if (message is ConnectRequest)
+		//			return ProcessConnect((ConnectRequest)message);
 
-			private IMessageEnvelope ProcessAuthenticate(AuthenticateRequest request) {
-				var schema = request.DefaultSchema;
-				if (String.IsNullOrEmpty(schema))
-					// TODO: Load this dynamically ...
-					schema = ConfigDefaultValues.DefaultSchema;
+		//		if (message is AuthenticateRequest)
+		//			return ProcessAuthenticate((AuthenticateRequest) message);
 
-				if (!connector.Authenticate(schema, request.UserName, request.Password)) {
-					// TODO: trap an exception from upper level and return it
-					return ErrorResponse(-1, new AuthenticateResponse(false, -1), new Exception("Could not authenticate"));
-				}
+		//		if (message is CloseCommand)
+		//			return ProcessClose(dispatchId);
 
-				connector.ChangeState(ConnectorState.Authenticated);
+		//		if (message is QueryExecuteRequest)
+		//			return ProcessQuery(dispatchId, (QueryExecuteRequest) message);
+		//		if (message is QueryResultPartRequest)
+		//			return ProcessQueryPart(dispatchId, (QueryResultPartRequest) message);
+		//		if (message is DisposeResultRequest)
+		//			return ProcessDisposeResult(dispatchId, (DisposeResultRequest) message);
 
-				// TODO: output UNIX time?
-				return connector.CreateEnvelope(null, new AuthenticateResponse(true, DateTimeOffset.UtcNow.Ticks));
-			}
+		//		if (message is LargeObjectCreateRequest)
+		//			return ProcessCreateStreamableObject(dispatchId, (LargeObjectCreateRequest) message);
 
-			private IMessageEnvelope ProcessQuery(int dispatchId, QueryExecuteRequest request) {
-				try {
-					var response = connector.ExecuteQuery(request.Query.Text, request.Query.Parameters);
-					return CreateEnvelope(dispatchId, new QueryExecuteResponse(response));
-				} catch (Exception ex) {
-					// TODO: Return an error message
-					throw;
-				}
-			}
+		//		if (message is BeginRequest)
+		//			return ProcessBegin(dispatchId);
+		//		if (message is CommitRequest)
+		//			return ProcessCommit(dispatchId);
+		//		if (message is RollbackRequest)
+		//			return ProcessRollback(dispatchId);
 
-			private IMessageEnvelope ProcessDisposeResult(int dispatchId, DisposeResultRequest request) {
-				connector.DisposeResult(request.ResultId);
-				return CreateEnvelope(dispatchId, new AcknowledgeResponse(true));
-			}
+		//		return ErrorResponse(dispatchId, "Unable to process the message.");
+		//	}
 
-			private IMessageEnvelope ProcessConnect(ConnectRequest command) {
-				try {
-					connector.OpenConnector(command.RemoteEndPoint, command.DatabaseName);
-					if (command.AutoCommit)
-						connector.SetAutoCommit(command.AutoCommit);
+		//	private IMessageEnvelope ProcessCreateStreamableObject(int dispatchId, LargeObjectCreateRequest request) {
+		//		var objId = connector.CreateStreamableObject(request.ReferenceType, request.ObjectLength);
+		//		return CreateEnvelope(dispatchId,
+		//			new LargeObjectCreateResponse(request.ReferenceType, request.ObjectLength, objId));
+		//	}
 
-					connector.SetIgnoreIdentifiersCase(command.IgnoreIdentifiersCase);
-					connector.SetParameterStyle(command.ParameterStyle);
+		//	private IMessageEnvelope ProcessQueryPart(int dispatchId, QueryResultPartRequest request) {
+		//		try {
+		//			var part = connector.GetResultPart(request.ResultId, request.RowIndex, request.Count);
+		//			return CreateEnvelope(dispatchId, new QueryResultPartResponse(request.ResultId, part));
+		//		} catch (Exception) {
+		//			// TODO: Return an error envelope
+		//			throw;
+		//		}
+		//	}
 
-					return CreateEnvelope(-1, new ConnectResponse(true, connector.Database.Version.ToString(2)));
-				} catch (Exception ex) {
-					connector.Logger.Error(connector, "Error while opening a connection.");
-					connector.Logger.Error(connector, ex);
+		//	public IMessageEnvelope ProcessMessage(IMessageEnvelope message) {
+		//		connector.AssertNotDisposed();
 
-					return ErrorResponse(-1, new ConnectResponse(false, connector.Database.Version.ToString(2)), ex);
-				}
-			}
+		//		var envelope = message as EmbeddedMessageEnvelope;
+		//		if (envelope == null)
+		//			throw new InvalidOperationException("The envelope was created in another context.");
 
-			private IMessageEnvelope ProcessClose(int dispatchId) {
-				connector.AssertAuthenticated();
-				connector.CloseConnector();
-				return CreateEnvelope(dispatchId, new AcknowledgeResponse(true));
-			}
+		//		return ProcessMessage(envelope.DispatchId, envelope.Message);
+		//	}
+		//}
 
-			private IMessageEnvelope ProcessBegin(int dispatchId) {
-				connector.AssertAuthenticated();
-				connector.BeginTransaction();
-				return CreateEnvelope(dispatchId, new AcknowledgeResponse(true));
-			}
-
-			private IMessageEnvelope ProcessCommit(int dispatchId) {
-				connector.AssertAuthenticated();
-				connector.CommitTransaction();
-				return CreateEnvelope(dispatchId, new AcknowledgeResponse(true));
-			}
-
-			private IMessageEnvelope ProcessRollback(int dispatchId) {
-				connector.AssertAuthenticated();
-				connector.RollbackTransaction();
-				return CreateEnvelope(dispatchId, new AcknowledgeResponse(true));
-			}
-
-			private IMessageEnvelope ProcessMessage(int dispatchId, IMessage message) {
-				if (message is ConnectRequest)
-					return ProcessConnect((ConnectRequest)message);
-
-				if (message is AuthenticateRequest)
-					return ProcessAuthenticate((AuthenticateRequest) message);
-
-				if (message is CloseCommand)
-					return ProcessClose(dispatchId);
-
-				if (message is QueryExecuteRequest)
-					return ProcessQuery(dispatchId, (QueryExecuteRequest) message);
-				if (message is QueryResultPartRequest)
-					return ProcessQueryPart(dispatchId, (QueryResultPartRequest) message);
-				if (message is DisposeResultRequest)
-					return ProcessDisposeResult(dispatchId, (DisposeResultRequest) message);
-
-				if (message is StreamableObjectCreateRequest)
-					return ProcessCreateStreamableObject(dispatchId, (StreamableObjectCreateRequest) message);
-
-				if (message is BeginRequest)
-					return ProcessBegin(dispatchId);
-				if (message is CommitRequest)
-					return ProcessCommit(dispatchId);
-				if (message is RollbackRequest)
-					return ProcessRollback(dispatchId);
-
-				return ErrorResponse(dispatchId, "Unable to process the message.");
-			}
-
-			private IMessageEnvelope ProcessCreateStreamableObject(int dispatchId, StreamableObjectCreateRequest request) {
-				var objId = connector.CreateStreamableObject(request.ReferenceType, request.ObjectLength);
-				return CreateEnvelope(dispatchId,
-					new StreamableObjectCreateResponse(request.ReferenceType, request.ObjectLength, objId));
-			}
-
-			private IMessageEnvelope ProcessQueryPart(int dispatchId, QueryResultPartRequest request) {
-				try {
-					var part = connector.GetResultPart(request.ResultId, request.RowIndex, request.Count);
-					return CreateEnvelope(dispatchId, new QueryResultPartResponse(request.ResultId, part));
-				} catch (Exception) {
-					// TODO: Return an error envelope
-					throw;
-				}
-			}
-
-			public IMessageEnvelope ProcessMessage(IMessageEnvelope message) {
-				connector.AssertNotDisposed();
-
-				var envelope = message as EmbeddedMessageEnvelope;
-				if (envelope == null)
-					throw new InvalidOperationException("The envelope was created in another context.");
-
-				return ProcessMessage(envelope.DispatchId, envelope.Message);
-			}
-		}
-
-		#endregion
-
-		#region EmbeddedMessageEnvelope
-
-		class EmbeddedMessageEnvelope : IMessageEnvelope {
-			public EmbeddedMessageEnvelope(IDictionary<string, object> metadata, IMessage message) {
-				Message = message;
-				Metadata = metadata;
-
-				object dispatchId;
-				if (!metadata.TryGetValue("DispatchID", out dispatchId))
-					throw new ArgumentException("Metadata must specify a Dispatch ID");
-
-				DispatchId = (int) dispatchId;
-			}
-
-			public IDictionary<string, object> Metadata { get; private set; }
-
-			public int DispatchId { get; private set; }
-
-			public IMessage Message { get; private set; }
-
-			public ServerError Error { get; set; }
-		}
-
-		#endregion
+		//#endregion
 	}
 }

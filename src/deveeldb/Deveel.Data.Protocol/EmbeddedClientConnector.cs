@@ -14,9 +14,20 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
-	public sealed class CloseCommand : IMessage {
+	public class EmbeddedClientConnector : ServerClientConnector {
+		internal EmbeddedClientConnector(EmbeddedServerConnector serverConnector)
+			: base(serverConnector) {
+		}
+
+		protected override ConnectionEndPoint MakeEndPoint(IDictionary<string, object> properties) {
+			return ConnectionEndPoint.Embedded;
+		}
+
+		protected override IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message) {
+			return EmbeddedMessageEnvelope.Create(metadata, message);
+		}
 	}
 }

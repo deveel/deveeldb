@@ -25,11 +25,11 @@ namespace Deveel.Data.Control {
 		IControlSystem System { get; }
 
 
-		IConnector Create(IDbConfig config, string userName, string password);
+		IServerConnector Create(IDbConfig config, string userName, string password);
 
-		IConnector Boot(IDbConfig config);
+		IServerConnector Boot(IDbConfig config);
 
-		IConnector Connect(IDbConfig config);
+		IServerConnector Connect(IDbConfig config);
 
 		bool CheckExists(IDbConfig config);
 	}

@@ -440,9 +440,9 @@ namespace Deveel.Data.Protocol {
 					response = RequestQueryResultPart(envelope);
 				else if (message is DisposeResultRequest)
 					response = RequestDisposeResult(envelope);
-				else if (message is StreamableObjectCreateRequest)
+				else if (message is LargeObjectCreateRequest)
 					response = RequestCreateLargeObject(envelope);
-				else if (message is StreamableObjectDisposeRequest)
+				else if (message is LargeObjectDisposeRequest)
 					response = RequestDisposeLargeObject(envelope);
 				else if (message is TriggerCreateRequest)
 					response = RequestCreateTrigger(envelope);
@@ -454,7 +454,7 @@ namespace Deveel.Data.Protocol {
 					response = RequestRollback(envelope);
 				else if (message is PingRequest)
 					response = Ping(envelope);
-				else if (message is CloseCommand)
+				else if (message is CloseRequest)
 					response = RequestClose(envelope);
 				
 				if (response == null)

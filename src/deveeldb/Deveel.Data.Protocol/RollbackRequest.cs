@@ -18,5 +18,10 @@ using System;
 namespace Deveel.Data.Protocol {
 	[Serializable]
 	public sealed class RollbackRequest : IMessage {
+		public RollbackRequest(int transactionId) {
+			TransactionId = transactionId;
+		}
+
+		public int TransactionId { get; private set; }
 	}
 }

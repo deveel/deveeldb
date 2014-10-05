@@ -14,19 +14,9 @@
 //    limitations under the License.
 
 using System;
-using System.Data;
 
 namespace Deveel.Data.Protocol {
 	[Serializable]
-	public sealed class BeginRequest : IMessage {
-		public BeginRequest() 
-			: this(IsolationLevel.Serializable) {
-		}
-
-		public BeginRequest(IsolationLevel isolationLevel) {
-			IsolationLevel = isolationLevel;
-		}
-
-		public IsolationLevel IsolationLevel { get; private set; }
+	public sealed class CloseRequest : IMessage {
 	}
 }
