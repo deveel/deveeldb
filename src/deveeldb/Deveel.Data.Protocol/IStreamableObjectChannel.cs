@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +16,9 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	public enum ClientConnectionState {
-		Closed = 0,
-		NotAuthenticated = 4,
-		Processing = 100
+	public interface IStreamableObjectChannel : IDisposable {
+		void PushData(long offset, byte[] buffer, int length);
+
+		byte[] ReadData(long offset, int length);
 	}
 }

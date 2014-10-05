@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,26 @@
 //    limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Protocol {
-	/// <summary>
-	/// A container class that holds a part of a result set.
-	/// </summary>
-	public class ResultPart : List<object> {
+	[Serializable]
+	public sealed class QueryResultPart {
+		private readonly List<object[]> rows;
 
-		public ResultPart() {
+		public QueryResultPart(int columnCount) {
+			ColumnCount = columnCount;
+			rows = new List<object[]>();
 		}
 
-		public ResultPart(int capacity)
-			: base(capacity) {
+		public int ColumnCount { get; private set; }
+
+		public void AddRow(object[] row) {
+			rows.Add(row);
 		}
 
+		public object[] GetRow(int index) {
+			return rows[index];
+		}
 	}
 }

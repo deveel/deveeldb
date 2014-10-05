@@ -299,7 +299,7 @@ namespace Deveel.Data.Routines {
 
 			result = ExecuteScalar("SELECT GREATEST(47, 105.87, 68)");
 			Assert.IsNotNull(result);
-			Assert.IsTrue(((BigNumber)result).CompareTo(105.87) == 0);
+			Assert.AreEqual(result, 105.87);
 		}
 
 		[Test]
@@ -319,7 +319,10 @@ namespace Deveel.Data.Routines {
 		[Category("Math")]
 		public void Abs_Big() {
 			var result = ExecuteScalar("SELECT ABS(-7.4723342916989754E+45)");
-			Assert.AreEqual(BigNumber.Parse("-7.4723342916989754E+45").Abs(), result);
+			Assert.IsNotNull(result);
+			Assert.IsInstanceOf<BigNumber>(result);
+			var expected = BigNumber.Parse("-7.4723342916989754E+45").Abs();
+			Assert.AreEqual(expected, result);
 		}
 
 		[Test]

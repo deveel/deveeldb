@@ -29,6 +29,7 @@ using System.IO;
 
 using Deveel.Configuration;
 using Deveel.Data.Client;
+using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 
 namespace Deveel.Data.Server {
@@ -129,7 +130,7 @@ namespace Deveel.Data.Server {
 			DbController controller = DbController.Create(config);
 			// Create the database with the given configuration then Close it
 			if (!controller.DatabaseExists(database_name)) {
-				DbSystem database = controller.CreateDatabase(config, database_name, username, password);
+				Control.DbSystem database = controller.CreateDatabase(config, database_name, username, password);
 				database.Close();
 			}
 		}

@@ -20,6 +20,7 @@ using Deveel.Data.Client;
 using Deveel.Data.Configuration;
 using Deveel.Data.Control;
 using Deveel.Data.DbSystem;
+using Deveel.Data.Protocol;
 using Deveel.Data.Security;
 
 using NUnit.Framework;
@@ -140,7 +141,6 @@ namespace Deveel.Data {
 		[SetUp]
 		public void TestSetUp() {
 			connection = (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
-			connection.AutoCommit = false;
 			OnTestSetUp();
 		}
 
@@ -214,8 +214,8 @@ namespace Deveel.Data {
 		}
 
 		protected IDatabaseConnection CreateDatabaseConnection() {
-			string hostString = "Internal/Test/" + _connCounter++;
-			User user = system.Database.AuthenticateUser(AdminUser, AdminPassword, hostString);
+			var endPoint = ConnectionEndPoint.Embedded;
+			User user = system.Database.AuthenticateUser(AdminUser, AdminPassword, endPoint);
 			return system.Database.CreateNewConnection(user, null);
 		}
 

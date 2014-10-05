@@ -52,12 +52,12 @@ namespace Deveel.Data.Protocol {
 	    int ColumnCount { get; }
 
 		///<summary>
-        /// Gets the <see cref="ColumnDescription"/> object that describes column 
+        /// Gets the <see cref="QueryResultColumn"/> object that describes column 
         /// at the zero-based index in the result.
 		///</summary>
 		///<param name="column"></param>
 		///<returns></returns>
-		ColumnDescription GetColumnDescription(int column);
+		QueryResultColumn GetColumnDescription(int column);
 
 	    ///<summary>
 	    /// Returns any warnings about the command or <b>null</b> if there were no 

@@ -3,6 +3,7 @@ using System.Data;
 using System.Threading;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Protocol;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 
@@ -12,29 +13,55 @@ namespace Deveel.Data.Client {
 	[TestFixture]
 	public sealed class TriggerTest : SqlTestBase {
 		[Test]
-		public void CallbackTriggerOnAllEvents() {
+		public void CallbackTriggerOnBeforeAllEvents() {
 			Assert.IsTrue(Connection.State == ConnectionState.Open);
-			
-			DeveelDbTrigger trigger = new DeveelDbTrigger(Connection, "PersonCreated", "Person");
-			trigger.Subscribe(new EventHandler(PersonTableModified));
 
-			Console.Out.WriteLine("Inserting a new entry in the table 'Person'.");
-			int count = ExecuteNonQuery("INSERT INTO Person (name, age, lives_in) VALUES ('Lorenzo Thione', 30, 'Texas')");
-			
-			Assert.AreEqual(1, count);
-			
-			// wait few milliseconds to be sure the test will succeed...
+			TriggerEventType eventType = 0;
+			int count = 0;
+
+			DeveelDbTrigger trigger = new DeveelDbTrigger(Connection, "BeforePersonModified", TriggerEventType.AllBefore);
+			trigger.ObjectName = "Person";
+			trigger.Create();
+			trigger.Subscribe(invoke => {
+				Console.Out.WriteLine("Trigger {0} was fired on {1} (fired {2} times for {3})", invoke.TriggerName, invoke.ObjectName, invoke.Count, invoke.EventType);
+
+				Assert.AreEqual(count, invoke.Count);
+				Assert.AreEqual(eventType, invoke.EventType);
+				Assert.AreEqual("PersonModified", invoke.TriggerName);
+			});
+
+			using (var transaction = Connection.BeginTransaction()) {
+				eventType = TriggerEventType.Insert;
+
+				Console.Out.WriteLine("Inserting a new entry in the table 'Person'.");
+				count = ExecuteNonQuery("INSERT INTO Person (name, age, lives_in) VALUES ('Lorenzo Thione', 30, 'Texas')");
+
+				Assert.AreEqual(1, count);
+
+				transaction.Commit();
+			}
+
+			using (var transaction = Connection.BeginTransaction()) {
+				// wait few milliseconds to be sure the test will succeed...
+				Thread.Sleep(300);
+
+				eventType = TriggerEventType.Update;
+				count = ExecuteNonQuery("UPDATE Person SET lives_in = 'San Francisco' WHERE name = 'Lorenzo Thione'");
+
+				Assert.AreEqual(1, count);
+
+				transaction.Commit();
+			}
+
 			Thread.Sleep(300);
 
-			count = ExecuteNonQuery("UPDATE Person SET lives_in = 'San Francisco' WHERE name = 'Lorenzo Thione'");
+			using (var transaction = Connection.BeginTransaction()) {
+				count = ExecuteNonQuery("DELETE FROM Person WHERE name = 'Lorenzo Thione'");
 
-			Assert.AreEqual(1, count);
+				Assert.AreEqual(1, count);
 
-			Thread.Sleep(300);
-
-			count = ExecuteNonQuery("DELETE FROM Person WHERE name = 'Lorenzo Thione'");
-
-			Assert.AreEqual(1, count);
+				transaction.Commit();
+			}
 		}
 
 		[Test]
@@ -42,8 +69,8 @@ namespace Deveel.Data.Client {
 			DeveelDbConnection connection = Connection;
 			Assert.IsTrue(connection.State == ConnectionState.Open);
 
-			DeveelDbTrigger trigger = new DeveelDbTrigger(connection, "PersonCreated", "Person");
-			trigger.Subscribe(new EventHandler(PersonTableModified));
+			DeveelDbTrigger trigger = new DeveelDbTrigger(connection, "PersonCreated", TriggerEventType.BeforeInsert);
+			trigger.Subscribe(PersonTableModified);
 
 			Console.Out.WriteLine("Inserting a new entry in the table 'Person'.");
 			DeveelDbCommand command = connection.CreateCommand("INSERT INTO Person (name, age, lives_in) VALUES ('Lorenzo Thione', 30, 'Texas')");
@@ -54,16 +81,8 @@ namespace Deveel.Data.Client {
 			trigger.Dispose();
 		}
 
-		private static void PersonTableModified(object sender, EventArgs e) {
-			TriggerEventArgs ea = (TriggerEventArgs) e;
-
-			Console.Out.WriteLine("Trigger {0} was fired on {1} (fired {2} times)", ea.TriggerName, ea.Source, ea.FireCount);
-
-			if (ea.IsBefore && ea.IsInsert) {
-				Console.Out.WriteLine("Adding an entry to the table 'Person'.");
-			} else if (ea.IsAfter && ea.IsInsert) {
-				Console.Out.WriteLine("Added an entry to the table 'Person'.");
-			}
+		private static void PersonTableModified(TriggerInvoke invoke) {
+			Console.Out.WriteLine("Trigger {0} was fired on {1} (fired {2} times for {3})", invoke.TriggerName, invoke.ObjectName, invoke.Count, invoke.EventType);
 		}
 	}
 }

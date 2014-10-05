@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Text;
 
@@ -59,7 +60,7 @@ namespace Deveel.Data.Control {
 		/// <summary>
 		/// A collection of all the connections opened by the system.
 		/// </summary>
-		private Hashtable connections;
+		private Dictionary<int, DeveelDbConnection> connections;
 
 
 		internal DbSystem(DbController controller, string name, IDbConfig config, IDatabase database) {
@@ -136,28 +137,47 @@ namespace Deveel.Data.Control {
 		/// Thrown if the login fails with the credentials given.
 		/// </exception>
 		public IDbConnection GetConnection(string schema, string username, string password) {
-			// Create the host string, formatted as 'Internal/[hash number]/[counter]'
-			StringBuilder buf = new StringBuilder();
-			buf.Append("Internal/");
-			buf.Append(GetHashCode());
-			buf.Append('/');
-			lock (this) {
-				buf.Append(internalCounter);
-				++internalCounter;
-			}
-
-			string hostString = buf.ToString();
-
 			// Create the database interface for an internal database connection.
-			IDatabaseInterface dbInterface = new DatabaseInterface(controller, name, hostString);
+			var localSystem = new LocalSystem(controller);
+			var localDatabase = localSystem.ControlDatabase(name);
+
 			// Create the DeveelDbConnection object (very minimal cache settings for an
 			// internal connection).
-			var s = new DeveelDbConnectionStringBuilder();
-			s.Schema = schema;
-			s.UserName = username;
-			s.Password = password;
+			var s = new DeveelDbConnectionStringBuilder {
+				Database = name,
+				Schema = schema,
+				UserName = username,
+				Password = password,
+				RowCacheSize = 8,
+				MaxCacheSize = 4092000,
+				BootOrCreate = true
+			};
 
-			var connection = new DBSConnection(this, internalCounter, s.ToString(), dbInterface, 8, 4092000);
+			if (Config.IsHeapStorageSystem()) {
+				s.Host = "Heap";
+			} else {
+				s.Host = "Local";
+				s.Path = Config.DatabaseFullPath();
+			}
+
+			int id = ++internalCounter;
+
+			var connection = new DeveelDbConnection(s.ToString(), localDatabase);
+			connection.StateChange += (sender, args) => {
+				if (args.CurrentState == ConnectionState.Open) {
+					if (connections == null)
+						connections = new Dictionary<int, DeveelDbConnection>();
+
+					connections[id] = connection;
+				} else if (args.CurrentState == ConnectionState.Closed) {
+					connections.Remove(id);
+				}
+			};
+
+			connection.Disposed += (sender, args) => {
+				// TODO: do further disposal
+			};
+			
 			// Attempt to log in with the given username and password (default schema)
 			connection.Open();
 			if (connection.State != ConnectionState.Open)
@@ -269,36 +289,6 @@ namespace Deveel.Data.Control {
 			connections = null;
 			controller = null;
 			config = null;
-		}
-
-		private class DBSConnection : DeveelDbConnection {
-			internal DBSConnection(DbSystem system, int id, string connectionString, IDatabaseInterface db_interface, int cache_size, int max_size)
-				: base(connectionString, db_interface, cache_size, max_size) {
-				this.system = system;
-				this.id = id;
-			}
-
-			private readonly int id;
-			private readonly DbSystem system;
-
-			internal override bool InternalOpen() {
-				if (base.InternalOpen()) {
-					if (system.connections == null)
-						system.connections = new Hashtable();
-					system.connections.Add(id, this);
-					return true;
-				}
-				return false;
-			}
-
-			internal override bool InternalClose() {
-				if (base.InternalClose()) {
-					system.connections.Remove(id);
-					return true;
-				}
-
-				return false;
-			}
 		}
 
 		private void Dispose(bool disposing) {

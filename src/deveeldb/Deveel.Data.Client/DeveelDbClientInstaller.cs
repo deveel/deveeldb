@@ -82,9 +82,7 @@ namespace Deveel.Data.Client {
 					"Cannot find the <system.data>/<DbProviderFactories> element in the machine.config.");
 
 			for (int i = 0; i < dbProvidersNode.ChildNodes.Count; i++) {
-				XmlElement addNode = (XmlElement)dbProvidersNode.ChildNodes[i];
-				if (addNode.Attributes == null)
-					continue;
+				var addNode = (XmlElement)dbProvidersNode.ChildNodes[i];
 
 				XmlAttribute invariantAttr = addNode.Attributes["invariant"];
 				if (invariantAttr == null)

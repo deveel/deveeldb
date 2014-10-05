@@ -21,13 +21,16 @@ namespace Deveel.Data.Client {
 
 			command.CommandText = "SELECT * FROM Person WHERE Name = ?";
 			Assert.DoesNotThrow(() => command.Parameters.Add("antonelllo"));
-			Assert.DoesNotThrow(() => command.ExecuteScalar());
+
+			object value = null;
+			Assert.DoesNotThrow(() => value = command.ExecuteScalar());
+			Assert.IsNull(value);
 
 			command.CommandText = "DROP TABLE Person";
 			command.ExecuteNonQuery();
 		}
 
-		[TestCase("@Name", "antonello")]
+		[TestCase(":Name", "antonello")]
 		[TestCase("Name", "antonello")]
 		public void CreateCommandWithNamedParameters(string paramName, string paramValue) {
 			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;Parameter Style=Named;BootOrCreate=true";
@@ -82,7 +85,9 @@ namespace Deveel.Data.Client {
 			DeveelDbCommand command = null;
 			Assert.DoesNotThrow(() => command = connection.CreateCommand());
 			Assert.IsNotNull(command);
+
 			command.CommandText = "SELECT * FROM Person WHERE Name = 'antonello'";
+
 			Assert.IsTrue(connection.State == ConnectionState.Closed);
 			Assert.Throws<InvalidOperationException>(() => command.ExecuteNonQuery());
 		}
@@ -111,9 +116,10 @@ namespace Deveel.Data.Client {
 		public void ExecuteMultipleStatements() {
 			const string connString = "Host=Heap;UserID=SA;Password=123456;Database=testdb;BootOrCreate=true";
 			var connection = new DeveelDbConnection(connString);
-			connection.Open();
+
+			Assert.DoesNotThrow(connection.Open);
 			Assert.IsTrue(connection.State == ConnectionState.Open);
-			connection.AutoCommit = false;
+
 			DeveelDbCommand command = connection.CreateCommand();
 			command.CommandText = "DECLARE firstName STRING NOT NULL; SET firstName = 'antonello'; SELECT :firstName;";
 			var reader = command.ExecuteReader();

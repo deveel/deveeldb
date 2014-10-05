@@ -19,6 +19,7 @@ using System.Data;
 using Deveel.Data.Client;
 using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
+using Deveel.Data.Protocol;
 using Deveel.Data.Threading;
 using Deveel.Data.Transactions;
 using Deveel.Diagnostics;
@@ -44,27 +45,20 @@ namespace Deveel.Data.Security {
 		/// </summary>
 		/// <param name="queryContext"></param>
 		/// <param name="username">The name of the user to check the host for.</param>
-		/// <param name="connectionString">The full connection string.</param>
+		/// <param name="endPoint">The end point from where the user attempts to connect.</param>
 		/// <returns>
 		/// Returns <b>true</b> if the user identified by the given <paramref name="username"/>
-		/// is allowed to access for the host specified in the <paramref name="connectionString"/>,
+		/// is allowed to access for the host specified in the <paramref name="endPoint"/>,
 		/// otherwise <b>false</b>.
 		/// </returns>
-		private bool UserAllowedAccessFromHost(IQueryContext queryContext, string username, string connectionString) {
+		private bool UserAllowedAccessFromHost(IQueryContext queryContext, string username, ConnectionEndPoint endPoint) {
 			// The system user is not allowed to login
 			if (username.Equals(User.SystemName))
 				return false;
 
-			// We always allow access from 'Internal/*' (connections from the
-			// 'GetConnection' method of a com.mckoi.database.control.DbSystem object)
-			// ISSUE: Should we add this as a rule?
-			if (connectionString.StartsWith("Internal/"))
-				return true;
-
 			// What's the protocol?
-			int protocolHostDeliminator = connectionString.IndexOf("/");
-			string protocol = connectionString.Substring(0, protocolHostDeliminator);
-			string host = connectionString.Substring(protocolHostDeliminator + 1);
+			string protocol = endPoint.Protocol;
+			string host = endPoint.Address;
 
 			if (Logger.IsInterestedIn(LogLevel.Info)) {
 				Logger.Info(this, "Checking host: protocol = " + protocol + ", host = " + host);
@@ -197,7 +191,7 @@ namespace Deveel.Data.Security {
 		/// Returns a <see cref="User"/> object if the given user was authenticated 
 		/// successfully, otherwise <b>null</b>.
 		/// </returns>
-		public User AuthenticateUser(string username, string password, string connectionString) {
+		public User AuthenticateUser(string username, string password, ConnectionEndPoint endPoint) {
 			// Create a temporary connection for authentication only...
 			IDatabaseConnection connection = Database.CreateNewConnection(null, null);
 			var queryContext = new DatabaseQueryContext(connection);
@@ -229,9 +223,9 @@ namespace Deveel.Data.Security {
 
 					// Now check if this user is permitted to connect from the given
 					// host.
-					if (UserAllowedAccessFromHost(queryContext, username, connectionString)) {
+					if (UserAllowedAccessFromHost(queryContext, username, endPoint)) {
 						// Successfully authenticated...
-						User user = new User(username, Database, connectionString, DateTime.Now);
+						User user = new User(username, Database, endPoint.ToString(), DateTime.Now);
 						// Log the authenticated user in to the engine.
 						Database.Context.LoggedUsers.OnUserLoggedIn(user);
 						return user;
@@ -239,12 +233,8 @@ namespace Deveel.Data.Security {
 
 					return null;
 				} catch (DataException e) {
-					if (e is DbDataException) {
-						DbDataException dbDataException = (DbDataException) e;
-						Logger.Error(this, dbDataException.ServerErrorStackTrace);
-					}
 					Logger.Error(this, e);
-					throw new Exception("SQL Error: " + e.Message);
+					throw new DatabaseException("Data Error: " + e.Message, e);
 				}
 			} finally {
 				try {

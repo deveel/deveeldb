@@ -183,7 +183,7 @@ namespace Deveel.Data.DbSystem {
 			DataRow rdat = new DataRow(view_table);
 			rdat.SetValue(0, dataTableInfo.Schema);
 			rdat.SetValue(1, dataTableInfo.Name);
-			rdat.SetValue(2, query.SerializeToBlob());
+			rdat.SetValue(2, query.ToBinary());
 			rdat.SetValue(3, view.SerializeToBlob());
 			rdat.SetValue(4, user.UserName);
 

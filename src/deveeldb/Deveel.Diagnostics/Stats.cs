@@ -20,8 +20,6 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-using Deveel.Data.Deveel.Diagnostics;
-
 namespace Deveel.Diagnostics {
 	///<summary>
 	/// An object that is used to store and update various stats.

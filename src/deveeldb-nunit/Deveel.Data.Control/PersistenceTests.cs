@@ -21,9 +21,10 @@ namespace Deveel.Data.Control {
 			Config.StorageSystem(ConfigDefaultValues.FileStorageSystem);
 			Config.LoggerType(typeof (ConsoleLogger));
 
-			var controller = DbController.Create(Config);
-			if (controller.DatabaseExists(testDbName))
-				controller.DeleteDatabase(testDbName, testDbAdmin, testDbPass);
+			using (var controller = DbController.Create(Config)) {
+				if (controller.DatabaseExists(testDbName))
+					controller.DeleteDatabase(testDbName, testDbAdmin, testDbPass);
+			}
 		}
 
 		[Test]
@@ -45,26 +46,30 @@ namespace Deveel.Data.Control {
 					using (var connection = dbSystem.GetConnection(testDbAdmin, testDbPass)) {
 						Assert.IsTrue(connection.State == ConnectionState.Open, "The connection is not open");
 
-						// Create the table 'people'
-						var command = connection.CreateCommand();
-						command.CommandText = "CREATE TABLE people (first_name VARCHAR(255), last_name VARCHAR(255), age INT)";
-						command.ExecuteNonQuery();
+						using (var transaction = connection.BeginTransaction()) {
+							// Create the table 'people'
+							var command = connection.CreateCommand();
+							command.CommandText = "CREATE TABLE people (first_name VARCHAR(255), last_name VARCHAR(255), age INT)";
+							command.ExecuteNonQuery();
 
-						Console.Out.WriteLine("The table 'people' was created in the database");
+							Console.Out.WriteLine("The table 'people' was created in the database");
 
-						// insert an entry into the table
-						command = connection.CreateCommand();
-						command.CommandText = "INSERT INTO people (first_name, last_name, age) VALUES ('Antonello', 'Provenzano', 33)";
-						command.ExecuteNonQuery();
+							// insert an entry into the table
+							command = connection.CreateCommand();
+							command.CommandText = "INSERT INTO people (first_name, last_name, age) VALUES ('Antonello', 'Provenzano', 33)";
+							command.ExecuteNonQuery();
 
-						Console.Out.WriteLine("An entry was inserted into the table 'people'.");
+							Console.Out.WriteLine("An entry was inserted into the table 'people'.");
 
-						// assert the entry exists within this context
-						command = connection.CreateCommand();
-						command.CommandText = "SELECT COUNT(*) FROM people";
+							// assert the entry exists within this context
+							command = connection.CreateCommand();
+							command.CommandText = "SELECT COUNT(*) FROM people";
 
-						var count = (BigNumber) command.ExecuteScalar();
-						Assert.AreEqual(1, count.ToInt32(), "The number of entries in the table is not coherent.");
+							var count = (BigNumber) command.ExecuteScalar();
+							Assert.AreEqual(1, count.ToInt32(), "The number of entries in the table is not coherent.");
+
+							transaction.Commit();
+						}
 					}
 				}
 			}

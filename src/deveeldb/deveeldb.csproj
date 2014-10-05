@@ -13,6 +13,9 @@
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <NuGetPackageImportStamp>0e75cb80</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,7 +37,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>deveeldb.snk</AssemblyOriginatorKeyFile>
@@ -49,11 +52,17 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Deveel.Math">
+      <HintPath>..\packages\dmath-signed.1.2.25\lib\net20\Deveel.Math.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.XML" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Caching\Cache.cs" />
@@ -61,13 +70,15 @@
     <Compile Include="Deveel.Data.Caching\DataCellCache.cs" />
     <Compile Include="Deveel.Data.Caching\ICache.cs" />
     <Compile Include="Deveel.Data.Caching\MemoryCache.cs" />
-    <Compile Include="Deveel.Data.Client\ConnectionStateEventArgs.cs" />
+    <Compile Include="Deveel.Data.Client\ConnectionClient.cs" />
     <Compile Include="Deveel.Data.Client\DatabaseMetadata.cs" />
-    <Compile Include="Deveel.Data.Client\DbDataException.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbClientInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbCommandBuilder.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
@@ -78,15 +89,21 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbLob.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbLargeObject.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbLargeString.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbMetadataSchemaNames.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbProviderFactory.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatedEventArgs.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbRowUpdatingEventArgs.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbTrigger.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbUncodeLargeString.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
+    <Compile Include="Deveel.Data.Client\TriggerInvoke.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
     <Compile Include="Deveel.Data.Configuration\DatabaseConfigurationException.cs" />
     <Compile Include="Deveel.Data.Configuration\DbConfigExtensions.cs" />
@@ -98,6 +115,11 @@
     <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
+    <Compile Include="Deveel.Data.Control\AuthenticatedSession.cs" />
+    <Compile Include="Deveel.Data.Control\LocalDatabase.cs" />
+    <Compile Include="Deveel.Data.Control\LocalSystem.cs" />
+    <Compile Include="Deveel.Data.Control\IControlDatabase.cs" />
+    <Compile Include="Deveel.Data.Control\IControlSystem.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseConnectionExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabase.cs" />
@@ -109,7 +131,57 @@
     <Compile Include="Deveel.Data.DbSystem\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
     <Compile Include="Deveel.Data.Index\IIndex_T.cs" />
+    <Compile Include="Deveel.Data.Protocol\AcknowledgeResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\AuthenticateRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\AuthenticateResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\BeginRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\BeginResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\CloseRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\CommitRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\ConnectionEndPoint.cs" />
+    <Compile Include="Deveel.Data.Protocol\ConnectorState.cs" />
+    <Compile Include="Deveel.Data.Protocol\EmbeddedClientConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\EmbeddedMessageEnvelope.cs" />
+    <Compile Include="Deveel.Data.Protocol\IClientConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\IServerConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\IServerMessageEnvelope.cs" />
+    <Compile Include="Deveel.Data.Protocol\ITriggerChannel.cs" />
+    <Compile Include="Deveel.Data.Protocol\LocalQueryResult.cs" />
+    <Compile Include="Deveel.Data.Protocol\ConnectRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\ConnectResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\NetworkClientConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\NetworkEnvelope.cs" />
+    <Compile Include="Deveel.Data.Protocol\NetworkEnvelopeMetadataKeys.cs" />
+    <Compile Include="Deveel.Data.Protocol\EncryptionAlgorithms.cs" />
+    <Compile Include="Deveel.Data.Protocol\ProtocolException.cs" />
+    <Compile Include="Deveel.Data.Protocol\RollbackRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\ServerClientConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\ServerConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\EmbeddedServerConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\IMessageEnvelope.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryResult.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryResultPart.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryResultPartRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryResultPartResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\ServerError.cs" />
+    <Compile Include="Deveel.Data.Protocol\LargeObjectDisposeRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\DisposeResultRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\EncryptionData.cs" />
+    <Compile Include="Deveel.Data.Protocol\IConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\IMessage.cs" />
+    <Compile Include="Deveel.Data.Protocol\IMessageProcessor.cs" />
+    <Compile Include="Deveel.Data.Protocol\IStreamableObjectChannel.cs" />
     <Compile Include="Deveel.Data.Protocol\KnownConnectionProtocols.cs" />
+    <Compile Include="Deveel.Data.Protocol\PingRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\LargeObjectCreateRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryExecuteRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryExecuteResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\SchemaChangeRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\LargeObjectCreateResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\TcpClientConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\TriggerCreateRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\TriggerEventNotification.cs" />
     <Compile Include="Deveel.Data.Query\ExpressionPlan.cs" />
     <Compile Include="Deveel.Data.Query\PlanTableSource.cs" />
     <Compile Include="Deveel.Data.Query\QueryTableSetPlanner.cs" />
@@ -135,7 +207,7 @@
     <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineParameter.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineType.cs" />
-    <Compile Include="Deveel.Data.Protocol\ColumnDescription.cs">
+    <Compile Include="Deveel.Data.Protocol\QueryResultColumn.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Protocol\DatabaseEventCallback.cs" />
@@ -186,8 +258,6 @@
     <Compile Include="Deveel.Data.Types\ITypeResolver.cs" />
     <Compile Include="Deveel.Data.Types\PrimitiveTypes.cs" />
     <Compile Include="Deveel.Data.Util\ListUtil.cs" />
-    <Compile Include="Deveel.Data.Protocol\IDatabaseInterface.cs" />
-    <Compile Include="Deveel.Data.Protocol\ILocalBootable.cs" />
     <Compile Include="Deveel.Data.Protocol\IQueryResponse.cs" />
     <Compile Include="Deveel.Data.Query\BranchQueryPlanNode.cs" />
     <Compile Include="Deveel.Data.Query\CachePointNode.cs" />
@@ -229,16 +299,9 @@
     <Compile Include="Deveel.Data.DbSystem\MasterTableDataSource_Indexes.cs" />
     <Compile Include="Deveel.Data.DbSystem\MasterTableDataSource_Transactions.cs" />
     <Compile Include="Deveel.Data.Sql\ParemeterStyle.cs" />
-    <Compile Include="Deveel.Data.Protocol\ProtocolConstants.cs" />
-    <Compile Include="Deveel.Data.Client\RemoteDatabaseInterface.cs" />
-    <Compile Include="Deveel.Data.Protocol\ResultPart.cs" />
-    <Compile Include="Deveel.Data.Protocol\ResultSet.cs" />
     <Compile Include="Deveel.Data.Client\RowCache.cs" />
     <Compile Include="Deveel.Data.Query\SingleQueryPlanNode.cs" />
     <Compile Include="Deveel.Data.Index\RangePosition.cs" />
-    <Compile Include="Deveel.Data.Sql\SqlQuery.cs" />
-    <Compile Include="Deveel.Data.Client\StreamDatabaseInterface.cs" />
-    <Compile Include="Deveel.Data.Client\TCPStreamDatabaseInterface.cs" />
     <Compile Include="Deveel.Data.Index\IIndexComparer.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigKeys.cs" />
     <Compile Include="Deveel.Data.Configuration\DbConfig.cs" />
@@ -247,15 +310,9 @@
     <Compile Include="Deveel.Data.Routines\RoutineInvoke.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionType.cs" />
     <Compile Include="Deveel.Data.Routines\IFunction.cs" />
-    <Compile Include="Deveel.Data.Routines\ParameterDirection.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureException.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineName.cs" />
     <Compile Include="Deveel.Data.Procedures\SystemBackup.cs" />
-    <Compile Include="Deveel.Data.Protocol\ClientConnectionState.cs" />
-    <Compile Include="Deveel.Data.Protocol\DatabaseInterface.cs" />
-    <Compile Include="Deveel.Data.Protocol\DatabaseInterfaceBase.cs" />
-    <Compile Include="Deveel.Data.Protocol\DefaultLocalBootable.cs" />
-    <Compile Include="Deveel.Data.Protocol\Processor.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableAction.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql\AlterTableStatement.cs" />
@@ -315,6 +372,10 @@
     <Compile Include="Deveel.Data.Sql\StatementTree.cs" />
     <Compile Include="Deveel.Data.Query\TableExpressionFromSet.cs" />
     <Compile Include="Deveel.Data.Sql\SqlState.cs" />
+    <Compile Include="Deveel.Data\ParameterDirection.cs" />
+    <Compile Include="Deveel.Data\SqlQuery.cs" />
+    <Compile Include="Deveel.Data\SqlQueryExtensions.cs" />
+    <Compile Include="Deveel.Data\SqlQueryParameter.cs" />
     <Compile Include="Deveel.Data\SqlStateException.cs" />
     <Compile Include="Deveel.Data.DbSystem\SubsetQueryContext.cs" />
     <Compile Include="Deveel.Data.Security\SystemGroupNames.cs" />
@@ -535,21 +596,6 @@
     <Compile Include="Deveel.Diagnostics\LogWriter.cs" />
     <Compile Include="Deveel.Diagnostics\Stats.cs" />
     <Compile Include="Deveel.Diagnostics\StatsDefaultKeys.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\BigDecimal.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\BigInteger.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\BitLevel.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\CharHelper.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Conversion.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Division.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Elementary.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Logical.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\MathContext.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Messages.Designer.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Multiplication.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Primality.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\RoundingMode.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\SR.cs" />
-    <Compile Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -563,9 +609,9 @@
     <None Include="Deveel.Diagnostics\ChangeLog" />
     <None Include="deveeldb.licenseheader" />
     <None Include="deveeldb.snk" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Deveel.Math\src\Deveel.Math\Deveel.Math\Messages.resx" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="DataVersion" />
@@ -575,6 +621,16 @@
   <PropertyGroup>
     <PreBuildEvent>$(ProjectDir)..\..\util\csharpcc\csharpcc.exe -OUTPUT_DIRECTORY="$(ProjectDir)Deveel.Data.Sql.Parser" "$(ProjectDir)Deveel.Data.Sql.Parser\SQL.csc"
 $(ProjectDir)..\..\util\sqlstategen\sqlstategen.exe -i $(ProjectDir)sqlstates.xml -o $(ProjectDir)Deveel.Data.Sql\SqlState_States.cs</PreBuildEvent>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
+  <PropertyGroup>
+    <PostBuildEvent>$(SolutionDir)packages\ILRepack.1.25.0\tools\ilrepack.exe /targetplatform:v2 /internalize /out:"$(TargetDir)\merged\$(TargetFileName)" $(TargetPath) $(SolutionDir)packages\dmath-signed.1.2.25\lib\net20\Deveel.Math.dll</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

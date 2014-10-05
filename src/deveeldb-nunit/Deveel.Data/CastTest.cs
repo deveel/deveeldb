@@ -2,7 +2,6 @@
 
 using Deveel.Data.Sql;
 using Deveel.Data.Types;
-using Deveel.Math;
 
 using NUnit.Framework;
 

@@ -21,6 +21,7 @@ using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Query;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Threading;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
@@ -234,6 +235,8 @@ namespace Deveel.Data.DbSystem {
 
 		public bool ErrorOnDirtySelect { get; set; }
 
+		public ParameterStyle ParameterStyle { get; set; }
+
 		/// <summary>
 		/// Returns the locking mechanism within the context of the
 		/// database session used to manages read/write locking.
@@ -408,6 +411,10 @@ namespace Deveel.Data.DbSystem {
 			return conglomerate.CreateNewLargeObject(type, objectSize);
 		}
 
+		public IRef GetLargeObject(long objectId) {
+			return conglomerate.GetLargeObject(objectId);
+		}
+
 		/// <summary>
 		/// Returns a <see cref="ITableQueryInfo"/> that describes the 
 		/// characteristics of a table including the name, the columns and the 
@@ -566,7 +573,7 @@ namespace Deveel.Data.DbSystem {
 					// Dispose the ado.net connection
 					if (dbConnection != null) {
 						try {
-							InternalDbHelper.DisposeDbConnection(dbConnection);
+							dbConnection.Dispose();
 						} catch (Exception e) {
 							Logger.Error(this, "Error disposing internal ADO.NET connection.");
 							Logger.Error(this, e);
@@ -945,7 +952,7 @@ namespace Deveel.Data.DbSystem {
 
 				if (dbConnection != null) {
 					try {
-						InternalDbHelper.DisposeDbConnection(dbConnection);
+						dbConnection.Dispose();
 					} catch (Exception e) {
 						conn.Logger.Error(this, "Error disposing internal connection.");
 						conn.Logger.Error(this, e);

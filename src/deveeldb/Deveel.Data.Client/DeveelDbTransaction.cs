@@ -19,17 +19,15 @@ using System.Data.Common;
 
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbTransaction : DbTransaction {
-		internal DeveelDbTransaction(DeveelDbConnection conn, int id, bool autoCommit) {
+		internal DeveelDbTransaction(DeveelDbConnection conn, int id) {
 			this.id = id;
 			this.conn = conn;
-			this.autoCommit = autoCommit;
 		}
 
 		private readonly int id;
 	    private bool committed;
 	    private bool rolledback;
 		private readonly DeveelDbConnection conn;
-		private readonly bool autoCommit;
 
 		internal int Id {
 			get { return id; }
@@ -40,21 +38,15 @@ namespace Deveel.Data.Client {
 			get { return Connection; }
 		}
 
-		#region Implementation of IDisposable
-
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
-				if ((conn != null && conn.State == ConnectionState.Open) && 
+				if ((conn != null && conn.State == ConnectionState.Executing) && 
 					!committed && !rolledback)
 					Rollback();
 			}
 
 			base.Dispose(disposing);
 		}
-
-		#endregion
-
-		#region Implementation of IDbTransaction
 
 		public override void Commit() {
 			if (conn == null || conn.State != ConnectionState.Open)
@@ -64,13 +56,7 @@ namespace Deveel.Data.Client {
 				throw new InvalidOperationException("The transaction was already committed.");
 
 			try {
-				IDbCommand result = conn.CreateCommand("COMMIT");
-				result.ExecuteNonQuery();
-
-				// orphans the current transaction in the database...
-				conn.currentTransaction = null;
-				if (autoCommit)
-					conn.AutoCommit = true;
+				Connection.CommitTransaction(id);
 			} finally {
 				committed = true;
 			}
@@ -84,13 +70,7 @@ namespace Deveel.Data.Client {
 				throw new InvalidOperationException("The transaction was already rolledback.");
 
 			try {
-				IDbCommand command = conn.CreateCommand("ROLLBACK");
-				command.ExecuteNonQuery();
-
-				// orphans the current transaction in the database...
-				conn.currentTransaction = null;
-				if (autoCommit)
-					conn.AutoCommit = true;
+				Connection.RollbackTransaction(id);
 			} finally {
 				rolledback = true;
 			}
@@ -103,7 +83,5 @@ namespace Deveel.Data.Client {
 		public override IsolationLevel IsolationLevel {
 			get { return IsolationLevel.Serializable; }
 		}
-
-		#endregion
 	}
 }
