@@ -449,7 +449,7 @@ namespace Deveel.Data {
 		///<returns></returns>
 		public int Signum() {
 			if (numberState == 0)
-				return bigDecimal.Signum();
+				return bigDecimal.Sign;
 			if (numberState == NumberState.NegativeInfinity)
 				return -1;
 			return 1;
