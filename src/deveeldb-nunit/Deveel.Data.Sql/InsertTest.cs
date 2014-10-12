@@ -27,8 +27,6 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override void OnTestSetUp() {
-			Connection.AutoCommit = true;
-
 			CreateTable();
 
 			base.OnTestSetUp();

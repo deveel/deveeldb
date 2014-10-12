@@ -16,6 +16,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	public abstract class SqlUnaryExpression : SqlExpression {
 		protected SqlUnaryExpression(SqlExpression operand) {
 			Operand = operand;
@@ -30,7 +31,9 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression Evaluate(EvaluateContext context) {
-			return base.Evaluate(context);
+			var exp = (SqlConstantExpression) Operand.Evaluate(context);
+			var computedValue = EvaluateUnary(exp.Value);
+			return new SqlConstantExpression(computedValue);
 		}
 	}
 }

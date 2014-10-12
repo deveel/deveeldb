@@ -1,11 +1,22 @@
 ﻿using System;
 using System.Data;
+using System.IO;
 
 using NUnit.Framework;
 
 namespace Deveel.Data.Client {
 	[TestFixture]
 	public sealed class ConnectionTest {
+		[SetUp]
+		public void TestSetUp() {
+			var testName = TestContext.CurrentContext.Test.Name;
+			if (testName == "ConnectToLocal") {
+				var dbPath = Path.Combine(Environment.CurrentDirectory, "testdb");
+				if (Directory.Exists(dbPath))
+					Directory.Delete(dbPath, true);
+			}
+		}
+
 		[Test]
 		public void ConnectToLocal() {
 			// since we're connecting locally, we can specify the option

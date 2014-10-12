@@ -22,12 +22,6 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public sealed class CreateTableTest : TestBase {
-		protected override void OnTestSetUp() {
-			Connection.AutoCommit = true;
-
-			base.OnTestSetUp();
-		}
-
 		[Test(Description = "Creates a simple table without constraints nor identities")]
 		public void CreateSimpleTable() {
 			SafeExecuteNonQuery("CREATE TABLE Test (field1 INT, field2 VARCHAR(200), field3 DATE);");

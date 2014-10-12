@@ -1004,7 +1004,7 @@ namespace Deveel.Data.Routines {
 			if (ob.IsNull)
 				return ob;
 
-			return TObject.CreateString(Text.Soundex.UsEnglish.Compute(ob.ToStringValue()));
+			return TObject.CreateString(Text.Soundex.Default.Compute(ob.ToStringValue()));
 		}
 
 		public static TObject Lower(TObject ob) {
@@ -1408,7 +1408,7 @@ namespace Deveel.Data.Routines {
 				return TObject.CreateString(buf.ToString());
 			}
 			if (String.Compare(commandStr, "query string", StringComparison.OrdinalIgnoreCase) == 0) {
-				SqlQuery query = SqlQuery.DeserializeFromBlob(blob);
+				SqlQuery query = SqlQuery.FromBinary(blob);
 				return TObject.CreateString(query.ToString());
 			}
 

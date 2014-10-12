@@ -30,24 +30,20 @@ namespace Deveel.Data.Client {
 
 		public DeveelDbDataAdapter(string selectCommandText, DeveelDbConnection connection)
 			: this() {
-			SelectCommand = new DeveelDbCommand(selectCommandText, connection);
+			SelectCommand = new DeveelDbCommand(connection, selectCommandText);
 		}
 
 		public DeveelDbDataAdapter(string selectCommandText, string connectionString)
 			: this() {
-			SelectCommand = new DeveelDbCommand(selectCommandText, new DeveelDbConnection(connectionString));
+			SelectCommand = new DeveelDbCommand(new DeveelDbConnection(connectionString), selectCommandText);
 		}
 
-		private int updateBatchSize;
 		private ArrayList batch;
 
 		public event DeveelDbRowUpdatingEventHandler RowUpdating;
 		public event DeveelDbRowUpdatedEventHandler RowUpdated;
 
-		public override int UpdateBatchSize {
-			get { return updateBatchSize; }
-			set { updateBatchSize = value; }
-		}
+		public override int UpdateBatchSize { get; set; }
 
 		public new DeveelDbCommand SelectCommand {
 			get { return (DeveelDbCommand) base.SelectCommand; }
@@ -83,7 +79,7 @@ namespace Deveel.Data.Client {
 			int count = 0;
 
 			for (int i = 0; i < batch.Count; i++) {
-				DeveelDbCommand command = (DeveelDbCommand) batch[i];
+				var command = (DeveelDbCommand) batch[i];
 				count += command.ExecuteNonQuery();
 			}
 

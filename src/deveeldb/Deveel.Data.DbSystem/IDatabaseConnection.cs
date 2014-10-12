@@ -18,6 +18,7 @@ using System.Data;
 
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Threading;
 using Deveel.Data.Transactions;
 
@@ -43,6 +44,8 @@ namespace Deveel.Data.DbSystem {
 		bool IsInCaseInsensitiveMode { get; set; }
 
 		bool AutoCommit { get; set; }
+
+		ParameterStyle ParameterStyle { get; set; }
 
 		bool ErrorOnDirtySelect { get; set; }
 
@@ -72,6 +75,8 @@ namespace Deveel.Data.DbSystem {
 		void DisposeProcedureConnection(IProcedureConnection connection);
 
 		IRef CreateLargeObject(ReferenceType referenceType, long size);
+
+		IRef GetLargeObject(long objectId);
 
 		void Commit();
 

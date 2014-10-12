@@ -29,26 +29,21 @@ namespace Deveel.Data.Client {
     /// out that haven't been cached, etc.
     /// </remarks>
 	sealed class RowCache {
+	    private readonly DeveelDbConnection connection;
+
         /// <summary>
         /// The actual cache that stores the rows.
         /// </summary>
 		private readonly Cache rowCache;
 
-        /// <summary>
-        /// Constructs the cache.
-        /// </summary>
-        /// <param name="cacheSize">The number of elements in the row cache.</param>
-        /// <param name="maxSize">The maximum size of the combined total of 
-        /// all items in the cache.</param>
-		internal RowCache(int cacheSize, int maxSize) {
-			rowCache = new MemoryCache(cacheSize, maxSize, 20);
+		public RowCache(DeveelDbConnection connection) {
+			this.connection = connection;
+			rowCache = new MemoryCache(connection.Settings.RowCacheSize, connection.Settings.MaxCacheSize, 20);
 		}
 
         /// <summary>
         /// Requests a block of parts.
         /// </summary>
-        /// <param name="resultBlock"></param>
-        /// <param name="connection"></param>
         /// <param name="resultId"></param>
         /// <param name="rowIndex"></param>
         /// <param name="rowCount"></param>
@@ -60,14 +55,13 @@ namespace Deveel.Data.Client {
         /// connection object.
         /// </remarks>
         /// <returns></returns>
-		internal List<object> GetResultPart(List<object> resultBlock, DeveelDbConnection connection, int resultId, 
-			int rowIndex, int rowCount, int colCount, int totalRowCount) {
+		public QueryResultPart GetResultPart(int resultId,  int rowIndex, int rowCount, int colCount, int totalRowCount) {
 			lock (this) {
 				// What was requested....
 				int origRowIndex = rowIndex;
 				int origRowCount = rowCount;
 
-				var rows = new List<CachedRow>();
+				var cachedRows = new List<CachedRow>();
 
 				// The top row that isn't found in the cache.
 				bool foundNotcached = false;
@@ -85,11 +79,11 @@ namespace Deveel.Data.Client {
 						}
 						foundNotcached = true;
 					} else {
-						rows.Add(row);
+						cachedRows.Add(row);
 					}
 				}
 
-				var rows2 = new List<CachedRow>();
+				var notCachedRows = new List<CachedRow>();
 				if (foundNotcached) {
 
 					// Now work up from the bottom and find row that isn't in cache....
@@ -113,7 +107,7 @@ namespace Deveel.Data.Client {
 							}
 							foundNotcached = true;
 						} else {
-							rows2.Insert(0, row);
+							notCachedRows.Insert(0, row);
 						}
 					}
 				}
@@ -121,64 +115,79 @@ namespace Deveel.Data.Client {
 				// Some of it not in the cache...
 				if (foundNotcached) {
 					// Request a part of a result from the server (blocks)
-					ResultPart block = connection.RequestResultPart(resultId, rowIndex, rowCount);
+					QueryResultPart block = connection.RequestResultPart(resultId, rowIndex, rowCount);
 
-					int blockIndex = 0;
 					for (int r = 0; r < rowCount; ++r) {
-						var arr = new Object[colCount];
-						int daRow = (rowIndex + r);
+						var rowData = new object[block.ColumnCount];
+						int theRow = (rowIndex + r);
 						int colSize = 0;
+						var row = block.GetRow(r);
 						for (int c = 0; c < colCount; ++c) {
-							object ob = block[blockIndex];
-							++blockIndex;
-							arr[c] = ob;
+							object ob = row[c];
+							rowData[c] = ob;
 							colSize += ObjectTransfer.SizeOf(ob);
 						}
 
-						var cachedRow = new CachedRow();
-						cachedRow.Row = daRow;
-						cachedRow.RowData = arr;
+						var cachedRow = new CachedRow {
+							ResultId = resultId,
+							Row = theRow, 
+							RowData = rowData
+						};
 
 						// Don't cache if it's over a certain size,
 						if (colSize <= 3200) {
-							rowCache.Set(new RowRef(resultId, daRow), cachedRow);
+							rowCache.Set(new RowRef(resultId, theRow), cachedRow);
 						}
-						rows.Add(cachedRow);
-					}
 
+						cachedRows.Add(cachedRow);
+					}
 				}
 
 				// At this point, the cached rows should be completely in the cache so
 				// retrieve it from the cache.
-				resultBlock.Clear();
+				var resultPart = new QueryResultPart(colCount);
 				int low = origRowIndex;
 				int high = origRowIndex + origRowCount;
-				foreach (CachedRow row in rows) {
+
+				foreach (CachedRow row in cachedRows) {
+					if (row.ResultId != resultId)
+						continue;
+
 					// Put into the result block
 					if (row.Row >= low && row.Row < high) {
+						var rowArray = new object[colCount];
 						for (int c = 0; c < colCount; ++c) {
-							resultBlock.Add(row.RowData[c]);
+							rowArray[c] = row.RowData[c];
 						}
+
+						resultPart.AddRow(rowArray);
 					}
 				}
-				foreach (CachedRow row in rows2) {
+
+				foreach (CachedRow row in notCachedRows) {
+					if (row.ResultId != resultId)
+						continue;
+
 					// Put into the result block
 					if (row.Row >= low && row.Row < high) {
+						var rowArray = new object[colCount];
 						for (int c = 0; c < colCount; ++c) {
-							resultBlock.Add(row.RowData[c]);
+							rowArray[c] = row.RowData[c];
 						}
+
+						resultPart.AddRow(rowArray);
 					}
 				}
 
 				// And return the result (phew!)
-				return resultBlock;
+				return resultPart;
 			}
 		}
 
         /// <summary>
         /// Flushes the complete contents of the cache.
         /// </summary>
-		internal void Clear() {
+		public void Clear() {
 			lock (this) {
 				rowCache.Clear();
 			}
@@ -212,6 +221,7 @@ namespace Deveel.Data.Client {
         /// A cached row.
         /// </summary>
 		private sealed class CachedRow {
+	        public int ResultId;
 			public int Row;
 			public object[] RowData;
 		}

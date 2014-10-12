@@ -16,10 +16,7 @@
 using System;
 
 namespace Deveel.Data.Client {
-	public sealed class DeveelDbMetadataSchemaNames {
-		private DeveelDbMetadataSchemaNames() {
-		}
-
+	public static class DeveelDbMetadataSchemaNames {
 		public static readonly string DataTypes = "DataTypes";
 		public static readonly string Schemata = "Schemata";
 		public static readonly string PrimaryKeys = "PrimaryKeys";

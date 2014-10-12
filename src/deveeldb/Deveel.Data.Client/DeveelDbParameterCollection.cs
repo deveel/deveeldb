@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
@@ -24,11 +25,11 @@ namespace Deveel.Data.Client {
 	public sealed class DeveelDbParameterCollection : DbParameterCollection {
 		internal DeveelDbParameterCollection(DeveelDbCommand command) {
 			this.command = command;
-			list = new ArrayList();
+			list = new List<DeveelDbParameter>();
 		}
 
 		private readonly DeveelDbCommand command;
-		private readonly ArrayList list;
+		private readonly List<DeveelDbParameter> list;
 
 		public new DeveelDbParameter this[int index] {
 			get { return base[index] as DeveelDbParameter; }
@@ -57,19 +58,20 @@ namespace Deveel.Data.Client {
 				parameter = new DeveelDbParameter(value);
 			}
 
-			return list.Add(parameter);
+			list.Add(parameter);
+			return list.Count - 1;
 		}
 
 		public DeveelDbParameter Add(object value, int size) {
-			return Add(new DeveelDbParameter(value) { Size = size });
+			return Add(new DeveelDbParameter(size, value));
 		}
 
 		public DeveelDbParameter Add(object value, int size, byte scale) {
-			return Add(new DeveelDbParameter(value) { Size = size, Scale = scale});
+			return Add(new DeveelDbParameter(size, 0, scale, value));
 		}
 
 		public DeveelDbParameter Add(string name, object value) {
-			return Add(new DeveelDbParameter(value) { ParameterName = name });
+			return Add(new DeveelDbParameter(name, value));
 		}
 
 
@@ -151,7 +153,7 @@ namespace Deveel.Data.Client {
 				return -1;
 
 			for (int i = 0; i < list.Count; i++) {
-				var parameter = (DeveelDbParameter) list[i];
+				var parameter = list[i];
 				if (parameter.ParameterName == null)
 					continue;
 
@@ -176,7 +178,7 @@ namespace Deveel.Data.Client {
 
 		public override void CopyTo(Array array, int index) {
 			if (array != null)
-				list.CopyTo(array, index);
+				list.CopyTo((DeveelDbParameter[]) array, index);
 		}
 
 		public override IEnumerator GetEnumerator() {

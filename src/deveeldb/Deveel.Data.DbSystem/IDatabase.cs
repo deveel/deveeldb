@@ -28,6 +28,8 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		string Name { get; }
 
+		Version Version { get; }
+
 		bool Exists { get; }
 
 		bool IsInitialized { get; }

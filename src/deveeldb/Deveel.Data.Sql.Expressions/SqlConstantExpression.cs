@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <exception cref="ArgumentNullException">
 		/// If the given <paramref name="value"/> is <c>null</c>.
 		/// </exception>
-		public SqlConstantExpression(TObject value) {
+		public SqlConstantExpression(DataObject value) {
 			Value = value;
 		}
 
@@ -45,6 +45,6 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <summary>
 		/// Gets the constant value of the expression.
 		/// </summary>
-		public TObject Value { get; private set; }
+		public DataObject Value { get; private set; }
 	}
 }

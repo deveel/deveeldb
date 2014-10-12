@@ -164,6 +164,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\DataTypeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlParseException.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\EvaluateContext.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlCastExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlConstantExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpression.cs" />
@@ -377,7 +378,7 @@
     <Compile Include="Deveel.Data\IBlobRef.cs" />
     <Compile Include="Deveel.Data\IClobRef.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabaseHandler.cs" />
-    <Compile Include="Deveel.Data\IExpressionPreparer.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\IExpressionPreparer.cs" />
     <Compile Include="Deveel.Data.Index\IIndexSet.cs" />
     <Compile Include="Deveel.Data.DbSystem\IInternalTableContainer.cs" />
     <Compile Include="Deveel.Data.Routines\ImportedKey.cs" />

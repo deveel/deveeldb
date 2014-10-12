@@ -35,33 +35,42 @@ namespace Deveel.Data.Sql {
 			string typeString = GetString("type");
 			string tableNameString = GetString("table_name");
 			IList types = GetList("trigger_types");
+			string beforeAfter = GetString("before_after");
 
 			TableName tname = ResolveTableName(context, tableNameString);
+
+			// Resolve the listening type
+			TriggerEventType eventType = new TriggerEventType();
+
+			foreach (string trigType in types) {
+				if (trigType.Equals("INSERT", StringComparison.InvariantCultureIgnoreCase)) {
+					eventType |= TriggerEventType.Insert;
+				} else if (trigType.Equals("DELETE", StringComparison.InvariantCultureIgnoreCase)) {
+					eventType |= TriggerEventType.Delete;
+				} else if (trigType.Equals("UPDATE", StringComparison.InvariantCultureIgnoreCase)) {
+					eventType |= TriggerEventType.Update;
+				} else {
+					throw new DatabaseException("Unknown trigger type: " + trigType);
+				}
+			}
+
+			if (beforeAfter.Equals("before")) {
+				eventType |= TriggerEventType.Before;
+			} else if (beforeAfter.Equals("after")) {
+				eventType |= TriggerEventType.After;
+			} else {
+				throw new ApplicationException("Unknown before/after type.");
+			}
 
 			if (typeString.Equals("callback_trigger")) {
 				// Callback trigger - notifies the client when an event on a table
 				// occurs.
 
-				TriggerEventType eventType = new TriggerEventType();
-
-				foreach (string trigType in types) {
-					if (trigType.Equals("INSERT", StringComparison.InvariantCultureIgnoreCase)) {
-						eventType |= TriggerEventType.Insert;
-					} else if (trigType.Equals("DELETE", StringComparison.InvariantCultureIgnoreCase)) {
-						eventType |= TriggerEventType.Delete;
-					} else if (trigType.Equals("UPDATE", StringComparison.InvariantCultureIgnoreCase)) {
-						eventType |= TriggerEventType.Update;
-					} else {
-						throw new DatabaseException("Unknown trigger type: " + trigType);
-					}
-				}
-
 				context.Connection.CreateCallbackTrigger(triggerNameString, tname, eventType);
 
 			} else if (typeString.Equals("procedure_trigger")) {
-				string beforeAfter = GetString("before_after");
 				string procNameString = GetString("procedure_name");
-				Expression[] procedureArgs = (Expression[])GetValue("procedure_args");
+				Expression[] procedureArgs = (Expression[]) GetValue("procedure_args");
 
 				// Convert the trigger into a table name,
 				TableName triggerName = ResolveTableName(context, triggerNameString);
@@ -81,27 +90,6 @@ namespace Deveel.Data.Sql {
 				if (!context.Connection.RoutineExists(procName))
 					throw new DatabaseException("Procedure '" + procName + "' could not be found.");
 
-				// Resolve the listening type
-				TriggerEventType listenType = new TriggerEventType();
-				if (beforeAfter.Equals("before")) {
-					listenType |= TriggerEventType.Before;
-				} else if (beforeAfter.Equals("after")) {
-					listenType |= TriggerEventType.After;
-				} else {
-					throw new ApplicationException("Unknown before/after type.");
-				}
-
-				for (int i = 0; i < types.Count; ++i) {
-					string trigeventType = (String)types[i];
-					if (trigeventType.Equals("insert", StringComparison.InvariantCultureIgnoreCase)) {
-						listenType |= TriggerEventType.Insert;
-					} else if (trigeventType.Equals("delete", StringComparison.InvariantCultureIgnoreCase)) {
-						listenType |= TriggerEventType.Delete;
-					} else if (trigeventType.Equals("update", StringComparison.InvariantCultureIgnoreCase)) {
-						listenType |= TriggerEventType.Update;
-					}
-				}
-
 				// Resolve the procedure arguments,
 				TObject[] vals = new TObject[procedureArgs.Length];
 				for (int i = 0; i < procedureArgs.Length; ++i) {
@@ -109,14 +97,14 @@ namespace Deveel.Data.Sql {
 				}
 
 				// Create the trigger,
-				context.Connection.CreateTableTrigger(triggerName.Schema, triggerName.Name, listenType, tname, procName.ToString(), vals);
+				context.Connection.CreateTableTrigger(triggerName.Schema, triggerName.Name, eventType, tname, procName.ToString(), vals);
 
 				// The initial grants for a trigger is to give the user who created it
 				// full access.
 				context.Connection.GrantManager.Grant(
-					 Privileges.ProcedureAll, GrantObject.Table,
-					 triggerName.ToString(), context.UserName, true,
-					 User.SystemName);
+					Privileges.ProcedureAll, GrantObject.Table,
+					triggerName.ToString(), context.UserName, true,
+					User.SystemName);
 
 			} else {
 				throw new Exception("Unknown trigger type.");

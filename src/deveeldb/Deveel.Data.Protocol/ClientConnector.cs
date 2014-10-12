@@ -1,0 +1,102 @@
+﻿// 
+//  Copyright 2010-2014 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.Remoting;
+
+using Deveel.Data.Routines;
+
+namespace Deveel.Data.Protocol {
+	public abstract class ClientConnector : IClientConnector {
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing) {
+
+		}
+
+		public ConnectorState CurrentState { get; private set; }
+
+		public virtual ConnectionEndPoint LocalEndPoint { get; private set; }
+
+		protected abstract ConnectionEndPoint MakeEndPoint(IDictionary<string, object> properties);
+
+		ConnectionEndPoint IClientConnector.MakeEndPoint(IDictionary<string, object> properties) {
+			return MakeEndPoint(properties);
+		}
+
+		IMessageProcessor IConnector.CreateProcessor() {
+			return new ClientMessageProcessor(this);
+		}
+
+		IMessageEnvelope IConnector.CreateEnvelope(IDictionary<string, object> metadata, IMessage message) {
+			return CreateEnvelope(metadata, message);
+		}
+
+		protected abstract IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);
+
+		IStreamableObjectChannel IConnector.CreateObjectChannel(long objectId) {
+			return CreateObjectChannel(objectId);
+		}
+
+		protected abstract IStreamableObjectChannel CreateObjectChannel(long objectId);
+
+		ITriggerChannel IConnector.CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType) {
+			return CreateTriggerChannel(triggerName, objectName, eventType);
+		}
+
+		protected abstract ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType);
+
+		protected abstract IMessageEnvelope SendEnvelope(IMessageEnvelope envelope);
+
+		protected virtual IMessage OpenEnvelope(IMessageEnvelope envelope) {
+			return envelope.Message;
+		}
+
+		protected virtual void OnMessageReceived(IMessage message) {
+		}
+
+		void IClientConnector.SetEncrypton(EncryptionData encryptionData) {
+			OnSetEncryption(encryptionData);
+		}
+
+		protected virtual void OnSetEncryption(EncryptionData encryptionData) {
+		}
+
+		class ClientMessageProcessor : IMessageProcessor {
+			private readonly ClientConnector connector;
+
+			public ClientMessageProcessor(ClientConnector connector) {
+				this.connector = connector;
+			}
+
+			public IMessageEnvelope ProcessMessage(IMessageEnvelope message) {
+				var response = connector.SendEnvelope(message);
+				if (response == null)
+					throw new InvalidOperationException("Unable to obtain a response from the server.");
+
+				if (response.Error != null)
+					throw new ServerException(response.Error.ErrorMessage);
+
+				var content = connector.OpenEnvelope(response);
+				connector.OnMessageReceived(content);
+				return response;
+			}
+		}
+	}
+}

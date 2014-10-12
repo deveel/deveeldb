@@ -682,6 +682,15 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
+		internal IRef GetLargeObject(long objectId) {
+			try {
+				return BlobStore.GetLargeObject(objectId);
+			} catch (IOException e) {
+				Logger.Error(this, e);
+				throw new Exception("IO Error when retrieving a blob.", e);
+			}
+		}
+
 
 		// ---------- low level File IO level operations on a conglomerate ----------
 		// These operations are low level IO operations on the contents of the
