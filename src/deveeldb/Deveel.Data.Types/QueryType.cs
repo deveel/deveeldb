@@ -15,7 +15,9 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Types {
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class QueryType : DataType {
 		public QueryType()

@@ -23,11 +23,11 @@ namespace Deveel.Data.Types {
 	public sealed class BinaryType : DataType {
 		public int MaxSize { get; private set; }
 
-		public BinaryType(SqlType sqlType) 
+		public BinaryType(SqlTypeCode sqlType) 
 			: this(sqlType, -1) {
 		}
 
-		public BinaryType(SqlType sqlType, int maxSize) 
+		public BinaryType(SqlTypeCode sqlType, int maxSize) 
 			: base("BINARY", sqlType) {
 			MaxSize = maxSize;
 			AssertIsBinary(sqlType);
@@ -37,11 +37,11 @@ namespace Deveel.Data.Types {
 			get { return false; }
 		}
 
-		private static void AssertIsBinary(SqlType sqlType) {
-			if (sqlType != SqlType.Binary &&
-				sqlType != SqlType.VarBinary &&
-				sqlType != SqlType.LongVarBinary &&
-				sqlType != SqlType.Blob)
+		private static void AssertIsBinary(SqlTypeCode sqlType) {
+			if (sqlType != SqlTypeCode.Binary &&
+				sqlType != SqlTypeCode.VarBinary &&
+				sqlType != SqlTypeCode.LongVarBinary &&
+				sqlType != SqlTypeCode.Blob)
 				throw new ArgumentException(String.Format("The SQL type {0} is not a BINARY", sqlType));
 		}
 
@@ -57,28 +57,31 @@ namespace Deveel.Data.Types {
 			var sqlType = destType.SqlType;
 
 			if (value is BinaryObject) {
-				if (sqlType != SqlType.Object &&
-					 sqlType != SqlType.Blob &&
-					 sqlType != SqlType.Binary &&
-					 sqlType != SqlType.VarBinary &&
-					 sqlType != SqlType.LongVarBinary) {
+				if (sqlType != SqlTypeCode.Blob &&
+					 sqlType != SqlTypeCode.Binary &&
+					 sqlType != SqlTypeCode.VarBinary &&
+					 sqlType != SqlTypeCode.LongVarBinary) {
 					// Attempt to deserialize it
 						
-					value = ((BinaryObject)value).Deserialize();
-				} else {
-					// This is a BinaryObject that is being cast to a binary type so
-					// no further processing is necessary.
-					return value;
+					object graph = ((BinaryObject)value).Deserialize();
+					if (!(graph is DataObject))
+						throw new InvalidCastException();
+
+					var dataObject = (DataObject) graph;
+					return dataObject.Type.CastTo(dataObject, destType);
 				}
+
+				// This is a BinaryObject that is being cast to a binary type so
+				// no further processing is necessary.
+				return value;
 			}
 
-			// IBlobRef can be BINARY, OBJECT, VARBINARY or LONGVARBINARY
-			if (value is IBlob) {
-				if (sqlType == SqlType.Binary ||
-					sqlType == SqlType.Blob ||
-					sqlType == SqlType.Object ||
-					sqlType == SqlType.VarBinary ||
-					sqlType == SqlType.LongVarBinary) {
+			// IBlobRef can be BINARY, VARBINARY or LONGVARBINARY
+			if (value is IBlobRef) {
+				if (sqlType == SqlTypeCode.Binary ||
+					sqlType == SqlTypeCode.Blob ||
+					sqlType == SqlTypeCode.VarBinary ||
+					sqlType == SqlTypeCode.LongVarBinary) {
 					return value;
 				}
 			}

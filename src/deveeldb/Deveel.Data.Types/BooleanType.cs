@@ -15,19 +15,17 @@
 
 using System;
 
-using Deveel.Data.Sql;
-
 namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class BooleanType : DataType {
-		public BooleanType(SqlType sqlType) 
+		public BooleanType(SqlTypeCode sqlType) 
 			: base("BOOLEAN", sqlType) {
 			AssertIsBoolean(sqlType);
 		}
 
-		private static void AssertIsBoolean(SqlType sqlType) {
-			if (sqlType != SqlType.Bit &&
-				sqlType != SqlType.Boolean)
+		private static void AssertIsBoolean(SqlTypeCode sqlType) {
+			if (sqlType != SqlTypeCode.Bit &&
+				sqlType != SqlTypeCode.Boolean)
 				throw new ArgumentException(String.Format("The SQL type {0} is not BOOLEAN.", sqlType));
 		}
 	}

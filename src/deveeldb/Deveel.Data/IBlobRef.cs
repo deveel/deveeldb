@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Data.Store;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// A lightweight interface that is a reference to a blob in a <see cref="IBlobStore"/>.

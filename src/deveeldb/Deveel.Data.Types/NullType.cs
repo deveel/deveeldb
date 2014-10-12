@@ -15,11 +15,9 @@
 
 using System;
 
-using Deveel.Data.Sql;
-
 namespace Deveel.Data.Types {
 	public sealed class NullType : DataType {
-		public NullType(SqlType sqlType) 
+		public NullType(SqlTypeCode sqlType) 
 			: base("NULL", sqlType) {
 		}
 	}

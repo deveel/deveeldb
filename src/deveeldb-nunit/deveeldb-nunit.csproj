@@ -60,36 +60,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Deveel.Data.Client\CommandTest.cs" />
-    <Compile Include="Deveel.Data.Client\ConnectionStringTest.cs" />
-    <Compile Include="Deveel.Data.Client\ConnectionTest.cs" />
-    <Compile Include="Deveel.Data.Client\LobTest.cs" />
-    <Compile Include="Deveel.Data.Client\TriggerTest.cs" />
-    <Compile Include="Deveel.Data.Control\DbConfigTest.cs" />
-    <Compile Include="Deveel.Data.Control\PersistenceTests.cs" />
-    <Compile Include="Deveel.Data.Routines\SystemFunctionsTests.cs" />
-    <Compile Include="Deveel.Data.Security\HashTests.cs" />
-    <Compile Include="Deveel.Data.Security\UsersTests.cs" />
-    <Compile Include="Deveel.Data.Sql\AlterTableTest.cs" />
-    <Compile Include="Deveel.Data.Sql\CallbackTriggerTest.cs" />
-    <Compile Include="Deveel.Data.Sql\ConstraintTest.cs" />
-    <Compile Include="Deveel.Data.Sql\DeleteTest.cs" />
-    <Compile Include="Deveel.Data.Sql\FunctionsTest.cs" />
-    <Compile Include="Deveel.Data.Sql\InsertTest.cs" />
-    <Compile Include="Deveel.Data.Sql\SelectTest.cs" />
-    <Compile Include="Deveel.Data.Sql\SqlTestBase.cs" />
-    <Compile Include="Deveel.Data.Sql\UpdateTest.cs" />
-    <Compile Include="Deveel.Data.Sql\CreateTableTest.cs" />
-    <Compile Include="Deveel.Data.Sql\CursorTest.cs" />
-    <Compile Include="Deveel.Data\CastTest.cs" />
-    <Compile Include="Deveel.Data\ExpressionTest.cs" />
-    <Compile Include="Deveel.Data\OperatorTest.cs" />
-    <Compile Include="Deveel.Data\StorageType.cs" />
-    <Compile Include="Deveel.Data\TestBase.cs" />
-    <Compile Include="Deveel.Data\TObjectTests.cs" />
-    <Compile Include="Deveel.Data\TTypeTest.cs" />
-    <Compile Include="Deveel.Data\VariableTest.cs" />
-    <Compile Include="Deveel.Diagnostics\ConsoleLogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

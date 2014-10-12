@@ -16,8 +16,6 @@
 using System;
 using System.Text;
 
-using Deveel.Data.DbSystem;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// This is a static class that performs the operations to do a pattern 

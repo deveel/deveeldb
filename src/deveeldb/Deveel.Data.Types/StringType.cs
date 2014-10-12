@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2014  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -27,22 +27,22 @@ namespace Deveel.Data.Types {
 
 		public const int DefaultMaxSize = Int16.MaxValue;
 
-		public StringType(SqlType sqlType) 
+		public StringType(SqlTypeCode sqlType) 
 			: this(sqlType, DefaultMaxSize) {
 		}
 
-		public StringType(SqlType sqlType, int maxSize) 
+		public StringType(SqlTypeCode sqlType, int maxSize) 
 			: base("STRING", sqlType) {
 			AssertIsString(sqlType);
 			MaxSize = maxSize;
 		}
 
-		private static void AssertIsString(SqlType sqlType) {
-			if (sqlType != SqlType.String &&
-				sqlType != SqlType.VarChar &&
-				sqlType != SqlType.Char &&
-				sqlType != SqlType.LongVarChar &&
-				sqlType != SqlType.Clob)
+		private static void AssertIsString(SqlTypeCode sqlType) {
+			if (sqlType != SqlTypeCode.String &&
+				sqlType != SqlTypeCode.VarChar &&
+				sqlType != SqlTypeCode.Char &&
+				sqlType != SqlTypeCode.LongVarChar &&
+				sqlType != SqlTypeCode.Clob)
 				throw new ArgumentException(String.Format("The type {0} is not a valid STRING type.", sqlType), "sqlType");
 		}
 
@@ -86,11 +86,11 @@ namespace Deveel.Data.Types {
 			return Locale.Equals(stringType.Locale);
 		}
 
-		private static Number ToBigNumber(String str) {
+		private static NumericObject ToNumber(String str) {
 			try {
-				return Number.Parse(str);
+				return NumericObject.Parse(str);
 			} catch (Exception) {
-				return Number.Zero;
+				return NumericObject.Zero;
 			}
 		}
 
@@ -100,10 +100,10 @@ namespace Deveel.Data.Types {
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		public static DateTime ToDate(string str) {
+		public static DateObject ToDate(string str) {
 			DateTime result;
 			if (!DateTime.TryParseExact(str, DateType.DateFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
-				throw new InvalidCastException(DateErrorMessage(str, SqlType.Date, DateType.DateFormatSql));
+				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.Date, DateType.DateFormatSql));
 
 			return result;
 		}
@@ -113,10 +113,10 @@ namespace Deveel.Data.Types {
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		public static DateTime ToTime(String str) {
+		public static DateObject ToTime(String str) {
 			DateTime result;
 			if (!DateTime.TryParseExact(str, DateType.TimeFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out result))
-				throw new InvalidCastException(DateErrorMessage(str, SqlType.Time, DateType.TimeFormatSql));
+				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.Time, DateType.TimeFormatSql));
 
 			return result;
 
@@ -127,15 +127,15 @@ namespace Deveel.Data.Types {
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		public static DateTime ToTimeStamp(String str) {
+		public static DateObject ToTimeStamp(String str) {
 			DateTime result;
 			if (!DateTime.TryParseExact(str, DateType.TsFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
-				throw new InvalidCastException(DateErrorMessage(str, SqlType.TimeStamp, DateType.TsFormatSql));
+				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.TimeStamp, DateType.TsFormatSql));
 
 			return result;
 		}
 
-		private static string DateErrorMessage(string str, SqlType sqlType, string[] formats) {
+		private static string DateErrorMessage(string str, SqlTypeCode sqlType, string[] formats) {
 			return String.Format("The input string {0} is not compatible with any of the formats for SQL Type {1} ( {2} )",
 				str,
 				sqlType.ToString().ToUpperInvariant(),
@@ -148,48 +148,48 @@ namespace Deveel.Data.Types {
 			var sqlType = destType.SqlType;
 
 			switch (sqlType) {
-				case (SqlType.Bit):
-				case (SqlType.Boolean):
-					return (String.Compare(str, "true", StringComparison.OrdinalIgnoreCase) == 0 ||
-							String.Compare(str, "1", StringComparison.OrdinalIgnoreCase) == 0);
-				case (SqlType.TinyInt):
+				case (SqlTypeCode.Bit):
+				case (SqlTypeCode.Boolean):
+					return (BooleanObject) (String.Compare(str, "true", StringComparison.OrdinalIgnoreCase) == 0 ||
+					                        String.Compare(str, "1", StringComparison.OrdinalIgnoreCase) == 0);
+				case (SqlTypeCode.TinyInt):
 				// fall through
-				case (SqlType.SmallInt):
+				case (SqlTypeCode.SmallInt):
 				// fall through
-				case (SqlType.Integer):
-					return (Number)ToBigNumber(str).ToInt32();
-				case (SqlType.BigInt):
-					return (Number)ToBigNumber(str).ToInt64();
-				case (SqlType.Float):
-					return Number.Parse(Convert.ToString(ToBigNumber(str).ToDouble()));
-				case (SqlType.Real):
-					return ToBigNumber(str);
-				case (SqlType.Double):
-					return Number.Parse(Convert.ToString(ToBigNumber(str).ToDouble()));
-				case (SqlType.Numeric):
+				case (SqlTypeCode.Integer):
+					return (NumericObject)ToNumber(str).ToInt32();
+				case (SqlTypeCode.BigInt):
+					return (NumericObject)ToNumber(str).ToInt64();
+				case (SqlTypeCode.Float):
+					return NumericObject.Parse(Convert.ToString(ToNumber(str).ToDouble()));
+				case (SqlTypeCode.Real):
+					return ToNumber(str);
+				case (SqlTypeCode.Double):
+					return NumericObject.Parse(Convert.ToString(ToNumber(str).ToDouble()));
+				case (SqlTypeCode.Numeric):
 				// fall through
-				case (SqlType.Decimal):
-					return ToBigNumber(str);
-				case (SqlType.Char):
+				case (SqlTypeCode.Decimal):
+					return ToNumber(str);
+				case (SqlTypeCode.Char):
 					return new StringObject(CastUtil.PaddedString(str, ((StringType)destType).MaxSize));
-				case (SqlType.VarChar):
-				case (SqlType.LongVarChar):
-				case (SqlType.String):
+				case (SqlTypeCode.VarChar):
+				case (SqlTypeCode.LongVarChar):
+				case (SqlTypeCode.String):
 					return new StringObject(str);
-				case (SqlType.Date):
+				case (SqlTypeCode.Date):
 					return ToDate(str);
-				case (SqlType.Time):
+				case (SqlTypeCode.Time):
 					return ToTime(str);
-				case (SqlType.TimeStamp):
+				case (SqlTypeCode.TimeStamp):
 					return ToTimeStamp(str);
-				case (SqlType.Blob):
-				case (SqlType.Binary):
-				case (SqlType.VarBinary):
-				case (SqlType.LongVarBinary):
-					return new BinaryObject(Encoding.Unicode.GetBytes(str));
-				case (SqlType.Null):
+				case (SqlTypeCode.Blob):
+				case (SqlTypeCode.Binary):
+				case (SqlTypeCode.VarBinary):
+				case (SqlTypeCode.LongVarBinary):
+					return new BinaryObject(PrimitiveTypes.Binary(sqlType), Encoding.Unicode.GetBytes(str));
+				case (SqlTypeCode.Null):
 					return null;
-				case (SqlType.Clob):
+				case (SqlTypeCode.Clob):
 					// TODO: have a context where to get a new CLOB
 					return new StringObject(str);
 				default:
@@ -203,12 +203,12 @@ namespace Deveel.Data.Types {
 
 			// If lexicographical ordering,
 			if (Locale == null)
-				return LexicographicalOrder((IStringObject)x, (IStringObject)y);
+				return LexicographicalOrder((IStringAccessor)x, (IStringAccessor)y);
 
 			return Collator.Compare(x.ToString(), y.ToString());
 		}
 
-		private static int LexicographicalOrder(IStringObject str1, IStringObject str2) {
+		private static int LexicographicalOrder(IStringAccessor str1, IStringAccessor str2) {
 			// If both strings are small use the 'toString' method to compare the
 			// strings.  This saves the overhead of having to store very large string
 			// objects in memory for all comparisons.
@@ -216,13 +216,13 @@ namespace Deveel.Data.Types {
 			long str2Size = str2.Length;
 			if (str1Size < 32 * 1024 &&
 				str2Size < 32 * 1024) {
-				return str1.ToString().CompareTo(str2.ToString());
+				return String.Compare(str1.ToString(), str2.ToString(), StringComparison.Ordinal);
 			}
 
 			// The minimum size
 			long size = System.Math.Min(str1Size, str2Size);
-			TextReader r1 = str1.GetInput();
-			TextReader r2 = str2.GetInput();
+			TextReader r1 = str1.GetTextReader();
+			TextReader r2 = str2.GetTextReader();
 			try {
 				try {
 					while (size > 0) {

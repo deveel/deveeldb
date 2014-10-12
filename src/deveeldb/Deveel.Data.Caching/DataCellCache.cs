@@ -146,16 +146,16 @@ namespace Deveel.Data.Caching {
 
 		/// <summary>
 		/// Returns an approximation of the amount of memory taken by a 
-		/// given <see cref="TObject"/>.
+		/// given <see cref="DataObject"/>.
 		/// </summary>
 		/// <param name="cell"></param>
 		/// <returns></returns>
-		private static int AmountMemory(TObject cell) {
-			return 16 + cell.ApproximateMemoryUse;
+		private static int AmountMemory(DataObject cell) {
+			return 16 + cell.SizeOf();
 		}
 
 		/// <summary>
-		/// Adds a <see cref="TObject"/> on the cache for the given row/column 
+		/// Adds a <see cref="DataObject"/> on the cache for the given row/column 
 		/// of the table.
 		/// </summary>
 		/// <param name="tableKey"></param>
@@ -165,15 +165,15 @@ namespace Deveel.Data.Caching {
 		/// <remarks>
 		/// Ignores any cells that are larger than the maximum size.
 		/// </remarks>
-		public void Set(int tableKey, int row, int column, TObject cell) {
+		public void Set(int tableKey, int row, int column, DataObject cell) {
 			lock (this) {
 				int memoryUse = AmountMemory(cell);
 				if (memoryUse <= maxCellSize) {
 					// Generate the key
-					DCCacheKey key = new DCCacheKey(tableKey, (short)column, row);
+					var key = new DCCacheKey(tableKey, (short)column, row);
 					// If there is an existing object here, remove it from the cache and
 					// update the current_cache_size.
-					TObject removedCell = (TObject)cache.Remove(key);
+					var removedCell = (DataObject)cache.Remove(key);
 					if (removedCell != null) {
 						currentCacheSize -= AmountMemory(removedCell);
 					}
@@ -198,9 +198,9 @@ namespace Deveel.Data.Caching {
 		/// Returns the value of the cell at the given coordinates, or <b>null</b> 
 		/// if the row/column is not in the cache.
 		/// </returns>
-		public TObject Get(int tableKey, int row, int column) {
+		public DataObject Get(int tableKey, int row, int column) {
 			lock (this) {
-				return (TObject) cache.Get(new DCCacheKey(tableKey, (short) column, row));
+				return (DataObject) cache.Get(new DCCacheKey(tableKey, (short) column, row));
 			}
 		}
 
@@ -219,9 +219,9 @@ namespace Deveel.Data.Caching {
 		/// Returns the cell that was removed, or <b>null</b> if there was no 
 		/// cell at the given location.
 		/// </returns>
-		public TObject Remove(int tableKey, int row, int column) {
+		public DataObject Remove(int tableKey, int row, int column) {
 			lock (this) {
-				TObject cell = (TObject)cache.Remove(new DCCacheKey(tableKey, (short) column, row));
+				var cell = (DataObject)cache.Remove(new DCCacheKey(tableKey, (short) column, row));
 				if (cell != null)
 					currentCacheSize -= AmountMemory(cell);
 				return cell;
@@ -323,7 +323,7 @@ namespace Deveel.Data.Caching {
 				base.OnWipingNode(ob);
 
 				// Update our memory indicator accordingly.
-				TObject cell = (TObject)ob;
+				var cell = (DataObject)ob;
 				cache.ReduceCacheSize(AmountMemory(cell));
 			}
 

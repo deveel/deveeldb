@@ -17,13 +17,14 @@ using System;
 
 
 namespace Deveel.Data.Types {
+	[Serializable]
 	public sealed class ArrayType : DataType {
 		public ArrayType()
 			: this(-1) {
 		}
 
 		public ArrayType(int size)
-			: base("ARRAY", Sql.SqlType.Array) {
+			: base("ARRAY", SqlTypeCode.Array) {
 			Size = size;
 		}
 

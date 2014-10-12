@@ -44,7 +44,7 @@ namespace Deveel.Data {
 		/// and 9.  Return types must be either a String, BigDecimal or Boolean.
 		/// </remarks>
 		/// <returns></returns>
-		DataObject Resolve(VariableName variable, int setIndex);
+		DataObject Resolve(ObjectName variable, int setIndex);
 
 		/// <summary>
 		/// Returns a <see cref="IVariableResolver"/> that can be used to 

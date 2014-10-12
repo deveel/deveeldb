@@ -15,32 +15,30 @@
 
 using System;
 
-using Deveel.Data.Sql;
-using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Types {
 	public static class PrimitiveTypes {
 		public static BooleanType Boolean() {
-			return Boolean(SqlType.Boolean);
+			return Boolean(SqlTypeCode.Boolean);
 		}
 
-		public static BooleanType Boolean(SqlType sqlType) {
+		public static BooleanType Boolean(SqlTypeCode sqlType) {
 			return new BooleanType(sqlType);
 		}
 
 		public static StringType String(int maxSize) {
-			return new StringType(SqlType.String, maxSize);
+			return new StringType(SqlTypeCode.String, maxSize);
 		}
 
 		public static StringType String() {
-			return String(SqlType.String, -1);
+			return String(SqlTypeCode.String, -1);
 		}
 
-		public static StringType String(SqlType sqlType) {
+		public static StringType String(SqlTypeCode sqlType) {
 			return String(sqlType, -1);
 		}
 
-		public static StringType String(SqlType sqlType, int maxSize) {
+		public static StringType String(SqlTypeCode sqlType, int maxSize) {
 			return new StringType(sqlType, maxSize);
 		}
 
@@ -53,34 +51,34 @@ namespace Deveel.Data.Types {
 		}
 
 		public static NumericType Numeric(int size, byte scale) {
-			return Numeric(SqlType.Numeric, size, scale);
+			return Numeric(SqlTypeCode.Numeric, size, scale);
 		}
 
-		public static NumericType Numeric(SqlType sqlType) {
+		public static NumericType Numeric(SqlTypeCode sqlType) {
 			return Numeric(sqlType, -1);
 		}
 
-		public static NumericType Numeric(SqlType sqlType, int size) {
+		public static NumericType Numeric(SqlTypeCode sqlType, int size) {
 			return Numeric(sqlType, size, 0);
 		}
 
-		public static NumericType Numeric(SqlType sqlType, int size, byte scale) {
+		public static NumericType Numeric(SqlTypeCode sqlType, int size, byte scale) {
 			return new NumericType(sqlType, size, scale);
 		}
 
 		public static NullType Null() {
-			return Null(SqlType.Null);
+			return Null(SqlTypeCode.Null);
 		}
 
-		public static NullType Null(SqlType sqlType) {
+		public static NullType Null(SqlTypeCode sqlType) {
 			return new NullType(sqlType);
 		}
 
 		public static DateType Date() {
-			return Date(SqlType.TimeStamp);
+			return Date(SqlTypeCode.TimeStamp);
 		}
 
-		public static DateType Date(SqlType sqlType) {
+		public static DateType Date(SqlTypeCode sqlType) {
 			return new DateType(sqlType);
 		}
 
@@ -93,48 +91,48 @@ namespace Deveel.Data.Types {
 		}
 
 		public static BinaryType Binary(int maxSize) {
-			return Binary(SqlType.Binary, maxSize);
+			return Binary(SqlTypeCode.Binary, maxSize);
 		}
 
 		public static BinaryType Binary() {
-			return Binary(SqlType.Binary);
+			return Binary(SqlTypeCode.Binary);
 		}
 
-		public static BinaryType Binary(SqlType sqlType) {
+		public static BinaryType Binary(SqlTypeCode sqlType) {
 			return Binary(sqlType, -1);
 		}
 
-		public static BinaryType Binary(SqlType sqlType, int maxSize) {
+		public static BinaryType Binary(SqlTypeCode sqlType, int maxSize) {
 			return new BinaryType(sqlType, maxSize);
 		}
 
-		public static bool IsPrimitive(SqlType sqlType) {
-			if (sqlType == SqlType.Numeric ||
-				sqlType == SqlType.TinyInt ||
-				sqlType == SqlType.SmallInt ||
-				sqlType == SqlType.Integer ||
-				sqlType == SqlType.BigInt ||
-				sqlType == SqlType.Real ||
-				sqlType == SqlType.Double ||
-				sqlType == SqlType.Float ||
-				sqlType == SqlType.Decimal)
+		public static bool IsPrimitive(SqlTypeCode sqlType) {
+			if (sqlType == SqlTypeCode.Numeric ||
+				sqlType == SqlTypeCode.TinyInt ||
+				sqlType == SqlTypeCode.SmallInt ||
+				sqlType == SqlTypeCode.Integer ||
+				sqlType == SqlTypeCode.BigInt ||
+				sqlType == SqlTypeCode.Real ||
+				sqlType == SqlTypeCode.Double ||
+				sqlType == SqlTypeCode.Float ||
+				sqlType == SqlTypeCode.Decimal)
 				return true;
 
-			if (sqlType == SqlType.BigInt ||
-				sqlType == SqlType.Boolean)
+			if (sqlType == SqlTypeCode.BigInt ||
+				sqlType == SqlTypeCode.Boolean)
 				return true;
 
-			if (sqlType == SqlType.Char ||
-				sqlType == SqlType.VarChar ||
-				sqlType == SqlType.LongVarChar ||
-				sqlType == SqlType.String ||
-				sqlType == SqlType.Clob)
+			if (sqlType == SqlTypeCode.Char ||
+				sqlType == SqlTypeCode.VarChar ||
+				sqlType == SqlTypeCode.LongVarChar ||
+				sqlType == SqlTypeCode.String ||
+				sqlType == SqlTypeCode.Clob)
 				return true;
 
-			if (sqlType == SqlType.Binary ||
-				sqlType == SqlType.VarBinary ||
-				sqlType == SqlType.LongVarBinary ||
-				sqlType == SqlType.Blob)
+			if (sqlType == SqlTypeCode.Binary ||
+				sqlType == SqlTypeCode.VarBinary ||
+				sqlType == SqlTypeCode.LongVarBinary ||
+				sqlType == SqlTypeCode.Blob)
 				return true;
 
 			return false;
@@ -160,20 +158,20 @@ namespace Deveel.Data.Types {
 			return false;
 		}
 
-		public static DataType Type(SqlType sqlType, params object[] args) {
-			if (sqlType == SqlType.BigInt ||
-				sqlType == SqlType.Boolean)
+		public static DataType Type(SqlTypeCode sqlType, params object[] args) {
+			if (sqlType == SqlTypeCode.BigInt ||
+				sqlType == SqlTypeCode.Boolean)
 				return Boolean(sqlType);
 
-			if (sqlType == SqlType.Numeric ||
-				sqlType == SqlType.TinyInt ||
-				sqlType == SqlType.SmallInt ||
-				sqlType == SqlType.Integer ||
-				sqlType == SqlType.BigInt ||
-				sqlType == SqlType.Real ||
-				sqlType == SqlType.Double ||
-				sqlType == SqlType.Float ||
-				sqlType == SqlType.Decimal) {
+			if (sqlType == SqlTypeCode.Numeric ||
+				sqlType == SqlTypeCode.TinyInt ||
+				sqlType == SqlTypeCode.SmallInt ||
+				sqlType == SqlTypeCode.Integer ||
+				sqlType == SqlTypeCode.BigInt ||
+				sqlType == SqlTypeCode.Real ||
+				sqlType == SqlTypeCode.Double ||
+				sqlType == SqlTypeCode.Float ||
+				sqlType == SqlTypeCode.Decimal) {
 				if (args == null || args.Length == 0)
 					return Numeric(sqlType);
 				if (args.Length == 1)
@@ -184,11 +182,11 @@ namespace Deveel.Data.Types {
 				throw new ArgumentException("Invalid numer of arguments for NUMERIC type");
 			}
 
-			if (sqlType == SqlType.Char ||
-				sqlType == SqlType.VarChar ||
-				sqlType == SqlType.LongVarChar ||
-				sqlType == SqlType.String ||
-				sqlType == SqlType.Clob) {
+			if (sqlType == SqlTypeCode.Char ||
+				sqlType == SqlTypeCode.VarChar ||
+				sqlType == SqlTypeCode.LongVarChar ||
+				sqlType == SqlTypeCode.String ||
+				sqlType == SqlTypeCode.Clob) {
 				if (args == null || args.Length == 0)
 					return String(sqlType);
 				if (args.Length == 1)
@@ -197,10 +195,10 @@ namespace Deveel.Data.Types {
 				throw new ArgumentException("Invalid numer of arguments for NUMERIC type");
 			}
 
-			if (sqlType == SqlType.Binary ||
-				sqlType == SqlType.VarBinary ||
-				sqlType == SqlType.LongVarBinary ||
-				sqlType == SqlType.Blob) {
+			if (sqlType == SqlTypeCode.Binary ||
+				sqlType == SqlTypeCode.VarBinary ||
+				sqlType == SqlTypeCode.LongVarBinary ||
+				sqlType == SqlTypeCode.Blob) {
 				if (args == null || args.Length == 0)
 					return Binary(sqlType);
 				if (args.Length == 1)
@@ -209,22 +207,22 @@ namespace Deveel.Data.Types {
 				throw new ArgumentException("Invalid number of arguments for BINARY type");
 			}
 
-			if (sqlType == SqlType.Date ||
-				sqlType == SqlType.Time ||
-				sqlType == SqlType.TimeStamp)
+			if (sqlType == SqlTypeCode.Date ||
+				sqlType == SqlTypeCode.Time ||
+				sqlType == SqlTypeCode.TimeStamp)
 				return Date(sqlType);
 
-			if (sqlType == SqlType.Null)
+			if (sqlType == SqlTypeCode.Null)
 				return Null(sqlType);
 
-			if (sqlType == SqlType.RowType) {
+			if (sqlType == SqlTypeCode.RowType) {
 				if (args == null || args.Length != 1)
 					throw new ArgumentException("Invalid number of arguments for %ROWTYPE type");
 
 				return RowType((ObjectName)args[0]);
 			}
 
-			if (sqlType == SqlType.ColumnType) {
+			if (sqlType == SqlTypeCode.ColumnType) {
 				if (args == null || args.Length != 1)
 					throw new ArgumentException("Invalid number of arguments for %TYPE type");
 
@@ -247,12 +245,12 @@ namespace Deveel.Data.Types {
 			throw new NotSupportedException();
 		}
 
-		public static IntervalType Interval(SqlType sqlType) {
+		public static IntervalType Interval(SqlTypeCode sqlType) {
 			return new IntervalType(sqlType);
 		}
 
 		public static IntervalType Interval() {
-			return Interval(SqlType.Interval);
+			return Interval(SqlTypeCode.Interval);
 		}
 	}
 }

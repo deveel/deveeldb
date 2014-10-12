@@ -20,18 +20,18 @@ using Deveel.Data.Sql;
 namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class IntervalType : DataType {
-		public IntervalType(SqlType sqlType) 
+		public IntervalType(SqlTypeCode sqlType) 
 			: base(GetTypeString(sqlType), sqlType) {
-			if (sqlType != SqlType.Interval &&
-				sqlType != SqlType.YearToMonth &&
-				sqlType != SqlType.DayToSecond)
+			if (sqlType != SqlTypeCode.Interval &&
+				sqlType != SqlTypeCode.YearToMonth &&
+				sqlType != SqlTypeCode.DayToSecond)
 				throw new ArgumentException(String.Format("SQL Type {0} is not a valid INTERVAL.", sqlType.ToString().ToUpperInvariant()));
 		}
 
-		private static string GetTypeString(SqlType sqlType) {
-			if (sqlType == SqlType.DayToSecond)
+		private static string GetTypeString(SqlTypeCode sqlType) {
+			if (sqlType == SqlTypeCode.DayToSecond)
 				return "DAY TO SECOND";
-			if (sqlType == SqlType.YearToMonth)
+			if (sqlType == SqlTypeCode.YearToMonth)
 				return "YEAR TO MONTH";
 
 			return "INTERVAL";

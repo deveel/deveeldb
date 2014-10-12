@@ -21,18 +21,18 @@ using Deveel.Data.Sql.Compile;
 
 namespace Deveel.Data.Types {
 	public abstract class DataType : IComparer<DataObject> {
-		protected DataType(SqlType sqlType) 
+		protected DataType(SqlTypeCode sqlType) 
 			: this(sqlType.ToString().ToUpperInvariant(), sqlType) {
 		}
 
-		protected DataType(string name, SqlType sqlType) {
+		protected DataType(string name, SqlTypeCode sqlType) {
 			SqlType = sqlType;
 			Name = name;
 		}
 
 		public string Name { get; private set; }
 
-		public SqlType SqlType { get; private set; }
+		public SqlTypeCode SqlType { get; private set; }
 
 		public virtual bool IsIndexable {
 			get { return true; }
@@ -40,8 +40,8 @@ namespace Deveel.Data.Types {
 
 		public bool IsPrimitive {
 			get {
-				return SqlType != SqlType.Object &&
-				       SqlType != SqlType.Unknown;
+				return SqlType != SqlTypeCode.Object &&
+				       SqlType != SqlTypeCode.Unknown;
 			}
 		}
 
@@ -50,7 +50,7 @@ namespace Deveel.Data.Types {
 		}
 
 		public virtual bool CanCastTo(DataType type) {
-			return false;
+			return true;
 		}
 
 		public virtual DataObject CastTo(DataObject value, DataType destType) {
@@ -73,25 +73,31 @@ namespace Deveel.Data.Types {
 				if (!node.IsPrimitive)
 					throw new InvalidOperationException("Cannot resolve the given string to a primitive type.");
 
-				return GetFromPrimitive(node.TypeName, node.Size, node.Scale);
+				return PrimitiveTypes.Type(node.TypeName, node.Size, node.Scale);
 			} catch (SqlParseException) {
 				throw new FormatException("Unable to parse the given string to a valid data type.");
 			}
 		}
 
-		private static DataType GetFromPrimitive(string typeName, int size, byte scale) {
-			if (String.Equals(typeName, "BIT", StringComparison.InvariantCultureIgnoreCase) ||
-			    String.Equals(typeName, "BOOLEAN", StringComparison.InvariantCultureIgnoreCase))
-				return PrimitiveTypes.Boolean;
-			if (String.Equals(typeName, "INT", StringComparison.InvariantCultureIgnoreCase) ||
-			    String.Equals(typeName, "INTEGER", StringComparison.InvariantCultureIgnoreCase))
-				return PrimitiveTypes.Integer;
-
-			throw new NotSupportedException(String.Format("The type {0} is not primitive.", typeName));
-		}
-
 		public virtual int Compare(DataObject x, DataObject y) {
-			throw new NotSupportedException();
+			if (!IsComparable(x.Type) ||
+				!IsComparable(y.Type))
+				throw new NotSupportedException();
+
+			if (!x.IsComparable(y))
+				throw new NotSupportedException();
+
+			if (x.IsNull && y.IsNull)
+				return 0;
+			if (x.IsNull && !y.IsNull)
+				return 1;
+			if (!x.IsNull && y.IsNull)
+				return -1;
+
+			if (!(x is IComparable))
+				throw new NotSupportedException();
+
+			return ((IComparable) x).CompareTo(y);
 		}
 	}
 }

@@ -41,14 +41,14 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="variable"></param>
 		/// <returns></returns>
-		DataObject Resolve(VariableName variable);
+		DataObject Resolve(ObjectName variable);
 
 		/// <summary>
-		/// Returns the <see cref="TType"/> of object the given variable is.
+		/// Returns the <see cref="DataType"/> of object the given variable is.
 		/// </summary>
 		/// <param name="variable"></param>
 		/// <returns></returns>
-		DataType ReturnTType(VariableName variable);
+		DataType ReturnTType(ObjectName variable);
 
 	}
 }

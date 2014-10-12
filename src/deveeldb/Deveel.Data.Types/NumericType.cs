@@ -16,24 +16,22 @@
 using System;
 using System.Text;
 
-using Deveel.Data.Sql;
-using Deveel.Data.Sql.Types;
 using Deveel.Math;
 
 namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class NumericType : DataType {
-		public NumericType(SqlType sqlType, int size, byte scale) 
+		public NumericType(SqlTypeCode sqlType, int size, byte scale) 
 			: base("NUMERIC", sqlType) {
 			Size = size;
 			Scale = scale;
 		}
 
-		public NumericType(SqlType sqlType)
+		public NumericType(SqlTypeCode sqlType)
 			: this(sqlType, -1) {
 		}
 
-		public NumericType(SqlType sqlType, int size)
+		public NumericType(SqlTypeCode sqlType, int size)
 			: this(sqlType, size, 0) {
 		}
 
@@ -52,18 +50,18 @@ namespace Deveel.Data.Types {
 		}
 
 		public override int GetHashCode() {
-			return base.GetHashCode();
+			return (SqlType.GetHashCode() * Scale) + Size.GetHashCode();
 		}
 
-		private static int GetIntSize(SqlType sqlType) {
+		private static int GetIntSize(SqlTypeCode sqlType) {
 			switch (sqlType) {
-				case SqlType.TinyInt:
+				case SqlTypeCode.TinyInt:
 					return 1;
-				case SqlType.SmallInt:
+				case SqlTypeCode.SmallInt:
 					return 2;
-				case SqlType.Integer:
+				case SqlTypeCode.Integer:
 					return 4;
-				case SqlType.BigInt:
+				case SqlTypeCode.BigInt:
 					return 8;
 				default:
 					return 0;
@@ -71,38 +69,38 @@ namespace Deveel.Data.Types {
 		}
 
 
-		private static int GetFloatSize(SqlType sqlType) {
+		private static int GetFloatSize(SqlTypeCode sqlType) {
 			switch (sqlType) {
 				default:
 					return 0;
-				case SqlType.Real:
+				case SqlTypeCode.Real:
 					return 4;
-				case SqlType.Float:
-				case SqlType.Double:
+				case SqlTypeCode.Float:
+				case SqlTypeCode.Double:
 					return 8;
 			}
 		}
 
 		public override DataType Wider(DataType otherType) {
-			SqlType t1SqlType = SqlType;
-			SqlType t2SqlType = otherType.SqlType;
-			if (t1SqlType == SqlType.Decimal) {
+			SqlTypeCode t1SqlType = SqlType;
+			SqlTypeCode t2SqlType = otherType.SqlType;
+			if (t1SqlType == SqlTypeCode.Decimal) {
 				return this;
 			}
-			if (t2SqlType == SqlType.Decimal) {
+			if (t2SqlType == SqlTypeCode.Decimal) {
 				return otherType;
 			}
-			if (t1SqlType == SqlType.Numeric) {
+			if (t1SqlType == SqlTypeCode.Numeric) {
 				return this;
 			}
-			if (t2SqlType == SqlType.Numeric) {
+			if (t2SqlType == SqlTypeCode.Numeric) {
 				return otherType;
 			}
 
-			if (t1SqlType == SqlType.Bit) {
+			if (t1SqlType == SqlTypeCode.Bit) {
 				return otherType; // It can't be any smaller than a Bit
 			}
-			if (t2SqlType == SqlType.Bit) {
+			if (t2SqlType == SqlTypeCode.Bit) {
 				return this;
 			}
 
@@ -128,7 +126,7 @@ namespace Deveel.Data.Types {
 			}
 			if (t1IntSize >= t2FloatSize || t2IntSize >= t1FloatSize) {
 				// Must be a long (8 bytes) and a real (4 bytes), widen to a double
-				return new NumericType(SqlType.Double, 8, 0);
+				return new NumericType(SqlTypeCode.Double, 8, 0);
 			}
 
 			// NOTREACHED - can't get here, the last three if statements cover
@@ -141,70 +139,73 @@ namespace Deveel.Data.Types {
 		}
 
 		public override int Compare(DataObject x, DataObject y) {
-			var n1 = (Number)x;
-			Number n2;
+			var n1 = (NumericObject)x;
+			NumericObject n2;
 
-			if (y is Number) {
-				n2 = (Number)y;
+			if (y is NumericObject) {
+				n2 = (NumericObject)y;
+			} else if (y is BooleanObject) {
+				n2 = (BooleanObject) y ? NumericObject.One : NumericObject.Zero;
 			} else {
-				n2 = (bool)y ? Number.One : Number.Zero;
+				throw new NotSupportedException();
 			}
 
 			return n1.CompareTo(n2);
 		}
 
-		private static DateTime ToDate(long time) {
+		private static DateObject ToDate(long time) {
 			return new DateTime(time);
 		}
 
 		public override DataObject CastTo(DataObject value, DataType destType) {
-			var n = (Number) value;
+			var n = (NumericObject) value;
 
 			var sqlType = destType.SqlType;
 			switch (sqlType) {
-				case (SqlType.Bit):
-				case (SqlType.Boolean):
-					return n.ToBoolean();
-				case (SqlType.TinyInt):
-				case (SqlType.SmallInt):
-				case (SqlType.Integer):
-					return (Number)n.ToInt32();
-				case (SqlType.BigInt):
-					return (Number)n.ToInt64();
-				case (SqlType.Float):
-				case (SqlType.Real):
-				case (SqlType.Double):
+				case (SqlTypeCode.Bit):
+				case (SqlTypeCode.Boolean):
+					return (BooleanObject) n.ToBoolean();
+				case (SqlTypeCode.TinyInt):
+				case (SqlTypeCode.SmallInt):
+				case (SqlTypeCode.Integer):
+					return (NumericObject)n.ToInt32();
+				case (SqlTypeCode.BigInt):
+					return (NumericObject)n.ToInt64();
+				case (SqlTypeCode.Float):
+				case (SqlTypeCode.Real):
+				case (SqlTypeCode.Double):
 					double d = n.ToDouble();
-					NumberState state = NumberState.None;
+					var state = NumericState.None;
 					if (Double.IsNaN(d))
-						state = NumberState.NotANumber;
-					else if (Double.IsPositiveInfinity(d))
-						state = NumberState.PositiveInfinity;
-					else if (Double.IsNegativeInfinity(d))
-						state = NumberState.NegativeInfinity;
-					return new Number(state, new BigDecimal(d));
-				case (SqlType.Numeric):
+						return NumericObject.NaN;
+					if (Double.IsPositiveInfinity(d))
+						return NumericObject.PositiveInfinity;
+					if (Double.IsNegativeInfinity(d))
+						return NumericObject.NegativeInfinity;
+
+					return new NumericObject(PrimitiveTypes.Numeric(sqlType), state, new BigDecimal(d));
+				case (SqlTypeCode.Numeric):
 				// fall through
-				case (SqlType.Decimal):
-					return Number.Parse(n.ToString());
-				case (SqlType.Char):
+				case (SqlTypeCode.Decimal):
+					return NumericObject.Parse(n.ToString());
+				case (SqlTypeCode.Char):
 					return new StringObject(CastUtil.PaddedString(n.ToString(), ((StringType) destType).MaxSize));
-				case (SqlType.VarChar):
-				case (SqlType.LongVarChar):
+				case (SqlTypeCode.VarChar):
+				case (SqlTypeCode.LongVarChar):
 					return new StringObject(n.ToString());
-				case (SqlType.Date):
-				case (SqlType.Time):
-				case (SqlType.TimeStamp):
+				case (SqlTypeCode.Date):
+				case (SqlTypeCode.Time):
+				case (SqlTypeCode.TimeStamp):
 					return ToDate(n.ToInt64());
-				case (SqlType.Blob):
+				case (SqlTypeCode.Blob):
 				// fall through
-				case (SqlType.Binary):
+				case (SqlTypeCode.Binary):
 				// fall through
-				case (SqlType.VarBinary):
+				case (SqlTypeCode.VarBinary):
 				// fall through
-				case (SqlType.LongVarBinary):
-					return new BinaryObject(n.ToByteArray());
-				case (SqlType.Null):
+				case (SqlTypeCode.LongVarBinary):
+					return new BinaryObject(PrimitiveTypes.Binary(sqlType), n.ToByteArray());
+				case (SqlTypeCode.Null):
 					return null;
 				default:
 					throw new InvalidCastException();

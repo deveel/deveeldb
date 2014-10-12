@@ -17,6 +17,9 @@ using System;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Extension methods to <see cref="ISqlNode"/> for diagnostics and other purposes.
+	/// </summary>
 	public static class SqlNodeExtensions {
 		public static int StartColumn(this ISqlNode node) {
 			if (node == null || node.Tokens == null)
@@ -48,10 +51,6 @@ namespace Deveel.Data.Sql.Compile {
 
 			var token = node.Tokens.LastOrDefault();
 			return token == null ? 0 : token.Line;
-		}
-
-		public static string ToSqlString(this ISqlNode node) {
-			var sb = 
 		}
 	}
 }

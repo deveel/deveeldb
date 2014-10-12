@@ -15,8 +15,6 @@
 
 using System;
 
-using Deveel.Data.Store;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// An interface that represents a reference to a object that 

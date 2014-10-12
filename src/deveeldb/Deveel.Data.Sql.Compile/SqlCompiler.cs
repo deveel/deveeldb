@@ -57,8 +57,9 @@ namespace Deveel.Data.Sql.Compile {
 
 		public DataTypeNode CompileDataType(string s) {
 			var grammar = new SqlGrammar(IgnoreCase);
+			grammar.SetRootToDataType();
+
 			var languageData = new LanguageData(grammar);
-			languageData.SetRootToDataType();
 
 			if (!languageData.CanParse())
 				throw new InvalidOperationException();
