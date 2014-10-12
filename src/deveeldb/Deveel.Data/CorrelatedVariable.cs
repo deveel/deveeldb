@@ -37,21 +37,9 @@ namespace Deveel.Data {
 		/// </summary>
 		private VariableName variable;
 
-		/// <summary>
-		/// The number of sub-query branches back that the reference for this
-		/// variable can be found.
-		/// </summary>
-		private readonly int query_level_offset;
-
-		/// <summary>
-		/// The temporary value this variable has been set to evaluate to.
-		/// </summary>
-		private TObject eval_result;
-
-
 		public CorrelatedVariable(VariableName variable, int level_offset) {
 			this.variable = variable;
-			this.query_level_offset = level_offset;
+			this.QueryLevelOffset = level_offset;
 		}
 
 		/// <summary>
@@ -69,9 +57,7 @@ namespace Deveel.Data {
 		/// For example, if the correlated variable references the direct 
 		/// descendant this will return 1.
 		/// </remarks>
-		public int QueryLevelOffset {
-			get { return query_level_offset; }
-		}
+		public int QueryLevelOffset { get; private set; }
 
 		/// <summary>
 		/// Given a <see cref="IVariableResolver"/> this will set the value 
@@ -86,16 +72,13 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets or sets the value this correlated variable evaluates to.
 		/// </summary>
-		public TObject EvalResult {
-			get { return eval_result; }
-			set { eval_result = value; }
-		}
+		public DataObject EvalResult { get; set; }
 
 		/// <summary>
 		/// Returns the TType this correlated variable evaluates to.
 		/// </summary>
 		public TType ReturnTType {
-			get { return eval_result.TType; }
+			get { return EvalResult.TType; }
 		}
 
 		/// <inheritdoc/>

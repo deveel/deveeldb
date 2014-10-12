@@ -15,17 +15,23 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql.Expressions {
-	[Serializable]
-	public abstract class SqlExpression {
-		public abstract SqlExpressionType ExpressionType { get; }
-
-		public virtual bool CanEvaluate {
-			get { return false; }
+	/// <summary>
+	/// Encapsulates the elements needed to evaluate an <see cref="SqlExpression"/>
+	/// </summary>
+	public sealed class EvaluateContext {
+		public EvaluateContext(IQueryContext queryContext, IVariableResolver variableResolver, IGroupResolver groupResolver) {
+			GroupResolver = groupResolver;
+			VariableResolver = variableResolver;
+			QueryContext = queryContext;
 		}
 
-		public virtual SqlExpression Evaluate(EvaluateContext context) {
-			return this;
-		}
+		public IVariableResolver VariableResolver { get; private set; }
+
+		public IGroupResolver GroupResolver { get; private set; }
+
+		public IQueryContext QueryContext { get; private set; }
 	}
 }

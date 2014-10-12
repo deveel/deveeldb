@@ -26,7 +26,7 @@ namespace Deveel.Data {
 	/// </summary>
 	public class VariableResolver : IVariableResolver {
 		private readonly int setId;
-		private readonly Dictionary<VariableName, TObject> variables;
+		private readonly Dictionary<VariableName, DataObject> variables;
 
 		/// <summary>
 		/// Constructs an empty <see cref="VariableResolver"/> having
@@ -35,7 +35,7 @@ namespace Deveel.Data {
 		/// <param name="setId"></param>
 		public VariableResolver(int setId) {
 			this.setId = setId;
-			variables = new Dictionary<VariableName, TObject>();
+			variables = new Dictionary<VariableName, DataObject>();
 		}
 
 		/// <summary>
@@ -56,15 +56,15 @@ namespace Deveel.Data {
 		/// <param name="value">The value of the variable.</param>
 		/// <remarks>
 		/// The given <paramref name="value"/> must be compliant to
-		/// <see cref="TObject"/>: if it is not an instance of
-		/// <see cref="TObject"/>, this method will try to convert it.
+		/// <see cref="DataObject"/>: if it is not an instance of
+		/// <see cref="DataObject"/>, this method will try to convert it.
 		/// </remarks>
-		/// <seealso cref="AddVariable(string,Deveel.Data.TObject)"/>
+		/// <seealso cref="AddVariable(string,DataObject)"/>
 		public void AddVariable(string name, object value) {
-			if (!(value is TObject))
-				value = TObject.CreateObject(value);
+			if (!(value is DataObject))
+				value = DataObject.CreateObject(value);
 
-			AddVariable(name, (TObject)value);
+			AddVariable(name, (DataObject)value);
 		}
 
 		/// <summary>
@@ -75,33 +75,33 @@ namespace Deveel.Data {
 		/// <exception cref="ArgumentNullException">
 		/// If the <paramref name="name"/> given is <c>null</c> or empty.
 		/// </exception>
-		public void AddVariable(string name, TObject value) {
+		public void AddVariable(string name, DataObject value) {
 			if (String.IsNullOrEmpty(name))
 				throw new ArgumentNullException("name");
 
 			if (value == null)
-				value = TObject.Null;
+				value = DataObject.Null;
 
 			VariableName varName = new VariableName(name);
 			variables[varName] = value;
 		}
 
 		/// <inheritdoc/>
-		public TObject Resolve(VariableName variable) {
-			TObject value;
+		public DataObject Resolve(VariableName variable) {
+			DataObject value;
 			if (!variables.TryGetValue(variable, out value))
-				return TObject.Null;
+				return DataObject.Null;
 
 			return value;
 		}
 
 		/// <inheritdoc/>
-		public TType ReturnTType(VariableName variable) {
-			TObject value;
+		public DataType ReturnTType(VariableName variable) {
+			DataObject value;
 			if (!variables.TryGetValue(variable, out value))
 				return PrimitiveTypes.Null;
 
-			return value.TType;
+			return value.Type;
 		}
 	}
 }

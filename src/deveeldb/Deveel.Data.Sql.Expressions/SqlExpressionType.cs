@@ -25,5 +25,8 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		/// <seealso cref="SqlConstantExpression"/>
 		Constant,
+
+		FunctionCall,
+		Cast
 	}
 }

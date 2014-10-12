@@ -917,7 +917,7 @@ namespace Deveel.Data.Index {
 
 				// Did the number of blocks in the list change?
 				if (origBlockCount == index.Blocks.Count) {
-					// HACK: Reduce the current cached block size
+					// HACK: Evaluate the current cached block size
 					--currentBlockSize;
 					WalkBack();
 				} else {

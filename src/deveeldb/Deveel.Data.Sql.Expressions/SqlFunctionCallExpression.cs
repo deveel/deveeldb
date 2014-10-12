@@ -16,16 +16,9 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
-	[Serializable]
-	public abstract class SqlExpression {
-		public abstract SqlExpressionType ExpressionType { get; }
-
-		public virtual bool CanEvaluate {
-			get { return false; }
-		}
-
-		public virtual SqlExpression Evaluate(EvaluateContext context) {
-			return this;
+	public sealed class SqlFunctionCallExpression : SqlExpression {
+		public override SqlExpressionType ExpressionType {
+			get { return SqlExpressionType.FunctionCall; }
 		}
 	}
 }

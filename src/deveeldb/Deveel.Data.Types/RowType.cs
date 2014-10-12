@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2014  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,17 +15,17 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions {
+namespace Deveel.Data.Sql.Types {
 	[Serializable]
-	public abstract class SqlExpression {
-		public abstract SqlExpressionType ExpressionType { get; }
+	public sealed class RowType : DataType {
+		public RowType(ObjectName tableName) 
+			: base(String.Format("{0}%ROWTYPE", tableName), SqlType.RowType) {
+			if (tableName == null)
+				throw new ArgumentNullException("tableName");
 
-		public virtual bool CanEvaluate {
-			get { return false; }
+			TableName = tableName;
 		}
 
-		public virtual SqlExpression Evaluate(EvaluateContext context) {
-			return this;
-		}
+		public ObjectName TableName { get; private set; }
 	}
 }

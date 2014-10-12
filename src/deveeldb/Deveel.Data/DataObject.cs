@@ -37,6 +37,13 @@ namespace Deveel.Data {
 			return Type.IsComparable(obj.Type);
 		}
 
+		public int CompareTo(DataObject other) {
+			if (!IsComparable(other))
+				throw new NotSupportedException();
+
+			return Type.Compare(this, other);
+		}
+
 		public int SizeOf() {
 			return Type.SizeOf(this);
 		}

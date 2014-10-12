@@ -21,8 +21,8 @@ namespace Deveel.Data.Sql.Expressions {
 	/// </summary>
 	/// <remarks>
 	/// As constant, this expression cannot be reduced, so
-	/// that <see cref="SqlExpression.CanReduce"/> will always
-	/// return <c>false</c> and the value of <see cref="SqlExpression.Reduce"/>
+	/// that <see cref="SqlExpression.CanEvaluate"/> will always
+	/// return <c>false</c> and the value of <see cref="SqlExpression.Evaluate"/>
 	/// will return the expression itself.
 	/// </remarks>
 	[Serializable]

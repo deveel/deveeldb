@@ -13,19 +13,11 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-using System;
-
-namespace Deveel.Data.Sql.Expressions {
-	[Serializable]
-	public abstract class SqlExpression {
-		public abstract SqlExpressionType ExpressionType { get; }
-
-		public virtual bool CanEvaluate {
-			get { return false; }
-		}
-
-		public virtual SqlExpression Evaluate(EvaluateContext context) {
-			return this;
-		}
+namespace Deveel.Data {
+	public enum NumericState : byte {
+		None = 0,
+		NegativeInfinity = 1,
+		PositiveInfinity = 2,
+		NotANumber = 3
 	}
 }

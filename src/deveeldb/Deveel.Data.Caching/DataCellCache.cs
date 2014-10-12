@@ -246,7 +246,7 @@ namespace Deveel.Data.Caching {
 		}
 
 		/// <summary>
-		/// Reduce the cache size by the given amount.
+		/// Evaluate the cache size by the given amount.
 		/// </summary>
 		/// <param name="val"></param>
 		private void ReduceCacheSize(long val) {

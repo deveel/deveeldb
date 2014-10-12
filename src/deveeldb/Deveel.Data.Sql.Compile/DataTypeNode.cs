@@ -26,8 +26,6 @@ namespace Deveel.Data.Sql.Compile {
 
 		public int Size { get; private set; }
 
-		public int Precision { get; private set; }
-
 		public byte Scale { get; private set; }
 	}
 }

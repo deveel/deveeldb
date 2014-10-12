@@ -16,16 +16,21 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
-	[Serializable]
-	public abstract class SqlExpression {
-		public abstract SqlExpressionType ExpressionType { get; }
-
-		public virtual bool CanEvaluate {
-			get { return false; }
+	public abstract class SqlUnaryExpression : SqlExpression {
+		protected SqlUnaryExpression(SqlExpression operand) {
+			Operand = operand;
 		}
 
-		public virtual SqlExpression Evaluate(EvaluateContext context) {
-			return this;
+		public SqlExpression Operand { get; private set; }
+
+		protected abstract DataObject EvaluateUnary(DataObject value);
+
+		public override bool CanEvaluate {
+			get { return true; }
+		}
+
+		public override SqlExpression Evaluate(EvaluateContext context) {
+			return base.Evaluate(context);
 		}
 	}
 }

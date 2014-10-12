@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2014  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,17 +15,11 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions {
+namespace Deveel.Data.Sql.Types {
 	[Serializable]
-	public abstract class SqlExpression {
-		public abstract SqlExpressionType ExpressionType { get; }
-
-		public virtual bool CanEvaluate {
-			get { return false; }
-		}
-
-		public virtual SqlExpression Evaluate(EvaluateContext context) {
-			return this;
+	public sealed class QueryType : DataType {
+		public QueryType()
+			: base("QUERY", SqlType.QueryPlanNode) {
 		}
 	}
 }
