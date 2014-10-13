@@ -64,6 +64,15 @@ namespace Deveel.Data.Types {
 			}
 		}
 
+		public Encoding Encoding {
+			get {
+				if (Locale == null)
+					return Encoding.Unicode;
+
+				return Encoding.GetEncoding(Locale.TextInfo.OEMCodePage);
+			}
+		}
+
 		public override string ToString() {
 			var sb = new StringBuilder(Name);
 			if (MaxSize >= 0)
@@ -100,7 +109,7 @@ namespace Deveel.Data.Types {
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		public static DateObject ToDate(string str) {
+		private static DateObject ToDate(string str) {
 			DateTime result;
 			if (!DateTime.TryParseExact(str, DateType.DateFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
 				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.Date, DateType.DateFormatSql));
@@ -113,7 +122,7 @@ namespace Deveel.Data.Types {
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		public static DateObject ToTime(String str) {
+		private static DateObject ToTime(String str) {
 			DateTime result;
 			if (!DateTime.TryParseExact(str, DateType.TimeFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out result))
 				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.Time, DateType.TimeFormatSql));
@@ -127,7 +136,7 @@ namespace Deveel.Data.Types {
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		public static DateObject ToTimeStamp(String str) {
+		private static DateObject ToTimeStamp(String str) {
 			DateTime result;
 			if (!DateTime.TryParseExact(str, DateType.TsFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
 				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.TimeStamp, DateType.TsFormatSql));

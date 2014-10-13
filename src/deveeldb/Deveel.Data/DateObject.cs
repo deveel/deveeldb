@@ -137,6 +137,14 @@ namespace Deveel.Data {
 			return base.ToString();
 		}
 
+		public long ToUnixEpoch() {
+			if (value == null)
+				return 0;
+
+			var unixDate = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+			return Convert.ToInt64((value.Value - unixDate).TotalSeconds);
+		}
+
 		public static bool TryParse(string s, out DateObject value) {
 			if (String.IsNullOrEmpty(s))
 				throw new ArgumentNullException("s");
@@ -168,6 +176,12 @@ namespace Deveel.Data {
 				throw new FormatException();
 
 			return value;
+		}
+
+		public static DateObject FromUnixEpoch(long unixTime) {
+			var date = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+			date = date.AddSeconds(unixTime);
+			return new DateObject(PrimitiveTypes.Date(SqlTypeCode.TimeStamp), date);
 		}
 
 		public static bool operator ==(DateObject a, DateObject b) {

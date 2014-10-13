@@ -192,7 +192,7 @@ namespace Deveel.Data.Types {
 					return new StringObject(CastUtil.PaddedString(n.ToString(), ((StringType) destType).MaxSize));
 				case (SqlTypeCode.VarChar):
 				case (SqlTypeCode.LongVarChar):
-					return new StringObject(n.ToString());
+					return new StringObject(PrimitiveTypes.String(sqlType), n.ToString());
 				case (SqlTypeCode.Date):
 				case (SqlTypeCode.Time):
 				case (SqlTypeCode.TimeStamp):

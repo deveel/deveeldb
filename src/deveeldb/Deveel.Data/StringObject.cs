@@ -15,43 +15,116 @@
 
 using System;
 using System.IO;
-using System.Runtime.Remoting.Messaging;
 
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
+	[Serializable]
 	public sealed class StringObject : DataObject, IEquatable<StringObject>, IComparable, IComparable<StringObject>,
 		IStringAccessor {
 		private readonly char[] source;
 
 		public StringObject(StringType type, char[] chars, int length)
 			: base(type) {
+			if (chars == null) {
+				source = null;
+			} else {
+				source = new char[length];
+				Array.Copy(chars, 0, source, 0, length);
+				Length = length;
+			}
 		}
 
-		public override bool Equals(object obj) {
-			return base.Equals(obj);
+		public StringObject(StringType type, char[] chars)
+			: this(type, chars, chars == null ? 0 : chars.Length) {
 		}
 
-		public override int GetHashCode() {
-			return base.GetHashCode();
+		public StringObject(StringType type, byte[] bytes)
+			: this(type, type.Encoding.GetChars(bytes)) {
 		}
 
-		public bool Equals(StringObject other) {
-			throw new NotImplementedException();
-		}
-
-		int IComparable.CompareTo(object obj) {
-			
-		}
-
-		public int CompareTo(StringObject other) {
-			throw new NotImplementedException();
+		public StringObject(StringType type, string source)
+			: this(type, type.Encoding.GetBytes(source)) {
 		}
 
 		public int Length { get; private set; }
 
+		public override bool IsNull {
+			get { return source == null; }
+		}
+
+		public override bool Equals(object obj) {
+			var other = obj as StringObject;
+			if (other == null)
+				return false;
+
+			return Equals(other);
+		}
+
+		public override int GetHashCode() {
+			if (source == null)
+				return 0;
+
+			unchecked {
+				int hash = 17;
+
+				// get hash code for all items in array
+				foreach (var item in source) {
+					hash = hash*23 + item.GetHashCode();
+				}
+
+				return hash;
+			}
+
+		}
+
+		public bool Equals(StringObject other) {
+			if (other == null)
+				return false;
+
+			if (source == null && other.source == null)
+				return true;
+
+			if (source == null)
+				return false;
+
+			if (source.Length != other.source.Length)
+				return false;
+
+			for (int i = 0; i < source.Length; i++) {
+				var c1 = source[i];
+				var c2 = other.source[i];
+				if (!c1.Equals(c2))
+					return false;
+			}
+
+			return true;
+		}
+
+		int IComparable.CompareTo(object obj) {
+			if (!(obj is StringObject))
+				throw new ArgumentException();
+
+			var other = obj as StringObject;
+			return CompareTo(other);
+		}
+
+		public int CompareTo(StringObject other) {
+			return Type.Compare(this, other);
+		}
+
 		public TextReader GetTextReader() {
-			throw new NotImplementedException();
+			var chars = source;
+			if (chars == null)
+				chars = new char[0];
+
+			return new StringReader(new string(chars));
+		}
+
+		public override string ToString() {
+			using (var reader = GetTextReader()) {
+				return reader.ReadToEnd();
+			}
 		}
 	}
 }
