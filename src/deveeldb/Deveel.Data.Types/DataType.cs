@@ -20,7 +20,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Compile;
 
 namespace Deveel.Data.Types {
-	public abstract class DataType : IComparer<DataObject> {
+	public abstract class DataType : IComparer<DataObject>, IEquatable<DataType> {
 		protected DataType(SqlTypeCode sqlType) 
 			: this(sqlType.ToString().ToUpperInvariant(), sqlType) {
 		}
@@ -98,6 +98,25 @@ namespace Deveel.Data.Types {
 				throw new NotSupportedException();
 
 			return ((IComparable) x).CompareTo(y);
+		}
+
+		public override bool Equals(object obj) {
+			var dataType = obj as DataType;
+			if (dataType == null)
+				return false;
+
+			return Equals(dataType);
+		}
+
+		public override int GetHashCode() {
+			return SqlType.GetHashCode();
+		}
+
+		public virtual bool Equals(DataType other) {
+			if (other == null)
+				return false;
+
+			return SqlType == other.SqlType;
 		}
 	}
 }

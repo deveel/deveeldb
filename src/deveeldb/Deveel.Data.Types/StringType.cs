@@ -18,8 +18,6 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-using Deveel.Data.Sql;
-
 namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class StringType : DataType {
@@ -79,6 +77,14 @@ namespace Deveel.Data.Types {
 				sb.AppendFormat("({0})", MaxSize);
 
 			return sb.ToString();
+		}
+
+		public override bool Equals(DataType other) {
+			return base.Equals(other);
+		}
+
+		public override int GetHashCode() {
+			return base.GetHashCode();
 		}
 
 		public override bool IsComparable(DataType type) {

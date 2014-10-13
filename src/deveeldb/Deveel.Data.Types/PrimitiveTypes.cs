@@ -158,6 +158,22 @@ namespace Deveel.Data.Types {
 			return false;
 		}
 
+		public static DataType Type(string typeName, params object[] args) {
+			if (System.String.Equals("long varchar", typeName, StringComparison.OrdinalIgnoreCase))
+				typeName = "longvarchar";
+			if (System.String.Equals("long varbinary", typeName, StringComparison.OrdinalIgnoreCase))
+				typeName = "longvarbinary";
+
+			SqlTypeCode typeCode;
+			try {
+				typeCode = (SqlTypeCode) Enum.Parse(typeof (SqlTypeCode), typeName, true);
+			} catch (Exception) {
+				throw new ArgumentException(System.String.Format("The name {0} is not a valid SQL type.", typeName));
+			}
+
+			return Type(typeCode, args);
+		}
+
 		public static DataType Type(SqlTypeCode sqlType, params object[] args) {
 			if (sqlType == SqlTypeCode.BigInt ||
 				sqlType == SqlTypeCode.Boolean)

@@ -65,8 +65,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.DbSystem\DatabaseException.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CaseSwitchNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DataTypeNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\IdentifierNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\IExpressionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\IntegerLiteralNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\NumerLiteralNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ObjectNameNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlBetweenExpressionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlBinaryExpressionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlCaseExpressionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlConstantExpressionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlExpressionTupleNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlFunctionCallExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlParseException.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlReferenceExpressionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlUnaryExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlVariableRefExpressionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\StringLiteralNode.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\EvaluateContext.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlCastExpression.cs" />
