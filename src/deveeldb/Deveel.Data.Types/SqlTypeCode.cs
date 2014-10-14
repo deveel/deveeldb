@@ -152,6 +152,9 @@ namespace Deveel.Data.Types {
 		///</summary>
 		QueryPlanNode = -19443,
 
+		RowType = -1256,
+		ColumnType = -1257,
+
 		///<summary>
 		/// An unknown SQL type (either not supported by the system.
 		///</summary>

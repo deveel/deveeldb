@@ -21,9 +21,6 @@ using Deveel.Math;
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	public sealed class NumberLiteralNode : SqlNode {
-		internal NumberLiteralNode() {
-		}
-
 		internal BigDecimal BigValue { get; private set; }
 
 		public string Value {

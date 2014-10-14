@@ -71,9 +71,17 @@ namespace Deveel.Data.Types {
 			try {
 				var node = sqlCompiler.CompileDataType(s);
 				if (!node.IsPrimitive)
-					throw new InvalidOperationException("Cannot resolve the given string to a primitive type.");
+					throw new NotSupportedException("Cannot resolve the given string to a primitive type.");
 
-				return PrimitiveTypes.Type(node.TypeName, node.Size, node.Scale);
+				if (node.HasSize)
+					return PrimitiveTypes.Type(node.TypeName, node.Size);
+				if (node.HasScale) {
+					if (node.HasPrecision)
+						return PrimitiveTypes.Type(node.TypeName, node.Scale, node.Precision);
+					return PrimitiveTypes.Type(node.TypeName, node.Scale);
+				}
+
+				return PrimitiveTypes.Type(node.TypeName);
 			} catch (SqlParseException) {
 				throw new FormatException("Unable to parse the given string to a valid data type.");
 			}

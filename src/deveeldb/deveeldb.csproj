@@ -83,12 +83,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlUnaryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlVariableRefExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\StringLiteralNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\EvaluateContext.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpression.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlCastExpression.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlConstantExpression.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpression.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionType.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlGrammar.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlChildNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlNode.cs" />
@@ -97,8 +91,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlNodeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\Token.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlFunctionCallExpression.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlUnaryExpression.cs" />
     <Compile Include="Deveel.Data.Store\IArea.cs" />
     <Compile Include="Deveel.Data.Store\IAreaWriter.cs" />
     <Compile Include="Deveel.Data.Store\IMutableArea.cs" />
@@ -106,12 +98,15 @@
     <Compile Include="Deveel.Data.Types\ArrayType.cs" />
     <Compile Include="Deveel.Data.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Types\BooleanType.cs" />
+    <Compile Include="Deveel.Data.Types\ColumnType.cs" />
     <Compile Include="Deveel.Data.Types\DataType.cs" />
     <Compile Include="Deveel.Data.Types\DateType.cs" />
     <Compile Include="Deveel.Data.Types\IntervalType.cs" />
     <Compile Include="Deveel.Data.Types\NullType.cs" />
     <Compile Include="Deveel.Data.Types\NumericType.cs" />
     <Compile Include="Deveel.Data.Types\PrimitiveTypes.cs" />
+    <Compile Include="Deveel.Data.Types\QueryType.cs" />
+    <Compile Include="Deveel.Data.Types\RowType.cs" />
     <Compile Include="Deveel.Data.Types\SqlTypeCode.cs" />
     <Compile Include="Deveel.Data.Types\StringType.cs">
       <SubType>Code</SubType>
@@ -127,14 +122,12 @@
     <Compile Include="Deveel.Data\IBlobAccessor.cs" />
     <Compile Include="Deveel.Data\IBlobRef.cs" />
     <Compile Include="Deveel.Data\IClobRef.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\IExpressionPreparer.cs" />
     <Compile Include="Deveel.Data\IRef.cs" />
     <Compile Include="Deveel.Data\IStringAccessor.cs" />
     <Compile Include="Deveel.Data\NumericObject.cs" />
     <Compile Include="Deveel.Data\NumericState.cs" />
     <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Deveel.Data\ParameterDirection.cs" />
-    <Compile Include="Deveel.Data\PatternSearch.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Deveel.Data\SchemaDef.cs" />
     <Compile Include="Deveel.Data\StringObject.cs" />
@@ -166,8 +159,9 @@
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>MKDIR $(TargetDir)merged\
-$(SolutionDir)..\util\ilrepack-1.25.0\ilrepack.exe /internalize /targetplatform:v2 /out:$(TargetDir)merged\$(TargetFileName) $(TargetPath) $(SolutionDir)..\lib\irony.net35\irony.dll $(TargetDir)\Deveel.Math.dll</PostBuildEvent>
+    <PostBuildEvent>IF EXIST "$(SolutionDir)..\dist\" RD /S /Q "$(SolutionDir)..\dist\"
+MKDIR $(SolutionDir)..\dist\
+$(SolutionDir)..\util\ilrepack-1.25.0\ilrepack.exe /internalize /targetplatform:v2 /out:$(SolutionDir)..\dist\$(TargetFileName) $(TargetPath) $(SolutionDir)..\lib\irony.net35\irony.dll $(TargetDir)\Deveel.Math.dll</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -175,7 +175,6 @@ namespace Deveel.Data.Types {
 				case (SqlTypeCode.Real):
 				case (SqlTypeCode.Double):
 					double d = n.ToDouble();
-					var state = NumericState.None;
 					if (Double.IsNaN(d))
 						return NumericObject.NaN;
 					if (Double.IsPositiveInfinity(d))
@@ -183,13 +182,13 @@ namespace Deveel.Data.Types {
 					if (Double.IsNegativeInfinity(d))
 						return NumericObject.NegativeInfinity;
 
-					return new NumericObject(PrimitiveTypes.Numeric(sqlType), state, new BigDecimal(d));
+					return new NumericObject(PrimitiveTypes.Numeric(sqlType), new BigDecimal(d));
 				case (SqlTypeCode.Numeric):
 				// fall through
 				case (SqlTypeCode.Decimal):
 					return NumericObject.Parse(n.ToString());
 				case (SqlTypeCode.Char):
-					return new StringObject(CastUtil.PaddedString(n.ToString(), ((StringType) destType).MaxSize));
+					return new StringObject((StringType)destType, n.ToString().PadRight(((StringType) destType).MaxSize));
 				case (SqlTypeCode.VarChar):
 				case (SqlTypeCode.LongVarChar):
 					return new StringObject(PrimitiveTypes.String(sqlType), n.ToString());

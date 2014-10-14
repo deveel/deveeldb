@@ -18,10 +18,7 @@ using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	public sealed class IdentifierNode : SqlNode {
-		internal IdentifierNode() {
-		}
-		
+	public sealed class IdentifierNode : SqlNode {		
 		public string Text { get; private set; }
 
 		protected override void OnNodeInit() {

@@ -50,7 +50,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Deveel.Math">
-      <HintPath>..\packages\dmath-signed.1.2.25\lib\net20\Deveel.Math.dll</HintPath>
+      <HintPath>..\packages\dmath.1.2.25\lib\net20\Deveel.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="Irony">
+      <HintPath>..\..\lib\irony.net35\Irony.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -60,18 +63,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\deveeldb\deveeldb.csproj">
-      <Project>{A14222AE-1B48-4863-A0CA-1D6C2AB2190B}</Project>
-      <Name>deveeldb</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="deveeldb-nunit.licenseheader" />
     <None Include="deveeldb-nunit.snk" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\deveeldb\deveeldb.csproj">
+      <Project>{a14222ae-1b48-4863-a0ca-1d6c2ab2190b}</Project>
+      <Name>deveeldb</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

@@ -19,9 +19,6 @@ using System.Linq;
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	public sealed class StringLiteralNode : SqlNode {
-		internal StringLiteralNode() {
-		}
-
 		public string Value { get; private set; }
 
 		protected override void OnNodeInit() {

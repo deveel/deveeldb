@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2014  Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
 
 using System;
 
-using Deveel.Data.Sql;
-
 namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class QueryType : DataType {
 		public QueryType()
-			: base("QUERY", SqlType.QueryPlanNode) {
+			: base("QUERY", SqlTypeCode.QueryPlanNode) {
 		}
 	}
 }

@@ -80,7 +80,24 @@ namespace Deveel.Data.Types {
 		}
 
 		public override bool Equals(DataType other) {
-			return base.Equals(other);
+			if (!base.Equals(other))
+				return false;
+
+			var stringType = (StringType) other;
+			if (stringType.MaxSize != MaxSize)
+				return false;
+
+			if (Locale == null && stringType.Locale == null)
+				return true;
+			if (Locale == null && stringType.Locale != null)
+				return false;
+			if (Locale != null && stringType.Locale == null)
+				return false;
+
+			if (Locale != null && stringType.Locale != null)
+				return Locale.NativeName.Equals(stringType.Locale.NativeName);
+
+			return true;
 		}
 
 		public override int GetHashCode() {
@@ -89,24 +106,29 @@ namespace Deveel.Data.Types {
 
 		public override bool IsComparable(DataType type) {
 			// Are we comparing with another string type?
-			if (!(type is StringType))
-				return false;
+			if (type is StringType) {
+				var stringType = (StringType) type;
+				// If either locale is null return true
+				if (Locale == null || stringType.Locale == null)
+					return true;
 
-			var stringType = (StringType)type;
-			// If either locale is null return true
-			if (Locale == null || stringType.Locale == null)
-				return true;
+				//TODO: Check batter on the locale comparison: we could compare
+				//      neutral cultures
 
-			// If the locales are the same return true
-			return Locale.Equals(stringType.Locale);
+				// If the locales are the same return true
+				return Locale.Equals(stringType.Locale);
+			}
+
+			// Only string types can be comparable
+			return false;
 		}
 
 		private static NumericObject ToNumber(String str) {
-			try {
-				return NumericObject.Parse(str);
-			} catch (Exception) {
-				return NumericObject.Zero;
-			}
+			NumericObject value;
+			if (!NumericObject.TryParse(str, out value))
+				value = NumericObject.Zero;
+
+			return value;
 		}
 
 
@@ -186,11 +208,11 @@ namespace Deveel.Data.Types {
 				case (SqlTypeCode.Decimal):
 					return ToNumber(str);
 				case (SqlTypeCode.Char):
-					return new StringObject(CastUtil.PaddedString(str, ((StringType)destType).MaxSize));
+					return new StringObject((StringType)destType, str.PadRight(((StringType)destType).MaxSize));
 				case (SqlTypeCode.VarChar):
 				case (SqlTypeCode.LongVarChar):
 				case (SqlTypeCode.String):
-					return new StringObject(str);
+					return new StringObject(((StringType)destType), str);
 				case (SqlTypeCode.Date):
 					return ToDate(str);
 				case (SqlTypeCode.Time):
@@ -206,13 +228,20 @@ namespace Deveel.Data.Types {
 					return null;
 				case (SqlTypeCode.Clob):
 					// TODO: have a context where to get a new CLOB
-					return new StringObject(str);
+					return new StringObject((StringType)destType, str);
 				default:
 					throw new InvalidCastException();
 			}
 		}
 
 		public override int Compare(DataObject x, DataObject y) {
+			if (x == null)
+				throw new ArgumentNullException("x");
+
+			if (!(x is IStringAccessor) ||
+				!(y is IStringAccessor))
+				throw new ArgumentException("Cannot compare objects that are not strings.");
+				
 			if (x == y)
 				return 0;
 

@@ -14,23 +14,18 @@
 //    limitations under the License.
 
 using System;
-using System.Linq;
 
-using Deveel.Math;
-
-namespace Deveel.Data.Sql.Compile {
+namespace Deveel.Data.Types {
 	[Serializable]
-	public sealed class IntegerLiteralNode : SqlNode {
-		internal BigInteger BigValue { get; private set; }
+	public sealed class ColumnType : DataType {
+		public ColumnType(ObjectName columnName)
+			: base(String.Format("{0}%TYPE", columnName), SqlTypeCode.ColumnType) {
+			if (columnName == null)
+				throw new ArgumentNullException("columnName");
 
-		public int Value {
-			get { return BigValue == null ? -1 : BigValue.ToInt32(); }
+			ColumnName = columnName;
 		}
 
-		protected override void OnNodeInit() {
-			var token = Tokens.First();
-			BigValue = new BigInteger(token.Text);
-			base.OnNodeInit();
-		}
+		public ObjectName ColumnName { get; private set; }
 	}
 }

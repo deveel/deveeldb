@@ -71,6 +71,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var astContext = new AstContext(languageData);
 			astContext.DefaultNodeType = typeof(SqlNode);
+			astContext.DefaultIdentifierNodeType = typeof (IdentifierNode);
 			var astCompiler = new AstBuilder(astContext);
 			astCompiler.BuildAst(result);
 

@@ -31,11 +31,11 @@ namespace Deveel.Data.Types {
 		}
 
 		public static StringType String() {
-			return String(SqlTypeCode.String, -1);
+			return String(SqlTypeCode.String);
 		}
 
 		public static StringType String(SqlTypeCode sqlType) {
-			return String(sqlType, -1);
+			return String(sqlType, StringType.DefaultMaxSize);
 		}
 
 		public static StringType String(SqlTypeCode sqlType, int maxSize) {

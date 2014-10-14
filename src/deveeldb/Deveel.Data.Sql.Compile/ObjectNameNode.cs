@@ -18,9 +18,6 @@ using System;
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	public sealed class ObjectNameNode : SqlNode {
-		internal ObjectNameNode() {
-		}
-
 		public ObjectName Name { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {

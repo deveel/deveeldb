@@ -38,7 +38,7 @@ namespace Deveel.Data {
 		public static readonly NumericObject PositiveInfinity = new NumericObject(PrimitiveTypes.Numeric(),
 			NumericState.PositiveInfinity, null);
 
-		private NumericObject(DataType type, BigDecimal value)
+		internal NumericObject(DataType type, BigDecimal value)
 			: this(type, NumericState.None, value) {
 		}
 
