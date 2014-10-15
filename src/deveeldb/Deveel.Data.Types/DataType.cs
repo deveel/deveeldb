@@ -73,15 +73,57 @@ namespace Deveel.Data.Types {
 				if (!node.IsPrimitive)
 					throw new NotSupportedException("Cannot resolve the given string to a primitive type.");
 
-				if (node.HasSize)
-					return PrimitiveTypes.Type(node.TypeName, node.Size);
-				if (node.HasScale) {
-					if (node.HasPrecision)
-						return PrimitiveTypes.Type(node.TypeName, node.Scale, node.Precision);
-					return PrimitiveTypes.Type(node.TypeName, node.Scale);
+				SqlTypeCode sqlTypeCode;
+				if (String.Equals(node.TypeName, "LONG VARCHAR")) {
+					sqlTypeCode = SqlTypeCode.LongVarChar;
+				} else if (String.Equals(node.TypeName, "LONG VARBINARY")) {
+					sqlTypeCode = SqlTypeCode.LongVarBinary;
+				} else {
+					sqlTypeCode = (SqlTypeCode) Enum.Parse(typeof (SqlTypeCode), node.TypeName, true);
 				}
 
-				return PrimitiveTypes.Type(node.TypeName);
+				if (sqlTypeCode == SqlTypeCode.Bit ||
+					sqlTypeCode == SqlTypeCode.Boolean ||
+					sqlTypeCode == SqlTypeCode.BigInt ||
+				    sqlTypeCode == SqlTypeCode.Integer ||
+				    sqlTypeCode == SqlTypeCode.SmallInt ||
+				    sqlTypeCode == SqlTypeCode.TinyInt)
+					return PrimitiveTypes.Type(sqlTypeCode);
+
+				if (sqlTypeCode == SqlTypeCode.Float ||
+				    sqlTypeCode == SqlTypeCode.Real ||
+				    sqlTypeCode == SqlTypeCode.Double ||
+				    sqlTypeCode == SqlTypeCode.Decimal) {
+					if (node.HasScale && node.HasPrecision)
+						return PrimitiveTypes.Type(sqlTypeCode, node.Scale, node.Precision);
+					if (node.HasScale && !node.HasPrecision)
+						return PrimitiveTypes.Type(sqlTypeCode, node.Scale);
+
+					return PrimitiveTypes.Type(sqlTypeCode);
+				}
+
+				if (sqlTypeCode == SqlTypeCode.Char ||
+				    sqlTypeCode == SqlTypeCode.VarChar ||
+				    sqlTypeCode == SqlTypeCode.LongVarChar) {
+					if (node.HasSize && node.HasLocale)
+						return PrimitiveTypes.Type(sqlTypeCode, node.Size, node.Locale);
+					if (node.HasSize && !node.HasLocale)
+						return PrimitiveTypes.Type(sqlTypeCode, node.Size);
+					if (node.HasLocale && !node.HasSize)
+						return PrimitiveTypes.Type(sqlTypeCode, node.Locale);
+
+					return PrimitiveTypes.Type(sqlTypeCode);
+				}
+
+				if (sqlTypeCode == SqlTypeCode.Date ||
+				    sqlTypeCode == SqlTypeCode.Time ||
+				    sqlTypeCode == SqlTypeCode.TimeStamp)
+					return PrimitiveTypes.Type(sqlTypeCode);
+
+
+				// TODO: Support %ROWTYPE and %TYPE
+
+				throw new NotSupportedException(String.Format("The SQL type {0} is not supported here.", sqlTypeCode));
 			} catch (SqlParseException) {
 				throw new FormatException("Unable to parse the given string to a valid data type.");
 			}

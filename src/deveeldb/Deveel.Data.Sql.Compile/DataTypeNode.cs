@@ -41,6 +41,10 @@ namespace Deveel.Data.Sql.Compile {
 
 		public bool HasPrecision { get; private set; }
 
+		public string Locale { get; private set; }
+
+		public bool HasLocale { get; private set; }
+
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "decimal_type") {
 				GetNumberType(node);
@@ -80,6 +84,17 @@ namespace Deveel.Data.Sql.Compile {
 					TypeName = ((SqlKeyNode) childNode).Text;
 				} else if (childNode.NodeName == "datatype_size") {
 					GetDataSize(childNode);
+				} else if (childNode.NodeName == "locale_opt") {
+					GetLocale(childNode);
+				}
+			}
+		}
+
+		private void GetLocale(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is StringLiteralNode) {
+					Locale = ((StringLiteralNode) childNode).Value;
+					HasLocale = true;
 				}
 			}
 		}

@@ -18,15 +18,33 @@ using System;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// Represents a boolean value within the system.
+	/// </summary>
+	/// <remarks>
+	/// Booleans are bit values which consist of either 0 or 1, that
+	/// are represented as <c>true</c> or <c>false</c>.
+	/// </remarks>
 	[Serializable]
 	public sealed class BooleanObject : DataObject, IComparable<BooleanObject>, IComparable, IEquatable<BooleanObject>, IConvertible {
 		private readonly bool? value;
 
+		/// <summary>
+		/// An object representing the boolean <c>true</c>.
+		/// </summary>
 		public static readonly BooleanObject True = new BooleanObject(PrimitiveTypes.Boolean(), true);
+
+		/// <summary>
+		/// An object representing the boolean <c>false</c>.
+		/// </summary>
 		public static readonly BooleanObject False = new BooleanObject(PrimitiveTypes.Boolean(), false);
+
+		/// <summary>
+		/// The <c>null</c> representation of booleans.
+		/// </summary>
 		public static readonly BooleanObject Null = new BooleanObject(PrimitiveTypes.Boolean(), null);
 
-		private BooleanObject(BooleanType type, bool? value) 
+		internal BooleanObject(BooleanType type, bool? value) 
 			: base(type) {
 			this.value = value;
 		}
@@ -171,6 +189,20 @@ namespace Deveel.Data {
 			throw new InvalidCastException();
 		}
 
+		/// <summary>
+		/// Converts the inner value the object to a runtime
+		/// boolean value.
+		/// </summary>
+		/// <remarks>
+		/// If the inner value of the object is <c>null</c>, this method will
+		/// throw a <see cref="NullReferenceException"/>.
+		/// </remarks>
+		/// <returns>
+		/// Returns a <see cref="bool"/> that is either <c>true</c> or <c>false</c>.
+		/// </returns>
+		/// <exception cref="NullReferenceException">
+		/// If the inner value of the instance is <c>null</c>.
+		/// </exception>
 		public bool ToBoolean() {
 			if (value == null)
 				throw new NullReferenceException();

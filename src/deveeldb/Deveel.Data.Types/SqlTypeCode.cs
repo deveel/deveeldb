@@ -69,10 +69,13 @@ namespace Deveel.Data.Types {
 		Decimal = 3,
 
 		///<summary>
+		/// Defines a character type with  fixed size given
 		///</summary>
 		Char = 1,
 
 		///<summary>
+		/// The character type with a variable size, within a maximum
+		/// size given.
 		///</summary>
 		VarChar = 12,
 

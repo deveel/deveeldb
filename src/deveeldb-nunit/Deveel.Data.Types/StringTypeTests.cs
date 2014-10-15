@@ -85,5 +85,19 @@ namespace Deveel.Data.Types {
 			Assert.AreEqual(255, stringType.MaxSize);
 			Assert.AreEqual(null, stringType.Locale);			
 		}
+
+		[Test]
+		public void LocalizedVarChar_Parse() {
+			const string typeString = "VARCHAR(255) LOCALE 'en-Us'";
+						DataType dataType = null;
+			Assert.DoesNotThrow(() => dataType = DataType.Parse(typeString));
+			Assert.IsNotNull(dataType);
+			Assert.IsInstanceOf<StringType>(dataType);
+			Assert.AreEqual(SqlTypeCode.VarChar, dataType.SqlType);
+
+			var stringType = (StringType) dataType;
+			Assert.AreEqual(255, stringType.MaxSize);
+			Assert.AreEqual(null, stringType.Locale);
+		}
 	}
 }

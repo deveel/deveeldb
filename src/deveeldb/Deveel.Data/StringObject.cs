@@ -16,6 +16,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Text;
 
 using Deveel.Data.Types;
 
@@ -145,13 +146,43 @@ namespace Deveel.Data {
 					locale = st2.Locale;
 				}
 
-				StringType destType = st1;
-				if (locale != null) {
+				var destType = st1;
+				if (locale != null)
 					destType = PrimitiveTypes.String(st1.SqlType, st1.MaxSize, locale);
+
+				var sb = new StringBuilder(Int16.MaxValue);
+				using (var output = new StringWriter(sb)) {
+					// First read the current stream
+					using (var reader = GetTextReader()) {
+						var buffer = new char[2048];
+						int count;
+						while ((count = reader.Read(buffer, 0, buffer.Length)) != 0) {
+							output.Write(buffer, 0, count);
+						}
+					}
+
+					// Then read the second stream
+					using (var reader = other.GetTextReader()) {
+						var buffer = new char[2048];
+						int count;
+						while ((count = reader.Read(buffer, 0, buffer.Length)) != 0) {
+							output.Write(buffer, 0, count);
+						}						
+					}
+
+					output.Flush();
 				}
+
+				var outChars = new char[sb.Length];
+				sb.CopyTo(0, outChars, 0, sb.Length);
+				return new StringObject(destType, outChars);
 			}
 
-			return NullString((StringType)Type);
+			return Null((StringType)Type);
+		}
+
+		public static StringObject Null(StringType stringType) {
+			return new StringObject(stringType, (char[])null);
 		}
 	}
 }

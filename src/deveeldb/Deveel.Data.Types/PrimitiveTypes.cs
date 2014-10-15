@@ -42,6 +42,10 @@ namespace Deveel.Data.Types {
 			return new StringType(sqlType, maxSize);
 		}
 
+		public static StringType String(SqlTypeCode sqlType, CultureInfo locale) {
+			return String(sqlType, StringType.DefaultMaxSize, locale);
+		}
+
 		public static StringType String(SqlTypeCode sqlType, int maxSize, CultureInfo locale) {
 			return new StringType(sqlType, maxSize, locale);
 		}
@@ -209,8 +213,13 @@ namespace Deveel.Data.Types {
 				sqlType == SqlTypeCode.Clob) {
 				if (args == null || args.Length == 0)
 					return String(sqlType);
-				if (args.Length == 1)
-					return String(sqlType, (int)args[0]);
+				if (args.Length == 1) {
+					var arg = args[0];
+					if (arg is int)
+						return String(sqlType, (int) arg);
+					if (arg is string)
+						return String(sqlType, CultureInfo.GetCultureInfo((string) arg));
+				}
 
 				throw new ArgumentException("Invalid numer of arguments for NUMERIC type");
 			}

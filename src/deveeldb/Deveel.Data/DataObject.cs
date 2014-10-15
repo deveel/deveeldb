@@ -52,11 +52,91 @@ namespace Deveel.Data {
 			return CompareTo(other);
 		}
 
+		/// <summary>
+		/// Compares to the given object to verify if is it compatible.
+		/// </summary>
+		/// <param name="other">The other object to verify.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="BooleanObject"/> that defines
+		/// if the given object is compatible with the current one.
+		/// </returns>
+		/// <seealso cref="IsComparableTo"/>
+		/// <seealso cref="DataType.IsComparable"/>
+		public BooleanObject Is(DataObject other) {
+			if (IsNull && other.IsNull)
+				return BooleanObject.True;
+			if (IsComparableTo(other))
+				return Boolean(CompareTo(other) == 0);
+
+			return BooleanObject.False;
+		}
+
+		/// <summary>
+		/// Compares to the given object to verify if is it equal to the current.
+		/// </summary>
+		/// <param name="other">The other object to verify.</param>
+		/// <remarks>
+		/// This method returns a boolean value of <c>true</c> or <c>false</c>
+		/// only if the current object and the other object are not <c>null</c>.
+		/// </remarks>
+		/// <returns>
+		/// Returns an instance of <see cref="BooleanObject"/> that defines
+		/// if the given object is equal to the current one, or a boolean
+		/// <c>null</c> if it was impossible to determine the types.
+		/// </returns>
+		/// <seealso cref="IsComparableTo"/>
+		/// <seealso cref="DataType.IsComparable"/>
+		public BooleanObject IsEqualTo(DataObject other) {
+			if (IsComparableTo(other) && !IsNull && !other.IsNull)
+				return Boolean(CompareTo(other) == 0);
+
+			return Boolean(null);
+		}
+
+		public BooleanObject IsNotEqualTo(DataObject other) {
+			if (IsComparableTo(other) && !IsNull && !other.IsNull)
+				return Boolean(CompareTo(other) != 0);
+
+			return Boolean(null);
+		}
+
+		public BooleanObject IsGreaterThan(DataObject other) {
+			if (IsComparableTo(other) && !IsNull && !other.IsNull)
+				return Boolean(CompareTo(other) < 0);
+
+			return Boolean(null);			
+		}
+
+		public BooleanObject IsSmallerThan(DataObject other) {
+			if (IsComparableTo(other) && !IsNull && !other.IsNull)
+				return Boolean(CompareTo(other) > 0);
+
+			return Boolean(null);
+		}
+
+		public BooleanObject IsGreterOrEqualThan(DataObject other) {
+			if (IsComparableTo(other) && !IsNull && !other.IsNull)
+				return Boolean(CompareTo(other) <= 0);
+
+			return Boolean(null);
+		}
+
+		public BooleanObject IsSmallerOrEqualThan(DataObject other) {
+			if (IsComparableTo(other) && !IsNull && !other.IsNull)
+				return Boolean(CompareTo(other) >= 0);
+
+			return Boolean(null);
+		}
+
 		public int SizeOf() {
 			return Type.SizeOf(this);
 		}
 
 		#region Object Factory
+
+		public static BooleanObject Boolean(bool? value) {
+			return new BooleanObject(PrimitiveTypes.Boolean(), value);
+		}
 
 		public static StringObject String(string s) {
 			return new StringObject(PrimitiveTypes.String(SqlTypeCode.String), s);
@@ -64,10 +144,6 @@ namespace Deveel.Data {
 
 		public static StringObject VarChar(string s) {
 			return new StringObject(PrimitiveTypes.String(SqlTypeCode.VarChar), s);
-		}
-
-		public static StringObject NullString(StringType type) {
-			return new StringObject(type, (char[]) null);
 		}
 
 		#endregion

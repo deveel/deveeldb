@@ -38,3 +38,5 @@
 src/ddbperftest/obj/Debug/ddbperftest.csproj.FileListAbsolute.txt
 /src/ddbperftest/obj
 /src/packages
+/dist
+/src/ddbperftest/bin

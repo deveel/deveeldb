@@ -98,6 +98,7 @@ namespace Deveel.Data.Sql.Compile {
 		private KeyTerm IS;
 		private KeyTerm LEFT;
 		private KeyTerm LIKE;
+		private KeyTerm LOCALE;
 		private KeyTerm LONG;
 		private KeyTerm MINUS;
 		private KeyTerm MONTH;
@@ -185,6 +186,7 @@ namespace Deveel.Data.Sql.Compile {
 		private readonly NonTerminal datatype = new NonTerminal("datatype", typeof (DataTypeNode));
 		private readonly NonTerminal number_precision = new NonTerminal("number_precision");
 		private readonly NonTerminal character_type = new NonTerminal("character_type");
+		private readonly NonTerminal locale_opt = new NonTerminal("locale_opt");
 		private readonly NonTerminal integer_type = new NonTerminal("integer_type");
 		private readonly NonTerminal decimal_type = new NonTerminal("decimal_type");
 		private readonly NonTerminal float_type = new NonTerminal("float_type");
@@ -351,6 +353,7 @@ private void Comments() {
 			IS = ToTerm("IS");
 			LEFT = ToTerm("LEFT");
 			LIKE = ToTerm("LIKE");
+			LOCALE = ToTerm("LOCALE");
 			LONG = ToTerm("LONG");
 			MONTH = ToTerm("MONTH");
 			NO = ToTerm("NO");
@@ -474,7 +477,10 @@ private void Comments() {
 
 		private void DataType() {
 			datatype.Rule = character_type | date_type | integer_type | decimal_type | float_type | binary_type | row_type | user_type;
-			character_type.Rule = CHAR + datatype_size | VARCHAR + datatype_size | long_varchar + datatype_size;
+			character_type.Rule = CHAR + datatype_size + locale_opt |
+			                      VARCHAR + datatype_size + locale_opt |
+			                      long_varchar + datatype_size + locale_opt;
+			locale_opt.Rule = Empty | LOCALE + string_literal;
 			date_type.Rule = DATE | TIME | TIMESTAMP;
 			integer_type.Rule = INT | INTEGER | BIGINT | SMALLINT | TINYINT;
 			decimal_type.Rule = DECIMAL + number_precision | NUMERIC + number_precision | NUMBER + number_precision;
