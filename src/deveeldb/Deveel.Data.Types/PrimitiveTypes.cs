@@ -14,7 +14,7 @@
 //    limitations under the License.
 
 using System;
-
+using System.Globalization;
 
 namespace Deveel.Data.Types {
 	public static class PrimitiveTypes {
@@ -40,6 +40,10 @@ namespace Deveel.Data.Types {
 
 		public static StringType String(SqlTypeCode sqlType, int maxSize) {
 			return new StringType(sqlType, maxSize);
+		}
+
+		public static StringType String(SqlTypeCode sqlType, int maxSize, CultureInfo locale) {
+			return new StringType(sqlType, maxSize, locale);
 		}
 
 		public static NumericType Numeric() {

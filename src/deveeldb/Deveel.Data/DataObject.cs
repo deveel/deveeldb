@@ -19,7 +19,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	[Serializable]
-	public abstract class DataObject {
+	public abstract class DataObject : IComparable, IComparable<DataObject> {
 		protected DataObject(DataType type) {
 			if (type == null)
 				throw new ArgumentNullException("type");
@@ -33,19 +33,43 @@ namespace Deveel.Data {
 			get { return false; }
 		}
 
-		public bool IsComparable(DataObject obj) {
+		public bool IsComparableTo(DataObject obj) {
 			return Type.IsComparable(obj.Type);
 		}
 
-		public int CompareTo(DataObject other) {
-			if (!IsComparable(other))
+		public virtual int CompareTo(DataObject other) {
+			if (!IsComparableTo(other))
 				throw new NotSupportedException();
 
 			return Type.Compare(this, other);
 		}
 
+		int IComparable.CompareTo(object obj) {
+			if (!(obj is StringObject))
+				throw new ArgumentException();
+
+			var other = obj as StringObject;
+			return CompareTo(other);
+		}
+
 		public int SizeOf() {
 			return Type.SizeOf(this);
 		}
+
+		#region Object Factory
+
+		public static StringObject String(string s) {
+			return new StringObject(PrimitiveTypes.String(SqlTypeCode.String), s);
+		}
+
+		public static StringObject VarChar(string s) {
+			return new StringObject(PrimitiveTypes.String(SqlTypeCode.VarChar), s);
+		}
+
+		public static StringObject NullString(StringType type) {
+			return new StringObject(type, (char[]) null);
+		}
+
+		#endregion
 	}
 }

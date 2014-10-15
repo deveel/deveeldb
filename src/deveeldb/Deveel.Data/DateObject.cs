@@ -146,7 +146,7 @@ namespace Deveel.Data {
 		}
 
 		public static bool TryParse(string s, out DateObject value) {
-			if (String.IsNullOrEmpty(s))
+			if (string.IsNullOrEmpty(s))
 				throw new ArgumentNullException("s");
 
 			value = null;

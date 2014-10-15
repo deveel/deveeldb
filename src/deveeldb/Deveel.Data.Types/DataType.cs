@@ -92,7 +92,7 @@ namespace Deveel.Data.Types {
 				!IsComparable(y.Type))
 				throw new NotSupportedException();
 
-			if (!x.IsComparable(y))
+			if (!x.IsComparableTo(y))
 				throw new NotSupportedException();
 
 			if (x.IsNull && y.IsNull)
@@ -101,9 +101,6 @@ namespace Deveel.Data.Types {
 				return 1;
 			if (!x.IsNull && y.IsNull)
 				return -1;
-
-			if (!(x is IComparable))
-				throw new NotSupportedException();
 
 			return ((IComparable) x).CompareTo(y);
 		}

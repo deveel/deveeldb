@@ -30,9 +30,18 @@ namespace Deveel.Data.Types {
 		}
 
 		public StringType(SqlTypeCode sqlType, int maxSize) 
+			: this(sqlType, maxSize, null) {
+		}
+
+		public StringType(SqlTypeCode sqlType, CultureInfo locale) 
+			: this(sqlType, DefaultMaxSize, locale) {
+		}
+
+		public StringType(SqlTypeCode sqlType, int maxSize, CultureInfo locale) 
 			: base("STRING", sqlType) {
 			AssertIsString(sqlType);
 			MaxSize = maxSize;
+			Locale = locale;
 		}
 
 		private static void AssertIsString(SqlTypeCode sqlType) {

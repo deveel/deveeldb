@@ -14,13 +14,14 @@
 //    limitations under the License.
 
 using System;
+using System.Globalization;
 using System.IO;
 
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	[Serializable]
-	public sealed class StringObject : DataObject, IEquatable<StringObject>, IComparable, IComparable<StringObject>,
+	public sealed class StringObject : DataObject, IEquatable<StringObject>, IComparable<StringObject>,
 		IStringAccessor {
 		private readonly char[] source;
 
@@ -82,6 +83,9 @@ namespace Deveel.Data {
 			if (other == null)
 				return false;
 
+			if (!Type.Equals(other.Type))
+				return false;
+
 			if (source == null && other.source == null)
 				return true;
 
@@ -101,14 +105,6 @@ namespace Deveel.Data {
 			return true;
 		}
 
-		int IComparable.CompareTo(object obj) {
-			if (!(obj is StringObject))
-				throw new ArgumentException();
-
-			var other = obj as StringObject;
-			return CompareTo(other);
-		}
-
 		public int CompareTo(StringObject other) {
 			return Type.Compare(this, other);
 		}
@@ -125,6 +121,37 @@ namespace Deveel.Data {
 			using (var reader = GetTextReader()) {
 				return reader.ReadToEnd();
 			}
+		}
+
+		public StringObject Concat(StringObject other) {
+			// If this or val is null then return the null value
+			if (IsNull)
+				return this;
+			if (other.IsNull)
+				return other;
+
+			var otherType = other.Type;
+
+			if (otherType is StringType) {
+				// Pick the first locale,
+				var st1 = (StringType)Type;
+				var st2 = (StringType)otherType;
+
+				CultureInfo locale = null;
+
+				if (st1.Locale != null) {
+					locale = st1.Locale;
+				} else if (st2.Locale != null) {
+					locale = st2.Locale;
+				}
+
+				StringType destType = st1;
+				if (locale != null) {
+					destType = PrimitiveTypes.String(st1.SqlType, st1.MaxSize, locale);
+				}
+			}
+
+			return NullString((StringType)Type);
 		}
 	}
 }

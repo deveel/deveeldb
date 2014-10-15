@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
+    <Compile Include="Deveel.Data\StringObjectTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

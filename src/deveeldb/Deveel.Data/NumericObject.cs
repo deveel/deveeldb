@@ -189,7 +189,7 @@ namespace Deveel.Data {
 			if (conversionType == typeof (string))
 				return ToString();
 
-			throw new InvalidCastException(String.Format("Cannot convert NUMERIC to {0}", conversionType));
+			throw new InvalidCastException(System.String.Format("Cannot convert NUMERIC to {0}", conversionType));
 		}
 
 		int IComparable.CompareTo(object obj) {
@@ -592,24 +592,24 @@ namespace Deveel.Data {
 		public static bool TryParse(string s, out NumericObject value) {
 			value = null;
 
-			if (String.IsNullOrEmpty(s))
+			if (System.String.IsNullOrEmpty(s))
 				return false;
 
 			if (string.Equals(s, "+Infinity", StringComparison.OrdinalIgnoreCase) ||
-			    String.Equals(s, "+Inf", StringComparison.OrdinalIgnoreCase) ||
-				String.Equals(s, "Infinity", StringComparison.OrdinalIgnoreCase)) {
+			    string.Equals(s, "+Inf", StringComparison.OrdinalIgnoreCase) ||
+				string.Equals(s, "Infinity", StringComparison.OrdinalIgnoreCase)) {
 				value = PositiveInfinity;
 				return true;
 			}
 
-			if (String.Equals(s, "-Infinity", StringComparison.OrdinalIgnoreCase) ||
-			    String.Equals(s, "-Inf", StringComparison.OrdinalIgnoreCase)) {
+			if (string.Equals(s, "-Infinity", StringComparison.OrdinalIgnoreCase) ||
+			    string.Equals(s, "-Inf", StringComparison.OrdinalIgnoreCase)) {
 				value = NegativeInfinity;
 				return true;
 			}
 
-			if (String.Equals(s, "NaN", StringComparison.OrdinalIgnoreCase) ||
-			    String.Equals(s, "NotANumber", StringComparison.OrdinalIgnoreCase)) {
+			if (string.Equals(s, "NaN", StringComparison.OrdinalIgnoreCase) ||
+			    string.Equals(s, "NotANumber", StringComparison.OrdinalIgnoreCase)) {
 				value = NaN;
 				return true;
 			}
@@ -629,7 +629,7 @@ namespace Deveel.Data {
 		public static NumericObject Parse(string s) {
 			NumericObject value;
 			if (!TryParse(s, out value))
-				throw new FormatException(String.Format("Cannot parse the string '{0}' to a valid Numeric object.", s));
+				throw new FormatException(string.Format("Cannot parse the string '{0}' to a valid Numeric object.", s));
 
 			return value;
 		}
