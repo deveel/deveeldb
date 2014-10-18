@@ -82,14 +82,5 @@ namespace Deveel.Data.Types {
 		public override bool CanCastTo(DataType type) {
 			return base.CanCastTo(type);
 		}
-
-		public override int SizeOf(DataObject obj) {
-			var date =(DateObject) obj;
-			if (date == null)
-				return 0;
-
-			// TODO: check if the date has the TimeZone set
-			return 8;
-		}
 	}
 }

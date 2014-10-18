@@ -14,9 +14,11 @@
 //    limitations under the License.
 
 using System;
+using System.Linq;
 using System.Text;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
 	[Serializable]
@@ -53,40 +55,33 @@ namespace Deveel.Data.Types {
 			return sb.ToString();
 		}
 
+		private SqlBoolean ToBoolean(ISqlBinary binary) {
+			if (binary.Length != 1)
+				throw new InvalidCastException();
+
+			var b = binary.First();
+			if (b != 0 && b != 1)
+				throw new InvalidCastException();
+
+			return b == 1;
+		}
+
 		public override DataObject CastTo(DataObject value, DataType destType) {
 			var sqlType = destType.SqlType;
+			var binary = ((ISqlBinary) value.Value);
 
-			if (value is BinaryObject) {
-				if (sqlType != SqlTypeCode.Blob &&
-					 sqlType != SqlTypeCode.Binary &&
-					 sqlType != SqlTypeCode.VarBinary &&
-					 sqlType != SqlTypeCode.LongVarBinary) {
-					// Attempt to deserialize it
-						
-					object graph = ((BinaryObject)value).Deserialize();
-					if (!(graph is DataObject))
-						throw new InvalidCastException();
+			ISqlObject casted;
 
-					var dataObject = (DataObject) graph;
-					return dataObject.Type.CastTo(dataObject, destType);
-				}
-
-				// This is a BinaryObject that is being cast to a binary type so
-				// no further processing is necessary.
-				return value;
+			switch (sqlType) {
+				case SqlTypeCode.Bit:
+					casted = ToBoolean(binary);
+					break;
+					// TODO: All other casts
+				default:
+					throw new InvalidCastException();
 			}
 
-			// IBlobRef can be BINARY, VARBINARY or LONGVARBINARY
-			if (value is IBlobRef) {
-				if (sqlType == SqlTypeCode.Binary ||
-					sqlType == SqlTypeCode.Blob ||
-					sqlType == SqlTypeCode.VarBinary ||
-					sqlType == SqlTypeCode.LongVarBinary) {
-					return value;
-				}
-			}
-
-			return base.CastTo(value, destType);
+			return new DataObject(destType, casted);
 		}
 	}
 }

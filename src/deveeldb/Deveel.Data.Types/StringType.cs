@@ -18,6 +18,8 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Sql.Objects;
+
 namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class StringType : DataType {
@@ -132,10 +134,10 @@ namespace Deveel.Data.Types {
 			return false;
 		}
 
-		private static NumericObject ToNumber(String str) {
-			NumericObject value;
-			if (!NumericObject.TryParse(str, out value))
-				value = NumericObject.Zero;
+		private static SqlNumber ToNumber(String str) {
+			SqlNumber value;
+			if (!SqlNumber.TryParse(str, out value))
+				value = SqlNumber.Zero;
 
 			return value;
 		}
@@ -146,12 +148,12 @@ namespace Deveel.Data.Types {
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		private static DateObject ToDate(string str) {
+		private static SqlDateTime ToDate(string str) {
 			DateTime result;
 			if (!DateTime.TryParseExact(str, DateType.DateFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
 				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.Date, DateType.DateFormatSql));
 
-			return result;
+			return new SqlDateTime(result.Ticks);
 		}
 
 		/// <summary>
@@ -159,12 +161,12 @@ namespace Deveel.Data.Types {
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		private static DateObject ToTime(String str) {
+		private static SqlDateTime ToTime(String str) {
 			DateTime result;
 			if (!DateTime.TryParseExact(str, DateType.TimeFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out result))
 				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.Time, DateType.TimeFormatSql));
 
-			return result;
+			return new SqlDateTime(result.Ticks);
 
 		}
 
@@ -173,12 +175,12 @@ namespace Deveel.Data.Types {
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		private static DateObject ToTimeStamp(String str) {
+		private static SqlDateTime ToTimeStamp(String str) {
 			DateTime result;
 			if (!DateTime.TryParseExact(str, DateType.TsFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
 				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.TimeStamp, DateType.TsFormatSql));
 
-			return result;
+			return new SqlDateTime(result.Ticks);
 		}
 
 		private static string DateErrorMessage(string str, SqlTypeCode sqlType, string[] formats) {
@@ -190,78 +192,96 @@ namespace Deveel.Data.Types {
 
 
 		public override DataObject CastTo(DataObject value, DataType destType) {
-			string str = value.ToString();
+			string str = value.Value.ToString();
 			var sqlType = destType.SqlType;
+			ISqlObject castedValue;
 
 			switch (sqlType) {
 				case (SqlTypeCode.Bit):
 				case (SqlTypeCode.Boolean):
-					return (BooleanObject) (String.Compare(str, "true", StringComparison.OrdinalIgnoreCase) == 0 ||
+					castedValue = (SqlBoolean) (String.Compare(str, "true", StringComparison.OrdinalIgnoreCase) == 0 ||
 					                        String.Compare(str, "1", StringComparison.OrdinalIgnoreCase) == 0);
+					break;
 				case (SqlTypeCode.TinyInt):
 				// fall through
 				case (SqlTypeCode.SmallInt):
 				// fall through
 				case (SqlTypeCode.Integer):
-					return (NumericObject)ToNumber(str).ToInt32();
+					castedValue = new SqlNumber(ToNumber(str).ToInt32());
+					break;
 				case (SqlTypeCode.BigInt):
-					return (NumericObject)ToNumber(str).ToInt64();
+					castedValue = new SqlNumber(ToNumber(str).ToInt64());
+					break;
 				case (SqlTypeCode.Float):
-					return NumericObject.Parse(Convert.ToString(ToNumber(str).ToDouble()));
-				case (SqlTypeCode.Real):
-					return ToNumber(str);
 				case (SqlTypeCode.Double):
-					return NumericObject.Parse(Convert.ToString(ToNumber(str).ToDouble()));
+					castedValue = new SqlNumber(ToNumber(str).ToDouble());
+					break;
+				case (SqlTypeCode.Real):
 				case (SqlTypeCode.Numeric):
-				// fall through
 				case (SqlTypeCode.Decimal):
-					return ToNumber(str);
+					castedValue = ToNumber(str);
+					break;
 				case (SqlTypeCode.Char):
-					return new StringObject((StringType)destType, str.PadRight(((StringType)destType).MaxSize));
+					castedValue = new SqlString(str.PadRight(((StringType)destType).MaxSize));
+					break;
 				case (SqlTypeCode.VarChar):
 				case (SqlTypeCode.LongVarChar):
 				case (SqlTypeCode.String):
-					return new StringObject(((StringType)destType), str);
+					//TODO: get the dest encoding and convert the string
+					castedValue = new SqlString(str);
+					break;
 				case (SqlTypeCode.Date):
-					return ToDate(str);
+					castedValue = ToDate(str);
+					break;
 				case (SqlTypeCode.Time):
-					return ToTime(str);
+					castedValue = ToTime(str);
+					break;
 				case (SqlTypeCode.TimeStamp):
-					return ToTimeStamp(str);
+					castedValue = ToTimeStamp(str);
+					break;
 				case (SqlTypeCode.Blob):
 				case (SqlTypeCode.Binary):
 				case (SqlTypeCode.VarBinary):
 				case (SqlTypeCode.LongVarBinary):
-					return new BinaryObject(PrimitiveTypes.Binary(sqlType), Encoding.Unicode.GetBytes(str));
+					castedValue = new SqlBinary(Encoding.Unicode.GetBytes(str));
+					break;
 				case (SqlTypeCode.Null):
-					return null;
+					castedValue = SqlNull.Value;
+					break;
 				case (SqlTypeCode.Clob):
 					// TODO: have a context where to get a new CLOB
-					return new StringObject((StringType)destType, str);
+					castedValue = new SqlString(str);
+					break;
 				default:
 					throw new InvalidCastException();
 			}
+
+			return new DataObject(destType, castedValue);
 		}
 
-		public override int Compare(DataObject x, DataObject y) {
+		public override int Compare(ISqlObject x, ISqlObject y) {
 			if (x == null)
 				throw new ArgumentNullException("x");
 
-			if (!(x is IStringAccessor) ||
-				!(y is IStringAccessor))
+			if (!(x is ISqlString) ||
+				!(y is ISqlString))
 				throw new ArgumentException("Cannot compare objects that are not strings.");
-				
-			if (x == y)
+
+			if (x.IsNull && y.IsNull)
 				return 0;
+			if (x.IsNull && !y.IsNull)
+				return 1;
+			if (!x.IsNull && y.IsNull)
+				return -1;
 
 			// If lexicographical ordering,
 			if (Locale == null)
-				return LexicographicalOrder((IStringAccessor)x, (IStringAccessor)y);
+				return LexicographicalOrder((ISqlString)x, (ISqlString)y);
 
 			return Collator.Compare(x.ToString(), y.ToString());
 		}
 
-		private static int LexicographicalOrder(IStringAccessor str1, IStringAccessor str2) {
+		private static int LexicographicalOrder(ISqlString str1, ISqlString str2) {
 			// If both strings are small use the 'toString' method to compare the
 			// strings.  This saves the overhead of having to store very large string
 			// objects in memory for all comparisons.
@@ -274,8 +294,8 @@ namespace Deveel.Data.Types {
 
 			// The minimum size
 			long size = System.Math.Min(str1Size, str2Size);
-			TextReader r1 = str1.GetTextReader();
-			TextReader r2 = str2.GetTextReader();
+			TextReader r1 = str1.GetInput();
+			TextReader r2 = str2.GetInput();
 			try {
 				try {
 					while (size > 0) {

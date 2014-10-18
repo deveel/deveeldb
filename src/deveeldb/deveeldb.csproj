@@ -91,6 +91,17 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlNodeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\Token.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\ISqlBinary.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\ISqlObject.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\ISqlString.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlBinary.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlBoolean.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlDateTime.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlDayToSecond.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlNull.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlNumber.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlString.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlYearToMonth.cs" />
     <Compile Include="Deveel.Data.Store\IArea.cs" />
     <Compile Include="Deveel.Data.Store\IAreaWriter.cs" />
     <Compile Include="Deveel.Data.Store\IMutableArea.cs" />
@@ -111,11 +122,11 @@
     <Compile Include="Deveel.Data.Types\StringType.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Types\YearToMonthType.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
-    <Compile Include="Deveel.Data\BinaryObject.cs" />
-    <Compile Include="Deveel.Data\BooleanObject.cs" />
-    <Compile Include="Deveel.Data\DataObject.cs" />
-    <Compile Include="Deveel.Data\DateObject.cs" />
+    <Compile Include="Deveel.Data\DataObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Deveel.Data\IGroupResolver.cs" />
     <Compile Include="Deveel.Data\IVariableResolver.cs" />
     <Compile Include="Deveel.Data\CorrelatedVariable.cs" />
@@ -124,13 +135,11 @@
     <Compile Include="Deveel.Data\IClobRef.cs" />
     <Compile Include="Deveel.Data\IRef.cs" />
     <Compile Include="Deveel.Data\IStringAccessor.cs" />
-    <Compile Include="Deveel.Data\NumericObject.cs" />
     <Compile Include="Deveel.Data\NumericState.cs" />
     <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Deveel.Data\ParameterDirection.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Deveel.Data\SchemaDef.cs" />
-    <Compile Include="Deveel.Data\StringObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

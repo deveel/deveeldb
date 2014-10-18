@@ -277,9 +277,5 @@ namespace Deveel.Data.Types {
 		public static IntervalType Interval(SqlTypeCode sqlType) {
 			return new IntervalType(sqlType);
 		}
-
-		public static IntervalType Interval() {
-			return Interval(SqlTypeCode.Interval);
-		}
 	}
 }

@@ -18,9 +18,10 @@ using System.Collections.Generic;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Compile;
+using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	public abstract class DataType : IComparer<DataObject>, IEquatable<DataType> {
+	public abstract class DataType : IComparer<ISqlObject>, IEquatable<DataType> {
 		protected DataType(SqlTypeCode sqlType) 
 			: this(sqlType.ToString().ToUpperInvariant(), sqlType) {
 		}
@@ -57,8 +58,68 @@ namespace Deveel.Data.Types {
 			throw new NotSupportedException();
 		}
 
-		public virtual int SizeOf(DataObject obj) {
-			return 0;
+		public virtual ISqlObject Add(ISqlObject a, ISqlObject b) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Subtract(ISqlObject a, ISqlObject b) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Multiply(ISqlObject a, ISqlObject b) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Divide(ISqlObject a, ISqlObject b) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Modulus(ISqlObject a, ISqlObject b) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Negate(ISqlObject value) {
+			return SqlNull.Value;
+		}
+
+		public virtual SqlBoolean IsEqualTo(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean IsNotEqualTo(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean IsGreatherThan(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean IsSmallerThan(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean IsGreaterOrEqualThan(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean IsSmallerOrEqualThan(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean And(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual ISqlObject And(ISqlObject value) {
+			return SqlNull.Value;
+		}
+
+		public virtual SqlBoolean Or(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual ISqlObject Or(ISqlObject value) {
+			return SqlNull.Value;
 		}
 
 		public virtual DataType Wider(DataType otherType) {
@@ -129,11 +190,7 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public virtual int Compare(DataObject x, DataObject y) {
-			if (!IsComparable(x.Type) ||
-				!IsComparable(y.Type))
-				throw new NotSupportedException();
-
+		public virtual int Compare(ISqlObject x, ISqlObject y) {
 			if (!x.IsComparableTo(y))
 				throw new NotSupportedException();
 

@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 using NUnit.Framework;
@@ -12,8 +13,9 @@ namespace Deveel.Data.Deveel.Data {
 			const string s = "Test string";
 			var sObj = DataObject.VarChar(s);
 			Assert.IsNotNull(sObj);
-			Assert.IsNotInstanceOf<StringObject>(sObj);
+			Assert.IsInstanceOf<DataObject>(sObj);
 			Assert.AreEqual(SqlTypeCode.VarChar, sObj.Type.SqlType);
+			Assert.IsInstanceOf<SqlString>(sObj.Value);
 		}
 
 		[Test]

@@ -95,10 +95,6 @@ namespace Deveel.Data.Types {
 		///</summary>
 		TimeStamp = 93,
 
-		///<summary>
-		///</summary>
-		Interval = 100,
-
 		YearToMonth = 101,
 
 		DayToSecond = 102,

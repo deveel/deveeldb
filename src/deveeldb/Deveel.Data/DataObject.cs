@@ -15,41 +15,93 @@
 
 using System;
 
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	[Serializable]
-	public abstract class DataObject : IComparable, IComparable<DataObject> {
-		protected DataObject(DataType type) {
+	public sealed class DataObject : IComparable, IComparable<DataObject>, IEquatable<DataObject> {
+		public static readonly DataObject BooleanTrue = new DataObject(PrimitiveTypes.Boolean(), SqlBoolean.True);
+		public static readonly DataObject BooleanFalse = new DataObject(PrimitiveTypes.Boolean(), SqlBoolean.False);
+		public static readonly DataObject BooleanNull = new DataObject(PrimitiveTypes.Boolean(), SqlBoolean.Null);
+
+		public DataObject(DataType type, ISqlObject value) {
 			if (type == null)
 				throw new ArgumentNullException("type");
 
 			Type = type;
+			Value = value;
 		}
 
 		public DataType Type { get; private set; }
 
-		public virtual bool IsNull {
-			get { return false; }
+		public ISqlObject Value { get; private set; }
+
+		public bool IsNull {
+			get { return Value == null || SqlNull.Value == Value || Value.IsNull; }
 		}
 
 		public bool IsComparableTo(DataObject obj) {
 			return Type.IsComparable(obj.Type);
 		}
 
-		public virtual int CompareTo(DataObject other) {
-			if (!IsComparableTo(other))
-				throw new NotSupportedException();
+		public int CompareTo(DataObject other) {
+			// If this is null
+			if (IsNull) {
+				// and value is null return 0 return less
+				if (other.IsNull)
+					return 0;
+				return -1;
+			}
+			// If this is not null and value is null return +1
+			if (other.IsNull)
+				return 1;
 
-			return Type.Compare(this, other);
+			// otherwise both are non null so compare normally.
+			return CompareToNotNull(other);
+		}
+
+		private int CompareToNotNull(DataObject other) {
+			var type = Type;
+			// Strings must be handled as a special case.
+			if (type is StringType) {
+				// We must determine the locale to compare against and use that.
+				var stype = (StringType)type;
+				// If there is no locale defined for this type we use the locale in the
+				// given type.
+				if (stype.Locale == null) {
+					type = other.Type;
+				}
+			}
+			return type.Compare(Value, other.Value);
+
 		}
 
 		int IComparable.CompareTo(object obj) {
-			if (!(obj is StringObject))
-				throw new ArgumentException();
+			return CompareTo((DataObject)obj);
+		}
 
-			var other = obj as StringObject;
-			return CompareTo(other);
+		public override int GetHashCode() {
+			unchecked {
+				var code = Type.GetHashCode()*23;
+				if (Value != null)
+					code = code ^ Value.GetHashCode();
+				return code;
+			}
+		}
+
+		public override bool Equals(object obj) {
+			if (!(obj is DataObject))
+				return false;
+
+			return Equals((DataObject) obj);
+		}
+
+		public bool Equals(DataObject other) {
+			if (other == null)
+				return false;
+
+			return IsEqualTo(other);
 		}
 
 		/// <summary>
@@ -57,18 +109,18 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="other">The other object to verify.</param>
 		/// <returns>
-		/// Returns an instance of <see cref="BooleanObject"/> that defines
+		/// Returns an instance of <see cref="DataObject"/> that defines
 		/// if the given object is compatible with the current one.
 		/// </returns>
 		/// <seealso cref="IsComparableTo"/>
 		/// <seealso cref="DataType.IsComparable"/>
-		public BooleanObject Is(DataObject other) {
+		public DataObject Is(DataObject other) {
 			if (IsNull && other.IsNull)
-				return BooleanObject.True;
+				return BooleanTrue;
 			if (IsComparableTo(other))
 				return Boolean(CompareTo(other) == 0);
 
-			return BooleanObject.False;
+			return BooleanFalse;
 		}
 
 		/// <summary>
@@ -80,70 +132,176 @@ namespace Deveel.Data {
 		/// only if the current object and the other object are not <c>null</c>.
 		/// </remarks>
 		/// <returns>
-		/// Returns an instance of <see cref="BooleanObject"/> that defines
+		/// Returns an instance of <see cref="DataObject"/> that defines
 		/// if the given object is equal to the current one, or a boolean
 		/// <c>null</c> if it was impossible to determine the types.
 		/// </returns>
 		/// <seealso cref="IsComparableTo"/>
 		/// <seealso cref="DataType.IsComparable"/>
-		public BooleanObject IsEqualTo(DataObject other) {
+		public DataObject IsEqualTo(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
 				return Boolean(CompareTo(other) == 0);
 
-			return Boolean(null);
+			return BooleanNull;
 		}
 
-		public BooleanObject IsNotEqualTo(DataObject other) {
+		public DataObject IsNotEqualTo(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
 				return Boolean(CompareTo(other) != 0);
 
-			return Boolean(null);
+			return BooleanNull;
 		}
 
-		public BooleanObject IsGreaterThan(DataObject other) {
+		public DataObject IsGreaterThan(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
 				return Boolean(CompareTo(other) < 0);
 
-			return Boolean(null);			
+			return BooleanNull;			
 		}
 
-		public BooleanObject IsSmallerThan(DataObject other) {
+		public DataObject IsSmallerThan(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
 				return Boolean(CompareTo(other) > 0);
 
-			return Boolean(null);
+			return BooleanNull;
 		}
 
-		public BooleanObject IsGreterOrEqualThan(DataObject other) {
+		public DataObject IsGreterOrEqualThan(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
 				return Boolean(CompareTo(other) <= 0);
 
-			return Boolean(null);
+			return BooleanNull;
 		}
 
-		public BooleanObject IsSmallerOrEqualThan(DataObject other) {
+		public DataObject IsSmallerOrEqualThan(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
 				return Boolean(CompareTo(other) >= 0);
 
-			return Boolean(null);
+			return BooleanNull;
 		}
 
-		public int SizeOf() {
-			return Type.SizeOf(this);
+		public DataObject Negate() {
+			if (IsNull)
+				return this;
+
+			if (Value is SqlBoolean)
+				return Boolean(!(SqlBoolean) Value);
+			if (Value is SqlNumber)
+				return Number((NumericType) Type, -(SqlNumber) Value);
+
+			return Null(Type);
 		}
+
+		#region Conversion
+
+		public DataObject CastTo(DataType destType) {
+			if (!Type.CanCastTo(destType))
+				throw new InvalidCastException();
+
+			return Type.CastTo(this, destType);
+		}
+
+		public DataObject ToBoolean() {
+			return CastTo(PrimitiveTypes.Boolean());
+		}
+
+		public DataObject ToInteger() {
+			return CastTo(PrimitiveTypes.Numeric(SqlTypeCode.Integer));
+		}
+
+		public DataObject ToBigInt() {
+			return CastTo(PrimitiveTypes.Numeric(SqlTypeCode.BigInt));
+		}
+
+		#endregion
 
 		#region Object Factory
 
-		public static BooleanObject Boolean(bool? value) {
-			return new BooleanObject(PrimitiveTypes.Boolean(), value);
+		public static DataObject Boolean(bool value) {
+			return new DataObject(PrimitiveTypes.Boolean(), new SqlBoolean(value));
 		}
 
-		public static StringObject String(string s) {
-			return new StringObject(PrimitiveTypes.String(SqlTypeCode.String), s);
+		public static DataObject Number(NumericType type, SqlNumber value) {
+			return new DataObject(type, value);
 		}
 
-		public static StringObject VarChar(string s) {
-			return new StringObject(PrimitiveTypes.String(SqlTypeCode.VarChar), s);
+		public static DataObject Number(NumericType type, int value) {
+			return new DataObject(type, new SqlNumber(value));
+		}
+
+		public static DataObject Number(NumericType type, long value) {
+			return new DataObject(type, new SqlNumber(value));
+		}
+
+		public static DataObject Integer(int value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.Integer), value);
+		}
+
+		public static DataObject BigInt(long value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.BigInt), value);
+		}
+
+		public static DataObject String(string s) {
+			return new DataObject(PrimitiveTypes.String(SqlTypeCode.String), new SqlString(s));
+		}
+
+		public static DataObject VarChar(string s) {
+			return new DataObject(PrimitiveTypes.String(SqlTypeCode.VarChar), new SqlString(s));
+		}
+
+		public static DataObject Null(DataType type) {
+			return new DataObject(type, SqlNull.Value);
+		}
+
+		#endregion
+
+		#region Operators
+
+		public static DataObject operator ==(DataObject a, DataObject b) {
+			if (Equals(a, null) && Equals(b, null))
+				return BooleanNull;
+			if (Equals(a, null) || Equals(b, null))
+				return BooleanNull;
+
+			return a.IsEqualTo(b);
+		}
+
+		public static DataObject operator !=(DataObject a, DataObject b) {
+			if (Equals(a, null) && Equals(b, null))
+				return BooleanNull;
+			if (Equals(a, null) || Equals(b, null))
+				return BooleanNull;
+
+			return a.IsNotEqualTo(b);
+		}
+
+		public static DataObject operator !(DataObject a) {
+			return a.Negate();
+		}
+
+		#endregion
+
+		#region Implicit Operators
+
+		public static implicit operator bool(DataObject value) {
+			if (Equals(value, null) || value.IsNull)
+				throw new NullReferenceException();
+
+			return (SqlBoolean) value.ToBoolean().Value;
+		}
+
+		public static implicit operator int(DataObject value) {
+			if (Equals(value, null) || value.IsNull)
+				throw new NullReferenceException();
+
+			return ((SqlNumber)value.ToInteger().Value).ToInt32();
+		}
+
+		public static implicit operator long(DataObject value) {
+			if (Equals(value, null) || value.IsNull)
+				throw new NullReferenceException();
+
+			return ((SqlNumber) value.ToBigInt().Value).ToInt64();
 		}
 
 		#endregion

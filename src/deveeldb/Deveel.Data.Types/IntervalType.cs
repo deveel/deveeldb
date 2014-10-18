@@ -22,8 +22,7 @@ namespace Deveel.Data.Types {
 	public sealed class IntervalType : DataType {
 		public IntervalType(SqlTypeCode sqlType) 
 			: base(GetTypeString(sqlType), sqlType) {
-			if (sqlType != SqlTypeCode.Interval &&
-				sqlType != SqlTypeCode.YearToMonth &&
+			if (sqlType != SqlTypeCode.YearToMonth &&
 				sqlType != SqlTypeCode.DayToSecond)
 				throw new ArgumentException(String.Format("SQL Type {0} is not a valid INTERVAL.", sqlType.ToString().ToUpperInvariant()));
 		}
