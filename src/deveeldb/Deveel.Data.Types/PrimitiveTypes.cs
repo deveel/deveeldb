@@ -219,9 +219,13 @@ namespace Deveel.Data.Types {
 						return String(sqlType, (int) arg);
 					if (arg is string)
 						return String(sqlType, CultureInfo.GetCultureInfo((string) arg));
+				} else if (args.Length == 2) {
+					var arg1 = (int)args[0];
+					var arg2 = (string)args[1];
+					return new StringType(sqlType, arg1, CultureInfo.GetCultureInfo(arg2));
 				}
 
-				throw new ArgumentException("Invalid numer of arguments for NUMERIC type");
+				throw new ArgumentException("Invalid numer of arguments for STRING type");
 			}
 
 			if (sqlType == SqlTypeCode.Binary ||

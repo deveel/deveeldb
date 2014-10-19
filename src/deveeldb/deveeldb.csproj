@@ -52,7 +52,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Deveel.Math">
-      <HintPath>..\packages\dmath.1.2.25\lib\net20\Deveel.Math.dll</HintPath>
+      <HintPath>..\packages\dmath-signed.1.2.26\lib\net20\Deveel.Math.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Irony">
       <HintPath>..\..\lib\irony.net35\Irony.dll</HintPath>
@@ -139,7 +140,6 @@
     <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Deveel.Data\ParameterDirection.cs" />
     <Compile Include="Deveel.Data\ReferenceType.cs" />
-    <Compile Include="Deveel.Data\SchemaDef.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

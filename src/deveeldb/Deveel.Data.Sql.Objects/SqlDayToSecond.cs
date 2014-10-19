@@ -22,6 +22,7 @@ namespace Deveel.Data.Sql.Objects {
 		private readonly TimeSpan? value;
 
 		public static readonly SqlDayToSecond Null = new SqlDayToSecond(true);
+		public static readonly SqlDayToSecond Zero = new SqlDayToSecond(0, 0, 0, 0, 0);
 
 		private SqlDayToSecond(bool isNull) {
 			value = null;

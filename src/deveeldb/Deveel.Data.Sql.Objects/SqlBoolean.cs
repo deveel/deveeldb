@@ -146,5 +146,47 @@ namespace Deveel.Data.Sql.Objects {
 		public static implicit operator SqlBoolean(bool value) {
 			return new SqlBoolean(value);
 		}
+
+		public static SqlBoolean Parse(string s) {
+			if (String.IsNullOrEmpty(s))
+				throw new ArgumentNullException("s");
+
+			SqlBoolean value;
+			if (!TryParse(s, out value))
+				throw new FormatException();
+
+			return value;
+		}
+
+		public static bool TryParse(string s, out SqlBoolean value) {
+			value = new SqlBoolean();
+
+			if (String.IsNullOrEmpty(s))
+				return false;
+
+			if (String.Equals(s, "true", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(s, "1")) {
+				value = True;
+				return true;
+			}
+			if (String.Equals(s, "false", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(s, "0")) {
+				value = False;
+				return true;
+			}
+
+			return false;
+		}
+
+		public override string ToString() {
+			if (value == null)
+				return "NULL";
+			if (value == 1)
+				return "true";
+			if (value == 0)
+				return "false";
+
+			throw new InvalidOperationException("Should never happen!");
+		}
 	}
 }

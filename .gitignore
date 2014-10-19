@@ -40,3 +40,5 @@ src/ddbperftest/obj/Debug/ddbperftest.csproj.FileListAbsolute.txt
 /src/packages
 /dist
 /src/ddbperftest/bin
+/src/deveeldb-gis/obj
+/src/deveeldb-gis/bin

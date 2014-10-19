@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Objects {
 			valueAsLong = 0;
 			byteCount = 120;
 
-			if (value.Scale == 0) {
+			if (value != null && value.Scale == 0) {
 				BigInteger bint = value.ToBigInteger();
 				int bitCount = bint.BitLength;
 				if (bitCount < 30) {

@@ -14,12 +14,12 @@
 //    limitations under the License.
 
 using System;
-using System.Net.Configuration;
+using System.Globalization;
 
 namespace Deveel.Data.Sql.Objects {
 	[Serializable]
 	public struct SqlDateTime : ISqlObject, IEquatable<SqlDateTime>, IConvertible, IComparable<SqlDateTime> {
-		private readonly DateTime? value;
+		private readonly DateTimeOffset? value;
 
 		public static readonly SqlDateTime Null = new SqlDateTime(true);
 
@@ -27,26 +27,83 @@ namespace Deveel.Data.Sql.Objects {
 		private const int TimeStampSize = 11;
 		private const int FullTimeStampSize = 13;
 
+		public static readonly string[] SqlDateFormats = new[] {
+			"yyyy-MM-dd",
+			"yyyy MM dd"
+		};
+
+		public static readonly string[] SqlTimeStampFormats = new[] {
+			"yyyy-MM-dd HH:mm:ss.fff",
+			"yyyy-MM-dd HH:mm:ss.fff z",
+			"yyyy-MM-dd HH:mm:ss.fff zz",
+			"yyyy-MM-dd HH:mm:ss.fff zzz",
+			"yyyy-MM-dd HH:mm:ss",
+			"yyyy-MM-dd HH:mm:ss z",
+			"yyyy-MM-dd HH:mm:ss zz",
+			"yyyy-MM-dd HH:mm:ss zzz",
+
+			"yyyy-MM-ddTHH:mm:ss.fff",
+			"yyyy-MM-ddTHH:mm:ss.fff z",
+			"yyyy-MM-ddTHH:mm:ss.fff zz",
+			"yyyy-MM-ddTHH:mm:ss.fff zzz",
+			"yyyy-MM-ddTHH:mm:ss",
+			"yyyy-MM-ddTHH:mm:ss z",
+			"yyyy-MM-ddTHH:mm:ss zz",
+			"yyyy-MM-ddTHH:mm:ss zzz",
+		};
+
+		public static readonly string[] SqlTimeFormats = new[] {
+			"HH:mm:ss.fff z",
+			"HH:mm:ss.fff zz",
+			"HH:mm:ss.fff zzz",
+			"HH:mm:ss.fff",
+			"HH:mm:ss z",
+			"HH:mm:ss zz",
+			"HH:mm:ss zzz",
+			"HH:mm:ss"
+		};
+
+		public static readonly SqlDateTime MaxDate = new SqlDateTime(9999, 12, 31, 23, 59, 59, 999);
+		public static readonly SqlDateTime MinDate = new SqlDateTime(1, 1, 1, 0, 0, 0, 0);
+
 		public SqlDateTime(int year, int month, int day)
-			: this(year, month, day, 0, 0, 0, 0, DateTimeKind.Unspecified) {
+			: this(year, month, day, 0, 0, 0, 0, SqlDayToSecond.Zero) {
 		}
 
 		public SqlDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
-			: this(year, month, day, hour, minute, second, millisecond, DateTimeKind.Unspecified) {
+			: this(year, month, day, hour, minute, second, millisecond, SqlDayToSecond.Zero) {
 		}
 
-		public SqlDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond, DateTimeKind kind)
+		public SqlDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond, SqlDayToSecond offset)
 			: this() {
-			value = new DateTime(year, month, day, hour, minute, second, millisecond, kind);
+			if (year <= 0 || year > 9999)
+				throw new ArgumentOutOfRangeException("year");
+			if (month <= 0 || month > 12)
+				throw new ArgumentOutOfRangeException("month");
+			if (day <= 0 || day > 31)
+				throw new ArgumentOutOfRangeException("day");
+
+			if (hour < 0 || hour > 23)
+				throw new ArgumentOutOfRangeException("hour");
+			if (minute < 0 || minute > 59)
+				throw new ArgumentOutOfRangeException("minute");
+			if (second < 0 || second > 59)
+				throw new ArgumentOutOfRangeException("second");
+			if (millisecond < 0 || millisecond > 999)
+				throw new ArgumentOutOfRangeException("millisecond");
+
+			var tsOffset = new TimeSpan(0, offset.Hours, offset.Minutes, 0, 0);
+			value = new DateTimeOffset(year, month, day, hour, minute, second, millisecond, tsOffset);
 		}
 
 		public SqlDateTime(long ticks)
-			: this(ticks, DateTimeKind.Unspecified) {
+			: this(ticks, SqlDayToSecond.Zero) {
 		}
 
-		public SqlDateTime(long ticks, DateTimeKind kind)
+		public SqlDateTime(long ticks, SqlDayToSecond offset)
 			: this() {
-			value = new DateTime(ticks, kind);
+			var tsOffset = new TimeSpan(0, offset.Hours, offset.Minutes, 0);
+			value = new DateTimeOffset(ticks, tsOffset);
 		}
 
 		private SqlDateTime(bool isNull)
@@ -66,12 +123,9 @@ namespace Deveel.Data.Sql.Objects {
 			int millis;
 			int tzh = 0, tzm = 0;
 
-			var kind = DateTimeKind.Local;
-
             if (bytes.Length == DateSize) {
                 millis = 0;
-            }
-            else {
+            } else {
                 millis = bytes[7] << 24 | bytes[8] << 16 | bytes[9] <<  8 | bytes[10];
                 if (bytes.Length == TimeStampSize) {
                     tzh = tzm = 0;
@@ -81,19 +135,7 @@ namespace Deveel.Data.Sql.Objects {
                 }
             }
 
-			if (bytes.Length == FullTimeStampSize) {
-				var utcValue = (new DateTime(year, month, day, hour, minute, second)
-				.Add(new TimeSpan(tzh, tzm, 0)));
-
-				year = utcValue.Year;
-				month = utcValue.Month;
-				day = utcValue.Day;
-				hour = utcValue.Hour;
-				minute = utcValue.Minute;
-				kind = DateTimeKind.Utc;
-			}
-
-			value = new DateTime(year, month, day, hour, minute, second, millis, kind);
+			value = new DateTimeOffset(year, month, day, hour, minute, second, millis, new TimeSpan(0, tzh, tzm, 0, 0));
 		}
 
 		int IComparable.CompareTo(object obj) {
@@ -162,6 +204,13 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
+		public SqlDayToSecond Offset {
+			get {
+				AssertNotNull();
+				return new SqlDayToSecond(0, value.Value.Offset.Hours, value.Value.Offset.Minutes, 0, 0);
+			}
+		}
+
 		bool ISqlObject.IsComparableTo(ISqlObject other) {
 			return other is SqlDateTime;
 		}
@@ -226,7 +275,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (value == null)
 				throw new NullReferenceException();
 
-			return value.Value;
+			return value.Value.DateTime;
 		}
 
 		string IConvertible.ToString(IFormatProvider provider) {
@@ -302,7 +351,7 @@ namespace Deveel.Data.Sql.Objects {
             bytes[9] = (byte)((Millisecond >>  8) & 0xff);
             bytes[10]= (byte)(Millisecond & 0xff);
 			if (timeZone) {
-				var tsOffset = TimeZone.CurrentTimeZone.GetUtcOffset(value.Value);
+				var tsOffset = Offset;
 				bytes[11] = (byte) tsOffset.Hours;
 				bytes[12] = (byte) tsOffset.Minutes;
 			}
@@ -389,6 +438,39 @@ namespace Deveel.Data.Sql.Objects {
 
 		public static SqlDateTime operator -(SqlDateTime a, SqlYearToMonth b) {
 			return a.Subtract(b);
+		}
+
+		public static SqlDateTime Parse(string s) {
+			SqlDateTime date;
+			if (!TryParse(s, out date))
+				throw new FormatException(String.Format("Cannot convert string {0} to a valid SQL DATE", s));
+
+			return date;
+		}
+
+		public static bool TryParse(string s, out SqlDateTime value) {
+			value = new SqlDateTime();
+
+			// We delegate parsing DATE and TIME strings to the .NET DateTime object...
+			DateTimeOffset date;
+			if (DateTimeOffset.TryParseExact(s, SqlDateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) {
+				value = new SqlDateTime(date.Year, date.Month, date.Day, 0, 0, 0, 0, SqlDayToSecond.Zero);
+				return true;
+			}
+
+			if (DateTimeOffset.TryParseExact(s, SqlTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) {
+				var offset = new SqlDayToSecond(0, date.Offset.Hours, date.Offset.Minutes);
+				value = new SqlDateTime(1, 1, 1, date.Hour, date.Minute, date.Second, date.Millisecond, offset);
+				return true;
+			}
+
+			if (DateTimeOffset.TryParseExact(s, SqlTimeStampFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) {
+				var offset = new SqlDayToSecond(0, date.Offset.Hours, date.Offset.Minutes, 0);
+				value = new SqlDateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Millisecond, offset);
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

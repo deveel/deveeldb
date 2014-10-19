@@ -49,8 +49,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Deveel.Math">
-      <HintPath>..\packages\dmath.1.2.25\lib\net20\Deveel.Math.dll</HintPath>
+    <Reference Include="Deveel.Math, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\dmath.1.2.26\lib\net20\Deveel.Math.dll</HintPath>
     </Reference>
     <Reference Include="Irony">
       <HintPath>..\..\lib\irony.net35\Irony.dll</HintPath>
@@ -63,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Sql.Objects\SqlStringTests.cs" />
     <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
     <Compile Include="Deveel.Data\StringObjectTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

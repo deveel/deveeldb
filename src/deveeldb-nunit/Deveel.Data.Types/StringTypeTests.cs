@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Globalization;
 
 using NUnit.Framework;
 
@@ -89,7 +90,7 @@ namespace Deveel.Data.Types {
 		[Test]
 		public void LocalizedVarChar_Parse() {
 			const string typeString = "VARCHAR(255) LOCALE 'en-Us'";
-						DataType dataType = null;
+			DataType dataType = null;
 			Assert.DoesNotThrow(() => dataType = DataType.Parse(typeString));
 			Assert.IsNotNull(dataType);
 			Assert.IsInstanceOf<StringType>(dataType);
@@ -97,7 +98,7 @@ namespace Deveel.Data.Types {
 
 			var stringType = (StringType) dataType;
 			Assert.AreEqual(255, stringType.MaxSize);
-			Assert.AreEqual(null, stringType.Locale);
+			Assert.AreEqual(CultureInfo.GetCultureInfo("en-US"), stringType.Locale);
 		}
 	}
 }

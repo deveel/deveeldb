@@ -88,7 +88,25 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public int CompareTo(ISqlString other) {
-			throw new NotImplementedException();
+			if (other == null)
+				throw new ArgumentNullException("other");
+
+			if (CodePage != other.CodePage)
+				throw new ArgumentException("The codepage value of the other string is different.");
+
+			if (IsNull && other.IsNull)
+				return 0;
+			if (IsNull)
+				return 1;
+			if (other.IsNull)
+				return -1;
+
+			if (other is SqlString) {
+				var otherString = (SqlString) other;
+				return String.Compare(Value, otherString.Value, StringComparison.Ordinal);
+			}
+
+			throw new NotImplementedException("Comparison with long strng not implemented yet.");
 		}
 
 		public IEnumerator<char> GetEnumerator() {
@@ -134,6 +152,9 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public override bool Equals(object obj) {
+			if (obj is SqlNull && IsNull)
+				return true;
+
 			return Equals((SqlString) obj);
 		}
 
@@ -157,12 +178,20 @@ namespace Deveel.Data.Sql.Objects {
 			return new SqlString(Encoding.Unicode.CodePage, Encoding.Unicode.GetChars(bytes));
 		}
 
+		public static SqlString Unicode(string s) {
+			return Unicode(Encoding.Unicode.GetBytes(s));
+		}
+
 		public static SqlString BigEndianUnicode(byte[] bytes) {
 			return new SqlString(Encoding.BigEndianUnicode.CodePage, Encoding.BigEndianUnicode.GetChars(bytes));
 		}
 
 		public static SqlString Ascii(byte[] bytes) {
 			return new SqlString(Encoding.ASCII.CodePage, Encoding.ASCII.GetChars(bytes));
+		}
+
+		public static SqlString Ascii(string s) {
+			return Ascii(Encoding.ASCII.GetBytes(s));
 		}
 
 		public static SqlString Decode(int codePage, byte[] bytes) {
@@ -192,7 +221,7 @@ namespace Deveel.Data.Sql.Objects {
 
 				var destChars = new char[length];
 				Array.Copy(source, 0, destChars, 0, Length);
-				Array.Copy(otheString.source, 0, destChars, Length - 1, otheString.Length);
+				Array.Copy(otheString.source, 0, destChars, Length, otheString.Length);
 				return new SqlString(CodePage, destChars, length);
 			}
 
@@ -263,72 +292,114 @@ namespace Deveel.Data.Sql.Objects {
 
 		#endregion
 
+		public override string ToString() {
+			return Value;
+		}
+
 		TypeCode IConvertible.GetTypeCode() {
 			return TypeCode.String;
 		}
 
 		bool IConvertible.ToBoolean(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToBoolean(Value, provider);
 		}
 
 		char IConvertible.ToChar(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToChar(Value, provider);
 		}
 
 		sbyte IConvertible.ToSByte(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToSByte(Value, provider);
 		}
 
 		byte IConvertible.ToByte(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToByte(Value, provider);
 		}
 
 		short IConvertible.ToInt16(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToInt16(Value, provider);
 		}
 
 		ushort IConvertible.ToUInt16(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToUInt16(Value, provider);
 		}
 
 		int IConvertible.ToInt32(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToInt32(Value, provider);
 		}
 
 		uint IConvertible.ToUInt32(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToUInt32(Value, provider);
 		}
 
 		long IConvertible.ToInt64(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToInt64(Value, provider);
 		}
 
 		ulong IConvertible.ToUInt64(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToUInt64(Value, provider);
 		}
 
 		float IConvertible.ToSingle(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToSingle(Value, provider);
 		}
 
 		double IConvertible.ToDouble(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToDouble(Value, provider);
 		}
 
 		decimal IConvertible.ToDecimal(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToDecimal(Value, provider);
 		}
 
 		DateTime IConvertible.ToDateTime(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToDateTime(Value, provider);
 		}
 
 		string IConvertible.ToString(IFormatProvider provider) {
-			throw new NotImplementedException();
+			return Convert.ToString(Value, provider);
 		}
 
 		object IConvertible.ToType(Type conversionType, IFormatProvider provider) {
-			throw new NotImplementedException();
+			if (conversionType == typeof (bool))
+				return Convert.ToBoolean(Value, provider);
+			if (conversionType == typeof (byte))
+				return Convert.ToByte(Value, provider);
+			if (conversionType == typeof (sbyte))
+				return Convert.ToSByte(Value, provider);
+			if (conversionType == typeof (short))
+				return Convert.ToInt16(Value, provider);
+			if (conversionType == typeof (ushort))
+				return Convert.ToUInt16(Value, provider);
+			if (conversionType == typeof (int))
+				return Convert.ToInt32(Value, provider);
+			if (conversionType == typeof (uint))
+				return Convert.ToUInt32(Value, provider);
+			if (conversionType == typeof (long))
+				return Convert.ToInt64(Value, provider);
+			if (conversionType == typeof (ulong))
+				return Convert.ToUInt64(Value, provider);
+			if (conversionType == typeof (float))
+				return Convert.ToSingle(Value, provider);
+			if (conversionType == typeof (double))
+				return Convert.ToDouble(Value, provider);
+			if (conversionType == typeof (decimal))
+				return Convert.ToDecimal(Value, provider);
+			if (conversionType == typeof (string))
+				return Convert.ToString(Value, provider);
+
+			try {
+				if (conversionType == typeof (SqlNumber))
+					return SqlNumber.Parse(Value);
+				if (conversionType == typeof (SqlBoolean))
+					return SqlBoolean.Parse(Value);
+				if (conversionType == typeof (SqlDateTime))
+					return SqlDateTime.Parse(Value);
+			} catch (FormatException) {
+				throw new InvalidCastException();
+			}
+
+			throw new InvalidCastException(String.Format("Cannot convet SQL STRING to {0}", conversionType.FullName));
 		}
 
 		public static bool operator ==(SqlString a, SqlString b) {

@@ -16,6 +16,7 @@ namespace Deveel.Data.Deveel.Data {
 			Assert.IsInstanceOf<DataObject>(sObj);
 			Assert.AreEqual(SqlTypeCode.VarChar, sObj.Type.SqlType);
 			Assert.IsInstanceOf<SqlString>(sObj.Value);
+			Assert.AreEqual(s, sObj.Value);
 		}
 
 		[Test]

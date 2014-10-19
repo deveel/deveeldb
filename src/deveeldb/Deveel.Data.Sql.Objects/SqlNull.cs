@@ -37,7 +37,12 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public override bool Equals(object obj) {
-			return base.Equals(obj);
+			if (obj is SqlNull)
+				return true;
+			if (obj is ISqlObject)
+				return ((ISqlObject) obj).IsNull;
+
+			return false;
 		}
 
 		public override int GetHashCode() {
