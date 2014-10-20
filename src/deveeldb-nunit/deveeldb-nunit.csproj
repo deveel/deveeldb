@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Sql.Objects\SqlStringTests.cs" />
+    <Compile Include="Deveel.Data.Types\BooleanTypeTest.cs" />
     <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
     <Compile Include="Deveel.Data\StringObjectTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

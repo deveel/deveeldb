@@ -125,7 +125,15 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public int CompareTo(SqlBoolean other) {
-			throw new NotImplementedException();
+			if (other.IsNull && IsNull)
+				return 0;
+
+			if (IsNull && !other.IsNull)
+				return 1;
+			if (!IsNull && other.IsNull)
+				return -1;
+
+			return value.Value.CompareTo(other.value.Value);
 		}
 
 		public static bool operator ==(SqlBoolean a, SqlBoolean b) {

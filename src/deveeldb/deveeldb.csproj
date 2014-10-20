@@ -26,6 +26,7 @@
     <WarningLevel>4</WarningLevel>
     <NoWarn>0162,0168</NoWarn>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Debug\deveeldb.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -168,9 +169,7 @@
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>IF EXIST "$(SolutionDir)..\dist\" RD /S /Q "$(SolutionDir)..\dist\"
-MKDIR $(SolutionDir)..\dist\
-$(SolutionDir)..\util\ilrepack-1.25.0\ilrepack.exe /internalize /targetplatform:v2 /out:$(SolutionDir)..\dist\$(TargetFileName) $(TargetPath) $(SolutionDir)..\lib\irony.net35\irony.dll $(TargetDir)\Deveel.Math.dll</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)..\util\ilrepack-1.25.0\ilrepack.exe /internalize /targetplatform:v2 /out:$(SolutionDir)..\dist\$(TargetFileName) $(TargetPath) $(SolutionDir)..\lib\irony.net35\irony.dll $(TargetDir)\Deveel.Math.dll</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
