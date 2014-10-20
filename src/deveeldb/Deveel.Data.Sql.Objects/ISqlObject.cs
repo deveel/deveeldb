@@ -16,9 +16,24 @@
 using System;
 
 namespace Deveel.Data.Sql.Objects {
+	/// <summary>
+	/// Defines the contract for a valid SQL Object
+	/// </summary>
 	public interface ISqlObject : IComparable, IComparable<ISqlObject> {
+		/// <summary>
+		/// Gets a boolean value indicating if the object is <c>NULL</c>.
+		/// </summary>
+		/// <seealso cref="SqlNull"/>
 		bool IsNull { get; }
 
+		/// <summary>
+		/// Checks if the current object is comparable with the given one.
+		/// </summary>
+		/// <param name="other">The other <see cref="ISqlObject"/> to compare.</param>
+		/// <returns>
+		/// Returns <c>true</c> if the current object is comparable
+		/// with the given one, <c>false</c> otherwise.
+		/// </returns>
 		bool IsComparableTo(ISqlObject other);
 	}
 }

@@ -135,12 +135,12 @@ namespace Deveel.Data {
 				return new ObjectName(sp[0]);
 
 			ObjectName finalName = null;
-			for (int i = sp.Length - 1; i >= 0; i--) {
+			for (int i = 0; i < sp.Length; i++) {
 				if (finalName == null) {
 					finalName = new ObjectName(sp[i]);
 				} else {
 					finalName = new ObjectName(finalName, sp[i]);
-				}
+				}				
 			}
 
 			return finalName;
@@ -232,6 +232,16 @@ namespace Deveel.Data {
 			return Equals(other, true);
 		}
 
+		/// <summary>
+		/// Compares this object name with the other one given, according to the
+		/// case sensitivity specified.
+		/// </summary>
+		/// <param name="other">The other <see cref="ObjectName"/> to compare.</param>
+		/// <param name="ignoreCase">The specification to either ignore the case for comparison.</param>
+		/// <returns>
+		/// Returns <c>true</c> if the two instances are equal, according to the case sensitivity
+		/// given, or <c>false</c> otherwise.
+		/// </returns>
 		public bool Equals(ObjectName other, bool ignoreCase) {
 			if (Parent != null && other.Parent == null)
 				return false;
@@ -253,6 +263,14 @@ namespace Deveel.Data {
 			return code;
 		}
 
+		/// <summary>
+		/// Creates a shadown copy of this object.
+		/// </summary>
+		/// <returns>
+		/// Returns a new instance of <see cref="ObjectName"/> that is
+		/// a copy of this object.
+		/// </returns>
+		/// <seealso cref="ICloneable.Clone"/>
 		public ObjectName Clone() {
 			return new ObjectName(Parent, Name);
 		}

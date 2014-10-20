@@ -21,8 +21,11 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Types {
 	[TestFixture]
+	[Category("Booleans")]
+	[Category("Data Types")]
 	public class BooleanTypeTest {
 		[Test]
+		[Category("Comparison")]
 		public void Compare_Booleans() {
 			var type = PrimitiveTypes.Boolean();
 			Assert.IsNotNull(type);
@@ -34,12 +37,26 @@ namespace Deveel.Data.Types {
 		}
 
 		[Test]
+		[Category("Numbers")]
+		[Category("Comparison")]
 		public void Compare_BooleanToNumeric() {
 			var type = PrimitiveTypes.Boolean();
 			Assert.IsNotNull(type);
 
 			Assert.AreEqual(0, type.Compare(SqlBoolean.True, SqlNumber.One));
 			Assert.AreEqual(0, type.Compare(SqlBoolean.False, SqlNumber.Zero));
+		}
+
+		[Test]
+		[Category("Numbers")]
+		[Category("Comparison")]
+		public void Compare_BooleanToNumeric_Invalid() {
+			var type = PrimitiveTypes.Boolean();
+			Assert.IsNotNull(type);
+
+			int result = -2;
+			Assert.DoesNotThrow(() => result = type.Compare(SqlBoolean.True, new SqlNumber(22)));
+			Assert.AreEqual(-1, result);
 		}
 	}
 }

@@ -131,7 +131,6 @@
     </Compile>
     <Compile Include="Deveel.Data\IGroupResolver.cs" />
     <Compile Include="Deveel.Data\IVariableResolver.cs" />
-    <Compile Include="Deveel.Data\CorrelatedVariable.cs" />
     <Compile Include="Deveel.Data\IBlobAccessor.cs" />
     <Compile Include="Deveel.Data\IBlobRef.cs" />
     <Compile Include="Deveel.Data\IClobRef.cs" />
@@ -169,7 +168,7 @@
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)..\util\ilrepack-1.25.0\ilrepack.exe /internalize /targetplatform:v2 /out:$(SolutionDir)..\dist\$(TargetFileName) $(TargetPath) $(SolutionDir)..\lib\irony.net35\irony.dll $(TargetDir)\Deveel.Math.dll</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)..\util\ilrepack-1.25.0\ilrepack.exe /internalize /targetplatform:v2 /xmldocs /out:$(SolutionDir)..\dist\$(TargetFileName) $(TargetPath) $(SolutionDir)..\lib\irony.net35\irony.dll $(TargetDir)\Deveel.Math.dll</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

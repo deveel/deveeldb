@@ -204,6 +204,9 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
+		/// <summary>
+		/// Gets the offset between the date-time instance and the UTC time.
+		/// </summary>
 		public SqlDayToSecond Offset {
 			get {
 				AssertNotNull();
@@ -358,6 +361,19 @@ namespace Deveel.Data.Sql.Objects {
 			return bytes;
 		}
 
+		/// <summary>
+		/// Adds the given interval of time to this date-time.
+		/// </summary>
+		/// <param name="interval">The interval of time to add.</param>
+		/// <remarks>
+		/// This method will return <see cref="Null"/> if either the given 
+		/// <paramref name="interval"/> is <see cref="SqlDayToSecond.Null"/>
+		/// or if this instance is equivalent to <c>NULL</c>.
+		/// </remarks>
+		/// <returns>
+		/// Returns an instance of <see cref="SqlDateTime"/> that is the result of
+		/// the addition to this date of the given interval of time.
+		/// </returns>
 		public SqlDateTime Add(SqlDayToSecond interval) {
 			if (IsNull)
 				return Null;
@@ -368,6 +384,15 @@ namespace Deveel.Data.Sql.Objects {
 			return new SqlDateTime(result.Ticks);
 		}
 
+		/// <summary>
+		/// Subtracts a given interval of time from this date.
+		/// </summary>
+		/// <param name="interval">The interval to subtract from this date.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="SqlDateTime"/> that is the result
+		/// of the subtraction of the given interval of time from this date value.
+		/// </returns>
+		/// <seealso cref="SqlDayToSecond"/>
 		public SqlDateTime Subtract(SqlDayToSecond interval) {
 			if (IsNull)
 				return Null;
@@ -378,6 +403,12 @@ namespace Deveel.Data.Sql.Objects {
 			return new SqlDateTime(result.Ticks);
 		}
 
+		/// <summary>
+		/// Adds the given months to this date.
+		/// </summary>
+		/// <param name="interval">The month-base interval of time to add.</param>
+		/// <returns></returns>
+		/// <seealso cref="SqlYearToMonth"/>
 		public SqlDateTime Add(SqlYearToMonth interval) {
 			if (IsNull)
 				return Null;

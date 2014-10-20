@@ -35,8 +35,8 @@
     <HelpTitle>DeveeldDB 2.0</HelpTitle>
     <ContentPlacement>AboveNamespaces</ContentPlacement>
     <DocumentationSources>
-      <DocumentationSource sourceFile="..\src\deveeldb\bin\Debug\deveeldb.dll" />
-<DocumentationSource sourceFile="..\src\deveeldb\bin\Debug\deveeldb.xml" /></DocumentationSources>
+      <DocumentationSource sourceFile="..\dist\deveeldb.dll" />
+<DocumentationSource sourceFile="..\dist\deveeldb.xml" /></DocumentationSources>
     <VisibleItems>Attributes, InheritedMembers, InheritedFrameworkMembers, Protected, ProtectedInternalAsProtected</VisibleItems>
     <ComponentConfigurations>
       <ComponentConfig id="IntelliSense Component" enabled="True" xmlns="">
@@ -49,40 +49,46 @@
           <output includeNamespaces="false" namespacesFile="Namespaces" folder="{@OutputFolder}" />
         </component>
       </ComponentConfig>
-<ComponentConfig id="Code Block Component" enabled="True" xmlns=""><component id="Code Block Component">
-  <basePath value="{@HtmlEncProjectFolder}" />
-  <outputPaths>{@HelpFormatOutputPaths}</outputPaths>
-  <allowMissingSource value="false" />
-  <removeRegionMarkers value="false" />
-  <colorizer syntaxFile="{@SHFBFolder}Colorizer\highlight.xml" styleFile="{@SHFBFolder}Colorizer\highlight.xsl" stylesheet="{@SHFBFolder}Colorizer\highlight.css" scriptFile="{@SHFBFolder}Colorizer\highlight.js" disabled="{@DisableCodeBlockComponent}" language="cs" tabSize="0" numberLines="true" outlining="false" keepSeeTags="false" defaultTitle="true" />
-</component></ComponentConfig>
-<ComponentConfig id="Syntax Component" enabled="True" xmlns=""><component id="Syntax Component">
-  <syntax input="/document/reference" output="/document/syntax" renderReferenceLinks="false" />
-  <generators>
+      <ComponentConfig id="Code Block Component" enabled="True" xmlns="">
+        <component id="Code Block Component">
+          <basePath value="{@HtmlEncProjectFolder}" />
+          <outputPaths>{@HelpFormatOutputPaths}</outputPaths>
+          <allowMissingSource value="false" />
+          <removeRegionMarkers value="false" />
+          <colorizer syntaxFile="{@SHFBFolder}Colorizer\highlight.xml" styleFile="{@SHFBFolder}Colorizer\highlight.xsl" stylesheet="{@SHFBFolder}Colorizer\highlight.css" scriptFile="{@SHFBFolder}Colorizer\highlight.js" disabled="{@DisableCodeBlockComponent}" language="cs" tabSize="0" numberLines="true" outlining="false" keepSeeTags="false" defaultTitle="true" />
+        </component>
+      </ComponentConfig>
+      <ComponentConfig id="Syntax Component" enabled="True" xmlns="">
+        <component id="Syntax Component">
+          <syntax input="/document/reference" output="/document/syntax" renderReferenceLinks="false" />
+          <generators>
     {@SyntaxFilters}
 </generators>
-  <containerElement name="codeSnippetGroup" addNoExampleTabs="true" includeOnSingleSnippets="false" groupingEnabled="{@CodeSnippetGrouping}" />
-  <configurations>
-    <generator id="C#" />
-    <generator id="Visual Basic">
-      <includeLineContinuation value="false" />
-    </generator>
-    <generator id="Visual Basic Usage">
-      <includeLineContinuation value="false" />
-    </generator>
-    <generator id="Managed C++" />
-    <generator id="F#" />
-    <generator id="J#" />
-    <generator id="JScript" />
-    <generator id="JavaScript" />
-    <generator id="XAML Usage" />
-    <generator id="ASP.NET" />
-  </configurations>
-</component></ComponentConfig></ComponentConfigurations>
+          <containerElement name="codeSnippetGroup" addNoExampleTabs="true" includeOnSingleSnippets="false" groupingEnabled="{@CodeSnippetGrouping}" />
+          <configurations>
+            <generator id="C#" />
+            <generator id="Visual Basic">
+              <includeLineContinuation value="false" />
+            </generator>
+            <generator id="Visual Basic Usage">
+              <includeLineContinuation value="false" />
+            </generator>
+            <generator id="Managed C++" />
+            <generator id="F#" />
+            <generator id="J#" />
+            <generator id="JScript" />
+            <generator id="JavaScript" />
+            <generator id="XAML Usage" />
+            <generator id="ASP.NET" />
+          </configurations>
+        </component>
+      </ComponentConfig>
+    </ComponentConfigurations>
     <NamespaceSummaries>
       <NamespaceSummaryItem name="Deveel.Data" isDocumented="True" xmlns="">Defines globally used classes and components for the system</NamespaceSummaryItem>
-<NamespaceSummaryItem name="Deveel.Data.Sql.Compile" isDocumented="True" xmlns="">Provides the logic for parsing and compiling SQL code to statement and expressions compatible with the system</NamespaceSummaryItem>
-<NamespaceSummaryItem name="Deveel.Data.Sql.Objects" isDocumented="True" xmlns="">Includes the native SQL objects used by the system to resolve data</NamespaceSummaryItem></NamespaceSummaries>
+      <NamespaceSummaryItem name="Deveel.Data.Sql.Compile" isDocumented="True" xmlns="">Provides the logic for parsing and compiling SQL code to statement and expressions compatible with the system</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="Deveel.Data.Sql.Objects" isDocumented="True" xmlns="">Includes the native SQL objects used by the system to resolve data</NamespaceSummaryItem>
+    </NamespaceSummaries>
     <FeedbackEMailLinkText>
     </FeedbackEMailLinkText>
     <CatalogName>VisualStudio12</CatalogName>

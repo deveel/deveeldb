@@ -5,7 +5,7 @@ using Deveel.Data.Types;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Deveel.Data {
+namespace Deveel.Data {
 	[TestFixture]
 	public class StringObjectTests {
 		[Test]

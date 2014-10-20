@@ -388,16 +388,14 @@ namespace Deveel.Data.Sql.Objects {
 			if (conversionType == typeof (string))
 				return Convert.ToString(Value, provider);
 
-			try {
-				if (conversionType == typeof (SqlNumber))
-					return SqlNumber.Parse(Value);
-				if (conversionType == typeof (SqlBoolean))
-					return SqlBoolean.Parse(Value);
-				if (conversionType == typeof (SqlDateTime))
-					return SqlDateTime.Parse(Value);
-			} catch (FormatException) {
-				throw new InvalidCastException();
-			}
+			if (conversionType == typeof (SqlNumber))
+				return ToNumber();
+			if (conversionType == typeof (SqlBoolean))
+				return ToBoolean();
+			if (conversionType == typeof (SqlDateTime))
+				return ToDateTime();
+			if (conversionType == typeof (SqlBinary))
+				return ToBinary();
 
 			throw new InvalidCastException(String.Format("Cannot convet SQL STRING to {0}", conversionType.FullName));
 		}
@@ -412,6 +410,43 @@ namespace Deveel.Data.Sql.Objects {
 
 		public static SqlString operator +(SqlString a, SqlString b) {
 			return a.Concat(b);
+		}
+
+		public static SqlString operator +(SqlString a, string b) {
+			var chars = new char[0];
+			if (!String.IsNullOrEmpty(b))
+				chars = b.ToCharArray();
+
+			return a.Concat(new SqlString(a.CodePage, chars));
+		}
+
+		public SqlBoolean ToBoolean() {
+			SqlBoolean value;
+			if (!SqlBoolean.TryParse(Value, out value))
+				return SqlBoolean.Null;			// TODO: Should we throw an exception?
+
+			return value;
+		}
+
+		public SqlNumber ToNumber() {
+			SqlNumber value;
+			if (!SqlNumber.TryParse(Value, out value))
+				return SqlNumber.Null;			// TODO: Shoudl we throw an exception?
+
+			return value;
+		}
+
+		public SqlDateTime ToDateTime() {
+			SqlDateTime value;
+			if (!SqlDateTime.TryParse(Value, out value))
+				return SqlDateTime.Null;		// TODO: Shoudl we throw an exception?
+
+			return value;
+		}
+
+		public SqlBinary ToBinary() {
+			var bytes = ToByteArray();
+			return new SqlBinary(bytes);
 		}
 	}
 }

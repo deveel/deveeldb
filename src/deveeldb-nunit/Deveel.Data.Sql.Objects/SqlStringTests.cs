@@ -164,5 +164,47 @@ namespace Deveel.Data.Sql.Objects {
 			Assert.IsFalse(number.CanBeInt64);
 			Assert.AreEqual(NumericState.None, number.State);
 		}
+
+		[Test]
+		[Category("Conversion")]
+		[Category("Booleans")]
+		public void String_Convert_BooleanTrue() {
+			const string s = "true";
+			var sqlString = new SqlString(s);
+			Assert.AreEqual(1200, sqlString.CodePage);
+
+			var b = new SqlBoolean();
+			Assert.DoesNotThrow(() => b = (SqlBoolean)Convert.ChangeType(sqlString, typeof(SqlBoolean)));
+			Assert.IsFalse(b.IsNull);
+			Assert.AreEqual(SqlBoolean.True, b);
+		}
+
+		[Test]
+		[Category("Conversion")]
+		[Category("Booleans")]
+		public void String_Convert_BooleanFalse() {
+			const string s = "false";
+			var sqlString = new SqlString(s);
+			Assert.AreEqual(1200, sqlString.CodePage);
+
+			var b = new SqlBoolean();
+			Assert.DoesNotThrow(() => b = (SqlBoolean)Convert.ChangeType(sqlString, typeof(SqlBoolean)));
+			Assert.IsFalse(b.IsNull);
+			Assert.AreEqual(SqlBoolean.False, b);
+		}
+
+		[Test]
+		[Category("Conversion")]
+		[Category("Booleans")]
+		public void String_Convert_BooleanNull() {
+			const string s = "";
+			var sqlString = new SqlString(s);
+			Assert.AreEqual(1200, sqlString.CodePage);
+
+			var b = new SqlBoolean();
+			Assert.DoesNotThrow(() => b = (SqlBoolean)Convert.ChangeType(sqlString, typeof(SqlBoolean)));
+			Assert.IsTrue(b.IsNull);
+			Assert.AreEqual(SqlBoolean.Null, b);
+		}
 	}
 }
