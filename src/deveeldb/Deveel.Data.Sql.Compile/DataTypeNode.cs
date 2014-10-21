@@ -16,33 +16,99 @@
 using System;
 using System.Linq;
 
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Describes the information of a data type as found in a SQL string.
+	/// </summary>
 	[Serializable]
 	public sealed class DataTypeNode : SqlNode {
+		/// <summary>
+		/// Constructs an empty <see cref="DataTypeNode"/>.
+		/// </summary>
 		public DataTypeNode() {
 			IsPrimitive = true;
 		}
 
+		/// <summary>
+		/// Gets a boolean value indicating if the data type found is a primitive.
+		/// </summary>
+		/// <seealso cref="DataType.IsPrimitive"/>
+		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
 		public bool IsPrimitive { get; private set; }
 
+		/// <summary>
+		/// Gets the name of the data type, if <see cref="IsPrimitive"/> is <c>true</c>.
+		/// </summary>
 		public string TypeName { get; private set; }
 
+		/// <summary>
+		/// Gets a fully-qualified name for user-defined data types.
+		/// </summary>
 		public ObjectName UserTypeName { get; private set; }
 
+		/// <summary>
+		/// Gets the size specification of the data-type.
+		/// </summary>
+		/// <remarks>
+		/// In case the type is a <c>NUMERIC</c> type, this value is not indicated:
+		/// rather check <see cref="Scale"/> property.
+		/// </remarks>
 		public int Size { get; private set; }
 
+		/// <summary>
+		/// Gets a value indicating if the data-type specification has
+		/// a size value.
+		/// </summary>
+		/// <seealso cref="Size"/>
 		public bool HasSize { get; private set; }
 
+		/// <summary>
+		/// Gets the scaling factor of a numberic data-type.
+		/// </summary>
+		/// <remarks>
+		/// This value is present only if the data-type is <c>NUMERIC</c>.
+		/// </remarks>
+		/// <seealso cref="HasScale"/>
+		/// <seealso cref="SqlNumber.Scale"/>
+		/// <seealso cref="NumericType.Scale"/>
 		public int Scale { get; private set; }
 
+		/// <summary>
+		/// Gets a value indicating if the data-type specification has
+		/// a scaling factor value indicated.
+		/// </summary>
+		/// <seealso cref="Scale"/>
 		public bool HasScale { get; private set; }
 
+		/// <summary>
+		/// Get the precision of a data-type that is <c>NUMERIC</c>.
+		/// </summary>
+		/// <seealso cref="NumericType"/>
+		/// <seealso cref="HasPrecision"/>
 		public int Precision { get; private set; }
 
+		/// <summary>
+		/// In case this data-type is a <c>NUMERIC</c> type, this gets
+		/// a value indicating if a precision specification was defined.
+		/// </summary>
 		public bool HasPrecision { get; private set; }
 
+		/// <summary>
+		/// In case the data-type is a <c>STRING</c> type, this gets the
+		/// locale string used to collate the values handled by the type.
+		/// </summary>
+		/// <seealso cref="StringType.Locale"/>
+		/// <seealso cref="HasLocale"/>
 		public string Locale { get; private set; }
 
+		/// <summary>
+		/// In case the data-type is a <c>STRING</c> type, this indicates if the
+		/// data-type specification includes a locale definition.
+		/// </summary>
+		/// <seealso cref="Locale"/>
 		public bool HasLocale { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
@@ -102,7 +168,7 @@ namespace Deveel.Data.Sql.Compile {
 		private void GetDataSize(ISqlNode node) {
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode is IntegerLiteralNode) {
-					Size = ((IntegerLiteralNode) childNode).Value;
+					Size = (int) ((IntegerLiteralNode) childNode).Value;
 					HasSize = true;
 				}
 			}
@@ -122,10 +188,10 @@ namespace Deveel.Data.Sql.Compile {
 		private void GetNumberPrecision(ISqlNode node) {
 			foreach (var childNode in node.ChildNodes) {
 				if (!HasScale) {
-					Scale = ((IntegerLiteralNode) childNode).Value;
+					Scale = (int) ((IntegerLiteralNode) childNode).Value;
 					HasScale = true;
 				} else {
-					Precision = ((IntegerLiteralNode) childNode).Value;
+					Precision = (int) ((IntegerLiteralNode) childNode).Value;
 					HasPrecision = true;
 				}
 			}

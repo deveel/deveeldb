@@ -118,7 +118,15 @@ namespace Deveel.Data.Types {
 			return SqlBoolean.Null;
 		}
 
+		public virtual ISqlObject XOr(ISqlObject x, ISqlObject y) {
+			return SqlNull.Value;
+		}
+
 		public virtual ISqlObject Or(ISqlObject value) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Reverse(ISqlObject value) {
 			return SqlNull.Value;
 		}
 

@@ -20,9 +20,20 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Deveel.Data.Sql.Objects {
+	/// <summary>
+	/// Implements a <c>BINARY</c> object that handles a limited number
+	/// of bytes, not exceding <see cref="MaxLength"/>.
+	/// </summary>
 	[Serializable]
 	public struct SqlBinary : ISqlBinary {
 		private readonly byte[] bytes;
+
+		/// <summary>
+		/// A constant value defining the maximum allowed length of bytes
+		/// that this binary can handle.
+		/// </summary>
+		/// <seealso cref="Length"/>
+		public const int MaxLength = Int16.MaxValue;
 
 		public SqlBinary(byte[] source)
 			: this(source, source == null ? 0 : source.Length) {
@@ -37,6 +48,9 @@ namespace Deveel.Data.Sql.Objects {
 			if (source == null) {
 				bytes = null;
 			} else {
+				if (length > MaxLength)
+					throw new ArgumentOutOfRangeException("length");
+				
 				bytes = new byte[length];
 				Array.Copy(source, offset, bytes, 0, length);
 			}
@@ -50,6 +64,7 @@ namespace Deveel.Data.Sql.Objects {
 			throw new NotSupportedException();
 		}
 
+		/// <inheritdoc/>
 		public bool IsNull {
 			get { return bytes == null; }
 		}
@@ -58,6 +73,7 @@ namespace Deveel.Data.Sql.Objects {
 			return false;
 		}
 
+		/// <inheritdoc/>
 		public IEnumerator<byte> GetEnumerator() {
 			throw new NotImplementedException();
 		}
@@ -66,10 +82,12 @@ namespace Deveel.Data.Sql.Objects {
 			return GetEnumerator();
 		}
 
+		/// <inheritdoc/>
 		public long Length {
 			get { return bytes == null ? 0L : bytes.LongLength; }
 		}
 
+		/// <inheritdoc/>
 		public Stream GetInput() {
 			if (IsNull)
 				return Stream.Null;
@@ -77,6 +95,13 @@ namespace Deveel.Data.Sql.Objects {
 			return new MemoryStream(bytes, false);
 		}
 
+		/// <summary>
+		/// Materializes the contents of the binary into a finite object.
+		/// </summary>
+		/// <returns>
+		/// Returns an <seealso cref="object"/> that is the result of
+		/// the deserialization of the binary data handled by this object.
+		/// </returns>
 		public object ToObject() {
 			using (var input = GetInput()) {
 				var fornatter = new BinaryFormatter();
@@ -84,6 +109,14 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
+		/// <summary>
+		/// Creates an instance of <seealso cref="SqlBinary"/> from the
+		/// dematerialization of the given object into its binary
+		/// equivalent.
+		/// </summary>
+		/// <param name="obj">The object to serialize.</param>
+		/// <returns>
+		/// </returns>
 		public static SqlBinary FromObject(object obj) {
 			using (var stream = new MemoryStream(1024 * 3)) {
 				var formatter = new BinaryFormatter();
@@ -95,6 +128,10 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
+		/// <summary>
+		/// Returns an array of bytes representing the contents of the binary.
+		/// </summary>
+		/// <returns></returns>
 		public byte[] ToByteArray() {
 			if (bytes == null)
 				return new byte[0];

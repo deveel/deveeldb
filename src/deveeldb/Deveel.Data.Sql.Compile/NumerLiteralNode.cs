@@ -16,15 +16,23 @@
 using System;
 using System.Linq;
 
+using Deveel.Data.Sql.Objects;
 using Deveel.Math;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Handles a numeric literal value, belonging to a wider group than
+	/// integer numbers, spanning from real to decimals.
+	/// </summary>
 	[Serializable]
 	public sealed class NumberLiteralNode : SqlNode {
 		internal BigDecimal BigValue { get; private set; }
 
-		public string Value {
-			get { return BigValue == null ? null : BigValue.ToPlainString(); }
+		/// <summary>
+		/// Gets the numeric value handled by the node.
+		/// </summary>
+		public SqlNumber Value {
+			get { return BigValue == null ? SqlNumber.Null : new SqlNumber(BigValue); }
 		}
 
 		protected override void OnNodeInit() {

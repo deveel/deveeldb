@@ -19,12 +19,22 @@ using System.Linq;
 using Deveel.Math;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Encapsulates a number that is any falling in the group of integers. 
+	/// </summary>
+	/// <remarks>
+	/// Nodes of this kind can handle only integer values: the broader handler
+	/// node for more complex numeric values is <see cref="NumberLiteralNode"/>.
+	/// </remarks>
 	[Serializable]
 	public sealed class IntegerLiteralNode : SqlNode {
 		internal BigInteger BigValue { get; private set; }
 
-		public int Value {
-			get { return BigValue == null ? -1 : BigValue.ToInt32(); }
+		/// <summary>
+		/// Gets the integer numeric value handled by the node.
+		/// </summary>
+		public long Value {
+			get { return BigValue == null ? -1 : BigValue.ToInt64(); }
 		}
 
 		protected override void OnNodeInit() {

@@ -17,13 +17,30 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Defines the contract for nodes in an AST model for a SQL
+	/// grammar analysis and parsing.
+	/// </summary>
 	public interface ISqlNode {
+		/// <summary>
+		/// Gets the name of the node analyzed from the parser.
+		/// </summary>
 		string NodeName { get; }
 
+		/// <summary>
+		/// Gets a reference to the parent <see cref="ISqlNode"/>, if any.
+		/// </summary>
 		ISqlNode Parent { get; }
 
+		/// <summary>
+		/// Gets a read-only enumeration of the children nodes, if any.
+		/// </summary>
 		IEnumerable<ISqlNode> ChildNodes { get; }
 			
+		/// <summary>
+		/// Gets an enumeration of the tokens composing the this node.
+		/// </summary>
+		/// <seealso cref="Token"/>
 		IEnumerable<Token> Tokens { get; }
 	}
 }

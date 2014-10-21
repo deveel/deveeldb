@@ -18,9 +18,22 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace Deveel.Data.Sql.Objects {
+	/// <summary>
+	/// Defines the required contract of a SQL <c>BINARY</c> object
+	/// </summary>
 	public interface ISqlBinary : ISqlObject, IEnumerable<byte> {
+		/// <summary>
+		/// Gets the raw length of the binary object.
+		/// </summary>
 		long Length { get; }
 
+		/// <summary>
+		/// Gets an object used to read the contents of the binary
+		/// </summary>
+		/// <returns>
+		/// Returns an instance of <see cref="Stream"/> that is a read-only
+		/// interface for accessing the contents handled by this binary.
+		/// </returns>
 		Stream GetInput();
 	}
 }

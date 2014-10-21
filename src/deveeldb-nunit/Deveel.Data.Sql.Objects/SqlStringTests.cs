@@ -16,6 +16,8 @@
 using System;
 using System.Text;
 
+using Deveel.Data.Deveel.Data.Sql.Objects;
+
 using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Objects {

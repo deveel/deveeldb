@@ -96,6 +96,7 @@
     <Compile Include="Deveel.Data.Sql.Objects\ISqlBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\ISqlObject.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\ISqlString.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\NumericState.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlBoolean.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlDateTime.cs" />
@@ -129,17 +130,7 @@
     <Compile Include="Deveel.Data\DataObject.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Deveel.Data\IGroupResolver.cs" />
-    <Compile Include="Deveel.Data\IVariableResolver.cs" />
-    <Compile Include="Deveel.Data\IBlobAccessor.cs" />
-    <Compile Include="Deveel.Data\IBlobRef.cs" />
-    <Compile Include="Deveel.Data\IClobRef.cs" />
-    <Compile Include="Deveel.Data\IRef.cs" />
-    <Compile Include="Deveel.Data\IStringAccessor.cs" />
-    <Compile Include="Deveel.Data\NumericState.cs" />
     <Compile Include="Deveel.Data\ObjectName.cs" />
-    <Compile Include="Deveel.Data\ParameterDirection.cs" />
-    <Compile Include="Deveel.Data\ReferenceType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

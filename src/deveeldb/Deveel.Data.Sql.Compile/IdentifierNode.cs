@@ -17,8 +17,18 @@ using System;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// This is a simple identifier within a SQL grammar.
+	/// </summary>
+	/// <remarks>
+	/// This is the simplest expression of an identifier that has
+	/// no child nor parent identifier (like <see cref="ObjectNameNode"/>).
+	/// </remarks>
 	[Serializable]
-	public sealed class IdentifierNode : SqlNode {		
+	public sealed class IdentifierNode : SqlNode {
+		/// <summary>
+		/// Gets the textual content of the identifier.
+		/// </summary>
 		public string Text { get; private set; }
 
 		protected override void OnNodeInit() {

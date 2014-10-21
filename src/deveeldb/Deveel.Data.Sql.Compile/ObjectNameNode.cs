@@ -16,8 +16,24 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Represents a composed name for an object within the system.
+	/// </summary>
+	/// <remarks>
+	/// This node acts as a reference to any object within a database
+	/// system, such as <c>TABLE</c>, <c>TRIGGER</c>, <c>COLUMN</c>, etc.
+	/// <para>
+	/// Like the system object <see cref="ObjectName"/> that this <see cref="ISqlNode"/>
+	/// encapsulates, the composition of the object is complex and can be formed by
+	/// multiple parts (eg. <c>schema.table.column</c>, <c>schema.table</c>, <c>table.*</c>).
+	/// </para>
+	/// </remarks>
 	[Serializable]
 	public sealed class ObjectNameNode : SqlNode {
+		/// <summary>
+		/// The full object name as composed from the input SQL string analyzed.
+		/// </summary>
+		/// <seealso cref="ObjectName"/>
 		public ObjectName Name { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {

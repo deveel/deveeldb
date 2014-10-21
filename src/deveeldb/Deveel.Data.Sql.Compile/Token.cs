@@ -16,6 +16,14 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// This is a single token within a string parsed.
+	/// </summary>
+	/// <remarks>
+	/// Tokens are the very basic elements of a string analysis and
+	/// handle the location within the string context, and the value 
+	/// they represent, which is a single word, character or number.
+	/// </remarks>
 	[Serializable]
 	public sealed class Token {
 		internal Token(int column, int line, string text) {
@@ -24,12 +32,23 @@ namespace Deveel.Data.Sql.Compile {
 			Column = column;
 		}
 
+		/// <summary>
+		/// Gets the column location within the <see cref="Line"/> 
+		/// of the token in the string context it belongs to.
+		/// </summary>
 		public int Column { get; private set; }
 
+		/// <summary>
+		/// Gets the line number of the token.
+		/// </summary>
 		public int Line { get; private set; }
 
+		/// <summary>
+		/// Gets the text that represents the token.
+		/// </summary>
 		public string Text { get; private set; }
 
+		/// <inheritdoc/>
 		public override string ToString() {
 			return Text;
 		}

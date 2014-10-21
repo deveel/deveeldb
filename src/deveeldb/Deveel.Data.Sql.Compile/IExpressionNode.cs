@@ -16,6 +16,10 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// This interface acts like a marker that indicates
+	/// if a <see cref="ISqlNode"/> represents a SQL expression.
+	/// </summary>
 	public interface IExpressionNode : ISqlNode {
 	}
 }
