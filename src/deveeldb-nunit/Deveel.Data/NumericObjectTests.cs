@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 using NUnit.Framework;
@@ -76,6 +77,51 @@ namespace Deveel.Data {
 
 			Assert.IsTrue(obj1.IsComparableTo(obj2));
 			Assert.AreEqual(-1, obj1.CompareTo(obj2));
+		}
+
+		[Test]
+		public void Integer_Convert_ToDouble() {
+			var obj = DataObject.Integer(33);
+			Assert.IsNotNull(obj);
+			Assert.IsInstanceOf<NumericType>(obj.Type);
+			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.SqlType);
+			Assert.AreEqual(33, obj);
+
+			DataObject result = null;
+			Assert.DoesNotThrow(() => result = obj.CastTo(PrimitiveTypes.Numeric(SqlTypeCode.Double)));
+			Assert.IsNotNull(result);
+			Assert.IsInstanceOf<NumericType>(result.Type);
+			Assert.AreEqual(SqlTypeCode.Double, result.Type.SqlType);
+		}
+
+		[Test]
+		public void Integer_Convert_ToVarChar() {
+			var obj = DataObject.Integer(33);
+			Assert.IsNotNull(obj);
+			Assert.IsInstanceOf<NumericType>(obj.Type);
+			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.SqlType);
+			Assert.AreEqual(33, obj);
+
+			DataObject result = null;
+			Assert.DoesNotThrow(() => result = obj.AsVarChar());
+			Assert.IsNotNull(result);
+			Assert.IsInstanceOf<StringType>(result.Type);
+			Assert.AreEqual("33", ((SqlString)result.Value).Value);
+		}
+
+		[Test]
+		public void Integer_Convert_ToBoolean() {
+			var obj = DataObject.Integer(1);
+			Assert.IsNotNull(obj);
+			Assert.IsInstanceOf<NumericType>(obj.Type);
+			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.SqlType);
+			Assert.AreEqual(1, obj);
+
+			DataObject result = null;
+			Assert.DoesNotThrow(() => result = obj.AsBoolean());
+			Assert.IsNotNull(result);
+			Assert.IsInstanceOf<BooleanType>(result.Type);
+			Assert.IsTrue((SqlBoolean)result.Value);
 		}
 	}
 }

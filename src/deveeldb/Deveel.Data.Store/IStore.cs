@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Deveel.Data.Store {
@@ -205,7 +206,7 @@ namespace Deveel.Data.Store {
 		/// method to do anything.
 		/// </para>
 		/// </remarks>
-		/// <exception cref="Deveel.Data.DbSystem.Threading.ThreadInterruptedException">
+		/// <exception cref="System.Threading.ThreadInterruptedException">
 		/// If check point interrupted (should only happen under exceptional circumstances).
 		/// </exception>
 		/// <exception cref="IOException">
@@ -243,6 +244,6 @@ namespace Deveel.Data.Store {
 		/// Returns an implementation of <see cref="IList"/> that contains all the pointers
 		/// (as <see cref="long"/>) to the areas from the lowest to the highest.
 		/// </returns>
-		IList GetAllAreas();
+		IEnumerable<long> GetAllAreas();
 	}
 }

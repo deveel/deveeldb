@@ -15,21 +15,20 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
-
-namespace Deveel.Data.Sql.Compile {
-	[Serializable]
-	public sealed class SqlParseException : ErrorException {
-		public SqlParseException() 
-			: this(null) {
-		}
-
-		public SqlParseException(string message) 
-			: this(CompileErrorCodes.SyntaxError, message) {
-		}
-
-		public SqlParseException(int errorCode, string message) 
-			: base(EventClasses.Compiler, errorCode, message) {
-		}
+namespace Deveel.Data.Store {
+	/// <summary>
+	/// A factory that creates instances of <see cref="IStoreData"/>
+	/// that are used to access store data blocks.
+	/// </summary>
+	public interface IStoreDataFactory {
+		/// <summary>
+		/// Creates a new block of data identified by the given name.
+		/// </summary>
+		/// <param name="name">The name that identifies the data block handler.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="IStoreData"/> that is compatible
+		/// with this factory.
+		/// </returns>
+		IStoreData CreateData(string name);
 	}
 }

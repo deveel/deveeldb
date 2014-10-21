@@ -318,6 +318,13 @@ namespace Deveel.Data.Sql.Objects {
 			if (conversionType == typeof (string))
 				return ToString();
 
+			if (conversionType == typeof (SqlBoolean))
+				return new SqlBoolean(ToBoolean());
+			if (conversionType == typeof (SqlBinary))
+				return new SqlBinary(ToByteArray());
+			if (conversionType == typeof (SqlString))
+				return new SqlString(ToString());
+
 			throw new InvalidCastException(System.String.Format("Cannot convert NUMERIC to {0}", conversionType));
 		}
 

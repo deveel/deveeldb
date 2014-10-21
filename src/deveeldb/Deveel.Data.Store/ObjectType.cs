@@ -15,21 +15,27 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
+namespace Deveel.Data.Store {
+	/// <summary>
+	/// The type of object reference that is possible
+	/// to establish in a store.
+	/// </summary>
+	/// <seealso cref="IObjectRef.Type"/>
+	/// <seealso cref="IObjectStore.GetObject"/>
+	public enum ObjectType : byte {
+		/// <summary>
+		/// The object is a raw binary
+		/// </summary>
+		Binary = 1,
 
-namespace Deveel.Data.Sql.Compile {
-	[Serializable]
-	public sealed class SqlParseException : ErrorException {
-		public SqlParseException() 
-			: this(null) {
-		}
+		/// <summary>
+		/// The object is an ASCII 1-byte string type.
+		/// </summary>
+		AsciiString = 2,
 
-		public SqlParseException(string message) 
-			: this(CompileErrorCodes.SyntaxError, message) {
-		}
-
-		public SqlParseException(int errorCode, string message) 
-			: base(EventClasses.Compiler, errorCode, message) {
-		}
+		/// <summary>
+		/// The object is an UNICODE 2-byte string type.
+		/// </summary>
+		UnicodeString = 3
 	}
 }

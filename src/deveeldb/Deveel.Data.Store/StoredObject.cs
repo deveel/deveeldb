@@ -15,21 +15,35 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
-
-namespace Deveel.Data.Sql.Compile {
-	[Serializable]
-	public sealed class SqlParseException : ErrorException {
-		public SqlParseException() 
-			: this(null) {
+namespace Deveel.Data.Store {
+	public sealed class StoredObject {
+		public StoredObject(DataObject data) {
+			Data = data;
 		}
 
-		public SqlParseException(string message) 
-			: this(CompileErrorCodes.SyntaxError, message) {
+		public DataObject Data { get; private set; }
+
+		public bool IsObjectRef {
+			get { return Data.Value is IObjectRef; }
 		}
 
-		public SqlParseException(int errorCode, string message) 
-			: base(EventClasses.Compiler, errorCode, message) {
+		public ObjectId ObjectId {
+			get {
+				if (!IsObjectRef)
+					throw new InvalidOperationException();
+
+				return ((IObjectRef) Data.Value).Id;
+			}
+		}
+
+		public int Sizeof() {
+			var obj = Data.Value;
+			throw new NotImplementedException();
+		}
+
+		public byte[] ToByteArray() {
+			var obj = Data.Value;
+			throw new NotImplementedException();
 		}
 	}
 }

@@ -55,8 +55,19 @@ namespace Deveel.Data.Types {
 				throw new ArgumentException(String.Format("The type {0} is not a valid STRING type.", sqlType), "sqlType");
 		}
 
+		/// <summary>
+		/// Gets the maximum number of characters that strings
+		/// handled by this type can handle.
+		/// </summary>
 		public int MaxSize { get; private set; }
 
+		/// <summary>
+		/// Gets the locale used to compare string values.
+		/// </summary>
+		/// <remarks>
+		/// When this value is not specified, the schema or database locale
+		/// is used to compare string values.
+		/// </remarks>
 		public CultureInfo Locale { get; private set; }
 
 		private CompareInfo Collator {
@@ -82,6 +93,7 @@ namespace Deveel.Data.Types {
 			}
 		}
 
+		/// <inheritdoc/>
 		public override string ToString() {
 			var sb = new StringBuilder(Name);
 			if (MaxSize >= 0)
@@ -90,6 +102,7 @@ namespace Deveel.Data.Types {
 			return sb.ToString();
 		}
 
+		/// <inheritdoc/>
 		public override bool Equals(DataType other) {
 			if (!base.Equals(other))
 				return false;
@@ -111,8 +124,9 @@ namespace Deveel.Data.Types {
 			return true;
 		}
 
+		/// <inheritdoc/>
 		public override int GetHashCode() {
-			return base.GetHashCode();
+			return SqlType.GetHashCode() ^ MaxSize.GetHashCode();
 		}
 
 		/// <inheritdoc/>
@@ -214,7 +228,15 @@ namespace Deveel.Data.Types {
 				String.Join(", ", formats));
 		}
 
+		/// <inheritdoc/>
+		public override bool CanCastTo(DataType type) {
+			return type.SqlType != SqlTypeCode.Array &&
+			       type.SqlType != SqlTypeCode.ColumnType &&
+			       type.SqlType != SqlTypeCode.RowType &&
+			       type.SqlType != SqlTypeCode.Object;
+		}
 
+		/// <inheritdoc/>
 		public override DataObject CastTo(DataObject value, DataType destType) {
 			string str = value.Value.ToString();
 			var sqlType = destType.SqlType;

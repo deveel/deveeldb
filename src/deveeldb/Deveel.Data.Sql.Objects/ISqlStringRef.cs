@@ -15,21 +15,13 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
+using Deveel.Data.Store;
 
-namespace Deveel.Data.Sql.Compile {
-	[Serializable]
-	public sealed class SqlParseException : ErrorException {
-		public SqlParseException() 
-			: this(null) {
-		}
-
-		public SqlParseException(string message) 
-			: this(CompileErrorCodes.SyntaxError, message) {
-		}
-
-		public SqlParseException(int errorCode, string message) 
-			: base(EventClasses.Compiler, errorCode, message) {
-		}
+namespace Deveel.Data.Sql.Objects {
+	/// <summary>
+	/// Represents a SQL string that is stored into the system.
+	/// </summary>
+	public interface ISqlStringRef : IObjectRef, ISqlString {
+		
 	}
 }

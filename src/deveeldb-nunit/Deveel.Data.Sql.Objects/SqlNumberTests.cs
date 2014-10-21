@@ -48,12 +48,32 @@ namespace Deveel.Data.Sql.Objects {
 
 		[Test]
 		public void Create_FromDouble() {
-			
+			var value = new SqlNumber(459935.9803d);
+			Assert.IsFalse(value.IsNull);
+			Assert.IsFalse(value.CanBeInt32);
+			Assert.IsFalse(value.CanBeInt64);
+			Assert.AreEqual(34, value.Scale);
+			Assert.AreEqual(40, value.Precision);
+			Assert.AreEqual(NumericState.None, value.State);
+			Assert.AreEqual(1, value.Sign);
 		}
 
 		[Test]
 		public void Parse_BigDecimal() {
-			
+			var value = new SqlNumber();
+			Assert.DoesNotThrow(() => value = SqlNumber.Parse("98356278.911288837773848500069994933229238e45789"));
+			Assert.IsFalse(value.IsNull);
+			Assert.IsFalse(value.CanBeInt32);
+			Assert.IsFalse(value.CanBeInt64);
+			Assert.Greater(value.Precision, 40);
+		}
+
+		[Test]
+		public void Convert_ToBoolean_Success() {
+			var value = SqlNumber.One;
+			var b = new SqlBoolean();
+			Assert.DoesNotThrow(() => b = (SqlBoolean)Convert.ChangeType(value, typeof(SqlBoolean)));
+			Assert.IsTrue(b);
 		}
 	}
 }

@@ -16,34 +16,36 @@
 using System;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Diagnostics;
+
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// Exception thrown where various problems occur within the database.
 	/// </summary>
 	[Serializable]
-	public class DatabaseException : ApplicationException {
+	public class DatabaseSystemException : ErrorException {
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="message"></param>
 		/// <param name="errorCode"></param>
-		public DatabaseException(string message, int errorCode)
-			: base(message) {
-			ErrorCode = errorCode;
+		public DatabaseSystemException(int errorCode)
+			: this(errorCode, null) {
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
-		public DatabaseException()
-			: this(null) {
+		/// <param name="errorCode"></param>
+		/// <param name="message"></param>
+		public DatabaseSystemException(int errorCode, string message)
+			: this(errorCode, message, null) {
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="message"></param>
-		public DatabaseException(string message)
+		public DatabaseSystemException(string message)
 			: this(message, null) {
 		}
 
@@ -52,24 +54,18 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		/// <param name="message"></param>
 		/// <param name="innerException"></param>
-		public DatabaseException(string message, Exception innerException)
-			: base(message, innerException) {
-			ErrorCode = -1;
-		}
-
-		protected DatabaseException(SerializationInfo info, StreamingContext context)
-			: base(info, context) {
-			ErrorCode = info.GetInt32("ErrorCode");
+		public DatabaseSystemException(string message, Exception innerException)
+			: this(SystemErrorCodes.Unknown, message, innerException) {
 		}
 
 		/// <summary>
-		/// Returns the error code, or -1 if no error code was given.
+		/// 
 		/// </summary>
-		public int ErrorCode { get; private set; }
-
-		public override void GetObjectData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("ErrorCode", ErrorCode);
-			base.GetObjectData(info, context);
+		/// <param name="errorCode"></param>
+		/// <param name="message"></param>
+		/// <param name="innerException"></param>
+		public DatabaseSystemException(int errorCode, string message, Exception innerException)
+			: base(EventClasses.System, errorCode, message, innerException) {
 		}
 	}
 }

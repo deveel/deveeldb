@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Security.Cryptography;
 
 using Deveel.Data.Sql.Objects;
 
@@ -51,6 +52,42 @@ namespace Deveel.Data.Types {
 
 		public override bool IsComparable(DataType type) {
 			return type is BooleanType || type is NumericType;
+		}
+
+		public override bool CanCastTo(DataType type) {
+			return type is StringType ||
+			       type is NumericType ||
+			       type is BinaryType ||
+				   type is BooleanType;
+		}
+
+		public override DataObject CastTo(DataObject value, DataType destType) {
+			var bValue = ((SqlBoolean) value.Value);
+			if (destType is StringType) {
+				var s = Convert.ToString(bValue);
+				// TODO: Provide a method in StringType to build a string specific to the type
+				return new DataObject(destType, new SqlString(s));
+			}
+			if (destType is NumericType) {
+				SqlNumber num;
+				if (bValue == SqlBoolean.Null) {
+					num = SqlNumber.Null;
+				} else if (bValue) {
+					num = SqlNumber.One;
+				} else {
+					num = SqlNumber.Zero;
+				}
+
+				return new DataObject(destType, num);
+			}
+			if (destType is BinaryType) {
+				var bytes = (byte[]) Convert.ChangeType(bValue, typeof (byte[]));
+				return new DataObject(destType, new SqlBinary(bytes));
+			}
+			if (destType is BooleanType)
+				return value;
+
+			return base.CastTo(value, destType);
 		}
 	}
 }

@@ -66,8 +66,14 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Deveel.Data.DbSystem\DatabaseException.cs" />
+    <Compile Include="Deveel.Data.DbSystem\DatabaseSystemException.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SystemErrorCodes.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventClasses.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventType.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\IDatabaseEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CaseSwitchNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CompileErrorCodes.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DataTypeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\IdentifierNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\IExpressionNode.cs" />
@@ -93,10 +99,19 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlNodeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\Token.cs" />
+    <Compile Include="Deveel.Data.Store\DataStorageException.cs" />
+    <Compile Include="Deveel.Data.Store\FileStoreData.cs" />
+    <Compile Include="Deveel.Data.Store\InvalidObjectIdException.cs" />
+    <Compile Include="Deveel.Data.Store\IObjectRef.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\ISqlBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\ISqlObject.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\ISqlString.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\ISqlStringRef.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\NumericState.cs" />
+    <Compile Include="Deveel.Data.Store\IObjectStore.cs" />
+    <Compile Include="Deveel.Data.Store\IStoreData.cs" />
+    <Compile Include="Deveel.Data.Store\IStoreDataFactory.cs" />
+    <Compile Include="Deveel.Data.Store\ObjectId.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlBoolean.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlDateTime.cs" />
@@ -109,6 +124,13 @@
     <Compile Include="Deveel.Data.Store\IAreaWriter.cs" />
     <Compile Include="Deveel.Data.Store\IMutableArea.cs" />
     <Compile Include="Deveel.Data.Store\IStore.cs" />
+    <Compile Include="Deveel.Data.Store\ObjectStream.cs" />
+    <Compile Include="Deveel.Data.Store\ObjectType.cs" />
+    <Compile Include="Deveel.Data.Store\RecordType.cs" />
+    <Compile Include="Deveel.Data.Store\ScatteringFileStoreData.cs" />
+    <Compile Include="Deveel.Data.Store\StorageErrorCodes.cs" />
+    <Compile Include="Deveel.Data.Store\StoredObject.cs" />
+    <Compile Include="Deveel.Data.Store\StoredRecord.cs" />
     <Compile Include="Deveel.Data.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Types\BooleanType.cs" />
     <Compile Include="Deveel.Data.Types\ColumnType.cs" />
@@ -129,6 +151,7 @@
     <Compile Include="Deveel.Data\DataObject.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data\ErrorException.cs" />
     <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

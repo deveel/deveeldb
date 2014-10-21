@@ -15,21 +15,18 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
-
-namespace Deveel.Data.Sql.Compile {
+namespace Deveel.Data.Store {
 	[Serializable]
-	public sealed class SqlParseException : ErrorException {
-		public SqlParseException() 
-			: this(null) {
+	public sealed class InvalidObjectIdException : DataStorageException {
+		public InvalidObjectIdException(ObjectId id)
+			: this(id, String.Format("The given object reference {0} is invalid.", id)) {
 		}
 
-		public SqlParseException(string message) 
-			: this(CompileErrorCodes.SyntaxError, message) {
+		public InvalidObjectIdException(ObjectId id, string message)
+			: base(StorageErrorCodes.InvalidObjectId, message) {
+			ObjectId = id;
 		}
 
-		public SqlParseException(int errorCode, string message) 
-			: base(EventClasses.Compiler, errorCode, message) {
-		}
+		public ObjectId ObjectId { get; private set; }
 	}
 }

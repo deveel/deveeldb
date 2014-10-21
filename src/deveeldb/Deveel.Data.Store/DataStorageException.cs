@@ -15,21 +15,34 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Diagnostics;
 
-namespace Deveel.Data.Sql.Compile {
+namespace Deveel.Data.Store {
 	[Serializable]
-	public sealed class SqlParseException : ErrorException {
-		public SqlParseException() 
+	public class DataStorageException : ErrorException {
+		public DataStorageException(int errorCode) 
+			: this(errorCode, null) {
+		}
+
+		public DataStorageException(int errorCode, string message) 
+			: this(errorCode, message, null) {
+		}
+
+		public DataStorageException() 
 			: this(null) {
 		}
 
-		public SqlParseException(string message) 
-			: this(CompileErrorCodes.SyntaxError, message) {
+		public DataStorageException(string message) 
+			: this(message, null) {
 		}
 
-		public SqlParseException(int errorCode, string message) 
-			: base(EventClasses.Compiler, errorCode, message) {
+		public DataStorageException(string message, Exception innerException) 
+			: this(StorageErrorCodes.Unknown, message, innerException) {
+		}
+
+		public DataStorageException(int errorCode, string message, Exception innerException) 
+			: base(EventClasses.Storage, errorCode, message, innerException) {
 		}
 	}
 }

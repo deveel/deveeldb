@@ -157,6 +157,13 @@ namespace Deveel.Data.Types {
 			return new SqlDateTime(time);
 		}
 
+		public override bool CanCastTo(DataType type) {
+			return type.SqlType != SqlTypeCode.Array &&
+			       type.SqlType != SqlTypeCode.ColumnType &&
+			       type.SqlType != SqlTypeCode.RowType &&
+			       type.SqlType != SqlTypeCode.Object;
+		}
+
 		public override DataObject CastTo(DataObject value, DataType destType) {
 			var n = (SqlNumber) value.Value;
 			var sqlType = destType.SqlType;

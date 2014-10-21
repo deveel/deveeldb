@@ -15,21 +15,8 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
-
-namespace Deveel.Data.Sql.Compile {
-	[Serializable]
-	public sealed class SqlParseException : ErrorException {
-		public SqlParseException() 
-			: this(null) {
-		}
-
-		public SqlParseException(string message) 
-			: this(CompileErrorCodes.SyntaxError, message) {
-		}
-
-		public SqlParseException(int errorCode, string message) 
-			: base(EventClasses.Compiler, errorCode, message) {
-		}
+namespace Deveel.Data.DbSystem {
+	public static class SystemErrorCodes {
+		public const int Unknown = 0x001100;
 	}
 }

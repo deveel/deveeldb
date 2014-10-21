@@ -15,21 +15,14 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
-
-namespace Deveel.Data.Sql.Compile {
-	[Serializable]
-	public sealed class SqlParseException : ErrorException {
-		public SqlParseException() 
-			: this(null) {
-		}
-
-		public SqlParseException(string message) 
-			: this(CompileErrorCodes.SyntaxError, message) {
-		}
-
-		public SqlParseException(int errorCode, string message) 
-			: base(EventClasses.Compiler, errorCode, message) {
-		}
+namespace Deveel.Data.Diagnostics {
+	/// <summary>
+	/// Provides a finite set of classes for events.
+	/// </summary>
+	public static class EventClasses {
+		public const int System = 0x000120;
+		public const int Compiler = 0x003033;
+		public const int Storage = 0x000670;
+		public const int Runtime = 0x008880;
 	}
 }
