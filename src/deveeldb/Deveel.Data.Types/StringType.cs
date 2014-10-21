@@ -115,6 +115,7 @@ namespace Deveel.Data.Types {
 			return base.GetHashCode();
 		}
 
+		/// <inheritdoc/>
 		public override bool IsComparable(DataType type) {
 			// Are we comparing with another string type?
 			if (type is StringType) {
@@ -134,10 +135,33 @@ namespace Deveel.Data.Types {
 			return false;
 		}
 
+		#region Operators
+
+		/// <inheritdoc/>
+		public override ISqlObject Add(ISqlObject a, ISqlObject b) {
+			if (!(a is ISqlString))
+				throw new ArgumentException();
+
+			if (!(b is ISqlString)) {
+				//TODO: convert to a ISqlString
+				throw new NotSupportedException();
+			}
+
+			if (a is SqlString) {
+				var x = (SqlString) a;
+				var y = (ISqlString) b;
+				return x.Concat(y);
+			}
+
+			return base.Add(a, b);
+		}
+
+		#endregion
+
 		private static SqlNumber ToNumber(String str) {
 			SqlNumber value;
 			if (!SqlNumber.TryParse(str, out value))
-				value = SqlNumber.Zero;
+				value = SqlNumber.Null;
 
 			return value;
 		}
@@ -203,19 +227,38 @@ namespace Deveel.Data.Types {
 					                        String.Compare(str, "1", StringComparison.OrdinalIgnoreCase) == 0);
 					break;
 				case (SqlTypeCode.TinyInt):
-				// fall through
 				case (SqlTypeCode.SmallInt):
-				// fall through
-				case (SqlTypeCode.Integer):
-					castedValue = new SqlNumber(ToNumber(str).ToInt32());
+				case (SqlTypeCode.Integer): {
+					var num = ToNumber(str);
+					if (num.IsNull) {
+						castedValue = num;
+					} else {
+						castedValue = new SqlNumber(num.ToInt32());
+					}
+
 					break;
-				case (SqlTypeCode.BigInt):
-					castedValue = new SqlNumber(ToNumber(str).ToInt64());
+				}
+				case (SqlTypeCode.BigInt): {
+					var num = ToNumber(str);
+					if (num.IsNull) {
+						castedValue = num;
+					} else {
+						castedValue = new SqlNumber(num.ToInt64());
+					}
+
 					break;
+				}
 				case (SqlTypeCode.Float):
-				case (SqlTypeCode.Double):
-					castedValue = new SqlNumber(ToNumber(str).ToDouble());
+				case (SqlTypeCode.Double): {
+					var num = ToNumber(str);
+					if (num.IsNull) {
+						castedValue = num;
+					} else {
+						castedValue = new SqlNumber(num.ToDouble());
+					}
+
 					break;
+				}
 				case (SqlTypeCode.Real):
 				case (SqlTypeCode.Numeric):
 				case (SqlTypeCode.Decimal):

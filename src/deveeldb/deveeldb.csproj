@@ -109,7 +109,6 @@
     <Compile Include="Deveel.Data.Store\IAreaWriter.cs" />
     <Compile Include="Deveel.Data.Store\IMutableArea.cs" />
     <Compile Include="Deveel.Data.Store\IStore.cs" />
-    <Compile Include="Deveel.Data.Types\ArrayType.cs" />
     <Compile Include="Deveel.Data.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Types\BooleanType.cs" />
     <Compile Include="Deveel.Data.Types\ColumnType.cs" />

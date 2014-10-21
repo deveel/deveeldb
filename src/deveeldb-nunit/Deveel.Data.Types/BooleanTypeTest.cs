@@ -56,7 +56,7 @@ namespace Deveel.Data.Types {
 
 			int result = -2;
 			Assert.DoesNotThrow(() => result = type.Compare(SqlBoolean.True, new SqlNumber(22)));
-			Assert.AreEqual(-1, result);
+			Assert.AreEqual(1, result);
 		}
 	}
 }

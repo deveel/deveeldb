@@ -336,19 +336,26 @@ namespace Deveel.Data {
 			if (!Type.CanCastTo(destType))
 				throw new InvalidCastException();
 
+			if (Type.Equals(destType))
+				return this;
+
 			return Type.CastTo(this, destType);
 		}
 
-		public DataObject ToBoolean() {
+		public DataObject AsBoolean() {
 			return CastTo(PrimitiveTypes.Boolean());
 		}
 
-		public DataObject ToInteger() {
+		public DataObject AsInteger() {
 			return CastTo(PrimitiveTypes.Numeric(SqlTypeCode.Integer));
 		}
 
-		public DataObject ToBigInt() {
+		public DataObject AsBigInt() {
 			return CastTo(PrimitiveTypes.Numeric(SqlTypeCode.BigInt));
+		}
+
+		public DataObject AsVarChar() {
+			return CastTo(PrimitiveTypes.String(SqlTypeCode.VarChar));
 		}
 
 		#endregion
@@ -509,21 +516,28 @@ namespace Deveel.Data {
 			if (Equals(value, null) || value.IsNull)
 				throw new NullReferenceException();
 
-			return (SqlBoolean) value.ToBoolean().Value;
+			return (SqlBoolean) value.AsBoolean().Value;
 		}
 
 		public static implicit operator int(DataObject value) {
 			if (Equals(value, null) || value.IsNull)
 				throw new NullReferenceException();
 
-			return ((SqlNumber)value.ToInteger().Value).ToInt32();
+			return ((SqlNumber)value.AsInteger().Value).ToInt32();
 		}
 
 		public static implicit operator long(DataObject value) {
 			if (Equals(value, null) || value.IsNull)
 				throw new NullReferenceException();
 
-			return ((SqlNumber) value.ToBigInt().Value).ToInt64();
+			return ((SqlNumber) value.AsBigInt().Value).ToInt64();
+		}
+
+		public static implicit operator string(DataObject value) {
+			if (Equals(value, null) || value.IsNull)
+				return null;
+
+			return ((SqlString) value.AsVarChar().Value).Value;
 		}
 
 		#endregion

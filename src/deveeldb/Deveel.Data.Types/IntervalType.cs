@@ -36,6 +36,7 @@ namespace Deveel.Data.Types {
 			return "INTERVAL";
 		}
 
+		/// <inheritdoc/>
 		public override bool IsComparable(DataType type) {
 			if (!(type is IntervalType))
 				return false;

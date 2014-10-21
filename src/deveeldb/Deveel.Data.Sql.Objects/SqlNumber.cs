@@ -15,7 +15,6 @@
 
 using System;
 
-using Deveel.Data.Deveel.Data.Sql.Objects;
 using Deveel.Math;
 
 namespace Deveel.Data.Sql.Objects {

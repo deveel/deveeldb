@@ -16,9 +16,7 @@
 using System;
 using System.Text;
 
-using Deveel.Data.Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Objects;
-using Deveel.Math;
 
 namespace Deveel.Data.Types {
 	[Serializable]
