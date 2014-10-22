@@ -47,13 +47,13 @@ namespace Deveel.Data.Store {
 		/// will be compressed. Compression reduces the amount of size occupied
 		/// by the object, but it will also affect performances when writing and reading.</param>
 		/// <returns>
-		/// Returns an instance of <see cref="IObjectRef"/> that is used to access the
+		/// Returns an instance of <see cref="ILargeObject"/> that is used to access the
 		/// object stored.
 		/// </returns>
 		/// <exception cref="DataStorageException">
 		/// If an error occurred when creating the object.
 		/// </exception>
-		IObjectRef CreateNewObject(ObjectType type, long maxSize, bool compressed);
+		ILargeObject CreateNewObject(long maxSize, bool compressed);
 
 		/// <summary>
 		/// Gets an object that was previously created for the given 
@@ -61,14 +61,14 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		/// <param name="id">The unique identifier of the object to return.</param>
 		/// <returns>
-		/// Returns an instance of <see cref="IObjectRef"/> that references an
+		/// Returns an instance of <see cref="ILargeObject"/> that references an
 		/// object that was previously created by <see cref="CreateNewObject"/>.
 		/// </returns>
 		/// <exception cref="InvalidObjectIdException">
 		/// If the given <paramref name="id"/> is outside the range of the store.
 		/// </exception>
 		/// <seealso cref="CreateNewObject"/>
-		IObjectRef GetObject(ObjectId id);
+		ILargeObject GetObject(ObjectId id);
 
 		/// <summary>
 		/// Marks the object identified as static within the the store.

@@ -31,16 +31,11 @@ namespace Deveel.Data.Store {
 	/// value that is obtaining when establishing the object in a store.
 	/// </para>
 	/// </remarks>
-	public interface IObjectRef : IDisposable {
+	public interface ILargeObject : IDisposable {
 		/// <summary>
 		/// Gets the unique identifier of the object within the system.
 		/// </summary>
 		ObjectId Id { get; }
-
-		/// <summary>
-		/// Gets the type of object referenced.
-		/// </summary>
-		ObjectType Type { get; }
 
 		/// <summary>
 		/// Gets the raw byte size of the object.

@@ -14,35 +14,41 @@
 //    limitations under the License.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 
-namespace Deveel.Data.Store {
-	public sealed class StoredObject {
-		public StoredObject(DataObject data) {
-			Data = data;
-		}
-
-		public DataObject Data { get; private set; }
-
-		public bool IsObjectRef {
-			get { return Data.Value is ILargeObject; }
-		}
-
-		public ObjectId ObjectId {
-			get {
-				if (!IsObjectRef)
-					throw new InvalidOperationException();
-
-				return ((ILargeObject) Data.Value).Id;
-			}
-		}
-
-		public int Sizeof() {
-			var obj = Data.Value;
+namespace Deveel.Data.Sql.Objects {
+	public sealed class SqlLongBinary : ISqlBinary, IDisposable {
+		public int CompareTo(object obj) {
 			throw new NotImplementedException();
 		}
 
-		public byte[] ToByteArray() {
-			var obj = Data.Value;
+		public int CompareTo(ISqlObject other) {
+			throw new NotImplementedException();
+		}
+
+		public bool IsNull { get; private set; }
+
+		public bool IsComparableTo(ISqlObject other) {
+			throw new NotImplementedException();
+		}
+
+		public IEnumerator<byte> GetEnumerator() {
+			throw new NotImplementedException();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
+		}
+
+		public long Length { get; private set; }
+
+		public Stream GetInput() {
+			throw new NotImplementedException();
+		}
+
+		public void Dispose() {
 			throw new NotImplementedException();
 		}
 	}

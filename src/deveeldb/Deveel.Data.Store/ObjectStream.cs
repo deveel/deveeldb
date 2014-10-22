@@ -18,14 +18,14 @@ using System.IO;
 
 namespace Deveel.Data.Store {
 	public sealed class ObjectStream : Stream {
-		private readonly IObjectRef objectRef;
+		private readonly ILargeObject largeObject;
 		private long position;
 
-		public ObjectStream(IObjectRef objectRef) {
-			if (objectRef == null)
-				throw new ArgumentNullException("objectRef");
+		public ObjectStream(ILargeObject largeObject) {
+			if (largeObject == null)
+				throw new ArgumentNullException("largeObject");
 
-			this.objectRef = objectRef;
+			this.largeObject = largeObject;
 		}
 
 		public override void Flush() {
@@ -41,16 +41,16 @@ namespace Deveel.Data.Store {
 
 		public override int Read(byte[] buffer, int offset, int count) {
 			// TODO: intermediate buffer ...
-			return objectRef.Read(position, buffer, count);
+			return largeObject.Read(position, buffer, count);
 		}
 
 		public override void Write(byte[] buffer, int offset, int count) {
 			// TODO: Intermediate buffer ...
-			objectRef.Write(position, buffer, count);
+			largeObject.Write(position, buffer, count);
 		}
 
 		public override bool CanRead {
-			get { return objectRef.IsComplete; }
+			get { return largeObject.IsComplete; }
 		}
 
 		public override bool CanSeek {
@@ -58,11 +58,11 @@ namespace Deveel.Data.Store {
 		}
 
 		public override bool CanWrite {
-			get { return !objectRef.IsComplete; }
+			get { return !largeObject.IsComplete; }
 		}
 
 		public override long Length {
-			get { return objectRef.RawSize; }
+			get { return largeObject.RawSize; }
 		}
 
 		public override long Position {
