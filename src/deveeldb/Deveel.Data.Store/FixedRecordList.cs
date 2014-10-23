@@ -24,18 +24,18 @@ namespace Deveel.Data.Store {
 		private readonly int elementSize;
 
 		private long headerAreaId;
-		private IMutableArea headerArea;
+		private IArea headerArea;
 		private int blockCount;
 
 		// Pointers to the blocks in the list block.
 		private readonly long[] blockElements;
-		private readonly IMutableArea[] blockAreas;
+		private readonly IArea[] blockAreas;
 
 		public FixedRecordList(IStore store, int elementSize) {
 			this.store = store;
 			this.elementSize = elementSize;
 			blockElements = new long[64];
-			blockAreas = new IMutableArea[64];
+			blockAreas = new IArea[64];
 		}
 
 		public int BlockCount {
@@ -53,17 +53,17 @@ namespace Deveel.Data.Store {
 			for (int i = 0; i < blockCount; ++i) {
 				headerArea.WriteInt8(blockElements[i]);
 			}
-			headerArea.CheckOut();
+			headerArea.Flush();
 		}
 
 		public long Create() {
 			// Allocate space for the list header (8 + 8 + (64 * 8))
-			IAreaWriter writer = store.CreateArea(528);
+			IArea writer = store.CreateArea(528);
 			headerAreaId = writer.Id;
 			writer.WriteInt4(Magic);
-			writer.Finish();
+			writer.Flush();
 
-			headerArea = store.GetMutableArea(headerAreaId);
+			headerArea = store.GetArea(headerAreaId);
 			blockCount = 0;
 			UpdateListHeaderArea();
 
@@ -72,7 +72,7 @@ namespace Deveel.Data.Store {
 
 		public void Open(long listPointer) {
 			headerAreaId = listPointer;
-			headerArea = store.GetMutableArea(headerAreaId);
+			headerArea = store.GetArea(headerAreaId);
 
 			int magic = headerArea.ReadInt4(); // MAGIC
 			if (magic != Magic)
@@ -83,7 +83,7 @@ namespace Deveel.Data.Store {
 			for (int i = 0; i < blockCount; ++i) {
 				long blockPointer = headerArea.ReadInt8();
 				blockElements[i] = blockPointer;
-				blockAreas[i] = store.GetMutableArea(blockPointer);
+				blockAreas[i] = store.GetArea(blockPointer);
 			}
 		}
 
@@ -95,10 +95,10 @@ namespace Deveel.Data.Store {
 		public void WriteDeleteHead(long value) {
 			headerArea.Position = 8;
 			headerArea.WriteInt8(value);
-			headerArea.CheckOut();
+			headerArea.Flush();
 		}
 
-		public IMutableArea GetRecord(long recordNumber) {
+		public IArea GetRecord(long recordNumber) {
 			// What block is this record in?
 			int bit = 0;
 			long work = recordNumber + 32;
@@ -112,7 +112,7 @@ namespace Deveel.Data.Store {
 			long recordOffset = recordNumber - startOffset;
 
 			// Get the pointer to the block that contains this record status
-			IMutableArea blockArea = blockAreas[blockOffset];
+			IArea blockArea = blockAreas[blockOffset];
 			blockArea.Position = (int) (recordOffset*elementSize);
 			return blockArea;
 		}
@@ -140,11 +140,11 @@ namespace Deveel.Data.Store {
 			long sizeOfBlock = 32L << blockCount;
 
 			// Allocate the new block in the store
-			IAreaWriter writer = store.CreateArea(sizeOfBlock * elementSize);
+			IArea writer = store.CreateArea(sizeOfBlock * elementSize);
 			long blockId = writer.Id;
-			writer.Finish();
+			writer.Flush();
 
-			IMutableArea blockArea = store.GetMutableArea(blockId);
+			IArea blockArea = store.GetArea(blockId);
 			// Update the block list
 			blockElements[blockCount] = blockId;
 			blockAreas[blockCount] = blockArea;

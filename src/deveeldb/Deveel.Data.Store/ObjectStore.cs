@@ -54,7 +54,7 @@ namespace Deveel.Data.Store {
 					long sizeOfBlock = fixedList.BlockNodeCount(newBlockNumber);
 
 					// The IArea object for the new position
-					IMutableArea a = fixedList.GetRecord(startIndex);
+					IArea a = fixedList.GetRecord(startIndex);
 
 					a.WriteInt4(0);
 					a.WriteInt4(0);
@@ -73,7 +73,7 @@ namespace Deveel.Data.Store {
 					a.WriteInt8(-1);
 					a.WriteInt8(-1);
 					// Check out the changes.
-					a.CheckOut();
+					a.Flush();
 
 					// And set the new delete chain
 					firstDeleteChainRecord = startIndex + 1;
@@ -86,7 +86,7 @@ namespace Deveel.Data.Store {
 
 				// Pull free block from the delete chain and recycle it.
 				long recycledRecord = firstDeleteChainRecord;
-				IMutableArea block = fixedList.GetRecord(recycledRecord);
+				IArea block = fixedList.GetRecord(recycledRecord);
 				int recordPos = block.Position;
 				// Status of the recycled block
 				int status = block.ReadInt4();
@@ -112,7 +112,7 @@ namespace Deveel.Data.Store {
 				block.WriteInt8(recordOffset);
 
 				// Check out the changes
-				block.CheckOut();
+				block.Flush();
 
 				return recycledRecord;
 			}
@@ -131,13 +131,13 @@ namespace Deveel.Data.Store {
 
 			// Allocate a small header that contains the MAGIC, and the pointer to the
 			// fixed list structure.
-			IAreaWriter blobStoreHeader = store.CreateArea(32);
+			IArea blobStoreHeader = store.CreateArea(32);
 			long blobStoreId = blobStoreHeader.Id;
 
 			blobStoreHeader.WriteInt4(Magic);	// Magic
 			blobStoreHeader.WriteInt4(1);		// The data version
 			blobStoreHeader.WriteInt8(fixedListOffset);
-			blobStoreHeader.Finish();
+			blobStoreHeader.Flush();
 
 			// Return the pointer to the blob store header
 			return blobStoreId;
@@ -177,7 +177,7 @@ namespace Deveel.Data.Store {
 
 				// Allocate the area (plus header area) for storing the blob pages
 				long pageCount = ((maxSize - 1) / (PageSize * 1024)) + 1;
-				IAreaWriter objArea = store.CreateArea((pageCount * 8) + 24);
+				IArea objArea = store.CreateArea((pageCount * 8) + 24);
 				long objAreaId = objArea.Id;
 
 				var type = 2;			// Binary Type
@@ -196,7 +196,7 @@ namespace Deveel.Data.Store {
 				}
 
 				// And finish
-				objArea.Finish();
+				objArea.Flush();
 
 				// Update the fixed_list and return the record number for this blob
 				long refId = AddToRecordList(objAreaId);
@@ -242,14 +242,144 @@ namespace Deveel.Data.Store {
 			public void Complete() {
 				store.CompleteObject(this);
 			}
+
+			public void Establish() {
+				store.EstablishReference(Id.Id);
+			}
+
+			public bool Release() {
+				return store.ReleaseReference(Id.Id);
+			}
+
+			public void MarkComplete() {
+				IsComplete = true;
+			}
 		}
 
 		private void CompleteObject(LargeObject obj) {
-			throw new NotImplementedException();
+			// Get the blob reference id (reference to the fixed record list).
+			long refId = obj.Id.Id;
+
+			lock (fixedList) {
+				// Update the record in the fixed list.
+				IArea block = fixedList.GetRecord(refId);
+
+				// Record the position
+				int recordPos = block.Position;
+				// Read the information in the fixed record
+				int status = block.ReadInt4();
+				// Assert that the status is open
+				if (status != 0)
+					throw new IOException("Assertion failed: record is not open.");
+
+				int refCount = block.ReadInt4();
+				long size = block.ReadInt8();
+				long pageCount = block.ReadInt8();
+
+				try {
+					store.LockForWrite();
+
+					block.Position = recordPos;
+					block.WriteInt4(1);				// Status
+					block.WriteInt4(0);				// Reference Count
+					block.WriteInt8(obj.RawSize);	// Final Size
+					block.WriteInt8(pageCount);		// Page Count
+					block.Flush();
+				} finally {
+					store.UnlockForWrite();
+				}
+			}
+
+			// Now the object has been finalized so change the state of the object
+			obj.MarkComplete();
 		}
 
-		private void WriteObjectPart(long id, long objOffset, byte[] buffer, int offset, int length) {
-			throw new NotImplementedException();
+		private void WriteObjectPart(long id, long objOffset, byte[] buffer, int off, int length) {
+			// ASSERT: Read and Write position must be 64K aligned.
+			if (objOffset%(64*1024) != 0)
+				throw new Exception("Assert failed: offset is not 64k aligned.");
+
+			// ASSERT: Length is less than or equal to 64K
+			if (length > (PageSize * 1024)) {
+				throw new Exception("Assert failed: length is greater than 64K.");
+			}
+
+			int status;
+			int refCount;
+			long size;
+			long objPos;
+
+			lock (fixedList) {
+				if (id < 0 || id >= fixedList.NodeCount)
+					throw new IOException("Object id is out of range.");
+
+				IArea block = fixedList.GetRecord(id);
+				status = block.ReadInt4();
+				if ((status & DeletedFlag) != 0)
+					throw new ApplicationException("Assertion failed: record is deleted!");
+
+				refCount = block.ReadInt4();
+				size = block.ReadInt8();
+				objPos = block.ReadInt8();
+
+			}
+
+			// Open an IArea into the blob
+			IArea area = store.GetArea(objPos);
+			area.ReadInt4();
+			var type = area.ReadInt4();
+			size = area.ReadInt8();
+
+			// Assert that the area being Read is within the bounds of the blob
+			if (objOffset < 0 || objOffset + length > size) {
+				throw new IOException("Object invalid write.  offset = " + objOffset + ", length = " + length + ", size = " + size);
+			}
+
+			// Convert to the page number
+			long pageNumber = (objOffset / (PageSize * 1024));
+			area.Position = (int)((pageNumber * 8) + 24);
+			long pagePos = area.ReadInt8();
+
+			if (pagePos != -1) {
+				// This means we are trying to rewrite a page we've already written
+				// before.
+				throw new Exception("Assert failed: page position is not -1");
+			}
+
+			// Is the compression bit set?
+			byte[] toWrite;
+			int writeLength;
+			if ((type & CompressedFlag) != 0) {
+				// Yes, compression
+				var deflateStream = new DeflateStream(new MemoryStream(buffer, off, length), CompressionMode.Compress, false);
+				toWrite = new byte[PageSize * 1024];
+				writeLength = deflateStream.Read(toWrite, 0, toWrite.Length);
+			} else {
+				// No compression
+				toWrite = buffer;
+				writeLength = length;
+			}
+
+			try {
+				store.LockForWrite();
+
+				// Allocate and Write the page.
+				IArea pageArea = store.CreateArea(writeLength + 8);
+				pagePos = pageArea.Id;
+				pageArea.WriteInt4(1);
+				pageArea.WriteInt4(writeLength);
+				pageArea.Write(toWrite, 0, writeLength);
+				// Finish this page
+				pageArea.Flush();
+
+				// Update the page in the header.
+				area.Position = (int)((pageNumber * 8) + 24);
+				area.WriteInt8(pagePos);
+				// Check out this change.
+				area.Flush();
+			} finally {
+				store.UnlockForWrite();
+			}
 		}
 
 		private int ReadObjectPart(long id, long objOffset, byte[] buffer, int off, int length) {
@@ -374,12 +504,92 @@ namespace Deveel.Data.Store {
 			return new LargeObject(this, id.Id, size, compressed, true);
 		}
 
-		public void EstablishReference(ObjectId id) {
-			throw new NotImplementedException();
+		private void EstablishReference(long id) {
+			try {
+				lock (fixedList) {
+					// Update the record in the fixed list.
+					IArea block = fixedList.GetRecord(id);
+					int recordPos = block.Position;
+					int status = block.ReadInt4();
+					if (status != 1)
+						throw new Exception("Assertion failed: record is not static.");
+
+					int refCount = block.ReadInt4();
+
+					// Set the fixed blob record as complete.
+					block.Position = recordPos + 4;
+					block.WriteInt4(refCount + 1);
+					block.Flush();
+				}
+			} catch (IOException e) {
+				throw new Exception("IO Error: " + e.Message);
+			}
 		}
 
-		public void ReleaseReference(ObjectId id) {
-			throw new NotImplementedException();
+		private bool ReleaseReference(long id) {
+			try {
+				lock (fixedList) {
+					// Update the record in the fixed list.
+					IArea block = fixedList.GetRecord(id);
+					int recordPos = block.Position;
+					int status = block.ReadInt4();
+					if (status != 1)
+						throw new Exception("Assertion failed: Record is not static (status = " + status + ")");
+
+					int refCount = block.ReadInt4();
+					if (refCount == 0)
+						throw new Exception("Releasing when IBlob reference counter is at 0.");
+
+					var objSize = block.ReadInt8();
+					var objPos = block.ReadInt8();
+
+					// If reference count == 0 then we need to free all the resources
+					// associated with this object in the store.
+					if ((refCount - 1) == 0) {
+						// Free the resources associated with this object.
+						IArea area = store.GetArea(objPos);
+						area.ReadInt4();
+
+						var type = (byte)area.ReadInt4();
+						var totalSize = area.ReadInt8();
+						var pageCount = area.ReadInt8();
+
+						// Free all of the pages in this blob.
+						for (long i = 0; i < pageCount; ++i) {
+							long pageOffset = area.ReadInt8();
+							if (pageOffset > 0)
+								store.DeleteArea(pageOffset);
+						}
+
+						// Free the blob area object itself.
+						store.DeleteArea(objPos);
+
+						// Write out the blank record.
+						block.Position = recordPos;
+						block.WriteInt4(DeletedFlag);
+						block.WriteInt4(0);
+						block.WriteInt8(-1);
+						block.WriteInt8(firstDeleteChainRecord);
+						// CHeck out these changes
+						block.Flush();
+						firstDeleteChainRecord = id;
+
+						// Update the first_delete_chain_record field in the header
+						fixedList.WriteDeleteHead(firstDeleteChainRecord);
+						return true;
+					}
+
+					// Simply decrement the reference counter for this record.
+					block.Position = recordPos + 4;
+					// Write the reference count - 1
+					block.WriteInt4(refCount - 1);
+					// Check out this change
+					block.Flush();
+					return false;
+				}
+			} catch (IOException e) {
+				throw new Exception("IO Error: " + e.Message);
+			}
 		}
 	}
 }

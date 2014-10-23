@@ -101,9 +101,13 @@
     <Compile Include="Deveel.Data.Sql.Compile\Token.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongString.cs" />
+    <Compile Include="Deveel.Data.Store\AreaExtensions.cs" />
+    <Compile Include="Deveel.Data.Store\AreaStream.cs" />
     <Compile Include="Deveel.Data.Store\DataStorageException.cs" />
     <Compile Include="Deveel.Data.Store\FileStoreData.cs" />
     <Compile Include="Deveel.Data.Store\FixedRecordList.cs" />
+    <Compile Include="Deveel.Data.Store\IArea.cs" />
+    <Compile Include="Deveel.Data.Store\InMemoryStore.cs" />
     <Compile Include="Deveel.Data.Store\InvalidObjectIdException.cs" />
     <Compile Include="Deveel.Data.Store\ILargeObject.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\ISqlBinary.cs" />
@@ -122,9 +126,6 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlNumber.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlString.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlYearToMonth.cs" />
-    <Compile Include="Deveel.Data.Store\IArea.cs" />
-    <Compile Include="Deveel.Data.Store\IAreaWriter.cs" />
-    <Compile Include="Deveel.Data.Store\IMutableArea.cs" />
     <Compile Include="Deveel.Data.Store\IStore.cs" />
     <Compile Include="Deveel.Data.Store\ObjectStore.cs" />
     <Compile Include="Deveel.Data.Store\ObjectStream.cs" />

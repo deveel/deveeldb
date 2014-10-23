@@ -47,13 +47,6 @@ namespace Deveel.Data.Store {
 		/// at creation.
 		/// </para>
 		/// <para>
-		/// This value describes the length of the object in bytes as stored,
-		/// that is not always comparable to the length of a string: in fact,
-		/// if the <see cref="Type">type</see> of this object is <see cref="ObjectType.UnicodeString"/>
-		/// the number of characters stored will be double as the size of the
-		/// object (since <c>UNICODE</c> strings are 2-byte notations).
-		/// </para>
-		/// <para>
 		/// The returned value of this property is also variable by the kind
 		/// of compression applied to the store (if <see cref="IsCompressed"/> is
 		/// <c>true</c>).
@@ -116,5 +109,33 @@ namespace Deveel.Data.Store {
 		/// <seealso cref="Read"/>
 		/// <seealso cref="Write"/>
 		void Complete();
+
+		/// <summary>
+		/// Establishes a reference of the object to the
+		/// underlying store which contains it.
+		/// </summary>
+		/// <remarks>
+		/// A single object can be referenced multiple times within a store,
+		/// and this prevents it to be removed from the store if it is still
+		/// in use within the system.
+		/// </remarks>
+		/// <seealso cref="Release"/>
+		void Establish();
+
+		/// <summary>
+		/// Removes a reference of the object from the underlying
+		/// store which contains it.
+		/// </summary>
+		/// <remarks>
+		/// The act of removing a reference of an object from the containing
+		/// store does not automatically destroys it: in fact, this happens
+		/// only if all references established for the object have been released.
+		/// </remarks>
+		/// <returns>
+		/// Returns <c>true</c> if the object was removed from the store at
+		/// its release, or <c>false</c> if it was retained.
+		/// </returns>
+		/// <seealso cref="Establish"/>
+		bool Release();
 	}
 }

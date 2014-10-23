@@ -55,21 +55,21 @@ namespace Deveel.Data.Store {
 	public interface IStore {
 		/// <summary>
 		/// Allocates a block of memory in the store of the specified size 
-		/// and returns an <see cref="IAreaWriter"/> object that can be used 
+		/// and returns an <see cref="IArea"/> object that can be used 
 		/// to initialize the contents of the area.
 		/// </summary>
 		/// <param name="size">The amount of memory to allocate.</param>
 		/// <remarks>
-		/// Note that an area in the store is undefined until the <see cref="IAreaWriter.Finish"/>
-		/// method is called in <see cref="IAreaWriter"/>.
+		/// Note that an area in the store is undefined until the <see cref="IArea.Finish"/>
+		/// method is called in <see cref="IArea"/>.
 		/// </remarks>
 		/// <returns>
-		/// Returns an <see cref="IAreaWriter"/> object that allows the area to be setup.
+		/// Returns an <see cref="IArea"/> object that allows the area to be setup.
 		/// </returns>
 		/// <exception cref="Deveel.Data.DbSystem.IO.IOException">
 		/// If not enough space available to create the area or the store is Read-only.
 		/// </exception>
-		IAreaWriter CreateArea(long size);
+		IArea CreateArea(long size);
 
 		/// <summary>
 		/// Deletes an area that was previously allocated by the <see cref="CreateArea"/>
@@ -84,31 +84,6 @@ namespace Deveel.Data.Store {
 		/// If the id is invalid or the area can not otherwise by deleted.
 		/// </exception>
 		void DeleteArea(long id);
-
-
-		/// <summary>
-		/// Returns a <see cref="Stream"/> that allows for the area with the 
-		/// given identifier to be Read sequentially.
-		/// </summary>
-		/// <param name="id">The identifier of the area to Read, or -1 for the 64 byte 
-		/// fixed area in the store.</param>
-		/// <remarks>
-		/// The behaviour of this method is undefined if the id doesn't represent 
-		/// a valid area.
-		/// <para>
-		/// When 'id' is -1 then a fixed static area (64 bytes in size) in the store
-		/// is returned.  The fixed area can be used to store important static
-		/// information.
-		/// </para>
-		/// </remarks>
-		/// <returns>
-		/// Returns a <see cref="Stream"/> that can be used <b>only</b> to Read the 
-		/// area from the start.
-		/// </returns>
-		/// <exception cref="IOException">
-		/// If the id is invalid or the area can not otherwise be accessed.
-		/// </exception>
-		Stream GetAreaInputStream(long id);
 
 
 		/// <summary>
@@ -132,27 +107,6 @@ namespace Deveel.Data.Store {
 		/// </exception>
 		IArea GetArea(long id);
 
-
-		/// <summary>
-		/// Returns an object that allows for the contents of an area (represented 
-		/// by the <paramref name="id"/> parameter) to be Read and written.
-		/// </summary>
-		/// <param name="id">The identifier of the area to access, or -1 for a 64 byte 
-		/// fixed area in the store.</param>
-		/// <remarks>
-		/// The behaviour of this method is undefined if the id doesn't represent a valid area.
-		/// <para>
-		/// When <paramref name="id"/> is -1 then a fixed area (64 bytes in size) in the store 
-		/// is returned. The fixed area can be used to store important static information.
-		/// </para>
-		/// </remarks>
-		/// <returns>
-		/// Returns a <see cref="IMutableArea"/> object that allows access to the part of the store.
-		/// </returns>
-		/// <exception cref="IOException">
-		/// If the id is invalid or the area can not otherwise be accessed.
-		/// </exception>
-		IMutableArea GetMutableArea(long id);
 
 		// ---------- Check Point Locking ----------
 

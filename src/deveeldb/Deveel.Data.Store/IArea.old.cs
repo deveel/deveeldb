@@ -1,4 +1,4 @@
-﻿// 
+// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,9 @@ namespace Deveel.Data.Store {
 	/// <summary>
 	/// An interface for access the contents of an area of a store.
 	/// </summary>
+	/// <remarks>
+	/// The area object maintains a pointer that can be manipulated and Read from.
+	/// </remarks>
 	public interface IArea {
 		/// <summary>
 		/// Returns the unique identifier that represents this area.
@@ -28,15 +31,6 @@ namespace Deveel.Data.Store {
 		/// a positive number that will not exceed 60 bits of the long.
 		/// </value>
 		long Id { get; }
-
-		/// <summary>
-		/// Gets a value indicating whether this area can be written or not.
-		/// </summary>
-		/// <remarks>
-		/// If this area is read-only, any attempt to call <see cref="Write"/>
-		/// method will throw an exception.
-		/// </remarks>
-		bool IsReadOnly { get; }
 
 		/// <summary>
 		/// Returns or sets the current position of the pointer within the area.
@@ -51,39 +45,62 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		int Capacity { get; }
 
-		int Length { get; }
-
 		/// <summary>
 		/// Copies the given amount of bytes from the current position of the
-		/// this area to another one.
+		/// current <see cref="IArea"/> to the given <see cref="IAreaWriter"/>.
 		/// </summary>
-		/// <param name="destArea">The <see cref="IArea"/> where to write.</param>
+		/// <param name="dest">The <see cref="IAreaWriter"/> where to Write.</param>
 		/// <param name="size">The number of bytes to Write.</param>
-		void CopyTo(IArea destArea, int size);
+		void CopyTo(IAreaWriter dest, int size);
+
+		// ---------- The Read* methods ----------
+
+		/// <summary>
+		/// Reads a single byte from the underlying <see cref="IArea"/> and
+		/// advances the position by one.
+		/// </summary>
+		/// <returns>
+		/// Returns the byte Read from the <see cref="IArea"/>
+		/// </returns>
+		byte ReadByte();
 
 		/// <summary>
 		/// Reads an array of bytes from the underlying <see cref="IArea"/>
-		/// and advances the position by <paramref name="length"/>.
+		/// and advances the position by <paramref name="len"/>.
 		/// </summary>
-		/// <param name="buffer">The destination buffer into which to Read the
+		/// <param name="buf">The destination buffer into which to Read the
 		/// number of bytes given from the area.</param>
-		/// <param name="offset">The offset within the buffer from where to
+		/// <param name="off">The offset within the buffer from where to
 		/// start writing the byte Read into.</param>
-		/// <param name="length">The number of bytes to Read from the area. This
+		/// <param name="len">The number of bytes to Read from the area. This
 		/// is also the incremental size of the position of the area.</param>
 		/// <returns>
 		/// Returns the number of bytes actually Read from the <see cref="IArea"/>.
 		/// </returns>
-		int Read(byte[] buffer, int offset, int length);
+		int Read(byte[] buf, int off, int len);
 
 		/// <summary>
-		/// 
+		/// Reads a short integer number from the underlying <see cref="IArea"/>
+		/// and advances the position by two.
 		/// </summary>
-		/// <param name="buffer"></param>
-		/// <param name="offset"></param>
-		/// <param name="length"></param>
-		void Write(byte[] buffer, int offset, int length);
+		/// <returns>
+		/// Returns a <see cref="short"/> which was Read from the underlying 
+		/// <see cref="IArea"/> at the current position.
+		/// </returns>
+		short ReadInt2();
 
-		void Flush();
+		/// <summary>
+		/// Reads an integer number from the underlying <see cref="IArea"/> and
+		/// advances the position by four.
+		/// </summary>
+		/// <returns>
+		/// Returns a <see cref="int"/> which was Read from the underlying
+		/// <see cref="IArea"/> at the current position.
+		/// </returns>
+		int ReadInt4();
+
+		long ReadInt8();
+
+		char ReadChar();
 	}
 }

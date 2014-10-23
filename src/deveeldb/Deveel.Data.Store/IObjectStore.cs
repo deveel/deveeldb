@@ -69,29 +69,5 @@ namespace Deveel.Data.Store {
 		/// </exception>
 		/// <seealso cref="CreateNewObject"/>
 		ILargeObject GetObject(ObjectId id);
-
-		/// <summary>
-		/// Marks the object identified as static within the the store.
-		/// </summary>
-		/// <param name="id">The unique identifier of the object for which 
-		/// to establish the reference into the store.</param>
-		/// <remarks>
-		/// <para>
-		/// This is used to count references to a blob, and possibly clean up a blob 
-		/// if there are no references remaining to it.
-		/// </para>
-		/// </remarks>
-		/// <exception cref="InvalidObjectIdException">
-		/// If the given <paramref name="id"/> is outside the range of the store.
-		/// </exception>
-		/// <seealso cref="CreateNewObject"/>
-		void EstablishReference(ObjectId id);
-
-		/// <summary>
-		/// Releases a static reference to the object identified from the store.
-		/// </summary>
-		/// <param name="id">The unique identifier of the object for which 
-		/// to release the reference from the store.</param>
-		void ReleaseReference(ObjectId id);
 	}
 }
