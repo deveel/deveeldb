@@ -2,45 +2,157 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Deveel.Data.Store;
-
 namespace Deveel.Data.Store {
 	public class InMemoryStore : IStore {
+		private InMemoryBlock fixedAreaBlock;
+		private readonly InMemoryBlock[] areaMap;
+		private long uniqueIdKey;
+
+		internal InMemoryStore(string name, int hashSize) {
+			Name = name;
+			areaMap = new InMemoryBlock[hashSize];
+			uniqueIdKey = 0;
+		}
+
+		public string Name { get; private set; }
+
+		private InMemoryBlock FixedAreaBlock {
+			get {
+				lock (this) {
+					if (fixedAreaBlock == null)
+						fixedAreaBlock = new InMemoryBlock(-1, 64);
+
+					return fixedAreaBlock;
+				}
+			}
+		}
+
+		private InMemoryBlock GetBlock(long pointer) {
+			if (pointer == -1)
+				return FixedAreaBlock;
+
+			return GetAreaBlock(pointer);
+		}
+
+		private InMemoryBlock GetAreaBlock(long pointer) {
+			lock (this) {
+				// Find the pointer in the hash
+				var hashPos = (int)(pointer % areaMap.Length);
+				InMemoryBlock prev = null;
+				var block = areaMap[hashPos];
+
+				// Search for this pointer
+				while (block != null && block.Id != pointer) {
+					prev = block;
+					block = block.Next;
+				}
+
+				if (block == null)
+					throw new IOException("Pointer " + pointer + " is invalid.");
+
+				// Move the element to the start of the list.
+				if (prev != null) {
+					prev.Next = block.Next;
+					block.Next = areaMap[hashPos];
+					areaMap[hashPos] = block;
+				}
+
+				return block;
+			}
+		}
+
 		public IArea CreateArea(long size) {
-			throw new NotImplementedException();
+			if (size > Int32.MaxValue)
+				throw new IOException("'size' is too large.");
+
+			lock (this) {
+				// Generate a unique id for this area.
+				long id = uniqueIdKey;
+				++uniqueIdKey;
+
+				// Create the element.
+				var element = new InMemoryBlock(id, (int)size);
+
+				// The position in the hash map
+				int hashPos = (int)(id % areaMap.Length);
+
+				// Add to the chain
+				element.Next = areaMap[hashPos];
+				areaMap[hashPos] = element;
+
+				return element.GetArea(false);
+			}
 		}
 
 		public void DeleteArea(long id) {
-			throw new NotImplementedException();
+			lock (this) {
+				// Find the pointer in the hash
+				var hashPos = (int)(id % areaMap.Length);
+				InMemoryBlock prev = null;
+				InMemoryBlock block = areaMap[hashPos];
+
+				// Search for this pointer
+				while (block != null && block.Id != id) {
+					prev = block;
+					block = block.Next;
+				}
+
+				// If not found
+				if (block == null)
+					throw new IOException("Area ID " + id + " is invalid.");
+
+				// Remove
+				if (prev == null) {
+					areaMap[hashPos] = block.Next;
+				} else {
+					prev.Next = block.Next;
+				}
+
+				// Garbage collector should do the rest...
+			}
 		}
 
-		public Stream GetAreaInputStream(long id) {
-			throw new NotImplementedException();
-		}
-
-		public IArea GetArea(long id) {
-			throw new NotImplementedException();
+		public IArea GetArea(long id, bool readOnly) {
+			return GetBlock(id).GetArea(readOnly);
 		}
 
 		public void LockForWrite() {
-			throw new NotImplementedException();
 		}
 
 		public void UnlockForWrite() {
-			throw new NotImplementedException();
 		}
 
 		public void CheckPoint() {
-			throw new NotImplementedException();
 		}
 
-		public bool LastCloseClean() {
-			throw new NotImplementedException();
+		public bool ClosedClean {
+			get { return true; }
 		}
 
 		public IEnumerable<long> GetAllAreas() {
 			throw new NotImplementedException();
 		}
+
+		#region InMemoryBlock
+
+		class InMemoryBlock {
+			private readonly byte[] block;
+
+			public InMemoryBlock(long id, int size) {
+				Id = id;
+				block = new byte[size];
+			}
+
+			public long Id { get; private set; }
+
+			public InMemoryBlock Next { get; set; }
+
+			public IArea GetArea(bool readOnly) {
+				return new InMemoryArea(Id, readOnly, block, 0, block.Length);
+			}
+		}
+
+		#endregion
 
 		#region InMemoryArea
 
@@ -51,7 +163,7 @@ namespace Deveel.Data.Store {
 			private int startPosition;
 			private int endPosition;
 
-			public InMemoryArea(long id, byte[] data, int offset, int length) {
+			public InMemoryArea(long id, bool readOnly, byte[] data, int offset, int length) {
 				this.data = data;
 				this.length = length;
 
@@ -59,6 +171,7 @@ namespace Deveel.Data.Store {
 				endPosition = offset + length;
 
 				Id = id;
+				IsReadOnly = readOnly;
 			}
 
 			public long Id { get; private set; }
@@ -100,7 +213,16 @@ namespace Deveel.Data.Store {
 			}
 
 			public void CopyTo(IArea destArea, int size) {
-				throw new NotImplementedException();
+				const int bufferSize = 2048;
+				byte[] buf = new byte[bufferSize];
+				int toCopy = System.Math.Min(size, bufferSize);
+
+				while (toCopy > 0) {
+					Read(buf, 0, toCopy);
+					destArea.Write(buf, 0, toCopy);
+					size -= toCopy;
+					toCopy = System.Math.Min(size, bufferSize);
+				}
 			}
 
 			public int Read(byte[] buffer, int offset, int length) {

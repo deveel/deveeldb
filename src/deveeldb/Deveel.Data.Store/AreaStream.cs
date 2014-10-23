@@ -64,7 +64,7 @@ namespace Deveel.Data.Store {
 		}
 
 		public override long Length {
-			get { return area.Capacity; }
+			get { return area.Length; }
 		}
 
 		public override long Position {

@@ -14,28 +14,20 @@
 //    limitations under the License.
 
 using System;
+using System.IO;
 
 namespace Deveel.Data.Store {
-	/// <summary>
-	/// The type of object reference that is possible
-	/// to establish in a store.
-	/// </summary>
-	/// <seealso cref="IObjectRef.Type"/>
-	/// <seealso cref="IObjectStore.GetObject"/>
-	public enum ObjectType : byte {
-		/// <summary>
-		/// The object is a raw binary
-		/// </summary>
-		Binary = 1,
+	public static class StoreExtensions {
+		public static IArea GetArea(this IStore store, long id) {
+			return store.GetArea(id, false);
+		}
 
-		/// <summary>
-		/// The object is an ASCII 1-byte string type.
-		/// </summary>
-		AsciiString = 2,
+		public static IArea GetReadOlyArea(this IStore store, long id) {
+			return store.GetArea(id, true);
+		}
 
-		/// <summary>
-		/// The object is an UNICODE 2-byte string type.
-		/// </summary>
-		UnicodeString = 3
+		public static Stream GetAreaInputStream(this IStore store, long id) {
+			return new AreaStream(store.GetArea(id, true));
+		}
 	}
 }

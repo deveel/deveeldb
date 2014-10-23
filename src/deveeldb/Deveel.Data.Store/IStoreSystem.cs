@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ namespace Deveel.Data.Store {
 		/// or the random-access memory.
 		/// </summary>
 		/// <remarks>
-		/// This property must be <i>static</i>, that means it must be accessible 
+		/// This property must be <c>static</c>, that means it must be accessible 
 		/// even before any call to <see cref="Init"/> method.
 		/// <para>
 		/// The reason of this behavior is that the system will query
@@ -46,15 +46,7 @@ namespace Deveel.Data.Store {
 		/// <seealso cref="Store.StorageType"/>
 		StorageType StorageType { get; }
 
-		/// <summary>
-		/// Initializes the storage system within the given
-		/// <see cref="SystemContext"/> context.
-		/// </summary>
-		/// <param name="context>The reference to the <see cref="SystemContext"/> 
-		/// that represents of execution of the storage-system.</param>
-		void Init(SystemContext context);
-
-		/// <summary>
+				/// <summary>
 		/// Returns true if the store with the given name exists within the 
 		/// system, or false otherwise.
 		/// </summary>
@@ -71,11 +63,6 @@ namespace Deveel.Data.Store {
 		/// <remarks>
 		/// If the system is read-only or the table otherwise can not be created 
 		/// then an exception is thrown.
-		/// <para>
-		/// At the most, you should assume that this will return an implementation 
-		/// of <see cref="AbstractStore"/> but you should not be assured of this 
-		/// fact.
-		/// </para>
 		/// </remarks>
 		/// <returns></returns>
 		IStore CreateStore(String name);
@@ -88,10 +75,6 @@ namespace Deveel.Data.Store {
 		/// of the store.</param>
 		/// <remarks>
 		/// An exception is thrown if the store can not be opened.
-		/// <para>
-		/// At the most, you should assume that this will return an implementation 
-		/// of <see cref="AbstractStore"/> but you should not be assured of this fact.
-		/// </para>
 		/// </remarks>
 		/// <returns></returns>
 		IStore OpenStore(String name);
@@ -143,28 +126,25 @@ namespace Deveel.Data.Store {
 		/// </remarks>
 		void SetCheckPoint();
 
-
-		// ---------- Locking ----------
-
 		/// <summary>
 		/// Attempts to lock this store system exclusively so that no other 
 		/// process may access or change the persistent data in the store.
 		/// </summary>
-		/// <param name="lock_name"></param>
+		/// <param name="lockName"></param>
 		/// <remarks>
 		/// If this fails to lock, an IOException is generated, otherwise the 
 		/// lock is obtained and the method returns.
 		/// </remarks>
-		void Lock(String lock_name);
+		void Lock(String lockName);
 
 		/// <summary>
 		/// Unlocks the exclusive access to the persistent store objects.
 		/// </summary>
-		/// <param name="lock_name"></param>
+		/// <param name="lockName"></param>
 		/// <remarks>
 		/// After this method completes, access to the store system by other 
 		/// processes is allowed.
 		/// </remarks>
-		void Unlock(String lock_name);
+		void Unlock(String lockName);
 	}
 }

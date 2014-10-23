@@ -92,6 +92,7 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		/// <param name="id">The identifier of the area to Read, or -1 for a 64 byte 
 		/// fixed area in the store.</param>
+		/// <param name="readOnly">Indicates if the returned area must be read-only.</param>
 		/// <remarks>
 		/// The behaviour of this method is undefined if the id doesn't represent a valid area.
 		/// <para>
@@ -105,7 +106,7 @@ namespace Deveel.Data.Store {
 		/// <exception cref="IOException">
 		/// If the id is invalid or the area can not otherwise be accessed.
 		/// </exception>
-		IArea GetArea(long id);
+		IArea GetArea(long id, bool readOnly);
 
 
 		// ---------- Check Point Locking ----------
@@ -173,16 +174,16 @@ namespace Deveel.Data.Store {
 		/// <summary>
 		/// Indicates if the store was closed cleanly last time was accessed.
 		/// </summary>
-		/// <returns>
-		/// Returns <b>true</b> if the store was closed cleanly last time it was
-		/// accessed or <b>false</b> otherwise.
-		/// </returns>
+		/// <value>
+		///   Returns <b>true</b> if the store was closed cleanly last time it was
+		///   accessed or <b>false</b> otherwise.
+		/// </value>
 		/// <remarks>
 		/// This is important information that may need to be considered when 
 		/// reading information from the store. This is typically used to issue 
 		/// a scan on the data in the store when it is not closed cleanly.
 		/// </remarks>
-		bool LastCloseClean();
+		bool ClosedClean { get; }
 
 
 		/// <summary>

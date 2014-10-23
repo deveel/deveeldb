@@ -86,5 +86,9 @@ namespace Deveel.Data.Sql.Objects {
 		public TextReader GetInput() {
 			throw new NotImplementedException();
 		}
+
+		public static SqlLongString Unicode(ILargeObject obj) {
+			return new SqlLongString(obj, Encoding.Unicode.CodePage);
+		}
 	}
 }

@@ -107,6 +107,8 @@
     <Compile Include="Deveel.Data.Store\FileStoreData.cs" />
     <Compile Include="Deveel.Data.Store\FixedRecordList.cs" />
     <Compile Include="Deveel.Data.Store\IArea.cs" />
+    <Compile Include="Deveel.Data.Store\IObjectStoreContext.cs" />
+    <Compile Include="Deveel.Data.Store\InMemoryStorageSystem.cs" />
     <Compile Include="Deveel.Data.Store\InMemoryStore.cs" />
     <Compile Include="Deveel.Data.Store\InvalidObjectIdException.cs" />
     <Compile Include="Deveel.Data.Store\ILargeObject.cs" />
@@ -117,6 +119,7 @@
     <Compile Include="Deveel.Data.Store\IObjectStore.cs" />
     <Compile Include="Deveel.Data.Store\IStoreData.cs" />
     <Compile Include="Deveel.Data.Store\IStoreDataFactory.cs" />
+    <Compile Include="Deveel.Data.Store\IStoreSystem.cs" />
     <Compile Include="Deveel.Data.Store\ObjectId.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlBoolean.cs" />
@@ -132,8 +135,8 @@
     <Compile Include="Deveel.Data.Store\RecordType.cs" />
     <Compile Include="Deveel.Data.Store\ScatteringFileStoreData.cs" />
     <Compile Include="Deveel.Data.Store\StorageErrorCodes.cs" />
-    <Compile Include="Deveel.Data.Store\StoredObject.cs" />
-    <Compile Include="Deveel.Data.Store\StoredRecord.cs" />
+    <Compile Include="Deveel.Data.Store\StorageType.cs" />
+    <Compile Include="Deveel.Data.Store\StoreExtensions.cs" />
     <Compile Include="Deveel.Data.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Types\BooleanType.cs" />
     <Compile Include="Deveel.Data.Types\ColumnType.cs" />
