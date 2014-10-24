@@ -55,8 +55,11 @@ namespace Deveel.Data.Sql.Objects {
 			return CompareTo((SqlLongString) obj);
 		}
 
-		public int CompareTo(ISqlObject other) {
-			throw new NotImplementedException();
+		int IComparable<ISqlObject>.CompareTo(ISqlObject other) {
+			if (!(other is ISqlString))
+				throw new ArgumentException();
+
+			return CompareTo((ISqlString) other);
 		}
 
 		public bool IsNull {
@@ -68,7 +71,33 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public int CompareTo(ISqlString other) {
-			throw new NotImplementedException();
+			if (other == null)
+				throw new ArgumentNullException("other");
+
+			if (IsNull && other.IsNull)
+				return 0;
+			if (IsNull)
+				return -1;
+			if (other.IsNull)
+				return 1;
+
+			var r1 = GetInput();
+			var r2 = other.GetInput();
+
+			int c1 = 0, c2 = 0;
+
+			// read one char at a time and compare them
+			// until we reach end of one of the strings
+			while ((c1 = r1.Read()) != -1 &&
+			       (c2 = r2.Read()) != -1) {
+				var result = ((char) c1).CompareTo((char) c2);
+				if (result != 0) 
+					return result;
+			}
+
+			// if both are -1 then strings have the same length and 
+			// consist of same chars so they are equal
+			return c1 == -1 && c2 == -1 ? 0 : (c1 == -1 ? -1 : 1);
 		}
 
 		public IEnumerator<char> GetEnumerator() {
@@ -84,7 +113,17 @@ namespace Deveel.Data.Sql.Objects {
 		public long Length { get; private set; }
 
 		public TextReader GetInput() {
-			throw new NotImplementedException();
+			if (largeObject == null)
+				return TextReader.Null;
+
+			return new StreamReader(new ObjectStream(largeObject), encoding);
+		}
+
+		public TextWriter GetOutput() {
+			if (largeObject == null)
+				return TextWriter.Null;
+
+			return new StreamWriter(new ObjectStream(largeObject), encoding);
 		}
 
 		public static SqlLongString Unicode(ILargeObject obj) {

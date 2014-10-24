@@ -296,7 +296,7 @@ namespace Deveel.Data.Store {
 
 		private void WriteObjectPart(long id, long objOffset, byte[] buffer, int off, int length) {
 			// ASSERT: Read and Write position must be 64K aligned.
-			if (objOffset%(64*1024) != 0)
+			if (objOffset%(PageSize*1024) != 0)
 				throw new Exception("Assert failed: offset is not 64k aligned.");
 
 			// ASSERT: Length is less than or equal to 64K

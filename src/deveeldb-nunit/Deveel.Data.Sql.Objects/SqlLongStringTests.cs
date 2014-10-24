@@ -30,6 +30,10 @@ namespace Deveel.Data.Sql.Objects {
 			return objStore.CreateNewObject(size, compressed);
 		}
 
+		private ILargeObject GetLargeObject(ObjectId id) {
+			return objStore.GetObject(id);
+		}
+
 		[SetUp]
 		public void TestSetUp() {
 			storageSystem = new InMemoryStorageSystem();
@@ -50,6 +54,52 @@ namespace Deveel.Data.Sql.Objects {
 			var obj = CreateLargeObject(2048, false);
 			var stringObj = SqlLongString.Unicode(obj);
 			Assert.IsNotNull(stringObj);
+			Assert.IsFalse(stringObj.IsNull);
+		}
+
+		[Test]
+		public void WriteOnly_Unicode() {
+			var obj = CreateLargeObject(2048, false);
+			var stringObj = SqlLongString.Unicode(obj);
+			Assert.IsNotNull(stringObj);
+			Assert.IsFalse(stringObj.IsNull);
+
+			var writer = stringObj.GetOutput();
+			Assert.IsNotNull(writer);
+			Assert.DoesNotThrow(() => writer.WriteLine("Test string"));
+		}
+
+		[Test]
+		public void WriteAndRead_Unicode() {
+			const string testLine = "Simple test string";
+
+			var obj = CreateLargeObject(2048, false);
+			var objId = obj.Id;
+
+			var stringObj = SqlLongString.Unicode(obj);
+			Assert.IsNotNull(stringObj);
+			Assert.IsFalse(stringObj.IsNull);
+
+			var writer = stringObj.GetOutput();
+			Assert.IsNotNull(writer);
+			Assert.DoesNotThrow(() => writer.WriteLine(testLine));
+			writer.Flush();
+			obj.Complete();
+			obj.Dispose();
+
+			obj = GetLargeObject(objId);
+			Assert.IsTrue(obj.IsComplete);
+			Assert.IsFalse(obj.IsCompressed);
+
+			stringObj = SqlLongString.Unicode(obj);
+			var reader = stringObj.GetInput();
+			Assert.IsNotNull(reader);
+
+			string line = null;
+			Assert.DoesNotThrow(() => line = reader.ReadLine());
+			Assert.IsNotNullOrEmpty(line);
+
+			Assert.AreEqual(testLine, line);
 		}
 	}
 }

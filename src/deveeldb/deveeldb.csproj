@@ -131,7 +131,7 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlYearToMonth.cs" />
     <Compile Include="Deveel.Data.Store\IStore.cs" />
     <Compile Include="Deveel.Data.Store\ObjectStore.cs" />
-    <Compile Include="Deveel.Data.Store\ObjectStream.cs" />
+    <Compile Include="Deveel.Data.Store\ObjectOutputStream.cs" />
     <Compile Include="Deveel.Data.Store\RecordType.cs" />
     <Compile Include="Deveel.Data.Store\ScatteringFileStoreData.cs" />
     <Compile Include="Deveel.Data.Store\StorageErrorCodes.cs" />
