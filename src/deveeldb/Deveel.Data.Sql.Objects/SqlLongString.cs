@@ -17,7 +17,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Text;
 
 using Deveel.Data.Store;
@@ -84,12 +83,16 @@ namespace Deveel.Data.Sql.Objects {
 			var r1 = GetInput();
 			var r2 = other.GetInput();
 
-			int c1 = 0, c2 = 0;
+			int c1, c2;
 
 			// read one char at a time and compare them
 			// until we reach end of one of the strings
-			while ((c1 = r1.Read()) != -1 &&
-			       (c2 = r2.Read()) != -1) {
+			while (true) {
+				c1 = r1.Read();
+				c2 = r2.Read();
+				if (c1 == -1 || c2 == -1)
+					break;
+
 				var result = ((char) c1).CompareTo((char) c2);
 				if (result != 0) 
 					return result;
@@ -101,7 +104,7 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public IEnumerator<char> GetEnumerator() {
-			throw new NotImplementedException();
+			return new Enumerator(this);
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() {
@@ -129,5 +132,49 @@ namespace Deveel.Data.Sql.Objects {
 		public static SqlLongString Unicode(ILargeObject obj) {
 			return new SqlLongString(obj, Encoding.Unicode.CodePage);
 		}
+
+		#region Enumerator
+
+		class Enumerator : IEnumerator<char> {
+			private TextReader reader;
+			private readonly SqlLongString longString;
+			private int curChar;
+
+			public Enumerator(SqlLongString longString) {
+				this.longString = longString;
+				reader = longString.GetInput();
+			}
+
+			public void Dispose() {
+				if (reader != null) {
+					reader.Dispose();
+					reader = null;
+				}
+			}
+
+			public bool MoveNext() {
+				curChar = reader.Read();
+				return curChar != -1;
+			}
+
+			public void Reset() {
+				reader = longString.GetInput();
+			}
+
+			public char Current {
+				get {
+					if (curChar == -1)
+						throw new EndOfStreamException();
+
+					return (char) curChar;
+				}
+			}
+
+			object IEnumerator.Current {
+				get { return Current; }
+			}
+		}
+
+		#endregion
 	}
 }

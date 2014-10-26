@@ -71,6 +71,7 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlStringTests.cs" />
     <Compile Include="Deveel.Data.Types\BooleanTypeTest.cs" />
     <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
+    <Compile Include="Deveel.Data\BooleanObjectTest.cs" />
     <Compile Include="Deveel.Data\NumericObjectTests.cs" />
     <Compile Include="Deveel.Data\ObjectNameTest.cs" />
     <Compile Include="Deveel.Data\StringObjectTests.cs" />
@@ -86,6 +87,9 @@
       <Project>{a14222ae-1b48-4863-a0ca-1d6c2ab2190b}</Project>
       <Name>deveeldb</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Deveel.Data.Configuration\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

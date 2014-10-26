@@ -14,22 +14,39 @@
 //    limitations under the License.
 
 using System;
-using System.IO;
+using System.Data;
+using System.Globalization;
 
 namespace Deveel.Data.Configuration {
-	public class StreamConfigSource : IConfigSource {
-		public StreamConfigSource(Stream stream) {
-			Stream = stream;
+	public sealed class ConfigValue {
+		public ConfigValue(ConfigKey key, object value) {
+			if (key == null) 
+				throw new ArgumentNullException("key");
+
+			if (value != null &&
+				!key.ValueType.IsInstanceOfType(value))
+				throw new ArgumentException();
+
+			Key = key;
+			Value = value;
 		}
 
-		public Stream Stream { get; private set; }
 
-		Stream IConfigSource.InputStream {
-			get { return Stream; }
-		}
+		public ConfigKey Key { get; private set; }
 
-		Stream IConfigSource.OutputStream {
-			get { return Stream; }
+		public object Value { get; private set; }
+
+		public T ToType<T>() {
+			if (Value == null)
+				return default(T);
+
+			if (Value is T)
+				return (T) Value;
+
+			if (!(Value is IConvertible))
+				throw new InvalidCastException();
+
+			return (T) Convert.ChangeType(Value, typeof (T), CultureInfo.InvariantCulture);
 		}
 	}
 }

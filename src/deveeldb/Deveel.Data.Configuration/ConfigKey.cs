@@ -14,22 +14,23 @@
 //    limitations under the License.
 
 using System;
-using System.IO;
 
 namespace Deveel.Data.Configuration {
-	public class StreamConfigSource : IConfigSource {
-		public StreamConfigSource(Stream stream) {
-			Stream = stream;
+	public sealed class ConfigKey {
+		public ConfigKey(string name, Type valueType) {
+			if (String.IsNullOrEmpty(name))
+				throw new ArgumentNullException("name");
+			if (valueType == null)
+				throw new ArgumentNullException("valueType");
+
+			ValueType = valueType;
+			Name = name;
 		}
 
-		public Stream Stream { get; private set; }
+		public string Name { get; private set; }
 
-		Stream IConfigSource.InputStream {
-			get { return Stream; }
-		}
+		public Type ValueType { get; private set; }
 
-		Stream IConfigSource.OutputStream {
-			get { return Stream; }
-		}
+		public object DefaultValue { get; set; }
 	}
 }

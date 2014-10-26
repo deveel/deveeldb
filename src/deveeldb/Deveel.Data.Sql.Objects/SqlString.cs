@@ -124,11 +124,12 @@ namespace Deveel.Data.Sql.Objects {
 		public int CodePage { get; private set; }
 
 		public TextReader GetInput() {
-			var s = String.Empty;
+			var encoding = Encoding.GetEncoding(CodePage);
+			var bytes = new byte[0];
 			if (source != null)
-				s = new string(source);
+				bytes = encoding.GetBytes(source);
 
-			return new StringReader(s);
+			return new StreamReader(new MemoryStream(bytes), encoding);
 		}
 
 		public bool Equals(SqlString other) {

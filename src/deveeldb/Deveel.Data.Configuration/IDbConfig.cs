@@ -17,15 +17,21 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Configuration {
-	public interface IDbConfig : IEnumerable<KeyValuePair<string, object>>, ICloneable {
+	public interface IDbConfig {
 		IConfigSource Source { get; set; }
 
 		IDbConfig Parent { get; set; }
 
-		IEnumerable<KeyValuePair<string, object>> GetLevel(ConfigurationLevel level);
-		
-		object GetValue(string key, object defaultValue);
+		ICollection<IDbConfig> Children { get; }
 
-		void SetValue(string key, object value);
+		IEnumerable<ConfigKey> GetKeys(ConfigurationLevel level);
+		
+		ConfigKey GetKey(string name);
+
+		void SetKey(ConfigKey key);
+
+		void SetValue(ConfigKey key, object value);
+
+		ConfigValue GetValue(ConfigKey key);
 	}
 }
