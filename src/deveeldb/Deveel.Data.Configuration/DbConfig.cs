@@ -17,19 +17,30 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Configuration {
-	public interface IDbConfig {
-		IConfigSource Source { get; set; }
+	[Serializable]
+	public class DbConfig : IDbConfig {
+		public IConfigSource Source { get; set; }
 
-		IDbConfig Parent { get; set; }
+		public IDbConfig Parent { get; set; }
 
-		IEnumerable<ConfigKey> GetKeys(ConfigurationLevel level);
-		
-		ConfigKey GetKey(string name);
+		public IEnumerable<ConfigKey> GetKeys(ConfigurationLevel level) {
+			throw new NotImplementedException();
+		}
 
-		void SetKey(ConfigKey key);
+		public ConfigKey GetKey(string name) {
+			throw new NotImplementedException();
+		}
 
-		void SetValue(ConfigKey key, object value);
+		public void SetKey(ConfigKey key) {
+			throw new NotImplementedException();
+		}
 
-		ConfigValue GetValue(ConfigKey key);
+		public void SetValue(ConfigKey key, object value) {
+			throw new NotImplementedException();
+		}
+
+		public ConfigValue GetValue(ConfigKey key) {
+			throw new NotImplementedException();
+		}
 	}
 }

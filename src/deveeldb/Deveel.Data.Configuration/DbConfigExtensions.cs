@@ -14,11 +14,188 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace Deveel.Data.Configuration {
 	public static class DbConfigExtensions {
-				public static void Load(this IDbConfig config, IConfigSource source) {
+		#region Get Values
+
+		public static IEnumerable<ConfigKey> GetKeys(this IDbConfig config) {
+			return config.GetKeys(ConfigurationLevel.Current);
+		}
+
+		public static IEnumerable<ConfigValue> GetValues(this IDbConfig config, ConfigurationLevel level) {
+			var keys = config.GetKeys(level);
+			var values = keys.Select(config.GetValue)
+				.Where(value => value != null)
+				.ToList();
+
+			return values.AsReadOnly();
+		}
+
+		public static ConfigValue GetConfigValue(this IDbConfig config, string keyName) {
+			var key = config.GetKey(keyName);
+			if (key == null)
+				return null;
+
+			return config.GetValue(key);
+		}
+
+		public static object GetValue(this IDbConfig config, string keyName) {
+			return GetValue(config, keyName, null);
+		}
+
+		public static object GetValue(this IDbConfig config, string keyName, object defaultValue) {
+			var value = config.GetConfigValue(keyName);
+			if (value == null)
+				return defaultValue;
+
+			return value.Value;
+		}
+
+		public static T GetValue<T>(this IDbConfig config, string keyName) {
+			return GetValue<T>(config, keyName, default(T));
+		}
+
+		public static T GetValue<T>(this IDbConfig config, string keyName, T defaultValue) {
+			var value = config.GetConfigValue(keyName);
+			if (value == null)
+				return defaultValue;
+
+			return value.ToType<T>();
+		}
+
+		public static string GetString(this IDbConfig config, string propertyKey) {
+			return GetString(config, propertyKey, null);
+		}
+
+		public static string GetString(this IDbConfig config, string propertyKey, string defaultValue) {
+			return config.GetValue<string>(propertyKey, defaultValue);
+		}
+
+		public static byte GetByte(this IDbConfig config, string propertyKey) {
+			return GetByte(config, propertyKey, 0);
+		}
+
+		public static byte GetByte(this IDbConfig config, string propertyKey, byte defaultValue) {
+			return config.GetValue<byte>(propertyKey, defaultValue);
+		}
+
+		[CLSCompliant(false)]
+		public static sbyte GetSByte(this IDbConfig config, string propertyKey, sbyte defaultValue) {
+			return config.GetValue<sbyte>(propertyKey, defaultValue);
+		}
+
+		public static short GetInt16(this IDbConfig config, string propertyKey) {
+			return GetInt16(config, propertyKey, 0);
+		}
+
+		public static short GetInt16(this IDbConfig config, string propertyKey, short defaultValue) {
+			return config.GetValue<short>(propertyKey, defaultValue);
+		}
+
+		[CLSCompliant(false)]
+		public static ushort GetUInt16(this IDbConfig config, string propertyKey) {
+			return GetUInt16(config, propertyKey, 0);
+		}
+
+		[CLSCompliant(false)]
+		public static ushort GetUInt16(this IDbConfig config, string propertyKey, ushort defaultValue) {
+			return config.GetValue<ushort>(propertyKey, defaultValue);
+		}
+
+		public static int GetInt32(this IDbConfig config, string propertyKey) {
+			return GetInt32(config, propertyKey, 0);
+		}
+
+		public static int GetInt32(this IDbConfig config, string propertyKey, int defaultValue) {
+			return config.GetValue<int>(propertyKey, defaultValue);
+		}
+
+		[CLSCompliant(false)]
+		public static uint GetUInt32(this IDbConfig config, string propertyKey) {
+			return GetUInt32(config, propertyKey, 0);
+		}
+
+		[CLSCompliant(false)]
+		public static uint GetUInt32(this IDbConfig config, string propertyKey, uint defaultValue) {
+			return config.GetValue<uint>(propertyKey, defaultValue);
+		}
+
+		public static long GetInt64(this IDbConfig config, string propertyKey) {
+			return GetInt64(config, propertyKey, 0);
+		}
+
+		public static long GetInt64(this IDbConfig config, string propertyKey, long defaultValue) {
+			return config.GetValue<long>(propertyKey, defaultValue);
+		}
+
+		[CLSCompliant(false)]
+		public static ulong GetUInt64(this IDbConfig config, string propertyKey) {
+			return GetUInt64(config, propertyKey, 0);
+		}
+
+		[CLSCompliant(false)]
+		public static ulong GetUInt64(this IDbConfig config, string propertyKey, ulong defaultValue) {
+			return config.GetValue<ulong>(propertyKey, defaultValue);
+		}
+
+		public static bool GetBoolean(this IDbConfig config, string propertyKey) {
+			return GetBoolean(config, propertyKey, false);
+		}
+
+		public static bool GetBoolean(this IDbConfig config, string propertyKey, bool defaultValue) {
+			var value = config.GetValue(propertyKey);
+			if (value == null)
+				return defaultValue;
+
+			if (value is bool)
+				return (bool)value;
+
+			try {
+				if (value is string) {
+					if (String.Equals((string)value, "true", StringComparison.OrdinalIgnoreCase) ||
+						String.Equals((string)value, "enabled", StringComparison.OrdinalIgnoreCase) ||
+						String.Equals((string)value, "1"))
+						return true;
+					if (String.Equals((string)value, "false", StringComparison.OrdinalIgnoreCase) ||
+						String.Equals((string)value, "disabled", StringComparison.OrdinalIgnoreCase) ||
+						String.Equals((string)value, "0"))
+						return false;
+				}
+				if (value is IConvertible)
+					value = Convert.ChangeType(value, typeof(bool), CultureInfo.InvariantCulture);
+
+				return (value == null ? defaultValue : (bool)value);
+			} catch (Exception e) {
+				throw new DatabaseConfigurationException(String.Format("Cannot convert {0} to a valid boolean", value), e);
+			}
+		}
+
+		public static float GetSingle(this IDbConfig config, string propertyKey) {
+			return GetSingle(config, propertyKey, 0);
+		}
+
+		public static float GetSingle(this IDbConfig config, string propertyKey, float defaultValue) {
+			return config.GetValue<float>(propertyKey, defaultValue);
+		}
+
+		public static double GetDouble(this IDbConfig config, string propertyKey) {
+			return GetDouble(config, propertyKey, 0);
+		}
+
+		public static double GetDouble(this IDbConfig config, string propertyKey, double defaultValue) {
+			return config.GetValue<double>(propertyKey, defaultValue);
+		}
+
+		#endregion
+
+		#region Load / Save
+
+		public static void Load(this IDbConfig config, IConfigSource source) {
 			config.Load(source, new PropertiesConfigFormatter());
 		}
 
@@ -130,5 +307,7 @@ namespace Deveel.Data.Configuration {
 		public static void Save(this IDbConfig config, ConfigurationLevel level, Stream outputStream, IConfigFormatter formatter) {
 			config.Save(new StreamConfigSource(outputStream), level, formatter);
 		}
+
+		#endregion
 	}
 }
