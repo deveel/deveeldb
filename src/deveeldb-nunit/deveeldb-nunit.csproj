@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Caching\MemoryCacheTests.cs" />
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlBooleanTest.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlDateTimeTests.cs" />

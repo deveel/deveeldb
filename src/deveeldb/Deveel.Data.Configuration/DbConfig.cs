@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.DbSystem;
 
@@ -80,12 +81,31 @@ namespace Deveel.Data.Configuration {
 
 		/// <inheritdoc/>
 		public IEnumerable<ConfigKey> GetKeys(ConfigurationLevel level) {
-			throw new NotImplementedException();
+			var returnKeys = new Dictionary<string, ConfigKey>();
+			if (!isRoot && Parent != null && level == ConfigurationLevel.Deep) {
+				var configKeys = Parent.GetKeys(level);
+				foreach (var pair in configKeys) {
+					returnKeys[pair.Name] = pair;
+				}
+			}
+
+			foreach (var configKey in keys) {
+				returnKeys[configKey.Key] = configKey.Value;
+			}
+
+			return returnKeys.Values.AsEnumerable();
 		}
 
 		/// <inheritdoc/>
 		public ConfigKey GetKey(string name) {
-			throw new NotImplementedException();
+			ConfigKey key;
+			if (keys.TryGetValue(name, out key))
+				return key;
+
+			if (!isRoot && Parent != null && (key = Parent.GetKey(name)) != null)
+				return key;
+
+			return null;
 		}
 
 		/// <inheritdoc/>
@@ -98,12 +118,28 @@ namespace Deveel.Data.Configuration {
 
 		/// <inheritdoc/>
 		public void SetValue(ConfigKey key, object value) {
-			throw new NotImplementedException();
+			if (key == null)
+				throw new ArgumentNullException("key");
+
+			if (!keys.ContainsKey(key.Name))
+				keys[key.Name] = key;
+
+			values[key.Name] = new ConfigValue(key, value);
 		}
 
 		/// <inheritdoc/>
 		public ConfigValue GetValue(ConfigKey key) {
-			throw new NotImplementedException();
+			if (key == null)
+				throw new ArgumentNullException("key");
+
+			ConfigValue value;
+			if (values.TryGetValue(key.Name, out value))
+				return value;
+
+			if (!isRoot && Parent != null && ((value = Parent.GetValue(key)) != null))
+				return value;
+
+			return null;
 		}
 	}
 }
