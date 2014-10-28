@@ -50,4 +50,4 @@ Status and Issues
 
 You can verify the current status of the application code by  [checking the project](http://ci.deveel.org/project.html?projectId=DeveelDB&tab=projectOverview) at [Deveel Continuous Integration Server](http://ci.deveel.org) (access as "guest" user: you will find the direct link below the login form).
 
-Please, report any issue or feature request to our [Issue Tracker](http://issues.deveel.org/issues/DDB)
+Please, report any issue or feature request to our [Issue Tracker](http://github.com/deveel/deveeldb/issues)
