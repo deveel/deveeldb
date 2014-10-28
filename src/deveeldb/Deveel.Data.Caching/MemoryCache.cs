@@ -200,11 +200,11 @@ namespace Deveel.Data.Caching {
 			}
 		}
 
-		public override void Init(IDbConfig config) {
-			base.Init(config);
+		public override void Configure(IDbConfig config) {
+			base.Configure(config);
 
 			// Find a prime hash size depending on the size of the cache.
-			int hashSize = DataCellCache.ClosestPrime(MaxCacheSize / 55);
+			int hashSize = ClosestPrime(MaxCacheSize / 55);
 			nodeHash = new ListNode[hashSize];
 
 			listStart = null;

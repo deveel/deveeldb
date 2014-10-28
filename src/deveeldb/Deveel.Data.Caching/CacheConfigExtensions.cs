@@ -15,27 +15,16 @@
 
 using System;
 
-namespace Deveel.Data.Configuration {
-	public sealed class ConfigKey {
-		public ConfigKey(string name, Type valueType) 
-			: this(name, null, valueType) {
+using Deveel.Data.Configuration;
+
+namespace Deveel.Data.Caching {
+	public static class CacheConfigExtensions {
+		public static int DataCacheSize(this IDbConfig config) {
+			return config.GetValue<int>(CacheConfigKeys.DataCacheSize);
 		}
 
-		public ConfigKey(string name, object defaultValue, Type valueType) {
-			if (String.IsNullOrEmpty(name))
-				throw new ArgumentNullException("name");
-			if (valueType == null)
-				throw new ArgumentNullException("valueType");
-
-			ValueType = valueType;
-			Name = name;
-			DefaultValue = defaultValue;
+		public static void DataCacheSize(this IDbConfig config, int value) {
+			config.SetValue(CacheConfigKeys.DataCacheSize, value);
 		}
-
-		public string Name { get; private set; }
-
-		public Type ValueType { get; private set; }
-
-		public object DefaultValue { get; set; }
 	}
 }

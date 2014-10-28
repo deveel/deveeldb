@@ -21,7 +21,14 @@ namespace Deveel.Data.Caching {
 	/// <summary>
 	/// Provides a contract to access a caching system.
 	/// </summary>
-	public interface ICache : IDisposable {
+	/// <remarks>
+	/// <para>
+	/// This is a <see cref="IConfigurable"/> object, so that additional
+	/// features or configurations (eg. key expiration time, cache mechanism, etc.),
+	/// can be loaded at system initialization.
+	/// </para>
+	/// </remarks>
+	public interface ICache : IDisposable, IConfigurable {
 		/// <summary>
 		/// Gets an object for the given key from the underlying cache system.
 		/// </summary>
@@ -59,11 +66,5 @@ namespace Deveel.Data.Caching {
 		/// Clears all the cached items within the underlying system.
 		/// </summary>
 		void Clear();
-
-		/// <summary>
-		/// Configures the cache with the 
-		/// </summary>
-		/// <param name="config"></param>
-		void Init(IDbConfig config);
 	}
 }

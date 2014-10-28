@@ -16,26 +16,18 @@
 using System;
 
 namespace Deveel.Data.Configuration {
-	public sealed class ConfigKey {
-		public ConfigKey(string name, Type valueType) 
-			: this(name, null, valueType) {
-		}
-
-		public ConfigKey(string name, object defaultValue, Type valueType) {
-			if (String.IsNullOrEmpty(name))
-				throw new ArgumentNullException("name");
-			if (valueType == null)
-				throw new ArgumentNullException("valueType");
-
-			ValueType = valueType;
-			Name = name;
-			DefaultValue = defaultValue;
-		}
-
-		public string Name { get; private set; }
-
-		public Type ValueType { get; private set; }
-
-		public object DefaultValue { get; set; }
+	/// <summary>
+	/// Marks a component as configurable and passes the configuration
+	/// obejct that is used to load the configurations handled.
+	/// </summary>
+	public interface IConfigurable {
+		/// <summary>
+		/// Configures the component with the settings provided
+		/// by the specified configuration object.
+		/// </summary>
+		/// <param name="config">The container of settings used to
+		/// configure the object</param>
+		/// <seealso cref="IDbConfig"/>
+		void Configure(IDbConfig config);
 	}
 }

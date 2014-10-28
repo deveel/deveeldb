@@ -66,6 +66,12 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Caching\Cache.cs" />
+    <Compile Include="Deveel.Data.Caching\CacheConfigExtensions.cs" />
+    <Compile Include="Deveel.Data.Caching\CacheConfigKeys.cs" />
+    <Compile Include="Deveel.Data.Caching\ICache.cs" />
+    <Compile Include="Deveel.Data.Caching\MemoryCache.cs" />
+    <Compile Include="Deveel.Data.Configuration\ConfigGroup.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigKey.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigValue.cs" />
@@ -75,11 +81,13 @@
     <Compile Include="Deveel.Data.Configuration\FileConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\IConfigurable.cs" />
     <Compile Include="Deveel.Data.Configuration\IDbConfig.cs" />
     <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseSystemException.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SystemConfigKeys.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemErrorCodes.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventClasses.cs" />

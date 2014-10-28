@@ -35,12 +35,6 @@ namespace Deveel.Data.Caching {
 	/// </remarks>
 	public abstract class Cache : ICache {
 		/// <summary>
-		/// The maximum number of DataCell objects that can be stored in 
-		/// the cache at any one time.
-		/// </summary>
-		private int maxCacheSize;
-
-		/// <summary>
 		/// The current cache size.
 		/// </summary>
 		private int currentCacheSize;
@@ -64,7 +58,7 @@ namespace Deveel.Data.Caching {
 			if (cleanPercentage >= 85)
 				throw new ArgumentException("Can't set to wipe more than 85% of the cache during clean.");
 
-			maxCacheSize = maxSize;
+			MaxCacheSize = maxSize;
 			currentCacheSize = 0;
 			wipeTo = maxSize - ((cleanPercentage * maxSize) / 100);
 		}
@@ -183,9 +177,7 @@ namespace Deveel.Data.Caching {
 		/// The maximum number of DataCell objects that can be stored in 
 		/// the cache at any one time.
 		/// </summary>
-		protected int MaxCacheSize {
-			get { return maxCacheSize; }
-		}
+		protected int MaxCacheSize { get; private set; }
 
 		protected abstract bool SetObject(object key, object value);
 
@@ -250,8 +242,8 @@ namespace Deveel.Data.Caching {
 			OnAllCleared();
 		}
 
-		public virtual void Init(IDbConfig config) {
-			maxCacheSize = config.GetInt32(ConfigKeys.DataCacheSize, 0);
+		public virtual void Configure(IDbConfig config) {
+			MaxCacheSize = config.DataCacheSize();
 		}
 
 		/// <summary>

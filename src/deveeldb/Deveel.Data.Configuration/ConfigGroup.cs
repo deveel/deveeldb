@@ -12,30 +12,10 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-
 using System;
 
 namespace Deveel.Data.Configuration {
-	public sealed class ConfigKey {
-		public ConfigKey(string name, Type valueType) 
-			: this(name, null, valueType) {
-		}
-
-		public ConfigKey(string name, object defaultValue, Type valueType) {
-			if (String.IsNullOrEmpty(name))
-				throw new ArgumentNullException("name");
-			if (valueType == null)
-				throw new ArgumentNullException("valueType");
-
-			ValueType = valueType;
-			Name = name;
-			DefaultValue = defaultValue;
-		}
-
-		public string Name { get; private set; }
-
-		public Type ValueType { get; private set; }
-
-		public object DefaultValue { get; set; }
+	public static class ConfigGroup {
+		public const char Separator = '.';
 	}
 }

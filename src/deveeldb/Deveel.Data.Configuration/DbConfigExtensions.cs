@@ -44,6 +44,94 @@ namespace Deveel.Data.Configuration {
 			return config.GetValue(key);
 		}
 
+		#region GetValue(ConfigKey)
+
+		public static T GetValue<T>(this IDbConfig config, ConfigKey key) {
+			var value = config.GetValue(key);
+			if (value == null)
+				return default(T);
+
+			return value.ToType<T>();
+		}
+
+		public static string GetString(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<string>(key);
+		}
+
+		public static byte GetByte(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<byte>(key);
+		}
+
+		[CLSCompliant(false)]
+		public static sbyte GetSByte(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<sbyte>(key);
+		}
+
+		public static short GetInt16(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<short>(key);
+		}
+
+		[CLSCompliant(false)]
+		public static ushort GetUInt16(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<ushort>(key);
+		}
+
+		public static int GetInt32(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<int>(key);
+		}
+
+		[CLSCompliant(false)]
+		public static uint GetUInt32(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<uint>(key);
+		}
+
+		public static long GetInt64(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<long>(key);
+		}
+
+		[CLSCompliant(false)]
+		public static ulong GetUInt64(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<ulong>(key);
+		}
+
+		public static bool GetBoolean(this IDbConfig config, ConfigKey key) {
+			var value = config.GetValue(key);
+			if (value == null)
+				return false;
+
+			if (value.Value is bool)
+				return (bool)value.Value;
+
+			try {
+				if (value.Value is string) {
+					if (String.Equals((string)value.Value, "true", StringComparison.OrdinalIgnoreCase) ||
+						String.Equals((string)value.Value, "enabled", StringComparison.OrdinalIgnoreCase) ||
+						String.Equals((string)value.Value, "1"))
+						return true;
+					if (String.Equals((string)value.Value, "false", StringComparison.OrdinalIgnoreCase) ||
+						String.Equals((string)value.Value, "disabled", StringComparison.OrdinalIgnoreCase) ||
+						String.Equals((string)value.Value, "0"))
+						return false;
+				}
+
+				return value.ToType<bool>();
+			} catch (Exception e) {
+				throw new DatabaseConfigurationException(String.Format("Cannot convert {0} to a valid boolean", value), e);
+			}
+		}
+
+		public static float GetSingle(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<float>(key);
+		}
+
+		public static double GetDouble(this IDbConfig config, ConfigKey key) {
+			return config.GetValue<double>(key);
+		}
+
+		#endregion
+
+		#region GetValue(string)
+
 		public static object GetValue(this IDbConfig config, string keyName) {
 			return GetValue(config, keyName, null);
 		}
@@ -73,7 +161,7 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static string GetString(this IDbConfig config, string propertyKey, string defaultValue) {
-			return config.GetValue<string>(propertyKey, defaultValue);
+			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		public static byte GetByte(this IDbConfig config, string propertyKey) {
@@ -81,12 +169,12 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static byte GetByte(this IDbConfig config, string propertyKey, byte defaultValue) {
-			return config.GetValue<byte>(propertyKey, defaultValue);
+			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		[CLSCompliant(false)]
 		public static sbyte GetSByte(this IDbConfig config, string propertyKey, sbyte defaultValue) {
-			return config.GetValue<sbyte>(propertyKey, defaultValue);
+			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		public static short GetInt16(this IDbConfig config, string propertyKey) {
@@ -104,7 +192,7 @@ namespace Deveel.Data.Configuration {
 
 		[CLSCompliant(false)]
 		public static ushort GetUInt16(this IDbConfig config, string propertyKey, ushort defaultValue) {
-			return config.GetValue<ushort>(propertyKey, defaultValue);
+			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		public static int GetInt32(this IDbConfig config, string propertyKey) {
@@ -112,7 +200,7 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static int GetInt32(this IDbConfig config, string propertyKey, int defaultValue) {
-			return config.GetValue<int>(propertyKey, defaultValue);
+			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		[CLSCompliant(false)]
@@ -122,7 +210,7 @@ namespace Deveel.Data.Configuration {
 
 		[CLSCompliant(false)]
 		public static uint GetUInt32(this IDbConfig config, string propertyKey, uint defaultValue) {
-			return config.GetValue<uint>(propertyKey, defaultValue);
+			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		public static long GetInt64(this IDbConfig config, string propertyKey) {
@@ -130,7 +218,7 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static long GetInt64(this IDbConfig config, string propertyKey, long defaultValue) {
-			return config.GetValue<long>(propertyKey, defaultValue);
+			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		[CLSCompliant(false)]
@@ -140,7 +228,7 @@ namespace Deveel.Data.Configuration {
 
 		[CLSCompliant(false)]
 		public static ulong GetUInt64(this IDbConfig config, string propertyKey, ulong defaultValue) {
-			return config.GetValue<ulong>(propertyKey, defaultValue);
+			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		public static bool GetBoolean(this IDbConfig config, string propertyKey) {
@@ -180,7 +268,7 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static float GetSingle(this IDbConfig config, string propertyKey, float defaultValue) {
-			return config.GetValue<float>(propertyKey, defaultValue);
+			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		public static double GetDouble(this IDbConfig config, string propertyKey) {
@@ -190,6 +278,8 @@ namespace Deveel.Data.Configuration {
 		public static double GetDouble(this IDbConfig config, string propertyKey, double defaultValue) {
 			return config.GetValue<double>(propertyKey, defaultValue);
 		}
+
+		#endregion
 
 		#endregion
 

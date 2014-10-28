@@ -16,29 +16,92 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Configuration {
 	[Serializable]
 	public class DbConfig : IDbConfig {
+		private readonly bool isRoot;
+		private readonly Dictionary<string, ConfigKey> keys;
+		private readonly Dictionary<string, ConfigValue> values;
+
+		/// <summary>
+		/// Constructs the <see cref="DbConfig"/>.
+		/// </summary>
+		private DbConfig(bool isRoot) {
+			Parent = null;
+			this.isRoot = isRoot;
+			keys = new Dictionary<string, ConfigKey>();
+			values = new Dictionary<string, ConfigValue>();
+		}
+
+		/// <summary>
+		/// Constructs the <see cref="DbConfig"/> from the given parent.
+		/// </summary>
+		/// <param name="parent">The parent <see cref="DbConfig"/> object that
+		/// will provide fallback configurations</param>
+		/// <param name="source"></param>
+		public DbConfig(IDbConfig parent, IConfigSource source)
+			: this(false) {
+			Parent = parent;
+			Source = source;
+
+			if (source != null)
+				this.Load(source);
+		}
+
+		public DbConfig(IConfigSource source)
+			: this(null, source) {
+		}
+
+		public DbConfig(IDbConfig parent)
+			: this(parent, null) {
+		}
+
+		static DbConfig() {
+			Empty = new DbConfig(true);
+
+			Default = new DbConfig(true);
+			SystemConfigKeys.SetTo(Default);
+		}
+
+		/// <inheritdoc/>
 		public IConfigSource Source { get; set; }
 
+		/// <inheritdoc/>
 		public IDbConfig Parent { get; set; }
 
+		/// <summary>
+		/// An empty configuration object, which does not contain any key nor value.
+		/// </summary>
+		public static DbConfig Empty { get; private set; }
+
+		public static DbConfig Default { get; private set; }
+
+		/// <inheritdoc/>
 		public IEnumerable<ConfigKey> GetKeys(ConfigurationLevel level) {
 			throw new NotImplementedException();
 		}
 
+		/// <inheritdoc/>
 		public ConfigKey GetKey(string name) {
 			throw new NotImplementedException();
 		}
 
+		/// <inheritdoc/>
 		public void SetKey(ConfigKey key) {
-			throw new NotImplementedException();
+			if (key == null)
+				throw new ArgumentNullException("key");
+
+			keys[key.Name] = key;
 		}
 
+		/// <inheritdoc/>
 		public void SetValue(ConfigKey key, object value) {
 			throw new NotImplementedException();
 		}
 
+		/// <inheritdoc/>
 		public ConfigValue GetValue(ConfigKey key) {
 			throw new NotImplementedException();
 		}
