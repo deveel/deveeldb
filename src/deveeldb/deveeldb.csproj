@@ -85,6 +85,7 @@
     <Compile Include="Deveel.Data.Configuration\IDbConfig.cs" />
     <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseSystemException.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemConfigKeys.cs" />

@@ -15,6 +15,7 @@
 
 using System;
 using System.Reflection;
+using System.Text;
 
 using NUnit.Framework;
 
@@ -93,6 +94,24 @@ namespace Deveel.Data.Configuration {
 			int iValue = -1;
 			Assert.DoesNotThrow(() => iValue = value.ToType<int>());
 			Assert.AreEqual(22, iValue);
+		}
+
+		[Test]
+		public void Extensions_LoadFromProperties() {
+			var properties = new StringBuilder();
+			properties.AppendLine("system.readOnly = false");
+			properties.AppendLine("caching.type = Memory");
+
+			IDbConfig dbConfig = null;
+			Assert.DoesNotThrow(() => dbConfig = new DbConfig(new StringConfigSource(properties.ToString())));
+			Assert.IsNotNull(dbConfig);
+			Assert.DoesNotThrow(() => dbConfig.Load(new PropertiesConfigFormatter()));
+
+			Assert.DoesNotThrow(() => Assert.IsNotNull(dbConfig.GetKey("system.readOnly")));
+
+			bool readOnly = true;
+			Assert.DoesNotThrow(() => readOnly = dbConfig.GetBoolean("system.readOnly"));
+			Assert.IsFalse(readOnly);
 		}
 	}
 }
