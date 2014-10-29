@@ -15,47 +15,28 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions {
+namespace Deveel.Data.Sql.Compile {
 	/// <summary>
-	/// All the possile type of <see cref="SqlExpression"/> supported
+	/// A default implementation of the <see cref="ISqlVisitableNode"/>
+	/// that performs a callback for each child node.
 	/// </summary>
-	public enum SqlExpressionType {
+	public class SqlVisitableNode : SqlNode, ISqlVisitableNode {
+		void ISqlVisitableNode.Accept(ISqlNodeVisitor visitor) {
+			OnAcceptVisit(visitor);
+		}
+
 		/// <summary>
-		/// Represents an expression which has a constant value
+		/// Invoked on the visit of the given visitor.
 		/// </summary>
-		/// <seealso cref="SqlConstantExpression"/>
-		Constant,
+		/// <param name="visitor">The visitor object that called the method.</param>
+		protected virtual void OnAcceptVisit(ISqlNodeVisitor visitor) {
+			if (ChildNodes != null) {
+				foreach (var childNode in ChildNodes) {
+					visitor.Visit(childNode);
+				}
+			}
 
-		FunctionCall,
-		Cast,
-		Conditional,
-
-		// Logical Binary
-		LogicalAnd,
-		LogicalOr,
-
-		// Multiplicative Binary
-		Add,
-		Subtract,
-		Multiply,
-		Divide,
-		Modulo,
-		BitwiseOr,
-		BitwiseAnd,
-
-		// Comparison Binary
-		Equal,
-		NotEqual,
-		Is,
-		IsNot,
-		SmallerThan,
-		GreaterThan,
-		SmallerOrEqualThan,
-		GreaterOrEqualThan,
-
-		// Unary
-		Not,
-		UnaryPlus,
-		Negate
+			visitor.Visit(this);
+		}
 	}
 }

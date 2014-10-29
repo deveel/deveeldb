@@ -164,6 +164,10 @@ namespace Deveel.Data {
 			return BooleanFalse;
 		}
 
+		public DataObject IsNot(DataObject other) {
+			return Is(other).Negate();
+		}
+
 		/// <summary>
 		/// Compares to the given object to verify if is it equal to the current.
 		/// </summary>
@@ -362,8 +366,16 @@ namespace Deveel.Data {
 
 		#region Object Factory
 
+		public static DataObject Boolean(SqlBoolean value) {
+			return new DataObject(PrimitiveTypes.Boolean(), value);
+		}
+
 		public static DataObject Boolean(bool value) {
-			return new DataObject(PrimitiveTypes.Boolean(), new SqlBoolean(value));
+			return Boolean((SqlBoolean)value);
+		}
+
+		public static DataObject Number(SqlNumber value) {
+			return Number(PrimitiveTypes.Numeric(), value);
 		}
 
 		public static DataObject Number(NumericType type, SqlNumber value) {
@@ -387,11 +399,19 @@ namespace Deveel.Data {
 		}
 
 		public static DataObject String(string s) {
-			return new DataObject(PrimitiveTypes.String(SqlTypeCode.String), new SqlString(s));
+			return String(new SqlString(s));
+		}
+
+		public static DataObject String(SqlString s) {
+			return new DataObject(PrimitiveTypes.String(SqlTypeCode.String), s);
 		}
 
 		public static DataObject VarChar(string s) {
-			return new DataObject(PrimitiveTypes.String(SqlTypeCode.VarChar), new SqlString(s));
+			return VarChar(new SqlString(s));
+		}
+
+		public static DataObject VarChar(SqlString s) {
+			return new DataObject(PrimitiveTypes.String(SqlTypeCode.VarChar), s);
 		}
 
 		public static DataObject Null(DataType type) {

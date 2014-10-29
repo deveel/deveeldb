@@ -20,6 +20,7 @@ namespace Deveel.Data.Sql.Expressions {
 		Unknown = 0x450000,
 		EvaluateError = 0x06770440,
 		UnableToReduce = 0x03999400,
-		VariableNotFound = 0x03004003
+		VariableNotFound = 0x03004003,
+		CannotParse = 0x08778290
 	}
 }

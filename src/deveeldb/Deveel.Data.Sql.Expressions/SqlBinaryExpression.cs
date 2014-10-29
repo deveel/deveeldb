@@ -17,8 +17,14 @@ using System;
 
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
-	public abstract class SqlBinaryExpression : SqlExpression {
-		protected SqlBinaryExpression(SqlExpression left, SqlExpression right) {
+	public sealed class SqlBinaryExpression : SqlExpression {
+		private readonly SqlExpressionType expressionType;
+		private readonly Func<DataObject, DataObject, DataObject> binaryFunc;
+
+		internal SqlBinaryExpression(SqlExpression left, SqlExpressionType expressionType, SqlExpression right, Func<DataObject, DataObject, DataObject> binaryFunc) {
+			this.expressionType = expressionType;
+			this.binaryFunc = binaryFunc;
+
 			Left = left;
 			Right = right;
 		}
@@ -27,10 +33,16 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public SqlExpression Right { get; private set; }
 
-		protected abstract DataObject EvaluateBinary(DataObject left, DataObject right);
+		private DataObject EvaluateBinary(DataObject left, DataObject right) {
+			return binaryFunc(left, right);
+		}
 
 		public override bool CanEvaluate {
 			get { return true; }
+		}
+
+		public override SqlExpressionType ExpressionType {
+			get { return expressionType; }
 		}
 
 		public override SqlExpression Evaluate(EvaluateContext context) {

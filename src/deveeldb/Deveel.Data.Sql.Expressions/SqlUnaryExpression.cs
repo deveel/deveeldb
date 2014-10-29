@@ -17,16 +17,16 @@ using System;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
-	/// This is the base class for expressions computed agaist an
-	/// unary operator.
+	/// Handles expressions computed agaist an unary operator.
 	/// </summary>
 	[Serializable]
-	public abstract class SqlUnaryExpression : SqlExpression {
-		/// <summary>
-		/// Constructs the expression with a given operand.
-		/// </summary>
-		/// <param name="operand">The expression as operand of the unary operator.</param>
-		protected SqlUnaryExpression(SqlExpression operand) {
+	public sealed class SqlUnaryExpression : SqlExpression {
+		private readonly SqlExpressionType expressionType;
+		private readonly Func<DataObject, DataObject> unaryFunc;
+
+		internal SqlUnaryExpression(SqlExpressionType expressionType, SqlExpression operand, Func<DataObject, DataObject> unaryFunc) {
+			this.expressionType = expressionType;
+			this.unaryFunc = unaryFunc;
 			Operand = operand;
 		}
 
@@ -35,17 +35,14 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		public SqlExpression Operand { get; private set; }
 
-		/// <summary>
-		/// When overridden by a derived class, this applies the unary operator
-		/// to the constant value, obtained by the reduction to constant in a
-		/// previous moment of the expression lifecycle.
-		/// </summary>
-		/// <param name="value">The constant value to evaluate.</param>
-		/// <returns>
-		/// Returns the constant result of the application of the unary operator 
-		/// to the input value given.
-		/// </returns>
-		protected abstract DataObject EvaluateUnary(DataObject value);
+		/// <inheritdoc/>
+		public override SqlExpressionType ExpressionType {
+			get { return expressionType; }
+		}
+
+		private DataObject EvaluateUnary(DataObject value) {
+			return unaryFunc(value);
+		}
 
 		/// <inheritdoc/>
 		public override bool CanEvaluate {

@@ -100,9 +100,12 @@
     <Compile Include="Deveel.Data.Sql.Compile\CaseSwitchNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CompileErrorCodes.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DataTypeNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ExpressionConvertVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\IdentifierNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\IExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\IntegerLiteralNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ISqlNodeVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ISqlVisitableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\NumerLiteralNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ObjectNameNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlBetweenExpressionNode.cs" />
@@ -111,10 +114,12 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlConstantExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlExpressionTupleNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlFunctionCallExpressionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlNodeVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlParseException.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlReferenceExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlUnaryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlVariableRefExpressionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlVisitableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\StringLiteralNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlGrammar.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlChildNode.cs" />
@@ -129,6 +134,7 @@
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluateException.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlCastExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlConditionalExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlConstantExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionException.cs" />

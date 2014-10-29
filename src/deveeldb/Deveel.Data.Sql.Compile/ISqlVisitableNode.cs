@@ -15,19 +15,17 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions {
-	[Serializable]
-	public class ExpressionEvaluateException : SqlExpressionException {
-		public ExpressionEvaluateException() 
-			: this(null) {
-		}
-
-		public ExpressionEvaluateException(string message) 
-			: this(message, null) {
-		}
-
-		public ExpressionEvaluateException(string message, Exception innerException) 
-			: base(ExpressionErrorCodes.EvaluateError, message, innerException) {
-		}
+namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// An implementation of <see cref="ISqlNode"/> that accepts
+	/// visits from a <see cref="ISqlNodeVisitor"/>
+	/// </summary>
+	public interface ISqlVisitableNode : ISqlNode {
+		/// <summary>
+		/// Called by an implementation of <see cref="ISqlNodeVisitor"/>
+		/// during the tree-node evaluation.
+		/// </summary>
+		/// <param name="visitor">The visitor object that calls this method.</param>
+		void Accept(ISqlNodeVisitor visitor);
 	}
 }

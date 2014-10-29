@@ -80,5 +80,31 @@ namespace Deveel.Data.Sql.Compile {
 
 			return (DataTypeNode)result.Root.AstNode;			
 		}
+
+		public IExpressionNode CompileExpression(string s) {
+			var grammar = new SqlGrammar(IgnoreCase);
+			grammar.SetRootToExpression();
+
+			var languageData = new LanguageData(grammar);
+
+			if (!languageData.CanParse())
+				throw new InvalidOperationException();
+
+			var parser = new Parser(languageData);
+			var result = parser.Parse(s);
+			if (result.HasErrors())
+				throw new SqlParseException();
+
+			var astContext = new AstContext(languageData);
+			astContext.DefaultNodeType = typeof(SqlNode);
+			astContext.DefaultIdentifierNodeType = typeof (IdentifierNode);
+			var astCompiler = new AstBuilder(astContext);
+			astCompiler.BuildAst(result);
+
+			if (result.HasErrors())
+				throw new SqlParseException();
+
+			return (IExpressionNode)result.Root.AstNode;
+		}
 	}
 }

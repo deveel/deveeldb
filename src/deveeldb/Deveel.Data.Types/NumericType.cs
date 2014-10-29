@@ -243,5 +243,57 @@ namespace Deveel.Data.Types {
 			}
 			return sb.ToString();
 		}
+
+		public override ISqlObject Add(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber))
+				throw new ArgumentException();
+			if (b is SqlNull || b.IsNull)
+				return SqlNumber.Null;
+
+			var num1 = (SqlNumber) a;
+			SqlNumber num2;
+
+			if (b is SqlBoolean) {
+				if ((SqlBoolean) b) {
+					num2 = SqlNumber.One;
+				} else if (!(SqlBoolean) b) {
+					num2 = SqlNumber.Zero;
+				} else {
+					num2 = SqlNumber.Null;
+				}
+			} else if (b is SqlNumber) {
+				num2 = (SqlNumber) b;
+			} else {
+				throw new ArgumentException();
+			}
+
+			return num1.Add(num2);
+		}
+
+		public override ISqlObject Subtract(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber))
+				throw new ArgumentException();
+			if (b is SqlNull || b.IsNull)
+				return SqlNumber.Null;
+
+			var num1 = (SqlNumber) a;
+			SqlNumber num2;
+
+			if (b is SqlBoolean) {
+				if ((SqlBoolean) b) {
+					num2 = SqlNumber.One;
+				} else if (!(SqlBoolean) b) {
+					num2 = SqlNumber.Zero;
+				} else {
+					num2 = SqlNumber.Null;
+				}
+			} else if (b is SqlNumber) {
+				num2 = (SqlNumber) b;
+			} else {
+				throw new ArgumentException();
+			}
+
+			return num1.Subtract(num2);
+		}
 	}
 }

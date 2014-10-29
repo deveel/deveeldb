@@ -15,23 +15,31 @@
 
 using System;
 
+using Deveel.Data.Sql.Objects;
+
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	public sealed class SqlConstantExpressionNode : SqlNode, IExpressionNode {
-		internal SqlConstantExpressionNode() {
-		}
-
-		public object Value { get; private set; }
+		public ISqlObject Value { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is SqlKeyNode) {
-				Value = ((SqlKeyNode) node).Text;
+				var keyNode = (SqlKeyNode) node;
+				if (String.Equals(keyNode.Text, "true", StringComparison.OrdinalIgnoreCase)) {
+					Value = SqlBoolean.True;
+				} else if (String.Equals(keyNode.Text, "false", StringComparison.OrdinalIgnoreCase)) {
+					Value = SqlBoolean.False;
+				} else if (String.Equals(keyNode.Text, "null", StringComparison.OrdinalIgnoreCase)) {
+					Value = SqlNull.Value;
+				} else {
+					Value = SqlString.Unicode(((SqlKeyNode) node).Text);
+				}
 			} else if (node is IntegerLiteralNode) {
-				Value = ((IntegerLiteralNode) node).BigValue;
+				Value = new SqlNumber(((IntegerLiteralNode) node).BigValue);
 			} else if (node is NumberLiteralNode) {
-				Value = ((NumberLiteralNode) node).BigValue;
+				Value = new SqlNumber(((NumberLiteralNode) node).BigValue);
 			} else if (node is StringLiteralNode) {
-				Value = ((StringLiteralNode) node).Value;
+				Value = SqlString.Unicode(((StringLiteralNode) node).Value);
 			}
 
 			return base.OnChildNode(node);
