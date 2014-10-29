@@ -24,5 +24,6 @@ namespace Deveel.Data.Diagnostics {
 		public const int Compiler = 0x003033;
 		public const int Storage = 0x000670;
 		public const int Runtime = 0x008880;
+		public const int Expressions = 0x0050030;
 	}
 }

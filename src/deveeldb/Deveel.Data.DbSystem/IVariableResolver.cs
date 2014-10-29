@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ using System;
 
 using Deveel.Data.Types;
 
-namespace Deveel.Data {
+namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// An interface to resolve a variable name to a constant object.
 	/// </summary>
@@ -48,7 +48,6 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="variable"></param>
 		/// <returns></returns>
-		DataType ReturnTType(ObjectName variable);
-
+		DataType ReturnType(ObjectName variable);
 	}
 }

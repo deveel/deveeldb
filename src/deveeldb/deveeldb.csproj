@@ -88,6 +88,9 @@
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseSystemException.cs" />
+    <Compile Include="Deveel.Data.DbSystem\IGroupResolver.cs" />
+    <Compile Include="Deveel.Data.DbSystem\IQueryContext.cs" />
+    <Compile Include="Deveel.Data.DbSystem\IVariableResolver.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemConfigKeys.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemErrorCodes.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
@@ -121,6 +124,17 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlNodeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\Token.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\EvaluateContext.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\ExpressionErrorCodes.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluateException.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlCastExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlConstantExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionException.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionType.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlFunctionCallExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlUnaryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongString.cs" />
     <Compile Include="Deveel.Data.Store\AreaExtensions.cs" />

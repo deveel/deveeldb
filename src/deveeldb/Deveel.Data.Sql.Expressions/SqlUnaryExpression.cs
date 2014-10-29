@@ -16,20 +16,43 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
+	/// <summary>
+	/// This is the base class for expressions computed agaist an
+	/// unary operator.
+	/// </summary>
 	[Serializable]
 	public abstract class SqlUnaryExpression : SqlExpression {
+		/// <summary>
+		/// Constructs the expression with a given operand.
+		/// </summary>
+		/// <param name="operand">The expression as operand of the unary operator.</param>
 		protected SqlUnaryExpression(SqlExpression operand) {
 			Operand = operand;
 		}
 
+		/// <summary>
+		/// Gets the operand expression that is computed.
+		/// </summary>
 		public SqlExpression Operand { get; private set; }
 
+		/// <summary>
+		/// When overridden by a derived class, this applies the unary operator
+		/// to the constant value, obtained by the reduction to constant in a
+		/// previous moment of the expression lifecycle.
+		/// </summary>
+		/// <param name="value">The constant value to evaluate.</param>
+		/// <returns>
+		/// Returns the constant result of the application of the unary operator 
+		/// to the input value given.
+		/// </returns>
 		protected abstract DataObject EvaluateUnary(DataObject value);
 
+		/// <inheritdoc/>
 		public override bool CanEvaluate {
 			get { return true; }
 		}
 
+		/// <inheritdoc/>
 		public override SqlExpression Evaluate(EvaluateContext context) {
 			var exp = (SqlConstantExpression) Operand.Evaluate(context);
 			var computedValue = EvaluateUnary(exp.Value);

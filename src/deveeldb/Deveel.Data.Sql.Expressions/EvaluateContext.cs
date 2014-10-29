@@ -22,12 +22,25 @@ namespace Deveel.Data.Sql.Expressions {
 	/// Encapsulates the elements needed to evaluate an <see cref="SqlExpression"/>
 	/// </summary>
 	public sealed class EvaluateContext {
+		public EvaluateContext(IQueryContext queryContext, IVariableResolver variableResolver) 
+			: this(queryContext, variableResolver, null) {
+		}
+
 		public EvaluateContext(IQueryContext queryContext, IVariableResolver variableResolver, IGroupResolver groupResolver) {
 			GroupResolver = groupResolver;
 			VariableResolver = variableResolver;
 			QueryContext = queryContext;
 		}
 
+		/// <summary>
+		/// Gets an object used to resolve variables from within the expression.
+		/// </summary>
+		/// <remarks>
+		/// A variable can be resolved against an encapsulated context (for example a 
+		/// stored procedure or a statement within the procedure), or against the
+		/// global context of the system (for example a static variable of the database
+		/// or a session variable).
+		/// </remarks>
 		public IVariableResolver VariableResolver { get; private set; }
 
 		public IGroupResolver GroupResolver { get; private set; }

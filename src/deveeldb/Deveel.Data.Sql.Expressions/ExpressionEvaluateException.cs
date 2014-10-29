@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +15,11 @@
 
 using System;
 
-namespace Deveel.Data {
-	/// <summary>
-	/// A reference to a large character object in the database.
-	/// </summary>
-	public interface IClobRef : IStringAccessor, IRef {
-
+namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
+	public class ExpressionEvaluateException : SqlExpressionException {
+		public ExpressionEvaluateException(string message, Exception innerException) 
+			: base(ExpressionErrorCodes.EvaluateError, message, innerException) {
+		}
 	}
 }

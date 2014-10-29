@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +15,11 @@
 
 using System;
 
-namespace Deveel.Data {
-	/// <summary>
-	/// A lightweight interface that is a reference to a blob in a <see cref="IBlobStore"/>.
-	/// </summary>
-	/// <remarks>
-	/// This interface allows for data to be Read and written to a blob.  Writing to 
-	/// a blob may be restricted depending on the state setting of the blob.
-	/// </remarks>
-	public interface IBlobRef : IBlobAccessor, IRef {
+namespace Deveel.Data.Sql.Expressions {
+	public enum ExpressionErrorCodes : int {
+		Unknown = 0x450000,
+		EvaluateError = 0x06770440,
+		UnableToReduce = 0x03999400,
+		VariableNotFound = 0x03004003
 	}
 }

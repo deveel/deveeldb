@@ -38,6 +38,9 @@ namespace Deveel.Data.Sql.Expressions {
 			Value = value;
 		}
 
+		/// <summary>
+		/// Gets the SQL expression type of <see cref="SqlExpressionType.Constant"/>
+		/// </summary>
 		public override SqlExpressionType ExpressionType {
 			get { return SqlExpressionType.Constant; }
 		}
