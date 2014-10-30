@@ -17,6 +17,15 @@ using System;
 
 namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlFunctionCallExpression : SqlExpression {
+		internal SqlFunctionCallExpression(ObjectName functioName, SqlExpression[] arguments) {
+			Arguments = arguments;
+			FunctioName = functioName;
+		}
+
+		public ObjectName FunctioName { get; private set; }
+
+		public SqlExpression[] Arguments { get; private set; }
+
 		public override SqlExpressionType ExpressionType {
 			get { return SqlExpressionType.FunctionCall; }
 		}

@@ -14,6 +14,8 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Remoting.Services;
 
 using Deveel.Data.Sql.Expressions;
@@ -57,6 +59,8 @@ namespace Deveel.Data.Sql.Compile {
 				return VisitConstantExpression((SqlConstantExpressionNode) expressionNode);
 			if (expressionNode is SqlCaseExpressionNode)
 				return VisitCaseExpression((SqlCaseExpressionNode) expressionNode);
+			if (expressionNode is SqlReferenceExpressionNode)
+				return VisitReference((SqlReferenceExpressionNode) expressionNode);
 
 			throw new NotSupportedException();
 		}
@@ -81,8 +85,17 @@ namespace Deveel.Data.Sql.Compile {
 			return SqlExpression.Constant(obj);
 		}
 
+		private SqlReferenceExpression VisitReference(SqlReferenceExpressionNode node) {
+			// TODO: support the Variable reference (:var)
+			return SqlExpression.Reference(node.Reference.Name);
+		}
+
 		private SqlFunctionCallExpression VisitFunctionCallExpression(SqlFunctionCallExpressionNode expressionNode) {
-			throw new NotImplementedException();
+			var args = new List<SqlExpression>();
+			if (expressionNode.Arguments != null)
+				args.AddRange(expressionNode.Arguments.Select(VisitExpression));
+
+			return SqlExpression.FunctionCall(expressionNode.FunctionName, args.ToArray());
 		}
 
 		private SqlBinaryExpression VisitBetweenExpression(SqlBetweenExpressionNode expressionNode) {
@@ -92,11 +105,62 @@ namespace Deveel.Data.Sql.Compile {
 
 			var smallerExp = SqlExpression.SmallerOrEqualThan(testExp, maxValue);
 			var greaterExp = SqlExpression.GreaterOrEqualThan(testExp, minValue);
-			return SqlExpression.LogicalAnd(smallerExp, greaterExp);
+			return SqlExpression.And(smallerExp, greaterExp);
 		}
 
 		private SqlBinaryExpression VisitBinaryExpression(SqlBinaryExpressionNode expressionNode) {
-			throw new NotImplementedException();
+			var left = VisitExpression(expressionNode.Left);
+			var right = VisitExpression(expressionNode.Right);
+			var op = expressionNode.Operator;
+
+			var expType = GetBinaryExpressionType(op);
+
+			return SqlExpression.Binary(left, expType, right);
+		}
+
+		private SqlExpressionType GetBinaryExpressionType(string op) {
+			// TODO: support ALL and ANY
+
+			if (op == "+" ||
+				op == "||")
+				return SqlExpressionType.Add;
+			if (op == "-")
+				return SqlExpressionType.Subtract;
+			if (op == "*")
+				return SqlExpressionType.Multiply;
+			if (op == "/")
+				return SqlExpressionType.Divide;
+			if (op == "%" ||
+				String.Equals(op, "MOD", StringComparison.OrdinalIgnoreCase))
+				return SqlExpressionType.Modulo;
+			if (op == "=")
+				return SqlExpressionType.Equal;
+			if (op == "<>")
+				return SqlExpressionType.NotEqual;
+			if (op == ">")
+				return SqlExpressionType.GreaterThan;
+			if (op == ">=")
+				return SqlExpressionType.GreaterOrEqualThan;
+			if (op == "<")
+				return SqlExpressionType.SmallerThan;
+			if (op == "<=")
+				return SqlExpressionType.SmallerOrEqualThan;
+			if (String.Equals(op, "LIKE", StringComparison.OrdinalIgnoreCase))
+				return SqlExpressionType.Like;
+			if (String.Equals(op, "NOT LIKE", StringComparison.OrdinalIgnoreCase))
+				return SqlExpressionType.NotLike;
+
+			if (String.Equals(op, "IS", StringComparison.OrdinalIgnoreCase))
+				return SqlExpressionType.Is;
+			if (String.Equals(op, "IS NOT", StringComparison.OrdinalIgnoreCase))
+				return SqlExpressionType.IsNot;
+
+			if (String.Equals(op, "AND", StringComparison.OrdinalIgnoreCase))
+				return SqlExpressionType.And;
+			if (String.Equals(op, "OR", StringComparison.OrdinalIgnoreCase))
+				return SqlExpressionType.Or;
+
+			throw new ArgumentException(String.Format("The operator {0} is not a binary one."));
 		}
 
 		private SqlUnaryExpression VisitUnaryExpression(SqlUnaryExpressionNode expressionNode) {

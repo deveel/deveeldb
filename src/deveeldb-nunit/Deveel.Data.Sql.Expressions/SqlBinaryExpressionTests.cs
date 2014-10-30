@@ -25,8 +25,8 @@ namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlBinaryExpressionTests {
 		[Test]
 		public void NumericAndNumericAdd() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(4566)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(8991.67)));
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(4566, 10)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(8991.67, 10)));
 			var addExp = SqlExpression.Add(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -39,8 +39,9 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
 			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
 
-			var expected = new SqlNumber(13557.67).Round();
-			var actual = ((SqlNumber) constExp.Value.Value).Round();
+			var actual = ((SqlNumber) constExp.Value.Value).Round(2);
+			var expected = new SqlNumber(13557.67, 2);
+			
 			Assert.AreEqual(expected, actual);
 		}
 
@@ -59,7 +60,10 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotNull(constExp.Value.Value);
 			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
 			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
-			Assert.AreEqual(new SqlNumber(4567), (SqlNumber) constExp.Value.Value);
+
+			var actual = ((SqlNumber) constExp.Value.Value).Round(2);
+			var expected = new SqlNumber(4567, 2);
+			Assert.AreEqual(expected, actual);
 		}
 
 		[Test]
@@ -82,8 +86,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void NumericAndNumericSubtract() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(879987.47)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(2577.14)));
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(879987.47, 10)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(2577.14, 10)));
 			var subtractExp = SqlExpression.Subtract(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -95,7 +99,11 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotNull(constExp.Value.Value);
 			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
 			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
-			Assert.AreEqual(new SqlNumber(877410.33), (SqlNumber)constExp.Value.Value);
+
+			var actual = ((SqlNumber) constExp.Value.Value).Round(2);
+			var expected = new SqlNumber(877410.33, 2);
+
+			Assert.AreEqual(expected, actual);
 		}
 
 		[Test]
@@ -114,6 +122,27 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
 			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
 			Assert.AreEqual(new SqlNumber(325777.32), (SqlNumber)constExp.Value.Value);
+		}
+
+		[Test]
+		public void NumericMultiply() {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(56894.09)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(456)));
+			var mulExp = SqlExpression.Multiply(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = mulExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
+
+			var actual = ((SqlNumber) constExp.Value.Value).Round(2);
+			var expected = new SqlNumber(25943705.04, 2);
+			Assert.AreEqual(expected, actual);
 		}
 	}
 }

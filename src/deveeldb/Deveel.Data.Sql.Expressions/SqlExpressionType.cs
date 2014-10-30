@@ -30,9 +30,10 @@ namespace Deveel.Data.Sql.Expressions {
 		Cast,
 		Conditional,
 
-		// Logical Binary
-		LogicalAnd,
-		LogicalOr,
+		// Logical / Conditional Binary
+		And,
+		Or,
+		XOr,
 
 		// Multiplicative Binary
 		Add,
@@ -40,8 +41,6 @@ namespace Deveel.Data.Sql.Expressions {
 		Multiply,
 		Divide,
 		Modulo,
-		BitwiseOr,
-		BitwiseAnd,
 
 		// Comparison Binary
 		Equal,
@@ -65,6 +64,12 @@ namespace Deveel.Data.Sql.Expressions {
 		/// (that is a Column, Table, Sequence, another database object 
 		/// or a variable).
 		/// </summary>
-		Reference
+		Reference,
+
+		/// <summary>
+		/// A variable or reference assignment expression.
+		/// </summary>
+		Assign,
+		Tuple
 	}
 }

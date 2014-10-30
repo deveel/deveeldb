@@ -19,9 +19,6 @@ using System.Linq;
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	public sealed class SqlUnaryExpressionNode : SqlNode, IExpressionNode {
-		internal SqlUnaryExpressionNode() {
-		}
-
 		public string Operator { get; private set; }
 
 		public IExpressionNode Operand { get; private set; }

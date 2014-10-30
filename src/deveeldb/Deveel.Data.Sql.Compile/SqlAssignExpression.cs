@@ -15,26 +15,24 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Compile {
+namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
-	public sealed class CaseSwitchNode : SqlNode {
-		public IExpressionNode WhenExpression { get; private set; }
+	public sealed class SqlAssignExpression : SqlExpression {
+		internal SqlAssignExpression(ObjectName objectName, SqlExpression expression) {
+			Expression = expression;
+			ObjectName = objectName;
+		}
 
-		public IExpressionNode ThenExpression { get; private set; }
+		public ObjectName ObjectName { get; private set; }
 
-		private bool whenFound;
+		public SqlExpression Expression { get; private set; }
 
-		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node is SqlKeyNode && ((SqlKeyNode) node).Text == "WHEN") {
-				whenFound = true;
-			} else if (node is IExpressionNode) {
-				if (whenFound) {
-					WhenExpression = (IExpressionNode) node;
-				} else {
-					ThenExpression = (IExpressionNode) node;
-				}
-			}
-			return base.OnChildNode(node);
+		public override SqlExpressionType ExpressionType {
+			get { return SqlExpressionType.Assign; }
+		}
+
+		public override bool CanEvaluate {
+			get { return true; }
 		}
 	}
 }

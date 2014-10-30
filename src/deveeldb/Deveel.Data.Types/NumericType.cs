@@ -295,5 +295,21 @@ namespace Deveel.Data.Types {
 
 			return num1.Subtract(num2);
 		}
+
+		public override ISqlObject Multiply(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+				!(b is SqlNumber))
+				throw new ArgumentException();
+			if (b is SqlNull || b.IsNull)
+				return SqlNumber.Null;
+
+			if (a.IsNull)
+				return a;
+
+			var num1 = (SqlNumber) a;
+			var num2 = (SqlNumber) b;
+
+			return num1.Multiply(num2);
+		}
 	}
 }

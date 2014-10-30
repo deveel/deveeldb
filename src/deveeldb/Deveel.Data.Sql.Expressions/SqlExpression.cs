@@ -50,6 +50,68 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return false; }
 		}
 
+		internal int EvaluatePrecedence {
+			get {
+				// Primary
+				if (ExpressionType == SqlExpressionType.Reference ||
+				    ExpressionType == SqlExpressionType.FunctionCall ||
+					ExpressionType == SqlExpressionType.Constant)
+					return 150;
+
+				// Unary
+				if (ExpressionType == SqlExpressionType.UnaryPlus ||
+				    ExpressionType == SqlExpressionType.Negate ||
+				    ExpressionType == SqlExpressionType.Not)
+					return 140;
+
+				// Cast
+				if (ExpressionType == SqlExpressionType.Cast)
+					return 139;
+
+				// Multiplicative
+				if (ExpressionType == SqlExpressionType.Multiply ||
+				    ExpressionType == SqlExpressionType.Divide ||
+				    ExpressionType == SqlExpressionType.Modulo)
+					return 130;
+
+				// Additive
+				if (ExpressionType == SqlExpressionType.Add ||
+				    ExpressionType == SqlExpressionType.Subtract)
+					return 120;
+
+				// Relational
+				if (ExpressionType == SqlExpressionType.GreaterThan ||
+				    ExpressionType == SqlExpressionType.GreaterOrEqualThan ||
+				    ExpressionType == SqlExpressionType.SmallerThan ||
+				    ExpressionType == SqlExpressionType.SmallerOrEqualThan ||
+					ExpressionType == SqlExpressionType.Is ||
+					ExpressionType == SqlExpressionType.IsNot ||
+					ExpressionType == SqlExpressionType.Like ||
+					ExpressionType == SqlExpressionType.NotLike)
+					return 110;
+
+				// Equality
+				if (ExpressionType == SqlExpressionType.Equal ||
+				    ExpressionType == SqlExpressionType.NotEqual)
+					return 100;
+
+				// Logical
+				if (ExpressionType == SqlExpressionType.And)
+					return 90;
+				if (ExpressionType == SqlExpressionType.Or)
+					return 89;
+				// TODO: support XOR?
+
+				if (ExpressionType == SqlExpressionType.Conditional)
+					return 80;
+
+				if (ExpressionType == SqlExpressionType.Assign)
+					return 70;
+
+				return -1;
+			}
+		}
+
 		/// <summary>
 		/// When overridden by a derived class, this method evaluates the expression
 		/// within the provided context.
@@ -136,6 +198,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		#region Factory Methods 
 
+		#region Primary
+
 		public static SqlConstantExpression Constant(object value) {
 			return Constant(DataObject.Create(value));
 		}
@@ -143,6 +207,32 @@ namespace Deveel.Data.Sql.Expressions {
 		public static SqlConstantExpression Constant(DataObject value) {
 			return new SqlConstantExpression(value);
 		}
+
+		public static SqlFunctionCallExpression FunctionCall(ObjectName functionName) {
+			return FunctionCall(functionName, new SqlExpression[0]);
+		}
+
+		public static SqlFunctionCallExpression FunctionCall(ObjectName functionName, SqlExpression[] args) {
+			return new SqlFunctionCallExpression(functionName, args);
+		}
+
+		public static SqlFunctionCallExpression FunctionCall(string functionName) {
+			return FunctionCall(functionName, new SqlExpression[0]);
+		}
+
+		public static SqlFunctionCallExpression FunctionCall(string functionName, SqlExpression[] args) {
+			return FunctionCall(ObjectName.Parse(functionName), args);
+		}
+
+		public static SqlReferenceExpression Reference(ObjectName objectName) {
+			return new SqlReferenceExpression(objectName, false);
+		}
+
+		public static SqlReferenceExpression VariableReference(string varName) {
+			return new SqlReferenceExpression(new ObjectName(varName), true);
+		}
+ 
+		#endregion
 
 		public static SqlConditionalExpression Conditional(SqlExpression testExpression, SqlExpression ifTrue) {
 			return Conditional(testExpression, ifTrue, null);
@@ -166,11 +256,6 @@ namespace Deveel.Data.Sql.Expressions {
 			if (expressionType == SqlExpressionType.Modulo)
 				return Modulo(left, right);
 
-			if (expressionType == SqlExpressionType.BitwiseAnd)
-				return BitwiseAnd(left, right);
-			if (expressionType == SqlExpressionType.BitwiseOr)
-				return BitwiseOr(left, right);
-
 			if (expressionType == SqlExpressionType.Equal)
 				return Equal(left, right);
 			if (expressionType == SqlExpressionType.NotEqual)
@@ -193,10 +278,12 @@ namespace Deveel.Data.Sql.Expressions {
 			if (expressionType == SqlExpressionType.NotLike)
 				return NotLike(left, right);
 
-			if (expressionType == SqlExpressionType.LogicalAnd)
-				return LogicalAnd(left, right);
-			if (expressionType == SqlExpressionType.LogicalOr)
-				return LogicalOr(left, right);
+			if (expressionType == SqlExpressionType.And)
+				return And(left, right);
+			if (expressionType == SqlExpressionType.Or)
+				return Or(left, right);
+			if (expressionType == SqlExpressionType.XOr)
+				return XOr(left, right);
 
 			throw new ArgumentException(String.Format("Expression type {0} is not a Binary", expressionType));
 		}
@@ -241,20 +328,16 @@ namespace Deveel.Data.Sql.Expressions {
 			return new SqlBinaryExpression(left, SqlExpressionType.NotLike, right, (obj1, obj2) => obj1.IsNotLike(obj2));
 		}
 
-		public static SqlBinaryExpression LogicalAnd(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.LogicalAnd, right, (obj1, obj2) => obj1.And(obj2));
+		public static SqlBinaryExpression And(SqlExpression left, SqlExpression right) {
+			return new SqlBinaryExpression(left, SqlExpressionType.And, right, (obj1, obj2) => obj1.And(obj2));
 		}
 
-		public static SqlBinaryExpression LogicalOr(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.LogicalOr, right, (obj1, obj2) => obj1.Or(obj2));
+		public static SqlBinaryExpression Or(SqlExpression left, SqlExpression right) {
+			return new SqlBinaryExpression(left, SqlExpressionType.Or, right, (obj1, obj2) => obj1.Or(obj2));
 		}
 
-		public static SqlBinaryExpression BitwiseAnd(SqlExpression left, SqlExpression right) {
-			throw new NotImplementedException();
-		}
-
-		public static SqlBinaryExpression BitwiseOr(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.BitwiseOr, right, (obj1, obj2) => obj1.XOr(obj2));
+		public static SqlBinaryExpression XOr(SqlExpression left, SqlExpression right) {
+			return new SqlBinaryExpression(left, SqlExpressionType.XOr, right, (obj1, obj2) => obj1.XOr(obj2));
 		}
 
 		public static SqlBinaryExpression Add(SqlExpression left, SqlExpression right) {

@@ -69,6 +69,17 @@ namespace Deveel.Data.Sql.Objects {
 			return other is ISqlString;
 		}
 
+		public char this[long offset] {
+			get {
+				if (offset > Length)
+					throw new ArgumentOutOfRangeException("offset");
+				if (largeObject == null)
+					return '\0';
+
+				throw new NotImplementedException();
+			}
+		}
+
 		public int CompareTo(ISqlString other) {
 			if (other == null)
 				throw new ArgumentNullException("other");

@@ -18,9 +18,6 @@ using System;
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	public sealed class SqlVariableRefExpressionNode : SqlNode, IExpressionNode {
-		internal SqlVariableRefExpressionNode() {
-		}
-
 		public string Variable { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {

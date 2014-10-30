@@ -603,10 +603,14 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public SqlNumber Round() {
-			if (State == NumericState.None)
-				return new SqlNumber(innerValue.Round(MathContext));
+			return Round(MathContext.Precision);
+		}
 
-			return this;
+		public SqlNumber Round(int precision) {
+			if (State == NumericState.None)
+				return new SqlNumber(innerValue.Round(new MathContext(precision, RoundingMode.HalfUp)));
+
+			return this;			
 		}
 
 		public static bool TryParse(string s, out SqlNumber value) {

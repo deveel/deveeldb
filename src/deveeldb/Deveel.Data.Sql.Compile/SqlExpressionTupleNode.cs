@@ -19,9 +19,6 @@ using System.Collections.Generic;
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	public sealed class SqlExpressionTupleNode : SqlNode, IExpressionNode {
-		internal SqlExpressionTupleNode() {
-		}
-
 		public IEnumerable<IExpressionNode> Expressions { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {

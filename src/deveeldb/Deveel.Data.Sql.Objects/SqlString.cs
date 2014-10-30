@@ -72,8 +72,11 @@ namespace Deveel.Data.Sql.Objects {
 			get { return source == null ? null : new string(source); }
 		}
 
-		public char this[int index] {
+		public char this[long index] {
 			get {
+				if (index > Int32.MaxValue)
+					throw new ArgumentOutOfRangeException("index");
+
 				if (source == null)
 					return '\0';
 				if (index >= Length)

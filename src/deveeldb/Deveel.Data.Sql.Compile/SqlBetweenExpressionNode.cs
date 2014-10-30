@@ -18,9 +18,6 @@ using System;
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	public sealed class SqlBetweenExpressionNode : SqlNode, IExpressionNode {
-		internal SqlBetweenExpressionNode() {
-		}
-
 		public IExpressionNode Expression { get; private set; }
 
 		public IExpressionNode MinValue { get; private set; }

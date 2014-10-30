@@ -19,9 +19,6 @@ using System.Collections.Generic;
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	public sealed class SqlFunctionCallExpressionNode : SqlNode, IExpressionNode {
-		internal SqlFunctionCallExpressionNode() {
-		}
-
 		public ObjectName FunctionName { get; private set; }
 
 		public IEnumerable<IExpressionNode> Arguments { get; private set; }

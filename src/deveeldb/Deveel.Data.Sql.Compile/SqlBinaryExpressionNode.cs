@@ -22,9 +22,6 @@ namespace Deveel.Data.Sql.Compile {
 	public sealed class SqlBinaryExpressionNode : SqlNode, IExpressionNode {
 		private bool leftSeen;
 
-		internal SqlBinaryExpressionNode() {
-		}
-
 		public IExpressionNode Left { get; private set; }
 
 		public IExpressionNode Right { get; private set; }

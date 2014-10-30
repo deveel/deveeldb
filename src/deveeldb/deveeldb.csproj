@@ -111,6 +111,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\ISqlVisitableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\NumerLiteralNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ObjectNameNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlAssignExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlBetweenExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlBinaryExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCaseExpressionNode.cs" />
@@ -144,9 +145,11 @@
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionType.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlFunctionCallExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlReferenceExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlTupleExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlUnaryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongString.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlStringExtensions.cs" />
     <Compile Include="Deveel.Data.Store\AreaExtensions.cs" />
     <Compile Include="Deveel.Data.Store\AreaStream.cs" />
     <Compile Include="Deveel.Data.Store\DataStorageException.cs" />

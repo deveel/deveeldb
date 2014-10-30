@@ -23,6 +23,8 @@ namespace Deveel.Data.Sql.Objects {
 
 		long Length { get; }
 
+		char this[long offset] { get; }
+
 		TextReader GetInput();
 	}
 }

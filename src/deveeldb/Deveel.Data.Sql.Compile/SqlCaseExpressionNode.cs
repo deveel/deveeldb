@@ -20,9 +20,6 @@ using System.Linq;
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	public sealed class SqlCaseExpressionNode : SqlNode, IExpressionNode {
-		internal SqlCaseExpressionNode() {
-		}
-
 		public IEnumerable<CaseSwitchNode> CaseSwitches { get; private set; }
 
 		public IExpressionNode ElseExpression { get; private set; }

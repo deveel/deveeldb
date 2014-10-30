@@ -14,6 +14,9 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Policy;
 
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
@@ -45,11 +48,48 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return expressionType; }
 		}
 
+		private SqlExpression[] EvaluateSides(EvaluateContext context) {
+			var info = new List<EvaluateInfo> {
+				new EvaluateInfo {Expression = Left, Offset = 0},
+				new EvaluateInfo {Expression = Right, Offset = 1}
+			}.OrderByDescending(x => x.Precedence);
+
+			foreach (var evaluateInfo in info) {
+				evaluateInfo.Expression = evaluateInfo.Expression.Evaluate(context);
+			}
+
+			return info.OrderBy(x => x.Offset)
+				.Select(x => x.Expression)
+				.ToArray();
+		}
+
 		public override SqlExpression Evaluate(EvaluateContext context) {
-			var left = (SqlConstantExpression) Left.Evaluate(context);
-			var right = (SqlConstantExpression) Right.Evaluate(context);
-			var computedValue = EvaluateBinary(left.Value, right.Value);
+			var sides = EvaluateSides(context);
+
+			var left = sides[0];
+			var right = sides[1];
+
+			if (!(left is SqlConstantExpression) ||
+			    !(right is SqlConstantExpression))
+				throw new ExpressionEvaluateException(
+					String.Format("One of the arguments of the binary expression {0} could not be evaluated to constant.",
+						ExpressionType));
+
+			var computedValue = EvaluateBinary(((SqlConstantExpression) left).Value, ((SqlConstantExpression) right).Value);
 			return new SqlConstantExpression(computedValue);
 		}
+
+		#region EvaluateInfo
+
+		class EvaluateInfo {
+			public SqlExpression Expression { get; set; }
+			public int Offset { get; set; }
+
+			public int Precedence {
+				get { return Expression.EvaluatePrecedence; }
+			}
+		}
+
+		#endregion
 	}
 }
