@@ -19,7 +19,27 @@ using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.DbSystem {
 	//TODO: Add many more functions ... this is a sort of placeholder for the moment
+	/// <summary>
+	/// Provides a context for executing queries, accessing the
+	/// system resources and evaluation context.
+	/// </summary>
 	public interface IQueryContext : IDisposable {
-		SqlNumber NextRandom();
+		/// <summary>
+		/// Gets an object that is used to access sequences defined within
+		/// the database system.
+		/// </summary>
+		ISequenceAccessContext SequenceAccess { get; }
+
+		/// <summary>
+		/// Computes a new random number, that is ensured to be unique 
+		/// within the execution context.
+		/// </summary>
+		/// <param name="bitSize">The number of bits the final random number must 
+		/// have. This number can only be 2, 4, 8 or 16.</param>
+		/// <returns>
+		/// Returns a <see cref="SqlNumber"/> that represents a unique random number
+		/// computed within this execution context.
+		/// </returns>
+		SqlNumber NextRandom(int bitSize);
 	}
 }

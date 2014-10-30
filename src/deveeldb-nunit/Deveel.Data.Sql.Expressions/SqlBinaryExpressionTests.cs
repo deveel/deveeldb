@@ -38,7 +38,10 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotNull(constExp.Value.Value);
 			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
 			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
-			Assert.AreEqual(new SqlNumber(13557.67), (SqlNumber) constExp.Value.Value);
+
+			var expected = new SqlNumber(13557.67).Round();
+			var actual = ((SqlNumber) constExp.Value.Value).Round();
+			Assert.AreEqual(expected, actual);
 		}
 
 		[Test]
@@ -75,6 +78,42 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsInstanceOf<StringType>(constExp.Value.Type);
 			Assert.IsInstanceOf<SqlString>(constExp.Value.Value);
 			Assert.AreEqual(new SqlString("The quick brown fox jumps over the lazy dog"), (SqlString) constExp.Value.Value);
+		}
+
+		[Test]
+		public void NumericAndNumericSubtract() {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(879987.47)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(2577.14)));
+			var subtractExp = SqlExpression.Subtract(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = subtractExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
+			Assert.AreEqual(new SqlNumber(877410.33), (SqlNumber)constExp.Value.Value);
+		}
+
+		[Test]
+		public void NumericAndBooleanSubtract() {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(325778.32)));
+			var exp2 = SqlExpression.Constant(DataObject.Boolean(true));
+			var subtractExp = SqlExpression.Subtract(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = subtractExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
+			Assert.AreEqual(new SqlNumber(325777.32), (SqlNumber)constExp.Value.Value);
 		}
 	}
 }

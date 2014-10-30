@@ -15,9 +15,11 @@
 
 using System;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.DbSystem {
-	public static class SystemErrorCodes {
-		public const int Unknown = 0x001100;
-		public const int ObjectNotFound = 0x0021001;
+	// TODO: We must decide in which domain to define Variables (DbSystem or Core?)
+	public interface IVariableAccessContext : IDisposable {
+		bool DeclareVariable(string name, DataType type, bool notNull, bool isConstant);
 	}
 }

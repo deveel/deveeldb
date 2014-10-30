@@ -16,8 +16,17 @@
 using System;
 
 namespace Deveel.Data.DbSystem {
-	public static class SystemErrorCodes {
-		public const int Unknown = 0x001100;
-		public const int ObjectNotFound = 0x0021001;
+	[Serializable]
+	public class ObjectNotFoundException : DatabaseSystemException {
+		public ObjectNotFoundException(ObjectName objectName)
+			: this(objectName, String.Format("The object name '{0}' does not reference any object in the system.", objectName)) {
+		}
+
+		public ObjectNotFoundException(ObjectName objectName, string message)
+			: base(SystemErrorCodes.ObjectNotFound, message) {
+			ObjectName = objectName;
+		}
+
+		public ObjectName ObjectName { get; private set; }
 	}
 }

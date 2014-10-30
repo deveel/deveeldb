@@ -14,9 +14,15 @@
 //    limitations under the License.
 
 using System;
+using System.Data.SqlTypes;
 
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
+
+using Irony;
+
+using SqlBoolean = Deveel.Data.Sql.Objects.SqlBoolean;
+using SqlString = Deveel.Data.Sql.Objects.SqlString;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -225,6 +231,20 @@ namespace Deveel.Data {
 			return BooleanNull;
 		}
 
+		public DataObject IsLike(DataObject other) {
+			if (IsNull || !(Type is StringType))
+				return BooleanNull;
+
+			return Boolean((Type as StringType).IsLike(other.Value));
+		}
+
+		public DataObject IsNotLike(DataObject other) {
+			if (IsNull || !(Type is StringType))
+				return BooleanNull;
+
+			return Boolean((Type as StringType).IsNotLike(other.Value));
+		}
+
 		/// <summary>
 		/// Negates the current underlying value of the object.
 		/// </summary>
@@ -390,12 +410,28 @@ namespace Deveel.Data {
 			return new DataObject(type, new SqlNumber(value));
 		}
 
+		public static DataObject TinyInt(byte value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.TinyInt), value);
+		}
+
+		public static DataObject SmallInt(short value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.SmallInt), value);
+		}
+
 		public static DataObject Integer(int value) {
 			return Number(PrimitiveTypes.Numeric(SqlTypeCode.Integer), value);
 		}
 
 		public static DataObject BigInt(long value) {
 			return Number(PrimitiveTypes.Numeric(SqlTypeCode.BigInt), value);
+		}
+
+		public static DataObject Float(float value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.Float), new SqlNumber(value));
+		}
+
+		public static DataObject Double(double value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.Double), new SqlNumber(value));
 		}
 
 		public static DataObject String(string s) {
@@ -420,6 +456,50 @@ namespace Deveel.Data {
 
 		public static DataObject Null() {
 			return Null(new NullType(SqlTypeCode.Null));
+		}
+
+		public static DataObject Create(object value) {
+			// Numeric values ...
+			if (value is bool)
+				return Boolean((bool) value);
+			if (value is byte)
+				return TinyInt((byte) value);
+			if (value is short)
+				return SmallInt((short) value);
+			if (value is int)
+				return Integer((int) value);
+			if (value is long)
+				return BigInt((long) value);
+			if (value is float)
+				return Float((float) value);
+			if (value is double)
+				return Double((double) value);
+
+			if (value is SqlNumber) {
+				var num = (SqlNumber) value;
+				if (num.IsNull)
+					return Null(PrimitiveTypes.Numeric());
+
+				if (num.CanBeInt32)
+					return Integer(num.ToInt32());
+				if (num.CanBeInt64)
+					return BigInt(num.ToInt64());
+
+				return Number(num);
+			}
+
+			// String values ...
+			if (value is string)
+				return String((string) value);
+			if (value is SqlString) {
+				var s = (SqlString) value;
+				if (s.IsNull)
+					return Null(PrimitiveTypes.String());
+
+				return String(s);
+			}
+
+			throw new NotSupportedException("Cannot build an object from the given value.");
 		}
 
 		#endregion

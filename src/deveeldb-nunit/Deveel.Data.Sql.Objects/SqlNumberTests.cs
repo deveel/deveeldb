@@ -52,8 +52,8 @@ namespace Deveel.Data.Sql.Objects {
 			Assert.IsFalse(value.IsNull);
 			Assert.IsFalse(value.CanBeInt32);
 			Assert.IsFalse(value.CanBeInt64);
-			Assert.AreEqual(34, value.Scale);
-			Assert.AreEqual(40, value.Precision);
+			Assert.AreEqual(28, value.Scale);
+			Assert.AreEqual(34, value.Precision);
 			Assert.AreEqual(NumericState.None, value.State);
 			Assert.AreEqual(1, value.Sign);
 		}

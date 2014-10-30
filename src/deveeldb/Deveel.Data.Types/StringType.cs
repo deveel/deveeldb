@@ -149,6 +149,14 @@ namespace Deveel.Data.Types {
 			return false;
 		}
 
+		public SqlBoolean IsLike(ISqlObject value) {
+			throw new NotImplementedException();
+		}
+
+		public SqlBoolean IsNotLike(ISqlObject value) {
+			throw new NotImplementedException();
+		}
+
 		#region Operators
 
 		/// <inheritdoc/>

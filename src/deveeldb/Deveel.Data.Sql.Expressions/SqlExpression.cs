@@ -19,15 +19,33 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Compile;
 
 namespace Deveel.Data.Sql.Expressions {
+	/// <summary>
+	/// Defines the base class for instances that represent SQL expression tree nodes.
+	/// </summary>
+	/// <remarks>
+	/// The architecture of the SQL Expression domain is to keep the implementation
+	/// internal to the project, that means it will be possible to construct expressions
+	/// only through this class, calling factory methods (for example <see cref="Binary"/>).
+	/// </remarks>
 	[Serializable]
 	public abstract class SqlExpression {
+		/// <summary>
+		/// Internally constructs the SQL expression, avoiding external implementations
+		/// to be allowed to inherit this class.
+		/// </summary>
+		internal SqlExpression() {
+		}
+
+		/// <summary>
+		/// Gets the type code of this SQL expression.
+		/// </summary>
 		public abstract SqlExpressionType ExpressionType { get; }
 
 		/// <summary>
 		/// Gets a value indicating whether the expression can be evaluated
 		/// to another simpler one.
 		/// </summary>
-		/// <seealso cref="Evaluate"/>
+		/// <seealso cref="Evaluate(EvaluateContext)"/>
 		public virtual bool CanEvaluate {
 			get { return false; }
 		}
@@ -48,10 +66,34 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Returns a new <seealso cref="SqlExpression"/> that is the result of the
 		/// evaluation of this expression, within the context given.
 		/// </returns>
+		/// <exception cref="ExpressionEvaluateException">
+		/// If any error occurred while evaluating the expression.
+		/// </exception>
 		public virtual SqlExpression Evaluate(EvaluateContext context) {
 			return this;
 		}
 
+		/// <summary>
+		/// Statically evaluates the expression, outside any context.
+		/// </summary>
+		/// <para>
+		/// This overload of the <c>Evaluate</c> logic provides an empty context
+		/// to <see cref="Evaluate(EvaluateContext)"/>, so that dynamic resolutions
+		/// (eg. function calls, states assessments, etc.) will throw an exception.
+		/// </para>
+		/// <para>
+		/// Care must be taken when calling this method, that the expression tree
+		/// represented does not contain any reference to dynamically resolved
+		/// expressions (<see cref="SqlFunctionCallExpression"/> for example), otherwise
+		/// its evaluation will result in an exception state.
+		/// </para>
+		/// <returns>
+		/// Returns a new <seealso cref="SqlExpression"/> that is the result of the
+		/// static evaluation of this expression.
+		/// </returns>
+		/// <exception cref="ExpressionEvaluateException">
+		/// If any error occurred while evaluating the expression.
+		/// </exception>
 		public SqlExpression Evaluate() {
 			return Evaluate(null, null);
 		}
@@ -93,6 +135,10 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		#region Factory Methods 
+
+		public static SqlConstantExpression Constant(object value) {
+			return Constant(DataObject.Create(value));
+		}
 
 		public static SqlConstantExpression Constant(DataObject value) {
 			return new SqlConstantExpression(value);
@@ -142,6 +188,11 @@ namespace Deveel.Data.Sql.Expressions {
 			if (expressionType == SqlExpressionType.SmallerOrEqualThan)
 				return SmallerOrEqualThan(left, right);
 
+			if (expressionType == SqlExpressionType.Like)
+				return Like(left, right);
+			if (expressionType == SqlExpressionType.NotLike)
+				return NotLike(left, right);
+
 			if (expressionType == SqlExpressionType.LogicalAnd)
 				return LogicalAnd(left, right);
 			if (expressionType == SqlExpressionType.LogicalOr)
@@ -180,6 +231,14 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public static SqlBinaryExpression GreaterThan(SqlExpression left, SqlExpression right) {
 			return new SqlBinaryExpression(left, SqlExpressionType.GreaterThan, right, (obj1, obj2) => obj1.IsGreaterThan(obj2));
+		}
+
+		public static SqlBinaryExpression Like(SqlExpression left, SqlExpression right) {
+			return new SqlBinaryExpression(left, SqlExpressionType.Like, right, (obj1, obj2) => obj1.IsLike(obj2));
+		}
+
+		public static SqlBinaryExpression NotLike(SqlExpression left, SqlExpression right) {
+			return new SqlBinaryExpression(left, SqlExpressionType.NotLike, right, (obj1, obj2) => obj1.IsNotLike(obj2));
 		}
 
 		public static SqlBinaryExpression LogicalAnd(SqlExpression left, SqlExpression right) {

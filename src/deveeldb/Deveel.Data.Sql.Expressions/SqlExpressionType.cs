@@ -52,10 +52,19 @@ namespace Deveel.Data.Sql.Expressions {
 		GreaterThan,
 		SmallerOrEqualThan,
 		GreaterOrEqualThan,
+		Like,
+		NotLike,
 
 		// Unary
 		Not,
 		UnaryPlus,
-		Negate
+		Negate,
+
+		/// <summary>
+		/// An expression that references an object on the database
+		/// (that is a Column, Table, Sequence, another database object 
+		/// or a variable).
+		/// </summary>
+		Reference
 	}
 }

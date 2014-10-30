@@ -17,34 +17,37 @@ using System;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
-	/// An expression that holds a constant value.
+	/// An expression that references an object within a context.
 	/// </summary>
-	/// <remarks>
-	/// As constant, this expression cannot be reduced, so
-	/// that <see cref="SqlExpression.CanEvaluate"/> will always
-	/// return <c>false</c> and the value of <see cref="SqlExpression.Evaluate(EvaluateContext)"/>
-	/// will return the expression itself.
-	/// </remarks>
 	[Serializable]
-	public sealed class SqlConstantExpression : SqlExpression {
-		internal SqlConstantExpression(DataObject value) {
-			Value = value;
-		}
-
-		/// <summary>
-		/// Gets the SQL expression type of <see cref="SqlExpressionType.Constant"/>
-		/// </summary>
-		public override SqlExpressionType ExpressionType {
-			get { return SqlExpressionType.Constant; }
+	public sealed class SqlReferenceExpression : SqlExpression {
+		internal SqlReferenceExpression(ObjectName name, bool toRef) {
+			ReferenceName = name;
+			IsToVariable = toRef;
 		}
 
 		public override bool CanEvaluate {
-			get { return false; }
+			get { return true; }
 		}
 
 		/// <summary>
-		/// Gets the constant value of the expression.
+		/// Gets the name of the object referenced by the expression.
 		/// </summary>
-		public DataObject Value { get; private set; }
+		public ObjectName ReferenceName { get; private set; }
+
+		/// <summary>
+		/// Gets a value indicating whether this expression references
+		/// a variable or another kind of object.
+		/// </summary>
+		public bool IsToVariable { get; private set; }
+
+		/// <inheritdoc/>
+		public override SqlExpressionType ExpressionType {
+			get { return SqlExpressionType.Reference; }
+		}
+
+		public override SqlExpression Evaluate(EvaluateContext context) {
+			return base.Evaluate(context);
+		}
 	}
 }

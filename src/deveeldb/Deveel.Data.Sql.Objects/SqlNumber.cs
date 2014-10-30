@@ -72,7 +72,7 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public SqlNumber(int value)
-			: this(new BigDecimal(value)) {
+			: this(value, MathContext.Decimal32.Precision) {
 		}
 
 		public SqlNumber(long value, int precision)
@@ -80,11 +80,11 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public SqlNumber(long value)
-			: this(new BigDecimal(value)) {
+			: this(value, MathContext.Decimal64.Precision) {
 		}
 
 		public SqlNumber(double value)
-			: this(new BigDecimal(value)) {
+			: this(value, MathContext.Decimal128.Precision) {
 		}
 
 		public SqlNumber(double value, int precision)
@@ -598,6 +598,13 @@ namespace Deveel.Data.Sql.Objects {
 		public SqlNumber Log2() {
 			if (State == NumericState.None)
 				return new SqlNumber(BigMath.Log(innerValue));
+
+			return this;
+		}
+
+		public SqlNumber Round() {
+			if (State == NumericState.None)
+				return new SqlNumber(innerValue.Round(MathContext));
 
 			return this;
 		}

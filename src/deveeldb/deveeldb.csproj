@@ -90,7 +90,10 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseSystemException.cs" />
     <Compile Include="Deveel.Data.DbSystem\IGroupResolver.cs" />
     <Compile Include="Deveel.Data.DbSystem\IQueryContext.cs" />
+    <Compile Include="Deveel.Data.DbSystem\ISequenceAccessContext.cs" />
+    <Compile Include="Deveel.Data.DbSystem\IVariableAccessContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\IVariableResolver.cs" />
+    <Compile Include="Deveel.Data.DbSystem\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemConfigKeys.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemErrorCodes.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
@@ -140,6 +143,7 @@
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionException.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionType.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlFunctionCallExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlReferenceExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlUnaryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongString.cs" />
