@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,28 +14,20 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
-namespace Deveel.Data.DbSystem {
-	/// <summary>
-	/// The type of deferrance of a constraint.
-	/// </summary>
-	public enum ConstraintDeferrability : short {
-		/// <summary>
-		/// The constraint is checked at the <c>COMMIT</c>
-		/// of each transaction.
-		/// </summary>
-		InitiallyDeferred = 4,
-		
-		/// <summary>
-		/// The constraint is checked immediately after
-		/// each single statement.
-		/// </summary>
-		InitiallyImmediate = 5,
-		
-		/// <summary>
-		/// A constraint whose check cannot be deferred to the
-		/// <c>COMMIT</c> of a trasnaction.
-		/// </summary>
-		NotDeferrable = 6,
+namespace Deveel.Data.Sql {
+	public static class ColumnCollectionExtensions {
+		public static int IndexOfColumn(this IEnumerable<ColumnInfo> columns, string columnName) {
+			int i = 0;
+			foreach (var column in columns) {
+				if (column.ColumnName == columnName)
+					return i;
+
+				i++;
+			}
+
+			return -1;
+		}
 	}
 }

@@ -136,6 +136,8 @@
     <Compile Include="Deveel.Data.Sql.Expressions\EvaluateContext.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionErrorCodes.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluateException.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\IExpressionPreparer.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\IPreparable.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlCastExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlConditionalExpression.cs" />
@@ -150,6 +152,25 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongString.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlStringExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\IQueryNodeVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNode.cs" />
+    <Compile Include="Deveel.Data.Sql\ByColumn.cs" />
+    <Compile Include="Deveel.Data.Sql\ColumnCollectionExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql\ForeignKeyAction.cs" />
+    <Compile Include="Deveel.Data.Sql\ConstraintDeferrability.cs" />
+    <Compile Include="Deveel.Data.Sql\ConstraintInfo.cs" />
+    <Compile Include="Deveel.Data.Sql\ConstraintType.cs" />
+    <Compile Include="Deveel.Data.Sql\IColumnConfiguration.cs" />
+    <Compile Include="Deveel.Data.Sql\IConstraintConfiguration.cs" />
+    <Compile Include="Deveel.Data.Sql\IForeignKeyConstraintConfiguration.cs" />
+    <Compile Include="Deveel.Data.Sql\IMutableTable.cs" />
+    <Compile Include="Deveel.Data.Sql\ITableConfiguration.cs" />
+    <Compile Include="Deveel.Data.Sql\RowId.cs" />
+    <Compile Include="Deveel.Data.Sql\ITable.cs" />
+    <Compile Include="Deveel.Data.Sql\Row.cs" />
+    <Compile Include="Deveel.Data.Sql\ColumnInfo.cs" />
+    <Compile Include="Deveel.Data.Sql\TableBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql\TableInfo.cs" />
     <Compile Include="Deveel.Data.Store\AreaExtensions.cs" />
     <Compile Include="Deveel.Data.Store\AreaStream.cs" />
     <Compile Include="Deveel.Data.Store\DataStorageException.cs" />
@@ -221,7 +242,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Deveel.Data.Sql.Statements\" />
-    <Folder Include="Deveel.Data.Sql\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

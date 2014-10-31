@@ -15,14 +15,27 @@
 
 using System;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Sql {
 	/// <summary>
-	/// Foreign key referential trigger actions. 
+	/// The type of deferrance of a constraint.
 	/// </summary>
-	public enum ConstraintAction {
-		NoAction = 0,
-		Cascade = 1,
-		SetNull = 2,
-		SetDefault = 3
+	public enum ConstraintDeferrability : short {
+		/// <summary>
+		/// The constraint is checked at the <c>COMMIT</c>
+		/// of each transaction.
+		/// </summary>
+		InitiallyDeferred = 4,
+		
+		/// <summary>
+		/// The constraint is checked immediately after
+		/// each single statement.
+		/// </summary>
+		InitiallyImmediate = 5,
+		
+		/// <summary>
+		/// A constraint whose check cannot be deferred to the
+		/// <c>COMMIT</c> of a trasnaction.
+		/// </summary>
+		NotDeferrable = 6,
 	}
 }

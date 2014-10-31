@@ -112,6 +112,10 @@ namespace Deveel.Data.Sql.Expressions {
 			}
 		}
 
+		public SqlExpression Prepare(IExpressionPreparer preparer) {
+			throw new NotImplementedException();
+		}
+
 		/// <summary>
 		/// When overridden by a derived class, this method evaluates the expression
 		/// within the provided context.

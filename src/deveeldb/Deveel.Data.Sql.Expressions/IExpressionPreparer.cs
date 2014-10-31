@@ -20,12 +20,11 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
-	/// An interface used to prepare an Expression object.
+	/// An interface used to prepare a <see cref="SqlExpression"/> object.
 	/// </summary>
 	/// <remarks>
 	/// This interface is used to mutate an element of an <see cref="SqlExpression"/>
-	/// from one form to another.  For example, we may use this to translate a 
-	/// <see cref="StatementTree"/> object to a <see cref="Statement"/> object.
+	/// from one form to another.
 	/// </remarks>
 	public interface IExpressionPreparer {
 		/// <summary>
@@ -44,6 +43,6 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		/// <param name="element"></param>
 		/// <returns></returns>
-		object Prepare(object element);
+		SqlExpression Prepare(object element);
 	}
 }

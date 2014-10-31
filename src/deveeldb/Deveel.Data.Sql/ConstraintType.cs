@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Sql {
 	/// <summary>
 	/// An enumeration of all the supported kinds
 	/// of constraints within a table or a schema.
