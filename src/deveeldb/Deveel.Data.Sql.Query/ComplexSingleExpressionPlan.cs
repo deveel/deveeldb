@@ -15,20 +15,23 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
-	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
-	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+	internal class ComplexSingleExpressionPlan : ExpressionPlan {
+		private readonly ObjectName singleVar;
+		private readonly SqlExpression expression;
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+		public ComplexSingleExpressionPlan(QueryTableSetPlanner planner, ObjectName singleVar, SqlExpression expression)
+			: base(planner) {
+			this.singleVar = singleVar;
+			this.expression = expression;
+		}
+
+		public override void AddToPlanTree() {
+			// Find the table source for this variable
+			var tableSource = TableSetPlanner.FindTableSource(singleVar);
+			tableSource.UpdatePlan(new ExhaustiveSelectNode(tableSource.Plan, expression));
+		}
 	}
 }

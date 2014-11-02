@@ -16,19 +16,28 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
-	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
-	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+	[Serializable]
+	public sealed class QueryReference {
+		public QueryReference(ObjectName name, int level) {
+			Level = level;
+			Name = name;
+		}
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+		public int Level { get; private set; }
+
+		public ObjectName Name { get; private set; }
+
+		public DataObject Value { get; private set; }
+
+		public DataType ReturnType {
+			get { return Value == null ? null : Value.Type; }
+		}
+
+		public void Evaluate(IVariableResolver resolver) {
+			Value = resolver.Resolve(Name);
+		}
 	}
 }

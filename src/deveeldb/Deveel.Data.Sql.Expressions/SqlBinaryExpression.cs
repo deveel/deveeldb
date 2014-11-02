@@ -48,6 +48,26 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return expressionType; }
 		}
 
+		internal SqlExpressionType ReverseType {
+			get {
+				if (ExpressionType == SqlExpressionType.Equal ||
+				    ExpressionType == SqlExpressionType.NotEqual ||
+				    ExpressionType == SqlExpressionType.Is ||
+				    ExpressionType == SqlExpressionType.IsNot)
+					return ExpressionType;
+				if (ExpressionType == SqlExpressionType.GreaterThan)
+					return SqlExpressionType.SmallerThan;
+				if (ExpressionType == SqlExpressionType.GreaterOrEqualThan)
+					return SqlExpressionType.SmallerOrEqualThan;
+				if (ExpressionType == SqlExpressionType.SmallerThan)
+					return SqlExpressionType.GreaterThan;
+				if (ExpressionType == SqlExpressionType.SmallerOrEqualThan)
+					return SqlExpressionType.GreaterOrEqualThan;
+
+				throw new InvalidOperationException("Cannot reverse a non-conditional expression.");
+			}
+		}
+
 		private SqlExpression[] EvaluateSides(EvaluateContext context) {
 			var info = new List<EvaluateInfo> {
 				new EvaluateInfo {Expression = Left, Offset = 0},

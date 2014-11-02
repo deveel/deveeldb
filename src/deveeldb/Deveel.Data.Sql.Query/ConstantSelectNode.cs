@@ -16,19 +16,27 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
-	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
-	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+	/// <summary>
+	/// The node for evaluating an expression that contains entirely 
+	/// constant values (no variables).
+	/// </summary>
+	[Serializable]
+	class ConstantSelectNode : SingleQueryPlanNode {
+		/// <summary>
+		/// The search expression.
+		/// </summary>
+		private SqlExpression expression;
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+		public ConstantSelectNode(QueryPlanNode child, SqlExpression exp)
+			: base(child) {
+			expression = exp;
+		}
+
+		public override ITable Evaluate(IQueryContext context) {
+			throw new NotImplementedException();
+		}
 	}
 }

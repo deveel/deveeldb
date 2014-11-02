@@ -15,20 +15,20 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
-	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
-	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+	public sealed class ExpressionReference {
+		public ExpressionReference(SqlExpression expression, string @alias) {
+			if (expression == null) 
+				throw new ArgumentNullException("expression");
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+			Alias = alias;
+			Expression = expression;
+		}
+
+		public SqlExpression Expression { get; private set; }
+
+		public string Alias { get; private set; }
 	}
 }

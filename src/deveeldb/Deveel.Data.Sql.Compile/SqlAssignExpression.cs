@@ -18,12 +18,12 @@ using System;
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
 	public sealed class SqlAssignExpression : SqlExpression {
-		internal SqlAssignExpression(ObjectName objectName, SqlExpression expression) {
+		internal SqlAssignExpression(SqlExpression reference, SqlExpression expression) {
 			Expression = expression;
-			ObjectName = objectName;
+			Reference = reference;
 		}
 
-		public ObjectName ObjectName { get; private set; }
+		public SqlExpression Reference { get; private set; }
 
 		public SqlExpression Expression { get; private set; }
 

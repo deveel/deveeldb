@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,29 +15,8 @@
 
 using System;
 
-namespace Deveel.Data.DbSystem {
-	/// <summary>
-	/// The kind of composite function in a <see cref="CompositeTable"/>.
-	/// </summary>
-	public enum CompositeFunction {
-		/// <summary>
-		/// The composite function for finding the union of the tables.
-		/// </summary>
-		Union = 1,
-
-		/// <summary>
-		/// The composite function for finding the interestion of the tables.
-		/// </summary>
-		Intersect = 2,
-
-		/// <summary>
-		/// The composite function for finding the difference of the tables.
-		/// </summary>
-		Except = 3,
-
-		/// <summary>
-		/// An unspecified composite function.
-		/// </summary>
-		None = -1
+namespace Deveel.Data.Sql.Expressions.Fluid {
+	public interface IGroupByConfiguration {
+		IGroupByConfiguration Expression(SqlExpression groupExpression);
 	}
 }

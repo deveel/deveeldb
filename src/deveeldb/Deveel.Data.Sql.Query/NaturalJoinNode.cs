@@ -14,21 +14,26 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
+	/// <summary>
+	/// A branch node for naturally joining two tables together.
+	/// </summary>
 	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
+	/// These branches should be optimized out if possible because they 
+	/// result in huge results.
 	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+	[Serializable]
+	class NaturalJoinNode : BranchQueryPlanNode {
+		public NaturalJoinNode(QueryPlanNode left, QueryPlanNode right)
+			: base(left, right) {
+		}
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+		public override ITable Evaluate(IQueryContext context) {
+			throw new NotImplementedException();
+		}
 	}
 }

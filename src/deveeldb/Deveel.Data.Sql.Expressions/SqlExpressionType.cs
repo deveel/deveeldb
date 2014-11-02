@@ -35,6 +35,11 @@ namespace Deveel.Data.Sql.Expressions {
 		Or,
 		XOr,
 
+		// Subquery 
+
+		Any,
+		All,
+
 		// Multiplicative Binary
 		Add,
 		Subtract,
@@ -70,6 +75,12 @@ namespace Deveel.Data.Sql.Expressions {
 		/// A variable or reference assignment expression.
 		/// </summary>
 		Assign,
-		Tuple
+		Tuple,
+
+		/// <summary>
+		/// A query to the database to select data from
+		/// a set of tables and columns.
+		/// </summary>
+		Query
 	}
 }

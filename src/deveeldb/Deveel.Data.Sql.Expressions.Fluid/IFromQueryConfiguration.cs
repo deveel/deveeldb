@@ -15,12 +15,10 @@
 
 using System;
 
-using Deveel.Data.Types;
+namespace Deveel.Data.Sql.Expressions.Fluid {
+	public interface IFromQueryConfiguration {
+		IFromQueryConfiguration As(string alias);
 
-namespace Deveel.Data {
-	public sealed class YearToMonthObject : DataObject {
-		public YearToMonthObject(YearToMonthType type, short totalMonths) 
-			: base(type) {
-		}
+		IQueryConfiguration Select();
 	}
 }

@@ -14,21 +14,20 @@
 //    limitations under the License.
 
 using System;
-
-using Deveel.Data.DbSystem;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
-	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
-	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+	sealed class PreparedQuerySelectColumns {
+		public PreparedQuerySelectColumns(IEnumerable<SelectColumn> seected, IEnumerable<SelectColumn> functions, int aggregateCount) {
+			AggregateCount = aggregateCount;
+			SeectedColumns = seected;
+			FunctionColumns = functions;
+		}
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+		public IEnumerable<SelectColumn> SeectedColumns { get; private set; }
+
+		public IEnumerable<SelectColumn> FunctionColumns { get; set; }
+
+		public int AggregateCount { get; private set; }
 	}
 }

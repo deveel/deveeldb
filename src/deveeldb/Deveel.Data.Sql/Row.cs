@@ -38,14 +38,14 @@ namespace Deveel.Data.Sql {
 		}
 
 		public DataObject GetValue(int columnOffset) {
-			if (columnOffset < 0 || columnOffset >= Table.TableInfo.Columns.Count)
+			if (columnOffset < 0 || columnOffset >= Table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
 			if (RowId.IsNull)
 				throw new InvalidOperationException("Row was not established to any table.");
 
 			if (values == null) {
-				var colCount = Table.TableInfo.Columns.Count;
+				var colCount = Table.TableInfo.ColumnCount;
 				values = new Dictionary<int, DataObject>(colCount);
 
 				for (int i = 0; i < colCount; i++) {
@@ -62,14 +62,14 @@ namespace Deveel.Data.Sql {
 		}
 
 		public void SetValue(int columnOffset, DataObject value) {
-			if (columnOffset < 0 || columnOffset >= Table.TableInfo.Columns.Count)
+			if (columnOffset < 0 || columnOffset >= Table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
 			if (RowId.IsNull)
 				throw new InvalidOperationException("Row was not established to any table.");
 
 			if (values == null) {
-				var colCount = Table.TableInfo.Columns.Count;
+				var colCount = Table.TableInfo.ColumnCount;
 				values = new Dictionary<int, DataObject>(colCount);
 			}
 

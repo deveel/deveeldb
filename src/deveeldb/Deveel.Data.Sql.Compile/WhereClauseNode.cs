@@ -16,25 +16,27 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Sql.Expressions;
+namespace Deveel.Data.Sql.Compile {
+		[Serializable]
+	public sealed class WhereClauseNode : SqlNode {
+		public IEnumerable<IExpressionNode> Expressions { get; private set; }
 
-namespace Deveel.Data.Sql {
-	public sealed class JoiningSet {
-		private readonly List<JoinPart> parts;
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName == "sql_expression_list")
+				GetExpressions(node);
 
-		internal JoiningSet() {
-			parts = new List<JoinPart>();
+			return base.OnChildNode(node);
 		}
 
-		public int PartCount {
-			get { return parts.Count; }
-		}
+		private void GetExpressions(ISqlNode node) {
+			var exps = new List<IExpressionNode>();
 
-		public void AddJoin(JoinType joinType, ObjectName tableName, SqlExpression onExpression) {
-			if (tableName == null) 
-				throw new ArgumentNullException("tableName");
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is IExpressionNode)
+					exps.Add((IExpressionNode)childNode);
+			}
 
-			parts.Add(new JoinPart(joinType, tableName, onExpression));
+			Expressions = exps.AsReadOnly();
 		}
 	}
 }

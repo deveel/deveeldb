@@ -15,20 +15,22 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
-	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
-	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+	internal class ConstantExpressionPlan : ExpressionPlan {
+		private readonly SqlExpression expression;
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+		public ConstantExpressionPlan(QueryTableSetPlanner planner, SqlExpression expression)
+			: base(planner) {
+			this.expression = expression;
+		}
+
+		public override void AddToPlanTree() {
+			// Each currently open branch must have this constant expression added
+			// to it.
+			foreach (var plan in TableSetPlanner.Sources)
+				plan.UpdatePlan(new ConstantSelectNode(plan.Plan, expression));
+		}
 	}
 }

@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql {
 		public DataType ColumnType { get; private set; }
 
 		public int Offset {
-			get { return TableInfo == null ? -1 : TableInfo.Columns.IndexOfColumn(ColumnName); }
+			get { return TableInfo == null ? -1 : TableInfo.IndexOfColumn(ColumnName); }
 		}
 
 		public bool IsIndexable {

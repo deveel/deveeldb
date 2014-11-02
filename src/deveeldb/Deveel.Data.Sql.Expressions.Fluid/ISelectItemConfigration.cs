@@ -14,20 +14,9 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
 
-namespace Deveel.Data.Sql {
-	public static class ColumnCollectionExtensions {
-		public static int IndexOfColumn(this IEnumerable<ColumnInfo> columns, string columnName) {
-			int i = 0;
-			foreach (var column in columns) {
-				if (column.ColumnName == columnName)
-					return i;
-
-				i++;
-			}
-
-			return -1;
-		}
+namespace Deveel.Data.Sql.Expressions.Fluid {
+	public interface ISelectItemConfiguration {
+		ISelectItemWithExpressionConfiguration Expression(SqlExpression itemExpression);
 	}
 }

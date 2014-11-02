@@ -1,4 +1,4 @@
-﻿// 
+// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,20 +15,29 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
+namespace Deveel.Data.Sql {
+	/// <summary>
+	/// The kind of composite function in a <see cref="CompositeTable"/>.
+	/// </summary>
+	public enum CompositeFunction {
+		/// <summary>
+		/// The composite function for finding the union of the tables.
+		/// </summary>
+		Union = 1,
 
-namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
-	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
-	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+		/// <summary>
+		/// The composite function for finding the interestion of the tables.
+		/// </summary>
+		Intersect = 2,
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+		/// <summary>
+		/// The composite function for finding the difference of the tables.
+		/// </summary>
+		Except = 3,
+
+		/// <summary>
+		/// An unspecified composite function.
+		/// </summary>
+		None = -1
 	}
 }

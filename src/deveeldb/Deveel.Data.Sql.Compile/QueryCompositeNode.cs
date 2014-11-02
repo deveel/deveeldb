@@ -15,20 +15,23 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
+namespace Deveel.Data.Sql.Compile {
+	[Serializable]
+	public sealed class QueryCompositeNode : SqlNode {
+		public string CompositeFunction { get; private set; }
 
-namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
-	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
-	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+		public bool IsAll { get; private set; }
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+		public SqlQueryExpressionNode QueryExpression { get; private set; }
+
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node is SqlKeyNode) {
+
+			} else if (node is SqlQueryExpressionNode) {
+				
+			}
+
+			return base.OnChildNode(node);
+		}
 	}
 }

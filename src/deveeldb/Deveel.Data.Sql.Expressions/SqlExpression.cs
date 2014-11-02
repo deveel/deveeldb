@@ -112,7 +112,15 @@ namespace Deveel.Data.Sql.Expressions {
 			}
 		}
 
-		public SqlExpression Prepare(IExpressionPreparer preparer) {
+		public virtual SqlExpression Prepare(IExpressionPreparer preparer) {
+			throw new NotImplementedException();
+		}
+
+		public virtual SqlExpression Accept(SqlExpressionVisitor visitor) {
+			return this;
+		}
+
+		internal bool HasAggregate(IQueryContext context) {
 			throw new NotImplementedException();
 		}
 
@@ -392,6 +400,26 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		#endregion
+
+		public static SqlAssignExpression Assign(ObjectName reference, SqlExpression valueExpression) {
+			return Assign(Reference(reference), valueExpression);
+		}
+
+		public static SqlAssignExpression Assign(SqlExpression reference, SqlExpression expression) {
+			return new SqlAssignExpression(reference, expression);
+		}
+
+		public static SqlTupleExpression Tuple(SqlExpression[] expressions) {
+			return new SqlTupleExpression(expressions);
+		}
+
+		public static SqlTupleExpression Tuple(SqlExpression expr1, SqlExpression exp2) {
+			return Tuple(new[] {expr1, exp2});
+		}
+
+		public static SqlTupleExpression Tuple(SqlExpression expr1, SqlExpression expr2, SqlExpression expr3) {
+			return Tuple(new[] {expr1, expr2, expr3});
+		}
 
 		#endregion
 	}

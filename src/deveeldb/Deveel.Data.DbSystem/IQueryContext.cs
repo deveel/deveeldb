@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.DbSystem {
@@ -29,6 +30,8 @@ namespace Deveel.Data.DbSystem {
 		/// the database system.
 		/// </summary>
 		ISequenceAccessContext SequenceAccess { get; }
+
+		ICache TableCache { get; }
 
 		/// <summary>
 		/// Computes a new random number, that is ensured to be unique 

@@ -18,17 +18,29 @@ using System;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
+	/// <summary>
+	/// A marker node that takes the result of a child and marks it as 
+	/// a name that can later be retrieved.
+	/// </summary>
 	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
+	/// This is useful for implementing things such as outer joins.
 	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+	[Serializable]
+	class MarkerNode : SingleQueryPlanNode {
+		/// <summary>
+		/// The name of this mark.
+		/// </summary>
+		private readonly string markName;
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+		public MarkerNode(QueryPlanNode child, string markName)
+			: base(child) {
+			this.markName = markName;
+		}
+
+		public override ITable Evaluate(IQueryContext context) {
+			ITable childTable = Child.Evaluate(context);
+			context.TableCache.Set(markName, childTable);
+			return childTable;
+		}
 	}
 }

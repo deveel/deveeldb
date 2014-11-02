@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,10 +13,20 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-namespace Deveel.Data {
-	public enum IntervalForm {
-		YearToMonth = 0x01,
-		DayToSecond = 0x02,
-		Full = YearToMonth | DayToSecond
+using System;
+
+using Deveel.Data.Sql.Query;
+
+namespace Deveel.Data.Sql.Expressions {
+	class QueryReferenceExpression : SqlExpression {
+		public QueryReferenceExpression(QueryReference reference) {
+			Reference = reference;
+		}
+
+		public QueryReference Reference { get; private set; }
+
+		public override SqlExpressionType ExpressionType {
+			get { return SqlExpressionType.Reference; }
+		}
 	}
 }

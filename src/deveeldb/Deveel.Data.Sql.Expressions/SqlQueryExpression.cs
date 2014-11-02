@@ -14,21 +14,25 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
-using Deveel.Data.DbSystem;
+namespace Deveel.Data.Sql.Expressions {
+	public sealed class SqlQueryExpression : SqlExpression {
+		public SqlQueryExpression(IEnumerable<SelectColumn> selectColumns) {
+			SelectColumns = selectColumns;
+			FromClause = new FromClause();
+		}
 
-namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
-	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
-	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+		public IEnumerable<SelectColumn> SelectColumns { get; private set; }
 
-		void Accept(IQueryPlanNodeVisitor visitor);
+		public FromClause FromClause { get; private set; }
+
+		public SqlExpression WhereExpression { get; set; }
+
+		public SqlExpression HavingExpression { get; set; }
+
+		public override SqlExpressionType ExpressionType {
+			get { return SqlExpressionType.Query; }
+		}
 	}
 }

@@ -15,20 +15,8 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
-
 namespace Deveel.Data.Sql.Query {
-	///<summary>
-	/// A node element of a query plan tree.
-	///</summary>
-	/// <remarks>
-	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
-	/// for the construction of better plans.
-	/// </remarks>
-	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
-
-		void Accept(IQueryPlanNodeVisitor visitor);
+	public interface IQueryPlanNodeVisitor {
+		void Visit(IQueryPlanNode node);
 	}
 }

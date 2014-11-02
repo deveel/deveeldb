@@ -15,57 +15,24 @@
 
 using System;
 
+using Deveel.Data.Sql.Expressions;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Describes a single table declaration in the from clause of a 
 	/// table expression (<c>SELECT</c>).
 	/// </summary>
 	[Serializable]
-	public sealed class FromTable : ICloneable {
-		/// <summary>
-		/// If this is true, then the table def represents a sub-query table.
-		/// </summary>
-		/// <remarks>
-		/// The <see cref="SubSelect"/> and <see cref="Alias"/> 
-		/// method can be used to get the table information.
-		/// </remarks>
-		/// <example>
-		/// <code>
-		/// FROM ( SELECT id, number FROM Part ) AS part_info, ....
-		/// </code>
-		/// </example>
-		private readonly bool subqueryTable;
-
-		/// <summary>
-		/// The unique key name given to this table definition.
-		/// </summary>
-		private string uniqueKey;
-
-		/// <summary>
-		/// The name of the table this definition references.
-		/// </summary>
-		private readonly string tableName;
-
-		/// <summary>
-		/// The alias of the table or null if no alias was defined.
-		/// </summary>
-		private readonly string tableAlias;
-
-		/// <summary>
-		/// The TableSelectExpression if this is a subquery table.
-		/// </summary>
-		private TableSelectExpression subselectTable;
-
+	public sealed class FromTable : IPreparable {
 		/// <summary>
 		/// Constructs a table that is aliased under a different name.
 		/// </summary>
 		/// <param name="tableName"></param>
 		/// <param name="tableAlias"></param>
-		public FromTable(string tableName, string tableAlias) {
-			this.tableName = tableName;
-			this.tableAlias = tableAlias;
-			subselectTable = null;
-			subqueryTable = false;
+		public FromTable(string tableName, string tableAlias)
+			: this(tableName, null, tableAlias) {
+			if (String.IsNullOrEmpty(tableName))
+				throw new ArgumentNullException("tableName");
 		}
 
 		/// <summary>
@@ -77,81 +44,62 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// A table that is a sub-query and given an aliased name.
+		/// A table that is a sub-query with no alias set.
 		/// </summary>
-		/// <param name="select"></param>
-		/// <param name="tableAlias"></param>
-		public FromTable(TableSelectExpression select, string tableAlias) {
-			subselectTable = select;
-			tableName = tableAlias;
-			this.tableAlias = tableAlias;
-			subqueryTable = true;
+		/// <param name="query"></param>
+		public FromTable(SqlQueryExpression query) 
+			: this(query, null) {
 		}
 
 		/// <summary>
-		/// A simple sub-query table definition (not aliased).
+		/// A table that is a sub-query and given an aliased name.
 		/// </summary>
-		/// <param name="select"></param>
-		public FromTable(TableSelectExpression select) {
-			subselectTable = select;
-			tableName = null;
-			tableAlias = null;
-			subqueryTable = true;
+		/// <param name="query"></param>
+		/// <param name="tableAlias"></param>
+		public FromTable(SqlQueryExpression query, string tableAlias)
+			: this(null, query, tableAlias) {
+			if (query == null)
+				throw new ArgumentNullException("query");
 		}
 
+		private FromTable(string tableName, SqlQueryExpression query, string alias) {
+			Name = tableName;
+			SubQuery = query;
+			Alias = alias;
+			IsSubQuery = query != null;
+		}
 
 		///<summary>
 		/// Gets the name of the table.
 		///</summary>
-		public string Name {
-			get { return tableName; }
-		}
+		public string Name { get; private set; }
 
 		/// <summary>
 		/// Returns the alias for this table (or null if no alias given).
 		/// </summary>
-		public string Alias {
-			get { return tableAlias; }
-		}
+		public string Alias { get; private set; }
 
 		/// <summary>
 		/// Gets or sets the unique key.
 		/// </summary>
-		internal string UniqueKey {
-			get { return uniqueKey; }
-			set { uniqueKey = value; }
-		}
+		internal string UniqueKey { get; set; }
 
 		/// <summary>
 		/// Returns true if this item in the FROM clause is a subquery table.
 		/// </summary>
-		public bool IsSubQueryTable {
-			get { return subqueryTable; }
-		}
+		public bool IsSubQuery { get; private set; }
 
 		/// <summary>
 		/// Returns the TableSelectExpression if this is a subquery table.
 		/// </summary>
-		public TableSelectExpression SubSelect {
-			get { return subselectTable; }
-		}
+		public SqlQueryExpression SubQuery { get; private set; }
 
-		///<summary>
-		/// Prepares the expressions in this table def.
-		///</summary>
-		///<param name="preparer"></param>
-		internal void PrepareExpressions(IExpressionPreparer preparer) {
-			if (subselectTable != null)
-				((IStatementTreeObject) subselectTable).PrepareExpressions(preparer);
-		}
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
+			var subQuery = SubQuery;
+			if (subQuery != null)
+				subQuery = (SqlQueryExpression) subQuery.Prepare(preparer);
 
-		/// <inheritdoc/>
-		public object Clone() {
-			FromTable v = (FromTable)MemberwiseClone();
-			if (subselectTable != null) {
-				v.subselectTable = (TableSelectExpression)subselectTable.Clone();
-			}
-			return v;
+			return new FromTable(Name, subQuery, Alias);
 		}
 	}
 }

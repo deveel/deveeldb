@@ -16,7 +16,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Services;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -62,8 +61,90 @@ namespace Deveel.Data.Sql.Compile {
 			if (expressionNode is SqlReferenceExpressionNode)
 				return VisitReference((SqlReferenceExpressionNode) expressionNode);
 
+			if (expressionNode is SqlQueryExpressionNode)
+				return VisitQueryExpression((SqlQueryExpressionNode) expressionNode);
+
 			throw new NotSupportedException();
 		}
+
+		private SqlQueryExpression VisitQueryExpression(SqlQueryExpressionNode node) {
+			var selectColumns = GetSelectColumns(node);
+			var exp = new SqlQueryExpression(selectColumns);
+
+			FromClause fromClause = null;
+			if (node.FromClause != null) {
+				SetFromClause(exp.FromClause, node.FromClause);
+			}
+
+			return exp;
+		}
+
+		private void SetFromTableInClause(FromClause clause, IFromSourceNode source) {
+			FromTable fromTable;
+
+			if (source is FromTableSourceNode) {
+				var tableSource = (FromTableSourceNode) source;
+
+				fromTable = new FromTable(tableSource.TableName.Name.FullName, tableSource.Alias);
+
+				if (tableSource.Join != null) {
+					var joinType = GetJoinType(tableSource.Join.JoinType);
+					var onExpression = VisitBinaryExpression(tableSource.Join.OnExpression);
+					var joinTables = new List<FromTable>();
+
+					foreach (var joinTable in joinTables) {
+					}
+				}
+			} else {
+				var querySource = (FromQuerySourceNode) source;
+				var query = VisitQueryExpression(querySource.Query);
+
+				fromTable = new FromTable(query, querySource.Alias);
+			}
+
+			clause.SetTable(fromTable);
+		}
+
+		private JoinType GetJoinType(string typeName) {
+			if (String.Equals(typeName, "INNER", StringComparison.OrdinalIgnoreCase))
+				return JoinType.Inner;
+			if (String.Equals(typeName, "LEFT OUTER", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(typeName, "LEFT"))
+				return JoinType.Left;
+			if (String.Equals(typeName, "RIGHT OUTER", StringComparison.OrdinalIgnoreCase) ||
+			    String.Equals(typeName, "RIGHT", StringComparison.OrdinalIgnoreCase))
+				return JoinType.Right;
+
+			return JoinType.None;
+		}
+
+		private void SetFromClause(FromClause clause, FromClauseNode node) {
+			foreach (var source in node.Sources) {
+				SetFromTableInClause(clause, source);
+			}
+		}
+
+		private IEnumerable<SelectColumn> GetSelectColumns(SqlQueryExpressionNode node) {
+			if (node.IsAll || node.SelectAll) {
+				return new[] {new SelectColumn(SqlExpression.Reference(new ObjectName("*")))};
+			}
+
+			var items = new List<SelectColumn>();
+			foreach (var item in node.SelectItems) {
+				SqlExpression exp;
+				if (item.Name != null) {
+					exp = SqlExpression.Reference(item.Name.Name);
+				} else if (item.Expression != null) {
+					exp = VisitExpression(item.Expression);
+				} else {
+					throw new InvalidOperationException();
+				}
+
+				items.Add(new SelectColumn(exp, item.Alias));
+			}
+
+			return items.AsReadOnly();
+		} 
 
 		private SqlConditionalExpression VisitCaseExpression(SqlCaseExpressionNode expressionNode) {
 			throw new NotImplementedException();

@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +15,12 @@
 
 using System;
 
-namespace Deveel.Data {
-	public enum IntervalField {
-		Years = 0,
-		Months = 1,
-		Days = 2,
-		Hours = 3,
-		Minutes = 4,
-		Seconds = 5
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Query {
+	public interface IQueryPlanner {
+		QueryExpressionFrom GenerateExpressionFrom(IQueryPlanContext context, SqlQueryExpression queryExpression);
+
+		IQueryPlanNode PlanQuery(IQueryPlanContext context, SqlQueryExpression queryExpression, QueryExpressionFrom fromSet);
 	}
 }
