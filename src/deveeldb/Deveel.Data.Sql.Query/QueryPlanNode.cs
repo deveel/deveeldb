@@ -19,15 +19,15 @@ using System.Collections.Generic;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
-	abstract class QueryPlanNode : IQueryPlanNode {
+	public abstract class QueryPlanNode : IQueryPlanNode {
 		public abstract ITable Evaluate(IQueryContext context);
 
 		protected virtual void OnAcceptVisit(IQueryPlanNodeVisitor visitor) {
 		}
 
-		public abstract IList<QueryReference> DiscoverQueryReferences(int queryLevel, IList<QueryReference> list);
+		internal abstract IList<QueryReference> DiscoverQueryReferences(int queryLevel, IList<QueryReference> list);
 
-		public abstract IList<ObjectName> DiscoverTableNames(IList<ObjectName> list);
+		internal abstract IList<ObjectName> DiscoverTableNames(IList<ObjectName> list);
 
 		void IQueryPlanNode.Accept(IQueryPlanNodeVisitor visitor) {
 			OnAcceptVisit(visitor);

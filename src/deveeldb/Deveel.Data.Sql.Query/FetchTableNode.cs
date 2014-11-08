@@ -20,40 +20,43 @@ using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
 	/// <summary>
-	/// A <see cref="IQueryPlanNode"/> implementation that is a branch with 
-	/// two child nodes.
+	/// The node for fetching a table from the current transaction.
 	/// </summary>
+	/// <remarks>
+	/// This is a tree node and has no children.
+	/// </remarks>
 	[Serializable]
-	public abstract class BranchQueryPlanNode : QueryPlanNode {
-		// The left and right node.
+	public sealed class FetchTableNode : QueryPlanNode {
+		/// <summary>
+		/// The name of the table to fetch.
+		/// </summary>
+		private readonly ObjectName tableName;
 
-		protected BranchQueryPlanNode(QueryPlanNode left, QueryPlanNode right) {
-			Left = left;
-			Right = right;
+		/// <summary>
+		/// The name to alias the table as.
+		/// </summary>
+		private readonly ObjectName aliasName;
+
+		public FetchTableNode(ObjectName tableName, ObjectName aliasName) {
+			this.tableName = tableName;
+			this.aliasName = aliasName;
 		}
 
-		/// <summary>
-		/// Gets the left node of the branch query plan node.
-		/// </summary>
-		protected QueryPlanNode Left { get; private set; }
+		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
+			if (!list.Contains(tableName))
+				list.Add(tableName);
 
-		/// <summary>
-		/// Gets the right node of the branch query plan node.
-		/// </summary>
-		protected QueryPlanNode Right { get; private set; }
+			return list;
+		}
 
 		/// <inheritdoc/>
-		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
-			return Right.DiscoverTableNames(Left.DiscoverTableNames(list));
+		public override ITable Evaluate(IQueryContext context) {
+			throw new NotImplementedException();
 		}
 
 		/// <inheritdoc/>
 		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
-			return Right.DiscoverQueryReferences(level, Left.DiscoverQueryReferences(level, list));
-		}
-
-		public virtual string Title {
-			get { return GetType().Name; }
+			return list;
 		}
 	}
 }

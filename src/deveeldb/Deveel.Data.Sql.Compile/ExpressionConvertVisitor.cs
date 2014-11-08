@@ -80,29 +80,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		private void SetFromTableInClause(FromClause clause, IFromSourceNode source) {
-			FromTable fromTable;
-
-			if (source is FromTableSourceNode) {
-				var tableSource = (FromTableSourceNode) source;
-
-				fromTable = new FromTable(tableSource.TableName.Name.FullName, tableSource.Alias);
-
-				if (tableSource.Join != null) {
-					var joinType = GetJoinType(tableSource.Join.JoinType);
-					var onExpression = VisitBinaryExpression(tableSource.Join.OnExpression);
-					var joinTables = new List<FromTable>();
-
-					foreach (var joinTable in joinTables) {
-					}
-				}
-			} else {
-				var querySource = (FromQuerySourceNode) source;
-				var query = VisitQueryExpression(querySource.Query);
-
-				fromTable = new FromTable(query, querySource.Alias);
-			}
-
-			clause.SetTable(fromTable);
+			//TODO: Remake this!
 		}
 
 		private JoinType GetJoinType(string typeName) {

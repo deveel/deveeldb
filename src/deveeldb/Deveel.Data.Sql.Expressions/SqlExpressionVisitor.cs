@@ -17,7 +17,7 @@ using System;
 
 namespace Deveel.Data.Sql.Expressions {
 	public class SqlExpressionVisitor {
-		public SqlExpression Visit(SqlExpression expression) {
+		public virtual SqlExpression Visit(SqlExpression expression) {
 			if (expression == null)
 				return null;
 

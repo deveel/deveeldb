@@ -14,24 +14,27 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
-using Deveel.Data.Sql.Expressions;
+using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
-	internal class SimpleSingleExpressionPlan : ExpressionPlan {
-		private readonly ObjectName singleVar;
-		private readonly SqlExpression expression;
+	sealed class CachePointNode : SingleQueryPlanNode {
+		private readonly long id;
 
-		public SimpleSingleExpressionPlan(QueryTableSetPlanner qtsp, ObjectName singleVar, SqlExpression expression)
-			: base(qtsp) {
-			this.singleVar = singleVar;
-			this.expression = expression;
+		private readonly static Object GlobLock = new Object();
+		private static int GlobId;
+
+		public CachePointNode(QueryPlanNode child)
+			: base(child) {
+			lock (GlobLock) {
+				id = ((int)DateTime.Now.Ticks << 16) | (GlobId & 0x0FFFF);
+				++GlobId;
+			}
 		}
 
-		public override void AddToPlanTree() {
-			// Find the table source for this variable
-			var tableSource = TableSetPlanner.FindTableSource(singleVar);
-			tableSource.UpdatePlan(new RangeSelectNode(tableSource.Plan, expression));
+		public override ITable Evaluate(IQueryContext context) {
+			throw new NotImplementedException();
 		}
 	}
 }

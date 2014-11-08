@@ -15,23 +15,8 @@
 
 using System;
 
-using Deveel.Data.Sql.Expressions;
-
 namespace Deveel.Data.Sql.Query {
-	internal class ComplexSingleExpressionPlan : ExpressionPlan {
-		private readonly ObjectName singleVar;
-		private readonly SqlExpression expression;
-
-		public ComplexSingleExpressionPlan(QueryTableSetPlanner planner, ObjectName singleVar, SqlExpression expression)
-			: base(planner) {
-			this.singleVar = singleVar;
-			this.expression = expression;
-		}
-
-		public override void AddToPlanTree() {
-			// Find the table source for this variable
-			var tableSource = TableSetPlanner.FindTableSource(singleVar);
-			tableSource.UpdatePlan(new ExhaustiveSelectNode(tableSource.Plan, expression));
-		}
+	interface IExpressionPlan : IComparable<IExpressionPlan> {
+		float OptimizeFactor { get; } 
 	}
 }

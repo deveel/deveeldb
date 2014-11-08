@@ -31,41 +31,61 @@ namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class FromClause : IPreparable {
 		internal FromClause() {
+			fromTables = new List<FromTable>();
+			joinParts = new List<JoinPart>();
+			tableNames = new List<string>();
 		}
 
-		public FromTable SourceTable { get; private set; }
+		private readonly List<string> tableNames;
+		private readonly List<FromTable> fromTables;
+		private readonly List<JoinPart> joinParts;
 
-		public IEnumerable<FromTable> AllTables { get; private set; }
+		/// <summary>
+		/// An id used for making unique names for anonymous inner selects.
+		/// </summary>
+		private int tableKey;
 
-		public void SetTable(FromTable table) {
+		public IEnumerable<FromTable> AllTables {
+			get { return fromTables.AsReadOnly(); }
+		}
+
+		private String CreateNewKey() {
+			++tableKey;
+			return tableKey.ToString();
+		}
+
+
+		public void AddTable(string alias, FromTable table) {
 			if (table == null) 
 				throw new ArgumentNullException("table");
-			if (SourceTable != null)
-				throw new InvalidOperationException("");
 
-			SourceTable = table;
+			if (!String.IsNullOrEmpty(alias)) {
+				if (tableNames.Contains(alias))
+					throw new ArgumentException(String.Format("Duplicated table name {0} is FROM clause.", alias));
+
+				tableNames.Add(alias);
+			}
+
+			// Create a new unique key for this table
+			string key = CreateNewKey();
+			table.UniqueKey = key;
+			fromTables.Add(table);
 		}
 
-		public void SetTable(ObjectName tableName) {
-			SetTable(tableName, null);
+		public void AddTable(string alias, string tableName) {
+			AddTable(alias, new FromTable(tableName, alias));
 		}
 
-		public void SetTable(ObjectName tableName, string alias) {
-			if (tableName == null) 
-				throw new ArgumentNullException("tableName");
-
-			SetTable(new FromTable(tableName.FullName, alias));
+		public void AddTable(string tableName) {
+			AddTable(null, tableName);
 		}
 
-		public void SetTable(SqlQueryExpression subQuery) {
-			SetTable(subQuery, null);
+		public void AddSubQuery(SqlQueryExpression subQuery) {
+			AddSubQuery(null, subQuery);
 		}
 
-		public void SetTable(SqlQueryExpression subQuery, string alias) {
-			if (subQuery == null) 
-				throw new ArgumentNullException("subQuery");
-
-			SetTable(new FromTable(subQuery, alias));
+		public void AddSubQuery(string alias, SqlQueryExpression subQuery) {
+			AddTable(alias, new FromTable(subQuery, alias));
 		}
 
 		object IPreparable.Prepare(IExpressionPreparer preparer) {

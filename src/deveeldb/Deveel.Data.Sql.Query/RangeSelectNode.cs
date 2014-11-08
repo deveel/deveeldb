@@ -60,12 +60,12 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		/// <inheritdoc/>
-		public override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
+		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
 			throw new NotImplementedException();
 		}
 
 		/// <inheritdoc/>
-		public override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
+		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
 			throw new NotImplementedException();
 		}
 

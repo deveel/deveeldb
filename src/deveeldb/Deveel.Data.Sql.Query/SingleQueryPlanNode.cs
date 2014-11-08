@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Query {
 	/// A <see cref="IQueryPlanNode"/> with a single child.
 	/// </summary>
 	[Serializable]
-	abstract class SingleQueryPlanNode : QueryPlanNode {
+	public abstract class SingleQueryPlanNode : QueryPlanNode {
 		/// <summary>
 		/// The single child node.
 		/// </summary>
@@ -40,12 +40,12 @@ namespace Deveel.Data.Sql.Query {
 			get { return child; }
 		}
 
-		public override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
+		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
 			return child.DiscoverTableNames(list);
 		}
 
 		/// <inheritdoc/>
-		public override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
+		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
 			return child.DiscoverQueryReferences(level, list);
 		}
 

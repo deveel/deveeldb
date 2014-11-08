@@ -15,22 +15,31 @@
 
 using System;
 
-using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
 
-namespace Deveel.Data.Sql.Query {
-	internal class ConstantExpressionPlan : ExpressionPlan {
-		private readonly SqlExpression expression;
-
-		public ConstantExpressionPlan(QueryTableSetPlanner planner, SqlExpression expression)
-			: base(planner) {
-			this.expression = expression;
+namespace Deveel.Data.Sql.Objects {
+	[Serializable]
+	public sealed class SqlQueryObject : ISqlObject {
+		public SqlQueryObject(IQueryPlanNode queryPlan) {
+			QueryPlan = queryPlan;
 		}
 
-		public override void AddToPlanTree() {
-			// Each currently open branch must have this constant expression added
-			// to it.
-			foreach (var plan in TableSetPlanner.Sources)
-				plan.UpdatePlan(new ConstantSelectNode(plan.Plan, expression));
+		public IQueryPlanNode QueryPlan { get; private set; }
+
+		int IComparable.CompareTo(object obj) {
+			throw new NotSupportedException("SQL queries cannot be compared.");
+		}
+
+		int IComparable<ISqlObject>.CompareTo(ISqlObject other) {
+			throw new NotSupportedException("SQL queries cannot be compared.");
+		}
+
+		public bool IsNull {
+			get { return QueryPlan == null; }
+		}
+
+		bool ISqlObject.IsComparableTo(ISqlObject other) {
+			return false;
 		}
 	}
 }

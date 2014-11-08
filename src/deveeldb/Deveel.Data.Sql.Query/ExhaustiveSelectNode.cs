@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql.Query {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	internal class ExhaustiveSelectNode : SingleQueryPlanNode {
+	public sealed class ExhaustiveSelectNode : SingleQueryPlanNode {
 		public ExhaustiveSelectNode(QueryPlanNode child, SqlExpression exp)
 			: base(child) {
 			Expression = exp;
@@ -42,11 +42,11 @@ namespace Deveel.Data.Sql.Query {
 			throw new NotImplementedException();
 		}
 
-		public override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
+		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
 			throw new NotImplementedException();
 		}
 
-		public override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
+		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
 			throw new NotImplementedException();
 		}
 

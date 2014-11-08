@@ -500,11 +500,11 @@ namespace Deveel.Data.Sql.Query {
 		/// </summary>
 		/// <param name="constantVars"></param>
 		/// <param name="evaluateOrder"></param>
-		public void EvaluateConstants(IEnumerable<SqlExpression> constantVars, IList<ExpressionPlan> evaluateOrder) {
+		public void EvaluateConstants(IEnumerable<SqlExpression> constantVars, IList<IExpressionPlan> evaluateOrder) {
 			// For each constant variable
 			foreach (SqlExpression expr in constantVars) {
 				// Add the exression plan
-				ExpressionPlan expPlan = new ConstantExpressionPlan(this, expr);
+				var expPlan = new ConstantExpressionPlan(this, expr);
 				expPlan.OptimizeFactor = 0f;
 				evaluateOrder.Add(expPlan);
 			}
@@ -525,7 +525,7 @@ namespace Deveel.Data.Sql.Query {
 		/// necessary.
 		/// </para>
 		/// </remarks>
-		public void EvaluateSingles(IEnumerable<SqlBinaryExpression> singleVars, IList<ExpressionPlan> evaluateOrder) {
+		public void EvaluateSingles(IEnumerable<SqlBinaryExpression> singleVars, IList<IExpressionPlan> evaluateOrder) {
 			// The list of simple expression plans (lhs = single)
 			var simplePlanList = new List<SingleVarPlan>();
 			// The list of complex function expression plans (lhs = expression)
@@ -627,5 +627,111 @@ namespace Deveel.Data.Sql.Query {
 		private void PlanForExpression(SqlExpression expression) {
 			throw new NotImplementedException();
 		}
+
+		#region ExpressionPlan
+
+		abstract class ExpressionPlan : IExpressionPlan {
+			protected ExpressionPlan(QueryTableSetPlanner planner) {
+				TableSetPlanner = planner;
+			}
+
+			protected QueryTableSetPlanner TableSetPlanner { get; private set; }
+
+			public float OptimizeFactor { get; set; }
+
+			public int CompareTo(IExpressionPlan other) {
+				return OptimizeFactor.CompareTo(other.OptimizeFactor);
+			}
+
+			public abstract void AddToPlanTree();
+		}
+
+		#endregion
+
+		#region SimpleSelectExpressionPlan
+
+		class SimpleSelectExpressionPlan : ExpressionPlan {
+			private readonly ObjectName singleVar;
+			private readonly SqlExpressionType op;
+			private readonly SqlExpression expression;
+
+			public SimpleSelectExpressionPlan(QueryTableSetPlanner qtsp, ObjectName singleVar, SqlExpressionType op,
+				SqlExpression expression)
+				: base(qtsp) {
+				this.singleVar = singleVar;
+				this.op = op;
+				this.expression = expression;
+			}
+
+			public override void AddToPlanTree() {
+				// Find the table source for this variable
+				var tableSource = TableSetPlanner.FindTableSource(singleVar);
+				tableSource.UpdatePlan(new SimpleSelectNode(tableSource.Plan, singleVar, op, expression));
+			}
+		}
+
+		#endregion
+
+		#region SimpleSingleExpressionPlan
+
+		class SimpleSingleExpressionPlan : ExpressionPlan {
+			private readonly ObjectName singleVar;
+			private readonly SqlExpression expression;
+
+			public SimpleSingleExpressionPlan(QueryTableSetPlanner qtsp, ObjectName singleVar, SqlExpression expression)
+				: base(qtsp) {
+				this.singleVar = singleVar;
+				this.expression = expression;
+			}
+
+			public override void AddToPlanTree() {
+				// Find the table source for this variable
+				var tableSource = TableSetPlanner.FindTableSource(singleVar);
+				tableSource.UpdatePlan(new RangeSelectNode(tableSource.Plan, expression));
+			}
+		}
+
+		#endregion
+
+		#region ConstantExpressionPlan
+
+		class ConstantExpressionPlan : ExpressionPlan {
+			private readonly SqlExpression expression;
+
+			public ConstantExpressionPlan(QueryTableSetPlanner planner, SqlExpression expression)
+				: base(planner) {
+				this.expression = expression;
+			}
+
+			public override void AddToPlanTree() {
+				// Each currently open branch must have this constant expression added
+				// to it.
+				foreach (var plan in TableSetPlanner.Sources)
+					plan.UpdatePlan(new ConstantSelectNode(plan.Plan, expression));
+			}
+		}
+
+		#endregion
+
+		#region ComplexSingleExpressionPlan
+
+		class ComplexSingleExpressionPlan : ExpressionPlan {
+			private readonly ObjectName singleVar;
+			private readonly SqlExpression expression;
+
+			public ComplexSingleExpressionPlan(QueryTableSetPlanner planner, ObjectName singleVar, SqlExpression expression)
+				: base(planner) {
+				this.singleVar = singleVar;
+				this.expression = expression;
+			}
+
+			public override void AddToPlanTree() {
+				// Find the table source for this variable
+				var tableSource = TableSetPlanner.FindTableSource(singleVar);
+				tableSource.UpdatePlan(new ExhaustiveSelectNode(tableSource.Plan, expression));
+			}
+		}
+
+		#endregion
 	}
 }
