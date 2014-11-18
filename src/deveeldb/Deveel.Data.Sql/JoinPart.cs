@@ -28,9 +28,20 @@ namespace Deveel.Data.Sql {
 			TableName = tableName;
 		}
 
+		internal JoinPart(JoinType joinType, SqlQueryExpression subQuery, SqlExpression onExpression) {
+			if (subQuery == null) 
+				throw new ArgumentNullException("subQuery");
+
+			OnExpression = onExpression;
+			JoinType = joinType;
+			SubQuery = subQuery;
+		}
+
 		public JoinType JoinType { get; private set; }
 
 		public ObjectName TableName { get; private set; }
+
+		public SqlQueryExpression SubQuery { get; private set; } 
 
 		public SqlExpression OnExpression { get; private set; }
 	}

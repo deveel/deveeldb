@@ -49,9 +49,13 @@ namespace Deveel.Data.Sql {
 			get { return fromTables.AsReadOnly(); }
 		}
 
+		public int JoinPartCount {
+			get { return joinParts.Count; }
+		}
+
 		private String CreateNewKey() {
 			++tableKey;
-			return tableKey.ToString();
+			return tableKey.ToString(CultureInfo.InvariantCulture);
 		}
 
 
@@ -86,6 +90,21 @@ namespace Deveel.Data.Sql {
 
 		public void AddSubQuery(string alias, SqlQueryExpression subQuery) {
 			AddTable(alias, new FromTable(subQuery, alias));
+		}
+
+		public void Join(JoinType joinType, SqlExpression onExpression) {
+			var lastTable = fromTables[fromTables.Count - 1];
+			if (lastTable.IsSubQuery) {
+				var subQuery = lastTable.SubQuery;
+				joinParts.Add(new JoinPart(joinType, subQuery, onExpression));
+			} else {
+				var tableName = ObjectName.Parse(lastTable.Name);
+				joinParts.Add(new JoinPart(joinType, tableName, onExpression));
+			}
+		}
+
+		public JoinPart GetJoinPart(int offset) {
+			return joinParts[offset];
 		}
 
 		object IPreparable.Prepare(IExpressionPreparer preparer) {

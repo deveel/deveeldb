@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var iToken = parseNode.FindToken();
 			if (iToken != null) {
-				tokens.Add(new Token(iToken.Location.Column, iToken.Location.Line, iToken.Text));
+				tokens.Add(new Token(iToken.Location.Column, iToken.Location.Line, iToken.ValueString));
 			}
 
 			var childNodes = new List<ISqlNode>();
@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql.Compile {
 				ISqlNode child;
 				if (childNode.Term is KeyTerm) {
 					var childIToken = childNode.FindToken();
-					child = new SqlKeyNode(new Token(childIToken.Location.Column, childIToken.Location.Line, childIToken.Text));
+					child = new SqlKeyNode(new Token(childIToken.Location.Column, childIToken.Location.Line, childIToken.ValueString));
 				} else {
 					child = (ISqlNode)childNode.AstNode;
 				}

@@ -391,6 +391,7 @@ private void Comments() {
 			TO = ToTerm("TO");
 			TRUE = ToTerm("TRUE");
 			UPDATE = ToTerm("UPDATE");
+			UNION = ToTerm("UNION");
 			UNIQUE = ToTerm("UNIQUE");
 			VARBINARY = ToTerm("VARBINARY");
 			VARCHAR = ToTerm("VARCHAR");
@@ -651,9 +652,9 @@ private void Comments() {
 			from_source_list.Rule = MakePlusRule(from_source_list, from_source);
 			from_source.Rule = from_table_source | from_query_source;
 			from_table_source.Rule = object_name + select_as_opt + join_opt;
-			from_query_source.Rule = "(" + query + ")";
+			from_query_source.Rule = "(" + query + ")" + select_as_opt + join_opt;
 			join_opt.Rule = Empty | join ;
-			join.Rule = ", " + from_table_source |
+			join.Rule = "," + from_table_source |
 			            join_type + JOIN + from_table_source + ON + sql_expression;
 			join_type.Rule = INNER | OUTER | LEFT | LEFT + OUTER | RIGHT | RIGHT + OUTER;
 			where_clause_opt.Rule = Empty | WHERE + sql_expression_list;

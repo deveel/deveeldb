@@ -17,6 +17,8 @@ using System;
 
 namespace Deveel.Data.Sql.Compile {
 	public interface IFromSourceNode : ISqlNode {
-		
+		string Alias { get; }
+
+		JoinNode Join { get; }
 	}
 }

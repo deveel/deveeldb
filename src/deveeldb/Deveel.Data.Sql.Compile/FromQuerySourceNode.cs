@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	public sealed class FromQuerySourceNode : SqlNode, IFromSourceNode {
@@ -21,7 +22,21 @@ namespace Deveel.Data.Sql.Compile {
 
 		public string Alias { get; private set; }
 
+		public JoinNode Join { get; private set; }
+
 		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName == "query") {
+				var expression = node.ChildNodes.FirstOrDefault();
+				if (expression != null)
+					Query = (SqlQueryExpressionNode) expression;
+			} else if (node is IdentifierNode) {
+				Alias = ((IdentifierNode) node).Text;
+			} else if (node.NodeName == "join_opt") {
+				var join = node.ChildNodes.FirstOrDefault();
+				if (join != null)
+					Join = (JoinNode) join;
+			}
+
 			return base.OnChildNode(node);
 		}
 	}

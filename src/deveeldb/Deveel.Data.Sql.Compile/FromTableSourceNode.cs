@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	public sealed class FromTableSourceNode : SqlNode, IFromSourceNode {
@@ -26,17 +27,12 @@ namespace Deveel.Data.Sql.Compile {
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is ObjectNameNode) {
 				TableName = (ObjectNameNode) node;
-			} else if (node.NodeName == "select_as_opt") {
-				foreach (var childNode in node.ChildNodes) {
-					if (childNode is SqlKeyNode &&
-						childNode.NodeName == "AS")
-						continue;
-					if (childNode is IdentifierNode) {
-						Alias = ((IdentifierNode) childNode).Text;
-					}
-				}
-			} else if (node is JoinNode) {
-				Join = (JoinNode) node;
+			} else if (node is IdentifierNode) {
+				Alias = ((IdentifierNode) node).Text;
+			} else if (node.NodeName == "join_opt") {
+				var join = node.ChildNodes.FirstOrDefault();
+				if (join != null)
+					Join = (JoinNode) join;
 			}
 
 			return base.OnChildNode(node);

@@ -80,11 +80,37 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		private void SetFromTableInClause(FromClause clause, IFromSourceNode source) {
-			//TODO: Remake this!
+			if (source is FromTableSourceNode) {
+				var tableSource = (FromTableSourceNode) source;
+				clause.AddTable(tableSource.Alias, tableSource.TableName.Name.FullName);
+			} else if (source is FromQuerySourceNode) {
+				var querySource = (FromQuerySourceNode) source;
+				var queryExpression = VisitQueryExpression(querySource.Query);
+				clause.AddSubQuery(source.Alias, queryExpression);
+			}
+
+			if (source.Join != null) {
+				var joinType = JoinType.Inner;
+				if (!String.IsNullOrEmpty(source.Join.JoinType))
+					joinType = GetJoinType(source.Join.JoinType);
+
+				SqlExpression onExpression = null;
+				if (source.Join.OnExpression != null)
+					onExpression = VisitExpression(source.Join.OnExpression);
+
+				clause.Join(joinType, onExpression);
+
+				var otherSource = source.Join.OtherSource;
+				if (otherSource == null)
+					throw new SqlExpressionException("The JOIN clause is not valid: missing other part.");
+
+				SetFromTableInClause(clause, otherSource);
+			}
 		}
 
 		private JoinType GetJoinType(string typeName) {
-			if (String.Equals(typeName, "INNER", StringComparison.OrdinalIgnoreCase))
+			if (String.Equals(typeName, "INNER", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(typeName, ",", StringComparison.InvariantCulture))
 				return JoinType.Inner;
 			if (String.Equals(typeName, "LEFT OUTER", StringComparison.OrdinalIgnoreCase) ||
 				String.Equals(typeName, "LEFT"))

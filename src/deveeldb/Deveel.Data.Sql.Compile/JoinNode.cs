@@ -25,13 +25,13 @@ namespace Deveel.Data.Sql.Compile {
 
 		public string JoinType { get; private set; }
 
-		public IEnumerable<IFromSourceNode> Sources { get; private set; }
+		public IFromSourceNode OtherSource { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "join_type") {
 				GetJoinType(node);
-			} else if (node is FromTableSourceNode) {
-				Sources = new List<IFromSourceNode> {(FromTableSourceNode) node}.AsReadOnly();
+			} else if (node is IFromSourceNode) {
+				OtherSource = (IFromSourceNode) node;
 			} else if (node.NodeName == "from_source_list") {
 				GetTablelist(node);
 			} else if (node is SqlBinaryExpressionNode) {
@@ -42,14 +42,14 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		private void GetTablelist(ISqlNode node) {
-			var list = new List<IFromSourceNode>();
-			foreach (var child in node.ChildNodes) {
-				var source = child.ChildNodes.First();
-				if (source is IFromSourceNode)
-					list.Add((IFromSourceNode)source);
-			}
+			//var list = new List<IFromSourceNode>();
+			//foreach (var child in node.ChildNodes) {
+			//	var source = child.ChildNodes.First();
+			//	if (source is IFromSourceNode)
+			//		list.Add((IFromSourceNode)source);
+			//}
 
-			Sources = list.AsReadOnly();
+			//Sources = list.AsReadOnly();
 		}
 
 		private void GetJoinType(ISqlNode node) {
