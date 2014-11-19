@@ -16,11 +16,23 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Within an SQL query node, this describes the ordering criteria
+	/// that will be applied when returning the results of the selection.
+	/// </summary>
 	public sealed class OrderByNode : SqlNode {
+		/// <summary>
+		/// Gets the expression used to compare results and put in order.
+		/// </summary>
 		public IExpressionNode Expression { get; private set; }
 
+		/// <summary>
+		/// Gets a value indicating whether the returned ordered set
+		/// will be presented in <c>ascending</c> order.
+		/// </summary>
 		public bool Ascending { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "sql_expression") {
 				Expression = (IExpressionNode) node;

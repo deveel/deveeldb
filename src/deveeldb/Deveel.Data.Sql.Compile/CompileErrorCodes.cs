@@ -16,7 +16,13 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Constant error codes within the SQL compilation domain.
+	/// </summary>
 	public static class CompileErrorCodes {
+		/// <summary>
+		/// A syntax error occurred while parsing a string.
+		/// </summary>
 		public const int SyntaxError = 0x0001002;
 	}
 }

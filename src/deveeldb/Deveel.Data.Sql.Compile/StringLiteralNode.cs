@@ -17,10 +17,18 @@ using System;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// A node containing a constant literal string passed within
+	/// an SQL command.
+	/// </summary>
 	[Serializable]
 	public sealed class StringLiteralNode : SqlNode {
+		/// <summary>
+		/// Gets the literl string value.
+		/// </summary>
 		public string Value { get; private set; }
 
+		/// <inheritdoc/>
 		protected override void OnNodeInit() {
 			var text = Tokens.First().Text;
 			if (!String.IsNullOrEmpty(text)) {

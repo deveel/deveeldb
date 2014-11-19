@@ -17,10 +17,18 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// An expression containing a set of other expressions.
+	/// </summary>
 	[Serializable]
 	public sealed class SqlExpressionTupleNode : SqlNode, IExpressionNode {
+		/// <summary>
+		/// Gets a read-only list of <see cref="IExpressionNode">expression</see> that
+		/// are contained within this tuple.
+		/// </summary>
 		public IEnumerable<IExpressionNode> Expressions { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "sql_expression_list")
 				GetExpressions(node);

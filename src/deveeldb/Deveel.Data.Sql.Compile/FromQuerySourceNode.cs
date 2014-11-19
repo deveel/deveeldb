@@ -17,13 +17,25 @@ using System;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// A node in the grammar tree that defines a sub-query in a
+	/// <c>FROM</c> clause.
+	/// </summary>
+	/// <seealso cref="IFromSourceNode"/>
 	public sealed class FromQuerySourceNode : SqlNode, IFromSourceNode {
+		/// <summary>
+		/// Gets the <see cref="SqlQueryExpressionNode">node</see> that represents
+		/// the sub-qury that is the source of a query.
+		/// </summary>
 		public SqlQueryExpressionNode Query { get; private set; }
 
+		/// <inheritdoc/>
 		public string Alias { get; private set; }
 
+		/// <inheritdoc/>
 		public JoinNode Join { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "query") {
 				var expression = node.ChildNodes.FirstOrDefault();

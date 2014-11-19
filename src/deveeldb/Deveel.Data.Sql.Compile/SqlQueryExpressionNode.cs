@@ -18,26 +18,61 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// The root node of an expression used to select a set of items
+	/// from a set of sources defined, given some conditions specified.
+	/// </summary>
 	[Serializable]
 	public sealed class SqlQueryExpressionNode : SqlNode, IExpressionNode {
+		/// <summary>
+		/// Gets a boolean value indicating if the selection will return
+		/// all columns from the sources specified in <see cref="FromClause"/>.
+		/// </summary>
 		public bool IsAll { get; private set; }
 
+		/// <summary>
+		/// Gets a boolean value indicating if the selection will return
+		/// only results that are unique.
+		/// </summary>
 		public bool IsDistinct { get; private set; }
 
-		public bool SelectAll { get; private set; }
-
+		/// <summary>
+		/// Gets a read-only list of <see cref="SelectItemNode">items</see> that
+		/// will be returned by the query.
+		/// </summary>
 		public IEnumerable<SelectItemNode> SelectItems { get; private set; }
 
+		/// <summary>
+		/// Gets the clause defining the sources from where to query.
+		/// </summary>
 		public FromClauseNode FromClause { get; private set; }
 
-		public IExpressionNode WhereExpression { get; private set; }
+		/// <summary>
+		/// Gets an optional clause that is used to filter the queried objects.
+		/// </summary>
+		public WhereClauseNode WhereExpression { get; private set; }
 
-		public IExpressionNode HavingExpression { get; private set; }
+		/// <summary>
+		/// Gets an optional clause used to group and filter the results of
+		/// a query.
+		/// </summary>
+		public GroupByNode GroupBy { get; private set; }
 
+		/// <summary>
+		/// Gets a read-oly list of <see cref="OrderBy">order</see> criteria
+		/// for sorting the results of the query.
+		/// </summary>
+		/// <seealso cref="OrderByNode"/>
 		public IEnumerable<OrderByNode> OrderBy { get; private set; }
 
+		/// <summary>
+		/// Gets an optional definition for a composition between this
+		/// query and another.
+		/// </summary>
+		/// <seealso cref="QueryCompositeNode"/>
 		public QueryCompositeNode Composite { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "select_restrict_opt") {
 				GetRestrict(node);
@@ -73,7 +108,7 @@ namespace Deveel.Data.Sql.Compile {
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode is SqlKeyNode &&
 				    ((SqlKeyNode) childNode).Text == "*") {
-					SelectAll = true;
+					IsAll = true;
 				} else if (childNode.NodeName == "select_item_list") {
 					GetSelectItems(childNode);
 				}

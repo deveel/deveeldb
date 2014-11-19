@@ -19,14 +19,42 @@ using System.Linq;
 using System.Text;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// A node describing the <c>JOIN</c> between two sources within a query.
+	/// </summary>
+	/// <seealso cref="IFromSourceNode"/>
 	[Serializable]
 	public sealed class JoinNode : SqlNode {
+		/// <summary>
+		/// Gets the expression used as condition for creating the joined
+		/// group in a query.
+		/// </summary>
+		/// <remarks>
+		/// This value can be <c>null</c> only if two sources are joined naturally,
+		/// that means the condition is defined in the <c>WHERE</c> expression.
+		/// </remarks>
 		public SqlBinaryExpressionNode OnExpression { get; private set; }
 
+		/// <summary>
+		/// Gets the type of join, as a <see cref="string"/> that will
+		/// be operated between the two sources
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// This value is <c>null</c> if the join is done naturally,
+		/// otherwise it can be only one of <c>INNER</c>, <c>OUTER</c>,
+		/// <c>LEFT OUTER</c>, <c>RIGHT OUTER</c>.
+		/// </para>
+		/// </remarks>
+		/// <seealso cref="Sql.JoinType"/>
 		public string JoinType { get; private set; }
 
+		/// <summary>
+		/// Gets the other <seealso cref="IFromSourceNode"/> joined.
+		/// </summary>
 		public IFromSourceNode OtherSource { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "join_type") {
 				GetJoinType(node);

@@ -36,6 +36,7 @@ namespace Deveel.Data.Sql.Compile {
 		/// <seealso cref="ObjectName"/>
 		public ObjectName Name { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			var idNode = (IdentifierNode) node;
 

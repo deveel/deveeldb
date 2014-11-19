@@ -17,10 +17,20 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// A node in a SQL command tree that is used to invoke a function.
+	/// </summary>
 	[Serializable]
 	public sealed class SqlFunctionCallExpressionNode : SqlNode, IExpressionNode {
+		/// <summary>
+		/// Gets the name of the function to be invoked.
+		/// </summary>
 		public ObjectName FunctionName { get; private set; }
 
+		/// <summary>
+		/// Gets an optional read-only list of arguments to be passed
+		/// to the function invoked.
+		/// </summary>
 		public IEnumerable<IExpressionNode> Arguments { get; private set; }
 
 		private void GetArguments(ISqlNode node) {
@@ -33,6 +43,7 @@ namespace Deveel.Data.Sql.Compile {
 			Arguments = args.AsReadOnly();
 		}
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is ObjectNameNode) {
 				FunctionName = ((ObjectNameNode) node).Name;

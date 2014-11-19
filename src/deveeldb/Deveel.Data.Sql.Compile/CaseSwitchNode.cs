@@ -16,14 +16,25 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// The node that represents a switch in a <c>CASE</c> expression
+	/// </summary>
+	/// <seealso cref="SqlCaseExpressionNode"/>
 	[Serializable]
 	public sealed class CaseSwitchNode : SqlNode {
+		/// <summary>
+		/// Gets the conditional expression in the node.
+		/// </summary>
 		public IExpressionNode WhenExpression { get; private set; }
 
+		/// <summary>
+		/// Gets an optional fallback expression of the node.
+		/// </summary>
 		public IExpressionNode ThenExpression { get; private set; }
 
 		private bool whenFound;
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is SqlKeyNode && ((SqlKeyNode) node).Text == "WHEN") {
 				whenFound = true;

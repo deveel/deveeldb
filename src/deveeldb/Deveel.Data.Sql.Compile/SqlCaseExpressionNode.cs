@@ -18,14 +18,29 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// An SQL node describing an in-line <c>CASE</c> conditional expression.
+	/// </summary>
 	[Serializable]
 	public sealed class SqlCaseExpressionNode : SqlNode, IExpressionNode {
+		/// <summary>
+		/// Gets a read-only list of <see cref="CaseSwitchNode">switches</see>
+		/// that will be evaluated to return the result of the expresion.
+		/// </summary>
 		public IEnumerable<CaseSwitchNode> CaseSwitches { get; private set; }
 
+		/// <summary>
+		/// Gets a fallback expression that will be evaluated if none
+		/// of <see cref="CaseSwitches"/> is be evaluated.
+		/// </summary>
 		public IExpressionNode ElseExpression { get; private set; }
 
+		/// <summary>
+		/// Gets the main expression to be evaluated against the <see cref="CaseSwitches"/>
+		/// </summary>
 		public IExpressionNode TestExpression { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "case_test_expression_opt") {
 				if (node.ChildNodes.Any()) {

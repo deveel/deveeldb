@@ -16,14 +16,33 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Composes two queries to obtain a set that is the result of a
+	/// given composition function.
+	/// </summary>
 	[Serializable]
 	public sealed class QueryCompositeNode : SqlNode {
+		/// <summary>
+		/// Gets the function used to compose the two queries.
+		/// </summary>
+		/// <remarks>
+		/// This value can be only one of <c>UNION</c>, <c>EXCEPT</c>
+		/// or <c>INTERSECT</c>
+		/// </remarks>
 		public string CompositeFunction { get; private set; }
 
+		/// <summary>
+		/// Gets a boolean value indicating whether the composition
+		/// will be done on all records.
+		/// </summary>
 		public bool IsAll { get; private set; }
 
+		/// <summary>
+		/// Gets the other query to compose the results.
+		/// </summary>
 		public SqlQueryExpressionNode QueryExpression { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is SqlKeyNode) {
 

@@ -17,10 +17,20 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// The node in an SQL query that defines the sources from which to
+	/// retrieve the data queried.
+	/// </summary>
+	/// <seealso cref="IFromSourceNode"/>
 	[Serializable]
 	public sealed class FromClauseNode : SqlNode {
+		/// <summary>
+		/// Gets a read-only list of sources for the query.
+		/// </summary>
+		/// <seealso cref="IFromSourceNode"/>
 		public IEnumerable<IFromSourceNode> Sources { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "from_source_list") {
 				GetSources(node);

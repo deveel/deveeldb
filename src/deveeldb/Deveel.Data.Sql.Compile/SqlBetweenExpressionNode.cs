@@ -16,12 +16,34 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// An SQL <c>BETWEEN</c> expression node that evaluates to <c>true</c>
+	/// if the <see cref="Expression"/> given is between <see cref="MinValue"/>
+	/// (inclusive) and <see cref="MaxValue"/> (exclusive).
+	/// </summary>
 	[Serializable]
 	public sealed class SqlBetweenExpressionNode : SqlNode, IExpressionNode {
+		/// <summary>
+		/// Gets the expression to be tested against <see cref="MinValue"/>
+		/// and <see cref="MaxValue"/>.
+		/// </summary>
 		public IExpressionNode Expression { get; private set; }
 
+		/// <summary>
+		/// Gets the minimum value (inclusive) that <see cref="Expression"/>
+		/// must be to evaluate to <c>true</c>.
+		/// </summary>
 		public IExpressionNode MinValue { get; private set; }
 
+		/// <summary>
+		/// Gets the maximum value (inclusive) that <see cref="Expression"/>
+		/// must be to evaluate to <c>true</c>.
+		/// </summary>
 		public IExpressionNode MaxValue { get; private set; }
+
+		/// <inheritdoc/>
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			return base.OnChildNode(node);
+		}
 	}
 }

@@ -16,9 +16,29 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Defines the base contract of the source of a query.
+	/// </summary>
+	/// <remarks>
+	/// This can only be in the form of <see cref="FromTableSourceNode"/> or
+	/// <see cref="FromQuerySourceNode"/>, that means only a table or
+	/// a sub-query can be source of query.
+	/// </remarks>
 	public interface IFromSourceNode : ISqlNode {
+		/// <summary>
+		/// Gets an alias that uniquely identifies the source within
+		/// a query context.
+		/// </summary>
+		/// <remarks>
+		/// This value can be <c>null</c> that means the name will be
+		/// resolved by its main component.
+		/// </remarks>
 		string Alias { get; }
 
+		/// <summary>
+		/// Gets a <c>JOIN</c> clause between this source and another,
+		/// if defined in the query.
+		/// </summary>
 		JoinNode Join { get; }
 	}
 }

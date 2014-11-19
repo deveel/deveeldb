@@ -17,10 +17,18 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Compile {
-		[Serializable]
+	/// <summary>
+	/// A clause node that defines the filters applied to
+	/// a selection to restrict the results.
+	/// </summary>
+	[Serializable]
 	public sealed class WhereClauseNode : SqlNode {
+		/// <summary>
+		/// Gets a read-only list of expressions used to filter
+		/// </summary>
 		public IEnumerable<IExpressionNode> Expressions { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "sql_expression_list")
 				GetExpressions(node);

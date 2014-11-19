@@ -16,10 +16,17 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// References a variable within a SQL execution context.
+	/// </summary>
 	[Serializable]
 	public sealed class SqlVariableRefExpressionNode : SqlNode, IExpressionNode {
+		/// <summary>
+		/// Gets the name of the variable to reference.
+		/// </summary>
 		public string Variable { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			Variable = ((IdentifierNode) node).Text;
 			return base.OnChildNode(node);

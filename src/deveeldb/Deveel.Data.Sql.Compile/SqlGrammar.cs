@@ -371,6 +371,7 @@ private void Comments() {
 			NUMERIC = ToTerm("NUMERIC");
 			ON = ToTerm("ON");
 			OR = ToTerm("OR");
+			ORDER = ToTerm("ORDER");
 			OUTER = ToTerm("OUTER");
 			PRIMARY = ToTerm("PRIMARY");
 			PRAGMA = ToTerm("PRAGMA");

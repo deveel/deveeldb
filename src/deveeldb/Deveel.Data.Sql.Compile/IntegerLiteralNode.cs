@@ -37,6 +37,7 @@ namespace Deveel.Data.Sql.Compile {
 			get { return BigValue == null ? -1 : BigValue.ToInt64(); }
 		}
 
+		/// <inheritdoc/>
 		protected override void OnNodeInit() {
 			var token = Tokens.First();
 			BigValue = new BigInteger(token.Text);

@@ -31,6 +31,7 @@ namespace Deveel.Data.Sql.Compile {
 		/// </summary>
 		public string Text { get; private set; }
 
+		/// <inheritdoc/>
 		protected override void OnNodeInit() {
 			var text = Tokens.First().Text;
 			if (text[0] == '\"' &&

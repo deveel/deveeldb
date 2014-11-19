@@ -158,7 +158,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\QueryCompositeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlQueryExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SelectItemNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\SqlAssignExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlAssignExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlBetweenExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlBinaryExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCaseExpressionNode.cs" />
@@ -168,7 +168,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlNodeVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlParseException.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlReferenceExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\SqlUnaryExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlUnaryExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlVariableRefExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlVisitableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\StringLiteralNode.cs" />

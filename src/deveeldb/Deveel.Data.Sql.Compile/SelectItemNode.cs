@@ -17,14 +17,30 @@ using System;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// A single item selected within a query node tree.
+	/// </summary>
 	[Serializable]
 	public sealed class SelectItemNode : SqlNode {
+		/// <summary>
+		/// Gets the name of the item selected, if the kind of item 
+		/// selected is an object name (variable, column, etc.).
+		/// </summary>
 		public ObjectNameNode Name { get; private set; }
 
+		/// <summary>
+		/// Gets an expression to be returned in the result of the
+		/// selection, if the item is set to be an expression.
+		/// </summary>
 		public IExpressionNode Expression { get; private set; }
 
+		/// <summary>
+		/// Gets an optional name that will uniquely identify the 
+		/// selected item within the query context.
+		/// </summary>
 		public string Alias { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "select_source") {
 				var source = node.ChildNodes.First();

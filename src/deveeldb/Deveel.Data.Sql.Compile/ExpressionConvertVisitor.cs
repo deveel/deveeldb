@@ -129,7 +129,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		private IEnumerable<SelectColumn> GetSelectColumns(SqlQueryExpressionNode node) {
-			if (node.IsAll || node.SelectAll) {
+			if (node.IsAll) {
 				return new[] {new SelectColumn(SqlExpression.Reference(new ObjectName("*")))};
 			}
 

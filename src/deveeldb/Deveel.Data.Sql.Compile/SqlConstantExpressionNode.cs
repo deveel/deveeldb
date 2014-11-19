@@ -18,10 +18,19 @@ using System;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// An node that represents a constant value set within a context
+	/// of an SQL command.
+	/// </summary>
 	[Serializable]
 	public sealed class SqlConstantExpressionNode : SqlNode, IExpressionNode {
+		/// <summary>
+		/// Gets an immutable instance of <see cref="ISqlObject"/> that represents the
+		/// constant value.
+		/// </summary>
 		public ISqlObject Value { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is SqlKeyNode) {
 				var keyNode = (SqlKeyNode) node;

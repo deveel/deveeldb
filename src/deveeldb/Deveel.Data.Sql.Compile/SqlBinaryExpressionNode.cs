@@ -18,20 +18,42 @@ using System.Linq;
 using System.Text;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Represents an expression that evaluates between two other expressions.
+	/// </summary>
 	[Serializable]
 	public sealed class SqlBinaryExpressionNode : SqlNode, IExpressionNode {
 		private bool leftSeen;
 
+		/// <summary>
+		/// Gets the left side argument of the expression.
+		/// </summary>
 		public IExpressionNode Left { get; private set; }
 
+		/// <summary>
+		/// Gets the right side argument of the expression.
+		/// </summary>
 		public IExpressionNode Right { get; private set; }
 
+		/// <summary>
+		/// Gets a boolean value indicating if the expression is the
+		/// special case of <c>ALL</c>.
+		/// </summary>
 		public bool IsAll { get; private set; }
 
+		/// <summary>
+		/// Gets a boolean value indicating if the expression is the
+		/// special case of <c>ANY</c>.
+		/// </summary>
 		public bool IsAny { get; private set; }
 
+		/// <summary>
+		/// Gets the binary operator that will be used to evaluate the 
+		/// final result.
+		/// </summary>
 		public string Operator { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is IExpressionNode) {
 				if (!leftSeen) {

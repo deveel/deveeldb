@@ -17,13 +17,23 @@ using System;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// Represents the node that is a database table as source of a query.
+	/// </summary>
+	/// <seealso cref="IFromSourceNode"/>
 	public sealed class FromTableSourceNode : SqlNode, IFromSourceNode {
+		/// <inheritdoc/>
 		public string Alias { get; private set; }
 
+		/// <summary>
+		/// Gets the name of the table that is set as source of a query.
+		/// </summary>
 		public ObjectNameNode TableName { get; private set; }
 
+		/// <inheritdoc/>
 		public JoinNode Join { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is ObjectNameNode) {
 				TableName = (ObjectNameNode) node;

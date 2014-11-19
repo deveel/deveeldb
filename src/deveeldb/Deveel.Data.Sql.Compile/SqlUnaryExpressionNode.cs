@@ -17,12 +17,23 @@ using System;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// An expression that encapsulates a unary operator for a
+	/// given operand.
+	/// </summary>
 	[Serializable]
 	public sealed class SqlUnaryExpressionNode : SqlNode, IExpressionNode {
+		/// <summary>
+		/// Gets the string representation of the operator.
+		/// </summary>
 		public string Operator { get; private set; }
 
+		/// <summary>
+		/// Gets the argument of the operator.
+		/// </summary>
 		public IExpressionNode Operand { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is IExpressionNode) {
 				Operand = (IExpressionNode) node;

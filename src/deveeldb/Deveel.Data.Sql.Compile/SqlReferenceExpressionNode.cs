@@ -16,10 +16,18 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// An expression node that references an object within the databse
+	/// context (such as a table, a type, a variable, etc.).
+	/// </summary>
 	[Serializable]
 	public sealed class SqlReferenceExpressionNode : SqlNode, IExpressionNode {
+		/// <summary>
+		/// Gets the full name of the object references.
+		/// </summary>
 		public ObjectNameNode Reference { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			Reference = (ObjectNameNode) node;
 			return base.OnChildNode(node);

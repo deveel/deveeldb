@@ -17,12 +17,22 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Compile {
-		[Serializable]
+	/// <summary>
+	/// A node that descrbes the <c>GROUP BY</c> clause in a SQL query.
+	/// </summary>
+	[Serializable]
 	public sealed class GroupByNode : SqlNode {
+		/// <summary>
+		/// Gets the expression node to group the results.
+		/// </summary>
 		public IEnumerable<IExpressionNode> GroupExpressions { get; private set; }
 
+		/// <summary>
+		/// Gets the <c>HVAING</c> expression used to filter the groupped results.
+		/// </summary>
 		public IEnumerable<IExpressionNode> HavingExpressions { get; private set; }
 
+		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "sql_expression_ilist") {
 				GetGroupExpressions(node);
@@ -44,17 +54,17 @@ namespace Deveel.Data.Sql.Compile {
 			var exps = new List<IExpressionNode>();
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode is IExpressionNode)
-					exps.Add((IExpressionNode)childNode);
+					exps.Add((IExpressionNode) childNode);
 			}
 
-			HavingExpressions = exps.AsReadOnly();			
+			HavingExpressions = exps.AsReadOnly();
 		}
 
 		private void GetGroupExpressions(ISqlNode node) {
 			var exps = new List<IExpressionNode>();
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode is IExpressionNode)
-					exps.Add((IExpressionNode)childNode);
+					exps.Add((IExpressionNode) childNode);
 			}
 
 			GroupExpressions = exps.AsReadOnly();
