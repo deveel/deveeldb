@@ -16,10 +16,23 @@
 using System;
 
 namespace Deveel.Data.Store {
+	/// <summary>
+	/// Lists the types of records in a store
+	/// </summary>
 	public static class RecordType {
+		/// <summary>
+		/// A record that was added but not commited.
+		/// </summary>
 		public const byte Added = 0x010;
+
+		/// <summary>
+		/// A record that was removed.
+		/// </summary>
 		public const byte Removed = 0x020;
 
+		/// <summary>
+		/// The flag to mark a record state was committed.
+		/// </summary>
 		public const byte Committed = 0x0F0;
 	}
 }

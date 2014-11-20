@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace Deveel.Data.Store {
+	/// <summary>
+	/// An implementation of <see cref="IStore"/> that persists
+	/// data in the application memory.
+	/// </summary>
 	public class InMemoryStore : IStore {
 		private InMemoryBlock fixedAreaBlock;
 		private readonly InMemoryBlock[] areaMap;
@@ -14,6 +18,9 @@ namespace Deveel.Data.Store {
 			uniqueIdKey = 0;
 		}
 
+		/// <summary>
+		/// Gets the unique name of the store within the application.
+		/// </summary>
 		public string Name { get; private set; }
 
 		private InMemoryBlock FixedAreaBlock {
@@ -61,6 +68,7 @@ namespace Deveel.Data.Store {
 			}
 		}
 
+		/// <inheritdoc/>
 		public IArea CreateArea(long size) {
 			if (size > Int32.MaxValue)
 				throw new IOException("'size' is too large.");
@@ -84,6 +92,7 @@ namespace Deveel.Data.Store {
 			}
 		}
 
+		/// <inheritdoc/>
 		public void DeleteArea(long id) {
 			lock (this) {
 				// Find the pointer in the hash
@@ -112,23 +121,29 @@ namespace Deveel.Data.Store {
 			}
 		}
 
+		/// <inheritdoc/>
 		public IArea GetArea(long id, bool readOnly) {
 			return GetBlock(id).GetArea(readOnly);
 		}
 
+		/// <inheritdoc/>
 		public void LockForWrite() {
 		}
 
+		/// <inheritdoc/>
 		public void UnlockForWrite() {
 		}
 
+		/// <inheritdoc/>
 		public void CheckPoint() {
 		}
 
+		/// <inheritdoc/>
 		public bool ClosedClean {
 			get { return true; }
 		}
 
+		/// <inheritdoc/>
 		public IEnumerable<long> GetAllAreas() {
 			throw new NotImplementedException();
 		}

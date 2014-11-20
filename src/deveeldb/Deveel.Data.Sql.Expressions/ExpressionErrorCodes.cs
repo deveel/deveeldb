@@ -16,11 +16,35 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
+	/// <summary>
+	/// Lists all the codes of errors in the <c>expressions</c> domain
+	/// </summary>
 	public enum ExpressionErrorCodes : int {
+		/// <summary>
+		/// An unknown error that was not handled.
+		/// </summary>
 		Unknown = 0x450000,
+
+		/// <summary>
+		/// An error occurred while evaluating the expression.
+		/// </summary>
 		EvaluateError = 0x06770440,
+
+		/// <summary>
+		/// The evaluator was not able to reduce the expression
+		/// to a simpler form.
+		/// </summary>
 		UnableToReduce = 0x03999400,
+
+		/// <summary>
+		/// A variable defined in a <see cref="SqlReferenceExpression"/> was
+		/// not found within the execution context.
+		/// </summary>
 		VariableNotFound = 0x03004003,
+
+		/// <summary>
+		/// The expression parser could not parse a given input string
+		/// </summary>
 		CannotParse = 0x08778290
 	}
 }

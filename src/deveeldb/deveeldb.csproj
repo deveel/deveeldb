@@ -229,7 +229,6 @@
     <Compile Include="Deveel.Data.Sql\IConstraintConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql\IForeignKeyConstraintConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql\IMutableTable.cs" />
-    <Compile Include="Deveel.Data.Sql\ITableConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql\JoinPart.cs" />
     <Compile Include="Deveel.Data.Sql\JoinType.cs" />
     <Compile Include="Deveel.Data.Sql\RowId.cs" />
@@ -237,7 +236,6 @@
     <Compile Include="Deveel.Data.Sql\Row.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnInfo.cs" />
     <Compile Include="Deveel.Data.Sql\SelectColumn.cs" />
-    <Compile Include="Deveel.Data.Sql\TableBuilder.cs" />
     <Compile Include="Deveel.Data.Sql\TableInfo.cs" />
     <Compile Include="Deveel.Data.Store\AreaExtensions.cs" />
     <Compile Include="Deveel.Data.Store\AreaStream.cs" />
@@ -245,7 +243,6 @@
     <Compile Include="Deveel.Data.Store\FileStoreData.cs" />
     <Compile Include="Deveel.Data.Store\FixedRecordList.cs" />
     <Compile Include="Deveel.Data.Store\IArea.cs" />
-    <Compile Include="Deveel.Data.Store\IObjectStoreContext.cs" />
     <Compile Include="Deveel.Data.Store\InMemoryStorageSystem.cs" />
     <Compile Include="Deveel.Data.Store\InMemoryStore.cs" />
     <Compile Include="Deveel.Data.Store\InvalidObjectIdException.cs" />

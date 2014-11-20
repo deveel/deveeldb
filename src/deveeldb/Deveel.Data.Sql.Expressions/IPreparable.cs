@@ -16,7 +16,25 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
+	/// <summary>
+	/// A contract for objects that participate to a
+	/// <see cref="SqlExpression.Prepare"/> phase of an
+	/// expression evaluation.
+	/// </summary>
+	/// <remarks>
+	/// Objects implementing this interface will use the given
+	/// <see cref="IExpressionPreparer"/> context to transform
+	/// the value handled into a value that can be evaluated.
+	/// </remarks>
 	public interface IPreparable {
+		/// <summary>
+		/// Converts the underlying value of this instance
+		/// into an object that can be evaluated by an expression.
+		/// </summary>
+		/// <param name="preparer">The context used to prepare this object.</param>
+		/// <returns>
+		/// Returns an object that can be evaluated by an expression.
+		/// </returns>
 		object Prepare(IExpressionPreparer preparer);
 	}
 }

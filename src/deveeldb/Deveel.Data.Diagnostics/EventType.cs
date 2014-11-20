@@ -16,9 +16,24 @@
 using System;
 
 namespace Deveel.Data.Diagnostics {
+	/// <summary>
+	/// Enumerates the kind of events happening during
+	/// the system life-cycle.
+	/// </summary>
 	public enum EventType : byte {
+		/// <summary>
+		/// An error that was arose during the execution of a feature.
+		/// </summary>
 		Error = 1,
+
+		/// <summary>
+		/// A notification to the user
+		/// </summary>
 		Notification = 2,
+
+		/// <summary>
+		/// The collection of a statistical fact within the system.
+		/// </summary>
 		Statistic = 5,
 	}
 }

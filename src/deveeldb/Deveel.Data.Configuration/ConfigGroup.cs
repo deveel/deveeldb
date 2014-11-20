@@ -15,7 +15,13 @@
 using System;
 
 namespace Deveel.Data.Configuration {
+	/// <summary>
+	/// A static class that defines the rules to group configurations
+	/// </summary>
 	public static class ConfigGroup {
+		/// <summary>
+		/// Gets the seprator character that defines a new configuration group.
+		/// </summary>
 		public const char Separator = '.';
 	}
 }

@@ -16,7 +16,15 @@
 using System;
 
 namespace Deveel.Data.Types {
+	/// <summary>
+	/// A data type that represents the <c>NULL</c> value of a given
+	/// SQL data type.
+	/// </summary>
 	public sealed class NullType : DataType {
+		/// <summary>
+		/// Constructs the type with the given <see cref="SqlTypeCode"/>.
+		/// </summary>
+		/// <param name="sqlType"></param>
 		public NullType(SqlTypeCode sqlType) 
 			: base("NULL", sqlType) {
 		}

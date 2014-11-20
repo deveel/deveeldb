@@ -16,6 +16,9 @@
 using System;
 
 namespace Deveel.Data.Types {
+	/// <summary>
+	/// Enumerates the codes of all SQL types handled by the system.
+	/// </summary>
 	public enum SqlTypeCode {
 		/// <summary>
 		/// A single byte that can have only 1 and 0

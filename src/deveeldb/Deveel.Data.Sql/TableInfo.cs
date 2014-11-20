@@ -16,47 +16,124 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
+	/// <summary>
+	/// Defines the metadata properties of a table existing 
+	/// within a database.
+	/// </summary>
+	/// <remarks>
+	/// A table structure implements a unique name within a
+	/// database system, and a list columns that shape the
+	/// design of the data that the table can accommodate.
+	/// </remarks>
 	[Serializable]
 	public sealed class TableInfo : IEnumerable<ColumnInfo> {
-		private readonly List<ColumnInfo> columns;
+		private readonly IList<ColumnInfo> columns;
 		private readonly Dictionary<string, int> columnsCache;
- 
-		public TableInfo(ObjectName tableName) {
-			TableName = tableName;
-			columns = new List<ColumnInfo>();
-			columnsCache = new Dictionary<string, int>();
-			IgnoreCase = true;
+
+		/// <summary>
+		/// Constructs the object with the given table name.
+		/// </summary>
+		/// <param name="tableName">The unique name of the table within
+		/// the database system.</param>
+		/// <exception cref="ArgumentNullException">
+		/// If the provided <paramref name="tableName"/> is <c>null</c>.
+		/// </exception>
+		public TableInfo(ObjectName tableName)
+			: this(tableName, new List<ColumnInfo>(), false) {
 		}
 
+		private TableInfo(ObjectName tableName, IList<ColumnInfo> columns, bool isReadOnly) {
+			if (tableName == null) 
+				throw new ArgumentNullException("tableName");
+
+			TableName = tableName;
+			this.columns = columns;
+			IsReadOnly = isReadOnly;
+
+			columnsCache = new Dictionary<string, int>();
+			IgnoreCase = true;			
+		}
+
+		/// <summary>
+		/// Gets the fully qualified name of the table that is ensured 
+		/// to be unique within the system.
+		/// </summary>
 		public ObjectName TableName { get; private set; }
 
+		/// <summary>
+		/// Gets the name part of the table name.
+		/// </summary>
+		/// <seealso cref="TableName"/>
+		/// <seealso cref="ObjectName.Name"/>
 		public string Name {
 			get { return TableName.Name; }
 		}
 
+		/// <summary>
+		/// Gets the schema name part of the table name.
+		/// </summary>
+		/// <seealso cref="TableName"/>
+		/// <seealso cref="ObjectName.Parent"/>
 		public ObjectName SchemaName {
 			get { return TableName.Parent; }
 		}
 
+		/// <summary>
+		/// Gets the name of the catalog containing the table, if defined.
+		/// </summary>
 		public string CatalogName {
 			get { return SchemaName != null && SchemaName.Parent != null ? SchemaName.Parent.Name : null; }
 		}
 
+		/// <summary>
+		/// Gets or sets a boolean value that indicates if the column names
+		/// will be resolved in case-insensitive mode.
+		/// </summary>
+		/// <remarks>
+		/// By default the value of this flag is set to <c>true</c>.
+		/// </remarks>
 		public bool IgnoreCase { get; set; }
 
+		/// <summary>
+		/// Gets a boolean value that indicates if the structure of this
+		/// table cannot be altered.
+		/// </summary>
 		public bool IsReadOnly { get; private set; }
 
+		/// <summary>
+		/// Gets a count of the <see cref="ColumnInfo">columns</see> 
+		/// defined by this object.
+		/// </summary>
 		public int ColumnCount {
 			get { return columns.Count; }
 		}
 
+		/// <summary>
+		/// Gets the column object defined at the given offset within 
+		/// the table.
+		/// </summary>
+		/// <param name="offset">The zero-based offset of the column to return.</param>
+		/// <returns>
+		/// Returns an object of type <see cref="ColumnInfo"/> that is
+		/// at the given offset within the table.
+		/// </returns>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// If the given <paramref name="offset"/> is less than zero or
+		/// greater or equal than the number of columns defined in the table.
+		/// </exception>
 		public ColumnInfo this[int offset] {
-			get { return columns[offset]; }
+			get {
+				if (offset < 0 || offset >= columns.Count)
+					throw new ArgumentOutOfRangeException("offset");
+
+				return columns[offset];
+			}
 		}
 
 		private void AssertNotReadOnly() {
@@ -64,6 +141,22 @@ namespace Deveel.Data.Sql {
 				throw new InvalidOperationException();
 		}
 
+		/// <summary>
+		/// Adds a new column to the table at the last position of the
+		/// columns list in the table metadata.
+		/// </summary>
+		/// <param name="column">The <see cref="ColumnInfo"/> metadata to
+		/// add to the table.</param>
+		/// <exception cref="ArgumentNullException">
+		/// If the given <paramref name="column"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="InvalidOperationException">
+		/// If the table is immutable (<see cref="IsReadOnly"/> is equals to <c>true</c>)
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// If the column is already defined in this table or if it
+		/// is attacted to another table.
+		/// </exception>
 		public void AddColumn(ColumnInfo column) {
 			if (column == null)
 				throw new ArgumentNullException("column");
@@ -72,19 +165,47 @@ namespace Deveel.Data.Sql {
 
 			if (column.TableInfo != null &&
 			    column.TableInfo != this)
-				throw new ArgumentException();
+				throw new ArgumentException(String.Format("The column {0} belongs to another table already ({1})", column.ColumnName,
+					column.TableInfo.Name));
 
 			if (columns.Any(x => x.ColumnName == column.ColumnName))
 				throw new ArgumentException(String.Format("Column {0} is already defined in table {1}", column.ColumnName, TableName));
 
+			columnsCache.Clear();
 			column.TableInfo = this;
 			columns.Add(column);
 		}
 
+		/// <summary>
+		/// Adds a new column to the table having the given name and type.
+		/// </summary>
+		/// <param name="columnName">The name of the column to add.</param>
+		/// <param name="columnType">The <see cref="DataType"/> of the column to add.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="ColumnInfo"/> that is generated by
+		/// the given parameters.
+		/// </returns>
+		/// <seealso cref="AddColumn(string, DataType, bool)"/>
 		public ColumnInfo AddColumn(string columnName, DataType columnType) {
 			return AddColumn(columnName, columnType, false);
 		}
 
+		/// <summary>
+		/// Adds a new column to the table having the given name and type.
+		/// </summary>
+		/// <param name="columnName">The name of the column to add.</param>
+		/// <param name="columnType">The <see cref="DataType"/> of the column to add.</param>
+		/// <param name="notNull">If the column values must be <c>NOT NULL</c>.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="ColumnInfo"/> that is generated by
+		/// the given parameters.
+		/// </returns>
+		/// <seealso cref="AddColumn(string, DataType, bool)"/>
+		/// <exception cref="ArgumentNullException">
+		/// If either <paramref name="columnName"/> or the <paramref name="columnType"/>
+		/// arguments are <c>null</c>.
+		/// </exception>
+		/// <seealso cref="AddColumn(ColumnInfo)"/>
 		public ColumnInfo AddColumn(string columnName, DataType columnType, bool notNull) {
 			if (String.IsNullOrEmpty(columnName))
 				throw new ArgumentNullException("columnName");
@@ -98,6 +219,7 @@ namespace Deveel.Data.Sql {
 			return column;
 		}
 
+		/// <inheritdoc/>
 		public IEnumerator<ColumnInfo> GetEnumerator() {
 			return columns.GetEnumerator();
 		}
@@ -106,6 +228,15 @@ namespace Deveel.Data.Sql {
 			return GetEnumerator();
 		}
 
+		/// <summary>
+		/// Gets the offset of the column with the given name.
+		/// </summary>
+		/// <param name="columnName">The name of the column of which
+		/// to get the offset.</param>
+		/// <returns>
+		/// Returns a zero-based index of a column with the given name,
+		/// if defined by the table metadata, or -1 otherwise.
+		/// </returns>
 		public int IndexOfColumn(string columnName) {
 			int index;
 			if (!columnsCache.TryGetValue(columnName, out index)) {
@@ -119,6 +250,18 @@ namespace Deveel.Data.Sql {
 			}
 
 			return index;
+		}
+
+		/// <summary>
+		/// Creates a new instance of <see cref="TableInfo"/> as an immutable copy
+		/// of this table metadata.
+		/// </summary>
+		/// <returns>
+		/// Returns a new read-only instance of <see cref="TableInfo"/> that is
+		/// a copy of this table metadata.
+		/// </returns>
+		public TableInfo AsReadOnly() {
+			return new TableInfo(TableName, new ReadOnlyCollection<ColumnInfo>(columns), true);
 		}
 	}
 }

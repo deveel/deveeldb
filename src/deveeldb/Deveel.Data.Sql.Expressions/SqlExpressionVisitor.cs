@@ -16,7 +16,17 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
+	/// <summary>
+	/// A visitor for <see cref="SqlExpression"/> objects.
+	/// </summary>
 	public class SqlExpressionVisitor {
+		/// <summary>
+		/// Visits a given SQL expression.
+		/// </summary>
+		/// <param name="expression">The <see cref="SqlExpression"/> to visit.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="SqlExpression"/> as result of the visit.
+		/// </returns>
 		public virtual SqlExpression Visit(SqlExpression expression) {
 			if (expression == null)
 				return null;
@@ -67,6 +77,18 @@ namespace Deveel.Data.Sql.Expressions {
 			}
 		}
 
+		/// <summary>
+		/// Visits a list of expressions given.
+		/// </summary>
+		/// <param name="list">The list of <see cref="SqlExpression"/> to visit.</param>
+		/// <remarks>
+		/// The default implementation iterates the given list and visits
+		/// any expression contained.
+		/// </remarks>
+		/// <returns>
+		/// Returns a new array of <see cref="SqlExpression"/> resulted from the
+		/// visit to each of the input expressions.
+		/// </returns>
 		public virtual SqlExpression[] VisitExpressionList(SqlExpression[] list) {
 			if (list == null)
 				return new SqlExpression[0];
@@ -79,11 +101,21 @@ namespace Deveel.Data.Sql.Expressions {
 			return result;
 		}
 
+		/// <summary>
+		/// Visits the expression that calls the function defined.
+		/// </summary>
+		/// <param name="expression">The <see cref="SqlFunctionCallExpression"/> to visit.</param>
+		/// <returns></returns>
 		public virtual SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
 			var ags = VisitExpressionList(expression.Arguments);
 			return SqlExpression.FunctionCall(expression.FunctioName, ags);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="binaryEpression"></param>
+		/// <returns></returns>
 		public virtual SqlExpression VisitBinary(SqlBinaryExpression binaryEpression) {
 			var left = binaryEpression.Left;
 			var right = binaryEpression.Right;
@@ -95,6 +127,11 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Binary(left, binaryEpression.ExpressionType, right);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="unary"></param>
+		/// <returns></returns>
 		public virtual SqlExpression VisitUnary(SqlUnaryExpression unary) {
 			var operand = unary.Operand;
 			if (operand != null)
@@ -103,17 +140,32 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Unary(unary.ExpressionType, operand);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="castExpression"></param>
+		/// <returns></returns>
 		public virtual SqlExpression VisitCast(SqlCastExpression castExpression) {
 			// TODO:
 			return castExpression;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="reference"></param>
+		/// <returns></returns>
 		public virtual SqlExpression VisitReference(SqlReferenceExpression reference) {
 			if (reference.IsToVariable)
 				return SqlExpression.VariableReference(reference.ReferenceName.FullName);
 			return SqlExpression.Reference(reference.ReferenceName);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="assign"></param>
+		/// <returns></returns>
 		public virtual SqlExpression VisitAssign(SqlAssignExpression assign) {
 			var reference = assign.Reference;
 			var expression = assign.Expression;
@@ -125,10 +177,20 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Assign(reference, expression);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="constant"></param>
+		/// <returns></returns>
 		public virtual SqlExpression VisitConstant(SqlConstantExpression constant) {
 			return SqlExpression.Constant(constant.Value);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="conditional"></param>
+		/// <returns></returns>
 		public virtual SqlExpression VisitConditional(SqlConditionalExpression conditional) {
 			var test = conditional.TestExpression;
 			var ifTrue = conditional.TrueExpression;
@@ -144,11 +206,21 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Conditional(test, ifTrue, ifFalse);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <returns></returns>
 		public virtual SqlExpression VisitTuple(SqlTupleExpression expression) {
 			var list = VisitExpressionList(expression.Expressions);
 			return SqlExpression.Tuple(list);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="query"></param>
+		/// <returns></returns>
 		public virtual SqlExpression VisitQuery(SqlQueryExpression query) {
 			// TODO: This is too complex to visit now ... let's do it later
 			return query;

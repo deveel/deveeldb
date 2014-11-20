@@ -16,7 +16,14 @@
 using System;
 
 namespace Deveel.Data.Sql.Query {
+	/// <summary>
+	/// 
+	/// </summary>
 	public interface IQueryPlanNodeVisitor {
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="node"></param>
 		void Visit(IQueryPlanNode node);
 	}
 }

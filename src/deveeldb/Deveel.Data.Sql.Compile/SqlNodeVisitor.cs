@@ -16,7 +16,16 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// The default implementation of a <see cref="ISqlNodeVisitor"/>
+	/// that implements the visitor as a protected accessor.
+	/// </summary>
 	public class SqlNodeVisitor : ISqlNodeVisitor {
+		/// <summary>
+		/// Visits the given SQL node.
+		/// </summary>
+		/// <param name="node">The <see cref="ISqlNode"/> to visit.</param>
+		/// <seealso cref="ISqlNodeVisitor.Visit"/>
 		protected virtual void VisitNode(ISqlNode node) {
 			if (node is ISqlVisitableNode)
 				((ISqlVisitableNode)node).Accept(this);

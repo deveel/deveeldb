@@ -16,7 +16,25 @@
 using System;
 
 namespace Deveel.Data.Sql {
+	/// <summary>
+	/// Defines the value of a <c>ROWID</c> object, that is a unique reference
+	/// within a database system to a single row.
+	/// </summary>
 	public struct RowId : IEquatable<RowId> {
+		/// <summary>
+		/// Gets a <c>NULL</c> instance of <see cref="RowId"/>.
+		/// </summary>
+		public static readonly RowId Null = new RowId(true);
+
+		/// <summary>
+		/// Constructs the object with the references to the
+		/// given table unique ID and the number of the row
+		/// within the given table.
+		/// </summary>
+		/// <param name="tableId">The table unique identifier with the 
+		/// database system.</param>
+		/// <param name="rowNumber">The number of the row within the table.
+		/// This value is always unique, also after the row is removed.</param>
 		public RowId(int tableId, long rowNumber) 
 			: this(false) {
 			RowNumber = rowNumber;
@@ -28,10 +46,20 @@ namespace Deveel.Data.Sql {
 			IsNull = isNull;
 		}
 
+		/// <summary>
+		/// Gets the unique identifier of the table the row is contained.
+		/// </summary>
 		public int TableId { get; private set; }
 
+		/// <summary>
+		/// Gets the number of the column within the table referenced.
+		/// </summary>
 		public long RowNumber { get; private set; }
 
+		/// <summary>
+		/// Gets a boolean value indicating if the object equivales
+		/// to a <c>NULL</c>.
+		/// </summary>
 		public bool IsNull { get; private set; }
 
 		public bool Equals(RowId other) {
@@ -57,7 +85,61 @@ namespace Deveel.Data.Sql {
 		}
 
 		public override string ToString() {
-			return base.ToString();
+			return String.Format("{0}-{1}", TableId, RowNumber);
+		}
+
+		/// <summary>
+		/// Attempts to parse the input string given into a valid
+		/// instance of <see cref="RowId"/>.
+		/// </summary>
+		/// <param name="s">The input string to parse.</param>
+		/// <param name="value">The out value from the parse.</param>
+		/// <returns>
+		/// Returns <c>true</c> if the string was succesfully parsed
+		/// into a <see cref="RowId"/>, otherwise <c>false</c>.
+		/// </returns>
+		/// <seealso cref="ToString"/>
+		public static bool TryParse(string s, out RowId value) {
+			value = Null;
+
+			if (String.IsNullOrEmpty(s))
+				return false;
+
+			var index = s.IndexOf("-", StringComparison.Ordinal);
+			if (index == -1)
+				return false;
+
+			var s1 = s.Substring(0, index);
+			var s2 = s.Substring(index + 1);
+
+			int v1;
+			long v2;
+			if (!Int32.TryParse(s1, out v1))
+				return false;
+			if (!Int64.TryParse(s2, out v2))
+				return false;
+
+			value = new RowId(v1, v2);
+			return true;
+		}
+
+		/// <summary>
+		/// Parses the given input string into an instance of <see cref="RowId"/>.
+		/// </summary>
+		/// <param name="s">The input string to parse.</param>
+		/// <returns>
+		/// Returns a new instance of <see cref="RowId"/> as a result of the parse
+		/// of the input string.
+		/// </returns>
+		/// <exception cref="FormatException">
+		/// If the format of the input string is invalid.
+		/// </exception>
+		public static RowId Parse(string s) {
+			RowId rowId;
+			if (!TryParse(s, out rowId))
+				throw new FormatException("Unable to parse the given string into a valid ROWID.");
+
+			return rowId;
 		}
 	}
 }

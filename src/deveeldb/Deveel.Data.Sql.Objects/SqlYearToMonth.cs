@@ -16,6 +16,9 @@
 using System;
 
 namespace Deveel.Data.Sql.Objects {
+	/// <summary>
+	/// A month span representation of time.
+	/// </summary>
 	[Serializable]
 	public struct SqlYearToMonth : ISqlObject, IComparable<SqlYearToMonth> {
 		private int? months;
@@ -33,7 +36,8 @@ namespace Deveel.Data.Sql.Objects {
 
 		private SqlYearToMonth(bool isNull)
 			: this() {
-			months = null;
+			if (isNull)
+				months = null;
 		}
 
 		int IComparable.CompareTo(object obj) {
@@ -47,10 +51,14 @@ namespace Deveel.Data.Sql.Objects {
 			throw new NotSupportedException();
 		}
 
+		/// <inheritdoc/>
 		public bool IsNull {
 			get { return months == null; }
 		}
 
+		/// <summary>
+		/// Gets the total number of months that represents the time span.
+		/// </summary>
 		public int TotalMonths {
 			get {
 				if (months == null)
@@ -60,6 +68,9 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
+		/// <summary>
+		/// Gets the total number of years that represents the time span.
+		/// </summary>
 		public double TotalYears {
 			get {
 				if (months == null)
@@ -75,6 +86,7 @@ namespace Deveel.Data.Sql.Objects {
 			       other is SqlDayToSecond;
 		}
 
+		/// <inheritdoc/>
 		public int CompareTo(SqlYearToMonth other) {
 			if (other.IsNull && IsNull)
 				return 0;
