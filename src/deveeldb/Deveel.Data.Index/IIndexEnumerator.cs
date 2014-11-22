@@ -26,7 +26,7 @@ namespace Deveel.Data.Index {
 	/// from the underlying <see cref="IIndex"/> of the element at the current position 
 	/// of the enumeration (<see cref="Remove"/>).
 	/// </remarks>
-	public interface IIndexEnumerator : IEnumerator<int> {
+	public interface IIndexEnumerator<T> : IEnumerator<T> {
 		///<summary>
 		/// Reverses the direction of the enumerator to the previous
 		/// element within the list.
@@ -46,7 +46,7 @@ namespace Deveel.Data.Index {
 		/// The behavior of an iterator is unspecified if the underlying index is modified while the 
 		/// iteration is in progress in any way other than by calling this method.
 		/// <para>
-		/// Some implementations of <see cref="IIndexEnumerator"/> may choose to not implement 
+		/// Some implementations of <see cref="IIndexEnumerator{T}"/> may choose to not implement 
 		/// this method, in which case an appropriate exception is generated.
 		/// </para>
 		/// </remarks>

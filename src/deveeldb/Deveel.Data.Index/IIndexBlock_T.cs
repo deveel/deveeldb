@@ -22,22 +22,23 @@ namespace Deveel.Data.Index {
 	/// <remarks>
 	/// This exposes the contents of a block of the list.
 	/// <para>
-	/// An <see cref="BlockIndexBase"/> is a single element of a block of 
+	/// An <see cref="BlockIndexBase{T}"/> is a single element of a block of 
 	/// integers that makes up some complete list of integers. A block 
 	/// encapsulates a set of integers making up the block, and a chain to 
 	/// the next and previous block in the hash.
 	/// </para>
 	/// </remarks>
-	public interface IIndexBlock : IEnumerable<int> {
+	/// <typeparam name="T"></typeparam>
+	public interface IIndexBlock<T> : IEnumerable<T> {
 		/// <summary>
 		/// Gets or sets the next block in the hash.
 		/// </summary>
-		IIndexBlock Next { get; set; }
+		IIndexBlock<T> Next { get; set; }
 
 		/// <summary>
 		/// Gets or sets the previous block in the hash.
 		/// </summary>
-		IIndexBlock Previous { get; set; }
+		IIndexBlock<T> Previous { get; set; }
 
 		///<summary>
 		/// Gets a value indicating if this store has been modified.
@@ -66,12 +67,12 @@ namespace Deveel.Data.Index {
 		/// <summary>
 		/// Gets the element at the top of the block.
 		/// </summary>
-		int Top { get; }
+		T Top { get; }
 
 		/// <summary>
 		/// Gets the element at the bottom of the block.
 		/// </summary>
-		int Bottom { get; }
+		T Bottom { get; }
 
 		/// <summary>
 		/// Gets or sets the element at the given index within the block.
@@ -81,7 +82,7 @@ namespace Deveel.Data.Index {
 		/// <returns>
 		/// Returns a <see cref="int"/> element at the given index within the block.
 		/// </returns>
-		int this[int index] { get; set; }
+		T this[int index] { get; set; }
 
 		///<summary>
 		/// Checks that the block has enough room to fill with the given 
@@ -99,7 +100,7 @@ namespace Deveel.Data.Index {
 		/// Adss an <see cref="int"/> element to the block.
 		/// </summary>
 		/// <param name="value">The value to insert into the block.</param>
-		void Add(int value);
+		void Add(T value);
 
 		/// <summary>
 		/// Removes the element at the given index from the block.
@@ -108,7 +109,7 @@ namespace Deveel.Data.Index {
 		/// <returns>
 		/// Returns the element removed from the block.
 		/// </returns>
-		int RemoveAt(int index);
+		T RemoveAt(int index);
 
 		///<summary>
 		/// Performs an iterative search through the values in the block.
@@ -117,7 +118,7 @@ namespace Deveel.Data.Index {
 		///<returns>
 		/// Returns the index of the value if found, otherwise it returns -1.
 		/// </returns>
-		int IndexOf(int value);
+		int IndexOf(T value);
 
 		///<summary>
 		/// Performs an iterative search from the given position to the end of
@@ -128,14 +129,14 @@ namespace Deveel.Data.Index {
 		///<returns>
 		/// Returns the index of the value if found, otherwise it returns -1.
 		/// </returns>
-		int IndexOf(int value, int startIndex);
+		int IndexOf(T value, int startIndex);
 
 		/// <summary>
 		/// Inserts an element to the block at the given index.
 		/// </summary>
 		/// <param name="index"></param>
 		/// <param name="value"></param>
-		void Insert(int index, int value);
+		void Insert(T index, int value);
 
 		///<summary>
 		/// Moves a set of values from the end of this block and inserts it into the
@@ -149,7 +150,7 @@ namespace Deveel.Data.Index {
 		/// Assumes the destination block has enough room to store the set. Assumes 
 		/// <paramref name="destBlock"/> is the same type as this.
 		/// </remarks>
-		void MoveTo(IIndexBlock destBlock, int destIndex, int count);
+		void MoveTo(IIndexBlock<T> destBlock, int destIndex, int count);
 
 		///<summary>
 		/// Copies all the data from this block into the given destination block.
@@ -158,7 +159,7 @@ namespace Deveel.Data.Index {
 		/// <remarks>
 		/// Assumes <paramref name="destBlock"/> is the same class as this.
 		/// </remarks>
-		void CopyTo(IIndexBlock destBlock);
+		void CopyTo(IIndexBlock<T> destBlock);
 
 		///<summary>
 		/// Copies all the data from this block into the given array.
@@ -169,7 +170,7 @@ namespace Deveel.Data.Index {
 		///<returns>
 		/// Returns the number of elements copied to the array.
 		/// </returns>
-		int CopyTo(int[] array, int arrayIndex);
+		int CopyTo(T[] array, int arrayIndex);
 
 		/// <summary>
 		/// Clears the block of all elements.
@@ -186,7 +187,7 @@ namespace Deveel.Data.Index {
 		/// and the block sorted by these structures.
 		/// </remarks>
 		///<returns></returns>
-		int BinarySearch(object key, IIndexComparer comparer);
+		int BinarySearch(object key, IIndexComparer<T> comparer);
 
 		///<summary>
 		/// Finds the first index in the block that equals the given key.
@@ -198,7 +199,7 @@ namespace Deveel.Data.Index {
 		/// and the block sorted by these structures.
 		/// </remarks>
 		///<returns></returns>
-		int SearchFirst(object key, IIndexComparer comparer);
+		int SearchFirst(object key, IIndexComparer<T> comparer);
 
 		///<summary>
 		/// Finds the last index in the block that equals the given key.
@@ -210,7 +211,7 @@ namespace Deveel.Data.Index {
 		/// and the block sorted by these structures.
 		/// </remarks>
 		///<returns></returns>
-		int SearchLast(object key, IIndexComparer comparer);
+		int SearchLast(object key, IIndexComparer<T> comparer);
 
 		///<summary>
 		/// Assuming a sorted block, finds the first index in the block that
@@ -218,7 +219,7 @@ namespace Deveel.Data.Index {
 		///</summary>
 		///<param name="value"></param>
 		///<returns></returns>
-		int SearchFirst(int value);
+		int SearchFirst(T value);
 
 		///<summary>
 		/// Assuming a sorted block, finds the last index in the block that
@@ -226,7 +227,6 @@ namespace Deveel.Data.Index {
 		///</summary>
 		///<param name="value"></param>
 		///<returns></returns>
-		int SearchLast(int value);
-
+		int SearchLast(T value);
 	}
 }

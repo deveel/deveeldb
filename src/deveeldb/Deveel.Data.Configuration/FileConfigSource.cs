@@ -17,7 +17,17 @@ using System;
 using System.IO;
 
 namespace Deveel.Data.Configuration {
+	/// <summary>
+	/// A channel used to read from and write to a given file
+	/// in the underlying file-system.
+	/// </summary>
 	public sealed class FileConfigSource : IConfigSource {
+		/// <summary>
+		/// Constructs the source over the file located at the
+		/// given path within the underlying file-system.
+		/// </summary>
+		/// <param name="filePath">The string describing the path where
+		/// the file is located.</param>
 		public FileConfigSource(string filePath) {
 			if (filePath == null)
 				throw new ArgumentNullException("filePath");
@@ -25,8 +35,12 @@ namespace Deveel.Data.Configuration {
 			FilePath = filePath;
 		}
 
+		/// <summary>
+		/// Gets the path to the file.
+		/// </summary>
 		public string FilePath { get; private set; }
 
+		/// <inheritdoc/>
 		public Stream InputStream {
 			get {
 				try {
@@ -37,6 +51,7 @@ namespace Deveel.Data.Configuration {
 			}
 		}
 
+		/// <inheritdoc/>
 		public Stream OutputStream {
 			get {
 				try {

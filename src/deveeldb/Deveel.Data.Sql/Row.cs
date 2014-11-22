@@ -49,7 +49,7 @@ namespace Deveel.Data.Sql {
 				values = new Dictionary<int, DataObject>(colCount);
 
 				for (int i = 0; i < colCount; i++) {
-					values[i] = Table.GetValue(RowId, i);
+					values[i] = Table.GetValue(RowId.RowNumber, i);
 				}
 			}
 

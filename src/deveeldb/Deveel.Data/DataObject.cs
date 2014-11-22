@@ -14,12 +14,9 @@
 //    limitations under the License.
 
 using System;
-using System.Data.SqlTypes;
 
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
-
-using Irony;
 
 using SqlBoolean = Deveel.Data.Sql.Objects.SqlBoolean;
 using SqlString = Deveel.Data.Sql.Objects.SqlString;
@@ -576,6 +573,14 @@ namespace Deveel.Data {
 				return Null();
 
 			return a.And(b);
+		}
+
+		public static bool operator true(DataObject a) {
+			return a.IsEqualTo(DataObject.BooleanTrue);
+		}
+
+		public static bool operator false(DataObject a) {
+			return a.IsEqualTo(DataObject.BooleanFalse);
 		}
 
 		public static DataObject operator |(DataObject a, DataObject b) {

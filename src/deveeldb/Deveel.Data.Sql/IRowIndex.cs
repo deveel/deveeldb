@@ -15,11 +15,9 @@
 
 using System;
 
-namespace Deveel.Data.Index {
-	public enum RangePosition : byte {
-		FirstValue = 1,
-		LastValue = 2,
-		BeforeFirstValue = 3,
-		AfterLastValue = 4
+using Deveel.Data.Index;
+
+namespace Deveel.Data.Sql {
+	public interface IRowIndex : IIndex<long> {
 	}
 }

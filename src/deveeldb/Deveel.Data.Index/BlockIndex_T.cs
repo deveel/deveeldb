@@ -19,52 +19,59 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Index {
 	///<summary>
-	/// An implementation of <see cref="BlockIndexBase"/> that stores 
+	/// An implementation of <see cref="BlockIndexBase{T}"/> that stores 
 	/// all values in blocks that are entirely stored in main memory.
 	///</summary>
 	/// <remarks>
 	/// This type of structure is useful for large in-memory lists in which a
 	/// dd/remove performance must be fast.
 	/// </remarks>
-	public class BlockIndex : BlockIndexBase {
+	public class BlockIndex<T> : BlockIndexBase<T> where T : IComparable<T>, IEquatable<T> {
+		/// <summary>
+		/// Constructs an index with no values.
+		///  </summary>
 		public BlockIndex() {
 		}
 
-		public BlockIndex(IEnumerable<int> values)
+		/// <inheritdoc/>
+		public BlockIndex(IEnumerable<T> values)
 			: base(values) {
 		}
 
-		public BlockIndex(IIndex index)
+		/// <inheritdoc/>
+		public BlockIndex(IIndex<T> index)
 			: base(index) {
 		}
 
-		protected BlockIndex(IEnumerable<IIndexBlock> blocks)
+		/// <inheritdoc/>
+		public BlockIndex(IEnumerable<IIndexBlock<T>> blocks)
 			: base(blocks) {
 		}
 
-		protected override IIndexBlock NewBlock() {
+		/// <inheritdoc/>
+		protected override IIndexBlock<T> NewBlock() {
 			return new Block(512);
 		}
 
 		#region Block
 
-		protected class Block : IIndexBlock {
+		protected class Block : IIndexBlock<T> {
 			private Block next;
 			private Block prev;
-			private int[] array;
+			private T[] array;
 			private int count;
 			private bool changed;
 
-			protected Block() {	
+			protected Block() {
 			}
 
 			public Block(int blockSize)
 				: this() {
-				array = new int[blockSize];
+				array = new T[blockSize];
 				count = 0;
 			}
 
-			protected int[] BaseArray {
+			protected T[] BaseArray {
 				get { return array; }
 				set { array = value; }
 			}
@@ -73,7 +80,7 @@ namespace Deveel.Data.Index {
 				get { return array.Length; }
 			}
 
-			public IEnumerator<int> GetEnumerator() {
+			public IEnumerator<T> GetEnumerator() {
 				return new Enumerator(this);
 			}
 
@@ -81,7 +88,7 @@ namespace Deveel.Data.Index {
 				return GetEnumerator();
 			}
 
-			IIndexBlock IIndexBlock.Next {
+			IIndexBlock<T> IIndexBlock<T>.Next {
 				get { return Next; }
 				set { Next = (Block) value; }
 			}
@@ -91,7 +98,7 @@ namespace Deveel.Data.Index {
 				set { next = value; }
 			}
 
-			IIndexBlock IIndexBlock.Previous {
+			IIndexBlock<T> IIndexBlock<T>.Previous {
 				get { return Previous; }
 				set { Previous = (Block) value; }
 			}
@@ -101,28 +108,34 @@ namespace Deveel.Data.Index {
 				set { prev = value; }
 			}
 
+			/// <inheritdoc/>
 			public bool HasChanged {
 				get { return changed; }
 			}
 
+			/// <inheritdoc/>
 			public int Count {
 				get { return count; }
 				protected set { count = value; }
 			}
 
+			/// <inheritdoc/>
 			public bool IsFull {
 				get { return count >= ArrayLength; }
 			}
 
+			/// <inheritdoc/>
 			public bool IsEmpty {
 				get { return count <= 0; }
 			}
 
-			public virtual int Top {
+			/// <inheritdoc/>
+			public virtual T Top {
 				get { return GetArray(true)[count - 1]; }
 			}
 
-			public virtual int Bottom {
+			/// <inheritdoc/>
+			public virtual T Bottom {
 				get {
 					if (count <= 0)
 						throw new ApplicationException("no bottom value.");
@@ -131,77 +144,107 @@ namespace Deveel.Data.Index {
 				}
 			}
 
-			public int this[int index] {
+			/// <inheritdoc/>
+			public T this[int index] {
 				get { return GetArray(true)[index]; }
-				set { 
+				set {
 					changed = true;
 					GetArray(false)[index] = value;
 				}
 			}
 
-			protected virtual int[] GetArray(bool readOnly) {
+			protected virtual T[] GetArray(bool readOnly) {
+				if (readOnly) {
+					var newArray = new T[array.Length];
+					Array.Copy(array, 0, newArray, 0, array.Length);
+					return newArray;
+				}
 				return array;
 			}
 
+			private static bool IsSmallerOrEqual(T x, T y) {
+				return x.CompareTo(y) <= 0;
+			}
+
+			private static bool IsGreaterOrEqual(T x, T y) {
+				return x.CompareTo(y) >= 0;
+			}
+
+			private static bool IsGreater(T x, T y) {
+				return x.CompareTo(y) > 0;
+			}
+
+			private static bool IsSmaller(T x, T y) {
+				return x.CompareTo(y) < 0;
+			}
+
+			/// <inheritdoc/>
 			public bool CanContain(int number) {
 				return count + number + 1 < ArrayLength;
 			}
 
-			public void Add(int value) {
+			/// <inheritdoc/>
+			public void Add(T value) {
 				changed = true;
-				int[] arr = GetArray(false);
+				var arr = GetArray(false);
 				arr[count] = value;
 				++count;
 			}
 
-			public int RemoveAt(int index) {
+			/// <inheritdoc/>
+			public T RemoveAt(int index) {
 				changed = true;
-				int[] arr = GetArray(false);
-				int val = arr[index];
+				var arr = GetArray(false);
+				var val = arr[index];
 				Array.Copy(array, index + 1, arr, index, (count - index));
 				--count;
 				return val;
 			}
 
-			public int IndexOf(int value) {
-				int[] arr = GetArray(true);
+			/// <inheritdoc/>
+			public int IndexOf(T value) {
+				var arr = GetArray(true);
 				for (int i = count - 1; i >= 0; --i) {
-					if (arr[i] == value)
+					if (arr[i].Equals(value))
 						return i;
 				}
 				return -1;
 			}
 
-			public int IndexOf(int value, int startIndex) {
-				int[] arr = GetArray(true);
+			/// <inheritdoc/>
+			public int IndexOf(T value, int startIndex) {
+				var arr = GetArray(true);
 				for (int i = startIndex; i < count; ++i) {
-					if (arr[i] == value)
+					if (arr[i].Equals(value))
 						return i;
 				}
 				return -1;
 			}
 
-			public void Insert(int index, int value) {
+			/// <inheritdoc/>
+			public void Insert(T value, int index) {
 				changed = true;
-				int[] arr = GetArray(false);
+				var arr = GetArray(false);
 				Array.Copy(array, index, arr, index + 1, (count - index));
 				++count;
 				arr[index] = value;
 			}
 
-			public void MoveTo(IIndexBlock destBlock, int destIndex, int length) {
-				Block block = (Block)destBlock;
+			/// <inheritdoc/>
+			public void MoveTo(IIndexBlock<T> destBlock, int destIndex, int length) {
+				var block = (Block) destBlock;
 
-				int[] arr = GetArray(false);
-				int[] dest_arr = block.GetArray(false);
+				var arr = GetArray(false);
+				var destArr = block.GetArray(false);
 
 				// Make room in the destination block
-				int destb_size = block.Count;
-				if (destb_size > 0) {
-					Array.Copy(dest_arr, 0, dest_arr, length, destb_size);
+				int destbSize = block.Count;
+				if (destbSize > 0) {
+					Array.Copy(destArr, 0, destArr, length, destbSize);
 				}
+
 				// Copy from this block into the destination block.
-				Array.Copy(arr, count - length, dest_arr, 0, length);
+				Array.Copy(arr, count - length, destArr, 0, length);
 				// Alter size of destination and source block.
 				block.count += length;
 				count -= length;
@@ -210,32 +253,36 @@ namespace Deveel.Data.Index {
 				block.changed = true;
 			}
 
-			public void CopyTo(IIndexBlock destBlock) {
-				Block block = (Block)destBlock;
-				int[] destArr = block.GetArray(false);
+			/// <inheritdoc/>
+			public void CopyTo(IIndexBlock<T> destBlock) {
+				var block = (Block) destBlock;
+				var destArr = block.GetArray(false);
 				Array.Copy(GetArray(true), 0, destArr, 0, count);
 				block.count = count;
 				block.changed = true;
 			}
 
-			public int CopyTo(int[] destArray, int arrayIndex) {
+			/// <inheritdoc/>
+			public int CopyTo(T[] destArray, int arrayIndex) {
 				Array.Copy(GetArray(true), 0, destArray, arrayIndex, count);
 				return count;
 			}
 
+			/// <inheritdoc/>
 			public void Clear() {
 				changed = true;
 				count = 0;
 			}
 
-			public int BinarySearch(object key, IIndexComparer comparer) {
-				int[] arr = GetArray(true);
+			/// <inheritdoc/>
+			public int BinarySearch(object key, IIndexComparer<T> comparer) {
+				var arr = GetArray(true);
 				int low = 0;
 				int high = count - 1;
 
 				while (low <= high) {
-					int mid = (low + high) / 2;
-					int cmp = comparer.CompareValue(arr[mid], (TObject) key);
+					int mid = (low + high)/2;
+					int cmp = comparer.CompareValue(arr[mid], (DataObject) key);
 
 					if (cmp < 0)
 						low = mid + 1;
@@ -244,18 +291,19 @@ namespace Deveel.Data.Index {
 					else
 						return mid; // key found
 				}
-				return -(low + 1);  // key not found.
+				return -(low + 1); // key not found.
 			}
 
-			public int SearchFirst(object key, IIndexComparer comparer) {
-				int[] arr = GetArray(true);
+			/// <inheritdoc/>
+			public int SearchFirst(object key, IIndexComparer<T> comparer) {
+				var arr = GetArray(true);
 				int low = 0;
 				int high = count - 1;
 
 				while (low <= high) {
 					if (high - low <= 2) {
 						for (int i = low; i <= high; ++i) {
-							int cmp1 = comparer.CompareValue(arr[i], (TObject) key);
+							int cmp1 = comparer.CompareValue(arr[i], (DataObject) key);
 							if (cmp1 == 0)
 								return i;
 							if (cmp1 > 0)
@@ -264,8 +312,8 @@ namespace Deveel.Data.Index {
 						return -(high + 2);
 					}
 
-					int mid = (low + high) / 2;
-					int cmp = comparer.CompareValue(arr[mid], (TObject) key);
+					int mid = (low + high)/2;
+					int cmp = comparer.CompareValue(arr[mid], (DataObject) key);
 
 					if (cmp < 0) {
 						low = mid + 1;
@@ -275,12 +323,13 @@ namespace Deveel.Data.Index {
 						high = mid;
 					}
 				}
-				return -(low + 1);  // key not found.
+				return -(low + 1); // key not found.
 
 			}
 
-			public int SearchLast(object key, IIndexComparer comparer) {
-				int[] arr = GetArray(true);
+			/// <inheritdoc/>
+			public int SearchLast(object key, IIndexComparer<T> comparer) {
+				var arr = GetArray(true);
 				int low = 0;
 				int high = count - 1;
 
@@ -288,7 +337,7 @@ namespace Deveel.Data.Index {
 
 					if (high - low <= 2) {
 						for (int i = high; i >= low; --i) {
-							int cmp1 = comparer.CompareValue(arr[i], (TObject) key);
+							int cmp1 = comparer.CompareValue(arr[i], (DataObject) key);
 							if (cmp1 == 0)
 								return i;
 							if (cmp1 < 0)
@@ -297,8 +346,8 @@ namespace Deveel.Data.Index {
 						return -(low + 1);
 					}
 
-					int mid = (low + high) / 2;
-					int cmp = comparer.CompareValue(arr[mid], (TObject) key);
+					int mid = (low + high)/2;
+					int cmp = comparer.CompareValue(arr[mid], (DataObject) key);
 
 					if (cmp < 0) {
 						low = mid + 1;
@@ -308,11 +357,12 @@ namespace Deveel.Data.Index {
 						low = mid;
 					}
 				}
-				return -(low + 1);  // key not found.
+				return -(low + 1); // key not found.
 			}
 
-			public int SearchFirst(int value) {
-				int[] arr = GetArray(true);
+			/// <inheritdoc/>
+			public int SearchFirst(T value) {
+				var arr = GetArray(true);
 				int low = 0;
 				int high = count - 1;
 
@@ -320,29 +370,30 @@ namespace Deveel.Data.Index {
 
 					if (high - low <= 2) {
 						for (int i = low; i <= high; ++i) {
-							if (arr[i] == value)
+							if (arr[i].Equals(value))
 								return i;
-							if (arr[i] > value)
+							if (IsGreater(arr[i], value))
 								return -(i + 1);
 						}
 						return -(high + 2);
 					}
 
-					int mid = (low + high) / 2;
+					int mid = (low + high)/2;
 
-					if (arr[mid] < value) {
+					if (IsSmaller(arr[mid], value)) {
 						low = mid + 1;
-					} else if (arr[mid] > value) {
+					} else if (IsGreater(arr[mid], value)) {
 						high = mid - 1;
 					} else {
 						high = mid;
 					}
 				}
-				return -(low + 1);  // key not found.
+				return -(low + 1); // key not found.
 			}
 
-			public int SearchLast(int value) {
-				int[] arr = GetArray(true);
+			/// <inheritdoc/>
+			public int SearchLast(T value) {
+				var arr = GetArray(true);
 				int low = 0;
 				int high = count - 1;
 
@@ -350,33 +401,33 @@ namespace Deveel.Data.Index {
 
 					if (high - low <= 2) {
 						for (int i = high; i >= low; --i) {
-							if (arr[i] == value)
+							if (arr[i].Equals(value))
 								return i;
-							if (arr[i] < value)
+							if (IsSmaller(arr[i], value))
 								return -(i + 2);
 						}
 						return -(low + 1);
 					}
 
-					int mid = (low + high) / 2;
+					int mid = (low + high)/2;
 
-					if (arr[mid] < value) {
+					if (IsSmaller(arr[mid], value)) {
 						low = mid + 1;
-					} else if (arr[mid] > value) {
+					} else if (IsGreater(arr[mid], value)) {
 						high = mid - 1;
 					} else {
 						low = mid;
 					}
 				}
-				return -(low + 1);  // key not found.
+				return -(low + 1); // key not found.
 			}
 
 			#region Enumerator
 
-			class Enumerator : IEnumerator<int> {
+			private class Enumerator : IEnumerator<T> {
 				private readonly Block block;
 				private int index;
-				private int[] array;
+				private T[] array;
 
 				public Enumerator(Block block) {
 					this.block = block;
@@ -396,7 +447,7 @@ namespace Deveel.Data.Index {
 					index = -1;
 				}
 
-				public int Current {
+				public T Current {
 					get { return array[index]; }
 				}
 

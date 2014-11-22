@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,21 +15,29 @@
 
 using System;
 
-namespace Deveel.Data.Index {
+namespace Deveel.Data.Sql {
 	/// <summary>
-	/// An object that access to a set of indexes.
+	/// Provides access to a schema present in a database.
 	/// </summary>
 	/// <remarks>
-	/// This will often expose an isolated snapshot of a set of indices 
-	/// for a table.
+	/// The contract is used to retrieve schema metadata and
+	/// query objects contained in it.
 	/// </remarks>
-	public interface IIndexSet : IDisposable {
+	public interface ISchema {
 		/// <summary>
-		/// Gets a mutable implementation of <see cref="IIndex"/>
-		/// for the given index number in this set of indices.
+		/// Gets the schema metadata information.
 		/// </summary>
-		/// <param name="index"></param>
-		/// <returns></returns>
-		IIndex GetIndex(int index);
+		SchemaInfo SchemaInfo { get; }
+
+		/// <summary>
+		/// Attempts to find an object with the given name
+		/// in the schema domain.
+		/// </summary>
+		/// <param name="tableName">The simple name of the object.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="IDbObject"/> that represents
+		/// a database object contained in the schema.
+		/// </returns>
+		IDbObject FindObject(string tableName);
 	}
 }

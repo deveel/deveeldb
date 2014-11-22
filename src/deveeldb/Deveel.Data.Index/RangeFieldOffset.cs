@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,19 +17,28 @@ using System;
 
 namespace Deveel.Data.Index {
 	/// <summary>
-	/// An object that access to a set of indexes.
+	/// The absolute offset of a field in a range of a selection.
 	/// </summary>
-	/// <remarks>
-	/// This will often expose an isolated snapshot of a set of indices 
-	/// for a table.
-	/// </remarks>
-	public interface IIndexSet : IDisposable {
+	/// <seealso cref="IndexRange"/>
+	public enum RangeFieldOffset {
 		/// <summary>
-		/// Gets a mutable implementation of <see cref="IIndex"/>
-		/// for the given index number in this set of indices.
+		/// The offset of the first value of the range. 
 		/// </summary>
-		/// <param name="index"></param>
-		/// <returns></returns>
-		IIndex GetIndex(int index);
+		FirstValue = 1,
+
+		/// <summary>
+		/// The offset of the last value of the range.
+		/// </summary>
+		LastValue = 2,
+
+		/// <summary>
+		/// The offset before the first value of the range.
+		/// </summary>
+		BeforeFirstValue = 3,
+
+		/// <summary>
+		/// The offset after the last value of the range.
+		/// </summary>
+		AfterLastValue = 4
 	}
 }

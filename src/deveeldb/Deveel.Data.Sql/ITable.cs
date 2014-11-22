@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Index;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Defines the contract to access the data contained
@@ -33,7 +35,7 @@ namespace Deveel.Data.Sql {
 	/// table is altered the enumeration will throw an exception.
 	/// </para>
 	/// </remarks>
-	public interface ITable : IEnumerable<Row> {
+	public interface ITable : IDbObject, IEnumerable<Row> {
 		/// <summary>
 		/// Gets the metadata information of the table, used to
 		/// resolve the column sources.
@@ -49,7 +51,7 @@ namespace Deveel.Data.Sql {
 		/// Gets a single cell within the table that is
 		/// located at the given column offset and row.
 		/// </summary>
-		/// <param name="rowId">The unique identifier of the row 
+		/// <param name="rowNumber">The unique number of the row 
 		/// where the cell is located.</param>
 		/// <param name="columnOffset">The zero-based offset of the 
 		/// column of the cell to return.</param>
@@ -64,8 +66,18 @@ namespace Deveel.Data.Sql {
 		/// defined in the table metadata.
 		/// </exception>
 		/// <seealso cref="Sql.TableInfo.IndexOfColumn"/>
-		DataObject GetValue(RowId rowId, int columnOffset);
+		DataObject GetValue(long rowNumber, int columnOffset);
 
-		//TODO: Get a selectable-scheme for columns
+		/// <summary>
+		/// Gets an index for given column that can be used to select
+		/// values from this table.
+		/// </summary>
+		/// <param name="columnOffset">The zero-based offset of the column
+		/// which to get the index.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="TableIndex"/> that is used to
+		/// select a subset of rows from the table.
+		/// </returns>
+		TableIndex GetIndex(int columnOffset);
 	}
 }

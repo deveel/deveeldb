@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,21 +15,17 @@
 
 using System;
 
-namespace Deveel.Data.Index {
+namespace Deveel.Data.Sql {
 	/// <summary>
-	/// An object that access to a set of indexes.
+	/// Represents a database object, such as a table, a trigger,
+	/// a type or a column.
 	/// </summary>
-	/// <remarks>
-	/// This will often expose an isolated snapshot of a set of indices 
-	/// for a table.
-	/// </remarks>
-	public interface IIndexSet : IDisposable {
+	public interface IDbObject {
 		/// <summary>
-		/// Gets a mutable implementation of <see cref="IIndex"/>
-		/// for the given index number in this set of indices.
+		/// Gets the fully qualified name of the object used to resolve
+		/// it uniquely within the database.
 		/// </summary>
-		/// <param name="index"></param>
-		/// <returns></returns>
-		IIndex GetIndex(int index);
+		/// <seealso cref="ObjectName"/>
+		ObjectName FullName { get; }
 	}
 }
