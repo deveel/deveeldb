@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql {
 		/// database system.</param>
 		/// <param name="rowNumber">The number of the row within the table.
 		/// This value is always unique, also after the row is removed.</param>
-		public RowId(int tableId, long rowNumber) 
+		public RowId(int tableId, int rowNumber) 
 			: this(false) {
 			RowNumber = rowNumber;
 			TableId = tableId;
@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Gets the number of the column within the table referenced.
 		/// </summary>
-		public long RowNumber { get; private set; }
+		public int RowNumber { get; private set; }
 
 		/// <summary>
 		/// Gets a boolean value indicating if the object equivales
@@ -113,10 +113,10 @@ namespace Deveel.Data.Sql {
 			var s2 = s.Substring(index + 1);
 
 			int v1;
-			long v2;
+			int v2;
 			if (!Int32.TryParse(s1, out v1))
 				return false;
-			if (!Int64.TryParse(s2, out v2))
+			if (!Int32.TryParse(s2, out v2))
 				return false;
 
 			value = new RowId(v1, v2);

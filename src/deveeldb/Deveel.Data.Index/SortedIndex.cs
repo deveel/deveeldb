@@ -21,25 +21,25 @@ using Deveel.Data.Sql;
 
 namespace Deveel.Data.Index {
 	public class SortedIndex : CollatedTableIndex {
-		private IIndex<long> index;
-		private IIndexComparer<long> comparer;
+		private IIndex<int> index;
+		private IIndexComparer<int> comparer;
 
 		private long readOnlyLength;
  
 		public SortedIndex(ITable table, int columnOffset) 
 			: base(table, columnOffset) {
-			index = new BlockIndex<long>();
+			index = new BlockIndex<int>();
 			comparer = new IndexComparer(this);
 		}
 
-		public SortedIndex(ITable table, int columnOffset, IEnumerable<long> values)
+		public SortedIndex(ITable table, int columnOffset, IEnumerable<int> values)
 			: this(table, columnOffset) {
 			foreach (var value in values) {
 				index.Add(value);
 			}
 		}
 
-		public SortedIndex(ITable table, int columnOffset, IIndex<long> index)
+		public SortedIndex(ITable table, int columnOffset, IIndex<int> index)
 			: this(table, columnOffset) {
 			this.index = index;
 		}
@@ -53,13 +53,13 @@ namespace Deveel.Data.Index {
 				index = source.index;
 				readOnlyLength = index.Count;
 			} else {
-				index = new BlockIndex<long>(source.index);
+				index = new BlockIndex<int>(source.index);
 			}
 
 			comparer = new IndexComparer(this);
 		}
 
-		protected override long Length {
+		protected override int Length {
 			get { return index.Count; }
 		}
 
@@ -76,12 +76,12 @@ namespace Deveel.Data.Index {
 				throw new InvalidOperationException("Cannot mutate a rea-donly index.");
 		}
 
-		protected override IEnumerable<long> AddRangeToSet(long start, long end, IEnumerable<long> list) {
+		protected override IEnumerable<int> AddRangeToSet(int start, int end, IEnumerable<int> list) {
 			if (list == null)
-				list = new long[(end - start) + 2];
+				list = new List<int>((end - start) + 2);
 
-			var result = new List<long>(list);
-			var en = index.GetEnumerator((int)start, (int)end);
+			var result = new List<int>(list);
+			var en = index.GetEnumerator(start, end);
 			while (en.MoveNext()) {
 				result.Add(en.Current);
 			}
@@ -89,14 +89,14 @@ namespace Deveel.Data.Index {
 			return result.AsReadOnly();
 		}
 
-		public override void Insert(long rowNumber) {
+		public override void Insert(int rowNumber) {
 			AssertNotReadOnly();
 
 			var value = GetValue(rowNumber);
 			index.InsertSort(value, rowNumber, comparer);
 		}
 
-		public override void Remove(long rowNumber) {
+		public override void Remove(int rowNumber) {
 			AssertNotReadOnly();
 
 			var value = GetValue(rowNumber);
@@ -115,11 +115,11 @@ namespace Deveel.Data.Index {
 			return new SortedIndex(table, this, readOnly);
 		}
 
-		protected override long SearchFirst(DataObject value) {
+		protected override int SearchFirst(DataObject value) {
 			return index.SearchFirst(value, comparer);
 		}
 
-		protected override long SearchLast(DataObject value) {
+		protected override int SearchLast(DataObject value) {
 			return index.SearchLast(value, comparer);
 		}
 
@@ -132,29 +132,29 @@ namespace Deveel.Data.Index {
 			base.Dispose(disposing);
 		}
 
-		public override IEnumerable<long> SelectAll() {
+		public override IEnumerable<int> SelectAll() {
 			return index.ToList();
 		}
 
 		#region IndexComparer
 
-		class IndexComparer : IIndexComparer<long> {
+		class IndexComparer : IIndexComparer<int> {
 			private readonly SortedIndex sortedIndex;
 
 			public IndexComparer(SortedIndex sortedIndex) {
 				this.sortedIndex = sortedIndex;
 			}
 
-			private int DoCompare(long index, DataObject value) {
+			private int DoCompare(int index, DataObject value) {
 				var cell = sortedIndex.GetValue(index);
 				return cell.CompareTo(value);
 			}
 
-			public int CompareValue(long index, DataObject value) {
+			public int CompareValue(int index, DataObject value) {
 				return DoCompare(index, value);
 			}
 
-			public int Compare(long index1, long index2) {
+			public int Compare(int index1, int index2) {
 				var value = sortedIndex.GetValue(index2);
 				return DoCompare(index1, value);
 			}

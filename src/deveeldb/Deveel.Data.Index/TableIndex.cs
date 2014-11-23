@@ -21,8 +21,8 @@ using Deveel.Data.Sql;
 
 namespace Deveel.Data.Index {
 	public abstract class TableIndex : IDisposable {
-		private static readonly BlockIndex<long> EmptyList;
-		private static readonly BlockIndex<long> OneList;
+		private static readonly BlockIndex<int> EmptyList;
+		private static readonly BlockIndex<int> OneList;
 
 		protected TableIndex(ITable table, int columnOffset) {
 			ColumnOffset = columnOffset;
@@ -34,9 +34,9 @@ namespace Deveel.Data.Index {
 		}
 
 		static TableIndex() {
-			EmptyList = new BlockIndex<long>();
+			EmptyList = new BlockIndex<int>();
 			EmptyList.IsReadOnly = true;
-			OneList = new BlockIndex<long>();
+			OneList = new BlockIndex<int>();
 			OneList.Add(0);
 			OneList.IsReadOnly = true;
 		}
@@ -61,11 +61,11 @@ namespace Deveel.Data.Index {
 		protected virtual void Dispose(bool disposing) {
 		}
 
-		public abstract void Insert(long rowNumber);
+		public abstract void Insert(int rowNumber);
 
-		public abstract void Remove(long rowNumber);
+		public abstract void Remove(int rowNumber);
 
-		public IIndex<long> Order(IIndex<long> rowSet) {
+		public IIndex<int> Order(IIndex<int> rowSet) {
 			// The length of the set to order
 			int rowSetLength = rowSet.Count();
 
@@ -78,7 +78,7 @@ namespace Deveel.Data.Index {
 
 			// This will be 'row set' sorted by its entry lookup.  This must only
 			// contain indices to rowSet entries.
-			var newSet = new BlockIndex<long>();
+			var newSet = new BlockIndex<int>();
 
 			if (rowSetLength <= 250000) {
 				// If the subset is less than or equal to 250,000 elements, we generate
@@ -91,43 +91,43 @@ namespace Deveel.Data.Index {
 				}
 
 				// The comparator we use to sort
-				var comparator = new SubsetIndexComparer(subsetList.ToArray());
+				var comparer = new SubsetIndexComparer(subsetList.ToArray());
 
 				// Fill new_set with the set { 0, 1, 2, .... , row_set_length }
 				for (int i = 0; i < rowSetLength; ++i) {
 					var cell = subsetList[i];
-					newSet.InsertSort(cell, i, comparator);
+					newSet.InsertSort(cell, i, comparer);
 				}
 
 			} else {
 				// This is the no additional heap use method to sorting the sub-set.
 
 				// The comparator we use to sort
-				var comparator = new SchemeIndexComparer(this, rowSet);
+				var comparer = new SchemeIndexComparer(this, rowSet);
 
 				// Fill new_set with the set { 0, 1, 2, .... , row_set_length }
 				for (int i = 0; i < rowSetLength; ++i) {
 					var cell = GetValue(rowSet[i]);
-					newSet.InsertSort(cell, i, comparator);
+					newSet.InsertSort(cell, i, comparer);
 				}
 			}
 
 			return newSet;
 		}
 
-		public IEnumerable<long> SelectRange(IndexRange range) {
+		public IEnumerable<int> SelectRange(IndexRange range) {
 			return SelectRange(new[] {range});
 		}
 
-		public abstract IEnumerable<long> SelectRange(IndexRange[] ranges);
+		public abstract IEnumerable<int> SelectRange(IndexRange[] ranges);
 
-		public virtual IEnumerable<long> SelectAll() {
+		public virtual IEnumerable<int> SelectAll() {
 			return SelectRange(new IndexRange(
 					 RangeFieldOffset.FirstValue, IndexRange.FirstInSet,
 					 RangeFieldOffset.LastValue, IndexRange.LastInSet));
 		}
 
-		public virtual IEnumerable<long> SelectFirst() {
+		public virtual IEnumerable<int> SelectFirst() {
 			// NOTE: This will find NULL at start which is probably wrong.  The
 			//   first value should be the first non null value.
 			return SelectRange(new IndexRange(
@@ -135,7 +135,7 @@ namespace Deveel.Data.Index {
 					 RangeFieldOffset.LastValue, IndexRange.FirstInSet));
 		}
 
-		public IEnumerable<long> SelectNotFirst() {
+		public IEnumerable<int> SelectNotFirst() {
 			// NOTE: This will find NULL at start which is probably wrong.  The
 			//   first value should be the first non null value.
 			return SelectRange(new IndexRange(
@@ -143,13 +143,13 @@ namespace Deveel.Data.Index {
 					 RangeFieldOffset.LastValue, IndexRange.LastInSet));
 		}
 
-		public IEnumerable<long> SelectLast() {
+		public IEnumerable<int> SelectLast() {
 			return SelectRange(new IndexRange(
 					 RangeFieldOffset.FirstValue, IndexRange.LastInSet,
 					 RangeFieldOffset.LastValue, IndexRange.LastInSet));
 		}
 
-		public IEnumerable<long> SelectNotLast() {
+		public IEnumerable<int> SelectNotLast() {
 			return SelectRange(new IndexRange(
 					 RangeFieldOffset.FirstValue, IndexRange.FirstInSet,
 					 RangeFieldOffset.BeforeFirstValue, IndexRange.LastInSet));
@@ -159,24 +159,24 @@ namespace Deveel.Data.Index {
 		/// Selects all values in the column that are not null.
 		///</summary>
 		///<returns></returns>
-		public IEnumerable<long> SelectAllNonNull() {
+		public IEnumerable<int> SelectAllNonNull() {
 			return SelectRange(new IndexRange(
 						 RangeFieldOffset.AfterLastValue, DataObject.Null(),
 						 RangeFieldOffset.LastValue, IndexRange.LastInSet));
 		}
 
-		public IEnumerable<long> SelectEqual(DataObject ob) {
+		public IEnumerable<int> SelectEqual(DataObject ob) {
 			if (ob.IsNull)
-				return new List<long>(0);
+				return new List<int>(0);
 
 			return SelectRange(new IndexRange(
 								 RangeFieldOffset.FirstValue, ob,
 								 RangeFieldOffset.LastValue, ob));
 		}
 
-		public IEnumerable<long> SelectNotEqual(DataObject ob) {
+		public IEnumerable<int> SelectNotEqual(DataObject ob) {
 			if (ob.IsNull) {
-				return new List<long>(0);
+				return new List<int>(0);
 			}
 			return SelectRange(new IndexRange[]
 			                   	{
@@ -189,45 +189,45 @@ namespace Deveel.Data.Index {
 			                   	});
 		}
 
-		public IEnumerable<long> SelectGreater(DataObject ob) {
+		public IEnumerable<int> SelectGreater(DataObject ob) {
 			if (ob.IsNull)
-				return new List<long>(0);
+				return new List<int>(0);
 
 			return SelectRange(new IndexRange(
 					   RangeFieldOffset.AfterLastValue, ob,
 					   RangeFieldOffset.LastValue, IndexRange.LastInSet));
 		}
 
-		public IEnumerable<long> SelectLess(DataObject ob) {
+		public IEnumerable<int> SelectLess(DataObject ob) {
 			if (ob.IsNull)
-				return new List<long>(0);
+				return new List<int>(0);
 
 			return SelectRange(new IndexRange(
 					   RangeFieldOffset.AfterLastValue, DataObject.Null(),
 					   RangeFieldOffset.BeforeFirstValue, ob));
 		}
 
-		public IEnumerable<long> SelectGreaterOrEqual(DataObject ob) {
+		public IEnumerable<int> SelectGreaterOrEqual(DataObject ob) {
 			if (ob.IsNull)
-				return new List<long>(0);
+				return new List<int>(0);
 
 			return SelectRange(new IndexRange(
 					   RangeFieldOffset.FirstValue, ob,
 					   RangeFieldOffset.LastValue, IndexRange.LastInSet));
 		}
 
-		public IEnumerable<long> SelectLessOrEqual(DataObject ob) {
+		public IEnumerable<int> SelectLessOrEqual(DataObject ob) {
 			if (ob.IsNull)
-				return new List<long>(0);
+				return new List<int>(0);
 
 			return SelectRange(new IndexRange(
 					   RangeFieldOffset.AfterLastValue, DataObject.Null(),
 					   RangeFieldOffset.LastValue, ob));
 		}
 
-		public IEnumerable<long> SelectBetween(DataObject ob1, DataObject ob2) {
+		public IEnumerable<int> SelectBetween(DataObject ob1, DataObject ob2) {
 			if (ob1.IsNull || ob2.IsNull)
-				return new List<long>(0);
+				return new List<int>(0);
 
 			return SelectRange(new IndexRange(
 					   RangeFieldOffset.FirstValue, ob1,
@@ -236,21 +236,21 @@ namespace Deveel.Data.Index {
 
 		#region SchemeIndexComparer
 
-		private class SchemeIndexComparer : IIndexComparer<long> {
+		private class SchemeIndexComparer : IIndexComparer<int> {
 			private readonly TableIndex scheme;
-			private readonly IEnumerable<long> rowSet;
+			private readonly IEnumerable<int> rowSet;
 
-			public SchemeIndexComparer(TableIndex scheme, IEnumerable<long> rowSet) {
+			public SchemeIndexComparer(TableIndex scheme, IEnumerable<int> rowSet) {
 				this.scheme = scheme;
 				this.rowSet = rowSet;
 			}
 
-			public int CompareValue(long index, DataObject val) {
+			public int CompareValue(int index, DataObject val) {
 				var cell = scheme.GetValue(rowSet.ElementAt((int)index));
 				return cell.CompareTo(val);
 			}
 
-			public int Compare(long index1, long index2) {
+			public int Compare(int index1, int index2) {
 				throw new NotSupportedException("Shouldn't be called!");
 			}
 		}
@@ -259,19 +259,19 @@ namespace Deveel.Data.Index {
 
 		#region SubsetIndexComparer
 
-		private class SubsetIndexComparer : IIndexComparer<long> {
+		private class SubsetIndexComparer : IIndexComparer<int> {
 			private readonly DataObject[] subsetList;
 
 			public SubsetIndexComparer(DataObject[] subsetList) {
 				this.subsetList = subsetList;
 			}
 
-			public int CompareValue(long index, DataObject val) {
+			public int CompareValue(int index, DataObject val) {
 				var cell = subsetList[index];
 				return cell.CompareTo(val);
 			}
 
-			public int Compare(long index1, long index2) {
+			public int Compare(int index1, int index2) {
 				throw new NotSupportedException("Shouldn't be called!");
 			}
 		}

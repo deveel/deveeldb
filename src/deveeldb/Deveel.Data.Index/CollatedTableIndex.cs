@@ -24,7 +24,7 @@ namespace Deveel.Data.Index {
 			: base(table, columnOffset) {
 		}
 
-		protected virtual long Length {
+		protected virtual int Length {
 			get { return Table.RowCount; }
 		}
 
@@ -41,23 +41,23 @@ namespace Deveel.Data.Index {
 				throw new ArgumentException("The index is read-only and cannot be muted.");
 		}
 
-		public override void Insert(long rowNumber) {
+		public override void Insert(int rowNumber) {
 			AssertNotReadOnly();
 		}
 
-		public override void Remove(long rowNumber) {
+		public override void Remove(int rowNumber) {
 			AssertNotReadOnly();
 		}
 
-		protected abstract long SearchFirst(DataObject value);
+		protected abstract int SearchFirst(DataObject value);
 
-		protected abstract long SearchLast(DataObject value);
+		protected abstract int SearchLast(DataObject value);
 
-		protected virtual IEnumerable<long> AddRangeToSet(long start, long end, IEnumerable<long> list) {
+		protected virtual IEnumerable<int> AddRangeToSet(int start, int end, IEnumerable<int> list) {
 			if (list == null)
-				list = new long[((end - start) + 2)];
+				list = new List<int>(((end - start) + 2));
 
-			var result = new List<long>(list);
+			var result = new List<int>(list);
 			for (var i = start; i <= end; ++i) {
 				result.Add(i);
 			}
@@ -65,12 +65,12 @@ namespace Deveel.Data.Index {
 			return result;
 		}
 
-		public override IEnumerable<long> SelectAll() {
+		public override IEnumerable<int> SelectAll() {
 			return AddRangeToSet(0, Length - 1, null);
 		}
 
-		private long PositionOfRangeField(RangeFieldOffset position, DataObject val) {
-			long p;
+		private int PositionOfRangeField(RangeFieldOffset position, DataObject val) {
+			int p;
 			DataObject cell;
 
 			switch (position) {
@@ -148,15 +148,15 @@ namespace Deveel.Data.Index {
 			}
 		}
 
-		private IEnumerable<long> AddRange(IndexRange range, IEnumerable<long> list) {
+		private IEnumerable<int> AddRange(IndexRange range, IEnumerable<int> list) {
 			// Select the range specified.
 			var startFlag = range.StartOffset;
 			var start = range.StartValue;
 			var endFlag = range.EndOffset;
 			var end = range.EndValue;
 
-			long r1 = PositionOfRangeField(startFlag, start);
-			long r2 = PositionOfRangeField(endFlag, end);
+			var r1 = PositionOfRangeField(startFlag, start);
+			var r2 = PositionOfRangeField(endFlag, end);
 
 			if (r2 < r1)
 				return list;
@@ -166,18 +166,18 @@ namespace Deveel.Data.Index {
 		}
 
 		/// <inheritdoc/>
-		public override IEnumerable<long> SelectRange(IndexRange[] ranges) {
+		public override IEnumerable<int> SelectRange(IndexRange[] ranges) {
 			// If no items in the set return an empty set
 			if (Length == 0)
-				return new List<long>(0);
+				return new List<int>(0);
 
-			IEnumerable<long> list = null;
+			IEnumerable<int> list = null;
 			foreach (var range in ranges) {
 				list = AddRange(range, list);
 			}
 
 			if (list == null)
-				return new List<long>(0);
+				return new List<int>(0);
 
 			return list;
 		}

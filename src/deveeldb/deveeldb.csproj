@@ -87,6 +87,7 @@
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
+    <Compile Include="Deveel.Data.Index\BindSearchIndex.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndex_T.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndexBase_T.cs" />
     <Compile Include="Deveel.Data.Index\CollatedTableIndex.cs" />

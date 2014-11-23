@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Gets the total number of rows in the table.
 		/// </summary>
-		long RowCount { get; }
+		int RowCount { get; }
 
 		/// <summary>
 		/// Gets a single cell within the table that is
