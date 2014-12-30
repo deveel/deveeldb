@@ -14,12 +14,19 @@
 //    limitations under the License.
 
 using System;
+using System.Linq;
 
-namespace Deveel.Data.Security {
-	public sealed class User {
-		public const string PublicName = "@PUBLIC";
-		public const string SystemName = "@SYSTEM";
+namespace Deveel.Data.Sql.Compile {
+	[Serializable]
+	public sealed class SelectStatementNode : SqlNode, IStatementNode {
+		public SqlQueryExpressionNode QueryExpression { get; private set; }
 
-		public string Name { get; private set; }
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName == "query") {
+				QueryExpression = node.ChildNodes.FirstOrDefault() as SqlQueryExpressionNode;
+			}
+
+			return base.OnChildNode(node);
+		}
 	}
 }

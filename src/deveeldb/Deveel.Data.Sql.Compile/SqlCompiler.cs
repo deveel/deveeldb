@@ -14,8 +14,7 @@
 //    limitations under the License.
 
 using System;
-
-using Deveel.Data.Types;
+using System.Linq;
 
 using Irony.Ast;
 using Irony.Parsing;
@@ -34,6 +33,10 @@ namespace Deveel.Data.Sql.Compile {
 
 		public TNode Compile<TNode>(string sqlSource) where TNode : ISqlNode {
 			var grammar = new SqlGrammar(IgnoreCase);
+			return (TNode) ParseNode(grammar, sqlSource);
+		}
+
+		private ISqlNode ParseNode(SqlGrammar grammar, string sqlSource) {
 			var languageData = new LanguageData(grammar);
 
 			if (!languageData.CanParse())
@@ -45,66 +48,35 @@ namespace Deveel.Data.Sql.Compile {
 				throw new SqlParseException();
 
 			var astContext = new AstContext(languageData);
-			astContext.DefaultNodeType = typeof (SqlNode);
+			astContext.DefaultNodeType = typeof(SqlNode);
+			astContext.DefaultIdentifierNodeType = typeof(IdentifierNode);
 			var astCompiler = new AstBuilder(astContext);
 			astCompiler.BuildAst(result);
 
 			if (result.HasErrors())
 				throw new SqlParseException();
 
-			return (TNode) result.Root.AstNode;
+			var node = (ISqlNode) result.Root.AstNode;
+			if (node.NodeName == "root")
+				node = node.ChildNodes.FirstOrDefault();
+
+			return node;
+		}
+
+		public StatementSequenceNode CompileStatements(string sqlSource) {
+			return Compile<StatementSequenceNode>(sqlSource);
 		}
 
 		public DataTypeNode CompileDataType(string s) {
 			var grammar = new SqlGrammar(IgnoreCase);
 			grammar.SetRootToDataType();
-
-			var languageData = new LanguageData(grammar);
-
-			if (!languageData.CanParse())
-				throw new InvalidOperationException();
-
-			var parser = new Parser(languageData);
-			var result = parser.Parse(s);
-			if (result.HasErrors())
-				throw new SqlParseException();
-
-			var astContext = new AstContext(languageData);
-			astContext.DefaultNodeType = typeof(SqlNode);
-			astContext.DefaultIdentifierNodeType = typeof (IdentifierNode);
-			var astCompiler = new AstBuilder(astContext);
-			astCompiler.BuildAst(result);
-
-			if (result.HasErrors())
-				throw new SqlParseException();
-
-			return (DataTypeNode)result.Root.AstNode;			
+			return (DataTypeNode) ParseNode(grammar, s);
 		}
 
 		public IExpressionNode CompileExpression(string s) {
 			var grammar = new SqlGrammar(IgnoreCase);
 			grammar.SetRootToExpression();
-
-			var languageData = new LanguageData(grammar);
-
-			if (!languageData.CanParse())
-				throw new InvalidOperationException();
-
-			var parser = new Parser(languageData);
-			var result = parser.Parse(s);
-			if (result.HasErrors())
-				throw new SqlParseException();
-
-			var astContext = new AstContext(languageData);
-			astContext.DefaultNodeType = typeof(SqlNode);
-			astContext.DefaultIdentifierNodeType = typeof (IdentifierNode);
-			var astCompiler = new AstBuilder(astContext);
-			astCompiler.BuildAst(result);
-
-			if (result.HasErrors())
-				throw new SqlParseException();
-
-			return (IExpressionNode)result.Root.AstNode;
+			return (IExpressionNode) ParseNode(grammar, s);
 		}
 	}
 }

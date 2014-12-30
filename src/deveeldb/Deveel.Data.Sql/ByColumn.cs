@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql {
 		/// a query in ascending order.</param>
 		public ByColumn(SqlExpression expression, bool ascending) {
 			Expression = expression;
-			this.Ascending = ascending;
+			Ascending = ascending;
 		}
 
 		/// <summary>

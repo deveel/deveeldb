@@ -27,5 +27,10 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <seealso cref="ObjectName"/>
 		ObjectName FullName { get; }
+
+		/// <summary>
+		/// Gets the type of database object that the implementation is for
+		/// </summary>
+		DbObjectType ObjectType { get; }
 	}
 }

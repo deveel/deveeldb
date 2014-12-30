@@ -15,11 +15,18 @@
 
 using System;
 
-namespace Deveel.Data.Security {
-	public sealed class User {
-		public const string PublicName = "@PUBLIC";
-		public const string SystemName = "@SYSTEM";
+using Deveel.Data.DbSystem;
 
-		public string Name { get; private set; }
+namespace Deveel.Data.Sql.Statements {
+	public abstract class PreparedStatement {
+		protected abstract ITable OnEvaluate(IQueryContext context);
+
+		public ITable Evaluate(IQueryContext context) {
+			// TODO: make more operations before arriving here ...
+
+			return OnEvaluate(context);
+		}
+
+		public SqlQuery Query { get; internal set; }
 	}
 }

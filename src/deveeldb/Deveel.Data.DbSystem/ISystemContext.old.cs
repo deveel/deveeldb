@@ -12,27 +12,38 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface IQueryConfiguration {
-		IQueryConfiguration All(bool flag);
+using Deveel.Data.Caching;
+using Deveel.Data.Configuration;
+using Deveel.Data.Routines;
+using Deveel.Data.Store;
+using Deveel.Data.Text;
+using Deveel.Diagnostics;
 
-		IQueryConfiguration Distinct(bool flag);
+namespace Deveel.Data.DbSystem {
+	public interface ISystemContext : IDisposable {
+		IDbConfig Config { get; }
 
-		IQueryConfiguration Items(Action<ISelectListConfiguration> config);
+		IStoreSystem StoreSystem { get; }
 
-		IQueryConfiguration From(Action<IFromSourceConfiguration> config);
+		ILogger Logger { get; }
 
-		IQueryConfiguration Where(SqlExpression whereExpression);
+		Stats Stats { get; }
 
-		IQueryConfiguration Having(SqlExpression havingExpression);
+		IRoutineResolver RoutineResolver { get; }
 
-		IQueryConfiguration GroupBy(Action<IGroupByConfiguration> config);
+		IRegexLibrary RegexLibrary { get; }
 
-		IQueryConfiguration OrderBy(Action<IOrderByConfiguration> config);
+		// TypesManager TypesManager { get; }
 
-		SqlQueryExpression AsExpression();
+		DataCellCache DataCellCache { get; }
+
+
+		void Init(IDbConfig config);
+
+		object CreateEvent(EventHandler handler);
+
+		void PostEvent(int waitTime, object e);
 	}
 }

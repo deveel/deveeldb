@@ -14,12 +14,29 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Deveel.Data.Security {
-	public sealed class User {
-		public const string PublicName = "@PUBLIC";
-		public const string SystemName = "@SYSTEM";
+using NUnit.Framework;
 
-		public string Name { get; private set; }
+namespace Deveel.Data.Sql.Statements {
+	[TestFixture]
+	public class SelectStatementTests {
+		[Test]
+		public void ParseWithFromClause() {
+			const string sql = "SELECT col1 AS a FROM table";
+
+			IEnumerable<Statement> statements = null;
+			Assert.DoesNotThrow(() => statements = Statement.Parse(sql));
+			Assert.IsNotNull(statements);
+
+			var statement = statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement) statement;
+
+		}
 	}
 }

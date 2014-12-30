@@ -18,6 +18,8 @@ using System.Linq;
 
 using NUnit.Framework;
 
+using Deveel.Data.Sql.Expressions.Fluid;
+
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
 	public sealed class SqlQueryExpressionTests {
@@ -112,6 +114,11 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotEmpty(queryExpression.FromClause.AllTables);
 			Assert.AreEqual(1, queryExpression.FromClause.AllTables.Count());
 			Assert.IsTrue(queryExpression.FromClause.AllTables.First().IsSubQuery);
+		}
+
+		[Test]
+		public void FluidSelectWithClause() {
+			var expression = SqlQueryBuilder.Configure().Items(list => list.Column("col1", "a")).From("table").AsExpression();
 		}
 	}
 }

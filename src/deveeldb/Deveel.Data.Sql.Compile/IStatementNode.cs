@@ -15,11 +15,7 @@
 
 using System;
 
-namespace Deveel.Data.Security {
-	public sealed class User {
-		public const string PublicName = "@PUBLIC";
-		public const string SystemName = "@SYSTEM";
-
-		public string Name { get; private set; }
+namespace Deveel.Data.Sql.Compile {
+	public interface IStatementNode : ISqlNode {
 	}
 }

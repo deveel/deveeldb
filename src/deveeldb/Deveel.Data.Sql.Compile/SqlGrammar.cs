@@ -16,7 +16,7 @@
 using Irony.Parsing;
 
 namespace Deveel.Data.Sql.Compile {
-	class SqlGrammar : Grammar {
+	internal class SqlGrammar : Grammar {
 		public SqlGrammar(bool ignoreCase)
 			: base(!ignoreCase) {
 			MakeSimpleId();
@@ -160,14 +160,14 @@ namespace Deveel.Data.Sql.Compile {
 		private readonly NonTerminal sql_expression_list = new NonTerminal("sql_expression_list");
 		private readonly NonTerminal sql_expression = new NonTerminal("sql_expression");
 		private readonly NonTerminal sql_simple_expression = new NonTerminal("sql_simple_expression");
-		private readonly NonTerminal sql_unary_expression = new NonTerminal("sql_unary_expression", typeof(SqlUnaryExpressionNode));
-		private readonly NonTerminal sql_binary_expression = new NonTerminal("sql_binary_expression", typeof(SqlBinaryExpressionNode));
-		private readonly NonTerminal sql_between_expression = new NonTerminal("sql_between_expression", typeof(SqlBetweenExpressionNode));
-		private readonly NonTerminal sql_case_expression = new NonTerminal("sql_case_expression", typeof(SqlCaseExpressionNode));
-		private readonly NonTerminal sql_reference_expression = new NonTerminal("sql_reference_expression", typeof(SqlReferenceExpressionNode));
+		private readonly NonTerminal sql_unary_expression = new NonTerminal("sql_unary_expression", typeof (SqlUnaryExpressionNode));
+		private readonly NonTerminal sql_binary_expression = new NonTerminal("sql_binary_expression", typeof (SqlBinaryExpressionNode));
+		private readonly NonTerminal sql_between_expression = new NonTerminal("sql_between_expression", typeof (SqlBetweenExpressionNode));
+		private readonly NonTerminal sql_case_expression = new NonTerminal("sql_case_expression", typeof (SqlCaseExpressionNode));
+		private readonly NonTerminal sql_reference_expression = new NonTerminal("sql_reference_expression", typeof (SqlReferenceExpressionNode));
 		private readonly NonTerminal term = new NonTerminal("term");
 		private readonly NonTerminal not_opt = new NonTerminal("not_op");
-		private readonly NonTerminal tuple = new NonTerminal("tuple", typeof(SqlExpressionTupleNode));
+		private readonly NonTerminal tuple = new NonTerminal("tuple", typeof (SqlExpressionTupleNode));
 		private readonly NonTerminal unary_op = new NonTerminal("unary_op");
 		private readonly NonTerminal binary_op = new NonTerminal("binary_op");
 		private readonly NonTerminal binary_op_simple = new NonTerminal("binary_op_simple");
@@ -212,49 +212,49 @@ namespace Deveel.Data.Sql.Compile {
 		private readonly NonTerminal table_constraint_name_opt = new NonTerminal("table_constraint_name_opt");
 		private readonly NonTerminal def_table_constraint = new NonTerminal("def_table_constraint");
 		private readonly NonTerminal column_list = new NonTerminal("column_list");
-		private readonly NonTerminal function_call_expression = new NonTerminal("function_call_expression", typeof(SqlFunctionCallExpressionNode));
+		private readonly NonTerminal function_call_expression = new NonTerminal("function_call_expression", typeof (SqlFunctionCallExpressionNode));
 		private readonly NonTerminal function_call_args_opt = new NonTerminal("function_call_args_opt");
 		private readonly NonTerminal function_call_args_list = new NonTerminal("function_call_args_list");
 		private readonly NonTerminal create_view = new NonTerminal("create_view");
 		private readonly NonTerminal or_replace_opt = new NonTerminal("or_replace_opt");
 		private readonly NonTerminal if_not_exists_opt = new NonTerminal("if_not_exists_opt");
-		private readonly NonTerminal select_command = new NonTerminal("select_command");
+		private readonly NonTerminal select_command = new NonTerminal("select_command", typeof(SelectStatementNode));
 		private readonly NonTerminal query = new NonTerminal("query");
-		private readonly NonTerminal sql_query_expression = new NonTerminal("sql_query_expression", typeof(SqlQueryExpressionNode));
+		private readonly NonTerminal sql_query_expression = new NonTerminal("sql_query_expression", typeof (SqlQueryExpressionNode));
 		private readonly NonTerminal select_into_opt = new NonTerminal("select_into_opt");
 		private readonly NonTerminal select_set = new NonTerminal("select_set");
 		private readonly NonTerminal select_restrict_opt = new NonTerminal("select_restrict_opt");
-		private readonly NonTerminal select_item = new NonTerminal("select_item", typeof(SelectItemNode));
+		private readonly NonTerminal select_item = new NonTerminal("select_item", typeof (SelectItemNode));
 		private readonly NonTerminal select_as_opt = new NonTerminal("selct_as_opt");
 		private readonly NonTerminal select_source = new NonTerminal("select_source");
 		private readonly NonTerminal as_opt = new NonTerminal("as_opt");
 		private readonly NonTerminal select_item_list = new NonTerminal("select_item_list");
 		private readonly NonTerminal from_clause_opt = new NonTerminal("from_clause_opt");
-		private readonly NonTerminal from_clause = new NonTerminal("from_clause", typeof(FromClauseNode));
+		private readonly NonTerminal from_clause = new NonTerminal("from_clause", typeof (FromClauseNode));
 		private readonly NonTerminal from_source_list = new NonTerminal("from_source_list");
 		private readonly NonTerminal from_source = new NonTerminal("from_source");
-		private readonly NonTerminal from_table_source = new NonTerminal("from_table_source", typeof(FromTableSourceNode));
-		private readonly NonTerminal from_query_source = new NonTerminal("from_query_source", typeof(FromQuerySourceNode));
+		private readonly NonTerminal from_table_source = new NonTerminal("from_table_source", typeof (FromTableSourceNode));
+		private readonly NonTerminal from_query_source = new NonTerminal("from_query_source", typeof (FromQuerySourceNode));
 		private readonly NonTerminal join_opt = new NonTerminal("join_opt");
-		private readonly NonTerminal join = new NonTerminal("join", typeof(JoinNode));
+		private readonly NonTerminal join = new NonTerminal("join", typeof (JoinNode));
 		private readonly NonTerminal join_type = new NonTerminal("join_type");
-		private readonly NonTerminal where_clause_opt = new NonTerminal("where_clause_opt", typeof(WhereClauseNode));
+		private readonly NonTerminal where_clause_opt = new NonTerminal("where_clause_opt", typeof (WhereClauseNode));
 		private readonly NonTerminal group_by_opt = new NonTerminal("group_by_opt");
 		private readonly NonTerminal having_clause_opt = new NonTerminal("having_clause_opt");
 		private readonly NonTerminal order_opt = new NonTerminal("order_opt");
-		private readonly NonTerminal sorted_def = new NonTerminal("sorted_def", typeof(OrderByNode));
+		private readonly NonTerminal sorted_def = new NonTerminal("sorted_def", typeof (OrderByNode));
 		private readonly NonTerminal sorted_def_list = new NonTerminal("sorted_def_list");
 		private readonly NonTerminal sort_order = new NonTerminal("sort_order");
 		private readonly NonTerminal query_composite_opt = new NonTerminal("query_composite_opt");
-		private readonly NonTerminal query_composite = new NonTerminal("query_composite", typeof(QueryCompositeNode));
+		private readonly NonTerminal query_composite = new NonTerminal("query_composite", typeof (QueryCompositeNode));
 		private readonly NonTerminal any_op = new NonTerminal("any_op");
 		private readonly NonTerminal all_op = new NonTerminal("all_op");
 		private readonly NonTerminal case_test_expression_opt = new NonTerminal("case_test_expression_opt");
 		private readonly NonTerminal case_when_then_list = new NonTerminal("case_when_then_list");
-		private readonly NonTerminal case_when_then = new NonTerminal("case_when_then", typeof(CaseSwitchNode));
+		private readonly NonTerminal case_when_then = new NonTerminal("case_when_then", typeof (CaseSwitchNode));
 		private readonly NonTerminal case_else_opt = new NonTerminal("case_else_opt");
-		private readonly NonTerminal sql_varef_expression = new NonTerminal("sql_varef_expression", typeof(SqlVariableRefExpressionNode));
-		private readonly NonTerminal sql_constant_expression = new NonTerminal("sql_constant_expression", typeof(SqlConstantExpressionNode));
+		private readonly NonTerminal sql_varef_expression = new NonTerminal("sql_varef_expression", typeof (SqlVariableRefExpressionNode));
+		private readonly NonTerminal sql_constant_expression = new NonTerminal("sql_constant_expression", typeof (SqlConstantExpressionNode));
 
 		#region PL/SQL
 
@@ -290,7 +290,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		#endregion
 
-private void Comments() {
+		private void Comments() {
 			var comment = new CommentTerminal("multiline_comment", "/*", "*/");
 			var lineComment = new CommentTerminal("singleline_comment", "--", "\n", "\r\n");
 			NonGrammarTerminals.Add(comment);
@@ -430,7 +430,7 @@ private void Comments() {
 		private void SetupRoot() {
 			var root = new NonTerminal("root");
 			// SQL
-			var command_list = new NonTerminal("command_list");
+			var command_list = new NonTerminal("command_list", typeof(StatementSequenceNode));
 			var command = new NonTerminal("command");
 			command.Rule = sql_statement + sql_command_end_opt;
 			command_list.Rule = MakePlusRule(command_list, command);
@@ -504,24 +504,24 @@ private void Comments() {
 			interval_format_opt.Rule = YEAR + TO + MONTH | DAY + TO + SECOND;
 
 			datatype_size.Rule = Empty | "(" + positive_literal + ")";
-			                     
+
 			number_precision.Rule = Empty |
-			                         "(" + positive_literal + ")" |
-			                         "(" + positive_literal + "," + positive_literal + ")";
+			                        "(" + positive_literal + ")" |
+			                        "(" + positive_literal + "," + positive_literal + ")";
 		}
 
 		private void SqlExpression() {
 			sql_expression_list.Rule = MakePlusRule(sql_expression_list, comma, sql_expression);
 			sql_expression.Rule = sql_simple_expression |
 			                      sql_between_expression |
-								  sql_case_expression |
-								  sql_query_expression;
+			                      sql_case_expression |
+			                      sql_query_expression;
 			sql_constant_expression.Rule = string_literal | number_literal | TRUE | FALSE | NULL;
 			sql_simple_expression.Rule = term | sql_unary_expression | sql_binary_expression;
 			term.Rule = sql_reference_expression |
 			            sql_varef_expression |
 			            sql_constant_expression |
-						function_call_expression |
+			            function_call_expression |
 			            tuple;
 			sql_reference_expression.Rule = object_name;
 			tuple.Rule = "(" + sql_expression_list + ")";
@@ -602,11 +602,11 @@ private void Comments() {
 
 			column_constraint_list.Rule = MakeStarRule(column_constraint_list, column_constraint);
 			column_constraint.Rule = NULL |
-									 NOT + NULL |
-									 UNIQUE |
-									 PRIMARY + KEY |
-									 CHECK + sql_expression |
-									 REFERENCES + object_name + column_constraint_ref_opt + fkey_action_list;
+			                         NOT + NULL |
+			                         UNIQUE |
+			                         PRIMARY + KEY |
+			                         CHECK + sql_expression |
+			                         REFERENCES + object_name + column_constraint_ref_opt + fkey_action_list;
 			column_constraint_ref_opt.Rule = Empty | "(" + column_name + ")";
 			column_default_opt.Rule = Empty | DEFAULT + sql_expression;
 			fkey_action_list.Rule = MakeStarRule(fkey_action_list, fkey_action);
@@ -617,10 +617,10 @@ private void Comments() {
 			table_constraint_name_opt.Rule = Empty | CONSTRAINT + constraint_name;
 			constraint_name.Rule = simple_id;
 			def_table_constraint.Rule = PRIMARY + KEY + "(" + column_list + ")" |
-										UNIQUE + "(" + column_list + ")" |
-										CHECK + "(" + sql_expression + ")" |
-										FOREIGN + KEY + "(" + column_list + ")" + REFERENCES + object_name + "(" + column_list + ")" +
-										fkey_action_list;
+			                            UNIQUE + "(" + column_list + ")" |
+			                            CHECK + "(" + sql_expression + ")" |
+			                            FOREIGN + KEY + "(" + column_list + ")" + REFERENCES + object_name + "(" + column_list + ")" +
+			                            fkey_action_list;
 			column_list.Rule = MakePlusRule(column_list, comma, column_name);
 		}
 
@@ -632,14 +632,14 @@ private void Comments() {
 			query.Rule = sql_query_expression;
 			select_command.Rule = query;
 
-			sql_query_expression.Rule = SELECT + 
-				select_restrict_opt + 
-				select_into_opt + 
-				select_set + 
-				from_clause_opt + 
-				where_clause_opt + 
-				group_by_opt +
-				query_composite_opt;
+			sql_query_expression.Rule = SELECT +
+			                            select_restrict_opt +
+			                            select_into_opt +
+			                            select_set +
+			                            from_clause_opt +
+			                            where_clause_opt +
+			                            group_by_opt +
+			                            query_composite_opt;
 
 			select_restrict_opt.Rule = Empty | ALL | DISTINCT;
 			select_into_opt.Rule = Empty | INTO + object_name;
@@ -647,14 +647,14 @@ private void Comments() {
 			select_item_list.Rule = MakePlusRule(select_item_list, comma, select_item);
 			select_item.Rule = select_source + select_as_opt;
 			select_as_opt.Rule = as_opt + simple_id | Empty;
-			select_source.Rule =  sql_expression | object_name;
+			select_source.Rule = sql_expression | object_name;
 			from_clause_opt.Rule = Empty | from_clause;
 			from_clause.Rule = FROM + from_source_list;
 			from_source_list.Rule = MakePlusRule(from_source_list, from_source);
 			from_source.Rule = from_table_source | from_query_source;
 			from_table_source.Rule = object_name + select_as_opt + join_opt;
 			from_query_source.Rule = "(" + query + ")" + select_as_opt + join_opt;
-			join_opt.Rule = Empty | join ;
+			join_opt.Rule = Empty | join;
 			join.Rule = "," + from_table_source |
 			            join_type + JOIN + from_table_source + ON + sql_expression;
 			join_type.Rule = INNER | OUTER | LEFT | LEFT + OUTER | RIGHT | RIGHT + OUTER;

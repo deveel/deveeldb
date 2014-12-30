@@ -15,11 +15,16 @@
 
 using System;
 
-namespace Deveel.Data.Security {
-	public sealed class User {
-		public const string PublicName = "@PUBLIC";
-		public const string SystemName = "@SYSTEM";
-
-		public string Name { get; private set; }
+namespace Deveel.Data.Sql {
+	public enum DbObjectType {
+		Table = 1,
+		View = 2,
+		Type = 4,
+		Row = 10,
+		Column = 11,
+		Trigger = 17,
+		Sequence = 18,
+		Routine = 20,
+		Schema = 51
 	}
 }

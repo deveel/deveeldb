@@ -14,57 +14,23 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 
-using Deveel.Data.DbSystem;
-using Deveel.Data.Query;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
-	public interface ITransaction : IDisposable {
-		ITransactionContext Context { get; }
-
-		VariablesManager Variables { get; }
+	public interface ITransaction {
+		ITransactionSequenceContext SequenceContext { get; }
 
 
-		TableName[] GetTables();
+		IEnumerable<IDbObject> GetObjects();
 
-		bool TableExists(TableName tableName);
+		bool ObjectExists(ObjectName objName);
 
-		bool RealTableExists(TableName tableName);
+		bool RealObjectExists(ObjectName objName);
 
-		TableName ResolveToTableName(string currentSchema, string name, bool caseInsensitive);
+		ObjectName TryResolveCase(ObjectName objName);
 
-		TableName TryResolveCase(TableName tableName);
-
-		DataTableInfo GetTableInfo(TableName tableName);
-
-		ITableDataSource GetTable(TableName tableName);
-
-		string GetTableType(TableName tableName);
-
-		// Sequences
-
-		long NextSequenceValue(TableName name);
-
-		long LastSequenceValue(TableName name);
-
-		void SetSequenceValue(TableName name, long value);
-
-		// Table IDs
-
-		long CurrentUniqueId(TableName tableName);
-
-		long NextUniqueId(TableName tableName);
-
-		void SetUniqueId(TableName tableName, long uniqueId);
-
-		// Cursors
-
-		Cursor DeclareCursor(TableName name, IQueryPlanNode queryPlan, CursorAttributes attributes);
-
-		void DropCursor(TableName name);
-
-		Cursor GetCursor(TableName name);
-
-		bool CursorExists(TableName name);
+		IDbObject GetObject(ObjectName objName);
 	}
 }

@@ -16,10 +16,22 @@
 using System;
 
 namespace Deveel.Data.Security {
+	/// <summary>
+	/// Defines a function to hash as user provided password
+	/// </summary>
 	public interface IHashFunction : IDisposable {
+		/// <summary>
+		/// Gets the size of the hash to generate.
+		/// </summary>
 		int HashSize { get; }
 
-
+		/// <summary>
+		/// Computes the hash from the given input.
+		/// </summary>
+		/// <param name="data">The binary representation of the data to hash.</param>
+		/// <returns>
+		/// Returns a computed hash from the input data.
+		/// </returns>
 		byte[] Compute(byte[] data);
 	}
 }

@@ -15,11 +15,14 @@
 
 using System;
 
-namespace Deveel.Data.Security {
-	public sealed class User {
-		public const string PublicName = "@PUBLIC";
-		public const string SystemName = "@SYSTEM";
+using Deveel.Data.Sql.Objects;
 
-		public string Name { get; private set; }
+namespace Deveel.Data.Transactions {
+	public interface ITransactionSequenceContext {
+		SqlNumber NextValue(ObjectName sequenceName);
+
+		SqlNumber LastValue(ObjectName sequenceName);
+
+		void SetValue(ObjectName sequenceName, SqlNumber value);
 	}
 }

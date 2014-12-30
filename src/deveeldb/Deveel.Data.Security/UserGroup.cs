@@ -16,10 +16,15 @@
 using System;
 
 namespace Deveel.Data.Security {
-	public sealed class User {
-		public const string PublicName = "@PUBLIC";
-		public const string SystemName = "@SYSTEM";
+	[Serializable]
+	public sealed class UserGroup {
+		public UserGroup(string name, Privileges privileges) {
+			Name = name;
+			Privileges = privileges;
+		}
 
 		public string Name { get; private set; }
+
+		public Privileges Privileges { get; private set; }
 	}
 }

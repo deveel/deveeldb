@@ -48,5 +48,14 @@ namespace Deveel.Data.Sql.Expressions.Fluid {
 		public static ISelectListConfiguration Expression(this ISelectListConfiguration configuration, SqlExpression expression, string alias) {
 			return configuration.Item(x => x.Expression(expression).As(alias));
 		}
+
+		public static IQueryConfiguration From(this IQueryConfiguration configuration, string tableName) {
+			return From(configuration, null, tableName);
+		}
+
+		public static IQueryConfiguration From(this IQueryConfiguration configuration, string alias, string tableName) {
+			configuration.From(sources => sources.Table(ObjectName.Parse(tableName)).As(alias));
+			return configuration;
+		}
 	}
 }

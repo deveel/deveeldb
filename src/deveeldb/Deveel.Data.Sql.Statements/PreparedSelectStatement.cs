@@ -15,11 +15,23 @@
 
 using System;
 
-namespace Deveel.Data.Security {
-	public sealed class User {
-		public const string PublicName = "@PUBLIC";
-		public const string SystemName = "@SYSTEM";
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Query;
 
-		public string Name { get; private set; }
+namespace Deveel.Data.Sql.Statements {
+	[Serializable]
+	public sealed class PreparedSelectStatement : PreparedStatement {
+		public PreparedSelectStatement(IQueryPlanNode queryPlan) {
+			if (queryPlan == null)
+				throw new ArgumentNullException("queryPlan");
+
+			QueryPlan = queryPlan;
+		}
+
+		public IQueryPlanNode QueryPlan { get; private set; }
+
+		protected override ITable OnEvaluate(IQueryContext context) {
+			throw new NotImplementedException();
+		}
 	}
 }

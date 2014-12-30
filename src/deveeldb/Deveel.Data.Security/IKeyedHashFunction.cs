@@ -16,7 +16,14 @@
 using System;
 
 namespace Deveel.Data.Security {
+	/// <summary>
+	/// An <see cref="IHashFunction">hash function</see> that requires a private
+	/// key to compute the final result.
+	/// </summary>
 	public interface IKeyedHashFunction : IHashFunction {
+		/// <summary>
+		/// Gets or sets the private key to use for computing the hash.
+		/// </summary>
 		byte[] Key { get; set; }
 	}
 }

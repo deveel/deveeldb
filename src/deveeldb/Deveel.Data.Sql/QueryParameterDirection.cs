@@ -15,11 +15,11 @@
 
 using System;
 
-namespace Deveel.Data.Security {
-	public sealed class User {
-		public const string PublicName = "@PUBLIC";
-		public const string SystemName = "@SYSTEM";
-
-		public string Name { get; private set; }
+namespace Deveel.Data.Sql {
+	[Flags]
+	public enum QueryParameterDirection {
+		In = 1,
+		Out = 2,
+		InOut = In | Out
 	}
 }

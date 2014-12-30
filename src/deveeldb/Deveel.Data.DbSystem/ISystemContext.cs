@@ -12,14 +12,12 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+
 using System;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
-using Deveel.Data.Routines;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Store;
-using Deveel.Data.Text;
-using Deveel.Diagnostics;
 
 namespace Deveel.Data.DbSystem {
 	public interface ISystemContext : IDisposable {
@@ -27,23 +25,6 @@ namespace Deveel.Data.DbSystem {
 
 		IStoreSystem StoreSystem { get; }
 
-		ILogger Logger { get; }
-
-		Stats Stats { get; }
-
-		IRoutineResolver RoutineResolver { get; }
-
-		IRegexLibrary RegexLibrary { get; }
-
-		// TypesManager TypesManager { get; }
-
-		DataCellCache DataCellCache { get; }
-
-
-		void Init(IDbConfig config);
-
-		object CreateEvent(EventHandler handler);
-
-		void PostEvent(int waitTime, object e);
+		IQueryPlanner QueryPlanner { get; }
 	}
 }

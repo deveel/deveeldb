@@ -16,7 +16,9 @@
 using System;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.DbSystem {
 	//TODO: Add many more functions ... this is a sort of placeholder for the moment
@@ -25,13 +27,19 @@ namespace Deveel.Data.DbSystem {
 	/// system resources and evaluation context.
 	/// </summary>
 	public interface IQueryContext : IDisposable {
+		User User { get; }
+
 		/// <summary>
 		/// Gets an object that is used to access sequences defined within
 		/// the database system.
 		/// </summary>
 		ISequenceAccessContext SequenceAccess { get; }
 
+		ISystemContext SystemContext { get; }
+
 		ICache TableCache { get; }
+
+		IQueryPlanContext QueryPlanContext { get; }
 
 		/// <summary>
 		/// Computes a new random number, that is ensured to be unique 
