@@ -29,17 +29,20 @@ namespace Deveel.Data.DbSystem {
 	public interface IQueryContext : IDisposable {
 		User User { get; }
 
-		/// <summary>
-		/// Gets an object that is used to access sequences defined within
-		/// the database system.
-		/// </summary>
-		ISequenceAccessContext SequenceAccess { get; }
-
 		ISystemContext SystemContext { get; }
 
 		ICache TableCache { get; }
 
 		IQueryPlanContext QueryPlanContext { get; }
+
+
+		/// <summary>
+		/// Gets a value that indicates if the current context is in
+		/// an exception state or not.
+		/// </summary>
+		/// <seealso cref="SetExceptionState"/>
+		bool IsExceptionState { get; }
+
 
 		/// <summary>
 		/// Computes a new random number, that is ensured to be unique 
@@ -52,5 +55,67 @@ namespace Deveel.Data.DbSystem {
 		/// computed within this execution context.
 		/// </returns>
 		SqlNumber NextRandom(int bitSize);
+
+		/// <summary>
+		/// Increments the sequence and returns the computed value.
+		/// </summary>
+		/// <param name="sequenceName">The name of the sequence to increment and
+		/// whose incremented value must be returned.</param>
+		/// <returns>
+		/// Returns a <see cref="SqlNumber"/> that represents the result of
+		/// the increment operation over the sequence identified by the given name.
+		/// </returns>
+		/// <exception cref="ObjectNotFoundException">
+		/// If none sequence was found for the given <paramref name="sequenceName"/>.
+		/// </exception>
+		SqlNumber GetNextValue(ObjectName sequenceName);
+
+		/// <summary>
+		/// Gets the current value of the sequence.
+		/// </summary>
+		/// <param name="sequenceName">The name of the sequence whose current value
+		/// must be obtained.</param>
+		/// <returns>
+		/// Returns a <see cref="SqlNumber"/> that represents the current value
+		/// of the sequence identified by the given name.
+		/// </returns>
+		/// <exception cref="ObjectNotFoundException">
+		/// If none sequence was found for the given <paramref name="sequenceName"/>.
+		/// </exception>
+		SqlNumber GetCurrentValue(ObjectName sequenceName);
+
+		/// <summary>
+		/// Sets the current value of the sequence, overriding the increment
+		/// mechanism in place.
+		/// </summary>
+		/// <param name="sequenceName">The name of the sequence whose current state
+		/// to be set.</param>
+		/// <param name="value">The numeric value to set.</param>
+		/// <exception cref="ObjectNotFoundException">
+		/// If none sequence was found for the given <paramref name="sequenceName"/>.
+		/// </exception>
+		void SetCurrentValue(ObjectName sequenceName, SqlNumber value);
+
+		/// <summary>
+		/// Marks the execution context as in an exception state.
+		/// </summary>
+		/// <param name="exception">The exception that causes the change of
+		/// state of the context.</param>
+		/// <seealso cref="IsExceptionState"/>
+		/// <seealso cref="GetException"/>
+		void SetExceptionState(Exception exception);
+
+		/// <summary>
+		/// If this context is in an exception state, this method
+		/// gets the exception that caused the change of state.
+		/// </summary>
+		/// <returns>
+		/// Returns an <see cref="Exception"/> that is the origin
+		/// of the context change state, or <b>null</b> if the context
+		/// is not in an exception state.
+		/// </returns>
+		/// <seealso cref="IsExceptionState"/>
+		/// <seealso cref="SetExceptionState"/>
+		Exception GetException();
 	}
 }

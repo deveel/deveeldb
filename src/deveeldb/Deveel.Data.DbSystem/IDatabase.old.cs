@@ -12,30 +12,44 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-//
-
 using System;
 
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
-using Deveel.Data.Transactions;
+using Deveel.Diagnostics;
 
 namespace Deveel.Data.DbSystem {
+	/// <summary>
+	/// Describes the functionalities of a database within the system
+	/// </summary>
 	public interface IDatabase : IDisposable {
+		/// <summary>
+		/// Returns the name of this database.
+		/// </summary>
 		string Name { get; }
 
 		Version Version { get; }
 
 		bool Exists { get; }
 
-		bool IsOpen { get; }
+		bool IsInitialized { get; }
+
+		IDatabaseContext Context { get; }
+
+		UserManager UserManager { get; }
+
+		bool DeleteOnShutdown { get; set; }
+
+		Table SingleRowTable { get; }
+
+		TableDataConglomerate Conglomerate { get; }
 
 
-		void Open();
+		void Create(string adminUser, string adminPass);
 
-		int NewTableId();
+		void Init();
 
-		IUserSession CreateSession(User user, TransactionIsolation transactionIsolation, CallbackTriggerEventHandler triggerCallback);
+		IDatabaseConnection CreateNewConnection(User user, TriggerCallback triggerCallback);
 
 		void Shutdown();
 	}

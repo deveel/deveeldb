@@ -16,22 +16,12 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
-using Deveel.Data.Diagnostics;
-
 namespace Deveel.Data.Transactions {
-	[Serializable]
-	public class TransactionException : ErrorException {
-		public TransactionException(int errorCode) 
-			: base(EventClasses.Transactions, errorCode) {
-		}
-
-		public TransactionException(int errorCode, string message) 
-			: base(EventClasses.Transactions, errorCode, message) {
-		}
-
-		public TransactionException(int errorCode, string message, Exception innerException) 
-			: base(EventClasses.Transactions, errorCode, message, innerException) {
-		}
+	public enum TransactionIsolation {
+		Serializable,
+		ReadCommitted,
+		ReadUncommitted,
+		RepeatableRead,
+		Snapshot
 	}
 }

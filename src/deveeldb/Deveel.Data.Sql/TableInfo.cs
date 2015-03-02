@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
@@ -41,18 +42,21 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="tableName">The unique name of the table within
 		/// the database system.</param>
+		/// <param name="id">The unique identifier of the table in the database.</param>
 		/// <exception cref="ArgumentNullException">
 		/// If the provided <paramref name="tableName"/> is <c>null</c>.
 		/// </exception>
 		public TableInfo(ObjectName tableName)
-			: this(tableName, new List<ColumnInfo>(), false) {
+			: this(tableName, -1, false, new List<ColumnInfo>(), false) {
 		}
 
-		private TableInfo(ObjectName tableName, IList<ColumnInfo> columns, bool isReadOnly) {
+		private TableInfo(ObjectName tableName, int id, bool perm, IList<ColumnInfo> columns, bool isReadOnly) {
 			if (tableName == null) 
 				throw new ArgumentNullException("tableName");
 
 			TableName = tableName;
+			Id = id;
+			IsPermanent = perm;
 			this.columns = columns;
 			IsReadOnly = isReadOnly;
 
@@ -65,6 +69,18 @@ namespace Deveel.Data.Sql {
 		/// to be unique within the system.
 		/// </summary>
 		public ObjectName TableName { get; private set; }
+
+		/// <summary>
+		/// Gets a unique identifier of the table in a database system.
+		/// </summary>
+		/// <seealso cref="IsPermanent"/>
+		public int Id { get; private set; }
+
+		/// <summary>
+		/// Gets a value that indicates if the table is permanent.
+		/// </summary>
+		/// <seealso cref="ITransaction.CreateTable"/>
+		public bool IsPermanent { get; private set; }
 
 		/// <summary>
 		/// Gets the name part of the table name.
@@ -139,6 +155,11 @@ namespace Deveel.Data.Sql {
 		private void AssertNotReadOnly() {
 			if (IsReadOnly)
 				throw new InvalidOperationException();
+		}
+
+		public void Establish(int id) {
+			Id = id;
+			IsPermanent = true;
 		}
 
 		/// <summary>
@@ -261,7 +282,11 @@ namespace Deveel.Data.Sql {
 		/// a copy of this table metadata.
 		/// </returns>
 		public TableInfo AsReadOnly() {
-			return new TableInfo(TableName, new ReadOnlyCollection<ColumnInfo>(columns), true);
+			return new TableInfo(TableName, Id, IsPermanent, new ReadOnlyCollection<ColumnInfo>(columns), true);
+		}
+
+		public TableInfo Alias(ObjectName alias) {
+			return new TableInfo(alias, Id, IsPermanent, new ReadOnlyCollection<ColumnInfo>(columns), true);
 		}
 	}
 }

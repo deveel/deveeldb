@@ -120,5 +120,25 @@ namespace Deveel.Data.Sql.Expressions {
 		public void FluidSelectWithClause() {
 			var expression = SqlQueryBuilder.Configure().Items(list => list.Column("col1", "a")).From("table").AsExpression();
 		}
+
+		[Test]
+		public void ExecuteSimpleQuery() {
+			const string sql = "SELECT col1 AS a FROM table";
+
+			SqlExpression expression = null;
+			Assert.DoesNotThrow(() => expression = SqlExpression.Parse(sql));
+			Assert.IsNotNull(expression);
+			Assert.IsInstanceOf<SqlQueryExpression>(expression);
+
+			var queryExpression = (SqlQueryExpression)expression;
+			Assert.IsNotEmpty(queryExpression.SelectColumns);
+			Assert.IsInstanceOf<SqlReferenceExpression>(queryExpression.SelectColumns.First().Expression);
+			Assert.AreEqual("a", queryExpression.SelectColumns.First().Alias);
+			Assert.IsNotNull(queryExpression.FromClause);
+			Assert.AreEqual(1, queryExpression.FromClause.AllTables.Count());
+			Assert.AreEqual("table", queryExpression.FromClause.AllTables.First().Name);
+
+			queryExpression.Execute(null);
+		}
 	}
 }

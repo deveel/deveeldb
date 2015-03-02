@@ -87,7 +87,19 @@
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
+    <Compile Include="Deveel.Data.DbSystem\GeneratedTable.cs" />
+    <Compile Include="Deveel.Data.DbSystem\IDatabase.cs" />
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
+    <Compile Include="Deveel.Data.DbSystem\ITableContainer.cs" />
+    <Compile Include="Deveel.Data.DbSystem\IUserSession.cs" />
+    <Compile Include="Deveel.Data.DbSystem\QueryContextBase.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SequenceManager.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SequenceManagerExtensions.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SimpleRowEnumerator.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
+    <Compile Include="Deveel.Data.DbSystem\TableManager.cs" />
+    <Compile Include="Deveel.Data.DbSystem\UserSession.cs" />
+    <Compile Include="Deveel.Data.DbSystem\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Index\BindSearchIndex.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndex_T.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndexBase_T.cs" />
@@ -102,6 +114,8 @@
     <Compile Include="Deveel.Data.Index\IIndex_T.cs" />
     <Compile Include="Deveel.Data.Index\IndexRange.cs" />
     <Compile Include="Deveel.Data.Index\SortedIndex.cs" />
+    <Compile Include="Deveel.Data.Routines\CallbackTriggerEventArgs.cs" />
+    <Compile Include="Deveel.Data.Routines\TriggerEventType.cs" />
     <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -150,7 +164,6 @@
     <Compile Include="Deveel.Data.Sql.Query\NaturalJoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\PreparedQuerySelectColumns.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryExpressionExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\QueryPlanner.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanNodeVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryReference.cs" />
@@ -174,6 +187,8 @@
     <Compile Include="Deveel.Data.Sql\IDbObject.cs" />
     <Compile Include="Deveel.Data.Sql\IRowIndex.cs" />
     <Compile Include="Deveel.Data.Sql\ISchema.cs" />
+    <Compile Include="Deveel.Data.Sql\ISequence.cs" />
+    <Compile Include="Deveel.Data.Sql\ISequenceManager.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameter.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameterDirection.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameterStyle.cs" />
@@ -182,7 +197,6 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseSystemException.cs" />
     <Compile Include="Deveel.Data.DbSystem\IGroupResolver.cs" />
     <Compile Include="Deveel.Data.DbSystem\IQueryContext.cs" />
-    <Compile Include="Deveel.Data.DbSystem\ISequenceAccessContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\IVariableAccessContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\IVariableResolver.cs" />
     <Compile Include="Deveel.Data.DbSystem\ObjectNotFoundException.cs" />
@@ -292,8 +306,11 @@
     <Compile Include="Deveel.Data.Sql\ColumnInfo.cs" />
     <Compile Include="Deveel.Data.Sql\SelectColumn.cs" />
     <Compile Include="Deveel.Data.Index\TableIndex.cs" />
+    <Compile Include="Deveel.Data.Sql\SequenceInfo.cs" />
+    <Compile Include="Deveel.Data.Sql\SequenceType.cs" />
     <Compile Include="Deveel.Data.Sql\SqlQuery.cs" />
     <Compile Include="Deveel.Data.Sql\TableInfo.cs" />
+    <Compile Include="Deveel.Data.Sql\TableQueryExtensions.cs" />
     <Compile Include="Deveel.Data.Store\AreaExtensions.cs" />
     <Compile Include="Deveel.Data.Store\AreaStream.cs" />
     <Compile Include="Deveel.Data.Store\DataStorageException.cs" />
@@ -330,7 +347,10 @@
     <Compile Include="Deveel.Data.Store\StorageType.cs" />
     <Compile Include="Deveel.Data.Store\StoreExtensions.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransaction.cs" />
-    <Compile Include="Deveel.Data.Transactions\ITransactionSequenceContext.cs" />
+    <Compile Include="Deveel.Data.Transactions\ITransactionFactory.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionException.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionExtensions.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionIsolation.cs" />
     <Compile Include="Deveel.Data.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Types\BooleanType.cs" />
     <Compile Include="Deveel.Data.Types\ColumnType.cs" />

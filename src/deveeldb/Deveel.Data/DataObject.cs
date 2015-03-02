@@ -69,7 +69,7 @@ namespace Deveel.Data {
 		/// <seealso cref="SqlNull.Value"/>
 		/// <seealso cref="ISqlObject.IsNull"/>
 		public bool IsNull {
-			get { return Value == null || SqlNull.Value == Value || Value.IsNull; }
+			get { return Type.IsNull || Value == null || SqlNull.Value == Value || Value.IsNull; }
 		}
 
 		/// <summary>
@@ -95,7 +95,8 @@ namespace Deveel.Data {
 				return -1;
 			}
 			// If this is not null and value is null return +1
-			if (other.IsNull)
+			if (ReferenceEquals(null, other) || 
+				other.IsNull)
 				return 1;
 
 			// otherwise both are non null so compare normally.
@@ -142,10 +143,14 @@ namespace Deveel.Data {
 
 		/// <inheritdoc/>
 		public bool Equals(DataObject other) {
-			if (other == null)
-				return false;
+			if (ReferenceEquals(other, null))
+				return IsNull;
 
-			return IsEqualTo(other);
+			var result = IsEqualTo(other);
+			if (result.IsNull)
+				return IsNull;
+
+			return result.AsBoolean();
 		}
 
 		/// <summary>
@@ -439,6 +444,16 @@ namespace Deveel.Data {
 			return new DataObject(PrimitiveTypes.String(SqlTypeCode.String), s);
 		}
 
+		public static DataObject Date(DateTimeOffset value) {
+			var offset = new SqlDayToSecond(value.Offset.Days, value.Offset.Hours, value.Offset.Minutes, value.Offset.Seconds, value.Offset.Milliseconds);
+			var sqlDate = new SqlDateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, offset);
+			return Date(sqlDate);
+		}
+
+		public static DataObject Date(SqlDateTime value) {
+			return new DataObject(PrimitiveTypes.Date(SqlTypeCode.Date), value);
+		}
+
 		public static DataObject VarChar(string s) {
 			return VarChar(new SqlString(s));
 		}
@@ -618,8 +633,8 @@ namespace Deveel.Data {
 		#region Implicit Operators
 
 		public static implicit operator bool(DataObject value) {
-			if (Equals(value, null) || value.IsNull)
-				throw new NullReferenceException();
+			if (ReferenceEquals(value, null) || value.IsNull)
+				throw new InvalidCastException("Cannot convert a nullable value to a boolean.");
 
 			return (SqlBoolean) value.AsBoolean().Value;
 		}

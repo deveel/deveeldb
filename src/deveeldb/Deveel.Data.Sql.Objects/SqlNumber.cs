@@ -158,6 +158,13 @@ namespace Deveel.Data.Sql.Objects {
 			    other.State == NumericState.NotANumber)
 				return true;
 
+			if (IsNull && other.IsNull)
+				return true;
+			if (IsNull && !other.IsNull)
+				return false;
+			if (!IsNull && other.IsNull)
+				return false;
+
 			return innerValue.CompareTo(other.innerValue) == 0;
 		}
 
@@ -450,6 +457,9 @@ namespace Deveel.Data.Sql.Objects {
 		public SqlNumber Add(SqlNumber value) {
 			if (State == NumericState.None) {
 				if (value.State == NumericState.None) {
+					if (IsNull || value.IsNull)
+						return Null;
+
 					return new SqlNumber(NumericState.None, innerValue.Add(value.innerValue));
 				}
 
@@ -462,6 +472,9 @@ namespace Deveel.Data.Sql.Objects {
 		public SqlNumber Subtract(SqlNumber value) {
 			if (State == NumericState.None) {
 				if (value.State == NumericState.None) {
+					if (IsNull || value.IsNull)
+						return Null;
+
 					return new SqlNumber(NumericState.None, innerValue.Subtract(value.innerValue));
 				}
 				return new SqlNumber(value.InverseState(), null);
@@ -473,6 +486,9 @@ namespace Deveel.Data.Sql.Objects {
 		public SqlNumber Multiply(SqlNumber value) {
 			if (State == NumericState.None) {
 				if (value.State == NumericState.None) {
+					if (IsNull || value.IsNull)
+						return Null;
+
 					return new SqlNumber(NumericState.None, innerValue.Multiply(value.innerValue));
 				}
 
@@ -484,7 +500,10 @@ namespace Deveel.Data.Sql.Objects {
 
 		public SqlNumber Divide(SqlNumber value) {
 			if (State == NumericState.None) {
-				if (value.State == 0) {
+				if (value.State == NumericState.None) {
+					if (IsNull || value.IsNull)
+						return Null;
+
 					BigDecimal divBy = value.innerValue;
 					if (divBy.CompareTo (BigDecimal.Zero) != 0) {
 						return new SqlNumber(NumericState.None, innerValue.Divide(divBy, 10, RoundingMode.HalfUp));
@@ -497,8 +516,11 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public SqlNumber Modulo(SqlNumber value) {
-			if (State == 0) {
+			if (State == NumericState.None) {
 				if (value.State == NumericState.None) {
+					if (IsNull || value.IsNull)
+						return Null;
+
 					BigDecimal divBy = value.innerValue;
 					if (divBy.CompareTo(BigDecimal.Zero) != 0) {
 						BigDecimal remainder = innerValue.Remainder(divBy);

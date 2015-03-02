@@ -16,6 +16,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlQueryExpression : SqlExpression {
 		public SqlQueryExpression(IEnumerable<SelectColumn> selectColumns) {
@@ -33,6 +35,14 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override SqlExpressionType ExpressionType {
 			get { return SqlExpressionType.Query; }
+		}
+
+		public ITable Execute(IQueryContext context) {
+			var planContext = context.QueryPlanContext;
+			var planner = context.SystemContext.QueryPlanner;
+			var plan = planner.PlanQuery(planContext, this);
+
+			return plan.Evaluate(context);
 		}
 	}
 }

@@ -55,7 +55,7 @@ namespace Deveel.Data.Index {
 		public IndexRange(RangeFieldOffset startOffset, DataObject firstValue, RangeFieldOffset lastOffset, DataObject endValue)
 			: this(false) {
 			StartOffset = startOffset;
-			StartValue = StartValue;
+			StartValue = firstValue;
 			EndOffset = lastOffset;
 			EndValue = endValue;
 		}

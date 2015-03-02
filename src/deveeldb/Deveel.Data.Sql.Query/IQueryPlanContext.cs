@@ -15,18 +15,14 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
-
 namespace Deveel.Data.Sql.Query {
 	public interface IQueryPlanContext {
-		IQueryContext QueryContext { get; }
-
 		bool IgnoreCase { get; }
 
 
 		ITableQueryInfo GetQueryInfo(ObjectName tableName, ObjectName givenName);
 
-		ObjectName ResolveTableName(string name);
+		ObjectName ResolveObjectName(string name);
 
 		bool TableExists(ObjectName tableName);
 	}

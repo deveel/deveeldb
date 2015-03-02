@@ -19,8 +19,6 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
 	public interface IQueryPlanner {
-		QueryExpressionFrom GenerateExpressionFrom(IQueryPlanContext context, SqlQueryExpression queryExpression);
-
-		IQueryPlanNode PlanQuery(IQueryPlanContext context, SqlQueryExpression queryExpression, QueryExpressionFrom fromSet);
+		IQueryPlanNode PlanQuery(IQueryPlanContext context, SqlQueryExpression queryExpression);
 	}
 }

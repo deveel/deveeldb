@@ -12,17 +12,11 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 
-using Deveel.Data.Sql.Objects;
-
-namespace Deveel.Data.Transactions {
-	public interface ITransactionSequenceContext {
-		SqlNumber NextValue(ObjectName sequenceName);
-
-		SqlNumber LastValue(ObjectName sequenceName);
-
-		void SetValue(ObjectName sequenceName, SqlNumber value);
+namespace Deveel.Data.DbSystem {
+	public sealed class TableManager {
 	}
 }

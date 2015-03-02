@@ -16,22 +16,25 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
-using Deveel.Data.Diagnostics;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Transactions;
 
-namespace Deveel.Data.Transactions {
-	[Serializable]
-	public class TransactionException : ErrorException {
-		public TransactionException(int errorCode) 
-			: base(EventClasses.Transactions, errorCode) {
-		}
+namespace Deveel.Data.Sql {
+	/// <summary>
+	/// Represents a numberic sequence in a transaction.
+	/// </summary>
+	/// <seealso cref="ISimpleTransaction.SetValue"/>
+	public interface ISequence : IDbObject {
+		/// <summary>
+		/// Gets the configuration information of the sequence.
+		/// </summary>
+		/// <seealso cref="SequenceInfo"/>
+		SequenceInfo SequenceInfo { get; }
 
-		public TransactionException(int errorCode, string message) 
-			: base(EventClasses.Transactions, errorCode, message) {
-		}
+		SqlNumber GetCurrentValue();
 
-		public TransactionException(int errorCode, string message, Exception innerException) 
-			: base(EventClasses.Transactions, errorCode, message, innerException) {
-		}
+		SqlNumber NextValue();
+
+		SqlNumber SetValue(SqlNumber value);
 	}
 }

@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql {
 	/// table is altered the enumeration will throw an exception.
 	/// </para>
 	/// </remarks>
-	public interface ITable : IDbObject, IEnumerable<Row> {
+	public interface ITable : IDbObject, IEnumerable<Row>, IDisposable {
 		/// <summary>
 		/// Gets the metadata information of the table, used to
 		/// resolve the column sources.

@@ -149,12 +149,12 @@ namespace Deveel.Data.Index {
 			/// <param name="ob"></param>
 			/// <returns></returns>
 			private DataObject ResolveCell(DataObject ob) {
-				if (ob == IndexRange.FirstInSet) {
+				if (ob.Equals(IndexRange.FirstInSet)) {
 					ResolveSortedSet();
 					return scheme.GetValue(sortedSet.First());
 
 				}
-				if (ob == IndexRange.LastInSet) {
+				if (ob.Equals(IndexRange.LastInSet)) {
 					ResolveSortedSet();
 					return scheme.GetValue(sortedSet.Last());
 				}
@@ -174,14 +174,14 @@ namespace Deveel.Data.Index {
 				var uf = range.EndOffset;
 
 				// Handle lower first
-				if (l == IndexRange.FirstInSet &&
-					lf == RangeFieldOffset.FirstValue) {
+				if (l.Equals(IndexRange.FirstInSet) &&
+					lf.Equals(RangeFieldOffset.FirstValue)) {
 					// Special case no lower check
 					lowerFlags[i] = NoCheck;
 				} else {
-					if (lf == RangeFieldOffset.FirstValue) {
+					if (lf.Equals(RangeFieldOffset.FirstValue)) {
 						lowerFlags[i] = CheckLesserEqualOrGreaterEqual;  // >=
-					} else if (lf == RangeFieldOffset.AfterLastValue) {
+					} else if (lf.Equals(RangeFieldOffset.AfterLastValue)) {
 						lowerFlags[i] = CheckLesserOrGreater;  // >
 					} else {
 						throw new ApplicationException("Incorrect lower flag.");
@@ -190,14 +190,14 @@ namespace Deveel.Data.Index {
 				}
 
 				// Now handle upper
-				if (u == IndexRange.LastInSet &&
-					uf == RangeFieldOffset.LastValue) {
+				if (u.Equals(IndexRange.LastInSet) &&
+					uf.Equals(RangeFieldOffset.LastValue)) {
 					// Special case no upper check
 					upperFlags[i] = NoCheck;
 				} else {
-					if (uf == RangeFieldOffset.LastValue) {
+					if (uf.Equals(RangeFieldOffset.LastValue)) {
 						upperFlags[i] = CheckLesserEqualOrGreaterEqual;  // <=
-					} else if (uf == RangeFieldOffset.BeforeFirstValue) {
+					} else if (uf.Equals( RangeFieldOffset.BeforeFirstValue)) {
 						upperFlags[i] = CheckLesserOrGreater;  // <
 					} else {
 						throw new ApplicationException("Incorrect upper flag.");

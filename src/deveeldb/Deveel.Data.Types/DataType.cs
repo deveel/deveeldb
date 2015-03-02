@@ -104,6 +104,10 @@ namespace Deveel.Data.Types {
 			}
 		}
 
+		public bool IsNull {
+			get { return SqlType == SqlTypeCode.Null; }
+		}
+
 		/// <summary>
 		/// Verifies if a given <see cref="DataType"/> is comparable to
 		/// this data-type.

@@ -56,6 +56,9 @@
     <Reference Include="Irony">
       <HintPath>..\..\lib\irony.net35\Irony.dll</HintPath>
     </Reference>
+    <Reference Include="Moq">
+      <HintPath>..\packages\Moq.4.2.1502.0911\lib\net35\Moq.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
@@ -66,6 +69,8 @@
   <ItemGroup>
     <Compile Include="Deveel.Data.Caching\MemoryCacheTests.cs" />
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SequenceManagerTests.cs" />
+    <Compile Include="Deveel.Data.Index\BlindSearchTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionParseTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlQueryExpressionTests.cs" />

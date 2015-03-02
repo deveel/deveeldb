@@ -22,6 +22,10 @@ namespace Deveel.Data.DbSystem {
 			: this(objectName, String.Format("The object name '{0}' does not reference any object in the system.", objectName)) {
 		}
 
+		public ObjectNotFoundException(string message)
+			: this(null, message) {
+		}
+
 		public ObjectNotFoundException(ObjectName objectName, string message)
 			: base(SystemErrorCodes.ObjectNotFound, message) {
 			ObjectName = objectName;

@@ -39,11 +39,8 @@ namespace Deveel.Data.Sql.Statements {
 			// The order by information
 			var orderBy = OrderBy;
 
-			// Generate the TableExpressionFromSet hierarchy for the expression,
-			var fromSet = context.SystemContext.QueryPlanner.GenerateExpressionFrom(context.QueryPlanContext, selectExpression);
-
 			// Form the plan
-			var plan = context.SystemContext.QueryPlanner.PlanQuery(context.QueryPlanContext, selectExpression, fromSet);
+			var plan = context.SystemContext.QueryPlanner.PlanQuery(context.QueryPlanContext, selectExpression);
 
 			return new PreparedSelectStatement(plan);
 		}
