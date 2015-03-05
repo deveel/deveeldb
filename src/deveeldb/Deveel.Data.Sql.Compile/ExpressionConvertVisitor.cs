@@ -204,8 +204,6 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		private SqlExpressionType GetBinaryExpressionType(string op) {
-			// TODO: support ALL and ANY
-
 			if (op == "+" ||
 				op == "||")
 				return SqlExpressionType.Add;

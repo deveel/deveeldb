@@ -37,8 +37,19 @@ namespace Deveel.Data.Sql.Expressions {
 
 		// Subquery 
 
-		Any,
-		All,
+		AnyEqual,
+		AnyNotEqual,
+		AnyGreaterThan,
+		AnyGreaterOrEqualThan,
+		AnySmallerThan,
+		AnySmallerOrEqualThan,
+
+		AllEqual,
+		AllNotEqual,
+		AllGreaterThan,
+		AllGreaterOrEqualThan,
+		AllSmallerThan,
+		AllSmallerOrEqualThan,
 
 		// Multiplicative Binary
 		Add,

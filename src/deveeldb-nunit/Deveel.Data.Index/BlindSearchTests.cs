@@ -31,6 +31,8 @@ namespace Deveel.Data.Index {
 	public sealed class BlindSearchTests {
 		private ITable table;
 
+		private DateTimeOffset cornerTime;
+
 		[SetUp]
 		public void TestSetUp() {
 			var tableName = ObjectName.Parse("APP.test_table");
@@ -39,40 +41,22 @@ namespace Deveel.Data.Index {
 			tableInfo.AddColumn("name", PrimitiveTypes.String(SqlTypeCode.VarChar));
 			tableInfo.AddColumn("date", PrimitiveTypes.Date());
 
-			var rows = new List<Row>();
-			var tableMock = new Mock<ITable>();
-			tableMock.Setup(x => x.FullName)
-				.Returns(tableName);
-			tableMock.Setup(x => x.RowCount)
-				.Returns(() => rows.Count);
-			tableMock.Setup(x => x.TableInfo)
-				.Returns(tableInfo);
-			tableMock.Setup(x => x.GetEnumerator())
-				.Returns(() => new SimpleRowEnumerator(tableMock.Object));
-			tableMock.Setup(x => x.ObjectType)
-				.Returns(DbObjectType.Table);
-			tableMock.Setup(x => x.GetValue(It.IsAny<long>(), It.IsAny<int>()))
-				.Returns<long, int>((rowNum, colIndex) => {
-					var row = rows.FirstOrDefault(x => x.RowId.RowNumber == rowNum);
-					if (row == null)
-						return DataObject.Null();
+			cornerTime = DateTimeOffset.UtcNow;
 
-					return row.GetValue(colIndex);
-				});
-			tableMock.Setup(x => x.GetIndex(It.IsAny<int>()))
-				.Returns<int>(offset => new BlindSearchIndex(tableMock.Object, offset));
+			var rows = new List<DataObject[]>();
 
-			table = tableMock.Object;
+			AddRow(rows, 1, "test1", cornerTime);
+			AddRow(rows, 2, "test2", cornerTime.AddSeconds(2));
+			AddRow(rows, 3, "test3", cornerTime.AddSeconds(5));
 
-			AddRow(rows, 1, "test1", DateTimeOffset.UtcNow);
-			AddRow(rows, 2, "test2", DateTimeOffset.UtcNow.AddSeconds(2));
+			table = new TestTable(tableInfo, rows);
 		}
 
-		private void AddRow(List<Row> rows, long id, string name, DateTimeOffset date) {
-			var row = new Row(table, new RowId(-1, rows.Count));
-			row.SetValue(0, DataObject.BigInt(id));
-			row.SetValue(1, DataObject.String(name));
-			row.SetValue(2, DataObject.Date(date));
+		private void AddRow(List<DataObject[]> rows, long id, string name, DateTimeOffset date) {
+			var row = new DataObject[3];
+			row[0] = DataObject.BigInt(id);
+			row[1] = DataObject.String(name);
+			row[2] = DataObject.Date(date);
 			rows.Add(row);
 		}
 
@@ -99,6 +83,19 @@ namespace Deveel.Data.Index {
 
 			var index = result.First();
 			Assert.AreEqual(0, index);
+		}
+
+		[Test]
+		public void SelectGreater() {
+			var id = DataObject.BigInt(1);
+
+			var result = table.SelectGreater(0, id);
+
+			Assert.IsNotNull(result);
+			Assert.IsNotEmpty(result);
+			Assert.AreEqual(2, result.Count());
+
+			Assert.AreEqual(1, result.First());
 		}
 	}
 }

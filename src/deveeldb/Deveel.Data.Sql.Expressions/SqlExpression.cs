@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Deveel.Data.Sql;
 using Deveel.Data.Sql.Compile;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -301,75 +302,87 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public static SqlBinaryExpression Equal(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Equal, right, (obj1, obj2) => obj1.IsEqualTo(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.Equal, right, BinaryOperator.Equal);
 		}
 
 		public static SqlBinaryExpression NotEqual(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.NotEqual, right, (obj1, obj2) => obj1.IsNotEqualTo(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.NotEqual, right, BinaryOperator.NotEqual);
 		}
 
 		public static SqlBinaryExpression Is(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Is, right, (obj1, obj2) => obj1.Is(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.Is, right, BinaryOperator.Is);
 		}
 
 		public static SqlBinaryExpression IsNot(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.IsNot, right, (obj1, obj2) => obj1.IsNot(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.IsNot, right, BinaryOperator.IsNot);
 		}
 
 		public static SqlBinaryExpression SmallerOrEqualThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.SmallerOrEqualThan, right, (obj1, obj2) => obj1.IsSmallerOrEqualThan(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.SmallerOrEqualThan, right, BinaryOperator.SmallerOrEqualThan);
 		}
 
 		public static SqlBinaryExpression GreaterOrEqualThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.GreaterOrEqualThan, right, (obj1, obj2) => obj1.IsGreterOrEqualThan(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.GreaterOrEqualThan, right, BinaryOperator.GreaterOrEqualThan);
 		}
 
 		public static SqlBinaryExpression SmallerThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.SmallerThan, right, (obj1, obj2) => obj1.IsSmallerThan(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.SmallerThan, right, BinaryOperator.SmallerThan);
 		}
 
 		public static SqlBinaryExpression GreaterThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.GreaterThan, right, (obj1, obj2) => obj1.IsGreaterThan(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.GreaterThan, right, BinaryOperator.GreaterThan);
 		}
 
 		public static SqlBinaryExpression Like(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Like, right, (obj1, obj2) => obj1.IsLike(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.Like, right, BinaryOperator.Like);
 		}
 
 		public static SqlBinaryExpression NotLike(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.NotLike, right, (obj1, obj2) => obj1.IsNotLike(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.NotLike, right, BinaryOperator.NotLike);
 		}
 
 		public static SqlBinaryExpression And(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.And, right, (obj1, obj2) => obj1.And(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.And, right, BinaryOperator.And);
 		}
 
 		public static SqlBinaryExpression Or(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Or, right, (obj1, obj2) => obj1.Or(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.Or, right, BinaryOperator.Or);
 		}
 
 		public static SqlBinaryExpression XOr(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.XOr, right, (obj1, obj2) => obj1.XOr(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.XOr, right, BinaryOperator.XOr);
 		}
 
 		public static SqlBinaryExpression Add(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Add, right, (obj1, obj2) => obj1.Add(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.Add, right, BinaryOperator.Add);
 		}
 
 		public static SqlBinaryExpression Subtract(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Subtract, right, (obj1, obj2) => obj1.Subtract(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.Subtract, right, BinaryOperator.Subtract);
 		}
 
 		public static SqlBinaryExpression Multiply(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Multiply, right, (obj1, obj2) => obj1.Multiply(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.Multiply, right, BinaryOperator.Multiply);
 		}
 
 		public static SqlBinaryExpression Divide(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Divide, right, (obj1, obj2) => obj1.Divide(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.Divide, right, BinaryOperator.Divide);
 		}
 
 		public static SqlBinaryExpression Modulo(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Modulo, right, (obj1, obj2) => obj1.Modulus(obj2));
+			return new SqlBinaryExpression(left, SqlExpressionType.Modulo, right, BinaryOperator.Modulo);
+		}
+
+		public static SqlBinaryExpression AnyEqual(SqlExpression left, SqlExpression right) {
+			return new SqlBinaryExpression(left, SqlExpressionType.AnyEqual, right, BinaryOperator.AnyEqual);
+		}
+
+		public static SqlBinaryExpression AnyNotEqual(SqlExpression left, SqlExpression right) {
+			return new SqlBinaryExpression(left, SqlExpressionType.AnyNotEqual, right, BinaryOperator.AnyNotEqual);
+		}
+
+		public static SqlBinaryExpression AnyGreaterThan(SqlExpression left, SqlExpression right) {
+			return new SqlBinaryExpression(left, SqlExpressionType.AnyGreaterThan, right, BinaryOperator.AnyGreaterThan);
 		}
 
 		#endregion

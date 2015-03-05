@@ -12,12 +12,19 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
-namespace Deveel.Data.Index {
-	/// <summary>
-	/// The kind of condition to apply for selecting.
-	/// </summary>
-	public enum ConditionType {
+using System;
+
+namespace Deveel.Data.Deveel.Data.Sql {
+	public enum BinaryOperatorType {
+		Divide,
+		Multiply,
+		Modulo,
+
+		Add,
+		Subtract,
+
 		/// <summary>
 		/// The values are equal.
 		/// </summary>
@@ -76,6 +83,7 @@ namespace Deveel.Data.Index {
 		/// <summary>
 		/// Either one of the values is true
 		/// </summary>
-		Or
+		Or,
+		XOr
 	}
 }

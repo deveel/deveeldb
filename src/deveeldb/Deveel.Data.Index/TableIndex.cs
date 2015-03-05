@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Index {
@@ -65,9 +66,11 @@ namespace Deveel.Data.Index {
 
 		public abstract void Remove(int rowNumber);
 
-		public IIndex<int> Order(IIndex<int> rowSet) {
+		public IIndex<int> Order(IEnumerable<int> rows) {
+			var rowSet = rows.ToList();
+
 			// The length of the set to order
-			int rowSetLength = rowSet.Count();
+			int rowSetLength = rowSet.Count;
 
 			// Trivial cases where sorting is not required:
 			// NOTE: We use readOnly objects to save some memory.
@@ -232,6 +235,42 @@ namespace Deveel.Data.Index {
 			return SelectRange(new IndexRange(
 					   RangeFieldOffset.FirstValue, ob1,
 					   RangeFieldOffset.BeforeFirstValue, ob2));
+		}
+
+		public virtual TableIndex GetSubset(ITable subsetTable, int subsetColumn) {
+			if (subsetTable == null)
+				throw new ArgumentNullException("subsetTable");
+
+			if (!(subsetTable is IDbTable))
+				throw new NotSupportedException("The type of table is not supported for this feature.");
+
+			var dbTable = (IDbTable) subsetTable;
+
+			// Resolve table rows in this table scheme domain.
+			List<int> rowSet = new List<int>(subsetTable.RowCount);
+			var e = subsetTable.GetEnumerator();
+			while (e.MoveNext()) {
+				rowSet.Add(e.Current.RowId.RowNumber);
+			}
+
+			var rows = dbTable.ResolveRows(subsetColumn, rowSet, Table);
+
+			// Generates an IIndex which contains indices into 'rowSet' in
+			// sorted order.
+			var newSet = Order(rows);
+
+			// Our 'new_set' should be the same size as 'rowSet'
+			if (newSet.Count != rowSet.Count) {
+				throw new Exception("Internal sort error in finding sub-set.");
+			}
+
+			// Set up a new SelectableScheme with the sorted index set.
+			// Move the sorted index set into the new scheme.
+			InsertSearchIndex scheme = new InsertSearchIndex(subsetTable, subsetColumn, newSet);
+			// Don't let subset schemes create uid caches.
+			scheme.RecordUid = false;
+			return scheme;
+
 		}
 
 		#region SchemeIndexComparer

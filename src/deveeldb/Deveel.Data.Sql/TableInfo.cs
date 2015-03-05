@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
@@ -35,7 +36,7 @@ namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class TableInfo : IEnumerable<ColumnInfo> {
 		private readonly IList<ColumnInfo> columns;
-		private readonly Dictionary<string, int> columnsCache;
+		private readonly Dictionary<ObjectName, int> columnsCache;
 
 		/// <summary>
 		/// Constructs the object with the given table name.
@@ -60,7 +61,7 @@ namespace Deveel.Data.Sql {
 			this.columns = columns;
 			IsReadOnly = isReadOnly;
 
-			columnsCache = new Dictionary<string, int>();
+			columnsCache = new Dictionary<ObjectName, int>();
 			IgnoreCase = true;			
 		}
 
@@ -259,11 +260,15 @@ namespace Deveel.Data.Sql {
 		/// if defined by the table metadata, or -1 otherwise.
 		/// </returns>
 		public int IndexOfColumn(string columnName) {
+			return IndexOfColumn(new ObjectName(TableName, columnName));
+		}
+
+		public int IndexOfColumn(ObjectName columnName) {
 			int index;
 			if (!columnsCache.TryGetValue(columnName, out index)) {
 				for (int i = 0; i < columns.Count; i++) {
 					var column = columns[i];
-					if (column.ColumnName == columnName) {
+					if (column.ColumnName.Equals(columnName.Name, StringComparison.Ordinal)) {
 						index = i;
 						columnsCache[columnName] = index;
 					}
@@ -287,6 +292,10 @@ namespace Deveel.Data.Sql {
 
 		public TableInfo Alias(ObjectName alias) {
 			return new TableInfo(alias, Id, IsPermanent, new ReadOnlyCollection<ColumnInfo>(columns), true);
+		}
+
+		internal SqlExpression ResolveColumns(bool ignoreCase, SqlExpression expression) {
+			throw new NotImplementedException();
 		}
 	}
 }

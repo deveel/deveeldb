@@ -18,15 +18,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
 
+using Deveel.Data.Deveel.Data.Sql;
+
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
 	public sealed class SqlBinaryExpression : SqlExpression {
 		private readonly SqlExpressionType expressionType;
-		private readonly Func<DataObject, DataObject, DataObject> binaryFunc;
 
-		internal SqlBinaryExpression(SqlExpression left, SqlExpressionType expressionType, SqlExpression right, Func<DataObject, DataObject, DataObject> binaryFunc) {
+		internal SqlBinaryExpression(SqlExpression left, SqlExpressionType expressionType, SqlExpression right, BinaryOperator binaryOperator) {
 			this.expressionType = expressionType;
-			this.binaryFunc = binaryFunc;
+			BinaryOperator = binaryOperator;
 
 			Left = left;
 			Right = right;
@@ -36,8 +37,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public SqlExpression Right { get; private set; }
 
-		private DataObject EvaluateBinary(DataObject left, DataObject right) {
-			return binaryFunc(left, right);
+		private DataObject EvaluateBinary(DataObject left, DataObject right, EvaluateContext context) {
+			return BinaryOperator.Evaluate(left, right, context);
 		}
 
 		public override bool CanEvaluate {
@@ -48,25 +49,7 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return expressionType; }
 		}
 
-		internal SqlExpressionType ReverseType {
-			get {
-				if (ExpressionType == SqlExpressionType.Equal ||
-				    ExpressionType == SqlExpressionType.NotEqual ||
-				    ExpressionType == SqlExpressionType.Is ||
-				    ExpressionType == SqlExpressionType.IsNot)
-					return ExpressionType;
-				if (ExpressionType == SqlExpressionType.GreaterThan)
-					return SqlExpressionType.SmallerThan;
-				if (ExpressionType == SqlExpressionType.GreaterOrEqualThan)
-					return SqlExpressionType.SmallerOrEqualThan;
-				if (ExpressionType == SqlExpressionType.SmallerThan)
-					return SqlExpressionType.GreaterThan;
-				if (ExpressionType == SqlExpressionType.SmallerOrEqualThan)
-					return SqlExpressionType.GreaterOrEqualThan;
-
-				throw new InvalidOperationException("Cannot reverse a non-conditional expression.");
-			}
-		}
+		internal BinaryOperator BinaryOperator { get; private set; }
 
 		private SqlExpression[] EvaluateSides(EvaluateContext context) {
 			var info = new List<EvaluateInfo> {
@@ -86,16 +69,19 @@ namespace Deveel.Data.Sql.Expressions {
 		public override SqlExpression Evaluate(EvaluateContext context) {
 			var sides = EvaluateSides(context);
 
-			var left = sides[0];
-			var right = sides[1];
+			var leftExp = sides[0];
+			var rightExp = sides[1];
 
-			if (!(left is SqlConstantExpression) ||
-			    !(right is SqlConstantExpression))
+			if (!(leftExp is SqlConstantExpression) ||
+			    !(rightExp is SqlConstantExpression))
 				throw new ExpressionEvaluateException(
 					String.Format("One of the arguments of the binary expression {0} could not be evaluated to constant.",
 						ExpressionType));
 
-			var computedValue = EvaluateBinary(((SqlConstantExpression) left).Value, ((SqlConstantExpression) right).Value);
+			var left = ((SqlConstantExpression) leftExp).Value;
+			var right = ((SqlConstantExpression) rightExp).Value;
+			var computedValue = EvaluateBinary(left, right, context);
+
 			return new SqlConstantExpression(computedValue);
 		}
 
