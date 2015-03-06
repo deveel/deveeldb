@@ -23,8 +23,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Deveel.Data.Sql {
 	/// <summary>
-	/// A conditional operator used to compute binary operations
-	/// of comparison on a set.
+	/// An operator used to evaluate binary operations.
 	/// </summary>
 	public abstract class BinaryOperator {
 		private readonly OperatorSubType subType;
@@ -136,15 +135,15 @@ namespace Deveel.Data.Deveel.Data.Sql {
 				{"> any", AnyGreaterThan},
 				{"< any", AnySmallerThan},
 				{">= any", AnyGreaterOrEqualThan},
-				{"<=", AnySmallerOrEqualThan},
+				{"<= any", AnySmallerOrEqualThan},
 
 				{"= all", AllEqual},
 				{"<> all", AllNotEqual},
-				{"!=", AllNotEqual},
+				{"!= all", AllNotEqual},
 				{"> all", AllGreaterThan},
 				{"< all", AllSmallerThan},
-				{">=", AllGreaterOrEqualThan},
-				{"<=", AllSmallerOrEqualThan}
+				{">= all", AllGreaterOrEqualThan},
+				{"<= all", AllSmallerOrEqualThan}
 			};
 		}
 

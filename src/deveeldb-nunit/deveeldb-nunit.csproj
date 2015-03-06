@@ -80,7 +80,8 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlNumberTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlStringTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatementTests.cs" />
-    <Compile Include="Deveel.Data.Sql\TestTable.cs" />
+    <Compile Include="Deveel.Data.Sql\JoinTableTests.cs" />
+    <Compile Include="Deveel.Data.Sql\TableQueryTests.cs" />
     <Compile Include="Deveel.Data.Types\BooleanTypeTest.cs" />
     <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
     <Compile Include="Deveel.Data\BooleanObjectTest.cs" />

@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.DbSystem {
+	[Serializable]
 	class VirtualTable : JoinedTable {
 		private IList<int>[] rowList;
 		private int rowCount;
@@ -29,7 +30,7 @@ namespace Deveel.Data.DbSystem {
 
 		public VirtualTable(IEnumerable<IDbTable> tables, IList<IEnumerable<int>> rows) 
 			: base(tables) {
-			SetRows(tables, rows);
+			SetRows(rows);
 		}
 
 		public VirtualTable(IDbTable table) 
@@ -38,11 +39,11 @@ namespace Deveel.Data.DbSystem {
 
 		public VirtualTable(IDbTable table, IEnumerable<int> rows) 
 			: base(table) {
-			SetRows(new[]{table}, new []{rows});
+			SetRows(new []{rows});
 		}
 
-		private void SetRows(IEnumerable<IDbTable> tables, IList<IEnumerable<int>> rows) {
-			var tableList = tables.ToList();
+		private void SetRows(IList<IEnumerable<int>> rows) {
+			var tableList = ReferenceTables.ToList();
 
 			for (int i = 0; i < tableList.Count; ++i) {
 				rowList[i] = new List<int>(rows[i]);

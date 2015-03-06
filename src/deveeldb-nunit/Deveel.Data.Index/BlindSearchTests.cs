@@ -19,10 +19,7 @@ using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
-
-using Moq;
 
 using NUnit.Framework;
 
@@ -43,21 +40,23 @@ namespace Deveel.Data.Index {
 
 			cornerTime = DateTimeOffset.UtcNow;
 
-			var rows = new List<DataObject[]>();
+			var tmpTable = new TemporaryTable(tableInfo);
 
-			AddRow(rows, 1, "test1", cornerTime);
-			AddRow(rows, 2, "test2", cornerTime.AddSeconds(2));
-			AddRow(rows, 3, "test3", cornerTime.AddSeconds(5));
+			AddRow(tmpTable, 1, "test1", cornerTime);
+			AddRow(tmpTable, 2, "test2", cornerTime.AddSeconds(2));
+			AddRow(tmpTable, 3, "test3", cornerTime.AddSeconds(5));
 
-			table = new TestTable(tableInfo, rows);
+			tmpTable.BuildIndexes(DefaultIndexNames.BlindSearch);
+
+			table = tmpTable;
 		}
 
-		private void AddRow(List<DataObject[]> rows, long id, string name, DateTimeOffset date) {
+		private void AddRow(TemporaryTable tmpTable, long id, string name, DateTimeOffset date) {
 			var row = new DataObject[3];
 			row[0] = DataObject.BigInt(id);
 			row[1] = DataObject.String(name);
 			row[2] = DataObject.Date(date);
-			rows.Add(row);
+			tmpTable.NewRow(row);
 		}
 
 		[Test]

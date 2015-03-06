@@ -22,9 +22,10 @@ using Deveel.Data.Index;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.DbSystem {
+	[Serializable]
 	abstract class JoinedTable : Table {
 		private IDbTable[] referenceList;
-		private TableIndex[] indexes;
+		private ColumnIndex[] indexes;
 
 		// These two arrays are lookup tables created in the constructor.  They allow
 		// for quick resolution of where a given column should be 'routed' to in
@@ -51,7 +52,7 @@ namespace Deveel.Data.DbSystem {
 			referenceList = tablesArray;
 
 			int colCount = ColumnCount;
-			indexes = new TableIndex[colCount];
+			indexes = new ColumnIndex[colCount];
 
 			vtTableInfo = new TableInfo(new ObjectName("#VIRTUAL TABLE#"));
 
@@ -95,7 +96,7 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		public override IDatabase Database {
+		protected override IDatabase Database {
 			get { return referenceList[0].Database; }
 		}
 
@@ -134,7 +135,7 @@ namespace Deveel.Data.DbSystem {
 			return -1;
 		}
 
-		public override ObjectName GetResolvedColumnName(int column) {
+		protected override ObjectName GetResolvedColumnName(int column) {
 			var parentTable = referenceList[columnTable[column]];
 			return parentTable.GetResolvedColumnName(columnFilter[column]);
 		}
@@ -161,12 +162,12 @@ namespace Deveel.Data.DbSystem {
 		public override void UnlockRoot(int lockKey) {
 			// For each table, recurse.
 			rootsLocked--;
-			for (int i = 0; i < referenceList.Length; ++i) {
-				referenceList[i].UnlockRoot(lockKey);
+			foreach (var table in referenceList) {
+				table.UnlockRoot(lockKey);
 			}
 		}
 
-		public override TableIndex GetIndex(int column, int originalColumn, ITable table) {
+		protected override ColumnIndex GetIndex(int column, int originalColumn, ITable table) {
 			// First check if the given SelectableScheme is in the column_scheme array
 			var scheme = indexes[column];
 			if (scheme != null) {
@@ -177,7 +178,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// If it isn't then we need to calculate it
-			TableIndex index;
+			ColumnIndex index;
 
 			// Optimization: The table may be naturally ordered by a column.  If it
 			// is we don't try to generate an ordered set.
@@ -204,7 +205,7 @@ namespace Deveel.Data.DbSystem {
 			return index;
 		}
 
-		public override IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor) {
+		protected override IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor) {
 			if (ancestor == this)
 				return new int[0];
 

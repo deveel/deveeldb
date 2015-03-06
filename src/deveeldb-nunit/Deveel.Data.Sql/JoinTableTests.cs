@@ -12,32 +12,16 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-//
 
 using System;
-using System.Collections.Generic;
 
-using Deveel.Data.Index;
-using Deveel.Data.Sql;
+using NUnit.Framework;
 
-namespace Deveel.Data.DbSystem {
-	interface IDbTable : ITable {
-		IDatabase Database { get; }
+namespace Deveel.Data.Sql {
+	[TestFixture]
+	public class JoinTableTests {
+		private ITable table1;
+		private ITable table2;
 
-		int ColumnCount { get; }
-
-		int FindColumn(ObjectName columnName);
-
-		IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor);
-
-		ColumnIndex GetIndex(int column, int originalColumn, ITable table);
-
-		void LockRoot(int lockKey);
-
-		void UnlockRoot(int lockKey);
-
-		ObjectName GetResolvedColumnName(int columnOffset);
-
-		ITableVariableResolver GetVariableResolver();
 	}
 }

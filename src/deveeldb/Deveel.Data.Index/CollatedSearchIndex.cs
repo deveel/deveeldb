@@ -21,7 +21,7 @@ using System.Collections.Specialized;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Index {
-	public abstract class CollatedSearchIndex : TableIndex {
+	public abstract class CollatedSearchIndex : ColumnIndex {
 		protected CollatedSearchIndex(ITable table, int columnOffset) 
 			: base(table, columnOffset) {
 		}
@@ -133,7 +133,7 @@ namespace Deveel.Data.Index {
 					return p;
 
 				case RangeFieldOffset.LastValue:
-					if (val == IndexRange.LastInSet) {
+					if (val.Equals(IndexRange.LastInSet)) {
 						return Count - 1;
 					}
 					if (val.Equals(IndexRange.FirstInSet)) {
@@ -153,7 +153,7 @@ namespace Deveel.Data.Index {
 					if (val.Equals(IndexRange.FirstInSet))
 						return -1;
 
-					if (val == IndexRange.LastInSet) {
+					if (val.Equals(IndexRange.LastInSet)) {
 						// Get the last value and search for the first instance of it.
 						cell = Last;
 					} else {
@@ -168,10 +168,10 @@ namespace Deveel.Data.Index {
 					return p - 1;
 
 				case RangeFieldOffset.AfterLastValue:
-					if (val == IndexRange.LastInSet) {
+					if (val.Equals(IndexRange.LastInSet)) {
 						return Count;
 					}
-					if (val == IndexRange.FirstInSet) {
+					if (val.Equals(IndexRange.FirstInSet)) {
 						// Get the first value.
 						cell = First;
 					} else {

@@ -20,9 +20,13 @@ using System.Linq;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Index {
-	public class BlindSearchIndex : TableIndex {
+	public class BlindSearchIndex : ColumnIndex {
 		public BlindSearchIndex(ITable table, int columnOffset)
 			: base(table, columnOffset) {
+		}
+
+		public override string Name {
+			get { return DefaultIndexNames.BlindSearch; }
 		}
 
 		private void AssertNotReadOnly() {
@@ -69,7 +73,7 @@ namespace Deveel.Data.Index {
 			}
 		}
 
-		public override TableIndex Copy(ITable table, bool readOnly) {
+		public override ColumnIndex Copy(ITable table, bool readOnly) {
 			return new BlindSearchIndex(table, ColumnOffset);
 		}
 

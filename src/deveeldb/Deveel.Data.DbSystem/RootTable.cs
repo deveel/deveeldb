@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,34 +12,23 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 
 namespace Deveel.Data.DbSystem {
-	/// <summary>
-	/// This is the abstract class implemented by a <see cref="DataTable"/> 
-	/// like table.
-	/// </summary>
-	public abstract class DataTableBase : Table, IRootTable {
-		/// <summary>
-		/// Returns the fully resolved table name.
-		/// </summary>
-		public TableName TableName {
+	public abstract class RootTable : Table, IRootTable {
+		public ObjectName TableName {
 			get { return TableInfo.TableName; }
 		}
 
-		/// <inheritdoc/>
-		public bool TypeEquals(IRootTable table) {
-			if (table is DataTableBase) {
-				DataTableBase dest = (DataTableBase)table;
-				return (TableName.Equals(dest.TableName));
+		public bool Equals(IRootTable other) {
+			if (other is RootTable) {
+				var otherRoot = (RootTable)other;
+				return (TableName.Equals(otherRoot.TableName));
 			}
-			return (this == table);
-		}
 
-		/// <inheritdoc/>
-		public override String ToString() {
-			return TableName.ToString();
+			return ReferenceEquals(this, other);
 		}
 	}
 }

@@ -12,8 +12,11 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
+
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.DbSystem {
 	/// <summary>
@@ -29,17 +32,6 @@ namespace Deveel.Data.DbSystem {
 	/// This interface is used for unions.
 	/// </para>
 	/// </remarks>
-	public interface IRootTable {
-		/// <summary>
-		/// This is function is used to check that two root tables are identical.
-		/// </summary>
-		/// <param name="table"></param>
-		/// <remarks>
-		/// This is used if we need to chect that the form of the table is the same.
-		/// Such as in a union operation, when we can only union two tables with
-		/// the identical columns.
-		/// </remarks>
-		/// <returns></returns>
-		bool TypeEquals(IRootTable table);
+	public interface IRootTable : ITable, IEquatable<IRootTable> {
 	}
 }

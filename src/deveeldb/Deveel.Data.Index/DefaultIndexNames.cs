@@ -15,29 +15,10 @@
 //
 
 using System;
-using System.Collections.Generic;
 
-using Deveel.Data.Index;
-using Deveel.Data.Sql;
-
-namespace Deveel.Data.DbSystem {
-	interface IDbTable : ITable {
-		IDatabase Database { get; }
-
-		int ColumnCount { get; }
-
-		int FindColumn(ObjectName columnName);
-
-		IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor);
-
-		ColumnIndex GetIndex(int column, int originalColumn, ITable table);
-
-		void LockRoot(int lockKey);
-
-		void UnlockRoot(int lockKey);
-
-		ObjectName GetResolvedColumnName(int columnOffset);
-
-		ITableVariableResolver GetVariableResolver();
+namespace Deveel.Data.Index {
+	public static class DefaultIndexNames {
+		public const string BlindSearch = "BlindSearch";
+		public const string InsertSearch = "InsertSearch";
 	}
 }

@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql {
 		/// than zero or greater or equal than the number of columns
 		/// defined in the table metadata.
 		/// </exception>
-		/// <seealso cref="Sql.TableInfo.IndexOfColumn"/>
+		/// <seealso cref="Sql.TableInfo.IndexOfColumn(string)"/>
 		DataObject GetValue(long rowNumber, int columnOffset);
 
 		/// <summary>
@@ -75,9 +75,9 @@ namespace Deveel.Data.Sql {
 		/// <param name="columnOffset">The zero-based offset of the column
 		/// which to get the index.</param>
 		/// <returns>
-		/// Returns an instance of <see cref="TableIndex"/> that is used to
+		/// Returns an instance of <see cref="ColumnIndex"/> that is used to
 		/// select a subset of rows from the table.
 		/// </returns>
-		TableIndex GetIndex(int columnOffset);
+		ColumnIndex GetIndex(int columnOffset);
 	}
 }

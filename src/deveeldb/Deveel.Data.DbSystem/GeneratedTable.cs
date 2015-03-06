@@ -55,7 +55,7 @@ namespace Deveel.Data.DbSystem {
 
 		public abstract DataObject GetValue(long rowNumber, int columnOffset);
 
-		public virtual TableIndex GetIndex(int columnOffset) {
+		public virtual ColumnIndex GetIndex(int columnOffset) {
 			return new BlindSearchIndex(this, columnOffset);
 		}
 

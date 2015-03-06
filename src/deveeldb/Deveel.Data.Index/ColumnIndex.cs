@@ -21,20 +21,20 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Index {
-	public abstract class TableIndex : IDisposable {
+	public abstract class ColumnIndex : IDisposable {
 		private static readonly BlockIndex<int> EmptyList;
 		private static readonly BlockIndex<int> OneList;
 
-		protected TableIndex(ITable table, int columnOffset) {
+		protected ColumnIndex(ITable table, int columnOffset) {
 			ColumnOffset = columnOffset;
 			Table = table;
 		}
 
-		~TableIndex() {
+		~ColumnIndex() {
 			Dispose(false);
 		}
 
-		static TableIndex() {
+		static ColumnIndex() {
 			EmptyList = new BlockIndex<int>();
 			EmptyList.IsReadOnly = true;
 			OneList = new BlockIndex<int>();
@@ -48,11 +48,13 @@ namespace Deveel.Data.Index {
 
 		public bool IsReadOnly { get; set; }
 
+		public abstract string Name { get; }
+
 		protected DataObject GetValue(long row) {
 			return Table.GetValue(row, ColumnOffset);
 		}
 
-		public abstract TableIndex Copy(ITable table, bool readOnly);
+		public abstract ColumnIndex Copy(ITable table, bool readOnly);
 
 		public void Dispose() {
 			Dispose(true);
@@ -106,7 +108,7 @@ namespace Deveel.Data.Index {
 				// This is the no additional heap use method to sorting the sub-set.
 
 				// The comparator we use to sort
-				var comparer = new SchemeIndexComparer(this, rowSet);
+				var comparer = new IndexComparer(this, rowSet);
 
 				// Fill new_set with the set { 0, 1, 2, .... , row_set_length }
 				for (int i = 0; i < rowSetLength; ++i) {
@@ -237,7 +239,7 @@ namespace Deveel.Data.Index {
 					   RangeFieldOffset.BeforeFirstValue, ob2));
 		}
 
-		public virtual TableIndex GetSubset(ITable subsetTable, int subsetColumn) {
+		public virtual ColumnIndex GetSubset(ITable subsetTable, int subsetColumn) {
 			if (subsetTable == null)
 				throw new ArgumentNullException("subsetTable");
 
@@ -264,22 +266,22 @@ namespace Deveel.Data.Index {
 				throw new Exception("Internal sort error in finding sub-set.");
 			}
 
-			// Set up a new SelectableScheme with the sorted index set.
-			// Move the sorted index set into the new scheme.
-			InsertSearchIndex scheme = new InsertSearchIndex(subsetTable, subsetColumn, newSet);
-			// Don't let subset schemes create uid caches.
-			scheme.RecordUid = false;
-			return scheme;
-
+			return CreateSubset(subsetTable, subsetColumn, newSet);
 		}
 
-		#region SchemeIndexComparer
+		protected virtual ColumnIndex CreateSubset(ITable table, int column, IEnumerable<int> rows) {
+			var index = new InsertSearchIndex(table, column, rows);
+			index.RecordUid = false;
+			return index;
+		}
 
-		private class SchemeIndexComparer : IIndexComparer<int> {
-			private readonly TableIndex scheme;
+		#region IndexComparer
+
+		private class IndexComparer : IIndexComparer<int> {
+			private readonly ColumnIndex scheme;
 			private readonly IEnumerable<int> rowSet;
 
-			public SchemeIndexComparer(TableIndex scheme, IEnumerable<int> rowSet) {
+			public IndexComparer(ColumnIndex scheme, IEnumerable<int> rowSet) {
 				this.scheme = scheme;
 				this.rowSet = rowSet;
 			}

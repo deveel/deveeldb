@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,285 +12,156 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Index;
+using Deveel.Data.Sql;
 using Deveel.Data.Types;
-using Deveel.Diagnostics;
 
 namespace Deveel.Data.DbSystem {
-	/// <summary>
-	/// This class represents a temporary table that is built from data that is 
-	/// not related to any underlying <see cref="DataTable"/> object from the database.
-	/// </summary>
-	/// <remarks>
-	/// For example, an aggregate function generates data would be write 
-	/// into a <see cref="TemporaryTable"/>.
-	/// </remarks>
-	public sealed class TemporaryTable : DefaultDataTable {
-		/// <summary>
-		/// The DataTableInfo object that describes the columns in this table.
-		/// </summary>
-		private readonly DataTableInfo tableInfo;
+	public class TemporaryTable : BaseDataTable {
+		private readonly TableInfo tableInfo;
+		private int rowCount;
+		private List<DataObject[]> rows;
 
-		/// <summary>
-		/// A list that represents the storage of TObject[] arrays for each row of the table.
-		/// </summary>
-		private readonly List<TObject[]> tableStorage;
+		public TemporaryTable(TableInfo tableInfo)
+			: this((IDatabase)null, tableInfo) {
+		}
 
-		///<summary>
-		///</summary>
-		///<param name="database"></param>
-		///<param name="name"></param>
-		///<param name="fields"></param>
-		public TemporaryTable(IDatabase database, String name, DataColumnInfo[] fields)
+		public TemporaryTable(IDatabase database, TableInfo tableInfo)
 			: base(database) {
+			this.tableInfo = tableInfo.AsReadOnly();
+			rows = new List<DataObject[]>();
+		}
 
-			tableStorage = new List<TObject[]>();
+		public TemporaryTable(string name, TableInfo sourceTableInfo)
+			: this(null, name, sourceTableInfo) {
+		}
 
-			tableInfo = new DataTableInfo(new TableName(null, name));
-			foreach (DataColumnInfo field in fields) {
-				tableInfo.AddColumn(field.Clone());
+		public TemporaryTable(IDatabase database, string name, TableInfo sourceTableInfo)
+			: this(database, sourceTableInfo.Alias(new ObjectName(name))) {
+		}
+
+		public override TableInfo TableInfo {
+			get { return tableInfo; }
+		}
+
+		public override int RowCount {
+			get { return rowCount; }
+		}
+
+		public override bool HasRootsLocked {
+			get { return true; }
+		}
+
+		public int NewRow() {
+			rows.Add(new DataObject[ColumnCount]);
+			++rowCount;
+			return rowCount - 1;
+		}
+
+		public int NewRow(DataObject[] row) {
+			if (row == null)
+				throw new ArgumentNullException("row");
+			if (row.Length != ColumnCount)
+				throw new ArgumentException();
+
+			var rowNumber = NewRow();
+			for (int i = 0; i < row.Length; i++) {
+				SetValue(rowNumber, i, row[i]);
 			}
-			tableInfo.IsReadOnly = true;
+
+			return rowNumber;
 		}
 
-		/// <summary>
-		/// Constructs this <see cref="TemporaryTable"/> based on the 
-		/// fields from the given <see cref="Table"/> object.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="based_on"></param>
-		public TemporaryTable(String name, Table based_on)
-			: base(based_on.Database) {
+		public override DataObject GetValue(long rowNumber, int columnOffset) {
+			if (rowNumber >= rows.Count)
+				throw new ArgumentOutOfRangeException("rowNumber");
+			if (columnOffset < 0 || columnOffset > ColumnCount)
+				throw new ArgumentOutOfRangeException("columnOffset");
 
-			tableInfo = based_on.TableInfo.Clone(new TableName(null, name));
-			tableInfo.IsReadOnly = true;
+			var row = rows[(int) rowNumber];
+			return row[columnOffset];
 		}
 
-		/// <summary>
-		/// Constructs this <see cref="TemporaryTable"/> based on the given 
-		/// <see cref="Table"/> object.
-		/// </summary>
-		/// <param name="based_on"></param>
-		public TemporaryTable(Table based_on)
-			: base(based_on.Database) {
+		public void SetValue(long rowNumber, int columnOffset, DataObject value) {
+			if (rowNumber < 0 || rowNumber >= rows.Count)
+				throw new ArgumentOutOfRangeException("rowNumber");
+			if (columnOffset < 0 || columnOffset >= ColumnCount)
+				throw new ArgumentOutOfRangeException("columnOffset");
 
-			tableInfo = based_on.TableInfo.Clone();
-			tableInfo.IsReadOnly = true;
+			var row = rows[(int) rowNumber];
+			row[columnOffset] = value;
 		}
 
-
-
-		/* ====== Methods that are only for TemporaryTable interface ====== */
-
-		/// <summary>
-		/// Resolves the given column name (eg 'id' or 'Customer.id' or 
-		/// 'default.Customer.id') to a column in this table.
-		/// </summary>
-		/// <param name="col_name"></param>
-		/// <returns></returns>
-		private VariableName ResolveToVariable(String col_name) {
-			VariableName partial = VariableName.Resolve(col_name);
-			return partial;
-			//    return partial.ResolveTableName(TableName.Resolve(Name));
+		public void SetValue(int columnOffset, DataObject value) {
+			SetValue(rowCount - 1, columnOffset, value);
 		}
 
-		/// <summary>
-		/// Creates a new row where cells can be inserted into.
-		/// </summary>
-		public void NewRow() {
-			tableStorage.Add(new TObject[ColumnCount]);
-			++row_count;
+		public void BuildIndexes() {
+			BuildIndexes(DefaultIndexNames.InsertSearch);
 		}
 
-		///<summary>
-		/// Sets the cell in the given column / row to the given value.
-		///</summary>
-		///<param name="cell"></param>
-		///<param name="column"></param>
-		///<param name="row"></param>
-		public void SetRowCell(TObject cell, int column, int row) {
-			TObject[] cells = tableStorage[row];
-			cells[column] = cell;
+		public void BuildIndexes(string indexName) {
+			SetupIndexes(indexName);
+
+			for (int i = 0; i < rowCount; i++) {
+				AddRowToIndex(i);
+			}			
 		}
 
-		///<summary>
-		/// Sets the cell in the column of the last row of this table to 
-		/// the given <see cref="TObject"/>.
-		///</summary>
-		///<param name="cell"></param>
-		///<param name="col_name"></param>
-		public void SetRowCell(TObject cell, String col_name) {
-			VariableName v = ResolveToVariable(col_name);
-			SetRowCell(cell, FindFieldName(v), row_count - 1);
-		}
+		public void CopyFrom(ITable table, int row) {
+			if (!(table is IDbTable))
+				throw new ArgumentException();
 
-		///<summary>
-		/// Sets the cell in the column of the last row of this table to 
-		/// the given TObject.
-		///</summary>
-		///<param name="ob"></param>
-		///<param name="col_index"></param>
-		///<param name="row"></param>
-		public void SetRowObject(TObject ob, int col_index, int row) {
-			SetRowCell(ob, col_index, row);
-		}
+			var dbTable = (IDbTable) table;
 
-		///<summary>
-		/// Sets the cell in the column of the last row of this table to 
-		/// the given TObject.
-		///</summary>
-		///<param name="ob"></param>
-		///<param name="col_name"></param>
-		public void SetRowObject(TObject ob, String col_name) {
-			VariableName v = ResolveToVariable(col_name);
-			SetRowObject(ob, FindFieldName(v));
-		}
-
-		///<summary>
-		/// Sets the cell in the column of the last row of this table to 
-		/// the given TObject.
-		///</summary>
-		///<param name="ob"></param>
-		///<param name="col_index"></param>
-		public void SetRowObject(TObject ob, int col_index) {
-			SetRowObject(ob, col_index, row_count - 1);
-		}
-
-		/// <summary>
-		/// Copies the cell from the given table (src_col, src_row) to the 
-		/// last row of the column specified of this table.
-		/// </summary>
-		/// <param name="table"></param>
-		/// <param name="src_col"></param>
-		/// <param name="src_row"></param>
-		/// <param name="to_col"></param>
-		public void SetCellFrom(Table table, int src_col, int src_row,
-								String to_col) {
-			VariableName v = ResolveToVariable(to_col);
-			TObject cell = table.GetCell(src_col, src_row);
-			SetRowCell(cell, FindFieldName(v), row_count - 1);
-		}
-
-		/// <summary>
-		/// Copies the contents of the row of the given Table onto the end of 
-		/// this table.
-		/// </summary>
-		/// <param name="table"></param>
-		/// <param name="row"></param>
-		/// <remarks>
-		/// Only copies columns that exist in both tables.
-		/// </remarks>
-		public void CopyFrom(Table table, int row) {
 			NewRow();
 
-			VariableName[] vars = new VariableName[table.ColumnCount];
-			for (int i = 0; i < vars.Length; ++i) {
-				vars[i] = table.GetResolvedVariable(i);
+			var columnNames = new ObjectName[dbTable.ColumnCount];
+			for (int i = 0; i < columnNames.Length; ++i) {
+				columnNames[i] = dbTable.GetResolvedColumnName(i);
 			}
 
 			for (int i = 0; i < ColumnCount; ++i) {
-				VariableName v = GetResolvedVariable(i);
-				String col_name = v.Name;
+				var v = GetResolvedColumnName(i);
+				var colName = v.Name;
+
 				try {
-					int tcol_index = -1;
-					for (int n = 0; n < vars.Length || tcol_index == -1; ++n) {
-						if (vars[n].Name.Equals(col_name)) {
-							tcol_index = n;
+					int columnOffset = -1;
+					for (int n = 0; n < columnNames.Length || columnOffset == -1; ++n) {
+						if (columnNames[n].Name.Equals(colName)) {
+							columnOffset = n;
 						}
 					}
-					SetRowCell(table.GetCell(tcol_index, row), i, row_count - 1);
+
+					var value = table.GetValue(row, columnOffset);
+					SetValue(rowCount-1, i, value);
 				} catch (Exception e) {
-					Logger.Error(this, e);
 					throw new ApplicationException(e.Message, e);
 				}
 			}
 		}
 
 
-		/// <summary>
-		/// This should be called if you want to perform table operations on 
-		/// this TemporaryTable.
-		/// </summary>
-		/// <remarks>
-		/// It should be called *after* all the rows have been set.
-		/// It generates SelectableScheme object which sorts the columns of 
-		/// the table and lets us execute Table operations on this table.
-		/// <b>Note</b> After this method is called, the table must not change 
-		/// in any way.
-		/// </remarks>
-		public void SetupAllSelectableSchemes() {
-			BlankSelectableSchemes(1);   // <- blind search
-			for (int row_number = 0; row_number < row_count; ++row_number) {
-				AddRowToColumnSchemes(row_number);
-			}
+		public override IEnumerator<Row> GetEnumerator() {
+			return new SimpleRowEnumerator(this);
 		}
 
-		/* ====== Methods that are implemented for Table interface ====== */
-
-		/// <inheritdoc/>
-		public override DataTableInfo TableInfo {
-			get { return tableInfo; }
-		}
-
-		/// <inheritdoc/>
-		public override TObject GetCell(int column, int row) {
-			TObject[] cells = tableStorage[row];
-			TObject cell = cells[column];
-			if (cell == null)
-				throw new ApplicationException("NULL cell!  (" + column + ", " + row + ")");
-
-			return cell;
-		}
-
-		/// <inheritdoc/>
-		public override IRowEnumerator GetRowEnumerator() {
-			return new SimpleRowEnumerator(row_count);
-		}
-
-		/// <inheritdoc/>
 		public override void LockRoot(int lockKey) {
-			// We don't need to do anything for temporary tables, because they have
-			// no root to Lock.
 		}
 
-		/// <inheritdoc/>
 		public override void UnlockRoot(int lockKey) {
-			// We don't need to do anything for temporary tables, because they have
-			// no root to unlock.
 		}
 
-		/// <inheritdoc/>
-		public override bool HasRootsLocked {
-			get {
-				// A temporary table _always_ has its roots locked.
-				return true;
-			}
+		public static TemporaryTable SingleColumnTable(IDatabase database, string columnName, DataType columnType) {
+			var tableInfo = new TableInfo(new ObjectName("single"));
+			tableInfo.AddColumn(columnName, columnType);
+			tableInfo = tableInfo.AsReadOnly();
+			return new TemporaryTable(database, tableInfo);
 		}
-
-
-		// ---------- Static convenience methods ----------
-
-		/// <summary>
-		/// Creates a table with a single column with the given name and type.
-		/// </summary>
-		/// <param name="database"></param>
-		/// <param name="columnName"></param>
-		/// <param name="c"></param>
-		/// <returns></returns>
-		internal static TemporaryTable SingleColumnTable(Database database, String columnName, Type c) {
-			TType ttype = TType.FromType(c);
-			DataColumnInfo colInfo = new DataColumnInfo(null, columnName, ttype);
-			TemporaryTable table = new TemporaryTable(database, "single", new DataColumnInfo[] { colInfo });
-
-			//      int type = TypeUtil.ToDbType(c);
-			//      TableField[] fields =
-			//                 { new TableField(columnName, type, Integer.MAX_VALUE, false) };
-			//      TemporaryTable table = new TemporaryTable(database, "single", fields);
-			return table;
-		}
-
 	}
 }

@@ -23,7 +23,8 @@ using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
-	abstract class Table : IDbTable {
+	[Serializable]
+	public abstract class Table : IDbTable {
 		// Stores col name -> col index lookups
 		private Dictionary<ObjectName, int> colNameLookup;
 		private readonly object colLookupLock = new object();
@@ -46,7 +47,11 @@ namespace Deveel.Data.DbSystem {
 		protected virtual void Dispose(bool disposing) {
 		}
 
-		public abstract IDatabase Database { get; }
+		protected abstract IDatabase Database { get; }
+
+		IDatabase IDbTable.Database {
+			get { return Database; }
+		}
 
 		public abstract TableInfo TableInfo { get; }
 
@@ -62,15 +67,27 @@ namespace Deveel.Data.DbSystem {
 
 		protected abstract int IndexOfColumn(ObjectName columnName);
 
-		public abstract ObjectName GetResolvedColumnName(int column);
+		protected abstract ObjectName GetResolvedColumnName(int column);
 
-		public abstract TableIndex GetIndex(int column, int originalColumn, ITable table);
+		ObjectName IDbTable.GetResolvedColumnName(int column) {
+			return GetResolvedColumnName(column);
+		}
 
-		public abstract IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor);
+		ColumnIndex IDbTable.GetIndex(int column, int originalColumn, ITable table) {
+			return GetIndex(column, originalColumn, table);
+		}
+
+		protected abstract ColumnIndex GetIndex(int column, int originalColumn, ITable table);
+
+		protected abstract IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor);
+
+		IEnumerable<int> IDbTable.ResolveRows(int columnOffset, IEnumerable<int> rows, ITable ancestor) {
+			return ResolveRows(columnOffset, rows, ancestor);
+		}
 
 		public abstract DataObject GetValue(long rowNumber, int columnOffset);
 
-		public TableIndex GetIndex(int columnOffset) {
+		public ColumnIndex GetIndex(int columnOffset) {
 			return GetIndex(columnOffset, columnOffset, this);
 		}
 
@@ -105,7 +122,7 @@ namespace Deveel.Data.DbSystem {
 			return GetColumnType(FindColumn(columnName));
 		}
 
-		public ITableVariableResolver GetVariableResolver() {
+		ITableVariableResolver IDbTable.GetVariableResolver() {
 			return new TableVariableResolver(this);
 		}
 

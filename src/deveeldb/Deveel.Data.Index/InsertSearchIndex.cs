@@ -26,7 +26,7 @@ namespace Deveel.Data.Index {
 		private bool recordUid;
 		private IIndexComparer<int> comparer;
 
-		private int readOnlyCount;
+		private readonly int readOnlyCount;
 
 		public InsertSearchIndex(ITable table, int columnOffset) 
 			: base(table, columnOffset) {
@@ -74,6 +74,10 @@ namespace Deveel.Data.Index {
 			get { return list.Count; }
 		}
 
+		public override string Name {
+			get { return DefaultIndexNames.InsertSearch; }
+		}
+
 		protected override DataObject First {
 			get { return GetValue(list[0]); }
 		}
@@ -107,7 +111,7 @@ namespace Deveel.Data.Index {
 				throw new InvalidOperationException(String.Format("The row removes ({0}) is different than the one requested to be removed ({1})", removed, rowNumber));
 		}
 
-		public override TableIndex Copy(ITable table, bool readOnly) {
+		public override ColumnIndex Copy(ITable table, bool readOnly) {
 			// ASSERTION: If readOnly, check the size of the current set is equal to
 			//   when the scheme was created.
 			if (IsReadOnly && readOnlyCount != list.Count)
