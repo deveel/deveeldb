@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 
@@ -20,7 +21,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	public static class FunctionExtensions {
-		public static TObject Execute(this IFunction function,
+		public static DataObject Execute(this IFunction function,
 			RoutineInvoke invoke,
 			IGroupResolver group,
 			IVariableResolver resolver,
@@ -30,9 +31,9 @@ namespace Deveel.Data.Routines {
 			return result.ReturnValue;
 		}
 
-		public static TType ReturnTType(this IFunction function, RoutineInvoke invoke, IVariableResolver resolver, IQueryContext context) {
+		public static DataType ReturnType(this IFunction function, RoutineInvoke invoke, IQueryContext context, IVariableResolver resolver) {
 			var execContext = new ExecuteContext(invoke, function, resolver, null, context);
-			return function.ReturnTType(execContext);
+			return function.ReturnType(execContext);
 		}
 	}
 }

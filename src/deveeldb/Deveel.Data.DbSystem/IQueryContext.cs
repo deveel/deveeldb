@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
@@ -44,6 +45,7 @@ namespace Deveel.Data.DbSystem {
 		/// <seealso cref="SetExceptionState"/>
 		bool IsExceptionState { get; }
 
+		IRoutineResolver RoutineResolver { get; }
 
 		/// <summary>
 		/// Computes a new random number, that is ensured to be unique 

@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 using System.Text;
@@ -20,11 +21,11 @@ using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Routines {
 	public abstract class RoutineInfo {
-		protected RoutineInfo(RoutineName name) 
+		protected RoutineInfo(ObjectName name) 
 			: this(name, new RoutineParameter[] {}) {
 		}
 
-		protected RoutineInfo(RoutineName name, RoutineParameter[] parameters) {
+		protected RoutineInfo(ObjectName name, RoutineParameter[] parameters) {
 			if (name == null)
 				throw new ArgumentNullException("name");
 
@@ -35,7 +36,7 @@ namespace Deveel.Data.Routines {
 			Parameters = parameters;
 		}
 
-		public RoutineName Name { get; private set; }
+		public ObjectName Name { get; private set; }
 
 		public RoutineParameter[] Parameters { get; private set; }
 

@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,12 +12,14 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
@@ -26,18 +28,18 @@ namespace Deveel.Data.Routines {
 		private bool unboundedSeen;
 		private static readonly char[] Alpha = "abcdefghkjlmnopqrstuvwxyz".ToCharArray();
 
-		private RoutineName routineName;
+		private ObjectName routineName;
 		private readonly List<RoutineParameter> parameters = new List<RoutineParameter>();
 		private FunctionType functionType = FunctionType.Static;
 
 		private Func<ExecuteContext, ExecuteResult> fullExecuteFunc;
-		private Func<TObject[], TObject> evalExeciteFunc;
-		private Func<ExecuteContext, TType> returnTypeFunc = context => FirstArgumentType(context);
+		private Func<DataObject[], DataObject> evalExeciteFunc;
+		private Func<ExecuteContext, DataType> returnTypeFunc = context => FirstArgumentType(context);
 
-		private Func<IGroupResolver, IVariableResolver, TObject, TObject, TObject> aggregateFunc;
-		private Func<IGroupResolver, IVariableResolver, TObject, TObject> afterAggregateFunc;
+		private Func<IGroupResolver, IVariableResolver, DataObject, DataObject, DataObject> aggregateFunc;
+		private Func<IGroupResolver, IVariableResolver, DataObject, DataObject> afterAggregateFunc;
 
-		RoutineName IRoutine.Name {
+		ObjectName IRoutine.Name {
 			get { return routineName; }
 		}
 
@@ -58,16 +60,16 @@ namespace Deveel.Data.Routines {
 				if (context.GroupResolver == null)
 					throw new Exception("'" + routineName + "' can only be used as an aggregate function.");
 
-				TObject result = null;
+				DataObject result = null;
 				// All aggregates functions return 'null' if group size is 0
 				int size = context.GroupResolver.Count;
 				if (size == 0) {
 					// Return a NULL of the return type
-					return context.FunctionResult(new TObject(((IFunction) this).ReturnTType(context), null));
+					return context.FunctionResult(new DataObject(((IFunction) this).ReturnType(context), null));
 				}
 
-				TObject val;
-				VariableName v = context.Arguments[0].AsVariableName();
+				DataObject val;
+				var v = context.Arguments[0].AsReferenceName();
 				// If the aggregate parameter is a simple variable, then use optimal
 				// routine,
 				if (v != null) {
@@ -79,9 +81,9 @@ namespace Deveel.Data.Routines {
 					// Otherwise we must resolve the expression for each entry in group,
 					// This allows for expressions such as 'sum(quantity * price)' to
 					// work for a group.
-					Expression exp = context.Arguments[0];
+					SqlExpression exp = context.Arguments[0];
 					for (int i = 0; i < size; ++i) {
-						val = exp.Evaluate(null, context.GroupResolver.GetVariableResolver(i), context.QueryContext);
+						val = exp.EvaluateToConstant(context.QueryContext, context.GroupResolver.GetVariableResolver(i));
 						result = aggregateFunc(context.GroupResolver, context.VariableResolver, result, val);
 					}
 				}
@@ -101,18 +103,18 @@ namespace Deveel.Data.Routines {
 				return context.FunctionResult(returnValue);
 			}
 
-			return context.FunctionResult(TObject.Null);
+			return context.FunctionResult(DataObject.Null());
 		}
 
-		TType IFunction.ReturnTType(ExecuteContext context) {
+		DataType IFunction.ReturnType(ExecuteContext context) {
 			if (returnTypeFunc != null)
 				return returnTypeFunc(context);
 
-			return PrimitiveTypes.Numeric;
+			return PrimitiveTypes.Numeric();
 		}
 
-		private static TType FirstArgumentType(ExecuteContext context) {
-			return context.Arguments[0].ReturnTType(context.VariableResolver, context.QueryContext);
+		private static DataType FirstArgumentType(ExecuteContext context) {
+			return context.Arguments[0].ReturnType(context.QueryContext, context.VariableResolver);
 		}
 
 		public FunctionBuilder Named(string name) {
@@ -120,10 +122,10 @@ namespace Deveel.Data.Routines {
 		}
 
 		public FunctionBuilder Named(string schema, string name) {
-			return Named(RoutineName.Qualify(schema, name));
+			return Named(new ObjectName(new ObjectName(schema), name));
 		}
 
-		public FunctionBuilder Named(RoutineName name) {
+		public FunctionBuilder Named(ObjectName name) {
 			routineName = name;
 			return this;
 		}
@@ -150,42 +152,42 @@ namespace Deveel.Data.Routines {
 			return this;
 		}
 
-		public FunctionBuilder WithParameter(string name, TType type) {
+		public FunctionBuilder WithParameter(string name, DataType type) {
 			return WithParameter(name, type, ParameterAttributes.None);
 		}
 
-		public FunctionBuilder WithParameter(string name, TType type, ParameterAttributes attributes) {
+		public FunctionBuilder WithParameter(string name, DataType type, ParameterAttributes attributes) {
 			return WithParameter(name, type, ParameterDirection.Input, attributes);
 		}
 
-		public FunctionBuilder WithParameter(string name, TType type, ParameterDirection direction) {
+		public FunctionBuilder WithParameter(string name, DataType type, ParameterDirection direction) {
 			return WithParameter(name, type, direction, ParameterAttributes.None);
 		}
 
-		public FunctionBuilder WithParameter(TType type, ParameterAttributes attributes) {
+		public FunctionBuilder WithParameter(DataType type, ParameterAttributes attributes) {
 			return WithParameter(type, ParameterDirection.Input, attributes);
 		}
 
-		public FunctionBuilder WithParameter(TType type, ParameterDirection direction) {
+		public FunctionBuilder WithParameter(DataType type, ParameterDirection direction) {
 			return WithParameter(type, direction, ParameterAttributes.None);
 		}
 
-		public FunctionBuilder WithParameter(TType type, ParameterDirection direction, ParameterAttributes attributes) {
+		public FunctionBuilder WithParameter(DataType type, ParameterDirection direction, ParameterAttributes attributes) {
 			var name = Alpha[parameters.Count].ToString(CultureInfo.InvariantCulture);
 			return WithParameter(name, type, direction, attributes);
 		}
 
-		public FunctionBuilder WithParameter(string name, TType type, ParameterDirection direction, ParameterAttributes attributes) {
+		public FunctionBuilder WithParameter(string name, DataType type, ParameterDirection direction, ParameterAttributes attributes) {
 			parameters.Add(new RoutineParameter(name, type, direction, attributes));
 			return this;
 		}
 
-		public FunctionBuilder WithUnboundedParameter(TType type) {
+		public FunctionBuilder WithUnboundedParameter(DataType type) {
 			var name = Alpha[parameters.Count].ToString(CultureInfo.InvariantCulture);
 			return WithUnboundedParameter(name, type);
 		}
 
-		public FunctionBuilder WithUnboundedParameter(string name, TType type) {
+		public FunctionBuilder WithUnboundedParameter(string name, DataType type) {
 			if (unboundedSeen)
 				throw new InvalidOperationException("An unbounded parameter was already set for this function.");
 
@@ -229,26 +231,26 @@ namespace Deveel.Data.Routines {
 			return this;
 		}
 
-		public FunctionBuilder OnExecute(Func<TObject[], TObject> executeFunc) {
+		public FunctionBuilder OnExecute(Func<DataObject[], DataObject> executeFunc) {
 			evalExeciteFunc = executeFunc;
 			return this;
 		}
 
-		public FunctionBuilder ReturnsType(TType type) {
+		public FunctionBuilder ReturnsType(DataType type) {
 			return OnReturnType(context => type);
 		}
 
-		public FunctionBuilder OnReturnType(Func<ExecuteContext, TType> func) {
+		public FunctionBuilder OnReturnType(Func<ExecuteContext, DataType> func) {
 			returnTypeFunc = func;
 			return this;
 		}
 
-		public FunctionBuilder OnAggregate(Func<IGroupResolver, IVariableResolver, TObject, TObject, TObject> func) {
+		public FunctionBuilder OnAggregate(Func<IGroupResolver, IVariableResolver, DataObject, DataObject, DataObject> func) {
 			aggregateFunc = func;
 			return this;
 		}
 
-		public FunctionBuilder OnAfterAggregate(Func<IGroupResolver, IVariableResolver, TObject, TObject> func) {
+		public FunctionBuilder OnAfterAggregate(Func<IGroupResolver, IVariableResolver, DataObject, DataObject> func) {
 			afterAggregateFunc = func;
 			return this;
 		}
@@ -261,7 +263,7 @@ namespace Deveel.Data.Routines {
 			return new FunctionBuilder().Named(schema, name);
 		}
 
-		public static FunctionBuilder New(RoutineName name) {
+		public static FunctionBuilder New(ObjectName name) {
 			return new FunctionBuilder().Named(name);
 		}
 	}

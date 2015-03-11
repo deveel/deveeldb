@@ -18,6 +18,7 @@ using System;
 using System.Security.Cryptography;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
@@ -50,6 +51,10 @@ namespace Deveel.Data.DbSystem {
 
 		public bool IsExceptionState {
 			get { return exception != null; }
+		}
+
+		public virtual IRoutineResolver RoutineResolver {
+			get { return SystemContext.RoutineResolver; }
 		}
 
 		public virtual SqlNumber NextRandom(int bitSize) {

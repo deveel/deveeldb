@@ -127,6 +127,26 @@
     <Compile Include="Deveel.Data.Index\IIndex_T.cs" />
     <Compile Include="Deveel.Data.Index\IndexRange.cs" />
     <Compile Include="Deveel.Data.Routines\CallbackTriggerEventArgs.cs" />
+    <Compile Include="Deveel.Data.Routines\ExecuteContext.cs" />
+    <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
+    <Compile Include="Deveel.Data.Routines\Function.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionBuilder.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionExtensions.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionInfo.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionType.cs" />
+    <Compile Include="Deveel.Data.Routines\IFunction.cs" />
+    <Compile Include="Deveel.Data.Routines\ImportedKey.cs" />
+    <Compile Include="Deveel.Data.Routines\IRoutine.cs" />
+    <Compile Include="Deveel.Data.Routines\IRoutineResolver.cs" />
+    <Compile Include="Deveel.Data.Routines\ParameterAttributes.cs" />
+    <Compile Include="Deveel.Data.Routines\Routine.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineInfo.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineInvoke.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineParameter.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineType.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemFunctionsFactory.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemFunctions.cs" />
     <Compile Include="Deveel.Data.Routines\TriggerEventType.cs" />
     <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs">
       <SubType>Code</SubType>
@@ -152,6 +172,8 @@
     <Compile Include="Deveel.Data.Sql.Compile\SelectStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\StatementSequenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\QueryReferenceExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\ReturnTypeVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlQueryBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlQueryObject.cs" />
@@ -384,6 +406,7 @@
     </Compile>
     <Compile Include="Deveel.Data\ErrorException.cs" />
     <Compile Include="Deveel.Data\ObjectName.cs" />
+    <Compile Include="Deveel.Data\ParameterDirection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

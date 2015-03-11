@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,63 +12,57 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	public abstract class Function : Routine {
-		public static readonly TType DynamicType = new TDynamicType();
+		public static readonly DataType DynamicType = new DynamicDataType();
 
-		protected Function(RoutineName name, RoutineParameter[] parameters) 
+		protected Function(ObjectName name, RoutineParameter[] parameters) 
 			: this(name, parameters, null) {
 		}
 
-		protected Function(RoutineName name, RoutineParameter[] parameters, TType returnType) 
+		protected Function(ObjectName name, RoutineParameter[] parameters, DataType returnType) 
 			: base(name, parameters, RoutineType.Function) {
 			this.returnType = returnType;
 		}
 
-		private readonly TType returnType;
+		private readonly DataType returnType;
 
 		public override ExecuteResult Execute(ExecuteContext context) {
 			return context.FunctionResult(Evaluate(context.EvaluatedArguments));
 		}
 
-		protected virtual TObject Evaluate(TObject[] args) {
-			return new TObject(ReturnType(), null);
+		protected virtual DataObject Evaluate(DataObject[] args) {
+			return new DataObject(ReturnType(), null);
 		}
 
-		public TType ReturnType() {
+		public DataType ReturnType() {
 			return ReturnType(null);
 		}
 
-		public virtual TType ReturnType(ExecuteContext context) {
+		public virtual DataType ReturnType(ExecuteContext context) {
 			return returnType;
 		}
 
-		#region TDynamicType
+		#region DynamicType
 
-		class TDynamicType : TType {
-			public TDynamicType()
-				: base(-5000) {
+		class DynamicDataType : DataType {
+			public DynamicDataType()
+				: base("DYNAMIC", SqlTypeCode.Object) {
 			}
 
-			public override DbType DbType {
-				get { return DbType.Object; }
-			}
-
-			public override int Compare(object x, object y) {
-				throw new NotSupportedException();
-			}
-
-			public override bool IsComparableType(TType type) {
+			public override bool IsComparable(DataType type) {
 				return true;
 			}
 
-			public override int CalculateApproximateMemoryUse(object ob) {
-				return 0;
+			public override int Compare(ISqlObject x, ISqlObject y) {
+				throw new NotSupportedException();
 			}
 		}
 

@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,13 +12,14 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Routines {
 	public sealed class ExecuteResult {
-		private readonly Dictionary<string, TObject> outputValues;
+		private readonly Dictionary<string, DataObject> outputValues;
 
 		internal ExecuteResult(ExecuteContext context) {
 			Context = context;
@@ -26,11 +27,13 @@ namespace Deveel.Data.Routines {
 
 		public ExecuteContext Context { get; private set; }
 
-		public TObject ReturnValue { get; set; }
+		public DataObject ReturnValue { get; set; }
 
-		internal void SetOutputParameter(string name, TObject value) {
+		internal void SetOutputParameter(string name, DataObject value) {
 			if (Context.RoutineType != RoutineType.Procedure)
 				throw new Exception("Cannot set an output parameter value for a function.");
+
+			outputValues[name] = value;
 
 		}
 	}

@@ -1,5 +1,5 @@
-// 
-//  Copyright 2010-2014 Deveel
+﻿// 
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,130 +12,71 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
-	/// <summary>
-	/// A definition of a function including its name and parameters.
-	/// </summary>
-	/// <remarks>
-	/// A <see cref="RoutineInvoke"/> can easily be transformed into a 
-	/// <see cref="IFunction"/> object via a set of <see cref="LegacyFunctionFactory"/> instances.
-	/// <para>
-	/// <b>Note</b>: This object is <b>not</b> immutable or thread-safe. 
-	/// A <see cref="RoutineInvoke"/> should not  be shared among different threads.
-	/// </para>
-	/// </remarks>
-	[Serializable]
-	public sealed class RoutineInvoke : ICloneable {
-		/// <summary>
-		/// A cached <see cref="IFunction"/> object that was generated when this 
-		/// <see cref="RoutineInvoke"/> was looked up. The <see cref="IFunction"/> 
-		/// object is transient.
-		/// </summary>
-		private IRoutine cachedFunction;
+	public sealed class RoutineInvoke {
+		private IRoutine cached;
 
-
-		public RoutineInvoke(String name, Expression[] parameterss) {
-			Name = name;
-			Arguments = parameterss;
+		public RoutineInvoke(ObjectName routineName, SqlExpression[] arguments) {
+			RoutineName = routineName;
+			Arguments = arguments;
 		}
 
-		/// <summary>
-		/// Gets the name of the function.
-		/// </summary>
-		public string Name { get; internal set; }
+		public ObjectName RoutineName { get; private set; }
 
-		/// <summary>
-		/// The list of parameters that are passed to the function.
-		/// </summary>
-		public Expression[] Arguments { get; private set; }
+		public SqlExpression[] Arguments { get; private set; }
 
-		public bool IsGlobArguments {
-			get { return Arguments.Length == 1 && Arguments[0].Text.ToString().Equals("*"); }
+		public bool IsGlobArgument {
+			get {
+				return Arguments != null &&
+				       Arguments.Length == 1 &&
+				       Arguments[0] is SqlConstantExpression &&
+				       ((SqlConstantExpression) Arguments[0]).Value.Value.ToString() == "*";
+			}
 		}
 
-		/// <summary>
-		/// Returns true if this function is an aggregate, or the parameters 
-		/// are aggregates.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <remarks>
-		/// It requires a <see cref="IQueryContext"/> object to lookup the 
-		/// function in the function factory database.
-		/// </remarks>
-		/// <returns></returns>
 		public bool IsAggregate(IQueryContext context) {
-			IRoutineResolver resolver = context.RoutineResolver;
-			bool isAggregate = resolver.IsAggregateFunction(this, context);
-			if (isAggregate) {
+			var resolver = context.RoutineResolver;
+			if (resolver.IsAggregateFunction(this, context))
 				return true;
-			}
+
 			// Look at parameterss
-			Expression[] parameters = Arguments;
-			for (int i = 0; i < parameters.Length; ++i) {
-				isAggregate = parameters[i].HasAggregateFunction(context);
-				if (isAggregate) {
-					return true;
-				}
-			}
-			// No
-			return false;
+			return Arguments.Any(x => x.HasAggregate(context));
 		}
 
-		/// <summary>
-		/// Returns a <see cref="IFunction"/> object from this <see cref="RoutineInvoke"/>.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <remarks>
-		/// Note that two calls to this method will produce the same <see cref="IFunction"/> 
-		/// object, however the same <see cref="IFunction"/> object will not be produced 
-		/// over multiple instances of <see cref="RoutineInvoke"/> even when they represent 
-		/// the same thing.
-		/// </remarks>
-		/// <returns></returns>
-		public IRoutine GetFunction(IQueryContext context) {
-			if (cachedFunction != null)
-				return cachedFunction;
+		public IRoutine GetRoutine(IQueryContext context) {
+			if (cached != null)
+				return cached;
 
-			IRoutineResolver lookup;
+			IRoutineResolver resolver;
 			if (context == null) {
-				lookup = SystemFunctions.Factory;
+				resolver = SystemFunctions.Factory;
 			} else {
-				lookup = context.RoutineResolver;
+				resolver = context.RoutineResolver;
 			}
-			
-			cachedFunction = lookup.ResolveRoutine(this, context);
-			if (cachedFunction == null)
-				throw new RoutineNotFouncException(String.Format("Unable to resolve the call {0} to a function", this));
 
-			return cachedFunction;
+			cached = resolver.ResolveRoutine(this, context);
+			if (cached == null)
+				throw new InvalidOperationException(String.Format("Unable to resolve the call {0} to a function", this));
+
+			return cached;
 		}
 
-		/// <inheritdoc/>
-		public object Clone() {
-			var v = (RoutineInvoke)MemberwiseClone();
-			// Deep clone the parameters
-			var exps = (Expression[])v.Arguments.Clone();
-			// Clone each element of the array
-			for (int n = 0; n < exps.Length; ++n)
-				exps[n] = (Expression)exps[n].Clone();
-			v.Arguments = exps;
-			v.cachedFunction = null;
-			return v;
-		}
-
-		/// <inheritdoc/>
 		public override String ToString() {
 			var buf = new StringBuilder();
-			buf.Append(Name);
+			buf.Append(RoutineName);
 			buf.Append('(');
 			for (int i = 0; i < Arguments.Length; ++i) {
-				buf.Append(Arguments[i].Text);
+				buf.Append(Arguments[i]);
 				if (i < Arguments.Length - 1) {
 					buf.Append(',');
 				}
@@ -143,6 +84,5 @@ namespace Deveel.Data.Routines {
 			buf.Append(')');
 			return buf.ToString();
 		}
-
 	}
 }

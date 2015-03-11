@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 using System.Linq;
@@ -22,12 +23,12 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	public sealed class FunctionInfo : RoutineInfo {
-		public FunctionInfo(RoutineName name) 
+		public FunctionInfo(ObjectName name) 
 			: base(name) {
 			AssertUnboundAtEnd();
 		}
 
-		public FunctionInfo(RoutineName name, RoutineParameter[] parameters) 
+		public FunctionInfo(ObjectName name, RoutineParameter[] parameters) 
 			: base(name, parameters) {
 			AssertUnboundAtEnd();
 		}
@@ -57,7 +58,7 @@ namespace Deveel.Data.Routines {
 
 			// TODO: have a patch to check if this must be case-insensitive compare
 			// TODO: have the invoke to respect the [Name1].[Name2].[NameN] format as the routine
-			if (!Name.Name.Equals(invoke.Name, StringComparison.OrdinalIgnoreCase))
+			if (!Name.Equals(invoke.RoutineName))
 				return false;
 
 			// TODO: add a better resolution to obtain the final type of the argument

@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,14 +12,16 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
 	public sealed class ExecuteContext {
-		private TObject[] evaluatedArgs;
+		private DataObject[] evaluatedArgs;
 
 		internal ExecuteContext(RoutineInvoke invoke, IRoutine routine, IVariableResolver resolver, IGroupResolver group, IQueryContext queryContext) {
 			if (invoke == null)
@@ -42,7 +44,7 @@ namespace Deveel.Data.Routines {
 			get { return Routine.Type; }
 		}
 
-		public Expression[] Arguments {
+		public SqlExpression[] Arguments {
 			get { return Invoke.Arguments; }
 		}
 
@@ -52,12 +54,16 @@ namespace Deveel.Data.Routines {
 
 		public IQueryContext QueryContext { get; private set; }
 
-		public TObject[] EvaluatedArguments {
+		public DataObject[] EvaluatedArguments {
 			get {
 				if (evaluatedArgs == null) {
-					evaluatedArgs = new TObject[Arguments.Length];
+					evaluatedArgs = new DataObject[Arguments.Length];
 					for (int i = 0; i < Arguments.Length; i++) {
-						evaluatedArgs[i] = Arguments[i].Evaluate(GroupResolver, VariableResolver, QueryContext);
+						var exp = Arguments[i].Evaluate(QueryContext, VariableResolver, GroupResolver);
+						if (!(exp is SqlConstantExpression))
+							throw new InvalidOperationException();
+
+						evaluatedArgs[i] = ((SqlConstantExpression) exp).Value;
 					}
 				}
 
@@ -69,7 +75,7 @@ namespace Deveel.Data.Routines {
 			get { return Arguments == null ? 0 : Arguments.Length; }
 		}
 
-		public ExecuteResult FunctionResult(TObject returnValue) {
+		public ExecuteResult FunctionResult(DataObject returnValue) {
 			return new ExecuteResult(this) {
 				ReturnValue = returnValue
 			};

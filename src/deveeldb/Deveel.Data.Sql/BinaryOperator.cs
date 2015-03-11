@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Deveel.Data.Sql {
 	/// <summary>
@@ -175,6 +176,16 @@ namespace Deveel.Data.Deveel.Data.Sql {
 				return OperatorType == BinaryOperatorType.Like ||
 				       OperatorType == BinaryOperatorType.NotLike;
 			}
+		}
+
+		public DataType ReturnType() {
+			if (IsArithmetic)
+				return PrimitiveTypes.Numeric();
+			return PrimitiveTypes.Boolean();
+		}
+
+		public DataType ReturnType(DataType leftType, DataType rightType) {
+			return leftType.Wider(rightType);
 		}
 
 		/// <summary>

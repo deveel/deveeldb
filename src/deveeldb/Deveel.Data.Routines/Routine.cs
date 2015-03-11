@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,19 +12,20 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 
 namespace Deveel.Data.Routines {
 	[Serializable]
 	public abstract class Routine {
-		protected Routine(RoutineName name, RoutineParameter[] parameters, RoutineType type) {
+		protected Routine(ObjectName name, RoutineParameter[] parameters, RoutineType type) {
 			Name = name;
 			Parameters = parameters;
 			Type = type;
 		}
 
-		public RoutineName Name { get; private set; }
+		public ObjectName Name { get; private set; }
 
 		public RoutineParameter[] Parameters { get; private set; }
 
