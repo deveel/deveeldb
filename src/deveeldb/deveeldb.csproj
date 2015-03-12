@@ -171,6 +171,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\IStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SelectStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\StatementSequenceNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\AggregateChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\QueryReferenceExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ReturnTypeVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionExtensions.cs" />

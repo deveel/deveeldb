@@ -49,5 +49,10 @@ namespace Deveel.Data.Sql.Expressions {
 			var visitor = new ReturnTypeVisitor(queryContext, variableResolver);
 			return visitor.GetType(expression);
 		}
+
+		public static bool HasAggregate(this SqlExpression expression, IQueryContext queryContext) {
+			var visitor = new AggregateChecker(queryContext);
+			return visitor.HasAggregate(expression);
+		}
 	}
 }

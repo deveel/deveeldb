@@ -17,9 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Policy;
-
-using Deveel.Data.Deveel.Data.Sql;
 
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]

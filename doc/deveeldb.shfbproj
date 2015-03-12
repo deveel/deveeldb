@@ -50,19 +50,57 @@
           <output includeNamespaces="false" namespacesFile="Namespaces" folder="{@OutputFolder}" />
         </component>
       </ComponentConfig>
-<ComponentConfig id="Code Block Component" enabled="True"><component id="Code Block Component"><basePath value="{@HtmlEncProjectFolder}" /><outputPaths>{@HelpFormatOutputPaths}</outputPaths><allowMissingSource value="false" /><removeRegionMarkers value="false" /><colorizer syntaxFile="{@SHFBFolder}Colorizer\highlight.xml" styleFile="{@SHFBFolder}Colorizer\highlight.xsl" stylesheet="{@SHFBFolder}Colorizer\highlight.css" scriptFile="{@SHFBFolder}Colorizer\highlight.js" disabled="{@DisableCodeBlockComponent}" language="cs" tabSize="0" numberLines="true" outlining="false" keepSeeTags="false" defaultTitle="true" /></component></ComponentConfig>
-<ComponentConfig id="Syntax Component" enabled="True"><component id="Syntax Component"><syntax input="/document/reference" output="/document/syntax" renderReferenceLinks="false" /><generators>
+      <ComponentConfig id="Code Block Component" enabled="True">
+        <component id="Code Block Component">
+          <basePath value="{@HtmlEncProjectFolder}" />
+          <outputPaths>{@HelpFormatOutputPaths}</outputPaths>
+          <allowMissingSource value="false" />
+          <removeRegionMarkers value="false" />
+          <colorizer syntaxFile="{@SHFBFolder}Colorizer\highlight.xml" styleFile="{@SHFBFolder}Colorizer\highlight.xsl" stylesheet="{@SHFBFolder}Colorizer\highlight.css" scriptFile="{@SHFBFolder}Colorizer\highlight.js" disabled="{@DisableCodeBlockComponent}" language="cs" tabSize="0" numberLines="true" outlining="false" keepSeeTags="false" defaultTitle="true" />
+        </component>
+      </ComponentConfig>
+      <ComponentConfig id="Syntax Component" enabled="True">
+        <component id="Syntax Component">
+          <syntax input="/document/reference" output="/document/syntax" renderReferenceLinks="false" />
+          <generators>
     {@SyntaxFilters}
-</generators><containerElement name="codeSnippetGroup" addNoExampleTabs="true" includeOnSingleSnippets="false" groupingEnabled="{@CodeSnippetGrouping}" /><configurations><generator id="C#" /><generator id="Visual Basic"><includeLineContinuation value="false" /></generator><generator id="Visual Basic Usage"><includeLineContinuation value="false" /></generator><generator id="Managed C++" /><generator id="F#" /><generator id="J#" /><generator id="JScript" /><generator id="JavaScript" /><generator id="XAML Usage" /><generator id="ASP.NET" /></configurations></component></ComponentConfig>
-<ComponentConfig id="API Token Resolution" enabled="True"><component id="API Token Resolution">{@TokenFiles}
-<replace elements="/*//token" item="string(.)" /></component></ComponentConfig></ComponentConfigurations>
+</generators>
+          <containerElement name="codeSnippetGroup" addNoExampleTabs="true" includeOnSingleSnippets="false" groupingEnabled="{@CodeSnippetGrouping}" />
+          <configurations>
+            <generator id="C#" />
+            <generator id="Visual Basic">
+              <includeLineContinuation value="false" />
+            </generator>
+            <generator id="Visual Basic Usage">
+              <includeLineContinuation value="false" />
+            </generator>
+            <generator id="Managed C++" />
+            <generator id="F#" />
+            <generator id="J#" />
+            <generator id="JScript" />
+            <generator id="JavaScript" />
+            <generator id="XAML Usage" />
+            <generator id="ASP.NET" />
+          </configurations>
+        </component>
+      </ComponentConfig>
+      <ComponentConfig id="API Token Resolution" enabled="True">
+        <component id="API Token Resolution">{@TokenFiles}
+<replace elements="/*//token" item="string(.)" /></component>
+      </ComponentConfig>
+    </ComponentConfigurations>
     <NamespaceSummaries>
       <NamespaceSummaryItem name="Deveel.Data" isDocumented="True">Defines globally used classes and components for the system</NamespaceSummaryItem>
 <NamespaceSummaryItem name="Deveel.Data.Sql.Compile" isDocumented="True">Provides the logic for parsing and compiling SQL code to statement and expressions compatible with the system</NamespaceSummaryItem>
 <NamespaceSummaryItem name="Deveel.Data.Sql.Objects" isDocumented="True">Includes the native SQL objects used by the system to resolve data</NamespaceSummaryItem>
 <NamespaceSummaryItem name="Deveel.Data.DbSystem" isDocumented="True">The compoents that are used to manage a database system</NamespaceSummaryItem>
 <NamespaceSummaryItem name="Deveel.Data.Store" isDocumented="True">Defines the required components and contracts to implement a data store for the database system</NamespaceSummaryItem>
-<NamespaceSummaryItem name="Deveel.Data.Types" isDocumented="True">The namespace that provides the logic to define primitive and user-defined types</NamespaceSummaryItem></NamespaceSummaries>
+<NamespaceSummaryItem name="Deveel.Data.Types" isDocumented="True">The namespace that provides the logic to define primitive and user-defined types</NamespaceSummaryItem>
+<NamespaceSummaryItem name="Deveel.Data.Routines" isDocumented="True">Contains types that are used to form and execute routines (functions and procedures) to program database instances or values of queries</NamespaceSummaryItem>
+<NamespaceSummaryItem name="Deveel.Data.Security" isDocumented="True">Provides features to manage security (access rights, roles, encryption, etc.) of database in a system</NamespaceSummaryItem>
+<NamespaceSummaryItem name="Deveel.Data.Sql.Expressions" isDocumented="True">Objects that represent SQL expressions that can be evaluated to operate with databases</NamespaceSummaryItem>
+<NamespaceSummaryItem name="Deveel.Data.Configuration" isDocumented="True">Types to access and form configurations of databases and systems</NamespaceSummaryItem>
+<NamespaceSummaryItem name="Deveel.Data.Index" isDocumented="True">Exposes types required to create indices of data contained in collections (eg. table columns of a database) and query fast the contents</NamespaceSummaryItem></NamespaceSummaries>
     <FeedbackEMailLinkText>Your Feedback at Deveel</FeedbackEMailLinkText>
     <CatalogName>VisualStudio12</CatalogName>
     <TocParentId>-1</TocParentId>

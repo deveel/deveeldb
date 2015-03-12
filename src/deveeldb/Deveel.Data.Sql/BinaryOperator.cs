@@ -22,7 +22,7 @@ using System.Text;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Deveel.Data.Sql {
+namespace Deveel.Data.Sql {
 	/// <summary>
 	/// An operator used to evaluate binary operations.
 	/// </summary>
@@ -34,24 +34,96 @@ namespace Deveel.Data.Deveel.Data.Sql {
 
 		private static readonly Dictionary<string, BinaryOperator> StringMap; 
 
+		/// <summary>
+		/// The binary operator that adds two numeric values.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.Add"/>
 		public static readonly BinaryOperator Add = new SimpleOperator(BinaryOperatorType.Add, (left, right) => left.Add(right));
+
+		/// <summary>
+		/// The binary operator that subtracts two numeric values.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.Subtract"/>
 		public static readonly BinaryOperator Subtract = new SimpleOperator(BinaryOperatorType.Subtract, (left, right) => left.Subtract(right));
+
+		/// <summary>
+		/// The binary operator that multiplies two numeric values.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.Multiply"/>
 		public static readonly BinaryOperator Multiply = new SimpleOperator(BinaryOperatorType.Multiply, (left, right) => left.Multiply(right));
+
+		/// <summary>
+		/// The binary operator that computes the modulo of two numeric values.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.Modulo"/>
 		public static readonly BinaryOperator Modulo = new SimpleOperator(BinaryOperatorType.Modulo, (left, right) => left.Modulus(right));
+
+		/// <summary>
+		/// The binary operator that divides two numeric values.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.Divide"/>
 		public static readonly BinaryOperator Divide = new SimpleOperator(BinaryOperatorType.Divide, (left, right) => left.Divide(right));
+
+		/// <summary>
+		/// The operator that assesses the equality of two values.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.Equal"/>
 		public static readonly BinaryOperator Equal = new SimpleOperator(BinaryOperatorType.Equal, (left, right) => left.IsEqualTo(right));
+
+		/// <summary>
+		/// The operator that assesses the inequality of two values.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.NotEqual"/>
 		public static readonly BinaryOperator NotEqual = new SimpleOperator(BinaryOperatorType.NotEqual, (left, right) => left.IsNotEqualTo(right));
+
+		/// <summary>
+		/// The operator that assesses the first of two values is greather than the second.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.GreaterThan"/>
 		public static readonly BinaryOperator GreaterThan = new SimpleOperator(BinaryOperatorType.GreaterThan, (left, right) => left.IsGreaterThan(right));
+
+		/// <summary>
+		/// The operator that assesses the first of two values is smaller than the second.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.SmallerThan"/>
 		public static readonly BinaryOperator SmallerThan = new SimpleOperator(BinaryOperatorType.SmallerThan, (left, right) => left.IsSmallerThan(right));
 
+		/// <summary>
+		/// The operator that assesses the first of two values is greater or equal than the second.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.GreaterOrEqualThan"/>
 		public static readonly BinaryOperator GreaterOrEqualThan =
 			new SimpleOperator(BinaryOperatorType.GreaterOrEqualThan, (left, right) => left.IsGreterOrEqualThan(right));
+
+		/// <summary>
+		/// The operator that assesses the first of two values is smaller or equal than the second.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.SmallerOrEqualThan"/>
 		public static readonly BinaryOperator SmallerOrEqualThan =
 			new SimpleOperator(BinaryOperatorType.SmallerOrEqualThan, (left, right) => left.IsSmallerOrEqualThan(right));
 
+		/// <summary>
+		/// The operator that assesses the equivalence of two values.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.Is"/>
 		public static readonly BinaryOperator Is = new SimpleOperator(BinaryOperatorType.Is, (left, right) => left.Is(right));
+
+		/// <summary>
+		/// The operator that assesses the non equivalence of two values.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.IsNot"/>
 		public static readonly BinaryOperator IsNot = new SimpleOperator(BinaryOperatorType.IsNot, (left, right) => left.IsNot(right));
+
+		/// <summary>
+		/// The operator that assesses the first string operand is contained into the second string operand.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.Like"/>
 		public static readonly BinaryOperator Like = new SimpleOperator(BinaryOperatorType.Like, (left, right) => left.IsLike(right));
+
+		/// <summary>
+		/// The operator that assesses the first string operand is not contained into the second string operand.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.NotLike"/>
 		public static readonly BinaryOperator NotLike = new SimpleOperator(BinaryOperatorType.NotLike, (left, right) => left.IsNotLike(right));
 
 		public static readonly BinaryOperator And = new SimpleOperator(BinaryOperatorType.And, (left, right) => left.And(right));
@@ -161,6 +233,14 @@ namespace Deveel.Data.Deveel.Data.Sql {
 			get { return subType != OperatorSubType.None; }
 		}
 
+		/// <summary>
+		/// Gets a boolean value indicating if this is an arithmetic operator.
+		/// </summary>
+		/// <seealso cref="BinaryOperatorType.Add"/>
+		/// <seealso cref="BinaryOperatorType.Multiply"/>
+		/// <seealso cref="BinaryOperatorType.Modulo"/>
+		/// <seealso cref="BinaryOperatorType.Divide"/>
+		/// <seealso cref="BinaryOperatorType.Subtract"/>
 		public bool IsArithmetic {
 			get {
 				return OperatorType == BinaryOperatorType.Divide ||
@@ -171,6 +251,10 @@ namespace Deveel.Data.Deveel.Data.Sql {
 			}
 		}
 
+		/// <summary>
+		/// Gets a boolean value indicating if this operator represents
+		/// a search pattern (eg. <c>LIKE</c>).
+		/// </summary>
 		public bool IsPattern {
 			get {
 				return OperatorType == BinaryOperatorType.Like ||
@@ -178,14 +262,21 @@ namespace Deveel.Data.Deveel.Data.Sql {
 			}
 		}
 
-		public DataType ReturnType() {
-			if (IsArithmetic)
-				return PrimitiveTypes.Numeric();
-			return PrimitiveTypes.Boolean();
-		}
+		/// <summary>
+		/// Gets the assesed data type of the result of a binary
+		/// operation between two objects.
+		/// </summary>
+		/// <value>
+		///   Returns a <see cref="DataType"/> that represents the type
+		///   of the result object from an operation
+		/// </value>
+		public DataType ResultType {
+			get {
+				if (IsArithmetic)
+					return PrimitiveTypes.Numeric();
 
-		public DataType ReturnType(DataType leftType, DataType rightType) {
-			return leftType.Wider(rightType);
+				return PrimitiveTypes.Boolean();
+			}
 		}
 
 		/// <summary>
@@ -241,6 +332,14 @@ namespace Deveel.Data.Deveel.Data.Sql {
 			throw new InvalidOperationException(String.Format("Cannot inverse operator '{0}'", OperatorType));
 		}
 
+		/// <summary>
+		/// Gets an operator that is equivalent to the given type.
+		/// </summary>
+		/// <param name="operatorType">The type of the binary operator to return.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="BinaryOperator"/> that is compatible
+		/// with the given <paramref name="operatorType">type</paramref>.
+		/// </returns>
 		public static BinaryOperator Get(BinaryOperatorType operatorType) {
 			switch (operatorType) {
 				case BinaryOperatorType.Equal:
@@ -310,12 +409,46 @@ namespace Deveel.Data.Deveel.Data.Sql {
 			throw new InvalidOperationException("Cannot reverse a non conditional operator.");
 		}
 
+		/// <summary>
+		/// When overridden by a derived type, this method computes an operation
+		/// between two static values to obtain a result.
+		/// </summary>
+		/// <param name="left">The left hand side of the operation.</param>
+		/// <param name="right">The right hand side of the operation.</param>
+		/// <param name="context">The <see cref="EvaluateContext">context</see> used
+		/// to compute the operation.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="DataObject"/> that is the result of the
+		/// operation between the two provided values, given the context.
+		/// </returns>
 		public abstract DataObject Evaluate(DataObject left, DataObject right, EvaluateContext context);
 
+		/// <summary>
+		/// Computes a static binary operation between two values to obtain a result.
+		/// </summary>
+		/// <param name="left">The left hand side of the operation.</param>
+		/// <param name="right">The right hand side of the operation.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="DataObject"/> that is the result of the
+		/// operation between the two provided values.
+		/// </returns>
+		/// <seealso cref="Evaluate(DataObject, DataObject, EvaluateContext)"/>
 		public DataObject Evaluate(DataObject left, DataObject right) {
 			return Evaluate(left, right, null);
 		}
 
+		/// <summary>
+		/// Forms a new operator as a sub-query operator given the specified form.
+		/// </summary>
+		/// <param name="type">The type of sub-query operator to form.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="BinaryOperator"/> that is a form
+		/// of the given sub-query operator type given.
+		/// </returns>
+		/// <exception cref="InvalidOperationException">
+		/// If the <see cref="OperatorType">type</see> of this operator cannot
+		/// be formed as sub-query operator.
+		/// </exception>
 		public BinaryOperator AsSubQuery(OperatorSubType type) {
 			BinaryOperator resultOp = null;
 			if (type == OperatorSubType.Any) {
@@ -343,6 +476,20 @@ namespace Deveel.Data.Deveel.Data.Sql {
 			return OperatorType.GetHashCode() ^ subType.GetHashCode();
 		}
 
+		/// <summary>
+		/// Checks if this operator is equivalent to the given type.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// This method is particularly useful when the operator is a
+		/// sub-query form and an higher-level operation must be computed.
+		/// </para>
+		/// </remarks>
+		/// <param name="operatorType">The kind of operator tho verify equivalence.</param>
+		/// <returns>
+		/// Returns <c>true</c> if this binary operator is equivalent to the given
+		/// <paramref name="operatorType"/> or <c>false</c> otherwise.
+		/// </returns>
 		public bool IsOfType(BinaryOperatorType operatorType) {
 			return OperatorType == operatorType;
 		}
@@ -362,6 +509,19 @@ namespace Deveel.Data.Deveel.Data.Sql {
 			return sb.ToString();
 		}
 
+		/// <summary>
+		/// Parses the given string into a valid binary operator.
+		/// </summary>
+		/// <param name="s">The input string to parse.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="BinaryOperator"/> equivalent
+		/// to the input string given.
+		/// </returns>
+		/// <exception cref="FormatException">
+		/// If the given string does not represent a valid operator.
+		/// </exception>
+		/// <seealso cref="ToString"/>
+		/// <seealso cref="TryParse"/>
 		public static BinaryOperator Parse(string s) {
 			BinaryOperator result;
 			if (!TryParse(s, out result))
@@ -370,6 +530,17 @@ namespace Deveel.Data.Deveel.Data.Sql {
 			return result;
 		}
 
+		/// <summary>
+		/// Attempts to parse a string given and return a valid binary operator.
+		/// </summary>
+		/// <param name="s">The input string to parse.</param>
+		/// <param name="result">If the string input is valid, this is the output
+		/// binary operator that will be returned.</param>
+		/// <returns>
+		/// Returns <b>true</b> if the string input can be resolved to a valid
+		/// <see cref="BinaryOperator"/>, or <c>false</c> otherwise
+		/// </returns>
+		/// <seealso cref="ToString"/>
 		public static bool TryParse(string s, out BinaryOperator result) {
 			return StringMap.TryGetValue(s, out result);
 		}

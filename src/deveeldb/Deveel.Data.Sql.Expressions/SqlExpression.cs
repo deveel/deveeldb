@@ -17,7 +17,6 @@
 using System;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Deveel.Data.Sql;
 using Deveel.Data.Sql.Compile;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -115,15 +114,12 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public virtual SqlExpression Prepare(IExpressionPreparer preparer) {
-			throw new NotImplementedException();
+			var visitor = new PreparerVisitor(preparer);
+			return visitor.Visit(this);
 		}
 
 		public virtual SqlExpression Accept(SqlExpressionVisitor visitor) {
-			return this;
-		}
-
-		internal bool HasAggregate(IQueryContext context) {
-			throw new NotImplementedException();
+			return visitor.Visit(this);
 		}
 
 		/// <summary>
@@ -433,6 +429,25 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public static SqlTupleExpression Tuple(SqlExpression expr1, SqlExpression expr2, SqlExpression expr3) {
 			return Tuple(new[] {expr1, expr2, expr3});
+		}
+
+		#endregion
+
+		#region PreparerVisitor
+
+		class PreparerVisitor : SqlExpressionVisitor {
+			private readonly IExpressionPreparer preparer;
+
+			public PreparerVisitor(IExpressionPreparer preparer) {
+				this.preparer = preparer;
+			}
+
+			public override SqlExpression Visit(SqlExpression expression) {
+				if (preparer.CanPrepare(expression))
+					expression = preparer.Prepare(expression);
+
+				return base.Visit(expression);
+			}
 		}
 
 		#endregion

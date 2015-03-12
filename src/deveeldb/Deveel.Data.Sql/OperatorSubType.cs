@@ -16,7 +16,7 @@
 
 using System;
 
-namespace Deveel.Data.Deveel.Data.Sql {
+namespace Deveel.Data.Sql {
 	public enum OperatorSubType {
 		None = 0,
 		Any = 1,

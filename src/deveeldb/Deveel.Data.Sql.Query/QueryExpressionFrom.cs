@@ -225,12 +225,12 @@ namespace Deveel.Data.Sql.Query {
 				this.fromSet = fromSet;
 			}
 
-			public bool CanPrepare(object element) {
-				return element is ObjectName;
+			public bool CanPrepare(SqlExpression expression) {
+				return expression is SqlReferenceExpression;
 			}
 
-			public SqlExpression Prepare(object element) {
-				var name = (ObjectName) element;
+			public SqlExpression Prepare(SqlExpression expression) {
+				var name = ((SqlReferenceExpression) expression).ReferenceName;
 				var reference = fromSet.QualifyReference(name);
 				if (reference is ObjectName)
 					return SqlExpression.Reference((ObjectName) reference);

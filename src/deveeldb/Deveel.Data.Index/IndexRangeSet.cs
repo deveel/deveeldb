@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Deveel.Data.Sql;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Index {
 	public sealed class IndexRangeSet {

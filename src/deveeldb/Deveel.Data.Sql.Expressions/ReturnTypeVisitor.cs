@@ -35,11 +35,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitBinary(SqlBinaryExpression binaryEpression) {
-			var leftType = binaryEpression.Left.ReturnType(queryContext, variableResolver);
-			var rightType = binaryEpression.Right.ReturnType(queryContext, variableResolver);
-
-			dataType = binaryEpression.BinaryOperator.ReturnType(leftType, rightType);
-
+			dataType = binaryEpression.BinaryOperator.ResultType;
 			return base.VisitBinary(binaryEpression);
 		}
 
@@ -59,7 +55,26 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitReference(SqlReferenceExpression reference) {
+			var name = reference.ReferenceName;
+			if (reference.IsToVariable) {
+				// TODO: resolve the global variable and get the type...
+			} else {
+				dataType = variableResolver.ReturnType(name);
+			}
+
 			return base.VisitReference(reference);
+		}
+
+		public override SqlExpression Visit(SqlExpression expression) {
+			if (expression is QueryReferenceExpression)
+				return VisitQueryReference((QueryReferenceExpression) expression);
+
+			return base.Visit(expression);
+		}
+
+		private SqlExpression VisitQueryReference(QueryReferenceExpression expression) {
+			dataType = expression.Reference.ReturnType;
+			return expression;
 		}
 
 		public DataType GetType(SqlExpression expression) {

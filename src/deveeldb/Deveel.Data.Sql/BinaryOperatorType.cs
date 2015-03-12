@@ -16,13 +16,34 @@
 
 using System;
 
-namespace Deveel.Data.Deveel.Data.Sql {
+namespace Deveel.Data.Sql {
+	/// <summary>
+	/// Enumerates all the possible types of a <see cref="BinaryOperator"/>.
+	/// </summary>
 	public enum BinaryOperatorType {
+		/// <summary>
+		/// Divides two numeric values.
+		/// </summary>
 		Divide,
+
+		/// <summary>
+		/// Multiplies two numeric values.
+		/// </summary>
 		Multiply,
+
+		/// <summary>
+		/// Returns the modulo component of two numbers.
+		/// </summary>
 		Modulo,
 
+		/// <summary>
+		/// Adds two numeric values.
+		/// </summary>
 		Add,
+
+		/// <summary>
+		/// Subtracts a numeric value from another.
+		/// </summary>
 		Subtract,
 
 		/// <summary>
@@ -84,6 +105,10 @@ namespace Deveel.Data.Deveel.Data.Sql {
 		/// Either one of the values is true
 		/// </summary>
 		Or,
+
+		/// <summary>
+		/// Bitwise <c>OR</c> operator
+		/// </summary>
 		XOr
 	}
 }
