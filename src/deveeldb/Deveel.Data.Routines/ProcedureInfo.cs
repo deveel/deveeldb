@@ -18,18 +18,19 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
 	public sealed class ProcedureInfo : RoutineInfo {
-		public ProcedureInfo(RoutineName name) 
+		public ProcedureInfo(ObjectName name) 
 			: base(name) {
 		}
 
-		public ProcedureInfo(RoutineName name, RoutineParameter[] parameters) 
+		public ProcedureInfo(ObjectName name, RoutineParameter[] parameters) 
 			: base(name, parameters) {
 		}
 
-		internal override bool MatchesInvoke(RoutineInvoke invoke, IQueryContext queryContext) {
+		internal override bool MatchesInvoke(InvokeRequest invoke, IQueryContext queryContext) {
 			if (invoke == null)
 				return false;
 
@@ -39,15 +40,14 @@ namespace Deveel.Data.Routines {
 
 			for (int i = 0; i < invoke.Arguments.Length; i++) {
 				// TODO: support variable evaluation here? or evaluate parameters before reaching here?
-				if (!invoke.Arguments[i].IsConstant)
+				if (!invoke.Arguments[i].IsConstant())
 					return false;
 
-				var obj = invoke.Arguments[i].Evaluate(null, null, queryContext);
-				var argType = obj.TType;
+				var argType = invoke.Arguments[i].ReturnType(queryContext, null);
 				var paramType = Parameters[i].Type;
 
 				// TODO: verify if this is assignable (castable) ...
-				if (!paramType.IsComparableType(argType))
+				if (!paramType.IsComparable(argType))
 					return false;
 			}
 

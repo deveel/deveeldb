@@ -27,8 +27,9 @@ namespace Deveel.Data.Sql.Compile {
 	/// </remarks>
 	[Serializable]
 	public sealed class Token {
-		internal Token(int column, int line, string text) {
+		internal Token(int column, int line, string text, object value) {
 			Text = text;
+			Value = value;
 			Line = line;
 			Column = column;
 		}
@@ -48,6 +49,11 @@ namespace Deveel.Data.Sql.Compile {
 		/// Gets the text that represents the token.
 		/// </summary>
 		public string Text { get; private set; }
+
+		/// <summary>
+		/// Gets the value of the token.
+		/// </summary>
+		public object Value { get; private set; }
 
 		/// <inheritdoc/>
 		public override string ToString() {

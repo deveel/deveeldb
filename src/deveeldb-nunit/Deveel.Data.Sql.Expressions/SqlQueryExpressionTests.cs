@@ -116,10 +116,10 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsTrue(queryExpression.FromClause.AllTables.First().IsSubQuery);
 		}
 
-		[Test]
-		public void FluidSelectWithClause() {
-			var expression = SqlQueryBuilder.Configure().Items(list => list.Column("col1", "a")).From("table").AsExpression();
-		}
+		//[Test]
+		//public void FluidSelectWithClause() {
+		//	var expression = SqlQueryBuilder.Configure().Items(list => list.Column("col1", "a")).From("table").AsExpression();
+		//}
 
 		[Test]
 		public void ExecuteSimpleQuery() {
@@ -137,8 +137,6 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotNull(queryExpression.FromClause);
 			Assert.AreEqual(1, queryExpression.FromClause.AllTables.Count());
 			Assert.AreEqual("table", queryExpression.FromClause.AllTables.First().Name);
-
-			queryExpression.Execute(null);
 		}
 	}
 }

@@ -28,22 +28,33 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public IEnumerable<SelectColumn> SelectColumns { get; private set; }
 
-		public FromClause FromClause { get; private set; }
+		//TODO: Group By Columns 
+
+		public FromClause FromClause { get; internal set; }
 
 		public SqlExpression WhereExpression { get; set; }
 
 		public SqlExpression HavingExpression { get; set; }
 
+		public IEnumerable<SqlExpression> GroupBy { get; set; } 
+
+		public SqlQueryExpression NextComposite { get; set; }
+
 		public override SqlExpressionType ExpressionType {
 			get { return SqlExpressionType.Query; }
 		}
 
-		public ITable Execute(IQueryContext context) {
-			var planContext = context.QueryPlanContext;
+		public override bool CanEvaluate {
+			get { return true; }
+		}
+
+		public override SqlExpression Evaluate(EvaluateContext context) {
+			var queryContext = context.QueryContext;
+			var planContext = queryContext.QueryPlanContext;
 			var planner = context.SystemContext.QueryPlanner;
 			var plan = planner.PlanQuery(planContext, this);
 
-			return plan.Evaluate(context);
+			return new SqlPreparedQueryExpression(plan);
 		}
 	}
 }

@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// from a set of sources defined, given some conditions specified.
 	/// </summary>
 	[Serializable]
-	public sealed class SqlQueryExpressionNode : SqlNode, IExpressionNode {
+	class SqlQueryExpressionNode : SqlNode, IExpressionNode {
 		/// <summary>
 		/// Gets a boolean value indicating if the selection will return
 		/// all columns from the sources specified in <see cref="FromClause"/>.

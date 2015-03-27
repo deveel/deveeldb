@@ -19,7 +19,7 @@ using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	public sealed class SelectStatementNode : SqlNode, IStatementNode {
+	class SelectStatementNode : SqlNode, IStatementNode {
 		public SqlQueryExpressionNode QueryExpression { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {

@@ -178,7 +178,7 @@ namespace Deveel.Data.Sql {
 			// Prepare the StatementTree sub-queries in the from tables
 			for (int i = 0; i < fromTables.Count; i++) {
 				var table = fromTables[i];
-				var preparedTable = (FromTable) (table as IPreparable).Prepare(preparer);
+				var preparedTable = (FromTable) ((IPreparable) table).Prepare(preparer);
 				var tableAlias = tableNames[i];
 				clause.tableNames.Insert(i, tableAlias);
 				clause.fromTables.Insert(i, preparedTable);

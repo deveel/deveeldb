@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// Represents the node that is a database table as source of a query.
 	/// </summary>
 	/// <seealso cref="IFromSourceNode"/>
-	public sealed class FromTableSourceNode : SqlNode, IFromSourceNode {
+	class FromTableSourceNode : SqlNode, IFromSourceNode {
 		/// <inheritdoc/>
 		public string Alias { get; private set; }
 

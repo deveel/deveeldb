@@ -19,9 +19,23 @@ using System;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Routines {
+	/// <summary>
+	/// The system uses instances of this interface to resolve
+	/// routines given a user invocation.
+	/// </summary>
 	public interface IRoutineResolver {
-		IRoutine ResolveRoutine(RoutineInvoke invoke, IQueryContext context);
-
-		bool IsAggregateFunction(RoutineInvoke invoke, IQueryContext context);
+		/// <summary>
+		/// Resolves a routine that matches the given invocation
+		/// within the context provided.
+		/// </summary>
+		/// <param name="request">The routine invocation request used to resolve
+		/// the routine.</param>
+		/// <param name="context">The parent query context.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="IRoutine"/> that matches the
+		/// given request, or <c>null</c> if no routine was found in the
+		/// underlying context.
+		/// </returns>
+		IRoutine ResolveRoutine(InvokeRequest request, IQueryContext context);
 	}
 }

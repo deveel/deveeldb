@@ -30,5 +30,9 @@ namespace Deveel.Data.Routines {
 				return factory;
 			}
 		}
+
+		public static DataObject Or(DataObject ob1, DataObject ob2) {
+			return ob1 != null ? (ob2.IsNull ? ob1 : (!ob1.IsNull ? ob1.Or(ob2) : ob2)) : ob2;
+		}
 	}
 }

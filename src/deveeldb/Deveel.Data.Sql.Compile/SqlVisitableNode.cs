@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// A default implementation of the <see cref="ISqlVisitableNode"/>
 	/// that performs a callback for each child node.
 	/// </summary>
-	public class SqlVisitableNode : SqlNode, ISqlVisitableNode {
+	class SqlVisitableNode : SqlNode, ISqlVisitableNode {
 		void ISqlVisitableNode.Accept(ISqlNodeVisitor visitor) {
 			OnAcceptVisit(visitor);
 		}

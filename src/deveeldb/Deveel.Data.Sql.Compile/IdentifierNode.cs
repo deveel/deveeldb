@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// no child nor parent identifier (like <see cref="ObjectNameNode"/>).
 	/// </remarks>
 	[Serializable]
-	public sealed class IdentifierNode : SqlNode {
+	class IdentifierNode : SqlNode {
 		/// <summary>
 		/// Gets the textual content of the identifier.
 		/// </summary>

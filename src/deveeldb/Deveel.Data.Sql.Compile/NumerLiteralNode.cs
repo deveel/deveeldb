@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// integer numbers, spanning from real to decimals.
 	/// </summary>
 	[Serializable]
-	public sealed class NumberLiteralNode : SqlNode {
+	class NumberLiteralNode : SqlNode {
 		internal BigDecimal BigValue { get; private set; }
 
 		/// <summary>

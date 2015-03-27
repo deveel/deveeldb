@@ -20,19 +20,32 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
+	/// <summary>
+	/// Extension methods to any <see cref="IFunction"/>.
+	/// </summary>
 	public static class FunctionExtensions {
+		/// <summary>
+		/// Executes the function given the cintext provided.
+		/// </summary>
+		/// <param name="function">The function to execute.</param>
+		/// <param name="request">The invocation information that was used to resolve 
+		/// the function.</param>
+		/// <param name="group"></param>
+		/// <param name="resolver"></param>
+		/// <param name="context"></param>
+		/// <returns></returns>
 		public static DataObject Execute(this IFunction function,
-			RoutineInvoke invoke,
+			InvokeRequest request,
 			IGroupResolver group,
 			IVariableResolver resolver,
 			IQueryContext context) {
-			var execContext = new ExecuteContext(invoke, function, resolver, group, context);
+			var execContext = new ExecuteContext(request, function, resolver, group, context);
 			var result = function.Execute(execContext);
 			return result.ReturnValue;
 		}
 
-		public static DataType ReturnType(this IFunction function, RoutineInvoke invoke, IQueryContext context, IVariableResolver resolver) {
-			var execContext = new ExecuteContext(invoke, function, resolver, null, context);
+		public static DataType ReturnType(this IFunction function, InvokeRequest request, IQueryContext context, IVariableResolver resolver) {
+			var execContext = new ExecuteContext(request, function, resolver, null, context);
 			return function.ReturnType(execContext);
 		}
 	}

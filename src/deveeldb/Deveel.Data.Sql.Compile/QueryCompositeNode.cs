@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// given composition function.
 	/// </summary>
 	[Serializable]
-	public sealed class QueryCompositeNode : SqlNode {
+	class QueryCompositeNode : SqlNode {
 		/// <summary>
 		/// Gets the function used to compose the two queries.
 		/// </summary>

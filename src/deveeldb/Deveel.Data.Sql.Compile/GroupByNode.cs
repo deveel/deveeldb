@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// A node that descrbes the <c>GROUP BY</c> clause in a SQL query.
 	/// </summary>
 	[Serializable]
-	public sealed class GroupByNode : SqlNode {
+	class GroupByNode : SqlNode {
 		/// <summary>
 		/// Gets the expression node to group the results.
 		/// </summary>

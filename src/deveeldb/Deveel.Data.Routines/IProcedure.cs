@@ -14,6 +14,17 @@
 //    limitations under the License.
 
 namespace Deveel.Data.Routines {
+    /// <summary>
+    /// A specific kind of routine that does not return
+    /// any value when executed.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Procedures have no return value but they can accept
+    /// <c>OUT</c> parameters, that can be used to obtain
+    /// mutated values within the execution.
+    /// </para>
+    /// </remarks>
 	public interface IProcedure : IRoutine {
 	}
 }

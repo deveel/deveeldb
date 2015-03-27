@@ -20,7 +20,7 @@ using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	public sealed class StatementSequenceNode : SqlNode {
+	class StatementSequenceNode : SqlNode {
 		private readonly ICollection<IStatementNode> statementNodes;
 
 		public StatementSequenceNode() {

@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
@@ -44,8 +45,32 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </remarks>
 		public IVariableResolver VariableResolver { get; private set; }
 
+		/// <summary>
+		/// Gets the object that aggregate functions will use to resolve variable groups 
+		/// </summary>
 		public IGroupResolver GroupResolver { get; private set; }
 
+		/// <summary>
+		/// Gets the query context in which an expression is evaluated.
+		/// </summary>
 		public IQueryContext QueryContext { get; private set; }
+
+		/// <summary>
+		/// Gets the context of the system the evaluation happens.
+		/// </summary>
+		/// <seealso cref="ISystemContext"/>
+		/// <seealso cref="IQueryContext.SystemContext"/>
+		public ISystemContext SystemContext {
+			get { return QueryContext.SystemContext; }
+		}
+
+		/// <summary>
+		/// Gets the current user of the context.
+		/// </summary>
+		/// <seealso cref="User"/>
+		/// <seealso cref="IQueryContext.User"/>
+		public User User {
+			get { return QueryContext.User; }
+		}
 	}
 }

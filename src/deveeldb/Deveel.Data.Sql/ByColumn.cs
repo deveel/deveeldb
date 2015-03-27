@@ -20,8 +20,8 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
-	/// Object used to represent a column in the <i>ORDER BY</i> and 
-	/// <i>GROUP BY</i> clauses of a select statement.
+	/// Object used to represent a column in the <c>ORDER BY</c> clauses 
+	/// of a select statement.
 	/// </summary>
 	[Serializable]
 	public sealed class ByColumn : IPreparable {

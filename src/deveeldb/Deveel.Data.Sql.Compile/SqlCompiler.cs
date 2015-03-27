@@ -17,6 +17,7 @@
 using System;
 using System.Linq;
 
+using Irony;
 using Irony.Ast;
 using Irony.Parsing;
 
@@ -44,37 +45,45 @@ namespace Deveel.Data.Sql.Compile {
 				throw new InvalidOperationException();
 
 			var parser = new Parser(languageData);
-			var result = parser.Parse(sqlSource);
-			if (result.HasErrors())
-				throw new SqlParseException();
+			var tree = parser.Parse(sqlSource);
+			if (tree.HasErrors())
+				throw BuildSqlException(tree.ParserMessages);
 
 			var astContext = new AstContext(languageData);
 			astContext.DefaultNodeType = typeof(SqlNode);
 			astContext.DefaultIdentifierNodeType = typeof(IdentifierNode);
 			var astCompiler = new AstBuilder(astContext);
-			astCompiler.BuildAst(result);
+			astCompiler.BuildAst(tree);
 
-			if (result.HasErrors())
-				throw new SqlParseException();
+			if (tree.HasErrors())
+				throw BuildSqlException(tree.ParserMessages);
 
-			var node = (ISqlNode) result.Root.AstNode;
+			var node = (ISqlNode) tree.Root.AstNode;
 			if (node.NodeName == "root")
 				node = node.ChildNodes.FirstOrDefault();
 
 			return node;
 		}
 
-		public StatementSequenceNode CompileStatements(string sqlSource) {
+		private SqlParseException BuildSqlException(LogMessageList parserMessages) {
+			foreach (var message in parserMessages) {
+				// TODO:
+			}
+
+			throw new SqlParseException();
+		}
+
+		internal StatementSequenceNode CompileStatements(string sqlSource) {
 			return Compile<StatementSequenceNode>(sqlSource);
 		}
 
-		public DataTypeNode CompileDataType(string s) {
+		internal DataTypeNode CompileDataType(string s) {
 			var grammar = new SqlGrammar(IgnoreCase);
 			grammar.SetRootToDataType();
 			return (DataTypeNode) ParseNode(grammar, s);
 		}
 
-		public IExpressionNode CompileExpression(string s) {
+		internal IExpressionNode CompileExpression(string s) {
 			var grammar = new SqlGrammar(IgnoreCase);
 			grammar.SetRootToExpression();
 			return (IExpressionNode) ParseNode(grammar, s);

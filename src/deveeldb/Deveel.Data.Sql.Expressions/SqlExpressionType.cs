@@ -93,6 +93,11 @@ namespace Deveel.Data.Sql.Expressions {
 		/// A query to the database to select data from
 		/// a set of tables and columns.
 		/// </summary>
-		Query
+		Query,
+
+		/// <summary>
+		/// A query that was prepared and ready to be executed
+		/// </summary>
+		PreparedQuery
 	}
 }

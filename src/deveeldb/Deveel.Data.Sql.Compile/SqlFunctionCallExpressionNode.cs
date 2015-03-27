@@ -19,10 +19,10 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Compile {
 	/// <summary>
-	/// A node in a SQL command tree that is used to invoke a function.
+	/// A node in a SQL command tree that is used to request a function.
 	/// </summary>
 	[Serializable]
-	public sealed class SqlFunctionCallExpressionNode : SqlNode, IExpressionNode {
+	class SqlFunctionCallExpressionNode : SqlNode, IExpressionNode {
 		/// <summary>
 		/// Gets the name of the function to be invoked.
 		/// </summary>

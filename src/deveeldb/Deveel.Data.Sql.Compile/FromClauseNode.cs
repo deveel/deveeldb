@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// </summary>
 	/// <seealso cref="IFromSourceNode"/>
 	[Serializable]
-	public sealed class FromClauseNode : SqlNode {
+	class FromClauseNode : SqlNode {
 		/// <summary>
 		/// Gets a read-only list of sources for the query.
 		/// </summary>

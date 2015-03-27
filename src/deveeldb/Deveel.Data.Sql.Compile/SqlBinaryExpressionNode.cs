@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// Represents an expression that evaluates between two other expressions.
 	/// </summary>
 	[Serializable]
-	public sealed class SqlBinaryExpressionNode : SqlNode, IExpressionNode {
+	class SqlBinaryExpressionNode : SqlNode, IExpressionNode {
 		private bool leftSeen;
 
 		/// <summary>

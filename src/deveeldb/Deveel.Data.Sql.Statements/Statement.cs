@@ -50,7 +50,15 @@ namespace Deveel.Data.Sql.Statements {
 
 		public static IEnumerable<Statement> Parse(string sqlSource) {
 			var compiler = new SqlCompiler();
-			var sequence = compiler.CompileStatements(sqlSource);
+			StatementSequenceNode sequence;
+
+			try {
+				sequence = compiler.CompileStatements(sqlSource);
+			} catch (SqlParseException) {
+				throw;
+			} catch (Exception ex) {
+				throw;
+			}
 
 			var visitor = new StatementVisitor();
 			visitor.VisitSequence(sequence);

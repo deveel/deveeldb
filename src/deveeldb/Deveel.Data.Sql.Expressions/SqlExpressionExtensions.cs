@@ -20,7 +20,18 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {
+	/// <summary>
+	/// Extension methods to <see cref="SqlExpression"/>
+	/// </summary>
 	public static class SqlExpressionExtensions {
+		/// <summary>
+		/// Extracts the name of the reference from the expression.
+		/// </summary>
+		/// <param name="expression">The expression that encapsulates the reference</param>
+		/// <returns>
+		/// Returns an <see cref="ObjectName"/> instance if the given <paramref name="expression"/>
+		/// is a <see cref="SqlReferenceExpression"/>, otherwise it returns <c>null</c>.
+		/// </returns>
 		public static ObjectName AsReferenceName(this SqlExpression expression) {
 			var refExpression = expression as SqlReferenceExpression;
 			if (refExpression == null)
@@ -29,6 +40,24 @@ namespace Deveel.Data.Sql.Expressions {
 			return refExpression.ReferenceName;
 		}
 
+		/// <summary>
+		/// Evaluates the expression and reduces to a constant expression,
+		/// whose value is then returned.
+		/// </summary>
+		/// <param name="expression">The expression to evaluate.</param>
+		/// <param name="context">The context used to evaluate the expression.</param>
+		/// <returns>
+		/// Returns a <see cref="DataObject"/> is the result of the
+		/// <see cref="SqlExpression.Evaluate(Deveel.Data.Sql.Expressions.EvaluateContext)"/>
+		/// is a <see cref="SqlConstantExpression"/>.
+		/// </returns>
+		/// <exception cref="InvalidOperationException">
+		/// If the expression could not be evaluated or if the result of the
+		/// evaluation is not a <see cref="SqlConstantExpression"/>.
+		/// </exception>
+		/// <seealso cref="SqlExpression.Evaluate(Deveel.Data.Sql.Expressions.EvaluateContext)"/>
+		/// <seealso cref="SqlConstantExpression"/>
+		/// <seealso cref="SqlConstantExpression.Value"/>
 		public static DataObject EvaluateToConstant(this SqlExpression expression, EvaluateContext context) {
 			var evalExp = expression.Evaluate(context);
 			if (evalExp == null)
@@ -45,14 +74,42 @@ namespace Deveel.Data.Sql.Expressions {
 			return expression.EvaluateToConstant(new EvaluateContext(queryContext, variableResolver));
 		}
 
+		/// <summary>
+		/// Gets the return type of the expression when evaluated.
+		/// </summary>
+		/// <param name="expression">The expression to check.</param>
+		/// <param name="queryContext">The query context used to evaluate the return type
+		/// of the expression.</param>
+		/// <param name="variableResolver">The object used to resolve variable references in the expression tree.</param>
+		/// <returns>
+		/// Returns the <see cref="DataType"/> that an evaluation of the expression
+		/// would return, or <c>null</c> if the final result of the evaluation has
+		/// no return type.
+		/// </returns>
 		public static DataType ReturnType(this SqlExpression expression, IQueryContext queryContext, IVariableResolver variableResolver) {
 			var visitor = new ReturnTypeVisitor(queryContext, variableResolver);
 			return visitor.GetType(expression);
 		}
 
+		/// <summary>
+		/// Verifies if the expression contains any aggregate function
+		/// in the tree.
+		/// </summary>
+		/// <param name="expression">The expression to verify.</param>
+		/// <param name="queryContext"></param>
+		/// <returns>
+		/// Returns <c>true</c> if the expression has any aggregate function in its tree,
+		/// or <c>false</c> otherwise.
+		/// </returns>
 		public static bool HasAggregate(this SqlExpression expression, IQueryContext queryContext) {
 			var visitor = new AggregateChecker(queryContext);
 			return visitor.HasAggregate(expression);
+		}
+
+		public static bool IsConstant(this SqlExpression expression) {
+			var visitor = new ConstantVisitor();
+			visitor.Visit(expression);
+			return visitor.IsConstant;
 		}
 	}
 }

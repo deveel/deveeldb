@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// <c>FROM</c> clause.
 	/// </summary>
 	/// <seealso cref="IFromSourceNode"/>
-	public sealed class FromQuerySourceNode : SqlNode, IFromSourceNode {
+	class FromQuerySourceNode : SqlNode, IFromSourceNode {
 		/// <summary>
 		/// Gets the <see cref="SqlQueryExpressionNode">node</see> that represents
 		/// the sub-qury that is the source of a query.

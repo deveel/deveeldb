@@ -17,246 +17,373 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
-using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
+using Deveel.Data.Routines.Fluid;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
-	public abstract class FunctionFactory : IRoutineResolver {
-		private readonly Dictionary<FunctionInfo, object> functionTypeMapping;
-		private readonly Dictionary<string, string> aliases;
- 
+	public abstract class FunctionFactory : IRoutineResolver, IConfigurationContext {
 		private bool initd;
+		private readonly IList<FunctionConfiguration> configurations;
+		private IDictionary<FunctionInfo, IFunction> functions;
 
 		protected FunctionFactory() {
-			functionTypeMapping = new Dictionary<FunctionInfo, object>();
-			aliases = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
-
-			GlobExpression = SqlExpression.Constant("*");
-			GlobList = new SqlExpression[] { GlobExpression };
+			configurations = new List<FunctionConfiguration>();
 		}
 
-		private static readonly char[] Alpha = "abcdefghkjilmnopqrstuvwxyz".ToCharArray();
+		public abstract ObjectName SchemaName { get; }
 
-		public static SqlExpression GlobExpression { get; private set; }
-
-		public static SqlExpression[] GlobList { get; private set; }
-
-		protected void Alias(string functionName, string alias) {
-			if (!functionTypeMapping.Any(x => String.Equals(x.Key.Name.Name, functionName, StringComparison.OrdinalIgnoreCase)))
-				throw new ArgumentException(String.Format("Function {0} was not defined by this factory.", functionName));
-
-			if (functionTypeMapping.Any(x => String.Equals(x.Key.Name.Name, alias, StringComparison.OrdinalIgnoreCase)))
-				throw new InvalidOperationException(String.Format("A function named '{0}' is already defined in this factory."));
-
-			aliases[alias] = functionName;
-		}
-
-		protected void AddFunction(IFunction function) {
-			if (function == null)
-				throw new ArgumentNullException("function");
-
-			try {
-				if (IsFunctionDefined(function.Name.ToString(), function.Parameters))
-					throw new DatabaseConfigurationException(String.Format("Function '{0}' is already defined in factory.",
-						function.Name));
-
-				var info = new FunctionInfo(function.Name, function.Parameters) {FunctionType = function.FunctionType};
-				functionTypeMapping[info] = function;
-			} catch (DatabaseConfigurationException) {
-				throw;
-			} catch (Exception ex) {
-				throw new DatabaseConfigurationException("Unable to add the function to the factory", ex);
-			}
-		}
-
-		protected void AddFunction(FunctionInfo info, Type type) {
-			if (info == null)
-				throw new ArgumentNullException("info");
-			if (type == null)
-				throw new ArgumentNullException("type");
-
-			try {
-				if (IsFunctionDefined(info.Name.ToString(), info.Parameters))
-					throw new DatabaseConfigurationException(String.Format("Function '{0}' is already defined in factory.", info));
-				if (!typeof(IFunction).IsAssignableFrom(type))
-					throw new ArgumentException(String.Format("The type '{0}' is not a valid function.", type));
-
-				functionTypeMapping[info] = type;
-			} catch(DatabaseConfigurationException) {
-				throw;
-			} catch (Exception ex) {
-				throw new DatabaseConfigurationException("An error occurred while adding a function to the facory", ex);
-			}
-		}
-
-		protected void AddFunction(string name, Type type) {
-			AddFunction(name, type, FunctionType.Static);
-		}
-
-		protected void AddFunction(string name, Type type, FunctionType functionType) {
-			AddFunction(name, new RoutineParameter[0], type, functionType);
-		}
-
-		protected void AddFunction(string name, RoutineParameter[] parameters, Type type, FunctionType functionType) {
-				// We add these functions to the SYSTEM schema by default...
-			AddFunction(new FunctionInfo(new ObjectName(SystemSchema.SchemaName, name), parameters) { FunctionType = functionType }, type);
-		}
-
-		protected void AddFunction(string name, RoutineParameter[] parameters, Type type) {
-			AddFunction(name, parameters, type, FunctionType.Static);
-		}
-
-		protected void AddFunction(string name, RoutineParameter parameter, Type type) {
-			AddFunction(name, parameter, type, FunctionType.Static);
-		}
-
-		protected void AddFunction(string name, RoutineParameter parameter, Type type, FunctionType functionType) {
-			AddFunction(name, new[] { parameter }, type, functionType);
-		}
-
-		/// <summary>
-		/// Removes a static function from this factory.
-		/// </summary>
-		/// <param name="name"></param>
-		protected void RemoveFunction(String name) {
-			var key = functionTypeMapping.Keys.FirstOrDefault(x => String.Equals(name, x.Name.Name, StringComparison.OrdinalIgnoreCase));
-			if (key == null)
-				throw new ApplicationException("Function '" + name + "' is not defined in this factory.");
-
-			if (!functionTypeMapping.Remove(key))
-				throw new ApplicationException("An error occurred while removing function '" + name + "' from the factory.");
-		}
-
-		/// <summary>
-		/// Returns true if the function name is defined in this factory.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		protected bool IsFunctionDefined(String name) {
-			return IsFunctionDefined(name, new RoutineParameter[0]);
-		}
-
-		protected bool IsFunctionDefined(string name, RoutineParameter[] parameters) {
-			name = UnAlias(name);
-
-			var info = functionTypeMapping.Where(x => x.Key.Name.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
-			if (info.Length == 0)
-				return false;
-
-			foreach (var mapping in info) {
-				if (mapping.Key.Parameters.Length != parameters.Length)
-					continue;
-
-				if (mapping.Key.Parameters.Where((t, i) => t.Type.IsComparable(parameters[i].Type)).Any())
-					return true;
-			}
-
-			return false;
+		public IRoutine ResolveRoutine(InvokeRequest request, IQueryContext context) {
+			throw new NotImplementedException();
 		}
 
 		public void Init() {
 			if (!initd) {
 				OnInit();
+
+				BuildFunctions();
 				initd = true;
+			}
+		}
+
+		private void BuildFunctions() {
+			if (functions == null)
+				functions = new Dictionary<FunctionInfo, IFunction>();
+
+			foreach (var configuration in configurations) {
+				var functionInfo = configuration.FunctionInfo;
+				foreach (var info in functionInfo) {
+					var function = configuration.AsFunction();
+					functions.Add(info, function);
+				}
 			}
 		}
 
 		protected abstract void OnInit();
 
-		protected virtual IFunction OnFunctionCreate(RoutineInfo info, Type functionType) {
-			const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-			var paramTypes = new Type[] {typeof (ObjectName), typeof (RoutineParameter[])};
-
-			var ctor = functionType.GetConstructor(flags, null, paramTypes, null);
-			if (ctor != null)
-				return (IFunction) ctor.Invoke(null, new object[] {info.Name, info.Parameters});
-
-			paramTypes = new Type[]{typeof(RoutineInfo)};
-			ctor = functionType.GetConstructor(flags, null, paramTypes, null);
-			if (ctor != null)
-				return (IFunction) ctor.Invoke(null, new object[] {info});
-
-			return null;
+		protected IFunctionConfiguration New() {
+			var config = new FunctionConfiguration(this);
+			configurations.Add(config);
+			return config;
 		}
 
-		private RoutineInvoke UnAlias(RoutineInvoke invoke) {
-			var name = invoke.RoutineName.Name;
-
-			string alias;
-			if (!aliases.TryGetValue(name, out alias))
-				return invoke;
-
-			return new RoutineInvoke(new ObjectName(invoke.RoutineName.Parent, alias), invoke.Arguments);
+		protected IFunctionConfiguration New(string name) {
+			return New().Named(new ObjectName(SchemaName, name));
 		}
 
-		private string UnAlias(string name) {
-			string alias;
-			if (!aliases.TryGetValue(name, out alias))
-				return name;
+		#region FunctionConfiguration
 
-			return alias;
-		}
+		class FunctionConfiguration : IAggregateFunctionConfiguration, IRoutineConfiguration {
+			private readonly FunctionFactory factory;
+			private readonly Dictionary<string, RoutineParameter> parameters;
+			private List<ObjectName> aliases;
 
-		public IRoutine ResolveRoutine(RoutineInvoke invoke, IQueryContext context) {
-			invoke = UnAlias(invoke);
+			private Func<ExecuteContext, DataType> returnTypeFunc;
+			private Func<ExecuteContext, ExecuteResult> executeFunc;
+			private Func<DataObject, DataObject, DataObject> simpleExecuteFunc;
+			private Func<ExecuteContext, DataObject, DataObject> afterAggregateFunc;
 
-			object arg = null;
-			FunctionInfo info = null;
-			foreach (var mapping in functionTypeMapping) {
-				if (mapping.Key.MatchesInvoke(invoke, context)) {
-					if (arg != null)
-						throw new AmbiguousMatchException(String.Format("More than one overload of '{0}' matches the given call.", invoke.RoutineName));
+			public FunctionConfiguration(FunctionFactory factory) {
+				this.factory = factory;
+				parameters = new Dictionary<string, RoutineParameter>();
+				FunctionType = FunctionType.Static;
+			}
 
-					info = mapping.Key;
-					arg = mapping.Value;
+			public FunctionType FunctionType { get; private set; }
+
+			public FunctionInfo[] FunctionInfo {
+				get {
+					var result = new List<FunctionInfo> {new FunctionInfo(FunctionName, parameters.Values.ToArray())};
+					if (aliases != null && aliases.Count > 0)
+						result.AddRange(aliases.Select(name => new FunctionInfo(name, parameters.Values.ToArray())));
+
+					return result.ToArray();
 				}
 			}
 
-			if (arg == null)
-				return null;
+			public ObjectName FunctionName { get; private set; }
 
-			if (arg is IFunction)
-				return (IFunction) arg;
+			public RoutineParameter[] Parameters {
+				get { return parameters.Values.ToArray(); }
+			}
 
-			if (arg is Type) {
-				try {
-					return OnFunctionCreate(info, (Type) arg);
-				} catch (TargetInvocationException e) {
-					throw new Exception(e.InnerException.Message);
-				} catch (Exception e) {
-					throw new Exception(e.Message);
+			public bool HasParameter(string name) {
+				return parameters.ContainsKey(name);
+			}
+
+			public bool HasUnboundedParameter() {
+				return parameters.Values.Any(x => x.IsUnbounded);
+			}
+
+			public DataType ReturnType(ExecuteContext context) {
+				if (returnTypeFunc != null)
+					return returnTypeFunc(context);
+
+				throw new InvalidOperationException();
+			}
+
+			public IFunctionConfiguration Named(ObjectName name) {
+				if (name == null)
+					throw new ArgumentNullException("name");
+
+				var parent = name.Parent;
+
+				if (!factory.SchemaName.Equals(parent))
+					throw new ArgumentException();
+
+				FunctionName = name;
+				return this;
+			}
+
+			public IFunctionConfiguration WithAlias(ObjectName alias) {
+				if (alias == null)
+					throw new ArgumentNullException("alias");
+
+				if (FunctionName == null)
+					throw new ArgumentException("The function has no name configured and cannot be aliased.");
+
+				var parent = alias.Parent;
+
+				if (!factory.SchemaName.Equals(parent))
+					throw new ArgumentException();
+
+				if (aliases == null)
+					aliases = new List<ObjectName>();
+
+				aliases.Add(alias);
+
+				return this;
+			}
+
+			public IFunctionConfiguration WithParameter(Action<IFunctionParameterConfiguration> config) {
+				var paramConfig = new FunctionParameterConfiguration(this);
+				if (config != null) {
+					config(paramConfig);
+
+					var param = paramConfig.AsParameter();
+					parameters.Add(param.Name, param);
 				}
+
+				return this;
 			}
 
-			if (arg is Func<RoutineInfo, IFunction>) {
-				return ((Func<RoutineInfo, IFunction>)arg)(info);
-			}
-			
-			if (arg is Action<FunctionBuilder>) {
-				var functionBuilder = FunctionBuilder.New(info.Name);
-				functionBuilder = info.Parameters
-					.Aggregate(functionBuilder,
-						(current, param) => current.WithParameter(param.Name, param.Type, param.Direction, param.Attributes));
-
-				functionBuilder = functionBuilder.OfType(info.FunctionType);
-
-				((Action<FunctionBuilder>) arg)(functionBuilder);
-
-				return functionBuilder;
+			public IAggregateFunctionConfiguration Aggregate() {
+				FunctionType = FunctionType.Aggregate;
+				return this;
 			}
 
-			return null;
+			public IFunctionConfiguration ReturnsType(Func<ExecuteContext, DataType> returns) {
+				returnTypeFunc = returns;
+				return this;
+			}
+
+			public IFunctionConfiguration WhenExecute(Func<ExecuteContext, ExecuteResult> execute) {
+				executeFunc = execute;
+				return this;
+			}
+
+			public IFunctionConfiguration WhenExecute(Func<DataObject, DataObject, DataObject> execute) {
+				simpleExecuteFunc = execute;
+				return this;
+			}
+
+			public IAggregateFunctionConfiguration OnAfterAggregate(Func<ExecuteContext, DataObject, DataObject> afterAggregate) {
+				if (FunctionType != FunctionType.Aggregate)
+					throw new InvalidOperationException("The function is not aggregate.");
+
+				afterAggregateFunc = afterAggregate;
+				return this;
+			}
+
+			public IFunction AsFunction() {
+				return new ConfiguredFunction(this);
+			}
+
+			public ExecuteResult Execute(ExecuteContext context) {
+				if (executeFunc == null)
+					throw new InvalidOperationException("The function has no body defined");
+
+				if (FunctionType == FunctionType.Aggregate) {
+					if (context.GroupResolver == null)
+						throw new InvalidOperationException(String.Format("Function '{0}' can only be used as an aggregate function.",
+							FunctionName));
+
+					DataObject result = null;
+
+					// All aggregates functions return 'null' if group size is 0
+					int size = context.GroupResolver.Count;
+					if (size == 0) {
+						// Return a NULL of the return type
+						return context.FunctionResult(new DataObject(ReturnType(context), SqlNull.Value));
+					}
+
+					DataObject val;
+					var v = context.Arguments[0].AsReferenceName();
+
+					// If the aggregate parameter is a simple variable, then use optimal
+					// routine,
+					if (v != null) {
+						for (int i = 0; i < size; ++i) {
+							val = context.GroupResolver.Resolve(v, i);
+
+							if (simpleExecuteFunc != null) {
+								result = simpleExecuteFunc(result, val);
+							} else {
+								var args = new SqlExpression[] {
+									SqlExpression.Constant(result),
+									SqlExpression.Constant(val)
+								};
+
+								var newRequest = new InvokeRequest(FunctionName, args);
+								var tempContext = new ExecuteContext(newRequest, context.Routine, context.VariableResolver,
+									context.GroupResolver, context.QueryContext);
+
+								var execResult = executeFunc(tempContext);
+
+								if (!execResult.HasReturnValue)
+									throw new InvalidOperationException();
+
+								result = execResult.ReturnValue;
+							}
+						}
+					} else {
+						// Otherwise we must resolve the expression for each entry in group,
+						// This allows for expressions such as 'sum(quantity * price)' to
+						// work for a group.
+						SqlExpression exp = context.Arguments[0];
+						for (int i = 0; i < size; ++i) {
+							val = exp.EvaluateToConstant(context.QueryContext, context.GroupResolver.GetVariableResolver(i));
+
+							if (simpleExecuteFunc != null) {
+								result = simpleExecuteFunc(result, val);
+							} else {
+								var args = new SqlExpression[] {
+									SqlExpression.Constant(result),
+									SqlExpression.Constant(val)
+								};
+
+								var newRequest = new InvokeRequest(FunctionName, args);
+								var tempContext = new ExecuteContext(newRequest, context.Routine, context.VariableResolver,
+									context.GroupResolver, context.QueryContext);
+
+								var execResult = executeFunc(tempContext);
+
+								if (!execResult.HasReturnValue)
+									throw new InvalidOperationException();
+
+								result = execResult.ReturnValue;
+							}
+						}
+					}
+
+					// Post method.
+					if (afterAggregateFunc != null)
+						result = afterAggregateFunc(context, result);
+
+					return context.FunctionResult(result);
+				}
+
+				return executeFunc(context);
+			}
+
+			public IConfigurationContext Context {
+				get { return factory; }
+			}
 		}
 
-		public bool IsAggregateFunction(RoutineInvoke invoke, IQueryContext context) {
-			var function = ResolveRoutine(invoke, context);
-			if (function == null)
-				return false;
+		#endregion
 
-			return ((IFunction) function).FunctionType == FunctionType.Aggregate;
+		#region FunctionParemeterConfiguration
+
+		class FunctionParameterConfiguration : IFunctionParameterConfiguration {
+			private readonly FunctionConfiguration configuration;
+
+			private string parameterName;
+			private DataType dataType;
+			private ParameterAttributes attributes;
+
+			public FunctionParameterConfiguration(FunctionConfiguration configuration) {
+				this.configuration = configuration;
+
+				attributes = new ParameterAttributes();
+				dataType = PrimitiveTypes.Numeric();
+			}
+
+			public IFunctionParameterConfiguration Named(string name) {
+				if (String.IsNullOrEmpty(name))
+					throw new ArgumentNullException("name");
+
+				if (configuration.HasParameter(name))
+					throw new ArgumentException(String.Format("A parameter with name '{0}' was already configured for the function", name), "name");
+
+				parameterName = name;
+
+				return this;
+			}
+
+			public IFunctionParameterConfiguration OfType(DataType type) {
+				if (type == null)
+					throw new ArgumentNullException("type");
+
+				dataType = type;
+
+				return this;
+			}
+
+			public IFunctionParameterConfiguration Unbounded(bool flag) {
+				if (configuration.HasUnboundedParameter())
+					throw new ArgumentException("An unbounded parameter is already configured");
+
+				if (flag)
+					attributes |= ParameterAttributes.Unbounded;
+
+				return this;
+			}
+
+			public RoutineParameter AsParameter() {
+				return new RoutineParameter(parameterName, dataType, attributes);
+			}
 		}
-	}
+
+		#endregion
+
+		#region ConfiguredFunction
+
+		class ConfiguredFunction : IFunction {
+			private readonly FunctionConfiguration configuration;
+
+			public ConfiguredFunction(FunctionConfiguration configuration) {
+				this.configuration = configuration;
+			}
+
+			RoutineType IRoutine.Type {
+				get { return RoutineType.Function; }
+			}
+
+			public ObjectName Name {
+				get { return configuration.FunctionName; }
+			}
+
+			public RoutineParameter[] Parameters {
+				get { return configuration.Parameters; }
+			}
+
+			public ExecuteResult Execute(ExecuteContext context) {
+				return configuration.Execute(context);
+			}
+
+			public FunctionType FunctionType {
+				get { return configuration.FunctionType; }
+			}
+
+			public DataType ReturnType(ExecuteContext context) {
+				return configuration.ReturnType(context);
+			}
+		}
+
+		#endregion
+	} 
 }

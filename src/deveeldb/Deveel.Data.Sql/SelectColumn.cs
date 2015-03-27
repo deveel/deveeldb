@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Text;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -41,8 +40,8 @@ namespace Deveel.Data.Sql {
 			if (expression == null)
 				throw new ArgumentNullException("expression");
 
-			this.Expression = expression;
-			this.Alias = alias;
+			Expression = expression;
+			Alias = alias;
 		}
 
 		/// <summary>

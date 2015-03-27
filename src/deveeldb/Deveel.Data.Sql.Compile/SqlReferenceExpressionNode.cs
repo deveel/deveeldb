@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// context (such as a table, a type, a variable, etc.).
 	/// </summary>
 	[Serializable]
-	public sealed class SqlReferenceExpressionNode : SqlNode, IExpressionNode {
+	class SqlReferenceExpressionNode : SqlNode, IExpressionNode {
 		/// <summary>
 		/// Gets the full name of the object references.
 		/// </summary>

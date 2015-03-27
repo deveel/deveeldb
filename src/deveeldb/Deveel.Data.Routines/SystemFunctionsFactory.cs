@@ -16,10 +16,25 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+using Deveel.Data.Routines.Fluid;
+
 namespace Deveel.Data.Routines {
 	class SystemFunctionsFactory : FunctionFactory {
+		public override ObjectName SchemaName {
+			get { return SystemSchema.SchemaName; }
+		}
+
+		private void AddAggregateFunctions() {
+			// Aggregate OR
+			New("aggor")
+				.WithParameter(p => p.Unbounded().OfDynamicType())
+				.Aggregate()
+				.WhenExecute(SystemFunctions.Or);
+		}
+
 		protected override void OnInit() {
-			
+			AddAggregateFunctions();
 		}
 	}
 }

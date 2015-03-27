@@ -432,24 +432,5 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		#endregion
-
-		#region PreparerVisitor
-
-		class PreparerVisitor : SqlExpressionVisitor {
-			private readonly IExpressionPreparer preparer;
-
-			public PreparerVisitor(IExpressionPreparer preparer) {
-				this.preparer = preparer;
-			}
-
-			public override SqlExpression Visit(SqlExpression expression) {
-				if (preparer.CanPrepare(expression))
-					expression = preparer.Prepare(expression);
-
-				return base.Visit(expression);
-			}
-		}
-
-		#endregion
 	}
 }

@@ -20,11 +20,24 @@ using System.Text;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Routines {
+	/// <summary>
+	/// Defines the metadata for a routine that are used to
+	/// resolve within a context.
+	/// </summary>
 	public abstract class RoutineInfo {
+		/// <summary>
+		/// Constructs a routine info with the given name.
+		/// </summary>
+		/// <param name="name">The name uniquely identifying the routine.</param>
 		protected RoutineInfo(ObjectName name) 
 			: this(name, new RoutineParameter[] {}) {
 		}
 
+		/// <summary>
+		/// Constructs the routine info with the given signature.
+		/// </summary>
+		/// <param name="name">The name uniquely identifying the routine.</param>
+		/// <param name="parameters">The list of parameter information of the routine.</param>
 		protected RoutineInfo(ObjectName name, RoutineParameter[] parameters) {
 			if (name == null)
 				throw new ArgumentNullException("name");
@@ -36,11 +49,17 @@ namespace Deveel.Data.Routines {
 			Parameters = parameters;
 		}
 
+		/// <summary>
+		/// Gets the name of the routine that uniquely identifies it in a system context.
+		/// </summary>
 		public ObjectName Name { get; private set; }
 
+		/// <summary>
+		/// Gets an array of parameters for the routine.
+		/// </summary>
 		public RoutineParameter[] Parameters { get; private set; }
 
-		internal abstract bool MatchesInvoke(RoutineInvoke invoke, IQueryContext queryContext);
+		internal abstract bool MatchesInvoke(InvokeRequest request, IQueryContext queryContext);
 
 		public override string ToString() {
 			var sb = new StringBuilder();

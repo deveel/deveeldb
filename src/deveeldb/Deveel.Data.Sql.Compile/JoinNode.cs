@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// </summary>
 	/// <seealso cref="IFromSourceNode"/>
 	[Serializable]
-	public sealed class JoinNode : SqlNode {
+	class JoinNode : SqlNode {
 		/// <summary>
 		/// Gets the expression used as condition for creating the joined
 		/// group in a query.

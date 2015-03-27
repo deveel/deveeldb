@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// </summary>
 	/// <seealso cref="ISqlNode"/>
 	[Serializable]
-	public class SqlNode : ISqlNode,  IAstNodeInit {
+	class SqlNode : ISqlNode,  IAstNodeInit {
 		public SqlNode() {
 			ChildNodes = new ReadOnlyCollection<ISqlNode>(new ISqlNode[0]);
 			Tokens = new ReadOnlyCollection<Token>(new Token[0]);
@@ -68,7 +68,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var iToken = parseNode.FindToken();
 			if (iToken != null) {
-				tokens.Add(new Token(iToken.Location.Column, iToken.Location.Line, iToken.ValueString));
+				tokens.Add(new Token(iToken.Location.Column, iToken.Location.Line, iToken.Text, iToken.Value));
 			}
 
 			var childNodes = new List<ISqlNode>();
@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Compile {
 				ISqlNode child;
 				if (childNode.Term is KeyTerm) {
 					var childIToken = childNode.FindToken();
-					child = new SqlKeyNode(new Token(childIToken.Location.Column, childIToken.Location.Line, childIToken.ValueString));
+					child = new SqlKeyNode(new Token(childIToken.Location.Column, childIToken.Location.Line, childIToken.Text, childIToken.Value));
 				} else {
 					child = (ISqlNode)childNode.AstNode;
 				}

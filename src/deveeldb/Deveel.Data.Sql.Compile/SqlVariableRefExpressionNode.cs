@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// References a variable within a SQL execution context.
 	/// </summary>
 	[Serializable]
-	public sealed class SqlVariableRefExpressionNode : SqlNode, IExpressionNode {
+	class SqlVariableRefExpressionNode : SqlNode, IExpressionNode {
 		/// <summary>
 		/// Gets the name of the variable to reference.
 		/// </summary>

@@ -19,10 +19,25 @@ using System;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
+	/// <summary>
+	/// Defines a routine that is a function, that means it returns
+	/// a value after its execution.
+	/// </summary>
 	public interface IFunction : IRoutine {
+		/// <summary>
+		/// Gets the type of function.
+		/// </summary>
 		FunctionType FunctionType { get; }
 
-
+		/// <summary>
+		/// Resolves the type of the returned value of the function.
+		/// </summary>
+		/// <param name="context">The query context used to resolve
+		/// the returned type.</param>
+		/// <returns>
+		/// Returns a <see cref="DataType"/> that is the type of the
+		/// value returned by the function.
+		/// </returns>
 		DataType ReturnType(ExecuteContext context);
 	}
 }

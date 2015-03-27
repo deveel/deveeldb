@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Compile {
-	public class ExpressionConvertVisitor : SqlNodeVisitor {
+	class ExpressionConvertVisitor : SqlNodeVisitor {
 		public ExpressionConvertVisitor(IExpressionNode inputNode) {
 			if (inputNode == null) 
 				throw new ArgumentNullException("inputNode");
@@ -72,9 +72,17 @@ namespace Deveel.Data.Sql.Compile {
 			var selectColumns = GetSelectColumns(node);
 			var exp = new SqlQueryExpression(selectColumns);
 
-			FromClause fromClause = null;
 			if (node.FromClause != null) {
 				SetFromClause(exp.FromClause, node.FromClause);
+			}
+
+			if (node.GroupBy != null) {
+				// TODO:
+			}
+
+			if (node.Composite != null) {
+				var compositeExp = VisitQueryExpression(node.Composite.QueryExpression);
+				//TODO:
 			}
 
 			return exp;

@@ -18,9 +18,8 @@ using System;
 
 namespace Deveel.Data.DbSystem {
 	/// <summary>
-	/// Similar to <see cref="IVariableResolver"/>, this method is used by 
-	/// grouping functions to find information about the current group being 
-	/// evaluated (used for evaluating aggregate functions).
+	/// Defines a contract used by grouping functions to find information 
+	/// about the current group being evaluated.
 	/// </summary>
 	public interface IGroupResolver {
 		/// <summary>
@@ -30,7 +29,7 @@ namespace Deveel.Data.DbSystem {
 		int GroupId { get; }
 
 		/// <summary>
-		/// The total number of set items in this group.
+		/// Gets the total number of items in this group.
 		/// </summary>
 		int Count { get; }
 
