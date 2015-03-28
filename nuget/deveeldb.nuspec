@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
-        <id>deveeldb</id>
+        <id>deveeldb-$platform$</id>
         <version>$version$</version>
         <title>DeveelDB Kernel ($platform$)</title>
         <authors>Antonello Provenzano</authors>
@@ -13,7 +13,7 @@
 		
 		DeveelDB is an embeddable SQL-99 Relational Database Management System oriented to the .NET/Mono frameworks, providing rich functionalities and high performances managing SQL databases within applications.</description>
         <releaseNotes></releaseNotes>
-        <copyright>(c) 2010-2014 Deveel</copyright>
+        <copyright>(c) 2010-2015 Deveel</copyright>
         <tags>sql db database data embedded deveel sql-92 sql-99 select query mono $platform$</tags>
     </metadata>
     <files>
