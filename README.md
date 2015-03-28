@@ -1,3 +1,7 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/x0v8j8gbt2tb7hj4?svg=true)](https://ci.appveyor.com/project/tsutomi/deveeldb-3f7ew)
+[![Stories in Ready](https://badge.waffle.io/deveel/deveeldb.png?label=ready&title=Ready)](https://waffle.io/deveel/deveeldb)
+[![Stories in Progress](https://badge.waffle.io/deveel/deveeldb.png?label=in+progress&title=In+Progress)](https://waffle.io/deveel/deveeldb)
+
 DeveelDB
 ==========
 
@@ -48,6 +52,6 @@ Please reference to [the wiki pages on GitHub](https://github.com/deveel/deveeld
 Status and Issues
 ============
 
-You can verify the current status of the application code by  [checking the project](http://ci.deveel.org/project.html?projectId=DeveelDB&tab=projectOverview) at [Deveel Continuous Integration Server](http://ci.deveel.org) (access as "guest" user: you will find the direct link below the login form).
+You can verify the current status of the application code by  [checking the project](https://ci.appveyor.com/project/tsutomi/deveeldb-3f7ew) at [AppVeyor Continuous Integration](http://ci.appveyor.com) (access as "guest" user: you will find the direct link below the login form).
 
 Please, report any issue or feature request to our [Issue Tracker](http://github.com/deveel/deveeldb/issues)
