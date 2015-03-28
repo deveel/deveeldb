@@ -470,7 +470,8 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>IF NOT EXIST "$(SolutionDir)..\dist\$(PlatformName)" MKDIR "$(SolutionDir)..\dist\$(PlatformName)"</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -480,7 +481,7 @@
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>REM $(SolutionDir)..\util\ilrepack-1.25.0\ilrepack.exe /internalize /targetplatform:v2 /xmldocs /out:$(SolutionDir)..\dist\$(TargetFileName) $(TargetPath) $(SolutionDir)..\lib\irony.net35\irony.dll $(TargetDir)\Deveel.Math.dll
+    <PostBuildEvent>IF NOT EXIST "$(SolutionDir)..\dist\$(PlatformName)" MKDIR "$(SolutionDir)..\dist\$(PlatformName)"
 $(SolutionDir)..\util\ilmerge\ilmerge.exe /internalize /targetplatform:v2 /xmldocs /out:"$(SolutionDir)..\dist\$(PlatformName)\$(TargetFileName)" "$(TargetPath)" "$(SolutionDir)..\lib\irony.net35\irony.dll" "$(TargetDir)\Deveel.Math.dll"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
