@@ -1,4 +1,7 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/x0v8j8gbt2tb7hj4?svg=true)](https://ci.appveyor.com/project/tsutomi/deveeldb-3f7ew)
 [![Stories in Ready](https://badge.waffle.io/deveel/deveeldb.png?label=ready&title=Ready)](https://waffle.io/deveel/deveeldb)
+[![Stories in Progress](https://badge.waffle.io/deveel/deveeldb.png?label=in+progress&title=In+Progress)](https://waffle.io/deveel/deveeldb)
+
 DeveelDB
 ==========
 
