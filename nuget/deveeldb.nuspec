@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>deveeldb</id>
-        <version>$version%</version>
+        <version>$version$</version>
         <title>DeveelDB Kernel ($platform$)</title>
         <authors>Antonello Provenzano</authors>
         <owners>antonello</owners>
