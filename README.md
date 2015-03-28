@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/deveel/deveeldb.png?label=ready&title=Ready)](https://waffle.io/deveel/deveeldb)
 DeveelDB
 ==========
 
