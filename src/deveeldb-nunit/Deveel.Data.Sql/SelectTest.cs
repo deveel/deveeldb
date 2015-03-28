@@ -11,7 +11,7 @@ namespace Deveel.Data.Sql {
 		[Test(Description = "Declares and selects a gobal variable")]
 		public void VariableSelect() {
 			BeginTransaction();
-			ExecuteNonQuery("DECLARE var NUMERIC(20) = 43");
+			ExecuteNonQuery("DECLARE var NUMERIC(20) = 43", false);
 			object var = ExecuteScalar("SELECT :var");
 
 			Assert.IsNotNull(var);
@@ -101,8 +101,8 @@ namespace Deveel.Data.Sql {
 		[Test(Description = "Stores a result of a selection with a single column into a simple variable")]
 		public void SelectIntoSimpleVariable() {
 			BeginTransaction();
-			ExecuteNonQuery("DECLARE firstName VARCHAR(200)");
-			ExecuteNonQuery("SELECT name INTO :firstName FROM Person WHERE name = 'Elizabeth Kramer'");
+			ExecuteNonQuery("DECLARE firstName VARCHAR(200)", false);
+			ExecuteNonQuery("SELECT name INTO :firstName FROM Person WHERE name = 'Elizabeth Kramer'", false);
 			object value = ExecuteScalar("SELECT :firstName");
 
 			Assert.IsNotNull(value);
@@ -335,71 +335,54 @@ namespace Deveel.Data.Sql {
 
 		[Test]
 		public void SelectIntoSingleVar() {
-			DeveelDbConnection connection = Connection;
-			using (var transaction = connection.BeginTransaction()) {
+			BeginTransaction();
 
-				DeveelDbCommand command = connection.CreateCommand("name VARCHAR(100) NOT NULL");
-				command.ExecuteNonQuery();
+			ExecuteNonQuery("name VARCHAR(100) NOT NULL", false);
+			var value = ExecuteScalar("SELECT :name");
 
-				command = connection.CreateCommand("SELECT :name");
-				object value = command.ExecuteScalar();
+			Assert.AreEqual(DBNull.Value, value);
 
-				Assert.AreEqual(DBNull.Value, value);
+			ExecuteNonQuery("SELECT name INTO :name FROM Person", false);
 
-				command = connection.CreateCommand("SELECT name INTO :name FROM Person");
-				command.ExecuteNonQuery();
+			Console.Out.WriteLine("SELECT name INTO :name FROM Person");
 
-				Console.Out.WriteLine("SELECT name INTO :name FROM Person");
+			value = ExecuteScalar("SELECT :name");
 
-				command = connection.CreateCommand("SELECT :name");
-				value = command.ExecuteScalar();
+			Assert.IsNotNull(value);
 
-				Assert.IsNotNull(value);
-
-				Console.Out.WriteLine("name = {0}", value);
-			}
+			Console.Out.WriteLine("name = {0}", value);
 		}
 
 		[Test]
 		public void SelectIntoTwoVars() {
-			DeveelDbConnection connection = Connection;
+			BeginTransaction();
 
-			using (var transaction = connection.BeginTransaction()) {
-				DeveelDbCommand command = connection.CreateCommand("name VARCHAR(100) NOT NULL");
-				command.ExecuteNonQuery();
+			ExecuteNonQuery("name VARCHAR(100) NOT NULL", false);
+			ExecuteNonQuery("age INTEGER", false);
 
-				command = connection.CreateCommand("age INTEGER");
-				command.ExecuteNonQuery();
+			var value = ExecuteScalar("SELECT :name");
 
-				command = connection.CreateCommand("SELECT :name");
-				object value = command.ExecuteScalar();
+			Assert.AreEqual(DBNull.Value, value);
 
-				Assert.AreEqual(DBNull.Value, value);
+			value = ExecuteScalar("SELECT :age");
 
-				command = connection.CreateCommand("SELECT :age");
-				value = command.ExecuteScalar();
+			Assert.AreEqual(DBNull.Value, value);
 
-				Assert.AreEqual(DBNull.Value, value);
+			ExecuteNonQuery("SELECT name, age INTO :name, :age FROM Person", false);
 
-				command = connection.CreateCommand("SELECT name, age INTO :name, :age FROM Person");
-				command.ExecuteNonQuery();
+			Console.Out.WriteLine("SELECT name, age INTO :name, :age FROM Person");
 
-				Console.Out.WriteLine("SELECT name, age INTO :name, :age FROM Person");
+			value = ExecuteScalar("SELECT :name");
 
-				command = connection.CreateCommand("SELECT :name");
-				value = command.ExecuteScalar();
+			Assert.IsNotNull(value);
 
-				Assert.IsNotNull(value);
+			Console.Out.WriteLine("name = {0}", value);
 
-				Console.Out.WriteLine("name = {0}", value);
+			value = ExecuteScalar("SELECT :age");
 
-				command = connection.CreateCommand("SELECT :age");
-				value = command.ExecuteScalar();
+			Assert.IsNotNull(value);
 
-				Assert.IsNotNull(value);
-
-				Console.Out.WriteLine("age = {0}", value);
-			}
+			Console.Out.WriteLine("age = {0}", value);
 		}
 
 		[Test]

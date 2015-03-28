@@ -235,7 +235,10 @@ namespace Deveel.Data.Client {
 
 			var request = new ConnectRequest(connector.LocalEndPoint, remoteEndPoint) {
 				DatabaseName = settings.Database, 
-				Timeout = settings.QueryTimeout
+				Timeout = settings.QueryTimeout,
+				IgnoreIdentifiersCase = settings.IgnoreIdentifiersCase,
+				ParameterStyle = settings.ParameterStyle,
+				AutoCommit = settings.AutoCommit
 			};
 
 			var response = SendMessage(request) as ConnectResponse;

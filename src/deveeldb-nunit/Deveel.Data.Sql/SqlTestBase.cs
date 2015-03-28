@@ -38,32 +38,32 @@ namespace Deveel.Data.Sql {
 			                "       id        IDENTITY, " +
 			                "       name      VARCHAR(100) NOT NULL, " +
 			                "       age       INTEGER, " +
-			                "       lives_in  VARCHAR(100) ) ");
+			                "       lives_in  VARCHAR(100) ) ", false);
 
 			ExecuteNonQuery(@"    CREATE TABLE IF NOT EXISTS ListensTo ( " +
 			                "       id               IDENTITY, " +
 			                "       person_name      VARCHAR(100) NOT NULL, " +
-			                "       music_group_name VARCHAR(250) NOT NULL ) ");
+			                "       music_group_name VARCHAR(250) NOT NULL ) ", false);
 
 			ExecuteNonQuery(@"    CREATE TABLE IF NOT EXISTS MusicGroup ( " +
 			                "       id                IDENTITY, " +
 			                "       name              VARCHAR(250) NOT NULL, " +
-			                "       country_of_origin VARCHAR(100) ) ");
+			                "       country_of_origin VARCHAR(100) ) ", false);
 		}
 
 		private void InsertDataPerson() {
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Robert Bellamy', 24, 'England' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Grayham Downer', 59, 'Africa' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Timothy French', 24, 'Africa' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Butch Fad', 53, 'USA' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Judith Brown', 34, 'Africa' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Elizabeth Kramer', 24, 'USA' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Yamnik Wordsworth', 14, 'Australia' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Domonic Smith', 25, 'England' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Ivan Wilson', 23, 'England' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Lisa Williams', 24, 'England' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Xenia, Warrior Princess', 32, 'Rome' ) ");
-			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'David Powell', 25, 'New Zealand' ) ");
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Robert Bellamy', 24, 'England' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Grayham Downer', 59, 'Africa' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Timothy French', 24, 'Africa' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Butch Fad', 53, 'USA' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Judith Brown', 34, 'Africa' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Elizabeth Kramer', 24, 'USA' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Yamnik Wordsworth', 14, 'Australia' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Domonic Smith', 25, 'England' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Ivan Wilson', 23, 'England' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Lisa Williams', 24, 'England' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'Xenia, Warrior Princess', 32, 'Rome' ) ", false);
+			ExecuteNonQuery("INSERT INTO Person ( name, age, lives_in ) VALUES ( 'David Powell', 25, 'New Zealand' ) ", false);
 		}
 
 		private void InsertDataMusicGroup() {
@@ -79,7 +79,7 @@ namespace Deveel.Data.Sql {
 			                "      ( 'Muddy Ibe',   'Africa' ), " +
 			                "      ( 'Abba',        'Sweden' ), " +
 			                "      ( 'Madonna',     'USA' ), " +
-			                "      ( 'Cure',        'England' ) ");
+			                "      ( 'Cure',        'England' ) ", false);
 
 		}
 
@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql {
 			                "      ( 'Robert Bellamy',           'Oasis' ), " +
 			                "      ( 'Robert Bellamy',           'Beatles' ), " +
 			                "      ( 'Robert Bellamy',           'Abba' ), " +
-			                "      ( 'Robert Bellamy',           'Blur' ) ");
+			                "      ( 'Robert Bellamy',           'Blur' ) ", false);
 
 		}
 
@@ -117,11 +117,11 @@ namespace Deveel.Data.Sql {
 			BeginTransaction();
 
 			try {
-				ExecuteNonQuery("DROP TABLE IF EXISTS MusicGroup");
-				ExecuteNonQuery("DROP TABLE IF EXISTS ListensTo");
-				ExecuteNonQuery("DROP TABLE IF EXISTS Person");
+				ExecuteNonQuery("DROP TABLE IF EXISTS MusicGroup", false);
+				ExecuteNonQuery("DROP TABLE IF EXISTS ListensTo", false);
+				ExecuteNonQuery("DROP TABLE IF EXISTS Person", false);
 				Commit();
-			} catch (Exception e) {
+			} catch (Exception) {
 				try {
 					Rollback();
 				} catch (Exception e2) {
@@ -129,7 +129,7 @@ namespace Deveel.Data.Sql {
 					Console.Error.WriteLine(e2.StackTrace);
 				}
 
-				throw e;
+				throw;
 			}
 		}
 

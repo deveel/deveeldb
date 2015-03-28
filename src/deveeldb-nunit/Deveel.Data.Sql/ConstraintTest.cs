@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql {
 
 		[Test]
 		public void AddForeignKey() {
-			ExecuteNonQuery("ALTER TABLE ListensTo ADD CONSTRAINT ListensTo_People_FK FOREIGN KEY (person_name) REFERENCES Person(name) ON DELETE CASCADE");
+			ExecuteNonQuery("ALTER TABLE ListensTo ADD CONSTRAINT ListensTo_People_FK FOREIGN KEY (person_name) REFERENCES Person(name) ON DELETE CASCADE", true);
 
 			var exportedKey = GetExportedKey("Person", "ListensTo_People_FK");
 			Assert.IsNotNull(exportedKey);

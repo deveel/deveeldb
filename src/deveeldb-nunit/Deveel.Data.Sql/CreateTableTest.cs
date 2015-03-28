@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql {
 	public sealed class CreateTableTest : TestBase {
 		[Test(Description = "Creates a simple table without constraints nor identities")]
 		public void CreateSimpleTable() {
-			SafeExecuteNonQuery("CREATE TABLE Test (field1 INT, field2 VARCHAR(200), field3 DATE);");
+			ExecuteNonQuery("CREATE TABLE Test (field1 INT, field2 VARCHAR(200), field3 DATE);", true);
 
 			Assert.AreEqual(0, ErrorCount);
 
@@ -34,13 +34,13 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual("field1", table.TableInfo[0].Name);
 			Assert.AreEqual(SqlType.Integer, table.TableInfo[0].SqlType);
 
-			SafeExecuteNonQuery("DROP TABLE Test");
+			ExecuteNonQuery("DROP TABLE Test", true);
 			Assert.AreEqual(0, ErrorCount);
 		}
 
 		[Test]
 		public void CreateTableWithIdentity() {
-			SafeExecuteNonQuery("CREATE TABLE Test (id IDENTITY, name VARCHAR)");
+			ExecuteNonQuery("CREATE TABLE Test (id IDENTITY, name VARCHAR)", true);
 
 			Assert.AreEqual(0, ErrorCount);
 
@@ -49,7 +49,7 @@ namespace Deveel.Data.Sql {
 			Assert.IsTrue(table.TableInfo.FindColumnName("id") == 0);
 			Assert.AreEqual(SqlType.Identity, table.TableInfo[0].SqlType);
 
-			SafeExecuteNonQuery("DROP TABLE Test");
+			ExecuteNonQuery("DROP TABLE Test", true);
 			Assert.AreEqual(0, ErrorCount);
 		}
 
@@ -71,7 +71,7 @@ namespace Deveel.Data.Sql {
 
 		[Test]
 		public void CreateTableWithPrimaryGroup() {
-			ExecuteNonQuery("CREATE TABLE Test (id INT, name VARCHAR, PRIMARY KEY(id))");
+			ExecuteNonQuery("CREATE TABLE Test (id INT, name VARCHAR, PRIMARY KEY(id))", true);
 
 			var connection = CreateDatabaseConnection();
 			DataConstraintInfo constraint = connection.QueryTablePrimaryKeyGroup(new TableName("APP", "Test"));
@@ -79,12 +79,12 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual(1, constraint.Columns.Length);
 			Assert.AreEqual("id", constraint.Columns[0]);
 
-			ExecuteNonQuery("DROP TABLE Test");
+			ExecuteNonQuery("DROP TABLE Test", true);
 		}
 
 		[Test]
 		public void CreateTableWithPrimaryAndUniqueGroups() {
-			ExecuteNonQuery("CREATE TABLE Test (id INT, name VARCHAR, age INT, UNIQUE(name), PRIMARY KEY(id))");
+			ExecuteNonQuery("CREATE TABLE Test (id INT, name VARCHAR, age INT, UNIQUE(name), PRIMARY KEY(id))",true );
 
 			var connection = CreateDatabaseConnection();
 			DataConstraintInfo pkey = connection.QueryTablePrimaryKeyGroup(new TableName("APP", "Test"));
@@ -98,7 +98,7 @@ namespace Deveel.Data.Sql {
 			Assert.AreEqual(1, unique.Length);
 			Assert.AreEqual("name", unique[0].Columns[0]);
 
-			ExecuteNonQuery("DROP TABLE Test");
+			ExecuteNonQuery("DROP TABLE Test", true);
 		}
 	}
 }

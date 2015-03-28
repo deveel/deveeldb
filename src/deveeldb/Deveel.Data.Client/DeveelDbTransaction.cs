@@ -49,7 +49,9 @@ namespace Deveel.Data.Client {
 		}
 
 		public override void Commit() {
-			if (conn == null || conn.State != ConnectionState.Open)
+			if (conn == null || 
+				(conn.State != ConnectionState.Open &&
+				conn.State != ConnectionState.Executing))
 				throw new InvalidOperationException("The underlying connection must be opened.");
 
 			if (committed)
@@ -63,7 +65,9 @@ namespace Deveel.Data.Client {
 		}
 
 		public override void Rollback() {
-			if (conn == null || conn.State != ConnectionState.Open)
+			if (conn == null || 
+				(conn.State != ConnectionState.Open &&
+				conn.State != ConnectionState.Executing))
 				throw new InvalidOperationException("The underlying connection must be opened.");
 
 			if (rolledback)

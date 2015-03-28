@@ -683,7 +683,7 @@ namespace Deveel.Data.Client {
 			dataTable.Columns.Add("IS_GRANTABLE", typeof(bool));
 			dataTable.Columns.Add("GRANTER");
 
-			DeveelDbCommand command = connection.CreateCommand("SELECT * FROM INFORMATION_SCHEMA.USER_PRIVILEGES WHERE (? IS NULL OR \"GRANTEE\" = ?)");
+			var command = connection.CreateCommand("SELECT * FROM INFORMATION_SCHEMA.USER_PRIVILEGES WHERE (? IS NULL OR \"GRANTEE\" = ?)");
 			command.Parameters.Add(userName);
 			command.Parameters.Add(userName);
 

@@ -94,7 +94,6 @@ namespace Deveel.Data.Security {
 
 			var testName = TestContext.CurrentContext.Test.Name;
 			if (testName != "CreateUser") {
-				BeginTransaction();
 				ExecuteNonQuery("CREATE USER tester SET PASSWORD '93884£$'");
 			}
 			if (testName == "RevokeGrants") {
@@ -102,8 +101,6 @@ namespace Deveel.Data.Security {
 			} else if (testName == "AlterTableWithNoGrants") {
 				ExecuteNonQuery("GRANT SELECT ON APP.Person TO tester");
 			}
-
-			Commit();
 		}
 
 		protected override void OnTestTearDown() {
@@ -144,7 +141,7 @@ namespace Deveel.Data.Security {
 		public void AlterTableWithNoGrants() {
 			using (var conn = CreateDbConnection("tester", "93884£$")) {
 				var command = conn.CreateCommand("ALTER TABLE Person ADD COLUMN Foo INT NOT NULL");
-				Assert.Throws<UserAccessException>(() => command.ExecuteNonQuery());
+				Assert.Throws<DeveelDbException>(() => command.ExecuteNonQuery());
 			}
 		}
 
