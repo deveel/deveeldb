@@ -42,6 +42,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		private StatementTree(SerializationInfo info, StreamingContext context) {
+			SourceQuery = (SqlQuery) info.GetValue("SourceQuery", typeof (SqlQuery));
+
 			foreach (var entry in info) {
 				var name = entry.Name;
 				if (String.Equals(name, "StatementType", StringComparison.Ordinal)) {
@@ -54,6 +56,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public Type StatementType { get; private set; }
+
+		public SqlQuery SourceQuery { get; private set; }
 
 		public StatementTree Prepare(IExpressionPreparer preparer) {
 			var prepared = new StatementTree(StatementType);
@@ -71,6 +75,9 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("StatementType", StatementType.AssemblyQualifiedName);
+			info.AddValue("SourceQuery", SourceQuery);
+
 			foreach (var pair in values) {
 				info.AddValue(pair.Key, pair.Value);
 			}
@@ -105,6 +112,7 @@ namespace Deveel.Data.Sql.Statements {
 					var item = obj;
 					if (item != null)
 						item = PrepareValue(obj, preparer);
+
 					prepared.Add(item);
 				}
 
@@ -121,9 +129,10 @@ namespace Deveel.Data.Sql.Statements {
 				new object[0],
 				CultureInfo.InvariantCulture)
 				as Statement;
-			if (statement != null) {
-				statement.SetTree(this);
-			}
+
+			if (statement != null)
+				statement.SetSource(this, SourceQuery);
+
 			return statement;
 		}
 

@@ -17,7 +17,7 @@
 using Irony.Parsing;
 
 namespace Deveel.Data.Sql.Compile {
-	internal class SqlGrammar : Grammar {
+	partial class SqlGrammar : Grammar {
 		public SqlGrammar(bool ignoreCase)
 			: base(!ignoreCase) {
 			MakeSimpleId();
@@ -39,109 +39,6 @@ namespace Deveel.Data.Sql.Compile {
 		private KeyTerm dot;
 		private KeyTerm colon;
 		private KeyTerm semicolon;
-
-		#region Keywords
-
-		private KeyTerm ALL;
-		private KeyTerm ACTION;
-		private KeyTerm AND;
-		private KeyTerm ANY;
-		private KeyTerm AS;
-		private KeyTerm ASC;
-		private KeyTerm BEGIN;
-		private KeyTerm BETWEEN;
-		private KeyTerm BIGINT;
-		private KeyTerm BINARY;
-		private KeyTerm BLOB;
-		private KeyTerm BY;
-		private KeyTerm CASCADE;
-		private KeyTerm CASE;
-		private KeyTerm CHAR;
-		private KeyTerm CHECK;
-		private KeyTerm CLOB;
-		private KeyTerm CONSTANT;
-		private KeyTerm CONSTRAINT;
-		private KeyTerm CREATE;
-		private KeyTerm CURSOR;
-		private KeyTerm DATE;
-		private KeyTerm DAY;
-		private KeyTerm DECIMAL;
-		private KeyTerm DECLARE;
-		private KeyTerm DEFAULT;
-		private KeyTerm DELETE;
-		private KeyTerm DESC;
-		private KeyTerm DISTINCT;
-		private KeyTerm DOUBLE;
-		private KeyTerm END;
-		private KeyTerm ELSE;
-		private KeyTerm ELSIF;
-		private KeyTerm EXCEPT;
-		private KeyTerm EXCEPTION;
-		private KeyTerm EXCEPTION_INIT;
-		private KeyTerm EXISTS;
-		private KeyTerm EXIT;
-		private KeyTerm FALSE;
-		private KeyTerm FLOAT;
-		private KeyTerm FROM;
-		private KeyTerm FOREIGN;
-		private KeyTerm GOTO;
-		private KeyTerm GROUP;
-		private KeyTerm HAVING;
-		private KeyTerm KEY;
-		private KeyTerm JOIN;
-		private KeyTerm IF;
-		private KeyTerm IN;
-		private KeyTerm INNER;
-		private KeyTerm INT;
-		private KeyTerm INTEGER;
-		private KeyTerm INTERSECT;
-		private KeyTerm INTERVAL;
-		private KeyTerm INTO;
-		private KeyTerm IS;
-		private KeyTerm LEFT;
-		private KeyTerm LIKE;
-		private KeyTerm LOCALE;
-		private KeyTerm LONG;
-		private KeyTerm MINUS;
-		private KeyTerm MONTH;
-		private KeyTerm NO;
-		private KeyTerm NOT;
-		private KeyTerm NULL;
-		private KeyTerm NUMBER;
-		private KeyTerm NUMERIC;
-		private KeyTerm ON;
-		private KeyTerm OR;
-		private KeyTerm ORDER;
-		private KeyTerm OUTER;
-		private KeyTerm PRIMARY;
-		private KeyTerm PRAGMA;
-		private KeyTerm REAL;
-		private KeyTerm REFERENCES;
-		private KeyTerm REPLACE;
-		private KeyTerm RIGHT;
-		private KeyTerm ROWTYPE;
-		private KeyTerm SECOND;
-		private KeyTerm SELECT;
-		private KeyTerm SET;
-		private KeyTerm SMALLINT;
-		private KeyTerm TABLE;
-		private KeyTerm THEN;
-		private KeyTerm TIME;
-		private KeyTerm TIMESTAMP;
-		private KeyTerm TINYINT;
-		private KeyTerm TO;
-		private KeyTerm TRUE;
-		private KeyTerm UPDATE;
-		private KeyTerm UNION;
-		private KeyTerm UNIQUE;
-		private KeyTerm VARBINARY;
-		private KeyTerm VARCHAR;
-		private KeyTerm VIEW;
-		private KeyTerm YEAR;
-		private KeyTerm WHEN;
-		private KeyTerm WHERE;
-
-		#endregion
 
 		#region Literals
 
@@ -180,10 +77,11 @@ namespace Deveel.Data.Sql.Compile {
 		private readonly NonTerminal to_control_data = new NonTerminal("to_control_data");
 		private readonly NonTerminal to_modify_data = new NonTerminal("to_modify_data");
 		private readonly NonTerminal create_command = new NonTerminal("create_command");
-		private readonly NonTerminal create_table = new NonTerminal("create_table");
+		private readonly NonTerminal create_schema = new NonTerminal("create_schema");
+		private readonly NonTerminal create_table = new NonTerminal("create_table", typeof(CreateTableNode));
 		private readonly NonTerminal column_or_constraint_list = new NonTerminal("column_or_constraint_list");
 		private readonly NonTerminal column_or_constraint = new NonTerminal("column_or_constraint");
-		private readonly NonTerminal table_column = new NonTerminal("table_column");
+		private readonly NonTerminal table_column = new NonTerminal("table_column", typeof(TableColumnNode));
 		private readonly NonTerminal column_name = new NonTerminal("column_name");
 		private readonly NonTerminal datatype = new NonTerminal("datatype", typeof (DataTypeNode));
 		private readonly NonTerminal number_precision = new NonTerminal("number_precision");
@@ -203,12 +101,12 @@ namespace Deveel.Data.Sql.Compile {
 		private readonly NonTerminal row_type = new NonTerminal("row_type");
 		private readonly NonTerminal column_default_opt = new NonTerminal("column_default_opt");
 		private readonly NonTerminal column_constraint_list = new NonTerminal("column_constraint_list");
-		private readonly NonTerminal column_constraint = new NonTerminal("column_constraint");
+		private readonly NonTerminal column_constraint = new NonTerminal("column_constraint", typeof(ColumnConstraintNode));
 		private readonly NonTerminal column_constraint_ref_opt = new NonTerminal("column_constraint_ref_opt");
 		private readonly NonTerminal fkey_action_list = new NonTerminal("fkey_action_list");
 		private readonly NonTerminal fkey_action = new NonTerminal("fkey_action");
 		private readonly NonTerminal fkey_action_type = new NonTerminal("fkey_action_type");
-		private readonly NonTerminal table_constraint = new NonTerminal("table_constraint");
+		private readonly NonTerminal table_constraint = new NonTerminal("table_constraint", typeof(TableConstraintNode));
 		private readonly NonTerminal constraint_name = new NonTerminal("constraint_name");
 		private readonly NonTerminal table_constraint_name_opt = new NonTerminal("table_constraint_name_opt");
 		private readonly NonTerminal def_table_constraint = new NonTerminal("def_table_constraint");
@@ -216,9 +114,28 @@ namespace Deveel.Data.Sql.Compile {
 		private readonly NonTerminal function_call_expression = new NonTerminal("function_call_expression", typeof (SqlFunctionCallExpressionNode));
 		private readonly NonTerminal function_call_args_opt = new NonTerminal("function_call_args_opt");
 		private readonly NonTerminal function_call_args_list = new NonTerminal("function_call_args_list");
-		private readonly NonTerminal create_view = new NonTerminal("create_view");
+		private readonly NonTerminal create_view = new NonTerminal("create_view", typeof(CreateViewNode));
 		private readonly NonTerminal or_replace_opt = new NonTerminal("or_replace_opt");
 		private readonly NonTerminal if_not_exists_opt = new NonTerminal("if_not_exists_opt");
+		private readonly NonTerminal create_index = new NonTerminal("create_index");
+		private readonly NonTerminal create_sequence = new NonTerminal("create_sequence");
+		private readonly NonTerminal sequence_increment_opt = new NonTerminal("sequence_increment_opt");
+		private readonly NonTerminal sequence_start_opt = new NonTerminal("sequence_start_opt");
+		private readonly NonTerminal sequence_minvalue_opt = new NonTerminal("sequence_minvalue_opt");
+		private readonly NonTerminal sequence_maxvalue_opt = new NonTerminal("sequence_maxvalue_opt");
+		private readonly NonTerminal sequence_cache_opt = new NonTerminal("sequence_cache_opt");
+		private readonly NonTerminal sequence_cycle_opt = new NonTerminal("sequence_cycle_opt");
+		private readonly NonTerminal create_trigger = new NonTerminal("create_trigger", typeof(CreateTriggerNode));
+		private readonly NonTerminal create_procedure_trigger = new NonTerminal("create_procedure_trigger");
+		private readonly NonTerminal create_callback_trigger = new NonTerminal("create_callback_trigger");
+		private readonly NonTerminal before_or_after = new NonTerminal("before_or_after");
+		private readonly NonTerminal trigger_events = new NonTerminal("trigger_events");
+		private readonly NonTerminal trigger_event = new NonTerminal("trigger_event");
+		private readonly NonTerminal trigger_body = new NonTerminal("trigger_body");
+		private readonly NonTerminal create_user = new NonTerminal("create_user");
+		private readonly NonTerminal identified_rule = new NonTerminal("identified");
+		private readonly NonTerminal set_account_lock_opt = new NonTerminal("set_account_lock_opt");
+		private readonly NonTerminal set_groups_opt = new NonTerminal("set_groups_opt");
 		private readonly NonTerminal select_command = new NonTerminal("select_command", typeof(SelectStatementNode));
 		private readonly NonTerminal query = new NonTerminal("query");
 		private readonly NonTerminal sql_query_expression = new NonTerminal("sql_query_expression", typeof (SqlQueryExpressionNode));
@@ -298,111 +215,6 @@ namespace Deveel.Data.Sql.Compile {
 			NonGrammarTerminals.Add(lineComment);
 		}
 
-		private void Keywords() {
-			dot = ToTerm(".");
-			comma = ToTerm(",");
-			semicolon = ToTerm(";");
-			colon = ToTerm(":");
-
-			ACTION = ToTerm("ACTION");
-			ALL = ToTerm("ALL");
-			AND = ToTerm("AND");
-			ANY = ToTerm("ANY");
-			AS = ToTerm("AS");
-			ASC = ToTerm("ASC");
-			BEGIN = ToTerm("BEGIN");
-			BETWEEN = ToTerm("BETWEEN");
-			BIGINT = ToTerm("BIGINT");
-			BINARY = ToTerm("BINARY");
-			BLOB = ToTerm("BLOB");
-			BY = ToTerm("BY");
-			CASCADE = ToTerm("CASCADE");
-			CASE = ToTerm("CASE");
-			CHAR = ToTerm("CHAR");
-			CHECK = ToTerm("CHECK");
-			CLOB = ToTerm("CLOB");
-			CONSTANT = ToTerm("CONSTANT");
-			CONSTRAINT = ToTerm("CONSTRAINT");
-			CREATE = ToTerm("CREATE");
-			CURSOR = ToTerm("CURSOR");
-			DATE = ToTerm("DATE");
-			DAY = ToTerm("DAY");
-			DECIMAL = ToTerm("DECIMAL");
-			DECLARE = ToTerm("DECLARE");
-			DELETE = ToTerm("DELETE");
-			DEFAULT = ToTerm("DEFAULT");
-			DESC = ToTerm("DESC");
-			DISTINCT = ToTerm("DISTINCT");
-			DOUBLE = ToTerm("DOUBLE");
-			END = ToTerm("END");
-			ELSE = ToTerm("ELSE");
-			ELSIF = ToTerm("ELSIF");
-			EXCEPT = ToTerm("EXCEPT");
-			EXCEPTION = ToTerm("EXCEPTION");
-			EXCEPTION_INIT = ToTerm("EXCEPTION_INIT");
-			EXISTS = ToTerm("EXISTS");
-			EXIT = ToTerm("EXIT");
-			FALSE = ToTerm("FALSE");
-			FLOAT = ToTerm("FLOAT");
-			FROM = ToTerm("FROM");
-			FOREIGN = ToTerm("FOREIGN");
-			GOTO = ToTerm("GOTO");
-			GROUP = ToTerm("GROUP");
-			HAVING = ToTerm("HAVING");
-			KEY = ToTerm("KEY");
-			JOIN = ToTerm("JOIN");
-			IF = ToTerm("IF");
-			IN = ToTerm("IN");
-			INNER = ToTerm("INNER");
-			INT = ToTerm("INT");
-			INTEGER = ToTerm("INTEGER");
-			INTERSECT = ToTerm("INTERSECT");
-			INTERVAL = ToTerm("INTERVAL");
-			INTO = ToTerm("INTO");
-			IS = ToTerm("IS");
-			LEFT = ToTerm("LEFT");
-			LIKE = ToTerm("LIKE");
-			LOCALE = ToTerm("LOCALE");
-			LONG = ToTerm("LONG");
-			MONTH = ToTerm("MONTH");
-			NO = ToTerm("NO");
-			NOT = ToTerm("NOT");
-			NULL = ToTerm("NULL");
-			NUMBER = ToTerm("NUMBER");
-			NUMERIC = ToTerm("NUMERIC");
-			ON = ToTerm("ON");
-			OR = ToTerm("OR");
-			ORDER = ToTerm("ORDER");
-			OUTER = ToTerm("OUTER");
-			PRIMARY = ToTerm("PRIMARY");
-			PRAGMA = ToTerm("PRAGMA");
-			REAL = ToTerm("REAL");
-			REPLACE = ToTerm("REPLACE");
-			REFERENCES = ToTerm("REFERENCES");
-			RIGHT = ToTerm("RIGHT");
-			ROWTYPE = ToTerm("ROWTYPE");
-			SECOND = ToTerm("SECOND");
-			SELECT = ToTerm("SELECT");
-			SET = ToTerm("SET");
-			SMALLINT = ToTerm("SMALLINT");
-			TABLE = ToTerm("TABLE");
-			THEN = ToTerm("THEN");
-			TIME = ToTerm("TIME");
-			TIMESTAMP = ToTerm("TIMESTAMP");
-			TINYINT = ToTerm("TINYINT");
-			TO = ToTerm("TO");
-			TRUE = ToTerm("TRUE");
-			UPDATE = ToTerm("UPDATE");
-			UNION = ToTerm("UNION");
-			UNIQUE = ToTerm("UNIQUE");
-			VARBINARY = ToTerm("VARBINARY");
-			VARCHAR = ToTerm("VARCHAR");
-			VIEW = ToTerm("VIEW");
-			WHEN = ToTerm("WHEN");
-			WHERE = ToTerm("WHERE");
-			YEAR = ToTerm("YEAR");
-		}
-
 		private void Literals() {
 			string_literal = new StringLiteral("string", "'", StringOptions.AllowsAllEscapes, typeof (StringLiteralNode));
 			number_literal = new NumberLiteral("number", NumberOptions.DisableQuickParse | NumberOptions.AllowSign, typeof (NumberLiteralNode));
@@ -431,7 +243,7 @@ namespace Deveel.Data.Sql.Compile {
 		private void SetupRoot() {
 			var root = new NonTerminal("root");
 			// SQL
-			var command_list = new NonTerminal("command_list", typeof(StatementSequenceNode));
+			var command_list = new NonTerminal("command_list", typeof(SequenceOfStatementsNode));
 			var command = new NonTerminal("command");
 			command.Rule = sql_statement + sql_command_end_opt;
 			command_list.Rule = MakePlusRule(command_list, command);
@@ -476,10 +288,21 @@ namespace Deveel.Data.Sql.Compile {
 			DataType();
 
 			// -- CREATE
-			create_command.Rule = create_table | create_view;
+			create_command.Rule = create_schema |
+			                      create_table |
+			                      create_view |
+			                      create_index |
+								  create_sequence |
+								  create_trigger |
+								  create_user;
 
+			CreateSchema();
 			CreateTable();
 			CreateView();
+			CreateSequence();
+			CreateIndex();
+			CreateTrigger();
+			CreateUser();
 
 			Query();
 
@@ -487,6 +310,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		private void DataType() {
+			// TODO: Refactor this a lot ...
 			datatype.Rule = character_type | date_type | integer_type | decimal_type | float_type | binary_type | row_type | user_type;
 			character_type.Rule = CHAR + datatype_size + locale_opt |
 			                      VARCHAR + datatype_size + locale_opt |
@@ -627,6 +451,55 @@ namespace Deveel.Data.Sql.Compile {
 
 		private void CreateView() {
 			create_view.Rule = CREATE + or_replace_opt + VIEW + object_name + AS + query;
+		}
+
+		private void CreateUser() {
+			create_user.Rule = CREATE + USER + simple_id + identified_rule;
+			identified_rule.Rule = IDENTIFIED + BY + PASSWORD + string_literal + set_account_lock_opt + set_groups_opt |
+			                       IDENTIFIED + BY + string_literal + set_account_lock_opt + set_groups_opt |
+			                       IDENTIFIED + EXTERNALLY;
+			set_account_lock_opt.Rule = SET + ACCOUNT + LOCK |
+			                            SET + ACCOUNT + UNLOCK |
+			                            Empty;
+			set_groups_opt.Rule = SET + GROUPS + string_literal | Empty;
+		}
+
+		private void CreateIndex() {
+			create_index.Rule = CREATE + INDEX + object_name + ON + object_name + "(" + column_list + ")";
+		}
+
+		private void CreateSequence() {
+			create_sequence.Rule = CREATE + SEQUENCE + object_name + 
+				sequence_increment_opt + 
+				sequence_start_opt +
+				sequence_minvalue_opt + 
+				sequence_maxvalue_opt +
+				sequence_cache_opt +
+				sequence_cycle_opt;
+			sequence_increment_opt.Rule = INCREMENT + BY + sql_expression | Empty;
+			sequence_start_opt.Rule = START + WITH + sql_expression | Empty;
+			sequence_minvalue_opt.Rule = MINVALUE + sql_expression | Empty;
+			sequence_maxvalue_opt.Rule = MAXVALUE + sql_expression | Empty;
+			sequence_cycle_opt.Rule = CYCLE | Empty;
+			sequence_cache_opt.Rule = CACHE + sql_expression | Empty;
+		}
+
+		private void CreateSchema() {
+			create_schema.Rule = CREATE + SCHEMA + simple_id;
+		}
+
+		private void CreateTrigger() {
+			create_trigger.Rule = create_procedure_trigger | create_callback_trigger;
+			create_callback_trigger.Rule = CREATE + or_replace_opt + CALLBACK + TRIGGER +
+			                               before_or_after + ON + object_name;
+			create_procedure_trigger.Rule = CREATE + or_replace_opt + TRIGGER + object_name +
+			                                before_or_after + ON + object_name +
+											FOR + EACH + ROW;
+			before_or_after.Rule = BEFORE | AFTER;
+			trigger_events.Rule = MakePlusRule(trigger_events, OR, trigger_event);
+			trigger_event.Rule = INSERT | UPDATE | DELETE;
+			trigger_body.Rule = EXECUTE + PROCEDURE + object_name + "(" + function_call_args_list + ")" |
+			                    plsql_block;
 		}
 
 		private void Query() {

@@ -73,8 +73,8 @@ namespace Deveel.Data.Sql.Compile {
 			throw new SqlParseException();
 		}
 
-		internal StatementSequenceNode CompileStatements(string sqlSource) {
-			return Compile<StatementSequenceNode>(sqlSource);
+		internal SequenceOfStatementsNode CompileStatements(string sqlSource) {
+			return Compile<SequenceOfStatementsNode>(sqlSource);
 		}
 
 		internal DataTypeNode CompileDataType(string s) {

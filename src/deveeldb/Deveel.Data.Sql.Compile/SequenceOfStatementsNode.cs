@@ -20,10 +20,10 @@ using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	class StatementSequenceNode : SqlNode {
+	class SequenceOfStatementsNode : SqlNode {
 		private readonly ICollection<IStatementNode> statementNodes;
 
-		public StatementSequenceNode() {
+		public SequenceOfStatementsNode() {
 			statementNodes = new List<IStatementNode>();
 		}
 
@@ -32,24 +32,16 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node.NodeName == "command") {
-				ReadStatements(node.ChildNodes);
-			}
-
+			ReadStatements(node.ChildNodes);
 			return base.OnChildNode(node);
 		}
 
 		private void ReadStatements(IEnumerable<ISqlNode> nodes) {
 			foreach (var node in nodes) {
-				if (node.NodeName == "sql_statement") {
-					var child = node.ChildNodes.FirstOrDefault();
-					if (child != null) {
-						var statementNode = child.ChildNodes.FirstOrDefault() as IStatementNode;
-						if (statementNode != null)
-							statementNodes.Add(statementNode);
-					}
-				} else if (node.NodeName == "sql_command_end_opt") {
-					
+				if (node is IStatementNode) {
+					statementNodes.Add(node as IStatementNode);
+				} else {
+					ReadStatements(node.ChildNodes);
 				}
 			}
 		}

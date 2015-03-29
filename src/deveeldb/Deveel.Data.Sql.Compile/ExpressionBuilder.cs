@@ -1,47 +1,24 @@
-﻿// 
-//  Copyright 2010-2015 Deveel
-// 
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-// 
-//        http://www.apache.org/licenses/LICENSE-2.0
-// 
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 
-namespace Deveel.Data.Sql.Compile {
-	class ExpressionConvertVisitor : SqlNodeVisitor {
-		public ExpressionConvertVisitor(IExpressionNode inputNode) {
-			if (inputNode == null) 
-				throw new ArgumentNullException("inputNode");
+namespace Deveel.Data.Deveel.Data.Sql.Compile {
+	public class ExpressionBuilder : SqlNodeVisitor {
+		private SqlExpression outputExpression;
 
-			InputNode = inputNode;
-		}
-
-		public IExpressionNode InputNode { get; private set; }
-
-		public SqlExpression OutputExpression { get; private set; }
-
-		public SqlExpression Convert() {
-			VisitNode(InputNode);
-			return OutputExpression;
+		public SqlExpression Build(ISqlNode node) {
+			VisitNode(node);
+			return outputExpression;
 		}
 
 		protected override void VisitNode(ISqlNode node) {
 			if (node is IExpressionNode)
-				OutputExpression = VisitExpression((IExpressionNode) node);
+				outputExpression = VisitExpression((IExpressionNode) node);
 
 			base.VisitNode(node);
 		}
@@ -61,11 +38,24 @@ namespace Deveel.Data.Sql.Compile {
 				return VisitCaseExpression((SqlCaseExpressionNode) expressionNode);
 			if (expressionNode is SqlReferenceExpressionNode)
 				return VisitReference((SqlReferenceExpressionNode) expressionNode);
+			if (expressionNode is SqlVariableRefExpressionNode)
+				return VisitVariableRef((SqlVariableRefExpressionNode) expressionNode);
 
 			if (expressionNode is SqlQueryExpressionNode)
 				return VisitQueryExpression((SqlQueryExpressionNode) expressionNode);
 
-			throw new NotSupportedException();
+			if (expressionNode is SqlExpressionTupleNode)
+				return VisitTuple((SqlExpressionTupleNode) expressionNode);
+
+			throw new NotSupportedException(String.Format("Node of type {0} is not an expression that can be built.", expressionNode.GetType()));
+		}
+
+		private SqlReferenceExpression VisitVariableRef(SqlVariableRefExpressionNode node) {
+			return SqlExpression.VariableReference(node.Variable);
+		}
+
+		private SqlTupleExpression VisitTuple(SqlExpressionTupleNode node) {
+			return SqlExpression.Tuple(node.Expressions.Select(VisitExpression).ToArray());
 		}
 
 		private SqlQueryExpression VisitQueryExpression(SqlQueryExpressionNode node) {
@@ -82,6 +72,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			if (node.Composite != null) {
 				var compositeExp = VisitQueryExpression(node.Composite.QueryExpression);
+
 				//TODO:
 			}
 
@@ -119,10 +110,10 @@ namespace Deveel.Data.Sql.Compile {
 
 		private JoinType GetJoinType(string typeName) {
 			if (String.Equals(typeName, "INNER", StringComparison.OrdinalIgnoreCase) ||
-				String.Equals(typeName, ",", StringComparison.InvariantCulture))
+			    String.Equals(typeName, ",", StringComparison.InvariantCulture))
 				return JoinType.Inner;
 			if (String.Equals(typeName, "LEFT OUTER", StringComparison.OrdinalIgnoreCase) ||
-				String.Equals(typeName, "LEFT"))
+			    String.Equals(typeName, "LEFT"))
 				return JoinType.Left;
 			if (String.Equals(typeName, "RIGHT OUTER", StringComparison.OrdinalIgnoreCase) ||
 			    String.Equals(typeName, "RIGHT", StringComparison.OrdinalIgnoreCase))
@@ -157,7 +148,7 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			return items.AsReadOnly();
-		} 
+		}
 
 		private SqlConditionalExpression VisitCaseExpression(SqlCaseExpressionNode expressionNode) {
 			throw new NotImplementedException();
@@ -214,7 +205,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		private SqlExpressionType GetBinaryExpressionType(string op) {
 			if (op == "+" ||
-				op == "||")
+			    op == "||")
 				return SqlExpressionType.Add;
 			if (op == "-")
 				return SqlExpressionType.Subtract;
@@ -223,7 +214,7 @@ namespace Deveel.Data.Sql.Compile {
 			if (op == "/")
 				return SqlExpressionType.Divide;
 			if (op == "%" ||
-				String.Equals(op, "MOD", StringComparison.OrdinalIgnoreCase))
+			    String.Equals(op, "MOD", StringComparison.OrdinalIgnoreCase))
 				return SqlExpressionType.Modulo;
 			if (op == "=")
 				return SqlExpressionType.Equal;

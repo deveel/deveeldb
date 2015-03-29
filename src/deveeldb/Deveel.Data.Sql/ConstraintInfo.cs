@@ -15,7 +15,8 @@
 //
 
 using System;
-using System.Collections.Generic;
+
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql {
 	[Serializable]
@@ -24,7 +25,7 @@ namespace Deveel.Data.Sql {
 			: this(null, constraintType, tableName, columnNames) {
 		}
 
-		public ConstraintInfo(ObjectName constraintName, ConstraintType constraintType, ObjectName tableName, string[] columnNames) {
+		public ConstraintInfo(string constraintName, ConstraintType constraintType, ObjectName tableName, string[] columnNames) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");
 			if (columnNames == null)
@@ -43,9 +44,11 @@ namespace Deveel.Data.Sql {
 
 		public ObjectName TableName { get; private set; }
 
-		public ObjectName ConstraintName { get; set; }
+		public string ConstraintName { get; set; }
 
 		public string[] ColumnNames { get; private set; }
+
+		public SqlExpression CheckExpression { get; set; }
 
 		public ObjectName ForeignTable { get; set; }
 
@@ -55,16 +58,58 @@ namespace Deveel.Data.Sql {
 
 		public ForeignKeyAction OnUpdate { get; set; }
 
+		public static ConstraintInfo Unique(ObjectName tableName, params string[] columnNames) {
+			return Unique(null, tableName, columnNames);
+		}
+
 		public static ConstraintInfo Unique(string constraintName, ObjectName tableName, string[] columnNames) {
-			return Unique(ObjectName.Parse(constraintName), tableName, columnNames);
-		}
-
-		public static ConstraintInfo Unique(ObjectName tableName, string[] columnNames) {
-			return Unique((ObjectName)null, tableName, columnNames);
-		}
-
-		public static ConstraintInfo Unique(ObjectName constraintName, ObjectName tableName, string[] columnNames) {
 			return new ConstraintInfo(constraintName, ConstraintType.Unique, tableName, columnNames);
+		}
+
+		public static ConstraintInfo Check(ObjectName tableName, SqlExpression expression, params string[] columnNames) {
+			return Check(null, tableName, expression, columnNames);
+		}
+
+		public static ConstraintInfo Check(string constraintName, ObjectName tableName, SqlExpression expression, params string[] columnNames) {
+			return new ConstraintInfo(constraintName, ConstraintType.Check, tableName, columnNames) {
+				CheckExpression = expression
+			};
+		}
+
+		public static ConstraintInfo PrimaryKey(ObjectName tableName, params string[] columnNames) {
+			return PrimaryKey(null, tableName, columnNames);
+		}
+
+		public static ConstraintInfo PrimaryKey(string constraintName, ObjectName tableName, params string[] columnNames) {
+			return new ConstraintInfo(constraintName, ConstraintType.PrimaryKey, tableName, columnNames);
+		}
+
+		public static ConstraintInfo ForeignKey(ObjectName tableName, string columnName, ObjectName refTable, string refColumn) {
+			return ForeignKey(tableName, new[] {columnName}, refTable, new[] {refColumn});
+		}
+
+		public static ConstraintInfo ForeignKey(ObjectName tableName, string[] columnNames, ObjectName refTable, string[] refColumns) {
+			return ForeignKey(null, tableName, columnNames, refTable, refColumns);
+		}
+
+		public static ConstraintInfo ForeignKey(string constraintName, ObjectName tableName, string[] columnNames,
+			ObjectName refTable, string[] refColumns) {
+			if (tableName == null)
+				throw new ArgumentNullException("tableName");
+			if (refTable == null)
+				throw new ArgumentNullException("refTable");
+			if (columnNames == null || columnNames.Length == 0)
+				throw new ArgumentException("At least one column is required", "columnNames");
+			if (refColumns == null || refColumns.Length == 0)
+				throw new ArgumentException("At least one referenced column is required.", "refColumns");
+
+			if (columnNames.Length != refColumns.Length)
+				throw new ArgumentException("The number of columns in the constraint must match the number of columns referenced.");
+
+			var constraint = new ConstraintInfo(constraintName, ConstraintType.ForeignKey, tableName, columnNames);
+			constraint.ForeignTable = refTable;
+			constraint.ForeignColumnNames = refColumns;
+			return constraint;
 		}
 	}
 }

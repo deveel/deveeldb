@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Compile;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -198,8 +199,8 @@ namespace Deveel.Data.Sql.Expressions {
 				var compiler = new SqlCompiler(true);
 				var expressionNode = compiler.CompileExpression(s);
 
-				var visitor = new ExpressionConvertVisitor(expressionNode);
-				return visitor.Convert();
+				var visitor = new ExpressionBuilder();
+				return visitor.Build(expressionNode);
 			} catch (SqlParseException ex) {
 				throw new SqlExpressionException(ExpressionErrorCodes.CannotParse,
 					"Could not parse input expression: see inner exception for details.", ex);

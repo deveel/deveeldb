@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Compile;
@@ -31,18 +30,34 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected StatementTree StatementTree { get; private set; }
 
-		public SqlQuery Qeury { get; internal set; }
+		public SqlQuery SourceQuery { get; private set; }
 
-		internal void SetTree(StatementTree statementTree) {
+		public bool IsFromQuery { get; private set; }
+
+		internal void SetSource(StatementTree statementTree, SqlQuery query) {
 			StatementTree = statementTree;
+			SourceQuery = query;
+			IsFromQuery = true;
 		}
 
 		protected abstract PreparedStatement OnPrepare(IQueryContext context);
 
+		protected T GetValue<T>(string key) {
+			return StatementTree.GetValue<T>(key);
+		}
+
+		protected IList<T> GetList<T>(string key) {
+			return StatementTree.GetList<T>(key);
+		} 
+
+		protected void SetValue(string key, object value) {
+			StatementTree.SetValue(key, value);
+		}
+
 		public PreparedStatement Prepare(IQueryContext context) {
 			var prepared = OnPrepare(context);
 
-			prepared.Query = Qeury;
+			prepared.Query = SourceQuery;
 
 			// TODO: Make more checks here...
 			return prepared;
@@ -50,7 +65,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public static IEnumerable<Statement> Parse(string sqlSource) {
 			var compiler = new SqlCompiler();
-			StatementSequenceNode sequence;
+			SequenceOfStatementsNode sequence;
 
 			try {
 				sequence = compiler.CompileStatements(sqlSource);
@@ -60,10 +75,8 @@ namespace Deveel.Data.Sql.Statements {
 				throw;
 			}
 
-			var visitor = new StatementVisitor();
-			visitor.VisitSequence(sequence);
-
-			var trees = visitor.Statements;
+			var builder = new StatementBuilder();
+			var trees = builder.Build(sequence, sqlSource);
 
 			return trees.Select(x => x.CreateStatement()).ToList();
 		}

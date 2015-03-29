@@ -19,18 +19,33 @@ using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class SelectStatement : Statement {
+		internal SelectStatement() {
+		}
+
+		public SelectStatement(SqlQueryExpression queryExpression) 
+			: this(queryExpression, null) {
+		}
+
+		public SelectStatement(SqlQueryExpression queryExpression, IEnumerable<ByColumn> orderBy) {
+			if (queryExpression == null)
+				throw new ArgumentNullException("queryExpression");
+
+			QueryExpression = queryExpression;
+		}
+
 		public SqlQueryExpression QueryExpression {
-			get { return StatementTree.GetValue<SqlQueryExpression>("QueryExpression"); }
-			set { StatementTree.SetValue("QueryExpression", value); }
+			get { return GetValue<SqlQueryExpression>(Keys.QueryExpression); }
+			private set { SetValue(Keys.QueryExpression, value); }
 		}
 
 		public IList<ByColumn> OrderBy {
-			get { return StatementTree.GetList<ByColumn>("OrderBy"); }
-			set { StatementTree.SetValue("OrderBy", value); }
+			get { return GetList<ByColumn>(Keys.OrderBy); }
+			set { SetValue(Keys.OrderBy, value); }
 		}
 
 		protected override PreparedStatement OnPrepare(IQueryContext context) {
@@ -45,5 +60,34 @@ namespace Deveel.Data.Sql.Statements {
 
 			return new PreparedSelectStatement(plan);
 		}
+
+		#region Keys
+
+		internal static class Keys {
+			public const string QueryExpression = "QueryExpression";
+			public const string OrderBy = "OrderBy";
+		}
+
+		#endregion
+
+		#region PreparedSelectStatement
+
+		[Serializable]
+		sealed class PreparedSelectStatement : PreparedStatement {
+			public PreparedSelectStatement(IQueryPlanNode queryPlan) {
+				if (queryPlan == null)
+					throw new ArgumentNullException("queryPlan");
+
+				QueryPlan = queryPlan;
+			}
+
+			public IQueryPlanNode QueryPlan { get; private set; }
+
+			protected override ITable OnEvaluate(IQueryContext context) {
+				throw new NotImplementedException();
+			}
+		}
+
+		#endregion
 	}
 }
