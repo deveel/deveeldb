@@ -72,7 +72,7 @@ namespace Deveel.Data.DbSystem {
 
 			public int TableCount {
 				get {
-					var table = transaction.GetTable(SystemSchema.Sequence);
+					var table = transaction.GetTable(SystemSchema.SequenceTableName);
 					return table != null ? table.RowCount : 0;
 				}
 			}
@@ -93,7 +93,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public int FindByName(ObjectName tableName) {
-				var seqInfo = SystemSchema.SequenceInfo;
+				var seqInfo = SystemSchema.SequenceInfoTableName;
 				if (transaction.RealObjectExists(seqInfo)) {
 					// Search the table.
 					var table = transaction.GetTable(seqInfo);
@@ -121,7 +121,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public ObjectName GetTableName(int offset) {
-				var seqInfo = SystemSchema.SequenceInfo;
+				var seqInfo = SystemSchema.SequenceInfoTableName;
 				if (transaction.RealObjectExists(seqInfo)) {
 					var table = transaction.GetTable(seqInfo);
 					int p = 0;
@@ -151,7 +151,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public bool ContainsTable(ObjectName name) {
-				var seqInfo = SystemSchema.SequenceInfo;
+				var seqInfo = SystemSchema.SequenceInfoTableName;
 
 				// This set can not contain the table that is backing it, so we always
 				// return false for that.  This check stops an annoying recursive
@@ -163,7 +163,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public ITable GetTable(int offset) {
-				var table = transaction.GetTable(SystemSchema.SequenceInfo);
+				var table = transaction.GetTable(SystemSchema.SequenceInfoTableName);
 				var rowEnum = table.GetEnumerator();
 				int p = 0;
 				int i;
@@ -191,7 +191,7 @@ namespace Deveel.Data.DbSystem {
 				var tableName = new ObjectName(schema, name);
 
 				// Find this id in the 'sequence' table
-				var seqTable = transaction.GetTable(SystemSchema.Sequence);
+				var seqTable = transaction.GetTable(SystemSchema.SequenceTableName);
 
 				var index = seqTable.GetIndex(0);
 				var list = index.SelectEqual(seqId);
@@ -325,7 +325,7 @@ namespace Deveel.Data.DbSystem {
 			var sequenceAccessTransaction = GetTransaction();
 			try {
 				// The sequence table
-				var seq = sequenceAccessTransaction.GetMutableTable(SystemSchema.Sequence);
+				var seq = sequenceAccessTransaction.GetMutableTable(SystemSchema.SequenceTableName);
 				// Find the row with the id for this sequence.
 				var list = seq.SelectEqual(0, DataObject.Number(sequence.Id));
 
@@ -373,10 +373,10 @@ namespace Deveel.Data.DbSystem {
 			
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// We can't add or remove native tables
-			if (sequenceName.Equals(SystemSchema.Sequence) ||
-				sequenceName.Equals(SystemSchema.SequenceInfo) ||
-				!Transaction.ObjectExists(SystemSchema.Sequence) ||
-				!Transaction.ObjectExists(SystemSchema.SequenceInfo)) {
+			if (sequenceName.Equals(SystemSchema.SequenceTableName) ||
+				sequenceName.Equals(SystemSchema.SequenceInfoTableName) ||
+				!Transaction.ObjectExists(SystemSchema.SequenceTableName) ||
+				!Transaction.ObjectExists(SystemSchema.SequenceInfoTableName)) {
 				return null;
 			}
 
@@ -388,15 +388,15 @@ namespace Deveel.Data.DbSystem {
 
 		private Sequence CreateCustomSequence(ObjectName sequenceName, SequenceInfo sequenceInfo) {
 			// The SEQUENCE and SEQUENCE_INFO table
-			var seq = Transaction.GetMutableTable(SystemSchema.Sequence);
-			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfo);
+			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
+			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
 
 			var list = seqi.SelectEqual(2, DataObject.VarChar(sequenceName.Name), 1, DataObject.VarChar(sequenceName.Parent.FullName));
 			if (list.Any())
 				throw new Exception(String.Format("Sequence generator with name '{0}' already exists.", sequenceName));
 
 			// Generate a unique id for the sequence info table
-			var uniqueId = Transaction.NextTableId(SystemSchema.SequenceInfo);
+			var uniqueId = Transaction.NextTableId(SystemSchema.SequenceInfoTableName);
 
 			// Insert the new row
 			var dataRow = seqi.NewRow();
@@ -422,8 +422,8 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private ISequence CreateNativeTableSequence(ObjectName tableName) {
-			var table = Transaction.GetMutableTable(SystemSchema.SequenceInfo);
-			var uniqueId = Transaction.NextTableId(SystemSchema.SequenceInfo);
+			var table = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
+			var uniqueId = Transaction.NextTableId(SystemSchema.SequenceInfoTableName);
 
 			var dataRow = table.NewRow();
 			dataRow.SetValue(0, DataObject.Number(uniqueId));
@@ -438,8 +438,8 @@ namespace Deveel.Data.DbSystem {
 		public bool DropSequence(ObjectName sequenceName) {
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// we can't create the sequence sequence
-			if (!Transaction.ObjectExists(SystemSchema.Sequence) ||
-				!Transaction.ObjectExists(SystemSchema.SequenceInfo)) {
+			if (!Transaction.ObjectExists(SystemSchema.SequenceTableName) ||
+				!Transaction.ObjectExists(SystemSchema.SequenceInfoTableName)) {
 				throw new Exception("System sequence tables do not exist.");
 			}
 
@@ -450,16 +450,16 @@ namespace Deveel.Data.DbSystem {
 		private bool RemoveNativeTableSequence(ObjectName tableName) {
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// We can't add or remove native tables
-			if (tableName.Equals(SystemSchema.Sequence) ||
-				tableName.Equals(SystemSchema.SequenceInfo) ||
-				!Transaction.ObjectExists(SystemSchema.Sequence) ||
-				!Transaction.ObjectExists(SystemSchema.SequenceInfo)) {
+			if (tableName.Equals(SystemSchema.SequenceTableName) ||
+				tableName.Equals(SystemSchema.SequenceInfoTableName) ||
+				!Transaction.ObjectExists(SystemSchema.SequenceTableName) ||
+				!Transaction.ObjectExists(SystemSchema.SequenceInfoTableName)) {
 				return false;
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			var seq = Transaction.GetMutableTable(SystemSchema.Sequence);
-			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfo);
+			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
+			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
 
 			var list = seqi.SelectEqual(2, DataObject.VarChar(tableName.Name), 1, DataObject.VarChar(tableName.Parent.FullName));
 
@@ -482,14 +482,14 @@ namespace Deveel.Data.DbSystem {
 		public bool SequenceExists(ObjectName sequenceName) {
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// we can't create the sequence generator
-			if (!Transaction.ObjectExists(SystemSchema.Sequence) ||
-				!Transaction.ObjectExists(SystemSchema.SequenceInfo)) {
+			if (!Transaction.ObjectExists(SystemSchema.SequenceTableName) ||
+				!Transaction.ObjectExists(SystemSchema.SequenceInfoTableName)) {
 				throw new Exception("System sequence tables do not exist.");
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			var seq = Transaction.GetMutableTable(SystemSchema.Sequence);
-			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfo);
+			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
+			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
 
 			return seqi.SelectEqual(2, DataObject.VarChar(sequenceName.Parent.FullName), 1, DataObject.VarChar(sequenceName.Name)).Any();
 		}
@@ -564,7 +564,7 @@ namespace Deveel.Data.DbSystem {
 				// sequence table for this.
 				ITransaction sequenceAccessTransaction = GetTransaction();
 				try {
-					var seqi = sequenceAccessTransaction.GetTable(SystemSchema.SequenceInfo);
+					var seqi = sequenceAccessTransaction.GetTable(SystemSchema.SequenceInfoTableName);
 
 					var schemaVal = DataObject.VarChar(sequenceName.Parent.FullName);
 					var nameVal = DataObject.VarChar(sequenceName.Name);
@@ -589,7 +589,7 @@ namespace Deveel.Data.DbSystem {
 						sequence = new Sequence(this, (SqlNumber) sid.Value, sequenceName, new SequenceInfo());
 					} else {
 						// Query the sequence table.
-						var seq = sequenceAccessTransaction.GetTable(SystemSchema.Sequence);
+						var seq = sequenceAccessTransaction.GetTable(SystemSchema.SequenceTableName);
 
 						list = seq.SelectEqual(0, sid);
 

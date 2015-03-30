@@ -46,6 +46,9 @@ namespace Deveel.Data.DbSystem {
 		/// <seealso cref="ITransaction"/>
 		ITransaction Transaction { get; }
 
+		IDatabase Database { get; }
+
+		GrantManager GrantManager { get; }
 
 		/// <summary>
 		/// Adds a given table to the session cache for fast access.

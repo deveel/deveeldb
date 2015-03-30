@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override SqlExpression Evaluate(EvaluateContext context) {
 			var queryContext = context.QueryContext;
-			var planContext = queryContext.QueryPlanContext;
+			var planContext = queryContext.Session;
 			var planner = context.SystemContext.QueryPlanner;
 			var plan = planner.PlanQuery(planContext, this);
 

@@ -19,6 +19,7 @@ using System;
 using Deveel.Data.Caching;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 
@@ -29,13 +30,14 @@ namespace Deveel.Data.DbSystem {
 	/// system resources and evaluation context.
 	/// </summary>
 	public interface IQueryContext : IDisposable {
-		User User { get; }
+		IUserSession Session { get; }
 
+		/// <summary>
+		/// Gets the system context parent of this context.
+		/// </summary>
 		ISystemContext SystemContext { get; }
 
 		ICache TableCache { get; }
-
-		IQueryPlanContext QueryPlanContext { get; }
 
 
 		/// <summary>
@@ -60,46 +62,6 @@ namespace Deveel.Data.DbSystem {
 		SqlNumber NextRandom(int bitSize);
 
 		/// <summary>
-		/// Increments the sequence and returns the computed value.
-		/// </summary>
-		/// <param name="sequenceName">The name of the sequence to increment and
-		/// whose incremented value must be returned.</param>
-		/// <returns>
-		/// Returns a <see cref="SqlNumber"/> that represents the result of
-		/// the increment operation over the sequence identified by the given name.
-		/// </returns>
-		/// <exception cref="ObjectNotFoundException">
-		/// If none sequence was found for the given <paramref name="sequenceName"/>.
-		/// </exception>
-		SqlNumber GetNextValue(ObjectName sequenceName);
-
-		/// <summary>
-		/// Gets the current value of the sequence.
-		/// </summary>
-		/// <param name="sequenceName">The name of the sequence whose current value
-		/// must be obtained.</param>
-		/// <returns>
-		/// Returns a <see cref="SqlNumber"/> that represents the current value
-		/// of the sequence identified by the given name.
-		/// </returns>
-		/// <exception cref="ObjectNotFoundException">
-		/// If none sequence was found for the given <paramref name="sequenceName"/>.
-		/// </exception>
-		SqlNumber GetCurrentValue(ObjectName sequenceName);
-
-		/// <summary>
-		/// Sets the current value of the sequence, overriding the increment
-		/// mechanism in place.
-		/// </summary>
-		/// <param name="sequenceName">The name of the sequence whose current state
-		/// to be set.</param>
-		/// <param name="value">The numeric value to set.</param>
-		/// <exception cref="ObjectNotFoundException">
-		/// If none sequence was found for the given <paramref name="sequenceName"/>.
-		/// </exception>
-		void SetCurrentValue(ObjectName sequenceName, SqlNumber value);
-
-		/// <summary>
 		/// Marks the execution context as in an exception state.
 		/// </summary>
 		/// <param name="exception">The exception that causes the change of
@@ -120,5 +82,22 @@ namespace Deveel.Data.DbSystem {
 		/// <seealso cref="IsExceptionState"/>
 		/// <seealso cref="SetExceptionState"/>
 		Exception GetException();
+
+		/// <summary>
+		/// Gets a database object that has the name given.
+		/// </summary>
+		/// <param name="objName">The fully qualified name of the object to
+		/// find in the given context.</param>
+		/// <returns>
+		/// Returns an instance of a <see cref="IDbObject"/> identified
+		/// by the given fully qualified name, or <c>null</c> if none object
+		/// was found having that name.
+		/// </returns>
+		/// <exception cref="ArgumentNullException">
+		/// If the <paramref name="objName">name paramete</paramref> passed
+		/// is <c>null</c>.
+		/// </exception>
+		/// <seealso cref="IDbObject"/>
+		IDbObject GetObject(ObjectName objName);
 	}
 }

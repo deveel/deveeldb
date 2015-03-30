@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -29,6 +30,9 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public EvaluateContext(IQueryContext queryContext, IVariableResolver variableResolver, IGroupResolver groupResolver) {
+			if (queryContext == null)
+				throw new ArgumentNullException("queryContext");
+
 			GroupResolver = groupResolver;
 			VariableResolver = variableResolver;
 			QueryContext = queryContext;
@@ -68,9 +72,9 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Gets the current user of the context.
 		/// </summary>
 		/// <seealso cref="User"/>
-		/// <seealso cref="IQueryContext.User"/>
+		/// <seealso cref="Security.User"/>
 		public User User {
-			get { return QueryContext.User; }
+			get { return QueryContext.User(); }
 		}
 	}
 }

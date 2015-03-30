@@ -25,6 +25,10 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class UserSession : IUserSession {
+		public UserSession() {
+			GrantManager = new GrantManager(this);
+		}
+
 		public bool IgnoreCase {
 			get { throw new NotImplementedException(); }
 		}
@@ -56,6 +60,10 @@ namespace Deveel.Data.DbSystem {
 		public ITransaction Transaction {
 			get { throw new NotImplementedException(); }
 		}
+
+		public IDatabase Database { get; private set; }
+
+		public GrantManager GrantManager { get; private set; }
 
 		public void CacheTable(ObjectName tableName, ITable table) {
 			throw new NotImplementedException();

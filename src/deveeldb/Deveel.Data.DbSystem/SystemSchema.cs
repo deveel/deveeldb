@@ -44,21 +44,30 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		public static readonly ObjectName SchemaName = new ObjectName(Name);
 
+		#region Table Names
+
+		/// <summary>
+		/// Gets the fully qualified name of the <c>user</c> table.
+		/// </summary>
+		public static readonly  ObjectName UserTableName = new ObjectName(SchemaName, "user");
+
 		///<summary>
 		/// 
 		///</summary>
-		public static readonly ObjectName SequenceInfo = new ObjectName(SchemaName, "sequence_info");
+		public static readonly ObjectName SequenceInfoTableName = new ObjectName(SchemaName, "sequence_info");
 
 		///<summary>
 		///</summary>
-		public static readonly ObjectName Sequence = new ObjectName(SchemaName, "sequence");
+		public static readonly ObjectName SequenceTableName = new ObjectName(SchemaName, "sequence");
+
+		#endregion
 
 		public static readonly TableInfo SequenceInfoTableInfo;
 		public static readonly TableInfo SequenceTableInfo;
 
 		static SystemSchema() {
 			// SYSTEM.SEQUENCE_INFO
-			var tableInfo = new TableInfo(SequenceInfo);
+			var tableInfo = new TableInfo(SequenceInfoTableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("schema", PrimitiveTypes.String());
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
@@ -67,7 +76,7 @@ namespace Deveel.Data.DbSystem {
 			SequenceInfoTableInfo = tableInfo;
 
 			// SYSTEM.SEQUENCE
-			tableInfo = new TableInfo(Sequence);
+			tableInfo = new TableInfo(SequenceTableName);
 			tableInfo.AddColumn("seq_id", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("last_value", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("increment", PrimitiveTypes.Numeric());

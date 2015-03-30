@@ -27,8 +27,6 @@ namespace Deveel.Data.Sql {
 	/// An operator used to evaluate binary operations.
 	/// </summary>
 	public abstract class BinaryOperator {
-		private readonly OperatorSubType subType;
-
 		private static readonly Dictionary<BinaryOperatorType, BinaryOperator> AnyMap;
 		private static readonly Dictionary<BinaryOperatorType, BinaryOperator> AllMap;
 
@@ -153,7 +151,7 @@ namespace Deveel.Data.Sql {
 
 		internal BinaryOperator(BinaryOperatorType operatorType, OperatorSubType subType) {
 			OperatorType = operatorType;
-			this.subType = subType;
+			this.SubQueryType = subType;
 		}
 
 		static BinaryOperator() {
@@ -230,8 +228,13 @@ namespace Deveel.Data.Sql {
 		/// subquery condition.
 		/// </summary>
 		public bool IsSubQuery {
-			get { return subType != OperatorSubType.None; }
+			get { return SubQueryType != OperatorSubType.None; }
 		}
+
+		/// <summary>
+		/// Gets the kind of sub-query this operator handle.
+		/// </summary>
+		public OperatorSubType SubQueryType { get; private set; }
 
 		/// <summary>
 		/// Gets a boolean value indicating if this is an arithmetic operator.
@@ -289,9 +292,9 @@ namespace Deveel.Data.Sql {
 		public BinaryOperator Inverse() {
 			if (IsSubQuery) {
 				OperatorSubType invType;
-				if (subType == OperatorSubType.Any) {
+				if (SubQueryType == OperatorSubType.Any) {
 					invType = OperatorSubType.All;
-				} else if (subType == OperatorSubType.All) {
+				} else if (SubQueryType == OperatorSubType.All) {
 					invType = OperatorSubType.Any;
 				} else {
 					throw new Exception("Can not handle sub-query form.");
@@ -469,11 +472,11 @@ namespace Deveel.Data.Sql {
 		public override bool Equals(object obj) {
 			var other = (BinaryOperator) obj;
 			return OperatorType == other.OperatorType &&
-			       subType == other.subType;
+			       SubQueryType == other.SubQueryType;
 		}
 
 		public override int GetHashCode() {
-			return OperatorType.GetHashCode() ^ subType.GetHashCode();
+			return OperatorType.GetHashCode() ^ SubQueryType.GetHashCode();
 		}
 
 		/// <summary>
@@ -500,9 +503,9 @@ namespace Deveel.Data.Sql {
 			var sb = new StringBuilder();
 			sb.Append(pair.Key);
 
-			if (subType == OperatorSubType.All) {
+			if (SubQueryType == OperatorSubType.All) {
 				sb.Append(" ALL");
-			} else if (subType == OperatorSubType.Any) {
+			} else if (SubQueryType == OperatorSubType.Any) {
 				sb.Append(" ANY");
 			}
 

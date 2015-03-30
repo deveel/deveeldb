@@ -36,7 +36,7 @@ namespace Deveel.Data.DbSystem {
 			var rows = new List<Row>();
 			var mock = new Mock<IMutableTable>();
 			mock.Setup(x => x.FullName)
-				.Returns(SystemSchema.Sequence);
+				.Returns(SystemSchema.SequenceTableName);
 			mock.Setup(x => x.ObjectType)
 				.Returns(DbObjectType.Table);
 			mock.Setup(x => x.TableInfo)
@@ -74,14 +74,14 @@ namespace Deveel.Data.DbSystem {
 			mock.Setup(x => x.GetIndex(It.IsAny<int>()))
 				.Returns<int>(columnOffset => new BlindSearchIndex(mock.Object, columnOffset));
 
-			objects[SystemSchema.Sequence] = mock.Object;
+			objects[SystemSchema.SequenceTableName] = mock.Object;
 		}
 
 		private void MockSequenceInfoTable() {
 			var rows = new List<Row>();
 			var mock = new Mock<IMutableTable>();
 			mock.Setup(x => x.FullName)
-				.Returns(SystemSchema.SequenceInfo);
+				.Returns(SystemSchema.SequenceInfoTableName);
 			mock.Setup(x => x.ObjectType)
 				.Returns(DbObjectType.Table);
 			mock.Setup(x => x.TableInfo)
@@ -119,7 +119,7 @@ namespace Deveel.Data.DbSystem {
 			mock.Setup(x => x.GetIndex(It.IsAny<int>()))
 				.Returns<int>(columnOffset => new BlindSearchIndex(mock.Object, columnOffset));
 
-			objects[SystemSchema.SequenceInfo] = mock.Object;
+			objects[SystemSchema.SequenceInfoTableName] = mock.Object;
 		}
 
 		[SetUp]

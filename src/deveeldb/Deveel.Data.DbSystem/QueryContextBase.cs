@@ -20,6 +20,7 @@ using System.Security.Cryptography;
 using Deveel.Data.Caching;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 
@@ -39,9 +40,10 @@ namespace Deveel.Data.DbSystem {
 			Dispose(false);
 		}
 
-		public abstract User User { get; }
 
 		public abstract ISystemContext SystemContext { get; }
+
+		public abstract IUserSession Session { get; }
 
 		public virtual ICache TableCache {
 			get { return tableCache; }
@@ -64,18 +66,16 @@ namespace Deveel.Data.DbSystem {
 			return new SqlNumber(num);
 		}
 
-		public abstract SqlNumber GetNextValue(ObjectName sequenceName);
-
-		public abstract SqlNumber GetCurrentValue(ObjectName sequenceName);
-
-		public abstract void SetCurrentValue(ObjectName sequenceName, SqlNumber value);
-
 		public void SetExceptionState(Exception exception) {
 			throw new NotImplementedException();
 		}
 
 		public Exception GetException() {
 			return exception;
+		}
+
+		public IDbObject GetObject(ObjectName objName) {
+			throw new NotImplementedException();
 		}
 
 		public void Dispose() {

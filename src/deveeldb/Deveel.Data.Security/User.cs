@@ -17,10 +17,51 @@
 using System;
 
 namespace Deveel.Data.Security {
+	/// <summary>
+	/// Provides the information for a user in a database system
+	/// </summary>
 	public sealed class User {
+		/// <summary>
+		/// Constructs a new user with the given name.
+		/// </summary>
+		/// <param name="name"></param>
+		public User(string name) {
+			if (String.IsNullOrEmpty(name))
+				throw new ArgumentNullException("name");
+
+			Name = name;
+		}
+
+		/// <summary>
+		/// The name of the <c>PUBLIC</c> special user.
+		/// </summary>
 		public const string PublicName = "@PUBLIC";
+
+		/// <summary>
+		/// The name of the <c>SYSTEM</c> special user.
+		/// </summary>
 		public const string SystemName = "@SYSTEM";
 
+		/// <summary>
+		/// Gets the name that uniquely identify a user within a database system.
+		/// </summary>
 		public string Name { get; private set; }
+
+		/// <summary>
+		/// Gets a boolean value indicating if this user represents the
+		/// <c>SYSTEM</c> special user.
+		/// </summary>
+		/// <seealso cref="SystemName"/>
+		public bool IsSystem {
+			get { return Name.Equals(SystemName); }
+		}
+
+		/// <summary>
+		/// Gets a boolean value indicating if this user represents the
+		/// <c>PUBLIC</c> special user.
+		/// </summary>
+		public bool IsPublic {
+			get { return Name.Equals(PublicName); }
+		}
 	}
 }

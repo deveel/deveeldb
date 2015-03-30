@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2015 Deveel
+//  Copyright 2014  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,17 +12,22 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-//
+
 using System;
 
-using Deveel.Data.Types;
 
-namespace Deveel.Data.Routines.Fluid {
-	public interface IFunctionParameterConfiguration {
-		IFunctionParameterConfiguration Named(string name);
+namespace Deveel.Data.Types {
+	[Serializable]
+	public sealed class ArrayType : DataType {
+		public ArrayType()
+			: this(-1) {
+		}
 
-		IFunctionParameterConfiguration OfType(DataType type);
+		public ArrayType(int size)
+			: base("ARRAY", SqlTypeCode.Array) {
+			Size = size;
+		}
 
-		IFunctionParameterConfiguration Unbounded(bool flag);
+		public int Size { get; private set; }
 	}
 }

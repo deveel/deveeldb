@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2014  Deveel
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,22 +12,17 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-
+//
 using System;
-
 
 namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class ArrayType : DataType {
-		public ArrayType()
-			: this(-1) {
-		}
-
-		public ArrayType(int size)
+		public ArrayType(int length) 
 			: base("ARRAY", SqlTypeCode.Array) {
-			Size = size;
+			Length = length;
 		}
 
-		public int Size { get; private set; }
+		public int Length { get; set; }
 	}
 }

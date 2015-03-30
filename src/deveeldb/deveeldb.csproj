@@ -133,9 +133,11 @@
     <Compile Include="Deveel.Data.DbSystem\JoinedTable.cs" />
     <Compile Include="Deveel.Data.DbSystem\NaturallyJoinedTable.cs" />
     <Compile Include="Deveel.Data.DbSystem\QueryContextBase.cs" />
+    <Compile Include="Deveel.Data.DbSystem\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\RootTable.cs" />
     <Compile Include="Deveel.Data.DbSystem\SequenceManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\SequenceManagerExtensions.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SessionQueryContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\SimpleRowEnumerator.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
     <Compile Include="Deveel.Data.DbSystem\Table.cs" />
@@ -192,12 +194,15 @@
     <Compile Include="Deveel.Data.Routines\SystemFunctionsFactory.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctions.cs" />
     <Compile Include="Deveel.Data.Routines\TriggerEventType.cs" />
+    <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
     <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Security\GrantManager.cs" />
     <Compile Include="Deveel.Data.Security\HashFunctions.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Security\IdentificationType.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -209,9 +214,11 @@
     </Compile>
     <Compile Include="Deveel.Data.Security\Privilege.cs" />
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
+    <Compile Include="Deveel.Data.Security\SecurityQueryContext.cs" />
     <Compile Include="Deveel.Data.Security\User.cs" />
     <Compile Include="Deveel.Data.Security\UserGrant.cs" />
     <Compile Include="Deveel.Data.Security\UserGroup.cs" />
+    <Compile Include="Deveel.Data.Security\UserProtocolAccess.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ColumnConstraintNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ConstraintTypeNames.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateViewNode.cs" />
@@ -458,6 +465,7 @@
     <Compile Include="Deveel.Data.Transactions\TransactionException.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionExtensions.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionIsolation.cs" />
+    <Compile Include="Deveel.Data.Types\ArrayType.cs" />
     <Compile Include="Deveel.Data.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Types\BooleanType.cs" />
     <Compile Include="Deveel.Data.Types\ColumnType.cs" />
@@ -482,6 +490,7 @@
     <Compile Include="Deveel.Data\ErrorException.cs" />
     <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Deveel.Data\ParameterDirection.cs" />
+    <Compile Include="Deveel.Data\PatternSearch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

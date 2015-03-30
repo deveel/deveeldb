@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010-2014 Deveel
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+//
 
 using System;
 using System.Text;
@@ -250,27 +251,27 @@ namespace Deveel.Data {
 			return false;
 		}
 
-		// ---------- Matching against a regular expression ----------
+		//// ---------- Matching against a regular expression ----------
 
-		/// <summary>
-		/// Matches a string against a regular expression pattern.
-		/// </summary>
-		/// <remarks>
-		/// We use the regex library as specified in the DatabaseSystem 
-		/// configuration.
-		/// </remarks>
-		internal static bool RegexMatch(ISystemContext context, String pattern, String value) {
-			// If the first character is a '/' then we assume it's a Perl style regular
-			// expression (eg. "/.*[0-9]+\/$/i")
-			if (pattern.StartsWith("/")) {
-				int end = pattern.LastIndexOf('/');
-				String pat = pattern.Substring(1, end);
-				String ops = pattern.Substring(end + 1);
-				return context.RegexLibrary.RegexMatch(pat, ops, value);
-			} else {
-				// Otherwise it's a regular expression with no operators
-				return context.RegexLibrary.RegexMatch(pattern, "", value);
-			}
-		}
+		///// <summary>
+		///// Matches a string against a regular expression pattern.
+		///// </summary>
+		///// <remarks>
+		///// We use the regex library as specified in the DatabaseSystem 
+		///// configuration.
+		///// </remarks>
+		//internal static bool RegexMatch(ISystemContext context, String pattern, String value) {
+		//	// If the first character is a '/' then we assume it's a Perl style regular
+		//	// expression (eg. "/.*[0-9]+\/$/i")
+		//	if (pattern.StartsWith("/")) {
+		//		int end = pattern.LastIndexOf('/');
+		//		String pat = pattern.Substring(1, end);
+		//		String ops = pattern.Substring(end + 1);
+		//		return context.RegexLibrary.RegexMatch(pat, ops, value);
+		//	} else {
+		//		// Otherwise it's a regular expression with no operators
+		//		return context.RegexLibrary.RegexMatch(pattern, "", value);
+		//	}
+		//}
 	}
 }
