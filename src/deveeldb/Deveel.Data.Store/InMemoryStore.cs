@@ -24,13 +24,17 @@ namespace Deveel.Data.Store {
 	/// </summary>
 	public class InMemoryStore : IStore {
 		private InMemoryBlock fixedAreaBlock;
-		private readonly InMemoryBlock[] areaMap;
+		private InMemoryBlock[] areaMap;
 		private long uniqueIdKey;
 
 		internal InMemoryStore(string name, int hashSize) {
 			Name = name;
 			areaMap = new InMemoryBlock[hashSize];
 			uniqueIdKey = 0;
+		}
+
+		~InMemoryStore() {
+			Dispose(false);
 		}
 
 		/// <summary>
@@ -47,6 +51,18 @@ namespace Deveel.Data.Store {
 					return fixedAreaBlock;
 				}
 			}
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				fixedAreaBlock = null;
+				areaMap = null;
+			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		private InMemoryBlock GetBlock(long pointer) {

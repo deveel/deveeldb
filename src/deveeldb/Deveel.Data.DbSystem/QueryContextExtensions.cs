@@ -15,12 +15,11 @@
 //
 using System;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
-namespace Deveel.Data.Deveel.Data.DbSystem {
+namespace Deveel.Data.DbSystem {
 	public static class QueryContextExtensions {
 		public static User User(this IQueryContext context) {
 			return context.Session.User;

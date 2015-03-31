@@ -58,6 +58,8 @@ namespace Deveel.Data.Sql {
 
 		public ForeignKeyAction OnUpdate { get; set; }
 
+		public ConstraintDeferrability Deferred { get; set; }
+
 		public static ConstraintInfo Unique(ObjectName tableName, params string[] columnNames) {
 			return Unique(null, tableName, columnNames);
 		}

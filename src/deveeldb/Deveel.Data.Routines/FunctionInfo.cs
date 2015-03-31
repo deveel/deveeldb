@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Routines {
 	/// <summary>
@@ -47,6 +48,10 @@ namespace Deveel.Data.Routines {
 		public FunctionInfo(ObjectName name, RoutineParameter[] parameters) 
 			: base(name, parameters) {
 			AssertUnboundAtEnd();
+		}
+
+		protected override DbObjectType ObjectType {
+			get { return DbObjectType.Function; }
 		}
 
 		private void AssertUnboundAtEnd() {

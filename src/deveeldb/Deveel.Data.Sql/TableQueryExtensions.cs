@@ -74,6 +74,40 @@ namespace Deveel.Data.Sql {
 
 		#endregion
 
+		public static IEnumerable<int> FindKeys(this ITable table, int[] columnOffsets, DataObject[] keyValue) {
+			int keySize = keyValue.Length;
+
+			// Now command table 2 to determine if the key values are present.
+			// Use index scan on first key.
+			var columnIndex = table.GetIndex(columnOffsets[0]);
+			var list = columnIndex.SelectEqual(keyValue[0]).ToList();
+
+			if (keySize <= 1)
+				return list;
+
+			// Full scan for the rest of the columns
+			int sz = list.Count;
+
+			// For each element of the list
+			for (int i = sz - 1; i >= 0; --i) {
+				int rIndex = list[i];
+				// For each key in the column list
+				for (int c = 1; c < keySize; ++c) {
+					int columnOffset = columnOffsets[c];
+					var columnValue = keyValue[c];
+					if (columnValue.CompareTo(table.GetValue(rIndex, columnOffset)) != 0) {
+						// If any values in the key are not equal set this flag to false
+						// and remove the index from the list.
+						list.RemoveAt(i);
+						// Break the for loop
+						break;
+					}
+				}
+			}
+
+			return list;
+		}
+
 		private static DataObject MakeObject(this ITable table, int columnOffset, ISqlObject value) {
 			if (columnOffset < 0 || columnOffset >= table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");

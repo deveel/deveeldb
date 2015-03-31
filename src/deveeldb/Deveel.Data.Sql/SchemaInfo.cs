@@ -15,8 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 
 namespace Deveel.Data.Sql {
@@ -38,24 +36,37 @@ namespace Deveel.Data.Sql {
 	/// name in a database.
 	/// </para>
 	/// </remarks>
-	public sealed class SchemaInfo {
+	public sealed class SchemaInfo : IObjectInfo {
 		private CompareInfo comparer;
 
 		/// <summary>
 		/// Constructs the schema with the given name
 		/// </summary>
 		/// <param name="name">The name that identifies the schema.</param>
-		public SchemaInfo(string name) {
+		/// <param name="type">The type of the schema to create.</param>
+		public SchemaInfo(string name, string type) {
 			if (String.IsNullOrEmpty(name))
 				throw new ArgumentNullException("name");
 
 			Name = name;
+			Type = type;
+		}
+
+		DbObjectType IObjectInfo.ObjectType {
+			get { return DbObjectType.Schema; }
+		}
+
+
+		ObjectName IObjectInfo.FullName {
+			get { return new ObjectName(Name); }
 		}
 
 		/// <summary>
 		/// Gets the name of the schema.
 		/// </summary>
 		public string Name { get; private set; }
+
+		public string Type { get; private set; }
 
 		/// <summary>
 		/// Gets the culture that will be applied to string

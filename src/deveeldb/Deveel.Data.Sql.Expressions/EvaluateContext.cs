@@ -17,7 +17,6 @@
 using System;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql.Expressions {

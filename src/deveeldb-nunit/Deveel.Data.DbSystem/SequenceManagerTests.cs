@@ -131,7 +131,7 @@ namespace Deveel.Data.DbSystem {
 			MockSequenceTable();
 			MockSequenceInfoTable();
 
-			var factoryMock = new Mock<ITransactionFactory>();
+			var factoryMock = new Mock<ITransactionContext>();
 
 			var tnxMock = new Mock<ITransaction>();
 			tnxMock.Setup(x => x.ObjectExists(It.IsAny<ObjectName>()))
@@ -156,7 +156,7 @@ namespace Deveel.Data.DbSystem {
 					ids[name] = id;
 					return new SqlNumber(id);
 				});
-			tnxMock.Setup(x => x.Factory)
+			tnxMock.Setup(x => x.Context)
 				.Returns(factoryMock.Object);
 
 			factoryMock.Setup(x => x.CreateTransaction(It.IsAny<TransactionIsolation>()))
@@ -172,10 +172,10 @@ namespace Deveel.Data.DbSystem {
 			var sequenceManager = new SequenceManager(transaction);
 
 			var sequenceName = ObjectName.Parse("APP.test_sequence");
-			var seqInfo = new SequenceInfo(new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
+			var seqInfo = new SequenceInfo(sequenceName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
 
 			ISequence sequence =null;
-			Assert.DoesNotThrow(() => sequence = sequenceManager.CreateSequence(sequenceName, seqInfo));
+			Assert.DoesNotThrow(() => sequence = sequenceManager.CreateSequence(seqInfo));
 			Assert.IsNotNull(sequence);
 		}
 
@@ -189,10 +189,10 @@ namespace Deveel.Data.DbSystem {
 			var sequenceManager = new SequenceManager(transaction);
 
 			var sequenceName = ObjectName.Parse("APP.test_sequence");
-			var seqInfo = new SequenceInfo(new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
+			var seqInfo = new SequenceInfo(sequenceName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
 
 			ISequence sequence = null;
-			Assert.DoesNotThrow(() => sequence = sequenceManager.CreateSequence(sequenceName, seqInfo));
+			Assert.DoesNotThrow(() => sequence = sequenceManager.CreateSequence(seqInfo));
 			Assert.IsNotNull(sequence);
 
 			SqlNumber currentValue = SqlNumber.Null;

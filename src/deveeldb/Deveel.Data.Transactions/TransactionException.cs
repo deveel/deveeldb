@@ -16,7 +16,6 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Transactions {

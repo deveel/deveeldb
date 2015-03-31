@@ -131,7 +131,7 @@ namespace Deveel.Data.Sql {
 		/// the table are reverted.
 		/// </para>
 		/// </remarks>
-		void CheckConstraints();
+		void AssertConstraints();
 
 		/// <summary>
 		/// Puts this source under a <c>root lock</c>.

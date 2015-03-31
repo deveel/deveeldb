@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
@@ -29,6 +30,10 @@ namespace Deveel.Data.Routines {
 
 		public ProcedureInfo(ObjectName name, RoutineParameter[] parameters) 
 			: base(name, parameters) {
+		}
+
+		protected override DbObjectType ObjectType {
+			get { return DbObjectType.Function; }
 		}
 
 		internal override bool MatchesInvoke(InvokeRequest invoke, IQueryContext queryContext) {

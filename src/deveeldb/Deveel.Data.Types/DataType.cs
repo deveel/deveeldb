@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Objects;
 

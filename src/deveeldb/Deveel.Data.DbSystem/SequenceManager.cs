@@ -35,7 +35,7 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		private static readonly DataObject OneValue = DataObject.Integer(1);
 
-		private readonly Dictionary<ObjectName, Sequence> sequenceKeyMap; 
+		private Dictionary<ObjectName, Sequence> sequenceKeyMap; 
 
 		/// <summary>
 		/// Construct a new instance of <see cref="SequenceManager"/> that is backed by
@@ -47,7 +47,26 @@ namespace Deveel.Data.DbSystem {
 			sequenceKeyMap = new Dictionary<ObjectName, Sequence>();
 		}
 
+		~SequenceManager() {
+			Dispose(false);
+		}
+
+		DbObjectType IObjectManager.ObjectType {
+			get { return DbObjectType.Sequence; }
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (sequenceKeyMap !=null)
+					sequenceKeyMap.Clear();
+
+				sequenceKeyMap = null;
+			}
+		}
+
 		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		/// <summary>
@@ -94,7 +113,7 @@ namespace Deveel.Data.DbSystem {
 
 			public int FindByName(ObjectName tableName) {
 				var seqInfo = SystemSchema.SequenceInfoTableName;
-				if (transaction.RealObjectExists(seqInfo)) {
+				if (transaction.RealTableExists(seqInfo)) {
 					// Search the table.
 					var table = transaction.GetTable(seqInfo);
 					var name = DataObject.VarChar(tableName.Name);
@@ -122,7 +141,7 @@ namespace Deveel.Data.DbSystem {
 
 			public ObjectName GetTableName(int offset) {
 				var seqInfo = SystemSchema.SequenceInfoTableName;
-				if (transaction.RealObjectExists(seqInfo)) {
+				if (transaction.RealTableExists(seqInfo)) {
 					var table = transaction.GetTable(seqInfo);
 					int p = 0;
 					foreach (var row in table) {
@@ -225,7 +244,7 @@ namespace Deveel.Data.DbSystem {
 				var cycle = seqTable.GetValue(seqRowI, 7);
 
 
-				return new SequenceTable(transaction.SystemContext, tableInfo) {
+				return new SequenceTable(transaction.Context.SystemContext, tableInfo) {
 					TopValue = topValue,
 					LastValue = lastValue,
 					CurrentValue = currentValue,
@@ -309,7 +328,7 @@ namespace Deveel.Data.DbSystem {
 		#endregion
 
 		private ITransaction GetTransaction() {
-			return Transaction.Factory.CreateTransaction(TransactionIsolation.Serializable);
+			return Transaction.Context.CreateTransaction(TransactionIsolation.Serializable);
 		}
 
 		/// <summary>
@@ -364,12 +383,19 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		public ISequence CreateSequence(ObjectName sequenceName, SequenceInfo sequenceInfo) {
-			if (sequenceName == null)
-				throw new ArgumentNullException("sequenceName");
+		void IObjectManager.CreateObject(IObjectInfo objInfo) {
+			var seqInfo = objInfo as SequenceInfo;
+			if (seqInfo == null)
+				throw new ArgumentException();
+
+			CreateSequence(seqInfo);
+		}
+
+		public ISequence CreateSequence(SequenceInfo sequenceInfo) {
 			if (sequenceInfo == null)
 				throw new ArgumentNullException("sequenceInfo");
 
+			var sequenceName = sequenceInfo.SequenceName;
 			
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// We can't add or remove native tables
@@ -418,7 +444,7 @@ namespace Deveel.Data.DbSystem {
 			dataRow.SetValue(7, DataObject.Boolean(sequenceInfo.Cycle));
 			seq.AddRow(dataRow);
 
-			return new Sequence(this, uniqueId, sequenceName, sequenceInfo);
+			return new Sequence(this, uniqueId, sequenceInfo);
 		}
 
 		private ISequence CreateNativeTableSequence(ObjectName tableName) {
@@ -432,7 +458,15 @@ namespace Deveel.Data.DbSystem {
 			dataRow.SetValue(3, DataObject.BigInt(1));
 			table.AddRow(dataRow);
 
-			return new Sequence(this, uniqueId, tableName, new SequenceInfo());
+			return new Sequence(this, uniqueId, new SequenceInfo(tableName));
+		}
+
+		bool IObjectManager.AlterObject(IObjectInfo objInfo) {
+			throw new NotImplementedException();
+		}
+
+		bool IObjectManager.DropObject(ObjectName objName) {
+			return DropSequence(objName);
 		}
 
 		public bool DropSequence(ObjectName sequenceName) {
@@ -477,6 +511,14 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			return true;
+		}
+
+		bool IObjectManager.ObjectExists(ObjectName objName) {
+			return SequenceExists(objName);
+		}
+
+		bool IObjectManager.RealObjectExists(ObjectName objName) {
+			return SequenceExists(objName);
 		}
 
 		public bool SequenceExists(ObjectName sequenceName) {
@@ -555,6 +597,10 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
+		IDbObject IObjectManager.GetObject(ObjectName objName) {
+			return GetSequence(objName);
+		}
+
 		public ISequence GetSequence(ObjectName sequenceName) {
 			// Is the generator already in the cache?
 			Sequence sequence;
@@ -568,9 +614,9 @@ namespace Deveel.Data.DbSystem {
 
 					var schemaVal = DataObject.VarChar(sequenceName.Parent.FullName);
 					var nameVal = DataObject.VarChar(sequenceName.Name);
-					var list = seqi.SelectEqual(2, nameVal, 1, schemaVal);
+					var list = seqi.SelectEqual(2, nameVal, 1, schemaVal).ToList();
 
-					if (list.Count() == 0) {
+					if (list.Count == 0) {
 						throw new ArgumentException(String.Format("Sequence '{0}' not found.", sequenceName));
 					} else if (list.Count() > 1) {
 						throw new Exception("Assert failed: multiple sequence keys with same name.");
@@ -586,12 +632,12 @@ namespace Deveel.Data.DbSystem {
 					// (stype == 1) == true
 					if (stype.IsEqualTo(OneValue)) {
 						// Native generator.
-						sequence = new Sequence(this, (SqlNumber) sid.Value, sequenceName, new SequenceInfo());
+						sequence = new Sequence(this, (SqlNumber) sid.Value, new SequenceInfo(sequenceName));
 					} else {
 						// Query the sequence table.
 						var seq = sequenceAccessTransaction.GetTable(SystemSchema.SequenceTableName);
 
-						list = seq.SelectEqual(0, sid);
+						list = seq.SelectEqual(0, sid).ToList();
 
 						if (!list.Any())
 							throw new Exception("Sequence table does not contain sequence information.");
@@ -607,7 +653,8 @@ namespace Deveel.Data.DbSystem {
 						var cache = (long) seq.GetValue(rowIndex, 6).AsBigInt();
 						bool cycle = seq.GetValue(rowIndex, 7).AsBoolean();
 
-						sequence = new Sequence(this, (SqlNumber)sid.Value, sequenceName, lastValue, new SequenceInfo(start, increment, minvalue, maxvalue, cache, cycle));
+						var info = new SequenceInfo(sequenceName, start, increment, minvalue, maxvalue, cache, cycle);
+						sequence = new Sequence(this, (SqlNumber)sid.Value, lastValue, info);
 
 						// Put the generator in the cache
 						sequenceKeyMap[sequenceName] = sequence;
@@ -633,14 +680,14 @@ namespace Deveel.Data.DbSystem {
 		class Sequence : ISequence {
 			private readonly SequenceManager manager;
 
-			public Sequence(SequenceManager manager, SqlNumber id, ObjectName fullName, SequenceInfo sequenceInfo) 
-				: this(manager, id, fullName, SqlNumber.Null, sequenceInfo) {
+			public Sequence(SequenceManager manager, SqlNumber id, SequenceInfo sequenceInfo) 
+				: this(manager, id, SqlNumber.Null, sequenceInfo) {
 			}
 
-			public Sequence(SequenceManager manager, SqlNumber id, ObjectName fullName, SqlNumber lastValue, SequenceInfo sequenceInfo) {
+			public Sequence(SequenceManager manager, SqlNumber id, SqlNumber lastValue, SequenceInfo sequenceInfo) {
 				this.manager = manager;
 				Id = id;
-				FullName = fullName;
+				FullName = sequenceInfo.SequenceName;
 				SequenceInfo = sequenceInfo;
 				LastValue = lastValue;
 				CurrentValue = lastValue;

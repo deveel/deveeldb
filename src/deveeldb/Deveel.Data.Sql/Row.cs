@@ -278,6 +278,14 @@ namespace Deveel.Data.Sql {
 			SetValue(columnOffset, value);
 		}
 
+		public void SetDefault(IQueryContext context) {
+			for (int i = 0; i < Table.TableInfo.ColumnCount; ++i) {
+				if (!values.ContainsKey(i)) {
+					SetDefault(i, context);
+				}
+			}
+		}
+
 		private DataObject Evaluate(SqlExpression expression, IQueryContext queryContext) {
 			// TODO: bool ignoreCase = queryContext.SystemContext.Config.IgnoreIdentifierCase();
 			bool ignoreCase = true;
@@ -354,5 +362,15 @@ namespace Deveel.Data.Sql {
 		}
 
 		#endregion
+
+		public void SetRowNumber(int rowNumber) {
+			RowId = new RowId(Table.TableInfo.Id, rowNumber);
+		}
+
+		public void SetFromTable() {
+			for (int i = 0; i < Table.TableInfo.ColumnCount; i++) {
+				SetValue(i, Table.GetValue(RowId.RowNumber, i));
+			}
+		}
 	}
 }

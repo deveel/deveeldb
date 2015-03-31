@@ -53,7 +53,7 @@ namespace Deveel.Data.Store {
 	/// system (the static area is -1) or implementation specific areas.
 	/// </para>
 	/// </remarks>
-	public interface IStore {
+	public interface IStore : IDisposable {
 		/// <summary>
 		/// Allocates a block of memory in the store of the specified size 
 		/// and returns an <see cref="IArea"/> object that can be used 
@@ -61,13 +61,13 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		/// <param name="size">The amount of memory to allocate.</param>
 		/// <remarks>
-		/// Note that an area in the store is undefined until the <see cref="IArea.Finish"/>
+		/// Note that an area in the store is undefined until the <see cref="IArea.Flush"/>
 		/// method is called in <see cref="IArea"/>.
 		/// </remarks>
 		/// <returns>
 		/// Returns an <see cref="IArea"/> object that allows the area to be setup.
 		/// </returns>
-		/// <exception cref="Deveel.Data.DbSystem.IO.IOException">
+		/// <exception cref="System.IO.IOException">
 		/// If not enough space available to create the area or the store is Read-only.
 		/// </exception>
 		IArea CreateArea(long size);

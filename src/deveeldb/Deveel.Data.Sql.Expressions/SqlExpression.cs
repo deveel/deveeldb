@@ -17,7 +17,6 @@
 using System;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Compile;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -433,5 +432,9 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		#endregion
+
+		public string ToSqlString() {
+			throw new NotImplementedException();
+		}
 	}
 }

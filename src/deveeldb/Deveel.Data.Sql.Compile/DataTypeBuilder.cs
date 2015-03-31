@@ -15,10 +15,9 @@
 //
 using System;
 
-using Deveel.Data.Sql.Compile;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Deveel.Data.Sql.Compile {
+namespace Deveel.Data.Sql.Compile {
 	public sealed class DataTypeBuilder {
 		public DataType Build(ISqlNode sqlNode) {
 			return Build(null, sqlNode);

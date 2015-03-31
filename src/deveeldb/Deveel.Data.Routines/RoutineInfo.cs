@@ -18,13 +18,14 @@ using System;
 using System.Text;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Routines {
 	/// <summary>
 	/// Defines the metadata for a routine that are used to
 	/// resolve within a context.
 	/// </summary>
-	public abstract class RoutineInfo {
+	public abstract class RoutineInfo : IObjectInfo {
 		/// <summary>
 		/// Constructs a routine info with the given name.
 		/// </summary>
@@ -49,10 +50,20 @@ namespace Deveel.Data.Routines {
 			Parameters = parameters;
 		}
 
+		DbObjectType IObjectInfo.ObjectType {
+			get { return ObjectType; }
+		}
+
+		ObjectName IObjectInfo.FullName {
+			get { return Name; }
+		}
+
 		/// <summary>
 		/// Gets the name of the routine that uniquely identifies it in a system context.
 		/// </summary>
 		public ObjectName Name { get; private set; }
+
+		protected abstract DbObjectType ObjectType { get; }
 
 		/// <summary>
 		/// Gets an array of parameters for the routine.

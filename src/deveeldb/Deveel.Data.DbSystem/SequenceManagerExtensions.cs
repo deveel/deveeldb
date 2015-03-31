@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Objects;
 namespace Deveel.Data.DbSystem {
 	public static class SequenceManagerExtensions {
 		public static SqlNumber NextValue(this ISequenceManager sequenceManager, ObjectName sequenceName) {
-			var sequence = sequenceManager.GetSequence(sequenceName);
+			var sequence = sequenceManager.GetObject(sequenceName) as ISequence;
 			if (sequence == null)
 				throw new ObjectNotFoundException(sequenceName);
 
@@ -30,7 +30,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static SqlNumber LastValue(this ISequenceManager sequenceManager, ObjectName sequenceName) {
-			var sequence = sequenceManager.GetSequence(sequenceName);
+			var sequence = sequenceManager.GetObject(sequenceName) as ISequence;
 			if (sequence == null)
 				throw new ObjectNotFoundException(sequenceName);
 
@@ -38,7 +38,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static SqlNumber SetValue(this ISequenceManager sequenceManager, ObjectName sequenceName, SqlNumber value) {
-			var sequence = sequenceManager.GetSequence(sequenceName);
+			var sequence = sequenceManager.GetObject(sequenceName) as ISequence;
 			if (sequence == null)
 				throw new ObjectNotFoundException(sequenceName);
 

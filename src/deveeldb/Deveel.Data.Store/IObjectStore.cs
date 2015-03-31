@@ -70,5 +70,9 @@ namespace Deveel.Data.Store {
 		/// </exception>
 		/// <seealso cref="CreateNewObject"/>
 		ILargeObject GetObject(ObjectId id);
+
+		long Create();
+
+		void Open(long startOffset);
 	}
 }

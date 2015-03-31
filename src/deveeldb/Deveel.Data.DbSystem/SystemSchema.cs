@@ -60,6 +60,20 @@ namespace Deveel.Data.DbSystem {
 		///</summary>
 		public static readonly ObjectName SequenceTableName = new ObjectName(SchemaName, "sequence");
 
+		public static readonly ObjectName PrimaryKeyInfoTableName = new ObjectName(SchemaName, "pkey_info");
+
+		public static readonly ObjectName PrimaryKeyColumnsTableName = new ObjectName(SchemaName, "pkey_cols");
+
+		public static readonly ObjectName ForeignKeyInfoTableName = new ObjectName(SchemaName, "fkey_info");
+
+		public static readonly ObjectName ForeignKeyColumnsTableName = new ObjectName(SchemaName, "fkey_cols");
+
+		public static readonly  ObjectName UniqueKeyInfoTableName = new ObjectName(SchemaName, "unique_info");
+
+		public static readonly ObjectName UniqueKeyColumnsTableName = new ObjectName(SchemaName, "unique_cols");
+
+		public static readonly ObjectName CheckInfoTableName = new ObjectName(SchemaName, "check_info");
+
 		#endregion
 
 		public static readonly TableInfo SequenceInfoTableInfo;
@@ -86,6 +100,14 @@ namespace Deveel.Data.DbSystem {
 			tableInfo.AddColumn("cache", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("cycle", PrimitiveTypes.Boolean());
 			SequenceTableInfo = tableInfo.AsReadOnly();
+		}
+
+		public static void Create(ITransaction transaction) {
+			throw new NotImplementedException();
+		}
+
+		public static void Setup(ITransaction transaction) {
+			throw new NotImplementedException();
 		}
 	}
 }

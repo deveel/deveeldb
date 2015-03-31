@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql {
 	/// design of the data that the table can accommodate.
 	/// </remarks>
 	[Serializable]
-	public sealed class TableInfo : IEnumerable<ColumnInfo> {
+	public sealed class TableInfo : IObjectInfo, IEnumerable<ColumnInfo> {
 		private readonly IList<ColumnInfo> columns;
 		private readonly Dictionary<ObjectName, int> columnsCache;
 
@@ -66,11 +66,19 @@ namespace Deveel.Data.Sql {
 			IgnoreCase = true;			
 		}
 
+		DbObjectType IObjectInfo.ObjectType {
+			get { return DbObjectType.Table; }
+		}
+
 		/// <summary>
 		/// Gets the fully qualified name of the table that is ensured 
 		/// to be unique within the system.
 		/// </summary>
 		public ObjectName TableName { get; private set; }
+
+		ObjectName IObjectInfo.FullName {
+			get { return TableName; }
+		}
 
 		/// <summary>
 		/// Gets a unique identifier of the table in a database system.
@@ -297,6 +305,13 @@ namespace Deveel.Data.Sql {
 
 		internal SqlExpression ResolveColumns(bool ignoreCase, SqlExpression expression) {
 			throw new NotImplementedException();
+		}
+
+		public IEnumerable<int> IndexOfColumns(IEnumerable<string> columnNames) {
+			if (columnNames == null)
+				return new int[0];
+
+			return columnNames.Select(IndexOfColumn).ToList().AsReadOnly();
 		}
 	}
 }

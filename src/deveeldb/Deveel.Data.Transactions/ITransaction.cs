@@ -30,10 +30,7 @@ namespace Deveel.Data.Transactions {
 	/// that can be eventually forbit any data write operation.
 	/// </remarks>
 	public interface ITransaction {
-		/// <summary>
-		/// Gets the instance of the database the transaction is connected to.
-		/// </summary>
-		IDatabase Database { get; }
+		long CommitId { get; }
 
 		/// <summary>
 		/// Gets the isolation level of the transaction.
@@ -41,40 +38,19 @@ namespace Deveel.Data.Transactions {
 		TransactionIsolation Isolation { get; }
 
 		/// <summary>
-		/// Gets an object that manages sequences within this transaction.
-		/// </summary>
-		ISequenceManager SequenceManager { get; }
-
-		/// <summary>
 		/// Gets a value indicating if the transaction supports write operations.
 		/// </summary>
 		bool IsReadOnly { get; }
 
 		/// <summary>
-		/// Gets an instance of the <see cref="ITransactionFactory">factory</see> that generated
+		/// Gets an instance of the <see cref="ITransactionContext">factory</see> that generated
 		/// this transaction object
 		/// </summary>
-		ITransactionFactory Factory { get; }
+		ITransactionContext Context { get; }
 
-		ISystemContext SystemContext { get; }
+		IObjectManagerResolver ObjectManagerResolver { get; }
 
-		/// <summary>
-		/// Enumerates all the objects that are accessible by the transaction.
-		/// </summary>
-		/// <returns>
-		/// Returns an enumeration of <seealso cref="IDbObject"/> instances that can be accessed
-		/// by the transaction.
-		/// </returns>
-		IEnumerable<IDbObject> GetObjects();
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="objName"></param>
-		/// <returns></returns>
-		bool ObjectExists(ObjectName objName);
-
-		bool RealObjectExists(ObjectName objName);
+		TransactionRegistry Registry { get; }
 
 		ObjectName TryResolveCase(ObjectName objName);
 
@@ -103,26 +79,26 @@ namespace Deveel.Data.Transactions {
 		/// </returns>
 		SqlNumber NextTableId(ObjectName tableName);
 
-		/// <summary>
-		/// Finds an object for the given unique name from the underlying storage.
-		/// </summary>
-		/// <param name="objName">The unique name of the object to return.</param>
-		/// <returns></returns>
-		IDbObject GetObject(ObjectName objName);
+		///// <summary>
+		///// Finds an object for the given unique name from the underlying storage.
+		///// </summary>
+		///// <param name="objName">The unique name of the object to return.</param>
+		///// <returns></returns>
+		//IDbObject GetObject(ObjectName objName);
 
-		// Tables
+		//// Tables
 
-		void CreateTable(TableInfo tableInfo, int dataSectorSize, int indexSectorSize);
+		//void CreateTable(TableInfo tableInfo, int dataSectorSize, int indexSectorSize);
 
-		void CreateTemporaryTable(TableInfo tableInfo);
+		//void CreateTemporaryTable(TableInfo tableInfo);
 
-		void AlterTable(ObjectName tableName, TableInfo tableInfo, int dataSectorSize, int indexSectorSize);
+		//void AlterTable(ObjectName tableName, TableInfo tableInfo, int dataSectorSize, int indexSectorSize);
 
-		void DropTable(ObjectName tableName);
+		//void DropTable(ObjectName tableName);
 
-		void AddSelectedFromTable(ObjectName tableName);
+		//void AddSelectedFromTable(ObjectName tableName);
 
-		void CompactTable(ObjectName tableName);
+		//void CompactTable(ObjectName tableName);
 
 		/// <summary>
 		/// Commits all wirte operation done during the lifetime of 

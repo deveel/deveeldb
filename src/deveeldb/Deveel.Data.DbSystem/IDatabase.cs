@@ -21,7 +21,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public interface IDatabase : IDisposable {
+	public interface IDatabase : ITransactionContext, IDisposable {
 		string Name { get; }
 
 		Version Version { get; }
@@ -30,12 +30,10 @@ namespace Deveel.Data.DbSystem {
 
 		bool IsOpen { get; }
 
+		TableSourceComposite TableComposite { get; }
+
 
 		void Open();
-
-		int NewTableId();
-
-		IUserSession CreateSession(User user, TransactionIsolation transactionIsolation, CallbackTriggerEventHandler triggerCallback);
 
 		void Shutdown();
 	}

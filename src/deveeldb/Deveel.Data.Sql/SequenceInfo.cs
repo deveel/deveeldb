@@ -25,8 +25,9 @@ namespace Deveel.Data.Sql {
 	/// </summary>
 	/// <seealso cref="ISequence.SequenceInfo"/>
 	/// <seealso cref="ISequence"/>
-	public sealed class SequenceInfo {
-		public SequenceInfo() {
+	public sealed class SequenceInfo : IObjectInfo {
+		public SequenceInfo(ObjectName sequenceName) {
+			SequenceName = sequenceName;
 			Type = SequenceType.Native;
 		}
 
@@ -39,8 +40,8 @@ namespace Deveel.Data.Sql {
 		/// <param name="minValue">The minimum value of the sequence.</param>
 		/// <param name="maxValue">The maximum value of the sequence.</param>
 		/// <param name="cache">The number of items to cache.</param>
-		public SequenceInfo(SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, long cache) 
-			: this(startValue, increment, minValue, maxValue, cache, true) {
+		public SequenceInfo(ObjectName sequenceName, SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, long cache) 
+			: this(sequenceName, startValue, increment, minValue, maxValue, cache, true) {
 		}
 
 		/// <summary>
@@ -53,8 +54,8 @@ namespace Deveel.Data.Sql {
 		/// <param name="maxValue">The maximum value of the sequence.</param>
 		/// <param name="cycle">Indicates if the sequence must be cycled when it reaches
 		/// the minimum or maximum value.</param>
-		public SequenceInfo(SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, bool cycle) 
-			: this(startValue, increment, minValue, maxValue, 256, cycle) {
+		public SequenceInfo(ObjectName sequenceName, SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, bool cycle) 
+			: this(sequenceName, startValue, increment, minValue, maxValue, 256, cycle) {
 		}
 
 		/// <summary>
@@ -68,7 +69,8 @@ namespace Deveel.Data.Sql {
 		/// <param name="cache">The number of items to cache.</param>
 		/// <param name="cycle">Indicates if the sequence must be cycled when it reaches
 		/// the minimum or maximum value.</param>
-		public SequenceInfo(SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, long cache, bool cycle) {
+		public SequenceInfo(ObjectName sequenceName, SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, long cache, bool cycle) {
+			SequenceName = sequenceName;
 			StartValue = startValue;
 			Increment = increment;
 			MinValue = minValue;
@@ -76,6 +78,16 @@ namespace Deveel.Data.Sql {
 			Cache = cache;
 			Cycle = cycle;
 			Type = SequenceType.Normal;
+		}
+
+		DbObjectType IObjectInfo.ObjectType {
+			get { return DbObjectType.Sequence; }
+		}
+
+		public ObjectName SequenceName { get; private set; }
+
+		ObjectName IObjectInfo.FullName {
+			get { return SequenceName; }
 		}
 
 		public SequenceType Type { get; private set; }

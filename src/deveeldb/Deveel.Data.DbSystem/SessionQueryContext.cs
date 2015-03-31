@@ -1,13 +1,11 @@
 ﻿using System;
 
 using Deveel.Data.Caching;
-using Deveel.Data.DbSystem;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Query;
 
-namespace Deveel.Data.Deveel.Data.DbSystem {
+namespace Deveel.Data.DbSystem {
 	public class SessionQueryContext : IQueryContext {
 		public SessionQueryContext(IUserSession session) {
 			if (session == null)

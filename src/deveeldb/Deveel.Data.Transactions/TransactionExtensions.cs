@@ -15,7 +15,8 @@
 //
 
 using System;
-using System.IO;
+using System.Globalization;
+using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
@@ -26,6 +27,133 @@ namespace Deveel.Data.Transactions {
 	/// Provides some convenience extension methods to <see cref="ITransaction"/> instances.
 	/// </summary>
 	public static class TransactionExtensions {
+		#region Managers
+
+		public static TableManager GetTableManager(this ITransaction transaction) {
+			return (TableManager) transaction.ObjectManagerResolver.ResolveForType(DbObjectType.Table);
+		}
+
+		#endregion
+
+		#region Objects
+
+		public static IDbObject GetObject(this ITransaction transaction, ObjectName objName) {
+			return transaction.ObjectManagerResolver.GetManagers()
+				.Select(manager => manager.GetObject(objName))
+				.FirstOrDefault(obj => obj != null);
+		}
+
+		public static IDbObject GetObject(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
+			var manager = transaction.ObjectManagerResolver.ResolveForType(objType);
+			if (manager == null)
+				return null;
+
+			return manager.GetObject(objName);
+		}
+
+		public static bool ObjectExists(this ITransaction transaction, ObjectName objName) {
+			return transaction.ObjectManagerResolver.GetManagers()
+				.Any(manager => manager.ObjectExists(objName));
+		}
+
+		public static bool ObjectExists(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
+			var manager = transaction.ObjectManagerResolver.ResolveForType(objType);
+			if (manager == null)
+				return false;
+
+			return manager.ObjectExists(objName);
+		}
+
+		public static bool RealObjectExists(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
+			var manager = transaction.ObjectManagerResolver.ResolveForType(objType);
+			if (manager == null)
+				return false;
+
+			return manager.RealObjectExists(objName);			
+		}
+
+		public static void CreateObject(this ITransaction transaction, IObjectInfo objInfo) {
+			if (objInfo == null)
+				throw new ArgumentNullException("objInfo");
+
+			var manager = transaction.ObjectManagerResolver.ResolveForType(objInfo.ObjectType);
+			if (manager == null)
+				throw new InvalidOperationException();
+
+			if (manager.ObjectType != objInfo.ObjectType)
+				throw new ArgumentException();
+
+			manager.CreateObject(objInfo);
+		}
+
+		public static bool AlterObject(this ITransaction transaction, IObjectInfo objInfo) {
+			if (objInfo == null)
+				throw new ArgumentNullException("objInfo");
+
+			var manager = transaction.ObjectManagerResolver.ResolveForType(objInfo.ObjectType);
+			if (manager == null)
+				throw new InvalidOperationException();
+
+			if (manager.ObjectType != objInfo.ObjectType)
+				throw new ArgumentException();
+
+			return manager.AlterObject(objInfo);
+		}
+
+		public static bool DropObject(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
+			var manager = transaction.ObjectManagerResolver.ResolveForType(objType);
+			if (manager == null)
+				return false;
+
+			return manager.DropObject(objName);
+		}
+
+		#endregion
+
+		#region Schema
+
+		public static void CreateSchema(this ITransaction transaction, SchemaInfo schemaInfo) {
+			transaction.CreateObject(schemaInfo);
+		}
+
+		public static void CreateSystemSchema(this ITransaction transaction) {
+			// TODO: get the configured default culture...
+			var culture = CultureInfo.CurrentCulture.Name;
+			var schemaInfo = new SchemaInfo(SystemSchema.Name, "SYSTEM");
+			schemaInfo.Culture = culture;
+
+			transaction.CreateSchema(schemaInfo);
+			SystemSchema.Create(transaction);
+		}
+
+		public static void DropSchema(this ITransaction transaction, string schemaName) {
+			transaction.DropObject(DbObjectType.Schema, new ObjectName(schemaName));
+		}
+
+		public static Schema GetSchema(this ITransaction transaction, string schemaName) {
+			var obj = transaction.GetObject(DbObjectType.Schema, new ObjectName(schemaName));
+			if (obj == null)
+				return null;
+
+			return (Schema) obj;
+		}
+
+		public static bool SchemaExists(this ITransaction transaction, string schemaName) {
+			return transaction.ObjectExists(DbObjectType.Schema, new ObjectName(schemaName));
+		}
+
+		#endregion
+
+		#region Tables
+
+		public static bool TableExists(this ITransaction transaction, ObjectName objName) {
+			return transaction.ObjectExists(DbObjectType.Table, objName);
+		}
+
+		public static bool RealTableExists(this ITransaction transaction, ObjectName objName) {
+			return transaction.RealObjectExists(DbObjectType.Table, objName);
+		}
+
 		/// <summary>
 		/// Tries to get an object with the given name formed as table.
 		/// </summary>
@@ -37,27 +165,11 @@ namespace Deveel.Data.Transactions {
 		/// it is <c>not null</c>.
 		/// </returns>
 		public static ITable GetTable(this ITransaction transaction, ObjectName tableName) {
-			var obj = transaction.GetObject(tableName);
-			if (obj == null || obj.ObjectType != DbObjectType.Table)
-				return null;
-
-			return obj as ITable;
+			return (ITable) transaction.GetObject(DbObjectType.Table, tableName);
 		}
 
 		public static IMutableTable GetMutableTable(this ITransaction transaction, ObjectName tableName) {
 			return transaction.GetTable(tableName) as IMutableTable;
-		}
-
-		public static SqlNumber NextValue(this ITransaction transaction, ObjectName sequenceName) {
-			return transaction.SequenceManager.NextValue(sequenceName);
-		}
-
-		public static SqlNumber LastValue(this ITransaction transaction, ObjectName sequenceName) {
-			return transaction.SequenceManager.LastValue(sequenceName);
-		}
-
-		public static SqlNumber SetValue(this ITransaction transaction, ObjectName sequenceName, SqlNumber value) {
-			return transaction.SequenceManager.SetValue(sequenceName, value);
 		}
 
 		/// <summary>
@@ -73,9 +185,7 @@ namespace Deveel.Data.Transactions {
 		/// If the table already exists.
 		/// </exception>
 		public static void CreateTable(this ITransaction transaction, TableInfo tableInfo) {
-			// data sector size defaults to 251
-			// index sector size defaults to 1024
-			transaction.CreateTable(tableInfo, 251, 1024);
+			transaction.CreateObject(tableInfo);
 		}
 
 		/// <summary>
@@ -83,7 +193,6 @@ namespace Deveel.Data.Transactions {
 		/// specified table definition.
 		/// </summary>
 		/// <param name="transaction"></param>
-		/// <param name="tableName"></param>
 		/// <param name="tableInfo"></param>
 		/// <remarks>
 		/// This should only be called under an exclusive lock on the connection.
@@ -91,38 +200,63 @@ namespace Deveel.Data.Transactions {
 		/// <exception cref="StatementException">
 		/// If the table does not exist.
 		/// </exception>
-		public static void AlterTable(this ITransaction transaction, ObjectName tableName, TableInfo tableInfo) {
-			// Make sure we remember the current sector size of the altered table so
-			// we can create the new table with the original size.
-			try {
-				// HACK: We use index sector size of 2043 for all altered tables
-				transaction.AlterTable(tableName, tableInfo, -1, 2043);
-			} catch (IOException e) {
-				throw new Exception("IO Error: " + e.Message);
-			}
+		public static void AlterTable(this ITransaction transaction, TableInfo tableInfo) {
+			transaction.AlterObject(tableInfo);
 		}
 
-		/// <summary>
-		/// Given a DataTableInfo, if the table exists then it is updated otherwise
-		/// if it doesn't exist then it is created.
-		/// </summary>
-		/// <param name="transaction"></param>
-		/// <param name="tableInfo"></param>
-		/// <param name="dataSectorSize"></param>
-		/// <param name="indexSectorSize"></param>
-		/// <remarks>
-		/// This should only be used as very fine grain optimization for 
-		/// creating/altering tables. If in the future the underlying table 
-		/// model is changed so that the given <paramref name="dataSectorSize"/>
-		/// and <paramref name="indexSectorSize"/> values are unapplicable, 
-		/// then the value will be ignored.
-		/// </remarks>
-		public static void AlterCreateTable(this ITransaction transaction, TableInfo tableInfo, int dataSectorSize, int indexSectorSize) {
-			if (!transaction.ObjectExists(tableInfo.TableName)) {
-				transaction.CreateTable(tableInfo, dataSectorSize, indexSectorSize);
-			} else {
-				transaction.AlterTable(tableInfo.TableName, tableInfo, dataSectorSize, indexSectorSize);
-			}
+		public static bool DropTable(this ITransaction transaction, ObjectName tableName) {
+			return transaction.DropObject(DbObjectType.Table, tableName);
 		}
+
+		#endregion
+
+		#region Sequences
+
+		public static void CreateSequence(this ITransaction transaction, SequenceInfo sequenceInfo) {
+			transaction.CreateObject(sequenceInfo);
+		}
+
+		public static void CreateNativeSequence(this ITransaction transaction, ObjectName tableName) {
+			var seqInfo = new SequenceInfo(tableName);
+			transaction.CreateSequence(seqInfo);
+		}
+
+		public static void RemoveNativeSequence(this ITransaction transaction, ObjectName tableName) {
+			transaction.DropSequence(tableName);
+		}
+
+		public static bool DropSequence(this ITransaction transaction, ObjectName sequenceName) {
+			return transaction.DropObject(DbObjectType.Sequence, sequenceName);
+		}
+
+		public static ISequence GetSequence(this ITransaction transaction, ObjectName sequenceName) {
+			return transaction.GetObject(DbObjectType.Sequence, sequenceName) as ISequence;
+		}
+
+		public static SqlNumber NextValue(this ITransaction transaction, ObjectName sequenceName) {
+			var sequence = transaction.GetSequence(sequenceName);
+			if (sequence == null)
+				throw new ObjectNotFoundException(sequenceName);
+
+			return sequence.NextValue();
+		}
+
+		public static SqlNumber LastValue(this ITransaction transaction, ObjectName sequenceName) {
+			var sequence = transaction.GetSequence(sequenceName);
+			if (sequence == null)
+				throw new ObjectNotFoundException(sequenceName);
+
+			return sequence.GetCurrentValue();
+		}
+
+		public static SqlNumber SetValue(this ITransaction transaction, ObjectName sequenceName, SqlNumber value) {
+			var sequence = transaction.GetSequence(sequenceName);
+			if (sequence == null)
+				throw new ObjectNotFoundException(sequenceName);
+
+			return sequence.SetValue(value);
+		}
+
+		#endregion
 	}
 }

@@ -17,13 +17,11 @@
 using System;
 
 namespace Deveel.Data.Routines {
-	public delegate void CallbackTriggerEventHandler(object sender, CallbackTriggerEventArgs args);
-
-	public sealed class CallbackTriggerEventArgs : EventArgs {
-		internal CallbackTriggerEventArgs(ObjectName triggerName, ObjectName triggerSource, TriggerEventType triggerEventType, int fireCount) {
+	public sealed class CallbackTriggerEvent {
+		internal CallbackTriggerEvent(ObjectName triggerName, ObjectName triggerSource, TriggerEventType eventType, int fireCount) {
 			TriggerName = triggerName;
 			TriggerSource = triggerSource;
-			TriggerEventType = triggerEventType;
+			EventType = eventType;
 			FireCount = fireCount;
 		}
 
@@ -31,7 +29,7 @@ namespace Deveel.Data.Routines {
 
 		public ObjectName TriggerSource { get; private set; }
 
-		public TriggerEventType TriggerEventType { get; private set; }
+		public TriggerEventType EventType { get; private set; }
 
 		public int FireCount { get; private set; }
 	}

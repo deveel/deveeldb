@@ -17,7 +17,6 @@ using System;
 
 using Deveel.Data.Caching;
 using Deveel.Data.DbSystem;
-using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {

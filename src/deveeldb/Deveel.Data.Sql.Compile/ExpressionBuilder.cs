@@ -17,12 +17,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Sql;
-using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 
-namespace Deveel.Data.Deveel.Data.Sql.Compile {
+namespace Deveel.Data.Sql.Compile {
 	public class ExpressionBuilder : SqlNodeVisitor {
 		private SqlExpression outputExpression;
 
