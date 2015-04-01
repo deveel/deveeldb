@@ -1,7 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-// 
-//  Copyright 2010-2014 Deveel
+﻿// 
+//  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,7 +12,17 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
--->
-<states>
-	<state code="0000" class="00" subclass="000" name="ok"/>
-</states>
+//
+using System;
+
+namespace Deveel.Data.Spatial {
+	public interface IPoint : IGeometry {
+		double X { get; }
+
+		double Y { get; }
+
+		double Z { get; }
+
+		double M { get; }
+	}
+}

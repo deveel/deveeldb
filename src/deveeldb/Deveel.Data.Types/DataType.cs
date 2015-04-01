@@ -16,7 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Objects;
 
@@ -340,6 +342,14 @@ namespace Deveel.Data.Types {
 		/// <inheritdoc/>
 		public override string ToString() {
 			return Name;
+		}
+
+		public virtual void Serialize(Stream stream, ISqlObject obj) {
+			throw new NotSupportedException(String.Format("Type {0} cannot serialize object of type {1}.", GetType(), obj.GetType()));
+		}
+
+		public virtual ISqlObject Deserialize(Stream stream, ISystemContext context) {
+			throw new NotSupportedException(String.Format("Type {0} cannot deserialize types.", GetType()));
 		}
 	}
 }

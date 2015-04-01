@@ -15,8 +15,11 @@
 //
 
 using System;
+using System.IO;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -34,11 +37,18 @@ namespace Deveel.Data.Types {
 
 		public NumericType(SqlTypeCode sqlType, int size)
 			: this(sqlType, size, 0) {
+			HasScale = false;
 		}
 
 		public int Size { get; private set; }
 
+		public bool HasSize {
+			get { return Size >= 0; }
+		}
+
 		public byte Scale { get; private set; }
+
+		public bool HasScale { get; private set; }
 
 		public override bool Equals(object obj) {
 			var other = obj as NumericType;
@@ -301,7 +311,7 @@ namespace Deveel.Data.Types {
 			if (!(a is SqlNumber) ||
 				!(b is SqlNumber))
 				throw new ArgumentException();
-			if (b is SqlNull || b.IsNull)
+			if (b.IsNull)
 				return SqlNumber.Null;
 
 			if (a.IsNull)
@@ -311,6 +321,49 @@ namespace Deveel.Data.Types {
 			var num2 = (SqlNumber) b;
 
 			return num1.Multiply(num2);
+		}
+
+		public override void Serialize(Stream stream, ISqlObject obj) {
+			var number = (SqlNumber) obj;
+
+			var writer = new BinaryWriter(stream);
+			if (number.CanBeInt32) {
+				writer.Write((byte)1);
+				writer.Write(number.ToInt32());
+			} else if (number.CanBeInt64) {
+				writer.Write((byte)2);
+				writer.Write(number.ToInt64());
+			} else {
+				var bytes = number.ToByteArray();
+				writer.Write((byte)3);
+				writer.Write(number.Precision);
+				writer.Write(number.Scale);
+				writer.Write(bytes.Length);
+				writer.Write(bytes);
+			}
+		}
+
+		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+			var reader = new BinaryReader(stream);
+
+			var type = reader.ReadByte();
+			if (type == 1) {
+				var value = reader.ReadInt32();
+				return new SqlNumber(value);
+			}
+			if (type == 2) {
+				var value = reader.ReadInt64();
+				return new SqlNumber(value);
+			}
+			if (type == 3) {
+				var precision = reader.ReadInt32();
+				var scale = reader.ReadInt32();
+				var length = reader.ReadInt32();
+				var bytes = reader.ReadBytes(length);
+				return new SqlNumber(bytes, precision, scale);
+			}
+
+			throw new FormatException();
 		}
 	}
 }

@@ -66,6 +66,10 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		public string Name { get; private set; }
 
+		/// <summary>
+		/// Gets the type of the schema that defines the kind of objects it
+		/// can contains.
+		/// </summary>
 		public string Type { get; private set; }
 
 		/// <summary>

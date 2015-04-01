@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Compile {
 			return Build(null, sqlNode);
 		}
 
-		public DataType Build(IDataTypeResolver resolver, ISqlNode sqlNode) {
+		public DataType Build(IUserTypeResolver resolver, ISqlNode sqlNode) {
 			var node = sqlNode as DataTypeNode;
 			if (node == null)
 				throw new ArgumentException();

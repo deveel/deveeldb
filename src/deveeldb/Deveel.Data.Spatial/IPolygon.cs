@@ -13,25 +13,20 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-
 using System;
 
-using Deveel.Data.Configuration;
-using Deveel.Data.Routines;
-using Deveel.Data.Spatial;
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Store;
+namespace Deveel.Data.Spatial {
+	public interface IPolygon : ISurface {
+		ILineString ExteriorRing { get; }
 
-namespace Deveel.Data.DbSystem {
-	public interface ISystemContext : IDisposable {
-		IDbConfig Config { get; }
+		ILinearRing Shell { get; }
 
-		IStoreSystem StoreSystem { get; }
+		int NumInteriorRings { get; }
 
-		ISpatialContext SpatialContext { get; }
+		ILineString[] InteriorRings { get; }
 
-		IQueryPlanner QueryPlanner { get; }
+		ILineString GetInteriorRing(int n);
 
-		IRoutineResolver RoutineResolver { get; }
+		ILinearRing[] Holes { get; }  
 	}
 }

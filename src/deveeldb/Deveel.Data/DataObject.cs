@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Spatial;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -461,6 +462,10 @@ namespace Deveel.Data {
 
 		public static DataObject VarChar(SqlString s) {
 			return new DataObject(PrimitiveTypes.String(SqlTypeCode.VarChar), s);
+		}
+
+		public static DataObject Geometry(IGeometry geometry) {
+			return new DataObject(new GeometryType(geometry.Srid), geometry);
 		}
 
 		public static DataObject Null(DataType type) {

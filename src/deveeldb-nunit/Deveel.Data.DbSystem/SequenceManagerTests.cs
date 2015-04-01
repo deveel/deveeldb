@@ -134,16 +134,6 @@ namespace Deveel.Data.DbSystem {
 			var factoryMock = new Mock<ITransactionContext>();
 
 			var tnxMock = new Mock<ITransaction>();
-			tnxMock.Setup(x => x.ObjectExists(It.IsAny<ObjectName>()))
-				.Returns<ObjectName>(name => objects.ContainsKey(name));
-			tnxMock.Setup(x => x.GetObject(It.IsAny<ObjectName>()))
-				.Returns<ObjectName>(name => {
-					IDbObject obj;
-					if (!objects.TryGetValue(name, out obj))
-						return null;
-
-					return obj;
-				});
 			tnxMock.Setup(x => x.NextTableId(It.IsAny<ObjectName>()))
 				.Returns<ObjectName>(name => {
 					int value;

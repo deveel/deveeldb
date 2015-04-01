@@ -13,25 +13,19 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-
 using System;
 
-using Deveel.Data.Configuration;
-using Deveel.Data.Routines;
-using Deveel.Data.Spatial;
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Store;
+namespace Deveel.Data.Spatial {
+	public interface IPrecisionModel : IEquatable<IPrecisionModel>, IComparable<IPrecisionModel> {
+		PrecisionModelType PrecisionModelType { get; }
 
-namespace Deveel.Data.DbSystem {
-	public interface ISystemContext : IDisposable {
-		IDbConfig Config { get; }
+		int MaximumSignificantDigits { get; }
 
-		IStoreSystem StoreSystem { get; }
+		double Scale { get; }
 
-		ISpatialContext SpatialContext { get; }
 
-		IQueryPlanner QueryPlanner { get; }
+		double MakePrecise(double value);
 
-		IRoutineResolver RoutineResolver { get; }
+		ICoordinate MakePrecise(ICoordinate coordinate);
 	}
 }

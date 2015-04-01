@@ -15,8 +15,10 @@
 //
 using System;
 
-namespace Deveel.Data.Types {
-	public interface IDataTypeResolver {
-		DataType ResolveType(ObjectName name);
+namespace Deveel.Data.Spatial {
+	public interface ICoordinateFactory {
+		ICoordinate CreateCoordinate(double x, double y, double z);
+
+		ICoordinate CreateCoordinate(double x, double y);
 	}
 }

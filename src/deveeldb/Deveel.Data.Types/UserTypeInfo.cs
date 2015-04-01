@@ -1,0 +1,70 @@
+﻿using System;
+using System.Collections.Generic;
+
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Types {
+	[Serializable]
+	public class UserTypeInfo : IObjectInfo {
+		private readonly Dictionary<string, UserTypeMember> memberNamesCache;
+		private List<UserTypeMember> members; 
+
+		public UserTypeInfo(ObjectName typeName) 
+			: this(typeName, null) {
+		}
+
+		public UserTypeInfo(ObjectName typeName, ObjectName parentType) {
+			if (typeName == null)
+				throw new ArgumentNullException("typeName");
+
+			TypeName = typeName;
+			ParentType = parentType;
+
+			memberNamesCache = new Dictionary<string, UserTypeMember>();
+		}
+
+		public ObjectName TypeName { get; private set; }
+
+		public bool IsSealed { get; set; }
+
+		public ObjectName ParentType { get; private set; }
+
+		public UserTypeMember this[int offset] {
+			get { return members[offset]; }
+		}
+
+		public UserTypeMember FindMember(string name) {
+			UserTypeMember member;
+			if (!memberNamesCache.TryGetValue(name, out member)) {
+				foreach (var typeMember in members) {
+					if (typeMember.MemberName.Equals(name, StringComparison.OrdinalIgnoreCase)) {
+						memberNamesCache[typeMember.MemberName] = typeMember;
+						member = typeMember;
+						break;
+					}
+				}
+			}
+
+			return member;
+		}
+
+		public int IndexOfMember(string name) {
+			for (int i = 0; i < members.Count; i++) {
+				var typeMember = members[i];
+				if (typeMember.MemberName.Equals(name, StringComparison.OrdinalIgnoreCase)) {
+					return i;
+				}
+			}
+
+			return -1;
+		}
+
+		DbObjectType IObjectInfo.ObjectType {
+			get { return DbObjectType.Type; }
+		}
+
+		ObjectName IObjectInfo.FullName {
+			get { return TypeName; }
+		}
+	}
+}

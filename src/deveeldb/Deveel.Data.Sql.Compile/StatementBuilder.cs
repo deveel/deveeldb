@@ -23,14 +23,14 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Compile {
 	public sealed class StatementBuilder : SqlNodeVisitor {
-		private readonly IDataTypeResolver typeResolver;
+		private readonly IUserTypeResolver typeResolver;
 		private readonly List<StatementTree> statements;
 
 		public StatementBuilder() 
 			: this(null) {
 		}
 
-		public StatementBuilder(IDataTypeResolver typeResolver) {
+		public StatementBuilder(IUserTypeResolver typeResolver) {
 			this.typeResolver = typeResolver;
 			statements = new List<StatementTree>();
 		}
@@ -94,7 +94,7 @@ namespace Deveel.Data.Sql.Compile {
 		#region CreateTable
 
 		static class CreateTable {
-			public static void Build(IDataTypeResolver typeResolver, CreateTableNode node, ICollection<StatementTree> statements) {
+			public static void Build(IUserTypeResolver typeResolver, CreateTableNode node, ICollection<StatementTree> statements) {
 				string idColumn = null;
 
 				var dataTypeBuilder = new DataTypeBuilder();

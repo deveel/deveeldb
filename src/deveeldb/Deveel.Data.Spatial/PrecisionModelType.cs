@@ -13,25 +13,12 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-
 using System;
 
-using Deveel.Data.Configuration;
-using Deveel.Data.Routines;
-using Deveel.Data.Spatial;
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Store;
-
-namespace Deveel.Data.DbSystem {
-	public interface ISystemContext : IDisposable {
-		IDbConfig Config { get; }
-
-		IStoreSystem StoreSystem { get; }
-
-		ISpatialContext SpatialContext { get; }
-
-		IQueryPlanner QueryPlanner { get; }
-
-		IRoutineResolver RoutineResolver { get; }
+namespace Deveel.Data.Spatial {
+	public enum PrecisionModelType {
+		Floating = 0,
+		FloatingSingle = 1,
+		Fixed = 2,
 	}
 }

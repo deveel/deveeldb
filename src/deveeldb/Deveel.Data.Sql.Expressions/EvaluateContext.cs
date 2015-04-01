@@ -29,9 +29,6 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public EvaluateContext(IQueryContext queryContext, IVariableResolver variableResolver, IGroupResolver groupResolver) {
-			if (queryContext == null)
-				throw new ArgumentNullException("queryContext");
-
 			GroupResolver = groupResolver;
 			VariableResolver = variableResolver;
 			QueryContext = queryContext;

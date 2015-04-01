@@ -15,10 +15,11 @@
 //
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 
-using Deveel.Data.Sql;
+using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -83,6 +84,41 @@ namespace Deveel.Data.Types {
 			}
 
 			return new DataObject(destType, casted);
+		}
+
+		public override void Serialize(Stream stream, ISqlObject obj) {
+			var writer = new BinaryWriter(stream);
+
+			if (obj is SqlBinary) {
+				var bin = (SqlBinary) obj;
+				writer.Write((byte)1);
+				writer.Write((int)bin.Length);
+				writer.Write(bin.ToByteArray());
+			} else if (obj is SqlLongBinary) {
+				var lob = (SqlLongBinary) obj;
+
+				writer.Write((byte)2);
+
+				// TODO:
+			}
+
+			base.Serialize(stream, obj);
+		}
+
+		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+			var reader = new BinaryReader(stream);
+
+			var type = reader.ReadByte();
+			if (type == 1) {
+				var length = reader.ReadInt32();
+				var bytes = reader.ReadBytes(length);
+				return new SqlBinary(bytes);
+			} 
+			if (type == 2) {
+				// TODO:
+			}
+
+			throw new FormatException();
 		}
 	}
 }

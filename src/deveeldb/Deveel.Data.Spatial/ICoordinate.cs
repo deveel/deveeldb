@@ -13,25 +13,16 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-
 using System;
 
-using Deveel.Data.Configuration;
-using Deveel.Data.Routines;
-using Deveel.Data.Spatial;
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Store;
+namespace Deveel.Data.Spatial {
+	public interface ICoordinate : IComparable<ICoordinate>, IEquatable<ICoordinate> {
+		double X { get; }
 
-namespace Deveel.Data.DbSystem {
-	public interface ISystemContext : IDisposable {
-		IDbConfig Config { get; }
+		double Y { get; }
 
-		IStoreSystem StoreSystem { get; }
+		double Z { get; }
 
-		ISpatialContext SpatialContext { get; }
-
-		IQueryPlanner QueryPlanner { get; }
-
-		IRoutineResolver RoutineResolver { get; }
+		double Distance(ICoordinate other);
 	}
 }

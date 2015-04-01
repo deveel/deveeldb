@@ -13,25 +13,19 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-
 using System;
+using System.Collections.Generic;
 
-using Deveel.Data.Configuration;
-using Deveel.Data.Routines;
-using Deveel.Data.Spatial;
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Store;
+namespace Deveel.Data.Spatial {
+	public interface IGeometryCollection : IGeometry, IEnumerable<IGeometry> {
+		int Count { get; }
 
-namespace Deveel.Data.DbSystem {
-	public interface ISystemContext : IDisposable {
-		IDbConfig Config { get; }
+		IGeometry[] Geometries { get; }
 
-		IStoreSystem StoreSystem { get; }
+		IGeometry this[int i] { get; }
 
-		ISpatialContext SpatialContext { get; }
+		bool IsHomogeneous { get; }
 
-		IQueryPlanner QueryPlanner { get; }
-
-		IRoutineResolver RoutineResolver { get; }
+		IGeometry GetGeometry(int index);
 	}
 }

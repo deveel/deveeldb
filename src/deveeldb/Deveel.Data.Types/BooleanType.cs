@@ -15,8 +15,10 @@
 //
 
 using System;
+using System.IO;
 using System.Security.Cryptography;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -89,6 +91,20 @@ namespace Deveel.Data.Types {
 				return value;
 
 			return base.CastTo(value, destType);
+		}
+
+		public override void Serialize(Stream stream, ISqlObject obj) {
+			var b = (SqlBoolean) obj;
+			var value = (bool) b;
+
+			var writer = new BinaryWriter(stream);
+			writer.Write(value);
+		}
+
+		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+			var reader = new BinaryReader(stream);
+			var value = reader.ReadBoolean();
+			return new SqlBoolean(value);
 		}
 	}
 }

@@ -228,6 +228,35 @@
     <Compile Include="Deveel.Data.Security\UserGrant.cs" />
     <Compile Include="Deveel.Data.Security\UserGroup.cs" />
     <Compile Include="Deveel.Data.Security\UserProtocolAccess.cs" />
+    <Compile Include="Deveel.Data.Spatial\ICoordinate.cs" />
+    <Compile Include="Deveel.Data.Spatial\ICoordinateFactory.cs" />
+    <Compile Include="Deveel.Data.Spatial\ICurve.cs" />
+    <Compile Include="Deveel.Data.Spatial\IEnvelope.cs" />
+    <Compile Include="Deveel.Data.Spatial\IGeometry.cs" />
+    <Compile Include="Deveel.Data.Spatial\IGeometryCollection.cs" />
+    <Compile Include="Deveel.Data.Spatial\IGeometryFactory.cs" />
+    <Compile Include="Deveel.Data.Spatial\IGeometryReader.cs" />
+    <Compile Include="Deveel.Data.Spatial\IGeometryReaderResolver.cs" />
+    <Compile Include="Deveel.Data.Spatial\IGeometryWriter.cs" />
+    <Compile Include="Deveel.Data.Spatial\IGeometryWriterResolver.cs" />
+    <Compile Include="Deveel.Data.Spatial\ILinearRing.cs" />
+    <Compile Include="Deveel.Data.Spatial\ILineString.cs" />
+    <Compile Include="Deveel.Data.Spatial\IMultiCurve.cs" />
+    <Compile Include="Deveel.Data.Spatial\IMultiLineString.cs" />
+    <Compile Include="Deveel.Data.Spatial\IMultiPoint.cs" />
+    <Compile Include="Deveel.Data.Spatial\IMultiPolygon.cs" />
+    <Compile Include="Deveel.Data.Spatial\IMultiSurface.cs" />
+    <Compile Include="Deveel.Data.Spatial\GeometryFormat.cs" />
+    <Compile Include="Deveel.Data.Spatial\IPoint.cs" />
+    <Compile Include="Deveel.Data.Spatial\IPolygon.cs" />
+    <Compile Include="Deveel.Data.Spatial\IPrecisionModel.cs" />
+    <Compile Include="Deveel.Data.Spatial\ISpatialContext.cs" />
+    <Compile Include="Deveel.Data.Spatial\ISurface.cs" />
+    <Compile Include="Deveel.Data.Spatial\PrecisionModelType.cs" />
+    <Compile Include="Deveel.Data.Spatial\WkbReader.cs" />
+    <Compile Include="Deveel.Data.Spatial\WkbWriter.cs" />
+    <Compile Include="Deveel.Data.Spatial\WktReader.cs" />
+    <Compile Include="Deveel.Data.Spatial\WktWriter.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ColumnConstraintNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ConstraintTypeNames.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateViewNode.cs" />
@@ -504,8 +533,9 @@
     <Compile Include="Deveel.Data.Types\ColumnType.cs" />
     <Compile Include="Deveel.Data.Types\DataType.cs" />
     <Compile Include="Deveel.Data.Types\DateType.cs" />
-    <Compile Include="Deveel.Data.Types\IDataTypeResolver.cs" />
+    <Compile Include="Deveel.Data.Types\GeometryType.cs" />
     <Compile Include="Deveel.Data.Types\IntervalType.cs" />
+    <Compile Include="Deveel.Data.Types\IUserTypeResolver.cs" />
     <Compile Include="Deveel.Data.Types\NullType.cs" />
     <Compile Include="Deveel.Data.Types\NumericType.cs" />
     <Compile Include="Deveel.Data.Types\PrimitiveTypes.cs" />
@@ -515,8 +545,13 @@
     <Compile Include="Deveel.Data.Types\StringType.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Types\UserType.cs" />
+    <Compile Include="Deveel.Data.Types\UserTypeInfo.cs" />
+    <Compile Include="Deveel.Data.Types\UserTypeManager.cs" />
+    <Compile Include="Deveel.Data.Types\UserTypeMember.cs" />
     <Compile Include="Deveel.Data.Types\YearToMonthType.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
+    <Compile Include="Deveel.Data.Util\StreamTokenizer.cs" />
     <Compile Include="Deveel.Data\DataObject.cs">
       <SubType>Code</SubType>
     </Compile>

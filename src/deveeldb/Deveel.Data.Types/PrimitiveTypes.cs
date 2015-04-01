@@ -17,6 +17,8 @@
 using System;
 using System.Globalization;
 
+using Deveel.Data.Spatial;
+
 namespace Deveel.Data.Types {
 	public static class PrimitiveTypes {
 		public static BooleanType Boolean() {
@@ -25,6 +27,10 @@ namespace Deveel.Data.Types {
 
 		public static BooleanType Boolean(SqlTypeCode sqlType) {
 			return new BooleanType(sqlType);
+		}
+
+		public static BooleanType Bit() {
+			return Boolean(SqlTypeCode.Bit);
 		}
 
 		public static StringType String(int maxSize) {
@@ -75,6 +81,14 @@ namespace Deveel.Data.Types {
 			return new NumericType(sqlType, size, scale);
 		}
 
+		public static NumericType TinyInt(int size) {
+			return Numeric(SqlTypeCode.TinyInt, size);
+		}
+
+		public static NumericType TinyInt() {
+			return TinyInt(-1);
+		}
+
 		public static NullType Null() {
 			return Null(SqlTypeCode.Null);
 		}
@@ -115,36 +129,18 @@ namespace Deveel.Data.Types {
 			return new BinaryType(sqlType, maxSize);
 		}
 
+		public static IntervalType Interval(SqlTypeCode sqlType) {
+			return new IntervalType(sqlType);
+		}
+
 		public static bool IsPrimitive(SqlTypeCode sqlType) {
-			if (sqlType == SqlTypeCode.Numeric ||
-				sqlType == SqlTypeCode.TinyInt ||
-				sqlType == SqlTypeCode.SmallInt ||
-				sqlType == SqlTypeCode.Integer ||
-				sqlType == SqlTypeCode.BigInt ||
-				sqlType == SqlTypeCode.Real ||
-				sqlType == SqlTypeCode.Double ||
-				sqlType == SqlTypeCode.Float ||
-				sqlType == SqlTypeCode.Decimal)
-				return true;
+			if (sqlType == SqlTypeCode.Unknown ||
+			    sqlType == SqlTypeCode.UserType ||
+			    sqlType == SqlTypeCode.QueryPlanNode ||
+			    sqlType == SqlTypeCode.Object)
+				return false;
 
-			if (sqlType == SqlTypeCode.BigInt ||
-				sqlType == SqlTypeCode.Boolean)
-				return true;
-
-			if (sqlType == SqlTypeCode.Char ||
-				sqlType == SqlTypeCode.VarChar ||
-				sqlType == SqlTypeCode.LongVarChar ||
-				sqlType == SqlTypeCode.String ||
-				sqlType == SqlTypeCode.Clob)
-				return true;
-
-			if (sqlType == SqlTypeCode.Binary ||
-				sqlType == SqlTypeCode.VarBinary ||
-				sqlType == SqlTypeCode.LongVarBinary ||
-				sqlType == SqlTypeCode.Blob)
-				return true;
-
-			return false;
+			return true;
 		}
 
 		public static bool IsPrimitive(string name) {
@@ -164,6 +160,9 @@ namespace Deveel.Data.Types {
 				name.Equals("BINARY", StringComparison.InvariantCultureIgnoreCase))
 				return true;
 
+			if (name.Equals("GEOMETRY", StringComparison.OrdinalIgnoreCase))
+				return true;
+
 			return false;
 		}
 
@@ -174,6 +173,7 @@ namespace Deveel.Data.Types {
 				typeName = "longvarbinary";
 
 			SqlTypeCode typeCode;
+
 			try {
 				typeCode = (SqlTypeCode) Enum.Parse(typeof (SqlTypeCode), typeName, true);
 			} catch (Exception) {
@@ -263,11 +263,15 @@ namespace Deveel.Data.Types {
 				return ColumnType((ObjectName)args[0]);
 			}
 
-			throw new ArgumentException(System.String.Format("The SQL type {0} is not primitive.", sqlType));
-		}
+			if (sqlType == SqlTypeCode.Geometry) {
+				if (args == null || args.Length == 0)
+					return new GeometryType();
 
-		public static DataType Query() {
-			return new QueryType();
+				var srid = (int) args[0];
+				return new GeometryType(srid);
+			}
+
+			throw new ArgumentException(System.String.Format("The SQL type {0} is not primitive.", sqlType));
 		}
 
 		public static DataType FromType(Type type) {
@@ -275,12 +279,12 @@ namespace Deveel.Data.Types {
 				return Boolean();
 			if (type == typeof(string))
 				return String();
+			if (type == typeof (byte))
+				return Bit();
+			if (type == typeof (short))
+				return TinyInt();
 
 			throw new NotSupportedException();
-		}
-
-		public static IntervalType Interval(SqlTypeCode sqlType) {
-			return new IntervalType(sqlType);
 		}
 	}
 }
