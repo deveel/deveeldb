@@ -18,6 +18,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Deveel.Data.Sql.Objects {
@@ -393,6 +394,9 @@ namespace Deveel.Data.Sql.Objects {
 			if (conversionType == typeof (string))
 				return Convert.ToString(Value, provider);
 
+			if (conversionType == typeof (char[]))
+				return ToCharArray();
+
 			if (conversionType == typeof (SqlNumber))
 				return ToNumber();
 			if (conversionType == typeof (SqlBoolean))
@@ -452,6 +456,15 @@ namespace Deveel.Data.Sql.Objects {
 		public SqlBinary ToBinary() {
 			var bytes = ToByteArray();
 			return new SqlBinary(bytes);
+		}
+
+		public char[] ToCharArray() {
+			if (source == null)
+				return new char[0];
+
+			var chars = new char[Length];
+			Array.Copy(source, 0, chars, 0, Length);
+			return chars;
 		}
 	}
 }

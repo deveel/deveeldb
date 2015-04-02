@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Deveel.Data.Deveel.Data.Transactions;
-
 namespace Deveel.Data.Transactions {
 	public class TableAccessEvent : ITableEvent {
 		public TableAccessEvent(int tableId, ObjectName tableName) {

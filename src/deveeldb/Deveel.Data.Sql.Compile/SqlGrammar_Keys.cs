@@ -81,6 +81,7 @@ namespace Deveel.Data.Sql.Compile {
 		private KeyTerm FOR;
 		private KeyTerm FROM;
 		private KeyTerm FOREIGN;
+		private KeyTerm GEOMETRY;
 		private KeyTerm GOTO;
 		private KeyTerm GROUP;
 		private KeyTerm GROUPS;
@@ -88,6 +89,7 @@ namespace Deveel.Data.Sql.Compile {
 		private KeyTerm KEY;
 		private KeyTerm JOIN;
 		private KeyTerm IDENTIFIED;
+		private KeyTerm IDENTITY;
 		private KeyTerm IF;
 		private KeyTerm IN;
 		private KeyTerm INCREMENT;
@@ -143,6 +145,7 @@ namespace Deveel.Data.Sql.Compile {
 		private KeyTerm TO;
 		private KeyTerm TRIGGER;
 		private KeyTerm TRUE;
+		private KeyTerm TYPE;
 		private KeyTerm UPDATE;
 		private KeyTerm UNION;
 		private KeyTerm UNIQUE;
@@ -155,10 +158,11 @@ namespace Deveel.Data.Sql.Compile {
 		private KeyTerm WHEN;
 		private KeyTerm WHERE;
 		private KeyTerm WITH;
+		private KeyTerm XML;
 
 		#endregion
 
-		private void ReservedWords() {
+		protected override void ReservedWords() {
 			var reserved = new List<string> {
 				ABSOLUTE.Text,
 				ACTION.Text,
@@ -190,12 +194,7 @@ namespace Deveel.Data.Sql.Compile {
 			MarkReservedWords(reserved.ToArray());
 		}
 
-		private void Keywords() {
-			dot = ToTerm(".");
-			comma = ToTerm(",");
-			semicolon = ToTerm(";");
-			colon = ToTerm(":");
-
+		protected override void Keywords() {
 			ABSOLUTE = ToTerm("ABSOLUTE");
 			ACTION = ToTerm("ACTION");
 			ACCOUNT = ToTerm("ACCOUNT");
@@ -255,6 +254,7 @@ namespace Deveel.Data.Sql.Compile {
 			FOR = ToTerm("FOR");
 			FROM = ToTerm("FROM");
 			FOREIGN = ToTerm("FOREIGN");
+			GEOMETRY = ToTerm("GEOMETRY");
 			GOTO = ToTerm("GOTO");
 			GROUP = ToTerm("GROUP");
 			GROUPS = ToTerm("GROUPS");
@@ -262,6 +262,7 @@ namespace Deveel.Data.Sql.Compile {
 			KEY = ToTerm("KEY");
 			JOIN = ToTerm("JOIN");
 			IDENTIFIED = ToTerm("IDENTIFIED");
+			IDENTITY = ToTerm("IDENTITY");
 			IF = ToTerm("IF");
 			IN = ToTerm("IN");
 			INCREMENT = ToTerm("INCREMENT");
@@ -317,6 +318,7 @@ namespace Deveel.Data.Sql.Compile {
 			TO = ToTerm("TO");
 			TRIGGER = ToTerm("TRIGGER");
 			TRUE = ToTerm("TRUE");
+			TYPE = ToTerm("TYPE");
 			UPDATE = ToTerm("UPDATE");
 			UNION = ToTerm("UNION");
 			UNIQUE = ToTerm("UNIQUE");
@@ -329,6 +331,7 @@ namespace Deveel.Data.Sql.Compile {
 			WHERE = ToTerm("WHERE");
 			WITH = ToTerm("WITH");
 			YEAR = ToTerm("YEAR");
+			XML = ToTerm("XML");
 		}
 	}
 }

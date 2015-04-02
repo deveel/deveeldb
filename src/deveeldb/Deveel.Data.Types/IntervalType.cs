@@ -15,8 +15,10 @@
 //
 
 using System;
+using System.IO;
 
-using Deveel.Data.Sql;
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
 	[Serializable]
@@ -44,6 +46,47 @@ namespace Deveel.Data.Types {
 
 			// TODO: better check ...
 			return SqlType.Equals(type.SqlType);
+		}
+
+		public override void Serialize(Stream stream, ISqlObject obj) {
+			var writer = new BinaryWriter(stream);
+
+			if (obj is SqlDayToSecond) {
+				var interval = (SqlDayToSecond) obj;
+				var bytes = interval.ToByArray();
+
+				writer.Write((byte)1);
+				writer.Write(bytes.Length);
+				writer.Write(bytes);
+			} else if (obj is SqlYearToMonth) {
+				var interval = (SqlYearToMonth) obj;
+				var months = interval.TotalMonths;
+
+				writer.Write((byte)2);
+				writer.Write(months);
+			}
+
+			throw new FormatException();
+		}
+
+		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+			var reader = new BinaryReader(stream);
+
+			var type = reader.ReadByte();
+
+			if (type == 1) {
+				var length = reader.ReadInt32();
+				var bytes = reader.ReadBytes(length);
+				
+				// TODO: implement the constructor from bytes
+				throw new NotImplementedException();
+			}
+			if (type == 2) {
+				var months = reader.ReadInt32();
+				return new SqlYearToMonth(months);
+			}
+
+			return base.Deserialize(stream, context);
 		}
 	}
 }

@@ -27,10 +27,11 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Deveel Database Management System")]
 [assembly: AssemblyCompany("Deveel")]
 [assembly: AssemblyProduct("deveeldb")]
-[assembly: AssemblyCopyright("Copyright ©  2009-2013 Deveel")]
+[assembly: AssemblyCopyright("Copyright ©  2009-2015 Deveel")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
+#if !PCL
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
@@ -38,6 +39,7 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("96b0916e-83a6-46b7-88c5-8bf9b245812b")]
+#endif
 
 // Version information for an assembly consists of the following four values:
 //

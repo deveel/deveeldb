@@ -15,13 +15,85 @@
 //
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Deveel.Data.Sql.Compile {
 	/// <summary>
 	/// Extension methods to <see cref="ISqlNode"/> for diagnostics and other purposes.
 	/// </summary>
 	public static class SqlNodeExtensions {
+		public static TNode FindNode<TNode>(this ISqlNode node) where TNode : class, ISqlNode {
+			var foundNode = node.FindNode(typeof(TNode));
+			if (foundNode == null)
+				return null;
+
+			return (TNode)foundNode;
+		}
+
+		public static ISqlNode FindNode(this ISqlNode node, Type nodeType) {
+			foreach (var childNode in node.ChildNodes) {
+				if (nodeType.IsInstanceOfType(childNode))
+					return childNode;
+
+				var foundNode = childNode.FindNode(nodeType);
+				if (foundNode != null)
+					return foundNode;
+			}
+
+			return null;
+		}
+
+		public static TNode FindNodeOf<TNode>(this ISqlNode node, string nodeName) where TNode : class, ISqlNode {
+			var parent = node.FindByName(nodeName);
+			if (parent == null)
+				return null;
+
+			return parent.FindNode<TNode>();
+		}
+
+		public static ISqlNode FindByName(this ISqlNode node, string nodeName) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode.NodeName.Equals(nodeName))
+					return childNode;
+
+				var foundNode = childNode.FindByName(nodeName);
+				if (foundNode != null)
+					return foundNode;
+			}
+
+			return null;
+		}
+
+		public static bool HasOptionalNode(this ISqlNode node, string nodeName) {
+			var foundNode = node.FindByName(nodeName);
+			if (foundNode == null)
+				return false;
+
+			return foundNode.ChildNodes.Any();
+		}
+
+		public static IEnumerable<TNode> FindNodes<TNode>(this ISqlNode node) where TNode : class, ISqlNode {
+			var foundNodes = node.FindNodes(typeof(TNode));
+			return foundNodes.Cast<TNode>();
+		}
+
+		public static IEnumerable FindNodes(this ISqlNode node, Type nodeType) {
+			var nodes = new List<ISqlNode>();
+
+			foreach (var childNode in node.ChildNodes) {
+				if (nodeType.IsInstanceOfType(childNode)) {
+					nodes.Add(childNode);
+				}
+
+				nodes.AddRange(childNode.FindNodes(nodeType).Cast<ISqlNode>());
+			}
+
+			return nodes.AsReadOnly();
+		}
+
 		public static int StartColumn(this ISqlNode node) {
 			if (node == null || node.Tokens == null)
 				return 0;

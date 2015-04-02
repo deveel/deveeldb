@@ -15,6 +15,10 @@
 //
 
 using System;
+using System.IO;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
 	[Serializable]
@@ -82,6 +86,23 @@ namespace Deveel.Data.Types {
 
 		public override bool CanCastTo(DataType type) {
 			return base.CanCastTo(type);
+		}
+
+		public override void Serialize(Stream stream, ISqlObject obj) {
+			var date = (SqlDateTime) obj;
+
+			var writer = new BinaryWriter(stream);
+			var bytes = date.ToByteArray(true);
+			
+			writer.Write(bytes.Length);
+			writer.Write(bytes);
+		}
+
+		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+			var reader = new BinaryReader(stream);
+			var length = reader.ReadInt32();
+			var bytes = reader.ReadBytes(length);
+			return new SqlDateTime(bytes);
 		}
 	}
 }

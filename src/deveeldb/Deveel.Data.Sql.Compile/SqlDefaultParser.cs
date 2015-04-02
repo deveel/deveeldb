@@ -23,26 +23,26 @@ using Irony.Parsing;
 
 namespace Deveel.Data.Sql.Compile {
 	class SqlDefaultParser : ISqlParser {
-		public SqlDefaultParser(string dialect, bool ignoreCase) {
-			Dialect = dialect;
-			IgnoreCase = ignoreCase;
+		private readonly LanguageData languageData;
+
+		public SqlDefaultParser(SqlGrammarBase grammar) {
+			languageData = new LanguageData(grammar);
 		}
 
 		public void Dispose() {
 		}
 
-		public string Dialect { get; private set; }
-
-		public bool IgnoreCase { get; private set; }
+		public string Dialect {
+			get { return ((SqlGrammarBase) languageData.Grammar).Dialect; }
+		}
 
 		public SqlParseResult Parse(string input) {
-			var grammar = new SqlGrammar(IgnoreCase);
 			var result = new SqlParseResult(Dialect);
 
 			var startedOn = DateTimeOffset.UtcNow;
 
 			try {
-				var node = ParseNode(grammar, input, result.Errors);
+				var node = ParseNode(input, result.Errors);
 				result.RootNode = node;
 			} catch (Exception ex) {
 				// TODO: form a better exception
@@ -54,9 +54,7 @@ namespace Deveel.Data.Sql.Compile {
 			return result;
 		}
 
-		private ISqlNode ParseNode(SqlGrammar grammar, string sqlSource, ICollection<SqlParseError> errors) {
-			var languageData = new LanguageData(grammar);
-
+		private ISqlNode ParseNode(string sqlSource, ICollection<SqlParseError> errors) {
 			if (!languageData.CanParse())
 				throw new InvalidOperationException();
 

@@ -40,7 +40,6 @@ namespace Deveel.Data.Sql.Compile {
 				text = text.Substring(1, text.Length - 2);
 
 			Text = text;
-			base.OnNodeInit();
 		}
 	}
 }

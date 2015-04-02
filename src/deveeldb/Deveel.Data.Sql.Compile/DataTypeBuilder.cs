@@ -77,6 +77,12 @@ namespace Deveel.Data.Sql.Compile {
 				sqlTypeCode == SqlTypeCode.TimeStamp)
 				return PrimitiveTypes.Type(sqlTypeCode);
 
+			if (sqlTypeCode == SqlTypeCode.Geometry) {
+				if (node.HasSrid)
+					return new GeometryType(node.Srid);
+
+				return new GeometryType();
+			}
 
 			// TODO: Support %ROWTYPE and %TYPE
 

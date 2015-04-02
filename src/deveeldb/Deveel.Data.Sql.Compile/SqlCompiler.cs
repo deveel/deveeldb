@@ -23,22 +23,12 @@ using Irony.Parsing;
 
 namespace Deveel.Data.Sql.Compile {
 	public sealed class SqlCompiler {
-		public SqlCompiler() 
-			: this(true) {
-		}
-
-		public SqlCompiler(bool ignoreCase) {
-			IgnoreCase = ignoreCase;
-		}
-
-		public bool IgnoreCase { get; set; }
-
 		public TNode Compile<TNode>(string sqlSource) where TNode : ISqlNode {
-			var grammar = new SqlGrammar(IgnoreCase);
+			var grammar = new SqlGrammar();
 			return (TNode) ParseNode(grammar, sqlSource);
 		}
 
-		private ISqlNode ParseNode(SqlGrammar grammar, string sqlSource) {
+		private ISqlNode ParseNode(SqlGrammarBase grammar, string sqlSource) {
 			var languageData = new LanguageData(grammar);
 
 			if (!languageData.CanParse())
@@ -78,14 +68,12 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		internal DataTypeNode CompileDataType(string s) {
-			var grammar = new SqlGrammar(IgnoreCase);
-			grammar.SetRootToDataType();
+			var grammar = new SqlDataTypeGrammar();
 			return (DataTypeNode) ParseNode(grammar, s);
 		}
 
 		internal IExpressionNode CompileExpression(string s) {
-			var grammar = new SqlGrammar(IgnoreCase);
-			grammar.SetRootToExpression();
+			var grammar = new SqlExpressionGrammar();
 			return (IExpressionNode) ParseNode(grammar, s);
 		}
 	}

@@ -39,22 +39,15 @@ namespace Deveel.Data.Sql.Compile {
 		/// Gets an optional name that will uniquely identify the 
 		/// selected item within the query context.
 		/// </summary>
-		public string Alias { get; private set; }
+		public IdentifierNode Alias { get; private set; }
 
-		/// <inheritdoc/>
-		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node.NodeName == "select_source") {
-				var source = node.ChildNodes.First();
-				if (source is IExpressionNode) {
-					Expression = (IExpressionNode) source;
-				} else if (source is ObjectNameNode) {
-					Name = (ObjectNameNode) source;
-				}
-			} else if (node is IdentifierNode) {
-				Alias = ((IdentifierNode) node).Text;
-			}
+		protected override void OnNodeInit() {
+			Expression = ChildNodes.OfType<IExpressionNode>().FirstOrDefault();
+			Name = ChildNodes.OfType<ObjectNameNode>().FirstOrDefault();
 
-			return base.OnChildNode(node);
+			var aliasNode = this.FindByName("select_as_opt");
+			if (aliasNode != null)
+				Alias = aliasNode.FindNode<IdentifierNode>();
 		}
 	}
 }

@@ -23,13 +23,16 @@ using System.Text;
 using Deveel.Data.Store;
 
 namespace Deveel.Data.Sql.Objects {
-	public sealed class SqlLongString : ISqlString, IDisposable {
+	public sealed class SqlLongString : ISqlString, IObjectRef, IDisposable {
 		private readonly ILargeObject largeObject;
 		private readonly Encoding encoding;
 
 		public SqlLongString(ILargeObject largeObject, int codePage) {
 			this.largeObject = largeObject;
 			encoding = Encoding.GetEncoding(codePage);
+
+			CodePage = codePage;
+			Length = largeObject.RawSize;
 		}
 
 		~SqlLongString() {
@@ -60,6 +63,10 @@ namespace Deveel.Data.Sql.Objects {
 				throw new ArgumentException();
 
 			return CompareTo((ISqlString) other);
+		}
+
+		public ObjectId ObjectId {
+			get { return largeObject.Id; }
 		}
 
 		public bool IsNull {

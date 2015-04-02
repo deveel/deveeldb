@@ -401,8 +401,8 @@ namespace Deveel.Data.DbSystem {
 			// We can't add or remove native tables
 			if (sequenceName.Equals(SystemSchema.SequenceTableName) ||
 				sequenceName.Equals(SystemSchema.SequenceInfoTableName) ||
-				!Transaction.ObjectExists(SystemSchema.SequenceTableName) ||
-				!Transaction.ObjectExists(SystemSchema.SequenceInfoTableName)) {
+				!Transaction.TableExists(SystemSchema.SequenceTableName) ||
+				!Transaction.TableExists(SystemSchema.SequenceInfoTableName)) {
 				return null;
 			}
 
@@ -524,8 +524,8 @@ namespace Deveel.Data.DbSystem {
 		public bool SequenceExists(ObjectName sequenceName) {
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// we can't create the sequence generator
-			if (!Transaction.ObjectExists(SystemSchema.SequenceTableName) ||
-				!Transaction.ObjectExists(SystemSchema.SequenceInfoTableName)) {
+			if (!Transaction.TableExists(SystemSchema.SequenceTableName) ||
+				!Transaction.TableExists(SystemSchema.SequenceInfoTableName)) {
 				throw new Exception("System sequence tables do not exist.");
 			}
 

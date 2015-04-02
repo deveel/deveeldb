@@ -288,10 +288,14 @@ namespace Deveel.Data.Types {
 		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
 		/// <seealso cref="ToString()"/>
 		public static DataType Parse(string s) {
-			var sqlCompiler = new SqlCompiler();
+			var sqlCompiler = SqlParsers.DataType;
 
 			try {
-				var node = sqlCompiler.CompileDataType(s);
+				var result = sqlCompiler.Parse(s);
+				if (result.HasErrors)
+					throw new SqlParseException();
+
+				var node = (DataTypeNode) result.RootNode;
 				if (!node.IsPrimitive)
 					throw new NotSupportedException("Cannot resolve the given string to a primitive type.");
 

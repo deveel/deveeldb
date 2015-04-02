@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Deveel.Data.Deveel.Data.Transactions;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Store;
@@ -158,6 +157,10 @@ namespace Deveel.Data.DbSystem {
 				if (stateStore != null)
 					stateStore.Dispose();
 
+				if (tempStoreSystem != null)
+					tempStoreSystem.Dispose();
+
+				tempStoreSystem = null;
 				lobStore = null;
 			}
 		}

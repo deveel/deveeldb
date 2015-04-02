@@ -92,53 +92,60 @@ namespace Deveel.Data.Sql.Compile {
 			return exp;
 		}
 
-		private void SetFromTableInClause(FromClause clause, IFromSourceNode source) {
-			if (source is FromTableSourceNode) {
-				var tableSource = (FromTableSourceNode) source;
-				clause.AddTable(tableSource.Alias, tableSource.TableName.Name.FullName);
-			} else if (source is FromQuerySourceNode) {
-				var querySource = (FromQuerySourceNode) source;
-				var queryExpression = VisitQueryExpression(querySource.Query);
-				clause.AddSubQuery(source.Alias, queryExpression);
-			}
+		private void SetFromTableInClause(FromClause clause, IFromSourceNode source, JoinNode join) {
+			AddSourceToClause(clause, source);
 
-			if (source.Join != null) {
+			if (join != null) {
 				var joinType = JoinType.Inner;
-				if (!String.IsNullOrEmpty(source.Join.JoinType))
-					joinType = GetJoinType(source.Join.JoinType);
+				if (!String.IsNullOrEmpty(join.JoinType))
+					joinType = GetJoinType(join.JoinType);
 
 				SqlExpression onExpression = null;
-				if (source.Join.OnExpression != null)
-					onExpression = VisitExpression(source.Join.OnExpression);
+				if (join.OnExpression != null)
+					onExpression = VisitExpression(join.OnExpression);
 
 				clause.Join(joinType, onExpression);
 
-				var otherSource = source.Join.OtherSource;
-				if (otherSource == null)
-					throw new SqlExpressionException("The JOIN clause is not valid: missing other part.");
+				SetFromTableInClause(clause, join.Source, join.NextJoin);
+			}
+		}
 
-				SetFromTableInClause(clause, otherSource);
+		private void AddSourceToClause(FromClause clause, IFromSourceNode source) {
+			string alias = null;
+			if (source.Alias != null)
+				alias = source.Alias.Text;
+
+			if (source is FromTableSourceNode) {
+				var tableSource = (FromTableSourceNode)source;
+				clause.AddTable(alias, tableSource.TableName.Name.FullName);
+			} else if (source is FromQuerySourceNode) {
+				var querySource = (FromQuerySourceNode)source;
+				var queryExpression = VisitQueryExpression(querySource.Query);
+				clause.AddSubQuery(alias, queryExpression);
 			}
 		}
 
 		private JoinType GetJoinType(string typeName) {
 			if (String.Equals(typeName, "INNER", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(typeName, "INNER JOIN", StringComparison.OrdinalIgnoreCase) ||
 			    String.Equals(typeName, ",", StringComparison.InvariantCulture))
 				return JoinType.Inner;
 			if (String.Equals(typeName, "LEFT OUTER", StringComparison.OrdinalIgnoreCase) ||
-			    String.Equals(typeName, "LEFT"))
+				String.Equals(typeName, "LFT OUTER JOIN", StringComparison.OrdinalIgnoreCase) ||
+			    String.Equals(typeName, "LEFT", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(typeName, "LFT JOIN", StringComparison.OrdinalIgnoreCase))
 				return JoinType.Left;
 			if (String.Equals(typeName, "RIGHT OUTER", StringComparison.OrdinalIgnoreCase) ||
-			    String.Equals(typeName, "RIGHT", StringComparison.OrdinalIgnoreCase))
+				String.Equals(typeName, "RIGHT OUTER JOIN", StringComparison.OrdinalIgnoreCase) ||
+			    String.Equals(typeName, "RIGHT", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(typeName, "RIGHT JOIN", StringComparison.OrdinalIgnoreCase))
 				return JoinType.Right;
 
 			return JoinType.None;
 		}
 
 		private void SetFromClause(FromClause clause, FromClauseNode node) {
-			foreach (var source in node.Sources) {
-				SetFromTableInClause(clause, source);
-			}
+			SetFromTableInClause(clause, node.Source, node.Join);
 		}
 
 		private IEnumerable<SelectColumn> GetSelectColumns(SqlQueryExpressionNode node) {
@@ -157,7 +164,11 @@ namespace Deveel.Data.Sql.Compile {
 					throw new InvalidOperationException();
 				}
 
-				items.Add(new SelectColumn(exp, item.Alias));
+				string alias = null;
+				if (item.Alias != null)
+					alias = item.Alias.Text;
+
+				items.Add(new SelectColumn(exp, alias));
 			}
 
 			return items.AsReadOnly();

@@ -1,6 +1,5 @@
 ﻿using System;
 
-using Deveel.Data.Deveel.Data.Transactions;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {

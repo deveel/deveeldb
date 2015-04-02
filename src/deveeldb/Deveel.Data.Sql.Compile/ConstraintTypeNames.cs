@@ -17,6 +17,8 @@ using System;
 
 namespace Deveel.Data.Sql.Compile {
 	static class ConstraintTypeNames {
+		public const string NotNull = "NOT NULL";
+		public const string Null = "NULL";
 		public const string Check = "CHECK";
 		public const string ForeignKey = "FKEY";
 		public const string UniqueKey = "UNIQUE";

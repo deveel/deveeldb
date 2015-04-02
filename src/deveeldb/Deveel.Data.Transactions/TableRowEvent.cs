@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Deveel.Data.Deveel.Data.Transactions;
-
 namespace Deveel.Data.Transactions {
 	public class TableRowEvent : ITableEvent {
 		public TableRowEvent(int tableId, int rowNumber, TableRowEventType eventType) {

@@ -15,6 +15,10 @@
 //
 
 using System;
+using System.IO;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
 	/// <summary>
@@ -28,6 +32,33 @@ namespace Deveel.Data.Types {
 		/// <param name="sqlType"></param>
 		public NullType(SqlTypeCode sqlType) 
 			: base("NULL", sqlType) {
+		}
+
+		public override void Serialize(Stream stream, ISqlObject obj) {
+			var writer = new BinaryWriter(stream);
+
+			if (obj is SqlNull) {
+				writer.Write((byte)1);
+			} else if (obj == null || obj.IsNull) {
+				writer.Write((byte)2);
+			}
+
+			throw new FormatException();
+		}
+
+		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+			var reader = new BinaryReader(stream);
+			var type = reader.ReadByte();
+
+			if (type == 1)
+				return SqlNull.Value;
+			if (type == 2) {
+				// TODO: check the SQL Type Code of the type and construct the
+				//       NULL value specific for the type.
+				throw new NotImplementedException();
+			}
+
+			throw new FormatException();
 		}
 	}
 }

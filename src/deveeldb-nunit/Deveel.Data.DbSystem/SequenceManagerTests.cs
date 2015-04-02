@@ -21,7 +21,6 @@ using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Transactions;
-using Deveel.Data.Types;
 
 using Moq;
 
@@ -133,6 +132,23 @@ namespace Deveel.Data.DbSystem {
 
 			var factoryMock = new Mock<ITransactionContext>();
 
+			var resolverMock = new Mock<IObjectManagerResolver>();
+			resolverMock.Setup(x => x.GetManagers())
+				.Returns(() => {
+					return new List<IObjectManager> {
+						new SequenceManager(transaction),
+						new TableManager(transaction)
+					};
+				});
+			resolverMock.Setup(x => x.ResolveForType(It.IsAny<DbObjectType>()))
+				.Returns<DbObjectType>(x => {
+					if (x == DbObjectType.Sequence)
+						return new SequenceManager(transaction);
+					if (x == DbObjectType.Table)
+						return new TableManager(transaction);
+					return null;
+				});
+
 			var tnxMock = new Mock<ITransaction>();
 			tnxMock.Setup(x => x.NextTableId(It.IsAny<ObjectName>()))
 				.Returns<ObjectName>(name => {
@@ -148,6 +164,8 @@ namespace Deveel.Data.DbSystem {
 				});
 			tnxMock.Setup(x => x.Context)
 				.Returns(factoryMock.Object);
+			tnxMock.Setup(x => x.ObjectManagerResolver)
+				.Returns(() => resolverMock.Object);
 
 			factoryMock.Setup(x => x.CreateTransaction(It.IsAny<TransactionIsolation>()))
 				.Returns<TransactionIsolation>(isolation => tnxMock.Object);

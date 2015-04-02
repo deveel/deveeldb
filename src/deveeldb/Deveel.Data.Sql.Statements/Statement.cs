@@ -64,11 +64,15 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public static IEnumerable<Statement> Parse(string sqlSource) {
-			var compiler = new SqlCompiler();
+			var compiler = SqlParsers.Default;
 			SequenceOfStatementsNode sequence;
 
+			SqlParseResult result;
+
 			try {
-				sequence = compiler.CompileStatements(sqlSource);
+				result = compiler.Parse(sqlSource);
+				if (result.HasErrors)
+					throw new SqlParseException();
 			} catch (SqlParseException) {
 				throw;
 			} catch (Exception ex) {
@@ -76,7 +80,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			var builder = new StatementBuilder();
-			var trees = builder.Build(sequence, sqlSource);
+			var trees = builder.Build(result.RootNode, sqlSource);
 
 			return trees.Select(x => x.CreateStatement()).ToList();
 		}

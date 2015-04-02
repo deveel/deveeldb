@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Deveel.Data.Transactions;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 

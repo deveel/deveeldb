@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Deveel.Data.Transactions;
-
 namespace Deveel.Data.Transactions {
 	public sealed class TransactionRegistry : IDisposable {
 		private readonly List<ITransactionEvent> events;

@@ -19,8 +19,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Store;
+
 namespace Deveel.Data.Sql.Objects {
-	public sealed class SqlLongBinary : ISqlBinary, IDisposable {
+	public sealed class SqlLongBinary : ISqlBinary, IObjectRef, IDisposable {
+		private readonly ILargeObject largeObject;
+
+		public static readonly SqlLongBinary Null = new SqlLongBinary(null);
+
+		public SqlLongBinary(ILargeObject largeObject) {
+			this.largeObject = largeObject;
+		}
+
 		public int CompareTo(object obj) {
 			throw new NotImplementedException();
 		}
@@ -29,7 +39,9 @@ namespace Deveel.Data.Sql.Objects {
 			throw new NotImplementedException();
 		}
 
-		public bool IsNull { get; private set; }
+		public bool IsNull {
+			get { return largeObject == null; }
+		}
 
 		public bool IsComparableTo(ISqlObject other) {
 			throw new NotImplementedException();
@@ -52,5 +64,7 @@ namespace Deveel.Data.Sql.Objects {
 		public void Dispose() {
 			throw new NotImplementedException();
 		}
+
+		public ObjectId ObjectId { get; private set; }
 	}
 }

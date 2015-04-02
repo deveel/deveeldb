@@ -15,14 +15,11 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
-
-using Deveel.Data.Sql.Expressions.Fluid;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	class TableConstraintNode : SqlNode {
+	class TableConstraintNode : SqlNode, ITableElementNode {
 		private bool notSeen;
 		private readonly IList<string> columns;
 		private readonly IList<string> refColumns;

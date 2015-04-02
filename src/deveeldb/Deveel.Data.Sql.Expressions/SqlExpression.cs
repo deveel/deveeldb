@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Compile;
@@ -186,20 +187,16 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Returns an instance of <seealso cref="SqlExpression"/> that represents
 		/// the given SQL string parsed.
 		/// </returns>
-		/// <exception cref="SqlExpressionException">
-		/// If an error occurrs while parsing the string or if it's not possible
-		/// to construct the <see cref="SqlExpression"/> from the parsed <see cref="IExpressionNode"/>
-		/// returned by the <see cref="SqlCompiler"/> used to parse the expression.
-		/// </exception>
-		/// <seealso cref="IExpressionNode"/>
-		/// <seealso cref="SqlCompiler"/>
 		public static SqlExpression Parse(string s) {
 			try {
-				var compiler = new SqlCompiler(true);
-				var expressionNode = compiler.CompileExpression(s);
+				var compiler = SqlParsers.Expression;
+				var result = compiler.Parse(s);
+
+				if (result.HasErrors)
+					throw new SqlParseException();
 
 				var visitor = new ExpressionBuilder();
-				return visitor.Build(expressionNode);
+				return visitor.Build(result.RootNode);
 			} catch (SqlParseException ex) {
 				throw new SqlExpressionException(ExpressionErrorCodes.CannotParse,
 					"Could not parse input expression: see inner exception for details.", ex);

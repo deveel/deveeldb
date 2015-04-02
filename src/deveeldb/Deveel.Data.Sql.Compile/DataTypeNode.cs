@@ -112,6 +112,10 @@ namespace Deveel.Data.Sql.Compile {
 		/// <seealso cref="Locale"/>
 		public bool HasLocale { get; private set; }
 
+		public int Srid { get; private set; }
+
+		public bool HasSrid { get; private set; }
+
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "decimal_type") {
 				GetNumberType(node);
@@ -127,6 +131,8 @@ namespace Deveel.Data.Sql.Compile {
 				GetUserType(node);
 			} else if (node.NodeName == "row_type") {
 
+			} else if (node.NodeName == "geometry_type") {
+				GetGeometryType(node);
 			}
 
 			return base.OnChildNode(node);
@@ -175,6 +181,15 @@ namespace Deveel.Data.Sql.Compile {
 			}
 		}
 
+		private void GetSrid(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is IntegerLiteralNode) {
+					Srid = (int)((IntegerLiteralNode)childNode).Value;
+					HasSrid = true;
+				}
+			}
+		}
+
 		private void GetNumberType(ISqlNode node) {
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode is SqlKeyNode) {
@@ -194,6 +209,16 @@ namespace Deveel.Data.Sql.Compile {
 				} else {
 					Precision = (int) ((IntegerLiteralNode) childNode).Value;
 					HasPrecision = true;
+				}
+			}
+		}
+
+		private void GetGeometryType(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is SqlKeyNode) {
+					TypeName = ((SqlKeyNode)childNode).Text;
+				} else if (childNode.NodeName == "datatype_size") {
+					GetSrid(childNode);
 				}
 			}
 		}

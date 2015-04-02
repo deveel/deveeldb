@@ -19,7 +19,9 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Store;
 
 namespace Deveel.Data.Types {
 	[Serializable]
@@ -397,7 +399,50 @@ namespace Deveel.Data.Types {
 			} catch (IOException e) {
 				throw new Exception("IO Error: " + e.Message);
 			}
+		}
 
+		public override void Serialize(Stream stream, ISqlObject obj) {
+			var sqlString = (ISqlString) obj;
+			var writer = new BinaryWriter(stream);
+
+			if (obj is SqlString) {
+				var bytes = ((SqlString) sqlString).ToByteArray();
+				writer.Write((byte)1);
+				writer.Write(sqlString.CodePage);
+				writer.Write(sqlString.Length);
+				writer.Write(bytes);
+			} else if (obj is SqlLongString) {
+				var longString = (SqlLongString) sqlString;
+				writer.Write((byte)2);
+				writer.Write(longString.ObjectId.StoreId);
+				writer.Write(longString.ObjectId.Id);
+			}
+
+			throw new FormatException();
+		}
+
+		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+			var reader = new BinaryReader(stream);
+			var type = reader.ReadByte();
+
+			if (type == 1) {
+				var codePage = reader.ReadInt32();
+				var length = reader.ReadInt32();
+				var bytes = reader.ReadBytes(length);
+
+				return SqlString.Decode(codePage, bytes);
+			}
+
+			if (type == 2) {
+				var storeId = reader.ReadInt32();
+				var objId = reader.ReadInt64();
+				var refObjId = new ObjectId(storeId, objId);
+
+				// TODO: find the store and get the object
+				throw new NotImplementedException();
+			}
+
+			throw new FormatException();
 		}
 	}
 }

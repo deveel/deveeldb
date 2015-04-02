@@ -262,6 +262,12 @@
     <Compile Include="Deveel.Data.Sql.Compile\CreateViewNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DataTypeBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ExpressionBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ITableElementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\JoinTypeNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlDataTypeGrammar.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlExpressionGrammar.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlGrammarBase.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlParsers.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\StatementBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\TableColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\TableConstraintNode.cs" />
@@ -286,6 +292,7 @@
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlPreparedQueryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlQueryBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\IObjectRef.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlArray.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlQueryObject.cs" />
     <Compile Include="Deveel.Data.Sql.Query\BranchQueryPlanNode.cs" />
@@ -400,7 +407,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlGrammar.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlChildNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\SqlCompiler.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlKeyNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlNodeExtensions.cs" />
@@ -549,7 +555,6 @@
     <Compile Include="Deveel.Data.Types\UserTypeInfo.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeManager.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeMember.cs" />
-    <Compile Include="Deveel.Data.Types\YearToMonthType.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\StreamTokenizer.cs" />
     <Compile Include="Deveel.Data\DataObject.cs">
@@ -566,9 +571,6 @@
     <None Include="deveeldb.licenseheader" />
     <None Include="deveeldb.snk" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="DataVersion" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

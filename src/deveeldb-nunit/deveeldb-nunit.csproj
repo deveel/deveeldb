@@ -109,6 +109,7 @@
     <Compile Include="Deveel.Data.Sql\JoinTableTests.cs" />
     <Compile Include="Deveel.Data.Sql\TableQueryTests.cs" />
     <Compile Include="Deveel.Data.Types\BooleanTypeTest.cs" />
+    <Compile Include="Deveel.Data.Types\DataTypeParseTests.cs" />
     <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
     <Compile Include="Deveel.Data\BooleanObjectTest.cs" />
     <Compile Include="Deveel.Data\NumericObjectTests.cs" />

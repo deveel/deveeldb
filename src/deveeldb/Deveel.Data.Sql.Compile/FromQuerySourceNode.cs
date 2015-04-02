@@ -31,23 +31,14 @@ namespace Deveel.Data.Sql.Compile {
 		public SqlQueryExpressionNode Query { get; private set; }
 
 		/// <inheritdoc/>
-		public string Alias { get; private set; }
-
-		/// <inheritdoc/>
-		public JoinNode Join { get; private set; }
+		public IdentifierNode Alias { get; private set; }
 
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node.NodeName == "query") {
-				var expression = node.ChildNodes.FirstOrDefault();
-				if (expression != null)
-					Query = (SqlQueryExpressionNode) expression;
-			} else if (node is IdentifierNode) {
-				Alias = ((IdentifierNode) node).Text;
-			} else if (node.NodeName == "join_opt") {
-				var join = node.ChildNodes.FirstOrDefault();
-				if (join != null)
-					Join = (JoinNode) join;
+			if (node is SqlQueryExpressionNode) {
+				Query = (SqlQueryExpressionNode)node;
+			} else if (node.NodeName == "select_as_opt") {
+				Alias = (IdentifierNode)node.ChildNodes.FirstOrDefault();
 			}
 
 			return base.OnChildNode(node);

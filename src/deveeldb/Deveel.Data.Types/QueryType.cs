@@ -15,12 +15,28 @@
 //
 
 using System;
+using System.IO;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class QueryType : DataType {
 		public QueryType()
 			: base("QUERY", SqlTypeCode.QueryPlanNode) {
+		}
+
+		public override bool IsIndexable {
+			get { return false; }
+		}
+
+		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+			return base.Deserialize(stream, context);
+		}
+
+		public override void Serialize(Stream stream, ISqlObject obj) {
+			base.Serialize(stream, obj);
 		}
 	}
 }

@@ -26,6 +26,8 @@ namespace Deveel.Data.Sql.Compile {
 	/// <seealso cref="IFromSourceNode"/>
 	[Serializable]
 	class JoinNode : SqlNode {
+		public IFromSourceNode Source { get; private set; }
+
 		/// <summary>
 		/// Gets the expression used as condition for creating the joined
 		/// group in a query.
@@ -34,7 +36,7 @@ namespace Deveel.Data.Sql.Compile {
 		/// This value can be <c>null</c> only if two sources are joined naturally,
 		/// that means the condition is defined in the <c>WHERE</c> expression.
 		/// </remarks>
-		public SqlBinaryExpressionNode OnExpression { get; private set; }
+		public IExpressionNode OnExpression { get; private set; }
 
 		/// <summary>
 		/// Gets the type of join, as a <see cref="string"/> that will
@@ -50,42 +52,38 @@ namespace Deveel.Data.Sql.Compile {
 		/// <seealso cref="Sql.JoinType"/>
 		public string JoinType { get; private set; }
 
-		/// <summary>
-		/// Gets the other <seealso cref="IFromSourceNode"/> joined.
-		/// </summary>
-		public IFromSourceNode OtherSource { get; private set; }
+		public JoinNode NextJoin { get; private set; }
 
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "join_type") {
 				GetJoinType(node);
 			} else if (node is IFromSourceNode) {
-				OtherSource = (IFromSourceNode) node;
-			} else if (node.NodeName == "from_source_list") {
-				GetTablelist(node);
-			} else if (node is SqlBinaryExpressionNode) {
-				OnExpression = (SqlBinaryExpressionNode) node;
+				Source = (IFromSourceNode) node;
+			} else if (node.NodeName == "from_source") {
+				Source = (IFromSourceNode) node.ChildNodes.FirstOrDefault();
+			} else if (node.NodeName == "on_opt") {
+				OnExpression = node.FindNode<IExpressionNode>();
+			} else if (node.NodeName == "join_opt") {
+				var join = node.ChildNodes.FirstOrDefault();
+				if (join != null)
+					NextJoin = (JoinNode) join;
 			}
 
 			return base.OnChildNode(node);
 		}
 
-		private void GetTablelist(ISqlNode node) {
-			//var list = new List<IFromSourceNode>();
-			//foreach (var child in node.ChildNodes) {
-			//	var source = child.ChildNodes.First();
-			//	if (source is IFromSourceNode)
-			//		list.Add((IFromSourceNode)source);
-			//}
-
-			//Sources = list.AsReadOnly();
-		}
-
 		private void GetJoinType(ISqlNode node) {
 			var sb = new StringBuilder();
+			bool first = true;
 			foreach (var childNode in node.ChildNodes) {
+				if (!first)
+					sb.Append(" ");
+
 				sb.Append(childNode.NodeName);
+				first = false;
 			}
+
 			JoinType = sb.ToString();
 		}
 	}

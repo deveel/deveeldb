@@ -6,7 +6,6 @@ using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Deveel.Data.Sql;
-using Deveel.Data.Deveel.Data.Transactions;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Deveel.Data.Transactions {
+namespace Deveel.Data.Transactions {
 	public enum TableRowEventType {
 		Add = 1,
 		Remove = 2,

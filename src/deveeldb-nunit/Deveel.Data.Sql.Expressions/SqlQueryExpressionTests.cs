@@ -18,8 +18,6 @@ using System.Linq;
 
 using NUnit.Framework;
 
-using Deveel.Data.Sql.Expressions.Fluid;
-
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
 	public sealed class SqlQueryExpressionTests {
@@ -64,7 +62,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void ParseSelectWithInnerJoin() {
-			const string sql = "SELECT a.col1, b.col2 FROM table1 a INNER JOIN table2 b ON a.id = b.id";
+			const string sql = "SELECT a.col1, b.col2 FROM table1 AS a INNER JOIN table2 b ON a.id = b.id";
 
 			SqlExpression expression = null;
 			Assert.DoesNotThrow(() => expression = SqlExpression.Parse(sql));

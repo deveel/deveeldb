@@ -34,12 +34,6 @@ namespace Deveel.Data.Sql.Compile {
 		/// This value can be <c>null</c> that means the name will be
 		/// resolved by its main component.
 		/// </remarks>
-		string Alias { get; }
-
-		/// <summary>
-		/// Gets a <c>JOIN</c> clause between this source and another,
-		/// if defined in the query.
-		/// </summary>
-		JoinNode Join { get; }
+		IdentifierNode Alias { get; }
 	}
 }

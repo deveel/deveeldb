@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	/// <summary>
@@ -29,27 +30,19 @@ namespace Deveel.Data.Sql.Compile {
 		/// Gets a read-only list of sources for the query.
 		/// </summary>
 		/// <seealso cref="IFromSourceNode"/>
-		public IEnumerable<IFromSourceNode> Sources { get; private set; }
+		public IFromSourceNode Source { get; private set; }
+
+		public JoinNode Join { get; private set; }
 
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node.NodeName == "from_source_list") {
-				GetSources(node);
+			if (node.NodeName == "from_source") {
+				Source = (IFromSourceNode) node.ChildNodes.FirstOrDefault();
+			} else if (node.NodeName == "join_opt") {
+				Join = (JoinNode) node.ChildNodes.FirstOrDefault();
 			}
 
 			return base.OnChildNode(node);
-		}
-
-		private void GetSources(ISqlNode node) {
-			var sources = new List<IFromSourceNode>();
-
-			foreach (var childNode in node.ChildNodes) {
-				if (childNode is IFromSourceNode) {
-					sources.Add((IFromSourceNode)childNode);
-				}
-			}
-
-			Sources = sources.AsReadOnly();
 		}
 	}
 }

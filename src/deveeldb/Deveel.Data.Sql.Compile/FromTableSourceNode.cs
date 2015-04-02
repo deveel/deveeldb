@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// <seealso cref="IFromSourceNode"/>
 	class FromTableSourceNode : SqlNode, IFromSourceNode {
 		/// <inheritdoc/>
-		public string Alias { get; private set; }
+		public IdentifierNode Alias { get; private set; }
 
 		/// <summary>
 		/// Gets the name of the table that is set as source of a query.
@@ -32,18 +32,11 @@ namespace Deveel.Data.Sql.Compile {
 		public ObjectNameNode TableName { get; private set; }
 
 		/// <inheritdoc/>
-		public JoinNode Join { get; private set; }
-
-		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is ObjectNameNode) {
-				TableName = (ObjectNameNode) node;
-			} else if (node is IdentifierNode) {
-				Alias = ((IdentifierNode) node).Text;
-			} else if (node.NodeName == "join_opt") {
-				var join = node.ChildNodes.FirstOrDefault();
-				if (join != null)
-					Join = (JoinNode) join;
+				TableName = (ObjectNameNode)node;
+			} else if (node.NodeName == "select_as_opt") {
+				Alias = (IdentifierNode)node.ChildNodes.FirstOrDefault();
 			}
 
 			return base.OnChildNode(node);
