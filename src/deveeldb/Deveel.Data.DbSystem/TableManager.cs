@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 using Deveel.Data.Index;
@@ -24,18 +25,18 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class TableManager : ITableManager {
-		private readonly List<int> visibleTables;
+	public sealed class TableManager : IObjectManager {
+		private readonly List<TableSource> visibleTables;
+		private List<IMutableTable> accessedTables; 
 		private readonly List<IIndexSet> tableIndices;
 		private List<ITableContainer> internalTables;
 
-		private readonly Dictionary<ObjectName, ITable> tableCache;
-		private readonly Dictionary<ObjectName, SqlNumber> sequenceValueCache; 
+		private readonly Dictionary<ObjectName, IMutableTable> tableCache;
 
 		private List<object> cleanupQueue;
 
 		public TableManager(ITransaction transaction)
-			: this(transaction, new TableSourceComposite(transaction.Context.SystemContext, transaction.Context.Database)) {
+			: this(transaction, new TableSourceComposite(transaction.Context.Database)) {
 		}
 
 		public TableManager(ITransaction transaction, TableSourceComposite composite) {
@@ -46,18 +47,80 @@ namespace Deveel.Data.DbSystem {
 
 			Composite = composite;
 
-			visibleTables = new List<int>();
+			visibleTables = new List<TableSource>();
 			tableIndices = new List<IIndexSet>();
-			tableCache = new Dictionary<ObjectName, ITable>();
-			sequenceValueCache = new Dictionary<ObjectName, SqlNumber>();
+			accessedTables = new List<IMutableTable>();
+			tableCache = new Dictionary<ObjectName, IMutableTable>();
+		}
+
+		~TableManager() {
+			Dispose(true);
 		}
 
 		public ITransaction Transaction { get; private set; }
 
 		public TableSourceComposite Composite { get; private set; }
 
+		internal IEnumerable<IMutableTable> AccessedTables {
+			get { return accessedTables; }
+		} 
+
+		private bool IgnoreIdentifiersCase {
+			get { return Transaction.IgnoreIdentifiersCase(); }
+		}
+
 		public void Dispose() {
-			
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void DisposeAllIndices() {
+			// Dispose all the IIndexSet for each table
+			try {
+				foreach (var tableIndex in tableIndices) {
+					tableIndex.Dispose();
+				}
+			} catch (Exception e) {
+				// TODO: Report the error ...
+			}
+
+			// Dispose all tables we dropped (they will be in the cleanup_queue.
+			try {
+				if (cleanupQueue != null) {
+					for (int i = 0; i < cleanupQueue.Count; i += 2) {
+						var tableSource = (TableSource) cleanupQueue[i];
+						IIndexSet indexSet = (IIndexSet) cleanupQueue[i + 1];
+						indexSet.Dispose();
+					}
+				}
+			} catch (Exception e) {
+				// TODO: Report the error
+			} finally {
+				cleanupQueue = null;
+			}
+		}
+
+		private void DisposeTouchedTables() {
+			try {
+				foreach (var table in accessedTables) {
+					table.Dispose();
+				}
+
+				accessedTables.Clear();
+			} catch (Exception ex) {
+				// TODO: Report the error
+			} finally {
+				accessedTables = null;
+			}
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				DisposeAllIndices();
+				DisposeTouchedTables();
+			}
+
+			Transaction = null;
 		}
 
 		DbObjectType IObjectManager.ObjectType {
@@ -143,7 +206,7 @@ namespace Deveel.Data.DbSystem {
 		internal IIndexSet GetIndexSetForTable(TableSource tableSource) {
 			int sz = tableIndices.Count;
 			for (int i = 0; i < sz; ++i) {
-				if (visibleTables[i] == tableSource.TableId) {
+				if (visibleTables[i].TableId == tableSource.TableId) {
 					return tableIndices[i];
 				}
 			}
@@ -152,18 +215,18 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private void AddVisibleTable(TableSource table, IIndexSet indexSet) {
-			if (Transaction.IsReadOnly)
+			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read-only.");
 
-			visibleTables.Add(table.TableId);
+			visibleTables.Add(table);
 			tableIndices.Add(indexSet);
 		}
 
-		private void RemoveVisibleTable(TableSource table) {
-			if (Transaction.IsReadOnly)
+		internal void RemoveVisibleTable(TableSource table) {
+			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read-only.");
 
-			int i = visibleTables.IndexOf(table.TableId);
+			int i = visibleTables.IndexOf(table);
 			if (i != -1) {
 				visibleTables.RemoveAt(i);
 				IIndexSet indexSet = tableIndices[i];
@@ -180,10 +243,40 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
+		internal void UpdateVisibleTable(TableSource table, IIndexSet indexSet) {
+			if (Transaction.ReadOnly())
+				throw new Exception("Transaction is Read-only.");
+
+			RemoveVisibleTable(table);
+			AddVisibleTable(table, indexSet);
+		}
+
+		private TableSource FindVisibleTable(ObjectName tableName) {
+			return FindVisibleTable(tableName, IgnoreIdentifiersCase);
+		}
+
 		private TableSource FindVisibleTable(ObjectName tableName, bool ignoreCase) {
-			return visibleTables.Select(tableId => Composite.GetTableSource(tableId))
+			return visibleTables
 				.FirstOrDefault(source => source != null &&
 				                          source.TableInfo.TableName.Equals(tableName, ignoreCase));
+		}
+
+		public SqlNumber SetUniqueId(ObjectName tableName, SqlNumber value) {
+			var tableSource = FindVisibleTable(tableName, false);
+			if (tableSource == null)
+				throw new ObjectNotFoundException(tableName, String.Format("Table with name '{0}' could not be found to set the unique id.", tableName));
+
+			tableSource.SetUniqueId(value.ToInt64());
+			return value;
+		}
+
+		public SqlNumber NextUniqueId(ObjectName tableName) {
+			var tableSource = FindVisibleTable(tableName, false);
+			if (tableSource == null)
+				throw new ObjectNotFoundException(tableName, String.Format("Table with name '{0}' could not be found to retrieve unique id.", tableName));
+
+			var value = tableSource.GetNextUniqueId();
+			return new SqlNumber(value);
 		}
 
 		private bool IsDynamicTable(ObjectName tableName) {
@@ -241,7 +334,7 @@ namespace Deveel.Data.DbSystem {
 
 		public ITable GetTable(ObjectName tableName) {
 			// If table is in the cache, return it
-			ITable table;
+			IMutableTable table;
 			if (tableCache.TryGetValue(tableName, out table))
 				return table;
 
@@ -253,13 +346,71 @@ namespace Deveel.Data.DbSystem {
 			} else {
 				// Otherwise make a view of tha master table data source and write it in
 				// the cache.
-				table = CreateTableSourceAtCommit(source);
+				table = CreateTableAtCommit(source);
+
+				Transaction.Registry.RegisterEvent(new TableSelectedEvent(source.TableId));
 
 				// Put table name in the cache
 				tableCache[tableName] = table;
 			}
 
 			return table;
+		}
+
+		public String GetTableType(ObjectName tableName) {
+			if (tableName == null)
+				throw new ArgumentNullException("tableName");
+
+			if (IsDynamicTable(tableName))
+				return GetDynamicTableType(tableName);
+			if (FindVisibleTable(tableName, false) != null)
+				return "TABLE";
+
+			// No table found so report the error.
+			throw new ObjectNotFoundException(tableName);
+		}
+
+		private ObjectName[] GetDynamicTables() {
+			int sz = internalTables.Where(container => container != null).Sum(container => container.TableCount);
+
+			var list = new ObjectName[sz];
+			int index = -1;
+
+			foreach (var container in internalTables) {
+				if (container != null) {
+					int tableCount = container.TableCount;
+					for (int i = 0; i < tableCount; ++i) {
+						list[++index] = container.GetTableName(i);
+					}
+				}
+			}
+
+			return list;
+		}
+
+		public ObjectName TryResolveCase(ObjectName tableName) {
+			// Is it a visable table (match case insensitive)
+			var table = FindVisibleTable(tableName, true);
+			if (table != null)
+				return table.TableName;
+
+			var comparison = IgnoreIdentifiersCase
+				? StringComparison.OrdinalIgnoreCase
+				: StringComparison.Ordinal;
+
+			// Is it an internal table?
+			string tschema = tableName.ParentName;
+			string tname = tableName.Name;
+			var list = GetDynamicTables();
+			foreach (var ctable in list) {
+				if (String.Equals(ctable.ParentName, tschema, comparison) &&
+					String.Equals(ctable.Name, tname, comparison)) {
+					return ctable;
+				}
+			}
+
+			// No matches so return the original object.
+			return tableName;
 		}
 
 		public IMutableTable GetMutableTable(ObjectName tableName) {
@@ -273,9 +424,34 @@ namespace Deveel.Data.DbSystem {
 			return (IMutableTable) table;
 		}
 
-		private ITable CreateTableSourceAtCommit(TableSource source) {
+		private TableInfo GetDynamicTableInfo(ObjectName tableName) {
+			foreach (var info in internalTables) {
+				if (info != null) {
+					int index = info.FindByName(tableName);
+					if (index != -1)
+						return info.GetTableInfo(index);
+				}
+			}
+
+			throw new Exception("Not an internal table: " + tableName);
+		}
+
+		public TableInfo GetTableInfo(ObjectName tableName) {
+			// If this is a dynamic table then handle specially
+			if (IsDynamicTable(tableName))
+				return GetDynamicTableInfo(tableName);
+
+			// Otherwise return from the pool of visible tables
+			return visibleTables
+					.Select(table => table.TableInfo)
+					.FirstOrDefault(tableInfo => tableInfo.TableName.Equals(tableName));
+		}
+
+		private IMutableTable CreateTableAtCommit(TableSource source) {
 			// Create the table for this transaction.
-			var table = source.CreateTableAtCommit(this);
+			var table = source.CreateTableAtCommit(Transaction);
+
+			accessedTables.Add(table);
 
 			Transaction.Registry.RegisterEvent(new TableAccessEvent(source.TableId, source.TableInfo.TableName));
 
@@ -316,7 +492,7 @@ namespace Deveel.Data.DbSystem {
 			int alteredTableId = source.TableId;
 
 			// Set the sequence id of the table
-			source.SetUniqueId(nextId);
+			source.SetUniqueId(nextId.ToInt64());
 
 			// Work out which columns we have to copy to where
 			int[] colMap = new int[tableInfo.ColumnCount];
@@ -347,7 +523,7 @@ namespace Deveel.Data.DbSystem {
 				int newRowNumber = source.AddRow(dataRow);
 
 				// Set the record as committed added
-				source.WriteRecordType(newRowNumber, TableRecordState.Added);
+				source.WriteRecordState(newRowNumber, RecordState.CommittedAdded);
 			}
 
 			// TODO: We need to copy any existing index definitions that might
@@ -381,7 +557,7 @@ namespace Deveel.Data.DbSystem {
 		private void SetIndexSetForTable(TableSource source, IIndexSet indexSet) {
 			int sz = tableIndices.Count;
 			for (int i = 0; i < sz; ++i) {
-				if (visibleTables[i] == source.TableId) {
+				if (visibleTables[i].TableId == source.TableId) {
 					tableIndices[i] = indexSet;
 					return;
 				}
@@ -411,30 +587,39 @@ namespace Deveel.Data.DbSystem {
 			return true;
 		}
 
-		public long NextUniqueId(ObjectName tableName) {
-			if (Transaction.IsReadOnly)
-				throw new Exception("Sequence operation not permitted for read only transaction.");
-
-			var source = FindVisibleTable(tableName, false);
-			if (source == null)
-				throw new ObjectNotFoundException(tableName);
-
-			return source.GetNextUniqueId();
-		}
-
-		public void SetUniqueId(ObjectName tableName, int uniqueId) {
-			if (Transaction.IsReadOnly)
-				throw new Exception("Sequence operation not permitted for read only transaction.");
-
-			var source = FindVisibleTable(tableName, false);
-			if (source == null)
-				throw new ObjectNotFoundException(tableName);
-
-			source.SetUniqueId(uniqueId);
-		}
-
 		public void AssertConstraints(ObjectName tableName) {
 			throw new NotImplementedException();
+		}
+
+		public void AddInternalTable(ITableContainer container) {
+			if (internalTables == null)
+				internalTables = new List<ITableContainer>();
+
+			internalTables.Add(container);
+		}
+
+		internal IEnumerable<TableSource> GetVisibleTables() {
+			return visibleTables.AsReadOnly();
+		}
+
+		internal void AddVisibleTables(IEnumerable<TableSource> tableSources, IEnumerable<IIndexSet> indexSets) {
+			var tableList = tableSources.ToList();
+			var indexSetList = indexSets.ToList();
+			for (int i = 0; i < tableList.Count; i++) {
+				AddVisibleTable(tableList[i], indexSetList[i]);
+			}
+		}
+
+		public IEnumerable<ObjectName> GetTableNames() {
+			var result = (visibleTables
+				.Where(tableSource => tableSource != null)
+				.Select(tableSource => tableSource.TableName)).ToList();
+
+			var dynamicTables = GetDynamicTables();
+			if (dynamicTables != null)
+				result.AddRange(dynamicTables);
+
+			return result.AsReadOnly();
 		}
 	}
 }

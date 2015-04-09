@@ -1,8 +1,6 @@
 ﻿using System;
 
 using Deveel.Data.Caching;
-using Deveel.Data.Routines;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.DbSystem {
@@ -16,36 +14,17 @@ namespace Deveel.Data.DbSystem {
 
 		public IUserSession Session { get; private set; }
 
-		public void Dispose() {
+		public IDatabaseContext DatabaseContext {
+			get { return Session.Database.Context; }
 		}
 
-		public ISystemContext SystemContext {
-			get {
-				// TODO:
-				return null;
-			}
+		public void Dispose() {
 		}
 
 		public ICache TableCache { get; private set; }
 
 
-		public bool IsExceptionState { get; private set; }
-
-		public IRoutineResolver RoutineResolver { get; private set; }
-
 		public SqlNumber NextRandom(int bitSize) {
-			throw new NotImplementedException();
-		}
-
-		public void SetExceptionState(Exception exception) {
-			throw new NotImplementedException();
-		}
-
-		public Exception GetException() {
-			throw new NotImplementedException();
-		}
-
-		public IDbObject GetObject(ObjectName objName) {
 			throw new NotImplementedException();
 		}
 	}

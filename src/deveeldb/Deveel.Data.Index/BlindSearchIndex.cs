@@ -26,8 +26,8 @@ namespace Deveel.Data.Index {
 			: base(table, columnOffset) {
 		}
 
-		public override string Name {
-			get { return DefaultIndexNames.BlindSearch; }
+		public override string IndexType {
+			get { return DefaultIndexTypes.BlindSearch; }
 		}
 
 		private void AssertNotReadOnly() {

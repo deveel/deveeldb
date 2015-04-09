@@ -17,8 +17,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.DbSystem;
-
 namespace Deveel.Data.Sql.Query {
 	/// <summary>
 	/// A <see cref="IQueryPlanNode"/> implementation that is a branch with 
@@ -53,7 +51,7 @@ namespace Deveel.Data.Sql.Query {
 			return Right.DiscoverQueryReferences(level, Left.DiscoverQueryReferences(level, list));
 		}
 
-		public virtual string Title {
+		public virtual string NodeName {
 			get { return GetType().Name; }
 		}
 	}

@@ -40,15 +40,16 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		public override ITable Evaluate(IQueryContext context) {
-			throw new NotImplementedException();
+			var t = Child.Evaluate(context);
+			return t.ExhaustiveSelect(context, Expression);
 		}
 
 		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
-			throw new NotImplementedException();
+			return Expression.DiscoverTableNames(base.DiscoverTableNames(list));
 		}
 
 		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
-			throw new NotImplementedException();
+			return Expression.DiscoverQueryReferences(ref level, base.DiscoverQueryReferences(level, list));
 		}
 
 		public override string Title {

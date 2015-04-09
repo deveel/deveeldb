@@ -20,8 +20,6 @@ using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Transactions {
 	public interface ITransactionContext {
-		ISystemContext SystemContext { get; }
-
 		IDatabase Database { get; }
 
 		TransactionCollection OpenTransactions { get; }

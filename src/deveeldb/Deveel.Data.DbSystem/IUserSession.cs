@@ -17,6 +17,7 @@
 using System;
 using System.Data;
 
+using Deveel.Data.Protocol;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
@@ -35,38 +36,22 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		User User { get; }
 
+		IDatabase Database { get; }
+
+		string CurrentSchema { get; }
+
+		ConnectionEndPoint EndPoint { get; }
+
 		/// <summary>
 		/// Gets the last time the user issued a command within the session.
 		/// </summary>
 		DateTimeOffset? LastCommand { get; }
 
-		/// <summary>
-		/// Gets the transaction that holds the commands from the user.
-		/// </summary>
-		/// <seealso cref="ITransaction"/>
 		ITransaction Transaction { get; }
 
-		IDatabase Database { get; }
+		void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode);
 
-		GrantManager GrantManager { get; }
-
-		/// <summary>
-		/// Adds a given table to the session cache for fast access.
-		/// </summary>
-		/// <param name="tableName">The name of the table, used as key for the cache.</param>
-		/// <param name="table">The instance of <see cref="ITable"/> to cache.</param>
-		/// <see cref="GetCachedTable"/>
-		void CacheTable(ObjectName tableName, ITable table);
-
-		/// <summary>
-		/// Gets a cached table from the session.
-		/// </summary>
-		/// <param name="tableName">The name of the table to get.</param>
-		/// <returns>
-		/// Returns an instance of <see cref="ITable"/> that was previously cached.
-		/// </returns>
-		/// <seealso cref="CacheTable"/>
-		ITable GetCachedTable(ObjectName tableName);
+		void ReleaseLocks();
 
 
 		/// <summary>
@@ -111,7 +96,5 @@ namespace Deveel.Data.DbSystem {
 		/// 
 		/// </summary>
 		void Rollback();
-
-		void Close();
 	}
 }

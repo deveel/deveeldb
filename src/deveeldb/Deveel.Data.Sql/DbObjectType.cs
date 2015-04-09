@@ -21,6 +21,7 @@ namespace Deveel.Data.Sql {
 		Table = 1,
 		View = 2,
 		Type = 4,
+		Variable = 8,
 		Row = 10,
 		Column = 11,
 		Trigger = 17,

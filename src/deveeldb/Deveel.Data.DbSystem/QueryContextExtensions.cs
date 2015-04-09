@@ -18,6 +18,7 @@ using System;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public static class QueryContextExtensions {
@@ -29,30 +30,47 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.Database;
 		}
 
-		public static ITable GetTable(this IQueryContext context, ObjectName tableName) {
-			var obj = context.GetObject(tableName);
-			if (obj == null)
-				return null;
-
-			if (obj.ObjectType != DbObjectType.Table)
-				throw new InvalidOperationException(String.Format("The object '{0}' is {1} (expecting a table)", obj.FullName, obj.ObjectType));
-
-			return (ITable) obj;
+		public static IDbObject GetObject(this IQueryContext context, DbObjectType objType, ObjectName objName) {
+			return context.Session.GetObject(objType, objName);
 		}
 
-		internal static IDbTable GetDbTable(this IQueryContext context, ObjectName tableName) {
-			return (IDbTable) context.GetTable(tableName);
+		public static ITable GetTable(this IQueryContext context, ObjectName tableName) {
+			var table = context.GetCachedTable(tableName.FullName) as ITable;
+			if (table == null) {
+				table = context.Session.GetTable(tableName);
+				context.CacheTable(tableName.FullName, table);
+			}
+
+			return table;
+		}
+
+		public static IMutableTable GetMutableTable(this IQueryContext context, ObjectName tableName) {
+			return context.GetTable(tableName) as IMutableTable;
 		}
 
 		public static ISequence GetSequence(this IQueryContext context, ObjectName sequenceName) {
-			var obj = context.GetObject(sequenceName);
-			if (obj == null)
+			return context.Session.GetSequence(sequenceName);
+		}
+
+		public static ITable GetCachedTable(this IQueryContext context, string cacheKey) {
+			if (context.TableCache == null)
 				return null;
 
-			if (obj.ObjectType != DbObjectType.Sequence)
-				throw new InvalidOperationException(String.Format("The object '{0}' is {1} (expecting a sequence)", obj.FullName, obj.ObjectType));
+			return context.TableCache.Get(cacheKey) as ITable;
+		}
 
-			return (ISequence) obj;
+		public static void CacheTable(this IQueryContext context, string cacheKey, ITable table) {
+			if (context.TableCache == null)
+				return;
+
+			context.TableCache.Set(cacheKey, table);
+		}
+
+		public static void ClearCachedTables(this IQueryContext context) {
+			if (context.TableCache == null)
+				return;
+
+			context.TableCache.Clear();
 		}
 
 		/// <summary>

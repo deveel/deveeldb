@@ -15,9 +15,12 @@
 //
 
 using System;
+using System.IO;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Spatial;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Store;
 using Deveel.Data.Types;
 
 using SqlBoolean = Deveel.Data.Sql.Objects.SqlBoolean;
@@ -71,7 +74,21 @@ namespace Deveel.Data {
 		/// <seealso cref="SqlNull.Value"/>
 		/// <seealso cref="ISqlObject.IsNull"/>
 		public bool IsNull {
-			get { return Type.IsNull || Value == null || SqlNull.Value == Value || Value.IsNull; }
+			get {
+				return Type.IsNull || Value == null || SqlNull.Value == Value || Value.IsNull;
+			}
+		}
+
+		internal int CacheUsage {
+			get { return Type.GetCacheUsage(Value); }
+		}
+
+		internal bool IsCacheable {
+			get { return Type.IsCacheable(Value); }
+		}
+
+		internal int Size {
+			get { return Type.SizeOf(Value); }
 		}
 
 		/// <summary>
@@ -667,5 +684,9 @@ namespace Deveel.Data {
 		}
 
 		#endregion
+
+		internal void SerializeTo(Stream stream, ISystemContext systemContext) {
+			Type.Serialize(stream, Value, systemContext);
+		}
 	}
 }

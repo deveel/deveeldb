@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Deveel.Data.Sql {
+namespace Deveel.Data.Sql {
 	public static class SqlModelErrorCodes {
 		/// <summary>
 		/// A Primary Key constraint violation error code.

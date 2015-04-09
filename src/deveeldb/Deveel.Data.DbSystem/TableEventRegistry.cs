@@ -7,10 +7,10 @@ using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	class TableEventRegistry : IEnumerable<ITableEvent> {
+	public sealed class TableEventRegistry : IEnumerable<ITableEvent> {
 		private readonly List<ITableEvent> events;
 
-		public TableEventRegistry(TableSource tableSource) {
+		internal TableEventRegistry(TableSource tableSource) {
 			if (tableSource == null)
 				throw new ArgumentNullException("tableSource");
 
@@ -20,13 +20,13 @@ namespace Deveel.Data.DbSystem {
 			events = new List<ITableEvent>();
 		}
 
-		public TableSource TableSource { get; private set; }
+		internal TableSource TableSource { get; private set; }
 
 		public int TableId {
 			get { return TableSource.TableId; }
 		}
 
-		public long CommitId { get; private set; }
+		public long CommitId { get; internal set; }
 
 		public IEnumerable<int> AddedRows {
 			get {
@@ -75,7 +75,7 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		public void Rollback(int count) {
+		internal void Rollback(int count) {
 			lock (this) {
 				if (count > events.Count)
 					throw new Exception("Trying to rollback more events than are in the registry.");
@@ -100,11 +100,7 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		public void AttachTo(ITransaction transaction) {
-			CommitId = transaction.CommitId;
-		}
-
-		public void Register(ITableEvent tableEvent) {
+		internal void Register(ITableEvent tableEvent) {
 			lock (this) {
 				events.Add(tableEvent);
 			}
@@ -137,6 +133,15 @@ namespace Deveel.Data.DbSystem {
 
 		IEnumerator IEnumerable.GetEnumerator() {
 			return GetEnumerator();
+		}
+
+		public ITableEvent GetEvent(int index) {
+			lock (this) {
+				if (index < 0 || index >= events.Count)
+					throw new ArgumentOutOfRangeException("index");
+
+				return events[index];
+			}
 		}
 	}
 }

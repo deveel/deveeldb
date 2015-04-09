@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Deveel.Data.Store {
@@ -26,7 +27,6 @@ namespace Deveel.Data.Store {
 
 		private long headerAreaId;
 		private IArea headerArea;
-		private int blockCount;
 
 		// Pointers to the blocks in the list block.
 		private readonly long[] blockElements;
@@ -39,19 +39,17 @@ namespace Deveel.Data.Store {
 			blockAreas = new IArea[64];
 		}
 
-		public int BlockCount {
-			get { return blockCount; }
-		}
+		public int BlockCount { get; private set; }
 
 		public long NodeCount {
-			get { return BlockFirstPosition(blockCount); }
+			get { return BlockFirstPosition(BlockCount); }
 		}
 
 		private void UpdateListHeaderArea() {
 			headerArea.Position = 4;
-			headerArea.WriteInt4(blockCount);
+			headerArea.WriteInt4(BlockCount);
 			headerArea.Position = 16;
-			for (int i = 0; i < blockCount; ++i) {
+			for (int i = 0; i < BlockCount; ++i) {
 				headerArea.WriteInt8(blockElements[i]);
 			}
 			headerArea.Flush();
@@ -65,7 +63,7 @@ namespace Deveel.Data.Store {
 			writer.Flush();
 
 			headerArea = store.GetArea(headerAreaId);
-			blockCount = 0;
+			BlockCount = 0;
 			UpdateListHeaderArea();
 
 			return headerAreaId;
@@ -79,9 +77,9 @@ namespace Deveel.Data.Store {
 			if (magic != Magic)
 				throw new IOException("Incorrect magic for list block. [magic=" + magic + "]");
 
-			blockCount = headerArea.ReadInt4();
+			BlockCount = headerArea.ReadInt4();
 			headerArea.ReadInt8(); // Delete Chain Head
-			for (int i = 0; i < blockCount; ++i) {
+			for (int i = 0; i < BlockCount; ++i) {
 				long blockPointer = headerArea.ReadInt8();
 				blockElements[i] = blockPointer;
 				blockAreas[i] = store.GetArea(blockPointer);
@@ -138,34 +136,42 @@ namespace Deveel.Data.Store {
 
 		public void IncreaseSize() {
 			// The size of the block
-			long sizeOfBlock = 32L << blockCount;
+			long sizeOfBlock = 32L << BlockCount;
 
 			// Allocate the new block in the store
-			IArea writer = store.CreateArea(sizeOfBlock * elementSize);
-			long blockId = writer.Id;
-			writer.Flush();
+			var area = store.CreateArea(sizeOfBlock * elementSize);
+			var blockId = area.Id;
+			area.Flush();
 
-			IArea blockArea = store.GetArea(blockId);
+			var blockArea = store.GetArea(blockId);
+
 			// Update the block list
-			blockElements[blockCount] = blockId;
-			blockAreas[blockCount] = blockArea;
-			++blockCount;
+			blockElements[BlockCount] = blockId;
+			blockAreas[BlockCount] = blockArea;
+			++BlockCount;
 
 			// Update the list header,
 			UpdateListHeaderArea();
 		}
 
 		public void DecreaseSize() {
-			--blockCount;
+			--BlockCount;
 			// Free the top block
-			store.DeleteArea(blockElements[blockCount]);
+			store.DeleteArea(blockElements[BlockCount]);
 
 			// Help the GC
-			blockAreas[blockCount] = null;
-			blockElements[blockCount] = 0;
+			blockAreas[BlockCount] = null;
+			blockElements[BlockCount] = 0;
 
 			// Update the list header.
 			UpdateListHeaderArea();
+		}
+
+		public void GetAreasUsed(IList<long> usedAreas) {
+			usedAreas.Add(headerAreaId);
+			for (int i = 0; i < BlockCount; ++i) {
+				usedAreas.Add(blockElements[i]);
+			}
 		}
 	}
 }

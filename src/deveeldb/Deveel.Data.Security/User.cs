@@ -15,12 +15,20 @@
 //
 
 using System;
+using System.Collections.Generic;
+
+using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Security {
 	/// <summary>
 	/// Provides the information for a user in a database system
 	/// </summary>
 	public sealed class User {
+		public readonly static User System = new User(SystemName);
+		public readonly static User Public = new User(PublicName);
+
+		private Dictionary<ObjectName, UserGrant> grantCache;
+
 		/// <summary>
 		/// Constructs a new user with the given name.
 		/// </summary>
@@ -62,6 +70,26 @@ namespace Deveel.Data.Security {
 		/// </summary>
 		public bool IsPublic {
 			get { return Name.Equals(PublicName); }
+		}
+
+		public bool Activate(IUserSession session) {
+			return session.Database.ActiveUsers.Add(this);
+		}
+
+		internal bool TryGetObjectGrant(ObjectName objectName, out UserGrant grant) {
+			if (grantCache == null) {
+				grant = null;
+				return false;
+			}
+
+			return grantCache.TryGetValue(objectName, out grant);
+		}
+
+		internal void CacheObjectGrant(ObjectName objectName, UserGrant grant) {
+			if (grantCache == null)
+				grantCache = new Dictionary<ObjectName, UserGrant>();
+
+			grantCache[objectName] = grant;
 		}
 	}
 }

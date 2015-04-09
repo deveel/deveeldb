@@ -33,27 +33,26 @@ namespace Deveel.Data.Sql.Query {
 		/// <summary>
 		/// The composite operation.
 		/// </summary>
-		private readonly CompositeFunction compositeOp;
+		public CompositeFunction CompositeFunction { get; private set; }
 
 		/// <summary>
 		/// If this is true, the composite includes all results from both 
 		/// children, otherwise removes deplicates.
 		/// </summary>
-		private readonly bool allOp;
+		public bool All { get; private set; }
 
 		public CompositeNode(QueryPlanNode left, QueryPlanNode right, CompositeFunction compositeOp, bool allOp)
 			: base(left, right) {
-			this.compositeOp = compositeOp;
-			this.allOp = allOp;
+			this.CompositeFunction = compositeOp;
+			this.All = allOp;
 		}
 
 		public override ITable Evaluate(IQueryContext context) {
-			// Solve the left branch result
-			ITable leftResult = Left.Evaluate(context);
-			// Solve the right branch result
-			ITable rightResult = Right.Evaluate(context);
+			var leftResult = Left.Evaluate(context);
+			var rightResult = Right.Evaluate(context);
 
-			throw new NotImplementedException();
+			// Form the composite table
+			return new CompositeTable(leftResult, new[] { leftResult, rightResult }, CompositeFunction, All);
 		}
 	}
 }

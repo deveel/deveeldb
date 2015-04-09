@@ -86,7 +86,7 @@ namespace Deveel.Data.Types {
 			return new DataObject(destType, casted);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj) {
+		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var writer = new BinaryWriter(stream);
 
 			if (obj is SqlBinary) {
@@ -102,7 +102,7 @@ namespace Deveel.Data.Types {
 				// TODO:
 			}
 
-			base.Serialize(stream, obj);
+			base.Serialize(stream, obj, systemContext);
 		}
 
 		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {

@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
@@ -26,18 +27,34 @@ namespace Deveel.Data.Sql.Query {
 	/// </summary>
 	[Serializable]
 	class ConstantSelectNode : SingleQueryPlanNode {
-		/// <summary>
-		/// The search expression.
-		/// </summary>
-		private SqlExpression expression;
+		public SqlExpression Expression { get; private set; }
 
 		public ConstantSelectNode(QueryPlanNode child, SqlExpression exp)
 			: base(child) {
-			expression = exp;
+			Expression = exp;
 		}
 
 		public override ITable Evaluate(IQueryContext context) {
-			throw new NotImplementedException();
+			// Evaluate the expression
+			var exp = Expression.Evaluate(context, null);
+			if (exp.ExpressionType != SqlExpressionType.Constant)
+				throw new InvalidOperationException();
+
+			var v = ((SqlConstantExpression) exp).Value;
+
+			// If it evaluates to NULL or FALSE then return an empty set
+			if (v.IsNull || v == false)
+				return Child.Evaluate(context).EmptySelect();
+
+			return Child.Evaluate(context);
+		}
+
+		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
+			return Expression.DiscoverTableNames(base.DiscoverTableNames(list));
+		}
+
+		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
+			return Expression.DiscoverQueryReferences(ref level, base.DiscoverQueryReferences(level, list));
 		}
 	}
 }

@@ -358,6 +358,9 @@ namespace Deveel.Data.Types {
 		}
 
 		private static int LexicographicalOrder(ISqlString str1, ISqlString str2) {
+			if (str1.CodePage != str2.CodePage)
+				return -1;
+
 			// If both strings are small use the 'toString' method to compare the
 			// strings.  This saves the overhead of having to store very large string
 			// objects in memory for all comparisons.
@@ -401,31 +404,48 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj) {
-			var sqlString = (ISqlString) obj;
+		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var writer = new BinaryWriter(stream);
+
+			if (obj.IsNull) {
+				if (SqlType == SqlTypeCode.Clob ||
+				    SqlType == SqlTypeCode.LongVarChar) {
+					writer.Write((byte)3);
+				} else {
+					writer.Write((byte)1);
+				}
+
+				return;
+			}
+
+			var sqlString = (ISqlString)obj;
 
 			if (obj is SqlString) {
 				var bytes = ((SqlString) sqlString).ToByteArray();
-				writer.Write((byte)1);
+				writer.Write((byte) 2);
 				writer.Write(sqlString.CodePage);
-				writer.Write(sqlString.Length);
+				writer.Write(bytes.Length);
 				writer.Write(bytes);
 			} else if (obj is SqlLongString) {
 				var longString = (SqlLongString) sqlString;
-				writer.Write((byte)2);
+				writer.Write((byte) 4);
 				writer.Write(longString.ObjectId.StoreId);
 				writer.Write(longString.ObjectId.Id);
+			} else {
+				throw new FormatException(String.Format("The object of type '{0}' is not handled by {1}", obj.GetType(), ToString()));
 			}
-
-			throw new FormatException();
 		}
 
 		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
 			var reader = new BinaryReader(stream);
 			var type = reader.ReadByte();
 
-			if (type == 1) {
+			if (type == 1)
+				return SqlString.Null;
+			if (type == 3)
+				return SqlLongString.Null;
+
+			if (type == 2) {
 				var codePage = reader.ReadInt32();
 				var length = reader.ReadInt32();
 				var bytes = reader.ReadBytes(length);
@@ -433,7 +453,7 @@ namespace Deveel.Data.Types {
 				return SqlString.Decode(codePage, bytes);
 			}
 
-			if (type == 2) {
+			if (type == 4) {
 				var storeId = reader.ReadInt32();
 				var objId = reader.ReadInt64();
 				var refObjId = new ObjectId(storeId, objId);
@@ -442,7 +462,25 @@ namespace Deveel.Data.Types {
 				throw new NotImplementedException();
 			}
 
-			throw new FormatException();
+			throw new FormatException("Invalid type code in deserialization.");
+		}
+
+		public override int SizeOf(ISqlObject obj) {
+			if (obj.IsNull)
+				return 1;
+			if (obj is SqlString) {
+				var s = (SqlString) obj;
+				var length = s.ToByteArray().Length;
+
+				// Type + Code Page + Byte Length + Bytes
+				return 1 + 4 + 4 + length;
+			} 
+			if (obj is SqlLongString) {
+				// Type + Store ID + Object ID
+				return 1 + 4 + 8;
+			}
+
+			throw new ArgumentException();
 		}
 	}
 }

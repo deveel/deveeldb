@@ -13,6 +13,8 @@ namespace Deveel.Data.DbSystem {
 		private readonly object commitLock = new object();
 		private Dictionary<int, TableSource> tableSources;
 
+		private List<TransactionObjectState> objectStates; 
+
 		private IStoreSystem tempStoreSystem;
 		private IStore lobStore;
 		private IStore stateStore;
@@ -21,13 +23,13 @@ namespace Deveel.Data.DbSystem {
 
 		public const string ObjectStoreName = "lob_store";
 
-		public TableSourceComposite(ISystemContext systemContext, IDatabase database) {
-			SystemContext = systemContext;
+		public TableSourceComposite(IDatabase database) {
 			Database = database;
 
 			tempStoreSystem = new InMemoryStorageSystem();
+			objectStates = new List<TransactionObjectState>();
 
-			StateStoreName = String.Format("{0}_{1}", database.Name, StateStorePostfix);
+			StateStoreName = String.Format("{0}_{1}", database.Name(), StateStorePostfix);
 
 			Setup();
 		}
@@ -38,10 +40,12 @@ namespace Deveel.Data.DbSystem {
 
 		public IDatabase Database { get; private set; }
 
-		public ISystemContext SystemContext { get; private set; }
+		public IDatabaseContext DatabaseContext {
+			get { return Database.Context; }
+		}
 
 		public IStoreSystem StoreSystem {
-			get { return SystemContext.StoreSystem; }
+			get { return DatabaseContext.StoreSystem; }
 		}
 
 		public int CurrentCommitId { get; private set; } 
@@ -116,7 +120,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private TableSource LoadTableSource(int tableId, string tableName) {
-			var source = new TableSource(this, StoreSystem, tableId, tableName);
+			var source = new TableSource(this, StoreSystem, LargeObjectStore, tableId, tableName);
 			if (!source.Exists())
 				return null;
 
@@ -125,7 +129,7 @@ namespace Deveel.Data.DbSystem {
 
 		private void MarkUncommitted(int tableId) {
 			var masterTable = GetTableSource(tableId);
-			StateStore.AddDeleteResource(new TableStateStore.TableState(tableId, masterTable.TableName));
+			StateStore.AddDeleteResource(new TableStateStore.TableState(tableId, masterTable.SourceName));
 		}
 
 		//public ITransaction CreateTransaction(TransactionIsolation isolation) {
@@ -171,8 +175,10 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private void Setup() {
-			CurrentCommitId = 0;
-			tableSources = new Dictionary<int, TableSource>();
+			lock (this) {
+				CurrentCommitId = 0;
+				tableSources = new Dictionary<int, TableSource>();				
+			}
 		}
 
 		private void InitObjectStore() {
@@ -252,7 +258,7 @@ namespace Deveel.Data.DbSystem {
 			// Find the table with this file name.
 			int? tableId = null;
 			foreach (var source in tableSources.Values) {
-				if (source.TableName.Equals(tableFileName)) {
+				if (source.StoreIdentity.Equals(tableFileName)) {
 					if (source.IsRootLocked)
 						return false;
 
@@ -269,10 +275,10 @@ namespace Deveel.Data.DbSystem {
 			return false;
 		}
 
-		private void CloseTable(string tableName, bool pendingDrop) {
+		private void CloseTable(string sourceName, bool pendingDrop) {
 			// Find the table with this file name.
 			foreach (var source in tableSources.Values) {
-				if (source.TableName.Equals(tableName)) {
+				if (source.SourceName.Equals(sourceName)) {
 					if (source.IsRootLocked)
 						break;
 
@@ -326,20 +332,13 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private void InitSystemSchema() {
-			// Create the transaction
-			ITransaction transaction = null;
-
-			try {
-				transaction = Database.CreateTransaction(TransactionIsolation.Serializable);
-				SystemSchema.Setup(transaction);
-
-				transaction.Commit();
-				transaction = null;
-			} catch (Exception ex) {
-				throw new ApplicationException("Transaction Exception initializing tables.", ex);
-			} finally {
-				if (transaction != null)
-					transaction.Rollback();
+			using (var transaction = Database.CreateTransaction(TransactionIsolation.Serializable)) {
+				try {
+					SystemSchema.Setup(transaction);
+					transaction.Commit();
+				} catch (Exception ex) {
+					throw new ApplicationException("Transaction Exception initializing tables.", ex);
+				}
 			}
 		}
 
@@ -413,7 +412,7 @@ namespace Deveel.Data.DbSystem {
 				tableSources = null;
 			}
 
-			// Unlock the storage system
+			// Release the storage system
 			StoreSystem.Unlock(StateStoreName);
 
 			if (LargeObjectStore != null)
@@ -443,7 +442,7 @@ namespace Deveel.Data.DbSystem {
 				tableSources = null;
 			}
 
-			// Unlock the storage system.
+			// Release the storage system.
 			StoreSystem.Unlock(StateStoreName);
 		}
 
@@ -457,7 +456,7 @@ namespace Deveel.Data.DbSystem {
 					if (temporary)
 						storeSystem = tempStoreSystem;
 
-					var source = new TableSource(this, storeSystem, tableId, tableInfo.TableName.FullName);
+					var source = new TableSource(this, storeSystem, LargeObjectStore, tableId, tableInfo.TableName.FullName);
 					source.Create(tableInfo);
 
 					tableSources.Add(tableId, source);
@@ -494,8 +493,41 @@ namespace Deveel.Data.DbSystem {
 			return StateStore.NextTableId();
 		}
 
-		public void Commit(TransactionState state) {
+		private void OnCommitModification(ObjectName objName, IEnumerable<int> addedRows, IEnumerable<int> removedRows) {
 			
+		}
+
+		public void Commit(TransactionState state) {
+			// Exit early if nothing changed (this is a Read-only transaction)
+			if (!state.HasChanges) {
+				CloseTransaction(state.Transaction);
+				return;
+			}
+
+			lock (commitLock) {
+				var changedTableList = state.Commit(objectStates, OnCommitModification);
+
+				// Flush the journals up to the minimum commit id for all the tables
+				// that this transaction changed.
+				long minCommitId = state.Transaction.Context.Database.OpenTransactions.MinimumCommitId(null);
+				foreach (var tableId in changedTableList) {
+					var source = GetTableSource(tableId);
+					source.MergeChanges(minCommitId);
+				}
+
+				int count = objectStates.Count;
+				for (int i = count - 1; i >= 0; --i) {
+					var objectState = objectStates[i];
+
+					if (objectState.CommitId < minCommitId) {
+						objectStates.RemoveAt(i);
+					}
+				}
+
+				// Set a check point in the store system.  This means that the
+				// persistance state is now stable.
+				StoreSystem.SetCheckPoint();
+			}
 		}
 
 		public void Rollback(TransactionState state) {
@@ -507,10 +539,10 @@ namespace Deveel.Data.DbSystem {
 				try {
 					// The unique id that identifies this table,
 					int tableId = NextTableId();
-					var tableName = tableSource.TableName;
+					var sourceName = tableSource.SourceName;
 
 					// Create the object.
-					var masterTable = new TableSource(this, StoreSystem, tableId, tableName);
+					var masterTable = new TableSource(this, StoreSystem, LargeObjectStore, tableId, sourceName);
 
 					masterTable.CopyFrom(tableId, tableSource, indexSet);
 
@@ -529,6 +561,90 @@ namespace Deveel.Data.DbSystem {
 					throw new Exception(String.Format("Unable to copy source table '{0}' because of an error.", tableSource.TableInfo.TableName), e);
 				}
 			}
+		}
+
+		internal ITransaction CreateTransaction(TransactionIsolation isolation) {
+			var thisCommittedTables = new List<TableSource>();
+
+			// Don't let a commit happen while we are looking at this.
+			lock (commitLock) {
+				long thisCommitId = CurrentCommitId;
+				var committedTableList = StateStore.GetVisibleList();
+				thisCommittedTables.AddRange(committedTableList.Select(resource => GetTableSource(resource.TableId)));
+
+				// Create a set of IIndexSet for all the tables in this transaction.
+				var indexInfo = (thisCommittedTables.Select(mtable => mtable.CreateIndexSet())).ToList();
+
+				// Create the transaction and record it in the open transactions list.
+				return new Transaction(Database, thisCommitId, isolation, thisCommittedTables, indexInfo);
+			}
+		}
+
+		private Action<TableCommitInfo> tableCommitCallback; 
+
+		internal void RegisterOnCommit(Action<TableCommitInfo> action) {
+			if (tableCommitCallback == null) {
+				tableCommitCallback = action;
+			} else {
+				tableCommitCallback = (Action<TableCommitInfo>) Delegate.Combine(tableCommitCallback, action);
+			}
+		}
+
+		internal void UnregisterOnCommit(Action<TableCommitInfo> action) {
+			tableCommitCallback = Delegate.Remove(tableCommitCallback, action) as Action<TableCommitInfo>;
+		}
+
+		internal void CloseTransaction(ITransaction transaction) {
+			bool lastTransaction;
+			// Closing must happen under a commit Lock.
+			lock (commitLock) {
+				Database.OpenTransactions.RemoveTransaction(transaction);
+				// Increment the commit id.
+				++CurrentCommitId;
+				// Was that the last transaction?
+				lastTransaction = Database.OpenTransactions.Count == 0;
+			}
+
+			// If last transaction then schedule a clean up event.
+			if (lastTransaction) {
+				try {
+					CleanUp();
+				} catch (IOException e) {
+					// TODO: Register the error ...
+				}
+			}
+		}
+
+		internal void CommitToTables(IEnumerable<int> createdTables, IEnumerable<int> droppedTables) {
+			// Add created tables to the committed tables list.
+			foreach (int createdTable in createdTables) {
+				// For all created tables, add to the visible list and remove from the
+				// delete list in the state store.
+				var t = GetTableSource(createdTable);
+				var resource = new TableStateStore.TableState(t.TableId, t.SourceName);
+				StateStore.AddVisibleResource(resource);
+				StateStore.RemoveDeleteResource(resource.TableName);
+			}
+
+			// Remove dropped tables from the committed tables list.
+			foreach (int droppedTable in droppedTables) {
+				// For all dropped tables, add to the delete list and remove from the
+				// visible list in the state store.
+				var t = GetTableSource(droppedTable);
+				var resource = new TableStateStore.TableState(t.TableId, t.SourceName);
+				StateStore.AddDeleteResource(resource);
+				StateStore.RemoveVisibleResource(resource.TableName);
+			}
+
+			try {
+				StateStore.Flush();
+			} catch (IOException e) {
+				throw new ApplicationException("IO Error: " + e.Message, e);
+			}
+		}
+
+		internal bool ContainsVisibleResource(int resourceId) {
+			return StateStore.ContainsVisibleResource(resourceId);
 		}
 	}
 }

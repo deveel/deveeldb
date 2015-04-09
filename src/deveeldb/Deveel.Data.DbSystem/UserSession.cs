@@ -15,22 +15,34 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 
+using Deveel.Data.Protocol;
 using Deveel.Data.Security;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class UserSession : IUserSession {
-		public UserSession() {
-			GrantManager = new GrantManager(this);
+		private List<LockHandle> lockHandles;
+
+		internal UserSession(IDatabase database, ITransaction transaction, User user, ConnectionEndPoint userEndPoint) {
+			Database = database;
+			Transaction = transaction;
+			User = user;
+			EndPoint = userEndPoint;
+
+			user.Activate(this);
+		}
+
+		~UserSession() {
+			Dispose(false);
 		}
 
 		public bool IgnoreCase {
-			get { throw new NotImplementedException(); }
+			get { return Transaction.IgnoreIdentifiersCase(); }
 		}
 
 		public ITableQueryInfo GetQueryInfo(ObjectName tableName, ObjectName givenName) {
@@ -38,40 +50,54 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public ObjectName ResolveObjectName(string name) {
-			throw new NotImplementedException();
+			return Transaction.ResolveObjectName(name);
 		}
 
 		public bool TableExists(ObjectName tableName) {
-			throw new NotImplementedException();
+			return Transaction.TableExists(tableName);
 		}
 
 		public void Dispose() {
-			throw new NotImplementedException();
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
-		public User User {
-			get { throw new NotImplementedException(); }
+		public User User { get; private set; }
+
+		public string CurrentSchema {
+			get { return Transaction.CurrentSchema(); }
 		}
+
+		public ConnectionEndPoint EndPoint { get; private set; }
 
 		public DateTimeOffset? LastCommand {
 			get { throw new NotImplementedException(); }
 		}
 
-		public ITransaction Transaction {
-			get { throw new NotImplementedException(); }
+		public ITransaction Transaction { get; private set; }
+
+		public void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
+			lock (Database) {
+				if (lockHandles == null)
+					lockHandles = new List<LockHandle>();
+
+				var handle = Database.Context.Locker.Lock(toWrite, toRead, mode);
+				if (handle != null)
+					lockHandles.Add(handle);
+			}
+		}
+
+		public void ReleaseLocks() {
+			lock (Database) {
+				if (lockHandles != null) {
+					foreach (var handle in lockHandles) {
+						handle.Release();
+					}
+				}
+			}
 		}
 
 		public IDatabase Database { get; private set; }
-
-		public GrantManager GrantManager { get; private set; }
-
-		public void CacheTable(ObjectName tableName, ITable table) {
-			throw new NotImplementedException();
-		}
-
-		public ITable GetCachedTable(ObjectName tableName) {
-			throw new NotImplementedException();
-		}
 
 		public ILargeObject CreateLargeObject(long size, bool compressed) {
 			throw new NotImplementedException();
@@ -86,15 +112,44 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public void Commit() {
-			throw new NotImplementedException();
+			if (Transaction != null) {
+				try {
+					Transaction.Commit();
+				} finally {
+					DisposeTransaction();
+				}
+			}
 		}
 
 		public void Rollback() {
-			throw new NotImplementedException();
+			if (Transaction != null) {
+				try {
+					Transaction.Rollback();
+				} finally {
+					DisposeTransaction();
+				}
+			}
 		}
 
-		public void Close() {
-			throw new NotImplementedException();
+		private void DisposeTransaction() {
+			Transaction = null;
+			Database = null;
+
+			// TODO: fire pending events left ...
+
+			ReleaseLocks();
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				try {
+					Rollback();
+				} catch (Exception e) {
+					// TODO: Notify the underlying system
+				}
+			}
+
+			lockHandles = null;
 		}
 	}
 }

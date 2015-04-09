@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Data;
 using System.Globalization;
 
 namespace Deveel.Data.Configuration {
@@ -23,10 +22,6 @@ namespace Deveel.Data.Configuration {
 		public ConfigValue(ConfigKey key, object value) {
 			if (key == null) 
 				throw new ArgumentNullException("key");
-
-			if (value != null &&
-				!key.ValueType.IsInstanceOfType(value))
-				throw new ArgumentException();
 
 			Key = key;
 			Value = value;
@@ -44,10 +39,46 @@ namespace Deveel.Data.Configuration {
 			if (Value is T)
 				return (T) Value;
 
+			if (typeof (T) == typeof (bool) &&
+			    Value is string)
+				return (T)ConvertToBoolean((string) Value);
+
+			if (typeof (T).IsEnum)
+				return ConvertToEnum<T>(Value);
+
 			if (!(Value is IConvertible))
 				throw new InvalidCastException();
 
 			return (T) Convert.ChangeType(Value, typeof (T), CultureInfo.InvariantCulture);
+		}
+
+		private T ConvertToEnum<T>(object value) {
+			if (value is int ||
+				value is short ||
+				value is long ||
+				value is byte)
+				return (T) value;
+
+			if (value == null)
+				return default(T);
+
+			var s = value.ToString();
+			return (T) Enum.Parse(typeof (T), s, true);
+		}
+
+		private object ConvertToBoolean(string value) {
+			if (String.Equals(value, "true", StringComparison.OrdinalIgnoreCase) ||
+			    String.Equals(value, "enabled", StringComparison.OrdinalIgnoreCase) ||
+			    String.Equals(value, "1") ||
+				String.Equals(value, "on", StringComparison.OrdinalIgnoreCase))
+				return true;
+			if (String.Equals(value, "false", StringComparison.OrdinalIgnoreCase) ||
+			    String.Equals(value, "disabled", StringComparison.OrdinalIgnoreCase) ||
+			    String.Equals(value, "0") ||
+				String.Equals(value, "off"))
+				return false;
+
+			throw new InvalidCastException();
 		}
 	}
 }

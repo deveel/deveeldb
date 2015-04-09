@@ -14,7 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Reflection;
 using System.Text;
 
 using NUnit.Framework;
@@ -94,6 +93,57 @@ namespace Deveel.Data.Configuration {
 			int iValue = -1;
 			Assert.DoesNotThrow(() => iValue = value.ToType<int>());
 			Assert.AreEqual(22, iValue);
+		}
+
+		[TestCase("test","true", true)]
+		[TestCase("test","false", false)]
+		[TestCase("test", "off", false)]
+		[TestCase("test", "on", true)]
+		[TestCase("test", "enabled", true)]
+		public void GetBooleanValue(string key, string value, bool expected) {
+			IDbConfig config = null;
+			Assert.DoesNotThrow(() => config = DbConfig.Default);
+			Assert.IsNotNull(config);
+
+			ConfigKey configKey = new ConfigKey(key, typeof(string));
+			Assert.DoesNotThrow(() => config.SetKey(configKey));
+			Assert.DoesNotThrow(() => config.SetValue(configKey, value));
+
+			ConfigValue configValue = null;
+			Assert.DoesNotThrow(() => configValue = config.GetValue(configKey));
+			Assert.IsNotNull(value);
+			Assert.IsNotNull(configValue.Value);
+
+			bool bValue = false;
+			Assert.DoesNotThrow(() => bValue = configValue.ToType<bool>());
+			Assert.AreEqual(expected, bValue);
+		}
+
+		[TestCase(1, TestEnum.One)]
+		[TestCase("one", TestEnum.One)]
+		[TestCase("TWO", TestEnum.Two)]
+		[TestCase(null, TestEnum.Default)]
+		public void GetEnumValue(object value, TestEnum expected) {
+			IDbConfig config = null;
+			Assert.DoesNotThrow(() => config = DbConfig.Default);
+			Assert.IsNotNull(config);
+
+			ConfigKey configKey = new ConfigKey("test", typeof(TestEnum));
+			Assert.DoesNotThrow(() => config.SetKey(configKey));
+			Assert.DoesNotThrow(() => config.SetValue(configKey, value));
+
+			ConfigValue configValue = null;
+			Assert.DoesNotThrow(() => configValue = config.GetValue(configKey));
+
+			TestEnum enumValue = new TestEnum();
+			Assert.DoesNotThrow(() => enumValue = configValue.ToType<TestEnum>());
+			Assert.AreEqual(expected, enumValue);
+		}
+
+		public enum TestEnum {
+			One = 1,
+			Two = 2,
+			Default = 0
 		}
 
 		[Test]

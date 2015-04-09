@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
 
 namespace Deveel.Data.Sql {
@@ -37,6 +38,8 @@ namespace Deveel.Data.Sql {
 	/// </para>
 	/// </remarks>
 	public interface ITable : IDbObject, IEnumerable<Row>, IDisposable {
+		IDatabaseContext DatabaseContext { get; }
+
 		/// <summary>
 		/// Gets the metadata information of the table, used to
 		/// resolve the column sources.

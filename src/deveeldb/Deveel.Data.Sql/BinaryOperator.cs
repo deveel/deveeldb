@@ -17,9 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
@@ -573,6 +577,53 @@ namespace Deveel.Data.Sql {
 			}
 
 			public override DataObject Evaluate(DataObject left, DataObject right, EvaluateContext context) {
+				//if (right.Type is QueryType) {
+				//	// The sub-query plan
+				//	var plan = (IQueryPlanNode)right.Value;
+				//	// Discover the correlated variables for this plan.
+				//	var list = plan.DiscoverQueryReferences(1, new List<QueryReference>());
+
+				//	if (list.Count > 0) {
+				//		// Set the correlated variables from the IVariableResolver
+				//		foreach (var variable in list) {
+				//			variable.SetFromResolver(context.VariableResolver);
+				//		}
+
+				//		// Clear the cache in the context
+				//		context.QueryContext.ClearCachedTables();
+				//	}
+
+				//	// Evaluate the plan,
+				//	var t = plan.Evaluate(context.QueryContext);
+
+				//	// The ANY operation
+				//	var revPlainOp = base.AsSubQuery(OperatorSubType.None).Reverse();
+				//	return t.ColumnMatches(0, revPlainOp, left);
+				//}
+				//if (right.Type is ArrayType) {
+				//	var plainOp = AsSubQuery(OperatorSubType.None);
+				//	var expList = (SqlArray)right.Value;
+				//	// Assume there are no matches
+				//	var retVal = DataObject.BooleanFalse;
+				//	foreach (var exp in expList) {
+				//		var exp_item = exp.Evaluate(context);
+				//		// If null value, return null if there isn't otherwise a match found.
+				//		if (exp_item.IsNull) {
+				//			retVal = DataObject.BooleanNull;
+				//		} else if (IsTrue(plainOp.Evaluate(left, exp_item, null))) {
+				//			// If there is a match, the ANY set test is true
+				//			return DataObject.BooleanTrue;
+				//		}
+				//	}
+
+				//	// No matches, so return either false or NULL.  If there are no matches
+				//	// and no nulls, return false.  If there are no matches and there are
+				//	// nulls present, return null.
+				//	return retVal;
+				//}
+
+				//throw new ApplicationException("Unknown right has side of ANY operator.");
+
 				throw new NotImplementedException();
 			}
 		}

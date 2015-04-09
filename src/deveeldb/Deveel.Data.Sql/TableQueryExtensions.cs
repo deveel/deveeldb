@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
@@ -33,7 +32,88 @@ namespace Deveel.Data.Sql {
 	/// and <see cref="IMutableTable"/> objects.
 	/// </summary>
 	public static class TableQueryExtensions {
+		internal static int FindColumn(this ITable table, ObjectName columnName) {
+			if (table is IQueryTable)
+				return ((IQueryTable) table).FindColumn(columnName);
+
+			var parent = columnName.Parent;
+			if (!parent.Equals(table.TableInfo.TableName))
+				return -1;
+
+			return table.TableInfo.IndexOfColumn(columnName.Name);
+		}
+
+		internal static int ColumnCount(this ITable table) {
+			if (table is IQueryTable)
+				return ((IQueryTable) table).ColumnCount;
+
+			return table.TableInfo.ColumnCount;
+		}
+
+		internal static ObjectName GetResolvedColumnName(this ITable table, int columnOffset) {
+			if (table is IQueryTable)
+				return ((IQueryTable) table).GetResolvedColumnName(columnOffset);
+
+			var tableName = table.TableInfo.TableName;
+			var columnName = table.TableInfo[columnOffset].ColumnName;
+			return new ObjectName(tableName, columnName);
+		}
+
+		internal static IEnumerable<int> ResolveRows(this ITable table, int columnOffset, IEnumerable<int> rows,
+			ITable ancestor) {
+			if (table is IQueryTable)
+				return ((IQueryTable) table).ResolveRows(columnOffset, rows, ancestor);
+
+			if (table != ancestor)
+				throw new ArgumentException();
+
+			return rows.ToList();
+		}
+
+		internal static ColumnIndex GetIndex(this ITable thisTable, int column, int originalColumn, ITable table) {
+			if (thisTable is IQueryTable)
+				return ((IQueryTable) thisTable).GetIndex(column, originalColumn, table);
+
+			var index = thisTable.GetIndex(column);
+			if (table == thisTable)
+				return index;
+
+			// Otherwise, get the scheme to calculate a subset of the given scheme.
+			return index.GetSubset(table, originalColumn);
+		}
+
+		internal static ITableVariableResolver GetVariableResolver(this ITable table) {
+			if (table is IQueryTable)
+				return ((IQueryTable) table).GetVariableResolver();
+
+			// TODO: implement a default table resolver
+			throw new NotImplementedException();
+		}
+
+
+		public static ObjectName ResolveColumnName(this ITable table, string columnName) {
+			return new ObjectName(table.TableInfo.TableName, columnName);
+		}
+
+		internal static void LockRoot(this ITable table, int lockKey) {
+			if (table is IQueryTable)
+				((IQueryTable)table).LockRoot(lockKey);
+		}
+
+		internal static void UnlockRoot(this ITable table, int lockKey) {
+			if (table is IQueryTable)
+				((IQueryTable)table).UnlockRoot(lockKey);
+		}
+
 		#region Get Value
+
+		public static DataObject GetValue(this ITable table, int rowIndex, ObjectName columnName) {
+			return table.GetValue(rowIndex, table.IndexOfColumn(columnName));
+		}
+
+		public static DataObject GetValue(this ITable table, int rowIndex, string columnName) {
+			return table.GetValue(rowIndex, table.ResolveColumnName(columnName));
+		}
 
 		public static DataObject GetLastValue(this ITable table, int columnOffset) {
 			var rows = table.SelectLast(columnOffset).ToList();
@@ -116,12 +196,37 @@ namespace Deveel.Data.Sql {
 			return new DataObject(columnType, value);
 		}
 
-		public static IEnumerable<int> SelectEqual(this ITable table, int columnIndex, DataObject value) {
+		public static int IndexOfColumn(this ITable table, string columnName) {
+			if (table is IQueryTable)
+				return ((IQueryTable) table).FindColumn(ObjectName.Parse(columnName));
+
+			return table.TableInfo.IndexOfColumn(columnName);
+		}
+
+		public static int IndexOfColumn(this ITable table, ObjectName columnName) {
+			if (table is IQueryTable)
+				return ((IQueryTable) table).FindColumn(columnName);
+
+			if (!table.TableInfo.TableName.Equals(columnName.Parent))
+				return -1;
+
+			return table.TableInfo.IndexOfColumn(columnName.Name);
+		}
+
+		public static IEnumerable<int> SelectRowsEqual(this ITable table, int columnIndex, DataObject value) {
 			return table.GetIndex(columnIndex).SelectEqual(value);
 		}
 
-		public static IEnumerable<int> SelectEqual(this ITable table, int columnIndex, ISqlObject value) {
-			return table.SelectEqual(columnIndex, table.MakeObject(columnIndex, value));
+		public static IEnumerable<int> SelectRowsEqual(this ITable table, string columnName, DataObject value) {
+			return table.SelectRowsEqual(table.IndexOfColumn(columnName), value);
+		}
+
+		public static ITable SelectEqual(this ITable table, int columnIndex, DataObject value) {
+			return table.AsVirtual(() => table.SelectRowsEqual(columnIndex, value));
+		}
+
+		public static ITable SelectEqual(this ITable table, string columnName, DataObject value) {
+			return table.AsVirtual(() => table.SelectRowsEqual(columnName, value));
 		}
 
 		public static IEnumerable<int> SelectNotEqual(this ITable table, int columnOffset, DataObject value) {
@@ -132,7 +237,7 @@ namespace Deveel.Data.Sql {
 			return table.SelectNotEqual(columnOffset, table.MakeObject(columnOffset, value));
 		} 
 
-		public static IEnumerable<int> SelectEqual(this ITable table, int columnIndex1, DataObject value1, int columnIndex2, DataObject value2) {
+		public static IEnumerable<int> SelectRowsEqual(this ITable table, int columnIndex1, DataObject value1, int columnIndex2, DataObject value2) {
 			var result = new List<int>();
 
 			var index1 = table.GetIndex(columnIndex1).SelectEqual(value1);
@@ -169,16 +274,24 @@ namespace Deveel.Data.Sql {
 			return table.SelectLess(columnOffset, table.MakeObject(columnOffset, value));
 		}
 
-		public static IEnumerable<int> SelectLessOrEqual(this ITable table, int columnOffset, DataObject value) {
+		public static IEnumerable<int> SelectLessOrEqualRows(this ITable table, int columnOffset, DataObject value) {
 			return table.GetIndex(columnOffset).SelectLessOrEqual(value);
 		}
 
-		public static IEnumerable<int> SelectLessOrEqual(this ITable table, int columnOffset, ISqlObject value) {
-			return table.SelectLessOrEqual(columnOffset, table.MakeObject(columnOffset, value));
+		public static IEnumerable<int> SelectLessOrEqualRows(this ITable table, int columnOffset, ISqlObject value) {
+			return table.SelectLessOrEqualRows(columnOffset, table.MakeObject(columnOffset, value));
 		}
 
-		public static IEnumerable<int> SelectAll(this ITable table, int columnOffset) {
+		public static IEnumerable<int> SelectAllRows(this ITable table, int columnOffset) {
 			return table.GetIndex(columnOffset).SelectAll();
+		}
+
+		public static IEnumerable<int> SelectAllRows(this ITable table) {
+			return table.Select(x => x.RowId.RowNumber);
+		}
+
+		public static ITable SelectAll(this ITable table, int columnOffset) {
+			return table.AsVirtual(() => table.SelectAllRows(columnOffset));
 		}
 
 		public static IEnumerable<int> SelectLast(this ITable table, int columnOffset) {
@@ -190,11 +303,11 @@ namespace Deveel.Data.Sql {
 		}
 
 		public static bool Exists(this ITable table, int columnOffset, DataObject value) {
-			return table.SelectEqual(columnOffset, value).Any();
+			return table.SelectRowsEqual(columnOffset, value).Any();
 		}
 
 		public static bool Exists(this ITable table, int columnOffset1, DataObject value1, int columnOffset2, DataObject value2) {
-			return table.SelectEqual(columnOffset1, value1, columnOffset2, value2).Any();
+			return table.SelectRowsEqual(columnOffset1, value1, columnOffset2, value2).Any();
 		}
 
 		public static IEnumerable<int> SelectRows(this ITable table, int[] columnOffsets, BinaryOperator op,
@@ -255,11 +368,6 @@ namespace Deveel.Data.Sql {
 			IQueryContext context,
 			SqlBinaryExpression expression) {
 
-			if (!(table is IDbTable))
-				throw new NotSupportedException();
-
-			var dbTable = (IDbTable) table;
-
 			var objRef = expression.Left as SqlReferenceExpression;
 			if (objRef == null)
 				throw new NotSupportedException();
@@ -268,7 +376,7 @@ namespace Deveel.Data.Sql {
 
 			var columnName = objRef.ReferenceName;
 
-			var column = dbTable.FindColumn(columnName);
+			var column = table.FindColumn(columnName);
 			if (column < 0)
 				throw new InvalidOperationException();
 
@@ -283,12 +391,8 @@ namespace Deveel.Data.Sql {
 		}
 
 		public static ITable SimpleSelect(this ITable table, IQueryContext context, ObjectName columnName, BinaryOperator op, SqlExpression exp) {
-			var dbTable = table as IDbTable;
-			if (dbTable == null)
-				throw new NotSupportedException();
-
 			// Find the row with the name given in the condition.
-			int column = dbTable.FindColumn(columnName);
+			int column = table.FindColumn(columnName);
 
 			if (column == -1)
 				throw new ArgumentException(String.Format("Unable to find the column {0} in the condition.", columnName.Name));
@@ -319,7 +423,7 @@ namespace Deveel.Data.Sql {
 				// Construct a temporary table with a single column that we are
 				// comparing to.
 				var col = table.TableInfo[column];
-				var ttable = TemporaryTable.SingleColumnTable(dbTable.Database, col.ColumnName, col.ColumnType);
+				var ttable = TemporaryTable.SingleColumnTable(table.DatabaseContext, col.ColumnName, col.ColumnType);
 
 				foreach (var expression in list) {
 					var rowNum = ttable.NewRow();
@@ -370,9 +474,43 @@ namespace Deveel.Data.Sql {
 					rows = table.SelectRows(column, op, value);
 				}
 
-				return new VirtualTable(dbTable, rows) {SortColumn = column};
+				return new VirtualTable(table, rows) {SortColumn = column};
 			}
 		}
+
+		public static ITable ExhaustiveSelect(this ITable table, IQueryContext context, SqlExpression expression) {
+			var result = table;
+
+			// Exit early if there's nothing in the table to select from
+			int rowCount = table.RowCount;
+			if (rowCount > 0) {
+				var resolver = table.GetVariableResolver();
+				var e = table.GetEnumerator();
+
+				List<int> selectedSet = new List<int>(rowCount);
+
+				while (e.MoveNext()) {
+					int rowIndex = e.Current.RowId.RowNumber;
+
+					// Resolve expression into a constant.
+					var exp = expression.Evaluate(context, resolver);
+					if (exp.ExpressionType != SqlExpressionType.Constant)
+						throw new NotSupportedException();
+
+					var value = ((SqlConstantExpression) exp).Value;
+					// If resolved to true then include in the selected set.
+					if (!value.IsNull && value.Type is BooleanType &&
+						value == true) {
+						selectedSet.Add(rowIndex);
+					}
+				}
+
+				result = new VirtualTable(table, selectedSet); ;
+			}
+
+			return result;
+		}
+
 
 		public static IEnumerable<int> SelectFromPattern(this ITable table, int column, BinaryOperator op, DataObject ob) {
 			if (ob.IsNull)
@@ -488,7 +626,7 @@ namespace Deveel.Data.Sql {
 				// is non-lexicographical.  In either case, we need to select all from
 				// the column and brute force the search space.
 
-				searchCase = table.SelectAll(column);
+				searchCase = table.SelectAllRows(column);
 				postPattern = pattern;
 			} else {
 
@@ -554,12 +692,42 @@ namespace Deveel.Data.Sql {
 			if (table.RowCount == 0)
 				return table;
 
-			var dbTable = table as IDbTable;
-			if (dbTable == null)
-				throw new NotSupportedException();
-
-			return new VirtualTable(dbTable, new int[0]);
+			return new VirtualTable(table, new int[0]);
 		}
+
+		public static ITable Distinct(this ITable table, int[] columns) {
+			List<int> resultList = new List<int>();
+			var rowList = table.OrderedRows(columns).ToList();
+
+			int rowCount = rowList.Count;
+			int previousRow = -1;
+			for (int i = 0; i < rowCount; ++i) {
+				int rowIndex = rowList[i];
+
+				if (previousRow != -1) {
+
+					bool equal = true;
+					// Compare cell in column in this row with previous row.
+					for (int n = 0; n < columns.Length && equal; ++n) {
+						var c1 = table.GetValue(columns[n], rowIndex);
+						var c2 = table.GetValue(columns[n], previousRow);
+						equal = (c1.CompareTo(c2) == 0);
+					}
+
+					if (!equal) {
+						resultList.Add(rowIndex);
+					}
+				} else {
+					resultList.Add(rowIndex);
+				}
+
+				previousRow = rowIndex;
+			}
+
+			// Return the new table with distinct rows only.
+			return new VirtualTable(table, resultList);
+		}
+
 
 		#region Sub-Query
 
@@ -573,17 +741,13 @@ namespace Deveel.Data.Sql {
 			if (table.RowCount == 0)
 				return table;
 
-			var dbTable = table as IDbTable;
-			if (dbTable == null)
-				throw new NotSupportedException();
-
 			// Resolve the vars in the left table and check the references are
 			// compatible.
 			var sz = leftColumns.Length;
 			var leftColMap = new int[sz];
 			var rightColMap = new int[sz];
 			for (int i = 0; i < sz; ++i) {
-				leftColMap[i] = dbTable.FindColumn(leftColumns[i]);
+				leftColMap[i] = table.FindColumn(leftColumns[i]);
 				rightColMap[i] = i;
 
 				if (leftColMap[i] == -1)
@@ -644,7 +808,7 @@ namespace Deveel.Data.Sql {
 					}
 				} else if (op.IsOfType(BinaryOperatorType.NotEqual)) {
 					// Equiv. to NOT IN
-					rows = table.NotIn(rightTable, leftColMap, rightColMap);
+					rows = table.RowsNotIn(rightTable, leftColMap, rightColMap);
 				} else {
 					throw new ArgumentException(String.Format("Operator of type {0} is not valid in ALL functions.", op.OperatorType));
 				}
@@ -694,7 +858,7 @@ namespace Deveel.Data.Sql {
 				}
 			}
 
-			return new VirtualTable(dbTable, rows);
+			return new VirtualTable(table, rows);
 		}
 
 		/// <summary>
@@ -796,12 +960,12 @@ namespace Deveel.Data.Sql {
 		/// if <paramref name="table1"/> has many rows and <paramref name="table2"/> has few rows.
 		/// </remarks>
 		/// <returns></returns>
-		public static IEnumerable<int> NotIn(this ITable table, ITable table2, int col1, int col2) {
+		public static IEnumerable<int> RowsNotIn(this ITable table, ITable table2, int col1, int col2) {
 			// Handle trivial cases
 			int t2RowCount = table2.RowCount;
 			if (t2RowCount == 0)
 				// No rows so include all rows.
-				return table.SelectAll(col1);
+				return table.SelectAllRows(col1);
 
 			if (t2RowCount == 1) {
 				// 1 row so select all from table1 that doesn't equal the value.
@@ -842,16 +1006,34 @@ namespace Deveel.Data.Sql {
 		/// <param name="t1Cols"></param>
 		/// <param name="t2Cols"></param>
 		/// <returns></returns>
-		public static IEnumerable<int> NotIn(this ITable table, ITable table2, int[] t1Cols, int[] t2Cols) {
+		public static IEnumerable<int> RowsNotIn(this ITable table, ITable table2, int[] t1Cols, int[] t2Cols) {
 			if (t1Cols.Length > 1)
 				throw new NotSupportedException("Multi-column 'not in' not supported yet.");
 
-			return table.NotIn(table2, t1Cols[0], t2Cols[0]);
+			return table.RowsNotIn(table2, t1Cols[0], t2Cols[0]);
+		}
+
+		public static ITable NotIn(this ITable table, ITable otherTable, int[] tableColumns, int[] otherColumns) {
+			return table.AsVirtual(() => RowsNotIn(table, otherTable, tableColumns, otherColumns));
 		}
 
 		#endregion
 
+		private static ITable AsVirtual(this ITable table, Func<IEnumerable<int>> selector) {
+			return new VirtualTable(table, selector());
+		}
+
 		#region Order By
+
+		public static IEnumerable<int> OrderedRows(this ITable table, int[] columns) {
+			var work = table.OrderByColumns(columns);
+			// 'work' is now sorted by the columns,
+			// Get the rows in this tables domain,
+			var rowList = work.Select(row => row.RowId.RowNumber);
+
+			return work.ResolveRows(0, rowList, table);
+		}
+
 
 		public static ITable OrderByColumns(this ITable table, int[] columns) {
 			// Sort by the column list.
@@ -871,16 +1053,13 @@ namespace Deveel.Data.Sql {
 			if (table == null)
 				return null;
 
-			if (!(table is IDbTable))
-				throw new NotSupportedException(String.Format("The table type {0} is not supported for this operation", table.GetType()));
-
-			var rows = table.SelectAll(columnIndex);
+			var rows = table.SelectAllRows(columnIndex);
 
 			// Reverse the list if we are not ascending
 			if (ascending == false)
 				rows = rows.Reverse();
 
-			return new VirtualTable((IDbTable)table, rows);
+			return new VirtualTable(table, rows);
 		}
 
 		#endregion
@@ -888,10 +1067,6 @@ namespace Deveel.Data.Sql {
 		public static ITable ColumnMerge(this ITable table, ITable other) {
 			if (table.RowCount != other.RowCount)
 				throw new ApplicationException("Tables have different row counts.");
-
-			if (!(table is IDbTable) ||
-				!(other is IDbTable))
-				throw new NotSupportedException();
 
 			// Create the new VirtualTable with the joined tables.
 
@@ -901,8 +1076,8 @@ namespace Deveel.Data.Sql {
 				allRowSet.Add(i);
 			}
 
-			var tabs = new IDbTable[] { (IDbTable) table, (IDbTable) other };
-			var rowSets = new IList<int>[] { allRowSet, allRowSet };
+			var tabs = new[] { table, other };
+			var rowSets = new IEnumerable<int>[] { allRowSet, allRowSet };
 
 			return new VirtualTable(tabs, rowSets);
 		}
@@ -924,17 +1099,13 @@ namespace Deveel.Data.Sql {
 		#region Join
 
 		public static ITable Join(this ITable table, ITable otherTable, bool quick) {
-			if (!(table is IDbTable) ||
-				!(otherTable is IDbTable))
-				throw new NotSupportedException();
-
-			IDbTable outTable;
+			ITable outTable;
 
 			if (quick) {
 				// This implementation doesn't materialize the join
-				outTable = new NaturallyJoinedTable((IDbTable) table, (IDbTable) otherTable);
+				outTable = new NaturallyJoinedTable(table, otherTable);
 			} else {
-				var tabs = new IDbTable[] {(IDbTable) table, (IDbTable) otherTable};
+				var tabs = new [] { table, otherTable};
 				var rowSets = new IList<int>[2];
 
 				// Optimized trivial case, if either table has zero rows then result of
@@ -983,13 +1154,7 @@ namespace Deveel.Data.Sql {
 			return table.Join(otherTable, true);
 		}
 
-		public static ITable SimpleJoin(this ITable thisTable, IQueryContext context, ITable table, SqlBinaryExpression binary) {
-			if (!(thisTable is IDbTable))
-				throw new NotSupportedException();
-
-			var thisDbTable = (IDbTable) thisTable;
-			var dbTable = (IDbTable) table;
-
+		public static ITable SimpleJoin(this ITable thisTable, IQueryContext context, ITable other, SqlBinaryExpression binary) {
 			var objRef = binary.Left as SqlReferenceExpression;
 			if (objRef == null)
 				throw new ArgumentException();
@@ -997,14 +1162,14 @@ namespace Deveel.Data.Sql {
 				throw new ArgumentException();
 
 			// Find the row with the name given in the condition.
-			int lhsColumn = thisDbTable.FindColumn(objRef.ReferenceName);
+			int lhsColumn = thisTable.FindColumn(objRef.ReferenceName);
 
 			if (lhsColumn == -1)
 				throw new Exception("Unable to find the LHS column specified in the condition: " + objRef.ReferenceName);
 
 			// Create a variable resolver that can resolve columns in the destination
 			// table.
-			var resolver = dbTable.GetVariableResolver();
+			var resolver = other.GetVariableResolver();
 
 			// The join algorithm.  It steps through the RHS expression, selecting the
 			// cells that match the relation from the LHS table (this table).
@@ -1012,11 +1177,10 @@ namespace Deveel.Data.Sql {
 			var thisRowSet = new List<int>();
 			var tableRowSet = new List<int>();
 
-			var e = table.GetEnumerator();
+			var e = other.GetEnumerator();
 
 			while (e.MoveNext()) {
 				int rowIndex = e.Current.RowId.RowNumber;
-				resolver.AssignSetId(rowIndex);
 
 				// Select all the rows in this table that match the joining condition.
 				var selectedSet = thisTable.SelectRows(resolver, context, binary);
@@ -1034,7 +1198,7 @@ namespace Deveel.Data.Sql {
 
 			// Create the new VirtualTable with the joined tables.
 
-			var tabs = new[] {(IDbTable) thisTable, (IDbTable)table};
+			var tabs = new[] {thisTable, other};
 			var rowSets = new[] {thisRowSet.AsEnumerable(), tableRowSet.AsEnumerable()};
 
 			return new VirtualTable(tabs, rowSets);

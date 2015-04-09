@@ -46,7 +46,7 @@ namespace Deveel.Data.Index {
 			AddRow(tmpTable, 2, "test2", cornerTime.AddSeconds(2));
 			AddRow(tmpTable, 3, "test3", cornerTime.AddSeconds(5));
 
-			tmpTable.BuildIndexes(DefaultIndexNames.BlindSearch);
+			tmpTable.BuildIndexes(DefaultIndexTypes.BlindSearch);
 
 			table = tmpTable;
 		}
@@ -62,7 +62,7 @@ namespace Deveel.Data.Index {
 		[Test]
 		public void SelectEqualOneColumn() {
 			var name = DataObject.String("test1");
-			var result = table.SelectEqual(1, name);
+			var result = table.SelectRowsEqual(1, name);
 
 			Assert.IsNotNull(result);
 			Assert.IsNotEmpty(result);
@@ -76,7 +76,7 @@ namespace Deveel.Data.Index {
 			var name = DataObject.String("test1");
 			var id = DataObject.BigInt(1);
 
-			var result = table.SelectEqual(1, name, 0, id);
+			var result = table.SelectRowsEqual(1, name, 0, id);
 			Assert.IsNotNull(result);
 			Assert.IsNotEmpty(result);
 

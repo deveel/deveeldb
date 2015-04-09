@@ -322,11 +322,13 @@ namespace Deveel.Data.Types {
 			return num1.Multiply(num2);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj) {
+		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var number = (SqlNumber) obj;
 
 			var writer = new BinaryWriter(stream);
-			if (number.CanBeInt32) {
+			if (obj.IsNull) {
+				writer.Write((byte)0);
+			} else if (number.CanBeInt32) {
 				writer.Write((byte)1);
 				writer.Write(number.ToInt32());
 			} else if (number.CanBeInt64) {
@@ -346,6 +348,9 @@ namespace Deveel.Data.Types {
 			var reader = new BinaryReader(stream);
 
 			var type = reader.ReadByte();
+			if (type == 0)
+				return SqlNumber.Null;
+
 			if (type == 1) {
 				var value = reader.ReadInt32();
 				return new SqlNumber(value);
@@ -359,10 +364,26 @@ namespace Deveel.Data.Types {
 				var scale = reader.ReadInt32();
 				var length = reader.ReadInt32();
 				var bytes = reader.ReadBytes(length);
-				return new SqlNumber(bytes, precision, scale);
+				return new SqlNumber(bytes, scale, precision);
 			}
 
 			throw new FormatException();
+		}
+
+		public override int SizeOf(ISqlObject obj) {
+			var number = (SqlNumber) obj;
+
+			if (number.IsNull)
+				return 1;
+
+			if (number.CanBeInt32)
+				return 1 + 4;
+			if (number.CanBeInt64)
+				return 1+ 8;
+
+			// Type + Scale + Precision + Byte Count
+			var length = number.ToByteArray().Length;
+			return 1 + 4 + 4 + 4 + length;
 		}
 	}
 }

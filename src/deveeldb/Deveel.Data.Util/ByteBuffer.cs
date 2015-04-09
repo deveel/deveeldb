@@ -23,7 +23,7 @@ namespace Deveel.Data.Util {
 	/// This provides various functions for altering the state of 
 	/// the buffer.
 	/// </remarks>
-	public sealed class ByteBuffer {
+	class ByteBuffer {
 		/// <summary>
 		/// The wrapped byte array itself.
 		/// </summary>

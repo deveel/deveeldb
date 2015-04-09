@@ -90,6 +90,10 @@ namespace Deveel.Data {
 		/// </summary>
 		public ObjectName Parent { get; private set; }
 
+		public string ParentName {
+			get { return Parent == null ? null : Parent.FullName; }
+		}
+
 		/// <summary>
 		/// Gets the name of the object being referenced.
 		/// </summary>

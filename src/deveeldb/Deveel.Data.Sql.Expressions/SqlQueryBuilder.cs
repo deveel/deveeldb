@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Expressions.Fluid;
 
 namespace Deveel.Data.Sql.Expressions {

@@ -35,8 +35,8 @@ namespace Deveel.Data.Types {
 			return base.Deserialize(stream, context);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj) {
-			base.Serialize(stream, obj);
+		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+			base.Serialize(stream, obj, systemContext);
 		}
 	}
 }

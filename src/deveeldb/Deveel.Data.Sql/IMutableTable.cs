@@ -16,46 +16,33 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// An interface that defines contracts to alter the
 	/// contents of a table.
 	/// </summary>
 	public interface IMutableTable : ITable {
-		/// <summary>
-		/// Creates a new row that is compatible with the 
-		/// table context, ready to be populated and added.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// When this method is called, a new <see cref="RowId"/>
-		/// is generated and persisted: when a subsequent call to
-		/// this method will be issued, another new row identifier
-		/// will be generated, even if the row was not persisted
-		/// into the table.
-		/// </para>
-		/// </remarks>
-		/// <returns>
-		/// Returns an instance of <see cref="Row"/> that
-		/// belongs to this table and can be added through
-		/// <see cref="AddRow"/> call.
-		/// </returns>
-		Row NewRow();
+		TableEventRegistry EventRegistry { get; }
+
+		void AddLock();
+
+		void RemoveLock();
 
 		/// <summary>
 		/// Persists a new row to the table.
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// The row to be added must have been generated through
-		/// <see cref="NewRow"/> factory method, otherwise an
-		/// exception will be thrown.
+		/// The row to be added must belong to the table context, 
+		/// otherwise an exception will be thrown.
 		/// </para>
 		/// </remarks>
 		/// <param name="row">The row to be persisted.</param>
 		/// <exception cref="ArgumentException">
-		/// If the gven <paramref name="row"/> was not generated using
-		/// <see cref="NewRow"/> factory method.
+		/// If the gven <paramref name="row"/> does not belong to 
+		/// the table context.
 		/// </exception>
 		/// <exception cref="ArgumentNullException">
 		/// If the given <paramref name="row"/> is <c>null</c>.
@@ -132,36 +119,5 @@ namespace Deveel.Data.Sql {
 		/// </para>
 		/// </remarks>
 		void AssertConstraints();
-
-		/// <summary>
-		/// Puts this source under a <c>root lock</c>.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// A root lock means the root row structure of this object must not change.  
-		/// </para>
-		/// <para>
-		/// A root lock is obtained on a table when a result set keeps hold of an 
-		/// object outside the life of the transaction that created the table.  
-		/// </para>
-		/// <para>
-		/// It is important that the order of the rows stays constant (committed 
-		/// deleted rows are not really deleted and reused, etc) while a table 
-		/// holds at least 1 root lock.
-		/// </para>
-		/// </remarks>
-		void AddLock();
-
-		/// <summary>
-		/// Release a <c>root lock</c> from this table.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// When all the locks to a table have been removed, the structure
-		/// can be altered.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="AddLock"/>
-		void RemoveLock();
 	}
 }

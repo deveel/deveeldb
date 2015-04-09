@@ -21,6 +21,7 @@ using System.IO;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Store;
 
 namespace Deveel.Data.Types {
 	/// <summary>
@@ -178,6 +179,10 @@ namespace Deveel.Data.Types {
 
 			// TODO: Should we return a null value instead? NULL OF TYPE anyway is still a cast ...
 			throw new NotSupportedException();
+		}
+
+		public virtual object ConvertTo(ISqlObject obj, Type destType) {
+			throw new NotImplementedException();
 		}
 
 		public virtual ISqlObject Add(ISqlObject a, ISqlObject b) {
@@ -348,12 +353,34 @@ namespace Deveel.Data.Types {
 			return Name;
 		}
 
-		public virtual void Serialize(Stream stream, ISqlObject obj) {
+		public virtual void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			throw new NotSupportedException(String.Format("Type {0} cannot serialize object of type {1}.", GetType(), obj.GetType()));
 		}
 
 		public virtual ISqlObject Deserialize(Stream stream, ISystemContext context) {
 			throw new NotSupportedException(String.Format("Type {0} cannot deserialize types.", GetType()));
+		}
+
+		public virtual bool IsCacheable(ISqlObject value) {
+			return false;
+		}
+
+		public virtual int GetCacheUsage(ISqlObject value) {
+			return 0;
+		}
+
+		public virtual int SizeOf(ISqlObject obj) {
+			// TODO: should make this required?
+			return 0;
+		}
+
+		public virtual ISqlObject CreateFromLargeObject(ILargeObject objRef) {
+			throw new NotSupportedException(String.Format("SQL Type {0} cannot be created from a large object.", SqlType));
+		}
+
+		public virtual void SerializeTo(Stream stream) {
+			var writer = new BinaryWriter(stream);
+			writer.Write((byte)SqlType);
 		}
 	}
 }

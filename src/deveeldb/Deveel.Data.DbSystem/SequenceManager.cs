@@ -166,7 +166,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public string GetTableType(int offset) {
-				throw new NotImplementedException();
+				return "SEQUENCE";
 			}
 
 			public bool ContainsTable(ObjectName name) {
@@ -183,9 +183,7 @@ namespace Deveel.Data.DbSystem {
 
 			public ITable GetTable(int offset) {
 				var table = transaction.GetTable(SystemSchema.SequenceInfoTableName);
-				var rowEnum = table.GetEnumerator();
 				int p = 0;
-				int i;
 				int rowIndex = -1;
 
 				foreach (var row in table) {
@@ -244,7 +242,7 @@ namespace Deveel.Data.DbSystem {
 				var cycle = seqTable.GetValue(seqRowI, 7);
 
 
-				return new SequenceTable(transaction.Context.SystemContext, tableInfo) {
+				return new SequenceTable(transaction.Context.Database.Context, tableInfo) {
 					TopValue = topValue,
 					LastValue = lastValue,
 					CurrentValue = currentValue,
@@ -265,8 +263,8 @@ namespace Deveel.Data.DbSystem {
 		class SequenceTable : GeneratedTable {
 			private readonly TableInfo tableInfo;
 
-			public SequenceTable(ISystemContext systemContext, TableInfo tableInfo) 
-				: base(systemContext) {
+			public SequenceTable(IDatabaseContext dbContext, TableInfo tableInfo) 
+				: base(dbContext) {
 				this.tableInfo = tableInfo;
 			}
 
@@ -341,46 +339,36 @@ namespace Deveel.Data.DbSystem {
 		/// </remarks>
 		private void UpdateSequenceState(Sequence sequence) {
 			// We need to update the sequence key state.
-			var sequenceAccessTransaction = GetTransaction();
-			try {
-				// The sequence table
-				var seq = sequenceAccessTransaction.GetMutableTable(SystemSchema.SequenceTableName);
-				// Find the row with the id for this sequence.
-				var list = seq.SelectEqual(0, DataObject.Number(sequence.Id));
 
-				// Checks
-				var count = list.Count();
-				if (count == 0) {
-					throw new ObjectNotFoundException(sequence.FullName);
-				} else if (count > 1) {
-					throw new Exception("Assert failed: multiple id for sequence.");
-				}
+			// The sequence table
+			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
 
+			// Find the row with the id for this sequence.
+			var list = seq.SelectRowsEqual(0, DataObject.Number(sequence.Id)).ToList();
 
-				// Create the DataRow
-				var dataRow = seq.NewRow();
+			// Checks
+			var count = list.Count();
+			if (count == 0)
+				throw new ObjectNotFoundException(sequence.FullName);
 
-				// Set the content of the row data
-				dataRow.SetValue(0, DataObject.Number(sequence.Id));
-				dataRow.SetValue(1, DataObject.Number(sequence.LastValue));
-				dataRow.SetValue(2, DataObject.Number(sequence.SequenceInfo.Increment));
-				dataRow.SetValue(3, DataObject.Number(sequence.SequenceInfo.MinValue));
-				dataRow.SetValue(4, DataObject.Number(sequence.SequenceInfo.MaxValue));
-				dataRow.SetValue(5, DataObject.Number(sequence.SequenceInfo.StartValue));
-				dataRow.SetValue(6, DataObject.BigInt(sequence.SequenceInfo.Cache));
-				dataRow.SetValue(7, DataObject.Boolean(sequence.SequenceInfo.Cycle));
+			if (count > 1)
+				throw new Exception("Assert failed: multiple id for sequence.");
 
-				// Update the row
-				seq.UpdateRow(dataRow);
-			} finally {
-				// Close and commit the transaction
-				try {
-					sequenceAccessTransaction.Commit();
-				} catch (TransactionException e) {
-					// TODO: conglomerate.Logger.Error(this, e);
-					throw new Exception("Transaction Error: " + e.Message, e);
-				}
-			}
+			// Create the DataRow
+			var dataRow = new Row(seq, list.First());
+
+			// Set the content of the row data
+			dataRow.SetValue(0, DataObject.Number(sequence.Id));
+			dataRow.SetValue(1, DataObject.Number(sequence.LastValue));
+			dataRow.SetValue(2, DataObject.Number(sequence.SequenceInfo.Increment));
+			dataRow.SetValue(3, DataObject.Number(sequence.SequenceInfo.MinValue));
+			dataRow.SetValue(4, DataObject.Number(sequence.SequenceInfo.MaxValue));
+			dataRow.SetValue(5, DataObject.Number(sequence.SequenceInfo.StartValue));
+			dataRow.SetValue(6, DataObject.BigInt(sequence.SequenceInfo.Cache));
+			dataRow.SetValue(7, DataObject.Boolean(sequence.SequenceInfo.Cycle));
+
+			// Update the row
+			seq.UpdateRow(dataRow);
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
@@ -417,7 +405,7 @@ namespace Deveel.Data.DbSystem {
 			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
 			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
 
-			var list = seqi.SelectEqual(2, DataObject.VarChar(sequenceName.Name), 1, DataObject.VarChar(sequenceName.Parent.FullName));
+			var list = seqi.SelectRowsEqual(2, DataObject.VarChar(sequenceName.Name), 1, DataObject.VarChar(sequenceName.Parent.FullName));
 			if (list.Any())
 				throw new Exception(String.Format("Sequence generator with name '{0}' already exists.", sequenceName));
 
@@ -495,12 +483,12 @@ namespace Deveel.Data.DbSystem {
 			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
 			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
 
-			var list = seqi.SelectEqual(2, DataObject.VarChar(tableName.Name), 1, DataObject.VarChar(tableName.Parent.FullName));
+			var list = seqi.SelectRowsEqual(2, DataObject.VarChar(tableName.Name), 1, DataObject.VarChar(tableName.Parent.FullName));
 
 			// Remove the corresponding entry in the SEQUENCE table
 			foreach (var rowIndex in list) {
 				var sid = seqi.GetValue(rowIndex, 0);
-				var list2 = seq.SelectEqual(0, sid);
+				var list2 = seq.SelectRowsEqual(0, sid);
 				foreach (int rowIndex2 in list2) {
 					// Remove entry from the sequence table.
 					seq.RemoveRow(rowIndex2);
@@ -533,7 +521,7 @@ namespace Deveel.Data.DbSystem {
 			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
 			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
 
-			return seqi.SelectEqual(2, DataObject.VarChar(sequenceName.Parent.FullName), 1, DataObject.VarChar(sequenceName.Name)).Any();
+			return seqi.SelectRowsEqual(2, DataObject.VarChar(sequenceName.Parent.FullName), 1, DataObject.VarChar(sequenceName.Name)).Any();
 		}
 
 
@@ -608,66 +596,56 @@ namespace Deveel.Data.DbSystem {
 			if (!sequenceKeyMap.TryGetValue(sequenceName, out sequence)) {
 				// This sequence generator is not in the cache so we need to query the
 				// sequence table for this.
-				ITransaction sequenceAccessTransaction = GetTransaction();
-				try {
-					var seqi = sequenceAccessTransaction.GetTable(SystemSchema.SequenceInfoTableName);
+				var seqi = Transaction.GetTable(SystemSchema.SequenceInfoTableName);
 
-					var schemaVal = DataObject.VarChar(sequenceName.Parent.FullName);
-					var nameVal = DataObject.VarChar(sequenceName.Name);
-					var list = seqi.SelectEqual(2, nameVal, 1, schemaVal).ToList();
+				var schemaVal = DataObject.VarChar(sequenceName.Parent.FullName);
+				var nameVal = DataObject.VarChar(sequenceName.Name);
+				var list = seqi.SelectRowsEqual(2, nameVal, 1, schemaVal).ToList();
 
-					if (list.Count == 0) {
-						throw new ArgumentException(String.Format("Sequence '{0}' not found.", sequenceName));
-					} else if (list.Count() > 1) {
-						throw new Exception("Assert failed: multiple sequence keys with same name.");
-					}
-
-					int rowIndex = list.First();
-					var sid = seqi.GetValue(rowIndex, 0);
-					var sschema = seqi.GetValue(rowIndex, 1);
-					var sname = seqi.GetValue(rowIndex, 2);
-					var stype = seqi.GetValue(rowIndex, 3);
-
-					// Is this a custom sequence generator?
-					// (stype == 1) == true
-					if (stype.IsEqualTo(OneValue)) {
-						// Native generator.
-						sequence = new Sequence(this, (SqlNumber) sid.Value, new SequenceInfo(sequenceName));
-					} else {
-						// Query the sequence table.
-						var seq = sequenceAccessTransaction.GetTable(SystemSchema.SequenceTableName);
-
-						list = seq.SelectEqual(0, sid).ToList();
-
-						if (!list.Any())
-							throw new Exception("Sequence table does not contain sequence information.");
-						if (list.Count() > 1)
-							throw new Exception("Sequence table contains multiple generators for id.");
-
-						rowIndex = list.First();
-						var lastValue = (SqlNumber) seq.GetValue(rowIndex, 1).Value;
-						var increment = (SqlNumber) seq.GetValue(rowIndex, 2).Value;
-						var minvalue = (SqlNumber) seq.GetValue(rowIndex, 3).Value;
-						var maxvalue = (SqlNumber) seq.GetValue(rowIndex, 4).Value;
-						var start = (SqlNumber) seq.GetValue(rowIndex, 5).Value;
-						var cache = (long) seq.GetValue(rowIndex, 6).AsBigInt();
-						bool cycle = seq.GetValue(rowIndex, 7).AsBoolean();
-
-						var info = new SequenceInfo(sequenceName, start, increment, minvalue, maxvalue, cache, cycle);
-						sequence = new Sequence(this, (SqlNumber)sid.Value, lastValue, info);
-
-						// Put the generator in the cache
-						sequenceKeyMap[sequenceName] = sequence;
-					}
-				} finally {
-					// Make sure we always close and commit the transaction.
-					try {
-						sequenceAccessTransaction.Commit();
-					} catch (TransactionException e) {
-						// TODO: conglomerate.Logger.Error(this, e);
-						throw new Exception("Transaction Error: " + e.Message, e);
-					}
+				if (list.Count == 0) {
+					throw new ArgumentException(String.Format("Sequence '{0}' not found.", sequenceName));
+				} else if (list.Count() > 1) {
+					throw new Exception("Assert failed: multiple sequence keys with same name.");
 				}
+
+				int rowIndex = list.First();
+				var sid = seqi.GetValue(rowIndex, 0);
+				var sschema = seqi.GetValue(rowIndex, 1);
+				var sname = seqi.GetValue(rowIndex, 2);
+				var stype = seqi.GetValue(rowIndex, 3);
+
+				// Is this a custom sequence generator?
+				// (stype == 1) == true
+				if (stype.IsEqualTo(OneValue)) {
+					// Native generator.
+					sequence = new Sequence(this, (SqlNumber) sid.Value, new SequenceInfo(sequenceName));
+				} else {
+					// Query the sequence table.
+					var seq = Transaction.GetTable(SystemSchema.SequenceTableName);
+
+					list = seq.SelectRowsEqual(0, sid).ToList();
+
+					if (!list.Any())
+						throw new Exception("Sequence table does not contain sequence information.");
+					if (list.Count() > 1)
+						throw new Exception("Sequence table contains multiple generators for id.");
+
+					rowIndex = list.First();
+					var lastValue = (SqlNumber) seq.GetValue(rowIndex, 1).Value;
+					var increment = (SqlNumber) seq.GetValue(rowIndex, 2).Value;
+					var minvalue = (SqlNumber) seq.GetValue(rowIndex, 3).Value;
+					var maxvalue = (SqlNumber) seq.GetValue(rowIndex, 4).Value;
+					var start = (SqlNumber) seq.GetValue(rowIndex, 5).Value;
+					var cache = (long) seq.GetValue(rowIndex, 6).AsBigInt();
+					bool cycle = seq.GetValue(rowIndex, 7).AsBoolean();
+
+					var info = new SequenceInfo(sequenceName, start, increment, minvalue, maxvalue, cache, cycle);
+					sequence = new Sequence(this, (SqlNumber) sid.Value, lastValue, info);
+
+					// Put the generator in the cache
+					sequenceKeyMap[sequenceName] = sequence;
+				}
+
 			}
 
 			// Return the generator

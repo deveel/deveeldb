@@ -24,15 +24,27 @@ using Deveel.Data.Store;
 
 namespace Deveel.Data.Sql.Objects {
 	public sealed class SqlLongString : ISqlString, IObjectRef, IDisposable {
-		private readonly ILargeObject largeObject;
-		private readonly Encoding encoding;
+		private ILargeObject largeObject;
+		private Encoding encoding;
 
-		public SqlLongString(ILargeObject largeObject, int codePage) {
+		public static readonly SqlLongString Null = new SqlLongString(null, -1, true);
+
+		private SqlLongString(ILargeObject largeObject, int codePage, bool isNull) {
+			if (!isNull && largeObject == null)
+				throw new ArgumentNullException("largeObject");
+
 			this.largeObject = largeObject;
-			encoding = Encoding.GetEncoding(codePage);
+
+			if (!isNull) {
+				encoding = Encoding.GetEncoding(codePage);
+				Length = largeObject.RawSize;
+			}
 
 			CodePage = codePage;
-			Length = largeObject.RawSize;
+		}
+
+		public SqlLongString(ILargeObject largeObject, int codePage)
+			: this(largeObject, codePage, false) {
 		}
 
 		~SqlLongString() {
@@ -49,6 +61,9 @@ namespace Deveel.Data.Sql.Objects {
 				if (largeObject != null)
 					largeObject.Dispose();
 			}
+
+			largeObject = null;
+			encoding = null;
 		}
 
 		int IComparable.CompareTo(object obj) {

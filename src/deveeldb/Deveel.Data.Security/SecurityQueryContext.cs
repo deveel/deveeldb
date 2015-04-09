@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Expressions;
 namespace Deveel.Data.Security {
 	public static class SecurityQueryContext {
 		public static bool UserExists(this IQueryContext context, string userName) {
-			var table = context.GetDbTable(SystemSchema.UserTableName);
+			var table = context.GetTable(SystemSchema.UserTableName);
 			var c1 = table.GetResolvedColumnName(0);
 
 			// All password where UserName = %username%
@@ -35,7 +35,7 @@ namespace Deveel.Data.Security {
 			throw new NotSupportedException();
 		}
 
-		public static bool UserHasObjectGrant(this IQueryContext context, ObjectName objectName, DbObjectType objectType, Privilege grant) {
+		public static bool UserHasObjectGrant(this IQueryContext context, ObjectName objectName, DbObjectType objectType, Privileges grant) {
 			// The internal secure user has full privs on everything
 			if (context.User().IsSystem)
 				return true;
@@ -44,7 +44,7 @@ namespace Deveel.Data.Security {
 
 			var privs = context.GetUserGrants(objectType, objectName);
 
-			return privs.Permits(grant);
+			return (privs & grant) != 0;
 		}
 	}
 }

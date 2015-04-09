@@ -59,9 +59,12 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Gets the context of the system the evaluation happens.
 		/// </summary>
 		/// <seealso cref="ISystemContext"/>
-		/// <seealso cref="IQueryContext.SystemContext"/>
 		public ISystemContext SystemContext {
-			get { return QueryContext.SystemContext; }
+			get { return DatabaseContext.SystemContext; }
+		}
+
+		public IDatabaseContext DatabaseContext {
+			get { return QueryContext.DatabaseContext; }
 		}
 
 		/// <summary>

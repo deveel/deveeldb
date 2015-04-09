@@ -18,18 +18,13 @@ using System;
 using System.Security.Cryptography;
 
 using Deveel.Data.Caching;
-using Deveel.Data.Routines;
-using Deveel.Data.Security;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.DbSystem {
 	public abstract class QueryContextBase : IQueryContext {
 		private readonly RNGCryptoServiceProvider secureRandom;
 		private readonly ICache tableCache;
 		private bool disposed;
-		private Exception exception;
 
 		protected QueryContextBase() {
 			secureRandom = new RNGCryptoServiceProvider();
@@ -41,7 +36,11 @@ namespace Deveel.Data.DbSystem {
 		}
 
 
-		public abstract ISystemContext SystemContext { get; }
+		public ISystemContext SystemContext {
+			get { return DatabaseContext.SystemContext; }
+		}
+
+		public abstract IDatabaseContext DatabaseContext { get; }
 
 		public abstract IUserSession Session { get; }
 
@@ -49,33 +48,11 @@ namespace Deveel.Data.DbSystem {
 			get { return tableCache; }
 		}
 
-		public abstract IQueryPlanContext QueryPlanContext { get; }
-
-		public bool IsExceptionState {
-			get { return exception != null; }
-		}
-
-		public virtual IRoutineResolver RoutineResolver {
-			get { return SystemContext.RoutineResolver; }
-		}
-
 		public virtual SqlNumber NextRandom(int bitSize) {
 			var bytes = new byte[8];
 			secureRandom.GetBytes(bytes);
 			var num = BitConverter.ToInt64(bytes, 0);
 			return new SqlNumber(num);
-		}
-
-		public void SetExceptionState(Exception exception) {
-			throw new NotImplementedException();
-		}
-
-		public Exception GetException() {
-			return exception;
-		}
-
-		public IDbObject GetObject(ObjectName objName) {
-			throw new NotImplementedException();
 		}
 
 		public void Dispose() {

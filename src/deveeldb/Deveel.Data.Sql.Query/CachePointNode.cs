@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 
@@ -35,7 +34,14 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		public override ITable Evaluate(IQueryContext context) {
-			throw new NotImplementedException();
+			// Is the result available in the context?
+			var childTable = context.GetCachedTable(id.ToString());
+			if (childTable == null) {
+				// No so evaluate the child and cache it
+				childTable = Child.Evaluate(context);
+				context.CacheTable(id.ToString(), childTable);
+			}
+			return childTable;
 		}
 	}
 }

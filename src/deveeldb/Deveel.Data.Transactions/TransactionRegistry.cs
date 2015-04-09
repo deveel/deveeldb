@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Transactions {
 	public sealed class TransactionRegistry : IDisposable {
-		private readonly List<ITransactionEvent> events;
+		private List<ITransactionEvent> events;
 		private List<ObjectName> objectsCreated;
 		private List<ObjectName> objectsDropped;
 		private List<int> touchedTables; 
@@ -53,6 +56,20 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
+		public IEnumerable<int> TablesChanged {
+			get {
+				lock (this) {
+					return events.OfType<ITableEvent>()
+						.Select(x => new {
+							id = x.TableId,
+							table = Transaction.GetTableManager().AccessedTables.First(y => y.TableInfo.Id == x.TableId)
+						})
+						.Where(x => x.table.EventRegistry.EventCount > 0)
+						.Select(x => x.id);
+				}
+			}
+		} 
+
 		public IEnumerable<int> TablesDropped {
 			get {
 				lock (this) {
@@ -65,6 +82,27 @@ namespace Deveel.Data.Transactions {
 			get {
 				lock (this) {
 					return events.OfType<TableConstraintAlteredEvent>().Select(x => x.TableId);
+				}
+			}
+		}
+
+		public IEnumerable<int> SelectedTables {
+			get {
+				lock (this) {
+					return events.OfType<TableSelectedEvent>().Select(x => x.TableId);
+				}
+			}
+		}
+
+		public IEnumerable<TableEventRegistry> TableChangeRegistries {
+			get {
+				lock (this) {
+					return events.OfType<ITableEvent>()
+						.Select(x => x.TableId)
+						.Distinct()
+						.Select(x => new { table = Transaction.GetTableManager().AccessedTables.FirstOrDefault(y => y.TableInfo.Id == x)})
+						.Where(x => x.table != null)
+						.Select(x => x.table.EventRegistry);
 				}
 			}
 		}
@@ -106,8 +144,8 @@ namespace Deveel.Data.Transactions {
 				if (e == null)
 					throw new ArgumentNullException("e");
 
-				if (Transaction.IsReadOnly)
-					throw new InvalidOperationException("Transaction is read-only.");
+				//if (Transaction.ReadOnly())
+				//	throw new InvalidOperationException("Transaction is read-only.");
 
 				if (e is ObjectCreatedEvent) {
 					var createdEvent = (ObjectCreatedEvent) e;
@@ -162,10 +200,12 @@ namespace Deveel.Data.Transactions {
 				if (objectsDropped != null)
 					objectsDropped.Clear();
 
-				objectsDropped = null;
-				objectsCreated = null;
 				events.Clear();
 			}
+
+			objectsDropped = null;
+			objectsCreated = null;
+			events = null;
 		}
 	}
 }

@@ -24,10 +24,6 @@ namespace Deveel.Data.Transactions {
 
 		public ITransactionContext TransactionContext { get; private set; }
 
-		private ISystemContext SystemContext {
-			get { return TransactionContext.SystemContext; }
-		}
-
 		public int Count {
 			get {
 				lock (this) {
@@ -100,6 +96,12 @@ namespace Deveel.Data.Transactions {
 
 		IEnumerator IEnumerable.GetEnumerator() {
 			return GetEnumerator();
+		}
+
+		public ITransaction FindById(int commitId) {
+			lock (this) {
+				return transactions.FirstOrDefault(x => x.CommitId == commitId);
+			}
 		}
 	}
 }

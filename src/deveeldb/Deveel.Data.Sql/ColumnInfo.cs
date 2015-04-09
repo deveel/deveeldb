@@ -15,6 +15,8 @@
 //
 
 using System;
+using System.IO;
+using System.Text;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
@@ -123,6 +125,28 @@ namespace Deveel.Data.Sql {
 		/// <seealso cref="DefaultExpression"/>
 		public bool HasDefaultExpression {
 			get { return DefaultExpression != null; }
+		}
+
+		public string IndexType { get; set; }
+
+		public void SerializeTo(Stream stream) {
+			var writer = new BinaryWriter(stream, Encoding.Unicode);
+			writer.Write(3);	// Version
+			writer.Write(ColumnName);
+
+			ColumnType.SerializeTo(stream);
+			writer.Write(IsNotNull ? 1 : 0);
+
+			if (DefaultExpression != null) {
+				writer.Write((byte) 1);
+				DefaultExpression.SerializeTo(stream);
+			} else {
+				writer.Write((byte)0);
+			}
+		}
+
+		public static ColumnInfo DeserializeFrom(Stream stream) {
+			throw new NotImplementedException();
 		}
 	}
 }

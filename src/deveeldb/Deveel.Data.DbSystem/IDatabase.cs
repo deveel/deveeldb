@@ -16,15 +16,18 @@
 
 using System;
 
-using Deveel.Data.Routines;
+using Deveel.Data.Protocol;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public interface IDatabase : ITransactionContext, IDisposable {
-		string Name { get; }
+		IDatabaseContext Context { get; }
 
 		Version Version { get; }
+
+		ActiveUserList ActiveUsers { get; }
 
 		bool Exists { get; }
 
@@ -32,9 +35,17 @@ namespace Deveel.Data.DbSystem {
 
 		TableSourceComposite TableComposite { get; }
 
+		ITable SingleRowTable { get; }
+
+
+		void Create(string adminName, string adminPassword);
 
 		void Open();
 
-		void Shutdown();
+		void Close();
+
+		IUserSession CreateSession(User user, ConnectionEndPoint userEndPoint, TransactionIsolation isolation);
+
+		IUserSession OpenSession(User user, ConnectionEndPoint userEndPoint, int commitId);
 	}
 }

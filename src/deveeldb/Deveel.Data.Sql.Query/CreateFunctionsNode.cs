@@ -49,7 +49,9 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		public override ITable Evaluate(IQueryContext context) {
-			throw new NotImplementedException();
+			var childTable = Child.Evaluate(context);
+			var funTable = new FunctionTable(childTable, functionList, nameList, context);
+			return funTable.MergeWith(null);
 		}
 
 		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {

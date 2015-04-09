@@ -33,10 +33,27 @@ namespace Deveel.Data.Store {
 		}
 
 		public override long Seek(long offset, SeekOrigin origin) {
-			if (origin != SeekOrigin.Begin)
-				throw new NotImplementedException();
+			if (origin == SeekOrigin.Begin) {
+				if (offset >= Length)
+					throw new ArgumentOutOfRangeException("offset");
 
-			area.Position = (int) offset;
+				area.Position = (int) offset;
+			} else if (origin == SeekOrigin.Current) {
+				var pos = area.Position;
+				var length = area.Length;
+				if (pos + offset >= length)
+					throw new ArgumentOutOfRangeException("offset");
+
+				area.Position = pos + (int)offset;
+			} else {
+				var length = area.Length;
+				var newPos = length - offset;
+				if (newPos < 0)
+					throw new ArgumentOutOfRangeException("offset");
+
+				area.Position = (int)newPos;
+			}
+
 			return area.Position;
 		}
 

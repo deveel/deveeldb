@@ -19,6 +19,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
@@ -61,7 +62,7 @@ namespace Deveel.Data.Sql {
 			if (table == null)
 				throw new ArgumentNullException("table");
 
-			if (!RowId.IsNull &&
+			if (!rowId.IsNull &&
 				table.TableInfo.Id >= 0 &&
 			    table.TableInfo.Id != rowId.TableId)
 				throw new ArgumentException(String.Format("The table ID {0} does not match the identifier specified by the row ID ({1})",
@@ -136,6 +137,10 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
+		public int ColumnCount {
+			get { return Table.TableInfo.ColumnCount; }
+		}
+
 		/// <summary>
 		/// Gets or the value of a cell of the row at the given offset.
 		/// </summary>
@@ -162,10 +167,10 @@ namespace Deveel.Data.Sql {
 			if (columnOffset < 0 || columnOffset >= Table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
-			if (RowId.IsNull)
-				throw new InvalidOperationException("Row was not established to any table.");
-
 			if (values == null) {
+				if (RowId.IsNull)
+					throw new InvalidOperationException("Row was not established to any table.");
+
 				var colCount = Table.TableInfo.ColumnCount;
 				values = new Dictionary<int, DataObject>(colCount);
 
@@ -203,16 +208,13 @@ namespace Deveel.Data.Sql {
 		/// </exception>
 		/// <seealso cref="TableInfo.ColumnCount"/>
 		public void SetValue(int columnOffset, DataObject value) {
+			var colCount = Table.TableInfo.ColumnCount;
+
 			if (columnOffset < 0 || columnOffset >= Table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
-			if (RowId.IsNull)
-				throw new InvalidOperationException("Row was not established to any table.");
-
-			if (values == null) {
-				var colCount = Table.TableInfo.ColumnCount;
+			if (values == null)
 				values = new Dictionary<int, DataObject>(colCount);
-			}
 
 			values[columnOffset] = value;
 		}
@@ -237,6 +239,26 @@ namespace Deveel.Data.Sql {
 				throw new ArgumentException(String.Format("Could not find column '{0}' in the table '{1}'.", columnName, Table.FullName));
 
 			SetValue(offset, value);
+		}
+
+		public void SetValue(int columnIndex, string value) {
+			SetValue(columnIndex, DataObject.String(value));
+		}
+
+		public void SetValue(int columnIndex, int value) {
+			SetValue(columnIndex, DataObject.Integer(value));
+		}
+
+		public void SetValue(int columnIndex, long value) {
+			SetValue(columnIndex, DataObject.BigInt(value));
+		}
+
+		public void SetValue(int columnIndex, short value) {
+			SetValue(columnIndex, DataObject.SmallInt(value));
+		}
+
+		public void SetValue(int columnIndex, SqlNumber value) {
+			SetValue(columnIndex, DataObject.Number(value));
 		}
 
 		/// <summary>

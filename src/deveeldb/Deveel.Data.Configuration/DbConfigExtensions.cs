@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace Deveel.Data.Configuration {
 	public static class DbConfigExtensions {
@@ -238,31 +237,7 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static bool GetBoolean(this IDbConfig config, string propertyKey, bool defaultValue) {
-			var value = config.GetValue(propertyKey);
-			if (value == null)
-				return defaultValue;
-
-			if (value is bool)
-				return (bool)value;
-
-			try {
-				if (value is string) {
-					if (String.Equals((string)value, "true", StringComparison.OrdinalIgnoreCase) ||
-						String.Equals((string)value, "enabled", StringComparison.OrdinalIgnoreCase) ||
-						String.Equals((string)value, "1"))
-						return true;
-					if (String.Equals((string)value, "false", StringComparison.OrdinalIgnoreCase) ||
-						String.Equals((string)value, "disabled", StringComparison.OrdinalIgnoreCase) ||
-						String.Equals((string)value, "0"))
-						return false;
-				}
-				if (value is IConvertible)
-					value = Convert.ChangeType(value, typeof(bool), CultureInfo.InvariantCulture);
-
-				return (value == null ? defaultValue : (bool)value);
-			} catch (Exception e) {
-				throw new DatabaseConfigurationException(String.Format("Cannot convert {0} to a valid boolean", value), e);
-			}
+			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		public static float GetSingle(this IDbConfig config, string propertyKey) {
@@ -401,5 +376,16 @@ namespace Deveel.Data.Configuration {
 		}
 
 		#endregion
+
+		public static void CopyTo(this IDbConfig source, IDbConfig dest) {
+			var sourceKeys = source.GetKeys(ConfigurationLevel.Current);
+			foreach (var key in sourceKeys) {
+				dest.SetKey(key);
+
+				var value = source.GetValue(key);
+				if (value != null)
+					dest.SetValue(key, value.Value);
+			}
+		}
 	}
 }

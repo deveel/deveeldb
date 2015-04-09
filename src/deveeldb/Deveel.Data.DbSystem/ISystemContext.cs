@@ -17,21 +17,21 @@
 using System;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Routines;
+using Deveel.Data.Index;
 using Deveel.Data.Spatial;
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Store;
 
 namespace Deveel.Data.DbSystem {
 	public interface ISystemContext : IDisposable {
-		IDbConfig Config { get; }
-
-		IStoreSystem StoreSystem { get; }
+		IDbConfig Configuration { get; }
 
 		ISpatialContext SpatialContext { get; }
 
-		IQueryPlanner QueryPlanner { get; }
+		ISearchIndexFactory IndexFactory { get; }
 
-		IRoutineResolver RoutineResolver { get; }
+		// TODO: System diagnostics ...
+
+		IDatabaseContext CreateDatabaseContext(IDbConfig config);
+
+		IDatabaseContext GetDatabaseContext(IDbConfig config);
 	}
 }

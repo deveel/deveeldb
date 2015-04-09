@@ -103,11 +103,11 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public int Scale {
-			get { return State == NumericState.None ? innerValue.Scale : -1; }
+			get { return State == NumericState.None ? innerValue.Scale : 0; }
 		}
 
 		public int Precision {
-			get { return State == NumericState.None ? innerValue.Precision : -1; }
+			get { return State == NumericState.None ? innerValue.Precision : 0; }
 		}
 
 		private MathContext MathContext {
@@ -115,7 +115,7 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public int Sign {
-			get { return State == NumericState.None ? innerValue.Sign : -1; }
+			get { return State == NumericState.None ? innerValue.Sign : 0; }
 		}
 
 		int IComparable.CompareTo(object obj) {

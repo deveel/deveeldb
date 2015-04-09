@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Deveel.Data.Sql;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -11,6 +10,186 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Transactions {
 	public static class TransactionConstraintExtensions {
+		public static void AddPrimaryKey(this ITransaction transaction, ObjectName tableName, string[] columns, string constraintName) {
+			AddPrimaryKey(transaction, tableName, columns, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public static void AddPrimaryKey(this ITransaction transaction, ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
+			var t = transaction.GetMutableTable(SystemSchema.PrimaryKeyInfoTableName);
+			var tcols = transaction.GetMutableTable(SystemSchema.PrimaryKeyColumnsTableName);
+
+			try {
+				// Insert a value into PrimaryInfoTable
+				var row = t.NewRow();
+				var uniqueId = transaction.NextTableId(SystemSchema.PrimaryKeyInfoTableName);
+				constraintName = MakeUniqueConstraintName(constraintName, uniqueId);
+				row.SetValue(0, uniqueId);
+				row.SetValue(1, constraintName);
+				row.SetValue(2, tableName.Parent.Name);
+				row.SetValue(3, tableName.Name);
+				row.SetValue(4, (short)deferred);
+				t.AddRow(row);
+
+				// Insert the columns
+				for (int i = 0; i < columns.Length; ++i) {
+					row = tcols.NewRow();
+					row.SetValue(0, uniqueId);            // unique id
+					row.SetValue(1, columns[i]);              // column name
+					row.SetValue(2, i);         // Sequence number
+					tcols.AddRow(row);
+				}
+
+			} catch (ConstraintViolationException e) {
+				// Constraint violation when inserting the data.  Check the type and
+				// wrap around an appropriate error message.
+				if (e.ErrorCode == SqlModelErrorCodes.UniqueViolation) {
+					// This means we gave a constraint name that's already being used
+					// for a primary key.
+					throw new Exception(String.Format("Primary key constraint name '{0}' is already being used.", constraintName));
+				}
+
+				throw;
+			}
+		}
+
+		public static void AddForeignKey(this ITransaction transaction, ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns,
+			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, String constraintName) {
+			AddForeignKey(transaction, table, columns, refTable, refColumns, deleteRule, updateRule,
+				ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public static void AddForeignKey(this ITransaction transaction, ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns, String constraintName) {
+			AddForeignKey(transaction, table, columns, refTable, refColumns, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public static void AddForeignKey(this ITransaction transaction, ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns, ConstraintDeferrability deferred, String constraintName) {
+			AddForeignKey(transaction, table, columns, refTable, refColumns, ForeignKeyAction.NoAction, ForeignKeyAction.NoAction,
+				deferred, constraintName);
+		}
+
+		public static void AddForeignKey(this ITransaction transaction, ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns,
+			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred, String constraintName) {
+			var t = transaction.GetMutableTable(SystemSchema.ForeignKeyInfoTableName);
+			var tcols = transaction.GetMutableTable(SystemSchema.ForeignKeyColumnsTableName);
+
+			try {
+				// If 'ref_columns' empty then set to primary key for referenced table,
+				// ISSUE: What if primary key changes after the fact?
+				if (refColumns.Length == 0) {
+					var set = transaction.QueryTablePrimaryKey(refTable);
+					if (set == null)
+						throw new Exception(String.Format("No primary key defined for referenced table '{0}'", refTable));
+
+					refColumns = set.ColumnNames;
+				}
+
+				if (columns.Length != refColumns.Length) {
+					throw new Exception(String.Format("Foreign key reference '{0}' -> '{1}' does not have an equal number of " +
+					                             "column terms.", table, refTable));
+				}
+
+				// If delete or update rule is 'SET NULL' then check the foreign key
+				// columns are not constrained as 'NOT NULL'
+				if (deleteRule == ForeignKeyAction.SetNull ||
+				    updateRule == ForeignKeyAction.SetNull) {
+					var tableInfo = transaction.GetTableInfo(table);
+					for (int i = 0; i < columns.Length; ++i) {
+						var columnInfo = tableInfo[tableInfo.IndexOfColumn(columns[i])];
+						if (columnInfo.IsNotNull) {
+							throw new Exception(String.Format("Foreign key reference '{0}' -> '{1}' update or delete triggered " +
+							                             "action is SET NULL for columns that are constrained as " +
+							                             "NOT NULL.", table, refTable));
+						}
+					}
+				}
+
+				// Insert a value into ForeignInfoTable
+				var row = t.NewRow();
+				var uniqueId = transaction.NextTableId(SystemSchema.ForeignKeyInfoTableName);
+				constraintName = MakeUniqueConstraintName(constraintName, uniqueId);
+				row.SetValue(0, uniqueId);
+				row.SetValue(1, constraintName);
+				row.SetValue(2, table.Parent.Name);
+				row.SetValue(3, table.Name);
+				row.SetValue(4, refTable.Parent.Name);
+				row.SetValue(5, refTable.Name);
+				row.SetValue(6, ((int) updateRule));
+				row.SetValue(7, ((int) deleteRule));
+				row.SetValue(8, ((short) deferred));
+				t.AddRow(row);
+
+				// Insert the columns
+				for (int i = 0; i < columns.Length; ++i) {
+					row = tcols.NewRow();
+					row.SetValue(0, uniqueId); // unique id
+					row.SetValue(1, columns[i]); // column name
+					row.SetValue(2, refColumns[i]); // ref column name
+					row.SetValue(3, i); // sequence number
+					tcols.AddRow(row);
+				}
+
+			} catch (ConstraintViolationException e) {
+				// Constraint violation when inserting the data.  Check the type and
+				// wrap around an appropriate error message.
+				if (e.ErrorCode == SqlModelErrorCodes.UniqueViolation)
+
+					// This means we gave a constraint name that's already being used
+					// for a primary key.
+					throw new Exception(String.Format("Foreign key constraint name '{0}' is already being used.", constraintName));
+
+				throw;
+			}
+		}
+
+		public static void AddUniqueKey(this ITransaction transaction, ObjectName tableName, string[] columns, string constraintName) {
+			AddUniqueKey(transaction, tableName, columns, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public static void AddUniqueKey(this ITransaction transaction, ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
+			var t = transaction.GetMutableTable(SystemSchema.UniqueKeyInfoTableName);
+			var tcols = transaction.GetMutableTable(SystemSchema.UniqueKeyColumnsTableName);
+
+			try {
+				// Insert a value into UniqueInfoTable
+				var row = t.NewRow();
+				var uniqueId = transaction.NextTableId(SystemSchema.UniqueKeyInfoTableName);
+				constraintName = MakeUniqueConstraintName(constraintName, uniqueId);
+				row.SetValue(0, uniqueId);
+				row.SetValue(1, constraintName);
+				row.SetValue(2, tableName.Parent.Name);
+				row.SetValue(3, tableName.Name);
+				row.SetValue(4, (short)deferred);
+				t.AddRow(row);
+
+				// Insert the columns
+				for (int i = 0; i < columns.Length; ++i) {
+					row = tcols.NewRow();
+					row.SetValue(0, uniqueId);            // unique id
+					row.SetValue(1, columns[i]);              // column name
+					row.SetValue(2, i);         // sequence number
+					tcols.AddRow(row);
+				}
+
+			} catch (ConstraintViolationException e) {
+				// Constraint violation when inserting the data.  Check the type and
+				// wrap around an appropriate error message.
+				if (e.ErrorCode == SqlModelErrorCodes.UniqueViolation)
+					// This means we gave a constraint name that's already being used
+					// for a primary key.
+					throw new Exception(String.Format("Unique constraint name '{0}' is already being used.", constraintName));
+
+				throw;
+			}
+		}
+
+		private static string MakeUniqueConstraintName(string constraintName, SqlNumber uniqueId) {
+			return String.IsNullOrEmpty(constraintName) ? ("_ANONYMOUS_CONSTRAINT_" + uniqueId) : constraintName;
+		}
+
 		private static String[] ToColumns(ITable table, IEnumerable<int> cols) {
 			var colList = cols.ToList();
 			int size = colList.Count;
@@ -189,6 +368,14 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
+		public static void CheckAddConstraintViolations(this ITransaction transaction, ITable table, ConstraintDeferrability deferred) {
+			// Get all the rows in the table
+			var rows = table.Select(x => x.RowId.RowNumber).ToArray();
+
+			// Check the constraints of all the rows in the table.
+			CheckAddConstraintViolations(transaction, table, rows, deferred);
+		}
+
 		public static void CheckAddConstraintViolations(this ITransaction transaction, ITable table, int[] rowIndices, ConstraintDeferrability deferred) {
 			string curSchema = table.TableInfo.TableName.Parent.Name;
 			IQueryContext queryContext = new SystemQueryContext(transaction, curSchema);
@@ -317,64 +504,102 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
+		public static void CheckRemoveConstraintViolations(this ITransaction transaction, ITable table, int[] rowIndices, ConstraintDeferrability deferred) {
+			// Quick exit case
+			if (rowIndices == null || rowIndices.Length == 0)
+				return;
+
+			var tableInfo = table.TableInfo;
+			var tableName = tableInfo.TableName;
+
+			// Check any imported foreign key constraints.
+			// This ensures that a referential reference can not be removed making
+			// it invalid.
+			var foreignConstraints = transaction.QueryTableImportedForeignKeys(tableName);
+			foreach (var reference in foreignConstraints) {
+				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
+					reference.Deferred == ConstraintDeferrability.InitiallyImmediate) {
+					// For each row removed from this column
+					foreach (int rowIndex in rowIndices) {
+						// Make sure the referenced record exists
+
+						// Return the count of records where the given row of
+						//   ref_table_name(columns, ...) IN
+						//                    table_name(ref_columns, ...)
+						int rowCount = RowCountOfReferenceTable(transaction,
+												   rowIndex,
+												   reference.ForeignTable, reference.ForeignColumnNames,
+												   reference.TableName, reference.ColumnNames,
+												   true);
+						// There must be 0 references otherwise the delete isn't allowed to
+						// happen.
+						if (rowCount > 0) {
+							throw new ConstraintViolationException(SqlModelErrorCodes.ForeignKeyViolation,
+							  deferred.AsDebugString() + " foreign key constraint violation " +
+							  "on delete (" +
+							  reference.ConstraintName + ") Columns = " +
+							  reference.TableName + "( " +
+							  String.Join(", ", reference.ColumnNames) + " ) -> " +
+							  reference.ForeignTable + "( " +
+							  String.Join(", ", reference.ForeignColumnNames) + " )");
+						}
+					}
+				}
+			}
+		}
+
 		public static ConstraintInfo[] QueryTableForeignKeys(this ITransaction transaction, ObjectName tableName) {
 			var t = transaction.GetTable(SystemSchema.ForeignKeyInfoTableName);
 			var t2 = transaction.GetTable(SystemSchema.ForeignKeyColumnsTableName);
 
-			ConstraintInfo[] groups;
-			
-			try {
-				// Returns the list indexes where column 3 = table name
-				//                            and column 2 = schema name
-				var objTableName = DataObject.String(tableName.Name);
-				var objSchema = DataObject.String(tableName.Parent.Name);
-				var data = t.SelectEqual(3, objTableName, 2, objSchema).ToList();
+			// Returns the list indexes where column 3 = table name
+			//                            and column 2 = schema name
+			var objTableName = DataObject.String(tableName.Name);
+			var objSchema = DataObject.String(tableName.Parent.Name);
+			var data = t.SelectRowsEqual(3, objTableName, 2, objSchema).ToList();
 
-				groups = new ConstraintInfo[data.Count];
+			var groups = new ConstraintInfo[data.Count];
 
-				for (int i = 0; i < data.Count; ++i) {
-					int rowIndex = data[i];
+			for (int i = 0; i < data.Count; ++i) {
+				int rowIndex = data[i];
 
-					// The foreign key id
-					var id = t.GetValue(rowIndex, 0);
+				// The foreign key id
+				var id = t.GetValue(rowIndex, 0);
 
-					// The referenced table
-					var refTableName = new ObjectName(
-							   new ObjectName(t.GetValue(rowIndex, 4).Value.ToString()),
-							   t.GetValue(rowIndex, 5).Value.ToString());
+				// The referenced table
+				var refTableName = new ObjectName(
+					new ObjectName(t.GetValue(rowIndex, 4).Value.ToString()),
+					t.GetValue(rowIndex, 5).Value.ToString());
 
-					// Select all records with equal id
-					var cols = t2.SelectEqual(0, id).ToList();
+				// Select all records with equal id
+				var cols = t2.SelectRowsEqual(0, id).ToList();
 
-					var name = t.GetValue(rowIndex, 1).Value.ToString();
-					var updateRule = (ForeignKeyAction)((SqlNumber)t.GetValue(rowIndex, 6).Value).ToInt32();
-					var deleteRule = (ForeignKeyAction)((SqlNumber)t.GetValue(rowIndex, 7).Value).ToInt32();
-					var deferred = (ConstraintDeferrability)((SqlNumber)t.GetValue(rowIndex, 8).Value).ToInt16(); ;
+				var name = t.GetValue(rowIndex, 1).Value.ToString();
+				var updateRule = (ForeignKeyAction) ((SqlNumber) t.GetValue(rowIndex, 6).Value).ToInt32();
+				var deleteRule = (ForeignKeyAction) ((SqlNumber) t.GetValue(rowIndex, 7).Value).ToInt32();
+				var deferred = (ConstraintDeferrability) ((SqlNumber) t.GetValue(rowIndex, 8).Value).ToInt16();
+				;
 
-					int colsSize = cols.Count;
-					string[] keyCols = new string[colsSize];
-					string[] refCols = new string[colsSize];
-					for (int n = 0; n < colsSize; ++n) {
-						for (int p = 0; p < colsSize; ++p) {
-							int cols_index = cols[p];
-							if (t2.GetValue(cols_index, 3) == n) {
-								keyCols[n] = t2.GetValue(cols_index, 1).Value.ToString();
-								refCols[n] = t2.GetValue(cols_index, 2).Value.ToString();
-								break;
-							}
+				int colsSize = cols.Count;
+				string[] keyCols = new string[colsSize];
+				string[] refCols = new string[colsSize];
+				for (int n = 0; n < colsSize; ++n) {
+					for (int p = 0; p < colsSize; ++p) {
+						int colsIndex = cols[p];
+						if (t2.GetValue(colsIndex, 3) == n) {
+							keyCols[n] = t2.GetValue(colsIndex, 1).Value.ToString();
+							refCols[n] = t2.GetValue(colsIndex, 2).Value.ToString();
+							break;
 						}
 					}
-
-					var constraint = ConstraintInfo.ForeignKey(name, tableName, keyCols, refTableName, refCols);
-					constraint.OnDelete = deleteRule;
-					constraint.OnUpdate = updateRule;
-					constraint.Deferred = deferred;
-
-					groups[i] = constraint;
 				}
-			} finally {
-				t.Dispose();
-				t2.Dispose();
+
+				var constraint = ConstraintInfo.ForeignKey(name, tableName, keyCols, refTableName, refCols);
+				constraint.OnDelete = deleteRule;
+				constraint.OnUpdate = updateRule;
+				constraint.Deferred = deferred;
+
+				groups[i] = constraint;
 			}
 
 			return groups;
@@ -384,60 +609,54 @@ namespace Deveel.Data.Transactions {
 			var t = transaction.GetTable(SystemSchema.ForeignKeyInfoTableName);
 			var t2 = transaction.GetTable(SystemSchema.ForeignKeyColumnsTableName);
 
-			ConstraintInfo[] groups;
-			try {
-				// Returns the list indexes where column 5 = ref table name
-				//                            and column 4 = ref schema name
-				var objRefTableName = DataObject.String(refTableName.Name);
-				var objRefSchema = DataObject.String(refTableName.Parent.Name);
-				var data = t.SelectEqual(5, objRefTableName, 4, objRefSchema).ToArray();
+			// Returns the list indexes where column 5 = ref table name
+			//                            and column 4 = ref schema name
+			var objRefTableName = DataObject.String(refTableName.Name);
+			var objRefSchema = DataObject.String(refTableName.Parent.Name);
+			var data = t.SelectRowsEqual(5, objRefTableName, 4, objRefSchema).ToArray();
 
-				groups = new ConstraintInfo[data.Length];
+			var groups = new ConstraintInfo[data.Length];
 
-				for (int i = 0; i < data.Length; ++i) {
-					int rowIndex = data[i];
+			for (int i = 0; i < data.Length; ++i) {
+				int rowIndex = data[i];
 
-					// The foreign key id
-					var id = t.GetValue(rowIndex, 0);
+				// The foreign key id
+				var id = t.GetValue(rowIndex, 0);
 
-					// The referencee table
-					var schemaNamePart = t.GetValue(rowIndex, 2).AsVarChar().Value.ToString();
-					var tableNamePart = t.GetValue(rowIndex, 3).AsVarChar().Value.ToString();
-					var tableName = new ObjectName(new ObjectName(schemaNamePart), tableNamePart);
+				// The referencee table
+				var schemaNamePart = t.GetValue(rowIndex, 2).AsVarChar().Value.ToString();
+				var tableNamePart = t.GetValue(rowIndex, 3).AsVarChar().Value.ToString();
+				var tableName = new ObjectName(new ObjectName(schemaNamePart), tableNamePart);
 
-					// Select all records with equal id
-					var cols = t2.SelectEqual(0, id).ToArray();
+				// Select all records with equal id
+				var cols = t2.SelectRowsEqual(0, id).ToArray();
 
-					var name = t.GetValue(rowIndex, 1).AsVarChar().Value.ToString();
+				var name = t.GetValue(rowIndex, 1).AsVarChar().Value.ToString();
 
-					var updateRule = (ForeignKeyAction)((SqlNumber)t.GetValue(rowIndex, 6).AsBigInt().Value).ToInt32();
-					var deleteRule = (ForeignKeyAction)((SqlNumber)t.GetValue(rowIndex, 7).AsBigInt().Value).ToInt32();
-					var deferred = (ConstraintDeferrability)((SqlNumber)t.GetValue(rowIndex, 8).AsBigInt().Value).ToInt16();
+				var updateRule = (ForeignKeyAction) ((SqlNumber) t.GetValue(rowIndex, 6).AsBigInt().Value).ToInt32();
+				var deleteRule = (ForeignKeyAction) ((SqlNumber) t.GetValue(rowIndex, 7).AsBigInt().Value).ToInt32();
+				var deferred = (ConstraintDeferrability) ((SqlNumber) t.GetValue(rowIndex, 8).AsBigInt().Value).ToInt16();
 
-					int colsSize = cols.Length;
-					string[] keyCols = new string[colsSize];
-					string[] refCols = new string[colsSize];
-					for (int n = 0; n < colsSize; ++n) {
-						for (int p = 0; p < colsSize; ++p) {
-							int colsIndex = cols[p];
-							if (t2.GetValue(colsIndex, 3) == n) {
-								keyCols[n] = t2.GetValue(colsIndex, 1);
-								refCols[n] = t2.GetValue(colsIndex, 2);
-								break;
-							}
+				int colsSize = cols.Length;
+				string[] keyCols = new string[colsSize];
+				string[] refCols = new string[colsSize];
+				for (int n = 0; n < colsSize; ++n) {
+					for (int p = 0; p < colsSize; ++p) {
+						int colsIndex = cols[p];
+						if (t2.GetValue(colsIndex, 3) == n) {
+							keyCols[n] = t2.GetValue(colsIndex, 1);
+							refCols[n] = t2.GetValue(colsIndex, 2);
+							break;
 						}
 					}
-
-					var constraint = ConstraintInfo.ForeignKey(name, tableName, keyCols, refTableName, refCols);
-					constraint.OnDelete = deleteRule;
-					constraint.OnUpdate = updateRule;
-					constraint.Deferred = deferred;
-
-					groups[i] = constraint;
 				}
-			} finally {
-				t.Dispose();
-				t2.Dispose();
+
+				var constraint = ConstraintInfo.ForeignKey(name, tableName, keyCols, refTableName, refCols);
+				constraint.OnDelete = deleteRule;
+				constraint.OnUpdate = updateRule;
+				constraint.Deferred = deferred;
+
+				groups[i] = constraint;
 			}
 
 			return groups;
@@ -447,33 +666,27 @@ namespace Deveel.Data.Transactions {
 			var t = transaction.GetTable(SystemSchema.UniqueKeyInfoTableName);
 			var t2 = transaction.GetTable(SystemSchema.UniqueKeyColumnsTableName);
 
-			ConstraintInfo[] constraints;
-			try {
-				// Returns the list indexes where column 3 = table name
-				//                            and column 2 = schema name
-				var objTableName = DataObject.String(tableName.Name);
-				var objSchemaName = DataObject.String(tableName.Parent.Name);
-				var data = t.SelectEqual(3, objTableName, 2,objSchemaName).ToList();
+			// Returns the list indexes where column 3 = table name
+			//                            and column 2 = schema name
+			var objTableName = DataObject.String(tableName.Name);
+			var objSchemaName = DataObject.String(tableName.Parent.Name);
+			var data = t.SelectRowsEqual(3, objTableName, 2, objSchemaName).ToList();
 
-				constraints = new ConstraintInfo[data.Count];
+			var constraints = new ConstraintInfo[data.Count];
 
-				for (int i = 0; i < data.Count; ++i) {
-					var id = t.GetValue(data[i], 0);
+			for (int i = 0; i < data.Count; ++i) {
+				var id = t.GetValue(data[i], 0);
 
-					// Select all records with equal id
-					var cols = t2.SelectEqual(0, id);
+				// Select all records with equal id
+				var cols = t2.SelectRowsEqual(0, id);
 
-					var name = t.GetValue(data[i], 1).Value.ToString();
-					var columns = ToColumns(t2, cols);   // the list of columns
-					var deferred = (ConstraintDeferrability)((SqlNumber)t.GetValue(data[i], 4).Value).ToInt16();
+				var name = t.GetValue(data[i], 1).Value.ToString();
+				var columns = ToColumns(t2, cols); // the list of columns
+				var deferred = (ConstraintDeferrability) ((SqlNumber) t.GetValue(data[i], 4).Value).ToInt16();
 
-					var constraint = ConstraintInfo.Unique(name, tableName, columns);
-					constraint.Deferred = deferred;
-					constraints[i] = constraint;
-				}
-			} finally {
-				t.Dispose();
-				t2.Dispose();
+				var constraint = ConstraintInfo.Unique(name, tableName, columns);
+				constraint.Deferred = deferred;
+				constraints[i] = constraint;
 			}
 
 			return constraints;
@@ -483,87 +696,76 @@ namespace Deveel.Data.Transactions {
 			var t = transaction.GetTable(SystemSchema.PrimaryKeyInfoTableName);
 			var t2 = transaction.GetTable(SystemSchema.PrimaryKeyColumnsTableName);
 
-			try {
-				// Returns the list indexes where column 3 = table name
-				//                            and column 2 = schema name
-				var objTableName = DataObject.String(tableName.Name);
-				var objSchemaName = DataObject.String(tableName.Parent.Name);
-				var data = t.SelectEqual(3, objTableName, 2, objSchemaName).ToList();
+			// Returns the list indexes where column 3 = table name
+			//                            and column 2 = schema name
+			var objTableName = DataObject.String(tableName.Name);
+			var objSchemaName = DataObject.String(tableName.Parent.Name);
+			var data = t.SelectRowsEqual(3, objTableName, 2, objSchemaName).ToList();
 
-				if (data.Count > 1)
-					throw new ApplicationException("Assertion failed: multiple primary key for: " + tableName);
+			if (data.Count > 1)
+				throw new ApplicationException("Assertion failed: multiple primary key for: " + tableName);
 
-				if (data.Count == 0)
-					return null;
+			if (data.Count == 0)
+				return null;
 
-				int rowIndex = data[0];
+			int rowIndex = data[0];
 
-				var id = t.GetValue(rowIndex, 0);
+			var id = t.GetValue(rowIndex, 0);
 
-				// All columns with this id
-				var list = t2.SelectEqual(0, id);
+			// All columns with this id
+			var list = t2.SelectRowsEqual(0, id);
 
-				// Make it in to a columns object
-				var name = t.GetValue(rowIndex, 1).AsVarChar().Value.ToString();
-				string[] columns = ToColumns(t2, list);
-				var deferred = (ConstraintDeferrability)((SqlNumber)t.GetValue(rowIndex, 4).Value).ToInt16();
+			// Make it in to a columns object
+			var name = t.GetValue(rowIndex, 1).AsVarChar().Value.ToString();
+			string[] columns = ToColumns(t2, list);
+			var deferred = (ConstraintDeferrability) ((SqlNumber) t.GetValue(rowIndex, 4).Value).ToInt16();
 
-				var constraint = ConstraintInfo.PrimaryKey(name, tableName, columns);
-				constraint.Deferred = deferred;
-				return constraint;
-
-			} finally {
-				t.Dispose();
-				t2.Dispose();
-			}
+			var constraint = ConstraintInfo.PrimaryKey(name, tableName, columns);
+			constraint.Deferred = deferred;
+			return constraint;
 		}
 
 		public static ConstraintInfo[] QueryTableCheckExpressions(this ITransaction transaction, ObjectName tableName) {
-			ITable t = transaction.GetTable(SystemSchema.CheckInfoTableName);
+			var t = transaction.GetTable(SystemSchema.CheckInfoTableName);
 
-			ConstraintInfo[] checks;
-			try {
-				// Returns the list indexes where column 3 = table name
-				//                            and column 2 = schema name
-				var objTableName = DataObject.String(tableName.Name);
-				var objSchemaName = DataObject.String(tableName.Parent.Name);
-				var data = t.SelectEqual(3, objTableName, 2, objSchemaName).ToList();
-				checks = new ConstraintInfo[data.Count];
+			// Returns the list indexes where column 3 = table name
+			//                            and column 2 = schema name
+			var objTableName = DataObject.String(tableName.Name);
+			var objSchemaName = DataObject.String(tableName.Parent.Name);
+			var data = t.SelectRowsEqual(3, objTableName, 2, objSchemaName).ToList();
+			var checks = new ConstraintInfo[data.Count];
 
-				for (int i = 0; i < checks.Length; ++i) {
-					int row_index = data[i];
+			for (int i = 0; i < checks.Length; ++i) {
+				int rowIndex = data[i];
 
-					string name = t.GetValue(row_index, 1).Value.ToString();
-					var deferred = (ConstraintDeferrability)((SqlNumber)t.GetValue(row_index, 5).Value).ToInt16();
-					SqlExpression expression = null;
+				string name = t.GetValue(rowIndex, 1).Value.ToString();
+				var deferred = (ConstraintDeferrability) ((SqlNumber) t.GetValue(rowIndex, 5).Value).ToInt16();
+				SqlExpression expression = null;
 
-					// Is the deserialized version available?
-					if (t.TableInfo.ColumnCount > 6) {
-						var sexp = (SqlBinary) t.GetValue(row_index, 6).Value;
-						if (!sexp.IsNull) {
-							try {
-								// Deserialize the expression
-								// TODO: expression = (SqlExpression)ObjectTranslator.Deserialize(sexp);
-								throw new NotImplementedException();
-							} catch (Exception e) {
-								// We weren't able to deserialize the expression so report the
-								// error to the log
-								// TODO:
-							}
+				// Is the deserialized version available?
+				if (t.TableInfo.ColumnCount > 6) {
+					var sexp = (SqlBinary) t.GetValue(rowIndex, 6).Value;
+					if (!sexp.IsNull) {
+						try {
+							// Deserialize the expression
+							// TODO: expression = (SqlExpression)ObjectTranslator.Deserialize(sexp);
+							throw new NotImplementedException();
+						} catch (Exception e) {
+							// We weren't able to deserialize the expression so report the
+							// error to the log
+							// TODO:
 						}
 					}
-					// Otherwise we need to parse it from the string
-					if (expression == null) {
-						expression = SqlExpression.Parse(t.GetValue(row_index, 4).Value.ToString());
-					}
-
-					var check = ConstraintInfo.Check(name, tableName, expression);
-					check.Deferred = deferred;
-					checks[i] = check;
 				}
 
-			} finally {
-				t.Dispose();
+				// Otherwise we need to parse it from the string
+				if (expression == null) {
+					expression = SqlExpression.Parse(t.GetValue(rowIndex, 4).Value.ToString());
+				}
+
+				var check = ConstraintInfo.Check(name, tableName, expression);
+				check.Deferred = deferred;
+				checks[i] = check;
 			}
 
 			return checks;

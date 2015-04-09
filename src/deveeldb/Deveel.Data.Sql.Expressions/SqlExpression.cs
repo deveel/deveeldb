@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.IO;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
@@ -431,6 +432,10 @@ namespace Deveel.Data.Sql.Expressions {
 		#endregion
 
 		public string ToSqlString() {
+			throw new NotImplementedException();
+		}
+
+		public void SerializeTo(Stream stream) {
 			throw new NotImplementedException();
 		}
 	}

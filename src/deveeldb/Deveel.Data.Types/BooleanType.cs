@@ -16,7 +16,6 @@
 
 using System;
 using System.IO;
-using System.Security.Cryptography;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
@@ -93,18 +92,46 @@ namespace Deveel.Data.Types {
 			return base.CastTo(value, destType);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj) {
-			var b = (SqlBoolean) obj;
-			var value = (bool) b;
+		public override ISqlObject Negate(ISqlObject value) {
+			var b = (SqlBoolean) value;
+			if (b.Equals(SqlBoolean.True))
+				return SqlBoolean.False;
+			if (b.Equals(SqlBoolean.False))
+				return SqlBoolean.True;
 
+			return base.Negate(value);
+		}
+
+		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+			var b = (SqlBoolean) obj;
 			var writer = new BinaryWriter(stream);
-			writer.Write(value);
+
+			if (b.IsNull) {
+				writer.Write((byte)0);
+			} else {
+				var value = (bool) b;
+				writer.Write((byte)1);
+				writer.Write((byte)(value ? 1 : 0));
+			}
 		}
 
 		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
 			var reader = new BinaryReader(stream);
-			var value = reader.ReadBoolean();
+
+			var type = reader.ReadByte();
+			if (type == 0)
+				return SqlBoolean.Null;
+
+			var value = reader.ReadByte();
 			return new SqlBoolean(value);
+		}
+
+		public override int SizeOf(ISqlObject obj) {
+			return obj.IsNull ? 1 : 1 + 1;
+		}
+
+		public override ISqlObject Reverse(ISqlObject value) {
+			return Negate(value);
 		}
 	}
 }

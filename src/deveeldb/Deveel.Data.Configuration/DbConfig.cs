@@ -137,10 +137,11 @@ namespace Deveel.Data.Configuration {
 			if (values.TryGetValue(key.Name, out value))
 				return value;
 
-			if (!isRoot && Parent != null && ((value = Parent.GetValue(key)) != null))
+			if (!isRoot && Parent != null && 
+				((value = Parent.GetValue(key)) != null))
 				return value;
 
-			return null;
+			return new ConfigValue(key, key.DefaultValue);
 		}
 	}
 }

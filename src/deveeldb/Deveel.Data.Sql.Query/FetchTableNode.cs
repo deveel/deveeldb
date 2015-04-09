@@ -52,7 +52,8 @@ namespace Deveel.Data.Sql.Query {
 
 		/// <inheritdoc/>
 		public override ITable Evaluate(IQueryContext context) {
-			throw new NotImplementedException();
+			var t = context.GetTable(tableName);
+			return aliasName != null ? new ReferenceTable(t, aliasName) : t;
 		}
 
 		/// <inheritdoc/>

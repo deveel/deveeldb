@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
@@ -29,7 +28,7 @@ namespace Deveel.Data.Transactions {
 	/// This contract allows implementors to define simple transactions
 	/// that can be eventually forbit any data write operation.
 	/// </remarks>
-	public interface ITransaction {
+	public interface ITransaction : IVariableScope, ILockable, IDisposable {
 		long CommitId { get; }
 
 		/// <summary>
@@ -38,21 +37,16 @@ namespace Deveel.Data.Transactions {
 		TransactionIsolation Isolation { get; }
 
 		/// <summary>
-		/// Gets a value indicating if the transaction supports write operations.
-		/// </summary>
-		bool IsReadOnly { get; }
-
-		/// <summary>
 		/// Gets an instance of the <see cref="ITransactionContext">factory</see> that generated
 		/// this transaction object
 		/// </summary>
 		ITransactionContext Context { get; }
 
+		OldNewTableState OldNewTableState { get; }
+
 		IObjectManagerResolver ObjectManagerResolver { get; }
 
 		TransactionRegistry Registry { get; }
-
-		ObjectName TryResolveCase(ObjectName objName);
 
 		/// <summary>
 		/// Sets the current value of a table native sequence.
@@ -78,27 +72,6 @@ namespace Deveel.Data.Transactions {
 		/// Returns the next value of the sequence for the given table.
 		/// </returns>
 		SqlNumber NextTableId(ObjectName tableName);
-
-		///// <summary>
-		///// Finds an object for the given unique name from the underlying storage.
-		///// </summary>
-		///// <param name="objName">The unique name of the object to return.</param>
-		///// <returns></returns>
-		//IDbObject GetObject(ObjectName objName);
-
-		//// Tables
-
-		//void CreateTable(TableInfo tableInfo, int dataSectorSize, int indexSectorSize);
-
-		//void CreateTemporaryTable(TableInfo tableInfo);
-
-		//void AlterTable(ObjectName tableName, TableInfo tableInfo, int dataSectorSize, int indexSectorSize);
-
-		//void DropTable(ObjectName tableName);
-
-		//void AddSelectedFromTable(ObjectName tableName);
-
-		//void CompactTable(ObjectName tableName);
 
 		/// <summary>
 		/// Commits all wirte operation done during the lifetime of 

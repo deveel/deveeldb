@@ -88,7 +88,7 @@ namespace Deveel.Data.Types {
 			return base.CanCastTo(type);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj) {
+		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var date = (SqlDateTime) obj;
 
 			var writer = new BinaryWriter(stream);

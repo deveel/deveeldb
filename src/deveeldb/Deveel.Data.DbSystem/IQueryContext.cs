@@ -32,22 +32,9 @@ namespace Deveel.Data.DbSystem {
 	public interface IQueryContext : IDisposable {
 		IUserSession Session { get; }
 
-		/// <summary>
-		/// Gets the system context parent of this context.
-		/// </summary>
-		ISystemContext SystemContext { get; }
+		IDatabaseContext DatabaseContext { get; }
 
 		ICache TableCache { get; }
-
-
-		/// <summary>
-		/// Gets a value that indicates if the current context is in
-		/// an exception state or not.
-		/// </summary>
-		/// <seealso cref="SetExceptionState"/>
-		bool IsExceptionState { get; }
-
-		IRoutineResolver RoutineResolver { get; }
 
 		/// <summary>
 		/// Computes a new random number, that is ensured to be unique 
@@ -60,44 +47,5 @@ namespace Deveel.Data.DbSystem {
 		/// computed within this execution context.
 		/// </returns>
 		SqlNumber NextRandom(int bitSize);
-
-		/// <summary>
-		/// Marks the execution context as in an exception state.
-		/// </summary>
-		/// <param name="exception">The exception that causes the change of
-		/// state of the context.</param>
-		/// <seealso cref="IsExceptionState"/>
-		/// <seealso cref="GetException"/>
-		void SetExceptionState(Exception exception);
-
-		/// <summary>
-		/// If this context is in an exception state, this method
-		/// gets the exception that caused the change of state.
-		/// </summary>
-		/// <returns>
-		/// Returns an <see cref="Exception"/> that is the origin
-		/// of the context change state, or <b>null</b> if the context
-		/// is not in an exception state.
-		/// </returns>
-		/// <seealso cref="IsExceptionState"/>
-		/// <seealso cref="SetExceptionState"/>
-		Exception GetException();
-
-		/// <summary>
-		/// Gets a database object that has the name given.
-		/// </summary>
-		/// <param name="objName">The fully qualified name of the object to
-		/// find in the given context.</param>
-		/// <returns>
-		/// Returns an instance of a <see cref="IDbObject"/> identified
-		/// by the given fully qualified name, or <c>null</c> if none object
-		/// was found having that name.
-		/// </returns>
-		/// <exception cref="ArgumentNullException">
-		/// If the <paramref name="objName">name paramete</paramref> passed
-		/// is <c>null</c>.
-		/// </exception>
-		/// <seealso cref="IDbObject"/>
-		IDbObject GetObject(ObjectName objName);
 	}
 }

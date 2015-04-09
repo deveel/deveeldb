@@ -1,290 +1,90 @@
-// 
-//  Copyright 2010-2014 Deveel
-// 
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-// 
-//        http://www.apache.org/licenses/LICENSE-2.0
-// 
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+﻿using System;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
-using Deveel.Data.Control;
-using Deveel.Data.Security;
-using Deveel.Data.Sql;
-using Deveel.Data.Threading;
-using Deveel.Diagnostics;
+using Deveel.Data.Routines;
+using Deveel.Data.Sql.Query;
+using Deveel.Data.Store;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	/// <summary>
-	/// Provides information about shared resources available for the entire 
-	/// database system running in the current environment.
-	/// </summary>
-	/// <remarks>
-	/// Shared information includes configuration details, <see cref="DataCellCache"/>, 
-	/// plug-ins, user management, etc.
-	/// </remarks>
-	public sealed class DatabaseContext : SystemContext, IDatabaseContext {
-		/// <summary>
-		/// The list of Database objects that this system is being managed by this environment.
-		/// </summary>
-		private List<Database> databaseList;
-
-		/// <summary>
-		/// The thread to run to shut down the database system.
-		/// </summary>
-		private ShutdownThread shutdownThread;
-
-		/// <summary>
-		/// The WorkerPool object that manages access to the database(s) in the system.
-		/// </summary>
-		private WorkerPool workerPool;
-
-		public event EventHandler OnShutdown;
-
-		/// <summary>
-		/// Returns the StatementCache that is used to cache StatementTree objects
-		/// that are being queried by the database. 
-		/// </summary>
-		/// <remarks>
-		/// This is used to reduce the SQL command parsing overhead.
-		/// <para>
-		/// If this method returns 'null' then statement caching is disabled.
-		/// </para>
-		/// </remarks>
-		public StatementCache StatementCache { get; private set; }
-
-		/// <summary>
-		/// Returns the <see cref="LoggedUsers"/> object that handles 
-		/// users that are connected to the database.
-		/// </summary>
-		/// <remarks>
-		/// The aim of this class is to unify the way users are handled 
-		/// by the engine.  It allows us to perform queries to see who's
-		/// connected, and any inter-user communication (triggers).
-		/// </remarks>
-		public LoggedUsers LoggedUsers { get; private set; }
-
-		/// <summary>
-		/// Returns true if <see cref="Shutdown"/> method has been 
-		/// called.
-		/// </summary>
-		public bool HasShutdown { get; private set; }
-
-		/// <inheritdoc/>
-		public override void Init(IDbConfig config) {
-			base.Init(config);
-
-			databaseList = new List<Database>();
-
-			// Create the user manager.
-			LoggedUsers = new LoggedUsers();
-
-			if (config != null) {
-				try {
-					// Set up the statement cache.
-					if (config.CacheStatements()) {
-						// TODO: make the statement cache configurable ...
-
-						StatementCache = new StatementCache(this, 127, 140, 20);
-						Logger.Trace(this, "statement cache ENABLED");
-					} else {
-						Logger.Trace(this, "statement cache DISABLED");
-					}
-
-					// The maximum number of worker threads.
-					int maxWorkerThreads = config.MaxWorkerThreads();
-					if (maxWorkerThreads <= 0)
-						maxWorkerThreads = 1;
-
-					Logger.Trace(this, "Max worker threads set to: " + maxWorkerThreads);
-					workerPool = new WorkerPool(this, maxWorkerThreads);
-				} catch (DatabaseConfigurationException) {
-					throw;
-				} catch (Exception ex) {
-					throw new DatabaseConfigurationException("Error while configuring the databae context", ex);
-				}
-			} else {
-				throw new DatabaseConfigurationException("Config bundle already set.");
-			}
-
-			HasShutdown = false;
+	public sealed class DatabaseContext : IDatabaseContext {
+		public DatabaseContext(ISystemContext systemContext) 
+			: this(systemContext, DbConfig.Default) {
 		}
 
-		/// <inheritdoc/>
-		protected override void Dispose(bool disposing) {
+		public DatabaseContext(ISystemContext systemContext, IDbConfig configuration) {
+			if (systemContext == null)
+				throw new ArgumentNullException("systemContext");
+			if (configuration == null)
+				throw new ArgumentNullException("configuration");
+
+			SystemContext = systemContext;
+			Configuration = configuration;
+			Locker = new Locker(this);
+
+			Init();
+		}
+
+		~DatabaseContext() {
+			Dispose(false);
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
 			if (disposing) {
-				workerPool = null;
-				databaseList = null;
-				LoggedUsers = null;
+				if (StoreSystem != null)
+					StoreSystem.Dispose();
+
+				Locker.Reset();
 			}
 
-			base.Dispose(disposing);
+			Locker = null;
+			StoreSystem = null;
 		}
 
-		/// <summary>
-		/// Waits until all executing commands have stopped.
-		/// </summary>
-		/// <remarks>
-		/// This is best called right after a call to 'setIsExecutingCommands(false)'. 
-		/// If these two commands are run, the database is in a known state where 
-		/// no commands can be executed.
-		/// <para>
-		/// <b>Note</b>: This can't be called from the WorkerThread. Deadlock 
-		/// will result if we were allowed to do this.
-		/// </para>
-		/// </remarks>
-		private void WaitUntilAllWorkersQuiet() {
-			workerPool.WaitUntilAllWorkersQuiet();
+		public IDbConfig Configuration { get; private set; }
+
+		public ISystemContext SystemContext { get; private set; }
+
+		public IStoreSystem StoreSystem { get; private set; }
+
+		public IQueryPlanner QueryPlanner { get; private set; }
+
+		public IRoutineResolver RoutineResolver { get; private set; }
+
+		public TableCellCache CellCache { get; private set; }
+
+		public Locker Locker { get; private set; }
+
+		private void Init() {
+			InitStorageSystem();
 		}
 
-		/// <summary>
-		/// Controls whether the database system is allowed to execute commands or 
-		/// not.
-		/// </summary>
-		/// <remarks>
-		/// If this is set to true, then calls to <see cref="Execute"/> will 
-		/// be executed as soon as there is a free worker thread available.
-		/// Otherwise no commands are executed until this is enabled.
-		/// </remarks>
-		public bool IsExecutingCommands {
-			get { return workerPool.IsExecutingCommands; }
-			set { workerPool.IsExecutingCommands = value; }
-		}
+		private void InitStorageSystem() {
+			var storeSystemType = this.StorageSystemType();
+			if (storeSystemType == null)
+				throw new DatabaseConfigurationException("Storage system type is required.");
 
-		/// <summary>
-		/// Executes the given delegate on the first available worker thread.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="database"></param>
-		/// <param name="runner"></param>
-		/// <remarks>
-		/// All database functions must go through a worker thread. If we 
-		/// ensure this, we can easily stop all database functions from 
-		/// executing if need be.  Also, we only need to have a certain number 
-		/// of threads active at any one time rather than a unique thread for 
-		/// each connection.
-		/// </remarks>
-		internal void Execute(User user, DatabaseConnection database, EventHandler runner) {
-			workerPool.Execute(user, database, runner);
-		}
+			try {
+				if (storeSystemType == typeof (InMemoryStorageSystem)) {
+					StoreSystem = new InMemoryStorageSystem();
+				} else {
+					StoreSystem = CreateExternalStoreSystem(storeSystemType);
+				}
 
-		// ---------- Shut down methods ----------
-
-		public void Shutdown(bool block) {
-			if (!HasShutdown) {
-				HasShutdown = true;
-				shutdownThread = new ShutdownThread(this);
-
-				if (block)
-					shutdownThread.WaitTillFinished();
+				// TODO: File and single-file
+			} catch (Exception ex) {
+				throw new DatabaseConfigurationException("Could not initialize the storage system", ex);
 			}			
 		}
 
-		void IDatabaseContext.RegisterDatabase(IDatabase database) {
-			RegisterDatabase((Database)database);
+		private IStoreSystem CreateExternalStoreSystem(Type type) {
+			throw new NotImplementedException();
 		}
-
-		internal void RegisterDatabase(Database database) {
-			lock (this) {
-				if (databaseList == null)
-					databaseList = new List<Database>();
-
-				if (databaseList.Contains(database))
-					throw new DatabaseException("The database '" + database.Name + "' is already registered.");
-
-				databaseList.Add(database);
-			}
-		}
-
-		IDatabase IDatabaseContext.GetDatabase(string name) {
-			lock (this) {
-				if (databaseList == null)
-					return null;
-
-				return databaseList.FirstOrDefault(database => database.Name == name);
-			}
-		}
-
-		#region ShutdownThread
-
-		/// <summary>
-		/// The shut down thread.  Started when 'shutDown' is called.
-		/// </summary>
-		private class ShutdownThread {
-			private readonly Thread thread;
-			private readonly DatabaseContext ds;
-			private bool finished;
-
-			internal ShutdownThread(DatabaseContext ds) {
-				this.ds = ds;
-				thread = new Thread(Run);
-				thread.Name = "Shutdown Thread";
-				thread.Start();
-			}
-
-			internal void WaitTillFinished() {
-				lock (this) {
-					while (finished == false) {
-						try {
-							Monitor.Wait(this);
-						} catch (ThreadInterruptedException) {
-						}
-					}
-				}
-			}
-
-			private void Run() {
-				lock (this) {
-					if (finished) {
-						return;
-					}
-				}
-
-				// We need this pause so that the command that executed this shutdown
-				// has time to exit and retrieve the single row result.
-				try {
-					Thread.Sleep(1500);
-				} catch (ThreadInterruptedException) {
-				}
-
-				// Stops commands from being executed by the system...
-				ds.IsExecutingCommands = false;
-				// Wait until the worker threads are all quiet...
-				ds.WaitUntilAllWorkersQuiet();
-
-				// Close the worker pool
-				ds.workerPool.Shutdown();
-
-				EventHandler callback = ds.OnShutdown;
-				if (callback == null) {
-					ds.Logger.Warning(this, "No shut down callbacks registered!");
-				} else {
-					callback(this, EventArgs.Empty);
-					ds.OnShutdown = null;
-				}
-
-				lock (this) {
-					// Wipe all variables from this object
-					ds.Dispose();
-
-					finished = true;
-					Monitor.PulseAll(this);
-				}
-			}
-		}
-
-		#endregion
 	}
 }

@@ -307,9 +307,11 @@ namespace Deveel.Data.Index {
 							int cmp1 = comparer.CompareValue(arr[i], (DataObject) key);
 							if (cmp1 == 0)
 								return i;
+
 							if (cmp1 > 0)
 								return -(i + 1);
 						}
+
 						return -(high + 2);
 					}
 

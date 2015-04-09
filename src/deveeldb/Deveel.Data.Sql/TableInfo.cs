@@ -18,7 +18,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Transactions;
@@ -63,7 +65,6 @@ namespace Deveel.Data.Sql {
 			IsReadOnly = isReadOnly;
 
 			columnsCache = new Dictionary<ObjectName, int>();
-			IgnoreCase = true;			
 		}
 
 		DbObjectType IObjectInfo.ObjectType {
@@ -117,14 +118,14 @@ namespace Deveel.Data.Sql {
 			get { return SchemaName != null && SchemaName.Parent != null ? SchemaName.Parent.Name : null; }
 		}
 
-		/// <summary>
-		/// Gets or sets a boolean value that indicates if the column names
-		/// will be resolved in case-insensitive mode.
-		/// </summary>
-		/// <remarks>
-		/// By default the value of this flag is set to <c>true</c>.
-		/// </remarks>
-		public bool IgnoreCase { get; set; }
+		///// <summary>
+		///// Gets or sets a boolean value that indicates if the column names
+		///// will be resolved in case-insensitive mode.
+		///// </summary>
+		///// <remarks>
+		///// By default the value of this flag is set to <c>true</c>.
+		///// </remarks>
+		//public bool IgnoreCase { get; set; }
 
 		/// <summary>
 		/// Gets a boolean value that indicates if the structure of this
@@ -312,6 +313,30 @@ namespace Deveel.Data.Sql {
 				return new int[0];
 
 			return columnNames.Select(IndexOfColumn).ToList().AsReadOnly();
+		}
+
+		public void SerializeTo(Stream stream) {
+			var writer = new BinaryWriter(stream, Encoding.Unicode);
+			writer.Write(3);	// Version
+
+			var catName = CatalogName;
+			if (catName == null)
+				catName = String.Empty;
+
+			writer.Write(catName);
+			writer.Write(SchemaName.Name);
+			writer.Write(Name);
+
+			var colCount = columns.Count;
+			writer.Write(colCount);
+			for (int i = 0; i < colCount; i++) {
+				var column = columns[i];
+				column.SerializeTo(stream);
+			}
+		}
+
+		public static TableInfo DeserializeFrom(Stream stream) {
+			throw new NotImplementedException();
 		}
 	}
 }

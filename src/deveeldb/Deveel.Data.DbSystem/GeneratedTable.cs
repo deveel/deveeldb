@@ -23,15 +23,15 @@ using Deveel.Data.Sql;
 
 namespace Deveel.Data.DbSystem {
 	abstract class GeneratedTable : ITable {
-		protected GeneratedTable(ISystemContext systemContext) {
-			SystemContext = systemContext;
+		protected GeneratedTable(IDatabaseContext dbContext) {
+			DatabaseContext = dbContext;
 		}
 
 		~GeneratedTable() {
 			Dispose(false);
 		}
 
-		protected ISystemContext SystemContext { get; private set; }
+		public IDatabaseContext DatabaseContext { get; private set; }
 
 		ObjectName IDbObject.FullName {
 			get { return TableInfo.TableName; }

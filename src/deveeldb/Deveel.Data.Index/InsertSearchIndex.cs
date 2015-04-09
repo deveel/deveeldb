@@ -22,60 +22,50 @@ using Deveel.Data.Sql;
 namespace Deveel.Data.Index {
 	public sealed class InsertSearchIndex : CollatedSearchIndex {
 		private IIndex<int> list;
-
-		private bool recordUid;
 		private IIndexComparer<int> comparer;
 
+		private bool recordUid;
+
+		private readonly bool readOnly;
 		private readonly int readOnlyCount;
 
 		public InsertSearchIndex(ITable table, int columnOffset) 
 			: base(table, columnOffset) {
+			comparer = new IndexComparerImpl(this);
 			list = new BlockIndex<int>();
-
-			// The internal comparator that enables us to sort and lookup on the data
-			// in this column.
-			SetupComparer();
 		}
 
 		public InsertSearchIndex(ITable table, int columnOffset, IEnumerable<int> list)
 			: this(table, columnOffset) {
 			if (list != null) {
-				foreach (var i in list) {
-					this.list.Add(i);
+				foreach (var item in list) {
+					this.list.Add(item);
 				}
 			}
 		}
 
-		public InsertSearchIndex(ITable table, int columnOffset, IIndex<int> list)
-			: this(table, columnOffset) {
-			this.list = list;
-		}
-
 		private InsertSearchIndex(ITable table, InsertSearchIndex source, bool readOnly)
-			: base(table, source.ColumnOffset) {
-			IsReadOnly = readOnly;
+			: this(table, source.ColumnOffset, source.list) {
+			this.readOnly = readOnly;
 
-			if (readOnly) {
-				list = source.list;
+			if (readOnly)
 				readOnlyCount = list.Count;
-			} else {
-				list = new BlockIndex<int>(source.list);
-			}
 
 			// Do we generate lookup caches?
 			recordUid = source.recordUid;
 
-			// The internal comparator that enables us to sort and lookup on the data
-			// in this column.
-			SetupComparer();
+		}
+
+		public override bool IsReadOnly {
+			get { return readOnly; }
 		}
 
 		protected override int Count {
 			get { return list.Count; }
 		}
 
-		public override string Name {
-			get { return DefaultIndexNames.InsertSearch; }
+		public override string IndexType {
+			get { return DefaultIndexTypes.InsertSearch; }
 		}
 
 		protected override DataObject First {
@@ -83,37 +73,46 @@ namespace Deveel.Data.Index {
 		}
 
 		protected override DataObject Last {
-			get { return GetValue(list[Count - 1]); }
+			get { return GetValue(list[list.Count - 1]); }
 		}
 
 		internal bool RecordUid { get; set; }
 
-		private void SetupComparer() {
-			comparer = new IndexComparerImpl(this);
-		}
-
 		public override void Insert(int rowNumber) {
 			if (IsReadOnly)
-				throw new ApplicationException("Tried to change an readOnly scheme.");
+				throw new ApplicationException("Tried to change an read-only index.");
 
-			var cell = GetValue(rowNumber);
-			list.InsertSort(cell, rowNumber, comparer);
+			var value = GetValue(rowNumber);
+			list.InsertSort(value, rowNumber, comparer);
 		}
 
 		public override void Remove(int rowNumber) {
 			if (IsReadOnly)
-				throw new ApplicationException("Tried to change an readOnly scheme.");
+				throw new ApplicationException("Tried to change an read-only index.");
 
-			var cell = GetValue(rowNumber);
-			int removed = list.RemoveSort(cell, rowNumber, comparer);
+			var value = GetValue(rowNumber);
+			var removed = list.RemoveSort(value, rowNumber, comparer);
 
 			if (removed != rowNumber)
-				throw new InvalidOperationException(String.Format("The row removes ({0}) is different than the one requested to be removed ({1})", removed, rowNumber));
+				throw new InvalidOperationException(String.Format("Could not remove the requested row ({0})", rowNumber));
+		}
+
+		protected override IEnumerable<int> AddRange(int start, int end, IEnumerable<int> input) {
+			var result = new List<int>();
+			if (input != null)
+				result.AddRange(input);
+
+			var en = list.GetEnumerator(start, end);
+			while (en.MoveNext()) {
+				result.Add(en.Current);
+			}
+
+			return result.AsReadOnly();
 		}
 
 		public override ColumnIndex Copy(ITable table, bool readOnly) {
 			// ASSERTION: If readOnly, check the size of the current set is equal to
-			//   when the scheme was created.
+			//   when the index was created.
 			if (IsReadOnly && readOnlyCount != list.Count)
 				throw new ApplicationException("Assert failed: read-only size is different from when created.");
 
@@ -131,24 +130,23 @@ namespace Deveel.Data.Index {
 		}
 
 		protected override void Dispose(bool disposing) {
-			if (disposing) {
-				list = null;
-				comparer = null;
-			}
+			list = null;
+			comparer = null;
 		}
 
 		#region IndexComparerImpl
 
 		private class IndexComparerImpl : IIndexComparer<int> {
-			private readonly InsertSearchIndex scheme;
+			private readonly InsertSearchIndex columnIndex;
 
-			public IndexComparerImpl(InsertSearchIndex scheme) {
-				this.scheme = scheme;
+			public IndexComparerImpl(InsertSearchIndex columnIndex) {
+				this.columnIndex = columnIndex;
 			}
 
 			private int InternalCompare(int index, DataObject value) {
-				var cell = scheme.GetValue(index);
-				return cell.CompareTo(value);
+				var cell = columnIndex.GetValue(index);
+				var cmp =  cell.CompareTo(value);
+				return cmp;
 			}
 
 			public int CompareValue(int index, DataObject val) {
@@ -156,7 +154,7 @@ namespace Deveel.Data.Index {
 			}
 
 			public int Compare(int index1, int index2) {
-				var cell = scheme.GetValue(index2);
+				var cell = columnIndex.GetValue(index2);
 				return InternalCompare(index1, cell);
 			}
 		}

@@ -203,15 +203,14 @@ namespace Deveel.Data.Store {
 		#region InMemoryArea
 
 		class InMemoryArea : IArea {
-			private byte[] data;
+			private readonly byte[] data;
 			private int position;
-			private int length;
-			private int startPosition;
-			private int endPosition;
+			private readonly int startPosition;
+			private readonly int endPosition;
 
 			public InMemoryArea(long id, bool readOnly, byte[] data, int offset, int length) {
 				this.data = data;
-				this.length = length;
+				Length = length;
 
 				position = startPosition = offset;
 				endPosition = offset + length;
@@ -239,9 +238,7 @@ namespace Deveel.Data.Store {
 				get { return endPosition - startPosition; }
 			}
 
-			public int Length {
-				get { return length; }
-			}
+			public int Length { get; private set; }
 
 			private int CheckPositionBounds(int diff) {
 				int newPos = position + diff;
@@ -250,7 +247,7 @@ namespace Deveel.Data.Store {
 										  " start=" + startPosition +
 										  " end=" + endPosition +
 										  " pos=" + position +
-										  " new_pos=" + newPos);
+										  " newPos=" + newPos);
 				}
 
 				int oldPos = position;

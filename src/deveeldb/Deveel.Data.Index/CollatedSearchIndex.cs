@@ -126,23 +126,26 @@ namespace Deveel.Data.Index {
 					}
 
 					p = SearchFirst(cell);
+
 					// (If value not found)
-					if (p < 0) {
+					if (p < 0)
 						return -(p + 1);
-					}
+
 					return p;
 
 				case RangeFieldOffset.LastValue:
-					if (val.Equals(IndexRange.LastInSet)) {
+					if (val.Equals(IndexRange.LastInSet))
 						return Count - 1;
-					}
+
 					if (val.Equals(IndexRange.FirstInSet)) {
 						// Get the first value.
 						cell = First;
 					} else {
 						cell = val;
 					}
+
 					p = SearchLast(cell);
+
 					// (If value not found)
 					if (p < 0) {
 						return -(p + 1) - 1;

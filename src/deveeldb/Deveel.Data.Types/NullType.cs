@@ -34,7 +34,7 @@ namespace Deveel.Data.Types {
 			: base("NULL", sqlType) {
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj) {
+		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var writer = new BinaryWriter(stream);
 
 			if (obj is SqlNull) {

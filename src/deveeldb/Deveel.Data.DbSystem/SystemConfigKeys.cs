@@ -20,20 +20,18 @@ using Deveel.Data.Configuration;
 
 namespace Deveel.Data.DbSystem {
 	public static class SystemConfigKeys {
-		public const string DatabaseNameKeyName = "system.databaseName";
 		public const string IgnoreCaseKeyName = "system.ignoreCase";
 		public const string MaxWorkerThreadsKeyName = "system.maxWorkerThreads";
 		public const string ReadOnlyKeyName = "system.readOnly";
 		public const string DefaultSchemKeyName = "system.defaultSchema";
 
-		public static readonly ConfigKey DatabaseName = new ConfigKey(DatabaseNameKeyName, typeof(string));
 		public static readonly ConfigKey IgnoreCase = new ConfigKey(IgnoreCaseKeyName, false, typeof (bool));
 		public static readonly ConfigKey MaxWorkerThreads = new ConfigKey(MaxWorkerThreadsKeyName, 5, typeof(int));
 		public static readonly ConfigKey ReadOnly = new ConfigKey(ReadOnlyKeyName, false, typeof(bool));
 		public static readonly ConfigKey DefaultSchema = new ConfigKey(DefaultSchemKeyName, "APP", typeof(string));
 
 		internal static void SetTo(IDbConfig config) {
-			config.SetKey(DatabaseName);
+			//config.SetKey(DatabaseName);
 			config.SetKey(IgnoreCase);
 			config.SetKey(MaxWorkerThreads);
 			config.SetKey(ReadOnly);

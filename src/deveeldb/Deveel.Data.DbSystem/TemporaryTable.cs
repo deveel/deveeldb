@@ -28,11 +28,11 @@ namespace Deveel.Data.DbSystem {
 		private List<DataObject[]> rows;
 
 		public TemporaryTable(TableInfo tableInfo)
-			: this((IDatabase)null, tableInfo) {
+			: this((IDatabaseContext)null, tableInfo) {
 		}
 
-		public TemporaryTable(IDatabase database, TableInfo tableInfo)
-			: base(database) {
+		public TemporaryTable(IDatabaseContext context, TableInfo tableInfo)
+			: base(context) {
 			this.tableInfo = tableInfo.AsReadOnly();
 			rows = new List<DataObject[]>();
 		}
@@ -41,8 +41,12 @@ namespace Deveel.Data.DbSystem {
 			: this(null, name, sourceTableInfo) {
 		}
 
-		public TemporaryTable(IDatabase database, string name, TableInfo sourceTableInfo)
-			: this(database, sourceTableInfo.Alias(new ObjectName(name))) {
+		public TemporaryTable(IDatabaseContext context, string name, TableInfo sourceTableInfo)
+			: this(context, sourceTableInfo.Alias(new ObjectName(name))) {
+		}
+
+		public TemporaryTable(IDatabaseContext context, string name, IEnumerable<ColumnInfo> columns)
+			: this(context, name, MakeTableInfo(name, columns)) {
 		}
 
 		public override TableInfo TableInfo {
@@ -53,8 +57,18 @@ namespace Deveel.Data.DbSystem {
 			get { return rowCount; }
 		}
 
-		public override bool HasRootsLocked {
-			get { return true; }
+		public override void LockRoot(int lockKey) {
+		}
+
+		public override void UnlockRoot(int lockKey) {
+		}
+
+		private static TableInfo MakeTableInfo(string tableName, IEnumerable<ColumnInfo> columns) {
+			var tableInfo = new TableInfo(ObjectName.Parse(tableName));
+			foreach (var columnInfo in columns) {
+				tableInfo.AddColumn(columnInfo);
+			}
+			return tableInfo;
 		}
 
 		public int NewRow() {
@@ -102,7 +116,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public void BuildIndexes() {
-			BuildIndexes(DefaultIndexNames.InsertSearch);
+			BuildIndexes(DefaultIndexTypes.InsertSearch);
 		}
 
 		public void BuildIndexes(string indexName) {
@@ -114,16 +128,11 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public void CopyFrom(ITable table, int row) {
-			if (!(table is IDbTable))
-				throw new ArgumentException();
-
-			var dbTable = (IDbTable) table;
-
 			NewRow();
 
-			var columnNames = new ObjectName[dbTable.ColumnCount];
+			var columnNames = new ObjectName[table.ColumnCount()];
 			for (int i = 0; i < columnNames.Length; ++i) {
-				columnNames[i] = dbTable.GetResolvedColumnName(i);
+				columnNames[i] = table.GetResolvedColumnName(i);
 			}
 
 			for (int i = 0; i < ColumnCount; ++i) {
@@ -151,13 +160,7 @@ namespace Deveel.Data.DbSystem {
 			return new SimpleRowEnumerator(this);
 		}
 
-		public override void LockRoot(int lockKey) {
-		}
-
-		public override void UnlockRoot(int lockKey) {
-		}
-
-		public static TemporaryTable SingleColumnTable(IDatabase database, string columnName, DataType columnType) {
+		public static TemporaryTable SingleColumnTable(IDatabaseContext database, string columnName, DataType columnType) {
 			var tableInfo = new TableInfo(new ObjectName("single"));
 			tableInfo.AddColumn(columnName, columnType);
 			tableInfo = tableInfo.AsReadOnly();

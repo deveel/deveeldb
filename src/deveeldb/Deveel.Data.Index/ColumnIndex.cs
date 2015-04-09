@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Index {
@@ -47,9 +46,11 @@ namespace Deveel.Data.Index {
 
 		public int ColumnOffset { get; private set; }
 
-		public bool IsReadOnly { get; set; }
+		public virtual bool IsReadOnly {
+			get { return false; }
+		}
 
-		public abstract string Name { get; }
+		public abstract string IndexType { get; }
 
 		protected DataObject GetValue(long row) {
 			return Table.GetValue(row, ColumnOffset);
@@ -244,11 +245,6 @@ namespace Deveel.Data.Index {
 			if (subsetTable == null)
 				throw new ArgumentNullException("subsetTable");
 
-			if (!(subsetTable is IDbTable))
-				throw new NotSupportedException("The type of table is not supported for this feature.");
-
-			var dbTable = (IDbTable) subsetTable;
-
 			// Resolve table rows in this table scheme domain.
 			List<int> rowSet = new List<int>(subsetTable.RowCount);
 			var e = subsetTable.GetEnumerator();
@@ -256,7 +252,7 @@ namespace Deveel.Data.Index {
 				rowSet.Add(e.Current.RowId.RowNumber);
 			}
 
-			var rows = dbTable.ResolveRows(subsetColumn, rowSet, Table);
+			var rows = subsetTable.ResolveRows(subsetColumn, rowSet, Table);
 
 			// Generates an IIndex which contains indices into 'rowSet' in
 			// sorted order.
