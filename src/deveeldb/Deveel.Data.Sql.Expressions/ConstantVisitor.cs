@@ -20,6 +20,10 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {
 	class ConstantVisitor : SqlExpressionVisitor {
+		public ConstantVisitor() {
+			IsConstant = true;
+		}
+
 		public bool IsConstant { get; private set; }
 
 		public override SqlExpression VisitConstant(SqlConstantExpression constant) {

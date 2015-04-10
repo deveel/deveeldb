@@ -127,13 +127,14 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseConfigKeys.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseExtensions.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseSystemExtensions.cs" />
+    <Compile Include="Deveel.Data.DbSystem\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\IVariableScope.cs" />
     <Compile Include="Deveel.Data.DbSystem\OldNewTableState.cs" />
     <Compile Include="Deveel.Data.DbSystem\RecordState.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.DbSystem\SchemaManager.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableSourceGC.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndex_T.cs">
@@ -287,7 +288,6 @@
     <Compile Include="Deveel.Data.Security\PasswordCrypto.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Deveel.Data.Security\SecurityQueryContext.cs" />
     <Compile Include="Deveel.Data.Security\User.cs" />
     <Compile Include="Deveel.Data.Security\UserGrant.cs" />
     <Compile Include="Deveel.Data.Security\UserGroup.cs" />
@@ -596,11 +596,9 @@
     <Compile Include="Deveel.Data.Transactions\Lock.cs" />
     <Compile Include="Deveel.Data.Transactions\TableRowEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TableRowEventType.cs" />
-    <Compile Include="Deveel.Data.Transactions\TableSelectedEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionConstraintExtensions.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionErrorCodes.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionSettingKeys.cs" />
-    <Compile Include="Deveel.Data.Transactions\TransactionState.cs" />
     <Compile Include="Deveel.Data.Transactions\ITableEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransaction.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionContext.cs" />
@@ -617,6 +615,7 @@
     <Compile Include="Deveel.Data.Transactions\TransactionException.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionExtensions.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionIsolation.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionWork.cs" />
     <Compile Include="Deveel.Data.Types\ArrayType.cs" />
     <Compile Include="Deveel.Data.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Types\BooleanType.cs" />

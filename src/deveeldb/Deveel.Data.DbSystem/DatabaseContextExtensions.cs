@@ -4,7 +4,7 @@ using Deveel.Data.Configuration;
 using Deveel.Data.Store;
 
 namespace Deveel.Data.DbSystem {
-	public static class DatabaseSystemExtensions {
+	public static class DatabaseContextExtensions {
 		public static Type StorageSystemType(this IDatabaseContext context) {
 			var value = context.Configuration.GetString(DatabaseConfigKeys.StorageSystem);
 			if (String.IsNullOrEmpty(value))
@@ -32,6 +32,10 @@ namespace Deveel.Data.DbSystem {
 
 		public static string DatabaseName(this IDatabaseContext context) {
 			return context.Configuration.GetString(DatabaseConfigKeys.DatabaseName);
+		}
+
+		public static string DefaultSchema(this IDatabaseContext context) {
+			return context.Configuration.GetString(DatabaseConfigKeys.DefaultSchema);
 		}
 	}
 }

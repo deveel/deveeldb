@@ -38,7 +38,6 @@ namespace Deveel.Data.DbSystem {
 					// Remove the top registry from the list.
 					eventRegistries.RemoveAt(0);
 				} else {
-					// If (commit_id <= journal.CommitId)
 					return false;
 				}
 			}

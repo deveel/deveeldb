@@ -56,19 +56,19 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public IEnumerable<int> TablesChanged {
-			get {
-				lock (this) {
-					return events.OfType<ITableEvent>()
-						.Select(x => new {
-							id = x.TableId,
-							table = Transaction.GetTableManager().AccessedTables.First(y => y.TableInfo.Id == x.TableId)
-						})
-						.Where(x => x.table.EventRegistry.EventCount > 0)
-						.Select(x => x.id);
-				}
-			}
-		} 
+		//public IEnumerable<int> TablesChanged {
+		//	get {
+		//		lock (this) {
+		//			return events.OfType<ITableEvent>()
+		//				.Select(x => new {
+		//					id = x.TableId,
+		//					table = Transaction.GetTableManager().AccessedTables.First(y => y.TableInfo.Id == x.TableId)
+		//				})
+		//				.Where(x => x.table.EventRegistry.EventCount > 0)
+		//				.Select(x => x.id);
+		//		}
+		//	}
+		//} 
 
 		public IEnumerable<int> TablesDropped {
 			get {
@@ -82,27 +82,6 @@ namespace Deveel.Data.Transactions {
 			get {
 				lock (this) {
 					return events.OfType<TableConstraintAlteredEvent>().Select(x => x.TableId);
-				}
-			}
-		}
-
-		public IEnumerable<int> SelectedTables {
-			get {
-				lock (this) {
-					return events.OfType<TableSelectedEvent>().Select(x => x.TableId);
-				}
-			}
-		}
-
-		public IEnumerable<TableEventRegistry> TableChangeRegistries {
-			get {
-				lock (this) {
-					return events.OfType<ITableEvent>()
-						.Select(x => x.TableId)
-						.Distinct()
-						.Select(x => new { table = Transaction.GetTableManager().AccessedTables.FirstOrDefault(y => y.TableInfo.Id == x)})
-						.Where(x => x.table != null)
-						.Select(x => x.table.EventRegistry);
 				}
 			}
 		}

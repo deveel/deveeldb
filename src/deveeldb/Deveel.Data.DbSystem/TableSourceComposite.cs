@@ -497,7 +497,12 @@ namespace Deveel.Data.DbSystem {
 			
 		}
 
-		public void Commit(TransactionState state) {
+		internal void Commit(Transaction transaction, IList<TableSource> visibleTables,
+						   IEnumerable<TableSource> selectedFromTables,
+						   IEnumerable<IMutableTable> touchedTables, TransactionRegistry journal) {
+
+			var state = new TransactionWork(this, transaction, selectedFromTables, touchedTables, journal);
+
 			// Exit early if nothing changed (this is a Read-only transaction)
 			if (!state.HasChanges) {
 				CloseTransaction(state.Transaction);
@@ -505,21 +510,20 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			lock (commitLock) {
-				var changedTableList = state.Commit(objectStates, OnCommitModification);
+				var changedTablesList = state.Commit(objectStates, null);
 
 				// Flush the journals up to the minimum commit id for all the tables
 				// that this transaction changed.
-				long minCommitId = state.Transaction.Context.Database.OpenTransactions.MinimumCommitId(null);
-				foreach (var tableId in changedTableList) {
-					var source = GetTableSource(tableId);
-					source.MergeChanges(minCommitId);
+				long minCommitId = Database.OpenTransactions.MinimumCommitId(null);
+				foreach (var master in changedTablesList) {
+					master.MergeChanges(minCommitId);
 				}
-
-				int count = objectStates.Count;
-				for (int i = count - 1; i >= 0; --i) {
-					var objectState = objectStates[i];
-
-					if (objectState.CommitId < minCommitId) {
+				int nsjsz = objectStates.Count;
+				for (int i = nsjsz - 1; i >= 0; --i) {
+					var namespaceJournal = objectStates[i];
+					// Remove if the commit id for the journal is less than the minimum
+					// commit id
+					if (namespaceJournal.CommitId < minCommitId) {
 						objectStates.RemoveAt(i);
 					}
 				}
@@ -530,8 +534,38 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		public void Rollback(TransactionState state) {
-			
+		internal void Rollback(Transaction transaction, IList<IMutableTable> touchedTables, TransactionRegistry journal) {
+			// Go through the journal.  Any rows added should be marked as deleted
+			// in the respective master table.
+
+			// Get individual journals for updates made to tables in this
+			// transaction.
+			// The list MasterTableJournal
+			var journalList = new List<TableEventRegistry>();
+			for (int i = 0; i < touchedTables.Count; ++i) {
+				var tableJournal = touchedTables[i].EventRegistry;
+				if (tableJournal.EventCount > 0) // Check the journal has entries.
+					journalList.Add(tableJournal);
+			}
+
+			var changedTables = journalList.ToArray();
+
+			lock (commitLock) {
+				try {
+					// For each change to each table,
+					foreach (var changeJournal in changedTables) {
+						// The table the changes were made to.
+						int tableId = changeJournal.TableId;
+						// Get the master table with this table id.
+						var master = GetTableSource(tableId);
+						// Commit the rollback on the table.
+						master.RollbackTransactionChange(changeJournal);
+					}
+				} finally {
+					// Notify the conglomerate that this transaction has closed.
+					CloseTransaction(transaction);
+				}
+			}
 		}
 
 		internal TableSource CopySourceTable(TableSource tableSource, IIndexSet indexSet) {

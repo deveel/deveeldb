@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql {
 			AssertNotReadOnly();
 
 			indexes.Add(indexInfo);
-			indexInfo.Offset = indexes.Count - 1;
+			indexInfo.Offset = indexes.Count;
 		}
 
 		public IndexInfo GetIndex(int offset) {

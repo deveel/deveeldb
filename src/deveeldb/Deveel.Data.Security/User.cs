@@ -27,7 +27,7 @@ namespace Deveel.Data.Security {
 		public readonly static User System = new User(SystemName);
 		public readonly static User Public = new User(PublicName);
 
-		private Dictionary<ObjectName, UserGrant> grantCache;
+		private Dictionary<ObjectName, Privileges> grantCache;
 
 		/// <summary>
 		/// Constructs a new user with the given name.
@@ -76,20 +76,27 @@ namespace Deveel.Data.Security {
 			return session.Database.ActiveUsers.Add(this);
 		}
 
-		internal bool TryGetObjectGrant(ObjectName objectName, out UserGrant grant) {
+		internal bool TryGetObjectGrant(ObjectName objectName, out Privileges grant) {
 			if (grantCache == null) {
-				grant = null;
+				grant = Privileges.None;
 				return false;
 			}
 
 			return grantCache.TryGetValue(objectName, out grant);
 		}
 
-		internal void CacheObjectGrant(ObjectName objectName, UserGrant grant) {
+		internal void CacheObjectGrant(ObjectName objectName, Privileges grant) {
 			if (grantCache == null)
-				grantCache = new Dictionary<ObjectName, UserGrant>();
+				grantCache = new Dictionary<ObjectName, Privileges>();
 
 			grantCache[objectName] = grant;
+		}
+
+		internal void ClearGrantCache(ObjectName objName) {
+			if (grantCache.Remove(objName)) {
+				if (grantCache.Count == 0)
+					grantCache = null;
+			}
 		}
 	}
 }

@@ -20,40 +20,40 @@ using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
-using Deveel.Diagnostics;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
-	public sealed class TransactionWork {
-		internal TableDataConglomerate Conglomerate { get; private set; }
+	class TransactionWork {
+		internal TableSourceComposite Composite { get; private set; }
 
 		internal Transaction Transaction { get; private set; }
 
-		public IEnumerable<MasterTableDataSource> SelectedFromTables { get; private set; }
+		public IEnumerable<TableSource> SelectedFromTables { get; private set; }
 
-		internal TransactionWork(TableDataConglomerate conglomerate, Transaction transaction, IEnumerable<MasterTableDataSource> selectedFromTables, IEnumerable<IMutableTableDataSource> touchedTables, TransactionJournal journal) {
-			Conglomerate = conglomerate;
+		internal TransactionWork(TableSourceComposite composite, Transaction transaction, IEnumerable<TableSource> selectedFromTables, IEnumerable<IMutableTable> touchedTables, TransactionRegistry journal) {
+			Composite = composite;
 			Transaction = transaction;
 			SelectedFromTables = selectedFromTables;
 
 			// Get individual journals for updates made to tables in this
 			// transaction.
-			// The list MasterTableJournal
+			// The list TableEventRegistry
 
-			ChangedTables = touchedTables.Select(t => t.Journal).Where(tableJournal => tableJournal.EntriesCount > 0);
+			ChangedTables = touchedTables.Select(t => t.EventRegistry).Where(tableJournal => tableJournal.EventCount > 0);
 
 			// The list of tables created by this journal.
-			CreatedTables = journal.GetTablesCreated();
+			CreatedTables = journal.TablesCreated;
 			// Ths list of tables dropped by this journal.
-			DroppedTables = journal.GetTablesDropped();
+			DroppedTables = journal.TablesDropped;
 			// The list of tables that constraints were alter by this journal
-			ConstraintAlteredTables = journal.GetTablesConstraintAltered();
+			ConstraintAlteredTables = journal.TablesConstraintAltered;
 
 			// Get the list of all database objects that were created in the
 			// transaction.
-			ObjectsCreated = transaction.AllNamesCreated;
+			ObjectsCreated = transaction.Registry.ObjectsCreated;
 			// Get the list of all database objects that were dropped in the
 			// transaction.
-			ObjectsDropped = transaction.AllNamesDropped;
+			ObjectsDropped = transaction.Registry.ObjectsDropped;
 
 			CommitId = transaction.CommitId;
 		}
@@ -64,11 +64,11 @@ namespace Deveel.Data.Transactions {
 
 		public IEnumerable<int> ConstraintAlteredTables { get; private set; }
 
-		public IEnumerable<MasterTableJournal> ChangedTables { get; private set; }
+		public IEnumerable<TableEventRegistry> ChangedTables { get; private set; }
 
-		public IEnumerable<TableName> ObjectsCreated { get; private set; }
+		public IEnumerable<ObjectName> ObjectsCreated { get; private set; }
 
-		public IEnumerable<TableName> ObjectsDropped { get; private set; }
+		public IEnumerable<ObjectName> ObjectsDropped { get; private set; }
 
 		public bool Done { get; private set; }
 
@@ -85,45 +85,45 @@ namespace Deveel.Data.Transactions {
 		/// <param name="list"></param>
 		/// <param name="master"></param>
 		/// <returns></returns>
-		private static bool CommitTableListContains(IEnumerable<CommitTableInfo> list, MasterTableDataSource master) {
+		private static bool CommitTableListContains(IEnumerable<CommitTableInfo> list, TableSource master) {
 			return list.Any(info => info.Master.Equals(master));
 		}
 
 		private void AssertNoDirtySelect() {
 			// We only perform this check if transaction error on dirty selects
 			// are enabled.
-			if (Transaction.TransactionErrorOnDirtySelect) {
+			if (Transaction.ErrorOnDirtySelect()) {
 				// For each table that this transaction selected from, if there are
 				// any committed changes then generate a transaction error.
-				foreach (MasterTableDataSource selectedTable in SelectedFromTables) {
+				foreach (TableSource selectedTable in SelectedFromTables) {
 					// Find all committed journals equal to or greater than this
 					// transaction's commit_id.
-					MasterTableJournal[] journalsSince = selectedTable.FindAllJournalsSince(CommitId);
-					if (journalsSince.Length > 0) {
+					var journalsSince = selectedTable.FindChangesSinceCmmit(CommitId);
+					if (journalsSince.Any()) {
 						// Yes, there are changes so generate transaction error and
 						// rollback.
 						throw new TransactionException(
-							TransactionException.DirtyTableSelect,
+							TransactionErrorCodes.DirtySelect,
 							"Concurrent Serializable Transaction Conflict(4): " +
 							"Select from table that has committed changes: " +
-							selectedTable.Name);
+							selectedTable.TableName);
 					}
 				}
 			}
 		}
 
-		internal void CheckConflicts(IEnumerable<NameSpaceJournal> namespaceJournals) {
+		internal void CheckConflicts(IEnumerable<TransactionObjectState> namespaceJournals) {
 			AssertNoDirtySelect();
 
 			// Check there isn't a namespace clash with database objects.
 			// We need to create a list of all create and drop activity in the
-			// conglomerate from when the transaction started.
-			var allDroppedObs = new List<TableName>();
-			var allCreatedObs = new List<TableName>();
-			foreach (NameSpaceJournal nsJournal in namespaceJournals) {
+			// Composite from when the transaction started.
+			var allDroppedObs = new List<ObjectName>();
+			var allCreatedObs = new List<ObjectName>();
+			foreach (var nsJournal in namespaceJournals) {
 				if (nsJournal.CommitId >= CommitId) {
-					allDroppedObs.AddRange(nsJournal.DroppedNames);
-					allCreatedObs.AddRange(nsJournal.CreatedNames);
+					allDroppedObs.AddRange(nsJournal.DroppedObjects);
+					allCreatedObs.AddRange(nsJournal.CreatedObjects);
 				}
 			}
 
@@ -132,7 +132,7 @@ namespace Deveel.Data.Transactions {
 			bool conflict5 = false;
 			object conflictName = null;
 			string conflictDesc = "";
-			foreach (TableName droppedOb in allDroppedObs) {
+			foreach (ObjectName droppedOb in allDroppedObs) {
 				if (ObjectsDropped.Contains(droppedOb)) {
 					conflict5 = true;
 					conflictName = droppedOb;
@@ -141,7 +141,7 @@ namespace Deveel.Data.Transactions {
 			}
 			// The list of all created objects since this transaction
 			// began.
-			foreach (TableName createdOb in allCreatedObs) {
+			foreach (ObjectName createdOb in allCreatedObs) {
 				if (ObjectsCreated.Contains(createdOb)) {
 					conflict5 = true;
 					conflictName = createdOb;
@@ -151,39 +151,39 @@ namespace Deveel.Data.Transactions {
 			if (conflict5) {
 				// Namespace conflict...
 				throw new TransactionException(
-					TransactionException.DuplicateTable,
+					TransactionErrorCodes.DuplicateTable,
 					"Concurrent Serializable Transaction Conflict(5): " +
 					"Namespace conflict: " + conflictName + " " +
 					conflictDesc);
 			}
 
 			// For each journal,
-			foreach (MasterTableJournal changeJournal in ChangedTables) {
+			foreach (TableEventRegistry changeJournal in ChangedTables) {
 				// The table the change was made to.
 				int tableId = changeJournal.TableId;
 				// Get the master table with this table id.
-				MasterTableDataSource master = Conglomerate.GetMasterTable(tableId);
+				TableSource master = Composite.GetTableSource(tableId);
 
 				// True if the state contains a committed resource with the given name
-				bool committedResource = Conglomerate.ContainsVisibleResource(tableId);
+				bool committedResource = Composite.ContainsVisibleResource(tableId);
 
 				// Check this table is still in the committed tables list.
 				if (!CreatedTables.Contains(tableId) && !committedResource) {
 					// This table is no longer a committed table, so rollback
 					throw new TransactionException(
-						TransactionException.TableDropped,
+						TransactionErrorCodes.TableDropped,
 						"Concurrent Serializable Transaction Conflict(2): " +
-						"Table altered/dropped: " + master.Name);
+						"Table altered/dropped: " + master.TableName);
 				}
 
 				// Since this journal was created, check to see if any changes to the
 				// tables have been committed since.
 				// This will return all journals on the table with the same commit_id
 				// or greater.
-				MasterTableJournal[] journalsSince = master.FindAllJournalsSince(CommitId);
+				var journalsSince = master.FindChangesSinceCmmit(CommitId);
 
 				// For each journal, determine if there's any clashes.
-				foreach (MasterTableJournal tableJournal in journalsSince) {
+				foreach (TableEventRegistry tableJournal in journalsSince) {
 					// This will thrown an exception if a commit classes.
 					changeJournal.TestCommitClash(master.TableInfo, tableJournal);
 				}
@@ -194,20 +194,20 @@ namespace Deveel.Data.Transactions {
 			// case.
 			foreach (int tableId in DroppedTables) {
 				// Get the master table with this table id.
-				MasterTableDataSource master = Conglomerate.GetMasterTable(tableId);
+				TableSource master = Composite.GetTableSource(tableId);
 				// Any journal entries made to this dropped table?
-				if (master.FindAllJournalsSince(CommitId).Length > 0) {
+				if (master.FindChangesSinceCmmit(CommitId).Any()) {
 					// Oops, yes, rollback!
 					throw new TransactionException(
-						TransactionException.TableRemoveClash,
+						TransactionErrorCodes.TableRemoveClash,
 						"Concurrent Serializable Transaction Conflict(3): " +
-						"Dropped table has modifications: " + master.Name);
+						"Dropped table has modifications: " + master.TableName);
 				}
 			}
 		}
 
 		private CommitTableInfo[] GetNormalizedChangedTables() {
-			// Create a normalized list of MasterTableDataSource of all tables that
+			// Create a normalized list of TableSource of all tables that
 			// were either changed (and not dropped), and created (and not dropped).
 			// This list represents all tables that are either new or changed in
 			// this transaction.
@@ -219,11 +219,11 @@ namespace Deveel.Data.Transactions {
 			normalizedChangedTables.AddRange(
 				ChangedTables.Select(tableJournal => new { tableJournal, tableId = tableJournal.TableId })
 					.Where(t => !DroppedTables.Contains(t.tableId))
-					.Select(t => new { t, masterTable = Conglomerate.GetMasterTable(t.tableId) })
+					.Select(t => new { t, masterTable = Composite.GetTableSource(t.tableId) })
 					.Select(t => new CommitTableInfo {
 						Master = t.masterTable,
 						Journal = t.t.tableJournal,
-						ChangesSinceCommit = t.masterTable.FindAllJournalsSince(CommitId)
+						ChangesSinceCommit = t.masterTable.FindChangesSinceCmmit(CommitId).ToArray()
 					}));
 
 			// Add all tables that were created and not dropped in this transaction.
@@ -231,7 +231,7 @@ namespace Deveel.Data.Transactions {
 				// If this table is not dropped in this transaction then this is a
 				// new table in this transaction.
 				if (!DroppedTables.Contains(tableId)) {
-					MasterTableDataSource masterTable = Conglomerate.GetMasterTable(tableId);
+					TableSource masterTable = Composite.GetTableSource(tableId);
 					if (!CommitTableListContains(normalizedChangedTables, masterTable)) {
 
 						// This is for entries that are created but modified (no journal).
@@ -247,18 +247,18 @@ namespace Deveel.Data.Transactions {
 			return normalizedChangedTables.ToArray();
 		}
 
-		private MasterTableDataSource[] GetNormalizedDroppedTables() {
-			// Create a normalized list of MasterTableDataSource of all tables that
+		private TableSource[] GetNormalizedDroppedTables() {
+			// Create a normalized list of TableSource of all tables that
 			// were dropped (and not created) in this transaction.  This list
 			// represents tables that will be dropped if the transaction
 			// successfully commits.
 
-			var normalizedDroppedTables = new List<MasterTableDataSource>(8);
+			var normalizedDroppedTables = new List<TableSource>(8);
 			foreach (var tableId in DroppedTables) {
 				// Was this dropped table also created?  If it was created in this
 				// transaction then we don't care about it.
 				if (!CreatedTables.Contains(tableId)) {
-					MasterTableDataSource masterTable = Conglomerate.GetMasterTable(tableId);
+					TableSource masterTable = Composite.GetTableSource(tableId);
 					normalizedDroppedTables.Add(masterTable);
 				}
 			}
@@ -266,8 +266,8 @@ namespace Deveel.Data.Transactions {
 			return normalizedDroppedTables.ToArray();
 		}
 
-		private ITableDataSource[] FindChangedTables(Transaction checkTransaction, CommitTableInfo[] normalizedChangedTables) {
-			var changedTableSource = new ITableDataSource[normalizedChangedTables.Length];
+		private ITable[] FindChangedTables(ITransaction checkTransaction, CommitTableInfo[] normalizedChangedTables) {
+			var changedTableSource = new ITable[normalizedChangedTables.Length];
 
 			// Set up the above arrays
 			for (int i = 0; i < normalizedChangedTables.Length; ++i) {
@@ -275,20 +275,20 @@ namespace Deveel.Data.Transactions {
 				CommitTableInfo tableInfo = normalizedChangedTables[i];
 
 				// Get the master table that changed from the normalized list.
-				MasterTableDataSource master = tableInfo.Master;
+				TableSource master = tableInfo.Master;
 				// Did this table change since the transaction started?
-				MasterTableJournal[] allTableChanges = tableInfo.ChangesSinceCommit;
+				TableEventRegistry[] allTableChanges = tableInfo.ChangesSinceCommit;
 
 				if (allTableChanges == null || allTableChanges.Length == 0) {
 					// No changes so we can pick the correct IIndexSet from the current
 					// transaction.
 
 					// Get the state of the changed tables from the Transaction
-					IMutableTableDataSource mtable = Transaction.GetMutableTable(master.TableName);
+					var mtable = Transaction.GetMutableTable(master.TableName);
 					// Get the current index set of the changed table
 					tableInfo.IndexSet = Transaction.GetIndexSetForTable(master);
 					// Flush all index changes in the table
-					mtable.FlushIndexChanges();
+					mtable.FlushIndexes();
 
 					// Set the 'check_transaction' object with the latest version of the
 					// table.
@@ -305,11 +305,11 @@ namespace Deveel.Data.Transactions {
 
 					// Create the IMutableTableDataSource with the changes from this
 					// journal.
-					IMutableTableDataSource mtable = master.CreateTableDataSourceAtCommit(checkTransaction, tableInfo.Journal);
+					var mtable = master.CreateTableAtCommit(checkTransaction, tableInfo.Journal);
 					// Get the current index set of the changed table
 					tableInfo.IndexSet = checkTransaction.GetIndexSetForTable(master);
 					// Flush all index changes in the table
-					mtable.FlushIndexChanges();
+					mtable.FlushIndexes();
 
 					// Dispose the table
 					mtable.Dispose();
@@ -322,38 +322,22 @@ namespace Deveel.Data.Transactions {
 			return changedTableSource;
 		}
 
-		private void FireChangeEvents(Transaction checkTransaction, CommitTableInfo[] normalizedChangedTables, EventHandlerList modificationEvents) {
+		private void FireChangeEvents(ITransaction checkTransaction, CommitTableInfo[] normalizedChangedTables) {
 			// For each changed table.
 			//n_loop:
 			for (int i = 0; i < normalizedChangedTables.Length; ++i) {
 				CommitTableInfo tableInfo = normalizedChangedTables[i];
 				// Get the journal that details the change to the table.
-				MasterTableJournal changeJournal = tableInfo.Journal;
+				TableEventRegistry changeJournal = tableInfo.Journal;
 				if (changeJournal != null) {
 					// Get the table name
-					TableName tableName = tableInfo.Master.TableName;
-					// The list of listeners to dispatch this event to
-					CommitModificationEventHandler modificationHandler;
-
-					// Are there any listeners listening for events on this table?
-					lock (modificationEvents) {
-						modificationHandler = modificationEvents[tableName] as CommitModificationEventHandler;
-						if (modificationHandler == null) {
-							// If no listeners on this table, continue to the next
-							// table that was changed.
-							continue;
-						}
-					}
-
-					// Generate the event
-					var args = new CommitModificationEventArgs(tableName, tableInfo.NormalizedAddedRows, tableInfo.NormalizedRemovedRows);
-					// Fire this event on the listeners
-					modificationHandler(checkTransaction, args);
+					var tableName = tableInfo.Master.TableName;
+					// TODO:
 				} // if (changeJournal != null)
 			} // for each changed table
 		}
 
-		private void CheckConstraintViolations(Transaction checkTransaction, CommitTableInfo[] normalizedChangedTables, ITableDataSource[] changedTableSource) {
+		private void CheckConstraintViolations(ITransaction checkTransaction, CommitTableInfo[] normalizedChangedTables, ITable[] changedTableSource) {
 			// Any tables that the constraints were altered for we need to check
 			// if any rows in the table violate the new constraints.
 			foreach (var tableId in ConstraintAlteredTables) {
@@ -362,7 +346,7 @@ namespace Deveel.Data.Transactions {
 				for (int n = 0; n < normalizedChangedTables.Length; ++n) {
 					CommitTableInfo tableInfo = normalizedChangedTables[n];
 					if (tableInfo.Master.TableId == tableId) {
-						TableDataConglomerate.CheckAllAddConstraintViolations(checkTransaction, changedTableSource[n], ConstraintDeferrability.InitiallyDeferred);
+						checkTransaction.CheckAddConstraintViolations(changedTableSource[n], ConstraintDeferrability.InitiallyDeferred);
 					}
 				}
 			}
@@ -376,19 +360,19 @@ namespace Deveel.Data.Transactions {
 			for (int i = 0; i < normalizedChangedTables.Length; ++i) {
 				CommitTableInfo tableInfo = normalizedChangedTables[i];
 				// Get the journal that details the change to the table.
-				MasterTableJournal changeJournal = tableInfo.Journal;
+				TableEventRegistry changeJournal = tableInfo.Journal;
 				if (changeJournal != null) {
 					// Find the normalized deleted rows.
-					int[] normalizedRemovedRows = changeJournal.NormalizedRemovedRows();
+					int[] normalizedRemovedRows = changeJournal.RemovedRows.ToArray();
 					// Check removing any of the data doesn't cause a constraint
 					// violation.
-					TableDataConglomerate.CheckRemoveConstraintViolations(checkTransaction, changedTableSource[i], normalizedRemovedRows, ConstraintDeferrability.InitiallyDeferred);
+					checkTransaction.CheckRemoveConstraintViolations(changedTableSource[i], normalizedRemovedRows, ConstraintDeferrability.InitiallyDeferred);
 
 					// Find the normalized added rows.
-					int[] normalizedAddedRows = changeJournal.NormalizedAddedRows();
+					int[] normalizedAddedRows = changeJournal.AddedRows.ToArray();
 					// Check adding any of the data doesn't cause a constraint
 					// violation.
-					TableDataConglomerate.CheckAddConstraintViolations(checkTransaction, changedTableSource[i], normalizedAddedRows, ConstraintDeferrability.InitiallyDeferred);
+					checkTransaction.CheckAddConstraintViolations(changedTableSource[i], normalizedAddedRows, ConstraintDeferrability.InitiallyDeferred);
 
 					// Set up the list of added and removed rows
 					tableInfo.NormalizedAddedRows = normalizedAddedRows;
@@ -398,12 +382,12 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		internal void Commit(IList<NameSpaceJournal> nameSpaceJournals, EventHandlerList modificationEvents) {
-			var changedTablesList = new List<MasterTableDataSource>();
+		internal IEnumerable<TableSource> Commit(IList<TransactionObjectState> nameSpaceJournals, EventHandlerList modificationEvents) {
+			var changedTablesList = new List<TableSource>();
 
 			// This is a transaction that will represent the view of the database
 			// at the end of the commit
-			Transaction checkTransaction = null;
+			ITransaction checkTransaction = null;
 
 			bool entriesCommitted = false;
 
@@ -444,14 +428,14 @@ namespace Deveel.Data.Transactions {
 
 				// Create a new transaction of the database which will represent the
 				// committed view if this commit is successful.
-				checkTransaction = Conglomerate.CreateTransaction();
+				checkTransaction = Composite.CreateTransaction(TransactionIsolation.Serializable);
 
 				// Overwrite this view with tables from this transaction that have
 				// changed or have been added or dropped.
 
 				// (Note that order here is important).  First drop any tables from
 				// this view.
-				foreach (MasterTableDataSource masterTable in normalizedDroppedTables) {
+				foreach (TableSource masterTable in normalizedDroppedTables) {
 					// Drop this table in the current view
 					checkTransaction.RemoveVisibleTable(masterTable);
 				}
@@ -464,12 +448,12 @@ namespace Deveel.Data.Transactions {
 				// The 'checkTransaction' now represents the view the database will be
 				// if the commit succeeds.  We Lock 'checkTransaction' so it is
 				// Read-only (the view is immutable).
-				checkTransaction.SetReadOnly();
+				checkTransaction.ReadOnly(true);
 
 				CheckConstraintViolations(checkTransaction, normalizedChangedTables, changedTableSource);
 
 				// Deferred trigger events.
-				FireChangeEvents(checkTransaction, normalizedChangedTables, modificationEvents);
+				FireChangeEvents(checkTransaction, normalizedChangedTables);
 
 				// NOTE: This isn't as fail safe as it could be.  We really need to
 				//  do the commit in two phases.  The first writes updated indices to
@@ -479,7 +463,7 @@ namespace Deveel.Data.Transactions {
 
 				// Finally, at this point all constraint checks have passed and the
 				// changes are ready to finally be committed as permanent changes
-				// to the conglomerate.  All that needs to be done is to commit our
+				// to the Composite.  All that needs to be done is to commit our
 				// IIndexSet indices for each changed table as final.
 				// ISSUE: Should we separate the 'committing of indexes' changes and
 				//   'committing of delete/add flags' to make the FS more robust?
@@ -492,14 +476,14 @@ namespace Deveel.Data.Transactions {
 				// For each change to each table,
 				foreach (CommitTableInfo tableInfo in normalizedChangedTables) {
 					// Get the journal that details the change to the table.
-					MasterTableJournal changeJournal = tableInfo.Journal;
+					TableEventRegistry changeJournal = tableInfo.Journal;
 					if (changeJournal != null) {
 						// Get the master table with this table id.
-						MasterTableDataSource master = tableInfo.Master;
+						TableSource master = tableInfo.Master;
 						// Commit the changes to the table.
 						// We use 'this.commit_id' which is the current commit level we are
 						// at.
-						master.CommitTransactionChange(Conglomerate.CommitId, changeJournal, tableInfo.IndexSet);
+						master.CommitTransactionChange(Composite.CurrentCommitId, changeJournal, tableInfo.IndexSet);
 						// Add to 'changed_tables_list'
 						changedTablesList.Add(master);
 					}
@@ -507,14 +491,14 @@ namespace Deveel.Data.Transactions {
 
 				// Only do this if we've created or dropped tables.
 				if (CreatedTables.Any() || DroppedTables.Any()) {
-					// Update the committed tables in the conglomerate state.
-					// This will update and synchronize the headers in this conglomerate.
-					Conglomerate.CommitToTables(CreatedTables, DroppedTables);
+					// Update the committed tables in the Composite state.
+					// This will update and synchronize the headers in this Composite.
+					Composite.CommitToTables(CreatedTables, DroppedTables);
 				}
 
 				// Update the namespace clash list
 				if (ObjectsCreated.Any() || ObjectsDropped.Any()) {
-					nameSpaceJournals.Add(new NameSpaceJournal(CommitId, ObjectsCreated, ObjectsDropped));
+					nameSpaceJournals.Add(new TransactionObjectState(CommitId, ObjectsCreated, ObjectsDropped));
 				}
 			} finally {
 				try {
@@ -523,35 +507,36 @@ namespace Deveel.Data.Transactions {
 					// changes in this transaction if they haven't been committed yet.
 					if (entriesCommitted == false) {
 						// For each change to each table,
-						foreach (MasterTableJournal changeJournal in ChangedTables) {
+						foreach (TableEventRegistry changeJournal in ChangedTables) {
 							// The table the changes were made to.
 							int tableId = changeJournal.TableId;
 							// Get the master table with this table id.
-							MasterTableDataSource master = Conglomerate.GetMasterTable(tableId);
+							TableSource master = Composite.GetTableSource(tableId);
 							// Commit the rollback on the table.
 							master.RollbackTransactionChange(changeJournal);
 						}
 
-						if (Conglomerate.Logger.IsInterestedIn(LogLevel.Info))
-							Conglomerate.Logger.Info(this, "Rolled back transaction changes in a commit.");
+						// TODO: Notify the system we're rolling back
 					}
 				} finally {
 					try {
 						// Dispose the 'checkTransaction'
 						if (checkTransaction != null) {
-							checkTransaction.CloseAndCleanup();
-							Conglomerate.CloseTransaction(checkTransaction);
+							checkTransaction.Dispose();
+							Composite.CloseTransaction(checkTransaction);
 						}
 						// Always ensure a transaction close, even if we have an exception.
-						// Notify the conglomerate that this transaction has closed.
-						Conglomerate.CloseTransaction(Transaction);
+						// Notify the Composite that this transaction has closed.
+						Composite.CloseTransaction(Transaction);
 					} catch (Exception e) {
-						Conglomerate.Logger.Error(this, e);
+						// TODO: notify the error
 					} finally {
 						Done = true;
 					}
 				}
 			}
+
+			return changedTablesList.AsReadOnly();
 		}
 
 		/// <summary>
@@ -560,15 +545,15 @@ namespace Deveel.Data.Transactions {
 		/// </summary>
 		private sealed class CommitTableInfo {
 			// The master table
-			public MasterTableDataSource Master;
+			public TableSource Master;
 			// The immutable index set
 			public IIndexSet IndexSet;
 			// The journal describing the changes to this table by this
 			// transaction.
-			public MasterTableJournal Journal;
+			public TableEventRegistry Journal;
 			// A list of journals describing changes since this transaction
 			// started.
-			public MasterTableJournal[] ChangesSinceCommit;
+			public TableEventRegistry[] ChangesSinceCommit;
 			// Break down of changes to the table
 			// Normalized list of row ids that were added
 			public int[] NormalizedAddedRows;

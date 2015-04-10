@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
@@ -65,15 +63,14 @@ namespace Deveel.Data.Transactions {
 
 			// Get individual journals for updates made to tables in this
 			// transaction.
-			// The list MasterTableJournal
 
 			var changeRegistries = Registry.TableChangeRegistries.ToList();
 
-			// The list of tables created by this journal.
+			// The list of tables created by this registry.
 			var createdTables = Registry.TablesCreated.ToList();
-			// Ths list of tables dropped by this journal.
+			// Ths list of tables dropped by this registry.
 			var droppedTables = Registry.TablesDropped.ToList();
-			// The list of tables that constraints were alter by this journal
+			// The list of tables that constraints were alter by this registry
 			var constraintAlteredTables = Registry.TablesConstraintAltered;
 
 			var selectedTables = Registry.SelectedTables.ToArray();

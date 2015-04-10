@@ -11,6 +11,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
 	class TableSource {
@@ -1182,7 +1183,20 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		internal ColumnIndex CreateColumnIndex(IIndexSet indexSet, ITable table, int indexI) {
+		internal ColumnIndex CreateColumnIndex(IIndexSet indexSet, ITable table, int columnOffset) {
+			lock (this) {
+				var column = TableInfo[columnOffset];
+				if (!column.IsIndexable ||
+				    (String.IsNullOrEmpty(column.IndexType) ||
+				     column.IndexType.Equals(DefaultIndexTypes.BlindSearch)))
+					return new BlindSearchIndex(table, columnOffset);
+
+				var indexI = IndexSetInfo.FindIndexForColumns(new[] {column.ColumnName});
+				return CreateIndexAt(indexSet, table, indexI);
+			}
+		}
+
+		private ColumnIndex CreateIndexAt(IIndexSet indexSet, ITable table, int indexI) {
 			lock (this) {
 				try {
 					// Get the IndexDef object

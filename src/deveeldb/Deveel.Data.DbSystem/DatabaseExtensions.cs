@@ -17,5 +17,25 @@ namespace Deveel.Data.DbSystem {
 		public static IUserSession CreateSystemSession(this IDatabase database) {
 			return database.CreateSystemSession(TransactionIsolation.Serializable);
 		}
+
+		#region Security
+
+		public static User Authenticate(this IDatabase database, string username, string password) {
+			return Authenticate(database, username, password, ConnectionEndPoint.Embedded);
+		}
+
+		public static User Authenticate(this IDatabase database, string username, string password, ConnectionEndPoint endPoint) {
+			// Create a temporary connection for authentication only...
+			using (var session = database.CreateSystemSession()) {
+				session.CurrentSchema(SystemSchema.Name);
+				session.ExclusiveLock();
+
+				using (var queryContext = new SessionQueryContext(session)) {
+					return queryContext.Authenticate(username, password, endPoint);
+				}
+			}
+		}
+
+		#endregion
 	}
 }

@@ -4,20 +4,27 @@ namespace Deveel.Data.Security {
 	[Flags]
 	public enum Privileges {
 		None = 0,
-		Alter = 0x0100,
-		Compact = 0x040,
-		Create = 0x080,
-		Delete = 0x02,
-		Drop = 0x0200,
-		Insert = 0x08,
-		List = 0x0400,
-		References = 0x010,
-		Select = 0x01,
-		Update = 0x04,
-		Usage = 0x020,
+		Create = 1,
+		Alter = 2,
+		Compact = 1024,
+		Delete = 64,
+		Drop = 4,
+		Insert = 128,
+		List = 8,
+		References = 256,
+		Select = 16,
+		Update = 32,
+		Usage = 512,
+		Execute = 2048,
 
 		All = Alter | Compact | Create | Delete |
 		      Drop | Insert | List | References |
-		      Select | Update | Usage
+		      Select | Update | Usage,
+
+		TableAll = Select | Update | Delete | Insert | References | Usage | Compact,
+		TableRead = Select | Usage,
+
+		SchemaAll = Create | Alter | Drop | List,
+		SchemaRead = List,
 	}
 }

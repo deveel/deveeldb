@@ -27,7 +27,8 @@ using Deveel.Data.Transactions;
 namespace Deveel.Data.DbSystem {
 	public sealed class TableManager : IObjectManager {
 		private readonly List<TableSource> visibleTables;
-		private List<IMutableTable> accessedTables; 
+		private List<IMutableTable> accessedTables;
+		private List<TableSource> selectedTables; 
 		private readonly List<IIndexSet> tableIndices;
 		private List<ITableContainer> internalTables;
 
@@ -51,6 +52,7 @@ namespace Deveel.Data.DbSystem {
 			tableIndices = new List<IIndexSet>();
 			accessedTables = new List<IMutableTable>();
 			tableCache = new Dictionary<ObjectName, IMutableTable>();
+			selectedTables = new List<TableSource>();
 		}
 
 		~TableManager() {
@@ -63,6 +65,14 @@ namespace Deveel.Data.DbSystem {
 
 		internal IEnumerable<IMutableTable> AccessedTables {
 			get { return accessedTables; }
+		}
+
+		internal IEnumerable<TableSource> SelectedTables {
+			get {
+				lock (selectedTables) {
+					return selectedTables.AsReadOnly();
+				}
+			}
 		} 
 
 		private bool IgnoreIdentifiersCase {
@@ -163,7 +173,18 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public void SelectTable(ObjectName tableName) {
-			
+			// Special handling of internal tables,
+			if (IsDynamicTable(tableName))
+				return;
+
+			var source = FindVisibleTable(tableName, false);
+			if (source == null)
+				throw new ObjectNotFoundException(tableName);
+
+			lock (selectedTables) {
+				if (!selectedTables.Contains(source))
+					selectedTables.Add(source);
+			}
 		}
 
 		public void CompactTable(ObjectName tableName) {
@@ -347,8 +368,6 @@ namespace Deveel.Data.DbSystem {
 				// Otherwise make a view of tha master table data source and write it in
 				// the cache.
 				table = CreateTableAtCommit(source);
-
-				Transaction.Registry.RegisterEvent(new TableSelectedEvent(source.TableId));
 
 				// Put table name in the cache
 				tableCache[tableName] = table;

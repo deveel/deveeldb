@@ -267,7 +267,6 @@ namespace Deveel.Data.DbSystem {
 			tableInfo = new TableInfo(UserGrantsTableName);
 			tableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("object", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
 			tableInfo.AddColumn("user", PrimitiveTypes.String());
 			tableInfo.AddColumn("grant_option", PrimitiveTypes.Boolean());
@@ -277,8 +276,8 @@ namespace Deveel.Data.DbSystem {
 
 			var fkCol = new[] {"user"};
 			var refCol = new[] {"name"};
-			var onUpdate = ForeignKeyAction.NoAction;
-			var onDelete = ForeignKeyAction.Cascade;
+			const ForeignKeyAction onUpdate = ForeignKeyAction.NoAction;
+			const ForeignKeyAction onDelete = ForeignKeyAction.Cascade;
 			session.AddForeignKey(PasswordTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PASSWORD_FK");
 			session.AddForeignKey(UserPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PRIV_FK");
 			session.AddForeignKey(UserConnectPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_CONNPRIV_FK");

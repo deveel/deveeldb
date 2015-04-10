@@ -441,7 +441,7 @@ namespace Deveel.Data.Sql {
 
 			{
 				if (!exp.IsConstant())
-					throw new ArgumentException();
+					throw new ArgumentException("The search expression is not constant.");
 
 				var evalExp = exp.Evaluate(context, null);
 				if (evalExp.ExpressionType != SqlExpressionType.Constant)

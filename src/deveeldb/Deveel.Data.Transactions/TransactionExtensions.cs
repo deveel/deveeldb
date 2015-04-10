@@ -18,11 +18,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -161,7 +163,7 @@ namespace Deveel.Data.Transactions {
 
 			// TODO: get the configured default culture...
 			var culture = CultureInfo.CurrentCulture.Name;
-			var schemaInfo = new SchemaInfo(SystemSchema.Name, "SYSTEM");
+			var schemaInfo = new SchemaInfo(SystemSchema.Name, SchemaTypes.System);
 			schemaInfo.Culture = culture;
 
 			transaction.CreateSchema(schemaInfo);
@@ -456,56 +458,6 @@ namespace Deveel.Data.Transactions {
 				return false;
 
 			return transaction.Context.Database.Context.Locker.IsLocked(lockable);
-		}
-
-		#endregion
-
-		#region Security
-
-		public static bool UserCanCreateObject(this ITransaction transaction, User user, DbObjectType objectType,
-			ObjectName objectName) {
-			return transaction.UserHasPrivilege(user, objectType, objectName, Privileges.Create);
-		}
-
-		public static bool UserCanAccessObject(this ITransaction transaction, User user, DbObjectType objectType, ObjectName objectName) {
-			return transaction.UserHasPrivilege(user, objectType, objectName, Privileges.Select);
-		}
-
-		public static bool UserCanAlterObject(this ITransaction transaction, User user, DbObjectType objectType,
-			ObjectName objectName) {
-			return transaction.UserHasPrivilege(user, objectType, objectName, Privileges.Alter);
-		}
-
-		public static bool UserHasPrivilege(this ITransaction transaction, User user, DbObjectType objectType,
-			ObjectName objectName, Privileges privilege) {
-			if (user.IsSystem)
-				return true;
-
-			UserGrant grant;
-			if (!user.TryGetObjectGrant(objectName, out grant)) {
-				grant = transaction.GetUserGrant(user.Name, objectType, objectName);
-				if (grant != null)
-					user.CacheObjectGrant(objectName, grant);
-			}
-
-			if (grant == null)
-				return false;
-
-			return (grant.Privileges & privilege) != 0;
-		}
-
-		public static UserGrant GetUserGrant(this ITransaction transaction, string userName, DbObjectType objectType,
-			ObjectName objectName) {
-			// TODO: Query the tables to check for user privileges over the objects
-			return new UserGrant(userName, new Privileges(), objectName, objectType, User.SystemName);
-		}
-
-		public static bool UserCanReferenceTable(this ITransaction transaction, User user, ObjectName tableName) {
-			return transaction.UserHasPrivilege(user, DbObjectType.Table, tableName, Privileges.References);
-		}
-
-		public static bool UserCanAlterTable(this ITransaction transaction, User user, ObjectName tableName) {
-			return transaction.UserCanAlterObject(user, DbObjectType.Table, tableName);
 		}
 
 		#endregion

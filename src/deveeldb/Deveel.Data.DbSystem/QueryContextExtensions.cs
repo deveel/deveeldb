@@ -30,6 +30,10 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.Database;
 		}
 
+		public static bool ObjectExists(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+			return context.Session.ObjectExists(objectType, objectName);
+		}
+
 		public static IDbObject GetObject(this IQueryContext context, DbObjectType objType, ObjectName objName) {
 			return context.Session.GetObject(objType, objName);
 		}

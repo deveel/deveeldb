@@ -88,10 +88,14 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public void ReleaseLocks() {
+			if (Database == null)
+				return;
+
 			lock (Database) {
 				if (lockHandles != null) {
 					foreach (var handle in lockHandles) {
-						handle.Release();
+						if (handle != null)
+							handle.Release();
 					}
 				}
 			}
@@ -132,12 +136,12 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private void DisposeTransaction() {
-			Transaction = null;
-			Database = null;
-
 			// TODO: fire pending events left ...
 
 			ReleaseLocks();
+
+			Transaction = null;
+			Database = null;
 		}
 
 		private void Dispose(bool disposing) {

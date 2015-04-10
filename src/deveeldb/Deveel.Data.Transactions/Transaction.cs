@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
@@ -30,8 +31,6 @@ namespace Deveel.Data.Transactions {
 
 			AddInternalTables();
 
-			State = new TransactionState(this);
-
 			OldNewTableState = new OldNewTableState();
 
 			IsClosed = false;
@@ -41,6 +40,10 @@ namespace Deveel.Data.Transactions {
 
 		public Transaction(IDatabase database, long commitId, TransactionIsolation isolation)
 			: this(database, commitId, isolation, new TableSource[0], new IIndexSet[0]) {
+		}
+
+		~Transaction() {
+			Dispose(false);
 		}
 
 		static Transaction() {
@@ -89,8 +92,6 @@ namespace Deveel.Data.Transactions {
 		public IObjectManagerResolver ObjectManagerResolver { get; private set; }
 
 		public TransactionRegistry Registry { get; private set; }
-
-		public TransactionState State { get; private set; }
 
 		private void InitManagers() {
 			schemaManager = new SchemaManager(this);
@@ -148,7 +149,10 @@ namespace Deveel.Data.Transactions {
 		public void Commit() {
 			if (!IsClosed) {
 				try {
-					TableComposite.Commit(State);
+					var touchedTables = tableManager.AccessedTables.ToList();
+					var visibleTables = tableManager.GetVisibleTables().ToList();
+					var selected = tableManager.SelectedTables.ToArray();
+					TableComposite.Commit(this, visibleTables, selected, touchedTables, Registry);
 				} finally {
 					Finish();
 				}
@@ -182,22 +186,28 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public void Rollback() {
-			try {
-				TableComposite.Rollback(State);
-			} finally {
-				IsClosed = true;
-				Finish();
+			if (!IsClosed) {
+				try {
+					var touchedTables = tableManager.AccessedTables.ToList();
+					TableComposite.Rollback(this, touchedTables, Registry);
+				} finally {
+					IsClosed = true;
+					Finish();
+				}
 			}
 		}
 
 		public void Dispose() {
 			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-				if (!IsClosed)
-					Rollback();
+				//if (!IsClosed)
+				//	Rollback();
+				// TODO: review this ...
+				Finish();
 			}
 		}
 
