@@ -17,6 +17,8 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Numerics;
+using System.Runtime.Remoting.Channels;
 using System.Text;
 
 using Deveel.Data.DbSystem;
@@ -158,6 +160,20 @@ namespace Deveel.Data.Types {
 
 		public SqlBoolean IsNotLike(ISqlObject value) {
 			throw new NotImplementedException();
+		}
+
+		public override object ConvertTo(ISqlObject obj, Type destType) {
+			if (!(obj is ISqlString))
+				throw new ArgumentException();
+
+			var s = (ISqlString) obj;
+			if (s.IsNull)
+				return null;
+
+			if (destType == typeof (string))
+				return s.ToString();
+
+			throw new InvalidCastException();
 		}
 
 		#region Operators

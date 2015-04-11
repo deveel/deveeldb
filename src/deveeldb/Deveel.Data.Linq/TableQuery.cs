@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
@@ -22,7 +23,7 @@ namespace Deveel.Data.Linq {
 			throw new NotImplementedException();
 		}
 
-		public IEnumerable<object> Execute(Type elementType, ITable table) {
+		public IEnumerable Execute(Type elementType, ITable table) {
 			var mapping = new TableTypeMapper(elementType);
 
 			var finalTable = table;
@@ -31,7 +32,10 @@ namespace Deveel.Data.Linq {
 			}
 
 			mapping.BuildMap(finalTable);
-			var result = new List<object>();
+
+			var listType = typeof (List<>).MakeGenericType(elementType);
+			var result = (IList) Activator.CreateInstance(listType);
+
 			foreach (var row in finalTable) {
 				var rowNumber = row.RowId.RowNumber;
 				var mapped = mapping.Construct(finalTable, rowNumber);
@@ -43,16 +47,7 @@ namespace Deveel.Data.Linq {
 
 		private ITable ExecuteColumnQuery(ITable table, ColumnQuery columnQuery) {
 			var expression = columnQuery.Expression;
-
-			ITable result;
-			if (expression is SqlConstantExpression) {
-				var value = ((SqlConstantExpression) expression).Value;
-				result = table.SelectEqual(columnQuery.ColumnName, value);
-			} else {
-				throw new NotSupportedException();
-			}
-
-			return result;
+			return table.ExhaustiveSelect(null, expression);
 		}
 	}
 }

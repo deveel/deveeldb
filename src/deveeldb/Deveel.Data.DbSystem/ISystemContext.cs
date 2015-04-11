@@ -17,8 +17,6 @@
 using System;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Index;
-using Deveel.Data.Spatial;
 
 namespace Deveel.Data.DbSystem {
 	public interface ISystemContext : IDisposable {

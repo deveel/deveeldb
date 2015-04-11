@@ -217,6 +217,10 @@
     <Compile Include="Deveel.Data.Index\IndexBlock.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Linq\Evaluator.cs" />
+    <Compile Include="Deveel.Data.Linq\ExpressionTreeModifier.cs" />
+    <Compile Include="Deveel.Data.Linq\InnermostWhereFinder.cs" />
+    <Compile Include="Deveel.Data.Linq\TypeSystem.cs" />
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
     <Compile Include="Deveel.Data.Security\SecurityQueryExtensions.cs" />
     <Compile Include="Deveel.Data.Index\ISearchIndex.cs" />
@@ -261,7 +265,7 @@
     <Compile Include="Deveel.Data.Linq\ExpressionVisitor.cs" />
     <Compile Include="Deveel.Data.Linq\TableExtensions.cs" />
     <Compile Include="Deveel.Data.Linq\TableQuery.cs" />
-    <Compile Include="Deveel.Data.Linq\TableQueryable.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryableTable.cs" />
     <Compile Include="Deveel.Data.Linq\TableQueryProvider.cs" />
     <Compile Include="Deveel.Data.Linq\ColumnQuery.cs" />
     <Compile Include="Deveel.Data.Linq\TableTypeMapper.cs" />

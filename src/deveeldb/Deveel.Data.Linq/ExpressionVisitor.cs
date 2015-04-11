@@ -9,7 +9,7 @@ namespace Deveel.Data.Linq {
 		protected ExpressionVisitor() {
 		}
 
-		protected virtual Expression Visit(Expression exp) {
+		public virtual Expression Visit(Expression exp) {
 			if (exp == null)
 				return exp;
 			switch (exp.NodeType) {

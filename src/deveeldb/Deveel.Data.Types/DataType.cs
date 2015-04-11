@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 using Deveel.Data.DbSystem;
@@ -182,7 +183,7 @@ namespace Deveel.Data.Types {
 		}
 
 		public virtual object ConvertTo(ISqlObject obj, Type destType) {
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 
 		public virtual ISqlObject Add(ISqlObject a, ISqlObject b) {

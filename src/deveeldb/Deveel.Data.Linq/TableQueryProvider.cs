@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 using Deveel.Data.Sql;
 
@@ -16,19 +17,74 @@ namespace Deveel.Data.Linq {
 		public ITable Table { get; private set; }
 
 		public IQueryable CreateQuery(Expression expression) {
-			throw new NotImplementedException();
+			var elementType = TypeSystem.GetElementType(expression.Type);
+
+			try {
+				var type = typeof (QueryableTable<>).MakeGenericType(elementType);
+				return (IQueryable) Activator.CreateInstance(type, new object[] {this, expression});
+			} catch (TargetInvocationException ex) {
+				throw ex.InnerException;
+			}
 		}
 
 		public IQueryable<TElement> CreateQuery<TElement>(Expression expression) {
-			throw new NotImplementedException();
+			return new QueryableTable<TElement>(this, expression);
 		}
 
 		public object Execute(Expression expression) {
-			throw new NotImplementedException();
+			return Execute(expression, false);
+		}
+
+
+		private object Execute(Expression expression, bool isEnum) {
+			// The expression must represent a query over the data source.
+			if (!IsQueryOverDataSource(expression))
+				throw new InvalidProgramException("No query over the data source was specified.");
+
+			var elementType = TypeSystem.GetElementType(expression.Type);
+
+			IQueryable queryResult;
+
+			var builder = new QueryBuilder();
+
+			// Find the call to Where() and get the lambda expression predicate.
+			var whereFinder = new InnermostWhereFinder();
+			var whereExpression = whereFinder.GetInnermostWhere(expression);
+
+			if (whereExpression == null) {
+				var query = builder.Build();
+				queryResult = query.Execute(elementType, Table).AsQueryable();
+			} else {
+				var lambdaExpression = (LambdaExpression)((UnaryExpression)(whereExpression.Arguments[1])).Operand;
+
+				// Send the lambda expression through the partial evaluator.
+				lambdaExpression = (LambdaExpression)Evaluator.PartialEval(lambdaExpression);
+
+				var query = builder.Build(lambdaExpression.Body);
+				queryResult = query.Execute(elementType, Table).AsQueryable();
+			}
+
+			// Copy the expression tree that was passed in, changing only the first
+			// argument of the innermost MethodCallExpression.
+			var treeCopier = new ExpressionTreeModifier(queryResult, elementType);
+			var newExpressionTree = treeCopier.Visit(expression);
+
+			// This step creates an IQueryable that executes by replacing Queryable methods with Enumerable methods.
+			if (isEnum)
+				return queryResult.Provider.CreateQuery(newExpressionTree);
+			
+			return queryResult.Provider.Execute(newExpressionTree);
+		}
+
+		private static bool IsQueryOverDataSource(Expression expression) {
+			// If expression represents an unqueried IQueryable data source instance,
+			// expression is of type ConstantExpression, not MethodCallExpression.
+			return (expression is MethodCallExpression);
 		}
 
 		public TResult Execute<TResult>(Expression expression) {
-			return (TResult) Execute(expression);
+			bool isEnum = (typeof(TResult).Name == "IEnumerable`1");
+			return (TResult) Execute(expression, isEnum);
 		}
 
 		public string GetQueryText(Expression expression) {

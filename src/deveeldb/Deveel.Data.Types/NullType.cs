@@ -60,5 +60,12 @@ namespace Deveel.Data.Types {
 
 			throw new FormatException();
 		}
+
+		public override object ConvertTo(ISqlObject obj, Type destType) {
+			if (obj == null || obj.IsNull)
+				return null;
+
+			throw new InvalidCastException();
+		}
 	}
 }

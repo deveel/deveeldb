@@ -254,6 +254,36 @@ namespace Deveel.Data.Types {
 			return sb.ToString();
 		}
 
+		public override object ConvertTo(ISqlObject obj, Type destType) {
+			if (!(obj is SqlNumber))
+				throw new ArgumentException();
+
+			var number = (SqlNumber)obj;
+			if (number.IsNull)
+				return null;
+
+			if (destType == typeof(byte))
+				return number.ToByte();
+			if (destType == typeof(short))
+				return number.ToInt16();
+			if (destType == typeof(int))
+				return number.ToInt32();
+			if (destType == typeof(long))
+				return number.ToInt64();
+			if (destType == typeof(float))
+				return number.ToSingle();
+			if (destType == typeof(double))
+				return number.ToDouble();
+
+			if (destType == typeof(bool))
+				return number.ToBoolean();
+
+			if (destType == typeof(string))
+				return number.ToString();
+
+			return base.ConvertTo(obj, destType);
+		}
+
 		public override ISqlObject Add(ISqlObject a, ISqlObject b) {
 			if (!(a is SqlNumber))
 				throw new ArgumentException();
