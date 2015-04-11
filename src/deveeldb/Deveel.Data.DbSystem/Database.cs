@@ -2,13 +2,14 @@
 using System.Data;
 using System.IO;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Protocol;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class Database : IDatabase {
+	public sealed class Database : IDatabase, IDatabaseEventSource {
 		public Database(IDatabaseContext context) {
 			Context = context;
 
@@ -35,6 +36,10 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public TransactionCollection OpenTransactions { get; private set; }
+
+		string IDatabaseEventSource.DatabaseName {
+			get { return Context.DatabaseName(); }
+		}
 
 		ITransaction ITransactionContext.CreateTransaction(TransactionIsolation isolation) {
 			return CreateTransaction(isolation);
@@ -128,6 +133,8 @@ namespace Deveel.Data.DbSystem {
 		public bool IsOpen { get; private set; }
 
 		public TableSourceComposite TableComposite { get; private set; }
+
+		public IEventRegistry EventRegistry { get; private set; }
 
 		public ITable SingleRowTable { get; private set; }
 

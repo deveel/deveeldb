@@ -32,6 +32,8 @@ namespace Deveel.Data.Diagnostics {
 		/// </summary>
 		Notification = 2,
 
+		Trigger = 3,
+
 		/// <summary>
 		/// The collection of a statistical fact within the system.
 		/// </summary>

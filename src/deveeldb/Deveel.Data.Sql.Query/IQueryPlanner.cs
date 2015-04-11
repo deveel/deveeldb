@@ -16,10 +16,11 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
 	public interface IQueryPlanner {
-		IQueryPlanNode PlanQuery(IQueryPlanContext context, SqlQueryExpression queryExpression);
+		IQueryPlanNode PlanQuery(IUserSession session, SqlQueryExpression queryExpression);
 	}
 }

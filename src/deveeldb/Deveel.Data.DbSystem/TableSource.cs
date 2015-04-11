@@ -139,10 +139,6 @@ namespace Deveel.Data.DbSystem {
 
 		public bool HasShutdown { get; private set; }
 
-		private ISearchIndexFactory IndexFactory {
-			get { return SystemContext.IndexFactory; }
-		}
-
 		public TableCellCache CellCache {
 			get { return DatabaseContext.CellCache; }
 		}

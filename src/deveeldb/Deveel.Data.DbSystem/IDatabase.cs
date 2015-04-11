@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Protocol;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
@@ -34,6 +35,8 @@ namespace Deveel.Data.DbSystem {
 		bool IsOpen { get; }
 
 		TableSourceComposite TableComposite { get; }
+
+		IEventRegistry EventRegistry { get; }
 
 		ITable SingleRowTable { get; }
 

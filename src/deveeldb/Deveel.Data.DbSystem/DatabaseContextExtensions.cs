@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Routines;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Store;
 
 namespace Deveel.Data.DbSystem {
@@ -37,5 +40,37 @@ namespace Deveel.Data.DbSystem {
 		public static string DefaultSchema(this IDatabaseContext context) {
 			return context.Configuration.GetString(DatabaseConfigKeys.DefaultSchema);
 		}
+
+		public static Type QueryPlannerType(this IDatabaseContext context) {
+			var value = context.Configuration.GetString(DatabaseConfigKeys.QueryPlanner);
+			if (String.IsNullOrEmpty(value))
+				return typeof (QueryPlanner);
+
+
+			return Type.GetType(value, false, true);
+		}
+
+		public static IQueryPlanner QueryPlanner(this IDatabaseContext context) {
+			var type = context.QueryPlannerType();
+			if (type == typeof (QueryPlanner))
+				return new QueryPlanner();
+
+			if (context.SystemContext.ServiceProvider == null ||
+				!typeof(IQueryPlanner).IsAssignableFrom(type))
+				return null;
+
+			return context.SystemContext.ServiceProvider.Resolve(type)  as IQueryPlanner;
+		}
+
+		#region Routines
+		
+		public static IRoutine ResolveRoutine(this IDatabaseContext context, InvokeRequest invoke, IQueryContext queryContext) {
+			if (context.RoutineResolver == null)
+				return null;
+
+			return context.RoutineResolver.ResolveRoutine(invoke, queryContext);
+		}
+
+		#endregion
 	}
 }

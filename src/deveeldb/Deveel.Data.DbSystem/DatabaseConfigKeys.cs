@@ -8,10 +8,12 @@ namespace Deveel.Data.DbSystem {
 		public const string DatabaseNameKeyName = "database.name";
 		public const string DefaultSchemKeyName = "database.defaultSchema";
 		public const string DeleteOnCloseKeyName = "database.deleteOnClose";
-
+		
 		public const string StoreSystemKeyName = "store.type";
 		public const string FileStoreBasePathKeyName = "store.file.basePath";
 		public const string FileStoreMaxFilesKeyName = "store.file.maxFiles";
+
+		public const string QueryPlannerKeyName = "query.planner.type";
 
 		public static readonly ConfigKey DatabaseName = new ConfigKey(DatabaseNameKeyName, typeof(string));
 
@@ -20,5 +22,7 @@ namespace Deveel.Data.DbSystem {
 		public static readonly ConfigKey StorageSystem = new ConfigKey(StoreSystemKeyName, DefaultStorageSystemNames.Heap, typeof(string));
 
 		public static readonly ConfigKey DeleteOnClose = new ConfigKey(DeleteOnCloseKeyName, false, typeof(bool));
+
+		public static readonly ConfigKey QueryPlanner = new ConfigKey(QueryPlannerKeyName, null, typeof(string));
 	}
 }

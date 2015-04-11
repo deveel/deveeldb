@@ -21,7 +21,7 @@ namespace Deveel.Data.Diagnostics {
 	/// <summary>
 	/// This is an event occurred during the lifetime of a database.
 	/// </summary>
-	public interface IDatabaseEvent {
+	public interface IDatabaseEvent : IEvent {
 		/// <summary>
 		/// Gets a value that identifies the type of event
 		/// </summary>

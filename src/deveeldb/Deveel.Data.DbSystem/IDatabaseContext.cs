@@ -3,7 +3,6 @@
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
@@ -14,8 +13,6 @@ namespace Deveel.Data.DbSystem {
 		ISystemContext SystemContext { get; }
 
 		IStoreSystem StoreSystem { get; }
-
-		IQueryPlanner QueryPlanner { get; }
 
 		IRoutineResolver RoutineResolver { get; }
 

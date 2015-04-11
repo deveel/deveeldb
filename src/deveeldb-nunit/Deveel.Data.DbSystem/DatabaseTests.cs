@@ -20,14 +20,15 @@ namespace Deveel.Data.DbSystem {
 			systemContext = new SystemContext();
 
 			var test = TestContext.CurrentContext.Test.Name;
-			if (test != "CreateNewContext")
-				databaseContext = systemContext.CreateDatabaseContext(DbConfig.Empty, TestDbName);
+			if (test != "CreateNewContext") {
+				databaseContext = new DatabaseContext(systemContext, TestDbName);
+			}
 		}
 
 		[Test]
 		public void CreateNewContext() {
 			IDatabaseContext context = null;
-			Assert.DoesNotThrow(() => context = systemContext.CreateDatabaseContext(DbConfig.Default,TestDbName));
+			Assert.DoesNotThrow(() => context = new DatabaseContext(systemContext,TestDbName));
 			Assert.IsNotNull(context);
 			Assert.AreEqual(TestDbName, context.DatabaseName());
 			Assert.IsInstanceOf<InMemoryStorageSystem>(context.StoreSystem);

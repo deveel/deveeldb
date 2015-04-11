@@ -78,7 +78,7 @@ namespace Deveel.Data.Types {
 			var length = reader.ReadInt32();
 			var bytes = reader.ReadBytes(length);
 
-			var factory = context.SpatialContext.GeometryFactory;
+			var factory = context.SpatialContext().GeometryFactory;
 			var wkbReader = new WkbReader(factory);
 			return wkbReader.Read(bytes);
 		}

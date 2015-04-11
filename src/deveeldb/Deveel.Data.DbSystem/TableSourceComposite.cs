@@ -44,20 +44,17 @@ namespace Deveel.Data.DbSystem {
 			get { return Database.Context; }
 		}
 
-		public IStoreSystem StoreSystem {
+		private IStoreSystem StoreSystem {
 			get { return DatabaseContext.StoreSystem; }
 		}
 
-		public int CurrentCommitId { get; private set; } 
+		public int CurrentCommitId { get; private set; }
 
-		public bool IsReadOnly {
-			get {
-				//TODO: return SystemContext.IsReadOnly();
-				return false;
-			}
+		private bool IsReadOnly {
+			get { return Database.Context.ReadOnly(); }
 		}
 
-		public bool IsClosed {
+		private bool IsClosed {
 			get { return tableSources == null; }
 		}
 
@@ -65,7 +62,7 @@ namespace Deveel.Data.DbSystem {
 
 		private string StateStoreName { get; set; }
 
-		public IObjectStore LargeObjectStore { get; private set; }
+		private IObjectStore LargeObjectStore { get; set; }
 
 		private void ReadVisibleTables() {
 			lock (commitLock) {

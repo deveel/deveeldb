@@ -9,8 +9,8 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class DatabaseContext : IDatabaseContext {
-		public DatabaseContext(ISystemContext systemContext) 
-			: this(systemContext, DbConfig.Default) {
+		public DatabaseContext(ISystemContext systemContext, string name) 
+			: this(systemContext, CreateSimpleConfig(name)) {
 		}
 
 		public DatabaseContext(ISystemContext systemContext, IDbConfig configuration) {
@@ -28,6 +28,16 @@ namespace Deveel.Data.DbSystem {
 
 		~DatabaseContext() {
 			Dispose(false);
+		}
+
+		private static IDbConfig CreateSimpleConfig(string dbName) {
+			if (String.IsNullOrEmpty(dbName))
+				throw new ArgumentNullException("dbName");
+
+			var config = DbConfig.Empty;
+			config.SetKey(DatabaseConfigKeys.DatabaseName);
+			config.SetValue(DatabaseConfigKeys.DatabaseName, dbName);
+			return config;
 		}
 
 		public void Dispose() {
@@ -84,7 +94,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private IStoreSystem CreateExternalStoreSystem(Type type) {
-			throw new NotImplementedException();
+			return SystemContext.ServiceProvider.Resolve(type) as IStoreSystem;
 		}
 	}
 }

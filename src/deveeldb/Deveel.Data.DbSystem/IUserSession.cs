@@ -19,9 +19,7 @@ using System.Data;
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Security;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
@@ -30,7 +28,7 @@ namespace Deveel.Data.DbSystem {
 	/// An isolated session to a given database for a given user,
 	/// encapsulating the transaction for operations.
 	/// </summary>
-	public interface IUserSession : IQueryPlanContext, IDisposable {
+	public interface IUserSession : IDisposable {
 		/// <summary>
 		/// Gets the instance of the <see cref="User"/> of the session.
 		/// </summary>

@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Protocol;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Query;
@@ -25,7 +26,7 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class UserSession : IUserSession {
+	public sealed class UserSession : IUserSession, ISessionEventSource {
 		private List<LockHandle> lockHandles;
 
 		internal UserSession(IDatabase database, ITransaction transaction, User user, ConnectionEndPoint userEndPoint) {
@@ -49,14 +50,6 @@ namespace Deveel.Data.DbSystem {
 			throw new NotImplementedException();
 		}
 
-		public ObjectName ResolveObjectName(string name) {
-			return Transaction.ResolveObjectName(name);
-		}
-
-		public bool TableExists(ObjectName tableName) {
-			return Transaction.TableExists(tableName);
-		}
-
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
@@ -72,6 +65,14 @@ namespace Deveel.Data.DbSystem {
 
 		public DateTimeOffset? LastCommand {
 			get { throw new NotImplementedException(); }
+		}
+
+		string IDatabaseEventSource.DatabaseName {
+			get { return Database.Name(); }
+		}
+
+		string ISessionEventSource.UserName {
+			get { return User.Name; }
 		}
 
 		public ITransaction Transaction { get; private set; }

@@ -42,12 +42,20 @@ namespace Deveel.Data {
 
 		public int ErrorCode { get; private set; }
 
-		public ErrorEvent AsEvent() {
+		protected virtual ErrorLevel ErrorLevel {
+			get { return ErrorLevel.Error; }
+		}
+
+		public ErrorEvent AsEvent(string databaseName, string userName) {
 			IDictionary<string, object> data = new Dictionary<string, object>();
 			foreach (DictionaryEntry entry in Data) {
 				data[entry.Key.ToString()] = entry.Value;
 			}
-			return new ErrorEvent(EventClass, ErrorCode, Message, data);
+
+			data["StackTrace"] = StackTrace;
+			data["Source"] = Source;
+
+			return new ErrorEvent(databaseName, userName, EventClass, ErrorCode, ErrorLevel.Error, Message, data);
 		}
 	}
 }

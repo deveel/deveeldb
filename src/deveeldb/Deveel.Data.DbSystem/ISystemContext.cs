@@ -24,14 +24,6 @@ namespace Deveel.Data.DbSystem {
 	public interface ISystemContext : IDisposable {
 		IDbConfig Configuration { get; }
 
-		ISpatialContext SpatialContext { get; }
-
-		ISearchIndexFactory IndexFactory { get; }
-
-		// TODO: System diagnostics ...
-
-		IDatabaseContext CreateDatabaseContext(IDbConfig config);
-
-		IDatabaseContext GetDatabaseContext(IDbConfig config);
+		ISystemServiceProvider ServiceProvider { get; }
 	}
 }
