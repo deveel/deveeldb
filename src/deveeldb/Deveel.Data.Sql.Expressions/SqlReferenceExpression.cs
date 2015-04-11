@@ -22,9 +22,8 @@ namespace Deveel.Data.Sql.Expressions {
 	/// </summary>
 	[Serializable]
 	public sealed class SqlReferenceExpression : SqlExpression {
-		internal SqlReferenceExpression(ObjectName name, bool toRef) {
+		internal SqlReferenceExpression(ObjectName name) {
 			ReferenceName = name;
-			IsToVariable = toRef;
 		}
 
 		public override bool CanEvaluate {
@@ -35,12 +34,6 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Gets the name of the object referenced by the expression.
 		/// </summary>
 		public ObjectName ReferenceName { get; private set; }
-
-		/// <summary>
-		/// Gets a value indicating whether this expression references
-		/// a variable or another kind of object.
-		/// </summary>
-		public bool IsToVariable { get; private set; }
 
 		/// <inheritdoc/>
 		public override SqlExpressionType ExpressionType {

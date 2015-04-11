@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Expressions {
 		Or,
 		XOr,
 
-		// Subquery 
+		// Sub-query 
 
 		AnyEqual,
 		AnyNotEqual,
@@ -78,10 +78,14 @@ namespace Deveel.Data.Sql.Expressions {
 
 		/// <summary>
 		/// An expression that references an object on the database
-		/// (that is a Column, Table, Sequence, another database object 
-		/// or a variable).
+		/// (that is a Column, Table, Sequence, another database object).
 		/// </summary>
 		Reference,
+
+		/// <summary>
+		/// References a variable in a context.
+		/// </summary>
+		VariableReference,
 
 		/// <summary>
 		/// A variable or reference assignment expression.

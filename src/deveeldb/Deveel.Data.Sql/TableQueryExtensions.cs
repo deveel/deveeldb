@@ -371,8 +371,6 @@ namespace Deveel.Data.Sql {
 			var objRef = expression.Left as SqlReferenceExpression;
 			if (objRef == null)
 				throw new NotSupportedException();
-			if (objRef.IsToVariable)
-				throw new InvalidOperationException();
 
 			var columnName = objRef.ReferenceName;
 
@@ -1157,8 +1155,6 @@ namespace Deveel.Data.Sql {
 		public static ITable SimpleJoin(this ITable thisTable, IQueryContext context, ITable other, SqlBinaryExpression binary) {
 			var objRef = binary.Left as SqlReferenceExpression;
 			if (objRef == null)
-				throw new ArgumentException();
-			if (objRef.IsToVariable)
 				throw new ArgumentException();
 
 			// Find the row with the name given in the condition.

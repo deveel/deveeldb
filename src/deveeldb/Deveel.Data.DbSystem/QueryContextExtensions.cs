@@ -14,13 +14,11 @@
 //    limitations under the License.
 //
 using System;
-using System.Runtime.Remoting.Messaging;
 
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public static class QueryContextExtensions {
@@ -163,6 +161,29 @@ namespace Deveel.Data.DbSystem {
 
 		public static bool UserCanExecuteProcedure(this IQueryContext context, ObjectName procedureName) {
 			return context.UserCanExecute(RoutineType.Procedure, procedureName);
+		}
+
+		#endregion
+
+		#region Variables
+
+		public static void SetVariable(this IQueryContext context, string variableName, DataObject value) {
+			IQueryContext opContext = context;
+			Variable variable = null;
+			while (true) {
+				if (opContext == null ||
+					opContext.VariableManager == null)
+					break;
+
+				variable = opContext.VariableManager.GetVariable(variableName);
+
+				if (variable != null) {
+					variable.SetValue(value);
+					return;
+				}
+			}
+
+			throw new InvalidOperationException(String.Format("Cannot find variable {0} in the context.", variableName));
 		}
 
 		#endregion

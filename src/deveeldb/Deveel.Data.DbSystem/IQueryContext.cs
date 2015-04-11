@@ -17,11 +17,7 @@
 using System;
 
 using Deveel.Data.Caching;
-using Deveel.Data.Routines;
-using Deveel.Data.Security;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.DbSystem {
 	//TODO: Add many more functions ... this is a sort of placeholder for the moment
@@ -39,6 +35,8 @@ namespace Deveel.Data.DbSystem {
 		ICache TableCache { get; }
 
 		IQueryContext ParentContext { get; }
+
+		VariableManager VariableManager { get; }
 
 		/// <summary>
 		/// Computes a new random number, that is ensured to be unique 

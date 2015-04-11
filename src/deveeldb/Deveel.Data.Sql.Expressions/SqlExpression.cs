@@ -233,11 +233,11 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public static SqlReferenceExpression Reference(ObjectName objectName) {
-			return new SqlReferenceExpression(objectName, false);
+			return new SqlReferenceExpression(objectName);
 		}
 
-		public static SqlReferenceExpression VariableReference(string varName) {
-			return new SqlReferenceExpression(new ObjectName(varName), true);
+		public static SqlVariableReferenceExpression VariableReference(string varName) {
+			return new SqlVariableReferenceExpression(varName);
 		}
  
 		#endregion
@@ -409,11 +409,11 @@ namespace Deveel.Data.Sql.Expressions {
 
 		#endregion
 
-		public static SqlAssignExpression Assign(ObjectName reference, SqlExpression valueExpression) {
-			return Assign(Reference(reference), valueExpression);
+		public static SqlAssignExpression Assign(string reference, SqlExpression valueExpression) {
+			return Assign(VariableReference(reference), valueExpression);
 		}
 
-		public static SqlAssignExpression Assign(SqlExpression reference, SqlExpression expression) {
+		public static SqlAssignExpression Assign(SqlVariableReferenceExpression reference, SqlExpression expression) {
 			return new SqlAssignExpression(reference, expression);
 		}
 

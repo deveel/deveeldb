@@ -61,6 +61,8 @@ namespace Deveel.Data.Sql.Expressions {
 					return VisitCast((SqlCastExpression) expression);
 				case SqlExpressionType.Reference:
 					return VisitReference((SqlReferenceExpression) expression);
+				case SqlExpressionType.VariableReference:
+					return VisitVariableReference((SqlVariableReferenceExpression) expression);
 				case SqlExpressionType.Assign:
 					return VisitAssign((SqlAssignExpression) expression);
 				case SqlExpressionType.FunctionCall:
@@ -159,9 +161,11 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <param name="reference"></param>
 		/// <returns></returns>
 		public virtual SqlExpression VisitReference(SqlReferenceExpression reference) {
-			if (reference.IsToVariable)
-				return SqlExpression.VariableReference(reference.ReferenceName.FullName);
 			return SqlExpression.Reference(reference.ReferenceName);
+		}
+
+		public virtual SqlVariableReferenceExpression VisitVariableReference(SqlVariableReferenceExpression reference) {
+			return SqlExpression.VariableReference(reference.VariableName);
 		}
 
 		/// <summary>
@@ -171,9 +175,9 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <returns></returns>
 		public virtual SqlExpression VisitAssign(SqlAssignExpression assign) {
 			var reference = assign.Reference;
-			var expression = assign.Expression;
+			var expression = assign.ValueExpression;
 			if (reference != null)
-				reference = Visit(reference);
+				reference = VisitVariableReference(reference);
 			if (expression != null)
 				expression = Visit(expression);
 

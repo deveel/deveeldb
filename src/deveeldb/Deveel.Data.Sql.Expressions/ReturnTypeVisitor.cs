@@ -56,11 +56,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override SqlExpression VisitReference(SqlReferenceExpression reference) {
 			var name = reference.ReferenceName;
-			if (reference.IsToVariable) {
-				// TODO: resolve the global variable and get the type...
-			} else {
-				dataType = variableResolver.ReturnType(name);
-			}
+			dataType = variableResolver.ReturnType(name);
 
 			return base.VisitReference(reference);
 		}

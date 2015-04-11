@@ -63,7 +63,7 @@ namespace Deveel.Data.Sql.Compile {
 			throw new NotSupportedException(String.Format("Node of type {0} is not an expression that can be built.", expressionNode.GetType()));
 		}
 
-		private SqlReferenceExpression VisitVariableRef(SqlVariableRefExpressionNode node) {
+		private SqlVariableReferenceExpression VisitVariableRef(SqlVariableRefExpressionNode node) {
 			return SqlExpression.VariableReference(node.Variable);
 		}
 

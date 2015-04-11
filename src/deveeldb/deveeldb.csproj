@@ -237,6 +237,7 @@
     <Compile Include="Deveel.Data.Protocol\KnownConnectionProtocols.cs" />
     <Compile Include="Deveel.Data.Security\SystemGroupNames.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions.Fluid\IExpressionConfiguration.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlVariableReferenceExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanner.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql\DataTable.cs" />
