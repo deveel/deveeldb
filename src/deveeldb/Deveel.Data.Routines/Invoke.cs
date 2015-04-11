@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
@@ -26,27 +27,27 @@ namespace Deveel.Data.Routines {
 	/// The information about the invocation of a routine, including
 	/// the full name and arguments (as <see cref="SqlExpression"/>).
 	/// </summary>
-	public sealed class InvokeRequest {
-		private IRoutine cached;
+	public sealed class Invoke {
+		private IFunction cached;
 
 		/// <summary>
-		/// Constructs a new <see cref="InvokeRequest"/> with the given
+		/// Constructs a new <see cref="Invoke"/> with the given
 		/// name of the routine and no arguments.
 		/// </summary>
 		/// <param name="routineName">The fully qualified name of the routine
 		/// to be invoked.</param>
-		public InvokeRequest(ObjectName routineName)
+		public Invoke(ObjectName routineName)
 			: this(routineName, new SqlExpression[0]) {
 		}
 
 		/// <summary>
-		/// Constructs a new <see cref="InvokeRequest"/> with the given
+		/// Constructs a new <see cref="Invoke"/> with the given
 		/// name of the routine and the arguments.
 		/// </summary>
 		/// <param name="routineName">The fully qualified name of the routine
 		/// to be invoked.</param>
 		/// <param name="arguments">The arguments to pass to the routine.</param>
-		public InvokeRequest(ObjectName routineName, SqlExpression[] arguments) {
+		public Invoke(ObjectName routineName, SqlExpression[] arguments) {
 			RoutineName = routineName;
 			Arguments = arguments;
 		}
@@ -123,7 +124,7 @@ namespace Deveel.Data.Routines {
 				resolver = context.DatabaseContext.RoutineResolver;
 			}
 
-			cached = resolver.ResolveRoutine(this, context);
+			cached = resolver.ResolveRoutine(this, context) as IFunction;
 			if (cached == null)
 				throw new InvalidOperationException(String.Format("Unable to resolve the call {0} to a function", this));
 
@@ -148,6 +149,24 @@ namespace Deveel.Data.Routines {
 		/// <seealso cref="ResolveRoutine"/>
 		public IFunction ResolveSystemFunction() {
 			return ResolveRoutine(null) as IFunction;
+		}
+
+		public ExecuteResult Execute() {
+			return Execute(null);
+		}
+
+		public ExecuteResult Execute(IQueryContext context) {
+			return Execute(context, null);
+		}
+
+		public ExecuteResult Execute(IQueryContext context, IVariableResolver resolver) {
+			return Execute(context, resolver, null);
+		}
+
+		public ExecuteResult Execute(IQueryContext context, IVariableResolver resolver, IGroupResolver group) {
+			var routine = ResolveRoutine(context);
+			var executeContext = new ExecuteContext(this, routine, resolver, group, context);
+			return routine.Execute(executeContext);
 		}
 
 		public override String ToString() {

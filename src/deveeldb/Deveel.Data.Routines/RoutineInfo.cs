@@ -29,24 +29,24 @@ namespace Deveel.Data.Routines {
 		/// <summary>
 		/// Constructs a routine info with the given name.
 		/// </summary>
-		/// <param name="name">The name uniquely identifying the routine.</param>
-		protected RoutineInfo(ObjectName name) 
-			: this(name, new RoutineParameter[] {}) {
+		/// <param name="routineName">The name uniquely identifying the routine.</param>
+		protected RoutineInfo(ObjectName routineName) 
+			: this(routineName, new RoutineParameter[] {}) {
 		}
 
 		/// <summary>
 		/// Constructs the routine info with the given signature.
 		/// </summary>
-		/// <param name="name">The name uniquely identifying the routine.</param>
+		/// <param name="routineName">The name uniquely identifying the routine.</param>
 		/// <param name="parameters">The list of parameter information of the routine.</param>
-		protected RoutineInfo(ObjectName name, RoutineParameter[] parameters) {
-			if (name == null)
-				throw new ArgumentNullException("name");
+		protected RoutineInfo(ObjectName routineName, RoutineParameter[] parameters) {
+			if (routineName == null)
+				throw new ArgumentNullException("routineName");
 
 			if (parameters == null)
 				parameters = new RoutineParameter[0];
 
-			Name = name;
+			RoutineName = routineName;
 			Parameters = parameters;
 		}
 
@@ -55,13 +55,13 @@ namespace Deveel.Data.Routines {
 		}
 
 		ObjectName IObjectInfo.FullName {
-			get { return Name; }
+			get { return RoutineName; }
 		}
 
 		/// <summary>
 		/// Gets the name of the routine that uniquely identifies it in a system context.
 		/// </summary>
-		public ObjectName Name { get; private set; }
+		public ObjectName RoutineName { get; private set; }
 
 		protected abstract DbObjectType ObjectType { get; }
 
@@ -70,11 +70,15 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		public RoutineParameter[] Parameters { get; private set; }
 
-		internal abstract bool MatchesInvoke(InvokeRequest request, IQueryContext queryContext);
+		public string ExternalMethodName { get; set; }
+
+		public Type ExternalType { get; set; }
+
+		internal abstract bool MatchesInvoke(Invoke request, IQueryContext queryContext);
 
 		public override string ToString() {
 			var sb = new StringBuilder();
-			sb.Append(Name);
+			sb.Append(RoutineName);
 			if (Parameters != null && Parameters.Length > 0) {
 				sb.Append('(');
 				for (int i = 0; i < Parameters.Length; i++) {

@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -26,7 +28,7 @@ namespace Deveel.Data.Routines {
 	/// <remarks>
 	/// This class provides the base features for constructing functions.
 	/// </remarks>
-	public abstract class Function : Routine, IFunction {
+	public abstract class Function : IFunction {
 		/// <summary>
 		/// A special <see cref="DataType"/> that is used to mark an argument
 		/// of a function as <c>dynamic</c>.
@@ -36,71 +38,48 @@ namespace Deveel.Data.Routines {
 		/// </remarks>
 		public static readonly DataType DynamicType = new DynamicDataType();
 
-		/// <summary>
-		/// Constructs a new <see cref="Function"/> with the given signature.
-		/// </summary>
-		/// <param name="name">The name that uniquely identifies the function
-		/// within the system. This is a complex object <see cref="ObjectName"/> 
-		/// that includes definiton of the location where the function is defined.</param>
-		/// <param name="parameters">The parameter signature of the function.</param>
-		/// <remarks>
-		/// <para>
-		/// This constructor does not provide any default return type, that means
-		/// this value must be dynamically resolved by <see cref="ReturnType(ExecuteContext)"/>
-		/// </para>
-		/// </remarks>
-		protected Function(ObjectName name, RoutineParameter[] parameters) 
-			: this(name, parameters, Routines.FunctionType.Static) {
+		protected Function(FunctionInfo functionInfo) {
+			if (functionInfo == null)
+				throw new ArgumentNullException("functionInfo");
+
+			FunctionInfo = functionInfo;
 		}
 
-		/// <summary>
-		/// Constructs a new <see cref="Function"/> with the given signature.
-		/// </summary>
-		/// <param name="name">The name that uniquely identifies the function
-		/// within the system. This is a complex object <see cref="ObjectName"/> 
-		/// that includes definiton of the location where the function is defined.</param>
-		/// <param name="parameters">The parameter signature of the function.</param>
-		/// <param name="functionType">The type of the function.</param>
-		/// <remarks>
-		/// <para>
-		/// This constructor does not provide any default return type, that means
-		/// this value must be dynamically resolved by <see cref="ReturnType(ExecuteContext)"/>
-		/// </para>
-		/// </remarks>
 		protected Function(ObjectName name, RoutineParameter[] parameters, FunctionType functionType) 
 			: this(name, parameters, null, functionType) {
 		}
 
-		/// <summary>
-		/// Constructs a new <see cref="Function"/> with the given signature.
-		/// </summary>
-		/// <param name="name">The name that uniquely identifies the function
-		/// within the system. This is a complex object <see cref="ObjectName"/> 
-		/// that includes definiton of the location where the function is defined.</param>
-		/// <param name="parameters">The parameter signature of the function.</param>
-		/// <param name="returnType">The type of the value returned by the function.</param>
 		protected Function(ObjectName name, RoutineParameter[] parameters, DataType returnType) 
 			: this(name, parameters, returnType, FunctionType.Static) {
 		}
 
-		/// <summary>
-		/// Constructs a new <see cref="Function"/> with the given signature.
-		/// </summary>
-		/// <param name="name">The name that uniquely identifies the function
-		/// within the system. This is a complex object <see cref="ObjectName"/> 
-		/// that includes definiton of the location where the function is defined.</param>
-		/// <param name="parameters">The parameter signature of the function.</param>
-		/// <param name="returnType">The type of the value returned by the function.</param>
-		/// <param name="functionType">The type of the function.</param>
-		protected Function(ObjectName name, RoutineParameter[] parameters, DataType returnType, FunctionType functionType) 
-			: base(name, parameters, RoutineType.Function) {
-			this.returnType = returnType;
-			FunctionType = functionType;
+		protected Function(ObjectName name, RoutineParameter[] parameters, DataType returnType, FunctionType functionType)
+			: this(new FunctionInfo(name, parameters, returnType, functionType)) {
 		}
 
-		private readonly DataType returnType;
+		public FunctionType FunctionType { get; private set; }
 
-		public virtual FunctionType FunctionType { get; private set; }
+		public FunctionInfo FunctionInfo { get; private set; }
+
+		public ObjectName FunctionName {
+			get { return FunctionInfo.RoutineName; }
+		}
+
+		RoutineInfo IRoutine.RoutineInfo {
+			get { return FunctionInfo; }
+		}
+
+		RoutineType IRoutine.Type {
+			get { return RoutineType.Function; }
+		}
+
+		DbObjectType IDbObject.ObjectType {
+			get { return DbObjectType.Function; }
+		}
+
+		ObjectName IDbObject.FullName {
+			get { return FunctionName; }
+		}
 
 		/// <summary>
 		/// Executes the function and provides a result.
@@ -111,8 +90,9 @@ namespace Deveel.Data.Routines {
 		/// the returned value of the function.
 		/// </returns>
 		/// <seealso cref="ExecuteResult.ReturnValue"/>
-		public override ExecuteResult Execute(ExecuteContext context) {
-			return context.FunctionResult(Evaluate(context.EvaluatedArguments));
+		public ExecuteResult Execute(ExecuteContext context) {
+			var result = new ExecuteResult(context, Evaluate(context.EvaluatedArguments));
+			return result;
 		}
 
 		/// <summary>
@@ -124,9 +104,7 @@ namespace Deveel.Data.Routines {
 		/// Returns a <see cref="DataObject"/> that is the result of the execution
 		/// of the function.
 		/// </returns>
-		protected virtual DataObject Evaluate(DataObject[] args) {
-			return new DataObject(ReturnType(), SqlNull.Value);
-		}
+		protected abstract DataObject Evaluate(DataObject[] args);
 
 		/// <summary>
 		/// Gets the function static return type
@@ -136,6 +114,9 @@ namespace Deveel.Data.Routines {
 		/// the type of the returned value.
 		/// </returns>
 		public DataType ReturnType() {
+			if (FunctionInfo.ReturnType != null)
+				return FunctionInfo.ReturnType;
+
 			return ReturnType(null);
 		}
 
@@ -150,7 +131,7 @@ namespace Deveel.Data.Routines {
 		/// execution context..
 		/// </returns>
 		public virtual DataType ReturnType(ExecuteContext context) {
-			return returnType;
+			return FunctionInfo.ReturnType;
 		}
 
 		#region DynamicType

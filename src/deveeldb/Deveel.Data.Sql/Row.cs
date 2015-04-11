@@ -257,8 +257,20 @@ namespace Deveel.Data.Sql {
 			SetValue(columnIndex, DataObject.SmallInt(value));
 		}
 
+		public void SetValue(int columnIndex, float value) {
+			SetValue(columnIndex, new SqlNumber(value));
+		}
+
+		public void SetValue(int columnIndex, double value) {
+			SetValue(columnIndex, DataObject.Number(new SqlNumber(value)));
+		}
+
 		public void SetValue(int columnIndex, SqlNumber value) {
 			SetValue(columnIndex, DataObject.Number(value));
+		}
+
+		public void SetValue(int columnIndex, bool value) {
+			SetValue(columnIndex, DataObject.Boolean(value));
 		}
 
 		/// <summary>

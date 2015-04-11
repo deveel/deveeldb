@@ -20,6 +20,7 @@ using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Routines.Fluid;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
@@ -34,10 +35,15 @@ namespace Deveel.Data.Routines {
 			configurations = new List<FunctionConfiguration>();
 		}
 
-		public abstract ObjectName SchemaName { get; }
+		public abstract string SchemaName { get; }
 
-		public IRoutine ResolveRoutine(InvokeRequest request, IQueryContext context) {
-			throw new NotImplementedException();
+		public IRoutine ResolveRoutine(Invoke request, IQueryContext context) {
+			if (functions == null)
+				return null;
+
+			return (functions.Where(entry => entry.Key.MatchesInvoke(request, context))
+				.Select(entry => entry.Value))
+				.FirstOrDefault();
 		}
 
 		public void Init() {
@@ -71,7 +77,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		protected IFunctionConfiguration New(string name) {
-			return New().Named(new ObjectName(SchemaName, name));
+			return New().Named(new ObjectName(new ObjectName(SchemaName), name));
 		}
 
 		#region FunctionConfiguration
@@ -129,10 +135,11 @@ namespace Deveel.Data.Routines {
 				if (name == null)
 					throw new ArgumentNullException("name");
 
-				var parent = name.Parent;
+				var parent = name.ParentName;
 
 				if (!factory.SchemaName.Equals(parent))
-					throw new ArgumentException();
+					throw new ArgumentException(String.Format(
+						"The parent name ({0}) is not valid in this factory schema context ({1})", parent, factory.SchemaName));
 
 				FunctionName = name;
 				return this;
@@ -145,7 +152,7 @@ namespace Deveel.Data.Routines {
 				if (FunctionName == null)
 					throw new ArgumentException("The function has no name configured and cannot be aliased.");
 
-				var parent = alias.Parent;
+				var parent = alias.ParentName;
 
 				if (!factory.SchemaName.Equals(parent))
 					throw new ArgumentException();
@@ -208,7 +215,7 @@ namespace Deveel.Data.Routines {
 
 				if (FunctionType == FunctionType.Aggregate) {
 					if (context.GroupResolver == null)
-						throw new InvalidOperationException(String.Format("Function '{0}' can only be used as an aggregate function.",
+						throw new InvalidOperationException(String.Format("routine '{0}' can only be used as an aggregate function.",
 							FunctionName));
 
 					DataObject result = null;
@@ -217,7 +224,7 @@ namespace Deveel.Data.Routines {
 					int size = context.GroupResolver.Count;
 					if (size == 0) {
 						// Return a NULL of the return type
-						return context.FunctionResult(new DataObject(ReturnType(context), SqlNull.Value));
+						return context.Result(new DataObject(ReturnType(context), SqlNull.Value));
 					}
 
 					DataObject val;
@@ -237,7 +244,7 @@ namespace Deveel.Data.Routines {
 									SqlExpression.Constant(val)
 								};
 
-								var newRequest = new InvokeRequest(FunctionName, args);
+								var newRequest = new Invoke(FunctionName, args);
 								var tempContext = new ExecuteContext(newRequest, context.Routine, context.VariableResolver,
 									context.GroupResolver, context.QueryContext);
 
@@ -265,7 +272,7 @@ namespace Deveel.Data.Routines {
 									SqlExpression.Constant(val)
 								};
 
-								var newRequest = new InvokeRequest(FunctionName, args);
+								var newRequest = new Invoke(FunctionName, args);
 								var tempContext = new ExecuteContext(newRequest, context.Routine, context.VariableResolver,
 									context.GroupResolver, context.QueryContext);
 
@@ -283,7 +290,7 @@ namespace Deveel.Data.Routines {
 					if (afterAggregateFunc != null)
 						result = afterAggregateFunc(context, result);
 
-					return context.FunctionResult(result);
+					return context.Result(result);
 				}
 
 				return executeFunc(context);
@@ -363,12 +370,20 @@ namespace Deveel.Data.Routines {
 				get { return RoutineType.Function; }
 			}
 
-			public ObjectName Name {
-				get { return configuration.FunctionName; }
+			private FunctionInfo FunctionInfo {
+				get { return new FunctionInfo(configuration.FunctionName, configuration.Parameters, configuration.FunctionType); }
 			}
 
-			public RoutineParameter[] Parameters {
-				get { return configuration.Parameters; }
+			RoutineInfo IRoutine.RoutineInfo {
+				get { return FunctionInfo; }
+			}
+
+			DbObjectType IDbObject.ObjectType {
+				get { return DbObjectType.Function; }
+			}
+
+			public ObjectName FullName {
+				get { return configuration.FunctionName; }
 			}
 
 			public ExecuteResult Execute(ExecuteContext context) {

@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
-			var invoke = new InvokeRequest(expression.FunctioName, expression.Arguments);
+			var invoke = new Invoke(expression.FunctioName, expression.Arguments);
 			aggFunFound = invoke.IsAggregate(queryContext);
 
 			return base.VisitFunctionCall(expression);

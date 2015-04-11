@@ -13,24 +13,10 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-
 using System;
 
-namespace Deveel.Data.Routines {
-	[Serializable]
-	public abstract class Routine {
-		protected Routine(ObjectName name, RoutineParameter[] parameters, RoutineType type) {
-			Name = name;
-			Parameters = parameters;
-			Type = type;
-		}
-
-		public ObjectName Name { get; private set; }
-
-		public RoutineParameter[] Parameters { get; private set; }
-
-		public RoutineType Type { get; private set; }
-
-		public abstract ExecuteResult Execute(ExecuteContext context);
+namespace Deveel.Data.Routines.Fluid {
+	interface IConfigurationContext {
+		string SchemaName { get; }
 	}
 }

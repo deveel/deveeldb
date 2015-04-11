@@ -18,11 +18,24 @@ using System;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Routines.Fluid;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	class SystemFunctionsFactory : FunctionFactory {
-		public override ObjectName SchemaName {
-			get { return SystemSchema.SchemaName; }
+		public override string SchemaName {
+			get { return SystemSchema.Name; }
+		}
+
+		private ExecuteResult Simple(ExecuteContext context, Func<DataObject[], DataObject> func) {
+			var evaluated = context.EvaluatedArguments;
+			var value = func(evaluated);
+			return context.Result(value);
+		}
+
+		private ExecuteResult Simple(ExecuteContext context, Func<DataObject, DataObject, DataObject> func) {
+			var evaluated = context.EvaluatedArguments;
+			var value = func(evaluated[0], evaluated[1]);
+			return context.Result(value);			
 		}
 
 		private void AddAggregateFunctions() {
@@ -30,11 +43,19 @@ namespace Deveel.Data.Routines {
 			New("aggor")
 				.WithParameter(p => p.Unbounded().OfDynamicType())
 				.Aggregate()
-				.WhenExecute(SystemFunctions.Or);
+				.WhenExecute(context => Simple(context, SystemFunctions.Or));
+		}
+
+		private void AddSecurityFunctions() {
+			New("user")
+				.WhenExecute(context => context.Result(SystemFunctions.User(context.QueryContext)))
+				.ReturnsString();
 		}
 
 		protected override void OnInit() {
 			AddAggregateFunctions();
+
+			AddSecurityFunctions();
 		}
 	}
 }

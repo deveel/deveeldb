@@ -7,20 +7,19 @@ using Deveel.Data.Transactions;
 namespace Deveel.Data.DbSystem {
 	public sealed class SystemQueryContext : QueryContextBase {
 		private IUserSession session;
+		private string currentSchema;
 
 		public SystemQueryContext(ITransaction transaction, string currentSchema) {
 			Transaction = transaction;
-			CurrentSchema = currentSchema;
+			this.currentSchema = currentSchema;
 
 			session = new UserSession(transaction.Context.Database, transaction, User.System, ConnectionEndPoint.Embedded);
 		}
 
 		public ITransaction Transaction { get; private set; }
 
-		public string CurrentSchema { get; set; }
-
-		public override IDatabaseContext DatabaseContext {
-			get { return Transaction.Context.Database.Context; }
+		public override string CurrentSchema {
+			get { return currentSchema; }
 		}
 
 		public override IUserSession Session {

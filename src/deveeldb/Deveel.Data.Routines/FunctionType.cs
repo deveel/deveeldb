@@ -16,7 +16,7 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Routines {
 	/// <summary>
@@ -29,7 +29,7 @@ namespace Deveel.Data.Routines {
 		/// <remarks>
 		/// A static function is not an aggregate therefore does not 
 		/// require a <see cref="IGroupResolver"/>. The result of a 
-		/// static function is guarenteed the same given identical 
+		/// static function is guaranteed the same given identical 
 		/// parameters over subsequent calls.
 		/// </remarks>
 		Static = 1,
@@ -40,21 +40,24 @@ namespace Deveel.Data.Routines {
 		/// <remarks>
 		/// An aggregate function requires the IGroupResolver variable 
 		/// to be present in able to resolve the function over some set.
-		/// The result of an aggregate function is guarenteed the same 
+		/// The result of an aggregate function is guaranteed the same 
 		/// given the same set and identical parameters.
 		/// </remarks>
 		Aggregate = 2,
 
 		/// <summary>
 		/// A function that is non-aggregate but whose return value is not 
-		/// guarenteed to be the same given the identical parameters over 
+		/// guaranteed to be the same given the identical parameters over 
 		/// subsequent calls.
 		/// </summary>
 		/// <remarks>
 		/// This would include functions such as RANDOM and UNIQUEKEY. The 
-		/// result is dependant on some other state (a random seed and a 
+		/// result is dependent on some other state (a random seed and a 
 		/// sequence value).
 		/// </remarks>
-		StateBased = 3
+		StateBased = 3,
+
+		External =  4,
+		UserDefined = 5
 	}
 }

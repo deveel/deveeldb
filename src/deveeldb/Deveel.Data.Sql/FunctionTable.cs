@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql {
 			// Make sure the table info isn't changed from this point on.
 			funTableInfo = funTableInfo.AsReadOnly();
 
-			// Function tables are the size of the referring table.
+			// routine tables are the size of the referring table.
 			rowCount = table.RowCount;
 
 			// Set schemes to 'blind search'.

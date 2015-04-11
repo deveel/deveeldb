@@ -24,19 +24,19 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
 	public sealed class ProcedureInfo : RoutineInfo {
-		public ProcedureInfo(ObjectName name) 
-			: base(name) {
+		public ProcedureInfo(ObjectName routineName) 
+			: base(routineName) {
 		}
 
-		public ProcedureInfo(ObjectName name, RoutineParameter[] parameters) 
-			: base(name, parameters) {
+		public ProcedureInfo(ObjectName routineName, RoutineParameter[] parameters) 
+			: base(routineName, parameters) {
 		}
 
 		protected override DbObjectType ObjectType {
 			get { return DbObjectType.Function; }
 		}
 
-		internal override bool MatchesInvoke(InvokeRequest invoke, IQueryContext queryContext) {
+		internal override bool MatchesInvoke(Invoke invoke, IQueryContext queryContext) {
 			if (invoke == null)
 				return false;
 

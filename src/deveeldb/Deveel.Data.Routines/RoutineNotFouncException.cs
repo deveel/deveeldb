@@ -14,19 +14,51 @@
 //    limitations under the License.
 
 using System;
+using System.Text;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
 	[Serializable]
-	public class RoutineNotFouncException : RoutineException {
+	public class RoutineNotFouncException : ObjectNotFoundException {
+		public RoutineNotFouncException(ObjectName routineName)
+			: this(routineName, new SqlExpression[0]) {
+		}
+
 		public RoutineNotFouncException(string message)
-			: base(message) {
+			: this(null, message) {
 		}
 
-		public RoutineNotFouncException(RoutineName name)
-			: this(String.Format("The routine {0} was not found.", name)) {
+		public RoutineNotFouncException(ObjectName routineName, string message)
+			: this(routineName, new SqlExpression[0], message) {
 		}
 
-		public RoutineNotFouncException() {
+		public RoutineNotFouncException(ObjectName routineName, SqlExpression[] args)
+			: this(routineName, args, FormMessage(routineName, args)) {
+		}
+
+		public RoutineNotFouncException(ObjectName routineName, SqlExpression[] args, string message)
+			: base(routineName, message) {
+			Arguments = args;
+		}
+
+		public SqlExpression[] Arguments { get; private set; }
+
+		private static string FormMessage(ObjectName name, SqlExpression[] args) {
+			var sb = new StringBuilder(name.FullName);
+			sb.Append("(");
+			if (args != null) {
+				for (int i = 0; i < args.Length; i++) {
+					sb.Append(args[i].ToSqlString());
+
+					if (i < args.Length - 1)
+						sb.Append(", ");
+				}
+			}
+			sb.Append(")");
+
+			return String.Format("Unable to resolve {0} to any routine within the system.", sb);
 		}
 	}
 }

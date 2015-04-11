@@ -14,7 +14,9 @@
 //    limitations under the License.
 //
 using System;
+using System.Runtime.Remoting.Messaging;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
@@ -134,5 +136,35 @@ namespace Deveel.Data.DbSystem {
 
 			sequence.SetValue(value);
 		}
+
+		#region Security
+
+		public static bool UserHasPrivilege(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
+			Privileges privileges) {
+			return context.Session.UserHasPrivilege(objectType, objectName, privileges);
+		}
+
+		public static bool UserCanCreateInSchema(this IQueryContext context, string schemaName) {
+			return context.UserHasPrivilege(DbObjectType.Schema, new ObjectName(schemaName), Privileges.Create);
+		}
+
+		public static bool UserCanCreateInSchema(this IQueryContext context) {
+			return context.UserCanCreateInSchema(context.CurrentSchema);
+		}
+
+		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, ObjectName routineName) {
+			var objectType = routineType == RoutineType.Procedure ? DbObjectType.Procedure : DbObjectType.Function;
+			return context.UserHasPrivilege(objectType, routineName, Privileges.Execute);
+		}
+
+		public static bool UserCanExecuteFunction(this IQueryContext context, ObjectName functionName) {
+			return context.UserCanExecute(RoutineType.Function, functionName);
+		}
+
+		public static bool UserCanExecuteProcedure(this IQueryContext context, ObjectName procedureName) {
+			return context.UserCanExecute(RoutineType.Procedure, procedureName);
+		}
+
+		#endregion
 	}
 }

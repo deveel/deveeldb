@@ -4,7 +4,7 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Protocol;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
-
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Security {
 	public static class SecurityQueryExtensions {
@@ -48,7 +48,9 @@ namespace Deveel.Data.Security {
 		}
 
 		public static bool UserBelongsToGroup(this IQueryContext queryContext, string username, string group) {
-			var table = queryContext.GetTable(SystemSchema.UserPrivilegesTableName);
+			// This is a special query that needs to access the lowest level of ITable, skipping
+			// other security controls
+			var table = queryContext.Session.Transaction.GetTable(SystemSchema.UserPrivilegesTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var c2 = table.GetResolvedColumnName(1);
 			// All 'user_priv' where UserName = %username%
@@ -110,7 +112,7 @@ namespace Deveel.Data.Security {
 			rdat.SetValue(0, user);
 			rdat.SetValue(1, protocol);
 			rdat.SetValue(2, host);
-			rdat.SetValue(3, "ALLOW");
+			rdat.SetValue(3, true);
 			table.AddRow(rdat);
 		}
 
@@ -162,12 +164,12 @@ namespace Deveel.Data.Security {
 
 				// Add the grant to the grants table.
 				var rdat = grantTable.NewRow();
-				rdat.SetValue(0, DataObject.BigInt((int)privileges));
-				rdat.SetValue(1, DataObject.BigInt((int)objectType));
-				rdat.SetValue(2, DataObject.String(objectName.FullName));
-				rdat.SetValue(3, DataObject.String(user.Name));
-				rdat.SetValue(4, DataObject.Boolean(withOption));
-				rdat.SetValue(5, DataObject.String(granter.Name));
+				rdat.SetValue(0, (int)privileges);
+				rdat.SetValue(1, (int)objectType);
+				rdat.SetValue(2, objectName.FullName);
+				rdat.SetValue(3, user.Name);
+				rdat.SetValue(4, withOption);
+				rdat.SetValue(5, granter.Name);
 				grantTable.AddRow(rdat);
 
 				user.CacheObjectGrant(objectName, privileges);
@@ -335,9 +337,9 @@ namespace Deveel.Data.Security {
 
 			table = context.GetMutableTable(SystemSchema.PasswordTableName);
 			row = table.NewRow();
-			row[0] = DataObject.String(userName);
-			row[1] = DataObject.TinyInt(1);
-			row[2] = DataObject.String(password);
+			row.SetValue(0, userName);
+			row.SetValue(1, 1);
+			row.SetValue(2, password);
 			table.AddRow(row);
 
 			return new User(userName);

@@ -36,7 +36,7 @@ namespace Deveel.Data.Routines {
 		/// <param name="context"></param>
 		/// <returns></returns>
 		public static DataObject Execute(this IFunction function,
-			InvokeRequest request,
+			Invoke request,
 			IGroupResolver group,
 			IVariableResolver resolver,
 			IQueryContext context) {
@@ -45,7 +45,7 @@ namespace Deveel.Data.Routines {
 			return result.ReturnValue;
 		}
 
-		public static DataType ReturnType(this IFunction function, InvokeRequest request, IQueryContext context, IVariableResolver resolver) {
+		public static DataType ReturnType(this IFunction function, Invoke request, IQueryContext context, IVariableResolver resolver) {
 			var execContext = new ExecuteContext(request, function, resolver, null, context);
 			return function.ReturnType(execContext);
 		}

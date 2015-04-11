@@ -171,6 +171,11 @@ namespace Deveel.Data.DbSystem {
 			return transaction.UserHasPrivilege(user, objectType, objectName, Privileges.Alter);
 		}
 
+		public static bool UserHasPrivilege(this IUserSession session, DbObjectType objectType,
+			ObjectName objectName, Privileges privilege) {
+			return UserHasPrivilege(session, session.User, objectType, objectName, privilege);
+		}
+
 		public static bool UserHasPrivilege(this IUserSession session, User user, DbObjectType objectType,
 			ObjectName objectName, Privileges privilege) {
 			if (user.IsSystem)

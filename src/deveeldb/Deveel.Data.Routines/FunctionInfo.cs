@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	/// <summary>
@@ -29,30 +30,46 @@ namespace Deveel.Data.Routines {
 		/// <summary>
 		/// Constructs a <see cref="FunctionInfo"/> without arguments.
 		/// </summary>
-		/// <param name="name">The name of the function.</param>
-		public FunctionInfo(ObjectName name) 
-			: base(name) {
+		/// <param name="routineName">The name of the function.</param>
+		public FunctionInfo(ObjectName routineName, FunctionType functionType) 
+			: this(routineName, (DataType)null, functionType) {
+		}
+
+		public FunctionInfo(ObjectName routineName, DataType returnType) 
+			: this(routineName, returnType, FunctionType.Static) {
+		}
+
+		public FunctionInfo(ObjectName routineName, DataType returnType, FunctionType functionType) 
+			: base(routineName) {
+			ReturnType = returnType;
+			FunctionType = functionType;
 			AssertUnboundAtEnd();
 		}
 
-		/// <summary>
-		/// Constructs a <see cref="FunctionInfo"/> with the given name
-		/// and parameter informaation.
-		/// </summary>
-		/// <param name="name">the name of the function.</param>
-		/// <param name="parameters">The array of routine parameters for the function.</param>
-		/// <exception cref="ArgumentException">
-		/// If more than one <c>unbounded</c> parameters is specified or if this
-		/// parameter is not specified as last of the list.
-		/// </exception>
-		public FunctionInfo(ObjectName name, RoutineParameter[] parameters) 
-			: base(name, parameters) {
+		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters) 
+			: this(routineName, parameters, FunctionType.Static) {
+		}
+
+		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters, FunctionType functionType) 
+			: this(routineName, parameters, null, functionType) {
+		}
+
+		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters, DataType returnType) 
+			: this(routineName, parameters, returnType, FunctionType.Static) {
+		}
+
+		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters, DataType returnType, FunctionType functionType) 
+			: base(routineName, parameters) {
+			ReturnType = returnType;
+			FunctionType = functionType;
 			AssertUnboundAtEnd();
 		}
 
 		protected override DbObjectType ObjectType {
 			get { return DbObjectType.Function; }
 		}
+
+		public DataType ReturnType { get; private set; }
 
 		private void AssertUnboundAtEnd() {
 			for (int i = 0; i < Parameters.Length; i++) {
@@ -74,15 +91,15 @@ namespace Deveel.Data.Routines {
 		/// <summary>
 		/// Gets the kind of function.
 		/// </summary>
-		public FunctionType FunctionType { get; internal set; }
+		public FunctionType FunctionType { get; private set; }
 
-		internal override bool MatchesInvoke(InvokeRequest request, IQueryContext queryContext) {
+		internal override bool MatchesInvoke(Invoke request, IQueryContext queryContext) {
 			if (request == null)
 				return false;
 
 			// TODO: have a patch to check if this must be case-insensitive compare
 			// TODO: have the request to respect the [Name1].[Name2].[NameN] format as the routine
-			if (!Name.Equals(request.RoutineName))
+			if (!RoutineName.Equals(request.RoutineName))
 				return false;
 
 			// TODO: add a better resolution to obtain the final type of the argument

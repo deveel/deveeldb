@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
-			var invoke = new InvokeRequest(expression.FunctioName, expression.Arguments);
+			var invoke = new Invoke(expression.FunctioName, expression.Arguments);
 			var function = invoke.ResolveRoutine(queryContext) as IFunction;
 			if (function != null)
 				dataType = function.ReturnType(invoke, queryContext, variableResolver);

@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Routines {
 	public static class SystemFunctions {
 		private static FunctionFactory factory;
@@ -33,6 +35,10 @@ namespace Deveel.Data.Routines {
 
 		public static DataObject Or(DataObject ob1, DataObject ob2) {
 			return ob1 != null ? (ob2.IsNull ? ob1 : (!ob1.IsNull ? ob1.Or(ob2) : ob2)) : ob2;
+		}
+
+		public static DataObject User(IQueryContext context) {
+			return DataObject.String(context.User().Name);
 		}
 	}
 }

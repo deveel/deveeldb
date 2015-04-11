@@ -49,6 +49,8 @@ namespace Deveel.Data.Routines {
 
 		public ParameterAttributes Attributes { get; private set; }
 
+		public int Offset { get; internal set; }
+
 		public bool IsNullable {
 			get { return (Attributes & ParameterAttributes.Nullable) != 0; }
 		}

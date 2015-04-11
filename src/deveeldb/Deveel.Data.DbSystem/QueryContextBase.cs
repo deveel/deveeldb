@@ -18,17 +18,20 @@ using System;
 using System.Security.Cryptography;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
-	public abstract class QueryContextBase : IQueryContext {
-		private readonly RNGCryptoServiceProvider secureRandom;
-		private readonly ICache tableCache;
+	public abstract class QueryContextBase : IQueryContext, IVariableScope {
+		private RNGCryptoServiceProvider secureRandom;
+		private ICache tableCache;
 		private bool disposed;
 
 		protected QueryContextBase() {
 			secureRandom = new RNGCryptoServiceProvider();
 			tableCache = new MemoryCache(512, 1024, 30);
+			VariableManager = new VariableManager(this);
 		}
 
 		~QueryContextBase() {
@@ -36,16 +39,24 @@ namespace Deveel.Data.DbSystem {
 		}
 
 
-		public ISystemContext SystemContext {
-			get { return DatabaseContext.SystemContext; }
+		public IDatabaseContext DatabaseContext {
+			get { return Session.Database.Context; }
 		}
 
-		public abstract IDatabaseContext DatabaseContext { get; }
+		public VariableManager VariableManager { get; private set; }
 
 		public abstract IUserSession Session { get; }
 
+		public virtual string CurrentSchema {
+			get { return Session.CurrentSchema; }
+		}
+
 		public virtual ICache TableCache {
 			get { return tableCache; }
+		}
+
+		public virtual IQueryContext ParentContext {
+			get { return null; }
 		}
 
 		public virtual SqlNumber NextRandom(int bitSize) {
@@ -62,6 +73,10 @@ namespace Deveel.Data.DbSystem {
 			try {
 				Dispose(true);
 			} finally {
+				tableCache = null;
+				VariableManager = null;
+				secureRandom = null;
+
 				disposed = true;
 			}
 			
@@ -69,6 +84,37 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		protected virtual void Dispose(bool disposing) {
+
+		}
+
+		DataObject IVariableResolver.Resolve(ObjectName variable) {
+			throw new NotImplementedException();
+		}
+
+		DataType IVariableResolver.ReturnType(ObjectName variableName) {
+			throw new NotImplementedException();
+		}
+
+		void IVariableScope.OnVariableDefined(Variable variable) {
+			OnVariableDefined(variable);
+		}
+
+		void IVariableScope.OnVariableDropped(Variable variable) {
+			OnVariableDropped(variable);
+		}
+
+		Variable IVariableScope.OnVariableGet(string name) {
+			return OnVariableGet(name);
+		}
+
+		protected virtual Variable OnVariableGet(string name) {
+			return null;
+		}
+
+		protected virtual void OnVariableDropped(Variable variable) {
+		}
+
+		protected virtual void OnVariableDefined(Variable variable) {
 		}
 	}
 }

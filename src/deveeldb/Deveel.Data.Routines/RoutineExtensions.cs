@@ -15,8 +15,61 @@
 
 using System;
 
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
+
 namespace Deveel.Data.Routines {
 	public static class RoutineExtensions {
-		
+		public static ExecuteResult Execute(this IRoutine routine) {
+			return Execute(routine, new SqlExpression[0]);
+		}
+
+		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args) {
+			return Execute(routine, args, null);
+		}
+
+		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args, IQueryContext context) {
+			return Execute(routine, args, context, null);
+		}
+
+		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args, IQueryContext context, IVariableResolver resolver) {
+			return Execute(routine, args, context, resolver, null);
+		}
+
+		public static ExecuteResult Execute(this IRoutine routine, IQueryContext context) {
+			return Execute(routine, context, null);
+		}
+
+		public static ExecuteResult Execute(this IRoutine routine, IQueryContext context, IVariableResolver resolver) {
+			return Execute(routine, context, resolver, null);
+		}
+
+		public static ExecuteResult Execute(this IRoutine routine, IQueryContext context, IVariableResolver resolver, IGroupResolver group) {
+			return Execute(routine, new SqlExpression[0], context, resolver, group);
+		}
+
+		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args, IQueryContext context, IVariableResolver resolver, IGroupResolver group) {
+			if (context != null &&
+				!context.UserCanExecuteFunction(routine.FullName))
+				throw new InvalidOperationException();
+
+			var request = new Invoke(routine.FullName, args);
+			var executeContext = new ExecuteContext(request, routine, resolver, group, context);
+			return routine.Execute(executeContext);
+		}
+
+		public static ExecuteResult Execute(this IRoutine routine, DataObject[] args) {
+			var exps = new SqlExpression[0];
+			if (args != null && args.Length > 0) {
+				exps = new SqlExpression[args.Length];
+
+				for (int i = 0; i < args.Length; i++) {
+					exps[i] = SqlExpression.Constant(args[i]);
+				}
+			}
+
+			return routine.Execute(exps);
+		}
 	}
 }

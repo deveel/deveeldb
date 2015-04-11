@@ -34,7 +34,11 @@ namespace Deveel.Data.DbSystem {
 
 		IDatabaseContext DatabaseContext { get; }
 
+		string CurrentSchema { get; }
+
 		ICache TableCache { get; }
+
+		IQueryContext ParentContext { get; }
 
 		/// <summary>
 		/// Computes a new random number, that is ensured to be unique 

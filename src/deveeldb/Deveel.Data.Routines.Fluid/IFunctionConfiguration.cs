@@ -30,7 +30,5 @@ namespace Deveel.Data.Routines.Fluid {
 		IFunctionConfiguration ReturnsType(Func<ExecuteContext, DataType> returns);
 
 		IFunctionConfiguration WhenExecute(Func<ExecuteContext, ExecuteResult> execute);
-
-		IFunctionConfiguration WhenExecute(Func<DataObject, DataObject, DataObject> execute);
 	}
 }

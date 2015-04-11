@@ -36,6 +36,6 @@ namespace Deveel.Data.Routines {
 		/// given request, or <c>null</c> if no routine was found in the
 		/// underlying context.
 		/// </returns>
-		IRoutine ResolveRoutine(InvokeRequest request, IQueryContext context);
+		IRoutine ResolveRoutine(Invoke request, IQueryContext context);
 	}
 }

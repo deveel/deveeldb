@@ -64,7 +64,7 @@ namespace Deveel.Data.DbSystem {
 
 		#region Routines
 		
-		public static IRoutine ResolveRoutine(this IDatabaseContext context, InvokeRequest invoke, IQueryContext queryContext) {
+		public static IRoutine ResolveRoutine(this IDatabaseContext context, Invoke invoke, IQueryContext queryContext) {
 			if (context.RoutineResolver == null)
 				return null;
 
