@@ -724,7 +724,7 @@
   </Target>
   <PropertyGroup>
     <PostBuildEvent>IF NOT EXIST "$(SolutionDir)..\dist\$(PlatformName)" MKDIR "$(SolutionDir)..\dist\$(PlatformName)"
-$(SolutionDir)..\util\ilmerge\ilmerge.exe /internalize /targetplatform:v2 /ndebug /xmldocs /out:"$(SolutionDir)..\dist\$(PlatformName)\$(TargetFileName)" "$(TargetPath)" "$(TargetDir)\irony.dll" "$(TargetDir)\Deveel.Math.dll"</PostBuildEvent>
+$(SolutionDir)..\util\ilmerge\ilmerge.exe /internalize /targetplatform:v2 /xmldocs /out:"$(SolutionDir)..\dist\$(PlatformName)\$(TargetFileName)" "$(TargetPath)" "$(TargetDir)\irony.dll" "$(TargetDir)\Deveel.Math.dll"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
