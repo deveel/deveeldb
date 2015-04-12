@@ -47,6 +47,18 @@ namespace Deveel.Data.Sql {
 			: this(new[] {table}) {
 		}
 
+		protected ColumnIndex[] ColumnIndices {
+			get { return indexes; }
+		}
+
+		protected int[] ColumnTable {
+			get { return columnTable; }
+		}
+
+		protected int[] ColumnFilter {
+			get { return columnFilter; }
+		}
+
 		protected virtual void Init(IEnumerable<ITable> tables) {
 			var tablesArray = tables.ToArray();
 			referenceList = tablesArray;
@@ -146,6 +158,39 @@ namespace Deveel.Data.Sql {
 				colIndex += referenceList[i].ColumnCount();
 			}
 			return -1;
+		}
+
+		protected override RawTableInfo GetRawTableInfo(RawTableInfo rootInfo) {
+			var allList = new List<int>();
+			int size = RowCount;
+			for (int i = 0; i < size; ++i) {
+				allList.Add(i);
+			}
+
+			return GetRawTableInfo(rootInfo, allList);
+		}
+
+		private RawTableInfo GetRawTableInfo(RawTableInfo info, IEnumerable<int> rows) {
+			if (this is IRootTable) {
+				info.Add((IRootTable)this, CalculateRowReferenceList());
+			} else {
+				for (int i = 0; i < referenceList.Length; ++i) {
+
+					IEnumerable<int> newRowSet = new List<int>(rows);
+
+					// Resolve the rows into the parents indices.
+					newRowSet = ResolveRowsForTable(newRowSet, i);
+
+					var table = referenceList[i];
+					if (table is IRootTable) {
+						info.Add((IRootTable)table, newRowSet.ToArray());
+					} else if (table is JoinedTable) {
+						((JoinedTable)table).GetRawTableInfo(info, newRowSet);
+					}
+				}
+			}
+
+			return info;
 		}
 
 		protected override ObjectName GetResolvedColumnName(int column) {

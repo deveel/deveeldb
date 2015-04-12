@@ -16,16 +16,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Query {
 	static class QueryExpressionExtensions {
-		public static IList<ObjectName> DiscoverTableNames(this SqlExpression expression, IList<ObjectName> list) {
-			var visitor = new TableNamesVisitor(list);
+		public static void DiscoverTableNames(this SqlExpression expression, IList<ObjectName> tableNames) {
+			var visitor = new TableNamesVisitor(tableNames);
 			visitor.Visit(expression);
-			return visitor.TableNames;
 		}
 
 		public static IList<QueryReference> DiscoverQueryReferences(this SqlExpression expression, ref int level, IList<QueryReference> list) {
@@ -35,63 +36,49 @@ namespace Deveel.Data.Sql.Query {
 			return visitor.References;
 		}
 
-		#region TableNamesVisitor
-
-		class TableNamesVisitor : SqlExpressionVisitor {
-			public TableNamesVisitor(IList<ObjectName> list) {
-				TableNames = list;
-			}
-
-			public IList<ObjectName> TableNames { get; private set; }
-
-			public override SqlExpression VisitConstant(SqlConstantExpression constant) {
-				var value = constant.Value;
-				if (!value.IsNull && value.Value is SqlQueryObject &&
-					((SqlQueryObject)value.Value).QueryPlan is QueryPlanNode) {
-					var queryObject = (SqlQueryObject) value.Value;
-					var planNode = (QueryPlanNode) queryObject.QueryPlan;
-					TableNames = planNode.DiscoverTableNames(TableNames);
-				}
-
-				return base.VisitConstant(constant);
-			}
+		public static IEnumerable<ObjectName> DiscoverColumnNames(this SqlExpression expression) {
+			var discovery = new ColumnNameDiscovery();
+			return discovery.Discover(expression);
 		}
 
-		#endregion
+		#region ColumnNameDiscovery
 
-		#region QueryReferencesVisitor
+		class ColumnNameDiscovery : SqlExpressionVisitor {
+			private readonly List<ObjectName> columnNames;
 
-		class QueryReferencesVisitor : SqlExpressionVisitor {
-			public QueryReferencesVisitor(IList<QueryReference> list, int level) {
-				References = list;
-				Level = level;
+			public ColumnNameDiscovery() {
+				columnNames = new List<ObjectName>();
 			}
 
-			public IList<QueryReference> References { get; private set; }
-
-			public int Level { get; private set; }
-
-			public override SqlExpression Visit(SqlExpression expression) {
-				if (expression is QueryReferenceExpression)
-					VisitQueryReference((QueryReferenceExpression) expression);
-
-				return base.Visit(expression);
-			}
-
-			private void VisitQueryReference(QueryReferenceExpression expression) {
-				
+			public IEnumerable<ObjectName> Discover(SqlExpression expression) {
+				Visit(expression);
+				return columnNames.AsReadOnly();
 			}
 
 			public override SqlExpression VisitConstant(SqlConstantExpression constant) {
 				var value = constant.Value;
-				if (!value.IsNull && value.Value is SqlQueryObject &&
-					((SqlQueryObject)value.Value).QueryPlan is QueryPlanNode) {
-					var queryObject = (SqlQueryObject)value.Value;
-					var planNode = (QueryPlanNode)queryObject.QueryPlan;
-					References = planNode.DiscoverQueryReferences(Level, References);
+				if (value.Type is ArrayType) {
+					var array = (SqlArray) value.Value;
+					foreach (var element in array) {
+						columnNames.AddRange(element.DiscoverColumnNames());
+					}
 				}
 
 				return base.VisitConstant(constant);
+			}
+
+			public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
+				var args = expression.Arguments;
+				foreach (var arg in args) {
+					columnNames.AddRange(arg.DiscoverColumnNames());
+				}
+
+				return base.VisitFunctionCall(expression);
+			}
+
+			public override SqlExpression VisitReference(SqlReferenceExpression reference) {
+				columnNames.Add(reference.ReferenceName);
+				return base.VisitReference(reference);
 			}
 		}
 

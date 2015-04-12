@@ -383,7 +383,7 @@ namespace Deveel.Data.DbSystem {
 			if (IsDynamicTable(tableName))
 				return GetDynamicTableType(tableName);
 			if (FindVisibleTable(tableName, false) != null)
-				return "TABLE";
+				return TableTypes.Table;
 
 			// No table found so report the error.
 			throw new ObjectNotFoundException(tableName);

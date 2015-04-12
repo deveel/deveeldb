@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql.Query {
 		/// each column available in the table set item in order from left 
 		/// column to right column.
 		/// </summary>
-		ObjectName[] AllColumns { get; }
+		ObjectName[] ColumnNames { get; }
 
 		/// <summary>
 		/// Checks if the table matches the given catalog, schema and table.

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 using Deveel.Data.Caching;
@@ -306,6 +307,77 @@ namespace Deveel.Data.Sql {
 			// Set up a group resolver for this method.
 			groupResolver = new TableGroupResolver(this);
 			return this;
+		}
+
+		public FunctionTable CreateGroupMatrix(ObjectName[] columns) {
+			// If we have zero rows, then don't bother creating the matrix.
+			if (RowCount <= 0 || columns.Length <= 0)
+				return this;
+
+			var rootTable = ReferenceTable;
+			int rowCount = rootTable.RowCount;
+			int[] colLookup = new int[columns.Length];
+			for (int i = columns.Length - 1; i >= 0; --i) {
+				colLookup[i] = rootTable.IndexOfColumn(columns[i]);
+			}
+
+			var rowList = rootTable.OrderedRows(colLookup).ToList();
+
+			// 'row_list' now contains rows in this table sorted by the columns to
+			// group by.
+
+			// This algorithm will generate two lists.  The group_lookup list maps
+			// from rows in this table to the group number the row belongs in.  The
+			// group number can be used as an index to the 'group_links' list that
+			// contains consequtive links to each row in the group until -1 is reached
+			// indicating the end of the group;
+
+			groupLookup = new List<int>(rowCount);
+			groupLinks = new List<int>(rowCount);
+			int currentGroup = 0;
+			int previousRow = -1;
+			for (int i = 0; i < rowCount; i++) {
+				var rowIndex = rowList[i];
+
+				if (previousRow != -1) {
+					bool equal = true;
+					// Compare cell in column in this row with previous row.
+					for (int n = 0; n < colLookup.Length && equal; ++n) {
+						var c1 = rootTable.GetValue(rowIndex, colLookup[n]);
+						var c2 = rootTable.GetValue(previousRow, colLookup[n]);
+						equal = (c1.CompareTo(c2) == 0);
+					}
+
+					if (!equal) {
+						// If end of group, set bit 15
+						groupLinks.Add(previousRow | 0x040000000);
+						currentGroup = groupLinks.Count;
+					} else {
+						groupLinks.Add(previousRow);
+					}
+				}
+
+				// groupLookup.Insert(row_index, current_group);
+				PlaceAt(groupLookup, rowIndex, currentGroup);
+
+				previousRow = rowIndex;
+			}
+
+			// Add the final row.
+			groupLinks.Add(previousRow | 0x040000000);
+
+			// Set up a group resolver for this method.
+			groupResolver = new TableGroupResolver(this);
+
+			return this;
+		}
+
+		private static void PlaceAt(IList<int> list, int index, int value) {
+			while (index > list.Count) {
+				list.Add(0);
+			}
+
+			list.Insert(index, value);
 		}
 
 		public static ITable ResultTable(IQueryContext context, SqlExpression expression) {

@@ -15,152 +15,35 @@
 //
 
 using System;
+using System.Linq;
 
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
-		/// <summary>
+	/// <summary>
 	/// An implementation of <see cref="IFromTableSource"/> that wraps around a 
 	/// <see cref="SqlQueryExpression"/> as a sub-query source.
 	/// </summary>
 	public class FromTableSubQuerySource : IFromTableSource {
-		/// <summary>
-		/// The wrapped object.
-		/// </summary>
-		private readonly SqlQueryExpression tableExpression;
-
-		/// <summary>
-		/// The fully prepared <see cref="TableExpressionFromSet"/> object 
-		/// that is used to qualify variables in the table.
-		/// </summary>
 		private readonly QueryExpressionFrom fromSet;
+		private ObjectName[] columnNames;
 
-		/// <summary>
-		/// The TableName that this source is generated to (aliased name).
-		/// </summary>
-		/// <remarks>
-		/// If null, we inherit from the root set.
-		/// </remarks>
-		private readonly ObjectName endTableName;
-
-		/// <summary>
-		/// A unique name given to this source that is used to reference it in a table-set.
-		/// </summary>
-		private readonly string uniqueKey;
-
-		/// <summary>
-		/// The list of all variable names in the resultant source.
-		/// </summary>
-		private ObjectName[] vars;
-
-		/// <summary>
-		/// Set to true if this should do case insensitive resolutions.
-		/// </summary>
-		private bool caseInsensitive;
-
-		/// <summary>
-		/// Constructs the source.
-		/// </summary>
-		/// <param name="caseInsensitive"></param>
-		/// <param name="uniqueKey"></param>
-		/// <param name="tableExpression"></param>
-		/// <param name="fromSet"></param>
-		/// <param name="aliasedTableName"></param>
-		internal FromTableSubQuerySource(bool caseInsensitive, string uniqueKey, SqlQueryExpression tableExpression, 
-			QueryExpressionFrom fromSet, ObjectName aliasedTableName) {
-			this.uniqueKey = uniqueKey;
-			this.tableExpression = tableExpression;
+		internal FromTableSubQuerySource(bool caseInsensitive, string uniqueKey, SqlQueryExpression queryExpression,
+			QueryExpressionFrom fromSet, ObjectName alias) {
+			this.UniqueName = uniqueKey;
+			QueryExpression = queryExpression;
 			this.fromSet = fromSet;
-			endTableName = aliasedTableName;
-			// Is the database case insensitive?
-			this.caseInsensitive = caseInsensitive;
-		}
-
-		/// <summary>
-		/// Makes sure the <see cref="vars"/> list is created correctly.
-		/// </summary>
-		private void EnsureVarList() {
-			if (vars == null) {
-				vars = fromSet.GetResolvedColumns();
-				// Are the variables aliased to a table name?
-				if (endTableName != null) {
-					for (int i = 0; i < vars.Length; ++i) {
-						vars[i] = new ObjectName(endTableName, vars[i].Name);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// Returns the unique name of this source.
-		/// </summary>
-		public string UniqueKey {
-			get { return uniqueKey; }
-		}
-
-		///<summary>
-		/// Toggle the case sensitivity flag.
-		///</summary>
-		///<param name="status"></param>
-		public void SetCaseInsensitive(bool status) {
-			caseInsensitive = status;
-		}
-
-		private bool StringCompare(string str1, string str2) {
-			return String.Compare(str1, str2, caseInsensitive) == 0;
-		}
-
-		/// <summary>
-		/// If the given Variable matches the reference then this method returns true.
-		/// </summary>
-		/// <param name="v"></param>
-		/// <param name="catalog"></param>
-		/// <param name="schema"></param>
-		/// <param name="table"></param>
-		/// <param name="column"></param>
-		/// <returns></returns>
-		private bool MatchesVar(ObjectName v, string catalog, string schema, string table, string column) {
-			var tn = v.Parent;
-			String cn = v.Name;
-
-			if (column == null)
-				return true;
-			if (!StringCompare(cn, column))
-				return false;
-
-			if (table == null)
-				return true;
-			if (tn == null)
-				return false;
-
-			string tname = tn.Name;
-			if (tname != null && !StringCompare(tname, table))
-				return false;
-
-			if (schema == null)
-				return true;
-
-			string sname = tn.Parent != null ? tn.Parent.Name : null;
-			if (sname != null && !StringCompare(sname, schema))
-				return false;
-
-			// Currently we ignore catalog
-			return true;
-		}
-
-		// ---------- Implemented from IFromTableSource ----------
-
-		public string UniqueName {
-			get { return UniqueKey; }
+			AliasName = alias;
+			this.IgnoreCase = caseInsensitive;
 		}
 
 		public bool MatchesReference(string catalog, string schema, string table) {
 			if (schema == null && table == null)
 				return true;
 
-			if (endTableName != null) {
-				string ts = endTableName.Parent.Name;
-				string tt = endTableName.Name;
+			if (AliasName != null) {
+				string ts = AliasName.Parent.Name;
+				string tt = AliasName.Name;
 				if (schema == null)
 					return StringCompare(tt, table);
 				if (StringCompare(tt, table) && StringCompare(ts, schema))
@@ -171,41 +54,97 @@ namespace Deveel.Data.Sql.Query {
 			return false;
 		}
 
+		public SqlQueryExpression QueryExpression { get; private set; }
+
+		public ObjectName AliasName { get; private set; }
+
+		public bool IgnoreCase { get; private set; }
+
+		public string UniqueName { get; private set; }
+
+		public ObjectName[] ColumnNames {
+			get {
+				EnsureColumnNames();
+				return columnNames;
+			}
+		}
+
+		/// <summary>
+		/// Makes sure the <see cref="columnNames"/> list is created correctly.
+		/// </summary>
+		private void EnsureColumnNames() {
+			if (columnNames == null) {
+				columnNames = fromSet.GetResolvedColumns();
+
+				// Are the variables aliased to a table name?
+				if (AliasName != null) {
+					for (int i = 0; i < columnNames.Length; ++i) {
+						columnNames[i] = new ObjectName(AliasName, columnNames[i].Name);
+					}
+				}
+			}
+		}
+
+		private bool StringCompare(string str1, string str2) {
+			var comparison = IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			return String.Equals(str1, str2, comparison);
+		}
+
+		private bool Matches(ObjectName name, string catalog, string schema, string table, string column) {
+			var tableName = name.Parent;
+			var schemaName = tableName == null ? null : tableName.Parent;
+			var catalogName = schemaName == null ? null : schemaName.Parent;
+			var columnName = name.Name;
+
+			if (column == null)
+				return true;
+			if (!StringCompare(columnName, column))
+				return false;
+
+			if (table == null)
+				return true;
+			if (tableName == null)
+				return false;
+
+			string tname = tableName.Name;
+			if (tname != null && !StringCompare(tname, table))
+				return false;
+
+			if (schema == null)
+				return true;
+
+			string sname = schemaName != null ? schemaName.Name : null;
+			if (sname != null && !StringCompare(sname, schema))
+				return false;
+
+			string cname = catalogName != null ? catalogName.Name : null;
+			if (cname != null && !StringCompare(cname, catalog))
+				return false;
+
+			return true;
+		}
+
 		public int ResolveColumnCount(string catalog, string schema, string table, string column) {
-			EnsureVarList();
+			EnsureColumnNames();
 
-			if (catalog == null && schema == null && table == null && column == null) {
-				// Return the column count
-				return vars.Length;
-			}
+			if (String.IsNullOrEmpty(catalog) && 
+				String.IsNullOrEmpty(schema) && 
+				String.IsNullOrEmpty(table) && 
+				String.IsNullOrEmpty(column))
+				return columnNames.Length;
 
-			int matchedCount = 0;
-			foreach (var v in vars) {
-				if (MatchesVar(v, catalog, schema, table, column))
-					++matchedCount;
-			}
-
-			return matchedCount;
+			return columnNames.Count(v => Matches(v, catalog, schema, table, column));
 
 		}
 
 		public ObjectName ResolveColumn(string catalog, string schema, string table, string column) {
-			EnsureVarList();
+			EnsureColumnNames();
 
-			foreach (var v in vars) {
-				if (MatchesVar(v, catalog, schema, table, column)) {
-					return v;
-				}
-			}
+			var result = columnNames.FirstOrDefault(v => Matches(v, catalog, schema, table, column));
+			if (result == null)
+				throw new ApplicationException("Couldn't resolve to a column.");
 
-			throw new ApplicationException("Couldn't resolve to a column.");
-		}
-
-		public ObjectName[] AllColumns {
-			get {
-				EnsureVarList();
-				return vars;
-			}
+			return result;
 		}
 	}
 }

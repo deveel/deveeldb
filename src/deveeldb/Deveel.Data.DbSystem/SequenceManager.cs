@@ -166,7 +166,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public string GetTableType(int offset) {
-				return "SEQUENCE";
+				return TableTypes.Sequence;
 			}
 
 			public bool ContainsTable(ObjectName name) {

@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Remoting.Messaging;
+using System.Text.RegularExpressions;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -26,7 +26,11 @@ namespace Deveel.Data.Sql.Query {
 	public sealed class QueryExpressionFrom {
 		private readonly List<IFromTableSource> tableSources;
 		private readonly List<ExpressionReference> expressionReferences;
-		private readonly List<ObjectName> exposedColumns; 
+		private readonly List<ObjectName> exposedColumns;
+
+		public QueryExpressionFrom() 
+			: this(true) {
+		}
 
 		public QueryExpressionFrom(bool ignoreCase) {
 			IgnoreCase = ignoreCase;
@@ -66,7 +70,7 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		public void ExposeColumns(IFromTableSource tableSource) {
-			foreach (var column in tableSource.AllColumns) {
+			foreach (var column in tableSource.ColumnNames) {
 				exposedColumns.Add(column);
 			}
 		}
@@ -202,6 +206,7 @@ namespace Deveel.Data.Sql.Query {
 
 			return null;
 		}
+
 		private object QualifyReference(ObjectName name) {
 			var referenceName = ResolveReference(name);
 			if (referenceName == null) {
@@ -218,6 +223,8 @@ namespace Deveel.Data.Sql.Query {
 			return referenceName;
 		}
 
+		#region FromExpressionPreparer
+
 		private class FromExpressionPreparer : IExpressionPreparer {
 			private readonly QueryExpressionFrom fromSet;
 
@@ -230,13 +237,18 @@ namespace Deveel.Data.Sql.Query {
 			}
 
 			public SqlExpression Prepare(SqlExpression expression) {
-				var name = ((SqlReferenceExpression) expression).ReferenceName;
-				var reference = fromSet.QualifyReference(name);
+				var refName = ((SqlReferenceExpression) expression).ReferenceName;
+
+				var reference = fromSet.QualifyReference(refName);
 				if (reference is ObjectName)
 					return SqlExpression.Reference((ObjectName) reference);
+				if (reference is QueryReference)
+					return new QueryReferenceExpression((QueryReference) reference);
 
-				return new QueryReferenceExpression((QueryReference) reference);
+				throw new InvalidOperationException();
 			}
 		}
+
+		#endregion
 	}
 }

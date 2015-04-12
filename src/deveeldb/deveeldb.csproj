@@ -173,11 +173,13 @@
     <Compile Include="Deveel.Data.DbSystem\TableSourceComposite.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableSourceGC.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableStateStore.cs" />
+    <Compile Include="Deveel.Data.DbSystem\TableTypes.cs" />
     <Compile Include="Deveel.Data.DbSystem\TemporaryTable.cs" />
     <Compile Include="Deveel.Data.DbSystem\UserSession.cs" />
     <Compile Include="Deveel.Data.DbSystem\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\VariableManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\VersionedTableIndexList.cs" />
+    <Compile Include="Deveel.Data.DbSystem\ViewManager.cs" />
     <Compile Include="Deveel.Data.Diagnostics\CommandTypes.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorLevel.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventLog.cs" />
@@ -238,7 +240,18 @@
     <Compile Include="Deveel.Data.Security\SystemGroupNames.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions.Fluid\IExpressionConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlVariableReferenceExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\EquiJoinNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\FetchViewNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\GroupNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\IVisitableQueryPlanNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\JoinNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\QueryNodeTableNameVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanner.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\QueryPlanNodeExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\QueryReferencesVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\TableNamesVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql\DataTable.cs" />
     <Compile Include="Deveel.Data.Sql\FilterTable.cs" />
@@ -248,6 +261,8 @@
     <Compile Include="Deveel.Data.Sql\JoinedTable.cs" />
     <Compile Include="Deveel.Data.Sql\MutableTableExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\NaturallyJoinedTable.cs" />
+    <Compile Include="Deveel.Data.Sql\OuterTable.cs" />
+    <Compile Include="Deveel.Data.Sql\RawTableInfo.cs" />
     <Compile Include="Deveel.Data.Sql\ReferenceTable.cs" />
     <Compile Include="Deveel.Data.Sql\RootTable.cs" />
     <Compile Include="Deveel.Data.Sql\SubsetColumnTable.cs" />
@@ -256,6 +271,7 @@
     <Compile Include="Deveel.Data.Sql\IndexSetInfo.cs" />
     <Compile Include="Deveel.Data.Sql\Variable.cs" />
     <Compile Include="Deveel.Data.Sql\VariableInfo.cs" />
+    <Compile Include="Deveel.Data.Sql\ViewInfo.cs" />
     <Compile Include="Deveel.Data.Sql\VirtualTable.cs" />
     <Compile Include="Deveel.Data.Index\BlindSearchIndex.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndexBase_T.cs" />
@@ -417,7 +433,6 @@
     <Compile Include="Deveel.Data.Sql.Query\NaturalJoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\PreparedQuerySelectColumns.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryExpressionExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\QueryPlanNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanNodeVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryReference.cs" />
     <Compile Include="Deveel.Data.Sql.Query\PlanTableSource.cs" />
@@ -664,6 +679,7 @@
     <Compile Include="Deveel.Data.Types\StringType.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Types\UserType.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeInfo.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeManager.cs" />

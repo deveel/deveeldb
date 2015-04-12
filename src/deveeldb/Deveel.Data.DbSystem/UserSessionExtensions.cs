@@ -20,6 +20,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
@@ -92,6 +93,14 @@ namespace Deveel.Data.DbSystem {
 			return table;
 		}
 
+		public static TableInfo GetTableInfo(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.GetTableInfo(tableName);
+		}
+
+		public static string GetTableType(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.GetTableType(tableName);
+		}
+
 		public static void CreateTable(this IUserSession session, TableInfo tableInfo) {
 			session.CreateObject(tableInfo);
 		}
@@ -133,6 +142,19 @@ namespace Deveel.Data.DbSystem {
 				throw new InvalidOperationException();
 
 			session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
+		}
+
+		#endregion
+
+		#region Views
+
+		public static View GetView(this IUserSession session, ObjectName viewName) {
+			return session.GetObject(DbObjectType.View, viewName) as View;
+		}
+
+		public static IQueryPlanNode GetViewQueryPlan(this IUserSession session, ObjectName viewName) {
+			var view = session.GetView(viewName);
+			return view == null ? null : view.QueryPlan;
 		}
 
 		#endregion

@@ -36,5 +36,7 @@ namespace Deveel.Data.Sql {
 		ObjectName GetResolvedColumnName(int columnOffset);
 
 		ITableVariableResolver GetVariableResolver();
+
+		RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
 	}
 }

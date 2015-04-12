@@ -19,6 +19,7 @@ using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.DbSystem {
 	public static class QueryContextExtensions {
@@ -30,6 +31,8 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.Database;
 		}
 
+		#region Objects
+
 		public static bool ObjectExists(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
 			return context.Session.ObjectExists(objectType, objectName);
 		}
@@ -37,6 +40,10 @@ namespace Deveel.Data.DbSystem {
 		public static IDbObject GetObject(this IQueryContext context, DbObjectType objType, ObjectName objName) {
 			return context.Session.GetObject(objType, objName);
 		}
+
+		#endregion
+
+		#region Tables
 
 		public static ITable GetTable(this IQueryContext context, ObjectName tableName) {
 			var table = context.GetCachedTable(tableName.FullName) as ITable;
@@ -50,10 +57,6 @@ namespace Deveel.Data.DbSystem {
 
 		public static IMutableTable GetMutableTable(this IQueryContext context, ObjectName tableName) {
 			return context.GetTable(tableName) as IMutableTable;
-		}
-
-		public static ISequence GetSequence(this IQueryContext context, ObjectName sequenceName) {
-			return context.Session.GetSequence(sequenceName);
 		}
 
 		public static ITable GetCachedTable(this IQueryContext context, string cacheKey) {
@@ -75,6 +78,26 @@ namespace Deveel.Data.DbSystem {
 				return;
 
 			context.TableCache.Clear();
+		}
+
+		#endregion
+
+		#region Views
+
+		public static View GetView(this IQueryContext context, ObjectName viewName) {
+			return context.Session.GetView(viewName);
+		}
+
+		public static IQueryPlanNode GetViewQueryPlan(this IQueryContext context, ObjectName viewName) {
+			return context.Session.GetViewQueryPlan(viewName);
+		}
+
+		#endregion
+
+		#region Sequences
+
+		public static ISequence GetSequence(this IQueryContext context, ObjectName sequenceName) {
+			return context.Session.GetSequence(sequenceName);
 		}
 
 		/// <summary>
@@ -134,6 +157,8 @@ namespace Deveel.Data.DbSystem {
 
 			sequence.SetValue(value);
 		}
+
+		#endregion
 
 		#region Security
 

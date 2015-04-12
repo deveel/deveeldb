@@ -20,7 +20,6 @@ using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
-using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
@@ -117,6 +116,12 @@ namespace Deveel.Data.Sql {
 
 		IEnumerable<int> IQueryTable.ResolveRows(int columnOffset, IEnumerable<int> rows, ITable ancestor) {
 			return ResolveRows(columnOffset, rows, ancestor);
+		}
+
+		protected abstract RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
+
+		RawTableInfo IQueryTable.GetRawTableInfo(RawTableInfo rootInfo) {
+			return GetRawTableInfo(rootInfo);
 		}
 
 		public abstract DataObject GetValue(long rowNumber, int columnOffset);

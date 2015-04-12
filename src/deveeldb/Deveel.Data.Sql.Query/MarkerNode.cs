@@ -28,20 +28,17 @@ namespace Deveel.Data.Sql.Query {
 	/// </remarks>
 	[Serializable]
 	class MarkerNode : SingleQueryPlanNode {
-		/// <summary>
-		/// The name of this mark.
-		/// </summary>
-		private readonly string markName;
-
-		public MarkerNode(QueryPlanNode child, string markName)
+		public MarkerNode(IQueryPlanNode child, string markName)
 			: base(child) {
-			this.markName = markName;
+			MarkName = markName;
 		}
 
 		public override ITable Evaluate(IQueryContext context) {
 			ITable childTable = Child.Evaluate(context);
-			context.TableCache.Set(markName, childTable);
+			context.TableCache.Set(MarkName, childTable);
 			return childTable;
 		}
+
+		public string MarkName { get; private set; }
 	}
 }

@@ -19,28 +19,30 @@ using System;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	sealed class CachePointNode : SingleQueryPlanNode {
-		private readonly long id;
-
 		private readonly static Object GlobLock = new Object();
 		private static int GlobId;
 
-		public CachePointNode(QueryPlanNode child)
+		public CachePointNode(IQueryPlanNode child)
 			: base(child) {
 			lock (GlobLock) {
-				id = ((int)DateTime.Now.Ticks << 16) | (GlobId & 0x0FFFF);
+				Id = ((int)DateTime.Now.Ticks << 16) | (GlobId & 0x0FFFF);
 				++GlobId;
 			}
 		}
 
+		public long Id { get; private set; }
+
 		public override ITable Evaluate(IQueryContext context) {
 			// Is the result available in the context?
-			var childTable = context.GetCachedTable(id.ToString());
+			var childTable = context.GetCachedTable(Id.ToString());
 			if (childTable == null) {
 				// No so evaluate the child and cache it
 				childTable = Child.Evaluate(context);
-				context.CacheTable(id.ToString(), childTable);
+				context.CacheTable(Id.ToString(), childTable);
 			}
+
 			return childTable;
 		}
 	}

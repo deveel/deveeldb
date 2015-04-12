@@ -286,6 +286,13 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
+		public bool IsLogical {
+			get {
+				return OperatorType == BinaryOperatorType.And ||
+				       OperatorType == BinaryOperatorType.Or;
+			}
+		}
+
 		/// <summary>
 		/// Gets an inversed form of this condition.
 		/// </summary>

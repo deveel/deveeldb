@@ -16,8 +16,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Index;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
@@ -50,29 +52,9 @@ namespace Deveel.Data.Sql.Query {
 	/// </example>
 	[Serializable]
 	class RangeSelectNode : SingleQueryPlanNode {
-		public RangeSelectNode(QueryPlanNode child, SqlExpression expression)
+		public RangeSelectNode(IQueryPlanNode child, SqlBinaryExpression expression)
 			: base(child) {
-			this.Expression = expression;
-		}
-
-		/// <inheritdoc/>
-		public override ITable Evaluate(IQueryContext context) {
-			throw new NotImplementedException();
-		}
-
-		/// <inheritdoc/>
-		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
-			throw new NotImplementedException();
-		}
-
-		/// <inheritdoc/>
-		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
-			throw new NotImplementedException();
-		}
-
-		/// <inheritdoc/>
-		public override string Title {
-			get { return "RANGE: " + Expression; }
+			Expression = expression;
 		}
 
 		/// <summary>
@@ -80,6 +62,127 @@ namespace Deveel.Data.Sql.Query {
 		/// class comments for a description for how this expression must be
 		/// formed.
 		/// </summary>
-		public SqlExpression Expression { get; private set; }
+		public SqlBinaryExpression Expression { get; private set; }
+
+		/// <inheritdoc/>
+		public override ITable Evaluate(IQueryContext context) {
+			var t = Child.Evaluate(context);
+
+			var exp = Expression;
+
+			// Assert that all variables in the expression are identical.
+			var columnNames = exp.DiscoverColumnNames();
+			ObjectName columnName = null;
+			foreach (var cv in columnNames) {
+				if (columnName != null && !cv.Equals(columnName))
+					throw new ApplicationException("Range plan does not contain common column.");
+
+				columnName = cv;
+			}
+
+			// Find the variable field in the table.
+			var col = t.IndexOfColumn(columnName);
+			if (col == -1)
+				throw new ApplicationException("Could not find column reference in table: " + columnName);
+
+			var field = t.TableInfo[col];
+
+			// Calculate the range
+			var range = new IndexRangeSet();
+			var calculator = new RangeSetCalculator(context, field, range);
+			range = calculator.Calculate(exp);
+
+			// Select the range from the table
+			var ranges = range.ToArray();
+			return t.RangeSelect(columnName, ranges);
+		}
+
+		#region RangeSetUpdater
+
+		class RangeSetUpdater : SqlExpressionVisitor {
+			private IndexRangeSet indexRangeSet;
+			private readonly IQueryContext context;
+			private readonly ColumnInfo field;
+
+			public RangeSetUpdater(IQueryContext context, ColumnInfo field, IndexRangeSet indexRangeSet) {
+				this.context = context;
+				this.field = field;
+				this.indexRangeSet = indexRangeSet;
+			}
+
+			public IndexRangeSet Update(SqlExpression expression) {
+				Visit(expression);
+				return indexRangeSet;
+			}
+
+			public override SqlExpression VisitBinary(SqlBinaryExpression binaryEpression) {
+				var op = binaryEpression.BinaryOperator;
+
+				// Evaluate to an object
+				var value = binaryEpression.Right.EvaluateToConstant(context, null);
+
+				// If the evaluated object is not of a comparable type, then it becomes
+				// null.
+				var fieldType = field.ColumnType;
+				if (!value.Type.IsComparable(fieldType))
+					value = DataObject.Null(fieldType);
+
+				// Intersect this in the range set
+				indexRangeSet = indexRangeSet.Intersect(op, value);
+
+				return base.VisitBinary(binaryEpression);
+			}
+		}
+
+		#endregion
+
+		#region RangeSetCalculator
+
+		class RangeSetCalculator : SqlExpressionVisitor {
+			private IndexRangeSet rangeSet;
+			private readonly IQueryContext context;
+			private readonly ColumnInfo field;
+
+			public RangeSetCalculator(IQueryContext context, ColumnInfo field, IndexRangeSet rangeSet) {
+				this.context = context;
+				this.field = field;
+				this.rangeSet = rangeSet;
+			}
+
+			private IndexRangeSet UpdateRange(SqlExpression expression) {
+				var updater = new RangeSetUpdater(context, field, rangeSet);
+				return updater.Update(expression);
+			}
+
+			private IndexRangeSet CalcExpression(SqlExpression expression) {
+				var indexRangeSet = new IndexRangeSet();
+				var calculator = new RangeSetCalculator(context, field, indexRangeSet);
+				return calculator.Calculate(expression);
+			}
+
+			public override SqlExpression VisitBinary(SqlBinaryExpression binaryEpression) {
+				if (binaryEpression.ExpressionType == SqlExpressionType.And) {
+					rangeSet = UpdateRange(binaryEpression.Left);
+					rangeSet = UpdateRange(binaryEpression.Right);
+				} else if (binaryEpression.ExpressionType == SqlExpressionType.Or) {
+					var left = CalcExpression(binaryEpression.Left);
+					var right = CalcExpression(binaryEpression.Right);
+
+					rangeSet = rangeSet.Union(left);
+					rangeSet = rangeSet.Union(right);
+				} else {
+					rangeSet = UpdateRange(binaryEpression);
+				}
+
+				return base.VisitBinary(binaryEpression);
+			}
+
+			public IndexRangeSet Calculate(SqlExpression expression) {
+				Visit(expression);
+				return rangeSet;
+			}
+		}
+
+		#endregion
 	}
 }

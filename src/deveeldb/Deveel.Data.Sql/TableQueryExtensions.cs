@@ -32,6 +32,8 @@ namespace Deveel.Data.Sql {
 	/// and <see cref="IMutableTable"/> objects.
 	/// </summary>
 	public static class TableQueryExtensions {
+		#region Internals
+
 		internal static int FindColumn(this ITable table, ObjectName columnName) {
 			if (table is IQueryTable)
 				return ((IQueryTable) table).FindColumn(columnName);
@@ -90,8 +92,7 @@ namespace Deveel.Data.Sql {
 			throw new NotImplementedException();
 		}
 
-
-		public static ObjectName ResolveColumnName(this ITable table, string columnName) {
+		private static ObjectName ResolveColumnName(this ITable table, string columnName) {
 			return new ObjectName(table.TableInfo.TableName, columnName);
 		}
 
@@ -104,6 +105,19 @@ namespace Deveel.Data.Sql {
 			if (table is IQueryTable)
 				((IQueryTable)table).UnlockRoot(lockKey);
 		}
+
+		internal static RawTableInfo GetRawTableInfo(this ITable table) {
+			return GetRawTableInfo(table, new RawTableInfo());
+		}
+
+		internal static RawTableInfo GetRawTableInfo(this ITable table, RawTableInfo info) {
+			if (table is IQueryTable)
+				return ((IQueryTable) table).GetRawTableInfo(info);
+
+			throw new NotSupportedException();
+		}
+
+		#endregion
 
 		#region Get Value
 
@@ -225,6 +239,7 @@ namespace Deveel.Data.Sql {
 			return table.AsVirtual(() => table.SelectRowsEqual(columnIndex, value));
 		}
 
+
 		public static ITable SelectEqual(this ITable table, string columnName, DataObject value) {
 			return table.AsVirtual(() => table.SelectRowsEqual(columnName, value));
 		}
@@ -248,6 +263,10 @@ namespace Deveel.Data.Sql {
 			}
 
 			return result;
+		}
+
+		public static IEnumerable<int> SelectRange(this ITable table, int column, IndexRange[] ranges) {
+			return table.GetIndex(column).SelectRange(ranges);
 		}
 
 		public static IEnumerable<int> SelectGreater(this ITable table, int columnOffset, DataObject value) {
@@ -475,6 +494,47 @@ namespace Deveel.Data.Sql {
 				return new VirtualTable(table, rows) {SortColumn = column};
 			}
 		}
+
+		public static ITable RangeSelect(this ITable thisTable, ObjectName columnName, IndexRange[] ranges) {
+			// If this table is empty then there is no range to select so
+			// trivially return this object.
+			if (thisTable.RowCount == 0)
+				return thisTable;
+
+			// Are we selecting a black or null range?
+			if (ranges == null || ranges.Length == 0)
+				// Yes, so return an empty table
+				return thisTable.EmptySelect();
+
+			// Are we selecting the entire range?
+			if (ranges.Length == 1 &&
+				ranges[0].Equals(IndexRange.FullRange))
+				// Yes, so return this table.
+				return thisTable;
+
+			// Must be a non-trivial range selection.
+
+			// Find the column index of the column selected
+			int column = thisTable.IndexOfColumn(columnName);
+
+			if (column == -1) {
+				throw new Exception(
+				   "Unable to find the column given to select the range of: " +
+				   columnName.Name);
+			}
+
+			// Select the range
+			var rows = thisTable.SelectRange(column, ranges);
+
+			// Make a new table with the range selected
+			var result = new VirtualTable(thisTable, rows);
+
+			// We know the new set is ordered by the column.
+			result.SortColumn = column;
+
+			return result;
+		}
+
 
 		public static ITable ExhaustiveSelect(this ITable table, IQueryContext context, SqlExpression expression) {
 			var result = table;
@@ -857,6 +917,47 @@ namespace Deveel.Data.Sql {
 			}
 
 			return new VirtualTable(table, rows);
+		}
+
+		public static ITable Outer(this ITable table, ITable rightTable) {
+			// Form the row list for right hand table,
+			var rowList = rightTable.Select(x => x.RowId.RowNumber).ToList();
+
+			int colIndex = rightTable.IndexOfColumn(table.GetResolvedColumnName(0));
+			rowList = rightTable.ResolveRows(colIndex, rowList, table).ToList();
+
+			// This row set
+			var thisTableSet = table.Select(x => x.RowId.RowNumber).ToList();
+
+			thisTableSet.Sort();
+			rowList.Sort();
+
+			// Find all rows that are in 'this table' and not in 'right'
+			List<int> resultList = new List<int>(96);
+			int size = thisTableSet.Count;
+			int rowListIndex = 0;
+			int rowListSize = rowList.Count;
+			for (int i = 0; i < size; ++i) {
+				int thisVal = thisTableSet[i];
+				if (rowListIndex < rowListSize) {
+					int inVal = rowList[rowListIndex];
+					if (thisVal < inVal) {
+						resultList.Add(thisVal);
+					} else if (thisVal == inVal) {
+						while (rowListIndex < rowListSize &&
+						       rowList[rowListIndex] == inVal) {
+							++rowListIndex;
+						}
+					} else {
+						throw new ApplicationException("'this_val' > 'in_val'");
+					}
+				} else {
+					resultList.Add(thisVal);
+				}
+			}
+
+			// Return the new VirtualTable
+			return new VirtualTable(table, resultList);
 		}
 
 		/// <summary>

@@ -27,38 +27,26 @@ namespace Deveel.Data.Sql.Query {
 	/// This is a tree node and has no children.
 	/// </remarks>
 	[Serializable]
-	public sealed class FetchTableNode : QueryPlanNode {
+	class FetchTableNode : IQueryPlanNode {
+		public FetchTableNode(ObjectName tableName, ObjectName aliasName) {
+			this.TableName = tableName;
+			this.AliasName = aliasName;
+		}
+
 		/// <summary>
 		/// The name of the table to fetch.
 		/// </summary>
-		private readonly ObjectName tableName;
+		public ObjectName TableName { get; private set; }
 
 		/// <summary>
 		/// The name to alias the table as.
 		/// </summary>
-		private readonly ObjectName aliasName;
+		public ObjectName AliasName { get; private set; }
 
-		public FetchTableNode(ObjectName tableName, ObjectName aliasName) {
-			this.tableName = tableName;
-			this.aliasName = aliasName;
-		}
 
-		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
-			if (!list.Contains(tableName))
-				list.Add(tableName);
-
-			return list;
-		}
-
-		/// <inheritdoc/>
-		public override ITable Evaluate(IQueryContext context) {
-			var t = context.GetTable(tableName);
-			return aliasName != null ? new ReferenceTable(t, aliasName) : t;
-		}
-
-		/// <inheritdoc/>
-		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
-			return list;
+		public ITable Evaluate(IQueryContext context) {
+			var t = context.GetTable(TableName);
+			return AliasName != null ? new ReferenceTable(t, AliasName) : t;
 		}
 	}
 }

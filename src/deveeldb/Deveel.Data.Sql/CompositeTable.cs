@@ -73,6 +73,12 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
+		protected override RawTableInfo GetRawTableInfo(RawTableInfo rootInfo) {
+			var rows = this.Select(x => x.RowId.RowNumber).ToArray();
+			rootInfo.Add(this, rows);
+			return rootInfo;
+		}
+
 		public override int RowCount {
 			get { return rowIndexes.Sum(t => t.Count); }
 		}

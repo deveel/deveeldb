@@ -18,14 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
-using Deveel.Data.Security;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Transactions {
@@ -39,11 +37,15 @@ namespace Deveel.Data.Transactions {
 			return (TableManager) transaction.ObjectManagerResolver.ResolveForType(DbObjectType.Table);
 		}
 
+		public static ViewManager GetViewManager(this ITransaction transaction) {
+			return (ViewManager) transaction.ObjectManagerResolver.ResolveForType(DbObjectType.View);
+		}
+
 		#endregion
 
 		#region Objects
 
-		public static IDbObject GetObject(this ITransaction transaction, ObjectName objName) {
+		public static IDbObject FindObject(this ITransaction transaction, ObjectName objName) {
 			return transaction.ObjectManagerResolver.GetManagers()
 				.Select(manager => manager.GetObject(objName))
 				.FirstOrDefault(obj => obj != null);
@@ -264,7 +266,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static string GetTableType(this ITransaction transaction, ObjectName tableName) {
-			var tableManager = transaction.ObjectManagerResolver.ResolveForType(DbObjectType.Table) as TableManager;
+			var tableManager = transaction.GetTableManager();
 			if (tableManager == null)
 				throw new SystemException();
 
@@ -305,6 +307,22 @@ namespace Deveel.Data.Transactions {
 
 		public static bool DropTable(this ITransaction transaction, ObjectName tableName) {
 			return transaction.DropObject(DbObjectType.Table, tableName);
+		}
+
+		#endregion
+
+		#region Views
+
+		public static void DefineView(this ITransaction transaction, ViewInfo viewInfo) {
+			transaction.CreateObject(viewInfo);
+		}
+
+		public static IQueryPlanNode GetViewQueryPlan(this ITransaction transaction, ObjectName viewName) {
+			var view = transaction.GetViewManager().GetView(viewName);
+			if (view == null)
+				return null;
+
+			return view.QueryPlan;
 		}
 
 		#endregion

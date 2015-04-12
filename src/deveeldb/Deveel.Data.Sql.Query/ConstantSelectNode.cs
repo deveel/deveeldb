@@ -27,12 +27,13 @@ namespace Deveel.Data.Sql.Query {
 	/// </summary>
 	[Serializable]
 	class ConstantSelectNode : SingleQueryPlanNode {
+		public ConstantSelectNode(IQueryPlanNode child, SqlExpression expression)
+			: base(child) {
+			Expression = expression;
+		}
+
 		public SqlExpression Expression { get; private set; }
 
-		public ConstantSelectNode(QueryPlanNode child, SqlExpression exp)
-			: base(child) {
-			Expression = exp;
-		}
 
 		public override ITable Evaluate(IQueryContext context) {
 			// Evaluate the expression
@@ -47,14 +48,6 @@ namespace Deveel.Data.Sql.Query {
 				return Child.Evaluate(context).EmptySelect();
 
 			return Child.Evaluate(context);
-		}
-
-		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
-			return Expression.DiscoverTableNames(base.DiscoverTableNames(list));
-		}
-
-		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
-			return Expression.DiscoverQueryReferences(ref level, base.DiscoverQueryReferences(level, list));
 		}
 	}
 }

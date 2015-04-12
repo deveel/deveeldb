@@ -19,12 +19,19 @@ using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlPreparedQueryExpression : SqlExpression {
-		internal SqlPreparedQueryExpression(IQueryPlanNode queryPlan) {
+		internal SqlPreparedQueryExpression(IQueryPlanNode queryPlan) 
+			: this(null, queryPlan) {
+		}
+
+		internal SqlPreparedQueryExpression(SqlQueryExpression sourceQuery, IQueryPlanNode queryPlan) {
 			if (queryPlan == null)
 				throw new ArgumentNullException("queryPlan");
 
+			SourceQuery = sourceQuery;
 			QueryPlan = queryPlan;
 		}
+
+		public SqlQueryExpression SourceQuery { get; private set; }
 
 		public IQueryPlanNode QueryPlan { get; private set; }
 

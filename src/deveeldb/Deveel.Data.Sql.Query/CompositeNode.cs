@@ -23,13 +23,19 @@ namespace Deveel.Data.Sql.Query {
 	/// A branch node for performing a composite function on two child nodes.
 	/// </summary>
 	/// <remarks>
-	/// This branch is used for general <see cref="CompositeFunction.Union"/>, 
-	/// <see cref="CompositeFunction.Except"/>, <see cref="CompositeFunction.Intersect"/>
+	/// This branch is used for general <see cref="Sql.CompositeFunction.Union"/>, 
+	/// <see cref="Sql.CompositeFunction.Except"/>, <see cref="Sql.CompositeFunction.Intersect"/>
 	/// composites. The left and right branch results must have the same number of 
 	/// columns and column types.
 	/// </remarks>
 	[Serializable]
-	public sealed class CompositeNode : BranchQueryPlanNode {
+	class CompositeNode : BranchQueryPlanNode {
+		public CompositeNode(IQueryPlanNode left, IQueryPlanNode right, CompositeFunction compositeOp, bool allOp)
+			: base(left, right) {
+			CompositeFunction = compositeOp;
+			All = allOp;
+		}
+
 		/// <summary>
 		/// The composite operation.
 		/// </summary>
@@ -40,12 +46,6 @@ namespace Deveel.Data.Sql.Query {
 		/// children, otherwise removes deplicates.
 		/// </summary>
 		public bool All { get; private set; }
-
-		public CompositeNode(QueryPlanNode left, QueryPlanNode right, CompositeFunction compositeOp, bool allOp)
-			: base(left, right) {
-			this.CompositeFunction = compositeOp;
-			this.All = allOp;
-		}
 
 		public override ITable Evaluate(IQueryContext context) {
 			var leftResult = Left.Evaluate(context);

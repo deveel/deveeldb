@@ -31,58 +31,28 @@ namespace Deveel.Data.Sql.Query {
 	/// <c>coalesce(a, b, 1)</c>.
 	/// </remarks>
 	[Serializable]
-	public sealed class CreateFunctionsNode : SingleQueryPlanNode {
+	class CreateFunctionsNode : SingleQueryPlanNode {
+		public CreateFunctionsNode(IQueryPlanNode child, SqlExpression[] functionList, string[] nameList)
+			: base(child) {
+			Functions = functionList;
+			Names = nameList;
+		}
+
 		/// <summary>
 		/// The list of functions to create.
 		/// </summary>
-		private readonly SqlExpression[] functionList;
+		public SqlExpression[] Functions { get; private set; }
 
 		/// <summary>
 		/// The list of names to give each function table.
 		/// </summary>
-		private readonly string[] nameList;
+		public string[] Names { get; private set; }
 
-		public CreateFunctionsNode(QueryPlanNode child, SqlExpression[] functionList, string[] nameList)
-			: base(child) {
-			this.functionList = functionList;
-			this.nameList = nameList;
-		}
 
 		public override ITable Evaluate(IQueryContext context) {
 			var childTable = Child.Evaluate(context);
-			var funTable = new FunctionTable(childTable, functionList, nameList, context);
+			var funTable = new FunctionTable(childTable, Functions, Names, context);
 			return funTable.MergeWith(null);
 		}
-
-		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
-			list = base.DiscoverTableNames(list);
-			foreach (SqlExpression expression in functionList) {
-				list = expression.DiscoverTableNames(list);
-			}
-			return list;
-		}
-
-		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
-			list = base.DiscoverQueryReferences(level, list);
-			foreach (SqlExpression expression in functionList) {
-				list = expression.DiscoverQueryReferences(ref level, list);
-			}
-			return list;
-		}
-
-		public override string Title {
-			get {
-				StringBuilder buf = new StringBuilder();
-				buf.Append("FUNCTIONS: (");
-				for (int i = 0; i < functionList.Length; ++i) {
-					buf.Append(functionList[i]);
-					if (i < functionList.Length - 1)
-						buf.Append(", ");
-				}
-				buf.Append(")");
-				return buf.ToString();
-			}
-		}
 	}
-
 }

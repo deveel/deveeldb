@@ -38,6 +38,10 @@ namespace Deveel.Data.Sql {
 			Parent.UnlockRoot(lockKey);
 		}
 
+		protected override RawTableInfo GetRawTableInfo(RawTableInfo rootInfo) {
+			return Parent.GetRawTableInfo(rootInfo);
+		}
+
 		protected override ColumnIndex GetIndex(int column, int originalColumn, ITable table) {
 			if (columnIndices == null) {
 				columnIndices = new ColumnIndex[Parent.ColumnCount()];

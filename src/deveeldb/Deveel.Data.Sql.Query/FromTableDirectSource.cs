@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Query {
 	/// <summary>
@@ -25,25 +26,8 @@ namespace Deveel.Data.Sql.Query {
 	/// The handles case insensitive resolution.
 	/// </remarks>
 	public class FromTableDirectSource : IFromTableSource {
-		/// <summary>
-		/// The ITableQueryInfo object that links to the underlying table.
-		/// </summary>
 		private readonly ITableQueryInfo tableQuery;
-
-		/// <summary>
-		/// The DataTableInfo object that describes the table.
-		/// </summary>
 		private readonly TableInfo tableInfo;
-
-		/// <summary>
-		/// The unique name given to this source.
-		/// </summary>
-		private readonly string uniqueName;
-
-		/// <summary>
-		/// Set to true if this should do case insensitive resolutions.
-		/// </summary>
-		private bool caseInsensitive;
 
 		/// <summary>
 		/// Constructs the source.
@@ -54,80 +38,69 @@ namespace Deveel.Data.Sql.Query {
 		/// <param name="givenName"></param>
 		/// <param name="rootName"></param>
 		public FromTableDirectSource(bool caseInsensitive, ITableQueryInfo tableQuery, string uniqueName, ObjectName givenName, ObjectName rootName) {
-			this.uniqueName = uniqueName;
+			this.UniqueName = uniqueName;
 			tableInfo = tableQuery.TableInfo;
-			this.RootTableName = rootName;
+			RootTableName = rootName;
 			if (givenName != null) {
 				GivenTableName = givenName;
 			} else {
 				GivenTableName = rootName;
 			}
 
-			// Is the database case insensitive?
-			this.caseInsensitive = caseInsensitive;
+			IgnoreCase = caseInsensitive;
 			this.tableQuery = tableQuery;
 		}
 
-		/// <summary>
-		/// Gets the given name of the table, if set, otherwise gets the
-		/// root table name.
-		/// </summary>
-		/// <remarks>
-		/// For example, if the Part table is aliased as P this returns P.
-		/// </remarks>
+		public bool IgnoreCase { get; private set; }
+
 		public ObjectName GivenTableName { get; private set; }
 
-		/// <summary>
-		/// Gets the root name of the table.
-		/// </summary>
-		/// <remarks>
-		/// This name can always be used as a direct reference to a 
-		/// table in the database.
-		/// </remarks>
 		public ObjectName RootTableName { get; private set; }
 
-		/// <summary>
-		/// Creates a query plan node to be added into a query tree that 
-		/// fetches the table source.
-		/// </summary>
-		/// <returns></returns>
-		public IQueryPlanNode CreateFetchQueryPlanNode() {
-			return tableQuery.QueryPlanNode;
+		public IQueryPlanNode QueryPlan {
+			get { return tableQuery.QueryPlanNode; }
 		}
 
-		///<summary>
-		/// Toggle the case sensitivity flag.
-		///</summary>
-		///<param name="status"></param>
-		public void SetCaseInsensitive(bool status) {
-			caseInsensitive = status;
+		public string UniqueName { get; private set; }
+
+		public ObjectName[] ColumnNames {
+			get {
+				int colCount = tableInfo.ColumnCount;
+				var vars = new ObjectName[colCount];
+				for (int i = 0; i < colCount; ++i) {
+					vars[i] = new ObjectName(GivenTableName, tableInfo[i].ColumnName);
+				}
+				return vars;
+			}
 		}
 
 		private bool StringCompare(string str1, string str2) {
-			return String.Compare(str1, str2, caseInsensitive) == 0;
+			var comparison = IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			return String.Equals(str1, str2, comparison);
 		}
 
-
-		// ---------- Implemented from IFromTableSource ----------
-
-		public string UniqueName {
-			get { return uniqueName; }
-		}
 
 		public bool MatchesReference(string catalog, string schema, string table) {
+			var schemaName = GivenTableName.Parent;
+			var catalogName = schemaName == null ? null : schemaName.Parent;
+
 			// Does this table name represent the correct schema?
-			var givenSchema = GivenTableName.Parent != null ? GivenTableName.Parent.Name : null;
-			if (schema != null &&
-			    !StringCompare(schema, givenSchema)) {
+			var givenSchema = schemaName != null ? schemaName.Name : null;
+			if (schema != null && !StringCompare(schema, givenSchema)) {
 				// If schema is present and we can't resolve to this schema then false
 				return false;
 			}
-			if (table != null &&
-			    !StringCompare(table, GivenTableName.Name)) {
+
+			var givenCatalog = catalogName != null ? catalogName.Name : null;
+			if (catalog != null && !StringCompare(catalog, givenCatalog))
+				return false;
+
+			if (table != null && !StringCompare(table, GivenTableName.Name)) {
 				// If table name is present and we can't resolve to this table name
 				// then return false
 				return false;
 			}
+
 			// Match was successful,
 			return true;
 		}
@@ -136,45 +109,45 @@ namespace Deveel.Data.Sql.Query {
 			// NOTE: With this type, we can only ever return either 1 or 0 because
 			//   it's impossible to have an ambiguous reference
 
-			// NOTE: Currently 'catalog' is ignored.
+			var schemaName = GivenTableName.Parent;
+			var catalogName = schemaName == null ? null : schemaName.Parent;
 
-			// Does this table name represent the correct schema?
-			var givenSchema = GivenTableName.Parent != null ? GivenTableName.Parent.Name : null;
-			if (schema != null && !StringCompare(schema, givenSchema)) {
-				// If schema is present and we can't resolve to this schema then return 0
+			var givenCatalog = catalogName != null ? catalogName.Name : null;
+			if (catalog != null && !StringCompare(catalog, givenCatalog))
 				return 0;
-			}
+
+			var givenSchema = schemaName != null ? schemaName.Name : null;
+			if (schema != null && !StringCompare(schema, givenSchema))
+				return 0;
+
 			if (table != null && !StringCompare(table, GivenTableName.Name)) {
-				// If table name is present and we can't resolve to this table name then
-				// return 0
 				return 0;
 			}
 
 			if (column != null) {
-				if (!caseInsensitive) {
+				// TODO: the case-insensitive search in TableInfo
+				if (!IgnoreCase) {
 					// Can we resolve the column in this table?
 					int i = tableInfo.IndexOfColumn(column);
 					// If i doesn't equal -1 then we've found our column
 					return i == -1 ? 0 : 1;
 				}
 
-				// Case insensitive search (this is slower than case sensitive).
-				int resolveCount = 0;
-				int colCount = tableInfo.ColumnCount;
-				for (int i = 0; i < colCount; ++i) {
-					if (String.Equals(tableInfo[i].ColumnName, column,
-						caseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-						++resolveCount;
-				}
-
-				return resolveCount;
-			} // if (column != null)
+				return tableInfo.Count(columnInfo => StringCompare(columnInfo.ColumnName, column));
+			}
 
 			// Return the column count
 			return tableInfo.ColumnCount;
 		}
 
 		public ObjectName ResolveColumn(string catalog, string schema, string table, string column) {
+			var schemaName = GivenTableName.Parent;
+			var catalogName = schemaName == null ? null : schemaName.Parent;
+
+			var givenCatalog = catalogName != null ? catalogName.Name : null;
+			if (catalog != null && !StringCompare(catalog, givenCatalog))
+				throw new ApplicationException("Incorrect catalog.");
+
 			// Does this table name represent the correct schema?
 			var givenSchema = GivenTableName.Parent != null ? GivenTableName.Parent.Name : null;
 			if (schema != null && !StringCompare(schema, givenSchema))
@@ -186,7 +159,7 @@ namespace Deveel.Data.Sql.Query {
 				throw new ApplicationException("Incorrect table.");
 
 			if (column != null) {
-				if (!caseInsensitive) {
+				if (!IgnoreCase) {
 					// Can we resolve the column in this table?
 					int i = tableInfo.IndexOfColumn(column);
 					if (i == -1)
@@ -196,29 +169,20 @@ namespace Deveel.Data.Sql.Query {
 				}
 
 				// Case insensitive search (this is slower than case sensitive).
-				int colCount = tableInfo.ColumnCount;
-				for (int i = 0; i < colCount; ++i) {
-					string colName = tableInfo[i].ColumnName;
-					if (String.Compare(colName, column, true) == 0) {
-						return new ObjectName(GivenTableName, colName);
-					}
-				}
-				throw new ApplicationException("Could not resolve '" + column + "'");
-			} // if (column != null)
+				var columnName =
+					tableInfo.Where(x => StringCompare(x.ColumnName, column))
+						.Select(x => x.ColumnName)
+						.FirstOrDefault();
+
+				if (String.IsNullOrEmpty(columnName))
+					throw new ApplicationException(String.Format("Could not resolve column '{0}' within the table '{1}'.", column,
+						GivenTableName));
+
+				return new ObjectName(GivenTableName, columnName);
+			}
 
 			// Return the first column in the table
 			return new ObjectName(GivenTableName, tableInfo[0].ColumnName);
-		}
-
-		public ObjectName[] AllColumns {
-			get {
-				int colCount = tableInfo.ColumnCount;
-				var vars = new ObjectName[colCount];
-				for (int i = 0; i < colCount; ++i) {
-					vars[i] = new ObjectName(GivenTableName, tableInfo[i].ColumnName);
-				}
-				return vars;
-			}
 		}
 	}
 }

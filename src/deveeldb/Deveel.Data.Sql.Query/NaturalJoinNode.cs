@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Query {
 	/// </remarks>
 	[Serializable]
 	class NaturalJoinNode : BranchQueryPlanNode {
-		public NaturalJoinNode(QueryPlanNode left, QueryPlanNode right)
+		public NaturalJoinNode(IQueryPlanNode left, IQueryPlanNode right)
 			: base(left, right) {
 		}
 

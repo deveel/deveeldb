@@ -5,7 +5,7 @@ using Deveel.Data.DbSystem;
 namespace Deveel.Data.Sql.Query {
 	[Serializable]
 	class DistinctNode : SingleQueryPlanNode {
-		public DistinctNode(QueryPlanNode child, ObjectName[] columnNames) 
+		public DistinctNode(IQueryPlanNode child, ObjectName[] columnNames) 
 			: base(child) {
 			ColumnNames = columnNames;
 		}
@@ -14,6 +14,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public override ITable Evaluate(IQueryContext context) {
 			var t = Child.Evaluate(context);
+
 			int sz = ColumnNames.Length;
 			int[] colMap = new int[sz];
 			for (int i = 0; i < sz; ++i) {

@@ -21,13 +21,13 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
 	sealed class PlanTableSource {
-		public PlanTableSource(QueryPlanNode plan, ObjectName[] variables, string[] uniqueNames) {
+		public PlanTableSource(IQueryPlanNode plan, ObjectName[] variables, string[] uniqueNames) {
 			Plan = plan;
 			Variables = variables;
 			UniqueNames = uniqueNames;
 		}
 
-		public QueryPlanNode Plan { get; set; }
+		public IQueryPlanNode Plan { get; set; }
 
 		public ObjectName[] Variables { get; set; }
 
@@ -86,7 +86,7 @@ namespace Deveel.Data.Sql.Query {
 			}
 		}
 
-		public void UpdatePlan(QueryPlanNode plan) {
+		public void UpdatePlan(IQueryPlanNode plan) {
 			Plan = plan;
 			IsUpdated = true;
 		}

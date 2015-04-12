@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
@@ -109,6 +110,12 @@ namespace Deveel.Data.Sql {
 					indexes[i] = index;
 				}
 			}			
+		}
+
+		protected override RawTableInfo GetRawTableInfo(RawTableInfo rootInfo) {
+			var rows = this.Select(row => row.RowId.RowNumber).ToList();
+			rootInfo.Add(this, rows);
+			return rootInfo;
 		}
 
 		protected override IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor) {

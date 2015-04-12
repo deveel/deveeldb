@@ -33,32 +33,20 @@ namespace Deveel.Data.Sql.Query {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	public sealed class ExhaustiveSelectNode : SingleQueryPlanNode {
-		public ExhaustiveSelectNode(QueryPlanNode child, SqlExpression exp)
+	class ExhaustiveSelectNode : SingleQueryPlanNode {
+		public ExhaustiveSelectNode(IQueryPlanNode child, SqlExpression exp)
 			: base(child) {
 			Expression = exp;
-		}
-
-		public override ITable Evaluate(IQueryContext context) {
-			var t = Child.Evaluate(context);
-			return t.ExhaustiveSelect(context, Expression);
-		}
-
-		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
-			return Expression.DiscoverTableNames(base.DiscoverTableNames(list));
-		}
-
-		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
-			return Expression.DiscoverQueryReferences(ref level, base.DiscoverQueryReferences(level, list));
-		}
-
-		public override string Title {
-			get { return "EXHAUSTIVE: " + Expression; }
 		}
 
 		/// <summary>
 		/// The search expression.
 		/// </summary>
 		public SqlExpression Expression { get; private set; }
+
+		public override ITable Evaluate(IQueryContext context) {
+			var t = Child.Evaluate(context);
+			return t.ExhaustiveSelect(context, Expression);
+		}
 	}
 }

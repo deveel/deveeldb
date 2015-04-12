@@ -252,7 +252,7 @@ namespace Deveel.Data.Transactions {
 			}
 
 			public string GetTableType(int offset) {
-				return "SYSTEM TABLE";
+				return TableTypes.SystemTable;
 			}
 
 			public bool ContainsTable(ObjectName name) {
@@ -341,7 +341,7 @@ namespace Deveel.Data.Transactions {
 			}
 
 			public string GetTableType(int offset) {
-				return "SYSTEM TABLE";
+				return TableTypes.SystemTable;
 			}
 
 			public bool ContainsTable(ObjectName name) {

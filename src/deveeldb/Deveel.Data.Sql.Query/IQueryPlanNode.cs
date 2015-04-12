@@ -29,7 +29,5 @@ namespace Deveel.Data.Sql.Query {
 	/// </remarks>
 	public interface IQueryPlanNode {
 		ITable Evaluate(IQueryContext context);
-
-		void Accept(IQueryPlanNodeVisitor visitor);
 	}
 }

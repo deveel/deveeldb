@@ -44,12 +44,29 @@ namespace Deveel.Data.Sql.Query {
 	/// </remarks>
 	[Serializable]
 	class LeftOuterJoinNode : SingleQueryPlanNode {
-		public LeftOuterJoinNode(QueryPlanNode child, string markerName) 
+		public LeftOuterJoinNode(IQueryPlanNode child, string markerName) 
 			: base(child) {
+			MarkerName = markerName;
 		}
 
+		public string MarkerName { get; private set; }
+
 		public override ITable Evaluate(IQueryContext context) {
-			throw new NotImplementedException();
+			// Evaluate the child branch,
+			var result = Child.Evaluate(context);
+			// Get the table of the complete mark name,
+			var completeLeft = context.GetCachedTable(MarkerName);
+
+			// The rows in 'complete_left' that are outside (not in) the rows in the
+			// left result.
+			var outside = completeLeft.Outer(result);
+
+			// Create an OuterTable
+			var outerTable = OuterTable.Create(result);
+			outerTable.MergeIn(outside);
+
+			// Return the outer table
+			return outerTable;
 		}
 	}
 }

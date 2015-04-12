@@ -17,16 +17,18 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.DbSystem;
+
 namespace Deveel.Data.Sql.Query {
 	/// <summary>
 	/// A <see cref="IQueryPlanNode"/> implementation that is a branch with 
 	/// two child nodes.
 	/// </summary>
 	[Serializable]
-	public abstract class BranchQueryPlanNode : QueryPlanNode {
+	abstract class BranchQueryPlanNode : IQueryPlanNode {
 		// The left and right node.
 
-		protected BranchQueryPlanNode(QueryPlanNode left, QueryPlanNode right) {
+		protected BranchQueryPlanNode(IQueryPlanNode left, IQueryPlanNode right) {
 			Left = left;
 			Right = right;
 		}
@@ -34,25 +36,13 @@ namespace Deveel.Data.Sql.Query {
 		/// <summary>
 		/// Gets the left node of the branch query plan node.
 		/// </summary>
-		protected QueryPlanNode Left { get; private set; }
+		public IQueryPlanNode Left { get; private set; }
 
 		/// <summary>
 		/// Gets the right node of the branch query plan node.
 		/// </summary>
-		protected QueryPlanNode Right { get; private set; }
+		public IQueryPlanNode Right { get; private set; }
 
-		/// <inheritdoc/>
-		internal override IList<ObjectName> DiscoverTableNames(IList<ObjectName> list) {
-			return Right.DiscoverTableNames(Left.DiscoverTableNames(list));
-		}
-
-		/// <inheritdoc/>
-		internal override IList<QueryReference> DiscoverQueryReferences(int level, IList<QueryReference> list) {
-			return Right.DiscoverQueryReferences(level, Left.DiscoverQueryReferences(level, list));
-		}
-
-		public virtual string NodeName {
-			get { return GetType().Name; }
-		}
+		public abstract ITable Evaluate(IQueryContext context);
 	}
 }

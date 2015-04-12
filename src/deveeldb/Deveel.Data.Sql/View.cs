@@ -5,17 +5,18 @@ using Deveel.Data.Sql.Query;
 namespace Deveel.Data.Sql {
 	[Serializable]
 	public sealed class View : IDbObject {
-		public View(TableInfo tableInfo, IQueryPlanNode queryPlan) {
-			TableInfo = tableInfo;
-			QueryPlan = queryPlan;
+		public View(ViewInfo viewInfo) {
+			ViewInfo = viewInfo;
 		}
 
-		public TableInfo TableInfo { get; private set; }
+		public ViewInfo ViewInfo { get; private set; }
 
-		public IQueryPlanNode QueryPlan { get; private set; }
+		public IQueryPlanNode QueryPlan {
+			get { return ViewInfo.QueryExpression.QueryPlan; }
+		}
 
 		ObjectName IDbObject.FullName {
-			get { return TableInfo.TableName; }
+			get { return ViewInfo.ViewName; }
 		}
 
 		DbObjectType IDbObject.ObjectType {
