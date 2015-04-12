@@ -31,38 +31,45 @@ namespace Deveel.Data.Sql.Query {
 				return VisitFetchTable((FetchTableNode) node);
 			if (node is FetchViewNode)
 				return VisitFetchView((FetchViewNode) node);
+			if (node is SingleRowTableNode)
+				return VisitSingleRowTable((SingleRowTableNode) node);
 
 			throw new NotSupportedException();
 		}
 
+		protected virtual IQueryPlanNode VisitSingleRowTable(SingleRowTableNode node) {
+			return new SingleRowTableNode();
+		}
+
 		protected virtual IQueryPlanNode VisitFetchView(FetchViewNode node) {
-			return node;
+			return new FetchViewNode(node.ViewName, node.AliasName);
 		}
 
 		protected virtual IQueryPlanNode VisitFetchTable(FetchTableNode node) {
-			return node;
+			return new FetchTableNode(node.TableName, node.AliasName);
 		}
 
 		protected virtual IQueryPlanNode VisitSingle(SingleQueryPlanNode node) {
-			if (node is SimpleSelectNode) {
-				return VisitSimpleSelect((SimpleSelectNode)node);
-			} else if (node is ExhaustiveSelectNode) {
-				return VisitExhaustiveSelect((ExhaustiveSelectNode)node);
-			} else if (node is ConstantSelectNode) {
-				return VisitConstantSelect((ConstantSelectNode)node);
-			} else if (node is RangeSelectNode) {
-				return VisitRangeSelect((RangeSelectNode)node);
-			} else if (node is DistinctNode) {
-				return VisitDistinct((DistinctNode)node);
-			} else if (node is LeftOuterJoinNode) {
-				return VisitLeftOuterJoin((LeftOuterJoinNode)node);
-			} else if (node is CachePointNode) {
-				return VisitCachePoint((CachePointNode)node);
-			} else if (node is MarkerNode) {
-				return VisitMarker((MarkerNode)node);
-			}
+			if (node is SimpleSelectNode)
+				return VisitSimpleSelect((SimpleSelectNode) node);
+			if (node is ExhaustiveSelectNode)
+				return VisitExhaustiveSelect((ExhaustiveSelectNode) node);
+			if (node is ConstantSelectNode)
+				return VisitConstantSelect((ConstantSelectNode) node);
+			if (node is RangeSelectNode)
+				return VisitRangeSelect((RangeSelectNode) node);
+			if (node is DistinctNode)
+				return VisitDistinct((DistinctNode) node);
+			if (node is LeftOuterJoinNode)
+				return VisitLeftOuterJoin((LeftOuterJoinNode) node);
+			if (node is CachePointNode)
+				return VisitCachePoint((CachePointNode) node);
+			if (node is MarkerNode)
+				return VisitMarker((MarkerNode) node);
 			if (node is GroupNode)
 				return VisitGroup((GroupNode) node);
+			if (node is SortNode)
+				return VisitSort((SortNode) node);
 
 			throw new NotSupportedException();
 		}
@@ -70,15 +77,40 @@ namespace Deveel.Data.Sql.Query {
 		protected virtual IQueryPlanNode VisitBranch(BranchQueryPlanNode node) {
 			if (node is CompositeNode)
 				return VisitComposite((CompositeNode) node);
-			if (node is JoinNode) {
+			if (node is JoinNode)
 				return VisitJoin((JoinNode) node);
-			} else if (node is EquiJoinNode) {
+			if (node is EquiJoinNode)
 				return VisitEquiJoin((EquiJoinNode) node);
-			} else if (node is NaturalJoinNode) {
+			if (node is NaturalJoinNode)
 				return VisitNaturalJoin((NaturalJoinNode) node);
-			}
+			if (node is LogicalUnionNode)
+				return VisitLogicalUnion((LogicalUnionNode) node);
+			if (node is NonCorrelatedAnyAllNode)
+				return VisitNonCorrelatedAnyAll((NonCorrelatedAnyAllNode) node);
 
 			throw new NotSupportedException();
+		}
+
+		protected virtual IQueryPlanNode VisitNonCorrelatedAnyAll(NonCorrelatedAnyAllNode node) {
+			var left = node.Left;
+			var right = node.Right;
+			if (left != null)
+				left = VisitNode(left);
+			if (right != null)
+				right = VisitNode(right);
+
+			return new NonCorrelatedAnyAllNode(left, right, node.LeftColumnNames, node.SubQueryType);
+		}
+
+		protected virtual IQueryPlanNode VisitLogicalUnion(LogicalUnionNode node) {
+			var left = node.Left;
+			var right = node.Right;
+			if (left != null)
+				left = VisitNode(left);
+			if (right != null)
+				right = VisitNode(right);
+
+			return new LogicalUnionNode(left, right);
 		}
 
 		protected virtual IQueryPlanNode VisitJoin(JoinNode node) {
@@ -163,6 +195,14 @@ namespace Deveel.Data.Sql.Query {
 				child = VisitNode(child);
 
 			return new CachePointNode(child);
+		}
+
+		protected virtual IQueryPlanNode VisitSort(SortNode node) {
+			var child = node.Child;
+			if (child != null)
+				child = VisitNode(child);
+
+			return new SortNode(child, node.ColumnNames, node.Ascending);
 		}
 
 		protected virtual IQueryPlanNode VisitDistinct(DistinctNode node) {

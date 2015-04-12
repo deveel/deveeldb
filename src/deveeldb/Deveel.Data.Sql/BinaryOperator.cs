@@ -17,20 +17,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// An operator used to evaluate binary operations.
 	/// </summary>
-	public abstract class BinaryOperator {
+	abstract class BinaryOperator {
 		private static readonly Dictionary<BinaryOperatorType, BinaryOperator> AnyMap;
 		private static readonly Dictionary<BinaryOperatorType, BinaryOperator> AllMap;
 

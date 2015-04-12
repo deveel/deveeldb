@@ -246,10 +246,15 @@
     <Compile Include="Deveel.Data.Sql.Query\GroupNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\IVisitableQueryPlanNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\JoinNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\LogicalUnionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\NonCorrelatedAnyAllNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryNodeTableNameVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanner.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanNodeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryReferencesVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionTypeExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\SingleRowTableNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\SortNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TableNamesVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />

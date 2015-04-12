@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
 using NUnit.Framework;
@@ -58,7 +59,7 @@ namespace Deveel.Data.Sql {
 		[TestCase(1, 0)]
 		[TestCase(3, 2)]
 		public void SelectRowsWhereStaticId(int id, int expectedRow) {
-			var result = table.SelectRows(0, BinaryOperator.Equal, DataObject.BigInt(id));
+			var result = table.SelectRows(0, SqlExpressionType.Equal, DataObject.BigInt(id));
 			var list = result.ToList();
 
 			Assert.IsNotEmpty(list);
@@ -69,7 +70,7 @@ namespace Deveel.Data.Sql {
 		[TestCase("test2", 1)]
 		[TestCase("test3", 2)]
 		public void SelectRowsWhereStaticName(string name, int expectedRow) {
-			var result = table.SelectRows(1, BinaryOperator.Equal, DataObject.VarChar(name));
+			var result = table.SelectRows(1, SqlExpressionType.Equal, DataObject.VarChar(name));
 			var list = result.ToList();
 
 			Assert.IsNotEmpty(list);

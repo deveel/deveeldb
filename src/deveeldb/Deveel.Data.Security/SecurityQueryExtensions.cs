@@ -25,7 +25,7 @@ namespace Deveel.Data.Security {
 			var accessCol = connectPriv.GetResolvedColumnName(3);
 
 			// Query: where UserName = %username%
-			var t = connectPriv.SimpleSelect(queryContext, unCol, BinaryOperator.Equal, SqlExpression.Constant(username));
+			var t = connectPriv.SimpleSelect(queryContext, unCol, SqlExpressionType.Equal, SqlExpression.Constant(username));
 			// Query: where %protocol% like Protocol
 			var exp = SqlExpression.Binary(SqlExpression.Constant(protocol), SqlExpressionType.Like, SqlExpression.Reference(protoCol));
 			t = t.ExhaustiveSelect(queryContext, exp);
@@ -34,12 +34,12 @@ namespace Deveel.Data.Security {
 			t = t.ExhaustiveSelect(queryContext, exp);
 
 			// Those that are DENY
-			var t2 = t.SimpleSelect(queryContext, accessCol, BinaryOperator.Equal, SqlExpression.Constant(DataObject.BooleanFalse));
+			var t2 = t.SimpleSelect(queryContext, accessCol, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.BooleanFalse));
 			if (t2.RowCount > 0)
 				return false;
 
 			// Those that are ALLOW
-			var t3 = t.SimpleSelect(queryContext, accessCol, BinaryOperator.Equal, SqlExpression.Constant(DataObject.BooleanTrue));
+			var t3 = t.SimpleSelect(queryContext, accessCol, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.BooleanTrue));
 			if (t3.RowCount > 0)
 				return true;
 
@@ -54,9 +54,9 @@ namespace Deveel.Data.Security {
 			var c1 = table.GetResolvedColumnName(0);
 			var c2 = table.GetResolvedColumnName(1);
 			// All 'user_priv' where UserName = %username%
-			var t = table.SimpleSelect(queryContext, c1, BinaryOperator.Equal, SqlExpression.Constant(username));
+			var t = table.SimpleSelect(queryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(username));
 			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(queryContext, c2, BinaryOperator.Equal, SqlExpression.Constant(group));
+			t = t.SimpleSelect(queryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(group));
 			return t.RowCount > 0;
 		}
 
@@ -85,9 +85,9 @@ namespace Deveel.Data.Security {
 			var c1 = table.GetResolvedColumnName(0);
 			var c2 = table.GetResolvedColumnName(1);
 			// All 'user_priv' where UserName = %username%
-			var t = table.SimpleSelect(queryContext, c1, BinaryOperator.Equal, SqlExpression.Constant(username));
+			var t = table.SimpleSelect(queryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(username));
 			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(queryContext, c2, BinaryOperator.Equal, SqlExpression.Constant(SystemGroupNames.LockGroup));
+			t = t.SimpleSelect(queryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(SystemGroupNames.LockGroup));
 
 			bool userBelongsToLockGroup = t.RowCount > 0;
 			if (lockStatus && !userBelongsToLockGroup) {
@@ -121,7 +121,7 @@ namespace Deveel.Data.Security {
 			var c1 = table.GetResolvedColumnName(0);
 
 			// All password where UserName = %username%
-			var t = table.SimpleSelect(context, c1, BinaryOperator.Equal, SqlExpression.Constant(userName));
+			var t = table.SimpleSelect(context, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
 			return t.RowCount > 0;
 		}
 
@@ -196,7 +196,7 @@ namespace Deveel.Data.Security {
 			// All that match the given object parameter
 			// It's most likely this will reduce the search by the most so we do
 			// it first.
-			t1 = t1.SimpleSelect(context, paramCol, BinaryOperator.Equal,
+			t1 = t1.SimpleSelect(context, paramCol, SqlExpressionType.Equal,
 									   SqlExpression.Constant(DataObject.String(objectName.FullName)));
 
 			// The next is a single exhaustive select through the remaining records.
@@ -266,7 +266,7 @@ namespace Deveel.Data.Security {
 			// All that match the given object parameter
 			// It's most likely this will reduce the search by the most so we do
 			// it first.
-			t1 = t1.SimpleSelect(context, paramCol, BinaryOperator.Equal, SqlExpression.Constant(DataObject.String(objName.FullName)));
+			t1 = t1.SimpleSelect(context, paramCol, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.String(objName.FullName)));
 
 			// The next is a single exhaustive select through the remaining records.
 			// It finds all grants that match either public or the grantee is the
@@ -355,7 +355,7 @@ namespace Deveel.Data.Security {
 				var saltColumn = table.GetResolvedColumnName(3);
 				var hashColumn = table.GetResolvedColumnName(4);
 
-				var t = table.SimpleSelect(queryContext, unameColumn, BinaryOperator.Equal, SqlExpression.Constant(username));
+				var t = table.SimpleSelect(queryContext, unameColumn, SqlExpressionType.Equal, SqlExpression.Constant(username));
 				if (t.RowCount == 0)
 					return null;
 

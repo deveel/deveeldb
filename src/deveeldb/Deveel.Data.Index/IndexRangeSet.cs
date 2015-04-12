@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Index {
 	public sealed class IndexRangeSet {
@@ -31,21 +32,21 @@ namespace Deveel.Data.Index {
 			this.ranges = new List<IndexRange>(ranges);
 		}
 
-		private static IndexRange IntersectOn(IndexRange range, BinaryOperator op, DataObject value, bool nullCheck) {
+		private static IndexRange IntersectOn(IndexRange range, SqlExpressionType op, DataObject value, bool nullCheck) {
 			var start = range.StartValue;
 			var startPosition = range.StartOffset;
 			var end = range.EndValue;
 			var endPosition = range.EndOffset;
 
-			bool inclusive = op.IsOfType(BinaryOperatorType.Is) ||
-			                 op.IsOfType(BinaryOperatorType.Equal) ||
-			                 op.IsOfType(BinaryOperatorType.GreaterOrEqualThan) ||
-			                 op.IsOfType(BinaryOperatorType.SmallerOrEqualThan);
+			bool inclusive = op == SqlExpressionType.Is ||
+			                 op == SqlExpressionType.Equal ||
+			                 op == SqlExpressionType.GreaterOrEqualThan ||
+			                 op == SqlExpressionType.SmallerOrEqualThan;
 
-			if (op.IsOfType(BinaryOperatorType.Is) ||
-			    op.IsOfType(BinaryOperatorType.Equal) ||
-			    op.IsOfType(BinaryOperatorType.GreaterThan) ||
-			    op.IsOfType(BinaryOperatorType.GreaterOrEqualThan)) {
+			if (op == SqlExpressionType.Is ||
+			    op == SqlExpressionType.Equal ||
+			    op == SqlExpressionType.GreaterThan ||
+			    op == SqlExpressionType.GreaterOrEqualThan) {
 				// With this operator, NULL values must return null.
 				if (nullCheck && value.IsNull) {
 					return IndexRange.Null;
@@ -63,10 +64,10 @@ namespace Deveel.Data.Index {
 				}
 			}
 
-			if (op.IsOfType(BinaryOperatorType.Is) ||
-			    op.IsOfType(BinaryOperatorType.Equal) ||
-			    op.IsOfType(BinaryOperatorType.SmallerThan) ||
-			    op.IsOfType(BinaryOperatorType.SmallerOrEqualThan)) {
+			if (op == SqlExpressionType.Is ||
+			    op == SqlExpressionType.Equal ||
+			    op == SqlExpressionType.SmallerThan ||
+			    op == SqlExpressionType.SmallerOrEqualThan) {
 				// With this operator, NULL values must return null.
 				if (nullCheck && value.IsNull) {
 					return IndexRange.Null;
@@ -205,19 +206,22 @@ namespace Deveel.Data.Index {
 			return new IndexRange(startPosition1, start1, endPosition1, end1);
 		}
 
-		public IndexRangeSet Intersect(BinaryOperator op, DataObject value) {
+		public IndexRangeSet Intersect(SqlExpressionType op, DataObject value) {
 			lock (this) {
 				int sz = ranges.Count;
 				var list = ranges.GetRange(0, sz);
 
-				if (op.IsOfType(BinaryOperatorType.NotEqual) ||
-				    op.IsOfType(BinaryOperatorType.IsNot)) {
-					bool nullCheck = op.IsOfType(BinaryOperatorType.NotEqual);
+				if (op.IsSubQuery())
+					op = op.SubQueryPlainType();
+
+				if (op == SqlExpressionType.Equal ||
+				    op == SqlExpressionType.IsNot) {
+					bool nullCheck = op == SqlExpressionType.NotEqual;
 					int j = 0;
 					while (j < sz) {
 						var range = list[j];
-						var leftRange = IntersectOn(range,  BinaryOperator.SmallerThan, value, nullCheck);
-						var rightRange = IntersectOn(range, BinaryOperator.GreaterThan, value, nullCheck);
+						var leftRange = IntersectOn(range, SqlExpressionType.SmallerThan, value, nullCheck);
+						var rightRange = IntersectOn(range, SqlExpressionType.GreaterThan, value, nullCheck);
 						list.RemoveAt(j);
 						if (leftRange != IndexRange.Null) {
 							list.Add(leftRange);
@@ -230,7 +234,7 @@ namespace Deveel.Data.Index {
 
 					return new IndexRangeSet(list);
 				} else {
-					bool nullCheck = !op.IsOfType(BinaryOperatorType.Is);
+					bool nullCheck = op != SqlExpressionType.Is;
 					int j = 0;
 					while (j < sz) {
 						var range = list[j];

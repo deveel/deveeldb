@@ -329,7 +329,7 @@ namespace Deveel.Data.Sql {
 			return table.SelectRowsEqual(columnOffset1, value1, columnOffset2, value2).Any();
 		}
 
-		public static IEnumerable<int> SelectRows(this ITable table, int[] columnOffsets, BinaryOperator op,
+		public static IEnumerable<int> SelectRows(this ITable table, int[] columnOffsets, SqlExpressionType op,
 			DataObject[] values) {
 			if (columnOffsets.Length > 1)
 				throw new NotSupportedException("Multi-column selects not supported yet.");
@@ -349,7 +349,7 @@ namespace Deveel.Data.Sql {
 			return table.GetIndex(column).SelectBetween(minCell, maxCell);
 		}
 
-		public static IEnumerable<int> SelectRows(this ITable table, int column, BinaryOperator op, DataObject value) {
+		public static IEnumerable<int> SelectRows(this ITable table, int column, SqlExpressionType op, DataObject value) {
 			// If the cell is of an incompatible type, return no results,
 			var colType = table.TableInfo[column].ColumnType;
 			if (!value.Type.IsComparable(colType)) {
@@ -362,17 +362,17 @@ namespace Deveel.Data.Sql {
 
 			// If the operator is a standard operator, use the interned SelectableScheme
 			// methods.
-			if (op.OperatorType == BinaryOperatorType.Equal)
+			if (op == SqlExpressionType.Equal)
 				return index.SelectEqual(value);
-			if (op.OperatorType == BinaryOperatorType.NotEqual)
+			if (op == SqlExpressionType.NotEqual)
 				return index.SelectNotEqual(value);
-			if (op.OperatorType == BinaryOperatorType.GreaterThan)
+			if (op == SqlExpressionType.GreaterThan)
 				return index.SelectGreater(value);
-			if (op.OperatorType == BinaryOperatorType.SmallerThan)
+			if (op == SqlExpressionType.SmallerThan)
 				return index.SelectLess(value);
-			if (op.OperatorType == BinaryOperatorType.GreaterOrEqualThan)
+			if (op == SqlExpressionType.GreaterOrEqualThan)
 				return index.SelectGreaterOrEqual(value);
-			if (op.OperatorType == BinaryOperatorType.SmallerOrEqualThan)
+			if (op == SqlExpressionType.SmallerOrEqualThan)
 				return index.SelectLessOrEqual(value);
 
 			// If it's not a standard operator (such as IS, NOT IS, etc) we generate the
@@ -402,12 +402,12 @@ namespace Deveel.Data.Sql {
 				throw new InvalidOperationException();
 
 			var value = ((SqlConstantExpression) reduced).Value;
-			var binOperator = expression.BinaryOperator;
+			var binOperator = expression.ExpressionType;
 
 			return table.SelectRows(column, binOperator, value);
 		}
 
-		public static ITable SimpleSelect(this ITable table, IQueryContext context, ObjectName columnName, BinaryOperator op, SqlExpression exp) {
+		public static ITable SimpleSelect(this ITable table, IQueryContext context, ObjectName columnName, SqlExpressionType op, SqlExpression exp) {
 			// Find the row with the name given in the condition.
 			int column = table.FindColumn(columnName);
 
@@ -415,8 +415,7 @@ namespace Deveel.Data.Sql {
 				throw new ArgumentException(String.Format("Unable to find the column {0} in the condition.", columnName.Name));
 
 			// If we are doing a sub-query search
-			if (op.IsSubQuery) {
-
+			if (op.IsSubQuery()) {
 				// We can only handle constant expressions in the RHS expression, and
 				// we must assume that the RHS is a Expression[] array.
 				if (exp.ExpressionType != SqlExpressionType.Constant &&
@@ -468,8 +467,8 @@ namespace Deveel.Data.Sql {
 
 				IEnumerable<int> rows;
 
-				if (op.IsOfType(BinaryOperatorType.Like) ||
-				    op.IsOfType(BinaryOperatorType.NotLike)
+				if (op == SqlExpressionType.Like ||
+				    op == SqlExpressionType.NotLike
 					/* TODO: ||
 				op.IsOfType(BinaryOperatorType.Regex)*/) {
 
@@ -570,11 +569,11 @@ namespace Deveel.Data.Sql {
 		}
 
 
-		public static IEnumerable<int> SelectFromPattern(this ITable table, int column, BinaryOperator op, DataObject ob) {
+		public static IEnumerable<int> SelectFromPattern(this ITable table, int column, SqlExpressionType op, DataObject ob) {
 			if (ob.IsNull)
 				return new List<int>();
 
-			if (op.IsOfType(BinaryOperatorType.NotLike)) {
+			if (op == SqlExpressionType.NotLike) {
 				// How this works:
 				//   Find the set or rows that are like the pattern.
 				//   Find the complete set of rows in the column.
@@ -586,7 +585,7 @@ namespace Deveel.Data.Sql {
 				var likeSet = (List<int>)table.Search(column, ob.ToString());
 				// Don't include NULL values
 				var nullCell = DataObject.Null(ob.Type);
-				IList<int> originalSet = table.SelectRows(column, BinaryOperator.IsNot, nullCell).ToList();
+				IList<int> originalSet = table.SelectRows(column, SqlExpressionType.IsNot, nullCell).ToList();
 				int listSize = System.Math.Max(4, (originalSet.Count - likeSet.Count) + 4);
 				List<int> resultSet = new List<int>(listSize);
 				likeSet.Sort();
@@ -673,7 +672,7 @@ namespace Deveel.Data.Sql {
 				// operation on the column and return the results.
 
 				var cell = new DataObject(colType, new SqlString(pattern));
-				return table.SelectRows(column, BinaryOperator.Equal, cell);
+				return table.SelectRows(column, SqlExpressionType.Equal, cell);
 			}
 
 			if (prePattern.Length == 0 ||
@@ -789,7 +788,7 @@ namespace Deveel.Data.Sql {
 
 		#region Sub-Query
 
-		public static ITable AnyAllNonCorrelated(this ITable table, ObjectName[] leftColumns, BinaryOperator op, ITable rightTable) {
+		public static ITable AnyAllNonCorrelated(this ITable table, ObjectName[] leftColumns, SqlExpressionType op, ITable rightTable) {
 			if (rightTable.TableInfo.ColumnCount != leftColumns.Length) {
 				throw new ArgumentException(String.Format("The right table has {0} columns that is different from the specified column names ({1})",
 						rightTable.TableInfo.ColumnCount, leftColumns.Length));
@@ -822,10 +821,10 @@ namespace Deveel.Data.Sql {
 
 			IEnumerable<int> rows;
 
-			if (!op.IsSubQuery)
+			if (!op.IsSubQuery())
 				throw new ArgumentException(String.Format("The operator {0} is not a sub-query form.", op));
 
-			if (op.SubQueryType == OperatorSubType.All) {
+			if (op.IsAll()) {
 				// ----- ALL operation -----
 				// We work out as follows:
 				//   For >, >= type ALL we find the highest value in 'table' and
@@ -839,21 +838,21 @@ namespace Deveel.Data.Sql {
 				//   empty table.
 				//   For <> type ALL we use the 'not in' algorithm.
 
-				if (op.IsOfType(BinaryOperatorType.GreaterThan) || 
-					op.IsOfType(BinaryOperatorType.GreaterOrEqualThan)) {
+				if (op == SqlExpressionType.AllGreaterThan || 
+					op == SqlExpressionType.AllGreaterOrEqualThan) {
 					// Select the last from the set (the highest value),
 					var highestCells = rightTable.GetLastValues(rightColMap);
 					// Select from the source table all rows that are > or >= to the
 					// highest cell,
 					rows = table.SelectRows(leftColMap, op, highestCells);
-				} else if (op.IsOfType(BinaryOperatorType.SmallerThan) || 
-					op.IsOfType(BinaryOperatorType.SmallerOrEqualThan)) {
+				} else if (op == SqlExpressionType.AllSmallerThan || 
+					op == SqlExpressionType.AllSmallerOrEqualThan) {
 					// Select the first from the set (the lowest value),
 					var lowestCells = rightTable.GetFirstValues(rightColMap);
 					// Select from the source table all rows that are < or <= to the
 					// lowest cell,
 					rows = table.SelectRows(leftColMap, op, lowestCells);
-				} else if (op.IsOfType(BinaryOperatorType.Equal)) {
+				} else if (op == SqlExpressionType.AllEqual) {
 					// Select the single value from the set (if there is one).
 					var singleCell = rightTable.GetSingleValues(rightColMap);
 					if (singleCell != null) {
@@ -864,11 +863,11 @@ namespace Deveel.Data.Sql {
 						// a value in RHS).
 						return table.EmptySelect();
 					}
-				} else if (op.IsOfType(BinaryOperatorType.NotEqual)) {
+				} else if (op == SqlExpressionType.AllNotEqual) {
 					// Equiv. to NOT IN
 					rows = table.RowsNotIn(rightTable, leftColMap, rightColMap);
 				} else {
-					throw new ArgumentException(String.Format("Operator of type {0} is not valid in ALL functions.", op.OperatorType));
+					throw new ArgumentException(String.Format("Operator of type {0} is not valid in ALL functions.", op.SubQueryPlainType()));
 				}
 			} else {
 				// ----- ANY operation -----
@@ -883,24 +882,24 @@ namespace Deveel.Data.Sql {
 				//   For <> type ANY we iterate through 'source' only including those
 				//   rows that a <> query on 'table' returns size() != 0.
 
-				if (op.IsOfType(BinaryOperatorType.GreaterThan) || 
-					op.IsOfType(BinaryOperatorType.GreaterOrEqualThan)) {
+				if (op == SqlExpressionType.AnyGreaterThan || 
+					op == SqlExpressionType.AnyGreaterOrEqualThan) {
 					// Select the first from the set (the lowest value),
 					var lowestCells = rightTable.GetFirstValues(rightColMap);
 					// Select from the source table all rows that are > or >= to the
 					// lowest cell,
 					rows = table.SelectRows(leftColMap, op, lowestCells);
-				} else if (op.IsOfType(BinaryOperatorType.SmallerThan) || 
-					op.IsOfType(BinaryOperatorType.SmallerOrEqualThan)) {
+				} else if (op == SqlExpressionType.AnySmallerThan || 
+					op == SqlExpressionType.AnySmallerOrEqualThan) {
 					// Select the last from the set (the highest value),
 					var highestCells = rightTable.GetLastValues(rightColMap);
 					// Select from the source table all rows that are < or <= to the
 					// highest cell,
 					rows = table.SelectRows(leftColMap, op, highestCells);
-				} else if (op.IsOfType(BinaryOperatorType.Equal)) {
+				} else if (op == SqlExpressionType.AnyEqual) {
 					// Equiv. to IN
 					rows = table.In(rightTable, leftColMap, rightColMap);
-				} else if (op.IsOfType(BinaryOperatorType.NotEqual)) {
+				} else if (op == SqlExpressionType.AnyNotEqual) {
 					// Select the value that is the same of the entire column
 					var cells = rightTable.GetSingleValues(rightColMap);
 					if (cells != null) {
@@ -912,7 +911,7 @@ namespace Deveel.Data.Sql {
 						return table;
 					}
 				} else {
-					throw new ArgumentException(String.Format("Operator of type {0} is not valid in ANY functions.", op.OperatorType));
+					throw new ArgumentException(String.Format("Operator of type {0} is not valid in ANY functions.", op.SubQueryPlainType()));
 				}
 			}
 
@@ -960,6 +959,35 @@ namespace Deveel.Data.Sql {
 			return new VirtualTable(table, resultList);
 		}
 
+		public static ITable Union(this ITable thisTable, ITable otherTable) {
+			// Optimizations - handle trivial case of row count in one of the tables
+			//   being 0.
+			// NOTE: This optimization assumes this table and the unioned table are
+			//   of the same type.
+			if ((thisTable.RowCount == 0 && otherTable.RowCount == 0) ||
+				 otherTable.RowCount == 0) {
+				return thisTable;
+			}
+
+			if (thisTable.RowCount == 0)
+				return otherTable;
+
+			// First we merge this table with the input table.
+
+			var raw1 = thisTable.GetRawTableInfo();
+			var raw2 = otherTable.GetRawTableInfo();
+
+			// This will throw an exception if the table types do not match up.
+
+			var union = raw1.Union(raw2);
+
+			// Now 'union' contains a list of uniquely merged rows (ie. the union).
+			// Now make it into a new table and return the information.
+
+			var tableList = union.GetTables().AsEnumerable();
+			return new VirtualTable(tableList, union.GetRows());
+		}
+
 		/// <summary>
 		/// This implements the <c>in</c> command.
 		/// </summary>
@@ -1000,7 +1028,7 @@ namespace Deveel.Data.Sql {
 			// final result.
 
 			var resultRows = new BlockIndex<int>();
-			var op = BinaryOperator.Equal;
+			var op = SqlExpressionType.Equal;
 
 			foreach (var row in smallTable) {
 				var cell = row.GetValue(smallColumn);
@@ -1073,7 +1101,7 @@ namespace Deveel.Data.Sql {
 					throw new InvalidOperationException("Cannot iterate through table rows.");
 
 				var cell = table2.GetValue(en.Current.RowId.RowNumber, col2);
-				return table.SelectRows(col1, BinaryOperator.NotEqual, cell);
+				return table.SelectRows(col1, SqlExpressionType.NotEqual, cell);
 			}
 
 			// Iterate through table1's column.  If we can find identical cell in the
@@ -1085,7 +1113,7 @@ namespace Deveel.Data.Sql {
 				int rowIndex = row.RowId.RowNumber;
 				var cell = row.GetValue(col1);
 
-				var selectedSet = table2.SelectRows(col2, BinaryOperator.Equal, cell);
+				var selectedSet = table2.SelectRows(col2, SqlExpressionType.Equal, cell);
 
 				// We've found a row in table1 that doesn't have an identical cell in
 				// table2, so we should include it in the result.
@@ -1159,6 +1187,14 @@ namespace Deveel.Data.Sql {
 				rows = rows.Reverse();
 
 			return new VirtualTable(table, rows);
+		}
+
+		public static ITable OrderByColumn(this ITable table, ObjectName columnName, bool ascending) {
+			var columnOffset = table.IndexOfColumn(columnName);
+			if (columnOffset == -1)
+				throw new ArgumentException(String.Format("Column '{0}' was not found in table.", columnName));
+
+			return table.OrderByColumn(columnOffset, ascending);
 		}
 
 		#endregion

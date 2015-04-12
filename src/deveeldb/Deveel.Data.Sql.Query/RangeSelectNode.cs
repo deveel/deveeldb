@@ -116,7 +116,7 @@ namespace Deveel.Data.Sql.Query {
 			}
 
 			public override SqlExpression VisitBinary(SqlBinaryExpression binaryEpression) {
-				var op = binaryEpression.BinaryOperator;
+				var op = binaryEpression.ExpressionType;
 
 				// Evaluate to an object
 				var value = binaryEpression.Right.EvaluateToConstant(context, null);
