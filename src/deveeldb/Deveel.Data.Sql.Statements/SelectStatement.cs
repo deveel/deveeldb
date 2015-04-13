@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Statements {
 			: this(queryExpression, null) {
 		}
 
-		public SelectStatement(SqlQueryExpression queryExpression, IEnumerable<ByColumn> orderBy) {
+		public SelectStatement(SqlQueryExpression queryExpression, IEnumerable<SortColumn> orderBy) {
 			if (queryExpression == null)
 				throw new ArgumentNullException("queryExpression");
 
@@ -43,8 +43,8 @@ namespace Deveel.Data.Sql.Statements {
 			private set { SetValue(Keys.QueryExpression, value); }
 		}
 
-		public IList<ByColumn> OrderBy {
-			get { return GetList<ByColumn>(Keys.OrderBy); }
+		public IList<SortColumn> OrderBy {
+			get { return GetList<SortColumn>(Keys.OrderBy); }
 			set { SetValue(Keys.OrderBy, value); }
 		}
 

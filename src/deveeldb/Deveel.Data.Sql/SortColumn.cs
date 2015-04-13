@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql {
 	/// of a select statement.
 	/// </summary>
 	[Serializable]
-	public sealed class ByColumn : IPreparable {
+	public sealed class SortColumn : IPreparable {
 		/// <summary>
 		/// Constructs the <c>BY</c> column reference with the expression
 		/// and the sort order given.
@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="ascending">The sort order for the column. If this is
 		/// set to <b>true</b>, the column will be used to sort the results of
 		/// a query in ascending order.</param>
-		public ByColumn(SqlExpression expression, bool ascending) {
+		public SortColumn(SqlExpression expression, bool ascending) {
 			Expression = expression;
 			Ascending = ascending;
 		}
@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql {
 		/// given and the ascending sort order.
 		/// </summary>
 		/// <param name="expression">The expression of the column reference.</param>
-		public ByColumn(SqlExpression expression)
+		public SortColumn(SqlExpression expression)
 			: this(expression, true) {
 		}
 
@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="ascending">The sort order for the column. If this is
 		/// set to <b>true</b>, the column will be used to sort the results of
 		/// a query in ascending order.</param>
-		public ByColumn(string expression, bool ascending)
+		public SortColumn(string expression, bool ascending)
 			: this(SqlExpression.Parse(expression), ascending) {
 		}
 
@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql {
 		/// given and the ascending sort order.
 		/// </summary>
 		/// <param name="expression">The expression of the column reference.</param>
-		public ByColumn(string expression)
+		public SortColumn(string expression)
 			: this(expression, true) {
 		}
 
@@ -85,7 +85,7 @@ namespace Deveel.Data.Sql {
 				exp = exp.Prepare(preparer);
 			}
 
-			return new ByColumn(exp, Ascending);
+			return new SortColumn(exp, Ascending);
 		}
 	}
 }

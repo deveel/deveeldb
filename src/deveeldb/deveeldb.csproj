@@ -471,7 +471,6 @@
     <Compile Include="Deveel.Data.Sql\IDbObject.cs" />
     <Compile Include="Deveel.Data.Sql\IObjectInfo.cs" />
     <Compile Include="Deveel.Data.Sql\IRowIndex.cs" />
-    <Compile Include="Deveel.Data.Sql\ISchema.cs" />
     <Compile Include="Deveel.Data.Sql\ISequence.cs" />
     <Compile Include="Deveel.Data.Sql\ISequenceManager.cs" />
     <Compile Include="Deveel.Data.Sql\OperatorSubType.cs" />
@@ -564,7 +563,7 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlStringExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNodeVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNode.cs" />
-    <Compile Include="Deveel.Data.Sql\ByColumn.cs" />
+    <Compile Include="Deveel.Data.Sql\SortColumn.cs" />
     <Compile Include="Deveel.Data.Sql\ForeignKeyAction.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintDeferrability.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintInfo.cs" />
@@ -632,6 +631,9 @@
     <Compile Include="Deveel.Data.Store\StoreBase.cs" />
     <Compile Include="Deveel.Data.Store\StoreExtensions.cs" />
     <Compile Include="Deveel.Data.Text\ITextIndex.cs" />
+    <Compile Include="Deveel.Data.Text\Metaphone.cs" />
+    <Compile Include="Deveel.Data.Text\PatternSearch.cs" />
+    <Compile Include="Deveel.Data.Text\Soundex.cs" />
     <Compile Include="Deveel.Data.Transactions\ICallbackHandler.cs" />
     <Compile Include="Deveel.Data.Transactions\ILockable.cs" />
     <Compile Include="Deveel.Data.Transactions\TableCommitCallback.cs" />
