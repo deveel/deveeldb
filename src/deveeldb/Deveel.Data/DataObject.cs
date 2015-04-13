@@ -20,7 +20,6 @@ using System.IO;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Spatial;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Store;
 using Deveel.Data.Types;
 
 using SqlBoolean = Deveel.Data.Sql.Objects.SqlBoolean;

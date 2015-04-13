@@ -50,6 +50,10 @@ namespace Deveel.Data.Index {
 			get { return false; }
 		}
 
+		public virtual bool HandlesTextSearch {
+			get { return false; }
+		}
+
 		public abstract string IndexType { get; }
 
 		protected DataObject GetValue(long row) {
@@ -239,6 +243,20 @@ namespace Deveel.Data.Index {
 			return SelectRange(new IndexRange(
 					   RangeFieldOffset.FirstValue, ob1,
 					   RangeFieldOffset.BeforeFirstValue, ob2));
+		}
+
+		public IEnumerable<int> SelectLike(DataObject value) {
+			if (value.IsNull)
+				return new List<int>(0);
+
+			if (!HandlesTextSearch)
+				return SelectEqual(value);
+
+			return SearchText(value);
+		}
+
+		protected virtual IEnumerable<int> SearchText(DataObject value) {
+			throw new NotSupportedException("The column index does not support text search.");
 		}
 
 		public virtual ColumnIndex GetSubset(ITable subsetTable, int subsetColumn) {

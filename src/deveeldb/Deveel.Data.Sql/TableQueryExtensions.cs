@@ -620,12 +620,17 @@ namespace Deveel.Data.Sql {
 			return table.Search(column, pattern, '\\');
 		}
 
-		public static IEnumerable<int> Search(this ITable table, int column, String pattern, char escapeChar) {
+		public static IEnumerable<int> Search(this ITable table, int column, string pattern, char escapeChar) {
 			var colType = table.TableInfo[column].ColumnType;
 
 			// If the column type is not a string type then report an error.
 			if (!(colType is StringType))
 				throw new ApplicationException("Unable to perform a pattern search on a non-String type column.");
+
+			// First handle the case that the column has an index that supports text search
+			var index = table.GetIndex(column);
+			if (index != null && index.HandlesTextSearch)
+				return index.SelectLike(DataObject.String(pattern));
 
 			var colStringType = (StringType)colType;
 

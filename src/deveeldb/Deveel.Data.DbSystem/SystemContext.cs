@@ -47,8 +47,6 @@ namespace Deveel.Data.DbSystem {
 
 		public ISystemServiceProvider ServiceProvider { get; set; }
 
-		public ISearchIndexFactory IndexFactory { get; private set; }
-
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
@@ -58,8 +56,6 @@ namespace Deveel.Data.DbSystem {
 			if (disposing) {
 
 			}
-
-			IndexFactory = null;
 		}
 
 		private void Init() {

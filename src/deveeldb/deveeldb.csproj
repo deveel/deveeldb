@@ -230,8 +230,6 @@
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
     <Compile Include="Deveel.Data.Security\SecurityQueryExtensions.cs" />
-    <Compile Include="Deveel.Data.Index\ISearchIndex.cs" />
-    <Compile Include="Deveel.Data.Index\ISearchIndexFactory.cs" />
     <Compile Include="Deveel.Data.Index\StoreIndex.cs" />
     <Compile Include="Deveel.Data.Index\IndexSetStore.cs" />
     <Compile Include="Deveel.Data.Index\SnapshotIndexSet.cs" />
@@ -711,7 +709,6 @@
     <Compile Include="TinyIoC.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Deveel.Data\ChangeLog" />
     <None Include="deveeldb.licenseheader" />
     <None Include="deveeldb.snk" />
     <None Include="packages.config" />
