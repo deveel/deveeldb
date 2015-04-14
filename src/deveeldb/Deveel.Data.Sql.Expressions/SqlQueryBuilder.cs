@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Sql.Expressions.Fluid;
+using Deveel.Data.Sql.Fluid;
 
 namespace Deveel.Data.Sql.Expressions {
 	public static class SqlQueryBuilder {

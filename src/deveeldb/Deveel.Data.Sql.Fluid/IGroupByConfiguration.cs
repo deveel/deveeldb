@@ -16,8 +16,10 @@
 
 using System;
 
-namespace Deveel.Data.Routines.Fluid {
-	interface IConfigurationContext {
-		string SchemaName { get; }
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Fluid {
+	public interface IGroupByConfiguration {
+		IGroupByConfiguration Expression(SqlExpression groupExpression);
 	}
 }

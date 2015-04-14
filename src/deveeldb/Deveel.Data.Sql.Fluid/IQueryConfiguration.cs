@@ -16,8 +16,26 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface IGroupByConfiguration {
-		IGroupByConfiguration Expression(SqlExpression groupExpression);
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Fluid {
+	public interface IQueryConfiguration {
+		IQueryConfiguration All(bool flag);
+
+		IQueryConfiguration Distinct(bool flag);
+
+		IQueryConfiguration Items(Action<ISelectListConfiguration> config);
+
+		IQueryConfiguration From(Action<IFromSourceConfiguration> config);
+
+		IQueryConfiguration Where(SqlExpression whereExpression);
+
+		IQueryConfiguration Having(SqlExpression havingExpression);
+
+		IQueryConfiguration GroupBy(Action<IGroupByConfiguration> config);
+
+		IQueryConfiguration OrderBy(Action<IOrderByConfiguration> config);
+
+		SqlQueryExpression AsExpression();
 	}
 }

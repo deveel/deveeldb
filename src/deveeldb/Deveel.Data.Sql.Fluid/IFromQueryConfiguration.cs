@@ -16,14 +16,10 @@
 
 using System;
 
-using Deveel.Data.Types;
+namespace Deveel.Data.Sql.Fluid {
+	public interface IFromQueryConfiguration {
+		IFromQueryConfiguration As(string alias);
 
-namespace Deveel.Data.Routines.Fluid {
-	public interface IFunctionParameterConfiguration {
-		IFunctionParameterConfiguration Named(string name);
-
-		IFunctionParameterConfiguration OfType(DataType type);
-
-		IFunctionParameterConfiguration Unbounded(bool flag);
+		IQueryConfiguration Select();
 	}
 }

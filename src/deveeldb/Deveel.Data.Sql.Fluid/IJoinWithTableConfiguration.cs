@@ -16,20 +16,10 @@
 
 using System;
 
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Expressions;
 
-namespace Deveel.Data.Routines.Fluid {
-	public interface IFunctionConfiguration {
-		IFunctionConfiguration Named(ObjectName name);
-
-		IFunctionConfiguration WithAlias(ObjectName alias);
-
-		IFunctionConfiguration WithParameter(Action<IFunctionParameterConfiguration> config);
-
-		IAggregateFunctionConfiguration Aggregate();
-
-		IFunctionConfiguration ReturnsType(Func<ExecuteContext, DataType> returns);
-
-		IFunctionConfiguration WhenExecute(Func<ExecuteContext, ExecuteResult> execute);
+namespace Deveel.Data.Sql.Fluid {
+	public interface IJoinWithTableConfiguration {
+		IFromTableConfiguration On(SqlBinaryExpression onExpression);
 	}
 }

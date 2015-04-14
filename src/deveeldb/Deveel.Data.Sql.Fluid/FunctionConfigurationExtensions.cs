@@ -16,9 +16,10 @@
 
 using System;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Routines.Fluid {
+namespace Deveel.Data.Sql.Fluid {
 	public static class FunctionConfigurationExtensions {
 		public static IFunctionConfiguration Named(this IFunctionConfiguration configuration, string name) {
 			var routineConfig = configuration as IRoutineConfiguration;

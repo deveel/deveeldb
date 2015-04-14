@@ -16,8 +16,8 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface IJoinConfiguration {
-		IJoinWithTableConfiguration WithTable(ObjectName tableName);
+namespace Deveel.Data.Sql.Fluid {
+	public interface IExpressionConfiguration {
+
 	}
 }

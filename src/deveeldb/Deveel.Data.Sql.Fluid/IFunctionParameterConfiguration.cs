@@ -16,10 +16,14 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface IFromTableConfiguration {
-		IFromTableConfiguration As(string alias);
+using Deveel.Data.Types;
 
-		IJoinConfiguration Join(JoinType joinType);
+namespace Deveel.Data.Sql.Fluid {
+	public interface IFunctionParameterConfiguration {
+		IFunctionParameterConfiguration Named(string name);
+
+		IFunctionParameterConfiguration OfType(DataType type);
+
+		IFunctionParameterConfiguration Unbounded(bool flag);
 	}
 }

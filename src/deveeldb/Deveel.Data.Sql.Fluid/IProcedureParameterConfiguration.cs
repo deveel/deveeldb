@@ -16,24 +16,14 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface IQueryConfiguration {
-		IQueryConfiguration All(bool flag);
+using Deveel.Data.Types;
 
-		IQueryConfiguration Distinct(bool flag);
+namespace Deveel.Data.Sql.Fluid {
+	public interface IProcedureParameterConfiguration {
+		IProcedureParameterConfiguration Named(string name);
 
-		IQueryConfiguration Items(Action<ISelectListConfiguration> config);
+		IProcedureParameterConfiguration WithDirection(ParameterDirection direction);
 
-		IQueryConfiguration From(Action<IFromSourceConfiguration> config);
-
-		IQueryConfiguration Where(SqlExpression whereExpression);
-
-		IQueryConfiguration Having(SqlExpression havingExpression);
-
-		IQueryConfiguration GroupBy(Action<IGroupByConfiguration> config);
-
-		IQueryConfiguration OrderBy(Action<IOrderByConfiguration> config);
-
-		SqlQueryExpression AsExpression();
+		IProcedureParameterConfiguration OfType(DataType dataType);
 	}
 }

@@ -16,8 +16,21 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface ISelectItemWithExpressionConfiguration {
-		void As(string alias);
+using Deveel.Data.Routines;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.Sql.Fluid {
+	public interface IFunctionConfiguration {
+		IFunctionConfiguration Named(ObjectName name);
+
+		IFunctionConfiguration WithAlias(ObjectName alias);
+
+		IFunctionConfiguration WithParameter(Action<IFunctionParameterConfiguration> config);
+
+		IAggregateFunctionConfiguration Aggregate();
+
+		IFunctionConfiguration ReturnsType(Func<ExecuteContext, DataType> returns);
+
+		IFunctionConfiguration WhenExecute(Func<ExecuteContext, ExecuteResult> execute);
 	}
 }

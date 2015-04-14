@@ -16,14 +16,14 @@
 
 using System;
 
-using Deveel.Data.Types;
+using Deveel.Data.Routines;
 
-namespace Deveel.Data.Routines.Fluid {
-	public interface IProcedureParameterConfiguration {
-		IProcedureParameterConfiguration Named(string name);
+namespace Deveel.Data.Sql.Fluid {
+	public interface IProcedureConfiguration {
+		IProcedureConfiguration Named(ObjectName name);
 
-		IProcedureParameterConfiguration WithDirection(ParameterDirection direction);
+		IProcedureConfiguration WithParameter(Action<IProcedureParameterConfiguration> config);
 
-		IProcedureParameterConfiguration OfType(DataType dataType);
+		IProcedureConfiguration WhenExecute(Action<ExecuteContext> execute);
 	}
 }

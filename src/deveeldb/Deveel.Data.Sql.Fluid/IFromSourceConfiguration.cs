@@ -16,8 +16,10 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface IOrderByExpressionConfiguration {
-		IOrderByConfiguration Ascending(bool flag);
+namespace Deveel.Data.Sql.Fluid {
+	public interface IFromSourceConfiguration {
+		IFromTableConfiguration Table(ObjectName tableName);
+
+		IFromQueryConfiguration SubQuery();
 	}
 }

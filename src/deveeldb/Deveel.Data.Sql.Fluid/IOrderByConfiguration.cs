@@ -16,8 +16,10 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface IExpressionConfiguration {
+using Deveel.Data.Sql.Expressions;
 
+namespace Deveel.Data.Sql.Fluid {
+	public interface IOrderByConfiguration {
+		IOrderByExpressionConfiguration Expression(SqlExpression orderExpression);
 	}
 }

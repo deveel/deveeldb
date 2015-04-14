@@ -16,8 +16,11 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface ISelectListConfiguration {
-		ISelectListConfiguration Item(Action<ISelectItemConfiguration> config);
+using Deveel.Data.Routines;
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Fluid {
+	public interface IAggregateFunctionConfiguration : IFunctionConfiguration {
+		IAggregateFunctionConfiguration OnAfterAggregate(Func<ExecuteContext, DataObject, DataObject> afterAggregate);
 	}
 }

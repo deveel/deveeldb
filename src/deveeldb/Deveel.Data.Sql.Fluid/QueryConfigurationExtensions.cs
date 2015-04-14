@@ -16,7 +16,9 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Fluid {
 	public static class QueryConfigurationExtensions {
 		public static IQueryConfiguration All(this IQueryConfiguration configuration) {
 			return configuration.All(true);

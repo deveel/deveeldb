@@ -16,9 +16,10 @@
 
 using System;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Routines.Fluid {
+namespace Deveel.Data.Sql.Fluid {
 	public static class FunctionParameterConfigurationExtensions {
 		public static IFunctionParameterConfiguration Unbounded(this IFunctionParameterConfiguration config) {
 			return config.Unbounded(true);

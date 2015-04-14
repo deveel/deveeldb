@@ -16,8 +16,8 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface IOrderByConfiguration {
-		IOrderByExpressionConfiguration Expression(SqlExpression orderExpression);
+namespace Deveel.Data.Sql.Fluid {
+	public interface IOrderByExpressionConfiguration {
+		IOrderByConfiguration Ascending(bool flag);
 	}
 }

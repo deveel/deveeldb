@@ -16,8 +16,8 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface IJoinWithTableConfiguration {
-		IFromTableConfiguration On(SqlBinaryExpression onExpression);
+namespace Deveel.Data.Sql.Fluid {
+	public interface ISelectItemWithExpressionConfiguration {
+		void As(string alias);
 	}
 }

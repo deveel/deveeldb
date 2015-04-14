@@ -16,7 +16,9 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Fluid {
 	public interface ISelectItemConfiguration {
 		ISelectItemWithExpressionConfiguration Expression(SqlExpression itemExpression);
 	}

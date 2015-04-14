@@ -16,10 +16,8 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Expressions.Fluid {
-	public interface IFromQueryConfiguration {
-		IFromQueryConfiguration As(string alias);
-
-		IQueryConfiguration Select();
+namespace Deveel.Data.Sql.Fluid {
+	public interface IJoinConfiguration {
+		IJoinWithTableConfiguration WithTable(ObjectName tableName);
 	}
 }

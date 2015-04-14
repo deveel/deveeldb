@@ -16,8 +16,8 @@
 
 using System;
 
-namespace Deveel.Data.Routines.Fluid {
-	interface IRoutineConfiguration {
-		IConfigurationContext Context { get; }
+namespace Deveel.Data.Sql.Fluid {
+	interface IConfigurationContext {
+		string SchemaName { get; }
 	}
 }
