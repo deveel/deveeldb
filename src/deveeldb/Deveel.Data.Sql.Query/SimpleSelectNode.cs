@@ -29,18 +29,18 @@ namespace Deveel.Data.Sql.Query {
 	/// </remarks>
 	[Serializable]
 	class SimpleSelectNode : SingleQueryPlanNode {
-		public SimpleSelectNode(IQueryPlanNode child, ObjectName leftVar, SqlExpressionType op, SqlExpression rightExpression)
+		public SimpleSelectNode(IQueryPlanNode child, ObjectName columnName, SqlExpressionType op, SqlExpression expression)
 			: base(child) {
-			LeftColumnName = leftVar;
+			ColumnName = columnName;
 			OperatorType = op;
-			RightExpression = rightExpression;
+			Expression = expression;
 		}
 
-		public ObjectName LeftColumnName { get; private set; }
+		public ObjectName ColumnName { get; private set; }
 
 		public SqlExpressionType OperatorType { get; private set; }
 
-		public SqlExpression RightExpression { get; private set; }
+		public SqlExpression Expression { get; private set; }
 
 		public override ITable Evaluate(IQueryContext context) {
 			throw new NotImplementedException();

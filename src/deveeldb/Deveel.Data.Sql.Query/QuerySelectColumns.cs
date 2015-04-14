@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Query {
 
 		private void AddAllFromTable(IFromTableSource table) {
 			// Select all the tables
-			ObjectName[] columns = table.AllColumns;
+			var columns = table.ColumnNames;
 			foreach (ObjectName name in columns) {
 				// Make up the SelectColumn
 				SqlExpression e = SqlExpression.Reference(name);

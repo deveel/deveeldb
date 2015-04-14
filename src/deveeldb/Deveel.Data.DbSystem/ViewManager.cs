@@ -71,6 +71,10 @@ namespace Deveel.Data.DbSystem {
 			return DropView(objName);
 		}
 
+		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
+			throw new NotImplementedException();
+		}
+
 		public void DefineView(ViewInfo viewInfo) {
 			throw new NotImplementedException();
 		}

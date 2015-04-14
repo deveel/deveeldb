@@ -59,6 +59,10 @@ namespace Deveel.Data.Types {
 			throw new NotImplementedException();
 		}
 
+		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
+			throw new NotImplementedException();
+		}
+
 		UserType IUserTypeResolver.ResolveType(ObjectName typeName) {
 			return GetUserType(typeName);
 		}

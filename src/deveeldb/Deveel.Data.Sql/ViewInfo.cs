@@ -21,7 +21,7 @@ using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql {
 	public sealed class ViewInfo : IObjectInfo {
-		public ViewInfo(TableInfo tableInfo, SqlPreparedQueryExpression queryExpression) {
+		public ViewInfo(TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan) {
 			if (tableInfo == null)
 				throw new ArgumentNullException("tableInfo");
 			if (queryExpression == null)
@@ -29,10 +29,7 @@ namespace Deveel.Data.Sql {
 
 			TableInfo = tableInfo;
 			QueryExpression = queryExpression;
-		}
-
-		public ViewInfo(TableInfo tableInfo, IQueryPlanNode queryPlan)
-			: this(tableInfo, new SqlPreparedQueryExpression(queryPlan)) {
+			QueryPlan = queryPlan;
 		}
 
 		public TableInfo TableInfo { get; private set; }
@@ -41,7 +38,9 @@ namespace Deveel.Data.Sql {
 			get { return TableInfo.TableName; }
 		}
 
-		public SqlPreparedQueryExpression QueryExpression { get; private set; }
+		public SqlQueryExpression QueryExpression { get; private set; }
+
+		public IQueryPlanNode QueryPlan { get; private set; }
 
 		DbObjectType IObjectInfo.ObjectType {
 			get { return DbObjectType.View; }

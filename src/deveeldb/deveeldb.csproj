@@ -238,6 +238,7 @@
     <Compile Include="Deveel.Data.Security\SystemGroupNames.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions.Fluid\IExpressionConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlVariableReferenceExpression.cs" />
+    <Compile Include="Deveel.Data.Sql.Fluid\Configure.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
     <Compile Include="Deveel.Data.Sql.Query\EquiJoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\FetchViewNode.cs" />
@@ -251,9 +252,14 @@
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanNodeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryReferencesVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionTypeExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\QuerySelectColumns.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\QueryTablePlanner.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\SimplePatternSelectNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SingleRowTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SortNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\SubsetNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TableNamesVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\TablePlan.cs" />
     <Compile Include="Deveel.Data.Sql.Query\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql\DataTable.cs" />
@@ -410,7 +416,6 @@
     <Compile Include="Deveel.Data.Sql.Expressions\ReturnTypeVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionVisitor.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlPreparedQueryExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlQueryBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\IObjectRef.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlArray.cs" />
@@ -438,12 +443,10 @@
     <Compile Include="Deveel.Data.Sql.Query\QueryExpressionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanNodeVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryReference.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\PlanTableSource.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryExpressionFrom.cs" />
     <Compile Include="Deveel.Data.Sql.Query\RangeSelectNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SimpleSelectNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SingleQueryPlanNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\SingleVarPlan.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AddColumnAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AddConstraintAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableActionType.cs" />

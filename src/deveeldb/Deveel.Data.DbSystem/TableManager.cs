@@ -589,6 +589,29 @@ namespace Deveel.Data.DbSystem {
 			return DropTable(objName);
 		}
 
+		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
+			// Is it a visable table (match case insensitive)
+			var table = FindVisibleTable(objName, ignoreCase);
+			if (table != null)
+				return table.TableName;
+
+			// Is it an internal table?
+			string tschema = objName.ParentName;
+			string tname = objName.Name;
+			var list = GetDynamicTables();
+
+			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			foreach (var ctable in list) {
+				if (String.Equals(ctable.ParentName, tschema, comparison) &&
+					String.Equals(ctable.Name, tname, comparison)) {
+					return ctable;
+				}
+			}
+
+			// No matches so return the original object.
+			return objName;
+		}
+
 		public bool DropTable(ObjectName tableName) {
 			var source = FindVisibleTable(tableName, false);
 			if (source == null)

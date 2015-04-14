@@ -18,8 +18,6 @@ using System;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Transactions;
 
@@ -39,6 +37,10 @@ namespace Deveel.Data.DbSystem {
 
 		public static string CurrentSchema(this IUserSession session) {
 			return session.Transaction.CurrentSchema();
+		}
+
+		public static bool IgnoreIdentifiersCase(this IUserSession session) {
+			return session.Transaction.IgnoreIdentifiersCase();
 		}
 
 		#region Objects
@@ -63,6 +65,18 @@ namespace Deveel.Data.DbSystem {
 			return session.Transaction.ObjectExists(objectType, objectName);
 		}
 
+		public static ObjectName ResolveObjectName(this IUserSession session, string name) {
+			return session.ResolveObjectName(new ObjectName(new ObjectName(session.CurrentSchema), name));
+		}
+
+		public static ObjectName ResolveObjectName(this IUserSession session, DbObjectType objectType, ObjectName objectName) {
+			return session.Transaction.ResolveObjectName(objectType, objectName);
+		}
+
+		public static ObjectName ResolveObjectName(this IUserSession session, ObjectName objectName) {
+			return session.Transaction.ResolveObjectName(objectName);
+		}
+
 		#endregion
 
 		#region Sequences
@@ -82,6 +96,10 @@ namespace Deveel.Data.DbSystem {
 		#endregion
 
 		#region Tables
+
+		public static ObjectName ResolveTableName(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.ResolveTableName(tableName);
+		}
 
 		public static bool TableExists(this IUserSession session, ObjectName tableName) {
 			return session.ObjectExists(DbObjectType.Table, tableName);

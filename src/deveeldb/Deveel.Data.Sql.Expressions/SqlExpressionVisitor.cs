@@ -73,8 +73,6 @@ namespace Deveel.Data.Sql.Expressions {
 					return VisitConditional((SqlConditionalExpression) expression);
 				case SqlExpressionType.Query:
 					return VisitQuery((SqlQueryExpression) expression);
-				case SqlExpressionType.PreparedQuery:
-					return VisitPreparedQuery((SqlPreparedQueryExpression) expression);
 				case SqlExpressionType.Tuple:
 					return VisitTuple((SqlTupleExpression) expression);
 				default:
@@ -231,10 +229,6 @@ namespace Deveel.Data.Sql.Expressions {
 		public virtual SqlExpression VisitQuery(SqlQueryExpression query) {
 			// TODO: This is too complex to visit now ... let's do it later
 			return query;
-		}
-
-		public virtual SqlPreparedQueryExpression VisitPreparedQuery(SqlPreparedQueryExpression expression) {
-			return new SqlPreparedQueryExpression(expression.QueryPlan);
 		}
 	}
 }

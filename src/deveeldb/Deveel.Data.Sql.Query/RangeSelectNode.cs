@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql.Query {
 	/// </example>
 	[Serializable]
 	class RangeSelectNode : SingleQueryPlanNode {
-		public RangeSelectNode(IQueryPlanNode child, SqlBinaryExpression expression)
+		public RangeSelectNode(IQueryPlanNode child, SqlExpression expression)
 			: base(child) {
 			Expression = expression;
 		}
@@ -62,7 +62,7 @@ namespace Deveel.Data.Sql.Query {
 		/// class comments for a description for how this expression must be
 		/// formed.
 		/// </summary>
-		public SqlBinaryExpression Expression { get; private set; }
+		public SqlExpression Expression { get; private set; }
 
 		/// <inheritdoc/>
 		public override ITable Evaluate(IQueryContext context) {

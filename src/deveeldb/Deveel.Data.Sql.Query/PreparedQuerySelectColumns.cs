@@ -19,13 +19,13 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Query {
 	sealed class PreparedQuerySelectColumns {
-		public PreparedQuerySelectColumns(IEnumerable<SelectColumn> seected, IEnumerable<SelectColumn> functions, int aggregateCount) {
+		public PreparedQuerySelectColumns(IEnumerable<SelectColumn> selected, IEnumerable<SelectColumn> functions, int aggregateCount) {
 			AggregateCount = aggregateCount;
-			SeectedColumns = seected;
+			SelectedColumns = selected;
 			FunctionColumns = functions;
 		}
 
-		public IEnumerable<SelectColumn> SeectedColumns { get; private set; }
+		public IEnumerable<SelectColumn> SelectedColumns { get; private set; }
 
 		public IEnumerable<SelectColumn> FunctionColumns { get; set; }
 

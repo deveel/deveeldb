@@ -24,6 +24,10 @@ namespace Deveel.Data.Sql.Query {
 			return visitor.Discover(node);
 		}
 
+		public static IList<QueryReference> DiscoverQueryReferences(this IQueryPlanNode node, int level) {
+			return DiscoverQueryReferences(node, level, new List<QueryReference>());
+		}
+
 		public static IList<QueryReference> DiscoverQueryReferences(this IQueryPlanNode node, int level, IList<QueryReference> references) {
 			// TODO:
 			return references;

@@ -79,6 +79,10 @@ namespace Deveel.Data.DbSystem {
 			return DropSchema(objName.Name);
 		}
 
+		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
+			throw new NotImplementedException();
+		}
+
 		public void CreateSchema(SchemaInfo schemaInfo) {
 			if (schemaInfo == null)
 				throw new ArgumentNullException("schemaInfo");

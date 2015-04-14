@@ -457,6 +457,10 @@ namespace Deveel.Data.DbSystem {
 			return DropSequence(objName);
 		}
 
+		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
+			throw new NotImplementedException();
+		}
+
 		public bool DropSequence(ObjectName sequenceName) {
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// we can't create the sequence sequence

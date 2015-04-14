@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -25,8 +24,12 @@ using Deveel.Data.Types;
 namespace Deveel.Data.Sql.Query {
 	static class QueryExpressionExtensions {
 		public static void DiscoverTableNames(this SqlExpression expression, IList<ObjectName> tableNames) {
-			var visitor = new TableNamesVisitor(tableNames);
+			var visitor = new TableNamesVisitor();
 			visitor.Visit(expression);
+		}
+
+		public static IList<QueryReference> DiscoverQueryReferences(this SqlExpression expression, ref int level) {
+			return DiscoverQueryReferences(expression, ref level, new List<QueryReference>());
 		}
 
 		public static IList<QueryReference> DiscoverQueryReferences(this SqlExpression expression, ref int level, IList<QueryReference> list) {
@@ -39,6 +42,10 @@ namespace Deveel.Data.Sql.Query {
 		public static IEnumerable<ObjectName> DiscoverColumnNames(this SqlExpression expression) {
 			var discovery = new ColumnNameDiscovery();
 			return discovery.Discover(expression);
+		}
+
+		public static bool HasSubQuery(this SqlExpression expression) {
+			return new SubQueryDiscovery().Verify(expression);
 		}
 
 		#region ColumnNameDiscovery
@@ -79,6 +86,26 @@ namespace Deveel.Data.Sql.Query {
 			public override SqlExpression VisitReference(SqlReferenceExpression reference) {
 				columnNames.Add(reference.ReferenceName);
 				return base.VisitReference(reference);
+			}
+		}
+
+		#endregion
+
+		#region SubQueryDiscovery
+
+		private class SubQueryDiscovery : SqlExpressionVisitor {
+			private bool hasSubQuery;
+
+			public bool Verify(SqlExpression expression) {
+				Visit(expression);
+				return hasSubQuery;
+			}
+
+			public override SqlExpression VisitConstant(SqlConstantExpression constant) {
+				if (constant.Value.Type is QueryType)
+					hasSubQuery = true;
+
+				return base.VisitConstant(constant);
 			}
 		}
 

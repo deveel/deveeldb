@@ -25,16 +25,15 @@ namespace Deveel.Data.Sql.Query {
 	/// <see cref="SqlQueryExpression"/> as a sub-query source.
 	/// </summary>
 	public class FromTableSubQuerySource : IFromTableSource {
-		private readonly QueryExpressionFrom fromSet;
 		private ObjectName[] columnNames;
 
 		internal FromTableSubQuerySource(bool caseInsensitive, string uniqueKey, SqlQueryExpression queryExpression,
 			QueryExpressionFrom fromSet, ObjectName alias) {
-			this.UniqueName = uniqueKey;
+			UniqueName = uniqueKey;
 			QueryExpression = queryExpression;
-			this.fromSet = fromSet;
+			QueryFrom = fromSet;
 			AliasName = alias;
-			this.IgnoreCase = caseInsensitive;
+			IgnoreCase = caseInsensitive;
 		}
 
 		public bool MatchesReference(string catalog, string schema, string table) {
@@ -56,6 +55,8 @@ namespace Deveel.Data.Sql.Query {
 
 		public SqlQueryExpression QueryExpression { get; private set; }
 
+		public QueryExpressionFrom QueryFrom { get; private set; }
+
 		public ObjectName AliasName { get; private set; }
 
 		public bool IgnoreCase { get; private set; }
@@ -74,7 +75,7 @@ namespace Deveel.Data.Sql.Query {
 		/// </summary>
 		private void EnsureColumnNames() {
 			if (columnNames == null) {
-				columnNames = fromSet.GetResolvedColumns();
+				columnNames = QueryFrom.GetResolvedColumns();
 
 				// Are the variables aliased to a table name?
 				if (AliasName != null) {

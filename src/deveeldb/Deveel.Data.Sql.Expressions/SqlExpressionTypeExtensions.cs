@@ -36,6 +36,16 @@ namespace Deveel.Data.Sql.Expressions {
 			throw new InvalidOperationException("Cannot reverse a non conditional operator.");
 		}
 
+		public static bool IsLogical(this SqlExpressionType type) {
+			return type == SqlExpressionType.And ||
+			       type == SqlExpressionType.Or;
+		}
+
+		public static bool IsPattern(this SqlExpressionType type) {
+			return type == SqlExpressionType.Like ||
+			       type == SqlExpressionType.NotLike;
+		}
+
 		public static bool IsSubQuery(this SqlExpressionType type) {
 			return type.IsAny() || type.IsAll();
 		}

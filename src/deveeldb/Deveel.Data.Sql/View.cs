@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql {
@@ -28,7 +29,11 @@ namespace Deveel.Data.Sql {
 		public ViewInfo ViewInfo { get; private set; }
 
 		public IQueryPlanNode QueryPlan {
-			get { return ViewInfo.QueryExpression.QueryPlan; }
+			get { return ViewInfo.QueryPlan; }
+		}
+
+		public SqlQueryExpression QueryExpression {
+			get { return ViewInfo.QueryExpression; }
 		}
 
 		ObjectName IDbObject.FullName {

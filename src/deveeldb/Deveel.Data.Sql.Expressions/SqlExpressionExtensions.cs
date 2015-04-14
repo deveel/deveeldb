@@ -17,6 +17,8 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -38,6 +40,18 @@ namespace Deveel.Data.Sql.Expressions {
 				return null;
 
 			return refExpression.ReferenceName;
+		}
+
+		public static IQueryPlanNode AsQueryPlan(this SqlExpression expression) {
+			var constantExp = expression as SqlConstantExpression;
+			if (constantExp == null)
+				return null;
+
+			var value = constantExp.Value;
+			if (value.Value is SqlQueryObject)
+				return ((SqlQueryObject) value.Value).QueryPlan;
+
+			return null;
 		}
 
 		/// <summary>

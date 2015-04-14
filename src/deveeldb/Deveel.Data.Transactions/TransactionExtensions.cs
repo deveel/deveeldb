@@ -152,6 +152,22 @@ namespace Deveel.Data.Transactions {
 			return transaction.ResolveObjectName(transaction.CurrentSchema(), objectName);
 		}
 
+		public static ObjectName ResolveObjectName(this ITransaction transaction, DbObjectType objectType, ObjectName objectName) {
+			var manager = transaction.ObjectManagerResolver.ResolveForType(objectType);
+			if (manager == null)
+				return objectName;
+
+			return manager.ResolveName(objectName, transaction.IgnoreIdentifiersCase());
+		}
+
+		public static ObjectName ResolveObjectName(this ITransaction transaction, ObjectName objectName) {
+			var ignoreCase = transaction.IgnoreIdentifiersCase();
+
+			return transaction.ObjectManagerResolver.GetManagers()
+				.Select(manager => manager.ResolveName(objectName, ignoreCase))
+				.FirstOrDefault(resolved => resolved != null);
+		}
+
 		#endregion
 
 		#region Schema
@@ -201,6 +217,18 @@ namespace Deveel.Data.Transactions {
 				return SystemSchema.NewTriggerTableName;
 
 			return tableName;
+		}
+
+		public static ObjectName ResolveTableName(this ITransaction transaction, ObjectName tableName) {
+			// We do not allow tables to be created with a reserved name
+			var name = tableName.Name;
+
+			if (String.Compare(name, "OLD", StringComparison.OrdinalIgnoreCase) == 0)
+				return SystemSchema.OldTriggerTableName;
+			if (String.Compare(name, "NEW", StringComparison.OrdinalIgnoreCase) == 0)
+				return SystemSchema.NewTriggerTableName;
+
+			return transaction.ResolveObjectName(DbObjectType.Table, tableName);
 		}
 
 		public static bool TableExists(this ITransaction transaction, ObjectName tableName) {

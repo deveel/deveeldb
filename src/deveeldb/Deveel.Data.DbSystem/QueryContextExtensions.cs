@@ -32,6 +32,10 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.Database;
 		}
 
+		public static bool IgnoreIdentifiersCase(this IQueryContext context) {
+			return context.Session.IgnoreIdentifiersCase();
+		}
+
 		#region Objects
 
 		public static bool ObjectExists(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
@@ -42,9 +46,25 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.GetObject(objType, objName);
 		}
 
+		public static ObjectName ResolveObjectName(this IQueryContext context, string name) {
+			return context.Session.ResolveObjectName(name);
+		}
+
 		#endregion
 
 		#region Tables
+
+		public static ObjectName ResolveTableName(this IQueryContext context, ObjectName tableName) {
+			return context.Session.ResolveTableName(tableName);
+		}
+
+		public static ObjectName ResolveTableName(this IQueryContext context, string name) {
+			return context.ResolveTableName(new ObjectName(new ObjectName(context.CurrentSchema), name));
+		}
+
+		public static bool TableExists(this IQueryContext context, ObjectName tableName) {
+			return context.ObjectExists(DbObjectType.Table, tableName);
+		}
 
 		public static ITable GetTable(this IQueryContext context, ObjectName tableName) {
 			var table = context.GetCachedTable(tableName.FullName) as ITable;
@@ -79,6 +99,10 @@ namespace Deveel.Data.DbSystem {
 				return;
 
 			context.TableCache.Clear();
+		}
+
+		public static ITableQueryInfo GetTableQueryInfo(this IQueryContext context, ObjectName tableName, ObjectName alias) {
+			return context.Session.GetTableQueryInfo(tableName, alias);
 		}
 
 		#endregion

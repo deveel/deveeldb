@@ -115,5 +115,9 @@ namespace Deveel.Data.DbSystem {
 		bool IObjectManager.DropObject(ObjectName objName) {
 			return DropVariable(objName.Name);
 		}
+
+		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
+			throw new NotImplementedException();
+		}
 	}
 }

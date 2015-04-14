@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 namespace Deveel.Data.Sql.Query {
 	internal class QueryNodeTableNameVisitor : QueryPlanNodeVisitor {
-		private IList<ObjectName> tableNames;
+		private readonly IList<ObjectName> tableNames;
 
 		public QueryNodeTableNameVisitor() {
 			tableNames = new List<ObjectName>();
@@ -65,8 +65,8 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		protected override IQueryPlanNode VisitSimpleSelect(SimpleSelectNode node) {
-			if (node.RightExpression != null)
-				node.RightExpression.DiscoverTableNames(tableNames);
+			if (node.Expression != null)
+				node.Expression.DiscoverTableNames(tableNames);
 
 			return base.VisitSimpleSelect(node);
 		}
@@ -86,6 +86,13 @@ namespace Deveel.Data.Sql.Query {
 				node.Expression.DiscoverTableNames(tableNames);
 
 			return base.VisitExhaustiveSelect(node);
+		}
+
+		protected override IQueryPlanNode VisitSimplePatternSelect(SimplePatternSelectNode node) {
+			if (node.Expression != null)
+				node.Expression.DiscoverTableNames(tableNames);
+
+			return base.VisitSimplePatternSelect(node);
 		}
 	}
 }

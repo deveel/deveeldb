@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Gets the name used to alias the select expression.
 		/// </summary>
-		public string Alias { get; set; }
+		public string Alias { get; private set; }
 
 		public bool IsGlob {
 			get {
@@ -82,7 +82,7 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		public ObjectName ParentName {
+		public ObjectName TableName {
 			get {
 				var refExp = Expression as SqlReferenceExpression;
 				if (refExp == null)

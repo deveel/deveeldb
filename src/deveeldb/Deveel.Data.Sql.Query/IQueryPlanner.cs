@@ -15,12 +15,13 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
 	public interface IQueryPlanner {
-		IQueryPlanNode PlanQuery(IUserSession session, SqlQueryExpression queryExpression);
+		IQueryPlanNode PlanQuery(IQueryContext context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns);
 	}
 }

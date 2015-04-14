@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlQueryExpression : SqlExpression {
@@ -36,7 +38,9 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public SqlExpression HavingExpression { get; set; }
 
-		public IEnumerable<SqlExpression> GroupBy { get; set; } 
+		public IEnumerable<SqlExpression> GroupBy { get; set; }
+
+		public ObjectName GroupMax { get; set; }
 
 		public SqlQueryExpression NextComposite { get; set; }
 
@@ -48,13 +52,18 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return true; }
 		}
 
+		public CompositeFunction CompositeFunction { get; set; }
+
+		public bool IsCompositeAll { get; set; }
+
+		public bool Distinct { get; set; }
+
 		public override SqlExpression Evaluate(EvaluateContext context) {
 			var queryContext = context.QueryContext;
-			var planContext = queryContext.Session;
 			var planner = context.DatabaseContext.QueryPlanner();
-			var plan = planner.PlanQuery(planContext, this);
+			var plan = planner.PlanQuery(queryContext, this, null);
 
-			return new SqlPreparedQueryExpression(plan);
+			return Constant(new DataObject(new QueryType(), new SqlQueryObject(plan)));
 		}
 	}
 }

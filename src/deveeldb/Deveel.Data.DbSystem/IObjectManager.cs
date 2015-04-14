@@ -33,5 +33,7 @@ namespace Deveel.Data.DbSystem {
 		bool AlterObject(IObjectInfo objInfo);
 
 		bool DropObject(ObjectName objName);
+
+		ObjectName ResolveName(ObjectName objName, bool ignoreCase);
 	}
 }

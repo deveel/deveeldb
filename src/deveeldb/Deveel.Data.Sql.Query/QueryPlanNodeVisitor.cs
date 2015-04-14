@@ -52,6 +52,8 @@ namespace Deveel.Data.Sql.Query {
 		protected virtual IQueryPlanNode VisitSingle(SingleQueryPlanNode node) {
 			if (node is SimpleSelectNode)
 				return VisitSimpleSelect((SimpleSelectNode) node);
+			if (node is SimplePatternSelectNode)
+				return VisitSimplePatternSelect((SimplePatternSelectNode) node);
 			if (node is ExhaustiveSelectNode)
 				return VisitExhaustiveSelect((ExhaustiveSelectNode) node);
 			if (node is ConstantSelectNode)
@@ -66,6 +68,8 @@ namespace Deveel.Data.Sql.Query {
 				return VisitCachePoint((CachePointNode) node);
 			if (node is MarkerNode)
 				return VisitMarker((MarkerNode) node);
+			if (node is SubsetNode)
+				return VisitSubset((SubsetNode) node);
 			if (node is GroupNode)
 				return VisitGroup((GroupNode) node);
 			if (node is SortNode)
@@ -181,6 +185,14 @@ namespace Deveel.Data.Sql.Query {
 			return new GroupNode(child, node.ColumnNames, node.GroupMaxColumn, node.Functions, node.Names);
 		}
 
+		protected virtual IQueryPlanNode VisitSimplePatternSelect(SimplePatternSelectNode node) {
+			var child = node.Child;
+			if (child != null)
+				child = VisitNode(child);
+
+			return new SimplePatternSelectNode(child, node.Expression);
+		}
+
 		protected virtual IQueryPlanNode VisitRangeSelect(RangeSelectNode node) {
 			var child = node.Child;
 			if (child != null)
@@ -234,7 +246,15 @@ namespace Deveel.Data.Sql.Query {
 			if (child != null)
 				child = VisitNode(child);
 
-			return new SimpleSelectNode(child, node.LeftColumnName, node.OperatorType, node.RightExpression);
+			return new SimpleSelectNode(child, node.ColumnName, node.OperatorType, node.Expression);
+		}
+
+		protected virtual IQueryPlanNode VisitSubset(SubsetNode node) {
+			var child = node.Child;
+			if (child != null)
+				child = VisitNode(child);
+
+			return new SubsetNode(child, node.OriginalColumnNames, node.AliasColumnNames);
 		}
 	}
 }
