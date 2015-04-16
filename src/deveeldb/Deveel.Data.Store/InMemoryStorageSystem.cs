@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Odbc;
 
 namespace Deveel.Data.Store {
 	public sealed class InMemoryStorageSystem : IStoreSystem {
@@ -40,9 +39,14 @@ namespace Deveel.Data.Store {
 		private void Dispose(bool disposing) {
 			if (disposing) {
 				if (nameStoreMap != null) {
-					nameStoreMap.Clear();
-					nameStoreMap = null;
+					lock (this) {
+						nameStoreMap.Clear();
+					}
 				}
+			}
+
+			lock (this) {
+				nameStoreMap = null;
 			}
 		}
 

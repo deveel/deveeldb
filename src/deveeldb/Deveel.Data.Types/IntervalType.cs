@@ -25,9 +25,7 @@ namespace Deveel.Data.Types {
 	public sealed class IntervalType : DataType {
 		public IntervalType(SqlTypeCode sqlType) 
 			: base(GetTypeString(sqlType), sqlType) {
-			if (sqlType != SqlTypeCode.YearToMonth &&
-				sqlType != SqlTypeCode.DayToSecond)
-				throw new ArgumentException(String.Format("SQL Type {0} is not a valid INTERVAL.", sqlType.ToString().ToUpperInvariant()));
+			AssertIsInterval(sqlType);
 		}
 
 		private static string GetTypeString(SqlTypeCode sqlType) {
@@ -39,6 +37,11 @@ namespace Deveel.Data.Types {
 			return "INTERVAL";
 		}
 
+		private static void AssertIsInterval(SqlTypeCode sqlType) {
+			if (!IsIntervalType(sqlType))
+				throw new ArgumentException(String.Format("SQL Type {0} is not a valid INTERVAL.", sqlType.ToString().ToUpperInvariant()));
+		}
+
 		/// <inheritdoc/>
 		public override bool IsComparable(DataType type) {
 			if (!(type is IntervalType))
@@ -48,7 +51,7 @@ namespace Deveel.Data.Types {
 			return SqlType.Equals(type.SqlType);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var writer = new BinaryWriter(stream);
 
 			if (obj is SqlDayToSecond) {
@@ -69,7 +72,7 @@ namespace Deveel.Data.Types {
 			throw new FormatException();
 		}
 
-		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
 			var reader = new BinaryReader(stream);
 
 			var type = reader.ReadByte();
@@ -86,7 +89,12 @@ namespace Deveel.Data.Types {
 				return new SqlYearToMonth(months);
 			}
 
-			return base.Deserialize(stream, context);
+			return base.DeserializeObject(stream, context);
+		}
+
+		internal static bool IsIntervalType(SqlTypeCode sqlType) {
+			return sqlType == SqlTypeCode.YearToMonth  ||
+			       sqlType == SqlTypeCode.DayToSecond;
 		}
 	}
 }

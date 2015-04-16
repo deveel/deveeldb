@@ -347,7 +347,7 @@ namespace Deveel.Data.DbSystem {
 			private int rowCount;
 
 			public TableInfoTable(ITransaction transaction)
-				: base(transaction.Context.Database.Context) {
+				: base(transaction.Database.Context) {
 				Transaction = transaction;
 				tableInfoObjects = new List<TableInfoObject>();
 

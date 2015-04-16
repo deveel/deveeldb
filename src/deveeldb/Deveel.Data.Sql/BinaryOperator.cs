@@ -282,65 +282,65 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		public bool IsLogical {
-			get {
-				return OperatorType == BinaryOperatorType.And ||
-				       OperatorType == BinaryOperatorType.Or;
-			}
-		}
+		//public bool IsLogical {
+		//	get {
+		//		return OperatorType == BinaryOperatorType.And ||
+		//			   OperatorType == BinaryOperatorType.Or;
+		//	}
+		//}
 
-		/// <summary>
-		/// Gets an inversed form of this condition.
-		/// </summary>
-		/// <returns>
-		/// Returns an instance of <see cref="BinaryOperator"/> that is the
-		/// inverse form of this condition.
-		/// </returns>
-		public BinaryOperator Inverse() {
-			if (IsSubQuery) {
-				OperatorSubType invType;
-				if (SubQueryType == OperatorSubType.Any) {
-					invType = OperatorSubType.All;
-				} else if (SubQueryType == OperatorSubType.All) {
-					invType = OperatorSubType.Any;
-				} else {
-					throw new Exception("Can not handle sub-query form.");
-				}
+		///// <summary>
+		///// Gets an inversed form of this condition.
+		///// </summary>
+		///// <returns>
+		///// Returns an instance of <see cref="BinaryOperator"/> that is the
+		///// inverse form of this condition.
+		///// </returns>
+		//public BinaryOperator Inverse() {
+		//	if (IsSubQuery) {
+		//		OperatorSubType invType;
+		//		if (SubQueryType == OperatorSubType.Any) {
+		//			invType = OperatorSubType.All;
+		//		} else if (SubQueryType == OperatorSubType.All) {
+		//			invType = OperatorSubType.Any;
+		//		} else {
+		//			throw new Exception("Can not handle sub-query form.");
+		//		}
 
-				var invOp = Get(OperatorType).Inverse();
+		//		var invOp = Get(OperatorType).Inverse();
 
-				return invOp.AsSubQuery(invType);
-			}
+		//		return invOp.AsSubQuery(invType);
+		//	}
 
-			switch (OperatorType) {
-				case BinaryOperatorType.Equal:
-					return NotEqual;
-				case BinaryOperatorType.NotEqual:
-					return Equal;
-				case BinaryOperatorType.GreaterThan:
-					return SmallerOrEqualThan;
-				case BinaryOperatorType.SmallerThan:
-					return GreaterOrEqualThan;
-				case BinaryOperatorType.GreaterOrEqualThan:
-					return SmallerThan;
-				case BinaryOperatorType.SmallerOrEqualThan:
-					return GreaterThan;
-				case BinaryOperatorType.And:
-					return Or;
-				case BinaryOperatorType.Or:
-					return And;
-				case BinaryOperatorType.Like:
-					return NotLike;
-				case BinaryOperatorType.NotLike:
-					return Like;
-				case BinaryOperatorType.Is:
-					return IsNot;
-				case BinaryOperatorType.IsNot:
-					return Is;
-			}
+		//	switch (OperatorType) {
+		//		case BinaryOperatorType.Equal:
+		//			return NotEqual;
+		//		case BinaryOperatorType.NotEqual:
+		//			return Equal;
+		//		case BinaryOperatorType.GreaterThan:
+		//			return SmallerOrEqualThan;
+		//		case BinaryOperatorType.SmallerThan:
+		//			return GreaterOrEqualThan;
+		//		case BinaryOperatorType.GreaterOrEqualThan:
+		//			return SmallerThan;
+		//		case BinaryOperatorType.SmallerOrEqualThan:
+		//			return GreaterThan;
+		//		case BinaryOperatorType.And:
+		//			return Or;
+		//		case BinaryOperatorType.Or:
+		//			return And;
+		//		case BinaryOperatorType.Like:
+		//			return NotLike;
+		//		case BinaryOperatorType.NotLike:
+		//			return Like;
+		//		case BinaryOperatorType.Is:
+		//			return IsNot;
+		//		case BinaryOperatorType.IsNot:
+		//			return Is;
+		//	}
 
-			throw new InvalidOperationException(String.Format("Cannot inverse operator '{0}'", OperatorType));
-		}
+		//	throw new InvalidOperationException(String.Format("Cannot inverse operator '{0}'", OperatorType));
+		//}
 
 		/// <summary>
 		/// Gets an operator that is equivalent to the given type.

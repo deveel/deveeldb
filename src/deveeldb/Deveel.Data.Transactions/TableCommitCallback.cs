@@ -49,14 +49,14 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public void AttachTo(ITransaction transaction) {
-			transaction.Context.Database.TableComposite.RegisterOnCommit(OnCommit);
+			transaction.RegisterOnCommit(OnCommit);
 
 			if (transaction is ICallbackHandler)
 				((ICallbackHandler)transaction).OnCallbackAttached(this);
 		}
 
 		public void DetachFrom(ITransaction transaction) {
-			transaction.Context.Database.TableComposite.UnregisterOnCommit(OnCommit);
+			transaction.UnregisterOnCommit(OnCommit);
 
 			if (transaction is ICallbackHandler)
 				((ICallbackHandler)transaction).OnCallbackDetached(this);

@@ -74,19 +74,17 @@ namespace Deveel.Data.Index {
 		private void Dispose(bool disposing) {
 			if (!disposed) {
 				if (disposing) {
-					IndexSetStore = null;
-
 					if (deletedBlocks != null)
 						deletedBlocks.Clear();
-
-					deletedBlocks = null;
 				}
 
+				IndexSetStore = null;
+				deletedBlocks = null;
 				disposed = true;
 			}
 		}
 
-		public static IMappedBlock NewMappedBlock(IndexSetStore indexSetStore, int firstEntry, int lastEntry, long blockPointer,
+		public static IMappedBlock NewMappedBlock(IndexSetStore indexSetStore, long firstEntry, long lastEntry, long blockPointer,
 			int size, byte compactType, int blockSize) {
 			return new MappedBlock(indexSetStore, firstEntry, lastEntry, blockPointer, size, compactType, blockSize);
 		}
@@ -110,9 +108,10 @@ namespace Deveel.Data.Index {
 				: base(index.MaxBlockSize) {
 				IndexSetStore = index.IndexSetStore;
 				maxBlockSize = index.MaxBlockSize;
+				BlockPointer = -1;
 			}
 
-			public MappedBlock(IndexSetStore indexSetStore, int firstEntry, int lastEntry, long blockPointer, int size, byte compactType, int maxBlockSize) {
+			public MappedBlock(IndexSetStore indexSetStore, long firstEntry, long lastEntry, long blockPointer, int size, byte compactType, int maxBlockSize) {
 				IndexSetStore = indexSetStore;
 				FirstEntry = firstEntry;
 				LastEntry = lastEntry;
@@ -124,9 +123,9 @@ namespace Deveel.Data.Index {
 				BaseArray = null;
 			}
 
-			public int FirstEntry { get; private set; }
+			public long FirstEntry { get; private set; }
 
-			public int LastEntry { get; private set; }
+			public long LastEntry { get; private set; }
 
 			public long BlockPointer { get; private set; }
 
@@ -138,7 +137,7 @@ namespace Deveel.Data.Index {
 						throw new ApplicationException("No first int in block.");
 
 					lock (blockLock) {
-						return BaseArray == null ? LastEntry : BaseArray[Count - 1];
+						return BaseArray == null ? (int)LastEntry : BaseArray[Count - 1];
 					}
 				}
 			}
@@ -149,7 +148,7 @@ namespace Deveel.Data.Index {
 						throw new ApplicationException("No first int in block.");
 
 					lock (blockLock) {
-						return BaseArray == null ? FirstEntry : BaseArray[0];
+						return BaseArray == null ? (int)FirstEntry : BaseArray[0];
 					}
 				}
 			}

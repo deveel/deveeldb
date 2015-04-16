@@ -232,8 +232,9 @@ namespace Deveel.Data.Transactions {
 			int rowNum;
 			try {
 				rowNum = TableSource.AddRow(row);
-			} catch (IOException e) {
-				throw new ApplicationException("IO Error: " + e.Message, e);
+			} catch (Exception ex) {
+				throw new ApplicationException(
+					String.Format("Unknown error when adding a row to the table '{0}'.", TableInfo.TableName), ex);
 			}
 
 			row.SetRowNumber(rowNum);

@@ -64,13 +64,13 @@ namespace Deveel.Data.DbSystem {
 
 		private static byte[] SerializeResources(IEnumerable<TableState> list) {
 			using (var stream = new MemoryStream()) {
-				using (var writer = new BinaryWriter(stream)) {
+				using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
 					writer.Write(1); // version
 					int sz = list.Count();
 					writer.Write((long) sz);
 					foreach (var state in list) {
-						writer.Write(state.TableId);
-						writer.Write(state.TableName);
+						writer.Write((long)state.TableId);
+						writer.Write(state.SourceName);
 					}
 
 					writer.Flush();
@@ -200,14 +200,14 @@ namespace Deveel.Data.DbSystem {
 
 		public void AddVisibleResource(TableState resource) {
 			lock (this) {
-				visibleList.Add(resource.TableName, resource);
+				visibleList.Add(resource.SourceName, resource);
 				visListChange = true;
 			}
 		}
 
 		public void AddDeleteResource(TableState resource) {
 			lock (this) {
-				deleteList.Add(resource.TableName, resource);
+				deleteList.Add(resource.SourceName, resource);
 				delListChange = true;
 			}
 		}
@@ -273,14 +273,14 @@ namespace Deveel.Data.DbSystem {
 		#region TableState
 
 		public class TableState {
-			public TableState(int tableId, string tableName) {
+			public TableState(int tableId, string sourceName) {
 				TableId = tableId;
-				TableName = tableName;
+				SourceName = sourceName;
 			}
 
 			public int TableId { get; private set; }
 
-			public string TableName { get; private set; }
+			public string SourceName { get; private set; }
 		}
 
 		#endregion

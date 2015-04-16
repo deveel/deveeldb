@@ -45,6 +45,10 @@ namespace Deveel.Data.DbSystem {
 			return new Row(table);
 		}
 
+		public static Row GetRow(this IMutableTable table, int rowNumber) {
+			return new Row(table, new RowId(table.TableInfo.Id, rowNumber));
+		}
+
 		public static int Delete(this IMutableTable table, ITable t) {
 			return Delete(table, t, -1);
 		}

@@ -20,9 +20,9 @@ using Deveel.Data.Store;
 
 namespace Deveel.Data.Index {
 	interface IMappedBlock : IIndexBlock<int> {
-		int FirstEntry { get; }
+		long FirstEntry { get; }
 
-		int LastEntry { get; }
+		long LastEntry { get; }
 
 		long BlockPointer { get; }
 

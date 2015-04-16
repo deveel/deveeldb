@@ -20,6 +20,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
 	public static class UserSessionExtensions {
@@ -111,6 +112,10 @@ namespace Deveel.Data.DbSystem {
 			return table;
 		}
 
+		public static IMutableTable GetMutableTable(this IUserSession session, ObjectName tableName) {
+			return session.GetTable(tableName) as IMutableTable;
+		}
+
 		public static TableInfo GetTableInfo(this IUserSession session, ObjectName tableName) {
 			return session.Transaction.GetTableInfo(tableName);
 		}
@@ -123,8 +128,25 @@ namespace Deveel.Data.DbSystem {
 			session.CreateObject(tableInfo);
 		}
 
+		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string columnName) {
+			AddPrimaryKey(session, tableName, new[] {columnName});
+		}
+
+		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string[] columns) {
+			AddPrimaryKey(session, tableName, columns, null);
+		}
+
+		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string columnName, string constraintName) {
+			AddPrimaryKey(session, tableName, new[] {columnName}, constraintName);
+		}
+
 		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string[] columns, string constraintName) {
 			AddPrimaryKey(session, tableName, columns, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string columnName,
+			ConstraintDeferrability deferred, string constraintName) {
+			AddPrimaryKey(session, tableName, new[] {columnName}, deferred, constraintName);
 		}
 
 		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string[] columns,
@@ -135,6 +157,8 @@ namespace Deveel.Data.DbSystem {
 
 			session.Transaction.AddPrimaryKey(tableName, columns, deferred, constraintName);
 		}
+
+		
 
 		public static void AddForeignKey(this IUserSession session, ObjectName table, string[] columns,
 			ObjectName refTable, string[] refColumns, String constraintName) {
@@ -173,6 +197,14 @@ namespace Deveel.Data.DbSystem {
 		public static IQueryPlanNode GetViewQueryPlan(this IUserSession session, ObjectName viewName) {
 			var view = session.GetView(viewName);
 			return view == null ? null : view.QueryPlan;
+		}
+
+		#endregion
+
+		#region Types
+
+		public static UserType GetUserType(this IUserSession session, ObjectName typeName) {
+			return (UserType) session.GetObject(DbObjectType.Type, typeName);
 		}
 
 		#endregion

@@ -490,12 +490,12 @@ namespace Deveel.Data.Transactions {
 
 		public static LockHandle LockRead(this ITransaction transaction, IEnumerable<ObjectName> tableNames, LockingMode mode) {
 			var tables = tableNames.Select(transaction.GetTable).OfType<ILockable>();
-			return transaction.Context.Database.Context.Locker.Lock(new ILockable[0], tables.ToArray(), mode);
+			return transaction.Database.Context.Locker.Lock(new ILockable[0], tables.ToArray(), mode);
 		}
 
 		public static LockHandle LockWrite(this ITransaction transaction, IEnumerable<ObjectName> tableNames, LockingMode mode) {
 			var tables = tableNames.Select(transaction.GetTable).OfType<ILockable>().ToArray();
-			return transaction.Context.Database.Context.Locker.Lock(tables, new ILockable[0], mode);
+			return transaction.Database.Context.Locker.Lock(tables, new ILockable[0], mode);
 		}
 
 		public static bool IsTableLocked(this ITransaction transaction, ITable table) {
@@ -503,7 +503,7 @@ namespace Deveel.Data.Transactions {
 			if (lockable == null)
 				return false;
 
-			return transaction.Context.Database.Context.Locker.IsLocked(lockable);
+			return transaction.Database.Context.Locker.IsLocked(lockable);
 		}
 
 		#endregion

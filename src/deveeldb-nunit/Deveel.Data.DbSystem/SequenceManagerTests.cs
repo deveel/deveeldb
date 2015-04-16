@@ -37,7 +37,8 @@ namespace Deveel.Data.DbSystem {
 			var systemContext = new SystemContext(DbConfig.Default);
 			var dbContext = new DatabaseContext(systemContext, dbConfig);
 			var database = new Database(dbContext);
-			database.TableComposite.Create();
+			database.Create("SA", "12345");
+			database.Open();
 
 			transaction = (database as ITransactionContext).CreateTransaction(TransactionIsolation.Serializable);
 
@@ -63,7 +64,14 @@ namespace Deveel.Data.DbSystem {
 
 		[Test]
 		public void CreateNativeSequence() {
-			
+			var sequenceManager = new SequenceManager(transaction);
+
+			var tableName = ObjectName.Parse("APP.test_table");
+			var seqInfo = new SequenceInfo(tableName);
+
+			ISequence sequence = null;
+			Assert.DoesNotThrow(() => sequence = sequenceManager.CreateSequence(seqInfo));
+			Assert.IsNotNull(sequence);
 		}
 
 		[Test]

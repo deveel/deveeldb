@@ -35,6 +35,8 @@ namespace Deveel.Data.Sql {
 
 			if (indexes != null)
 				this.indexes.AddRange(indexes);
+
+			IsReadOnly = readOnly;
 		}
 
 		public IndexSetInfo(ObjectName tableName)
@@ -142,8 +144,35 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		public IndexSetInfo DeserializeFrom(Stream stream) {
-			throw new NotImplementedException();
+		public static IndexSetInfo DeserializeFrom(Stream stream) {
+			var reader = new BinaryReader(stream, Encoding.Unicode);
+
+			var version = reader.ReadInt32();
+			if (version != 2)
+				throw new FormatException("Invalid version number of the Index-Set Info");
+
+			var catName = reader.ReadString();
+			var schemaName = reader.ReadString();
+			var tableName = reader.ReadString();
+
+			ObjectName objSchemaName;
+			if (String.IsNullOrEmpty(catName)) {
+				objSchemaName = new ObjectName(schemaName);
+			} else {
+				objSchemaName = new ObjectName(new ObjectName(catName), schemaName);
+			}
+
+			var objTableName = new ObjectName(objSchemaName, tableName);
+
+			var indexCount = reader.ReadInt32();
+
+			var indices = new List<IndexInfo>();
+			for (int i = 0; i < indexCount; i++) {
+				var indexInfo = IndexInfo.DeserializeFrom(stream);
+				indices.Add(indexInfo);
+			}
+
+			return new IndexSetInfo(objTableName, indices.AsReadOnly(), false);
 		}
 	}
 }

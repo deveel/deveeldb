@@ -39,7 +39,7 @@ namespace Deveel.Data.Types {
 		/// of the SQL Type specified.
 		/// </remarks>
 		/// <param name="sqlType">The code of the SQL Type this object will represent.</param>
-		protected DataType(SqlTypeCode sqlType) 
+		protected DataType(SqlTypeCode sqlType)
 			: this(sqlType.ToString().ToUpperInvariant(), sqlType) {
 		}
 
@@ -98,15 +98,8 @@ namespace Deveel.Data.Types {
 		/// <summary>
 		/// Gets a value indicating if this data-type is primitive.
 		/// </summary>
-		/// <remarks>
-		/// This returns <c>false</c> only incase that <see cref="SqlType"/>
-		/// is equal to <see cref="SqlTypeCode.Object"/> or <see cref="SqlTypeCode.Unknown"/>.
-		/// </remarks>
 		public bool IsPrimitive {
-			get {
-				return SqlType != SqlTypeCode.Object &&
-				       SqlType != SqlTypeCode.Unknown;
-			}
+			get { return IsPrimitiveType(SqlType); }
 		}
 
 		public bool IsNull {
@@ -354,11 +347,12 @@ namespace Deveel.Data.Types {
 			return Name;
 		}
 
-		public virtual void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
-			throw new NotSupportedException(String.Format("Type {0} cannot serialize object of type {1}.", GetType(), obj.GetType()));
+		public virtual void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+			throw new NotSupportedException(String.Format("Type {0} cannot serialize object of type {1}.", GetType(),
+				obj.GetType()));
 		}
 
-		public virtual ISqlObject Deserialize(Stream stream, ISystemContext context) {
+		public virtual ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
 			throw new NotSupportedException(String.Format("Type {0} cannot deserialize types.", GetType()));
 		}
 
@@ -379,9 +373,16 @@ namespace Deveel.Data.Types {
 			throw new NotSupportedException(String.Format("SQL Type {0} cannot be created from a large object.", SqlType));
 		}
 
-		public virtual void SerializeTo(Stream stream) {
-			var writer = new BinaryWriter(stream);
-			writer.Write((byte)SqlType);
+		public static bool IsPrimitiveType(SqlTypeCode typeCode) {
+			return typeCode != SqlTypeCode.Object &&
+			       typeCode != SqlTypeCode.Unknown &&
+			       typeCode != SqlTypeCode.UserType &&
+			       typeCode != SqlTypeCode.Geometry &&
+			       typeCode != SqlTypeCode.Xml &&
+			       typeCode != SqlTypeCode.Array &&
+			       typeCode != SqlTypeCode.RowType &&
+			       typeCode != SqlTypeCode.ColumnType;
+
 		}
 	}
 }

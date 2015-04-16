@@ -339,10 +339,11 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public byte[] ToByteArray(bool timeZone) {
+			var size = timeZone ? 13 : 11;
 			if (IsNull)
-				return new byte[11];
+				return new byte[size];
 
-			var bytes = new byte[11];
+			var bytes = new byte[size];
 			bytes[0] = (byte)((Year / 100) + 100);
             bytes[1] = (byte)((Year % 100) + 100);
             bytes[2] = (byte)(Month);

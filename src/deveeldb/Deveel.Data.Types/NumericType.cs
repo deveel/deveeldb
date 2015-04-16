@@ -26,6 +26,7 @@ namespace Deveel.Data.Types {
 	public sealed class NumericType : DataType {
 		public NumericType(SqlTypeCode sqlType, int size, byte scale) 
 			: base("NUMERIC", sqlType) {
+			AssertIsNumeric(sqlType);
 			Size = size;
 			Scale = scale;
 		}
@@ -36,18 +37,11 @@ namespace Deveel.Data.Types {
 
 		public NumericType(SqlTypeCode sqlType, int size)
 			: this(sqlType, size, 0) {
-			HasScale = false;
 		}
 
 		public int Size { get; private set; }
 
-		public bool HasSize {
-			get { return Size >= 0; }
-		}
-
 		public byte Scale { get; private set; }
-
-		public bool HasScale { get; private set; }
 
 		public override bool Equals(object obj) {
 			var other = obj as NumericType;
@@ -61,6 +55,11 @@ namespace Deveel.Data.Types {
 
 		public override int GetHashCode() {
 			return (SqlType.GetHashCode() * Scale) + Size.GetHashCode();
+		}
+
+		private static void AssertIsNumeric(SqlTypeCode typeCode) {
+			if (!IsNumericType(typeCode))
+				throw new ArgumentException(String.Format("The type '{0}' is not a valid NUMERIC type.", typeCode));
 		}
 
 		private static int GetIntSize(SqlTypeCode sqlType) {
@@ -352,29 +351,33 @@ namespace Deveel.Data.Types {
 			return num1.Multiply(num2);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
-			var number = (SqlNumber) obj;
-
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var writer = new BinaryWriter(stream);
-			if (obj.IsNull) {
+
+			if (obj is SqlNull) {
 				writer.Write((byte)0);
-			} else if (number.CanBeInt32) {
-				writer.Write((byte)1);
-				writer.Write(number.ToInt32());
-			} else if (number.CanBeInt64) {
-				writer.Write((byte)2);
-				writer.Write(number.ToInt64());
 			} else {
-				var bytes = number.ToByteArray();
-				writer.Write((byte)3);
-				writer.Write(number.Precision);
-				writer.Write(number.Scale);
-				writer.Write(bytes.Length);
-				writer.Write(bytes);
+				var number = (SqlNumber) obj;
+				if (obj.IsNull) {
+					writer.Write((byte) 0);
+				} else if (number.CanBeInt32) {
+					writer.Write((byte) 1);
+					writer.Write(number.ToInt32());
+				} else if (number.CanBeInt64) {
+					writer.Write((byte) 2);
+					writer.Write(number.ToInt64());
+				} else {
+					var bytes = number.ToByteArray();
+					writer.Write((byte) 3);
+					writer.Write(number.Precision);
+					writer.Write(number.Scale);
+					writer.Write(bytes.Length);
+					writer.Write(bytes);
+				}
 			}
 		}
 
-		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
 			var reader = new BinaryReader(stream);
 
 			var type = reader.ReadByte();
@@ -401,6 +404,12 @@ namespace Deveel.Data.Types {
 		}
 
 		public override int SizeOf(ISqlObject obj) {
+			if (obj is SqlNull)
+				return 1;
+
+			if (!(obj is SqlNumber))
+				throw new ArgumentException(String.Format("Cannot determine the size of an object of type '{0}'.", obj.GetType()));
+
 			var number = (SqlNumber) obj;
 
 			if (number.IsNull)
@@ -414,6 +423,18 @@ namespace Deveel.Data.Types {
 			// Type + Scale + Precision + Byte Count
 			var length = number.ToByteArray().Length;
 			return 1 + 4 + 4 + 4 + length;
+		}
+
+		internal static bool IsNumericType(SqlTypeCode typeCode) {
+			return typeCode == SqlTypeCode.TinyInt ||
+			       typeCode == SqlTypeCode.SmallInt ||
+			       typeCode == SqlTypeCode.Integer ||
+			       typeCode == SqlTypeCode.BigInt ||
+			       typeCode == SqlTypeCode.Real ||
+			       typeCode == SqlTypeCode.Float ||
+			       typeCode == SqlTypeCode.Double ||
+			       typeCode == SqlTypeCode.Decimal ||
+			       typeCode == SqlTypeCode.Numeric;
 		}
 	}
 }

@@ -56,12 +56,19 @@ namespace Deveel.Data.DbSystem {
 			SourceName = sourceName;
 
 			GC = new TableSourceGC(this);
+
+			// Generate the name of the store file name.
+			StoreIdentity = MakeSourceIdentity(composite.DatabaseContext.SystemContext, tableId, sourceName);
 		}
 
 		public TableSourceComposite Composite { get; private set; }
 
 		public IDatabaseContext DatabaseContext {
 			get { return Composite.DatabaseContext; }
+		}
+
+		public IDatabase Database {
+			get { return Composite.Database; }
 		}
 
 		public ISystemContext SystemContext {
@@ -164,7 +171,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public bool Exists() {
-			return StoreSystem.StoreExists(SourceName);
+			return StoreSystem.StoreExists(StoreIdentity);
 		}
 
 		private void ClearLocks() {
@@ -370,7 +377,7 @@ namespace Deveel.Data.DbSystem {
 
 		private bool OpenTable() {
 			// Open the store.
-			Store = StoreSystem.OpenStore(SourceName);
+			Store = StoreSystem.OpenStore(StoreIdentity);
 			bool needCheck = !Store.ClosedClean;
 
 			// Setup the list structure
@@ -455,8 +462,8 @@ namespace Deveel.Data.DbSystem {
 			CreateTable();
 		}
 
-		private static string MakeSourceIdentity(ISystemContext context, int tableId, ObjectName tableName) {
-			string str = tableName.ToString().Replace('.', '_').ToLower();
+		private static string MakeSourceIdentity(ISystemContext context, int tableId, string tableName) {
+			string str = tableName.Replace('.', '_').ToLower();
 
 			// Go through each character and remove each non a-z,A-Z,0-9,_ character.
 			// This ensure there are no strange characters in the file name that the
@@ -481,9 +488,6 @@ namespace Deveel.Data.DbSystem {
 			// Initially set the table sequence_id to 1
 			sequenceId = 1;
 
-			// Generate the name of the store file name.
-			StoreIdentity = MakeSourceIdentity(DatabaseContext.SystemContext, TableId, TableName);
-
 			// Create and open the store.
 			Store = StoreSystem.CreateStore(StoreIdentity);
 
@@ -504,7 +508,7 @@ namespace Deveel.Data.DbSystem {
 		private void SetupInitialStore() {
 			byte[] tableInfoBuf;
 			using (var stream = new MemoryStream()) {
-				var writer = new BinaryWriter(stream);
+				var writer = new BinaryWriter(stream, Encoding.Unicode);
 				writer.Write(1);
 				TableInfo.SerializeTo(stream);
 
@@ -513,7 +517,7 @@ namespace Deveel.Data.DbSystem {
 
 			byte[] indexSetInfoBuf;
 			using (var stream = new MemoryStream()) {
-				var writer = new BinaryWriter(stream);
+				var writer = new BinaryWriter(stream, Encoding.Unicode);
 				writer.Write(1);
 
 				IndexSetInfo.SerialiazeTo(stream);
@@ -575,13 +579,13 @@ namespace Deveel.Data.DbSystem {
 
 		private void ReadStoreHeaders() {
 			// Read the fixed header
-			IArea fixedArea = Store.GetArea(-1);
+			var fixedArea = Store.GetArea(-1);
 
 			// Set the header area
 			headerArea = Store.GetArea(fixedArea.ReadInt8());
 
 			// Open a stream to the header
-			int version = headerArea.ReadInt4();              // version
+			var version = headerArea.ReadInt4();              // version
 			if (version != 1)
 				throw new IOException("Incorrect version identifier.");
 
@@ -594,22 +598,24 @@ namespace Deveel.Data.DbSystem {
 
 			// Read the table info
 			using (var stream = Store.GetAreaInputStream(infoPointer)) {
-				var reader = new BinaryReader(stream);
+				var reader = new BinaryReader(stream, Encoding.Unicode);
 				version = reader.ReadInt32();
 				if (version != 1)
 					throw new IOException("Incorrect TableInfo version identifier.");
 
-				TableInfo = TableInfo.DeserializeFrom(stream);
+				var userTypeResolver = new UserTypeResolver(Database);
+				TableInfo = TableInfo.DeserializeFrom(stream, userTypeResolver);
+				TableInfo.Establish(TableId);
 			}
 
 			// Read the data index set info
 			using (var stream = Store.GetAreaInputStream(indexInfoPointer)) {
-				var reader = new BinaryReader(stream);
+				var reader = new BinaryReader(stream, Encoding.Unicode);
 				version = reader.ReadInt32();
 				if (version != 1)
 					throw new IOException("Incorrect IndexSetInfo version identifier.");
 
-				IndexSetInfo = IndexSetInfo.DeserializeFrom(stream);
+				IndexSetInfo = Sql.IndexSetInfo.DeserializeFrom(stream);
 			}
 
 			// Read the list header
@@ -1347,7 +1353,7 @@ namespace Deveel.Data.DbSystem {
 					ISqlObject ob;
 					if (cellType == 1) {
 						// If standard object type
-						ob = type.Deserialize(stream, SystemContext);
+						ob = type.DeserializeObject(stream, SystemContext);
 					} else if (cellType == 2) {
 						// If reference to a blob input the BlobStore
 						int fType = reader.ReadInt32();
@@ -1526,5 +1532,23 @@ namespace Deveel.Data.DbSystem {
 				}
 			}
 		}
+
+		#region UserTypeResolver
+
+		class UserTypeResolver : IUserTypeResolver {
+			private readonly IDatabase database;
+
+			public UserTypeResolver(IDatabase database) {
+				this.database = database;
+			}
+
+			public UserType ResolveType(ObjectName typeName) {
+				using (var session = database.CreateSystemSession()) {
+					return session.GetUserType(typeName);
+				}
+			}
+		}
+
+		#endregion
 	}
 }

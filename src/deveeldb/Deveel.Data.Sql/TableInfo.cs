@@ -315,7 +315,7 @@ namespace Deveel.Data.Sql {
 			return columnNames.Select(IndexOfColumn).ToList().AsReadOnly();
 		}
 
-		public void SerializeTo(Stream stream) {
+		internal void SerializeTo(Stream stream) {
 			var writer = new BinaryWriter(stream, Encoding.Unicode);
 			writer.Write(3);	// Version
 
@@ -335,8 +335,34 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		public static TableInfo DeserializeFrom(Stream stream) {
-			throw new NotImplementedException();
+		internal static TableInfo DeserializeFrom(Stream stream, IUserTypeResolver typeResolver) {
+			var reader = new BinaryReader(stream, Encoding.Unicode);
+
+			var version = reader.ReadInt32();
+			if (version != 3)
+				throw new FormatException("Invalid version of the table info.");
+
+			var catName = reader.ReadString();
+			var schemName = reader.ReadString();
+			var tableName = reader.ReadString();
+
+			var objSchemaName = !String.IsNullOrEmpty(catName)
+				? new ObjectName(new ObjectName(catName), schemName)
+				: new ObjectName(schemName);
+
+			var objTableName = new ObjectName(objSchemaName, tableName);
+
+			var tableInfo = new TableInfo(objTableName);
+
+			var colCount = reader.ReadInt32();
+			for (int i = 0; i < colCount; i++) {
+				var columnInfo = ColumnInfo.DeserializeFrom(stream, typeResolver);
+
+				if (columnInfo != null)
+					tableInfo.AddColumn(columnInfo);
+			}
+
+			return tableInfo;
 		}
 	}
 }

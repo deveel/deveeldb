@@ -236,9 +236,9 @@
     <Compile Include="Deveel.Data.Protocol\ConnectionEndPoint.cs" />
     <Compile Include="Deveel.Data.Protocol\KnownConnectionProtocols.cs" />
     <Compile Include="Deveel.Data.Security\SystemGroupNames.cs" />
-    <Compile Include="Deveel.Data.Sql.Fluid\IExpressionConfiguration.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\ExpressionBinarySerializer.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlVariableReferenceExpression.cs" />
-    <Compile Include="Deveel.Data.Sql.Fluid\Configure.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
     <Compile Include="Deveel.Data.Sql.Query\EquiJoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\FetchViewNode.cs" />
@@ -688,6 +688,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Types\TabularType.cs" />
+    <Compile Include="Deveel.Data.Types\TypeSerializer.cs" />
     <Compile Include="Deveel.Data.Types\UserType.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeInfo.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeManager.cs" />

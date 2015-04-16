@@ -69,8 +69,7 @@ namespace Deveel.Data.Text {
 
 		#region Public Methods
 		public string Compute(string s) {
-			bool hard = false ;
-			if (s == null || s.Length == 0)
+			if (string.IsNullOrEmpty(s))
 				return "";
 
 			// single character is itself
@@ -200,6 +199,7 @@ namespace Deveel.Data.Text {
 								RegionMatch(local, n, "GNED") ) ) {
 								break; // silent G
 							}
+							var hard = false ;
 							if (IsPreviousChar(local, n, 'G')) {
 								hard = true ;
 							} else {

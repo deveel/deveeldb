@@ -57,9 +57,6 @@ namespace Deveel.Data.Index {
 		#region Block
 
 		protected class Block : IIndexBlock<T> {
-			private Block next;
-			private Block prev;
-			private T[] array;
 			private int count;
 			private bool changed;
 
@@ -68,17 +65,14 @@ namespace Deveel.Data.Index {
 
 			public Block(int blockSize)
 				: this() {
-				array = new T[blockSize];
+				BaseArray = new T[blockSize];
 				count = 0;
 			}
 
-			protected T[] BaseArray {
-				get { return array; }
-				set { array = value; }
-			}
+			protected T[] BaseArray { get; set; }
 
 			protected virtual int ArrayLength {
-				get { return array.Length; }
+				get { return BaseArray.Length; }
 			}
 
 			public IEnumerator<T> GetEnumerator() {
@@ -94,20 +88,14 @@ namespace Deveel.Data.Index {
 				set { Next = (Block) value; }
 			}
 
-			public Block Next {
-				get { return next; }
-				set { next = value; }
-			}
+			private Block Next { get; set; }
 
 			IIndexBlock<T> IIndexBlock<T>.Previous {
 				get { return Previous; }
 				set { Previous = (Block) value; }
 			}
 
-			public Block Previous {
-				get { return prev; }
-				set { prev = value; }
-			}
+			private Block Previous { get; set; }
 
 			/// <inheritdoc/>
 			public bool HasChanged {
@@ -156,11 +144,11 @@ namespace Deveel.Data.Index {
 
 			protected virtual T[] GetArray(bool readOnly) {
 				if (readOnly) {
-					var newArray = new T[array.Length];
-					Array.Copy(array, 0, newArray, 0, array.Length);
+					var newArray = new T[BaseArray.Length];
+					Array.Copy(BaseArray, 0, newArray, 0, BaseArray.Length);
 					return newArray;
 				}
-				return array;
+				return BaseArray;
 			}
 
 			private static bool IsSmallerOrEqual(T x, T y) {
@@ -197,7 +185,7 @@ namespace Deveel.Data.Index {
 				changed = true;
 				var arr = GetArray(false);
 				var val = arr[index];
-				Array.Copy(array, index + 1, arr, index, (count - index));
+				Array.Copy(BaseArray, index + 1, arr, index, (count - index));
 				--count;
 				return val;
 			}
@@ -226,7 +214,7 @@ namespace Deveel.Data.Index {
 			public void Insert(T value, int index) {
 				changed = true;
 				var arr = GetArray(false);
-				Array.Copy(array, index, arr, index + 1, (count - index));
+				Array.Copy(BaseArray, index, arr, index + 1, (count - index));
 				++count;
 				arr[index] = value;
 			}

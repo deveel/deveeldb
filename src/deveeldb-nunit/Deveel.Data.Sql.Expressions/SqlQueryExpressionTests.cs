@@ -16,12 +16,88 @@
 using System;
 using System.Linq;
 
+using Deveel.Data.Configuration;
+using Deveel.Data.DbSystem;
+using Deveel.Data.Protocol;
+using Deveel.Data.Security;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
+
 using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
 	public sealed class SqlQueryExpressionTests {
+		private IUserSession session;
+
+		[SetUp]
+		public void SetUp() {
+			var systemContext = new SystemContext(DbConfig.Default);
+			var dbContext = new DatabaseContext(systemContext, "testdb");
+			var database = new Database(dbContext);
+			database.Create("SA", "12345");
+			database.Open();
+
+			session = database.CreateSession(User.System, ConnectionEndPoint.Embedded);
+			CreateTestTable();
+			AddTestData();
+		}
+
+		private void CreateTestTable() {
+			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
+			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
+			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUE_KEY",
+				new SqlExpression[] {SqlExpression.Reference(tableInfo.TableName)});
+			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
+			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
+			tableInfo.AddColumn("birth_date", PrimitiveTypes.Date());
+			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
+
+			session.CreateTable(tableInfo);
+			session.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+		}
+
+		private void AddTestData() {
+			var table = session.GetMutableTable(ObjectName.Parse("APP.test_table"));
+			var row = table.NewRow();
+			row.SetValue("first_name", DataObject.String("John"));
+			row.SetValue("last_name", DataObject.String("Doe"));
+			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1977, 01, 01)));
+			row.SetValue("active", DataObject.Boolean(false));
+			table.AddRow(row);
+
+			row = table.NewRow();
+			row.SetValue("first_name", DataObject.String("Jane"));
+			row.SetValue("last_name", DataObject.String("Doe"));
+			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1978, 11, 01)));
+			row.SetValue("active", DataObject.Boolean(true));
+			table.AddRow(row);
+
+			row = table.NewRow();
+			row.SetValue("first_name", DataObject.String("Roger"));
+			row.SetValue("last_name", DataObject.String("Rabbit"));
+			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1985, 05, 05)));
+			row.SetValue("active", DataObject.Boolean(true));
+		}
+
 		[Test]
+		[Category("System")]
+		public void ExecuteSelectFromClause() {
+			var expression =
+				new SqlQueryExpression(new[] {new SelectColumn(SqlExpression.Reference(new ObjectName("first_name")))});
+			expression.FromClause.AddTable("test_table");
+
+			var queryContext = new SessionQueryContext(session);
+
+			DataObject result = null;
+			Assert.DoesNotThrow(() => result = expression.EvaluateToConstant(queryContext, null));
+			Assert.IsNotNull(result);
+			Assert.IsInstanceOf<QueryType>(result.Type);
+			Assert.IsInstanceOf<SqlQuery>(result.Value);
+		}
+
+		[Test]
+		[Category("SQL Parse")]
 		public void ParseSelectWithFromClause() {
 			const string sql = "SELECT col1 AS a FROM table";
 
@@ -40,6 +116,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		[Test]
+		[Category("SQL Parse")]
 		public void ParseSelectWithNaturalJoin() {
 			const string sql = "SELECT a.col1, b.col2 FROM table1 a, table2 b";
 
@@ -61,6 +138,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		[Test]
+		[Category("SQL Parse")]
 		public void ParseSelectWithInnerJoin() {
 			const string sql = "SELECT a.col1, b.col2 FROM table1 AS a INNER JOIN table2 b ON a.id = b.id";
 
@@ -84,6 +162,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		[Test]
+		[Category("SQL Parse")]
 		public void ParseSelectFunction() {
 			const string sql = "SELECT user()";
 
@@ -99,6 +178,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		[Test]
+		[Category("SQL Parse")]
 		public void ParseSelectSubQuery() {
 			const string sql = "SELECT * FROM (SELECT a, b FROM table1)";
 
@@ -120,7 +200,8 @@ namespace Deveel.Data.Sql.Expressions {
 		//}
 
 		[Test]
-		public void ExecuteSimpleQuery() {
+		[Category("SQL Parse")]
+		public void ParseSimpleQuery() {
 			const string sql = "SELECT col1 AS a FROM table";
 
 			SqlExpression expression = null;

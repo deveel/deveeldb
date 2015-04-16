@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Data;
 using System.IO;
 
 using Deveel.Data.Diagnostics;
@@ -40,6 +39,7 @@ namespace Deveel.Data.DbSystem {
 			t.NewRow();
 			SingleRowTable = t;
 
+			EventRegistry = new DatabaseEventRegistry(this);
 			OpenTransactions = new TransactionCollection(this);
 		}
 
@@ -68,10 +68,7 @@ namespace Deveel.Data.DbSystem {
 				Version = dataVerion.Version;
 		}
 
-		private ITransaction CreateTransaction(TransactionIsolation isolation) {
-			if (IsOpen)
-				throw new InvalidOperationException(String.Format("Database {0} is not open.", this.Name()));
-
+		internal ITransaction DoCreateTransaction(TransactionIsolation isolation) {
 			lock (this) {
 				ITransaction transaction;
 
@@ -85,6 +82,13 @@ namespace Deveel.Data.DbSystem {
 
 				return transaction;
 			}
+		}
+
+		private ITransaction CreateTransaction(TransactionIsolation isolation) {
+			if (!IsOpen)
+				throw new InvalidOperationException(String.Format("Database {0} is not open.", this.Name()));
+
+			return DoCreateTransaction(isolation);
 		}
 
 		public IUserSession CreateSession(User user, ConnectionEndPoint userEndPoint) {
@@ -135,27 +139,27 @@ namespace Deveel.Data.DbSystem {
 		public bool Exists {
 			get {
 				if (IsOpen)
-					//throw new Exception("The database is initialised, so no point testing it's existance.");
+					//throw new Exception("The database is initialized, so no point testing it's existence.");
 					return true;
 
 				try {
 					return TableComposite.Exists();
 				} catch (IOException e) {
-					throw new Exception("An error occurred while testing database existance.", e);
+					throw new Exception("An error occurred while testing database existence.", e);
 				}
 			}
 		}
 
 		public bool IsOpen { get; private set; }
 
-		public TableSourceComposite TableComposite { get; private set; }
+		internal TableSourceComposite TableComposite { get; private set; }
 
 		public IEventRegistry EventRegistry { get; private set; }
 
 		public ITable SingleRowTable { get; private set; }
 
-		public string StateResourceName {
-			get { return String.Format("{0}_sf", this.Name()); }
+		private IUserSession CreateInitialSystemSession() {
+			return new UserSession(this, DoCreateTransaction(TransactionIsolation.Serializable), User.System, ConnectionEndPoint.Embedded);
 		}
 
 		public void Create(string adminName, string adminPassword) {
@@ -171,7 +175,7 @@ namespace Deveel.Data.DbSystem {
 				// Create the conglomerate
 				TableComposite.Create();
 
-				using (var session = this.CreateSystemSession()) {
+				using (var session = CreateInitialSystemSession()) {
 					session.AutoCommit(false);
 
 					var context = new SessionQueryContext(session);
@@ -256,7 +260,7 @@ namespace Deveel.Data.DbSystem {
 			try {
 				// Check if the state file exists.  If it doesn't, we need to report
 				// incorrect version.
-				if (!Context.StoreSystem.StoreExists(StateResourceName))
+				if (!TableComposite.Exists())
 					// If neither store or state file exist, assume database doesn't
 					// exist.
 					throw new DatabaseSystemException(String.Format("The database {0} does not exist.", this.Name()));
@@ -265,7 +269,7 @@ namespace Deveel.Data.DbSystem {
 				TableComposite.Open();
 
 				AssertDataVersion();
-			} catch (DatabaseSystemException e) {
+			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception e) {
 				throw new DatabaseSystemException("An error occurred when initializing the database.", e);

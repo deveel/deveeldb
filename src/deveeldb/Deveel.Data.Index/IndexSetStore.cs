@@ -159,64 +159,6 @@ namespace Deveel.Data.Index {
 			}
 		}
 
-		public void CopyAllFrom(IIndexSet indexSet) {
-			lock (this) {
-				// Assert that IndexSetStore is initialized
-				if (indexBlocks == null)
-					throw new Exception("Cannot copy because this store is not initialized.");
-
-				// Drop any indexes in this index store.
-				for (int i = 0; i < indexBlocks.Length; ++i) {
-					CommitDropIndex(i);
-				}
-
-				if (!(indexSet is SnapshotIndexSet))
-					throw new Exception("Invalid table index for this store.");
-
-				// Cast to SnapshotIndexSet
-				var snapshotIndexSet = (SnapshotIndexSet)indexSet;
-
-				// The number of IndexBlock items to copy.
-				int indexCount = snapshotIndexSet.IndexBlocks.Length;
-
-				// Record the old indexHeaderPointer
-				long oldIndexHeaderP = indexHeaderPointer;
-
-				// Create the header in this store
-				var a = Store.CreateArea(16 + (16 * indexCount));
-				indexHeaderPointer = a.Id;
-				a.WriteInt4(1); // version
-				a.WriteInt4(0); // reserved
-				a.WriteInt8(indexCount); // number of indexes in the set
-
-				// Fill in the information from the index_set
-				for (int i = 0; i < indexCount; ++i) {
-					var sourceBlock = snapshotIndexSet.IndexBlocks[i];
-
-					long indexBlockPointer = sourceBlock.CopyTo(Store);
-
-					a.WriteInt4(1); // NOTE: Only support for block type 1
-					a.WriteInt4(sourceBlock.BlockSize);
-					a.WriteInt8(indexBlockPointer);
-				}
-
-				// The header area has now been initialized.
-				a.Flush();
-
-				// Modify the start area header to point to this new structure.
-				startArea.Position = 8;
-				startArea.WriteInt8(indexHeaderPointer);
-				// Check out the change
-				startArea.Flush();
-
-				// Free space associated with the old header_p
-				Store.DeleteArea(oldIndexHeaderP);
-
-				// Re-initialize the index
-				Open(startArea.Id);
-			}
-		}
-
 		public void GetAreasUsed(List<long> list) {
 			list.Add(startArea.Id);
 			list.Add(indexHeaderPointer);
@@ -370,41 +312,45 @@ namespace Deveel.Data.Index {
 							var blocks = index.AllBlocks.ToList();
 
 							// Make up a new block list for this index set.
-							var a = Store.CreateArea(16 + (blocks.Count * 28));
-							long blockP = a.Id;
-							a.WriteInt4(1);               // version
-							a.WriteInt4(0);               // reserved
-							a.WriteInt8(blocks.Count);  // block count
+							var area = Store.CreateArea(16 + (blocks.Count * 28));
+							long blockP = area.Id;
+							area.WriteInt4(1);               // version
+							area.WriteInt4(0);               // reserved
+							area.WriteInt8(blocks.Count);  // block count
+
 							foreach (var block in blocks) {
-								IMappedBlock b = (IMappedBlock)block;
+								var mappedBlock = (IMappedBlock)block;
 
 								long bottomInt = 0;
 								long topInt = 0;
-								int blockSize = b.Count;
+								int blockSize = mappedBlock.Count;
 								if (blockSize > 0) {
-									bottomInt = b.Bottom;
-									topInt = b.Top;
+									bottomInt = mappedBlock.Bottom;
+									topInt = mappedBlock.Top;
 								}
-								long b_p = b.BlockPointer;
+
+								long blockPointer = mappedBlock.BlockPointer;
+
 								// Is the block new or was it changed?
-								if (b_p == -1 || b.HasChanged) {
-									// If this isn't -1 then WriteByte this sector on the list of
+								if (blockPointer == -1 || mappedBlock.HasChanged) {
+									// If this isn't -1 then write this sector on the list of
 									// sectors to delete during GC.
-									if (b_p != -1) {
-										curIndexBlock.AddDeletedArea(b_p);
-									}
+									if (blockPointer != -1)
+										curIndexBlock.AddDeletedArea(blockPointer);
+
 									// This is a new block or a block that's been changed
 									// Write the block to the file system
-									b_p = b.Flush();
+									blockPointer = mappedBlock.Flush();
 								}
-								a.WriteInt8(bottomInt);
-								a.WriteInt8(topInt);
-								a.WriteInt8(b_p);
-								a.WriteInt4(blockSize | (((int)b.CompactType) << 24));
+
+								area.WriteInt8(bottomInt);
+								area.WriteInt8(topInt);
+								area.WriteInt8(blockPointer);
+								area.WriteInt4(blockSize | (((int)mappedBlock.CompactType) << 24));
 							}
 
 							// Finish initializing the area
-							a.Flush();
+							area.Flush();
 
 							// Add the deleted blocks
 							var deletedBlocks = index.DeletedBlocks.ToArray();

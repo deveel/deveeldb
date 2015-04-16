@@ -89,6 +89,14 @@ namespace Deveel.Data.Types {
 			return TinyInt(-1);
 		}
 
+		public static NumericType Integer() {
+			return Integer(-1);
+		}
+
+		public static NumericType Integer(int size) {
+			return Numeric(SqlTypeCode.Integer, size);
+		}
+
 		public static NullType Null() {
 			return Null(SqlTypeCode.Null);
 		}
@@ -136,7 +144,7 @@ namespace Deveel.Data.Types {
 		public static bool IsPrimitive(SqlTypeCode sqlType) {
 			if (sqlType == SqlTypeCode.Unknown ||
 			    sqlType == SqlTypeCode.UserType ||
-			    sqlType == SqlTypeCode.QueryPlanNode ||
+			    sqlType == SqlTypeCode.QueryPlan ||
 			    sqlType == SqlTypeCode.Object)
 				return false;
 

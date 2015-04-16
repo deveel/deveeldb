@@ -21,7 +21,6 @@ using System.IO;
 namespace Deveel.Data.Index {
 	internal class SnapshotIndexSet : IIndexSet {
 		private readonly IndexSetStore indexSetStore;
-		private IndexBlock[] blocks;
 		private List<StoreIndex> indexes;
 
 		private bool disposed;
@@ -30,7 +29,7 @@ namespace Deveel.Data.Index {
 
 		public SnapshotIndexSet(IndexSetStore indexSetStore, IndexBlock[] blocks) {
 			this.indexSetStore = indexSetStore;
-			this.blocks = blocks;
+			IndexBlocks = blocks;
 
 			// Not disposed.
 			disposed = false;
@@ -50,9 +49,7 @@ namespace Deveel.Data.Index {
 			}
 		}
 
-		public IndexBlock[] IndexBlocks {
-			get { return blocks; }
-		}
+		public IndexBlock[] IndexBlocks { get; private set; }
 
 		public void Dispose() {
 			Dispose(true);
@@ -60,31 +57,25 @@ namespace Deveel.Data.Index {
 		}
 
 		private void Dispose(bool disposing) {
-			if (disposing) {
-				try {
-					if (!disposed) {
-						DoDispose();
-					}
-				} catch (Exception e) {
-				}
-			}
-		}
-
-		private void DoDispose() {
 			if (!disposed) {
-				if (indexes != null) {
-					foreach (var index in indexes) {
-						index.Dispose();
+				if (disposing) {
+					try {
+						if (indexes != null) {
+							foreach (var index in indexes) {
+								index.Dispose();
+							}
+						}
+
+						// Release reference to the index_blocks;
+						foreach (var block in IndexBlocks) {
+							block.RemoveReference();
+						}
+					} catch (Exception e) {
 					}
-					indexes = null;
 				}
 
-				// Release reference to the index_blocks;
-				foreach (var block in blocks) {
-					block.RemoveReference();
-				}
-
-				blocks = null;
+				indexes = null;
+				IndexBlocks = null;
 				disposed = true;
 			}
 		}
@@ -103,7 +94,7 @@ namespace Deveel.Data.Index {
 			}
 
 			try {
-				var index = (StoreIndex) blocks[offset].CreateIndex();
+				var index = (StoreIndex) IndexBlocks[offset].CreateIndex();
 				indexes.Add(index);
 				return index;
 			} catch (IOException e) {

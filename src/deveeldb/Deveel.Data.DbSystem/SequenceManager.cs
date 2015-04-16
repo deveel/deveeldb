@@ -242,7 +242,7 @@ namespace Deveel.Data.DbSystem {
 				var cycle = seqTable.GetValue(seqRowI, 7);
 
 
-				return new SequenceTable(transaction.Context.Database.Context, tableInfo) {
+				return new SequenceTable(transaction.Database.Context, tableInfo) {
 					TopValue = topValue,
 					LastValue = lastValue,
 					CurrentValue = currentValue,
@@ -325,17 +325,13 @@ namespace Deveel.Data.DbSystem {
 
 		#endregion
 
-		private ITransaction GetTransaction() {
-			return Transaction.Context.CreateTransaction(TransactionIsolation.Serializable);
-		}
-
 		/// <summary>
 		/// Updates the state of the sequence key in the sequence tables in the
 		/// database.
 		/// </summary>
 		/// <param name="sequence"></param>
 		/// <remarks>
-		/// The update occurs on an independant transaction.
+		/// The update occurs on an independent transaction.
 		/// </remarks>
 		private void UpdateSequenceState(Sequence sequence) {
 			// We need to update the sequence key state.
@@ -355,7 +351,7 @@ namespace Deveel.Data.DbSystem {
 				throw new Exception("Assert failed: multiple id for sequence.");
 
 			// Create the DataRow
-			var dataRow = new Row(seq, list.First());
+			var dataRow = seq.GetRow(list.First());
 
 			// Set the content of the row data
 			dataRow.SetValue(0, DataObject.Number(sequence.Id));

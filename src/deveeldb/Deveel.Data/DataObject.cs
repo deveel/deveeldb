@@ -685,7 +685,7 @@ namespace Deveel.Data {
 		#endregion
 
 		internal void SerializeTo(Stream stream, ISystemContext systemContext) {
-			Type.Serialize(stream, Value, systemContext);
+			Type.SerializeObject(stream, Value, systemContext);
 		}
 	}
 }

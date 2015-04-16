@@ -129,24 +129,43 @@ namespace Deveel.Data.Sql {
 
 		public string IndexType { get; set; }
 
-		public void SerializeTo(Stream stream) {
+		internal void SerializeTo(Stream stream) {
 			var writer = new BinaryWriter(stream, Encoding.Unicode);
 			writer.Write(3);	// Version
 			writer.Write(ColumnName);
 
-			ColumnType.SerializeTo(stream);
-			writer.Write(IsNotNull ? 1 : 0);
+			TypeSerializer.SerializeTo(stream, ColumnType);
+
+			writer.Write(IsNotNull ? (byte)1 : (byte)0);
 
 			if (DefaultExpression != null) {
 				writer.Write((byte) 1);
-				DefaultExpression.SerializeTo(stream);
+				SqlExpressionSerializer.SerializeTo(stream, DefaultExpression);
 			} else {
 				writer.Write((byte)0);
 			}
 		}
 
-		public static ColumnInfo DeserializeFrom(Stream stream) {
-			throw new NotImplementedException();
+		internal static ColumnInfo DeserializeFrom(Stream stream, IUserTypeResolver typeResolver) {
+			var reader = new BinaryReader(stream, Encoding.Unicode);
+
+			var version = reader.ReadInt32();
+			if (version != 3)
+				throw new FormatException("Invalid version of the Column-Info");
+
+			var columnName = reader.ReadString();
+			var columnType = TypeSerializer.DeserializeFrom(stream, typeResolver);
+
+			var notNull = reader.ReadByte() == 1;
+
+			var columnInfo = new ColumnInfo(columnName, columnType);
+			columnInfo.IsNotNull = notNull;
+
+			var hasDefault = reader.ReadByte() == 1;
+			if (hasDefault)
+				columnInfo.DefaultExpression = SqlExpressionSerializer.DeserializeFrom(stream);
+
+			return columnInfo;
 		}
 	}
 }

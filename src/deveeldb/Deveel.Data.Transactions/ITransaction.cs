@@ -26,7 +26,7 @@ namespace Deveel.Data.Transactions {
 	/// </summary>
 	/// <remarks>
 	/// This contract allows implementors to define simple transactions
-	/// that can be eventually forbit any data write operation.
+	/// that can be eventually forbid any data write operation.
 	/// </remarks>
 	public interface ITransaction : IVariableScope, ILockable, IDisposable {
 		long CommitId { get; }
@@ -36,11 +36,7 @@ namespace Deveel.Data.Transactions {
 		/// </summary>
 		TransactionIsolation Isolation { get; }
 
-		/// <summary>
-		/// Gets an instance of the <see cref="ITransactionContext">factory</see> that generated
-		/// this transaction object
-		/// </summary>
-		ITransactionContext Context { get; }
+		IDatabase Database { get; }
 
 		OldNewTableState OldNewTableState { get; }
 
@@ -97,5 +93,9 @@ namespace Deveel.Data.Transactions {
 		/// <seealso cref="Commit"/>
 		/// <seealso cref="IsReadOnly"/>
 		void Rollback();
+
+		void RegisterOnCommit(Action<TableCommitInfo> action);
+
+		void UnregisterOnCommit(Action<TableCommitInfo> action);
 	}
 }

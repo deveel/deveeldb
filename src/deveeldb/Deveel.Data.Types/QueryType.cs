@@ -24,19 +24,19 @@ namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class QueryType : DataType {
 		public QueryType()
-			: base("QUERY", SqlTypeCode.QueryPlanNode) {
+			: base("QUERY", SqlTypeCode.QueryPlan) {
 		}
 
 		public override bool IsIndexable {
 			get { return false; }
 		}
 
-		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
-			return base.Deserialize(stream, context);
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
+			return base.DeserializeObject(stream, context);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
-			base.Serialize(stream, obj, systemContext);
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+			base.SerializeObject(stream, obj, systemContext);
 		}
 	}
 }

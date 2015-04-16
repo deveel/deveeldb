@@ -36,11 +36,7 @@ namespace Deveel.Data.DbSystem {
 
 		private List<object> cleanupQueue;
 
-		public TableManager(ITransaction transaction)
-			: this(transaction, new TableSourceComposite(transaction.Context.Database)) {
-		}
-
-		public TableManager(ITransaction transaction, TableSourceComposite composite) {
+		internal TableManager(ITransaction transaction, TableSourceComposite composite) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
 
@@ -61,7 +57,7 @@ namespace Deveel.Data.DbSystem {
 
 		public ITransaction Transaction { get; private set; }
 
-		public TableSourceComposite Composite { get; private set; }
+		private TableSourceComposite Composite { get; set; }
 
 		internal IEnumerable<IMutableTable> AccessedTables {
 			get { return accessedTables; }
@@ -247,7 +243,7 @@ namespace Deveel.Data.DbSystem {
 			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read-only.");
 
-			int i = visibleTables.IndexOf(table);
+			int i = visibleTables.FindIndex(x => x.TableId == table.TableId);
 			if (i != -1) {
 				visibleTables.RemoveAt(i);
 				IIndexSet indexSet = tableIndices[i];

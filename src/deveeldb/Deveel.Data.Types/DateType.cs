@@ -66,9 +66,7 @@ namespace Deveel.Data.Types {
 
 
 		private static void AssertDateType(SqlTypeCode sqlType) {
-			if (sqlType != SqlTypeCode.Date &&
-				sqlType != SqlTypeCode.Time &&
-				sqlType != SqlTypeCode.TimeStamp)
+			if (!IsDateType(sqlType))
 				throw new ArgumentException(String.Format("The SQL type {0} is not a valid DATE", sqlType), "sqlType");
 		}
 
@@ -88,21 +86,56 @@ namespace Deveel.Data.Types {
 			return base.CanCastTo(type);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
-			var date = (SqlDateTime) obj;
-
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var writer = new BinaryWriter(stream);
-			var bytes = date.ToByteArray(true);
-			
-			writer.Write(bytes.Length);
-			writer.Write(bytes);
+
+			if (obj is SqlNull) {
+				writer.Write((byte) 0);
+			} else {
+				var date = (SqlDateTime) obj;
+
+				if (date.IsNull) {
+					writer.Write((byte)0);
+				} else {
+					var bytes = date.ToByteArray(true);
+
+					writer.Write((byte)1);
+					writer.Write(bytes.Length);
+					writer.Write(bytes);
+				}
+			}
 		}
 
-		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+		public override int SizeOf(ISqlObject obj) {
+			if (obj is SqlNull)
+				return 1;
+
+			if (!(obj is SqlDateTime))
+				throw new ArgumentException(String.Format("Cannot determine the size of an object of type '{0}'", obj.GetType()));
+
+			if (obj.IsNull)
+				return 1;
+
+			// Type + Length + Bytes
+			return 1 + 4 + 13;
+		}
+
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
 			var reader = new BinaryReader(stream);
+
+			var type = reader.ReadByte();
+			if (type == 0)
+				return SqlDateTime.Null;
+
 			var length = reader.ReadInt32();
 			var bytes = reader.ReadBytes(length);
 			return new SqlDateTime(bytes);
+		}
+
+		internal static bool IsDateType(SqlTypeCode sqlType) {
+			return sqlType == SqlTypeCode.Date ||
+			       sqlType == SqlTypeCode.Time ||
+			       sqlType == SqlTypeCode.TimeStamp;
 		}
 	}
 }

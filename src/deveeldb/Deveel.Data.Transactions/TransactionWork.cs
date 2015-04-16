@@ -323,19 +323,20 @@ namespace Deveel.Data.Transactions {
 			return changedTableSource;
 		}
 
-		private void FireChangeEvents(ITransaction checkTransaction, CommitTableInfo[] normalizedChangedTables) {
-			// For each changed table.
-			//n_loop:
-			for (int i = 0; i < normalizedChangedTables.Length; ++i) {
-				CommitTableInfo tableInfo = normalizedChangedTables[i];
+		private void FireChangeEvents(ITransaction checkTransaction, CommitTableInfo[] normalizedChangedTables, Action<TableCommitInfo> commitActions) {
+			if (commitActions == null)
+				return;
+
+			foreach (var tableInfo in normalizedChangedTables) {
 				// Get the journal that details the change to the table.
 				TableEventRegistry changeJournal = tableInfo.Journal;
 				if (changeJournal != null) {
 					// Get the table name
 					var tableName = tableInfo.Master.TableName;
-					// TODO:
-				} // if (changeJournal != null)
-			} // for each changed table
+					commitActions(new TableCommitInfo(checkTransaction.CommitId, tableName, tableInfo.NormalizedAddedRows,
+						tableInfo.NormalizedAddedRows));
+				}
+			}
 		}
 
 		private void CheckConstraintViolations(ITransaction checkTransaction, CommitTableInfo[] normalizedChangedTables, ITable[] changedTableSource) {
@@ -383,7 +384,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		internal IEnumerable<TableSource> Commit(IList<TransactionObjectState> nameSpaceJournals, EventHandlerList modificationEvents) {
+		internal IEnumerable<TableSource> Commit(IList<TransactionObjectState> nameSpaceJournals, Action<TableCommitInfo> commitActions) {
 			var changedTablesList = new List<TableSource>();
 
 			// This is a transaction that will represent the view of the database
@@ -454,7 +455,7 @@ namespace Deveel.Data.Transactions {
 				CheckConstraintViolations(checkTransaction, normalizedChangedTables, changedTableSource);
 
 				// Deferred trigger events.
-				FireChangeEvents(checkTransaction, normalizedChangedTables);
+				FireChangeEvents(checkTransaction, normalizedChangedTables, commitActions);
 
 				// NOTE: This isn't as fail safe as it could be.  We really need to
 				//  do the commit in two phases.  The first writes updated indices to

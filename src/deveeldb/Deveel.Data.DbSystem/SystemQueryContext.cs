@@ -29,7 +29,7 @@ namespace Deveel.Data.DbSystem {
 			Transaction = transaction;
 			this.currentSchema = currentSchema;
 
-			session = new UserSession(transaction.Context.Database, transaction, User.System, ConnectionEndPoint.Embedded);
+			session = new UserSession(transaction.Database, transaction, User.System, ConnectionEndPoint.Embedded);
 		}
 
 		public ITransaction Transaction { get; private set; }

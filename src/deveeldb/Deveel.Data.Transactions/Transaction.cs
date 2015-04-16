@@ -28,14 +28,16 @@ namespace Deveel.Data.Transactions {
 	public sealed class Transaction : ITransaction, ICallbackHandler {
 		private TableManager tableManager;
 		private SequenceManager sequenceManager;
-		// TODO: private ViewManager viewManager;
+		private ViewManager viewManager;
 		private VariableManager variableManager;
 		private SchemaManager schemaManager;
-		private List<TableCommitCallback> callbacks; 
+		private List<TableCommitCallback> callbacks;
 
-		private static TableInfo[] IntTableInfo;
+		private Action<TableCommitInfo> commitActions; 
 
-		internal Transaction(IDatabase database, long commitId, TransactionIsolation isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
+		private static readonly TableInfo[] IntTableInfo;
+
+		internal Transaction(Database database, long commitId, TransactionIsolation isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
 			CommitId = commitId;
 			Database = database;
 			Isolation = isolation;
@@ -54,7 +56,7 @@ namespace Deveel.Data.Transactions {
 			Database.OpenTransactions.AddTransaction(this);
 		}
 
-		public Transaction(IDatabase database, long commitId, TransactionIsolation isolation)
+		internal Transaction(Database database, long commitId, TransactionIsolation isolation)
 			: this(database, commitId, isolation, new TableSource[0], new IIndexSet[0]) {
 		}
 
@@ -91,17 +93,17 @@ namespace Deveel.Data.Transactions {
 
 		public OldNewTableState OldNewTableState { get; private set; }
 
-		ITransactionContext ITransaction.Context {
+		IDatabase ITransaction.Database {
 			get { return Database; }
 		}
 
-		public IDatabase Database { get; private set; }
+		public Database Database { get; private set; }
 
 		public IDatabaseContext DatabaseContext {
 			get { return Database.Context; }
 		}
 
-		public TableSourceComposite TableComposite {
+		private TableSourceComposite TableComposite {
 			get { return Database.TableComposite; }
 		}
 
@@ -113,7 +115,7 @@ namespace Deveel.Data.Transactions {
 			schemaManager = new SchemaManager(this);
 			tableManager = new TableManager(this, TableComposite);
 			sequenceManager = new SequenceManager(this);
-			// TODO: viewManager = new ViewManager(this);
+			viewManager = new ViewManager(this);
 			variableManager = new VariableManager(this);
 
 			ObjectManagerResolver = new ObjectManagersResolver(this);
@@ -168,12 +170,26 @@ namespace Deveel.Data.Transactions {
 					var touchedTables = tableManager.AccessedTables.ToList();
 					var visibleTables = tableManager.GetVisibleTables().ToList();
 					var selected = tableManager.SelectedTables.ToArray();
-					TableComposite.Commit(this, visibleTables, selected, touchedTables, Registry);
+					TableComposite.Commit(this, visibleTables, selected, touchedTables, Registry, commitActions);
 				} finally {
 					Finish();
 				}
 			}
 		}
+
+		public void RegisterOnCommit(Action<TableCommitInfo> action) {
+			if (commitActions == null) {
+				commitActions = action;
+			} else {
+				commitActions = Delegate.Combine(commitActions, action) as Action<TableCommitInfo>;
+			}
+		}
+
+		public void UnregisterOnCommit(Action<TableCommitInfo> action) {
+			if (commitActions != null)
+				commitActions = Delegate.Remove(commitActions, action) as Action<TableCommitInfo>;
+		}
+
 
 		private void Finish() {
 			try {
@@ -485,7 +501,8 @@ namespace Deveel.Data.Transactions {
 					transaction.schemaManager,
 					transaction.tableManager,
 					transaction.sequenceManager,
-					transaction.variableManager
+					transaction.variableManager,
+					transaction.viewManager
 				};
 			}
 

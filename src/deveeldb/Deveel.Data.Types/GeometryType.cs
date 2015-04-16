@@ -77,7 +77,7 @@ namespace Deveel.Data.Types {
 			return g.Reverse();
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var geometry = (IGeometry) obj;
 
 			var writer = new BinaryWriter(stream);
@@ -88,7 +88,7 @@ namespace Deveel.Data.Types {
 			writer.Write(bytes);
 		}
 
-		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
 			var reader = new BinaryReader(stream);
 
 			var length = reader.ReadInt32();

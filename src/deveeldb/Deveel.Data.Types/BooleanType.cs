@@ -29,9 +29,13 @@ namespace Deveel.Data.Types {
 		}
 
 		private static void AssertIsBoolean(SqlTypeCode sqlType) {
-			if (sqlType != SqlTypeCode.Bit &&
-				sqlType != SqlTypeCode.Boolean)
+			if (!IsBooleanType(sqlType))
 				throw new ArgumentException(String.Format("The SQL type {0} is not BOOLEAN.", sqlType));
+		}
+
+		internal static bool IsBooleanType(SqlTypeCode sqlType) {
+			return (sqlType == SqlTypeCode.Bit ||
+			        sqlType == SqlTypeCode.Boolean);
 		}
 
 		public override int Compare(ISqlObject x, ISqlObject y) {
@@ -102,7 +106,7 @@ namespace Deveel.Data.Types {
 			return base.Negate(value);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var b = (SqlBoolean) obj;
 			var writer = new BinaryWriter(stream);
 
@@ -115,7 +119,7 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
 			var reader = new BinaryReader(stream);
 
 			var type = reader.ReadByte();

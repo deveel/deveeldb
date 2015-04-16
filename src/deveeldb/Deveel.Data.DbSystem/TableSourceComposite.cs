@@ -25,7 +25,7 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class TableSourceComposite : IDisposable {
+	class TableSourceComposite : IDisposable {
 		private readonly object commitLock = new object();
 		private Dictionary<int, TableSource> tableSources;
 
@@ -39,7 +39,7 @@ namespace Deveel.Data.DbSystem {
 
 		public const string ObjectStoreName = "lob_store";
 
-		public TableSourceComposite(IDatabase database) {
+		public TableSourceComposite(Database database) {
 			Database = database;
 
 			tempStoreSystem = new InMemoryStorageSystem();
@@ -54,7 +54,7 @@ namespace Deveel.Data.DbSystem {
 			Dispose(false);
 		}
 
-		public IDatabase Database { get; private set; }
+		public Database Database { get; private set; }
 
 		public IDatabaseContext DatabaseContext {
 			get { return Database.Context; }
@@ -87,15 +87,15 @@ namespace Deveel.Data.DbSystem {
 				// For each visible table
 				foreach (var resource in tables) {
 					var tableId = resource.TableId;
-					var tableName = resource.TableName;
+					var sourceName = resource.SourceName;
 
 					// TODO: add a table source type?
 
 					// Load the master table from the resource information
-					var source = LoadTableSource(tableId, tableName);
+					var source = LoadTableSource(tableId, sourceName);
 
 					if (source == null)
-						throw new InvalidOperationException(String.Format("Table {0} was not found.", tableName));
+						throw new InvalidOperationException(String.Format("Table {0} was not found.", sourceName));
 
 					source.Open();
 
@@ -112,7 +112,7 @@ namespace Deveel.Data.DbSystem {
 				// For each visible table
 				foreach (var resource in tables) {
 					int tableId =resource.TableId;
-					string tableName = resource.TableName;
+					string tableName = resource.SourceName;
 
 					// Load the master table from the resource information
 					var source = LoadTableSource(tableId, tableName);
@@ -245,12 +245,12 @@ namespace Deveel.Data.DbSystem {
 						int dropCount = 0;
 
 						for (int i = deleteList.Length - 1; i >= 0; --i) {
-							var tableName = deleteList[i].TableName;
+							var tableName = deleteList[i].SourceName;
 							CloseTable(tableName, true);
 						}
 
 						for (int i = deleteList.Length - 1; i >= 0; --i) {
-							string tableName = deleteList[i].TableName;
+							string tableName = deleteList[i].SourceName;
 							bool dropped = CloseAndDropTable(tableName);
 							// If we managed to drop the table, remove from the list.
 							if (dropped) {
@@ -345,7 +345,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private void InitSystemSchema() {
-			using (var transaction = Database.CreateTransaction(TransactionIsolation.Serializable)) {
+			using (var transaction = Database.DoCreateTransaction(TransactionIsolation.Serializable)) {
 				try {
 					SystemSchema.Setup(transaction);
 					transaction.Commit();
@@ -394,7 +394,7 @@ namespace Deveel.Data.DbSystem {
 			ITransaction transaction = null;
 
 			try {
-				transaction = Database.CreateTransaction(TransactionIsolation.Serializable);
+				transaction = Database.DoCreateTransaction(TransactionIsolation.Serializable);
 				transaction.CreateSystemSchema();
 
 				// Commit and close the transaction.
@@ -512,7 +512,7 @@ namespace Deveel.Data.DbSystem {
 
 		internal void Commit(Transaction transaction, IList<TableSource> visibleTables,
 						   IEnumerable<TableSource> selectedFromTables,
-						   IEnumerable<IMutableTable> touchedTables, TransactionRegistry journal) {
+						   IEnumerable<IMutableTable> touchedTables, TransactionRegistry journal, Action<TableCommitInfo> commitActions) {
 
 			var state = new TransactionWork(this, transaction, selectedFromTables, touchedTables, journal);
 
@@ -523,7 +523,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			lock (commitLock) {
-				var changedTablesList = state.Commit(objectStates, null);
+				var changedTablesList = state.Commit(objectStates, commitActions);
 
 				// Flush the journals up to the minimum commit id for all the tables
 				// that this transaction changed.
@@ -670,7 +670,7 @@ namespace Deveel.Data.DbSystem {
 				var t = GetTableSource(createdTable);
 				var resource = new TableStateStore.TableState(t.TableId, t.SourceName);
 				StateStore.AddVisibleResource(resource);
-				StateStore.RemoveDeleteResource(resource.TableName);
+				StateStore.RemoveDeleteResource(resource.SourceName);
 			}
 
 			// Remove dropped tables from the committed tables list.
@@ -680,7 +680,7 @@ namespace Deveel.Data.DbSystem {
 				var t = GetTableSource(droppedTable);
 				var resource = new TableStateStore.TableState(t.TableId, t.SourceName);
 				StateStore.AddDeleteResource(resource);
-				StateStore.RemoveVisibleResource(resource.TableName);
+				StateStore.RemoveVisibleResource(resource.SourceName);
 			}
 
 			try {

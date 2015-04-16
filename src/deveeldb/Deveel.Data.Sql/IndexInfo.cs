@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql {
 			: this(indexName, indexType, columnNames, false) {
 		}
 
-		public IndexInfo(string indexName, string indexType, string[] columnNames, bool isUnique) {
+		public IndexInfo(string indexName, string indexType, string[] columnNames, bool isUnique, int offset) {
 			if (String.IsNullOrEmpty(indexType))
 				throw new ArgumentNullException("indexType");
 			if (String.IsNullOrEmpty(indexName))
@@ -36,6 +36,11 @@ namespace Deveel.Data.Sql {
 			IndexType = indexType;
 			ColumnNames = columnNames;
 			IsUnique = isUnique;
+			Offset = offset;
+		}
+
+		public IndexInfo(string indexName, string indexType, string[] columnNames, bool isUnique)
+			: this(indexName, indexType, columnNames, isUnique, -1) {
 		}
 
 		public string IndexName { get; private set; }
@@ -48,12 +53,12 @@ namespace Deveel.Data.Sql {
 
 		public int Offset { get; internal set; }
 
-		public void SerializeTo(Stream stream) {
+		internal void SerializeTo(Stream stream) {
 			var writer = new BinaryWriter(stream, Encoding.Unicode);
 			writer.Write(2);		// Version
 			writer.Write(IndexType);
 			writer.Write(IndexName);
-			writer.Write(IsUnique ? 1 : 0);
+			writer.Write(IsUnique ? (byte) 1 : (byte) 0);
 			writer.Write(Offset);
 
 			var colCount = ColumnNames.Length;
@@ -62,6 +67,29 @@ namespace Deveel.Data.Sql {
 				var colName = ColumnNames[i];
 				writer.Write(colName);
 			}
+		}
+
+		internal static IndexInfo DeserializeFrom(Stream stream) {
+			var reader = new BinaryReader(stream, Encoding.Unicode);
+
+			var version = reader.ReadInt32();
+			if (version != 2)
+				throw new FormatException("Invalid version number for Index-Info");
+
+			var indexType = reader.ReadString();
+			var indexName = reader.ReadString();
+			var unique = reader.ReadByte() == 1;
+			var offset = reader.ReadInt32();
+
+			var colCount = reader.ReadInt32();
+
+			var columnNames = new string[colCount];
+			for (int i = 0; i < colCount; i++) {
+				var columnName = reader.ReadString();
+				columnNames[i] = columnName;
+			}
+
+			return new IndexInfo(indexName, indexType, columnNames, unique, offset);
 		}
 	}
 }

@@ -52,11 +52,7 @@ namespace Deveel.Data.Types {
 		}
 
 		private static void AssertIsString(SqlTypeCode sqlType) {
-			if (sqlType != SqlTypeCode.String &&
-				sqlType != SqlTypeCode.VarChar &&
-				sqlType != SqlTypeCode.Char &&
-				sqlType != SqlTypeCode.LongVarChar &&
-				sqlType != SqlTypeCode.Clob)
+			if (!IsStringType(sqlType))
 				throw new ArgumentException(String.Format("The type {0} is not a valid STRING type.", sqlType), "sqlType");
 		}
 
@@ -420,7 +416,7 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var writer = new BinaryWriter(stream);
 
 			if (obj.IsNull) {
@@ -452,7 +448,7 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
 			var reader = new BinaryReader(stream);
 			var type = reader.ReadByte();
 
@@ -497,6 +493,14 @@ namespace Deveel.Data.Types {
 			}
 
 			throw new ArgumentException();
+		}
+
+		internal static bool IsStringType(SqlTypeCode typeCode) {
+			return typeCode == SqlTypeCode.String ||
+			typeCode == SqlTypeCode.VarChar ||
+			typeCode == SqlTypeCode.Char ||
+			typeCode == SqlTypeCode.LongVarChar ||
+			typeCode == SqlTypeCode.Clob;
 		}
 	}
 }

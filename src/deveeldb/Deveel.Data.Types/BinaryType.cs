@@ -42,10 +42,7 @@ namespace Deveel.Data.Types {
 		}
 
 		private static void AssertIsBinary(SqlTypeCode sqlType) {
-			if (sqlType != SqlTypeCode.Binary &&
-				sqlType != SqlTypeCode.VarBinary &&
-				sqlType != SqlTypeCode.LongVarBinary &&
-				sqlType != SqlTypeCode.Blob)
+			if (!IsBinaryType(sqlType))
 				throw new ArgumentException(String.Format("The SQL type {0} is not a BINARY", sqlType));
 		}
 
@@ -86,7 +83,7 @@ namespace Deveel.Data.Types {
 			return new DataObject(destType, casted);
 		}
 
-		public override void Serialize(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var writer = new BinaryWriter(stream);
 
 			if (obj is SqlBinary) {
@@ -102,10 +99,10 @@ namespace Deveel.Data.Types {
 				// TODO:
 			}
 
-			base.Serialize(stream, obj, systemContext);
+			base.SerializeObject(stream, obj, systemContext);
 		}
 
-		public override ISqlObject Deserialize(Stream stream, ISystemContext context) {
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
 			var reader = new BinaryReader(stream);
 
 			var type = reader.ReadByte();
@@ -119,6 +116,13 @@ namespace Deveel.Data.Types {
 			}
 
 			throw new FormatException();
+		}
+
+		internal static bool IsBinaryType(SqlTypeCode sqlType) {
+			return sqlType == SqlTypeCode.Binary ||
+			       sqlType == SqlTypeCode.VarBinary ||
+			       sqlType == SqlTypeCode.LongVarBinary ||
+			       sqlType == SqlTypeCode.Blob;
 		}
 	}
 }
