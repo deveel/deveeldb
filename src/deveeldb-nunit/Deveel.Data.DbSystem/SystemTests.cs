@@ -13,7 +13,7 @@ namespace Deveel.Data.DbSystem {
 			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.Default));
 			Assert.IsNotNull(context);
 			Assert.IsFalse(context.ReadOnly());
-			Assert.IsFalse(context.IgnoreCase());
+			Assert.IsTrue(context.IgnoreIdentifiersCase());
 			Assert.AreEqual("APP", context.DefaultSchema());
 		}
 	}

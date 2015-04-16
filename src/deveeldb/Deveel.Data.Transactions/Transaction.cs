@@ -37,6 +37,12 @@ namespace Deveel.Data.Transactions {
 
 		private static readonly TableInfo[] IntTableInfo;
 
+		private string currentSchema;
+		private bool readOnly;
+		private readonly bool dbReadOnly;
+		private bool ignoreCase;
+		private bool autoCommit;
+
 		internal Transaction(Database database, long commitId, TransactionIsolation isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
 			CommitId = commitId;
 			Database = database;
@@ -54,6 +60,11 @@ namespace Deveel.Data.Transactions {
 			IsClosed = false;
 
 			Database.OpenTransactions.AddTransaction(this);
+
+			currentSchema = database.Context.DefaultSchema();
+			readOnly = dbReadOnly = database.Context.ReadOnly();
+			autoCommit = database.Context.AutoCommit();
+			ignoreCase = database.Context.IgnoreIdentifiersCase();
 		}
 
 		internal Transaction(Database database, long commitId, TransactionIsolation isolation)
@@ -259,10 +270,11 @@ namespace Deveel.Data.Transactions {
 			}
 
 			public int FindByName(ObjectName name) {
+				var ignoreCase = transaction.IgnoreIdentifiersCase();
 				for (int i = 0; i < tableInfos.Length; i++) {
 					var info = tableInfos[i];
 					if (info != null && 
-						info.TableName.Equals(name, transaction.IgnoreIdentifiersCase()))
+						info.TableName.Equals(name, ignoreCase))
 						return i;
 				}
 
@@ -531,12 +543,55 @@ namespace Deveel.Data.Transactions {
 		}
 
 		void IVariableScope.OnVariableDefined(Variable variable) {
+			if (variable.Name.Equals(TransactionSettingKeys.CurrentSchema, StringComparison.OrdinalIgnoreCase)) {
+				currentSchema = variable.Value;
+			} else if (variable.Name.Equals(TransactionSettingKeys.ReadOnly, StringComparison.OrdinalIgnoreCase)) {
+				if (dbReadOnly)
+					throw new InvalidOperationException("The database is read-only: cannot change access of the transaction.");
+
+				// TODO: handle special cases like "ON", "OFF", "ENABLE" and "DISABLE"
+				readOnly = variable.Value;
+			} else if (variable.Name.Equals(TransactionSettingKeys.IgnoreIdentifiersCase, StringComparison.OrdinalIgnoreCase)) {
+				ignoreCase = variable.Value;
+			} else if (variable.Name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase)) {
+				autoCommit = variable.Value;
+			}
 		}
 
 		void IVariableScope.OnVariableDropped(Variable variable) {
+			if (variable.Name.Equals(TransactionSettingKeys.CurrentSchema, StringComparison.OrdinalIgnoreCase)) {
+				currentSchema = Database.Context.DefaultSchema();
+			} else if (variable.Name.Equals(TransactionSettingKeys.ReadOnly, StringComparison.OrdinalIgnoreCase)) {
+				readOnly = dbReadOnly;
+			} else if (variable.Name.Equals(TransactionSettingKeys.IgnoreIdentifiersCase, StringComparison.OrdinalIgnoreCase)) {
+				ignoreCase = Database.Context.IgnoreIdentifiersCase();
+			} else if (variable.Name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase)) {
+				autoCommit = Database.Context.AutoCommit();
+			}
+		}
+
+		private Variable MakeStringVariable(string name, string value) {
+			var variable = new Variable(new VariableInfo(name, PrimitiveTypes.String(), false));
+			variable.SetValue(DataObject.String(value));
+			return variable;
+		}
+
+		private Variable MakeBooleanVariable(string name, bool value) {
+			var variable = new Variable(new VariableInfo(name, PrimitiveTypes.Boolean(), false));
+			variable.SetValue(DataObject.Boolean(value));
+			return variable;
 		}
 
 		Variable IVariableScope.OnVariableGet(string name) {
+			if (name.Equals(TransactionSettingKeys.CurrentSchema, StringComparison.OrdinalIgnoreCase))
+				return MakeStringVariable(TransactionSettingKeys.CurrentSchema, currentSchema);
+			if (name.Equals(TransactionSettingKeys.ReadOnly, StringComparison.OrdinalIgnoreCase))
+				return MakeBooleanVariable(TransactionSettingKeys.ReadOnly, readOnly);
+			if (name.Equals(TransactionSettingKeys.IgnoreIdentifiersCase, StringComparison.OrdinalIgnoreCase))
+				return MakeBooleanVariable(TransactionSettingKeys.IgnoreIdentifiersCase, ignoreCase);
+			if (name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase))
+				return MakeBooleanVariable(TransactionSettingKeys.AutoCommit, autoCommit);
+
 			return null;
 		}
 

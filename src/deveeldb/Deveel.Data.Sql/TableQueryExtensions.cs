@@ -221,10 +221,11 @@ namespace Deveel.Data.Sql {
 			if (table is IQueryTable)
 				return ((IQueryTable) table).FindColumn(columnName);
 
-			if (!table.TableInfo.TableName.Equals(columnName.Parent))
+			if (columnName.Parent != null &&
+			    !columnName.Parent.Equals(table.TableInfo.TableName))
 				return -1;
 
-			return table.TableInfo.IndexOfColumn(columnName.Name);
+			return table.TableInfo.IndexOfColumn(columnName);
 		}
 
 		public static IEnumerable<int> SelectRowsEqual(this ITable table, int columnIndex, DataObject value) {

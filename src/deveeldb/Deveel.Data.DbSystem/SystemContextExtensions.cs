@@ -25,12 +25,16 @@ namespace Deveel.Data.DbSystem {
 			return context.Configuration.GetBoolean(SystemConfigKeys.ReadOnly);
 		}
 
-		public static bool IgnoreCase(this ISystemContext context) {
-			return context.Configuration.GetBoolean(SystemConfigKeys.IgnoreCase);
+		public static bool IgnoreIdentifiersCase(this ISystemContext context) {
+			return context.Configuration.GetBoolean(SystemConfigKeys.IgnoreIdentifiersCase);
 		}
 
 		public static string DefaultSchema(this ISystemContext context) {
 			return context.Configuration.GetString(SystemConfigKeys.DefaultSchema);
+		}
+
+		public static bool AutoCommit(this ISystemContext context) {
+			return context.Configuration.GetBoolean(SystemConfigKeys.AutoCommit);
 		}
 
 		public static ISpatialContext SpatialContext(this ISystemContext context) {

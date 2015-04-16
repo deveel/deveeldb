@@ -248,6 +248,9 @@ namespace Deveel.Data {
 		/// given, or <c>false</c> otherwise.
 		/// </returns>
 		public bool Equals(ObjectName other, bool ignoreCase) {
+			if (other == null)
+				return false;
+
 			if (Parent != null && other.Parent == null)
 				return false;
 			if (Parent == null && other.Parent != null)

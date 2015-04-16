@@ -573,9 +573,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Sql\FromTable.cs" />
-    <Compile Include="Deveel.Data.Sql\IColumnConfiguration.cs" />
-    <Compile Include="Deveel.Data.Sql\IConstraintConfiguration.cs" />
-    <Compile Include="Deveel.Data.Sql\IForeignKeyConstraintConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql\IMutableTable.cs" />
     <Compile Include="Deveel.Data.Sql\JoinPart.cs" />
     <Compile Include="Deveel.Data.Sql\JoinType.cs" />

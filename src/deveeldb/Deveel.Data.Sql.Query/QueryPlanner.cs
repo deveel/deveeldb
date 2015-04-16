@@ -339,7 +339,9 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		private int ResolveGroupBy(SqlQueryExpression queryExpression, QueryExpressionFrom queryFrom, IQueryContext context, out ObjectName[] columnNames, out IList<SqlExpression> expressions) {
-			var groupBy = queryExpression.GroupBy.ToList();
+			var groupBy = queryExpression.GroupBy == null
+				? new List<SqlExpression>(0)
+				: queryExpression.GroupBy.ToList();
 			var groupBySize = groupBy.Count;
 
 			expressions = new List<SqlExpression>();
@@ -440,7 +442,10 @@ namespace Deveel.Data.Sql.Query {
 
 		public IQueryPlanNode PlanQuery(IQueryContext context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns) {
 			var queryFrom = GenerateFrom(queryExpression, context);
-			var orderBy = new List<SortColumn>(sortColumns);
+			var orderBy = new List<SortColumn>();
+			if (sortColumns != null)
+				orderBy.AddRange(sortColumns);
+
 			return PlanQuery(context, queryExpression, queryFrom, orderBy);
 		}
 

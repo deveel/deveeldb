@@ -50,6 +50,21 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.ResolveObjectName(name);
 		}
 
+		public static ObjectName ResolveObjectName(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+			return context.Session.ResolveObjectName(objectType, objectName);
+		}
+
+		#endregion
+
+		#region Schemata
+
+		public static ObjectName ResolveSchemaName(this IQueryContext context, string name) {
+			if (String.IsNullOrEmpty(name))
+				throw new ArgumentNullException("name");
+
+			return context.ResolveObjectName(DbObjectType.Schema, new ObjectName(name));
+		}
+
 		#endregion
 
 		#region Tables
@@ -59,7 +74,15 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static ObjectName ResolveTableName(this IQueryContext context, string name) {
-			return context.ResolveTableName(new ObjectName(new ObjectName(context.CurrentSchema), name));
+			var schema = context.CurrentSchema;
+			if (String.IsNullOrEmpty(schema))
+				throw new InvalidOperationException("Default schema not specified in the context.");
+				
+			var objSchemaName = context.ResolveSchemaName(schema);
+			if (objSchemaName == null)
+				throw new InvalidOperationException(String.Format("The default schema of the session '{0}' is not defined in the database.", schema));
+
+			return context.ResolveTableName(new ObjectName(objSchemaName, name));
 		}
 
 		public static bool TableExists(this IQueryContext context, ObjectName tableName) {

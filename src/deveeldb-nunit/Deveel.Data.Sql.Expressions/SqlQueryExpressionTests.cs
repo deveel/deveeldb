@@ -78,11 +78,12 @@ namespace Deveel.Data.Sql.Expressions {
 			row.SetValue("last_name", DataObject.String("Rabbit"));
 			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1985, 05, 05)));
 			row.SetValue("active", DataObject.Boolean(true));
+			table.AddRow(row);
 		}
 
 		[Test]
 		[Category("System")]
-		public void ExecuteSelectFromClause() {
+		public void ExecuteSelectAll() {
 			var expression =
 				new SqlQueryExpression(new[] {new SelectColumn(SqlExpression.Reference(new ObjectName("first_name")))});
 			expression.FromClause.AddTable("test_table");
@@ -93,7 +94,14 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.DoesNotThrow(() => result = expression.EvaluateToConstant(queryContext, null));
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<QueryType>(result.Type);
-			Assert.IsInstanceOf<SqlQuery>(result.Value);
+			Assert.IsNotNull(result.Value);
+			Assert.IsInstanceOf<SqlQueryObject>(result.Value);
+
+			ITable queryResult = null;
+
+			Assert.DoesNotThrow(() => queryResult = ((SqlQueryObject) result.Value).QueryPlan.Evaluate(queryContext));
+			Assert.IsNotNull(queryResult);
+			Assert.AreEqual(3, queryResult.RowCount);
 		}
 
 		[Test]

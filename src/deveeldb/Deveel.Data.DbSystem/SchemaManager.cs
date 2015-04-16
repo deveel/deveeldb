@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class SchemaManager : IObjectManager {
@@ -79,8 +80,28 @@ namespace Deveel.Data.DbSystem {
 			return DropSchema(objName.Name);
 		}
 
-		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			throw new NotImplementedException();
+		ObjectName IObjectManager.ResolveName(ObjectName objName, bool ignoreCase) {
+			return ResolveSchemaName(objName.Name, ignoreCase);
+		}
+
+		public ObjectName ResolveSchemaName(string name, bool ignoreCase) {
+			var table = Transaction.GetTable(SystemSchema.SchemaInfoTableName);
+
+			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+			foreach (var row in table) {
+				var objSchemaName = row.GetValue(1);
+				if (!(objSchemaName.Type is StringType))
+					throw new SystemException("Invalid column type for SCHEMA name table.");
+				if (objSchemaName.IsNull)
+					throw new SystemException();
+
+				var schemaName = objSchemaName.Value.ToString();
+				if (String.Equals(schemaName, name, comparison))
+					return new ObjectName(schemaName);
+			}
+
+			return null;
 		}
 
 		public void CreateSchema(SchemaInfo schemaInfo) {

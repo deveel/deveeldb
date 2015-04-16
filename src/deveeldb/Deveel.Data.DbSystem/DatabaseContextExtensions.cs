@@ -57,6 +57,14 @@ namespace Deveel.Data.DbSystem {
 			return context.Configuration.GetString(DatabaseConfigKeys.DefaultSchema);
 		}
 
+		public static bool AutoCommit(this IDatabaseContext context) {
+			return context.SystemContext.AutoCommit();
+		}
+
+		public static bool IgnoreIdentifiersCase(this IDatabaseContext context) {
+			return context.SystemContext.IgnoreIdentifiersCase();
+		}
+
 		public static Type QueryPlannerType(this IDatabaseContext context) {
 			var value = context.Configuration.GetString(DatabaseConfigKeys.QueryPlanner);
 			if (String.IsNullOrEmpty(value))
