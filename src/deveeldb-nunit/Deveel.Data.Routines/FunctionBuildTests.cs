@@ -15,9 +15,10 @@ namespace Deveel.Data.Routines {
 	[TestFixture]
 	public class FunctionBuildTests {
 		private IQueryContext NewUserQueryContext(User user) {
+			var sessionInfo = new SessionInfo(user);
 			var sessionMock = new Mock<IUserSession>();
-			sessionMock.Setup(x => x.User)
-				.Returns(user);
+			sessionMock.Setup(x => x.SessionInfo)
+				.Returns(sessionInfo);
 			var queryContextMock = new Mock<IQueryContext>();
 			queryContextMock.Setup(x => x.Session)
 				.Returns(sessionMock.Object);

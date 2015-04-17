@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Expressions {
 			database.Create("SA", "12345");
 			database.Open();
 
-			session = database.CreateSession(User.System, ConnectionEndPoint.Embedded);
+			session = database.CreateSession(User.System);
 			CreateTestTable();
 			AddTestData();
 		}

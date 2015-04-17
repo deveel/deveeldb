@@ -17,42 +17,49 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Security;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class ActiveUserList : IEnumerable<User> {
-		private readonly List<User> users;
+	public sealed class ActiveSessionList : IEnumerable<IUserSession> {
+		private readonly List<IUserSession> sessions;
 
-		public ActiveUserList(IDatabase database) {
+		public ActiveSessionList(IDatabase database) {
 			if (database == null)
 				throw new ArgumentNullException("database");
 
 			Database = database;
-			users = new List<User>();
+			sessions = new List<IUserSession>();
 		}
 
 		public IDatabase Database { get; private set; }
 
+		public bool IsUserActive(string userName) {
+			lock (this) {
+				return sessions.Any(x => x.SessionInfo.User.Name == userName);
+			}
+		}
+
 		public int Count {
 			get {
 				lock (this) {
-					return users.Count;
+					return sessions.Count;
 				}
 			}
 		}
 
-		public User this[int index] {
+		public IUserSession this[int index] {
 			get {
 				lock (this) {
-					return users[index];
+					return sessions[index];
 				}
 			}
 		}
  
-		public IEnumerator<User> GetEnumerator() {
+		public IEnumerator<IUserSession> GetEnumerator() {
 			lock (this) {
-				return users.GetEnumerator();
+				return sessions.GetEnumerator();
 			}
 		}
 
@@ -60,19 +67,13 @@ namespace Deveel.Data.DbSystem {
 			return GetEnumerator();
 		}
 
-		internal bool Add(User user) {
+		internal bool Add(IUserSession session) {
 			lock (this) {
-				if (users.Contains(user))
+				if (sessions.Contains(session))
 					return false;
 
-				users.Add(user);
+				sessions.Add(session);
 				return true;
-			}
-		}
-
-		internal bool Remove(User user) {
-			lock (this) {
-				return users.Remove(user);
 			}
 		}
 	}

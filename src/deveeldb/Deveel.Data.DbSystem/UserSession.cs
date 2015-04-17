@@ -16,12 +16,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Protocol;
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
@@ -29,25 +28,16 @@ namespace Deveel.Data.DbSystem {
 	public sealed class UserSession : IUserSession, ISessionEventSource {
 		private List<LockHandle> lockHandles;
 
-		internal UserSession(IDatabase database, ITransaction transaction, User user, ConnectionEndPoint userEndPoint) {
+		internal UserSession(IDatabase database, ITransaction transaction, SessionInfo sessionInfo) {
 			Database = database;
 			Transaction = transaction;
-			User = user;
-			EndPoint = userEndPoint;
 
-			user.Activate(this);
+			SessionInfo = sessionInfo;
+			database.ActiveSessions.Add(this);
 		}
 
 		~UserSession() {
 			Dispose(false);
-		}
-
-		public bool IgnoreCase {
-			get { return Transaction.IgnoreIdentifiersCase(); }
-		}
-
-		public ITableQueryInfo GetQueryInfo(ObjectName tableName, ObjectName givenName) {
-			throw new NotImplementedException();
 		}
 
 		public void Dispose() {
@@ -55,24 +45,18 @@ namespace Deveel.Data.DbSystem {
 			GC.SuppressFinalize(this);
 		}
 
-		public User User { get; private set; }
-
 		public string CurrentSchema {
 			get { return Transaction.CurrentSchema(); }
 		}
 
-		public ConnectionEndPoint EndPoint { get; private set; }
-
-		public DateTimeOffset? LastCommand {
-			get { throw new NotImplementedException(); }
-		}
+		public SessionInfo SessionInfo { get; private set; }
 
 		string IDatabaseEventSource.DatabaseName {
 			get { return Database.Name(); }
 		}
 
 		string ISessionEventSource.UserName {
-			get { return User.Name; }
+			get { return SessionInfo.User.Name; }
 		}
 
 		public ITransaction Transaction { get; private set; }
@@ -109,10 +93,6 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public ILargeObject GetLargeObject(ObjectId objId) {
-			throw new NotImplementedException();
-		}
-
-		public IDbConnection GetDbConnection() {
 			throw new NotImplementedException();
 		}
 

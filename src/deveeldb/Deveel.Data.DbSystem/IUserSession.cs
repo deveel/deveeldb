@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Data;
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Security;
@@ -29,23 +28,14 @@ namespace Deveel.Data.DbSystem {
 	/// encapsulating the transaction for operations.
 	/// </summary>
 	public interface IUserSession : IDisposable {
-		/// <summary>
-		/// Gets the instance of the <see cref="User"/> of the session.
-		/// </summary>
-		User User { get; }
-
 		IDatabase Database { get; }
 
 		string CurrentSchema { get; }
 
-		ConnectionEndPoint EndPoint { get; }
-
-		/// <summary>
-		/// Gets the last time the user issued a command within the session.
-		/// </summary>
-		DateTimeOffset? LastCommand { get; }
+		SessionInfo SessionInfo { get; }
 
 		ITransaction Transaction { get; }
+
 
 		void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode);
 
@@ -74,15 +64,6 @@ namespace Deveel.Data.DbSystem {
 		/// <returns></returns>
 		/// <seealso cref="ObjectId"/>
 		ILargeObject GetLargeObject(ObjectId objId);
-
-		/// <summary>
-		/// Creates an instance of <seealso cref="IDbConnection">an ADO.NET connection</seealso>
-		/// used to access the database session through a standard protocol.
-		/// </summary>
-		/// <returns>
-		/// Returns an instance of <seealso cref="IDbConnection"/> that accesses the session.
-		/// </returns>
-		IDbConnection GetDbConnection();
 
 		/// <summary>
 		/// Commits the latest changes made by the user in the session.

@@ -28,7 +28,7 @@ namespace Deveel.Data.DbSystem {
 
 		Version Version { get; }
 
-		ActiveUserList ActiveUsers { get; }
+		ActiveSessionList ActiveSessions { get; }
 
 		bool Exists { get; }
 
@@ -45,8 +45,8 @@ namespace Deveel.Data.DbSystem {
 
 		void Close();
 
-		IUserSession CreateSession(User user, ConnectionEndPoint userEndPoint, TransactionIsolation isolation);
+		IUserSession CreateSession(SessionInfo sessionInfo);
 
-		IUserSession OpenSession(User user, ConnectionEndPoint userEndPoint, int commitId);
+		IUserSession OpenSession(SessionInfo sessionInfo);
 	}
 }

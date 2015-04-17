@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
@@ -55,10 +56,40 @@ namespace Deveel.Data.DbSystem {
 			TableColumnsTableInfo.AddColumn("index_str", PrimitiveTypes.String());
 			TableColumnsTableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric());
 			TableColumnsTableInfo = TableColumnsTableInfo.AsReadOnly();
+
+			// SYSTEM.SQL_TYPES
+			SqlTypesTableInfo = new TableInfo(SqlTypesTableName);
+			SqlTypesTableInfo.AddColumn("TYPE_NAME", PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn("DATA_TYPE", PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn("PRECISION", PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn("LITERAL_PREFIX", PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn("LITERAL_SUFFIX", PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn("CREATE_PARAMS", PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn("NULLABLE", PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn("CASE_SENSITIVE", PrimitiveTypes.Boolean());
+			SqlTypesTableInfo.AddColumn("SEARCHABLE", PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn("UNSIGNED_ATTRIBUTE", PrimitiveTypes.Boolean());
+			SqlTypesTableInfo.AddColumn("FIXED_PREC_SCALE", PrimitiveTypes.Boolean());
+			SqlTypesTableInfo.AddColumn("AUTO_INCREMENT", PrimitiveTypes.Boolean());
+			SqlTypesTableInfo.AddColumn("LOCAL_TYPE_NAME", PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn("MINIMUM_SCALE", PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn("MAXIMUM_SCALE", PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn("SQL_DATA_TYPE", PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn("SQL_DATETIME_SUB", PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn("NUM_PREC_RADIX", PrimitiveTypes.Numeric());
+			SqlTypesTableInfo = SqlTypesTableInfo.AsReadOnly();
+
+			// SYSTEM.OPEN_SESSIONS
+			OpenSessionsTableInfo = new TableInfo(OpenSessionsTableName);
+			OpenSessionsTableInfo.AddColumn("username", PrimitiveTypes.String());
+			OpenSessionsTableInfo.AddColumn("host_string", PrimitiveTypes.String());
+			OpenSessionsTableInfo.AddColumn("last_command", PrimitiveTypes.Date());
+			OpenSessionsTableInfo.AddColumn("time_connected", PrimitiveTypes.Date());
+			OpenSessionsTableInfo = OpenSessionsTableInfo.AsReadOnly();
 		}
 
 		/// <summary>
-		/// The name of the system schema that contains tables refering to 
+		/// The name of the system schema that contains tables referring to 
 		/// system information.
 		/// </summary>
 		public const string Name = "SYSTEM";
@@ -103,6 +134,10 @@ namespace Deveel.Data.DbSystem {
 
 		public static readonly ObjectName NewTriggerTableName = new ObjectName(SchemaName, "NEW");
 
+		public static readonly ObjectName SqlTypesTableName = new ObjectName(SchemaName, "sql_types");
+
+		public static readonly ObjectName OpenSessionsTableName = new ObjectName(SchemaName, "open_sessions");
+
 
 		/// <summary>
 		/// Gets the fully qualified name of the <c>user</c> table.
@@ -124,6 +159,10 @@ namespace Deveel.Data.DbSystem {
 		internal static readonly TableInfo TableInfoTableInfo;
 
 		internal static readonly TableInfo TableColumnsTableInfo;
+
+		internal static readonly TableInfo SqlTypesTableInfo;
+
+		internal static readonly TableInfo OpenSessionsTableInfo;
 
 		#endregion
 
@@ -340,6 +379,10 @@ namespace Deveel.Data.DbSystem {
 			return new TableInfoTable(transaction);
 		}
 
+		public static ITable GetSqlTypesTable(Transaction transaction) {
+			return new SqlTypesTable(transaction);
+		}
+
 		#region TableInfoTable
 
 		class TableInfoTable : GeneratedTable {
@@ -427,6 +470,182 @@ namespace Deveel.Data.DbSystem {
 				public string Comments { get; private set; }
 			}
 			#endregion
+		}
+
+		#endregion
+
+		#region SqlTypesTable
+
+		class SqlTypesTable : GeneratedTable {
+			private ITransaction transaction;
+			private List<SqlTypeInfo> sqlTypes;
+
+			public SqlTypesTable(ITransaction transaction) 
+				: base(transaction.Database.Context) {
+				this.transaction = transaction;
+
+				sqlTypes = new List<SqlTypeInfo>();
+
+				Init();
+			}
+
+			public override TableInfo TableInfo {
+				get { return SqlTypesTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return sqlTypes.Count; }
+			}
+
+			private void AddType(string name, string localName, SqlTypeCode type, byte precision, string prefix, string suffix, bool searchable) {
+				sqlTypes.Add(new SqlTypeInfo {
+					TypeName = name,
+					LocalName = localName,
+					Type = type,
+					Precision = precision,
+					LiteralPrefix = prefix,
+					LiteralSuffix = suffix,
+					Searchable = (byte)(searchable ? 3 : 0)
+				});
+			}
+
+			private void Init() {
+				AddType("BIT", "BOOLEAN", SqlTypeCode.Bit, 1, null, null, true);
+				AddType("BOOLEAN", "BOOLEAN", SqlTypeCode.Boolean, 1, null, null, true);
+				AddType("TINYINT", "NUMBER", SqlTypeCode.TinyInt, 9, null, null, true);
+				AddType("SMALLINT", "NUMBER", SqlTypeCode.SmallInt, 9, null, null, true);
+				AddType("INTEGER", "NUMBER", SqlTypeCode.Integer, 9, null, null, true);
+				AddType("BIGINT", "NUMBER", SqlTypeCode.BigInt, 9, null, null, true);
+				AddType("FLOAT", "NUMBER", SqlTypeCode.Float, 9, null, null, true);
+				AddType("REAL", "NUMBER", SqlTypeCode.Real, 9, null, null, true);
+				AddType("DOUBLE", "NUMBER", SqlTypeCode.Double, 9, null, null, true);
+				AddType("NUMERIC", "NUMBER", SqlTypeCode.Numeric, 9, null, null, true);
+				AddType("DECIMAL", "NUMBER", SqlTypeCode.Decimal, 9, null, null, true);
+				AddType("CHAR", "STRING", SqlTypeCode.Char, 9, "'", "'", true);
+				AddType("VARCHAR", "STRING", SqlTypeCode.VarChar, 9, "'", "'", true);
+				AddType("LONGVARCHAR", "STRING", SqlTypeCode.LongVarChar, 9, "'", "'", true);
+				AddType("DATE", "DATETIME", SqlTypeCode.Date, 9, null, null, true);
+				AddType("TIME", "DATETIME", SqlTypeCode.Time, 9, null, null, true);
+				AddType("TIMESTAMP", "DATETIME", SqlTypeCode.TimeStamp, 9, null, null, true);
+				AddType("BINARY", "BINARY", SqlTypeCode.Binary, 9, null, null, false);
+				AddType("VARBINARY", "BINARY", SqlTypeCode.VarBinary, 9, null, null, false);
+				AddType("LONGVARBINARY", "BINARY", SqlTypeCode.LongVarBinary, 9, null, null, false);
+				AddType("OBJECT", "OBJECT", SqlTypeCode.Object, 9, null, null, false);
+				AddType("GEOMETRY", "GEOMETRY", SqlTypeCode.Geometry, 9, null, null, false);
+				AddType("XML", "XML", SqlTypeCode.Xml, 9, null, null, false);
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				// TODO: handle also the user-types here?
+
+				if (rowNumber < 0 || rowNumber >= sqlTypes.Count)
+					throw new ArgumentOutOfRangeException("rowNumber");
+
+				var typeInfo = sqlTypes[(int)rowNumber];
+				switch (columnOffset) {
+					case 0:  // type_name
+						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.TypeName));
+					case 1:  // data_type
+						return GetColumnValue(columnOffset, new SqlNumber((int)typeInfo.Type));
+					case 2:  // precision
+						return GetColumnValue(columnOffset, new SqlNumber(typeInfo.Precision));
+					case 3:  // literal_prefix
+						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.LiteralPrefix));
+					case 4:  // literal_suffix
+						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.LiteralSuffix));
+					case 5:  // create_params
+						return GetColumnValue(columnOffset, SqlString.Null);
+					case 6:  // nullable
+						return GetColumnValue(columnOffset, SqlNumber.One);
+					case 7:  // case_sensitive
+						return GetColumnValue(columnOffset, SqlBoolean.True);
+					case 8:  // searchable
+						return GetColumnValue(columnOffset, new SqlNumber(typeInfo.Searchable));
+					case 9:  // unsigned_attribute
+						return GetColumnValue(columnOffset, SqlBoolean.False);
+					case 10:  // fixed_prec_scale
+						return GetColumnValue(columnOffset, SqlBoolean.False);
+					case 11:  // auto_increment
+						return GetColumnValue(columnOffset, SqlBoolean.False);
+					case 12:  // local_type_name
+						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.LocalName));
+					case 13:  // minimum_scale
+						return GetColumnValue(columnOffset, SqlNumber.Zero);
+					case 14:  // maximum_scale
+						return GetColumnValue(columnOffset, new SqlNumber(10000000));
+					case 15:  // sql_data_type
+						return GetColumnValue(columnOffset, SqlNull.Value);
+					case 16:  // sql_datetype_sub
+						return GetColumnValue(columnOffset, SqlNull.Value);
+					case 17:  // num_prec_radix
+						return GetColumnValue(columnOffset, new SqlNumber(10));
+					default:
+						throw new ArgumentOutOfRangeException("columnOffset");
+
+				}
+			}
+
+			protected override void Dispose(bool disposing) {
+				transaction = null;
+				sqlTypes = null;
+
+				base.Dispose(disposing);
+			}
+
+			#region SqlTypeInfo
+
+			class SqlTypeInfo {
+				public string TypeName;
+				public string LocalName;
+				public SqlTypeCode Type;
+				public byte Precision;
+				public string LiteralPrefix;
+				public string LiteralSuffix;
+				public byte Searchable;
+			}
+
+			#endregion
+		}
+
+		#endregion
+
+		#region OpenSessionsTable
+
+		private class OpenSessionsTable : GeneratedTable {
+			private ITransaction transaction;
+
+			public OpenSessionsTable(ITransaction transaction)
+				: base(transaction.Database.Context) {
+				this.transaction = transaction;
+			}
+
+			public override TableInfo TableInfo {
+				get { return OpenSessionsTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return transaction.Database.ActiveSessions.Count; }
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				if (rowNumber < 0 || rowNumber >= transaction.Database.ActiveSessions.Count)
+					throw new ArgumentOutOfRangeException("rowNumber");
+
+				var session = transaction.Database.ActiveSessions[(int) rowNumber].SessionInfo;
+
+				switch (columnOffset) {
+					case 0:
+						return GetColumnValue(0, SqlString.Unicode(session.User.Name));
+					case 1:
+						return GetColumnValue(1, SqlString.Unicode(session.EndPoint.ToString()));
+					case 2:
+						return GetColumnValue(2, ((SqlDateTime)session.LastCommandTime));
+					case 3:
+						return GetColumnValue(3, (SqlDateTime)session.StartedOn);
+					default:
+						throw new ArgumentOutOfRangeException("columnOffset");
+				}
+			}
 		}
 
 		#endregion

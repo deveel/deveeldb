@@ -86,8 +86,10 @@ namespace Deveel.Data.Transactions {
 			IntTableInfo[3] = SystemSchema.VariablesTableInfo;
 			IntTableInfo[4] = SystemSchema.StatisticsTableInfo;
 			IntTableInfo[5] = SystemSchema.ConnectionInfoTableInfo;
-			IntTableInfo[6] = SystemSchema.CurrentConnectionsTableInfo;
+			IntTableInfo[6] = SystemSchema.OpenSessionsTableInfo;
+			*/
 			IntTableInfo[7] = SystemSchema.SqlTypesTableInfo;
+			/*
 			IntTableInfo[8] = SystemSchema.PrivilegesTableInfo;
 			*/
 		}
@@ -139,8 +141,8 @@ namespace Deveel.Data.Transactions {
 			tableManager.AddInternalTable(new OldAndNewTableContainer(this));
 
 			// TODO:
-			//// Model views as tables (obviously)
-			//tableManager.AddInternalTable(viewManager.CreateInternalTableInfo());
+			// Model views as tables (obviously)
+			tableManager.AddInternalTable(viewManager.CreateInternalTableInfo());
 
 			//// Model procedures as tables
 			//tableManager.AddInternalTable(routineManager.CreateInternalTableInfo());
@@ -321,8 +323,10 @@ namespace Deveel.Data.Transactions {
 					return SystemSchema.GetConnectionInfoTable(transaction);
 				if (offset == 6)
 					return SystemSchema.GetCurrentConnectionsTable(transaction);
+				*/
 				if (offset == 7)
 					return SystemSchema.GetSqlTypesTable(transaction);
+				/*
 				if (offset == 8)
 					return SystemSchema.GetPrivilegesTable(transaction);
 				*/

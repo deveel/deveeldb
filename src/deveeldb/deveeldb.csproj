@@ -123,7 +123,7 @@
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
-    <Compile Include="Deveel.Data.DbSystem\ActiveUserList.cs" />
+    <Compile Include="Deveel.Data.DbSystem\ActiveSessionList.cs" />
     <Compile Include="Deveel.Data.DbSystem\Database.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseConfigKeys.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseContext.cs" />
@@ -156,7 +156,6 @@
     <Compile Include="Deveel.Data.DbSystem\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.DbSystem\SequenceManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\SequenceManagerExtensions.cs" />
-    <Compile Include="Deveel.Data.DbSystem\SessionInfo.cs" />
     <Compile Include="Deveel.Data.DbSystem\SessionQueryContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\SimpleRowEnumerator.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemConfigKeys.cs" />
@@ -177,6 +176,7 @@
     <Compile Include="Deveel.Data.DbSystem\TemporaryTable.cs" />
     <Compile Include="Deveel.Data.DbSystem\UserSession.cs" />
     <Compile Include="Deveel.Data.DbSystem\UserSessionExtensions.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SessionInfo.cs" />
     <Compile Include="Deveel.Data.DbSystem\VariableManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\VersionedTableIndexList.cs" />
     <Compile Include="Deveel.Data.DbSystem\ViewManager.cs" />

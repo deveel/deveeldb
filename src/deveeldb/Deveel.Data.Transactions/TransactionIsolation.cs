@@ -18,6 +18,7 @@ using System;
 
 namespace Deveel.Data.Transactions {
 	public enum TransactionIsolation {
+		Unspecified = 0,
 		Serializable,
 		ReadCommitted,
 		ReadUncommitted,

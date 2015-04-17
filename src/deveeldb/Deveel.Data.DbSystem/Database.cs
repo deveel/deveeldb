@@ -32,7 +32,7 @@ namespace Deveel.Data.DbSystem {
 
 			TableComposite = new TableSourceComposite(this);
 
-			ActiveUsers = new ActiveUserList(this);
+			ActiveSessions = new ActiveSessionList(this);
 
 			// Create the single row table
 			var t = new TemporaryTable(context, "SINGLE_ROW_TABLE", new ColumnInfo[0]);
@@ -91,24 +91,36 @@ namespace Deveel.Data.DbSystem {
 			return DoCreateTransaction(isolation);
 		}
 
-		public IUserSession CreateSession(User user, ConnectionEndPoint userEndPoint) {
-			return CreateSession(user, userEndPoint, TransactionIsolation.Serializable);
-		}
+		public IUserSession CreateSession(SessionInfo sessionInfo) {
+			if (sessionInfo == null)
+				throw new ArgumentNullException("sessionInfo");
 
-		public IUserSession CreateSession(User user, ConnectionEndPoint userEndPoint, TransactionIsolation isolation) {
-			if (user == null)
-				user = User.System;
+			// TODO: if the isolation is not specified, use a configured default one
+			var isolation = sessionInfo.Isolation;
+			if (isolation == TransactionIsolation.Unspecified)
+				isolation = TransactionIsolation.Serializable;
+
+			if (sessionInfo.CommitId >= 0)
+				throw new ArgumentException("Cannot create a session that reference an existing commit state.");
 
 			var transaction = CreateTransaction(isolation);
-			return new UserSession(this, transaction, user, userEndPoint);
+			return new UserSession(this, transaction, sessionInfo);
 		}
 
-		public IUserSession OpenSession(User user, ConnectionEndPoint userEndPoint, int commitId) {
+		public IUserSession OpenSession(SessionInfo sessionInfo) {
+			if (sessionInfo == null)
+				throw new ArgumentNullException("sessionInfo");
+
+			var commitId = sessionInfo.CommitId;
+			
+			if (commitId < 0)
+				throw new ArgumentException("Invalid commit reference specified.");
+
 			var transaction = OpenTransactions.FindById(commitId);
 			if (transaction == null)
 				throw new InvalidOperationException(String.Format("The request transaction with ID '{0}' is not open.", commitId));
 
-			return new UserSession(this, transaction, user, userEndPoint);
+			return new UserSession(this, transaction, sessionInfo);
 		}
 
 		public void Dispose() {
@@ -134,7 +146,7 @@ namespace Deveel.Data.DbSystem {
 
 		public Version Version { get; private set; }
 
-		public ActiveUserList ActiveUsers { get; private set; }
+		public ActiveSessionList ActiveSessions { get; private set; }
 
 		public bool Exists {
 			get {
@@ -159,7 +171,7 @@ namespace Deveel.Data.DbSystem {
 		public ITable SingleRowTable { get; private set; }
 
 		private IUserSession CreateInitialSystemSession() {
-			return new UserSession(this, DoCreateTransaction(TransactionIsolation.Serializable), User.System, ConnectionEndPoint.Embedded);
+			return new UserSession(this, DoCreateTransaction(TransactionIsolation.Serializable), new SessionInfo(User.System));
 		}
 
 		public void Create(string adminName, string adminPassword) {

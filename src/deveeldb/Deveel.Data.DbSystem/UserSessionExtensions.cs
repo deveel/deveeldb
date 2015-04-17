@@ -48,7 +48,7 @@ namespace Deveel.Data.DbSystem {
 
 		public static IDbObject GetObject(this IUserSession session, DbObjectType objectType, ObjectName objectName) {
 			// TODO: throw a specialized exception
-			if (!session.UserCanAccessObject(session.User, objectType, objectName))
+			if (!session.UserCanAccessObject(session.SessionInfo.User, objectType, objectName))
 				throw new InvalidOperationException();
 
 			return session.Transaction.GetObject(objectType, objectName);
@@ -56,7 +56,7 @@ namespace Deveel.Data.DbSystem {
 
 		public static void CreateObject(this IUserSession session, IObjectInfo objectInfo) {
 			// TODO: throw a specialized exception
-			if (!session.UserCanCreateObject(session.User, objectInfo.ObjectType, objectInfo.FullName))
+			if (!session.UserCanCreateObject(session.SessionInfo.User, objectInfo.ObjectType, objectInfo.FullName))
 				throw new InvalidOperationException();
 
 			session.Transaction.CreateObject(objectInfo);
@@ -152,7 +152,7 @@ namespace Deveel.Data.DbSystem {
 		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string[] columns,
 			ConstraintDeferrability deferred, string constraintName) {
 			// TODO: throw a specialized exception
-			if (!session.UserCanAlterTable(session.User, tableName))
+			if (!session.UserCanAlterTable(session.SessionInfo.User, tableName))
 				throw new InvalidOperationException();
 
 			session.Transaction.AddPrimaryKey(tableName, columns, deferred, constraintName);
@@ -180,7 +180,7 @@ namespace Deveel.Data.DbSystem {
 			ObjectName refTable, string[] refColumns,
 			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred, String constraintName) {
 			// TODO: throw a specialized exception
-			if (!session.UserCanAlterTable(session.User, table))
+			if (!session.UserCanAlterTable(session.SessionInfo.User, table))
 				throw new InvalidOperationException();
 
 			session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
@@ -245,7 +245,7 @@ namespace Deveel.Data.DbSystem {
 
 		public static bool UserHasPrivilege(this IUserSession session, DbObjectType objectType,
 			ObjectName objectName, Privileges privilege) {
-			return UserHasPrivilege(session, session.User, objectType, objectName, privilege);
+			return UserHasPrivilege(session, session.SessionInfo.User, objectType, objectName, privilege);
 		}
 
 		public static bool UserHasPrivilege(this IUserSession session, User user, DbObjectType objectType,
@@ -266,7 +266,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static bool UserBelongsToGroup(this IUserSession session, string groupName) {
-			return UserBelongsToGroup(session, session.User, groupName);
+			return UserBelongsToGroup(session, session.SessionInfo.User, groupName);
 		}
 
 		public static bool UserBelongsToGroup(this IUserSession session, User user, string groupName) {
@@ -276,7 +276,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static bool UserBelongsToSecureGroup(this IUserSession session) {
-			return UserBelongsToSecureGroup(session, session.User);
+			return UserBelongsToSecureGroup(session, session.SessionInfo.User);
 		}
 
 		public static bool UserBelongsToSecureGroup(this IUserSession session, User user) {

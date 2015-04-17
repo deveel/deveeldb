@@ -72,10 +72,6 @@ namespace Deveel.Data.Security {
 			get { return Name.Equals(PublicName); }
 		}
 
-		public bool Activate(IUserSession session) {
-			return session.Database.ActiveUsers.Add(this);
-		}
-
 		internal bool TryGetObjectGrant(ObjectName objectName, out Privileges grant) {
 			if (grantCache == null) {
 				grant = Privileges.None;

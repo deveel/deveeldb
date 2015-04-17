@@ -505,5 +505,34 @@ namespace Deveel.Data.Sql.Objects {
 
 			return false;
 		}
+
+		public static implicit operator SqlDateTime(DateTimeOffset? a) {
+			if (a == null)
+				return Null;
+
+			return a.Value;
+		}
+
+		public static implicit operator SqlDateTime(DateTimeOffset a) {
+			var date = a;
+			var offset = new SqlDayToSecond(date.Offset.Days, date.Offset.Hours, date.Offset.Minutes, date.Offset.Seconds);
+			return new SqlDateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Millisecond, offset);			
+		}
+
+		public static implicit operator DateTimeOffset?(SqlDateTime a) {
+			if (a == null || a.IsNull)
+				return null;
+
+			var offset = new TimeSpan(a.Offset.Hours, a.Offset.Minutes, a.Offset.Seconds);
+			return new DateTimeOffset(a.Year, a.Month, a.Day, a.Hour, a.Minute, a.Second, a.Millisecond, offset);
+		}
+
+		public static implicit operator DateTimeOffset(SqlDateTime a) {
+			if (a == null || a.IsNull)
+				throw new NullReferenceException();
+
+			var offset = new TimeSpan(a.Offset.Hours, a.Offset.Minutes, a.Offset.Seconds);
+			return new DateTimeOffset(a.Year, a.Month, a.Day, a.Hour, a.Minute, a.Second, a.Millisecond, offset);
+		}
 	}
 }

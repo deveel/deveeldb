@@ -1,53 +1,82 @@
-﻿// 
-//  Copyright 2010-2015 Deveel
-// 
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-// 
-//        http://www.apache.org/licenses/LICENSE-2.0
-// 
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
+﻿using System;
 
-using System;
-
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Protocol;
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class SessionInfo {
-		public SessionInfo(IUserSession session) {
-			if (session == null)
-				throw new ArgumentNullException("session");
-
-			Session = session;
-			StartedOn = DateTime.UtcNow;
+		public SessionInfo(User user) 
+			: this(user, TransactionIsolation.Unspecified) {
 		}
 
-		public IUserSession Session { get; private set; }
-
-		public User User {
-			get { return Session.User; }
+		public SessionInfo(User user, TransactionIsolation isolation) 
+			: this(-1, user, isolation) {
 		}
 
-		public ConnectionEndPoint EndPoint {
-			get { return Session.EndPoint; }
+		public SessionInfo(int commitId, User user) 
+			: this(commitId, user, TransactionIsolation.Unspecified) {
 		}
 
-		public DateTime StartedOn { get; private set; }
+		public SessionInfo(int commitId, User user, TransactionIsolation isolation) 
+			: this(commitId, user, isolation, ConnectionEndPoint.Embedded, null) {
+		}
 
-		public DateTime? LastCommandOn { get; private set; }
+		public SessionInfo(User user, ConnectionEndPoint endPoint, Action<CallbackTriggerEvent> callback) 
+			: this(user, TransactionIsolation.Unspecified, endPoint, callback) {
+		}
 
-		public void OnNewEvent(IEvent e) {
-			lock (Session) {
-				Session.Database.EventRegistry.RegisterEvent(e);
-			}
+		public SessionInfo(User user, TransactionIsolation isolation, ConnectionEndPoint endPoint) 
+			: this(user, isolation, endPoint, null) {
+		}
+
+		public SessionInfo(User user, TransactionIsolation isolation, ConnectionEndPoint endPoint, Action<CallbackTriggerEvent> callback) 
+			: this(-1, user, isolation, endPoint, callback) {
+		}
+
+		public SessionInfo(int commitId, User user, ConnectionEndPoint endPoint) 
+			: this(commitId, user, endPoint, null) {
+		}
+
+		public SessionInfo(int commitId, User user, ConnectionEndPoint endPoint, Action<CallbackTriggerEvent> callback) 
+			: this(commitId, user, TransactionIsolation.Unspecified, endPoint, callback) {
+		}
+
+		public SessionInfo(int commitId, User user, TransactionIsolation isolation, ConnectionEndPoint endPoint,
+			Action<CallbackTriggerEvent> callback) {
+			if (user == null)
+				throw new ArgumentNullException("user");
+			if (endPoint == null)
+				throw new ArgumentNullException("endPoint");
+
+			CommitId = commitId;
+			User = user;
+			EndPoint = endPoint;
+			CallbackTrigger = callback;
+			Isolation = isolation;
+			StartedOn = DateTimeOffset.UtcNow;
+		}
+
+		public int CommitId { get; private set; }
+
+		public ConnectionEndPoint EndPoint { get; private set; }
+
+		public User User { get; private set; }
+
+		public TransactionIsolation Isolation { get; private set; }
+
+		public Action<CallbackTriggerEvent> CallbackTrigger { get; private set; } 
+
+		public DateTimeOffset StartedOn { get; private set; }
+
+		public DateTimeOffset? LastCommandTime { get; private set; }
+
+		// TODO: keep a list of commands issued by the user during the session?
+
+		internal void OnCommand() {
+			// TODO: also include the command details?
+			LastCommandTime = DateTimeOffset.UtcNow;
 		}
 	}
 }

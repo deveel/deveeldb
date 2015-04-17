@@ -25,7 +25,7 @@ using Deveel.Data.Sql.Query;
 namespace Deveel.Data.DbSystem {
 	public static class QueryContextExtensions {
 		public static User User(this IQueryContext context) {
-			return context.Session.User;
+			return context.Session.SessionInfo.User;
 		}
 
 		public static IDatabase Database(this IQueryContext context) {

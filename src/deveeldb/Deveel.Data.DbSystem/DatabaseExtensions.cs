@@ -27,11 +27,16 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static IUserSession CreateSystemSession(this IDatabase database, TransactionIsolation isolation) {
-			return database.CreateSession(User.System, ConnectionEndPoint.Embedded, isolation);
+			return database.CreateSession(new SessionInfo(User.System, isolation, ConnectionEndPoint.Embedded));
 		}
 
 		public static IUserSession CreateSystemSession(this IDatabase database) {
 			return database.CreateSystemSession(TransactionIsolation.Serializable);
+		}
+
+		public static IUserSession CreateSession(this IDatabase database, User user) {
+			// TODO: get the pre-configured default transaction isolation
+			return database.CreateSession(new SessionInfo(user));
 		}
 
 		#region Security

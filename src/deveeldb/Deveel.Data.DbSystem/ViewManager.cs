@@ -90,5 +90,9 @@ namespace Deveel.Data.DbSystem {
 		public bool DropView(ObjectName viewName) {
 			throw new NotImplementedException();
 		}
+
+		public ITableContainer CreateInternalTableInfo() {
+			return null;
+		}
 	}
 }
