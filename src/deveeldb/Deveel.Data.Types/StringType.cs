@@ -150,8 +150,17 @@ namespace Deveel.Data.Types {
 			return false;
 		}
 
-		public SqlBoolean IsLike(ISqlObject value) {
-			throw new NotImplementedException();
+		public SqlBoolean IsLike(ISqlString value, ISqlString pattern) {
+			if (value == null && IsNull)
+				return true;
+			if (!IsNull && value == null)
+				return false;
+			if (value == null)
+				return false;
+
+			var s1 = value.ToString();
+			var s2 = pattern.ToString();
+			return PatternSearch.FullPatternMatch(s1, s2, '\\');
 		}
 
 		public SqlBoolean IsNotLike(ISqlObject value) {

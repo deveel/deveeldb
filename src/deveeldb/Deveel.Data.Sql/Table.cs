@@ -182,7 +182,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			private readonly Table table;
-			private readonly int rowIndex = -1;
+			private readonly int rowIndex;
 
 			private int FindColumnName(ObjectName columnName) {
 				int colIndex = table.FindColumn(columnName);
@@ -193,7 +193,7 @@ namespace Deveel.Data.Sql {
 			}
 
 			public DataObject Resolve(ObjectName columnName) {
-				return table.GetValue(FindColumnName(columnName), rowIndex);
+				return table.GetValue(rowIndex, FindColumnName(columnName));
 			}
 
 			public DataType ReturnType(ObjectName columnName) {

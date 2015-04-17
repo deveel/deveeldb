@@ -10,6 +10,7 @@ namespace Deveel.Data.DbSystem {
 	public sealed class DatabaseTests {
 		private ISystemContext systemContext;
 		private IDatabaseContext databaseContext;
+		private IDatabase database;
 
 		private const string TestDbName = "testdb";
 		private const string TestAdminUser = "SA";
@@ -23,6 +24,19 @@ namespace Deveel.Data.DbSystem {
 			if (test != "CreateNewContext") {
 				databaseContext = new DatabaseContext(systemContext, TestDbName);
 			}
+
+			if (test != "CreateNew" &&
+				test != "DatabaseNotExists" &&
+				test != "CreateNewContext") {
+				database = new Database(databaseContext);
+				database.Create(TestAdminUser, TestAdminPass);
+				database.Open();
+			}
+		}
+
+		[TearDown]
+		public void TearDown() {
+			database = null;
 		}
 
 		[Test]
@@ -36,14 +50,19 @@ namespace Deveel.Data.DbSystem {
 
 		[Test]
 		public void DatabaseNotExists() {
-			var database = new Database(databaseContext);
+			database = new Database(databaseContext);
 			Assert.IsFalse(database.Exists);
 		}
 
 		[Test]
 		public void CreateNew() {
-			var database = new Database(databaseContext);
+			database = new Database(databaseContext);
 			Assert.DoesNotThrow(() => database.Create(TestAdminUser, TestAdminPass));
+		}
+
+		[Test]
+		public void AuthenticateAdmin() {
+			Assert.DoesNotThrow(() => database.Authenticate(TestAdminUser, TestAdminPass));
 		}
 	}
 }

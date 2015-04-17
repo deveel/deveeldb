@@ -379,7 +379,7 @@ namespace Deveel.Data.Security {
 				if (type == 1) {
 					// Clear-text password ...
 					var pass = t.GetValue(0, passwColumn);
-					if (pass == null || pass.Equals(DataObject.String(pass)))
+					if (pass.IsNull || !pass.Equals(DataObject.String(password)))
 						return null;
 
 				} else if (type == 2) {

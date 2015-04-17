@@ -22,8 +22,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb.pcl", "deveeldb\de
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compact", "Compact", "{49301CBB-E964-42D8-AD76-F7CCB0C941CE}"
 EndProject
-Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "deveeldb.doc", "deveeldb.doc\deveeldb.doc.shfbproj", "{7FEEF2C0-679D-4843-A338-0EDDBA4FAB26}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,14 +73,6 @@ Global
 		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|x64.ActiveCfg = Release|Any CPU
 		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|x86.ActiveCfg = Release|Any CPU
-		{7FEEF2C0-679D-4843-A338-0EDDBA4FAB26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7FEEF2C0-679D-4843-A338-0EDDBA4FAB26}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7FEEF2C0-679D-4843-A338-0EDDBA4FAB26}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{7FEEF2C0-679D-4843-A338-0EDDBA4FAB26}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7FEEF2C0-679D-4843-A338-0EDDBA4FAB26}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7FEEF2C0-679D-4843-A338-0EDDBA4FAB26}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7FEEF2C0-679D-4843-A338-0EDDBA4FAB26}.Release|x64.ActiveCfg = Release|Any CPU
-		{7FEEF2C0-679D-4843-A338-0EDDBA4FAB26}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

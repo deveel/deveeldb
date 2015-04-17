@@ -41,7 +41,12 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression Evaluate(EvaluateContext context) {
-			return base.Evaluate(context);
+			var variableResolver = context.VariableResolver;
+			if (variableResolver == null)
+				throw new InvalidOperationException();
+
+			var value = variableResolver.Resolve(ReferenceName);
+			return Constant(value);
 		}
 	}
 }

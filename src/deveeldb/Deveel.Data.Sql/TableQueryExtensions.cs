@@ -542,16 +542,16 @@ namespace Deveel.Data.Sql {
 			// Exit early if there's nothing in the table to select from
 			int rowCount = table.RowCount;
 			if (rowCount > 0) {
-				var resolver = table.GetVariableResolver();
-				var e = table.GetEnumerator();
-
+				var tableResolver = table.GetVariableResolver();
 				List<int> selectedSet = new List<int>(rowCount);
 
-				while (e.MoveNext()) {
-					int rowIndex = e.Current.RowId.RowNumber;
+				foreach (var row in table) {
+					int rowIndex = row.RowId.RowNumber;
+
+					var rowResolver = tableResolver.ForRow(rowIndex);
 
 					// Resolve expression into a constant.
-					var exp = expression.Evaluate(context, resolver);
+					var exp = expression.Evaluate(context, rowResolver);
 					if (exp.ExpressionType != SqlExpressionType.Constant)
 						throw new NotSupportedException();
 
