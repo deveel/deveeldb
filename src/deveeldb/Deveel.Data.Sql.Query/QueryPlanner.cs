@@ -102,7 +102,7 @@ namespace Deveel.Data.Sql.Query {
 						var resolved = queryFrom.ResolveReference(v);
 						queryFrom.ExposeColumn(resolved ?? v);
 					} else {
-						string funName = selectColumn.Expression.ToSqlString();
+						string funName = selectColumn.Expression.ToString();
 						queryFrom.AddExpression(new ExpressionReference(selectColumn.Expression, funName));
 						queryFrom.ExposeColumn(new ObjectName(funName));
 					}
@@ -742,7 +742,7 @@ namespace Deveel.Data.Sql.Query {
 				this.selectColumns = selectColumns;
 			}
 
-			public override SqlVariableReferenceExpression VisitVariableReference(SqlVariableReferenceExpression reference) {
+			public override SqlExpression VisitVariableReference(SqlVariableReferenceExpression reference) {
 				// TODO: should we also resolve variables?
 				return base.VisitVariableReference(reference);
 			}

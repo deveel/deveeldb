@@ -240,15 +240,14 @@ namespace Deveel.Data.DbSystem {
 
 		#region Variables
 
-		public static void SetVariable(this IQueryContext context, string variableName, DataObject value) {
+		public static void SetVariable(this IQueryContext context, ObjectName variableName, DataObject value) {
 			IQueryContext opContext = context;
-			Variable variable = null;
 			while (true) {
 				if (opContext == null ||
 					opContext.VariableManager == null)
 					break;
 
-				variable = opContext.VariableManager.GetVariable(variableName);
+				var variable = opContext.VariableManager.GetVariable(variableName.Name);
 
 				if (variable != null) {
 					variable.SetValue(value);

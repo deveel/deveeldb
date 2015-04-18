@@ -17,10 +17,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.DbSystem;
-using Deveel.Data.Sql.Objects;
-using Deveel.Data.Types;
-
 namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlQueryExpression : SqlExpression {
 		public SqlQueryExpression(IEnumerable<SelectColumn> selectColumns) {
@@ -29,8 +25,6 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public IEnumerable<SelectColumn> SelectColumns { get; private set; }
-
-		//TODO: Group By Columns 
 
 		public FromClause FromClause { get; internal set; }
 
@@ -57,13 +51,5 @@ namespace Deveel.Data.Sql.Expressions {
 		public bool IsCompositeAll { get; set; }
 
 		public bool Distinct { get; set; }
-
-		public override SqlExpression Evaluate(EvaluateContext context) {
-			var queryContext = context.QueryContext;
-			var planner = context.DatabaseContext.QueryPlanner();
-			var plan = planner.PlanQuery(queryContext, this, null);
-
-			return Constant(new DataObject(new QueryType(), new SqlQueryObject(plan)));
-		}
 	}
 }

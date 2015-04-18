@@ -15,17 +15,14 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
 	public sealed class SqlBinaryExpression : SqlExpression {
 		private readonly SqlExpressionType expressionType;
 
-		internal SqlBinaryExpression(SqlExpression left, SqlExpressionType expressionType, SqlExpression right, BinaryOperator binaryOperator) {
+		internal SqlBinaryExpression(SqlExpression left, SqlExpressionType expressionType, SqlExpression right) {
 			this.expressionType = expressionType;
-			BinaryOperator = binaryOperator;
 
 			Left = left;
 			Right = right;
@@ -35,10 +32,6 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public SqlExpression Right { get; private set; }
 
-		private DataObject EvaluateBinary(DataObject left, DataObject right, EvaluateContext context) {
-			return BinaryOperator.Evaluate(left, right, context);
-		}
-
 		public override bool CanEvaluate {
 			get { return true; }
 		}
@@ -46,54 +39,5 @@ namespace Deveel.Data.Sql.Expressions {
 		public override SqlExpressionType ExpressionType {
 			get { return expressionType; }
 		}
-
-		internal BinaryOperator BinaryOperator { get; private set; }
-
-		private SqlExpression[] EvaluateSides(EvaluateContext context) {
-			var info = new List<EvaluateInfo> {
-				new EvaluateInfo {Expression = Left, Offset = 0},
-				new EvaluateInfo {Expression = Right, Offset = 1}
-			}.OrderByDescending(x => x.Precedence);
-
-			foreach (var evaluateInfo in info) {
-				evaluateInfo.Expression = evaluateInfo.Expression.Evaluate(context);
-			}
-
-			return info.OrderBy(x => x.Offset)
-				.Select(x => x.Expression)
-				.ToArray();
-		}
-
-		public override SqlExpression Evaluate(EvaluateContext context) {
-			var sides = EvaluateSides(context);
-
-			var leftExp = sides[0];
-			var rightExp = sides[1];
-
-			if (!(leftExp is SqlConstantExpression) ||
-			    !(rightExp is SqlConstantExpression))
-				throw new ExpressionEvaluateException(
-					String.Format("One of the arguments of the binary expression {0} could not be evaluated to constant.",
-						ExpressionType));
-
-			var left = ((SqlConstantExpression) leftExp).Value;
-			var right = ((SqlConstantExpression) rightExp).Value;
-			var computedValue = EvaluateBinary(left, right, context);
-
-			return new SqlConstantExpression(computedValue);
-		}
-
-		#region EvaluateInfo
-
-		class EvaluateInfo {
-			public SqlExpression Expression { get; set; }
-			public int Offset { get; set; }
-
-			public int Precedence {
-				get { return Expression.EvaluatePrecedence; }
-			}
-		}
-
-		#endregion
 	}
 }

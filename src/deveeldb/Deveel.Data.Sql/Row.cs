@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
@@ -139,6 +140,10 @@ namespace Deveel.Data.Sql {
 
 		public int ColumnCount {
 			get { return Table.TableInfo.ColumnCount; }
+		}
+
+		public bool Exists {
+			get { return Table.Any(x => x.RowId.Equals(RowId)); }
 		}
 
 		/// <summary>
@@ -321,8 +326,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		private DataObject Evaluate(SqlExpression expression, IQueryContext queryContext) {
-			// TODO: bool ignoreCase = queryContext.SystemContext.Config.IgnoreIdentifierCase();
-			bool ignoreCase = true;
+			var ignoreCase = queryContext.IgnoreIdentifiersCase();
 			// Resolve any variables to the table_def for this expression.
 			expression = Table.TableInfo.ResolveColumns(ignoreCase, expression);
 			// Get the variable resolver and evaluate over this data.

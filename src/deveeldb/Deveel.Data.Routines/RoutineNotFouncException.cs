@@ -51,7 +51,7 @@ namespace Deveel.Data.Routines {
 			sb.Append("(");
 			if (args != null) {
 				for (int i = 0; i < args.Length; i++) {
-					sb.Append(args[i].ToSqlString());
+					sb.Append(args[i]);
 
 					if (i < args.Length - 1)
 						sb.Append(", ");

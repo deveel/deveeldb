@@ -18,7 +18,7 @@ using System;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
-	/// All the possile type of <see cref="SqlExpression"/> supported
+	/// All the possible type of <see cref="SqlExpression"/> supported
 	/// </summary>
 	public enum SqlExpressionType {
 		/// <summary>
@@ -98,10 +98,5 @@ namespace Deveel.Data.Sql.Expressions {
 		/// a set of tables and columns.
 		/// </summary>
 		Query,
-
-		/// <summary>
-		/// A query that was prepared and ready to be executed
-		/// </summary>
-		PreparedQuery
 	}
 }

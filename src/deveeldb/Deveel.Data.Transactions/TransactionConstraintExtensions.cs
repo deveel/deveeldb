@@ -508,7 +508,7 @@ namespace Deveel.Data.Transactions {
 								throw new ConstraintViolationException(
 								   SqlModelErrorCodes.CheckViolation,
 								   deferred.AsDebugString() + " check constraint violation (" +
-								   check.ConstraintName + ") - '" + exp.ToSqlString() +
+								   check.ConstraintName + ") - '" + exp +
 								   "' evaluated to false for inserted/updated row.");
 							}
 						} else {

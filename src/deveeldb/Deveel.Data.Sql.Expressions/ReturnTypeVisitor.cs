@@ -35,7 +35,21 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitBinary(SqlBinaryExpression binaryEpression) {
-			dataType = binaryEpression.BinaryOperator.ResultType;
+			switch (binaryEpression.ExpressionType) {
+				case SqlExpressionType.Add:
+				case SqlExpressionType.Subtract:
+				case SqlExpressionType.Multiply:
+				case SqlExpressionType.Modulo:
+				case SqlExpressionType.Divide:
+					dataType = PrimitiveTypes.Numeric();
+					break;
+				default:
+					// we assume the expression type is already been check to be binary.
+					dataType = PrimitiveTypes.Boolean();
+					break;
+
+			}
+			
 			return base.VisitBinary(binaryEpression);
 		}
 

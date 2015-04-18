@@ -15,6 +15,8 @@
 //
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
@@ -162,7 +164,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Reference(reference.ReferenceName);
 		}
 
-		public virtual SqlVariableReferenceExpression VisitVariableReference(SqlVariableReferenceExpression reference) {
+		public virtual SqlExpression VisitVariableReference(SqlVariableReferenceExpression reference) {
 			return SqlExpression.VariableReference(reference.VariableName);
 		}
 
@@ -174,8 +176,6 @@ namespace Deveel.Data.Sql.Expressions {
 		public virtual SqlExpression VisitAssign(SqlAssignExpression assign) {
 			var reference = assign.Reference;
 			var expression = assign.ValueExpression;
-			if (reference != null)
-				reference = VisitVariableReference(reference);
 			if (expression != null)
 				expression = Visit(expression);
 
@@ -217,7 +217,10 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <param name="expression"></param>
 		/// <returns></returns>
 		public virtual SqlExpression VisitTuple(SqlTupleExpression expression) {
-			var list = VisitExpressionList(expression.Expressions);
+			var list = expression.Expressions;
+			if (list != null)
+				list = VisitExpressionList(list);
+
 			return SqlExpression.Tuple(list);
 		}
 
@@ -227,8 +230,45 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <param name="query"></param>
 		/// <returns></returns>
 		public virtual SqlExpression VisitQuery(SqlQueryExpression query) {
-			// TODO: This is too complex to visit now ... let's do it later
+			var selectColumns = new List<SelectColumn>();
+			foreach (var column in query.SelectColumns) {
+				var newColumn = new SelectColumn(Visit(column.Expression), column.Alias);
+				newColumn.InternalName = column.InternalName;
+				newColumn.ResolvedName = column.ResolvedName;
+				selectColumns.Add(newColumn);
+			}
+
+			var newQuery = new SqlQueryExpression(selectColumns);
+
+			if (query.FromClause != null)
+				newQuery.FromClause = VisitFromClause(query.FromClause);
+
+			if (query.WhereExpression != null)
+				newQuery.WhereExpression = Visit(query.WhereExpression);
+			if (query.HavingExpression != null)
+				newQuery.HavingExpression = Visit(query.HavingExpression);
+
+			if (query.GroupBy != null)
+				newQuery.GroupBy = VisitExpressionList(newQuery.GroupBy.ToArray());
+
+			newQuery.GroupMax = query.GroupMax;
+			newQuery.Distinct = query.Distinct;
+
+			if (query.NextComposite != null) {
+				var visitedComposite = Visit(query.NextComposite);
+				if (visitedComposite.ExpressionType == SqlExpressionType.Query)
+					newQuery.NextComposite = (SqlQueryExpression) visitedComposite;
+
+				newQuery.CompositeFunction = query.CompositeFunction;
+				newQuery.IsCompositeAll = query.IsCompositeAll;
+			}
+
 			return query;
+		}
+
+		private FromClause VisitFromClause(FromClause fromClause) {
+			// TODO: 
+			return fromClause;
 		}
 	}
 }

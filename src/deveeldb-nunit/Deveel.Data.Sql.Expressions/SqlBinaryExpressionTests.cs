@@ -46,6 +46,18 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		[Test]
+		public void NumericAddToString() {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(4566, 10)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(8991.67, 10)));
+			var addExp = SqlExpression.Add(exp1, exp2);
+
+			string s = null;
+			Assert.DoesNotThrow(() => s = addExp.ToString());
+			Assert.IsNotNullOrEmpty(s);
+			Assert.AreEqual("4566 + 8991.670000", s);
+		}
+
+		[Test]
 		public void NumericAndBooleanAdd() {
 			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(4566)));
 			var exp2 = SqlExpression.Constant(DataObject.Boolean(true));

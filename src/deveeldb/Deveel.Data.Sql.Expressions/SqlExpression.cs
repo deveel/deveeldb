@@ -15,11 +15,11 @@
 //
 
 using System;
-using System.IO;
-using System.Linq;
+using System.Diagnostics;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Compile;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
@@ -103,13 +103,17 @@ namespace Deveel.Data.Sql.Expressions {
 					return 90;
 				if (ExpressionType == SqlExpressionType.Or)
 					return 89;
-				// TODO: support XOR?
+				if (ExpressionType == SqlExpressionType.XOr)
+					return 88;
 
 				if (ExpressionType == SqlExpressionType.Conditional)
 					return 80;
 
 				if (ExpressionType == SqlExpressionType.Assign)
 					return 70;
+
+				if (ExpressionType == SqlExpressionType.Tuple)
+					return 60;
 
 				return -1;
 			}
@@ -144,7 +148,8 @@ namespace Deveel.Data.Sql.Expressions {
 		/// If any error occurred while evaluating the expression.
 		/// </exception>
 		public virtual SqlExpression Evaluate(EvaluateContext context) {
-			return this;
+			var visitor = new ExpressionEvaluatorVisitor(context);
+			return visitor.Visit(this);
 		}
 
 		/// <summary>
@@ -178,6 +183,11 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public SqlExpression Evaluate(IQueryContext context, IVariableResolver variables, IGroupResolver group) {
 			return Evaluate(new EvaluateContext(context, variables, group));
+		}
+
+		public override string ToString() {
+			var builder = new ExpressionStringBuilder();
+			return builder.ToSqlString(this);
 		}
 
 		/// <summary>
@@ -214,6 +224,10 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public static SqlConstantExpression Constant(DataObject value) {
 			return new SqlConstantExpression(value);
+		}
+
+		public static SqlCastExpression Cast(SqlExpression value, DataType destType) {
+			return new SqlCastExpression(value, destType);
 		}
 
 		public static SqlFunctionCallExpression FunctionCall(ObjectName functionName) {
@@ -297,87 +311,87 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public static SqlBinaryExpression Equal(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Equal, right, BinaryOperator.Equal);
+			return new SqlBinaryExpression(left, SqlExpressionType.Equal, right);
 		}
 
 		public static SqlBinaryExpression NotEqual(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.NotEqual, right, BinaryOperator.NotEqual);
+			return new SqlBinaryExpression(left, SqlExpressionType.NotEqual, right);
 		}
 
 		public static SqlBinaryExpression Is(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Is, right, BinaryOperator.Is);
+			return new SqlBinaryExpression(left, SqlExpressionType.Is, right);
 		}
 
 		public static SqlBinaryExpression IsNot(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.IsNot, right, BinaryOperator.IsNot);
+			return new SqlBinaryExpression(left, SqlExpressionType.IsNot, right);
 		}
 
 		public static SqlBinaryExpression SmallerOrEqualThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.SmallerOrEqualThan, right, BinaryOperator.SmallerOrEqualThan);
+			return new SqlBinaryExpression(left, SqlExpressionType.SmallerOrEqualThan, right);
 		}
 
 		public static SqlBinaryExpression GreaterOrEqualThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.GreaterOrEqualThan, right, BinaryOperator.GreaterOrEqualThan);
+			return new SqlBinaryExpression(left, SqlExpressionType.GreaterOrEqualThan, right);
 		}
 
 		public static SqlBinaryExpression SmallerThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.SmallerThan, right, BinaryOperator.SmallerThan);
+			return new SqlBinaryExpression(left, SqlExpressionType.SmallerThan, right);
 		}
 
 		public static SqlBinaryExpression GreaterThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.GreaterThan, right, BinaryOperator.GreaterThan);
+			return new SqlBinaryExpression(left, SqlExpressionType.GreaterThan, right);
 		}
 
 		public static SqlBinaryExpression Like(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Like, right, BinaryOperator.Like);
+			return new SqlBinaryExpression(left, SqlExpressionType.Like, right);
 		}
 
 		public static SqlBinaryExpression NotLike(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.NotLike, right, BinaryOperator.NotLike);
+			return new SqlBinaryExpression(left, SqlExpressionType.NotLike, right);
 		}
 
 		public static SqlBinaryExpression And(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.And, right, BinaryOperator.And);
+			return new SqlBinaryExpression(left, SqlExpressionType.And, right);
 		}
 
 		public static SqlBinaryExpression Or(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Or, right, BinaryOperator.Or);
+			return new SqlBinaryExpression(left, SqlExpressionType.Or, right);
 		}
 
 		public static SqlBinaryExpression XOr(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.XOr, right, BinaryOperator.XOr);
+			return new SqlBinaryExpression(left, SqlExpressionType.XOr, right);
 		}
 
 		public static SqlBinaryExpression Add(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Add, right, BinaryOperator.Add);
+			return new SqlBinaryExpression(left, SqlExpressionType.Add, right);
 		}
 
 		public static SqlBinaryExpression Subtract(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Subtract, right, BinaryOperator.Subtract);
+			return new SqlBinaryExpression(left, SqlExpressionType.Subtract, right);
 		}
 
 		public static SqlBinaryExpression Multiply(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Multiply, right, BinaryOperator.Multiply);
+			return new SqlBinaryExpression(left, SqlExpressionType.Multiply, right);
 		}
 
 		public static SqlBinaryExpression Divide(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Divide, right, BinaryOperator.Divide);
+			return new SqlBinaryExpression(left, SqlExpressionType.Divide, right);
 		}
 
 		public static SqlBinaryExpression Modulo(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.Modulo, right, BinaryOperator.Modulo);
+			return new SqlBinaryExpression(left, SqlExpressionType.Modulo, right);
 		}
 
 		public static SqlBinaryExpression AnyEqual(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AnyEqual, right, BinaryOperator.AnyEqual);
+			return new SqlBinaryExpression(left, SqlExpressionType.AnyEqual, right);
 		}
 
 		public static SqlBinaryExpression AnyNotEqual(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AnyNotEqual, right, BinaryOperator.AnyNotEqual);
+			return new SqlBinaryExpression(left, SqlExpressionType.AnyNotEqual, right);
 		}
 
 		public static SqlBinaryExpression AnyGreaterThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AnyGreaterThan, right, BinaryOperator.AnyGreaterThan);
+			return new SqlBinaryExpression(left, SqlExpressionType.AnyGreaterThan, right);
 		}
 
 		#endregion
@@ -410,10 +424,10 @@ namespace Deveel.Data.Sql.Expressions {
 		#endregion
 
 		public static SqlAssignExpression Assign(string reference, SqlExpression valueExpression) {
-			return Assign(VariableReference(reference), valueExpression);
+			return Assign(ObjectName.Parse(reference), valueExpression);
 		}
 
-		public static SqlAssignExpression Assign(SqlVariableReferenceExpression reference, SqlExpression expression) {
+		public static SqlAssignExpression Assign(ObjectName reference, SqlExpression expression) {
 			return new SqlAssignExpression(reference, expression);
 		}
 
@@ -430,13 +444,5 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		#endregion
-
-		public string ToSqlString() {
-			throw new NotImplementedException();
-		}
-
-		public void SerializeTo(Stream stream) {
-			throw new NotImplementedException();
-		}
 	}
 }

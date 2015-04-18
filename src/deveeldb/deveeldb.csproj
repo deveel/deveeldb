@@ -237,6 +237,8 @@
     <Compile Include="Deveel.Data.Protocol\KnownConnectionProtocols.cs" />
     <Compile Include="Deveel.Data.Security\SystemGroupNames.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionBinarySerializer.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluatorVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\ExpressionStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlVariableReferenceExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
@@ -462,8 +464,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\SetDefaultAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\Statement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementTree.cs" />
-    <Compile Include="Deveel.Data.Sql\BinaryOperator.cs" />
-    <Compile Include="Deveel.Data.Sql\BinaryOperatorType.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeTable.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintDeferrabilityExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintViolationException.cs" />

@@ -58,19 +58,5 @@ namespace Deveel.Data.Sql.Expressions {
 		public override bool CanEvaluate {
 			get { return true; }
 		}
-
-		/// <inheritdoc/>
-		public override SqlExpression Evaluate(EvaluateContext context) {
-			var value = Value.Evaluate(context);
-			if (value.ExpressionType != SqlExpressionType.Constant)
-				throw new ApplicationException();
-
-			var constant = (SqlConstantExpression) value;
-			if (!DataType.CanCastTo(constant.Value.Type))
-				throw new ApplicationException();
-
-			var converted = constant.Value.CastTo(DataType);
-			return Constant(converted);
-		}
 	}
 }

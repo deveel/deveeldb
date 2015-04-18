@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
 	/// An expression that holds a constant value.
@@ -40,7 +42,13 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override bool CanEvaluate {
-			get { return false; }
+			get {
+				if (Value.Type is ArrayType ||
+				    Value.Type is QueryType)
+					return true;
+
+				return false;
+			}
 		}
 
 		/// <summary>
