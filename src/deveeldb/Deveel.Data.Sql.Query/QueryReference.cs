@@ -16,7 +16,6 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Query {
@@ -37,8 +36,9 @@ namespace Deveel.Data.Sql.Query {
 			get { return Value == null ? null : Value.Type; }
 		}
 
-		public void Evaluate(IVariableResolver resolver) {
+		public DataObject Evaluate(IVariableResolver resolver) {
 			Value = resolver.Resolve(Name);
+			return Value;
 		}
 	}
 }

@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		private void VisitQueryReference(QueryReferenceExpression expression) {
-				
+			References.Add(expression.Reference);
 		}
 
 		public override SqlExpression VisitConstant(SqlConstantExpression constant) {

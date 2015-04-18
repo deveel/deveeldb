@@ -23,11 +23,9 @@ namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
 	public sealed class SqlUnaryExpression : SqlExpression {
 		private readonly SqlExpressionType expressionType;
-		private readonly Func<DataObject, DataObject> unaryFunc;
 
-		internal SqlUnaryExpression(SqlExpressionType expressionType, SqlExpression operand, Func<DataObject, DataObject> unaryFunc) {
+		internal SqlUnaryExpression(SqlExpressionType expressionType, SqlExpression operand) {
 			this.expressionType = expressionType;
-			this.unaryFunc = unaryFunc;
 			Operand = operand;
 		}
 
@@ -41,20 +39,9 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return expressionType; }
 		}
 
-		private DataObject EvaluateUnary(DataObject value) {
-			return unaryFunc(value);
-		}
-
 		/// <inheritdoc/>
 		public override bool CanEvaluate {
 			get { return true; }
-		}
-
-		/// <inheritdoc/>
-		public override SqlExpression Evaluate(EvaluateContext context) {
-			var exp = (SqlConstantExpression) Operand.Evaluate(context);
-			var computedValue = EvaluateUnary(exp.Value);
-			return new SqlConstantExpression(computedValue);
 		}
 	}
 }

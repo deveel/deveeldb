@@ -17,6 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	public sealed class SqlVariableReferenceExpression : SqlExpression {
 		internal SqlVariableReferenceExpression(string variableName) {
 			if (String.IsNullOrEmpty(variableName))

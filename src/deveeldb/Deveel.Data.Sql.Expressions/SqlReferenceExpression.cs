@@ -39,14 +39,5 @@ namespace Deveel.Data.Sql.Expressions {
 		public override SqlExpressionType ExpressionType {
 			get { return SqlExpressionType.Reference; }
 		}
-
-		public override SqlExpression Evaluate(EvaluateContext context) {
-			var variableResolver = context.VariableResolver;
-			if (variableResolver == null)
-				throw new InvalidOperationException();
-
-			var value = variableResolver.Resolve(ReferenceName);
-			return Constant(value);
-		}
 	}
 }

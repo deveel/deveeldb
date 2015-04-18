@@ -15,16 +15,11 @@
 //
 
 using System;
-using System.Runtime.CompilerServices;
 
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
 	public sealed class SqlConditionalExpression : SqlExpression {
-		public SqlConditionalExpression(SqlExpression testExpression, SqlExpression trueExpression) 
-			: this(testExpression, trueExpression, null) {
-		}
-
-		public SqlConditionalExpression(SqlExpression testExpression, SqlExpression trueExpression, SqlExpression falsExpression) {
+		internal SqlConditionalExpression(SqlExpression testExpression, SqlExpression trueExpression, SqlExpression falsExpression) {
 			if (testExpression == null) 
 				throw new ArgumentNullException("testExpression");
 			if (trueExpression == null) 
@@ -47,29 +42,6 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool CanEvaluate {
 			get { return true; }
-		}
-
-		public override SqlExpression Evaluate(EvaluateContext context) {
-			if (IsTrue(context))
-				return TrueExpression.Evaluate(context);
-
-			if (FalseExpression != null)
-				return FalseExpression.Evaluate(context);
-
-			return Constant(DataObject.Null());
-		}
-
-		private bool IsTrue(EvaluateContext context) {
-			var test = TestExpression.Evaluate(context);
-			if (!(test is SqlConstantExpression))
-				throw new ExpressionEvaluateException("The returned type of the test expression is not constant.");
-
-			var constant = (SqlConstantExpression) test;
-			var testResult = constant.Value.AsBoolean();
-			if (testResult.IsNull)
-				throw new ExpressionEvaluateException("The test expression evaluated to NULL.");
-
-			return testResult;
 		}
 	}
 }

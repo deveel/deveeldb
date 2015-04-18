@@ -17,6 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	public sealed class SqlTupleExpression : SqlExpression {
 		internal SqlTupleExpression(SqlExpression[] expressions) {
 			Expressions = expressions;

@@ -240,14 +240,30 @@ namespace Deveel.Data.DbSystem {
 
 		#region Variables
 
-		public static void SetVariable(this IQueryContext context, ObjectName variableName, DataObject value) {
+		public static Variable GetVariable(this IQueryContext context, string variableName) {
 			IQueryContext opContext = context;
 			while (true) {
 				if (opContext == null ||
 					opContext.VariableManager == null)
 					break;
 
-				var variable = opContext.VariableManager.GetVariable(variableName.Name);
+				var variable = opContext.VariableManager.GetVariable(variableName);
+
+				if (variable != null)
+					return variable;
+			}
+
+			return null;
+		}
+
+		public static void SetVariable(this IQueryContext context, string variableName, DataObject value) {
+			IQueryContext opContext = context;
+			while (true) {
+				if (opContext == null ||
+					opContext.VariableManager == null)
+					break;
+
+				var variable = opContext.VariableManager.GetVariable(variableName);
 
 				if (variable != null) {
 					variable.SetValue(value);
@@ -256,6 +272,10 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			throw new InvalidOperationException(String.Format("Cannot find variable {0} in the context.", variableName));
+		}
+
+		public static void SetVariable(this IQueryContext context, ObjectName variableName, DataObject value) {
+			context.SetVariable(variableName.Name, value);
 		}
 
 		#endregion

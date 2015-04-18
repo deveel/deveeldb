@@ -17,6 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	public sealed class SqlFunctionCallExpression : SqlExpression {
 		internal SqlFunctionCallExpression(ObjectName functioName, SqlExpression[] arguments) {
 			Arguments = arguments;

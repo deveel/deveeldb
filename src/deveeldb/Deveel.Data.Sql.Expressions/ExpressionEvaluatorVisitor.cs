@@ -15,6 +15,19 @@ namespace Deveel.Data.Sql.Expressions {
 			this.context = context;
 		}
 
+		public override SqlExpression Visit(SqlExpression expression) {
+			if (expression is QueryReferenceExpression)
+				return VisitQueryReference((QueryReferenceExpression) expression);
+
+			return base.Visit(expression);
+		}
+
+		private SqlExpression VisitQueryReference(QueryReferenceExpression expression) {
+			var reference = expression.Reference;
+			var value = reference.Evaluate(context.VariableResolver);
+			return SqlExpression.Constant(value);
+		}
+
 		private SqlExpression[] EvaluateSides(SqlBinaryExpression binary) {
 			var info = new List<BinaryEvaluateInfo> {
 				new BinaryEvaluateInfo {Expression = binary.Left, Offset = 0},
@@ -235,11 +248,37 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitVariableReference(SqlVariableReferenceExpression reference) {
+			var refName = reference.VariableName;
+
+			if (context.QueryContext == null)
+				throw new ExpressionEvaluateException(String.Format("Cannot dereference variable {0} outside a query context", refName));
+			if (context.VariableResolver == null)
+				throw new ExpressionEvaluateException("The query context does not handle variables.");
+
+			
+			var variable = context.QueryContext.GetVariable(refName);
+			if (variable == null)
+				return SqlExpression.Constant(DataObject.Null());
+
 			return base.VisitVariableReference(reference);
 		}
 
 		public override SqlExpression VisitConditional(SqlConditionalExpression conditional) {
-			return base.VisitConditional(conditional);
+			var evalTest = Visit(conditional.TestExpression);
+			if (evalTest.ExpressionType != SqlExpressionType.Constant)
+				throw new ExpressionEvaluateException("The test expression of a conditional must evaluate to a constant value.");
+
+			var evalTestValue = ((SqlConstantExpression) evalTest).Value;
+			if (!(evalTestValue.Type is BooleanType))
+				throw new ExpressionEvaluateException("The test expression of a conditional must be a boolean value.");
+
+			if (evalTestValue)
+				return Visit(conditional.TrueExpression);
+
+			if (conditional.FalseExpression != null)
+				return Visit(conditional.FalseExpression);
+
+			return SqlExpression.Constant(PrimitiveTypes.Null());
 		}
 
 		#region BinaryEvaluateInfo

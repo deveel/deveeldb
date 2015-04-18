@@ -15,9 +15,6 @@
 //
 
 using System;
-using System.Xml.Schema;
-
-using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
@@ -42,14 +39,6 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool CanEvaluate {
 			get { return true; }
-		}
-
-		public override SqlExpression Prepare(IExpressionPreparer preparer) {
-			var valueExpression = ValueExpression;
-			if (valueExpression != null)
-				valueExpression = valueExpression.Prepare(preparer);
-
-			return Assign(Reference, valueExpression);
 		}
 	}
 }

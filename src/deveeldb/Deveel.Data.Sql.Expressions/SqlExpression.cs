@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Diagnostics;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Compile;
@@ -406,19 +405,19 @@ namespace Deveel.Data.Sql.Expressions {
 			if (expressionType == SqlExpressionType.Not)
 				return Not(operand);
 
-			throw new ArgumentException(String.Format("Epression Type {0} is not an Unary.", expressionType));
+			throw new ArgumentException(String.Format("Expression Type {0} is not an Unary.", expressionType));
 		}
 
 		public static SqlUnaryExpression Not(SqlExpression operand) {
-			return new SqlUnaryExpression(SqlExpressionType.Not, operand, o => o.Negate());
+			return new SqlUnaryExpression(SqlExpressionType.Not, operand);
 		}
 
 		public static SqlUnaryExpression Negate(SqlExpression operand) {
-			return new SqlUnaryExpression(SqlExpressionType.Negate, operand, o => o.Negate());
+			return new SqlUnaryExpression(SqlExpressionType.Negate, operand);
 		}
 
 		public static SqlUnaryExpression UnaryPlus(SqlExpression operand) {
-			throw new NotImplementedException();
+			return new SqlUnaryExpression(SqlExpressionType.UnaryPlus, operand);
 		}
 
 		#endregion

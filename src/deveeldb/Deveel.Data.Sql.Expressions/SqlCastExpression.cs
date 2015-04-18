@@ -23,6 +23,7 @@ namespace Deveel.Data.Sql.Expressions {
 	/// An <see cref="SqlExpression"/> that will cast a value retrieved by
 	/// the evaluation of another expression into a given SQL data type.
 	/// </summary>
+	[Serializable]
 	public sealed class SqlCastExpression : SqlExpression {
 		/// <summary>
 		/// Constructs the expression with the a given value to be converted

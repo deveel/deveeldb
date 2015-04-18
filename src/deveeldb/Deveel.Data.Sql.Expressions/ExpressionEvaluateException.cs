@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Constructs a new exception with no detailed message.
 		/// </summary>
 		public ExpressionEvaluateException() 
-			: this("An erro occurred while evaluating a SQL Expression.") {
+			: this("An error occurred while evaluating a SQL Expression.") {
 		}
 
 		/// <summary>

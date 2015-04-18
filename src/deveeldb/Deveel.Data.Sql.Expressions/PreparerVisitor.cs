@@ -32,6 +32,14 @@ namespace Deveel.Data.Sql.Expressions {
 			return base.Visit(expression);
 		}
 
+		public override SqlExpression VisitAssign(SqlAssignExpression assign) {
+			var valueExpression = assign.ValueExpression;
+			if (valueExpression != null)
+				valueExpression = valueExpression.Prepare(preparer);
+
+			return SqlExpression.Assign(assign.Reference, valueExpression);
+		}
+
 		private static IEnumerable<T> Prepare<T>(IEnumerable<T> list, IExpressionPreparer preparer)
 			where T : IPreparable {
 			var newList = new List<T>();
