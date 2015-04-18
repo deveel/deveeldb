@@ -24,7 +24,11 @@ namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class AlterTableStatement : Statement {
 		public AlterTableStatement(ObjectName tableName) 
-			: this(tableName, null) {
+			: this(tableName, (IAlterTableAction) null) {
+		}
+
+		public AlterTableStatement(ObjectName tableName, IAlterTableAction action)
+			: this(tableName, new[] {action}) {
 		}
 
 		public AlterTableStatement(ObjectName tableName, IEnumerable<IAlterTableAction> actions) {
@@ -32,6 +36,7 @@ namespace Deveel.Data.Sql.Statements {
 				throw new ArgumentNullException("tableName");
 
 			TableName = tableName;
+			Actions = new List<IAlterTableAction>();
 
 			if (actions != null) {
 				foreach (var action in actions) {
@@ -40,26 +45,23 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
-		internal AlterTableStatement() {
+		public override StatementType StatementType {
+			get { return StatementType.AlterTable; }
 		}
 
-		public ObjectName TableName {
-			get { return GetValue<ObjectName>(Keys.TableName); }
-			private set { SetValue(Keys.TableName, value); }
-		}
+		public ObjectName TableName { get; private set; }
 
-		public IList<IAlterTableAction> Actions {
-			get { return GetList<IAlterTableAction>(Keys.Actions); }
-		} 
+		public IList<IAlterTableAction> Actions { get; private set; } 
 
-		protected override PreparedStatement OnPrepare(IQueryContext context) {
+		protected override PreparedStatement PrepareStatement(IQueryContext context) {
 			throw new NotImplementedException();
 		}
 
 		#region AlterTablePreparedStatement
 
+		[Serializable]
 		class AlterTablePreparedStatement : PreparedStatement {
-			protected override ITable OnEvaluate(IQueryContext context) {
+			public override ITable Evaluate(IQueryContext context) {
 				throw new NotImplementedException();
 			}
 		}

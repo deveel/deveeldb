@@ -28,6 +28,10 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.SessionInfo.User;
 		}
 
+		public static IQueryContext ForSystemUser(this IQueryContext queryContext) {
+			return new SystemQueryContext(queryContext.Session.Transaction, queryContext.CurrentSchema);
+		}
+
 		public static IDatabase Database(this IQueryContext context) {
 			return context.Session.Database;
 		}
@@ -87,6 +91,28 @@ namespace Deveel.Data.DbSystem {
 
 		public static bool TableExists(this IQueryContext context, ObjectName tableName) {
 			return context.ObjectExists(DbObjectType.Table, tableName);
+		}
+
+		public static void CreateTable(this IQueryContext context, TableInfo tableInfo, bool onlyIfNotExists, bool temporary) {
+			if (tableInfo == null)
+				throw new ArgumentNullException("tableInfo");
+
+			var tableName = tableInfo.TableName;
+
+			if (!context.UserCanCreateTable(tableName))
+				throw new InvalidOperationException(String.Format("The user '{0}' is not allowed to create table '{1}'.",
+					context.User().Name, tableName));
+
+			if (context.TableExists(tableName)) {
+				if (!onlyIfNotExists)
+					throw new InvalidOperationException(
+						String.Format("The table {0} already exists and the IF NOT EXISTS clause was not specified.", tableName));
+
+				return;
+			}
+
+			context.Session.CreateTable(tableInfo, temporary);			
+			context.GrantToUserOnTable(tableName, Privileges.TableAll);
 		}
 
 		public static ITable GetTable(this IQueryContext context, ObjectName tableName) {
@@ -204,36 +230,6 @@ namespace Deveel.Data.DbSystem {
 				throw new InvalidOperationException(String.Format("Sequence {0} was not found.", sequenceName));
 
 			sequence.SetValue(value);
-		}
-
-		#endregion
-
-		#region Security
-
-		public static bool UserHasPrivilege(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
-			Privileges privileges) {
-			return context.Session.UserHasPrivilege(objectType, objectName, privileges);
-		}
-
-		public static bool UserCanCreateInSchema(this IQueryContext context, string schemaName) {
-			return context.UserHasPrivilege(DbObjectType.Schema, new ObjectName(schemaName), Privileges.Create);
-		}
-
-		public static bool UserCanCreateInSchema(this IQueryContext context) {
-			return context.UserCanCreateInSchema(context.CurrentSchema);
-		}
-
-		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, ObjectName routineName) {
-			var objectType = routineType == RoutineType.Procedure ? DbObjectType.Procedure : DbObjectType.Function;
-			return context.UserHasPrivilege(objectType, routineName, Privileges.Execute);
-		}
-
-		public static bool UserCanExecuteFunction(this IQueryContext context, ObjectName functionName) {
-			return context.UserCanExecute(RoutineType.Function, functionName);
-		}
-
-		public static bool UserCanExecuteProcedure(this IQueryContext context, ObjectName procedureName) {
-			return context.UserCanExecute(RoutineType.Procedure, procedureName);
 		}
 
 		#endregion

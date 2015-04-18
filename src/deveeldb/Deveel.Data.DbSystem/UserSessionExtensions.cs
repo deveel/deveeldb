@@ -125,7 +125,11 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static void CreateTable(this IUserSession session, TableInfo tableInfo) {
-			session.CreateObject(tableInfo);
+			CreateTable(session, tableInfo, false);
+		}
+
+		public static void CreateTable(this IUserSession session, TableInfo tableInfo, bool temporary) {
+			session.Transaction.CreateTable(tableInfo, temporary);
 		}
 
 		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string columnName) {

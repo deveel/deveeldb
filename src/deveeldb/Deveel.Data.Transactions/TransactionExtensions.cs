@@ -301,20 +301,17 @@ namespace Deveel.Data.Transactions {
 			return tableManager.GetTableType(tableName);
 		}
 
-		/// <summary>
-		/// Creates a new table within this transaction with the given sector 
-		/// size.
-		/// </summary>
-		/// <param name="transaction"></param>
-		/// <param name="tableInfo"></param>
-		/// <remarks>
-		/// This should only be called under an exclusive lock on the connection.
-		/// </remarks>
-		/// <exception cref="StatementException">
-		/// If the table already exists.
-		/// </exception>
 		public static void CreateTable(this ITransaction transaction, TableInfo tableInfo) {
-			transaction.CreateObject(tableInfo);
+			CreateTable(transaction, tableInfo, false);
+		}
+
+		public static void CreateTable(this ITransaction transaction, TableInfo tableInfo, bool temporary) {
+			var tableManager = transaction.GetTableManager();
+			if (temporary) {
+				tableManager.CreateTemporaryTable(tableInfo);
+			} else {
+				tableManager.CreateTable(tableInfo);
+			}
 		}
 
 		/// <summary>

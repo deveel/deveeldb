@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Protocol;
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Transactions;
@@ -409,6 +410,54 @@ namespace Deveel.Data.Security {
 			} catch (Exception ex) {
 				throw new DatabaseSystemException("Could not authenticate user.", ex);
 			}
+		}
+
+		public static bool UserHasPrivilege(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
+	Privileges privileges) {
+			return context.Session.UserHasPrivilege(objectType, objectName, privileges);
+		}
+
+		public static bool UserHasSchemaPrivilege(this IQueryContext context, string schemaName, Privileges privileges) {
+			return context.UserHasPrivilege(DbObjectType.Schema, new ObjectName(schemaName), privileges);
+		}
+
+		public static bool UserCanCreateInSchema(this IQueryContext context, string schemaName) {
+			return context.UserHasSchemaPrivilege(schemaName, Privileges.Create);
+		}
+
+		public static bool UserCanCreateTable(this IQueryContext context, ObjectName tableName) {
+			var schema = tableName.Parent;
+			if (schema == null)
+				return false;
+
+			return context.UserCanCreateInSchema(schema.FullName);
+		}
+
+		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, ObjectName routineName) {
+			var objectType = routineType == RoutineType.Procedure ? DbObjectType.Procedure : DbObjectType.Function;
+			return context.UserHasPrivilege(objectType, routineName, Privileges.Execute);
+		}
+
+		public static bool UserCanExecuteFunction(this IQueryContext context, ObjectName functionName) {
+			return context.UserCanExecute(RoutineType.Function, functionName);
+		}
+
+		public static bool UserCanExecuteProcedure(this IQueryContext context, ObjectName procedureName) {
+			return context.UserCanExecute(RoutineType.Procedure, procedureName);
+		}
+
+		public static void GrantToUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			using (var systemContext = context.ForSystemUser()) {
+				systemContext.GrantToUserOn(objectType, objectName, context.User(), privileges);
+			}
+		}
+
+		public static void GrantToUserOnTable(this IQueryContext context, ObjectName tableName, Privileges privileges) {
+			context.GrantToUserOn(DbObjectType.Table, tableName, privileges);
+		}
+
+		public static void GrantToUserOnTable(this IQueryContext context, ObjectName tableName, User grantee, Privileges privileges) {
+			context.GrantToUserOn(DbObjectType.Table, tableName, grantee, privileges);
 		}
 	}
 }

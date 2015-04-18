@@ -16,19 +16,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class CreateTableStatement : Statement {
-		internal CreateTableStatement() {
-		}
-
-		public CreateTableStatement(string tableName, IEnumerable<ColumnInfo> columns) {
+		public CreateTableStatement(ObjectName tableName, IEnumerable<ColumnInfo> columns) {
 			TableName = tableName;
-
+			Columns = new List<ColumnInfo>();
 			if (columns != null) {
 				foreach (var column in columns) {
 					Columns.Add(column);
@@ -36,42 +33,105 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
-		public string TableName {
-			get { return GetValue<string>(Keys.TableName); }
-			private set { SetValue(Keys.TableName, value); }
+		public ObjectName TableName { get; private set; }
+
+		public IList<ColumnInfo> Columns { get; private set; }
+
+		public bool IfNotExists { get; set; }
+
+		public bool Temporary { get; set; }
+
+		public override StatementType StatementType {
+			get { return StatementType.CreateTable; }
 		}
 
-		public IList<ColumnInfo> Columns {
-			get { return GetList<ColumnInfo>(Keys.Columns); }
+		//private void VerifyIdentityColumn() {
+		//	ColumnInfo idColumn = null;
+
+		//	foreach (var columnInfo in Columns) {
+		//		if (IsIdentity(columnInfo)) {
+		//			if (idColumn != null)
+		//				throw new InvalidOperationException(String.Format("Column {0} is already the identity of the table {1}.",
+		//					idColumn.ColumnName, TableName));
+
+		//			idColumn = columnInfo;
+		//		}
+		//	}
+
+		//	if (idColumn != null) {
+		//		if (!(idColumn.ColumnType is NumericType))
+		//			throw new InvalidOperationException(String.Format("Identity column '{0}' must be a NUMERIC type."));
+
+		//		var constraints = Constraints;
+		//		if (constraints == null ||
+		//			constraints.Count == 0)
+		//			throw new InvalidOperationException(
+		//				String.Format("Identity column '{0}' must be defined in a PRIMARY KEY constraint.", idColumn.ColumnName));
+		//	}
+		//}
+
+		//private static bool IsIdentity(ColumnInfo columnInfo) {
+		//	if (!columnInfo.HasDefaultExpression ||
+		//		columnInfo.DefaultExpression.ExpressionType != SqlExpressionType.FunctionCall)
+		//		return false;
+
+		//	var functionName = ((SqlFunctionCallExpression) columnInfo.DefaultExpression).FunctioName.Name;
+		//	return String.Equals(functionName, "uniquekey", StringComparison.OrdinalIgnoreCase);
+		//}
+
+		protected override PreparedStatement PrepareStatement(IQueryContext context) {
+			var tableInfo = CreateTableInfo(context);
+
+			return new PreparedCreateTableStatement {
+				TableInfo = tableInfo,
+				Temporary = Temporary,
+				IfNotExists = IfNotExists
+			};
 		}
 
-		public bool IfNotExists {
-			get { return GetValue<bool>(Keys.IfNotExists); }
-			set { SetValue(Keys.IfNotExists, value); }
-		}
+		private TableInfo CreateTableInfo(IQueryContext context) {
+			var tableName = TableName;
 
-		public bool Temporary {
-			get { return GetValue<bool>(Keys.Temporary); }
-			set { SetValue(Keys.Temporary, value); }
-		}
+			// TODO: there are a lot of controls here to do before generating:
+			//        1. Verify there are zero-or-one identity columns
+			//        2. Assert every column name is well formatted
+			//        3. Assert all the columns fall into the table domain
+			//        4. Assert that DEFAULT expression of columns have no column
+			//           references outside the table domain.
 
-		protected override PreparedStatement OnPrepare(IQueryContext context) {
-			throw new NotImplementedException();
+			tableName = context.ResolveTableName(tableName);
+
+			var tableInfo = new TableInfo(tableName);
+
+			foreach (var column in Columns) {
+				tableInfo.AddColumn(column);
+			}
+
+			return tableInfo;
 		}
 
 		#region PreparedCreateTableStatement
 
+		[Serializable]
 		class PreparedCreateTableStatement : PreparedStatement {
-			public ObjectName TableName { get; set; }
+			public TableInfo TableInfo { get; set; }
 
 			public bool Temporary { get; set; }
 
 			public bool IfNotExists { get; set; }
 
-			public IEnumerable<ColumnInfo> Columns { get; set; } 
+			public override ITable Evaluate(IQueryContext context) {
+				if (!context.UserCanCreateTable(TableInfo.TableName))
+					throw new MissingPrivilegesException(TableInfo.TableName,
+						String.Format("User '{0}' has not enough privileges to create table '{1}'", context.User(), TableInfo.TableName));
 
-			protected override ITable OnEvaluate(IQueryContext context) {
-				throw new NotImplementedException();
+				try {
+					context.CreateTable(TableInfo, IfNotExists, Temporary);
+					return FunctionTable.ResultTable(context, 0);
+				} catch (Exception ex) {
+					// TODO: Send a specialized error
+					throw;
+				}
 			}
 		}
 

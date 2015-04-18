@@ -24,9 +24,6 @@ using Deveel.Data.Sql.Query;
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class SelectStatement : Statement {
-		internal SelectStatement() {
-		}
-
 		public SelectStatement(SqlQueryExpression queryExpression) 
 			: this(queryExpression, null) {
 		}
@@ -36,19 +33,18 @@ namespace Deveel.Data.Sql.Statements {
 				throw new ArgumentNullException("queryExpression");
 
 			QueryExpression = queryExpression;
+			OrderBy = new List<SortColumn>();
 		}
 
-		public SqlQueryExpression QueryExpression {
-			get { return GetValue<SqlQueryExpression>(Keys.QueryExpression); }
-			private set { SetValue(Keys.QueryExpression, value); }
+		public SqlQueryExpression QueryExpression { get; private set; }
+
+		public IList<SortColumn> OrderBy { get; private set; }
+
+		public override StatementType StatementType {
+			get { return StatementType.Select; }
 		}
 
-		public IList<SortColumn> OrderBy {
-			get { return GetList<SortColumn>(Keys.OrderBy); }
-			set { SetValue(Keys.OrderBy, value); }
-		}
-
-		protected override PreparedStatement OnPrepare(IQueryContext context) {
+		protected override PreparedStatement PrepareStatement(IQueryContext context) {
 			// Prepare this object from the StatementTree,
 			// The select expression itself
 			var selectExpression = QueryExpression;
@@ -83,7 +79,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public IQueryPlanNode QueryPlan { get; private set; }
 
-			protected override ITable OnEvaluate(IQueryContext context) {
+			public override ITable Evaluate(IQueryContext context) {
 				throw new NotImplementedException();
 			}
 		}

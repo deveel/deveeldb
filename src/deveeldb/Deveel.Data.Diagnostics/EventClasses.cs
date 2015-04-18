@@ -21,6 +21,7 @@ namespace Deveel.Data.Diagnostics {
 	/// Provides a finite set of classes for events.
 	/// </summary>
 	public static class EventClasses {
+		public const int Security = 0x0020F67;
 		public const int System = 0x000120;
 		public const int Compiler = 0x003033;
 		public const int Storage = 0x000670;

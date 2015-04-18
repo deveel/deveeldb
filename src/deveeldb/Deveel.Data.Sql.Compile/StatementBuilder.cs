@@ -25,7 +25,7 @@ using Deveel.Data.Types;
 namespace Deveel.Data.Sql.Compile {
 	public sealed class StatementBuilder : SqlNodeVisitor {
 		private readonly IUserTypeResolver typeResolver;
-		private readonly List<StatementTree> statements;
+		private readonly List<Statement> statements;
 
 		public StatementBuilder() 
 			: this(null) {
@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		public StatementBuilder(IUserTypeResolver typeResolver) {
 			this.typeResolver = typeResolver;
-			statements = new List<StatementTree>();
+			statements = new List<Statement>();
 		}
 
 		private SqlExpression VisitExpression(IExpressionNode node) {
@@ -66,9 +66,8 @@ namespace Deveel.Data.Sql.Compile {
 
 		private void VisitSelect(SelectStatementNode node) {
 			var queryExpression = (SqlQueryExpression)VisitExpression(node.QueryExpression);
-			var tree = new StatementTree(typeof(SelectStatement));
-			tree.SetValue(SelectStatement.Keys.QueryExpression, queryExpression);
-			statements.Add(tree);
+			var statement = new SelectStatement(queryExpression);
+			statements.Add(statement);
 		}
 
 		private void VisitCreateTrigger(CreateTriggerNode node) {
@@ -83,19 +82,19 @@ namespace Deveel.Data.Sql.Compile {
 			CreateTable.Build(typeResolver, node, statements);
 		}
 
-		public IEnumerable<StatementTree> Build(ISqlNode rootNode, SqlQuery query) {
+		public IEnumerable<Statement> Build(ISqlNode rootNode, SqlQuery query) {
 			VisitNode(rootNode);
 			return statements.AsReadOnly();
 		}
 
-		public IEnumerable<StatementTree> Build(ISqlNode rootNode, string query) {
+		public IEnumerable<Statement> Build(ISqlNode rootNode, string query) {
 			return Build(rootNode, new SqlQuery(query));
 		}
 
 		#region CreateTable
 
 		static class CreateTable {
-			public static void Build(IUserTypeResolver typeResolver, CreateTableNode node, ICollection<StatementTree> statements) {
+			public static void Build(IUserTypeResolver typeResolver, CreateTableNode node, ICollection<Statement> statements) {
 				string idColumn = null;
 
 				var dataTypeBuilder = new DataTypeBuilder();
@@ -204,21 +203,16 @@ namespace Deveel.Data.Sql.Compile {
 				throw new NotSupportedException();
 			}
 
-			private static StatementTree MakeAlterTableAddConstraint(ObjectName tableName, ConstraintInfo constraint) {
+			private static Statement MakeAlterTableAddConstraint(ObjectName tableName, ConstraintInfo constraint) {
 				var action = new AddConstraintAction(constraint);
 
-				var tree = new StatementTree(typeof (AlterTableStatement));
-				tree.SetValue(AlterTableStatement.Keys.TableName, tableName);
-				tree.SetValue(AlterTableStatement.Keys.Actions, new List<IAlterTableAction> {action});
-				return tree;
+				return new AlterTableStatement(tableName,new List<IAlterTableAction>{action});
 			}
 
-			private static StatementTree MakeCreateTable(ObjectName tableName, IEnumerable<ColumnInfo> columns, bool ifNotExists, bool temporary) {
-				var tree = new StatementTree(typeof (CreateTableStatement));
-				tree.SetValue(CreateTableStatement.Keys.TableName, tableName);
-				tree.SetValue(CreateTableStatement.Keys.Columns, columns.ToList());
-				tree.SetValue(CreateTableStatement.Keys.IfNotExists, ifNotExists);
-				tree.SetValue(CreateTableStatement.Keys.Temporary, temporary);
+			private static Statement MakeCreateTable(ObjectName tableName, IEnumerable<ColumnInfo> columns, bool ifNotExists, bool temporary) {
+				var tree = new CreateTableStatement(tableName, columns.ToList());
+				tree.IfNotExists = ifNotExists;
+				tree.Temporary = temporary;
 				return tree;
 			}
 		}

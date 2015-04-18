@@ -228,7 +228,11 @@
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
+    <Compile Include="Deveel.Data.Security\InvalidAccessException.cs" />
+    <Compile Include="Deveel.Data.Security\MissingPrivilegesException.cs" />
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
+    <Compile Include="Deveel.Data.Security\SecurityErrorCodes.cs" />
+    <Compile Include="Deveel.Data.Security\SecurityException.cs" />
     <Compile Include="Deveel.Data.Security\SecurityQueryExtensions.cs" />
     <Compile Include="Deveel.Data.Index\StoreIndex.cs" />
     <Compile Include="Deveel.Data.Index\IndexSetStore.cs" />
@@ -263,6 +267,8 @@
     <Compile Include="Deveel.Data.Sql.Query\TableNamesVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TablePlan.cs" />
     <Compile Include="Deveel.Data.Sql.Query\UserSessionExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\PreparedStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementType.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql\DataTable.cs" />
     <Compile Include="Deveel.Data.Sql\FilterTable.cs" />
@@ -459,11 +465,9 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropDefaultAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropPrimaryKeyAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterTableAction.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\PreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetDefaultAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\Statement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StatementTree.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeTable.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintDeferrabilityExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintViolationException.cs" />

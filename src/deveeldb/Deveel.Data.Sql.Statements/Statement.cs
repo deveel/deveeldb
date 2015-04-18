@@ -24,42 +24,34 @@ using Deveel.Data.Sql.Compile;
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public abstract class Statement {
-		protected Statement() {
-			StatementTree = new StatementTree(GetType());
-		}
-
-		protected StatementTree StatementTree { get; private set; }
-
 		public SqlQuery SourceQuery { get; private set; }
 
 		public bool IsFromQuery { get; private set; }
 
-		internal void SetSource(StatementTree statementTree, SqlQuery query) {
-			StatementTree = statementTree;
+		internal void SetSource(SqlQuery query) {
 			SourceQuery = query;
 			IsFromQuery = true;
 		}
 
-		protected abstract PreparedStatement OnPrepare(IQueryContext context);
+		public abstract StatementType StatementType { get; }
 
-		protected T GetValue<T>(string key) {
-			return StatementTree.GetValue<T>(key);
-		}
-
-		protected IList<T> GetList<T>(string key) {
-			return StatementTree.GetList<T>(key);
-		} 
-
-		protected void SetValue(string key, object value) {
-			StatementTree.SetValue(key, value);
-		}
+		protected abstract PreparedStatement PrepareStatement(IQueryContext context);
 
 		public PreparedStatement Prepare(IQueryContext context) {
-			var prepared = OnPrepare(context);
+			PreparedStatement prepared;
 
-			prepared.Query = SourceQuery;
+			try {
+				prepared = PrepareStatement(context);
 
-			// TODO: Make more checks here...
+				if (prepared == null)
+					throw new InvalidOperationException("Preparation was invalid.");
+
+				prepared.Source = this;
+			} catch (Exception ex) {
+				// TODO: throw a specialized exception
+				throw;
+			}
+
 			return prepared;
 		}
 
@@ -82,7 +74,7 @@ namespace Deveel.Data.Sql.Statements {
 			var builder = new StatementBuilder();
 			var trees = builder.Build(result.RootNode, sqlSource);
 
-			return trees.Select(x => x.CreateStatement()).ToList();
+			return trees.ToList();
 		}
 	}
 }
