@@ -87,10 +87,11 @@ namespace Deveel.Data.Sql {
 
 					// Add this column to the data table info of this table.
 					var columnInfo = curTableInfo[n];
-					var newColumnInfo = new ColumnInfo(columnInfo.ColumnName, columnInfo.ColumnType);
-					newColumnInfo.DefaultExpression = columnInfo.DefaultExpression;
-					newColumnInfo.IsNotNull = columnInfo.IsNotNull;
-					newColumnInfo.IndexType = columnInfo.IndexType;
+					var newColumnInfo = new ColumnInfo(columnInfo.ColumnName, columnInfo.ColumnType) {
+						DefaultExpression = columnInfo.DefaultExpression,
+						IsNotNull = columnInfo.IsNotNull,
+						IndexType = columnInfo.IndexType
+					};
 
 					vtTableInfo.AddColumn(newColumnInfo);
 				}

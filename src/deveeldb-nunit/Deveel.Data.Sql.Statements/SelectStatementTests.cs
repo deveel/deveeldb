@@ -26,16 +26,16 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithFromClause() {
 			const string sql = "SELECT col1 AS a FROM table";
 
-			IEnumerable<Statement> statements = null;
-			Assert.DoesNotThrow(() => statements = Statement.Parse(sql));
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
 			var statement = statements.FirstOrDefault();
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SelectStatement>(statement);
+			Assert.IsInstanceOf<SqlSelectStatement>(statement);
 
-			var selectStatement = (SelectStatement) statement;
+			var selectStatement = (SqlSelectStatement) statement;
 
 		}
 	}

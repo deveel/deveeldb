@@ -22,10 +22,10 @@ using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class CreateTableStatement : Statement {
-		public CreateTableStatement(ObjectName tableName, IEnumerable<ColumnInfo> columns) {
+	public sealed class SqlCreateTableStatement : SqlStatement {
+		public SqlCreateTableStatement(ObjectName tableName, IEnumerable<SqlTableColumn> columns) {
 			TableName = tableName;
-			Columns = new List<ColumnInfo>();
+			Columns = new List<SqlTableColumn>();
 			if (columns != null) {
 				foreach (var column in columns) {
 					Columns.Add(column);
@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ObjectName TableName { get; private set; }
 
-		public IList<ColumnInfo> Columns { get; private set; }
+		public IList<SqlTableColumn> Columns { get; private set; }
 
 		public bool IfNotExists { get; set; }
 
@@ -79,14 +79,10 @@ namespace Deveel.Data.Sql.Statements {
 		//	return String.Equals(functionName, "uniquekey", StringComparison.OrdinalIgnoreCase);
 		//}
 
-		protected override PreparedStatement PrepareStatement(IQueryContext context) {
+		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
 			var tableInfo = CreateTableInfo(context);
 
-			return new PreparedCreateTableStatement {
-				TableInfo = tableInfo,
-				Temporary = Temporary,
-				IfNotExists = IfNotExists
-			};
+			return new PreparedCreateTableStatement(tableInfo, IfNotExists, Temporary);
 		}
 
 		private TableInfo CreateTableInfo(IQueryContext context) {
@@ -104,46 +100,49 @@ namespace Deveel.Data.Sql.Statements {
 			var tableInfo = new TableInfo(tableName);
 
 			foreach (var column in Columns) {
-				tableInfo.AddColumn(column);
+				var columnInfo = CreateColumnInfo(column);
+				tableInfo.AddColumn(columnInfo);
 			}
 
 			return tableInfo;
 		}
 
+		private ColumnInfo CreateColumnInfo(SqlTableColumn column) {
+			return new ColumnInfo(column.ColumnName, column.ColumnType) {
+				DefaultExpression = column.DefaultExpression,
+				IsNotNull = column.IsNotNull
+			};
+		}
+
 		#region PreparedCreateTableStatement
 
 		[Serializable]
-		class PreparedCreateTableStatement : PreparedStatement {
-			public TableInfo TableInfo { get; set; }
+		class PreparedCreateTableStatement : SqlPreparedStatement {
+			private readonly TableInfo tableInfo;
+			private readonly bool temporary;
+			private readonly bool ifNotExists;
 
-			public bool Temporary { get; set; }
-
-			public bool IfNotExists { get; set; }
+			public PreparedCreateTableStatement(TableInfo tableInfo, bool ifNotExists, bool temporary) {
+				this.tableInfo = tableInfo;
+				this.ifNotExists = ifNotExists;
+				this.temporary = temporary;
+			}
 
 			public override ITable Evaluate(IQueryContext context) {
-				if (!context.UserCanCreateTable(TableInfo.TableName))
-					throw new MissingPrivilegesException(TableInfo.TableName,
-						String.Format("User '{0}' has not enough privileges to create table '{1}'", context.User(), TableInfo.TableName));
+				if (!context.UserCanCreateTable(tableInfo.TableName))
+					throw new MissingPrivilegesException(tableInfo.TableName,
+						String.Format("User '{0}' has not enough privileges to create table '{1}'", context.User(), tableInfo.TableName));
 
 				try {
-					context.CreateTable(TableInfo, IfNotExists, Temporary);
+					context.CreateTable(tableInfo, ifNotExists, temporary);
 					return FunctionTable.ResultTable(context, 0);
+				} catch (SecurityException ex) {
+					throw;
 				} catch (Exception ex) {
 					// TODO: Send a specialized error
 					throw;
 				}
 			}
-		}
-
-		#endregion
-
-		#region Keys
-
-		internal static class Keys {
-			public const string TableName = "TableName";
-			public const string Columns = "Columns";
-			public const string IfNotExists = "IfNotExists";
-			public const string Temporary = "Temporary";
 		}
 
 		#endregion

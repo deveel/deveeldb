@@ -27,91 +27,6 @@ namespace Deveel.Data.Sql.Query {
 	public sealed class QueryPlanner : IQueryPlanner {
 		private static readonly ObjectName FunctionTableName = new ObjectName("FUNCTIONTABLE");
 
-		private QueryExpressionFrom GenerateFrom(SqlQueryExpression expression, IQueryContext context) {
-			// Get the 'from_clause' from the table expression
-			var fromClause = expression.FromClause;
-			var ignoreCase = context.IgnoreIdentifiersCase();
-
-			var queryFrom = new QueryExpressionFrom(ignoreCase);
-			foreach (var fromTable in fromClause.AllTables) {
-				var uniqueKey = fromTable.UniqueKey;
-				var alias = fromTable.Alias;
-
-				if (fromTable.IsSubQuery) {
-					// eg. FROM ( SELECT id FROM Part )
-					var subQuery = fromTable.SubQuery;
-					var subQueryFrom = GenerateFrom(subQuery, context);
-
-					// The aliased name of the table
-					ObjectName aliasTableName = null;
-					if (alias != null)
-						aliasTableName = new ObjectName(alias);
-
-					// Add to list of sub-query tables to add to command,
-					queryFrom.AddTable(new FromTableSubQuerySource(ignoreCase, uniqueKey, subQuery, subQueryFrom, aliasTableName));
-				} else {
-					// Else must be a standard command table,
-					string name = fromTable.Name;
-
-					// Resolve to full table name
-					var tableName = context.ResolveTableName(name);
-
-					if (!context.TableExists(tableName))
-						throw new InvalidOperationException(String.Format("Table '{0}' was not found.", tableName));
-
-					ObjectName givenName = null;
-					if (alias != null)
-						givenName = new ObjectName(alias);
-
-					// Get the ITableQueryInfo object for this table name (aliased).
-					ITableQueryInfo tableQueryInfo = context.GetTableQueryInfo(tableName, givenName);
-
-					queryFrom.AddTable(new FromTableDirectSource(ignoreCase, tableQueryInfo, uniqueKey, givenName, tableName));
-				}
-			}
-
-			// Set up functions, aliases and exposed variables for this from set,
-
-			foreach (var selectColumn in expression.SelectColumns) {
-				// Is this a glob?  (eg. Part.* )
-				if (selectColumn.IsGlob) {
-					// Find the columns globbed and add to the 'selectedColumns' result.
-					if (selectColumn.IsAll) {
-						queryFrom.ExposeAllColumns();
-					} else {
-						// Otherwise the glob must be of the form '[table name].*'
-						queryFrom.ExposeColumns(selectColumn.TableName);
-					}
-				} else {
-					// Otherwise must be a standard column reference.  Note that at this
-					// time we aren't sure if a column expression is correlated and is
-					// referencing an outer source.  This means we can't verify if the
-					// column expression is valid or not at this point.
-
-					// If this column is aliased, add it as a function reference to the
-					// select expression
-					
-					string alias = selectColumn.Alias;
-					var v = selectColumn.Expression.AsReferenceName();
-					bool aliasMatchV = (v != null && alias != null &&
-					                    queryFrom.CompareStrings(v.Name, alias));
-					if (alias != null && !aliasMatchV) {
-						queryFrom.AddExpression(new ExpressionReference(selectColumn.Expression, alias));
-						queryFrom.ExposeColumn(new ObjectName(alias));
-					} else if (v != null) {
-						var resolved = queryFrom.ResolveReference(v);
-						queryFrom.ExposeColumn(resolved ?? v);
-					} else {
-						string funName = selectColumn.Expression.ToString();
-						queryFrom.AddExpression(new ExpressionReference(selectColumn.Expression, funName));
-						queryFrom.ExposeColumn(new ObjectName(funName));
-					}
-				}
-			}
-
-			return queryFrom;
-		}
-
 		private SqlExpression PrepareSearchExpression(IQueryContext context, QueryExpressionFrom queryFrom, SqlExpression expression) {
 			// first check the expression is not null
 			if (expression == null)
@@ -441,7 +356,7 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		public IQueryPlanNode PlanQuery(IQueryContext context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns) {
-			var queryFrom = GenerateFrom(queryExpression, context);
+			var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
 			var orderBy = new List<SortColumn>();
 			if (sortColumns != null)
 				orderBy.AddRange(sortColumns);
@@ -553,7 +468,7 @@ namespace Deveel.Data.Sql.Query {
 			IQueryPlanNode rightComposite = null;
 			if (queryExpression.NextComposite != null) {
 				var compositeExpr = queryExpression.NextComposite;
-				var compositeFrom = GenerateFrom(compositeExpr, context);
+				var compositeFrom = QueryExpressionFrom.Create(context, compositeExpr);
 
 				// Form the right plan
 				rightComposite = PlanQuery(context, compositeExpr, compositeFrom, null);
@@ -724,7 +639,7 @@ namespace Deveel.Data.Sql.Query {
 
 			public SqlExpression Prepare(SqlExpression expression) {
 				var queryExpression = (SqlQueryExpression) expression;
-				var queryFrom = planner.GenerateFrom(queryExpression, context);
+				var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
 				queryFrom.Parent = parent;
 				var plan = planner.PlanQuery(context, queryExpression, queryFrom, null);
 				return SqlExpression.Constant(new DataObject(new QueryType(), new SqlQueryObject(new CachePointNode(plan))));

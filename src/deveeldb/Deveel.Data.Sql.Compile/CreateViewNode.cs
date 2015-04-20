@@ -15,14 +15,36 @@
 //
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
 	class CreateViewNode : SqlNode, IStatementNode {
+		internal CreateViewNode() {
+		}
+
 		public ObjectNameNode ViewName { get; private set; }
 
 		public bool ReplaceIfExists { get; private set; }
 
+		public IEnumerable<string> ColumnNames { get; private set; }
+
 		public SqlQueryExpressionNode QueryExpression { get; private set; }
+
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName == "column_list_opt") {
+
+			} else if (node.NodeName == "or_replace_opt") {
+				if (node.ChildNodes.Any())
+					ReplaceIfExists = true;
+			} else if (node is ObjectNameNode) {
+				ViewName = (ObjectNameNode) node;
+			} else if (node is SqlQueryExpressionNode) {
+				QueryExpression = (SqlQueryExpressionNode) node;
+			}
+
+			return base.OnChildNode(node);
+		}
 	}
 }

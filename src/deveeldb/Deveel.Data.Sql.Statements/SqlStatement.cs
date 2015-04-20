@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Compile;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public abstract class Statement {
+	public abstract class SqlStatement {
 		public SqlQuery SourceQuery { get; private set; }
 
 		public bool IsFromQuery { get; private set; }
@@ -35,10 +35,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		public abstract StatementType StatementType { get; }
 
-		protected abstract PreparedStatement PrepareStatement(IQueryContext context);
+		protected abstract SqlPreparedStatement PrepareStatement(IQueryContext context);
 
-		public PreparedStatement Prepare(IQueryContext context) {
-			PreparedStatement prepared;
+		public SqlPreparedStatement Prepare(IQueryContext context) {
+			SqlPreparedStatement prepared;
 
 			try {
 				prepared = PrepareStatement(context);
@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 			return prepared;
 		}
 
-		public static IEnumerable<Statement> Parse(string sqlSource) {
+		public static IEnumerable<SqlStatement> Parse(string sqlSource) {
 			var compiler = SqlParsers.Default;
 			SequenceOfStatementsNode sequence;
 

@@ -23,8 +23,8 @@ namespace Deveel.Data.Sql.Compile {
 		public SqlQueryExpressionNode QueryExpression { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node.NodeName == "query") {
-				QueryExpression = node.ChildNodes.FirstOrDefault() as SqlQueryExpressionNode;
+			if (node.NodeName == "sql_query_expression") {
+				QueryExpression = node as SqlQueryExpressionNode;
 			}
 
 			return base.OnChildNode(node);

@@ -22,16 +22,16 @@ using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class AlterTableStatement : Statement {
-		public AlterTableStatement(ObjectName tableName) 
+	public sealed class SqlAlterTableStatement : SqlStatement {
+		public SqlAlterTableStatement(ObjectName tableName) 
 			: this(tableName, (IAlterTableAction) null) {
 		}
 
-		public AlterTableStatement(ObjectName tableName, IAlterTableAction action)
+		public SqlAlterTableStatement(ObjectName tableName, IAlterTableAction action)
 			: this(tableName, new[] {action}) {
 		}
 
-		public AlterTableStatement(ObjectName tableName, IEnumerable<IAlterTableAction> actions) {
+		public SqlAlterTableStatement(ObjectName tableName, IEnumerable<IAlterTableAction> actions) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");
 
@@ -53,14 +53,14 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IList<IAlterTableAction> Actions { get; private set; } 
 
-		protected override PreparedStatement PrepareStatement(IQueryContext context) {
+		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
 			throw new NotImplementedException();
 		}
 
 		#region AlterTablePreparedStatement
 
 		[Serializable]
-		class AlterTablePreparedStatement : PreparedStatement {
+		class PreparedAlterTableStatement : SqlPreparedStatement {
 			public override ITable Evaluate(IQueryContext context) {
 				throw new NotImplementedException();
 			}

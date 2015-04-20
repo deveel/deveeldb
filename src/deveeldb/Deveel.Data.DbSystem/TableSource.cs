@@ -427,8 +427,7 @@ namespace Deveel.Data.DbSystem {
 			lock (this) {
 				// Create the initial DataIndexSetInfo object.
 				IndexSetInfo = new IndexSetInfo(TableInfo.TableName);
-				for (int i = 0; i < TableInfo.ColumnCount; ++i) {
-					var colInfo = TableInfo[i];
+				foreach (var colInfo in TableInfo) {
 					if (colInfo.IsIndexable) {
 						var indexName = String.Format("IDX_{0}", colInfo.ColumnName);
 						var indexType = colInfo.IndexType;

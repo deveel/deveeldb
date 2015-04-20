@@ -127,7 +127,7 @@ namespace Deveel.Data.Sql {
 			get { return DefaultExpression != null; }
 		}
 
-		public string IndexType { get; set; }
+		public string IndexType { get; internal set; }
 
 		internal void SerializeTo(Stream stream) {
 			var writer = new BinaryWriter(stream, Encoding.Unicode);

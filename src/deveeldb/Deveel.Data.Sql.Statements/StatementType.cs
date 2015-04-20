@@ -11,6 +11,9 @@ namespace Deveel.Data.Sql.Statements {
 		AlterTable,
 		DropTable,
 
+		CreateView,
+		DropView,
+
 		// Security
 		CreateGroup,
 		DropGroup,

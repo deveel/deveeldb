@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
@@ -220,6 +221,91 @@ namespace Deveel.Data.Sql.Query {
 			}
 
 			return referenceName;
+		}
+
+		public static QueryExpressionFrom Create(IQueryContext context, SqlQueryExpression expression) {
+			// Get the 'from_clause' from the table expression
+			var fromClause = expression.FromClause;
+			var ignoreCase = context.IgnoreIdentifiersCase();
+
+			var queryFrom = new QueryExpressionFrom(ignoreCase);
+			foreach (var fromTable in fromClause.AllTables) {
+				var uniqueKey = fromTable.UniqueKey;
+				var alias = fromTable.Alias;
+
+				if (fromTable.IsSubQuery) {
+					// eg. FROM ( SELECT id FROM Part )
+					var subQuery = fromTable.SubQuery;
+					var subQueryFrom = Create(context, subQuery);
+
+					// The aliased name of the table
+					ObjectName aliasTableName = null;
+					if (alias != null)
+						aliasTableName = new ObjectName(alias);
+
+					// Add to list of sub-query tables to add to command,
+					queryFrom.AddTable(new FromTableSubQuerySource(ignoreCase, uniqueKey, subQuery, subQueryFrom, aliasTableName));
+				} else {
+					// Else must be a standard command table,
+					string name = fromTable.Name;
+
+					// Resolve to full table name
+					var tableName = context.ResolveTableName(name);
+
+					if (!context.TableExists(tableName))
+						throw new InvalidOperationException(String.Format("Table '{0}' was not found.", tableName));
+
+					ObjectName givenName = null;
+					if (alias != null)
+						givenName = new ObjectName(alias);
+
+					// Get the ITableQueryInfo object for this table name (aliased).
+					ITableQueryInfo tableQueryInfo = context.GetTableQueryInfo(tableName, givenName);
+
+					queryFrom.AddTable(new FromTableDirectSource(ignoreCase, tableQueryInfo, uniqueKey, givenName, tableName));
+				}
+			}
+
+			// Set up functions, aliases and exposed variables for this from set,
+
+			foreach (var selectColumn in expression.SelectColumns) {
+				// Is this a glob?  (eg. Part.* )
+				if (selectColumn.IsGlob) {
+					// Find the columns globbed and add to the 'selectedColumns' result.
+					if (selectColumn.IsAll) {
+						queryFrom.ExposeAllColumns();
+					} else {
+						// Otherwise the glob must be of the form '[table name].*'
+						queryFrom.ExposeColumns(selectColumn.TableName);
+					}
+				} else {
+					// Otherwise must be a standard column reference.  Note that at this
+					// time we aren't sure if a column expression is correlated and is
+					// referencing an outer source.  This means we can't verify if the
+					// column expression is valid or not at this point.
+
+					// If this column is aliased, add it as a function reference to the
+					// select expression
+
+					string alias = selectColumn.Alias;
+					var v = selectColumn.Expression.AsReferenceName();
+					bool aliasMatchV = (v != null && alias != null &&
+										queryFrom.CompareStrings(v.Name, alias));
+					if (alias != null && !aliasMatchV) {
+						queryFrom.AddExpression(new ExpressionReference(selectColumn.Expression, alias));
+						queryFrom.ExposeColumn(new ObjectName(alias));
+					} else if (v != null) {
+						var resolved = queryFrom.ResolveReference(v);
+						queryFrom.ExposeColumn(resolved ?? v);
+					} else {
+						string funName = selectColumn.Expression.ToString();
+						queryFrom.AddExpression(new ExpressionReference(selectColumn.Expression, funName));
+						queryFrom.ExposeColumn(new ObjectName(funName));
+					}
+				}
+			}
+
+			return queryFrom;
 		}
 
 		#region FromExpressionPreparer

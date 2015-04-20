@@ -14,8 +14,8 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseSimpleCreate() {
 			const string sql = "CREATE TABLE test (id INT, name VARCHAR)";
 
-			IEnumerable<Statement> statements = null;
-			Assert.DoesNotThrow(() => statements = Statement.Parse(sql));
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
 			var list = statements.ToList();
@@ -25,9 +25,9 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = list[0];
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<CreateTableStatement>(statement);
+			Assert.IsInstanceOf<SqlCreateTableStatement>(statement);
 
-			var createTable = (CreateTableStatement) statement;
+			var createTable = (SqlCreateTableStatement) statement;
 			Assert.AreEqual(2, createTable.Columns.Count);
 
 			var columns = createTable.Columns;
@@ -43,8 +43,8 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithColumnDefault() {
 			const string sql = "CREATE TABLE test (id INT, name VARCHAR DEFAULT (67 * 90)+22, date TIMESTAMP DEFAULT GetDate())";
 
-			IEnumerable<Statement> statements = null;
-			Assert.DoesNotThrow(() => statements = Statement.Parse(sql));
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
 			var list = statements.ToList();
@@ -54,9 +54,9 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = list[0];
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<CreateTableStatement>(statement);
+			Assert.IsInstanceOf<SqlCreateTableStatement>(statement);
 
-			var createTable = (CreateTableStatement)statement;
+			var createTable = (SqlCreateTableStatement)statement;
 			Assert.AreEqual(3, createTable.Columns.Count);
 
 			var columns = createTable.Columns;
@@ -79,8 +79,8 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithColumnIdentity() {
 			const string sql = "CREATE TABLE test (id INT IDENTITY, name VARCHAR NOT NULL)";
 
-			IEnumerable<Statement> statements = null;
-			Assert.DoesNotThrow(() => statements = Statement.Parse(sql));
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
 			var list = statements.ToList();
@@ -90,9 +90,9 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = list[0];
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<CreateTableStatement>(statement);
+			Assert.IsInstanceOf<SqlCreateTableStatement>(statement);
 
-			var createTable = (CreateTableStatement)statement;
+			var createTable = (SqlCreateTableStatement)statement;
 			Assert.AreEqual(2, createTable.Columns.Count);
 
 			var columns = createTable.Columns;
@@ -111,8 +111,8 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithColumnConstraints() {
 			const string sql = "CREATE TABLE test (id INT PRIMARY KEY, name VARCHAR NOT NULL)";
 
-			IEnumerable<Statement> statements = null;
-			Assert.DoesNotThrow(() => statements = Statement.Parse(sql));
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
 			var list = statements.ToList();
@@ -124,8 +124,8 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithColumnAndTableConstraints() {
 			const string sql = "CREATE TABLE test (id INT PRIMARY KEY, name VARCHAR NOT NULL, CONSTRAINT uk_test UNIQUE(name))";
 
-			IEnumerable<Statement> statements = null;
-			Assert.DoesNotThrow(() => statements = Statement.Parse(sql));
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
 			var list = statements.ToList();

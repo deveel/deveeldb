@@ -230,7 +230,14 @@ namespace Deveel.Data.Sql.Compile {
 
 		private NonTerminal CreateView() {
 			var createView = new NonTerminal("create_view", typeof(CreateViewNode));
-			createView.Rule = CREATE + OrReplace() + VIEW + ObjectName() + AS + SqlQueryExpression();
+			var columnList = new NonTerminal("column_list");
+			var columnName = new NonTerminal("column_name");
+			var columnListOpt = new NonTerminal("column_list_opt");
+
+			columnName.Rule = Identifier;
+			columnList.Rule = MakeStarRule(columnList, Comma, columnName);
+			columnListOpt.Rule = Empty | "(" + columnList + ")";
+			createView.Rule = CREATE + OrReplace() + VIEW + ObjectName() + columnListOpt + AS + SqlQueryExpression();
 			return createView;
 		}
 

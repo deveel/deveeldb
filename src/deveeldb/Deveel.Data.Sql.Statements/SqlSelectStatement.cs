@@ -23,12 +23,12 @@ using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class SelectStatement : Statement {
-		public SelectStatement(SqlQueryExpression queryExpression) 
+	public sealed class SqlSelectStatement : SqlStatement {
+		public SqlSelectStatement(SqlQueryExpression queryExpression) 
 			: this(queryExpression, null) {
 		}
 
-		public SelectStatement(SqlQueryExpression queryExpression, IEnumerable<SortColumn> orderBy) {
+		public SqlSelectStatement(SqlQueryExpression queryExpression, IEnumerable<SortColumn> orderBy) {
 			if (queryExpression == null)
 				throw new ArgumentNullException("queryExpression");
 
@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 			get { return StatementType.Select; }
 		}
 
-		protected override PreparedStatement PrepareStatement(IQueryContext context) {
+		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
 			// Prepare this object from the StatementTree,
 			// The select expression itself
 			var selectExpression = QueryExpression;
@@ -69,7 +69,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region PreparedSelectStatement
 
 		[Serializable]
-		sealed class PreparedSelectStatement : PreparedStatement {
+		sealed class PreparedSelectStatement : SqlPreparedStatement {
 			public PreparedSelectStatement(IQueryPlanNode queryPlan) {
 				if (queryPlan == null)
 					throw new ArgumentNullException("queryPlan");

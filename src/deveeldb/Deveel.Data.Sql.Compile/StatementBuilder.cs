@@ -25,7 +25,7 @@ using Deveel.Data.Types;
 namespace Deveel.Data.Sql.Compile {
 	public sealed class StatementBuilder : SqlNodeVisitor {
 		private readonly IUserTypeResolver typeResolver;
-		private readonly List<Statement> statements;
+		private readonly List<SqlStatement> statements;
 
 		public StatementBuilder() 
 			: this(null) {
@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		public StatementBuilder(IUserTypeResolver typeResolver) {
 			this.typeResolver = typeResolver;
-			statements = new List<Statement>();
+			statements = new List<SqlStatement>();
 		}
 
 		private SqlExpression VisitExpression(IExpressionNode node) {
@@ -66,7 +66,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		private void VisitSelect(SelectStatementNode node) {
 			var queryExpression = (SqlQueryExpression)VisitExpression(node.QueryExpression);
-			var statement = new SelectStatement(queryExpression);
+			var statement = new SqlSelectStatement(queryExpression);
 			statements.Add(statement);
 		}
 
@@ -75,40 +75,42 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		private void VisitCreateView(CreateViewNode node) {
-			
+			var queryExpression = (SqlQueryExpression) VisitExpression(node.QueryExpression);
+			var statement = new CreateViewStatement(node.ViewName.Name, node.ColumnNames, queryExpression);
+			statements.Add(statement);
 		}
 
 		private void VisitCreateTable(CreateTableNode node) {
 			CreateTable.Build(typeResolver, node, statements);
 		}
 
-		public IEnumerable<Statement> Build(ISqlNode rootNode, SqlQuery query) {
+		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, SqlQuery query) {
 			VisitNode(rootNode);
 			return statements.AsReadOnly();
 		}
 
-		public IEnumerable<Statement> Build(ISqlNode rootNode, string query) {
+		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, string query) {
 			return Build(rootNode, new SqlQuery(query));
 		}
 
 		#region CreateTable
 
 		static class CreateTable {
-			public static void Build(IUserTypeResolver typeResolver, CreateTableNode node, ICollection<Statement> statements) {
+			public static void Build(IUserTypeResolver typeResolver, CreateTableNode node, ICollection<SqlStatement> statements) {
 				string idColumn = null;
 
 				var dataTypeBuilder = new DataTypeBuilder();
 
 				var tableName = node.TableName;
 				var constraints = new List<ConstraintInfo>();
-				var columns = new List<ColumnInfo>();
+				var columns = new List<SqlTableColumn>();
 
 				var expBuilder = new ExpressionBuilder();
 
 				foreach (var column in node.Columns) {
 					var dataType = dataTypeBuilder.Build(typeResolver, column.DataType);
 
-					var columnInfo = new ColumnInfo(column.ColumnName.Text, dataType);
+					var columnInfo = new SqlTableColumn(column.ColumnName.Text, dataType);
 
 					if (column.Default != null)
 						columnInfo.DefaultExpression = expBuilder.Build(column.Default);
@@ -203,14 +205,14 @@ namespace Deveel.Data.Sql.Compile {
 				throw new NotSupportedException();
 			}
 
-			private static Statement MakeAlterTableAddConstraint(ObjectName tableName, ConstraintInfo constraint) {
+			private static SqlStatement MakeAlterTableAddConstraint(ObjectName tableName, ConstraintInfo constraint) {
 				var action = new AddConstraintAction(constraint);
 
-				return new AlterTableStatement(tableName,new List<IAlterTableAction>{action});
+				return new SqlAlterTableStatement(tableName,new List<IAlterTableAction>{action});
 			}
 
-			private static Statement MakeCreateTable(ObjectName tableName, IEnumerable<ColumnInfo> columns, bool ifNotExists, bool temporary) {
-				var tree = new CreateTableStatement(tableName, columns.ToList());
+			private static SqlStatement MakeCreateTable(ObjectName tableName, IEnumerable<SqlTableColumn> columns, bool ifNotExists, bool temporary) {
+				var tree = new SqlCreateTableStatement(tableName, columns.ToList());
 				tree.IfNotExists = ifNotExists;
 				tree.Temporary = temporary;
 				return tree;
