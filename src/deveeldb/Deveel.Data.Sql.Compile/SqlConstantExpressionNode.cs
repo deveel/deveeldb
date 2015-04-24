@@ -24,7 +24,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// of an SQL command.
 	/// </summary>
 	[Serializable]
-	class SqlConstantExpressionNode : SqlNode, IExpressionNode {
+	public sealed class SqlConstantExpressionNode : SqlNode, IExpressionNode {
+		internal SqlConstantExpressionNode() {
+		}
+
 		/// <summary>
 		/// Gets an immutable instance of <see cref="ISqlObject"/> that represents the
 		/// constant value.

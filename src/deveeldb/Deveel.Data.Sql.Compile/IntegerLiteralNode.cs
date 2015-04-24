@@ -28,7 +28,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// node for more complex numeric values is <see cref="NumberLiteralNode"/>.
 	/// </remarks>
 	[Serializable]
-	class IntegerLiteralNode : SqlNode {
+	public sealed class IntegerLiteralNode : SqlNode {
+		internal IntegerLiteralNode() {
+		}
+
 		internal BigInteger BigValue { get; private set; }
 
 		/// <summary>

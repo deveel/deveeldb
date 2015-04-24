@@ -36,12 +36,12 @@ namespace Deveel.Data.Sql.Compile {
 			statements = new List<SqlStatement>();
 		}
 
-		private SqlExpression VisitExpression(IExpressionNode node) {
+		private SqlExpression Expression(IExpressionNode node) {
 			var visitor = new ExpressionBuilder();
 			return visitor.Build(node);
 		}
 
-		protected override void VisitNode(ISqlNode node) {
+		public override void Visit(ISqlNode node) {
 			if (node is CreateTableNode)
 				VisitCreateTable((CreateTableNode) node);
 			if (node is CreateViewNode)
@@ -54,38 +54,36 @@ namespace Deveel.Data.Sql.Compile {
 
 			if (node is SequenceOfStatementsNode)
 				VisitSequenceOfStatements((SequenceOfStatementsNode) node);
-
-			base.VisitNode(node);
 		}
 
 		private void VisitSequenceOfStatements(SequenceOfStatementsNode node) {
 			foreach (var statementNode in node.Statements) {
-				VisitNode(statementNode);
+				Visit(statementNode);
 			}
 		}
 
-		private void VisitSelect(SelectStatementNode node) {
-			var queryExpression = (SqlQueryExpression)VisitExpression(node.QueryExpression);
+		public override void VisitSelect(SelectStatementNode node) {
+			var queryExpression = (SqlQueryExpression)Expression(node.QueryExpression);
 			var statement = new SqlSelectStatement(queryExpression);
 			statements.Add(statement);
 		}
 
-		private void VisitCreateTrigger(CreateTriggerNode node) {
+		public override void VisitCreateTrigger(CreateTriggerNode node) {
 			
 		}
 
-		private void VisitCreateView(CreateViewNode node) {
-			var queryExpression = (SqlQueryExpression) VisitExpression(node.QueryExpression);
+		public override void VisitCreateView(CreateViewNode node) {
+			var queryExpression = (SqlQueryExpression)Expression(node.QueryExpression);
 			var statement = new CreateViewStatement(node.ViewName.Name, node.ColumnNames, queryExpression);
 			statements.Add(statement);
 		}
 
-		private void VisitCreateTable(CreateTableNode node) {
+		public override void VisitCreateTable(CreateTableNode node) {
 			CreateTable.Build(typeResolver, node, statements);
 		}
 
 		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, SqlQuery query) {
-			VisitNode(rootNode);
+			Visit(rootNode);
 			return statements.AsReadOnly();
 		}
 

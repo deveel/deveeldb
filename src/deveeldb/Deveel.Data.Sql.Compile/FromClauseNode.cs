@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
@@ -25,7 +24,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// </summary>
 	/// <seealso cref="IFromSourceNode"/>
 	[Serializable]
-	class FromClauseNode : SqlNode {
+	public sealed class FromClauseNode : SqlNode {
+		internal FromClauseNode() {
+		}
+
 		/// <summary>
 		/// Gets a read-only list of sources for the query.
 		/// </summary>

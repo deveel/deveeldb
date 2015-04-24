@@ -22,7 +22,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// A single item selected within a query node tree.
 	/// </summary>
 	[Serializable]
-	class SelectItemNode : SqlNode {
+	public sealed class SelectItemNode : SqlNode {
+		internal SelectItemNode() {
+		}
+
 		/// <summary>
 		/// Gets the name of the item selected, if the kind of item 
 		/// selected is an object name (variable, column, etc.).

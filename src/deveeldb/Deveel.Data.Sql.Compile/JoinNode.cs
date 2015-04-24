@@ -25,7 +25,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// </summary>
 	/// <seealso cref="IFromSourceNode"/>
 	[Serializable]
-	class JoinNode : SqlNode {
+	public sealed class JoinNode : SqlNode {
+		internal JoinNode() {	
+		}
+
 		public IFromSourceNode Source { get; private set; }
 
 		/// <summary>

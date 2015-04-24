@@ -15,12 +15,14 @@
 //
 
 using System;
-using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	class SelectStatementNode : SqlNode, IStatementNode {
-		public SqlQueryExpressionNode QueryExpression { get; private set; }
+	public sealed class SelectStatementNode : SqlNode, IStatementNode {
+		internal SelectStatementNode() {	
+		}
+
+		public SqlQueryExpressionNode QueryExpression { get; internal set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "sql_query_expression") {

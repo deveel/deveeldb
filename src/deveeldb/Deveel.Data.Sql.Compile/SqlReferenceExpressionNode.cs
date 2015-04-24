@@ -18,11 +18,14 @@ using System;
 
 namespace Deveel.Data.Sql.Compile {
 	/// <summary>
-	/// An expression node that references an object within the databse
+	/// An expression node that references an object within the database
 	/// context (such as a table, a type, a variable, etc.).
 	/// </summary>
 	[Serializable]
-	class SqlReferenceExpressionNode : SqlNode, IExpressionNode {
+	public sealed class SqlReferenceExpressionNode : SqlNode, IExpressionNode {
+		internal SqlReferenceExpressionNode() {
+		}
+
 		/// <summary>
 		/// Gets the full name of the object references.
 		/// </summary>

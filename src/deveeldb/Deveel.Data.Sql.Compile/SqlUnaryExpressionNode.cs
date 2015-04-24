@@ -23,7 +23,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// given operand.
 	/// </summary>
 	[Serializable]
-	class SqlUnaryExpressionNode : SqlNode, IExpressionNode {
+	public sealed class SqlUnaryExpressionNode : SqlNode, IExpressionNode {
+		internal SqlUnaryExpressionNode() {
+		}
+
 		/// <summary>
 		/// Gets the string representation of the operator.
 		/// </summary>

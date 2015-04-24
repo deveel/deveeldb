@@ -23,9 +23,12 @@ namespace Deveel.Data.Sql.Compile {
 	/// an SQL command.
 	/// </summary>
 	[Serializable]
-	class StringLiteralNode : SqlNode {
+	public sealed class StringLiteralNode : SqlNode {
+		internal StringLiteralNode() {
+		}
+
 		/// <summary>
-		/// Gets the literl string value.
+		/// Gets the literal string value.
 		/// </summary>
 		public string Value { get; private set; }
 

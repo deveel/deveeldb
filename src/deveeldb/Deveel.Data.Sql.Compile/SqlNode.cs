@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// </summary>
 	/// <seealso cref="ISqlNode"/>
 	[Serializable]
-	class SqlNode : ISqlNode,  IAstNodeInit {
+	public class SqlNode : ISqlNode,  IAstNodeInit {
 		public SqlNode() {
 			ChildNodes = new ReadOnlyCollection<ISqlNode>(new ISqlNode[0]);
 			Tokens = new ReadOnlyCollection<Token>(new Token[0]);

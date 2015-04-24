@@ -15,6 +15,9 @@
 //
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	/// <summary>
@@ -27,13 +30,158 @@ namespace Deveel.Data.Sql.Compile {
 		/// </summary>
 		/// <param name="node">The <see cref="ISqlNode"/> to visit.</param>
 		/// <seealso cref="ISqlNodeVisitor.Visit"/>
-		protected virtual void VisitNode(ISqlNode node) {
-			if (node is ISqlVisitableNode)
-				((ISqlVisitableNode)node).Accept(this);
+		public virtual void Visit(ISqlNode node) {
+			if (node is IntegerLiteralNode) {
+				VisitIntegerLiteral((IntegerLiteralNode) node);
+			} else if (node is NumberLiteralNode) {
+				VisitNumberLiteral((NumberLiteralNode) node);
+			} else if (node is StringLiteralNode) {
+				VisitStringLiteral((StringLiteralNode) node);
+			} else if (node is DataTypeNode) {
+				VisitDataType((DataTypeNode) node);
+			} else if (node is IExpressionNode) {
+				VisitExpression((IExpressionNode) node);
+			} else if (node is IStatementNode) {
+				VisitStatement((IStatementNode) node);
+			} else if (node is ISqlVisitableNode) {
+				((ISqlVisitableNode) node).Accept(this);
+			}
 		}
 
-		void ISqlNodeVisitor.Visit(ISqlNode node) {
-			VisitNode(node);
+		public virtual void VisitStringLiteral(StringLiteralNode node) {
 		}
+
+		public virtual void VisitNumberLiteral(NumberLiteralNode node) {
+		}
+
+		public virtual void VisitIntegerLiteral(IntegerLiteralNode node) {
+		}
+
+		public virtual void VisitDataType(DataTypeNode node) {
+		}
+
+		public virtual void VisitExpression(IExpressionNode node) {
+			if (node == null)
+				return;
+			
+			if (node is SqlConstantExpressionNode) {
+				VisitConstantExpression((SqlConstantExpressionNode) node);
+			} else if (node is SqlReferenceExpressionNode) {
+				VisitReferenceExpression((SqlReferenceExpressionNode) node);
+			} else if (node is SqlVariableRefExpressionNode) {
+				VisitVariableRefExpression((SqlVariableRefExpressionNode) node);
+			} else if (node is SqlBetweenExpressionNode) {
+				VisitBetweenExpression((SqlBetweenExpressionNode) node);
+			} else if (node is SqlCaseExpressionNode) {
+				VisitCaseExpression((SqlCaseExpressionNode) node);
+			} else if (node is SqlFunctionCallExpressionNode) {
+				VisitFunctionCall((SqlFunctionCallExpressionNode) node);
+			} else if (node is SqlExpressionTupleNode) {
+				VisitTupleExpression((SqlExpressionTupleNode) node);
+			} else if (node is SqlBinaryExpressionNode) {
+				VisitBinaryExpression((SqlBinaryExpressionNode) node);
+			} else if (node is SqlUnaryExpressionNode) {
+				VisitUnaryExpression((SqlUnaryExpressionNode) node);
+			} else if (node is SqlQueryExpressionNode) {
+				VisitQueryExpression((SqlQueryExpressionNode) node);
+			} else {
+				throw new InvalidOperationException(String.Format("The expression node of type '{0}' is invalid.", node.GetType()));
+			}
+		}
+
+		public virtual void VisitNodeList(IEnumerable<ISqlNode> nodes) {
+			foreach (var node in nodes) {
+				Visit(node);
+			}
+		}
+
+		#region Expressions
+
+		public virtual void VisitQueryExpression(SqlQueryExpressionNode node) {
+		}
+
+		public virtual void VisitTupleExpression(SqlExpressionTupleNode node) {
+			var exps = node.Expressions;
+			if (exps != null)
+				VisitNodeList(exps.Cast<ISqlNode>());
+		}
+
+		public virtual void VisitUnaryExpression(SqlUnaryExpressionNode node) {
+		}
+
+		public virtual void VisitBinaryExpression(SqlBinaryExpressionNode node) {
+		}
+
+		public virtual void VisitFunctionCall(SqlFunctionCallExpressionNode node) {
+		}
+
+		public virtual void VisitCaseExpression(SqlCaseExpressionNode node) {
+		}
+
+		public virtual void VisitBetweenExpression(SqlBetweenExpressionNode node) {
+		}
+
+		public virtual void VisitVariableRefExpression(SqlVariableRefExpressionNode node) {
+		}
+
+		public virtual void VisitConstantExpression(SqlConstantExpressionNode node) {
+		}
+
+		public virtual void VisitReferenceExpression(SqlReferenceExpressionNode node) {
+		}
+
+		#endregion
+
+		#region Statements
+
+		public virtual void VisitStatement(IStatementNode node) {
+			if (node is CreateTableNode)
+				VisitCreateTable((CreateTableNode) node);
+			if (node is CreateViewNode)
+				VisitCreateView((CreateViewNode) node);
+			if (node is CreateTriggerNode) {
+				VisitCreateTrigger((CreateTriggerNode) node);
+			} else if (node is SelectStatementNode) {
+				VisitSelect((SelectStatementNode) node);
+			}
+		}
+
+		public virtual void VisitSelect(SelectStatementNode node) {
+			var exp = node.QueryExpression;
+			if (exp != null)
+				VisitExpression(exp);
+		}
+
+		public virtual  void VisitCreateTrigger(CreateTriggerNode node) {
+			if (node.ProcedureArguments != null)
+				VisitNodeList(node.ProcedureArguments);
+
+			// TODO: handle the body
+		}
+
+		public virtual void VisitCreateView(CreateViewNode node) {
+		}
+
+		public virtual void VisitCreateTable(CreateTableNode node) {
+			if (node.Columns != null)
+				VisitTableColumns(node.Columns);
+			if (node.Constraints != null)
+				VisitTableConstraints(node.Constraints);
+		}
+
+		public virtual void VisitTableConstraints(IEnumerable<TableConstraintNode> constraints) {
+			foreach (var constraint in constraints) {
+				VisitTableConstraint(constraint);
+			}
+		}
+
+		public virtual void VisitTableConstraint(TableConstraintNode arg) {
+			
+		}
+
+		public virtual void VisitTableColumns(IEnumerable<TableColumnNode> columnNodes) {
+		}
+
+		#endregion
 	}
 }

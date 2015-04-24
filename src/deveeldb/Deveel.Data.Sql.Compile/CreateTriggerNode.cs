@@ -19,7 +19,10 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	class CreateTriggerNode : SqlNode, IStatementNode {
+	public sealed class CreateTriggerNode : SqlNode, IStatementNode {
+		internal CreateTriggerNode() {
+		}
+
 		public ObjectName TriggerName { get; private set; }
 
 		public bool IfNotExists { get; private set; }

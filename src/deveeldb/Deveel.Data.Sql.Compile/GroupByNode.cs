@@ -16,49 +16,36 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	/// <summary>
-	/// A node that descrbes the <c>GROUP BY</c> clause in a SQL query.
+	/// A node that describes the <c>GROUP BY</c> clause in a SQL query.
 	/// </summary>
 	[Serializable]
-	class GroupByNode : SqlNode {
+	public sealed class GroupByNode : SqlNode {
+		internal GroupByNode() {
+		}
+
 		/// <summary>
 		/// Gets the expression node to group the results.
 		/// </summary>
 		public IEnumerable<IExpressionNode> GroupExpressions { get; private set; }
 
 		/// <summary>
-		/// Gets the <c>HVAING</c> expression used to filter the groupped results.
+		/// Gets the <c>HAVING</c> expression used to filter the grouped results.
 		/// </summary>
-		public IEnumerable<IExpressionNode> HavingExpressions { get; private set; }
+		public IExpressionNode HavingExpression { get; private set; }
 
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node.NodeName == "sql_expression_ilist") {
+			if (node.NodeName == "sql_expression_list") {
 				GetGroupExpressions(node);
 			} else if (node.NodeName == "having_clause_opt") {
-				GetHavingClause(node);
+				HavingExpression = node.ChildNodes.FirstOrDefault() as IExpressionNode;
 			}
 
 			return base.OnChildNode(node);
-		}
-
-		private void GetHavingClause(ISqlNode node) {
-			foreach (var childNode in node.ChildNodes) {
-				if (childNode.NodeName == "sql_expression_list")
-					GetHavingExpressions(childNode);
-			}
-		}
-
-		private void GetHavingExpressions(ISqlNode node) {
-			var exps = new List<IExpressionNode>();
-			foreach (var childNode in node.ChildNodes) {
-				if (childNode is IExpressionNode)
-					exps.Add((IExpressionNode) childNode);
-			}
-
-			HavingExpressions = exps.AsReadOnly();
 		}
 
 		private void GetGroupExpressions(ISqlNode node) {

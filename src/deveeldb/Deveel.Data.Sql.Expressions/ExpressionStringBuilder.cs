@@ -188,7 +188,7 @@ namespace Deveel.Data.Sql.Expressions {
 				}
 
 				if (!String.IsNullOrEmpty(column.Alias))
-					builder.AppendFormat("AS {0}", column.Alias);
+					builder.AppendFormat(" AS {0}", column.Alias);
 
 				if (i < sz - 1)
 					builder.Append(", ");
@@ -208,7 +208,27 @@ namespace Deveel.Data.Sql.Expressions {
 
 			PrintFromClause(query.FromClause);
 
-			// TODO: WHERE, HAVING, GROUP BY, GROUP MAX, COMPOSITE ...
+			if (query.WhereExpression != null) {
+				builder.Append(" WHERE ");
+				Visit(query.WhereExpression);
+			}
+
+			if (query.GroupBy != null) {
+				builder.Append(" GROUP BY ");
+				VisitExpressionList(query.GroupBy.ToArray());
+
+				if (query.HavingExpression != null) {
+					builder.Append(" HVAING ");
+					Visit(query.HavingExpression);
+				}
+			}
+
+			if (query.GroupMax != null) {
+				builder.Append(" GROUP MAX ");
+				builder.Append(query.GroupMax.FullName);
+			}
+
+			// TODO: COMPOSITE ...
 
 			if (!rootQuery)
 				builder.Append(")");

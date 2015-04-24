@@ -18,8 +18,11 @@ using System;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	class ColumnConstraintNode : SqlNode {
+	public sealed class ColumnConstraintNode : SqlNode {
 		private bool notSeen;
+
+		internal ColumnConstraintNode() {
+		}
 
 		public string ConstraintType { get; private set; }
 

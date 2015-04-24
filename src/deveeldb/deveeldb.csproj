@@ -399,7 +399,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\DataTypeBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ExpressionBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ITableElementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\JoinTypeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlDataTypeGrammar.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlExpressionGrammar.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlGrammarBase.cs" />
@@ -534,7 +533,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlNodeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\Token.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\WhereClauseNode.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\IFromQueryConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\IFromSourceConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\IGroupByConfiguration.cs" />

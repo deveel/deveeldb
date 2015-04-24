@@ -20,10 +20,10 @@ using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	class SequenceOfStatementsNode : SqlNode {
+	public sealed class SequenceOfStatementsNode : SqlNode {
 		private readonly ICollection<IStatementNode> statementNodes;
 
-		public SequenceOfStatementsNode() {
+		internal SequenceOfStatementsNode() {
 			statementNodes = new List<IStatementNode>();
 		}
 

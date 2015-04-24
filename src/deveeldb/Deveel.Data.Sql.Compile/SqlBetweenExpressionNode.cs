@@ -23,7 +23,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// (inclusive) and <see cref="MaxValue"/> (exclusive).
 	/// </summary>
 	[Serializable]
-	class SqlBetweenExpressionNode : SqlNode, IExpressionNode {
+	public sealed class SqlBetweenExpressionNode : SqlNode, IExpressionNode {
+		internal SqlBetweenExpressionNode() {
+		}
+
 		/// <summary>
 		/// Gets the expression to be tested against <see cref="MinValue"/>
 		/// and <see cref="MaxValue"/>.

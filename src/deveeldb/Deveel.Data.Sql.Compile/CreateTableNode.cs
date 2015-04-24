@@ -20,16 +20,19 @@ using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	class CreateTableNode : SqlNode, IStatementNode { 
-		public ObjectNameNode TableName { get; private set; }
+	public sealed class CreateTableNode : SqlNode, IStatementNode {
+		internal CreateTableNode() {
+		}
 
-		public bool IfNotExists { get; private set; }
+		public ObjectNameNode TableName { get; internal set; }
 
-		public bool Temporary { get; private set; }
+		public bool IfNotExists { get; internal set; }
 
-		public IEnumerable<TableColumnNode> Columns { get; private set; }
+		public bool Temporary { get; internal set; }
 
-		public IEnumerable<TableConstraintNode> Constraints { get; private set; }
+		public IEnumerable<TableColumnNode> Columns { get; internal set; }
+
+		public IEnumerable<TableConstraintNode> Constraints { get; internal set; }
 
 		protected override void OnNodeInit() {
 			TableName = this.FindNode<ObjectNameNode>();

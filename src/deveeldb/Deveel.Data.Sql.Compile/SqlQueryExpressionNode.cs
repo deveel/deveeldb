@@ -24,7 +24,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// from a set of sources defined, given some conditions specified.
 	/// </summary>
 	[Serializable]
-	class SqlQueryExpressionNode : SqlNode, IExpressionNode {
+	public sealed class SqlQueryExpressionNode : SqlNode, IExpressionNode {
+		internal SqlQueryExpressionNode() {
+		}
+
 		/// <summary>
 		/// Gets a boolean value indicating if the selection will return
 		/// all columns from the sources specified in <see cref="FromClause"/>.
@@ -51,7 +54,7 @@ namespace Deveel.Data.Sql.Compile {
 		/// <summary>
 		/// Gets an optional clause that is used to filter the queried objects.
 		/// </summary>
-		public WhereClauseNode WhereExpression { get; private set; }
+		public IExpressionNode WhereExpression { get; private set; }
 
 		/// <summary>
 		/// Gets an optional clause used to group and filter the results of
@@ -82,7 +85,11 @@ namespace Deveel.Data.Sql.Compile {
 			} else if (node.NodeName == "from_clause_opt") {
 				var clause = node.ChildNodes.FirstOrDefault();
 				if (clause != null)
-					FromClause = (FromClauseNode)clause;
+					FromClause = (FromClauseNode) clause;
+			} else if (node.NodeName == "where_clause_opt") {
+				GetWhereClause(node);
+			} else if (node.NodeName == "group_by_opt") {
+				GroupBy = node.ChildNodes.FirstOrDefault() as GroupByNode;
 			} else if (node.NodeName == "query_composite_opt") {
 				var composite = node.ChildNodes.FirstOrDefault();
 				if (composite != null)
@@ -90,6 +97,15 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		private void GetWhereClause(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is IExpressionNode) {
+					WhereExpression = childNode as IExpressionNode;
+					break;
+				}
+			}
 		}
 
 		private void GetRestrict(ISqlNode node) {

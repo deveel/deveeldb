@@ -16,11 +16,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	class TableColumnNode : SqlNode, ITableElementNode {
+	public sealed class TableColumnNode : SqlNode, ITableElementNode {
+		internal TableColumnNode() {
+		}
+
 		public IdentifierNode ColumnName { get; private set; }
 
 		public DataTypeNode DataType { get; private set; }

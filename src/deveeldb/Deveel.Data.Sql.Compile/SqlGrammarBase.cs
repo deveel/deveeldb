@@ -223,8 +223,9 @@ namespace Deveel.Data.Sql.Compile {
 			var joinType = new NonTerminal("join_type");
 			var join = new NonTerminal("join", typeof (JoinNode));
 			var onOpt = new NonTerminal("on_opt");
-			var whereClauseOpt = new NonTerminal("where_clause_opt", typeof(WhereClauseNode));
+			var whereClauseOpt = new NonTerminal("where_clause_opt");
 			var groupByOpt = new NonTerminal("group_by_opt");
+			var groupBy = new NonTerminal("group_by", typeof(GroupByNode));
 			var havingClauseOpt = new NonTerminal("having_clause_opt");
 			var orderOpt = new NonTerminal("order_opt");
 			var sortedDef = new NonTerminal("sorted_def", typeof(OrderByNode));
@@ -270,8 +271,9 @@ namespace Deveel.Data.Sql.Compile {
 							Key("RIGHT") + Key("JOIN") |
 							Key("RIGHT") + Key("OUTER") + Key("JOIN") |
 							Comma;
-			whereClauseOpt.Rule = Empty | Key("WHERE") + SqlExpressionList();
-			groupByOpt.Rule = Empty | Key("GROUP") + Key("BY") + SqlExpressionList() + havingClauseOpt;
+			whereClauseOpt.Rule = Empty | Key("WHERE") + SqlExpression();
+			groupByOpt.Rule = Empty | groupBy;
+			groupBy.Rule = Key("GROUP") + Key("BY") + SqlExpressionList() + havingClauseOpt;
 			havingClauseOpt.Rule = Empty | Key("HAVING") + SqlExpression();
 			queryCompositeOpt.Rule = Empty | queryComposite;
 			queryComposite.Rule = Key("UNION") + allOpt + expression |

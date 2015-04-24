@@ -21,7 +21,11 @@ namespace Deveel.Data.Sql.Compile {
 	/// Within an SQL query node, this describes the ordering criteria
 	/// that will be applied when returning the results of the selection.
 	/// </summary>
-	class OrderByNode : SqlNode {
+	[Serializable]
+	public sealed class OrderByNode : SqlNode {
+		internal OrderByNode() {
+		}
+
 		/// <summary>
 		/// Gets the expression used to compare results and put in order.
 		/// </summary>

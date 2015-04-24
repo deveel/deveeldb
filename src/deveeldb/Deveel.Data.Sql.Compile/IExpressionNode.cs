@@ -21,6 +21,6 @@ namespace Deveel.Data.Sql.Compile {
 	/// This interface acts like a marker that indicates
 	/// if a <see cref="ISqlNode"/> represents a SQL expression.
 	/// </summary>
-	interface IExpressionNode : ISqlNode {
+	public interface IExpressionNode : ISqlNode {
 	}
 }

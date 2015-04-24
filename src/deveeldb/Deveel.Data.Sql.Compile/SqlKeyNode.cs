@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Compile {
 	/// </summary>
 	/// <seealso cref="ISqlNode"/>
 	[Serializable]
-	class SqlKeyNode : ISqlChildNode {
+	public sealed class SqlKeyNode : ISqlChildNode {
 		internal SqlKeyNode(Token token) {
 			this.token = token;
 			Text = token.Text;

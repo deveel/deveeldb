@@ -30,7 +30,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	class ObjectNameNode : SqlNode {
+	public sealed class ObjectNameNode : SqlNode {
+		internal ObjectNameNode() {
+		}
+
 		/// <summary>
 		/// The full object name as composed from the input SQL string analyzed.
 		/// </summary>

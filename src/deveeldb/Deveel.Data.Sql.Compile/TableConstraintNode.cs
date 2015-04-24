@@ -20,12 +20,12 @@ using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
-	class TableConstraintNode : SqlNode, ITableElementNode {
+	public sealed class TableConstraintNode : SqlNode, ITableElementNode {
 		private bool notSeen;
 		private readonly IList<string> columns;
 		private readonly IList<string> refColumns;
 
-		public TableConstraintNode() {
+		internal TableConstraintNode() {
 			columns = new List<string>();
 			refColumns = new List<string>();
 		}

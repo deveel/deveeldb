@@ -17,6 +17,6 @@
 using System;
 
 namespace Deveel.Data.Sql.Compile {
-	interface IStatementNode : ISqlNode {
+	public interface IStatementNode : ISqlNode {
 	}
 }

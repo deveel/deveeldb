@@ -22,7 +22,14 @@ namespace Deveel.Data.Sql.Compile {
 	/// An expression containing a set of other expressions.
 	/// </summary>
 	[Serializable]
-	class SqlExpressionTupleNode : SqlNode, IExpressionNode {
+	public sealed class SqlExpressionTupleNode : SqlNode, IExpressionNode {
+		internal SqlExpressionTupleNode() {
+		}
+
+		public SqlExpressionTupleNode(IEnumerable<IExpressionNode> expressions) {
+			Expressions = expressions;
+		}
+
 		/// <summary>
 		/// Gets a read-only list of <see cref="IExpressionNode">expression</see> that
 		/// are contained within this tuple.

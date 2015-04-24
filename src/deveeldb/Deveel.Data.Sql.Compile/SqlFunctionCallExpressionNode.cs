@@ -22,7 +22,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// A node in a SQL command tree that is used to request a function.
 	/// </summary>
 	[Serializable]
-	class SqlFunctionCallExpressionNode : SqlNode, IExpressionNode {
+	public sealed class SqlFunctionCallExpressionNode : SqlNode, IExpressionNode {
+		internal SqlFunctionCallExpressionNode() {
+		}
+
 		/// <summary>
 		/// Gets the name of the function to be invoked.
 		/// </summary>
@@ -48,7 +51,7 @@ namespace Deveel.Data.Sql.Compile {
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is ObjectNameNode) {
 				FunctionName = ((ObjectNameNode) node).Name;
-			} else if (node.NodeName == "sql_expression_list") {
+			} else if (node.NodeName == "function_call_args_list") {
 				GetArguments(node);
 			}
 

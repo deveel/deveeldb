@@ -225,5 +225,24 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.AreEqual(1, queryExpression.FromClause.AllTables.Count());
 			Assert.AreEqual("table", queryExpression.FromClause.AllTables.First().Name);
 		}
+
+		[Test]
+		[Category("SQL Parse")]
+		public void ParseSelectGroupBy() {
+			const string sql = "SELECT col1 AS a, AVG(col2) b FROM table WHERE b > 2 GROUP BY a";
+
+			SqlExpression expression = null;
+			Assert.DoesNotThrow(() => expression = SqlExpression.Parse(sql));
+			Assert.IsNotNull(expression);
+			Assert.IsInstanceOf<SqlQueryExpression>(expression);
+
+			var queryExpression = (SqlQueryExpression)expression;
+			Assert.IsNotEmpty(queryExpression.SelectColumns);
+
+			var groupBy = queryExpression.GroupBy;
+			Assert.IsNotNull(groupBy);
+			Assert.IsNotEmpty(groupBy);
+			Assert.AreEqual(1, groupBy.Count());
+		}
 	}
 }

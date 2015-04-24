@@ -23,7 +23,10 @@ namespace Deveel.Data.Sql.Compile {
 	/// a selection to restrict the results.
 	/// </summary>
 	[Serializable]
-	class WhereClauseNode : SqlNode {
+	public sealed class WhereClauseNode : SqlNode {
+		internal WhereClauseNode() {
+		}
+
 		/// <summary>
 		/// Gets a read-only list of expressions used to filter
 		/// </summary>
