@@ -209,7 +209,8 @@ namespace Deveel.Data.Sql.Query {
 				if (allInner) {
 					// If the whole join set is inner joins then simply move the on
 					// expression (if there is one) to the WHERE clause.
-					searchExpression = SqlExpression.And(searchExpression, onExpression);
+					if (searchExpression != null && onExpression != null)
+						searchExpression = SqlExpression.And(searchExpression, onExpression);
 				} else {
 					// Not all inner joins,
 					if (joinType == JoinType.Inner && onExpression == null) {
@@ -218,7 +219,7 @@ namespace Deveel.Data.Sql.Query {
 						// Either an inner join with an ON expression, or an outer join with
 						// ON expression
 						if (onExpression == null)
-							throw new Exception("No ON expression in join.");
+							throw new InvalidOperationException(String.Format("Join of type {0} requires ON expression.", joinType));
 
 						// Resolve the on_expression
 						onExpression = onExpression.Prepare(queryFrom.ExpressionPreparer);

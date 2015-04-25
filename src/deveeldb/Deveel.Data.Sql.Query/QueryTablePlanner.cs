@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Query {
 			// Merge the unique table names list
 			var newUniqueList = new string[left.UniqueNames.Length + right.UniqueNames.Length];
 			Array.Copy(left.UniqueNames, 0, newUniqueList, 0, left.UniqueNames.Length);
-			Array.Copy(right.UniqueNames, 0, newVarList, left.UniqueNames.Length - 1, right.UniqueNames.Length);
+			Array.Copy(right.UniqueNames, 0, newUniqueList, left.UniqueNames.Length - 1, right.UniqueNames.Length);
 
 			// Return the new table source plan.
 			return new TablePlan(plan, newVarList, newUniqueList);
@@ -817,6 +817,11 @@ namespace Deveel.Data.Sql.Query {
 
 			public int CompareTo(IExpressionPlan other) {
 				return OptimizeFactor.CompareTo(other.OptimizeFactor);
+			}
+
+			int IComparable.CompareTo(object obj) {
+				var other = (ExpressionPlan) obj;
+				return CompareTo(other);
 			}
 		}
 

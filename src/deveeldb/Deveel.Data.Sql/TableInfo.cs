@@ -173,6 +173,17 @@ namespace Deveel.Data.Sql {
 			IsPermanent = true;
 		}
 
+		internal void AddColumnSafe(ColumnInfo column) {
+			if (column == null)
+				throw new ArgumentNullException("column");
+
+			AssertNotReadOnly();
+
+			columnsCache.Clear();
+			column.TableInfo = this;
+			columns.Add(column);
+		}
+
 		/// <summary>
 		/// Adds a new column to the table at the last position of the
 		/// columns list in the table metadata.
@@ -276,13 +287,18 @@ namespace Deveel.Data.Sql {
 		public int IndexOfColumn(ObjectName columnName) {
 			int index;
 			if (!columnsCache.TryGetValue(columnName, out index)) {
+				bool found = false;
 				for (int i = 0; i < columns.Count; i++) {
 					var column = columns[i];
 					if (column.ColumnName.Equals(columnName.Name, StringComparison.Ordinal)) {
 						index = i;
 						columnsCache[columnName] = index;
+						found = true;
 					}
 				}
+
+				if (!found)
+					index = -1;
 			}
 
 			return index;

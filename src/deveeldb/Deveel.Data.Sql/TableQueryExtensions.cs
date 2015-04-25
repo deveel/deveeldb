@@ -1260,22 +1260,18 @@ namespace Deveel.Data.Sql {
 					List<int> tableRowSet = new List<int>();
 
 					// Get the set of all rows in the given table.
-					List<int> tableSelectedSet = new List<int>();
-					var e = otherTable.GetEnumerator();
-					while (e.MoveNext()) {
-						int rowIndex = e.Current.RowId.RowNumber;
-						tableSelectedSet.Add(rowIndex);
-					}
+					var tableSelectedSet = otherTable.Select(x => x.RowId.RowNumber).ToList();
 
 					int tableSelectedSetSize = tableSelectedSet.Count;
 
 					// Join with the set of rows in this table.
-					e = table.GetEnumerator();
+					var e = table.GetEnumerator();
 					while (e.MoveNext()) {
 						int rowIndex = e.Current.RowId.RowNumber;
 						for (int i = 0; i < tableSelectedSetSize; ++i) {
 							thisRowSet.Add(rowIndex);
 						}
+
 						tableRowSet.AddRange(tableSelectedSet);
 					}
 

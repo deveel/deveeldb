@@ -100,7 +100,9 @@ namespace Deveel.Data.Sql {
 			return TableInfo.IndexOfColumn(columnName.Name);
 		}
 
-		protected abstract ObjectName GetResolvedColumnName(int column);
+		protected virtual ObjectName GetResolvedColumnName(int column) {
+			return TableInfo[column].FullColumnName;
+		}
 
 		ObjectName IQueryTable.GetResolvedColumnName(int column) {
 			return GetResolvedColumnName(column);
@@ -110,7 +112,9 @@ namespace Deveel.Data.Sql {
 			return GetIndex(column, originalColumn, table);
 		}
 
-		protected abstract ColumnIndex GetIndex(int column, int originalColumn, ITable table);
+		protected virtual ColumnIndex GetIndex(int column, int originalColumn, ITable table) {
+			return GetIndex(column);
+		}
 
 		protected abstract IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor);
 

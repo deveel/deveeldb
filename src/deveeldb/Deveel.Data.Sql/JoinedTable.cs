@@ -93,7 +93,7 @@ namespace Deveel.Data.Sql {
 						IndexType = columnInfo.IndexType
 					};
 
-					vtTableInfo.AddColumn(newColumnInfo);
+					vtTableInfo.AddColumnSafe(newColumnInfo);
 				}
 			}
 

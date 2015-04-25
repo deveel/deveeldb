@@ -31,8 +31,8 @@ namespace Deveel.Data.Sql {
 			this.tableItems.AddRange(tableItems);
 		}
 
-		public void Add(IRootTable table, IList<int> row_set) {
-			tableItems.Add(new RawTableItem(table, row_set));
+		public void Add(IRootTable table, IList<int> rowSet) {
+			tableItems.Add(new RawTableItem(table, rowSet));
 		}
 
 		public ITable[] GetTables() {

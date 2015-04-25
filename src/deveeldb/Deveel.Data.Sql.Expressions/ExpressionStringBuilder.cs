@@ -109,6 +109,11 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitCast(SqlCastExpression castExpression) {
+			builder.Append("CAST ");
+			Visit(castExpression.Value);
+			builder.Append(" AS ");
+			builder.Append(castExpression.DataType);
+
 			return base.VisitCast(castExpression);
 		}
 
@@ -237,8 +242,51 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		private void PrintFromClause(FromClause fromClause) {
-			// TODO:
 			builder.Append("FROM ");
+
+			var tables = fromClause.AllTables.ToList();
+			for (int i = 0; i < tables.Count; i++) {
+				var source = tables[i];
+
+				JoinPart joinPart = null;
+
+				if (i > 0) {
+					joinPart = fromClause.GetJoinPart(i - 1);
+					if (joinPart != null) {
+						if (joinPart.JoinType == JoinType.Inner) {
+							builder.Append(" INNER JOIN ");
+						} else if (joinPart.JoinType == JoinType.Right) {
+							builder.Append(" RIGHT OUTER JOIN ");
+						} else if (joinPart.JoinType == JoinType.Left) {
+							builder.Append(" LEFT OUTER JOIN ");
+						} else if (joinPart.JoinType == JoinType.Full) {
+							builder.Append(" FULL OUTER JOINT ");
+						}
+					}
+				}
+
+				if (source.IsSubQuery) {
+					builder.Append("(");
+					Visit(source.SubQuery);
+					builder.Append(")");
+				} else {
+					builder.Append(source.Name);
+				}
+
+				if (!String.IsNullOrEmpty(source.Alias)) {
+					builder.Append(" AS ");
+					builder.Append(source.Alias);
+				}
+
+				if (i < tables.Count - 1) {
+					if (joinPart == null) {
+						builder.Append(", ");
+					} else {
+						builder.Append(" ON ");
+						Visit(joinPart.OnExpression);
+					}
+				}
+			}
 		}
 
 		public override SqlExpression VisitReference(SqlReferenceExpression reference) {

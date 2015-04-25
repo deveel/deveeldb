@@ -17,7 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Query {
-	interface IExpressionPlan : IComparable<IExpressionPlan> {
+	interface IExpressionPlan : IComparable<IExpressionPlan>, IComparable {
 		float OptimizeFactor { get; } 
 	}
 }

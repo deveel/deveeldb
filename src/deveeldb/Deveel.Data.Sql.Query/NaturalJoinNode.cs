@@ -34,7 +34,10 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		public override ITable Evaluate(IQueryContext context) {
-			throw new NotImplementedException();
+			// Solve the left branch result
+			var leftResult = Left.Evaluate(context);
+			// Solve the Join (natural)
+			return leftResult.Join(Right.Evaluate(context));
 		}
 	}
 }

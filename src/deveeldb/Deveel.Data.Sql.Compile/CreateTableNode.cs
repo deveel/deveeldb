@@ -24,11 +24,11 @@ namespace Deveel.Data.Sql.Compile {
 		internal CreateTableNode() {
 		}
 
-		public ObjectNameNode TableName { get; internal set; }
+		public ObjectNameNode TableName { get; private set; }
 
-		public bool IfNotExists { get; internal set; }
+		public bool IfNotExists { get; private set; }
 
-		public bool Temporary { get; internal set; }
+		public bool Temporary { get; private set; }
 
 		public IEnumerable<TableColumnNode> Columns { get; internal set; }
 

@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql {
 					IndexType = origColumnInfo.IndexType
 				};
 
-				subsetTableInfo.AddColumn(columnInfo);
+				subsetTableInfo.AddColumnSafe(columnInfo);
 
 				reverseColumnMap[mapTo] = i;
 			}
