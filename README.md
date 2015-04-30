@@ -5,6 +5,8 @@
 DeveelDB
 ==========
 
+[![Join the chat at https://gitter.im/deveel/deveeldb](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/deveel/deveeldb?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 DeveelDB is a complete embeddable SQL-99 RDBMS for .NET/Mono frameworks. The system is designed around the standards ISO/ANSI and supports the following features:
 
 - ACID Transactions: `BEGIN`, `COMMIT`, `ROLLBACK` (Isolation Level *Serializable*)
